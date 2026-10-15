@@ -40,7 +40,7 @@
  * Every URL is built from the request's own origin and the app's base, so
  * it works on salvageunion.io/build and on a Worker Preview alike.
  */
-import { reportError } from 'observability/cloudflare'
+
 import { fnv1a } from '../lib/fnv1a'
 import type {
   InvitePreviewAnswer,
@@ -57,6 +57,7 @@ import {
   titleCaseSlug,
 } from '../lib/linkPreview/previewSummary'
 import { pathInApp } from './basePath'
+import { reportError } from './errorReports'
 import type { ShellMeta } from './shellMeta'
 
 export type PreviewEnv = {

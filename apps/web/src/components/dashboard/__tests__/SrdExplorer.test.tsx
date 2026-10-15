@@ -12,8 +12,8 @@ import { fireEvent, render, waitFor } from '@testing-library/react'
 import { buildCatalogSections, EntityHrefProvider } from '../../index'
 import { SrdExplorer } from '../SrdExplorer'
 
-// Unmounting between tests is handled globally: the UI library's bunfig preloads
-// ../../test/testing-library.ts, whose act()-wrapped `afterEach(cleanup)` keeps
+// Unmounting between tests is handled globally: the workspace's bunfig preloads
+// `test/testing-library.ts`, whose act()-wrapped `afterEach(cleanup)` keeps
 // the body-scoped role queries below from seeing a prior test's leftover DOM.
 
 /** Narrow a found element to a real `<button>`, failing loudly otherwise. */

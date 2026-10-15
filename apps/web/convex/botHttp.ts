@@ -1,3 +1,5 @@
+import type { BotOpName } from 'cantina-domain/botWire'
+import { BOT_OP_NAMES, BOT_PATH_PREFIX } from 'cantina-domain/botWire'
 import { internal } from './_generated/api'
 import { httpAction } from './_generated/server'
 
@@ -36,24 +38,14 @@ const QUERIES = {
   games: internal.botClient.games,
   sheet: internal.botClient.sheet,
   mine: internal.botClient.mine,
-} as const
-
-export const BOT_PATH_PREFIX = '/bot/'
-
-export type BotOp = keyof typeof QUERIES
+} as const satisfies Record<BotOpName, unknown>
 
 /**
- * Every operation name, for tests and for the 404 body.
- *
- * The `readonly string[]` annotation is LOAD-BEARING — do not "improve" it to
- * `readonly BotOp[]`. Convex codegen puts this module's exports into
- * `_generated/api.d.ts`, and `BotOp` is derived from `QUERIES`,
- * which read `internal.botClient.*` back out of that same api type. Annotating
- * this with `BotOp` closes the loop and TypeScript collapses `QUERIES` to `any`
- * (TS7022/TS2456/TS2502), which in turn degrades every `useQuery` result in
- * `src/` to an implicit any. Widening to `string` here is what cuts it.
+ * Every operation name, for tests and for the 404 body: the bot's own list
+ * (`cantina-domain/botWire`), which `QUERIES` must cover exactly. Typed
+ * `readonly string[]` so a path segment can be looked up in it.
  */
-export const BOT_OPS: readonly string[] = Object.keys(QUERIES)
+export const BOT_OPS: readonly string[] = BOT_OP_NAMES
 
 /**
  * Compare two secrets without leaking their common prefix through timing.
@@ -82,10 +74,10 @@ export function bearerToken(header: string | null): string | null {
 }
 
 /** The op named by a `/bot/<op>` path, or null when the path names none. */
-export function opFromPath(pathname: string): BotOp | null {
+export function opFromPath(pathname: string): BotOpName | null {
   if (!pathname.startsWith(BOT_PATH_PREFIX)) return null
   const op = pathname.slice(BOT_PATH_PREFIX.length)
-  return BOT_OPS.includes(op) ? (op as BotOp) : null
+  return BOT_OPS.includes(op) ? (op as BotOpName) : null
 }
 
 function json(body: unknown, status: number): Response {

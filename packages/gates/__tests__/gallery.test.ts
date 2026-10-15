@@ -17,7 +17,7 @@ describe('renderGallery', () => {
   const run = {
     sha: 'abcdef1234',
     pr: 7,
-    bases: { srd: 'http://localhost:4321', cantina: 'http://localhost:5173' },
+    base: 'http://localhost:4321',
     linkable: false,
     capturedAt: '2026-10-12 09:00 UTC',
   }
@@ -30,7 +30,7 @@ describe('renderGallery', () => {
         sections: GALLERY_SECTIONS,
         shot: new Set([pageSlug(first)]),
         og: new Map([[pageSlug(first), { title: '<Contents>', image: true }]]),
-        failures: ['srd /x: answered 500'],
+        failures: ['/x: answered 500'],
       },
       run
     )
@@ -49,7 +49,7 @@ describe('renderGallery', () => {
 describe('renderGallery, page by page', () => {
   const run = (extra: Partial<GalleryRun> = {}): GalleryRun => ({
     sha: 'abcdef1234',
-    bases: { srd: 'http://srd', cantina: 'http://cantina' },
+    base: 'http://site',
     linkable: true,
     capturedAt: 'then',
     ...extra,
@@ -62,41 +62,36 @@ describe('renderGallery, page by page', () => {
     pages,
   })
   const srdPage: GalleryPage = {
-    site: 'srd',
     path: '/chassis/',
     name: 'Chassis',
     note: 'A "note"',
     chips: ['Art'],
   }
   const cantinaIn: GalleryPage = {
-    site: 'cantina',
-    path: '/pilots/new',
+    path: '/build/pilots/new',
     name: 'New',
     note: '',
     signedIn: true,
   }
-  const cantinaOut: GalleryPage = { site: 'cantina', path: '/starter', name: 'Starter', note: '' }
+  const cantinaOut: GalleryPage = { path: '/build/starter', name: 'Starter', note: '' }
   const render = (pages: GalleryPage[], r: GalleryRun, og = new Map()) =>
     renderGallery(
       { sections: [section(pages)], shot: new Set(pages.map(pageSlug)), og, failures: [] },
       r
     )
 
-  test('a linkable run links each signed-out page to its site, never a signed-in one', () => {
+  test('a linkable run links each signed-out page on the base, never a signed-in one', () => {
     const html = render([srdPage, cantinaIn, cantinaOut], run())
-    expect(html).toContain('<a class="shot__frames" href="http://srd/chassis/">')
-    expect(html).toContain('href="http://cantina/starter"')
-    expect(html).not.toContain('href="http://cantina/pilots/new"')
+    expect(html).toContain('<a class="shot__frames" href="http://site/chassis/">')
+    expect(html).toContain('href="http://site/build/starter"')
+    expect(html).not.toContain('href="http://site/build/pilots/new"')
     expect(html).toContain('<span class="chip">Signed in</span>')
     expect(html).toContain('<span class="chip">Art</span>')
-    expect(html).toContain('The Cantina /pilots/new')
+    expect(html).toContain('<span class="shot__path">/build/pilots/new</span>')
   })
 
-  test('an unlinkable run, or a site with no base, frames the shots without a link', () => {
+  test('an unlinkable run frames the shots without a link', () => {
     expect(render([srdPage], run({ linkable: false }))).not.toContain('<a class="shot__frames"')
-    expect(render([cantinaOut], run({ bases: { srd: 'http://srd' } }))).not.toContain(
-      '<a class="shot__frames"'
-    )
   })
 
   test('no PR titles it "Gallery" with no PR link; one page reads "1 page"', () => {
@@ -142,13 +137,11 @@ describe('renderGallery, page by page', () => {
 
 describe('pageSlug', () => {
   test('home, query strings, signed-in and case', () => {
-    expect(pageSlug({ site: 'srd', path: '/' })).toBe('srd-home')
-    expect(pageSlug({ site: 'srd', path: '/search?q=drill' })).toBe('srd-search-q-drill')
-    expect(pageSlug({ site: 'cantina', path: '/', signedIn: true })).toBe('cantina-in-home')
-    expect(pageSlug({ site: 'cantina', path: ':Pilot' })).toBe('cantina-pilot')
-    expect(pageSlug({ site: 'srd', path: '/schema/Chassis/item/“x”/' })).toBe(
-      'srd-schema-chassis-item-x'
-    )
+    expect(pageSlug({ path: '/' })).toBe('home')
+    expect(pageSlug({ path: '/search?q=drill' })).toBe('search-q-drill')
+    expect(pageSlug({ path: '/build/', signedIn: true })).toBe('in-build')
+    expect(pageSlug({ path: ':Pilot' })).toBe('pilot')
+    expect(pageSlug({ path: '/schema/Chassis/item/“x”/' })).toBe('schema-chassis-item-x')
   })
 
   test('every section has pages, a unique id, and every page a note', () => {

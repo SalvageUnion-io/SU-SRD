@@ -1,3 +1,5 @@
+import type { OwnableTable } from 'cantina-domain/entityKinds'
+import { TABLE_OF_KIND } from 'cantina-domain/entityKinds'
 import { normalizeReason, PROPOSAL_REASON_MAX } from 'cantina-domain/games/proposals'
 import { EntityRefSchema } from 'cantina-domain/schemas/entity'
 import { MechSchema } from 'cantina-domain/schemas/mech'
@@ -60,10 +62,8 @@ const proposalRow = {
  * A log row is not always about a sheet — a table-wide alert or a recorded roll
  * is written against the Game itself — so this is a partial mapping on purpose.
  */
-function ownableTableFor(entityType: Doc<'changeLog'>['entityType']): 'pilots' | 'mechs' | null {
-  if (entityType === 'pilot') return 'pilots'
-  if (entityType === 'mech') return 'mechs'
-  return null
+function ownableTableFor(entityType: Doc<'changeLog'>['entityType']): OwnableTable | null {
+  return entityType === 'pilot' || entityType === 'mech' ? TABLE_OF_KIND[entityType] : null
 }
 
 /**

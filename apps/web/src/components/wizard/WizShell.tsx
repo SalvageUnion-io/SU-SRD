@@ -1,3 +1,4 @@
+import type { SheetKind } from 'cantina-domain/entityKinds'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { Button, ChapterBand, ModalShell, tokens } from '../index'
@@ -5,7 +6,7 @@ import '../../styles/cantina/wizard.css'
 import { dialogActionsStyle, dialogBodyStyle, dialogNoteStyle } from './wizardStyles.model'
 
 /** Sheet tone context — picks the `.su-sheet--{kind}` poster theming. */
-type WizKind = 'pilot' | 'mech' | 'crawler'
+type WizKind = SheetKind
 
 type WizShellProps = {
   /** Sheet tone context (`.su-sheet--{kind}`) — themes ground, band, and rail. */

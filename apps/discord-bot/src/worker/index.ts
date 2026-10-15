@@ -33,12 +33,12 @@ import type { ResponseLike } from '@discordjs/rest'
 import { DiscordAPIError, HTTPError, RateLimitError, REST } from '@discordjs/rest'
 import type { APIInteraction, APIUser } from 'discord-api-types/v10'
 import { InteractionResponseType, InteractionType, Routes } from 'discord-api-types/v10'
-import { reportError } from 'observability/cloudflare'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { handleButtonInteraction } from '../buttons'
 import { createCantinaClient } from '../cantina/client'
 import { setCantinaClient } from '../commands/cantinaReply'
 import { commands } from '../commands/index'
+import { reportError } from '../reportError'
 import {
   interactionName,
   makeAutocompleteInteraction,

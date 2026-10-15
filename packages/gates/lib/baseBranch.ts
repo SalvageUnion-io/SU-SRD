@@ -4,17 +4,18 @@
  * skill's `--base`.
  *
  * Diffing against `origin/main` was right while every branch came off main.
- * A branch cut from a release branch such as `design-refresh` carries that
- * branch's whole diff against main: the status line counted the release
- * branch's commits as this one's. So the base is resolved, first answer wins:
+ * A branch cut from another branch (a release branch, a stacked PR's parent)
+ * carries that branch's whole diff against main: the status line counted the
+ * parent's commits as this one's. So the base is resolved, first answer wins:
  *
- *   1. `$SU_BASE`, set by hand (`main`, `origin/design-refresh`, …);
+ *   1. `$SU_BASE`, set by hand (`main`, `origin/<branch>`, …);
  *   2. the open PR's `base.ref`, through `gh api` REST (a cloud session's
  *      proxy refuses GraphQL), bounded by a timeout;
  *   3. the upstream, when it is another branch on origin (a branch tracking
  *      its own name on origin says nothing about its base);
- *   4. whichever of `main` and `design-refresh` HEAD is fewer commits ahead of
- *      (ties go to main).
+ *   4. whichever of `BASE_CANDIDATES` HEAD is fewest commits ahead of (ties
+ *      go to the first): today `main` alone, as no other long-lived branch
+ *      exists.
  *
  * No answer at all is `null`; callers treat that as "no base", never as main.
  *
@@ -24,14 +25,14 @@
  */
 
 /** The long-lived branches a branch can be cut from, in tie-break order. */
-const BASE_CANDIDATES = ['main', 'design-refresh'] as const
+const BASE_CANDIDATES = ['main'] as const
 
 type BaseSource = 'SU_BASE' | 'pr' | 'upstream' | 'nearest'
 
 export type BaseBranch = {
-  /** The branch name on origin, e.g. `design-refresh`. */
+  /** The branch name on origin, e.g. `main`. */
   branch: string
-  /** The remote-tracking ref to diff against, e.g. `origin/design-refresh`. */
+  /** The remote-tracking ref to diff against, e.g. `origin/main`. */
   ref: string
   source: BaseSource
 }
@@ -41,7 +42,7 @@ export type BaseInputs = {
   suBase?: string | null
   /** The open PR's `base.ref`, if one was found. */
   prBase?: string | null
-  /** The upstream as git abbreviates it, e.g. `origin/design-refresh`. */
+  /** The upstream as git abbreviates it, e.g. `origin/feature`. */
   upstream?: string | null
   /** The checked-out branch, `null` when detached. */
   current?: string | null

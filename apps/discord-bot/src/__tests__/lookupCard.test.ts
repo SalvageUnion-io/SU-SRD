@@ -9,9 +9,11 @@
  * is what proves a lookup arrives whole and matches the link, not the few we'd
  * pick by hand.
  */
+
 import { describe, expect, test } from 'bun:test'
 import type { RefEntity, RefEnumSchemaName, RefMetaEntity } from 'salvageunion-reference'
 import {
+  DISCORD_NEUTRAL_ACCENT,
   discordEntryCard,
   findEntityBySlug,
   getDataMaps,
@@ -22,7 +24,6 @@ import {
 } from 'salvageunion-reference'
 import type { ButtonSpec, ContainerBlock, ContainerData } from '../container'
 import { enforceContainerLimits } from '../container'
-import { NEUTRAL_ACCENT } from '../format'
 import type { LookupHit } from '../lookupCard'
 import { entityFromKey, lookupCard, lookupKey, openCard, patternOf, readCard } from '../lookupCard'
 import { cardText } from './cardText'
@@ -85,7 +86,7 @@ describe('lookupCard — exhaustive across the whole dataset', () => {
           const card = lookupCard(one)
           assertFits(card, label)
           // Rust means action, and only action (ruleset §3.1).
-          expect(card.accent).not.toBe(NEUTRAL_ACCENT)
+          expect(card.accent).not.toBe(DISCORD_NEUTRAL_ACCENT)
           expect(cardText(card)).not.toContain('[[')
           // The pasted link's card, block for block, its shed link included.
           const embed = discordEntryCard(withSchema as RefMetaEntity, one.pattern)

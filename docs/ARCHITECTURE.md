@@ -8,14 +8,14 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
 ## Areas
 
 1. **Packages** <a id="packages"></a>
-   `salvageunion-reference` → `apps/web` (over its `src/components`); `cantina-domain` → `apps/web` / bot / `convex/`; `gates` → `tools/`, app e2e.
+   `salvageunion-reference` → every app; `cantina-domain` → `apps/web` / bot / `convex/`; `gates` → `tools/`, app e2e.
    Packages never import an app (`noRestrictedImports`); deps use `workspace:*`.
 2. **salvageunion-reference** <a id="reference"></a>
    Private, no build, no version. Zod in `lib/schemas/` generates JSON Schema and `Ref*` types, gitignored and rebuilt on install, typecheck, build and test (its `ref-generate` bin).
-   Exports `.`, `./rules`, `./zod`, `./testing`, `./proseDeviations`, `./data/*`, `./schemas/*`; `lib/index.ts` is an explicit barrel; refs are `schemaId::entityId`.
+   Exports `.`, `./rules`, `./zod`, `./testing`, `./proseDeviations`, `./assetDerivatives`, `./data/*`, `./schemas/*`; `lib/index.ts` is an explicit barrel; refs are `schemaId::entityId`.
 3. **Lazy loading** <a id="lazy-loading"></a>
    Call `preload()` before any accessor; a module-scope ORM call fails Biome (`noModuleScopeReferenceCall.grit`).
-   Tests preload through `test/reference-preload.ts` in each workspace's `bunfig.toml`, never `preload('all')` per file.
+   Tests preload `salvageunion-reference/tools/testPreload.ts` from each `bunfig.toml`, never `preload('all')` per file.
 4. **UI library** <a id="ui-library"></a>
    `apps/web/src/components/index.ts` barrel; tokens in `apps/web/src/styles/theme.css`, mirrored by `apps/web/src/design/tokens.ts`. Only product folders (`sheet/`, …) wire stores or Convex.
    Unused exports: [knip](#dead-code).

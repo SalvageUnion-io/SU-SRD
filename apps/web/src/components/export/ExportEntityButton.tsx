@@ -5,6 +5,7 @@
  * Uses buildEntityExport + downloadJson from lib/export.
  */
 
+import type { SheetKind } from 'cantina-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { color, fontSize, space } from '../../design/tokens'
 import { useServerAction } from '../../lib/connection/useServerAction'
@@ -25,7 +26,7 @@ const FAILURE = {
 } satisfies CSSProperties
 
 type ExportEntityButtonProps = {
-  type: 'pilot' | 'mech' | 'crawler'
+  type: SheetKind
   id: string
   /** Display name for the file stem (e.g. pilot.name). */
   name: string

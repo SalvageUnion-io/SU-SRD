@@ -18,7 +18,7 @@ The record of the claude.ai/code environment (selector → Cloud); no CLI or API
 9. **Setup script.** Paste the script below; it runs as root, must exit 0, and is snapshotted, so the hook is a no-op at start.
    It also caches the Convex local backend and dashboard (its CLI download fails via the proxy).
 10. **Rules text.** Attach private `SalvageUnion-io/su-rules` as a second repo; `bun run rules:find` reads it.
-    `bun run check:rules-fidelity` finds the sibling checkout itself.
+    `bun run rules:fidelity` finds the sibling checkout itself.
 11. **Multi-repo.** The project dir is `/home/user`, so the script copies `.claude/settings.json` there.
 12. **1Password.** The token reads the whole `SUSRD` vault; the hook adds `op`.
 

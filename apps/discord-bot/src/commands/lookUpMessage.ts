@@ -1,6 +1,7 @@
 import { ContextMenuCommandBuilder } from '@discordjs/builders'
 import { ApplicationCommandType } from 'discord-api-types/v10'
 import {
+  DISCORD_NEUTRAL_ACCENT,
   discordAccent,
   discordCardParts,
   rangeLabel,
@@ -10,7 +11,6 @@ import {
 import type { ContainerBlock, ContainerData } from '../container'
 import { v2Reply } from '../container'
 import { makeCustomId } from '../customId'
-import { NEUTRAL_ACCENT } from '../format'
 import { lookupKey } from '../lookupCard'
 import type { FoundTerm } from '../termFinder'
 import { findTerms } from '../termFinder'
@@ -55,7 +55,7 @@ export function lookUpMessageContainer(text: string, author?: string): Container
   const whose = author ? `${author.toUpperCase()}'S MESSAGE` : 'THAT MESSAGE'
   if (terms.length === 0) {
     return {
-      accent: NEUTRAL_ACCENT,
+      accent: DISCORD_NEUTRAL_ACCENT,
       blocks: [
         { kind: 'text', content: `-# NOTHING FOUND IN ${whose}` },
         {

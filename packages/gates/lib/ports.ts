@@ -8,8 +8,8 @@
  * measure that checkout's code.
  *
  * - The primary checkout (its `.git` is a directory) and CI keep the base
- *   ports: `.claude/launch.json`, `wrangler.jsonc`'s `dev.port` and the CI
- *   workflows name them.
+ *   port: `.claude/launch.json`, `wrangler.jsonc`'s `dev.port` and the CI
+ *   workflows name it.
  * - A linked worktree (its `.git` is a file) adds an offset of 1–99 hashed
  *   from its own path: stable across restarts, distinct between worktrees
  *   but for a rare collision.
@@ -28,8 +28,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 /** The port the primary checkout's dev server listens on: the whole site. */
-export const BASE_PORTS = { web: 4321 } as const
-export type DevServer = keyof typeof BASE_PORTS
+export const BASE_PORT = 4321
 
 /** The response header each dev server names its checkout in. */
 export const CHECKOUT_HEADER = 'x-su-checkout'
@@ -57,10 +56,13 @@ export function portOffset(root: string, primary: boolean): number {
   return 1 + (hash % (SPAN - 1))
 }
 
-/** The port `server` listens on in this checkout (CI always uses the base port). */
-export function portFor(
-  server: DevServer,
-  { root = CHECKOUT_ROOT, ci = Boolean(process.env.CI) }: { root?: string; ci?: boolean } = {}
-): number {
-  return BASE_PORTS[server] + (ci ? 0 : portOffset(root, isPrimaryCheckout(root)))
+/** The port the dev server listens on in this checkout (CI always uses the base port). */
+export function portFor({
+  root = CHECKOUT_ROOT,
+  ci = Boolean(process.env.CI),
+}: {
+  root?: string
+  ci?: boolean
+} = {}): number {
+  return BASE_PORT + (ci ? 0 : portOffset(root, isPrimaryCheckout(root)))
 }

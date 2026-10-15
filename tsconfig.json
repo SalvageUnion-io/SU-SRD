@@ -4,13 +4,12 @@
   // its declarations instead of re-checking its source. Options live in
   // tsconfig.base.json (via tsconfig.dom.json / tsconfig.worker.json).
   //
-  // Build mode will not reference a `noEmit` project (TS6310), so the five
+  // Build mode will not reference a `noEmit` project (TS6310), so the
   // libraries are `composite` and emit declarations only, into the gitignored
   // `.tsbuild/`; the apps and tools stay `noEmit`.
   "files": [],
   "references": [
     { "path": "packages/salvageunion-reference" },
-    { "path": "packages/observability" },
     { "path": "packages/cantina-domain" },
     { "path": "packages/gates" },
     { "path": "apps/web" },

@@ -2,17 +2,17 @@
  * The Opposition tab's view-model (docs/architecture/mediator-dashboard.md
  * Q9): what a tray row reads as, and how a reference entity becomes a tray
  * instance. The rules it reads — what an NPC tracks, when it is down, the
- * Morale roll — live in `cantina-domain/rules/opposition`.
+ * Morale roll — live in `src/lib/rules/opposition.ts`.
  *
  * Pure apart from the reference lookups.
  */
 
-import type { MoraleRoll } from 'cantina-domain/rules/opposition'
-import { isDown, trackOf } from 'cantina-domain/rules/opposition'
 import type { EncounterNpc } from 'cantina-domain/schemas/encounterNpc'
 import { ENCOUNTER_REF_SCHEMAS } from 'cantina-domain/schemas/encounterNpc'
 import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { findEntityBySlug, getEntitySlug, resolveFormerSlug } from 'salvageunion-reference'
+import type { MoraleRoll } from '../../lib/rules/opposition'
+import { isDown, trackOf } from '../../lib/rules/opposition'
 
 export type EncounterRefSchema = (typeof ENCOUNTER_REF_SCHEMAS)[number]
 

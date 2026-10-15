@@ -1,11 +1,12 @@
 import { getAuthUserId } from '@convex-dev/auth/server'
+import type { EntityKind } from 'cantina-domain/entityKinds'
+import { TABLE_OF_KIND } from 'cantina-domain/entityKinds'
 import type { Infer } from 'convex/values'
 import { ConvexError, v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
 import { displayNameOf } from './account'
-import type { SheetKind } from './model/entities'
 import {
   linksTouching,
   mayReadPattern,
@@ -17,7 +18,6 @@ import {
   patternVisibilityOf,
   resolveLinkEnd,
   sameContainerRows,
-  TABLE_OF_KIND,
 } from './model/entities'
 import { inviteByCode, isCurrent } from './model/invites'
 import { NotAuthorized, requireTableRunner, requireUser } from './model/permissions'
@@ -70,7 +70,7 @@ import { entityRef, entityRefType, softLinkType } from './schema'
  * names them for an NPC, as `pattern` does for a pattern.
  */
 
-type Kind = SheetKind
+type Kind = EntityKind
 /** The four tables a public sheet can be. */
 type PublicTable = (typeof TABLE_OF_KIND)[Kind]
 

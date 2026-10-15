@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { BASE_PORTS, CHECKOUT_ROOT, isPrimaryCheckout, portFor, portOffset } from '../lib/ports'
+import { BASE_PORT, CHECKOUT_ROOT, isPrimaryCheckout, portFor, portOffset } from '../lib/ports'
 
 /**
  * `packages/gates/lib/ports.ts` — the per-checkout dev-server ports that keep
@@ -48,11 +48,11 @@ describe('isPrimaryCheckout', () => {
 
 describe('portFor', () => {
   test('CI always uses the base port', () => {
-    expect(portFor('web', { root: '/repo/.claude/worktrees/a', ci: true })).toBe(BASE_PORTS.web)
+    expect(portFor({ root: '/repo/.claude/worktrees/a', ci: true })).toBe(BASE_PORT)
   })
 
   test("this checkout's port is the base plus its offset", () => {
     const offset = portOffset(CHECKOUT_ROOT, isPrimaryCheckout(CHECKOUT_ROOT))
-    expect(portFor('web', { ci: false })).toBe(BASE_PORTS.web + offset)
+    expect(portFor({ ci: false })).toBe(BASE_PORT + offset)
   })
 })

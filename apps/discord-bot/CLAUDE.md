@@ -18,8 +18,8 @@ at startup ([ADR-005](../../docs/ARCHITECTURE.md#decisions)).
 
 The bot is an **HTTP-interactions Cloudflare Worker** (`src/worker/index.ts`,
 deployed by `wrangler.jsonc`). There is no Node gateway and no `start` script;
-`build` is typecheck plus a `wrangler` dry-run bundle. The Worker reports to
-Workers Issues through `observability/cloudflare`. Wire types and `Routes` come from
+`worker:bundle` is a `wrangler` dry-run bundle. The Worker reports to
+Workers Issues through `reportError` (`src/reportError.ts`). Wire types and `Routes` come from
 `discord-api-types`; the Worker and `deploy-commands.ts` talk to Discord through
 `@discordjs/rest`; reply payloads are the local `ReplyPayload` /
 `EditReplyPayload` in `src/commands/interactions.ts`. Never add `discord.js`
@@ -51,8 +51,8 @@ against a linked account and a real membership. See
   which are **imported** (`import type`) from `cantina-domain/botWire`
   (`packages/cantina-domain/src/botWire.ts`) — the same declaration `botClient.ts`
   annotates its handlers with. Never copy a shape into the bot; add it there.
-  That module must stay import-free, so the bot's type-check never pulls in
-  Convex's generated model.
+  That module imports only the leaf `entityKinds`, so the bot's type-check never
+  pulls in Convex's generated model.
 - `src/commands/cantinaReply.ts` — the shared defer / result-kind / ephemerality
   spine, and the one client (`cantina()`, installed per request from `env`)
 
@@ -91,4 +91,4 @@ only for system replies (errors).
   small personal ones share `account.ts`
 - Shared code reads no configuration. The Worker's `env` installs Cantina
   client per request; `deploy-commands.ts` alone reads `process.env`
-- Errors in shared code go straight to `reportError` from `observability/cloudflare`
+- Errors in shared code go straight to `reportError` (`src/reportError.ts`)

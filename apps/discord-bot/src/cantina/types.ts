@@ -28,8 +28,8 @@ export type {
   MineResult,
   PilotDerived,
   SheetResult,
-  SheetTable,
 } from 'cantina-domain/botWire'
+export type { SheetTable } from 'cantina-domain/entityKinds'
 
 /** Why a call could not be satisfied. */
 export type DenialReason = BotDenialReason

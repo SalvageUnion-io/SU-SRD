@@ -1,8 +1,8 @@
 name: Deploy (Cloudflare)
 
-# Builds and deploys the web surfaces and the bot to Cloudflare Workers (ADR-033).
+# Builds and deploys the site, the artwork Worker and the bot to Cloudflare Workers (ADR-033).
 #
-# WHY THE BUILD RUNS HERE AND NOT IN WORKERS BUILDS (ADR-033 §4). srd's build
+# WHY THE BUILD RUNS HERE AND NOT IN WORKERS BUILDS (ADR-033 §4). The site's build
 # provisions a headless Chromium to render ~850 per-entity OG images, which is a
 # poor fit for Cloudflare's build environment. Rather than split the build across
 # two systems — one surface here, two there — everything builds in Actions and
@@ -20,19 +20,19 @@ name: Deploy (Cloudflare)
 #   plan       provenance, the deploy set and every credential guard. Holds no
 #              artifact; fails before anything is built. Each Worker's bundle
 #              was already proved by its CI build job on the merged PR.
-#   build-web  the site's one build (srd, then the Cantina into
-#              `dist/build/`, ADR-050), against the production Convex URL. It
-#              uploads the exact `dist` it produced and pushes nothing
-#              anywhere. It also renders srd's OG images into that `dist`,
-#              best-effort: a failed render keeps the default og:image.
+#   build-web  the site's one build (the reference pages, then the Cantina
+#              into `dist/build/`, ADR-050), against the production Convex
+#              URL (.github/actions/build-site). It uploads the exact `dist`
+#              it produced and pushes nothing anywhere. It also renders the
+#              OG images into that `dist`, best-effort: a failed render keeps
+#              the default og:image.
 #   push-convex  the Convex backend push, only once the build is green, and
-#              before any traffic moves.
-#   deploy-web / deploy   a leg per surface in the deploy set, in parallel:
-#              srd's own job, and a matrix over the rest. NO leg starts until
-#              EVERY build job has finished green and the backend push (when
-#              srd ships) succeeded. Each
-#              leg ships the artifact its build job uploaded — nothing is
-#              rebuilt between build and deploy.
+#              before any traffic moves (.github/actions/convex-push).
+#   deploy     a matrix leg per surface in the deploy set, in parallel. NO
+#              leg starts until EVERY build job has finished green and the
+#              backend push (when the site ships) succeeded. The site's leg
+#              ships the artifact its build job uploaded — nothing is rebuilt
+#              between build and deploy.
 #   smoke      the production smoke list, once, after every leg that ran.
 #   record     moves `deployed/cloudflare`, only after smoke passed.
 #
@@ -46,8 +46,9 @@ name: Deploy (Cloudflare)
 # per last recorded deploy, so a surface can need shipping on a commit where CI
 # skipped its build.
 #
-# `tools/check-workflows.ts` (deploy-order) asserts that ordering, that this
-# file still runs `convex deploy`, that the step refusing a production deploy
+# `tools/check-workflows.ts` (deploy-order) asserts that ordering (reading
+# through the local composite actions a job uses), that this file still runs
+# `convex deploy`, that the step refusing a production deploy
 # with no CONVEX_DEPLOY_KEY exists (by its name, naming the key and able to
 # `exit 1`), and that the job pushing the backend depends on the job carrying
 # it. Do not rename this file or that step without updating that tool.
@@ -95,7 +96,7 @@ permissions:
   contents: read
 
 env:
-  # The production Convex deployment's client URL, which cantina is compiled
+  # The production Convex deployment's client URL, which the Cantina is compiled
   # against. Public — it is in every shipped bundle — and documented in
   # docs/ARCHITECTURE.md#identifiers. It is a constant rather than whatever
   # `convex deploy --cmd` hands the build, because that command PUSHES the
@@ -106,7 +107,7 @@ env:
   CANTINA_CONVEX_URL: https://exuberant-porpoise-183.convex.cloud
   # Where the Cantina is served (ADR-048): `SITE` in apps/web/src/lib/site.ts, with
   # no trailing slash, as Convex Auth's SITE_URL wants it (the routing test
-  # holds them equal). The srd deploy leg sets it on the production backend.
+  # holds them equal). `push-convex` sets it on the production backend.
   CANTINA_SITE_URL: https://salvageunion.io/build
 
 jobs:
@@ -133,10 +134,9 @@ jobs:
       # of an older merge's deploy): a newer commit already shipped. Nothing
       # builds or deploys, and `record` must not move the tag back.
       stale: ${{ steps.surfaces.outputs.stale }}
-      # A JSON array of the app directories to ship, `[]` on a stale run.
+      # A JSON array of the app directories to ship, `[]` on a stale run:
+      # the `deploy` matrix.
       deploy: ${{ steps.surfaces.outputs.deploy }}
-      # The same, less srd (which `deploy-web` ships): the `deploy` matrix.
-      others: ${{ steps.others.outputs.others }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -205,12 +205,6 @@ jobs:
           ${{ inputs.force_all && '--force-all' || '' }}
           ${{ github.event_name == 'workflow_dispatch' && '--allow-backwards' || '' }}
 
-      - name: Split srd from the other surfaces
-        id: others
-        env:
-          DEPLOY: ${{ steps.surfaces.outputs.deploy }}
-        run: echo "others=$(jq -c 'map(select(. != "web"))' <<< "$DEPLOY")" >> "$GITHUB_OUTPUT"
-
       # ---------------------------------------------------------------------
       # The guards. Before anything is built.
       # ---------------------------------------------------------------------
@@ -262,11 +256,11 @@ jobs:
   # ===========================================================================
   #
   # su-assets and the bot have no build: wrangler bundles their Worker source
-  # at deploy time, as CI's build-su-assets and build-discord-bot did.
+  # at deploy time, as CI's bundle-workers does.
 
-  # The site — srd static, with its OG images rendered into the same `dist`,
-  # and the Cantina in its `dist/build/`, built against the production Convex
-  # URL.
+  # The site — the static reference pages, with their OG images rendered into
+  # the same `dist`, and the Cantina in its `dist/build/`, built against the
+  # production Convex URL.
   build-web:
     needs: plan
     if: contains(fromJSON(needs.plan.outputs.deploy), 'web')
@@ -285,40 +279,23 @@ jobs:
           # would render one commit of it.
           fetch-depth: 0
 
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
       # The backend is NOT pushed here. `convex deploy --cmd` runs the command
       # first and pushes after it, so a push here would leave the new backend
       # live under the old client whenever a later step stopped the deploy.
       # That is unsafe whenever a commit removes a public function together
       # with its last call site: the old client still calls it. So this job
       # only builds, and `push-convex` pushes once the build is green.
-      - name: Build the site
-        env:
-          VITE_CONVEX_URL: ${{ env.CANTINA_CONVEX_URL }}
-          VITE_COMMIT_REF: ${{ needs.plan.outputs.sha }}
-        run: bun --filter web build
-
-      # Chromium, the render cache and the render: shared with
-      # deploy-preview.yml. Here rather than in a job of its own, which paid
-      # a second checkout, install and artifact round trip on the deploy's
-      # critical path. Best-effort: a failed render (or browser install)
-      # keeps the default og:image and never stops the deploy.
-      - name: Render srd OG images
-        continue-on-error: true
-        uses: ./.github/actions/srd-og
-
-      # `include-hidden-files`: the artifact is what ships, byte for byte, so
-      # it must not silently drop a dotfile the build emitted.
-      - name: Upload the site artifact
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      #
+      # The OG render runs inside it rather than in a job of its own, which
+      # paid a second checkout, install and artifact round trip on the
+      # deploy's critical path. Best-effort: a failed render (or browser
+      # install) keeps the default og:image and never stops the deploy.
+      - name: Build the site, render its OG images and upload it
+        uses: ./.github/actions/build-site
         with:
-          name: web-dist
-          path: apps/web/dist/
-          include-hidden-files: true
-          if-no-files-found: error
-          retention-days: 7
+          convex-url: ${{ env.CANTINA_CONVEX_URL }}
+          commit-ref: ${{ needs.plan.outputs.sha }}
+          retention-days: '7'
 
   # ===========================================================================
   # The Convex push — after EVERY build is green, before ANY surface ships.
@@ -326,17 +303,18 @@ jobs:
   #
   # Order is the whole point. The backend must never be BEHIND the served
   # client, so it is pushed before
-  # the deploy's srd leg, which ships the Cantina, can run. And it must not be pushed by a run that ends up
+  # the deploy's site leg, which ships the Cantina, can run. And it must not be pushed by a run that ends up
   # shipping nothing, so it waits for the build — a build failure stops the
   # push exactly as it stops every deploy. Between this job and
-  # the srd leg the backend leads the served client for a minute or two,
+  # the site leg the backend leads the served client for a minute or two,
   # which the backend must tolerate anyway: every open tab keeps running the
   # previous client for as long as it stays open.
   #
-  # `--cmd` runs BEFORE the push, with the canonical URL for the deploy key in
-  # CANONICAL_CONVEX_URL, so it is used as a guard: if production has moved
-  # to a deployment other than the one `build-web` compiled against, the
-  # command fails, `convex deploy` stops before pushing, and nothing ships.
+  # The action's `--cmd` guard runs BEFORE the push: if production has moved
+  # to a deployment other than the one `build-web` compiled against, `convex
+  # deploy` stops before pushing, and nothing ships. It then sets the
+  # backend's SITE_URL — a constant here, so setting it before the site leg
+  # ships changes nothing a signed-in player sees.
   push-convex:
     needs: [plan, build-web]
     if: ${{ !cancelled() && !failure() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.deploy), 'web') }}
@@ -353,35 +331,37 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      - name: Push Convex (after confirming the URL cantina was built against)
+      - name: Push Convex
+        uses: ./.github/actions/convex-push
+        with:
+          deploy-key: ${{ secrets.CONVEX_DEPLOY_KEY }}
+          expected-url: ${{ env.CANTINA_CONVEX_URL }}
+
+      # Convex Auth sends a signed-in player back to SITE_URL, which must be
+      # where the Cantina is served, base included (`/build`, ADR-048). Set on
+      # every deploy, not by hand, so the repo says where it points;
+      # idempotent. Not a secret.
+      - name: Point the backend's SITE_URL at the Cantina
         working-directory: apps/web
         env:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
-          # Run by `convex deploy` itself, in its own shell, with
-          # CANONICAL_CONVEX_URL set — so it lives here as data rather than as
-          # a quoted string the step's shell would have to leave unexpanded.
-          URL_GUARD: >-
-            [ "$CANONICAL_CONVEX_URL" = "$CANTINA_CONVEX_URL" ] || {
-            echo "FATAL: the deploy key resolves to $CANONICAL_CONVEX_URL but cantina was built
-            against $CANTINA_CONVEX_URL. Update CANTINA_CONVEX_URL in deploy-cloudflare.yml and
-            docs/ARCHITECTURE.md." >&2; exit 1; }
-        run: bunx convex deploy --cmd-url-env-var-name CANONICAL_CONVEX_URL --cmd "$URL_GUARD"
+        run: bunx convex env set SITE_URL "$CANTINA_SITE_URL"
 
   # ===========================================================================
   # The deploy — one leg per surface in the deploy set, in parallel, after
-  # EVERY build is green and the backend push (if srd ships) succeeded.
+  # EVERY build is green and the backend push (if the site ships) succeeded.
   # ===========================================================================
   #
-  # Two jobs over the same steps: `deploy-web`, and `deploy`, a matrix over
-  # the rest of the deploy set. Keep the two jobs' steps in step.
+  # One matrix over the deploy set; the site's own step (its artifact) and
+  # the bot's (its slash commands) are gated on `matrix.app`.
   #
-  # Both `need` the build and the push, not just what one leg ships: a failed
+  # Every leg `needs` the build and the push, not just what it ships: a failed
   # build must stop the bot shipping too, or the run leaves production half on
   # the new commit. A job that was SKIPPED (its
-  # surface did not change) is not a failure, which is why these use
+  # surface did not change) is not a failure, which is why this uses
   # `!cancelled() && !failure()` rather than the implicit `success()` — the
   # implicit form checks every ancestor and would skip the deploy whenever any
-  # surface was unchanged. An empty list skips its job (a matrix over an empty
+  # surface was unchanged. An empty list skips the job (a matrix over an empty
   # array is an error, not a no-op), and so does a `plan` that did not
   # succeed, whose outputs are not JSON at all.
   #
@@ -391,7 +371,7 @@ jobs:
   # wrangler is one root devDependency, so every `bun run deploy` runs the
   # version bun.lock resolved — audited and behind the 3-day release-age gate —
   # rather than a `bunx wrangler@x.y.z` fetched outside the lockfile. Bumping it
-  # moves all four together; keep `compatibility_date` in the four
+  # moves all three together; keep `compatibility_date` in the three
   # wrangler.jsonc files at or below the workerd it bundles.
   #
   # wrangler bundles every Worker script here, and uploads its source maps
@@ -400,9 +380,13 @@ jobs:
   # only deploy path; its secrets (DISCORD_TOKEN and friends) are wrangler
   # secrets set out of band, and a deploy does not touch them. The bot leg
   # also registers the slash commands, with the Environment's DISCORD_TOKEN.
-  deploy-web:
+  deploy:
     needs: [plan, build-web, push-convex]
-    if: ${{ !cancelled() && !failure() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.deploy), 'web') }}
+    if: ${{ !cancelled() && !failure() && needs.plan.result == 'success' && needs.plan.outputs.deploy != '[]' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJSON(needs.plan.outputs.deploy) }}
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 10
@@ -419,47 +403,11 @@ jobs:
       # The Cantina under `/build` in it was compiled against the backend
       # `push-convex` pushed.
       - name: Download the site artifact
+        if: matrix.app == 'web'
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: web-dist
           path: apps/web/dist
-
-      - name: Deploy
-        working-directory: apps/web
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: bun run deploy
-
-      # Convex Auth sends a signed-in player back to SITE_URL, which must be
-      # where the Cantina is served (salvageunion.io/build since ADR-048).
-      # Kept here, not set by hand, so the repo says where it points;
-      # idempotent. Not a secret.
-      - name: Point the production backend's SITE_URL at the Cantina
-        working-directory: apps/web
-        env:
-          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
-        run: bunx convex env set SITE_URL "$CANTINA_SITE_URL"
-
-  # Every surface in the deploy set but srd: the bot and su-assets.
-  deploy:
-    needs: [plan, build-web, push-convex]
-    if: ${{ !cancelled() && !failure() && needs.plan.result == 'success' && needs.plan.outputs.others != '[]' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        app: ${{ fromJSON(needs.plan.outputs.others) }}
-    runs-on: ubuntu-latest
-    environment: production
-    timeout-minutes: 10
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          ref: ${{ needs.plan.outputs.sha }}
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
 
       - name: Deploy
         working-directory: apps/${{ matrix.app }}
@@ -496,7 +444,7 @@ jobs:
   # the same checks on a schedule, catching a regression that happens
   # between deploys (a DNS record, a Redirect Rule, a rotated bot token).
   smoke:
-    needs: [plan, deploy-web, deploy]
+    needs: [plan, deploy]
     if: ${{ !cancelled() && !failure() && needs.plan.result == 'success' && needs.plan.outputs.stale != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10

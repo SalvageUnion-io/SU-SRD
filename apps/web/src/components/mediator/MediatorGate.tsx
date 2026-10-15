@@ -18,6 +18,7 @@
  * refuses every write a non-Mediator might try (`requireMediator`).
  */
 
+import { gamePath } from 'cantina-domain/entityKinds'
 import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
@@ -72,7 +73,7 @@ function SignedInMediatorGate({ gameId }: { gameId: string }) {
         page="Mediator Dashboard"
         title="Only this Game's Mediator runs this screen"
         body="The Mediator Dashboard is for whoever mediates the Game. Its players run their pilots from the Game page's Launch Dashboard."
-        link={{ href: `/games/${gameId}`, label: '← Back to the Game' }}
+        link={{ href: gamePath(gameId), label: '← Back to the Game' }}
       />
     )
   }

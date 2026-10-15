@@ -1,9 +1,10 @@
+import type { EntityTable } from 'cantina-domain/entityKinds'
+import { isEntityKind, TABLE_OF_KIND } from 'cantina-domain/entityKinds'
 import { v } from 'convex/values'
 import type { Id } from './_generated/dataModel'
 import { query } from './_generated/server'
 import { displayNameOf } from './account'
-import type { LoggedTable } from './model/entities'
-import { loadLogged, logIdOf, mutation, TABLE_OF_KIND } from './model/entities'
+import { loadLogged, logIdOf, mutation } from './model/entities'
 import { NotAuthorized, requireMember, requireMemberAs, requireUser } from './model/permissions'
 import { changeLogEntityType, changeLogKind, changeLogState, entityRefType } from './schema'
 
@@ -86,14 +87,9 @@ export const appendChangeLog = mutation({
     // member of the Game it is in. The client appends only after the entity's
     // own write has committed, so a row that does not exist is refused too.
     // Distinct, as the games are, so a batch about one entity is one read.
-    const logged = new Map<string, { table: LoggedTable; entityId: string }>()
+    const logged = new Map<string, { table: EntityTable; entityId: string }>()
     for (const e of args.entries) {
-      if (
-        e.entityType === 'pilot' ||
-        e.entityType === 'mech' ||
-        e.entityType === 'crawler' ||
-        e.entityType === 'npc'
-      ) {
+      if (isEntityKind(e.entityType)) {
         const table = TABLE_OF_KIND[e.entityType]
         logged.set(`${table}:${e.entityId}`, { table, entityId: e.entityId })
       }

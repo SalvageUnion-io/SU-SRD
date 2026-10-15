@@ -14,11 +14,12 @@
  * draft — drafts are best-effort, never load-bearing.
  */
 
+import type { EntityKind } from 'cantina-domain/entityKinds'
 import { useEffect, useMemo, useRef } from 'react'
 
 const PREFIX = 'cantina-wizard-draft'
 
-type WizardKind = 'pilot' | 'mech' | 'crawler' | 'npc'
+type WizardKind = EntityKind
 
 /**
  * Draft slot: one per wizard kind. The `:new` suffix is load-bearing — it is

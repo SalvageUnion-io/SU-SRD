@@ -1,7 +1,7 @@
+import type { OwnableTable } from 'cantina-domain/entityKinds'
 import { v } from 'convex/values'
 import type { Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
-import type { OwnableTable } from './model/entities'
 import { loadOwnable, logIdOf, mutation } from './model/entities'
 import { NotAuthorized, requireMember, requireUser } from './model/permissions'
 import { ownableTable } from './schema'

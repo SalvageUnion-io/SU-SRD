@@ -13,7 +13,7 @@
  *
  *   E. `POST /__errors` → a browser error report, and `POST /__convex-logs` →
  *      Convex's log stream, both logged for Workers Issues
- *      (`observability/cloudflare`).
+ *      (`errorReports.ts`).
  *   B. `/build` and below → the Cantina (`./cantina.ts`); a file it does not
  *      have falls through to the rules below.
  *   1. `/assets/*` (or `/build/assets/*`) → a bare **404**.
@@ -35,16 +35,16 @@
  * (the CSP and the rest of the `/*` block) for its path, `/404`.
  */
 
-import type { RateLimiter } from 'observability/cloudflare'
+import { currentPathFor } from '../lib/legacyPaths'
+import type { CantinaEnv } from './cantina'
+import { BUILD_BASE, isBuildPath, serveCantina } from './cantina'
+import type { RateLimiter } from './errorReports'
 import {
   CONVEX_LOG_STREAM_PATH,
   ERROR_REPORT_PATH,
   handleConvexLogStream,
   handleErrorReport,
-} from 'observability/cloudflare'
-import { currentPathFor } from '../lib/legacyPaths'
-import type { CantinaEnv } from './cantina'
-import { BUILD_BASE, isBuildPath, serveCantina } from './cantina'
+} from './errorReports'
 
 export type Env = CantinaEnv & {
   /** Caps error reports per address (`wrangler.jsonc`); absent in a Preview. */

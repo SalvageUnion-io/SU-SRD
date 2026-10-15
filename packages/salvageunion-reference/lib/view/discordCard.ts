@@ -41,41 +41,6 @@ import type { EntityModel, EntityRef, Fact, TraitMention } from './types'
 
 type ClassPath = NonNullable<EntityModel['classPath']>
 
-/**
- * The accent stripe for each tone, as the `0xRRGGBB` integer Discord takes.
- * A mirror of `--color-<tone>` in `apps/web/src/styles/theme.css`
- * (`discordCard.test.ts` holds them in lockstep), with two deliberate changes:
- * `ink` and `ink-2` paint the rules blue (`--color-wk-line`), the band the
- * glossary chapters wear, because a near-black stripe vanishes on Discord's
- * dark theme; and `crawler` paints the crawler band, the pink every crawler
- * header on the web paints, so a crawler is one pink everywhere.
- */
-export const DISCORD_TONE_ACCENT: Readonly<Record<string, number>> = {
-  pilot: 0xef894f,
-  mech: 0x7a978a,
-  crawler: 0xb84a86,
-  'crawler-band': 0xb84a86,
-  'denizen-band': 0x2f4a66,
-  adversary: 0x8c4b38,
-  'tier-hybrid': 0xb7410e,
-  'tl-1': 0x73c9e6,
-  'tl-2': 0x57a9c8,
-  'tl-3': 0x5391a9,
-  'tl-4': 0x306b80,
-  'tl-5': 0x1e5364,
-  'tl-6': 0x063441,
-  'tl-b': 0x569c68,
-  'tl-n': 0x8664a9,
-  'wk-line': 0x8fc3d8,
-  ink: 0x8fc3d8,
-  'ink-2': 0x8fc3d8,
-}
-
-/** A tone's accent; an unknown tone takes the rules blue. */
-export function discordAccent(tone: string): number {
-  return DISCORD_TONE_ACCENT[tone] ?? 0x8fc3d8
-}
-
 /** One block of a Discord container, in render order. */
 export type DiscordBlock =
   | {

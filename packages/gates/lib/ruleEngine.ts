@@ -1,6 +1,6 @@
 /**
- * The shared engine behind `tools/check-styling.ts`'s three rule sets —
- * design tokens, styling ownership and srd's stylesheet entry.
+ * The shared engine behind `tools/check-rule-sets.ts`'s rule sets — design
+ * tokens, styling ownership, the stylesheet entry, the copy lint and more.
  *
  * One engine, because three copies of a `walk()`, an exemption lookup, a
  * baseline read, a ratchet comparison and a report drift in three directions:
@@ -166,10 +166,9 @@ export function ratchetCounts(
 /**
  * Ratchet rules whose new count is HIGHER than the committed one.
  *
- * `tools/check-styling.ts --update-baseline` refuses these outright.
- * `tools/check-copy.ts --update-baseline` refuses them unless `--allow-increase`
- * is passed, for the one legitimate reason: a rule made STRICTER counts copy
- * that was always there. It may raise the baseline once, in its own commit,
+ * `tools/check-rule-sets.ts --update-baseline` refuses them unless
+ * `--allow-increase` is passed, for the one legitimate reason: a rule made
+ * STRICTER counts what was always there. It may raise the baseline once, in its own commit,
  * with the reason written down. Drift may not.
  */
 export function increases(

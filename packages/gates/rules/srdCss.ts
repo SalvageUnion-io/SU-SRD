@@ -1,5 +1,5 @@
 /**
- * srd's stylesheet entry rule — the `srd-css` rule set of `tools/check-styling.ts`.
+ * srd's stylesheet entry rule — the `srd-css` rule set of `tools/check-rule-sets.ts`.
  *
  * `apps/web/ssg/DESIGN.md` states this as **hard rule 1**: all css is imported from
  * `src/runtime/styles.entry.ts`, which is a client-bundle entry and nothing

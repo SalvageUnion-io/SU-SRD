@@ -1,4 +1,3 @@
-import { staleWriteError } from 'cantina-domain/connection/staleWrite'
 import type { ObjectType } from 'convex/values'
 import { v } from 'convex/values'
 import type { Doc, Id } from '../_generated/dataModel'
@@ -15,6 +14,7 @@ import {
 } from './entities'
 import { getMembership, NotAuthorized } from './permissions'
 import { releaseSeatsOf } from './seats'
+import { staleWriteError } from './staleWrite'
 
 /**
  * The owned-entity writes behind `entities.ts`: pilots, mechs and built NPCs,

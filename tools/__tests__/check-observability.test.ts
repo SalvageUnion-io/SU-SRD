@@ -40,13 +40,8 @@ const CHECKED_FILES = [
   'apps/web/src/lib/observability.ts',
   'apps/web/src/runtime/islands.client.ts',
   HEADERS,
-  'apps/web/wrangler.jsonc',
   'apps/web/src/worker/index.ts',
   'apps/web/src/main.tsx',
-  'apps/su-assets/wrangler.jsonc',
-  'apps/su-assets/src/worker/index.ts',
-  'apps/discord-bot/wrangler.jsonc',
-  'apps/discord-bot/src/worker/index.ts',
 ]
 
 let TREE = ''
@@ -191,32 +186,6 @@ describe('check-observability reads parsed source, not prose', () => {
         expect(stderr).toContain(
           '[web] apps/web/src/worker/index.ts never calls handleConvexLogStream()'
         )
-      }
-    )
-  })
-
-  test('Issues turned on only in a comment fails', async () => {
-    await withFileContents(
-      'apps/discord-bot/wrangler.jsonc',
-      (s) => s.replace('"issues": { "enabled": true }', '// "issues": { "enabled": true }'),
-      async () => {
-        const { exitCode, stderr } = await runCheck()
-        expect(exitCode).toBe(1)
-        expect(stderr).toContain(
-          '[discord-bot-worker] apps/discord-bot/wrangler.jsonc does not turn on "observability.issues"'
-        )
-      }
-    )
-  })
-
-  test('a Worker without upload_source_maps fails', async () => {
-    await withFileContents(
-      'apps/su-assets/wrangler.jsonc',
-      (s) => s.replace('"upload_source_maps": true', '"upload_source_maps": false'),
-      async () => {
-        const { exitCode, stderr } = await runCheck()
-        expect(exitCode).toBe(1)
-        expect(stderr).toContain('[su-assets-worker] apps/su-assets/wrangler.jsonc does not set')
       }
     )
   })

@@ -8,6 +8,8 @@
  * itself (`../worker/builder.ts`).
  */
 
+import { SRD_SITE_URL } from 'salvageunion-reference'
+
 export type CantinaSite = {
   /** The public origin, without a trailing slash. */
   origin: string
@@ -16,7 +18,7 @@ export type CantinaSite = {
 }
 
 export const SITE: CantinaSite = {
-  origin: 'https://salvageunion.io',
+  origin: SRD_SITE_URL,
   base: '/build/',
 }
 

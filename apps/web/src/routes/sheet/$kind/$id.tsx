@@ -17,7 +17,8 @@
  */
 
 import { createFileRoute, notFound } from '@tanstack/react-router'
-import type { EntityRef } from 'cantina-domain/schemas/entity'
+import type { EntityKind } from 'cantina-domain/entityKinds'
+import { isEntityKind } from 'cantina-domain/entityKinds'
 import { NpcSheetView } from '../../../components/npc/NpcSheetView'
 import { NotFoundPanel } from '../../../components/shared/RouteFallbacks'
 import { SheetSkeleton } from '../../../components/sheet/SheetSkeleton'
@@ -30,13 +31,11 @@ import { useEntityStore } from '../../../stores/entityStore'
  * one renders in place on its host's sheet as a decorated reference entity, so
  * it never needed a route, and `EntityRef` never needed widening (ADR-028).
  */
-type SheetKind = EntityRef['type']
-
-const VALID_KINDS: SheetKind[] = ['pilot', 'mech', 'crawler', 'npc']
+type SheetKind = EntityKind
 
 /** Route-param guard: narrows the raw `$kind` segment to a sheet kind. */
 function isSheetKind(kind: string): kind is SheetKind {
-  return VALID_KINDS.some((k) => k === kind)
+  return isEntityKind(kind)
 }
 
 function SheetKindNotFound() {

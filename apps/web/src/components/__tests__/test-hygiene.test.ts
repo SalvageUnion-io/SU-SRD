@@ -17,7 +17,7 @@ import { join, resolve } from 'node:path'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 
-/** Workspaces whose `bunfig.toml` preloads the shared root scripts. */
+/** Workspaces whose `bunfig.toml` preloads the shared reference preload. */
 const PRELOADED_WORKSPACES = [
   'apps/web',
   'packages/salvageunion-reference',
@@ -31,11 +31,11 @@ describe('test hygiene', () => {
     for (const workspace of PRELOADED_WORKSPACES) {
       const bunfig = join(REPO_ROOT, workspace, 'bunfig.toml')
       const text = existsSync(bunfig) ? readFileSync(bunfig, 'utf8') : ''
-      if (!text.includes('../../test/reference-preload.ts')) missing.push(workspace)
+      if (!text.includes('tools/testPreload.ts')) missing.push(workspace)
     }
     expect(
       missing,
-      'these workspaces do not preload test/reference-preload.ts, which the preload ban assumes'
+      'these workspaces do not preload salvageunion-reference/tools/testPreload.ts, which the preload ban assumes'
     ).toEqual([])
   })
 })

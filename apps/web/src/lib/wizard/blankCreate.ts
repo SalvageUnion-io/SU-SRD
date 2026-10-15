@@ -14,6 +14,7 @@
  * until the corresponding sheet editor exists.
  */
 
+import type { SheetKind } from 'cantina-domain/entityKinds'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { useEntityStore } from '../../stores/entityStore'
 import {
@@ -26,7 +27,7 @@ import { EMPTY_MECH_FORM_STATE, mechFormToCreateInput } from './mechFormState'
 import { EMPTY_PILOT_FORM_STATE, pilotFormToCreateInput } from './pilotFormState'
 
 /** The three entity kinds a Blank create can produce. */
-export type BlankCreateKind = 'pilot' | 'mech' | 'crawler'
+export type BlankCreateKind = SheetKind
 
 export type BlankPilotSeed = {
   name: string

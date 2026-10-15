@@ -54,7 +54,7 @@ a page renders, never in how the app is built, served, installed or checked.
    otherwise it takes over at once (`public/sw-lifecycle.js`). The builder's
    old worker at `/build/` retires itself (`public/build/sw.js`).
 6. **One set of checks.** One coverage floor, one e2e config, one CI job per
-   kind (`build-web`, `perf`, the nightly `e2e`, `deploy-web`), one deploy
+   kind (`build-web`, `perf`, the nightly `e2e`, one `deploy` matrix), one deploy
    surface (`web`), one changelog stream (`feat(web):`).
 
 ## Deviations from the plan

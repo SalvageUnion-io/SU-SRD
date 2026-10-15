@@ -11,6 +11,7 @@
  * Presentational: `readCrawler()` reads the listing's body.
  */
 
+import { gamePath } from 'cantina-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { EmptyState, Entity, tokens } from '../index'
@@ -38,7 +39,7 @@ export function CrawlerMinor({
           Crawler
         </h2>
         <EmptyState variant="quiet" body="This Game has no Union Crawler yet." />
-        <AppLink href={`/games/${gameId}`} style={{ ...BODY, marginTop: 'auto' }}>
+        <AppLink href={gamePath(gameId)} style={{ ...BODY, marginTop: 'auto' }}>
           Raise one from the Game page
         </AppLink>
       </section>

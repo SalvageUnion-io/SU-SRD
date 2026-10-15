@@ -161,7 +161,7 @@ deployment → **Settings → Integrations → Log Streams → Webhook**, URL
 delivery's `x-webhook-signature` against `CONVEX_LOG_STREAM_SECRET` (copy the
 secret the dashboard shows into `wrangler secret put CONVEX_LOG_STREAM_SECRET`
 in `apps/web`) and logs every failed function and every `console.error` for
-Workers Issues (`packages/observability/src/cloudflare.ts`). There is no code
+Workers Issues (`apps/web/src/worker/errorReports.ts`). There is no code
 to add in `convex/`: queries and mutations have no network egress. Log streams
 need the Convex Pro plan.
 

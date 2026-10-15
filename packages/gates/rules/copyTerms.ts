@@ -1,5 +1,5 @@
 /**
- * Copy lint for game terms — the rule set behind `tools/check-copy.ts`.
+ * Copy lint for game terms — the `copy` rule set of `tools/check-rule-sets.ts`.
  *
  * The book capitalises its game nouns: the Core Book writes "Mech" 968 times
  * and "mech" 15, "Pilot" 452 and "pilot" 16. An audit of the Cantina's copy found it
@@ -37,7 +37,7 @@
  *     `BANNED`, plus any other casing of the product's names in
  *     `cantina-domain/src/product.ts` (read from that file, never retyped).
  *
- * Both are ratchets against `tools/baselines/copy-baseline.json`: today's copy
+ * Both are ratchets against `tools/baselines/rule-sets.json`: today's copy
  * is the baseline, a new finding fails, and a fixed one must be locked in.
  */
 
@@ -402,7 +402,6 @@ export const copyTerms: RuleSet = {
     )
     assertCoversWorkspaces('copy', COPY_DIRS, {
       'apps/su-assets': 'a Worker that serves image bytes and short error strings; no copy.',
-      'packages/observability': 'Error reporting only; no copy.',
       'packages/gates': 'the gates themselves; their fixtures spell the variants they catch.',
     })
   },

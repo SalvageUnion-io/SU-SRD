@@ -105,7 +105,7 @@ this package; `add` mints the id) is the one writer of `data/`, then
 `bun run check data`. A **new schema** is the next section. Copy rules text
 from the source word-for-word: descriptions and effects are verbatim, never
 paraphrased. Gate `rules-fidelity` enforces it: run
-`bun run check:rules-fidelity --update`; exceptions go in
+`bun run rules:fidelity --update`; exceptions go in
 `lib/proseDeviations.ts`. Book text quoted in TypeScript (a wizard rule, a stat
 hint) is wrapped in `bookQuote({ source, page }, '…')` (`lib/bookQuote.ts`), so
 the same gate holds it to the book.

@@ -6,6 +6,7 @@ import type { GalleryPage } from 'gates/lib/galleryPages'
 import { GALLERY_SECTIONS, pageSlug } from 'gates/lib/galleryPages'
 import type { GalleryArgs } from '../gallery'
 import {
+  builderRoot,
   capturedAtStamp,
   failureLine,
   fetchOgImage,
@@ -13,8 +14,6 @@ import {
   pageEntity,
   parseGalleryArgs,
   resolvePath,
-  rootOf,
-  routeOf,
   signedInTargets,
   signedOutTargets,
   writeGallery,
@@ -80,11 +79,10 @@ function storedZip(files: Record<string, string>): Uint8Array {
 }
 
 describe('parseGalleryArgs', () => {
-  test('reads every flag, trimming trailing slashes off the bases', () => {
+  test('reads every flag, trimming trailing slashes off the base', () => {
     const args = parseGalleryArgs([
-      '--srd',
+      '--base',
       'http://localhost:4321/',
-      '--cantina=http://localhost:5173',
       '--signed-in',
       '--pr',
       '1344',
@@ -93,8 +91,7 @@ describe('parseGalleryArgs', () => {
       '--linkable',
     ])
     expect(args).toMatchObject({
-      srd: 'http://localhost:4321',
-      cantina: 'http://localhost:5173',
+      base: 'http://localhost:4321',
       signedIn: true,
       pr: 1344,
       sha: 'abc1234',
@@ -102,13 +99,11 @@ describe('parseGalleryArgs', () => {
     })
   })
 
-  test('refuses a run with no srd, a signed-in run with no cantina, and a bad PR', () => {
-    expect(() => parseGalleryArgs([])).toThrow('--srd is required')
-    expect(() => parseGalleryArgs(['--srd', 'x', '--signed-in'])).toThrow(
-      '--signed-in needs --cantina'
-    )
-    expect(() => parseGalleryArgs(['--srd', 'x', '--pr', 'nope'])).toThrow('--pr must be')
-    expect(() => parseGalleryArgs(['--srd', 'x', '--what'])).toThrow('unknown argument')
+  test('refuses a run with no base, a bad PR and an unknown flag', () => {
+    expect(() => parseGalleryArgs([])).toThrow('--base is required')
+    expect(() => parseGalleryArgs(['--base', 'x', '--pr', 'nope'])).toThrow('--pr must be')
+    expect(() => parseGalleryArgs(['--base', 'x', '--what'])).toThrow('unknown argument')
+    expect(() => parseGalleryArgs(['--srd', 'x'])).toThrow('unknown argument')
   })
 })
 
@@ -131,8 +126,8 @@ describe('pageEntity', () => {
 
 describe('resolvePath', () => {
   test('a placeholder resolves to what the seed made, or to nothing', () => {
-    expect(resolvePath('/pilots/new', {})).toBe('/pilots/new')
-    expect(resolvePath(':pilot', { pilot: '/sheet/pilot/1' })).toBe('/sheet/pilot/1')
+    expect(resolvePath('/build/pilots/new', {})).toBe('/build/pilots/new')
+    expect(resolvePath(':pilot', { pilot: '/build/sheet/pilot/1' })).toBe('/build/sheet/pilot/1')
     expect(resolvePath(':game', {})).toBeUndefined()
   })
 })
@@ -165,9 +160,8 @@ describe('gallery-pages', () => {
 
 describe('parseGalleryArgs, defaults and values', () => {
   test('a bare run is signed out, unlinkable, sha "local", written to .gallery', () => {
-    expect(parseGalleryArgs(['--srd', 'http://a'])).toEqual({
-      srd: 'http://a',
-      cantina: undefined,
+    expect(parseGalleryArgs(['--base', 'http://a'])).toEqual({
+      base: 'http://a',
       signedIn: false,
       out: resolve('.gallery'),
       sha: 'local',
@@ -177,36 +171,29 @@ describe('parseGalleryArgs, defaults and values', () => {
   })
 
   test('--out resolves its directory; a flag with no value is refused', () => {
-    expect(parseGalleryArgs(['--srd=http://a', '--out', 'shots-here']).out).toBe(
+    expect(parseGalleryArgs(['--base=http://a', '--out', 'shots-here']).out).toBe(
       resolve('shots-here')
     )
-    expect(() => parseGalleryArgs(['--srd'])).toThrow('--srd needs a value')
-    expect(() => parseGalleryArgs(['--srd', 'x', '--pr', '0'])).toThrow('--pr must be')
-    expect(() => parseGalleryArgs(['--srd', 'x', '--pr', '1.5'])).toThrow('--pr must be')
+    expect(() => parseGalleryArgs(['--base'])).toThrow('--base needs a value')
+    expect(() => parseGalleryArgs(['--base', 'x', '--pr', '0'])).toThrow('--pr must be')
+    expect(() => parseGalleryArgs(['--base', 'x', '--pr', '1.5'])).toThrow('--pr must be')
   })
 
   test('every trailing slash is trimmed', () => {
-    expect(parseGalleryArgs(['--srd', 'http://a///']).srd).toBe('http://a')
+    expect(parseGalleryArgs(['--base', 'http://a///']).base).toBe('http://a')
   })
 })
 
 describe('signedOutTargets', () => {
-  test('srd alone shoots only the srd pages, each on its base', () => {
-    const targets = signedOutTargets({ srd: 'http://srd' })
-    expect(targets.length).toBe(ALL_PAGES.filter((p) => p.site === 'srd').length)
+  test('every signed-out page, each on the one base, the Cantina under /build', () => {
+    const targets = signedOutTargets('http://site')
+    expect(targets.length).toBe(ALL_PAGES.filter((p) => !p.signedIn).length)
     for (const t of targets) {
-      expect(t.page.site).toBe('srd')
-      expect(t.base).toBe('http://srd')
-      expect(t.url).toBe(`http://srd${t.page.path}`)
+      expect(t.url).toBe(`http://site${t.page.path}`)
       expect(t.slug).toBe(pageSlug(t.page))
     }
-  })
-
-  test('with cantina it adds the signed-out Cantina pages, never a signed-in one', () => {
-    const targets = signedOutTargets({ srd: 'http://srd', cantina: 'http://cantina' })
-    const cantina = targets.filter((t) => t.page.site === 'cantina')
-    expect(cantina.length).toBe(ALL_PAGES.filter((p) => p.site === 'cantina' && !p.signedIn).length)
-    expect(cantina.map((t) => t.url)).toContain('http://cantina/starter')
+    expect(targets.map((t) => t.url)).toContain('http://site/chassis/')
+    expect(targets.map((t) => t.url)).toContain('http://site/build/starter')
     expect(targets.some((t) => t.page.signedIn)).toBe(false)
   })
 })
@@ -215,95 +202,72 @@ describe('signedInTargets', () => {
   const signedIn = ALL_PAGES.filter((p) => p.signedIn)
 
   test('a full seed resolves every placeholder and fails nothing', () => {
-    const { targets, failures } = signedInTargets('http://cantina', {
-      pilot: '/sheet/pilot/p1',
-      mech: '/sheet/mech/m1',
-      crawler: '/sheet/crawler/c1',
-      game: '/games/g1',
+    const { targets, failures } = signedInTargets('http://site', {
+      pilot: '/build/sheet/pilot/p1',
+      mech: '/build/sheet/mech/m1',
+      crawler: '/build/sheet/crawler/c1',
+      game: '/build/games/g1',
     })
     expect(failures).toEqual([])
     expect(targets.length).toBe(signedIn.length)
     const urls = targets.map((t) => t.url)
-    expect(urls).toContain('http://cantina/sheet/pilot/p1')
-    expect(urls).toContain('http://cantina/games/g1')
-    expect(urls).toContain('http://cantina/pilots/new')
-    expect(
-      targets.every((t) => t.base === 'http://cantina' && t.slug.startsWith('cantina-in-'))
-    ).toBe(true)
+    expect(urls).toContain('http://site/build/sheet/pilot/p1')
+    expect(urls).toContain('http://site/build/games/g1')
+    expect(urls).toContain('http://site/build/pilots/new')
+    expect(targets.every((t) => t.slug.startsWith('in-'))).toBe(true)
   })
 
   test('a failed seed still shoots the fixed paths and names each missing entity', () => {
-    const { targets, failures } = signedInTargets('http://cantina', {})
+    const { targets, failures } = signedInTargets('http://site', {})
     expect(targets.map((t) => t.page.path)).toEqual(
       signedIn.filter((p) => !p.path.startsWith(':')).map((p) => p.path)
     )
     expect(failures).toEqual([
-      'cantina :pilot: the seed made no such entity',
-      'cantina :mech: the seed made no such entity',
-      'cantina :crawler: the seed made no such entity',
-      'cantina :game: the seed made no such entity',
+      ':pilot: the seed made no such entity',
+      ':mech: the seed made no such entity',
+      ':crawler: the seed made no such entity',
+      ':game: the seed made no such entity',
     ])
   })
 })
 
 describe('ogSource', () => {
-  const srdPage = (path: string): GalleryPage => ({ site: 'srd', path, name: 'x', note: '' })
+  const page = (path: string): GalleryPage => ({ path, name: 'x', note: '' })
 
-  test('an srd entity page renders its own card, whatever og:image the build emitted', () => {
+  test('a reference entity page renders its own card, whatever og:image the build emitted', () => {
     expect(
-      ogSource(srdPage('/chassis/mazona/'), 'http://srd', 'https://salvageunion.io/og.png')
+      ogSource(page('/chassis/mazona/'), 'http://site', 'https://salvageunion.io/og.png')
     ).toEqual({ kind: 'card', entity: { schema: 'chassis', item: 'mazona' } })
   })
 
   test('any other page fetches the og:image path from the build it was shot from', () => {
     expect(
-      ogSource(srdPage('/chassis/'), 'http://srd', 'https://salvageunion.io/og/default.png')
+      ogSource(page('/chassis/'), 'http://site', 'https://salvageunion.io/og/default.png')
     ).toEqual({
       kind: 'file',
-      url: 'http://srd/og/default.png',
+      url: 'http://site/og/default.png',
     })
-    const cantinaPage: GalleryPage = {
-      site: 'cantina',
-      path: '/chassis/x/',
-      name: 'x',
-      note: '',
-    }
-    expect(ogSource(cantinaPage, 'http://cantina', 'https://salvageunion.io/og.png')).toEqual({
-      kind: 'file',
-      url: 'http://cantina/og.png',
-    })
-    // The Cantina's --cantina carries its base (ADR-048); the image's path already does too.
+    // A Cantina path shaped like an entity page is not one: its image is fetched.
     expect(
-      ogSource(cantinaPage, 'http://localhost:5173/build', 'https://salvageunion.io/build/og/x.png')
-    ).toEqual({ kind: 'file', url: 'http://localhost:5173/build/og/x.png' })
+      ogSource(page('/build/chassis/x/'), 'http://site', 'https://salvageunion.io/build/og/x.png')
+    ).toEqual({ kind: 'file', url: 'http://site/build/og/x.png' })
   })
 
   test('a page with no og:image and no card has no preview', () => {
-    expect(ogSource(srdPage('/'), 'http://srd', undefined)).toBeUndefined()
+    expect(ogSource(page('/'), 'http://site', undefined)).toBeUndefined()
   })
 })
 
-describe('routeOf', () => {
-  test("takes the Cantina's base off a path the app rendered, and leaves anything else", () => {
-    const cantina = 'http://localhost:5173/build'
-    expect(routeOf(cantina, '/build/sheet/pilot/x')).toBe('/sheet/pilot/x')
-    expect(routeOf(cantina, '/build/games/g1')).toBe('/games/g1')
-    expect(routeOf(cantina, 'https://example.com/a')).toBe('https://example.com/a')
-    expect(routeOf('http://localhost:5173', '/sheet/pilot/x')).toBe('/sheet/pilot/x')
-  })
-})
-
-describe('rootOf', () => {
-  test("opens the Cantina's root with its trailing slash, based or not", () => {
-    expect(rootOf('http://localhost:5173/build')).toBe('http://localhost:5173/build/')
-    expect(rootOf('http://localhost:5173')).toBe('http://localhost:5173/')
+describe('builderRoot', () => {
+  test("opens the Cantina's root on the base, with its trailing slash", () => {
+    expect(builderRoot('http://localhost:4321')).toBe('http://localhost:4321/build/')
   })
 })
 
 describe('failureLine and capturedAtStamp', () => {
   test('a failure keeps only the first line of its error', () => {
-    expect(failureLine('srd /x', new Error('timed out\n  at stack'))).toBe('srd /x: timed out')
-    expect(failureLine('cantina seed', 'plain')).toBe('cantina seed: plain')
+    expect(failureLine('/x', new Error('timed out\n  at stack'))).toBe('/x: timed out')
+    expect(failureLine('seed', 'plain')).toBe('seed: plain')
   })
 
   test('the stamp is to the minute, in UTC', () => {
@@ -313,7 +277,7 @@ describe('failureLine and capturedAtStamp', () => {
 
 describe('writeGallery', () => {
   const args = (out: string, extra: Partial<GalleryArgs> = {}): GalleryArgs => ({
-    srd: 'http://srd',
+    base: 'http://site',
     signedIn: false,
     out,
     sha: 'abcdef1234',
@@ -325,7 +289,7 @@ describe('writeGallery', () => {
 
   test('writes the page and its manifest, and exits 0 when everything was shot', () => {
     const out = join(root, 'clean')
-    const home = pageSlug({ site: 'srd', path: '/' })
+    const home = pageSlug({ path: '/' })
     const code = writeGallery(
       args(out, { pr: 12 }),
       { shot: new Set([home]), og: new Map(), failures: [] },
@@ -346,13 +310,13 @@ describe('writeGallery', () => {
     const out = join(root, 'failed')
     const code = writeGallery(
       args(out),
-      { shot: new Set(), og: new Map(), failures: ['srd /x: answered 500'] },
+      { shot: new Set(), og: new Map(), failures: ['/x: answered 500'] },
       'now'
     )
     expect(code).toBe(1)
     const manifest = JSON.parse(readFileSync(join(out, 'gallery.json'), 'utf8'))
-    expect(manifest).toMatchObject({ pr: null, pages: 0, failures: ['srd /x: answered 500'] })
-    expect(log).toHaveBeenCalledWith('  ✗ srd /x: answered 500')
+    expect(manifest).toMatchObject({ pr: null, pages: 0, failures: ['/x: answered 500'] })
+    expect(log).toHaveBeenCalledWith('  ✗ /x: answered 500')
   })
 })
 
