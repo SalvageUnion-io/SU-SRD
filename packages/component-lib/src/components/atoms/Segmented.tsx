@@ -8,7 +8,7 @@ import { DISABLED, FOCUS_RING } from './interaction'
  * with ink text on the ink band (a state, never rust: ruleset §3.1).
  *
  * One control, one look, in both apps: a sheet's Read | Edit, Shelves'
- * Everything | Not in a Game, a Game's Pilots | Mechs | Crawlers on a phone, a
+ * Everything | Unassigned, a Game's Pilots | Mechs | Crawlers on a phone, a
  * hold's Cargo | Scrap, and the SRD rail's View, Tech Level and Type. Before it
  * each was built on its own, five ways.
  *

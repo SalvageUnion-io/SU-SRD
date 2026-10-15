@@ -5,7 +5,7 @@
  * Game the player is in, and picking one goes there; its last entry,
  * **+ New Game**, opens the New Game dialog (`NewGameDialog`) and leaves the
  * select on the Game it shows. Shelves itself has its
- * own Showing toggle (Everything | Not in a Game) instead. The masthead's Games
+ * own Showing toggle (Everything | Unassigned) instead. The masthead's Games
  * menu (`GamesMenu`) makes the same choice from every other route.
  *
  * ## It renders nothing in Solo

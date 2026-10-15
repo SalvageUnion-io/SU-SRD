@@ -10,7 +10,7 @@
  *
  *  - **The band** (ink, paper flecks): the notched title and, right of it
  *    and centred on its capitals as a show page's chips are, the **Showing**
- *    toggle (Everything | Not in a Game), **Import** and **Export all**, and
+ *    toggle (Everything | Unassigned), **Import** and **Export all**, and
  *    "+ New Game", the one way to start a table.
  *  - **Three rows of shelves**: Pilots, Mechs and Crawlers side by side; then
  *    NPCs and Patterns, which are user-made and so dashed (ruleset §3.9); then,
@@ -155,7 +155,7 @@ const ON_INK_BUTTON = 'su-shelves-band__btn'
 
 const FILTERS: { value: ShelfFilter; label: string }[] = [
   { value: 'everything', label: 'Everything' },
-  { value: 'not-in-game', label: 'Not in a Game' },
+  { value: 'not-in-game', label: 'Unassigned' },
 ]
 
 // ---------------------------------------------------------------------------

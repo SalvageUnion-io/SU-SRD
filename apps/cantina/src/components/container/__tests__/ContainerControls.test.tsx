@@ -463,9 +463,9 @@ describe('MoveToGameDialog — "Move to a Game…" in a Hangar item', () => {
     expect(choices()).toEqual(['Run by me', 'Not mine to run'])
   })
 
-  test('out of a Game, the shelf reads "Not in a Game"', () => {
+  test('out of a Game, the shelf reads "Unassigned"', () => {
     wrap(<DialogHarness subject={pilotIn('g1')} games={RUN_AND_NOT} />)
-    expect(choices()).toEqual(['Not in a Game', 'Not mine to run'])
+    expect(choices()).toEqual(['Unassigned', 'Not mine to run'])
   })
 
   test('a crawler only into a Game I run — and with none, it says so', () => {
@@ -538,7 +538,7 @@ describe('MoveToGameDialog — "Move to a Game…" in a Hangar item', () => {
     const pilot = await heldPilot('g1')
     wrap(<DialogHarness subject={{ type: 'pilot', id: 'p1', entity: pilot }} games={GAMES_RUN} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Not in a Game' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Unassigned' }))
 
     expect(screen.getByRole('alertdialog')).toBeTruthy()
     expect(gameIdOf()).toBe('g1')
