@@ -6,20 +6,18 @@
  * draws it (docs/architecture/mediator-dashboard.md Q10–Q13):
  *
  *  0. **The band** (`GameBand`): the page's controls (`Roster`'s), the
- *     Game's name on the crawler's pink, and
- *     for its Mediator a YOU MEDIATE stamp and **Open the Mediator
- *     dashboard** (`/mediator/$gameId`), where the Mediator's instruments
- *     live now.
- *  1. **Launch Dashboard** (`LaunchDashboard`): the one way into the player
- *     Dashboard, for players and the Mediator alike.
+ *     Game's name on the crawler's pink, and one **Launch Dashboard** chip:
+ *     the Mediator's (after a YOU MEDIATE stamp) opens the Mediator dashboard
+ *     (`/mediator/$gameId`); a player's (`LaunchDashboard`) opens the player
+ *     Dashboard.
  *  2. **The roster** (`GameRoster`): the three columns, yours first.
- *  3. Two columns of sections. **Every member:** Crew & seats, the Downtime
- *     track, and the proposals awaiting their answer. **The Mediator:**
- *     Downtime's controls and Proposals you sent. **The Organizer:** the
+ *  3. Two columns of sections. **Every member:** Crew & seats and the
+ *     proposals awaiting their answer. **The Mediator:** Proposals you sent.
+ *     Downtime runs on the Dashboards, not here. **The Organizer:** the
  *     Invite link (copy and reset) and The Game's Hand over, which the
  *     server refuses anyone else (`requireOrganizer`).
  *
- * Starting a Game is "+ New Game" at the top of the hub (`NewGameControl`), and
+ * Starting a Game is "+ New Game" in the band's Games select (`ContainerSwitcher`), and
  * joining one is an invite link (`InviteScreen`), so nothing here is about
  * choosing a table.
  *
@@ -42,11 +40,10 @@ import { ConvexPending } from '../shared/ConvexPending'
 import { CopyInviteLink, ResetInviteLink } from './CopyInviteLink'
 import { CrewSeats } from './CrewSeats'
 import { DeleteGameDialog } from './DeleteGameDialog'
-import { DowntimeTrack } from './DowntimeTrack'
 import { GameBand } from './GameBand'
 import { GameRoster } from './GameRoster'
 import { HubSection } from './HubSection'
-import { GAME_BODY, HUB_COLUMN, HUB_COLUMNS, HUB_COPY } from './hubStyles.model'
+import { GAME_BODY, HUB_COLUMN, HUB_COLUMNS } from './hubStyles.model'
 import { LaunchDashboard } from './LaunchDashboard'
 import { ProposalInbox } from './ProposalInbox'
 import { ProposalsSent } from './ProposalsSent'
@@ -112,6 +109,8 @@ function GameSections({ game }: { game: Game }) {
   const showContainer = useShowContainer()
   const listing = useQuery(api.entities.listForGame, { gameId })
   const members = useQuery(api.games.members, { gameId })
+  // The seats' HP: the server derives every crewmate's max (ADR-038 §4).
+  const vitals = useQuery(api.crew.vitals, { gameId })
   const me = useQuery(api.account.me, {})
   const viewerId = me?._id ?? null
 
@@ -121,7 +120,9 @@ function GameSections({ game }: { game: Game }) {
     null
   const crawler = primary === null ? null : readCrawler(primary)
   const seats =
-    listing === undefined || members === undefined ? null : seatRows(listing, members, viewerId)
+    listing === undefined || members === undefined
+      ? null
+      : seatRows(listing, members, viewerId, vitals)
 
   return (
     <>
@@ -137,7 +138,6 @@ function GameSections({ game }: { game: Game }) {
               total={seats.total}
             />
           )}
-          <DowntimeTrack gameId={gameId} mediator={game.mediator} crawler={crawler} />
           {/* Renders nothing until the Mediator has asked something. */}
           <ProposalInbox gameId={gameId} />
           {/* `proposals.sent` is the Mediator's alone (`requireMediator`). */}
@@ -148,10 +148,6 @@ function GameSections({ game }: { game: Game }) {
               (ADR-030 §3); the server refuses `invites.link` to anyone else. */}
           {game.organizer && (
             <HubSection id="invite-link-heading" title="Invite link">
-              <p style={HUB_COPY}>
-                Anyone signed in who opens this link joins as a player. Resetting it makes a new
-                link; the old one stops working.
-              </p>
               <div style={INVITE_ACTIONS}>
                 <CopyInviteLink gameId={gameId} />
                 <ResetInviteLink gameId={gameId} />
@@ -191,6 +187,7 @@ export function GameHub({ gameId, controls, activeSegment, onSegmentChange }: Ga
         name={game ? game.name : 'Game'}
         mediator={game?.mediator}
         controls={controls}
+        actions={game && !game.mediator ? <LaunchDashboard gameId={gameId} /> : undefined}
       />
       <div className="su-page-column" style={GAME_BODY}>
         {game === undefined ? (
@@ -201,7 +198,6 @@ export function GameHub({ gameId, controls, activeSegment, onSegmentChange }: Ga
           <NotInGame />
         ) : (
           <>
-            <LaunchDashboard gameId={gameId} />
             <GameRoster
               gameId={gameId}
               gameName={game.name}

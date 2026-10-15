@@ -1,8 +1,10 @@
 /**
- * ContainerSwitcher — the Game page's "Showing" select (ADR-030 §2).
+ * ContainerSwitcher — the Game page's Games select (ADR-030 §2).
  *
  * It lists **Shelves** (everything you keep, at `/`), then every
- * Game the player is in, and picking one goes there. Shelves itself has its
+ * Game the player is in, and picking one goes there; its last entry,
+ * **+ New Game**, opens the New Game dialog (`NewGameDialog`) and leaves the
+ * select on the Game it shows. Shelves itself has its
  * own Showing toggle (Everything | Not in a Game) instead. The masthead's Games
  * menu (`GamesMenu`) makes the same choice from every other route.
  *
@@ -16,27 +18,18 @@
 
 import type { Container } from 'cantina-domain/container'
 import { Select } from 'component-lib'
-import { color, font, fontSize, space, tracking, weight } from 'component-lib/design/tokens'
 import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
+import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { parseContainer, serializeContainer } from '../../stores/activeContainerStore'
+import { NewGameDialog } from '../games/NewGameControl'
 
 const SHELF_VALUE = 'shelf'
 
-const ROW = { alignItems: 'center', display: 'flex', gap: space[8] } satisfies CSSProperties
-
-// Paper: the select sits on the Game page's band (`GameBand`), whose
-// controls are paper on the deeper crawler pink.
-const LABEL = {
-  color: color.paper,
-  fontFamily: font.cond,
-  fontSize: fontSize.caption,
-  fontWeight: weight.semibold,
-  letterSpacing: tracking.capsTight,
-  textTransform: 'uppercase',
-} satisfies CSSProperties
+/** The "+ New Game" entry: an action, never a container. */
+const NEW_GAME_VALUE = 'new-game'
 
 /** Its height steps down from `sm` (`.su-container-select`, styles/controls.css). */
 const SELECT = { width: '200px' } satisfies CSSProperties
@@ -48,24 +41,29 @@ type ContainerSwitcherProps = {
 
 function ConnectedContainerSwitcher({ activeContainer, onSelect }: ContainerSwitcherProps) {
   const games = useQuery(api.games.listMine)
+  const [creating, setCreating] = useState(false)
 
   // Option values ARE the serialized form, so the same parser the store
-  // persists through decodes them — one encoding, defined in one place.
+  // persists through decodes them — one encoding, defined in one place. The
+  // select's value is the shown container's, so picking "+ New Game" leaves it
+  // where it was.
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    if (e.target.value === NEW_GAME_VALUE) {
+      setCreating(true)
+      return
+    }
     onSelect(parseContainer(e.target.value))
   }
 
   return (
-    <div style={ROW}>
-      <label htmlFor="container-switcher" style={LABEL}>
-        Showing
-      </label>
+    <>
       {/* Faux-select (design-spec §2.5): the shared `Select` chevron rung — the
           same control the Workspace switcher used, so the header row keeps its
           existing weight and alignment. */}
       <Select
         chevron
         id="container-switcher"
+        aria-label="Games"
         value={serializeContainer(activeContainer)}
         onChange={handleChange}
         className="su-container-select"
@@ -85,8 +83,10 @@ function ConnectedContainerSwitcher({ activeContainer, onSelect }: ContainerSwit
             ))}
           </optgroup>
         )}
+        <option value={NEW_GAME_VALUE}>+ New Game</option>
       </Select>
-    </div>
+      <NewGameDialog open={creating} onOpenChange={setCreating} />
+    </>
   )
 }
 

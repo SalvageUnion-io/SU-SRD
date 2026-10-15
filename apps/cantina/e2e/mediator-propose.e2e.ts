@@ -38,7 +38,7 @@ test('a Mediator proposes a change and the player applies it', async ({ page, br
     await buildPilot(player.page, 'Mira Voss', 'Sparks')
 
     // --- The Mediator proposes from the dashboard ---
-    await page.getByRole('link', { name: 'Open the Mediator dashboard' }).click()
+    await page.getByRole('link', { name: 'Launch Dashboard' }).click()
     await page.waitForURL(new RegExp(`/mediator/${gameId}$`))
     const seat = page.getByRole('button', { name: /^Sparks, HP / })
     await expect(seat).toBeVisible({ timeout: 30_000 })

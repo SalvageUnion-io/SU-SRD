@@ -52,8 +52,9 @@ export type EntityProps = EntitySource & {
    */
   links?: TagItem[]
   /**
-   * Token only: the host's chip, last in its chip group — a damaged thing's
-   * condition `StatusBadge` on a surface that only reads it (a crawler bay).
+   * Token and Row: the host's chip, last in its chip group — a damaged thing's
+   * condition `StatusBadge` on a surface that only reads it (a crawler bay), a
+   * listed unit's "⋯" menu.
    */
   trailing?: ReactNode
 }
@@ -100,12 +101,13 @@ export function Entity(props: EntityProps) {
           omit={omit}
           peek={peek}
           slots={
-            titleAs || controls || labels || links
+            titleAs || controls || labels || links || trailing
               ? {
                   ...(titleAs ? { titleAs } : {}),
                   ...(controls ? { controls } : {}),
                   ...(labels ? { extraLabels: labels } : {}),
                   ...(links ? { tags: [...traitTags(model.traits), ...links] } : {}),
+                  ...(trailing ? { trailing } : {}),
                 }
               : undefined
           }

@@ -54,8 +54,7 @@ export function StarterShelf() {
         style={SLAB}
         actions={
           <Button
-            size="compact"
-            className="su-shelves-action"
+            size="mini"
             aria-label={fold.open ? 'Hide the Starter Set' : 'Show the Starter Set'}
             {...fold.toggleProps}
           >

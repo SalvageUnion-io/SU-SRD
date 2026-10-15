@@ -41,8 +41,9 @@ import { Fragment } from 'react'
  *
  * The trigger is the masthead's paper-on-ink nav-link treatment, so it sits
  * beside the bar's links as one of them. The second surface is a shelf item's
- * "⋯" on Shelves (board S1): `variant="overflow"` draws the trigger as a square
- * ink-outlined button on paper with the ellipsis glyph, and a row with
+ * "⋯" on Shelves (board S1): `variant="overflow"` draws the trigger as an
+ * action chip (Button's `mini` rung) with the ellipsis glyph, the last chip on
+ * a listed unit's line, and a row with
  * `tone: 'danger'` (Delete…) reads in the danger colour. Colour lives
  * in `.su-header-menu-trigger` / `.su-header-menu-item` (`styles/headerMenu.css`)
  * because it changes on hover, on open and on highlight (resting value included — the per-property split rule);
@@ -81,10 +82,10 @@ type HeaderMenuProps = {
   active?: boolean
   /**
    * `masthead` (default) — the Union bar's nav-link trigger. `overflow` — a
-   * square "⋯" button on paper (a shelf item's menu); it shows the glyph, so
-   * pass `label` to name it, and `trigger` is not drawn. `button` — the shared
-   * compact Button on paper, for a menu that is a page action (a shelf's
-   * "+ From a mech").
+   * "⋯" action chip (a listed unit's menu, its Row's last chip); it shows the
+   * glyph, so pass `label` to name it, and `trigger` is not drawn. `button` —
+   * the shared Button as an action chip, for a menu that is a section's action
+   * (a shelf's "+ From a mech").
    */
   variant?: 'masthead' | 'overflow' | 'button'
   /** Extra classes for the trigger of the `button` variant. */
@@ -111,12 +112,11 @@ const TRIGGER = {
   textTransform: 'uppercase',
 } satisfies CSSProperties
 
-// The overflow trigger (board S1) is the sheet bar's "⋯": Button's icon rung
-// at page-action height, a 40px ink-outlined square. Only its open state, the
-// inverse plate, is `.su-header-menu-trigger--overflow`'s.
+// The overflow trigger (board S1) is an action chip, Button's `mini` rung, so it
+// sits among a Row's chips at their height. Only its open state, the inverse
+// plate, is `.su-header-menu-trigger--overflow`'s.
 const OVERFLOW_TRIGGER_CLASS = cn(
-  buttonVariants({ size: 'iconOnly' }),
-  'su-page-action',
+  buttonVariants({ size: 'mini' }),
   'su-header-menu-trigger--overflow'
 )
 
@@ -191,7 +191,7 @@ export function HeaderMenu({
   // The button variant is the shared Button's own classes, focus ring included.
   const triggerClass =
     variant === 'button'
-      ? `${buttonVariants({ size: 'compact' })}${className ? ` ${className}` : ''}`
+      ? `${buttonVariants({ size: 'mini' })}${className ? ` ${className}` : ''}`
       : overflow
         ? OVERFLOW_TRIGGER_CLASS
         : `su-header-menu-trigger ${FOCUS_RING}`
@@ -206,7 +206,7 @@ export function HeaderMenu({
         aria-current={active ? 'page' : undefined}
       >
         {overflow ? (
-          <Ellipsis size={18} aria-hidden="true" />
+          <Ellipsis size={14} aria-hidden="true" />
         ) : (
           <>
             {trigger}

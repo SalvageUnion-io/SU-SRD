@@ -19,11 +19,11 @@
   background-color: var(--color-paper-15);
 }
 
-/* The band's actions and each shelf's "+ New…" (board S1): the uppercase
-   display face at the band's 40px, so they read as one row beside the Showing
-   toggle. Geometry and type only; the on-ink colours are above. */
-.su-shelves-band__btn,
-.su-shelves-action {
+/* The band's actions (board S1): the uppercase display face at the band's
+   40px, so they read as one row beside the Showing toggle. Geometry and type
+   only; the on-ink colours are above. A shelf's "+ New…" is an action chip
+   (Button's `mini` rung), as a Row's "⋯" is. */
+.su-shelves-band__btn {
   font-family: var(--font-cond);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-bold);
@@ -60,18 +60,14 @@
 }
 
 /* Under a coarse pointer every control on the page is at least 44px tall
-   (ruleset §4.6): the band's and the shelves' buttons, the "⋯" triggers and
-   the menu rows (the Starter Set's entries are Tokens). `theme.css` floors `button` and
-   `.su-btn`; this names the ones whose own 40px would otherwise sit under it,
-   and the menu rows, which are neither. */
+   (ruleset §4.6): the band's buttons and the menu rows (the Starter Set's
+   entries are Tokens). `theme.css` floors `button` and `.su-btn`; this names
+   the band's, whose own 40px would otherwise sit under it, and the menu rows,
+   which are neither. The action chips (a shelf's "+ New…", a Row's "⋯") reach
+   44px through the `mini` rung's hit area (`pointer-motion.css`). */
 @media (pointer: coarse) {
   .su-shelves-band__btn,
-  .su-shelves-action,
-  .su-header-menu-trigger--overflow,
   .su-header-menu-item {
     min-height: 44px;
-  }
-  .su-header-menu-trigger--overflow {
-    min-width: 44px;
   }
 }

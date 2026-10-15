@@ -5,10 +5,13 @@
  */
 
 import type { FunctionReturnType } from 'convex/server'
+import { resolvePool } from 'salvageunion-reference/rules'
 import type { api } from '../../../convex/_generated/api'
 
 type Listing = NonNullable<FunctionReturnType<typeof api.entities.listForGame>>
 type Members = FunctionReturnType<typeof api.games.members>
+/** `crew.vitals`: the server's derived maxima, which the seats' HP reads. */
+type Vitals = FunctionReturnType<typeof api.crew.vitals>
 
 /** One row of the seat list. */
 export type SeatRow = {
@@ -21,6 +24,20 @@ export type SeatRow = {
    * mech assigned to them (null on foot). Null for a member with no pilot.
    */
   pilot: { name: string; mech: string | null } | null
+  /** The pilot's `current/max` HP, from `crew.vitals`; null while it loads or with no pilot. */
+  hp: string | null
+}
+
+/** Each pilot's HP as `current/max`, by its row id; an absent current is full (`resolvePool`). */
+function hpById(vitals: Vitals | undefined): Map<string, string> {
+  const out = new Map<string, string>()
+  for (const p of vitals?.pilots ?? []) {
+    if (p.maxHP === null) continue
+    // `crew.vitals` sends an unset current as null; `resolvePool` reads undefined as full.
+    const current = p.currentHP === null ? undefined : p.currentHP
+    out.set(p._id, `${resolvePool(current, p.maxHP)}/${p.maxHP}`)
+  }
+  return out
 }
 
 const text = (body: unknown, key: string): string | null => {
@@ -39,8 +56,10 @@ const linkId = (row: { appId: string | null; body: unknown }): string | null =>
 export function seatRows(
   listing: Listing,
   members: Members,
-  viewerId: string | null
+  viewerId: string | null,
+  vitals?: Vitals
 ): { rows: SeatRow[]; claimed: number; total: number } {
+  const hp = hpById(vitals)
   const mechOfPilot = new Map<string, string>()
   for (const link of listing.softLinks) {
     if (link.type === 'mech-to-pilot') mechOfPilot.set(link.to.id, link.from.id)
@@ -74,11 +93,19 @@ export function seatRows(
         who,
         unit: member.mediator ? 'Runs the table' : 'No pilot yet',
         pilot: null,
+        hp: null,
       })
       continue
     }
     for (const pilot of pilots) {
-      rows.push({ key: pilot._id, role, who, unit: unitOf(pilot), pilot: pilotOf(pilot) })
+      rows.push({
+        key: pilot._id,
+        role,
+        who,
+        unit: unitOf(pilot),
+        pilot: pilotOf(pilot),
+        hp: hp.get(pilot._id) ?? null,
+      })
     }
   }
   const open = listing.pilots.filter((p) => p.ownerId === null)
@@ -90,6 +117,7 @@ export function seatRows(
       who: callsign,
       unit: 'Waiting for a player',
       pilot: { name: callsign, mech: pilotOf(pilot).mech },
+      hp: hp.get(pilot._id) ?? null,
     })
   }
   return { rows, claimed: listing.pilots.length - open.length, total: listing.pilots.length }

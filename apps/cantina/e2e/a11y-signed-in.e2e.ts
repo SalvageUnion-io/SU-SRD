@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test'
 import { scanPages } from 'gates/a11y'
 import { at } from './_base'
-import { setUpTable } from './_table'
+import { pilotDashboard, setUpTable } from './_table'
 import { expect, test } from './fixtures'
 
 /**
@@ -41,12 +41,7 @@ test('no accessibility violations signed in', async ({ page, browser, baseURL },
   for (const kind of ['pilot', 'mech', 'crawler'] as const)
     sheets.push(await rosterSheet(page, kind))
 
-  await page.getByRole('button', { name: 'Launch Dashboard' }).click()
-  const launcher = page.getByRole('dialog', { name: 'Launch Dashboard' })
-  await launcher.getByRole('radio', { name: /Bonesaw/ }).check({ timeout: 30_000 })
-  await launcher.getByRole('button', { name: 'Launch' }).click()
-  await page.waitForURL(/\/dashboard\//)
-  const dashboard = new URL(page.url()).pathname
+  const dashboard = at(await pilotDashboard(page, 'Bonesaw'))
 
   // The scan opens a context per device; each starts with this session.
   const storageState = await page.context().storageState({ indexedDB: true })

@@ -361,32 +361,23 @@ describe('what the game will accept', () => {
 })
 
 describe('yours first, then everyone else', () => {
-  test('your rows lead each column under YOURS; the rest follow, with their holder named', async () => {
+  test('your rows lead each column; the rest follow, with their holder named', async () => {
     await renderAs(ME, listing({ pilots: [THEIR_PILOT, MY_PILOT, PRE_GEN] }))
 
-    const yours = screen.getByRole('list', { name: 'Yours' })
-    const others = screen.getByRole('list', { name: 'Everyone else' })
-    expect(within(yours).getByText('Roach-Boy')).toBeTruthy()
-    expect(within(yours).queryByText('Ash')).toBeNull()
-    // Everyone else's: the crewmate's (their name on the seal) and the
-    // unclaimed pre-gen, in the listing's order.
-    expect(within(others).getByText('Ash')).toBeTruthy()
-    expect(within(others).getByText('Mediator')).toBeTruthy()
-    expect(within(others).getByRole('button', { name: /Unclaimed/i })).toBeTruthy()
-
-    // YOURS is above everything else, whatever order the server listed them in.
-    const position = yours.compareDocumentPosition(others)
-    expect(position & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    // One list, no group headings: the seal says whose each row is.
+    expect(screen.queryByText('Yours')).toBeNull()
+    expect(screen.queryByText('Everyone else')).toBeNull()
+    // Yours leads, whatever order the server listed them in; then the
+    // crewmate's and the unclaimed pre-gen, in the listing's order.
+    const names = screen
+      .getAllByRole('link', { name: /^(Roach-Boy|Ash|Pre-gen)$/ })
+      .map((link) => link.getAttribute('aria-label'))
+    expect(names).toEqual(['Roach-Boy', 'Ash', 'Pre-gen'])
+    expect(screen.getByText('Mediator')).toBeTruthy()
+    expect(screen.getByRole('button', { name: /Unclaimed/i })).toBeTruthy()
   })
 
-  test('with nothing of yours there is no YOURS group, only the crew', async () => {
-    await renderAs(ME, listing({ pilots: [THEIR_PILOT] }))
-    expect(screen.queryByRole('list', { name: 'Yours' })).toBeNull()
-    expect(screen.queryByRole('list', { name: 'Everyone else' })).toBeNull()
-    expect(screen.getByText('Ash')).toBeTruthy()
-  })
-
-  test('crawlers have no YOURS group — the primary leads', async () => {
+  test("crawlers are nobody's — the primary leads", async () => {
     const SECOND = {
       _id: 's-crawler-2',
       appId: 'a-crawler-2',

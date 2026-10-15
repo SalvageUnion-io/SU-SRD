@@ -146,7 +146,7 @@ export function RosterColumn({
                 <AppLink
                   href={create.href}
                   onClick={create.onClick}
-                  className={buttonVariants({ variant: 'default', size: 'compact' })}
+                  className={buttonVariants({ variant: 'default', size: 'mini' })}
                   style={NO_UNDERLINE}
                 >
                   + {create.label}
@@ -166,7 +166,7 @@ export function RosterColumn({
               <AppLink
                 href={create.href}
                 onClick={create.onClick}
-                className={buttonVariants({ variant: 'primary', size: 'compact' })}
+                className={buttonVariants({ variant: 'primary', size: 'mini' })}
                 style={NO_UNDERLINE}
               >
                 {create.label}

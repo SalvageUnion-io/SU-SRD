@@ -7,9 +7,11 @@
  * `crawlerBand`, since its controls are paper (the book's crawler pink carries
  * neither ink nor paper at 4.5 : 1).
  *
- * For the Game's Mediator the band carries a **YOU MEDIATE** stamp and **Open
- * the Mediator dashboard**, the way into `/mediator/$gameId`
- * (docs/architecture/mediator-dashboard.md Q10). Everyone else sees the name.
+ * Every member gets one **Launch Dashboard** chip button. The Mediator's
+ * carries a **YOU MEDIATE** stamp before it and opens the Mediator dashboard
+ * (`/mediator/$gameId`, docs/architecture/mediator-dashboard.md Q10); a
+ * player's is the hub's `actions`, which asks which pilot to play
+ * (`LaunchDashboard`).
  */
 
 import { Badge, buttonVariants, ChapterBand, tokens } from 'component-lib'
@@ -22,6 +24,7 @@ export function GameBand({
   name,
   mediator = false,
   controls,
+  actions,
 }: {
   gameId: string | null
   /** The Game's name; "Game" while it loads. */
@@ -30,7 +33,10 @@ export function GameBand({
   mediator?: boolean
   /** The page's controls, on the band above the title (`Roster`'s). */
   controls?: ReactNode
+  /** A player's chip button, right of the name (`LaunchDashboard`); the Mediator's is the link above. */
+  actions?: ReactNode
 }) {
+  const mediates = mediator && gameId !== null
   return (
     <ChapterBand
       tone="crawler"
@@ -39,17 +45,22 @@ export function GameBand({
       id="game-band-heading"
       eyebrow={controls}
       aside={
-        mediator && gameId !== null ? (
+        mediates || actions ? (
           <>
-            <Badge shape="stamp" size="compact">
-              You mediate
-            </Badge>
-            <AppLink
-              href={`/mediator/${gameId}`}
-              className={buttonVariants({ variant: 'primary', size: 'compact' })}
-            >
-              Open the Mediator dashboard
-            </AppLink>
+            {mediates && (
+              <>
+                <Badge shape="stamp" size="compact">
+                  You mediate
+                </Badge>
+                <AppLink
+                  href={`/mediator/${gameId}`}
+                  className={buttonVariants({ variant: 'primary', size: 'compact' })}
+                >
+                  Launch Dashboard
+                </AppLink>
+              </>
+            )}
+            {actions}
           </>
         ) : undefined
       }

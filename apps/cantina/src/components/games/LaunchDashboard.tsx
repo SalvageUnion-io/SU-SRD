@@ -1,12 +1,13 @@
 /**
- * LaunchDashboard — the one way into the Dashboard: a button at the top of the
- * Game hub, and a dialog that asks which pilot to play (ADR-038 §1).
+ * LaunchDashboard — a player's way into the Dashboard: a chip button in the
+ * Game band (`GameBand`'s `actions`), and a dialog that asks which pilot to
+ * play (ADR-038 §1). The Mediator's Launch Dashboard chip is the band's own
+ * link to the Mediator dashboard instead.
  *
  * The Dashboard is keyed on a pilot in a Game with a Mediator, so the place to
  * launch it is the Game itself — the hub `/` shows once a Game is picked — not
- * a row on its roster or a live sheet. Players and the Mediator alike get the
- * same button while the Game has a Mediator; without one there is nothing to
- * launch, and the hub says so in a line rather than offering a refusal.
+ * a row on its roster or a live sheet. The button is always there; without a
+ * Mediator there is nothing to launch, and the dialog says so.
  *
  * ## One choice: the pilot
  *
@@ -45,14 +46,6 @@ import type { RosterRow } from '../../lib/games/gameRoster'
 import { groupColumn, ownableRows } from '../../lib/games/gameRoster'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { OwnerSeal } from './OwnerSeal'
-
-const BAR = {
-  alignItems: 'center',
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[12],
-  marginTop: tokens.space[16],
-} satisfies CSSProperties
 
 const HINT = { textAlign: 'left' } satisfies CSSProperties
 
@@ -120,9 +113,8 @@ export function LaunchDashboard({ gameId }: { gameId: string }) {
   // Nothing until the crew is known: a button that appears and then vanishes
   // when the members answer would be worse than a beat of nothing.
   if (members === undefined) return null
-  // No Mediator, no Dashboard, and nothing said about it: the Game's own
-  // Mediator row already offers to appoint one.
-  if (!hasMediator(members)) return null
+  // No Mediator, no Dashboard: the button stays, and the dialog says why.
+  const mediated = hasMediator(members)
 
   const { yours, others } = groupColumn(
     ownableRows({
@@ -143,6 +135,7 @@ export function LaunchDashboard({ gameId }: { gameId: string }) {
   }
 
   function launch() {
+    if (!mediated) return
     if (chosen?.localId == null) return
     setOpen(false)
     // The local id: the one `DashboardGate` looks the pilot up by.
@@ -150,8 +143,8 @@ export function LaunchDashboard({ gameId }: { gameId: string }) {
   }
 
   return (
-    <div style={BAR}>
-      <Button variant="primary" size="full" onClick={openPicker}>
+    <>
+      <Button variant="primary" size="compact" onClick={openPicker}>
         Launch Dashboard
       </Button>
       <ModalShell
@@ -161,7 +154,12 @@ export function LaunchDashboard({ gameId }: { gameId: string }) {
         description="Choose the pilot to play."
       >
         <div style={BODY}>
-          {listing === undefined ? (
+          {!mediated ? (
+            <Text variant="hint" style={HINT}>
+              The Dashboard runs once this Game has a Mediator. The Organizer appoints one under The
+              Game.
+            </Text>
+          ) : listing === undefined ? (
             <Text variant="hint" style={HINT}>
               Loading pilots…
             </Text>
@@ -206,12 +204,17 @@ export function LaunchDashboard({ gameId }: { gameId: string }) {
             <Button variant="ghost" size="compact" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button variant="primary" size="compact" disabled={chosen === null} onClick={launch}>
+            <Button
+              variant="primary"
+              size="compact"
+              disabled={!mediated || chosen === null}
+              onClick={launch}
+            >
               Launch
             </Button>
           </div>
         </div>
       </ModalShell>
-    </div>
+    </>
   )
 }

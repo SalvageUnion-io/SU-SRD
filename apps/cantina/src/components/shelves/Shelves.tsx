@@ -41,7 +41,6 @@ import type { MechPattern } from 'cantina-domain/schemas/pattern'
 import {
   buttonVariants,
   ChapterBand,
-  cn,
   RosterSkeleton,
   Segmented,
   SegmentedOption,
@@ -380,11 +379,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
 
   const newLink = (href: string, label: string) =>
     canWrite ? (
-      <AppLink
-        href={href}
-        className={cn(buttonVariants({ size: 'compact' }), 'su-shelves-action')}
-        style={NEW_LINK}
-      >
+      <AppLink href={href} className={buttonVariants({ size: 'mini' })} style={NEW_LINK}>
         {label}
       </AppLink>
     ) : undefined
@@ -568,7 +563,6 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                     <HeaderMenu
                       variant="button"
                       trigger="+ From a mech"
-                      className="su-shelves-action"
                       label="+ From a mech"
                       chevron={false}
                       sections={[fromAMech]}

@@ -34,6 +34,8 @@ type UnitRowProps = {
   userMade?: boolean
   /** Labels after the note (an owner seal, ★ Primary). */
   labels?: ReactNode
+  /** The host's last chip, on the name's line: the unit's "⋯" menu. */
+  trailing?: ReactNode
   /** The unit's sheet: a View control. Omit when there is nothing to open. */
   href?: string | undefined
   /** Ends the assignment (never deletes the unit). Omit to hide it. */
@@ -51,6 +53,7 @@ export function UnitRow({
   readings,
   userMade = false,
   labels,
+  trailing,
   href,
   onUnassign,
   controls,
@@ -91,6 +94,7 @@ export function UnitRow({
       model={unitRowModel({ kind, name, note, userMade, readings: readings ?? [] })}
       mode={mode}
       labels={labels}
+      trailing={trailing}
       controls={all}
     />
   )
