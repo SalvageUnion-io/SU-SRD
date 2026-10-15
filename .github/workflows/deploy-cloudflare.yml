@@ -530,46 +530,6 @@ jobs:
           name: cantina-dist
           path: apps/cantina/dist
 
-      # The Worker was su-itun until 3.3, and `wrangler deploy` refuses
-      # a route another Worker holds. While su-itun still holds
-      # salvageunion.io/build*, ship su-cantina without routes, then point the
-      # route at it in one write, so /build never goes unserved; the Deploy
-      # step below then finds the route its own and moves the custom domains.
-      # A no-op once the route is su-cantina's.
-      - name: Hand salvageunion.io/build* from su-itun to su-cantina
-        if: matrix.app == 'cantina'
-        working-directory: apps/cantina
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          ZONE: salvageunion.io
-          PATTERN: salvageunion.io/build*
-        run: |
-          set -euo pipefail
-          api() {
-            local path=$1
-            shift
-            curl -sS -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4$path" "$@"
-          }
-          name=$(bun -e 'console.log(Bun.JSONC.parse(await Bun.file("wrangler.jsonc").text()).name)')
-          zone_id=$(api "/zones?name=$ZONE" | jq -r '.result[0].id // empty')
-          route=$(api "/zones/$zone_id/workers/routes" | jq -c --arg p "$PATTERN" '.result[] | select(.pattern == $p)')
-          owner=$(jq -r '.script // empty' <<<"$route")
-          if [ -z "$owner" ] || [ "$owner" = "$name" ]; then
-            echo "OK: $PATTERN is ${owner:-unassigned}; nothing to hand over."
-            exit 0
-          fi
-          bun -e 'const c = Bun.JSONC.parse(await Bun.file("wrangler.jsonc").text()); delete c.routes; await Bun.write("wrangler.handoff.json", JSON.stringify(c))'
-          bunx wrangler deploy --config wrangler.handoff.json
-          rm wrangler.handoff.json
-          id=$(jq -r '.id' <<<"$route")
-          result=$(api "/zones/$zone_id/workers/routes/$id" -X PUT -H 'Content-Type: application/json' \
-            --data "$(jq -nc --arg p "$PATTERN" --arg s "$name" '{pattern: $p, script: $s}')")
-          if [ "$(jq -r '.success' <<<"$result")" != "true" ]; then
-            echo "FATAL: could not point $PATTERN at $name: $(jq -c '.errors' <<<"$result")" >&2
-            exit 1
-          fi
-          echo "OK: $PATTERN moved from $owner to $name."
-
       - name: Deploy
         working-directory: apps/${{ matrix.app }}
         env:
