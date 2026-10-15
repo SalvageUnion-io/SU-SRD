@@ -1,8 +1,16 @@
-import { Button, Card, ChapterBand, FieldError, Input, PageHeading, Text } from 'component-lib'
-import { space } from 'component-lib/design/tokens'
+import {
+  Button,
+  ChapterBand,
+  EmptyState,
+  FieldError,
+  Input,
+  Slab,
+  Text,
+  tokens,
+} from 'component-lib'
 import { PRODUCT } from 'component-lib/product'
 import { useMutation, useQuery } from 'convex/react'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
@@ -18,36 +26,61 @@ import { SignInControl } from './SignInControl'
  * (`components/container/GamesMenu.tsx`), which is where a player picks what
  * the Roster shows.
  *
+ * It wears the Hangar's clothes (`components/shelves/Shelves.tsx`): the ink
+ * band on the workshop ground, the 75rem column, and each concern a section
+ * under a solid Slab stamp, side by side where there is room.
+ *
  * What remains lives on one page deliberately. Holding somebody's Discord
  * identity creates obligations — let me see it, let me correct it, let me take
  * it away, let me erase it — and splitting those across surfaces is how one of
  * them quietly never ships.
  */
 
-const STACK = { display: 'flex', flexDirection: 'column', gap: space[24] } satisfies CSSProperties
-
-const CARD_BODY = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: space[12],
-  padding: space[16],
-} satisfies CSSProperties
-
-const CARD_PAD = { padding: space[16] } satisfies CSSProperties
-
-const ACTIONS = { display: 'flex', gap: space[8] } satisfies CSSProperties
-
-// The hint variant centres; these asides read as body copy under a heading.
-const HINT = { textAlign: 'left' } satisfies CSSProperties
+const MEASURE = '75rem'
 
 const PAGE = {
+  backgroundColor: tokens.color.wkBg,
+  minHeight: '100%',
+  paddingBottom: tokens.space[48],
+} satisfies CSSProperties
+
+// Its side padding and centring are `.su-page-column`'s, as on the Hangar.
+const BODY = {
+  maxWidth: MEASURE,
+  paddingTop: tokens.space[20],
+} satisfies CSSProperties
+
+/** One column per concern where there is room; stacked on a phone. */
+const COLUMNS = {
+  alignItems: 'start',
+  display: 'grid',
+  gap: tokens.space[32],
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 22rem), 1fr))',
+} satisfies CSSProperties
+
+const SECTION = {
   display: 'flex',
   flexDirection: 'column',
-  gap: space[24],
-  marginInline: 'auto',
-  maxWidth: '42rem',
-  padding: space[16],
+  gap: tokens.space[12],
+  minWidth: 0,
 } satisfies CSSProperties
+
+// The slab's own foot margin would double the section's gap.
+const SLAB = { marginBottom: tokens.space[4] } satisfies CSSProperties
+
+const NOTE = { margin: 0, textAlign: 'left' } satisfies CSSProperties
+
+const ROW = {
+  alignItems: 'center',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[8],
+} satisfies CSSProperties
+
+const GROW = { flex: '1 1 12rem', minWidth: 0 } satisfies CSSProperties
+
+/** The Hangar's action type: uppercase display face at page-action height. */
+const ACTION = 'su-shelves-action'
 
 function download(filename: string, data: unknown): void {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -57,6 +90,18 @@ function download(filename: string, data: unknown): void {
   a.download = filename
   a.click()
   URL.revokeObjectURL(url)
+}
+
+type SectionProps = { id: string; title: string; children: ReactNode }
+
+/** One concern: its stamp, which also names the region, then its controls. */
+function Section({ id, title, children }: SectionProps) {
+  return (
+    <section aria-labelledby={id} style={SECTION}>
+      <Slab variant="solid" as="h2" id={id} label={title} style={SLAB} />
+      {children}
+    </section>
+  )
 }
 
 function SignedInAccount() {
@@ -78,102 +123,81 @@ function SignedInAccount() {
   const value = name ?? me.displayName ?? ''
 
   return (
-    <div style={STACK}>
-      <Card>
-        <div style={CARD_BODY}>
-          <PageHeading variant="section" as="h2">
-            Display name
-          </PageHeading>
-          <Text variant="hint" style={HINT}>
-            Shown on every entity you own. Defaults to your Discord name; clearing this falls back
-            to it rather than to blank.
-          </Text>
-          {/* No `Field` wrapper: the card's own h2 already reads "Display
-              name", and a stamp repeating it on the input's seam would state
-              the same label twice a line apart. */}
+    <div style={COLUMNS}>
+      <Section id="settings-name" title="Display name">
+        {/* No `Field` wrapper: the stamp already reads "Display name". A blank
+            name falls back to the Discord one, which the placeholder says. */}
+        <div style={ROW}>
           <Input
             aria-label="Display name"
+            placeholder="Your Discord name"
+            style={GROW}
             value={value}
             onChange={(e) => setName(e.target.value)}
           />
-          <div>
-            <Button
-              variant="primary"
-              size="compact"
-              disabled={save.pending}
-              onClick={() => void save.run({ displayName: value })}
-            >
-              {save.pending ? 'Saving…' : 'Save'}
-            </Button>
-          </div>
-          <FieldError>{save.error}</FieldError>
+          <Button
+            variant="primary"
+            className={ACTION}
+            disabled={save.pending}
+            onClick={() => void save.run({ displayName: value })}
+          >
+            {save.pending ? 'Saving…' : 'Save'}
+          </Button>
         </div>
-      </Card>
+        <FieldError>{save.error}</FieldError>
+      </Section>
 
-      <Card>
-        <div style={CARD_BODY}>
-          <PageHeading variant="section" as="h2">
-            Your data
-          </PageHeading>
-          <Text variant="hint" style={HINT}>
-            Downloads everything you own. Crewmates' characters and the shared crawler are not
-            included — you can see them, but they are not yours to take.
-          </Text>
-          <div>
-            <Button
-              variant="ghost"
-              size="compact"
-              disabled={exported === undefined}
-              onClick={() => exported && download('cantina-account-export.json', exported)}
-            >
-              Download my data
-            </Button>
-          </div>
+      <Section id="settings-data" title="Your data">
+        <Text variant="hint" style={NOTE}>
+          Everything you own. Crewmates' characters and shared crawlers are theirs.
+        </Text>
+        <div style={ROW}>
+          <Button
+            className={ACTION}
+            disabled={exported === undefined}
+            onClick={() => exported && download('cantina-account-export.json', exported)}
+          >
+            Download my data
+          </Button>
         </div>
-      </Card>
+      </Section>
 
-      <Card>
-        <div style={CARD_BODY}>
-          <PageHeading variant="section" as="h2">
-            Delete account
-          </PageHeading>
-          <Text variant="hint" style={HINT}>
-            Your pilots and mechs are deleted. Games you are in survive — the shared crawler stays,
-            and if you organise a Game the role passes to the longest-standing member. Download your
-            data first; this cannot be undone.
-          </Text>
-          <div>
-            {confirming ? (
-              <div style={ACTIONS}>
-                <Button
-                  variant="danger"
-                  size="compact"
-                  disabled={erase.pending}
-                  onClick={() => void erase.run({})}
-                >
-                  {erase.pending ? 'Deleting…' : 'Permanently delete'}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="compact"
-                  disabled={erase.pending}
-                  onClick={() => {
-                    erase.clearError()
-                    setConfirming(false)
-                  }}
-                >
-                  Cancel
-                </Button>
-              </div>
-            ) : (
-              <Button variant="danger" size="compact" onClick={() => setConfirming(true)}>
-                Delete my account
+      <Section id="settings-delete" title="Delete account">
+        <Text variant="hint" style={NOTE}>
+          Deletes your pilots and mechs. Games you are in survive: their crawler stays, and one you
+          organise passes to its longest-standing member. This cannot be undone.
+        </Text>
+        <div style={ROW}>
+          {confirming ? (
+            <>
+              <Button
+                variant="danger"
+                className={ACTION}
+                disabled={erase.pending}
+                onClick={() => void erase.run({})}
+              >
+                {erase.pending ? 'Deleting…' : 'Permanently delete'}
               </Button>
-            )}
-          </div>
-          <FieldError>{erase.error}</FieldError>
+              <Button
+                variant="ghost"
+                className={ACTION}
+                disabled={erase.pending}
+                onClick={() => {
+                  erase.clearError()
+                  setConfirming(false)
+                }}
+              >
+                Cancel
+              </Button>
+            </>
+          ) : (
+            <Button variant="danger" className={ACTION} onClick={() => setConfirming(true)}>
+              Delete my account
+            </Button>
+          )}
         </div>
-      </Card>
+        <FieldError>{erase.error}</FieldError>
+      </Section>
     </div>
   )
 }
@@ -185,41 +209,31 @@ function SettingsBody() {
 
   if (mode === 'disconnected') {
     return (
-      <Card>
-        <div style={CARD_PAD}>
-          <Text>
-            Your account is unreachable right now. Reconnect to change your profile or download your
-            data.
-          </Text>
-        </div>
-      </Card>
+      <EmptyState
+        variant="quiet"
+        body="Your account is unreachable right now. Reconnect to change your settings."
+      />
     )
   }
 
   return (
-    <Card>
-      <div style={CARD_BODY}>
-        <Text>
-          You are not signed in. Signed out, {PRODUCT.name} is read-only: you can browse the Starter
-          Set, but building anything needs an account.
-        </Text>
-        <Text variant="hint" style={HINT}>
-          Signing in saves your builds to your account, carries them between devices, and lets you
-          join a Game with other people.
-        </Text>
-        <div>
-          <SignInControl />
-        </div>
-      </div>
-    </Card>
+    <EmptyState
+      variant="quiet"
+      body={`You are not signed in. Signed out, ${PRODUCT.name} is read-only: building anything needs an account.`}
+      action={<SignInControl />}
+    />
   )
 }
 
 export function SettingsScreen() {
   return (
     <main style={PAGE}>
-      <ChapterBand tone="cantina">Settings</ChapterBand>
-      <SettingsBody />
+      <ChapterBand tone="ink" measure={MEASURE}>
+        Settings
+      </ChapterBand>
+      <div className="su-page-column" style={BODY}>
+        <SettingsBody />
+      </div>
     </main>
   )
 }

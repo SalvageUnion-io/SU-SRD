@@ -108,7 +108,7 @@ describe('what the settings page is when there is no account', () => {
 
     expect(screen.getByText(/unreachable right now/i)).toBeTruthy()
     // Offering an editable name that cannot be saved would be a lie.
-    expect(screen.queryByLabelText('Display name')).toBeNull()
+    expect(screen.queryByRole('textbox', { name: 'Display name' })).toBeNull()
   })
 })
 
@@ -129,14 +129,16 @@ describe('the profile', () => {
     withQueries(profileQueries(ME))
     wrap()
 
-    const input = screen.getByLabelText('Display name') as HTMLInputElement
+    const input = screen.getByRole('textbox', { name: 'Display name' }) as HTMLInputElement
     expect(input.value).toBe('Beefcake')
   })
 
   test('a null display name renders as empty, not as the string null', () => {
     withQueries(profileQueries({ ...ME, displayName: null }))
     wrap()
-    expect((screen.getByLabelText('Display name') as HTMLInputElement).value).toBe('')
+    expect((screen.getByRole('textbox', { name: 'Display name' }) as HTMLInputElement).value).toBe(
+      ''
+    )
   })
 })
 
