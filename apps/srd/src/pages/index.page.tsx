@@ -93,10 +93,6 @@ function page(): PageResult {
           </ChapterBand>
         </div>
         <div className="srd-home__body srd-page-body">
-          <aside className="srd-home__aside" aria-label="Getting started">
-            <HomeStartHere guideHrefs={guideHrefs} />
-            <DiscordButton installHref={DISCORD_INSTALL_URL} />
-          </aside>
           <div className="srd-home__index">
             {chapters.map((chapter) => (
               <ContentsChapter
@@ -110,6 +106,10 @@ function page(): PageResult {
             ))}
             <ContentsChapter id="at-the-table" title="At the table" tone="ink" rows={atTheTable} />
           </div>
+          <aside className="srd-home__aside" aria-label="Getting started">
+            <HomeStartHere guideHrefs={guideHrefs} />
+            <DiscordButton installHref={DISCORD_INSTALL_URL} />
+          </aside>
         </div>
       </div>
     ),
