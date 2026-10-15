@@ -49,7 +49,12 @@ export function reportError(error: unknown, context?: Record<string, unknown>): 
 
 /** `${name}: ${message}` on one line, as a stack would open with it. */
 function headlineOf(error: Error): string {
-  const text = `${error.name}: ${error.message}`.replace(/\s*\n\s*/g, ' ')
+  // Split and trimmed rather than a whitespace regex, which backtracks on
+  // long runs of spaces in a message this Worker does not control.
+  const text = `${error.name}: ${error.message}`
+    .split('\n')
+    .map((line) => line.trim())
+    .join(' ')
   return text.length > 1_000 ? `${text.slice(0, 1_000)}…` : text
 }
 
