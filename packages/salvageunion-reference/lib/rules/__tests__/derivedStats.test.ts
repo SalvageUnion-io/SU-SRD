@@ -89,7 +89,7 @@ describe('pilot derivation', () => {
   })
 })
 
-// House rule: Stat Training is ALWAYS derived from the crawler tier —
+// Stat Training is ALWAYS derived from the crawler tier —
 // +2 HP / +1 AP per tech level above 1 — with no per-pilot training record.
 describe('pilot Stat Training follows the crawler tech level', () => {
   it.each([
@@ -116,7 +116,6 @@ describe('pilot Stat Training follows the crawler tech level', () => {
         stat: 'maxHp',
         amount: 4,
         copies: 1,
-        houseRule: 'stat-training-follows-crawler',
       },
     ])
     const ap = pilotMaxAPParts({ crawlerTechLevel: 3 })
@@ -127,7 +126,6 @@ describe('pilot Stat Training follows the crawler tech level', () => {
         stat: 'maxAp',
         amount: 2,
         copies: 1,
-        houseRule: 'stat-training-follows-crawler',
       },
     ])
   })
