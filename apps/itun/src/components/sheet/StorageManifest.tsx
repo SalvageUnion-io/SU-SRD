@@ -76,7 +76,9 @@ const STRIP = {
   flexWrap: 'wrap',
   alignItems: 'center',
   gap: tokens.space[8],
-  padding: `0 ${tokens.space[12]} ${tokens.space[8]}`,
+  // The flush body has no padding of its own: the strip's top is the 12px
+  // gutter every other card's body opens with, off the cut-out band.
+  padding: `${tokens.space[12]} ${tokens.space[12]} ${tokens.space[8]}`,
 } satisfies CSSProperties
 
 const SMALL_TEXT = {
