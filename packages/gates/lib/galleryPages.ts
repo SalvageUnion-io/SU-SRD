@@ -138,7 +138,7 @@ export const GALLERY_SECTIONS: readonly GallerySection[] = [
     intro:
       'A fresh test account with Bonesaw, the Mazona and Tenacity copied from the Starter Set, Bonesaw moved into a Game.',
     pages: [
-      cantina('/', 'Shelves', 'The roster of what the account keeps.', { signedIn: true }),
+      cantina('/', 'Hangar', 'The roster of what the account keeps.', { signedIn: true }),
       cantina(':pilot', 'Bonesaw, editing', 'A pilot sheet in Edit.', {
         signedIn: true,
         edit: true,

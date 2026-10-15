@@ -32,7 +32,7 @@ beforeEach(() => setActiveContainer({ kind: 'shelf' }))
 afterAll(() => setActiveContainer({ kind: 'shelf' }))
 
 describe('/', () => {
-  test('is Shelves: it shows the shelf, whatever showed before', async () => {
+  test('is Hangar: it shows the shelf, whatever showed before', async () => {
     setActiveContainer({ kind: 'game', gameId: 'g7' })
     expect(await landOn('/')).toBe('/')
     expect(getActiveContainer()).toEqual({ kind: 'shelf' })

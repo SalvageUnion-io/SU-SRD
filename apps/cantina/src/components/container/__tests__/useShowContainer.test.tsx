@@ -56,7 +56,7 @@ describe('useShowContainer', () => {
     expect(await press({ kind: 'game', gameId: 'g1' }, '/')).toBe('/games/g1')
   })
 
-  test('the shelf opens at Shelves', async () => {
+  test('the shelf opens at Hangar', async () => {
     expect(await press({ kind: 'shelf' }, '/games/g1')).toBe('/')
   })
 

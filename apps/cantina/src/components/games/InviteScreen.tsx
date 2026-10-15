@@ -69,7 +69,7 @@ const DEAD_HEADLINE = 'That invite link does not work.'
 const DEAD_ASK =
   'It may have been reset, or not copied whole. Ask whoever invited you for the current link.'
 
-const BACK = { href: '/', label: 'Back to Shelves' }
+const BACK = { href: '/', label: 'Back to Hangar' }
 
 /**
  * A dead link's ways on: back to Shelves, as a button-shaped link with a

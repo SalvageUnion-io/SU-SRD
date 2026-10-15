@@ -75,7 +75,7 @@ describe('the sheet', () => {
   test('its owner may move it or delete it', async () => {
     await renderSheet()
     expect(screen.getByRole('button', { name: 'Delete Sergeant Kessler' })).toBeTruthy()
-    expect(screen.getByLabelText(/Move to a Game or your shelf/)).toBeTruthy()
+    expect(screen.getByLabelText(/Move to a Game or your Hangar/)).toBeTruthy()
   })
 
   test('its owner shares it with the Share button every player thing carries', async () => {

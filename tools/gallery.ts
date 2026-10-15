@@ -232,9 +232,9 @@ async function seed(page: Page, cantina: string): Promise<Partial<Seeded>> {
     const select = page.locator(`select[aria-label="${label}"]`).first()
     const shelves = await select.evaluate(
       (s) =>
-        [...(s as unknown as SelectLike).options].find((o) => o.textContent === 'Shelves')?.value
+        [...(s as unknown as SelectLike).options].find((o) => o.textContent === 'Hangar')?.value
     )
-    if (!shelves) throw new Error(`${label} offers no Shelves`)
+    if (!shelves) throw new Error(`${label} offers no Hangar`)
     await select.selectOption(shelves)
     await page.getByRole('button', { name: 'Make a copy' }).click()
     await page

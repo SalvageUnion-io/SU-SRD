@@ -106,7 +106,7 @@ type NotFoundPanelProps = {
 export function NotFoundPanel({
   title,
   message,
-  back = { href: '/', label: 'Shelves' },
+  back = { href: '/', label: 'Hangar' },
 }: NotFoundPanelProps) {
   return (
     <FullPageShell>

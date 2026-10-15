@@ -133,6 +133,18 @@
   border-color: var(--color-status-bad);
 }
 
+/* `hollow`: the outline alone, its label in the line's colour on no fill (a
+ * unit in no Game, `Unassigned`). The rule takes the label's colour too, so on
+ * an ink band it is paper. */
+.su-stat-cell--hollow {
+  border-color: currentcolor;
+}
+
+.su-stat-cell--hollow > .su-stat-plate--label.su-stat-plate--label {
+  background-color: transparent;
+  color: inherit;
+}
+
 .su-stat-cell--block {
   display: flex;
 }

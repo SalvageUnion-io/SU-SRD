@@ -59,7 +59,7 @@ function renderBonesaw() {
 }
 
 describe('Make a copy', () => {
-  test('asks first, then puts a build of the player’s own on their shelf', async () => {
+  test('asks first, then puts a build of the player’s own in their Hangar', async () => {
     const template = structuredClone(STARTER_PILOTS[0])
     renderBonesaw()
 
@@ -95,12 +95,12 @@ describe('Copy to… on the Starter Set page', () => {
     )
   }
 
-  test('offers Shelves and every Game the player is in', () => {
+  test('offers Hangar and every Game the player is in', () => {
     renderPage()
     const options = within(screen.getByLabelText('Copy Bonesaw to…'))
       .getAllByRole('option')
       .map((o) => o.textContent)
-    expect(options).toEqual(['Copy to…', 'Shelves', 'The Long Haul'])
+    expect(options).toEqual(['Copy to…', 'Hangar', 'The Long Haul'])
   })
 
   test('asks first, then makes Bonesaw a build of the player’s own in the chosen Game', async () => {

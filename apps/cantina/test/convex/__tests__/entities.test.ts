@@ -495,7 +495,7 @@ describe('patterns and shelf NPCs are addressed by their body id', () => {
     expect((theirs?.body as { name: string } | undefined)?.name).toBe('Mule loadout')
   })
 
-  test('a shelf NPC upserts and removes by its body id the same way', async () => {
+  test('a Hangar NPC upserts and removes by its body id the same way', async () => {
     const t = testConvex()
     const u = await makeUser(t, 'A')
 

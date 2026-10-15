@@ -27,7 +27,7 @@ describe('ChapterBand', () => {
     expect((container.firstElementChild as HTMLElement).style.backgroundColor).toBe(color.wkLine)
   })
 
-  test('the ink band (Shelves, board S1) wears paper flecks, not ink speckle', () => {
+  test('the ink band (Hangar, board S1) wears paper flecks, not ink speckle', () => {
     const html = renderToStaticMarkup(<ChapterBand tone="ink">Shelves</ChapterBand>)
     expect(html).toContain(`background-color:${color.ink}`)
     // One fleck layer in the page-ground colour; no ink blot or speck.

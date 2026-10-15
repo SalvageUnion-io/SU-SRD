@@ -564,7 +564,7 @@ function DashboardView({
             returnControl={
               <AppLink
                 href={feed.gameHref ?? '/'}
-                aria-label={feed.gameName ? `Back to ${feed.gameName}` : 'Back to Shelves'}
+                aria-label={feed.gameName ? `Back to ${feed.gameName}` : 'Back to Hangar'}
                 className={buttonVariants({
                   surface: 'instrument',
                   variant: 'ghost',

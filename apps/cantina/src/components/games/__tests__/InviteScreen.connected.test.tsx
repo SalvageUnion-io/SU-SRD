@@ -129,7 +129,7 @@ describe('a link that is no good', () => {
     // An old typed code from `/join/…` lands here too: say how joining works now.
     expect(screen.getByText(/there is no code to type/i)).toBeTruthy()
     expect(screen.queryByText('Join this Game')).toBeNull()
-    expect(screen.getByRole('link', { name: 'Back to Shelves' }).getAttribute('href')).toBe('/')
+    expect(screen.getByRole('link', { name: 'Back to Hangar' }).getAttribute('href')).toBe('/')
   })
 
   test('still checking is not the same as invalid', () => {
@@ -172,7 +172,7 @@ describe('a visitor who is not signed in', () => {
     expect(screen.getByText(/does not work/i)).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Sign in to join' })).toBeNull()
     // Its ways on: back to your shelves, and — signed out — a plain sign-in.
-    expect(screen.getByRole('link', { name: 'Back to Shelves' }).getAttribute('href')).toBe('/')
+    expect(screen.getByRole('link', { name: 'Back to Hangar' }).getAttribute('href')).toBe('/')
     expect(screen.getByRole('button', { name: 'Sign in with Discord' })).toBeTruthy()
     isAuthenticated = true
   })

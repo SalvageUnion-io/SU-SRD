@@ -42,7 +42,12 @@ export type PatternSharing = {
 }
 
 /** One chip under an item. */
-export type ShelfChip = { key: string; label: string }
+/**
+ * One of an item's own chips: label-only (`Only me`), a split chip when it
+ * has a value (`GAME | The Long Haul`), and hollow, an outline on the band,
+ * for the absence of one (`Unassigned`).
+ */
+export type ShelfChip = { key: string; label: string; value?: string; hollow?: boolean }
 
 /** One reading on an item's line: `HP 8/10`, `TL 1`. */
 export type ShelfReading = { label: string; value: string }
@@ -106,16 +111,19 @@ export function patternReading(
 }
 
 /**
- * Where the item is: the Game's name, or "Not in a Game". A Game this viewer
- * cannot name (offline, or one they have left) is just "In a Game".
+ * Where the item is: `GAME | its name`, or a hollow "Unassigned" (owner,
+ * 2026-10-15). A Game this viewer cannot name (offline, or one they have
+ * left) is just "In a Game".
  */
 export function containerChip(
   entity: ContainerFields,
   games: readonly ShelfGame[] | undefined
 ): ShelfChip {
-  if (typeof entity.gameId !== 'string') return { key: 'where', label: 'Not in a Game' }
+  if (typeof entity.gameId !== 'string') return { key: 'where', label: 'Unassigned', hollow: true }
   const game = games?.find((g) => g._id === entity.gameId)
-  return { key: 'where', label: game?.name ?? 'In a Game' }
+  return game
+    ? { key: 'where', label: 'Game', value: game.name }
+    : { key: 'where', label: 'In a Game' }
 }
 
 type Names = ReadonlyMap<string, string>

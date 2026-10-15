@@ -170,7 +170,7 @@ const pressed = (name: string) =>
     .getByRole('button', { name })
     .getAttribute('aria-pressed')
 
-describe('Shelves: everything you keep', () => {
+describe('Hangar: everything you keep', () => {
   test('a unit in a Game stays on the shelf under Everything, named by its Game', async () => {
     await useEntityStore
       .getState()
@@ -182,7 +182,7 @@ describe('Shelves: everything you keep', () => {
     expect(within(pilots).getByText('Roach-Boy')).toBeTruthy()
     expect(within(pilots).getByText('Union Crawler #430')).toBeTruthy()
     expect(within(pilots).getByText('Mira Cole')).toBeTruthy()
-    expect(within(pilots).getByText('Not in a Game')).toBeTruthy()
+    expect(within(pilots).getByText('Unassigned')).toBeTruthy()
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Not in a Game' }))
@@ -192,7 +192,7 @@ describe('Shelves: everything you keep', () => {
     expect(within(pilots).getByText('Mira Cole')).toBeTruthy()
   })
 
-  test('under Not in a Game, a shelf whose units are all in Games says so', async () => {
+  test('under Not in a Game, a Hangar whose units are all in Games says so', async () => {
     // The shelf's one pilot moves into a Game: every pilot is now in one.
     await useEntityStore
       .getState()
@@ -207,7 +207,7 @@ describe('Shelves: everything you keep', () => {
     expect(within(pilots).getByText('Every pilot is in a Game.')).toBeTruthy()
   })
 
-  test('under Not in a Game, a shelf with nothing on it at all is empty, not "in a Game"', async () => {
+  test('under Not in a Game, a Hangar with nothing on it at all is empty, not "in a Game"', async () => {
     await renderHub()
 
     await act(async () => {
@@ -312,12 +312,12 @@ describe('Move to a Game…', () => {
 describe('a Game’s page', () => {
   const showing = () => screen.getByLabelText('Games') as HTMLSelectElement
 
-  test('the Games select lists Shelves, every Game and "+ New Game"; the band nothing else but Import and Export all', async () => {
+  test('the Games select lists Hangar, every Game and "+ New Game"; the band nothing else but Import and Export all', async () => {
     setActiveContainer({ kind: 'game', gameId: 'g1' })
     await renderHub()
 
     expect([...showing().options].map((o) => o.textContent)).toEqual([
-      'Shelves',
+      'Hangar',
       'Union Crawler #430',
       'The Long Haul',
       '+ New Game',
@@ -346,7 +346,7 @@ describe('a Game’s page', () => {
     expect(screen.queryByRole('link', { name: 'Launch Dashboard' })).toBeNull()
   })
 
-  test('picking Shelves in the Games select goes back to the shelf', async () => {
+  test('picking Hangar in the Games select goes back to the shelf', async () => {
     setActiveContainer({ kind: 'game', gameId: 'g1' })
     await renderHub()
     await act(async () => {
@@ -354,6 +354,6 @@ describe('a Game’s page', () => {
     })
 
     expect(getActiveContainer()).toEqual({ kind: 'shelf' })
-    expect(screen.getByRole('heading', { level: 1, name: 'Shelves' })).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 1, name: 'Hangar' })).toBeTruthy()
   })
 })

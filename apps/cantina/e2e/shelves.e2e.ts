@@ -13,7 +13,7 @@ import { expect, test } from './fixtures'
 async function openShelves(page: Page): Promise<void> {
   await gotoStable(page, '/')
   await waitForReady(page)
-  await expect(page.getByRole('heading', { level: 1, name: 'Shelves' })).toBeVisible({
+  await expect(page.getByRole('heading', { level: 1, name: 'Hangar' })).toBeVisible({
     timeout: 15_000,
   })
 }

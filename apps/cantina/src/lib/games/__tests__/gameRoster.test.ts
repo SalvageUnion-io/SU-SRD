@@ -267,31 +267,31 @@ describe('moveDestinations — the move control lists only what the server accep
 
   test('a pilot or mech may go to your shelves or any Game I belong to', () => {
     expect(labels(moveDestinations({ kind: 'pilot', current: { kind: 'shelf' }, games }))).toEqual([
-      'Shelves',
+      'Hangar',
       'Run by me',
       'Run by someone else',
     ])
     expect(
       labels(moveDestinations({ kind: 'mech', current: { kind: 'game', gameId: 'g2' }, games }))
-    ).toEqual(['Run by someone else', 'Shelves', 'Run by me'])
+    ).toEqual(['Run by someone else', 'Hangar', 'Run by me'])
   })
 
-  test('a shelf crawler may go only into a Game I run', () => {
+  test('a Hangar crawler may go only into a Game I run', () => {
     expect(
       labels(moveDestinations({ kind: 'crawler', current: { kind: 'shelf' }, games }))
-    ).toEqual(['Shelves', 'Run by me'])
+    ).toEqual(['Hangar', 'Run by me'])
   })
 
   test('a Game crawler may come out to my shelf only if I run that Game — never Game to Game', () => {
     expect(
       labels(moveDestinations({ kind: 'crawler', current: { kind: 'game', gameId: 'g1' }, games }))
-    ).toEqual(['Run by me', 'Shelves'])
+    ).toEqual(['Run by me', 'Hangar'])
     expect(
       labels(moveDestinations({ kind: 'crawler', current: { kind: 'game', gameId: 'g2' }, games }))
     ).toEqual(['Run by someone else'])
   })
 
-  test('a Game I am not in is named, not passed off as Shelves', () => {
+  test('a Game I am not in is named, not passed off as Hangar', () => {
     const [here] = moveDestinations({
       kind: 'pilot',
       current: { kind: 'game', gameId: 'phantom' },

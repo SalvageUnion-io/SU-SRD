@@ -256,7 +256,7 @@ describe('gamesCard', () => {
     expect(cardText(gamesCard([]))).toContain('No Games yet')
   })
 
-  test('links to the Shelves, since the Cantina has no /games page', () => {
+  test('links to the Hangar, since the Cantina has no /games page', () => {
     expect(cardUrl(gamesCard([]))).toBe(`${WEB}/`)
   })
 

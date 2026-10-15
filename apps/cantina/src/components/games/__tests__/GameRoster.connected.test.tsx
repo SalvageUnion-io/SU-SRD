@@ -478,7 +478,7 @@ describe('every verb that changes who has a build asks first', () => {
     await renderAs(ME, listing({ pilots: [WHOLE_PILOT] }))
     const dialog = await press('Vex Arlo', 'Make a copy')
 
-    expect(dialog.textContent).toContain('Make a copy of Vex Arlo on your shelf?')
+    expect(dialog.textContent).toContain('Make a copy of Vex Arlo in your Hangar?')
     expect(dialog.textContent).toContain("won't sync back")
     expect(localPilotNames()).not.toContain('COPY OF Vex Arlo')
 
@@ -553,11 +553,11 @@ describe('every verb that changes who has a build asks first', () => {
   test('a refusal stays on the dialog, in the words the server chose', async () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT] }))
     await press('Roach-Boy', 'Offer to the crew')
-    mutationError = new ConvexError('A build in your Shelves is already yours')
+    mutationError = new ConvexError('A build in your Hangar is already yours')
 
     await confirmWith('Offer to the crew')
     expect(screen.getByRole('alertdialog')).toBeTruthy()
-    expect(screen.getByRole('alert').textContent).toBe('A build in your Shelves is already yours')
+    expect(screen.getByRole('alert').textContent).toBe('A build in your Hangar is already yours')
   })
 
   test('any other failure stays on the dialog with a plain reason, never the raw error', async () => {
@@ -601,7 +601,7 @@ describe('remove from game', () => {
     const dialog = await press('Roach-Boy', 'Remove from Game')
 
     expect(dialog.textContent).toContain('Take Roach-Boy out of Tenacity?')
-    expect(dialog.textContent).toContain('goes back to your shelf')
+    expect(dialog.textContent).toContain('goes back to your Hangar')
     expect(dialog.textContent).toContain('Their crawler assignment in Tenacity is cleared')
     expect(gameIdOf('a-mine')).toBe('g1')
 
@@ -614,7 +614,7 @@ describe('remove from game', () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT] }))
     await press('Roach-Boy', 'Remove from Game')
 
-    await confirmWith('Move to your shelf')
+    await confirmWith('Move to your Hangar')
     // The move commits to the (stubbed) server first, which outlasts one act() scope.
     await settle(() => screen.queryByRole('alertdialog') === null)
     expect(screen.queryByRole('alertdialog')).toBeNull()
