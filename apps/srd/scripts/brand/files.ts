@@ -23,6 +23,8 @@ export const PNG_FILES: readonly [string, number, string][] = [
   ['apps/srd/public/favicons/su/favicon-16.png', 16, markSvg({ title: '' })],
   ['apps/srd/public/favicons/su/favicon-32.png', 32, markSvg({ title: '' })],
   ['apps/srd/public/favicons/su/favicon-180.png', 180, markSvg({ title: '', flecks: true })],
+  ['apps/srd/public/web-app-manifest-192x192.png', 192, markSvg({ title: '', flecks: true })],
+  ['apps/srd/public/web-app-manifest-512x512.png', 512, markSvg({ title: '', flecks: true })],
   ['apps/itun/public/icon-192.png', 192, markSvg({ title: '', flecks: true })],
   ['apps/itun/public/icon-512.png', 512, markSvg({ title: '', flecks: true })],
   ['apps/discord-bot/brand/icon.png', 1024, markSvg({ title: '', avatar: true, flecks: true })],
