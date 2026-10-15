@@ -27,6 +27,12 @@ export type ShellMeta = {
   description: string
   /** Absolute URL of the page being served. */
   url: string
+  /**
+   * The page's canonical address, for a page search may list
+   * (`publicPages.ts`). A shared thing's preview has none: the shell names no
+   * canonical (`index.html`), and neither does its swap.
+   */
+  canonical?: string
   /** The band's tone, so the unfurl's side bar matches the card. */
   themeColor: string
   /** The card's image, when one can be rendered; without it the unfurl is text. */
@@ -51,6 +57,10 @@ function tidy(value: string, max: number): string {
   return flat.length > max ? `${flat.slice(0, max - 1).trimEnd()}…` : flat
 }
 
+function canonicalTag(href: string): string {
+  return `<link rel="canonical" href="${escapeAttr(href)}" />`
+}
+
 /** Render the meta block for one route. */
 function renderMeta(meta: ShellMeta): string {
   const title = escapeAttr(tidy(meta.title, 70))
@@ -66,6 +76,7 @@ function renderMeta(meta: ShellMeta): string {
     `<meta property="og:title" content="${title}" />`,
     `<meta property="og:description" content="${description}" />`,
     `<meta property="og:url" content="${url}" />`,
+    ...(meta.canonical ? [canonicalTag(meta.canonical)] : []),
     ...(image
       ? [
           `<meta property="og:image" content="${escapeAttr(image.url)}" />`,
@@ -102,4 +113,16 @@ export function applyMeta(shell: string, meta: ShellMeta): string {
   // the title and ending the <head> early.
   const title = `<title>${escapeAttr(tidy(meta.title, 70))}</title>`
   return withMeta.replace(/<title>[\s\S]*?<\/title>/, () => title)
+}
+
+/**
+ * Add a canonical to the shell's own meta block, keeping its defaults: the
+ * front door's page, which says what the shell already says. Unchanged when
+ * the markers are absent, as `applyMeta`.
+ */
+export function applyCanonical(shell: string, href: string): string {
+  const start = shell.indexOf(META_START)
+  const end = shell.indexOf(META_END)
+  if (start === -1 || end === -1 || end < start) return shell
+  return `${shell.slice(0, end)}${canonicalTag(href)}\n    ${shell.slice(end)}`
 }

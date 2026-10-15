@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { PageShell } from 'component-lib'
 import { StarterSetRoster } from '../../components/starterSet/StarterSetRoster'
-import { pageTitle } from '../../lib/pageTitle'
+import { STARTER_SET_TITLE } from '../../lib/starterSet/starterTemplates'
 
 /**
  * `/starter` — the Starter Set, Leyline Press's pre-generated crew, as a
@@ -9,7 +9,7 @@ import { pageTitle } from '../../lib/pageTitle'
  * `components/starterSet/StarterSetRoster.tsx`.
  */
 export const Route = createFileRoute('/starter/')({
-  head: () => ({ meta: [{ title: pageTitle('Starter Set') }] }),
+  head: () => ({ meta: [{ title: STARTER_SET_TITLE }] }),
   component: StarterSetRoute,
 })
 
