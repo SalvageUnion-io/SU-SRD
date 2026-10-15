@@ -15,7 +15,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
    Exports `.`, `./rules`, `./zod`, `./testing`, `./proseDeviations`, `./data/*`, `./schemas/*`; `lib/index.ts` is an explicit barrel; refs are `schemaId::entityId`.
 3. **Lazy loading** <a id="lazy-loading"></a>
    Call `preload()` before any accessor; a module-scope ORM call fails Biome (`noModuleScopeReferenceCall.grit`).
-   Tests preload through `test/reference-preload.ts` in each workspace's `bunfig.toml`, never `preload('all')` per file.
+   Tests preload `salvageunion-reference/tools/testPreload.ts` from each `bunfig.toml`, never `preload('all')` per file.
 4. **UI library** <a id="ui-library"></a>
    `apps/web/src/components/index.ts` barrel; tokens in `apps/web/src/styles/theme.css`, mirrored by `apps/web/src/design/tokens.ts`. Only product folders (`sheet/`, …) wire stores or Convex.
    Unused exports: [knip](#dead-code).

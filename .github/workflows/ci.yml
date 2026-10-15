@@ -55,8 +55,7 @@ jobs:
               - 'lefthook.yml'
               - '.github/workflows/**'
               - '.github/actions/**'
-              # every workspace's test preloads and linker config
-              - 'test/**'
+              # the linker config
               - 'bunfig.toml'
               # root prose rendered by srd + cantina and asserted on by
               # src/components tests

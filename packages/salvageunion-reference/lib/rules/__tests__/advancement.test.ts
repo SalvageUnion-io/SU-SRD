@@ -8,7 +8,7 @@
  * against the published book text, so if a data edit ever breaks the derivation
  * these fail rather than silently returning an empty option list.
  *
- * No `preload()` here on purpose — `test/reference-preload.ts` already loads the
+ * No `preload()` here on purpose — `tools/testPreload.ts` already loads the
  * whole dataset for this workspace.
  */
 import { describe, expect, it } from 'bun:test'

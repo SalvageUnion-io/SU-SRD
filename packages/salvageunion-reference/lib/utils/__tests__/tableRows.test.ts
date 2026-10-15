@@ -16,7 +16,7 @@ import { tableRows } from '../tableRows'
  * the page and stripping the scripts.
  */
 
-// No `preload()` here on purpose — `test/reference-preload.ts` already runs
+// No `preload()` here on purpose — `tools/testPreload.ts` already runs
 // `preload('all')` for every workspace that touches reference data, and
 // `packages/gates/biome/noTestReferencePreload.grit` fails any file that repeats it.
 const ALL = SalvageUnionReference.RollTables.all()

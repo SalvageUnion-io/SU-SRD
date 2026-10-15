@@ -18,7 +18,7 @@ import type { ContainerData } from '../container'
 import { buildRollContainerData, isTieredTable } from '../rollContainer'
 
 // No preload here. `apps/discord-bot/bunfig.toml` preloads
-// `../../test/reference-preload.ts`, which loads every schema once for the
+// `salvageunion-reference/tools/testPreload.ts`, which loads every schema once for the
 // whole workspace — a per-file `preload('all')` is at best a no-op and at
 // worst hides an ordering bug, which is why `packages/gates/biome/noTestReferencePreload.grit` bans it.
 
