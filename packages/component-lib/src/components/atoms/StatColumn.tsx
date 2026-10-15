@@ -11,7 +11,7 @@ import { opensGroup } from 'salvageunion-reference'
  * Two to a row on a phone, and as many as fit at 200px from there up (board
  * 07: two columns beside the art). The cells keep the stat order: build them
  * from the entity model's `bookStats`; each group (provenance, vitals,
- * capacity) starts a new row of the grid, or after a wider gap on a line.
+ * capacity) starts a new row of the grid; on a line it is just the next cell.
  *
  * A description list, so a screen reader reads "Structure Points, 14", in the
  * order it is drawn: label first, as every chip and stat reads.
@@ -23,7 +23,7 @@ export type StatColumnCell = {
   label: string
   value: string
   hoverText?: string
-  /** Its part of the stat order: a cell that opens a new one starts its own row (or a wider gap). */
+  /** Its part of the stat order: a cell that opens a new one starts its own grid row. */
   group?: StatGroup
 }
 

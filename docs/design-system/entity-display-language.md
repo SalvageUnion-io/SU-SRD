@@ -50,7 +50,7 @@ Each is checkable; breaking one needs an amendment here.
 - **E14** Tables are the Table instrument: a roll bar in a Card (nested: Token, Table, Roll the Die), the roll instrument on a Page or panel; its ROLL THE DIE stamp is the roll button.
 - **E15** No hand-built entity markup outside `entity/`.
 - **E16** A Peek is read-only and terminal.
-- **E17** No "//" line: all chips are one head group, in the stat order (ruleset §2.6): stats, action type ("Turn Action") and facets, traits, the cost's pointy box (`2 EP`). Right of the title, last line on its middle, more balanced above; under it on a phone if they don't fit. On ink each chip has a paper rule.
+- **E17** No "//" line: all chips are one head group, one even gap, in stat order (ruleset §2.6): stats, action type and facets, traits, the cost's pointy box (`2 EP`). Right of the title, last line on its middle, more balanced above; under it on a phone if they don't fit. On ink each chip has a paper rule.
 - **E18** No form cuts a name (bar a Token's), stamp or chip to "…": it wraps or widens. A Token is one row: its chips fill ≤ 65%, dropped whole from the end; its name ends in "…".
 - **E19** A chassis ability shows only on its chassis and pattern pages, Cantina pick cards and mech hero, a chassis Peek and Discord card; never a Row, Tile, nested or other Card.
 - **E20** Above a show page's title: only the breadcrumb (Cantina sheet: controls top right, `corner`); stamps, chips, other controls cluster as E17 (`asideAt="notch"`); a chassis's stats lead its body.

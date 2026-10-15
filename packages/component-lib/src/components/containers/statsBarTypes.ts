@@ -5,7 +5,7 @@ export type StatItem = {
   key: string
   label: string
   value: number | string | undefined
-  /** Its part of the stat order: a new group opens after a wider gap (`Chips`). */
+  /** Its part of the stat order (`STATS`): where a group opens (a stat column's new row). */
   group?: StatGroup
   outOfMax?: number
   bottomLabel?: string
