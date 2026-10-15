@@ -13,8 +13,9 @@
  *    toggle (Everything | Not in a Game), **Import** and **Export all**, and
  *    "+ New Game", the one way to start a table.
  *  - **One shelf per kind**: Pilots, Mechs and Crawlers; Patterns and NPCs,
- *    which are user-made and so dashed (ruleset §3.9); and the Starter Set,
- *    read-only (`StarterShelf`).
+ *    which are user-made and so dashed (ruleset §3.9); and, under them all and
+ *    folded, the Starter Set, read-only, as the front door shows it
+ *    (`StarterShelf`).
  *
  * Each item is a library Row (`ShelfPill`) with its chips and a ⋯ menu: Open, Move
  * to a Game…, Make a copy, Save as pattern (mechs), Export and Delete…. Every
@@ -594,11 +595,10 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   />
                 ))}
               </Shelf>
-
-              <StarterShelf />
             </div>
           </div>
         )}
+        {ready && <StarterShelf />}
       </div>
 
       <MoveToGameDialog

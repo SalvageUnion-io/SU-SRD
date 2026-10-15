@@ -217,7 +217,7 @@ describe('Hangar — the band', () => {
     await renderShelves()
 
     expect(screen.getByRole('heading', { level: 1, name: 'Hangar' })).toBeTruthy()
-    expect(screen.queryByText(/Units in a Game stay on your Hangar too\./)).toBeNull()
+    expect(screen.queryByText(/Units in a Game stay on your shelf too\./)).toBeNull()
     const showing = screen.getByRole('group', { name: 'Showing' })
     expect(
       within(showing)
@@ -299,15 +299,28 @@ describe('Hangar — one shelf per kind', () => {
     expect(within(npcs).getByRole('button', { name: 'More for Doc Marrow' })).toBeTruthy()
   })
 
-  test('the Starter Set is read-only: each unit opens its sheet to read', async () => {
+  test('the Starter Set is folded under your builds, and opens to the front door’s cards', async () => {
     await renderShelves()
     const starter = screen.getByRole('region', { name: 'Starter Set' })
     expect(within(starter).getByText('read-only')).toBeTruthy()
+    const toggle = within(starter).getByRole('button', { name: 'Show the Starter Set' })
+    expect(toggle.getAttribute('aria-expanded')).toBe('false')
+    expect(within(starter).queryByRole('link', { name: 'Read Bonesaw' })).toBeNull()
+
+    fireEvent.click(toggle)
+
+    expect(
+      within(starter)
+        .getByRole('button', { name: 'Hide the Starter Set' })
+        .getAttribute('aria-expanded')
+    ).toBe('true')
     expect(within(starter).getByRole('link', { name: 'Read Bonesaw' }).getAttribute('href')).toBe(
       '/starter/pilot/starter-pilot-bonesaw'
     )
-    // Thirteen: six pilots, six mechs and the crawler.
-    expect(within(starter).getAllByRole('link')).toHaveLength(13)
+    expect(within(starter).getAllByText(/Leyline Press/)).toHaveLength(1)
+    expect(within(starter).getByRole('region', { name: 'Starter Set pilots' })).toBeTruthy()
+    expect(within(starter).getByRole('region', { name: 'Starter Set mechs' })).toBeTruthy()
+    expect(within(starter).getByRole('region', { name: 'Starter Set crawler' })).toBeTruthy()
   })
 })
 
