@@ -27,15 +27,15 @@ report.
 
 ## Local backend
 
-`bun run dev:cantina` runs `convex dev --start vite` on a local deployment: it
+`bun run dev:cantina` runs `convex dev` beside the Cantina's Vite server on a local deployment: it
 pushes `convex/` on every save and writes `CONVEX_DEPLOYMENT`,
-`VITE_CONVEX_URL` and `VITE_CONVEX_SITE_URL` into `apps/cantina/.env.local`. It
+`VITE_CONVEX_URL` and `VITE_CONVEX_SITE_URL` into `apps/web/.env.local`. It
 signs in through the test seam, not Discord: the `dev` script sets
 `VITE_TEST_AUTH=true`, and the deployment needs `CANTINA_TEST_AUTH`. Production
 has neither. It refuses to start on a cloud `CONVEX_DEPLOYMENT`
 (`scripts/assert-local-convex.ts`): `.worktreeinclude` copies `.env.local` into
 every worktree, so a cloud dev deployment is one backend that every worktree's
-pushes overwrite. One-time setup, from `apps/cantina`:
+pushes overwrite. One-time setup, from `apps/web`:
 
 ```bash
 # Pick a local deployment. Not signed in to Convex: run `bun run dev:cantina` and
@@ -160,7 +160,7 @@ deployment → **Settings → Integrations → Log Streams → Webhook**, URL
 `https://salvageunion.io/build/__convex-logs`. The Cantina Worker verifies each
 delivery's `x-webhook-signature` against `CONVEX_LOG_STREAM_SECRET` (copy the
 secret the dashboard shows into `wrangler secret put CONVEX_LOG_STREAM_SECRET`
-in `apps/cantina`) and logs every failed function and every `console.error` for
+in `apps/web`) and logs every failed function and every `console.error` for
 Workers Issues (`packages/observability/src/cloudflare.ts`). There is no code
 to add in `convex/`: queries and mutations have no network egress. Log streams
 need the Convex Pro plan.
@@ -171,7 +171,7 @@ check the deployment log (ground truth) and Workers Issues (the thing being
 tested).
 
 ```bash
-cd apps/cantina
+cd apps/web
 bunx convex run --deployment alex-jarvis:susrd:prod \
   botClient:me '{"discordId":0}'      # forces one ArgumentValidationError
 bunx convex logs --deployment alex-jarvis:susrd:prod --history 6 --jsonl
@@ -197,7 +197,7 @@ Production builds with `VITE_CONVEX_URL` from `CANTINA_CONVEX_URL` in
 `.github/workflows/deploy-cloudflare.yml`, whose `push-convex` job refuses to
 push if it differs from the URL the deploy key resolves to; a change takes
 effect on the next deploy. Unset, the cantina build fails (`requireConvexUrl` in
-`apps/cantina/vite.config.ts`), and with it the deploy: there is no build without
+`apps/web/vite.cantina.config.ts`), and with it the deploy: there is no build without
 a deployment, so taking Convex out of the path is an outage, not a toggle.
 
 ## Report

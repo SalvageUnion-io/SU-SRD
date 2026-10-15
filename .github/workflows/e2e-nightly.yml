@@ -40,7 +40,7 @@ jobs:
     #
     # Why signed in: signed out, the Cantina is read-only (#1113, #1117), so a spec
     # that builds something and reads it back is by definition a test of the
-    # signed-in path. `apps/cantina/e2e/fixtures.ts` signs each such spec up with a
+    # signed-in path. `apps/web/e2e/cantina/fixtures.ts` signs each such spec up with a
     # fresh account through the `TestAuthBridge` seam; the specs about what a
     # signed-out visitor sees opt out with `account: 'anonymous'`.
     #
@@ -81,10 +81,10 @@ jobs:
       # the seam or a lost build variable fails the run instead of turning the
       # whole suite green-because-it-did-nothing.
       - name: Run E2E tests
-        working-directory: apps/cantina
+        working-directory: apps/web
         env:
           CANTINA_E2E_EXPECT_AUTH_SEAM: '1'
-        run: bunx playwright test
+        run: bunx playwright test -c playwright.cantina.config.ts
 
       - name: Backend logs on failure
         if: failure()
@@ -101,7 +101,7 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright-report-cantina
-          path: apps/cantina/playwright-report/
+          path: apps/web/playwright-report/cantina/
           retention-days: 7
 
   production-smoke:

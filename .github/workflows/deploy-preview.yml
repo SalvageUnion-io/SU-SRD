@@ -94,7 +94,7 @@ jobs:
           VITE_COMMIT_REF: ${{ github.event.pull_request.head.sha }}
           VITE_SRD_ORIGIN: ${{ env.PREVIEW_SRD_ORIGIN }}
           VITE_CANTINA_ORIGIN: ${{ env.PREVIEW_CANTINA_ORIGIN }}
-        run: bun --filter srd build
+        run: bun --filter web build
 
       # Best-effort, as in deploy-cloudflare.yml's build-srd: a failed render
       # keeps the default og:image.
@@ -135,19 +135,19 @@ jobs:
       # CANTINA_CONVEX_URL: `ship` checks the deploy key resolves to it before it
       # pushes anything.
       - name: Build cantina
-        working-directory: apps/cantina
+        working-directory: apps/web
         env:
           VITE_CONVEX_URL: ${{ env.STAGING_CONVEX_URL }}
           VITE_COMMIT_REF: ${{ github.event.pull_request.head.sha }}
           VITE_SRD_ORIGIN: ${{ env.PREVIEW_SRD_ORIGIN }}
           VITE_CANTINA_ORIGIN: ${{ env.PREVIEW_CANTINA_ORIGIN }}
-        run: bun run build
+        run: bun run build:cantina
 
       - name: Upload the cantina artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: cantina-dist
-          path: apps/cantina/dist/
+          path: apps/web/dist-cantina/
           include-hidden-files: true
           if-no-files-found: error
           retention-days: 1
@@ -196,7 +196,7 @@ jobs:
       # Previews are public. With CANTINA_TEST_AUTH on, anyone could sign up a
       # password account against it (convex/auth.ts); production never has it.
       - name: Refuse a staging backend with the test sign-in on
-        working-directory: apps/cantina
+        working-directory: apps/web
         env:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
         run: |
@@ -207,7 +207,7 @@ jobs:
           fi
 
       - name: Push Convex (after confirming the URL cantina was built against)
-        working-directory: apps/cantina
+        working-directory: apps/web
         env:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
           URL_GUARD: >-
@@ -226,7 +226,7 @@ jobs:
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: cantina-dist
-          path: apps/cantina/dist
+          path: apps/web/dist-cantina
 
       - name: Put the Cantina in srd's dist
         run: bash tools/merge-dist.sh
@@ -264,7 +264,7 @@ jobs:
       # Every run: the OAuth callback redirects to SITE_URL, which must be the
       # Preview's address, base included. Not a secret.
       - name: Point the staging backend's SITE_URL at this Preview
-        working-directory: apps/cantina
+        working-directory: apps/web
         env:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
           SRD_URL: ${{ steps.preview.outputs.srd }}

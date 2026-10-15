@@ -43,7 +43,7 @@ const DEPLOY_RECORD = 'deployed/cloudflare'
  */
 export const SURFACES = {
   assets: ['su-assets'],
-  srd: ['web', 'cantina'],
+  srd: ['web'],
   bot: ['discord-bot'],
 } as const satisfies Record<string, readonly [string, ...string[]]>
 

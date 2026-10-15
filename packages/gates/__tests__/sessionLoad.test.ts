@@ -101,6 +101,17 @@ describe('sessionLoad and checkSessionLoad', () => {
     ])
   })
 
+  it('leaves out a skipped folder: its CLAUDE.md and the rules only its files match', () => {
+    const root = tree()
+    expect(sessionLoad(root, { dirs: ['apps/web'], reads: [], skip: ['apps/web/src'] })).toEqual([
+      'CLAUDE.md',
+      'AGENTS.md',
+      'apps/web/CLAUDE.md',
+      '.claude/rules/always.md',
+      '.claude/rules/srd.md',
+    ])
+  })
+
   it('fails a profile over its ceiling or too far under it, and stale or missing entries', () => {
     const root = tree()
     const profiles = { srd: { dirs: ['apps/web'], reads: [] } }

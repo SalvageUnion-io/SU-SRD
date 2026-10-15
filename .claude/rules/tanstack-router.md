@@ -1,6 +1,6 @@
 ---
 paths:
-  - 'apps/cantina/src/routes/**'
+  - 'apps/web/src/cantina/routes/**'
 ---
 
 # TanStack Router (The Cantina)
@@ -17,7 +17,7 @@ paths:
   only move a component into its own chunk when nothing else in the file is
   exported; a page body "exported for testing" keeps its whole component graph
   in the entry chunk every route downloads. Put a testable body in
-  `src/components/` (`src/components/sheet/PublicSheetView.tsx`) and import it
+  `src/cantina/components/` (`src/cantina/components/sheet/PublicSheetView.tsx`) and import it
   from both. `routes/__tests__/routeExports.test.ts` enforces it.
 - `validateSearch` parses search params into a typed shape, read with
   `Route.useSearch()` — not `useSearch({ strict: false })` plus a cast.
@@ -31,6 +31,6 @@ paths:
   `main.tsx` installs (`reactRootErrorHandlers` in `src/lib/observability.ts`),
   which React calls for every error any boundary catches. The error components
   (`RouteErrorComponent` as the router's `defaultErrorComponent`, and
-  `RootErrorComponent`, in `src/components/shared/RouteErrors.tsx`) only
+  `RootErrorComponent`, in `src/cantina/components/shared/RouteErrors.tsx`) only
   render. A per-route `errorComponent` must likewise only render — never call
   `captureException` from one, or every crash is reported twice.

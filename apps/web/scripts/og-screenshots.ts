@@ -36,7 +36,7 @@
  *   - bounded by OG_SCREENSHOTS_BUDGET_MS, after which it stops rendering and
  *     leaves the remaining entities on the site-wide default og:image, and
  *   - never fatal: a failure logs and exits 0 rather than failing the build.
- * Generate locally (`bun --filter srd og:generate`) and let the cache carry it.
+ * Generate locally (`bun --filter web og:generate`) and let the cache carry it.
  *
  * Set SHOT_CHROME_PATH to use a specific chromium executable (`gates/lib/chromium`).
  *
@@ -430,7 +430,7 @@ async function run() {
 
   try {
     const browser = await launchBrowser({ headless: true, args: LAUNCH_ARGS }).catch((err) => {
-      throw new Error('Chromium did not launch — run `bun --filter srd og:install-browser`.', {
+      throw new Error('Chromium did not launch — run `bun --filter web og:install-browser`.', {
         cause: err,
       })
     })

@@ -3,7 +3,7 @@
  * builder, preselecting the entity: a chassis page opens the mech wizard on
  * that chassis, a class page the pilot wizard on that class, a crawler page
  * the crawler wizard on that type. The Cantina's `/…/new` routes read the slug
- * (`apps/cantina/src/lib/wizard/preselect.ts`) and keep it through sign-in.
+ * (`apps/web/src/cantina/lib/wizard/preselect.ts`) and keep it through sign-in.
  *
  * Offered only where the wizard would accept the pick — a Tech 1 chassis, a
  * core class, any crawler type — by the same rules its pickers filter on, so

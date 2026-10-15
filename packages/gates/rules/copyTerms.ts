@@ -53,8 +53,7 @@ import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
 
 /** The source trees whose strings reach a reader. */
 const COPY_DIRS = [
-  'apps/cantina/src',
-  'apps/cantina/convex',
+  'apps/web/convex',
   'apps/web/src',
   'apps/discord-bot/src',
   'packages/component-lib/src',

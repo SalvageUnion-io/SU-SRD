@@ -99,10 +99,7 @@ describe('wrangler.jsonc agrees with the Worker', () => {
   })
 
   it("sets the Cantina's own CSP, the one in its _headers", () => {
-    const headers = readFileSync(
-      join(import.meta.dir, '../../../../cantina/public/_headers'),
-      'utf8'
-    )
+    const headers = readFileSync(join(import.meta.dir, '../../cantina/public/_headers'), 'utf8')
     const csp = headers.match(/^\s*Content-Security-Policy: (.+)$/m)?.[1]
     expect(csp).toBe(CANTINA_CSP)
     expect(CANTINA_CSP).toContain("connect-src 'self'")

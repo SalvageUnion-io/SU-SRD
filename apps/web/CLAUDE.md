@@ -1,26 +1,21 @@
-# srd — salvageunion.io
+# web — salvageunion.io and the Cantina
 
-The static SRD reference site for Salvage Union game data. Read-only — choices render
-ephemerally/non-editably
-([ADR-010](../../docs/ARCHITECTURE.md#decisions)).
+The static SRD reference site (read-only, [ADR-010](../../docs/ARCHITECTURE.md#decisions))
+and, under `src/cantina/`, the Cantina.
 
 In-house SSG in `ssg/`, not Astro ([ADR-031](../../docs/ARCHITECTURE.md#decisions)); the contract is
 [`ssg/DESIGN.md`](ssg/DESIGN.md) — **read it first.**
 
 ## Stack
 
-- **Framework:** in-house SSG at `ssg/`, React 19 for rendering, Vite 8 for the
-  client bundle. No framework runtime ships to the browser beyond React.
-- **Output:** Static HTML (no server runtime, no SSR at request time, no auth,
-  no backend)
+- **Framework:** the SSG in `ssg/`, React 19, Vite 8 for the client bundle.
 - **UI:** `component-lib` components, tokens and stylesheet (ADR-046); React
   islands for interactivity
 - **Game data:** `salvageunion-reference` workspace package
-- **Tooling:** Biome (`bun run lint`) and TypeScript 7 (`bun run typecheck`).
 - **Deployment:** Cloudflare Workers Static Assets (`wrangler.jsonc`). Every
   page is pre-rendered; the Worker script (`src/worker/index.ts`) runs only for
   a miss (404, `no-store`), and first for `/build/*`, which `src/worker/build.ts`
-  hands to `cantina/worker`.
+  hands to the Cantina's (`src/cantina/worker/`).
 
 ## Architecture
 
@@ -50,11 +45,9 @@ wired through `ssg/endpoints.ts` — **endpoints are not routes.**
   catalog categories. The home index, the nav drawer, each page's band colour
   and trail read it.
 - Entity, pattern and roll-table pages wear `EntityPageFrame`: `ChapterBand`,
-  then the body. The body is the card at `presentation="page"`, or for a d20
-  table `RollTablePage` (Randsum rolls). The page's citation is the site
-  `Footer`'s: the page module returns `foot: entityPageFoot(...)` in its
-  `PageResult`, and the footer cites it in that chapter's band; under it, as on
-  every other page, the licence row ends the page in the Union bar's ink.
+  then the card at `presentation="page"` (a d20 table: `RollTablePage`). The
+  module returns `foot: entityPageFoot(...)`; the site `Footer` cites it in the
+  chapter's band, above the licence row.
 - Page layouts are `src/styles/pages.css`, imported by `global.css`.
 
 ## Not in DESIGN.md
@@ -67,7 +60,7 @@ wired through `ssg/endpoints.ts` — **endpoints are not routes.**
 ## Verification
 
 There is no output snapshot. CI's `build-srd` job builds once, then runs
-`bun --filter srd check:examples` (`ssg/checkPageExamples.ts`), then the Playwright
+`bun --filter web check:examples` (`ssg/checkPageExamples.ts`), then the Playwright
 smoke, bundle-budget, JSON API and axe-core (`a11y.e2e.ts`) specs against that
 `dist`.
 CI's `perf-srd` runs `perf-budget.e2e.ts` (LCP, TBT, CLS, phone throttling);
@@ -76,15 +69,27 @@ lower a budget when a page gets faster.
 
 ## Conventions
 
-- Search: the build-time `/search-index.json`, matched in the browser by
-  `src/lib/searchCompactIndex.ts` with the reference package's ranking
-  functions; no ORM ships to the browser. Cmd+K / Ctrl+K focuses it.
+- Search: build-time `/search-index.json`, matched in the browser by
+  `src/lib/searchCompactIndex.ts`; Cmd+K / Ctrl+K focuses it.
+- Entity pages carry a Discord Component Embed (`src/lib/componentEmbed.ts`).
+- A `feat|fix|perf(srd|cantina):` PR title reaches the shared `/changelog` (Site or App entries).
 
-## Social previews
+## The Cantina
 
-Entity and pattern pages carry a Discord Component Embed
-(`src/lib/componentEmbed.ts`): the bot's card, drawn for a pasted link.
+Guide: [`src/cantina/CLAUDE.md`](src/cantina/CLAUDE.md); Convex in `convex/`, tests in
+`test/` and `e2e/cantina/`; SRD code never imports them (Biome). The block below
+binds `convex/` only; `bunx`, not `npx`; vendored skills: [AGENTS.md](AGENTS.md).
 
-## Changelog
+<!-- convex-ai-start -->
 
-A `feat(srd):` or `feat(cantina):` (or `fix`/`perf`) PR title reaches the generated `/changelog` page, the one changelog both tools share (as Site or App entries). The About page is shared too: The Cantina links to it.
+This project uses [Convex](https://convex.dev) as its backend.
+
+When working on Convex code, **always read
+`convex/_generated/ai/guidelines.md` first** for important guidelines on
+how to correctly use Convex APIs and patterns. The file contains rules that
+override what you may have learned about Convex from training data.
+
+Convex agent skills for common tasks can be installed by running
+`npx convex ai-files install`.
+
+<!-- convex-ai-end -->

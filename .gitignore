@@ -11,6 +11,7 @@ pnpm-lock.yaml
 
 # Build outputs
 dist
+dist-cantina
 *.local
 *.tsbuildinfo
 # `tsc -b` declaration output of the referenced libraries (root tsconfig.json)
@@ -46,7 +47,7 @@ packages/salvageunion-reference/schemas/
 # TanStack Router temporary files
 **/.tanstack
 # generate-route-tree's scratch tree, left behind only if the run was killed
-apps/cantina/src/.routeTree.gen.*.ts
+apps/web/src/cantina/.routeTree.gen.*.ts
 
 # Environment variables
 .env

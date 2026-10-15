@@ -15,13 +15,13 @@ type Manifest = { dependencies: Record<string, string> }
 type RootManifest = { workspaces: { catalog: Record<string, string> } }
 
 const mcp: McpConfig = await Bun.file(join(ROOT, '.mcp.json')).json()
-const cantina: Manifest = await Bun.file(join(ROOT, 'apps/cantina/package.json')).json()
+const web: Manifest = await Bun.file(join(ROOT, 'apps/web/package.json')).json()
 const root: RootManifest = await Bun.file(join(ROOT, 'package.json')).json()
 const { args } = mcp.mcpServers.convex
 
 describe('.mcp.json convex server', () => {
-  test('runs the Convex CLI version apps/cantina pins', () => {
-    expect(cantina.dependencies.convex).toBe('catalog:')
+  test('runs the Convex CLI version apps/web pins', () => {
+    expect(web.dependencies.convex).toBe('catalog:')
     expect(args[0]).toBe(`convex@${root.workspaces.catalog.convex}`)
   })
 

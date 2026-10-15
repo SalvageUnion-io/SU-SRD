@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { join } from 'node:path'
 import type { BarrelExport } from '../check-barrel-consumers'
 import {
+  appOf,
   census,
   explain,
   groupOf,
@@ -55,6 +56,14 @@ describe('namesImportedFromLib', () => {
 })
 
 const lib = 'packages/component-lib/src'
+
+describe('appOf', () => {
+  test('the Cantina folder in apps/web is its own app; anything else is its workspace', () => {
+    expect(appOf('apps/web', 'apps/web/src/cantina/main.tsx')).toBe('cantina')
+    expect(appOf('apps/web', 'apps/web/src/pages/index.page.tsx')).toBe('web')
+    expect(appOf('apps/discord-bot', 'apps/discord-bot/src/a.ts')).toBe('discord-bot')
+  })
+})
 
 describe('groupOf', () => {
   test("a component is filed under its directory's group", () => {
@@ -178,7 +187,7 @@ describe('explain', () => {
       })
     ).toEqual([
       "✗ Wiz (m): only cantina renders it, and its directory files it under 'Compositions'.",
-      "  → Move it and its tests into apps/cantina/src/components/: a composition one app renders is that app's.",
+      "  → Move it and its tests into apps/web/src/cantina/components/: a composition one app renders is that app's.",
     ])
     expect(explain({ kind: 'unclassified', name: 'heat', app: 'web', module: 'm' })[1]).toContain(
       'apps/web/src/'
@@ -190,7 +199,7 @@ describe('census of this repository', () => {
   const repo = census()
 
   test('reads the barrel and every consuming app', () => {
-    expect(repo.workspaces).toEqual(['apps/cantina', 'apps/discord-bot', 'apps/web'])
+    expect(repo.workspaces).toEqual(['apps/discord-bot', 'apps/web'])
     expect(repo.exports.length).toBeGreaterThan(60)
     expect(repo.scanned).toBeGreaterThan(270)
   })

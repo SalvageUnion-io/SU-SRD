@@ -62,7 +62,7 @@ describe('isCommentSource', () => {
     expect(isCommentSource('apps/cantina/public/sw-takeover.js')).toBe(true)
     expect(isCommentSource('tools/check.ts')).toBe(true)
     expect(isCommentSource('apps/cantina/convex/_generated/api.d.ts')).toBe(false)
-    expect(isCommentSource('apps/cantina/src/routeTree.gen.ts')).toBe(false)
+    expect(isCommentSource('apps/web/src/cantina/routeTree.gen.ts')).toBe(false)
     expect(isCommentSource('packages/x/lib/generated/registry.ts')).toBe(false)
     expect(isCommentSource('apps/cantina/src/vite-env.d.ts')).toBe(false)
     expect(isCommentSource('docs/README.md')).toBe(false)

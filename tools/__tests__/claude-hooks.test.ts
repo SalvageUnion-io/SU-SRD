@@ -44,12 +44,12 @@ describe('settings.json deny rules', () => {
     ['a generated JSON schema', 'packages/salvageunion-reference/schemas/chassis.schema.json'],
     ['the same, absolute', `${ROOT}/packages/salvageunion-reference/schemas/abilities.schema.json`],
     ['generated lib code', 'packages/salvageunion-reference/lib/generated/registry.generated.ts'],
-    ['the router tree', 'apps/cantina/src/routeTree.gen.ts'],
+    ['the router tree', 'apps/web/src/cantina/routeTree.gen.ts'],
     ['anything under dist', 'apps/web/dist/index.html'],
-    ['Convex codegen', 'apps/cantina/convex/_generated/api.d.ts'],
+    ['Convex codegen', 'apps/web/convex/_generated/api.d.ts'],
     ['the lockfile', 'bun.lock'],
     ['the schema catalog', 'packages/salvageunion-reference/schemas/index.json'],
-    ['a build-info file', 'apps/cantina/tsconfig.tsbuildinfo'],
+    ['a build-info file', 'apps/web/tsconfig.tsbuildinfo'],
   ])('deny editing %s', (_label, path) => {
     expect(editDenied(path)).toBe(true)
   })
@@ -59,7 +59,7 @@ describe('settings.json deny rules', () => {
       'a Zod schema — the file you SHOULD edit',
       'packages/salvageunion-reference/lib/schemas/chassis.ts',
     ],
-    ['an app component', 'apps/cantina/src/components/Foo.tsx'],
+    ['an app component', 'apps/web/src/cantina/components/Foo.tsx'],
     ['a tool', 'tools/check-path-filters.ts'],
     ['a doc', 'docs/README.md'],
   ])('allow editing %s', (_label, path) => {
@@ -78,8 +78,8 @@ describe('settings.json deny rules', () => {
       file: 'packages/salvageunion-reference/lib/index.ts',
       denied: false,
     },
-    'apps/cantina/src/routeTree.gen.ts': {
-      file: 'apps/cantina/src/routeTree.gen.ts',
+    'apps/web/src/cantina/routeTree.gen.ts': {
+      file: 'apps/web/src/cantina/routeTree.gen.ts',
       denied: true,
     },
     'apps/web/worker-configuration.d.ts': {
@@ -236,7 +236,6 @@ describe('typecheck hooks against a stub workspace', () => {
 
   const WORKSPACES = [
     'apps/discord-bot',
-    'apps/cantina',
     'apps/web',
     'apps/su-assets',
     'packages/component-lib',
@@ -318,24 +317,24 @@ describe('typecheck hooks against a stub workspace', () => {
     })
 
   test.each([
-    ['an app', 'apps/cantina/lib/x.ts', ['ROOT apps/cantina']],
+    ['an app', 'apps/web/lib/x.ts', ['ROOT apps/web']],
     ['the bot', 'apps/discord-bot/lib/x.ts', ['ROOT apps/discord-bot']],
     [
       'component-lib',
       'packages/component-lib/lib/x.ts',
-      ['ROOT packages/component-lib apps/web apps/cantina tools'],
+      ['ROOT packages/component-lib apps/web tools'],
     ],
     [
       'observability',
       'packages/observability/lib/x.ts',
-      ['ROOT packages/observability apps/discord-bot apps/cantina apps/web apps/su-assets tools'],
+      ['ROOT packages/observability apps/discord-bot apps/web apps/su-assets tools'],
     ],
     [
       'cantina-domain',
       'packages/cantina-domain/lib/x.ts',
-      ['ROOT packages/cantina-domain apps/discord-bot apps/cantina tools'],
+      ['ROOT packages/cantina-domain apps/discord-bot apps/web tools'],
     ],
-    ['gates', 'packages/gates/lib/x.ts', ['ROOT packages/gates apps/web apps/cantina tools']],
+    ['gates', 'packages/gates/lib/x.ts', ['ROOT packages/gates apps/web tools']],
   ])(
     'an edit to %s checks it and its consumers in one run, then asks for a full run',
     async (_l, rel, expected) => {

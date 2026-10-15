@@ -72,11 +72,13 @@ describe('planShot', () => {
       'bun',
       'x',
       'vite',
+      '-c',
+      'vite.cantina.config.ts',
       '--port',
       String(portFor('cantina')),
       '--strictPort',
     ])
-    expect(server.cwd.endsWith('apps/cantina')).toBe(true)
+    expect(server.cwd.endsWith('apps/web')).toBe(true)
     expect(server.env).toEqual({ VITE_CONVEX_URL: NO_BACKEND })
     expect(planShot({ target: 'cantina:/' }).path).toBe(`${CANTINA_BASE}/`)
   })

@@ -13,10 +13,10 @@ import { BASE_SECURITY_HEADERS } from '../worker'
 const REPO = join(import.meta.dir, '..', '..', '..', '..')
 
 /** The headers of the `/*` rule, names lowercased, comments dropped. */
-function rootRule(app: string): Record<string, string> {
-  const lines = readFileSync(join(REPO, 'apps', app, 'public', '_headers'), 'utf-8').split('\n')
+function rootRule(file: string): Record<string, string> {
+  const lines = readFileSync(join(REPO, file), 'utf-8').split('\n')
   const start = lines.indexOf('/*')
-  if (start === -1) throw new Error(`apps/${app}/public/_headers has no /* rule`)
+  if (start === -1) throw new Error(`${file} has no /* rule`)
   const headers: Record<string, string> = {}
   for (const line of lines.slice(start + 1)) {
     if (!/^\s/.test(line)) break
@@ -29,9 +29,9 @@ function rootRule(app: string): Record<string, string> {
 }
 
 describe('base security headers', () => {
-  for (const app of ['web', 'cantina']) {
-    it(`match apps/${app}/public/_headers`, () => {
-      const { 'content-security-policy': _csp, ...base } = rootRule(app)
+  for (const file of ['apps/web/public/_headers', 'apps/web/src/cantina/public/_headers']) {
+    it(`match ${file}`, () => {
+      const { 'content-security-policy': _csp, ...base } = rootRule(file)
       expect(base).toEqual({ ...BASE_SECURITY_HEADERS })
     })
   }

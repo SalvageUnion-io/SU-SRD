@@ -17,7 +17,7 @@ What an editor needs:
   rules live in `styles/partials/`, one part per group, which `index.css`
   `@import`s in cascade order; tests read them joined
   (`styles/__tests__/packageStylesheet.ts`). The Dashboard's `.su-dash-*`
-  rules are the Cantina's (`apps/cantina/src/styles/dashboard/`); any other Cantina- or
+  rules are the Cantina's (`apps/web/src/cantina/styles/dashboard/`); any other Cantina- or
   srd-only rule lives in that app's stylesheets, because srd loads
   `index.css` too.
 - **The written form**, one spelling each:

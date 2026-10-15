@@ -945,9 +945,7 @@ const RULE_BUDGET = 4_000
  * Files over budget when the budget landed, held at that size until they are
  * cut. Lower an entry when its file shrinks; delete it once under budget.
  */
-const OVER_BUDGET: Record<string, number> = {
-  'apps/cantina/CLAUDE.md': 8_266,
-}
+const OVER_BUDGET: Record<string, number> = {}
 
 /**
  * Context docs collapsed to terse lists, each held near its collapsed size so
@@ -972,9 +970,8 @@ export function checkDocSizes(
   collapsed: Record<string, number> = COLLAPSED_DOCS
 ): CheckResult {
   const failures: string[] = []
-  const claudeMds = ['CLAUDE.md', ...workspaceDirs(root).map((ws) => `${ws}/CLAUDE.md`)].filter(
-    (doc) => existsSync(join(root, doc))
-  )
+  const guides = [...workspaceDirs(root), 'apps/web/src/cantina'].map((dir) => `${dir}/CLAUDE.md`)
+  const claudeMds = ['CLAUDE.md', ...guides].filter((doc) => existsSync(join(root, doc)))
   const rules = markdownIn(root, '.claude/rules')
   const budgeted: [string, number][] = [
     ...claudeMds.map((doc): [string, number] => [doc, CLAUDE_MD_BUDGET]),
@@ -1011,13 +1008,16 @@ export function checkDocSizes(
 
 // ─── load ───────────────────────────────────────────────────────────────────
 
+/** The Cantina's folders in `apps/web`: its session's, not srd's. */
+const CANTINA_DIRS = ['src/cantina', 'convex', 'test', 'e2e/cantina'].map((d) => `apps/web/${d}`)
+
 /** The sessions the repo budgets (`gates/lib/sessionLoad`), each held to `SESSION_CEILINGS`. */
 const SESSION_PROFILES: Record<string, SessionProfile> = {
-  srd: { dirs: ['apps/web'], reads: [] },
-  /** The Convex CLI writes the guidelines; a Convex upgrade that grows them raises this on purpose. */
+  srd: { dirs: ['apps/web'], reads: [], skip: CANTINA_DIRS },
+  /** It reads `apps/web/CLAUDE.md` (its workspace's guide) and the Convex CLI's guidelines; a Convex upgrade that grows them raises this on purpose. */
   'cantina+component-lib': {
-    dirs: ['apps/cantina', 'packages/component-lib'],
-    reads: ['apps/cantina/convex/_generated/ai/guidelines.md'],
+    dirs: [...CANTINA_DIRS, 'packages/component-lib'],
+    reads: ['apps/web/CLAUDE.md', 'apps/web/convex/_generated/ai/guidelines.md'],
   },
   bot: { dirs: ['apps/discord-bot'], reads: [] },
 }
@@ -1029,7 +1029,7 @@ const SESSION_PROFILES: Record<string, SessionProfile> = {
  */
 const SESSION_CEILINGS: Record<string, number> = {
   srd: 24_350,
-  'cantina+component-lib': 58_927,
+  'cantina+component-lib': 62_661,
   bot: 22_634,
 }
 

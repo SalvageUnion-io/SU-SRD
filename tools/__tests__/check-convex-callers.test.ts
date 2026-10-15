@@ -173,17 +173,17 @@ describe('main', () => {
 
   /** A deployment where every function is called and api.d.ts registers each module. */
   const healthy: Record<string, string> = {
-    'apps/cantina/convex/games.ts': [
+    'apps/web/convex/games.ts': [
       'export const list = query({ handler: async () => [] })',
       'export const prune = internalMutation({ handler: async () => {} })',
       '/** @operator run once by hand */',
       'export const backfill = internalMutation({ handler: async () => {} })',
     ].join('\n'),
-    'apps/cantina/convex/crons.ts': 'crons.daily("prune", {}, internal.games.prune)\n',
-    'apps/cantina/convex/schema.ts': 'export default defineSchema({})\n',
-    'apps/cantina/convex/_generated/api.d.ts': api('crons', 'games'),
-    'apps/cantina/src/Games.tsx': 'useQuery(api.games.list)\n',
-    'apps/cantina/src/__tests__/Games.test.tsx': 'useQuery(api.games.unused)\n',
+    'apps/web/convex/crons.ts': 'crons.daily("prune", {}, internal.games.prune)\n',
+    'apps/web/convex/schema.ts': 'export default defineSchema({})\n',
+    'apps/web/convex/_generated/api.d.ts': api('crons', 'games'),
+    'apps/web/src/cantina/Games.tsx': 'useQuery(api.games.list)\n',
+    'apps/web/src/cantina/__tests__/Games.test.tsx': 'useQuery(api.games.unused)\n',
   }
 
   test('passes and counts what it checked when every function is called and registered', () => {
@@ -198,17 +198,17 @@ describe('main', () => {
   test('fails on codegen drift, an uncalled public function and an uncalled internal one', () => {
     const root = tree({
       ...healthy,
-      'apps/cantina/convex/games.ts': `${healthy['apps/cantina/convex/games.ts']}\nexport const rename = mutation({ handler: async () => {} })\nexport const sweep = internalAction({ handler: async () => {} })`,
+      'apps/web/convex/games.ts': `${healthy['apps/web/convex/games.ts']}\nexport const rename = mutation({ handler: async () => {} })\nexport const sweep = internalAction({ handler: async () => {} })`,
       // `entities` re-exports `rename`, so it is public under both names.
-      'apps/cantina/convex/entities.ts': "export { rename as retitle } from './games'\n",
-      'apps/cantina/convex/_generated/api.d.ts': api('crons', 'games', 'gone'),
+      'apps/web/convex/entities.ts': "export { rename as retitle } from './games'\n",
+      'apps/web/convex/_generated/api.d.ts': api('crons', 'games', 'gone'),
     })
     const io = captured()
     expect(main(root, io.log, io.error)).toBe(1)
     expect(io.out).toEqual([])
     expect(io.err.join('\n')).toBe(
       [
-        '✗ Convex codegen drift — apps/cantina/convex/_generated/api.d.ts is stale.',
+        '✗ Convex codegen drift — apps/web/convex/_generated/api.d.ts is stale.',
         '    convex/entities.ts exists on disk but is NOT registered in api.d.ts',
         '    api.d.ts registers convex/gone.ts, which no longer exists',
         '  → Regenerate with `bunx convex dev` (needs a CONVEX_DEPLOYMENT); never hand-edit\n    convex/_generated/.',
@@ -226,7 +226,7 @@ describe('main', () => {
   test('a caller only a test references still counts as uncalled', () => {
     const root = tree({
       ...healthy,
-      'apps/cantina/src/Games.tsx': '// api.games.list is mentioned only in a comment\n',
+      'apps/web/src/cantina/Games.tsx': '// api.games.list is mentioned only in a comment\n',
     })
     const io = captured()
     expect(main(root, io.log, io.error)).toBe(1)

@@ -32,7 +32,7 @@
  *   1. Runs the GENERATORS below at once — they write disjoint paths and none
  *      reads another's output (the test pins the disjointness):
  *      - `bun run build` in packages/salvageunion-reference (every generator);
- *      - `bun apps/cantina/scripts/generate-route-tree.ts` — the router plugin's
+ *      - `bun apps/web/scripts/generate-route-tree.ts` — the router plugin's
  *        own generator with the Vite config's options, without a build;
  *      - `wrangler types --strict-vars=false --include-runtime=false` in
  *        each Worker app (not strict: the bot's tests sign with their own
@@ -74,7 +74,7 @@ const ROOT = join(import.meta.dir, '..')
 /** Every committed path a generator below writes. */
 export const GENERATED_PATHS = [
   'packages/salvageunion-reference/lib/index.ts',
-  'apps/cantina/src/routeTree.gen.ts',
+  'apps/web/src/cantina/routeTree.gen.ts',
   'apps/web/worker-configuration.d.ts',
   'apps/su-assets/worker-configuration.d.ts',
   'apps/discord-bot/worker-configuration.d.ts',
@@ -136,13 +136,13 @@ export const GENERATORS: GeneratorSpec[] = [
   {
     label: 'cantina route tree',
     cmd: ['bun', 'scripts/generate-route-tree.ts'],
-    cwd: 'apps/cantina',
-    outputs: ['apps/cantina/src/routeTree.gen.ts'],
+    cwd: 'apps/web',
+    outputs: ['apps/web/src/cantina/routeTree.gen.ts'],
     inputs: [
-      'apps/cantina/src/routes',
-      'apps/cantina/routeTree.config.ts',
-      'apps/cantina/scripts/generate-route-tree.ts',
-      'apps/cantina/package.json',
+      'apps/web/src/cantina/routes',
+      'apps/web/routeTree.config.ts',
+      'apps/web/scripts/generate-route-tree.ts',
+      'apps/web/package.json',
     ],
     tools: ['@tanstack/router-plugin'],
   },

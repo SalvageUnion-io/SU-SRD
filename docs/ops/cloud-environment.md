@@ -12,7 +12,7 @@ The record of the claude.ai/code environment (selector → Cloud); no CLI or API
    at `https://observability.mcp.cloudflare.com/mcp`.
 6. **Convex.** The SessionStart hook exports `CONVEX_AGENT_MODE=anonymous`, so `bun run dev:cantina` runs a local backend with no account.
    Test-auth setup: [`convex-ops`](../../.claude/skills/convex-ops/SKILL.md#local-backend), per container.
-7. **First `dev:cantina` in a fresh container.** Copy `apps/cantina/.env.example` to `.env.local` first (else the CLI writes `CONVEX_URL`, not `VITE_CONVEX_URL`);
+7. **First `dev:cantina` in a fresh container.** Copy `apps/web/.env.example` to `.env.local` first (else the CLI writes `CONVEX_URL`, not `VITE_CONVEX_URL`);
    the first run exits at Vite, so run it again.
 8. **Playwright.** The image's Chromium is older than `@playwright/test`'s: run e2e specs with `executablePath: '/opt/pw-browsers/chromium'`, never `playwright install`.
 9. **Setup script.** Paste the script below; it runs as root, must exit 0, and is snapshotted, so the hook is a no-op at start.

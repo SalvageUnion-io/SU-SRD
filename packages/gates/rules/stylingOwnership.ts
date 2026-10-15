@@ -28,8 +28,8 @@ import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
 
 // ── file gathering ─────────────────────────────────────────────────────────
 
-const APP_DIRS = ['apps/cantina/src', 'apps/web/src'] as const
-const DASHBOARD_DIR = 'apps/cantina/src/styles/dashboard'
+const APP_DIRS = ['apps/web/src'] as const
+const DASHBOARD_DIR = 'apps/web/src/cantina/styles/dashboard'
 
 /** The file sets the rules share, gathered once per scan. Repo-relative paths. */
 type Corpus = {
@@ -65,6 +65,7 @@ function corpus(root: string): Corpus {
 
 /** Which app a repo-relative path belongs to (for same-app reference checks). */
 function appOf(relPath: string): string | null {
+  if (relPath.startsWith('apps/web/src/cantina/')) return 'cantina'
   return relPath.match(/^apps\/([^/]+)\//)?.[1] ?? null
 }
 
@@ -76,7 +77,7 @@ function appOf(relPath: string): string | null {
  */
 const EXEMPTIONS: Exemption[] = [
   {
-    file: 'apps/cantina/src/styles/libHandback.css',
+    file: 'apps/web/src/cantina/styles/libHandback.css',
     rules: ['dead-app-css'],
     reason:
       "Its selectors are component-lib's own classes, referenced in component-lib source rather than the Cantina's: the file only hands those classes back their layered values (`revert-layer`) over the Cantina's unlayered element rules, and styles nothing of its own.",
@@ -313,12 +314,13 @@ function scanDashContract(c: Corpus): Finding[] {
 const STYLESHEET_ENTRY = 'packages/component-lib/src/styles/entry.css'
 
 /**
- * Every stylesheet that loads the package — the two app entries.
- * Named explicitly rather than discovered, because the property being checked
- * is about these files SPECIFICALLY: a partial like `print.css` neither should
- * nor could carry the import.
+ * The two app entries, the stylesheets that load the package: named, not
+ * discovered, as a partial like `print.css` neither should nor could import it.
  */
-const ENTRY_CONSUMERS = ['apps/cantina/src/index.css', 'apps/web/src/styles/global.css'] as const
+const ENTRY_CONSUMERS = [
+  'apps/web/src/cantina/index.css',
+  'apps/web/src/styles/global.css',
+] as const
 
 /**
  * The package-stylesheet wiring, in the one file that owns it, and the one
@@ -547,7 +549,7 @@ const RULES: OwnershipRule[] = [
     id: 'dash-class-contract',
     mode: 'zero',
     rule: 'source-of-truth §the dashboard class contract is closed and bidirectional',
-    fix: 'used-but-undefined: define the `su-dash-*` class in apps/cantina/src/styles/dashboard/*.css (or fix the className typo in the .tsx). defined-but-unused: delete the dead rule, or reference it. Match the EXACT class name — su-dash-display and su-dash-display-light are different classes.',
+    fix: 'used-but-undefined: define the `su-dash-*` class in apps/web/src/cantina/styles/dashboard/*.css (or fix the className typo in the .tsx). defined-but-unused: delete the dead rule, or reference it. Match the EXACT class name — su-dash-display and su-dash-display-light are different classes.',
     scan: scanDashContract,
   },
   {
@@ -578,11 +580,8 @@ const RULES: OwnershipRule[] = [
 function preflight(root: string): void {
   const c = corpus(root)
   /**
-   * Catastrophe floors for the file sets. Today: 3 app CSS files, ~510 app
-   * source files, ~1,170 repo-wide TS files. Each is set
-   * far below the real count — see packages/gates/lib/scanFloor.ts. `appCss` is only 3
-   * files, so its floor is necessarily blunt; it still catches the directory
-   * list going stale and the set collapsing to zero.
+   * Catastrophe floors (packages/gates/lib/scanFloor.ts), far below today's
+   * 3 app CSS, ~510 app source and ~1,170 repo-wide TS files.
    */
   assertScanFloor('styling ownership (app CSS)', c.appCss.length, 2)
   assertScanFloor('styling ownership (app source)', c.appSource.length, 350)

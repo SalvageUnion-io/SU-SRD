@@ -43,7 +43,7 @@ describe('scannedFiles', () => {
         'apps/cantina/test/convex/harness.ts',
         'apps/cantina/convex/_generated/api.js',
         'packages/a/lib/generated/registry.ts',
-        'apps/cantina/src/routeTree.gen.ts',
+        'apps/web/src/cantina/routeTree.gen.ts',
         'apps/cantina/src/env.d.ts',
         'apps/web/src/styles.css',
       ])

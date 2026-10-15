@@ -25,7 +25,7 @@ pages agree on it. `apps/web/scripts/og-screenshots.ts` screenshots it at
   name, `og:description` the kind and cite (never the body), and
   `theme-color` the band's tone (`DocumentMeta.ogTitle` / `ogDescription` /
   `themeColor`); `<title>` and the meta description still serve search.
-- Run it with `bun --filter srd og:generate` (chromium via `og:install-browser`).
+- Run it with `bun --filter web og:generate` (chromium via `og:install-browser`).
   It is **opt-in** — a plain `bun run build` never renders images, so CI stays fast.
 - The build always emits the _default_ og:image; the script then rewrites the meta
   only for pages whose PNG actually landed. Generation being skipped, capped by

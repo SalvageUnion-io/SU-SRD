@@ -144,7 +144,7 @@ no account to open, is always current, and requires no publishing step.
   than to inherit.
 - **The link unfurls.** For a bot's request the Worker swaps the shell's
   `cantina:meta` block for the thing's preview
-  (`apps/cantina/src/worker/linkPreview.ts`, from `publicSheet.preview`, public
+  (`apps/web/src/cantina/worker/linkPreview.ts`, from `publicSheet.preview`, public
   reads only) and renders its `OgCard` through Browser Rendering, cached by
   version. A private sheet unfurls as the Private card.
 

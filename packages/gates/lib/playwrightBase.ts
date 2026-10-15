@@ -37,6 +37,18 @@ import { defineConfig, devices } from '@playwright/test'
 type Budget = { timeout: number; expect: number }
 
 export type AppE2E = {
+  /**
+   * Which suite: its specs are `e2e/<suite>/`, its results and report go under
+   * `test-results/<suite>/` and `playwright-report/<suite>/`. `apps/web` holds
+   * two, `srd` and `cantina`.
+   */
+  suite: string
+  /**
+   * The workspace scripts that serve it, when not `dev`, `build` and `preview`,
+   * and the folder `build` writes, when not `dist` (the Cantina's are suffixed
+   * `:cantina` and it builds into `dist-cantina`).
+   */
+  scripts?: { dev: string; build: string; preview: string; dist: string }
   /** The port the app's dev server listens on (and `preview`, in CI). */
   port: number
   /**
@@ -51,7 +63,11 @@ export type AppE2E = {
   external?: Budget
 }
 
+const DEFAULT_SCRIPTS = { dev: 'dev', build: 'build', preview: 'preview', dist: 'dist' }
+
 export function e2eConfig({
+  suite,
+  scripts = DEFAULT_SCRIPTS,
   port,
   basePath = '/',
   local,
@@ -63,7 +79,8 @@ export function e2eConfig({
   const url = `http://localhost:${port}`
 
   return defineConfig({
-    testDir: './e2e',
+    testDir: `./e2e/${suite}`,
+    outputDir: `./test-results/${suite}`,
     testMatch: /.*\.e2e\.ts$/,
     timeout: budget.timeout,
     expect: { timeout: budget.expect },
@@ -72,7 +89,9 @@ export function e2eConfig({
     retries: ci ? 2 : 0,
     failOnFlakyTests: ci,
     workers: ci ? 2 : undefined,
-    reporter: ci ? [['github'], ['html', { open: 'never' }]] : 'list',
+    reporter: ci
+      ? [['github'], ['html', { open: 'never', outputFolder: `playwright-report/${suite}` }]]
+      : 'list',
     use: {
       baseURL: externalBaseURL ?? url,
       trace: 'on-first-retry',
@@ -88,7 +107,9 @@ export function e2eConfig({
     webServer: externalBaseURL
       ? undefined
       : {
-          command: ci ? '[ -d dist ] || bun run build; bun run preview' : 'bun run dev',
+          command: ci
+            ? `[ -d ${scripts.dist} ] || bun run ${scripts.build}; bun run ${scripts.preview}`
+            : `bun run ${scripts.dev}`,
           url: `${url}${basePath}`,
           reuseExistingServer: !ci,
           timeout: 240_000,

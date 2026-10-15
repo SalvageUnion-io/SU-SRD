@@ -54,18 +54,10 @@
         "src/runtime/islands.client.ts",
         "src/runtime/styles.entry.ts",
         "src/runtime/assets.entry.ts",
-        // The one spec that imports `gates` (`packages/gates/lib/a11yScan.ts`).
-        "e2e/a11y.e2e.ts"
-      ],
-      "project": ["src/**/*.{ts,tsx}", "ssg/**/*.{ts,tsx}"]
-    },
-    "apps/cantina": {
-      "entry": [
-        "src/routes/**/*.tsx",
-        // The Worker entry (`src/worker/index.ts`) is NOT listed: it is the
-        // package's `./worker` export, which srd's Worker imports.
-        // The one spec that imports `gates` (`packages/gates/lib/a11yScan.ts`).
-        "e2e/a11y.e2e.ts"
+        "src/cantina/routes/**/*.tsx",
+        // The two specs that import `gates` (`packages/gates/lib/a11yScan.ts`).
+        "e2e/srd/a11y.e2e.ts",
+        "e2e/cantina/a11y.e2e.ts"
       ],
       // `test/**` covers the Convex test suite, which lives OUTSIDE `convex/`
       // so that codegen does not register the harness as a deployable module.
@@ -74,9 +66,14 @@
       // `convex/**` (not `convex/*`) so `convex/model/*` is covered too.
       "project": [
         "src/**/*.{ts,tsx}",
+        "ssg/**/*.{ts,tsx}",
         "convex/**/*.ts",
         "test/**/*.ts"
-      ]
+      ],
+      // The router plugin's default is `src/routeTree.gen.ts`; the Cantina's is a level down.
+      "tanstack-router": {
+        "entry": ["src/cantina/routeTree.gen.ts"]
+      }
     },
     "apps/su-assets": {
       // The Worker entry (`src/worker/index.ts`) comes from wrangler.jsonc's `main`

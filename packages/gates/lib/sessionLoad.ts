@@ -15,7 +15,8 @@ type CheckResult = { ok: string; failures: string[] }
  * A kind of agent session: the directories it works in, and the docs its loaded
  * text tells it to read before working (beyond what loads by itself).
  */
-export type SessionProfile = { dirs: string[]; reads: string[] }
+/** `skip`: directories under `dirs` that belong to another session (the Cantina inside `apps/web`). */
+export type SessionProfile = { dirs: string[]; reads: string[]; skip?: string[] }
 
 /** How far under its ceiling a profile may fall before the ceiling must come down. */
 export const SESSION_SLACK = 500
@@ -99,7 +100,9 @@ export function rulePaths(source: string): string[] {
  * `paths:` match a file there (or that has none), and the profile's `reads`.
  */
 export function sessionLoad(root: string, profile: SessionProfile): string[] {
-  const ignored = gitignoredMatcher(root)
+  const gitignored = gitignoredMatcher(root)
+  const skip = profile.skip ?? []
+  const ignored = (path: string) => gitignored(path) || skip.includes(path)
   const files = profile.dirs.flatMap((dir) => filesUnder(root, dir, ignored))
   const claudeMds = ['CLAUDE.md', ...files.filter((file) => file.endsWith('/CLAUDE.md')).sort()]
   const loaded: string[] = []

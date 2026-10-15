@@ -21,7 +21,7 @@ import { dirname, join } from 'node:path'
  * `'self'`, where the app posts its reports.
  */
 
-const CANTINA_HEADERS = 'apps/cantina/public/_headers'
+const CANTINA_HEADERS = 'apps/web/src/cantina/public/_headers'
 
 const ROOT = join(import.meta.dir, '..', '..')
 const TOOL = join(ROOT, 'tools', 'check-observability.ts')
@@ -42,10 +42,10 @@ const CHECKED_FILES = [
   'apps/web/public/_headers',
   'apps/web/wrangler.jsonc',
   'apps/web/src/worker/index.ts',
-  'apps/cantina/src/lib/observability.ts',
-  'apps/cantina/src/main.tsx',
+  'apps/web/src/cantina/lib/observability.ts',
+  'apps/web/src/cantina/main.tsx',
   CANTINA_HEADERS,
-  'apps/cantina/src/worker/index.ts',
+  'apps/web/src/cantina/worker/index.ts',
   'apps/su-assets/wrangler.jsonc',
   'apps/su-assets/src/worker/index.ts',
   'apps/discord-bot/wrangler.jsonc',
@@ -198,7 +198,7 @@ describe('check-observability reads parsed source, not prose', () => {
 
   test('an error report route that is commented out fails', async () => {
     await withFileContents(
-      'apps/cantina/src/worker/index.ts',
+      'apps/web/src/cantina/worker/index.ts',
       (s) =>
         s.replace(
           'return handleConvexLogStream(',
@@ -208,7 +208,7 @@ describe('check-observability reads parsed source, not prose', () => {
         const { exitCode, stderr } = await runCheck()
         expect(exitCode).toBe(1)
         expect(stderr).toContain(
-          '[cantina] apps/cantina/src/worker/index.ts never calls handleConvexLogStream()'
+          '[cantina] apps/web/src/cantina/worker/index.ts never calls handleConvexLogStream()'
         )
       }
     )

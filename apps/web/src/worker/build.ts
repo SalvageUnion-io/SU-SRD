@@ -20,8 +20,8 @@
  *   two CSP headers both apply and the stricter wins.
  */
 
-import type { Env as CantinaEnv } from 'cantina/worker'
-import cantina from 'cantina/worker'
+import type { Env as CantinaEnv } from '../cantina/worker/index'
+import cantina from '../cantina/worker/index'
 
 /** The Cantina's base path, without a trailing slash: `BASE_PATH` in `wrangler.jsonc`. */
 export const BUILD_BASE = '/build'
@@ -34,7 +34,7 @@ export const BUILD_BASE = '/build'
 export const RUN_WORKER_FIRST = [BUILD_BASE, `${BUILD_BASE}/*`]
 
 /**
- * The Cantina's Content-Security-Policy: `apps/cantina/public/_headers`, which
+ * The Cantina's Content-Security-Policy: `apps/web/src/cantina/public/_headers`, which
  * the routing test holds equal. `connect-src` keeps 'self' (error reports) and
  * the Convex origins (the accounts client, ADR-030).
  */

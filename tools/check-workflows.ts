@@ -260,7 +260,6 @@ export function checkAggregator(
  * both this and NO_FILTER_GROUP is a hard failure.
  */
 const APP_TO_FILTER: Record<string, string> = {
-  cantina: 'cantina',
   web: 'web',
   'discord-bot': 'bot',
   'su-assets': 'assets',

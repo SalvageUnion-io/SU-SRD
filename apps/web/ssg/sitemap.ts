@@ -8,7 +8,7 @@
  *
  * The Cantina (The Cantina, `/build/`) is its own app, Worker and deploy (ADR-048):
  * its Worker serves the urlset of its public pages at `/build/sitemap.xml`
- * (`apps/cantina/src/worker/publicPages.ts`), and the index lists it, so the one
+ * (`apps/web/src/cantina/worker/publicPages.ts`), and the index lists it, so the one
  * `robots.txt` line reaches both.
  *
  * The shape is fixed: no newlines, no indentation, no `<lastmod>` /

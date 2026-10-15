@@ -95,7 +95,7 @@ check https://www.intheunionnow.com/ 301 "cantina www redirect"
 # (apps/web/src/worker/build.ts). intheunionnow.com, where it lived before,
 # 301s every page to the same path there: a zone Redirect Rule, not repo config
 # (ADR-033, "Configuration outside the repo"). su-srd then sends a retired
-# address on to where it lives now (apps/cantina/src/worker/retiredRedirects.ts).
+# address on to where it lives now (apps/web/src/cantina/worker/retiredRedirects.ts).
 check https://salvageunion.io/build/ 200 "cantina shell"
 check_redirect https://salvageunion.io/build 301 https://salvageunion.io/build/ "cantina bare base to its directory"
 check_redirect https://intheunionnow.com/ 301 https://salvageunion.io/build/ "cantina old host 301s to salvageunion.io/build"
@@ -140,7 +140,7 @@ check https://salvageunion.io/build/p/pilot/smoke 200 "cantina client route with
 # missing chunk's 404 `immutable` and a client that asks before a deploy
 # finishes would keep the 404 for a year. su-srd's Worker answers every such
 # miss with `no-store` instead, where `_headers` does not reach
-# (apps/web/src/worker/index.ts, apps/cantina/src/worker/index.ts).
+# (apps/web/src/worker/index.ts, apps/web/src/cantina/worker/index.ts).
 check_header_lacks https://salvageunion.io/assets/index-DEADBEEF.js cache-control "srd rotated chunk 404 is not immutable" immutable
 check_header_lacks https://salvageunion.io/build/assets/index-DEADBEEF.js cache-control "cantina rotated chunk 404 is not immutable" immutable
 # A derivative, not the master: entity cards ask for `-440`/`-880` first. It

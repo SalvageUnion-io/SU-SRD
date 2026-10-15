@@ -31,8 +31,9 @@
  *
  * ## What this asserts
  *
- * 1. Exactly one module in `apps/web` may import a stylesheet, and it is
- *    `src/runtime/styles.entry.ts`.
+ * 1. Exactly one srd module in `apps/web` may import a stylesheet, and it is
+ *    `src/runtime/styles.entry.ts`. The Cantina (`src/cantina/`) is a Vite app
+ *    whose CSS imports are its own, owned by `stylingOwnership`.
  * 2. No **shipping** `component-lib` module may import a stylesheet (tests
  *    are exempt). A component-side
  *    `import './x.css'` rides the barrel into every consumer: that is how srd
@@ -64,7 +65,9 @@ const CSS_IMPORT =
 const isLibExempt = (rel: string): boolean =>
   rel.includes('/__tests__/') || /\.(test|spec)\.[cm]?tsx?$/.test(rel)
 
-const srdFiles = (root: string) => listFiles(root, SRD_DIRS, EXTENSIONS)
+const CANTINA_DIR = 'apps/web/src/cantina/'
+const srdFiles = (root: string) =>
+  listFiles(root, SRD_DIRS, EXTENSIONS).filter((rel) => !rel.startsWith(CANTINA_DIR))
 const libFiles = (root: string) =>
   listFiles(root, LIB_DIRS, EXTENSIONS).filter((rel) => !isLibExempt(rel))
 

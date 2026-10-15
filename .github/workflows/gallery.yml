@@ -69,7 +69,7 @@ jobs:
           test-auth: 'true'
 
       - name: Build srd
-        run: bun --filter srd build
+        run: bun --filter web build
 
       # tools/shot.ts asks Playwright for the headed Chromium's path.
       - name: Set up Playwright
@@ -79,7 +79,7 @@ jobs:
 
       # srd is static files: a plain server answers `/route/` with its
       # index.html. The Cantina is a single-page app: `vite preview` falls back to
-      # index.html for its routes. `vite preview` loads apps/cantina/vite.config.ts,
+      # index.html for its routes. `vite preview` loads apps/web/vite.cantina.config.ts,
       # which refuses to start without VITE_CONVEX_URL (the build already
       # carries it; the config only checks it is set), so pass the same URL.
       - name: Serve both builds
@@ -87,7 +87,7 @@ jobs:
           VITE_CONVEX_URL: ${{ steps.convex.outputs.url }}
         run: |
           (cd apps/web/dist && python3 -m http.server 4321 --bind 127.0.0.1 > /tmp/srd.log 2>&1 &)
-          (cd apps/cantina && bunx vite preview --port 5173 --strictPort > /tmp/cantina.log 2>&1 &)
+          (cd apps/web && bunx vite preview -c vite.cantina.config.ts --port 5173 --strictPort > /tmp/cantina.log 2>&1 &)
           for url in http://127.0.0.1:4321/ http://localhost:5173/build/; do
             for _ in $(seq 1 60); do curl -sf -o /dev/null "$url" && break; sleep 1; done
             curl -sf -o /dev/null "$url" || {

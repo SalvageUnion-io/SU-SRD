@@ -31,7 +31,7 @@ describe('deploy-surfaces — decideSurfaces', () => {
    * recorded deploy sees both.
    */
   test('changes from several commits since the record are all deployed', () => {
-    const since = ['apps/cantina/src/app.tsx', 'apps/web/src/pages/index.page.tsx']
+    const since = ['apps/web/src/cantina/app.tsx', 'apps/web/src/pages/index.page.tsx']
     expect(decideSurfaces(since, false)).toEqual({ ...NOTHING, srd: true })
   })
 
@@ -44,7 +44,10 @@ describe('deploy-surfaces — decideSurfaces', () => {
 
   // su-srd serves the Cantina under /build, with its build in dist/build/.
   test('a Cantina change ships srd', () => {
-    expect(decideSurfaces(['apps/cantina/src/app.tsx'], false)).toEqual({ ...NOTHING, srd: true })
+    expect(decideSurfaces(['apps/web/src/cantina/app.tsx'], false)).toEqual({
+      ...NOTHING,
+      srd: true,
+    })
   })
 
   test.each([
@@ -114,7 +117,7 @@ describe('deploy-surfaces — planDeploy', () => {
   )
 
   test('ahead of the record deploys what changed', () => {
-    const plan = planDeploy(['apps/cantina/src/app.tsx'], false, 'ahead', false)
+    const plan = planDeploy(['apps/web/src/cantina/app.tsx'], false, 'ahead', false)
     expect(plan).toEqual({ stale: false, surfaces: { ...NOTHING, srd: true } })
   })
 })
@@ -167,7 +170,7 @@ describe('deploy-surfaces — script against a real git history', () => {
     return git(work, 'rev-parse', 'HEAD')
   }
   commit('README.md')
-  const a = commit('apps/cantina/app.ts')
+  const a = commit('apps/web/src/cantina/app.ts')
   const b = commit('apps/su-assets/index.ts')
   git(
     work,

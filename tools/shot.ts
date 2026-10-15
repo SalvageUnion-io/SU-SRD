@@ -61,7 +61,7 @@ const SRD: Server = { name: 'srd', port: portFor('srd'), cmd: ['bun', 'run', 'de
 /** The prefix that makes a target a Cantina route. */
 const CANTINA_PREFIX = 'cantina:'
 
-/** The Cantina's base path (`SITE.base` in `apps/cantina/src/lib/site.ts`, ADR-048). */
+/** The Cantina's base path (`SITE.base` in `apps/web/src/cantina/lib/site.ts`, ADR-048). */
 export const CANTINA_BASE = '/build'
 
 /**
@@ -79,9 +79,18 @@ const CANTINA: Server = {
   // Vite itself, not `bun run dev:cantina`, which starts a Convex backend. The
   // port goes on the command line: `vite.config.ts` leaves it at 5173 for
   // `dev:cantina`.
-  cmd: ['bun', 'x', 'vite', '--port', String(CANTINA_PORT), '--strictPort'],
-  cwd: join(REPO, 'apps/cantina'),
-  // Over any `apps/cantina/.env.local` a `dev:cantina` run wrote: Vite lets the
+  cmd: [
+    'bun',
+    'x',
+    'vite',
+    '-c',
+    'vite.cantina.config.ts',
+    '--port',
+    String(CANTINA_PORT),
+    '--strictPort',
+  ],
+  cwd: join(REPO, 'apps/web'),
+  // Over any `apps/web/.env.local` a `dev:cantina` run wrote: Vite lets the
   // environment win.
   env: { VITE_CONVEX_URL: NO_BACKEND },
 }

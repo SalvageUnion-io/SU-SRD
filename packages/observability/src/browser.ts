@@ -1,6 +1,6 @@
 /**
- * The shared half of the two browser apps' error reporting (`apps/cantina` and
- * `apps/web`).
+ * The shared half of the two browser apps' error reporting (srd and the
+ * Cantina, both in `apps/web`).
  *
  * Cloudflare has no browser error tracking, so each app posts its errors to its
  * own Worker, at `ERROR_REPORT_PATH` under the app's base. The Worker

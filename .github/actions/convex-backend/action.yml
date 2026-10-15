@@ -92,7 +92,7 @@ runs:
     - name: Provision auth keys and deployment env
       if: inputs.test-auth == 'true'
       shell: bash
-      working-directory: apps/cantina
+      working-directory: apps/web
       env:
         CONVEX_SELF_HOSTED_URL: http://127.0.0.1:3210
         CONVEX_SELF_HOSTED_ADMIN_KEY: ${{ steps.adminkey.outputs.key }}
@@ -121,16 +121,16 @@ runs:
         # for it, and omitting it fails as an opaque 500.
         bunx convex env set SITE_URL http://localhost:5173/build
 
-    # `build:untyped` skips `build`'s typecheck: ci.yml's static-checks
+    # `build:cantina:untyped` skips `build:cantina`'s typecheck: ci.yml's static-checks
     # typechecks every workspace, and nothing here is a type gate.
     # `--cmd` builds with VITE_CONVEX_URL injected — the same shape
     # deploy-cloudflare.yml uses. Playwright's CI webServer reuses an existing
-    # `apps/cantina/dist`, so this build is what the browser actually receives.
+    # `apps/web/dist-cantina`, so this build is what the browser actually receives.
     - name: Push functions and build cantina against the backend
       shell: bash
-      working-directory: apps/cantina
+      working-directory: apps/web
       env:
         CONVEX_SELF_HOSTED_URL: http://127.0.0.1:3210
         CONVEX_SELF_HOSTED_ADMIN_KEY: ${{ steps.adminkey.outputs.key }}
         VITE_TEST_AUTH: ${{ inputs.test-auth }}
-      run: bunx convex deploy --cmd-url-env-var-name VITE_CONVEX_URL --cmd "bun run build:untyped"
+      run: bunx convex deploy --cmd-url-env-var-name VITE_CONVEX_URL --cmd "bun run build:cantina:untyped"

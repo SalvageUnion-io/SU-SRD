@@ -20,7 +20,7 @@
  *
  * Fails:
  *   1. a component only one app reaches that sits under
- *      `components/compositions/`: move it into `apps/<app>/src/components/`;
+ *      `components/compositions/`: move it into the app's `src/components/`;
  *   2. a single-app export no group directory classifies (a helper, a hook,
  *      a `.ts` module) that `SINGLE_APP` does not list with a reason;
  *   3. a `SINGLE_APP` entry that no longer names an unclassified single-app export.
@@ -47,6 +47,21 @@ const BARREL = join(LIB_SRC, 'index.ts')
 
 /** Source trees of a consuming workspace that ship. */
 const APP_SOURCE_DIRS = ['src', 'ssg']
+
+/**
+ * `apps/web` holds two apps: the Cantina under `src/cantina/`, srd around it.
+ * Each counts as its own consumer, so a composition only one of them renders
+ * still belongs to that one.
+ */
+const CANTINA_SRC = 'apps/web/src/cantina/'
+
+/** The app a consuming source file belongs to. */
+export function appOf(workspace: string, file: string): string {
+  return file.startsWith(CANTINA_SRC) ? 'cantina' : basename(workspace)
+}
+
+/** Where an app's own source lives. */
+const appSrc = (app: string) => (app === 'cantina' ? CANTINA_SRC : `apps/${app}/src/`)
 
 /**
  * The library directories that file a component under a group, relative to
@@ -255,10 +270,10 @@ export function census(): Census {
   const reach = new Map(exports.map((e) => [e.name, new Set<string>()]))
   let scanned = 0
   for (const workspace of workspaces) {
-    const app = basename(workspace)
     for (const dir of APP_SOURCE_DIRS) {
       for (const file of walk(join(ROOT, workspace, dir), isShippedSource)) {
         scanned++
+        const app = appOf(workspace, rel(file))
         for (const name of namesImportedFromLib(readFileSync(file, 'utf-8'))) {
           const module = moduleOf.get(name)
           if (!module) continue
@@ -278,12 +293,12 @@ export function explain(v: ExportVerdict): [string, string] {
   if (v.kind === 'composition') {
     return [
       `✗ ${v.name} (${v.module}): only ${v.app} renders it, and its directory files it under '${v.group}'.`,
-      `  → Move it and its tests into apps/${v.app}/src/components/: a composition one app renders is that app's.`,
+      `  → Move it and its tests into ${appSrc(v.app)}components/: a composition one app renders is that app's.`,
     ]
   }
   return [
     `✗ ${v.name} (${v.module}): only ${v.app} reaches it, and no group directory classifies it.`,
-    `  → Move it into apps/${v.app}/src/, or list it in SINGLE_APP in tools/check-barrel-consumers.ts with why the library owns it.`,
+    `  → Move it into ${appSrc(v.app)}, or list it in SINGLE_APP in tools/check-barrel-consumers.ts with why the library owns it.`,
   ]
 }
 

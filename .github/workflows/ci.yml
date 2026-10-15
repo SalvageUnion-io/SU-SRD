@@ -31,7 +31,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     outputs:
-      cantina: ${{ steps.filter.outputs.cantina }}
       web: ${{ steps.filter.outputs.web }}
       bot: ${{ steps.filter.outputs.bot }}
       assets: ${{ steps.filter.outputs.assets }}
@@ -64,22 +63,15 @@ jobs:
               - 'ABOUT_JRVS.md'
               - 'LLM_STATEMENT.md'
               - 'SPECIAL_THANKS.md'
-            cantina:
-              - *shared
-              - 'apps/cantina/**'
-              - 'packages/component-lib/**'
-              # schemas, link rules and wire types Convex and the client share
-              - 'packages/cantina-domain/**'
-              # the build job's Playwright config and axe scan
-              - 'packages/gates/**'
+            # srd and the Cantina, one workspace: build-srd, perf-srd and
+            # build-cantina all key on it.
             web:
               - *shared
               - 'apps/web/**'
-              # srd's Worker serves /build through `cantina/worker`, and the
-              # Cantina's link previews read cantina-domain
-              - 'apps/cantina/**'
+              # schemas, link rules and wire types Convex and the client share
               - 'packages/cantina-domain/**'
               - 'packages/component-lib/**'
+              # the build jobs' Playwright configs and axe scan
               - 'packages/gates/**'
             bot:
               - *shared
@@ -192,14 +184,14 @@ jobs:
       # `build:untyped` is `build` without its typecheck: static-checks
       # typechecks every workspace already (the bot's job skips it likewise).
       - name: Build srd
-        run: bun --filter srd build:untyped
+        run: bun --filter web build:untyped
 
       - name: Check printed examples against the built site
-        run: bun --filter srd check:examples
+        run: bun --filter web check:examples
 
       # The build emits the assets; this bundles the Worker `main` that ships.
       - name: Bundle the Worker that actually deploys
-        run: bun --filter srd worker:bundle --outdir /tmp/srd-worker
+        run: bun --filter web worker:bundle --outdir /tmp/srd-worker
 
       - name: Set up Playwright
         uses: ./.github/actions/playwright
@@ -218,7 +210,7 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright-report-e2e-web
-          path: apps/web/playwright-report/
+          path: apps/web/playwright-report/srd/
           retention-days: 7
 
   # srd's performance budget (`e2e/perf-budget.e2e.ts`): LCP, TBT and CLS on
@@ -247,7 +239,7 @@ jobs:
         uses: ./.github/actions/setup-bun
 
       - name: Build srd
-        run: bun --filter srd build:untyped
+        run: bun --filter web build:untyped
 
       - name: Set up Playwright
         uses: ./.github/actions/playwright
@@ -263,12 +255,12 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright-report-perf-srd-${{ matrix.shard }}
-          path: apps/web/playwright-report/
+          path: apps/web/playwright-report/srd/
           retention-days: 7
 
   build-cantina:
     needs: [changes]
-    if: needs.changes.outputs.cantina == 'true'
+    if: needs.changes.outputs.web == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -296,15 +288,15 @@ jobs:
       # at desktop and as a phone. The signed-in pages are
       # `a11y-signed-in.e2e.ts`'s, in e2e-nightly.yml: it needs the test seam.
       - name: Run smoke + bundle-budget + a11y specs
-        working-directory: apps/cantina
-        run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts a11y.e2e.ts
+        working-directory: apps/web
+        run: bunx playwright test -c playwright.cantina.config.ts smoke.e2e.ts bundle-budget.e2e.ts a11y.e2e.ts
 
       - name: Upload Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright-report-e2e-cantina
-          path: apps/cantina/playwright-report/
+          path: apps/web/playwright-report/cantina/
           retention-days: 7
 
       - name: Backend logs on failure

@@ -18,7 +18,7 @@ import type { Finding, Rule, RuleSet } from '../lib/ruleEngine'
 import { listFiles } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
 
-const PREFIXED_CSS_DIRS = ['apps/cantina/src', 'packages/component-lib/src'] as const
+const PREFIXED_CSS_DIRS = ['apps/web/src/cantina', 'packages/component-lib/src'] as const
 const CLASS_PREFIX = 'su-'
 
 const stylesheets = (root: string) => listFiles(root, PREFIXED_CSS_DIRS, ['.css'])

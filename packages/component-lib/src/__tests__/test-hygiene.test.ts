@@ -19,7 +19,6 @@ const REPO_ROOT = resolve(import.meta.dir, '../../../..')
 
 /** Workspaces whose `bunfig.toml` preloads the shared root scripts. */
 const PRELOADED_WORKSPACES = [
-  'apps/cantina',
   'apps/web',
   'packages/component-lib',
   'packages/salvageunion-reference',

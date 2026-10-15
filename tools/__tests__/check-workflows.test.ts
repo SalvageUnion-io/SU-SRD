@@ -44,9 +44,9 @@ jobs:
           filters: |
             shared: &shared
               - 'packages/ref/**'
-            cantina:
+            assets:
               - *shared
-              - 'apps/cantina/**'
+              - 'apps/su-assets/**'
             web:
               - *shared
               - 'apps/web/**'
@@ -195,8 +195,8 @@ function ctx(overrides: {
     Object.entries(
       overrides.manifests ?? {
         'package.json': { devDependencies: { convex: '1.0.0' } },
-        'apps/cantina/package.json': {
-          name: 'cantina',
+        'apps/su-assets/package.json': {
+          name: 'su-assets',
           dependencies: { ref: 'workspace:*', lib: 'workspace:*' },
         },
         'apps/web/package.json': {
@@ -294,7 +294,7 @@ describe('aggregator', () => {
 describe('path-filters', () => {
   test('passes when every workspace dependency is covered, expanding the *shared alias', () => {
     const c = ctx({})
-    for (const app of ['cantina', 'web']) {
+    for (const app of ['su-assets', 'web']) {
       c.manifests.set(`apps/${app}/package.json`, {
         name: app,
         dependencies: { ref: 'workspace:*' },
@@ -307,7 +307,7 @@ describe('path-filters', () => {
 
   test('an app depending on a workspace its group does not cover fails', () => {
     const failures = checkPathFilters(ctx({})).failures.join('\n')
-    expect(failures).toContain('apps/cantina depends on `lib` (packages/lib)')
+    expect(failures).toContain('apps/su-assets depends on `lib` (packages/lib)')
     expect(failures).toContain('apps/web depends on `lib`')
   })
 
@@ -330,7 +330,12 @@ describe('path-filters', () => {
   })
 
   test('an app mapped to a group ci.yml does not define fails, naming the group', () => {
-    const c = ctx({})
+    const c = ctx({
+      ci: CI_TEXT.replace(
+        "            assets:\n              - *shared\n              - 'apps/su-assets/**'\n",
+        ''
+      ),
+    })
     c.manifests.set('apps/su-assets/package.json', {
       name: 'su-assets',
       dependencies: { ref: 'workspace:*' },
@@ -390,8 +395,8 @@ describe('pinning', () => {
 
   test('a bare name that is only the suffix of a scoped dependency is NOT exempt', () => {
     const c = ctx({})
-    c.manifests.set('apps/cantina/package.json', {
-      name: 'cantina',
+    c.manifests.set('apps/su-assets/package.json', {
+      name: 'su-assets',
       dependencies: { '@convex-dev/auth': '1.0.0' },
     })
     c.files.push(
@@ -802,6 +807,6 @@ describe('main', () => {
     expect(r.out).toHaveLength(1)
     expect(r.err[0]).toMatch(/^✗ .*:$/)
     expect(r.err.slice(1).every((l) => l.startsWith('    • '))).toBe(true)
-    expect(r.err.join('\n')).toContain('apps/cantina depends on `lib`')
+    expect(r.err.join('\n')).toContain('apps/su-assets depends on `lib`')
   })
 })
