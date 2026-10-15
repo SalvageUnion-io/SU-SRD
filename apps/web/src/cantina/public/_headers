@@ -1,13 +1,9 @@
 # Response headers for the Cantina at salvageunion.io/build (ADR-048).
 #
-# Copied into `dist/build/` by Vite's publicDir, then moved to `dist/` with its
-# `/assets/*` rule scoped to `/build/assets/*` (vite.cantina.config.ts), and read by
-# Workers Static Assets (ADR-033). It is the app's ONLY source of security
-# headers: Static Assets answers every file and every navigation under `/build/`,
-# in single-page-application mode, and applies this file to all of them. The
-# Worker script runs first for every request (`run_worker_first`) and reads
-# those answers through the asset binding, which applies this file too; what it
-# builds itself (a missing file's 404, the old host's 301s) runs no script.
+# It does not ship (the build drops it from `dist/build/`, vite.cantina.config.ts):
+# su-srd's Worker runs first for every `/build` request (`run_worker_first`) and
+# sets the Cantina's CSP itself, `CANTINA_CSP` in src/worker/build.ts, which the
+# routing test holds equal to the policy here.
 #
 # robots.txt is srd's (`salvageunion.io/robots.txt`, which allows `/build/`).
 # Shared sheets stay crawlable (ADR-032): a link pasted into Discord should

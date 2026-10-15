@@ -1,6 +1,6 @@
 /**
  * NO RAW MARKUP (entity display language E4). The corpus-wide scan is
- * a post-render assertion in `ssg/build.ts` (`build-srd` renders every page
+ * a post-render assertion in `ssg/build.ts` (`build-web` renders every page
  * anyway); this suite covers the scan itself and one page's Mention, without
  * rendering the corpus a second time.
  */

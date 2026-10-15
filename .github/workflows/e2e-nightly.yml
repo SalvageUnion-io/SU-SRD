@@ -11,7 +11,7 @@ name: E2E (nightly)
 # notification service or webhook secret.
 #
 # srd has no job here: its whole Playwright suite gates every srd PR in
-# ci.yml's `build-srd`, and srd is a hermetic static build.
+# ci.yml's `build-web`, and srd is a hermetic static build.
 #
 # `production-smoke` re-runs deploy-cloudflare.yml's post-deploy smoke list
 # (tools/smoke-production.sh) against the live hostnames, so drift between
@@ -67,7 +67,7 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      - name: Start a throwaway Convex backend and build cantina against it
+      - name: Start a throwaway Convex backend and build the site against it
         uses: ./.github/actions/convex-backend
         with:
           test-auth: 'true'

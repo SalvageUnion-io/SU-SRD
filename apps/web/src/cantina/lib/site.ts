@@ -28,16 +28,3 @@ export const SITE: CantinaSite = {
 export function basePathOf(base: string): string {
   return base.replace(/\/+$/, '')
 }
-
-/**
- * `public/_headers` for a site under a base. Static Assets reads `_headers`
- * only at the asset root (`dist/`), and matches its rules against the request
- * path, so the build moves the file up out of `dist/build/` and scopes its
- * `/assets/*` rule to the base. `/*` stays as it is: it already means every
- * response this Worker's assets serve.
- */
-export function headersForBase(headers: string, base: string): string {
-  const prefix = basePathOf(base)
-  if (prefix === '') return headers
-  return headers.replace(/^\/assets\/\*/m, `${prefix}/assets/*`)
-}

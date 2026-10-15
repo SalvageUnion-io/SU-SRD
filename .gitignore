@@ -11,7 +11,6 @@ pnpm-lock.yaml
 
 # Build outputs
 dist
-dist-cantina
 *.local
 *.tsbuildinfo
 # `tsc -b` declaration output of the referenced libraries (root tsconfig.json)
