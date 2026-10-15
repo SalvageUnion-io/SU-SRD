@@ -5,7 +5,7 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
  * `GameHub` — a Game's own page (board M2): the band, the roster,
  * then two columns of sections. What this file defends:
  *
- *  - every member gets Crew & seats, Downtime, their answer queue and The
+ *  - every member gets Crew & seats, their answer queue and The
  *    Game; only the Organizer gets the admin (the invite link, Hand over,
  *    ending the game) — the server refuses the rest
  *  - only the Mediator's Launch Dashboard opens the Mediator Dashboard, and
@@ -130,16 +130,18 @@ async function renderHub(over: QueryAnswers = {}): Promise<void> {
 const heading = (name: string) => screen.queryByRole('heading', { level: 2, name })
 
 describe('the sections under the roster (board M2)', () => {
-  test('every member gets Crew & seats, Downtime, the answer queue and The Game, below the lists', async () => {
+  test('every member gets Crew & seats, the answer queue and The Game, below the lists', async () => {
     await renderHub({
       'proposals:pending': [
         { _id: 'c1', entityType: 'pilot', field: 'currentHP', after: 3, reason: null },
       ],
     })
 
-    for (const name of ['Crew & seats', 'Downtime', 'Awaiting your answer', 'The Game']) {
+    for (const name of ['Crew & seats', 'Awaiting your answer', 'The Game']) {
       expect(heading(name)).toBeTruthy()
     }
+    // Downtime runs on the Dashboards, not on the Game page.
+    expect(heading('Downtime')).toBeNull()
     // Below the lists: the roster's columns come first in the document.
     const pilots = screen.getByRole('heading', { level: 2, name: 'Pilots' })
     const crew = screen.getByRole('heading', { level: 2, name: 'Crew & seats' })

@@ -11,9 +11,9 @@
  *     (`/mediator/$gameId`); a player's (`LaunchDashboard`) opens the player
  *     Dashboard.
  *  2. **The roster** (`GameRoster`): the three columns, yours first.
- *  3. Two columns of sections. **Every member:** Crew & seats, the Downtime
- *     track, and the proposals awaiting their answer. **The Mediator:**
- *     Downtime's controls and Proposals you sent. **The Organizer:** the
+ *  3. Two columns of sections. **Every member:** Crew & seats and the
+ *     proposals awaiting their answer. **The Mediator:** Proposals you sent.
+ *     Downtime runs on the Dashboards, not here. **The Organizer:** the
  *     Invite link (copy and reset) and The Game's Hand over, which the
  *     server refuses anyone else (`requireOrganizer`).
  *
@@ -40,7 +40,6 @@ import { ConvexPending } from '../shared/ConvexPending'
 import { CopyInviteLink, ResetInviteLink } from './CopyInviteLink'
 import { CrewSeats } from './CrewSeats'
 import { DeleteGameDialog } from './DeleteGameDialog'
-import { DowntimeTrack } from './DowntimeTrack'
 import { GameBand } from './GameBand'
 import { GameRoster } from './GameRoster'
 import { HubSection } from './HubSection'
@@ -139,7 +138,6 @@ function GameSections({ game }: { game: Game }) {
               total={seats.total}
             />
           )}
-          <DowntimeTrack gameId={gameId} mediator={game.mediator} crawler={crawler} />
           {/* Renders nothing until the Mediator has asked something. */}
           <ProposalInbox gameId={gameId} />
           {/* `proposals.sent` is the Mediator's alone (`requireMediator`). */}
