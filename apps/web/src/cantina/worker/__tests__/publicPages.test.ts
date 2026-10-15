@@ -1,6 +1,4 @@
 import { afterEach, describe, expect, it } from 'bun:test'
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import {
   STARTER_CRAWLERS,
   STARTER_MECHS,
@@ -8,6 +6,7 @@ import {
 } from 'cantina-domain/starterSet/starterSet'
 import { color } from 'component-lib/design/tokens'
 import { NATIVE_FETCH_GLOBALS } from '../../../../test/env'
+import { renderShell } from '../../shell/shell'
 import type { Env } from '../index'
 import worker from '../index'
 
@@ -18,8 +17,8 @@ import worker from '../index'
  * lists exactly those pages. Nothing here asks Convex.
  */
 
-/** The real shell, so a test fails if index.html loses its markers. */
-const SHELL = readFileSync(join(import.meta.dir, '../../index.html'), 'utf8')
+/** The real shell, so a test fails if it loses its markers. */
+const SHELL = renderShell()
 
 const BASE = '/build'
 const PROD = 'https://salvageunion.io'

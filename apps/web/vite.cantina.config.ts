@@ -9,6 +9,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { ROUTER_PLUGIN_OPTIONS } from './routeTree.config'
 import { basePathOf, headersForBase, SITE } from './src/cantina/lib/site'
 import { WORKBOX_OPTIONS } from './src/cantina/lib/sw/workbox'
+import { renderShell, SHELL_DESCRIPTION, SHELL_THEME_COLOR } from './src/cantina/shell/shell'
 
 /**
  * Every build and dev server talks to a Convex deployment
@@ -35,7 +36,7 @@ function requireConvexUrl(): Plugin {
 }
 
 /**
- * The Cantina's Vite root, `src/cantina/` (its `index.html` and `public/`), and
+ * The Cantina's Vite root, `src/cantina/` (its `main.tsx` and `public/`), and
  * where its build lands: `dist-cantina/`, beside srd's `dist/`, which
  * `tools/merge-dist.sh` copies its `build/` into for the deploy. Everything else
  * this config names is relative to the workspace, `apps/web/`.
@@ -71,6 +72,41 @@ function siteLayout(base: string): Plugin {
       const headers = readFileSync(join(out, '_headers'), 'utf8')
       writeFileSync(join(root, '_headers'), headersForBase(headers, base))
       rmSync(join(out, '_headers'))
+    },
+  }
+}
+
+/**
+ * The shell (`src/cantina/shell/shell.ts`) is the app's HTML entry, rendered
+ * rather than read from an `index.html` on disk: the build loads it as
+ * `index.html` and emits `build/index.html` from it; the dev server answers a
+ * navigation with it, after the SPA fallback has rewritten the request to
+ * `/index.html` and found no such file.
+ */
+function cantinaShell(): Plugin {
+  const entry = join(ROOT, 'index.html')
+  return {
+    name: 'cantina-shell',
+    enforce: 'pre',
+    resolveId(id) {
+      return id === entry ? entry : undefined
+    },
+    load(id) {
+      return id === entry ? renderShell() : undefined
+    },
+    configureServer(server) {
+      return () => {
+        server.middlewares.use(async (req, res, next) => {
+          if (req.url !== '/index.html') return next()
+          try {
+            const html = await server.transformIndexHtml(req.originalUrl ?? '/', renderShell())
+            res.setHeader('Content-Type', 'text/html; charset=utf-8')
+            res.end(html)
+          } catch (error) {
+            next(error)
+          }
+        })
+      }
     },
   }
 }
@@ -125,6 +161,7 @@ export default defineConfig({
   base: SITE.base,
   plugins: [
     requireConvexUrl(),
+    cantinaShell(),
     shellOrigin(SITE.base),
     devSrdOrigin(),
     TanStackRouterVite(ROUTER_PLUGIN_OPTIONS),
@@ -172,11 +209,10 @@ export default defineConfig({
       manifest: {
         name: 'The Cantina — The Salvage Union Character Builder',
         short_name: 'Cantina',
-        // index.html's meta description, verbatim (lib/__tests__/manifestDescription.test.ts).
-        description:
-          'The Salvage Union Character Builder. Build and run Salvage Union pilots, mechs and Union Crawlers. Character sheets, roster management and shareable live sheets for the post-apocalyptic mech TTRPG.',
+        // The shell's meta description, verbatim.
+        description: SHELL_DESCRIPTION,
         // The SU mark's ink stamp / the paper ground.
-        theme_color: '#282019',
+        theme_color: SHELL_THEME_COLOR,
         background_color: '#f3ede2',
         display: 'standalone',
         icons: [
@@ -294,7 +330,7 @@ export default defineConfig({
       'salvageunion-reference/rules',
       'salvageunion-reference/zod',
     ],
-    entries: ['index.html', '**/*.{ts,tsx}'],
+    entries: ['**/*.{ts,tsx}'],
   },
   server: {
     // Names this checkout when served on its own (`vite -c`); `bun run dev`

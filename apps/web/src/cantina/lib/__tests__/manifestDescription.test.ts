@@ -1,40 +1,25 @@
 import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { renderShell, SHELL_DESCRIPTION } from '../../shell/shell'
 
 /**
  * The PWA manifest's description is what an install prompt shows. It said
  * "Local-first character builder" long after the account became the server of
- * record (ADR-034/035), so it now repeats `index.html`'s meta description, and
- * this keeps the two from drifting apart again. Read as text: importing
+ * record (ADR-034/035), so it now IS the shell's meta description: one
+ * constant, which this keeps both reading. Read as text: importing
  * `vite.cantina.config.ts` would load every Vite plugin.
  */
-const appDir = join(import.meta.dir, '..', '..')
-const workspace = join(appDir, '..', '..')
-
-function match(source: string, pattern: RegExp, what: string): string {
-  const found = pattern.exec(source)?.[1]
-  if (found === undefined) throw new Error(`no ${what} found`)
-  return found
-}
+const workspace = join(import.meta.dir, '..', '..', '..', '..')
+const config = readFileSync(join(workspace, 'vite.cantina.config.ts'), 'utf8')
 
 describe('PWA manifest description', () => {
-  const manifest = match(
-    readFileSync(join(workspace, 'vite.cantina.config.ts'), 'utf8'),
-    /description:\s*'([^']+)'/,
-    'manifest description in vite.cantina.config.ts'
-  )
-  const meta = match(
-    readFileSync(join(appDir, 'index.html'), 'utf8'),
-    /<meta\s+name="description"\s+content="([^"]+)"/,
-    'meta description in index.html'
-  )
-
-  test("matches index.html's meta description", () => {
-    expect(manifest).toBe(meta)
+  test("is the shell's meta description", () => {
+    expect(config).toContain('description: SHELL_DESCRIPTION,')
+    expect(renderShell()).toContain(`<meta name="description" content="${SHELL_DESCRIPTION}"/>`)
   })
 
   test('does not describe the retired device-only model', () => {
-    expect(manifest).not.toMatch(/local-first/i)
+    expect(SHELL_DESCRIPTION).not.toMatch(/local-first/i)
   })
 })

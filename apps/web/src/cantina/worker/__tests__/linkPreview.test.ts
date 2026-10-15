@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it } from 'bun:test'
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import { color } from 'component-lib/design/tokens'
+import { renderShell } from '../../shell/shell'
 import type { Env } from '../index'
 import worker from '../index'
 import type { ImageCache } from '../linkPreview'
@@ -15,8 +14,8 @@ import { applyMeta, META_END, META_START } from '../shellMeta'
  * and for a private thing, nothing about it at all.
  */
 
-/** The real shell, so a test fails if index.html loses its markers. */
-const SHELL = readFileSync(join(import.meta.dir, '../../index.html'), 'utf8')
+/** The real shell, so a test fails if it loses its markers. */
+const SHELL = renderShell()
 
 const CONVEX_URL = 'https://convex.example'
 

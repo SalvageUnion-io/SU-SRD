@@ -13,7 +13,7 @@
  * exactly the kind that have broken production before, so the testable form
  * wins.
  *
- * `index.html` carries `<!-- cantina:meta:start -->` / `<!-- cantina:meta:end -->`
+ * The shell (`shell/shell.ts`) carries `<!-- cantina:meta:start -->` / `<!-- cantina:meta:end -->`
  * around its defaults, and this swaps that whole block. A precise delimiter
  * beats pattern-matching tags: the block is replaced wholesale, so a per-route
  * tag and a default tag can never both survive for a parser to choose between.
@@ -30,7 +30,7 @@ export type ShellMeta = {
   /**
    * The page's canonical address, for a page search may list
    * (`publicPages.ts`). A shared thing's preview has none: the shell names no
-   * canonical (`index.html`), and neither does its swap.
+   * canonical (`shell/shell.ts`), and neither does its swap.
    */
   canonical?: string
   /** The band's tone, so the unfurl's side bar matches the card. */

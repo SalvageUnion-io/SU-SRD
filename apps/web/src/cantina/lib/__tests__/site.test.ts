@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+import { renderShell } from '../../shell/shell'
 import { appRoot, appUrl, BASE_PATH } from '../appUrl'
 import { basePathOf, headersForBase, SITE } from '../site'
 
@@ -12,9 +13,9 @@ describe('SITE', () => {
     expect(basePathOf('/')).toBe('')
   })
 
-  test("the shell's sitewide og:url and og:image point there", async () => {
-    const html = await Bun.file(new URL('../../index.html', import.meta.url)).text()
-    expect(html).toContain(`<meta property="og:url" content="${siteUrl}" />`)
+  test("the shell's sitewide og:url and og:image point there", () => {
+    const html = renderShell()
+    expect(html).toContain(`<meta property="og:url" content="${siteUrl}"/>`)
     expect(html).toContain(`content="${siteUrl}og-image.png"`)
     expect(html).not.toContain('intheunionnow.com/')
   })

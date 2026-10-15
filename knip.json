@@ -57,6 +57,8 @@
         // The dev server: `dev` starts it inside `convex dev --start '…'`, out of knip's sight.
         "ssg/dev.ts",
         "src/cantina/routes/**/*.tsx",
+        // The Cantina's entry: its shell (`src/cantina/shell/shell.ts`) is rendered, not a file knip reads.
+        "src/cantina/main.tsx",
         // The two specs that import `gates` (`packages/gates/lib/a11yScan.ts`).
         "e2e/srd/a11y.e2e.ts",
         "e2e/cantina/a11y.e2e.ts"
