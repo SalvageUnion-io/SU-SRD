@@ -1,4 +1,5 @@
 import { e2eConfig } from 'gates/playwright'
+import { portFor } from 'gates/ports'
 import { SITE } from './src/cantina/lib/site'
 
 /**
@@ -14,19 +15,19 @@ import { SITE } from './src/cantina/lib/site'
  * through `e2e/cantina/fixtures.ts`. The PR bundle (ci.yml's `build-cantina`) has a Convex
  * URL but no `VITE_TEST_AUTH`, so it SKIPS those specs, by design; the nightly
  * `e2e-cantina` job provisions a throwaway Convex backend and runs them for real.
- * Locally, `bun run dev:cantina` always carries the seam on a local Convex deployment,
- * so those specs need the one-time "Local backend" setup in
- * .claude/skills/convex-ops/SKILL.md and FAIL without it.
+ * Locally, `bun run dev` (the one dev server, srd's suite's too) always carries
+ * the seam on a local Convex deployment, so those specs need the one-time
+ * "Local backend" setup in .claude/skills/convex-ops/SKILL.md and FAIL without it.
  */
 export default e2eConfig({
   suite: 'cantina',
   scripts: {
-    dev: 'dev:cantina',
+    dev: 'dev',
     build: 'build:cantina',
     preview: 'preview:cantina',
     dist: 'dist-cantina',
   },
-  port: 5173,
+  port: portFor('srd'),
   // The Cantina at salvageunion.io/build (ADR-048); specs open `at(route)` (e2e/cantina/_base.ts).
   basePath: SITE.base,
   local: { timeout: 90_000, expect: 15_000 },

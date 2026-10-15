@@ -1,5 +1,5 @@
 /**
- * assert-local-convex — `bun run dev:cantina` refuses a cloud deployment.
+ * assert-local-convex — `bun run dev` refuses a cloud deployment.
  *
  * `convex dev` pushes this checkout's `convex/` to whatever `CONVEX_DEPLOYMENT`
  * names, on start and on every save. `.worktreeinclude` copies
@@ -32,7 +32,7 @@ export function cloudDeploymentRefusal(deployment: string | undefined): string |
   if (LOCAL_KINDS.includes(kind)) return null
   return [
     `CONVEX_DEPLOYMENT=${value} is not a local deployment.`,
-    "`bun run dev:cantina` pushes this checkout's convex/ on every save. A cloud",
+    "`bun run dev` pushes this checkout's convex/ on every save. A cloud",
     'deployment is shared by every worktree, so pushes overwrite each other',
     '(CANTINA-CONVEX-A). Switch this checkout to a local deployment, from apps/web:',
     '',

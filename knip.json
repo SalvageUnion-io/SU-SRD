@@ -54,6 +54,8 @@
         "src/runtime/islands.client.ts",
         "src/runtime/styles.entry.ts",
         "src/runtime/assets.entry.ts",
+        // The dev server: `dev` starts it inside `convex dev --start '…'`, out of knip's sight.
+        "ssg/dev.ts",
         "src/cantina/routes/**/*.tsx",
         // The two specs that import `gates` (`packages/gates/lib/a11yScan.ts`).
         "e2e/srd/a11y.e2e.ts",

@@ -34,8 +34,7 @@ After any cross-package change, run typecheck, tests and lint before calling the
 ```bash
 bun install              # first-time setup; postinstall builds the reference schemas
 
-bun run dev              # srd dev server (ssg/dev.ts, same render path as prod)
-bun run dev:cantina      # Cantina dev server on a local Convex backend
+bun run dev              # srd + the Cantina at /build, beside a local Convex backend
 
 bun run check:fast       # the inner loop: every gate except the suite, the network
                          # and regeneration

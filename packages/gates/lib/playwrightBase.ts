@@ -1,6 +1,6 @@
 /**
- * The one Playwright configuration both apps run
- * (`apps/{srd,cantina}/playwright.config.ts` pass only what differs).
+ * The one Playwright configuration both suites run (`apps/web`'s
+ * `playwright.config.ts` and `playwright.cantina.config.ts` pass only what differs).
  *
  * - Specs are `e2e/*.e2e.ts`, not `.spec.ts`, so Bun's test runner — which
  *   auto-discovers `.spec.ts` and `.test.ts` — never tries to execute them.
@@ -9,11 +9,10 @@
  *   against the Worker and the `not_found_handling` mode production serves,
  *   in workerd.
  *   An existing `dist/` is reused (the PR jobs have just built it). Locally
- *   the running dev server on the same port is reused. srd passes its
- *   checkout's own port (`ports.ts`: offset in a linked worktree), so a
- *   worktree's suite boots and reuses its own server, never another
- *   checkout's; the Cantina's stays on 5173, where its local Convex backend expects
- *   it.
+ *   both suites run against the one dev server (`bun run dev`), reused when
+ *   running, on the checkout's own port (`ports.ts`: offset in a linked
+ *   worktree), so a worktree's suite boots and reuses its own server, never
+ *   another checkout's.
  * - `E2E_BASE_URL` runs the same suite against a deployed origin and boots
  *   nothing; per-test budgets widen to `external` there, because every test
  *   pays real network round trips.
@@ -45,8 +44,8 @@ export type AppE2E = {
   suite: string
   /**
    * The workspace scripts that serve it, when not `dev`, `build` and `preview`,
-   * and the folder `build` writes, when not `dist` (the Cantina's are suffixed
-   * `:cantina` and it builds into `dist-cantina`).
+   * and the folder `build` writes, when not `dist` (the Cantina's build and
+   * preview are suffixed `:cantina` and it builds into `dist-cantina`).
    */
   scripts?: { dev: string; build: string; preview: string; dist: string }
   /** The port the app's dev server listens on (and `preview`, in CI). */

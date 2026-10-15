@@ -20,14 +20,14 @@ This skill is the procedures.
 Production is `exuberant-porpoise-183` (`--prod`, or `--deployment
 alex-jarvis:susrd:prod`). Staging is the cloud dev deployment
 `perfect-donkey-72` (`--deployment perfect-donkey-72`), the Worker
-Previews' backend: only `deploy-preview.yml` pushes to it, never `dev:cantina`.
+Previews' backend: only `deploy-preview.yml` pushes to it, never `bun run dev`.
 Without either flag, `bunx convex` targets the **local** deployment `bun run
-dev:cantina` runs. Confirm which one you mean before running anything, and say so in your
+dev` runs. Confirm which one you mean before running anything, and say so in your
 report.
 
 ## Local backend
 
-`bun run dev:cantina` runs `convex dev` beside the Cantina's Vite server on a local deployment: it
+`bun run dev` runs `convex dev` beside the dev server on a local deployment: it
 pushes `convex/` on every save and writes `CONVEX_DEPLOYMENT`,
 `VITE_CONVEX_URL` and `VITE_CONVEX_SITE_URL` into `apps/web/.env.local`. It
 signs in through the test seam, not Discord: the `dev` script sets
@@ -38,21 +38,21 @@ every worktree, so a cloud dev deployment is one backend that every worktree's
 pushes overwrite. One-time setup, from `apps/web`:
 
 ```bash
-# Pick a local deployment. Not signed in to Convex: run `bun run dev:cantina` and
+# Pick a local deployment. Not signed in to Convex: run `bun run dev` and
 # choose "Start without an account (run Convex locally)". Signed in, or with a
 # .env.local that names a cloud deployment:
 bunx convex dev --configure existing --team alex-jarvis --project susrd \
   --dev-deployment local --once
 
-# Then, with `bun run dev:cantina` running, in a second terminal:
-bunx @convex-dev/auth --web-server-url http://localhost:5173/build   # SITE_URL + JWT keys
+# Then, with `bun run dev` running, in a second terminal:
+bunx @convex-dev/auth --web-server-url http://localhost:4321/build   # SITE_URL + JWT keys
 bunx convex env set CANTINA_TEST_AUTH true
 ```
 
 To sign in, run `await __cantinaTestSignIn('<any email>', '<8+ char password>')`
-in the browser console on `http://localhost:5173/build/`. Each call signs up a new
+in the browser console on `http://localhost:4321/build/`. Each call signs up a new
 password account (a repeated email is refused), and the session survives
-reloads. `bun run e2e:cantina` starts `dev:cantina` itself (or reuses a running one),
+reloads. `bun run e2e:cantina` starts `bun run dev` itself (or reuses a running one),
 so its signed-in specs fail until this setup is done.
 
 ## Secrets never touch argv or stdout

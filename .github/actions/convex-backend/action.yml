@@ -119,7 +119,7 @@ runs:
         # SITE_URL is the FRONTEND's address, base included (The Cantina is served
         # under /build, ADR-048), not the Convex site URL. Nothing prompts
         # for it, and omitting it fails as an opaque 500.
-        bunx convex env set SITE_URL http://localhost:5173/build
+        bunx convex env set SITE_URL http://localhost:4321/build
 
     # `build:cantina:untyped` skips `build:cantina`'s typecheck: ci.yml's static-checks
     # typechecks every workspace, and nothing here is a type gate.

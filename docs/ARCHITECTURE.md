@@ -49,7 +49,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     Snapshots are retired (ADR-036).
 15. **Convex deployments** <a id="deployments"></a>
     Production `exuberant-porpoise-183`; staging `perfect-donkey-72`, previews only.
-    `bun run dev:cantina` runs a local deployment with test auth; setup, rotations and repairs are the `convex-ops` skill.
+    `bun run dev` runs a local deployment with test auth; setup, rotations and repairs are the `convex-ops` skill.
 16. **Convex environment** <a id="convex-env"></a>
     Sign-in: `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`, `SITE_URL`, `JWT_PRIVATE_KEY`, `JWKS`; bot: `CANTINA_BOT_SECRET`.
     `CANTINA_TEST_AUTH` never in production; `convex env list` prints values: pipe it through `cut -d= -f1`.

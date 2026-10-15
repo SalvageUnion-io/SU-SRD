@@ -26,7 +26,7 @@ function requireConvexUrl(): Plugin {
     configResolved({ env }) {
       if (env.VITE_CONVEX_URL) return
       throw new Error(
-        'VITE_CONVEX_URL is not set. Run `bun run dev:cantina`, which writes it into apps/web/.env.local ' +
+        'VITE_CONVEX_URL is not set. Run `bun run dev`, which writes it into apps/web/.env.local ' +
           'for the local deployment, or pass it in the environment (`convex deploy --cmd-url-env-var-name ' +
           'VITE_CONVEX_URL`, as CI and the deploy do).'
       )
@@ -297,10 +297,8 @@ export default defineConfig({
     entries: ['index.html', '**/*.{ts,tsx}'],
   },
   server: {
-    // Names this checkout, so `bun run shot cantina:/route` reuses only its own
-    // checkout's server (`packages/gates/lib/ports.ts`). The port stays
-    // Vite's default, 5173, where the local Convex backend expects it; shot
-    // passes its own on the command line.
+    // Names this checkout when served on its own (`vite -c`); `bun run dev`
+    // mounts it in `ssg/dev.ts`, which names the checkout itself.
     headers: { [CHECKOUT_HEADER]: CHECKOUT_ROOT },
     watch: {
       ignored: ['**/routeTree.gen.ts'],

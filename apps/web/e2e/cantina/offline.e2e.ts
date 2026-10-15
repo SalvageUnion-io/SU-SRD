@@ -37,7 +37,7 @@ import { expect, test } from './fixtures'
  *
  * `vite-plugin-pwa` emits a service worker for a **build**, not for the dev
  * server. CI serves the built bundle (`bun run preview`) and gets one; a developer
- * running `bun run dev:cantina` does not. A spec that failed in the second case
+ * running `bun run dev` does not. A spec that failed in the second case
  * would be telling the truth about the server and a lie about the app, and
  * would get skipped-by-deletion the first time it annoyed somebody.
  *

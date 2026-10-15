@@ -53,7 +53,6 @@
     "postinstall": "ref-generate",
     "prepare": "[ -z \"$CI\" ] && [ -d .git ] && bunx lefthook install || true",
     "dev": "bun --filter web dev",
-    "dev:cantina": "bun --filter web dev:cantina",
     "build": "ref-generate && bun --filter web build && bun --filter web build:cantina:untyped",
     "build:package": "bun --filter salvageunion-reference build",
     "deploy-commands": "bun --filter discord-bot deploy-commands",

@@ -36,8 +36,7 @@ A Bun monorepo of tools for **Salvage Union**, the tabletop RPG by
 
 ```bash
 bun install        # Bun at the version package.json pins; also installs the git hooks
-bun run dev        # the SRD
-bun run dev:cantina   # The Cantina on a local Convex backend
+bun run dev        # the SRD, and the Cantina at /build on a local Convex backend
 bun run check      # every gate, ending in a pass/fail table
 ```
 

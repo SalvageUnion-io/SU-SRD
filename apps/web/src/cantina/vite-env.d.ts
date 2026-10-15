@@ -3,7 +3,7 @@
 interface ImportMetaEnv {
   /**
    * The Convex deployment's client URL. Every build carries one:
-   * `vite.cantina.config.ts` refuses to start without it (`bun run dev:cantina` writes it
+   * `vite.cantina.config.ts` refuses to start without it (`bun run dev` writes it
    * into `.env.local`; CI and the deploy pass it in the environment).
    */
   readonly VITE_CONVEX_URL: string

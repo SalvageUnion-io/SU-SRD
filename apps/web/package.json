@@ -5,8 +5,7 @@
   "type": "module",
   "license": "Salvage Union Open Game Licence 1.0b",
   "scripts": {
-    "dev": "ref-generate && bun ssg/dev.ts",
-    "dev:cantina": "ref-generate && bun scripts/assert-local-convex.ts && VITE_TEST_AUTH=true convex dev --start 'vite -c vite.cantina.config.ts'",
+    "dev": "ref-generate && bun scripts/assert-local-convex.ts && VITE_TEST_AUTH=true convex dev --start 'bun ssg/dev.ts'",
     "typecheck": "tsc -b",
     "build": "bun run typecheck && bun run build:untyped",
     "build:untyped": "bun ssg/build.ts",
@@ -16,7 +15,7 @@
     "brand": "bun scripts/brand/build.ts",
     "og:install-browser": "playwright install chromium --only-shell",
     "preview": "wrangler dev",
-    "preview:cantina": "wrangler dev --assets dist-cantina --port 5173",
+    "preview:cantina": "wrangler dev --assets dist-cantina",
     "test": "bun test --parallel=4 --no-isolate",
     "check:examples": "bun ssg/checkPageExamples.ts",
     "deploy": "wrangler deploy",

@@ -32,7 +32,7 @@ import { waitForReady } from './_helpers'
  * instead.
  *
  * A local `bun run e2e:cantina` always has the seam: Playwright boots (or reuses)
- * `bun run dev:cantina`, which sets `VITE_TEST_AUTH` on a local Convex deployment.
+ * `bun run dev`, which sets `VITE_TEST_AUTH` on a local Convex deployment.
  * So it needs the one-time "Local backend" setup in `.claude/skills/convex-ops/SKILL.md`
  * (`CANTINA_TEST_AUTH`, the JWT keys, `SITE_URL`), and its signed-in specs FAIL
  * without it.

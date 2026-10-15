@@ -113,7 +113,7 @@ before touching data** (it loads with the stores, hooks, `src/lib/connection/`,
 ## Commands
 
 ```bash
-bun run dev:cantina          # local Convex; setup in the convex-ops skill
+bun run dev                  # srd + /build, local Convex; setup: convex-ops skill
 bun --filter web test
 bun run e2e:cantina          # Playwright e2e (chromium)
 bun --filter web typecheck

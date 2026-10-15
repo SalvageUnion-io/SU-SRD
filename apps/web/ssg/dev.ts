@@ -1,5 +1,5 @@
 /**
- * dev — the development server.
+ * dev — the development server: srd's pages, and the Cantina at `/build`.
  *
  * ## The one rule
  *
@@ -43,7 +43,7 @@ import { readdirSync } from 'node:fs'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { createServer as createHttpServer } from 'node:http'
 import { fileURLToPath } from 'node:url'
-import { CANTINA_DEV_PORT, CHECKOUT_HEADER, CHECKOUT_ROOT, portFor } from 'gates/ports'
+import { CHECKOUT_HEADER, CHECKOUT_ROOT, portFor } from 'gates/ports'
 import type { ViteDevServer } from 'vite'
 import { createServer as createViteServer } from 'vite'
 import type { BuildAssets } from './document'
@@ -51,19 +51,27 @@ import type { EndpointRegistration, ResolvedEndpoint } from './endpoints'
 import type { ErasedRoute, RouteRegistration } from './render'
 
 /**
- * Repo convention: srd's dev server lives on this checkout's port (4321 in the
+ * Repo convention: the dev server lives on this checkout's port (4321 in the
  * primary checkout, offset in a worktree: `packages/gates/lib/ports.ts`) and is
  * restarted in place. An explicit `PORT` wins.
  */
 const PORT = Number(process.env.PORT ?? portFor('srd'))
 
 // Links follow the env they are served from (`src/lib/constants.ts`): the dev
-// server names itself, and its Cantina links open `bun run dev:cantina`. Set before
-// Vite starts, which reads them into `import.meta.env`; a value given wins.
+// server names itself for both apps, since it serves both. Set before Vite
+// starts, which reads them into `import.meta.env`; a value given wins.
 process.env.VITE_SRD_ORIGIN ||= `http://localhost:${PORT}`
-process.env.VITE_CANTINA_ORIGIN ||= `http://localhost:${CANTINA_DEV_PORT}`
+process.env.VITE_CANTINA_ORIGIN ||= process.env.VITE_SRD_ORIGIN
 
 const viteConfigFile = fileURLToPath(new URL('./vite.config.ts', import.meta.url))
+const cantinaConfigFile = fileURLToPath(new URL('../vite.cantina.config.ts', import.meta.url))
+
+/** The Cantina's base (ADR-048), without its trailing slash. */
+const CANTINA_BASE = '/build'
+
+/** Whether a request belongs to the Cantina's Vite server rather than srd's. */
+const isCantinaPath = (url: string): boolean =>
+  url === CANTINA_BASE || url.startsWith(`${CANTINA_BASE}/`) || url.startsWith(`${CANTINA_BASE}?`)
 
 const ASSETS_DIR = fileURLToPath(new URL('../src/assets/', import.meta.url))
 
@@ -268,12 +276,22 @@ async function serve(vite: ViteDevServer, req: IncomingMessage, res: ServerRespo
 }
 
 async function main(): Promise<void> {
+  // Created first so both Vite servers attach their HMR sockets to it: each
+  // answers only upgrades on its own base (`/` and `/build/`).
+  const server = createHttpServer()
   const vite = await createViteServer({
     configFile: viteConfigFile,
     // 'custom' stops Vite from serving an index.html fallback: this app has no
     // index.html at all, every document comes from the route registry.
     appType: 'custom',
-    server: { middlewareMode: true },
+    server: { middlewareMode: true, hmr: { server } },
+  })
+  // The Cantina is a single-page app: its own Vite server, in middleware mode,
+  // serves `/build/**` and falls back to its `index.html`, as in production.
+  const cantina = await createViteServer({
+    configFile: cantinaConfigFile,
+    appType: 'spa',
+    server: { middlewareMode: true, hmr: { server } },
   })
 
   // Vite's own middlewares get every request first (public/, /src/**, /@vite/**,
@@ -286,9 +304,16 @@ async function main(): Promise<void> {
   // appended to it is silently dropped and every page 404s with connect's
   // "Cannot GET /…" until the process is restarted. Handling the fall-through
   // out here, and reading `vite.middlewares` per request, survives that.
-  const server = createHttpServer((req, res) => {
+  server.on('request', (req: IncomingMessage, res: ServerResponse) => {
     // Names this checkout, so `bun run shot` can refuse another checkout's server.
     res.setHeader(CHECKOUT_HEADER, CHECKOUT_ROOT)
+    if (isCantinaPath(req.url ?? '/')) {
+      cantina.middlewares(req, res, () => {
+        res.statusCode = 404
+        res.end()
+      })
+      return
+    }
     vite.middlewares(req, res, () => {
       if (req.method !== 'GET' && req.method !== 'HEAD') {
         res.statusCode = 405
@@ -313,12 +338,12 @@ async function main(): Promise<void> {
 
   server.listen(PORT, () => {
     // biome-ignore lint/suspicious/noConsole: build-time CLI — progress output is the interface
-    console.log(`[dev] srd on http://localhost:${PORT}`)
+    console.log(`[dev] srd on http://localhost:${PORT}, the Cantina on /build/`)
   })
 
   const shutdown = () => {
     server.close()
-    void vite.close().then(() => process.exit(0))
+    void Promise.all([vite.close(), cantina.close()]).then(() => process.exit(0))
   }
   process.on('SIGINT', shutdown)
   process.on('SIGTERM', shutdown)
