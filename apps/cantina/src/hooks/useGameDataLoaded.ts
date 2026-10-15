@@ -7,7 +7,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
  * Started inside a component, the fetch would wait for React to boot, mount
  * the provider tree and render down to `GameDataReady`: dead time on the
  * critical path. At module scope it overlaps React's bootstrap and the rest of
- * the entry chunk, as `apps/srd/src/lib/gameData.ts` does.
+ * the entry chunk, as `apps/web/src/lib/gameData.ts` does.
  * `packages/gates/biome/noModuleScopeReferenceCall.grit` exempts `.preload()`
  * and `.isLoaded()` from the no-module-scope-ORM-access rule for this reason.
  *

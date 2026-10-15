@@ -146,7 +146,7 @@ describe('tokens rule set', () => {
   })
 
   test('each zero rule matches the form it forbids', () => {
-    const found = scan('apps/srd/src/x.tsx', 'bg-su-orange linear-gradient(')
+    const found = scan('apps/web/src/x.tsx', 'bg-su-orange linear-gradient(')
     for (const id of ['shadow-tokens', 'gradient']) {
       expect(found[id]?.length).toBe(1)
     }
@@ -197,7 +197,7 @@ describe('tokens rule set', () => {
 
   test('rust-allowlist: every spelling of rust fails outside Button / buttonVariants / InlineRef', () => {
     const found = scan(
-      'apps/srd/src/x.tsx',
+      'apps/web/src/x.tsx',
       [
         'text-rust hover:text-rust border-rust/40 bg-rust-hi accent-rust',
         'outline: var(--color-rust); box-shadow: 0 0 0 3px var(--color-rust-25)',
@@ -306,7 +306,7 @@ const STYLING_BASE: Record<string, string> = {
   [ENTRY]:
     "@layer su-reset, su-base;\n@import './theme.css';\n@import './reset.css' layer(su-reset);\n@import './index.css' layer(su-base);\n",
   'apps/cantina/src/index.css': "@import 'component-lib/styles/entry.css';\n",
-  'apps/srd/src/styles/global.css': "@import 'component-lib/styles/entry.css';\n",
+  'apps/web/src/styles/global.css': "@import 'component-lib/styles/entry.css';\n",
   'apps/cantina/src/styles/dashboard/DashboardCanvas.css': '.su-dash-used { color: red }\n',
   'apps/cantina/src/styles/dashboard/DashboardGrid.css': '',
   'apps/cantina/src/styles/dashboard/instruments.css': '',
@@ -359,7 +359,7 @@ describe('styling rule set', () => {
         ),
         'packages/component-lib/src/styles/index.css':
           '/* @apply in a comment is prose */\n.su-x { color: red }\n@layer utilities {\n  .flex { display: flex }\n}\n',
-        'apps/srd/src/styles/global.css':
+        'apps/web/src/styles/global.css':
           "@import 'component-lib/styles/entry.css';\n@source '../src';\n.su-y {\n  @apply flex;\n}\n",
       })
     )
@@ -368,8 +368,8 @@ describe('styling rule set', () => {
       "apps/cantina/package.json:3 devDependencies declares '@tailwindcss/vite'",
       "packages/component-lib/package.json:4 dependencies declares 'tailwind-merge'",
       "tools/package.json:3 devDependencies declares '@tailwindcss/cli'",
-      "apps/srd/src/styles/global.css:2 Tailwind directive '@source'",
-      "apps/srd/src/styles/global.css:4 Tailwind directive '@apply'",
+      "apps/web/src/styles/global.css:2 Tailwind directive '@source'",
+      "apps/web/src/styles/global.css:4 Tailwind directive '@apply'",
       "packages/component-lib/src/styles/index.css:3 Tailwind directive '@layer utilities'",
     ])
   })
@@ -378,9 +378,9 @@ describe('styling rule set', () => {
     const found = stylingOwnership.scan(
       fixture({
         ...STYLING_BASE,
-        'apps/srd/src/styles/extra.css':
+        'apps/web/src/styles/extra.css':
           '@theme {\n  --color-x: red;\n}\n.never-used { color: red }\n',
-        'apps/srd/src/Page.tsx': 'export const P = () => <div className="su-dash-missing" />\n',
+        'apps/web/src/Page.tsx': 'export const P = () => <div className="su-dash-missing" />\n',
       })
     )
     expect(found['app-theme']?.length).toBe(1) // the reserved token; the @theme block is no-tailwind's
@@ -451,7 +451,7 @@ describe('styling rule set', () => {
     const found = stylingOwnership.scan(
       fixture({
         ...STYLING_BASE,
-        'apps/srd/src/styles/extra.css': '.multi-a,\n.multi-b {\n  color: red;\n}\n',
+        'apps/web/src/styles/extra.css': '.multi-a,\n.multi-b {\n  color: red;\n}\n',
       })
     )
     expect(found['dead-app-css']?.map((f) => `${f.line} ${f.detail}`)).toEqual([
@@ -497,7 +497,7 @@ describe('styling rule set', () => {
     const found = stylingOwnership.scan(
       fixture({
         ...STYLING_BASE,
-        'apps/srd/src/styles/global.css': "@import 'component-lib/styles/index.css';\n",
+        'apps/web/src/styles/global.css': "@import 'component-lib/styles/index.css';\n",
       })
     )
     expect(found['package-stylesheet-import']?.map((f) => f.detail)).toEqual([
@@ -522,7 +522,7 @@ describe('class-prefix rule set', () => {
           '/* .wiz-old in a comment is prose */\n.su-wiz-ok, .wiz-pill:hover { color: red }\n@media (min-width: 40rem) {\n  .su-wiz-ok .npc-step { color: red }\n}\n',
         'packages/component-lib/src/styles/theme.css':
           ".sheet--pilot,\n.su-sheet--mech { --tone: red }\n@import 'x.css';\n",
-        'apps/srd/src/styles/pages.css': '.srd-page { color: red }\n',
+        'apps/web/src/styles/pages.css': '.srd-page { color: red }\n',
       })
     )
     expect(found['class-prefix']?.map((f) => `${f.file}:${f.line} ${f.detail}`)).toEqual([
@@ -537,16 +537,16 @@ describe('srd-css rule set', () => {
   const entry = { [SRD_CSS_ENTRY]: "import '../styles/global.css'\n" }
 
   test('passes when only the entry imports css', () => {
-    const found = srdCss.scan(fixture({ ...entry, 'apps/srd/src/pages/a.page.tsx': 'export {}\n' }))
+    const found = srdCss.scan(fixture({ ...entry, 'apps/web/src/pages/a.page.tsx': 'export {}\n' }))
     expect(found['srd-css-entry']).toEqual([])
     expect(found['lib-css-import']).toEqual([])
   })
 
   test('a css import in an SSR module is found', () => {
     const found = srdCss.scan(
-      fixture({ ...entry, 'apps/srd/src/pages/a.page.tsx': "import './a.css'\n" })
+      fixture({ ...entry, 'apps/web/src/pages/a.page.tsx': "import './a.css'\n" })
     )
-    expect(found['srd-css-entry']?.[0]?.file).toBe('apps/srd/src/pages/a.page.tsx')
+    expect(found['srd-css-entry']?.[0]?.file).toBe('apps/web/src/pages/a.page.tsx')
   })
 
   test('an entry that imports nothing is a finding, not a pass', () => {

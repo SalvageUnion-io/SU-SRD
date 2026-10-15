@@ -86,7 +86,7 @@ jobs:
         env:
           VITE_CONVEX_URL: ${{ steps.convex.outputs.url }}
         run: |
-          (cd apps/srd/dist && python3 -m http.server 4321 --bind 127.0.0.1 > /tmp/srd.log 2>&1 &)
+          (cd apps/web/dist && python3 -m http.server 4321 --bind 127.0.0.1 > /tmp/srd.log 2>&1 &)
           (cd apps/cantina && bunx vite preview --port 5173 --strictPort > /tmp/cantina.log 2>&1 &)
           for url in http://127.0.0.1:4321/ http://localhost:5173/build/; do
             for _ in $(seq 1 60); do curl -sf -o /dev/null "$url" && break; sleep 1; done

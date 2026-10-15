@@ -12,11 +12,11 @@ describe('brand files', () => {
 
   test("srd's web manifest lists only icons `bun run brand` writes", () => {
     const manifest = JSON.parse(
-      readFileSync(join(ROOT, 'apps/srd/public/site.webmanifest'), 'utf8')
+      readFileSync(join(ROOT, 'apps/web/public/site.webmanifest'), 'utf8')
     )
     const written = new Set(PNG_FILES.map(([path]) => path))
     for (const { src } of manifest.icons as { src: string }[]) {
-      expect(written).toContain(`apps/srd/public${src}`)
+      expect(written).toContain(`apps/web/public${src}`)
     }
   })
 })

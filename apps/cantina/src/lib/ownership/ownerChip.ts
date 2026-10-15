@@ -6,7 +6,7 @@
  * `controls` API as a `badge`, which is why there is no component here.
  *
  * That choice is deliberate and worth stating: `component-lib` is shared with
- * `apps/srd`, which has no accounts and never will. Teaching the card about
+ * `apps/web`, which has no accounts and never will. Teaching the card about
  * users would push an Cantina-only concept into a package whose contract is to
  * stay backend-agnostic. Passing a `badge` in from the app keeps the knowledge
  * where it belongs, and `badge` renders at every card extent — full, head, and

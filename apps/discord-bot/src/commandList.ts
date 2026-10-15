@@ -4,7 +4,7 @@
  * bot: a subcommand added, renamed or re-described here is on the page after
  * `bun run gen:command-list`, and `commandList.test.ts` fails until it is.
  *
- * The rendered module is committed at `apps/srd/src/generated/discordCommands.ts`;
+ * The rendered module is committed at `apps/web/src/generated/discordCommands.ts`;
  * the srd imports it as data, never the bot itself.
  */
 

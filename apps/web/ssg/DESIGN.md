@@ -1,6 +1,6 @@
 # srd SSG — design contract
 
-The in-house SSG behind `apps/srd` (ADR-031 in [ARCHITECTURE.md](../../../docs/ARCHITECTURE.md)). Types live in [`ssg/types.ts`](types.ts).
+The in-house SSG behind `apps/web` (ADR-031 in [ARCHITECTURE.md](../../../docs/ARCHITECTURE.md)). Types live in [`ssg/types.ts`](types.ts).
 
 ## Hard rules
 

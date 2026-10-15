@@ -34,9 +34,9 @@ describe('scannedFiles', () => {
   test('keeps shipped and tooling source; drops tests, e2e, harnesses and generated', () => {
     expect(
       scannedFiles([
-        'apps/srd/src/Card.tsx',
+        'apps/web/src/Card.tsx',
         'packages/a/lib/index.ts',
-        'apps/srd/public/registerSW.js',
+        'apps/web/public/registerSW.js',
         'tools/check.ts',
         'apps/b/src/__tests__/Card.test.tsx',
         'apps/b/e2e/flow.e2e.ts',
@@ -45,12 +45,12 @@ describe('scannedFiles', () => {
         'packages/a/lib/generated/registry.ts',
         'apps/cantina/src/routeTree.gen.ts',
         'apps/cantina/src/env.d.ts',
-        'apps/srd/src/styles.css',
+        'apps/web/src/styles.css',
       ])
     ).toEqual([
-      'apps/srd/src/Card.tsx',
+      'apps/web/src/Card.tsx',
       'packages/a/lib/index.ts',
-      'apps/srd/public/registerSW.js',
+      'apps/web/public/registerSW.js',
       'tools/check.ts',
     ])
   })

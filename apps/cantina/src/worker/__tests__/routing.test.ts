@@ -8,7 +8,7 @@ import worker from '../index'
  * The Cantina's Worker code at salvageunion.io/build (ADR-048), which su-srd's
  * Worker runs first for every request under the base: it reads each answer
  * through an asset binding that answers a miss with the shell (see
- * `../index.ts` and apps/srd/src/worker/build.ts).
+ * `../index.ts` and apps/web/src/worker/build.ts).
  *
  * The rule that has already broken production: `/assets/*` on a miss must be
  * **404**, never the SPA shell. Answering 200 with HTML let the `immutable`
@@ -349,7 +349,7 @@ describe('the deploy', () => {
   it('serves the base the app is built for', async () => {
     // srd's Worker serves the Cantina; read as text, since an app never
     // imports another app's files.
-    const config = await Bun.file(new URL('../../../../srd/wrangler.jsonc', import.meta.url)).text()
+    const config = await Bun.file(new URL('../../../../web/wrangler.jsonc', import.meta.url)).text()
     const bases = [...config.matchAll(/"BASE_PATH":\s*"([^"]*)"/g)].map((m) => m[1])
     expect(bases.length).toBeGreaterThan(0)
     for (const base of bases) expect(base).toBe(basePathOf(SITE.base))

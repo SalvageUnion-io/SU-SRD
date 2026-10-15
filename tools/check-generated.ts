@@ -75,7 +75,7 @@ const ROOT = join(import.meta.dir, '..')
 export const GENERATED_PATHS = [
   'packages/salvageunion-reference/lib/index.ts',
   'apps/cantina/src/routeTree.gen.ts',
-  'apps/srd/worker-configuration.d.ts',
+  'apps/web/worker-configuration.d.ts',
   'apps/su-assets/worker-configuration.d.ts',
   'apps/discord-bot/worker-configuration.d.ts',
 ] as const
@@ -102,7 +102,7 @@ const SHARED_INPUTS = [
 ]
 
 /** The three Worker apps; the `workers` check holds them to one shape. */
-export const WORKER_APPS = ['apps/srd', 'apps/su-assets', 'apps/discord-bot'] as const
+export const WORKER_APPS = ['apps/web', 'apps/su-assets', 'apps/discord-bot'] as const
 
 const workerTypes = (app: (typeof WORKER_APPS)[number]): GeneratorSpec => ({
   label: `${app} worker types`,

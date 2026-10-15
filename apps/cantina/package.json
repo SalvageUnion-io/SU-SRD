@@ -12,7 +12,7 @@
     "typecheck": "tsc -b",
     "build": "bun run typecheck && bun run build:untyped",
     "build:untyped": "vite build",
-    "preview": "wrangler dev -c ../srd/wrangler.jsonc --assets dist --port 5173",
+    "preview": "wrangler dev -c ../web/wrangler.jsonc --assets dist --port 5173",
     "test": "bun test --parallel=4 --no-isolate"
   },
   "dependencies": {

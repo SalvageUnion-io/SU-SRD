@@ -8,7 +8,7 @@
  * URL up here from `RouteContext.builtAssets`.
  *
  * The keys below are manifest keys: an asset's path relative to the Vite root,
- * which for this app is `apps/srd`.
+ * which for this app is `apps/web`.
  */
 
 import type { BuiltAssets } from '../../ssg/types'

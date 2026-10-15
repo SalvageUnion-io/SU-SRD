@@ -14,7 +14,7 @@
     { "path": "packages/cantina-domain" },
     { "path": "packages/component-lib" },
     { "path": "packages/gates" },
-    { "path": "apps/srd" },
+    { "path": "apps/web" },
     { "path": "apps/cantina" },
     { "path": "apps/discord-bot" },
     { "path": "apps/su-assets" },

@@ -38,7 +38,7 @@
   # script-src carries NO 'unsafe-inline': with it, an injected <script>
   # executes. The built `dist/index.html` contains zero inline scripts (Vite
   # bundles every module; the PWA registration is external). If a build ever
-  # needs one, give that script a sha256 hash here, the way apps/srd does.
+  # needs one, give that script a sha256 hash here, the way apps/web does.
   # 'unsafe-inline' stays in style-src deliberately — React's inline `style=`
   # attributes need it, and style injection is not script execution.
   #

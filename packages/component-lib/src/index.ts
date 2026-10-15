@@ -1,6 +1,6 @@
 // SRD catalog — the catalog categories and their tile colours, as the Cantina's
 // Dashboard SRD Explorer renders them. (srd's own index is its chapters,
-// `apps/srd/src/lib/chapters.ts`.)
+// `apps/web/src/lib/chapters.ts`.)
 export { buildCatalogSections } from './catalog/catalogSections'
 export { ActivationCost } from './components/atoms/ActivationCost'
 export type { BadgeTone } from './components/atoms/Badge'

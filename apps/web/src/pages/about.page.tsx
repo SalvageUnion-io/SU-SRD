@@ -34,7 +34,7 @@ import { CANTINA_URL, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
 import { BOLD, PROSE } from '../lib/docPageStyles'
 import { Island } from '../runtime/Island'
 
-/** Repo root, relative to this module — `apps/srd/src/pages` -> four levels up. */
+/** Repo root, relative to this module — `apps/web/src/pages` -> four levels up. */
 const repoRootFile = (name: string): string =>
   fileURLToPath(new URL(`../../../../${name}`, import.meta.url))
 

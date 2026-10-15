@@ -22,10 +22,10 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
    One entry, `packages/component-lib/src/styles/entry.css` (tokens, `layer(su-reset)`, `layer(su-base)`), imported by the apps.
    App stylesheets stay unlayered, so they win; rules: `.claude/rules/styling.md`.
 6. **srd build** <a id="srd-build"></a>
-   In-house Vite SSG with React islands ([DESIGN.md](../apps/srd/ssg/DESIGN.md)); routes and endpoints are registered, never discovered.
+   In-house Vite SSG with React islands ([DESIGN.md](../apps/web/ssg/DESIGN.md)); routes and endpoints are registered, never discovered.
    No `.css` import reachable from SSR (CSS enters via `src/runtime/styles.entry.ts`); no auth, router or Zustand.
 7. **Dataset API** <a id="dataset-api"></a>
-   srd serves the package's `data/` and generated `schemas/` verbatim at `/schema/*` (`apps/srd/src/lib/referenceFiles.ts`), CORS on.
+   srd serves the package's `data/` and generated `schemas/` verbatim at `/schema/*` (`apps/web/src/lib/referenceFiles.ts`), CORS on.
    Each schema's `$id` is the URL it is served at; `api.salvageunion.io/v1` is decided, not built (ADR-043, ADR-047).
 8. **discord-bot** <a id="discord-bot"></a>
    A Worker answering HTTP interactions (no gateway, no `discord.js`); conventions in [its CLAUDE.md](../apps/discord-bot/CLAUDE.md).
@@ -188,7 +188,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Accepted, governing: Discord-only accounts; Convex of record; Games and Shelves; roles; cross-player writes by proposal.
     Amends ADR-022; supersedes ADR-001. Amended by ADR-032, ADR-034, ADR-037 and ADR-038 (ADR-039's amendment retired with it).
 31. **ADR-031 srd builds on an in-house Vite SSG**
-    Accepted; supersedes ADR-012. Registered routes, `renderToStaticMarkup`, React islands; contract `apps/srd/ssg/DESIGN.md`.
+    Accepted; supersedes ADR-012. Registered routes, `renderToStaticMarkup`, React islands; contract `apps/web/ssg/DESIGN.md`.
 32. **ADR-032 Public, read-only sheets** · [full text](adr/032-public-read-only-sheets.md)
     Accepted: opt-in `publicRead` per entity; the owner decides, the table runner for a crawler.
     Amends ADR-030's visibility rule; amended by ADR-036.

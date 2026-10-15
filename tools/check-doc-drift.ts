@@ -954,7 +954,7 @@ const OVER_BUDGET: Record<string, number> = {
  * prose cannot creep back. Raise one only on purpose, saying why in the PR.
  */
 const COLLAPSED_DOCS: Record<string, number> = {
-  'apps/srd/ssg/DESIGN.md': 5_400,
+  'apps/web/ssg/DESIGN.md': 5_400,
   'docs/ARCHITECTURE.md': 20_500,
   'docs/README.md': 2_600,
   'docs/architecture/dashboard.md': 3_000,
@@ -1013,7 +1013,7 @@ export function checkDocSizes(
 
 /** The sessions the repo budgets (`gates/lib/sessionLoad`), each held to `SESSION_CEILINGS`. */
 const SESSION_PROFILES: Record<string, SessionProfile> = {
-  srd: { dirs: ['apps/srd'], reads: [] },
+  srd: { dirs: ['apps/web'], reads: [] },
   /** The Convex CLI writes the guidelines; a Convex upgrade that grows them raises this on purpose. */
   'cantina+component-lib': {
     dirs: ['apps/cantina', 'packages/component-lib'],

@@ -31,7 +31,7 @@ describe('deploy-surfaces — decideSurfaces', () => {
    * recorded deploy sees both.
    */
   test('changes from several commits since the record are all deployed', () => {
-    const since = ['apps/cantina/src/app.tsx', 'apps/srd/src/pages/index.page.tsx']
+    const since = ['apps/cantina/src/app.tsx', 'apps/web/src/pages/index.page.tsx']
     expect(decideSurfaces(since, false)).toEqual({ ...NOTHING, srd: true })
   })
 
@@ -75,8 +75,8 @@ describe('deploy-surfaces — decideSurfaces', () => {
   })
 
   test('a directory that merely shares a prefix does not match', () => {
-    // `apps/srd-legacy/` must not be read as `apps/srd/`.
-    expect(decideSurfaces(['apps/srd-legacy/x.ts', 'apps/cantina-docs/y.md'], false)).toEqual(
+    // `apps/web-legacy/` must not be read as `apps/web/`.
+    expect(decideSurfaces(['apps/web-legacy/x.ts', 'apps/cantina-docs/y.md'], false)).toEqual(
       NOTHING
     )
   })
@@ -210,18 +210,18 @@ describe('deploy-surfaces — script against a real git history', () => {
 
   test('a newer commit deploys what changed since the record', () => {
     git(work, 'checkout', '--quiet', '--detach', b)
-    const c = commit('apps/srd/page.tsx')
-    expect(decide(c)).toEqual({ stale: 'false', deploy: '["srd"]' })
+    const c = commit('apps/web/page.tsx')
+    expect(decide(c)).toEqual({ stale: 'false', deploy: '["web"]' })
   })
   test('says why it ships what it ships', () => {
     const stale = decideLogged(a).lines
     expect(stale[0]).toBe(`last recorded deploy: ${b}`)
     expect(stale[1]).toContain(`HEAD is older than the recorded deploy ${b}`)
-    expect(stale.slice(2)).toEqual(['  skip   su-assets', '  skip   srd', '  skip   discord-bot'])
+    expect(stale.slice(2)).toEqual(['  skip   su-assets', '  skip   web', '  skip   discord-bot'])
     expect(decideLogged(b, '--force-all').lines.slice(1)).toEqual([
       'force_all — deploying every surface',
       '  deploy su-assets',
-      '  deploy srd',
+      '  deploy web',
       '  deploy discord-bot',
     ])
   })

@@ -1,12 +1,12 @@
 /**
  * Deep-link URL builder for srd entity pages.
  *
- * Verified srd URL pattern (from apps/srd/src/pages/):
+ * Verified srd URL pattern (from apps/web/src/pages/):
  *   Base: `SRD_ORIGIN` (https://salvageunion.io, or a Worker Preview's SRD)
  *   Item route: /[schemaId]/[itemSlug]
  *   Uses slugs (never UUIDs) per CLAUDE.md data convention
  *
- * See: apps/srd/src/pages/[schemaId]/[itemId].page.tsx
+ * See: apps/web/src/pages/[schemaId]/[itemId].page.tsx
  */
 
 import { getEntitySchemas, srdEntityPath, srdSchemaPath } from 'salvageunion-reference'
@@ -18,7 +18,7 @@ type EntityRef = {
 }
 
 // srd generates item pages for ENTITY schemas only: getItemStaticPaths in
-// apps/srd/src/lib/staticPaths.ts iterates getEntitySchemas(), which is
+// apps/web/src/lib/staticPaths.ts iterates getEntitySchemas(), which is
 // getSchemaCatalog().schemas.filter((s) => !s.meta). So full catalog
 // membership is NOT the test — it would claim a page for the three meta
 // schemas (actions, catalog-categories, ability-tree-requirements) and every

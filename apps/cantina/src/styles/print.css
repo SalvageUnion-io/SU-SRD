@@ -13,7 +13,7 @@
  * ## The print attribute
  *
  * ONE attribute, `data-print`, with two sanctioned values — shared verbatim
- * with `apps/srd/src/styles/global.css` so the same markup means the same
+ * with `apps/web/src/styles/global.css` so the same markup means the same
  * thing in both apps:
  *
  *   data-print="keep"  print this even though its element type is hidden below

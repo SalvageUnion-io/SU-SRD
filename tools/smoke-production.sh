@@ -92,7 +92,7 @@ check https://www.salvageunion.io/ 301 "srd www redirect"
 # cantina's is checked for the same reason.
 check https://www.intheunionnow.com/ 301 "cantina www redirect"
 # The Cantina lives at salvageunion.io/build (ADR-048), served by su-srd
-# (apps/srd/src/worker/build.ts). intheunionnow.com, where it lived before,
+# (apps/web/src/worker/build.ts). intheunionnow.com, where it lived before,
 # 301s every page to the same path there: a zone Redirect Rule, not repo config
 # (ADR-033, "Configuration outside the repo"). su-srd then sends a retired
 # address on to where it lives now (apps/cantina/src/worker/retiredRedirects.ts).
@@ -120,7 +120,7 @@ check_header https://salvageunion.io/ strict-transport-security "srd HSTS reache
 check_header https://salvageunion.io/build/ content-security-policy "cantina CSP reaches the browser and admits error reports" "connect-src 'self'"
 check_header https://salvageunion.io/build/ strict-transport-security "cantina HSTS reaches the browser"
 # One Worker, two CSPs: su-srd's Worker overwrites srd's on every `/build`
-# answer (apps/srd/src/worker/build.ts). Two CSP headers would both apply and
+# answer (apps/web/src/worker/build.ts). Two CSP headers would both apply and
 # the stricter would block Convex, so sign-in would never complete.
 check_header https://salvageunion.io/build/ content-security-policy "cantina CSP admits Convex" "wss://*.convex.cloud"
 check_header_lacks https://salvageunion.io/ content-security-policy "srd CSP admits no Convex" "convex"
@@ -140,7 +140,7 @@ check https://salvageunion.io/build/p/pilot/smoke 200 "cantina client route with
 # missing chunk's 404 `immutable` and a client that asks before a deploy
 # finishes would keep the 404 for a year. su-srd's Worker answers every such
 # miss with `no-store` instead, where `_headers` does not reach
-# (apps/srd/src/worker/index.ts, apps/cantina/src/worker/index.ts).
+# (apps/web/src/worker/index.ts, apps/cantina/src/worker/index.ts).
 check_header_lacks https://salvageunion.io/assets/index-DEADBEEF.js cache-control "srd rotated chunk 404 is not immutable" immutable
 check_header_lacks https://salvageunion.io/build/assets/index-DEADBEEF.js cache-control "cantina rotated chunk 404 is not immutable" immutable
 # A derivative, not the master: entity cards ask for `-440`/`-880` first. It

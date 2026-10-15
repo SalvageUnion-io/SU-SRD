@@ -106,7 +106,7 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: srd-dist
-          path: apps/srd/dist/
+          path: apps/web/dist/
           include-hidden-files: true
           if-no-files-found: error
           retention-days: 1
@@ -220,7 +220,7 @@ jobs:
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: srd-dist
-          path: apps/srd/dist
+          path: apps/web/dist
 
       - name: Download the cantina artifact
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
@@ -237,7 +237,7 @@ jobs:
       # asset upload's progress on stdout around the JSON.
       - name: Ship su-srd as a Preview
         id: preview
-        working-directory: apps/srd
+        working-directory: apps/web
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           SHA: ${{ github.event.pull_request.head.sha }}
@@ -336,6 +336,6 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           set -uo pipefail
-          mkdir -p apps/srd/dist
-          (cd apps/srd && bunx wrangler preview delete --name "$PREVIEW_NAME" -y) ||
+          mkdir -p apps/web/dist
+          (cd apps/web && bunx wrangler preview delete --name "$PREVIEW_NAME" -y) ||
             echo "::warning::no $PREVIEW_NAME Preview to delete"

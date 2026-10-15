@@ -376,7 +376,7 @@ const ADDRESS_ADVANCE = 0.45
 /**
  * Whether an address fits the reference foot on one line. The foot is a
  * readout of where the link goes, so it is never clipped: the SRD picks the
- * longest form of the page's path that fits (`apps/srd/src/lib/ogCard.ts`).
+ * longest form of the page's path that fits (`apps/web/src/lib/ogCard.ts`).
  */
 export function ogReferenceAddressFits(address: string): boolean {
   return address.length * ADDRESS_ADVANCE * ADDRESS_SIZE <= REFERENCE_ADDRESS_ROOM

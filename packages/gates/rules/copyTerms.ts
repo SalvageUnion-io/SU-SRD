@@ -55,7 +55,7 @@ import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
 const COPY_DIRS = [
   'apps/cantina/src',
   'apps/cantina/convex',
-  'apps/srd/src',
+  'apps/web/src',
   'apps/discord-bot/src',
   'packages/component-lib/src',
   'packages/cantina-domain/src',

@@ -40,7 +40,7 @@ describe('gitignoredMatcher', () => {
     const ignored = gitignoredMatcher(root)
     expect(ignored('.profiles/cpu.md')).toBe(true)
     expect(ignored('rules/extracted/a.txt')).toBe(true)
-    expect(ignored('apps/srd/coverage/lcov.info')).toBe(true)
+    expect(ignored('apps/web/coverage/lcov.info')).toBe(true)
     expect(ignored('tools/check-doc-drift.ts')).toBe(false)
     expect(ignored('rulesets/a.md')).toBe(false)
   })
@@ -57,8 +57,8 @@ describe('gitignoredMatcher', () => {
 describe('rulePaths', () => {
   it('reads quoted and bare globs from the front matter, and none when it has no paths:', () => {
     const rule =
-      '---\npaths:\n  - \'apps/srd/**\'\n  - "**/*.css"\n  - bunfig.toml\n---\n\n# Rule\n'
-    expect(rulePaths(rule)).toEqual(['apps/srd/**', '**/*.css', 'bunfig.toml'])
+      '---\npaths:\n  - \'apps/web/**\'\n  - "**/*.css"\n  - bunfig.toml\n---\n\n# Rule\n'
+    expect(rulePaths(rule)).toEqual(['apps/web/**', '**/*.css', 'bunfig.toml'])
     expect(rulePaths('# Rule\n\npaths:\n  - nope\n')).toEqual([])
   })
 })
@@ -68,26 +68,26 @@ describe('sessionLoad and checkSessionLoad', () => {
     fixture({
       'CLAUDE.md': '@AGENTS.md\n',
       'AGENTS.md': 'a'.repeat(100),
-      'apps/srd/CLAUDE.md': 's'.repeat(50),
-      'apps/srd/src/page.ts': '',
-      'apps/srd/src/deep/CLAUDE.md': 'd'.repeat(5),
-      'apps/srd/dist/CLAUDE.md': 'built',
+      'apps/web/CLAUDE.md': 's'.repeat(50),
+      'apps/web/src/page.ts': '',
+      'apps/web/src/deep/CLAUDE.md': 'd'.repeat(5),
+      'apps/web/dist/CLAUDE.md': 'built',
       'apps/bot/CLAUDE.md': 'b'.repeat(70),
       'apps/bot/src/x.css': '',
       'docs/GUIDE.md': 'g'.repeat(30),
       '.gitignore': 'dist\n',
-      '.claude/rules/srd.md': "---\npaths:\n  - 'apps/srd/**'\n---\n",
+      '.claude/rules/srd.md': "---\npaths:\n  - 'apps/web/**'\n---\n",
       '.claude/rules/css.md': "---\npaths:\n  - '**/*.css'\n---\n",
       '.claude/rules/always.md': '# no paths\n',
     })
 
   it('loads the root CLAUDE.md with its imports, nested CLAUDE.mds, matching rules and reads', () => {
     const root = tree()
-    expect(sessionLoad(root, { dirs: ['apps/srd'], reads: ['docs/GUIDE.md'] })).toEqual([
+    expect(sessionLoad(root, { dirs: ['apps/web'], reads: ['docs/GUIDE.md'] })).toEqual([
       'CLAUDE.md',
       'AGENTS.md',
-      'apps/srd/CLAUDE.md',
-      'apps/srd/src/deep/CLAUDE.md',
+      'apps/web/CLAUDE.md',
+      'apps/web/src/deep/CLAUDE.md',
       '.claude/rules/always.md',
       '.claude/rules/srd.md',
       'docs/GUIDE.md',
@@ -103,7 +103,7 @@ describe('sessionLoad and checkSessionLoad', () => {
 
   it('fails a profile over its ceiling or too far under it, and stale or missing entries', () => {
     const root = tree()
-    const profiles = { srd: { dirs: ['apps/srd'], reads: [] } }
+    const profiles = { srd: { dirs: ['apps/web'], reads: [] } }
     // CLAUDE.md 11, AGENTS.md 100, the two CLAUDE.mds 50 + 5, the rules 11 + 33.
     const total = 210
     expect(checkSessionLoad(root, profiles, { srd: total }).failures).toEqual([])

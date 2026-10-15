@@ -43,7 +43,7 @@
       "project": ["src/**/*.{ts,tsx}"],
       "includeEntryExports": true
     },
-    "apps/srd": {
+    "apps/web": {
       // `ssg/build.ts` is the in-house static-site generator's entry (it reaches
       // routes -> pages -> layouts). `src/runtime/*.entry`-style files are
       // *client bundle* entries, named in ssg/vite.config.ts rather than

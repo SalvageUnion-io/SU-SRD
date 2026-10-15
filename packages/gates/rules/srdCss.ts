@@ -1,14 +1,14 @@
 /**
  * srd's stylesheet entry rule — the `srd-css` rule set of `tools/check-styling.ts`.
  *
- * `apps/srd/ssg/DESIGN.md` states this as **hard rule 1**: all css is imported from
+ * `apps/web/ssg/DESIGN.md` states this as **hard rule 1**: all css is imported from
  * `src/runtime/styles.entry.ts`, which is a client-bundle entry and nothing
  * else, and `ssg/**`, `src/pages/**`, `src/layouts/BaseLayout.tsx` and
  * `src/runtime/Island.tsx` must stay stylesheet-free.
  *
  * ## The rule was enforced by nothing, in either direction
  *
- * `apps/srd/CLAUDE.md` and `ssg/DESIGN.md` once said a stray `import './x.css'` in the SSR
+ * `apps/web/CLAUDE.md` and `ssg/DESIGN.md` once said a stray `import './x.css'` in the SSR
  * graph **breaks the build**. It does not. Measured under this repo's Bun: a
  * `.css` import in an SSR module resolves and returns an object, exit 0 —
  * including a package import, and including a file with an unresolvable
@@ -31,7 +31,7 @@
  *
  * ## What this asserts
  *
- * 1. Exactly one module in `apps/srd` may import a stylesheet, and it is
+ * 1. Exactly one module in `apps/web` may import a stylesheet, and it is
  *    `src/runtime/styles.entry.ts`.
  * 2. No **shipping** `component-lib` module may import a stylesheet (tests
  *    are exempt). A component-side
@@ -50,9 +50,9 @@ import { listFiles } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
 
 /** The one module allowed to import a stylesheet, repo-relative. */
-export const SRD_CSS_ENTRY = 'apps/srd/src/runtime/styles.entry.ts'
+export const SRD_CSS_ENTRY = 'apps/web/src/runtime/styles.entry.ts'
 
-const SRD_DIRS = ['apps/srd/ssg', 'apps/srd/src']
+const SRD_DIRS = ['apps/web/ssg', 'apps/web/src']
 const LIB_DIRS = ['packages/component-lib/src']
 const EXTENSIONS = ['.ts', '.tsx', '.mts', '.cts']
 
@@ -76,7 +76,7 @@ const RULES: Rule[] = [
   {
     id: 'srd-css-entry',
     mode: 'zero',
-    rule: 'apps/srd hard rule 1 — every stylesheet is imported from the one client entry',
+    rule: 'apps/web hard rule 1 — every stylesheet is imported from the one client entry',
     fix:
       `Move the import into ${SRD_CSS_ENTRY}. This does NOT break the build — that is the ` +
       'problem: the SSR pass stubs `.css` to an empty module and the client bundle is fed ' +

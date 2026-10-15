@@ -21,7 +21,7 @@ import { OG_CARD_HEIGHT, OG_CARD_WIDTH, OG_GUTTER, OG_NOTCH_INSET } from './ogCa
  * its default `og-image.png`, so the image exists whether or not a build
  * renders anything. Re-shoot both when it changes:
  *
- *   bun run shot '/og-card?brand' --width page        → apps/srd/public/og-image.png
+ *   bun run shot '/og-card?brand' --width page        → apps/web/public/og-image.png
  *   bun run shot cantina:/og/brand --width page          → apps/cantina/public/og-image.png
  */
 

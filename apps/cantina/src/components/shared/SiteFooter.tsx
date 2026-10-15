@@ -16,7 +16,7 @@ import { DOC_PAGES } from '../../lib/docPages'
  * viewport, so the page scrolls on to it.
  */
 
-/** The SRD's own footer links, in its order (`apps/srd/src/lib/constants.ts`). */
+/** The SRD's own footer links, in its order (`apps/web/src/lib/constants.ts`). */
 const LINKS = [DOC_PAGES.changelog, DOC_PAGES.api, DOC_PAGES.discord, DOC_PAGES.about]
 
 /** Room between the page and its foot band, as the old hairline foot had. */

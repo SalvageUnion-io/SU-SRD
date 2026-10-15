@@ -210,7 +210,7 @@ jobs:
         id: others
         env:
           DEPLOY: ${{ steps.surfaces.outputs.deploy }}
-        run: echo "others=$(jq -c 'map(select(. != "srd"))' <<< "$DEPLOY")" >> "$GITHUB_OUTPUT"
+        run: echo "others=$(jq -c 'map(select(. != "web"))' <<< "$DEPLOY")" >> "$GITHUB_OUTPUT"
 
       # ---------------------------------------------------------------------
       # The guards. Before anything is built.
@@ -268,7 +268,7 @@ jobs:
   # srd — static, with its OG images rendered into the same `dist`.
   build-srd:
     needs: plan
-    if: contains(fromJSON(needs.plan.outputs.deploy), 'srd')
+    if: contains(fromJSON(needs.plan.outputs.deploy), 'web')
     runs-on: ubuntu-latest
     environment:
       name: production
@@ -308,7 +308,7 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: srd-dist
-          path: apps/srd/dist/
+          path: apps/web/dist/
           include-hidden-files: true
           if-no-files-found: error
           retention-days: 7
@@ -317,7 +317,7 @@ jobs:
   # `dist/build/` ships inside srd's artifact (`deploy-srd`).
   build-cantina:
     needs: plan
-    if: contains(fromJSON(needs.plan.outputs.deploy), 'srd')
+    if: contains(fromJSON(needs.plan.outputs.deploy), 'web')
     runs-on: ubuntu-latest
     environment:
       name: production
@@ -379,7 +379,7 @@ jobs:
   # command fails, `convex deploy` stops before pushing, and nothing ships.
   push-convex:
     needs: [plan, build-srd, build-cantina]
-    if: ${{ !cancelled() && !failure() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.deploy), 'srd') }}
+    if: ${{ !cancelled() && !failure() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.deploy), 'web') }}
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 10
@@ -442,7 +442,7 @@ jobs:
   # also registers the slash commands, with the Environment's DISCORD_TOKEN.
   deploy-srd:
     needs: [plan, build-srd, build-cantina, push-convex]
-    if: ${{ !cancelled() && !failure() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.deploy), 'srd') }}
+    if: ${{ !cancelled() && !failure() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.deploy), 'web') }}
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 10
@@ -460,7 +460,7 @@ jobs:
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: srd-dist
-          path: apps/srd/dist
+          path: apps/web/dist
 
       # The assets su-srd serves under `/build` are the artifact
       # `build-cantina` compiled against the backend `push-convex` pushed.
@@ -477,7 +477,7 @@ jobs:
         run: bash tools/merge-dist.sh
 
       - name: Deploy
-        working-directory: apps/srd
+        working-directory: apps/web
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: bun run deploy

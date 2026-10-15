@@ -14,7 +14,7 @@ Include what is affected, how to reproduce it, and what an attacker gains.
 Only what is deployed from `main`: older commits and releases are not
 patched.
 
-- The reference site (`apps/srd`) and the character builder and game manager
+- The reference site (`apps/web`) and the character builder and game manager
   (`apps/cantina`), including its Convex backend.
 - The Discord bot (`apps/discord-bot`) and the artwork Worker
   (`apps/su-assets`).

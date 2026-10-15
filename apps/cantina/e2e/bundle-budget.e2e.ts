@@ -7,7 +7,7 @@ test.use({ account: 'anonymous' })
 
 /**
  * Bundle-size budget suite — the Cantina's counterpart to
- * `apps/srd/e2e/bundle-budget.e2e.ts`, and the regression guard for the
+ * `apps/web/e2e/bundle-budget.e2e.ts`, and the regression guard for the
  * route-level code splitting turned on in `vite.config.ts`
  * (`TanStackRouterVite({ autoCodeSplitting: true })`).
  *

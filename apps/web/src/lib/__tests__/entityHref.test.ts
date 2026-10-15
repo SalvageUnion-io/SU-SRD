@@ -41,7 +41,7 @@ describe('srd route grammar', () => {
 })
 
 describe('srdEntityHref', () => {
-  // A REAL entity off the ORM (preloaded by apps/srd/test/preload-reference.ts).
+  // A REAL entity off the ORM (preloaded by apps/web/test/preload-reference.ts).
   // A hand-built literal cannot be used here: `schemaName` is stamped on by the
   // ORM, not declared on `RefEntity`, so a fake either fails to typecheck or
   // stops testing the property the builder actually reads.

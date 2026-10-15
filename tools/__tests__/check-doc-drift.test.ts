@@ -280,11 +280,11 @@ describe('checkBacktickedPathsExist', () => {
   it('allows a path marked as history beside it, but not by its section heading alone', () => {
     const root = fixture({
       'docs/architecture/x.md':
-        '`tools/sync.ts` was deleted after P6.\n\n## Old host — retired\n\nSee `apps/srd/old-host.toml`.\n',
+        '`tools/sync.ts` was deleted after P6.\n\n## Old host — retired\n\nSee `apps/web/old-host.toml`.\n',
     })
     const { failures } = checkBacktickedPathsExist(root)
     expect(failures).toHaveLength(1)
-    expect(failures[0]).toContain('`apps/srd/old-host.toml`')
+    expect(failures[0]).toContain('`apps/web/old-host.toml`')
   })
 
   it('judges live paths in the shapes that used to hide them (end to end)', () => {
@@ -416,7 +416,7 @@ describe('checkFixHints', () => {
   it('judges every repo path and bun command a fix hint names', () => {
     const root = fixture({
       'package.json': JSON.stringify({ scripts: { check: 'x', format: 'x' } }),
-      'apps/srd/package.json': JSON.stringify({ name: 'srd', scripts: { test: 'x' } }),
+      'apps/web/package.json': JSON.stringify({ name: 'srd', scripts: { test: 'x' } }),
       'tools/check-real.ts': '',
       'docs/ARCHITECTURE.md': '## Dead code\n',
     })
@@ -466,7 +466,7 @@ describe('checkReferencedScripts', () => {
   it('checks hook scripts, workspace filters and unknown workspaces', () => {
     const root = fixture({
       'package.json': JSON.stringify({ scripts: { typecheck: 'x' } }),
-      'apps/srd/package.json': JSON.stringify({ name: 'srd', scripts: { build: 'x' } }),
+      'apps/web/package.json': JSON.stringify({ name: 'srd', scripts: { build: 'x' } }),
       '.claude/hooks/h.sh': 'bun run typecheck\n# `bun run check:schemas` diffs\n',
       'CLAUDE.md': 'bun --filter srd build\nbun --filter srd gate\nbun --filter nope build\n',
     })

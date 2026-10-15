@@ -1,7 +1,7 @@
 /**
  * The Cantina at salvageunion.io/build (ADR-048): the SPA's Worker code, which
  * su-srd's Worker runs for `/build` and everything under it
- * (apps/srd/src/worker/build.ts). That module hands it an asset binding that
+ * (apps/web/src/worker/build.ts). That module hands it an asset binding that
  * answers a miss under the base with the shell, as `single-page-application`
  * mode does, and puts the Cantina's CSP on every answer.
  *
@@ -96,7 +96,7 @@ import { applyCanonical, applyMeta } from './shellMeta'
 export type Env = PreviewEnv & {
   /**
    * Static assets (su-srd's, the SPA under `build/`): a miss under the base is
-   * answered with the shell (apps/srd/src/worker/build.ts). `_headers` applies
+   * answered with the shell (apps/web/src/worker/build.ts). `_headers` applies
    * to every answer.
    */
   ASSETS: { fetch(request: Request): Promise<Response> }

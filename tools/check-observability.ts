@@ -50,10 +50,10 @@ type BrowserApp = {
 const BROWSER_APPS: BrowserApp[] = [
   {
     name: 'srd',
-    modulePath: 'apps/srd/src/lib/observability.ts',
-    entryPath: 'apps/srd/src/runtime/islands.client.ts',
-    headersPath: 'apps/srd/public/_headers',
-    workerPath: 'apps/srd/src/worker/index.ts',
+    modulePath: 'apps/web/src/lib/observability.ts',
+    entryPath: 'apps/web/src/runtime/islands.client.ts',
+    headersPath: 'apps/web/public/_headers',
+    workerPath: 'apps/web/src/worker/index.ts',
     extraHandlers: [],
   },
   {
@@ -77,7 +77,7 @@ type WorkerSurface = {
 }
 
 const WORKER_SURFACES: WorkerSurface[] = [
-  { name: 'srd-worker', configPath: 'apps/srd/wrangler.jsonc' },
+  { name: 'srd-worker', configPath: 'apps/web/wrangler.jsonc' },
   { name: 'su-assets-worker', configPath: 'apps/su-assets/wrangler.jsonc' },
   { name: 'discord-bot-worker', configPath: 'apps/discord-bot/wrangler.jsonc' },
 ]

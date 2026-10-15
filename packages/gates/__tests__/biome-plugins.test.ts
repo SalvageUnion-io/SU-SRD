@@ -51,7 +51,7 @@ const bigFunction = (lines: number) =>
 const SOURCE = 'apps/cantina/src/__biome_fixture__/x.ts'
 const TEST_FILE = 'apps/cantina/src/__biome_fixture__/x.test.tsx'
 /** A test file outside the Cantina, where a live clock is not banned. */
-const OTHER_TEST = 'apps/srd/src/__biome_fixture__/y.test.ts'
+const OTHER_TEST = 'apps/web/src/__biome_fixture__/y.test.ts'
 /** A file that asserts on load behaviour, excluded from the preload ban by path. */
 const EXEMPT_TEST = 'packages/salvageunion-reference/lib/__tests__/preload.test.ts'
 const BIG_LIB = 'packages/component-lib/src/__biome_fixture__/big.tsx'
@@ -63,7 +63,7 @@ const AT_CAP_APP = 'apps/cantina/src/__biome_fixture__/atCap.tsx'
 const BIG_CONVEX = 'apps/cantina/convex/__biome_fixture__/big.ts'
 const BIG_APP_TEST = 'apps/cantina/src/__biome_fixture__/big.test.tsx'
 /** An app with no function cap. */
-const BIG_SRD = 'apps/srd/src/__biome_fixture__/big.tsx'
+const BIG_SRD = 'apps/web/src/__biome_fixture__/big.tsx'
 /** The Cantina's route error screen, whose development-only dump is exempt from the raw-message ban. */
 const ROUTE_ERRORS = 'apps/cantina/src/components/shared/RouteErrors.tsx'
 

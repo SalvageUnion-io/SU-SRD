@@ -40,7 +40,7 @@ const SCAN_DIRS = [
   // in the data would be a second palette. The data names no colour (a guide's
   // tone is derived, `guideTone()`); scanning this directory keeps it so.
   'packages/salvageunion-reference/data',
-  'apps/srd/src',
+  'apps/web/src',
   'apps/cantina/src',
   // An entire APP the guard could not see. Its accent colours restate the
   // palette as hex ints (the `0x` arm of raw-color), the form Discord's API
@@ -53,7 +53,7 @@ const SCAN_DIRS = [
 ]
 
 // greembeem (a MediaWiki-palette novelty page) ships as a static file under
-// apps/srd/public/, which this check does not scan, so it needs no raw-color
+// apps/web/public/, which this check does not scan, so it needs no raw-color
 // exemption here.
 const SCAN_EXTENSIONS = ['.ts', '.tsx', '.css', '.json']
 
@@ -304,7 +304,7 @@ const EXEMPTIONS: Exemption[] = [
     file: 'packages/component-lib/src/catalog/catalogColors.ts',
     rules: ['gradient'],
     reason:
-      "All three gradients are HARD-STOP patterns, which the gradient rule's own fix text allows ('hard colour stops if you mean a pattern') — the tech-level ramp repeats each --color-tl-N twice at exact boundaries, and the ability-tier / class gradients do the same. No shading, and every stop is a token. A catalog tile stands in for a whole SPREAD of entities (six tech levels, three ability tiers, core→hybrid classes) rather than one hue, which is what the banding says. Not new code: this file lived in apps/srd, which the guard does not scan, and only became visible when it moved into component-lib to be shared with the Dashboard's SRD Explorer.",
+      "All three gradients are HARD-STOP patterns, which the gradient rule's own fix text allows ('hard colour stops if you mean a pattern') — the tech-level ramp repeats each --color-tl-N twice at exact boundaries, and the ability-tier / class gradients do the same. No shading, and every stop is a token. A catalog tile stands in for a whole SPREAD of entities (six tech levels, three ability tiers, core→hybrid classes) rather than one hue, which is what the banding says. Not new code: this file lived in apps/web, which the guard does not scan, and only became visible when it moved into component-lib to be shared with the Dashboard's SRD Explorer.",
   },
   {
     file: 'packages/component-lib/src/components/atoms/CatalogTile.tsx',
@@ -313,7 +313,7 @@ const EXEMPTIONS: Exemption[] = [
       'Named exemption in ruleset §3.5: the catalog tile ramps (--catalog-bg) carry the tech-level and ability-tier ramps. The ramp is a wayfinding cue, not decoration. The only match is the doc comment explaining WHY the fill must use the `background` shorthand — it names the `linear-gradient()` that `background-color` silently drops. That comment is the reason the bug stays fixed, so it is not reworded to dodge the regex.',
   },
   {
-    file: 'apps/srd/src/styles/global.css',
+    file: 'apps/web/src/styles/global.css',
     rules: ['gradient', 'raw-color'],
     reason:
       'Ruleset §3.5 THE one-off: the .pilot-panel distressed-metal effect on srd /about is a CSS illustration, ruled a sanctioned one-off. It is the single place smooth shading is allowed, and it is allowed because it is a picture of a rusted plate rather than a UI surface. Not precedent — no second one-off without an explicit ruling. raw-color rides along because it is the SAME illustration: the rust blooms, the steel plate, the rivet heads and the engraved lettering are one picture, and a picture needs more shades than a UI palette has — the rivets alone spend nine greys on lit/worn/green/flush/hole. Tokenising them would add a dozen tokens nothing else could ever reuse. CAVEAT, since a file-level exemption is blunter than the rationale: it also swallows three literals outside the illustration block — the .catalog-item hover box-shadow and .catalog-item__name text-shadow (real shadow debt on an authored surface, still owed a token) and one #fff in the print block. Line-scoping the exemption was considered and rejected as too brittle to survive edits to this file; they are recorded here instead of silently absorbed.',

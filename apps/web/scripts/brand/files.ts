@@ -6,9 +6,9 @@ import { markSvg } from './mark'
 
 /** Every SVG `build.ts` writes, by repo path. The drift test reads this list. */
 export const SVG_FILES: Record<string, string> = {
-  'apps/srd/public/logos/su-cargo-dark.svg': markSvg({ title: 'Salvage Union' }),
+  'apps/web/public/logos/su-cargo-dark.svg': markSvg({ title: 'Salvage Union' }),
   'apps/cantina/public/logos/su-cargo-dark.svg': markSvg({ title: 'Salvage Union' }),
-  'apps/srd/public/favicons/su/favicon.svg': markSvg({ title: 'Salvage Union SRD' }),
+  'apps/web/public/favicons/su/favicon.svg': markSvg({ title: 'Salvage Union SRD' }),
   'apps/cantina/public/favicon.svg': markSvg({ title: 'The Cantina' }),
   'apps/discord-bot/brand/icon.svg': markSvg({
     title: 'Salvage Union',
@@ -20,15 +20,15 @@ export const SVG_FILES: Record<string, string> = {
 
 /** Rasters: [repo path, pixel size, source]. Flecks only from 180px up. */
 export const PNG_FILES: readonly [string, number, string][] = [
-  ['apps/srd/public/favicons/su/favicon-16.png', 16, markSvg({ title: '' })],
-  ['apps/srd/public/favicons/su/favicon-32.png', 32, markSvg({ title: '' })],
-  ['apps/srd/public/favicons/su/favicon-180.png', 180, markSvg({ title: '', flecks: true })],
-  ['apps/srd/public/web-app-manifest-192x192.png', 192, markSvg({ title: '', flecks: true })],
-  ['apps/srd/public/web-app-manifest-512x512.png', 512, markSvg({ title: '', flecks: true })],
+  ['apps/web/public/favicons/su/favicon-16.png', 16, markSvg({ title: '' })],
+  ['apps/web/public/favicons/su/favicon-32.png', 32, markSvg({ title: '' })],
+  ['apps/web/public/favicons/su/favicon-180.png', 180, markSvg({ title: '', flecks: true })],
+  ['apps/web/public/web-app-manifest-192x192.png', 192, markSvg({ title: '', flecks: true })],
+  ['apps/web/public/web-app-manifest-512x512.png', 512, markSvg({ title: '', flecks: true })],
   ['apps/cantina/public/icon-192.png', 192, markSvg({ title: '', flecks: true })],
   ['apps/cantina/public/icon-512.png', 512, markSvg({ title: '', flecks: true })],
   ['apps/discord-bot/brand/icon.png', 1024, markSvg({ title: '', avatar: true, flecks: true })],
 ]
 
 export const ICO_SIZES = [16, 32, 48] as const
-export const ICO_FILE = 'apps/srd/public/favicon.ico'
+export const ICO_FILE = 'apps/web/public/favicon.ico'

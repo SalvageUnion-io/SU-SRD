@@ -1,8 +1,8 @@
 ---
 paths:
-  - 'apps/srd/scripts/og*'
-  - 'apps/srd/src/lib/ogCard.ts'
-  - 'apps/srd/src/components/islands/OgCardIsland.tsx'
+  - 'apps/web/scripts/og*'
+  - 'apps/web/src/lib/ogCard.ts'
+  - 'apps/web/src/components/islands/OgCardIsland.tsx'
   - 'packages/component-lib/src/components/compositions/OgCard*'
   - 'packages/component-lib/src/components/compositions/ogCardText.ts'
   - 'packages/component-lib/src/components/atoms/ChapterBand*'
@@ -16,9 +16,9 @@ the model's chips (E17) and the Union bar's foot, the same parts the pages are
 built from, so the preview cannot drift from the page. A thing you do (ability,
 action) adds the tier numeral, cost pennant and rules; the kind and cite are
 the foot line. `ogCardForEntity`
-builds the card from the entity, and `apps/srd/src/lib/ogCard.ts` (`ogCardFor`,
+builds the card from the entity, and `apps/web/src/lib/ogCard.ts` (`ogCardFor`,
 `ogMetaFor`, `ogImagePath`) is the one place the island, the generator and the
-pages agree on it. `apps/srd/scripts/og-screenshots.ts` screenshots it at
+pages agree on it. `apps/web/scripts/og-screenshots.ts` screenshots it at
 1200×630 into `dist/{schemaId}/{itemId}.og.png`, beside the page.
 
 - The page's other preview tags come from the same card: `og:title` is the
@@ -32,7 +32,7 @@ pages agree on it. `apps/srd/scripts/og-screenshots.ts` screenshots it at
   `OG_SCREENSHOTS_BUDGET_MS`, or failing outright therefore degrades to the
   default banner and **never fails the build**.
 - There is no version to bump. Each cached PNG is keyed on its entity's JSON
-  and the render key: `apps/srd/scripts/ogRenderFingerprint.ts` hashes the built
+  and the render key: `apps/web/scripts/ogRenderFingerprint.ts` hashes the built
   bytes that draw the card (the og-card page, its CSS and fonts, the
   `OgCardIsland` chunk graph; never the data chunks or other islands), plus the
   script and the Playwright and sharp versions. A rendering change re-renders

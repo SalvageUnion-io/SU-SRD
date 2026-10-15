@@ -16,7 +16,7 @@
  * `preload(schemas, { projection: 'list' })` loads it in place of the full
  * file. A later full `preload` replaces it. Nothing may read prose beyond the
  * first paragraph from a list-loaded schema: srd's listing render-equivalence test
- * (`apps/srd/src/lib/__tests__/preloadEquivalence.tsx`) proves a listing
+ * (`apps/web/src/lib/__tests__/preloadEquivalence.tsx`) proves a listing
  * renders the same markup from either copy.
  *
  * This module has no imports on purpose: the generator imports it directly.

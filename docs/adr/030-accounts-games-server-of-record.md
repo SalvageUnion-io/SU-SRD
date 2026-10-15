@@ -343,4 +343,4 @@ retired snapshots.
   ADR-033); Convex is a data backend, not a host.
 - Not adopted, deliberately: CRDTs or full offline sync; turn/initiative
   enforcement across players; net-new homebrew authoring; any change to snapshot
-  sharing; accounts on `apps/srd`, which stays static, public, and login-free.
+  sharing; accounts on `apps/web`, which stays static, public, and login-free.

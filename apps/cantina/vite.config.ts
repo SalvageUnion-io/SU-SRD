@@ -166,7 +166,7 @@ export default defineConfig({
         background_color: '#f3ede2',
         display: 'standalone',
         icons: [
-          // Written by `bun run brand` (apps/srd/scripts/brand), as is public/favicon.svg.
+          // Written by `bun run brand` (apps/web/scripts/brand), as is public/favicon.svg.
           {
             src: 'icon-192.png',
             sizes: '192x192',
@@ -257,7 +257,7 @@ export default defineConfig({
   // Without this, vite dev serves those JSON modules as `text/javascript`, which
   // strict browsers reject under import-attribute enforcement ("Failed to fetch
   // dynamically imported module"), breaking all reference-data loading in dev.
-  // Mirrors srd's optimizeDeps fix in `apps/srd/ssg/vite.config.ts`.
+  // Mirrors srd's optimizeDeps fix in `apps/web/ssg/vite.config.ts`.
   //
   // List EVERY imported entry point of salvageunion-reference (main + each
   // subpath), not just '.'. The package's stateful ORM singletons — the

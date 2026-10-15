@@ -28,7 +28,7 @@ import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
 
 // ── file gathering ─────────────────────────────────────────────────────────
 
-const APP_DIRS = ['apps/cantina/src', 'apps/srd/src'] as const
+const APP_DIRS = ['apps/cantina/src', 'apps/web/src'] as const
 const DASHBOARD_DIR = 'apps/cantina/src/styles/dashboard'
 
 /** The file sets the rules share, gathered once per scan. Repo-relative paths. */
@@ -318,7 +318,7 @@ const STYLESHEET_ENTRY = 'packages/component-lib/src/styles/entry.css'
  * is about these files SPECIFICALLY: a partial like `print.css` neither should
  * nor could carry the import.
  */
-const ENTRY_CONSUMERS = ['apps/cantina/src/index.css', 'apps/srd/src/styles/global.css'] as const
+const ENTRY_CONSUMERS = ['apps/cantina/src/index.css', 'apps/web/src/styles/global.css'] as const
 
 /**
  * The package-stylesheet wiring, in the one file that owns it, and the one

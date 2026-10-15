@@ -45,7 +45,7 @@ describe('settings.json deny rules', () => {
     ['the same, absolute', `${ROOT}/packages/salvageunion-reference/schemas/abilities.schema.json`],
     ['generated lib code', 'packages/salvageunion-reference/lib/generated/registry.generated.ts'],
     ['the router tree', 'apps/cantina/src/routeTree.gen.ts'],
-    ['anything under dist', 'apps/srd/dist/index.html'],
+    ['anything under dist', 'apps/web/dist/index.html'],
     ['Convex codegen', 'apps/cantina/convex/_generated/api.d.ts'],
     ['the lockfile', 'bun.lock'],
     ['the schema catalog', 'packages/salvageunion-reference/schemas/index.json'],
@@ -82,8 +82,8 @@ describe('settings.json deny rules', () => {
       file: 'apps/cantina/src/routeTree.gen.ts',
       denied: true,
     },
-    'apps/srd/worker-configuration.d.ts': {
-      file: 'apps/srd/worker-configuration.d.ts',
+    'apps/web/worker-configuration.d.ts': {
+      file: 'apps/web/worker-configuration.d.ts',
       denied: true,
     },
     'apps/su-assets/worker-configuration.d.ts': {
@@ -180,7 +180,7 @@ describe('typecheck-scoped.sh', () => {
   test.each([
     ['markdown', 'docs/README.md'],
     ['json', 'package.json'],
-    ['css', 'apps/srd/src/styles/global.css'],
+    ['css', 'apps/web/src/styles/global.css'],
     ['a root-level ts config file', 'knip.config.ts'],
   ])('is a silent no-op for %s', async (_label, file) => {
     expect(await typecheck(file)).toBe(ALLOW)
@@ -237,7 +237,7 @@ describe('typecheck hooks against a stub workspace', () => {
   const WORKSPACES = [
     'apps/discord-bot',
     'apps/cantina',
-    'apps/srd',
+    'apps/web',
     'apps/su-assets',
     'packages/component-lib',
     'packages/gates',
@@ -313,7 +313,7 @@ describe('typecheck hooks against a stub workspace', () => {
   }
 
   const edit = (dir: string, rel: string) =>
-    run('typecheck-scoped.sh', dir, join(dir, 'apps', 'srd'), {
+    run('typecheck-scoped.sh', dir, join(dir, 'apps', 'web'), {
       tool_input: { file_path: join(dir, rel) },
     })
 
@@ -323,19 +323,19 @@ describe('typecheck hooks against a stub workspace', () => {
     [
       'component-lib',
       'packages/component-lib/lib/x.ts',
-      ['ROOT packages/component-lib apps/srd apps/cantina tools'],
+      ['ROOT packages/component-lib apps/web apps/cantina tools'],
     ],
     [
       'observability',
       'packages/observability/lib/x.ts',
-      ['ROOT packages/observability apps/discord-bot apps/cantina apps/srd apps/su-assets tools'],
+      ['ROOT packages/observability apps/discord-bot apps/cantina apps/web apps/su-assets tools'],
     ],
     [
       'cantina-domain',
       'packages/cantina-domain/lib/x.ts',
       ['ROOT packages/cantina-domain apps/discord-bot apps/cantina tools'],
     ],
-    ['gates', 'packages/gates/lib/x.ts', ['ROOT packages/gates apps/srd apps/cantina tools']],
+    ['gates', 'packages/gates/lib/x.ts', ['ROOT packages/gates apps/web apps/cantina tools']],
   ])(
     'an edit to %s checks it and its consumers in one run, then asks for a full run',
     async (_l, rel, expected) => {
@@ -377,16 +377,16 @@ describe('typecheck hooks against a stub workspace', () => {
   test('a fresh worktree installs once with the frozen lockfile, then typechecks', async () => {
     const f = await fixture({ install: 'mkdir -p node_modules; exit 0' })
     try {
-      expect(await edit(f.dir, 'apps/srd/lib/x.ts')).toEqual({
+      expect(await edit(f.dir, 'apps/web/lib/x.ts')).toEqual({
         code: ALLOW,
         stdout: '',
         stderr: '',
       })
-      expect((await edit(f.dir, 'apps/srd/lib/x.ts')).code).toBe(ALLOW)
+      expect((await edit(f.dir, 'apps/web/lib/x.ts')).code).toBe(ALLOW)
       expect(await f.ranInOrder()).toEqual([
         'INSTALL install --frozen-lockfile',
-        'ROOT apps/srd',
-        'ROOT apps/srd',
+        'ROOT apps/web',
+        'ROOT apps/web',
       ])
     } finally {
       f.cleanup()
@@ -396,7 +396,7 @@ describe('typecheck hooks against a stub workspace', () => {
   test('a failed install exits 2 with its output and skips the typecheck', async () => {
     const f = await fixture({ install: 'echo lockfile-out-of-date >&2; exit 1' })
     try {
-      const result = await edit(f.dir, 'apps/srd/lib/x.ts')
+      const result = await edit(f.dir, 'apps/web/lib/x.ts')
       expect(result.code).toBe(2)
       expect(result.stderr).toContain('lockfile-out-of-date')
       expect(await f.ran()).toEqual(['INSTALL install --frozen-lockfile'])
@@ -422,9 +422,9 @@ describe('typecheck hooks against a stub workspace', () => {
     test('runs the whole repo once after a scoped check, silently', async () => {
       const f = await fixture()
       try {
-        await edit(f.dir, 'apps/srd/lib/x.ts')
+        await edit(f.dir, 'apps/web/lib/x.ts')
         expect(await stop(f.dir)).toEqual({ code: ALLOW, stdout: '', stderr: '' })
-        expect(await f.ran()).toEqual(['ROOT', 'ROOT apps/srd'])
+        expect(await f.ran()).toEqual(['ROOT', 'ROOT apps/web'])
         expect(await Bun.file(f.marker).exists()).toBe(false)
       } finally {
         f.cleanup()
@@ -460,7 +460,7 @@ describe('typecheck hooks against a stub workspace', () => {
     test('a failure exits 2 and keeps the marker; a continued stop is let through', async () => {
       const f = await fixture({ root: 'echo boom-from-root >&2; exit 1' })
       try {
-        await edit(f.dir, 'apps/srd/lib/x.ts')
+        await edit(f.dir, 'apps/web/lib/x.ts')
         const result = await stop(f.dir)
         expect(result.code).toBe(2)
         expect(result.stderr).toContain('boom-from-root')

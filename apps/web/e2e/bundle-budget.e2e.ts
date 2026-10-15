@@ -91,7 +91,7 @@ test.beforeAll(async ({ browser }) => {
         'bundle-budget requires a production build — the server on this port is ' +
           'serving unbundled dev modules, so there are no /assets/*.js chunks to ' +
           'measure.\n\nRun the suite against a real build instead:\n' +
-          '  cd apps/srd && bun run build && bun run preview\n' +
+          '  cd apps/web && bun run build && bun run preview\n' +
           '  bunx playwright test bundle-budget.e2e.ts\n'
       )
     }

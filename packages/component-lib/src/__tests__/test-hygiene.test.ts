@@ -20,7 +20,7 @@ const REPO_ROOT = resolve(import.meta.dir, '../../../..')
 /** Workspaces whose `bunfig.toml` preloads the shared root scripts. */
 const PRELOADED_WORKSPACES = [
   'apps/cantina',
-  'apps/srd',
+  'apps/web',
   'packages/component-lib',
   'packages/salvageunion-reference',
   // The bot has no DOM, but it reads reference data.

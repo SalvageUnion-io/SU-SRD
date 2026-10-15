@@ -256,12 +256,12 @@ export function checkAggregator(
 
 /**
  * Which filter group gates each app's build job. A genuine translation
- * (`apps/srd` is gated by `web`), so it cannot be derived; an app missing from
+ * (`apps/web` is gated by `web`), so it cannot be derived; an app missing from
  * both this and NO_FILTER_GROUP is a hard failure.
  */
 const APP_TO_FILTER: Record<string, string> = {
   cantina: 'cantina',
-  srd: 'web',
+  web: 'web',
   'discord-bot': 'bot',
   'su-assets': 'assets',
 }

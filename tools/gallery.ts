@@ -13,7 +13,7 @@
  * the result to GitHub Pages. It replaced a
  * hand-run Playwright loop over the old shared preview deploy.
  *
- * - A link preview is rendered the way `apps/srd/scripts/og-screenshots.ts`
+ * - A link preview is rendered the way `apps/web/scripts/og-screenshots.ts`
  *   renders it (`/og-card/`, `window.__ogSetEntity`), so the gallery shows the
  *   PR's cards, not whatever production last generated. A page whose og:image
  *   is the site default fetches that file from the same build.

@@ -49,7 +49,7 @@ jobs:
               - 'apps/cantina/**'
             web:
               - *shared
-              - 'apps/srd/**'
+              - 'apps/web/**'
             bot:
               - *shared
             code:
@@ -199,7 +199,7 @@ function ctx(overrides: {
           name: 'cantina',
           dependencies: { ref: 'workspace:*', lib: 'workspace:*' },
         },
-        'apps/srd/package.json': {
+        'apps/web/package.json': {
           name: 'srd',
           dependencies: { ref: 'workspace:*', lib: 'workspace:*' },
         },
@@ -294,7 +294,7 @@ describe('aggregator', () => {
 describe('path-filters', () => {
   test('passes when every workspace dependency is covered, expanding the *shared alias', () => {
     const c = ctx({})
-    for (const app of ['cantina', 'srd']) {
+    for (const app of ['cantina', 'web']) {
       c.manifests.set(`apps/${app}/package.json`, {
         name: app,
         dependencies: { ref: 'workspace:*' },
@@ -308,7 +308,7 @@ describe('path-filters', () => {
   test('an app depending on a workspace its group does not cover fails', () => {
     const failures = checkPathFilters(ctx({})).failures.join('\n')
     expect(failures).toContain('apps/cantina depends on `lib` (packages/lib)')
-    expect(failures).toContain('apps/srd depends on `lib`')
+    expect(failures).toContain('apps/web depends on `lib`')
   })
 
   test('an app with no filter group and no exemption fails', () => {
@@ -373,7 +373,7 @@ describe('pinning', () => {
     const run = (declared: boolean) => {
       const c = ctx({})
       if (declared)
-        c.manifests.set('apps/srd/package.json', {
+        c.manifests.set('apps/web/package.json', {
           devDependencies: { '@playwright/test': '1.0.0' },
         })
       c.files.push(

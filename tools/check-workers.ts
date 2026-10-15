@@ -48,7 +48,7 @@ export const ENTRY = 'src/worker/index.ts'
 const TYPES_FILE = 'worker-configuration.d.ts'
 
 export type WorkerApp = {
-  /** Repo-relative, e.g. `apps/srd`. */
+  /** Repo-relative, e.g. `apps/web`. */
   app: string
   config: Record<string, unknown>
   scripts: Record<string, string>

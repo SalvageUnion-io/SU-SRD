@@ -1,10 +1,10 @@
 name: Render srd OG images
-description: Provision Chromium and render srd's per-entity OG images into apps/srd/dist
+description: Provision Chromium and render srd's per-entity OG images into apps/web/dist
 
 # The one OG pass, run by the `build-srd` jobs of deploy-cloudflare.yml
 # (production) and deploy-preview.yml (a PR's Worker Preview) after their
 # build, with `continue-on-error`. The caller has built srd into
-# apps/srd/dist and uploads the result. The render never fails: a missing
+# apps/web/dist and uploads the result. The render never fails: a missing
 # browser or a wedged page keeps the default og:image.
 runs:
   using: composite
@@ -22,7 +22,7 @@ runs:
     - name: Key the OG cache
       id: og-key
       shell: bash
-      working-directory: apps/srd
+      working-directory: apps/web
       env:
         DATA: ${{ hashFiles('packages/salvageunion-reference/data/**') }}
       run: |
@@ -34,13 +34,13 @@ runs:
     - name: Cache the OG renders
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
-        path: apps/srd/node_modules/.cache/srd-og
+        path: apps/web/node_modules/.cache/srd-og
         key: srd-og-${{ steps.og-key.outputs.render }}-${{ steps.og-key.outputs.data }}
         restore-keys: srd-og-${{ steps.og-key.outputs.render }}-
 
     - name: Render srd OG images
       shell: bash
-      working-directory: apps/srd
+      working-directory: apps/web
       env:
         OG_SCREENSHOTS: '1'
         OG_SCREENSHOTS_BUDGET_MS: '300000'

@@ -122,7 +122,7 @@ bun --filter cantina typecheck
 Served at **salvageunion.io/build** (ADR-048): base `/build/` everywhere, dev
 too (`src/lib/site.ts`); e2e opens routes via `at()`. su-srd serves it: its
 build ships in srd's `dist/build/` (`tools/merge-dist.sh`) and srd's Worker
-runs `src/worker/` for `/build` (`apps/srd/src/worker/build.ts`); `bun run
+runs `src/worker/` for `/build` (`apps/web/src/worker/build.ts`); `bun run
 preview` serves `dist/` through srd's `wrangler.jsonc`.
 
 The block below binds `convex/` only; `bunx`, not `npx`; the vendored

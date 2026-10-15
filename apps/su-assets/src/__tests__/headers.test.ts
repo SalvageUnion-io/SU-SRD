@@ -29,7 +29,7 @@ function rootRule(app: string): Record<string, string> {
 }
 
 describe('base security headers', () => {
-  for (const app of ['srd', 'cantina']) {
+  for (const app of ['web', 'cantina']) {
     it(`match apps/${app}/public/_headers`, () => {
       const { 'content-security-policy': _csp, ...base } = rootRule(app)
       expect(base).toEqual({ ...BASE_SECURITY_HEADERS })
