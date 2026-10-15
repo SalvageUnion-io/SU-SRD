@@ -10,15 +10,15 @@
  * never mount, so a reader who never signed in loads no React for them.
  */
 
-import { CANTINA_URL } from './constants'
+import { CANTINA_PATH } from './constants'
 
 /** Where Sign in goes: The Cantina starts Discord's round trip (`/sign-in`). */
-export const SIGN_IN_HREF = `${CANTINA_URL}sign-in`
+export const SIGN_IN_HREF = `${CANTINA_PATH}sign-in`
 
 /** The Cantina's settings page. */
-export const SETTINGS_HREF = `${CANTINA_URL}settings`
+export const SETTINGS_HREF = `${CANTINA_PATH}settings`
 
 /** The Cantina ends the session, then comes back to `page` (`/sign-out`). */
 export function signOutHref(page: string): string {
-  return `${CANTINA_URL}sign-out?to=${encodeURIComponent(page)}`
+  return `${CANTINA_PATH}sign-out?to=${encodeURIComponent(page)}`
 }

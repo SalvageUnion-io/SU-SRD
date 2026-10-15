@@ -21,6 +21,7 @@
 import { describe, expect, jest, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { useState } from 'react'
+import { srdOrigin } from '../../../lib/srdOrigin'
 import { must } from '../../__tests__/must'
 import { GlobalSearch } from '../GlobalSearch'
 
@@ -265,7 +266,7 @@ describe('the results', () => {
       fireEvent.click(must(categoryOption))
 
       expect(openSpy).toHaveBeenCalledWith(
-        'https://salvageunion.io/chassis',
+        `${srdOrigin()}/chassis`,
         '_blank',
         'noopener,noreferrer'
       )

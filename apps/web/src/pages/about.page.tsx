@@ -30,7 +30,7 @@ import type { PageModule, PageResult, RouteContext } from '../../ssg/types'
 import { DocPage } from '../components/DocPage'
 import { ColophonIsland } from '../components/islands/ColophonIsland'
 import { builtAssetUrl, ELDRIDGE_COAST_MAP } from '../lib/builtAssets'
-import { CANTINA_URL, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
+import { CANTINA_PATH, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
 import { BOLD, PROSE } from '../lib/docPageStyles'
 import { Island } from '../runtime/Island'
 
@@ -345,7 +345,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
               the Salvage Union OGL.
             </p>
             <p style={PARAGRAPH}>
-              <InlineRef href={CANTINA_URL} style={BOLD}>
+              <InlineRef href={CANTINA_PATH} style={BOLD}>
                 {PRODUCT.name}
               </InlineRef>{' '}
               is its character builder and game manager: build pilots, mechs, and crawlers, then run

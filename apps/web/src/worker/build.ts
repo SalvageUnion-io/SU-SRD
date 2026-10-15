@@ -11,9 +11,7 @@
  *   `not_found_handling: none`, so a miss under the base comes back 404. The
  *   wrapper answers it with the shell (`/build/`), as SPA mode did; the
  *   Cantina's rule 1 still turns a missing FILE back into a 404.
- * - **its vars.** `BASE_PATH` and `CONVEX_URL` are this Worker's too. Its
- *   `SRD_ORIGIN` is the request's own origin: the SRD and the Cantina are one
- *   origin, on a Worker Preview as in production.
+ * - **its vars.** `BASE_PATH` and `CONVEX_URL` are this Worker's too.
  * - **its CSP.** The binding applies srd's `_headers`, whose CSP has no Convex
  *   origin, so sign-in would never complete. Every answer that carries a CSP
  *   gets the Cantina's instead (`CANTINA_CSP`); overwritten, never appended, as
@@ -44,7 +42,7 @@ export const CANTINA_CSP =
 type Assets = CantinaEnv['ASSETS']
 
 /** What this Worker's env adds for the Cantina; all of it optional in a test. */
-export type BuildEnv = Omit<CantinaEnv, 'ASSETS' | 'BASE_PATH' | 'SRD_ORIGIN'> & {
+export type BuildEnv = Omit<CantinaEnv, 'ASSETS' | 'BASE_PATH'> & {
   BASE_PATH?: string
 }
 
@@ -60,7 +58,6 @@ export async function serveBuild(request: Request, env: BuildEnv & { ASSETS: Ass
     ...env,
     ASSETS: spaAssets(env.ASSETS, base),
     BASE_PATH: base,
-    SRD_ORIGIN: new URL(request.url).origin,
   })
   return withCantinaCsp(res)
 }

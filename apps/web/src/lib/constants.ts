@@ -2,33 +2,29 @@
 // change is one edit; this build's own origin is read from its environment.
 import { SRD_SITE_URL } from 'salvageunion-reference'
 
-/** An origin from the build's environment, without a trailing slash; `fallback` when unset. */
-function originOr(value: string | undefined, fallback: string): string {
-  return (value || fallback).replace(/\/+$/, '')
-}
-
 /**
  * Where this build is served, and every absolute link to a page of it:
  * production's `SRD_SITE_URL`, or a Worker Preview's origin, which
- * `deploy-preview.yml` passes as `VITE_SRD_ORIGIN` (the dev server sets its
+ * `deploy-preview.yml` passes as `VITE_SITE_ORIGIN` (the dev server sets its
  * own, `ssg/dev.ts`). Canonicals, `og:` tags, the
  * Discord Component Embed, structured data, the sitemap and llms.txt all follow
  * it, so a Preview names only itself. A Preview answers `noindex`, so its
  * canonicals are never indexed.
  */
-export const SITE_URL = originOr(import.meta.env.VITE_SRD_ORIGIN, SRD_SITE_URL)
+export const SITE_URL = (import.meta.env.VITE_SITE_ORIGIN || SRD_SITE_URL).replace(/\/+$/, '')
 
 /** Every breadcrumb trail's root: the home page is the book's Contents, on
  *  every page that has a trail (never "Home" on some and "Contents" on others). */
 export const CONTENTS_CRUMB = { name: 'Contents', url: `${SITE_URL}/` } as const
 
 /**
- * The Cantina — the companion character builder & game manager, served
- * beside the SRD at salvageunion.io/build (ADR-048). Absolute, so a link built
- * from it reads the same in llms.txt, a Discord embed or the dev server. A
- * Worker Preview's build links its own Cantina Preview (`VITE_CANTINA_ORIGIN`).
+ * The Cantina — the companion character builder & game manager, served on
+ * this origin at /build (ADR-048). Root-relative: a link built from it opens
+ * the Cantina beside whichever SRD served the page, production, a Worker
+ * Preview or the dev server. Prefix `SITE_URL` where an address must be
+ * absolute (the sitemap).
  */
-export const CANTINA_URL = `${originOr(import.meta.env.VITE_CANTINA_ORIGIN, SRD_SITE_URL)}/build/`
+export const CANTINA_PATH = '/build/'
 
 /**
  * The SalvageUnion.io Discord bot's install link. The client id is public by design —

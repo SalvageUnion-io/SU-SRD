@@ -1,13 +1,17 @@
 import { SRD_SITE_URL } from 'salvageunion-reference'
 
 /**
- * The SRD this build links to, without a trailing slash: production's
- * (`SRD_SITE_URL`), or on a Worker Preview the same PR's SRD Preview, which
- * `deploy-preview.yml` passes as `VITE_SRD_ORIGIN`, or in dev the local srd
- * server (`vite.cantina.config.ts`). Every Cantina link into the
- * SRD (deep links, the doc pages, the Union bar's Reference) is built on it.
+ * The SRD's origin, without a trailing slash: the page's own. The SRD and the
+ * Cantina are one origin (ADR-048), in production, on a Worker Preview and on
+ * the dev server alike, so nothing is configured per deployment.
  *
- * `?.`: the Worker bundles this module too (`docPages.ts`), and outside Vite
- * `import.meta.env` is undefined, so its redirects go to production's SRD.
+ * Every Cantina link into the SRD (deep links, the doc pages, the search's
+ * category rows) is built on it, absolute rather than root-relative: a
+ * root-relative path handed to the router (`AppLink`) would read as one of the
+ * Cantina's own routes under `/build`.
+ *
+ * Outside a page (the Worker, a script) there is no page origin, so production's.
  */
-export const SRD_ORIGIN = (import.meta.env?.VITE_SRD_ORIGIN || SRD_SITE_URL).replace(/\/+$/, '')
+export function srdOrigin(origin = globalThis.location?.origin): string {
+  return origin?.startsWith('http') ? origin : SRD_SITE_URL.replace(/\/+$/, '')
+}

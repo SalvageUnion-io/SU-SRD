@@ -104,11 +104,6 @@ export type Env = PreviewEnv & {
    * (su-srd's `wrangler.jsonc`, held equal to `SITE.base` by the routing test).
    */
   BASE_PATH: string
-  /**
-   * The SRD the doc-page redirects go to: the request's own origin, set by
-   * su-srd's Worker. Unset, they go to salvageunion.io.
-   */
-  SRD_ORIGIN?: string
   /** Caps error reports per address (su-srd's `wrangler.jsonc`); absent in a Preview. */
   ERROR_REPORT_LIMIT?: RateLimiter
   /**
@@ -145,9 +140,10 @@ export default {
       return handleConvexLogStream(request, env.CONVEX_LOG_STREAM_SECRET)
     }
 
-    // D. A doc page the Cantina no longer has: the SRD's, where both tools share it.
-    const docPage = retiredDocPage(path, env.SRD_ORIGIN)
-    if (docPage !== null) return Response.redirect(docPage, 301)
+    // D. A doc page the Cantina no longer has: the SRD's on this origin, where
+    // both tools share it.
+    const docPage = retiredDocPage(path)
+    if (docPage !== null) return Response.redirect(new URL(docPage, url).href, 301)
 
     // R. A retired address: one hop to where it lives now, query kept.
     const retired = retiredTarget(path)

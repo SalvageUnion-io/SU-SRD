@@ -17,7 +17,7 @@ import { DocPage } from '../components/DocPage'
 import type { DiscordCommand } from '../generated/discordCommands'
 import { DISCORD_COMMANDS } from '../generated/discordCommands'
 import {
-  CANTINA_URL,
+  CANTINA_PATH,
   CONTENTS_CRUMB,
   DISCORD_INSTALL_URL,
   SITE_URL,
@@ -263,7 +263,7 @@ function page(): PageResult {
           <Slab as="h2" variant="solid" label={`With ${PRODUCT.name}`} />
           <p>
             These read your {PRODUCT.name} account and its Games. Sign in to{' '}
-            <InlineRef href={CANTINA_URL} style={BOLD}>
+            <InlineRef href={CANTINA_PATH} style={BOLD}>
               {PRODUCT.name}
             </InlineRef>{' '}
             with the same Discord account and the bot knows you; until then each one says how.
@@ -299,7 +299,7 @@ function page(): PageResult {
           </ul>
           <p style={ASIDE}>
             <strong>Running a campaign?</strong> Pair the bot with{' '}
-            <InlineRef href={CANTINA_URL} style={BOLD}>
+            <InlineRef href={CANTINA_PATH} style={BOLD}>
               {PRODUCT.name}
             </InlineRef>
             {/*

@@ -12,8 +12,8 @@
  * A creation guide ends on its exits (`guideExitsFor`): the same wizard, unseeded,
  * the next guide, and the Starter Set.
  *
- * The origin is `CANTINA_URL`, the one the Union bar's Build link uses, so moving
- * The Cantina (salvageunion.io/build) is that one constant.
+ * The path is `CANTINA_PATH`, the one the Union bar's Build link uses, so moving
+ * the Cantina (salvageunion.io/build) is that one constant.
  */
 
 import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
@@ -23,7 +23,7 @@ import {
   isLegalCreationClass,
   isLegalStartingPattern,
 } from 'salvageunion-reference/rules'
-import { CANTINA_URL } from './constants'
+import { CANTINA_PATH } from './constants'
 import { itemHref } from './entityHref'
 
 /**
@@ -36,13 +36,13 @@ export type BuildLink = { href: string; label: string; ariaLabel?: string }
 /** The page action's one visible label, whatever it builds (owner's call, 2026-10-13). */
 const BUILD_WITH_THIS = 'Build With This'
 
-/** `CANTINA_URL` + a path in the Cantina (`/starter`, `/mechs/new`). */
+/** `CANTINA_PATH` + a path in the Cantina (`/starter`, `/mechs/new`). */
 function cantinaHref(path: string): string {
-  return `${CANTINA_URL.replace(/\/$/, '')}${path}`
+  return `${CANTINA_PATH.replace(/\/$/, '')}${path}`
 }
 
 /**
- * `CANTINA_URL` + a `/…/new` path, opened straight on the guided wizard, with
+ * `CANTINA_PATH` + a `/…/new` path, opened straight on the guided wizard, with
  * `param` preselected when there is one.
  */
 function wizardHref(path: string, preselect: Record<string, string> = {}): string {

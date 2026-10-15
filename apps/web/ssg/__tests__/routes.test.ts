@@ -10,7 +10,7 @@ import { readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { getModel } from 'salvageunion-reference'
 import { ELDRIDGE_COAST_MAP } from '../../src/lib/builtAssets'
-import { CANTINA_URL } from '../../src/lib/constants'
+import { CANTINA_PATH } from '../../src/lib/constants'
 import { listingEntries } from '../../src/lib/listingEntries'
 import type { BuildAssets } from '../document'
 import { outputPathFor } from '../outputPath'
@@ -103,7 +103,7 @@ describe('route registry', () => {
         .filter((r) => !r.pattern.startsWith('/[schemaId]'))
         .flatMap((r) => r.pages.map((p) => p.route.split('/')[1] ?? '')),
       ...readdirSync(PUBLIC_DIR),
-      new URL(CANTINA_URL).pathname.split('/')[1] ?? '',
+      CANTINA_PATH.split('/')[1] ?? '',
       'schema',
       'assets',
     ])

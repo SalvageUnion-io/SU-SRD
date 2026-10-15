@@ -1,31 +1,32 @@
 import { describe, expect, it } from 'bun:test'
 import { getEntitySchemas, getSchemaCatalog } from 'salvageunion-reference'
 import { deepLinkTo, hasSRDPage } from '../srd-deep-link'
+import { srdOrigin } from '../srdOrigin'
 
 describe('srd-deep-link', () => {
   it('builds a chassis deep-link URL', () => {
     const url = deepLinkTo({ schemaName: 'chassis', slug: 'iron-mongrel' })
-    expect(url).toBe('https://salvageunion.io/chassis/iron-mongrel')
+    expect(url).toBe(`${srdOrigin()}/chassis/iron-mongrel`)
   })
 
   it('builds an equipment deep-link URL', () => {
     const url = deepLinkTo({ schemaName: 'equipment', slug: 'armor-plating' })
-    expect(url).toBe('https://salvageunion.io/equipment/armor-plating')
+    expect(url).toBe(`${srdOrigin()}/equipment/armor-plating`)
   })
 
   it('builds an abilities deep-link URL', () => {
     const url = deepLinkTo({ schemaName: 'abilities', slug: 'rapid-fire' })
-    expect(url).toBe('https://salvageunion.io/abilities/rapid-fire')
+    expect(url).toBe(`${srdOrigin()}/abilities/rapid-fire`)
   })
 
   it('builds a classes deep-link URL', () => {
     const url = deepLinkTo({ schemaName: 'classes', slug: 'scrapyard-scrounger' })
-    expect(url).toBe('https://salvageunion.io/classes/scrapyard-scrounger')
+    expect(url).toBe(`${srdOrigin()}/classes/scrapyard-scrounger`)
   })
 
   it('builds a mech-systems deep-link URL', () => {
     const url = deepLinkTo({ schemaName: 'mech-systems', slug: 'comms-array' })
-    expect(url).toBe('https://salvageunion.io/mech-systems/comms-array')
+    expect(url).toBe(`${srdOrigin()}/mech-systems/comms-array`)
   })
 
   it('uses the exact slug provided (no UUID processing)', () => {

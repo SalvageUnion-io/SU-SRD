@@ -2,7 +2,7 @@
  * Deep-link URL builder for srd entity pages.
  *
  * Verified srd URL pattern (from apps/web/src/pages/):
- *   Base: `SRD_ORIGIN` (https://salvageunion.io, or a Worker Preview's SRD)
+ *   Base: the page's own origin (`srdOrigin`)
  *   Item route: /[schemaId]/[itemSlug]
  *   Uses slugs (never UUIDs) per CLAUDE.md data convention
  *
@@ -10,7 +10,7 @@
  */
 
 import { getEntitySchemas, srdEntityPath, srdSchemaPath } from 'salvageunion-reference'
-import { SRD_ORIGIN } from './srdOrigin'
+import { srdOrigin } from './srdOrigin'
 
 type EntityRef = {
   schemaName: string
@@ -44,7 +44,7 @@ export function hasSRDPage(schemaName: string): boolean {
  * @returns Absolute URL to the entity on srd
  */
 export function deepLinkTo({ schemaName, slug }: EntityRef): string {
-  return `${SRD_ORIGIN}${srdEntityPath(schemaName, slug)}`
+  return `${srdOrigin()}${srdEntityPath(schemaName, slug)}`
 }
 
 /**
@@ -53,5 +53,5 @@ export function deepLinkTo({ schemaName, slug }: EntityRef): string {
  * The Cantina has no in-app schema list routes.
  */
 export function deepLinkToSchema(schemaName: string): string {
-  return `${SRD_ORIGIN}${srdSchemaPath(schemaName)}`
+  return `${srdOrigin()}${srdSchemaPath(schemaName)}`
 }

@@ -58,11 +58,11 @@ import type { ErasedRoute, RouteRegistration } from './render'
  */
 const PORT = Number(process.env.PORT ?? portFor('srd'))
 
-// Links follow the env they are served from (`src/lib/constants.ts`): the dev
-// server names itself for both apps, since it serves both. Set before Vite
-// starts, which reads them into `import.meta.env`; a value given wins.
-process.env.VITE_SRD_ORIGIN ||= `http://localhost:${PORT}`
-process.env.VITE_CANTINA_ORIGIN ||= process.env.VITE_SRD_ORIGIN
+// Absolute addresses follow the env they are served from
+// (`src/lib/constants.ts`): the dev server names itself, for both apps, since
+// it serves both. Set before Vite starts, which reads it into
+// `import.meta.env`; a value given wins.
+process.env.VITE_SITE_ORIGIN ||= `http://localhost:${PORT}`
 
 const viteConfigFile = fileURLToPath(new URL('./vite.config.ts', import.meta.url))
 const cantinaConfigFile = fileURLToPath(new URL('../vite.cantina.config.ts', import.meta.url))

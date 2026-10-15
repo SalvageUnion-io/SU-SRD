@@ -9,6 +9,7 @@ import type { RefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { must } from '../../components/__tests__/must'
 import { cantinaEntityHref } from '../entityHref'
+import { srdOrigin } from '../srdOrigin'
 
 /** A complete entity that only differs in the schema it claims to come from. */
 function taggedAs(schemaName: string): RefEntity & { schemaName: string } {
@@ -27,7 +28,7 @@ describe('cantinaEntityHref', () => {
     // ORM entities carry their own `schemaName`, so this is the real shape
     // every card passes to the provider.
     const chassis = must(SalvageUnionReference.Chassis.getByName('Mule'))
-    expect(cantinaEntityHref(chassis)).toBe('https://salvageunion.io/chassis/mule')
+    expect(cantinaEntityHref(chassis)).toBe(`${srdOrigin()}/chassis/mule`)
   })
 
   it('emits no href for a meta schema srd never generates pages for', () => {

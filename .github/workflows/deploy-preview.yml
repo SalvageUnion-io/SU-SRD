@@ -58,13 +58,13 @@ env:
   STAGING_CONVEX_DEPLOYMENT: perfect-donkey-72
   STAGING_CONVEX_URL: https://perfect-donkey-72.convex.cloud
   # The Preview's address, known before it exists: `<name>-<worker>.<account
-  # subdomain>`. Both builds take it as both origins (the SRD and the Cantina
-  # are one origin), so every link a Preview prints names this PR's Preview,
-  # never production: cross links, canonicals, og: tags, the Discord Component
-  # Embed, the sitemap. A Preview answers noindex, so search never sees it.
-  # `ship` fails if wrangler reports any other address.
-  PREVIEW_SRD_ORIGIN: https://pr-${{ github.event.pull_request.number }}-su-srd.alxjrvs.workers.dev
-  PREVIEW_CANTINA_ORIGIN: https://pr-${{ github.event.pull_request.number }}-su-srd.alxjrvs.workers.dev
+  # subdomain>`. Both builds take it as the site's origin, so every absolute
+  # address a Preview prints names this PR's Preview, never production:
+  # canonicals, og: tags, the Discord Component Embed, the sitemap. Links
+  # between the two apps are relative, so they need none. A Preview answers
+  # noindex, so search never sees it. `ship` fails if wrangler reports any
+  # other address.
+  PREVIEW_ORIGIN: https://pr-${{ github.event.pull_request.number }}-su-srd.alxjrvs.workers.dev
 
 jobs:
   build-srd:
@@ -92,8 +92,7 @@ jobs:
       - name: Build srd
         env:
           VITE_COMMIT_REF: ${{ github.event.pull_request.head.sha }}
-          VITE_SRD_ORIGIN: ${{ env.PREVIEW_SRD_ORIGIN }}
-          VITE_CANTINA_ORIGIN: ${{ env.PREVIEW_CANTINA_ORIGIN }}
+          VITE_SITE_ORIGIN: ${{ env.PREVIEW_ORIGIN }}
         run: bun --filter web build
 
       # Best-effort, as in deploy-cloudflare.yml's build-srd: a failed render
@@ -139,8 +138,7 @@ jobs:
         env:
           VITE_CONVEX_URL: ${{ env.STAGING_CONVEX_URL }}
           VITE_COMMIT_REF: ${{ github.event.pull_request.head.sha }}
-          VITE_SRD_ORIGIN: ${{ env.PREVIEW_SRD_ORIGIN }}
-          VITE_CANTINA_ORIGIN: ${{ env.PREVIEW_CANTINA_ORIGIN }}
+          VITE_SITE_ORIGIN: ${{ env.PREVIEW_ORIGIN }}
         run: bun run build:cantina
 
       - name: Upload the cantina artifact
@@ -254,9 +252,9 @@ jobs:
             exit 1
           fi
           # The builds baked in the address this Preview was predicted at.
-          if [ "${url%/}" != "$PREVIEW_SRD_ORIGIN" ]; then
-            echo "FATAL: the Preview is at ${url%/}, but its links were built for $PREVIEW_SRD_ORIGIN." >&2
-            echo "Fix PREVIEW_SRD_ORIGIN in this workflow." >&2
+          if [ "${url%/}" != "$PREVIEW_ORIGIN" ]; then
+            echo "FATAL: the Preview is at ${url%/}, but its links were built for $PREVIEW_ORIGIN." >&2
+            echo "Fix PREVIEW_ORIGIN in this workflow." >&2
             exit 1
           fi
           echo "srd=${url%/}" >> "$GITHUB_OUTPUT"

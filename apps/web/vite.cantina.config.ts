@@ -2,7 +2,7 @@ import { copyFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'no
 import { dirname, join } from 'node:path'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import react from '@vitejs/plugin-react-swc'
-import { CHECKOUT_HEADER, CHECKOUT_ROOT, portFor } from 'gates/ports'
+import { CHECKOUT_HEADER, CHECKOUT_ROOT } from 'gates/ports'
 import type { Plugin } from 'vite'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -182,7 +182,7 @@ function publicPages(base: string): Plugin {
     name: 'cantina-public-pages',
     apply: 'build',
     configResolved({ env }) {
-      origin = (env.VITE_CANTINA_ORIGIN || SITE.origin).replace(/\/+$/, '')
+      origin = (env.VITE_SITE_ORIGIN || SITE.origin).replace(/\/+$/, '')
     },
     writeBundle({ dir = '' }) {
       const prefix = basePathOf(base)
@@ -199,7 +199,7 @@ function publicPages(base: string): Plugin {
 /**
  * The shell's default link-preview tags (`index.html`'s `cantina:meta` block) name
  * production's address. A Worker Preview's build is given its own origin as
- * `VITE_CANTINA_ORIGIN` (`deploy-preview.yml`), and its shell names that instead,
+ * `VITE_SITE_ORIGIN` (`deploy-preview.yml`), and its shell names that instead,
  * so a pasted Preview link unfurls with the Preview's image and address. The
  * Worker's per-route tags already use the request's origin (`linkPreview.ts`).
  */
@@ -209,29 +209,13 @@ function shellOrigin(base: string): Plugin {
     name: 'cantina-shell-origin',
     apply: 'build',
     configResolved({ env }) {
-      origin = (env.VITE_CANTINA_ORIGIN ?? '').replace(/\/+$/, '')
+      origin = (env.VITE_SITE_ORIGIN ?? '').replace(/\/+$/, '')
     },
     transformIndexHtml: {
       order: 'pre',
       handler(html) {
         return origin ? html.replaceAll(`${SITE.origin}${base}`, `${origin}${base}`) : html
       },
-    },
-  }
-}
-
-/**
- * Links follow the env they are served from (`src/lib/srdOrigin.ts`): the dev
- * server's SRD links open this checkout's srd dev server (`bun run dev`). A
- * `config` hook, so it lands before Vite reads the environment; a value given
- * wins.
- */
-function devSrdOrigin(): Plugin {
-  return {
-    name: 'cantina-dev-srd-origin',
-    apply: 'serve',
-    config() {
-      process.env.VITE_SRD_ORIGIN ||= `http://localhost:${portFor('srd')}`
     },
   }
 }
@@ -249,7 +233,6 @@ export default defineConfig({
     cantinaShell(),
     baseStylesheet(),
     shellOrigin(SITE.base),
-    devSrdOrigin(),
     TanStackRouterVite(ROUTER_PLUGIN_OPTIONS),
     // `@vitejs/plugin-react-swc` always uses the automatic JSX runtime, so the
     // explicit `jsxRuntime: 'automatic'` the Babel plugin needed is gone — it

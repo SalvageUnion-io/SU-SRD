@@ -9,12 +9,8 @@ interface ImportMetaEnv {
   readonly VITE_COMMIT_REF?: string
   /**
    * A Worker Preview's own origin (`https://pr-<n>-su-srd.<account>.workers.dev`),
-   * set by `deploy-preview.yml`. Unset → production's. See `SITE_URL`.
+   * set by `deploy-preview.yml`; the dev server's, by `ssg/dev.ts`. Unset →
+   * production's. See `SITE_URL`.
    */
-  readonly VITE_SRD_ORIGIN?: string
-  /**
-   * The same Preview's Cantina origin, which every Cantina link then points at.
-   * Unset → production's. See `CANTINA_URL`.
-   */
-  readonly VITE_CANTINA_ORIGIN?: string
+  readonly VITE_SITE_ORIGIN?: string
 }

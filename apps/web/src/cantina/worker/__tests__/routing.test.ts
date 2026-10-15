@@ -293,9 +293,9 @@ describe('the doc pages 301 to the SRD', () => {
     })
   }
 
-  it("a Worker Preview's go to its own SRD (`SRD_ORIGIN`)", async () => {
+  it("a Worker Preview's go to its own SRD: the request's origin", async () => {
     const srd = 'https://pr-1-su-srd.example.workers.dev'
-    const env = { ...envWith(), SRD_ORIGIN: srd }
+    const env = envWith()
     const res = await worker.fetch(
       navigateTo(`https://pr-1-su-srd.example.workers.dev${BASE}/changelog`),
       env

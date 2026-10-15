@@ -5,7 +5,6 @@ import { useEffect, useRef } from 'react'
 import { returnTo } from '../../lib/account/returnTo'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { captureException } from '../../lib/observability'
-import { SRD_ORIGIN } from '../../lib/srdOrigin'
 import { useSignOut } from './useSignOut'
 
 /**
@@ -62,7 +61,7 @@ export function SignOutHandoff({ to }: { to?: string }) {
     if (mode === 'connecting' || started.current) return
     started.current = true
     void signOut().then(() => {
-      window.location.replace(returnTo(to, window.location.href, SRD_ORIGIN))
+      window.location.replace(returnTo(to, window.location.href))
     })
   }, [mode, signOut, to])
 

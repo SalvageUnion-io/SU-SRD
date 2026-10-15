@@ -2,13 +2,12 @@
  * Where `/sign-out` sends the player afterwards: the page the SRD's account
  * menu was opened on, carried in `?to=`.
  *
- * Only an address on this site or on the SRD this build links to is followed
- * (they are one origin in production; a preview or dev server runs them on
- * two), so the route cannot be used to bounce anyone to somebody else's site.
- * Anything else, or nothing, lands on the SRD's home.
+ * Only an address on this site (the SRD and the Cantina are one origin) is
+ * followed, so the route cannot be used to bounce anyone to somebody else's
+ * site. Anything else, or nothing, lands on the SRD's home.
  */
-export function returnTo(raw: string | undefined, here: string, srdOrigin: string): string {
-  const fallback = `${srdOrigin}/`
+export function returnTo(raw: string | undefined, here: string): string {
+  const fallback = new URL('/', here).href
   if (!raw) return fallback
   let target: URL
   try {
@@ -16,6 +15,5 @@ export function returnTo(raw: string | undefined, here: string, srdOrigin: strin
   } catch {
     return fallback
   }
-  const allowed = new Set([new URL(here).origin, new URL(srdOrigin).origin])
-  return allowed.has(target.origin) ? target.href : fallback
+  return target.origin === new URL(here).origin ? target.href : fallback
 }

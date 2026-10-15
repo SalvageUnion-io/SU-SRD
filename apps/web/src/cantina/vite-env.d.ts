@@ -14,17 +14,12 @@ interface ImportMetaEnv {
    */
   readonly VITE_COMMIT_REF?: string
   /**
-   * A Worker Preview's SRD origin (`https://pr-<n>-su-srd.<account>.workers.dev`),
-   * set by `deploy-preview.yml`, so the Preview links its own SRD. Unset →
-   * production's. See `src/lib/srdOrigin.ts`.
+   * A Worker Preview's origin (`https://pr-<n>-su-srd.<account>.workers.dev`),
+   * set by `deploy-preview.yml`, which the shell's link-preview tags, the
+   * pre-rendered public pages and the sitemap name (`vite.cantina.config.ts`).
+   * Unset → production's. Links need none: they are the page's own origin.
    */
-  readonly VITE_SRD_ORIGIN?: string
-  /**
-   * A Worker Preview's own origin, which the shell's default link-preview
-   * tags are rewritten onto at build time (`vite.cantina.config.ts`). Unset →
-   * production's.
-   */
-  readonly VITE_CANTINA_ORIGIN?: string
+  readonly VITE_SITE_ORIGIN?: string
 }
 
 interface ImportMeta {
