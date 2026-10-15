@@ -97,22 +97,10 @@
 }
 
 /* The stats on a band (`ChapterBand asideAt="notch"`, srd's `EntityPageStamps`)
-   carry every entity's stats, a chassis's eight too, so they are the column's
-   compact cells: a smaller framed numeral and label, a row of cells sized to
-   their labels that wraps, not a grid whose empty columns would push the
-   aside off the notch. On a phone (the cluster under the title) five or more
-   take two cells a line; from `sm` they take four, two lines at most. */
-.su-chapter-band[data-aside='notch'] .su-stat-column {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-4) var(--space-6);
-}
-
-.su-chapter-band[data-aside='notch'] .su-stat-column:has(> :nth-child(5)) {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
+   are the column's compact cells: a smaller framed numeral and label. They
+   flow inline with the band's other chips (`.su-entity-stamps > dl`), one
+   balanced chip line, the same gap apart, no line or gap of their own per
+   group (owner, 2026-10-15). */
 .su-chapter-band[data-aside='notch'] .su-stat-column__cell {
   min-height: 32px;
 }
@@ -125,12 +113,6 @@
 .su-chapter-band[data-aside='notch'] .su-stat-column__label {
   font-size: var(--text-badge);
   padding: 0 var(--space-8);
-}
-
-@media (min-width: 40rem) {
-  .su-chapter-band[data-aside='notch'] .su-stat-column:has(> :nth-child(5)) {
-    grid-template-columns: repeat(4, auto);
-  }
 }
 
 /* ══ The entity page (`ReferenceEntityCard presentation="page"`) ════════════
@@ -316,7 +298,7 @@
 
 /* A stat group's first cell (`StatColumn`, `data-group-start`): in the grid it
    opens a new row, so provenance, vitals and capacity each read as a line; on
-   the band's line of cells it is a wider gap. */
+   the band's line of cells it is just the next chip, the same gap apart. */
 .su-stat-column__cell[data-group-start] {
   grid-column-start: 1;
 }
@@ -326,12 +308,4 @@
    (owner's call, 2026-10-14). The order is the stat order still. */
 .su-stat-column--compact .su-stat-column__cell[data-group-start] {
   grid-column-start: auto;
-}
-
-.su-chapter-band[data-aside='notch'] .su-stat-column > [data-group-start] {
-  margin-inline-start: var(--space-8);
-}
-
-.su-chapter-band[data-aside='notch'] .su-stat-column:has(> :nth-child(5)) > [data-group-start] {
-  margin-inline-start: 0;
 }
