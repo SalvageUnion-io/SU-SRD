@@ -129,6 +129,22 @@ export const ABANDONED_VIEW_TRANSITIONS = [
   'Transition was aborted because of invalid state',
 ]
 
+/**
+ * Noise every app drops, on top of its own `ignoreErrors`.
+ *
+ * - **`ResizeObserver loop`**: a `ResizeObserver` callback changed layout, so
+ *   the browser deferred the rest of its notifications to the next frame and
+ *   says so on the window's `error` event (Chrome: `ResizeObserver loop
+ *   completed with undelivered notifications.`; older: `ResizeObserver loop
+ *   limit exceeded`). The spec's own loop guard, not a failure: nothing is
+ *   lost, and the event carries no error object, which is why it arrives as a
+ *   `NonError`. Raised by the browser for observers the app does not own
+ *   (React libraries, in-app browsers' WebViews) as readily as for its own.
+ *
+ * Matched as substrings of `${name}: ${message}`.
+ */
+const BROWSER_NOISE = ['ResizeObserver loop']
+
 /** Long enough for any real message and a deep minified stack; the Worker reads 16 KB. */
 const MAX_MESSAGE_CHARS = 1_000
 const MAX_STACK_CHARS = 8_000
@@ -273,7 +289,7 @@ export function createBrowserObservability(
   config: BrowserObservabilityConfig = {}
 ): BrowserObservability {
   const transport = config.transport ?? beacon
-  const ignored = config.ignoreErrors ?? []
+  const ignored = [...BROWSER_NOISE, ...(config.ignoreErrors ?? [])]
   let endpoint: string | null = null
   let release: string | undefined
   let sent = 0
