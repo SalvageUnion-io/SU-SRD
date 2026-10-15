@@ -33,11 +33,13 @@
    title instead of riding above it (the band's own stack is column-reverse):
    the title notched into the band's foot, then the lede and search on the
    page ground the notch is cut from. The aside spans the row's padding so the
-   ground runs edge to edge. */
+   ground runs edge to edge, and the row drops its gap so the notch sits flush
+   on the band's foot. */
 @media (max-width: 63.99rem) {
   .srd-home__band .su-chapter-band__row {
     align-items: flex-start;
     flex-direction: column;
+    gap: 0;
   }
 
   .srd-home__band .su-chapter-band__aside {
