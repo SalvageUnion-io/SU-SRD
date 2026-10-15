@@ -18,7 +18,7 @@ at startup ([ADR-005](../../docs/ARCHITECTURE.md#decisions)).
 
 The bot is an **HTTP-interactions Cloudflare Worker** (`src/worker/index.ts`,
 deployed by `wrangler.jsonc`). There is no Node gateway and no `start` script;
-`build` is typecheck plus a `wrangler` dry-run bundle. The Worker reports to
+`worker:bundle` is a `wrangler` dry-run bundle. The Worker reports to
 Workers Issues through `observability/cloudflare`. Wire types and `Routes` come from
 `discord-api-types`; the Worker and `deploy-commands.ts` talk to Discord through
 `@discordjs/rest`; reply payloads are the local `ReplyPayload` /
