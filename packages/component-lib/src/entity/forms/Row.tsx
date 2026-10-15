@@ -7,7 +7,6 @@ import type { CardOuterProps } from '../../components/referenceEntity/card/CardO
 import { CardOuter } from '../../components/referenceEntity/card/CardOuter'
 import type { Down } from '../../components/referenceEntity/card/cardChrome'
 import { downOf } from '../../components/referenceEntity/card/cardChrome'
-import { UserMadeStamp } from '../../components/referenceEntity/card/UserMadeStamp'
 import { cn } from '../../utils/cn'
 import { useEntitySurface } from '../entitySurfaceContext'
 import { LinkSurface } from '../modes/link'
@@ -166,7 +165,8 @@ export function Row({
   // Beside chips, or with the host's, the labels are chips: the first items
   // of the chip group, wrapping and centring with the rest, never a line of
   // their own (owner's rule, 2026-10-14). The host's (an owner chip) lead,
-  // then the note as a label-only chip (★ Primary), then User-made.
+  // then the note as a label-only chip (★ Primary), then User-made, a
+  // label-only chip too (the dashed frame already says pencil, not print).
   const labelsAsChips =
     (!!ownLabels || !!slots.extraLabels) && (chipCount(chips) > 0 || !!slots.extraLabels)
   const ownChips =
@@ -175,7 +175,7 @@ export function Row({
     ) : (
       <>
         {note && <Stat orientation="horizontal" label={note} size="compact" />}
-        {userMade && <UserMadeStamp />}
+        {userMade && <Stat orientation="horizontal" label="User-made" size="compact" />}
       </>
     )
   const leading = labelsAsChips ? (

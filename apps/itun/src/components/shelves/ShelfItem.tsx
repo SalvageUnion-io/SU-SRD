@@ -1,15 +1,17 @@
 /**
  * ShelfItem — one thing on a shelf (Shelves, board S1): its one-line card
- * (`ShelfPill`), the chips under it — the Game it is in, the units linked to
- * it, where it came from, and for a pattern who can see it — and its "⋯" menu
- * at the shelf's edge.
+ * (`ShelfPill`), whose chip group leads with this item's chips — the Game it
+ * is in, the units linked to it, and for a pattern or NPC who can see it — as
+ * label-only chips, the way a Game's Row leads with its owner chip
+ * (never boxes under the card; owner's rule, 2026-10-14) — and its "⋯" menu at
+ * the shelf's edge.
  *
  * The menu's rows are the caller's (`menu`): what an item may do depends on its
  * kind and on whether this session can write, and every verb that asks first
  * opens the page's one confirm, which has to outlive the menu that asked.
  */
 
-import { Badge, tokens } from 'component-lib'
+import { Stat, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import type { ShelfChip, ShelfReading } from '../../lib/shelves/shelfItems'
 import type { HeaderMenuItem } from '../shared/HeaderMenu'
@@ -25,21 +27,7 @@ const ITEM = {
   listStyle: 'none',
 } satisfies CSSProperties
 
-const BODY = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[6],
-  minWidth: 0,
-} satisfies CSSProperties
-
-const CHIPS = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[6],
-  listStyle: 'none',
-  margin: 0,
-  padding: 0,
-} satisfies CSSProperties
+const BODY = { minWidth: 0 } satisfies CSSProperties
 
 type ShelfItemProps = {
   kind: ShelfKind
@@ -74,16 +62,14 @@ export function ShelfItem({
           reading={reading}
           href={href}
           userMade={userMade}
+          labels={
+            chips.length > 0
+              ? chips.map((chip) => (
+                  <Stat key={chip.key} orientation="horizontal" label={chip.label} size="compact" />
+                ))
+              : undefined
+          }
         />
-        {chips.length > 0 && (
-          <ul style={CHIPS} aria-label={`About ${name}`}>
-            {chips.map((chip) => (
-              <li key={chip.key}>
-                <Badge surface="outline">{chip.label}</Badge>
-              </li>
-            ))}
-          </ul>
-        )}
       </div>
       {hasMenu && (
         <HeaderMenu variant="overflow" trigger={null} label={`More for ${name}`} sections={menu} />

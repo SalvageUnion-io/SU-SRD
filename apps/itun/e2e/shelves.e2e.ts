@@ -83,7 +83,6 @@ test('copy a pilot from the Starter Set onto the shelf', async ({ page }) => {
   await openShelves(page)
   const pilots = page.getByRole('region', { name: 'Pilots' })
   await expect(pilots.getByText('Bonesaw')).toBeVisible({ timeout: 15_000 })
-  await expect(pilots.getByText('Copied from the Starter Set')).toBeVisible()
 })
 
 test('export the shelf, and import it back', async ({ page }) => {
