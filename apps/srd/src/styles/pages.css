@@ -82,9 +82,9 @@
   }
 }
 
-/* The aside, then the index: one stack on a phone, the aside first so a
-   first-timer meets "Start here" (and the Discord button under it) before the
-   index. */
+/* The index, then the aside: one stack on a phone, the catalogs first and
+   "Start here" (with the Discord button under it) below them (owner,
+   2026-10-15). */
 .srd-home__body,
 .srd-not-found__body {
   display: flex;
