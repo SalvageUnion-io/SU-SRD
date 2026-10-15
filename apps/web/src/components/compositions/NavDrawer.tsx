@@ -3,16 +3,7 @@ import { Menu, X } from 'lucide-react'
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { useState } from 'react'
 import { srdSchemaPath } from 'salvageunion-reference'
-import {
-  borderWidth,
-  color,
-  font,
-  fontSize,
-  radius,
-  space,
-  tracking,
-  weight,
-} from '../../design/tokens'
+import { borderWidth, color, radius, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { Badge } from '../atoms/Badge'
 import { buttonVariants } from '../atoms/buttonVariants'
@@ -20,8 +11,8 @@ import { FOCUS_RING } from '../atoms/interaction'
 import { TRANSITION_COLORS } from '../atoms/transition'
 
 /**
- * NavDrawer — the shared hamburger + slide-in mobile nav drawer (unifies the
- * SRD site drawer and the Cantina builder drawer). One Base UI `Drawer`: a
+ * NavDrawer — the hamburger + slide-in mobile nav drawer under the Union bar's
+ * one phone drawer (`unionBar/UnionDrawer.tsx`). One Base UI `Drawer`: a
  * hamburger trigger, the shared `.su-backdrop` scrim, and a right-side panel
  * that slides in (`.su-drawer`) and can be swiped back out.
  *
@@ -36,9 +27,6 @@ import { TRANSITION_COLORS } from '../atoms/transition'
  * `extra` is a render function, not a node, so its controls can close the
  * drawer too: the drawer owns its open state, and a control that navigates or
  * changes what the page shows should not leave the panel covering the result.
- *
- * `footItems` are quiet links pinned to the drawer's foot, under a hairline —
- * the pages a reader looks for rarely (The Cantina's About and Changelog).
  */
 
 export type NavDrawerItem = {
@@ -85,14 +73,8 @@ type NavDrawerProps = {
    * drawer when it is used.
    */
   extra?: (close: () => void) => ReactNode
-  /** Quiet links at the drawer's foot (About, Changelog). */
-  footItems?: NavDrawerItem[]
-  /** Link component for internal items. Defaults to a plain anchor; the Cantina passes AppLink. */
+  /** Link component for internal items. Defaults to a plain anchor; the Cantina passes SiteLink. */
   LinkComponent?: ElementType
-  /** Extra classes on the hamburger trigger (e.g. tint for a dark header). */
-  triggerClassName?: string
-  /** Panel width class. Without one the panel is full-width; the Cantina uses a narrower drawer. */
-  panelClassName?: string
 }
 
 // The rule between the app's `extra` controls and the nav links — the same
@@ -108,27 +90,6 @@ const EXTRA = {
   paddingBottom: space[16],
 } satisfies CSSProperties
 
-// The drawer's foot: quiet links under a hairline, pinned to the bottom.
-const FOOT = {
-  borderTopColor: color.wkFaint,
-  borderTopStyle: 'solid',
-  borderTopWidth: borderWidth.hairline,
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: space[16],
-  marginTop: space[12],
-  paddingTop: space[12],
-} satisfies CSSProperties
-
-const FOOT_LINK = {
-  color: color.wkMuted,
-  fontFamily: font.cond,
-  fontSize: fontSize.caption,
-  fontWeight: weight.bold,
-  letterSpacing: tracking.capsTight,
-  textTransform: 'uppercase',
-} satisfies CSSProperties
-
 // The full-screen layer the panel sits in, against its right edge.
 const VIEWPORT = {
   display: 'flex',
@@ -138,12 +99,11 @@ const VIEWPORT = {
   zIndex: 50,
 } satisfies CSSProperties
 
-// The hamburger. Its padding and ink are on `.su-nav-drawer__trigger` instead,
-// because `triggerClassName` overrides them (The Cantina passes `p-1.5`).
+// The hamburger. Its padding and ink are on `.su-nav-drawer__trigger`, which
+// the Union bar's phone cluster resizes (`styles/partials/shell.css`).
 const TRIGGER = { ...TRANSITION_COLORS, borderRadius: radius.panel } satisfies CSSProperties
 
-// The panel. Its width is on `.su-nav-drawer__panel` instead, because
-// `panelClassName` overrides it (The Cantina passes `w-72`).
+// The panel. Its width is on `.su-nav-drawer__panel`.
 const PANEL = {
   backgroundColor: color.paper,
   display: 'flex',
@@ -184,10 +144,7 @@ export function NavDrawer({
   categories,
   search,
   extra,
-  footItems,
   LinkComponent = 'a',
-  triggerClassName,
-  panelClassName,
 }: NavDrawerProps) {
   const [open, setOpen] = useState(false)
   const close = () => setOpen(false)
@@ -199,7 +156,7 @@ export function NavDrawer({
           <button
             type="button"
             aria-label="Open menu"
-            className={cn('su-nav-drawer__trigger', FOCUS_RING, triggerClassName)}
+            className={cn('su-nav-drawer__trigger', FOCUS_RING)}
             style={TRIGGER}
           >
             <Menu size={24} aria-hidden="true" />
@@ -210,10 +167,7 @@ export function NavDrawer({
       <Drawer.Portal>
         <Drawer.Backdrop className="su-backdrop" />
         <Drawer.Viewport style={VIEWPORT}>
-          <Drawer.Popup
-            className={cn('su-drawer su-nav-drawer__panel', panelClassName)}
-            style={PANEL}
-          >
+          <Drawer.Popup className="su-drawer su-nav-drawer__panel" style={PANEL}>
             <Drawer.Title className="su-sr-only">Navigation menu</Drawer.Title>
 
             {/* Brand row: lockup | Close */}
@@ -294,28 +248,6 @@ export function NavDrawer({
                 })}
               </div>
             </div>
-
-            {footItems && footItems.length > 0 && (
-              <nav aria-label="More" style={FOOT}>
-                {footItems.map((item) => {
-                  const Link = item.external ? 'a' : LinkComponent
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={FOCUS_RING}
-                      style={FOOT_LINK}
-                      onClick={close}
-                      {...(item.external
-                        ? { target: '_blank', rel: 'noopener noreferrer' }
-                        : { 'aria-current': item.active ? ('page' as const) : undefined })}
-                    >
-                      {item.label}
-                    </Link>
-                  )
-                })}
-              </nav>
-            )}
           </Drawer.Popup>
         </Drawer.Viewport>
       </Drawer.Portal>

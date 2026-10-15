@@ -148,7 +148,7 @@ describe('the one install', () => {
 
   test('is the whole site, opening at its home page', () => {
     expect(manifest).toMatchObject({ id: '/', start_url: '/', scope: '/' })
-    expect(manifest.name).toBe('Salvage Union')
+    expect(manifest.name).toBe('SalvageUnion.io')
   })
 
   test('is linked from the same address every page names', () => {

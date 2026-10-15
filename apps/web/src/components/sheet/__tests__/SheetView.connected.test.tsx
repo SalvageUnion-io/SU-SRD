@@ -364,12 +364,12 @@ describe('the tab title', () => {
       'entities:listForGame': listing(),
     })
     await view('pilot', MY_PILOT.id)
-    expect(document.title).toBe('Roach-Boy · The Cantina')
+    expect(document.title).toBe('Roach-Boy · SalvageUnion.io')
 
     await act(async () => {
       useEntityStore.setState({ pilots: [{ ...MY_PILOT, name: 'Roach-Man' }] })
     })
-    expect(document.title).toBe('Roach-Man · The Cantina')
+    expect(document.title).toBe('Roach-Man · SalvageUnion.io')
   })
 
   test("a crewmate's sheet, not held here, keeps the generic title", async () => {
@@ -379,7 +379,7 @@ describe('the tab title', () => {
       'entities:listForGame': listing(),
     })
     await view('pilot', THEIR_PILOT.id)
-    expect(document.title).toBe('Sheet · The Cantina')
+    expect(document.title).toBe('Sheet · SalvageUnion.io')
   })
 })
 

@@ -22,6 +22,7 @@
 import { readAccountHint } from '../lib/accountHint'
 import { browserStorage, markSignedIn } from '../lib/accountState'
 import { initBrowserObservability, installChunkRecovery } from '../lib/observability'
+import { registerSiteWorker } from '../lib/sw/siteWorker'
 import { revealWikiLinks } from '../lib/wikiLink'
 import { replayInteraction, watchInteraction } from './interaction'
 import type { IslandComponent } from './islandRegistry'
@@ -167,6 +168,9 @@ if (guidePages.length > 0) {
       console.warn('[guide] could not watch the contents', error)
     })
 }
+
+// The site's one service worker, which keeps visited pages readable offline.
+registerSiteWorker()
 
 /**
  * Fill the offline page cache — but only for an installed app, and only once

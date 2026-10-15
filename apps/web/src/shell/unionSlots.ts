@@ -12,12 +12,6 @@ export type UnionSlot = (typeof UNION_SLOTS)[number]
 /** The selector for one slot. */
 export const slotSelector = (slot: UnionSlot): string => `[data-union-slot="${slot}"]`
 
-/** The Cantina's nav, as routes; the bar shows them under the base. */
-export const UNION_NAV = [
-  { label: 'Hangar', path: '/' },
-  { label: 'Starter Set', path: '/starter/' },
-] as const
-
 /**
  * Set on `<html>` while the page draws no Union bar: the Dashboard, which draws
  * its own (ADR-045 §6), and a link preview's render surface (`/og/*`). The

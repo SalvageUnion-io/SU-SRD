@@ -25,7 +25,6 @@
  * never has.
  */
 
-import { PRODUCT } from 'cantina-domain/product'
 import { color } from '../design/tokens'
 import { urlsetXml } from '../lib/sitemapXml'
 import type { StarterKind, StarterPage } from '../lib/starterSet/starterTemplates'
@@ -88,7 +87,7 @@ function publicMeta(page: PublicPage, origin: string, base: string): ShellMeta {
     ...page.words,
     url,
     canonical: url,
-    image: { url: `${origin}/og-image.png`, alt: PRODUCT.name },
+    image: { url: `${origin}/og-image.png`, alt: page.words.title },
   }
 }
 

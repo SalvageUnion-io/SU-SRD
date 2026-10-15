@@ -23,10 +23,14 @@ import { buildChapters } from '../lib/chapters'
 import { DISCORD_INSTALL_URL, SITE_URL } from '../lib/constants'
 import { itemHref } from '../lib/entityHref'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
+import { pageTitle } from '../lib/pageTitle'
 import '../lib/gameData'
 import { Island } from '../runtime/Island'
 
-const TITLE = 'Salvage Union System Reference Document'
+/** The site's name and what this page is: there is no page name to put ahead of it. */
+const TITLE = `${pageTitle()} · Salvage Union SRD`
+/** The WebSite structured data's name. */
+const WEBSITE_NAME = 'Salvage Union System Reference Document'
 const DESCRIPTION =
   'System Reference Document (SRD) for the Salvage Union TTRPG. Complete reference guide with chassis, systems, modules, abilities, and more.'
 
@@ -72,7 +76,7 @@ function page(): PageResult {
       structuredData: {
         '@context': 'https://schema.org',
         '@type': 'WebSite',
-        name: TITLE,
+        name: WEBSITE_NAME,
         url: SITE_URL,
       },
     },

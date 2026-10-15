@@ -11,14 +11,14 @@
 import type { PageModule, PageResult } from '../../ssg/types'
 import { HeroSearchStatic } from '../components/HeroSearch'
 import { NotFound } from '../components/NotFound'
-import { TITLE_SUFFIX } from '../lib/constants'
 import '../lib/gameData'
+import { pageTitle } from '../lib/pageTitle'
 import { Island } from '../runtime/Island'
 
 function page(): PageResult {
   return {
     meta: {
-      title: `404 - Page Not Found${TITLE_SUFFIX}`,
+      title: pageTitle('404 - Page Not Found'),
       description: 'The page you are looking for could not be found.',
       noindex: true,
     },

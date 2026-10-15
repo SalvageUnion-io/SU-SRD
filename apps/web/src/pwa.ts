@@ -68,6 +68,14 @@ import { APP_BASE } from './lib/appBase'
 export const SITE_MANIFEST = '/site.webmanifest'
 
 /**
+ * The one service worker: where it is served and what it controls, the whole
+ * origin. `vite.config.ts` builds it here, so the Cantina's
+ * `virtual:pwa-register` registers it here, and the reference pages'
+ * `registerSiteWorker` (`lib/sw/siteWorker.ts`) does the same.
+ */
+export const SITE_WORKER = { url: '/sw.js', scope: '/' } as const
+
+/**
  * The font subsets left out of the precache. Each `@fontsource` face ships
  * `latin`, `latin-ext` and `vietnamese` subsets split by `unicode-range`, and
  * the browser fetches a subset only when the page draws a glyph in its range;

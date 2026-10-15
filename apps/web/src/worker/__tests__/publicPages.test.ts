@@ -84,8 +84,8 @@ describe('a Starter Set build’s pre-rendered shell', () => {
 
   it('carries the build’s own title, description and canonical', () => {
     const html = shellFor(path)
-    expect(title(html)).toBe('Bonesaw · Starter Set Pilot · The Cantina')
-    expect(meta(html, 'og:title')).toBe('Bonesaw · Starter Set Pilot · The Cantina')
+    expect(title(html)).toBe('Bonesaw · Starter Set Pilot · SalvageUnion.io')
+    expect(meta(html, 'og:title')).toBe('Bonesaw · Starter Set Pilot · SalvageUnion.io')
     expect(meta(html, 'description')).toStartWith(
       'Bonesaw, a pre-generated Pilot from the Salvage Union Starter Set'
     )
@@ -116,7 +116,9 @@ describe('a Starter Set build’s pre-rendered shell', () => {
 
   it('names the crawler by its own name', () => {
     const html = shellFor(`/starter/crawler/${STARTER_CRAWLERS[0]?.id}`)
-    expect(title(html)).toBe("Crawler #430 'Tenacity' · Starter Set Union Crawler · The Cantina")
+    expect(title(html)).toBe(
+      "Crawler #430 'Tenacity' · Starter Set Union Crawler · SalvageUnion.io"
+    )
   })
 
   it('is the shell with only its meta block and title changed', () => {
@@ -131,7 +133,7 @@ describe('a Starter Set build’s pre-rendered shell', () => {
 describe('the Starter Set’s pre-rendered shell, and the front door', () => {
   it('gives the Starter Set its own title and canonical', () => {
     const html = shellFor('/starter')
-    expect(title(html)).toBe('Starter Set · The Cantina')
+    expect(title(html)).toBe('Starter Set · SalvageUnion.io')
     expect(meta(html, 'description')).toContain('Reclamation of the Wastes')
     expect(canonical(html)).toEqual([`${PROD}${BASE}/starter`])
   })
@@ -148,7 +150,7 @@ describe('the Starter Set’s pre-rendered shell, and the front door', () => {
   it("keeps the front door's defaults and adds its canonical, inside the meta block", async () => {
     const res = await worker.fetch(crawl('/'), env())
     const html = await res.text()
-    expect(title(html)).toBe('The Cantina')
+    expect(title(html)).toBe('The Cantina · SalvageUnion.io')
     expect(meta(html, 'og:image')).toBe(`${PROD}/og-image.png`)
     expect(canonical(html)).toEqual([`${PROD}${BASE}/`])
     expect(html.indexOf('rel="canonical"')).toBeLessThan(html.indexOf('<!-- cantina:meta:end -->'))

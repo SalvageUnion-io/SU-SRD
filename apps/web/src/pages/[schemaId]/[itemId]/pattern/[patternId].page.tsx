@@ -31,6 +31,7 @@ import { itemHref, patternHref, schemaHref } from '../../../../lib/entityHref'
 import { entityPageFoot } from '../../../../lib/entityPageFoot'
 import { getReferenceEntityData } from '../../../../lib/gameData'
 import { ogCardFor, ogMetaFor } from '../../../../lib/ogCard'
+import { pageTitle } from '../../../../lib/pageTitle'
 import { patternStaticSummary } from '../../../../lib/patternSummary'
 import { getPatternStaticPaths } from '../../../../lib/staticPaths'
 
@@ -83,7 +84,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
     ],
     isPartOf: {
       '@type': 'ItemPage',
-      name: `${hostName} - Salvage Union SRD`,
+      name: pageTitle(hostName),
       url: hostUrl,
     },
     mainEntity: {

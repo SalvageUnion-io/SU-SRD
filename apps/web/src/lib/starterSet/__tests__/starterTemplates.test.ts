@@ -14,16 +14,16 @@ import { starterPage, starterPages, starterPageTitle } from '../starterTemplates
 describe('starterPageTitle', () => {
   test("names the build and its kind, then the site's name", () => {
     expect(starterPageTitle('pilot', 'starter-pilot-bonesaw')).toBe(
-      'Bonesaw · Starter Set Pilot · The Cantina'
+      'Bonesaw · Starter Set Pilot · SalvageUnion.io'
     )
     expect(starterPageTitle('crawler', STARTER_CRAWLERS[0]?.id ?? '')).toBe(
-      "Crawler #430 'Tenacity' · Starter Set Union Crawler · The Cantina"
+      "Crawler #430 'Tenacity' · Starter Set Union Crawler · SalvageUnion.io"
     )
   })
 
   test("falls back to the Starter Set's own title for a build it does not hold", () => {
-    expect(starterPageTitle('pilot', 'starter-pilot-nobody')).toBe('Starter Set · The Cantina')
-    expect(starterPageTitle('npc', 'starter-pilot-bonesaw')).toBe('Starter Set · The Cantina')
+    expect(starterPageTitle('pilot', 'starter-pilot-nobody')).toBe('Starter Set · SalvageUnion.io')
+    expect(starterPageTitle('npc', 'starter-pilot-bonesaw')).toBe('Starter Set · SalvageUnion.io')
   })
 
   test('gives every build a title of its own', () => {

@@ -29,6 +29,7 @@ import { itemHref, schemaHref } from '../../lib/entityHref'
 import { entityPageFoot } from '../../lib/entityPageFoot'
 import { extractStaticEntitySummary, getReferenceEntityData } from '../../lib/gameData'
 import { ogCardFor, ogMetaFor } from '../../lib/ogCard'
+import { pageTitle } from '../../lib/pageTitle'
 import { columnsTablePageData, rollTablePageData } from '../../lib/rollTablePageData'
 import { getItemStaticPaths } from '../../lib/staticPaths'
 
@@ -93,7 +94,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
     keywords: ['Salvage Union', 'TTRPG', 'SRD', 'System Reference Document', schemaName, itemName],
     isPartOf: {
       '@type': 'CollectionPage',
-      name: `${schemaName} - Salvage Union SRD`,
+      name: pageTitle(schemaName),
       url: `${SITE_URL}${schemaHref(schemaId)}`,
     },
     mainEntity: {

@@ -15,10 +15,12 @@
  *     cache versioning, skipWaiting/clientsClaim logic — all solved by
  *     workbox already.
  *
- * ONE registration: the plugin's `virtual:pwa-register`. main.tsx imports it
- * and hands its `registerSW` to `registerServiceWorker` below; the plugin
- * injects no `/registerSW.js` into the built index.html (`injectRegister:
- * false` in vite.config.ts). The virtual module resolves
+ * The Cantina's registration: the plugin's `virtual:pwa-register`, of the
+ * site's one worker (`SITE_WORKER` in `src/pwa.ts`, which the reference pages
+ * register through `siteWorker.ts`). main.tsx imports it and hands its
+ * `registerSW` to `registerServiceWorker` below; the plugin injects no
+ * registration script into the built index.html (`injectRegister: false` in
+ * vite.config.ts). The virtual module resolves
  * only in Vite's build, so this file takes it as an argument and the tests
  * pass a stand-in. Under `vite dev` the plugin serves a no-op `registerSW`, so
  * HMR runs without a worker.

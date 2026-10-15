@@ -31,8 +31,9 @@ import { ColophonIsland } from '../components/islands/ColophonIsland'
 import { color, font, fontSize, space, tracking, weight } from '../design/tokens'
 import { appPath } from '../lib/appBase'
 import { builtAssetUrl, ELDRIDGE_COAST_MAP } from '../lib/builtAssets'
-import { SITE_URL, TITLE_SUFFIX } from '../lib/constants'
+import { SITE_URL } from '../lib/constants'
 import { BOLD, PROSE } from '../lib/docPageStyles'
+import { pageTitle } from '../lib/pageTitle'
 import { Island } from '../runtime/Island'
 
 /** Repo root, relative to this module — `apps/web/src/pages` -> four levels up. */
@@ -45,7 +46,7 @@ const aboutJrvsMd = readFileSync(repoRootFile('ABOUT_JRVS.md'), 'utf8')
 const llmStatementMd = readFileSync(repoRootFile('LLM_STATEMENT.md'), 'utf8')
 const specialThanksMd = readFileSync(repoRootFile('SPECIAL_THANKS.md'), 'utf8')
 
-const TITLE = `About${TITLE_SUFFIX}`
+const TITLE = pageTitle('About')
 const DESCRIPTION = `About salvageunion.io, an open-source System Reference Document for the Salvage Union TTRPG by Leyline Press, and ${PRODUCT.name}, its character builder.`
 
 const imageAltText = 'Map of The Eldridge Coast, created using Shmeppy.com'
@@ -170,7 +171,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
       structuredData: {
         '@context': 'https://schema.org',
         '@type': 'AboutPage',
-        name: 'About the Salvage Union SRD',
+        name: TITLE,
         description:
           'About salvageunion.io, an open-source System Reference Document for the Salvage Union TTRPG by Leyline Press.',
         url: `${SITE_URL}/about/`,

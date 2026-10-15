@@ -22,7 +22,7 @@ import { CHECKOUT_HEADER, CHECKOUT_ROOT } from 'gates/ports'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import { ROUTER_PLUGIN_OPTIONS } from './routeTree.config'
-import { WORKBOX_OPTIONS } from './src/pwa'
+import { SITE_WORKER, WORKBOX_OPTIONS } from './src/pwa'
 import { emitBaseStylesheet } from './src/styles/baseStylesheet'
 import { appGraph } from './ssg/appGraph'
 import {
@@ -80,12 +80,15 @@ export default defineConfig({
     // `src/pwa.ts`). 'prompt', NOT 'autoUpdate': under 'autoUpdate' the plugin
     // force-assigns `skipWaiting` and `clientsClaim`, so a new worker would
     // take over an open builder tab and drop the precache entries it still
-    // reads from. `public/sw-lifecycle.js` decides instead. The builder
-    // registers through `virtual:pwa-register` (`src/main.tsx`), the
-    // reference's pages through `public/registerSW.js`; neither is injected.
+    // reads from. `public/sw-lifecycle.js` decides instead. Both render modes
+    // register this one `SITE_WORKER`: the builder through
+    // `virtual:pwa-register` (`src/main.tsx`), the reference's pages through
+    // `registerSiteWorker` (`src/lib/sw/siteWorker.ts`); neither is injected.
     VitePWA({
       registerType: 'prompt',
       injectRegister: false,
+      filename: SITE_WORKER.url.slice(1),
+      scope: SITE_WORKER.scope,
       // The site's one manifest (`public/site.webmanifest`, `src/pwa.ts`).
       manifest: false,
       workbox: WORKBOX_OPTIONS,

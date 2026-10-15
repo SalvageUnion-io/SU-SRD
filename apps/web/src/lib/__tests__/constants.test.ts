@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'bun:test'
 import { entityTitle, SITE_URL, TITLE_MAX } from '../constants'
-import { THEME_COLOR } from '../documentHead'
+import { SITE_NAME, THEME_COLOR } from '../documentHead'
+import { pageTitle } from '../pageTitle'
 
 describe('SITE_URL', () => {
   it('equals the production site URL', () => {
@@ -17,19 +18,31 @@ describe('THEME_COLOR', () => {
   })
 })
 
+describe('the site name', () => {
+  it("is the web manifest's name, and every title's suffix", async () => {
+    const manifest = await Bun.file(
+      new URL('../../../public/site.webmanifest', import.meta.url)
+    ).json()
+    expect(manifest.name).toBe(SITE_NAME)
+    expect(manifest.short_name).toBe(SITE_NAME)
+    expect(pageTitle('Changelog')).toBe('Changelog · SalvageUnion.io')
+    expect(pageTitle()).toBe('SalvageUnion.io')
+  })
+})
+
 describe('entityTitle', () => {
   it('names the kind and the site when they fit', () => {
-    expect(entityTitle('Mule', 'Chassis')).toBe('Mule - Chassis · Salvage Union SRD')
+    expect(entityTitle('Mule', 'Chassis')).toBe('Mule - Chassis · SalvageUnion.io')
   })
 
   it('drops the kind first when the title would run long', () => {
-    expect(entityTitle('Electro-Magnetic Shield Projector', 'Roll Table')).toBe(
-      'Electro-Magnetic Shield Projector · Salvage Union SRD'
+    expect(entityTitle('Electro-Magnetic Shield Projector Array', 'Roll Table')).toBe(
+      'Electro-Magnetic Shield Projector Array · SalvageUnion.io'
     )
   })
 
   it('drops the site last, for a name that needs the whole line', () => {
-    const name = 'Salvage Cache Table (Reclamation of the Wastes)'
+    const name = 'Relics of a Time Gone By Exterior Encounters Table'
     expect(entityTitle(name, 'Roll Table')).toBe(name)
   })
 

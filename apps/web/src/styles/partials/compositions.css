@@ -96,10 +96,8 @@
   min-width: var(--space-24);
 }
 
-/* NavDrawer (`compositions/NavDrawer.tsx`). The trigger's padding and ink, and the
-   panel's width, are classes because the app overrides them through
-   `triggerClassName` / `panelClassName`: an app stylesheet class still beats
-   this layer, where an inline style would not. */
+/* NavDrawer (`compositions/NavDrawer.tsx`). The trigger's padding and ink are a
+   class because the Union bar's phone cluster resizes it (`shell.css`). */
 .su-nav-drawer__trigger {
   color: var(--color-paper);
   padding: var(--space-8);

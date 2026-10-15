@@ -23,7 +23,7 @@ import type { PageModule, PageResult, RouteContext } from '../../../ssg/types'
 import { ChapterBand } from '../../components/index'
 import { SchemaViewerListing } from '../../components/islands/SchemaViewerIsland'
 import { chapterForSchema } from '../../lib/chapters'
-import { CONTENTS_CRUMB, SITE_URL, TITLE_SUFFIX } from '../../lib/constants'
+import { CONTENTS_CRUMB, SITE_URL } from '../../lib/constants'
 import { schemaHref } from '../../lib/entityHref'
 import { getUniqueSources, getUniqueTechLevels, getUniqueTrees } from '../../lib/gameData'
 import { listingEntries } from '../../lib/listingEntries'
@@ -31,6 +31,7 @@ import type { ListingGroup, ListingShape } from '../../lib/listingGroups'
 import { defaultGroups } from '../../lib/listingGroups'
 import { CATALOG_LISTINGS, defaultListingView } from '../../lib/listingView'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
+import { pageTitle } from '../../lib/pageTitle'
 import { getSchemaPreloadList } from '../../lib/schemaPreloadDeps'
 import { getSchemaStaticPaths } from '../../lib/staticPaths'
 import { Island } from '../../runtime/Island'
@@ -75,7 +76,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
 
   return {
     meta: {
-      title: `${schemaName}${TITLE_SUFFIX}`,
+      title: pageTitle(schemaName),
       description,
       canonical: canonicalUrl,
       structuredData: {
