@@ -376,7 +376,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
           {/* House rules: where the tools depart from the book. */}
           <HouseRules />
 
-          {/* Colophon: About the Dev + Special Thanks + support | LLM Statement.
+          {/* Colophon: About the Dev + support + Special Thanks | LLM Statement.
                 `ssr` per DESIGN.md's per-island table — the prose is worth indexing. */}
           <Island
             name="ColophonIsland"
