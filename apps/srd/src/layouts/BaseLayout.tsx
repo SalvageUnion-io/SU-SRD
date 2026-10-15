@@ -11,7 +11,7 @@
  * make `ssg/` a runtime dependency of the app.
  */
 
-import { Footer } from 'component-lib'
+import { BreadcrumbTrail, ChapterBandTrail, Footer } from 'component-lib'
 import { color } from 'component-lib/design/tokens'
 import type { CSSProperties, ReactNode } from 'react'
 import type { DocumentMeta, PageFoot } from '../../ssg/types'
@@ -211,7 +211,21 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
             order; -1 means "focusable by script or fragment, not by Tab".
           */}
           <main id="main-content" tabIndex={-1} style={MAIN}>
-            {children}
+            {/* The trail again for the page's band, which carries it wherever
+                the bar has no room (`ChapterBandTrail`); one of the three is
+                displayed at any width. */}
+            <ChapterBandTrail.Provider
+              value={
+                trail &&
+                trail.length > 0 && (
+                  <nav aria-label="Breadcrumb" className="su-crumbs su-crumbs--band">
+                    <BreadcrumbTrail breadcrumbs={trail} description={breadcrumbDescription} />
+                  </nav>
+                )
+              }
+            >
+              {children}
+            </ChapterBandTrail.Provider>
           </main>
           <Footer
             links={SITE_LINKS}

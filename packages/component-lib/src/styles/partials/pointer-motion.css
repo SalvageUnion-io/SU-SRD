@@ -39,4 +39,10 @@
   .su-union-bar {
     --su-union-bar-control: 44px;
   }
+
+  /* A show page's band action is the bar's button, so it takes the same floor
+     (and centres on the title by it, `shell.css`). */
+  .su-chapter-band__action {
+    --su-band-action: 44px;
+  }
 }
