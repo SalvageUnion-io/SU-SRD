@@ -698,6 +698,19 @@ a.srd-home__discord:hover {
   padding: 4px;
 }
 
+/* On a phone a tile's art is a 2:1 band (`.su-entity-tile__art`,
+   component-lib's `entity-forms.css`), not 3:4: 310px a tile at 390px, so
+   the reserve and the skeleton's art box take that shape. */
+@media (max-width: 40rem) {
+  .srd-listing__tiles > li:nth-child(n + 5) {
+    contain-intrinsic-size: auto calc(19.375rem + 8px);
+  }
+
+  .srd-listing__tile-skeleton::before {
+    aspect-ratio: 2 / 1;
+  }
+}
+
 /* An art-less Catalog's tile is its band and lead alone (`data-catalog`). */
 .srd-listing[data-catalog] .srd-listing__tiles > li:nth-child(n + 5) {
   contain-intrinsic-size: auto calc(9rem + 8px);

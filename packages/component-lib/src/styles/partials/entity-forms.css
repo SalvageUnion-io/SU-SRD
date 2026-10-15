@@ -686,6 +686,46 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
   }
 }
 
+/* The art's window (`Tile.tsx`'s `tileArtWindow`, set only on measured art):
+   at a tablet's or desktop's width it is not a box, and the art draws whole
+   at 3:4 as above. */
+.su-entity-tile__window {
+  display: contents;
+}
+
+/* On a phone the catalog is one column, and a 3:4 art box ran ~470px a tile
+   (a 31,000px chassis index). There the art place is a 2:1 band, and the
+   window inside it takes the line art's own aspect, as tall as the band's
+   inset allows (narrower than the band for a wide ink), so the canvas's empty
+   margin falls outside it and no line is cut off. Art with no measured box
+   draws whole in the band; a censor mark fills it. The band, chips and lead
+   are unchanged. */
+@media (max-width: 40rem) {
+  .su-entity-tile__art {
+    aspect-ratio: 2 / 1;
+    container-type: inline-size;
+    overflow: hidden;
+  }
+
+  .su-entity-tile__window {
+    aspect-ratio: var(--su-art-aspect);
+    display: block;
+    margin: auto;
+    overflow: hidden;
+    position: relative;
+    width: min(100cqw - 2 * var(--space-10), (50cqw - 2 * var(--space-10)) * var(--su-art-aspect));
+  }
+
+  .su-entity-tile__window img {
+    height: var(--su-tile-art-height);
+    inset: auto;
+    left: var(--su-tile-art-left);
+    max-width: none;
+    top: var(--su-tile-art-top);
+    width: var(--su-tile-art-width);
+  }
+}
+
 /* A tile without art (`--bare`) has no art place: it opens on its band. In a
    list that mixes it with art-led tiles, its frame keeps its own height
    rather than stretching to theirs as an empty block of paper. */

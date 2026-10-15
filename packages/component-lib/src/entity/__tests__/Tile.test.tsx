@@ -7,6 +7,7 @@ import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
+import { readPackageStylesheet } from '../../styles/__tests__/packageStylesheet'
 import { Entity } from '../Entity'
 
 const need = <T,>(value: T | undefined, label: string): T => {
@@ -117,6 +118,25 @@ describe('Tile art', () => {
     const { container } = render(<Entity form="tile" entity={mule()} missingArt={0} />)
     expect(container.querySelector('.su-missing-art')).toBeNull()
     expect(container.querySelector('.su-entity-tile__art img')).not.toBeNull()
+  })
+
+  test("measured art sits in a window carrying its ink box, for the phone's band", () => {
+    const { container } = render(<Entity form="tile" entity={mule()} />)
+    const window = container.querySelector('.su-entity-tile__art > .su-entity-tile__window')
+    if (!(window instanceof HTMLElement)) throw new Error('no art window')
+    expect(window.querySelector('img')).not.toBeNull()
+    expect(window.style.getPropertyValue('--su-art-aspect')).toBe('0.9454')
+    for (const side of ['left', 'top', 'width', 'height'])
+      expect(window.style.getPropertyValue(`--su-tile-art-${side}`)).toMatch(/%$/)
+  })
+
+  test('on a phone the art place is a 2:1 band; wider, the window is no box', () => {
+    const css = readPackageStylesheet().replace(/\/\*[\s\S]*?\*\//g, '')
+    expect(css).toMatch(/\.su-entity-tile__window\s*\{\s*display: contents;/)
+    const phone = css.slice(css.indexOf('.su-entity-tile__window {'))
+    expect(phone).toMatch(
+      /@media \(max-width: 40rem\)\s*\{\s*\.su-entity-tile__art\s*\{\s*aspect-ratio: 2 \/ 1;/
+    )
   })
 })
 
