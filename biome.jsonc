@@ -474,6 +474,42 @@
       }
     },
     {
+      // The one srd file that may import the Cantina: the Worker hands
+      // `/build` to the Cantina's Worker (`cantina/worker`, its one export), so
+      // one Worker serves both (the one-app plan, phase 1). Only that entry:
+      // no SRD page, island or runtime can reach the Cantina. The rest of the
+      // srd rule is restated, as Biome overrides replace a rule's options.
+      "includes": ["apps/srd/src/worker/build.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses).",
+                  "react": {
+                    "importNames": ["forwardRef"],
+                    "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
+                  }
+                },
+                "patterns": [
+                  {
+                    "group": ["@/*"],
+                    "message": "Use relative imports instead of @/ path aliases."
+                  },
+                  {
+                    "group": ["**/apps/cantina/**", "cantina/**", "!cantina/worker"],
+                    "message": "srd's Worker reaches the Cantina only through 'cantina/worker'."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
       "includes": ["apps/cantina/**"],
       "linter": {
         "rules": {

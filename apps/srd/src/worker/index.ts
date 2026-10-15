@@ -1,6 +1,7 @@
 /**
  * salvageunion.io — the static SRD on Workers Static Assets (ADR-033). Every
- * page is pre-rendered; this script answers only the requests no file matches.
+ * page is pre-rendered; this script answers only the requests no file matches,
+ * and everything under `/build`, which is the Cantina's (`./build.ts`).
  *
  * ## What reaches this script, and what does not
  *
@@ -8,6 +9,8 @@
  * served as itself and never runs this script. `not_found_handling` is `none`,
  * so a miss lands here instead of on the platform's `404-page` handling:
  *
+ *   B. `/build` and below → the Cantina (`./build.ts`). `run_worker_first`
+ *      sends these here before Static Assets looks, files and all.
  *   0. `POST /__errors` → a browser error report, logged for Workers Issues
  *      (`observability/cloudflare`'s `handleErrorReport`).
  *   1. `/assets/*` → a bare **404**.
@@ -35,8 +38,10 @@
 import type { RateLimiter } from 'observability/cloudflare'
 import { ERROR_REPORT_PATH, handleErrorReport } from 'observability/cloudflare'
 import { currentPathFor } from '../lib/legacyPaths'
+import type { BuildEnv } from './build'
+import { isBuildPath, serveBuild } from './build'
 
-export type Env = {
+export type Env = BuildEnv & {
   /** Static assets (the built site), with `not_found_handling: none`. */
   ASSETS: { fetch(request: Request): Promise<Response> }
   /** Caps error reports per address (`wrangler.jsonc`); absent in a Preview. */
@@ -56,6 +61,9 @@ function notFound(body: BodyInit | null, headers?: HeadersInit): Response {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url)
+
+    // B. The Cantina, under its base.
+    if (isBuildPath(url.pathname)) return serveBuild(request, env)
 
     // 0. A browser error report.
     if (url.pathname === ERROR_REPORT_PATH) {

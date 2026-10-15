@@ -75,6 +75,10 @@ jobs:
             web:
               - *shared
               - 'apps/srd/**'
+              # srd's Worker serves /build through `cantina/worker`, and the
+              # Cantina's link previews read cantina-domain
+              - 'apps/cantina/**'
+              - 'packages/cantina-domain/**'
               - 'packages/component-lib/**'
               - 'packages/gates/**'
             bot:

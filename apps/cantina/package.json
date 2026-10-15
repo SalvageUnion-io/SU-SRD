@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "exports": {
+    "./worker": "./src/worker/index.ts"
+  },
   "license": "Salvage Union Open Game Licence 1.0b",
   "scripts": {
     "dev": "ref-generate && bun scripts/assert-local-convex.ts && VITE_TEST_AUTH=true convex dev --start vite",

@@ -19,8 +19,8 @@ In-house SSG in `ssg/`, not Astro ([ADR-031](../../docs/ARCHITECTURE.md#decision
 - **Tooling:** Biome (`bun run lint`) and TypeScript 7 (`bun run typecheck`).
 - **Deployment:** Cloudflare Workers Static Assets (`wrangler.jsonc`). Every
   page is pre-rendered; the Worker script (`src/worker/index.ts`) runs only for
-  a miss, answering it 404 with `no-store` so a missing chunk is never cached.
-  `/build*` on the same host is Cantina's Worker route, not srd's (ADR-048).
+  a miss (404, `no-store`), and first for `/build/*`, which `src/worker/build.ts`
+  hands to `cantina/worker`.
 
 ## Architecture
 

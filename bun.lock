@@ -78,6 +78,7 @@
         "@base-ui/react": "catalog:",
         "@fontsource/barlow": "catalog:",
         "@fontsource/barlow-semi-condensed": "catalog:",
+        "cantina": "workspace:*",
         "component-lib": "workspace:*",
         "lucide-react": "catalog:",
         "observability": "workspace:*",
