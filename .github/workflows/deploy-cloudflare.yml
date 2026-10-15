@@ -546,7 +546,9 @@ jobs:
         run: |
           set -euo pipefail
           api() {
-            curl -sS -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4$@"
+            local path=$1
+            shift
+            curl -sS -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4$path" "$@"
           }
           name=$(bun -e 'console.log(Bun.JSONC.parse(await Bun.file("wrangler.jsonc").text()).name)')
           zone_id=$(api "/zones?name=$ZONE" | jq -r '.result[0].id // empty')
