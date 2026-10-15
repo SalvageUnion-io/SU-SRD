@@ -20,7 +20,7 @@ In-house SSG in `ssg/`, not Astro ([ADR-031](../../docs/ARCHITECTURE.md#decision
 - **Deployment:** Cloudflare Workers Static Assets (`wrangler.jsonc`). Every
   page is pre-rendered; the Worker script (`src/worker/index.ts`) runs only for
   a miss, answering it 404 with `no-store` so a missing chunk is never cached.
-  `/build*` on the same host is ITUN's Worker route, not srd's (ADR-048).
+  `/build*` on the same host is Cantina's Worker route, not srd's (ADR-048).
 
 ## Architecture
 
@@ -87,4 +87,4 @@ Entity and pattern pages carry a Discord Component Embed
 
 ## Changelog
 
-A `feat(srd):` or `feat(itun):` (or `fix`/`perf`) PR title reaches the generated `/changelog` page, the one changelog both tools share (as Site or App entries). The About page is shared the same way: ITUN links to both and keeps no copy.
+A `feat(srd):` or `feat(cantina):` (or `fix`/`perf`) PR title reaches the generated `/changelog` page, the one changelog both tools share (as Site or App entries). The About page is shared too: The Cantina links to it.

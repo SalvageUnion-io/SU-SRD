@@ -32,7 +32,7 @@
       // redundant pattern.
       "project": ["src/**/*.ts"]
     },
-    "packages/itun-domain": {
+    "packages/cantina-domain": {
       // No `entry`: knip derives the subpaths from the manifest's `exports`
       // wildcard, as for `packages/observability`.
       "project": ["src/**/*.ts"]
@@ -59,7 +59,7 @@
       ],
       "project": ["src/**/*.{ts,tsx}", "ssg/**/*.{ts,tsx}"]
     },
-    "apps/itun": {
+    "apps/cantina": {
       "entry": [
         "src/routes/**/*.tsx",
         // The Worker entry (`src/worker/index.ts`) is NOT listed: knip's

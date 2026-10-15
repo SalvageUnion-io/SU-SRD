@@ -17,8 +17,8 @@
  *   (`.claude/launch.json`, `autoPort`) always starts a server with `PORT` set
  *   to the port it waits on: the base port, or a free one when another
  *   checkout holds that. `tools/shot.ts` passes `PORT` too (and `--port` to
- *   ITUN's Vite, which leaves its port at 5173 for `bun run dev:itun`).
- * - Every server, ITUN's Vite included, answers with
+ *   The Cantina's Vite, which leaves its port at 5173 for `bun run dev:cantina`).
+ * - Every server, the Cantina's Vite included, answers with
  *   `x-su-checkout: <this checkout's root>`, so a client that finds its port
  *   busy can tell its own server from another checkout's (a collision, or a
  *   stale process) and refuse the latter, as `tools/shot.ts` does.
@@ -29,14 +29,14 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 /**
- * The ports the primary checkout listens on. `itun` is ITUN booted signed out
- * with no backend, `bun run shot itun:/route`'s own server; `bun run dev:itun`
+ * The ports the primary checkout listens on. `cantina` is the Cantina booted signed out
+ * with no backend, `bun run shot cantina:/route`'s own server; `bun run dev:cantina`
  * is not on it, and stays on 5173, where its local Convex backend expects it.
  */
-export const BASE_PORTS = { srd: 4321, itun: 5180 } as const
+export const BASE_PORTS = { srd: 4321, cantina: 5180 } as const
 
-/** `bun run dev:itun`'s port: Vite's default, where its local Convex backend expects it. */
-export const ITUN_DEV_PORT = 5173
+/** `bun run dev:cantina`'s port: Vite's default, where its local Convex backend expects it. */
+export const CANTINA_DEV_PORT = 5173
 export type DevServer = keyof typeof BASE_PORTS
 
 /** The response header each dev server names its checkout in. */

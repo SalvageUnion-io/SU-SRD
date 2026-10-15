@@ -123,7 +123,7 @@ function OgCardResolved() {
   )
 }
 
-/** The default preview's kicker; the Discord banner's says ITUN's. */
+/** The default preview's kicker; the Discord banner's says the Cantina's. */
 const SRD_KICKER = 'The Salvage Union SRD'
 
 /**

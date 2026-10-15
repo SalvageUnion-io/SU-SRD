@@ -32,7 +32,7 @@ import { PAGE_MEASURE } from '../lib/pageMeasure'
 /**
  * The band's link back to what this entity is built on, leading the cluster
  * beside the title: the label-first chip every fact is (`PATTERN OF | Mule`,
- * EDL E9), ITUN's sheet band's `CHASSIS | Mazona` chip — it opens the parent's
+ * EDL E9), the Cantina's sheet band's `CHASSIS | Mazona` chip — it opens the parent's
  * page and Peeks it.
  */
 function ParentLink({ label, entityRef, href }: EntityParent) {
@@ -44,7 +44,7 @@ type EntityParent = { label: string; entityRef: EntityRef; href: string }
 
 /**
  * A creation guide's foot (`guideExitsFor`): the page ends on a way out, as
- * the book's chapter openers end on an exit arrow. "Build" hands off to ITUN's
+ * the book's chapter openers end on an exit arrow. "Build" hands off to the Cantina's
  * wizard, "Next" walks on to the following guide, and the Starter Set is the
  * shortcut past building at all.
  */
@@ -82,7 +82,7 @@ type EntityPageFrameProps = {
   parent?: EntityParent
   /** A pattern the book sanctions as a starting build: the band wears its stamp. */
   legalStartingPattern?: boolean
-  /** "Build With This": the deep link into ITUN's builder (`buildLinkFor`), ending the cluster. */
+  /** "Build With This": the deep link into the Cantina's builder (`buildLinkFor`), ending the cluster. */
   build?: BuildLink | null
   /** A creation guide's way out (`guideExitsFor`), under the body. */
   exits?: GuideExits | null

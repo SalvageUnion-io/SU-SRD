@@ -9,7 +9,7 @@ import { formatProvenance } from './provenance'
 type EntityCardIdentityFooterProps = {
   /**
    * Entity KIND (e.g. "Chassis") — the caps label on the LEFT of the row. Only
-   * a Page's foot names it (E9: ITUN's detail dialog); a card's and a Peek's
+   * a Page's foot names it (E9: The Cantina's detail dialog); a card's and a Peek's
    * pass none.
    */
   typeLabel?: string | undefined
@@ -28,7 +28,7 @@ type EntityCardIdentityFooterProps = {
    * footer's right side, before the source/page. */
   footMeta?: CardFootMeta[]
   /**
-   * App-supplied cross-link (ITUN's "View in SRD"), sourced from
+   * App-supplied cross-link (The Cantina's "View in SRD"), sourced from
    * `EntityExternalLinkProvider`. Full extent only — the card passes
    * `undefined` for head/catalog so listings stay uncluttered.
    */

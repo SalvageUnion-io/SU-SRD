@@ -10,7 +10,7 @@ import { Stat } from '../atoms/Stat'
 import { grainClass } from '../referenceEntity/card/cardGrain'
 
 /**
- * StartHere — the one onboarding both fronts show: the SRD's home and ITUN's
+ * StartHere — the one onboarding both fronts show: the SRD's home and the Cantina's
  * front door. Three steps in the order a new crew walks them, each a catalog
  * tile (`.su-entity-tile`, owner's call 2026-10-14): its chapter's tone band
  * with the title notched into its foot and a `STEP | n` chip beside it, then
@@ -18,10 +18,10 @@ import { grainClass } from '../referenceEntity/card/cardGrain'
  * spelled once here, so the two tools cannot drift into two onboardings again.
  *
  * What each tool adds is a prop: an `href` per step (the SRD opens the book's
- * creation guide; ITUN, signed out, has nowhere to send them yet).
+ * creation guide; the Cantina, signed out, has nowhere to send them yet).
  *
  * The tiles stack in the SRD's 20rem sidebar and on a phone, and run three
- * across once the block is 48rem wide (ITUN's front door) — the
+ * across once the block is 48rem wide (The Cantina's front door) — the
  * `.su-start-here__steps` container query.
  */
 

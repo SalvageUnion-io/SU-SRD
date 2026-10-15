@@ -7,7 +7,7 @@ import { Speckle } from '../atoms/Speckle'
 
 /**
  * AppBar — the Union bar: the one masthead both SU tools wear (ruleset §3.11,
- * "One union, two tools"; origin board 05). The SRD `TopNavigation` and the ITUN
+ * "One union, two tools"; origin board 05). The SRD `TopNavigation` and the Cantina
  * `AppHeader` are thin presets over it.
  *
  * One lockup (the SU mark alone, no wordmark), then the **Reference | Build**
@@ -23,7 +23,7 @@ import { Speckle } from '../atoms/Speckle'
  * (`--su-union-bar-control`, `styles/partials/shell.css`), the product
  * nav inline beside the switcher from `lg`, and the search entry at the same
  * place in the same shape (`SearchField` / `SearchFieldTrigger`). There are no
- * densities: the SRD's 64px bar and ITUN's 48px one were two products.
+ * densities: the SRD's 64px bar and the Cantina's 48px one were two products.
  *
  * ## Breadcrumbs
  *
@@ -58,7 +58,7 @@ type AppBarNavItem = {
 }
 
 /**
- * A nav entry the app renders itself — a control, not a link (ITUN's Games
+ * A nav entry the app renders itself — a control, not a link (The Cantina's Games
  * menu). It takes its place in the nav's order and the bar knows nothing of it.
  */
 export type AppBarNavSlot = {
@@ -78,12 +78,12 @@ type AppBarProps = {
   product: AppBarProduct
   /** Where "Reference" goes — the SRD's home. */
   referenceHref: string
-  /** Where "Build" goes — ITUN's home. */
+  /** Where "Build" goes — the Cantina's home. */
   buildHref: string
   /** Link component for the brand + internal links. Defaults to a plain anchor. */
   LinkComponent?: ElementType
   /**
-   * The SU mark's URL. The app's own copy: ITUN serves its files under
+   * The SU mark's URL. The app's own copy: The Cantina serves its files under
    * `/build/` (ADR-048), so the root's is srd's on one origin and missing on
    * any other.
    */
@@ -92,14 +92,14 @@ type AppBarProps = {
   /** The product's own nav (desktop), inline beside the switcher. */
   navItems?: AppBarNavEntry[]
   /**
-   * Desktop search slot — the SRD's `SearchField` combobox or ITUN's
+   * Desktop search slot — the SRD's `SearchField` combobox or the Cantina's
    * `SearchFieldTrigger`: one shape, `su-union-bar__search-input` wide.
    */
   search?: ReactNode
   /** "Buy the game" outbound link. Omit to hide. */
   buyHref?: string
   /**
-   * Desktop controls at the right end of the bar — app-owned (ITUN's account
+   * Desktop controls at the right end of the bar — app-owned (The Cantina's account
    * menu). A slot rather than nav data because these are controls, not links.
    * Desktop only: the `mobile` slot carries whatever the app wants below `lg`.
    */

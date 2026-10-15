@@ -6,11 +6,11 @@ import { sheetCommand } from '../commands/sheet'
 import { fakeExecute } from './fakeInteraction'
 
 /**
- * **The reference bot must keep working when In The Union Now does not.**
+ * **The reference bot must keep working when the Cantina does not.**
  *
  * Roll and lookup are the thing people already use, and ADR-030's first
  * principle is that accounts must not gate or alter anything that worked
- * without them. So when the ITUN client cannot help — the deployment is down,
+ * without them. So when the Cantina client cannot help — the deployment is down,
  * or (as in every test here) the client is unconfigured — rolling and looking
  * up are untouched, and every Game command says why it cannot help rather than
  * failing.
@@ -59,7 +59,7 @@ describe('with The Cantina unavailable', () => {
     await command.execute(interaction)
 
     // Registered but honest: the command exists, defers ephemerally, and says
-    // it cannot reach In The Union Now — worded as an outage, never as a
+    // it cannot reach the Cantina — worded as an outage, never as a
     // permissions problem, and posting nothing to the channel.
     expect(deferred.called).toBe(true)
     expect(deferred.ephemeral).toBe(true)

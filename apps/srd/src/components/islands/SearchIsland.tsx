@@ -216,7 +216,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
         load()
         setDismissedResults(null)
       }}
-      // The bar's width is the Union bar's (ITUN's trigger shares it), a class
+      // The bar's width is the Union bar's (The Cantina's trigger shares it), a class
       // so the mobile sheet can widen it.
       className={hero ? undefined : 'su-union-bar__search-input'}
       containerClassName={hero ? 'srd-hero-search__field' : undefined}

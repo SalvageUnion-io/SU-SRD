@@ -16,7 +16,7 @@
  */
 
 import { AppBar, cn, FOCUS_RING } from 'component-lib'
-import { ITUN_URL } from '../lib/constants'
+import { CANTINA_URL } from '../lib/constants'
 import { WIKI_LINK_ATTRIBUTE } from '../lib/wikiLink'
 import { Island } from '../runtime/Island'
 import { MobileNavIsland } from './islands/MobileNavIsland'
@@ -67,7 +67,7 @@ export function TopNavigation({
     <AppBar
       product="reference"
       referenceHref="/"
-      buildHref={ITUN_URL}
+      buildHref={CANTINA_URL}
       buyHref="https://leyline.press/collections/salvage-union"
       breadcrumbs={breadcrumbs}
       breadcrumbDescription={breadcrumbDescription}

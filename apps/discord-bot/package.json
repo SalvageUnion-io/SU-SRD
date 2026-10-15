@@ -22,7 +22,7 @@
     "@randsum/salvageunion": "catalog:",
     "component-lib": "workspace:*",
     "discord-api-types": "0.38.53",
-    "itun-domain": "workspace:*",
+    "cantina-domain": "workspace:*",
     "observability": "workspace:*",
     "salvageunion-reference": "workspace:*"
   }

@@ -11,7 +11,7 @@ import { useInsidePeek, usePeekAttrs } from '../peekContext'
  * pattern of: the label-first horizontal `Stat` chip every fact is (EDL E9,
  * ruleset §3.7), and, like a Tag, a way to the entity it names. It opens that
  * entity — `href` where the caller has the route, else the surface's (the
- * SRD's page, ITUN's detail dialog) — and Peeks it on hover, focus or a long
+ * SRD's page, the Cantina's detail dialog) — and Peeks it on hover, focus or a long
  * press. Inside a Peek it only reads (E16).
  *
  * The chip wraps rather than cutting the name (E18).

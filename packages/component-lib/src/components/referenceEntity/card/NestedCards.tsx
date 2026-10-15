@@ -225,7 +225,7 @@ function NestedCardList({
  * A DEPTH-2 child: a Row (board E2, entity display language E6), the third
  * level as a link. It opens the entity instead of expanding in place — the
  * detail page where the app links out (srd, an `EntityDetailLinkProvider` and
- * an href), else the detail dialog's Page (ITUN). A synthesised entity (no dataset
+ * an href), else the detail dialog's Page (The Cantina). A synthesised entity (no dataset
  * row) and a Row inside a tooltip are read-only.
  */
 function NestedRow({ data, host }: { data: ReferenceCardEntity; host: NestedCardHost }) {

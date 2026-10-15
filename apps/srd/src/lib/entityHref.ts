@@ -7,7 +7,7 @@ import { getEntitySlug, nameToSlug, srdEntityPath, srdSchemaPath } from 'salvage
  *
  * The grammar itself — which segments in which order — lives in
  * `salvageunion-reference/lib/assets.ts` (`srdSchemaPath` / `srdEntityPath`),
- * because the Discord bot and ITUN link into this site and must build the same
+ * because the Discord bot and the Cantina link into this site and must build the same
  * paths. This module adds the one thing that is genuinely srd's own: the
  * trailing slash its directory-style output wants.
  *

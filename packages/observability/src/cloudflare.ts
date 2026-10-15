@@ -22,7 +22,7 @@
  *   groups it like a Worker's own. The stacks stay minified: Cloudflare maps
  *   only a Worker's own code.
  * - **Convex.** A Convex log stream (a webhook, configured in the Convex
- *   dashboard) posts the deployment's logs to the ITUN Worker
+ *   dashboard) posts the deployment's logs to the Cantina Worker
  *   ({@link handleConvexLogStream}), which logs each failed function and each
  *   `console.error` as an `Error`.
  */
@@ -48,12 +48,12 @@ export type RateLimiter = {
 
 /**
  * Where a browser app posts its errors, under the app's own base: srd's at
- * `/__errors`, ITUN's at `/build/__errors`. Same origin, so the CSP's
+ * `/__errors`, the Cantina's at `/build/__errors`. Same origin, so the CSP's
  * `connect-src 'self'` already allows it.
  */
 export const ERROR_REPORT_PATH = '/__errors'
 
-/** Where the Convex log stream posts, under ITUN's base: `/build/__convex-logs`. */
+/** Where the Convex log stream posts, under the Cantina's base: `/build/__convex-logs`. */
 export const CONVEX_LOG_STREAM_PATH = '/__convex-logs'
 
 /**

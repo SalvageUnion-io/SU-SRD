@@ -12,7 +12,7 @@
  *   1. each browser app's observability module posts to `ERROR_REPORT_PATH`,
  *   2. its init is CALLED from the app entry,
  *   3. its `public/_headers` CSP `connect-src` allows `'self'`, where it posts,
- *   4. its Worker routes `ERROR_REPORT_PATH` to `handleErrorReport` (and ITUN's
+ *   4. its Worker routes `ERROR_REPORT_PATH` to `handleErrorReport` (and the Cantina's
  *      routes `CONVEX_LOG_STREAM_PATH` to `handleConvexLogStream`),
  *   5. every Worker's config turns on logs, Issues and `upload_source_maps`.
  *
@@ -52,11 +52,11 @@ const BROWSER_APPS: BrowserApp[] = [
     extraHandlers: [],
   },
   {
-    name: 'itun',
-    modulePath: 'apps/itun/src/lib/observability.ts',
-    entryPath: 'apps/itun/src/main.tsx',
-    headersPath: 'apps/itun/public/_headers',
-    workerPath: 'apps/itun/src/worker/index.ts',
+    name: 'cantina',
+    modulePath: 'apps/cantina/src/lib/observability.ts',
+    entryPath: 'apps/cantina/src/main.tsx',
+    headersPath: 'apps/cantina/public/_headers',
+    workerPath: 'apps/cantina/src/worker/index.ts',
     extraHandlers: ['handleConvexLogStream'],
   },
 ]
@@ -73,7 +73,7 @@ type WorkerSurface = {
 
 const WORKER_SURFACES: WorkerSurface[] = [
   { name: 'srd-worker', configPath: 'apps/srd/wrangler.jsonc' },
-  { name: 'itun-worker', configPath: 'apps/itun/wrangler.jsonc' },
+  { name: 'cantina-worker', configPath: 'apps/cantina/wrangler.jsonc' },
   { name: 'su-assets-worker', configPath: 'apps/su-assets/wrangler.jsonc' },
   { name: 'discord-bot-worker', configPath: 'apps/discord-bot/wrangler.jsonc' },
 ]

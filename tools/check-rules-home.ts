@@ -3,20 +3,20 @@
  * check-rules-home — domain rules live in a rules home, never in a component
  * folder or the client app (`bun run check rules-home`).
  *
- * ITUN's rules once lived in four places: the reference
- * package's `lib/rules`, ITUN's `src/lib/rules`, `*Rules.ts` files beside the
+ * The Cantina's rules once lived in four places: the reference
+ * package's `lib/rules`, the Cantina's `src/lib/rules`, `*Rules.ts` files beside the
  * components, and `convex/model`, with Convex importing client `src/` to reach
  * shared logic. Convex bundles what it imports, so a client import drags React-
  * side code into the backend, and a component folder is where nobody looks for
  * a rule. This gate fails when either comes back:
  *
- *   1. a file under `apps/itun/convex/` (not `_generated/`) imports a module
- *      that resolves into `apps/itun/src/`. Shared logic goes to `itun-domain`
+ *   1. a file under `apps/cantina/convex/` (not `_generated/`) imports a module
+ *      that resolves into `apps/cantina/src/`. Shared logic goes to `cantina-domain`
  *      or `salvageunion-reference`;
- *   2. a non-test `.ts` file under `apps/itun/src/components/` is neither a
+ *   2. a non-test `.ts` file under `apps/cantina/src/components/` is neither a
  *      hook (`useSeat.ts`) nor a view-model (`<name>.model.ts`). A rule goes
- *      to a rules home (the reference's `lib/rules`, `itun-domain/src/rules`,
- *      ITUN's `src/lib/rules`); a view-model for one component stays beside
+ *      to a rules home (the reference's `lib/rules`, `cantina-domain/src/rules`,
+ *      The Cantina's `src/lib/rules`); a view-model for one component stays beside
  *      it as `<name>.model.ts`, so a plain `dashboardRules.ts` or
  *      `pilotInventory.ts` has nowhere to hide in a component folder.
  *
@@ -29,9 +29,9 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { dirname, join, relative, resolve, sep } from 'node:path'
 import { assertScanFloor } from 'gates/lib/scanFloor'
 
-export const CONVEX_DIR = 'apps/itun/convex'
-const CLIENT_SRC = 'apps/itun/src'
-export const COMPONENTS_DIR = 'apps/itun/src/components'
+export const CONVEX_DIR = 'apps/cantina/convex'
+const CLIENT_SRC = 'apps/cantina/src'
+export const COMPONENTS_DIR = 'apps/cantina/src/components'
 
 /** ~65% of today's counts (31 Convex files, 437 component files): a catastrophe floor. */
 const CONVEX_FLOOR = 20

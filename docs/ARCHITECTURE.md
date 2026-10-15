@@ -7,7 +7,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
 ## Areas
 
 1. **Packages** <a id="packages"></a>
-   `salvageunion-reference` → `component-lib` → `srd` / `itun`; `itun-domain` → `itun` / `discord-bot`; `component-lib/product` alone → bot, `convex/`; `gates` → `tools/`, app e2e.
+   `salvageunion-reference` → `component-lib` → `srd` / `cantina`; `cantina-domain` → `cantina` / `discord-bot`; `component-lib/product` alone → bot, `convex/`; `gates` → `tools/`, app e2e.
    Packages never import an app (`noRestrictedImports`); deps use `workspace:*`.
 2. **salvageunion-reference** <a id="reference"></a>
    Private, no build, no version. Zod in `lib/schemas/` generates JSON Schema and `SURef*` types, gitignored and rebuilt on install, typecheck, build and test (its `su-ref-generate` bin).
@@ -29,32 +29,32 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
    Each schema's `$id` is the URL it is served at; `api.salvageunion.io/v1` is decided, not built (ADR-043, ADR-047).
 8. **discord-bot** <a id="discord-bot"></a>
    A Worker answering HTTP interactions (no gateway, no `discord.js`); conventions in [its CLAUDE.md](../apps/discord-bot/CLAUDE.md).
-   Imports `itun-domain` (botWire, schemas) as types only; changing them is cross-package. Lookup = embed: `discordEntryCard`.
-9. **itun-domain** <a id="itun-domain"></a>
-   Zod schemas, roles, link/crew/downtime rules and bot wire types for ITUN, Convex and the bot; import by subpath.
-   Rules: pure → reference `lib/rules`; shared → here; client → `apps/itun/src/lib/rules`; `check rules-home` bars Convex→`src/`.
+   Imports `cantina-domain` (botWire, schemas) as types only; changing them is cross-package. Lookup = embed: `discordEntryCard`.
+9. **cantina-domain** <a id="cantina-domain"></a>
+   Zod schemas, roles, link/crew/downtime rules and bot wire types for Cantina, Convex and the bot; import by subpath.
+   Rules: pure → reference `lib/rules`; shared → here; client → Cantina's `src/lib/rules`; `check rules-home` bars Convex→`src/`.
 10. **Data flow and connection modes** <a id="data-flow"></a>
-    Records store slug refs, resolved at render; ITUN preloads once in `GameDataReady.tsx`.
+    Records store slug refs, resolved at render; Cantina preloads once in `GameDataReady.tsx`.
     `resolveConnectionMode()`: Solo (signed out, read-only), Connected (Convex), Disconnected (on-screen rows, writes blocked).
 11. **Convex, the server of record** <a id="convex"></a>
-    `apps/itun/convex/`: opaque bodies (`v.any()`), Zod-parsed per mutation; an entity is [in a Game or on a Shelf](architecture/glossary.md).
-    Every store commits through a `commit*` in `apps/itun/src/stores/`; `containerParity.test.ts` asserts each has a table.
+    `apps/cantina/convex/`: opaque bodies (`v.any()`), Zod-parsed per mutation; an entity is [in a Game or on a Shelf](architecture/glossary.md).
+    Every store commits through a `commit*` in `src/stores/`; `containerParity.test.ts` asserts each has a table.
 12. **No device cache** <a id="no-device-cache"></a>
     No IndexedDB: an offline reload boots the SW shell, signed out and empty. The PWA stays installable; `e2e/offline.e2e.ts` pins both offline cases.
 13. **Zustand stores** <a id="stores"></a>
-    `apps/itun/src/stores/` hold rows in memory, filled by `ShelfSync`; `update()` validates, awaits Convex, then logs; a refused write changes nothing.
+    Cantina's `src/stores/` hold rows in memory, filled by `ShelfSync`; `update()` validates, awaits Convex, then logs; a refused write changes nothing.
     No TanStack Query; reads: `src/hooks/entities/`, `convex/react`. Shared state: a store; context: what varies by placement.
 14. **Sharing** <a id="sharing"></a>
     The one account-free share is the public sheet `/p/:kind/:appId`, opt-in via the `publicRead` column (ADR-032).
     Snapshots are retired (ADR-036).
 15. **Convex deployments** <a id="deployments"></a>
     Production `exuberant-porpoise-183`; staging `perfect-donkey-72`, previews only.
-    `bun run dev:itun` runs a local deployment with test auth; setup, rotations and repairs are the `convex-ops` skill.
+    `bun run dev:cantina` runs a local deployment with test auth; setup, rotations and repairs are the `convex-ops` skill.
 16. **Convex environment** <a id="convex-env"></a>
     Sign-in: `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`, `SITE_URL`, `JWT_PRIVATE_KEY`, `JWKS`; bot: `ITUN_BOT_SECRET`.
-    `ITUN_TEST_AUTH` never in production; `convex env list` prints values, so pipe it through `cut -d= -f1`.
+    `CANTINA_TEST_AUTH` never in production; `convex env list` prints values: pipe it through `cut -d= -f1`.
 17. **Convex conventions** <a id="convex-conventions"></a>
-    Mutations use `mutation` / `internalMutation` from `apps/itun/convex/model/entities.ts` (its triggers keep `games.summary`).
+    Mutations use `mutation` / `internalMutation` from `convex/model/entities.ts` (its triggers keep `games.summary`).
     Tell refusals from defects with `src/lib/connection/serverError.ts`; a one-off repair runs once from the dashboard, then is deleted.
 18. **Surfaces and enforcement (ADR-021)** <a id="surfaces"></a>
     Guided Creation (Wizard), Free Edit (Live Sheet), Guided Play (Dashboard), Frozen (`/p/`), Adjudicate (Mediator Dashboard).
@@ -72,13 +72,13 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     Entity forms (Mention, Token, Row, Tile, Peek; [EDL](design-system/entity-display-language.md)) come from `toEntityModel`; Card and Page are `ReferenceEntityCard`.
     `Card` is the generic container, never merged with it; app UI goes through `controls` and slot props, never schema props.
 23. **Discord bot as a Game client** <a id="bot-game-client"></a>
-    `/su me`, `games` and `sheet` call `POST /bot/<op>` (`apps/itun/convex/botHttp.ts`) with `ITUN_BOT_SECRET`.
+    `/su me`, `games` and `sheet` call `POST /bot/<op>` (`convex/botHttp.ts`) with `ITUN_BOT_SECRET`.
     Read-only; Convex unreachable means every Game command answers `unavailable`. Each interaction logs its command.
 24. **SEO** <a id="seo"></a>
     srd's head is `BaseLayout.tsx` from `DocumentMeta`; JSON-LD, `ssg/sitemap.ts`, `/llms.txt` (byte for byte), PWA via `ssg/pwa.ts`.
     No-JS fallback: `StaticEntityContent`, replaced by islands mounted with `createRoot`; an `<Island hydrate>` whose server markup is its own first render adopts it with `hydrateRoot`.
 25. **Accessibility** <a id="a11y"></a>
-    Biome's a11y rules plus axe (WCAG 2.2 AA) specs: each app's `PAGES`, ITUN signed in.
+    Biome's a11y rules plus axe (WCAG 2.2 AA) specs: each app's `PAGES`, Cantina signed in.
     Contrast is held by `design/__tests__/contrast.test.ts`; coarse-pointer touch targets are 44px.
 26. **CI** <a id="ci"></a>
     `ci.yml` runs on every `pull_request` (no branch filter), path-filtered per app; `CI Success` must need every job.
@@ -90,7 +90,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     `deploy-cloudflare.yml` on `main` push: plan → build → `push-convex` → deploy → smoke → record (tag `deployed/cloudflare`).
     `tools/deploy-surfaces.ts` picks what ships and fails safe to everything; a dispatched `sha` rolls back. srd's OG images build at deploy; the bot leg registers its slash commands.
 29. **Preview deploys** <a id="previews"></a>
-    A PR into `main` labelled `preview` gets Worker Previews `pr-<n>` (srd, ITUN on staging Convex) per push, linked in a comment, deleted on close.
+    A PR into `main` labelled `preview` gets Worker Previews `pr-<n>` (srd, Cantina on staging Convex) per push, linked in a comment, deleted on close.
     The label is the approval (no Environment reviewer); staging's schema and `SITE_URL` follow the last PR shipped.
 30. **Dependencies** <a id="dependencies"></a>
     Dependabot updates Actions only; Bun deps by hand, pinned exactly, with a 3-day `bunfig.toml` cooldown.
@@ -140,7 +140,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
 9. **ADR-009 Item condition model**
    Accepted: intact → damaged → destroyed, cycled by the player through `StatusBadge`; read-only sheets render a plain badge.
 10. **ADR-010 Choices in the shared display**
-    Accepted: `ChoiceGroups` is uncontrolled in srd and controlled, persisted, in ITUN; `readOnly` renders static text.
+    Accepted: `ChoiceGroups` is uncontrolled in srd and controlled, persisted, in Cantina; `readOnly` renders static text.
 11. **ADR-011 component-lib ships TypeScript source**
     Accepted: no build step; React is a peer; data-source agnostic, behaviour injected through slot props.
 12. **ADR-012 srd as an Astro static site**
@@ -161,7 +161,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Merged into ADR-015; superseded by ADR-038 (play state is a seat saved on the Game).
 20. **ADR-020 Fixed 1280×800 scale-to-fit canvas**
     Merged into ADR-015; superseded by ADR-038 §9.
-21. **ADR-021 ITUN surface taxonomy** · [full text](adr/021-itun-surface-taxonomy.md)
+21. **ADR-021 Cantina surface taxonomy** · [full text](adr/021-cantina-surface-taxonomy.md)
     Accepted, governing: a rule's enforcement depends on the surface's mode; the border is the lifecycle transaction.
     Wins over any earlier ADR; the live matrix is [surfaces](#surfaces).
 22. **ADR-022 Change Log and stat overrides**
@@ -204,21 +204,21 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Supersedes ADR-004; amends ADR-032.
 37. **ADR-037 The assignment model**
     Accepted: one-hop links `mech-to-pilot`, `pilot-to-crawler`, `mech-to-crawler`; a new link replaces conflicts; one container.
-    Amends ADR-030; amended by ADR-044. Code: `packages/itun-domain/src/links/linkRules.ts`.
+    Amends ADR-030; amended by ADR-044. Code: `packages/cantina-domain/src/links/linkRules.ts`.
 38. **ADR-038 The Dashboard is a Game surface with shared play state** · [full text](adr/038-dashboard-game-surface.md)
     Accepted, built: Game-only with a Mediator; a seat on the Game; Major / Minor slots; fixed 1280×800 canvas.
     Supersedes ADR-015; amends ADR-029 §4, ADR-030 §5–6 and ADR-034; amended by ADR-045. As built: [dashboard.md](architecture/dashboard.md).
 39. **ADR-039 Addressed invites by Discord account**
     Retired with `/su invite`: a Game joins only through its one invite URL (ADR-030), and an addressed row opens nothing.
-    Amended ADR-030's invite rules (`apps/itun/convex/model/invites.ts`).
+    Amended ADR-030's invite rules (`convex/model/invites.ts`).
 40. **ADR-040 The dataset is served verbatim with no release stream**
     Accepted, built: `/schema/*` serves the files byte for byte; `$id` is the served URL; version `0.0.0`.
     Supersedes ADR-025; amends ADR-014 and ADR-024; amended by ADR-043.
 41. **ADR-041 The deployed commit is the release**
-    Accepted, built: no app versions; one changelog (srd's, ITUN links it): `main`'s first-parent history by scope.
+    Accepted, built: no app versions; one changelog (srd's, Cantina links it): `main`'s first-parent history by scope.
     Supersedes ADR-024.
 42. **ADR-042 Mid-tab updates**
-    Accepted, built: `apps/itun/convex/buildFloor.ts` is raised by hand only for a change that breaks an open tab.
+    Accepted, built: `convex/buildFloor.ts` is raised by hand only for a change that breaks an open tab.
     The `client-contract` gate catches argument breaks; anything else is a soft update.
 43. **ADR-043 The dataset is a versioned public contract at `api.salvageunion.io`**
     Accepted, not built: a static `/v1` tree emitted from the committed files; no query Worker.
@@ -234,7 +234,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
 47. **ADR-047 One salvageunion.io edge Worker**
     Accepted, not built: `su-srd` serves `api.salvageunion.io` too, from one `dist/`; `assets.` stays apart.
     Supersedes ADR-043 decision 1; amends ADR-033.
-48. **ADR-048 ITUN at salvageunion.io/build**
+48. **ADR-048 Cantina at salvageunion.io/build**
     Accepted, built: a route ahead of srd; the old host 301s. Amends ADR-033.
 49. **ADR-049 Workers Issues, not Sentry**
     Accepted, built: no SDK; browsers and Convex report via the Workers; browser stacks minified.

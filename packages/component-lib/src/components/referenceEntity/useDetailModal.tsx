@@ -34,7 +34,7 @@ export function useDetailModal(
   // When the consuming app opts into link mode (srd) and the entity
   // resolves to an href, "View details" goes to the entity's show page, in
   // this tab (EDL E5: the detail view is a Page, never a new-tab
-  // `window.open`), instead of opening the in-place modal. ITUN leaves link
+  // `window.open`), instead of opening the in-place modal. The Cantina leaves link
   // mode off, so it keeps the modal (its href would deep-link out to srd).
   const href = useEntityHref(data)
   const linkMode = useEntityDetailLink()

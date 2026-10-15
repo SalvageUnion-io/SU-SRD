@@ -4,9 +4,9 @@
  * ships only the entries, never this module.
  *
  * A squash title is the entry. Only `feat`, `fix` and `perf` count, and only
- * under an app's own scope: `feat(itun): …` is ITUN's, so it lands in the App's
+ * under an app's own scope: `feat(cantina): …` is the Cantina's, so it lands in the App's
  * entries, never the Site's, whatever files it touched. A title may name several
- * (`feat(itun,srd): …`, a release of both); an unscoped title is no app's.
+ * (`feat(cantina,srd): …`, a release of both); an unscoped title is no app's.
  */
 
 import { execFileSync } from 'node:child_process'
@@ -14,6 +14,8 @@ import { fileURLToPath } from 'node:url'
 import type { ChangelogEntry } from '../components/Changelog'
 
 const REPO = 'https://github.com/SalvageUnion-io/SU-SRD'
+/** Scopes a title used before its app was renamed: The Cantina's titles were `itun`. */
+const FORMER_SCOPES: Readonly<Record<string, readonly string[]>> = { cantina: ['itun'] }
 const SUBJECT = /^(?:feat|fix|perf)\(([a-z0-9./-]+(?:,[a-z0-9./-]+)*)\)!?: (.+?)(?: \(#(\d+)\))?$/
 
 /**
@@ -25,10 +27,11 @@ const SUBJECT = /^(?:feat|fix|perf)\(([a-z0-9./-]+(?:,[a-z0-9./-]+)*)\)!?: (.+?)
  */
 export function changelogFromLog(log: string, scope: string, area: string): ChangelogEntry[] {
   const byDate = new Map<string, ChangelogEntry>()
+  const scopes = [scope, ...(FORMER_SCOPES[scope] ?? [])]
   for (const line of log.split('\n')) {
     const [date, subject] = line.split('\t')
     const match = subject?.match(SUBJECT)
-    if (!date || !match?.[1]?.split(',').includes(scope)) continue
+    if (!date || !match?.[1]?.split(',').some((s) => scopes.includes(s))) continue
     const pr = match[3]
     const item = pr ? `${match[2]} ([#${pr}](${REPO}/pull/${pr}))` : (match[2] ?? '')
     const day = byDate.get(date)

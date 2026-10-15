@@ -14,7 +14,7 @@ import { getItemStaticPaths, getSchemaStaticPaths } from '../staticPaths'
  *    this API — filters the meta schemas out;
  *  - the SEO docs' claim that every schema page has a JSON twin was
  *    true, while the reverse silently was not;
- *  - ITUN's `hasSRDPage` read the unfiltered catalog on the same reasoning and
+ *  - The Cantina's `hasSRDPage` read the unfiltered catalog on the same reasoning and
  *    rendered "View in SRD" links that 404'd.
  *
  * "Which schemas are public" had four spellings across this app. It now has one

@@ -1,9 +1,9 @@
 #!/usr/bin/env bun
 /**
- * shot — a headless screenshot of an srd or ITUN page, for an agent that has
+ * shot — a headless screenshot of an srd or the Cantina page, for an agent that has
  * no browser preview.
  *
- *   bun run shot </route|itun:/route> [--width phone|column|page] [--out <dir>]
+ *   bun run shot </route|cantina:/route> [--width phone|column|page] [--out <dir>]
  *
  * `.claude/launch.json`'s previews exist only in the Desktop app, so a cloud
  * agent restyling a component could not see what it changed (a design audit
@@ -11,12 +11,12 @@
  * script, once.
  *
  * - A target starting with `/` is an srd route, served by `bun run dev`.
- *   `itun:/route` is an ITUN route (under its `/build` base, so `itun:/starter`
- *   is `/build/starter`), served by ITUN's Vite dev server booted signed out
+ *   `cantina:/route` is a Cantina route (under its `/build` base, so `cantina:/starter`
+ *   is `/build/starter`), served by the Cantina's Vite dev server booted signed out
  *   with no backend: `VITE_CONVEX_URL` points at a closed local port, so the
  *   pages that need no account (the front door, the Starter Set, a sign-in
  *   prompt) render, and anything that waits on Convex shows its loading or
- *   offline state. `bun run dev:itun` (a real local backend) is not reused.
+ *   offline state. `bun run dev:cantina` (a real local backend) is not reused.
  * - Each server listens on this checkout's port (`packages/gates/lib/ports.ts`:
  *   4321 and 5180 in the primary checkout, offset in a linked worktree). One
  *   already answering there is reused only when its `x-su-checkout` header
@@ -58,11 +58,11 @@ export type Server = {
 }
 const SRD: Server = { name: 'srd', port: portFor('srd'), cmd: ['bun', 'run', 'dev'], cwd: REPO }
 
-/** The prefix that makes a target an ITUN route. */
-const ITUN_PREFIX = 'itun:'
+/** The prefix that makes a target a Cantina route. */
+const CANTINA_PREFIX = 'cantina:'
 
-/** ITUN's base path (`SITE.base` in `apps/itun/src/lib/site.ts`, ADR-048). */
-export const ITUN_BASE = '/build'
+/** The Cantina's base path (`SITE.base` in `apps/cantina/src/lib/site.ts`, ADR-048). */
+export const CANTINA_BASE = '/build'
 
 /**
  * Where the signed-out boot's Convex client points: a closed port on this
@@ -72,21 +72,22 @@ export const ITUN_BASE = '/build'
  */
 export const NO_BACKEND = 'http://127.0.0.1:9'
 
-const ITUN_PORT = portFor('itun')
-const ITUN: Server = {
-  name: 'itun',
-  port: ITUN_PORT,
-  // Vite itself, not `bun run dev:itun`, which starts a Convex backend. The
+const CANTINA_PORT = portFor('cantina')
+const CANTINA: Server = {
+  name: 'cantina',
+  port: CANTINA_PORT,
+  // Vite itself, not `bun run dev:cantina`, which starts a Convex backend. The
   // port goes on the command line: `vite.config.ts` leaves it at 5173 for
-  // `dev:itun`.
-  cmd: ['bun', 'x', 'vite', '--port', String(ITUN_PORT), '--strictPort'],
-  cwd: join(REPO, 'apps/itun'),
-  // Over any `apps/itun/.env.local` a `dev:itun` run wrote: Vite lets the
+  // `dev:cantina`.
+  cmd: ['bun', 'x', 'vite', '--port', String(CANTINA_PORT), '--strictPort'],
+  cwd: join(REPO, 'apps/cantina'),
+  // Over any `apps/cantina/.env.local` a `dev:cantina` run wrote: Vite lets the
   // environment win.
   env: { VITE_CONVEX_URL: NO_BACKEND },
 }
 
-const USAGE = 'usage: bun run shot </route|itun:/route> [--width phone|column|page] [--out <dir>]'
+const USAGE =
+  'usage: bun run shot </route|cantina:/route> [--width phone|column|page] [--out <dir>]'
 
 const isWidth = (value: string): value is Width => Object.hasOwn(WIDTHS, value)
 
@@ -113,10 +114,10 @@ export function parseArgs(argv: readonly string[]): ShotArgs {
     else throw new Error(`one target only, got "${target}" and "${arg}"\n${USAGE}`)
   }
   if (!target) throw new Error(USAGE)
-  if (target.startsWith(ITUN_PREFIX) && !target.startsWith(`${ITUN_PREFIX}/`))
-    throw new Error(`an ITUN target is itun:/route, not "${target}"\n${USAGE}`)
-  if (!target.startsWith('/') && !target.startsWith(ITUN_PREFIX))
-    throw new Error(`a target is /route or itun:/route, not "${target}"\n${USAGE}`)
+  if (target.startsWith(CANTINA_PREFIX) && !target.startsWith(`${CANTINA_PREFIX}/`))
+    throw new Error(`a Cantina target is cantina:/route, not "${target}"\n${USAGE}`)
+  if (!target.startsWith('/') && !target.startsWith(CANTINA_PREFIX))
+    throw new Error(`a target is /route or cantina:/route, not "${target}"\n${USAGE}`)
   return { target, width, out }
 }
 
@@ -125,8 +126,8 @@ export function planShot({ target }: Pick<ShotArgs, 'target'>): {
   server: Server
   path: string
 } {
-  if (target.startsWith(ITUN_PREFIX))
-    return { server: ITUN, path: ITUN_BASE + target.slice(ITUN_PREFIX.length) }
+  if (target.startsWith(CANTINA_PREFIX))
+    return { server: CANTINA, path: CANTINA_BASE + target.slice(CANTINA_PREFIX.length) }
   return { server: SRD, path: target }
 }
 

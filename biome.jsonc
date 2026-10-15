@@ -59,7 +59,7 @@
         // and re-preloads on purpose, so the shared preload is the thing under
         // test rather than the thing being duplicated.
         // Convex functions run on only the schemas the deployment installs.
-        "!**/apps/itun/test/convex/__tests__/referenceSubset.test.ts",
+        "!**/apps/cantina/test/convex/__tests__/referenceSubset.test.ts",
         // The preload API is the unit under test.
         "!**/packages/salvageunion-reference/lib/__tests__/preload.test.ts",
         // preload() invalidates the search index and result cache.
@@ -68,7 +68,7 @@
     },
     {
       "path": "./packages/gates/biome/noLiveClockFixture.grit",
-      "includes": ["**/apps/itun/**/*.test.ts", "**/apps/itun/**/*.test.tsx"]
+      "includes": ["**/apps/cantina/**/*.test.ts", "**/apps/cantina/**/*.test.tsx"]
     },
     {
       "path": "./packages/gates/biome/noPartialModelPatch.grit",
@@ -77,19 +77,19 @@
     {
       // Convex functions only: a test reads its own handful of fixture rows.
       "path": "./packages/gates/biome/noChangeLogCollect.grit",
-      "includes": ["**/apps/itun/convex/**", "!**/_generated/**"]
+      "includes": ["**/apps/cantina/convex/**", "!**/_generated/**"]
     },
     {
-      // ITUN's client, where a caught error's text reaches a player. A test
+      // The Cantina's client, where a caught error's text reaches a player. A test
       // asserts on messages; the route error screen's dump is development-only
       // and is for the developer.
       "path": "./packages/gates/biome/noRawErrorMessage.grit",
       "includes": [
-        "**/apps/itun/src/**",
+        "**/apps/cantina/src/**",
         "!**/*.test.ts",
         "!**/*.test.tsx",
         "!**/__tests__/**",
-        "!**/apps/itun/src/components/shared/RouteErrors.tsx"
+        "!**/apps/cantina/src/components/shared/RouteErrors.tsx"
       ]
     }
   ],
@@ -242,7 +242,7 @@
         // A warning is invisible to every gate (`bun run lint` exits 0 on
         // one), so a recommended rule that defaults to "warn" and holds at zero
         // is an error here. useComponentExportOnlyModules, the other, is set
-        // in the `apps/itun/**` override below.
+        // in the `apps/cantina/**` override below.
         "noDescendingSpecificity": "error",
         "noParameterAssign": "error",
         "useSelfClosingElements": "error",
@@ -338,12 +338,12 @@
       }
     },
     {
-      // The same ratchet for ITUN.
-      // It sits at today's largest body (`Dashboard`, apps/itun/src/components/
+      // The same ratchet for the Cantina.
+      // It sits at today's largest body (`Dashboard`, apps/cantina/src/components/
       // dashboard/Dashboard.tsx), so one more line there, or any longer
       // function anywhere in the app or its Convex backend, fails. Lower it
       // when a split lands; never raise it.
-      "includes": ["apps/itun/**", "!**/*.test.ts", "!**/*.test.tsx"],
+      "includes": ["apps/cantina/**", "!**/*.test.ts", "!**/*.test.tsx"],
       "linter": {
         "rules": {
           "complexity": {
@@ -366,7 +366,7 @@
       }
     },
     {
-      "includes": ["apps/itun/**", "packages/component-lib/**"],
+      "includes": ["apps/cantina/**", "packages/component-lib/**"],
       "linter": {
         "rules": {
           "style": {
@@ -390,7 +390,7 @@
       // build/test config files. Listed here so the rule stays `error`
       // everywhere else.
       "includes": [
-        "apps/itun/src/routes/**",
+        "apps/cantina/src/routes/**",
         // workerd reads `export default { fetch }` — the module IS the contract.
         // Each entry location is named
         // explicitly rather than globbing `src/**`, so an ordinary module in the
@@ -398,9 +398,9 @@
         // This glob is the `main` of all four wrangler configs (the `workers`
         // check holds them to it).
         "apps/*/src/worker/index.ts",
-        "apps/itun/convex/http.ts",
-        "apps/itun/convex/crons.ts",
-        "apps/itun/convex/schema.ts",
+        "apps/cantina/convex/http.ts",
+        "apps/cantina/convex/crons.ts",
+        "apps/cantina/convex/schema.ts",
         "**/*.config.ts",
         // Ambient module declarations for asset imports (`declare module
         // '*.md?raw'`) must re-declare the bundler's own default export — the
@@ -433,7 +433,7 @@
             // make one app's build depend on the other's internals and give the
             // shared layer a way to be bypassed.
             //
-            // There is no such edge today (verified: zero srd↔itun imports in
+            // There is no such edge today (verified: zero srd↔cantina imports in
             // either direction). This is the guard, not a cleanup.
             //
             // The root rule's paths/patterns are RESTATED here because Biome
@@ -463,8 +463,8 @@
                     "message": "Import from 'component-lib'. Its barrel is the public API."
                   },
                   {
-                    "group": ["**/apps/itun/**", "**/itun/**", "itun/**"],
-                    "message": "apps/srd must never import from apps/itun. The two apps share only through component-lib and salvageunion-reference."
+                    "group": ["**/apps/cantina/**", "**/cantina/**", "cantina/**"],
+                    "message": "apps/srd must never import from apps/cantina. The two apps share only through component-lib and salvageunion-reference."
                   }
                 ]
               }
@@ -474,7 +474,7 @@
       }
     },
     {
-      "includes": ["apps/itun/**"],
+      "includes": ["apps/cantina/**"],
       "linter": {
         "rules": {
           "style": {
@@ -504,7 +504,7 @@
                   },
                   {
                     "group": ["**/apps/srd/**", "**/srd/**", "srd/**"],
-                    "message": "apps/itun must never import from apps/srd. The two apps share only through component-lib and salvageunion-reference."
+                    "message": "apps/cantina must never import from apps/srd. The two apps share only through component-lib and salvageunion-reference."
                   }
                 ]
               }
@@ -521,9 +521,9 @@
       // is then wrong until the next backfill — silently. That file is the one
       // place allowed to import the raw builders, because it wraps them.
       //
-      // Restates the apps/itun block's options in full: Biome overrides
+      // Restates the apps/cantina block's options in full: Biome overrides
       // REPLACE a rule's options for matched files rather than merging.
-      "includes": ["apps/itun/convex/**", "!apps/itun/convex/model/entities.ts"],
+      "includes": ["apps/cantina/convex/**", "!apps/cantina/convex/model/entities.ts"],
       "linter": {
         "rules": {
           "style": {
@@ -560,7 +560,7 @@
                   },
                   {
                     "group": ["**/apps/srd/**", "**/srd/**", "srd/**"],
-                    "message": "apps/itun must never import from apps/srd. The two apps share only through component-lib and salvageunion-reference."
+                    "message": "apps/cantina must never import from apps/srd. The two apps share only through component-lib and salvageunion-reference."
                   }
                 ]
               }
@@ -570,7 +570,7 @@
       }
     },
     {
-      "includes": ["apps/itun/src/routes/**"],
+      "includes": ["apps/cantina/src/routes/**"],
       "linter": {
         "rules": {
           "style": {
@@ -655,7 +655,7 @@
                     "importNames": ["forwardRef"],
                     "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
                   },
-                  "idb": "packages/component-lib must stay persistence-agnostic (ADR-010: \"the shared library never persists\") — persistence belongs in the consuming app (ITUN), passed down via props."
+                  "idb": "packages/component-lib must stay persistence-agnostic (ADR-010: \"the shared library never persists\") — persistence belongs in the consuming app (The Cantina), passed down via props."
                 },
                 "patterns": [
                   {
@@ -665,7 +665,7 @@
                   // The shared library must never depend on one of its own
                   // consumers, as for `salvageunion-reference`.
                   {
-                    "group": ["**/apps/**", "itun/**", "srd/**"],
+                    "group": ["**/apps/**", "cantina/**", "srd/**"],
                     "message": "component-lib must never import from an app — the dependency flows one way (apps depend on the library). Inject app-specific behaviour through slot props instead (docs/ARCHITECTURE.md#packages)."
                   },
                   {
@@ -703,7 +703,7 @@
       //
       // `**/*.d.ts` is exempted by the separate last override.
       "includes": [
-        "apps/itun/src/main.tsx",
+        "apps/cantina/src/main.tsx",
         "apps/srd/src/components/islands/OgCardIsland.tsx",
         "packages/component-lib/src/components/atoms/KofiButton.tsx"
       ],
@@ -728,7 +728,7 @@
       // component alongside its cases is not the problem the rule exists to
       // catch.
       //
-      // This sits AFTER the `apps/itun/**` / `packages/component-lib/**` block
+      // This sits AFTER the `apps/cantina/**` / `packages/component-lib/**` block
       // that sets that rule to "error", because Biome applies overrides in array
       // order and the later one wins: placed earlier, it would be overridden.
       "includes": ["**/*.test.ts", "**/*.test.tsx", "**/__tests__/**"],

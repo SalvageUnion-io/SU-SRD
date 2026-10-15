@@ -2,7 +2,7 @@
  * `useDetailModal` is the one place that decides what "View details" DOES: open
  * the in-place `EntityDetailDialog`, or navigate to the entity's show page in
  * this tab (EDL E5: never a new-tab `window.open`). Two apps depend on opposite answers — srd sets link mode (its
- * entities have real URLs), ITUN leaves it off (its href would deep-link out of
+ * entities have real URLs), the Cantina leaves it off (its href would deep-link out of
  * the app) — and `forceModal` overrides link mode for views with no standalone
  * URL (chassis patterns). Nothing about that routing is visible to typecheck,
  * so it is pinned here alongside the dialog chrome it mounts.

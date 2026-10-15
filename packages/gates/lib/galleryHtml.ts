@@ -15,7 +15,7 @@ export type GalleryRun = {
   sha: string
   pr?: number
   /** The base URL each site was shot from, for the "open" links. */
-  bases: { srd: string; itun?: string }
+  bases: { srd: string; cantina?: string }
   /** Whether a site's pages link out (a CI build on localhost does not). */
   linkable: boolean
   capturedAt: string
@@ -73,7 +73,7 @@ section > p { margin: 0 0 0.9rem; color: var(--ink-2); max-width: 48rem; }
 
 function card(page: GallerySection['pages'][number], run: GalleryRun): string {
   const s = pageSlug(page)
-  const base = page.site === 'srd' ? run.bases.srd : run.bases.itun
+  const base = page.site === 'srd' ? run.bases.srd : run.bases.cantina
   const href = run.linkable && base && !page.signedIn ? `${base}${page.path}` : undefined
   const frames = `<img class="shot__desk" src="shots/${s}-desk.jpg" alt="${escapeHtml(page.name)} at desktop width" loading="lazy" width="1440" height="900">
     <img class="shot__phone" src="shots/${s}-phone.jpg" alt="${escapeHtml(page.name)} at phone width" loading="lazy" width="390" height="844">`
@@ -82,7 +82,7 @@ function card(page: GallerySection['pages'][number], run: GalleryRun): string {
   ${href ? `<a class="shot__frames" href="${escapeHtml(href)}">${frames}</a>` : `<div class="shot__frames">${frames}</div>`}
   <div class="shot__text">
     <span class="shot__name">${escapeHtml(page.name)}</span>
-    <span class="shot__path">${escapeHtml(page.site === 'itun' ? `ITUN ${page.path}` : page.path)}</span>
+    <span class="shot__path">${escapeHtml(page.site === 'cantina' ? `The Cantina ${page.path}` : page.path)}</span>
     <p>${escapeHtml(page.note)}</p>
     <span class="chips">${chips.map((c) => `<span class="chip">${escapeHtml(c)}</span>`).join('')}</span>
   </div>

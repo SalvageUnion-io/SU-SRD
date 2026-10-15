@@ -48,7 +48,7 @@ export function getItemStaticPaths() {
   // orphans with 404 breadcrumbs. Their content renders inline on the pages
   // of the entities that own it. `getEntitySchemas()` IS that filter — going
   // through the helper keeps consumers that ask "does this schema have a
-  // page?" (ITUN's hasSRDPage) agreeing with what actually gets generated.
+  // page?" (The Cantina's hasSRDPage) agreeing with what actually gets generated.
   for (const schema of getEntitySchemas()) {
     // Runtime-validated narrowing (string catalog id → schema name) instead
     // of an assertion; a non-canonical id is skipped, same as a load failure.

@@ -10,7 +10,7 @@ type InlineRefProps = {
    */
   href?: string
   /**
-   * An opener for a reference with no route but a view to open (ITUN's Page,
+   * An opener for a reference with no route but a view to open (The Cantina's Page,
    * entity display language E4): a `<button>` worn as the same rust link. An
    * `href` wins.
    */
@@ -32,7 +32,7 @@ type InlineRefProps = {
  *   `<a href>`, so it is keyboard-reachable (the one rust element allowed in
  *   read-only prose, ruleset §3.1).
  * - **Opens** (`onOpen` set) — the same rust word as a `<button>`, for a view
- *   with no route (ITUN's Page).
+ *   with no route (The Cantina's Page).
  * - **Inert** (neither) — an ink **dashed** border-bottom with `cursor-help`;
  *   it only summons the Peek.
  *

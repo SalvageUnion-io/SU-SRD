@@ -183,7 +183,7 @@ body {
 
 /*
  * The srd app's ONE print block. The `data-print` attribute vocabulary is
- * shared verbatim with apps/itun/src/styles/print.css so the same markup means
+ * shared verbatim with apps/cantina/src/styles/print.css so the same markup means
  * the same thing in both apps:
  *
  *   data-print="hide"  hide this on paper even though its element type is kept

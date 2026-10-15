@@ -48,7 +48,7 @@ const chooseButtonStyle = {
  *   "Show options" button (as a card's "Show N actions") that lists the
  *   qualifying entities, each a Token (`EntityTokenList`). No disclosure
  *   triangle: a chevron belongs only to Tokens, rows, the roll-table toggle
- *   and ITUN's folds.
+ *   and the Cantina's folds.
  *
  * The collection is resolved LAZILY — only when the picker or the listing is
  * opened — so the default render touches no cross-schema collection (the

@@ -5,7 +5,7 @@ import { BASE_SECURITY_HEADERS } from '../worker'
 
 /**
  * The one place the three origins' base security headers are held together.
- * srd and itun send them from the `/*` block of `public/_headers`; this
+ * srd and cantina send them from the `/*` block of `public/_headers`; this
  * Worker builds its own responses and sends `BASE_SECURITY_HEADERS`. A header
  * changed in one source and not the others fails here.
  */
@@ -29,7 +29,7 @@ function rootRule(app: string): Record<string, string> {
 }
 
 describe('base security headers', () => {
-  for (const app of ['srd', 'itun']) {
+  for (const app of ['srd', 'cantina']) {
     it(`match apps/${app}/public/_headers`, () => {
       const { 'content-security-policy': _csp, ...base } = rootRule(app)
       expect(base).toEqual({ ...BASE_SECURITY_HEADERS })

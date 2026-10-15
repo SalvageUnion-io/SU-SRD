@@ -1,9 +1,9 @@
 /**
  * `/changelog` — the history of both tools, the one changelog they share
- * (ITUN links here and keeps no copy).
+ * (The Cantina links here and keeps no copy).
  *
  * Rendered at BUILD time from `main`'s history: `readChangelog` keeps the
- * `feat`/`fix`/`perf` squash titles scoped `srd` (the Site) and `itun` (the
+ * `feat`/`fix`/`perf` squash titles scoped `srd` (the Site) and `cantina` (the
  * App), each day's entries stamped with their area (ADR-041). Never a client
  * fetch — only the rendered entries ship.
  */
@@ -23,8 +23,8 @@ const DESCRIPTION = `Changes to the salvageunion.io reference site and ${PRODUCT
 
 function page(): PageResult {
   // Newest day first; on a day both changed, the Site's entry comes first.
-  const entries = [...readChangelog('srd', 'Site'), ...readChangelog('itun', 'App')].sort((a, b) =>
-    b.date.localeCompare(a.date)
+  const entries = [...readChangelog('srd', 'Site'), ...readChangelog('cantina', 'App')].sort(
+    (a, b) => b.date.localeCompare(a.date)
   )
 
   return {

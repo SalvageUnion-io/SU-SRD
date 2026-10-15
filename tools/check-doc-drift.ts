@@ -40,7 +40,7 @@
  *            every session. A collapsed doc (`COLLAPSED_DOCS`) holds its own
  *            budget: terse is the point.
  *   load     each named session profile (`SESSION_PROFILES`: srd,
- *            itun+component-lib, bot) totals what it loads (the root
+ *            cantina+component-lib, bot) totals what it loads (the root
  *            CLAUDE.md and its imports, each CLAUDE.md under its directories,
  *            every rule whose `paths:` match a file there, and the docs its
  *            text says to read first), held to a ratchet (`SESSION_CEILINGS`).
@@ -504,11 +504,11 @@ export function checkFixHints(root: string, hints: FixHint[] = REGISTRY_FIX_HINT
 
 /** Claims the repo has retired, each with what is true instead. */
 const RETIRED_CLAIMS: [RegExp, string][] = [
-  [/local-first/i, 'ITUN is account-gated: persistence requires an account (ADR-034)'],
+  [/local-first/i, 'The Cantina is account-gated: persistence requires an account (ADR-034)'],
   [/no auth\/backend|do not introduce a backend/i, 'Convex is the server of record (ADR-030)'],
   [
     /in-memory (?:backend|only)/i,
-    'signed out, ITUN is read-only: see .claude/rules/itun-data-access.md',
+    'signed out, the Cantina is read-only: see .claude/rules/cantina-data-access.md',
   ],
   [/\bEntityDisplay\b|\bDisplayCard\b/, 'the card shells are ReferenceEntityCard and Card'],
   [/prettier/i, 'Biome is the only formatter'],
@@ -517,10 +517,10 @@ const RETIRED_CLAIMS: [RegExp, string][] = [
   [/\/ship\b/, 'there is no /ship skill'],
   [
     /anonymous (?:play|visitors?)[^.\n]*first-class|first-class for \*?building/i,
-    'signed out, ITUN is read-only; building needs an account (ADR-034)',
+    'signed out, the Cantina is read-only; building needs an account (ADR-034)',
   ],
   [/\bin[- ]memory (?:work|play)\b/i, 'signed out holds no work: it is read-only (#1117)'],
-  [/\bSolo (?:build|client)\b|isConvexConfigured/, 'every ITUN build has a Convex deployment'],
+  [/\bSolo (?:build|client)\b|isConvexConfigured/, 'every Cantina build has a Convex deployment'],
   [/salvage-tolerant/i, 'cache reads are strict: an unreadable row is skipped and refilled'],
   [
     /`gh` (?:CLI )?is (?:usually )?absent|\(no `gh`/i,
@@ -946,7 +946,7 @@ const RULE_BUDGET = 4_000
  * cut. Lower an entry when its file shrinks; delete it once under budget.
  */
 const OVER_BUDGET: Record<string, number> = {
-  'apps/itun/CLAUDE.md': 8_266,
+  'apps/cantina/CLAUDE.md': 8_266,
 }
 
 /**
@@ -1015,9 +1015,9 @@ export function checkDocSizes(
 const SESSION_PROFILES: Record<string, SessionProfile> = {
   srd: { dirs: ['apps/srd'], reads: [] },
   /** The Convex CLI writes the guidelines; a Convex upgrade that grows them raises this on purpose. */
-  'itun+component-lib': {
-    dirs: ['apps/itun', 'packages/component-lib'],
-    reads: ['apps/itun/convex/_generated/ai/guidelines.md'],
+  'cantina+component-lib': {
+    dirs: ['apps/cantina', 'packages/component-lib'],
+    reads: ['apps/cantina/convex/_generated/ai/guidelines.md'],
   },
   bot: { dirs: ['apps/discord-bot'], reads: [] },
 }
@@ -1029,7 +1029,7 @@ const SESSION_PROFILES: Record<string, SessionProfile> = {
  */
 const SESSION_CEILINGS: Record<string, number> = {
   srd: 24_350,
-  'itun+component-lib': 58_927,
+  'cantina+component-lib': 58_927,
   bot: 22_634,
 }
 

@@ -13,8 +13,8 @@ interface ImportMetaEnv {
    */
   readonly VITE_SRD_ORIGIN?: string
   /**
-   * The same Preview's ITUN origin, which every ITUN link then points at.
-   * Unset → production's. See `ITUN_URL`.
+   * The same Preview's Cantina origin, which every Cantina link then points at.
+   * Unset → production's. See `CANTINA_URL`.
    */
-  readonly VITE_ITUN_ORIGIN?: string
+  readonly VITE_CANTINA_ORIGIN?: string
 }

@@ -1,0 +1,104 @@
+/**
+ * Tests for the cargo-hold overlay on the Mech Major: the Storage button
+ * opens a hold listing the mech's cargo lots, and Jettison writes a cargoLots
+ * patch with that lot removed (the explicit player-confirmed discard, ADR-007).
+ */
+
+import { describe, expect, test } from 'bun:test'
+import { fireEvent, render, screen } from '@testing-library/react'
+import type { CargoLot } from 'cantina-domain/schemas/cargoLot'
+import type { Mech } from 'cantina-domain/schemas/mech'
+import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import type { PlayStore } from '../SlotRow'
+import { SlotRow } from '../SlotRow'
+import { boardedSeat } from './seatFixture'
+
+/** The slot row's other inputs, which these tests don't vary. */
+const ROW = {
+  pilot: pilotFixture({ id: 'p-row', name: 'Vesh' }),
+  crawler: null,
+  mediator: false,
+  onExpand: () => {},
+}
+
+const lotA: CargoLot = {
+  id: 'lot-a',
+  kind: 'unit',
+  name: 'Sealed Crate',
+  cat: 'SEALED',
+  units: 1,
+  code: 'SEA',
+}
+const lotB: CargoLot = {
+  id: 'lot-b',
+  kind: 'bulk',
+  name: 'Tech 3 Scrap',
+  cat: 'SCRAP',
+  tl: 3,
+  qty: 4,
+  units: 4,
+  code: 'SCR-T3',
+}
+
+const mech = mechFixture({
+  id: 'm1',
+  name: 'Iron Mongrel',
+  chassisRef: 'unknown-chassis',
+  cargoLots: [lotA, lotB],
+  currentSP: 10,
+  // Deterministic cargo cap (unknown chassis contributes 0): used 5 / cap 6.
+  maxCargoModifier: 6,
+})
+
+type Call = { type: string; id: string; patch: Record<string, unknown> }
+
+function stubStore(entities: Mech[]): { store: PlayStore; calls: Call[] } {
+  const calls: Call[] = []
+  const store: PlayStore = makeEntityStoreMock({
+    get: (_type, id) => entities.find((e) => e.id === id) ?? null,
+    update: async (type, id, patch) => {
+      calls.push({ type, id, patch })
+      return entities.find((e) => e.id === id) ?? null
+    },
+  }).getState()
+  return { store, calls }
+}
+
+describe('Mech Major cargo hold', () => {
+  test('Storage opens the hold listing the cargo lots', () => {
+    const { store } = stubStore([mech])
+    render(
+      <SlotRow
+        {...ROW}
+        mech={mech}
+        mount="mech"
+        boarded
+        seat={boardedSeat(mech.id).handle}
+        store={store}
+      />
+    )
+    fireEvent.click(screen.getByText('Storage'))
+    expect(screen.getByLabelText('Jettison Sealed Crate')).toBeTruthy()
+    expect(screen.getByLabelText('Jettison Tech 3 Scrap')).toBeTruthy()
+    expect(document.querySelector('.su-dash-cargo-usage')?.textContent).toBe('Units5/6')
+  })
+
+  test('Jettison writes cargoLots without the discarded lot', () => {
+    const { store, calls } = stubStore([mech])
+    render(
+      <SlotRow
+        {...ROW}
+        mech={mech}
+        mount="mech"
+        boarded
+        seat={boardedSeat(mech.id).handle}
+        store={store}
+      />
+    )
+    fireEvent.click(screen.getByText('Storage'))
+    fireEvent.click(screen.getByLabelText('Jettison Sealed Crate'))
+    expect(calls).toHaveLength(1)
+    expect(calls[0]).toEqual({ type: 'mech', id: 'm1', patch: { cargoLots: [lotB] } })
+  })
+})

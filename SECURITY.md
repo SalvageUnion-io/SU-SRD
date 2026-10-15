@@ -15,7 +15,7 @@ Only what is deployed from `main`: older commits and releases are not
 patched.
 
 - The reference site (`apps/srd`) and the character builder and game manager
-  (`apps/itun`), including its Convex backend.
+  (`apps/cantina`), including its Convex backend.
 - The Discord bot (`apps/discord-bot`) and the artwork Worker
   (`apps/su-assets`).
 - The CI and deploy workflows in `.github/`, which hold production

@@ -494,7 +494,7 @@
 
 /* An entity chip (`EntityStat`, `CLASS | Engineer`): the whole cell is the
    target, and what it opens is the entity its value names, so the value
-   underlines, not the label. Its opener (ITUN's detail dialog) is a
+   underlines, not the label. Its opener (The Cantina's detail dialog) is a
    `role="button"` div, not a button. */
 .su-chip-link--entity[role='button'],
 .su-chip-link--entity[role='button'] .su-stat-cell {

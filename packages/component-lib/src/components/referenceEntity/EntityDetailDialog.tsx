@@ -101,7 +101,7 @@ function pageBand(entity: SURefMetaEntity): { tone: ChapterTone; fill?: string }
  * notched in and the chips clustered beside it (E20), the body, and the foot's
  * citation in the card footer's plain text ("Workshop Manual · p.128"). A
  * pattern's Page leads the cluster with its chassis (`PATTERN OF | Mule`), the
- * `EntityStat` chip the SRD's pattern page carries: the surface opens it (ITUN's
+ * `EntityStat` chip the SRD's pattern page carries: the surface opens it (The Cantina's
  * Page opener, so in the dialog) and Peeks it. Its own component so a closed
  * dialog resolves none of it: a list renders a dialog per Row.
  */
@@ -114,7 +114,7 @@ function EntityDetailPage({
   const meta = resolveEntityPageMeta(entity, pattern)
   const band = pageBand(entity)
   const provenance = resolveFooterProvenance(entity, pattern)
-  // ITUN's "View in SRD" link, carried in the Page's foot.
+  // The Cantina's "View in SRD" link, carried in the Page's foot.
   const externalLink = useEntityExternalLink(entity as SURefEntity)
   const parent = pattern ? toEntityModel(entity, undefined, { pattern }).parent : undefined
   return (
@@ -161,7 +161,7 @@ function EntityDetailPage({
 }
 
 /**
- * `EntityDetailDialog` — ITUN's detail view, which is the Page (EDL Form 5,
+ * `EntityDetailDialog` — the Cantina's detail view, which is the Page (EDL Form 5,
  * E5): the backdrop, the kitty-cornered SRD black-stamp close button, and the
  * Page itself — the entity's band, `children` as its body (the card at
  * `presentation="page"`) and its foot citation. Both the entity path

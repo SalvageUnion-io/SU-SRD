@@ -13,7 +13,7 @@ export type LinkTarget = {
 
 /**
  * LINK's target (E5): the mode's own `href` / `onOpen`, else the surface's —
- * its route for the ref (the SRD), else its Page opener (ITUN). A synthetic
+ * its route for the ref (the SRD), else its Page opener (The Cantina). A synthetic
  * ref has neither.
  */
 export function useLinkTarget(mode: EntityMode, ref: EntityRef): LinkTarget {

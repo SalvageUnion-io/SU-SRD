@@ -3,7 +3,7 @@
  * Copy lint for game terms — `bun run check copy`.
  *
  * The book capitalises its game nouns ("Mech" 968 times to "mech" 15 in the
- * Core Book); ITUN's copy wrote them lower case about half the time, said
+ * Core Book); the Cantina's copy wrote them lower case about half the time, said
  * "TL" and "Heat Cap" where the book never does, and spelled the product three
  * ways. Nothing failed for any of it. This gate reads every JSX text node and
  * prose string literal a user-facing surface ships and flags a lower-case game

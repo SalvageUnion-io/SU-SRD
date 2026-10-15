@@ -135,15 +135,15 @@ no account to open, is always current, and requires no publishing step.
   control, not the unguessability of an id. That is the opposite of the snapshot
   model, where the id _is_ the capability, and it is the better property: it can
   be withdrawn.
-- **A public sheet is crawlable in principle.** ITUN ships no `robots.txt` and no
+- **A public sheet is crawlable in principle.** the Cantina ships no `robots.txt` and no
   sitemap, and `/p/:kind/:appId` is a client-rendered route with no link graph
   pointing at it — so it is discoverable by nobody in
   practice, and deliberately not blocked either. If that changes, a `noindex` on
   this one route is the lever, and it is a decision to take on purpose rather
   than to inherit.
 - **The link unfurls.** For a bot's request the Worker swaps the shell's
-  `itun:meta` block for the thing's preview
-  (`apps/itun/src/worker/linkPreview.ts`, from `publicSheet.preview`, public
+  `cantina:meta` block for the thing's preview
+  (`apps/cantina/src/worker/linkPreview.ts`, from `publicSheet.preview`, public
   reads only) and renders its `OgCard` through Browser Rendering, cached by
   version. A private sheet unfurls as the Private card.
 

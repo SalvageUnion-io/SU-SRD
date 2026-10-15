@@ -342,7 +342,7 @@ describe('cap overrides — absolute pins (ADR-022 amendment)', () => {
 })
 
 describe('pilot inventory capacity', () => {
-  // Pins the equivalence with the derivation this replaced (ITUN's
+  // Pins the equivalence with the derivation this replaced (The Cantina's
   // pilotInventoryCapacity): base 6 + maxInventorySlotsModifier + ability
   // contributions, floored at 0 — plus the override path that field never had.
   it('is the rules base with no modifiers', () => {

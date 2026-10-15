@@ -46,7 +46,7 @@ const MESSAGE = {
 
 /**
  * RecoveryPanel — the shared error-recovery card behind srd's island error
- * boundary and itun's root error component (which mirrored each other by hand).
+ * boundary and cantina's root error component (which mirrored each other by hand).
  * A bordered paper card with a condensed-caps title, a muted message, optional
  * inline content, and one primary (rust) recovery Button.
  *

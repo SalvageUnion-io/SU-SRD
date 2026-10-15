@@ -17,7 +17,7 @@ const CRUMBS = [
 
 describe('AppBar', () => {
   test('one lockup: the mark alone names the home link, with no wordmark', () => {
-    render(<AppBar product="reference" referenceHref="/" buildHref="https://itun.example/" />)
+    render(<AppBar product="reference" referenceHref="/" buildHref="https://cantina.example/" />)
     const home = screen.getByRole('link', { name: 'Salvage Union' })
     expect(home.getAttribute('href')).toBe('/')
     expect(home.textContent).toBe('')
@@ -25,12 +25,12 @@ describe('AppBar', () => {
   })
 
   test('the switcher: the product you are in is the current tab; the other is same-tab', () => {
-    render(<AppBar product="reference" referenceHref="/" buildHref="https://itun.example/" />)
+    render(<AppBar product="reference" referenceHref="/" buildHref="https://cantina.example/" />)
     const tools = within(screen.getByRole('navigation', { name: 'Salvage Union tools' }))
     expect(tools.getByRole('link', { name: 'Reference' }).getAttribute('aria-current')).toBe('true')
     const build = tools.getByRole('link', { name: 'Build' })
     expect(build.getAttribute('aria-current')).toBeNull()
-    expect(build.getAttribute('href')).toBe('https://itun.example/')
+    expect(build.getAttribute('href')).toBe('https://cantina.example/')
     expect(build.getAttribute('target')).toBeNull()
   })
 

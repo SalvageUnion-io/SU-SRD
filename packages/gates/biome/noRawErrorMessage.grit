@@ -5,7 +5,7 @@
 // player is a `ConvexError`, which this does not even read.
 //
 // Run the write through `useServerAction`, or say its failure with
-// `failureMessage(err, fallback)` (both `apps/itun/src/lib/connection/
+// `failureMessage(err, fallback)` (both `apps/cantina/src/lib/connection/
 // useServerAction.ts`): the server's words for a refusal, the store's for a
 // blocked write, the caller's line and a report for anything else.
 language js(typescript, jsx)

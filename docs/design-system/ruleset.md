@@ -11,8 +11,8 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
 5. **"ROLL THE DIE:" and "//" lines** — an underlined ink stamp over banded d20 tables; italic trait lines split by "//" (`Turn Action // Range: Close`); on screen one chip group in the head (E17).
 6. **The book's colour map** — which chapter band a page wears:
    - **Rules · Salvaging**, rules blue `--color-wk-line`: Home, Core Rules, Salvaging, Guides, Keywords.
-   - **Pilot Bay**, `--color-pilot`: Classes, Abilities, Equipment, ITUN pilots. **Mech Workshop**, `--color-mech`: Chassis, Systems, Modules, ITUN mechs.
-   - **Union Crawler**, `--color-crawler`: Crawlers, Bays, Crawler TLs, ITUN crawlers. **Denizens**, `--color-denizen-band`: Bio-Titans, Creatures, NPCs, Squads (cards keep adversary brown).
+   - **Pilot Bay**, `--color-pilot`: Classes, Abilities, Equipment, Cantina pilots. **Mech Workshop**, `--color-mech`: Chassis, Systems, Modules, Cantina mechs.
+   - **Union Crawler**, `--color-crawler`: Crawlers, Bays, Crawler TLs, Cantina crawlers. **Denizens**, `--color-denizen-band`: Bio-Titans, Creatures, NPCs, Squads (cards: adversary brown).
    - Off-book: Shelves ink, paper flecks (§3.5); Cantina pages `cantina` (crawler pink); Home's Discord button `--color-discord`.
 7. **Deliberate departures** — generated, placed texture (§3.5); the ability-tree track stays a diagram (§3.10); ability Rows wear their tier (E12); rounding only where the book rounds (§4.4).
 

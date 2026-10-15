@@ -44,12 +44,12 @@ describe('settings.json deny rules', () => {
     ['a generated JSON schema', 'packages/salvageunion-reference/schemas/chassis.schema.json'],
     ['the same, absolute', `${ROOT}/packages/salvageunion-reference/schemas/abilities.schema.json`],
     ['generated lib code', 'packages/salvageunion-reference/lib/generated/registry.generated.ts'],
-    ['the router tree', 'apps/itun/src/routeTree.gen.ts'],
+    ['the router tree', 'apps/cantina/src/routeTree.gen.ts'],
     ['anything under dist', 'apps/srd/dist/index.html'],
-    ['Convex codegen', 'apps/itun/convex/_generated/api.d.ts'],
+    ['Convex codegen', 'apps/cantina/convex/_generated/api.d.ts'],
     ['the lockfile', 'bun.lock'],
     ['the schema catalog', 'packages/salvageunion-reference/schemas/index.json'],
-    ['a build-info file', 'apps/itun/tsconfig.tsbuildinfo'],
+    ['a build-info file', 'apps/cantina/tsconfig.tsbuildinfo'],
   ])('deny editing %s', (_label, path) => {
     expect(editDenied(path)).toBe(true)
   })
@@ -59,7 +59,7 @@ describe('settings.json deny rules', () => {
       'a Zod schema — the file you SHOULD edit',
       'packages/salvageunion-reference/lib/schemas/chassis.ts',
     ],
-    ['an app component', 'apps/itun/src/components/Foo.tsx'],
+    ['an app component', 'apps/cantina/src/components/Foo.tsx'],
     ['a tool', 'tools/check-path-filters.ts'],
     ['a doc', 'docs/README.md'],
   ])('allow editing %s', (_label, path) => {
@@ -78,13 +78,16 @@ describe('settings.json deny rules', () => {
       file: 'packages/salvageunion-reference/lib/index.ts',
       denied: false,
     },
-    'apps/itun/src/routeTree.gen.ts': { file: 'apps/itun/src/routeTree.gen.ts', denied: true },
+    'apps/cantina/src/routeTree.gen.ts': {
+      file: 'apps/cantina/src/routeTree.gen.ts',
+      denied: true,
+    },
     'apps/srd/worker-configuration.d.ts': {
       file: 'apps/srd/worker-configuration.d.ts',
       denied: true,
     },
-    'apps/itun/worker-configuration.d.ts': {
-      file: 'apps/itun/worker-configuration.d.ts',
+    'apps/cantina/worker-configuration.d.ts': {
+      file: 'apps/cantina/worker-configuration.d.ts',
       denied: true,
     },
     'apps/su-assets/worker-configuration.d.ts': {
@@ -162,12 +165,14 @@ describe('.claude/rules path globs', () => {
     expect(tracked.some((path) => matcher.match(path))).toBe(true)
   })
 
-  test('itun-domain edits load the data-access and bot rules', () => {
+  test('cantina-domain edits load the data-access and bot rules', () => {
     const loading = (path: string) =>
       globs.filter(([, glob]) => new Bun.Glob(glob).match(path)).map(([rule]) => rule)
-    expect(loading('packages/itun-domain/src/schemas/pilot.ts')).toContain('itun-data-access.md')
-    expect(loading('packages/itun-domain/src/botWire.ts')).toEqual(
-      expect.arrayContaining(['itun-data-access.md', 'discord-bot.md'])
+    expect(loading('packages/cantina-domain/src/schemas/pilot.ts')).toContain(
+      'cantina-data-access.md'
+    )
+    expect(loading('packages/cantina-domain/src/botWire.ts')).toEqual(
+      expect.arrayContaining(['cantina-data-access.md', 'discord-bot.md'])
     )
   })
 })
@@ -235,12 +240,12 @@ describe('typecheck hooks against a stub workspace', () => {
 
   const WORKSPACES = [
     'apps/discord-bot',
-    'apps/itun',
+    'apps/cantina',
     'apps/srd',
     'apps/su-assets',
     'packages/component-lib',
     'packages/gates',
-    'packages/itun-domain',
+    'packages/cantina-domain',
     'packages/observability',
     'packages/salvageunion-reference',
     'tools',
@@ -317,24 +322,24 @@ describe('typecheck hooks against a stub workspace', () => {
     })
 
   test.each([
-    ['an app', 'apps/itun/lib/x.ts', ['ROOT apps/itun']],
+    ['an app', 'apps/cantina/lib/x.ts', ['ROOT apps/cantina']],
     ['the bot', 'apps/discord-bot/lib/x.ts', ['ROOT apps/discord-bot']],
     [
       'component-lib',
       'packages/component-lib/lib/x.ts',
-      ['ROOT packages/component-lib apps/srd apps/itun tools'],
+      ['ROOT packages/component-lib apps/srd apps/cantina tools'],
     ],
     [
       'observability',
       'packages/observability/lib/x.ts',
-      ['ROOT packages/observability apps/discord-bot apps/itun apps/srd apps/su-assets tools'],
+      ['ROOT packages/observability apps/discord-bot apps/cantina apps/srd apps/su-assets tools'],
     ],
     [
-      'itun-domain',
-      'packages/itun-domain/lib/x.ts',
-      ['ROOT packages/itun-domain apps/discord-bot apps/itun tools'],
+      'cantina-domain',
+      'packages/cantina-domain/lib/x.ts',
+      ['ROOT packages/cantina-domain apps/discord-bot apps/cantina tools'],
     ],
-    ['gates', 'packages/gates/lib/x.ts', ['ROOT packages/gates apps/srd apps/itun tools']],
+    ['gates', 'packages/gates/lib/x.ts', ['ROOT packages/gates apps/srd apps/cantina tools']],
   ])(
     'an edit to %s checks it and its consumers in one run, then asks for a full run',
     async (_l, rel, expected) => {

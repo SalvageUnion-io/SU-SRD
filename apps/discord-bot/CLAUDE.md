@@ -1,6 +1,6 @@
 # Discord Bot
 
-The Discord bot: `/su` rolls and lookups, and an In the Union now Game client. A consumer of
+The Discord bot: `/su` rolls and lookups, and a Cantina Game client. A consumer of
 `salvageunion-reference` — it reuses the same pure rules/data logic the apps do
 ([ADR-006](../../docs/ARCHITECTURE.md#decisions)) and preloads the dataset
 at startup ([ADR-005](../../docs/ARCHITECTURE.md#decisions)).
@@ -39,22 +39,22 @@ bun run deploy-commands            # a test guild
 bun run deploy-commands:global     # production; a bot deploy runs it too. Credentials: op run
 ```
 
-## In the Union now
+## The Cantina
 
-The bot is also an authenticated ITUN Game client. It reaches Convex through a
+The bot is also an authenticated Cantina Game client. It reaches Convex through a
 `/bot/*` HTTP route with a bearer credential that authenticates the **bot**,
 never the **actor** — every call carries a Discord id that the server resolves
 against a linked account and a real membership. See
 [the bot as a Game client](../../docs/ARCHITECTURE.md#bot-game-client).
 
-- `src/itun/` — the client (`fetch`, no `convex` dependency) and the wire types,
-  which are **imported** (`import type`) from `itun-domain/botWire`
-  (`packages/itun-domain/src/botWire.ts`) — the same declaration `botClient.ts`
+- `src/cantina/` — the client (`fetch`, no `convex` dependency) and the wire types,
+  which are **imported** (`import type`) from `cantina-domain/botWire`
+  (`packages/cantina-domain/src/botWire.ts`) — the same declaration `botClient.ts`
   annotates its handlers with. Never copy a shape into the bot; add it there.
   That module must stay import-free, so the bot's type-check never pulls in
   Convex's generated model.
-- `src/commands/itunReply.ts` — the shared defer / result-kind / ephemerality
-  spine, and the one client (`itun()`, installed per request from `env`)
+- `src/commands/cantinaReply.ts` — the shared defer / result-kind / ephemerality
+  spine, and the one client (`cantina()`, installed per request from `env`)
 
 **One client that degrades.** `ITUN_CONVEX_SITE_URL` and `ITUN_BOT_SECRET` are
 both required (`wrangler.jsonc`'s `secrets.required`; `/health` answers 503
@@ -72,7 +72,7 @@ becomes a proposal or it does not exist.
 [ADR-006](../../docs/ARCHITECTURE.md#decisions)); Convex's `crew.vitals` derives
 the same maxima, and the two must agree.
 
-**ITUN commands:** `/su me`, `games`, `sheet`. `sheet` takes your own entity
+**The Cantina commands:** `/su me`, `games`, `sheet`. `sheet` takes your own entity
 or any sheet link; `botClient.sheet` decides what you may read.
 
 **`/su sheet`** maps the live sheet one-to-one onto an entity card. The mapping,
@@ -83,7 +83,7 @@ and `abilityFields` in `gameCards.ts`.
 wins), reference cards wear their entry's tone (`discordAccent`), and rust is
 only for system replies (errors).
 
-**One link shape.** `sheetUrl` builds `/sheet/<kind>/<rowId>`; ITUN's
+**One link shape.** `sheetUrl` builds `/sheet/<kind>/<rowId>`; Cantina's
 `entities.locate` opens it editable for its owner, read-only otherwise.
 
 ## Conventions
@@ -91,6 +91,6 @@ only for system replies (errors).
 - Everything hangs off the single `/su` top-level command (`src/commands/su.ts`)
 - Commands live in `src/commands/`, generally one file per command; the two
   small personal ones share `account.ts`
-- Shared code reads no configuration. The Worker's `env` installs the ITUN
+- Shared code reads no configuration. The Worker's `env` installs Cantina
   client per request; `deploy-commands.ts` alone reads `process.env`
 - Errors in shared code go straight to `reportError` from `observability/cloudflare`

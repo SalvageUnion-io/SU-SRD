@@ -32,7 +32,7 @@ import { rollBandColor, rollRangeLabel } from './rollTableBands'
  *   corner, over the row rather than in its flow, so rolling never changes the
  *   row's height; the same mark whatever the outcome (ruleset §3.4). The other
  *   rows keep their ink, so every band reads at full contrast.
- * - A host that shows one of many tables (ITUN's Dashboard Tables tab) makes
+ * - A host that shows one of many tables (The Cantina's Dashboard Tables tab) makes
  *   the bar's title its PICKER (`titleSelect`): the title IS the trigger, one
  *   name, one control, with no second bar repeating it. The host owns what
  *   opening means and renders its own picker.

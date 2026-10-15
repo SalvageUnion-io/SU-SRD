@@ -89,7 +89,7 @@ describe('handleErrorReport', () => {
           fingerprint: ['convex', 'games:create'],
         })
       ),
-      { app: 'itun' }
+      { app: 'cantina' }
     )
 
     expect(res.status).toBe(204)

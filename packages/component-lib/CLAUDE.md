@@ -1,6 +1,6 @@
 # component-lib (Shared Component Library)
 
-Shared React component library consumed by both `srd` and `itun`.
+Shared React component library consumed by both `srd` and `cantina`.
 
 ## Key Facts
 

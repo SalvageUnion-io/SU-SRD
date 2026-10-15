@@ -8,19 +8,19 @@ paths:
 
 ## Layout
 
-Every test lives in a `__tests__/` beside its subject; ITUN's Convex suites in
-`apps/itun/test/convex/__tests__/` (Convex deploys any helper inside `convex/`).
+Every test lives in a `__tests__/` beside its subject; Cantina's Convex suites in
+`apps/cantina/test/convex/__tests__/` (Convex deploys any helper inside `convex/`).
 `check test-layout` enforces it and one `test` script per workspace. Preloads
 live in workspace bunfigs, not the root's.
 
 ## Component Testing
 
 - Test user interactions, query by role/label, `waitFor` async updates
-- React's "not wrapped in act(...)" and "a style property during rerender" warnings fail the test (`test/testing-library.ts`): settle async work inside `await act(async () => …)`, and in ITUN load the real stores first with `hydrateStores` (`src/components/__tests__/hydrateStores.ts`)
+- React's "not wrapped in act(...)" and "a style property during rerender" warnings fail the test (`test/testing-library.ts`): settle async work inside `await act(async () => …)`, and in Cantina load the real stores first with `hydrateStores` (`src/components/__tests__/hydrateStores.ts`)
 
 ## Mocking
 
-- ITUN stores are in memory: reset with `resetStores()`, seed with `adopt` (`src/stores/__tests__/`)
+- The Cantina stores are in memory: reset with `resetStores()`, seed with `adopt` (`src/stores/__tests__/`)
 - Use `mock()` from `bun:test` for module/function mocking
 
 ### `mock.module` is process-global — restore what you replace
@@ -74,17 +74,16 @@ Never sleep (`setTimeout`) past a debounce: a CI flake and dead wall-clock. Use:
 - `jest.useFakeTimers()` + `jest.advanceTimersByTime(DEBOUNCE_MS)` inside
   `act()` to drive the component's own timer (`GlobalSearch.test.tsx`).
 - `setSystemTime()` when the code under test reads `Date.now()` rather than a
-  timer — see the stale-write tests in `apps/itun/test/convex/__tests__/appId.test.ts`.
+  timer — see the stale-write tests in `apps/cantina/test/convex/__tests__/appId.test.ts`.
 - `await screen.findByText(...)` / `waitFor(...)`, which poll.
 
 **Fake timers and `waitFor` do not mix:** `waitFor` polls on a real interval,
-so it hangs under faked timers. Scope `useFakeTimers()` to the helper that needs it (see
-`GlobalSearch.test.tsx`), not the whole file, when both appear in one file.
+so it hangs under faked timers. Scope `useFakeTimers()` to the helper that needs it, not the whole file, when both appear in one file.
 
 ### Fixtures carry one frozen timestamp
 
-Entity fixtures come from `apps/itun/src/components/__tests__/fixtures.ts`
-(the Convex suites' via `apps/itun/test/convex/fixtures.ts`), stamped with
+Entity fixtures come from `apps/cantina/src/components/__tests__/fixtures.ts`
+(the Convex suites' via `apps/cantina/test/convex/fixtures.ts`), stamped with
 `FIXTURE_NOW`; pass a distinct timestamp through overrides when needed. Never
 write `new Date().toISOString()` into a fixture:
 `noLiveClockFixture.grit` fails it.

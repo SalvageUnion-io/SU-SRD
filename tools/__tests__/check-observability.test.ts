@@ -21,7 +21,7 @@ import { dirname, join } from 'node:path'
  * `'self'`, where the app posts its reports.
  */
 
-const ITUN_HEADERS = 'apps/itun/public/_headers'
+const CANTINA_HEADERS = 'apps/cantina/public/_headers'
 
 const ROOT = join(import.meta.dir, '..', '..')
 const TOOL = join(ROOT, 'tools', 'check-observability.ts')
@@ -42,11 +42,11 @@ const CHECKED_FILES = [
   'apps/srd/public/_headers',
   'apps/srd/wrangler.jsonc',
   'apps/srd/src/worker/index.ts',
-  'apps/itun/src/lib/observability.ts',
-  'apps/itun/src/main.tsx',
-  'apps/itun/wrangler.jsonc',
-  ITUN_HEADERS,
-  'apps/itun/src/worker/index.ts',
+  'apps/cantina/src/lib/observability.ts',
+  'apps/cantina/src/main.tsx',
+  'apps/cantina/wrangler.jsonc',
+  CANTINA_HEADERS,
+  'apps/cantina/src/worker/index.ts',
   'apps/su-assets/wrangler.jsonc',
   'apps/su-assets/src/worker/index.ts',
   'apps/discord-bot/wrangler.jsonc',
@@ -112,7 +112,7 @@ describe('check-observability CSP', () => {
 
   test("'self' named only in a comment does not count", async () => {
     await withFileContents(
-      ITUN_HEADERS,
+      CANTINA_HEADERS,
       (s) => `${s.replace(SELF, 'connect-src https://example.invalid')}\n# ${SELF}\n`,
       async () => {
         const { exitCode, stderr } = await runCheck()
@@ -124,7 +124,7 @@ describe('check-observability CSP', () => {
 
   test("a CSP that omits 'self' fails", async () => {
     await withFileContents(
-      ITUN_HEADERS,
+      CANTINA_HEADERS,
       (s) => s.replace(SELF, 'connect-src https://example.invalid'),
       async () => {
         const { exitCode, stderr } = await runCheck()
@@ -142,13 +142,13 @@ describe('check-observability CSP', () => {
         const { exitCode, stderr } = await runCheck()
         expect(exitCode).toBe(1)
         expect(stderr).toContain('[srd]')
-        // itun is untouched and must not be implicated.
-        expect(stderr).not.toContain('[itun]')
+        // cantina is untouched and must not be implicated.
+        expect(stderr).not.toContain('[cantina]')
       }
     )
   })
 
-  test.each(['apps/srd/public/_headers', ITUN_HEADERS])(
+  test.each(['apps/srd/public/_headers', CANTINA_HEADERS])(
     'a missing %s fails as no CSP source',
     async (path) => {
       await withFileAbsent(path, async () => {
@@ -179,7 +179,7 @@ describe('check-observability reads parsed source, not prose', () => {
 
   test('an error report route that is commented out fails', async () => {
     await withFileContents(
-      'apps/itun/src/worker/index.ts',
+      'apps/cantina/src/worker/index.ts',
       (s) =>
         s.replace(
           'return handleConvexLogStream(',
@@ -189,7 +189,7 @@ describe('check-observability reads parsed source, not prose', () => {
         const { exitCode, stderr } = await runCheck()
         expect(exitCode).toBe(1)
         expect(stderr).toContain(
-          '[itun] apps/itun/src/worker/index.ts never calls handleConvexLogStream()'
+          '[cantina] apps/cantina/src/worker/index.ts never calls handleConvexLogStream()'
         )
       }
     )

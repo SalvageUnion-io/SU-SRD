@@ -25,11 +25,11 @@
  * visited pages is unchanged, and after a timeout workbox still lets the
  * network response land in the cache for next time.
  *
- * ## Why `skipWaiting` + `clientsClaim` stay — ITUN's opposite choice is right for ITUN
+ * ## Why `skipWaiting` + `clientsClaim` stay — the Cantina's opposite choice is right for the Cantina
  *
  * A new worker takes over as soon as it installs, and activating drops every
  * precache entry the new build does not list. That is what deleted chunks under
- * ITUN's live pages, so ITUN keeps its worker waiting. Here, with HTML
+ * The Cantina's live pages, so the Cantina keeps its worker waiting. Here, with HTML
  * network-first, taking over at once is the safer side:
  *
  * - **It keeps the precache on the build the pages are on.** A navigation
@@ -41,7 +41,7 @@
  *   broken offline.
  * - **An srd document is short-lived.** Every navigation is a full document
  *   load, so what a takeover can strand is the one page being read when it
- *   happens, not a whole session the way an ITUN tab is — and that page
+ *   happens, not a whole session the way a Cantina tab is — and that page
  *   recovers: `installChunkRecovery` (`observability/browser`) reloads once
  *   on a failed chunk, and the reload fetches current HTML.
  * - **There is nothing to prompt with.** srd has no update UI, and none is
@@ -102,9 +102,9 @@ export const RUNTIME_CACHING = [
     // the header. Stringified into sw.js, so it must not reference anything
     // outside its own parameters.
     //
-    // Not under `/build`: that is ITUN's, on this origin, and ITUN's own worker
+    // Not under `/build`: that is the Cantina's, on this origin, and the Cantina's own worker
     // (scope `/build/`) decides how its shell is fetched. Without the carve-out
-    // this worker, scoped `/`, would answer ITUN's first visit from srd's
+    // this worker, scoped `/`, would answer the Cantina's first visit from srd's
     // `pages` cache when the network is slow.
     urlPattern: ({ request, url }: { request: Request; url: URL }) =>
       request.mode === 'navigate' && !/^\/build(\/|$)/.test(url.pathname),

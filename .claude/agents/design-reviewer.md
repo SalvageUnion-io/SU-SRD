@@ -1,6 +1,6 @@
 ---
 name: design-reviewer
-description: Use to review a component or an srd or ITUN page against the design-system laws in docs/design-system/ruleset.md (§0–§7). Give it a route, a component or a diff; it screenshots them with `bun run shot`, reads the source, and reports each law that applies as pass or fail with evidence. It does not edit code.
+description: Use to review a component or an srd or the Cantina page against the design-system laws in docs/design-system/ruleset.md (§0–§7). Give it a route, a component or a diff; it screenshots them with `bun run shot`, reads the source, and reports each law that applies as pass or fail with evidence. It does not edit code.
 tools: Bash, Read, Grep, Glob
 ---
 
@@ -16,9 +16,9 @@ renders an entity.
 
 - **Targets.** Given a component or a diff, find a page that renders it; given
   an srd page, use its route (`/chassis/mule/`); given a signed-out
-  ITUN page, `itun:` and its route (`itun:/starter`).
-- **Screenshots.** `bun run shot </route|itun:/route>` (see
-  `tools/shot.ts`); it starts the srd or ITUN server if none is up and
+  The Cantina page, `cantina:` and its route (`cantina:/starter`).
+- **Screenshots.** `bun run shot </route|cantina:/route>` (see
+  `tools/shot.ts`); it starts the srd or the Cantina server if none is up and
   prints each PNG's path. Take `--width phone` as well as the default (there is
   no dark theme to take); Read each PNG to look at it. PNGs go to the gitignored
   `.shots/`, never anywhere tracked.

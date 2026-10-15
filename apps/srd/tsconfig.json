@@ -1,5 +1,5 @@
 {
-  // Extends the browser base like itun, and typechecks on the repo's
+  // Extends the browser base like cantina, and typechecks on the repo's
   // TypeScript 7. Only the options srd genuinely needs are set here.
   "extends": "../../tsconfig.dom.json",
   "compilerOptions": {

@@ -10,8 +10,8 @@ import { borderWidth, color, radius, space } from '../../design/tokens'
  * trigger gains `aria-expanded` / `aria-controls`; the panel is a
  * `role="dialog"` named by `label`.
  *
- * For a panel of arbitrary controls (ITUN's sheet "⋯" overflow), a stat's
- * provenance ledger (`StatProvenance`) and ITUN's reference search. A list of
+ * For a panel of arbitrary controls (The Cantina's sheet "⋯" overflow), a stat's
+ * provenance ledger (`StatProvenance`) and the Cantina's reference search. A list of
  * commands is a `HeaderMenu` (menu semantics, arrow keys).
  */
 

@@ -4,15 +4,15 @@ The record of the claude.ai/code environment (selector → Cloud); no CLI or API
 
 1. **Name `SU-SRD`; one variable, `OP_SERVICE_ACCOUNT_TOKEN` (item 12).**
 2. **Network: Custom, "Also include default list of common package managers" ticked.** Keeps GitHub releases, npm and PyPI (Bun, audit, workflow lint, Convex).
-3. **Extra allowed hosts.** `mcp.context7.com`, `version.convex.dev` (`bun run dev:itun`), `salvageunion.io`, `www.salvageunion.io`, `assets.salvageunion.io`, `intheunionnow.com`, `www.intheunionnow.com`,
+3. **Extra allowed hosts.** `mcp.context7.com`, `version.convex.dev` (`bun run dev:cantina`), `salvageunion.io`, `www.salvageunion.io`, `assets.salvageunion.io`, `intheunionnow.com`, `www.intheunionnow.com`,
    `su-srd.alxjrvs.workers.dev`, `su-discord-bot.alxjrvs.workers.dev`, `cdn.playwright.dev`, `playwright.download.prss.microsoft.com`,
    `cache.agilebits.com`, `my.1password.com`, `discord.com`, `*.r2.cloudflarestorage.com`.
 4. **No Cloudflare MCP hosts.** OAuth fails in the cloud; the connectors below stand in.
 5. **Connectors (claude.ai → Settings → Connectors).** Cloudflare Developer Platform and custom Cloudflare Observability
    at `https://observability.mcp.cloudflare.com/mcp`.
-6. **Convex.** The SessionStart hook exports `CONVEX_AGENT_MODE=anonymous`, so `bun run dev:itun` runs a local backend with no account.
+6. **Convex.** The SessionStart hook exports `CONVEX_AGENT_MODE=anonymous`, so `bun run dev:cantina` runs a local backend with no account.
    Test-auth setup: [`convex-ops`](../../.claude/skills/convex-ops/SKILL.md#local-backend), per container.
-7. **First `dev:itun` in a fresh container.** Copy `apps/itun/.env.example` to `.env.local` first (else the CLI writes `CONVEX_URL`, not `VITE_CONVEX_URL`);
+7. **First `dev:cantina` in a fresh container.** Copy `apps/cantina/.env.example` to `.env.local` first (else the CLI writes `CONVEX_URL`, not `VITE_CONVEX_URL`);
    the first run exits at Vite, so run it again.
 8. **Playwright.** The image's Chromium is older than `@playwright/test`'s: run e2e specs with `executablePath: '/opt/pw-browsers/chromium'`, never `playwright install`.
 9. **Setup script.** Paste the script below; it runs as root, must exit 0, and is snapshotted, so the hook is a no-op at start.

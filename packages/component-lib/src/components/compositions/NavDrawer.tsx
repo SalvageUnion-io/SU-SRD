@@ -21,7 +21,7 @@ import { TRANSITION_COLORS } from '../atoms/transition'
 
 /**
  * NavDrawer — the shared hamburger + slide-in mobile nav drawer (unifies the
- * SRD site drawer and the ITUN builder drawer). One Base UI `Drawer`: a
+ * SRD site drawer and the Cantina builder drawer). One Base UI `Drawer`: a
  * hamburger trigger, the shared `.su-backdrop` scrim, and a right-side panel
  * that slides in (`.su-drawer`) and can be swiped back out.
  *
@@ -29,7 +29,7 @@ import { TRANSITION_COLORS } from '../atoms/transition'
  * (rendered as the shared ghost `buttonVariants` buttons; the page you are on is
  * the inverse ink plate, never rust — ruleset §3.1), optional `categories` + `search` slot for the
  * SRD's richer drawer, and an optional `extra` slot for app-owned controls
- * (ITUN's Games list and sign-in). Router-agnostic: internal items render
+ * (The Cantina's Games list and sign-in). Router-agnostic: internal items render
  * through the injected `LinkComponent` (defaults to a plain anchor), external
  * ones as `<a target=_blank>`. Every item closes the drawer on tap.
  *
@@ -38,7 +38,7 @@ import { TRANSITION_COLORS } from '../atoms/transition'
  * changes what the page shows should not leave the panel covering the result.
  *
  * `footItems` are quiet links pinned to the drawer's foot, under a hairline —
- * the pages a reader looks for rarely (ITUN's About and Changelog).
+ * the pages a reader looks for rarely (The Cantina's About and Changelog).
  */
 
 export type NavDrawerItem = {
@@ -80,18 +80,18 @@ type NavDrawerProps = {
   /** Optional search slot (SRD combobox), rendered under the brand row. */
   search?: ReactNode
   /**
-   * Optional app-owned controls above the nav links (ITUN's Games list and
+   * Optional app-owned controls above the nav links (The Cantina's Games list and
    * sign-in), ruled off from them. Handed `close` so a control can dismiss the
    * drawer when it is used.
    */
   extra?: (close: () => void) => ReactNode
   /** Quiet links at the drawer's foot (About, Changelog). */
   footItems?: NavDrawerItem[]
-  /** Link component for internal items. Defaults to a plain anchor; ITUN passes AppLink. */
+  /** Link component for internal items. Defaults to a plain anchor; the Cantina passes AppLink. */
   LinkComponent?: ElementType
   /** Extra classes on the hamburger trigger (e.g. tint for a dark header). */
   triggerClassName?: string
-  /** Panel width class. Without one the panel is full-width; ITUN uses a narrower drawer. */
+  /** Panel width class. Without one the panel is full-width; the Cantina uses a narrower drawer. */
   panelClassName?: string
 }
 
@@ -139,11 +139,11 @@ const VIEWPORT = {
 } satisfies CSSProperties
 
 // The hamburger. Its padding and ink are on `.su-nav-drawer__trigger` instead,
-// because `triggerClassName` overrides them (ITUN passes `p-1.5`).
+// because `triggerClassName` overrides them (The Cantina passes `p-1.5`).
 const TRIGGER = { ...TRANSITION_COLORS, borderRadius: radius.panel } satisfies CSSProperties
 
 // The panel. Its width is on `.su-nav-drawer__panel` instead, because
-// `panelClassName` overrides it (ITUN passes `w-72`).
+// `panelClassName` overrides it (The Cantina passes `w-72`).
 const PANEL = {
   backgroundColor: color.paper,
   display: 'flex',

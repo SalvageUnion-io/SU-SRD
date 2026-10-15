@@ -51,7 +51,7 @@ export default defineConfig({
   // component-lib's islands import './rules', whose modules import lib/index.ts,
   // so served raw beside a pre-bundled '.' it loaded a second ORM instance whose
   // LazyModels are never preloaded. Bundling every subpath in one pass dedupes
-  // lib/index.ts — the same list, and reason, as ITUN's vite.config.ts.
+  // lib/index.ts — the same list, and reason, as the Cantina's vite.config.ts.
   //
   // Dev-only — `vite build` bundles with Rolldown and no dep optimizer, which
   // is why production was never affected and why this cannot regress the build.
@@ -81,7 +81,7 @@ export default defineConfig({
         // React, ReactDOM and the scheduler change only on a dependency bump,
         // so they get their own long-cached chunk. The anchored test matches
         // those three packages exactly (not every `react-*` package), the same
-        // group ITUN's vite.config.ts uses.
+        // group the Cantina's vite.config.ts uses.
         //
         // There is deliberately no group for salvageunion-reference: its JSON
         // data files are dynamically imported (ModelFactory dataLoaders), so

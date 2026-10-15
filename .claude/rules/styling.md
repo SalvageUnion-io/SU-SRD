@@ -17,7 +17,7 @@ What an editor needs:
   rules live in `styles/partials/`, one part per group, which `index.css`
   `@import`s in cascade order; tests read them joined
   (`styles/__tests__/packageStylesheet.ts`). The Dashboard's `.su-dash-*`
-  rules are ITUN's (`apps/itun/src/styles/dashboard/`); any other ITUN- or
+  rules are the Cantina's (`apps/cantina/src/styles/dashboard/`); any other Cantina- or
   srd-only rule lives in that app's stylesheets, because srd loads
   `index.css` too.
 - **The written form**, one spelling each:
@@ -40,9 +40,9 @@ What an editor needs:
   instance stays inline. A class laid over another component's classes (a
   Badge stamp) must come after them in the import order: at one class each,
   source order decides. A class also loses to an app's unlayered element
-  rule (ITUN's heading face, `print.css`'s `span` and `h1`–`h3` sizes) and
+  rule (The Cantina's heading face, `print.css`'s `span` and `h1`–`h3` sizes) and
   drops out of a rule that matched the inline style (`print.css`'s
-  `[style*='border']` ink): check both apps, print included. ITUN hands a
+  `[style*='border']` ink): check both apps, print included. The Cantina hands a
   class back with `revert-layer` (`styles/libHandback.css`, `print.css`)
   and names it in the border-ink rule.
 - **Class-string exports** (`buttonVariants`, `capsLabel`, the `FOCUS_*` /
@@ -57,7 +57,7 @@ What an editor needs:
   `su-reset` and `index.css` into `su-base`. The two apps import it, never
   `index.css`, and their own stylesheets stay unlayered so an app rule
   outranks a package rule (`package-stylesheet-import` guards it).
-- Every package and ITUN class is `su-*` (`su-wiz-*`; srd's are `srd-*`):
+- Every package and the Cantina class is `su-*` (`su-wiz-*`; srd's are `srd-*`):
   `class-prefix`. `dash-class-contract` holds `su-dash-*` usage and
   definitions to each other.
 - **Checking a focus ring with `el.focus()` lies**: `:focus-visible` needs a

@@ -21,8 +21,8 @@
  * This module is PURE: no React, no IndexedDB, no real randomness. The d20 is
  * injected via a `Roll` function so every function is deterministic in tests.
  * Production callers pass a Randsum-backed `Roll`. `heatCheckPatch` stays
- * app-local in `apps/itun/src/lib/rules/heatCheck.ts`: it assembles a
- * `Partial<Mech>` write-through patch, which needs ITUN's own Zod-derived
+ * app-local in `apps/cantina/src/lib/rules/heatCheck.ts`: it assembles a
+ * `Partial<Mech>` write-through patch, which needs the Cantina's own Zod-derived
  * `Mech` type (ADR-006/ADR-007).
  *
  * The functions here compute the *deterministic* parts of the outcome (clamped

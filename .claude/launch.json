@@ -9,9 +9,9 @@
       "autoPort": true
     },
     {
-      "name": "itun",
+      "name": "cantina",
       "runtimeExecutable": "bun",
-      "runtimeArgs": ["run", "dev:itun"],
+      "runtimeArgs": ["run", "dev:cantina"],
       "port": 5173
     }
   ]

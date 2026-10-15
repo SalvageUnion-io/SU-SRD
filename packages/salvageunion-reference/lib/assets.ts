@@ -59,7 +59,7 @@ export function assetUrl(path: string): string {
 
 /**
  * Origin of the public Salvage Union reference site (`apps/srd`). Every deep
- * link into the SRD — from ITUN, from the Discord bot, from the site's own
+ * link into the SRD — from the Cantina, from the Discord bot, from the site's own
  * canonical/OG tags — is this base plus {@link srdEntityPath},
  * so the host is named once here rather than retyped per surface.
  */
@@ -100,7 +100,7 @@ export function srdEntityPath(schemaName: string, slug: string): string {
  *
  * Keep this the only place either shape is spelled. Directory-style output
  * redirects an un-slashed form rather than 404ing, so a second spelling would
- * cost a hop on every bot and ITUN deep link and split the canonical URL in
+ * cost a hop on every bot and the Cantina deep link and split the canonical URL in
  * two, without ever failing.
  *
  * @param schemaName - The entity's schema id (e.g. `'chassis'`)

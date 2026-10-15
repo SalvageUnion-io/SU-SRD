@@ -2,7 +2,7 @@
 /**
  * check-convex-callers — every PUBLIC Convex function must have a caller.
  *
- * A public `query` / `mutation` / `action` in `apps/itun/convex/` is reachable
+ * A public `query` / `mutation` / `action` in `apps/cantina/convex/` is reachable
  * by anybody holding the deployment URL, which is shipped in the client bundle.
  * So a public function that no client calls is not harmless dead code: it is
  * attack surface that nothing exercises, whose authorization nobody watches
@@ -60,13 +60,13 @@ import { walk } from 'gates/lib/walk'
 const ROOT = join(import.meta.dir, '..')
 
 /** The deployment's modules, under the repo root. */
-const convexDir = (root: string) => join(root, 'apps/itun/convex')
+const convexDir = (root: string) => join(root, 'apps/cantina/convex')
 
 /**
- * Where callers live: the ITUN client's non-test sources. The bot reaches
+ * Where callers live: the Cantina client's non-test sources. The bot reaches
  * Convex over HTTP (`botHttp.ts`), never through `api`.
  */
-const callerDirs = (root: string) => [join(root, 'apps/itun/src')]
+const callerDirs = (root: string) => [join(root, 'apps/cantina/src')]
 
 /** Where internal functions' callers live: the client and the deployment itself. */
 const internalCallerDirs = (root: string) => [...callerDirs(root), convexDir(root)]
@@ -251,7 +251,7 @@ export function main(root = ROOT, log = console.log, error = console.error): num
 
   if (missing.length > 0 || missingInternal.length > 0 || drifted) {
     if (drifted) {
-      error('✗ Convex codegen drift — apps/itun/convex/_generated/api.d.ts is stale.')
+      error('✗ Convex codegen drift — apps/cantina/convex/_generated/api.d.ts is stale.')
       for (const m of drift.missing) {
         error(`    convex/${m}.ts exists on disk but is NOT registered in api.d.ts`)
       }

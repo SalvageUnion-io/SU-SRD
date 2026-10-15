@@ -10,7 +10,7 @@ written, with the cutover's context and hazards:
 `git show bc9f08ce:docs/ARCHITECTURE.md`. Current identifiers (Workers,
 buckets, zones) are in [Cloudflare](../ARCHITECTURE.md#cloudflare).
 
-**Amended by ADR-048:** ITUN is the Workers route `salvageunion.io/build*` on
+**Amended by ADR-048:** the Cantina is the Workers route `salvageunion.io/build*` on
 `su-itun`, ahead of `su-srd`'s Custom Domain; `intheunionnow.com` stays attached
 only to 301 to the same page there. **ADR-047** (one edge Worker for `api.`) is
 accepted, not built.
@@ -26,7 +26,7 @@ server of record for identity, ownership and sharing. **Only the host changed.**
 
 ## Context
 
-Hosting was split three ways: Netlify served `srd`, `itun` and `su-assets`,
+Hosting was split three ways: Netlify served `srd`, `cantina` and `su-assets`,
 Render ran the Discord bot as a gateway worker, and Convex ran the accounts
 backend. Cost was not the reason to move (Render's $7/mo worker was the only
 line item). Consolidating onto one platform was, together with ending a class
@@ -35,7 +35,7 @@ rather than assumed: 549.6 KiB compressed and a 141 ms startup.
 
 ## Decision
 
-**1. Hosting is Cloudflare.** `srd` and `itun` are Workers Static Assets,
+**1. Hosting is Cloudflare.** `srd` and `cantina` are Workers Static Assets,
 `su-assets` is a Worker over R2, and the Discord bot is a Worker answering HTTP
 interactions.
 

@@ -1,2 +1,2 @@
-apps/itun/.env.local
+apps/cantina/.env.local
 .claude/settings.local.json

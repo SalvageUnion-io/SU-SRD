@@ -6,7 +6,7 @@
  * origin, so the CSP's `connect-src 'self'` covers it. Production builds only:
  * the dev server has no Worker to post to. Everything after that gate (the
  * window handlers, the capture verb, chunk recovery) is
- * `createBrowserObservability` in `observability/browser`, shared with ITUN.
+ * `createBrowserObservability` in `observability/browser`, shared with the Cantina.
  *
  * `deploy-cloudflare.yml` sets `VITE_COMMIT_REF` to the deployed SHA, which
  * each report carries as its release.

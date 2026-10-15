@@ -5,10 +5,10 @@ The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 45, which
 ## Status
 
 **Accepted; built.** Amends
-[ADR-038](038-dashboard-game-surface.md) §3, §4 and §9. It adds no mode to [ADR-021](021-itun-surface-taxonomy.md).
+[ADR-038](038-dashboard-game-surface.md) §3, §4 and §9. It adds no mode to [ADR-021](021-cantina-surface-taxonomy.md).
 The phone form is Guided Play, with the same enforcement, seat and Change Log
 as the canvas, so the taxonomy and the
-[rules and ITUN surfaces](../ARCHITECTURE.md#surfaces) matrix do not change.
+[rules and the Cantina surfaces](../ARCHITECTURE.md#surfaces) matrix do not change.
 
 ## Context
 

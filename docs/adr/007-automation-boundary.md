@@ -8,7 +8,7 @@ Accepted
 
 ## Context
 
-When ITUN applies combat results to a mech sheet, a recurring question is which
+When the Cantina applies combat results to a mech sheet, a recurring question is which
 events the app should apply automatically and which require explicit player
 action. An inconsistent boundary (auto-applying some destructive outcomes but not
 others) produces a confusing experience and surprises players with destroyed gear
@@ -22,7 +22,7 @@ changes an item's condition without explicit player action.**
 Auto-applied (non-destructive, recoverable):
 
 - Heat generated when using an action; AP/EP spent; item uses decremented
-  (`activationPatch` in `apps/itun/src/lib/rules/playActions.ts` builds them as
+  (`activationPatch` in `apps/cantina/src/lib/rules/playActions.ts` builds them as
   one write-through patch — see [ADR-008](../ARCHITECTURE.md#decisions)).
 - Heat clamping to the cap; Heat Check prompt when heat is gained.
 - SP damage from a Reactor Overload high roll (damage = current heat), and other
@@ -37,7 +37,7 @@ Requires explicit player action (destructive, irreversible):
 - Any condition change on equipment (intact → damaged → destroyed), driven only
   by the player via the card's status badge (`StatusBadge` from
   `component-lib`, cycled by `cycleCondition` in
-  `apps/itun/src/lib/rules/mechItems.ts`) — see
+  `apps/cantina/src/lib/rules/mechItems.ts`) — see
   [ADR-009](../ARCHITECTURE.md#decisions).
 - Destroying a Module or System from any source; catastrophic meltdown.
 

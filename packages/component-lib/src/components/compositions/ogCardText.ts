@@ -40,7 +40,7 @@ type OgCardBase = {
   /** The notched title: the thing's name. */
   title: string
   /**
-   * The address the foot prints. ITUN prints host and path; the SRD prints the
+   * The address the foot prints. The Cantina prints host and path; the SRD prints the
    * bare path (`/chassis/scrapper`), since its wordmark already names the host
    * (see `ogReferenceAddressFits`).
    */
@@ -104,7 +104,7 @@ export type OgCardProps =
 
 export type OgCardKind = OgCardProps['kind']
 
-/** The kinds the SRD renders; every other kind is ITUN's. */
+/** The kinds the SRD renders; every other kind is the Cantina's. */
 export const REFERENCE_KINDS: ReadonlySet<OgCardKind> = new Set(['thing', 'do'])
 
 /**
@@ -361,7 +361,7 @@ const STACK_GAIN = 0.75
 /**
  * The reference foot's room for the address, in px: the card less its gutters,
  * the mark, the `PRODUCT.wordmark` and the gap, measured in the real
- * face. ITUN's shorter wordmark leaves it more.
+ * face. The Cantina's shorter wordmark leaves it more.
  */
 const REFERENCE_ADDRESS_ROOM = 672
 /** The foot's address size: the 34px source floor. */

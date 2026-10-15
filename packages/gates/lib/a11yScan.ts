@@ -1,6 +1,6 @@
 /**
  * The WCAG 2.2 AA scan the apps run as Playwright specs (each app's
- * `e2e/a11y.e2e.ts`, ITUN's signed-in `e2e/a11y-signed-in.e2e.ts`): axe-core
+ * `e2e/a11y.e2e.ts`, the Cantina's signed-in `e2e/a11y-signed-in.e2e.ts`): axe-core
  * over the spec's page list, at a 1280×900 desktop and again as a Pixel 7. Any violation, on any
  * page or device, fails the spec.
  *
@@ -105,7 +105,7 @@ function unsettled(): string {
   if (waiting.length > 0) return `unmounted island(s): ${waiting.join(', ')}`
   const skeleton = document.querySelector('[role="status"][aria-label="Loading"]')
   if (skeleton !== null) return 'a loading skeleton is still showing'
-  // A router's pending screen (ITUN's `RoutePending`) is a `<main>` too, so it
+  // A router's pending screen (The Cantina's `RoutePending`) is a `<main>` too, so it
   // satisfies a `ready: 'main'` wait while the route itself has not drawn.
   return document.querySelector('[aria-busy="true"]') === null ? '' : 'a region is still busy'
 }

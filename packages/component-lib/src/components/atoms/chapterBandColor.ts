@@ -5,7 +5,7 @@ import { color } from '../../design/tokens'
  * band wears. `rules` is the rules-blue band of Contents, Core Rules,
  * Salvaging, Guides and Keywords; `pilot`, `mech`, `crawler` and `denizen`
  * are the four chapters. `ink` is no chapter of the book: it is the dark band
- * of a page that is the player's own rather than the book's — ITUN's Shelves
+ * of a page that is the player's own rather than the book's — the Cantina's Shelves
  * (board S1) — and it carries paper flecks and paper text (ruleset §3.5).
  * `cantina` is no chapter either: it is The Cantina's own band, the builder's
  * pages that are neither a chapter nor the player's shelves (its front door,

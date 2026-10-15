@@ -16,7 +16,7 @@ const log = spyOn(console, 'log').mockImplementation(() => {})
 afterAll(() => log.mockRestore())
 
 const SRD = 'http://srd.test'
-const ITUN = 'http://itun.test/build'
+const CANTINA = 'http://cantina.test/build'
 const ALL = GALLERY_SECTIONS.flatMap((s) => s.pages)
 
 type Fn = (...args: unknown[]) => unknown
@@ -30,7 +30,7 @@ type World = {
   broken: Set<string>
   /** The og:image every page names, or none. */
   ogImage?: string
-  /** The hrefs ITUN's root lists after the seed. */
+  /** The hrefs the Cantina's root lists after the seed. */
   links: string[]
   url: string
 }
@@ -41,7 +41,7 @@ type World = {
  */
 async function inPage(world: World, fn: Fn, arg?: unknown): Promise<unknown> {
   const g = globalThis as Record<string, unknown>
-  const saved = { document: g.document, og: g.__ogSetEntity, signIn: g.__itunTestSignIn }
+  const saved = { document: g.document, og: g.__ogSetEntity, signIn: g.__cantinaTestSignIn }
   const meta: Record<string, string | undefined> = {
     'og:image': world.ogImage,
     'og:title': 'Title',
@@ -57,7 +57,7 @@ async function inPage(world: World, fn: Fn, arg?: unknown): Promise<unknown> {
     fonts: { ready: Promise.resolve() },
   }
   g.__ogSetEntity = (...entity: unknown[]) => world.calls.push(`og-entity ${entity.join(' ')}`)
-  g.__itunTestSignIn = async (email: string) => {
+  g.__cantinaTestSignIn = async (email: string) => {
     world.calls.push(`sign-in ${email.replace(/\d+/, 'N')}`)
   }
   try {
@@ -65,7 +65,7 @@ async function inPage(world: World, fn: Fn, arg?: unknown): Promise<unknown> {
   } finally {
     g.document = saved.document
     g.__ogSetEntity = saved.og
-    g.__itunTestSignIn = saved.signIn
+    g.__cantinaTestSignIn = saved.signIn
   }
 }
 
@@ -102,7 +102,7 @@ function fakePage(world: World): Record<string, Fn> {
     waitForTimeout: async () => {},
     waitForFunction: async () => {},
     waitForURL: async () => {
-      world.url = `${ITUN}/games/g1`
+      world.url = `${CANTINA}/games/g1`
     },
     url: () => world.url,
     evaluate: (fn, arg) => inPage(world, fn as Fn, arg),
@@ -164,8 +164,8 @@ describe('gallery run', () => {
 
   test('shoots every signed-out page at both widths and renders each entity card', async () => {
     const w = world()
-    const targets = signedOutTargets({ srd: SRD, itun: ITUN })
-    const r = await gallery(['--srd', SRD, '--itun', ITUN], w)
+    const targets = signedOutTargets({ srd: SRD, cantina: CANTINA })
+    const r = await gallery(['--srd', SRD, '--cantina', CANTINA], w)
     expect(r.code).toBe(0)
     expect(r.dots).toHaveLength(targets.length)
     expect(r.manifest).toEqual({
@@ -205,9 +205,9 @@ describe('gallery run', () => {
     const w = world({
       links: ['/build/sheet/pilot/p1', '/build/sheet/mech/m1', '/elsewhere'],
     })
-    const r = await gallery(['--srd', SRD, '--itun', ITUN, '--signed-in'], w)
+    const r = await gallery(['--srd', SRD, '--cantina', CANTINA, '--signed-in'], w)
     const seeded = { pilot: '/sheet/pilot/p1', mech: '/sheet/mech/m1', game: '/games/g1' }
-    const planned = signedInTargets(ITUN, seeded)
+    const planned = signedInTargets(CANTINA, seeded)
     expect(planned.failures.length).toBe(1)
     expect(r.manifest.failures).toEqual(planned.failures)
     expect(r.code).toBe(1)
@@ -223,13 +223,13 @@ describe('gallery run', () => {
   })
 
   test('a seed that fails is one failure, and every placeholder page is reported unmade', async () => {
-    const w = world({ broken: new Set([`${ITUN}/`]) })
-    const r = await gallery(['--srd', SRD, '--itun', ITUN, '--signed-in'], w)
+    const w = world({ broken: new Set([`${CANTINA}/`]) })
+    const r = await gallery(['--srd', SRD, '--cantina', CANTINA, '--signed-in'], w)
     expect(r.code).toBe(1)
-    expect(r.manifest.failures).toContain(`itun seed: net::ERR at ${ITUN}/`)
-    expect(r.manifest.failures).toContain('itun :pilot: the seed made no such entity')
+    expect(r.manifest.failures).toContain(`cantina seed: net::ERR at ${CANTINA}/`)
+    expect(r.manifest.failures).toContain('cantina :pilot: the seed made no such entity')
     // The signed-out root page fails too: it is the same broken URL.
-    expect(r.manifest.failures).toContain(`itun /: net::ERR at ${ITUN}/`)
+    expect(r.manifest.failures).toContain(`cantina /: net::ERR at ${CANTINA}/`)
   })
 
   test('a non-entity page with an og:image fetches it from the shot origin', async () => {

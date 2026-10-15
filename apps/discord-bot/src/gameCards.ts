@@ -20,9 +20,6 @@ import {
 } from 'salvageunion-reference/rules'
 import type { BodyKey } from './bodyRead'
 import { num, str, strArray } from './bodyRead'
-import type { CardField, ContainerData } from './container'
-import { entityCard } from './container'
-import { NEUTRAL_ACCENT, ROLL_COLORS } from './format'
 import type {
   DenialReason,
   EntityBody,
@@ -30,10 +27,13 @@ import type {
   MeResult,
   SheetResult,
   SheetTable,
-} from './itun/types'
+} from './cantina/types'
+import type { CardField, ContainerData } from './container'
+import { entityCard } from './container'
+import { NEUTRAL_ACCENT, ROLL_COLORS } from './format'
 
 /**
- * Card builders for the ITUN commands (ADR-030).
+ * Card builders for the Cantina commands (ADR-030).
  *
  * Pure `data → ContainerData` through `entityCard`, the same render layer
  * `lookupCard.ts` uses: every one of these is unit-testable without a Discord
@@ -69,7 +69,7 @@ const CRITICAL = ROLL_COLORS.cascade
  * (ADR-048). Cards link back here by appending a route; it is only ever used
  * to build a URL, never called. Old intheunionnow.com links 301 here.
  */
-export const ITUN_ORIGIN = 'https://salvageunion.io/build'
+export const CANTINA_ORIGIN = 'https://salvageunion.io/build'
 
 const FOOTER = PRODUCT.name
 
@@ -191,10 +191,10 @@ function mechStats(body: EntityBody): {
  * Both mirror real TanStack routes — `/games/$gameId` and `/sheet/$kind/$id`.
  * A link that 404s is worse than no link: it reads as the app having lost the
  * thing, rather than as the bot having guessed. `/games/$gameId` is the
- * Game's own page in ITUN.
+ * Game's own page in the Cantina.
  */
 export function gameUrl(gameId: string): string {
-  return `${ITUN_ORIGIN}/games/${encodeURIComponent(gameId)}`
+  return `${CANTINA_ORIGIN}/games/${encodeURIComponent(gameId)}`
 }
 
 /** `pilots` → `pilot`. The web routes speak singular; the tables speak plural. */
@@ -221,14 +221,14 @@ export function publicSheetUrl(
 ): string | null {
   if (publicRead !== true) return null
   if (appId === null || appId.length === 0) return null
-  return `${ITUN_ORIGIN}/p/${kindOf(table)}/${encodeURIComponent(appId)}`
+  return `${CANTINA_ORIGIN}/p/${kindOf(table)}/${encodeURIComponent(appId)}`
 }
 
 /**
  * The live sheet for any entity — yours, a crewmate's, the crawler — or null
  * when there is no id to address.
  *
- * Addressed by the Convex row id, which every reader can open: ITUN's
+ * Addressed by the Convex row id, which every reader can open: The Cantina's
  * `entities.locate` resolves a row id for anyone allowed to see the row, opens
  * it editable for its owner and read-only for everyone else, and puts the
  * client id back in the address bar. An unclaimed pre-gen has a row id too, so
@@ -236,7 +236,7 @@ export function publicSheetUrl(
  */
 export function sheetUrl(table: SheetTable, rowId: string | null | undefined): string | null {
   if (typeof rowId !== 'string' || rowId.length === 0) return null
-  return `${ITUN_ORIGIN}/sheet/${kindOf(table)}/${encodeURIComponent(rowId)}`
+  return `${CANTINA_ORIGIN}/sheet/${kindOf(table)}/${encodeURIComponent(rowId)}`
 }
 
 /**
@@ -261,7 +261,7 @@ export function denialMessage(reason: DenialReason, serverMessage?: string): str
         'Sign in with this same Discord account and the bot will recognise you here',
         'automatically — there’s nothing to copy across and no code to enter.',
         '',
-        `${ITUN_ORIGIN}/account`,
+        `${CANTINA_ORIGIN}/account`,
       ].join('\n')
     case 'not-found':
       return 'That sheet could not be found, or it isn’t yours to read.'
@@ -285,7 +285,7 @@ function gameLines(games: GameSummary[]): string {
 export function meCard(me: MeResult): ContainerData {
   return entityCard({
     title: `${me.user.displayName} — ${PRODUCT.name}`,
-    url: `${ITUN_ORIGIN}/account`,
+    url: `${CANTINA_ORIGIN}/account`,
     accent: NEUTRAL_ACCENT,
     description: 'Linked at sign-in. Discord is the only way in, so this is always current.',
     fields: [
@@ -298,11 +298,11 @@ export function meCard(me: MeResult): ContainerData {
   })
 }
 
-/** `/su games` — every Game you belong to, linked to Shelves: ITUN has no `/games` page. */
+/** `/su games` — every Game you belong to, linked to Shelves: The Cantina has no `/games` page. */
 export function gamesCard(games: GameSummary[]): ContainerData {
   return entityCard({
     title: `Your Games (${games.length})`,
-    url: `${ITUN_ORIGIN}/`,
+    url: `${CANTINA_ORIGIN}/`,
     accent: NEUTRAL_ACCENT,
     description: gameLines(games),
     fields: [],

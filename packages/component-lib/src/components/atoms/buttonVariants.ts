@@ -10,7 +10,7 @@ import { DISABLED, FOCUS_RING } from './interaction'
  * ## Emits `.su-btn*` class names
  *
  * Three axes and a `(opts) => string` signature, which the ~30 call sites in
- * `apps/itun` and `apps/srd` that put the result on `<a>` elements depend on.
+ * `apps/cantina` and `apps/srd` that put the result on `<a>` elements depend on.
  * The rules behind the names live in `src/styles/index.css`.
  *
  * **ALL of the styling lives there, geometry and type included** — not just the

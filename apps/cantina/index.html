@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png" />
+    <title>The Cantina</title>
+
+    <!--
+      Sitewide metadata: the defaults every route starts from.
+
+      The app is client-rendered and a crawler runs no JavaScript, so anything
+      a route sets at runtime is invisible to an unfurl. For the routes a
+      player shares (`/p/:kind/:appId`, `/invite/:token`, and the retired
+      `/join/:code`) the Worker swaps the block between the `cantina:meta`
+      markers for that thing's link preview (src/worker/shellMeta.ts, issue
+      1280); keep the markers around it.
+
+      No `<link rel="canonical">` on purpose. A fixed canonical in a SPA shell
+      claims every client route is the homepage, which is worse than none —
+      it asks search engines to collapse the whole site into one URL.
+    -->
+    <!-- cantina:meta:start -->
+    <meta name="theme-color" content="#282019" />
+    <meta
+      name="description"
+      content="The Salvage Union Character Builder. Build and run Salvage Union pilots, mechs and Union Crawlers. Character sheets, roster management and shareable live sheets for the post-apocalyptic mech TTRPG."
+    />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="The Cantina" />
+    <meta property="og:title" content="The Cantina" />
+    <meta
+      property="og:description"
+      content="The Salvage Union Character Builder. Build and run Salvage Union pilots, mechs and Union Crawlers. Character sheets, roster management and shareable live sheets."
+    />
+    <meta property="og:url" content="https://salvageunion.io/build/" />
+    <meta property="og:image" content="https://salvageunion.io/build/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="The Cantina" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="The Cantina" />
+    <meta
+      name="twitter:description"
+      content="The Salvage Union Character Builder. Build and run Salvage Union pilots, mechs and Union Crawlers. Character sheets, roster management and shareable live sheets."
+    />
+    <meta name="twitter:image" content="https://salvageunion.io/build/og-image.png" />
+    <!-- cantina:meta:end -->
+
+    <!-- Barlow superfamily is self-hosted via @fontsource (imported in src/routes/__root.tsx) -->
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

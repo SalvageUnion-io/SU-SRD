@@ -1,5 +1,5 @@
 /**
- * The GritQL plugins in `packages/gates/biome/` and the component-lib and ITUN
+ * The GritQL plugins in `packages/gates/biome/` and the component-lib and the Cantina
  * function-size caps are wired up by `includes` globs in biome.jsonc, and the real tree is clean.
  * A bad glob, or a Biome update that changes how plugins match, would make a
  * rule check nothing while `bun run check`
@@ -42,30 +42,30 @@ function capFor(glob: string): number {
   return Number(match[1])
 }
 const CAP = capFor('packages/component-lib/**')
-const ITUN_CAP = capFor('apps/itun/**')
+const CANTINA_CAP = capFor('apps/cantina/**')
 
 /** A function Biome counts as `lines` long: it counts the lines between the braces. */
 const bigFunction = (lines: number) =>
   `export function big(f: () => void) {\n${'  f()\n'.repeat(lines)}}\n`
 
-const SOURCE = 'apps/itun/src/__biome_fixture__/x.ts'
-const TEST_FILE = 'apps/itun/src/__biome_fixture__/x.test.tsx'
-/** A test file outside ITUN, where a live clock is not banned. */
+const SOURCE = 'apps/cantina/src/__biome_fixture__/x.ts'
+const TEST_FILE = 'apps/cantina/src/__biome_fixture__/x.test.tsx'
+/** A test file outside the Cantina, where a live clock is not banned. */
 const OTHER_TEST = 'apps/srd/src/__biome_fixture__/y.test.ts'
 /** A file that asserts on load behaviour, excluded from the preload ban by path. */
 const EXEMPT_TEST = 'packages/salvageunion-reference/lib/__tests__/preload.test.ts'
 const BIG_LIB = 'packages/component-lib/src/__biome_fixture__/big.tsx'
 /** A Convex function file, where collecting the Change Log is banned. */
-const CONVEX = 'apps/itun/convex/__biome_fixture__/z.ts'
-const BIG_APP = 'apps/itun/src/__biome_fixture__/big.tsx'
-/** An ITUN function exactly at the cap. */
-const AT_CAP_APP = 'apps/itun/src/__biome_fixture__/atCap.tsx'
-const BIG_CONVEX = 'apps/itun/convex/__biome_fixture__/big.ts'
-const BIG_APP_TEST = 'apps/itun/src/__biome_fixture__/big.test.tsx'
+const CONVEX = 'apps/cantina/convex/__biome_fixture__/z.ts'
+const BIG_APP = 'apps/cantina/src/__biome_fixture__/big.tsx'
+/** A Cantina function exactly at the cap. */
+const AT_CAP_APP = 'apps/cantina/src/__biome_fixture__/atCap.tsx'
+const BIG_CONVEX = 'apps/cantina/convex/__biome_fixture__/big.ts'
+const BIG_APP_TEST = 'apps/cantina/src/__biome_fixture__/big.test.tsx'
 /** An app with no function cap. */
 const BIG_SRD = 'apps/srd/src/__biome_fixture__/big.tsx'
-/** ITUN's route error screen, whose development-only dump is exempt from the raw-message ban. */
-const ROUTE_ERRORS = 'apps/itun/src/components/shared/RouteErrors.tsx'
+/** The Cantina's route error screen, whose development-only dump is exempt from the raw-message ban. */
+const ROUTE_ERRORS = 'apps/cantina/src/components/shared/RouteErrors.tsx'
 
 const FIXTURES: Record<string, string> = {
   [SOURCE]: [
@@ -133,10 +133,10 @@ const FIXTURES: Record<string, string> = {
     '',
   ].join('\n'),
   [BIG_LIB]: bigFunction(CAP + 1),
-  [BIG_APP]: bigFunction(ITUN_CAP + 1),
-  [AT_CAP_APP]: bigFunction(ITUN_CAP),
-  [BIG_CONVEX]: bigFunction(ITUN_CAP + 1),
-  [BIG_APP_TEST]: bigFunction(ITUN_CAP + 1),
+  [BIG_APP]: bigFunction(CANTINA_CAP + 1),
+  [AT_CAP_APP]: bigFunction(CANTINA_CAP),
+  [BIG_CONVEX]: bigFunction(CANTINA_CAP + 1),
+  [BIG_APP_TEST]: bigFunction(CANTINA_CAP + 1),
   [BIG_SRD]: bigFunction(CAP + 1),
 }
 
@@ -229,7 +229,7 @@ describe('noPartialModelPatch', () => {
 })
 
 describe('noLiveClockFixture', () => {
-  test('flags a live clock in an ITUN test, not a fixed date or another workspace', () => {
+  test('flags a live clock in a Cantina test, not a fixed date or another workspace', () => {
     expect(flagged(TEST_FILE, 'plugin', 'Use FIXTURE_NOW')).toEqual([16])
     expect(flagged(OTHER_TEST, 'plugin', 'Use FIXTURE_NOW')).toEqual([])
   })
@@ -246,7 +246,7 @@ describe('noChangeLogCollect', () => {
 })
 
 describe('noRawErrorMessage', () => {
-  test("flags showing a caught error's own message in ITUN source, not a mismatched pair", () => {
+  test("flags showing a caught error's own message in the Cantina source, not a mismatched pair", () => {
     expect(flagged(SOURCE, 'plugin', 'Do not show a caught error')).toEqual([12])
   })
 
@@ -263,16 +263,16 @@ describe('noExcessiveLinesPerFunction', () => {
     expect(flagged(BIG_LIB, rule)).toEqual([1])
   })
 
-  test(`fires on a function over the ${ITUN_CAP}-line cap in ITUN and its Convex backend`, () => {
+  test(`fires on a function over the ${CANTINA_CAP}-line cap in the Cantina and its Convex backend`, () => {
     expect(flagged(BIG_APP, rule)).toEqual([1])
     expect(flagged(BIG_CONVEX, rule)).toEqual([1])
   })
 
-  test('a function exactly at the ITUN cap passes', () => {
+  test('a function exactly at the Cantina cap passes', () => {
     expect(flagged(AT_CAP_APP, rule)).toEqual([])
   })
 
-  test('does not apply to an ITUN test or an uncapped app', () => {
+  test('does not apply to a Cantina test or an uncapped app', () => {
     expect(flagged(BIG_APP_TEST, rule)).toEqual([])
     expect(flagged(BIG_SRD, rule)).toEqual([])
   })

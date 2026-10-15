@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 /**
  * Smoke suite — proves the static build serves, islands hydrate, and the core
  * navigation surfaces work. `chassis` / `Mule` are core, stable entities used
- * as fixtures (the same chassis ITUN's e2e builds against).
+ * as fixtures (the same chassis the Cantina's e2e builds against).
  */
 
 // (a) Landing page loads and search returns results.

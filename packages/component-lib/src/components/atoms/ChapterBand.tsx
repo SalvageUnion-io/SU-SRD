@@ -46,14 +46,14 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  *
  * `corner` sits in the band's top-right corner, above the title row, at every
  * width: a page's own controls where they are not the entity's stamps (an
- * ITUN sheet's Read | Edit, Share and "⋯", the Starter Set's "Make a copy").
+ * The Cantina sheet's Read | Edit, Share and "⋯", the Starter Set's "Make a copy").
  *
  * ## Colour map
  *
  * `tone` is the book's colour map (ruleset, "The source"): `rules` is the
  * rules-blue band of Contents, Core Rules, Salvaging, Guides and Keywords;
  * `pilot`, `mech`, `crawler` and `denizen` are the four chapters. `ink` is the
- * dark band of a page that is the player's own (ITUN's Shelves, board S1): it
+ * dark band of a page that is the player's own (The Cantina's Shelves, board S1): it
  * wears paper flecks instead of ink speckle (ruleset §3.5). `cantina` is The
  * Cantina's own band, in Legendary pink. Content in `aside` and `eyebrow` is
  * ink on `rules`, `pilot`, `mech`, `crawler` and `cantina`; the `denizen` band

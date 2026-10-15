@@ -23,12 +23,12 @@ export const SITE_URL = originOr(import.meta.env.VITE_SRD_ORIGIN, SRD_SITE_URL)
 export const CONTENTS_CRUMB = { name: 'Contents', url: `${SITE_URL}/` } as const
 
 /**
- * In The Union Now — the companion character builder & game manager, served
+ * The Cantina — the companion character builder & game manager, served
  * beside the SRD at salvageunion.io/build (ADR-048). Absolute, so a link built
  * from it reads the same in llms.txt, a Discord embed or the dev server. A
- * Worker Preview's build links its own ITUN Preview (`VITE_ITUN_ORIGIN`).
+ * Worker Preview's build links its own Cantina Preview (`VITE_CANTINA_ORIGIN`).
  */
-export const ITUN_URL = `${originOr(import.meta.env.VITE_ITUN_ORIGIN, SRD_SITE_URL)}/build/`
+export const CANTINA_URL = `${originOr(import.meta.env.VITE_CANTINA_ORIGIN, SRD_SITE_URL)}/build/`
 
 /**
  * The SURef Discord bot's install link. The client id is public by design —

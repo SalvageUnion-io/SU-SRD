@@ -69,7 +69,7 @@ describe('smoke-production failure reporting', () => {
       // Every check ran rather than the first failure aborting the script.
       expect(stderr).toContain('FAIL srd home — wanted 200, got 000\n')
       expect(stderr).toContain(
-        'FAIL bot token accepted and ITUN configured — wanted 200, got 000\n'
+        'FAIL bot token accepted and the Cantina configured — wanted 200, got 000\n'
       )
       expect(stderr).toContain("FAIL artwork origin robots.txt has no 'Disallow: /'")
       expect(stderr).not.toContain('000000')

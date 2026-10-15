@@ -11,7 +11,7 @@ import type { TagItem } from './tagItems'
  * `Stat` cell with its parameter, `[Burn | 2]`. It behaves as a Mention does:
  * where the tag sits outside a link (`linkable`), it opens its glossary
  * entry — the page where the surface has a route (the SRD), else the Page
- * opener (ITUN) — and it Peeks on hover, focus or long-press wherever it names
+ * opener (The Cantina) — and it Peeks on hover, focus or long-press wherever it names
  * an entry. Inside a Peek it does neither (E16).
  *
  * The Tag carries only the entry's ref (the model resolved it), so it needs no

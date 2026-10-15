@@ -185,7 +185,7 @@
   border-color: var(--color-paper);
 }
 
-/* A bar with a product nav (ITUN's) has no room for "Buy the game" until
+/* A bar with a product nav (The Cantina's) has no room for "Buy the game" until
    80rem: from `lg` to there it would push the row past the viewport. Below
    `lg` the drawer carries it. */
 .su-union-bar__nav ~ .su-union-bar__end .su-union-bar__buy {
@@ -199,7 +199,7 @@
 }
 
 /* The search entry's width, one for both tools: the SRD's field
-   (`SearchField`'s input) and ITUN's trigger (`SearchFieldTrigger`'s label).
+   (`SearchField`'s input) and the Cantina's trigger (`SearchFieldTrigger`'s label).
    Scoped to the bar so it outranks the field's own `width: 100%`
    (atoms-leaves.css loads later), and the label a block so it takes a width:
    unscoped, neither applied and the two tools' fields differed by 4rem. */
@@ -211,7 +211,7 @@
 }
 
 /* A narrow phone (under 400px) has to fit the mark, the switcher and a
-   three-control cluster (ITUN signed in: search, avatar, menu, each on the
+   three-control cluster (The Cantina signed in: search, avatar, menu, each on the
    44px coarse floor) in one row. The default spacing needs 405px for that,
    so the hamburger ran off a 375px screen; this tightening gets it to about
    354px, inside a 360px phone, without dropping a control. */
@@ -378,7 +378,7 @@
   }
 }
 
-/* A measured page's body column (an ITUN page under a band with `measure`):
+/* A measured page's body column (a Cantina page under a band with `measure`):
    its side padding is the measured band's own row padding, 16px on a phone
    and 24px from `sm`, so the notch and the content start on one line, as
    srd's `.srd-page-body` does. The caller sets the measure (`max-width`). */
@@ -509,7 +509,7 @@
   }
 }
 
-/* A page-wide band with no `measure` (an ITUN sheet, the Starter Set, a
+/* A page-wide band with no `measure` (a Cantina sheet, the Starter Set, a
    builder) sets its notch, corner and eyebrow on the page's own gutter, so the
    title's cut-out lines up with the column of content under it, as a measured
    band's does on the SRD. `.su-page-gutters` is a page that pads its own body
@@ -581,7 +581,7 @@
     padding: 0 0 calc(var(--text-chapter) * 0.428 - 16px);
   }
 
-  /* A quote (ITUN's front door) is not a line of chips: its foot sits on the
+  /* A quote (The Cantina's front door) is not a line of chips: its foot sits on the
      notch's baseline. */
   .su-chapter-band[data-aside='notch'] .su-chapter-band__aside:has(> figure) {
     padding-bottom: calc(var(--text-chapter) * 0.076);

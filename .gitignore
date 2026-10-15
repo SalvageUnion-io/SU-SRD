@@ -46,7 +46,7 @@ packages/salvageunion-reference/schemas/
 # TanStack Router temporary files
 **/.tanstack
 # generate-route-tree's scratch tree, left behind only if the run was killed
-apps/itun/src/.routeTree.gen.*.ts
+apps/cantina/src/.routeTree.gen.*.ts
 
 # Environment variables
 .env

@@ -29,14 +29,14 @@ state moves from the device onto the Game (§2).
 - [ADR-034](../ARCHITECTURE.md#decisions)'s "What is not data": mount
   state is no longer a device preference.
 
-The Dashboard is the Guided Play surface of [ADR-021](021-itun-surface-taxonomy.md)'s taxonomy, and
+The Dashboard is the Guided Play surface of [ADR-021](021-cantina-surface-taxonomy.md)'s taxonomy, and
 delivers part of its long-tail "shared, live Dashboard": each player's play
 state is visible to the crew live. It does not put several players on one
 screen.
 
 ## Context
 
-ITUN's live sheet fuses two moments with opposite interaction grammars: editing
+The Cantina's live sheet fuses two moments with opposite interaction grammars: editing
 a character (inline edit and scroll) and running it at the table (one screen,
 no scroll, every action a button). Forcing both into one surface produced
 clutter, so the Dashboard was built as a surface of its own.

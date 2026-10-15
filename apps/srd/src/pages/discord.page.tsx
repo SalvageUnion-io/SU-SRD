@@ -5,7 +5,7 @@
  * registered `/su` builder (`apps/discord-bot/src/commandList.ts`), so every
  * subcommand is here under the name and description Discord shows. The
  * reference tools each get a panel with worked examples (`commandDetail`); the
- * In the Union now commands are listed under the account they need.
+ * The Cantina commands are listed under the account they need.
  */
 
 import { buttonVariants, InlineRef, Panel, Slab } from 'component-lib'
@@ -17,9 +17,9 @@ import { DocPage } from '../components/DocPage'
 import type { DiscordCommand } from '../generated/discordCommands'
 import { DISCORD_COMMANDS } from '../generated/discordCommands'
 import {
+  CANTINA_URL,
   CONTENTS_CRUMB,
   DISCORD_INSTALL_URL,
-  ITUN_URL,
   SITE_URL,
   TITLE_SUFFIX,
 } from '../lib/constants'
@@ -263,7 +263,7 @@ function page(): PageResult {
           <Slab as="h2" variant="solid" label={`With ${PRODUCT.name}`} />
           <p>
             These read your {PRODUCT.name} account and its Games. Sign in to{' '}
-            <InlineRef href={ITUN_URL} style={BOLD}>
+            <InlineRef href={CANTINA_URL} style={BOLD}>
               {PRODUCT.name}
             </InlineRef>{' '}
             with the same Discord account and the bot knows you; until then each one says how.
@@ -299,11 +299,11 @@ function page(): PageResult {
           </ul>
           <p style={ASIDE}>
             <strong>Running a campaign?</strong> Pair the bot with{' '}
-            <InlineRef href={ITUN_URL} style={BOLD}>
+            <InlineRef href={CANTINA_URL} style={BOLD}>
               {PRODUCT.name}
             </InlineRef>
             {/*
-                Signed out, ITUN is read-only; building needs an account
+                Signed out, The Cantina is read-only; building needs an account
                 (ADR-034). Never reword this to claim building or keeping work
                 without one.
               */}

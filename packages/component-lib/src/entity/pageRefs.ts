@@ -20,7 +20,7 @@ import type { EntityRef } from 'salvageunion-reference'
  * The candidates are the app's to supply (`EntitySurfaceValue.pageRefs`): the
  * SRD builds them at build time for just the pages an entity cites, so the
  * client needs no extra schema to resolve them, and an app that supplies none
- * (ITUN) prints every reference as the book does.
+ * (The Cantina) prints every reference as the book does.
  */
 
 /** One entity printed on a Workshop Manual page. */

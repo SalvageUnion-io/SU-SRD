@@ -24,7 +24,7 @@ recorded in commit messages. This ADR enshrines them so they are not
 re-litigated; the card's and `Stat`'s tests now hold them.
 
 See also: [ADR-010](../ARCHITECTURE.md#decisions) (choices
-ephemeral vs persisted), [ADR-021](021-itun-surface-taxonomy.md) (surface/mode
+ephemeral vs persisted), [ADR-021](021-cantina-surface-taxonomy.md) (surface/mode
 taxonomy — which surface may enforce vs. free-edit), [ADR-023](../ARCHITECTURE.md#decisions)
 (drone loadout).
 
@@ -99,7 +99,7 @@ Some granted, TL-scalable pilot equipment (e.g. Custom Sniper Rifle) resolves an
   at the entity's base TL** (a granted item is never below its own tech level; so
   a TL1 item with no crawler shows `0/1`, not unbounded).
 - The level is **controlled from without**: the card takes `scalingParent` (the
-  crawler level in ITUN); the header TL reads it and Damage + cap reflect it,
+  crawler level in the Cantina); the header TL reads it and Damage + cap reflect it,
   read-only.
 - Damage scaling is resolved by `resolveDataValueForTechLevel` and surfaced with
   the "modified" border (rule 5).
@@ -118,5 +118,5 @@ equipment was already TL1.)
 - The design rules are regression-guarded by the card's and `Stat`'s own
   tests.
 - Rule 7 is a shared-data change: it changes the tech-level badge on srd /
-  the Discord bot as well as ITUN. It is a data ruling, not a computed value —
+  the Discord bot as well as the Cantina. It is a data ruling, not a computed value —
   future granted-only equipment should be authored at TL1 directly.
