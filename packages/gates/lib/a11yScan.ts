@@ -88,6 +88,8 @@ function unsettled(): string {
     // Mounts only when a reader reaches for it: until then its server markup
     // is the page, and that is what a reader who has not touched it meets.
     if (el.dataset.client === 'interaction') continue
+    // Never mounts on this load (the SRD's signed-in-only account menu).
+    if (el.dataset.islandSkipped !== undefined) continue
     if (el.dataset.client === 'visible') {
       const box = el.getBoundingClientRect()
       const onScreen =

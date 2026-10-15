@@ -20,7 +20,7 @@
  */
 
 import { readAccountHint } from 'component-lib/accountHint'
-import { browserStorage, markSignedIn } from '../lib/accountBar'
+import { browserStorage, markSignedIn } from '../lib/accountState'
 import { initBrowserObservability, installChunkRecovery } from '../lib/observability'
 import { revealWikiLinks } from '../lib/wikiLink'
 import { replayInteraction, watchInteraction } from './interaction'
@@ -62,7 +62,11 @@ function mountIslands(): void {
   for (const el of document.querySelectorAll<HTMLElement>('[data-island]')) {
     const name = el.dataset.island
     if (!name) continue
-    if (el.dataset.when === 'signed-in' && !signedIn) continue
+    if (el.dataset.when === 'signed-in' && !signedIn) {
+      // Never mounts on this load: said so, for a scan that waits on islands.
+      el.dataset.islandSkipped = ''
+      continue
+    }
     // `name` comes off the DOM, so it is genuinely an unknown string here —
     // the compile-time `IslandName` guarantee lives at the `<Island>` call
     // site, not on this side of the serialization boundary. Narrow explicitly

@@ -1,6 +1,7 @@
 import { AccountMenu } from 'component-lib'
 import { readAccountHint } from 'component-lib/accountHint'
-import { browserStorage, SETTINGS_HREF, signOutHref } from '../../lib/accountBar'
+import { SETTINGS_HREF, signOutHref } from '../../lib/accountBar'
+import { browserStorage } from '../../lib/accountState'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 /**

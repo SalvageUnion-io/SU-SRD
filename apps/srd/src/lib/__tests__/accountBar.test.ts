@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-import { markSignedIn, SETTINGS_HREF, SIGN_IN_HREF, signOutHref } from '../accountBar'
+import { SETTINGS_HREF, SIGN_IN_HREF, signOutHref } from '../accountBar'
+import { markSignedIn } from '../accountState'
 import { CANTINA_URL } from '../constants'
 
 describe('accountBar', () => {

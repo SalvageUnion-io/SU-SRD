@@ -29,7 +29,7 @@ Canonical URLs always carry a trailing slash.
 
 1. **`createRoot`, unless `hydrate`.** `useGameData`'s server snapshot is `false`, so a game-data island cannot hydrate. `hydrate` is for an `ssr` island whose children are itself, from the same props, reading no game data: they render with `renderToString` and `hydrateRoot` adopts them.
 2. **`ssr` is an SEO / no-JS choice, default `false`.** Without `hydrate` the markup is replaced on mount, so it cannot mismatch.
-3. **`<Island>` emits one placeholder.** `<div data-island data-client data-island-id>`, plus `data-hydrate` / `data-trigger` / `data-when`; `when="signed-in"` mounts only under the account hint (`src/lib/accountBar.ts`); `client` is `load | idle | visible | only | interaction`.
+3. **`<Island>` emits one placeholder.** `<div data-island data-client data-island-id>`, plus `data-hydrate` / `data-trigger` / `data-when`; `when="signed-in"` mounts only under the account hint (`src/lib/accountState.ts`), else is marked `data-island-skipped`; `client` is `load | idle | visible | only | interaction`.
 4. **Props ship once per page.** One `<script type="application/json" data-island-props>`, keyed by `data-island-id`.
 5. **Scheduling.** `load`/`only` mount at once, `idle` on `requestIdleCallback` with a 2 s `timeout` (200ms `setTimeout` where it is missing), `visible` on first intersection. `interaction` waits for the reader's first reach (or, with `trigger`, one on a matching element) and replays what they did meanwhile (`src/runtime/interaction.ts`); `src/runtime/mountNow.ts` says when it cannot wait. React loads only with an island.
 6. **The registry uses static dynamic imports.** `src/runtime/islandRegistry.ts`, so Rollup code-splits each island.
