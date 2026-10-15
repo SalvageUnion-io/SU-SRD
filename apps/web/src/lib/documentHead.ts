@@ -10,7 +10,7 @@
  */
 
 /** The site's name, as `og:site_name` gives it on every page. */
-export const SITE_NAME = 'Salvage Union'
+const SITE_NAME = 'Salvage Union'
 
 /**
  * The browser-chrome colour every page emits as `theme-color` unless it names
