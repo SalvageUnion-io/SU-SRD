@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { color } from '../../../design/tokens'
 import { ChapterBand } from '../ChapterBand'
+import { ChapterBandTrail } from '../ChapterBandTrail'
 
 /**
  * ChapterBand (brand refresh P2a): the page title notched into a band in the chapter's
@@ -85,6 +86,34 @@ describe('ChapterBand', () => {
     )
     expect(bare).not.toContain('data-action')
     expect(bare).not.toContain('su-chapter-band__action')
+  })
+
+  test("a page band leads with the layout's trail, in the band's foreground", () => {
+    const trail = <nav aria-label="Breadcrumb">Contents / Mule</nav>
+    const page = renderToStaticMarkup(
+      <ChapterBandTrail.Provider value={trail}>
+        <ChapterBand tone="denizen">Ace</ChapterBand>
+      </ChapterBandTrail.Provider>
+    )
+    expect(page).toContain('su-chapter-band__trail')
+    expect(page.indexOf('Contents / Mule')).toBeLessThan(page.indexOf('Ace'))
+    expect(page).toContain(`color:${color.paper}`)
+  })
+
+  test("the trail gives way to a band's own eyebrow, and never rides a link preview", () => {
+    const trail = <nav aria-label="Breadcrumb">Contents / Mule</nav>
+    const own = renderToStaticMarkup(
+      <ChapterBandTrail.Provider value={trail}>
+        <ChapterBand eyebrow={<span>Kicker</span>}>Home</ChapterBand>
+      </ChapterBandTrail.Provider>
+    )
+    expect(own).not.toContain('Contents / Mule')
+    const og = renderToStaticMarkup(
+      <ChapterBandTrail.Provider value={trail}>
+        <ChapterBand scale="og">Mule</ChapterBand>
+      </ChapterBandTrail.Provider>
+    )
+    expect(og).not.toContain('Contents / Mule')
   })
 
   test('`corner` sits above the title row, right-aligned, and is absent when unset', () => {

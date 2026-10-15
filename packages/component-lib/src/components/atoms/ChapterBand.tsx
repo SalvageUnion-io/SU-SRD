@@ -1,6 +1,8 @@
 import type { CSSProperties, ElementType, ReactNode } from 'react'
+import { useContext } from 'react'
 import { foregroundOn } from '../../design/contrast'
 import { color, font, space, weight } from '../../design/tokens'
+import { ChapterBandTrail } from './ChapterBandTrail'
 import type { ChapterTone } from './chapterBandColor'
 import { CHAPTER_BAND_COLOR } from './chapterBandColor'
 import type { SpeckleGrain } from './Speckle'
@@ -45,9 +47,13 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  * notch stays on the band's foot either way.
  *
  * `action` is a show page's one button ("Build With This"), after the cluster
- * from `sm` and on its last line. On a phone it stays on the band: right of
- * the title, centred on its capitals, or on a line of its own just above the
- * title when the two don't fit, so it never drops onto the page ground.
+ * from `sm` and on its last line. On a phone it sits on the band right of the
+ * title, centred on its capitals; a title too long to share the line pushes it
+ * under the title, on the page ground with the cluster.
+ *
+ * The page's breadcrumb trail (`ChapterBandTrail`, which a site's layout
+ * provides) leads a page band where the Union bar has no room for it, on the
+ * band above the title row, in the band's foreground.
  *
  * `corner` sits in the band's top-right corner, above the title row, at every
  * width: a page's own controls where they are not the entity's stamps (an
@@ -193,6 +199,10 @@ const EYEBROW = {
   marginInline: 'auto',
 } satisfies CSSProperties
 
+// The trail's `display` is the stylesheet's: it steps aside where the Union bar
+// holds the trail (`.su-chapter-band__trail`).
+const TRAIL = { marginInline: 'auto' } satisfies CSSProperties
+
 // `align-items` is the stylesheet's: a show page's cluster (`asideAt="notch"`)
 // changes it at `sm`.
 const ASIDE = {
@@ -243,6 +253,7 @@ export function ChapterBand({
 }: ChapterBandProps) {
   // A link preview is a picture at one size: it never bleeds.
   const bleed = scale === 'page'
+  const trail = useContext(ChapterBandTrail)
   const titleStyle = userMade
     ? { ...TITLE, ...userMadeTitle(scale === 'og' ? OG_DASH : DASH) }
     : TITLE
@@ -279,6 +290,18 @@ export function ChapterBand({
           style={measure ? { ...CORNER, maxWidth: measure } : CORNER}
         >
           {corner}
+        </div>
+      )}
+      {bleed && trail && !eyebrow && (
+        <div
+          className="su-chapter-band__eyebrow su-chapter-band__trail"
+          style={{
+            ...TRAIL,
+            ...(measure ? { maxWidth: measure } : {}),
+            color: foregroundOn(band, 'ink') === 'ink' ? color.ink : color.paper,
+          }}
+        >
+          {trail}
         </div>
       )}
       {eyebrow && (

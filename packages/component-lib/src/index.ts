@@ -12,11 +12,14 @@ export { Badge } from './components/atoms/Badge'
 // BandTitle — the paper-on-tone title inside a Card's header band. NOT a
 // stamp: it fills its track and truncates, where a stamp sizes to its text.
 export { BandTitle } from './components/atoms/BandTitle'
+// BreadcrumbTrail — a page's trail, for the Union bar or a page's band (`ChapterBandTrail`)
+export { BreadcrumbTrail } from './components/atoms/BreadcrumbTrail'
 export { Button } from './components/atoms/Button'
 export { buttonVariants } from './components/atoms/buttonVariants'
 export { CatalogTile } from './components/atoms/CatalogTile'
 // ChapterBand — the page title notched into a band in the chapter's colour
 export { ChapterBand } from './components/atoms/ChapterBand'
+export { ChapterBandTrail } from './components/atoms/ChapterBandTrail'
 // Conditions — the entity-condition chip row. Public because the Cantina's sheet
 // editors (ConditionsEditor, NpcFactsEditor) compose it.
 export { Conditions } from './components/atoms/Conditions'

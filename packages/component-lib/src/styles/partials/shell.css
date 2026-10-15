@@ -599,49 +599,82 @@
   }
 }
 
-/* `action`, a show page's "Build With This": at the chips' height, not
-   `.su-page-action`'s 40px, so every chip and button on the band is one size
-   (a coarse pointer's 44px floor still lifts it). */
+/* `action`, a show page's "Build With This": the Union bar's button, its
+   height (36px; 44px under a coarse pointer, `pointer-motion.css`) and type, whatever the
+   chips beside it. */
 .su-chapter-band__action {
+  --su-band-action: 36px;
   display: flex;
   flex: none;
 }
 
 .su-chapter-band__action .su-page-action {
-  height: 32px;
+  font-size: var(--text-caption);
+  height: var(--su-band-action);
+  letter-spacing: var(--tracking-caps-snug);
+  padding-inline: var(--space-14);
 }
 
-/* On a phone it stays on the band on a phone:
-   the row wraps upward (`wrap-reverse`), so its first line, the cluster's
-   page-ground strip (`order: -1`), sits at the foot, the title and the
-   action share the line above it, the action right-aligned with its middle
-   on the notch's capitals (as the cluster's last line is from `sm`), and an
-   action that doesn't fit beside the title takes a line of its own above it,
-   still on the band. `align-items: flex-start` is the foot of each line under
-   `wrap-reverse`. The strip's negative top margin takes back the row gap, so
-   the notch stays flush on it. */
+/* On a phone the row wraps: the title, a spacer that pushes the action to the
+   line's end, the action (its middle on the notch's capitals, as the
+   cluster's last line is from `sm`), then the cluster's strip on a line of
+   its own. A title too long to share its line sends the action under it, at
+   the line's start. Everything under the title is page ground: the notch's
+   `::after` paints it to the band's clipped edges, under the row's content,
+   so a wrapped action sits on the page with the cluster, never on the band.
+   The strip's negative top margin takes back the row gap; its bottom padding
+   keeps a focus ring inside the clip. */
 @media (max-width: 39.99rem) {
+  .su-chapter-band[data-aside='notch'][data-action] {
+    overflow: clip;
+  }
+
   .su-chapter-band[data-aside='notch'][data-action] .su-chapter-band__row {
-    align-items: flex-start;
-    column-gap: var(--space-12);
-    flex-flow: row wrap-reverse;
+    align-items: flex-end;
+    column-gap: 0;
+    flex-flow: row wrap;
+    position: relative;
     row-gap: var(--space-8);
+    z-index: 0;
+  }
+
+  .su-chapter-band[data-aside='notch'][data-action] .su-chapter-band__row::after {
+    content: '';
+    flex: 1 0 var(--space-12);
+    order: 1;
+  }
+
+  .su-chapter-band[data-aside='notch'][data-action] .su-chapter-band__title,
+  .su-chapter-band[data-aside='notch'][data-action] .su-chapter-band__heading {
+    align-self: flex-end;
+  }
+
+  .su-chapter-band[data-aside='notch'][data-action] .su-chapter-band__title {
+    position: relative;
+  }
+
+  .su-chapter-band[data-aside='notch'][data-action] .su-chapter-band__title::after {
+    background-color: var(--color-wk-bg);
+    content: '';
+    height: 100vh;
+    left: -100vw;
+    pointer-events: none;
+    position: absolute;
+    top: 100%;
+    width: 200vw;
+    z-index: -1;
+  }
+
+  .su-chapter-band__action {
+    margin-bottom: calc(var(--text-hero) * 0.428 - var(--su-band-action) / 2);
+    order: 2;
   }
 
   .su-chapter-band[data-aside='notch'][data-action] .su-chapter-band__aside {
     flex-basis: calc(100% + 2 * var(--space-16));
     margin-top: calc(-1 * var(--space-8));
-    order: -1;
-  }
-
-  .su-chapter-band[data-aside='notch'][data-action] .su-chapter-band__title,
-  .su-chapter-band[data-aside='notch'][data-action] .su-chapter-band__heading {
-    align-self: flex-start;
-  }
-
-  .su-chapter-band__action {
-    margin-inline-start: auto;
-    padding-bottom: calc(var(--text-hero) * 0.428 - 16px);
+    order: 3;
+    padding-bottom: var(--space-4);
   }
 }
 
@@ -649,8 +682,49 @@
    (the row's own gap less the chips'), not the row's. */
 @media (min-width: 40rem) {
   .su-chapter-band__action {
+    margin-bottom: calc(var(--text-chapter) * 0.428 - var(--su-band-action) / 2);
     margin-inline-start: calc(var(--space-8) - var(--space-24));
-    padding-bottom: calc(var(--text-chapter) * 0.428 - 16px);
+  }
+}
+
+/* The page's trail on its band (`ChapterBandTrail`): wherever the Union bar
+   has no room for it (below 80rem, `.su-crumbs--bar`), in the band's
+   foreground, and the trail's own row under the bar steps aside. From 80rem
+   the bar holds it, and the band keeps its full top padding. */
+.su-chapter-band__trail {
+  display: flex;
+}
+
+.su-crumbs--band {
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: var(--space-4);
+}
+
+.su-crumbs--band .su-crumbs__list {
+  flex-wrap: wrap;
+}
+
+.su-crumbs--band .su-crumbs__link {
+  color: inherit;
+}
+
+.su-crumbs--band .su-crumbs__separator,
+.su-crumbs--band .su-crumbs__description {
+  opacity: 0.75;
+}
+
+:root:has(.su-crumbs--band) .su-crumbs--row {
+  display: none;
+}
+
+@media (min-width: 80rem) {
+  .su-chapter-band__trail {
+    display: none;
+  }
+
+  .su-chapter-band__trail + .su-chapter-band__row {
+    padding-top: var(--space-48);
   }
 }
 
