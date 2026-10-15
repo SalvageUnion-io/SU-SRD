@@ -1,7 +1,7 @@
 /**
  * The Union bar's account controls on the SRD, which has no backend: who is
  * signed in comes from the account hint The Cantina leaves on this origin
- * (`src/ui/accountHint`).
+ * (`src/lib/accountHint`).
  *
  * The page is served signed out — one HTML for every reader, so no cache ever
  * holds anyone's name. The client entry reads the hint once per load and marks

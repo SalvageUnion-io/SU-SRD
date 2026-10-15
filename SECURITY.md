@@ -14,8 +14,8 @@ Include what is affected, how to reproduce it, and what an attacker gains.
 Only what is deployed from `main`: older commits and releases are not
 patched.
 
-- The reference site (`apps/web`) and the character builder and game manager
-  (`apps/web/src/cantina`), including its Convex backend (`apps/web/convex`).
+- The app at salvageunion.io (`apps/web`): the reference pages, the character
+  builder and game manager, and its Convex backend (`apps/web/convex`).
 - The Discord bot (`apps/discord-bot`) and the artwork Worker
   (`apps/su-assets`).
 - The CI and deploy workflows in `.github/`, which hold production

@@ -43,8 +43,8 @@ describe('scannedFiles', () => {
         'apps/web/test/convex/harness.ts',
         'apps/web/convex/_generated/api.js',
         'packages/a/lib/generated/registry.ts',
-        'apps/web/src/cantina/routeTree.gen.ts',
-        'apps/web/src/cantina/env.d.ts',
+        'apps/web/src/routeTree.gen.ts',
+        'apps/web/src/routes/env.d.ts',
         'apps/web/src/styles.css',
       ])
     ).toEqual([

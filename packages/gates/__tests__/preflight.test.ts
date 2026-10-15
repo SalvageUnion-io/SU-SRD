@@ -39,7 +39,7 @@ const SETS: [RuleSet, string][] = [
   [designTokens, 'design tokens: scanned 0 files'],
   [stylingOwnership, 'styling ownership (app CSS): scanned 0 files'],
   [copyTerms, 'copy: scanned 0 files'],
-  [srdCss, 'srd-css (srd source files): scanned 0 files'],
+  [srdCss, 'srd-css (modules a static page reaches): scanned 0 files'],
   [toneGround, 'tone-ground (header grounds): scanned 0 files'],
 ]
 
@@ -55,14 +55,6 @@ describe('rule set preflights', () => {
       expect(errors).toEqual([])
     })
   }
-
-  test('srd-css checks src/ui separately: a full srd tree with no library still fails', () => {
-    const root = emptyTree()
-    mkdirSync(join(root, 'apps/web/src'), { recursive: true })
-    for (let i = 0; i < 70; i++) writeFileSync(join(root, `apps/web/src/m${i}.ts`), '')
-    expect(() => srdCss.preflight?.(root)).toThrow(new Exited(1))
-    expect(errors.join('\n')).toContain('srd-css (src/ui source files): scanned 0 files')
-  })
 
   test('tone-ground reads a data directory that is not an array of entities as no grounds', () => {
     const root = emptyTree()

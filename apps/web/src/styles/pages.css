@@ -424,7 +424,7 @@ a.srd-home__discord:hover {
 /*
  * The SEO / no-JS entity fallback (`StaticEntityContent`): plain reading
  * prose, a label/value stat list, a real roll table and named sections. Its
- * references are src/ui `InlineRef`s.
+ * references are src/components `InlineRef`s.
  */
 .srd-static {
   color: var(--color-ink);

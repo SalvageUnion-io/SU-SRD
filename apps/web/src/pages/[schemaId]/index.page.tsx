@@ -20,6 +20,7 @@
 import type { EnhancedSchemaMetadata, RefEntity } from 'salvageunion-reference'
 import { getAssetUrl } from 'salvageunion-reference'
 import type { PageModule, PageResult, RouteContext } from '../../../ssg/types'
+import { ChapterBand } from '../../components/index'
 import { SchemaViewerListing } from '../../components/islands/SchemaViewerIsland'
 import { chapterForSchema } from '../../lib/chapters'
 import { CONTENTS_CRUMB, SITE_URL, TITLE_SUFFIX } from '../../lib/constants'
@@ -33,7 +34,6 @@ import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { getSchemaPreloadList } from '../../lib/schemaPreloadDeps'
 import { getSchemaStaticPaths } from '../../lib/staticPaths'
 import { Island } from '../../runtime/Island'
-import { ChapterBand } from '../../ui/index'
 
 type Params = { schemaId: string }
 type Props = { schema: EnhancedSchemaMetadata; data: RefEntity[] }

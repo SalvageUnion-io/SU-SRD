@@ -67,7 +67,7 @@ retired `su:<action>` name for something new.
 ## Colour and the tests that guard a reply
 
 - Roll and neutral colours mirror `--color-roll-*` / `--color-rust` in
-  `apps/web/src/ui/styles/theme.css`; change them together.
+  `apps/web/src/styles/theme.css`; change them together.
   `themeLockstep.test.ts` fails when they diverge (entry tones:
   `packages/salvageunion-reference/lib/view/__tests__/discordCard.test.ts`).
 - Handlers take the narrow types in `src/commands/interactions.ts` (add a member

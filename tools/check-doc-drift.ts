@@ -970,7 +970,9 @@ export function checkDocSizes(
   collapsed: Record<string, number> = COLLAPSED_DOCS
 ): CheckResult {
   const failures: string[] = []
-  const guides = [...workspaceDirs(root), 'apps/web/src/cantina'].map((dir) => `${dir}/CLAUDE.md`)
+  const guides = [...workspaceDirs(root), 'apps/web/src/routes', 'apps/web/src/components'].map(
+    (dir) => `${dir}/CLAUDE.md`
+  )
   const claudeMds = ['CLAUDE.md', ...guides].filter((doc) => existsSync(join(root, doc)))
   const rules = markdownIn(root, '.claude/rules')
   const budgeted: [string, number][] = [
@@ -1008,17 +1010,10 @@ export function checkDocSizes(
 
 // ─── load ───────────────────────────────────────────────────────────────────
 
-/** The Cantina's folders in `apps/web`: its session's, not srd's. */
-const CANTINA_DIRS = ['src/cantina', 'convex', 'test', 'e2e/cantina'].map((d) => `apps/web/${d}`)
-
 /** The sessions the repo budgets (`gates/lib/sessionLoad`), each held to `SESSION_CEILINGS`. */
 const SESSION_PROFILES: Record<string, SessionProfile> = {
-  srd: { dirs: ['apps/web'], reads: [], skip: [...CANTINA_DIRS, 'apps/web/src/ui'] },
-  /** It reads `apps/web/CLAUDE.md` (its workspace's guide) and the Convex CLI's guidelines; a Convex upgrade that grows them raises this on purpose. */
-  'cantina+ui': {
-    dirs: [...CANTINA_DIRS, 'apps/web/src/ui'],
-    reads: ['apps/web/CLAUDE.md', 'apps/web/convex/_generated/ai/guidelines.md'],
-  },
+  /** It reads the Convex CLI's guidelines; a Convex upgrade that grows them raises this on purpose. */
+  web: { dirs: ['apps/web'], reads: ['apps/web/convex/_generated/ai/guidelines.md'] },
   bot: { dirs: ['apps/discord-bot'], reads: [] },
 }
 
@@ -1028,8 +1023,7 @@ const SESSION_PROFILES: Record<string, SessionProfile> = {
  * so); raise one only on purpose, saying why in the commit.
  */
 const SESSION_CEILINGS: Record<string, number> = {
-  srd: 24_350,
-  'cantina+ui': 59_934,
+  web: 61_924,
   bot: 22_634,
 }
 

@@ -9,7 +9,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { borderWidth, color, font, fontSize, radius, space, weight } from '../ui/design/tokens'
+import { borderWidth, color, font, fontSize, radius, space, weight } from '../design/tokens'
 
 /** The page column: fills `<main>`, the band on top, a 48px foot. */
 export const DOC_PAGE = {

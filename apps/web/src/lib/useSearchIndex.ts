@@ -1,6 +1,6 @@
 /**
  * Client-side loader for the build-time compact search index
- * (`search-index.json.ts`). Mirrors `useGameData.tsx`'s SSR-safe,
+ * (`search-index.json.ts`). Mirrors `useGameData.ts`'s SSR-safe,
  * shared-promise pattern, but fetches a small static JSON asset instead of
  * preloading the ORM — search islands never import `salvageunion-reference`.
  */
@@ -11,7 +11,7 @@ let indexPromise: Promise<CompactSearchEntry[]> | null = null
 let indexData: CompactSearchEntry[] | null = null
 const readyListeners = new Set<() => void>()
 
-/** Test-only escape hatch, mirroring `resetPreloadForTests` in useGameData.tsx. */
+/** Test-only escape hatch, mirroring `resetPreloadForTests` in useGameData.ts. */
 export function resetSearchIndexForTests(): void {
   indexPromise = null
   indexData = null
@@ -32,7 +32,7 @@ function getReadySnapshot(): boolean {
   return indexData !== null
 }
 
-/** Server snapshot: always false — see useGameData.tsx's identical rationale
+/** Server snapshot: always false — see useGameData.ts's identical rationale
  *  (SSR/first-hydration-render consistency; no fetch happens on the server). */
 function getReadyServerSnapshot(): boolean {
   return false

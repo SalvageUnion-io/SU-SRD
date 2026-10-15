@@ -24,7 +24,7 @@
 
 import { describe, expect, test } from 'bun:test'
 import schema from '../../../convex/schema'
-import { RECORD_KINDS } from '../../../src/cantina/stores/records'
+import { RECORD_KINDS } from '../../../src/stores/records'
 
 /**
  * The little of a Convex column validator this test reads.
@@ -67,7 +67,7 @@ describe('container parity — every local store can reach the server', () => {
    */
   test('every Convex-backed store has a client commit path, not just a table', async () => {
     const backend = await Bun.file(
-      new URL('../../../src/cantina/stores/entityBackend.ts', import.meta.url)
+      new URL('../../../src/stores/entityBackend.ts', import.meta.url)
     ).text()
 
     // store name → the commit function, and the store module that must CALL it.
@@ -100,7 +100,7 @@ describe('container parity — every local store can reach the server', () => {
       if (sources.has(consumer)) continue
       sources.set(
         consumer,
-        await Bun.file(new URL(`../../../src/cantina/stores/${consumer}`, import.meta.url)).text()
+        await Bun.file(new URL(`../../../src/stores/${consumer}`, import.meta.url)).text()
       )
     }
 

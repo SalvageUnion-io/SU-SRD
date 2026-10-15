@@ -5,9 +5,9 @@ import type { AbilityTreeGroup, BranchTree, ClassPath, ClassPlan } from '../lib/
 import { resolveClassPlan } from '../lib/classPaths'
 import { itemHref } from '../lib/entityHref'
 import type { RefText } from '../lib/rollTablePage'
-import type { TreeTrack } from '../ui/index'
-import { ActivationCost, Head, Slab, Stat } from '../ui/index'
 import { AbilityTrack } from './AbilityTrack'
+import type { TreeTrack } from './index'
+import { ActivationCost, Head, Slab, Stat } from './index'
 import { MentionProse } from './MentionProse'
 
 type ClassAbilityTreeProps = {
@@ -26,7 +26,7 @@ const noteFor = (track: TreeTrack) => (track === 'legendary' ? 'Choose 1' : 'Tre
  * A tree as Rows on its track, under a slab naming it (and, for a branch, its
  * owner). On the class page the slab is an `h2` and each Ability's title an
  * `h3`, the card's own outline (`sectionHeadingLevel`, `nestedTitleLevel` in
- * src/ui): a screen-reader user jumps tree to tree and Ability to
+ * src/components): a screen-reader user jumps tree to tree and Ability to
  * Ability rather than reading a wall of links (WCAG 1.3.1, 2.4.6).
  */
 function TreeSection({

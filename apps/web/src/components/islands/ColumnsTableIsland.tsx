@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import type { ColumnsRoll, ColumnsTablePageData } from '../../lib/columnsTablePage'
 import { columnsAnnouncement } from '../../lib/columnsTablePage'
-import { rollD20, Toaster, toastRoll } from '../../ui/index'
 import { ColumnsTableView } from '../ColumnsTableView'
+import { rollD20, Toaster, toastRoll } from '../index'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 type ColumnsTableIslandProps = {

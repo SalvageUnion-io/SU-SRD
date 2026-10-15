@@ -74,7 +74,7 @@ const ROOT = join(import.meta.dir, '..')
 /** Every committed path a generator below writes. */
 export const GENERATED_PATHS = [
   'packages/salvageunion-reference/lib/index.ts',
-  'apps/web/src/cantina/routeTree.gen.ts',
+  'apps/web/src/routeTree.gen.ts',
   'apps/web/worker-configuration.d.ts',
   'apps/su-assets/worker-configuration.d.ts',
   'apps/discord-bot/worker-configuration.d.ts',
@@ -137,9 +137,9 @@ export const GENERATORS: GeneratorSpec[] = [
     label: 'cantina route tree',
     cmd: ['bun', 'scripts/generate-route-tree.ts'],
     cwd: 'apps/web',
-    outputs: ['apps/web/src/cantina/routeTree.gen.ts'],
+    outputs: ['apps/web/src/routeTree.gen.ts'],
     inputs: [
-      'apps/web/src/cantina/routes',
+      'apps/web/src/routes',
       'apps/web/routeTree.config.ts',
       'apps/web/scripts/generate-route-tree.ts',
       'apps/web/package.json',

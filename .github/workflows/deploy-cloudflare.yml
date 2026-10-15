@@ -104,7 +104,7 @@ env:
   # deploy key resolves to before it pushes, so a moved deployment fails the
   # run before anything ships instead of shipping a client aimed elsewhere.
   CANTINA_CONVEX_URL: https://exuberant-porpoise-183.convex.cloud
-  # Where the Cantina is served (ADR-048): `SITE` in apps/web/src/cantina/lib/site.ts, with
+  # Where the Cantina is served (ADR-048): `SITE` in apps/web/src/lib/site.ts, with
   # no trailing slash, as Convex Auth's SITE_URL wants it (the routing test
   # holds them equal). The srd deploy leg sets it on the production backend.
   CANTINA_SITE_URL: https://salvageunion.io/build

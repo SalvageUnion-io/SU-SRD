@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { InlineRef } from '../ui/index'
+import { InlineRef } from './index'
 
 type RollPageFrameProps = {
   /** The page's density setting (`rollTableDensity`, or always `compact`). */

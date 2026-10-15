@@ -22,7 +22,7 @@ import { CHECKOUT_HEADER, CHECKOUT_ROOT } from 'gates/ports'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import { ROUTER_PLUGIN_OPTIONS } from './routeTree.config'
-import { SITE } from './src/cantina/lib/site'
+import { SITE } from './src/lib/site'
 import { WORKBOX_OPTIONS } from './src/pwa'
 import { emitBaseStylesheet } from './src/styles/baseStylesheet'
 import { appGraph } from './ssg/appGraph'
@@ -67,7 +67,7 @@ export default defineConfig({
   base: '/',
   publicDir: join(HERE, 'public'),
   define: {
-    // The Cantina's base, `/build/` (ADR-048, `src/cantina/lib/appUrl.ts`).
+    // The Cantina's base, `/build/` (ADR-048, `src/lib/appUrl.ts`).
     'import.meta.env.CANTINA_BASE': JSON.stringify(SITE.base),
   },
   plugins: [
@@ -86,7 +86,7 @@ export default defineConfig({
     // force-assigns `skipWaiting` and `clientsClaim`, so a new worker would
     // take over an open builder tab and drop the precache entries it still
     // reads from. `public/sw-lifecycle.js` decides instead. The builder
-    // registers through `virtual:pwa-register` (`src/cantina/main.tsx`), the
+    // registers through `virtual:pwa-register` (`src/main.tsx`), the
     // reference's pages through `public/registerSW.js`; neither is injected.
     VitePWA({
       registerType: 'prompt',
@@ -117,8 +117,9 @@ export default defineConfig({
       'salvageunion-reference/zod',
     ],
     entries: [
+      'src/main.tsx',
+      'src/routes/**/*.{ts,tsx}',
       'src/components/islands/**/*.{ts,tsx}',
-      'src/cantina/**/*.{ts,tsx}',
       '!**/__tests__/**',
     ],
   },
@@ -179,22 +180,16 @@ export default defineConfig({
               tags: ['$initial'],
               priority: 20,
             },
-            {
-              name: 'ui',
-              test: cantinaOnly(/[\\/]apps[\\/]web[\\/]src[\\/]ui[\\/]/),
-              tags: ['$initial'],
-              priority: 10,
-            },
             // The Cantina's own code every route loads, as one chunk, not a
             // dozen sub-kilobyte ones. `main.tsx` stays the entry chunk itself,
             // whose URL is the build's name (`entryChunk` in main.tsx).
             {
               name: 'app',
               test: cantinaOnly(
-                /[\\/]apps[\\/]web[\\/](src[\\/]cantina[\\/](?!main\.tsx$)|convex[\\/])|[\\/]packages[\\/]cantina-domain[\\/]/
+                /[\\/]apps[\\/]web[\\/](src[\\/](?!main\.tsx$)|convex[\\/])|[\\/]packages[\\/]cantina-domain[\\/]/
               ),
               tags: ['$initial'],
-              priority: 5,
+              priority: 10,
             },
           ],
         },

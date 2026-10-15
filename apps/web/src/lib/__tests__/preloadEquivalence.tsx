@@ -9,14 +9,14 @@ import {
   resetAllForTesting,
   SalvageUnionReference,
 } from 'salvageunion-reference'
-import { EntityListingRow } from '../../components/islands/EntityListingRow'
 import {
   EntityDetailLinkProvider,
   EntityHrefProvider,
   EntitySurfaceProvider,
   ReferenceEntityCard,
   Skeleton,
-} from '../../ui/index'
+} from '../../components/index'
+import { EntityListingRow } from '../../components/islands/EntityListingRow'
 import { itemHref, srdEntityHref, srdHrefFor } from '../entityHref'
 import { getSchemaPreloadList } from '../schemaPreloadDeps'
 

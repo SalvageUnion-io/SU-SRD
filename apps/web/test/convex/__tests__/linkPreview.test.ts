@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { FIXTURE_NOW } from '../../../src/cantina/components/__tests__/fixtures'
+import { FIXTURE_NOW } from '../../../src/components/__tests__/fixtures'
 import type { Ctx } from '../fixtures'
 import { addPilot, makeUser, seedTable } from '../fixtures'
 import { testConvex } from '../harness'

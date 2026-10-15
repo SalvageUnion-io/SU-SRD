@@ -4,7 +4,7 @@
  * `wrangler.jsonc`'s `run_worker_first` sends `/build` and everything under
  * it here before Static Assets looks (`RUN_WORKER_FIRST`, which the routing
  * test holds equal). Every other SRD page still never runs the script. The
- * Cantina's own Worker (`cantina/worker`) answers those requests; this module
+ * Cantina's own Worker (`worker/builder`) answers those requests; this module
  * hands it what a single-page app's Worker expects:
  *
  * - **an asset binding in single-page-application mode.** srd's binding is
@@ -18,8 +18,8 @@
  *   two CSP headers both apply and the stricter wins.
  */
 
-import type { Env as CantinaEnv } from '../cantina/worker/index'
-import cantina from '../cantina/worker/index'
+import type { Env as CantinaEnv } from './builder/index'
+import cantina from './builder/index'
 
 /** The Cantina's base path, without a trailing slash: `BASE_PATH` in `wrangler.jsonc`. */
 export const BUILD_BASE = '/build'

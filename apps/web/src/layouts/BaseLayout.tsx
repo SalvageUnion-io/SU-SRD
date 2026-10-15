@@ -13,14 +13,14 @@
 
 import type { CSSProperties, ReactNode } from 'react'
 import type { DocumentMeta, PageFoot } from '../../ssg/types'
+import { Footer } from '../components/index'
 import { TopNavigation } from '../components/TopNavigation'
+import { color } from '../design/tokens'
 import { DEFAULT_OG_IMAGE, SITE_LINKS, SITE_URL, THEME_COLOR } from '../lib/constants'
 import { escapeJsonForScript } from '../lib/escapeJsonForScript'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { SITE_MANIFEST } from '../pwa'
 import { Island } from '../runtime/Island'
-import { color } from '../ui/design/tokens'
-import { Footer } from '../ui/index'
 
 const DEFAULT_TITLE = 'Salvage Union System Reference Document'
 const DEFAULT_DESCRIPTION =

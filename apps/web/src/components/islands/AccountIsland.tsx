@@ -1,7 +1,7 @@
 import { SETTINGS_HREF, signOutHref } from '../../lib/accountBar'
+import { readAccountHint } from '../../lib/accountHint'
 import { browserStorage } from '../../lib/accountState'
-import { readAccountHint } from '../../ui/accountHint'
-import { AccountMenu } from '../../ui/index'
+import { AccountMenu } from '../index'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 /**

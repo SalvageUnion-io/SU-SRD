@@ -1,6 +1,6 @@
 /**
  * baseStylesheet — the one stylesheet both apps link: the Barlow faces and the
- * src/ui entry (`./base.css`), at `/assets/base-<hash>.css`.
+ * src/components entry (`./base.css`), at `/assets/base-<hash>.css`.
  *
  * srd and the Cantina once bundled the fonts and the package stylesheet into
  * their own CSS, under their own bases: a visit crossing from one to the other

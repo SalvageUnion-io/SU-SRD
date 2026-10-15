@@ -8,8 +8,9 @@ import { render, screen, within } from '@testing-library/react'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { buildLinkFor, guideExitsFor, STARTER_SET_HREF } from '../../lib/buildLink'
 import { CANTINA_PATH } from '../../lib/constants'
-import { resolveEntityPageMeta } from '../../ui/index'
-import { EntityPageFrame, entityPageFoot } from '../EntityPageFrame'
+import { entityPageFoot } from '../../lib/entityPageFoot'
+import { EntityPageFrame } from '../EntityPageFrame'
+import { resolveEntityPageMeta } from '../index'
 
 function must<T>(value: T | undefined | null): T {
   if (value === undefined || value === null) throw new Error('fixture not found')

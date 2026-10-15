@@ -23,7 +23,7 @@ A Bun monorepo of tools for **Salvage Union**, the tabletop RPG by
 
 | Workspace | What it is |
 | --- | --- |
-| [`apps/web`](apps/web) | The SRD reference site, [salvageunion.io](https://salvageunion.io): a static Vite SSG with React islands and a public [JSON API](https://salvageunion.io/api/). Also The Cantina (`src/cantina/`, Convex in `convex/`), the character builder and game manager at [salvageunion.io/build](https://salvageunion.io/build): React, TanStack Router, Convex. Both render the shared components and design tokens in `src/ui/`. |
+| [`apps/web`](apps/web) | The app at [salvageunion.io](https://salvageunion.io): the SRD's pre-rendered reference pages (an in-house Vite SSG with React islands, and a public [JSON API](https://salvageunion.io/api/)), and The Cantina, the character builder and game manager at [salvageunion.io/build](https://salvageunion.io/build) (React, TanStack Router, Convex in `convex/`). One source tree, one component library (`src/components/`), one build. |
 | [`apps/discord-bot`](apps/discord-bot) | The Discord bot: roll on tables, look up entities, play in a Cantina Game. |
 | [`apps/su-assets`](apps/su-assets) | The Worker serving licensed entity artwork from R2. |
 | [`packages/salvageunion-reference`](packages/salvageunion-reference) | The schema-validated game dataset and its TypeScript ORM. |

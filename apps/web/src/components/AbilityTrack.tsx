@@ -1,8 +1,8 @@
 import type { RefAbility } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
 import { itemHref } from '../lib/entityHref'
-import type { TreeTrack } from '../ui/index'
-import { Entity, AbilityTrack as Track } from '../ui/index'
+import type { TreeTrack } from './index'
+import { Entity, AbilityTrack as Track } from './index'
 
 /**
  * The tree's slab names the kind, so its Rows drop the type stamp; every tree

@@ -31,7 +31,7 @@ import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 // Type-only, so it is erased before Bun resolves `./document`, whose graph
-// (`BaseLayout` -> `src/ui` -> third-party deps) must load only after the
+// (`BaseLayout` -> `src/components` -> third-party deps) must load only after the
 // css-stub plugin below is registered.
 import type { BuildAssets } from './document'
 import { pickFontPreloads } from './fontPreloads'
@@ -125,7 +125,7 @@ async function writeOutput(relativePath: string, contents: string): Promise<void
  * Non-HTML outputs (llms.txt, search-index.json, the JSON API).
  *
  * Dynamic import, like `./routes` above and for the same reason: the endpoint
- * modules reach `src/lib/gameData` and (through `staticPaths`) `src/ui`,
+ * modules reach `src/lib/gameData` and (through `staticPaths`) `src/components`,
  * so they must be loaded AFTER the css-stub plugin is registered.
  *
  * An endpoint's `outputPath` is written verbatim — `schema/chassis.json` is a
@@ -184,7 +184,7 @@ async function main(): Promise<void> {
   }
 
   // Dynamic, so the css-stub plugin above is registered before the SSR module
-  // graph (pages -> src/ui -> deps) is first loaded. That graph is
+  // graph (pages -> src/components -> deps) is first loaded. That graph is
   // css-free by the srd-css gate; the stub guards what the gate does not scan
   // (node_modules, other workspaces).
   const { routes } = await import('./routes')

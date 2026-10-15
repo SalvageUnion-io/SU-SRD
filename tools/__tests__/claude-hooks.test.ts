@@ -44,7 +44,7 @@ describe('settings.json deny rules', () => {
     ['a generated JSON schema', 'packages/salvageunion-reference/schemas/chassis.schema.json'],
     ['the same, absolute', `${ROOT}/packages/salvageunion-reference/schemas/abilities.schema.json`],
     ['generated lib code', 'packages/salvageunion-reference/lib/generated/registry.generated.ts'],
-    ['the router tree', 'apps/web/src/cantina/routeTree.gen.ts'],
+    ['the router tree', 'apps/web/src/routeTree.gen.ts'],
     ['anything under dist', 'apps/web/dist/index.html'],
     ['Convex codegen', 'apps/web/convex/_generated/api.d.ts'],
     ['the lockfile', 'bun.lock'],
@@ -59,7 +59,7 @@ describe('settings.json deny rules', () => {
       'a Zod schema — the file you SHOULD edit',
       'packages/salvageunion-reference/lib/schemas/chassis.ts',
     ],
-    ['an app component', 'apps/web/src/cantina/components/Foo.tsx'],
+    ['an app component', 'apps/web/src/components/Foo.tsx'],
     ['a tool', 'tools/check-path-filters.ts'],
     ['a doc', 'docs/README.md'],
   ])('allow editing %s', (_label, path) => {
@@ -78,8 +78,8 @@ describe('settings.json deny rules', () => {
       file: 'packages/salvageunion-reference/lib/index.ts',
       denied: false,
     },
-    'apps/web/src/cantina/routeTree.gen.ts': {
-      file: 'apps/web/src/cantina/routeTree.gen.ts',
+    'apps/web/src/routeTree.gen.ts': {
+      file: 'apps/web/src/routeTree.gen.ts',
       denied: true,
     },
     'apps/web/worker-configuration.d.ts': {

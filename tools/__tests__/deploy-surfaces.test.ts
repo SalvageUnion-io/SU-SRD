@@ -31,7 +31,7 @@ describe('deploy-surfaces — decideSurfaces', () => {
    * recorded deploy sees both.
    */
   test('changes from several commits since the record are all deployed', () => {
-    const since = ['apps/web/src/cantina/app.tsx', 'apps/web/src/pages/index.page.tsx']
+    const since = ['apps/web/src/routes/app.tsx', 'apps/web/src/pages/index.page.tsx']
     expect(decideSurfaces(since, false)).toEqual({ ...NOTHING, srd: true })
   })
 
@@ -43,13 +43,16 @@ describe('deploy-surfaces — decideSurfaces', () => {
   })
 
   // The UI library lives in apps/web, and nothing else ships it.
-  test('a src/ui change ships srd alone', () => {
-    expect(decideSurfaces(['apps/web/src/ui/index.ts'], false)).toEqual({ ...NOTHING, srd: true })
+  test('a src/components change ships srd alone', () => {
+    expect(decideSurfaces(['apps/web/src/components/index.ts'], false)).toEqual({
+      ...NOTHING,
+      srd: true,
+    })
   })
 
   // su-srd serves the Cantina under /build, with its build in dist/build/.
   test('a Cantina change ships srd', () => {
-    expect(decideSurfaces(['apps/web/src/cantina/app.tsx'], false)).toEqual({
+    expect(decideSurfaces(['apps/web/src/routes/app.tsx'], false)).toEqual({
       ...NOTHING,
       srd: true,
     })
@@ -121,7 +124,7 @@ describe('deploy-surfaces — planDeploy', () => {
   )
 
   test('ahead of the record deploys what changed', () => {
-    const plan = planDeploy(['apps/web/src/cantina/app.tsx'], false, 'ahead', false)
+    const plan = planDeploy(['apps/web/src/routes/app.tsx'], false, 'ahead', false)
     expect(plan).toEqual({ stale: false, surfaces: { ...NOTHING, srd: true } })
   })
 })
@@ -174,7 +177,7 @@ describe('deploy-surfaces — script against a real git history', () => {
     return git(work, 'rev-parse', 'HEAD')
   }
   commit('README.md')
-  const a = commit('apps/web/src/cantina/app.ts')
+  const a = commit('apps/web/src/routes/app.ts')
   const b = commit('apps/su-assets/index.ts')
   git(
     work,

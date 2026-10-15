@@ -1,10 +1,6 @@
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import {
-  crawlerFixture,
-  mechFixture,
-  pilotFixture,
-} from '../../src/cantina/components/__tests__/fixtures'
+import { crawlerFixture, mechFixture, pilotFixture } from '../../src/components/__tests__/fixtures'
 import type { testConvex } from './harness'
 
 /**

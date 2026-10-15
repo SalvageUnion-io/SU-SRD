@@ -1,7 +1,7 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { getSchemaPreloadList } from '../../lib/schemaPreloadDeps'
-import type { PeekLoader } from '../../ui/index'
-import { PeekHost } from '../../ui/index'
+import type { PeekLoader } from '../index'
+import { PeekHost } from '../index'
 
 /**
  * The schemas a Peek of one schema's entity reads: the entity's own and what

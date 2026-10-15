@@ -1,7 +1,7 @@
 # web — salvageunion.io and the Cantina
 
-The static SRD reference site (read-only, [ADR-010](../../docs/ARCHITECTURE.md#decisions))
-and, under `src/cantina/`, the Cantina.
+One app ([ADR-050](../../docs/ARCHITECTURE.md#decisions)): the SRD's pre-rendered pages
+and the Cantina, the client app at `/build`.
 
 In-house SSG in `ssg/`, not Astro ([ADR-031](../../docs/ARCHITECTURE.md#decisions)); the contract is
 [`ssg/DESIGN.md`](ssg/DESIGN.md) — **read it first.**
@@ -9,13 +9,13 @@ In-house SSG in `ssg/`, not Astro ([ADR-031](../../docs/ARCHITECTURE.md#decision
 ## Stack
 
 - **Framework:** the SSG in `ssg/`, React 19, Vite 8 for the client bundle.
-- **UI:** `src/ui` components, tokens and stylesheet (ADR-046); React
+- **UI:** `src/components` components, tokens and stylesheet (ADR-046); React
   islands for interactivity
 - **Game data:** `salvageunion-reference` workspace package
 - **Deployment:** Cloudflare Workers Static Assets (`wrangler.jsonc`). Every
   page is pre-rendered; the Worker script (`src/worker/index.ts`) runs only for
   a miss (404, `no-store`), and first for `/build/*`, which `src/worker/build.ts`
-  hands to the Cantina's (`src/cantina/worker/`).
+  hands to the Cantina's (`src/worker/builder/`).
 
 ## Architecture
 
@@ -75,8 +75,8 @@ lower a budget when a page gets faster.
 
 ## The Cantina
 
-Guide: [`src/cantina/CLAUDE.md`](src/cantina/CLAUDE.md); Convex in `convex/`, tests in
-`test/` and `e2e/cantina/`; SRD code never imports them (Biome). The block below
+Guide: [`src/routes/CLAUDE.md`](src/routes/CLAUDE.md); Convex in `convex/`, tests in
+`test/` and `e2e/cantina/`; static pages never import them (Biome). The block below
 binds `convex/` only; `bunx`, not `npx`; vendored skills: [AGENTS.md](AGENTS.md).
 
 <!-- convex-ai-start -->

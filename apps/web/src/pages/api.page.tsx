@@ -11,6 +11,8 @@ import type { CSSProperties } from 'react'
 import { getEntitySlug } from 'salvageunion-reference'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { DocPage } from '../components/DocPage'
+import { InlineRef, Panel, Slab } from '../components/index'
+import { color, font, fontSize, radius, space, weight } from '../design/tokens'
 import { apiSampleChassis } from '../lib/apiSample'
 import { SITE_URL, TITLE_SUFFIX } from '../lib/constants'
 import {
@@ -27,8 +29,6 @@ import {
 } from '../lib/docPageStyles'
 import { itemHref, schemaHref } from '../lib/entityHref'
 import { getEntitySchemas } from '../lib/gameData'
-import { color, font, fontSize, radius, space, weight } from '../ui/design/tokens'
-import { InlineRef, Panel, Slab } from '../ui/index'
 
 const TITLE = `API Reference${TITLE_SUFFIX}`
 const DESCRIPTION =

@@ -59,7 +59,7 @@ export type Server = {
 /** The prefix that makes a target a Cantina route. */
 const CANTINA_PREFIX = 'cantina:'
 
-/** The Cantina's base path (`SITE.base` in `apps/web/src/cantina/lib/site.ts`, ADR-048). */
+/** The Cantina's base path (`SITE.base` in `apps/web/src/lib/site.ts`, ADR-048). */
 export const CANTINA_BASE = '/build'
 
 /**

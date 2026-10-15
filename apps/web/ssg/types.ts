@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { FooterFoot } from '../src/ui/index'
+import type { FooterFoot } from '../src/components/index'
 
 /** A JSON-LD object. */
 export type StructuredData = Record<string, unknown>
@@ -67,7 +67,7 @@ export type DocumentMeta = {
 export type DocumentShell = 'base' | 'bare'
 
 /**
- * A book page's foot: the shared `Footer`'s (src/ui), named for the
+ * A book page's foot: the shared `Footer`'s (src/components), named for the
  * page. When the page has a citation, the footer bands it in the page's chapter
  * tone — the page number set large and the book (and any reprint) — above the
  * licence row, which is the Union bar's ink on every page. A page without a

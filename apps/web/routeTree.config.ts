@@ -1,6 +1,6 @@
 /**
  * TanStack Router's file-route options — one object, read by two callers:
- * the Vite plugin in `vite.config.ts` (which generates `src/cantina/routeTree.gen.ts`
+ * the Vite plugin in `vite.config.ts` (which generates `src/routeTree.gen.ts`
  * on every dev start and build) and `scripts/generate-route-tree.ts` (which
  * generates it WITHOUT a build, so `tools/check-generated.ts` can prove the
  * committed tree is current in a couple of hundred milliseconds rather than a
@@ -9,8 +9,8 @@
  */
 export const ROUTER_PLUGIN_OPTIONS = {
   // Relative to the Vite root, the workspace.
-  routesDirectory: './src/cantina/routes',
-  generatedRouteTree: './src/cantina/routeTree.gen.ts',
+  routesDirectory: './src/routes',
+  generatedRouteTree: './src/routeTree.gen.ts',
   // Split each route's component out of the entry bundle so a visitor
   // pays only for the route they land on. Without this every route
   // (roster, the three wizards, both sheets, dashboard, encounter,

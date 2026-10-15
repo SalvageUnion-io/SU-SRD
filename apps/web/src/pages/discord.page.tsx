@@ -12,6 +12,8 @@ import { PRODUCT } from 'cantina-domain/product'
 import type { CSSProperties, ReactNode } from 'react'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { DocPage } from '../components/DocPage'
+import { buttonVariants, InlineRef, Panel, Slab } from '../components/index'
+import { borderWidth, color, font, fontSize, space } from '../design/tokens'
 import type { DiscordCommand } from '../generated/discordCommands'
 import { DISCORD_COMMANDS } from '../generated/discordCommands'
 import {
@@ -34,8 +36,6 @@ import {
   proseColumn,
 } from '../lib/docPageStyles'
 import { SalvageUnionReference } from '../lib/gameData'
-import { borderWidth, color, font, fontSize, space } from '../ui/design/tokens'
-import { buttonVariants, InlineRef, Panel, Slab } from '../ui/index'
 
 /**
  * Both values are DERIVED, and both are built inside `page()`.

@@ -1,6 +1,6 @@
 /**
  * The bot's accent colours are a hand-maintained mirror of `--color-roll-*` and
- * `--color-rust` in `apps/web/src/ui/styles/theme.css`. Both
+ * `--color-rust` in `apps/web/src/styles/theme.css`. Both
  * `format.ts` and this repo's CLAUDE.md say to keep them in lockstep, and until
  * now nothing checked it — `format.test.ts` only asserts `getColor` against
  * `ROLL_COLORS` itself, so both sides could move together and stay "green".
@@ -12,7 +12,7 @@
 import { describe, expect, test } from 'bun:test'
 import { NEUTRAL_ACCENT, ROLL_COLORS } from '../format'
 
-const THEME_CSS = new URL('../../../../apps/web/src/ui/styles/theme.css', import.meta.url).pathname
+const THEME_CSS = new URL('../../../../apps/web/src/styles/theme.css', import.meta.url).pathname
 
 /** `--color-x: rgb(1, 2, 3)` → 0x010203. Throws if the token is absent. */
 function tokenToInt(css: string, token: string): number {

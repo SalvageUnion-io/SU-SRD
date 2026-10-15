@@ -62,10 +62,10 @@ const BROWSER_APPS: BrowserApp[] = [
   },
   {
     name: 'cantina',
-    modulePath: 'apps/web/src/cantina/lib/observability.ts',
-    entryPath: 'apps/web/src/cantina/main.tsx',
+    modulePath: 'apps/web/src/lib/builderObservability.ts',
+    entryPath: 'apps/web/src/main.tsx',
     headersPath: 'apps/web/src/worker/build.ts',
-    workerPath: 'apps/web/src/cantina/worker/index.ts',
+    workerPath: 'apps/web/src/worker/builder/index.ts',
     extraHandlers: ['handleConvexLogStream'],
   },
 ]

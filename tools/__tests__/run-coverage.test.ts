@@ -2,7 +2,7 @@ import { afterAll, describe, expect, test } from 'bun:test'
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { lcovFor, main, runJob, shardTestFiles } from '../run-coverage'
+import { main, runJob, shardTestFiles } from '../run-coverage'
 
 const root = mkdtempSync(join(tmpdir(), 'run-coverage-'))
 afterAll(() => rmSync(root, { recursive: true, force: true }))
@@ -100,35 +100,6 @@ describe('runJob', () => {
       expect(result.ok).toBe(false)
       expect(result.verdict).toStartWith('NO COVERAGE')
     }
-  })
-})
-
-describe('a part', () => {
-  const record = (source: string, hit: number) =>
-    ['TN:', `SF:${source}`, `DA:1,${hit}`, 'LF:1', `LH:${hit}`, 'end_of_record', ''].join('\n')
-
-  test('lcovFor keeps only the records whose source it owns', () => {
-    const lcov = record('src/cantina/a.ts', 1) + record('src/b.ts', 0)
-    expect(lcovFor(lcov, (path) => path.startsWith('src/cantina/'))).toBe(
-      record('src/cantina/a.ts', 1)
-    )
-    expect(lcovFor(lcov, () => false)).toBe('')
-  })
-
-  test('runs only its own test files, into its own coverage folder, scored on its own sources', async () => {
-    for (const path of ['pw/a.test.ts', 'pw/b.test.ts']) write(path)
-    const part = { dir: 'pw', owns: (path: string) => path !== 'a.test.ts' }
-    const result = await runJob('pw (b)', 100, { root, bun, part })
-    expect(result.ok).toBe(true)
-    expect(result.output).toContain('stub ran ./b.test.ts')
-    expect(readFileSync(join(root, 'pw/coverage/pw-b-/lcov.info'), 'utf-8')).toContain('SF:src.ts')
-    const none = await runJob('pw (none)', 0, {
-      root,
-      bun,
-      part: { dir: 'pw', owns: (path) => path.endsWith('.test.ts') },
-    })
-    expect(none.ok).toBe(false)
-    expect(none.verdict).toStartWith('NO COVERAGE')
   })
 })
 

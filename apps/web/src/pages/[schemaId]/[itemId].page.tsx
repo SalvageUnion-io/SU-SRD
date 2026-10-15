@@ -12,28 +12,25 @@
 import type { EnhancedSchemaMetadata, RefEntity } from 'salvageunion-reference'
 import { truncate } from 'salvageunion-reference'
 import type { PageModule, PageResult, RouteContext, StructuredData } from '../../../ssg/types'
-import { EntityPageFrame, entityPageFoot } from '../../components/EntityPageFrame'
+import { EntityPageFrame } from '../../components/EntityPageFrame'
 import { EntityView } from '../../components/EntityView'
-import {
-  ColumnsTablePage,
-  columnsTablePageData,
-  RollTablePage,
-  rollTablePageData,
-} from '../../components/RollTablePage'
-import { buildLinkFor, guideExitsFor } from '../../lib/buildLink'
-import { bandFillFor, chapterForSchema } from '../../lib/chapters'
-import { componentEmbedFor } from '../../lib/componentEmbed'
-import { CONTENTS_CRUMB, entityTitle, META_DESCRIPTION_MAX, SITE_URL } from '../../lib/constants'
-import { itemHref, schemaHref } from '../../lib/entityHref'
-import { extractStaticEntitySummary, getReferenceEntityData } from '../../lib/gameData'
-import { ogCardFor, ogMetaFor } from '../../lib/ogCard'
-import { getItemStaticPaths } from '../../lib/staticPaths'
 import {
   assetSrcSetFor,
   CHAPTER_BAND_COLOR,
   heroImageSizes,
   resolveEntityPageMeta,
-} from '../../ui/index'
+} from '../../components/index'
+import { ColumnsTablePage, RollTablePage } from '../../components/RollTablePage'
+import { buildLinkFor, guideExitsFor } from '../../lib/buildLink'
+import { bandFillFor, chapterForSchema } from '../../lib/chapters'
+import { componentEmbedFor } from '../../lib/componentEmbed'
+import { CONTENTS_CRUMB, entityTitle, META_DESCRIPTION_MAX, SITE_URL } from '../../lib/constants'
+import { itemHref, schemaHref } from '../../lib/entityHref'
+import { entityPageFoot } from '../../lib/entityPageFoot'
+import { extractStaticEntitySummary, getReferenceEntityData } from '../../lib/gameData'
+import { ogCardFor, ogMetaFor } from '../../lib/ogCard'
+import { columnsTablePageData, rollTablePageData } from '../../lib/rollTablePageData'
+import { getItemStaticPaths } from '../../lib/staticPaths'
 
 type Params = { schemaId: string; itemId: string }
 

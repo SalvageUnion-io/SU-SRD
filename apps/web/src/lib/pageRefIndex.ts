@@ -1,7 +1,7 @@
 /**
  * Build-time page-reference index: for each Workshop Manual page an entity's
  * rules text cites ("see p. 249"), the entities printed on that page. The card
- * resolves each reference against it (src/ui `resolvePageRef`) and
+ * resolves each reference against it (src/components `resolvePageRef`) and
  * draws the ones that resolve as links to the page that covers them.
  *
  * Built here, from the full dataset the build preloads, and handed to the
@@ -11,8 +11,8 @@
 
 import type { RefEntity } from 'salvageunion-reference'
 import { getEntitySlug, isSchemaName } from 'salvageunion-reference'
-import type { PageRefCandidate, PageRefIndex } from '../ui/index'
-import { findPageRefs } from '../ui/index'
+import type { PageRefCandidate, PageRefIndex } from '../components/index'
+import { findPageRefs } from '../components/index'
 import { getEntitySchemas, SalvageUnionReference } from './gameData'
 
 /** The book the rules text's page numbers are in. */

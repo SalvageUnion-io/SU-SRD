@@ -1,12 +1,12 @@
 ---
 paths:
-  - 'apps/web/src/cantina/stores/**'
-  - 'apps/web/src/cantina/hooks/**'
-  - 'apps/web/src/cantina/lib/connection/**'
-  - 'apps/web/src/cantina/lib/export/**'
-  - 'apps/web/src/cantina/components/account/**'
-  - 'apps/web/src/cantina/components/container/**'
-  - 'apps/web/src/cantina/components/games/**'
+  - 'apps/web/src/stores/**'
+  - 'apps/web/src/hooks/**'
+  - 'apps/web/src/lib/connection/**'
+  - 'apps/web/src/lib/export/**'
+  - 'apps/web/src/components/account/**'
+  - 'apps/web/src/components/container/**'
+  - 'apps/web/src/components/games/**'
   - 'apps/web/convex/**'
   - 'apps/web/e2e/cantina/**'
   - 'packages/cantina-domain/**'
@@ -24,12 +24,12 @@ Why: [ADR-030, 034, 035](../../docs/ARCHITECTURE.md#decisions).
 | **Outdated** | bundle below `build.floor` | read-only until it reloads |
 
 Resolve the mode with `useConnection()` or `resolveConnectionMode()` /
-`writesAllowed()` from `src/cantina/lib/connection/` — never `navigator.onLine` or an
+`writesAllowed()` from `src/lib/connection/` — never `navigator.onLine` or an
 auth flag. Two persistence domains; know which you are in before writing a hook:
 
 | Domain | Path | Truth |
 | --- | --- | --- |
-| **Player entities** — pilots, mechs, crawlers, built NPCs, soft-links, patterns, encounter NPCs | Zustand stores in `src/cantina/stores/`, in memory | Convex when signed in; nothing signed out |
+| **Player entities** — pilots, mechs, crawlers, built NPCs, soft-links, patterns, encounter NPCs | Zustand stores in `src/stores/`, in memory | Convex when signed in; nothing signed out |
 | **Accounts, Games, invites, ownership, proposals, crew** | `useQuery` / `useMutation` from `convex/react` | Convex, always |
 
 ## Player entities — go through the store
@@ -39,15 +39,15 @@ const pilots = useEntityStore((s) => s.list('pilots')) // sync; rows arrive via 
 await useEntityStore.getState().update('pilots', id, { hp: next }) // server-first
 ```
 
-- **There is no anonymous backend.** `selectBackend()` (`src/cantina/stores/entityBackend.ts`)
+- **There is no anonymous backend.** `selectBackend()` (`src/stores/entityBackend.ts`)
   is `signedOut | remote | blocked`. `signedOut` holds nothing and refuses
   writes; `blocked` is offline, mid-handshake or Outdated, read-only too.
   Check `canWrite` before offering an edit. A unit test that writes calls
-  `withSignedInBackend()` (`src/cantina/stores/__tests__/signedInBackend.ts`).
+  `withSignedInBackend()` (`src/stores/__tests__/signedInBackend.ts`).
 - **[No device cache](../../docs/ARCHITECTURE.md#no-device-cache).** Nothing player-owned goes in IndexedDB or
   `localStorage` but `accountHint`. `AccountReconciler` (root) mounts `ShelfSync` while
-  Connected; `hydrate()` waits for its first answer (`src/cantina/stores/rowArrival.ts`),
-  and a tab's rows go when its session ends (`src/cantina/stores/sessionRows.ts`).
+  Connected; `hydrate()` waits for its first answer (`src/stores/rowArrival.ts`),
+  and a tab's rows go when its session ends (`src/stores/sessionRows.ts`).
 - **A container written twice is written together** — the row's `gameId`
   column and the body's `gameId`; where they disagree, the column wins.
 - **e2e durability specs need an account** (`e2e/cantina/fixtures.ts`): without
@@ -58,7 +58,7 @@ await useEntityStore.getState().update('pilots', id, { hp: next }) // server-fir
 `useQuery(api.games.members, { gameId })`. **Loading is `undefined`**, not a
 flag (`DowntimeTrack.tsx`). The provider (`AppConvexProvider`) is always there;
 a unit test rendering a Convex consumer mocks the hooks with
-`installConvexMocks()` (`src/cantina/components/__tests__/convexMock.ts`).
+`installConvexMocks()` (`src/components/__tests__/convexMock.ts`).
 
 ## Do not
 
@@ -71,7 +71,7 @@ a unit test rendering a Convex consumer mocks the hooks with
   `commitChangeLog` — the one deliberate fire-and-forget write.
 - Duplicate locally what Convex owns (membership, ownership, invites,
   proposals, crew vitals) — check `apps/web/convex/` first.
-- Add a query cache: entity reads are the hooks in `src/cantina/hooks/entities/`.
+- Add a query cache: entity reads are the hooks in `src/hooks/entities/`.
 
 More: [data flow](../../docs/ARCHITECTURE.md#data-flow),
 [accounts](../../docs/ARCHITECTURE.md#convex).

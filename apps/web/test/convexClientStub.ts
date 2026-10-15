@@ -14,7 +14,7 @@
 
 import { mock } from 'bun:test'
 
-mock.module('../src/cantina/lib/connection/convexClient', () => ({
+mock.module('../src/lib/connection/convexClient', () => ({
   convexClient: {
     // `upsertByAppId` answers with the row's version, `transfer` with each
     // record's; nothing else reads its answer.

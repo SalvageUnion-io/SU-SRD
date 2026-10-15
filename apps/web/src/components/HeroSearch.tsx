@@ -1,5 +1,6 @@
 import type { FormEventHandler, ReactNode } from 'react'
-import { Button, SearchField } from '../ui/index'
+import { HERO_SEARCH_PLACEHOLDER } from '../lib/heroSearch'
+import { Button, SearchField } from './index'
 
 /**
  * The home page's search (board 06): "search first, in a blue chapter band".
@@ -10,9 +11,6 @@ import { Button, SearchField } from '../ui/index'
  * `/search/`, which works with no JavaScript at all), and `SearchIsland`'s
  * `hero` variant renders the same form around its combobox.
  */
-
-/** The examples the field suggests: one of each kind of thing the SRD holds. */
-export const HERO_SEARCH_PLACEHOLDER = 'Gopher, Hacker, Heat, Bio-Titan…'
 
 type HeroSearchFormProps = {
   /** The field (and, in the island, its listbox). */

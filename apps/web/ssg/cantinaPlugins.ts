@@ -12,11 +12,11 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import type { Plugin } from 'vite'
-import { basePathOf, SITE } from '../src/cantina/lib/site'
-import { renderShell } from '../src/cantina/shell/shell'
-import { publicShells, sitemapXml } from '../src/cantina/worker/publicPages'
+import { basePathOf, SITE } from '../src/lib/site'
 import { SITE_MANIFEST } from '../src/pwa'
+import { renderShell } from '../src/shell/shell'
 import { buildBaseStylesheet, DEV_BASE_STYLESHEET } from '../src/styles/baseStylesheet'
+import { publicShells, sitemapXml } from '../src/worker/builder/publicPages'
 
 const APP_ROOT = join(import.meta.dirname, '..')
 
@@ -39,7 +39,7 @@ function onShell(order: 'pre' | 'post', handler: (html: string) => string) {
 
 /**
  * Every build and dev server talks to a Convex deployment
- * (`src/cantina/lib/connection/convexClient.ts`), so one without its URL is
+ * (`src/lib/connection/convexClient.ts`), so one without its URL is
  * refused here rather than shipped as an app that can read and write nothing.
  *
  * A plugin hook, not a check in the config function: Vite runs
@@ -69,7 +69,7 @@ function isCantinaNavigation(url: string, accept: string): boolean {
 }
 
 /**
- * The shell (`src/cantina/shell/shell.ts`) is the Cantina's HTML entry: the
+ * The shell (`src/shell/shell.ts`) is the Cantina's HTML entry: the
  * build loads it as `CANTINA_ENTRY` and emits `build/index.html` from it; the
  * dev server answers every navigation under `/build` with it, once Vite's own
  * middlewares (modules, `public/`) have passed the request on.
@@ -161,7 +161,7 @@ export function shellOrigin(): Plugin {
 }
 
 /**
- * The public pages a crawler reads (`src/cantina/worker/publicPages.ts`): the
+ * The public pages a crawler reads (`src/worker/builder/publicPages.ts`): the
  * Starter Set's and each build's shell, with its own title, description,
  * canonical and `og:*`, beside the app's, and `build/sitemap.xml`. Named for
  * the deployment's origin, as `shellOrigin` names the shell's.

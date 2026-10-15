@@ -1,4 +1,4 @@
-import { basePathOf, SITE } from '../../src/cantina/lib/site'
+import { basePathOf, SITE } from '../../src/lib/site'
 
 /** The Cantina's base, `/build` (ADR-048): every page the specs open lives under it. */
 export const BASE = basePathOf(SITE.base)

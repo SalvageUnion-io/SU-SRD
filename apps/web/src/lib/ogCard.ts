@@ -9,7 +9,7 @@
 
 import type { RefEnumSchemaName, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { displayTitle } from 'salvageunion-reference'
-import type { OgCardProps } from '../ui/index'
+import type { OgCardProps } from '../components/index'
 import {
   OG_CARD_HEIGHT,
   OG_CARD_WIDTH,
@@ -18,7 +18,7 @@ import {
   ogCardThemeColor,
   ogCardTitle,
   ogReferenceAddressFits,
-} from '../ui/index'
+} from '../components/index'
 import { itemHref, patternHref } from './entityHref'
 
 /**

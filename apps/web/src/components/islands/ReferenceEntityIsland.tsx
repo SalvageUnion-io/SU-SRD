@@ -1,10 +1,10 @@
 import { Suspense, useLayoutEffect } from 'react'
 import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import type { SchemaList } from '../../lib/useGameData'
-import { GameDataGate } from '../../lib/useGameData'
-import type { PageRefIndex } from '../../ui/index'
-import { Toaster } from '../../ui/index'
 import { EntityCardStatic } from '../EntityCardStatic'
+import { GameDataGate } from '../GameDataGate'
+import type { PageRefIndex } from '../index'
+import { Toaster } from '../index'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 type ReferenceEntityIslandProps = {

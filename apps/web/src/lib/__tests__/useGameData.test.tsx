@@ -3,7 +3,8 @@ import { afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { renderToString } from 'react-dom/server'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { GameDataGate, resetPreloadForTests } from '../useGameData'
+import { GameDataGate } from '../../components/GameDataGate'
+import { resetPreloadForTests } from '../useGameData'
 
 /**
  * The test preload script loads all reference data before any test runs, so

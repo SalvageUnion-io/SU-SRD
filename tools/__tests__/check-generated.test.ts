@@ -26,7 +26,7 @@ describe('check-generated', () => {
   })
 
   test('the route tree is covered, not only the reference package', () => {
-    expect(GENERATED_PATHS).toContain('apps/web/src/cantina/routeTree.gen.ts')
+    expect(GENERATED_PATHS).toContain('apps/web/src/routeTree.gen.ts')
   })
 
   test('the generators run in parallel, so each GENERATED_PATHS entry has exactly one writer', () => {
@@ -68,10 +68,10 @@ describe('the cache key', () => {
     'packages/salvageunion-reference/lib/index.ts',
     'packages/salvageunion-reference/lib/generated/zodSchemaMap.generated.ts',
     'packages/salvageunion-reference/schemas/index.json',
-    'apps/web/src/cantina/routes/settings.tsx',
+    'apps/web/src/routes/settings.tsx',
     'apps/web/routeTree.config.ts',
     'apps/web/scripts/generate-route-tree.ts',
-    'apps/web/src/cantina/routeTree.gen.ts',
+    'apps/web/src/routeTree.gen.ts',
     'apps/su-assets/wrangler.jsonc',
     'apps/su-assets/src/worker/index.ts',
     'apps/su-assets/worker-configuration.d.ts',
@@ -115,11 +115,11 @@ describe('the cache key', () => {
     ['packages/salvageunion-reference/schemas/index.json', [ref.label]],
     ['packages/salvageunion-reference/lib/generated/zodSchemaMap.generated.ts', [ref.label]],
     ['node_modules/zod/package.json', [ref.label]],
-    ['apps/web/src/cantina/routes/settings.tsx', [routes.label]],
-    ['apps/web/src/cantina/routes/new-route.tsx', [routes.label]],
+    ['apps/web/src/routes/settings.tsx', [routes.label]],
+    ['apps/web/src/routes/new-route.tsx', [routes.label]],
     ['apps/web/routeTree.config.ts', [routes.label]],
     ['apps/web/scripts/generate-route-tree.ts', [routes.label]],
-    ['apps/web/src/cantina/routeTree.gen.ts', [routes.label]],
+    ['apps/web/src/routeTree.gen.ts', [routes.label]],
     ['node_modules/@tanstack/router-plugin/package.json', [routes.label]],
     ['apps/su-assets/wrangler.jsonc', [assets.label]],
     ['apps/su-assets/.dev.vars', [assets.label]],
@@ -129,7 +129,7 @@ describe('the cache key', () => {
     ['apps/discord-bot/worker-configuration.d.ts', [bot.label]],
     ['apps/web/wrangler.jsonc', [srd.label]],
     ['apps/web/worker-configuration.d.ts', [srd.label]],
-    ['apps/web/src/cantina/main.tsx', []],
+    ['apps/web/src/main.tsx', []],
     ['node_modules/wrangler/package.json', [srd.label, assets.label, bot.label]],
     ['bun.lock', ALL],
     ['package.json', ALL],

@@ -4,7 +4,7 @@
  *
  * Pure apart from the reference lookups, and the die is injected, so tests
  * pick the roll. The Mediator Dashboard's tray reads its rows through these
- * (`apps/web/src/cantina/components/mediator/opposition.model.ts`).
+ * (`apps/web/src/components/mediator/opposition.model.ts`).
  */
 
 import type { RefEntity } from 'salvageunion-reference'

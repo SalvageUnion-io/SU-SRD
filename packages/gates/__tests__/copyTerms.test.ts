@@ -212,11 +212,11 @@ describe('the rule set', () => {
       [`${DATA_DIR}/keywords.json`]: JSON.stringify([{ name: 'mech' }]),
       [`${DATA_DIR}/chassis.json`]: JSON.stringify([{ text: 'The Mech '.repeat(MIN_USES) }]),
       [PRODUCT_FILE]: "export const PRODUCT = { name: 'The Cantina', shortName: 'Cantina' }",
-      'apps/web/src/cantina/A.tsx': 'export const A = () => <p>Build a mech in cantina</p>',
-      'apps/web/src/cantina/__tests__/A.test.tsx': 'export const B = () => <p>a mech</p>',
+      'apps/web/src/routes/A.tsx': 'export const A = () => <p>Build a mech in cantina</p>',
+      'apps/web/src/routes/__tests__/A.test.tsx': 'export const B = () => <p>a mech</p>',
     })
     const r = copyTerms.scan(root)
-    expect(r['lowercase-term']?.map((f) => f.file)).toEqual(['apps/web/src/cantina/A.tsx'])
+    expect(r['lowercase-term']?.map((f) => f.file)).toEqual(['apps/web/src/routes/A.tsx'])
     expect(r['banned-variant']).toHaveLength(1)
     expect(copyTerms.summary?.(root)).toBe(
       // product.ts is shipped copy too

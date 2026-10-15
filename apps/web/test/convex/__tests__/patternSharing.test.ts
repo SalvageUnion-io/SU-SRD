@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../../convex/_generated/api'
-import { FIXTURE_NOW } from '../../../src/cantina/components/__tests__/fixtures'
+import { FIXTURE_NOW } from '../../../src/components/__tests__/fixtures'
 import type { User } from '../fixtures'
 import { makeUser, mechBody, seedTable } from '../fixtures'
 import { testConvex } from '../harness'

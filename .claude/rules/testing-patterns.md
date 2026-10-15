@@ -16,11 +16,11 @@ live in workspace bunfigs, not the root's.
 ## Component Testing
 
 - Test user interactions, query by role/label, `waitFor` async updates
-- React's "not wrapped in act(...)" and "a style property during rerender" warnings fail the test (`test/testing-library.ts`): settle async work inside `await act(async () => …)`, and in Cantina load the real stores first with `hydrateStores` (`src/cantina/components/__tests__/hydrateStores.ts`)
+- React's "not wrapped in act(...)" and "a style property during rerender" warnings fail the test (`test/testing-library.ts`): settle async work inside `await act(async () => …)`, and in Cantina load the real stores first with `hydrateStores` (`src/components/__tests__/hydrateStores.ts`)
 
 ## Mocking
 
-- The Cantina stores are in memory: reset with `resetStores()`, seed with `adopt` (`src/cantina/stores/__tests__/`)
+- The Cantina stores are in memory: reset with `resetStores()`, seed with `adopt` (`src/stores/__tests__/`)
 - Use `mock()` from `bun:test` for module/function mocking
 
 ### `mock.module` is process-global — restore what you replace
@@ -82,7 +82,7 @@ so it hangs under faked timers. Scope `useFakeTimers()` to the helper that needs
 
 ### Fixtures carry one frozen timestamp
 
-Entity fixtures come from `apps/web/src/cantina/components/__tests__/fixtures.ts`
+Entity fixtures come from `apps/web/src/components/__tests__/fixtures.ts`
 (the Convex suites' via `apps/web/test/convex/fixtures.ts`), stamped with
 `FIXTURE_NOW`; pass a distinct timestamp through overrides when needed. Never
 write `new Date().toISOString()` into a fixture:

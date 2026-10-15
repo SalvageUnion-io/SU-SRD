@@ -15,7 +15,7 @@
  * nav, no footer and no `<main>`; `ssg/__tests__/render.test.tsx` asserts that.
  * It is still a full island page though — the
  * built stylesheet and the islands entry are injected before `</head>`, which is
- * what gives the card the real src/ui styles and Barlow faces.
+ * what gives the card the real src/components styles and Barlow faces.
  *
  * ## Where the CSS comes from
  *

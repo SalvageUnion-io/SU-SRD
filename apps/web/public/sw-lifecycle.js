@@ -8,7 +8,7 @@
  * - **A builder tab is open** (`/build/…`): wait. The tab is a long session
  *   reading chunks the old precache holds; it moves onto the new build at its
  *   next page change, which activates this worker
- *   (`src/cantina/lib/sw/softUpdate.ts`).
+ *   (`src/lib/sw/softUpdate.ts`).
  * - **None is open**: take over at once, so the precache follows the build the
  *   reference's pages are on.
  * - **The worker being replaced predates this file** (no MARKER, a Cache

@@ -7,8 +7,8 @@ import {
   visiblePatterns,
 } from 'salvageunion-reference'
 import { ogCardFor } from '../../lib/ogCard'
-import { GameDataGate } from '../../lib/useGameData'
-import { BrandCard, OgCard } from '../../ui/index'
+import { GameDataGate } from '../GameDataGate'
+import { BrandCard, OgCard } from '../index'
 
 /**
  * Build-only OG-card surface.

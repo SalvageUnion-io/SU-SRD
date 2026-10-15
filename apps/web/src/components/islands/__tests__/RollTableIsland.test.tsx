@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { RefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { rollTablePageData } from '../../RollTablePage'
+import { rollTablePageData } from '../../../lib/rollTablePageData'
 import { RollTableView } from '../../RollTableView'
 import { RollTableIsland } from '../RollTableIsland'
 

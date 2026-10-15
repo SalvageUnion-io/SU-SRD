@@ -63,10 +63,10 @@ const ROOT = join(import.meta.dir, '..')
 const convexDir = (root: string) => join(root, 'apps/web/convex')
 
 /**
- * Where callers live: the Cantina client's non-test sources. The bot reaches
+ * Where callers live: the client's non-test sources. The bot reaches
  * Convex over HTTP (`botHttp.ts`), never through `api`.
  */
-const callerDirs = (root: string) => [join(root, 'apps/web/src/cantina')]
+const callerDirs = (root: string) => [join(root, 'apps/web/src')]
 
 /** Where internal functions' callers live: the client and the deployment itself. */
 const internalCallerDirs = (root: string) => [...callerDirs(root), convexDir(root)]

@@ -12,7 +12,7 @@ at startup ([ADR-005](../../docs/ARCHITECTURE.md#decisions)).
   `@discordjs/rest`, `discord-api-types`.
 - **Data:** `salvageunion-reference` workspace package; the product's names
   and wire types from `cantina-domain` (`cantina-domain/product`). It never
-  imports `apps/web/src/ui`.
+  imports `apps/web/src/components`.
 
 ## Runtime
 

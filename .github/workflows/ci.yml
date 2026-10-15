@@ -59,7 +59,7 @@ jobs:
               - 'test/**'
               - 'bunfig.toml'
               # root prose rendered by srd + cantina and asserted on by
-              # src/ui tests
+              # src/components tests
               - 'ABOUT_JRVS.md'
               - 'LLM_STATEMENT.md'
               - 'SPECIAL_THANKS.md'
@@ -78,7 +78,7 @@ jobs:
               # the bot's wire types (`cantina-domain/botWire`, `import type`)
               - 'packages/cantina-domain/**'
               # the theme its colours mirror (themeLockstep.test.ts)
-              - 'apps/web/src/ui/styles/theme.css'
+              - 'apps/web/src/styles/theme.css'
             assets:
               - *shared
               - 'apps/su-assets/**'

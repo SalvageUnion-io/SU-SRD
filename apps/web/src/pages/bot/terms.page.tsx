@@ -6,10 +6,10 @@
 
 import type { PageModule, PageResult } from '../../../ssg/types'
 import { DocPage } from '../../components/DocPage'
+import { InlineRef, Slab } from '../../components/index'
+import { space } from '../../design/tokens'
 import { TITLE_SUFFIX } from '../../lib/constants'
 import { BOLD, proseColumn, SMALL_PRINT } from '../../lib/docPageStyles'
-import { space } from '../../ui/design/tokens'
-import { InlineRef, Slab } from '../../ui/index'
 
 const BODY = proseColumn(space[16])
 

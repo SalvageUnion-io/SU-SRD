@@ -69,8 +69,8 @@
     {
       "path": "./packages/gates/biome/noLiveClockFixture.grit",
       "includes": [
-        "**/apps/web/src/cantina/**/*.test.ts",
-        "**/apps/web/src/cantina/**/*.test.tsx",
+        "**/apps/web/src/**/*.test.ts",
+        "**/apps/web/src/**/*.test.tsx",
         "**/apps/web/test/**/*.test.ts"
       ]
     },
@@ -84,16 +84,16 @@
       "includes": ["**/apps/web/convex/**", "!**/_generated/**"]
     },
     {
-      // The Cantina's client, where a caught error's text reaches a player. A test
+      // The app's client, where a caught error's text reaches a player. A test
       // asserts on messages; the route error screen's dump is development-only
       // and is for the developer.
       "path": "./packages/gates/biome/noRawErrorMessage.grit",
       "includes": [
-        "**/apps/web/src/cantina/**",
+        "**/apps/web/src/**",
         "!**/*.test.ts",
         "!**/*.test.tsx",
         "!**/__tests__/**",
-        "!**/apps/web/src/cantina/components/shared/RouteErrors.tsx"
+        "!**/apps/web/src/components/shared/RouteErrors.tsx"
       ]
     }
   ],
@@ -246,7 +246,7 @@
         // A warning is invisible to every gate (`bun run lint` exits 0 on
         // one), so a recommended rule that defaults to "warn" and holds at zero
         // is an error here. useComponentExportOnlyModules, the other, is set
-        // in the Cantina's override below.
+        // in apps/web's override below.
         "noDescendingSpecificity": "error",
         "noParameterAssign": "error",
         "useSelfClosingElements": "error",
@@ -289,16 +289,6 @@
               {
                 "group": ["salvageunion-reference/lib/**"],
                 "message": "Import from 'salvageunion-reference' or a declared subpath export ('/rules', '/zod', or '/testing' from test code) — never a path inside the package."
-              },
-              {
-                "group": [
-                  "**/ui/**",
-                  "!**/ui/index",
-                  "!**/ui/design/tokens",
-                  "!**/ui/accountHint",
-                  "!**/ui/components/referenceEntity/card/guideContents"
-                ],
-                "message": "Import from src/ui/index. The library's barrel is its public API and the only surface knip's includeEntryExports gate covers (also allowed: design/tokens, accountHint, guideContents)."
               }
             ]
           }
@@ -335,37 +325,15 @@
   },
   "overrides": [
     {
-      // Function-size ratchet for the UI library (src/ui). The cap is the current largest
-      // body, so one more line there fails. Biome counts the whole function
-      // without comment lines. Lower it when a seam lands; never raise it.
-      "includes": ["apps/web/src/ui/**", "!**/*.test.ts", "!**/*.test.tsx"],
+      // Function-size ratchet for the app and its Convex backend. The cap is
+      // the current largest body, so one more line there, or any longer
+      // function anywhere, fails. Biome counts the whole function without
+      // comment lines. Lower it when a split lands; never raise it.
+      "includes": ["apps/web/**", "!**/*.test.ts", "!**/*.test.tsx"],
       "linter": {
         "rules": {
           "complexity": {
             "noExcessiveLinesPerFunction": { "level": "error", "options": { "maxLines": 460 } }
-          }
-        }
-      }
-    },
-    {
-      // The same ratchet for the Cantina.
-      // It sits at today's largest body (`Dashboard`, apps/web/src/cantina/components/
-      // dashboard/Dashboard.tsx), so one more line there, or any longer
-      // function anywhere in the app or its Convex backend, fails. Lower it
-      // when a split lands; never raise it.
-      "includes": [
-        "apps/web/src/cantina/**",
-        "apps/web/convex/**",
-        "apps/web/test/**",
-        "apps/web/e2e/cantina/**",
-        "apps/web/*.cantina.config.ts",
-        "!**/*.test.ts",
-        "!**/*.test.tsx"
-      ],
-      "linter": {
-        "rules": {
-          "complexity": {
-            "noExcessiveLinesPerFunction": { "level": "error", "options": { "maxLines": 394 } }
           }
         }
       }
@@ -384,19 +352,9 @@
       }
     },
     {
-      "includes": [
-        "apps/web/src/cantina/**",
-        "apps/web/convex/**",
-        "apps/web/test/**",
-        "apps/web/e2e/cantina/**",
-        "apps/web/*.cantina.config.ts",
-        "apps/web/src/ui/**"
-      ],
+      "includes": ["apps/web/**"],
       "linter": {
         "rules": {
-          "style": {
-            "useComponentExportOnlyModules": "error"
-          },
           "suspicious": {
             "noConsole": {
               "level": "warn",
@@ -409,13 +367,34 @@
       }
     },
     {
+      // Fast Refresh hot-swaps a module only when it exports nothing but
+      // components. The static page's own trees are framework contracts (a
+      // page module, an island's prepare hook, the SSG), rendered once per
+      // build, and stay out.
+      "includes": [
+        "apps/web/**",
+        "!apps/web/ssg/**",
+        "!apps/web/src/pages/**",
+        "!apps/web/src/endpoints/**",
+        "!apps/web/src/runtime/**",
+        "!apps/web/src/components/islands/**"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "useComponentExportOnlyModules": "error"
+          }
+        }
+      }
+    },
+    {
       // The other legitimate default-export contracts, each read by a framework
       // rather than imported by us: TanStack Router route modules, Cloudflare
       // Worker entrypoints, the Convex http router, schema and cron table, and
       // build/test config files. Listed here so the rule stays `error`
       // everywhere else.
       "includes": [
-        "apps/web/src/cantina/routes/**",
+        "apps/web/src/routes/**",
         // workerd reads `export default { fetch }` — the module IS the contract.
         // Each entry location is named
         // explicitly rather than globbing `src/**`, so an ordinary module in the
@@ -424,7 +403,7 @@
         // check holds them to it); the Cantina's Worker, which srd's runs for
         // `/build`, has the same shape.
         "apps/*/src/worker/index.ts",
-        "apps/web/src/cantina/worker/index.ts",
+        "apps/web/src/worker/builder/index.ts",
         "apps/web/convex/http.ts",
         "apps/web/convex/crons.ts",
         "apps/web/convex/schema.ts",
@@ -443,37 +422,28 @@
       }
     },
     {
-      // srd: every file in apps/web outside the Cantina's folders, and outside
-      // the one build config and its Cantina plugins, which build both apps.
+      // A static page: what the SSG renders and the islands it hydrates. It
+      // ships at most 20 KB of JS, so it never imports the Cantina's router,
+      // stores or shell, or Convex. A relative import does not say what it
+      // reaches, so the rule names those folders; `bundle-budget.e2e.ts` and
+      // the Vite pass's chunk groups (`ssg/appGraph.ts`) catch what a shared
+      // component pulls in further down.
+      //
+      // The root rule's paths/patterns are RESTATED here because Biome
+      // overrides REPLACE a rule's options for matched files rather than
+      // merging — see the note at the root declaration.
       "includes": [
-        "apps/web/**",
-        "!apps/web/src/cantina/**",
-        "!apps/web/convex/**",
-        "!apps/web/test/**",
-        "!apps/web/e2e/cantina/**",
-        "!apps/web/vite.config.ts",
+        "apps/web/ssg/**",
+        "apps/web/src/pages/**",
+        "apps/web/src/endpoints/**",
+        "apps/web/src/layouts/**",
+        "apps/web/src/runtime/**",
+        "apps/web/src/components/islands/**",
         "!apps/web/ssg/cantinaPlugins.ts"
       ],
       "linter": {
         "rules": {
-          "suspicious": {
-            "noConsole": {
-              "level": "warn",
-              "options": {
-                "allow": ["warn", "error"]
-              }
-            }
-          },
           "style": {
-            // srd never imports the Cantina or its backend. They share through
-            // `src/ui` and `salvageunion-reference`; a direct edge would
-            // put the Cantina's code, or Convex, on a static SRD page and past
-            // its 20 KB budget. A relative import does not say which app it
-            // reaches, so the rule names the Cantina's folders.
-            //
-            // The root rule's paths/patterns are RESTATED here because Biome
-            // overrides REPLACE a rule's options for matched files rather than
-            // merging — see the note at the root declaration.
             "noRestrictedImports": {
               "level": "error",
               "options": {
@@ -482,7 +452,11 @@
                   "react": {
                     "importNames": ["forwardRef"],
                     "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
-                  }
+                  },
+                  "@tanstack/react-router": "A static page never routes: it links with a plain href.",
+                  "convex/react": "A static page never talks to Convex: it reads the reference data it was built from.",
+                  "convex/browser": "A static page never talks to Convex: it reads the reference data it was built from.",
+                  "zustand": "A static page holds no store; an island keeps its state in React."
                 },
                 "patterns": [
                   {
@@ -495,112 +469,13 @@
                   },
                   {
                     "group": [
-                      "**/ui/**",
-                      "!**/ui/index",
-                      "!**/ui/design/tokens",
-                      "!**/ui/accountHint",
-                      "!**/ui/components/referenceEntity/card/guideContents"
+                      "**/convex/**",
+                      "**/routes/**",
+                      "**/stores/**",
+                      "**/shell/**",
+                      "**/main"
                     ],
-                    "message": "Import from src/ui/index. The library's barrel is its public API (also allowed: design/tokens, accountHint, guideContents)."
-                  },
-                  {
-                    "group": ["**/cantina/**", "**/convex/**"],
-                    "message": "srd never imports the Cantina (src/cantina) or Convex (convex). The two share only through src/ui and salvageunion-reference."
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      // The one srd file that may import the Cantina: the Worker hands
-      // `/build` to the Cantina's Worker (`src/cantina/worker/index.ts`), so
-      // one Worker serves both. Only that entry:
-      // no SRD page, island or runtime can reach the Cantina. The rest of the
-      // srd rule is restated, as Biome overrides replace a rule's options.
-      "includes": ["apps/web/src/worker/build.ts"],
-      "linter": {
-        "rules": {
-          "style": {
-            "noRestrictedImports": {
-              "level": "error",
-              "options": {
-                "paths": {
-                  "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses).",
-                  "react": {
-                    "importNames": ["forwardRef"],
-                    "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
-                  }
-                },
-                "patterns": [
-                  {
-                    "group": ["@/*"],
-                    "message": "Use relative imports instead of @/ path aliases."
-                  },
-                  {
-                    "group": ["**/cantina/**", "**/convex/**", "!../cantina/worker/index"],
-                    "message": "srd's Worker reaches the Cantina only through '../cantina/worker/index'."
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "includes": [
-        "apps/web/src/cantina/**",
-        "apps/web/convex/**",
-        "apps/web/test/**",
-        "apps/web/e2e/cantina/**",
-        "apps/web/*.cantina.config.ts"
-      ],
-      "linter": {
-        "rules": {
-          "style": {
-            // The mirror of the rule on srd: the Cantina never imports srd's
-            // pages, endpoints, runtime, islands or generator.
-            "noRestrictedImports": {
-              "level": "error",
-              "options": {
-                "paths": {
-                  "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses).",
-                  "react": {
-                    "importNames": ["forwardRef"],
-                    "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
-                  }
-                },
-                "patterns": [
-                  {
-                    "group": ["@/*"],
-                    "message": "Use relative imports instead of @/ path aliases."
-                  },
-                  {
-                    "group": ["salvageunion-reference/lib/**"],
-                    "message": "Import from 'salvageunion-reference' or a declared subpath export — never a path inside the package."
-                  },
-                  {
-                    "group": [
-                      "**/ui/**",
-                      "!**/ui/index",
-                      "!**/ui/design/tokens",
-                      "!**/ui/accountHint",
-                      "!**/ui/components/referenceEntity/card/guideContents"
-                    ],
-                    "message": "Import from src/ui/index. The library's barrel is its public API (also allowed: design/tokens, accountHint, guideContents)."
-                  },
-                  {
-                    "group": [
-                      "**/pages/**",
-                      "**/endpoints/**",
-                      "**/runtime/**",
-                      "**/islands/**",
-                      "**/ssg/**"
-                    ],
-                    "message": "The Cantina never imports srd's pages, endpoints, runtime, islands or ssg. The two share only through src/ui and salvageunion-reference."
+                    "message": "A static page never imports Convex or the Cantina's routes, stores, shell or entry: they would ship on every page, past its 20 KB budget."
                   }
                 ]
               }
@@ -617,7 +492,7 @@
       // is then wrong until the next backfill — silently. That file is the one
       // place allowed to import the raw builders, because it wraps them.
       //
-      // Restates the Cantina block's options in full: Biome overrides
+      // Restates the root rule's options in full: Biome overrides
       // REPLACE a rule's options for matched files rather than merging.
       "includes": ["apps/web/convex/**", "!apps/web/convex/model/entities.ts"],
       "linter": {
@@ -651,24 +526,8 @@
                     "message": "Import from 'salvageunion-reference' or a declared subpath export — never a path inside the package."
                   },
                   {
-                    "group": [
-                      "**/ui/**",
-                      "!**/ui/index",
-                      "!**/ui/design/tokens",
-                      "!**/ui/accountHint",
-                      "!**/ui/components/referenceEntity/card/guideContents"
-                    ],
-                    "message": "Import from src/ui/index. The library's barrel is its public API (also allowed: design/tokens, accountHint, guideContents)."
-                  },
-                  {
-                    "group": [
-                      "**/pages/**",
-                      "**/endpoints/**",
-                      "**/runtime/**",
-                      "**/islands/**",
-                      "**/ssg/**"
-                    ],
-                    "message": "The Cantina never imports srd's pages, endpoints, runtime, islands or ssg. The two share only through src/ui and salvageunion-reference."
+                    "group": ["**/src/**"],
+                    "message": "Convex never imports the client (apps/web/src): shared logic lives in cantina-domain or salvageunion-reference (`check rules-home`)."
                   }
                 ]
               }
@@ -678,7 +537,7 @@
       }
     },
     {
-      "includes": ["apps/web/src/cantina/routes/**"],
+      "includes": ["apps/web/src/routes/**"],
       "linter": {
         "rules": {
           "style": {
@@ -743,79 +602,6 @@
       }
     },
     {
-      // The UI library (src/ui) renders; it never persists or fetches.
-      // ADR-010 ("the shared library never persists") blocks the storage
-      // layer (`idb`, the storage globals below); ADR-011 keeps it free of the
-      // Cantina's state, routing and backend: Zustand, the router and the
-      // Convex client, and any import from the Cantina, Convex or srd's own
-      // page code. Apps inject behaviour through slot props.
-      // Sits AFTER the srd override, which also matches src/ui: Biome applies
-      // overrides in order and this one's options replace srd's.
-      // Restates the root `zod` path + `@/*` pattern (see note above).
-      "includes": ["apps/web/src/ui/**"],
-      "linter": {
-        "rules": {
-          "style": {
-            "noRestrictedImports": {
-              "level": "error",
-              "options": {
-                "paths": {
-                  "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses).",
-                  "react": {
-                    "importNames": ["forwardRef"],
-                    "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
-                  },
-                  "idb": "src/ui must stay persistence-agnostic (ADR-010: \"the shared library never persists\") — persistence belongs in the consuming app (The Cantina), passed down via props.",
-                  "zustand": "src/ui holds no app state (ADR-011): the Cantina's stores stay in src/cantina; pass values down as props.",
-                  "@tanstack/react-router": "src/ui never routes (ADR-011): take a LinkComponent or an href as a prop.",
-                  "convex/react": "src/ui never talks to Convex (ADR-011): the Cantina reads and writes, and passes values down.",
-                  "convex/browser": "src/ui never talks to Convex (ADR-011): the Cantina reads and writes, and passes values down."
-                },
-                "patterns": [
-                  {
-                    "group": ["@/*"],
-                    "message": "Use relative imports instead of @/ path aliases."
-                  },
-                  // The shared library must never depend on one of its own
-                  // consumers, as for `salvageunion-reference`.
-                  {
-                    "group": [
-                      "**/cantina/**",
-                      "**/convex/**",
-                      "**/pages/**",
-                      "**/endpoints/**",
-                      "**/runtime/**",
-                      "**/islands/**",
-                      "**/layouts/**",
-                      "**/ssg/**"
-                    ],
-                    "message": "src/ui never imports an app's own code: the Cantina, Convex or srd's pages, endpoints, runtime, islands, layouts or ssg. The dependency flows one way (the apps render the library); inject app-specific behaviour through slot props (docs/ARCHITECTURE.md#packages)."
-                  },
-                  {
-                    "group": ["salvageunion-reference/lib/**"],
-                    "message": "Import from 'salvageunion-reference' or a declared subpath export — never a path inside the package."
-                  }
-                ]
-              }
-            },
-            // Same ADR-010 contract, for direct global storage API usage rather
-            // than an import (e.g. `localStorage.setItem(...)` with no import
-            // statement to catch).
-            "noRestrictedGlobals": {
-              "level": "error",
-              "options": {
-                "deniedGlobals": {
-                  "localStorage": "src/ui must stay persistence-agnostic (ADR-010: \"the shared library never persists\") — persistence belongs in the consuming app.",
-                  "sessionStorage": "src/ui must stay persistence-agnostic (ADR-010: \"the shared library never persists\") — persistence belongs in the consuming app.",
-                  "indexedDB": "src/ui must stay persistence-agnostic (ADR-010: \"the shared library never persists\") — persistence belongs in the consuming app."
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    {
       // PERMANENT exemption from useConsistentTypeDefinitions. Every file here
       // declares a `declare global { interface … }` module augmentation, which
       // is the ONE thing `type` cannot express: declaration merging into an
@@ -826,9 +612,9 @@
       //
       // `**/*.d.ts` is exempted by the separate last override.
       "includes": [
-        "apps/web/src/cantina/main.tsx",
+        "apps/web/src/main.tsx",
         "apps/web/src/components/islands/OgCardIsland.tsx",
-        "apps/web/src/ui/components/atoms/KofiButton.tsx"
+        "apps/web/src/components/atoms/KofiButton.tsx"
       ],
       "linter": {
         "rules": {
@@ -851,7 +637,7 @@
       // component alongside its cases is not the problem the rule exists to
       // catch.
       //
-      // This sits AFTER the Cantina / `apps/web/src/ui/**` block
+      // This sits AFTER the `apps/web/**` block
       // that sets that rule to "error", because Biome applies overrides in array
       // order and the later one wins: placed earlier, it would be overridden.
       "includes": ["**/*.test.ts", "**/*.test.tsx", "**/__tests__/**"],

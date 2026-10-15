@@ -1,5 +1,5 @@
 /**
- * generate-route-tree — regenerate `src/cantina/routeTree.gen.ts` without a build.
+ * generate-route-tree — regenerate `src/routeTree.gen.ts` without a build.
  *
  * The tree is normally written by TanStack Router's Vite plugin as a side
  * effect of `vite build` / `vite dev`. That made its drift check an inline

@@ -182,8 +182,8 @@ describe('main', () => {
     'apps/web/convex/crons.ts': 'crons.daily("prune", {}, internal.games.prune)\n',
     'apps/web/convex/schema.ts': 'export default defineSchema({})\n',
     'apps/web/convex/_generated/api.d.ts': api('crons', 'games'),
-    'apps/web/src/cantina/Games.tsx': 'useQuery(api.games.list)\n',
-    'apps/web/src/cantina/__tests__/Games.test.tsx': 'useQuery(api.games.unused)\n',
+    'apps/web/src/routes/Games.tsx': 'useQuery(api.games.list)\n',
+    'apps/web/src/routes/__tests__/Games.test.tsx': 'useQuery(api.games.unused)\n',
   }
 
   test('passes and counts what it checked when every function is called and registered', () => {
@@ -226,7 +226,7 @@ describe('main', () => {
   test('a caller only a test references still counts as uncalled', () => {
     const root = tree({
       ...healthy,
-      'apps/web/src/cantina/Games.tsx': '// api.games.list is mentioned only in a comment\n',
+      'apps/web/src/routes/Games.tsx': '// api.games.list is mentioned only in a comment\n',
     })
     const io = captured()
     expect(main(root, io.log, io.error)).toBe(1)

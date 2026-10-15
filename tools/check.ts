@@ -183,7 +183,7 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'rules-home',
     guards:
-      'Convex imports nothing from apps/web/src/cantina/; no rules- or model-named module sits in apps/web/src/cantina/components/',
+      'Convex imports nothing from apps/web/src/; no rules- or model-named module sits in apps/web/src/components/',
     fix: 'move shared logic to cantina-domain or salvageunion-reference; move a rule to a lib/rules home, or name a one-component view-model `<name>.model.ts`',
     cmd: ['bun', 'tools/check-rules-home.ts'],
     areas: ['code'],
@@ -203,15 +203,6 @@ export const CHECKS: readonly CheckSpec[] = [
     guards: 'no source file over 600 lines; the files already over are held at their size',
     fix: 'split the file into modules; lower its OVER_BUDGET entry in tools/check-file-size.ts when it shrinks, delete it once within 600 lines; never raise or add one',
     cmd: ['bun', 'tools/check-file-size.ts'],
-    areas: ['code'],
-    profiles: ALL,
-  },
-  {
-    id: 'barrel-consumers',
-    guards:
-      "no src/ui export is a composition only one app renders (an export nothing imports is knip's)",
-    fix: "move a single-app composition into that app's src/components/; a single-app helper outside the group directories needs a SINGLE_APP reason",
-    cmd: ['bun', 'tools/check-barrel-consumers.ts'],
     areas: ['code'],
     profiles: ALL,
   },

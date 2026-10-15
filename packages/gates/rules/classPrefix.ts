@@ -9,7 +9,8 @@
  * class should take. A wrong prefix compiles and renders, so only a scan
  * catches it.
  *
- * srd's own stylesheets keep their `srd-*` names and are outside this set.
+ * srd's page stylesheets (`base.css`, `global.css`, `pages.css`) keep their
+ * `srd-*` names and are outside this set.
  */
 
 import { readFileSync } from 'node:fs'
@@ -18,10 +19,15 @@ import type { Finding, Rule, RuleSet } from '../lib/ruleEngine'
 import { listFiles } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
 
-const PREFIXED_CSS_DIRS = ['apps/web/src/cantina', 'apps/web/src/ui'] as const
+const STYLES_DIR = 'apps/web/src/styles'
+/** srd's own page stylesheets, which keep their `srd-*` names. */
+const SRD_STYLESHEETS = new Set(
+  ['base.css', 'global.css', 'pages.css'].map((f) => `${STYLES_DIR}/${f}`)
+)
 const CLASS_PREFIX = 'su-'
 
-const stylesheets = (root: string) => listFiles(root, PREFIXED_CSS_DIRS, ['.css'])
+const stylesheets = (root: string) =>
+  listFiles(root, [STYLES_DIR], ['.css']).filter((rel) => !SRD_STYLESHEETS.has(rel))
 
 /**
  * Every class named in a selector, nested and inside at-rule blocks too, with

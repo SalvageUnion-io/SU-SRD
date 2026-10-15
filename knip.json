@@ -52,9 +52,9 @@
         "ssg/dev.ts",
         // The render pass: the Vite pass spawns it (`prerender` in ssg/cantinaPlugins.ts).
         "ssg/prerender.ts",
-        "src/cantina/routes/**/*.tsx",
-        // The Cantina's entry: its shell (`src/cantina/shell/shell.ts`) is rendered, not a file knip reads.
-        "src/cantina/main.tsx",
+        "src/routes/**/*.tsx",
+        // The Cantina's entry: its shell (`src/shell/shell.ts`) is rendered, not a file knip reads.
+        "src/main.tsx",
         // The two specs that import `gates` (`packages/gates/lib/a11yScan.ts`).
         "e2e/srd/a11y.e2e.ts",
         "e2e/cantina/a11y.e2e.ts"
@@ -74,7 +74,7 @@
       "ignoreDependencies": ["@fontsource/barlow", "@fontsource/barlow-semi-condensed"],
       // The router plugin's default is `src/routeTree.gen.ts`; the Cantina's is a level down.
       "tanstack-router": {
-        "entry": ["src/cantina/routeTree.gen.ts"]
+        "entry": ["src/routeTree.gen.ts"]
       }
     },
     "apps/su-assets": {

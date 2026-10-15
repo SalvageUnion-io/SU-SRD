@@ -1,8 +1,8 @@
 ---
 paths:
-  - apps/web/src/ui/components/*/Card*
-  - apps/web/src/ui/components/referenceEntity/**
-  - apps/web/src/ui/entity/**
+  - apps/web/src/components/*/Card*
+  - apps/web/src/components/referenceEntity/**
+  - apps/web/src/components/entity/**
 ---
 
 # Display System Rules

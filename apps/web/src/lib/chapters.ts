@@ -23,7 +23,7 @@ import {
   getTechLevel,
   SalvageUnionReference,
 } from 'salvageunion-reference'
-import type { ChapterTone } from '../ui/index'
+import type { ChapterTone } from '../components/index'
 import { schemaHref } from './entityHref'
 import { listingEntries } from './listingEntries'
 

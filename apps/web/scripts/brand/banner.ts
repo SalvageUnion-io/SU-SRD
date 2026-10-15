@@ -9,7 +9,7 @@
  * fontsource) and only a browser sets it as the site does.
  */
 import { readFileSync } from 'node:fs'
-import { color } from '../../src/ui/design/tokens'
+import { color } from '../../src/design/tokens'
 import { markSvg } from './mark'
 
 const FOOT = [color.wkLine, color.pilot, color.mech, color.crawler, color.denizenBand]

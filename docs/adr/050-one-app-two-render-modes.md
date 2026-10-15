@@ -24,11 +24,11 @@ One workspace, `apps/web`, holds both apps, in two render modes:
 1. **The SRD is pre-rendered.** Its pages stay static islands from the in-house
    SSG, under the 20 KB JS budget, with no Convex on the page and a CSP without
    Convex origins. Biome bars SRD `pages`, `endpoints`, `runtime` and islands
-   from importing `src/cantina` or `convex`.
+   from importing the Cantina's routes, stores and shell, or `convex`.
 2. **The Cantina is a client app at `/build/`.** One Vite pass
    (`vite.config.ts`) builds both apps into one `dist/`: srd's entries, and the
    Cantina's shell as `dist/build/index.html`, rendered at build time with the
-   Union bar (`src/cantina/shell/shell.ts`). Their chunks share `dist/assets/`;
+   Union bar (`src/shell/shell.ts`). Their chunks share `dist/assets/`;
    no Cantina chunk group takes a module an srd page reaches
    (`ssg/appGraph.ts`). The public pages' shells and `/build/sitemap.xml` are
    pre-rendered with real titles.
@@ -44,7 +44,7 @@ One workspace, `apps/web`, holds both apps, in two render modes:
    old worker at `/build/` retires itself (`public/build/sw.js`).
 5. **Same-origin links.** srd links `/build/` relatively; the Cantina links
    the SRD at its own origin. `VITE_SITE_ORIGIN` names every absolute address.
-6. **The UI library is `apps/web/src/ui`.** Biome keeps app state, the router,
+6. **The UI library is `apps/web/src/components`.** Biome keeps app state, the router,
    Convex, `idb` and SRD-only code out of it. `PRODUCT` moved to
    `cantina-domain/product`, which the bot and Convex share.
 
@@ -54,8 +54,9 @@ One workspace, `apps/web`, holds both apps, in two render modes:
 - The plan kept two Vite builds; they are one pass, one config. The Vite pass
   runs in its own process (`ssg/bundle.ts`), because the shell needs
   production React and the SSR render after it runs development React.
-- Coverage floors stay per folder: `apps/web (srd)` 99, `apps/web (cantina)` 97,
-  `apps/web (ui)` 95.5 (`tools/run-coverage.ts`).
+- One coverage floor for `apps/web`, 97.9, the measured combined total rounded
+  down, in place of three per-folder floors (`tools/run-coverage.ts`); its three
+  serial shards merge to the serial run's lcov exactly.
 
 ## Consequences
 

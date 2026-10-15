@@ -1,6 +1,6 @@
 import type { ColumnsRoll, ColumnsTablePageData } from '../lib/columnsTablePage'
 import { columnsHit } from '../lib/columnsTablePage'
-import { RollTableInstrument } from '../ui/index'
+import { RollTableInstrument } from './index'
 import { RollPageFrame } from './RollPageFrame'
 
 /**

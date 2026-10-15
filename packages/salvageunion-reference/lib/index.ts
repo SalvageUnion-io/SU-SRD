@@ -24,7 +24,7 @@ import { invalidateSearchIndex } from './search'
 
 // ---------------------------------------------------------------------------
 // Public API — every name below is re-exported EXPLICITLY, and each one has a
-// consumer outside this package (srd, cantina (and their src/ui) or the Discord bot;
+// consumer outside this package (srd, cantina (and their src/components) or the Discord bot;
 // their tests count, since the exports map blocks deep imports).
 //
 // A wildcard makes the surface whatever the modules happen to export; a list
@@ -117,7 +117,7 @@ export type {
 export {
   extractContentText,
   // Search primitives. Public because every consumer that needs them today had
-  // forked them instead (discord-bot + src/ui forked `isSchemaName`).
+  // forked them instead (discord-bot + src/components forked `isSchemaName`).
   // One implementation, one behaviour.
   isSchemaName,
   patternSearchText,

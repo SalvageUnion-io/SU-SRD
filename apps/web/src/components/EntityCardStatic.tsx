@@ -1,14 +1,14 @@
 import type { RefClass, RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { srdEntityHref } from '../lib/entityHref'
 import { srdPatternHref } from '../lib/patternHref'
-import type { PageRefIndex } from '../ui/index'
+import { ClassAbilityTree } from './ClassAbilityTree'
+import type { PageRefIndex } from './index'
 import {
   EntityDetailLinkProvider,
   EntityHrefProvider,
   PatternHrefProvider,
   ReferenceEntityCard,
-} from '../ui/index'
-import { ClassAbilityTree } from './ClassAbilityTree'
+} from './index'
 import { ReferenceSurface } from './ReferenceSurface'
 
 type EntityCardStaticProps = {

@@ -8,7 +8,7 @@
 
 import type { EntityRef, RefObjectTable } from 'salvageunion-reference'
 import { NO_EFFECT, parseTraitReferences, resultForTable } from 'salvageunion-reference'
-import type { AnnouncedRoll } from '../ui/index'
+import type { AnnouncedRoll } from '../components/index'
 
 /**
  * Prose with its trait references resolved at build time: plain runs, and

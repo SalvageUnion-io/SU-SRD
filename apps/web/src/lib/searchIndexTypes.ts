@@ -8,7 +8,7 @@
  */
 
 import type { RefEnumSchemaName } from 'salvageunion-reference'
-import type { EntityRowModel } from '../ui/index'
+import type { EntityRowModel } from '../components/index'
 
 export type CompactSearchEntry = {
   id: string

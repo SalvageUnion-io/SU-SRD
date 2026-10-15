@@ -28,7 +28,9 @@ import {
 import type { ListingView } from '../../lib/listingView'
 import { TREE_LISTINGS, useListingView } from '../../lib/listingView'
 import type { SchemaList } from '../../lib/useGameData'
-import { GameDataGate, preloadGameData } from '../../lib/useGameData'
+import { preloadGameData } from '../../lib/useGameData'
+import { AbilityTrack } from '../AbilityTrack'
+import { GameDataGate } from '../GameDataGate'
 import {
   Button,
   EmptyState,
@@ -37,8 +39,7 @@ import {
   Skeleton,
   Slab,
   trackForTree,
-} from '../../ui/index'
-import { AbilityTrack } from '../AbilityTrack'
+} from '../index'
 import { EntityListingRow } from './EntityListingRow'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 import type { RailActions } from './ListingRail'

@@ -1,0 +1,550 @@
+/**
+ * DowntimeWizard — the guided Union Crawler Downtime loop, shown on the ONE
+ * light display surface while the Game's Downtime is running. Crawler-dominant:
+ * pink chrome, and this wizard walks the 10-step Post-/Pre-Session procedure.
+ *
+ * The 10 steps are NOT hard-coded — they are driven from the real "Crawler
+ * Downtime" Guide in the reference ORM (`SalvageUnionReference.Guides`, faithful
+ * SRD p.227-228), one step at a time, rendered through the reused `Content` so it
+ * matches the book verbatim, with the relevant SRD roll tables via `DashboardRollTable`.
+ *
+ * **The step is the Game's, not this device's** (ADR-038 §5). It is
+ * the `downtime` row's `stepIndex`, read through `useDowntime`, so every
+ * member's Dashboard shows the same step and moves when the Mediator presses
+ * Next step. The step track shows where the table is in the procedure; the
+ * ready pips, one per member, fill from the row's `completedBy` as each presses
+ * "I'm done". Only the Mediator moves the table on; a player cannot step ahead
+ * alone. The Mediator Dashboard's `DowntimeMinor` reads and writes the
+ * same row.
+ *
+ * `DowntimeWizard` binds it to the Cantina's state + rules: the read-only rules gate
+ * readout (bay status / upkeep / trading) is computed from the crawler and the
+ * pure rules modules. `DowntimeWizardFrame` is the presentational half. They
+ * were split across src/components and the Cantina, with the Cantina its only consumer; one
+ * file since the src/components boundary audit.
+ *
+ * Restore WRITES (F5), to the pilot and the mech in the Minor slots, so Guided
+ * Play applies the rule it describes.
+ *
+ * ADR-007 is satisfied without a confirm dialog here because Restore is
+ * non-destructive by construction — `downtimeMechPatch` / `downtimePilotPatch`
+ * only heal, repair and recharge, and both refuse to touch a Destroyed mech
+ * (Downtime repairs Damaged, it never resurrects Destroyed). The explicit
+ * button press IS the player's decision; there is no consequence to confirm.
+ * Upkeep is the crawler's, so the Mediator pays it from the Crawler Major's
+ * Upkeep bay (`CrawlerSlot.tsx`), once per Downtime.
+ */
+
+import { resolveEffectiveCrawlerLevel } from 'cantina-domain/crawlerLevel'
+import {
+  allDowntimeSteps,
+  DOWNTIME_UPKEEP_SCRAP,
+  downtimeMechPatch,
+  downtimePilotPatch,
+  mechBayStatus,
+  medBayStatus,
+} from 'cantina-domain/rules/downtime'
+import type { Crawler } from 'cantina-domain/schemas/crawler'
+import type { Mech } from 'cantina-domain/schemas/mech'
+import type { Pilot } from 'cantina-domain/schemas/pilot'
+import type { CSSProperties, ReactNode } from 'react'
+import { useState } from 'react'
+import type { RefObjectGuideStep, RefObjectTable } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
+import { bayGate } from '../../lib/rules/crawlerEconomy'
+import { runWrite } from '../../lib/runWrite'
+import { useEntityStore } from '../../stores/entityStore'
+import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
+import { Badge, Button, CHAPTER_BAND_COLOR, Content } from '../index'
+import { DashboardRollTable } from './DashboardRollTable'
+import type { DowntimeHandle } from './useDowntime'
+
+/** The guideType that identifies the Union Crawler Downtime procedure. */
+const DOWNTIME_GUIDE_TYPE = 'downtime'
+
+/** The phase stamp's fill: Downtime is the crawler's, and the stamp carries paper. */
+const PHASE_STAMP_BG = 'var(--color-crawler-band)'
+
+/** The phase stamp: paper caption type at a 9×5 inset on the crawler band. */
+const PHASE_STAMP = {
+  backgroundColor: PHASE_STAMP_BG,
+  color: 'var(--color-paper)',
+  fontSize: 'var(--text-caption)',
+  lineHeight: 'inherit',
+  paddingBlock: '5px',
+  paddingInline: '9px',
+} satisfies CSSProperties
+
+/**
+ * SRD roll tables associated with a Downtime step (keyed by the guide step's
+ * name). The guide content describes the roll but does not link the table
+ * entity, so this presentation glue resolves it for the reused roll table.
+ */
+const STEP_ROLL_TABLE: Record<string, string> = {
+  'Upkeep & Upgrade': 'Crawler Deterioration',
+  Trade: 'Trading Bay',
+}
+
+/**
+ * Board D3: the procedure down the left, the step on the right. The list is
+ * the book's: each phase's label over its steps, the steps behind the table
+ * struck through with a ✓, the one it is on an ink plate.
+ */
+const SPLIT = {
+  display: 'grid',
+  gridTemplateColumns: '300px minmax(0, 1fr)',
+  height: '100%',
+  minHeight: 0,
+} satisfies CSSProperties
+
+const STEPS_COLUMN = {
+  minHeight: 0,
+  overflowY: 'auto',
+  padding: '16px 10px',
+  background: 'var(--color-wk-bg)',
+  borderRight: 'var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+} satisfies CSSProperties
+
+const TRACK = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2px',
+  margin: 0,
+  padding: 0,
+  listStyle: 'none',
+} satisfies CSSProperties
+
+const SECTION_LABEL = {
+  display: 'block',
+  padding: '8px 6px 4px',
+  fontFamily: 'var(--font-cond)',
+  fontWeight: 700,
+  fontSize: 'var(--text-badge)',
+  letterSpacing: 'var(--tracking-caps)',
+  textTransform: 'uppercase',
+  color: 'var(--color-ink)',
+} satisfies CSSProperties
+
+const MARK = {
+  display: 'flex',
+  alignItems: 'baseline',
+  gap: '10px',
+  padding: '7px 8px',
+  borderRadius: 'var(--radius-card)',
+  fontFamily: 'var(--font-body)',
+  fontSize: 'var(--text-caption)',
+  color: 'var(--color-ink)',
+} satisfies CSSProperties
+
+const MARK_NUMBER = {
+  width: '1.2em',
+  flexShrink: 0,
+  fontFamily: 'var(--font-cond)',
+  fontWeight: 700,
+  fontVariantNumeric: 'tabular-nums',
+} satisfies CSSProperties
+
+/** A step the table has passed: struck through, with a ✓ in its number's place. */
+const MARK_PAST = {
+  ...MARK,
+  color: 'var(--color-ink-75)',
+  textDecoration: 'line-through',
+} satisfies CSSProperties
+
+/** The step the table is on: the ink plate. */
+const MARK_NOW = {
+  ...MARK,
+  background: 'var(--color-ink)',
+  color: 'var(--color-paper)',
+  fontWeight: 600,
+} satisfies CSSProperties
+
+/** A step still to come. */
+const MARK_NEXT = MARK
+
+/**
+ * The step column: the step itself scrolls (`STEP_SCROLL`) and the controls sit
+ * in a footer below it (`STEP_FOOT`), so "I'm done" is in view however long the
+ * step runs. At the end of the scroll it was clipped by the panel's foot.
+ */
+const STEP_COLUMN = {
+  display: 'flex',
+  flexDirection: 'column',
+  minHeight: 0,
+} satisfies CSSProperties
+
+const STEP_SCROLL = {
+  display: 'flex',
+  flexDirection: 'column',
+  flex: '1 1 auto',
+  minHeight: 0,
+  overflowY: 'auto',
+} satisfies CSSProperties
+
+const STEP_FOOT = {
+  flexShrink: 0,
+  padding: '10px 18px 14px',
+  borderTop: 'var(--bw-chrome) solid color-mix(in srgb, var(--color-ink) 20%, transparent)',
+} satisfies CSSProperties
+
+/** The step's band, in crawler pink (board D3): the step name notched into its foot. */
+const STEP_BAND = {
+  padding: '14px 18px 0',
+  background: 'var(--color-crawler)',
+} satisfies CSSProperties
+
+const STEP_BODY = { padding: '14px 18px' } satisfies CSSProperties
+
+/** The ready pips: who has finished this step. */
+const READY = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  gap: '6px 12px',
+  margin: 0,
+  padding: 0,
+  listStyle: 'none',
+  fontFamily: 'var(--font-body)',
+  fontSize: 'var(--text-note)',
+  color: 'var(--color-ink)',
+} satisfies CSSProperties
+
+const READY_ITEM = { display: 'flex', alignItems: 'center', gap: '5px' } satisfies CSSProperties
+
+const PIP = {
+  width: '10px',
+  height: '10px',
+  flexShrink: 0,
+  borderRadius: 'var(--radius-full)',
+  border: 'var(--bw-chrome) solid var(--color-ink)',
+} satisfies CSSProperties
+
+/** Done is a fill AND a ✓ in the label, never colour alone. */
+const PIP_DONE = { ...PIP, background: 'var(--color-status-ok)' } satisfies CSSProperties
+
+const PIP_WAITING = { ...PIP, background: 'transparent' } satisfies CSSProperties
+
+const CONTROL = { flex: 1 } satisfies CSSProperties
+
+/** One member's ready pip. */
+type ReadyPip = { userId: string; name: string; done: boolean }
+
+type DowntimeWizardFrameProps = {
+  /** The step the Game is on (clamped to the guide's range). */
+  stepIndex: number
+  /** One pip per member, filled once they have finished this step. */
+  ready: readonly ReadyPip[]
+  /** Whether the viewer has marked this step done. */
+  doneByMe: boolean
+  /** "I'm done" and its undo. */
+  onDone: (done: boolean) => void
+  /** Mediator only: move the whole table to the next step. Absent for a player. */
+  onNext?: () => void
+  /** App-computed read-only rules readout for a step (crawler + rules modules). */
+  renderStepGate?: (step: RefObjectGuideStep) => ReactNode
+}
+
+/**
+ * The presentational half: the step, the ready pips and the writes are the
+ * caller's, and the rules gate readout is injected via `renderStepGate`.
+ */
+function DowntimeWizardFrame({
+  stepIndex,
+  ready,
+  doneByMe,
+  onDone,
+  onNext,
+  renderStepGate,
+}: DowntimeWizardFrameProps) {
+  const guide = SalvageUnionReference.Guides.find((g) => g.guideType === DOWNTIME_GUIDE_TYPE)
+  const steps = guide?.steps ?? []
+  if (steps.length === 0) {
+    return <div className="su-dash-display-note">Downtime procedure not in the reference set.</div>
+  }
+
+  const idx = Math.min(Math.max(stepIndex, 0), steps.length - 1)
+  const step = steps[idx]
+  if (!step) {
+    return <div className="su-dash-display-note">Downtime procedure not in the reference set.</div>
+  }
+
+  // Phase = the most recent section label at or before the current step (the
+  // guide sets `section` only on the first step of each phase).
+  let phase = 'Downtime'
+  for (let i = 0; i <= idx; i++) {
+    const sec = steps[i]?.section
+    if (sec) phase = sec
+  }
+
+  const tableName = STEP_ROLL_TABLE[step.name]
+  const table = tableName
+    ? (SalvageUnionReference.RollTables.getByName(tableName) as RefObjectTable | undefined)
+    : undefined
+  const doneCount = ready.filter((r) => r.done).length
+
+  return (
+    <div style={SPLIT}>
+      <nav aria-label="Downtime procedure" style={STEPS_COLUMN}>
+        <ol style={TRACK} aria-label="Downtime steps">
+          {steps.map((s, i) => (
+            <li
+              key={s.name}
+              aria-label={`Step ${i + 1}: ${s.name}${i < idx ? ', done' : ''}`}
+              aria-current={i === idx ? 'step' : undefined}
+            >
+              {s.section && <span style={SECTION_LABEL}>{s.section}</span>}
+              <span style={i < idx ? MARK_PAST : i === idx ? MARK_NOW : MARK_NEXT}>
+                <span style={MARK_NUMBER}>{i < idx ? '✓' : i + 1}</span>
+                {s.name}
+              </span>
+            </li>
+          ))}
+        </ol>
+      </nav>
+
+      <div style={STEP_COLUMN}>
+        <div style={STEP_SCROLL}>
+          <div style={STEP_BAND}>
+            <h3 className="su-dash-dt-step-name">{step.name}</h3>
+          </div>
+          <div className="su-dash-dt" style={STEP_BODY}>
+            <div className="su-dash-dt-head">
+              {/* Paper on the deeper crawler band (4.6 : 1, ruleset §3.8): the
+                guide's own pink carries paper at only 3.7 : 1. */}
+              <Badge
+                shape="stamp"
+                // The caption size once merged the stamp's rung size and
+                // line-height:1 away, leaving the inherited line-height; the
+                // stamp now keeps both.
+                style={PHASE_STAMP}
+              >
+                {phase}
+              </Badge>
+              <span className="su-dash-dt-count">
+                Step {idx + 1} / {steps.length}
+              </span>
+            </div>
+
+            {step.content && step.content.length > 0 && <Content body={step.content} grouped />}
+
+            {renderStepGate?.(step)}
+
+            {table && tableName && (
+              <div className="su-dash-dt-table">
+                <DashboardRollTable
+                  table={table}
+                  name={tableName}
+                  size="small"
+                  tone={CHAPTER_BAND_COLOR.crawler}
+                />
+              </div>
+            )}
+
+            {ready.length > 0 ? (
+              <ul style={READY} aria-label={`Done with this step: ${doneCount} of ${ready.length}`}>
+                {ready.map((r) => (
+                  <li key={r.userId} style={READY_ITEM}>
+                    <span style={r.done ? PIP_DONE : PIP_WAITING} aria-hidden="true" />
+                    {r.done ? `✓ ${r.name}` : r.name}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+
+            <p className="su-dash-dt-note">
+              {onNext
+                ? 'You move the table on. Each player marks the step done when they are.'
+                : 'The Mediator moves the table on. Mark the step done when you are.'}
+            </p>
+          </div>
+        </div>
+
+        <div className="su-dash-dt-controls" style={STEP_FOOT}>
+          <Button
+            size="compact"
+            variant={doneByMe ? 'ghost' : 'primary'}
+            style={CONTROL}
+            onClick={() => onDone(!doneByMe)}
+            aria-pressed={doneByMe}
+          >
+            {doneByMe ? '✓ Done' : "I'm done"}
+          </Button>
+          {onNext ? (
+            <Button
+              size="compact"
+              style={CONTROL}
+              onClick={() => onNext()}
+              disabled={idx === steps.length - 1}
+            >
+              Next step ›
+            </Button>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+type DowntimeWizardProps = {
+  crawler: Crawler | null
+  /** The mech and pilot Restore acts on: the two Minors. Absent = nothing to restore. */
+  mech?: Mech | null
+  pilot?: Pilot | null
+  /** The Game's Downtime (`useDowntime`): the step, who is done, and the writes. */
+  downtime: DowntimeHandle
+  /** The viewer is the Mediator, who moves the table on. */
+  mediator: boolean
+  /** The signed-in viewer (`account.me`), whose pip "I'm done" fills. */
+  viewerId: string | null
+  store?: typeof useEntityStore
+}
+
+/** Read-only gate readout for the steps whose effects the rules modules gate. */
+function StepGate({
+  step,
+  crawler,
+  upkeepSpent,
+}: {
+  step: RefObjectGuideStep
+  crawler: Crawler
+  upkeepSpent: boolean
+}) {
+  if (step.name === 'Restore your Mech & Pilot') {
+    const mechBay = mechBayStatus(crawler)
+    const medBay = medBayStatus(crawler)
+    return (
+      <ul className="su-dash-dt-gate">
+        <li>
+          Mech Bay:{' '}
+          {mechBay.operational
+            ? 'operational — SP/EP/Heat restore, damaged items repair'
+            : 'blocked — no restore or repair this Downtime'}
+        </li>
+        <li>
+          Med Bay:{' '}
+          {medBay.operational
+            ? `operational — HP heals${medBay.healsMajor ? ', Minor + Major Injuries heal' : medBay.healsMinor ? ', Minor Injuries heal' : ''}`
+            : 'blocked — no HP or injury healing (AP still rests to full)'}
+        </li>
+      </ul>
+    )
+  }
+  if (step.name === 'Upkeep & Upgrade') {
+    return (
+      <ul className="su-dash-dt-gate">
+        <li>Upkeep is {DOWNTIME_UPKEEP_SCRAP}× the crawler's Tech Level in Scrap this Downtime.</li>
+        <li>
+          {upkeepSpent
+            ? 'Upkeep is paid for this Downtime.'
+            : 'Upkeep is outstanding. The Mediator pays it from the Crawler’s Upkeep bay.'}
+        </li>
+        <li>Unpaid Upkeep forces a roll on the Crawler Deterioration table (below).</li>
+      </ul>
+    )
+  }
+  if (step.name === 'Trade') {
+    const trading = bayGate(crawler, 'trading-bay')
+    return (
+      <ul className="su-dash-dt-gate">
+        <li>
+          Trading Bay:{' '}
+          {trading.operational
+            ? 'operational — roll availability, then trade Scrap at fixed rates'
+            : trading.present
+              ? 'damaged — Scrap trading and the availability roll are blocked'
+              : 'not installed — no Trading Bay availability this Downtime'}
+        </li>
+      </ul>
+    )
+  }
+  return null
+}
+
+export function DowntimeWizard({
+  crawler,
+  mech,
+  pilot,
+  downtime,
+  mediator,
+  viewerId,
+  store = useEntityStore,
+}: DowntimeWizardProps) {
+  const storeState = store()
+  const [restored, setRestored] = useState<string | null>(null)
+  const { stepIndex, completedBy, members, upkeepSpent } = downtime.downtime
+  const done = new Set(completedBy.map((c) => c.userId))
+  const ready: ReadyPip[] = members.map((m) => ({
+    userId: m.userId,
+    name: m.displayName,
+    done: done.has(m.userId),
+  }))
+
+  /**
+   * Apply the Restore step to the mech and pilot.
+   *
+   * Reads the FRESHEST records so a rapid second press cannot restore against a
+   * stale copy, and writes each half only when the rules produced a change —
+   * an empty patch would log a change that changed nothing.
+   */
+  function restore(): void {
+    if (!crawler) return
+    const steps = allDowntimeSteps()
+    const crawlerTl = Number((crawler.techLevel ?? '').replace(/\D/g, '')) || 1
+    const applied: string[] = []
+
+    if (mech) {
+      const fresh = storeState.get('mech', mech.id) ?? mech
+      const patch = downtimeMechPatch(fresh, crawlerTl, steps, mechBayStatus(crawler))
+      if (Object.keys(patch).length > 0) {
+        runWrite(() => storeState.update('mech', mech.id, patch, DASHBOARD_TXN))
+        applied.push(fresh.name)
+      }
+    }
+    if (pilot) {
+      const fresh = storeState.get('pilot', pilot.id) ?? pilot
+      const patch = downtimePilotPatch(
+        fresh,
+        medBayStatus(crawler),
+        steps,
+        resolveEffectiveCrawlerLevel(fresh, crawler)
+      )
+      if (Object.keys(patch).length > 0) {
+        runWrite(() => storeState.update('pilot', pilot.id, patch, DASHBOARD_TXN))
+        applied.push(fresh.name)
+      }
+    }
+
+    setRestored(
+      applied.length > 0
+        ? `Restored ${applied.join(' and ')}.`
+        : 'Nothing to restore — everything is already at full.'
+    )
+  }
+
+  return (
+    <DowntimeWizardFrame
+      stepIndex={stepIndex ?? 0}
+      ready={ready}
+      doneByMe={viewerId !== null && done.has(viewerId)}
+      onDone={downtime.markDone}
+      onNext={mediator ? downtime.advance : undefined}
+      renderStepGate={
+        crawler
+          ? (step) => (
+              <>
+                <StepGate step={step} crawler={crawler} upkeepSpent={upkeepSpent} />
+                {step.name === 'Restore your Mech & Pilot' && (mech || pilot) ? (
+                  <div className="su-dash-dt-gate">
+                    <Button type="button" onClick={restore}>
+                      Apply Restore
+                    </Button>
+                    {restored ? <p className="su-dash-dt-note">{restored}</p> : null}
+                  </div>
+                ) : null}
+              </>
+            )
+          : undefined
+      }
+    />
+  )
+}

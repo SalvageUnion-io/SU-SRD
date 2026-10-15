@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
-import { color, font, fontSize, space } from '../ui/design/tokens'
-import { CHAPTER_BAND_COLOR, EmptyState, Head, InlineMarkdown, Stat } from '../ui/index'
+import { color, font, fontSize, space } from '../design/tokens'
+import { CHAPTER_BAND_COLOR, EmptyState, Head, InlineMarkdown, Stat } from './index'
 
 const LIST = {
   display: 'flex',

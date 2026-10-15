@@ -1,7 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import type { RefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { rollTablePageData } from '../../components/RollTablePage'
 import type { RollTableRow } from '../rollTablePage'
 import {
   plainText,
@@ -12,6 +11,7 @@ import {
   rowForRoll,
   splitRows,
 } from '../rollTablePage'
+import { rollTablePageData } from '../rollTablePageData'
 
 const need = <T>(value: T | undefined, label: string): T => {
   if (value === undefined) throw new Error(`fixture missing: ${label}`)

@@ -14,11 +14,6 @@
  * at once, and merges their lcov (`lib/lcov.ts`) back to what one serial run
  * reports, line for line; the floor applies to the merge. Output is buffered per job and printed whole, so every failure
  * reads under its workspace's name.
- *
- * A workspace in `PARTS` is gated per folder instead: each part runs only its
- * own test files and is held to its own floor over only its own files. `apps/web`
- * holds srd, the Cantina and the UI library (`src/ui`), each at the floor it had
- * as a workspace of its own.
  */
 
 import { $ } from 'bun'
@@ -34,9 +29,7 @@ import { assertCoversWorkspaces } from 'gates/lib/workspaceCoverage'
  */
 const FLOORS: Readonly<Record<string, number>> = {
   'packages/salvageunion-reference': 96.5,
-  'apps/web (srd)': 99,
-  'apps/web (cantina)': 97,
-  'apps/web (ui)': 95.5,
+  'apps/web': 97.9,
   'apps/discord-bot': 96.5,
   'apps/su-assets': 98,
   'packages/observability': 99.5,
@@ -50,24 +43,7 @@ const FLOORS: Readonly<Record<string, number>> = {
  * CI critical path. Any workspace left out runs as one process.
  */
 const SHARDS: Readonly<Record<string, number>> = {
-  'apps/web (cantina)': 3,
-}
-
-/** A per-folder job: the workspace it runs in, and which paths in it are its own. */
-type Part = { dir: string; owns: (path: string) => boolean }
-
-/** The Cantina's paths in `apps/web`, relative to it: its app, backend, tests and tooling. */
-const CANTINA =
-  /^(src\/cantina\/|convex\/|test\/|e2e\/cantina\/|scripts\/(__tests__\/)?(assert-local-convex|generate-route-tree)\.|routeTree\.config\.)/
-
-/** The UI library's paths in `apps/web`: `src/ui`, which both apps render. */
-const UI = /^src\/ui\//
-
-/** Jobs that gate one folder of a workspace; any job not listed runs its whole workspace. */
-const PARTS: Readonly<Record<string, Part>> = {
-  'apps/web (srd)': { dir: 'apps/web', owns: (path) => !CANTINA.test(path) && !UI.test(path) },
-  'apps/web (cantina)': { dir: 'apps/web', owns: (path) => CANTINA.test(path) },
-  'apps/web (ui)': { dir: 'apps/web', owns: (path) => UI.test(path) },
+  'apps/web': 3,
 }
 
 /** One instrumented run, the same in every workspace, so no manifest repeats it. */
@@ -90,31 +66,15 @@ const TEST_FILES = new Bun.Glob('**/*{.test,_test,.spec,_spec}.{js,jsx,ts,tsx,mj
  * against a single serial run (the PR that introduced it shows the diff);
  * re-check before changing it or a shard count.
  */
-export function shardTestFiles(
-  cwd: string,
-  count: number,
-  owns: (path: string) => boolean = () => true
-): string[][] {
+export function shardTestFiles(cwd: string, count: number): string[][] {
   const files = [...TEST_FILES.scanSync({ cwd })]
     .filter(
       (path) => !path.split('/').some((part) => part === 'node_modules' || part.startsWith('.'))
     )
-    .filter(owns)
     .sort()
   return Array.from({ length: count }, (_, shard) =>
     files.filter((_, i) => i % count === shard).map((path) => `./${path}`)
   )
-}
-
-/** Only the lcov records whose source file `owns` accepts. */
-export function lcovFor(lcov: string, owns: (path: string) => boolean): string {
-  return lcov
-    .split(/^(?=TN:)/m)
-    .filter((record) => {
-      const source = record.match(/^SF:(.*)$/m)?.[1]
-      return source !== undefined && owns(source)
-    })
-    .join('')
 }
 
 /** Line coverage from lcov text, or undefined when it records no lines. */
@@ -141,23 +101,21 @@ function readIfPresent(path: string): string | undefined {
 type Result = { name: string; ok: boolean; verdict: string; output: string }
 
 /** Where a job runs, and the `bun` it runs (a stub, in the script's tests). */
-export type JobOptions = { root: string; shards?: number; bun?: readonly string[]; part?: Part }
+export type JobOptions = { root: string; shards?: number; bun?: readonly string[] }
 
 /** One workspace's coverage run (or its shards, merged) against its floor. */
 export async function runJob(name: string, floor: number, options: JobOptions): Promise<Result> {
-  const { root, shards: shardCount = 1, bun = ['bun'], part } = options
-  const cwd = join(root, part?.dir ?? name)
-  // A part writes under its own folder, so two parts of one workspace never
-  // read each other's lcov.
-  const coverage = part ? join('coverage', name.replace(/\W+/g, '-')) : 'coverage'
+  const { root, shards: shardCount = 1, bun = ['bun'] } = options
+  const cwd = join(root, name)
+  const coverage = 'coverage'
   // A stale lcov from an earlier run must not stand in for this one.
   rmSync(join(cwd, coverage), { recursive: true, force: true })
   const started = performance.now()
   const runs =
-    shardCount === 1 && !part
+    shardCount === 1
       ? [$`${bun} test ${coverageArgs(coverage)} 2>&1`.cwd(cwd).nothrow().quiet()]
-      : shardTestFiles(cwd, shardCount, part?.owns).map((files, i) =>
-          $`${bun} test ${coverageArgs(shardCount === 1 ? coverage : `${coverage}/shard-${i + 1}`)} ${files} 2>&1`
+      : shardTestFiles(cwd, shardCount).map((files, i) =>
+          $`${bun} test ${coverageArgs(`${coverage}/shard-${i + 1}`)} ${files} 2>&1`
             .cwd(cwd)
             .nothrow()
             .quiet()
@@ -186,11 +144,7 @@ export async function runJob(name: string, floor: number, options: JobOptions): 
     }
   }
   const lcovPath = join(cwd, coverage, 'lcov.info')
-  let lcov = ok ? readIfPresent(lcovPath) : undefined
-  if (lcov !== undefined && part) {
-    lcov = lcovFor(lcov, part.owns)
-    writeFileSync(lcovPath, lcov)
-  }
+  const lcov = ok ? readIfPresent(lcovPath) : undefined
   if (ok) {
     const pct = lcov === undefined ? undefined : lineCoverage(lcov)
     ok = pct !== undefined && pct >= floor
@@ -206,7 +160,6 @@ export async function runJob(name: string, floor: number, options: JobOptions): 
 export type CoverageOptions = {
   floors?: Readonly<Record<string, number>>
   shards?: Readonly<Record<string, number>>
-  parts?: Readonly<Record<string, Part>>
   root?: string
   bun?: readonly string[]
   /** Fails when a workspace has no floor (every workspace must be gated). */
@@ -220,22 +173,16 @@ export type CoverageOptions = {
 export async function main({
   floors = FLOORS,
   shards = SHARDS,
-  parts = PARTS,
   root = join(import.meta.dir, '..'),
   bun,
   coversWorkspaces = (names) => assertCoversWorkspaces('coverage floors', names),
   summaryPath = process.env.GITHUB_STEP_SUMMARY,
   log = console.log,
 }: CoverageOptions = {}): Promise<number> {
-  coversWorkspaces([...new Set(Object.keys(floors).map((name) => parts[name]?.dir ?? name))])
+  coversWorkspaces(Object.keys(floors))
   const results = await Promise.all(
     Object.entries(floors).map(async ([name, floor]) => {
-      const result = await runJob(name, floor, {
-        root,
-        shards: shards[name],
-        bun,
-        part: parts[name],
-      })
+      const result = await runJob(name, floor, { root, shards: shards[name], bun })
       log(result.output)
       return result
     })

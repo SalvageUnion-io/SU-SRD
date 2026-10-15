@@ -7,8 +7,8 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { RefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { columnsAnnouncement, columnsHit, rangeHolds } from '../../../lib/columnsTablePage'
+import { columnsTablePageData, rollTablePageData } from '../../../lib/rollTablePageData'
 import { ColumnsTableView } from '../../ColumnsTableView'
-import { columnsTablePageData, rollTablePageData } from '../../RollTablePage'
 import { ColumnsTableIsland } from '../ColumnsTableIsland'
 
 const tableNamed = (name: string) => {

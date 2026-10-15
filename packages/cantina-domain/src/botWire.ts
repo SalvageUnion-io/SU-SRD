@@ -62,7 +62,7 @@ export type GamesResult = { games: GameSummary[] }
 /**
  * An entity body, exactly as Convex stores it — opaque.
  *
- * Convex cannot validate these (ADR-030: the Zod schemas in `apps/web/src/cantina` are the
+ * Convex cannot validate these (ADR-030: the client's Zod schemas in `apps/web/src` are the
  * source of truth and Convex stores bodies as `v.any()`), so the bot must not
  * pretend otherwise. Everything read off a body is read defensively, and the
  * derived maxima come from the server's `SheetResult.vitals` rather than from

@@ -12,7 +12,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 // `src/endpoints/`) — never by a client island — so this eager
 // `preload('all')` runs at BUILD time during static generation and never ships
 // to a browser bundle. Client islands load reference data via the separate,
-// already-lazy `useGameData.tsx` path (per-schema dynamic import). Keeping the
+// already-lazy `useGameData.ts` path (per-schema dynamic import). Keeping the
 // full preload here is correct: it makes ORM lookups synchronous during SSG.
 if (!SalvageUnionReference.isLoaded('chassis')) {
   await SalvageUnionReference.preload('all')

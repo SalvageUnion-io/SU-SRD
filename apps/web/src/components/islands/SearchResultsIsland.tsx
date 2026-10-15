@@ -14,7 +14,7 @@ import {
   SegmentedOption,
   Skeleton,
   schemaPluralLabel,
-} from '../../ui/index'
+} from '../index'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 const PARAM_QUERY = 'q'

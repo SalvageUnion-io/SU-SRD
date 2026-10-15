@@ -117,7 +117,7 @@ describe('tokens rule set', () => {
 
   test('raw colour literals are found; issue refs and HTML entities are not', () => {
     const found = scan(
-      'apps/web/src/cantina/x.tsx',
+      'apps/web/src/routes/x.tsx',
       [
         "const a = '#ff0000'",
         'see microsoft/TypeScript#30581 and PR #466',
@@ -130,7 +130,7 @@ describe('tokens rule set', () => {
 
   test('a design-tokens-ignore comment waives its own line only', () => {
     const found = scan(
-      'apps/web/src/cantina/x.tsx',
+      'apps/web/src/routes/x.tsx',
       "const a = '#ff0000' // design-tokens-ignore: brand\nconst b = '#00ff00'"
     )
     expect(found['raw-color']?.map((f) => f.line)).toEqual([2])
@@ -138,7 +138,7 @@ describe('tokens rule set', () => {
 
   test('the token definition file is exempt from raw-color but not from other rules', () => {
     const found = scan(
-      'apps/web/src/ui/styles/theme.css',
+      'apps/web/src/styles/theme.css',
       '--color-x: #ff0000;\n.x { font-size: 9px; }'
     )
     expect(found['raw-color']).toEqual([])
@@ -154,7 +154,7 @@ describe('tokens rule set', () => {
 
   test('type-floor: a retired rung by any name, or a literal under 11px, fails', () => {
     const found = scan(
-      'apps/web/src/cantina/x.tsx',
+      'apps/web/src/routes/x.tsx',
       [
         'text-nano text-micro text-label text-label-lg',
         'font-size: var(--text-micro);',
@@ -184,7 +184,7 @@ describe('tokens rule set', () => {
 
   test('type-floor: the floor itself and everything above it pass', () => {
     const found = scan(
-      'apps/web/src/cantina/x.tsx',
+      'apps/web/src/routes/x.tsx',
       [
         'text-badge text-note text-labels text-label-ish',
         'font-size: 11px; font-size: 0.75rem; font-size: 9pt;',
@@ -220,15 +220,15 @@ describe('tokens rule set', () => {
 
   test('rust-allowlist: the allowlisted files and a Button-rust ignore line pass', () => {
     for (const file of [
-      'apps/web/src/ui/components/atoms/Button.tsx',
-      'apps/web/src/ui/components/atoms/buttonVariants.ts',
-      'apps/web/src/ui/components/atoms/InlineRef.tsx',
-      'apps/web/src/ui/styles/theme.css',
+      'apps/web/src/components/atoms/Button.tsx',
+      'apps/web/src/components/atoms/buttonVariants.ts',
+      'apps/web/src/components/atoms/InlineRef.tsx',
+      'apps/web/src/styles/theme.css',
     ]) {
       expect(scan(file, 'bg-rust var(--color-rust)')['rust-allowlist']).toEqual([])
     }
     const css = scan(
-      'apps/web/src/ui/styles/index.css',
+      'apps/web/src/styles/index.css',
       "background: var(--color-rust); /* design-tokens-ignore: Button's rust */\nborder-color: var(--color-rust);"
     )
     expect(css['rust-allowlist']?.map((f) => f.line)).toEqual([2])
@@ -237,21 +237,21 @@ describe('tokens rule set', () => {
   test('texture-placement: speckle is a finding on a forbidden surface or a paper ground', () => {
     const ref = "filter: 'url(#su-blot)', opacity: tokens.texture.blotOpacity"
     for (const file of [
-      'apps/web/src/cantina/components/dashboard/MajorFrame.tsx',
-      'apps/web/src/cantina/styles/dashboard/instruments.css',
-      'apps/web/src/ui/components/atoms/Button.tsx',
-      'apps/web/src/ui/components/atoms/KofiButton.tsx',
-      'apps/web/src/ui/components/atoms/buttonVariants.ts',
-      'apps/web/src/ui/components/atoms/Field.tsx',
-      'apps/web/src/ui/components/atoms/inputs.tsx',
-      'apps/web/src/ui/components/atoms/SearchField.tsx',
-      'apps/web/src/ui/components/atoms/Tooltip.tsx',
-      'apps/web/src/ui/entity/PeekCard.tsx',
+      'apps/web/src/components/dashboard/MajorFrame.tsx',
+      'apps/web/src/styles/builder/dashboard/instruments.css',
+      'apps/web/src/components/atoms/Button.tsx',
+      'apps/web/src/components/atoms/KofiButton.tsx',
+      'apps/web/src/components/atoms/buttonVariants.ts',
+      'apps/web/src/components/atoms/Field.tsx',
+      'apps/web/src/components/atoms/inputs.tsx',
+      'apps/web/src/components/atoms/SearchField.tsx',
+      'apps/web/src/components/atoms/Tooltip.tsx',
+      'apps/web/src/components/entity/PeekCard.tsx',
     ]) {
       expect(scan(file, ref)['texture-placement']?.length, file).toBe(2)
     }
     const onPaper = scan(
-      'apps/web/src/ui/components/atoms/BandTitle.tsx',
+      'apps/web/src/components/atoms/BandTitle.tsx',
       '<div className="bg-paper"><svg><rect filter="url(#su-speck)" /></svg></div>\n' +
         "const s = { backgroundColor: color.paper, opacity: 'var(--texture-speck-opacity)' }"
     )
@@ -263,7 +263,7 @@ describe('tokens rule set', () => {
 
   test('texture-placement: speckle on a band or an ink ground passes', () => {
     const found = scan(
-      'apps/web/src/ui/components/atoms/BandTitle.tsx',
+      'apps/web/src/components/atoms/BandTitle.tsx',
       [
         '<div className="bg-mech"><svg><rect filter="url(#su-blot)" /></svg></div>',
         'const s = { backgroundColor: color.ink, opacity: tokens.texture.fleckOpacity }',
@@ -280,14 +280,14 @@ describe('tokens rule set', () => {
       'const s = { backgroundColor: color.wkBg2 }',
       'bg-wk-bg text-wk-muted bg-wk-bg-20', // the warm ground and look-alikes pass
     ].join('\n')
-    expect(scan('apps/web/src/cantina/x.tsx', text)['cool-ground']?.map((f) => f.detail)).toEqual([
+    expect(scan('apps/web/src/routes/x.tsx', text)['cool-ground']?.map((f) => f.detail)).toEqual([
       'bg-wk-bg-2',
       'bg-wk-bg-2',
       'border-wk-bg-2',
       '--color-wk-bg-2',
       'wkBg2',
     ])
-    expect(scan('apps/web/src/cantina/styles/print.css', text)['cool-ground']).toEqual([])
+    expect(scan('apps/web/src/styles/builder/print.css', text)['cool-ground']).toEqual([])
   })
 })
 
@@ -300,19 +300,19 @@ describe('fontSizePx', () => {
   })
 })
 
-const ENTRY = 'apps/web/src/ui/styles/entry.css'
+const ENTRY = 'apps/web/src/styles/entry.css'
 
 const STYLING_BASE: Record<string, string> = {
   [ENTRY]:
     "@layer su-reset, su-base;\n@import './theme.css';\n@import './reset.css' layer(su-reset);\n@import './index.css' layer(su-base);\n",
-  'apps/web/src/styles/base.css': "@import '../ui/styles/entry.css';\n",
-  'apps/web/src/cantina/index.css': "@import './styles/print.css';\n",
+  'apps/web/src/styles/base.css': "@import './entry.css';\n",
+  'apps/web/src/styles/builder.css': "@import './styles/print.css';\n",
   'apps/web/src/styles/global.css': "@import './pages.css';\n",
-  'apps/web/src/cantina/styles/dashboard/DashboardCanvas.css': '.su-dash-used { color: red }\n',
-  'apps/web/src/cantina/styles/dashboard/DashboardGrid.css': '',
-  'apps/web/src/cantina/styles/dashboard/instruments.css': '',
-  'apps/web/src/cantina/styles/dashboard/DashboardPhone.css': '',
-  'apps/web/src/cantina/components/dashboard/Thing.tsx':
+  'apps/web/src/styles/builder/dashboard/DashboardCanvas.css': '.su-dash-used { color: red }\n',
+  'apps/web/src/styles/builder/dashboard/DashboardGrid.css': '',
+  'apps/web/src/styles/builder/dashboard/instruments.css': '',
+  'apps/web/src/styles/builder/dashboard/DashboardPhone.css': '',
+  'apps/web/src/components/dashboard/Thing.tsx':
     'export const T = () => <div className="su-dash-used" />\n',
 }
 
@@ -358,10 +358,10 @@ describe('styling rule set', () => {
           null,
           2
         ),
-        'apps/web/src/ui/styles/index.css':
+        'apps/web/src/styles/index.css':
           '/* @apply in a comment is prose */\n.su-x { color: red }\n@layer utilities {\n  .flex { display: flex }\n}\n',
         'apps/web/src/styles/global.css':
-          "@import '../ui/styles/entry.css';\n@source '../src';\n.su-y {\n  @apply flex;\n}\n",
+          "@import './entry.css';\n@source '../src';\n.su-y {\n  @apply flex;\n}\n",
       })
     )
     expect(found['no-tailwind']?.map((f) => `${f.file}:${f.line} ${f.detail}`)).toEqual([
@@ -371,7 +371,7 @@ describe('styling rule set', () => {
       "tools/package.json:3 devDependencies declares '@tailwindcss/cli'",
       "apps/web/src/styles/global.css:2 Tailwind directive '@source'",
       "apps/web/src/styles/global.css:4 Tailwind directive '@apply'",
-      "apps/web/src/ui/styles/index.css:3 Tailwind directive '@layer utilities'",
+      "apps/web/src/styles/index.css:3 Tailwind directive '@layer utilities'",
     ])
   })
 
@@ -395,7 +395,7 @@ describe('styling rule set', () => {
     const found = stylingOwnership.scan(
       fixture({
         ...STYLING_BASE,
-        'apps/web/src/cantina/styles/dashboard/DashboardGrid.css': '.su-dash-dead { color: red }\n',
+        'apps/web/src/styles/builder/dashboard/DashboardGrid.css': '.su-dash-dead { color: red }\n',
       })
     )
     expect(found['dash-class-contract']?.map((f) => f.detail)).toEqual([
@@ -476,7 +476,7 @@ describe('styling rule set', () => {
     const found = stylingOwnership.scan(
       fixture({
         ...STYLING_BASE,
-        'apps/web/src/ui/A.tsx': [
+        'apps/web/src/components/A.tsx': [
           "const WIDE: CSSProperties = { width: '100%' }",
           'const TALL: React.CSSProperties = {',
           "  height: '100%',",
@@ -489,8 +489,8 @@ describe('styling rule set', () => {
       })
     )
     expect(found['style-object-annotation']?.map((f) => `${f.file}:${f.line}`)).toEqual([
-      'apps/web/src/ui/A.tsx:1',
-      'apps/web/src/ui/A.tsx:2',
+      'apps/web/src/components/A.tsx:1',
+      'apps/web/src/components/A.tsx:2',
     ])
   })
 
@@ -498,7 +498,7 @@ describe('styling rule set', () => {
     const found = stylingOwnership.scan(
       fixture({
         ...STYLING_BASE,
-        'apps/web/src/cantina/index.css': "@import '../ui/styles/entry.css';\n",
+        'apps/web/src/styles/builder.css': "@import './entry.css';\n",
       })
     )
     expect(found['package-stylesheet-import']?.map((f) => f.detail)).toEqual([
@@ -510,7 +510,7 @@ describe('styling rule set', () => {
     const found = stylingOwnership.scan(
       fixture({
         ...STYLING_BASE,
-        'apps/web/src/styles/base.css': "@import '../ui/styles/index.css';\n",
+        'apps/web/src/styles/base.css': "@import './index.css';\n",
       })
     )
     expect(found['package-stylesheet-import']?.map((f) => f.detail)).toEqual([
@@ -523,7 +523,7 @@ describe('styling rule set', () => {
 describe('class-prefix rule set', () => {
   test('a clean fixture has no findings', () => {
     const found = classPrefix.scan(
-      fixture({ 'apps/web/src/cantina/styles/a.css': '.su-a, .su-b:hover { color: red }\n' })
+      fixture({ 'apps/web/src/styles/builder/a.css': '.su-a, .su-b:hover { color: red }\n' })
     )
     expect(found['class-prefix']).toEqual([])
   })
@@ -531,17 +531,17 @@ describe('class-prefix rule set', () => {
   test('a package or the Cantina class without the su- prefix is found, nested ones included; srd is out of scope', () => {
     const found = classPrefix.scan(
       fixture({
-        'apps/web/src/cantina/styles/wizard.css':
+        'apps/web/src/styles/builder/wizard.css':
           '/* .wiz-old in a comment is prose */\n.su-wiz-ok, .wiz-pill:hover { color: red }\n@media (min-width: 40rem) {\n  .su-wiz-ok .npc-step { color: red }\n}\n',
-        'apps/web/src/ui/styles/theme.css':
+        'apps/web/src/styles/theme.css':
           ".sheet--pilot,\n.su-sheet--mech { --tone: red }\n@import 'x.css';\n",
         'apps/web/src/styles/pages.css': '.srd-page { color: red }\n',
       })
     )
     expect(found['class-prefix']?.map((f) => `${f.file}:${f.line} ${f.detail}`)).toEqual([
-      'apps/web/src/cantina/styles/wizard.css:2 .wiz-pill is not a .su-* class',
-      'apps/web/src/cantina/styles/wizard.css:4 .npc-step is not a .su-* class',
-      'apps/web/src/ui/styles/theme.css:1 .sheet--pilot is not a .su-* class',
+      'apps/web/src/styles/builder/wizard.css:2 .wiz-pill is not a .su-* class',
+      'apps/web/src/styles/builder/wizard.css:4 .npc-step is not a .su-* class',
+      'apps/web/src/styles/theme.css:1 .sheet--pilot is not a .su-* class',
     ])
   })
 })
@@ -552,7 +552,6 @@ describe('srd-css rule set', () => {
   test('passes when only the entry imports css', () => {
     const found = srdCss.scan(fixture({ ...entry, 'apps/web/src/pages/a.page.tsx': 'export {}\n' }))
     expect(found['srd-css-entry']).toEqual([])
-    expect(found['lib-css-import']).toEqual([])
   })
 
   test('a css import in an SSR module is found', () => {
@@ -567,16 +566,21 @@ describe('srd-css rule set', () => {
     expect(found['srd-css-entry']?.[0]?.detail).toContain('imports no stylesheet')
   })
 
-  test('src/ui may not import css, except from tests', () => {
+  test('a component a page reaches may not import css; one only the builder reaches may', () => {
     const found = srdCss.scan(
       fixture({
         ...entry,
-        'apps/web/src/ui/A.tsx': "import './a.css'\n",
-        'apps/web/src/ui/A.test.tsx': "import './a.css'\n",
-        'apps/web/src/ui/__tests__/B.tsx': "import './b.css'\n",
+        'apps/web/src/pages/a.page.tsx': "import { A } from '../components/A'\n",
+        'apps/web/src/components/A.tsx': "import './a.css'\nimport { C } from './C'\n",
+        'apps/web/src/components/C.tsx': "import './c.css'\n",
+        'apps/web/src/components/A.test.tsx': "import './a.css'\n",
+        'apps/web/src/components/B.tsx': "import './b.css'\n",
       })
     )
-    expect(found['lib-css-import']?.map((f) => f.file)).toEqual(['apps/web/src/ui/A.tsx'])
+    expect(found['srd-css-entry']?.map((f) => f.file)).toEqual([
+      'apps/web/src/components/A.tsx',
+      'apps/web/src/components/C.tsx',
+    ])
   })
 })
 

@@ -26,13 +26,13 @@ import type { CSSProperties } from 'react'
 import { Fragment } from 'react'
 import type { PageModule, PageResult, RouteContext } from '../../ssg/types'
 import { DocPage } from '../components/DocPage'
+import { buttonVariants, cn, InlineRef, Slab } from '../components/index'
 import { ColophonIsland } from '../components/islands/ColophonIsland'
+import { color, font, fontSize, space, tracking, weight } from '../design/tokens'
 import { builtAssetUrl, ELDRIDGE_COAST_MAP } from '../lib/builtAssets'
 import { CANTINA_PATH, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
 import { BOLD, PROSE } from '../lib/docPageStyles'
 import { Island } from '../runtime/Island'
-import { color, font, fontSize, space, tracking, weight } from '../ui/design/tokens'
-import { buttonVariants, cn, InlineRef, Slab } from '../ui/index'
 
 /** Repo root, relative to this module — `apps/web/src/pages` -> four levels up. */
 const repoRootFile = (name: string): string =>

@@ -44,7 +44,7 @@
  * at install time. A builder tab is a long session, and activating drops every
  * precache entry the new build does not list, the chunks it is still reading
  * from; so while one is open the new worker waits for that tab to move onto
- * the new build at its next page change (`src/cantina/lib/sw/softUpdate.ts`).
+ * the new build at its next page change (`src/lib/sw/softUpdate.ts`).
  * With none open it takes over at once, which keeps the precache on the build
  * the reference's pages are on: each of those is a full document load, and a
  * failed chunk reloads it once (`installChunkRecovery`).

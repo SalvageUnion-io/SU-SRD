@@ -26,7 +26,7 @@
   //
   // - CF_ACCOUNT_ID and BROWSER_RENDERING_TOKEN (a token with Browser
   //   Rendering edit permission). With both, a shared thing's link preview
-  //   carries its rendered card (apps/web/src/cantina/worker/linkPreview.ts);
+  //   carries its rendered card (apps/web/src/worker/builder/linkPreview.ts);
   //   without them it unfurls as text.
   // - CONVEX_LOG_STREAM_SECRET, the production Convex log stream's webhook
   //   secret. Without it POST /build/__convex-logs answers 503.
@@ -34,7 +34,7 @@
   // CONVEX_URL: the Convex deployment a link preview reads what a stranger
   // may see from: the URL the Cantina is built against, `CANTINA_CONVEX_URL`
   // in deploy-cloudflare.yml. BASE_PATH: the base the Cantina is built under
-  // (`SITE.base` in apps/web/src/cantina/lib/site.ts). The routing test holds
+  // (`SITE.base` in apps/web/src/lib/site.ts). The routing test holds
   // BASE_PATH equal to `BUILD_BASE`.
   "vars": {
     "CONVEX_URL": "https://exuberant-porpoise-183.convex.cloud",

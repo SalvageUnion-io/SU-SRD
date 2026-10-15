@@ -1,11 +1,11 @@
 import type { CSSProperties } from 'react'
+import { borderWidth, color, fontSize, space } from '../../design/tokens'
 import { NAV_CATALOG } from '../../generated/navCatalog'
 import { SIGN_IN_HREF } from '../../lib/accountBar'
+import { readAccountHint } from '../../lib/accountHint'
 import { browserStorage } from '../../lib/accountState'
-import { readAccountHint } from '../../ui/accountHint'
-import { borderWidth, color, fontSize, space } from '../../ui/design/tokens'
-import type { NavDrawerItem } from '../../ui/index'
-import { Badge, buttonVariants, NavDrawer } from '../../ui/index'
+import type { NavDrawerItem } from '../index'
+import { Badge, buttonVariants, NavDrawer } from '../index'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 import { SearchIsland } from './SearchIsland'
 
@@ -48,7 +48,7 @@ const SRD_BRAND = (
 /**
  * Hydrates the shared NavDrawer for the SRD top nav, wiring in the site's live
  * SearchIsland combobox, the schema-catalog tiles, and the secondary nav. The
- * drawer chrome lives in src/ui; this island supplies the SRD-specific
+ * drawer chrome lives in src/components; this island supplies the SRD-specific
  * data + search behaviour.
  *
  * Zero props by design (ssg/DESIGN.md rule 7): a catalog prop would inline

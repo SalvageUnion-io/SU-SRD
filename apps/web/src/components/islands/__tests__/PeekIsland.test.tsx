@@ -10,7 +10,7 @@ import { act, render, screen, waitFor } from '@testing-library/react'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { itemHref } from '../../../lib/entityHref'
 import { getSchemaPreloadList } from '../../../lib/schemaPreloadDeps'
-import { EntitySurfaceProvider, Mention } from '../../../ui/index'
+import { EntitySurfaceProvider, Mention } from '../../index'
 import { PeekIsland } from '../PeekIsland'
 
 let preloadSpy: Mock<typeof SalvageUnionReference.preload> | undefined

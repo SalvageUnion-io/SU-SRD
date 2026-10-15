@@ -12,11 +12,11 @@ import { PRODUCT } from 'cantina-domain/product'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { Changelog } from '../components/Changelog'
 import { DocPage } from '../components/DocPage'
+import { InlineRef } from '../components/index'
+import { space } from '../design/tokens'
 import { CONTENTS_CRUMB, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
 import { BOLD, PROSE } from '../lib/docPageStyles'
 import { readChangelog } from '../lib/gitChangelog'
-import { space } from '../ui/design/tokens'
-import { InlineRef } from '../ui/index'
 
 const TITLE = `Changelog${TITLE_SUFFIX}`
 const DESCRIPTION = `Changes to the salvageunion.io reference site and ${PRODUCT.name} over time.`

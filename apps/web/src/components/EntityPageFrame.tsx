@@ -1,17 +1,9 @@
 import type { ReactNode } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
-import type { PageFoot } from '../../ssg/types'
 import type { BuildLink, GuideExits } from '../lib/buildLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
-import type { ChapterTone, EntityPageMeta } from '../ui/index'
-import {
-  buttonVariants,
-  ChapterBand,
-  cn,
-  EntityPageStamps,
-  EntityStat,
-  KindLabel,
-} from '../ui/index'
+import type { ChapterTone, EntityPageMeta } from './index'
+import { buttonVariants, ChapterBand, cn, EntityPageStamps, EntityStat, KindLabel } from './index'
 
 /**
  * EntityPageFrame — a Workshop Manual page around one entity (boards 07, 08,
@@ -22,7 +14,7 @@ import {
  * band's `asideAt="notch"`); then the body. The page's foot band — its kind
  * and its printings (`Workshop Manual · p.112`, then any reprint) — is the site
  * `Footer`'s, so the page ends once: the page module hands `entityPageFoot`
- * to the layout as its `PageResult.foot`.
+ * (`lib/entityPageFoot.ts`) to the layout as its `PageResult.foot`.
  *
  * Entity, pattern and roll-table pages all wear it, so the three cannot drift.
  * `meta` comes from `resolveEntityPageMeta`, the same helpers the card's own
@@ -151,13 +143,4 @@ export function EntityPageFrame({
       </div>
     </article>
   )
-}
-
-/**
- * The foot of the same page, for the layout's `Footer`: the frame's chapter
- * tone (or its own `fill`) and the kind and printings `meta` carries. The
- * layout sets the one page measure.
- */
-export function entityPageFoot(tone: ChapterTone, meta: EntityPageMeta, fill?: string): PageFoot {
-  return { tone, fill, kind: meta.typeLabel, printings: meta.printings }
 }

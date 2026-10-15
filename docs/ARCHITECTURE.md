@@ -7,7 +7,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
 ## Areas
 
 1. **Packages** <a id="packages"></a>
-   `salvageunion-reference` → `apps/web` (srd and the Cantina, over its `src/ui`); `cantina-domain` → `apps/web` / bot / `convex/`; `gates` → `tools/`, app e2e.
+   `salvageunion-reference` → `apps/web` (srd and the Cantina, over its `src/components`); `cantina-domain` → `apps/web` / bot / `convex/`; `gates` → `tools/`, app e2e.
    Packages never import an app (`noRestrictedImports`); deps use `workspace:*`.
 2. **salvageunion-reference** <a id="reference"></a>
    Private, no build, no version. Zod in `lib/schemas/` generates JSON Schema and `Ref*` types, gitignored and rebuilt on install, typecheck, build and test (its `ref-generate` bin).
@@ -16,10 +16,10 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
    Call `preload()` before any accessor; a module-scope ORM call fails Biome (`noModuleScopeReferenceCall.grit`).
    Tests preload through `test/reference-preload.ts` in each workspace's `bunfig.toml`, never `preload('all')` per file.
 4. **UI library** <a id="ui-library"></a>
-   `apps/web/src/ui/index.ts` barrel; tokens in `apps/web/src/ui/styles/theme.css`, mirrored by `design/tokens.ts`; Biome keeps app code out.
-   One app's composition lives in that app (`barrel-consumers`); unused exports: [knip](#dead-code).
+   `apps/web/src/components/index.ts` barrel; tokens in `apps/web/src/styles/theme.css`, mirrored by `design/tokens.ts`; Biome keeps app code out.
+   Unused exports: [knip](#dead-code).
 5. **Stylesheet wiring** <a id="stylesheets"></a>
-   One entry, `apps/web/src/ui/styles/entry.css` (tokens, `layer(su-reset)`, `layer(su-base)`), imported by the apps.
+   One entry, `apps/web/src/styles/entry.css` (tokens, `layer(su-reset)`, `layer(su-base)`), imported by the apps.
    App stylesheets stay unlayered, so they win; rules: `.claude/rules/styling.md`.
 6. **srd build** <a id="srd-build"></a>
    In-house Vite SSG with React islands ([DESIGN.md](../apps/web/ssg/DESIGN.md)); routes and endpoints are registered, never discovered.
@@ -32,18 +32,18 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
    Imports `cantina-domain` (botWire, schemas) as types only; changing them is cross-package. Lookup = embed: `discordEntryCard`.
 9. **cantina-domain** <a id="cantina-domain"></a>
    Zod schemas, roles, link/crew/downtime rules and bot wire types for Cantina, Convex and the bot; import by subpath.
-   Rules: pure → reference `lib/rules`; shared → here; client → `src/cantina/lib/rules`; `check rules-home` bars Convex→`src/cantina/`.
+   Rules: pure → reference `lib/rules`; shared → here; client → `src/lib/rules`; `check rules-home` bars Convex→`src/`.
 10. **Data flow and connection modes** <a id="data-flow"></a>
     Records store slug refs, resolved at render; Cantina preloads once in `GameDataReady.tsx`.
     `resolveConnectionMode()`: Solo (signed out, read-only), Connected (Convex), Disconnected (on-screen rows, writes blocked).
 11. **Convex, the server of record** <a id="convex"></a>
     `apps/web/convex/`: opaque bodies (`v.any()`), Zod-parsed per mutation; an entity is [in a Game or on a Shelf](architecture/glossary.md).
-    Every store commits through a `commit*` in `src/cantina/stores/`; `containerParity.test.ts` asserts each has a table.
+    Every store commits through a `commit*` in `src/stores/`; `containerParity.test.ts` asserts each has a table.
 12. **No device cache** <a id="no-device-cache"></a>
     No IndexedDB: an offline reload boots the SW shell, signed out and empty. The PWA stays installable; `e2e/cantina/offline.e2e.ts` pins both.
 13. **Zustand stores** <a id="stores"></a>
-    `src/cantina/stores/` hold rows in memory, filled by `ShelfSync`; `update()` validates, awaits Convex, then logs; a refused write changes nothing.
-    No TanStack Query; reads: `src/cantina/hooks/entities/`, `convex/react`. Shared state: a store; context: what varies by placement.
+    `src/stores/` hold rows in memory, filled by `ShelfSync`; `update()` validates, awaits Convex, then logs; a refused write changes nothing.
+    No TanStack Query; reads: `src/hooks/entities/`, `convex/react`. Shared state: a store; context: what varies by placement.
 14. **Sharing** <a id="sharing"></a>
     The one account-free share is the public sheet `/p/:kind/:appId`, opt-in via the `publicRead` column (ADR-032).
     Snapshots are retired (ADR-036).
@@ -55,7 +55,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     `CANTINA_TEST_AUTH` never in production; `convex env list` prints values: pipe it through `cut -d= -f1`.
 17. **Convex conventions** <a id="convex-conventions"></a>
     Mutations use `mutation` / `internalMutation` from `convex/model/entities.ts` (its triggers keep `games.summary`).
-    Tell refusals from defects with `src/cantina/lib/connection/serverError.ts`; a one-off repair runs once from the dashboard, then is deleted.
+    Tell refusals from defects with `src/lib/connection/serverError.ts`; a one-off repair runs once from the dashboard, then is deleted.
 18. **Surfaces and enforcement (ADR-021)** <a id="surfaces"></a>
     Guided Creation (Wizard), Free Edit (Live Sheet), Guided Play (Dashboard), Frozen (`/p/`), Adjudicate (Mediator Dashboard).
     Lifecycle transactions are enforced in guided modes and bypassed in Free Edit; caps are overridable with a callout.
@@ -142,7 +142,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
 10. **ADR-010 Choices in the shared display**
     Accepted: `ChoiceGroups` is uncontrolled in srd and controlled, persisted, in Cantina; `readOnly` renders static text.
 11. **ADR-011 component-lib ships TypeScript source**
-    Accepted: no build step; data-source agnostic, behaviour injected through slot props. Amended by ADR-050 (now `src/ui`).
+    Accepted: no build step; data-source agnostic, behaviour injected through slot props. Amended by ADR-050 (now `src/components`).
 12. **ADR-012 srd as an Astro static site**
     Superseded by ADR-031, which keeps the static, no-backend, islands decision.
 13. **ADR-013 CSP-compliant Zod**
