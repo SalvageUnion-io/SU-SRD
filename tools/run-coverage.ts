@@ -58,7 +58,7 @@ type Part = { dir: string; owns: (path: string) => boolean }
 
 /** The Cantina's paths in `apps/web`, relative to it: its app, backend, tests and tooling. */
 const CANTINA =
-  /^(src\/cantina\/|convex\/|test\/|e2e\/cantina\/|scripts\/(__tests__\/)?(assert-local-convex|generate-route-tree)\.|routeTree\.config\.|[a-z]+\.cantina\.config\.)/
+  /^(src\/cantina\/|convex\/|test\/|e2e\/cantina\/|scripts\/(__tests__\/)?(assert-local-convex|generate-route-tree)\.|routeTree\.config\.)/
 
 /** The UI library's paths in `apps/web`: `src/ui`, which both apps render. */
 const UI = /^src\/ui\//

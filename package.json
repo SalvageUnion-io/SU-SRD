@@ -66,7 +66,7 @@
     "format": "biome format --write .",
     "test": "ref-generate && bun --filter \"*\" test",
     "test:coverage": "bun tools/run-coverage.ts",
-    "e2e:cantina": "cd apps/web && bunx playwright test -c playwright.cantina.config.ts",
+    "e2e": "cd apps/web && bunx playwright test",
     "knip": "knip",
     "check": "bun tools/check.ts",
     "check:fast": "bun tools/check.ts --profile=fast",

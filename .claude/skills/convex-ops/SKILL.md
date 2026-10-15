@@ -52,7 +52,7 @@ bunx convex env set CANTINA_TEST_AUTH true
 To sign in, run `await __cantinaTestSignIn('<any email>', '<8+ char password>')`
 in the browser console on `http://localhost:4321/build/`. Each call signs up a new
 password account (a repeated email is refused), and the session survives
-reloads. `bun run e2e:cantina` starts `bun run dev` itself (or reuses a running one),
+reloads. `bun run e2e` starts `bun run dev` itself (or reuses a running one),
 so its signed-in specs fail until this setup is done.
 
 ## Secrets never touch argv or stdout

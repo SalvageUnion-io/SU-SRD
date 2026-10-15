@@ -202,23 +202,16 @@ jobs:
       - name: Set up Playwright
         uses: ./.github/actions/playwright
 
-      # srd's whole Playwright suite but the performance budget (perf-srd,
-      # below): there is no nightly srd run. Add a spec to this line; do NOT
-      # add a job.
-      # `a11y.e2e.ts` is WCAG 2.2 AA on the pages it lists, at desktop and as a
-      # phone: it blocks on any violation.
-      - name: Run srd's smoke + bundle-budget + JSON API + a11y specs
+      # Both apps' PR tier in one run: every spec but the performance budget
+      # (perf-srd, below) and the Cantina's signed-in specs (e2e-nightly.yml:
+      # they need the test seam). A file runs in every app that has it, so
+      # `smoke.e2e.ts` is both apps' smoke. Add a spec to this line; do NOT
+      # add a step or a job.
+      # `a11y.e2e.ts` is WCAG 2.2 AA on the pages each app lists, at desktop and
+      # as a phone: it blocks on any violation.
+      - name: Run the smoke, bundle-budget, JSON API and a11y specs
         working-directory: apps/web
         run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts json-api.e2e.ts a11y.e2e.ts
-
-      # Add a spec to this line; do NOT add a job.
-      # `a11y.e2e.ts` is srd's scan, for the Cantina: the routes it lists, signed out,
-      # at desktop and as a phone. The signed-in pages are
-      # `a11y-signed-in.e2e.ts`'s, in e2e-nightly.yml: it needs the test seam.
-      - name: Run the Cantina's smoke + bundle-budget + a11y specs
-        if: ${{ !cancelled() }}
-        working-directory: apps/web
-        run: bunx playwright test -c playwright.cantina.config.ts smoke.e2e.ts bundle-budget.e2e.ts a11y.e2e.ts
 
       - name: Upload Playwright reports on failure
         if: failure()
@@ -275,7 +268,7 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright-report-perf-srd-${{ matrix.shard }}
-          path: apps/web/playwright-report/srd/
+          path: apps/web/playwright-report/
           retention-days: 7
 
   build-discord-bot:

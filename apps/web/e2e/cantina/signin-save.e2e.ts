@@ -40,7 +40,7 @@ test.use({ account: 'anonymous' })
  * in `.claude/skills/convex-ops/SKILL.md`; without it this fails locally). Playwright starts
  * `bun run dev`, or reuses a running one, which carries all three:
  *
- *   cd apps/web && bunx playwright test -c playwright.cantina.config.ts signin-save.e2e.ts
+ *   cd apps/web && bunx playwright test --project=cantina signin-save.e2e.ts
  */
 
 test('a signed-out visitor is asked to sign in, and what they build then is saved', async ({

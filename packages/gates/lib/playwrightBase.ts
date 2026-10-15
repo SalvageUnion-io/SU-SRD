@@ -1,19 +1,20 @@
 /**
- * The one Playwright configuration both suites run (`apps/web`'s
- * `playwright.config.ts` and `playwright.cantina.config.ts` pass only what differs).
+ * The one Playwright configuration (`apps/web/playwright.config.ts`): one
+ * server, one run, a project per app (`srd`, `cantina`) and its phone pass.
  *
- * - Specs are `e2e/*.e2e.ts`, not `.spec.ts`, so Bun's test runner — which
+ * - Specs are `e2e/<app>/*.e2e.ts`, not `.spec.ts`, so Bun's test runner — which
  *   auto-discovers `.spec.ts` and `.test.ts` — never tries to execute them.
+ *   `--project=<app>` runs one app's; a file filter runs it in every app that
+ *   has it (`smoke.e2e.ts` is both apps' smoke).
  * - CI serves the BUILT app with `bun run preview`: `wrangler dev` over
- *   srd's `wrangler.jsonc` (one Worker serves both apps), so the specs run
- *   against the Worker and the `not_found_handling` mode production serves,
- *   in workerd.
- *   An existing `dist/` is reused (the PR jobs have just built it). Locally
- *   both suites run against the one dev server (`bun run dev`), reused when
- *   running, on the checkout's own port (`ports.ts`: offset in a linked
- *   worktree), so a worktree's suite boots and reuses its own server, never
- *   another checkout's.
- * - `E2E_BASE_URL` runs the same suite against a deployed origin and boots
+ *   the workspace's `wrangler.jsonc` (one Worker serves both apps), so the
+ *   specs run against the Worker and the `not_found_handling` mode production
+ *   serves, in workerd. An existing `dist/` is reused (the PR jobs have just
+ *   built it). Locally every project runs against the one dev server
+ *   (`bun run dev`), reused when running, on the checkout's own port
+ *   (`ports.ts`: offset in a linked worktree), so a worktree's run boots and
+ *   reuses its own server, never another checkout's.
+ * - `E2E_BASE_URL` runs the same specs against a deployed origin and boots
  *   nothing; per-test budgets widen to `external` there, because every test
  *   pays real network round trips.
  * - In CI a test that fails and then passes on a retry FAILS the run
@@ -27,60 +28,48 @@
  * - Service workers are blocked: activating one mid-navigation can abort
  *   `page.goto` with `net::ERR_ABORTED`. A spec about offline opts back in with
  *   `test.use({ serviceWorkers: 'allow' })`.
- * - Chromium runs every spec; a Pixel 7 runs the smoke spec again, because
- *   phone layouts (the nav drawer, stacked cards) are what most players see.
+ * - Chromium runs every spec; a Pixel 7 runs each app's smoke spec again
+ *   (`<app>-phone`), because phone layouts (the nav drawer, stacked cards) are
+ *   what most players see.
  */
 import type { PlaywrightTestConfig } from '@playwright/test'
 import { defineConfig, devices } from '@playwright/test'
 
 type Budget = { timeout: number; expect: number }
 
-export type AppE2E = {
+/** One app's specs: a project, and its phone pass. */
+type AppSpecs = {
   /**
-   * Which suite: its specs are `e2e/<suite>/`, its results and report go under
-   * `test-results/<suite>/` and `playwright-report/<suite>/`. `apps/web` holds
-   * two, `srd` and `cantina`.
+   * The app: its specs are `e2e/<name>/`, its results go under
+   * `test-results/<name>/`, and its projects are `<name>` and `<name>-phone`.
    */
-  suite: string
-  /** The port the app's dev server listens on (and `preview`, in CI). */
-  port: number
-  /**
-   * The path the app is served under, when not the root (The Cantina's `/build/`,
-   * ADR-048): where the readiness check asks, since its dev server answers
-   * nothing above it. `baseURL` stays the origin; specs put the path on.
-   */
-  basePath?: string
+  name: string
   /** Per-test and per-assertion budgets against the local server. */
   local: Budget
   /** The same against a deployed origin (`E2E_BASE_URL`); defaults to `local`. */
   external?: Budget
 }
 
-export function e2eConfig({
-  suite,
-  port,
-  basePath = '/',
-  local,
-  external = local,
-}: AppE2E): PlaywrightTestConfig {
+export type AppE2E = {
+  /** The port the dev server listens on (and `preview`, in CI). */
+  port: number
+  apps: readonly AppSpecs[]
+}
+
+export function e2eConfig({ port, apps }: AppE2E): PlaywrightTestConfig {
   const ci = Boolean(process.env.CI)
   const externalBaseURL = process.env.E2E_BASE_URL
-  const budget = externalBaseURL ? external : local
   const url = `http://localhost:${port}`
 
   return defineConfig({
-    testDir: `./e2e/${suite}`,
-    outputDir: `./test-results/${suite}`,
     testMatch: /.*\.e2e\.ts$/,
-    timeout: budget.timeout,
-    expect: { timeout: budget.expect },
     fullyParallel: true,
     forbidOnly: ci,
     retries: ci ? 2 : 0,
     failOnFlakyTests: ci,
     workers: ci ? 2 : undefined,
     reporter: ci
-      ? [['github'], ['html', { open: 'never', outputFolder: `playwright-report/${suite}` }]]
+      ? [['github'], ['html', { open: 'never', outputFolder: 'playwright-report' }]]
       : 'list',
     use: {
       baseURL: externalBaseURL ?? url,
@@ -90,15 +79,29 @@ export function e2eConfig({
       serviceWorkers: 'block',
       bypassCSP: true,
     },
-    projects: [
-      { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-      { name: 'mobile-chromium', use: { ...devices['Pixel 7'] }, testMatch: /smoke\.e2e\.ts$/ },
-    ],
+    projects: apps.flatMap(({ name, local, external = local }) => {
+      const budget = externalBaseURL ? external : local
+      const app = {
+        testDir: `./e2e/${name}`,
+        outputDir: `./test-results/${name}`,
+        timeout: budget.timeout,
+        expect: { timeout: budget.expect },
+      }
+      return [
+        { ...app, name, use: { ...devices['Desktop Chrome'] } },
+        {
+          ...app,
+          name: `${name}-phone`,
+          use: { ...devices['Pixel 7'] },
+          testMatch: /smoke\.e2e\.ts$/,
+        },
+      ]
+    }),
     webServer: externalBaseURL
       ? undefined
       : {
           command: ci ? '[ -d dist ] || bun run build; bun run preview' : 'bun run dev',
-          url: `${url}${basePath}`,
+          url,
           reuseExistingServer: !ci,
           timeout: 240_000,
           // wrangler logs every request to stdout; a failure to start is stderr.
