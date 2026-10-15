@@ -4,7 +4,7 @@
  * ## Why this looks like Shelves
  *
  * `/` shows one container at a time (`Roster`): Shelves, or a Game picked in
- * its "Showing" select. Both ask "what have we got and what can I do with it",
+ * its Games select. Both ask "what have we got and what can I do with it",
  * so both answer in the same three ontology-toned columns of Rows (`UnitRow`)
  * (`roster/RosterColumn.tsx`). A Game adds what a shared table needs: an owner
  * seal on every row, a way to pick up what nobody holds, and creation gated by
@@ -12,12 +12,11 @@
  *
  * ## Yours first
  *
- * Each column lists **your** pilots or mechs first, in a framed YOURS group,
- * and everybody else's below — the crewmates' (their name on the seal) and the
- * unclaimed ones (an UNCLAIMED seal you press to pick it up). What you came to
- * act on is at the top; the rest of the table is the context it sits in. A
- * crawler is the crew's, owned by nobody, so its column has no YOURS group and
- * the ★ Primary leads (`groupColumn`).
+ * Each column lists **your** pilots or mechs first, then everybody else's —
+ * the crewmates' (their name on the seal) and the unclaimed ones (an UNCLAIMED
+ * seal you press to pick it up). The seal says whose a row is, so the list needs
+ * no group headings. A crawler is the crew's, owned by nobody, so the ★ Primary
+ * leads its column (`groupColumn`).
  *
  * ## Creation goes through the wizards
  *
@@ -30,11 +29,13 @@
  * ## What a row opens
  *
  * Every row is a link to the live sheet (`rosterSheetHref`), its other verbs
- * in a ⋯ menu beside it, as a shelf item's (`ShelfItem`). The sheet opens
+ * in a ⋯ menu, its last chip, as a shelf item's (`ShelfItem`). A row's only
+ * other chip is who holds it (and ★ Primary on the crawler): what a unit IS
+ * is on its sheet, and the crew's state is in Crew & seats. The sheet opens
  * editable when the row is yours to edit — your own pilots and mechs, and the
  * crawler when you run the table (ADR-038 §5) — and read-only and live
  * otherwise; `entities.locate` decides and `SheetView` renders it. No row
- * launches the Dashboard: that is the hub's Launch Dashboard, above the roster
+ * launches the Dashboard: that is the Game band's Launch Dashboard chip
  * (`LaunchDashboard`, ADR-038 §1).
  *
  * ## Every verb that changes who has a build asks first
@@ -49,7 +50,7 @@
 import type { Crawler } from 'cantina-domain/schemas/crawler'
 import type { Mech } from 'cantina-domain/schemas/mech'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
-import { Badge, buttonVariants, FieldError, Text, tokens } from 'component-lib'
+import { buttonVariants, FieldError, Text, tokens } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import type { CSSProperties, ReactNode } from 'react'
 import { api } from '../../../convex/_generated/api'
@@ -64,7 +65,6 @@ import {
   rosterSheetHref,
   tableCapabilities,
 } from '../../lib/games/gameRoster'
-import { rosterRowStats } from '../../lib/games/rosterRowStats'
 import type { ColumnCreate, SegmentKind } from '../roster/RosterColumn'
 import { RosterColumn, RosterGrid, RosterList, SegmentSwitch } from '../roster/RosterColumn'
 import { AppLink } from '../shared/AppLink'
@@ -113,55 +113,9 @@ const COLUMNS: ReadonlyArray<{
   },
 ]
 
-const STACK = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[16],
-} satisfies CSSProperties
-
 const HINT = { marginTop: tokens.space[16], textAlign: 'left' } satisfies CSSProperties
 
-const FOOTNOTE = {
-  color: tokens.color.wkMuted,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.xs,
-  marginTop: tokens.space[24],
-} satisfies CSSProperties
-
-/**
- * The YOURS group: framed in ink on the warm band ground, so your own rows read
- * as a set at a glance. Not rust — rust is the action colour, and this marks a
- * fact, not a thing to press.
- */
-const YOURS = {
-  backgroundColor: tokens.color.bandCream,
-  borderColor: tokens.color.ink,
-  borderRadius: tokens.radius.panel,
-  borderStyle: 'solid',
-  borderWidth: tokens.borderWidth.pill,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[10],
-  padding: tokens.space[10],
-} satisfies CSSProperties
-
-const GROUP = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[10],
-} satisfies CSSProperties
-
-/** A Row and its ⋯ menu at the column's edge, as a shelf item (`ShelfItem`). */
-const ITEM = {
-  alignItems: 'start',
-  display: 'grid',
-  gap: tokens.space[8],
-  gridTemplateColumns: 'minmax(0, 1fr) auto',
-  listStyle: 'none',
-} satisfies CSSProperties
-
-/** Stamps sit at their own width, not stretched across the group. */
-const LABEL = { alignSelf: 'flex-start' } satisfies CSSProperties
+const ITEM = { listStyle: 'none', minWidth: 0 } satisfies CSSProperties
 
 const PATTERNS_LINK = { textDecoration: 'none' } satisfies CSSProperties
 
@@ -286,7 +240,6 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
           /* The primary crawler is where new crew is assigned (ADR-037), so
              the roster says which one it is. */
           note={row.primary ? '★ Primary' : undefined}
-          readings={rosterRowStats(row)}
           /* The Row is the door to the live sheet: editable when the row is
              yours to edit (`row.can.openSheet`), read-only when it is a
              crewmate's (`SheetView`). */
@@ -303,52 +256,23 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
               />
             )
           }
-        />
-        <HeaderMenu
-          variant="overflow"
-          trigger={null}
-          label={`More for ${row.name}`}
-          sections={rowMenu(row)}
+          trailing={
+            <HeaderMenu
+              variant="overflow"
+              trigger={null}
+              label={`More for ${row.name}`}
+              sections={rowMenu(row)}
+            />
+          }
         />
       </li>
     )
   }
 
-  /** A column's body: your rows framed under YOURS, then everyone else's. */
-  function columnBody(kind: RosterKind, columnRows: readonly RosterRow[]): ReactNode {
+  /** A column's body: your rows first, then everyone else's, in one list. */
+  function columnBody(columnRows: readonly RosterRow[]): ReactNode {
     const { yours, others } = groupColumn(columnRows)
-    const yoursId = `${kind}-yours-label`
-    const othersId = `${kind}-others-label`
-    return (
-      <div style={STACK}>
-        {yours.length > 0 && (
-          <div style={YOURS}>
-            <Badge shape="stamp" size="mini" as="h3" id={yoursId} style={LABEL}>
-              Yours
-            </Badge>
-            <RosterList labelledBy={yoursId}>{yours.map(renderRow)}</RosterList>
-          </div>
-        )}
-        {others.length > 0 &&
-          (yours.length > 0 ? (
-            <div style={GROUP}>
-              <Badge
-                shape="stamp"
-                size="mini"
-                surface="inverse"
-                as="h3"
-                id={othersId}
-                style={LABEL}
-              >
-                Everyone else
-              </Badge>
-              <RosterList labelledBy={othersId}>{others.map(renderRow)}</RosterList>
-            </div>
-          ) : (
-            <RosterList>{others.map(renderRow)}</RosterList>
-          ))}
-      </div>
-    )
+    return <RosterList>{[...yours, ...others].map(renderRow)}</RosterList>
   }
 
   const loading = listing === undefined || members === undefined
@@ -396,7 +320,7 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
                     column.kind === 'mech' ? (
                       <AppLink
                         href="/mechs/patterns"
-                        className={buttonVariants({ variant: 'ghost', size: 'compact' })}
+                        className={buttonVariants({ variant: 'ghost', size: 'mini' })}
                         style={PATTERNS_LINK}
                       >
                         Patterns
@@ -405,18 +329,13 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
                   }
                   empty={columnRows.length === 0}
                 >
-                  {columnBody(column.kind, columnRows)}
+                  {columnBody(columnRows)}
                 </RosterColumn>
               )
             })}
           </RosterGrid>
         </>
       )}
-
-      <p style={FOOTNOTE}>
-        What you can edit opens to edit; a crewmate&rsquo;s pilot or mech opens read-only, as it
-        stands right now.
-      </p>
 
       {confirmDialog}
     </>

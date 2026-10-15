@@ -15,17 +15,12 @@ import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { ProposalsList } from '../mediator/ProposalsList'
 import { HubSection } from './HubSection'
-import { HUB_COPY } from './hubStyles.model'
 
 export function ProposalsSent({ gameId }: { gameId: Id<'games'> }) {
   const [limit, setLimit] = useState(PROPOSALS_PAGE)
   const sent = useQuery(api.proposals.sent, { gameId, limit })
   return (
     <HubSection id="proposals-sent-heading" title="Proposals you sent">
-      <p style={HUB_COPY}>
-        You never edit a player&rsquo;s sheet. You propose; they apply or decline. A newer proposal
-        on the same field supersedes the old one.
-      </p>
       <ProposalsList
         proposals={sent ?? null}
         limit={limit}

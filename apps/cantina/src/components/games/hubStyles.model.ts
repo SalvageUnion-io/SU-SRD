@@ -7,7 +7,7 @@
 import { tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 
-const { color, font, fontSize, space } = tokens
+const { space } = tokens
 
 /** The page's measure under its band: Shelves', and the SRD's. */
 export const GAME_MEASURE = '75rem'
@@ -39,13 +39,4 @@ export const HUB_COLUMN = {
   flexDirection: 'column',
   gap: space[32],
   minWidth: 0,
-} satisfies CSSProperties
-
-/** Copy under a section's stamp. */
-export const HUB_COPY = {
-  margin: 0,
-  fontFamily: font.body,
-  fontSize: fontSize.sm,
-  lineHeight: 1.5,
-  color: color.wkMuted,
 } satisfies CSSProperties

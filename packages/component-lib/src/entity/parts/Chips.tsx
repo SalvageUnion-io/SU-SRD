@@ -30,6 +30,7 @@ export function Chips({
   onInk = false,
   linkable = false,
   leading,
+  trailing,
   align = 'start',
   className,
 }: {
@@ -40,11 +41,13 @@ export function Chips({
   linkable?: boolean
   /** A stamp the context leads with ("Suggested"). */
   leading?: ReactNode
+  /** The host's last chip (a Row's "⋯" menu), after the cost. */
+  trailing?: ReactNode
   /** `end` packs the chips to the row's far end (a page's prose column). */
   align?: 'start' | 'end'
   className?: string
 }) {
-  if (!leading && chipCount(chips) === 0) return null
+  if (!leading && !trailing && chipCount(chips) === 0) return null
   const { stats, action } = splitStatLine(chips.facts)
   return (
     <div
@@ -64,6 +67,7 @@ export function Chips({
       <Facts cells={action} size={rung} />
       <Tags tags={chips.tags} linkable={linkable} rung={rung} />
       {chips.cost && <CostBox cost={chips.cost} rung={rung} onInk={onInk} />}
+      {trailing}
     </div>
   )
 }

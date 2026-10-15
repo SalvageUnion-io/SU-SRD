@@ -51,7 +51,7 @@ export const OVER_BUDGET: Readonly<Record<string, number>> = {
   'apps/cantina/src/components/npc/CrewBoard.tsx': 654,
   'apps/cantina/src/components/sheet/CrawlerEconomyControl.tsx': 695,
   'apps/cantina/src/components/sheet/PilotSheet.tsx': 637,
-  'apps/cantina/src/components/shelves/Shelves.tsx': 631,
+  'apps/cantina/src/components/shelves/Shelves.tsx': 625,
   'apps/cantina/src/lib/rules/creation.ts': 722,
   'apps/cantina/src/stores/entityStore.ts': 715,
   'packages/component-lib/src/components/atoms/VitalGauge.tsx': 714,

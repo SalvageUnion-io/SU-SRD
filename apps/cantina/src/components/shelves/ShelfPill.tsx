@@ -3,10 +3,9 @@
  * (`<Entity form="row">`), as a Game's roster draws the same units. The band
  * in the unit's colour, its name on the paper cut-out, and right of it the
  * defining fact (never its kind, EDL E9) and one reading as label-first chips
- * (`CLASS | ENGINEER`, `HP | 8/10`), the way a Game's roster labels the same
- * units (`rosterRowStats`); the whole Row opens it. The host's chips (the Game
- * it is in, what it is linked to) lead that chip group, label-only, as a
- * Game's owner chip does.
+ * (`CLASS | ENGINEER`, `HP | 8/10`); the whole Row opens it. The host's chips
+ * (the Game it is in, what it is linked to) lead that chip group, label-only,
+ * as a Game's owner chip does, and its "⋯" menu ends it.
  *
  * A pilot, mech or crawler on a shelf is the player's own build, which no
  * reference record describes, so its model is `unitRowModel` rather than
@@ -37,6 +36,8 @@ type ShelfPillProps = {
   userMade?: boolean
   /** The host's chips (where it is, what it is linked to): the first of the Row's chips. */
   labels?: ReactNode
+  /** The host's last chip: the item's "⋯" menu. */
+  trailing?: ReactNode
 }
 
 /** What the defining fact is, per kind; an NPC's position goes unlabelled. */
@@ -55,6 +56,7 @@ export function ShelfPill({
   href,
   userMade = false,
   labels,
+  trailing,
 }: ShelfPillProps) {
   const factLabel = FACT_LABEL[kind]
   const fact = note && factLabel ? { label: factLabel, value: note } : undefined
@@ -65,6 +67,7 @@ export function ShelfPill({
       model={unitRowModel({ kind, note: fact ? undefined : note, name, userMade, readings })}
       mode={href === undefined ? { kind: 'read' } : { kind: 'link', href }}
       labels={labels}
+      trailing={trailing}
     />
   )
 }
