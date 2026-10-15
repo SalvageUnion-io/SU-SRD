@@ -12,22 +12,6 @@
   --srd-measure: 75rem;
 }
 
-/*
- * Cross-document view transitions.
- *
- * srd is a multi-page site: every navigation is a real document load, so this
- * is the browser-native form and it ships ZERO JavaScript. `TopNavigation.tsx`
- * keeps a stable `view-transition-name`
- * on the header so the nav is matched across the swap rather than cross-faded
- * with the rest of the page.
- *
- * This rule is load-bearing and easy to lose: without it navigations simply
- * stop animating, which no test asserts on and no build step notices.
- */
-@view-transition {
-  navigation: auto;
-}
-
 /* The Union bar's account controls (`lib/accountBar.ts`): Sign in gives way
    to the account menu while somebody is signed in, and an account island that
    has not mounted (signed out, or not yet) takes no place in the bar's gap. */
@@ -186,22 +170,9 @@ html[data-srd-signed-in] .srd-sign-in {
   filter: url(#paint-peel);
 }
 
-/* The page ground and face are the package's (foundation.css); srd adds only
-   macOS's grayscale smoothing. */
-body {
-  -moz-osx-font-smoothing: grayscale;
-}
-
 /*
- * The srd app's ONE print block. The `data-print` attribute vocabulary is
- * shared verbatim with apps/web/src/styles/builder/print.css so the same markup means
- * the same thing in both apps:
- *
- *   data-print="hide"  hide this on paper even though its element type is kept
- *   data-print="keep"  print this even though its element type is hidden
- *
- * One attribute, two values: never two attribute names one letter apart that
- * mean opposite things.
+ * The reference pages' print rules, over the shared `data-print` vocabulary
+ * and chrome rule in `base.css`.
  */
 @media print {
   body,
@@ -211,12 +182,9 @@ body {
     /* biome-ignore lint/complexity/noImportantStyles: print override must beat package rules and inline colors regardless of specificity/layer */
     color: #000 !important;
   }
-  /* Page chrome — TopNavigation renders two <nav> elements; Footer renders <footer>.
-     Both are semantic, so element selectors suffice. MobileNavIsland and SearchIsland
-     live inside the <nav>, so they are automatically hidden with it. */
-  nav,
-  footer,
-  [data-print='hide'] {
+  /* Page chrome — the Footer's <footer>; `base.css` hides TopNavigation's two
+     <nav> elements, and MobileNavIsland and SearchIsland inside them. */
+  footer {
     /* biome-ignore lint/complexity/noImportantStyles: page chrome must stay hidden in print even against display rules */
     display: none !important;
   }

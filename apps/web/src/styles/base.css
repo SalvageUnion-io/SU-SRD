@@ -4,8 +4,9 @@
  *
  * The Barlow faces, then the token set, the reset and the package stylesheet
  * in their load-bearing cascade order from the one shared entry (see its
- * header). Each app's own stylesheet loads after it and carries only that
- * app's rules: srd's `global.css`, the Cantina's `index.css`.
+ * header), then the few page-wide rules every page shares. Each surface's own
+ * stylesheet loads after it: the reference pages' `global.css`, the
+ * Cantina's `builder.css`.
  *
  * Built once, by `baseStylesheet.ts`, into `/assets/base-<hash>.css`.
  */
@@ -17,3 +18,42 @@
 @import '@fontsource/barlow-semi-condensed/600.css';
 @import '@fontsource/barlow-semi-condensed/700.css';
 @import './entry.css';
+
+/*
+ * Cross-document view transitions. Every link between two reference pages,
+ * or between them and the Cantina (the Union bar's), is a real document load,
+ * so this is the browser-native form and ships ZERO JavaScript. The bar keeps
+ * a stable `view-transition-name` (`TopNavigation.tsx`, `shell/unionBar.ts`),
+ * so it is matched across the swap rather than cross-faded with the page.
+ *
+ * Load-bearing and easy to lose: without it navigations stop animating, which
+ * no test asserts on, and a transition one page starts is aborted by a page
+ * that has not opted in (`ViewTransition opt-in disabled`).
+ */
+@view-transition {
+  navigation: auto;
+}
+
+/* The face is the package's (foundation.css); the site adds macOS's grayscale
+   smoothing. */
+body {
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/*
+ * The `data-print` vocabulary, one attribute with two values, and the chrome
+ * no page prints. Each surface's print rules build on it: the reference
+ * pages' in `global.css`, the Cantina's in `builder/print.css`.
+ *
+ *   data-print="hide"  hide this on paper even though its element type is kept
+ *   data-print="keep"  print this even though its element type is hidden
+ *
+ * Never two attribute names one letter apart that mean opposite things.
+ */
+@media print {
+  nav,
+  [data-print='hide'] {
+    /* biome-ignore lint/complexity/noImportantStyles: page chrome must stay hidden in print even against display rules */
+    display: none !important;
+  }
+}

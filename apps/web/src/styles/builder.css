@@ -1,10 +1,10 @@
 /*
- * The Cantina's own rules. The fonts, the token set, the reset and the package
- * stylesheet are the base stylesheet both apps share
+ * The Cantina's own rules. The fonts, the token set, the reset, the package
+ * stylesheet and the page-wide rules are the base stylesheet every page shares
  * (`apps/web/src/styles/base.css`), which the shell links before this one.
  */
-/* The app's ONE print stylesheet. index.css declares no print rules of its own
-   — a second block here is what let six rules duplicate and one contradict. */
+/* The Cantina's print rules, over the shared `data-print` vocabulary in
+   `base.css`. index.css declares no print rules of its own. */
 @import './builder/print.css';
 /* GlobalSearch's result-row hover/selected ground. */
 @import './builder/globalSearch.css';
@@ -22,19 +22,6 @@
 /* src/components classes handed back their own type over this file's heading
    rule. */
 @import './builder/libHandback.css';
-
-/*
- * Cross-document view transitions, matching srd's (`apps/web/src/styles/global.css`).
- *
- * The Cantina is a single-page app, so this touches only a real document load:
- * a link between it and the SRD (the shared Union bar's). Without it, a
- * transition the SRD starts reaches a page that has not opted in, and the
- * browser aborts it with `ViewTransition opt-in disabled`. `shell/unionBar.ts`
- * names the bar `nav`, as srd does, so the bar is matched across the swap.
- */
-@view-transition {
-  navigation: auto;
-}
 
 /* === Base layout === */
 html,
@@ -58,10 +45,9 @@ body {
 
 /* The workshop ground across the whole window: each route's <main> is
    width-capped and centred, so the body paints the rest. The face is the
-   package's (foundation.css); the Cantina adds macOS's grayscale smoothing. */
+   package's (foundation.css). */
 body {
   background-color: var(--color-wk-bg);
-  -moz-osx-font-smoothing: grayscale;
 }
 
 /*

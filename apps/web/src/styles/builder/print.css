@@ -1,6 +1,7 @@
 /* biome-ignore-all lint/complexity/noImportantStyles: print stylesheet — every override must beat package rules and inline styles at print time, and the pip re-assertions must beat this file's own universal `*` !important reset */
 /**
- * print.css — THE @media print rules for the Cantina. One print stylesheet per app.
+ * print.css — the Cantina's @media print rules, over the shared `data-print`
+ * vocabulary and chrome rule in `base.css`.
  *
  * Do not add a print block to `index.css`: a second `@media print` block can
  * contradict this one (a bare `button` selector there would cancel the escape
@@ -12,15 +13,9 @@
  *
  * ## The print attribute
  *
- * ONE attribute, `data-print`, with two sanctioned values — shared verbatim
- * with `apps/web/src/styles/global.css` so the same markup means the same
- * thing in both apps:
- *
- *   data-print="keep"  print this even though its element type is hidden below
- *   data-print="hide"  hide this on paper even though its type is kept
- *
- * `keep` prints a button that carries a value (Field's picker); `hide`
- * drops chrome that would otherwise print (the LiveSheet top bar).
+ * `data-print` is `base.css`'s. Here `keep` prints a button that carries a
+ * value (Field's picker); `hide` drops chrome that would otherwise print (the
+ * LiveSheet top bar).
  */
 
 @media print {
@@ -123,10 +118,8 @@
    * carries printed STATE (a ticked box, a filled pip button) opts back in.
    * ------------------------------------------------------------------------- */
   header,
-  nav,
   [role='dialog'],
   [data-sonner-toaster],
-  [data-print='hide'],
   button:not([data-print='keep']) {
     display: none !important;
   }

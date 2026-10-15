@@ -22,10 +22,9 @@ import {
 /**
  * Browser noise that is not this site's to fix, dropped before it is sent. The
  * bar for adding to this list is deliberately high: a filtered error is one
- * nobody will ever see again. The reference pages opt into cross-document view
- * transitions (`src/styles/global.css`), and the browser rejecting its own
- * promise when it abandons one is the only entry (issues SRD-A, SRD-B, SRD-D),
- * the Cantina's pages included, which a transition reaches from a reference page.
+ * nobody will ever see again. Every page opts into cross-document view
+ * transitions (`src/styles/base.css`), and the browser rejecting its own
+ * promise when it abandons one is the only entry (issues SRD-A, SRD-B, SRD-D).
  */
 const observability = createBrowserObservability({ ignoreErrors: ABANDONED_VIEW_TRANSITIONS })
 
