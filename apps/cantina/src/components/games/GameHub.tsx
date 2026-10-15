@@ -6,12 +6,10 @@
  * draws it (docs/architecture/mediator-dashboard.md Q10–Q13):
  *
  *  0. **The band** (`GameBand`): the page's controls (`Roster`'s), the
- *     Game's name on the crawler's pink, and
- *     for its Mediator a YOU MEDIATE stamp and **Open the Mediator
- *     dashboard** (`/mediator/$gameId`), where the Mediator's instruments
- *     live now.
- *  1. **Launch Dashboard** (`LaunchDashboard`): the one way into the player
- *     Dashboard, for players and the Mediator alike.
+ *     Game's name on the crawler's pink, and one **Launch Dashboard** chip:
+ *     the Mediator's (after a YOU MEDIATE stamp) opens the Mediator dashboard
+ *     (`/mediator/$gameId`); a player's (`LaunchDashboard`) opens the player
+ *     Dashboard.
  *  2. **The roster** (`GameRoster`): the three columns, yours first.
  *  3. Two columns of sections. **Every member:** Crew & seats, the Downtime
  *     track, and the proposals awaiting their answer. **The Mediator:**
@@ -191,6 +189,7 @@ export function GameHub({ gameId, controls, activeSegment, onSegmentChange }: Ga
         name={game ? game.name : 'Game'}
         mediator={game?.mediator}
         controls={controls}
+        actions={game && !game.mediator ? <LaunchDashboard gameId={gameId} /> : undefined}
       />
       <div className="su-page-column" style={GAME_BODY}>
         {game === undefined ? (
@@ -201,7 +200,6 @@ export function GameHub({ gameId, controls, activeSegment, onSegmentChange }: Ga
           <NotInGame />
         ) : (
           <>
-            <LaunchDashboard gameId={gameId} />
             <GameRoster
               gameId={gameId}
               gameName={game.name}

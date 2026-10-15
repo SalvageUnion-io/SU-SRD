@@ -64,7 +64,7 @@ async function pickUp(page: Page, name: string): Promise<void> {
 
 /**
  * Start a Starter Set Game, mediate it, take Bonesaw and his Scrapper. Leaves
- * the page on the Game's own page, with its Launch Dashboard button showing.
+ * the page on the Game's own page, with its Launch Dashboard chip showing.
  */
 export async function setUpTable(page: Page): Promise<void> {
   await gotoStable(page, '/')
@@ -74,9 +74,24 @@ export async function setUpTable(page: Page): Promise<void> {
   // The Organizer appoints the Mediator, here themselves (TheGame's Appoint).
   await page.getByRole('button', { name: 'Appoint' }).click()
   await page.getByRole('alertdialog').getByRole('button', { name: 'Appoint' }).click()
-  await expect(page.getByRole('button', { name: 'Launch Dashboard' })).toBeVisible({
+  // The Mediator's Launch Dashboard: a link to the Mediator dashboard.
+  await expect(page.getByRole('link', { name: 'Launch Dashboard' })).toBeVisible({
     timeout: 20_000,
   })
   await pickUp(page, 'Bonesaw')
   await pickUp(page, 'Scrapper')
+}
+
+/**
+ * The player Dashboard route for a pilot on the Game's roster, read off its
+ * Row's sheet link. The Mediator who runs `setUpTable` also plays Bonesaw, and
+ * their Launch Dashboard opens the Mediator dashboard, so the specs open the
+ * player Dashboard by its route.
+ */
+export async function pilotDashboard(page: Page, name: string): Promise<string> {
+  const link = page.locator(`a[href*="/sheet/pilot/"][aria-label="${name}"]`).first()
+  await expect(link, `the roster links ${name}'s sheet`).toBeAttached({ timeout: 20_000 })
+  const id = (await link.getAttribute('href'))?.split('/').pop()
+  if (!id) throw new Error(`${name}'s roster link has no id`)
+  return `/dashboard/${id}`
 }

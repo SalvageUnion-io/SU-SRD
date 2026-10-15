@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test'
-import { setUpTable } from './_table'
+import { gotoStable, waitForReady } from './_helpers'
+import { pilotDashboard, setUpTable } from './_table'
 import { expect, test } from './fixtures'
 
 /**
@@ -111,16 +112,12 @@ for (const phone of PHONES) {
   test(`a boarded turn on a ${phone.width}×${phone.height} phone`, async ({ page }) => {
     test.slow()
     await setUpTable(page)
-    // After the Convex client has its session id; Launch below is a client
-    // navigation, so the seed holds for the whole turn.
-    await page.evaluate(seedDice)
-
     await page.setViewportSize(phone)
-    await page.getByRole('button', { name: 'Launch Dashboard' }).click()
-    const launcher = page.getByRole('dialog', { name: 'Launch Dashboard' })
-    await launcher.getByRole('radio', { name: /Bonesaw/ }).check({ timeout: 30_000 })
-    await launcher.getByRole('button', { name: 'Launch' }).click()
-    await page.waitForURL(/\/dashboard\//)
+    await gotoStable(page, await pilotDashboard(page, 'Bonesaw'))
+    await waitForReady(page)
+    // After the Convex client has its session id, and after the last page
+    // load, so the seed holds for the whole turn.
+    await page.evaluate(seedDice)
 
     // ── The phone form, on foot ──────────────────────────────────────────────
     const units = page.getByRole('tablist', { name: 'Units' })
