@@ -1,28 +1,76 @@
 /**
- * pwa — what the site's two service workers share. salvageunion.io installs as
- * ONE app, from one manifest (`public/site.webmanifest`: scope `/`, start URL
- * `/build/`), but keeps two workers, by design:
+ * pwa — the site's one installable app and its one service worker.
  *
- * - **srd's, at `/`** (`ssg/pwa.ts`): the reference's islands, styles and
- *   fonts, and visited pages for offline reading. It never precaches the
- *   Cantina, so an SRD reader never downloads the Cantina's precache.
- * - **the Cantina's, at `/build/`** (`src/cantina/lib/sw/workbox.ts`): the
- *   app shell and its chunks, with network-first navigations under `prompt`.
- *   The narrower scope wins every page under `/build/`.
+ * salvageunion.io installs as one app, from one manifest
+ * (`public/site.webmanifest`: id, scope and start URL `/`), and one worker at
+ * `/sw.js` serves all of it: the reference's pages and the builder under
+ * `/build/`. `vite.config.ts` hands `WORKBOX_OPTIONS` to `VitePWA`; they live
+ * here so `__tests__/pwa.test.ts` can assert the real values.
  *
- * Their options stay two, because the two apps need opposite update
- * strategies (each file's header says why). What both must agree on is here,
- * for both Vite configs to read.
+ * ## What it precaches: both halves, so either opens offline
+ *
+ * Every chunk, stylesheet and font the build emits, the icons, the home page
+ * and the builder's shell. An installed app that opens at `/` can switch to the
+ * builder offline and back. HTML pages are NOT precached (1,039 of them would
+ * be a multi-megabyte install): visited pages land in `pages`, and an installed
+ * app fills it with every page once per deploy
+ * (`src/runtime/offlineWarm.client.ts`).
+ *
+ * ## Navigations: the network first, always
+ *
+ * Neither half boots the build a returning visitor last saw:
+ *
+ * - **The builder (`/build/…`)** is a single-page app: the network's shell, or
+ *   the precached `build/index.html` when the network fails. No copy of the
+ *   shell is kept in a runtime cache, because one saved from the network can
+ *   name a NEWER or an OLDER build's chunks than the precache holds; the
+ *   precached shell is the only one guaranteed to match it. No timeout either:
+ *   workbox's `networkTimeoutSeconds` reads its own runtime cache, never the
+ *   precache.
+ * - **Every other page** is pre-rendered: the network, or the `pages` copy
+ *   when the network fails or is slower than `NAVIGATION_TIMEOUT_SECONDS`.
+ *   `/` falls back to the precached home page, so the installed app always
+ *   opens. An unvisited page 404s offline rather than resolve to a stale one.
+ *
+ * `directoryIndex: null` is load-bearing: `precacheAndRoute` registers BEFORE
+ * any runtime rule and by default maps a URL ending in `/` onto its
+ * `index.html`, which would answer `/` and `/build/` from the precache and
+ * never reach the rules below.
+ *
+ * ## Updates: wait while the builder is open, take over otherwise
+ *
+ * `registerType: 'prompt'` in `vite.config.ts`: the plugin then leaves
+ * `skipWaiting` and `clientsClaim` off, and `public/sw-lifecycle.js` decides
+ * at install time. A builder tab is a long session, and activating drops every
+ * precache entry the new build does not list, the chunks it is still reading
+ * from; so while one is open the new worker waits for that tab to move onto
+ * the new build at its next page change (`src/cantina/lib/sw/softUpdate.ts`).
+ * With none open it takes over at once, which keeps the precache on the build
+ * the reference's pages are on: each of those is a full document load, and a
+ * failed chunk reloads it once (`installChunkRecovery`).
+ *
+ * ## Deliberate non-defaults
+ *
+ * - `globIgnores` drops the `latin-ext` and `vietnamese` font subsets
+ *   (`UNFETCHED_FONT_SUBSETS`), the list projection of `actions` that nothing
+ *   loads, the builder's pre-rendered Starter Set pages (the shell with other
+ *   words for crawlers; offline, the shell answers them), and the retired
+ *   builder worker.
+ * - `sourcemap: false`: the plugin otherwise follows `build.sourcemap`.
+ * - `cleanupOutdatedCaches: true` deletes precaches left by OLDER WORKBOX
+ *   VERSIONS on activate; this build's precache and `pages` are untouched.
  */
 
-/** The one web manifest, at the site's root; both apps' pages link it. */
+import type { VitePWAOptions } from 'vite-plugin-pwa'
+
+/** The one web manifest, at the site's root; every page links it. */
 export const SITE_MANIFEST = '/site.webmanifest'
 
 /**
- * The font subsets left out of both precaches. Each `@fontsource` face ships
+ * The font subsets left out of the precache. Each `@fontsource` face ships
  * `latin`, `latin-ext` and `vietnamese` subsets split by `unicode-range`, and
  * the browser fetches a subset only when the page draws a glyph in its range;
- * nothing either app ships does, so precaching the last two cost every first
+ * nothing the site ships does, so precaching the last two cost every first
  * visit about 157 KB of fonts it never loads. Their `@font-face` rules stay,
  * so a name typed with, say, a Polish letter still fetches its subset online.
  * Vite keeps the file name ahead of its hash
@@ -31,7 +79,94 @@ export const SITE_MANIFEST = '/site.webmanifest'
 export const UNFETCHED_FONT_SUBSETS = '**/*-{latin-ext,vietnamese}-*.woff2'
 
 /**
- * The ignores both precaches start from. The first is workbox-build's
- * default, which setting `globIgnores` replaces.
+ * The runtime cache visited pages land in, and the one the installed app's
+ * warm writes into (`src/runtime/offlineWarm.client.ts`).
  */
-export const PRECACHE_IGNORES = ['**/node_modules/**/*', UNFETCHED_FONT_SUBSETS]
+export const PAGES_CACHE = 'pages'
+
+/**
+ * How long a page navigation waits for the network before a cached copy
+ * answers. Long enough that a working connection always wins (Cloudflare
+ * answers a static page in well under a second), short enough that bad table
+ * wifi does not hold the reader on a blank screen.
+ */
+export const NAVIGATION_TIMEOUT_SECONDS = 3
+
+/** The precached pages navigations fall back to. */
+const HOME = 'index.html'
+const BUILDER_SHELL = 'build/index.html'
+
+/**
+ * The runtime rules, in match order. Each `urlPattern` is stringified into
+ * `sw.js` by workbox-build, so it must not reference anything outside its own
+ * parameters.
+ */
+export const RUNTIME_CACHING = [
+  {
+    // The builder: the network's shell, else the precached one.
+    urlPattern: ({ request, url }: { request: Request; url: URL }) =>
+      request.mode === 'navigate' && /^\/build(\/|$)/.test(url.pathname),
+    handler: 'NetworkOnly' as const,
+    options: { precacheFallback: { fallbackURL: BUILDER_SHELL } },
+  },
+  {
+    // The home page, where the installed app opens: as every page, plus the
+    // precached copy when neither the network nor `pages` has one.
+    urlPattern: ({ request, url }: { request: Request; url: URL }) =>
+      request.mode === 'navigate' && url.pathname === '/',
+    handler: 'NetworkFirst' as const,
+    options: {
+      cacheName: PAGES_CACHE,
+      networkTimeoutSeconds: NAVIGATION_TIMEOUT_SECONDS,
+      precacheFallback: { fallbackURL: HOME },
+    },
+  },
+  {
+    // Every other page: visited pages stay readable offline (table use on
+    // bad wifi), answered from `pages` only when the network will not.
+    urlPattern: ({ request }: { request: Request }) => request.mode === 'navigate',
+    handler: 'NetworkFirst' as const,
+    options: { cacheName: PAGES_CACHE, networkTimeoutSeconds: NAVIGATION_TIMEOUT_SECONDS },
+  },
+  {
+    urlPattern: /\/schema\/.*\.json$/,
+    handler: 'StaleWhileRevalidate' as const,
+    options: { cacheName: 'data' },
+  },
+  {
+    // The search index: 493 KB, fetched on first search interaction. One
+    // deploy stale is fine for a search index.
+    urlPattern: /\/search-index\.json$/,
+    handler: 'StaleWhileRevalidate' as const,
+    options: { cacheName: 'data' },
+  },
+]
+
+/** What `vite.config.ts` hands `VitePWA({ workbox })`. */
+export const WORKBOX_OPTIONS = {
+  mode: 'production',
+  sourcemap: false,
+  cleanupOutdatedCaches: true,
+  globPatterns: [
+    '**/*.{js,css,woff2,svg,ico}',
+    'Powered_by_Salvage_Black.webp',
+    'web-app-manifest-*.png',
+    HOME,
+    BUILDER_SHELL,
+  ],
+  globIgnores: [
+    // workbox-build's default, which setting `globIgnores` replaces.
+    '**/node_modules/**/*',
+    UNFETCHED_FONT_SUBSETS,
+    '**/actions.list.generated-*.js',
+    'build/starter.html',
+    'build/starter/**',
+    'build/sw.js',
+    'sw-lifecycle.js',
+  ],
+  // Waits while a builder tab is open, takes over otherwise (see the header).
+  importScripts: ['/sw-lifecycle.js'],
+  navigateFallback: null,
+  directoryIndex: null,
+  runtimeCaching: RUNTIME_CACHING,
+} satisfies VitePWAOptions['workbox']

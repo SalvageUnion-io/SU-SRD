@@ -75,7 +75,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     `/su me`, `games` and `sheet` call `POST /bot/<op>` (`convex/botHttp.ts`) with `CANTINA_BOT_SECRET`.
     Read-only; Convex unreachable means every Game command answers `unavailable`. Each interaction logs its command.
 24. **SEO** <a id="seo"></a>
-    srd's head is `BaseLayout.tsx` from `DocumentMeta`; JSON-LD, `ssg/sitemap.ts`, `/llms.txt` (byte for byte), PWA via `ssg/pwa.ts`.
+    srd's head is `BaseLayout.tsx` from `DocumentMeta`; JSON-LD, `ssg/sitemap.ts`, `/llms.txt` (byte for byte), one PWA and service worker via `src/pwa.ts`.
     No-JS fallback: `StaticEntityContent`, replaced by islands mounted with `createRoot`; an `<Island hydrate>` whose server markup is its own first render adopts it with `hydrateRoot`.
 25. **Accessibility** <a id="a11y"></a>
     Biome's a11y rules plus axe (WCAG 2.2 AA) specs: each app's `PAGES`, Cantina signed in.

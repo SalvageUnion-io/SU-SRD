@@ -1,4 +1,5 @@
-// Registers the service worker that `ssg/pwa.ts` configures. Loaded by
+// Registers the site's one service worker (`src/pwa.ts`) from the pre-rendered
+// pages; the builder registers the same worker itself. Loaded by
 // `src/layouts/BaseLayout.tsx` with `<script defer src="/registerSW.js">`.
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

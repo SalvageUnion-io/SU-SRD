@@ -30,7 +30,7 @@ import { renderUnionBar } from './unionBar'
 const SHELL_TITLE = 'The Cantina'
 
 /** The sitewide meta description, which the PWA manifest repeats. */
-export const SHELL_DESCRIPTION =
+const SHELL_DESCRIPTION =
   'The Salvage Union Character Builder. Build and run Salvage Union Pilots, Mechs and Union Crawlers. Character sheets, roster management and shareable live sheets for the post-apocalyptic Mech TTRPG.'
 
 /** The link preview's description: the meta description without its last clause. */

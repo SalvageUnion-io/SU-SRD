@@ -50,6 +50,8 @@
         "src/runtime/assets.entry.ts",
         // The dev server: `dev` starts it inside `convex dev --start '…'`, out of knip's sight.
         "ssg/dev.ts",
+        // The render pass: the Vite pass spawns it (`prerender` in ssg/cantinaPlugins.ts).
+        "ssg/prerender.ts",
         "src/cantina/routes/**/*.tsx",
         // The Cantina's entry: its shell (`src/cantina/shell/shell.ts`) is rendered, not a file knip reads.
         "src/cantina/main.tsx",

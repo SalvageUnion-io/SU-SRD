@@ -15,8 +15,6 @@
  * `configLoader: 'runner'` (`ssg/bundle.ts`, `ssg/dev.ts`).
  */
 
-import { createHash } from 'node:crypto'
-import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import react from '@vitejs/plugin-react-swc'
@@ -25,19 +23,19 @@ import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import { ROUTER_PLUGIN_OPTIONS } from './routeTree.config'
 import { SITE } from './src/cantina/lib/site'
-import { WORKBOX_OPTIONS as CANTINA_WORKBOX } from './src/cantina/lib/sw/workbox'
+import { WORKBOX_OPTIONS } from './src/pwa'
 import { emitBaseStylesheet } from './src/styles/baseStylesheet'
 import { appGraph } from './ssg/appGraph'
 import {
   baseStylesheetLink,
   CANTINA_ENTRY,
   cantinaShell,
+  prerender,
   publicPages,
   requireConvexUrl,
   shellOrigin,
   siteManifest,
 } from './ssg/cantinaPlugins'
-import { WORKBOX_OPTIONS as SRD_WORKBOX } from './ssg/pwa'
 
 const HERE = import.meta.dirname
 const OUT_DIR = join(HERE, 'dist')
@@ -55,38 +53,7 @@ const SRD_INPUT = {
 /** The Cantina's entry, by input key (`CANTINA_CHUNK` in ssg/build.ts). */
 const CANTINA_CHUNK = 'cantina'
 
-/**
- * srd's `public/` files the Cantina links at the site's root rather than
- * shipping its own copies (`MARK_SRC`, the footer mark, the shell's icons).
- * Its worker precaches them by content, as fixed names.
- */
-const SRD_PUBLIC = [
-  'logos/su-cargo-dark.svg',
-  'Powered_by_Salvage_Black.webp',
-  'web-app-manifest-192x192.png',
-]
-
-/**
- * The Cantina's worker globs only `dist/build/`; everything else it precaches
- * (its chunks in the shared `assets/`, the base stylesheet, `SRD_PUBLIC`) is
- * added here during the build, before the worker is generated.
- */
-const cantinaWorkbox = {
-  ...CANTINA_WORKBOX,
-  additionalManifestEntries: [] as Array<{ url: string; revision: string | null }>,
-}
-const precacheForCantina = (url: string, revision: string | null = null) => {
-  if (!cantinaWorkbox.additionalManifestEntries.some((entry) => entry.url === url)) {
-    cantinaWorkbox.additionalManifestEntries.push({ url, revision })
-  }
-}
-
-const graph = appGraph({
-  srdEntries: Object.values(SRD_INPUT),
-  srdChunks: Object.keys(SRD_INPUT),
-  cantinaChunk: CANTINA_CHUNK,
-  cantinaPrecache: precacheForCantina,
-})
+const graph = appGraph({ srdEntries: Object.values(SRD_INPUT) })
 
 /** A Cantina chunk group: never a module an srd page reaches (`ssg/appGraph.ts`). */
 const cantinaOnly =
@@ -106,18 +73,7 @@ export default defineConfig({
   plugins: [
     requireConvexUrl(),
     cantinaShell(),
-    {
-      name: 'cantina-precache-reset',
-      apply: 'build',
-      buildStart() {
-        cantinaWorkbox.additionalManifestEntries.length = 0
-        for (const file of SRD_PUBLIC) {
-          const bytes = readFileSync(join(HERE, 'public', file))
-          precacheForCantina(`/${file}`, createHash('md5').update(bytes).digest('hex'))
-        }
-      },
-    },
-    baseStylesheetLink((url) => precacheForCantina(url)),
+    baseStylesheetLink(),
     siteManifest(),
     shellOrigin(),
     TanStackRouterVite(ROUTER_PLUGIN_OPTIONS),
@@ -125,45 +81,24 @@ export default defineConfig({
     // The fonts and the UI library's stylesheet, shared by both apps.
     emitBaseStylesheet(),
     graph.plugin,
-    // Two service workers, one per app (ADR-050): the Cantina's first, so its
-    // `virtual:pwa-register` is the one `src/cantina/main.tsx` imports.
-    //
-    // The Cantina's: 'prompt', NOT 'autoUpdate'. Under 'autoUpdate' the plugin
-    // force-assigns `skipWaiting` and `clientsClaim`, so a new worker takes
-    // over an open tab and drops the precache entries the tab still reads
-    // from: a share link then rendered only on the fifth refresh. Under
-    // 'prompt' it waits until the page asks (`src/cantina/lib/sw/register.ts`)
-    // or every tab has closed; navigations go to the network first, so no page
-    // boots an old build (`src/cantina/lib/sw/workbox.ts`).
+    // The site's one service worker, at `/sw.js` (options and reasons:
+    // `src/pwa.ts`). 'prompt', NOT 'autoUpdate': under 'autoUpdate' the plugin
+    // force-assigns `skipWaiting` and `clientsClaim`, so a new worker would
+    // take over an open builder tab and drop the precache entries it still
+    // reads from. `public/sw-lifecycle.js` decides instead. The builder
+    // registers through `virtual:pwa-register` (`src/cantina/main.tsx`), the
+    // reference's pages through `public/registerSW.js`; neither is injected.
     VitePWA({
       registerType: 'prompt',
       injectRegister: false,
-      base: SITE.base,
-      scope: SITE.base,
-      outDir: join(OUT_DIR, 'build'),
-      workbox: cantinaWorkbox,
-      // The site's one manifest (`public/site.webmanifest`, `src/pwa.ts`),
-      // which `siteManifest` links, installs both apps.
+      // The site's one manifest (`public/site.webmanifest`, `src/pwa.ts`).
       manifest: false,
-    }),
-    // srd's: its options and their reasons are in ./ssg/pwa. No injected
-    // registration: public/registerSW.js carries the `.catch()` that silences
-    // SRD-2. It drops what only the Cantina loads.
-    VitePWA({
-      injectRegister: false,
-      manifest: false,
-      registerType: 'autoUpdate',
-      workbox: {
-        ...SRD_WORKBOX,
-        manifestTransforms: [
-          (entries) => ({
-            manifest: entries.filter((entry) => !graph.cantinaOnly.has(entry.url)),
-            warnings: [],
-          }),
-        ],
-      },
+      workbox: WORKBOX_OPTIONS,
+      // After `prerender` writes the pages: the precache needs the home page.
+      integration: { closeBundleOrder: 'post' },
     }),
     publicPages(),
+    prerender(),
   ],
   // Dev only: pre-bundle every entry point of salvageunion-reference in one
   // pass. Its ORM singletons (the per-schema LazyModels `preload` fills) live

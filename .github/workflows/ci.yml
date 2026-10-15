@@ -208,10 +208,11 @@ jobs:
       # `smoke.e2e.ts` is both apps' smoke. Add a spec to this line; do NOT
       # add a step or a job.
       # `a11y.e2e.ts` is WCAG 2.2 AA on the pages each app lists, at desktop and
-      # as a phone: it blocks on any violation.
-      - name: Run the smoke, bundle-budget, JSON API and a11y specs
+      # as a phone: it blocks on any violation. `offline.e2e.ts` proves the one
+      # install: opened at `/`, the reference and the builder both open offline.
+      - name: Run the smoke, bundle-budget, JSON API, a11y and offline specs
         working-directory: apps/web
-        run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts json-api.e2e.ts a11y.e2e.ts
+        run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts json-api.e2e.ts a11y.e2e.ts offline.e2e.ts
 
       - name: Upload Playwright reports on failure
         if: failure()

@@ -35,10 +35,13 @@ One workspace, `apps/web`, holds both apps, in two render modes:
 3. **One Worker.** `su-srd` answers SRD misses and, through
    `run_worker_first` on `/build` and `/build/*`, everything under `/build`, setting the
    Cantina's CSP there. `su-cantina` is retired.
-4. **One header, one manifest.** The Union bar is shared; one
-   `site.webmanifest` (start URL `/build/`, scope `/`) installs both. Two service
-   workers stay, scoped `/` and `/build/`, so an SRD reader never downloads
-   the Cantina's precache; their shared precache rules are `src/pwa.ts`.
+4. **One header, one install, one service worker.** The Union bar is shared.
+   One `site.webmanifest` (id, scope and start URL `/`, named Salvage Union)
+   installs the whole site, and one worker at `/sw.js` precaches both render
+   modes, so an installed app opens at `/` and reaches either half offline
+   (`src/pwa.ts`). While a builder tab is open a new worker waits for it;
+   otherwise it takes over at once (`public/sw-lifecycle.js`). The builder's
+   old worker at `/build/` retires itself (`public/build/sw.js`).
 5. **Same-origin links.** srd links `/build/` relatively; the Cantina links
    the SRD at its own origin. `VITE_SITE_ORIGIN` names every absolute address.
 6. **The UI library is `apps/web/src/ui`.** Biome keeps app state, the router,
@@ -60,6 +63,8 @@ One workspace, `apps/web`, holds both apps, in two render modes:
   `apps/web` change onto the `srd` surface.
 - One `bun run dev` serves both from one Vite server on the same config,
   beside a local Convex.
-- Each app's service worker precaches only its own files: srd's drops what
-  only the Cantina loads, and the Cantina's adds its chunks from `assets/`.
+- The Vite pass renders the pages itself (`ssg/prerender.ts`, a `closeBundle`
+  step) before the worker is generated, so the precache sees the home page.
+- Every visitor's worker downloads the builder (~1.2 MB gzipped) in the
+  background after the page loads; page budgets are unchanged.
 - Commit scopes `srd` and `cantina` stay, because `/changelog` sorts by them.

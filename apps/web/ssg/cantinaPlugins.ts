@@ -102,17 +102,13 @@ export function cantinaShell(): Plugin {
   }
 }
 
-/** A font subset the precache leaves out (`UNFETCHED_FONT_SUBSETS`). */
-const UNFETCHED_SUBSET = /-(latin-ext|vietnamese)-/
-
 /**
  * The base stylesheet both apps link (`src/styles/baseStylesheet.ts`): the
  * fonts and the UI library's stylesheet, at `/assets/base-<hash>.css`, ahead
- * of the Cantina's own CSS. srd's `emitBaseStylesheet` writes the files into
- * this same build; `precached` receives the ones the Cantina's worker keeps.
- * The dev server links the source.
+ * of the Cantina's own CSS. `emitBaseStylesheet` writes the files into this
+ * same build. The dev server links the source.
  */
-export function baseStylesheetLink(precached: (url: string) => void): Plugin {
+export function baseStylesheetLink(): Plugin {
   let href = DEV_BASE_STYLESHEET
   let build = false
   return {
@@ -122,13 +118,7 @@ export function baseStylesheetLink(precached: (url: string) => void): Plugin {
     },
     async buildStart() {
       if (!build) return
-      const base = await buildBaseStylesheet()
-      href = base.href
-      for (const { fileName } of base.files) {
-        if (/\.(css|woff2)$/.test(fileName) && !UNFETCHED_SUBSET.test(fileName)) {
-          precached(`/${fileName}`)
-        }
-      }
+      href = (await buildBaseStylesheet()).href
     },
     transformIndexHtml: onShell('post', (html) =>
       html.replace('</title>', `</title><link rel="stylesheet" href="${href}">`)
@@ -192,6 +182,30 @@ export function publicPages(): Plugin {
         writeFileSync(join(out, file), html)
       }
       writeFileSync(join(out, 'sitemap.xml'), sitemapXml(origin, PREFIX))
+    },
+  }
+}
+
+/**
+ * Renders every page into the finished bundle (`ssg/prerender.ts`), as the first
+ * `closeBundle` step, so the service worker, generated last, precaches a
+ * complete site. Its own process: `ssg/prerender.ts` says why.
+ */
+export function prerender(): Plugin {
+  return {
+    name: 'prerender',
+    apply: 'build',
+    closeBundle: {
+      order: 'pre',
+      sequential: true,
+      async handler() {
+        const render = Bun.spawn([process.execPath, join(APP_ROOT, 'ssg', 'prerender.ts')], {
+          cwd: APP_ROOT,
+          stdout: 'inherit',
+          stderr: 'inherit',
+        })
+        if ((await render.exited) !== 0) throw new Error('[prerender] rendering failed (above).')
+      },
     },
   }
 }

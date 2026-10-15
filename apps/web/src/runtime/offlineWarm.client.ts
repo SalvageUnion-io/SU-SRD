@@ -12,9 +12,7 @@
  * That is deliberate: the riskiest artefact in a static site is the worker
  * itself, which outlives the deploy that shipped it. This writes into the
  * **same `pages` cache** the worker's navigation rule reads from when the
- * network will not answer (`PAGES_CACHE` in `ssg/pwa.ts`; client code may not
- * import from `ssg/`, so `ssg/__tests__/pwa.test.ts` holds the two names
- * together).
+ * network will not answer (`PAGES_CACHE` in `src/pwa.ts`).
  *
  * ## It refreshes every page once per deploy
  *
@@ -52,14 +50,10 @@
  * 3 MB on an explicit install.
  */
 
+import { PAGES_CACHE } from '../pwa'
+
 /** How many pages to fetch at once. Enough to be quick, not enough to be rude. */
 const CONCURRENCY = 6
-
-/**
- * The cache the service worker's navigation rule falls back to. Must equal
- * `PAGES_CACHE` in `ssg/pwa.ts`, which `ssg/__tests__/pwa.test.ts` asserts.
- */
-export const PAGES_CACHE = 'pages'
 
 /**
  * Runs at most once per tab per build — re-checking 1,039 cache entries on every

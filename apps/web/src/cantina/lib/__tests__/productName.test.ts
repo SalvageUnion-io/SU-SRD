@@ -5,16 +5,14 @@ import { PRODUCT } from 'cantina-domain/product'
 import { renderShell } from '../../shell/shell'
 
 /**
- * The shell (`shell/shell.ts`), `public/build/favicon.svg` and the site's web
- * manifest (`public/site.webmanifest`, which installs the Cantina) cannot import
- * `PRODUCT`: the SVG and the manifest are static, and the shell is loaded by the
- * Vite config before any workspace package is. They spell the name as text, so
+ * The shell (`shell/shell.ts`) and `public/build/favicon.svg` cannot import
+ * `PRODUCT`: the SVG is static, and the shell is loaded by the Vite config
+ * before any workspace package is. They spell the name as text, so
  * this holds them to the constant.
  */
 const appDir = join(import.meta.dir, '..', '..')
 const workspace = join(appDir, '..', '..')
 const html = renderShell()
-const manifest = JSON.parse(readFileSync(join(workspace, 'public', 'site.webmanifest'), 'utf8'))
 const favicon = readFileSync(join(workspace, 'public', 'build', 'favicon.svg'), 'utf8')
 
 describe('the product name outside TypeScript', () => {
@@ -28,10 +26,5 @@ describe('the product name outside TypeScript', () => {
 
   test("the favicon's title says PRODUCT.name", () => {
     expect(favicon).toContain(`<title>${PRODUCT.name}</title>`)
-  })
-
-  test("the manifest's name and short name are PRODUCT's", () => {
-    expect(manifest.name).toBe(`${PRODUCT.name} — ${PRODUCT.descriptor}`)
-    expect(manifest.short_name).toBe(PRODUCT.shortName)
   })
 })
