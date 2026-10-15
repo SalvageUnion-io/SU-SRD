@@ -8,8 +8,8 @@ type ColophonProps = {
   aboutMarkdown: string
   /** Raw contents of the repo-root `LLM_STATEMENT.md` (right column). */
   llmMarkdown: string
-  /** Raw contents of the repo-root `SPECIAL_THANKS.md` (left column, between
-   * the bio and the support block). Same contract as `aboutMarkdown`. */
+  /** Raw contents of the repo-root `SPECIAL_THANKS.md` (left column, below the
+   * support block). Same contract as `aboutMarkdown`. */
   specialThanksMarkdown: string
   /** Ko-fi page code — the `<code>` in `ko-fi.com/<code>`. */
   kofiCode: string
@@ -29,8 +29,8 @@ const SUPPORT = { ...proseColumn(space[12]), alignItems: 'flex-start' } satisfie
  * Colophon — who made this, how, and how to support it, on the About page
  * both tools share.
  *
- * Two columns that stack on narrow screens: the author bio, the special thanks
- * and the support section on the left, the LLM statement on the right. The
+ * Two columns that stack on narrow screens: the author bio, the support
+ * section and the special thanks on the left, the LLM statement on the right. The
  * Ko-fi button rides in the support slab's `actions` slot, so it sits on the
  * heading line opposite the label rather than below it. None of the prose lives
  * here — all three are repo-root markdown documents passed in raw (see
@@ -50,8 +50,6 @@ export function Colophon({
       <div style={COLUMN}>
         <MarkdownSection markdown={aboutMarkdown} />
 
-        <MarkdownSection markdown={specialThanksMarkdown} />
-
         <section style={SUPPORT}>
           <Slab
             as="h2"
@@ -62,6 +60,8 @@ export function Colophon({
             actions={<KofiButton code={kofiCode} />}
           />
         </section>
+
+        <MarkdownSection markdown={specialThanksMarkdown} />
       </div>
 
       <MarkdownSection markdown={llmMarkdown} />
