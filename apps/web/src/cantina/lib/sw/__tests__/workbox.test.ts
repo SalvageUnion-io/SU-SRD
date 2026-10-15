@@ -12,7 +12,8 @@
 
 import { describe, expect, it } from 'bun:test'
 import { Glob } from 'bun'
-import { UNFETCHED_FONT_SUBSETS, WORKBOX_OPTIONS } from '../workbox'
+import { UNFETCHED_FONT_SUBSETS } from '../../../../pwa'
+import { WORKBOX_OPTIONS } from '../workbox'
 
 /** The slice of a fetch event's request the route matcher reads. */
 const requestOf = (mode: RequestMode) => ({ request: { mode } as Request })

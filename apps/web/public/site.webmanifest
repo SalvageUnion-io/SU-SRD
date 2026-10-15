@@ -1,7 +1,10 @@
 {
-  "name": "Salvage Union SRD",
-  "short_name": "SU SRD",
-  "start_url": "/",
+  "id": "/build/",
+  "name": "The Cantina — The Salvage Union Character Builder",
+  "short_name": "Cantina",
+  "description": "The Salvage Union Character Builder. Build and run Salvage Union Pilots, Mechs and Union Crawlers. Character sheets, roster management and shareable live sheets for the post-apocalyptic Mech TTRPG.",
+  "start_url": "/build/",
+  "scope": "/",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",

@@ -38,7 +38,7 @@ const PREVIEW_DESCRIPTION =
   'The Salvage Union Character Builder. Build and run Salvage Union Pilots, Mechs and Union Crawlers. Character sheets, roster management and shareable live sheets.'
 
 /** The SU mark's ink stamp (`color.ink`), as text: this module cannot import the tokens. */
-export const SHELL_THEME_COLOR = '#282019' // design-tokens-ignore: the shell and PWA manifest load before any package
+const SHELL_THEME_COLOR = '#282019' // design-tokens-ignore: the shell loads before any package
 
 /** The markers the Worker swaps a shared page's link preview between. */
 export const META_START = '<!-- cantina:meta:start -->'

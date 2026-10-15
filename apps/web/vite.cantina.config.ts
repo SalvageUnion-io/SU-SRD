@@ -12,8 +12,9 @@ import { WORKBOX_OPTIONS } from './src/cantina/lib/sw/workbox'
 // The shell renders the Union bar from component-lib's TypeScript source, which
 // only Vite's module runner resolves: load this file with `--configLoader runner`
 // (`build:cantina`, `ssg/dev.ts`); the default loader leaves the package to Node.
-import { renderShell, SHELL_DESCRIPTION, SHELL_THEME_COLOR } from './src/cantina/shell/shell'
+import { renderShell } from './src/cantina/shell/shell'
 import { publicShells, sitemapXml } from './src/cantina/worker/publicPages'
+import { SITE_MANIFEST } from './src/pwa'
 import { buildBaseStylesheet, DEV_BASE_STYLESHEET } from './src/styles/baseStylesheet'
 
 /**
@@ -171,6 +172,23 @@ function baseStylesheet(): Plugin {
 }
 
 /**
+ * The site's one web manifest (`src/pwa.ts`), linked from the shell as srd's
+ * pages link it: one install for both apps, opening on the Cantina. After
+ * Vite's own pass, which would put the base in front of a root-relative link;
+ * the manifest is srd's file, at the site's root, not the Cantina's.
+ */
+function siteManifest(): Plugin {
+  return {
+    name: 'cantina-site-manifest',
+    transformIndexHtml: {
+      order: 'post',
+      handler: (html) =>
+        html.replace('</title>', `</title><link rel="manifest" href="${SITE_MANIFEST}">`),
+    },
+  }
+}
+
+/**
  * The public pages a crawler reads (`src/cantina/worker/publicPages.ts`): the
  * Starter Set's and each build's shell, with its own title, description,
  * canonical and `og:*`, beside the app's, and `sitemap.xml`. Named for the
@@ -232,6 +250,7 @@ export default defineConfig({
     requireConvexUrl(),
     cantinaShell(),
     baseStylesheet(),
+    siteManifest(),
     shellOrigin(SITE.base),
     TanStackRouterVite(ROUTER_PLUGIN_OPTIONS),
     // `@vitejs/plugin-react-swc` always uses the automatic JSX runtime, so the
@@ -275,29 +294,9 @@ export default defineConfig({
       injectRegister: false,
       includeAssets: ['favicon.svg'],
       workbox,
-      manifest: {
-        name: 'The Cantina — The Salvage Union Character Builder',
-        short_name: 'Cantina',
-        // The shell's meta description, verbatim.
-        description: SHELL_DESCRIPTION,
-        // The SU mark's ink stamp / the paper ground.
-        theme_color: SHELL_THEME_COLOR,
-        background_color: '#f3ede2',
-        display: 'standalone',
-        icons: [
-          // Written by `bun run brand` (apps/web/scripts/brand), as is public/favicon.svg.
-          {
-            src: 'icon-192.png',
-            sizes: '192x192',
-            type: 'image/png',
-          },
-          {
-            src: 'icon-512.png',
-            sizes: '512x512',
-            type: 'image/png',
-          },
-        ],
-      },
+      // No manifest of its own: the site's one (`public/site.webmanifest`,
+      // `src/pwa.ts`), which `siteManifest` links, installs both apps.
+      manifest: false,
     }),
     publicPages(SITE.base),
     siteLayout(SITE.base),

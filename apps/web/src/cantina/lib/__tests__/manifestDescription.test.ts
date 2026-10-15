@@ -7,15 +7,15 @@ import { renderShell, SHELL_DESCRIPTION } from '../../shell/shell'
  * The PWA manifest's description is what an install prompt shows. It said
  * "Local-first character builder" long after the account became the server of
  * record (ADR-034/035), so it now IS the shell's meta description: one
- * constant, which this keeps both reading. Read as text: importing
- * `vite.cantina.config.ts` would load every Vite plugin.
+ * constant's words. The manifest is the site's one (`public/site.webmanifest`),
+ * static JSON, so this holds it to the constant.
  */
 const workspace = join(import.meta.dir, '..', '..', '..', '..')
-const config = readFileSync(join(workspace, 'vite.cantina.config.ts'), 'utf8')
+const manifest = JSON.parse(readFileSync(join(workspace, 'public', 'site.webmanifest'), 'utf8'))
 
 describe('PWA manifest description', () => {
   test("is the shell's meta description", () => {
-    expect(config).toContain('description: SHELL_DESCRIPTION,')
+    expect(manifest.description).toBe(SHELL_DESCRIPTION)
     expect(renderShell()).toContain(`<meta name="description" content="${SHELL_DESCRIPTION}"/>`)
   })
 

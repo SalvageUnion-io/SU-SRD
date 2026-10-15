@@ -9,14 +9,9 @@
 
 import { describe, expect, test } from 'bun:test'
 import { Glob } from 'bun'
+import { UNFETCHED_FONT_SUBSETS } from '../../src/pwa'
 import { PAGES_CACHE as WARMED_CACHE } from '../../src/runtime/offlineWarm.client'
-import {
-  NAVIGATION_TIMEOUT_SECONDS,
-  PAGES_CACHE,
-  RUNTIME_CACHING,
-  UNFETCHED_FONT_SUBSETS,
-  WORKBOX_OPTIONS,
-} from '../pwa'
+import { NAVIGATION_TIMEOUT_SECONDS, PAGES_CACHE, RUNTIME_CACHING, WORKBOX_OPTIONS } from '../pwa'
 
 /** The slice of a fetch event's request the route matchers read. */
 const requestOf = (mode: RequestMode, path = '/chassis/') => ({
@@ -101,5 +96,12 @@ describe('the precache', () => {
 
   test("keeps workbox-build's default ignore, which setting globIgnores replaces", () => {
     expect(WORKBOX_OPTIONS.globIgnores).toContain('**/node_modules/**/*')
+  })
+
+  test('never holds the Cantina, which its own worker at /build/ precaches', () => {
+    const cantina = new Glob('build/**')
+    expect(WORKBOX_OPTIONS.globIgnores).toContain('build/**')
+    expect(cantina.match('build/assets/index-DEADBEEF.js')).toBe(true)
+    expect(cantina.match('assets/base-DEADBEEF.css')).toBe(false)
   })
 })

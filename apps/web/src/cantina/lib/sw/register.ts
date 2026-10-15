@@ -4,8 +4,8 @@
  * Decision: use vite-plugin-pwa (via workbox) for app-shell caching.
  *
  * Rationale:
- *   - vite-plugin-pwa generates the SW + web manifest from Vite's build
- *     output automatically, so the precache list stays in sync with every
+ *   - vite-plugin-pwa generates the SW from Vite's build output
+ *     automatically (the web manifest is the site's one, `src/pwa.ts`), so the precache list stays in sync with every
  *     bundle Vite emits. A hand-written SW would need manual maintenance of
  *     every emitted filename (content-hashed), which drifts silently.
  *   - Wraps workbox under the hood — precaching plus per-route strategies.

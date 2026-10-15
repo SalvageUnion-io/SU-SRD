@@ -19,6 +19,7 @@ import { TopNavigation } from '../components/TopNavigation'
 import { DEFAULT_OG_IMAGE, SITE_LINKS, SITE_URL, THEME_COLOR } from '../lib/constants'
 import { escapeJsonForScript } from '../lib/escapeJsonForScript'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
+import { SITE_MANIFEST } from '../pwa'
 import { Island } from '../runtime/Island'
 
 const DEFAULT_TITLE = 'Salvage Union System Reference Document'
@@ -107,7 +108,7 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
         <link rel="icon" type="image/png" sizes="32x32" href="/favicons/su/favicon-32.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/favicons/su/favicon-16.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/favicons/su/favicon-180.png" />
-        <link rel="manifest" href="/site.webmanifest" />
+        <link rel="manifest" href={SITE_MANIFEST} />
         <meta name="theme-color" content={themeColor} />
         {/* Service-worker registration: public/registerSW.js. */}
         <script defer src="/registerSW.js" />

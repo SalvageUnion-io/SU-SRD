@@ -5,16 +5,16 @@ import { PRODUCT } from 'component-lib/product'
 import { renderShell } from '../../shell/shell'
 
 /**
- * The shell (`shell/shell.ts`), `public/favicon.svg` and the PWA manifest in
- * `vite.cantina.config.ts` cannot import `PRODUCT`: the SVG is static, and the
- * config, which loads the shell, is loaded before any workspace package is. They
- * spell the name as text, so this holds them to the constant. Read as text: importing `vite.cantina.config.ts` would
- * load every Vite plugin.
+ * The shell (`shell/shell.ts`), `public/favicon.svg` and the site's web
+ * manifest (`public/site.webmanifest`, which installs the Cantina) cannot import
+ * `PRODUCT`: the SVG and the manifest are static, and the shell is loaded by the
+ * Vite config before any workspace package is. They spell the name as text, so
+ * this holds them to the constant.
  */
 const appDir = join(import.meta.dir, '..', '..')
 const workspace = join(appDir, '..', '..')
 const html = renderShell()
-const config = readFileSync(join(workspace, 'vite.cantina.config.ts'), 'utf8')
+const manifest = JSON.parse(readFileSync(join(workspace, 'public', 'site.webmanifest'), 'utf8'))
 const favicon = readFileSync(join(appDir, 'public', 'favicon.svg'), 'utf8')
 
 describe('the product name outside TypeScript', () => {
@@ -31,7 +31,7 @@ describe('the product name outside TypeScript', () => {
   })
 
   test("the manifest's name and short name are PRODUCT's", () => {
-    expect(config).toContain(`name: '${PRODUCT.name} — ${PRODUCT.descriptor}',`)
-    expect(config).toContain(`short_name: '${PRODUCT.shortName}',`)
+    expect(manifest.name).toBe(`${PRODUCT.name} — ${PRODUCT.descriptor}`)
+    expect(manifest.short_name).toBe(PRODUCT.shortName)
   })
 })
