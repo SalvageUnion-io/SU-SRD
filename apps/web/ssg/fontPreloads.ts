@@ -23,8 +23,8 @@ export const PRELOADED_FONTS = [
 ] as const
 
 /**
- * The emitted URL of each preloaded face, picked from the assets the Vite
- * manifest lists for the styles entry (`assets/<name>-<hash>.woff2`).
+ * The emitted URL of each preloaded face, picked from the fonts the base
+ * stylesheet emits (`assets/<name>-<hash>.woff2`, `src/styles/baseStylesheet.ts`).
  *
  * Throws when a face is missing: a renamed `@fontsource` file or a dropped
  * import would otherwise ship pages that silently preload nothing.
@@ -36,7 +36,7 @@ export function pickFontPreloads(emittedAssets: readonly string[]): string[] {
     )
     if (!file) {
       throw new Error(
-        `[ssg] font preload "${name}.woff2" is not among the styles entry's emitted assets. Update PRELOADED_FONTS in ssg/fontPreloads.ts to match the @fontsource imports in src/runtime/styles.entry.ts.`
+        `[ssg] font preload "${name}.woff2" is not among the base stylesheet's emitted fonts. Update PRELOADED_FONTS in ssg/fontPreloads.ts to match the @fontsource imports in src/styles/base.css.`
       )
     }
     return `/${file}`

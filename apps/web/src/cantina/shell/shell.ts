@@ -17,8 +17,9 @@
  * - No `<link rel="canonical">` on purpose. A fixed canonical in a SPA shell
  *   claims every client route is the homepage. The Worker adds each public
  *   page's own (`worker/publicPages.ts`) for a crawler's request.
- * - The Barlow superfamily is self-hosted via @fontsource, imported in
- *   `routes/__root.tsx`.
+ * - The base stylesheet (the Barlow faces and the package stylesheet, shared
+ *   with srd) is linked after the title by the `cantina-base-stylesheet` plugin,
+ *   which alone knows its built URL.
  */
 import { createElement, Fragment } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'

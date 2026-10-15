@@ -74,6 +74,8 @@
         "convex/**/*.ts",
         "test/**/*.ts"
       ],
+      // Imported only by CSS (`src/styles/base.css`), which knip does not read.
+      "ignoreDependencies": ["@fontsource/barlow", "@fontsource/barlow-semi-condensed"],
       // The router plugin's default is `src/routeTree.gen.ts`; the Cantina's is a level down.
       "tanstack-router": {
         "entry": ["src/cantina/routeTree.gen.ts"]

@@ -305,8 +305,9 @@ const ENTRY = 'packages/component-lib/src/styles/entry.css'
 const STYLING_BASE: Record<string, string> = {
   [ENTRY]:
     "@layer su-reset, su-base;\n@import './theme.css';\n@import './reset.css' layer(su-reset);\n@import './index.css' layer(su-base);\n",
-  'apps/web/src/cantina/index.css': "@import 'component-lib/styles/entry.css';\n",
-  'apps/web/src/styles/global.css': "@import 'component-lib/styles/entry.css';\n",
+  'apps/web/src/styles/base.css': "@import 'component-lib/styles/entry.css';\n",
+  'apps/web/src/cantina/index.css': "@import './styles/print.css';\n",
+  'apps/web/src/styles/global.css': "@import './pages.css';\n",
   'apps/web/src/cantina/styles/dashboard/DashboardCanvas.css': '.su-dash-used { color: red }\n',
   'apps/web/src/cantina/styles/dashboard/DashboardGrid.css': '',
   'apps/web/src/cantina/styles/dashboard/instruments.css': '',
@@ -493,11 +494,23 @@ describe('styling rule set', () => {
     ])
   })
 
+  test('an app stylesheet that imports the shared entry loads the package twice', () => {
+    const found = stylingOwnership.scan(
+      fixture({
+        ...STYLING_BASE,
+        'apps/web/src/cantina/index.css': "@import 'component-lib/styles/entry.css';\n",
+      })
+    )
+    expect(found['package-stylesheet-import']?.map((f) => f.detail)).toEqual([
+      'imports the shared stylesheet entry, which the base stylesheet (apps/web/src/styles/base.css) already loads',
+    ])
+  })
+
   test('a consumer that imports the package stylesheet itself is a second entry', () => {
     const found = stylingOwnership.scan(
       fixture({
         ...STYLING_BASE,
-        'apps/web/src/styles/global.css': "@import 'component-lib/styles/index.css';\n",
+        'apps/web/src/styles/base.css': "@import 'component-lib/styles/index.css';\n",
       })
     )
     expect(found['package-stylesheet-import']?.map((f) => f.detail)).toEqual([

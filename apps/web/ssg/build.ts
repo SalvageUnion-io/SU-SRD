@@ -24,7 +24,7 @@
  */
 
 import { plugin } from 'bun'
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { build as viteBuild } from 'vite'
@@ -80,10 +80,16 @@ async function readAssets(): Promise<BuildAssets> {
   const manifestPath = join(distDir, '.vite', 'manifest.json')
   const manifest = JSON.parse(await readFile(manifestPath, 'utf-8')) as Manifest
 
+  // The base stylesheet (`src/styles/baseStylesheet.ts`) links first, ahead of srd's own;
+  // its fonts are the only ones srd emits.
+  const emitted = (await readdir(join(distDir, 'assets'))).map((name) => `assets/${name}`)
+  const base = emitted.filter((file) => /^assets\/base-[\w-]+\.css$/.test(file))
+  if (base.length !== 1) throw new Error(`[ssg] expected one base stylesheet, found ${base.length}`)
+
   const scripts: string[] = []
-  const styles: string[] = []
+  const styles = base.map((file) => `/${file}`)
   const built: Record<string, string> = {}
-  const fontFiles: string[] = []
+  const fontFiles = emitted.filter((file) => file.endsWith('.woff2'))
 
   for (const [key, chunk] of Object.entries(manifest)) {
     if (key.startsWith(BUILT_ASSET_PREFIX)) {
@@ -95,7 +101,6 @@ async function readAssets(): Promise<BuildAssets> {
       const href = `/${css}`
       if (!styles.includes(href)) styles.push(href)
     }
-    fontFiles.push(...(chunk.assets ?? []).filter((asset) => asset.endsWith('.woff2')))
     if (NON_LINKED_ENTRIES.some((entry) => key.endsWith(entry))) continue
     scripts.push(`/${chunk.file}`)
   }

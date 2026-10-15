@@ -4,7 +4,7 @@ The in-house SSG behind `apps/web` (ADR-031 in [ARCHITECTURE.md](../../../docs/A
 
 ## Hard rules
 
-1. **No `.css` import reachable from an SSR module.** All CSS enters through `src/runtime/styles.entry.ts`; a stray import builds green and ships nothing (`bun run check styling`, `srd-css`).
+1. **No `.css` import reachable from an SSR module.** All CSS enters through `src/runtime/styles.entry.ts` (the shared base, `src/styles/base.css`, is built by `src/styles/baseStylesheet.ts`); a stray import builds green and ships nothing (`bun run check styling`, `srd-css`).
 2. **`ssg/**` is build-time only.** Nothing under `src/runtime/` or `src/pages/` imports `ssg/` at runtime.
 3. **Code style is Biome's.** `biome.jsonc` is the authority.
 4. **Output paths follow the URL -> file table.** `ssg/__tests__/outputPath.test.ts` is the judge.

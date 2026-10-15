@@ -22,16 +22,9 @@ import { RootErrorComponent } from '../components/shared/RouteErrors'
 import { SiteFooter } from '../components/shared/SiteFooter'
 import { cantinaEntityHref } from '../lib/entityHref'
 import { pageTitle } from '../lib/pageTitle'
-// Self-hosted Barlow superfamily (mirrors srd) — keeps fonts on-origin so
-// the CSP needs no external font/style host and the offline PWA renders correctly.
-import '@fontsource/barlow/400.css'
-import '@fontsource/barlow/500.css'
-import '@fontsource/barlow/600.css'
-import '@fontsource/barlow/700.css'
+// The tagline's script face, self-hosted like the Barlow faces in the shared base
+// stylesheet: fonts stay on-origin, so the CSP needs no external host.
 import '@fontsource/caveat/600.css'
-import '@fontsource/barlow-semi-condensed/500.css'
-import '@fontsource/barlow-semi-condensed/600.css'
-import '@fontsource/barlow-semi-condensed/700.css'
 import '../index.css'
 
 // The root boundary is the last resort — every other route gets its own via

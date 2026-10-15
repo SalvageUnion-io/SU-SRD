@@ -1,0 +1,91 @@
+/**
+ * baseStylesheet — the one stylesheet both apps link: the Barlow faces and the
+ * component-lib entry (`./base.css`), at `/assets/base-<hash>.css`.
+ *
+ * srd and the Cantina are separate Vite builds (separate CI jobs, too), and each
+ * once bundled the fonts and the package stylesheet into its own CSS, under its
+ * own base: a visit crossing from one to the other downloaded the same ~115 KB
+ * twice, from two URLs. Both builds now run THIS build, with the same input and
+ * the same options, so both emit byte-identical files under the same names, and
+ * both link the same URL. srd ships them in `dist/assets/`; the Cantina writes
+ * them to `dist-cantina/assets/`, outside the `build/` that `tools/merge-dist.sh`
+ * copies, so its own preview is styled and the merged site keeps srd's copy
+ * (merge-dist refuses a pair that differs).
+ *
+ * In dev there is nothing to build: both apps link `/src/styles/base.css`,
+ * which srd's Vite server serves as CSS (`ssg/dev.ts` routes every path outside
+ * `/build/` to it).
+ */
+
+import { fileURLToPath } from 'node:url'
+import type { Plugin } from 'vite'
+import { build } from 'vite'
+
+/** The source, and its URL on the dev server. */
+const SOURCE = fileURLToPath(new URL('./base.css', import.meta.url))
+export const DEV_BASE_STYLESHEET = '/src/styles/base.css'
+
+const APP_ROOT = fileURLToPath(new URL('../..', import.meta.url))
+
+/** One emitted file, by its path under the asset root (`assets/…`). */
+type BaseFile = { fileName: string; source: string | Uint8Array }
+
+export type BaseStylesheet = {
+  /** The stylesheet's URL, `/assets/base-<hash>.css`. */
+  href: string
+  /** The stylesheet and every font it names. */
+  files: BaseFile[]
+}
+
+type Output = { output: Array<{ type: string; fileName: string; source?: string | Uint8Array }> }
+
+let pending: Promise<BaseStylesheet> | undefined
+
+/** Builds the base stylesheet once per process. */
+export function buildBaseStylesheet(): Promise<BaseStylesheet> {
+  pending ??= run()
+  return pending
+}
+
+async function run(): Promise<BaseStylesheet> {
+  // No config file: nothing either app configures may change these bytes.
+  const result = (await build({
+    configFile: false,
+    root: APP_ROOT,
+    base: '/',
+    publicDir: false,
+    envDir: false,
+    logLevel: 'warn',
+    build: {
+      write: false,
+      emptyOutDir: false,
+      rolldownOptions: { input: { base: SOURCE } },
+    },
+  })) as Output | Output[]
+  const outputs = Array.isArray(result) ? result : [result]
+  const files = outputs
+    .flatMap((o) => o.output)
+    .filter((file) => file.type === 'asset' && file.source !== undefined)
+    .map((file) => ({ fileName: file.fileName, source: file.source as string | Uint8Array }))
+  const css = files.filter((file) => file.fileName.endsWith('.css'))
+  if (css.length !== 1) {
+    throw new Error(`[base-stylesheet] expected one stylesheet, built ${css.length}`)
+  }
+  return { href: `/${css[0]?.fileName}`, files }
+}
+
+/**
+ * srd's half: the files go into its bundle, at their own names, so its service
+ * worker precaches them like the rest of `dist/assets/`.
+ */
+export function emitBaseStylesheet(): Plugin {
+  return {
+    name: 'base-stylesheet',
+    apply: 'build',
+    async generateBundle() {
+      for (const { fileName, source } of (await buildBaseStylesheet()).files) {
+        this.emitFile({ type: 'asset', fileName, source })
+      }
+    },
+  }
+}

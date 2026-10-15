@@ -46,6 +46,7 @@ import { fileURLToPath } from 'node:url'
 import { CHECKOUT_HEADER, CHECKOUT_ROOT, portFor } from 'gates/ports'
 import type { ViteDevServer } from 'vite'
 import { createServer as createViteServer } from 'vite'
+import { DEV_BASE_STYLESHEET } from '../src/styles/baseStylesheet'
 import type { BuildAssets } from './document'
 import type { EndpointRegistration, ResolvedEndpoint } from './endpoints'
 import type { ErasedRoute, RouteRegistration } from './render'
@@ -77,8 +78,9 @@ const ASSETS_DIR = fileURLToPath(new URL('../src/assets/', import.meta.url))
 
 /**
  * The dev equivalent of the built manifest. Both entries are served by Vite from
- * source; neither is hashed, and there is no separate stylesheet link (or font
- * preload) because Vite injects css from the styles entry itself.
+ * source; neither is hashed, and there is no font preload. The one stylesheet
+ * link is the base (`src/styles/baseStylesheet.ts`), served as CSS from source; srd's own
+ * css Vite injects from the styles entry itself.
  *
  * `built` is read off the filesystem rather than listed, so an asset added to
  * `src/assets/` (and to `src/runtime/assets.entry.ts`) needs no edit here. In
@@ -87,7 +89,7 @@ const ASSETS_DIR = fileURLToPath(new URL('../src/assets/', import.meta.url))
  */
 const DEV_ASSETS: BuildAssets = {
   scripts: ['/src/runtime/styles.entry.ts', '/src/runtime/islands.client.ts'],
-  styles: [],
+  styles: [DEV_BASE_STYLESHEET],
   fonts: [],
   built: Object.fromEntries(
     readdirSync(ASSETS_DIR).map((name) => [`src/assets/${name}`, `/src/assets/${name}`])

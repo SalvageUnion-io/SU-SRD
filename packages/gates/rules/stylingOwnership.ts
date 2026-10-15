@@ -313,11 +313,9 @@ function scanDashContract(c: Corpus): Finding[] {
 /** The ONE stylesheet entry: it alone imports the reset and the package stylesheet. */
 const STYLESHEET_ENTRY = 'packages/component-lib/src/styles/entry.css'
 
-/**
- * The two app entries, the stylesheets that load the package: named, not
- * discovered, as a partial like `print.css` neither should nor could import it.
- */
+/** The consumer (the base stylesheet, `apps/web/src/styles/baseStylesheet.ts`), then the apps' own, which must not import it again. */
 const ENTRY_CONSUMERS = [
+  'apps/web/src/styles/base.css',
   'apps/web/src/cantina/index.css',
   'apps/web/src/styles/global.css',
 ] as const
@@ -355,14 +353,16 @@ const ENTRY_CONSUMERS = [
  */
 function scanPackageStylesheetImport(c: Corpus): Finding[] {
   const out: Finding[] = []
-
   for (const rel of ENTRY_CONSUMERS) {
     const css = stripCssComments(c.read(rel))
-    if (!/@import\s+['"]component-lib\/styles\/entry\.css['"]/.test(css)) {
+    const imports = /@import\s+['"]component-lib\/styles\/entry\.css['"]/.test(css)
+    if (imports !== (rel === ENTRY_CONSUMERS[0])) {
       out.push({
         file: rel,
         line: 1,
-        detail: `does not import the shared stylesheet entry (${STYLESHEET_ENTRY})`,
+        detail: imports
+          ? `imports the shared stylesheet entry, which the base stylesheet (${ENTRY_CONSUMERS[0]}) already loads`
+          : `does not import the shared stylesheet entry (${STYLESHEET_ENTRY})`,
       })
     }
     const own = css
@@ -556,7 +556,7 @@ const RULES: OwnershipRule[] = [
     id: 'package-stylesheet-import',
     mode: 'zero',
     rule: 'ruleset §the package stylesheet is the ONE stylesheet a consumer loads, layered under the apps (#799, epic #802)',
-    fix: "Every consumer (both apps) imports 'component-lib/styles/entry.css' and never index.css or reset.css itself. That one entry declares the order (`@layer su-reset, su-base;`) and imports './reset.css' layer(su-reset) and './index.css' layer(su-base), after the theme.css import.",
+    fix: "The base stylesheet both apps link (apps/web/src/styles/base.css) imports 'component-lib/styles/entry.css'; nothing imports index.css or reset.css itself. That one entry declares the order (`@layer su-reset, su-base;`) and imports './reset.css' layer(su-reset) and './index.css' layer(su-base), after the theme.css import.",
     scan: scanPackageStylesheetImport,
   },
   {

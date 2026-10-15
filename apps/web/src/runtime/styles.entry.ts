@@ -6,13 +6,9 @@
  * entry and nothing else; `BaseLayout.tsx`, the page modules and everything
  * under `ssg/` must stay free of stylesheet imports. See `ssg/DESIGN.md`,
  * hard rule 1.
+ *
+ * The fonts and the package stylesheet are not here: they are the base
+ * stylesheet both apps share (`src/styles/base.css`), linked on its own.
  */
 
-import '@fontsource/barlow/400.css'
-import '@fontsource/barlow/500.css'
-import '@fontsource/barlow/600.css'
-import '@fontsource/barlow/700.css'
-import '@fontsource/barlow-semi-condensed/500.css'
-import '@fontsource/barlow-semi-condensed/600.css'
-import '@fontsource/barlow-semi-condensed/700.css'
 import '../styles/global.css'

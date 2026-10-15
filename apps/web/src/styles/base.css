@@ -1,0 +1,19 @@
+/*
+ * The base stylesheet: the one both apps load, from one URL, so a visit that
+ * crosses from srd to the Cantina (or back) downloads it once.
+ *
+ * The Barlow faces, then the token set, the reset and the package stylesheet
+ * in their load-bearing cascade order from the one shared entry (see its
+ * header). Each app's own stylesheet loads after it and carries only that
+ * app's rules: srd's `global.css`, the Cantina's `index.css`.
+ *
+ * Built once, by `baseStylesheet.ts`, into `/assets/base-<hash>.css`.
+ */
+@import '@fontsource/barlow/400.css';
+@import '@fontsource/barlow/500.css';
+@import '@fontsource/barlow/600.css';
+@import '@fontsource/barlow/700.css';
+@import '@fontsource/barlow-semi-condensed/500.css';
+@import '@fontsource/barlow-semi-condensed/600.css';
+@import '@fontsource/barlow-semi-condensed/700.css';
+@import 'component-lib/styles/entry.css';

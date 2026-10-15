@@ -1,5 +1,5 @@
-import { copyFileSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { copyFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import react from '@vitejs/plugin-react-swc'
 import { CHECKOUT_HEADER, CHECKOUT_ROOT, portFor } from 'gates/ports'
@@ -10,6 +10,7 @@ import { ROUTER_PLUGIN_OPTIONS } from './routeTree.config'
 import { basePathOf, headersForBase, SITE } from './src/cantina/lib/site'
 import { WORKBOX_OPTIONS } from './src/cantina/lib/sw/workbox'
 import { renderShell, SHELL_DESCRIPTION, SHELL_THEME_COLOR } from './src/cantina/shell/shell'
+import { buildBaseStylesheet, DEV_BASE_STYLESHEET } from './src/styles/baseStylesheet'
 
 /**
  * Every build and dev server talks to a Convex deployment
@@ -112,6 +113,60 @@ function cantinaShell(): Plugin {
 }
 
 /**
+ * The precache, plus the base stylesheet and the fonts it names, which live
+ * outside the build (below): `baseStylesheet` adds them before the service
+ * worker is generated, as hashed URLs (`revision: null`).
+ */
+const workbox = {
+  ...WORKBOX_OPTIONS,
+  additionalManifestEntries: [] as Array<{ url: string; revision: null }>,
+}
+
+/** A font subset the precache leaves out (`UNFETCHED_FONT_SUBSETS`). */
+const UNFETCHED_SUBSET = /-(latin-ext|vietnamese)-/
+
+/**
+ * The base stylesheet both apps link (`src/styles/baseStylesheet.ts`): the fonts and the
+ * package stylesheet, at `/assets/base-<hash>.css`, ahead of the Cantina's own
+ * CSS. The build writes its files to `dist-cantina/assets/`, the asset root, not
+ * `build/`: merge-dist leaves them behind, and the deploy serves srd's identical
+ * copy. The dev server links the source, which srd's Vite server answers.
+ */
+function baseStylesheet(): Plugin {
+  let href = DEV_BASE_STYLESHEET
+  let build = false
+  return {
+    name: 'cantina-base-stylesheet',
+    configResolved({ command }) {
+      build = command === 'build'
+    },
+    async buildStart() {
+      if (!build) return
+      const base = await buildBaseStylesheet()
+      href = base.href
+      workbox.additionalManifestEntries.length = 0
+      for (const { fileName } of base.files) {
+        if (/\.(css|woff2)$/.test(fileName) && !UNFETCHED_SUBSET.test(fileName)) {
+          workbox.additionalManifestEntries.push({ url: `/${fileName}`, revision: null })
+        }
+      }
+    },
+    transformIndexHtml: {
+      order: 'post',
+      handler: (html) => html.replace('</title>', `</title><link rel="stylesheet" href="${href}">`),
+    },
+    async closeBundle() {
+      if (!build) return
+      for (const { fileName, source } of (await buildBaseStylesheet()).files) {
+        const target = join(DIST, fileName)
+        mkdirSync(dirname(target), { recursive: true })
+        writeFileSync(target, source)
+      }
+    },
+  }
+}
+
+/**
  * The shell's default link-preview tags (`index.html`'s `cantina:meta` block) name
  * production's address. A Worker Preview's build is given its own origin as
  * `VITE_CANTINA_ORIGIN` (`deploy-preview.yml`), and its shell names that instead,
@@ -162,6 +217,7 @@ export default defineConfig({
   plugins: [
     requireConvexUrl(),
     cantinaShell(),
+    baseStylesheet(),
     shellOrigin(SITE.base),
     devSrdOrigin(),
     TanStackRouterVite(ROUTER_PLUGIN_OPTIONS),
@@ -205,7 +261,7 @@ export default defineConfig({
       // no second registration script into index.html.
       injectRegister: false,
       includeAssets: ['favicon.svg'],
-      workbox: WORKBOX_OPTIONS,
+      workbox,
       manifest: {
         name: 'The Cantina — The Salvage Union Character Builder',
         short_name: 'Cantina',

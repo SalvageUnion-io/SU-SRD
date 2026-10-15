@@ -11,7 +11,10 @@
 # Worker sets the Cantina's CSP, apps/web/src/worker/build.ts).
 #
 # Refuses to overwrite: srd emits nothing under `build/`, so one already there
-# means a stale merge or a route that moved.
+# means a stale merge or a route that moved. The Cantina's copy of the shared
+# base stylesheet (`dist-cantina/assets/`, apps/web/src/styles/baseStylesheet.ts) stays
+# behind for srd's, and must match it byte for byte, or the Cantina would link
+# a file the site does not serve.
 set -euo pipefail
 
 root=$(cd "$(dirname "$0")/.." && pwd)
@@ -30,6 +33,13 @@ if [ -e "$to" ]; then
   echo "FATAL: $to already exists; srd emits nothing under build/." >&2
   exit 1
 fi
+
+for file in "$root/apps/web/dist-cantina/assets/"*; do
+  if ! cmp -s "$file" "$root/apps/web/dist/assets/$(basename "$file")"; then
+    echo "FATAL: the base stylesheet's $(basename "$file") differs between the two builds." >&2
+    exit 1
+  fi
+done
 
 cp -R "$from" "$to"
 echo "merge-dist: $(find "$to" -type f | wc -l | tr -d ' ') Cantina files in $to"

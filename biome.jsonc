@@ -115,6 +115,7 @@
       "!.claude",
       "!**/node_modules",
       "!**/dist",
+      "!**/dist-cantina",
       "!**/build",
       // `wrangler dev` writes its bundled Worker — plus the miniflare error
       // middleware it injects — into `.wrangler/tmp/`: generated JS nobody

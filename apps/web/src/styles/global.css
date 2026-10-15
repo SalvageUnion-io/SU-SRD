@@ -1,8 +1,8 @@
 /*
- * The token set, the reset and the package stylesheet, in their load-bearing
- * cascade order, come from the one shared entry; see its header.
+ * srd's own rules. The fonts, the token set, the reset and the package
+ * stylesheet are the base stylesheet (`base.css`), which every page links
+ * before this one.
  */
-@import 'component-lib/styles/entry.css';
 /* The page layouts. */
 @import './pages.css';
 

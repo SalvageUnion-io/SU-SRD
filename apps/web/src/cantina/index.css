@@ -1,8 +1,8 @@
 /*
- * The token set, the reset and the package stylesheet, in their load-bearing
- * cascade order, come from the one shared entry; see its header.
+ * The Cantina's own rules. The fonts, the token set, the reset and the package
+ * stylesheet are the base stylesheet both apps share
+ * (`apps/web/src/styles/base.css`), which the shell links before this one.
  */
-@import 'component-lib/styles/entry.css';
 /* The app's ONE print stylesheet. index.css declares no print rules of its own
    — a second block here is what let six rules duplicate and one contradict. */
 @import './styles/print.css';

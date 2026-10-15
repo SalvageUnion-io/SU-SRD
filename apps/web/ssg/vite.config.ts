@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url'
 import react from '@vitejs/plugin-react-swc'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
+import { emitBaseStylesheet } from '../src/styles/baseStylesheet'
 import { WORKBOX_OPTIONS } from './pwa'
 
 const appRoot = fileURLToPath(new URL('..', import.meta.url))
@@ -23,6 +24,8 @@ export default defineConfig({
   publicDir: fileURLToPath(new URL('../public', import.meta.url)),
   plugins: [
     react(),
+    // The fonts and the package stylesheet, shared with the Cantina: ./baseStylesheet.
+    emitBaseStylesheet(),
     // The service worker; its options and their reasons are in ./pwa. No web
     // manifest (public/site.webmanifest is hand-written) and no injected
     // registration: there is no index.html to inject into, and
