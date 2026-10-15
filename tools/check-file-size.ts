@@ -57,11 +57,11 @@ export const OVER_BUDGET: Readonly<Record<string, number>> = {
   'apps/web/src/components/atoms/VitalGauge.tsx': 714,
   'apps/web/src/components/referenceEntity/card/ReferenceEntityCard.tsx': 817,
   'packages/gates/lib/statFidelity.ts': 780,
-  'packages/gates/rules/stylingOwnership.ts': 629,
+  'packages/gates/rules/stylingOwnership.ts': 628,
   'packages/salvageunion-reference/lib/rules/derivedStats.ts': 652,
   'tools/check-doc-drift.ts': 1_063,
   'tools/check-rules-fidelity.ts': 1_014,
-  'tools/check-workflows.ts': 809,
+  'tools/check-workflows.ts': 797,
 }
 
 const SOURCE = /\.(tsx?|m?js)$/

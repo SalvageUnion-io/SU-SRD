@@ -59,7 +59,7 @@ describe('parseArgs', () => {
 describe('planShot', () => {
   test("a /route goes to this checkout's dev server as is", () => {
     expect(planShot({ target: '/chassis/mule/' })).toEqual({
-      server: expect.objectContaining({ name: 'dev', port: portFor('web') }),
+      server: expect.objectContaining({ name: 'dev', port: portFor() }),
       path: '/chassis/mule/',
     })
   })
@@ -310,7 +310,7 @@ describe('main', () => {
     expect(r.code).toBe(0)
     const file = `${out}/chassis-mule-phone.png`
     expect(r.out).toEqual([file])
-    const url = `http://localhost:${portFor('web')}/chassis/mule/`
+    const url = `http://localhost:${portFor()}/chassis/mule/`
     expect(r.err).toEqual([`[shot] warning: ${url} answered 404`])
     expect(calls[0]).toBe('page 375')
     expect(calls[1]).toBe(`goto ${url}`)

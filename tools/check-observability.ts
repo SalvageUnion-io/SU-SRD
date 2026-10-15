@@ -4,10 +4,12 @@
  *
  * Workers Issues is the error tracker (packages/observability/src/cloudflare.ts).
  * It needs nothing in a Worker's code, so the ways to go blind are all wiring:
- * a Worker that never turned Issues on, a browser app that never starts its
- * reporter or whose Worker never routes the report, a CSP that blocks the
- * report before it leaves the page. Each looks exactly like a healthy app with
- * no errors. This gate (the `observability` check, so every PR) asserts:
+ * a browser app that never starts its reporter or whose Worker never routes
+ * the report, a CSP that blocks the report before it leaves the page. Each
+ * looks exactly like a healthy app with no errors. (A Worker that never turned
+ * Issues on is the `workers` check's: tools/check-workers.ts reads every
+ * wrangler.jsonc already.) This gate (the `observability` check, so every PR)
+ * asserts:
  *
  *   1. the app's observability module posts to `ERROR_REPORT_PATH`,
  *   2. its init is CALLED from both entries: the static pages' islands and the
@@ -19,14 +21,11 @@
  *      it, and a CSP without the two origins records nothing: from the site's
  *      creation until 3.0.0 the dashboard counted one page load in six weeks.
  *   4. its Worker routes `ERROR_REPORT_PATH` to `handleErrorReport` and
- *      `CONVEX_LOG_STREAM_PATH` to `handleConvexLogStream`,
- *   5. every Worker's config turns on logs, Issues and `upload_source_maps`.
+ *      `CONVEX_LOG_STREAM_PATH` to `handleConvexLogStream`.
  *
- * Every assertion reads PARSED source, never raw text: TypeScript goes through
- * `Bun.Transpiler` (which drops comments) and `wrangler.jsonc` through Bun's
- * JSONC loader. These files are heavily commented, and a text match is
- * satisfied by the prose — an init call commented out, or a setting named only
- * in a comment.
+ * Every TypeScript assertion reads PARSED source, never raw text, through
+ * `Bun.Transpiler` (which drops comments). These files are heavily commented,
+ * and a text match is satisfied by the prose — an init call commented out.
  *
  * Usage: bun tools/check-observability.ts
  */
@@ -57,28 +56,6 @@ const BROWSER_APP: BrowserApp = {
   extraHandlers: ['handleConvexLogStream'],
 }
 
-/**
- * The Cloudflare Workers that serve production. A guard that does not know
- * about a surface cannot fail for it, so every production Worker is listed.
- */
-type WorkerSurface = {
-  name: string
-  /** Its wrangler config, relative to repo root. */
-  configPath: string
-}
-
-const WORKER_SURFACES: WorkerSurface[] = [
-  { name: 'srd-worker', configPath: 'apps/web/wrangler.jsonc' },
-  { name: 'su-assets-worker', configPath: 'apps/su-assets/wrangler.jsonc' },
-  { name: 'discord-bot-worker', configPath: 'apps/discord-bot/wrangler.jsonc' },
-]
-
-/** The slice of a `wrangler.jsonc` this gate reads. */
-type WranglerConfig = {
-  observability?: { enabled?: boolean; issues?: { enabled?: boolean } }
-  upload_source_maps?: boolean
-}
-
 const failures: string[] = []
 
 function fail(app: string, message: string): void {
@@ -96,13 +73,6 @@ function code(path: string): string | null {
   return new Bun.Transpiler({ loader }).transformSync(
     readFileSync(join(process.cwd(), path), 'utf8')
   )
-}
-
-/** A `wrangler.jsonc`, parsed; null when absent. */
-async function wranglerConfig(path: string): Promise<WranglerConfig | null> {
-  if (!exists(path)) return null
-  const module = (await import(join(process.cwd(), path))) as { default: WranglerConfig }
-  return module.default
 }
 
 /** A `_headers` file without its `#` comment lines; null when absent. */
@@ -195,35 +165,9 @@ function checkBrowserApp(app: BrowserApp): void {
   }
 }
 
-async function checkWorkerSurface(surface: WorkerSurface): Promise<void> {
-  const config = await wranglerConfig(surface.configPath)
-  if (config === null) {
-    fail(surface.name, `no wrangler config at ${surface.configPath}`)
-    return
-  }
-  if (config.observability?.enabled !== true) {
-    fail(surface.name, `${surface.configPath} does not turn on "observability" (Workers Logs)`)
-  }
-  if (config.observability?.issues?.enabled !== true) {
-    fail(
-      surface.name,
-      `${surface.configPath} does not turn on "observability.issues" — this Worker's ` +
-        `errors would be logged and grouped by nothing.`
-    )
-  }
-  if (config.upload_source_maps !== true) {
-    fail(
-      surface.name,
-      `${surface.configPath} does not set "upload_source_maps" — its issues would ` +
-        `point at the bundle, not the source.`
-    )
-  }
-}
-
-console.log('Checking observability wiring (module → entry → Worker → CSP, and the Workers)…')
+console.log('Checking observability wiring (module → entry → Worker → CSP)…')
 
 checkBrowserApp(BROWSER_APP)
-for (const surface of WORKER_SURFACES) await checkWorkerSurface(surface)
 
 if (failures.length > 0) {
   console.error(`\n✗ observability wiring failed:\n${failures.join('\n')}\n`)

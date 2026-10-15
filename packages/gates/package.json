@@ -9,10 +9,6 @@
       "types": "./lib/a11yScan.ts",
       "default": "./lib/a11yScan.ts"
     },
-    "./playwright": {
-      "types": "./lib/playwrightBase.ts",
-      "default": "./lib/playwrightBase.ts"
-    },
     "./ports": {
       "types": "./lib/ports.ts",
       "default": "./lib/ports.ts"

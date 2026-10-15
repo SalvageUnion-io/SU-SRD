@@ -577,13 +577,11 @@ esac`,
     }
   })
 
-  test('with no PR, counts against the nearer of main and design-refresh', async () => {
+  test('with no PR or upstream, counts against main', async () => {
     const f = await fixture('empty')
     try {
       const { stdout } = await f.run()
-      expect(stdout).toContain(
-        'vs origin/design-refresh (nearest of main and design-refresh; just fetched): 2 ahead, 0 behind'
-      )
+      expect(stdout).toContain('vs origin/main (nearest of main; just fetched): 3 ahead, 0 behind')
     } finally {
       f.cleanup()
     }

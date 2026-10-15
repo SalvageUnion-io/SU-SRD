@@ -11,7 +11,7 @@ import { stylingOwnership } from '../rules/stylingOwnership'
 import { DATA_DIR, PENDING_TL_GROUNDS, toneGround } from '../rules/toneGround'
 
 /**
- * `tools/check-styling.ts` gates merges on three rule sets. These tests pin the
+ * `tools/check-rule-sets.ts` gates merges on these rule sets. These tests pin the
  * engine's verdict logic and run each rule set against a fixture tree, so a
  * rule that silently stops matching fails here rather than going green on the
  * real repo.

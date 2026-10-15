@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * shot — a headless screenshot of an srd or the Cantina page, for an agent that has
+ * shot — a headless screenshot of one of the site's pages, for an agent that has
  * no browser preview.
  *
  *   bun run shot </route|cantina:/route> [--width phone|column|page] [--out <dir>]
@@ -10,7 +10,7 @@
  * once hand-rolled a Playwright script for its screenshots). This is that
  * script, once.
  *
- * - A target starting with `/` is an srd route. `cantina:/route` is a Cantina
+ * - A target starting with `/` is a path on the site. `cantina:/route` is a Cantina
  *   route (under its `/build` base, so `cantina:/starter` is `/build/starter`).
  *   One dev server answers both: a running `bun run dev`, or else the dev server
  *   alone (`ssg/dev.ts`, no `convex dev`) booted signed out with no backend:
@@ -72,7 +72,7 @@ export const NO_BACKEND = 'http://127.0.0.1:9'
 
 const DEV: Server = {
   name: 'dev',
-  port: portFor('web'),
+  port: portFor(),
   // The dev server itself, not `bun run dev`, which starts a Convex backend.
   cmd: ['bun', 'ssg/dev.ts'],
   cwd: join(REPO, 'apps/web'),

@@ -5,7 +5,7 @@ import { expect, test } from '@playwright/test'
  * and back with the network cut. One service worker precaches both halves
  * (`src/pwa.ts`), so this is the spec that proves they are one app offline.
  *
- * Service workers are blocked for every other spec (`playwrightBase.ts`); this
+ * Service workers are blocked for every other spec (`playwright.config.ts`); this
  * file opts back in. A dev server emits no worker, so locally it skips; in CI,
  * against the built site, it must run.
  */

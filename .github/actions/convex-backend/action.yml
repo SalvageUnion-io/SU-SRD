@@ -4,7 +4,7 @@ description: Start a self-hosted Convex backend in a container, push the Cantina
 # The backend a CI job builds the site against when it must not touch production:
 # ci.yml's `build-web` (the PR browser gate) and `perf`, e2e-nightly.yml's
 # `e2e` (the signed-in suite) and gallery.yml's `shoot`. The build is
-# the one `bun run build` (srd, then the Cantina into `dist/build/`), which
+# the one `bun run build` (the reference pages, then the Cantina into `dist/build/`), which
 # needs a Convex URL for the Cantina. The container dies with
 # the runner, holds no data and needs no credentials, so a job using it
 # requests no secrets.
@@ -123,8 +123,8 @@ runs:
         # for it, and omitting it fails as an opaque 500.
         bunx convex env set SITE_URL http://localhost:4321/build
 
-    # `build:untyped` skips `build`'s typecheck: ci.yml's static-checks
-    # typechecks every workspace, and nothing here is a type gate.
+    # `build` does not typecheck: ci.yml's static-checks typechecks every
+    # workspace, and nothing here is a type gate.
     # `--cmd` builds with VITE_CONVEX_URL injected. Playwright's CI webServer
     # reuses an existing `apps/web/dist`, so this build is what the browser
     # actually receives.
@@ -135,4 +135,4 @@ runs:
         CONVEX_SELF_HOSTED_URL: http://127.0.0.1:3210
         CONVEX_SELF_HOSTED_ADMIN_KEY: ${{ steps.adminkey.outputs.key }}
         VITE_TEST_AUTH: ${{ inputs.test-auth }}
-      run: bunx convex deploy --cmd-url-env-var-name VITE_CONVEX_URL --cmd "bun run build:untyped"
+      run: bunx convex deploy --cmd-url-env-var-name VITE_CONVEX_URL --cmd "bun run build"

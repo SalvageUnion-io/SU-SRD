@@ -44,14 +44,22 @@ jobs:
           filters: |
             shared: &shared
               - 'packages/ref/**'
-            assets:
+              - 'package.json'
+              - 'bun.lock'
+              - 'bunfig.toml'
+              - 'tsconfig*.json'
+              - '.github/workflows/**'
+              - '.github/actions/**'
+              - 'ABOUT_JRVS.md'
+              - 'LLM_STATEMENT.md'
+              - 'SPECIAL_THANKS.md'
+            workers:
               - *shared
               - 'apps/su-assets/**'
+              - 'apps/discord-bot/**'
             web:
               - *shared
               - 'apps/web/**'
-            bot:
-              - *shared
             code:
               - 'apps/**'
   build:
@@ -332,7 +340,7 @@ describe('path-filters', () => {
   test('an app mapped to a group ci.yml does not define fails, naming the group', () => {
     const c = ctx({
       ci: CI_TEXT.replace(
-        "            assets:\n              - *shared\n              - 'apps/su-assets/**'\n",
+        "            workers:\n              - *shared\n              - 'apps/su-assets/**'\n              - 'apps/discord-bot/**'\n",
         ''
       ),
     })
@@ -341,7 +349,18 @@ describe('path-filters', () => {
       dependencies: { ref: 'workspace:*' },
     })
     expect(checkPathFilters(c).failures).toContain(
-      'apps/su-assets maps to filter group `assets`, which .github/workflows/ci.yml does not define.'
+      'apps/su-assets maps to filter group `workers`, which .github/workflows/ci.yml does not define.'
+    )
+  })
+
+  test('a path the deploy treats as shared but ci.yml does not fails', () => {
+    const c = ctx({ ci: CI_TEXT.replace("              - 'bun.lock'\n", '') })
+    expect(checkPathFilters(c).failures).toContainEqual(
+      expect.stringContaining('ships every surface on a change to `bun.lock`')
+    )
+    const globbed = ctx({ ci: CI_TEXT.replace("              - 'tsconfig*.json'\n", '') })
+    expect(checkPathFilters(globbed).failures).toContainEqual(
+      expect.stringContaining('a change to `tsconfig*`, but')
     )
   })
 
@@ -505,6 +524,33 @@ describe('deploy-order', () => {
     )
     expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
       expect.stringContaining('has no job that runs `convex deploy`'),
+    ])
+  })
+
+  test('a step inside a local composite action counts as the calling job’s', () => {
+    const deploy = DEPLOY_TEXT.replace(
+      '      - name: Push\n        run: bunx convex deploy --cmd "true"\n',
+      '      - name: Push\n        uses: ./.github/actions/push\n'
+    ).replace(
+      '      - run: bun run build\n      - uses: actions/upload-artifact@v7\n        with:\n          name: cantina-dist\n',
+      '      - uses: ./.github/actions/build/\n'
+    )
+    const actions = [
+      yaml(
+        '.github/actions/push/action.yml',
+        'runs:\n  using: composite\n  steps:\n    - run: bunx convex deploy\n      shell: bash\n'
+      ),
+      yaml(
+        '.github/actions/build/action.yml',
+        'runs:\n  using: composite\n  steps:\n    - run: bun run build\n      shell: bash\n' +
+          '    - uses: actions/upload-artifact@v7\n      with:\n        name: cantina-dist\n'
+      ),
+    ]
+    expect(checkDeployOrder(ctx({ deploy, extra: actions })).failures).toEqual([])
+    // The action read through, not merely named: without it there is no push or build.
+    expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
+      expect.stringContaining('has no job that runs `convex deploy`'),
+      expect.stringContaining('downloads `cantina-dist`, which no job uploads'),
     ])
   })
 
