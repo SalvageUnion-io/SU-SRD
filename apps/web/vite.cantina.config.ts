@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
@@ -106,14 +107,26 @@ function cantinaShell(): Plugin {
 }
 
 /**
- * The precache, plus the base stylesheet and the fonts it names, which live
- * outside the build (below): `baseStylesheet` adds them before the service
- * worker is generated, as hashed URLs (`revision: null`).
+ * The precache, plus the files the Cantina links from outside its build: the
+ * base stylesheet and the fonts it names, as hashed URLs (`revision: null`),
+ * and `SRD_PUBLIC`. `baseStylesheet` adds them before the service worker is
+ * generated.
  */
 const workbox = {
   ...WORKBOX_OPTIONS,
-  additionalManifestEntries: [] as Array<{ url: string; revision: null }>,
+  additionalManifestEntries: [] as Array<{ url: string; revision: string | null }>,
 }
+
+/**
+ * srd's `public/` files the Cantina links at the site's root rather than
+ * shipping its own copies (`MARK_SRC`, the footer mark, the shell's icons).
+ * Precached by content, as fixed names.
+ */
+const SRD_PUBLIC = [
+  'logos/su-cargo-dark.svg',
+  'Powered_by_Salvage_Black.webp',
+  'web-app-manifest-192x192.png',
+]
 
 /** A font subset the precache leaves out (`UNFETCHED_FONT_SUBSETS`). */
 const UNFETCHED_SUBSET = /-(latin-ext|vietnamese)-/
@@ -143,6 +156,12 @@ function baseStylesheet(): Plugin {
         if (/\.(css|woff2)$/.test(fileName) && !UNFETCHED_SUBSET.test(fileName)) {
           workbox.additionalManifestEntries.push({ url: `/${fileName}`, revision: null })
         }
+      }
+      for (const file of SRD_PUBLIC) {
+        const revision = createHash('md5')
+          .update(readFileSync(join(HERE, 'public', file)))
+          .digest('hex')
+        workbox.additionalManifestEntries.push({ url: `/${file}`, revision })
       }
     },
     transformIndexHtml: {

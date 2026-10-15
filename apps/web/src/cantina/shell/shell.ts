@@ -87,9 +87,13 @@ function headTags(): string {
         rel: 'icon',
         type: 'image/png',
         sizes: '192x192',
-        href: '/icon-192.png',
+        href: '/web-app-manifest-192x192.png',
       }),
-      createElement('link', { rel: 'apple-touch-icon', sizes: '192x192', href: '/icon-192.png' }),
+      createElement('link', {
+        rel: 'apple-touch-icon',
+        sizes: '192x192',
+        href: '/web-app-manifest-192x192.png',
+      }),
       createElement('title', null, SHELL_TITLE)
     )
   )

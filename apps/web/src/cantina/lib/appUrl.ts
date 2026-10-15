@@ -25,13 +25,8 @@ export function appRoot(origin: string = window.location.origin): string {
 }
 
 /**
- * A file from the Cantina's `public/` as the page asks for it: under the base
- * (`/build/logos/…`). A root path would be srd's copy on salvageunion.io and
- * missing on a Worker Preview or the dev server.
+ * The SU mark the Cantina draws in its chrome and on its link-preview cards:
+ * srd's `public/` file at the site's root, which every deployment, Preview and
+ * the dev server serve beside `/build/`.
  */
-export function publicPath(file: string): string {
-  return `${BASE_PATH}/${file.replace(/^\/+/, '')}`
-}
-
-/** The SU mark the Cantina draws in its chrome and on its link-preview cards. */
-export const MARK_SRC = publicPath('logos/su-cargo-dark.svg')
+export const MARK_SRC = '/logos/su-cargo-dark.svg'
