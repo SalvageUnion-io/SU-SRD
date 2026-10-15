@@ -24,6 +24,7 @@
 import { createElement, Fragment } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { SITE } from '../lib/site'
+import { renderUnionBar } from './unionBar'
 
 /** The product's name (`PRODUCT.name`; `lib/__tests__/productName.test.ts` holds them equal). */
 const SHELL_TITLE = 'The Cantina'
@@ -95,16 +96,20 @@ function headTags(): string {
 }
 
 /**
- * The body: the root the app mounts on, and `/main.tsx`, the source entry, which
- * the build replaces with its hashed chunk (and the dev server serves as is).
+ * The body: the Union bar (`./unionBar`), the root the app mounts on, and
+ * `/main.tsx`, the source entry, which the build replaces with its hashed chunk
+ * (and the dev server serves as is).
  */
 function bodyTags(): string {
-  return renderToStaticMarkup(
-    createElement(
-      Fragment,
-      null,
-      createElement('div', { id: 'root' }),
-      createElement('script', { type: 'module', src: '/main.tsx' })
+  return (
+    renderUnionBar() +
+    renderToStaticMarkup(
+      createElement(
+        Fragment,
+        null,
+        createElement('div', { id: 'root' }),
+        createElement('script', { type: 'module', src: '/main.tsx' })
+      )
     )
   )
 }

@@ -10,7 +10,7 @@
     "build": "bun run typecheck && bun run build:untyped",
     "build:untyped": "bun ssg/build.ts",
     "build:cantina": "bun run typecheck && bun run build:cantina:untyped",
-    "build:cantina:untyped": "vite build -c vite.cantina.config.ts",
+    "build:cantina:untyped": "vite build -c vite.cantina.config.ts --configLoader runner",
     "og:generate": "bun ssg/build.ts && OG_SCREENSHOTS=1 bun scripts/og-screenshots.ts",
     "brand": "bun scripts/brand/build.ts",
     "og:install-browser": "playwright install chromium --only-shell",

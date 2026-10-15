@@ -29,7 +29,7 @@
  * The Cantina is a single-page app, so this touches only a real document load:
  * a link between it and the SRD (the shared Union bar's). Without it, a
  * transition the SRD starts reaches a page that has not opted in, and the
- * browser aborts it with `ViewTransition opt-in disabled`. `AppHeader.tsx`
+ * browser aborts it with `ViewTransition opt-in disabled`. `shell/unionBar.ts`
  * names the bar `nav`, as srd does, so the bar is matched across the swap.
  */
 @view-transition {

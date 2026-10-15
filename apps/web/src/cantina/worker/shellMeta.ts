@@ -20,6 +20,7 @@
  */
 
 import { PRODUCT } from 'component-lib/product'
+import { BAR_HIDDEN_ATTRIBUTE } from '../shell/unionSlots'
 
 /** Everything the shell's meta block says for one route. */
 export type ShellMeta = {
@@ -125,4 +126,13 @@ export function applyCanonical(shell: string, href: string): string {
   const end = shell.indexOf(META_END)
   if (start === -1 || end === -1 || end < start) return shell
   return `${shell.slice(0, end)}${canonicalTag(href)}\n    ${shell.slice(end)}`
+}
+
+/**
+ * Mark the shell as drawing no Union bar (`shell/unionSlots.ts`), for a route
+ * that hides it, so the bar is hidden from the first paint. Unchanged when the
+ * shell has no `<html` tag to mark.
+ */
+export function hideUnionBar(shell: string): string {
+  return shell.replace(/<html(?=[\s>])/, () => `<html ${BAR_HIDDEN_ATTRIBUTE}`)
 }

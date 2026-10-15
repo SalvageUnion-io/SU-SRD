@@ -18,7 +18,7 @@ import worker from '../index'
  */
 
 const BASE = '/build'
-const SHELL = '<!doctype html>SPA'
+const SHELL = '<!doctype html><html lang="en">SPA'
 const CSP = "default-src 'self'"
 const IMMUTABLE = 'public, max-age=31536000, immutable'
 const CHUNK = `${BASE}/assets/index-C0FFEE12.js`
@@ -195,6 +195,24 @@ describe('a navigation gets the shell', () => {
       expect(env.ASSETS.asked).toEqual([`${BASE}${path.split('?')[0]}`])
     })
   }
+})
+
+/** The Dashboard and the link-preview surface draw no Union bar, from the first paint. */
+describe('a route that draws no Union bar', () => {
+  for (const path of ['/dashboard/abc', '/og/pilot/abc']) {
+    it(`gets a shell marked to hide it for ${path}`, async () => {
+      const res = await worker.fetch(navigateTo(`https://salvageunion.io${BASE}${path}`), envWith())
+      expect(res.status).toBe(200)
+      expect(await res.text()).toBe('<!doctype html><html data-union-bar-hidden lang="en">SPA')
+      expect(res.headers.get('content-security-policy')).toBe(CSP)
+    })
+  }
+
+  it('leaves a file alone', async () => {
+    const env = envWith({ [`${BASE}/dashboard/x.png`]: { body: 'png', type: 'image/png' } })
+    const res = await worker.fetch(req('/dashboard/x.png'), env)
+    expect(await res.text()).toBe('png')
+  })
 })
 
 /**

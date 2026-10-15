@@ -89,13 +89,13 @@ function GameDataFallback() {
  * JSON; docs/ARCHITECTURE.md#data-flow has the fuller rationale.
  *
  * Off the critical rendering path: this wraps only `<Outlet />` and
- * `<GlobalSearch />` in routes/__root.tsx. `<AppHeader />` (brand chrome, no
- * reference data) is a SIBLING one level up, outside this Suspense boundary, so
- * it paints on the first frame. A non-blocking preload would need every
+ * `<GlobalSearch />` in routes/__root.tsx. The Union bar (brand chrome, no
+ * reference data) is the shell's, outside the app's root altogether, so it
+ * paints before the app boots. A non-blocking preload would need every
  * ORM-touching component to tolerate a not-ready state. One trade-off:
  * `GameDataFallback` sizes itself to the full dynamic viewport height, so while
- * `AppHeader` shows it overshoots by the header's height for the brief loading
- * window, rather than threading `showAppHeader` through for a cosmetic fix.
+ * the bar shows it overshoots by the bar's height for the brief loading
+ * window, rather than measuring the bar for a cosmetic fix.
  */
 export function GameDataReady({ children }: { children: ReactNode }) {
   // App-wide "View in SRD" cross-link injection: full

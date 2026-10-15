@@ -1,7 +1,7 @@
 import { createRootRoute, HeadContent, Outlet, useRouterState } from '@tanstack/react-router'
 import type { EntitySurfaceValue } from 'component-lib'
 import { EntityHrefProvider, EntitySurfaceProvider, Toaster } from 'component-lib'
-import { useState } from 'react'
+import { useLayoutEffect, useState } from 'react'
 import { AccountHintSync } from '../components/account/AccountHintSync'
 import { AccountReconciler } from '../components/account/AccountReconciler'
 import {
@@ -12,7 +12,6 @@ import {
 } from '../components/account/HeaderAccount'
 import { TestAuthBridge } from '../components/account/TestAuthBridge'
 import { AppConvexProvider } from '../components/shared/AppConvexProvider'
-import { AppHeader } from '../components/shared/AppHeader'
 import { AppLink } from '../components/shared/AppLink'
 import { EntityPageHost } from '../components/shared/EntityPageHost'
 import { GameDataReady } from '../components/shared/GameDataReady'
@@ -20,8 +19,10 @@ import { GlobalSearch } from '../components/shared/GlobalSearch'
 import { NotConnectedBanner } from '../components/shared/NotConnectedBanner'
 import { RootErrorComponent } from '../components/shared/RouteErrors'
 import { SiteFooter } from '../components/shared/SiteFooter'
+import { UnionBarSlots } from '../components/shared/UnionBarSlots'
 import { cantinaEntityHref } from '../lib/entityHref'
 import { pageTitle } from '../lib/pageTitle'
+import { BAR_HIDDEN_ATTRIBUTE, hidesUnionBar } from '../shell/unionSlots'
 // The tagline's script face, self-hosted like the Barlow faces in the shared base
 // stylesheet: fonts stay on-origin, so the CSP needs no external host.
 import '@fontsource/caveat/600.css'
@@ -46,17 +47,18 @@ export const Route = createRootRoute({
 })
 
 /**
- * The Union bar with the Cantina's slots filled. Its own component because its
- * account slots read the connection, which only exists inside
- * `AppConvexProvider`.
+ * The Union bar's slots, filled (`UnionBarSlots`; the bar is the shell's). Its
+ * own component because its account slots read the connection, which only
+ * exists inside `AppConvexProvider`.
  */
-function RootHeader({ pathname }: { pathname: string }) {
+function RootHeader({ pathname, barHidden }: { pathname: string; barHidden: boolean }) {
   // The reference search's open state, shared by its desktop and phone triggers.
   const [searchOpen, setSearchOpen] = useState(false)
   return (
-    <AppHeader
-      LinkComponent={AppLink}
+    <UnionBarSlots
       pathname={pathname}
+      barHidden={barHidden}
+      banner={<NotConnectedBanner />}
       games={<HeaderGames pathname={pathname} />}
       search={<GlobalSearch variant="bar" open={searchOpen} onOpenChange={setSearchOpen} />}
       mobileSearch={<GlobalSearch variant="icon" open={searchOpen} onOpenChange={setSearchOpen} />}
@@ -70,8 +72,12 @@ function RootHeader({ pathname }: { pathname: string }) {
 function RootComponent() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   // The Dashboard draws its own bar at every width, so it has no masthead
-  // (ADR-045 §6, board D1): the canvas's rail, the phone form's ink bar.
-  const onDashboard = pathname.startsWith('/dashboard/')
+  // (ADR-045 §6, board D1): the canvas's rail, the phone form's ink bar. Nor
+  // does a link preview's render surface. The shell's bar is hidden there.
+  const barHidden = hidesUnionBar(pathname)
+  useLayoutEffect(() => {
+    document.documentElement.toggleAttribute(BAR_HIDDEN_ATTRIBUTE, barHidden)
+  }, [barHidden])
 
   // A link preview's render surface (`/og/*`) is a picture, not a
   // page: the card alone, with Convex and the reference data and none of the
@@ -91,21 +97,10 @@ function RootComponent() {
       <HeadContent />
       <EntityHrefProvider value={cantinaEntityHref}>
         <EntitySurfaceProvider value={ENTITY_SURFACE}>
-          {/* The shared brand header renders on every route but the Dashboard,
-          which draws its own bar (ADR-045) — including the live sheet
-          (/sheet/*) and public sheet (/p/*) surfaces, which sit below it and
-          keep their own sticky control bar. It renders ONE level above
-          the game-data gate (a sibling of GameDataReady, not a child) — see
-          GameDataReady.tsx's doc comment: brand chrome touches no reference
-          data, so it paints immediately instead of sitting behind the full
-          preload. */}
-          {/* Skip link (WCAG 2.4.1), the SRD's: the first focusable thing on
-            the page, ahead of the banners and the Union bar, so a keyboard
-            reader is not walked through the whole bar before the content. */}
-          <a href="#main-content" className="su-skip-link">
-            Skip to content
-          </a>
-          <NotConnectedBanner />
+          {/* The Union bar is the shell's, above this root, with the skip
+            link (WCAG 2.4.1) ahead of it. `RootHeader` fills the not-connected
+            banner above it on every route, and its slots on every route that
+            shows it. */}
           {/* The account gate (ADR-034 decision 1) and the migration off
             device-only storage (ADR-035), as one surface: says what is at
             stake while signed out, moves it into the account on sign-in, and
@@ -120,7 +115,7 @@ function RootComponent() {
           <TestAuthBridge />
           {/* The Page opener every Mention and Tag reads, and the app's Peek. */}
           <EntityPageHost>
-            {onDashboard ? null : <RootHeader pathname={pathname} />}
+            <RootHeader pathname={pathname} barHidden={barHidden} />
             {/* The skip link's target. A plain block, not a `<main>`: each
                 route draws its own `<main>` (a sheet's is `LiveSheet`), and a
                 second one would be a duplicate landmark. `tabIndex={-1}` makes

@@ -5,8 +5,8 @@
  *
  *   - `components/account/SignInControl.tsx` — `.su-sign-in-control--dark`, the
  *     ghost Button recoloured for the dark masthead (hover included).
- *   - `components/shared/AppHeader.tsx` — `.su-app-header__drawer-trigger` /
- *     `.su-app-header__drawer-panel`, NavDrawer's `triggerClassName` /
+ *   - `components/shared/UnionBarSlots.tsx` — `.su-union-slots__drawer-trigger` /
+ *     `.su-union-slots__drawer-panel`, NavDrawer's `triggerClassName` /
  *     `panelClassName`, which override `.su-nav-drawer__*` rules.
  *
  * These rules are unlayered, so they outrank component-lib's `su-base` layer —
@@ -32,11 +32,17 @@
   }
 }
 
+/* The Dashboard and the link-preview surface draw no Union bar
+   (`hidesUnionBar`); the shell's is in the document, so it is hidden. */
+html[data-union-bar-hidden] .su-union-bar {
+  display: none;
+}
+
 /* The mobile drawer: a 6px hamburger and an 18rem panel. */
-.su-app-header__drawer-trigger {
+.su-union-slots__drawer-trigger {
   padding: var(--space-6);
 }
-.su-app-header__drawer-panel {
+.su-union-slots__drawer-panel {
   width: 18rem;
 }
 

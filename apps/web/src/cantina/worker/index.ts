@@ -43,7 +43,8 @@
  *      Starter Set build, `publicPages.ts`) asked for the same way gets the
  *      shell with its own title, description, canonical and `og:*`.
  *   3. anything else      → the binding's answer: the shell for a navigation
- *      to any client route.
+ *      to any client route (marked to hide the Union bar on the routes that
+ *      draw none).
  *
  * Rules 2 and 3 answer with the shell, and every client route but the public
  * ones (`indexable`) carries `X-Robots-Tag: noindex`: a game, a pilot's sheet
@@ -85,13 +86,14 @@ import {
   handleErrorReport,
 } from 'observability/cloudflare'
 import { retiredDocPage } from '../lib/docPages'
+import { hidesUnionBar } from '../shell/unionSlots'
 import { inBase, outsideBase, pathInApp } from './basePath'
 import type { ImageCache, PreviewEnv, PreviewRoute } from './linkPreview'
 import { isOgImagePath, metaFor, ogImage, previewRouteOf } from './linkPreview'
 import type { PublicPage } from './publicPages'
 import { publicMeta, publicPageOf, publicUrl, SITEMAP_PATH, sitemap } from './publicPages'
 import { retiredTarget } from './retiredRedirects'
-import { applyCanonical, applyMeta } from './shellMeta'
+import { applyCanonical, applyMeta, hideUnionBar } from './shellMeta'
 
 export type Env = PreviewEnv & {
   /**
@@ -176,8 +178,11 @@ export default {
     const page = crawled ? publicPageOf(path) : null
     if (page !== null) return robotsFor(path, await publicShell(page, url, env, base))
 
-    // 3. Everything else: the asset server's answer, `_headers` and all.
-    return robotsFor(path, await env.ASSETS.fetch(request))
+    // 3. Everything else: the asset server's answer, `_headers` and all. A
+    // route that draws no Union bar gets a shell that hides it from the start.
+    const res = await env.ASSETS.fetch(request)
+    const bare = hidesUnionBar(path) && isShell(res)
+    return robotsFor(path, bare ? await rewritten(res, hideUnionBar) : res)
   },
 }
 

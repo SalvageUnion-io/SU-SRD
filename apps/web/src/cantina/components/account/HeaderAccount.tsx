@@ -4,7 +4,7 @@ import { AccountMenu } from './AccountMenu'
 import { SignInControl } from './SignInControl'
 
 /**
- * What the Cantina puts in the masthead's app slots (`AppHeader`'s `games`,
+ * What the Cantina puts in the masthead's app slots (`UnionBarSlots`' `games`,
  * `actions`, `mobileActions` and `drawerExtra`) — the account and the Games,
  * wired to Convex here so `component-lib` stays persistence-agnostic.
  *

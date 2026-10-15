@@ -7,8 +7,8 @@ import { Speckle } from '../atoms/Speckle'
 
 /**
  * AppBar — the Union bar: the one masthead both SU tools wear (ruleset §3.11,
- * "One union, two tools"; origin board 05). The SRD `TopNavigation` and the Cantina
- * `AppHeader` are thin presets over it.
+ * "One union, two tools"; origin board 05). The SRD `TopNavigation` and the Cantina's
+ * shell (`shell/unionBar.ts`) are thin presets over it.
  *
  * One lockup (the SU mark alone, no wordmark), then the **Reference | Build**
  * product switcher, then the product's own nav, the search slot, "Buy the
