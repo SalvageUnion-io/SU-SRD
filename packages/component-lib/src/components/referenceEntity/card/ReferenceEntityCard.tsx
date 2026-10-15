@@ -337,7 +337,7 @@ function ReferenceEntityCardInner({
   // The KIND ("System", "Ability · Forging Tree") is never stamped (E9): the
   // title carries it for screen readers. A caller's `kicker` that says more
   // ("From Veteran") is a label. Nor is it on the foot: only a Page's foot
-  // stamps the kind (E9; ITUN's detail dialog draws its own).
+  // stamps the kind (E9; the Cantina's detail dialog draws its own).
   const kind = isPattern ? 'Pattern' : resolveSeamLabel(schemaName, entity)
   const provenance = resolveFooterProvenance(entity, pattern)
   const chassisMarker = resolvedChassisName

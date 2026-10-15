@@ -1,8 +1,8 @@
 /**
  * One class prefix — the `class-prefix` rule set of `tools/check-styling.ts`.
  *
- * Every class the package and ITUN author is `su-*` (the Dashboard's
- * `su-dash-*` among them; `.claude/rules/styling.md`). ITUN once grew `wiz-`,
+ * Every class the package and the Cantina author is `su-*` (the Dashboard's
+ * `su-dash-*` among them; `.claude/rules/styling.md`). The Cantina once grew `wiz-`,
  * `header-menu-`, `npc-`, `shelves-` and a dozen more families beside some 800
  * `su-` selectors, and component-lib's tone contexts were `sheet--{kind}`: two
  * naming schemes for one stylesheet system, with nothing to say which a new
@@ -18,7 +18,7 @@ import type { Finding, Rule, RuleSet } from '../lib/ruleEngine'
 import { listFiles } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
 
-const PREFIXED_CSS_DIRS = ['apps/itun/src', 'packages/component-lib/src'] as const
+const PREFIXED_CSS_DIRS = ['apps/cantina/src', 'packages/component-lib/src'] as const
 const CLASS_PREFIX = 'su-'
 
 const stylesheets = (root: string) => listFiles(root, PREFIXED_CSS_DIRS, ['.css'])
@@ -63,7 +63,7 @@ const RULES: Rule[] = [
   {
     id: 'class-prefix',
     mode: 'zero',
-    rule: '.claude/rules/styling.md — every package and ITUN class is `su-*`',
+    rule: '.claude/rules/styling.md — every package and the Cantina class is `su-*`',
     fix: 'Rename the class to `su-<name>`, keeping its family word (`su-wiz-*`, `su-sheet-*`; the Dashboard is `su-dash-*`), in the stylesheet and in every className, test and comment that names it.',
   },
 ]

@@ -7,7 +7,7 @@
  * that app. Audit 4 found that rule was prose that nothing enforced:
  * roughly half the barrel was rendered by one app, and the wizard shell, the
  * sheet edit controls, the masthead and its menu, the roster row and the about
- * page all sat in the library although only ITUN renders them.
+ * page all sat in the library although only the Cantina renders them.
  *
  * A single consumer is not wrong by itself. A design-system primitive (an
  * Atom, a Container, a Foundations page) is the library's to own however many
@@ -79,7 +79,7 @@ const SINGLE_APP: Readonly<Record<string, string>> = {
   navigateControl:
     "the `ReferenceEntityControl` preset for the card shells' `controls` overlay, carrying the library's detail icon",
   buildCatalogSections:
-    "binds the library's catalog categories and tile colours (`catalogColors`) to the reference ORM, for ITUN's SRD Explorer",
+    "binds the library's catalog categories and tile colours (`catalogColors`) to the reference ORM, for the Cantina's SRD Explorer",
   useDetailModal:
     'the reference card shells\' "View details" control (modal, or a link out under `EntityDetailLinkProvider`)',
   ogCardForEntity:

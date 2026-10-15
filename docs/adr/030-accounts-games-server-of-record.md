@@ -16,7 +16,7 @@ containers, Convex as server of record — stands.
 **Supersedes [ADR-001](../ARCHITECTURE.md#decisions)** (local-first, no
 backend, no auth). **Amends [ADR-022](../ARCHITECTURE.md#decisions)**
 (the Change Log is no longer local-only). Extends
-[ADR-021](021-itun-surface-taxonomy.md) with an ownership axis without
+[ADR-021](021-cantina-surface-taxonomy.md) with an ownership axis without
 altering any of its enforcement modes.
 
 The operational reference is [Convex deployments](../ARCHITECTURE.md#deployments),
@@ -41,7 +41,7 @@ Dashboard as a Crew tab.
 
 ## Context
 
-[ADR-001](../ARCHITECTURE.md#decisions) made ITUN local-first with no
+[ADR-001](../ARCHITECTURE.md#decisions) made the Cantina local-first with no
 accounts and no application backend, and it closes with an explicit instruction:
 do not reintroduce auth, server-side user storage, or realtime sync without a new
 ADR superseding it. This is that ADR.
@@ -53,7 +53,7 @@ person building a mech alone. It stopped being the whole story once the goal
 became running **a table**: several players, one Union Crawler, a Mediator, and a
 shared session where a Downtime happens to everybody at once.
 
-[ADR-021](021-itun-surface-taxonomy.md) anticipated this precisely. Its
+[ADR-021](021-cantina-surface-taxonomy.md) anticipated this precisely. Its
 long-tail section listed **"Workspaces → Game spaces"**, a **"Shared, live
 Dashboard"**, and a **"dedicated Mediator layer"** as out of scope and
 _explicitly gated on revisiting ADR-001_. Nothing here is a surprise to the
@@ -74,7 +74,7 @@ over:
 
 ### 1. Identity and the storage modes
 
-ITUN gains **accounts, authenticated by Discord OAuth and nothing else**. Discord
+The Cantina gains **accounts, authenticated by Discord OAuth and nothing else**. Discord
 is the only provider because the audience already lives there and the project
 already ships a bot, which this makes a first-class authenticated client rather
 than something needing its own credential story.
@@ -86,7 +86,7 @@ alerts and a live table are the point — not an add-on.
 
 This produces **four modes** — Solo, Connected, Disconnected, Outdated — and
 every surface must be legible in all of them; the table is
-[`.claude/rules/itun-data-access.md`](../../.claude/rules/itun-data-access.md). A **NOT CONNECTED** banner and
+[`.claude/rules/cantina-data-access.md`](../../.claude/rules/cantina-data-access.md). A **NOT CONNECTED** banner and
 read-only state are the honest cost of choosing a server of record, and only a
 signed-in user offline ever pays it.
 
@@ -222,7 +222,7 @@ that there is a proposal (§4).
 
 Enforced in `convex/model/permissions.ts` (`requireTableRunner`) and
 `convex/entities.ts`, and mirrored — never re-decided — for the UI in
-`apps/itun/src/lib/games/gameRoster.ts`.
+`apps/cantina/src/lib/games/gameRoster.ts`.
 
 ### 6. Surfaces
 
@@ -256,7 +256,7 @@ nobody already seated is removed. Who mediates is chosen afterwards among the
 members (`games.setMediator`). Signed out, the page previews the Game and
 offers "Sign in to join", returning with `?join=1` to join on arrival; old
 `/join/:code` links 301 to `/invite/:code`
-(`apps/itun/src/worker/retiredRedirects.ts`). The live code is the Game's
+(`apps/cantina/src/worker/retiredRedirects.ts`). The live code is the Game's
 newest open standing invite row (`convex/model/invites.ts#currentInvite`);
 every other row opens nothing.
 
@@ -330,7 +330,7 @@ retired snapshots.
 - **Anonymous use still works**, but nothing it builds persists without an
   account ([ADR-034](../ARCHITECTURE.md#decisions)).
 - **Convex cannot validate entity bodies.** The Zod schemas in
-  `packages/itun-domain/src/schemas/` stay the source of truth and Convex stores bodies
+  `packages/cantina-domain/src/schemas/` stay the source of truth and Convex stores bodies
   opaquely, so **every mutation must Zod-parse before persisting**. The
   alternative — mirroring every field into Convex validators — forks the source of
   truth into a second copy that rots.

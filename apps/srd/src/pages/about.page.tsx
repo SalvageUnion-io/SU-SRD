@@ -31,7 +31,7 @@ import { DocPage } from '../components/DocPage'
 import { HouseRules } from '../components/HouseRules'
 import { ColophonIsland } from '../components/islands/ColophonIsland'
 import { builtAssetUrl, ELDRIDGE_COAST_MAP } from '../lib/builtAssets'
-import { ITUN_URL, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
+import { CANTINA_URL, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
 import { BOLD, PROSE } from '../lib/docPageStyles'
 import { Island } from '../runtime/Island'
 
@@ -40,7 +40,7 @@ const repoRootFile = (name: string): string =>
   fileURLToPath(new URL(`../../../../${name}`, import.meta.url))
 
 // The shared colophon prose, read at build time from the repo root. This page
-// is the About page of both tools: ITUN links here and keeps no copy.
+// is the About page of both tools: The Cantina links here and keeps no copy.
 const aboutJrvsMd = readFileSync(repoRootFile('ABOUT_JRVS.md'), 'utf8')
 const llmStatementMd = readFileSync(repoRootFile('LLM_STATEMENT.md'), 'utf8')
 const specialThanksMd = readFileSync(repoRootFile('SPECIAL_THANKS.md'), 'utf8')
@@ -346,7 +346,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
               the Salvage Union OGL.
             </p>
             <p style={PARAGRAPH}>
-              <InlineRef href={ITUN_URL} style={BOLD}>
+              <InlineRef href={CANTINA_URL} style={BOLD}>
                 {PRODUCT.name}
               </InlineRef>{' '}
               is its character builder and game manager: build pilots, mechs, and crawlers, then run

@@ -6,7 +6,7 @@ import { join, resolve } from 'node:path'
  * The shared test preload is wired into every workspace that depends on it.
  *
  * The bans on re-declaring what that layer gives (a per-file
- * `SalvageUnionReference.preload(...)`, a live clock in an ITUN fixture, a
+ * `SalvageUnionReference.preload(...)`, a live clock in a Cantina fixture, a
  * single patched model accessor, a bare `afterEach(cleanup)`) are Biome
  * plugins in `packages/gates/biome/`, matched on the syntax tree rather than by regex.
  * They assume the preload runs; this checks it does.
@@ -19,7 +19,7 @@ const REPO_ROOT = resolve(import.meta.dir, '../../../..')
 
 /** Workspaces whose `bunfig.toml` preloads the shared root scripts. */
 const PRELOADED_WORKSPACES = [
-  'apps/itun',
+  'apps/cantina',
   'apps/srd',
   'packages/component-lib',
   'packages/salvageunion-reference',

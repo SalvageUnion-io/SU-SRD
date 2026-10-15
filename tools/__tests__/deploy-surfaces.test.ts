@@ -5,8 +5,8 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { decideSurfaces, main, planDeploy, SURFACES } from '../deploy-surfaces'
 
-const EVERYTHING = { assets: true, srd: true, itun: true, bot: true }
-const NOTHING = { assets: false, srd: false, itun: false, bot: false }
+const EVERYTHING = { assets: true, srd: true, cantina: true, bot: true }
+const NOTHING = { assets: false, srd: false, cantina: false, bot: false }
 
 describe('deploy-surfaces — decideSurfaces', () => {
   test('no deploy record deploys every surface', () => {
@@ -26,13 +26,13 @@ describe('deploy-surfaces — decideSurfaces', () => {
   })
 
   /**
-   * The skipped-deploy case. Commit A touched itun, commit B touched srd, and A's
+   * The skipped-deploy case. Commit A touched cantina, commit B touched srd, and A's
    * deploy never ran. Diffing HEAD^..HEAD at B saw only srd; diffing from the
    * recorded deploy sees both.
    */
   test('changes from several commits since the record are all deployed', () => {
-    const since = ['apps/itun/src/app.tsx', 'apps/srd/src/pages/index.page.tsx']
-    expect(decideSurfaces(since, false)).toEqual({ ...NOTHING, itun: true, srd: true })
+    const since = ['apps/cantina/src/app.tsx', 'apps/srd/src/pages/index.page.tsx']
+    expect(decideSurfaces(since, false)).toEqual({ ...NOTHING, cantina: true, srd: true })
   })
 
   test.each(Object.entries(SURFACES))(
@@ -53,7 +53,7 @@ describe('deploy-surfaces — decideSurfaces', () => {
     'tsconfig.base.json',
     '.github/workflows/deploy-cloudflare.yml',
     '.github/actions/setup-bun/action.yml',
-    // rendered into srd's about page and ITUN's bundle, outside `apps/`
+    // rendered into srd's about page and the Cantina's bundle, outside `apps/`
     'SPECIAL_THANKS.md',
     'ABOUT_JRVS.md',
     'LLM_STATEMENT.md',
@@ -72,7 +72,9 @@ describe('deploy-surfaces — decideSurfaces', () => {
 
   test('a directory that merely shares a prefix does not match', () => {
     // `apps/srd-legacy/` must not be read as `apps/srd/`.
-    expect(decideSurfaces(['apps/srd-legacy/x.ts', 'apps/itun-docs/y.md'], false)).toEqual(NOTHING)
+    expect(decideSurfaces(['apps/srd-legacy/x.ts', 'apps/cantina-docs/y.md'], false)).toEqual(
+      NOTHING
+    )
   })
 
   test('a root file that only starts like a shared one is not shared', () => {
@@ -82,7 +84,7 @@ describe('deploy-surfaces — decideSurfaces', () => {
 
 describe('deploy-surfaces — planDeploy', () => {
   /**
-   * The out-of-order case. A (itun) and B (su-assets) land on main in that
+   * The out-of-order case. A (cantina) and B (su-assets) land on main in that
    * order. B deploys and records first; A's deploy is then re-run. Diffing
    * B->A would ship su-assets at A, reverting B in production.
    */
@@ -108,8 +110,8 @@ describe('deploy-surfaces — planDeploy', () => {
   )
 
   test('ahead of the record deploys what changed', () => {
-    const plan = planDeploy(['apps/itun/src/app.tsx'], false, 'ahead', false)
-    expect(plan).toEqual({ stale: false, surfaces: { ...NOTHING, itun: true } })
+    const plan = planDeploy(['apps/cantina/src/app.tsx'], false, 'ahead', false)
+    expect(plan).toEqual({ stale: false, surfaces: { ...NOTHING, cantina: true } })
   })
 })
 
@@ -161,7 +163,7 @@ describe('deploy-surfaces — script against a real git history', () => {
     return git(work, 'rev-parse', 'HEAD')
   }
   commit('README.md')
-  const a = commit('apps/itun/app.ts')
+  const a = commit('apps/cantina/app.ts')
   const b = commit('apps/su-assets/index.ts')
   git(
     work,
@@ -214,14 +216,14 @@ describe('deploy-surfaces — script against a real git history', () => {
     expect(stale.slice(2)).toEqual([
       '  skip   su-assets',
       '  skip   srd',
-      '  skip   itun',
+      '  skip   cantina',
       '  skip   discord-bot',
     ])
     expect(decideLogged(b, '--force-all').lines.slice(1)).toEqual([
       'force_all — deploying every surface',
       '  deploy su-assets',
       '  deploy srd',
-      '  deploy itun',
+      '  deploy cantina',
       '  deploy discord-bot',
     ])
   })

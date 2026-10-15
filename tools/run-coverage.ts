@@ -31,11 +31,11 @@ const FLOORS: Readonly<Record<string, number>> = {
   'packages/salvageunion-reference': 96.5,
   'packages/component-lib': 95.5,
   'apps/srd': 99,
-  'apps/itun': 97,
+  'apps/cantina': 97,
   'apps/discord-bot': 96.5,
   'apps/su-assets': 98,
   'packages/observability': 99.5,
-  'packages/itun-domain': 97,
+  'packages/cantina-domain': 97,
   'packages/gates': 99,
   tools: 99,
 }
@@ -45,7 +45,7 @@ const FLOORS: Readonly<Record<string, number>> = {
  * CI critical path. Any workspace left out runs as one process.
  */
 const SHARDS: Readonly<Record<string, number>> = {
-  'apps/itun': 3,
+  'apps/cantina': 3,
 }
 
 /** One instrumented run, the same in every workspace, so no manifest repeats it. */

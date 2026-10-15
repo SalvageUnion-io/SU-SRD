@@ -26,7 +26,7 @@ type State = { error: Error | null }
  * the only remaining content).
  *
  * The recovery UI is the shared component-lib `RecoveryPanel` (also used by
- * itun's root error component); the island-specific action here is a full
+ * cantina's root error component); the island-specific action here is a full
  * page reload.
  */
 export class IslandErrorBoundary extends Component<Props, State> {

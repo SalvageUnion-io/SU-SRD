@@ -26,7 +26,7 @@ describe('check-generated', () => {
   })
 
   test('the route tree is covered, not only the reference package', () => {
-    expect(GENERATED_PATHS).toContain('apps/itun/src/routeTree.gen.ts')
+    expect(GENERATED_PATHS).toContain('apps/cantina/src/routeTree.gen.ts')
   })
 
   test('the generators run in parallel, so each GENERATED_PATHS entry has exactly one writer', () => {
@@ -68,18 +68,18 @@ describe('the cache key', () => {
     'packages/salvageunion-reference/lib/index.ts',
     'packages/salvageunion-reference/lib/generated/zodSchemaMap.generated.ts',
     'packages/salvageunion-reference/schemas/index.json',
-    'apps/itun/src/routes/settings.tsx',
-    'apps/itun/routeTree.config.ts',
-    'apps/itun/scripts/generate-route-tree.ts',
-    'apps/itun/src/routeTree.gen.ts',
+    'apps/cantina/src/routes/settings.tsx',
+    'apps/cantina/routeTree.config.ts',
+    'apps/cantina/scripts/generate-route-tree.ts',
+    'apps/cantina/src/routeTree.gen.ts',
     'apps/su-assets/wrangler.jsonc',
     'apps/su-assets/src/worker/index.ts',
     'apps/su-assets/worker-configuration.d.ts',
     'apps/discord-bot/wrangler.jsonc',
     'apps/discord-bot/worker-configuration.d.ts',
-    'apps/itun/wrangler.jsonc',
-    'apps/itun/src/worker/index.ts',
-    'apps/itun/worker-configuration.d.ts',
+    'apps/cantina/wrangler.jsonc',
+    'apps/cantina/src/worker/index.ts',
+    'apps/cantina/worker-configuration.d.ts',
     'apps/srd/wrangler.jsonc',
     'apps/srd/worker-configuration.d.ts',
     'node_modules/wrangler/package.json',
@@ -93,11 +93,11 @@ describe('the cache key', () => {
     return g
   }
   const ref = gen('salvageunion-reference build')
-  const routes = gen('itun route tree')
+  const routes = gen('cantina route tree')
   const assets = gen('apps/su-assets worker types')
   const bot = gen('apps/discord-bot worker types')
   const srd = gen('apps/srd worker types')
-  const itun = gen('apps/itun worker types')
+  const cantina = gen('apps/cantina worker types')
 
   /** Touch `rel` and report which generators' keys moved. */
   const moved = (rel: string, content = `changed ${Math.random()}`) => {
@@ -119,11 +119,11 @@ describe('the cache key', () => {
     ['packages/salvageunion-reference/schemas/index.json', [ref.label]],
     ['packages/salvageunion-reference/lib/generated/zodSchemaMap.generated.ts', [ref.label]],
     ['node_modules/zod/package.json', [ref.label]],
-    ['apps/itun/src/routes/settings.tsx', [routes.label]],
-    ['apps/itun/src/routes/new-route.tsx', [routes.label]],
-    ['apps/itun/routeTree.config.ts', [routes.label]],
-    ['apps/itun/scripts/generate-route-tree.ts', [routes.label]],
-    ['apps/itun/src/routeTree.gen.ts', [routes.label]],
+    ['apps/cantina/src/routes/settings.tsx', [routes.label]],
+    ['apps/cantina/src/routes/new-route.tsx', [routes.label]],
+    ['apps/cantina/routeTree.config.ts', [routes.label]],
+    ['apps/cantina/scripts/generate-route-tree.ts', [routes.label]],
+    ['apps/cantina/src/routeTree.gen.ts', [routes.label]],
     ['node_modules/@tanstack/router-plugin/package.json', [routes.label]],
     ['apps/su-assets/wrangler.jsonc', [assets.label]],
     ['apps/su-assets/.dev.vars', [assets.label]],
@@ -131,14 +131,14 @@ describe('the cache key', () => {
     ['apps/su-assets/worker-configuration.d.ts', [assets.label]],
     ['apps/discord-bot/wrangler.jsonc', [bot.label]],
     ['apps/discord-bot/worker-configuration.d.ts', [bot.label]],
-    ['apps/itun/wrangler.jsonc', [itun.label]],
-    ['apps/itun/.env.local', [itun.label]],
-    ['apps/itun/src/worker/index.ts', [itun.label]],
-    ['apps/itun/worker-configuration.d.ts', [itun.label]],
+    ['apps/cantina/wrangler.jsonc', [cantina.label]],
+    ['apps/cantina/.env.local', [cantina.label]],
+    ['apps/cantina/src/worker/index.ts', [cantina.label]],
+    ['apps/cantina/worker-configuration.d.ts', [cantina.label]],
     ['apps/srd/wrangler.jsonc', [srd.label]],
     ['apps/srd/worker-configuration.d.ts', [srd.label]],
-    ['apps/itun/src/main.tsx', []],
-    ['node_modules/wrangler/package.json', [srd.label, itun.label, assets.label, bot.label]],
+    ['apps/cantina/src/main.tsx', []],
+    ['node_modules/wrangler/package.json', [srd.label, cantina.label, assets.label, bot.label]],
     ['bun.lock', ALL],
     ['package.json', ALL],
     ['biome.jsonc', ALL],

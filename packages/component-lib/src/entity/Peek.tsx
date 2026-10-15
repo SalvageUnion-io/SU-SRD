@@ -34,7 +34,7 @@ let hostMounted = false
  * SRD passes the schemas its card reads). The trigger is described by the
  * popup while it is open (`aria-describedby`); focus never moves into it.
  *
- * Mount one per app, at its root (ITUN), or as a page island (the SRD).
+ * Mount one per app, at its root (The Cantina), or as a page island (the SRD).
  */
 export function PeekHost({ load = loadOneSchema }: { load?: PeekLoader }) {
   const [active, setActive] = useState<Active | null>(null)

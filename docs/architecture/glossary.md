@@ -1,6 +1,6 @@
 # App glossary
 
-One noun and one verb per concept, in everything a player reads in ITUN and the bot: labels, dialogs, server refusals.
+One noun and one verb per concept, in everything a player reads in the Cantina and the bot: labels, dialogs, server refusals.
 Code identifiers may differ (`organizer`, `softLinks`, a null `gameId`); copy follows this page. The model is ADR-030 in [ARCHITECTURE.md](../ARCHITECTURE.md).
 
 1. **Game** — the shared container a table plays in: always capital G ("Start a Game", "Not in a Game", "Your Games").

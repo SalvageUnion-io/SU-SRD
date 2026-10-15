@@ -117,7 +117,7 @@ describe('tokens rule set', () => {
 
   test('raw colour literals are found; issue refs and HTML entities are not', () => {
     const found = scan(
-      'apps/itun/src/x.tsx',
+      'apps/cantina/src/x.tsx',
       [
         "const a = '#ff0000'",
         'see microsoft/TypeScript#30581 and PR #466',
@@ -130,7 +130,7 @@ describe('tokens rule set', () => {
 
   test('a design-tokens-ignore comment waives its own line only', () => {
     const found = scan(
-      'apps/itun/src/x.tsx',
+      'apps/cantina/src/x.tsx',
       "const a = '#ff0000' // design-tokens-ignore: brand\nconst b = '#00ff00'"
     )
     expect(found['raw-color']?.map((f) => f.line)).toEqual([2])
@@ -154,7 +154,7 @@ describe('tokens rule set', () => {
 
   test('type-floor: a retired rung by any name, or a literal under 11px, fails', () => {
     const found = scan(
-      'apps/itun/src/x.tsx',
+      'apps/cantina/src/x.tsx',
       [
         'text-nano text-micro text-label text-label-lg',
         'font-size: var(--text-micro);',
@@ -184,7 +184,7 @@ describe('tokens rule set', () => {
 
   test('type-floor: the floor itself and everything above it pass', () => {
     const found = scan(
-      'apps/itun/src/x.tsx',
+      'apps/cantina/src/x.tsx',
       [
         'text-badge text-note text-labels text-label-ish',
         'font-size: 11px; font-size: 0.75rem; font-size: 9pt;',
@@ -237,8 +237,8 @@ describe('tokens rule set', () => {
   test('texture-placement: speckle is a finding on a forbidden surface or a paper ground', () => {
     const ref = "filter: 'url(#su-blot)', opacity: tokens.texture.blotOpacity"
     for (const file of [
-      'apps/itun/src/components/dashboard/MajorFrame.tsx',
-      'apps/itun/src/styles/dashboard/instruments.css',
+      'apps/cantina/src/components/dashboard/MajorFrame.tsx',
+      'apps/cantina/src/styles/dashboard/instruments.css',
       'packages/component-lib/src/components/atoms/Button.tsx',
       'packages/component-lib/src/components/atoms/KofiButton.tsx',
       'packages/component-lib/src/components/atoms/buttonVariants.ts',
@@ -280,14 +280,14 @@ describe('tokens rule set', () => {
       'const s = { backgroundColor: color.wkBg2 }',
       'bg-wk-bg text-wk-muted bg-wk-bg-20', // the warm ground and look-alikes pass
     ].join('\n')
-    expect(scan('apps/itun/src/x.tsx', text)['cool-ground']?.map((f) => f.detail)).toEqual([
+    expect(scan('apps/cantina/src/x.tsx', text)['cool-ground']?.map((f) => f.detail)).toEqual([
       'bg-wk-bg-2',
       'bg-wk-bg-2',
       'border-wk-bg-2',
       '--color-wk-bg-2',
       'wkBg2',
     ])
-    expect(scan('apps/itun/src/styles/print.css', text)['cool-ground']).toEqual([])
+    expect(scan('apps/cantina/src/styles/print.css', text)['cool-ground']).toEqual([])
   })
 })
 
@@ -305,13 +305,13 @@ const ENTRY = 'packages/component-lib/src/styles/entry.css'
 const STYLING_BASE: Record<string, string> = {
   [ENTRY]:
     "@layer su-reset, su-base;\n@import './theme.css';\n@import './reset.css' layer(su-reset);\n@import './index.css' layer(su-base);\n",
-  'apps/itun/src/index.css': "@import 'component-lib/styles/entry.css';\n",
+  'apps/cantina/src/index.css': "@import 'component-lib/styles/entry.css';\n",
   'apps/srd/src/styles/global.css': "@import 'component-lib/styles/entry.css';\n",
-  'apps/itun/src/styles/dashboard/DashboardCanvas.css': '.su-dash-used { color: red }\n',
-  'apps/itun/src/styles/dashboard/DashboardGrid.css': '',
-  'apps/itun/src/styles/dashboard/instruments.css': '',
-  'apps/itun/src/styles/dashboard/DashboardPhone.css': '',
-  'apps/itun/src/components/dashboard/Thing.tsx':
+  'apps/cantina/src/styles/dashboard/DashboardCanvas.css': '.su-dash-used { color: red }\n',
+  'apps/cantina/src/styles/dashboard/DashboardGrid.css': '',
+  'apps/cantina/src/styles/dashboard/instruments.css': '',
+  'apps/cantina/src/styles/dashboard/DashboardPhone.css': '',
+  'apps/cantina/src/components/dashboard/Thing.tsx':
     'export const T = () => <div className="su-dash-used" />\n',
 }
 
@@ -352,7 +352,7 @@ describe('styling rule set', () => {
           null,
           2
         ),
-        'apps/itun/package.json': JSON.stringify(
+        'apps/cantina/package.json': JSON.stringify(
           { devDependencies: { '@tailwindcss/vite': '4.1.0' } },
           null,
           2
@@ -365,7 +365,7 @@ describe('styling rule set', () => {
     )
     expect(found['no-tailwind']?.map((f) => `${f.file}:${f.line} ${f.detail}`)).toEqual([
       "package.json:3 devDependencies declares 'tailwindcss'",
-      "apps/itun/package.json:3 devDependencies declares '@tailwindcss/vite'",
+      "apps/cantina/package.json:3 devDependencies declares '@tailwindcss/vite'",
       "packages/component-lib/package.json:4 dependencies declares 'tailwind-merge'",
       "tools/package.json:3 devDependencies declares '@tailwindcss/cli'",
       "apps/srd/src/styles/global.css:2 Tailwind directive '@source'",
@@ -394,7 +394,7 @@ describe('styling rule set', () => {
     const found = stylingOwnership.scan(
       fixture({
         ...STYLING_BASE,
-        'apps/itun/src/styles/dashboard/DashboardGrid.css': '.su-dash-dead { color: red }\n',
+        'apps/cantina/src/styles/dashboard/DashboardGrid.css': '.su-dash-dead { color: red }\n',
       })
     )
     expect(found['dash-class-contract']?.map((f) => f.detail)).toEqual([
@@ -510,15 +510,15 @@ describe('styling rule set', () => {
 describe('class-prefix rule set', () => {
   test('a clean fixture has no findings', () => {
     const found = classPrefix.scan(
-      fixture({ 'apps/itun/src/styles/a.css': '.su-a, .su-b:hover { color: red }\n' })
+      fixture({ 'apps/cantina/src/styles/a.css': '.su-a, .su-b:hover { color: red }\n' })
     )
     expect(found['class-prefix']).toEqual([])
   })
 
-  test('a package or ITUN class without the su- prefix is found, nested ones included; srd is out of scope', () => {
+  test('a package or the Cantina class without the su- prefix is found, nested ones included; srd is out of scope', () => {
     const found = classPrefix.scan(
       fixture({
-        'apps/itun/src/styles/wizard.css':
+        'apps/cantina/src/styles/wizard.css':
           '/* .wiz-old in a comment is prose */\n.su-wiz-ok, .wiz-pill:hover { color: red }\n@media (min-width: 40rem) {\n  .su-wiz-ok .npc-step { color: red }\n}\n',
         'packages/component-lib/src/styles/theme.css':
           ".sheet--pilot,\n.su-sheet--mech { --tone: red }\n@import 'x.css';\n",
@@ -526,8 +526,8 @@ describe('class-prefix rule set', () => {
       })
     )
     expect(found['class-prefix']?.map((f) => `${f.file}:${f.line} ${f.detail}`)).toEqual([
-      'apps/itun/src/styles/wizard.css:2 .wiz-pill is not a .su-* class',
-      'apps/itun/src/styles/wizard.css:4 .npc-step is not a .su-* class',
+      'apps/cantina/src/styles/wizard.css:2 .wiz-pill is not a .su-* class',
+      'apps/cantina/src/styles/wizard.css:4 .npc-step is not a .su-* class',
       'packages/component-lib/src/styles/theme.css:1 .sheet--pilot is not a .su-* class',
     ])
   })

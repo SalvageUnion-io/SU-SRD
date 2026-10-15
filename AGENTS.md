@@ -9,10 +9,10 @@ Intent → doc map: [`docs/README.md`](docs/README.md): open it to find a doc.
 
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — numbered Areas, then Decisions (entry N is ADR-N, status first). Jump to the slug (`#convex`) or grep `ADR-NNN`; §-cited ADRs have full text in [`docs/adr/`](docs/adr/). The three ADRs that govern:
   - [ADR-030](docs/adr/030-accounts-games-server-of-record.md) — accounts, Games, Convex of record. Ops: [accounts](docs/ARCHITECTURE.md#deployments).
-  - [ADR-021](docs/adr/021-itun-surface-taxonomy.md) — surface/mode taxonomy: **where a rule is enforced**.
+  - [ADR-021](docs/adr/021-cantina-surface-taxonomy.md) — surface/mode taxonomy: **where a rule is enforced**.
   - [ADR-007](docs/adr/007-automation-boundary.md) — automation boundary; read before rules work.
 - **Hosting:** Cloudflare Workers + R2 — [ADR-033](docs/adr/033-hosting-on-cloudflare.md).
-- **Rules text:** gitignored here; the private repo `SalvageUnion-io/su-rules` is the source of record. Locally, `bun run rules:extract`; in a cloud checkout, attach `su-rules` as a second repo (sibling checkout, no poppler; the rules tools find it there). Then `bun run rules:find <term>` prints `Book p.N: …snippet…`, 2.0a books first. There is no curated rules digest.
+- **Rules text:** gitignored here; the private repo `SalvageUnion-io/su-rules` is the source of record. Locally, `bun run rules:extract`; in a cloud checkout, attach `su-rules` as a second repo (a sibling checkout the rules tools find). Then `bun run rules:find <term>` prints `Book p.N: …snippet…`, 2.0a books first.
 - **Path rules:** read the [`.claude/rules/`](.claude/rules/) whose `paths:` match your files, and the workspace's `CLAUDE.md`.
 
 ## Critical Rules
@@ -23,7 +23,7 @@ Intent → doc map: [`docs/README.md`](docs/README.md): open it to find a doc.
 ## UI Development
 
 - Reuse shared components (`ReferenceEntityCard`, `Card`, …) before building one-off UI; check `component-lib` first.
-- Get CSS/layout right first time by reasoning about the rendering context (float does nothing inside grid/flex). Verify a visual change yourself: `bun run shot </route|itun:/route> --width phone|column|page` prints PNGs to read. Prefer simple, well-understood CSS.
+- Get CSS/layout right first time by reasoning about the rendering context (float does nothing in grid/flex). Verify a visual change yourself: `bun run shot </route|cantina:/route> --width phone|column|page` prints PNGs to read. Prefer simple, well-understood CSS.
 - Default to compact, header-only, clickable listings for entity lists; never render nested entities as separate grids — render them inside the parent's expanded/modal view. Ask if unsure how much detail to show.
 - Styling is tokens, style objects and one stylesheet ([ADR-046](docs/ARCHITECTURE.md#decisions); rules: [`.claude/rules/styling.md`](.claude/rules/styling.md)). There is no utility framework: never write a utility class.
 
@@ -35,7 +35,7 @@ After any cross-package change, run typecheck, tests and lint before calling the
 bun install              # first-time setup; postinstall builds the reference schemas
 
 bun run dev              # srd dev server (ssg/dev.ts, same render path as prod)
-bun run dev:itun         # ITUN dev server on a local Convex backend
+bun run dev:cantina      # Cantina dev server on a local Convex backend
 
 bun run check:fast       # the inner loop: every gate except the suite, the network
                          # and regeneration
@@ -43,10 +43,10 @@ bun run check            # THE full gate: every check in tools/check.ts in paral
                          # ending in a pass/fail table
 bun run check <id> …     # just those checks (`--list` names them: data, styling, workflows, …)
 bun run test             # full suite, each workspace with its own bunfig — what CI runs
-bun --filter <workspace> test      # one workspace, by package name (itun, tools, …)
+bun --filter <workspace> test      # one workspace, by package name (cantina, tools, …)
 bun run lint | format | typecheck  # Biome is the only formatter; .md/.yml are formatted by nothing
 
-bun run build            # reference generation + srd + ITUN (the Worker-only apps build at deploy)
+bun run build            # reference generation + srd + Cantina (the Worker-only apps build at deploy)
 
 bun run deploy-commands[:global]   # Discord slash commands: test guild / production
 ```

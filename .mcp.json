@@ -15,7 +15,7 @@
         "mcp",
         "start",
         "--project-dir",
-        "apps/itun",
+        "apps/cantina",
         "--disable-tools",
         "envSet,envRemove,run"
       ]

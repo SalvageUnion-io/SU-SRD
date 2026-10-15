@@ -36,9 +36,9 @@ import { InteractionResponseType, InteractionType, Routes } from 'discord-api-ty
 import { reportError } from 'observability/cloudflare'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { handleButtonInteraction } from '../buttons'
+import { createCantinaClient } from '../cantina/client'
+import { setCantinaClient } from '../commands/cantinaReply'
 import { commands } from '../commands/index'
-import { setItunClient } from '../commands/itunReply'
-import { createItunClient } from '../itun/client'
 import {
   interactionName,
   makeAutocompleteInteraction,
@@ -161,11 +161,11 @@ async function dispatch(
  *
  * Answers the question a deploy cannot answer by itself. The Worker can be
  * deployed, bundle correctly, verify signatures and still be useless, because
- * what it needs at runtime — a working bot token and the ITUN pair — is set out
+ * what it needs at runtime — a working bot token and the Cantina pair — is set out
  * of band and is invisible until Discord sends the first interaction.
  *
- * So this refuses (503) while the ITUN pair is incomplete, and asks Discord
- * directly: `GET /users/@me` with the token. A 200 means the ITUN pair is set
+ * So this refuses (503) while the Cantina pair is incomplete, and asks Discord
+ * directly: `GET /users/@me` with the token. A 200 means the Cantina pair is set
  * and the token is live, and names the bot it belongs to.
  *
  * Deliberately says nothing sensitive. On failure it reports Discord's status
@@ -183,8 +183,8 @@ async function health(env: Env): Promise<Response> {
     publicKey: Boolean(env.DISCORD_PUBLIC_KEY),
     token: Boolean(env.DISCORD_TOKEN),
     // Either alone is as broken as neither: every Game command would answer
-    // that In The Union Now cannot be reached.
-    itun: Boolean(env.ITUN_CONVEX_SITE_URL) && Boolean(env.ITUN_BOT_SECRET),
+    // that Cantina cannot be reached.
+    cantina: Boolean(env.ITUN_CONVEX_SITE_URL) && Boolean(env.ITUN_BOT_SECRET),
   }
 
   if (!configured.token) {
@@ -194,7 +194,7 @@ async function health(env: Env): Promise<Response> {
     )
   }
 
-  if (!configured.itun) {
+  if (!configured.cantina) {
     return Response.json(
       {
         ok: false,
@@ -285,8 +285,8 @@ export default {
 
     // Configuration arrives as `env`, so the client can only be built once a
     // request exists. Cheap: a client is two strings and a closure.
-    setItunClient(
-      createItunClient({ siteUrl: env.ITUN_CONVEX_SITE_URL, botSecret: env.ITUN_BOT_SECRET })
+    setCantinaClient(
+      createCantinaClient({ siteUrl: env.ITUN_CONVEX_SITE_URL, botSecret: env.ITUN_BOT_SECRET })
     )
 
     let interaction: APIInteraction

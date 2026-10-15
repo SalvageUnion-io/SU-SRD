@@ -1,14 +1,14 @@
 import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
 import { PRODUCT } from 'component-lib/product'
 import { gamesCard, meCard } from '../gameCards'
+import { respondWithCantina } from './cantinaReply'
 import type { CommandExecuteInteraction } from './interactions'
-import { respondWithItun } from './itunReply'
 
 /**
- * The two **personal** ITUN subcommands: `/su me` and `/su games`.
+ * The two **personal** The Cantina subcommands: `/su me` and `/su games`.
  *
  * Grouped in one module rather than two because they are one idea — "what
- * does In The Union Now know about *me*" — and each is a handful of lines. The
+ * does the Cantina know about *me*" — and each is a handful of lines. The
  * substantial commands (roll, lookup, sheet) keep their own files.
  *
  * Both are **ephemeral**: an account and a game list are personal, and neither
@@ -21,7 +21,7 @@ export const meCommand = {
   },
 
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
-    await respondWithItun(interaction, {
+    await respondWithCantina(interaction, {
       call: (client) => client.me(interaction.user.id),
       render: (value) => meCard(value),
     })
@@ -34,7 +34,7 @@ export const gamesCommand = {
   },
 
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
-    await respondWithItun(interaction, {
+    await respondWithCantina(interaction, {
       call: (client) => client.games(interaction.user.id),
       render: (value) => gamesCard(value.games),
     })

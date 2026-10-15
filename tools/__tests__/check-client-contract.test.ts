@@ -24,7 +24,7 @@ const obj = (
 })
 
 describe('refusals', () => {
-  it('replays ITUN-CONVEX-9: a new required argument breaks an older tab', () => {
+  it('replays CANTINA-CONVEX-9: a new required argument breaks an older tab', () => {
     const before = obj({ appId: str, expectedUpdatedAt: [union(num, nul), 'optional'] })
     const after = obj({ appId: str, expectedUpdatedAt: union(num, nul) })
     expect(refusals(before, after, 'entities:upsertByAppId')).toEqual([
@@ -187,18 +187,18 @@ describe('main', () => {
     `{ isPublic: ${isPublic}, exportArgs: () => ${JSON.stringify(JSON.stringify(args))} }`
   const deployment = (floor: number, gamesArgs: ValidatorJSON) =>
     tree({
-      'apps/itun/convex/_generated/api.d.ts': [
+      'apps/cantina/convex/_generated/api.d.ts': [
         'import type * as games from "../games.js";',
         'import type * as model_x from "../model/x.js";',
       ].join('\n'),
-      'apps/itun/convex/buildFloor.ts': `export const BUILD_FLOOR = ${floor}\n`,
-      'apps/itun/convex/games.ts': [
+      'apps/cantina/convex/buildFloor.ts': `export const BUILD_FLOOR = ${floor}\n`,
+      'apps/cantina/convex/games.ts': [
         `export const rename = ${fn(gamesArgs)}`,
         `export const sweep = ${fn(obj({}), false)}`,
         'export const helper = 3',
         'export const nothing = null',
       ].join('\n'),
-      'apps/itun/convex/model/x.ts': `export const read = ${fn(obj({ id: str }))}\n`,
+      'apps/cantina/convex/model/x.ts': `export const read = ${fn(obj({ id: str }))}\n`,
     })
   const run = async (root: string, argv: string[] = []) => {
     const io = captured()

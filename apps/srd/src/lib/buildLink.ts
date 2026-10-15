@@ -1,9 +1,9 @@
 /**
- * "Build With This" — the deep link from an SRD entity page into ITUN's
+ * "Build With This" — the deep link from an SRD entity page into the Cantina's
  * builder, preselecting the entity: a chassis page opens the mech wizard on
  * that chassis, a class page the pilot wizard on that class, a crawler page
- * the crawler wizard on that type. ITUN's `/…/new` routes read the slug
- * (`apps/itun/src/lib/wizard/preselect.ts`) and keep it through sign-in.
+ * the crawler wizard on that type. The Cantina's `/…/new` routes read the slug
+ * (`apps/cantina/src/lib/wizard/preselect.ts`) and keep it through sign-in.
  *
  * Offered only where the wizard would accept the pick — a Tech 1 chassis, a
  * core class, any crawler type — by the same rules its pickers filter on, so
@@ -12,8 +12,8 @@
  * A creation guide ends on its exits (`guideExitsFor`): the same wizard, unseeded,
  * the next guide, and the Starter Set.
  *
- * The origin is `ITUN_URL`, the one the Union bar's Build link uses, so moving
- * ITUN (salvageunion.io/build) is that one constant.
+ * The origin is `CANTINA_URL`, the one the Union bar's Build link uses, so moving
+ * The Cantina (salvageunion.io/build) is that one constant.
  */
 
 import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
@@ -23,7 +23,7 @@ import {
   isLegalCreationClass,
   isLegalStartingPattern,
 } from 'salvageunion-reference/rules'
-import { ITUN_URL } from './constants'
+import { CANTINA_URL } from './constants'
 import { itemHref } from './entityHref'
 
 /**
@@ -36,25 +36,25 @@ export type BuildLink = { href: string; label: string; ariaLabel?: string }
 /** The page action's one visible label, whatever it builds (owner's call, 2026-10-13). */
 const BUILD_WITH_THIS = 'Build With This'
 
-/** `ITUN_URL` + a path in ITUN (`/starter`, `/mechs/new`). */
-function itunHref(path: string): string {
-  return `${ITUN_URL.replace(/\/$/, '')}${path}`
+/** `CANTINA_URL` + a path in the Cantina (`/starter`, `/mechs/new`). */
+function cantinaHref(path: string): string {
+  return `${CANTINA_URL.replace(/\/$/, '')}${path}`
 }
 
 /**
- * `ITUN_URL` + a `/…/new` path, opened straight on the guided wizard, with
+ * `CANTINA_URL` + a `/…/new` path, opened straight on the guided wizard, with
  * `param` preselected when there is one.
  */
 function wizardHref(path: string, preselect: Record<string, string> = {}): string {
   const search = new URLSearchParams({ mode: 'guided', ...preselect })
-  return `${itunHref(path)}?${search}`
+  return `${cantinaHref(path)}?${search}`
 }
 
 /**
- * ITUN's Starter Set (`/starter`): Leyline Press's pre-generated crew, open
+ * The Cantina's Starter Set (`/starter`): Leyline Press's pre-generated crew, open
  * signed out — the fastest way to the table.
  */
-export const STARTER_SET_HREF = itunHref('/starter')
+export const STARTER_SET_HREF = cantinaHref('/starter')
 
 /** The page's "Build With This" link, or `null` where there is nothing to build from it. */
 export function buildLinkFor(schemaId: string, item: SURefEntity): BuildLink | null {
@@ -116,7 +116,7 @@ export function patternBuildLinkFor(
 
 /**
  * Where a creation guide sends its reader when it ends (the book closes each
- * chapter opener on an exit arrow): into ITUN's wizard for what the guide
+ * chapter opener on an exit arrow): into the Cantina's wizard for what the guide
  * builds, on to the next guide in the order a new crew walks them, or straight
  * to the Starter Set.
  */

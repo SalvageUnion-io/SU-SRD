@@ -43,7 +43,7 @@ import { readdirSync } from 'node:fs'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { createServer as createHttpServer } from 'node:http'
 import { fileURLToPath } from 'node:url'
-import { CHECKOUT_HEADER, CHECKOUT_ROOT, ITUN_DEV_PORT, portFor } from 'gates/ports'
+import { CANTINA_DEV_PORT, CHECKOUT_HEADER, CHECKOUT_ROOT, portFor } from 'gates/ports'
 import type { ViteDevServer } from 'vite'
 import { createServer as createViteServer } from 'vite'
 import type { BuildAssets } from './document'
@@ -58,10 +58,10 @@ import type { ErasedRoute, RouteRegistration } from './render'
 const PORT = Number(process.env.PORT ?? portFor('srd'))
 
 // Links follow the env they are served from (`src/lib/constants.ts`): the dev
-// server names itself, and its ITUN links open `bun run dev:itun`. Set before
+// server names itself, and its Cantina links open `bun run dev:cantina`. Set before
 // Vite starts, which reads them into `import.meta.env`; a value given wins.
 process.env.VITE_SRD_ORIGIN ||= `http://localhost:${PORT}`
-process.env.VITE_ITUN_ORIGIN ||= `http://localhost:${ITUN_DEV_PORT}`
+process.env.VITE_CANTINA_ORIGIN ||= `http://localhost:${CANTINA_DEV_PORT}`
 
 const viteConfigFile = fileURLToPath(new URL('./vite.config.ts', import.meta.url))
 

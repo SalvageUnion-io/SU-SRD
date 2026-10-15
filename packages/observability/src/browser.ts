@@ -1,5 +1,5 @@
 /**
- * The shared half of the two browser apps' error reporting (`apps/itun` and
+ * The shared half of the two browser apps' error reporting (`apps/cantina` and
  * `apps/srd`).
  *
  * Cloudflare has no browser error tracking, so each app posts its errors to its

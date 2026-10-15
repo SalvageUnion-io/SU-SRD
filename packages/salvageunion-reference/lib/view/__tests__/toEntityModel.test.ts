@@ -1,7 +1,7 @@
 /**
  * The entity model on its own terms. Parity with today's card helpers is
  * component-lib's `entityModelParity.test.ts`; this pins what the model
- * promises any reader (the SRD, ITUN, the Discord bot).
+ * promises any reader (the SRD, the Cantina, the Discord bot).
  */
 
 import { describe, expect, test } from 'bun:test'

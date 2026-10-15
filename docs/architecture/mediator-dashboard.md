@@ -1,6 +1,6 @@
 # Mediator Dashboard
 
-M1 is the Mediator's surface (`apps/itun/src/components/mediator/`); M2 is the Game page's sections (`apps/itun/src/components/games/`). Governing ADRs: 030 §3–§6, 038 and 021 in [ARCHITECTURE.md](../ARCHITECTURE.md).
+M1 is the Mediator's surface (`apps/cantina/src/components/mediator/`); M2 is the Game page's sections (`apps/cantina/src/components/games/`). Governing ADRs: 030 §3–§6, 038 and 021 in [ARCHITECTURE.md](../ARCHITECTURE.md).
 
 - **§1 Reuse** — The server predates this surface; M1 and M2 recompose it and reuse `crewLines()` and `SavedIndicator`, never forking the Crew tab's vocabulary.
 - **§2 Decisions**
@@ -22,7 +22,7 @@ M1 is the Mediator's surface (`apps/itun/src/components/mediator/`); M2 is the G
   - **Q13 The Game** — Who mediates, with Hand over (Appoint when nobody does), who organises, and Delete; Archive is the owner's call.
   - **Q14 Tabs** — Opposition, Proposals, Tell the table, Tables (rolls private), SRD, Log.
 - **§4 Server additions** — `changeLog.reason`, Mediator-only `proposals.sent` (indexed) and `mediator.updateNpc` (clamped, parsed).
-- **§5 Tests** — Propose → apply → Applied (`apps/itun/e2e/mediator-propose.e2e.ts`); server in `apps/itun/test/convex/__tests__/mediatorDashboard.test.ts`.
+- **§5 Tests** — Propose → apply → Applied (`apps/cantina/e2e/mediator-propose.e2e.ts`); server in `apps/cantina/test/convex/__tests__/mediatorDashboard.test.ts`.
 - **§6 M1 layout** — Rail; The table, Crawler minor, Downtime minor; tabs left, propose dock right. Ground ink-deep, instruments band-cream, display paper.
   Controls are 48 design units tall, so at least 38px at the 0.8 floor.
 - **§7 Accessibility** — Base UI tabs; a seat card is a button whose label reads its whole line (▲ `aria-hidden`); polite live regions only; `ConfirmDialog` focuses Cancel.

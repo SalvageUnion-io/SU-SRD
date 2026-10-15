@@ -3,7 +3,7 @@
 
   Rendered verbatim in the colophon on the About page both tools share,
   between `ABOUT_JRVS.md` and the Ko-fi support block — srd's `/about`
-  (`apps/srd/src/pages/about.page.tsx`, read at build time with node:fs). ITUN
+  (`apps/srd/src/pages/about.page.tsx`, read at build time with node:fs). The Cantina
   links there and keeps no copy.
 
   Format contract (see `packages/component-lib/src/markdownSection/`): one `#`

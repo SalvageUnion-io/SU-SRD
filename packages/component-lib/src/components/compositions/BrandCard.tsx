@@ -9,7 +9,7 @@ import { OG_CARD_HEIGHT, OG_CARD_WIDTH, OG_GUTTER, OG_NOTCH_INSET } from './ogCa
 /**
  * BrandCard — the site's own link preview: the picture a link unfurls with
  * when the page it opens has no card of its own (the SRD's home, chapter and
- * rules pages; every ITUN route but a shared sheet or invite).
+ * rules pages; every Cantina route but a shared sheet or invite).
  *
  * It is the Discord bot's profile banner (`apps/discord-bot/brand/banner.png`)
  * redrawn to fill the 1200 × 630 of a link preview, so every surface a player
@@ -22,7 +22,7 @@ import { OG_CARD_HEIGHT, OG_CARD_WIDTH, OG_GUTTER, OG_NOTCH_INSET } from './ogCa
  * renders anything. Re-shoot both when it changes:
  *
  *   bun run shot '/og-card?brand' --width page        → apps/srd/public/og-image.png
- *   bun run shot itun:/og/brand --width page          → apps/itun/public/og-image.png
+ *   bun run shot cantina:/og/brand --width page          → apps/cantina/public/og-image.png
  */
 
 export type BrandCardProps = {

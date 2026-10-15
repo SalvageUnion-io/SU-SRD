@@ -7,7 +7,7 @@
  * `:crawler`, `:game`), resolved once the seed has run.
  */
 
-type GallerySite = 'srd' | 'itun'
+type GallerySite = 'srd' | 'cantina'
 
 export type GalleryPage = {
   site: GallerySite
@@ -33,12 +33,12 @@ export type GallerySection = {
 const srd = (path: string, name: string, note: string, chips: readonly string[] = []) =>
   ({ site: 'srd', path, name, note, chips }) satisfies GalleryPage
 
-const itun = (
+const cantina = (
   path: string,
   name: string,
   note: string,
   extra: Partial<Pick<GalleryPage, 'signedIn' | 'edit' | 'chips'>> = {}
-) => ({ site: 'itun', path, name, note, ...extra }) satisfies GalleryPage
+) => ({ site: 'cantina', path, name, note, ...extra }) satisfies GalleryPage
 
 export const GALLERY_SECTIONS: readonly GallerySection[] = [
   {
@@ -119,35 +119,38 @@ export const GALLERY_SECTIONS: readonly GallerySection[] = [
     ],
   },
   {
-    id: 'itun',
-    title: 'ITUN, signed out',
+    id: 'cantina',
+    title: 'The Cantina, signed out',
     tone: 'var(--rust)',
     intro:
       "The character builder as a visitor sees it: the front door and the Starter Set's ready-made characters, read-only.",
     pages: [
-      itun('/', 'Front door', 'Signed out: the Starter Set and sign-in.'),
-      itun('/starter', 'Starter Set', 'Six pilots, six mechs and a crawler.'),
-      itun('/starter/pilot/starter-pilot-bonesaw', 'Bonesaw', 'A read-only pilot sheet.'),
-      itun('/starter/mech/starter-mech-mazona', 'Mazona', 'A read-only mech sheet.'),
+      cantina('/', 'Front door', 'Signed out: the Starter Set and sign-in.'),
+      cantina('/starter', 'Starter Set', 'Six pilots, six mechs and a crawler.'),
+      cantina('/starter/pilot/starter-pilot-bonesaw', 'Bonesaw', 'A read-only pilot sheet.'),
+      cantina('/starter/mech/starter-mech-mazona', 'Mazona', 'A read-only mech sheet.'),
     ],
   },
   {
-    id: 'itun-edit',
-    title: 'ITUN, signed in',
+    id: 'cantina-edit',
+    title: 'The Cantina, signed in',
     tone: 'var(--pilot)',
     intro:
       'A fresh test account with Bonesaw, the Mazona and Tenacity copied from the Starter Set, Bonesaw moved into a Game.',
     pages: [
-      itun('/', 'Shelves', 'The roster of what the account keeps.', { signedIn: true }),
-      itun(':pilot', 'Bonesaw, editing', 'A pilot sheet in Edit.', { signedIn: true, edit: true }),
-      itun(':mech', 'Mazona, editing', 'A mech sheet in Edit.', { signedIn: true, edit: true }),
-      itun(':crawler', 'Tenacity, editing', 'A crawler sheet in Edit.', {
+      cantina('/', 'Shelves', 'The roster of what the account keeps.', { signedIn: true }),
+      cantina(':pilot', 'Bonesaw, editing', 'A pilot sheet in Edit.', {
         signedIn: true,
         edit: true,
       }),
-      itun('/pilots/new', 'New pilot', 'The pilot builder.', { signedIn: true }),
-      itun('/mechs/new', 'New mech', 'The mech builder.', { signedIn: true }),
-      itun(':game', 'A Game', "A Game's page with Bonesaw moved in.", { signedIn: true }),
+      cantina(':mech', 'Mazona, editing', 'A mech sheet in Edit.', { signedIn: true, edit: true }),
+      cantina(':crawler', 'Tenacity, editing', 'A crawler sheet in Edit.', {
+        signedIn: true,
+        edit: true,
+      }),
+      cantina('/pilots/new', 'New pilot', 'The pilot builder.', { signedIn: true }),
+      cantina('/mechs/new', 'New mech', 'The mech builder.', { signedIn: true }),
+      cantina(':game', 'A Game', "A Game's page with Bonesaw moved in.", { signedIn: true }),
     ],
   },
 ]

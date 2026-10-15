@@ -48,7 +48,7 @@ describe('gitignoredMatcher', () => {
   it('matches an unanchored bare name at any depth, as git does', () => {
     const root = fixture({ '.gitignore': '.env.local\n/root-only\n' })
     const ignored = gitignoredMatcher(root)
-    expect(ignored('apps/itun/.env.local')).toBe(true)
+    expect(ignored('apps/cantina/.env.local')).toBe(true)
     expect(ignored('.env.local')).toBe(true)
     expect(ignored('apps/root-only')).toBe(false)
   })

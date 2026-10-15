@@ -1,0 +1,269 @@
+/**
+ * DowntimeTrack — the table's Downtime on a Game's own page (board M2;
+ * docs/architecture/mediator-dashboard.md Q7). Every member sees it; the
+ * Mediator runs it.
+ *
+ * The track is the guide's ten steps (Workshop Manual p.227–228,
+ * `guides.json` "Crawler Downtime") as a 5 × 2 grid, not the board's five
+ * boxes; a narrow column (a phone) takes fewer columns, so a step name wraps
+ * at its words and never mid-word. The current step has an ink frame and the
+ * word NOW; before Downtime begins, the first step reads NEXT. Under it, the upkeep due —
+ * `DOWNTIME_UPKEEP_SCRAP` (5) Scrap of the crawler's tech level — and what the
+ * crawler holds of it.
+ *
+ * The Mediator gets **Begin Downtime**, then **Next step**, **Pay upkeep** in
+ * the Upkeep & Upgrade step only (the server enforces that too) and **End**,
+ * which asks first before the last step: ending and beginning again resets
+ * `upkeepSpent`, so a mis-tap could charge the crew twice (ADR-007). Every
+ * member marks their own step done, which is what tells the Mediator the
+ * table can move on; completion is per step, so the list empties on every
+ * advance. It reads and writes the same `downtime` row every open Dashboard
+ * follows (`useDowntime`).
+ */
+
+import {
+  DOWNTIME_UPKEEP_SCRAP,
+  downtimeStepNames,
+  isUpkeepStep,
+  UPKEEP_STEP_NAME,
+} from 'cantina-domain/rules/downtime'
+import { Button, ConfirmDialog, FieldError, Stat, tokens } from 'component-lib'
+import { useMutation, useQuery } from 'convex/react'
+import type { CSSProperties } from 'react'
+import { useState } from 'react'
+import { api } from '../../../convex/_generated/api'
+import type { Id } from '../../../convex/_generated/dataModel'
+import { useConnection } from '../../lib/connection/connectionContext'
+import { useServerAction } from '../../lib/connection/useServerAction'
+import type { CrawlerReading } from '../mediator/crawlerReading.model'
+import { HubSection } from './HubSection'
+import { HUB_COPY } from './hubStyles.model'
+
+const { borderWidth, color, font, fontSize, radius, space, tracking, weight } = tokens
+
+/** The narrowest a step cell gets: "Equipment," or "Customise" on one line. */
+const STEP_MIN = '8rem'
+
+const GRID = {
+  listStyle: 'none',
+  margin: 0,
+  padding: 0,
+  display: 'grid',
+  // Five columns when five STEP_MIN cells fit, else two (one below two), so
+  // ten steps never leave an orphan row. The `* 999` term is a switch: it is
+  // at most zero once five fit, and a half-row track below that. The 0.1px
+  // keeps rounding from dropping a column.
+  gridTemplateColumns: `repeat(auto-fill, minmax(max(${STEP_MIN}, calc((100% - 4 * ${space[6]}) / 5 - 0.1px), min(calc(50% - ${space[6]} / 2 - 0.1px), calc((5 * ${STEP_MIN} + 4 * ${space[6]} - 100%) * 999))), 1fr))`,
+  gap: space[6],
+} satisfies CSSProperties
+
+// Longhands only, so the NOW cell swaps values rather than mixing a shorthand
+// with its longhands across renders.
+const CELL = {
+  minWidth: 0,
+  minHeight: '4.5rem',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[2],
+  padding: `${space[8]} ${space[8]}`,
+  borderStyle: 'dashed',
+  borderWidth: borderWidth.chrome,
+  borderColor: color.ink35,
+  borderRadius: radius.card,
+  background: 'transparent',
+} satisfies CSSProperties
+
+const CELL_NOW = {
+  ...CELL,
+  borderStyle: 'solid',
+  borderWidth: borderWidth.pill,
+  borderColor: color.ink,
+  background: color.paper,
+} satisfies CSSProperties
+
+const NUMBER = {
+  fontFamily: font.cond,
+  fontWeight: weight.bold,
+  fontSize: fontSize.badge,
+  letterSpacing: tracking.caps,
+  textTransform: 'uppercase',
+  color: color.ink75,
+} satisfies CSSProperties
+
+/** The step the table is on: ink, the "here" state (ruleset §3.1 keeps rust for action). */
+const NOW = { ...NUMBER, color: color.ink } satisfies CSSProperties
+
+const NAME = {
+  fontFamily: font.body,
+  fontSize: fontSize.caption,
+  fontWeight: weight.medium,
+  lineHeight: 1.3,
+  color: color.ink,
+  // Wrap at words: `anywhere` split "Upgrade" and left "Chassis," its comma.
+  overflowWrap: 'normal',
+} satisfies CSSProperties
+
+const ROW = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  gap: space[8],
+} satisfies CSSProperties
+
+const NOTE = { ...HUB_COPY, fontSize: fontSize.caption } satisfies CSSProperties
+
+export function DowntimeTrack({
+  gameId,
+  mediator,
+  crawler,
+}: {
+  gameId: Id<'games'>
+  /** The viewer runs it: the phase controls and Upkeep are theirs. */
+  mediator: boolean
+  crawler: CrawlerReading | null
+}) {
+  const state = useQuery(api.downtime.state, { gameId })
+  const begin = useMutation(api.downtime.begin)
+  const advance = useMutation(api.downtime.advance)
+  const end = useMutation(api.downtime.end)
+  const markStepDone = useMutation(api.downtime.markStepDone)
+  const spendUpkeep = useMutation(api.downtime.spendUpkeep)
+  const { canWrite } = useConnection()
+  const [confirmEnd, setConfirmEnd] = useState(false)
+  const write = useServerAction((send: () => Promise<unknown>) => send(), {
+    failure: 'That did not reach the table. Try again.',
+  })
+  const { error } = write
+
+  const steps = downtimeStepNames()
+  const running = state?.running ?? false
+  const index = state?.stepIndex ?? null
+  const last = index !== null && index >= steps.length - 1
+  const upkeepStep = isUpkeepStep(index)
+
+  const run = (send: () => Promise<unknown>) => () => void write.run(send)
+
+  // The Scrap tier is the crawler sheet storage's own label, `T1 | 5`.
+  const tier = `T${crawler?.techLevel ?? 1}`
+  const upkeep =
+    crawler === null ? (
+      `Upkeep: ${DOWNTIME_UPKEEP_SCRAP} scrap of the crawler's tech level.`
+    ) : (
+      <>
+        Upkeep due:{' '}
+        <Stat label={tier} value={DOWNTIME_UPKEEP_SCRAP} orientation="horizontal" size="mini" />.
+        The crawler has{' '}
+        <Stat label={tier} value={crawler.scrapAtTl} orientation="horizontal" size="mini" />.
+      </>
+    )
+
+  return (
+    <HubSection
+      id="downtime-heading"
+      title="Downtime"
+      aside={
+        mediator
+          ? 'You run it; players see it on their dashboards'
+          : 'The Mediator runs it; you see it on your Dashboard'
+      }
+    >
+      <ol style={GRID} aria-label="Downtime steps">
+        {steps.map((name, i) => {
+          const now = running && i === index
+          const next = !running && i === 0
+          return (
+            <li key={name} style={now ? CELL_NOW : CELL} aria-current={now ? 'step' : undefined}>
+              <span style={now || next ? NOW : NUMBER}>{now ? 'Now' : next ? 'Next' : i + 1}</span>
+              <span style={NAME}>{name}</span>
+            </li>
+          )
+        })}
+      </ol>
+
+      {state === undefined ? null : running ? (
+        <>
+          <p style={NOTE}>
+            Step {(index ?? 0) + 1} of {steps.length}.{' '}
+            {state.completedBy.length === 0
+              ? 'Nobody has finished it yet.'
+              : `Finished: ${state.completedBy.map((c) => c.displayName).join(', ')}.`}{' '}
+            {upkeepStep ? (state.upkeepSpent ? 'Upkeep paid.' : upkeep) : null}
+          </p>
+          <div style={ROW}>
+            <Button
+              variant="default"
+              size="compact"
+              disabled={!canWrite}
+              onClick={run(() => markStepDone({ gameId, done: true }))}
+            >
+              I&rsquo;m done with this step
+            </Button>
+            <Button
+              variant="ghost"
+              size="compact"
+              disabled={!canWrite}
+              onClick={run(() => markStepDone({ gameId, done: false }))}
+            >
+              Not yet
+            </Button>
+          </div>
+          {mediator && (
+            <div style={ROW}>
+              <Button
+                variant="primary"
+                size="compact"
+                disabled={!canWrite || last}
+                onClick={run(() => advance({ gameId }))}
+              >
+                Next step
+              </Button>
+              <Button
+                variant="default"
+                size="compact"
+                disabled={!canWrite || state.upkeepSpent || !upkeepStep}
+                title={upkeepStep ? undefined : `Upkeep is paid in the ${UPKEEP_STEP_NAME} step`}
+                onClick={run(() => spendUpkeep({ gameId }))}
+              >
+                Pay upkeep
+              </Button>
+              <Button
+                variant="ghost"
+                size="compact"
+                disabled={!canWrite}
+                onClick={last ? run(() => end({ gameId })) : () => setConfirmEnd(true)}
+              >
+                End Downtime
+              </Button>
+            </div>
+          )}
+        </>
+      ) : (
+        <div style={ROW}>
+          {mediator && (
+            <Button
+              variant="primary"
+              size="compact"
+              disabled={!canWrite}
+              onClick={run(() => begin({ gameId }))}
+            >
+              Begin Downtime
+            </Button>
+          )}
+          <p style={NOTE}>{upkeep}</p>
+        </div>
+      )}
+      <FieldError>{error}</FieldError>
+      <ConfirmDialog
+        open={confirmEnd}
+        onOpenChange={setConfirmEnd}
+        tone="danger"
+        title="End Downtime early?"
+        body={`The table is on step ${(index ?? 0) + 1} of ${steps.length}. Everyone goes back to their seat, and beginning again starts from the first step, with upkeep due again.`}
+        confirmLabel="End Downtime"
+        onConfirm={async () => {
+          await end({ gameId })
+        }}
+      />
+    </HubSection>
+  )
+}

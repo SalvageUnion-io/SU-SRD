@@ -93,7 +93,7 @@ type SearchFieldTriggerProps = ComponentPropsWithRef<'button'> & {
 
 /**
  * SearchFieldTrigger — `SearchField`'s shape as a button, for a search that
- * opens elsewhere (ITUN's popover) rather than in place (the SRD's combobox).
+ * opens elsewhere (The Cantina's popover) rather than in place (the SRD's combobox).
  * The Union bar's search entry looks the same in both tools — the
  * same paper field, glyph, words and key cap — whichever way it opens.
  *

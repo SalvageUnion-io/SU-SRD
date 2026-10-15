@@ -35,13 +35,13 @@
         "@randsum/salvageunion": "catalog:",
         "component-lib": "workspace:*",
         "discord-api-types": "0.38.53",
-        "itun-domain": "workspace:*",
+        "cantina-domain": "workspace:*",
         "observability": "workspace:*",
         "salvageunion-reference": "workspace:*",
       },
     },
-    "apps/itun": {
-      "name": "itun",
+    "apps/cantina": {
+      "name": "cantina",
       "version": "0.0.0",
       "dependencies": {
         "@auth/core": "0.41.3",
@@ -55,7 +55,7 @@
         "component-lib": "workspace:*",
         "convex": "catalog:",
         "convex-helpers": "0.1.124",
-        "itun-domain": "workspace:*",
+        "cantina-domain": "workspace:*",
         "lucide-react": "catalog:",
         "observability": "workspace:*",
         "qrcode": "1.5.4",
@@ -129,8 +129,8 @@
         "salvageunion-reference": "workspace:*",
       },
     },
-    "packages/itun-domain": {
-      "name": "itun-domain",
+    "packages/cantina-domain": {
+      "name": "cantina-domain",
       "version": "0.0.0",
       "dependencies": {
         "convex": "catalog:",
@@ -1194,9 +1194,9 @@
 
     "isexe": ["isexe@2.0.0", "", {}, "sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw=="],
 
-    "itun": ["itun@workspace:apps/itun"],
+    "cantina": ["cantina@workspace:apps/cantina"],
 
-    "itun-domain": ["itun-domain@workspace:packages/itun-domain"],
+    "cantina-domain": ["cantina-domain@workspace:packages/cantina-domain"],
 
     "jackspeak": ["jackspeak@4.2.3", "", { "dependencies": { "@isaacs/cliui": "^9.0.0" } }, "sha512-ykkVRwrYvFm1nb2AJfKKYPr0emF6IiXDYUaFx4Zn9ZuIH7MrzEZ3sD5RlqGXNRpHtvUHJyOnCEFxOlNDtGo7wg=="],
 

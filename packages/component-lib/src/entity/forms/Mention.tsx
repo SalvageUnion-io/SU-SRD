@@ -20,7 +20,7 @@ export type MentionProps = {
  * focus or long-press.
  *
  * Where it goes comes from the SURFACE: its route (`hrefFor`, the SRD) makes it
- * a link; else the Page opener (`openPage`, ITUN) makes it a button; else it is
+ * a link; else the Page opener (`openPage`, the Cantina) makes it a button; else it is
  * an inert mark that still Peeks. A synthetic or unresolvable ref, and any
  * Mention inside a Peek (E16), is inert and Peeks nothing.
  *

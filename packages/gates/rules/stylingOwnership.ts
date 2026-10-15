@@ -28,8 +28,8 @@ import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
 
 // ── file gathering ─────────────────────────────────────────────────────────
 
-const APP_DIRS = ['apps/itun/src', 'apps/srd/src'] as const
-const DASHBOARD_DIR = 'apps/itun/src/styles/dashboard'
+const APP_DIRS = ['apps/cantina/src', 'apps/srd/src'] as const
+const DASHBOARD_DIR = 'apps/cantina/src/styles/dashboard'
 
 /** The file sets the rules share, gathered once per scan. Repo-relative paths. */
 type Corpus = {
@@ -76,10 +76,10 @@ function appOf(relPath: string): string | null {
  */
 const EXEMPTIONS: Exemption[] = [
   {
-    file: 'apps/itun/src/styles/libHandback.css',
+    file: 'apps/cantina/src/styles/libHandback.css',
     rules: ['dead-app-css'],
     reason:
-      "Its selectors are component-lib's own classes, referenced in component-lib source rather than ITUN's: the file only hands those classes back their layered values (`revert-layer`) over ITUN's unlayered element rules, and styles nothing of its own.",
+      "Its selectors are component-lib's own classes, referenced in component-lib source rather than the Cantina's: the file only hands those classes back their layered values (`revert-layer`) over the Cantina's unlayered element rules, and styles nothing of its own.",
   },
 ]
 
@@ -233,7 +233,7 @@ function scanDeadAppCss(c: Corpus): Finding[] {
 
 // ── Rule 3: dash-class-contract ───────────────────────────────────────────────
 //
-// The Dashboard's `.su-dash-*` classes (ITUN's own stylesheets).
+// The Dashboard's `.su-dash-*` classes (The Cantina's own stylesheets).
 
 const DASHBOARD_CSS_FILES = [
   'DashboardCanvas.css',
@@ -318,7 +318,7 @@ const STYLESHEET_ENTRY = 'packages/component-lib/src/styles/entry.css'
  * is about these files SPECIFICALLY: a partial like `print.css` neither should
  * nor could carry the import.
  */
-const ENTRY_CONSUMERS = ['apps/itun/src/index.css', 'apps/srd/src/styles/global.css'] as const
+const ENTRY_CONSUMERS = ['apps/cantina/src/index.css', 'apps/srd/src/styles/global.css'] as const
 
 /**
  * The package-stylesheet wiring, in the one file that owns it, and the one
@@ -547,7 +547,7 @@ const RULES: OwnershipRule[] = [
     id: 'dash-class-contract',
     mode: 'zero',
     rule: 'source-of-truth §the dashboard class contract is closed and bidirectional',
-    fix: 'used-but-undefined: define the `su-dash-*` class in apps/itun/src/styles/dashboard/*.css (or fix the className typo in the .tsx). defined-but-unused: delete the dead rule, or reference it. Match the EXACT class name — su-dash-display and su-dash-display-light are different classes.',
+    fix: 'used-but-undefined: define the `su-dash-*` class in apps/cantina/src/styles/dashboard/*.css (or fix the className typo in the .tsx). defined-but-unused: delete the dead rule, or reference it. Match the EXACT class name — su-dash-display and su-dash-display-light are different classes.',
     scan: scanDashContract,
   },
   {
@@ -607,7 +607,7 @@ function preflight(root: string): void {
     'apps/discord-bot':
       'ships no stylesheet — it renders Discord Components V2 containers, not DOM.',
     'apps/su-assets': 'a Worker that serves image bytes and short error strings; no CSS, no DOM.',
-    'packages/itun-domain':
+    'packages/cantina-domain':
       'schemas and rules shared with Convex and the bot; no components and no stylesheet.',
     'packages/observability': 'Error reporting only; no components and no stylesheet.',
     'packages/salvageunion-reference': 'data and ORM; no components and no stylesheet.',

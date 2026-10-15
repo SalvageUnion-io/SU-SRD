@@ -4,9 +4,9 @@ import type { launchBrowser } from 'gates/lib/chromium'
 import { CHECKOUT_HEADER, CHECKOUT_ROOT, portFor } from 'gates/ports'
 import type { Server } from '../shot'
 import {
+  CANTINA_BASE,
   ensureServer,
   fileName,
-  ITUN_BASE,
   isOwnServer,
   main,
   NO_BACKEND,
@@ -48,8 +48,8 @@ describe('parseArgs', () => {
     [['/a', '--full']],
     // Neither app has a dark theme, so there is no flag to emulate one.
     [['/a', '--dark']],
-    [['itun:starter']],
-    // A target is a route: a bare name is neither an srd nor an ITUN one.
+    [['cantina:starter']],
+    // A target is a route: a bare name is neither an srd nor a Cantina one.
     [['atoms--button--primary']],
   ])('rejects %p with the usage line', (argv) => {
     expect(() => parseArgs(argv)).toThrow('usage: bun run shot')
@@ -64,21 +64,21 @@ describe('planShot', () => {
     })
   })
 
-  test('itun:/route is an ITUN route under its base, on its own signed-out boot', () => {
-    const { server, path } = planShot({ target: 'itun:/starter' })
-    expect(path).toBe(`${ITUN_BASE}/starter`)
-    expect(server.port).toBe(portFor('itun'))
+  test('cantina:/route is a Cantina route under its base, on its own signed-out boot', () => {
+    const { server, path } = planShot({ target: 'cantina:/starter' })
+    expect(path).toBe(`${CANTINA_BASE}/starter`)
+    expect(server.port).toBe(portFor('cantina'))
     expect(server.cmd).toEqual([
       'bun',
       'x',
       'vite',
       '--port',
-      String(portFor('itun')),
+      String(portFor('cantina')),
       '--strictPort',
     ])
-    expect(server.cwd.endsWith('apps/itun')).toBe(true)
+    expect(server.cwd.endsWith('apps/cantina')).toBe(true)
     expect(server.env).toEqual({ VITE_CONVEX_URL: NO_BACKEND })
-    expect(planShot({ target: 'itun:/' }).path).toBe(`${ITUN_BASE}/`)
+    expect(planShot({ target: 'cantina:/' }).path).toBe(`${CANTINA_BASE}/`)
   })
 })
 
@@ -91,7 +91,7 @@ test('only a server naming this checkout is reused', () => {
 test('fileName slugs the target and marks the width', () => {
   expect(fileName({ target: '/chassis/mule/', width: 'column' })).toBe('chassis-mule-column.png')
   expect(fileName({ target: '/', width: 'page' })).toBe('home-page.png')
-  expect(fileName({ target: 'itun:/starter', width: 'page' })).toBe('itun-starter-page.png')
+  expect(fileName({ target: 'cantina:/starter', width: 'page' })).toBe('cantina-starter-page.png')
 })
 
 describe('the dev server', () => {

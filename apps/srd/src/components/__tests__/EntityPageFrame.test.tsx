@@ -8,7 +8,7 @@ import { render, screen, within } from '@testing-library/react'
 import { resolveEntityPageMeta } from 'component-lib'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { buildLinkFor, guideExitsFor, STARTER_SET_HREF } from '../../lib/buildLink'
-import { ITUN_URL } from '../../lib/constants'
+import { CANTINA_URL } from '../../lib/constants'
 import { EntityPageFrame, entityPageFoot } from '../EntityPageFrame'
 
 function must<T>(value: T | undefined | null): T {
@@ -38,7 +38,7 @@ describe('EntityPageFrame', () => {
     const exits = screen.getByRole('navigation', { name: 'Where next' })
     const links = within(exits).getAllByRole('link')
     expect(links.map((a) => a.getAttribute('href'))).toEqual([
-      `${ITUN_URL}pilots/new?mode=guided`,
+      `${CANTINA_URL}pilots/new?mode=guided`,
       '/guides/create-a-mech/',
       STARTER_SET_HREF,
     ])
@@ -76,7 +76,7 @@ describe('EntityPageFrame', () => {
       </EntityPageFrame>
     )
     const link = screen.getByRole('link', { name: 'Build With This: a mech' })
-    expect(link.getAttribute('href')).toBe(`${ITUN_URL}mechs/new?mode=guided&chassis=mule`)
+    expect(link.getAttribute('href')).toBe(`${CANTINA_URL}mechs/new?mode=guided&chassis=mule`)
   })
 
   test('a pattern page links back to its parent beside the title', () => {

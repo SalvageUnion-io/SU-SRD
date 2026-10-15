@@ -26,9 +26,9 @@ export const suCommand = {
     .setDescription('Salvage Union reference tools')
     .addSubcommand((sub) => rollCommand.subcommand(sub))
     .addSubcommand((sub) => lookupCommand.subcommand(sub))
-    // In The Union Now (ADR-030). Always registered, never conditional
+    // The Cantina (ADR-030). Always registered, never conditional
     // on configuration: a command that vanishes depending on how the bot was
-    // deployed is harder to explain than one that answers that In The Union Now
+    // deployed is harder to explain than one that answers that Cantina
     // is unavailable or not configured for this bot.
     .addSubcommand((sub) => meCommand.subcommand(sub))
     .addSubcommand((sub) => gamesCommand.subcommand(sub))

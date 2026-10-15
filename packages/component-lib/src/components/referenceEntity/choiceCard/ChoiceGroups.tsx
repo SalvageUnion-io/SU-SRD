@@ -37,7 +37,7 @@ import {
  * choosable).
  *
  * One selection state machinery (controlled / ephemeral, id-keyed, cap
- * resolution) serves ITUN persistence and the SRD ephemeral case alike.
+ * resolution) serves Cantina persistence and the SRD ephemeral case alike.
  */
 
 type ChoiceGroupsProps = {

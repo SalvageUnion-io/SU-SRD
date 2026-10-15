@@ -212,7 +212,7 @@
 
 /*
  * A show page's head controls, one height in both apps: the srd entity page's
- * "Build with this", the ITUN sheet bar's back, and beside the sheet's name
+ * "Build with this", the Cantina sheet bar's back, and beside the sheet's name
  * Read | Edit, "Make a copy", Share, "⋯" and the phone switch, so a row of them
  * never steps. Height only: each keeps its own padding and type. Under a coarse
  * pointer the 44px floor lifts them all alike.
@@ -221,7 +221,7 @@
   height: var(--space-40);
 }
 
-/* The icon rung at page-action height is square at that height too: the ITUN
+/* The icon rung at page-action height is square at that height too: the Cantina
    sheet bar's back and "⋯", and a shelf item's "⋯". */
 .su-btn--icon-only.su-page-action {
   width: var(--space-40);

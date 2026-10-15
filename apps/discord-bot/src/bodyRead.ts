@@ -1,7 +1,7 @@
-import type { Crawler } from 'itun-domain/schemas/crawler'
-import type { Mech } from 'itun-domain/schemas/mech'
-import type { Pilot } from 'itun-domain/schemas/pilot'
-import type { EntityBody } from './itun/types'
+import type { Crawler } from 'cantina-domain/schemas/crawler'
+import type { Mech } from 'cantina-domain/schemas/mech'
+import type { Pilot } from 'cantina-domain/schemas/pilot'
+import type { EntityBody } from './cantina/types'
 
 /** Defensive reads off a sheet's body, for the cards in `gameCards.ts`. */
 
@@ -9,7 +9,7 @@ import type { EntityBody } from './itun/types'
  * A field name off one of the entity schemas.
  *
  * Convex stores the body as `v.any()`, so the bot reads it by name, and the
- * names are the Zod schemas' in `itun-domain/schemas/`. Typing the key against
+ * names are the Zod schemas' in `cantina-domain/schemas/`. Typing the key against
  * them (types only: the bot bundles no Zod) makes a misspelling a compile
  * error rather than a field that silently reads as absent.
  */

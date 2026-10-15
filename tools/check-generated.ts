@@ -5,7 +5,7 @@
  * Several committed files are machine output: the static-accessor block in
  * the reference package's `lib/index.ts` (`bun run build:package`; its
  * `schemas/` and `lib/generated/` are gitignored build output, not checked
- * here), ITUN's `src/routeTree.gen.ts`,
+ * here), the Cantina's `src/routeTree.gen.ts`,
  * and the `worker-configuration.d.ts` that `wrangler types` writes for each of
  * the four Workers (`Env` from wrangler.jsonc, so a binding added there without
  * the types fails here). Each is regenerated here and then compared with what
@@ -15,7 +15,7 @@
  * The Worker files hold `Env` only (`--include-runtime=false`): the workerd
  * runtime globals come once from the `@cloudflare/workers-types` root
  * devDependency, listed in su-assets' and the bot's tsconfig `types`, instead
- * of a 16k-line copy per Worker. srd and ITUN typecheck their Worker with the
+ * of a 16k-line copy per Worker. srd and the Cantina typecheck their Worker with the
  * DOM lib, which conflicts with that package, so their file is committed and
  * drift-checked but no tsconfig includes it; their `Env` stays hand-written. Bump it with `wrangler` — its peer range names the version
  * matching the workerd it bundles.
@@ -32,7 +32,7 @@
  *   1. Runs the GENERATORS below at once — they write disjoint paths and none
  *      reads another's output (the test pins the disjointness):
  *      - `bun run build` in packages/salvageunion-reference (every generator);
- *      - `bun apps/itun/scripts/generate-route-tree.ts` — the router plugin's
+ *      - `bun apps/cantina/scripts/generate-route-tree.ts` — the router plugin's
  *        own generator with the Vite config's options, without a build;
  *      - `wrangler types --strict-vars=false --include-runtime=false` in
  *        each Worker app (not strict: the bot's tests sign with their own
@@ -74,9 +74,9 @@ const ROOT = join(import.meta.dir, '..')
 /** Every committed path a generator below writes. */
 export const GENERATED_PATHS = [
   'packages/salvageunion-reference/lib/index.ts',
-  'apps/itun/src/routeTree.gen.ts',
+  'apps/cantina/src/routeTree.gen.ts',
   'apps/srd/worker-configuration.d.ts',
-  'apps/itun/worker-configuration.d.ts',
+  'apps/cantina/worker-configuration.d.ts',
   'apps/su-assets/worker-configuration.d.ts',
   'apps/discord-bot/worker-configuration.d.ts',
 ] as const
@@ -103,7 +103,12 @@ const SHARED_INPUTS = [
 ]
 
 /** The four Worker apps; the `workers` check holds them to one shape. */
-export const WORKER_APPS = ['apps/srd', 'apps/itun', 'apps/su-assets', 'apps/discord-bot'] as const
+export const WORKER_APPS = [
+  'apps/srd',
+  'apps/cantina',
+  'apps/su-assets',
+  'apps/discord-bot',
+] as const
 
 const workerTypes = (app: (typeof WORKER_APPS)[number]): GeneratorSpec => ({
   label: `${app} worker types`,
@@ -112,7 +117,7 @@ const workerTypes = (app: (typeof WORKER_APPS)[number]): GeneratorSpec => ({
   outputs: [`${app}/worker-configuration.d.ts`],
   // What wrangler reads: wrangler.jsonc, the `.dev.vars`/`.env*` it takes
   // secret names from, and the main module it names. Not the whole app: srd
-  // and ITUN would re-run it on every UI edit.
+  // and the Cantina would re-run it on every UI edit.
   inputs: [
     `${app}/wrangler.jsonc`,
     `${app}/.dev.vars`,
@@ -135,15 +140,15 @@ export const GENERATORS: GeneratorSpec[] = [
     tools: ['zod', '@biomejs/biome'],
   },
   {
-    label: 'itun route tree',
+    label: 'cantina route tree',
     cmd: ['bun', 'scripts/generate-route-tree.ts'],
-    cwd: 'apps/itun',
-    outputs: ['apps/itun/src/routeTree.gen.ts'],
+    cwd: 'apps/cantina',
+    outputs: ['apps/cantina/src/routeTree.gen.ts'],
     inputs: [
-      'apps/itun/src/routes',
-      'apps/itun/routeTree.config.ts',
-      'apps/itun/scripts/generate-route-tree.ts',
-      'apps/itun/package.json',
+      'apps/cantina/src/routes',
+      'apps/cantina/routeTree.config.ts',
+      'apps/cantina/scripts/generate-route-tree.ts',
+      'apps/cantina/package.json',
     ],
     tools: ['@tanstack/router-plugin'],
   },

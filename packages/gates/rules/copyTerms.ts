@@ -2,7 +2,7 @@
  * Copy lint for game terms — the rule set behind `tools/check-copy.ts`.
  *
  * The book capitalises its game nouns: the Core Book writes "Mech" 968 times
- * and "mech" 15, "Pilot" 452 and "pilot" 16. An audit of ITUN's copy found it
+ * and "mech" 15, "Pilot" 452 and "pilot" 16. An audit of the Cantina's copy found it
  * lower case about half the time ("mech" 91, "Mech" 77), "TL" where the book
  * says "Tech N" or "Tech Level", "Heat Cap" in prose where the book says "Heat
  * Capacity", and the product named three ways. None of that fails typecheck,
@@ -53,12 +53,12 @@ import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
 
 /** The source trees whose strings reach a reader. */
 const COPY_DIRS = [
-  'apps/itun/src',
-  'apps/itun/convex',
+  'apps/cantina/src',
+  'apps/cantina/convex',
   'apps/srd/src',
   'apps/discord-bot/src',
   'packages/component-lib/src',
-  'packages/itun-domain/src',
+  'packages/cantina-domain/src',
   'packages/salvageunion-reference/lib',
 ] as const
 
@@ -199,7 +199,7 @@ const NON_PROSE_KEYS = new Set(['id', 'name', 'source', 'slug', 'booklet'])
 /**
  * `term(s)`, any casing, words joined by any whitespace. A hyphen, a slash or
  * a dot joined to a word on either side is a slug, a class name or a host
- * (`su-mech-card`, `/schema/mech/`, `itun.salvageunion.io`), not a word.
+ * (`su-mech-card`, `/schema/mech/`, `cantina.salvageunion.io`), not a word.
  */
 export function termPattern(term: string): RegExp {
   const body = term
@@ -299,7 +299,7 @@ export const BANNED: readonly Banned[] = [
   },
   {
     // An initialism is a name, not a shout.
-    pattern: /(?<![\w-])(?!(?:ITUN|TTRPG|JSON|JPEG|HTML|CORS)(?![\w-]))[A-Z]{4,}(?![\w-])/g,
+    pattern: /(?<![\w-])(?!(?:TTRPG|JSON|JPEG|HTML|CORS)(?![\w-]))[A-Z]{4,}(?![\w-])/g,
     say: 'sentence case',
     why: 'caps in a sentence shout; a capitalised label is the stamp component (Badge shape="stamp"), ruleset §3.12',
     // A string with no lower case is a label set in caps on purpose (the
@@ -320,7 +320,7 @@ export function productNames(root: string): { name: string; shortName: string } 
 }
 
 /**
- * Any other casing of the product's two names. A bracketed `[itun]` is a log
+ * Any other casing of the product's two names. A bracketed `[cantina]` is a log
  * tag, not the name.
  */
 export function productBans(product: { name: string; shortName: string }): Banned[] {

@@ -80,10 +80,10 @@ describe('judge', () => {
   ]
   const apps = (...a: string[]) => new Set(a)
   const reach = new Map([
-    ['Button', apps('itun', 'srd')],
-    ['Avatar', apps('itun')],
-    ['WizShell', apps('itun')],
-    ['heat', apps('itun')],
+    ['Button', apps('cantina', 'srd')],
+    ['Avatar', apps('cantina')],
+    ['WizShell', apps('cantina')],
+    ['heat', apps('cantina')],
     ['orphan', apps()],
   ])
 
@@ -93,14 +93,14 @@ describe('judge', () => {
       {
         kind: 'composition',
         name: 'WizShell',
-        app: 'itun',
+        app: 'cantina',
         module: `${lib}/components/compositions/WizShell.tsx`,
         group: 'Compositions',
       },
       {
         kind: 'unclassified',
         name: 'heat',
-        app: 'itun',
+        app: 'cantina',
         module: `${lib}/components/atoms/heat.ts`,
       },
     ])
@@ -121,7 +121,7 @@ describe('judge', () => {
   const read = (keep: (e: BarrelExport) => boolean) => () => ({
     exports: exports.filter(keep),
     reach,
-    workspaces: ['apps/itun', 'apps/srd'],
+    workspaces: ['apps/cantina', 'apps/srd'],
     scanned: 12,
   })
 
@@ -138,14 +138,14 @@ describe('judge', () => {
         {
           kind: 'composition',
           name: 'WizShell',
-          app: 'itun',
+          app: 'cantina',
           module: `${lib}/components/compositions/WizShell.tsx`,
           group: 'Compositions',
         },
         {
           kind: 'unclassified',
           name: 'heat',
-          app: 'itun',
+          app: 'cantina',
           module: `${lib}/components/atoms/heat.ts`,
         },
       ].map((v) => explain(v as Parameters<typeof explain>[0]).join('\n')),
@@ -172,13 +172,13 @@ describe('explain', () => {
       explain({
         kind: 'composition',
         name: 'Wiz',
-        app: 'itun',
+        app: 'cantina',
         module: 'm',
         group: 'Compositions',
       })
     ).toEqual([
-      "✗ Wiz (m): only itun renders it, and its directory files it under 'Compositions'.",
-      "  → Move it and its tests into apps/itun/src/components/: a composition one app renders is that app's.",
+      "✗ Wiz (m): only cantina renders it, and its directory files it under 'Compositions'.",
+      "  → Move it and its tests into apps/cantina/src/components/: a composition one app renders is that app's.",
     ])
     expect(explain({ kind: 'unclassified', name: 'heat', app: 'srd', module: 'm' })[1]).toContain(
       'apps/srd/src/'
@@ -190,13 +190,13 @@ describe('census of this repository', () => {
   const repo = census()
 
   test('reads the barrel and every consuming app', () => {
-    expect(repo.workspaces).toEqual(['apps/discord-bot', 'apps/itun', 'apps/srd'])
+    expect(repo.workspaces).toEqual(['apps/cantina', 'apps/discord-bot', 'apps/srd'])
     expect(repo.exports.length).toBeGreaterThan(60)
     expect(repo.scanned).toBeGreaterThan(270)
   })
 
   test('reach is transitive: srd reaches ControlButtons through the card it renders', () => {
-    expect(repo.reach.get('ControlButtons')).toEqual(new Set(['itun', 'srd']))
+    expect(repo.reach.get('ControlButtons')).toEqual(new Set(['cantina', 'srd']))
   })
 
   test('has no failing verdict and no stale SINGLE_APP entry', () => {

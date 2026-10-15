@@ -21,7 +21,7 @@ type Props = { schemaFile: string }
  * `/schema/actions.json` (plus catalog-categories and ability-tree-requirements)
  * for schemas with no `/<id>/` listing page to belong to. `api.page.tsx`,
  * the page that documents this API, filters them out — so those three were
- * undocumented endpoints — and ITUN's `hasSRDPage` guard read the unfiltered
+ * undocumented endpoints — and the Cantina's `hasSRDPage` guard read the unfiltered
  * catalog too, which is how "View in SRD" came to link at a 404.
  *
  * The three are meta schemas: their content renders inline on the entities that

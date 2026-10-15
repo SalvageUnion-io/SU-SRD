@@ -14,7 +14,7 @@ afterEach(async () => {
   await act(async () => {
     cleanup()
   })
-  // Web-storage state (e.g. ITUN wizard drafts in sessionStorage) must not
+  // Web-storage state (e.g. The Cantina wizard drafts in sessionStorage) must not
   // leak across tests — a draft written by one test would silently restore
   // into the next test's pristine mount.
   sessionStorage.clear()

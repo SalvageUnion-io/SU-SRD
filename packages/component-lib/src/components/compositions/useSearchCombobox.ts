@@ -2,7 +2,7 @@
  * useSearchCombobox — the shared logic layer behind the SRD search
  * comboboxes.
  *
- * srd's SearchIsland (dropdown-under-input, URL navigation) and ITUN's
+ * srd's SearchIsland (dropdown-under-input, URL navigation) and the Cantina's
  * GlobalSearch (the Union bar's search dialog, detail-modal navigation) duplicated the
  * same ~150 lines: 150 ms debounce, category+entity result blending
  * (3 schema slots inside a 10-row budget), ArrowUp/Down/Enter selection, and

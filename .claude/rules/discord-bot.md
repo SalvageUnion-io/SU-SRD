@@ -1,12 +1,12 @@
 ---
 paths:
   - 'apps/discord-bot/**'
-  - 'packages/itun-domain/src/botWire.ts'
+  - 'packages/cantina-domain/src/botWire.ts'
 ---
 
 # Discord bot — changing a reply
 
-The architecture (HTTP-interactions Worker, the ITUN Game client and how it
+The architecture (HTTP-interactions Worker, Cantina Game client and how it
 degrades) is in [`apps/discord-bot/CLAUDE.md`](../../apps/discord-bot/CLAUDE.md);
 the roll surface's design is in the header of
 `src/rollContainer.ts`.
@@ -48,7 +48,7 @@ Learned from shipped replies:
 
 ## Ephemerality is a rule, not a default
 
-- Denials and errors are **always** ephemeral (`src/commands/itunReply.ts`):
+- Denials and errors are **always** ephemeral (`src/commands/cantinaReply.ts`):
   a public channel is the wrong place to say who lacks an account.
 - `/su sheet` is always ephemeral, even when the sheet is public (ADR-032), and
   shows the Share field only when the server reports `publicRead: true`;

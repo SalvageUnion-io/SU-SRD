@@ -63,7 +63,7 @@
  *   `SalvageUnionReference.findAllIn(schemaName, ...)` in
  *   referenceEntity/card/resolveGuideSteps.ts) — this is the same
  *   "any route can render any cross-referenced entity" situation ADR-005
- *   describes for ITUN. Not safely narrowable; kept at `'all'`.
+ *   describes for the Cantina. Not safely narrowable; kept at `'all'`.
  * - Every other schema (no `actions` field, not chassis/classes/factions/
  *   guides) never reaches `ActionCard`/`ClassAbilityTree`/chassis-
  *   pattern resolution, so it only needs ALWAYS_CORE. => LEAF schemas.

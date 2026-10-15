@@ -7,7 +7,7 @@ import type { TreeTrack } from './treeTrack'
  * A tree's Abilities on its track, in the order given: the track draws each
  * tier's numeral (or a pick-one's "or") outside the Ability, and frames the
  * Ability's Row in the track's hue (`--su-row-frame`). The caller draws each
- * Ability — the SRD a Row that links to its page, ITUN's pilot sheet a Row
+ * Ability — the SRD a Row that links to its page, the Cantina's pilot sheet a Row
  * with the sheet's controls under it — and leaves the Row's own numeral to the
  * track (`omit: ['tier']`). The class page, the abilities listing and the
  * pilot sheet draw the same track.

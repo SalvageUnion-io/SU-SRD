@@ -1,6 +1,6 @@
 {
   // Shared base for the Worker-only code (discord-bot, su-assets) and the
-  // packages the bot imports (salvageunion-reference, itun-domain): the repo
+  // packages the bot imports (salvageunion-reference, cantina-domain): the repo
   // base plus the workerd runtime globals. `wrangler types
   // --include-runtime=false` writes only each Worker's `Env`; under
   // `skipLibCheck` a missing runtime type is not an error — `R2Bucket` would

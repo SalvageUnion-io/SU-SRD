@@ -84,7 +84,7 @@ describe('parseGalleryArgs', () => {
     const args = parseGalleryArgs([
       '--srd',
       'http://localhost:4321/',
-      '--itun=http://localhost:5173',
+      '--cantina=http://localhost:5173',
       '--signed-in',
       '--pr',
       '1344',
@@ -94,7 +94,7 @@ describe('parseGalleryArgs', () => {
     ])
     expect(args).toMatchObject({
       srd: 'http://localhost:4321',
-      itun: 'http://localhost:5173',
+      cantina: 'http://localhost:5173',
       signedIn: true,
       pr: 1344,
       sha: 'abc1234',
@@ -102,10 +102,10 @@ describe('parseGalleryArgs', () => {
     })
   })
 
-  test('refuses a run with no srd, a signed-in run with no itun, and a bad PR', () => {
+  test('refuses a run with no srd, a signed-in run with no cantina, and a bad PR', () => {
     expect(() => parseGalleryArgs([])).toThrow('--srd is required')
     expect(() => parseGalleryArgs(['--srd', 'x', '--signed-in'])).toThrow(
-      '--signed-in needs --itun'
+      '--signed-in needs --cantina'
     )
     expect(() => parseGalleryArgs(['--srd', 'x', '--pr', 'nope'])).toThrow('--pr must be')
     expect(() => parseGalleryArgs(['--srd', 'x', '--what'])).toThrow('unknown argument')
@@ -167,7 +167,7 @@ describe('parseGalleryArgs, defaults and values', () => {
   test('a bare run is signed out, unlinkable, sha "local", written to .gallery', () => {
     expect(parseGalleryArgs(['--srd', 'http://a'])).toEqual({
       srd: 'http://a',
-      itun: undefined,
+      cantina: undefined,
       signedIn: false,
       out: resolve('.gallery'),
       sha: 'local',
@@ -202,11 +202,11 @@ describe('signedOutTargets', () => {
     }
   })
 
-  test('with itun it adds the signed-out ITUN pages, never a signed-in one', () => {
-    const targets = signedOutTargets({ srd: 'http://srd', itun: 'http://itun' })
-    const itun = targets.filter((t) => t.page.site === 'itun')
-    expect(itun.length).toBe(ALL_PAGES.filter((p) => p.site === 'itun' && !p.signedIn).length)
-    expect(itun.map((t) => t.url)).toContain('http://itun/starter')
+  test('with cantina it adds the signed-out Cantina pages, never a signed-in one', () => {
+    const targets = signedOutTargets({ srd: 'http://srd', cantina: 'http://cantina' })
+    const cantina = targets.filter((t) => t.page.site === 'cantina')
+    expect(cantina.length).toBe(ALL_PAGES.filter((p) => p.site === 'cantina' && !p.signedIn).length)
+    expect(cantina.map((t) => t.url)).toContain('http://cantina/starter')
     expect(targets.some((t) => t.page.signedIn)).toBe(false)
   })
 })
@@ -215,7 +215,7 @@ describe('signedInTargets', () => {
   const signedIn = ALL_PAGES.filter((p) => p.signedIn)
 
   test('a full seed resolves every placeholder and fails nothing', () => {
-    const { targets, failures } = signedInTargets('http://itun', {
+    const { targets, failures } = signedInTargets('http://cantina', {
       pilot: '/sheet/pilot/p1',
       mech: '/sheet/mech/m1',
       crawler: '/sheet/crawler/c1',
@@ -224,24 +224,24 @@ describe('signedInTargets', () => {
     expect(failures).toEqual([])
     expect(targets.length).toBe(signedIn.length)
     const urls = targets.map((t) => t.url)
-    expect(urls).toContain('http://itun/sheet/pilot/p1')
-    expect(urls).toContain('http://itun/games/g1')
-    expect(urls).toContain('http://itun/pilots/new')
-    expect(targets.every((t) => t.base === 'http://itun' && t.slug.startsWith('itun-in-'))).toBe(
-      true
-    )
+    expect(urls).toContain('http://cantina/sheet/pilot/p1')
+    expect(urls).toContain('http://cantina/games/g1')
+    expect(urls).toContain('http://cantina/pilots/new')
+    expect(
+      targets.every((t) => t.base === 'http://cantina' && t.slug.startsWith('cantina-in-'))
+    ).toBe(true)
   })
 
   test('a failed seed still shoots the fixed paths and names each missing entity', () => {
-    const { targets, failures } = signedInTargets('http://itun', {})
+    const { targets, failures } = signedInTargets('http://cantina', {})
     expect(targets.map((t) => t.page.path)).toEqual(
       signedIn.filter((p) => !p.path.startsWith(':')).map((p) => p.path)
     )
     expect(failures).toEqual([
-      'itun :pilot: the seed made no such entity',
-      'itun :mech: the seed made no such entity',
-      'itun :crawler: the seed made no such entity',
-      'itun :game: the seed made no such entity',
+      'cantina :pilot: the seed made no such entity',
+      'cantina :mech: the seed made no such entity',
+      'cantina :crawler: the seed made no such entity',
+      'cantina :game: the seed made no such entity',
     ])
   })
 })
@@ -262,19 +262,19 @@ describe('ogSource', () => {
       kind: 'file',
       url: 'http://srd/og/default.png',
     })
-    const itunPage: GalleryPage = {
-      site: 'itun',
+    const cantinaPage: GalleryPage = {
+      site: 'cantina',
       path: '/chassis/x/',
       name: 'x',
       note: '',
     }
-    expect(ogSource(itunPage, 'http://itun', 'https://salvageunion.io/og.png')).toEqual({
+    expect(ogSource(cantinaPage, 'http://cantina', 'https://salvageunion.io/og.png')).toEqual({
       kind: 'file',
-      url: 'http://itun/og.png',
+      url: 'http://cantina/og.png',
     })
-    // ITUN's --itun carries its base (ADR-048); the image's path already does too.
+    // The Cantina's --cantina carries its base (ADR-048); the image's path already does too.
     expect(
-      ogSource(itunPage, 'http://localhost:5173/build', 'https://salvageunion.io/build/og/x.png')
+      ogSource(cantinaPage, 'http://localhost:5173/build', 'https://salvageunion.io/build/og/x.png')
     ).toEqual({ kind: 'file', url: 'http://localhost:5173/build/og/x.png' })
   })
 
@@ -284,17 +284,17 @@ describe('ogSource', () => {
 })
 
 describe('routeOf', () => {
-  test("takes ITUN's base off a path the app rendered, and leaves anything else", () => {
-    const itun = 'http://localhost:5173/build'
-    expect(routeOf(itun, '/build/sheet/pilot/x')).toBe('/sheet/pilot/x')
-    expect(routeOf(itun, '/build/games/g1')).toBe('/games/g1')
-    expect(routeOf(itun, 'https://example.com/a')).toBe('https://example.com/a')
+  test("takes the Cantina's base off a path the app rendered, and leaves anything else", () => {
+    const cantina = 'http://localhost:5173/build'
+    expect(routeOf(cantina, '/build/sheet/pilot/x')).toBe('/sheet/pilot/x')
+    expect(routeOf(cantina, '/build/games/g1')).toBe('/games/g1')
+    expect(routeOf(cantina, 'https://example.com/a')).toBe('https://example.com/a')
     expect(routeOf('http://localhost:5173', '/sheet/pilot/x')).toBe('/sheet/pilot/x')
   })
 })
 
 describe('rootOf', () => {
-  test("opens ITUN's root with its trailing slash, based or not", () => {
+  test("opens the Cantina's root with its trailing slash, based or not", () => {
     expect(rootOf('http://localhost:5173/build')).toBe('http://localhost:5173/build/')
     expect(rootOf('http://localhost:5173')).toBe('http://localhost:5173/')
   })
@@ -303,7 +303,7 @@ describe('rootOf', () => {
 describe('failureLine and capturedAtStamp', () => {
   test('a failure keeps only the first line of its error', () => {
     expect(failureLine('srd /x', new Error('timed out\n  at stack'))).toBe('srd /x: timed out')
-    expect(failureLine('itun seed', 'plain')).toBe('itun seed: plain')
+    expect(failureLine('cantina seed', 'plain')).toBe('cantina seed: plain')
   })
 
   test('the stamp is to the minute, in UTC', () => {

@@ -596,7 +596,7 @@ export function VitalGauge({
             The nearest rung to the hero numeral is display (26px), 7–13% below
             it — a visible shrink of the one figure the gauge exists to show.
             Closing this needs new rungs in theme.css (a ladder decision, and a
-            repo-wide one: WizShell, AppBar, CountStepper, ModeDoor and ITUN's
+            repo-wide one: WizShell, AppBar, CountStepper, ModeDoor and the Cantina's
             PilotSheet all reach into the same empty band), not a local
             substitution. */}
         <span style={NUMERAL}>

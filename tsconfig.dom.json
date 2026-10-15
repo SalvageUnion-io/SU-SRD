@@ -1,5 +1,5 @@
 {
-  // Shared base for the browser apps (srd, itun) and the packages they render
+  // Shared base for the browser apps (srd, cantina) and the packages they render
   // through (component-lib, observability): the repo base plus the DOM and JSX.
   "extends": "./tsconfig.base.json",
   "compilerOptions": {

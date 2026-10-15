@@ -79,7 +79,7 @@ function GuideAside({ text, flavor, label }: { text: string; flavor: boolean; la
  * book measure and leading, and a run-in head's stamp the full rung.
  *
  * Read-only by design: this is the SRD's transcription of the procedure.
- * Walking a guide as an interactive wizard is ITUN's job (`DowntimeWizard`),
+ * Walking a guide as an interactive wizard is the Cantina's job (`DowntimeWizard`),
  * and belongs to the surfaces that own player state (ADR-021).
  */
 export function GuideSteps({

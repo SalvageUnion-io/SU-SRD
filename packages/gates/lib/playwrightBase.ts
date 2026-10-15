@@ -1,6 +1,6 @@
 /**
  * The one Playwright configuration both apps run
- * (`apps/{srd,itun}/playwright.config.ts` pass only what differs).
+ * (`apps/{srd,cantina}/playwright.config.ts` pass only what differs).
  *
  * - Specs are `e2e/*.e2e.ts`, not `.spec.ts`, so Bun's test runner — which
  *   auto-discovers `.spec.ts` and `.test.ts` — never tries to execute them.
@@ -11,7 +11,7 @@
  *   the running dev server on the same port is reused. srd passes its
  *   checkout's own port (`ports.ts`: offset in a linked worktree), so a
  *   worktree's suite boots and reuses its own server, never another
- *   checkout's; ITUN's stays on 5173, where its local Convex backend expects
+ *   checkout's; the Cantina's stays on 5173, where its local Convex backend expects
  *   it.
  * - `E2E_BASE_URL` runs the same suite against a deployed origin and boots
  *   nothing; per-test budgets widen to `external` there, because every test
@@ -21,7 +21,7 @@
  *   but they never hide it.
  * - The page's CSP is bypassed (`bypassCSP`). The specs test behaviour and
  *   accessibility, not the policy, and two things they need sit outside the
- *   production CSP: ITUN's throwaway Convex backend on `127.0.0.1`, and the axe
+ *   production CSP: The Cantina's throwaway Convex backend on `127.0.0.1`, and the axe
  *   script the a11y spec injects. `tools/smoke-production.sh` asserts the CSP
  *   that reaches the browser in production.
  * - Service workers are blocked: activating one mid-navigation can abort
@@ -39,7 +39,7 @@ export type AppE2E = {
   /** The port the app's dev server listens on (and `preview`, in CI). */
   port: number
   /**
-   * The path the app is served under, when not the root (ITUN's `/build/`,
+   * The path the app is served under, when not the root (The Cantina's `/build/`,
    * ADR-048): where the readiness check asks, since its dev server answers
    * nothing above it. `baseURL` stays the origin; specs put the path on.
    */

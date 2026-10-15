@@ -6,7 +6,7 @@ The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 29, which
 
 **Accepted** and implemented — the model lives in
 `packages/salvageunion-reference/lib/rules/contributions.ts` and
-`lib/schemas/objects/contributions.ts`. Subordinate to [ADR-021](021-itun-surface-taxonomy.md) (the
+`lib/schemas/objects/contributions.ts`. Subordinate to [ADR-021](021-cantina-surface-taxonomy.md) (the
 governing surface/mode taxonomy) and paired with the amendment to
 [ADR-022](../ARCHITECTURE.md#decisions) that makes a cap override an
 absolute pin. Extends the "modified stats" heavier-solid-ink language of
@@ -21,7 +21,7 @@ cells to prose is a heavier solid ink mark (see the amendment in
 [ADR-026](026-entity-card-design-rules.md)), not rust and not dashed; the rules-bearing prose span
 carries a solid ink rail.
 
-**Amended (owner's call, 2026-10-14):** the rail is gone. In ITUN, which applies
+**Amended (owner's call, 2026-10-14):** the rail is gone. In the Cantina, which applies
 the rules, a rules-bearing paragraph leads with a mini ink AUTO stamp whose
 title (and screen-reader text) says the app applies the rule; the SRD, which
 applies nothing, prints the same paragraph as plain prose. The app opts in
@@ -93,7 +93,7 @@ exercise; a schema in which abilities are second-class is the bug.
 
 **Do not fork the resolver.** `resolveChoiceView.ts` already applies
 trait/damage/range correctly, including upgrading a duplicate trait's magnitude
-(Explosive 1 → 2), and is already shared by srd and ITUN. This ADR widens where
+(Explosive 1 → 2), and is already shared by srd and the Cantina. This ADR widens where
 effects may be **declared**; how they are **applied** is left alone.
 
 **"Never infer a number from prose" survives.** The existing instruction on
@@ -127,7 +127,7 @@ Live Sheet, Dashboard, partner cards, Frozen
   no editing affordance ([ADR-010](../ARCHITECTURE.md#decisions)).
 - **The Dashboard carries it.** `DashboardGauge` takes `provenance` and
   `breakdown`: the "teach as they enforce" affordance
-  [ADR-021](021-itun-surface-taxonomy.md) requires of Guided Play.
+  [ADR-021](021-cantina-surface-taxonomy.md) requires of Guided Play.
 - **An override appends; it never replaces.** See the ADR-022 amendment.
 
 ### 4. Duration-bound effects are Dashboard-applied, and never persisted on the entity

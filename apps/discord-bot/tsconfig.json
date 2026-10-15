@@ -4,7 +4,7 @@
   "exclude": ["node_modules"],
   "references": [
     { "path": "../../packages/component-lib" },
-    { "path": "../../packages/itun-domain" },
+    { "path": "../../packages/cantina-domain" },
     { "path": "../../packages/observability" },
     { "path": "../../packages/salvageunion-reference" }
   ]

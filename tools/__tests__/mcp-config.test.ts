@@ -3,9 +3,9 @@ import { join } from 'node:path'
 
 /**
  * `.mcp.json` starts the Convex MCP server with `bunx convex@<pin>`, so it runs
- * the CLI version ITUN pins whether or not `node_modules` is installed. Nothing
+ * the CLI version the Cantina pins whether or not `node_modules` is installed. Nothing
  * bumps that pin automatically; this test fails if it and the root catalog's
- * (which ITUN and `itun-domain` name as `catalog:`) ever differ, or if a write tool or a production flag creeps back in.
+ * (which the Cantina and `cantina-domain` name as `catalog:`) ever differ, or if a write tool or a production flag creeps back in.
  */
 
 const ROOT = join(import.meta.dir, '..', '..')
@@ -15,13 +15,13 @@ type Manifest = { dependencies: Record<string, string> }
 type RootManifest = { workspaces: { catalog: Record<string, string> } }
 
 const mcp: McpConfig = await Bun.file(join(ROOT, '.mcp.json')).json()
-const itun: Manifest = await Bun.file(join(ROOT, 'apps/itun/package.json')).json()
+const cantina: Manifest = await Bun.file(join(ROOT, 'apps/cantina/package.json')).json()
 const root: RootManifest = await Bun.file(join(ROOT, 'package.json')).json()
 const { args } = mcp.mcpServers.convex
 
 describe('.mcp.json convex server', () => {
-  test('runs the Convex CLI version apps/itun pins', () => {
-    expect(itun.dependencies.convex).toBe('catalog:')
+  test('runs the Convex CLI version apps/cantina pins', () => {
+    expect(cantina.dependencies.convex).toBe('catalog:')
     expect(args[0]).toBe(`convex@${root.workspaces.catalog.convex}`)
   })
 

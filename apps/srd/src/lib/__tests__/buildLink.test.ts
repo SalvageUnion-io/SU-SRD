@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { buildLinkFor, guideExitsFor, patternBuildLinkFor, STARTER_SET_HREF } from '../buildLink'
-import { ITUN_URL } from '../constants'
+import { CANTINA_URL } from '../constants'
 
 function must<T>(value: T | undefined): T {
   if (value === undefined) throw new Error('fixture not found')
@@ -9,10 +9,10 @@ function must<T>(value: T | undefined): T {
 }
 
 describe('buildLinkFor', () => {
-  test('a Tech 1 chassis opens the mech wizard on it, by slug, from ITUN_URL', () => {
+  test('a Tech 1 chassis opens the mech wizard on it, by slug, from CANTINA_URL', () => {
     const mule = must(SalvageUnionReference.Chassis.getByName('Mule'))
     expect(buildLinkFor('chassis', mule)).toEqual({
-      href: `${ITUN_URL}mechs/new?mode=guided&chassis=mule`,
+      href: `${CANTINA_URL}mechs/new?mode=guided&chassis=mule`,
       label: 'Build With This',
       ariaLabel: 'Build With This: a mech',
     })
@@ -27,7 +27,7 @@ describe('buildLinkFor', () => {
     const classes = SalvageUnionReference.Classes.all()
     const engineer = must(SalvageUnionReference.Classes.getByName('Engineer'))
     expect(buildLinkFor('classes', engineer)?.href).toBe(
-      `${ITUN_URL}pilots/new?mode=guided&class=engineer`
+      `${CANTINA_URL}pilots/new?mode=guided&class=engineer`
     )
     const advanced = must(classes.find((c) => !('coreTrees' in c)))
     expect(buildLinkFor('classes', advanced)).toBeNull()
@@ -36,7 +36,7 @@ describe('buildLinkFor', () => {
   test('every crawler type opens the crawler wizard on it', () => {
     for (const type of SalvageUnionReference.Crawlers.all()) {
       expect(buildLinkFor('crawlers', type)?.href).toBe(
-        `${ITUN_URL}crawlers/new?mode=guided&type=${getEntitySlug(type)}`
+        `${CANTINA_URL}crawlers/new?mode=guided&type=${getEntitySlug(type)}`
       )
     }
   })
@@ -53,7 +53,7 @@ describe('patternBuildLinkFor', () => {
 
   test('a legal starting pattern opens the mech wizard on its chassis and pattern', () => {
     expect(patternBuildLinkFor('chassis', mule(), patternOf('Hauler'))).toEqual({
-      href: `${ITUN_URL}mechs/new?mode=guided&chassis=mule&pattern=hauler`,
+      href: `${CANTINA_URL}mechs/new?mode=guided&chassis=mule&pattern=hauler`,
       label: 'Build With This',
       ariaLabel: 'Build With This: the Hauler mech',
     })
@@ -84,19 +84,19 @@ describe('guideExitsFor', () => {
 
   test('Create a Pilot builds a pilot, walks on to Create a Mech, offers the Starter Set', () => {
     expect(guideExitsFor('guides', guide('Create a Pilot'))).toEqual({
-      build: { href: `${ITUN_URL}pilots/new?mode=guided`, label: 'Build a pilot' },
+      build: { href: `${CANTINA_URL}pilots/new?mode=guided`, label: 'Build a pilot' },
       next: { href: '/guides/create-a-mech/', label: 'Next: Create a Mech' },
-      starterSet: { href: `${ITUN_URL}starter`, label: 'Or play the Starter Set' },
+      starterSet: { href: `${CANTINA_URL}starter`, label: 'Or play the Starter Set' },
     })
   })
 
   test('Create a Mech walks on to Create a Crawler; Create a Crawler is the last', () => {
     const mech = guideExitsFor('guides', guide('Create a Mech'))
-    expect(mech?.build.href).toBe(`${ITUN_URL}mechs/new?mode=guided`)
+    expect(mech?.build.href).toBe(`${CANTINA_URL}mechs/new?mode=guided`)
     expect(mech?.next?.href).toBe('/guides/create-a-crawler/')
     const crawler = guideExitsFor('guides', guide('Create a Crawler'))
     expect(crawler?.build).toEqual({
-      href: `${ITUN_URL}crawlers/new?mode=guided`,
+      href: `${CANTINA_URL}crawlers/new?mode=guided`,
       label: 'Build a crawler',
     })
     expect(crawler?.next).toBeNull()
@@ -108,7 +108,7 @@ describe('guideExitsFor', () => {
     expect(guideExitsFor('chassis', mule)).toBeNull()
   })
 
-  test("the Starter Set is ITUN's /starter", () => {
-    expect(STARTER_SET_HREF).toBe(`${ITUN_URL}starter`)
+  test("the Starter Set is the Cantina's /starter", () => {
+    expect(STARTER_SET_HREF).toBe(`${CANTINA_URL}starter`)
   })
 })

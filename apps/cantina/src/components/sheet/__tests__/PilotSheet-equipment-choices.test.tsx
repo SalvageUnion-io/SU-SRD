@@ -1,0 +1,166 @@
+/**
+ * PilotSheet — pilot equipment choice persistence tests.
+ *
+ * Asserts that:
+ *   1. A choice-bearing pilot equipment item renders its choice cards
+ *      (e.g. Custom Sniper Rifle → "Weapon Type" with Ballistic / Energy).
+ *   2. Toggling a choice persists to the store via update() under
+ *      equipmentChoices[slug][choiceId], without clobbering other items.
+ *   3. Persisted selections render as already-chosen (aria-pressed).
+ *   4. readOnly (Read): the item is its shortform pill; nothing is written.
+ *
+ * Uses the store-injection seam + a real choice-bearing reference equipment.
+ * NO mock.module().
+ */
+
+import { beforeAll, describe, expect, mock, test } from 'bun:test'
+import { act, fireEvent, render, screen } from '@testing-library/react'
+import type { Pilot } from 'cantina-domain/schemas/pilot'
+import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
+import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { expandCards } from '../../__tests__/expandCards'
+import { pilotFixture } from '../../__tests__/fixtures'
+import { hydrateStores } from '../../__tests__/hydrateStores'
+import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { PilotSheet } from '../PilotSheet'
+
+beforeAll(hydrateStores)
+
+// PilotSheet resolves equipment slugs via salvageunion-reference at render, and
+// the choice cards deep-link trait/keyword entities — preload 'all' so those
+// nested lookups (TraitKeywordDisplayView) resolve.
+//
+// SNIPER_ID is resolved from the reference (not hardcoded) so the fixture keys
+// pilot.equipment and equipmentChoices by the equipment's slug — the same key
+// PilotWizard/EquipmentStep persist.
+beforeAll(async () => {
+  const sniper = SalvageUnionReference.Equipment.getByName(SNIPER_NAME)
+  if (!sniper) throw new Error(`Fixture setup: equipment "${SNIPER_NAME}" not found in reference`)
+  SNIPER_ID = getEntitySlug(sniper)
+})
+
+// ---------------------------------------------------------------------------
+// Constants — Custom Sniper Rifle carries a "Weapon Type" permanent choice with
+// Ballistic / Energy schema-entity options. The choice id is stable in the
+// dataset; the options render as buttons labelled with their entity name.
+// SNIPER_ID is the equipment's slug (resolved in beforeAll) — the persistence
+// key used in production.
+// ---------------------------------------------------------------------------
+
+const SNIPER_NAME = 'Custom Sniper Rifle'
+const WEAPON_TYPE_CHOICE_ID = 'd2e3f4a5-b6c7-4d8e-9f0a-1b2c3d4e5f6a'
+let SNIPER_ID = ''
+
+// ---------------------------------------------------------------------------
+// Store stub — mutable backing entity so get() returns fresh state after update.
+// ---------------------------------------------------------------------------
+
+function makePilotStubStore(initial: Pilot, updateSpy?: ReturnType<typeof mock>) {
+  let current = initial
+  const updateMock =
+    updateSpy ??
+    mock(async (_type: string, _id: string, patch: Partial<Pilot>) => {
+      current = { ...current, ...patch }
+      return current
+    })
+
+  const store = makeEntityStoreMock({
+    pilots: [current],
+    hydrated: { pilots: true, mechs: false, crawlers: false, npcs: false, softLinks: false },
+    hydrate: mock(async () => {}),
+    list: mock(() => [current]),
+    get: mock((_type: string, id: string) => (id === current.id ? current : null)),
+    create: mock(async () => current),
+    update: updateMock,
+    delete: mock(async () => {}),
+  })
+  return { store, updateMock }
+}
+
+// ---------------------------------------------------------------------------
+// Fixture
+// ---------------------------------------------------------------------------
+
+function makePilot(overrides?: Partial<Pilot>): Pilot {
+  return pilotFixture({
+    id: 'pilot-choices-1',
+    name: 'Zara Quinn',
+    callsign: 'Hex',
+    equipment: [SNIPER_ID],
+    ...overrides,
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+describe('PilotSheet — equipment choice cards', () => {
+  test('renders choice option cards for a choice-bearing equipment', () => {
+    const pilot = makePilot()
+    const { store } = makePilotStubStore(pilot)
+    render(<PilotSheet pilot={pilot} store={store} />)
+    expandCards()
+
+    // The Weapon Type options render as toggle buttons.
+    expect(screen.getByRole('button', { name: /Ballistic/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /Energy/i })).toBeTruthy()
+  })
+
+  test('toggling a choice persists to equipmentChoices[slug][choiceId]', async () => {
+    const pilot = makePilot()
+    const { store, updateMock } = makePilotStubStore(pilot)
+    render(<PilotSheet pilot={pilot} store={store} />)
+    expandCards()
+
+    const ballistic = screen.getByRole('button', { name: /Ballistic/i })
+    await act(async () => {
+      fireEvent.click(ballistic)
+    })
+
+    expect(updateMock).toHaveBeenCalledTimes(1)
+    expect(updateMock).toHaveBeenCalledWith(
+      'pilot',
+      pilot.id,
+      {
+        equipmentChoices: {
+          [SNIPER_ID]: { [WEAPON_TYPE_CHOICE_ID]: ['Ballistic'] },
+        },
+      },
+      LIVE_SHEET_MANUAL
+    )
+  })
+
+  test('persisted selection renders as chosen (aria-pressed)', () => {
+    const pilot = makePilot({
+      equipmentChoices: {
+        [SNIPER_ID]: { [WEAPON_TYPE_CHOICE_ID]: ['Energy'] },
+      },
+    })
+    const { store } = makePilotStubStore(pilot)
+    render(<PilotSheet pilot={pilot} store={store} />)
+    expandCards()
+
+    const energy = screen.getByRole('button', { name: /Energy/i })
+    expect(energy.getAttribute('aria-pressed')).toBe('true')
+
+    const ballistic = screen.getByRole('button', { name: /Ballistic/i })
+    expect(ballistic.getAttribute('aria-pressed')).toBe('false')
+  })
+
+  test('readOnly (the Read state): the item is its shortform pill, and nothing is written', async () => {
+    // Read prints the inventory as pills (board 10): the choice is
+    // the card's, shown in Edit. A read-only sheet offers no choice to toggle.
+    const pilot = makePilot({
+      equipmentChoices: {
+        [SNIPER_ID]: { [WEAPON_TYPE_CHOICE_ID]: ['Energy'] },
+      },
+    })
+    const { store, updateMock } = makePilotStubStore(pilot)
+    render(<PilotSheet pilot={pilot} store={store} readOnly />)
+
+    expect(screen.getAllByText(SNIPER_NAME).length).toBeGreaterThan(0)
+    expect(screen.queryByRole('button', { name: /Ballistic/i })).toBeNull()
+    expect(updateMock).not.toHaveBeenCalled()
+  })
+})

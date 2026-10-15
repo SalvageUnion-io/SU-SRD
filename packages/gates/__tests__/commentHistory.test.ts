@@ -58,13 +58,13 @@ describe('historyHits', () => {
 
 describe('isCommentSource', () => {
   test('reads script and module code, not generated output or declarations', () => {
-    expect(isCommentSource('apps/itun/src/a.tsx')).toBe(true)
-    expect(isCommentSource('apps/itun/public/sw-takeover.js')).toBe(true)
+    expect(isCommentSource('apps/cantina/src/a.tsx')).toBe(true)
+    expect(isCommentSource('apps/cantina/public/sw-takeover.js')).toBe(true)
     expect(isCommentSource('tools/check.ts')).toBe(true)
-    expect(isCommentSource('apps/itun/convex/_generated/api.d.ts')).toBe(false)
-    expect(isCommentSource('apps/itun/src/routeTree.gen.ts')).toBe(false)
+    expect(isCommentSource('apps/cantina/convex/_generated/api.d.ts')).toBe(false)
+    expect(isCommentSource('apps/cantina/src/routeTree.gen.ts')).toBe(false)
     expect(isCommentSource('packages/x/lib/generated/registry.ts')).toBe(false)
-    expect(isCommentSource('apps/itun/src/vite-env.d.ts')).toBe(false)
+    expect(isCommentSource('apps/cantina/src/vite-env.d.ts')).toBe(false)
     expect(isCommentSource('docs/README.md')).toBe(false)
   })
 })
@@ -87,14 +87,14 @@ function fixture(files: Record<string, string>): string {
 describe('checkCommentHistory', () => {
   test('fails each phrase with its line and what to write instead', () => {
     const files = {
-      'apps/itun/src/a.ts': "// Shelves (issue 1279).\nexport const a = 'issue 1279'\n",
+      'apps/cantina/src/a.ts': "// Shelves (issue 1279).\nexport const a = 'issue 1279'\n",
       'packages/x/lib/b.ts': '/**\n * The gauge used to decide this.\n */\nexport const b = 1\n',
       'tools/c.ts': '// What is true now.\n',
     }
     const root = fixture(files)
     const result = checkCommentHistory(root, Object.keys(files))
     expect(result.failures).toEqual([
-      'apps/itun/src/a.ts:1 says "issue 1279" (issue-number), history in a code comment: say what the code does; the issue is in git history.',
+      'apps/cantina/src/a.ts:1 says "issue 1279" (issue-number), history in a code comment: say what the code does; the issue is in git history.',
       'packages/x/lib/b.ts:2 says "used to" (used-to), history in a code comment: state the invariant the old behaviour broke.',
     ])
     expect(result.ok).toContain('3 source files')

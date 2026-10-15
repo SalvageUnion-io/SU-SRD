@@ -1,4 +1,4 @@
-// SRD catalog — the catalog categories and their tile colours, as ITUN's
+// SRD catalog — the catalog categories and their tile colours, as the Cantina's
 // Dashboard SRD Explorer renders them. (srd's own index is its chapters,
 // `apps/srd/src/lib/chapters.ts`.)
 export { buildCatalogSections } from './catalog/catalogSections'
@@ -6,7 +6,7 @@ export { ActivationCost } from './components/atoms/ActivationCost'
 // Avatar — a person's picture in a circle, falling back to their initial
 export { Avatar } from './components/atoms/Avatar'
 export type { BadgeTone } from './components/atoms/Badge'
-// Chrome primitives (ITUN design handoff — design-spec §2)
+// Chrome primitives (The Cantina design handoff — design-spec §2)
 // Badge — the unified stamp-chip family: the quiet keyword chip is
 // `surface="quiet"`, the status badge is StatusBadge (domain vocabulary), and a
 // pill is `Badge surface="outline"`/`"tone"`.
@@ -19,7 +19,7 @@ export { buttonVariants } from './components/atoms/buttonVariants'
 export { CatalogTile } from './components/atoms/CatalogTile'
 // ChapterBand — the page title notched into a band in the chapter's colour
 export { ChapterBand } from './components/atoms/ChapterBand'
-// Conditions — the entity-condition chip row. Public because ITUN's sheet
+// Conditions — the entity-condition chip row. Public because the Cantina's sheet
 // editors (ConditionsEditor, NpcFactsEditor) compose it.
 export { Conditions } from './components/atoms/Conditions'
 export { CountStepper } from './components/atoms/CountStepper'
@@ -69,11 +69,11 @@ export { Text } from './components/atoms/Text'
 // USER_MADE_HATCH — the hatch a user-made page wears on its colour bands
 // (ruleset §3.9): ChapterBand's `userMade`, and the page's hatched foot.
 export { USER_MADE_HATCH } from './components/atoms/userMadeHatch'
-// Stat trackers (ITUN design handoff — design-spec §2.7)
+// Stat trackers (The Cantina design handoff — design-spec §2.7)
 export type { VitalGaugeBreakdown } from './components/atoms/VitalGauge'
 export { VitalGauge } from './components/atoms/VitalGauge'
 // AbilityTrack — an ability tree on its track (tier numerals, a Legendary
-// tree's "or"): the SRD's class page and abilities Tree, ITUN's pilot sheet.
+// tree's "or"): the SRD's class page and abilities Tree, the Cantina's pilot sheet.
 export { AbilityTrack } from './components/compositions/AbilityTrack'
 export { AppBar } from './components/compositions/AppBar'
 // Deliberately its own module rather than the card-image component's file,
@@ -85,7 +85,7 @@ export { assetSrcSetFor } from './components/compositions/assetSrcSet'
 // BrandCard — the site's own 1200 × 630 link preview, the Discord banner's face.
 export { BrandCard } from './components/compositions/BrandCard'
 // ControlButtons — the control strip Card's rail renders; public because
-// ITUN's Dashboard display panel lays out entity controls with it directly.
+// The Cantina's Dashboard display panel lays out entity controls with it directly.
 export { ControlButtons } from './components/compositions/ControlButtons'
 export { heroImageSizes } from './components/compositions/cardImageSizes'
 // digestRollTable — a banded d20 table as rows, highest first (the book's order);
@@ -114,14 +114,14 @@ export {
   ogReferenceAddressFits,
 } from './components/compositions/ogCardText'
 // The searcher picker's modal width — for a bare ModalShell wrapping a
-// multi-select EntitySearcher (ITUN's SheetPickerModal applies it itself).
+// multi-select EntitySearcher (The Cantina's SheetPickerModal applies it itself).
 export { PICKER_MODAL_WIDTH } from './components/compositions/pickerModalWidth'
 // RollTableInstrument — THE roll table (EDL E14): a card's, a guide step's and
-// the SRD roll-table page's bands and ITUN's Dashboard tables, banded in the
+// the SRD roll-table page's bands and the Cantina's Dashboard tables, banded in the
 // surface tone; `titleSelect` makes its title a table picker's trigger
 export type { RollTableTitleSelect } from './components/compositions/RollTableInstrument'
 export { RollTableInstrument } from './components/compositions/RollTableInstrument'
-// StartHere — the one onboarding block, on the SRD's home and ITUN's front door
+// StartHere — the one onboarding block, on the SRD's home and the Cantina's front door
 export { StartHere } from './components/compositions/StartHere'
 export { StatusBadge } from './components/compositions/StatusBadge'
 export type { TreeTrack } from './components/compositions/treeTrack'
@@ -146,13 +146,13 @@ export { ModalShell } from './components/containers/ModalShell'
 // PageShell — the full-bleed <main> landmark for a top-level app screen
 export { PageShell } from './components/containers/PageShell'
 // PopoverPanel — a trigger and the small non-modal panel of controls it opens
-// (Base UI Popover); ITUN's sheet "⋯" overflow
+// (Base UI Popover); the Cantina's sheet "⋯" overflow
 export { PopoverPanel } from './components/containers/PopoverPanel'
 // RadioCardGroup — the radiogroup around an exactly-one picker's cards (Base UI
 // RadioGroup): one tab stop, arrow keys between the cards
 export { RadioCardGroup } from './components/containers/RadioCardGroup'
 // RecoveryPanel — the shared error-recovery card (title / message / primary
-// action) behind srd's island error boundary and itun's root error component.
+// action) behind srd's island error boundary and cantina's root error component.
 export { RecoveryPanel } from './components/containers/RecoveryPanel'
 export { RosterSkeleton } from './components/containers/RosterSkeleton'
 export { Sel } from './components/containers/Sel'
@@ -167,7 +167,7 @@ export type { AnnouncedRoll } from './components/containers/toastRoll'
 export { toastRoll } from './components/containers/toastRoll'
 export { Content } from './components/referenceEntity/Content'
 // The band line a Page carries right of its title (EDL E20): the SRD's entity
-// pages and ITUN's detail dialog.
+// pages and the Cantina's detail dialog.
 export { EntityPageStamps } from './components/referenceEntity/card/EntityPageStamps'
 // What an entity PAGE's chapter band and foot band say (`presentation="page"`)
 export type { EntityPageMeta } from './components/referenceEntity/card/entityPage'
@@ -253,7 +253,7 @@ export { cn } from './utils/cn'
 // @randsum/salvageunion, every other die through @randsum/roller.
 export type { TableDie } from './utils/dice'
 export { dieForTable, rollD20, rollForTable } from './utils/dice'
-// Prose with its `[[Trait]]` references drawn as Mentions (ITUN's `DashboardRollTable`).
+// Prose with its `[[Trait]]` references drawn as Mentions (The Cantina's `DashboardRollTable`).
 export { useParseTraitReferences } from './utils/parseTraitReferences'
 // The one place a schema id becomes a human label ('crawler-bays' →
 // 'Crawler Bays'), so the combobox, the /search page and the catalog can't

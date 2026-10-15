@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     outputs:
-      itun: ${{ steps.filter.outputs.itun }}
+      cantina: ${{ steps.filter.outputs.cantina }}
       web: ${{ steps.filter.outputs.web }}
       bot: ${{ steps.filter.outputs.bot }}
       assets: ${{ steps.filter.outputs.assets }}
@@ -59,17 +59,17 @@ jobs:
               # every workspace's test preloads and linker config
               - 'test/**'
               - 'bunfig.toml'
-              # root prose rendered by srd + itun and asserted on by
+              # root prose rendered by srd + cantina and asserted on by
               # component-lib tests
               - 'ABOUT_JRVS.md'
               - 'LLM_STATEMENT.md'
               - 'SPECIAL_THANKS.md'
-            itun:
+            cantina:
               - *shared
-              - 'apps/itun/**'
+              - 'apps/cantina/**'
               - 'packages/component-lib/**'
               # schemas, link rules and wire types Convex and the client share
-              - 'packages/itun-domain/**'
+              - 'packages/cantina-domain/**'
               # the build job's Playwright config and axe scan
               - 'packages/gates/**'
             web:
@@ -80,8 +80,8 @@ jobs:
             bot:
               - *shared
               - 'apps/discord-bot/**'
-              # the bot's wire types (`itun-domain/botWire`, `import type`)
-              - 'packages/itun-domain/**'
+              # the bot's wire types (`cantina-domain/botWire`, `import type`)
+              - 'packages/cantina-domain/**'
               # the product's names (`component-lib/product`)
               - 'packages/component-lib/**'
             assets:
@@ -262,9 +262,9 @@ jobs:
           path: apps/srd/playwright-report/
           retention-days: 7
 
-  build-itun:
+  build-cantina:
     needs: [changes]
-    if: needs.changes.outputs.itun == 'true'
+    if: needs.changes.outputs.cantina == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -281,30 +281,30 @@ jobs:
       # The URL is a throwaway backend carrying this PR's own functions, not
       # production: a PR's client must run against the backend it ships with,
       # and a PR gate makes no production calls.
-      - name: Start a throwaway Convex backend and build itun against it
+      - name: Start a throwaway Convex backend and build cantina against it
         uses: ./.github/actions/convex-backend
 
       # The build emits the assets; this bundles the Worker `main` that ships.
       - name: Bundle the Worker that actually deploys
-        run: bun --filter itun worker:bundle --outdir /tmp/itun-worker
+        run: bun --filter cantina worker:bundle --outdir /tmp/cantina-worker
 
       - name: Set up Playwright
         uses: ./.github/actions/playwright
 
       # The PR-blocking browser tier. Add a spec to this line; do NOT add a job.
-      # `a11y.e2e.ts` is srd's scan, for ITUN: the routes it lists, signed out,
+      # `a11y.e2e.ts` is srd's scan, for the Cantina: the routes it lists, signed out,
       # at desktop and as a phone. The signed-in pages are
       # `a11y-signed-in.e2e.ts`'s, in e2e-nightly.yml: it needs the test seam.
       - name: Run smoke + bundle-budget + a11y specs
-        working-directory: apps/itun
+        working-directory: apps/cantina
         run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts a11y.e2e.ts
 
       - name: Upload Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: playwright-report-e2e-itun
-          path: apps/itun/playwright-report/
+          name: playwright-report-e2e-cantina
+          path: apps/cantina/playwright-report/
           retention-days: 7
 
       - name: Backend logs on failure
@@ -390,7 +390,7 @@ jobs:
       - coverage
       - build-srd
       - perf-srd
-      - build-itun
+      - build-cantina
       - build-discord-bot
       - build-su-assets
       - version-bump

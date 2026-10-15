@@ -139,7 +139,7 @@
  * through the gap to the next, and the last ends under its numeral, so nothing
  * hangs below the final tier. `data-track` picks the tier hue; a Legendary
  * tree (pick one) has none. The SRD's class page and abilities Tree, and
- * ITUN's pilot sheet, draw it. */
+ * The Cantina's pilot sheet, draw it. */
 .su-ability-track {
   /* The numeral's stamp, the pipe's centre line (under the stamp), its
      weight, the gap it bridges between tiers, and how far down a Row the

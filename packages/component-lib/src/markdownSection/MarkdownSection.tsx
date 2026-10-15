@@ -35,7 +35,7 @@ const LIST = {
  * (`ABOUT_JRVS.md`, `LLM_STATEMENT.md`, `SPECIAL_THANKS.md`) and is passed in raw, so the two sites
  * cannot drift apart and the wording can be edited without touching component
  * code. The library stays data-source agnostic, and each app reads the file
- * the way its build allows (srd via `node:fs`, ITUN via a Vite `?raw` import).
+ * the way its build allows (srd via `node:fs`, the Cantina via a Vite `?raw` import).
  */
 export function MarkdownSection({ markdown }: MarkdownSectionProps) {
   const { heading, blocks } = parseMarkdownSection(markdown)

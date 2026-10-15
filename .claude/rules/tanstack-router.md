@@ -1,9 +1,9 @@
 ---
 paths:
-  - 'apps/itun/src/routes/**'
+  - 'apps/cantina/src/routes/**'
 ---
 
-# TanStack Router (ITUN)
+# TanStack Router (The Cantina)
 
 - **Directory routes only**: one path segment per directory
   (`p/$kind/$appId.tsx`, `starter/index.tsx`), never flat dot names
@@ -26,7 +26,7 @@ paths:
   for `SalvageUnionReference.preload([...])`: every route renders inside
   `GameDataReady`, whose `preload('all')` is already the gate, so a per-route
   list is pure repetition. Neither reads player entities: those come from the
-  stores in the component (see `itun-data-access.md`).
+  stores in the component (see `cantina-data-access.md`).
 - Crash handling is global. Reporting happens once, in the `createRoot` hooks
   `main.tsx` installs (`reactRootErrorHandlers` in `src/lib/observability.ts`),
   which React calls for every error any boundary catches. The error components
