@@ -1,5 +1,5 @@
 /**
- * The Cantina, served by this Worker under `/build` (the one-app plan, phase 1).
+ * The Cantina, served by this Worker under `/build`: one Worker for both.
  *
  * `wrangler.jsonc`'s `run_worker_first` sends `/build` and everything under
  * it here before Static Assets looks (`RUN_WORKER_FIRST`, which the routing

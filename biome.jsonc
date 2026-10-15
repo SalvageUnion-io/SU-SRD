@@ -476,7 +476,7 @@
     {
       // The one srd file that may import the Cantina: the Worker hands
       // `/build` to the Cantina's Worker (`cantina/worker`, its one export), so
-      // one Worker serves both (the one-app plan, phase 1). Only that entry:
+      // one Worker serves both. Only that entry:
       // no SRD page, island or runtime can reach the Cantina. The rest of the
       // srd rule is restated, as Biome overrides replace a rule's options.
       "includes": ["apps/srd/src/worker/build.ts"],
