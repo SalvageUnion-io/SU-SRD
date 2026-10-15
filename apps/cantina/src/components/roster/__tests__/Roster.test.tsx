@@ -217,7 +217,7 @@ describe('Shelves — the band', () => {
     await renderShelves()
 
     expect(screen.getByRole('heading', { level: 1, name: 'Shelves' })).toBeTruthy()
-    expect(screen.getByText(/Units in a Game stay on your shelf too\./)).toBeTruthy()
+    expect(screen.queryByText(/Units in a Game stay on your shelf too\./)).toBeNull()
     const showing = screen.getByRole('group', { name: 'Showing' })
     expect(
       within(showing)

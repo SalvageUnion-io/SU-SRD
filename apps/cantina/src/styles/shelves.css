@@ -33,14 +33,30 @@
   text-transform: uppercase;
 }
 
-/* The import result: its own line under the band's controls, never a flex item
-   beside the button, so the button keeps its intrinsic width. */
+/* The import result: its own line on the band above the title, never a flex
+   item beside the button, so the button keeps its intrinsic width. */
 .su-shelves-band__status {
   color: var(--color-paper);
   flex: 1 1 100%;
   font-family: var(--font-body);
   font-size: var(--text-xs);
   margin: 0;
+}
+
+/* The band's controls sit right of the notched title, their line centred on
+   the middle of its capitals, as a show page's chips are (owner's rule,
+   2026-10-14; `.su-chapter-band[data-aside='notch']` in shell.css). That rule
+   assumes a 32px line; these are 40px (44px under a coarse pointer), so the
+   half-height is theirs. Below `sm` they stack above the title, on the band. */
+@media (min-width: 40rem) {
+  .su-shelves .su-chapter-band__aside {
+    padding-bottom: calc(var(--text-chapter) * 0.428 - 20px);
+  }
+}
+@media (min-width: 40rem) and (pointer: coarse) {
+  .su-shelves .su-chapter-band__aside {
+    padding-bottom: calc(var(--text-chapter) * 0.428 - 22px);
+  }
 }
 
 /* Under a coarse pointer every control on the page is at least 44px tall
