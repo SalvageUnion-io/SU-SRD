@@ -6,12 +6,6 @@
 /* The page layouts. */
 @import './pages.css';
 
-/* The one page measure (`lib/pageMeasure.ts`): every page's band row, body and
-   foot cap at it, so all of them share the show page's gutter. */
-:root {
-  --srd-measure: 75rem;
-}
-
 /* The Union bar's account controls (`lib/accountBar.ts`): Sign in gives way
    to the account menu while somebody is signed in, and an account island that
    has not mounted (signed out, or not yet) takes no place in the bar's gap. */

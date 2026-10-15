@@ -34,6 +34,10 @@
   --radius-card: 3px;
   --radius-panel: 6px;
 
+  /* The one page measure (`lib/pageMeasure.ts`): the reference pages' band
+     row, body and foot, and the Cantina pages that share their column. */
+  --page-measure: 75rem;
+
   /* Semantic type scale (ruleset §4.2 — the ONE font-size ladder). Shared by
      every surface:
        badge    11px   THE FLOOR — every caps label, stamp, badge, pill,

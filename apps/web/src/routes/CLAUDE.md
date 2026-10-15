@@ -4,7 +4,7 @@ React app for building and running Salvage Union pilots, mechs, and crawlers.
 
 **Storage modes — read
 [`.claude/rules/cantina-data-access.md`](../../../../.claude/rules/cantina-data-access.md)
-before touching data** (it loads with the stores, hooks, `src/lib/connection/`,
+before touching data** (it loads with the stores, `src/lib/entities/`, `src/lib/connection/`,
 product component folders, `convex/`, `e2e/cantina/`).
 
 - Every read-only sheet (`/sheet/:kind/:id`, `/p/:kind/:appId`) is the live

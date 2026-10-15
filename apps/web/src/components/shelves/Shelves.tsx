@@ -42,6 +42,9 @@ import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
+import { useConnection } from '../../lib/connection/connectionContext'
+import { useServerAction } from '../../lib/connection/useServerAction'
+import { copyForShelf, copyName } from '../../lib/copyEntity'
 import {
   useCrawlers,
   useHydrateEntities,
@@ -49,11 +52,8 @@ import {
   useNpcs,
   usePilots,
   useSoftLinkList,
-} from '../../hooks/entities'
-import { useHydrateOnMount } from '../../hooks/entities/useHydrateEntities'
-import { useConnection } from '../../lib/connection/connectionContext'
-import { useServerAction } from '../../lib/connection/useServerAction'
-import { copyForShelf, copyName } from '../../lib/copyEntity'
+} from '../../lib/entities'
+import { useHydrateOnMount } from '../../lib/entities/useHydrateEntities'
 import { buildEntityExport, buildPatternExport } from '../../lib/export/buildExportBundle'
 import { downloadJson, exportFileName } from '../../lib/export/downloadJson'
 import type { MoveTargetGame } from '../../lib/games/gameRoster'

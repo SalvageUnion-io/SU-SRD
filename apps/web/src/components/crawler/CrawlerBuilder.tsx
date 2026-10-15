@@ -14,8 +14,8 @@ import {
   isWeaponSystem,
   resolveSystemRef,
 } from 'salvageunion-reference/rules'
-import { useMechs, usePilots } from '../../hooks/entities'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
+import { useMechs, usePilots } from '../../lib/entities'
 import type { CrawlerWizardStepId } from '../../lib/rules/creation'
 import {
   clampCrawlerCreationDraft,

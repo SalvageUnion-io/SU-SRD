@@ -1,7 +1,7 @@
 ---
 paths:
   - 'apps/web/src/stores/**'
-  - 'apps/web/src/hooks/**'
+  - 'apps/web/src/lib/entities/**'
   - 'apps/web/src/lib/connection/**'
   - 'apps/web/src/lib/export/**'
   - 'apps/web/src/components/{account,entityContainer,crawler,dashboard,export,games,mech,mediator,npc,roster,shared,sharing,sheet,shelves,starterSet,wiring,wizard}/**'
@@ -70,7 +70,7 @@ a unit test rendering a Convex consumer mocks the hooks with
   `commitChangeLog` — the one deliberate fire-and-forget write.
 - Duplicate locally what Convex owns (membership, ownership, invites,
   proposals, crew vitals) — check `apps/web/convex/` first.
-- Add a query cache: entity reads are the hooks in `src/hooks/entities/`.
+- Add a query cache: entity reads are the hooks in `src/lib/entities/`.
 
 More: [data flow](../../docs/ARCHITECTURE.md#data-flow),
 [accounts](../../docs/ARCHITECTURE.md#convex).

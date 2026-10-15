@@ -41,6 +41,7 @@
  * it works on salvageunion.io/build and on a Worker Preview alike.
  */
 import { reportError } from 'observability/cloudflare'
+import { fnv1a } from '../lib/fnv1a'
 import type {
   InvitePreviewAnswer,
   PreviewAnswer,
@@ -185,13 +186,9 @@ function cardOf(resolved: Resolved, origin: string, base: string): PreviewCard |
 
 /** FNV-1a, as eight hex digits: a cache key, not a secret. */
 export function versionOf(value: unknown): string {
-  const input = `${OG_RENDER_VERSION}:${JSON.stringify(value)}`
-  let hash = 0x811c9dc5
-  for (let i = 0; i < input.length; i++) {
-    hash ^= input.charCodeAt(i)
-    hash = Math.imul(hash, 0x01000193)
-  }
-  return (hash >>> 0).toString(16).padStart(8, '0')
+  return fnv1a(`${OG_RENDER_VERSION}:${JSON.stringify(value)}`)
+    .toString(16)
+    .padStart(8, '0')
 }
 
 /** Where a resolved route's picture lives, versioned by what it shows. */

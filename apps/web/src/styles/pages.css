@@ -362,14 +362,14 @@ a.su-home__discord:hover {
 /*
  * The one page body (`.su-page-body`): every page family's content under its
  * band — show pages, listings, search, the Contents home, the document pages
- * and the 404 — at the one measure (`--srd-measure`, `lib/pageMeasure.ts`),
+ * and the 404 — at the one measure (`--page-measure`, `lib/pageMeasure.ts`),
  * centred, its side padding the gutter: 16px on a phone, 24px from `sm`. The
  * band's row and the foot's share the measure and the padding, so the notch,
  * the content and the citation start on one line.
  */
 .su-page-body {
   margin-inline: auto;
-  max-width: var(--srd-measure);
+  max-width: var(--page-measure);
   padding: var(--space-20) var(--space-16) var(--space-32);
   width: 100%;
 }

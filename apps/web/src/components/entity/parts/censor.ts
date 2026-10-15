@@ -5,6 +5,7 @@
  */
 
 import { assetUrl } from 'salvageunion-reference'
+import { fnv1a } from '../../../lib/fnv1a'
 
 /** The manual's three marks: a torn ink patch, a torn strip, a REMOVED stamp. */
 type CensorVariant = 'file' | 'row' | 'removed'
@@ -33,16 +34,6 @@ const BLUEPRINTS: readonly string[] = [
   'cerberus',
 ].map((slug) => assetUrl(`chassis/${slug}.webp`))
 
-/** A string's FNV-1a hash: the seed for the tear. */
-function hash(text: string): number {
-  let h = 0x811c9dc5
-  for (let i = 0; i < text.length; i++) {
-    h ^= text.charCodeAt(i)
-    h = Math.imul(h, 0x01000193)
-  }
-  return h >>> 0
-}
-
 /**
  * The mark for one entity: `ordinal` is its place among the catalog's art-less
  * entities, so the marks and blueprints turn in listing order and neighbours
@@ -52,7 +43,7 @@ export function censorMark(key: string, ordinal: number, page: number | undefine
   return {
     variant: VARIANTS[ordinal % VARIANTS.length] ?? 'file',
     code: `P.${page === undefined ? '000' : String(page).padStart(3, '0')}`,
-    seed: hash(key),
+    seed: fnv1a(key),
     backdrop: BLUEPRINTS[ordinal % BLUEPRINTS.length] ?? '',
   }
 }

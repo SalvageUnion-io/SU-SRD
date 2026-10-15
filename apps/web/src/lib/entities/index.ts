@@ -1,5 +1,5 @@
 /**
- * hooks/entities — the typed reactive read layer over the Zustand stores.
+ * lib/entities — the typed reactive read layer over the Zustand stores.
  *
  * Components subscribe through these hooks instead of ad-hoc
  * `useEntityStore((s) => …)` selectors; event handlers keep using

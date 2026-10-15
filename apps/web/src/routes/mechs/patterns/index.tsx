@@ -4,15 +4,13 @@ import { ChapterBand } from '../../../components/index'
 import { CrewPatterns } from '../../../components/mech/Pattern/CrewPatterns'
 import { PatternList } from '../../../components/mech/Pattern/PatternList'
 import { color, font, fontSize, space } from '../../../design/tokens'
+import { PAGE_MEASURE } from '../../../lib/pageMeasure'
 import { pageTitle } from '../../../lib/pageTitle'
 
 export const Route = createFileRoute('/mechs/patterns/')({
   head: () => ({ meta: [{ title: pageTitle('Mech Patterns') }] }),
   component: MechPatternsPage,
 })
-
-/** Shelves' measure, and the SRD's: the band's row and the body under it. */
-const MEASURE = '75rem'
 
 const PAGE = { backgroundColor: color.wkBg, minHeight: '100%' } satisfies CSSProperties
 
@@ -21,7 +19,7 @@ const BODY = {
   display: 'flex',
   flexDirection: 'column',
   gap: space[24],
-  maxWidth: MEASURE,
+  maxWidth: PAGE_MEASURE,
   paddingBlock: `${space[20]} ${space[48]}`,
 } satisfies CSSProperties
 
@@ -38,7 +36,7 @@ function MechPatternsPage() {
 
   return (
     <main style={PAGE}>
-      <ChapterBand tone="mech" measure={MEASURE}>
+      <ChapterBand tone="mech" measure={PAGE_MEASURE}>
         Mech Patterns
       </ChapterBand>
       <div className="su-page-column" style={BODY}>

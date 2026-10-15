@@ -21,9 +21,9 @@ import type { RefEntity } from 'salvageunion-reference'
 import { STAT_LABELS } from 'salvageunion-reference'
 import { api } from '../../../../convex/_generated/api'
 import type { Id } from '../../../../convex/_generated/dataModel'
-import { useHydrateEntities, useMech } from '../../../hooks/entities'
 import { useConnection } from '../../../lib/connection/connectionContext'
 import { useServerAction } from '../../../lib/connection/useServerAction'
+import { useHydrateEntities, useMech } from '../../../lib/entities'
 import type { PatternVisibility } from '../../../lib/patterns/patterns'
 import {
   asReferencePattern,

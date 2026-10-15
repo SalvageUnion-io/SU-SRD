@@ -44,7 +44,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     No IndexedDB: an offline reload boots the SW shell, signed out and empty. The PWA stays installable; `e2e/cantina/offline.e2e.ts` pins both.
 13. **Zustand stores** <a id="stores"></a>
     `src/stores/` hold rows in memory, filled by `ShelfSync`; `update()` validates, awaits Convex, then logs; a refused write changes nothing.
-    No TanStack Query; reads: `src/hooks/entities/`, `convex/react`. Shared state: a store; context: what varies by placement.
+    No TanStack Query; reads: `src/lib/entities/`, `convex/react`. Shared state: a store; context: what varies by placement.
 14. **Sharing** <a id="sharing"></a>
     The one account-free share is the public sheet `/p/:kind/:appId`, opt-in via the `publicRead` column (ADR-032).
     Snapshots are retired (ADR-036).

@@ -54,8 +54,8 @@ import { useMutation, useQuery } from 'convex/react'
 import type { CSSProperties, ReactNode } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { useCrawlers, useHydrateEntities, useMechs, usePilots } from '../../hooks/entities'
 import { useServerAction } from '../../lib/connection/useServerAction'
+import { useCrawlers, useHydrateEntities, useMechs, usePilots } from '../../lib/entities'
 import type { RosterKind, RosterRow } from '../../lib/games/gameRoster'
 import {
   crawlerRows,

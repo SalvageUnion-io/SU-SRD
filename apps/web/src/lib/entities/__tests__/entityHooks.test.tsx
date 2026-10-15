@@ -1,5 +1,5 @@
 /**
- * Tests for the hooks/entities layer.
+ * Tests for the lib/entities layer.
  *
  * Covers the contract the migrated components rely on:
  *   - list/by-id hooks read the store's in-memory state
