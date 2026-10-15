@@ -1,8 +1,8 @@
 /**
  * ShelfItem — one thing on a shelf (Shelves, board S1): its one-line card
  * (`ShelfPill`), whose chip group leads with this item's chips — the Game it
- * is in, the units linked to it, where it came from, and for a pattern who can
- * see it — as label-only chips, the way a Game's Row leads with its owner chip
+ * is in, the units linked to it, and for a pattern or NPC who can see it — as
+ * label-only chips, the way a Game's Row leads with its owner chip
  * (never boxes under the card; owner's rule, 2026-10-14) — and its "⋯" menu at
  * the shelf's edge.
  *

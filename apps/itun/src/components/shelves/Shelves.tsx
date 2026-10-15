@@ -238,7 +238,6 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   // whichever way the toggle is set.
   const pilotNames = new Map(allPilots.map((p) => [p.id, p.name]))
   const mechNames = new Map(allMechs.map((m) => [m.id, m.name]))
-  const patternNames = new Map(patterns.map((p) => [p.id, p.name]))
 
   const pilots = allPilots.filter((p) => shownUnder(filter, p))
   const mechs = allMechs.filter((m) => shownUnder(filter, m))
@@ -501,7 +500,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                     reading={rowStats(mechRailItems(m))[0]}
                     href={`/sheet/mech/${m.id}`}
                     chips={[
-                      ...mechChips({ mech: m, games, softLinks, pilotNames, patternNames }),
+                      ...mechChips({ mech: m, games, softLinks, pilotNames }),
                       ...linkChip(sharedByLink, m.id),
                     ]}
                     menu={unitMenu('mech', m, m)}
