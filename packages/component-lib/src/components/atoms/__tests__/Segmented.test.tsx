@@ -16,7 +16,7 @@ describe('Segmented', () => {
           Everything
         </SegmentedOption>
         <SegmentedOption pressed={false} onClick={() => picks.push('free')}>
-          Not in a Game
+          Unassigned
         </SegmentedOption>
       </Segmented>
     )
@@ -26,7 +26,7 @@ describe('Segmented', () => {
     expect(screen.getByRole('button', { name: 'Everything' }).getAttribute('aria-pressed')).toBe(
       'true'
     )
-    fireEvent.click(screen.getByRole('button', { name: 'Not in a Game' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Unassigned' }))
     expect(picks).toEqual(['free'])
   })
 

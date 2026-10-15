@@ -4,8 +4,8 @@
  * A short dialog that lists only where the server would accept this build
  * (`moveDestinations`, the client mirror of ADR-037): a pilot or mech into any
  * Game you are in, or out of one; a crawler only into a Game you run, or back
- * out of it. Out of a Game reads "Not in a Game", because on Shelves a unit in
- * a Game is still on your shelf — the move only changes where it plays.
+ * out of it. Out of a Game reads "Unassigned", because in the Hangar a unit in
+ * a Game is still in your Hangar — the move only changes where it plays.
  *
  * Picking a destination closes the dialog and hands the move to `requestMove`,
  * which asks first when it should (always out of a Game; into one only when it
@@ -28,8 +28,8 @@ import type { AssignableType } from '../../stores/types'
 import { requestMove } from '../container/requestMove.model'
 import type { Confirm } from '../shared/useConfirm'
 
-/** What "out of a Game" is called on Shelves. */
-const NOT_IN_A_GAME = 'Not in a Game'
+/** What "out of a Game" is called in the Hangar, as on its chip. */
+const UNASSIGNED = 'Unassigned'
 
 const BODY = {
   backgroundColor: tokens.color.paper,
@@ -128,7 +128,7 @@ export function MoveToGameDialog({ subject, onClose, games, confirm }: MoveToGam
         ) : (
           <ul style={LIST} aria-label="Where to">
             {destinations.map((d) => {
-              const label = d.container.kind === 'shelf' ? NOT_IN_A_GAME : d.label
+              const label = d.container.kind === 'shelf' ? UNASSIGNED : d.label
               return (
                 <li key={serializeContainer(d.container)}>
                   <Button style={WIDE} onClick={() => pick(d.container, label)}>

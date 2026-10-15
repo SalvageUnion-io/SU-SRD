@@ -9,7 +9,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
  *
  *  - Shelves lists everything you keep: a unit in a Game stays on your shelf
  *    under Everything, with the Game's name in a chip, and leaves it under
- *    Not in a Game
+ *    Unassigned
  *  - a crawler in a Game you mediate says so
  *  - "Move to a Game…" moves the same record into a Game, and back out again
  *    behind a confirm; it never copies
@@ -185,14 +185,14 @@ describe('Hangar: everything you keep', () => {
     expect(within(pilots).getByText('Unassigned')).toBeTruthy()
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Not in a Game' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Unassigned' }))
     })
-    expect(pressed('Not in a Game')).toBe('true')
+    expect(pressed('Unassigned')).toBe('true')
     expect(within(pilots).queryByText('Roach-Boy')).toBeNull()
     expect(within(pilots).getByText('Mira Cole')).toBeTruthy()
   })
 
-  test('under Not in a Game, a Hangar whose units are all in Games says so', async () => {
+  test('under Unassigned, a Hangar whose units are all in Games says so', async () => {
     // The shelf's one pilot moves into a Game: every pilot is now in one.
     await useEntityStore
       .getState()
@@ -200,18 +200,18 @@ describe('Hangar: everything you keep', () => {
     await renderHub()
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Not in a Game' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Unassigned' }))
     })
     const pilots = screen.getByRole('region', { name: 'Pilots' })
     expect(within(pilots).queryByText('Mira Cole')).toBeNull()
     expect(within(pilots).getByText('Every pilot is in a Game.')).toBeTruthy()
   })
 
-  test('under Not in a Game, a Hangar with nothing on it at all is empty, not "in a Game"', async () => {
+  test('under Unassigned, a Hangar with nothing on it at all is empty, not "in a Game"', async () => {
     await renderHub()
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Not in a Game' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Unassigned' }))
     })
     const mechs = screen.getByRole('region', { name: 'Mechs' })
     expect(within(mechs).getByText('No mechs yet.')).toBeTruthy()
@@ -296,7 +296,7 @@ describe('Move to a Game…', () => {
       .getState()
       .adopt('pilot', pilotFixture({ id: 'p-shelf', name: 'Mira Cole', gameId: 'g1' }))
     await renderHub()
-    await moveMira('Not in a Game')
+    await moveMira('Unassigned')
 
     const dialog = screen.getByRole('alertdialog')
     expect(useEntityStore.getState().get('pilot', 'p-shelf')?.gameId).toBe('g1')

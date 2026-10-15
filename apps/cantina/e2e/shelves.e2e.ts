@@ -24,7 +24,7 @@ async function fromMenu(page: Page, name: string, row: string): Promise<void> {
   await page.getByRole('menuitem', { name: row }).click()
 }
 
-function showing(page: Page, option: 'Everything' | 'Not in a Game') {
+function showing(page: Page, option: 'Everything' | 'Unassigned') {
   return page.getByRole('group', { name: 'Showing' }).getByRole('button', { name: option })
 }
 
@@ -41,7 +41,7 @@ test('move a unit into a Game and back: it never leaves the shelf', async ({ pag
   await openShelves(page)
   const pilots = page.getByRole('region', { name: 'Pilots' })
   await expect(pilots.getByText('Shelf Runner')).toBeVisible({ timeout: 15_000 })
-  await expect(pilots.getByText('Not in a Game')).toBeVisible()
+  await expect(pilots.getByText('Unassigned')).toBeVisible()
 
   // In: one pick, no confirm (nothing is linked to it).
   await fromMenu(page, 'Shelf Runner', 'Move to a Game…')
@@ -51,8 +51,8 @@ test('move a unit into a Game and back: it never leaves the shelf', async ({ pag
     .click()
   await expect(pilots.getByText('Dustbowl Run')).toBeVisible({ timeout: 15_000 })
 
-  // Still on the shelf under Everything; under Not in a Game it is not.
-  await showing(page, 'Not in a Game').click()
+  // Still on the shelf under Everything; under Unassigned it is not.
+  await showing(page, 'Unassigned').click()
   await expect(pilots.getByText('Shelf Runner')).toHaveCount(0)
   await showing(page, 'Everything').click()
   await expect(pilots.getByText('Shelf Runner')).toBeVisible()
@@ -61,10 +61,10 @@ test('move a unit into a Game and back: it never leaves the shelf', async ({ pag
   await fromMenu(page, 'Shelf Runner', 'Move to a Game…')
   await page
     .getByRole('list', { name: 'Where to' })
-    .getByRole('button', { name: 'Not in a Game' })
+    .getByRole('button', { name: 'Unassigned' })
     .click()
   await page.getByRole('alertdialog').getByRole('button', { name: /^Move/ }).click()
-  await expect(pilots.getByText('Not in a Game')).toBeVisible({ timeout: 15_000 })
+  await expect(pilots.getByText('Unassigned')).toBeVisible({ timeout: 15_000 })
   await expect(pilots.getByText('Dustbowl Run')).toHaveCount(0)
 })
 
