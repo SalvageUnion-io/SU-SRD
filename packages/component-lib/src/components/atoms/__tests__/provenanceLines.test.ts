@@ -138,28 +138,7 @@ describe('named sources vs the anonymous aggregate', () => {
     expect(lines.find((l) => l.label === 'Heat Sink')?.detail).toBe('×2')
   })
 
-  test('a source a house rule produced says so', () => {
-    const lines = linesFromBreakdown(
-      parts({
-        sources: [
-          {
-            source: 'Crawler Tech 3',
-            ref: 'Pilot Bay',
-            stat: 'maxHp',
-            amount: 4,
-            copies: 1,
-            houseRule: 'stat-training-follows-crawler',
-          },
-        ],
-        derived: 14,
-        total: 14,
-      }),
-      { base: 'Pilot', baseDetail: 'base' }
-    )
-    expect(lines.find((l) => l.label === 'Crawler Tech 3')?.detail).toBe('house rule')
-  })
-
-  test('a book-sourced line carries no house-rule label', () => {
+  test('a single-copy source line carries no detail', () => {
     const lines = linesFromBreakdown(
       parts({
         sources: [
