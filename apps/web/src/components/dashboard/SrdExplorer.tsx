@@ -18,14 +18,14 @@
  *  3. **Entity** — the faithful `ReferenceEntityCard`, with a way back.
  *
  * Preload hazard: the catalog and the schema listings read the ORM, so they are
- * built only once `ready` is true (`isLoaded` seed + an idempotent
- * `preload('all')` effect) — never at module scope.
+ * built only once `useGameData()` is `ready` — never at module scope.
  */
 
 import type { CSSProperties } from 'react'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { RefEntity, RefEnumSchemaName } from 'salvageunion-reference'
 import { isSchemaName, SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
+import { useGameData } from '../../lib/useGameData'
 import {
   Button,
   buildCatalogSections,
@@ -246,21 +246,8 @@ type SrdView =
   | { kind: 'entity'; entity: RefEntity; from: 'home' | SrdCategoryRef }
 
 export function SrdExplorer() {
-  // Seed readiness synchronously if the ORM is already loaded (usual dashboard
-  // case), else flip to ready when the idempotent preload resolves.
-  const [ready, setReady] = useState(() => SalvageUnionReference.isLoaded('chassis'))
+  const { ready } = useGameData()
   const [view, setView] = useState<SrdView>({ kind: 'home' })
-
-  useEffect(() => {
-    if (ready) return
-    let active = true
-    void SalvageUnionReference.preload('all').then(() => {
-      if (active) setReady(true)
-    })
-    return () => {
-      active = false
-    }
-  }, [ready])
 
   if (view.kind === 'entity') {
     const from = view.from

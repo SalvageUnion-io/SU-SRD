@@ -33,8 +33,8 @@ import type { CSSProperties } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { RefEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
-import { useGameDataLoaded } from '../../hooks/useGameDataLoaded'
 import { deepLinkToSchema } from '../../lib/srd-deep-link'
+import { useGameData } from '../../lib/useGameData'
 import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
 import type { EntitySurfaceValue, SearchComboboxResult } from '../index'
 import {
@@ -170,7 +170,7 @@ export function GlobalSearch({ variant = 'bar', open, onOpenChange }: GlobalSear
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
   const desktop = useMediaQuery(DESKTOP_QUERY)
-  const ready = useGameDataLoaded()
+  const { ready } = useGameData()
   // Only the trigger on screen at this width shows the panel.
   const shown = open && (variant === 'bar') === desktop
 

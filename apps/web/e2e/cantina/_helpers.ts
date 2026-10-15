@@ -86,7 +86,7 @@ export async function gotoStable(page: Page, path: string): Promise<void> {
 /**
  * Wait for the page to finish hydrating (router + game data preload).
  *
- * The router root wraps its Outlet in `<GameDataReady>`, which suspends until
+ * The router root wraps its Outlet in `<GameDataReady>`, which holds it until
  * `SalvageUnionReference.preload('all')` resolves and then sets
  * `body[data-game-data-ready="true"]`. We wait on that single marker — once
  * it's true, every consumer of game data has its lookups resolved

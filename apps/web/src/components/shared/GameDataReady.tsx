@@ -1,14 +1,32 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { Suspense, use } from 'react'
+import { useLayoutEffect } from 'react'
 import { color, font, fontSize, radius, space, tracking, weight } from '../../design/tokens'
-import { gameDataPreload } from '../../hooks/useGameDataLoaded'
 import { MARK_SRC } from '../../lib/appUrl'
+import { preloadGameData } from '../../lib/useGameData'
 import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
+import { GameDataGate } from '../GameDataGate'
 import { EntityExternalLinkProvider } from '../index'
 
-function PreloadGate({ children }: { children: ReactNode }) {
-  use(gameDataPreload)
-  return <>{children}</>
+/*
+ * The full dataset's preload, started at MODULE SCOPE, not on first render.
+ *
+ * Started inside a component, the fetch would wait for React to boot, mount
+ * the provider tree and render down to the gate: dead time on the critical
+ * path. At module scope it overlaps React's bootstrap and the rest of the
+ * entry chunk. It is the gate's own keyed preload (`useGameData`), so the gate
+ * and the bar's controls (`useGameData().ready`) share this one request.
+ */
+void preloadGameData('all', 'full')
+
+/**
+ * Marks `body[data-game-data-ready="true"]` once the gate has opened, so E2E
+ * tests can latch onto one "ready" signal across every route.
+ */
+function ReadyMarker() {
+  useLayoutEffect(() => {
+    document.body.dataset.gameDataReady = 'true'
+  }, [])
+  return null
 }
 
 const FALLBACK = {
@@ -78,9 +96,8 @@ function GameDataFallback() {
 }
 
 /**
- * Suspends until the full SalvageUnionReference dataset is loaded
- * (`gameDataPreload`, which then sets `body[data-game-data-ready="true"]` so
- * E2E tests can latch onto one "ready" signal across every route).
+ * Holds every route behind `GameDataGate` until the full SalvageUnionReference
+ * dataset is loaded, with the branded fallback while it loads.
  *
  * Everything, not a per-route list: the entity-display layer pulls trait
  * keywords, actions and other cross-schema references inline, so a preload of
@@ -103,12 +120,11 @@ export function GameDataReady({ children }: { children: ReactNode }) {
   // band. Provided here — beside the preload gate that already wraps every
   // route — so the builder only runs once the reference dataset is loaded.
   return (
-    <Suspense fallback={<GameDataFallback />}>
-      <PreloadGate>
-        <EntityExternalLinkProvider value={srdEntityExternalLink}>
-          {children}
-        </EntityExternalLinkProvider>
-      </PreloadGate>
-    </Suspense>
+    <GameDataGate fallback={<GameDataFallback />}>
+      <ReadyMarker />
+      <EntityExternalLinkProvider value={srdEntityExternalLink}>
+        {children}
+      </EntityExternalLinkProvider>
+    </GameDataGate>
   )
 }
