@@ -9,7 +9,7 @@ import type { ComponentProps } from 'react'
  * rules a table reaches for under an ink band, set as CSS columns (a masonry
  * that leaves no hole under a short chapter); and "Start here" with the Discord
  * bot's button under it in a right-hand sidebar. On a phone "Start here" and the
- * button lead the stack. Server-rendered and
+ * button follow the index. Server-rendered and
  * static: every row is a plain link.
  *
  * Rows are 36px for a fine pointer and 44px under `(pointer: coarse)` or on a phone width (the
