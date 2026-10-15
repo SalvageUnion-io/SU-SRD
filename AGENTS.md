@@ -42,7 +42,7 @@ bun run check            # THE full gate: every check in tools/check.ts in paral
                          # ending in a pass/fail table
 bun run check <id> …     # just those checks (`--list` names them: data, styling, workflows, …)
 bun run test             # full suite, each workspace with its own bunfig — what CI runs
-bun --filter <workspace> test      # one workspace, by package name (cantina, tools, …)
+bun --filter <workspace> test      # one workspace, by package name (web, tools, …)
 bun run lint | format | typecheck  # Biome is the only formatter; .md/.yml are formatted by nothing
 
 bun run build            # reference generation + srd + Cantina (the Worker-only apps build at deploy)

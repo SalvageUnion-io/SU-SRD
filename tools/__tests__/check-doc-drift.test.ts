@@ -416,7 +416,7 @@ describe('checkFixHints', () => {
   it('judges every repo path and bun command a fix hint names', () => {
     const root = fixture({
       'package.json': JSON.stringify({ scripts: { check: 'x', format: 'x' } }),
-      'apps/web/package.json': JSON.stringify({ name: 'srd', scripts: { test: 'x' } }),
+      'apps/web/package.json': JSON.stringify({ name: 'web', scripts: { test: 'x' } }),
       'tools/check-real.ts': '',
       'docs/ARCHITECTURE.md': '## Dead code\n',
     })
@@ -430,14 +430,14 @@ describe('checkFixHints', () => {
         fix: 'link a docs/adr/NNN-slug.md full text; `bun --filter <workspace> test`',
       },
       { id: 'stale', fix: '`bun tools/check-gone.ts --update`, then `bun run lint`' },
-      { id: 'filter', fix: '`bun --filter srd gate`; `bun run check nope`' },
+      { id: 'filter', fix: '`bun --filter web gate`; `bun run check nope`' },
     ]
     const failures = checkFixHints(root, hints).failures
     expect(failures).toHaveLength(4)
     const text = failures.join('\n')
     expect(text).toContain('fix hint for `stale` names tools/check-gone.ts')
     expect(text).toContain('fix hint for `stale` references `bun run lint`')
-    expect(text).toContain('`bun --filter srd gate`')
+    expect(text).toContain('`bun --filter web gate`')
     expect(text).toContain('`nope` is not a check id')
     expect(text).not.toContain('`ok`')
     expect(text).not.toContain('`template`')
@@ -466,15 +466,15 @@ describe('checkReferencedScripts', () => {
   it('checks hook scripts, workspace filters and unknown workspaces', () => {
     const root = fixture({
       'package.json': JSON.stringify({ scripts: { typecheck: 'x' } }),
-      'apps/web/package.json': JSON.stringify({ name: 'srd', scripts: { build: 'x' } }),
+      'apps/web/package.json': JSON.stringify({ name: 'web', scripts: { build: 'x' } }),
       '.claude/hooks/h.sh': 'bun run typecheck\n# `bun run check:schemas` diffs\n',
-      'CLAUDE.md': 'bun --filter srd build\nbun --filter srd gate\nbun --filter nope build\n',
+      'CLAUDE.md': 'bun --filter web build\nbun --filter web gate\nbun --filter nope build\n',
     })
     const failures = checkReferencedScripts(root).failures.join('\n')
     expect(failures).toContain('.claude/hooks/h.sh references `bun run check:schemas`')
-    expect(failures).toContain('`bun --filter srd gate`')
+    expect(failures).toContain('`bun --filter web gate`')
     expect(failures).toContain('`bun --filter nope`')
-    expect(failures).not.toContain('srd build')
+    expect(failures).not.toContain('web build')
   })
 })
 

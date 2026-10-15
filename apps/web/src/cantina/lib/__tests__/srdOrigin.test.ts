@@ -10,7 +10,7 @@ describe('srdOrigin', () => {
   })
 
   it("is production's outside a page", () => {
-    expect(srdOrigin(undefined)).toBe('https://salvageunion.io')
+    expect(srdOrigin('')).toBe('https://salvageunion.io')
     expect(srdOrigin('null')).toBe('https://salvageunion.io')
   })
 })

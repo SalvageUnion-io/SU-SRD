@@ -40,11 +40,11 @@ describe('scannedFiles', () => {
         'tools/check.ts',
         'apps/b/src/__tests__/Card.test.tsx',
         'apps/b/e2e/flow.e2e.ts',
-        'apps/cantina/test/convex/harness.ts',
-        'apps/cantina/convex/_generated/api.js',
+        'apps/web/test/convex/harness.ts',
+        'apps/web/convex/_generated/api.js',
         'packages/a/lib/generated/registry.ts',
         'apps/web/src/cantina/routeTree.gen.ts',
-        'apps/cantina/src/env.d.ts',
+        'apps/web/src/cantina/env.d.ts',
         'apps/web/src/styles.css',
       ])
     ).toEqual([

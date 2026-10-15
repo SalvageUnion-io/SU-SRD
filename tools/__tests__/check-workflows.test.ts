@@ -97,7 +97,7 @@ jobs:
     if: contains(fromJSON(needs.plan.outputs.deploy), 'srd')
     runs-on: ubuntu-latest
     steps:
-      - run: bun --filter srd build
+      - run: bun --filter web build
       - uses: actions/upload-artifact@v7
         with:
           name: srd-build
