@@ -67,15 +67,27 @@
   padding: 0;
 }
 
-/* ModalShell's close × is Button's quiet icon rung; on the danger band its
-   ink turns paper. Doubled with `.su-btn` to out-rank the quiet variant's
-   resting and hover ink. */
-.su-btn.su-modal-close[data-tone='danger'] {
+/* ModalShell's close × is Button's quiet icon rung; on a band that prints
+   paper (the danger rust) its ink turns paper. Doubled with `.su-btn` to
+   out-rank the quiet variant's resting and hover ink. */
+.su-btn.su-modal-close[data-on-paper] {
   color: color-mix(in oklab, var(--color-paper) 60%, transparent);
 }
 
-.su-btn.su-modal-close[data-tone='danger']:hover:not(:disabled) {
+.su-btn.su-modal-close[data-on-paper]:hover:not(:disabled) {
   color: var(--color-paper);
+}
+
+/* ModalShell's cut-out head holds one control, the ×: it stays on the band
+   beside the title at every width, never on a line of its own above it as a
+   narrow Row's controls go (`.su-entity-row__controls`). */
+.su-modal-panel .su-entity-row__line:has(> .su-entity-row__controls) {
+  flex-wrap: nowrap;
+}
+
+.su-modal-panel .su-entity-row__line > .su-entity-row__controls.su-entity-row__controls {
+  flex-basis: auto;
+  order: 0;
 }
 
 /* SheetSectionCard (`components/containers/SheetSectionCard.tsx`): its body block,
