@@ -114,7 +114,7 @@ describe('changeLog.forEntity', () => {
     )
   })
 
-  test("a shelf build's log is its owner's alone", async () => {
+  test("a Hangar build's log is its owner's alone", async () => {
     const t = testConvex()
     const owner = await makeUser(t, 'Owner')
     const other = await makeUser(t, 'Other')

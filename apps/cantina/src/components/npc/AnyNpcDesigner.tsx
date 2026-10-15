@@ -68,7 +68,7 @@ const STEP_INTRO: Record<NpcStepId, string> = {
   actions:
     'Actions and traits come from the reference, so the rules text is always the book’s. You choose which ones this NPC carries.',
   identity: 'Who they are. Only the name is required.',
-  review: 'Check the card, then save the NPC to your shelf.',
+  review: 'Check the card, then save the NPC to your Hangar.',
 }
 
 const CHECK_HIT = {
@@ -289,12 +289,12 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
         </section>
 
         <section className="su-npc-preview" aria-label="Live preview">
-          <p style={CAPS}>Live preview · how it will look on your shelf and in a Game</p>
+          <p style={CAPS}>Live preview · how it will look in your Hangar and in a Game</p>
           {preview}
           <p style={NOTE}>
             <strong>Yours, not the book&rsquo;s.</strong> A designed NPC keeps its template&rsquo;s
-            link to the reference, but wears the user-made frame and your name. It can go on your
-            shelf, into a Game, or into a crawler&rsquo;s crew.
+            link to the reference, but wears the user-made frame and your name. It can go in your
+            Hangar, into a Game, or into a crawler&rsquo;s crew.
           </p>
         </section>
       </div>
@@ -303,7 +303,7 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
         open={previewOpen}
         onOpenChange={setPreviewOpen}
         title="Preview"
-        subtitle="How it will look on your shelf and in a Game"
+        subtitle="How it will look in your Hangar and in a Game"
       >
         {preview}
       </ModalShell>

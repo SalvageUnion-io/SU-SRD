@@ -133,15 +133,15 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
               {surviving.length > 0 && (
                 <li>
                   <Text variant="hint" style={LEFT}>
-                    {surviving.join(' and ')} go back to whoever owns them, on their shelf.
+                    {surviving.join(' and ')} go back to whoever owns them, in their Hangar.
                   </Text>
                 </li>
               )}
               <li>
                 <Text variant="hint" style={LEFT}>
                   {game?.crawlerName === null || game?.crawlerName === undefined
-                    ? 'Anything unclaimed comes to you, on your shelf.'
-                    : `${game.crawlerName} and anything unclaimed come to you, on your shelf.`}
+                    ? 'Anything unclaimed comes to you, in your Hangar.'
+                    : `${game.crawlerName} and anything unclaimed come to you, in your Hangar.`}
                 </Text>
               </li>
             </ul>

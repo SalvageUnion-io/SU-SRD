@@ -57,7 +57,7 @@ export function assertSlotMatchesType(args: ObjectType<typeof LINK>): void {
 
 /** The copy a player sees when they may not assign or unassign this crawler's crew. */
 const CREW_REFUSAL =
-  'Only whoever runs the table assigns crawler crew — design an NPC on your shelf and move it into this Game to offer it.'
+  'Only whoever runs the table assigns crawler crew — design an NPC in your Hangar and move it into this Game to offer it.'
 
 /**
  * Who may draw or delete an `npc-to-crawler` link: whoever may write the

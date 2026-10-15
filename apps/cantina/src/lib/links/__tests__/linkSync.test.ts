@@ -85,7 +85,7 @@ describe('planLinkSync', () => {
     expect(plan.prune).toEqual(['old'])
   })
 
-  test('a shelf link is covered: every one is drawn from an entity the caller owns', () => {
+  test('a Hangar link is covered: every one is drawn from an entity the caller owns', () => {
     const plan = planLinkSync({
       local: [local('old', 'ps', 'cs')],
       served: [],

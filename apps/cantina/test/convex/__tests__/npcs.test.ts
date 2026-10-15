@@ -168,7 +168,7 @@ describe('a built NPC is owned like a pilot', () => {
 })
 
 describe('npc-to-crawler — the crew slot is on the link', () => {
-  test('the owner of a shelf crawler crews a bay, and the inline crew is untouched', async () => {
+  test('the owner of a Hangar crawler crews a bay, and the inline crew is untouched', async () => {
     const t = testConvex()
     const me = await makeUser(t, 'Me')
     await addCrawler(me, 'c1', null)
@@ -253,7 +253,7 @@ describe('npc-to-crawler — the crew slot is on the link', () => {
     ).rejects.toThrow(/has no crew slot/)
   })
 
-  test('a shelf NPC cannot crew a Game crawler', async () => {
+  test('a Hangar NPC cannot crew a Game crawler', async () => {
     const t = testConvex()
     const { organizer, gameId } = await seedTable(t)
     await addCrawler(organizer, 'c1', gameId)

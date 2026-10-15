@@ -1,23 +1,20 @@
 /**
- * StarterShelf — the Starter Set as a read-only shelf (Shelves, board S1): the
- * book's ready-made pilots, mechs and crawler, one Token each, as the SRD
- * lists the book's things. Your own units on the shelves above are Rows
- * (`ShelfPill`). They are read like the reference — each opens its read-only
- * sheet (`/starter/:kind/:id`) — and kept by making a copy there ("Make a
- * copy"), never by editing the book's.
+ * StarterShelf — the Starter Set at the foot of the Hangar (board S1): the
+ * same grid of cards the signed-out front door shows (`StarterSetGrid`),
+ * folded under its Slab until "Show" opens it (owner, 2026-10-15). Your own
+ * builds come first; the book's are reference, read-only, and kept by making a
+ * copy from a build's sheet (`/starter/:kind/:id`), never by editing the
+ * book's.
  *
  * Its head is every shelf's `Slab`, "read-only" beside the stamp where a
- * shelf of yours says "Yours".
+ * shelf of yours says "Yours", and the fold's toggle at the rule's end.
  */
 
-import {
-  STARTER_CRAWLERS,
-  STARTER_MECHS,
-  STARTER_PILOTS,
-} from 'cantina-domain/starterSet/starterSet'
-import { Entity, Slab, Text, tokens } from 'component-lib'
+import { Button, Slab, tokens, useDisclosure } from 'component-lib'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import type { CSSProperties } from 'react'
-import { unitRowModel } from '../../lib/units/unitModel'
+import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
+import { StarterSetGrid } from '../starterSet/StarterSetGrid'
 
 const SECTION = {
   display: 'flex',
@@ -29,24 +26,22 @@ const SECTION = {
 /** The Slab's own foot margin gives way to the section's gap. */
 const SLAB = { marginBottom: 0 } satisfies CSSProperties
 
-const LEAD = { textAlign: 'left' } satisfies CSSProperties
-
-const LIST = {
+const PANEL = {
   display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[8],
-  listStyle: 'none',
-  margin: 0,
-  padding: 0,
+  flexDirection: 'column',
+  gap: tokens.space[16],
 } satisfies CSSProperties
 
-const UNITS: { kind: 'pilot' | 'mech' | 'crawler'; id: string; name: string }[] = [
-  ...STARTER_PILOTS.map((p) => ({ kind: 'pilot' as const, id: p.id, name: p.name })),
-  ...STARTER_MECHS.map((m) => ({ kind: 'mech' as const, id: m.id, name: m.name })),
-  ...STARTER_CRAWLERS.map((c) => ({ kind: 'crawler' as const, id: c.id, name: c.name })),
-]
+const CREDIT = {
+  color: tokens.color.ink,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.lede,
+  margin: 0,
+} satisfies CSSProperties
 
 export function StarterShelf() {
+  const fold = useDisclosure()
+  const Chevron = fold.open ? ChevronUp : ChevronDown
   return (
     <section aria-labelledby="shelf-starter" style={SECTION}>
       <Slab
@@ -57,26 +52,28 @@ export function StarterShelf() {
         count="read-only"
         countAt="label"
         style={SLAB}
+        actions={
+          <Button
+            size="mini"
+            aria-label={fold.open ? 'Hide the Starter Set' : 'Show the Starter Set'}
+            {...fold.toggleProps}
+          >
+            {fold.open ? 'Hide' : 'Show'}
+            <Chevron size={14} aria-hidden="true" />
+          </Button>
+        }
       />
-      <Text variant="body" style={LEAD}>
-        The book&rsquo;s ready-made pilots, mechs and crawler. Browse them like the reference; make
-        a copy to put one on your own shelf.
-      </Text>
-      <ul style={LIST}>
-        {UNITS.map((unit) => (
-          <li key={unit.id}>
-            <Entity
-              form="token"
-              model={unitRowModel({ kind: unit.kind, name: unit.name })}
-              mode={{
-                kind: 'link',
-                href: `/starter/${unit.kind}/${unit.id}`,
-                attrs: { 'aria-label': `Read ${unit.name}` },
-              }}
-            />
-          </li>
-        ))}
-      </ul>
+      <div id={fold.panelId} hidden={!fold.open} style={PANEL}>
+        {fold.open && (
+          <>
+            <p style={CREDIT}>
+              The pre-generated crew of <em>{STARTER_SET_ADVENTURE}</em>, by {STARTER_SET_PUBLISHER}
+              . Open any sheet to read it, then make a copy to play it.
+            </p>
+            <StarterSetGrid />
+          </>
+        )}
+      </div>
     </section>
   )
 }

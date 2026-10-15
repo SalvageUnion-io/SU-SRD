@@ -228,7 +228,7 @@ function emptyCopy(kind: Kind, scope: Container | null, anyAtAll: boolean): stri
   if (scope.kind === 'game') {
     return anyAtAll ? `No other ${many} in this Game.` : `No ${many} in this Game yet.`
   }
-  return anyAtAll ? `No other ${many} on your shelf.` : `No ${many} on your shelf.`
+  return anyAtAll ? `No other ${many} in your Hangar.` : `No ${many} in your Hangar.`
 }
 
 /** Player copy for a failed assignment. Never the raw message of a defect. */

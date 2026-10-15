@@ -40,7 +40,8 @@ const LINK: SoftLink = {
   createdAt: FIXTURE_NOW,
 } as SoftLink
 
-const chipLabels = (chips: { label: string }[]) => chips.map((c) => c.label)
+const chipLabels = (chips: { label: string; value?: string }[]) =>
+  chips.map((c) => (c.value ? `${c.label} | ${c.value}` : c.label))
 
 describe('the Showing toggle', () => {
   test('Everything shows a unit in a Game; Not in a Game does not', () => {
@@ -69,9 +70,17 @@ describe('which crawlers are yours to keep', () => {
 })
 
 describe('where it is', () => {
-  test('the Game’s name, "Not in a Game", or just "In a Game" when it cannot be named', () => {
-    expect(containerChip({ gameId: 'g1' }, GAMES).label).toBe('Reclamation of the Wastes')
-    expect(containerChip({ gameId: null }, GAMES).label).toBe('Not in a Game')
+  test('GAME | its name, a hollow "Unassigned", or just "In a Game" when it cannot be named', () => {
+    expect(containerChip({ gameId: 'g1' }, GAMES)).toEqual({
+      key: 'where',
+      label: 'Game',
+      value: 'Reclamation of the Wastes',
+    })
+    expect(containerChip({ gameId: null }, GAMES)).toEqual({
+      key: 'where',
+      label: 'Unassigned',
+      hollow: true,
+    })
     expect(containerChip({ gameId: 'gone' }, GAMES).label).toBe('In a Game')
     expect(containerChip({ gameId: 'g1' }, undefined).label).toBe('In a Game')
   })
@@ -89,7 +98,7 @@ describe('a unit’s chips', () => {
           mechNames: new Map([['m1', 'Scrapper']]),
         })
       )
-    ).toEqual(['Reclamation of the Wastes', 'Assigned: Scrapper'])
+    ).toEqual(['Game | Reclamation of the Wastes', 'Assigned: Scrapper'])
   })
 
   test('a mech names its pilot, never the pattern it was built from', () => {
@@ -103,7 +112,7 @@ describe('a unit’s chips', () => {
           pilotNames: new Map([['p1', 'Bonesaw']]),
         })
       )
-    ).toEqual(['Not in a Game', 'Pilot: Bonesaw'])
+    ).toEqual(['Unassigned', 'Pilot: Bonesaw'])
   })
 
   test('a crawler in a Game you mediate says so; in one you only play, it does not', () => {
@@ -111,12 +120,12 @@ describe('a unit’s chips', () => {
       chipLabels(
         crawlerChips({ crawler: crawlerFixture({ id: 'c1', gameId: 'g2' }), games: GAMES })
       )
-    ).toEqual(['Dustbowl Run', 'You mediate'])
+    ).toEqual(['Game | Dustbowl Run', 'You mediate'])
     expect(
       chipLabels(
         crawlerChips({ crawler: crawlerFixture({ id: 'c1', gameId: 'g1' }), games: GAMES })
       )
-    ).toEqual(['Reclamation of the Wastes'])
+    ).toEqual(['Game | Reclamation of the Wastes'])
   })
 })
 

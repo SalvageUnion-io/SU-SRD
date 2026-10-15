@@ -8,13 +8,14 @@
  * mech and crawler of yours this browser holds, wherever it is, and a chip
  * under each says where.
  *
- *  - **The band** (ink, paper flecks): the notched title, a line saying what
- *    the page is, the **Showing** toggle (Everything | Not in a Game),
- *    **Import** and **Export all**, and "+ New Game", the one way to start a
- *    table.
- *  - **One shelf per kind**: Pilots, Mechs and Crawlers; Patterns and NPCs,
- *    which are user-made and so dashed (ruleset §3.9); and the Starter Set,
- *    read-only (`StarterShelf`).
+ *  - **The band** (ink, paper flecks): the notched title and, right of it
+ *    and centred on its capitals as a show page's chips are, the **Showing**
+ *    toggle (Everything | Not in a Game), **Import** and **Export all**, and
+ *    "+ New Game", the one way to start a table.
+ *  - **Three rows of shelves**: Pilots, Mechs and Crawlers side by side; then
+ *    NPCs and Patterns, which are user-made and so dashed (ruleset §3.9); then,
+ *    folded, the Starter Set, read-only, as the front door shows it
+ *    (`StarterShelf`).
  *
  * Each item is a library Row (`ShelfPill`) with its chips and a ⋯ menu: Open, Move
  * to a Game…, Make a copy, Save as pattern (mechs), Export and Delete…. Every
@@ -117,25 +118,10 @@ const PAGE = {
   paddingBottom: tokens.space[48],
 } satisfies CSSProperties
 
-/** The band's top row: what the page is at the start, its controls at the end. */
-const BAND_ROW = {
-  alignItems: 'center',
-  display: 'flex',
-  flex: '1 1 100%',
-  flexWrap: 'wrap',
-  gap: tokens.space[16],
-  justifyContent: 'space-between',
-} satisfies CSSProperties
-
-const BAND_LEAD = {
-  color: tokens.color.paper,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.sm,
-  margin: 0,
-} satisfies CSSProperties
-
+/** The band's controls, right of the notched title (`shelves.css` centres them on it). */
 const BAND_CONTROLS = {
   alignItems: 'flex-start',
+  justifyContent: 'flex-end',
   display: 'flex',
   flexWrap: 'wrap',
   gap: tokens.space[12],
@@ -150,19 +136,16 @@ const BODY = {
   paddingTop: tokens.space[20],
 } satisfies CSSProperties
 
-/** Two columns where there is room — your units, then what you made and the book's. */
-const COLUMNS = {
+/**
+ * One row of shelves (owner, 2026-10-15): your units (Pilots, Mechs,
+ * Crawlers), then what you made (NPCs, Patterns), side by side where there is
+ * room, stacked on a phone. The Starter Set is the third row, folded.
+ */
+const ROW = {
   alignItems: 'start',
   display: 'grid',
   gap: tokens.space[32],
-  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 26rem), 1fr))',
-} satisfies CSSProperties
-
-const COLUMN = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[32],
-  minWidth: 0,
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 20rem), 1fr))',
 } satisfies CSSProperties
 
 const NEW_LINK = { textDecoration: 'none' } satisfies CSSProperties
@@ -413,48 +396,45 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   const ready = hydratedUnits && hydratedPatterns && hydratedTray
 
   return (
-    <main style={PAGE}>
+    <main className="su-shelves" style={PAGE}>
       <ChapterBand
         tone="ink"
         measure={MEASURE}
         eyebrow={
-          <div style={BAND_ROW}>
-            <p style={BAND_LEAD}>
-              Everything you keep, on your account. Units in a Game stay on your shelf too.
-            </p>
-            <div style={BAND_CONTROLS}>
-              <Segmented label="Showing" ground="ink" size="page">
-                {FILTERS.map((option) => (
-                  <SegmentedOption
-                    key={option.value}
-                    pressed={filter === option.value}
-                    onClick={() => setFilter(option.value)}
-                  >
-                    {option.label}
-                  </SegmentedOption>
-                ))}
-              </Segmented>
-              {canWrite && (
-                <ImportButton className={ON_INK_BUTTON} onInk onResult={setImportResult} />
-              )}
-              <ExportAllButton className={ON_INK_BUTTON} onInk />
-              <NewGameControl className={ON_INK_BUTTON} />
-            </div>
-            <p role="status" aria-live="polite" className="su-shelves-band__status">
-              {importResult}
-            </p>
+          <p role="status" aria-live="polite" className="su-shelves-band__status">
+            {importResult}
+          </p>
+        }
+        aside={
+          <div style={BAND_CONTROLS}>
+            <Segmented label="Showing" ground="ink" size="page">
+              {FILTERS.map((option) => (
+                <SegmentedOption
+                  key={option.value}
+                  pressed={filter === option.value}
+                  onClick={() => setFilter(option.value)}
+                >
+                  {option.label}
+                </SegmentedOption>
+              ))}
+            </Segmented>
+            {canWrite && (
+              <ImportButton className={ON_INK_BUTTON} onInk onResult={setImportResult} />
+            )}
+            <ExportAllButton className={ON_INK_BUTTON} onInk />
+            <NewGameControl className={ON_INK_BUTTON} />
           </div>
         }
       >
-        Shelves
+        Hangar
       </ChapterBand>
 
       <div className="su-page-column" style={BODY}>
         {!ready ? (
           <RosterSkeleton />
         ) : (
-          <div style={COLUMNS}>
-            <div style={COLUMN}>
+          <>
+            <div style={ROW}>
               <Shelf
                 id="shelf-pilots"
                 title="Pilots"
@@ -528,41 +508,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
               </Shelf>
             </div>
 
-            <div style={COLUMN}>
-              <Shelf
-                id="shelf-patterns"
-                title="Patterns"
-                aside="Yours"
-                note="Your patterns, ready to build a Mech from."
-                action={
-                  canWrite ? (
-                    <HeaderMenu
-                      variant="button"
-                      trigger="+ From a mech"
-                      label="+ From a mech"
-                      chevron={false}
-                      sections={[fromAMech]}
-                    />
-                  ) : undefined
-                }
-                isEmpty={patterns.length === 0}
-                empty="No patterns yet. Save one from a mech."
-              >
-                {patterns.map((p) => (
-                  <ShelfItem
-                    key={p.id}
-                    kind="pattern"
-                    note={chassisFact(p.chassisRef)}
-                    name={p.name}
-                    reading={patternReading(p)}
-                    href={patternHref(p.id)}
-                    userMade
-                    chips={patternChips(sharing?.find((s) => s.appId === p.id))}
-                    menu={patternMenu(p)}
-                  />
-                ))}
-              </Shelf>
-
+            <div style={ROW}>
               <Shelf
                 id="shelf-npcs"
                 title="NPCs"
@@ -607,10 +553,43 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                 ))}
               </Shelf>
 
-              <StarterShelf />
+              <Shelf
+                id="shelf-patterns"
+                title="Patterns"
+                aside="Yours"
+                note="Your patterns, ready to build a Mech from."
+                action={
+                  canWrite ? (
+                    <HeaderMenu
+                      variant="button"
+                      trigger="+ From a mech"
+                      label="+ From a mech"
+                      chevron={false}
+                      sections={[fromAMech]}
+                    />
+                  ) : undefined
+                }
+                isEmpty={patterns.length === 0}
+                empty="No patterns yet. Save one from a mech."
+              >
+                {patterns.map((p) => (
+                  <ShelfItem
+                    key={p.id}
+                    kind="pattern"
+                    note={chassisFact(p.chassisRef)}
+                    name={p.name}
+                    reading={patternReading(p)}
+                    href={patternHref(p.id)}
+                    userMade
+                    chips={patternChips(sharing?.find((s) => s.appId === p.id))}
+                    menu={patternMenu(p)}
+                  />
+                ))}
+              </Shelf>
             </div>
-          </div>
+          </>
         )}
+        {ready && <StarterShelf />}
       </div>
 
       <MoveToGameDialog

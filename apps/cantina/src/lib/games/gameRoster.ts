@@ -183,7 +183,7 @@ export function moveDestinations(args: {
   current: Container
   games: readonly MoveTargetGame[]
 }): MoveDestination[] {
-  const shelf: MoveDestination = { container: { kind: 'shelf' }, label: 'Shelves' }
+  const shelf: MoveDestination = { container: { kind: 'shelf' }, label: 'Hangar' }
   const toGame = (g: MoveTargetGame): MoveDestination => ({
     container: { kind: 'game', gameId: g._id },
     label: g.name,

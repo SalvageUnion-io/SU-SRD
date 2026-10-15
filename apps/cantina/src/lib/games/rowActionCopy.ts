@@ -82,7 +82,7 @@ function builds(n: number): string {
 }
 
 /** Where the other end of a link cleared on the way into a Game still is. */
-const STILL_IN_MY_STUFF = '(still on your shelf)'
+const STILL_IN_MY_STUFF = '(still in your Hangar)'
 
 /**
  * What a move from your shelf into a Game clears, one line per assignment: a
@@ -162,10 +162,10 @@ export const ROW_ACTION_COPY = {
    */
   copy(name: string): ConfirmCopy {
     return {
-      title: `Make a copy of ${name} on your shelf?`,
+      title: `Make a copy of ${name} in your Hangar?`,
       body: [
-        `This makes “${copyName(name)}” on your shelf. The copy is separate: changes to it won't sync back, and ${name} is left as it is.`,
-        "Don't want it later? Delete the copy from your shelf.",
+        `This makes “${copyName(name)}” in your Hangar. The copy is separate: changes to it won't sync back, and ${name} is left as it is.`,
+        "Don't want it later? Delete the copy from your Hangar.",
       ],
       confirmLabel: 'Make a copy',
       pendingLabel: 'Copying…',
@@ -183,7 +183,7 @@ export const ROW_ACTION_COPY = {
     return {
       title: `Make a copy of ${name}?`,
       body: [
-        `This puts “${copyName(name)}” on your shelf, in no Game. The copy is separate: changes to it won't sync back, and ${name} is left as it is.`,
+        `This puts “${copyName(name)}” in your Hangar, in no Game. The copy is separate: changes to it won't sync back, and ${name} is left as it is.`,
         "Don't want it later? Delete the copy.",
       ],
       confirmLabel: 'Make a copy',
@@ -267,11 +267,11 @@ export const ROW_ACTION_COPY = {
       return {
         title: `Take ${args.name} out of ${from}?`,
         body: [
-          `${args.name} leaves the Game's roster and goes back to your shelf, so the rest of the table won't see ${it} any more.`,
+          `${args.name} leaves the Game's roster and goes back to your Hangar, so the rest of the table won't see ${it} any more.`,
           clearedAssignments(args.kind, from),
           `You can move ${it} back into the Game later.`,
         ],
-        confirmLabel: 'Move to your shelf',
+        confirmLabel: 'Move to your Hangar',
         pendingLabel: 'Moving…',
         tone: 'danger',
         failure,
@@ -320,7 +320,7 @@ export const ROW_ACTION_COPY = {
       body: [
         `${args.name} joins ${game}'s roster.`,
         ...clearedOnEntry(args.kind, args.cleared),
-        `You can move ${them(args.kind)} back to your shelf later, but you'll need to make ${assignments} again.`,
+        `You can move ${them(args.kind)} back to your Hangar later, but you'll need to make ${assignments} again.`,
       ],
       confirmLabel: 'Move',
       pendingLabel: 'Moving…',

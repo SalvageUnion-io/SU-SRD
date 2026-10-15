@@ -82,7 +82,7 @@ function locator(world: World, name: string): Record<string, Fn> {
     fill: async (text) => world.calls.push(`fill ${name} ${text}`),
     selectOption: async (value) => world.calls.push(`select ${value}`),
     evaluate: async (fn) =>
-      (fn as Fn)({ options: [{ textContent: 'Shelves', value: 'shelves-id' }] }),
+      (fn as Fn)({ options: [{ textContent: 'Hangar', value: 'shelves-id' }] }),
     screenshot: async (opts) => world.calls.push(`card ${(opts as { path: string }).path}`),
   }
   return self

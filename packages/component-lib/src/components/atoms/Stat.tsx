@@ -115,6 +115,12 @@ type HorizontalValueProps = {
   inverse?: boolean
   /** inline-flex (default) vs flex. */
   inline?: boolean
+  /**
+   * HOLLOW: a label-only chip drawn as an outline, its label in the line's
+   * colour on no fill, for the absence of something (a unit in no Game reads
+   * `Unassigned`). Plate material only.
+   */
+  hollow?: boolean
   /** State overlay — drives the border colour only (see StatBorderState). */
   state?: StatBorderState
   /** Edit layer: with `mode="edit"`, render a +/- stepper column to the cell's
@@ -174,6 +180,7 @@ function HorizontalValue({
   size = 'full',
   inverse = false,
   inline = true,
+  hollow = false,
   state = 'default',
   onChange,
   mode = 'read',
@@ -231,6 +238,7 @@ function HorizontalValue({
         'su-stat-cell',
         STATE_BORDER_CLASS[state],
         !inline && 'su-stat-cell--block',
+        hollow && 'su-stat-cell--hollow',
         wrap && 'su-stat-cell--wrap',
         state === 'modified' && STATE_RING_CLASS,
         className

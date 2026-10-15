@@ -120,7 +120,7 @@ describe('refusals', () => {
     expect(dashboardOpen()).toBe(false)
   })
 
-  test('a shelf pilot is told to move into a Game', async () => {
+  test('a Hangar pilot is told to move into a Game', async () => {
     setQueryAnswers({})
     await renderGate('gate-shelf')
     expect(heading('Move Wren into a Game to play')).toBeTruthy()

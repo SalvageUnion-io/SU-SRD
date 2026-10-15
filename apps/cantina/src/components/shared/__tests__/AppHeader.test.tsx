@@ -45,12 +45,12 @@ describe('AppHeader', () => {
     expect(screen.queryByRole('link', { name: /SRD ↗/ })).toBeFalsy()
   })
 
-  test('the nav reads Shelves · Games · Starter Set, Games being the app control', () => {
+  test('the nav reads Hangar · Games · Starter Set, Games being the app control', () => {
     render(<AppHeader games={<button type="button">Games</button>} />)
     const nav = screen.getByRole('navigation', { name: 'Main navigation' })
     expect(
       Array.from(nav.querySelectorAll('a, button')).map((el) => el.textContent?.trim())
-    ).toEqual(['Shelves', 'Games', 'Starter Set'])
+    ).toEqual(['Hangar', 'Games', 'Starter Set'])
     expect(within(nav).getByRole('link', { name: 'Starter Set' }).getAttribute('href')).toBe(
       '/starter/'
     )
@@ -60,7 +60,7 @@ describe('AppHeader', () => {
     render(<AppHeader pathname="/starter/" />)
     const nav = within(screen.getByRole('navigation', { name: 'Main navigation' }))
     expect(nav.getByRole('link', { name: 'Starter Set' }).getAttribute('aria-current')).toBe('page')
-    expect(nav.getByRole('link', { name: 'Shelves' }).getAttribute('aria-current')).toBeNull()
+    expect(nav.getByRole('link', { name: 'Hangar' }).getAttribute('aria-current')).toBeNull()
   })
 
   test('About, Changelog and API are not in the bar: the SRD’s pages sit at the drawer’s foot', () => {
@@ -109,7 +109,7 @@ describe('AppHeader', () => {
     render(<AppHeader pathname="/" />)
     fireEvent.click(screen.getByRole('button', { name: 'Open menu' }))
     const drawer = within(screen.getByRole('dialog'))
-    const shelves = drawer.getByRole('link', { name: 'Shelves' })
+    const shelves = drawer.getByRole('link', { name: 'Hangar' })
     // The page you are on is an ink plate, never the rust primary.
     expect(shelves.getAttribute('aria-current')).toBe('page')
     expect(shelves.className).toContain('su-btn--here')
@@ -171,15 +171,15 @@ describe('AppHeader', () => {
       <AppHeader
         drawerExtra={(close) => (
           <button type="button" onClick={close}>
-            Shelves
+            Hangar
           </button>
         )}
       />
     )
-    expect(screen.queryByRole('button', { name: 'Shelves' })).toBeFalsy()
+    expect(screen.queryByRole('button', { name: 'Hangar' })).toBeFalsy()
     fireEvent.click(screen.getByRole('button', { name: 'Open menu' }))
     const drawer = screen.getByRole('dialog')
-    fireEvent.click(within(drawer).getByRole('button', { name: 'Shelves' }))
+    fireEvent.click(within(drawer).getByRole('button', { name: 'Hangar' }))
     expect(screen.queryByRole('dialog')).toBeFalsy()
   })
 

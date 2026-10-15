@@ -69,7 +69,7 @@ function ConnectedContainerSwitcher({ activeContainer, onSelect }: ContainerSwit
         className="su-container-select"
         style={SELECT}
       >
-        <option value={SHELF_VALUE}>Shelves</option>
+        <option value={SHELF_VALUE}>Hangar</option>
         {/* `games` is undefined while the subscription is in flight. The
             current selection must still have a matching option or the select
             would render blank, so the group is simply absent until it loads —

@@ -115,7 +115,7 @@ export function AppHeader({
   const onStarterSet = pathname.startsWith('/starter')
 
   const drawerNav: NavDrawerItem[] = [
-    { label: 'Shelves', href: '/', active: onShelves },
+    { label: 'Hangar', href: '/', active: onShelves },
     { label: 'Starter Set', href: '/starter/', active: onStarterSet },
     DOC_PAGES.discord,
     { label: 'Buy the game', href: BUY_HREF, external: true },
@@ -132,7 +132,7 @@ export function AppHeader({
       LinkComponent={LinkComponent}
       markSrc={MARK_SRC}
       navItems={[
-        { label: 'Shelves', href: '/', active: onShelves },
+        { label: 'Hangar', href: '/', active: onShelves },
         ...(games ? [{ id: 'games', node: games }] : []),
         { label: 'Starter Set', href: '/starter/', active: onStarterSet },
       ]}

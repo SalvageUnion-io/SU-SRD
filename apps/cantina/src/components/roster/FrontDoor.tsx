@@ -24,8 +24,7 @@ import { PRODUCT } from 'component-lib/product'
 import type { CSSProperties } from 'react'
 import { SCRIPT_FONT } from '../../lib/scriptFont'
 import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
-import { StarterCard } from '../starterSet/StarterCard'
-import { starterShelves } from '../starterSet/starterShelves.model'
+import { StarterSetGrid } from '../starterSet/StarterSetGrid'
 
 /** The width the band's notch and the content under it share. */
 const MEASURE = '75rem'
@@ -75,17 +74,6 @@ const SECTION = {
   gap: tokens.space[16],
 } satisfies CSSProperties
 
-/** Cards that fit as many ~18rem columns as there is room for; one on a phone. */
-const GRID = {
-  alignItems: 'start',
-  display: 'grid',
-  gap: tokens.space[16],
-  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 18rem), 1fr))',
-  listStyle: 'none',
-  margin: 0,
-  padding: 0,
-} satisfies CSSProperties
-
 const CREDIT = {
   color: tokens.color.ink,
   fontFamily: tokens.font.body,
@@ -93,24 +81,7 @@ const CREDIT = {
   margin: 0,
 } satisfies CSSProperties
 
-const SHELF = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[10],
-} satisfies CSSProperties
-
-const CARDS = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[10],
-  listStyle: 'none',
-  margin: 0,
-  padding: 0,
-} satisfies CSSProperties
-
 export function FrontDoor() {
-  const shelves = starterShelves()
-
   return (
     <main style={PAGE}>
       <ChapterBand
@@ -137,26 +108,7 @@ export function FrontDoor() {
             The pre-generated crew of <em>{STARTER_SET_ADVENTURE}</em>, by {STARTER_SET_PUBLISHER}.
             Open any sheet to read it; sign in to copy one.
           </p>
-          <div style={GRID}>
-            {shelves.map((shelf) => (
-              <section
-                key={shelf.kind}
-                aria-label={`Starter Set ${shelf.title.toLowerCase()}`}
-                style={SHELF}
-              >
-                {/* Each kind's section stamp is a Slab, as on `/starter` (ruleset
-                    §3.2: slabs section). */}
-                <Slab as="h3" variant="solid" label={shelf.title} />
-                <ul style={CARDS}>
-                  {shelf.builds.map((build) => (
-                    <li key={build.id}>
-                      <StarterCard kind={shelf.kind} build={build} />
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ))}
-          </div>
+          <StarterSetGrid />
         </section>
       </div>
     </main>

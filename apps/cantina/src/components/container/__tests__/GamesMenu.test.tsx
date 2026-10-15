@@ -59,7 +59,7 @@ afterEach(() => {
 afterAll(convexMocks.restore)
 
 describe('GamesMenu', () => {
-  test('is a menu button listing each Game with its role, and no Shelves', async () => {
+  test('is a menu button listing each Game with its role, and no Hangar', async () => {
     setQueryAnswers({ 'games:listMine': GAMES })
     wrap(<GamesMenu />)
 
@@ -126,11 +126,11 @@ describe('GamesDrawerList', () => {
     expect(closed).toBe(1)
   })
 
-  test('with no Games it says there are none, and offers no Shelves row', () => {
+  test('with no Games it says there are none, and offers no Hangar row', () => {
     setQueryAnswers({ 'games:listMine': [] })
     wrap(<GamesDrawerList onPick={() => {}} />)
 
-    expect(screen.queryByRole('button', { name: 'Shelves' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Hangar' })).toBeNull()
     expect(screen.getByText('No Games yet')).toBeTruthy()
   })
 })

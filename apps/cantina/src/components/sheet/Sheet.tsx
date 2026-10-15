@@ -168,7 +168,7 @@ export function Sheet({
   store = useEntityStore,
   readOnly: readOnlyProp = false,
   crawlerReadOnly = false,
-  back = { href: '/', label: 'Shelves' },
+  back = { href: '/', label: 'Hangar' },
   pilotAbilities,
   others,
   hrefFor = liveSheetHref,
