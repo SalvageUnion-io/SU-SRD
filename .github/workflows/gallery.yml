@@ -62,14 +62,11 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      - name: Start a throwaway Convex backend and build cantina against it
+      - name: Start a throwaway Convex backend and build the site against it
         id: convex
         uses: ./.github/actions/convex-backend
         with:
           test-auth: 'true'
-
-      - name: Build srd
-        run: bun --filter web build
 
       # tools/shot.ts asks Playwright for the headed Chromium's path.
       - name: Set up Playwright
@@ -78,11 +75,11 @@ jobs:
           browser: full
 
       # srd is static files: a plain server answers `/route/` with its
-      # index.html. The Cantina is a single-page app: `vite preview` falls back to
-      # index.html for its routes. `vite preview` loads apps/web/vite.cantina.config.ts,
+      # index.html. The Cantina is a single-page app: `vite preview` serves its
+      # `dist/build/` and falls back to index.html for its routes. `vite preview` loads apps/web/vite.cantina.config.ts,
       # which refuses to start without VITE_CONVEX_URL (the build already
       # carries it; the config only checks it is set), so pass the same URL.
-      - name: Serve both builds
+      - name: Serve both apps
         env:
           VITE_CONVEX_URL: ${{ steps.convex.outputs.url }}
         run: |

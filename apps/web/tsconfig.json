@@ -24,7 +24,7 @@
     "*.config.ts"
   ],
   // `include` is explicit, but a stale build output must never be typechecked.
-  "exclude": ["dist", "dist-cantina"],
+  "exclude": ["dist"],
   "references": [
     { "path": "../../packages/cantina-domain" },
     { "path": "../../packages/gates" },

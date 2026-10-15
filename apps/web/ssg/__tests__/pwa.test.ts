@@ -3,7 +3,7 @@
  *
  * The values are asserted directly. How workbox-build renders them is proven by
  * the build itself — `generateSW` rejects an invalid rule (`networkTimeoutSeconds`
- * on anything but `NetworkFirst`, say), and CI's `build-srd` runs it — and was
+ * on anything but `NetworkFirst`, say), and CI's `build-web` runs it — and was
  * checked by hand in the emitted `sw.js`.
  */
 

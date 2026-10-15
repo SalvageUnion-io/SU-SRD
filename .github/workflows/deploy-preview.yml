@@ -33,7 +33,7 @@ name: Deploy preview (Cloudflare)
 # both, so two labelled PRs with different schemas, or a sign-in on an older
 # one, collide.
 #
-# THE BUILDS HOLD NO SECRET. They are deploy-cloudflare.yml's builds. A
+# THE BUILD HOLDS NO SECRET. It is deploy-cloudflare.yml's build. A
 # Preview's browser posts its errors to its own Preview Worker, and its Workers
 # log them for Workers Issues like production's, under the Preview's version.
 
@@ -58,7 +58,7 @@ env:
   STAGING_CONVEX_DEPLOYMENT: perfect-donkey-72
   STAGING_CONVEX_URL: https://perfect-donkey-72.convex.cloud
   # The Preview's address, known before it exists: `<name>-<worker>.<account
-  # subdomain>`. Both builds take it as the site's origin, so every absolute
+  # subdomain>`. The build takes it as the site's origin, so every absolute
   # address a Preview prints names this PR's Preview, never production:
   # canonicals, og: tags, the Discord Component Embed, the sitemap. Links
   # between the two apps are relative, so they need none. A Preview answers
@@ -67,7 +67,10 @@ env:
   PREVIEW_ORIGIN: https://pr-${{ github.event.pull_request.number }}-su-srd.alxjrvs.workers.dev
 
 jobs:
-  build-srd:
+  # The site's one build, against the staging URL as a constant, as
+  # production builds against CANTINA_CONVEX_URL: `ship` checks the deploy key
+  # resolves to it before it pushes anything.
+  build-web:
     # A labelled PR from this repository, on the push or the label that asks
     # for it; a fork's run gets no secrets, and another label is no request.
     if: >-
@@ -76,7 +79,7 @@ jobs:
       && contains(github.event.pull_request.labels.*.name, 'preview')
       && (github.event.action != 'labeled' || github.event.label.name == 'preview')
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -89,71 +92,32 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      - name: Build srd
+      - name: Build the site
         env:
+          VITE_CONVEX_URL: ${{ env.STAGING_CONVEX_URL }}
           VITE_COMMIT_REF: ${{ github.event.pull_request.head.sha }}
           VITE_SITE_ORIGIN: ${{ env.PREVIEW_ORIGIN }}
         run: bun --filter web build
 
-      # Best-effort, as in deploy-cloudflare.yml's build-srd: a failed render
+      # Best-effort, as in deploy-cloudflare.yml's build-web: a failed render
       # keeps the default og:image.
       - name: Render srd OG images
         continue-on-error: true
         uses: ./.github/actions/srd-og
 
-      - name: Upload the srd artifact
+      - name: Upload the site artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: srd-dist
+          name: web-dist
           path: apps/web/dist/
           include-hidden-files: true
           if-no-files-found: error
           retention-days: 1
 
-  build-cantina:
-    # A labelled PR from this repository, on the push or the label that asks
-    # for it; a fork's run gets no secrets, and another label is no request.
-    if: >-
-      github.event.action != 'closed'
-      && github.event.pull_request.head.repo.full_name == github.repository
-      && contains(github.event.pull_request.labels.*.name, 'preview')
-      && (github.event.action != 'labeled' || github.event.label.name == 'preview')
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-      # Against the staging URL as a constant, as production builds against
-      # CANTINA_CONVEX_URL: `ship` checks the deploy key resolves to it before it
-      # pushes anything.
-      - name: Build cantina
-        working-directory: apps/web
-        env:
-          VITE_CONVEX_URL: ${{ env.STAGING_CONVEX_URL }}
-          VITE_COMMIT_REF: ${{ github.event.pull_request.head.sha }}
-          VITE_SITE_ORIGIN: ${{ env.PREVIEW_ORIGIN }}
-        run: bun run build:cantina
-
-      - name: Upload the cantina artifact
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: cantina-dist
-          path: apps/web/dist-cantina/
-          include-hidden-files: true
-          if-no-files-found: error
-          retention-days: 1
-
   # Push the staging backend, then ship su-srd, with the Cantina in its
-  # `dist/build/`, as a Preview, only after both builds are green.
+  # `dist/build/`, as a Preview, only after the build is green.
   ship:
-    needs: [build-srd, build-cantina]
+    needs: [build-web]
     runs-on: ubuntu-latest
     environment: preview
     outputs:
@@ -214,20 +178,11 @@ jobs:
             against $STAGING_CONVEX_URL." >&2; exit 1; }
         run: bunx convex deploy --cmd-url-env-var-name CANONICAL_CONVEX_URL --cmd "$URL_GUARD"
 
-      - name: Download the srd artifact
+      - name: Download the site artifact
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: srd-dist
+          name: web-dist
           path: apps/web/dist
-
-      - name: Download the cantina artifact
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: cantina-dist
-          path: apps/web/dist-cantina
-
-      - name: Put the Cantina in srd's dist
-        run: bash tools/merge-dist.sh
 
       # A Preview, never a version or a deployment of the production Worker.
       # Its vars are wrangler.jsonc's `previews` block. Its URL is read back
@@ -251,7 +206,7 @@ jobs:
             echo "FATAL: the Preview has no URL." >&2
             exit 1
           fi
-          # The builds baked in the address this Preview was predicted at.
+          # The build baked in the address this Preview was predicted at.
           if [ "${url%/}" != "$PREVIEW_ORIGIN" ]; then
             echo "FATAL: the Preview is at ${url%/}, but its links were built for $PREVIEW_ORIGIN." >&2
             echo "Fix PREVIEW_ORIGIN in this workflow." >&2
