@@ -42,6 +42,20 @@ body {
   min-height: 100dvh;
 }
 
+/* The page column: the bar, the route, the foot, at least a screen tall, so
+   a short route's foot still sits on the window's bottom edge, as the SRD's
+   does (`BaseLayout.tsx`). The route's block takes the spare height; banners,
+   modals and the Peek keep their own size. */
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+#main-content {
+  flex: 1 0 auto;
+}
+
 /* The workshop ground across the whole window: each route's <main> is
    width-capped and centred, so the body paints the rest. The face is the
    package's (foundation.css); the Cantina adds macOS's grayscale smoothing. */
