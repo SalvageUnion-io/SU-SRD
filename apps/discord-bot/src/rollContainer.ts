@@ -31,6 +31,8 @@
 
 import type { RefRollTable, RollOnTableOutcome } from 'salvageunion-reference'
 import {
+  DISCORD_NEUTRAL_ACCENT,
+  DISCORD_ROLL_ACCENT,
   discordCiteLine,
   linkTraitReferences,
   plainTraitText,
@@ -42,7 +44,7 @@ import type { CoreRollBand } from 'salvageunion-reference/rules'
 import { coreRollBand, coreRollBandLabel } from 'salvageunion-reference/rules'
 import type { ContainerBlock, ContainerData } from './container'
 import { deriveLabel } from './derivedLabel'
-import { NEUTRAL_ACCENT, ROLL_ATTRIBUTION, ROLL_COLORS } from './format'
+import { ROLL_ATTRIBUTION } from './format'
 
 /** Longest value that reads as a headline rather than as body copy. */
 const INLINE_HEADLINE_MAX = 60
@@ -201,7 +203,7 @@ export function buildRollContainerData(
   })
 
   return {
-    accent: band !== null ? ROLL_COLORS[band] : NEUTRAL_ACCENT,
+    accent: band !== null ? DISCORD_ROLL_ACCENT[band] : DISCORD_NEUTRAL_ACCENT,
     blocks,
   }
 }

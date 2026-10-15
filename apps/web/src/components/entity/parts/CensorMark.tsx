@@ -1,4 +1,4 @@
-import { assetDerivativeUrl } from '../../compositions/assetSrcSet'
+import { assetDerivativeUrl } from 'salvageunion-reference/assetDerivatives'
 import type { CensorMark as Mark } from './censor'
 import { tornEdge } from './censor'
 

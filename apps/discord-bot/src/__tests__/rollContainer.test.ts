@@ -7,10 +7,14 @@
 import { describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
 import type { RefRollTable } from 'salvageunion-reference'
-import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
+import {
+  DISCORD_NEUTRAL_ACCENT,
+  DISCORD_ROLL_ACCENT,
+  rollOnTable,
+  SalvageUnionReference,
+} from 'salvageunion-reference'
 import { buildPostedRollMessage, buildRollMessage } from '../commands/roll'
 import type { ContainerData } from '../container'
-import { NEUTRAL_ACCENT, ROLL_COLORS } from '../format'
 import { buildRollContainerData, isTieredTable } from '../rollContainer'
 
 // No preload here. `apps/discord-bot/bunfig.toml` preloads
@@ -94,13 +98,13 @@ describe('tier gating', () => {
   test('a 1 on an untiered table is NOT cascade red', () => {
     // Applying getColor() unconditionally would paint a 1 on the Callsign Table
     // cascade red and imply "Sparkles" was a catastrophe, on 21 tables.
-    expect(rollOf('Callsign Table', 1).accent).toBe(NEUTRAL_ACCENT)
+    expect(rollOf('Callsign Table', 1).accent).toBe(DISCORD_NEUTRAL_ACCENT)
   })
 
   test('a tiered table still takes the ramp', () => {
-    expect(rollOf('Core Mechanic', 20).accent).toBe(ROLL_COLORS.nailed)
-    expect(rollOf('Core Mechanic', 1).accent).toBe(ROLL_COLORS.cascade)
-    expect(rollOf('Core Mechanic', 14).accent).toBe(ROLL_COLORS.success)
+    expect(rollOf('Core Mechanic', 20).accent).toBe(DISCORD_ROLL_ACCENT.nailed)
+    expect(rollOf('Core Mechanic', 1).accent).toBe(DISCORD_ROLL_ACCENT.cascade)
+    expect(rollOf('Core Mechanic', 14).accent).toBe(DISCORD_ROLL_ACCENT.success)
   })
 })
 
@@ -112,7 +116,7 @@ describe('the tier word is withheld outside the Core Mechanic', () => {
 
   test('an outcome table does not — "SUCCESS" over a grounded Crawler reads wrong', () => {
     const data = rollOf('Crawler Damage', 14)
-    expect(data.accent).toBe(ROLL_COLORS.success)
+    expect(data.accent).toBe(DISCORD_ROLL_ACCENT.success)
     expect(headline(data)).not.toContain('SUCCESS')
   })
 })
@@ -250,7 +254,7 @@ describe('private rolls and Post to channel', () => {
 
     expect(text(posted.data)).toContain('## 20')
     expect(text(posted.data)).toContain('NAILED IT')
-    expect(posted.data.accent).toBe(ROLL_COLORS.nailed)
+    expect(posted.data.accent).toBe(DISCORD_ROLL_ACCENT.nailed)
     // Public, and it carries no Post button of its own.
     expect(Number(posted.flags) & MessageFlags.Ephemeral).toBe(0)
     const postedRow = posted.data.blocks.find((b) => b.kind === 'buttons')

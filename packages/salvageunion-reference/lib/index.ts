@@ -43,7 +43,6 @@ export {
 export {
   assetUrl,
   getAssetUrl,
-  SRD_SITE_URL,
   srdEntityPath,
   srdEntityUrl,
   srdSchemaPath,
@@ -86,6 +85,7 @@ export { getInventorySlots } from './inventorySlots'
 export { type EnhancedSchemaMetadata, getDataMaps, getSchemaCatalog } from './ModelFactory'
 export { nameToSlug } from './nameToSlug'
 export { displayTitle } from './naming'
+export { SRD_SITE_URL } from './origin'
 export {
   getPatterns,
   isBioTitanPattern,
@@ -141,8 +141,12 @@ export { parseTraitReferences, plainTraitText } from './traitText'
 export { truncate } from './truncate'
 export { resultForColumnsTable, resultForTable } from './utils/resultForTable'
 export {
-  type DiscordBlock,
+  DISCORD_NEUTRAL_ACCENT,
+  DISCORD_ROLL_ACCENT,
   discordAccent,
+} from './view/discordAccents'
+export {
+  type DiscordBlock,
   discordCard,
   discordCardParts,
   discordCiteLine,

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
+import { DISCORD_ROLL_ACCENT } from 'salvageunion-reference'
 import type { EntityBody, SheetResult } from '../cantina/types'
-import { ROLL_COLORS } from '../format'
 import {
   CANTINA_ORIGIN,
   denialMessage,
@@ -23,7 +23,7 @@ import { cardText, cardUrl } from './cardText'
  */
 
 const WEB = CANTINA_ORIGIN
-const CRITICAL = ROLL_COLORS.cascade
+const CRITICAL = DISCORD_ROLL_ACCENT.cascade
 
 /** A fresh pilot as the server derives it: base HP 10 and AP 5, alive. */
 const PILOT_VITALS: SheetResult['vitals'] = {

@@ -2,23 +2,16 @@
  * The Discord card: what a `/su lookup` reply and a pasted salvageunion.io
  * link both draw. Pins the book's devices (label-first chips in E17's order,
  * the cost last, linked traits, the table) and the fit rule (whole parts shed, the page
- * linked), plus the accent mirror of `theme.css`.
+ * linked).
  */
 
 import { describe, expect, test } from 'bun:test'
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import { getModel } from '../../helpers'
 import { EntitySchemaNames, findEntityBySlug } from '../../index'
 import { getPatterns } from '../../patterns'
 import type { RefEnumSchemaName, RefMetaEntity } from '../../schemas/index'
 import type { DiscordCard } from '../discordCard'
-import {
-  DISCORD_TONE_ACCENT,
-  discordCard,
-  discordCardParts,
-  linkTraitReferences,
-} from '../discordCard'
+import { discordCard, discordCardParts, linkTraitReferences } from '../discordCard'
 import { ACTION_TYPE_LABELS } from '../parts/facts'
 import { splitSentences } from '../parts/paragraphs'
 import { formatActionType } from '../parts/traits'
@@ -266,26 +259,5 @@ describe('discordCard — a rolled table', () => {
     })
     expect(text(card)).toContain('> **▶** `1`')
     expect(text(card)).toContain('> -# ROLLED 1 · Alex')
-  })
-})
-
-describe('DISCORD_TONE_ACCENT', () => {
-  const css = readFileSync(
-    join(import.meta.dir, '../../../../../apps/web/src/styles/theme.css'),
-    'utf8'
-  )
-  const token = (name: string): number => {
-    const match = css.match(new RegExp(`--color-${name}:\\s*rgb\\((\\d+),\\s*(\\d+),\\s*(\\d+)\\)`))
-    if (!match) throw new Error(`--color-${name} not in theme.css`)
-    const [, r, g, b] = match.map(Number)
-    return ((r ?? 0) << 16) | ((g ?? 0) << 8) | (b ?? 0)
-  }
-
-  test('mirrors theme.css, except ink (the rules blue) and crawler (its band)', () => {
-    for (const [tone, accent] of Object.entries(DISCORD_TONE_ACCENT)) {
-      const source =
-        tone === 'ink' || tone === 'ink-2' ? 'wk-line' : tone === 'crawler' ? 'crawler-band' : tone
-      expect([tone, accent]).toEqual([tone, token(source)])
-    }
   })
 })

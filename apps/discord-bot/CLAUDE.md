@@ -51,8 +51,8 @@ against a linked account and a real membership. See
   which are **imported** (`import type`) from `cantina-domain/botWire`
   (`packages/cantina-domain/src/botWire.ts`) — the same declaration `botClient.ts`
   annotates its handlers with. Never copy a shape into the bot; add it there.
-  That module must stay import-free, so the bot's type-check never pulls in
-  Convex's generated model.
+  That module imports only the leaf `entityKinds`, so the bot's type-check never
+  pulls in Convex's generated model.
 - `src/commands/cantinaReply.ts` — the shared defer / result-kind / ephemerality
   spine, and the one client (`cantina()`, installed per request from `env`)
 

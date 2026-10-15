@@ -44,6 +44,7 @@
       "version": "0.0.0",
       "dependencies": {
         "observability": "workspace:*",
+        "salvageunion-reference": "workspace:*",
       },
     },
     "apps/web": {

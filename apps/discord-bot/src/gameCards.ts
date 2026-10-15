@@ -3,10 +3,13 @@ import { PRODUCT } from 'cantina-domain/product'
 import type { ItemCondition, RefEnumSchemaName } from 'salvageunion-reference'
 import {
   CONDITION_LABELS,
+  DISCORD_NEUTRAL_ACCENT,
+  DISCORD_ROLL_ACCENT,
   discordAccent,
   findEntityBySlug,
   getAssetUrl,
   getEntitySlug,
+  SRD_SITE_URL,
   STAT_LABELS,
   srdEntityUrl,
 } from 'salvageunion-reference'
@@ -25,7 +28,6 @@ import type {
 } from './cantina/types'
 import type { CardField, ContainerData } from './container'
 import { entityCard } from './container'
-import { NEUTRAL_ACCENT, ROLL_COLORS } from './format'
 
 /**
  * Card builders for the Cantina commands (ADR-030).
@@ -57,14 +59,14 @@ import { NEUTRAL_ACCENT, ROLL_COLORS } from './format'
  * most-destroyed end. A bot-only hue here would fork a palette the design
  * system deliberately unified.
  */
-const CRITICAL = ROLL_COLORS.cascade
+const CRITICAL = DISCORD_ROLL_ACCENT.cascade
 
 /**
- * Where In The Union Now is served, base included: salvageunion.io/build
- * (ADR-048). Cards link back here by appending a route; it is only ever used
- * to build a URL, never called. Old intheunionnow.com links 301 here.
+ * Where In The Union Now is served, base included: the production origin's
+ * `/build` (ADR-048). Cards link back here by appending a route; it only
+ * ever builds a URL, never a request. Old intheunionnow.com links 301 here.
  */
-export const CANTINA_ORIGIN = 'https://salvageunion.io/build'
+export const CANTINA_ORIGIN = `${SRD_SITE_URL}/build`
 
 const FOOTER = PRODUCT.name
 
@@ -269,7 +271,7 @@ export function meCard(me: MeResult): ContainerData {
   return entityCard({
     title: `${me.user.displayName} — ${PRODUCT.name}`,
     url: `${CANTINA_ORIGIN}/account`,
-    accent: NEUTRAL_ACCENT,
+    accent: DISCORD_NEUTRAL_ACCENT,
     description: 'Linked at sign-in. Discord is the only way in, so this is always current.',
     fields: [
       {
@@ -286,7 +288,7 @@ export function gamesCard(games: GameSummary[]): ContainerData {
   return entityCard({
     title: `Your Games (${games.length})`,
     url: `${CANTINA_ORIGIN}/`,
-    accent: NEUTRAL_ACCENT,
+    accent: DISCORD_NEUTRAL_ACCENT,
     description: gameLines(games),
     fields: [],
     footer: FOOTER,
