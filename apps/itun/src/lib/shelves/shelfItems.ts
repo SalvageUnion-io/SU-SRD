@@ -118,11 +118,6 @@ export function containerChip(
   return { key: 'where', label: game?.name ?? 'In a Game' }
 }
 
-/** "Copied from the Starter Set", for a unit copied from one of its templates. */
-function originChip(entity: { seedRef?: string }): ShelfChip[] {
-  return entity.seedRef ? [{ key: 'origin', label: 'Copied from the Starter Set' }] : []
-}
-
 type Names = ReadonlyMap<string, string>
 
 export function pilotChips(args: {
@@ -137,7 +132,6 @@ export function pilotChips(args: {
   return [
     containerChip(pilot, args.games),
     ...(mechName ? [{ key: 'linked', label: `Assigned: ${mechName}` }] : []),
-    ...originChip(pilot),
   ]
 }
 
@@ -146,24 +140,13 @@ export function mechChips(args: {
   games: readonly ShelfGame[] | undefined
   softLinks: readonly SoftLink[]
   pilotNames: Names
-  patternNames: Names
 }): ShelfChip[] {
   const { mech } = args
   const pilot = args.softLinks.find((l) => l.type === 'mech-to-pilot' && l.from.id === mech.id)
   const pilotName = pilot && args.pilotNames.get(pilot.to.id)
-  const patternName = mech.sourcePattern ? args.patternNames.get(mech.sourcePattern) : undefined
   return [
     containerChip(mech, args.games),
     ...(pilotName ? [{ key: 'linked', label: `Pilot: ${pilotName}` }] : []),
-    ...(mech.sourcePattern
-      ? [
-          {
-            key: 'pattern',
-            label: patternName ? `From pattern “${patternName}”` : 'From a pattern',
-          },
-        ]
-      : []),
-    ...originChip(mech),
   ]
 }
 
@@ -179,19 +162,10 @@ export function crawlerChips(args: {
   return [
     containerChip(crawler, args.games),
     ...(game?.mediator ? [{ key: 'role', label: 'You mediate' }] : []),
-    ...originChip(crawler),
   ]
 }
 
-/** How many mechs were built from a pattern, in words: "Built twice". */
-export function builtTimes(count: number): string | null {
-  if (count <= 0) return null
-  if (count === 1) return 'Built once'
-  if (count === 2) return 'Built twice'
-  return `Built ${count} times`
-}
-
-/** Who can see a pattern, then how often it has been built. */
+/** Who can see a pattern. */
 export function patternChips(sharing: PatternSharing | undefined): ShelfChip[] {
   if (sharing === undefined) return []
   const who =
@@ -202,8 +176,7 @@ export function patternChips(sharing: PatternSharing | undefined): ShelfChip[] {
           ? `Shared with ${sharing.gameName}`
           : 'Shared with a crew'
         : 'Only me'
-  const built = builtTimes(sharing.builtCount)
-  return [{ key: 'who', label: who }, ...(built ? [{ key: 'built', label: built }] : [])]
+  return [{ key: 'who', label: who }]
 }
 
 /** An NPC's reading is its hit (or structure) points: `HP 6/6`. */

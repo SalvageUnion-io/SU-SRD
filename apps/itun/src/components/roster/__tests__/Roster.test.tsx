@@ -286,9 +286,12 @@ describe('Shelves — one shelf per kind', () => {
 
     const npcs = screen.getByRole('region', { name: 'NPCs' })
     expect(within(npcs).getByText('Yours')).toBeTruthy()
+    // Its chips lead the Row's chip group, so the link is the Row's cover and
+    // the Row (`.su-entity-row`) holds what it reads.
     const line = within(npcs)
       .getAllByRole('link')
       .find((a) => a.getAttribute('href') === `/sheet/npc/${npc.id}`)
+      ?.closest('.su-entity-row')
     expect(line?.querySelector('[data-user-made]')).not.toBeNull()
     // The dashes are the only visual cue, so the name says it too.
     expect(line?.textContent).toMatch(/user-made/i)
@@ -314,15 +317,18 @@ describe('Shelves — items', () => {
     await renderShelves()
 
     const pilots = screen.getByRole('region', { name: 'Pilots' })
-    const line = within(pilots)
+    const link = within(pilots)
       .getAllByRole('link')
       .find((a) => a.getAttribute('href') === `/sheet/pilot/${id}`)
+    expect(link?.getAttribute('aria-label')).toContain('Nia Vale')
+    // The chip saying where it is sits in the Row's chip group, not under it.
+    const line = link?.closest('.su-entity-row')
     expect(line?.textContent).toContain('Nia Vale')
     // What it is built as, never its kind (EDL E9: screen readers hear that).
     expect(line?.textContent).toContain('Engineer')
     expect(line?.textContent).not.toContain('Pilot ·')
     expect(line?.textContent).toContain('HP')
-    expect(within(pilots).getByText('Not in a Game')).toBeTruthy()
+    expect(line?.textContent).toContain('Not in a Game')
   })
 
   test('linked units are named in each other’s chips', async () => {

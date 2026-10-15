@@ -254,7 +254,7 @@ describe('Shelves: everything you keep', () => {
     const patterns = screen.getByRole('region', { name: 'Patterns' })
     expect(within(patterns).getByText('“Tow Rig”')).toBeTruthy()
     expect(within(patterns).getByText('Shared by link')).toBeTruthy()
-    expect(within(patterns).getByText('Built twice')).toBeTruthy()
+    expect(within(patterns).queryByText('Built twice')).toBeNull()
   })
 })
 

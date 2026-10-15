@@ -8,7 +8,6 @@ import {
   pilotFixture,
 } from '../../../components/__tests__/fixtures'
 import {
-  builtTimes,
   chassisFact,
   containerChip,
   crawlerChips,
@@ -79,7 +78,7 @@ describe('where it is', () => {
 })
 
 describe('a unit’s chips', () => {
-  test('a pilot names its Game, its mech and where it came from', () => {
+  test('a pilot names its Game and its mech, never where it came from', () => {
     const pilot = pilotFixture({ id: 'p1', gameId: 'g1', seedRef: 'starter-pilot-bonesaw' })
     expect(
       chipLabels(
@@ -90,10 +89,10 @@ describe('a unit’s chips', () => {
           mechNames: new Map([['m1', 'Scrapper']]),
         })
       )
-    ).toEqual(['Reclamation of the Wastes', 'Assigned: Scrapper', 'Copied from the Starter Set'])
+    ).toEqual(['Reclamation of the Wastes', 'Assigned: Scrapper'])
   })
 
-  test('a mech names its pilot and the pattern it was built from', () => {
+  test('a mech names its pilot, never the pattern it was built from', () => {
     const mech = mechFixture({ id: 'm1', gameId: null, sourcePattern: 'pat-tow-rig' })
     expect(
       chipLabels(
@@ -102,25 +101,9 @@ describe('a unit’s chips', () => {
           games: GAMES,
           softLinks: [LINK],
           pilotNames: new Map([['p1', 'Bonesaw']]),
-          patternNames: new Map([['pat-tow-rig', 'Tow Rig']]),
         })
       )
-    ).toEqual(['Not in a Game', 'Pilot: Bonesaw', 'From pattern “Tow Rig”'])
-  })
-
-  test('a mech from a pattern no longer on the shelf still says it came from one', () => {
-    const mech = mechFixture({ id: 'm1', sourcePattern: 'pat-gone' })
-    expect(
-      chipLabels(
-        mechChips({
-          mech,
-          games: GAMES,
-          softLinks: [],
-          pilotNames: new Map(),
-          patternNames: new Map(),
-        })
-      )
-    ).toContain('From a pattern')
+    ).toEqual(['Not in a Game', 'Pilot: Bonesaw'])
   })
 
   test('a crawler in a Game you mediate says so; in one you only play, it does not', () => {
@@ -161,24 +144,16 @@ describe('shared by link', () => {
 })
 
 describe('a pattern’s chips', () => {
-  test('who can see it, then how often it has been built', () => {
+  test('who can see it, never how often it has been built', () => {
     const base = { appId: 'p', gameName: null, builtCount: 0 }
     expect(chipLabels(patternChips({ ...base, visibility: 'private' }))).toEqual(['Only me'])
     expect(chipLabels(patternChips({ ...base, visibility: 'link', builtCount: 2 }))).toEqual([
       'Shared by link',
-      'Built twice',
     ])
     expect(
       chipLabels(patternChips({ ...base, visibility: 'game', gameName: 'Dustbowl Run' }))
     ).toEqual(['Shared with Dustbowl Run'])
     expect(patternChips(undefined)).toEqual([])
-  })
-
-  test('built counts in words', () => {
-    expect(builtTimes(0)).toBeNull()
-    expect(builtTimes(1)).toBe('Built once')
-    expect(builtTimes(2)).toBe('Built twice')
-    expect(builtTimes(5)).toBe('Built 5 times')
   })
 })
 
