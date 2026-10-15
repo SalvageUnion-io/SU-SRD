@@ -18,11 +18,10 @@
     "DISCORD_PUBLIC_KEY": "3cda4815a9676fee399a6475c5533f7d2375d1293af87993c5cd1f4e4f2c0200"
   },
 
-  // A deploy fails while one is unset; set with `wrangler secret put`. The
-  // Cantina pair (CANTINA_CONVEX_SITE_URL, the `.convex.site` origin, and
-  // CANTINA_BOT_SECRET) is optional until the old names go (src/worker/cantinaEnv.ts).
+  // A deploy fails while one is unset; set with `wrangler secret put`.
+  // CANTINA_CONVEX_SITE_URL is the `.convex.site` origin.
   "secrets": {
-    "required": ["DISCORD_TOKEN"]
+    "required": ["DISCORD_TOKEN", "CANTINA_CONVEX_SITE_URL", "CANTINA_BOT_SECRET"]
   },
 
   // Per-command usage, one data point per interaction (src/worker/index.ts),

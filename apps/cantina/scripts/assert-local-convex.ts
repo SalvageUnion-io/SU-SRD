@@ -36,7 +36,7 @@ export function cloudDeploymentRefusal(deployment: string | undefined): string |
     'deployment is shared by every worktree, so pushes overwrite each other',
     '(CANTINA-CONVEX-A). Switch this checkout to a local deployment, from apps/cantina:',
     '',
-    '  bunx convex dev --configure existing --team alex-jarvis --project suref-itun \\',
+    '  bunx convex dev --configure existing --team alex-jarvis --project susrd \\',
     '    --dev-deployment local --once',
     '',
     'then the rest of the one-time setup: .claude/skills/convex-ops/SKILL.md#local-backend',

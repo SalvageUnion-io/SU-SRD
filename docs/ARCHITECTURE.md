@@ -113,7 +113,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     Workers Issues (ADR-049); browsers post to `/__errors`, Convex's log stream to `/build/__convex-logs`.
     `tools/check-observability.ts` guards it.
 37. **Convex and GitHub identifiers** <a id="identifiers"></a>
-    Project `alex-jarvis:suref-itun`; `.convex.cloud` is the client, `.convex.site` HTTP actions (swapped, both "unreachable").
+    Project `alex-jarvis:susrd`; `.convex.cloud` is the client, `.convex.site` HTTP actions (swapped, both "unreachable").
     Repo `SalvageUnion-io/SU-SRD`, branch `main`; the deployed commit is the release (ADR-041).
 
 ## Decisions
