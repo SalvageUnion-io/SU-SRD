@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, test } from 'bun:test'
+import type { BotEnv } from '../cantinaEnv'
 import worker from '../index'
 
 /**
@@ -40,15 +41,15 @@ function stubFetch(
   globalThis.fetch = handler as typeof fetch
 }
 
-function envWith(overrides: Partial<Env> = {}): Env {
+function envWith(overrides: Partial<BotEnv> = {}): BotEnv {
   return {
     DISCORD_PUBLIC_KEY: 'ab'.repeat(32),
     DISCORD_APPLICATION_ID: '111111111111111111',
     DISCORD_TOKEN: 'a-token',
-    ITUN_CONVEX_SITE_URL: 'https://x.convex.site',
-    ITUN_BOT_SECRET: 'a-secret',
+    CANTINA_CONVEX_SITE_URL: 'https://x.convex.site',
+    CANTINA_BOT_SECRET: 'a-secret',
     ...overrides,
-  } as Env
+  } as BotEnv
 }
 
 const ctx = { waitUntil: () => {} }
@@ -139,9 +140,9 @@ describe('/health', () => {
   })
 
   test.each([
-    ['neither Cantina value', { ITUN_CONVEX_SITE_URL: '', ITUN_BOT_SECRET: '' }],
-    ['no ITUN_BOT_SECRET', { ITUN_BOT_SECRET: '' }],
-    ['no ITUN_CONVEX_SITE_URL', { ITUN_CONVEX_SITE_URL: '' }],
+    ['neither Cantina value', { CANTINA_CONVEX_SITE_URL: '', CANTINA_BOT_SECRET: '' }],
+    ['no CANTINA_BOT_SECRET', { CANTINA_BOT_SECRET: '' }],
+    ['no CANTINA_CONVEX_SITE_URL', { CANTINA_CONVEX_SITE_URL: '' }],
   ])('503s with %s, without calling Discord', async (_label, overrides) => {
     // Either alone is as broken as neither: every Game command would answer
     // that Cantina cannot be reached. The post-deploy smoke reads this
@@ -161,7 +162,7 @@ describe('/health', () => {
 
     expect(res.status).toBe(503)
     expect(body.ok).toBe(false)
-    expect(body.reason).toContain('ITUN_CONVEX_SITE_URL and ITUN_BOT_SECRET')
+    expect(body.reason).toContain('CANTINA_CONVEX_SITE_URL and CANTINA_BOT_SECRET')
     expect(body.configured.cantina).toBe(false)
     expect(called).toBe(false)
   })

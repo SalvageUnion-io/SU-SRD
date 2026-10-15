@@ -47,6 +47,8 @@ import {
   ResponseSink,
   webhookRoutes,
 } from './adapter'
+import type { BotEnv } from './cantinaEnv'
+import { cantinaConfig } from './cantinaEnv'
 import { isValidDiscordRequest, SIGNATURE_HEADER, TIMESTAMP_HEADER } from './verify'
 
 /**
@@ -177,14 +179,14 @@ async function dispatch(
  * Unauthenticated on purpose: it reveals only public facts, and requiring a
  * credential to check a credential is a loop that helps nobody at 3am.
  */
-async function health(env: Env): Promise<Response> {
+async function health(env: BotEnv): Promise<Response> {
   const configured = {
     applicationId: Boolean(env.DISCORD_APPLICATION_ID),
     publicKey: Boolean(env.DISCORD_PUBLIC_KEY),
     token: Boolean(env.DISCORD_TOKEN),
     // Either alone is as broken as neither: every Game command would answer
     // that Cantina cannot be reached.
-    cantina: Boolean(env.ITUN_CONVEX_SITE_URL) && Boolean(env.ITUN_BOT_SECRET),
+    cantina: Boolean(cantinaConfig(env).siteUrl) && Boolean(cantinaConfig(env).botSecret),
   }
 
   if (!configured.token) {
@@ -198,7 +200,7 @@ async function health(env: Env): Promise<Response> {
     return Response.json(
       {
         ok: false,
-        reason: 'ITUN_CONVEX_SITE_URL and ITUN_BOT_SECRET must both be set',
+        reason: 'CANTINA_CONVEX_SITE_URL and CANTINA_BOT_SECRET must both be set',
         configured,
       },
       { status: 503 }
@@ -256,7 +258,7 @@ async function health(env: Env): Promise<Response> {
 
 /** @public Cloudflare Worker entrypoint — loaded by workerd, not imported. */
 export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionCtx): Promise<Response> {
+  async fetch(request: Request, env: BotEnv, ctx: ExecutionCtx): Promise<Response> {
     if (request.method === 'GET' && new URL(request.url).pathname === '/health') {
       return health(env)
     }
@@ -285,9 +287,7 @@ export default {
 
     // Configuration arrives as `env`, so the client can only be built once a
     // request exists. Cheap: a client is two strings and a closure.
-    setCantinaClient(
-      createCantinaClient({ siteUrl: env.ITUN_CONVEX_SITE_URL, botSecret: env.ITUN_BOT_SECRET })
-    )
+    setCantinaClient(createCantinaClient(cantinaConfig(env)))
 
     let interaction: APIInteraction
     try {

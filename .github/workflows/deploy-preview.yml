@@ -4,7 +4,7 @@ name: Deploy preview (Cloudflare)
 # `preview` label:
 #
 #   srd   https://pr-<n>-su-srd.alxjrvs.workers.dev
-#   cantina  https://pr-<n>-su-itun.alxjrvs.workers.dev/build, against the
+#   cantina  https://pr-<n>-su-cantina.alxjrvs.workers.dev/build, against the
 #         staging Convex deployment perfect-donkey-72
 #
 # Adding the label builds and ships the PR; each later push to it ships again;
@@ -64,7 +64,7 @@ env:
   # Component Embed, the sitemap. A Preview answers noindex, so search never
   # sees them. `ship` fails if wrangler reports any other address.
   PREVIEW_SRD_ORIGIN: https://pr-${{ github.event.pull_request.number }}-su-srd.alxjrvs.workers.dev
-  PREVIEW_CANTINA_ORIGIN: https://pr-${{ github.event.pull_request.number }}-su-itun.alxjrvs.workers.dev
+  PREVIEW_CANTINA_ORIGIN: https://pr-${{ github.event.pull_request.number }}-su-cantina.alxjrvs.workers.dev
 
 jobs:
   build-srd:

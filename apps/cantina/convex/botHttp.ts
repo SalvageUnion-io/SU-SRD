@@ -25,7 +25,7 @@ import { httpAction } from './_generated/server'
  * Ed25519 signature, at which point the id is attested rather than asserted.
  * See `docs/ARCHITECTURE.md#bot-game-client`.
  *
- * `ITUN_BOT_SECRET` unset disables the whole surface — a deployment that has
+ * `CANTINA_BOT_SECRET` unset disables the whole surface — a deployment that has
  * not opted in cannot be talked to by a bot, rather than being talked to by
  * anyone.
  */
@@ -96,7 +96,8 @@ function json(body: unknown, status: number): Response {
 }
 
 export const botRoute = httpAction(async (ctx, request) => {
-  const expected = process.env.ITUN_BOT_SECRET
+  // The old name still answers until the new one is set.
+  const expected = process.env.CANTINA_BOT_SECRET || process.env.ITUN_BOT_SECRET
   // Unconfigured is 404, not 401: a deployment that has not opted in should be
   // indistinguishable from one where this route does not exist.
   if (expected === undefined || expected.length === 0) {

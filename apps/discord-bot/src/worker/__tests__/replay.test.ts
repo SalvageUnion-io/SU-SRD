@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { InteractionResponseType, InteractionType, MessageFlags } from 'discord-api-types/v10'
+import type { BotEnv } from '../cantinaEnv'
 import worker from '../index'
 
 /**
@@ -98,7 +99,7 @@ async function signedRequest(
 /** Every data point the Worker wrote to Analytics Engine, newest last. */
 let usagePoints: AnalyticsEngineDataPoint[] = []
 
-function envFor(keys: KeyPairHex): Env {
+function envFor(keys: KeyPairHex): BotEnv {
   usagePoints = []
   return {
     USAGE: { writeDataPoint: (point) => void usagePoints.push(point ?? {}) },
@@ -106,8 +107,8 @@ function envFor(keys: KeyPairHex): Env {
     DISCORD_APPLICATION_ID: APPLICATION_ID,
     DISCORD_TOKEN: 'test-token',
     // Unconfigured: every Cantina call degrades to `unavailable` with no request.
-    ITUN_CONVEX_SITE_URL: '',
-    ITUN_BOT_SECRET: '',
+    CANTINA_CONVEX_SITE_URL: '',
+    CANTINA_BOT_SECRET: '',
   }
 }
 

@@ -5,7 +5,7 @@
   // the asset binding, turning a missing file into a 404 (src/worker/index.ts).
   // Every header is public/_headers, which the build moves to `dist/_headers`
   // (vite.config.ts) and the asset server applies to what the binding answers.
-  "name": "su-itun",
+  "name": "su-cantina",
 
   // A Workers ROUTE, not a Custom Domain: a route runs before su-srd's Custom
   // Domain on the same hostname, so `/build*` never reaches srd. Publishing it
@@ -22,9 +22,9 @@
     { "pattern": "www.intheunionnow.com", "custom_domain": true }
   ],
   "workers_dev": false,
-  // Preview URLs (`pr-<n>-su-itun.alxjrvs.workers.dev`), for the Worker
+  // Preview URLs (`pr-<n>-su-cantina.alxjrvs.workers.dev`), for the Worker
   // Previews (.github/workflows/deploy-preview.yml). Separate from
-  // `workers_dev`: su-itun.alxjrvs.workers.dev stays off. Unset, they follow
+  // `workers_dev`: su-cantina.alxjrvs.workers.dev stays off. Unset, they follow
   // `workers_dev` and are off.
   "preview_urls": true,
   "main": "src/worker/index.ts",

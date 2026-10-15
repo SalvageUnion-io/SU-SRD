@@ -88,20 +88,20 @@ reaches, so check both by length.
 
 ## 2. Wire the Discord bot
 
-Generate a long random `ITUN_BOT_SECRET` into 1Password first; both sides take
+Generate a long random `CANTINA_BOT_SECRET` into 1Password first; both sides take
 that one value on stdin.
 
 ```bash
 # Convex: enables /bot/*. Unset, no bot can talk to the deployment at all.
-op read 'op://<vault>/<item>/credential' | bunx convex env set --prod ITUN_BOT_SECRET
+op read 'op://<vault>/<item>/credential' | bunx convex env set --prod CANTINA_BOT_SECRET
 
 # The bot Worker: both required; its /health answers 503 until they are set.
 cd apps/discord-bot
-bunx wrangler secret put ITUN_CONVEX_SITE_URL   # https://<deployment>.convex.site
-op read 'op://<vault>/<item>/credential' | bunx wrangler secret put ITUN_BOT_SECRET
+bunx wrangler secret put CANTINA_CONVEX_SITE_URL   # https://<deployment>.convex.site
+op read 'op://<vault>/<item>/credential' | bunx wrangler secret put CANTINA_BOT_SECRET
 ```
 
-`ITUN_CONVEX_SITE_URL` is the HTTP-actions origin (`.convex.site`), not the
+`CANTINA_CONVEX_SITE_URL` is the HTTP-actions origin (`.convex.site`), not the
 client URL (`.convex.cloud`) and not the web origin.
 
 ## 3. Verify sign-in without signing in
@@ -177,9 +177,9 @@ bunx convex run --deployment alex-jarvis:suref-itun:prod \
 bunx convex logs --deployment alex-jarvis:suref-itun:prod --history 6 --jsonl
 ```
 
-then the su-itun Worker's **Issues** tab in the Cloudflare dashboard, for a
+then the su-cantina Worker's **Issues** tab in the Cloudflare dashboard, for a
 `ConvexFunctionError` naming `botClient:me`. In the log but not in Issues means
-the stream has stopped delivering: a `401` in the su-itun Worker's logs is a
+the stream has stopped delivering: a `401` in the su-cantina Worker's logs is a
 secret mismatch, a `503` an unset secret.
 
 ## Running a one-off data repair
