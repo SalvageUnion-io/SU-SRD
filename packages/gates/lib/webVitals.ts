@@ -1,5 +1,5 @@
 /**
- * The lab Core Web Vitals srd's performance budget (`apps/web/e2e/srd/perf-budget.e2e.ts`)
+ * The lab Core Web Vitals site's performance budget (`apps/web/e2e/perf-budget.e2e.ts`)
  * holds each page to, computed from the raw entries a page's own
  * PerformanceObservers buffered, the way Lighthouse computes them:
  *

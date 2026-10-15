@@ -6,7 +6,7 @@ paths:
   - 'apps/web/src/lib/export/**'
   - 'apps/web/src/components/{account,entityContainer,crawler,dashboard,export,games,mech,mediator,npc,roster,shared,sharing,sheet,shelves,starterSet,wiring,wizard}/**'
   - 'apps/web/convex/**'
-  - 'apps/web/e2e/cantina/**'
+  - 'apps/web/e2e/**'
   - 'packages/cantina-domain/**'
 ---
 
@@ -49,7 +49,7 @@ await useEntityStore.getState().update('pilots', id, { hp: next }) // server-fir
   and a tab's rows go when its session ends (`src/stores/sessionRows.ts`).
 - **A container written twice is written together** — the row's `gameId`
   column and the body's `gameId`; where they disagree, the column wins.
-- **e2e durability specs need an account** (`e2e/cantina/fixtures.ts`): without
+- **e2e durability specs need an account** (`e2e/fixtures.ts`): without
   `VITE_TEST_AUTH` and `CANTINA_TEST_AUTH` they SKIP (nightly runs them).
 
 ## Accounts / Games / ownership — Convex hooks

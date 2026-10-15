@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { serviceWorkerReady } from './_serviceWorker'
 
 /**
  * The one install, offline: opened at `/`, the site switches to the builder
@@ -13,14 +14,7 @@ test.use({ serviceWorkers: 'allow' })
 
 test('opened at /, the reference and the builder both open offline', async ({ page, context }) => {
   await page.goto('/')
-  const active = await page
-    .evaluate(async () => {
-      if (!('serviceWorker' in navigator)) return false
-      const ready = navigator.serviceWorker.ready.then(() => true)
-      const gaveUp = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 15_000))
-      return await Promise.race([ready, gaveUp])
-    })
-    .catch(() => false)
+  const active = await serviceWorkerReady(page)
   test.skip(
     !active && !process.env.CI,
     'No service worker: this is a dev-server run. Runs for real against the CI preview build.'

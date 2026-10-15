@@ -10,9 +10,6 @@ name: E2E (nightly)
 # failure and closed on the next green run — GitHub-native, no external
 # notification service or webhook secret.
 #
-# srd has no job here: its whole Playwright suite gates every srd PR in
-# ci.yml's `build-web`, and srd is a hermetic static build.
-#
 # `production-smoke` re-runs deploy-cloudflare.yml's post-deploy smoke list
 # (tools/smoke-production.sh) against the live hostnames, so drift between
 # deploys opens the same tracking issue. `audit` runs `bun run audit` against
@@ -35,12 +32,15 @@ concurrency:
 
 jobs:
   e2e:
-    # The full the Cantina Playwright suite, SIGNED IN, against a THROWAWAY self-hosted
-    # Convex backend and a production bundle built against it.
+    # The whole Playwright suite but the performance budget (ci.yml's `perf`
+    # measures it on a quiet runner), the Cantina's specs SIGNED IN, against a
+    # THROWAWAY self-hosted Convex backend and a production bundle built
+    # against it. The PR tier (ci.yml's `build-web`) runs the specs that need
+    # no account; here they run again beside the ones that do.
     #
     # Why signed in: signed out, the Cantina is read-only (#1113, #1117), so a spec
     # that builds something and reads it back is by definition a test of the
-    # signed-in path. `apps/web/e2e/cantina/fixtures.ts` signs each such spec up with a
+    # signed-in path. `apps/web/e2e/fixtures.ts` signs each such spec up with a
     # fresh account through the `TestAuthBridge` seam; the specs about what a
     # signed-out visitor sees opt out with `account: 'anonymous'`.
     #
@@ -84,7 +84,7 @@ jobs:
         working-directory: apps/web
         env:
           CANTINA_E2E_EXPECT_AUTH_SEAM: '1'
-        run: bunx playwright test --project=cantina --project=cantina-phone
+        run: bunx playwright test --grep-invert perf-budget
 
       - name: Backend logs on failure
         if: failure()
@@ -100,7 +100,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: playwright-report-cantina
+          name: playwright-report-e2e
           path: apps/web/playwright-report/
           retention-days: 7
 

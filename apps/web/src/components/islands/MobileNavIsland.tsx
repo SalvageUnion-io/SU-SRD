@@ -59,7 +59,7 @@ const SRD_BRAND = (
 function MobileNavIslandBody() {
   // NO reference-ORM access here: building the catalog at runtime would pull
   // `guides-*.js` + `catalog-categories-*.js` onto every page, which
-  // `e2e/bundle-budget.e2e.ts` forbids. `NAV_CATALOG` is that catalog frozen
+  // `e2e/reference-bundle-budget.e2e.ts` forbids. `NAV_CATALOG` is that catalog frozen
   // into this island's chunk at build time.
   const path = typeof location === 'undefined' ? '/' : location.pathname
   const isActive = (candidate: string) => path.startsWith(candidate)

@@ -50,8 +50,8 @@
         // The Cantina's entry: its shell (`src/shell/shell.ts`) is rendered, not a file knip reads.
         "src/main.tsx",
         // The two specs that import `gates` (`packages/gates/lib/a11yScan.ts`).
-        "e2e/srd/a11y.e2e.ts",
-        "e2e/cantina/a11y.e2e.ts"
+        "e2e/reference-a11y.e2e.ts",
+        "e2e/cantina-a11y.e2e.ts"
       ],
       // `test/**` covers the Convex test suite, which lives OUTSIDE `convex/`
       // so that codegen does not register the harness as a deployable module.

@@ -43,6 +43,15 @@ import { waitForReady } from './_helpers'
  * `test.use({ account: 'anonymous' })`.
  */
 
+/**
+ * The Cantina's per-test budget. The first navigation of a test pulls in
+ * salvageunion-reference (a large JSON dataset) and, against the dev server,
+ * Vite's lazy compile of the dashboard and builder routes: 30-60 s on GHA
+ * Ubuntu runners. 90 s leaves headroom without masking a real hang; against a
+ * deployed origin (`E2E_BASE_URL`) every test also pays real round trips.
+ */
+const TEST_TIMEOUT = process.env.E2E_BASE_URL ? 150_000 : 90_000
+
 type AccountFixture = {
   /** `signed-in` (default) signs up a fresh account before the test body runs. */
   account: 'signed-in' | 'anonymous'
@@ -101,7 +110,7 @@ export function requireSeam(present: boolean, testInfo: TestInfo): void {
   testInfo.skip(
     !present,
     'Needs an account, and this build has no test sign-in seam (VITE_TEST_AUTH ' +
-      'and CANTINA_TEST_AUTH). See apps/web/e2e/cantina/fixtures.ts.'
+      'and CANTINA_TEST_AUTH). See apps/web/e2e/fixtures.ts.'
   )
 }
 
@@ -131,6 +140,7 @@ export async function signInFresh(page: Page): Promise<void> {
 export const test = base.extend<AccountFixture>({
   account: ['signed-in', { option: true }],
   page: async ({ page, account }, use, testInfo) => {
+    testInfo.setTimeout(TEST_TIMEOUT)
     if (account === 'signed-in') {
       await page.goto(at('/'))
       await waitForReady(page)
