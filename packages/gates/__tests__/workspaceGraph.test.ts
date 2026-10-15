@@ -11,13 +11,15 @@ describe('readWorkspaces, against this repo', () => {
     expect(graph.map((ws) => ws.dir)).toContain('tools')
     expect(graph.map((ws) => ws.dir)).toContain('packages/gates')
     expect(graph.map((ws) => ws.dir)).toContain('packages/salvageunion-reference')
-    expect(graph.length).toBeGreaterThanOrEqual(8)
+    expect(graph.length).toBeGreaterThanOrEqual(7)
   })
 
   test('reads the workspace: edges', () => {
     const deps = (name: string) => graph.find((ws) => ws.name === name)?.deps
     expect(deps('cantina-domain')).toContain('salvageunion-reference')
-    expect(deps('web')).toEqual(expect.arrayContaining(['cantina-domain', 'observability']))
+    expect(deps('web')).toEqual(
+      expect.arrayContaining(['cantina-domain', 'salvageunion-reference'])
+    )
   })
 })
 

@@ -6,9 +6,5 @@
     "lib": ["ES2022"]
   },
   "include": ["**/*.ts"],
-  "references": [
-    { "path": "../packages/gates" },
-    { "path": "../packages/observability" },
-    { "path": "../packages/salvageunion-reference" }
-  ]
+  "references": [{ "path": "../packages/gates" }, { "path": "../packages/salvageunion-reference" }]
 }

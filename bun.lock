@@ -29,7 +29,6 @@
         "@randsum/salvageunion": "catalog:",
         "cantina-domain": "workspace:*",
         "discord-api-types": "0.38.53",
-        "observability": "workspace:*",
         "salvageunion-reference": "workspace:*",
       },
     },
@@ -37,7 +36,6 @@
       "name": "su-assets",
       "version": "0.0.0",
       "dependencies": {
-        "observability": "workspace:*",
         "salvageunion-reference": "workspace:*",
       },
     },
@@ -60,7 +58,6 @@
         "convex": "catalog:",
         "convex-helpers": "0.1.124",
         "lucide-react": "catalog:",
-        "observability": "workspace:*",
         "qrcode": "1.5.4",
         "react": "catalog:",
         "react-dom": "catalog:",
@@ -98,10 +95,6 @@
         "oxc-parser": "0.143.0",
         "salvageunion-reference": "workspace:*",
       },
-    },
-    "packages/observability": {
-      "name": "observability",
-      "version": "0.0.0",
     },
     "packages/salvageunion-reference": {
       "name": "salvageunion-reference",
@@ -1274,8 +1267,6 @@
     "object-keys": ["object-keys@1.1.1", "", {}, "sha512-NuAESUOUMrlIXOfHKzD6bpPu3tYt3xvjNdRIQ+FeT0lNb4K8WR70CaDxhuNguS2XG+GjkyMwOzsN5ZktImfhLA=="],
 
     "object.assign": ["object.assign@4.1.7", "", { "dependencies": { "call-bind": "^1.0.8", "call-bound": "^1.0.3", "define-properties": "^1.2.1", "es-object-atoms": "^1.0.0", "has-symbols": "^1.1.0", "object-keys": "^1.1.1" } }, "sha512-nK28WOo+QIjBkDduTINE4JkF/UJJKyf2EJxvJKfblDpyg0Q+pkOHNTL0Qwy6NP6FhE/EnzV73BxxqcJaXY9anw=="],
-
-    "observability": ["observability@workspace:packages/observability"],
 
     "own-keys": ["own-keys@1.0.2", "", { "dependencies": { "call-bound": "^1.0.4", "get-intrinsic": "^1.3.0", "object-keys": "^1.1.1", "safe-push-apply": "^1.0.0" } }, "sha512-19YVAg7T+WTrxggPukVq7DjTv6+PJ867TmhCvBsYwmbFCsZd344rq2Ld1p0wo8f8Qrrhgp82c6FJRqdXWtSEhg=="],
 

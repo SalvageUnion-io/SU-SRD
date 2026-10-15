@@ -44,9 +44,6 @@ jobs:
           filters: |
             shared: &shared
               - 'packages/salvageunion-reference/**'
-              # a `workspace:*` dependency of all four apps; asserted from the
-              # manifests by tools/check-workflows.ts (path-filters)
-              - 'packages/observability/**'
               - 'package.json'
               - 'bun.lock'
               - 'knip.json'

@@ -46,7 +46,6 @@ const SCAN_DIRS = [
   // the bot still fails.
   'apps/discord-bot/src',
   'apps/su-assets/src',
-  'packages/observability/src',
   'packages/cantina-domain/src',
 ]
 

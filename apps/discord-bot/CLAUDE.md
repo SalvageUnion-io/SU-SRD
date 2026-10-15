@@ -19,7 +19,7 @@ at startup ([ADR-005](../../docs/ARCHITECTURE.md#decisions)).
 The bot is an **HTTP-interactions Cloudflare Worker** (`src/worker/index.ts`,
 deployed by `wrangler.jsonc`). There is no Node gateway and no `start` script;
 `build` is typecheck plus a `wrangler` dry-run bundle. The Worker reports to
-Workers Issues through `observability/cloudflare`. Wire types and `Routes` come from
+Workers Issues through `reportError` (`src/reportError.ts`). Wire types and `Routes` come from
 `discord-api-types`; the Worker and `deploy-commands.ts` talk to Discord through
 `@discordjs/rest`; reply payloads are the local `ReplyPayload` /
 `EditReplyPayload` in `src/commands/interactions.ts`. Never add `discord.js`
@@ -91,4 +91,4 @@ only for system replies (errors).
   small personal ones share `account.ts`
 - Shared code reads no configuration. The Worker's `env` installs Cantina
   client per request; `deploy-commands.ts` alone reads `process.env`
-- Errors in shared code go straight to `reportError` from `observability/cloudflare`
+- Errors in shared code go straight to `reportError` (`src/reportError.ts`)

@@ -13,7 +13,6 @@
     "build": "bun run typecheck && bun run worker:bundle"
   },
   "dependencies": {
-    "observability": "workspace:*",
     "salvageunion-reference": "workspace:*"
   }
 }

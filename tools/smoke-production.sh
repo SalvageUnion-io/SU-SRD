@@ -123,7 +123,7 @@ check_header https://salvageunion.io/build/ strict-transport-security "cantina H
 # sign-in would never complete.
 check_header https://salvageunion.io/build/ content-security-policy "cantina CSP admits Convex" "wss://*.convex.cloud"
 # The endpoints that bring the browser's and Convex's errors into Workers Issues
-# are routed (packages/observability/src/cloudflare.ts): they take POST only.
+# are routed (apps/web/src/worker/errorReports.ts): they take POST only.
 check https://salvageunion.io/__errors 405 "error report endpoint is routed"
 check https://salvageunion.io/__convex-logs 405 "Convex log stream endpoint is routed"
 # Where the Convex dashboard's webhook posted before the app was one, kept

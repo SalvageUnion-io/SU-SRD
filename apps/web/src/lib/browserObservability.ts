@@ -4,7 +4,7 @@
  *
  * Cloudflare has no browser error tracking, so each app posts its errors to its
  * own Worker, at `ERROR_REPORT_PATH` under the app's base. The Worker
- * (`observability/cloudflare`'s `handleErrorReport`) logs each one as an
+ * (`handleErrorReport` in `src/worker/errorReports.ts`) logs each one as an
  * `Error`, and Workers Issues groups it with the Worker's own.
  *
  * What this reports:
@@ -22,8 +22,8 @@
  * handlers see it.
  */
 
-import type { ErrorReport } from './cloudflare'
-import { ERROR_REPORT_PATH } from './cloudflare'
+import type { ErrorReport } from '../worker/errorReports'
+import { ERROR_REPORT_PATH } from '../worker/errorReports'
 
 export type { ErrorReport }
 export { ERROR_REPORT_PATH }

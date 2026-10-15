@@ -25,12 +25,12 @@
  * silently breaks entity artwork in both srd and cantina at once.
  */
 
-import { reportError } from 'observability/cloudflare'
 import {
   ASSET_RENDER_QUALITY,
   isServedDerivative,
   parseAssetDerivative,
 } from 'salvageunion-reference/assetDerivatives'
+import { reportError } from './reportError'
 
 /** The slice of an R2 bucket binding this Worker uses. */
 export type AssetBucket = {

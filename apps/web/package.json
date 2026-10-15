@@ -34,7 +34,6 @@
     "convex": "catalog:",
     "convex-helpers": "0.1.124",
     "lucide-react": "catalog:",
-    "observability": "workspace:*",
     "qrcode": "1.5.4",
     "react": "catalog:",
     "react-dom": "catalog:",

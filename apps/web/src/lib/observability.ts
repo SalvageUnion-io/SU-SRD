@@ -2,11 +2,11 @@
  * observability — browser error reporting for the whole app.
  *
  * Errors are posted to the Worker at `/__errors`, which logs them for Workers
- * Issues (`observability/cloudflare`'s `handleErrorReport`). Same origin, so
+ * Issues (`handleErrorReport`, `src/worker/errorReports.ts`). Same origin, so
  * the CSP's `connect-src 'self'` covers it. Production builds only: the dev
  * server has no Worker to post to. Everything after that gate (the window
  * handlers, the capture verb, chunk recovery) is `createBrowserObservability`
- * in `observability/browser`. Both entries start it: the islands'
+ * in `browserObservability.ts`. Both entries start it: the islands'
  * (`islands.client.ts`) and the Cantina's (`main.tsx`).
  *
  * `deploy-cloudflare.yml` sets `VITE_COMMIT_REF` to the deployed SHA, which
@@ -17,7 +17,7 @@ import {
   ABANDONED_VIEW_TRANSITIONS,
   createBrowserObservability,
   ERROR_REPORT_PATH,
-} from 'observability/browser'
+} from './browserObservability'
 
 /**
  * Browser noise that is not this site's to fix, dropped before it is sent. The

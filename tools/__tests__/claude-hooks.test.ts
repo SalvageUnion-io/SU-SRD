@@ -240,7 +240,6 @@ describe('typecheck hooks against a stub workspace', () => {
     'apps/su-assets',
     'packages/gates',
     'packages/cantina-domain',
-    'packages/observability',
     'packages/salvageunion-reference',
     'tools',
   ].map((path) => [path, path.split('/').at(-1)] as const)
@@ -318,11 +317,6 @@ describe('typecheck hooks against a stub workspace', () => {
   test.each([
     ['an app', 'apps/web/lib/x.ts', ['ROOT apps/web']],
     ['the bot', 'apps/discord-bot/lib/x.ts', ['ROOT apps/discord-bot']],
-    [
-      'observability',
-      'packages/observability/lib/x.ts',
-      ['ROOT packages/observability apps/discord-bot apps/web apps/su-assets tools'],
-    ],
     [
       'cantina-domain',
       'packages/cantina-domain/lib/x.ts',

@@ -1,8 +1,5 @@
 {
   "extends": "../../tsconfig.worker.json",
   "include": ["src/**/*.ts", "worker-configuration.d.ts"],
-  "references": [
-    { "path": "../../packages/observability" },
-    { "path": "../../packages/salvageunion-reference" }
-  ]
+  "references": [{ "path": "../../packages/salvageunion-reference" }]
 }
