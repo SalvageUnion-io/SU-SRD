@@ -45,7 +45,7 @@ await useEntityStore.getState().update('pilots', id, { hp: next }) // server-fir
   Check `canWrite` before offering an edit affordance. A unit test that writes calls
   `withSignedInBackend()` (`src/stores/__tests__/signedInBackend.ts`).
 - **[No device cache](../../docs/ARCHITECTURE.md#no-device-cache).** Nothing player-owned goes in IndexedDB or
-  `localStorage`. `AccountReconciler` (root-mounted) mounts `ShelfSync` while
+  `localStorage` but `accountHint`. `AccountReconciler` (root) mounts `ShelfSync` while
   Connected; `hydrate()` waits for its first answer (`src/stores/rowArrival.ts`),
   and a tab's rows go when its session ends (`src/stores/sessionRows.ts`).
 - **A container written twice is written together** — the row's `gameId`

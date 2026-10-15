@@ -8,6 +8,7 @@
     ".": "./src/index.ts",
     "./design/tokens": "./src/design/tokens.ts",
     "./guideContents": "./src/components/referenceEntity/card/guideContents.ts",
+    "./accountHint": "./src/accountHint.ts",
     "./product": "./src/product.ts",
     "./styles/entry.css": "./src/styles/entry.css",
     "./styles/theme.css": "./src/styles/theme.css"

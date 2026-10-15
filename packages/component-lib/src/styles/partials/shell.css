@@ -161,8 +161,11 @@
   margin-left: auto;
 }
 
-/* "Buy the game ↗" — an outline on the ink bar, never a rust fill (§3.1). */
-.su-union-bar__buy {
+/* "Buy the game ↗" — an outline on the ink bar, never a rust fill (§3.1).
+   The SRD's "Sign in" link wears it too, as The Cantina's Sign in button is
+   dressed to (`.su-sign-in-control--dark`). */
+.su-union-bar__buy,
+.su-union-bar__sign-in {
   align-items: center;
   border: var(--bw-chrome) solid var(--color-paper-60);
   border-radius: var(--radius-card);
@@ -181,7 +184,8 @@
   transition: border-color 120ms;
 }
 
-.su-union-bar__buy:hover {
+.su-union-bar__buy:hover,
+.su-union-bar__sign-in:hover {
   border-color: var(--color-paper);
 }
 

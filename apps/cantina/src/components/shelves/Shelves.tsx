@@ -38,9 +38,11 @@
  */
 
 import type { MechPattern } from 'cantina-domain/schemas/pattern'
+import type { HeaderMenuItem } from 'component-lib'
 import {
   buttonVariants,
   ChapterBand,
+  HeaderMenu,
   RosterSkeleton,
   Segmented,
   SegmentedOption,
@@ -95,8 +97,6 @@ import { ExportAllButton } from '../export/ExportAllButton'
 import { ImportButton } from '../export/ImportButton'
 import { NewGameControl } from '../games/NewGameControl'
 import { AppLink } from '../shared/AppLink'
-import type { HeaderMenuItem } from '../shared/HeaderMenu'
-import { HeaderMenu } from '../shared/HeaderMenu'
 import { useConfirm } from '../shared/useConfirm'
 import { useGo } from '../shared/useGo'
 import { crawlerRailItems, mechRailItems, pilotRailItems, rowStats } from '../sheet/railStats.model'

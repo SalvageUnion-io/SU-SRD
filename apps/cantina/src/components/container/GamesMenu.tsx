@@ -24,13 +24,12 @@
  */
 
 import type { Container } from 'cantina-domain/container'
-import { Badge, Button, Text, tokens } from 'component-lib'
+import type { HeaderMenuItem } from 'component-lib'
+import { Badge, Button, HeaderMenu, Text, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
-import type { HeaderMenuItem } from '../shared/HeaderMenu'
-import { HeaderMenu } from '../shared/HeaderMenu'
 import { useShowContainer } from './useShowContainer'
 
 /** One row of the list: what it says, and the container it picks. */

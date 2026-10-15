@@ -38,7 +38,7 @@
  * cached at module load, because module evaluation can precede the environment
  * being ready (SSR, a test that installs a stub after import).
  */
-function backing(): Storage | null {
+export function localStore(): Storage | null {
   try {
     if (typeof localStorage === 'undefined') return null
     return localStorage
@@ -51,7 +51,7 @@ function backing(): Storage | null {
 
 /** Read a key. `null` for absent, unavailable, or throwing storage. */
 export function readLocal(key: string): string | null {
-  const store = backing()
+  const store = localStore()
   if (store === null) return null
   try {
     return store.getItem(key)
@@ -63,7 +63,7 @@ export function readLocal(key: string): string | null {
 
 /** Write a key. Returns whether it landed; never throws. */
 export function writeLocal(key: string, value: string): boolean {
-  const store = backing()
+  const store = localStore()
   if (store === null) return false
   try {
     store.setItem(key, value)
@@ -79,6 +79,6 @@ export function writeLocal(key: string, value: string): boolean {
  * helpers: nothing needs them. The callers that would have (the snapshot
  * revoke ledger, the Dial's prefs store) went with snapshot publishing
  * (ADR-036) and the Dial, and the dead-code gate treats an export with
- * no consumer as dead. Add them here — same `backing()` + `try` shape as above —
+ * no consumer as dead. Add them here — same `localStore()` + `try` shape as above —
  * in the change that first needs them, not before.
  */

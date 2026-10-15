@@ -1,5 +1,7 @@
 import { Menu } from '@base-ui/react/menu'
-import { buttonVariants, cn, FOCUS_RING } from 'component-lib'
+import { ChevronDown, Ellipsis } from 'lucide-react'
+import type { CSSProperties, ReactNode } from 'react'
+import { Fragment } from 'react'
 import {
   borderWidth,
   color,
@@ -9,10 +11,10 @@ import {
   space,
   tracking,
   weight,
-} from 'component-lib/design/tokens'
-import { ChevronDown, Ellipsis } from 'lucide-react'
-import type { CSSProperties, ReactNode } from 'react'
-import { Fragment } from 'react'
+} from '../../design/tokens'
+import { cn } from '../../utils/cn'
+import { buttonVariants } from '../atoms/buttonVariants'
+import { FOCUS_RING } from '../atoms/interaction'
 
 /**
  * HeaderMenu — a dropdown menu for the masthead's action slot (`AppBar`'s
@@ -41,11 +43,11 @@ import { Fragment } from 'react'
  *
  * The trigger is the masthead's paper-on-ink nav-link treatment, so it sits
  * beside the bar's links as one of them. The second surface is a shelf item's
- * "⋯" on Shelves (board S1): `variant="overflow"` draws the trigger as an
+ * "⋯" in the Hangar (board S1): `variant="overflow"` draws the trigger as an
  * action chip (Button's `mini` rung) with the ellipsis glyph, the last chip on
  * a listed unit's line, and a row with
  * `tone: 'danger'` (Delete…) reads in the danger colour. Colour lives
- * in `.su-header-menu-trigger` / `.su-header-menu-item` (`styles/headerMenu.css`)
+ * in `.su-header-menu-trigger` / `.su-header-menu-item` (`styles/partials/containers.css`)
  * because it changes on hover, on open and on highlight (resting value included — the per-property split rule);
  * everything static is a style object.
  */

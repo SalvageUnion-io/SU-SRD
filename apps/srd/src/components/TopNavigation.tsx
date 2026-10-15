@@ -11,11 +11,17 @@
  * reader reaches for one (`runtime/interaction.ts`), so a page read and left
  * runs none. They take **no props**: `MobileNavIsland` computing its own
  * catalog is what removes 17.3 MB of duplicated props from the build.
+ *
+ * The account controls are The Cantina's, through the account hint
+ * (`lib/accountBar.ts`): Sign in is served on every page, and the account menu
+ * islands (`when="signed-in"`; on a phone the avatar alone) mount in its place
+ * only while somebody is signed in.
  * `WikiLink` is served twice (desktop cluster and phone cluster), hidden; the
  * client entry reveals both on one page load in a hundred.
  */
 
 import { AppBar, cn, FOCUS_RING } from 'component-lib'
+import { SIGN_IN_HREF } from '../lib/accountBar'
 import { CANTINA_URL } from '../lib/constants'
 import { WIKI_LINK_ATTRIBUTE } from '../lib/wikiLink'
 import { Island } from '../runtime/Island'
@@ -37,6 +43,19 @@ function WikiLink() {
       {...{ [WIKI_LINK_ATTRIBUTE]: '' }}
     >
       WIKI
+    </a>
+  )
+}
+
+/**
+ * Sign in, served on every page and hidden while somebody is signed in
+ * (`lib/accountBar.ts`), when the account menu's island takes its place.
+ * Dressed as "Buy the game" beside it, as The Cantina's is.
+ */
+function SignInLink() {
+  return (
+    <a href={SIGN_IN_HREF} className={cn('su-union-bar__sign-in', 'srd-sign-in', FOCUS_RING)}>
+      Sign in with Discord
     </a>
   )
 }
@@ -86,12 +105,19 @@ export function TopNavigation({
           )}
         </>
       }
+      actions={
+        <>
+          <SignInLink />
+          <Island name="AccountIsland" client="idle" when="signed-in" />
+        </>
+      }
       mobile={
         <>
           <WikiLink />
           <Island name="MobileSearchIsland" client="interaction" ssr>
             <MobileSearchIsland />
           </Island>
+          <Island name="AccountAvatarIsland" client="idle" when="signed-in" />
           <Island name="MobileNavIsland" client="interaction" ssr>
             <MobileNavIsland />
           </Island>

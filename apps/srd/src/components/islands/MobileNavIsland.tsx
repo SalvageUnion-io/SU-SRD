@@ -1,8 +1,11 @@
 import type { NavDrawerItem } from 'component-lib'
-import { Badge, NavDrawer } from 'component-lib'
+import { Badge, buttonVariants, NavDrawer } from 'component-lib'
+import { readAccountHint } from 'component-lib/accountHint'
 import { borderWidth, color, fontSize, space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 import { NAV_CATALOG } from '../../generated/navCatalog'
+import { SIGN_IN_HREF } from '../../lib/accountBar'
+import { browserStorage } from '../../lib/accountState'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 import { SearchIsland } from './SearchIsland'
 
@@ -72,12 +75,28 @@ function MobileNavIslandBody() {
     },
   ]
 
+  // Signed out, Sign in tops the drawer, as in The Cantina's; signed in, the
+  // avatar menu beside the hamburger is the account.
+  const signedOut = readAccountHint(browserStorage()) === null
+
   return (
     <NavDrawer
       brand={SRD_BRAND}
       categories={[...NAV_CATALOG]}
       search={<SearchIsland />}
       navItems={navItems}
+      extra={
+        signedOut
+          ? () => (
+              <a
+                href={SIGN_IN_HREF}
+                className={buttonVariants({ variant: 'primary', size: 'compact' })}
+              >
+                Sign in with Discord
+              </a>
+            )
+          : undefined
+      }
     />
   )
 }

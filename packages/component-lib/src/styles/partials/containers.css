@@ -232,3 +232,82 @@
 .su-sheet-slab-lead {
   flex-wrap: wrap;
 }
+
+/* ══ HeaderMenu ══════════════════════════════════════════════════════════════
+ *
+ * The stateful half of `HeaderMenu`
+ * (`containers/HeaderMenu.tsx`); its geometry and type are style objects
+ * there. Only colour lives here, and every colour below changes on hover, on
+ * open or on highlight — so each keeps its RESTING value here too, beside the
+ * state that overrides it.
+ */
+
+/* The Union bar's nav-link ramp (AppBar's links): paper at 70%, full paper on
+   hover and while its menu is open. */
+.su-header-menu-trigger {
+  color: var(--color-paper-70);
+  transition: color 120ms;
+}
+.su-header-menu-trigger:hover,
+.su-header-menu-trigger[data-popup-open],
+.su-header-menu-trigger[aria-current='page'] {
+  color: var(--color-paper);
+}
+/* The here-state, as a nav link wears it: a paper rule beneath. */
+.su-header-menu-trigger[aria-current='page'] {
+  box-shadow: inset 0 -2px 0 var(--color-paper);
+}
+
+/* A highlighted row inverts to ink, the stamp treatment, rather than taking a
+   faint wash: the highlight IS the keyboard focus indicator inside a menu, and
+   an 8% ink wash on paper is not one anybody can see. Forced-colors mode drops
+   background colours entirely, so the highlight also raises a transparent
+   outline for that mode to paint. */
+.su-header-menu-item {
+  background-color: transparent;
+  color: var(--color-ink);
+  cursor: pointer;
+  outline: none;
+}
+.su-header-menu-item[data-highlighted]:not([data-disabled]) {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  outline: 2px solid transparent;
+  outline-offset: -2px;
+}
+.su-header-menu-item[data-disabled] {
+  color: var(--color-wk-muted);
+  cursor: default;
+}
+.su-header-menu-item__hint {
+  color: var(--color-wk-muted);
+}
+.su-header-menu-item[data-highlighted]:not([data-disabled]) .su-header-menu-item__hint {
+  color: var(--color-paper-70);
+}
+
+/* The overflow trigger (a listed unit's "⋯", board S1) is an action chip, the
+   last of its Row's chips, so it is exactly a compact chip's height: the 14px
+   glyph, 1px of padding and the 1px rule each side make 18px, as the plate's
+   16px and its rule do (`.su-stat-cell`). Under a coarse pointer the `mini`
+   rung's hit area makes it 44px to touch without drawing it bigger. While its
+   menu is open it takes the inverse plate. */
+.su-header-menu-trigger--overflow {
+  line-height: 1;
+  min-height: 0;
+  padding: 1px var(--space-6);
+}
+.su-header-menu-trigger--overflow[data-popup-open] {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+/* A row that destroys something (Delete…) reads in the danger colour, and
+   highlights to the danger plate rather than the ink one. */
+.su-header-menu-item--danger {
+  color: var(--color-status-bad);
+}
+.su-header-menu-item--danger[data-highlighted]:not([data-disabled]) {
+  background-color: var(--color-status-bad);
+  color: var(--color-paper);
+}
