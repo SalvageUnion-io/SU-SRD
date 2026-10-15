@@ -12,10 +12,21 @@
  * each report carries as its release.
  */
 
-import { createBrowserObservability, ERROR_REPORT_PATH } from 'observability/browser'
+import {
+  ABANDONED_VIEW_TRANSITIONS,
+  createBrowserObservability,
+  ERROR_REPORT_PATH,
+} from 'observability/browser'
 import { basePathOf, SITE } from './site'
 
-const observability = createBrowserObservability()
+/**
+ * Browser noise that is not the Cantina's to fix, dropped before it is sent.
+ * The Cantina does not opt into view transitions, but a navigation into it
+ * from an SRD page (the shared header's links) arrives with the transition the
+ * SRD started, which the browser then aborts with `ViewTransition opt-in
+ * disabled` and reports as an unhandled rejection.
+ */
+const observability = createBrowserObservability({ ignoreErrors: ABANDONED_VIEW_TRANSITIONS })
 
 /** Starts reporting in a production build. Idempotent; call it once on load. Returns a teardown (tests). */
 export function initBrowserObservability(): () => void {
