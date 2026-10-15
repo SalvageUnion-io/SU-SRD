@@ -47,7 +47,7 @@
  */
 
 import { retiredDocPage } from '../lib/docPages'
-import { basePathOf, SITE } from '../lib/site'
+import { APP_BASE, routeInApp } from '../lib/site'
 import { hidesUnionBar } from '../shell/unionSlots'
 import { pathInApp } from './basePath'
 import type { ImageCache, PreviewEnv, PreviewRoute } from './linkPreview'
@@ -56,15 +56,12 @@ import { frontDoorShell } from './publicPages'
 import { retiredTarget } from './retiredRedirects'
 import { applyMeta, hideUnionBar } from './shellMeta'
 
-/** The Cantina's base path, without a trailing slash (`SITE.base`). */
-export const BUILD_BASE = basePathOf(SITE.base)
-
 /**
  * `wrangler.jsonc`'s `run_worker_first`. A positive list only: a negative
  * pattern sends its matches straight to the assets, and `true` would run the
  * script for every SRD page.
  */
-export const RUN_WORKER_FIRST = [BUILD_BASE, `${BUILD_BASE}/*`]
+export const RUN_WORKER_FIRST = [APP_BASE, `${APP_BASE}/*`]
 
 type Assets = { fetch(request: Request): Promise<Response> }
 
@@ -75,7 +72,7 @@ export type BuilderEnv = PreviewEnv & {
 
 /** Whether a path is the Cantina's: `/build` itself or anything under it. */
 export function isBuildPath(pathname: string): boolean {
-  return pathname === BUILD_BASE || pathname.startsWith(`${BUILD_BASE}/`)
+  return routeInApp(pathname) !== null
 }
 
 /**
@@ -108,7 +105,7 @@ function defaultCache(): ImageCache | undefined {
 export async function serveBuilder(
   request: Request,
   siteEnv: BuilderEnv,
-  base = BUILD_BASE
+  base = APP_BASE
 ): Promise<Response | null> {
   const url = new URL(request.url)
   // The bare base: its directory, query kept.

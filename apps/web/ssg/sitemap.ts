@@ -29,7 +29,8 @@
 
 import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
-import { CANTINA_PATH, SITE_URL } from '../src/lib/constants'
+import { SITE_URL } from '../src/lib/constants'
+import { appPath } from '../src/lib/site'
 import { withTrailingSlash } from './render'
 
 /**
@@ -98,7 +99,7 @@ function renderUrlset(urls: readonly string[]): string {
 }
 
 /** The Cantina's urlset, served by its Worker. */
-const CANTINA_SITEMAP_URL = `${SITE_URL}${CANTINA_PATH}sitemap.xml`
+const CANTINA_SITEMAP_URL = `${SITE_URL}${appPath('/sitemap.xml')}`
 
 /** The `sitemap-index.xml` body. */
 function renderSitemapIndex(fileNames: readonly string[]): string {

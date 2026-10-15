@@ -16,13 +16,7 @@ import { buttonVariants, InlineRef, Panel, Slab } from '../components/index'
 import { borderWidth, color, font, fontSize, space } from '../design/tokens'
 import type { DiscordCommand } from '../generated/discordCommands'
 import { DISCORD_COMMANDS } from '../generated/discordCommands'
-import {
-  CANTINA_PATH,
-  CONTENTS_CRUMB,
-  DISCORD_INSTALL_URL,
-  SITE_URL,
-  TITLE_SUFFIX,
-} from '../lib/constants'
+import { CONTENTS_CRUMB, DISCORD_INSTALL_URL, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
 import {
   ASIDE,
   BOLD,
@@ -36,6 +30,7 @@ import {
   proseColumn,
 } from '../lib/docPageStyles'
 import { SalvageUnionReference } from '../lib/gameData'
+import { appPath } from '../lib/site'
 
 /**
  * Both values are DERIVED, and both are built inside `page()`.
@@ -263,7 +258,7 @@ function page(): PageResult {
           <Slab as="h2" variant="solid" label={`With ${PRODUCT.name}`} />
           <p>
             These read your {PRODUCT.name} account and its Games. Sign in to{' '}
-            <InlineRef href={CANTINA_PATH} style={BOLD}>
+            <InlineRef href={appPath('/')} style={BOLD}>
               {PRODUCT.name}
             </InlineRef>{' '}
             with the same Discord account and the bot knows you; until then each one says how.
@@ -299,7 +294,7 @@ function page(): PageResult {
           </ul>
           <p style={ASIDE}>
             <strong>Running a campaign?</strong> Pair the bot with{' '}
-            <InlineRef href={CANTINA_PATH} style={BOLD}>
+            <InlineRef href={appPath('/')} style={BOLD}>
               {PRODUCT.name}
             </InlineRef>
             {/*

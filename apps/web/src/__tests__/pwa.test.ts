@@ -9,6 +9,7 @@ import { describe, expect, test } from 'bun:test'
 import { Glob } from 'bun'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { APP_BASE, appPath } from '../lib/site'
 import {
   NAVIGATION_TIMEOUT_SECONDS,
   PAGES_CACHE,
@@ -32,7 +33,7 @@ const ruleFor = (mode: RequestMode, path: string) =>
   )
 
 describe('builder navigations', () => {
-  test.each(['/build', '/build/', '/build/sheet/pilot/x'])(
+  test.each([APP_BASE, appPath('/'), appPath('/sheet/pilot/x')])(
     '%s goes to the network, then the precached shell',
     (path) => {
       const rule = ruleFor('navigate', path)

@@ -18,7 +18,8 @@ import { describe, expect, it } from 'bun:test'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { CANTINA_PATH, SITE_URL } from '../../src/lib/constants'
+import { SITE_URL } from '../../src/lib/constants'
+import { appPath } from '../../src/lib/site'
 import { writeSitemap } from '../sitemap'
 
 type Emitted = { count: number; index: string; urlsets: Record<string, string> }
@@ -93,7 +94,7 @@ describe('URL selection', () => {
     expect(urlsets['sitemap-0.xml']).toContain('<urlset')
     expect(locs(index)).toEqual([
       `${SITE_URL}/sitemap-0.xml`,
-      `${SITE_URL}${CANTINA_PATH}sitemap.xml`,
+      `${SITE_URL}${appPath('/sitemap.xml')}`,
     ])
   })
 })
@@ -160,7 +161,7 @@ describe('XML shape', () => {
       '<?xml version="1.0" encoding="UTF-8"?>' +
         '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' +
         `<sitemap><loc>${SITE_URL}/sitemap-0.xml</loc></sitemap>` +
-        `<sitemap><loc>${SITE_URL}${CANTINA_PATH}sitemap.xml</loc></sitemap>` +
+        `<sitemap><loc>${SITE_URL}${appPath('/sitemap.xml</loc></sitemap>')}` +
         '</sitemapindex>'
     )
   })

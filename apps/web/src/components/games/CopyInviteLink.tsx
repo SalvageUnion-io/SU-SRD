@@ -15,10 +15,10 @@ import { Link2 } from 'lucide-react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { appRoot } from '../../lib/appUrl'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { inviteUrl } from '../../lib/games/inviteLink'
+import { appRoot } from '../../lib/site'
 import { Button, ConfirmDialog, toast } from '../index'
 
 type CopyInviteLinkProps = {

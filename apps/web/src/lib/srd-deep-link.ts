@@ -1,7 +1,7 @@
 /**
  * The Cantina's links into the reference pages: the paths the pages are
  * emitted at (`entityHref.ts`, trailing slash and all), absolute on the page's
- * own origin (`srdOrigin`), because a root-relative path handed to the router
+ * own origin (`pageOrigin`), because a root-relative path handed to the router
  * would read as one of the Cantina's own routes under `/build`.
  *
  * Slugs, never UUIDs (`getEntitySlug`).
@@ -10,7 +10,7 @@
 import { getEntitySchemas, getEntitySlug } from 'salvageunion-reference'
 import type { EntityHrefBuilder } from '../components/index'
 import { itemHref, schemaHref } from './entityHref'
-import { srdOrigin } from './srdOrigin'
+import { pageOrigin } from './site'
 
 type EntityRef = {
   schemaName: string
@@ -44,7 +44,7 @@ export function hasSRDPage(schemaName: string): boolean {
  * @returns Absolute URL to the entity on srd
  */
 export function deepLinkTo({ schemaName, slug }: EntityRef): string {
-  return `${srdOrigin()}${itemHref(schemaName, slug)}`
+  return `${pageOrigin()}${itemHref(schemaName, slug)}`
 }
 
 /**
@@ -53,7 +53,7 @@ export function deepLinkTo({ schemaName, slug }: EntityRef): string {
  * The Cantina has no in-app schema list routes.
  */
 export function deepLinkToSchema(schemaName: string): string {
-  return `${srdOrigin()}${schemaHref(schemaName)}`
+  return `${pageOrigin()}${schemaHref(schemaName)}`
 }
 
 /**

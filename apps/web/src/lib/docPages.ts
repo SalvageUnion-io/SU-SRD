@@ -1,4 +1,4 @@
-import { srdOrigin } from './srdOrigin'
+import { pageOrigin } from './site'
 
 /**
  * The doc pages both tools share. They live on the SRD only; the Cantina links to
@@ -7,16 +7,16 @@ import { srdOrigin } from './srdOrigin'
  */
 export const DOC_PAGES = {
   get changelog() {
-    return { label: 'Changelog', href: `${srdOrigin()}/changelog/` }
+    return { label: 'Changelog', href: `${pageOrigin()}/changelog/` }
   },
   get api() {
-    return { label: 'API', href: `${srdOrigin()}/api/` }
+    return { label: 'API', href: `${pageOrigin()}/api/` }
   },
   get discord() {
-    return { label: 'Discord', href: `${srdOrigin()}/discord/` }
+    return { label: 'Discord', href: `${pageOrigin()}/discord/` }
   },
   get about() {
-    return { label: 'About', href: `${srdOrigin()}/about/` }
+    return { label: 'About', href: `${pageOrigin()}/about/` }
   },
 }
 

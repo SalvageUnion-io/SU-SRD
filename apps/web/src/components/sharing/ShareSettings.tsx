@@ -29,7 +29,6 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { appUrl } from '../../lib/appUrl'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import type { ShareKind, Visibility } from '../../lib/sharing/visibility'
 import {
@@ -38,6 +37,7 @@ import {
   sheetChoices,
   sheetVisibility,
 } from '../../lib/sharing/visibility'
+import { appUrl } from '../../lib/site'
 import { Button, Field, FieldError, Select, tokens } from '../index'
 import { LinkQr } from './LinkQr'
 import { WhoCanSee } from './WhoCanSee'

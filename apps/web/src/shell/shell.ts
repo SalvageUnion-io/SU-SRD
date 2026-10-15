@@ -24,7 +24,7 @@
 import { createElement, Fragment } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { SITE_ICONS, SITE_NAME, THEME_COLOR } from '../lib/documentHead'
-import { SITE } from '../lib/site'
+import { appUrl, originOf } from '../lib/site'
 import { renderUnionBar } from './unionBar'
 
 /** The product's name (`PRODUCT.name`; `lib/__tests__/productName.test.ts` holds them equal). */
@@ -42,7 +42,8 @@ const PREVIEW_DESCRIPTION =
 export const META_START = '<!-- cantina:meta:start -->'
 export const META_END = '<!-- cantina:meta:end -->'
 
-const siteUrl = `${SITE.origin}${SITE.base}`
+/** The app's front door on production's origin; a Preview's build names its own (`shellOrigin`). */
+const siteUrl = appUrl('/', originOf())
 const ogImage = `${siteUrl}og-image.png`
 
 const meta = (attrs: Record<string, string>) => createElement('meta', attrs)

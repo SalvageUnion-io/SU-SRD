@@ -13,7 +13,7 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
-import { MARK_SRC } from '../../lib/appUrl'
+import { MARK_SRC } from '../../lib/documentHead'
 import { Badge, Button, tokens } from '../index'
 
 type RailFam = 'mech' | 'pilot' | 'crawler'

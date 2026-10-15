@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 import { NATIVE_FETCH_GLOBALS } from '../../../test/env'
-import { basePathOf, SITE } from '../../lib/site'
+import { APP_BASE, appUrl, originOf } from '../../lib/site'
 import type { Env } from '../index'
 import worker from '../index'
 
@@ -16,7 +16,7 @@ import worker from '../index'
  * is held to handing it every one (`build.test.ts`).
  */
 
-const BASE = '/build'
+const BASE = APP_BASE
 const SHELL = '<!doctype html><html lang="en">SPA'
 const CSP = "default-src 'self'"
 const IMMUTABLE = 'public, max-age=31536000, immutable'
@@ -359,7 +359,7 @@ describe('the deploy', () => {
       new URL('../../../../../.github/workflows/deploy-cloudflare.yml', import.meta.url)
     ).text()
     const siteUrlEnv = workflow.match(/^\s*CANTINA_SITE_URL:\s*(\S+)\s*$/m)?.[1]
-    expect(siteUrlEnv).toBe(`${SITE.origin}${basePathOf(SITE.base)}`)
+    expect(siteUrlEnv).toBe(appUrl('', originOf()))
     expect(workflow).toContain('bunx convex env set SITE_URL "$CANTINA_SITE_URL"')
   })
 })

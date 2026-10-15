@@ -12,8 +12,8 @@
  * A creation guide ends on its exits (`guideExitsFor`): the same wizard, unseeded,
  * the next guide, and the Starter Set.
  *
- * The path is `CANTINA_PATH`, the one the Union bar's Build link uses, so moving
- * the Cantina (salvageunion.io/build) is that one constant.
+ * Every path is under the app's base (`appPath`, `site.ts`), as the Union bar's
+ * Build link is.
  */
 
 import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
@@ -23,8 +23,8 @@ import {
   isLegalCreationClass,
   isLegalStartingPattern,
 } from 'salvageunion-reference/rules'
-import { CANTINA_PATH } from './constants'
 import { itemHref } from './entityHref'
+import { appPath } from './site'
 
 /**
  * A build link: its visible `label`, and, where the label leaves out what is
@@ -36,25 +36,20 @@ export type BuildLink = { href: string; label: string; ariaLabel?: string }
 /** The page action's one visible label, whatever it builds (owner's call, 2026-10-13). */
 const BUILD_WITH_THIS = 'Build With This'
 
-/** `CANTINA_PATH` + a path in the Cantina (`/starter`, `/mechs/new`). */
-function cantinaHref(path: string): string {
-  return `${CANTINA_PATH.replace(/\/$/, '')}${path}`
-}
-
 /**
- * `CANTINA_PATH` + a `/…/new` path, opened straight on the guided wizard, with
+ * A `/…/new` path in the Cantina, opened straight on the guided wizard, with
  * `param` preselected when there is one.
  */
 function wizardHref(path: string, preselect: Record<string, string> = {}): string {
   const search = new URLSearchParams({ mode: 'guided', ...preselect })
-  return `${cantinaHref(path)}?${search}`
+  return `${appPath(path)}?${search}`
 }
 
 /**
  * The Cantina's Starter Set (`/starter`): Leyline Press's pre-generated crew, open
  * signed out — the fastest way to the table.
  */
-export const STARTER_SET_HREF = cantinaHref('/starter')
+export const STARTER_SET_HREF = appPath('/starter')
 
 /** The page's "Build With This" link, or `null` where there is nothing to build from it. */
 export function buildLinkFor(schemaId: string, item: RefEntity): BuildLink | null {

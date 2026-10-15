@@ -43,8 +43,9 @@ import {
   handleErrorReport,
 } from 'observability/cloudflare'
 import { currentPathFor } from '../lib/legacyPaths'
+import { appPath } from '../lib/site'
 import type { BuilderEnv } from './builder'
-import { BUILD_BASE, isBuildPath, serveBuilder } from './builder'
+import { isBuildPath, serveBuilder } from './builder'
 
 export type Env = BuilderEnv & {
   /** Caps error reports per address (`wrangler.jsonc`); absent in a Preview. */
@@ -60,7 +61,7 @@ export type Env = BuilderEnv & {
  * Where the Convex log stream posted before the app was one: the webhook the
  * Convex dashboard still names until it is pointed at `CONVEX_LOG_STREAM_PATH`.
  */
-const RETIRED_CONVEX_LOG_STREAM_PATH = `${BUILD_BASE}${CONVEX_LOG_STREAM_PATH}`
+const RETIRED_CONVEX_LOG_STREAM_PATH = appPath(CONVEX_LOG_STREAM_PATH)
 
 /** `/404`, not `/404.html`: the asset server's HTML handling redirects the latter. */
 const NOT_FOUND_PAGE = '/404'
@@ -73,7 +74,7 @@ function notFound(body: BodyInit | null, headers?: HeadersInit): Response {
 
 /** A rotated or never-built chunk: nothing a browser could render. */
 function isChunk(pathname: string): boolean {
-  return pathname.startsWith('/assets/') || pathname.startsWith(`${BUILD_BASE}/assets/`)
+  return pathname.startsWith('/assets/') || pathname.startsWith(appPath('/assets/'))
 }
 
 /** @public Cloudflare Worker entrypoint — loaded by workerd, not imported. */

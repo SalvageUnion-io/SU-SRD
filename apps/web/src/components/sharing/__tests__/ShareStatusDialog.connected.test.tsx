@@ -13,6 +13,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 import type { ConnectionState } from '../../../lib/connection/connectionContext'
 import type { ShareKind } from '../../../lib/sharing/visibility'
+import { APP_BASE, pageOrigin } from '../../../lib/site'
 import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 
 const mutations: unknown[] = []
@@ -120,7 +121,7 @@ describe('ShareStatusDialog — a sheet shared by link', () => {
       })
     })
 
-    const url = `${window.location.origin}/p/pilot/pilot-1`
+    const url = `${pageOrigin()}${APP_BASE}/p/pilot/pilot-1`
     expect(radio(/anyone with the link/i).checked).toBe(true)
     expect(screen.getByText(url)).toBeTruthy()
 
@@ -184,7 +185,7 @@ describe('ShareStatusDialog — a built NPC', () => {
     })
 
     expect(radio(/anyone with the link/i).checked).toBe(true)
-    expect(screen.getByText(`${window.location.origin}/p/npc/npc-1`)).toBeTruthy()
+    expect(screen.getByText(`${pageOrigin()}${APP_BASE}/p/npc/npc-1`)).toBeTruthy()
 
     await act(async () => {
       fireEvent.click(radio(/only me/i))
@@ -241,7 +242,7 @@ describe('ShareStatusDialog — a mech pattern', () => {
     expect(radio(/anyone with the link/i).checked).toBe(true)
     // No Game to share with: the crew answer is shown, disabled, explained.
     expect(radio(/my game’s crew/i).disabled).toBe(true)
-    expect(screen.getByText(`${window.location.origin}/p/pattern/pattern-1`)).toBeTruthy()
+    expect(screen.getByText(`${pageOrigin()}${APP_BASE}/p/pattern/pattern-1`)).toBeTruthy()
   })
 })
 

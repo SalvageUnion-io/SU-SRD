@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { BUILD_BASE, RUN_WORKER_FIRST, spaAssets } from '../builder'
+import { APP_BASE } from '../../lib/site'
+import { RUN_WORKER_FIRST, spaAssets } from '../builder'
 import type { Env } from '../index'
 import worker from '../index'
 
@@ -16,7 +17,7 @@ const SHELL = '<!doctype html>Cantina shell'
 const SRD_404 = '<!doctype html><title>404 - Page Not Found</title>'
 const SRD_CSP = "default-src 'self'; connect-src 'self'"
 const IMMUTABLE = 'public, max-age=31536000, immutable'
-const CHUNK = `${BUILD_BASE}/assets/index-C0FFEE12.js`
+const CHUNK = `${APP_BASE}/assets/index-C0FFEE12.js`
 
 /**
  * A fake binding with `not_found_handling: none`: a file as itself with srd's
@@ -46,7 +47,7 @@ function assetsWith(files: Record<string, { body: string; type: string }>) {
 }
 
 const FILES = {
-  [`${BUILD_BASE}/`]: { body: SHELL, type: 'text/html; charset=utf-8' },
+  [`${APP_BASE}/`]: { body: SHELL, type: 'text/html; charset=utf-8' },
   [CHUNK]: { body: 'export const chunk = 1', type: 'text/javascript' },
   '/404': { body: SRD_404, type: 'text/html; charset=utf-8' },
 }
@@ -105,7 +106,7 @@ describe('wrangler.jsonc agrees with the Worker', () => {
 describe('/build/* — the Cantina, answered as a single-page app', () => {
   it('answers a client route with the shell, carrying the site CSP', async () => {
     const env = envWith()
-    const res = await worker.fetch(req(`${BUILD_BASE}/pilots/new`), env)
+    const res = await worker.fetch(req(`${APP_BASE}/pilots/new`), env)
 
     expect(res.status).toBe(200)
     expect(await res.text()).toBe(SHELL)
@@ -113,11 +114,11 @@ describe('/build/* — the Cantina, answered as a single-page app', () => {
     // Not a public page: kept out of search.
     expect(res.headers.get('x-robots-tag')).toBe('noindex')
     // The miss, then the shell: SPA mode, emulated.
-    expect(env.ASSETS.asked).toEqual([`${BUILD_BASE}/pilots/new`, `${BUILD_BASE}/`])
+    expect(env.ASSETS.asked).toEqual([`${APP_BASE}/pilots/new`, `${APP_BASE}/`])
   })
 
   it('404s a rotated-away chunk with no-store, never the shell', async () => {
-    const res = await worker.fetch(req(`${BUILD_BASE}/assets/index-DEADBEEF.js`), envWith())
+    const res = await worker.fetch(req(`${APP_BASE}/assets/index-DEADBEEF.js`), envWith())
 
     expect(res.status).toBe(404)
     expect(res.headers.get('cache-control')).toBe('no-store')
@@ -133,15 +134,15 @@ describe('/build/* — the Cantina, answered as a single-page app', () => {
   })
 
   it('301s /build itself to /build/', async () => {
-    const res = await worker.fetch(req(BUILD_BASE), envWith())
+    const res = await worker.fetch(req(APP_BASE), envWith())
 
     expect(res.status).toBe(301)
-    expect(res.headers.get('location')).toBe(`${BUILD_BASE}/`)
+    expect(res.headers.get('location')).toBe(`${APP_BASE}/`)
   })
 
   it("301s a retired doc page to the SRD's, on the request's own origin", async () => {
     const res = await worker.fetch(
-      new Request(`https://pr-7-su-srd.example.workers.dev${BUILD_BASE}/about`),
+      new Request(`https://pr-7-su-srd.example.workers.dev${APP_BASE}/about`),
       envWith()
     )
 
@@ -151,9 +152,9 @@ describe('/build/* — the Cantina, answered as a single-page app', () => {
 
   it('answers the Cantina sitemap from the binding: the build writes it', async () => {
     const env = envWith()
-    await worker.fetch(req(`${BUILD_BASE}/sitemap.xml`), env)
+    await worker.fetch(req(`${APP_BASE}/sitemap.xml`), env)
 
-    expect(env.ASSETS.asked).toContain(`${BUILD_BASE}/sitemap.xml`)
+    expect(env.ASSETS.asked).toContain(`${APP_BASE}/sitemap.xml`)
   })
 })
 
@@ -179,7 +180,7 @@ describe('the SRD is untouched', () => {
 describe('spaAssets', () => {
   it('leaves a miss outside the base a miss', async () => {
     const assets = assetsWith(FILES)
-    const res = await spaAssets(assets, BUILD_BASE).fetch(req('/nope'))
+    const res = await spaAssets(assets, APP_BASE).fetch(req('/nope'))
 
     expect(res.status).toBe(404)
     expect(assets.asked).toEqual(['/nope'])

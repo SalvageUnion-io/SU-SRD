@@ -12,7 +12,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import type { Plugin } from 'vite'
-import { basePathOf, SITE } from '../src/lib/site'
+import { APP_BASE, appPath, originOf, routeInApp } from '../src/lib/site'
 import { SITE_MANIFEST } from '../src/pwa'
 import { renderShell } from '../src/shell/shell'
 import { buildBaseStylesheet, DEV_BASE_STYLESHEET } from '../src/styles/baseStylesheet'
@@ -20,14 +20,11 @@ import { publicShells, sitemapXml } from '../src/worker/publicPages'
 
 const APP_ROOT = join(import.meta.dirname, '..')
 
-/** The Cantina's base without its trailing slash, `/build` (ADR-048). */
-const PREFIX = basePathOf(SITE.base)
-
 /**
  * The shell's module id: Vite's HTML entry, rendered rather than read from
  * disk. Its path under the root is its output path, `build/index.html`.
  */
-export const CANTINA_ENTRY = join(APP_ROOT, PREFIX.slice(1), 'index.html')
+export const CANTINA_ENTRY = join(APP_ROOT, APP_BASE.slice(1), 'index.html')
 
 /** Whether a document is the Cantina's shell (`shell.ts`'s `cantina:meta` block). */
 const isShell = (html: string): boolean => html.includes('cantina:meta')
@@ -64,8 +61,7 @@ export function requireConvexUrl(): Plugin {
 /** Whether a dev request is a navigation into the Cantina. */
 function isCantinaNavigation(url: string, accept: string): boolean {
   const path = url.split('?')[0] ?? ''
-  const inBase = path === PREFIX || path.startsWith(`${PREFIX}/`)
-  return inBase && !/\.[a-z0-9]+$/i.test(path) && accept.includes('text/html')
+  return routeInApp(path) !== null && !/\.[a-z0-9]+$/i.test(path) && accept.includes('text/html')
 }
 
 /**
@@ -147,15 +143,15 @@ export function siteManifest(): Plugin {
  * per-route tags already use the request's origin (`linkPreview.ts`).
  */
 export function shellOrigin(): Plugin {
-  let origin = ''
+  let origin = originOf()
   return {
     name: 'cantina-shell-origin',
     apply: 'build',
     configResolved({ env }) {
-      origin = (env.VITE_SITE_ORIGIN ?? '').replace(/\/+$/, '')
+      origin = originOf(env.VITE_SITE_ORIGIN)
     },
     transformIndexHtml: onShell('pre', (html) =>
-      origin ? html.replaceAll(`${SITE.origin}${SITE.base}`, `${origin}${SITE.base}`) : html
+      html.replaceAll(`${originOf()}${appPath('/')}`, `${origin}${appPath('/')}`)
     ),
   }
 }
@@ -167,21 +163,21 @@ export function shellOrigin(): Plugin {
  * the deployment's origin, as `shellOrigin` names the shell's.
  */
 export function publicPages(): Plugin {
-  let origin = SITE.origin
+  let origin = originOf()
   return {
     name: 'cantina-public-pages',
     apply: 'build',
     configResolved({ env }) {
-      origin = (env.VITE_SITE_ORIGIN || SITE.origin).replace(/\/+$/, '')
+      origin = originOf(env.VITE_SITE_ORIGIN)
     },
     writeBundle({ dir = '' }) {
-      const out = join(dir, PREFIX)
+      const out = join(dir, APP_BASE)
       const shell = readFileSync(join(out, 'index.html'), 'utf8')
-      for (const { file, html } of publicShells(shell, origin, PREFIX)) {
+      for (const { file, html } of publicShells(shell, origin, APP_BASE)) {
         mkdirSync(dirname(join(out, file)), { recursive: true })
         writeFileSync(join(out, file), html)
       }
-      writeFileSync(join(out, 'sitemap.xml'), sitemapXml(origin, PREFIX))
+      writeFileSync(join(out, 'sitemap.xml'), sitemapXml(origin, APP_BASE))
     },
   }
 }

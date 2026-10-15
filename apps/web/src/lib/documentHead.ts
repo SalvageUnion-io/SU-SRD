@@ -25,3 +25,9 @@ export const SITE_ICONS = [
   { rel: 'icon', type: 'image/png', sizes: '16x16', href: '/favicons/su/favicon-16.png' },
   { rel: 'apple-touch-icon', sizes: '180x180', href: '/favicons/su/favicon-180.png' },
 ] as const
+
+/**
+ * The same mark as the site's chrome draws it: the Union bar, the Cantina's
+ * rails and link-preview cards. A `public/` file at the site's root.
+ */
+export const MARK_SRC = '/logos/su-cargo-dark.svg'

@@ -2,37 +2,37 @@ import { describe, expect, it } from 'bun:test'
 import type { RefEntity } from 'salvageunion-reference'
 import { getEntitySchemas, getSchemaCatalog, SalvageUnionReference } from 'salvageunion-reference'
 import { must } from '../../components/__tests__/must'
+import { pageOrigin } from '../site'
 import { cantinaEntityHref, deepLinkTo, deepLinkToSchema, hasSRDPage } from '../srd-deep-link'
-import { srdOrigin } from '../srdOrigin'
 
 describe('srd-deep-link', () => {
   it('builds a chassis deep-link URL', () => {
     const url = deepLinkTo({ schemaName: 'chassis', slug: 'iron-mongrel' })
-    expect(url).toBe(`${srdOrigin()}/chassis/iron-mongrel/`)
+    expect(url).toBe(`${pageOrigin()}/chassis/iron-mongrel/`)
   })
 
   it('builds an equipment deep-link URL', () => {
     const url = deepLinkTo({ schemaName: 'equipment', slug: 'armor-plating' })
-    expect(url).toBe(`${srdOrigin()}/equipment/armor-plating/`)
+    expect(url).toBe(`${pageOrigin()}/equipment/armor-plating/`)
   })
 
   it('builds an abilities deep-link URL', () => {
     const url = deepLinkTo({ schemaName: 'abilities', slug: 'rapid-fire' })
-    expect(url).toBe(`${srdOrigin()}/abilities/rapid-fire/`)
+    expect(url).toBe(`${pageOrigin()}/abilities/rapid-fire/`)
   })
 
   it('builds a classes deep-link URL', () => {
     const url = deepLinkTo({ schemaName: 'classes', slug: 'scrapyard-scrounger' })
-    expect(url).toBe(`${srdOrigin()}/classes/scrapyard-scrounger/`)
+    expect(url).toBe(`${pageOrigin()}/classes/scrapyard-scrounger/`)
   })
 
   it('builds a mech-systems deep-link URL', () => {
     const url = deepLinkTo({ schemaName: 'mech-systems', slug: 'comms-array' })
-    expect(url).toBe(`${srdOrigin()}/mech-systems/comms-array/`)
+    expect(url).toBe(`${pageOrigin()}/mech-systems/comms-array/`)
   })
 
   it('builds a category deep-link URL', () => {
-    expect(deepLinkToSchema('chassis')).toBe(`${srdOrigin()}/chassis/`)
+    expect(deepLinkToSchema('chassis')).toBe(`${pageOrigin()}/chassis/`)
   })
 
   it('uses the exact slug provided (no UUID processing)', () => {
@@ -98,7 +98,7 @@ describe('cantinaEntityHref', () => {
     // ORM entities carry their own `schemaName`, so this is the real shape
     // every card passes to the provider.
     const chassis = must(SalvageUnionReference.Chassis.getByName('Mule'))
-    expect(cantinaEntityHref(chassis)).toBe(`${srdOrigin()}/chassis/mule/`)
+    expect(cantinaEntityHref(chassis)).toBe(`${pageOrigin()}/chassis/mule/`)
   })
 
   it('emits no href for a meta schema srd never generates pages for', () => {

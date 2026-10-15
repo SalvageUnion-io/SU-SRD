@@ -21,7 +21,7 @@
  */
 
 import { SIGN_IN_HREF } from '../lib/accountBar'
-import { CANTINA_PATH } from '../lib/constants'
+import { appPath } from '../lib/site'
 import { WIKI_LINK_ATTRIBUTE } from '../lib/wikiLink'
 import { Island } from '../runtime/Island'
 import { AppBar, cn, FOCUS_RING } from './index'
@@ -86,7 +86,7 @@ export function TopNavigation({
     <AppBar
       product="reference"
       referenceHref="/"
-      buildHref={CANTINA_PATH}
+      buildHref={appPath('/')}
       buyHref="https://leyline.press/collections/salvage-union"
       breadcrumbs={breadcrumbs}
       breadcrumbDescription={breadcrumbDescription}

@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { Suspense, use } from 'react'
 import { color, font, fontSize, radius, space, tracking, weight } from '../../design/tokens'
 import { gameDataPreload } from '../../hooks/useGameDataLoaded'
-import { MARK_SRC } from '../../lib/appUrl'
+import { MARK_SRC } from '../../lib/documentHead'
 import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
 import { EntityExternalLinkProvider } from '../index'
 

@@ -7,6 +7,7 @@
 import { describe, expect, it, mock } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { appUrl } from '../lib/site'
 import { WORKBOX_OPTIONS } from '../pwa'
 
 const SOURCE = readFileSync(join(import.meta.dir, '../../public/sw-lifecycle.js'), 'utf-8')
@@ -14,7 +15,7 @@ const SOURCE = readFileSync(join(import.meta.dir, '../../public/sw-lifecycle.js'
 type Listener = (event: { waitUntil(promise: Promise<unknown>): void }) => void
 
 const READER = 'https://salvageunion.io/chassis/mule/'
-const BUILDER = 'https://salvageunion.io/build/sheet/pilot/1'
+const BUILDER = appUrl('/sheet/pilot/1', 'https://salvageunion.io')
 
 function fakeWorker({
   active,
@@ -99,7 +100,7 @@ describe('sw-lifecycle', () => {
       await lifecycle()
       return sw.skipWaiting.mock.calls.length
     }
-    expect(await at('https://salvageunion.io/build')).toBe(0)
+    expect(await at(appUrl('', 'https://salvageunion.io'))).toBe(0)
     expect(await at('https://salvageunion.io/buildings/')).toBe(1)
   })
 

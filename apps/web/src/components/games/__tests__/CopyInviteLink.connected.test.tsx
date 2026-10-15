@@ -11,6 +11,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
  */
 
 import { getFunctionName } from 'convex/server'
+import { APP_BASE, pageOrigin } from '../../../lib/site'
 import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 
 let authed = true
@@ -70,7 +71,7 @@ describe('Copy invite link', () => {
     })
 
     expect(mutations).toEqual([{ name: 'invites:link', args: { gameId: 'g1' } }])
-    expect(copied).toEqual([`${window.location.origin}/invite/TOKEN0123456789A`])
+    expect(copied).toEqual([`${pageOrigin()}${APP_BASE}/invite/TOKEN0123456789A`])
   })
 
   test('is not offered to somebody who is not signed in', async () => {

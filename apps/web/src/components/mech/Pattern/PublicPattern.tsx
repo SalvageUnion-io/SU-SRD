@@ -27,7 +27,6 @@ import {
   getChassisAbilities,
   getEntitySlug,
 } from 'salvageunion-reference'
-import { BASE_PATH } from '../../../lib/appUrl'
 import { useConnection } from '../../../lib/connection/connectionContext'
 import { serverMessage } from '../../../lib/connection/serverError'
 import { formatDay } from '../../../lib/formatDate'
@@ -40,6 +39,7 @@ import {
   patternLoadout,
   slotsUsed,
 } from '../../../lib/patterns/patterns'
+import { appPath } from '../../../lib/site'
 import { cantinaEntityHref, deepLinkTo } from '../../../lib/srd-deep-link'
 import { useEntityStore } from '../../../stores/entityStore'
 import { usePatternStore } from '../../../stores/patternStore'
@@ -472,7 +472,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
           <UserMadeStamp label={`Made by ${madeBy}`} />
           <span style={FOOT_CHIP}>
             {sharedAt !== null ? `Shared ${formatDay(sharedAt)} · ` : ''}
-            {`${window.location.host}${BASE_PATH}${patternHref(pattern.id)}`}
+            {`${window.location.host}${appPath(patternHref(pattern.id))}`}
           </span>
         </div>
       </footer>

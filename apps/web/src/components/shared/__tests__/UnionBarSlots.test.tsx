@@ -5,14 +5,14 @@
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import { srdOrigin } from '../../../lib/srdOrigin'
+import { pageOrigin } from '../../../lib/site'
 import { inAppRoute, isCurrent } from '../../../lib/unionBar'
 import { renderUnionBar } from '../../../shell/unionBar'
 import { hidesUnionBar, slotSelector } from '../../../shell/unionSlots'
 import { UnionBarSlots } from '../UnionBarSlots'
 
 /** The SRD: the page's own origin, or production's where the test has none. */
-const SRD = srdOrigin()
+const SRD = pageOrigin()
 
 beforeEach(() => {
   document.body.innerHTML = renderUnionBar()
@@ -141,7 +141,7 @@ describe('the bar’s rules', () => {
     const click = (id: string, init: MouseEventInit = {}) => {
       const event = new MouseEvent('click', { bubbles: true, button: 0, ...init })
       Object.defineProperty(event, 'target', { value: document.getElementById(id) })
-      return inAppRoute(event, '/build', SRD)
+      return inAppRoute(event, SRD)
     }
     expect(click('in')).toBe('/starter/?a=1#b')
     expect(click('home')).toBe('/')

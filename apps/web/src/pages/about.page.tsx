@@ -30,8 +30,9 @@ import { buttonVariants, cn, InlineRef, Slab } from '../components/index'
 import { ColophonIsland } from '../components/islands/ColophonIsland'
 import { color, font, fontSize, space, tracking, weight } from '../design/tokens'
 import { builtAssetUrl, ELDRIDGE_COAST_MAP } from '../lib/builtAssets'
-import { CANTINA_PATH, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
+import { SITE_URL, TITLE_SUFFIX } from '../lib/constants'
 import { BOLD, PROSE } from '../lib/docPageStyles'
+import { appPath } from '../lib/site'
 import { Island } from '../runtime/Island'
 
 /** Repo root, relative to this module — `apps/web/src/pages` -> four levels up. */
@@ -345,7 +346,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
               the Salvage Union OGL.
             </p>
             <p style={PARAGRAPH}>
-              <InlineRef href={CANTINA_PATH} style={BOLD}>
+              <InlineRef href={appPath('/')} style={BOLD}>
                 {PRODUCT.name}
               </InlineRef>{' '}
               is its character builder and game manager: build pilots, mechs, and crawlers, then run

@@ -17,7 +17,7 @@ import type { AnchorHTMLAttributes } from 'react'
 import { createElement, Fragment } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { AppBar } from '../components/index'
-import { SITE } from '../lib/site'
+import { appPath } from '../lib/site'
 import type { UnionSlot } from './unionSlots'
 import { UNION_NAV } from './unionSlots'
 
@@ -28,7 +28,7 @@ const slot = (name: UnionSlot) =>
 
 /** An internal link: a route under the base. */
 function BaseLink({ href = '/', ...rest }: AnchorHTMLAttributes<HTMLAnchorElement>) {
-  return createElement('a', { ...rest, href: `${SITE.base}${href.replace(/^\/+/, '')}` })
+  return createElement('a', { ...rest, href: appPath(`/${href.replace(/^\/+/, '')}`) })
 }
 
 /** The skip link, the banner slot and the bar, ahead of the app's root. */

@@ -7,8 +7,8 @@ import { describe, expect, test } from 'bun:test'
 import { render, screen, within } from '@testing-library/react'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { buildLinkFor, guideExitsFor, STARTER_SET_HREF } from '../../lib/buildLink'
-import { CANTINA_PATH } from '../../lib/constants'
 import { entityPageFoot } from '../../lib/entityPageFoot'
+import { appPath } from '../../lib/site'
 import { EntityPageFrame } from '../EntityPageFrame'
 import { resolveEntityPageMeta } from '../index'
 
@@ -39,7 +39,7 @@ describe('EntityPageFrame', () => {
     const exits = screen.getByRole('navigation', { name: 'Where next' })
     const links = within(exits).getAllByRole('link')
     expect(links.map((a) => a.getAttribute('href'))).toEqual([
-      `${CANTINA_PATH}pilots/new?mode=guided`,
+      `${appPath('/pilots/new?mode=guided')}`,
       '/guides/create-a-mech/',
       STARTER_SET_HREF,
     ])
@@ -77,7 +77,7 @@ describe('EntityPageFrame', () => {
       </EntityPageFrame>
     )
     const link = screen.getByRole('link', { name: 'Build With This: a mech' })
-    expect(link.getAttribute('href')).toBe(`${CANTINA_PATH}mechs/new?mode=guided&chassis=mule`)
+    expect(link.getAttribute('href')).toBe(`${appPath('/mechs/new?mode=guided&chassis=mule')}`)
   })
 
   test('a pattern page links back to its parent beside the title', () => {
