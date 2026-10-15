@@ -23,7 +23,7 @@ const SHELL = readFileSync(join(import.meta.dir, '../../../index.html'), 'utf8')
 
 const BASE = '/build'
 const PROD = 'https://salvageunion.io'
-const PREVIEW = 'https://pr-7-su-itun.example.workers.dev'
+const PREVIEW = 'https://pr-7-su-cantina.example.workers.dev'
 
 /** The runtime's own `Request`, which keeps `Sec-Fetch-*` (see routing.test.ts). */
 const { Request } = NATIVE_FETCH_GLOBALS

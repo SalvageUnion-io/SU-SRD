@@ -289,7 +289,7 @@ describe('the doc pages 301 to the SRD', () => {
     const srd = 'https://pr-1-su-srd.example.workers.dev'
     const env = { ...envWith(), SRD_ORIGIN: srd }
     const res = await worker.fetch(
-      navigateTo(`https://pr-1-su-itun.example.workers.dev${BASE}/changelog`),
+      navigateTo(`https://pr-1-su-cantina.example.workers.dev${BASE}/changelog`),
       env
     )
 
@@ -333,7 +333,7 @@ describe('outside the base on any other host', () => {
       'https://salvageunion.io/build',
       'https://salvageunion.io/build?x=1',
       'http://localhost:5173/',
-      'https://pr-1-su-itun.alxjrvs.workers.dev/',
+      'https://pr-1-su-cantina.alxjrvs.workers.dev/',
     ]) {
       const res = await worker.fetch(navigateTo(url), envWith())
       expect(res.status).toBe(301)
