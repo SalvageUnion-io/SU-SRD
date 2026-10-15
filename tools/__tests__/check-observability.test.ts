@@ -148,6 +148,26 @@ describe('check-observability CSP', () => {
     )
   })
 
+  // The edge injects the Web Analytics beacon, so the CSP is the only place
+  // the repo can blind it: from the site's creation until 3.0.0 neither origin
+  // was allowed and the dashboard recorded one page load in six weeks.
+  test.each([
+    ['apps/srd/public/_headers', 'script-src', 'https://static.cloudflareinsights.com'],
+    ['apps/srd/public/_headers', 'connect-src', 'https://cloudflareinsights.com'],
+    [ITUN_HEADERS, 'script-src', 'https://static.cloudflareinsights.com'],
+    [ITUN_HEADERS, 'connect-src', 'https://cloudflareinsights.com'],
+  ])('%s: a %s without %s fails', async (path, directive, source) => {
+    await withFileContents(
+      path,
+      (s) => s.replace(` ${source}`, ''),
+      async () => {
+        const { exitCode, stderr } = await runCheck()
+        expect(exitCode).toBe(1)
+        expect(stderr).toContain(`CSP ${directive} does not allow ${source}`)
+      }
+    )
+  })
+
   test.each(['apps/srd/public/_headers', ITUN_HEADERS])(
     'a missing %s fails as no CSP source',
     async (path) => {
