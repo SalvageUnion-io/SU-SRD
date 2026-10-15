@@ -20,8 +20,8 @@
  * `DowntimeWizard` binds it to the Cantina's state + rules: the read-only rules gate
  * readout (bay status / upkeep / trading) is computed from the crawler and the
  * pure rules modules. `DowntimeWizardFrame` is the presentational half. They
- * were split across component-lib and the Cantina, with the Cantina its only consumer; one
- * file since the component-lib boundary audit.
+ * were split across src/ui and the Cantina, with the Cantina its only consumer; one
+ * file since the src/ui boundary audit.
  *
  * Restore WRITES (F5), to the pilot and the mech in the Minor slots, so Guided
  * Play applies the rule it describes.
@@ -47,11 +47,11 @@ import {
 import type { Crawler } from 'cantina-domain/schemas/crawler'
 import type { Mech } from 'cantina-domain/schemas/mech'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
-import { Badge, Button, CHAPTER_BAND_COLOR, Content } from 'component-lib'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import type { RefObjectGuideStep, RefObjectTable } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { Badge, Button, CHAPTER_BAND_COLOR, Content } from '../../../ui/index'
 import { bayGate } from '../../lib/rules/crawlerEconomy'
 import { runWrite } from '../../lib/runWrite'
 import { useEntityStore } from '../../stores/entityStore'

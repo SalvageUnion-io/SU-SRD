@@ -15,7 +15,7 @@
  * with the wizard, SRD and live sheets; only the ground behind them is dark, so
  * this is a framing device, not an instrument skin. There is NO private token
  * layer: every surface references the canonical `--color-*` tokens
- * (component-lib theme.css) directly. `.su-dash-root` only marks the cockpit
+ * (src/ui theme.css) directly. `.su-dash-root` only marks the cockpit
  * scope and sets the default ink text + font. Colour encodes ONTOLOGY (mech
  * green / pilot orange / crawler pink), never identity (ADR-038 §8).
  */

@@ -1,6 +1,6 @@
-import { Button, ChapterBand, ModalShell, tokens } from 'component-lib'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
+import { Button, ChapterBand, ModalShell, tokens } from '../../../ui/index'
 import '../../styles/wizard.css'
 import { dialogActionsStyle, dialogBodyStyle, dialogNoteStyle } from './wizardStyles.model'
 

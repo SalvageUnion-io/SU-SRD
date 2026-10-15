@@ -7,12 +7,6 @@
  * other page's.
  */
 
-import {
-  assetSrcSetFor,
-  heroImageSizes,
-  isLegalStartingPatternOf,
-  resolveEntityPageMeta,
-} from 'component-lib'
 import type { EnhancedSchemaMetadata, RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { toEntityModel, truncate } from 'salvageunion-reference'
 import type { PageModule, PageResult, RouteContext, StructuredData } from '../../../../../ssg/types'
@@ -32,6 +26,12 @@ import { getReferenceEntityData } from '../../../../lib/gameData'
 import { ogCardFor, ogMetaFor } from '../../../../lib/ogCard'
 import { patternStaticSummary } from '../../../../lib/patternSummary'
 import { getPatternStaticPaths } from '../../../../lib/staticPaths'
+import {
+  assetSrcSetFor,
+  heroImageSizes,
+  isLegalStartingPatternOf,
+  resolveEntityPageMeta,
+} from '../../../../ui/index'
 
 type Params = { schemaId: string; itemId: string; patternId: string }
 

@@ -15,9 +15,9 @@
  * is up so the two base-ui dialogs never fight over the focus trap.
  */
 
-import { Button, EntitySearcher, ModalShell } from 'component-lib'
 import { useEffect, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
+import { Button, EntitySearcher, ModalShell } from '../../../ui/index'
 import '../../styles/wizard.css'
 import { dialogActionsStyle, dialogBodyStyle, dialogNoteStyle } from '../wizard/wizardStyles.model'
 

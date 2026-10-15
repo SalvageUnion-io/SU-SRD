@@ -18,11 +18,11 @@
  * refuses every write a non-Mediator might try (`requireMediator`).
  */
 
-import { tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../../convex/_generated/api'
 import type { Id } from '../../../../convex/_generated/dataModel'
+import { tokens } from '../../../ui/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { DashboardRefusal } from '../dashboard/DashboardGate'
 import { ConvexPending } from '../shared/ConvexPending'

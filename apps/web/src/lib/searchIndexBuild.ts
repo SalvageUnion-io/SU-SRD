@@ -17,11 +17,6 @@
  * corpus to the browser.
  */
 
-// `extractContentText` and `isSchemaName` are the package's own primitives —
-// this module is Node-only and already loads the ORM, so importing them costs
-// nothing and keeps the index's field extraction byte-identical to the
-// ORM-backed `search()` it mirrors.
-import type { EntityRowModel } from 'component-lib'
 import type { RefEntity } from 'salvageunion-reference'
 import {
   extractContentText,
@@ -30,6 +25,11 @@ import {
   patternSearchText,
   toEntityModel,
 } from 'salvageunion-reference'
+// `extractContentText` and `isSchemaName` are the package's own primitives —
+// this module is Node-only and already loads the ORM, so importing them costs
+// nothing and keeps the index's field extraction byte-identical to the
+// ORM-backed `search()` it mirrors.
+import type { EntityRowModel } from '../ui/index'
 import { getEntitySchemas, getModel, SalvageUnionReference } from './gameData'
 import type { CompactSearchEntry } from './searchIndexTypes'
 

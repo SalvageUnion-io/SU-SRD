@@ -1,12 +1,12 @@
-import { clearAccountHint, writeAccountHint } from 'component-lib/accountHint'
 import { useQuery } from 'convex/react'
 import { useEffect } from 'react'
 import { api } from '../../../../convex/_generated/api'
+import { clearAccountHint, writeAccountHint } from '../../../ui/accountHint'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { localStore } from '../../lib/safeLocalStorage'
 
 /**
- * Keeps the account hint (`component-lib/accountHint`) the session's, so the
+ * Keeps the account hint (`src/ui/accountHint`) the session's, so the
  * SRD's Union bar shows the same account menu as this one.
  *
  * Connected, it writes the name and avatar `api.account.me` answers with;

@@ -19,9 +19,9 @@
 
 import type { ErrorComponentProps } from '@tanstack/react-router'
 import { useRouter } from '@tanstack/react-router'
-import { RecoveryPanel } from 'component-lib'
-import { borderWidth, color, fontSize, radius, space } from 'component-lib/design/tokens'
 import type { CSSProperties, ReactNode } from 'react'
+import { borderWidth, color, fontSize, radius, space } from '../../../ui/design/tokens'
+import { RecoveryPanel } from '../../../ui/index'
 import { savedWorkCopy } from '../../lib/routeErrorCopy'
 import type { BackendKind } from '../../stores/entityBackend'
 import { selectBackend } from '../../stores/entityBackend'

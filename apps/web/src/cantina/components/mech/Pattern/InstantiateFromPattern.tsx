@@ -16,9 +16,9 @@
  */
 
 import type { MechPattern } from 'cantina-domain/schemas/pattern'
-import { Button, FieldError, ModalShell, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
+import { Button, FieldError, ModalShell, tokens } from '../../../../ui/index'
 import { useServerAction } from '../../../lib/connection/useServerAction'
 import { mechFromPattern } from '../../../lib/patterns/patterns'
 import { useEntityStore } from '../../../stores/entityStore'

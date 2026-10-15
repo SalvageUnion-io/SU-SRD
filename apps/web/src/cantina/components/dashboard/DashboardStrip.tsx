@@ -10,7 +10,7 @@
  * Presentational: `useGameFeed` reads the alerts and the count.
  */
 
-import { buttonVariants } from 'component-lib'
+import type { CSSProperties } from 'react'
 import {
   borderWidth,
   color,
@@ -20,8 +20,8 @@ import {
   space,
   tracking,
   weight,
-} from 'component-lib/design/tokens'
-import type { CSSProperties } from 'react'
+} from '../../../ui/design/tokens'
+import { buttonVariants } from '../../../ui/index'
 import { AppLink } from '../shared/AppLink'
 import type { AlertLine } from './useGameFeed'
 

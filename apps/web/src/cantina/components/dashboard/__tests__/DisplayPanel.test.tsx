@@ -11,8 +11,8 @@
 
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, waitFor } from '@testing-library/react'
-import { EntityHrefProvider } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { EntityHrefProvider } from '../../../../ui/index'
 import { crawlerFixture, mechFixture } from '../../__tests__/fixtures'
 import { hydrateStores } from '../../__tests__/hydrateStores'
 import type { DisplayFocus, ReferenceFocus } from '../DisplayPanel'
@@ -173,7 +173,7 @@ describe('DisplayPanel', () => {
     const focus: DisplayFocus = 'srd'
     const { container } = renderDV(focus)
     // The explorer renders its search + the SRD catalog, never the generic
-    // placeholder. The catalog's exact contents are component-lib's business
+    // placeholder. The catalog's exact contents are src/ui's business
     // (asserted there against `buildCatalogSections`); here we only care that
     // the real explorer mounted.
     expect(container.querySelector('input[role="combobox"]')).toBeTruthy()

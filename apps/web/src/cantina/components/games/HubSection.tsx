@@ -8,9 +8,9 @@
  * screen from scrolling sideways.
  */
 
-import type { SlabCount } from 'component-lib'
-import { Slab, tokens } from 'component-lib'
 import type { CSSProperties, ReactNode } from 'react'
+import type { SlabCount } from '../../../ui/index'
+import { Slab, tokens } from '../../../ui/index'
 
 const { space } = tokens
 

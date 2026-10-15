@@ -10,11 +10,11 @@
  * in-flight preload promise.
  */
 
-import { Button } from 'component-lib'
-import { fontSize, space } from 'component-lib/design/tokens'
 import type { CSSProperties, ReactNode } from 'react'
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { fontSize, space } from '../ui/design/tokens'
+import { Button } from '../ui/index'
 
 /** A preload request: every schema (`'all'`), or an explicit subset. */
 export type SchemaList = string[] | 'all'

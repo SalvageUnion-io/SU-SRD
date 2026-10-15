@@ -56,12 +56,12 @@ describe('rule set preflights', () => {
     })
   }
 
-  test('srd-css checks component-lib separately: a full srd tree with no library still fails', () => {
+  test('srd-css checks src/ui separately: a full srd tree with no library still fails', () => {
     const root = emptyTree()
     mkdirSync(join(root, 'apps/web/src'), { recursive: true })
     for (let i = 0; i < 70; i++) writeFileSync(join(root, `apps/web/src/m${i}.ts`), '')
     expect(() => srdCss.preflight?.(root)).toThrow(new Exited(1))
-    expect(errors.join('\n')).toContain('srd-css (component-lib source files): scanned 0 files')
+    expect(errors.join('\n')).toContain('srd-css (src/ui source files): scanned 0 files')
   })
 
   test('tone-ground reads a data directory that is not an array of entities as no grounds', () => {

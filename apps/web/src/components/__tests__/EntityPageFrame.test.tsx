@@ -5,10 +5,10 @@
 
 import { describe, expect, test } from 'bun:test'
 import { render, screen, within } from '@testing-library/react'
-import { resolveEntityPageMeta } from 'component-lib'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { buildLinkFor, guideExitsFor, STARTER_SET_HREF } from '../../lib/buildLink'
 import { CANTINA_PATH } from '../../lib/constants'
+import { resolveEntityPageMeta } from '../../ui/index'
 import { EntityPageFrame, entityPageFoot } from '../EntityPageFrame'
 
 function must<T>(value: T | undefined | null): T {

@@ -58,11 +58,11 @@
 
 import type { Container, ContainerFields } from 'cantina-domain/container'
 import { containerOf, moveTo } from 'cantina-domain/container'
-import { FieldError, Select } from 'component-lib'
-import { color, fontSize, space, weight } from 'component-lib/design/tokens'
 import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../../convex/_generated/api'
+import { color, fontSize, space, weight } from '../../../ui/design/tokens'
+import { FieldError, Select } from '../../../ui/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { moveDestinations } from '../../lib/games/gameRoster'

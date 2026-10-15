@@ -9,8 +9,8 @@
  * `Skeleton` atom (§0: one skeleton implementation), sized per region here.
  */
 
-import { Ghost, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { Ghost, tokens } from '../../../ui/index'
 
 // Responsive padding, the slab rhythm and the slab grid's columns are
 // `.su-sheet-skeleton-*` in `styles/sheet/chrome.css`; the rest is below.
@@ -102,7 +102,7 @@ const HERO_STAT = {
 function SkeletonSlab() {
   return (
     <div className="su-sheet-skeleton-slab">
-      {/* Slab header: label + dashed leader (component-lib `Slab` shape) */}
+      {/* Slab header: label + dashed leader (src/ui `Slab` shape) */}
       <div style={SLAB_HEAD}>
         <Ghost style={{ ...GHOST_LABEL, width: '112px' }} />
         <Ghost style={SLAB_LEADER} />

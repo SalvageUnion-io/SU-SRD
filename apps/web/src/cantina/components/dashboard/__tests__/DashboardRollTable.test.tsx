@@ -13,7 +13,7 @@
  */
 import { afterAll, beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import { Toaster } from 'component-lib'
+import { Toaster } from '../../../../ui/index'
 
 /** The table's one roll control: the instrument's Roll the Die button. */
 const ROLL_BUTTON = /^Roll (the die|twice) on /

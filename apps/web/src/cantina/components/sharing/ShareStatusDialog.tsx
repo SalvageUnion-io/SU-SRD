@@ -30,8 +30,8 @@
  * signed-in player without a live connection is told that.
  */
 
-import { ModalShell, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { ModalShell, tokens } from '../../../ui/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import type { ShareKind } from '../../lib/sharing/visibility'
 import { SignInControl } from '../account/SignInControl'

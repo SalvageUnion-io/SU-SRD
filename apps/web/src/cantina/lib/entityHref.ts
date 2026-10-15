@@ -1,5 +1,5 @@
-import type { EntityHrefBuilder } from 'component-lib'
 import { getEntitySlug } from 'salvageunion-reference'
+import type { EntityHrefBuilder } from '../../ui/index'
 import { deepLinkTo, hasSRDPage } from './srd-deep-link'
 
 /**

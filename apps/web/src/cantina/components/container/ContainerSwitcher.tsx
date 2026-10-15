@@ -17,11 +17,11 @@
  */
 
 import type { Container } from 'cantina-domain/container'
-import { Select } from 'component-lib'
 import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { api } from '../../../../convex/_generated/api'
+import { Select } from '../../../ui/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { parseContainer, serializeContainer } from '../../stores/activeContainerStore'
 import { NewGameDialog } from '../games/NewGameControl'

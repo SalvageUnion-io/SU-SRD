@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'bun:test'
-import { color } from 'component-lib/design/tokens'
+import { color } from '../../../ui/design/tokens'
 import { renderShell } from '../../shell/shell'
 import type { Env } from '../index'
 import worker from '../index'

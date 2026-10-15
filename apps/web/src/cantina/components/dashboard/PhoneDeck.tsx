@@ -17,10 +17,10 @@
  * that opened the resolve screen once it closes (D14).
  */
 
-import type { ReferenceEntityControl } from 'component-lib'
-import { EmptyState, ReferenceEntityCard, Toggle } from 'component-lib'
-import { color, font, fontSize, space, tracking, weight } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
+import { color, font, fontSize, space, tracking, weight } from '../../../ui/design/tokens'
+import type { ReferenceEntityControl } from '../../../ui/index'
+import { EmptyState, ReferenceEntityCard, Toggle } from '../../../ui/index'
 import type { DeckListModel } from './DeckList'
 
 const ROOT = { display: 'flex', flexDirection: 'column', gap: space[10] } satisfies CSSProperties

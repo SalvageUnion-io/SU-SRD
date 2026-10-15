@@ -4,9 +4,9 @@
  */
 
 import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { ChoiceSelections } from 'component-lib'
-import { Content, tokens } from 'component-lib'
 import type { ComponentProps, CSSProperties, ReactNode } from 'react'
+import type { ChoiceSelections } from '../../../ui/index'
+import { Content, tokens } from '../../../ui/index'
 import { findNpcChoiceByName, resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { runWrite } from '../../lib/runWrite'
@@ -161,7 +161,7 @@ export function CrawlerTypeCard({
   // point; losing the paragraph that says what an Exploratory crawler IS was
   // not — it is the only place that text appears on the sheet.
   // The cast is the duplicated-structural-type problem, not a shape mismatch:
-  // `component-lib` and `salvageunion-reference` each declare their own content
+  // `src/ui` and `salvageunion-reference` each declare their own content
   // block type with identical members, so TS treats them as unrelated.
   const description = <Content body={type.content as ComponentProps<typeof Content>['body']} />
 

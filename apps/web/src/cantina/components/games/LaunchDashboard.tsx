@@ -35,12 +35,12 @@
 
 import { useRouter } from '@tanstack/react-router'
 import { hasMediator } from 'cantina-domain/games/roles'
-import { Button, Entity, ModalShell, RadioCardGroup, Text, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { api } from '../../../../convex/_generated/api'
 import type { Id } from '../../../../convex/_generated/dataModel'
+import { Button, Entity, ModalShell, RadioCardGroup, Text, tokens } from '../../../ui/index'
 import { useHydrateEntities, usePilots } from '../../hooks/entities'
 import type { RosterRow } from '../../lib/games/gameRoster'
 import { groupColumn, ownableRows } from '../../lib/games/gameRoster'

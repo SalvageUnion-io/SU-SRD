@@ -14,9 +14,9 @@
  */
 
 import type { ProposalTarget } from 'cantina-domain/games/proposals'
-import { tokens } from 'component-lib'
 import type { CSSProperties, RefObject } from 'react'
 import { useState } from 'react'
+import { tokens } from '../../../ui/index'
 import { DashboardCanvas } from '../dashboard/DashboardCanvas'
 import { DashboardGrid } from '../dashboard/DashboardGrid'
 import { DisplayPanelFrame } from '../dashboard/DisplayPanel'

@@ -34,7 +34,6 @@ import type { Mech } from 'cantina-domain/schemas/mech'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
 import type { RangeBand, SeatResolving } from 'cantina-domain/schemas/seat'
 import { RANGE_BANDS } from 'cantina-domain/schemas/seat'
-import { rollForTable } from 'component-lib'
 import { useState } from 'react'
 import type { CoreRollResult } from 'salvageunion-reference/rules'
 import {
@@ -51,6 +50,7 @@ import {
   resolveGauge,
   resolvePoolStart,
 } from 'salvageunion-reference/rules'
+import { rollForTable } from '../../../ui/index'
 import type { MechItemEconomy } from '../../lib/rules/mechItems'
 import type { PlayAction, PlayActionCurrency, TimingTab } from '../../lib/rules/playActions'
 import {
@@ -106,7 +106,7 @@ export type ActionsDeckProps = {
   store?: PlayStore
   /**
    * The dice for a roll on a table, by its name. Injectable so a test controls
-   * the roll; defaults to component-lib's `rollForTable` (Randsum).
+   * the roll; defaults to src/ui's `rollForTable` (Randsum).
    */
   rollFor?: typeof rollForTable
 }

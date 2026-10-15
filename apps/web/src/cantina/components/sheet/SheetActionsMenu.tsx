@@ -3,16 +3,16 @@
  *
  * At small widths the condensed sheet bar is too crowded for every sheet
  * action, so Sheet.tsx folds the reads and admin moves (Print, Export, the
- * container move, the Change Log) into this anchored panel — component-lib's
+ * container move, the Change Log) into this anchored panel — src/ui's
  * `PopoverPanel`: non-modal, closed by Escape, a press outside it or the
  * trigger, focus back on the trigger. Its items only mount while open, so
  * whatever an item opens (the Change Log, a confirm) keeps its state on the
  * always-mounted Sheet.
  */
 
-import { Button, PopoverPanel } from 'component-lib'
 import { Ellipsis } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
+import { Button, PopoverPanel } from '../../../ui/index'
 
 const ICON = { height: '18px', width: '18px' } satisfies CSSProperties
 

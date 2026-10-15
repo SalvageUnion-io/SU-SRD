@@ -97,8 +97,8 @@ describe('isExempt', () => {
   const EX = [{ file: 'theme.css', rules: ['raw-color'], reason: 'the token source' }]
 
   test('a path fragment waives only the rules it names', () => {
-    expect(isExempt(EX, 'packages/component-lib/src/styles/theme.css', 'raw-color')).toBe(true)
-    expect(isExempt(EX, 'packages/component-lib/src/styles/theme.css', 'type-floor')).toBe(false)
-    expect(isExempt(EX, 'packages/component-lib/src/styles/index.css', 'raw-color')).toBe(false)
+    expect(isExempt(EX, 'apps/web/src/ui/styles/theme.css', 'raw-color')).toBe(true)
+    expect(isExempt(EX, 'apps/web/src/ui/styles/theme.css', 'type-floor')).toBe(false)
+    expect(isExempt(EX, 'apps/web/src/ui/styles/index.css', 'raw-color')).toBe(false)
   })
 })

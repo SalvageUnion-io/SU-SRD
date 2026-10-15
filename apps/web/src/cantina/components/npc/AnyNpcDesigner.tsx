@@ -16,6 +16,10 @@
  */
 
 import { NpcSchema } from 'cantina-domain/schemas/npc'
+import type { CSSProperties, ReactNode } from 'react'
+import { useMemo, useState } from 'react'
+import type { RefEntity, RefNPC } from 'salvageunion-reference'
+import { displayTitle, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import {
   Button,
   ConfirmDialog,
@@ -31,11 +35,7 @@ import {
   Textarea,
   tokens,
   useDetailModal,
-} from 'component-lib'
-import type { CSSProperties, ReactNode } from 'react'
-import { useMemo, useState } from 'react'
-import type { RefEntity, RefNPC } from 'salvageunion-reference'
-import { displayTitle, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
+} from '../../../ui/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { npcActionName, npcActionSlug, resolveNpcAction } from '../../lib/npcs/npcModel'
 import { readReference } from '../../lib/readReference'

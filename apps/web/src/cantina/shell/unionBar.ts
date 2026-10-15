@@ -13,10 +13,10 @@
  * click on one in place and marks the page you are on.
  */
 
-import { AppBar } from 'component-lib'
 import type { AnchorHTMLAttributes } from 'react'
 import { createElement, Fragment } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
+import { AppBar } from '../../ui/index'
 import { SITE } from '../lib/site'
 import type { UnionSlot } from './unionSlots'
 import { UNION_NAV } from './unionSlots'

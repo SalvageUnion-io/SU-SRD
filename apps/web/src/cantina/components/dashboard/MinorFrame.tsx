@@ -12,8 +12,8 @@
  * here has a hover or focus state of its own; ⤢ is the shared `Button`.
  */
 
-import { Button, Stat } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { Button, Stat } from '../../../ui/index'
 import type { BandStat } from './BandStats'
 import { BandStats } from './BandStats'
 import { DashboardGauge } from './DashboardGauge'

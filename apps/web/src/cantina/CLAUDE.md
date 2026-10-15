@@ -18,8 +18,8 @@ before touching data** (it loads with the stores, hooks, `src/lib/connection/`,
   `src/routeTree.gen.ts`.
 - **Zustand** stores (`src/stores/`), in memory; only the active container
   persists (`localStorage`).
-- **Base UI** primitives from `component-lib` (`atoms/`, `containers/`) —
-  there is no app-local primitives folder. Styling is the `component-lib`
+- **Base UI** primitives from `src/ui` (`atoms/`, `containers/`) —
+  there is no app-local primitives folder. Styling is the `src/ui`
   tokens and stylesheet (ADR-046).
 - **PWA** (`vite-plugin-pwa`, **`registerType: 'prompt'`**) — installable;
   the shell boots offline (signed out and empty: there is no data cache). It
@@ -53,7 +53,7 @@ before touching data** (it loads with the stores, hooks, `src/lib/connection/`,
 
 - Pure math: the `salvageunion-reference/rules` subpath, never the main barrel
   or a local re-export; `src/lib/rules/` is Cantina's app-local rules only. Every
-  die is component-lib's `utils/dice.ts`.
+  die is src/ui's `utils/dice.ts`.
 - Play actions go on the Dashboard; the one sheet-local play control is
   `CrawlerEconomyControl.tsx`.
 - Destructive condition changes stay player-driven via `StatusBadge` →

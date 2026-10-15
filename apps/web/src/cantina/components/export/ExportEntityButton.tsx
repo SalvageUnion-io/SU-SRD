@@ -5,9 +5,9 @@
  * Uses buildEntityExport + downloadJson from lib/export.
  */
 
-import { Button, toast } from 'component-lib'
-import { color, fontSize, space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
+import { color, fontSize, space } from '../../../ui/design/tokens'
+import { Button, toast } from '../../../ui/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { buildEntityExport } from '../../lib/export/buildExportBundle'
 import { downloadJson } from '../../lib/export/downloadJson'

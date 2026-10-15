@@ -14,9 +14,9 @@
  * signed-out Roster.
  */
 
-import { ChapterBand, PageHeading, Text, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
+import { ChapterBand, PageHeading, Text, tokens } from '../../../ui/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
 import type { SegmentKind } from '../roster/RosterColumn'

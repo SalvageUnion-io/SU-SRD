@@ -1,6 +1,6 @@
 /*
  * The ONE stylesheet entry. The Cantina and srd import this file
- * (`component-lib/styles/entry.css`) and add only their own stylesheets after
+ * (`src/ui/styles/entry.css`) and add only their own stylesheets after
  * it.
  *
  * THE `@layer` ORDER AND THE `layer(...)` IMPORTS ARE LOAD-BEARING — do not

@@ -6,8 +6,8 @@
  * subordinate to the CTA — shown only while a gate is actively blocking.
  */
 
-import { tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { tokens } from '../../../ui/index'
 import '../../styles/wizard.css'
 
 /** Static half; the colour, which brightens on hover, is `.su-wiz-off-rules`. */

@@ -14,8 +14,8 @@
  * (`LaunchDashboard`).
  */
 
-import { Badge, buttonVariants, ChapterBand, tokens } from 'component-lib'
 import type { ReactNode } from 'react'
+import { Badge, buttonVariants, ChapterBand, tokens } from '../../../ui/index'
 import { AppLink } from '../shared/AppLink'
 import { GAME_MEASURE } from './hubStyles.model'
 

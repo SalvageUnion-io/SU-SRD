@@ -18,7 +18,7 @@
  * The library holds the contract, not the storage (ADR-010): each app passes
  * its own `localStorage`, or null where there is none. Dependency-free on
  * purpose: the SRD's client entry imports it through the
- * `component-lib/accountHint` subpath on every page without pulling in React.
+ * `src/ui/accountHint` subpath on every page without pulling in React.
  */
 
 /** The `localStorage` key. */

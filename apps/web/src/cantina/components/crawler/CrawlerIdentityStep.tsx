@@ -1,5 +1,5 @@
-import { Button, Field, Input, Panel, Slab, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { Button, Field, Input, Panel, Slab, tokens } from '../../../ui/index'
 import type { CrawlerWizardFormState, ScrapPoolForm } from '../../lib/wizard/crawlerFormState'
 import type { CrawlerRollTableDeps } from './crawlerRollTables.model'
 import { rollCrawlerName } from './crawlerRollTables.model'

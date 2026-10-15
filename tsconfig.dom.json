@@ -1,6 +1,6 @@
 {
   // Shared base for the browser apps (srd, cantina) and the packages they render
-  // through (component-lib, observability): the repo base plus the DOM and JSX.
+  // through (observability): the repo base plus the DOM and JSX.
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "lib": ["ES2022", "DOM", "DOM.Iterable"],

@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * check-barrel-consumers — component-lib exports what the apps render, and
+ * check-barrel-consumers — the UI library (`apps/web/src/ui`) exports what the apps render, and
  * holds no app's own compositions.
  *
  * `docs/ARCHITECTURE.md#component-lib` says code only one app renders lives in
@@ -31,18 +31,18 @@
  * "Reaches" is transitive. An app reaches an export when it imports any export
  * whose module graph inside the library contains that export's module: srd
  * imports `ReferenceEntityCard`, whose `Card` rail renders `ControlButtons`,
- * so srd reaches `ControlButtons` though it never names it. The apps are every workspace whose manifest
- * depends on `component-lib`; their `src/` and `ssg/` trees are scanned.
+ * so srd reaches `ControlButtons` though it never names it. The apps are
+ * `apps/web`'s srd and Cantina; its `src/` (outside `src/ui`) and `ssg/` trees
+ * are scanned.
  */
 
 import { existsSync, readFileSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve } from 'node:path'
 import { assertScanFloor } from 'gates/lib/scanFloor'
 import { walk } from 'gates/lib/walk'
-import { readWorkspaces } from 'gates/lib/workspaceGraph'
 
 const ROOT = join(import.meta.dir, '..')
-const LIB_SRC = join(ROOT, 'packages/component-lib/src')
+const LIB_SRC = join(ROOT, 'apps/web/src/ui')
 const BARREL = join(LIB_SRC, 'index.ts')
 
 /** Source trees of a consuming workspace that ship. */
@@ -65,7 +65,7 @@ const appSrc = (app: string) => (app === 'cantina' ? CANTINA_SRC : `apps/${app}/
 
 /**
  * The library directories that file a component under a group, relative to
- * `packages/component-lib/src/`. `markdownSection/` is a container that sits
+ * `apps/web/src/ui/`. `markdownSection/` is a container that sits
  * beside `components/` because both apps' markdown rendering imports it.
  */
 const GROUP_DIRS: ReadonlyArray<readonly [dir: string, group: string]> = [
@@ -141,12 +141,12 @@ export function parseBarrel(raw: string): Array<{ name: string; specifier: strin
   return out
 }
 
-/** Names a module imports from the `component-lib` root (not its subpaths). */
+/** Names a module imports from the library's barrel (`…/ui/index`), not its other modules. */
 export function namesImportedFromLib(raw: string): string[] {
   const source = withoutComments(raw)
-  return [...source.matchAll(/import\s+(?:type\s+)?\{([^}]*)\}\s*from\s*'component-lib'/g)].flatMap(
-    (m) => bindings(m[1] ?? '', { exported: false })
-  )
+  return [
+    ...source.matchAll(/import\s+(?:type\s+)?\{([^}]*)\}\s*from\s*'\.[^']*\/ui\/index'/g),
+  ].flatMap((m) => bindings(m[1] ?? '', { exported: false }))
 }
 
 /** Relative specifiers a module imports or re-exports. */
@@ -163,7 +163,7 @@ function relativeSpecifiers(raw: string): string[] {
  */
 export function groupOf(module: string): string | null {
   if (!module.endsWith('.tsx')) return null
-  const inLib = module.replace(/^packages\/component-lib\/src\//, '')
+  const inLib = module.replace(/^apps\/web\/src\/ui\//, '')
   return GROUP_DIRS.find(([dir]) => inLib.startsWith(dir))?.[1] ?? null
 }
 
@@ -212,15 +212,13 @@ const isShippedSource = (path: string) =>
   /\.tsx?$/.test(path) && !/[\\/]__tests__[\\/]/.test(path) && !/\.test\.tsx?$/.test(path)
 
 /**
- * Every shipping workspace whose manifest depends on component-lib. Only a
- * `workspace:` range counts, which is how every in-repo dependent takes it.
+ * The workspaces that render the library: `apps/web` alone, which holds it
+ * (`src/ui`) beside the two apps that import it.
  */
-function consumingWorkspaces(): string[] {
-  return readWorkspaces(ROOT)
-    .filter((ws) => ws.deps.includes('component-lib'))
-    .map((ws) => ws.dir)
-    .sort()
-}
+const CONSUMING_WORKSPACES = ['apps/web']
+
+/** A consuming file: shipped source outside the library itself. */
+const isAppSource = (path: string) => isShippedSource(path) && !path.startsWith(`${LIB_SRC}/`)
 
 export type Census = {
   exports: BarrelExport[]
@@ -266,12 +264,12 @@ export function census(): Census {
     moduleOf.set(e.name, e.module)
   }
 
-  const workspaces = consumingWorkspaces()
+  const workspaces = CONSUMING_WORKSPACES
   const reach = new Map(exports.map((e) => [e.name, new Set<string>()]))
   let scanned = 0
   for (const workspace of workspaces) {
     for (const dir of APP_SOURCE_DIRS) {
-      for (const file of walk(join(ROOT, workspace, dir), isShippedSource)) {
+      for (const file of walk(join(ROOT, workspace, dir), isAppSource)) {
         scanned++
         const app = appOf(workspace, rel(file))
         for (const name of namesImportedFromLib(readFileSync(file, 'utf-8'))) {
@@ -303,7 +301,6 @@ export function explain(v: ExportVerdict): [string, string] {
 }
 
 /** The scan floors `main` holds a census to: exports, consuming workspaces, app files. */
-// One consuming workspace: the bot read only `PRODUCT`, now `cantina-domain/product`.
 const FLOORS = { exports: 60, workspaces: 1, scanned: 270 }
 
 /** Judge a census and report; returns the exit code. */

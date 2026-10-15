@@ -10,9 +10,9 @@
  * shelf of yours says "Yours", and the fold's toggle at the rule's end.
  */
 
-import { Button, Slab, tokens, useDisclosure } from 'component-lib'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import type { CSSProperties } from 'react'
+import { Button, Slab, tokens, useDisclosure } from '../../../ui/index'
 import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
 import { StarterSetGrid } from '../starterSet/StarterSetGrid'
 

@@ -7,10 +7,10 @@
 import type { Mock } from 'bun:test'
 import { afterEach, describe, expect, spyOn, test } from 'bun:test'
 import { act, render, screen, waitFor } from '@testing-library/react'
-import { EntitySurfaceProvider, Mention } from 'component-lib'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { itemHref } from '../../../lib/entityHref'
 import { getSchemaPreloadList } from '../../../lib/schemaPreloadDeps'
+import { EntitySurfaceProvider, Mention } from '../../../ui/index'
 import { PeekIsland } from '../PeekIsland'
 
 let preloadSpy: Mock<typeof SalvageUnionReference.preload> | undefined

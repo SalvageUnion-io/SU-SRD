@@ -17,7 +17,6 @@ import { containerOf } from 'cantina-domain/container'
 import { resolveEffectiveCrawlerLevel } from 'cantina-domain/crawlerLevel'
 import { pilotingContext } from 'cantina-domain/rules/pilotingContext'
 import type { Crawler } from 'cantina-domain/schemas/crawler'
-import { linesFromBreakdown, VitalGauge } from 'component-lib'
 import { useState } from 'react'
 import {
   crawlerMaxSPParts,
@@ -25,6 +24,7 @@ import {
   pinFor,
   resolvePool,
 } from 'salvageunion-reference/rules'
+import { linesFromBreakdown, VitalGauge } from '../../../ui/index'
 import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
 import { runWrite } from '../../lib/runWrite'
 import { LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'

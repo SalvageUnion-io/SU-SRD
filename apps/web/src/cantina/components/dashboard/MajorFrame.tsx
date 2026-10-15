@@ -11,12 +11,12 @@
  * style object (ADR-046).
  */
 
-import type { ProvenanceLine, VitalGaugeBreakdown } from 'component-lib'
-import { Badge, Button, Entity, Stat, StatusBadge } from 'component-lib'
-import { radius } from 'component-lib/design/tokens'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import type { RefEntity } from 'salvageunion-reference'
+import { radius } from '../../../ui/design/tokens'
+import type { ProvenanceLine, VitalGaugeBreakdown } from '../../../ui/index'
+import { Badge, Button, Entity, Stat, StatusBadge } from '../../../ui/index'
 import { useEscapeKey } from '../../hooks/useEscapeKey'
 import { CargoLotRow } from '../shared/CargoLotRow'
 import type { BandStat } from './BandStats'

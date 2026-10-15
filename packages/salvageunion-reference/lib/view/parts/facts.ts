@@ -1,6 +1,6 @@
 /**
  * An entity's STATS as facts: the head's cells and the page's stat column.
- * component-lib's `referenceEntityStatsConfig.ts` builds its `StatItem`s from
+ * src/ui's `referenceEntityStatsConfig.ts` builds its `StatItem`s from
  * these.
  */
 

@@ -238,7 +238,6 @@ describe('typecheck hooks against a stub workspace', () => {
     'apps/discord-bot',
     'apps/web',
     'apps/su-assets',
-    'packages/component-lib',
     'packages/gates',
     'packages/cantina-domain',
     'packages/observability',
@@ -319,11 +318,6 @@ describe('typecheck hooks against a stub workspace', () => {
   test.each([
     ['an app', 'apps/web/lib/x.ts', ['ROOT apps/web']],
     ['the bot', 'apps/discord-bot/lib/x.ts', ['ROOT apps/discord-bot']],
-    [
-      'component-lib',
-      'packages/component-lib/lib/x.ts',
-      ['ROOT packages/component-lib apps/web tools'],
-    ],
     [
       'observability',
       'packages/observability/lib/x.ts',

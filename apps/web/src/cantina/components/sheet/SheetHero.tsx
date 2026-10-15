@@ -8,8 +8,8 @@
  * compose it without forking the frame.
  */
 
-import { SheetSectionCard } from 'component-lib'
 import type { CSSProperties, ReactNode } from 'react'
+import { SheetSectionCard } from '../../../ui/index'
 
 /** The grid's columns and gap step up with the sheet's width (`.su-sheet-hero`). */
 const GRID = { display: 'grid' } satisfies CSSProperties

@@ -6,10 +6,10 @@
  */
 
 import { fieldLabel } from 'cantina-domain/games/proposals'
-import { tokens } from 'component-lib'
 import type { FunctionReturnType } from 'convex/server'
 import type { CSSProperties } from 'react'
 import type { api } from '../../../../convex/_generated/api'
+import { tokens } from '../../../ui/index'
 
 const { space } = tokens
 

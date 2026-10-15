@@ -1,6 +1,6 @@
-import { EmptyState, MasonryColumns, ReferenceEntityCard } from 'component-lib'
 import type { RefSystem } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
+import { EmptyState, MasonryColumns, ReferenceEntityCard } from '../../../ui/index'
 
 type SystemsListProps = {
   /** Weapons systems available to install, already filtered by the parent. */

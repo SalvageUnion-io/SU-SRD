@@ -8,7 +8,7 @@ import { photoFields } from './photo'
  * Persisted choice selections for an entity that carries `choices`
  * (e.g. granted equipment with permanent/multi-select picks).
  *
- * Mirrors component-lib's `ChoiceSelections` type exactly:
+ * Mirrors src/ui's `ChoiceSelections` type exactly:
  *   Record<choiceId, selectedOptionValues[]>
  * so it can be passed straight into ReferenceEntityCard's controlled
  * `selections` prop. Free-text choices store their value as a single-element array.

@@ -9,8 +9,8 @@
  * sign-in rather than a wizard whose last step would be refused.
  */
 
-import { ChapterBand, Text, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { ChapterBand, Text, tokens } from '../../../ui/index'
 import { SignInControl } from './SignInControl'
 
 /** The column under the band; the band's notch starts where it does. */

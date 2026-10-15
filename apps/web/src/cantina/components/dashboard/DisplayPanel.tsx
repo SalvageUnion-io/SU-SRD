@@ -11,7 +11,7 @@
  * (`useDowntime`), so no card enters it. Rolls on a table go to the Game's log
  * (`dashboardRolls.model.ts`), which the Log tab reads.
  *
- * The two halves were split across component-lib and the Cantina, with the Cantina importing
+ * The two halves were split across src/ui and the Cantina, with the Cantina importing
  * the library's copy `as DisplayPanelView`, although the Cantina was its only consumer.
  * They share one file now.
  */
@@ -19,13 +19,13 @@
 import type { Crawler } from 'cantina-domain/schemas/crawler'
 import type { Mech } from 'cantina-domain/schemas/mech'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
-import type { ReferenceEntityControl } from 'component-lib'
-import { CHAPTER_BAND_COLOR, ControlButtons, ReferenceEntityCard, Toggle } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useRef, useState } from 'react'
 import type { RefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
+import type { ReferenceEntityControl } from '../../../ui/index'
+import { CHAPTER_BAND_COLOR, ControlButtons, ReferenceEntityCard, Toggle } from '../../../ui/index'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { DashboardRollTable } from './DashboardRollTable'
 import { recordRoll } from './dashboardRolls.model'

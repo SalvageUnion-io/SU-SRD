@@ -19,6 +19,14 @@
 import { useNavigate } from '@tanstack/react-router'
 import type { MechPattern } from 'cantina-domain/schemas/pattern'
 import type { Photo } from 'cantina-domain/schemas/photo'
+import type { CSSProperties } from 'react'
+import { useState } from 'react'
+import {
+  extractStaticEntitySummary,
+  getAssetUrl,
+  getChassisAbilities,
+  getEntitySlug,
+} from 'salvageunion-reference'
 import {
   Button,
   ChapterBand,
@@ -34,15 +42,7 @@ import {
   tokens,
   USER_MADE_HATCH,
   UserMadeStamp,
-} from 'component-lib'
-import type { CSSProperties } from 'react'
-import { useState } from 'react'
-import {
-  extractStaticEntitySummary,
-  getAssetUrl,
-  getChassisAbilities,
-  getEntitySlug,
-} from 'salvageunion-reference'
+} from '../../../../ui/index'
 import { BASE_PATH } from '../../../lib/appUrl'
 import { useConnection } from '../../../lib/connection/connectionContext'
 import { serverMessage } from '../../../lib/connection/serverError'

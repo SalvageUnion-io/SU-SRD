@@ -30,7 +30,7 @@
  * screen is still the truth.
  */
 
-import { toast } from 'component-lib'
+import { toast } from '../../ui/index'
 import { StaleWriteRefused, WritesBlockedOffline } from '../stores/entityBackend'
 
 /**

@@ -1,12 +1,3 @@
-import {
-  Button,
-  EmptyState,
-  Entity,
-  EntitySurfaceProvider,
-  Skeleton,
-  Slab,
-  trackForTree,
-} from 'component-lib'
 import { X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import type { RefAbility, RefEntity } from 'salvageunion-reference'
@@ -38,6 +29,15 @@ import type { ListingView } from '../../lib/listingView'
 import { TREE_LISTINGS, useListingView } from '../../lib/listingView'
 import type { SchemaList } from '../../lib/useGameData'
 import { GameDataGate, preloadGameData } from '../../lib/useGameData'
+import {
+  Button,
+  EmptyState,
+  Entity,
+  EntitySurfaceProvider,
+  Skeleton,
+  Slab,
+  trackForTree,
+} from '../../ui/index'
 import { AbilityTrack } from '../AbilityTrack'
 import { EntityListingRow } from './EntityListingRow'
 import { IslandErrorBoundary } from './IslandErrorBoundary'

@@ -9,12 +9,6 @@
  * band. A roll table gets its own page to roll on (board 08b).
  */
 
-import {
-  assetSrcSetFor,
-  CHAPTER_BAND_COLOR,
-  heroImageSizes,
-  resolveEntityPageMeta,
-} from 'component-lib'
 import type { EnhancedSchemaMetadata, RefEntity } from 'salvageunion-reference'
 import { truncate } from 'salvageunion-reference'
 import type { PageModule, PageResult, RouteContext, StructuredData } from '../../../ssg/types'
@@ -34,6 +28,12 @@ import { itemHref, schemaHref } from '../../lib/entityHref'
 import { extractStaticEntitySummary, getReferenceEntityData } from '../../lib/gameData'
 import { ogCardFor, ogMetaFor } from '../../lib/ogCard'
 import { getItemStaticPaths } from '../../lib/staticPaths'
+import {
+  assetSrcSetFor,
+  CHAPTER_BAND_COLOR,
+  heroImageSizes,
+  resolveEntityPageMeta,
+} from '../../ui/index'
 
 type Params = { schemaId: string; itemId: string }
 

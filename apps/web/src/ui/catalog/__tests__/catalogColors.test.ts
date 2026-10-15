@@ -21,7 +21,7 @@ describe('getCatalogBg', () => {
     }
 
     expect(missing).toEqual(
-      // If this fails, the schema has no domain in component-lib's SCHEMA_DOMAIN
+      // If this fails, the schema has no domain in src/ui's SCHEMA_DOMAIN
       // — declare it there (the card resolves its tone from the same map).
       []
     )
@@ -29,7 +29,7 @@ describe('getCatalogBg', () => {
 
   it('derives its colour from the canonical schema domain, not a local list', () => {
     const { schemas } = getSchemaCatalog()
-    // Every non-meta schema must resolve to a domain in component-lib. A schema
+    // Every non-meta schema must resolve to a domain in src/ui. A schema
     // the map doesn't know would fall back to pilot-orange here AND mis-tone its
     // card — the drift this indirection exists to prevent.
     const undomained = schemas

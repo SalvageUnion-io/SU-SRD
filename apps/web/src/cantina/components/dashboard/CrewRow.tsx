@@ -10,10 +10,10 @@
  * signal. The host picks the Row's mode: a link to the sheet, or select.
  */
 
-import type { EntityMode } from 'component-lib'
-import { Entity, Stat } from 'component-lib'
-import { color, font, fontSize, radius, space, weight } from 'component-lib/design/tokens'
 import type { CSSProperties, ReactNode } from 'react'
+import { color, font, fontSize, radius, space, weight } from '../../../ui/design/tokens'
+import type { EntityMode } from '../../../ui/index'
+import { Entity, Stat } from '../../../ui/index'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { crewProblem } from './crewProblem.model'
 import type { CrewLine } from './useGameFeed'

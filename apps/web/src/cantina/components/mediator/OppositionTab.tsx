@@ -20,7 +20,11 @@
  * Presentational: the Dashboard reads the tray and makes the writes.
  */
 
-import type { CSSVarStyle } from 'component-lib'
+import type { CSSProperties } from 'react'
+import { useId, useState } from 'react'
+import type { RefEntity } from 'salvageunion-reference'
+import { findEntityBySlug } from 'salvageunion-reference'
+import type { CSSVarStyle } from '../../../ui/index'
 import {
   Button,
   ConfirmDialog,
@@ -31,11 +35,7 @@ import {
   tokens,
   useDetailModal,
   VitalGauge,
-} from 'component-lib'
-import type { CSSProperties } from 'react'
-import { useId, useState } from 'react'
-import type { RefEntity } from 'salvageunion-reference'
-import { findEntityBySlug } from 'salvageunion-reference'
+} from '../../../ui/index'
 import { SheetPickerModal } from '../sheet/SheetSection'
 import { BODY, EYEBROW, HEAD_ROW, MUTED, NUMBERS } from './mediatorStyles.model'
 import type { EncounterRefSchema, TrayNpc } from './opposition.model'

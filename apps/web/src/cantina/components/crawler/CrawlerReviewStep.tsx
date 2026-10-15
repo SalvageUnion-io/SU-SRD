@@ -1,7 +1,7 @@
-import { Callout, FieldError, Panel, ReferenceEntityCard, Stat, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import type { RefCrawler, RefMetaCrawlerTechLevel, RefSystem } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
+import { Callout, FieldError, Panel, ReferenceEntityCard, Stat, tokens } from '../../../ui/index'
 import { resolveCrawlerTypeAbilities } from '../../lib/crawlerRefs'
 import { unitRowModel } from '../../lib/units/unitModel'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'

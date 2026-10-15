@@ -7,7 +7,7 @@
 
 import { describe, expect, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import type { ProvenanceLine } from 'component-lib'
+import type { ProvenanceLine } from '../../../../ui/index'
 import { DashboardGauge } from '../DashboardGauge'
 
 const LINES: ProvenanceLine[] = [

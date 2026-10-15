@@ -5,9 +5,9 @@
  * line.
  */
 
-import { Stat } from 'component-lib'
-import { space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
+import { space } from '../../../ui/design/tokens'
+import { Stat } from '../../../ui/index'
 
 /** One counted readout: its label, its value, and the cap it reads against. */
 export type BandStat = { label: string; value: number | string; max?: number }

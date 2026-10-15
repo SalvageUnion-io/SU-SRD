@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-import { ogCardDescription, ogCardThemeColor, ogCardTitle } from 'component-lib'
-import { color } from 'component-lib/design/tokens'
+import { color } from '../../../../ui/design/tokens'
+import { ogCardDescription, ogCardThemeColor, ogCardTitle } from '../../../../ui/index'
 import { fullSheetCard, previewStats, referenceName } from '../previewStats'
 import type { InvitePreviewAnswer, PreviewAnswer, PreviewCard } from '../previewSummary'
 import { inviteCard, previewWords, privateCard, sheetCard, titleCaseSlug } from '../previewSummary'

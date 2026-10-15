@@ -18,8 +18,8 @@
  * affordance — facts render as plain chips (published snapshots).
  */
 
-import { Conditions, EmptyState, INPUT_FOCUS, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { Conditions, EmptyState, INPUT_FOCUS, tokens } from '../../../ui/index'
 import { useChipDraft } from './useChipDraft'
 
 /** The sheet's bordered well around the chip row. */

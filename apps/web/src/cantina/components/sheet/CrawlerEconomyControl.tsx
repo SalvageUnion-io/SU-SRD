@@ -34,6 +34,11 @@
 
 import { DOWNTIME_UPKEEP_SCRAP } from 'cantina-domain/rules/downtime'
 import type { Crawler } from 'cantina-domain/schemas/crawler'
+import type { CSSProperties } from 'react'
+import { useReducer, useState } from 'react'
+import { plainTraitText, resultForTable, SalvageUnionReference } from 'salvageunion-reference'
+import type { Roll } from 'salvageunion-reference/rules'
+import { crawlerMaxSP, parseCrawlerTechLevel, resolvePool } from 'salvageunion-reference/rules'
 import {
   Button,
   EmptyState,
@@ -44,12 +49,7 @@ import {
   Slab,
   Stat,
   tokens,
-} from 'component-lib'
-import type { CSSProperties } from 'react'
-import { useReducer, useState } from 'react'
-import { plainTraitText, resultForTable, SalvageUnionReference } from 'salvageunion-reference'
-import type { Roll } from 'salvageunion-reference/rules'
-import { crawlerMaxSP, parseCrawlerTechLevel, resolvePool } from 'salvageunion-reference/rules'
+} from '../../../ui/index'
 import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { resolveCrawlerBay } from '../../lib/crawlerRefs'
 import type { DeteriorationEffect } from '../../lib/rules/crawlerEconomy'
@@ -183,7 +183,7 @@ type CrawlerEconomyControlProps = {
   onClose: () => void
   /**
    * The dice for a roll on a table, by its name: d20s and the random Bay.
-   * Injectable for tests; defaults to component-lib's `rollForTable`
+   * Injectable for tests; defaults to src/ui's `rollForTable`
    * (@randsum/salvageunion for Crawler Deterioration, a named table).
    */
   rollFor?: (tableName: string) => Promise<Roll>

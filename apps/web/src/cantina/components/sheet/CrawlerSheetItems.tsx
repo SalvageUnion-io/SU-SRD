@@ -5,7 +5,9 @@
  */
 
 import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { CardFootMeta, ChoiceSelections, ReferenceEntityControl } from 'component-lib'
+import type { CSSProperties, ReactNode } from 'react'
+import type { RefEntity, RefMetaEntity } from 'salvageunion-reference'
+import type { CardFootMeta, ChoiceSelections, ReferenceEntityControl } from '../../../ui/index'
 import {
   Button,
   Entity,
@@ -15,9 +17,7 @@ import {
   tokens,
   useDetailModal,
   useDisclosure,
-} from 'component-lib'
-import type { CSSProperties, ReactNode } from 'react'
-import type { RefEntity, RefMetaEntity } from 'salvageunion-reference'
+} from '../../../ui/index'
 import { findNpcChoiceByName, resolveCrawlerBay } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { BAY_REPAIR_COST, bayTechLines } from '../../lib/rules/crawlerItems'

@@ -5,8 +5,8 @@
  * cut-out head and lead, Peeking its whole card) under them.
  */
 
-import { Entity, StatColumn, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { Entity, StatColumn, tokens } from '../../../ui/index'
 import type { MechSheetModel } from './mechSheet.model'
 
 const ABILITY = {

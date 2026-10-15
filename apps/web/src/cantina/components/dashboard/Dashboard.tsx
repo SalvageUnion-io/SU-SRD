@@ -48,9 +48,9 @@
  * tab, menu and resolve screen.
  */
 
-import { buttonVariants, EmptyState } from 'component-lib'
 import { ChevronLeft } from 'lucide-react'
-// The dashboard's `.su-dash-*` stylesheet. component-lib's dashboard components
+import { buttonVariants, EmptyState } from '../../../ui/index'
+// The dashboard's `.su-dash-*` stylesheet. src/ui's dashboard components
 // import no CSS themselves — that rode the barrel into srd — so
 // the one app that renders a dashboard loads it here, and it lands in this
 // route's chunk rather than in every page's stylesheet.

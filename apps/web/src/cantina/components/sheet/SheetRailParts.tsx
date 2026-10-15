@@ -7,8 +7,8 @@
  * stat into one.
  */
 
-import { Badge, buttonVariants } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { Badge, buttonVariants } from '../../../ui/index'
 import { AppLink } from '../shared/AppLink'
 import { UnitRow } from '../shared/UnitRow'
 import type { WithheldUnit } from './sheetViewProps.model'

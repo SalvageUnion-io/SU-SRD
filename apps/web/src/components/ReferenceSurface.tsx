@@ -1,7 +1,7 @@
-import type { PageRefIndex } from 'component-lib'
-import { EntitySurfaceProvider } from 'component-lib'
 import type { ReactNode } from 'react'
 import { useMemo } from 'react'
+import type { PageRefIndex } from '../ui/index'
+import { EntitySurfaceProvider } from '../ui/index'
 
 /**
  * The SRD's card surface: a Reference context (ruleset §1) whose "p. N"

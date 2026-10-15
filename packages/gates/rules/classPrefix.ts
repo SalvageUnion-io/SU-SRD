@@ -4,7 +4,7 @@
  * Every class the package and the Cantina author is `su-*` (the Dashboard's
  * `su-dash-*` among them; `.claude/rules/styling.md`). The Cantina once grew `wiz-`,
  * `header-menu-`, `npc-`, `shelves-` and a dozen more families beside some 800
- * `su-` selectors, and component-lib's tone contexts were `sheet--{kind}`: two
+ * `su-` selectors, and src/ui's tone contexts were `sheet--{kind}`: two
  * naming schemes for one stylesheet system, with nothing to say which a new
  * class should take. A wrong prefix compiles and renders, so only a scan
  * catches it.
@@ -18,7 +18,7 @@ import type { Finding, Rule, RuleSet } from '../lib/ruleEngine'
 import { listFiles } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
 
-const PREFIXED_CSS_DIRS = ['apps/web/src/cantina', 'packages/component-lib/src'] as const
+const PREFIXED_CSS_DIRS = ['apps/web/src/cantina', 'apps/web/src/ui'] as const
 const CLASS_PREFIX = 'su-'
 
 const stylesheets = (root: string) => listFiles(root, PREFIXED_CSS_DIRS, ['.css'])

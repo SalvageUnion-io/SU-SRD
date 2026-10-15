@@ -20,9 +20,9 @@
  * kept here so it survives switching between Games.
  */
 
-import { RosterSkeleton, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
+import { RosterSkeleton, tokens } from '../../../ui/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useActiveContainer } from '../../stores/activeContainerStore'
 import { ContainerSwitcher } from '../container/ContainerSwitcher'

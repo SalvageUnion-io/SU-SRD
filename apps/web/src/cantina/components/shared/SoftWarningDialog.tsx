@@ -13,10 +13,10 @@
  * colour is chosen here.
  */
 
-import { Banner, Button, ModalShell } from 'component-lib'
-import { color, font, fontSize, space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 import type { SoftWarning } from 'salvageunion-reference/rules'
+import { color, font, fontSize, space } from '../../../ui/design/tokens'
+import { Banner, Button, ModalShell } from '../../../ui/index'
 
 const BODY = {
   backgroundColor: color.paper,

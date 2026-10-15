@@ -53,7 +53,7 @@ test.use({ account: 'anonymous' })
  * stopped exporting page bodies from their route files, which had kept
  * `autoCodeSplitting` from splitting them and so pinned the whole live-sheet
  * tree into the entry; `vite.cantina.config.ts` gained named `codeSplitting` groups
- * (react, vendor, zod, reference, component-lib) for the initial graph; and
+ * (react, vendor, zod, reference, ui) for the initial graph; and
  * the reference package's trusted load path dropped Zod's entity schemas and
  * locales from cantina's client. App JS per route fell by roughly: roster
  * −202 KB, pilot wizard −199 KB, dashboard −199 KB, live sheet −44 KB.

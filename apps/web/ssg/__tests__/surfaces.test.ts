@@ -5,9 +5,9 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import { CHAPTER_BAND_COLOR } from 'component-lib'
 import { DISCORD_COMMANDS } from '../../src/generated/discordCommands'
 import { ELDRIDGE_COAST_MAP } from '../../src/lib/builtAssets'
+import { CHAPTER_BAND_COLOR } from '../../src/ui/index'
 import type { BuildAssets } from '../document'
 import { routes } from '../routes'
 

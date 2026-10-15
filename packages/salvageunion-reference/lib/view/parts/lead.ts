@@ -25,7 +25,7 @@ export function firstParagraphText(
 /**
  * A guide's first step paragraph — the preamble of a guide (Salvaging, Upgrading
  * your Union Crawler) that keeps every word in `steps`. A data-shape check, as
- * component-lib's `resolveGuideLead`.
+ * src/ui's `resolveGuideLead`.
  */
 function firstStepParagraphText(entity: RefMetaEntity): string | undefined {
   if (!('steps' in entity) || !Array.isArray(entity.steps)) return undefined
@@ -39,7 +39,7 @@ function firstStepParagraphText(entity: RefMetaEntity): string | undefined {
 /**
  * The first paragraph of what an entity grants, else of its visible actions —
  * where a system, a piece of equipment or a grant ability (Holo Companion)
- * keeps all of its prose. The same order as component-lib's
+ * keeps all of its prose. The same order as src/ui's
  * `resolveCatalogLeadBlocks`.
  */
 function borrowedParagraphText(entity: RefMetaEntity): string | undefined {

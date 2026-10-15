@@ -6,9 +6,9 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
-import { Mention, useDetailModal } from 'component-lib'
 import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
+import { Mention, useDetailModal } from '../../../../ui/index'
 import { EntityPageHost } from '../EntityPageHost'
 
 const vulnerable = () => {

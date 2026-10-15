@@ -4,7 +4,7 @@ import { expect, test } from './fixtures'
 /**
  * Dashboard delete flow: create a pilot, confirm the delete dialog, verify
  * the pilot disappears. Catches regressions in the Roster's delete confirm
- * (component-lib `ConfirmDialog`) and the shelf item's ⋯ menu Delete wiring.
+ * (src/ui `ConfirmDialog`) and the shelf item's ⋯ menu Delete wiring.
  *
  * Pilot creation wizard steps:
  *   1. Class    — pick a class card (div[role="button"] via EntityChoiceCard)

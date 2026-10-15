@@ -19,10 +19,10 @@
  * it (`interaction.ts`), so a page nobody touches loads no React.
  */
 
-import { readAccountHint } from 'component-lib/accountHint'
 import { browserStorage, markSignedIn } from '../lib/accountState'
 import { initBrowserObservability, installChunkRecovery } from '../lib/observability'
 import { revealWikiLinks } from '../lib/wikiLink'
+import { readAccountHint } from '../ui/accountHint'
 import { replayInteraction, watchInteraction } from './interaction'
 import type { IslandComponent } from './islandRegistry'
 import { islandRegistry } from './islandRegistry'
@@ -159,7 +159,7 @@ if (document.readyState === 'loading') {
 // is an island starts the same watcher itself (`GuideSteps`).
 const guidePages = document.querySelectorAll('.su-guide--page')
 if (guidePages.length > 0) {
-  void import('component-lib/guideContents')
+  void import('../ui/components/referenceEntity/card/guideContents')
     .then((m) => {
       for (const root of guidePages) m.watchGuideContents(root)
     })

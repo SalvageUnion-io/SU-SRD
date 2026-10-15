@@ -18,7 +18,7 @@
 import { afterEach, beforeAll, describe, expect, spyOn, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Mech } from 'cantina-domain/schemas/mech'
-import { dieForTable } from 'component-lib'
+import { dieForTable } from '../../../../ui/index'
 import { mechFixture } from '../../__tests__/fixtures'
 import { MechMajor } from '../MechSlot'
 import type { DamagePrompt, PlayStore } from '../SlotRow'

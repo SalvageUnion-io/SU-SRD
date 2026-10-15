@@ -26,7 +26,7 @@
  */
 
 import { PRODUCT } from 'cantina-domain/product'
-import { color } from 'component-lib/design/tokens'
+import { color } from '../../ui/design/tokens'
 import type { StarterKind, StarterPage } from '../lib/starterSet/starterTemplates'
 import {
   isStarterKind,

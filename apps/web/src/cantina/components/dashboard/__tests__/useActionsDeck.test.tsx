@@ -17,7 +17,6 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Mech } from 'cantina-domain/schemas/mech'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
 import type { SeatResolving } from 'cantina-domain/schemas/seat'
-import { EntityHrefProvider } from 'component-lib'
 import { useState } from 'react'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import {
@@ -27,6 +26,7 @@ import {
   pilotMaxAP,
   resolveChassisRef,
 } from 'salvageunion-reference/rules'
+import { EntityHrefProvider } from '../../../../ui/index'
 import { itemEconomy, resolveModule, resolveSystem } from '../../../lib/rules/mechItems'
 import {
   buildMechActions,

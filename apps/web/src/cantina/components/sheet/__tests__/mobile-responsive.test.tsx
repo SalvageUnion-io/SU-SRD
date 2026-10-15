@@ -28,7 +28,7 @@
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { render, screen } from '@testing-library/react'
-import { InlineEditField } from 'component-lib'
+import { InlineEditField } from '../../../../ui/index'
 import {
   crawlerFixture,
   mechFixture,
@@ -200,7 +200,10 @@ describe('Mobile responsive — 44px touch targets', () => {
     expect(className).toContain('su-btn')
     expect(className).toContain('su-page-action')
     // …and a touch screen lifts every `.su-btn` to the 44px floor.
-    const css = readFileSync(new URL(import.meta.resolve('component-lib/styles/theme.css')), 'utf8')
+    const css = readFileSync(
+      new URL(import.meta.resolve('../../../../ui/styles/theme.css')),
+      'utf8'
+    )
     expect(css).toMatch(
       /@media \(pointer: coarse\) \{[^}]*\.su-btn:not\(\.su-btn--mini\)[^}]*min-height: 44px;/
     )

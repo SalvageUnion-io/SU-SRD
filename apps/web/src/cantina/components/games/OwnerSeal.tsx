@@ -1,5 +1,5 @@
-import { Stat } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { Stat } from '../../../ui/index'
 import type { OwnerChip } from '../../lib/ownership/ownerChip'
 
 /**

@@ -3,7 +3,7 @@
 /**
  * art-crop — measure where each entity's line art actually sits on its canvas,
  * and write the map the entity page's hero crops to
- * (`packages/component-lib/src/components/compositions/heroArtCrop.data.ts`).
+ * (`apps/web/src/ui/components/compositions/heroArtCrop.data.ts`).
  *
  *   bun run assets:crop
  *
@@ -39,7 +39,7 @@ import sharp from 'sharp'
 
 const REPO = resolve(import.meta.dir, '..')
 const DATA = join(REPO, 'packages/salvageunion-reference/data')
-const OUT = join(REPO, 'packages/component-lib/src/components/compositions/heroArtCrop.data.ts')
+const OUT = join(REPO, 'apps/web/src/ui/components/compositions/heroArtCrop.data.ts')
 const ASSET_BASE_URL = 'https://assets.salvageunion.io'
 const ASSET_ORIGIN = new URL(ASSET_BASE_URL).origin
 const ART_KEY = /^[a-z0-9-]+\/[a-z0-9-]+$/

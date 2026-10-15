@@ -8,12 +8,12 @@
  *
  * Presentational only — the `.su-dash-rail` region wrapper (grid area + flex row +
  * forward border) is supplied by DashboardGrid's rail slot, and the app
- * injects its own router link via `returnControl` (component-lib stays
+ * injects its own router link via `returnControl` (src/ui stays
  * routing-agnostic).
  */
 
-import { Badge, Button, tokens } from 'component-lib'
 import type { CSSProperties, ReactNode } from 'react'
+import { Badge, Button, tokens } from '../../../ui/index'
 import { MARK_SRC } from '../../lib/appUrl'
 
 type RailFam = 'mech' | 'pilot' | 'crawler'

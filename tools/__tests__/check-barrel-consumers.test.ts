@@ -44,18 +44,18 @@ describe('parseBarrel', () => {
 })
 
 describe('namesImportedFromLib', () => {
-  test('reads the root import only, with type and aliased bindings', () => {
+  test('reads the barrel import only, with type and aliased bindings', () => {
     const source = [
-      "import { Button, type ButtonProps, Stat as S } from 'component-lib'",
-      "import type { CardFootMeta } from 'component-lib'",
-      "import { color } from 'component-lib/design/tokens'",
-      "// import { Gone } from 'component-lib'",
+      "import { Button, type ButtonProps, Stat as S } from '../ui/index'",
+      "import type { CardFootMeta } from '../../../ui/index'",
+      "import { color } from '../ui/design/tokens'",
+      "// import { Gone } from '../ui/index'",
     ].join('\n')
     expect(namesImportedFromLib(source)).toEqual(['Button', 'ButtonProps', 'Stat', 'CardFootMeta'])
   })
 })
 
-const lib = 'packages/component-lib/src'
+const lib = 'apps/web/src/ui'
 
 describe('appOf', () => {
   test('the Cantina folder in apps/web is its own app; anything else is its workspace', () => {

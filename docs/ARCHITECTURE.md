@@ -7,7 +7,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
 ## Areas
 
 1. **Packages** <a id="packages"></a>
-   `salvageunion-reference` → `component-lib` → `srd` / `cantina`; `cantina-domain` → `component-lib` (`/product`) / `cantina` / bot / `convex/`; `gates` → `tools/`, app e2e.
+   `salvageunion-reference` → `apps/web` (srd and the Cantina, over its `src/ui`); `cantina-domain` → `apps/web` / bot / `convex/`; `gates` → `tools/`, app e2e.
    Packages never import an app (`noRestrictedImports`); deps use `workspace:*`.
 2. **salvageunion-reference** <a id="reference"></a>
    Private, no build, no version. Zod in `lib/schemas/` generates JSON Schema and `Ref*` types, gitignored and rebuilt on install, typecheck, build and test (its `ref-generate` bin).
@@ -15,11 +15,11 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
 3. **Lazy loading** <a id="lazy-loading"></a>
    Call `preload()` before any accessor; a module-scope ORM call fails Biome (`noModuleScopeReferenceCall.grit`).
    Tests preload through `test/reference-preload.ts` in each workspace's `bunfig.toml`, never `preload('all')` per file.
-4. **component-lib** <a id="component-lib"></a>
-   TypeScript source, no build; `src/index.ts` barrel; tokens in `src/styles/theme.css`, mirrored by `src/design/tokens.ts`.
+4. **UI library** <a id="component-lib"></a>
+   `apps/web/src/ui/index.ts` barrel; tokens in `apps/web/src/ui/styles/theme.css`, mirrored by `design/tokens.ts`; Biome keeps app code out.
    One app's composition lives in that app (`barrel-consumers`); unused exports: [knip](#dead-code).
 5. **Stylesheet wiring** <a id="stylesheets"></a>
-   One entry, `packages/component-lib/src/styles/entry.css` (tokens, `layer(su-reset)`, `layer(su-base)`), imported by the apps.
+   One entry, `apps/web/src/ui/styles/entry.css` (tokens, `layer(su-reset)`, `layer(su-base)`), imported by the apps.
    App stylesheets stay unlayered, so they win; rules: `.claude/rules/styling.md`.
 6. **srd build** <a id="srd-build"></a>
    In-house Vite SSG with React islands ([DESIGN.md](../apps/web/ssg/DESIGN.md)); routes and endpoints are registered, never discovered.

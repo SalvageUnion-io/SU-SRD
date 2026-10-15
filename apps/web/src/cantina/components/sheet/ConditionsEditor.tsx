@@ -16,8 +16,8 @@
  * affordance — chips render as plain badges (published snapshots).
  */
 
-import { Conditions, INPUT_FOCUS, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { Conditions, INPUT_FOCUS, tokens } from '../../../ui/index'
 import { useChipDraft } from './useChipDraft'
 
 /** The sheet's bordered well around the chip row. */

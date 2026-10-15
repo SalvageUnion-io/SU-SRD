@@ -5,15 +5,15 @@
  *
  * The tabs: **Opposition**, **Proposals**, **Tell the table**, **Tables**,
  * **SRD**, and **Log** set apart at the far end (board M1). They
- * are component-lib's `Tabs`, so one tab stop and arrow keys between tabs, each
+ * are src/ui's `Tabs`, so one tab stop and arrow keys between tabs, each
  * at the canvas's 48-unit control height. Which tab is open is the caller's
  * state, kept on the device.
  *
  * Presentational: the Dashboard builds each panel and the dock.
  */
 
-import { Tab, TabList, TabPanel, Tabs, tokens } from 'component-lib'
 import type { CSSProperties, ReactNode } from 'react'
+import { Tab, TabList, TabPanel, Tabs, tokens } from '../../../ui/index'
 
 const { borderWidth, color, space } = tokens
 

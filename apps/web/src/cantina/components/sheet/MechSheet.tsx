@@ -51,7 +51,11 @@
 
 import type { Crawler } from 'cantina-domain/schemas/crawler'
 import type { Mech } from 'cantina-domain/schemas/mech'
-import type { SlabCount } from 'component-lib'
+import type { CSSProperties, ReactNode } from 'react'
+import { useState } from 'react'
+import { nameToSlug } from 'salvageunion-reference'
+import { pinFor, unifiedMechConditions } from 'salvageunion-reference/rules'
+import type { SlabCount } from '../../../ui/index'
 import {
   Conditions,
   EmptyState,
@@ -62,11 +66,7 @@ import {
   SheetSectionSlab,
   tokens,
   VitalGauge,
-} from 'component-lib'
-import type { CSSProperties, ReactNode } from 'react'
-import { useState } from 'react'
-import { nameToSlug } from 'salvageunion-reference'
-import { pinFor, unifiedMechConditions } from 'salvageunion-reference/rules'
+} from '../../../ui/index'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'
 import { chassisArt } from '../../lib/photos/defaultArt'
 import { resolveModule, resolveSystem } from '../../lib/rules/mechItems'

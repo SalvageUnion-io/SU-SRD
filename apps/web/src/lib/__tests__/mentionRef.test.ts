@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { mentionRef } from 'component-lib'
+import { mentionRef } from '../../ui/index'
 import { srdHrefFor } from '../entityHref'
 
 describe('mentionRef', () => {

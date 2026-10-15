@@ -20,11 +20,11 @@
  * client entry reveals both on one page load in a hundred.
  */
 
-import { AppBar, cn, FOCUS_RING } from 'component-lib'
 import { SIGN_IN_HREF } from '../lib/accountBar'
 import { CANTINA_PATH } from '../lib/constants'
 import { WIKI_LINK_ATTRIBUTE } from '../lib/wikiLink'
 import { Island } from '../runtime/Island'
+import { AppBar, cn, FOCUS_RING } from '../ui/index'
 import { MobileNavIsland } from './islands/MobileNavIsland'
 import { MobileSearchIsland } from './islands/MobileSearchIsland'
 import { SearchIsland } from './islands/SearchIsland'

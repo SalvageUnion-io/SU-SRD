@@ -12,10 +12,10 @@
  */
 
 import type { Crawler } from 'cantina-domain/schemas/crawler'
-import { Button, EntitySearcher, ModalShell, toast, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useEffect, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
+import { Button, EntitySearcher, ModalShell, toast, tokens } from '../../../ui/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { applyCrawlerCrewAndTypeEdit } from '../../lib/wizard/applyCrawlerEdit'

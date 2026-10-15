@@ -10,7 +10,7 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Mech } from 'cantina-domain/schemas/mech'
-import { Toaster, toast } from 'component-lib'
+import { Toaster, toast } from '../../../../ui/index'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { FIXTURE_NOW } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'

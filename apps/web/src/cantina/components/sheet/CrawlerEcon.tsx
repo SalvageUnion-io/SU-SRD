@@ -21,8 +21,8 @@
  * and builds the readout data; this only renders it.
  */
 
-import { Button, Stat, tokens } from 'component-lib'
 import type { CSSProperties, ReactNode } from 'react'
+import { Button, Stat, tokens } from '../../../ui/index'
 
 export type EconLozItem = {
   /** Stat label, e.g. 'Upkeep'. */

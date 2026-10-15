@@ -1,3 +1,7 @@
+import { useMutation, useQuery } from 'convex/react'
+import type { CSSProperties } from 'react'
+import { useEffect, useRef } from 'react'
+import { api } from '../../../../convex/_generated/api'
 import {
   Badge,
   Button,
@@ -7,11 +11,7 @@ import {
   PageShell,
   Text,
   tokens,
-} from 'component-lib'
-import { useMutation, useQuery } from 'convex/react'
-import type { CSSProperties } from 'react'
-import { useEffect, useRef } from 'react'
-import { api } from '../../../../convex/_generated/api'
+} from '../../../ui/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { invitePath } from '../../lib/games/inviteLink'

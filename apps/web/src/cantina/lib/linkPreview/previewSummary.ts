@@ -15,8 +15,8 @@
  */
 
 import { PRODUCT } from 'cantina-domain/product'
-import type { OgCardProps } from 'component-lib'
-import { color } from 'component-lib/design/tokens'
+import { color } from '../../../ui/design/tokens'
+import type { OgCardProps } from '../../../ui/index'
 
 /** The kinds of player thing a link previews. */
 export type PreviewKind = 'pilot' | 'mech' | 'crawler' | 'npc' | 'pattern'

@@ -4,8 +4,8 @@ import {
   STARTER_MECHS,
   STARTER_PILOTS,
 } from 'cantina-domain/starterSet/starterSet'
-import { color } from 'component-lib/design/tokens'
 import { NATIVE_FETCH_GLOBALS } from '../../../../test/env'
+import { color } from '../../../ui/design/tokens'
 import { renderShell } from '../../shell/shell'
 import type { Env } from '../index'
 import worker from '../index'

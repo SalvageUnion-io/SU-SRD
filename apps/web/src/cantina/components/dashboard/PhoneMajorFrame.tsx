@@ -28,7 +28,8 @@
  * `.su-dash-phone` (`styles/dashboard/DashboardPhone.css`).
  */
 
-import { Badge, Button, Entity, StatusBadge } from 'component-lib'
+import type { CSSProperties, ReactNode, RefObject } from 'react'
+import { useEffect, useRef } from 'react'
 import {
   borderWidth,
   color,
@@ -38,9 +39,8 @@ import {
   space,
   tracking,
   weight,
-} from 'component-lib/design/tokens'
-import type { CSSProperties, ReactNode, RefObject } from 'react'
-import { useEffect, useRef } from 'react'
+} from '../../../ui/design/tokens'
+import { Badge, Button, Entity, StatusBadge } from '../../../ui/index'
 import { BandStats } from './BandStats'
 import { DashboardGauge } from './DashboardGauge'
 import { DAMAGED } from './damaged.model'

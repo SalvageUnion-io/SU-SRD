@@ -1,7 +1,7 @@
-import { EmptyState, FieldError, Panel, ReferenceEntityCard, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import type { RefAbility, RefClass, RefEquipment } from 'salvageunion-reference'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
+import { EmptyState, FieldError, Panel, ReferenceEntityCard, tokens } from '../../../ui/index'
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
 import '../../styles/wizard.css'
 import { Recap, RecapEntity, RecapStat, RecapTokens } from '../wizard/ReviewRecap'

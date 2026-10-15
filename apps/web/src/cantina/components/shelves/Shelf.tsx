@@ -8,8 +8,8 @@
  * what a screen reader lands on.
  */
 
-import { EmptyState, Slab, Text, tokens } from 'component-lib'
 import type { CSSProperties, ReactNode } from 'react'
+import { EmptyState, Slab, Text, tokens } from '../../../ui/index'
 
 const SECTION = {
   display: 'flex',

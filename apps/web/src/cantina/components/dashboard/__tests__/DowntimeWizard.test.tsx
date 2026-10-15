@@ -11,8 +11,8 @@
 
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import { CHAPTER_BAND_COLOR, EntityHrefProvider } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { CHAPTER_BAND_COLOR, EntityHrefProvider } from '../../../../ui/index'
 import { crawlerFixture } from '../../__tests__/fixtures'
 import { DowntimeWizard } from '../DowntimeWizard'
 import { downtimeHandle } from './downtimeFixture'

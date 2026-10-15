@@ -15,11 +15,11 @@
 
 import type { Photo } from 'cantina-domain/schemas/photo'
 import { photoUrl } from 'cantina-domain/schemas/photo'
-import { assetSrcSetFor, Button, Text, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useRef, useState } from 'react'
 import { api } from '../../../../convex/_generated/api'
 import type { Id } from '../../../../convex/_generated/dataModel'
+import { assetSrcSetFor, Button, Text, tokens } from '../../../ui/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import type { PhotoUploader } from '../../lib/photos/uploadPhoto'
 import { PhotoRefused, postPhoto, shrinkPhoto, uploadPhoto } from '../../lib/photos/uploadPhoto'

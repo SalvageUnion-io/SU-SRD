@@ -1,7 +1,7 @@
-import { rollD20, Toaster, toastRoll } from 'component-lib'
 import { useState } from 'react'
 import type { ColumnsRoll, ColumnsTablePageData } from '../../lib/columnsTablePage'
 import { columnsAnnouncement } from '../../lib/columnsTablePage'
+import { rollD20, Toaster, toastRoll } from '../../ui/index'
 import { ColumnsTableView } from '../ColumnsTableView'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 

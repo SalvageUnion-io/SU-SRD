@@ -6,7 +6,10 @@
  * generator (`scripts/og-screenshots.ts`) and the pages that reference the
  * output can never disagree about what the card says or where its PNG lives.
  */
-import type { OgCardProps } from 'component-lib'
+
+import type { RefEnumSchemaName, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
+import { displayTitle } from 'salvageunion-reference'
+import type { OgCardProps } from '../ui/index'
 import {
   OG_CARD_HEIGHT,
   OG_CARD_WIDTH,
@@ -15,9 +18,7 @@ import {
   ogCardThemeColor,
   ogCardTitle,
   ogReferenceAddressFits,
-} from 'component-lib'
-import type { RefEnumSchemaName, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
-import { displayTitle } from 'salvageunion-reference'
+} from '../ui/index'
 import { itemHref, patternHref } from './entityHref'
 
 /**

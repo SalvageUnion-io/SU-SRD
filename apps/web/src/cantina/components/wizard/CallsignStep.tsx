@@ -1,4 +1,4 @@
-import { Field, Input } from 'component-lib'
+import { Field, Input } from '../../../ui/index'
 import '../../styles/wizard.css'
 import { RollTableButton } from './RollTableButton'
 import type { RollTableDeps } from './rollTableHelpers.model'

@@ -17,8 +17,8 @@
  */
 
 import type { Mech } from 'cantina-domain/schemas/mech'
-import { Field, tokens } from 'component-lib'
 import type { CSSProperties, ReactNode } from 'react'
+import { Field, tokens } from '../../../ui/index'
 import type { SheetPatch } from './sheetViewProps.model'
 
 const PANEL = { minWidth: 0 } satisfies CSSProperties

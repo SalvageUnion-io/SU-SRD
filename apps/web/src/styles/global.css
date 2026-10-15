@@ -39,7 +39,7 @@ html[data-srd-signed-in] .srd-sign-in {
   display: none;
 }
 
-/* Buttons, masthead, section headers and catalog tiles are component-lib's
+/* Buttons, masthead, section headers and catalog tiles are src/ui's
    (`Button`, `AppBar`, `ChapterBand` / `Slab`, `CatalogTile`); no srd
    class restates them. */
 

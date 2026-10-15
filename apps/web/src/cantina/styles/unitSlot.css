@@ -1,7 +1,7 @@
 /*
  * unitSlot.css — the stateful/responsive half of the
  * The Cantina components listed below; their static styling is style objects over
- * component-lib tokens. Loaded by `index.css`.
+ * src/ui tokens. Loaded by `index.css`.
  *
  *   - `EmptyUnitSlot` (components/shared/EmptyUnitSlot.tsx): the dashed
  *     foot, whose children stretch (a child selector).

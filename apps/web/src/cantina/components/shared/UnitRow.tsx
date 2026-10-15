@@ -11,11 +11,11 @@
  * open passes a `mode` instead.
  */
 
-import type { EntityMode } from 'component-lib'
-import { Button, buttonVariants, Entity } from 'component-lib'
-import { space } from 'component-lib/design/tokens'
 import { Unlink } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
+import { space } from '../../../ui/design/tokens'
+import type { EntityMode } from '../../../ui/index'
+import { Button, buttonVariants, Entity } from '../../../ui/index'
 import type { UnitKind, UnitReading } from '../../lib/units/unitModel'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { AppLink } from './AppLink'

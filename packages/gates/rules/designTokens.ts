@@ -34,7 +34,6 @@ import { assertScanFloor } from '../lib/scanFloor'
 import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
 
 const SCAN_DIRS = [
-  'packages/component-lib/src',
   'packages/salvageunion-reference/lib',
   // The DATASET, not just the code that reads it (`.json` included): a raw hex
   // in the data would be a second palette. The data names no colour (a guide's
@@ -246,31 +245,31 @@ const TOKEN_RULES: TokenRule[] = [
  */
 const EXEMPTIONS: Exemption[] = [
   {
-    file: 'packages/component-lib/src/styles/theme.css',
+    file: 'apps/web/src/ui/styles/theme.css',
     rules: ['raw-color', 'rust-allowlist', 'cool-ground'],
     reason:
       'The token definitions themselves — this file is where colour is allowed to be a literal, and where `--color-rust` is DEFINED (rust-allowlist governs who paints with it, not where it is declared).',
   },
   {
-    file: 'packages/component-lib/src/design/tokens.ts',
+    file: 'apps/web/src/ui/design/tokens.ts',
     rules: ['raw-color', 'cool-ground'],
     reason:
       'The TypeScript mirror of theme.css above: a token-definition file, so it is where colour is allowed to be a literal. Every value is ported verbatim from theme.css — nothing here is a new colour, and `src/design/__tests__/tokens.parity.test.ts` fails if the two ever disagree.',
   },
   {
-    file: 'packages/component-lib/src/components/atoms/Button.tsx',
+    file: 'apps/web/src/ui/components/atoms/Button.tsx',
     rules: ['rust-allowlist'],
     reason:
       'THE rust allowlist (ruleset §3.1): rust means "do something", and Button is the thing that does. Every action, the Dashboard cost-pennant button included, is painted here or by buttonVariants.',
   },
   {
-    file: 'packages/component-lib/src/components/atoms/buttonVariants.ts',
+    file: 'apps/web/src/ui/components/atoms/buttonVariants.ts',
     rules: ['rust-allowlist'],
     reason:
       "THE rust allowlist (ruleset §3.1): Button's class-string recipe, which links styled as buttons use. Its stylesheet half is `.su-btn--primary` in styles/index.css, whose rust lines carry a `design-tokens-ignore` naming this allowlist (the file is shared, so it cannot be exempted whole).",
   },
   {
-    file: 'packages/component-lib/src/components/atoms/InlineRef.tsx',
+    file: 'apps/web/src/ui/components/atoms/InlineRef.tsx',
     rules: ['rust-allowlist'],
     reason:
       'THE rust allowlist (ruleset §3.1): the one Reference exception — an inline link. Its paint lives in the stylesheet half, `.su-inline-ref--link` in styles/index.css, whose rust lines carry a `design-tokens-ignore` naming this allowlist; this entry keeps the component itself sanctioned to name rust.',
@@ -288,25 +287,25 @@ const EXEMPTIONS: Exemption[] = [
       "Not a web surface. The bot's embed accent is rust in lockstep with theme.css (`themeLockstep.test.ts`), and Discord renders it as a container edge, not a button or a link; the matches here are the doc comments that cite `--color-rust` as that lockstep's source. Discord's own palette rules are the bot's (ruleset §3.4), not this allowlist's.",
   },
   {
-    file: 'packages/component-lib/src/components/atoms/Slab.tsx',
+    file: 'apps/web/src/ui/components/atoms/Slab.tsx',
     rules: ['gradient'],
     reason:
       'Named exemption: the Slab dashed leader (a repeating-linear-gradient) is a deliberate control-panel shape built on ink tokens, kept on purpose.',
   },
   {
-    file: 'packages/component-lib/src/components/atoms/userMadeHatch.ts',
+    file: 'apps/web/src/ui/components/atoms/userMadeHatch.ts',
     rules: ['gradient'],
     reason:
       'The user-made hatch (ruleset §3.5 and §3.9): a HARD-STOP `repeating-linear-gradient(135deg, …)` — coincident stops on `--color-ink-20` over the band\'s own colour — so it paints rules and never blends. Ruled in the ruleset before it was built ("it joins EXEMPTIONS when it lands"); alone in its file so the exemption covers this one constant.',
   },
   {
-    file: 'packages/component-lib/src/catalog/catalogColors.ts',
+    file: 'apps/web/src/ui/catalog/catalogColors.ts',
     rules: ['gradient'],
     reason:
-      "All three gradients are HARD-STOP patterns, which the gradient rule's own fix text allows ('hard colour stops if you mean a pattern') — the tech-level ramp repeats each --color-tl-N twice at exact boundaries, and the ability-tier / class gradients do the same. No shading, and every stop is a token. A catalog tile stands in for a whole SPREAD of entities (six tech levels, three ability tiers, core→hybrid classes) rather than one hue, which is what the banding says. Not new code: this file lived in apps/web, which the guard does not scan, and only became visible when it moved into component-lib to be shared with the Dashboard's SRD Explorer.",
+      "All three gradients are HARD-STOP patterns, which the gradient rule's own fix text allows ('hard colour stops if you mean a pattern') — the tech-level ramp repeats each --color-tl-N twice at exact boundaries, and the ability-tier / class gradients do the same. No shading, and every stop is a token. A catalog tile stands in for a whole SPREAD of entities (six tech levels, three ability tiers, core→hybrid classes) rather than one hue, which is what the banding says. Not new code: this file lived in apps/web, which the guard does not scan, and only became visible when it moved into the shared library to be shared with the Dashboard's SRD Explorer.",
   },
   {
-    file: 'packages/component-lib/src/components/atoms/CatalogTile.tsx',
+    file: 'apps/web/src/ui/components/atoms/CatalogTile.tsx',
     rules: ['gradient'],
     reason:
       'Named exemption in ruleset §3.5: the catalog tile ramps (--catalog-bg) carry the tech-level and ability-tier ramps. The ramp is a wayfinding cue, not decoration. The only match is the doc comment explaining WHY the fill must use the `background` shorthand — it names the `linear-gradient()` that `background-color` silently drops. That comment is the reason the bug stays fixed, so it is not reworded to dodge the regex.',
@@ -318,7 +317,7 @@ const EXEMPTIONS: Exemption[] = [
       'Ruleset §3.5 THE one-off: the .pilot-panel distressed-metal effect on srd /about is a CSS illustration, ruled a sanctioned one-off. It is the single place smooth shading is allowed, and it is allowed because it is a picture of a rusted plate rather than a UI surface. Not precedent — no second one-off without an explicit ruling. raw-color rides along because it is the SAME illustration: the rust blooms, the steel plate, the rivet heads and the engraved lettering are one picture, and a picture needs more shades than a UI palette has — the rivets alone spend nine greys on lit/worn/green/flush/hole. Tokenising them would add a dozen tokens nothing else could ever reuse. CAVEAT, since a file-level exemption is blunter than the rationale: it also swallows three literals outside the illustration block — the .catalog-item hover box-shadow and .catalog-item__name text-shadow (real shadow debt on an authored surface, still owed a token) and one #fff in the print block. Line-scoping the exemption was considered and rejected as too brittle to survive edits to this file; they are recorded here instead of silently absorbed.',
   },
   {
-    file: 'packages/component-lib/src/components/atoms/KofiButton.tsx',
+    file: 'apps/web/src/ui/components/atoms/KofiButton.tsx',
     rules: ['raw-color'],
     reason:
       "EXTERNAL BRAND colour, not ours. #2e66c4 is Ko-fi's blue, darkened: the widget sets its label in white on this fill, and Ko-fi's own #72a4f2 measured 2.5:1 against it where WCAG AA wants 4.5:1 (#2e66c4 gives 5.5:1 at nearly the same hue). The widget is recognisable BECAUSE it is blue, so resolving it to a Salvage Union token would misrepresent someone else's mark. This is the standing rule for third-party marks: a colour we source from an external brand keeps the external hue, and anything sourced to OUR design uses the canonical set.",
@@ -333,7 +332,7 @@ const EXEMPTIONS: Exemption[] = [
     file: 'apps/discord-bot/src/format.ts',
     rules: ['raw-color'],
     reason:
-      "Not CSS: the bot renders no stylesheet. Discord's `setAccentColor()` takes a 0xRRGGBB integer, so NEUTRAL_ACCENT and ROLL_COLORS restate `--color-rust` and the `--color-roll-*` ramp in the only form the API accepts; each doc comment cites the token's rgb()/hex it was converted from. There is no token to read instead (the bot does not depend on component-lib), and `src/__tests__/themeLockstep.test.ts` reads theme.css and fails if any of these drifts — the lockstep the rule exists to enforce, done by a test rather than a lookup.",
+      "Not CSS: the bot renders no stylesheet. Discord's `setAccentColor()` takes a 0xRRGGBB integer, so NEUTRAL_ACCENT and ROLL_COLORS restate `--color-rust` and the `--color-roll-*` ramp in the only form the API accepts; each doc comment cites the token's rgb()/hex it was converted from. There is no token to read instead (the bot does not depend on src/ui), and `src/__tests__/themeLockstep.test.ts` reads theme.css and fails if any of these drifts — the lockstep the rule exists to enforce, done by a test rather than a lookup.",
   },
   {
     file: 'apps/discord-bot/src/gameCards.ts',

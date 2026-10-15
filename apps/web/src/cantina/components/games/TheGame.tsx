@@ -14,12 +14,12 @@
  * not built yet, and what archiving a Game should mean is the owner's decision.
  */
 
-import { Button, ConfirmDialog, Field, Select, tokens } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import { api } from '../../../../convex/_generated/api'
 import type { Id } from '../../../../convex/_generated/dataModel'
+import { Button, ConfirmDialog, Field, Select, tokens } from '../../../ui/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { HubSection } from './HubSection'

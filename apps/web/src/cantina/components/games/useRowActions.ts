@@ -15,10 +15,10 @@
  */
 
 import { moveTo, SHELF } from 'cantina-domain/container'
-import { toast } from 'component-lib'
 import { useMutation } from 'convex/react'
 import { api } from '../../../../convex/_generated/api'
 import type { Id } from '../../../../convex/_generated/dataModel'
+import { toast } from '../../../ui/index'
 import { copyForShelf } from '../../lib/copyEntity'
 import type { RosterRow } from '../../lib/games/gameRoster'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'

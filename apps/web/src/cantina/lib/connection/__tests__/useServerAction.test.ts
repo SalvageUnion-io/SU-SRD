@@ -10,8 +10,8 @@
 
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { act, renderHook } from '@testing-library/react'
-import { toast } from 'component-lib'
 import { ConvexError } from 'convex/values'
+import { toast } from '../../../../ui/index'
 import { installConvexMocks } from '../../../components/__tests__/convexMock'
 import type { ServerActionResult } from '../useServerAction'
 

@@ -14,8 +14,8 @@
  */
 
 import type { Crawler, CrawlerNpcState, ScrapPool } from 'cantina-domain/schemas/crawler'
-import type { ChoiceSelections } from 'component-lib'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
+import type { ChoiceSelections } from '../../../ui/index'
 import type { ResolvedNpc } from '../crawlerRefs'
 import { findNpcChoiceByName, resolveCrawlerBay, resolveCrawlerType } from '../crawlerRefs'
 import { readReference } from '../readReference'

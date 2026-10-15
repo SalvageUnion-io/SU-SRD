@@ -7,9 +7,9 @@
  * Presentational: the Dashboard sends, and says why when the server refuses.
  */
 
-import { Button, EmptyState, Field, Input, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
+import { Button, EmptyState, Field, Input, tokens } from '../../../ui/index'
 import type { AlertLine } from '../dashboard/useGameFeed'
 import { BODY, EYEBROW, MUTED, NUMBERS } from './mediatorStyles.model'
 import { ago } from './proposalLine.model'

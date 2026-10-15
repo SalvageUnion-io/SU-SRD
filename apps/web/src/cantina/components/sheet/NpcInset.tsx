@@ -16,8 +16,8 @@
  * state, board 10).
  */
 
-import { InlineEditField, Inset, Stat, tokens } from 'component-lib'
 import type { CSSProperties, ReactNode } from 'react'
+import { InlineEditField, Inset, Stat, tokens } from '../../../ui/index'
 import { NpcFactsEditor } from './NpcFactsEditor'
 
 const ROW = {

@@ -1,5 +1,5 @@
-import { borderWidth, color, fontSize, radius, space, weight } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
+import { borderWidth, color, fontSize, radius, space, weight } from '../../../ui/design/tokens'
 import { useConnection } from '../../lib/connection/connectionContext'
 
 const LOZENGE = {

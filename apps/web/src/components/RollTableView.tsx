@@ -1,6 +1,6 @@
-import { RollTableInstrument } from 'component-lib'
 import type { RollTablePageData } from '../lib/rollTablePage'
 import { rollTableDensity, rowForRoll, splitRows } from '../lib/rollTablePage'
+import { RollTableInstrument } from '../ui/index'
 import { MentionProse } from './MentionProse'
 import { RollPageFrame } from './RollPageFrame'
 

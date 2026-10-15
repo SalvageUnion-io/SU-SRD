@@ -24,7 +24,7 @@ const classGradient =
  * (`entityTone`): a tile that carries its name in text paints the band an
  * entity header with text paints, so crawler pink is the crawler band (ruleset
  * §3.8). The schema → domain grouping itself is NOT restated here — it comes
- * from `resolveSchemaDomain` in component-lib, so a new schema can't silently
+ * from `resolveSchemaDomain` in src/ui, so a new schema can't silently
  * fall through to a wrong default the way a hand-keyed schema list allowed.
  *
  * `gear` rides the tech-level ramp, matching how gear entities are toned.

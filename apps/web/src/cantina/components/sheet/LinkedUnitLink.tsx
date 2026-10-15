@@ -11,7 +11,7 @@
  */
 
 import type { SheetEntityKind } from 'cantina-domain/schemas/entity'
-import { Entity } from 'component-lib'
+import { Entity } from '../../../ui/index'
 import { unitRowModel } from '../../lib/units/unitModel'
 
 type LinkedUnitLinkProps = {

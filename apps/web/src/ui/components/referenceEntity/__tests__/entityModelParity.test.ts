@@ -8,7 +8,7 @@
  * `ReferenceEntityCard` computes per render today. Where a helper now reads
  * the model, this test pins the wiring; where it still computes its own
  * answer, it pins agreement. It lives here rather than in the package
- * because the dependency runs one way (component-lib reads the package).
+ * because the dependency runs one way (src/ui reads the package).
  */
 
 import { describe, expect, test } from 'bun:test'

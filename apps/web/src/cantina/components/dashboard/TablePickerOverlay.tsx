@@ -13,9 +13,9 @@
  * moves focus into it, keeps it there and hands it back on close.
  */
 
-import { Button, ModalShell } from 'component-lib'
 import { X } from 'lucide-react'
 import type { RefObject } from 'react'
+import { Button, ModalShell } from '../../../ui/index'
 import type { PickableTable } from './tableCategories.model'
 import { groupTablesByCategory, TABLE_CATEGORY_LABEL } from './tableCategories.model'
 

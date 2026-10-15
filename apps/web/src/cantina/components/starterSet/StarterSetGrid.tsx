@@ -6,8 +6,8 @@
  * 2026-10-15).
  */
 
-import { Slab, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { Slab, tokens } from '../../../ui/index'
 import { StarterCard } from './StarterCard'
 import { starterShelves } from './starterShelves.model'
 

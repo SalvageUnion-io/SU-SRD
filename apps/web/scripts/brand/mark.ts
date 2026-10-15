@@ -7,7 +7,7 @@
  * `__tests__/brandMark.test.ts` fails when a committed SVG drifts from them.
  * Font-free geometry, so every rasterizer draws it the same.
  */
-import { color } from 'component-lib/design/tokens'
+import { color } from '../../src/ui/design/tokens'
 
 const SIZE = 512
 const RADIUS = 30

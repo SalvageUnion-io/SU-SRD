@@ -10,7 +10,7 @@
  *   - **Crew** — each crewmate's vitals and status (`CrewTab`), with a ▲ on
  *     the tab while any of them needs looking at.
  *
- * The tabs are component-lib's `Tabs`, so they carry the tabs keyboard model:
+ * The tabs are src/ui's `Tabs`, so they carry the tabs keyboard model:
  * ArrowLeft/ArrowRight select the neighbouring tab, Home/End the ends, and Tab
  * moves into the open panel. Which tab is open is the caller's state, kept on
  * the device (ADR-038 §2): it is screen arrangement, not play state.
@@ -18,9 +18,9 @@
  * Presentational: the Dashboard builds every panel and hands them in.
  */
 
-import { Tab, TabList, TabPanel, Tabs } from 'component-lib'
-import { color, space } from 'component-lib/design/tokens'
 import type { CSSProperties, ReactNode } from 'react'
+import { color, space } from '../../../ui/design/tokens'
+import { Tab, TabList, TabPanel, Tabs } from '../../../ui/index'
 
 export type DisplayTab = 'resolve' | 'reference' | 'tables' | 'srd' | 'log' | 'crew'
 

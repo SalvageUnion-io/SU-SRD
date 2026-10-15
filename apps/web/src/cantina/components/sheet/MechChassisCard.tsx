@@ -14,11 +14,11 @@
  */
 
 import type { Mech } from 'cantina-domain/schemas/mech'
-import type { StatItem } from 'component-lib'
-import { Button, Content, Field, InfoCutout } from 'component-lib'
 import type { ComponentProps, CSSProperties } from 'react'
 import { useMemo, useState } from 'react'
 import { toEntityModel } from 'salvageunion-reference'
+import type { StatItem } from '../../../ui/index'
+import { Button, Content, Field, InfoCutout } from '../../../ui/index'
 import { MechChassisPickerModal } from '../mech/MechChassisPickerModal'
 import type { MechSheetModel } from './mechSheet.model'
 import type { SheetPatch } from './sheetViewProps.model'

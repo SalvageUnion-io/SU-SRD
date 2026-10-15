@@ -13,8 +13,8 @@
  * choice until it saves.
  */
 
-import { Radio, tokens } from 'component-lib'
 import type { CSSProperties, ReactNode } from 'react'
+import { Radio, tokens } from '../../../ui/index'
 import type { Visibility, VisibilityChoice } from '../../lib/sharing/visibility'
 
 const FIELDSET = {

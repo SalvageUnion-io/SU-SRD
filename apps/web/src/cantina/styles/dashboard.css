@@ -3,7 +3,7 @@
  * token scope, the instrument surfaces and the four-region grid.
  *
  * The Cantina's own stylesheet: the Dashboard is a Cantina surface, so its rules live
- * here rather than in component-lib, whose stylesheets srd loads too. It is
+ * here rather than in src/ui, whose stylesheets srd loads too. It is
  * imported by `components/dashboard/Dashboard.tsx` and `mediator/MediatorDashboard.tsx`,
  * never by an instrument component.
  *

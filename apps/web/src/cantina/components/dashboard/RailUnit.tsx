@@ -9,8 +9,8 @@
  * compact `VitalGauge`); the rest are `[label | value]` cells.
  */
 
-import { Stat, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { Stat, tokens } from '../../../ui/index'
 import { DashboardGauge } from './DashboardGauge'
 import type { SlotKind } from './slotLayout.model'
 

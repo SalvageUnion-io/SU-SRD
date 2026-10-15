@@ -11,8 +11,8 @@
  * context colours the Guided door.
  */
 
-import { ChapterBand, ModeDoor, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { ChapterBand, ModeDoor, tokens } from '../../../ui/index'
 import type { BlankCreateKind } from '../../lib/wizard/blankCreate'
 import { AppLink } from '../shared/AppLink'
 import '../../styles/wizard.css'

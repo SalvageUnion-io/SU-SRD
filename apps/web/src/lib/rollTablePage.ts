@@ -6,9 +6,9 @@
  * helper (ADR-006), not a data read.
  */
 
-import type { AnnouncedRoll } from 'component-lib'
 import type { EntityRef, RefObjectTable } from 'salvageunion-reference'
 import { NO_EFFECT, parseTraitReferences, resultForTable } from 'salvageunion-reference'
+import type { AnnouncedRoll } from '../ui/index'
 
 /**
  * Prose with its trait references resolved at build time: plain runs, and

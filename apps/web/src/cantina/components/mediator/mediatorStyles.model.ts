@@ -7,8 +7,8 @@
  * Style objects over `tokens` only: no Dashboard stylesheet class (ADR-046).
  */
 
-import { tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { tokens } from '../../../ui/index'
 
 const { borderWidth, color, font, fontSize, radius, space, tracking, weight } = tokens
 

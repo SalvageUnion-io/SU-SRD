@@ -5,12 +5,12 @@
  * Slab over its Tokens, one a line — never names joined with commas.
  */
 
-import type { EntityRowModel } from 'component-lib'
-import { Entity, EntityStat, Slab, Stat, tokens } from 'component-lib'
 import type { CSSProperties, ReactNode } from 'react'
 import { useMemo } from 'react'
 import type { RefMetaEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
+import type { EntityRowModel } from '../../../ui/index'
+import { Entity, EntityStat, Slab, Stat, tokens } from '../../../ui/index'
 
 /** The recap: its facts, then its lists, down one column. */
 const RECAP = {

@@ -12,7 +12,7 @@
  * is laid over the whole card under the chips (`.su-starter-card__link`).
  */
 
-import { cn, Entity, FOCUS_RING } from 'component-lib'
+import { cn, Entity, FOCUS_RING } from '../../../ui/index'
 import type { StarterKind } from '../../lib/starterSet/starterTemplates'
 import { AppLink } from '../shared/AppLink'
 import type { StarterBuild } from './starterShelves.model'

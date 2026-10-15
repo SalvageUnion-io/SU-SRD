@@ -20,10 +20,10 @@
  */
 
 import type { Crawler } from 'cantina-domain/schemas/crawler'
-import { Entity, Field, Stat, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
+import { Entity, Field, Stat, tokens } from '../../../ui/index'
 import { resolveCrawlerType, resolveCrawlerTypeAbilities } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import type { useEntityStore } from '../../stores/entityStore'

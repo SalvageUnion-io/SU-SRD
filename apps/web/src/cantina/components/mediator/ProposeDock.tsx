@@ -25,9 +25,9 @@ import {
   PROPOSAL_REASON_MAX,
   PROPOSAL_STATE_WORD,
 } from 'cantina-domain/games/proposals'
-import { Button, Field, Input, Select, tokens } from 'component-lib'
 import type { CSSProperties, RefObject } from 'react'
 import { useId, useState } from 'react'
+import { Button, Field, Input, Select, tokens } from '../../../ui/index'
 import { EYEBROW, MUTED, NUMBERS } from './mediatorStyles.model'
 import { ProposalRow } from './ProposalRow'
 import type { SentProposal } from './proposalLine.model'

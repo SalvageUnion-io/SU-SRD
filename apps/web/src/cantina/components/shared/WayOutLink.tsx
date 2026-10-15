@@ -1,5 +1,5 @@
-import { buttonVariants } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { buttonVariants } from '../../../ui/index'
 import { AppLink } from './AppLink'
 
 /** The 44px touch floor (ruleset §4.6), and no underline on a button-shaped link. */

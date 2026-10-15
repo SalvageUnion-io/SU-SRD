@@ -11,8 +11,6 @@
  * make `ssg/` a runtime dependency of the app.
  */
 
-import { Footer } from 'component-lib'
-import { color } from 'component-lib/design/tokens'
 import type { CSSProperties, ReactNode } from 'react'
 import type { DocumentMeta, PageFoot } from '../../ssg/types'
 import { TopNavigation } from '../components/TopNavigation'
@@ -21,6 +19,8 @@ import { escapeJsonForScript } from '../lib/escapeJsonForScript'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { SITE_MANIFEST } from '../pwa'
 import { Island } from '../runtime/Island'
+import { color } from '../ui/design/tokens'
+import { Footer } from '../ui/index'
 
 const DEFAULT_TITLE = 'Salvage Union System Reference Document'
 const DEFAULT_DESCRIPTION =

@@ -13,12 +13,12 @@
 
 import type { Crawler } from 'cantina-domain/schemas/crawler'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
-import { CountStepper, rollForTable } from 'component-lib'
 import { useEffect, useRef, useState } from 'react'
 import type { RefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { CriticalInjuryEffect } from 'salvageunion-reference/rules'
 import { pilotMaxHPParts, resolvePoolStart } from 'salvageunion-reference/rules'
+import { CountStepper, rollForTable } from '../../../ui/index'
 import { readReference } from '../../lib/readReference'
 import { critInjuryPatch, describeCritInjury, pilotDamagePatch } from '../../lib/rules/playActions'
 import { runWrite } from '../../lib/runWrite'

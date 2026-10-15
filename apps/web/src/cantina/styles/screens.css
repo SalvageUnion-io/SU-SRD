@@ -1,7 +1,7 @@
 /*
  * screens.css — the stateful/responsive half of the
  * The Cantina components listed below; their static styling is style objects over
- * component-lib tokens. Loaded by `index.css`.
+ * src/ui tokens. Loaded by `index.css`.
  *
  *   - `components/account/SignInControl.tsx` — `.su-sign-in-control--dark`, the
  *     ghost Button recoloured for the dark masthead (hover included).
@@ -9,7 +9,7 @@
  *     `.su-union-slots__drawer-panel`, NavDrawer's `triggerClassName` /
  *     `panelClassName`, which override `.su-nav-drawer__*` rules.
  *
- * These rules are unlayered, so they outrank component-lib's `su-base` layer —
+ * These rules are unlayered, so they outrank src/ui's `su-base` layer —
  * which is what the overrides above rely on.
  */
 

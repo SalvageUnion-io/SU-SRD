@@ -1,8 +1,8 @@
-import { SearchField, Segmented, SegmentedOption, Select } from 'component-lib'
 import type { ReactNode } from 'react'
 import type { TechLevel } from '../../lib/listingGroups'
 import { tlName } from '../../lib/listingGroups'
 import type { ListingView } from '../../lib/listingView'
+import { SearchField, Segmented, SegmentedOption, Select } from '../../ui/index'
 
 /** A tech level as the rail's toggle prints it: the numeral, or the word. */
 export function tlButtonLabel(level: TechLevel): string {

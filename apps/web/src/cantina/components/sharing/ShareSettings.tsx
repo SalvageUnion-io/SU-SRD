@@ -23,13 +23,13 @@
  * them.
  */
 
-import { Button, Field, FieldError, Select, tokens } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import { Check, Copy } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { api } from '../../../../convex/_generated/api'
 import type { Id } from '../../../../convex/_generated/dataModel'
+import { Button, Field, FieldError, Select, tokens } from '../../../ui/index'
 import { appUrl } from '../../lib/appUrl'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import type { ShareKind, Visibility } from '../../lib/sharing/visibility'

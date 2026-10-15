@@ -1,6 +1,6 @@
-import { ConfirmDialog } from 'component-lib'
 import type { ReactNode } from 'react'
 import { useCallback, useState } from 'react'
+import { ConfirmDialog } from '../../../ui/index'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import type { ConfirmCopy } from '../../lib/games/rowActionCopy'
 

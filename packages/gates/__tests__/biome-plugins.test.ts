@@ -1,5 +1,5 @@
 /**
- * The GritQL plugins in `packages/gates/biome/` and the component-lib and the Cantina
+ * The GritQL plugins in `packages/gates/biome/` and the src/ui and the Cantina
  * function-size caps are wired up by `includes` globs in biome.jsonc, and the real tree is clean.
  * A bad glob, or a Biome update that changes how plugins match, would make a
  * rule check nothing while `bun run check`
@@ -41,7 +41,7 @@ function capFor(glob: string): number {
   if (!match) throw new Error(`biome.jsonc no longer caps function length for ${glob}`)
   return Number(match[1])
 }
-const CAP = capFor('packages/component-lib/**')
+const CAP = capFor('apps/web/src/ui/**')
 const CANTINA_CAP = capFor('apps/web/src/cantina/**')
 
 /** A function Biome counts as `lines` long: it counts the lines between the braces. */
@@ -54,7 +54,7 @@ const TEST_FILE = 'apps/web/src/cantina/__biome_fixture__/x.test.tsx'
 const OTHER_TEST = 'apps/web/src/__biome_fixture__/y.test.ts'
 /** A file that asserts on load behaviour, excluded from the preload ban by path. */
 const EXEMPT_TEST = 'packages/salvageunion-reference/lib/__tests__/preload.test.ts'
-const BIG_LIB = 'packages/component-lib/src/__biome_fixture__/big.tsx'
+const BIG_LIB = 'apps/web/src/ui/__biome_fixture__/big.tsx'
 /** A Convex function file, where collecting the Change Log is banned. */
 const CONVEX = 'apps/web/convex/__biome_fixture__/z.ts'
 const BIG_APP = 'apps/web/src/cantina/__biome_fixture__/big.tsx'
@@ -259,7 +259,7 @@ describe('noRawErrorMessage', () => {
 describe('noExcessiveLinesPerFunction', () => {
   const rule = 'lint/complexity/noExcessiveLinesPerFunction'
 
-  test(`fires on a function over the ${CAP}-line cap in component-lib`, () => {
+  test(`fires on a function over the ${CAP}-line cap in src/ui`, () => {
     expect(flagged(BIG_LIB, rule)).toEqual([1])
   })
 

@@ -10,8 +10,8 @@
  */
 
 import { PROPOSALS_PAGE } from 'cantina-domain/games/proposals'
-import { Button, EmptyState, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { Button, EmptyState, tokens } from '../../../ui/index'
 import { MUTED } from './mediatorStyles.model'
 import { ProposalRow } from './ProposalRow'
 import type { SentProposal } from './proposalLine.model'

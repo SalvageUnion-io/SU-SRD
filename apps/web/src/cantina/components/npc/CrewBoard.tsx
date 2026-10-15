@@ -26,6 +26,12 @@ import { slotKey } from 'cantina-domain/links/linkRules'
 import type { Crawler } from 'cantina-domain/schemas/crawler'
 import type { Npc } from 'cantina-domain/schemas/npc'
 import { NpcSchema } from 'cantina-domain/schemas/npc'
+import { useQuery } from 'convex/react'
+import type { CSSProperties } from 'react'
+import { useMemo, useState } from 'react'
+import { nameToSlug } from 'salvageunion-reference'
+import { api } from '../../../../convex/_generated/api'
+import type { Id } from '../../../../convex/_generated/dataModel'
 import {
   Badge,
   Button,
@@ -41,13 +47,7 @@ import {
   toast,
   tokens,
   useMediaQuery,
-} from 'component-lib'
-import { useQuery } from 'convex/react'
-import type { CSSProperties } from 'react'
-import { useMemo, useState } from 'react'
-import { nameToSlug } from 'salvageunion-reference'
-import { api } from '../../../../convex/_generated/api'
-import type { Id } from '../../../../convex/_generated/dataModel'
+} from '../../../ui/index'
 import { useCrawlers, useHydrateEntities, useNpcs, useSoftLinkList } from '../../hooks/entities'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'

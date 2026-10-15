@@ -1,4 +1,4 @@
-import { Field, Textarea } from 'component-lib'
+import { Field, Textarea } from '../../../ui/index'
 import '../../styles/wizard.css'
 import { RollTableButton } from './RollTableButton'
 import type { RollTableDeps } from './rollTableHelpers.model'

@@ -1,7 +1,7 @@
-import { EmptyState, MasonryColumns, ReferenceEntityCard, Slab } from 'component-lib'
 import type { RefAbility, RefClass } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationClass, legalCreationAbilities } from 'salvageunion-reference/rules'
+import { EmptyState, MasonryColumns, ReferenceEntityCard, Slab } from '../../../ui/index'
 import { selectableClasses } from './classOptions.model'
 import '../../styles/wizard.css'
 import { fullWidthStyle } from './wizardStyles.model'

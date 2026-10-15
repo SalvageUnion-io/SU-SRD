@@ -10,8 +10,8 @@
  */
 
 import { PROPOSAL_STATE_WORD } from 'cantina-domain/games/proposals'
-import { tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { tokens } from '../../../ui/index'
 import { NUMBERS } from './mediatorStyles.model'
 import type { SentProposal } from './proposalLine.model'
 import { ago, proposalLine } from './proposalLine.model'

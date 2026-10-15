@@ -23,9 +23,9 @@ import {
   isUpkeepStep,
   UPKEEP_STEP_NAME,
 } from 'cantina-domain/rules/downtime'
-import { Button, ConfirmDialog, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
+import { Button, ConfirmDialog, tokens } from '../../../ui/index'
 import { BODY, bandTop, HEADING, MUTED, NUMBERS } from './mediatorStyles.model'
 
 const { color, space, weight } = tokens

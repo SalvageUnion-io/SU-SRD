@@ -8,10 +8,10 @@
  */
 
 import { MechPatternSchema } from 'cantina-domain/schemas/pattern'
-import { Entity, quotePatternName, Slab, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../../../convex/_generated/api'
+import { Entity, quotePatternName, Slab, tokens } from '../../../../ui/index'
 import { useConnection } from '../../../lib/connection/connectionContext'
 import { asReferencePattern, patternChassis, patternHref } from '../../../lib/patterns/patterns'
 import { AppLink } from '../../shared/AppLink'

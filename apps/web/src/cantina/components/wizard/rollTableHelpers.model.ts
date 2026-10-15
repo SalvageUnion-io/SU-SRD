@@ -3,10 +3,10 @@
  * Isolated from React so they can be tested without a DOM.
  */
 
-import type { TableDie } from 'component-lib'
-import { dieForTable } from 'component-lib'
 import type { RefRollTable } from 'salvageunion-reference'
 import { NO_EFFECT, rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
+import type { TableDie } from '../../../ui/index'
+import { dieForTable } from '../../../ui/index'
 
 /** Roll IDs for pilot wizard identity fields. */
 export const PILOT_ROLL_TABLE_NAMES = {
@@ -24,7 +24,7 @@ export type PilotRollField = keyof typeof PILOT_ROLL_TABLE_NAMES
  */
 export type RollTableDeps = {
   findTable: (name: string) => (RefRollTable & { schemaName: string }) | undefined
-  /** The die for a table, by name (component-lib's `dieForTable`). */
+  /** The die for a table, by name (src/ui's `dieForTable`). */
   d20For: (tableName: string) => Promise<TableDie>
 }
 

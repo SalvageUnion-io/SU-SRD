@@ -10,11 +10,11 @@
  * `window` access at build time.
  */
 
-import { ChapterBand } from 'component-lib'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { CONTENTS_CRUMB, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { Island } from '../runtime/Island'
+import { ChapterBand } from '../ui/index'
 
 const CANONICAL_URL = `${SITE_URL}/search/`
 

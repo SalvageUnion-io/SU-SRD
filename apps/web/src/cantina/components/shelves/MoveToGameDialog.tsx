@@ -16,8 +16,8 @@
 
 import type { Container, ContainerFields } from 'cantina-domain/container'
 import { containerOf, moveTo, sameContainer } from 'cantina-domain/container'
-import { Button, ModalShell, Text, toast, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { Button, ModalShell, Text, toast, tokens } from '../../../ui/index'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import type { MoveTargetGame } from '../../lib/games/gameRoster'
 import { moveDestinations } from '../../lib/games/gameRoster'

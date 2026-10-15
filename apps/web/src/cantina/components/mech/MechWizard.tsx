@@ -1,8 +1,8 @@
 import { MechSchema } from 'cantina-domain/schemas/mech'
-import { toast } from 'component-lib'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { bookQuote, nameToSlug } from 'salvageunion-reference'
 import { computeMechCapacity, MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
+import { toast } from '../../../ui/index'
 import type { MechWizardStepId } from '../../lib/rules/creation'
 import {
   clampMechCreationDraft,

@@ -9,9 +9,9 @@
  * Presentational; the region wrapper is `DashboardGrid`'s `.su-dash-rail`.
  */
 
-import { Badge, buttonVariants, tokens } from 'component-lib'
 import { ChevronLeft } from 'lucide-react'
 import type { CSSProperties } from 'react'
+import { Badge, buttonVariants, tokens } from '../../../ui/index'
 import { MARK_SRC } from '../../lib/appUrl'
 import { SavedIndicator } from '../dashboard/SavedIndicator'
 import { AppLink } from '../shared/AppLink'

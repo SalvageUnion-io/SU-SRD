@@ -7,7 +7,7 @@
  *
  *  - **The bar** (the ground, `--color-ink-deep`, sticky): the SU stamp back
  *    to the Game hub, "GAME · {name}", search and ≡.
- *  - **Unit tabs** in a fixed order, Pilot · Mech · Crawler (component-lib
+ *  - **Unit tabs** in a fixed order, Pilot · Mech · Crawler (src/ui
  *    `Tabs`). The selected tab is the Major when the Dashboard opens and
  *    follows it when the mount changes; otherwise only the player moves it.
  *    A tab whose Minor reports a problem carries ▲, spelled out in its name.
@@ -27,7 +27,9 @@
  * the tabs at once, through one `fieldset`, and says why.
  */
 
-import { Button, Tab, TabList, TabPanel, Tabs } from 'component-lib'
+import { Menu, Search } from 'lucide-react'
+import type { CSSProperties, ReactNode } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   borderWidth,
   color,
@@ -36,10 +38,8 @@ import {
   space,
   tracking,
   weight,
-} from 'component-lib/design/tokens'
-import { Menu, Search } from 'lucide-react'
-import type { CSSProperties, ReactNode } from 'react'
-import { useEffect, useRef, useState } from 'react'
+} from '../../../ui/design/tokens'
+import { Button, Tab, TabList, TabPanel, Tabs } from '../../../ui/index'
 import { MARK_SRC } from '../../lib/appUrl'
 import { AppLink } from '../shared/AppLink'
 import type { PinnedVital } from './PinnedVitals'

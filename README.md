@@ -23,11 +23,10 @@ A Bun monorepo of tools for **Salvage Union**, the tabletop RPG by
 
 | Workspace | What it is |
 | --- | --- |
-| [`apps/web`](apps/web) | The SRD reference site, [salvageunion.io](https://salvageunion.io): a static Vite SSG with React islands and a public [JSON API](https://salvageunion.io/api/). Also The Cantina (`src/cantina/`, Convex in `convex/`), the character builder and game manager at [salvageunion.io/build](https://salvageunion.io/build): React, TanStack Router, Convex. |
+| [`apps/web`](apps/web) | The SRD reference site, [salvageunion.io](https://salvageunion.io): a static Vite SSG with React islands and a public [JSON API](https://salvageunion.io/api/). Also The Cantina (`src/cantina/`, Convex in `convex/`), the character builder and game manager at [salvageunion.io/build](https://salvageunion.io/build): React, TanStack Router, Convex. Both render the shared components and design tokens in `src/ui/`. |
 | [`apps/discord-bot`](apps/discord-bot) | The Discord bot: roll on tables, look up entities, play in a Cantina Game. |
 | [`apps/su-assets`](apps/su-assets) | The Worker serving licensed entity artwork from R2. |
 | [`packages/salvageunion-reference`](packages/salvageunion-reference) | The schema-validated game dataset and its TypeScript ORM. |
-| [`packages/component-lib`](packages/component-lib) | The shared React components and design tokens. |
 | [`packages/cantina-domain`](packages/cantina-domain) | The schemas and rules The Cantina, its Convex backend and the bot share. |
 | [`packages/observability`](packages/observability) | Error reporting into Workers Issues, for Workers, browsers and Convex. |
 | [`packages/gates`](packages/gates) | The library behind the repo's gates, run from [`tools/`](tools). |

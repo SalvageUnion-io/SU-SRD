@@ -6,7 +6,7 @@ import { SignInControl } from './SignInControl'
 /**
  * What the Cantina puts in the masthead's app slots (`UnionBarSlots`' `games`,
  * `actions`, `mobileActions` and `drawerExtra`) — the account and the Games,
- * wired to Convex here so `component-lib` stays persistence-agnostic.
+ * wired to Convex here so `src/ui` stays persistence-agnostic.
  *
  * There is no sub-header: Games sits in the Union bar's nav (Shelves · Games ·
  * Starter Set), and the account is the menu at the bar's end:

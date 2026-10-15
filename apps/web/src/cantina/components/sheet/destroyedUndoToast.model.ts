@@ -7,7 +7,7 @@
  * The Toaster is already mounted app-wide in routes/__root.tsx.
  */
 
-import { toast } from 'component-lib'
+import { toast } from '../../../ui/index'
 
 export function destroyedUndoToast(itemName: string, undo: () => void) {
   toast(`${itemName} marked Destroyed`, {

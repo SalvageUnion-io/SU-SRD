@@ -29,7 +29,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { build as viteBuild } from 'vite'
 // Type-only, so it is erased before Bun resolves `./document`, whose graph
-// (`BaseLayout` -> `component-lib` -> third-party deps) must load only after the
+// (`BaseLayout` -> `src/ui` -> third-party deps) must load only after the
 // css-stub plugin below is registered.
 import type { BuildAssets } from './document'
 import { pickFontPreloads } from './fontPreloads'
@@ -122,7 +122,7 @@ async function writeOutput(relativePath: string, contents: string): Promise<void
  * Non-HTML outputs (llms.txt, search-index.json, the JSON API).
  *
  * Dynamic import, like `./routes` above and for the same reason: the endpoint
- * modules reach `src/lib/gameData` and (through `staticPaths`) `component-lib`,
+ * modules reach `src/lib/gameData` and (through `staticPaths`) `src/ui`,
  * so they must be loaded AFTER the css-stub plugin is registered.
  *
  * An endpoint's `outputPath` is written verbatim — `schema/chassis.json` is a
@@ -177,7 +177,7 @@ async function main(): Promise<void> {
   // that breaks the SSR pass below in a genuinely confusing way: Bun picked its
   // JSX transform at startup (NODE_ENV was unset -> `jsxDEV`), but React's
   // `jsx-dev-runtime` re-resolves at import time and its *production* build is
-  // an empty stub — so every component-lib module dies with
+  // an empty stub — so every src/ui module dies with
   // "jsxDEV_… is not a function". Restore what we found.
   const previousNodeEnv = process.env.NODE_ENV
   await viteBuild({ configFile: viteConfigFile, logLevel: 'warn' })
@@ -201,7 +201,7 @@ async function main(): Promise<void> {
   }
 
   // Dynamic, so the css-stub plugin above is registered before the SSR module
-  // graph (pages -> component-lib -> deps) is first loaded. That graph is
+  // graph (pages -> src/ui -> deps) is first loaded. That graph is
   // css-free by the srd-css gate; the stub guards what the gate does not scan
   // (node_modules, other workspaces).
   const { routes } = await import('./routes')

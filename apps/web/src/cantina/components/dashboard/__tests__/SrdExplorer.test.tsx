@@ -9,10 +9,10 @@
 
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, waitFor } from '@testing-library/react'
-import { buildCatalogSections, EntityHrefProvider } from 'component-lib'
+import { buildCatalogSections, EntityHrefProvider } from '../../../../ui/index'
 import { SrdExplorer } from '../SrdExplorer'
 
-// Unmounting between tests is handled globally: component-lib's bunfig preloads
+// Unmounting between tests is handled globally: src/ui's bunfig preloads
 // ../../test/testing-library.ts, whose act()-wrapped `afterEach(cleanup)` keeps
 // the body-scoped role queries below from seeing a prior test's leftover DOM.
 

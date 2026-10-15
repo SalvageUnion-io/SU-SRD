@@ -9,9 +9,16 @@
  * question.
  */
 
-import { Callout, Entity, RadioCardGroup, ReferenceEntityCard, Slab, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import type { RefClass } from 'salvageunion-reference'
+import {
+  Callout,
+  Entity,
+  RadioCardGroup,
+  ReferenceEntityCard,
+  Slab,
+  tokens,
+} from '../../../ui/index'
 import type { ClassPathConsequence } from '../../lib/rules/classPath'
 import { classPathConsequence, classPathGroups } from '../../lib/rules/classPath'
 import '../../styles/wizard.css'

@@ -15,7 +15,9 @@
  * `.su-dash-root` scope the panels' `.su-dash-*` rules key off.
  */
 
-import { Button, buttonVariants, ModalShell } from 'component-lib'
+import { ChevronLeft, X } from 'lucide-react'
+import type { CSSProperties, ReactNode } from 'react'
+import { useEffect, useRef } from 'react'
 import {
   borderWidth,
   color,
@@ -24,10 +26,8 @@ import {
   space,
   tracking,
   weight,
-} from 'component-lib/design/tokens'
-import { ChevronLeft, X } from 'lucide-react'
-import type { CSSProperties, ReactNode } from 'react'
-import { useEffect, useRef } from 'react'
+} from '../../../ui/design/tokens'
+import { Button, buttonVariants, ModalShell } from '../../../ui/index'
 import { AppLink } from '../shared/AppLink'
 
 export type PhonePanel = 'log' | 'crew' | 'reference' | 'tables' | 'srd'

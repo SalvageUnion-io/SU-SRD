@@ -1,8 +1,8 @@
-import { RecoveryPanel } from 'component-lib'
-import { space } from 'component-lib/design/tokens'
 import type { CSSProperties, ErrorInfo, ReactNode } from 'react'
 import { Component } from 'react'
 import { captureException } from '../../lib/observability'
+import { space } from '../../ui/design/tokens'
+import { RecoveryPanel } from '../../ui/index'
 
 /** Centres the recovery panel in the island's place. */
 const RECOVERY = {
@@ -25,7 +25,7 @@ type State = { error: Error | null }
  * (the static fallback is removed once data is ready, and the island is
  * the only remaining content).
  *
- * The recovery UI is the shared component-lib `RecoveryPanel` (also used by
+ * The recovery UI is the shared src/ui `RecoveryPanel` (also used by
  * cantina's root error component); the island-specific action here is a full
  * page reload.
  */

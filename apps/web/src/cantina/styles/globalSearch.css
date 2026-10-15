@@ -1,7 +1,7 @@
 /*
  * globalSearch.css — the stateful half of `GlobalSearch`
  * (components/shared/GlobalSearch.tsx); its static styling is style objects
- * over component-lib tokens. Loaded by `index.css`.
+ * over src/ui tokens. Loaded by `index.css`.
  *
  * - **Category rows** (`.su-global-search-option`): the ground changes on hover
  *   and while the row is the keyboard selection, and the edge darkens with the

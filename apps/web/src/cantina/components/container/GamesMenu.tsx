@@ -24,11 +24,11 @@
  */
 
 import type { Container } from 'cantina-domain/container'
-import type { HeaderMenuItem } from 'component-lib'
-import { Badge, Button, HeaderMenu, Text, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../../convex/_generated/api'
+import type { HeaderMenuItem } from '../../../ui/index'
+import { Badge, Button, HeaderMenu, Text, tokens } from '../../../ui/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useShowContainer } from './useShowContainer'
 

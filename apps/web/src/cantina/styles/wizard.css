@@ -3,7 +3,7 @@
  * (`components/wizard/`), the mech, crawler and pilot builders, and the
  * Guided/Blank chooser.
  *
- * Everything static is a style object over component-lib's `tokens`, in the
+ * Everything static is a style object over src/ui's `tokens`, in the
  * component. What is here is what a style object cannot hold (ADR-046): a
  * responsive or stateful value (resting value included, since an inline
  * `style=` beats every rule here) and child-selector stacks.

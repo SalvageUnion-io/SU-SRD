@@ -1,8 +1,8 @@
-import type { TableDie } from 'component-lib'
-import { dieForTable, Toaster, toastRoll } from 'component-lib'
 import { useState } from 'react'
 import type { RollTablePageData } from '../../lib/rollTablePage'
 import { rollAnnouncement } from '../../lib/rollTablePage'
+import type { TableDie } from '../../ui/index'
+import { dieForTable, Toaster, toastRoll } from '../../ui/index'
 import { RollTableView } from '../RollTableView'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 

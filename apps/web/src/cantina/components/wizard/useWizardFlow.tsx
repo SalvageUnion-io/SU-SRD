@@ -17,9 +17,9 @@
  * each wizard spreads it and adds only its own kind, copy and trackers.
  */
 
-import { toast } from 'component-lib'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
+import { toast } from '../../../ui/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import type { StepGateResult } from '../../lib/rules/creation'
 import { clearWizardDraft } from '../../lib/wizard/wizardDraft'

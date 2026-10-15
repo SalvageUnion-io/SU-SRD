@@ -25,7 +25,7 @@ const convexMocks = await installConvexMocks({
 })
 afterAll(() => convexMocks.restore())
 
-const { Toaster, toast } = await import('component-lib')
+const { Toaster, toast } = await import('../../../../ui/index')
 const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
 const { resetStores } = await import('../../../stores/__tests__/resetStores')
 const { useEncounterStore } = await import('../../../stores/encounterStore')

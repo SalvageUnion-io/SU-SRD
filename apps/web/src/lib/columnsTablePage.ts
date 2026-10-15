@@ -5,7 +5,7 @@
  * island's chunk carries no ORM.
  */
 
-import type { AnnouncedRoll, DigestedColumnsColumn } from 'component-lib'
+import type { AnnouncedRoll, DigestedColumnsColumn } from '../ui/index'
 
 /** One column: its d20 range ("9-12") and its entries (`digestColumnsTable`). */
 export type ColumnsTableColumn = DigestedColumnsColumn

@@ -199,7 +199,7 @@ describe('lintCopy', () => {
 })
 
 describe('the rule set', () => {
-  test('reads the product names from component-lib, not a copy of them', () => {
+  test('reads the product names from cantina-domain, not a copy of them', () => {
     const root = fixture({
       [PRODUCT_FILE]: "export const PRODUCT = { name: 'Some Name', shortName: 'SN' } as const",
     })

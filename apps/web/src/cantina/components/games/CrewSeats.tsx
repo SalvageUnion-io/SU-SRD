@@ -15,9 +15,9 @@
  * `convex/mediator.ts`), and a permanently false "Here" is worse than none.
  */
 
-import { Badge, Stat } from 'component-lib'
-import { color, font, fontSize, space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
+import { color, font, fontSize, space } from '../../../ui/design/tokens'
+import { Badge, Stat } from '../../../ui/index'
 import type { CrawlerReading } from '../mediator/crawlerReading.model'
 import { crawlerVitals } from '../mediator/crawlerReading.model'
 import { UnitRow } from '../shared/UnitRow'

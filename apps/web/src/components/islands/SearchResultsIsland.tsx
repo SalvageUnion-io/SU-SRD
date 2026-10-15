@@ -1,12 +1,3 @@
-import {
-  EmptyState,
-  Entity,
-  SearchField,
-  Segmented,
-  SegmentedOption,
-  Skeleton,
-  schemaPluralLabel,
-} from 'component-lib'
 import type { ReactNode } from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import type { SearchResult } from 'salvageunion-reference'
@@ -15,6 +6,15 @@ import { itemHref } from '../../lib/entityHref'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import type { CompactSearchEntry } from '../../lib/searchIndexTypes'
 import { useSearchIndex } from '../../lib/useSearchIndex'
+import {
+  EmptyState,
+  Entity,
+  SearchField,
+  Segmented,
+  SegmentedOption,
+  Skeleton,
+  schemaPluralLabel,
+} from '../../ui/index'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 const PARAM_QUERY = 'q'

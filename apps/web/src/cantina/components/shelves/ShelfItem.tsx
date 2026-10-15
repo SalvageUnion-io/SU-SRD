@@ -11,9 +11,9 @@
  * opens the page's one confirm, which has to outlive the menu that asked.
  */
 
-import type { HeaderMenuItem } from 'component-lib'
-import { HeaderMenu, Stat } from 'component-lib'
 import type { CSSProperties } from 'react'
+import type { HeaderMenuItem } from '../../../ui/index'
+import { HeaderMenu, Stat } from '../../../ui/index'
 import type { ShelfChip, ShelfReading } from '../../lib/shelves/shelfItems'
 import type { ShelfKind } from './ShelfPill'
 import { ShelfPill } from './ShelfPill'

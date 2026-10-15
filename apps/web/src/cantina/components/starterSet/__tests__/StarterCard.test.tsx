@@ -6,7 +6,7 @@
 
 import { describe, expect, mock, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
-import { EntitySurfaceProvider } from 'component-lib'
+import { EntitySurfaceProvider } from '../../../../ui/index'
 import { StarterCard } from '../StarterCard'
 import { starterShelves } from '../starterShelves.model'
 

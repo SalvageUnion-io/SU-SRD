@@ -5,7 +5,7 @@
  */
 
 import type { CargoLot } from 'cantina-domain/schemas/cargoLot'
-import { Button } from 'component-lib'
+import { Button } from '../../../ui/index'
 import { loadableQty } from '../../lib/cargo/cargoTransfer'
 import { reportCargo as report } from '../../lib/cargo/reportCargo'
 import type { UseCargoResult } from '../../lib/cargo/useCargo'

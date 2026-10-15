@@ -18,6 +18,11 @@
  * mode is Connected, so the signed-out hub has no game UI at all.
  */
 
+import { useMutation, useQuery } from 'convex/react'
+import type { FunctionArgs } from 'convex/server'
+import type { CSSProperties } from 'react'
+import { useEffect, useState } from 'react'
+import { api } from '../../../../convex/_generated/api'
 import {
   Button,
   Field,
@@ -27,12 +32,7 @@ import {
   PageHeading,
   Text,
   tokens,
-} from 'component-lib'
-import { useMutation, useQuery } from 'convex/react'
-import type { FunctionArgs } from 'convex/server'
-import type { CSSProperties } from 'react'
-import { useEffect, useState } from 'react'
-import { api } from '../../../../convex/_generated/api'
+} from '../../../ui/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { useShowContainer } from '../container/useShowContainer'

@@ -10,12 +10,12 @@
  * offline viewer has nothing to copy and sees no button.
  */
 
-import { Button, ConfirmDialog, toast } from 'component-lib'
 import { useMutation } from 'convex/react'
 import { Link2 } from 'lucide-react'
 import { useState } from 'react'
 import { api } from '../../../../convex/_generated/api'
 import type { Id } from '../../../../convex/_generated/dataModel'
+import { Button, ConfirmDialog, toast } from '../../../ui/index'
 import { appRoot } from '../../lib/appUrl'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'

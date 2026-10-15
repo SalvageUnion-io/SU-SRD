@@ -7,8 +7,6 @@
  * `<pre>` block.
  */
 
-import { InlineRef, Panel, Slab } from 'component-lib'
-import { color, font, fontSize, radius, space, weight } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 import { getEntitySlug } from 'salvageunion-reference'
 import type { PageModule, PageResult } from '../../ssg/types'
@@ -29,6 +27,8 @@ import {
 } from '../lib/docPageStyles'
 import { itemHref, schemaHref } from '../lib/entityHref'
 import { getEntitySchemas } from '../lib/gameData'
+import { color, font, fontSize, radius, space, weight } from '../ui/design/tokens'
+import { InlineRef, Panel, Slab } from '../ui/index'
 
 const TITLE = `API Reference${TITLE_SUFFIX}`
 const DESCRIPTION =

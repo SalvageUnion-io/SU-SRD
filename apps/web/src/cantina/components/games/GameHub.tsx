@@ -26,13 +26,13 @@
  */
 
 import { SHELF } from 'cantina-domain/container'
-import { Button, Card, Text, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { api } from '../../../../convex/_generated/api'
 import type { Id } from '../../../../convex/_generated/dataModel'
+import { Button, Card, Text, tokens } from '../../../ui/index'
 import { useShowContainer } from '../container/useShowContainer'
 import { readCrawler } from '../mediator/crawlerReading.model'
 import type { SegmentKind } from '../roster/RosterColumn'

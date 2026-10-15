@@ -1,9 +1,9 @@
-import type { EntitySurfaceValue } from 'component-lib'
-import { EntitySurfaceProvider, PeekHost, useDetailModal } from 'component-lib'
 import type { ReactNode } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { RefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import type { EntitySurfaceValue } from '../../../ui/index'
+import { EntitySurfaceProvider, PeekHost, useDetailModal } from '../../../ui/index'
 
 /**
  * The Cantina's PAGE OPENER and PEEK (entity display language E4, E5): the surface's

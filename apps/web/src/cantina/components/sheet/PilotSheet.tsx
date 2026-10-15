@@ -50,6 +50,11 @@
  */
 
 import type { Pilot } from 'cantina-domain/schemas/pilot'
+import type { CSSProperties, ReactNode } from 'react'
+import { useState } from 'react'
+import type { RefAbility } from 'salvageunion-reference'
+import { nameToSlug } from 'salvageunion-reference'
+import { pinFor } from 'salvageunion-reference/rules'
 import {
   Badge,
   Conditions,
@@ -61,12 +66,7 @@ import {
   Stat,
   tokens,
   VitalGauge,
-} from 'component-lib'
-import type { CSSProperties, ReactNode } from 'react'
-import { useState } from 'react'
-import type { RefAbility } from 'salvageunion-reference'
-import { nameToSlug } from 'salvageunion-reference'
-import { pinFor } from 'salvageunion-reference/rules'
+} from '../../../ui/index'
 import { classArt } from '../../lib/photos/defaultArt'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'

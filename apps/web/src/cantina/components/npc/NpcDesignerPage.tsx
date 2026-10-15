@@ -17,9 +17,9 @@
  * the URL. Signed out, `NewEntityScreen` shows the sign-in panel instead.
  */
 
-import { ChapterBand, Tab, TabList, TabPanel, Tabs, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
 import { api } from '../../../../convex/_generated/api'
+import { ChapterBand, Tab, TabList, TabPanel, Tabs, tokens } from '../../../ui/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { useEntityStore } from '../../stores/entityStore'

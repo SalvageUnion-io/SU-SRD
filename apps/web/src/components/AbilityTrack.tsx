@@ -1,8 +1,8 @@
-import type { TreeTrack } from 'component-lib'
-import { Entity, AbilityTrack as Track } from 'component-lib'
 import type { RefAbility } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
 import { itemHref } from '../lib/entityHref'
+import type { TreeTrack } from '../ui/index'
+import { Entity, AbilityTrack as Track } from '../ui/index'
 
 /**
  * The tree's slab names the kind, so its Rows drop the type stamp; every tree
@@ -13,7 +13,7 @@ const OMIT_KIND_TIER = ['kind', 'tier'] as const
 const abilityHref = (ability: RefAbility) => itemHref('abilities', getEntitySlug(ability))
 
 /**
- * A tree's Abilities as Rows on its track (component-lib's `AbilityTrack`), in
+ * A tree's Abilities as Rows on its track (src/ui's `AbilityTrack`), in
  * tree order: a Row in link mode is a real same-tab link to the ability's page
  * (the listing row's shape, `EntityListingRow`). Its banner wears its tier
  * (EDL E12: Core orange, Advanced and Hybrid rust, Legendary pink), the hue of

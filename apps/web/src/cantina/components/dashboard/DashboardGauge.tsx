@@ -22,8 +22,7 @@
  * gauge the live sheet uses. No app/data coupling.
  */
 
-import type { CSSVarStyle, ProvenanceLine, VitalGaugeBreakdown } from 'component-lib'
-import { Badge, VitalGauge } from 'component-lib'
+import type { CSSProperties } from 'react'
 import {
   borderWidth,
   color,
@@ -32,8 +31,9 @@ import {
   radius,
   space,
   weight,
-} from 'component-lib/design/tokens'
-import type { CSSProperties } from 'react'
+} from '../../../ui/design/tokens'
+import type { CSSVarStyle, ProvenanceLine, VitalGaugeBreakdown } from '../../../ui/index'
+import { Badge, VitalGauge } from '../../../ui/index'
 
 export type GaugeTone = 'mech' | 'pilot' | 'crawler'
 

@@ -19,7 +19,7 @@
 @import './styles/controls.css';
 /* The live and public sheet. */
 @import './styles/sheet.css';
-/* component-lib classes handed back their own type over this file's heading
+/* src/ui classes handed back their own type over this file's heading
    rule. */
 @import './styles/libHandback.css';
 

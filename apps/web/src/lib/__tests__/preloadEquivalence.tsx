@@ -1,11 +1,4 @@
 import { describe, expect, it } from 'bun:test'
-import {
-  EntityDetailLinkProvider,
-  EntityHrefProvider,
-  EntitySurfaceProvider,
-  ReferenceEntityCard,
-  Skeleton,
-} from 'component-lib'
 import { Suspense } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import type { RefEntity } from 'salvageunion-reference'
@@ -17,6 +10,13 @@ import {
   SalvageUnionReference,
 } from 'salvageunion-reference'
 import { EntityListingRow } from '../../components/islands/EntityListingRow'
+import {
+  EntityDetailLinkProvider,
+  EntityHrefProvider,
+  EntitySurfaceProvider,
+  ReferenceEntityCard,
+  Skeleton,
+} from '../../ui/index'
 import { itemHref, srdEntityHref, srdHrefFor } from '../entityHref'
 import { getSchemaPreloadList } from '../schemaPreloadDeps'
 

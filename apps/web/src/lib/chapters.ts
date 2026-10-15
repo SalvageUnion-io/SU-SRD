@@ -15,7 +15,6 @@
  * island — the drawer reads the frozen copy instead.
  */
 
-import type { ChapterTone } from 'component-lib'
 import type { RefEntity } from 'salvageunion-reference'
 import {
   entityTone,
@@ -24,6 +23,7 @@ import {
   getTechLevel,
   SalvageUnionReference,
 } from 'salvageunion-reference'
+import type { ChapterTone } from '../ui/index'
 import { schemaHref } from './entityHref'
 import { listingEntries } from './listingEntries'
 

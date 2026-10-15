@@ -1,5 +1,5 @@
-import { Banner, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { Banner, tokens } from '../../../ui/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 
 /**

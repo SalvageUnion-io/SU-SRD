@@ -1,5 +1,4 @@
 import { PilotSchema } from 'cantina-domain/schemas/pilot'
-import { toast } from 'component-lib'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { RefAbility, RefClass, RefEquipment } from 'salvageunion-reference'
 import { bookQuote, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
@@ -11,6 +10,7 @@ import {
   PILOT_CREATION_ABILITY_PICKS,
   PILOT_CREATION_EQUIPMENT_PICKS,
 } from 'salvageunion-reference/rules'
+import { toast } from '../../../ui/index'
 import type { PilotWizardStepId } from '../../lib/rules/creation'
 import { clampPilotCreationDraft, pilotCreationStepGate } from '../../lib/rules/creation'
 import { pilotInventoryCapacity, pilotInventoryUsed } from '../../lib/rules/pilotInventory'

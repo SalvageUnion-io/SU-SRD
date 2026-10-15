@@ -37,8 +37,8 @@ export default defineConfig({
       workbox: WORKBOX_OPTIONS,
     }),
   ],
-  // Fixes a dev-only bug: the island deps live under component-lib/node_modules
-  // (@base-ui, sonner, lucide-react) and were only DISCOVERED
+  // Fixes a dev-only bug: the island deps (@base-ui, sonner, lucide-react)
+  // were only DISCOVERED
   // when an island first imported them, so Vite re-ran its dep optimizer
   // mid-navigation and answered in-flight island chunk requests with 504
   // "Outdated Optimize Dep" — cards stuck on their skeletons, with transient
@@ -51,7 +51,7 @@ export default defineConfig({
   // request.
   //
   // `include` lists every entry point of salvageunion-reference, not just '.':
-  // component-lib's islands import './rules', whose modules import lib/index.ts,
+  // src/ui's islands import './rules', whose modules import lib/index.ts,
   // so served raw beside a pre-bundled '.' it loaded a second ORM instance whose
   // LazyModels are never preloaded. Bundling every subpath in one pass dedupes
   // lib/index.ts — the same list, and reason, as the Cantina's vite.config.ts.

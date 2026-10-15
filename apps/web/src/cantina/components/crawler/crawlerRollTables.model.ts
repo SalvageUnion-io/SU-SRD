@@ -5,9 +5,9 @@
  * counterpart of mechRollTables.
  */
 
-import { rollD20 } from 'component-lib'
 import type { RefRollTable } from 'salvageunion-reference'
 import { NO_EFFECT, rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
+import { rollD20 } from '../../../ui/index'
 
 const CRAWLER_NAME_TABLE = 'Crawler Name'
 
@@ -19,7 +19,7 @@ export type CrawlerRollTableDeps = {
 
 const defaultDeps: CrawlerRollTableDeps = {
   findTable: (name) => SalvageUnionReference.RollTables.getByName(name),
-  // Not a named Salvage Union table: Randsum's plain d20 (component-lib).
+  // Not a named Salvage Union table: Randsum's plain d20 (src/ui).
   rollD20,
 }
 

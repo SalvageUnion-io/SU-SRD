@@ -6,8 +6,9 @@
  * ships to the browser as a small static JSON asset instead of the full
  * ~1.3 MB reference corpus.
  */
-import type { EntityRowModel } from 'component-lib'
+
 import type { RefEnumSchemaName } from 'salvageunion-reference'
+import type { EntityRowModel } from '../ui/index'
 
 export type CompactSearchEntry = {
   id: string

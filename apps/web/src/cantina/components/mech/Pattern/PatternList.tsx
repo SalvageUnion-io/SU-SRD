@@ -11,10 +11,10 @@
  * route boundary.
  */
 
-import { EmptyState, Entity, quotePatternName, Text, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../../../convex/_generated/api'
+import { EmptyState, Entity, quotePatternName, Text, tokens } from '../../../../ui/index'
 import { useConnection } from '../../../lib/connection/connectionContext'
 import { asReferencePattern, patternChassis, patternHref } from '../../../lib/patterns/patterns'
 import { usePatternStore } from '../../../stores/patternStore'

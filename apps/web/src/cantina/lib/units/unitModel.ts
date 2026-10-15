@@ -7,9 +7,9 @@
  * never links by itself (its sheet's route goes in the link mode).
  */
 
-import type { EntityRowModel } from 'component-lib'
 import type { EntitySchemaName } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
+import type { EntityRowModel } from '../../../ui/index'
 
 export type UnitKind = 'pilot' | 'mech' | 'crawler' | 'pattern' | 'npc'
 

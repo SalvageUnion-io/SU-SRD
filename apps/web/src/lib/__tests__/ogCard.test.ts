@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
-import { tokens } from 'component-lib'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { tokens } from '../../ui/index'
 import { OG_HEIGHT, OG_WIDTH, ogAddress, ogCardFor, ogImagePath, ogMetaFor } from '../ogCard'
 
 describe('the og canvas', () => {

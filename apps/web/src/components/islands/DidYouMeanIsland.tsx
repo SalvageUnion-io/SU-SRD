@@ -1,4 +1,3 @@
-import { Entity, Slab } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useMemo } from 'react'
 import type { SearchResult } from 'salvageunion-reference'
@@ -7,6 +6,7 @@ import { itemHref } from '../../lib/entityHref'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import type { CompactSearchEntry } from '../../lib/searchIndexTypes'
 import { useSearchIndex } from '../../lib/useSearchIndex'
+import { Entity, Slab } from '../../ui/index'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 /** The section's slab: the section's own gap spaces it. */

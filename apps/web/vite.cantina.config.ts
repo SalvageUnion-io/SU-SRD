@@ -9,7 +9,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { ROUTER_PLUGIN_OPTIONS } from './routeTree.config'
 import { basePathOf, headersForBase, SITE } from './src/cantina/lib/site'
 import { WORKBOX_OPTIONS } from './src/cantina/lib/sw/workbox'
-// The shell renders the Union bar from component-lib's TypeScript source, which
+// The shell renders the Union bar from src/ui's TypeScript source, which
 // only Vite's module runner resolves: load this file with `--configLoader runner`
 // (`build:cantina`, `ssg/dev.ts`); the default loader leaves the package to Node.
 import { renderShell } from './src/cantina/shell/shell'
@@ -309,7 +309,7 @@ export default defineConfig({
       output: {
         // Named groups for the code every route loads.
         //
-        // Left to itself, Rolldown folded React, component-lib, the reference
+        // Left to itself, Rolldown folded React, src/ui, the reference
         // ORM and the rest of the initial graph into ONE ~600 KB chunk named
         // after whichever module it happened to pick (`src-*.js`). One chunk
         // means one download that cannot start until the entry is parsed, and
@@ -330,8 +330,8 @@ export default defineConfig({
         // Priority decides who claims a module first, and each group also
         // pulls in its dependencies, so the order matters: Zod and React
         // (the two largest, most stable libraries, each its own chunk) before
-        // the rest of node_modules, node_modules before component-lib (whose
-        // dependencies would otherwise drag React into the component-lib
+        // the rest of node_modules, node_modules before src/ui (whose
+        // dependencies would otherwise drag React into the src/ui
         // chunk).
         codeSplitting: {
           groups: [
@@ -350,8 +350,8 @@ export default defineConfig({
               priority: 20,
             },
             {
-              name: 'component-lib',
-              test: /[\\/]packages[\\/]component-lib[\\/]/,
+              name: 'ui',
+              test: /[\\/]apps[\\/]web[\\/]src[\\/]ui[\\/]/,
               tags: ['$initial'],
               priority: 10,
             },

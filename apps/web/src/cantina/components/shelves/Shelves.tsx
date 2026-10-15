@@ -38,7 +38,11 @@
  */
 
 import type { MechPattern } from 'cantina-domain/schemas/pattern'
-import type { HeaderMenuItem } from 'component-lib'
+import { useQuery } from 'convex/react'
+import type { CSSProperties } from 'react'
+import { useState } from 'react'
+import { api } from '../../../../convex/_generated/api'
+import type { HeaderMenuItem } from '../../../ui/index'
 import {
   buttonVariants,
   ChapterBand,
@@ -48,11 +52,7 @@ import {
   SegmentedOption,
   toast,
   tokens,
-} from 'component-lib'
-import { useQuery } from 'convex/react'
-import type { CSSProperties } from 'react'
-import { useState } from 'react'
-import { api } from '../../../../convex/_generated/api'
+} from '../../../ui/index'
 import {
   useCrawlers,
   useHydrateEntities,

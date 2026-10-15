@@ -21,8 +21,6 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { PRODUCT } from 'cantina-domain/product'
-import { buttonVariants, cn, InlineRef, Slab } from 'component-lib'
-import { color, font, fontSize, space, tracking, weight } from 'component-lib/design/tokens'
 import { X } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { Fragment } from 'react'
@@ -33,6 +31,8 @@ import { builtAssetUrl, ELDRIDGE_COAST_MAP } from '../lib/builtAssets'
 import { CANTINA_PATH, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
 import { BOLD, PROSE } from '../lib/docPageStyles'
 import { Island } from '../runtime/Island'
+import { color, font, fontSize, space, tracking, weight } from '../ui/design/tokens'
+import { buttonVariants, cn, InlineRef, Slab } from '../ui/index'
 
 /** Repo root, relative to this module — `apps/web/src/pages` -> four levels up. */
 const repoRootFile = (name: string): string =>

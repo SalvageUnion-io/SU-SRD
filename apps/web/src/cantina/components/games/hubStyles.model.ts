@@ -4,8 +4,8 @@
  * keeps a 390px screen from scrolling sideways — and the copy under a stamp.
  */
 
-import { tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { tokens } from '../../../ui/index'
 
 const { space } = tokens
 

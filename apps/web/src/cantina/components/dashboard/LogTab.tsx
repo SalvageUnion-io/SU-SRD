@@ -11,7 +11,7 @@
  * Presentational: `useGameFeed` reads both and hands them in.
  */
 
-import { EmptyState } from 'component-lib'
+import type { CSSProperties } from 'react'
 import {
   borderWidth,
   color,
@@ -21,8 +21,8 @@ import {
   space,
   tracking,
   weight,
-} from 'component-lib/design/tokens'
-import type { CSSProperties } from 'react'
+} from '../../../ui/design/tokens'
+import { EmptyState } from '../../../ui/index'
 import { formatClock } from '../../lib/formatDate'
 import type { AlertLine, RollLine } from './useGameFeed'
 

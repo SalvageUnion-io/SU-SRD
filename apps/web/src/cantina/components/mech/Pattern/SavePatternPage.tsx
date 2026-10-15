@@ -14,7 +14,14 @@
  * pattern only its maker can see, which is the safe way round.
  */
 
-import type { SlabCount } from 'component-lib'
+import { useMutation, useQuery } from 'convex/react'
+import type { CSSProperties } from 'react'
+import { useState } from 'react'
+import type { RefEntity } from 'salvageunion-reference'
+import { STAT_LABELS } from 'salvageunion-reference'
+import { api } from '../../../../../convex/_generated/api'
+import type { Id } from '../../../../../convex/_generated/dataModel'
+import type { SlabCount } from '../../../../ui/index'
 import {
   Button,
   ChapterBand,
@@ -29,14 +36,7 @@ import {
   Text,
   Textarea,
   tokens,
-} from 'component-lib'
-import { useMutation, useQuery } from 'convex/react'
-import type { CSSProperties } from 'react'
-import { useState } from 'react'
-import type { RefEntity } from 'salvageunion-reference'
-import { STAT_LABELS } from 'salvageunion-reference'
-import { api } from '../../../../../convex/_generated/api'
-import type { Id } from '../../../../../convex/_generated/dataModel'
+} from '../../../../ui/index'
 import { useHydrateEntities, useMech } from '../../../hooks/entities'
 import { useConnection } from '../../../lib/connection/connectionContext'
 import { useServerAction } from '../../../lib/connection/useServerAction'

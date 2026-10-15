@@ -1,6 +1,6 @@
 /**
  * baseStylesheet — the one stylesheet both apps link: the Barlow faces and the
- * component-lib entry (`./base.css`), at `/assets/base-<hash>.css`.
+ * src/ui entry (`./base.css`), at `/assets/base-<hash>.css`.
  *
  * srd and the Cantina are separate Vite builds (separate CI jobs, too), and each
  * once bundled the fonts and the package stylesheet into its own CSS, under its

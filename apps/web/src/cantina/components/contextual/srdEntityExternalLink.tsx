@@ -1,12 +1,12 @@
-import type { EntityExternalLinkBuilder } from 'component-lib'
-import { SRDLink } from 'component-lib'
 import { getEntitySlug } from 'salvageunion-reference'
+import type { EntityExternalLinkBuilder } from '../../../ui/index'
+import { SRDLink } from '../../../ui/index'
 import { deepLinkTo, hasSRDPage } from '../../lib/srd-deep-link'
 
 /**
  * The Cantina's app-wide "View in SRD" cross-link builder.
  *
- * Supplied through component-lib's `EntityExternalLinkProvider` (wired in
+ * Supplied through src/ui's `EntityExternalLinkProvider` (wired in
  * `GameDataReady`), so every FULL — non-compact, non-listing — entity card,
  * including the `useDetailModal` detail view, uniformly renders the link in
  * its foot band. Compact/listing cards stay uncluttered by design; entities

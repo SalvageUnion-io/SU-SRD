@@ -14,7 +14,7 @@ import { HeaderMenu } from '../containers/HeaderMenu'
  *
  * Presentational: each app hands in the identity and what the rows do. The
  * Cantina reads `api.account.me` and signs out in place; the SRD, which has no
- * backend, reads the account hint (`component-lib/accountHint`) and sends
+ * backend, reads the account hint (`src/ui/accountHint`) and sends
  * Settings and Sign out to The Cantina. With no name yet (a cold start offline)
  * the trigger reads "Account" over a generic glyph rather than guessing.
  */

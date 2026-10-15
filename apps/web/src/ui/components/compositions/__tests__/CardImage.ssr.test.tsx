@@ -33,7 +33,7 @@ describe('CardImage server rendering', () => {
       )
     `
     // `cwd` is this file's directory, so the child resolves react from
-    // component-lib whichever directory the suite was started from.
+    // src/ui whichever directory the suite was started from.
     const proc = Bun.spawnSync(['bun', '-e', script], {
       cwd: import.meta.dir,
       stdout: 'pipe',

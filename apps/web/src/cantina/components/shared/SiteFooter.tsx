@@ -1,5 +1,5 @@
-import { Footer, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { Footer, tokens } from '../../../ui/index'
 import { publicPath } from '../../lib/appUrl'
 import { DOC_PAGES } from '../../lib/docPages'
 

@@ -1,7 +1,7 @@
-import type { EntitySurfaceValue } from 'component-lib'
-import { EntitySurfaceProvider, Mention } from 'component-lib'
 import { srdHrefFor } from '../lib/entityHref'
 import type { RefText } from '../lib/rollTablePage'
+import type { EntitySurfaceValue } from '../ui/index'
+import { EntitySurfaceProvider, Mention } from '../ui/index'
 
 /** The SRD's routes, the one thing a build-time Mention needs from the surface. */
 const SRD_SURFACE: Partial<EntitySurfaceValue> = { hrefFor: srdHrefFor }

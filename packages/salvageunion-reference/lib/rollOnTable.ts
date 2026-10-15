@@ -11,7 +11,7 @@
  *
  * `d20ForTable` picks that roller for a table by name. This package binds no
  * RNG (ADR-006), so the dice it chooses between are handed in by the app that
- * owns them (component-lib's and the bot's `dice.ts`).
+ * owns them (src/ui's and the bot's `dice.ts`).
  */
 
 import type { RefObjectTable } from './schemas/index'

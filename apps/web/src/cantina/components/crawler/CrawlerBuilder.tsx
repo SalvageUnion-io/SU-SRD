@@ -1,5 +1,4 @@
 import { CrawlerSchema } from 'cantina-domain/schemas/crawler'
-import { toast, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type {
@@ -15,6 +14,7 @@ import {
   isWeaponSystem,
   resolveSystemRef,
 } from 'salvageunion-reference/rules'
+import { toast, tokens } from '../../../ui/index'
 import { useMechs, usePilots } from '../../hooks/entities'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { CrawlerWizardStepId } from '../../lib/rules/creation'

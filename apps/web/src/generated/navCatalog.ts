@@ -7,7 +7,7 @@
 // request on every page). See ssg/genNavCatalog.ts for the full rationale, and
 // __tests__/navCatalog.drift.test.ts, which fails if this file goes stale.
 
-import type { NavDrawerCategory } from 'component-lib'
+import type { NavDrawerCategory } from '../ui/index'
 
 export const NAV_CATALOG: readonly NavDrawerCategory[] = [
   {

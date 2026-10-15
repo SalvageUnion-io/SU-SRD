@@ -17,7 +17,8 @@
  *
  * A workspace in `PARTS` is gated per folder instead: each part runs only its
  * own test files and is held to its own floor over only its own files. `apps/web`
- * holds srd and the Cantina, each at the floor it had as a workspace of its own.
+ * holds srd, the Cantina and the UI library (`src/ui`), each at the floor it had
+ * as a workspace of its own.
  */
 
 import { $ } from 'bun'
@@ -33,9 +34,9 @@ import { assertCoversWorkspaces } from 'gates/lib/workspaceCoverage'
  */
 const FLOORS: Readonly<Record<string, number>> = {
   'packages/salvageunion-reference': 96.5,
-  'packages/component-lib': 95.5,
   'apps/web (srd)': 99,
   'apps/web (cantina)': 97,
+  'apps/web (ui)': 95.5,
   'apps/discord-bot': 96.5,
   'apps/su-assets': 98,
   'packages/observability': 99.5,
@@ -59,10 +60,14 @@ type Part = { dir: string; owns: (path: string) => boolean }
 const CANTINA =
   /^(src\/cantina\/|convex\/|test\/|e2e\/cantina\/|scripts\/(__tests__\/)?(assert-local-convex|generate-route-tree)\.|routeTree\.config\.|[a-z]+\.cantina\.config\.)/
 
+/** The UI library's paths in `apps/web`: `src/ui`, which both apps render. */
+const UI = /^src\/ui\//
+
 /** Jobs that gate one folder of a workspace; any job not listed runs its whole workspace. */
 const PARTS: Readonly<Record<string, Part>> = {
-  'apps/web (srd)': { dir: 'apps/web', owns: (path) => !CANTINA.test(path) },
+  'apps/web (srd)': { dir: 'apps/web', owns: (path) => !CANTINA.test(path) && !UI.test(path) },
   'apps/web (cantina)': { dir: 'apps/web', owns: (path) => CANTINA.test(path) },
+  'apps/web (ui)': { dir: 'apps/web', owns: (path) => UI.test(path) },
 }
 
 /** One instrumented run, the same in every workspace, so no manifest repeats it. */

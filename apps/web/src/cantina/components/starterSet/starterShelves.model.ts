@@ -13,10 +13,10 @@ import {
   STARTER_MECHS,
   STARTER_PILOTS,
 } from 'cantina-domain/starterSet/starterSet'
-import type { EntityRowModel, TagItem } from 'component-lib'
 import type { RefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
+import type { EntityRowModel, TagItem } from '../../../ui/index'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { readReference } from '../../lib/readReference'
 import type { StarterKind } from '../../lib/starterSet/starterTemplates'

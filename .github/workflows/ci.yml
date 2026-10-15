@@ -59,7 +59,7 @@ jobs:
               - 'test/**'
               - 'bunfig.toml'
               # root prose rendered by srd + cantina and asserted on by
-              # component-lib tests
+              # src/ui tests
               - 'ABOUT_JRVS.md'
               - 'LLM_STATEMENT.md'
               - 'SPECIAL_THANKS.md'
@@ -70,7 +70,6 @@ jobs:
               - 'apps/web/**'
               # schemas, link rules and wire types Convex and the client share
               - 'packages/cantina-domain/**'
-              - 'packages/component-lib/**'
               # the build jobs' Playwright configs and axe scan
               - 'packages/gates/**'
             bot:
@@ -79,7 +78,7 @@ jobs:
               # the bot's wire types (`cantina-domain/botWire`, `import type`)
               - 'packages/cantina-domain/**'
               # the theme its colours mirror (themeLockstep.test.ts)
-              - 'packages/component-lib/**'
+              - 'apps/web/src/ui/styles/theme.css'
             assets:
               - *shared
               - 'apps/su-assets/**'

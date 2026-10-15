@@ -8,7 +8,7 @@ import { parseInline, parseMarkdownSection } from '../parseMarkdownSection'
 /** The repo-root prose documents both about pages render. */
 const DOCS = ['ABOUT_JRVS.md', 'LLM_STATEMENT.md', 'SPECIAL_THANKS.md'].map((name) => ({
   name,
-  markdown: readFileSync(join(import.meta.dir, '../../../../..', name), 'utf8'),
+  markdown: readFileSync(join(import.meta.dir, '../../../../../..', name), 'utf8'),
 }))
 
 /** The prose of a block, for assertions that don't care about list vs paragraph. */

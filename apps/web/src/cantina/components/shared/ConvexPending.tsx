@@ -19,7 +19,7 @@
  * a query that resolves *inside* an already-rendered screen.
  */
 
-import { Text } from 'component-lib'
+import { Text } from '../../../ui/index'
 
 type ConvexPendingProps = {
   /** Subject of the load, e.g. `the crew` → "Loading the crew…". */

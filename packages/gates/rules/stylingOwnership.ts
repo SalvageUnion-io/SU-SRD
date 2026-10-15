@@ -1,7 +1,7 @@
 /**
  * Styling-ownership laws — the `styling` rule set of `tools/check-styling.ts`.
  *
- * The property this locks: **component-lib is the single source of truth for all
+ * The property this locks: **src/ui is the single source of truth for all
  * components and shared styling.** An app is a composition root — it wires the
  * library's components to its own data — not a second design system. When an app
  * grows its own `@theme` tokens, its own orphaned CSS, or generic components that
@@ -29,6 +29,7 @@ import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
 // ── file gathering ─────────────────────────────────────────────────────────
 
 const APP_DIRS = ['apps/web/src'] as const
+const notLib = (rel: string) => !rel.startsWith('apps/web/src/ui/') // the owner, not an app
 const DASHBOARD_DIR = 'apps/web/src/cantina/styles/dashboard'
 
 /** The file sets the rules share, gathered once per scan. Repo-relative paths. */
@@ -45,8 +46,8 @@ function corpus(root: string): Corpus {
   const cache = new Map<string, string>()
   return {
     root,
-    appCss: listFiles(root, APP_DIRS, ['.css']),
-    appSource: listFiles(root, APP_DIRS, ['.tsx', '.ts']),
+    appCss: listFiles(root, APP_DIRS, ['.css']).filter(notLib),
+    appSource: listFiles(root, APP_DIRS, ['.tsx', '.ts']).filter(notLib),
     // Not `packages/gates`: its rule sets and their fixtures name the classes
     // they check, and would count as usages.
     allTs: listFiles(root, ['apps', 'packages'], ['.tsx', '.ts']).filter(
@@ -80,7 +81,7 @@ const EXEMPTIONS: Exemption[] = [
     file: 'apps/web/src/cantina/styles/libHandback.css',
     rules: ['dead-app-css'],
     reason:
-      "Its selectors are component-lib's own classes, referenced in component-lib source rather than the Cantina's: the file only hands those classes back their layered values (`revert-layer`) over the Cantina's unlayered element rules, and styles nothing of its own.",
+      "Its selectors are src/ui's own classes, referenced in src/ui source rather than the Cantina's: the file only hands those classes back their layered values (`revert-layer`) over the Cantina's unlayered element rules, and styles nothing of its own.",
   },
 ]
 
@@ -311,7 +312,7 @@ function scanDashContract(c: Corpus): Finding[] {
 // ── rule table ────────────────────────────────────────────────────────────────
 
 /** The ONE stylesheet entry: it alone imports the reset and the package stylesheet. */
-const STYLESHEET_ENTRY = 'packages/component-lib/src/styles/entry.css'
+const STYLESHEET_ENTRY = 'apps/web/src/ui/styles/entry.css'
 
 /** The consumer (the base stylesheet, `apps/web/src/styles/baseStylesheet.ts`), then the apps' own, which must not import it again. */
 const ENTRY_CONSUMERS = [
@@ -355,7 +356,7 @@ function scanPackageStylesheetImport(c: Corpus): Finding[] {
   const out: Finding[] = []
   for (const rel of ENTRY_CONSUMERS) {
     const css = stripCssComments(c.read(rel))
-    const imports = /@import\s+['"]component-lib\/styles\/entry\.css['"]/.test(css)
+    const imports = /@import\s+['"][./]*ui\/styles\/entry\.css['"]/.test(css)
     if (imports !== (rel === ENTRY_CONSUMERS[0])) {
       out.push({
         file: rel,
@@ -534,15 +535,15 @@ const RULES: OwnershipRule[] = [
   {
     id: 'app-theme',
     mode: 'zero',
-    rule: 'source-of-truth §component-lib owns shared styling — no app-local design tokens',
-    fix: 'Move the token into packages/component-lib/src/styles/theme.css so both apps share one source. A print-time re-point of an EXISTING lib token belongs inside @media print (already allowed).',
+    rule: 'source-of-truth §src/ui owns shared styling — no app-local design tokens',
+    fix: 'Move the token into apps/web/src/ui/styles/theme.css so both apps share one source. A print-time re-point of an EXISTING lib token belongs inside @media print (already allowed).',
     scan: scanAppTheme,
   },
   {
     id: 'dead-app-css',
     mode: 'zero',
     rule: 'source-of-truth §authored CSS must have a consumer — orphaned app CSS is drift',
-    fix: 'Delete the unreferenced selector, or wire it up. If it is shared styling, it belongs in a component-lib component, not an app stylesheet.',
+    fix: 'Delete the unreferenced selector, or wire it up. If it is shared styling, it belongs in a src/ui component, not an app stylesheet.',
     scan: scanDeadAppCss,
   },
   {
@@ -556,7 +557,7 @@ const RULES: OwnershipRule[] = [
     id: 'package-stylesheet-import',
     mode: 'zero',
     rule: 'ruleset §the package stylesheet is the ONE stylesheet a consumer loads, layered under the apps (#799, epic #802)',
-    fix: "The base stylesheet both apps link (apps/web/src/styles/base.css) imports 'component-lib/styles/entry.css'; nothing imports index.css or reset.css itself. That one entry declares the order (`@layer su-reset, su-base;`) and imports './reset.css' layer(su-reset) and './index.css' layer(su-base), after the theme.css import.",
+    fix: "The base stylesheet both apps link (apps/web/src/styles/base.css) imports '../ui/styles/entry.css'; nothing imports index.css or reset.css itself. That one entry declares the order (`@layer su-reset, su-base;`) and imports './reset.css' layer(su-reset) and './index.css' layer(su-base), after the theme.css import.",
     scan: scanPackageStylesheetImport,
   },
   {
@@ -610,7 +611,6 @@ function preflight(root: string): void {
       'schemas and rules shared with Convex and the bot; no components and no stylesheet.',
     'packages/observability': 'Error reporting only; no components and no stylesheet.',
     'packages/salvageunion-reference': 'data and ORM; no components and no stylesheet.',
-    'packages/component-lib': 'is the OWNER this gate checks apps against, not an app to audit.',
     'packages/gates': 'the gates themselves; no components and no stylesheet.',
   })
 }

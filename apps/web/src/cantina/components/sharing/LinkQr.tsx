@@ -5,15 +5,15 @@
  * any DPI. The tile is forced white with an encoder quiet zone — QR readers
  * need dark-on-light regardless of app theme.
  *
- * Lives in the Cantina, not component-lib: The Cantina is its only renderer, and keeping it
+ * Lives in the Cantina, not src/ui: The Cantina is its only renderer, and keeping it
  * in the library meant the library's manifest declared `qrcode` for one app's
  * sake. Covered by `__tests__/ShareStatusDialog.connected.test.tsx`.
  */
 
-import { tokens } from 'component-lib'
 import QRCode from 'qrcode'
 import type { CSSProperties } from 'react'
 import { useEffect, useState } from 'react'
+import { tokens } from '../../../ui/index'
 
 type LinkQrProps = {
   /** Absolute URL to encode. */

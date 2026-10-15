@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { PageShell } from 'component-lib'
+import { PageShell } from '../../../ui/index'
 import { StarterSetRoster } from '../../components/starterSet/StarterSetRoster'
 import { STARTER_SET_TITLE } from '../../lib/starterSet/starterTemplates'
 

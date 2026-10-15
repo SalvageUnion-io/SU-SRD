@@ -45,8 +45,8 @@
  */
 
 import { totalLotUnits } from 'cantina-domain/schemas/cargoLot'
-import { BandTitle, cn, EmptyState, InfoCutout, SlotGrid, Stat, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { BandTitle, cn, EmptyState, InfoCutout, SlotGrid, Stat, tokens } from '../../../ui/index'
 import { reportCargo as report } from '../../lib/cargo/reportCargo'
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
 import type { StorageManifestSide } from './CargoLotItem'

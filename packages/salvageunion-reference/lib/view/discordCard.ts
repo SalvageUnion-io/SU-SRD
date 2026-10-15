@@ -43,7 +43,7 @@ type ClassPath = NonNullable<EntityModel['classPath']>
 
 /**
  * The accent stripe for each tone, as the `0xRRGGBB` integer Discord takes.
- * A mirror of `--color-<tone>` in `packages/component-lib/src/styles/theme.css`
+ * A mirror of `--color-<tone>` in `apps/web/src/ui/styles/theme.css`
  * (`discordCard.test.ts` holds them in lockstep), with two deliberate changes:
  * `ink` and `ink-2` paint the rules blue (`--color-wk-line`), the band the
  * glossary chapters wear, because a near-black stripe vanishes on Discord's

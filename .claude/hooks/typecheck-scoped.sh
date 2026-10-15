@@ -51,7 +51,6 @@ ensure_install || exit 2
 # Repo-root config belongs to no project — leave it to CI.
 case "$REL" in
   packages/salvageunion-reference/*) TARGETS="*" ;;
-  packages/component-lib/*) TARGETS="packages/component-lib apps/web tools" ;;
   packages/observability/*) TARGETS="packages/observability apps/discord-bot apps/web apps/su-assets tools" ;;
   packages/cantina-domain/*) TARGETS="packages/cantina-domain apps/discord-bot apps/web tools" ;;
   apps/discord-bot/*) TARGETS="apps/discord-bot" ;;

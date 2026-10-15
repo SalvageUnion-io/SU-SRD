@@ -12,10 +12,10 @@
  * switching between Games.
  */
 
-import { buttonVariants, EmptyState, Segmented, SegmentedOption, Slab } from 'component-lib'
-import { color, space } from 'component-lib/design/tokens'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
+import { color, space } from '../../../ui/design/tokens'
+import { buttonVariants, EmptyState, Segmented, SegmentedOption, Slab } from '../../../ui/index'
 import { AppLink } from '../shared/AppLink'
 
 export type SegmentKind = 'pilot' | 'mech' | 'crawler'

@@ -1,3 +1,7 @@
+import type { CSSProperties } from 'react'
+import type { RefCrawler } from 'salvageunion-reference'
+import { getEntitySlug } from 'salvageunion-reference'
+import { crawlerMaxSpBonus, crawlerWeaponSlots } from 'salvageunion-reference/rules'
 import {
   Callout,
   EmptyState,
@@ -5,11 +9,7 @@ import {
   ReferenceEntityCard,
   Slab,
   tokens,
-} from 'component-lib'
-import type { CSSProperties } from 'react'
-import type { RefCrawler } from 'salvageunion-reference'
-import { getEntitySlug } from 'salvageunion-reference'
-import { crawlerMaxSpBonus, crawlerWeaponSlots } from 'salvageunion-reference/rules'
+} from '../../../ui/index'
 import '../../styles/wizard.css'
 import { fullWidthStyle, stepColumnStyle } from './wizardStyles.model'
 

@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { PRODUCT } from 'cantina-domain/product'
-import { BrandCard } from 'component-lib'
+import { BrandCard } from '../../../ui/index'
 import { pageTitle } from '../../lib/pageTitle'
 import { SCRIPT_FONT } from '../../lib/scriptFont'
 

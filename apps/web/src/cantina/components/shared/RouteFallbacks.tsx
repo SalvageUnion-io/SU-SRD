@@ -7,13 +7,13 @@
  *
  * `NotFoundPanel` is the single implementation of that treatment: this one,
  * `Sheet`'s missing-entity state and `routes/sheet/$kind/$id`'s unknown-kind
- * state compose it. It is deliberately NOT component-lib's `RecoveryPanel`: that
+ * state compose it. It is deliberately NOT src/ui's `RecoveryPanel`: that
  * panel carries `role="alert"` and centres its content, which is right for a
  * crash and wrong for a mistyped URL — announcing every 404 as an alert is an
  * accessibility regression, not a consolidation.
  */
 
-import { buttonVariants } from 'component-lib'
+import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from 'react'
 import {
   borderWidth,
   color,
@@ -23,8 +23,8 @@ import {
   space,
   tracking,
   weight,
-} from 'component-lib/design/tokens'
-import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from 'react'
+} from '../../../ui/design/tokens'
+import { buttonVariants } from '../../../ui/index'
 import { AppLink } from './AppLink'
 
 const SHELL = {

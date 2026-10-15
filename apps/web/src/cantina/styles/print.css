@@ -99,7 +99,7 @@
     font-size: 12pt;
   }
 
-  /* The component-lib parts that set their own type in a `.su-*` class keep it
+  /* The src/ui parts that set their own type in a `.su-*` class keep it
    * on paper. This file is unlayered and those classes sit in `su-base`, so
    * the element rules above would beat them; `revert-layer` hands each
    * property back to the class. A part whose type is an inline style needs
@@ -194,7 +194,7 @@
    * ------------------------------------------------------------------------- */
   /* An inline border is matched by its style attribute: a stylesheet
    * `!important` still beats a plain inline declaration. The `.su-*` parts
-   * named here draw their border in a component-lib class, so they are named
+   * named here draw their border in a src/ui class, so they are named
    * outright. */
   [style*='border'],
   .su-entity-row__frame,
@@ -214,7 +214,7 @@
   }
 
   /* -------------------------------------------------------------------------
-   * Stat pips (component-lib Stat + VitalGauge) — keep trackable boxes on paper.
+   * Stat pips (src/ui Stat + VitalGauge) — keep trackable boxes on paper.
    *
    * The global `*` reset above forces every background to white, which would
    * erase a filled pip's fill and make it indistinguishable from an empty one.

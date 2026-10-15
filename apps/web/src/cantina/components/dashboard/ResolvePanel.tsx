@@ -9,10 +9,10 @@
  * details are all here. With nothing chosen, it says where to choose.
  */
 
-import type { ReferenceCardEntity } from 'component-lib'
-import { ActivationCost, Button, cn, ReferenceEntityCard, Stat } from 'component-lib'
-import { color, font, fontSize, space, weight } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
+import { color, font, fontSize, space, weight } from '../../../ui/design/tokens'
+import type { ReferenceCardEntity } from '../../../ui/index'
+import { ActivationCost, Button, cn, ReferenceEntityCard, Stat } from '../../../ui/index'
 
 export type ResolveModel =
   | {

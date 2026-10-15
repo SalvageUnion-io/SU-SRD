@@ -1,6 +1,6 @@
-import type { EntityHrefBuilder } from 'component-lib'
 import type { EntityRef } from 'salvageunion-reference'
 import { getEntitySlug, nameToSlug, srdEntityPath, srdSchemaPath } from 'salvageunion-reference'
+import type { EntityHrefBuilder } from '../ui/index'
 
 /**
  * srd's TRAILING-SLASH policy over the shared route grammar.
@@ -37,8 +37,8 @@ export function patternHref(schemaName: string, slug: string, patternSlug: strin
 }
 
 /**
- * srd's show-page route for an entity, as a `component-lib` href builder.
- * Supplied to component-lib via `EntityHrefProvider` so nested "View Details"
+ * srd's show-page route for an entity, as a `src/ui` href builder.
+ * Supplied to src/ui via `EntityHrefProvider` so nested "View Details"
  * links resolve to this app's routes (the shared library stays route-agnostic).
  *
  * Only a dataset record has a page. A record with no `id` was assembled for

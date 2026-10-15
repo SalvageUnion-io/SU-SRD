@@ -1,7 +1,7 @@
-import { KofiButton, MarkdownSection, Slab } from 'component-lib'
-import { space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 import { column, proseColumn } from '../lib/docPageStyles'
+import { space } from '../ui/design/tokens'
+import { KofiButton, MarkdownSection, Slab } from '../ui/index'
 
 type ColophonProps = {
   /** Raw contents of the repo-root `ABOUT_JRVS.md` (left column, top). */

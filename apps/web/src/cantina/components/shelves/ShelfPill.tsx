@@ -16,8 +16,8 @@
  * as a pattern's is. Pilots, mechs and crawlers built from canon stay solid.
  */
 
-import { Entity } from 'component-lib'
 import type { ReactNode } from 'react'
+import { Entity } from '../../../ui/index'
 import type { ShelfReading } from '../../lib/shelves/shelfItems'
 import type { UnitKind } from '../../lib/units/unitModel'
 import { unitRowModel } from '../../lib/units/unitModel'

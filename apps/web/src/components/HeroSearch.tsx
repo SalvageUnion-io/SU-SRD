@@ -1,5 +1,5 @@
-import { Button, SearchField } from 'component-lib'
 import type { FormEventHandler, ReactNode } from 'react'
+import { Button, SearchField } from '../ui/index'
 
 /**
  * The home page's search (board 06): "search first, in a blue chapter band".

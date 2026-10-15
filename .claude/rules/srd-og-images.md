@@ -3,15 +3,15 @@ paths:
   - 'apps/web/scripts/og*'
   - 'apps/web/src/lib/ogCard.ts'
   - 'apps/web/src/components/islands/OgCardIsland.tsx'
-  - 'packages/component-lib/src/components/compositions/OgCard*'
-  - 'packages/component-lib/src/components/compositions/ogCardText.ts'
-  - 'packages/component-lib/src/components/atoms/ChapterBand*'
+  - 'apps/web/src/ui/components/compositions/OgCard*'
+  - 'apps/web/src/ui/components/compositions/ogCardText.ts'
+  - 'apps/web/src/ui/components/atoms/ChapterBand*'
 ---
 
 # srd social preview images (og:image)
 
 Each entity page's `og:image` is its **link preview card**, `OgCard` from
-component-lib: the chapter band with speckle, the notched title,
+`apps/web/src/ui`: the chapter band with speckle, the notched title,
 the model's chips (E17) and the Union bar's foot, the same parts the pages are
 built from, so the preview cannot drift from the page. A thing you do (ability,
 action) adds the tier numeral, cost pennant and rules; the kind and cite are

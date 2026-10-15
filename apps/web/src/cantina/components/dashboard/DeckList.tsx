@@ -11,10 +11,10 @@
  * does not have.
  */
 
-import type { ReferenceCardEntity } from 'component-lib'
-import { Badge, EmptyState, ReferenceEntityCard, Toggle } from 'component-lib'
-import { fontSize, radius, space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
+import { fontSize, radius, space } from '../../../ui/design/tokens'
+import type { ReferenceCardEntity } from '../../../ui/index'
+import { Badge, EmptyState, ReferenceEntityCard, Toggle } from '../../../ui/index'
 
 /**
  * A render-ready action card. The action ENTITY drives a header-only

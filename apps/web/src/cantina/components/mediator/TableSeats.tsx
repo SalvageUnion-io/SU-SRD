@@ -20,9 +20,9 @@
  * Presentational: `tableSeats()` builds the seats.
  */
 
-import { buttonVariants, EmptyState } from 'component-lib'
-import { space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
+import { space } from '../../../ui/design/tokens'
+import { buttonVariants, EmptyState } from '../../../ui/index'
 import { CrewRow } from '../dashboard/CrewRow'
 import { AppLink } from '../shared/AppLink'
 import { EYEBROW, HEAD_ROW, HEADING, PANEL } from './mediatorStyles.model'

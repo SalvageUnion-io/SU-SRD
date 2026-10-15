@@ -14,8 +14,6 @@
 import { pilotingContext } from 'cantina-domain/rules/pilotingContext'
 import type { Crawler } from 'cantina-domain/schemas/crawler'
 import type { Mech } from 'cantina-domain/schemas/mech'
-import type { ProvenanceLine } from 'component-lib'
-import { linesFromBreakdown } from 'component-lib'
 import type { StatGroup } from 'salvageunion-reference'
 import { parseContentBlockString, SalvageUnionReference, STAT_LABELS } from 'salvageunion-reference'
 import {
@@ -27,6 +25,8 @@ import {
   resolveGauge,
   resolvePool,
 } from 'salvageunion-reference/rules'
+import type { ProvenanceLine } from '../../../ui/index'
+import { linesFromBreakdown } from '../../../ui/index'
 import { useCargo } from '../../lib/cargo/useCargo'
 import type { useEntityStore } from '../../stores/entityStore'
 

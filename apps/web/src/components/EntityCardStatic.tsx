@@ -1,13 +1,13 @@
-import type { PageRefIndex } from 'component-lib'
+import type { RefClass, RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
+import { srdEntityHref } from '../lib/entityHref'
+import { srdPatternHref } from '../lib/patternHref'
+import type { PageRefIndex } from '../ui/index'
 import {
   EntityDetailLinkProvider,
   EntityHrefProvider,
   PatternHrefProvider,
   ReferenceEntityCard,
-} from 'component-lib'
-import type { RefClass, RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
-import { srdEntityHref } from '../lib/entityHref'
-import { srdPatternHref } from '../lib/patternHref'
+} from '../ui/index'
 import { ClassAbilityTree } from './ClassAbilityTree'
 import { ReferenceSurface } from './ReferenceSurface'
 

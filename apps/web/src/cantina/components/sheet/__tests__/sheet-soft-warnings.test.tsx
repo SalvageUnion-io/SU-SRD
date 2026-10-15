@@ -141,7 +141,7 @@ async function removeViaPicker(manage: RegExp, item: RegExp) {
 /**
  * Each test renders a live sheet and drives its picker, so the dialog's opening
  * and its Cancel share one render rather than two. Up to 1.1 s a test inside
- * cantina's 4-worker suite, and under 2.7 s with srd, component-lib and tools
+ * cantina's 4-worker suite, and under 2.7 s with srd, src/ui and tools
  * running beside it (junit), well under Bun's 5 s default, so they keep it.
  */
 describe('PilotSheet — soft warnings on ability edits', () => {

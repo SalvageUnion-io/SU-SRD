@@ -12,13 +12,13 @@
  * trigger. Escape or a press outside closes it, focus back on the trigger.
  *
  * The combobox logic (debounce, category+entity blending, keyboard
- * selection, ARIA wiring) lives in component-lib's useSearchCombobox — shared
+ * selection, ARIA wiring) lives in src/ui's useSearchCombobox — shared
  * with srd's SearchIsland. This shell owns what's
  * Cantina-specific:
  *
  * - **Results hang below the input**, best match first; ↓ moves down the list.
  * - **Opening a result.** An entity opens the Cantina's canonical detail affordance —
- *   component-lib's useDetailModal — and the panel collapses. Category rows
+ *   src/ui's useDetailModal — and the panel collapses. Category rows
  *   (schema matches) have no in-app destination, so they open the SRD site's
  *   schema index in a new tab and leave the panel open.
  * - **Cmd/Ctrl+K** toggles the panel from anywhere and focuses the input; the
@@ -28,7 +28,12 @@
  *   `ready` and holds a query typed early until it is.
  */
 
-import type { EntitySurfaceValue, SearchComboboxResult } from 'component-lib'
+import { Search } from 'lucide-react'
+import type { CSSProperties } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import type { RefEntity } from 'salvageunion-reference'
+import { toEntityModel } from 'salvageunion-reference'
+import type { EntitySurfaceValue, SearchComboboxResult } from '../../../ui/index'
 import {
   Button,
   EmptyState,
@@ -43,12 +48,7 @@ import {
   useMediaQuery,
   useModKeyHint,
   useSearchCombobox,
-} from 'component-lib'
-import { Search } from 'lucide-react'
-import type { CSSProperties } from 'react'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import type { RefEntity } from 'salvageunion-reference'
-import { toEntityModel } from 'salvageunion-reference'
+} from '../../../ui/index'
 import { useGameDataLoaded } from '../../hooks/useGameDataLoaded'
 import { deepLinkToSchema } from '../../lib/srd-deep-link'
 import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'

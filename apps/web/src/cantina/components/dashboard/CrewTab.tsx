@@ -20,9 +20,9 @@
  * Style objects only, no new `.su-dash-*` class (ADR-046).
  */
 
-import { color, font, fontSize, space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 import type { Id } from '../../../../convex/_generated/dataModel'
+import { color, font, fontSize, space } from '../../../ui/design/tokens'
 import { CopyInviteLink } from '../games/CopyInviteLink'
 import { CrewRow } from './CrewRow'
 import { crewProblem } from './crewProblem.model'

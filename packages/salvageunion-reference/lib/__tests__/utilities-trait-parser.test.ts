@@ -220,7 +220,7 @@ describe('parseTraitReferences ReDoS hardening', () => {
 
 /**
  * The `[[Trait]]` grammar had THREE implementations — this parser,
- * component-lib's `parseTraitReferences`, and the Discord bot's inline
+ * src/ui's `parseTraitReferences`, and the Discord bot's inline
  * `TRAIT_REF` — and this one was the strictest: it alone required whitespace
  * between `]` and `(`. Nothing in the authoring pipeline enforces that space,
  * so `[[[Melee](2)]]` yielded ZERO references here while both renderers

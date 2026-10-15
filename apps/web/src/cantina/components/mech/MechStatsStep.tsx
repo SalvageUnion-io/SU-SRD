@@ -1,8 +1,8 @@
-import { EmptyState, ReferenceEntityCard, Slab, Stat, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
+import { EmptyState, ReferenceEntityCard, Slab, Stat, tokens } from '../../../ui/index'
 import '../../styles/wizard.css'
 import { fullWidthStyle } from '../wizard/wizardStyles.model'
 

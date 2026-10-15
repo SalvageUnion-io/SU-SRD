@@ -11,8 +11,8 @@
  * Presentational: `readCrawler()` reads the listing's body.
  */
 
-import { EmptyState, Entity, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { EmptyState, Entity, tokens } from '../../../ui/index'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { AppLink } from '../shared/AppLink'
 import type { CrawlerReading } from './crawlerReading.model'

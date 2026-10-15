@@ -1,7 +1,7 @@
-import { SheetSectionCard, tokens } from 'component-lib'
 import type { CSSProperties, ReactNode } from 'react'
 import type { BookCite } from 'salvageunion-reference'
 import { formatCite } from 'salvageunion-reference'
+import { SheetSectionCard, tokens } from '../../../ui/index'
 
 /** Per-step rule metadata carried by each wizard's step table. */
 export type StepRule = {

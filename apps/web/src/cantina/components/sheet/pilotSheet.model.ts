@@ -15,8 +15,6 @@
 import { resolveEffectiveCrawlerLevel } from 'cantina-domain/crawlerLevel'
 import type { Crawler } from 'cantina-domain/schemas/crawler'
 import type { GenericInventoryEntry, Pilot } from 'cantina-domain/schemas/pilot'
-import type { ProvenanceLine, TreeTrack } from 'component-lib'
-import { linesFromBreakdown, trackForTree } from 'component-lib'
 import { useMemo } from 'react'
 import type { RefAbility } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
@@ -26,6 +24,8 @@ import {
   pilotMaxHPParts,
   resolvePool,
 } from 'salvageunion-reference/rules'
+import type { ProvenanceLine, TreeTrack } from '../../../ui/index'
+import { linesFromBreakdown, trackForTree } from '../../../ui/index'
 import { readReference } from '../../lib/readReference'
 import { pilotInventoryCapacity, pilotInventoryUsed } from '../../lib/rules/pilotInventory'
 import type { ClassLike } from '../pilot/abilityTrees.model'

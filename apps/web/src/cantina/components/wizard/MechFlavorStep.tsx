@@ -1,5 +1,5 @@
-import { Button, Field, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { Button, Field, tokens } from '../../../ui/index'
 import '../../styles/wizard.css'
 import type { MechRollField, MechRollTableDeps } from './mechRollTables.model'
 import { rollForMechField } from './mechRollTables.model'

@@ -40,7 +40,7 @@
  *            every session. A collapsed doc (`COLLAPSED_DOCS`) holds its own
  *            budget: terse is the point.
  *   load     each named session profile (`SESSION_PROFILES`: srd,
- *            cantina+component-lib, bot) totals what it loads (the root
+ *            cantina+ui, bot) totals what it loads (the root
  *            CLAUDE.md and its imports, each CLAUDE.md under its directories,
  *            every rule whose `paths:` match a file there, and the docs its
  *            text says to read first), held to a ratchet (`SESSION_CEILINGS`).
@@ -1013,10 +1013,10 @@ const CANTINA_DIRS = ['src/cantina', 'convex', 'test', 'e2e/cantina'].map((d) =>
 
 /** The sessions the repo budgets (`gates/lib/sessionLoad`), each held to `SESSION_CEILINGS`. */
 const SESSION_PROFILES: Record<string, SessionProfile> = {
-  srd: { dirs: ['apps/web'], reads: [], skip: CANTINA_DIRS },
+  srd: { dirs: ['apps/web'], reads: [], skip: [...CANTINA_DIRS, 'apps/web/src/ui'] },
   /** It reads `apps/web/CLAUDE.md` (its workspace's guide) and the Convex CLI's guidelines; a Convex upgrade that grows them raises this on purpose. */
-  'cantina+component-lib': {
-    dirs: [...CANTINA_DIRS, 'packages/component-lib'],
+  'cantina+ui': {
+    dirs: [...CANTINA_DIRS, 'apps/web/src/ui'],
     reads: ['apps/web/CLAUDE.md', 'apps/web/convex/_generated/ai/guidelines.md'],
   },
   bot: { dirs: ['apps/discord-bot'], reads: [] },
@@ -1029,7 +1029,7 @@ const SESSION_PROFILES: Record<string, SessionProfile> = {
  */
 const SESSION_CEILINGS: Record<string, number> = {
   srd: 24_350,
-  'cantina+component-lib': 62_661,
+  'cantina+ui': 59_934,
   bot: 22_634,
 }
 

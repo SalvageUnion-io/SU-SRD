@@ -47,11 +47,18 @@ import type { Crawler } from 'cantina-domain/schemas/crawler'
 import type { EntityRef } from 'cantina-domain/schemas/entity'
 import type { Mech } from 'cantina-domain/schemas/mech'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
-import { Button, EmptyState, Entity, FieldError, ModalShell, RadioCardGroup } from 'component-lib'
-import { color, font, fontSize, space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { parseCrawlerTechLevel, resolveChassisRef } from 'salvageunion-reference/rules'
+import { color, font, fontSize, space } from '../../../ui/design/tokens'
+import {
+  Button,
+  EmptyState,
+  Entity,
+  FieldError,
+  ModalShell,
+  RadioCardGroup,
+} from '../../../ui/index'
 import { useCrawlers, useMechs, usePilots } from '../../hooks/entities'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { failureMessage } from '../../lib/connection/useServerAction'

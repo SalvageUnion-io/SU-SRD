@@ -10,7 +10,6 @@ import { totalLotUnits } from 'cantina-domain/schemas/cargoLot'
 import type { Crawler } from 'cantina-domain/schemas/crawler'
 import type { Mech } from 'cantina-domain/schemas/mech'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
-import { linesFromBreakdown } from 'component-lib'
 import type { RefCrawlerBay } from 'salvageunion-reference'
 import {
   crawlerMaxSPParts,
@@ -20,6 +19,7 @@ import {
   resolvePool,
   resolveSystemRef,
 } from 'salvageunion-reference/rules'
+import { linesFromBreakdown } from '../../../ui/index'
 import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { resolveCrawlerBay } from '../../lib/crawlerRefs'
 import { readReference } from '../../lib/readReference'

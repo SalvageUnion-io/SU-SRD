@@ -14,7 +14,7 @@
  * failure, or a second click landing after the first has already moved the lot.
  */
 
-import { toast } from 'component-lib'
+import { toast } from '../../../ui/index'
 import type { CargoTransferResult } from './cargoTransfer'
 
 /** Fire a cargo dispatch and surface its refusal reason as an error toast. */

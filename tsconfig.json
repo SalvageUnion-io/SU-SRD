@@ -12,7 +12,6 @@
     { "path": "packages/salvageunion-reference" },
     { "path": "packages/observability" },
     { "path": "packages/cantina-domain" },
-    { "path": "packages/component-lib" },
     { "path": "packages/gates" },
     { "path": "apps/web" },
     { "path": "apps/discord-bot" },

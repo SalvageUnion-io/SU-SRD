@@ -1,7 +1,7 @@
-import { InlineRef, mentionRef, Slab } from 'component-lib'
 import { Fragment } from 'react'
 import type { StaticEntitySummary } from 'salvageunion-reference'
 import { refText } from '../lib/rollTablePage'
+import { InlineRef, mentionRef, Slab } from '../ui/index'
 import { MentionProse } from './MentionProse'
 
 /**

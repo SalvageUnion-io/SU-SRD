@@ -1,4 +1,8 @@
 import { PRODUCT } from 'cantina-domain/product'
+import { useMutation, useQuery } from 'convex/react'
+import type { CSSProperties, ReactNode } from 'react'
+import { useState } from 'react'
+import { api } from '../../../../convex/_generated/api'
 import {
   Button,
   ChapterBand,
@@ -8,11 +12,7 @@ import {
   Slab,
   Text,
   tokens,
-} from 'component-lib'
-import { useMutation, useQuery } from 'convex/react'
-import type { CSSProperties, ReactNode } from 'react'
-import { useState } from 'react'
-import { api } from '../../../../convex/_generated/api'
+} from '../../../ui/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { ConvexPending } from '../shared/ConvexPending'

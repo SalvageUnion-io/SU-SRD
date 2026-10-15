@@ -27,7 +27,9 @@
  * usage) onto matching strip keys.
  */
 
-import type { StatTone } from 'component-lib'
+import type { CSSProperties, ReactNode, RefObject } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import type { StatTone } from '../../../ui/index'
 import {
   Badge,
   buttonVariants,
@@ -38,9 +40,7 @@ import {
   KindLabel,
   Stat,
   tokens,
-} from 'component-lib'
-import type { CSSProperties, ReactNode, RefObject } from 'react'
-import { useEffect, useRef, useState } from 'react'
+} from '../../../ui/index'
 import { AppLink } from '../shared/AppLink'
 import type { BandStamp } from './bandStamps.model'
 import { LinkedUnitLink } from './LinkedUnitLink'

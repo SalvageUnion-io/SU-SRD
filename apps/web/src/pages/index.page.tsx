@@ -12,7 +12,6 @@
  * The band's search is the page's search, so the Union bar carries none here.
  */
 
-import { ChapterBand } from 'component-lib'
 import type { RefEnumSchemaName } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { PageModule, PageResult } from '../../ssg/types'
@@ -23,6 +22,7 @@ import { buildChapters } from '../lib/chapters'
 import { DISCORD_INSTALL_URL, SITE_URL } from '../lib/constants'
 import { itemHref } from '../lib/entityHref'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
+import { ChapterBand } from '../ui/index'
 import '../lib/gameData'
 import { Island } from '../runtime/Island'
 

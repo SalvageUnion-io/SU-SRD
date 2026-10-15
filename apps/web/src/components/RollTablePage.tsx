@@ -12,13 +12,13 @@
  * a roll's result is a toast, as on every card.
  */
 
-import { digestColumnsTable, digestRollTable, mentionRef } from 'component-lib'
 import type { RefEntity, RefObjectTable } from 'salvageunion-reference'
 import { extractStaticEntitySummary } from 'salvageunion-reference'
 import type { ColumnsTablePageData } from '../lib/columnsTablePage'
 import type { RollTablePageData } from '../lib/rollTablePage'
 import { refText } from '../lib/rollTablePage'
 import { Island } from '../runtime/Island'
+import { digestColumnsTable, digestRollTable, mentionRef } from '../ui/index'
 import { ColumnsTableIsland } from './islands/ColumnsTableIsland'
 import { RollTableIsland } from './islands/RollTableIsland'
 

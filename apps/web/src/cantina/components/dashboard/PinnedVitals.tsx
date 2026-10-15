@@ -9,9 +9,9 @@
  * pinned there, and in Downtime nothing spends.
  */
 
-import { Stat } from 'component-lib'
-import { space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
+import { space } from '../../../ui/design/tokens'
+import { Stat } from '../../../ui/index'
 
 export type PinnedVital = { label: string; value: number; max: number }
 

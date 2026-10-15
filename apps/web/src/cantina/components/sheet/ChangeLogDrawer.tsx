@@ -11,11 +11,11 @@
 
 import type { ChangeLogKind } from 'cantina-domain/schemas/changeLog'
 import type { EntityRef } from 'cantina-domain/schemas/entity'
-import type { BadgeTone } from 'component-lib'
-import { Badge, EmptyState, ModalShell, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../../convex/_generated/api'
+import type { BadgeTone } from '../../../ui/index'
+import { Badge, EmptyState, ModalShell, tokens } from '../../../ui/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { formatDateTime } from '../../lib/formatDate'
 

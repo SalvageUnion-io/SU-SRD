@@ -1,5 +1,5 @@
-import { Entity } from 'component-lib'
 import type { RefEntity } from 'salvageunion-reference'
+import { Entity } from '../../ui/index'
 
 type EntityListingRowProps = {
   entity: RefEntity

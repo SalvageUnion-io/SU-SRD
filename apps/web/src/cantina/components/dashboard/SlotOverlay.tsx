@@ -10,8 +10,8 @@
  * already took that Escape) and gives focus back to the ⤢ that opened it.
  */
 
-import { Button, ModalShell } from 'component-lib'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
+import { Button, ModalShell } from '../../../ui/index'
 
 /** The title row and the Major, laid over the scrim that dims the display. */
 const FRAME = {

@@ -14,7 +14,7 @@
  */
 
 import { SHELF } from 'cantina-domain/container'
-import { Button, toast } from 'component-lib'
+import { Button, toast } from '../../../ui/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { copyStarter } from '../../lib/starterSet/copyStarter'
 import type { StarterKind } from '../../lib/starterSet/starterTemplates'

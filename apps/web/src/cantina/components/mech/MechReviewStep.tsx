@@ -1,6 +1,6 @@
-import { FieldError, Panel, ReferenceEntityCard, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
+import { FieldError, Panel, ReferenceEntityCard, tokens } from '../../../ui/index'
 import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import '../../styles/wizard.css'
 import { readReference } from '../../lib/readReference'

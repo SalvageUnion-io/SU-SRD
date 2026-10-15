@@ -19,9 +19,9 @@
  * section-edit fields and per-card controls (StatBlocks carry no cue).
  */
 
-import { Button, Glyph, ModalShell, PICKER_MODAL_WIDTH, tokens } from 'component-lib'
 import type { ComponentPropsWithoutRef, CSSProperties, ReactElement, ReactNode } from 'react'
 import { cloneElement, isValidElement } from 'react'
+import { Button, Glyph, ModalShell, PICKER_MODAL_WIDTH, tokens } from '../../../ui/index'
 
 // ---------------------------------------------------------------------------
 // HButton — the container-header control button (design `.hbtn`, clean-edit.html

@@ -16,9 +16,9 @@
 
 import type { ScrapPool } from 'cantina-domain/schemas/crawler'
 import type { ItemCondition } from 'cantina-domain/schemas/itemCondition'
-import { Button, Entity, ModalShell, StatusBadge, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
+import { Button, Entity, ModalShell, StatusBadge, tokens } from '../../../ui/index'
 import type { MechItem } from '../../lib/rules/mechItems'
 import {
   itemEconomy,

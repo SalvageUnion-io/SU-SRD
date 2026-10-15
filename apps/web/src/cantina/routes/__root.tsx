@@ -1,7 +1,7 @@
 import { createRootRoute, HeadContent, Outlet, useRouterState } from '@tanstack/react-router'
-import type { EntitySurfaceValue } from 'component-lib'
-import { EntityHrefProvider, EntitySurfaceProvider, Toaster } from 'component-lib'
 import { useLayoutEffect, useState } from 'react'
+import type { EntitySurfaceValue } from '../../ui/index'
+import { EntityHrefProvider, EntitySurfaceProvider, Toaster } from '../../ui/index'
 import { AccountHintSync } from '../components/account/AccountHintSync'
 import { AccountReconciler } from '../components/account/AccountReconciler'
 import {

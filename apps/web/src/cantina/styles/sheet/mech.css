@@ -9,7 +9,7 @@
 }
 
 /* The sheet's page gutter — the sticky bar and the read-only crew banner —
-   is every page's (`.su-page-gutters` on the sheet's main, component-lib's
+   is every page's (`.su-page-gutters` on the sheet's main, src/ui's
    shell.css), so the band's cut-out and the body share one left edge. */
 .su-sheet-gutter {
   padding-inline: var(--su-page-gutter-inline);

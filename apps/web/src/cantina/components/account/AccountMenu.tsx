@@ -1,13 +1,13 @@
 import { useNavigate } from '@tanstack/react-router'
-import { AccountMenu as SharedAccountMenu } from 'component-lib'
 import { useQuery } from 'convex/react'
 import { api } from '../../../../convex/_generated/api'
+import { AccountMenu as SharedAccountMenu } from '../../../ui/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { DOC_PAGES } from '../../lib/docPages'
 import { useSignOut } from './useSignOut'
 
 /**
- * The Cantina's account menu: component-lib's `AccountMenu`, the one the SRD's
+ * The Cantina's account menu: src/ui's `AccountMenu`, the one the SRD's
  * bar shows too, over this session. The name and avatar come from
  * `api.account.me`; Settings routes in place and Sign out ends the session
  * here.

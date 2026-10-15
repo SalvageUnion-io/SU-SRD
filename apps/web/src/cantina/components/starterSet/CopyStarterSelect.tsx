@@ -13,10 +13,10 @@
  */
 
 import { SHELF } from 'cantina-domain/container'
-import { Select, toast, tokens } from 'component-lib'
 import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../../convex/_generated/api'
+import { Select, toast, tokens } from '../../../ui/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { moveDestinations } from '../../lib/games/gameRoster'
 import { copyStarter } from '../../lib/starterSet/copyStarter'

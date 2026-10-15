@@ -14,8 +14,8 @@
  */
 
 import type { CargoLot } from 'cantina-domain/schemas/cargoLot'
-import { Button, Field, FieldError, Input, ModalShell, toast } from 'component-lib'
 import { useState } from 'react'
+import { Button, Field, FieldError, Input, ModalShell, toast } from '../../../../ui/index'
 import { useServerAction } from '../../../lib/connection/useServerAction'
 import { usePatternStore } from '../../../stores/patternStore'
 import '../../../styles/wizard.css'

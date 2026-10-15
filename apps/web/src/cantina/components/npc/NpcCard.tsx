@@ -12,8 +12,8 @@
  * a meta schema), so the whole card renders with no external-link builder.
  */
 
-import { EntityExternalLinkProvider, ReferenceEntityCard, tokens } from 'component-lib'
 import type { ComponentProps, CSSProperties } from 'react'
+import { EntityExternalLinkProvider, ReferenceEntityCard, tokens } from '../../../ui/index'
 import type { NpcView } from '../../lib/npcs/npcModel'
 import { npcAsReferenceEntity, npcIdentityLine, npcKicker } from '../../lib/npcs/npcModel'
 

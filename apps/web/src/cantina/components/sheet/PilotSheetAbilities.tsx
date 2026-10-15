@@ -9,8 +9,8 @@
  * SLABS, not cards: their entities carry their own frame.
  */
 
-import { AbilityTrack, EmptyState, Panel, SheetSectionSlab, Slab, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { AbilityTrack, EmptyState, Panel, SheetSectionSlab, Slab, tokens } from '../../../ui/index'
 import { PilotAbilityItem } from './PilotSheetItems'
 import type { AbilityEntry, AbilityTreeGroup } from './pilotSheet.model'
 import { SectionManageButton } from './SheetSection'

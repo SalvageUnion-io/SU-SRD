@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { toast } from 'component-lib'
+import { toast } from '../../../../ui/index'
 import { SavePatternPage } from '../../../components/mech/Pattern/SavePatternPage'
 import { pageTitle } from '../../../lib/pageTitle'
 

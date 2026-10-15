@@ -14,7 +14,7 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Crawler } from 'cantina-domain/schemas/crawler'
-import { Toaster, toast } from 'component-lib'
+import { Toaster, toast } from '../../../../ui/index'
 import { WIZARD_TXN } from '../../../stores/surfaceProvenance'
 import { crawlerFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'

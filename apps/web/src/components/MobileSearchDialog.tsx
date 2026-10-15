@@ -1,10 +1,10 @@
 import { Drawer } from '@base-ui/react/drawer'
-import { buttonVariants, cn } from 'component-lib'
-import { color, font, fontSize, radius, space, weight } from 'component-lib/design/tokens'
 import { Search, X } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { LIFT_SHADOW } from '../lib/liftShadow'
+import { color, font, fontSize, radius, space, weight } from '../ui/design/tokens'
+import { buttonVariants, cn } from '../ui/index'
 
 type MobileSearchDialogProps = {
   /**

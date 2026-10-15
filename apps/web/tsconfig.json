@@ -27,7 +27,6 @@
   "exclude": ["dist", "dist-cantina"],
   "references": [
     { "path": "../../packages/cantina-domain" },
-    { "path": "../../packages/component-lib" },
     { "path": "../../packages/gates" },
     { "path": "../../packages/observability" },
     { "path": "../../packages/salvageunion-reference" }

@@ -20,8 +20,8 @@
  */
 
 import { PRODUCT } from 'cantina-domain/product'
-import { ChapterBand, Slab, StartHere, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { ChapterBand, Slab, StartHere, tokens } from '../../../ui/index'
 import { SCRIPT_FONT } from '../../lib/scriptFont'
 import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
 import { StarterSetGrid } from '../starterSet/StarterSetGrid'

@@ -1,7 +1,7 @@
 import { useAuthActions } from '@convex-dev/auth/react'
 import { useNavigate } from '@tanstack/react-router'
-import { Text } from 'component-lib'
 import { useEffect, useRef } from 'react'
+import { Text } from '../../../ui/index'
 import { returnTo } from '../../lib/account/returnTo'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { captureException } from '../../lib/observability'

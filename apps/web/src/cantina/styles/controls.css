@@ -1,7 +1,7 @@
 /*
  * controls.css — the stateful/responsive half of the
  * The Cantina components listed below; their static styling is style objects over
- * component-lib tokens. Loaded by `index.css`.
+ * src/ui tokens. Loaded by `index.css`.
  *
  *   - roster/RosterColumn.tsx — the phone segment switch, the column grid and an
  *     inactive column (each changes at `md`, 48rem).

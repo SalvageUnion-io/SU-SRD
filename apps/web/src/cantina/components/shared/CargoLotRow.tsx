@@ -1,5 +1,5 @@
-import { Stat, tokens } from 'component-lib'
 import type { CSSProperties, ReactNode } from 'react'
+import { Stat, tokens } from '../../../ui/index'
 
 /** What a lot row reads off a lot: a cargo lot, or the Dashboard's view of one. */
 type LotFacts = {

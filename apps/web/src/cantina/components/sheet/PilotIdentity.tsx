@@ -28,9 +28,9 @@
  */
 
 import type { Pilot } from 'cantina-domain/schemas/pilot'
-import { Badge, Button, Field, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
+import { Badge, Button, Field, tokens } from '../../../ui/index'
 import { resolveClassName } from '../../lib/classRef'
 import { classChangePatch } from '../../lib/rules/classPath'
 import { ClassPathPicker } from '../pilot/ClassPathPicker'

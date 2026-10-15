@@ -1,8 +1,8 @@
-import { Badge } from 'component-lib'
-import { borderWidth, color, font, fontSize, radius, space } from 'component-lib/design/tokens'
 import type { LucideIcon } from 'lucide-react'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
+import { borderWidth, color, font, fontSize, radius, space } from '../../../ui/design/tokens'
+import { Badge } from '../../../ui/index'
 
 /**
  * EmptyUnitSlot — a dashed placeholder for an unfilled assignment (a pilot

@@ -23,9 +23,9 @@
 
 import type { Npc } from 'cantina-domain/schemas/npc'
 import type { CrewSlot } from 'cantina-domain/schemas/softLink'
-import { Badge, Button, ChapterBand, Slab, Text, tokens, UserMadeStamp } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
+import { Badge, Button, ChapterBand, Slab, Text, tokens, UserMadeStamp } from '../../../ui/index'
 import type { NpcView } from '../../lib/npcs/npcModel'
 import { isNpcDown, npcCurrentHP, slotPhrase } from '../../lib/npcs/npcModel'
 import { npcTemplateArt } from '../../lib/photos/defaultArt'

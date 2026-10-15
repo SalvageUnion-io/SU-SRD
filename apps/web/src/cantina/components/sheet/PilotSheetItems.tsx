@@ -7,7 +7,10 @@
 
 import type { ItemCondition } from 'cantina-domain/schemas/itemCondition'
 import type { GenericInventoryEntry } from 'cantina-domain/schemas/pilot'
-import type { ChoiceSelections } from 'component-lib'
+import type { CSSProperties } from 'react'
+import { useState } from 'react'
+import type { RefAbility } from 'salvageunion-reference'
+import type { ChoiceSelections } from '../../../ui/index'
 import {
   Button,
   Entity,
@@ -18,10 +21,7 @@ import {
   StatusBadge,
   tokens,
   useDisclosure,
-} from 'component-lib'
-import type { CSSProperties } from 'react'
-import { useState } from 'react'
-import type { RefAbility } from 'salvageunion-reference'
+} from '../../../ui/index'
 import { resolveAbilityApCost } from '../../lib/abilityCost'
 import {
   equipmentMaxUses,

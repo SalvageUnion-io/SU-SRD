@@ -10,8 +10,8 @@
  * reads "Saved".
  */
 
-import { color, font, fontSize, tracking, weight } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
+import { color, font, fontSize, tracking, weight } from '../../../ui/design/tokens'
 import { useConnection } from '../../lib/connection/connectionContext'
 
 const BASE = {

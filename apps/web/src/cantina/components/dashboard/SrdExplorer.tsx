@@ -6,9 +6,9 @@
  * `buildCatalogSections()` the landing page and top nav use, so a schema added
  * to the SRD catalog appears here too.
  *
- * Three views, every one of them a shared component-lib surface:
+ * Three views, every one of them a shared src/ui surface:
  *
- *  1. **Home** — the catalog, with search above it. Search is component-lib's
+ *  1. **Home** — the catalog, with search above it. Search is src/ui's
  *     `useSearchCombobox` (the hook behind the Cantina's GlobalSearch and srd's
  *     SearchIsland) in the shared `SearchField`; tiles **drill in place**
  *     (`onActivate`) rather than navigating, which would leave the Dashboard.
@@ -22,6 +22,10 @@
  * `preload('all')` effect) — never at module scope.
  */
 
+import type { CSSProperties } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import type { RefEntity, RefEnumSchemaName } from 'salvageunion-reference'
+import { isSchemaName, SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import {
   Button,
   buildCatalogSections,
@@ -34,11 +38,7 @@ import {
   Slab,
   tokens,
   useSearchCombobox,
-} from 'component-lib'
-import type { CSSProperties } from 'react'
-import { useEffect, useMemo, useState } from 'react'
-import type { RefEntity, RefEnumSchemaName } from 'salvageunion-reference'
-import { isSchemaName, SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
+} from '../../../ui/index'
 
 const HIDE_CHOICES = { choices: true } as const
 const NOTHING_SELECTED: string[] = []

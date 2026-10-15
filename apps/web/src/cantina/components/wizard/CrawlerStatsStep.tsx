@@ -1,8 +1,8 @@
-import { EmptyState, Stat, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import type { RefCrawler, RefMetaCrawlerTechLevel } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
+import { EmptyState, Stat, tokens } from '../../../ui/index'
 import '../../styles/wizard.css'
 import { fullWidthStyle } from './wizardStyles.model'
 

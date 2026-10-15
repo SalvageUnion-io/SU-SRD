@@ -5,14 +5,14 @@
  * - syncStats overlays derived values onto strip items by key
  *
  * (The entity-grid primitive tests live with the shared component:
- * component-lib EntityGrid.test.tsx.)
+ * src/ui EntityGrid.test.tsx.)
  */
 
 import { beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
-import { EntitySurfaceProvider } from 'component-lib'
 import type { EntityRef } from 'salvageunion-reference'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
+import { EntitySurfaceProvider } from '../../../../ui/index'
 import { must } from '../../__tests__/must'
 import { LiveSheet } from '../LiveSheet'
 

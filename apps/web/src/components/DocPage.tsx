@@ -1,7 +1,7 @@
-import { ChapterBand } from 'component-lib'
 import type { ReactNode } from 'react'
 import { DOC_PAGE, docMeasure } from '../lib/docPageStyles'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
+import { ChapterBand } from '../ui/index'
 
 /**
  * DocPage — the frame every plain document page wears (`/about`, `/api`,

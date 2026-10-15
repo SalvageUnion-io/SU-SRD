@@ -22,7 +22,6 @@
 
 import { totalLotUnits } from 'cantina-domain/schemas/cargoLot'
 import type { Mech } from 'cantina-domain/schemas/mech'
-import { CountStepper, heatDangerFrom, ReferenceEntityCard, rollForTable } from 'component-lib'
 import { useEffect, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { CriticalDamageEffect } from 'salvageunion-reference/rules'
@@ -34,6 +33,7 @@ import {
   resolveGauge,
   resolvePoolStart,
 } from 'salvageunion-reference/rules'
+import { CountStepper, heatDangerFrom, ReferenceEntityCard, rollForTable } from '../../../ui/index'
 import { activatableEffects } from '../../lib/rules/activatableEffects'
 import {
   critDamagePatch,

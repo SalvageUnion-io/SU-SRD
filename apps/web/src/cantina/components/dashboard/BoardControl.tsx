@@ -17,10 +17,10 @@
  * shared `Button`.
  */
 
-import { Button, EmptyState } from 'component-lib'
 import { ChevronDown } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { useEffect, useId, useRef } from 'react'
+import { Button, EmptyState } from '../../../ui/index'
 import type { BoardMenu, BoardOption } from './boardMenu.model'
 import { boardable } from './boardMenu.model'
 import { usePhoneForm } from './dashboardForm.model'

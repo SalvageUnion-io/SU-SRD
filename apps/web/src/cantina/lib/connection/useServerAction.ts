@@ -1,5 +1,5 @@
-import { toast } from 'component-lib'
 import { useCallback, useRef, useState, useTransition } from 'react'
+import { toast } from '../../../ui/index'
 import { StaleWriteRefused, WritesBlockedOffline } from '../../stores/entityBackend'
 import { LinkRefused } from '../links/linkRefused'
 import { captureException } from '../observability'

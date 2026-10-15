@@ -10,14 +10,14 @@
  *   Crawler: Name*, Tech Level 1–6 (default 1 — bare stats derive from
  *            crawler-tech-levels.json; the default SRD bays are seeded).
  *
- * Reuses the app's standard dialog shell (component-lib ModalShell — the same
- * shell behind component-lib's ConfirmDialog) and Field/Input chrome.
+ * Reuses the app's standard dialog shell (src/ui ModalShell — the same
+ * shell behind src/ui's ConfirmDialog) and Field/Input chrome.
  */
 
-import { Button, Field, FieldError, Input, ModalShell, Select } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useMemo, useState } from 'react'
 import { byTechLevelThenName, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
+import { Button, Field, FieldError, Input, ModalShell, Select } from '../../../ui/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { readReference } from '../../lib/readReference'
 import type { BlankCreateKind } from '../../lib/wizard/blankCreate'

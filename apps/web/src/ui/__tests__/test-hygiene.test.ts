@@ -11,16 +11,15 @@ import { join, resolve } from 'node:path'
  * plugins in `packages/gates/biome/`, matched on the syntax tree rather than by regex.
  * They assume the preload runs; this checks it does.
  *
- * Deliberately lives in component-lib rather than the repo root: `bun run test`
+ * Deliberately lives in a workspace rather than the repo root: `bun run test`
  * runs per workspace, so a root-level test file would never execute.
  */
 
-const REPO_ROOT = resolve(import.meta.dir, '../../../..')
+const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 
 /** Workspaces whose `bunfig.toml` preloads the shared root scripts. */
 const PRELOADED_WORKSPACES = [
   'apps/web',
-  'packages/component-lib',
   'packages/salvageunion-reference',
   // The bot has no DOM, but it reads reference data.
   'apps/discord-bot',

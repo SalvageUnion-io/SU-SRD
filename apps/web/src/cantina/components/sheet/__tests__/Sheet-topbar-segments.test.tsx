@@ -15,7 +15,7 @@
 
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import { buttonVariants } from 'component-lib'
+import { buttonVariants } from '../../../../ui/index'
 import {
   crawlerFixture,
   mechFixture,

@@ -9,7 +9,6 @@
  */
 
 import type { Crawler } from 'cantina-domain/schemas/crawler'
-import { EntitySearcher, ModalShell, PICKER_MODAL_WIDTH } from 'component-lib'
 import { useMemo } from 'react'
 import type { RefSystem } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
@@ -19,6 +18,7 @@ import {
   parseCrawlerTechLevel,
   resolveSystemRef,
 } from 'salvageunion-reference/rules'
+import { EntitySearcher, ModalShell, PICKER_MODAL_WIDTH } from '../../../ui/index'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { craftableAtTl } from '../../lib/rules/crafting'
 

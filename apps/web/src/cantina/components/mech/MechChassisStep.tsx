@@ -1,4 +1,3 @@
-import { MasonryColumns, ReferenceEntityCard, Sel, Slab, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useMemo } from 'react'
 import type { RefChassis } from 'salvageunion-reference'
@@ -13,6 +12,7 @@ import {
   legalStartingPatterns,
   MECH_CREATION_SCRAP_CAP,
 } from 'salvageunion-reference/rules'
+import { MasonryColumns, ReferenceEntityCard, Sel, Slab, tokens } from '../../../ui/index'
 import { chassisFitsCreationBudget } from '../../lib/rules/creation'
 import '../../styles/wizard.css'
 import { fullWidthStyle, textSmStyle } from '../wizard/wizardStyles.model'

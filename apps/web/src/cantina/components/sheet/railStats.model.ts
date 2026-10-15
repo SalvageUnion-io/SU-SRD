@@ -10,7 +10,6 @@ import type { pilotingContext } from 'cantina-domain/rules/pilotingContext'
 import type { Crawler } from 'cantina-domain/schemas/crawler'
 import type { Mech } from 'cantina-domain/schemas/mech'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
-import type { BadgeTone, StatState } from 'component-lib'
 import { CONDITION_LABELS, STAT_LABELS } from 'salvageunion-reference'
 import {
   crawlerMaxSP,
@@ -22,6 +21,7 @@ import {
   resolveGauge,
   resolvePool,
 } from 'salvageunion-reference/rules'
+import type { BadgeTone, StatState } from '../../../ui/index'
 
 /**
  * One reading on a rail line — plain builders below, NOT components.
@@ -32,7 +32,7 @@ import {
  * `rowStats` (below) adapts a list of these into the `UnitRow` readings the
  * text, and these functions just supply the numbers.
  *
- * The rules math stays here rather than moving into component-lib, which is
+ * The rules math stays here rather than moving into src/ui, which is
  * data-source agnostic (ADR-010).
  */
 export type RailStat = {

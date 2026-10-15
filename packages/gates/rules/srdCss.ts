@@ -34,13 +34,13 @@
  * 1. Exactly one srd module in `apps/web` may import a stylesheet, and it is
  *    `src/runtime/styles.entry.ts`. The Cantina (`src/cantina/`) is a Vite app
  *    whose CSS imports are its own, owned by `stylingOwnership`.
- * 2. No **shipping** `component-lib` module may import a stylesheet (tests
+ * 2. No **shipping** `src/ui` module may import a stylesheet (tests
  *    are exempt). A component-side
  *    `import './x.css'` rides the barrel into every consumer: that is how srd
  *    bundled — and its service worker precached — the dashboard's 20 KB of
  *    `.pc-*` rules that no srd page can use. A component's
- *    stylesheet is a package EXPORT (`component-lib/styles/*.css`) that the app
- *    which renders the component imports.
+ *    stylesheet sits in `apps/web/src/ui/styles/` and the app
+ *    which renders the component imports it.
  *
  */
 
@@ -54,7 +54,7 @@ import { assertScanFloor } from '../lib/scanFloor'
 export const SRD_CSS_ENTRY = 'apps/web/src/runtime/styles.entry.ts'
 
 const SRD_DIRS = ['apps/web/ssg', 'apps/web/src']
-const LIB_DIRS = ['packages/component-lib/src']
+const LIB_DIR = 'apps/web/src/ui'
 const EXTENSIONS = ['.ts', '.tsx', '.mts', '.cts']
 
 /** `import './x.css'`, `import 'pkg/y.css'`, and the `await import()` form. */
@@ -67,9 +67,11 @@ const isLibExempt = (rel: string): boolean =>
 
 const CANTINA_DIR = 'apps/web/src/cantina/'
 const srdFiles = (root: string) =>
-  listFiles(root, SRD_DIRS, EXTENSIONS).filter((rel) => !rel.startsWith(CANTINA_DIR))
+  listFiles(root, SRD_DIRS, EXTENSIONS).filter(
+    (rel) => !rel.startsWith(CANTINA_DIR) && !rel.startsWith(`${LIB_DIR}/`)
+  )
 const libFiles = (root: string) =>
-  listFiles(root, LIB_DIRS, EXTENSIONS).filter((rel) => !isLibExempt(rel))
+  listFiles(root, [LIB_DIR], EXTENSIONS).filter((rel) => !isLibExempt(rel))
 
 function cssImports(source: string): string[] {
   return [...source.matchAll(CSS_IMPORT)].map((m) => m[1] ?? m[2] ?? '')
@@ -89,12 +91,11 @@ const RULES: Rule[] = [
   {
     id: 'lib-css-import',
     mode: 'zero',
-    rule: 'component-lib ships no side-effect stylesheet import',
+    rule: 'src/ui ships no side-effect stylesheet import',
     fix:
-      'Export the stylesheet instead (`component-lib/styles/<name>.css` in the package ' +
-      '`exports`) and import it from the app that renders the component. A component-side ' +
-      'import rides the barrel into EVERY consumer — srd shipped the whole dashboard ' +
-      'stylesheet this way.',
+      'Keep the stylesheet beside the component (`apps/web/src/ui/styles/<name>.css`) and ' +
+      'import it from the app that renders the component. A component-side import rides ' +
+      'the barrel into EVERY consumer — srd shipped the whole dashboard stylesheet this way.',
   },
 ]
 
@@ -105,7 +106,7 @@ export const srdCss: RuleSet = {
   exemptionsLive: 'packages/gates/rules/srdCss.ts',
   preflight(root) {
     assertScanFloor('srd-css (srd source files)', srdFiles(root).length, 65)
-    assertScanFloor('srd-css (component-lib source files)', libFiles(root).length, 100)
+    assertScanFloor('srd-css (src/ui source files)', libFiles(root).length, 100)
   },
   scan(root) {
     const entry: Finding[] = []
@@ -133,5 +134,5 @@ export const srdCss: RuleSet = {
     }
     return { 'srd-css-entry': entry, 'lib-css-import': lib }
   },
-  summary: (root) => `${srdFiles(root).length} srd + ${libFiles(root).length} component-lib files`,
+  summary: (root) => `${srdFiles(root).length} srd + ${libFiles(root).length} src/ui files`,
 }

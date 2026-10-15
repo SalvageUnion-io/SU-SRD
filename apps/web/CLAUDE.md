@@ -9,7 +9,7 @@ In-house SSG in `ssg/`, not Astro ([ADR-031](../../docs/ARCHITECTURE.md#decision
 ## Stack
 
 - **Framework:** the SSG in `ssg/`, React 19, Vite 8 for the client bundle.
-- **UI:** `component-lib` components, tokens and stylesheet (ADR-046); React
+- **UI:** `src/ui` components, tokens and stylesheet (ADR-046); React
   islands for interactivity
 - **Game data:** `salvageunion-reference` workspace package
 - **Deployment:** Cloudflare Workers Static Assets (`wrangler.jsonc`). Every

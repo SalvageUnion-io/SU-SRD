@@ -1,6 +1,6 @@
 /**
  * useEntityChoices — controlled-selection adapter between an entity's persisted
- * per-item choice map and component-lib's ReferenceEntityCard `selections` /
+ * per-item choice map and src/ui's ReferenceEntityCard `selections` /
  * `onSelectionChange` props.
  *
  * Given an entity (`entityType`/`entityId`), an item slug, the name of the field
@@ -28,8 +28,8 @@
  * (NO mock.module() in tests).
  */
 
-import type { ChoiceSelections } from 'component-lib'
 import { useCallback } from 'react'
+import type { ChoiceSelections } from '../../../ui/index'
 import { runWrite } from '../../lib/runWrite'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'

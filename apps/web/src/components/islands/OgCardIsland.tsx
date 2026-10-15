@@ -1,4 +1,3 @@
-import { BrandCard, OgCard } from 'component-lib'
 import { useEffect, useMemo, useState } from 'react'
 import type { RefEntity, RefEnumSchemaName, RefObjectAnyPattern } from 'salvageunion-reference'
 import {
@@ -9,6 +8,7 @@ import {
 } from 'salvageunion-reference'
 import { ogCardFor } from '../../lib/ogCard'
 import { GameDataGate } from '../../lib/useGameData'
+import { BrandCard, OgCard } from '../../ui/index'
 
 /**
  * Build-only OG-card surface.

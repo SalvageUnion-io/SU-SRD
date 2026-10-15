@@ -56,7 +56,6 @@ const COPY_DIRS = [
   'apps/web/convex',
   'apps/web/src',
   'apps/discord-bot/src',
-  'packages/component-lib/src',
   'packages/cantina-domain/src',
   'packages/salvageunion-reference/lib',
 ] as const

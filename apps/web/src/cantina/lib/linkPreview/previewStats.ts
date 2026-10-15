@@ -7,7 +7,7 @@
  * draws the same card with these filled in. Every number is the one the
  * sheet shows, from the same rules (`salvageunion-reference/rules`).
  */
-import type { OgCardStat } from 'component-lib'
+
 import { SalvageUnionReference } from 'salvageunion-reference'
 import {
   crawlerMaxSP,
@@ -21,6 +21,7 @@ import {
   resolvePool,
   resolveSystemRef,
 } from 'salvageunion-reference/rules'
+import type { OgCardStat } from '../../../ui/index'
 import { slotsUsed } from '../patterns/patterns'
 import type { NameOf, PreviewAnswer, PreviewCard } from './previewSummary'
 import { sheetCard, titleCaseSlug } from './previewSummary'

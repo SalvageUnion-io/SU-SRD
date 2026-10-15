@@ -20,9 +20,9 @@
  */
 
 import type { ItemCondition } from 'cantina-domain/schemas/itemCondition'
-import { Button, Stat, StatusBadge } from 'component-lib'
 import { X } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { Button, Stat, StatusBadge } from '../../../ui/index'
 
 type SheetItemLineProps = {
   /** The item's Token, or a Row (`rowForm`). */

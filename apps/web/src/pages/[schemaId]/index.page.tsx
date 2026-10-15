@@ -17,7 +17,6 @@
  * `createRoot`, so no hydration mismatch is possible.
  */
 
-import { ChapterBand } from 'component-lib'
 import type { EnhancedSchemaMetadata, RefEntity } from 'salvageunion-reference'
 import { getAssetUrl } from 'salvageunion-reference'
 import type { PageModule, PageResult, RouteContext } from '../../../ssg/types'
@@ -34,6 +33,7 @@ import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { getSchemaPreloadList } from '../../lib/schemaPreloadDeps'
 import { getSchemaStaticPaths } from '../../lib/staticPaths'
 import { Island } from '../../runtime/Island'
+import { ChapterBand } from '../../ui/index'
 
 type Params = { schemaId: string }
 type Props = { schema: EnhancedSchemaMetadata; data: RefEntity[] }

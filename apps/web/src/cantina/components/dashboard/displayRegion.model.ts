@@ -1,5 +1,5 @@
-import { borderWidth, color } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
+import { borderWidth, color } from '../../../ui/design/tokens'
 
 /**
  * The display region: the deck beside the tabs, over the strip. The ⤢ overlay

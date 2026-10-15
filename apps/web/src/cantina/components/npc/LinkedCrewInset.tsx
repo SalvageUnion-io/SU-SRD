@@ -12,8 +12,8 @@
  * blank slot.
  */
 
-import { Badge, tokens, UserMadeStamp } from 'component-lib'
 import type { CSSProperties, ReactNode } from 'react'
+import { Badge, tokens, UserMadeStamp } from '../../../ui/index'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { npcCurrentHP } from '../../lib/npcs/npcModel'
 import { AppLink } from '../shared/AppLink'

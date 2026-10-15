@@ -21,8 +21,8 @@
  * dropping it left the player with a button that appeared to do nothing.
  */
 
-import { Button, EmptyState, Slab, Stat, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
+import { Button, EmptyState, Slab, Stat, tokens } from '../../../ui/index'
 import { reportCargo } from '../../lib/cargo/reportCargo'
 import type { UsePartnerCargoResult } from '../../lib/cargo/usePartnerCargo'
 import { CargoLotRow } from '../shared/CargoLotRow'

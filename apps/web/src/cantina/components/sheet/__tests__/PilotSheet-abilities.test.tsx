@@ -15,7 +15,7 @@
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
-import { EntitySurfaceProvider } from 'component-lib'
+import { EntitySurfaceProvider } from '../../../../ui/index'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { expandCards } from '../../__tests__/expandCards'

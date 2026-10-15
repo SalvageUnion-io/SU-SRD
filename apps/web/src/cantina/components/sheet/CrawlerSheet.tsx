@@ -63,6 +63,9 @@
 
 import type { Crawler } from 'cantina-domain/schemas/crawler'
 import type { Mech } from 'cantina-domain/schemas/mech'
+import type { CSSProperties, ReactNode } from 'react'
+import { useState } from 'react'
+import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
 import {
   buttonVariants,
   EmptyState,
@@ -71,10 +74,7 @@ import {
   SheetSectionSlab,
   Stat,
   tokens,
-} from 'component-lib'
-import type { CSSProperties, ReactNode } from 'react'
-import { useState } from 'react'
-import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
+} from '../../../ui/index'
 import { addToScrapPool, scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { useCargo } from '../../lib/cargo/useCargo'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'

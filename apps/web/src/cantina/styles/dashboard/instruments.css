@@ -7,7 +7,7 @@
  * book vocabulary as the wizard, SRD and live sheets, arranged as an instrument
  * panel and laid on a recessed workbench. There is NO private token layer:
  * every rule references the canonical `--color-*` / `--bw-*` / `--radius-*` /
- * `--text-*` / `--tracking-*` tokens (component-lib theme.css) directly. Three
+ * `--text-*` / `--tracking-*` tokens (src/ui theme.css) directly. Three
  * grounds, and brightest always means "read this": `--color-ink-deep` behind
  * everything, `--color-band-cream` for instrument chassis, `--color-paper` for
  * the display. Muted text on the two light grounds is `--color-wk-muted`
@@ -26,7 +26,7 @@
  * The table picker's items are native <button>s that set their own border
  * and background, so each takes the canonical ring (`--focus-ring-shadow`, the
  * two-ring construction that holds on paper and on the `.is-active` ink fill;
- * see `.su-focus-ring` in component-lib's `styles/partials/foundation.css`).
+ * see `.su-focus-ring` in src/ui's `styles/partials/foundation.css`).
  * `:focus-visible`, so a mouse click leaves no ring; the offset keeps it clear
  * of the surface's own border.
  */

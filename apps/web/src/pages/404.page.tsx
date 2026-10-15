@@ -13,12 +13,12 @@
  * search, so the Union bar carries none here (`BaseLayout`).
  */
 
-import { CHAPTER_BAND_COLOR, ChapterBand, Slab } from 'component-lib'
 import type { CSSProperties } from 'react'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { HeroSearchStatic } from '../components/HeroSearch'
 import { buildChapters } from '../lib/chapters'
 import { TITLE_SUFFIX } from '../lib/constants'
+import { CHAPTER_BAND_COLOR, ChapterBand, Slab } from '../ui/index'
 import '../lib/gameData'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { Island } from '../runtime/Island'

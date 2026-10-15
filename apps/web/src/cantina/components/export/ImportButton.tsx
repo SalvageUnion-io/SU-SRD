@@ -12,10 +12,10 @@
  * if the user needs to retry after a partial failure.
  */
 
-import { Button, FieldError, toast } from 'component-lib'
-import { color, font, fontSize, space } from 'component-lib/design/tokens'
 import type { CSSProperties } from 'react'
 import { useRef, useState } from 'react'
+import { color, font, fontSize, space } from '../../../ui/design/tokens'
+import { Button, FieldError, toast } from '../../../ui/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import type { MergeSummary } from '../../lib/export/mergeImport'
 import { mergeImport } from '../../lib/export/mergeImport'

@@ -55,7 +55,7 @@ const { ConnectionContext } = await import('../../../lib/connection/connectionCo
 const { hydrateStores } = await import('../../__tests__/hydrateStores')
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
-const { Toaster } = await import('component-lib')
+const { Toaster } = await import('../../../../ui/index')
 const { getEntitySlug, SalvageUnionReference } = await import('salvageunion-reference')
 const { buildPilotActions } = await import('../../../lib/rules/playActions')
 
@@ -608,7 +608,7 @@ describe("the Dashboard's display: the deck, the tabs and the table", () => {
       await act(async () => {
         screen.getByText('Roll').click()
       })
-      // The dice load on the first roll (component-lib's `rollForTable`).
+      // The dice load on the first roll (src/ui's `rollForTable`).
       await waitFor(() => expect(sent.some((w) => w.name === 'seats:setResolving')).toBe(true))
       const write = sent.find((w) => w.name === 'seats:setResolving')
       expect(write?.args).toMatchObject({

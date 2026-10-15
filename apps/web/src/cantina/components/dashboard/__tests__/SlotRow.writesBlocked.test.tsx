@@ -23,7 +23,7 @@
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
 import type { CargoLot } from 'cantina-domain/schemas/cargoLot'
-import { Toaster, toast } from 'component-lib'
+import { Toaster, toast } from '../../../../ui/index'
 import { WritesBlockedOffline } from '../../../stores/entityBackend'
 import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'

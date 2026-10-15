@@ -9,8 +9,6 @@
  */
 
 import { PRODUCT } from 'cantina-domain/product'
-import { buttonVariants, InlineRef, Panel, Slab } from 'component-lib'
-import { borderWidth, color, font, fontSize, space } from 'component-lib/design/tokens'
 import type { CSSProperties, ReactNode } from 'react'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { DocPage } from '../components/DocPage'
@@ -36,6 +34,8 @@ import {
   proseColumn,
 } from '../lib/docPageStyles'
 import { SalvageUnionReference } from '../lib/gameData'
+import { borderWidth, color, font, fontSize, space } from '../ui/design/tokens'
+import { buttonVariants, InlineRef, Panel, Slab } from '../ui/index'
 
 /**
  * Both values are DERIVED, and both are built inside `page()`.

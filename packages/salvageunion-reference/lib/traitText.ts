@@ -59,7 +59,7 @@ export function parseTraitReferences(text: string): ParsedTraitReference[] {
   // Pattern for parameterized traits: [[[TraitName] (param)]]
   //
   // The separator is `\s*`, not `\s+`: nothing in the authoring pipeline
-  // enforces the space, and both rendering consumers (component-lib's
+  // enforces the space, and both rendering consumers (src/ui's
   // parseTraitReferences, the bot's linkifyTraitRefs) have always accepted
   // `[[[Melee](2)]]`. Requiring it here made this parser the ONE reader that
   // yielded zero references for markup every renderer resolved — a silent

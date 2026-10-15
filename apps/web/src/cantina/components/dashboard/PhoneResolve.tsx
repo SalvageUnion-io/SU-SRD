@@ -21,7 +21,9 @@
  * Presentational: `useActionsDeck` owns every write.
  */
 
-import { Badge, Button, ConfirmDialog, ReferenceEntityCard } from 'component-lib'
+import { ChevronLeft } from 'lucide-react'
+import type { CSSProperties, RefObject } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   borderWidth,
   color,
@@ -30,10 +32,8 @@ import {
   space,
   tracking,
   weight,
-} from 'component-lib/design/tokens'
-import { ChevronLeft } from 'lucide-react'
-import type { CSSProperties, RefObject } from 'react'
-import { useEffect, useRef, useState } from 'react'
+} from '../../../ui/design/tokens'
+import { Badge, Button, ConfirmDialog, ReferenceEntityCard } from '../../../ui/index'
 import { useEscapeKey } from '../../hooks/useEscapeKey'
 import type { PinnedVital } from './PinnedVitals'
 import { PinnedVitals } from './PinnedVitals'

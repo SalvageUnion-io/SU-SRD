@@ -23,17 +23,17 @@
  * opposition tray, and the crew's wiring. Softening that would be the failure
  * mode of a confirm dialog: it exists to be read once, correctly.
  *
- * The dialog itself is component-lib's `ConfirmDialog`, which owns the pending
+ * The dialog itself is src/ui's `ConfirmDialog`, which owns the pending
  * state, keeps the dialog open on a failure, and starts focus on Cancel. This
  * file owns only the words.
  */
 
-import { ConfirmDialog, Text } from 'component-lib'
-import { space } from 'component-lib/design/tokens'
 import { useMutation } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../../convex/_generated/api'
 import type { Id } from '../../../../convex/_generated/dataModel'
+import { space } from '../../../ui/design/tokens'
+import { ConfirmDialog, Text } from '../../../ui/index'
 import { failureMessage } from '../../lib/connection/useServerAction'
 
 /** The little a confirm needs to know: what it is ending, and how big it is. */

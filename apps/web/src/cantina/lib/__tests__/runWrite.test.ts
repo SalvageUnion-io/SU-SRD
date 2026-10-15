@@ -9,7 +9,7 @@
  */
 
 import { afterEach, describe, expect, test } from 'bun:test'
-import { toast } from 'component-lib'
+import { toast } from '../../../ui/index'
 import { WritesBlockedOffline } from '../../stores/entityBackend'
 import { reportWriteFailure, runWrite } from '../runWrite'
 

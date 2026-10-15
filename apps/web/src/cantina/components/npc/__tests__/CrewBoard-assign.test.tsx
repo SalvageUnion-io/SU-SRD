@@ -32,7 +32,7 @@ const convexMocks = await installConvexMocks({
 })
 afterAll(() => convexMocks.restore())
 
-const { Toaster, toast } = await import('component-lib')
+const { Toaster, toast } = await import('../../../../ui/index')
 const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { CrewBoard } = await import('../CrewBoard')

@@ -3,4 +3,4 @@
  * module of this app's own, so `DashboardRollTable.test.tsx` can serve chosen faces
  * without replacing the whole library.
  */
-export { dieForTable, rollD20 } from 'component-lib'
+export { dieForTable, rollD20 } from '../../ui/index'

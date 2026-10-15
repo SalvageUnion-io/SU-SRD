@@ -42,6 +42,11 @@ describe('deploy-surfaces — decideSurfaces', () => {
     expect(decision).toEqual({ ...NOTHING, [key]: true })
   })
 
+  // The UI library lives in apps/web, and nothing else ships it.
+  test('a src/ui change ships srd alone', () => {
+    expect(decideSurfaces(['apps/web/src/ui/index.ts'], false)).toEqual({ ...NOTHING, srd: true })
+  })
+
   // su-srd serves the Cantina under /build, with its build in dist/build/.
   test('a Cantina change ships srd', () => {
     expect(decideSurfaces(['apps/web/src/cantina/app.tsx'], false)).toEqual({
@@ -51,7 +56,6 @@ describe('deploy-surfaces — decideSurfaces', () => {
   })
 
   test.each([
-    'packages/component-lib/src/index.ts',
     'packages/observability/src/cloudflare.ts',
     'packages/salvageunion-reference/package.json',
     'package.json',

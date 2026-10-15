@@ -6,7 +6,7 @@
 
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
-import { color } from 'component-lib/design/tokens'
+import { color } from '../../../../ui/design/tokens'
 import { DashboardGauge } from '../DashboardGauge'
 
 /** Segments filled status-bad (the fill is an inline style). */
