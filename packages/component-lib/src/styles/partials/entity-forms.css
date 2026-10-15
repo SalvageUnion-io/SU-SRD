@@ -858,7 +858,10 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
    theirs. A set wider than that drops chips from the end, whole, one at a
    time, so the earliest in the stat order stay: the group wraps, and only its
    first line shows: the clip is one mini chip high (its 11px type, padding
-   and hairline border), and the row gap keeps the next line out of it. */
+   and hairline border), and the row gap keeps the next line out of it.
+   On a narrow pill (a phone's pattern list) 65% left the name a stub
+   (".50 CAL MACH…"), so the budget also leaves the name a readable 9rem,
+   dropping chips sooner, down to half the pill: never more than 65%. */
 .su-entity-token__chips {
   align-items: center;
   align-content: flex-start;
@@ -868,7 +871,7 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   gap: 1.5rem var(--space-4);
   justify-content: flex-end;
   max-height: calc(var(--text-badge) + 2 * var(--space-2) + 2 * var(--bw-hairline));
-  max-width: 65%;
+  max-width: clamp(50%, 100% - 9rem, 65%);
   overflow: hidden;
 }
 
