@@ -23,7 +23,7 @@
  *   6. the keys in `SHARED_KEYS` are equal across all three, printed as a diff;
  *   7. every config turns on Workers Logs, Workers Issues and
  *      `upload_source_maps`. Workers Issues is the error tracker
- *      (packages/observability/src/cloudflare.ts) and needs nothing in a
+ *      (apps/web/src/worker/errorReports.ts) and needs nothing in a
  *      Worker's code, so a Worker that never turned it on looks exactly like
  *      a healthy one with no errors. The browser half of that wiring is the
  *      `observability` check's.

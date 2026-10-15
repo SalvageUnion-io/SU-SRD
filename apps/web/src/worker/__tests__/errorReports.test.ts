@@ -5,7 +5,7 @@ import {
   handleErrorReport,
   reportError,
   verifyConvexSignature,
-} from '../cloudflare'
+} from '../errorReports'
 
 /**
  * Workers Issues records what a Worker logs with `console.error`, so what these

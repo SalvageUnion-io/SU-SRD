@@ -3,8 +3,7 @@
 Every file here is a CLI entry point run directly by Bun (`bun tools/<name>.ts`);
 they reach other workspaces (`gates` in `packages/gates`, `salvageunion-reference`)
 only by package name, each declared `workspace:*`, never by relative path.
-`tools` and `gates` are workspaces, so `bun run test` and `bun run typecheck` reach them;
-`tools`' `typecheck` also checks the root `test/` preloads. Most are
+`tools` and `gates` are workspaces, so `bun run test` and `bun run typecheck` reach them. Most are
 **gates**, and every gate is registered in ONE place: the `CHECKS` list in
 [`check.ts`](check.ts). `bun run check`, `bun run check:fast`, lefthook's
 pre-push and CI's `static-checks` job all run that registry with a different

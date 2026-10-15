@@ -6,8 +6,12 @@
  * without a browser.
  */
 
+import { SRD_SITE_URL } from 'salvageunion-reference'
 import type { GallerySection } from './galleryPages'
 import { pageSlug } from './galleryPages'
+
+/** The production host, as an OG card shows it. */
+const SITE_HOST = new URL(SRD_SITE_URL).host
 
 export type OgMeta = { title?: string; description?: string; image?: boolean }
 
@@ -97,7 +101,7 @@ function ogCard(page: GallerySection['pages'][number], og: OgMeta | undefined): 
       : '<span class="og__none">No og:image</span>'
   }</span>
   <div class="og__text">
-    <span class="og__site">salvageunion.io${escapeHtml(page.path)}</span>
+    <span class="og__site">${SITE_HOST}${escapeHtml(page.path)}</span>
     <strong>${escapeHtml(og?.title ?? page.name)}</strong>
     <span>${escapeHtml(og?.description ?? '')}</span>
   </div>

@@ -1,6 +1,7 @@
+import { BOT_PATH_PREFIX } from 'cantina-domain/botWire'
 import { httpRouter } from 'convex/server'
 import { auth } from './auth'
-import { BOT_PATH_PREFIX, botRoute } from './botHttp'
+import { botRoute } from './botHttp'
 
 /**
  * HTTP routes for the deployment. `auth.addHttpRoutes` mounts the OAuth

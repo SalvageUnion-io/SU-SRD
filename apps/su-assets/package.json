@@ -12,6 +12,6 @@
     "dev": "wrangler dev"
   },
   "dependencies": {
-    "observability": "workspace:*"
+    "salvageunion-reference": "workspace:*"
   }
 }

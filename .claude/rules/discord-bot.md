@@ -66,10 +66,10 @@ retired `su:<action>` name for something new.
 
 ## Colour and the tests that guard a reply
 
-- Roll and neutral colours mirror `--color-roll-*` / `--color-rust` in
-  `apps/web/src/styles/theme.css`; change them together.
-  `themeLockstep.test.ts` fails when they diverge (entry tones:
-  `packages/salvageunion-reference/lib/view/__tests__/discordCard.test.ts`).
+- Every accent (entry tones, the roll ramp, rust) is one integer mirror of
+  `apps/web/src/styles/theme.css`:
+  `packages/salvageunion-reference/lib/view/discordAccents.ts`, whose test fails
+  when a value diverges; change them together.
 - Handlers take the narrow types in `src/commands/interactions.ts` (add a member
   only when a handler reads it); extend the shared fakes in
   `src/__tests__/fakeInteraction.ts` rather than casting.

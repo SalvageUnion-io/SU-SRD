@@ -16,10 +16,11 @@
  * Pure: the control (`components/sharing/WhoCanSee.tsx`) draws these, and the
  * connected settings (`ShareSettings.tsx`) decide which write each one makes.
  */
+import type { PublicKind } from 'cantina-domain/entityKinds'
 import type { PatternVisibility } from '../patterns/patterns'
 
 /** The kinds of player thing a player can share. */
-export type ShareKind = 'pilot' | 'mech' | 'crawler' | 'npc' | 'pattern'
+export type ShareKind = PublicKind
 
 /** Who can see it: the same three answers for every kind. */
 export type Visibility = PatternVisibility
@@ -31,11 +32,6 @@ export type VisibilityChoice = {
   description: string
   /** An answer this thing cannot take where it is now; `description` says why. */
   disabled: boolean
-}
-
-/** A thing's public address: `/p/:kind/:appId`, one page per thing (ADR-032). */
-export function sharePath(kind: ShareKind, appId: string): string {
-  return `/p/${kind}/${appId}`
 }
 
 const LABEL: Record<Visibility, string> = {

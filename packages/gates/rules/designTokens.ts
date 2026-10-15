@@ -46,7 +46,6 @@ const SCAN_DIRS = [
   // the bot still fails.
   'apps/discord-bot/src',
   'apps/su-assets/src',
-  'packages/observability/src',
   'packages/cantina-domain/src',
 ]
 
@@ -275,10 +274,10 @@ const EXEMPTIONS: Exemption[] = [
       'THE rust allowlist (ruleset §3.1): the one Reference exception — an inline link. Its paint lives in the stylesheet half, `.su-inline-ref--link` in styles/index.css, whose rust lines carry a `design-tokens-ignore` naming this allowlist; this entry keeps the component itself sanctioned to name rust.',
   },
   {
-    file: 'packages/salvageunion-reference/lib/view/discordCard.ts',
-    rules: ['raw-color'],
+    file: 'packages/salvageunion-reference/lib/view/discordAccents.ts',
+    rules: ['raw-color', 'rust-allowlist'],
     reason:
-      "Discord's accent stripe takes a `0xRRGGBB` integer, never a CSS token, so the Discord card (the bot's lookup and the SRD's Component Embed) mirrors the tone palette as integers. A token-definition mirror like `design/tokens.ts`: every value is theme.css's, and `discordCard.test.ts` fails if one drifts. Its one departure, ink painting the rules blue on Discord's dark theme, is written in the table's own comment.",
+      "Discord's accent stripe takes a `0xRRGGBB` integer, never a CSS token, so every Discord accent (the reference cards' tones, the bot's roll ramp and its rust) mirrors the palette as integers, in this one file. A token-definition mirror like `design/tokens.ts`: every value is theme.css's, and `discordAccents.test.ts` fails if one drifts. Its one departure, ink painting the rules blue on Discord's dark theme, is written in the table's own comment. rust-allowlist rides along because the neutral accent IS `--color-rust`, named so the lockstep test can read it: the bot's system replies wear it, a Discord surface the §3.1 Button/InlineRef law does not reach.",
   },
   {
     file: 'apps/discord-bot/src',
@@ -329,16 +328,10 @@ const EXEMPTIONS: Exemption[] = [
       'PRINT MEDIA. Inside `@media print` the surface is physical paper and the ink is real ink, so #fff / #000 are the correct values rather than the screen palette — warm paper (#fbfaf7) printed as a fill wastes toner and reads grey. theme.css already carves out exactly this exception in its paper note ("the only remaining #ffffff is one scoped exception: the @media print sheet"); this is that exception, in the app that owns the sheet. cool-ground rides along because the print sheet whites `--color-wk-bg-2` out with the other themed grounds, so nothing that still reads it prints a tint.',
   },
   {
-    file: 'apps/discord-bot/src/format.ts',
-    rules: ['raw-color'],
-    reason:
-      "Not CSS: the bot renders no stylesheet. Discord's `setAccentColor()` takes a 0xRRGGBB integer, so NEUTRAL_ACCENT and ROLL_COLORS restate `--color-rust` and the `--color-roll-*` ramp in the only form the API accepts; each doc comment cites the token's rgb()/hex it was converted from. There is no token to read instead (the bot does not depend on src/components), and `src/__tests__/themeLockstep.test.ts` reads theme.css and fails if any of these drifts — the lockstep the rule exists to enforce, done by a test rather than a lookup.",
-  },
-  {
     file: 'apps/discord-bot/src/gameCards.ts',
     rules: ['raw-color'],
     reason:
-      "Not CSS, same reason as format.ts above: SHEET_ACCENT is the Discord container accent for pilot / mech / crawler sheets, the `--color-sheet-*` tones (= `--color-pilot` / `--color-mech` / `--color-crawler`) as the 0xRRGGBB integers `setAccentColor()` takes. Values verified equal to theme.css when exempted; unlike format.ts's colours, no test pins them to theme.css yet.",
+      "Not CSS, same reason as discordAccents.ts above: SHEET_ACCENT is the Discord container accent for pilot / mech / crawler sheets, the `--color-sheet-*` tones (= `--color-pilot` / `--color-mech` / `--color-crawler`) as the 0xRRGGBB integers `setAccentColor()` takes. Values verified equal to theme.css when exempted; unlike format.ts's colours, no test pins them to theme.css yet.",
   },
 ]
 

@@ -1,7 +1,7 @@
 import { afterAll, afterEach, describe, expect, it, spyOn } from 'bun:test'
-import * as observability from 'observability/cloudflare'
 import type { AssetBucket } from '../worker'
 import { makeAssetHandler } from '../worker'
+import * as observability from '../worker/reportError'
 import { bucketWith, req } from './fixtures'
 
 /**

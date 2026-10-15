@@ -12,13 +12,14 @@
  * switching between Games.
  */
 
+import type { SheetKind } from 'cantina-domain/entityKinds'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { color, space } from '../../design/tokens'
 import { buttonVariants, EmptyState, Segmented, SegmentedOption, Slab } from '../index'
 import { AppLink } from '../shared/AppLink'
 
-export type SegmentKind = 'pilot' | 'mech' | 'crawler'
+export type SegmentKind = SheetKind
 
 const SEGMENTS: ReadonlyArray<{ kind: SegmentKind; label: string }> = [
   { kind: 'pilot', label: 'Pilots' },

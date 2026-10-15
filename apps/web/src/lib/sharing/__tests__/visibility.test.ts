@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { patternChoices, sharePath, sheetChoices, sheetVisibility } from '../visibility'
+import { patternChoices, sheetChoices, sheetVisibility } from '../visibility'
 
 /**
  * Who can see it: one question, the same three answers and the same words for
@@ -15,11 +15,6 @@ describe('the same three answers for every kind', () => {
     const words = ['Only me', 'My Game’s crew', 'Anyone with the link']
     expect(labels(sheetChoices({ inGame: false, gameName: null }))).toEqual(words)
     expect(labels(patternChoices({ gameName: 'Dustbowl Run' }))).toEqual(words)
-  })
-
-  test('every kind has its own /p/ address', () => {
-    expect(sharePath('npc', 'n1')).toBe('/p/npc/n1')
-    expect(sharePath('pattern', 'pat-1')).toBe('/p/pattern/pat-1')
   })
 })
 

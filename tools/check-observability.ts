@@ -2,7 +2,7 @@
 /**
  * check-observability — the repo half of "can an error be reported at all?".
  *
- * Workers Issues is the error tracker (packages/observability/src/cloudflare.ts).
+ * Workers Issues is the error tracker (apps/web/src/worker/errorReports.ts).
  * It needs nothing in a Worker's code, so the ways to go blind are all wiring:
  * a browser app that never starts its reporter or whose Worker never routes
  * the report, a CSP that blocks the report before it leaves the page. Each

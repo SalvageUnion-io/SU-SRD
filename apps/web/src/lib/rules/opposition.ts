@@ -4,12 +4,12 @@
  *
  * Pure apart from the reference lookups, and the die is injected, so tests
  * pick the roll. The Mediator Dashboard's tray reads its rows through these
- * (`apps/web/src/components/mediator/opposition.model.ts`).
+ * (`components/mediator/opposition.model.ts`).
  */
 
+import type { EncounterNpc } from 'cantina-domain/schemas/encounterNpc'
 import type { RefEntity } from 'salvageunion-reference'
 import { NO_EFFECT, rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
-import type { EncounterNpc } from '../schemas/encounterNpc'
 
 /** One Morale roll, as an encounter NPC stores its last one. */
 export type MoraleRoll = NonNullable<EncounterNpc['lastMediatorRoll']>

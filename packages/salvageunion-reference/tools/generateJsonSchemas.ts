@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /**
  * Generate JSON Schema files from Zod schemas
  * Uses Zod 4 native z.toJSONSchema() to convert Zod schemas to JSON Schema format
@@ -10,6 +11,7 @@ import { fileURLToPath } from 'node:url'
 // The canonical schema-id -> Zod map lives in ModelFactory (one registry); the
 // generator keeps no copy.
 import { zodSchemaMap } from '../lib/generated/zodSchemaMap.generated'
+import { SRD_SITE_URL } from '../lib/origin'
 import { z } from '../lib/zod'
 import { formatWithBiome } from './formatWithBiome'
 
@@ -43,7 +45,7 @@ async function generateSchemas() {
       // srd serves this very file at, so a consumer can resolve it.
       const arraySchema = {
         $schema: 'http://json-schema.org/draft-07/schema#',
-        $id: `https://salvageunion.io/schema/${schemaIdToFilename(schemaId)}`,
+        $id: `${SRD_SITE_URL}/schema/${schemaIdToFilename(schemaId)}`,
         title: schemaId,
         description: (itemSchema as { description?: string })?.description || '',
         type: 'array' as const,

@@ -16,10 +16,9 @@
 
 import { ButtonStyle } from 'discord-api-types/v10'
 import type { RefRollTable } from 'salvageunion-reference'
-import { NO_EFFECT, searchIn } from 'salvageunion-reference'
+import { DISCORD_NEUTRAL_ACCENT, NO_EFFECT, searchIn } from 'salvageunion-reference'
 import type { ButtonSpec, ContainerData } from './container'
 import { encodeRollRequest, makeCustomId } from './customId'
-import { NEUTRAL_ACCENT } from './format'
 import { rollHeadline } from './rollContainer'
 
 /** How many recovery buttons to offer. Three fits one row without crowding. */
@@ -44,7 +43,7 @@ function suggestionButtons(query: string): ButtonSpec[] {
 export function unknownTableContainer(query: string, indexed: number): ContainerData {
   const buttons = suggestionButtons(query)
   return {
-    accent: NEUTRAL_ACCENT,
+    accent: DISCORD_NEUTRAL_ACCENT,
     blocks: [
       { kind: 'text', content: '-# NO SUCH TABLE' },
       { kind: 'text', content: `## ${query.toUpperCase()}` },
@@ -92,7 +91,7 @@ export function noEffectContainer(
     : []
 
   return {
-    accent: NEUTRAL_ACCENT,
+    accent: DISCORD_NEUTRAL_ACCENT,
     blocks: [
       { kind: 'text', content: roller ? `-# ${name} · rolled by ${roller}` : `-# ${name}` },
       { kind: 'text', content: rollHeadline(String(roll), NO_EFFECT.toUpperCase()) },
@@ -111,7 +110,7 @@ export function noEffectContainer(
  */
 export function noEntryContainer(query: string): ContainerData {
   return {
-    accent: NEUTRAL_ACCENT,
+    accent: DISCORD_NEUTRAL_ACCENT,
     blocks: [
       { kind: 'text', content: '-# NO SUCH ENTRY' },
       { kind: 'text', content: `## ${query.toUpperCase()}` },

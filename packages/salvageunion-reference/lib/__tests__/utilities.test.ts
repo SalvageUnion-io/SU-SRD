@@ -4,7 +4,7 @@
 
 import { describe, expect, it } from 'bun:test'
 import { extractActions, getChassisAbilities } from '../actionResolution'
-import { getAssetUrl, SRD_SITE_URL, srdEntityPath, srdEntityUrl } from '../assets'
+import { getAssetUrl, srdEntityPath, srdEntityUrl } from '../assets'
 import {
   getCargoCapacity,
   getEnergyPoints,
@@ -23,6 +23,7 @@ import {
 } from '../entityFields'
 // Import SalvageUnionReference - use lazy getter to avoid initialization issues
 import type { SalvageUnionReference as RefType } from '../index'
+import { SRD_SITE_URL } from '../origin'
 import { getPatterns, isHiddenPattern, normalizePatternName, visiblePatterns } from '../patterns'
 import { getEntitySlug } from '../slug'
 

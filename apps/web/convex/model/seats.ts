@@ -1,3 +1,4 @@
+import type { OwnableKind } from 'cantina-domain/entityKinds'
 import type { Doc, Id } from '../_generated/dataModel'
 import type { MutationCtx, QueryCtx } from '../_generated/server'
 import type { ContainedRow } from './entities'
@@ -62,7 +63,7 @@ export async function seatsInGame(
  */
 export async function releaseSeatsOf(
   ctx: MutationCtx,
-  kind: 'pilot' | 'mech',
+  kind: OwnableKind,
   row: ContainedRow,
   gameId: Id<'games'> | null
 ): Promise<void> {

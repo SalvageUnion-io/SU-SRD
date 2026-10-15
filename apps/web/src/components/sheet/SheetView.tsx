@@ -34,7 +34,8 @@
 
 import { useRouter } from '@tanstack/react-router'
 import { containerOf } from 'cantina-domain/container'
-import type { SheetEntityKind } from 'cantina-domain/schemas/entity'
+import type { SheetKind } from 'cantina-domain/entityKinds'
+import { gamePath } from 'cantina-domain/entityKinds'
 import { useQuery } from 'convex/react'
 import { useEffect, useMemo } from 'react'
 import { api } from '../../../convex/_generated/api'
@@ -51,7 +52,7 @@ import { SheetSkeleton } from './SheetSkeleton'
 import { READ_ONLY_BANNER } from './sheetChrome.model'
 import { SheetModeContext, useSheetModeStore } from './sheetMode.model'
 
-type SheetViewProps = { kind: SheetEntityKind; id: string }
+type SheetViewProps = { kind: SheetKind; id: string }
 
 /**
  * Names the tab after the entity, and follows a rename. The route's `head`
@@ -61,7 +62,7 @@ type SheetViewProps = { kind: SheetEntityKind; id: string }
  * rewrites the tab on the next navigation, since every other route's title
  * differs from the sheet's.
  */
-function useSheetTabTitle(kind: SheetEntityKind, id: string) {
+function useSheetTabTitle(kind: SheetKind, id: string) {
   const name = useEntityStore((s) => s.get(kind, id)?.name ?? null)
   useEffect(() => {
     document.title = pageTitle(name || 'Sheet')
@@ -69,7 +70,7 @@ function useSheetTabTitle(kind: SheetEntityKind, id: string) {
 }
 
 /** Whether the listing carries a row for this entity, parseable or not. */
-function listed(listing: GameListing, kind: SheetEntityKind, id: string): boolean {
+function listed(listing: GameListing, kind: SheetKind, id: string): boolean {
   const rows =
     kind === 'pilot' ? listing.pilots : kind === 'mech' ? listing.mechs : listing.crawlers
   return rows.some((row) => (row.appId ?? (row.body as { id?: unknown } | null)?.id) === id)
@@ -119,7 +120,7 @@ export function SheetView({ kind, id }: SheetViewProps) {
   }, [canonical, id, kind, router])
 
   // `/games/$gameId` is that Game's own page — a plain `/` is the shelf.
-  const crew = gameId === null ? undefined : { href: `/games/${gameId}`, label: 'the crew' }
+  const crew = gameId === null ? undefined : { href: gamePath(gameId), label: 'the crew' }
 
   // Yours: the local copy, editable — unless the server says otherwise. It
   // opens in Read, and the band's Read | Edit switches (`sheetMode.model.ts`).

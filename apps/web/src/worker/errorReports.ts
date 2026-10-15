@@ -78,7 +78,7 @@ export const CONVEX_LOG_STREAM_PATH = '/__convex-logs'
  */
 const MAX_REPORT_BYTES = 16 * 1024
 
-/** What a browser app posts: `observability/browser`'s `ErrorReport`. */
+/** What a browser app posts: the `ErrorReport` `src/lib/browserObservability.ts` sends. */
 export type ErrorReport = {
   name: string
   message: string
@@ -118,7 +118,7 @@ function optionalString(value: unknown): string | undefined {
 }
 
 /** A posted body as an {@link ErrorReport}, or null when it is not one. */
-export function parseErrorReport(value: unknown): ErrorReport | null {
+function parseErrorReport(value: unknown): ErrorReport | null {
   if (!isRecord(value)) return null
   if (typeof value.message !== 'string') return null
   const fingerprint = Array.isArray(value.fingerprint)
@@ -148,7 +148,7 @@ function remoteError(name: string, message: string, stack: string | undefined): 
 }
 
 /** The error a report is logged as: by its fingerprint when it has one. */
-export function errorOfReport(report: ErrorReport): Error {
+function errorOfReport(report: ErrorReport): Error {
   if (report.fingerprint) {
     return remoteError(report.name, report.fingerprint.join(' '), undefined)
   }

@@ -16,7 +16,7 @@ live in workspace bunfigs, not the root's.
 ## Component Testing
 
 - Test user interactions, query by role/label, `waitFor` async updates
-- React's "not wrapped in act(...)" and "a style property during rerender" warnings fail the test (`test/testing-library.ts`): settle async work inside `await act(async () => …)`, and in Cantina load the real stores first with `hydrateStores` (`src/components/__tests__/hydrateStores.ts`)
+- React's "not wrapped in act(...)" and "a style property during rerender" warnings fail the test (`apps/web/test/testing-library.ts`): settle async work inside `await act(async () => …)`, and in Cantina load the real stores first with `hydrateStores` (`src/components/__tests__/hydrateStores.ts`)
 
 ## Mocking
 
@@ -53,15 +53,14 @@ Two corollaries:
 
 ### Never re-declare `afterEach(cleanup)` — the preload already runs it
 
-`test/testing-library.ts`, which every workspace running component tests
-preloads, registers an `act()`-wrapped `afterEach(cleanup)` (it also clears
+`apps/web/test/testing-library.ts`, the web preload, registers an `act()`-wrapped `afterEach(cleanup)` (it also clears
 `sessionStorage`/`localStorage`). A bare re-declaration unmounts without
 flushing pending React updates; `noBareCleanupHook.grit` fails it.
 To unmount **mid-test** (e.g. asserting on a remount), call `cleanup()` inline.
 
 ### Never call `SalvageUnionReference.preload()` in a test file
 
-`test/reference-preload.ts` already loads every schema, and the loaded-schema
+`packages/salvageunion-reference/tools/testPreload.ts` already loads every schema, and the loaded-schema
 set is module-global, so a narrow per-file list can pass only because a sibling
 file loaded everything; `noTestReferencePreload.grit`
 fails it. The exceptions re-preload after `resetAllForTesting()` to assert on

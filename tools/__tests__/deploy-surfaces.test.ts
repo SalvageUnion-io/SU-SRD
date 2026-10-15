@@ -57,7 +57,7 @@ describe('deploy-surfaces — decideSurfaces', () => {
   })
 
   test.each([
-    'packages/observability/src/cloudflare.ts',
+    'packages/cantina-domain/src/product.ts',
     'packages/salvageunion-reference/package.json',
     'package.json',
     'bun.lock',

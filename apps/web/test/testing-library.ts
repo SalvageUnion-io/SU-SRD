@@ -1,7 +1,7 @@
 import { afterEach, expect } from 'bun:test'
 import { format } from 'node:util'
-import { cleanup, configure, act } from '@testing-library/react'
 import * as matchers from '@testing-library/jest-dom/matchers'
+import { act, cleanup, configure } from '@testing-library/react'
 
 expect.extend(matchers)
 

@@ -1,3 +1,5 @@
+import type { EntityTable, OwnableKind, OwnableTable } from 'cantina-domain/entityKinds'
+import { TABLE_OF_KIND } from 'cantina-domain/entityKinds'
 import type { LinkShape } from 'cantina-domain/links/linkRules'
 import { conflictingLinks, LINK_ENDS, sameLink } from 'cantina-domain/links/linkRules'
 import { CrawlerSchema } from 'cantina-domain/schemas/crawler'
@@ -47,9 +49,6 @@ import { PHOTO_TABLES, trackPhoto } from './photos'
  * nobody may claim through could have reached the ownership writes. An id that
  * is not this table's is simply not there.
  */
-
-/** The two entity tables that carry an owner. Crawlers are communal by design. */
-export type OwnableTable = 'pilots' | 'mechs'
 
 /**
  * Every table whose rows are always their owner's and written whole by
@@ -140,22 +139,6 @@ export async function loadOwnable(
   return doc
 }
 
-/** The tables a Change Log row's entity lives in. */
-export type LoggedTable = 'pilots' | 'mechs' | 'crawlers' | 'npcs'
-
-/**
- * The four sheet tables by kind, which are also the public-sheet surface
- * (`publicSheet.ts`). Never widened to `encounterNpcs`.
- */
-export const TABLE_OF_KIND = {
-  pilot: 'pilots',
-  mech: 'mechs',
-  crawler: 'crawlers',
-  npc: 'npcs',
-} as const
-
-export type SheetKind = keyof typeof TABLE_OF_KIND
-
 /** The oldest of these rows, or null when there are none. */
 export function oldestOf<T extends { _creationTime: number }>(rows: readonly T[]): T | null {
   return rows.reduce<T | null>(
@@ -197,14 +180,14 @@ export function oldestOf<T extends { _creationTime: number }>(rows: readonly T[]
  */
 export async function oldestByAppId(
   ctx: QueryCtx | MutationCtx,
-  table: LoggedTable,
+  table: EntityTable,
   appId: string,
   { warn = false }: { warn?: boolean } = {}
-): Promise<Doc<LoggedTable> | null> {
+): Promise<Doc<EntityTable> | null> {
   const matches = (await ctx.db
     .query(table)
     .withIndex('by_app_id', (q) => q.eq('appId', appId))
-    .collect()) as Doc<LoggedTable>[]
+    .collect()) as Doc<EntityTable>[]
   if (warn && matches.length > 1) {
     console.warn(
       `[cantina] ${matches.length} ${table} rows share appId="${appId}" — resolving to the oldest; this roster needs de-duplicating`
@@ -220,7 +203,7 @@ export async function oldestByAppId(
  * row about an entity (`proposals`, `ownership`) uses this, so one entity's
  * history is one `entityId` whichever surface wrote it.
  */
-export function logIdOf(row: Doc<LoggedTable>): string {
+export function logIdOf(row: Doc<EntityTable>): string {
   return row.appId ?? row._id
 }
 
@@ -232,9 +215,9 @@ export function logIdOf(row: Doc<LoggedTable>): string {
  */
 export async function loadLogged(
   ctx: QueryCtx | MutationCtx,
-  table: LoggedTable,
+  table: EntityTable,
   entityId: string
-): Promise<Doc<LoggedTable> | null> {
+): Promise<Doc<EntityTable> | null> {
   const oldest = await oldestByAppId(ctx, table, entityId)
   if (oldest !== null) return oldest
   const id = ctx.db.normalizeId(table, entityId)
@@ -707,7 +690,7 @@ export async function primaryCrawlerOf(
  */
 export async function assignToPrimary(
   ctx: MutationCtx,
-  kind: 'pilot' | 'mech',
+  kind: OwnableKind,
   row: Doc<'pilots'> | Doc<'mechs'>
 ): Promise<void> {
   if (row.gameId === null) return
@@ -718,7 +701,7 @@ export async function assignToPrimary(
 
 async function linkToCrawler(
   ctx: MutationCtx,
-  kind: 'pilot' | 'mech',
+  kind: OwnableKind,
   row: Doc<'pilots'> | Doc<'mechs'>,
   crawler: Doc<'crawlers'>
 ): Promise<void> {

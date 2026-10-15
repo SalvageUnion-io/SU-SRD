@@ -1,4 +1,5 @@
 import { getAuthUserId } from '@convex-dev/auth/server'
+import { TABLE_OF_KIND } from 'cantina-domain/entityKinds'
 import { CROSS_CONTAINER_REFUSAL, endsMatchType, isSlotted } from 'cantina-domain/links/linkRules'
 import type { Infer } from 'convex/values'
 import { ConvexError, v } from 'convex/values'
@@ -24,7 +25,6 @@ import {
   resolveLinkEnd,
   rowsInGame,
   sameContainerRows,
-  TABLE_OF_KIND,
   writeSoftLink,
 } from './model/entities'
 import {

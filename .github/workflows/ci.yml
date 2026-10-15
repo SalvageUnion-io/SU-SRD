@@ -45,9 +45,6 @@ jobs:
             # tools/deploy-surfaces.ts SHARED_PATHS to each other.
             shared: &shared
               - 'packages/salvageunion-reference/**'
-              # a `workspace:*` dependency of all three apps; asserted from the
-              # manifests by tools/check-workflows.ts (path-filters)
-              - 'packages/observability/**'
               - 'package.json'
               - 'bun.lock'
               - 'knip.json'
@@ -56,8 +53,7 @@ jobs:
               - 'lefthook.yml'
               - '.github/workflows/**'
               - '.github/actions/**'
-              # every workspace's test preloads and linker config
-              - 'test/**'
+              # the linker config
               - 'bunfig.toml'
               # root prose rendered by the site and asserted on by
               # src/components tests

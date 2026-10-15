@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, test } from 'bun:test'
-import type { ErrorReport } from '../browser'
-import { createBrowserObservability, ERROR_REPORT_PATH, MAX_REPORTS_PER_PAGE } from '../browser'
+import type { ErrorReport } from '../browserObservability'
+import {
+  createBrowserObservability,
+  ERROR_REPORT_PATH,
+  MAX_REPORTS_PER_PAGE,
+} from '../browserObservability'
 
 /** A recording transport: every report that would leave the page. */
 function recorder() {
