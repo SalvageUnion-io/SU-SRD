@@ -15,7 +15,7 @@
  * `DISCORD_TOKEN_REF`, the reference `apps/discord-bot/.env.example` uses.
  * Without the flag nothing leaves the machine.
  *
- * Not covered: the default link previews (`og-image.png`) carry no mark, and
+ * Not covered: the default link preview (`og-image.png`) carries no mark, and
  * Ko-fi has no API, so its avatar (`icon.png`) and cover go up by hand.
  */
 import { mkdirSync, writeFileSync } from 'node:fs'

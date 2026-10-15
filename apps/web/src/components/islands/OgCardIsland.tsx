@@ -129,8 +129,8 @@ const SRD_KICKER = 'SRD and Character Manager'
  * resolve reference data at runtime.
  */
 export function OgCardIsland() {
-  // `?brand` draws the site's own preview, `public/og-image.png`: every page
-  // without a card of its own unfurls with it. It needs no game data.
+  // `?brand` draws the site's own preview, `public/og-image.png`: every page,
+  // the Cantina's too, without a card of its own unfurls with it. It needs no game data.
   if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('brand')) {
     return <BrandCard kicker={SRD_KICKER} />
   }

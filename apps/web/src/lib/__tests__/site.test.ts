@@ -21,10 +21,10 @@ describe('the app base', () => {
     expect(routeInApp('/chassis/')).toBeNull()
   })
 
-  test("the shell's sitewide og:url and og:image point there", () => {
+  test("the shell's sitewide og:url points there, and its og:image is the site's own", () => {
     const html = renderShell()
     expect(html).toContain(`<meta property="og:url" content="${siteUrl}" />`)
-    expect(html).toContain(`content="${siteUrl}og-image.png"`)
+    expect(html).toContain(`content="https://salvageunion.io/og-image.png"`)
     expect(html).not.toContain('intheunionnow.com/')
   })
 })
