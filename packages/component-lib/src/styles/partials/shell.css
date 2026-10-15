@@ -567,10 +567,13 @@
     min-width: 0;
   }
 
+  /* The aside starts at 40% and grows into the room the name leaves (to
+     60%), so its chips run one balanced line beside a name that keeps its
+     one line while both fit; past that, the two give way in proportion. */
   .su-chapter-band[data-aside='notch'] .su-chapter-band__aside {
     align-items: flex-end;
     background-color: transparent;
-    flex: 0 1 auto;
+    flex: 1 1 40%;
     margin-inline: auto 0;
     max-width: 60%;
     /* Its last line (32px chips and buttons) centred on the middle of the

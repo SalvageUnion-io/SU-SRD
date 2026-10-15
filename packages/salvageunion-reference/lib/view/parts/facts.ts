@@ -314,7 +314,7 @@ export function splitStatLine<T extends Grouped>(cells: readonly T[]): { stats: 
   return { stats: cells.slice(0, at), action: cells.slice(at) }
 }
 
-/** Whether a cell opens a new group (a wider gap before it): its group differs from the last one's. */
+/** Whether a cell opens a new group (a stat column's new row): its group differs from the last one's. */
 export function opensGroup<T extends Grouped>(cells: readonly T[], index: number): boolean {
   const cell = cells[index]
   const previous = index > 0 ? cells[index - 1] : undefined

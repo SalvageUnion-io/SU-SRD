@@ -182,7 +182,8 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
  * which opens it, each "or" an ink label cell between them ("REQ | FORGING |
  * OR | ELECTRONICS"), the tree this class trains first leading. The class's
  * own path adds that only this class walks it ("ENGINEER ONLY"), the same
- * lone-label chip as the path's kind beside it.
+ * lone-label chip as the path's kind beside it. Its chips are the head's own
+ * chips, one line with the kind under the head's chip rules (E17).
  */
 function PathRequirement({ path, classEntity }: { path: ClassPath; classEntity: SURefClass }) {
   const own = !path.hybrid || !path.via
@@ -190,7 +191,7 @@ function PathRequirement({ path, classEntity }: { path: ClassPath; classEntity: 
     ? path.requirement
     : [path.via, ...path.requirement.filter((tree) => tree !== path.via)]
   return (
-    <span className="srd-class-path__req">
+    <>
       <span className="srd-class-path__req-chip">
         {trees.map((tree, index) => (
           <Stat
@@ -204,7 +205,7 @@ function PathRequirement({ path, classEntity }: { path: ClassPath; classEntity: 
         ))}
       </span>
       {own && <Stat orientation="horizontal" label={`${classEntity.name} only`} size="compact" />}
-    </span>
+    </>
   )
 }
 

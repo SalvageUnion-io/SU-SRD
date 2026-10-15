@@ -112,8 +112,9 @@ describe('ClassAbilityTree advancement paths', () => {
       // The shared cut-out head (`Head`): the name on the tab, the chips right of it.
       const head = path.querySelector('.su-entity-row__head[data-notch]')
       expect(head?.querySelector('.su-entity-row__notch')?.textContent).not.toBe('')
+      // Every chip (requirement, kind) is a direct chip of the head's one group.
       expect(
-        head?.querySelector('.su-entity-row__heading--cut > .su-chips .srd-class-path__req')
+        head?.querySelector('.su-entity-row__heading--cut > .su-chips > .srd-class-path__req-chip')
       ).not.toBeNull()
       expect(head?.querySelector('.srd-class-path__note')).toBeNull()
       expect(path.querySelector('.srd-class-path__body')?.firstElementChild?.className).toBe(
@@ -128,10 +129,14 @@ describe('ClassAbilityTree advancement paths', () => {
   test('the class’s own path says it is that class’s only, as a chip like its neighbours', () => {
     render(<ClassAbilityTree classEntity={classNamed('Hacker')} />)
     const own = document.querySelector('.srd-class-path[data-kind="legendary"]')
-    const only = [...(own?.querySelectorAll('.srd-class-path__req .su-stat-cell') ?? [])].find(
-      (cell) => cell.textContent === 'Hacker only'
-    )
-    expect(only).toBeDefined()
+    const group = own?.querySelector('.su-entity-row__heading--cut > .su-chips')
+    const chips = [...(group?.children ?? [])]
+    // One chip line: the requirement, "Hacker only", then the kind, as siblings.
+    expect(chips.map((chip) => chip.textContent)).toEqual([
+      'REQHacking',
+      'Hacker only',
+      'Legendary',
+    ])
   })
 
   test('a Hybrid Class’s requirement is one chip naming its trees, no owning class', () => {
@@ -139,8 +144,10 @@ describe('ClassAbilityTree advancement paths', () => {
     const hybrids = [...document.querySelectorAll('.srd-class-path[data-kind="hybrid"]')]
     expect(hybrids.length).toBeGreaterThan(0)
     for (const hybrid of hybrids) {
-      const req = hybrid.querySelector('.srd-class-path__req')
-      expect(req?.childElementCount).toBe(1)
+      const chips = hybrid.querySelector('.su-entity-row__heading--cut > .su-chips')
+      // The requirement chip, then the kind: no owning-class chip.
+      expect(chips?.childElementCount).toBe(2)
+      const req = chips?.querySelector(':scope > .srd-class-path__req-chip')
       const labels = [...(req?.querySelectorAll('.su-stat-plate--label') ?? [])].map(
         (label) => label.textContent
       )
