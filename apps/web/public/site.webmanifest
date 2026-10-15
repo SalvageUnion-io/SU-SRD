@@ -1,0 +1,25 @@
+{
+  "id": "/",
+  "name": "SalvageUnion.io",
+  "short_name": "SalvageUnion.io",
+  "description": "The Salvage Union reference and character builder: every chassis, system, module and ability, and the Cantina to build and run Pilots, Mechs and Union Crawlers.",
+  "start_url": "/",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "theme_color": "#1b1712",
+  "background_color": "#1b1712",
+  "display": "standalone"
+}

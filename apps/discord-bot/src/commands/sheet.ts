@@ -1,4 +1,6 @@
 import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
+import type { SheetKind } from 'cantina-domain/entityKinds'
+import { TABLE_OF_KIND } from 'cantina-domain/entityKinds'
 import { MessageFlags } from 'discord-api-types/v10'
 import type { SheetTable } from '../cantina/types'
 import { bodyName, sheetCard } from '../gameCards'
@@ -20,12 +22,6 @@ import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from '
  * sheet on any surface, so there is deliberately no `/su damage` here.
  */
 
-const KIND_TABLE: Record<string, SheetTable> = {
-  pilot: 'pilots',
-  mech: 'mechs',
-  crawler: 'crawlers',
-}
-
 /** A Cantina sheet address: `/sheet/<kind>/<rowId>` or the public `/p/<kind>/<appId>`. */
 const SHEET_LINK = /\/(?:sheet|p)\/(pilot|mech|crawler)\/([^/?#\s>]+)/
 
@@ -40,8 +36,7 @@ export function parseSheetTarget(raw: string): { table: SheetTable; entityId: st
   const text = raw.trim()
   const link = SHEET_LINK.exec(text)
   if (link?.[1] !== undefined && link[2] !== undefined) {
-    const table = KIND_TABLE[link[1]]
-    if (table === undefined) return null
+    const table = TABLE_OF_KIND[link[1] as SheetKind]
     try {
       return { table, entityId: decodeURIComponent(link[2]) }
     } catch {

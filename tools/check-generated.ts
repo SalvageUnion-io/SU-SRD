@@ -7,7 +7,7 @@
  * `schemas/` and `lib/generated/` are gitignored build output, not checked
  * here), the Cantina's `src/routeTree.gen.ts`,
  * and the `worker-configuration.d.ts` that `wrangler types` writes for each of
- * the four Workers (`Env` from wrangler.jsonc, so a binding added there without
+ * the three Workers (`Env` from wrangler.jsonc, so a binding added there without
  * the types fails here). Each is regenerated here and then compared with what
  * is committed. A
  * stale one fails.
@@ -15,9 +15,9 @@
  * The Worker files hold `Env` only (`--include-runtime=false`): the workerd
  * runtime globals come once from the `@cloudflare/workers-types` root
  * devDependency, listed in su-assets' and the bot's tsconfig `types`, instead
- * of a 16k-line copy per Worker. srd and the Cantina typecheck their Worker with the
- * DOM lib, which conflicts with that package, so their file is committed and
- * drift-checked but no tsconfig includes it; their `Env` stays hand-written. Bump it with `wrangler` — its peer range names the version
+ * of a 16k-line copy per Worker. apps/web typechecks its Worker with the
+ * DOM lib, which conflicts with that package, so its file is committed and
+ * drift-checked but no tsconfig includes it; its `Env` stays hand-written. Bump it with `wrangler` — its peer range names the version
  * matching the workerd it bundles.
  *
  * ## Why one tool
@@ -32,7 +32,7 @@
  *   1. Runs the GENERATORS below at once — they write disjoint paths and none
  *      reads another's output (the test pins the disjointness):
  *      - `bun run build` in packages/salvageunion-reference (every generator);
- *      - `bun apps/cantina/scripts/generate-route-tree.ts` — the router plugin's
+ *      - `bun apps/web/scripts/generate-route-tree.ts` — the router plugin's
  *        own generator with the Vite config's options, without a build;
  *      - `wrangler types --strict-vars=false --include-runtime=false` in
  *        each Worker app (not strict: the bot's tests sign with their own
@@ -68,15 +68,15 @@ import {
   writeFileSync,
 } from 'node:fs'
 import { dirname, join } from 'node:path'
+import { WORKER_APPS } from './check-workers'
 
 const ROOT = join(import.meta.dir, '..')
 
 /** Every committed path a generator below writes. */
 export const GENERATED_PATHS = [
   'packages/salvageunion-reference/lib/index.ts',
-  'apps/cantina/src/routeTree.gen.ts',
-  'apps/srd/worker-configuration.d.ts',
-  'apps/cantina/worker-configuration.d.ts',
+  'apps/web/src/routeTree.gen.ts',
+  'apps/web/worker-configuration.d.ts',
   'apps/su-assets/worker-configuration.d.ts',
   'apps/discord-bot/worker-configuration.d.ts',
 ] as const
@@ -102,22 +102,14 @@ const SHARED_INPUTS = [
   'tools/check-generated.ts',
 ]
 
-/** The four Worker apps; the `workers` check holds them to one shape. */
-export const WORKER_APPS = [
-  'apps/srd',
-  'apps/cantina',
-  'apps/su-assets',
-  'apps/discord-bot',
-] as const
-
 const workerTypes = (app: (typeof WORKER_APPS)[number]): GeneratorSpec => ({
   label: `${app} worker types`,
   cmd: ['bunx', 'wrangler', 'types', '--strict-vars=false', '--include-runtime=false'],
   cwd: app,
   outputs: [`${app}/worker-configuration.d.ts`],
   // What wrangler reads: wrangler.jsonc, the `.dev.vars`/`.env*` it takes
-  // secret names from, and the main module it names. Not the whole app: srd
-  // and the Cantina would re-run it on every UI edit.
+  // secret names from, and the main module it names. Not the whole app: the
+  // site would re-run it on every UI edit.
   inputs: [
     `${app}/wrangler.jsonc`,
     `${app}/.dev.vars`,
@@ -140,15 +132,15 @@ export const GENERATORS: GeneratorSpec[] = [
     tools: ['zod', '@biomejs/biome'],
   },
   {
-    label: 'cantina route tree',
+    label: 'apps/web route tree',
     cmd: ['bun', 'scripts/generate-route-tree.ts'],
-    cwd: 'apps/cantina',
-    outputs: ['apps/cantina/src/routeTree.gen.ts'],
+    cwd: 'apps/web',
+    outputs: ['apps/web/src/routeTree.gen.ts'],
     inputs: [
-      'apps/cantina/src/routes',
-      'apps/cantina/routeTree.config.ts',
-      'apps/cantina/scripts/generate-route-tree.ts',
-      'apps/cantina/package.json',
+      'apps/web/src/routes',
+      'apps/web/routeTree.config.ts',
+      'apps/web/scripts/generate-route-tree.ts',
+      'apps/web/package.json',
     ],
     tools: ['@tanstack/router-plugin'],
   },

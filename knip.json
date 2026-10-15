@@ -26,27 +26,15 @@
       "entry": ["tools/**/*.ts"],
       "project": ["lib/**/*.ts", "tools/**/*.ts"]
     },
-    "packages/observability": {
-      // No `entry` here on purpose: knip derives both subpaths from the
-      // manifest's `exports` map, and listing them again is reported as a
-      // redundant pattern.
-      "project": ["src/**/*.ts"]
-    },
     "packages/cantina-domain": {
       // No `entry`: knip derives the subpaths from the manifest's `exports`
-      // wildcard, as for `packages/observability`.
+      // wildcard; listing them again is reported as a redundant pattern.
       "project": ["src/**/*.ts"]
     },
-    "packages/component-lib": {
-      // Pinned on (the root default) because src/index.ts is the package's
-      // whole public API; see biome.jsonc's component-lib/src/** rule.
-      "project": ["src/**/*.{ts,tsx}"],
-      "includeEntryExports": true
-    },
-    "apps/srd": {
+    "apps/web": {
       // `ssg/build.ts` is the in-house static-site generator's entry (it reaches
       // routes -> pages -> layouts). `src/runtime/*.entry`-style files are
-      // *client bundle* entries, named in ssg/vite.config.ts rather than
+      // *client bundle* entries, named in vite.config.ts rather than
       // imported by anything, so knip cannot infer them.
       "entry": [
         // build/dev/preview are matched by knip's own bin/script detection from
@@ -54,19 +42,16 @@
         "src/runtime/islands.client.ts",
         "src/runtime/styles.entry.ts",
         "src/runtime/assets.entry.ts",
-        // The one spec that imports `gates` (`packages/gates/lib/a11yScan.ts`).
-        "e2e/a11y.e2e.ts"
-      ],
-      "project": ["src/**/*.{ts,tsx}", "ssg/**/*.{ts,tsx}"]
-    },
-    "apps/cantina": {
-      "entry": [
+        // The dev server: `dev` starts it inside `convex dev --start '…'`, out of knip's sight.
+        "ssg/dev.ts",
+        // The render pass: the Vite pass spawns it (`prerender` in ssg/cantinaPlugins.ts).
+        "ssg/prerender.ts",
         "src/routes/**/*.tsx",
-        // The Worker entry (`src/worker/index.ts`) is NOT listed: knip's
-        // wrangler plugin reads `main` from wrangler.jsonc (wrangler is a root
-        // devDependency), and flags a manual entry as redundant.
-        // The one spec that imports `gates` (`packages/gates/lib/a11yScan.ts`).
-        "e2e/a11y.e2e.ts"
+        // The Cantina's entry: its shell (`src/shell/shell.ts`) is rendered, not a file knip reads.
+        "src/main.tsx",
+        // The two specs that import `gates` (`packages/gates/lib/a11yScan.ts`).
+        "e2e/reference-a11y.e2e.ts",
+        "e2e/cantina-a11y.e2e.ts"
       ],
       // `test/**` covers the Convex test suite, which lives OUTSIDE `convex/`
       // so that codegen does not register the harness as a deployable module.
@@ -75,9 +60,19 @@
       // `convex/**` (not `convex/*`) so `convex/model/*` is covered too.
       "project": [
         "src/**/*.{ts,tsx}",
+        "ssg/**/*.{ts,tsx}",
         "convex/**/*.ts",
         "test/**/*.ts"
-      ]
+      ],
+      // Off: vite.config.ts loads the app's own TSX through Vite's module
+      // runner, which knip's loader cannot parse; its entries are listed above.
+      "vite": false,
+      // Imported only by CSS (`src/styles/base.css`), which knip does not read.
+      "ignoreDependencies": ["@fontsource/barlow", "@fontsource/barlow-semi-condensed"],
+      // The router plugin's default is `src/routeTree.gen.ts`; the Cantina's is a level down.
+      "tanstack-router": {
+        "entry": ["src/routeTree.gen.ts"]
+      }
     },
     "apps/su-assets": {
       // The Worker entry (`src/worker/index.ts`) comes from wrangler.jsonc's `main`

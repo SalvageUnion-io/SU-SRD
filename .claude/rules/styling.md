@@ -2,7 +2,7 @@
 paths:
   - '**/*.css'
   - '**/styles/**'
-  - 'packages/component-lib/src/design/**'
+  - 'apps/web/src/design/**'
 ---
 
 # Styling — tokens, style objects, one stylesheet
@@ -11,13 +11,13 @@ The system is [ADR-046](../../docs/ARCHITECTURE.md#decisions); there is no
 utility framework (`bun run check styling`'s `no-tailwind` keeps it out).
 What an editor needs:
 
-- **The pattern:** `packages/component-lib/src/design/tokens.ts` (typed
-  scale) + `packages/component-lib/src/styles/index.css` (the one stylesheet
+- **The pattern:** `apps/web/src/design/tokens.ts` (typed
+  scale) + `apps/web/src/styles/index.css` (the one stylesheet
   every consumer loads; `.su-*` classes over the `theme.css` tokens). Its
   rules live in `styles/partials/`, one part per group, which `index.css`
   `@import`s in cascade order; tests read them joined
   (`styles/__tests__/packageStylesheet.ts`). The Dashboard's `.su-dash-*`
-  rules are the Cantina's (`apps/cantina/src/styles/dashboard/`); any other Cantina- or
+  rules are the Cantina's (`apps/web/src/styles/cantina/dashboard/`); any other Cantina- or
   srd-only rule lives in that app's stylesheets, because srd loads
   `index.css` too.
 - **The written form**, one spelling each:
@@ -42,8 +42,8 @@ What an editor needs:
   source order decides. A class also loses to an app's unlayered element
   rule (The Cantina's heading face, `print.css`'s `span` and `h1`–`h3` sizes) and
   drops out of a rule that matched the inline style (`print.css`'s
-  `[style*='border']` ink): check both apps, print included. The Cantina hands a
-  class back with `revert-layer` (`styles/libHandback.css`, `print.css`)
+  `[style*='border']` ink): check the pages and the Cantina, print included. The Cantina hands a
+  class back with `revert-layer` (`styles/cantina/libHandback.css`, `styles/cantina/print.css`)
   and names it in the border-ink rule.
 - **Class-string exports** (`buttonVariants`, `capsLabel`, the `FOCUS_*` /
   `DISABLED` / `SELECTION_RING*` vocabulary) are stylesheet-only, and their
@@ -51,13 +51,13 @@ What an editor needs:
   components. No speculative style object: add one with the component that
   needs it.
 - **Edit `tokens.ts` and `theme.css` together**:
-  `src/design/__tests__/tokens.parity.test.ts` fails if they disagree.
-- **The one entry:** `packages/component-lib/src/styles/entry.css` declares
+  `apps/web/src/design/__tests__/tokens.parity.test.ts` fails if they disagree.
+- **The one entry:** `apps/web/src/styles/entry.css` declares
   `@layer su-reset, su-base;`, imports `theme.css` unlayered, `reset.css` into
-  `su-reset` and `index.css` into `su-base`. The two apps import it, never
+  `su-reset` and `index.css` into `su-base`. Both render modes import it, never
   `index.css`, and their own stylesheets stay unlayered so an app rule
   outranks a package rule (`package-stylesheet-import` guards it).
-- Every package and the Cantina class is `su-*` (`su-wiz-*`; srd's are `srd-*`):
+- Every class, in every stylesheet, is `su-*` (`su-wiz-*`, `su-dash-*`):
   `class-prefix`. `dash-class-contract` holds `su-dash-*` usage and
   definitions to each other.
 - **Checking a focus ring with `el.focus()` lies**: `:focus-visible` needs a

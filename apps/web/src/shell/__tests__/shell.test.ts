@@ -1,0 +1,20 @@
+import { describe, expect, test } from 'bun:test'
+import { META_END, META_START } from '../../lib/documentHead'
+import { renderShell } from '../shell'
+
+describe('renderShell', () => {
+  const html = renderShell()
+
+  test('wraps its link-preview block in the markers the Worker swaps between', () => {
+    expect(html.indexOf(META_START)).toBeLessThan(html.indexOf(META_END))
+    expect(html.slice(html.indexOf(META_START), html.indexOf(META_END))).toContain('og:image')
+  })
+
+  test('is a document whose one script is the source entry, with no canonical', () => {
+    expect(html).toStartWith('<!doctype html>')
+    expect(html.match(/<script/g)).toEqual(['<script'])
+    expect(html).toContain('<script type="module" src="/src/main.tsx"></script>')
+    expect(html).toContain('<div id="root"></div>')
+    expect(html).not.toContain('rel="canonical"')
+  })
+})

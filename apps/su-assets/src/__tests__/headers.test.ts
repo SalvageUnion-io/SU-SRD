@@ -4,19 +4,19 @@ import { join } from 'node:path'
 import { BASE_SECURITY_HEADERS } from '../worker'
 
 /**
- * The one place the three origins' base security headers are held together.
- * srd and cantina send them from the `/*` block of `public/_headers`; this
- * Worker builds its own responses and sends `BASE_SECURITY_HEADERS`. A header
- * changed in one source and not the others fails here.
+ * The one place the two sources of the base security headers are held together.
+ * salvageunion.io (srd and the Cantina) sends them from the `/*` block of
+ * `apps/web/public/_headers`; this Worker builds its own responses and sends
+ * `BASE_SECURITY_HEADERS`. A header changed in one and not the other fails here.
  */
 
 const REPO = join(import.meta.dir, '..', '..', '..', '..')
 
 /** The headers of the `/*` rule, names lowercased, comments dropped. */
-function rootRule(app: string): Record<string, string> {
-  const lines = readFileSync(join(REPO, 'apps', app, 'public', '_headers'), 'utf-8').split('\n')
+function rootRule(file: string): Record<string, string> {
+  const lines = readFileSync(join(REPO, file), 'utf-8').split('\n')
   const start = lines.indexOf('/*')
-  if (start === -1) throw new Error(`apps/${app}/public/_headers has no /* rule`)
+  if (start === -1) throw new Error(`${file} has no /* rule`)
   const headers: Record<string, string> = {}
   for (const line of lines.slice(start + 1)) {
     if (!/^\s/.test(line)) break
@@ -29,10 +29,8 @@ function rootRule(app: string): Record<string, string> {
 }
 
 describe('base security headers', () => {
-  for (const app of ['srd', 'cantina']) {
-    it(`match apps/${app}/public/_headers`, () => {
-      const { 'content-security-policy': _csp, ...base } = rootRule(app)
-      expect(base).toEqual({ ...BASE_SECURITY_HEADERS })
-    })
-  }
+  it('match apps/web/public/_headers', () => {
+    const { 'content-security-policy': _csp, ...base } = rootRule('apps/web/public/_headers')
+    expect(base).toEqual({ ...BASE_SECURITY_HEADERS })
+  })
 })

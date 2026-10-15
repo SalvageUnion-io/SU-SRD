@@ -29,12 +29,9 @@ import { assertCoversWorkspaces } from 'gates/lib/workspaceCoverage'
  */
 const FLOORS: Readonly<Record<string, number>> = {
   'packages/salvageunion-reference': 96.5,
-  'packages/component-lib': 95.5,
-  'apps/srd': 99,
-  'apps/cantina': 97,
+  'apps/web': 97.9,
   'apps/discord-bot': 96.5,
   'apps/su-assets': 98,
-  'packages/observability': 99.5,
   'packages/cantina-domain': 97,
   'packages/gates': 99,
   tools: 99,
@@ -45,7 +42,7 @@ const FLOORS: Readonly<Record<string, number>> = {
  * CI critical path. Any workspace left out runs as one process.
  */
 const SHARDS: Readonly<Record<string, number>> = {
-  'apps/cantina': 3,
+  'apps/web': 3,
 }
 
 /** One instrumented run, the same in every workspace, so no manifest repeats it. */
@@ -90,6 +87,16 @@ function lineCoverage(lcov: string): number | undefined {
   return found > 0 ? (hit / found) * 100 : undefined
 }
 
+/** A file's text, or undefined when there is none: one read, no separate existence check. */
+function readIfPresent(path: string): string | undefined {
+  try {
+    return readFileSync(path, 'utf-8')
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return undefined
+    throw error
+  }
+}
+
 type Result = { name: string; ok: boolean; verdict: string; output: string }
 
 /** Where a job runs, and the `bun` it runs (a stub, in the script's tests). */
@@ -98,15 +105,16 @@ export type JobOptions = { root: string; shards?: number; bun?: readonly string[
 /** One workspace's coverage run (or its shards, merged) against its floor. */
 export async function runJob(name: string, floor: number, options: JobOptions): Promise<Result> {
   const { root, shards: shardCount = 1, bun = ['bun'] } = options
-  // A stale lcov from an earlier run must not stand in for this one.
-  rmSync(join(root, name, 'coverage'), { recursive: true, force: true })
   const cwd = join(root, name)
+  const coverage = 'coverage'
+  // A stale lcov from an earlier run must not stand in for this one.
+  rmSync(join(cwd, coverage), { recursive: true, force: true })
   const started = performance.now()
   const runs =
     shardCount === 1
-      ? [$`${bun} test ${coverageArgs('coverage')} 2>&1`.cwd(cwd).nothrow().quiet()]
+      ? [$`${bun} test ${coverageArgs(coverage)} 2>&1`.cwd(cwd).nothrow().quiet()]
       : shardTestFiles(cwd, shardCount).map((files, i) =>
-          $`${bun} test ${coverageArgs(`coverage/shard-${i + 1}`)} ${files} 2>&1`
+          $`${bun} test ${coverageArgs(`${coverage}/shard-${i + 1}`)} ${files} 2>&1`
             .cwd(cwd)
             .nothrow()
             .quiet()
@@ -125,18 +133,19 @@ export async function runJob(name: string, floor: number, options: JobOptions): 
     ? `TESTS FAILED (exit ${failed.exitCode}) in ${took}`
     : `tests passed in ${took}${shardCount > 1 ? ` (${shardCount} shards)` : ''}`
   if (ok && shardCount > 1) {
-    const reports = outputs.map((_, i) => join(cwd, 'coverage', `shard-${i + 1}`, 'lcov.info'))
+    const reports = outputs.map((_, i) => join(cwd, coverage, `shard-${i + 1}`, 'lcov.info'))
     if (reports.every((path) => existsSync(path))) {
       const merged = mergeLcov(
         reports.map((path) => readFileSync(path, 'utf-8')),
         (source) => functionRanges(join(cwd, source))
       )
-      writeFileSync(join(cwd, 'coverage', 'lcov.info'), merged)
+      writeFileSync(join(cwd, coverage, 'lcov.info'), merged)
     }
   }
+  const lcovPath = join(cwd, coverage, 'lcov.info')
+  const lcov = ok ? readIfPresent(lcovPath) : undefined
   if (ok) {
-    const lcovPath = join(cwd, 'coverage', 'lcov.info')
-    const pct = existsSync(lcovPath) ? lineCoverage(readFileSync(lcovPath, 'utf-8')) : undefined
+    const pct = lcov === undefined ? undefined : lineCoverage(lcov)
     ok = pct !== undefined && pct >= floor
     verdict =
       pct === undefined
@@ -171,8 +180,8 @@ export async function main({
 }: CoverageOptions = {}): Promise<number> {
   coversWorkspaces(Object.keys(floors))
   const results = await Promise.all(
-    Object.entries(floors).map(async ([dir, floor]) => {
-      const result = await runJob(dir, floor, { root, shards: shards[dir], bun })
+    Object.entries(floors).map(async ([name, floor]) => {
+      const result = await runJob(name, floor, { root, shards: shards[name], bun })
       log(result.output)
       return result
     })

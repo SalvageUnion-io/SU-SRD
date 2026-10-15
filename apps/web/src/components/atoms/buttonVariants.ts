@@ -1,0 +1,96 @@
+import { cn } from '../../lib/cn'
+import { capsLabel } from './capsLabel'
+import { DISABLED, FOCUS_RING } from './interaction'
+
+/**
+ * The `.btn` class recipe (design-spec §2.4), exported for non-button elements
+ * (e.g. links styled as buttons) so consumers don't re-inline the class string.
+ * Lives in its own file so Button.tsx only exports components (react-refresh).
+ *
+ * ## Emits `.su-btn*` class names
+ *
+ * Three axes and a `(opts) => string` signature, which the ~30 call sites in
+ * `apps/web` (srd and the Cantina) that put the result on `<a>` elements depend on.
+ * The rules behind the names live in `src/styles/index.css`.
+ *
+ * **ALL of the styling lives there, geometry and type included** — not just the
+ * stateful half the split rule would send to a stylesheet. That is not an
+ * exception to the rule, it is the rule's boundary: the split rule assumes the
+ * library owns the element being styled, and this recipe deliberately does not.
+ * A caller putting this string on an `<a>` never receives a style object, and a
+ * function returning a string cannot return one without changing a signature
+ * that is public API. See the class-string exemption in
+ * `.claude/rules/styling.md`.
+ *
+ * The `.su-btn*` names are public API from that same moment, for the same
+ * reason — apps compose them with `cn()`, so they end up in app-side code.
+ *
+ * ## The axes
+ *
+ * The `surface` axis picks the WORLD the button lives on: `paper` (default —
+ * the light app chrome) or `instrument` (the dashboard HUD scope, `.su-dash-root`).
+ * The instrument surface swaps in the condensed-caps HUD typography and the
+ * recessed treatment — one standard Button for both worlds. Colour deltas ride on `compoundVariants` (surface × variant);
+ * only `ghost` has an instrument recolour — the sole variant the HUD uses.
+ *
+ * Note the instrument surface is a TYPOGRAPHY choice as much as a colour one:
+ * the cockpit's chassis is cream, not dark, so its buttons are ink like the
+ * rest of the app — what still separates them is condensed caps.
+ *
+ * Both `instrument` and `mini` still compose `capsLabel`, which is why that
+ * recipe must itself stay a class-string emitter (see its own note).
+ */
+const VARIANT = {
+  default: 'su-btn--default',
+  primary: 'su-btn--primary',
+  ghost: 'su-btn--ghost',
+  danger: 'su-btn--danger',
+  /** Filled ink, paper text: a close stamp on a lifted plate. */
+  ink: 'su-btn--ink',
+  /** Frameless, ink at 60%: an icon control inside a header (a close ×). */
+  quiet: 'su-btn--quiet',
+} as const
+
+const SURFACE = {
+  // Light app chrome — the paper/ink/rust world (the default).
+  paper: '',
+  // Dashboard HUD — condensed-caps typography; the ghost recolour (the one
+  // variant the HUD uses) is the compound selector
+  // `.su-btn--instrument.su-btn--ghost` in index.css, whose two-class
+  // specificity beats plain `.su-btn--ghost` without relying on source order.
+  instrument: `su-btn--instrument ${capsLabel()}`,
+} as const
+
+// The canonical size ladder (styles/sizing.ts) — full / compact / mini.
+const SIZE = {
+  /** The reading size for a primary CTA. */
+  full: 'su-btn--full',
+  /** The default workhorse scale. */
+  compact: 'su-btn--compact',
+  /**
+   * A compact uppercase action chip for
+   * secondary controls like '⇄ Swap' / '✕ Remove'. Its geometry is
+   * `.su-btn--mini`; its condensed caps come from the recipe below, which
+   * is why the two are composed rather than duplicated.
+   */
+  mini: `su-btn--mini ${capsLabel({ size: 'badge', weight: 'semibold', tracking: 'none' })}`,
+  /** The SQUARE icon-only rung — a glyph with no label. */
+  iconOnly: 'su-btn--icon-only',
+} as const
+
+export type ButtonVariantProps = {
+  variant?: keyof typeof VARIANT | null
+  surface?: keyof typeof SURFACE | null
+  size?: keyof typeof SIZE | null
+}
+
+export function buttonVariants({ variant, surface, size }: ButtonVariantProps = {}): string {
+  return cn(
+    'su-btn',
+    FOCUS_RING,
+    DISABLED,
+    VARIANT[variant ?? 'default'],
+    SURFACE[surface ?? 'paper'],
+    SIZE[size ?? 'compact']
+  )
+}

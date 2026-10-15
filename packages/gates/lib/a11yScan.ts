@@ -1,6 +1,7 @@
 /**
- * The WCAG 2.2 AA scan the apps run as Playwright specs (each app's
- * `e2e/a11y.e2e.ts`, the Cantina's signed-in `e2e/a11y-signed-in.e2e.ts`): axe-core
+ * The WCAG 2.2 AA scan the web app runs as Playwright specs
+ * (`e2e/reference-a11y.e2e.ts`, `e2e/cantina-a11y.e2e.ts`, the Cantina's signed-in
+ * `e2e/a11y-signed-in.e2e.ts`): axe-core
  * over the spec's page list, at a 1280×900 desktop and again as a Pixel 7. Any violation, on any
  * page or device, fails the spec.
  *
@@ -200,7 +201,7 @@ async function scanAs(
     ...EMULATIONS[device],
     baseURL,
     storageState,
-    // As in both suites' configs (packages/gates/lib/playwrightBase.ts): a PWA worker
+    // As in the suite's config (apps/web/playwright.config.ts): a PWA worker
     // activating mid-navigation can abort the goto, and the production CSP
     // `bun run preview` serves would refuse the injected axe script.
     serviceWorkers: 'block',

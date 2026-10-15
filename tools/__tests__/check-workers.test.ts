@@ -2,9 +2,8 @@ import { afterAll, describe, expect, test } from 'bun:test'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
-import { WORKER_APPS } from '../check-generated'
 import type { WorkerApp } from '../check-workers'
-import { ENTRY, loadWorkers, main, SCRIPTS, shapeProblems } from '../check-workers'
+import { ENTRY, loadWorkers, main, SCRIPTS, shapeProblems, WORKER_APPS } from '../check-workers'
 
 const ROOT = join(import.meta.dir, '..', '..')
 
@@ -18,7 +17,8 @@ function worker(app: string, overrides: Partial<WorkerApp> = {}): WorkerApp {
       workers_dev: false,
       compatibility_date: '2026-07-13',
       compatibility_flags: ['nodejs_als'],
-      observability: { enabled: true },
+      observability: { enabled: true, issues: { enabled: true } },
+      upload_source_maps: true,
     },
     scripts: {
       ...SCRIPT_SET,
@@ -40,8 +40,8 @@ describe('shapeProblems', () => {
 
   test('the app list and WORKER_APPS must match both ways', () => {
     expect(shapeProblems([worker('apps/a'), worker('apps/new')], ['apps/a', 'apps/gone'])).toEqual([
-      'apps/new: has a wrangler.jsonc but is not in WORKER_APPS (tools/check-generated.ts)',
-      'apps/gone: in WORKER_APPS but has no wrangler.jsonc',
+      'apps/new: has a wrangler.jsonc but is not in WORKERS (tools/check-workers.ts)',
+      'apps/gone: in WORKERS but has no wrangler.jsonc',
     ])
   })
 
@@ -86,11 +86,22 @@ describe('shapeProblems', () => {
 
   test('a shared key set in one app and unset in another differs', () => {
     const problems = shapeProblems(
-      [worker('apps/a'), withConfig('apps/b', { observability: undefined })],
+      [worker('apps/a'), withConfig('apps/b', { compatibility_flags: undefined })],
       ['apps/a', 'apps/b']
     )
     expect(problems).toEqual([
-      'wrangler.jsonc "observability" differs:\n      apps/a: {"enabled":true}\n      apps/b: unset',
+      'wrangler.jsonc "compatibility_flags" differs:\n      apps/a: ["nodejs_als"]\n      apps/b: unset',
+    ])
+  })
+
+  // Workers Issues needs nothing in a Worker's code, so a Worker that never
+  // turned it on looks exactly like a healthy one with no errors.
+  test('a Worker without Workers Logs, Issues or source maps fails, even when all agree', () => {
+    const blind = { observability: { enabled: false }, upload_source_maps: false }
+    expect(shapeProblems([withConfig('apps/a', blind)], ['apps/a'])).toEqual([
+      'apps/a: wrangler.jsonc does not turn on "observability" (Workers Logs)',
+      'apps/a: wrangler.jsonc does not turn on "observability.issues" — this Worker\'s errors would be logged and grouped by nothing',
+      'apps/a: wrangler.jsonc does not set "upload_source_maps" — its issues would point at the bundle, not the source',
     ])
   })
 
@@ -104,7 +115,7 @@ describe('shapeProblems', () => {
 })
 
 describe('the repo', () => {
-  test('finds exactly the four Workers, and they share one shape', async () => {
+  test('finds exactly the three Workers, and they share one shape', async () => {
     const workers = await loadWorkers(ROOT)
     expect(workers.map((w) => w.app)).toEqual([...WORKER_APPS].sort())
     expect(shapeProblems(workers, WORKER_APPS)).toEqual([])
@@ -113,7 +124,7 @@ describe('the repo', () => {
   test('main passes and says how many it checked', async () => {
     const out: string[] = []
     expect(await main(ROOT, (l) => out.push(l))).toBe(0)
-    expect(out.join('\n')).toContain('4 Workers share one shape')
+    expect(out.join('\n')).toContain('3 Workers share one shape')
   })
 })
 
@@ -141,7 +152,8 @@ describe('main on a scratch tree', () => {
   test('reads JSONC, and fails a Worker missing from WORKER_APPS', async () => {
     write(
       'apps/extra/wrangler.jsonc',
-      '{\n  // a comment\n  "main": "src/worker/index.ts",\n  "workers_dev": false,\n}\n'
+      '{\n  // a comment\n  "main": "src/worker/index.ts",\n  "workers_dev": false,\n' +
+        '  // "observability": { "enabled": true, "issues": { "enabled": true } },\n}\n'
     )
     write('apps/extra/package.json', JSON.stringify({ scripts: SCRIPT_SET }))
     write(`apps/extra/${ENTRY}`, 'export default {}\n')
@@ -158,8 +170,10 @@ describe('main on a scratch tree', () => {
       )
     ).toBe(1)
     const text = err.join('\n')
-    expect(text).toContain('apps/extra: has a wrangler.jsonc but is not in WORKER_APPS')
+    expect(text).toContain('apps/extra: has a wrangler.jsonc but is not in WORKERS')
     expect(text).toContain('apps/extra: no worker-configuration.d.ts')
+    // A setting named only in a comment is not set.
+    expect(text).toContain('apps/extra: wrangler.jsonc does not turn on "observability.issues"')
   })
 
   test('an app without a package.json has no scripts', async () => {

@@ -1,11 +1,15 @@
-import { PRODUCT } from 'component-lib/product'
+import { gamePath, kindOf, publicPath, sheetPath } from 'cantina-domain/entityKinds'
+import { PRODUCT } from 'cantina-domain/product'
 import type { ItemCondition, RefEnumSchemaName } from 'salvageunion-reference'
 import {
   CONDITION_LABELS,
+  DISCORD_NEUTRAL_ACCENT,
+  DISCORD_ROLL_ACCENT,
   discordAccent,
   findEntityBySlug,
   getAssetUrl,
   getEntitySlug,
+  SRD_SITE_URL,
   STAT_LABELS,
   srdEntityUrl,
 } from 'salvageunion-reference'
@@ -24,7 +28,6 @@ import type {
 } from './cantina/types'
 import type { CardField, ContainerData } from './container'
 import { entityCard } from './container'
-import { NEUTRAL_ACCENT, ROLL_COLORS } from './format'
 
 /**
  * Card builders for the Cantina commands (ADR-030).
@@ -56,14 +59,14 @@ import { NEUTRAL_ACCENT, ROLL_COLORS } from './format'
  * most-destroyed end. A bot-only hue here would fork a palette the design
  * system deliberately unified.
  */
-const CRITICAL = ROLL_COLORS.cascade
+const CRITICAL = DISCORD_ROLL_ACCENT.cascade
 
 /**
- * Where In The Union Now is served, base included: salvageunion.io/build
- * (ADR-048). Cards link back here by appending a route; it is only ever used
- * to build a URL, never called. Old intheunionnow.com links 301 here.
+ * Where In The Union Now is served, base included: the production origin's
+ * `/build` (ADR-048). Cards link back here by appending a route; it only
+ * ever builds a URL, never a request. Old intheunionnow.com links 301 here.
  */
-export const CANTINA_ORIGIN = 'https://salvageunion.io/build'
+export const CANTINA_ORIGIN = `${SRD_SITE_URL}/build`
 
 const FOOTER = PRODUCT.name
 
@@ -182,13 +185,7 @@ function mechStats(body: EntityBody, derived: MechDerived | null) {
  * Game's own page in the Cantina.
  */
 export function gameUrl(gameId: string): string {
-  return `${CANTINA_ORIGIN}/games/${encodeURIComponent(gameId)}`
-}
-
-/** `pilots` → `pilot`. The web routes speak singular; the tables speak plural. */
-function kindOf(table: SheetTable): string {
-  if (table === 'pilots') return 'pilot'
-  return table === 'mechs' ? 'mech' : 'crawler'
+  return `${CANTINA_ORIGIN}${gamePath(gameId)}`
 }
 
 /**
@@ -209,7 +206,7 @@ export function publicSheetUrl(
 ): string | null {
   if (publicRead !== true) return null
   if (appId === null || appId.length === 0) return null
-  return `${CANTINA_ORIGIN}/p/${kindOf(table)}/${encodeURIComponent(appId)}`
+  return `${CANTINA_ORIGIN}${publicPath(kindOf(table), appId)}`
 }
 
 /**
@@ -224,7 +221,7 @@ export function publicSheetUrl(
  */
 export function sheetUrl(table: SheetTable, rowId: string | null | undefined): string | null {
   if (typeof rowId !== 'string' || rowId.length === 0) return null
-  return `${CANTINA_ORIGIN}/sheet/${kindOf(table)}/${encodeURIComponent(rowId)}`
+  return `${CANTINA_ORIGIN}${sheetPath(kindOf(table), rowId)}`
 }
 
 /**
@@ -274,7 +271,7 @@ export function meCard(me: MeResult): ContainerData {
   return entityCard({
     title: `${me.user.displayName} — ${PRODUCT.name}`,
     url: `${CANTINA_ORIGIN}/account`,
-    accent: NEUTRAL_ACCENT,
+    accent: DISCORD_NEUTRAL_ACCENT,
     description: 'Linked at sign-in. Discord is the only way in, so this is always current.',
     fields: [
       {
@@ -291,7 +288,7 @@ export function gamesCard(games: GameSummary[]): ContainerData {
   return entityCard({
     title: `Your Games (${games.length})`,
     url: `${CANTINA_ORIGIN}/`,
-    accent: NEUTRAL_ACCENT,
+    accent: DISCORD_NEUTRAL_ACCENT,
     description: gameLines(games),
     fields: [],
     footer: FOOTER,

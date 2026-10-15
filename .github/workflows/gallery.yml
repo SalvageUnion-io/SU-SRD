@@ -1,7 +1,7 @@
 name: Screenshot gallery
 
-# Screenshots of the PR's own srd and the Cantina builds — every page in
-# packages/gates/lib/galleryPages.ts at desktop and phone, each srd page's link
+# Screenshots of the PR's own build — every page in
+# packages/gates/lib/galleryPages.ts at desktop and phone, each page's link
 # preview, and the Cantina signed in — uploaded as the `gallery-<n>` artifact.
 # `gallery-pages.yml` publishes the artifact to GitHub Pages at
 # /<owner>.github.io/<repo>/<n>/ once this run completes.
@@ -15,7 +15,7 @@ name: Screenshot gallery
 #
 # READ-ONLY on purpose: this runs the branch's code, so it holds no write token
 # and no secret. The Cantina is built against a THROWAWAY self-hosted Convex backend
-# with the test sign-in (the same setup as e2e-nightly.yml's `e2e-cantina`), so
+# with the test sign-in (the same setup as e2e-nightly.yml's `e2e`), so
 # the gallery can sign a fresh account up and edit characters without touching
 # the staging or production backend. Publishing, which needs `pages: write`,
 # runs in the separate `workflow_run` workflow, from main's code.
@@ -62,14 +62,11 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      - name: Start a throwaway Convex backend and build cantina against it
+      - name: Start a throwaway Convex backend and build the site against it
         id: convex
         uses: ./.github/actions/convex-backend
         with:
           test-auth: 'true'
-
-      - name: Build srd
-        run: bun --filter srd build
 
       # tools/shot.ts asks Playwright for the headed Chromium's path.
       - name: Set up Playwright
@@ -77,23 +74,20 @@ jobs:
         with:
           browser: full
 
-      # srd is static files: a plain server answers `/route/` with its
-      # index.html. The Cantina is a single-page app: `vite preview` falls back to
-      # index.html for its routes. `vite preview` loads apps/cantina/vite.config.ts,
-      # which refuses to start without VITE_CONVEX_URL (the build already
-      # carries it; the config only checks it is set), so pass the same URL.
-      - name: Serve both builds
+      # One server, as in production: the workspace's Worker (`bun run
+      # preview`, wrangler on 4321) serves the reference pages and answers
+      # `/build` with the Cantina, as CI's e2e does. Its link previews read
+      # the throwaway backend, not production's.
+      - name: Serve the app
         env:
-          VITE_CONVEX_URL: ${{ steps.convex.outputs.url }}
+          CONVEX_URL: ${{ steps.convex.outputs.url }}
         run: |
-          (cd apps/srd/dist && python3 -m http.server 4321 --bind 127.0.0.1 > /tmp/srd.log 2>&1 &)
-          (cd apps/cantina && bunx vite preview --port 5173 --strictPort > /tmp/cantina.log 2>&1 &)
-          for url in http://127.0.0.1:4321/ http://localhost:5173/build/; do
+          (cd apps/web && bun run preview --var "CONVEX_URL:$CONVEX_URL" > /tmp/web.log 2>&1 &)
+          for url in http://localhost:4321/ http://localhost:4321/build/; do
             for _ in $(seq 1 60); do curl -sf -o /dev/null "$url" && break; sleep 1; done
             curl -sf -o /dev/null "$url" || {
               echo "::error::$url never answered"
-              echo "--- /tmp/srd.log"; cat /tmp/srd.log
-              echo "--- /tmp/cantina.log"; cat /tmp/cantina.log
+              cat /tmp/web.log
               exit 1
             }
           done
@@ -105,7 +99,7 @@ jobs:
           PR_NUMBER: ${{ inputs.pr }}
           HEAD_SHA: ${{ github.sha }}
         run: >-
-          bun run gallery --srd http://127.0.0.1:4321 --cantina http://localhost:5173/build
+          bun run gallery --base http://localhost:4321
           --signed-in ${PR_NUMBER:+--pr "$PR_NUMBER"} --sha "$HEAD_SHA" --out gallery
 
       # The tour keeps 90 days: Pages republishes the newest one on every

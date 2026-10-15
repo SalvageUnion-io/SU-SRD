@@ -2,23 +2,22 @@
  * ports — each checkout's own dev-server ports, so parallel worktrees never
  * share one.
  *
- * On a fixed port (srd's dev server on 4321), a
+ * On a fixed port (the dev server on 4321), a
  * second worktree either fails to start its server or, worse, `bun run shot`
- * and srd's Playwright suite reuse the first checkout's server and silently
+ * and the Playwright suite reuse the first checkout's server and silently
  * measure that checkout's code.
  *
  * - The primary checkout (its `.git` is a directory) and CI keep the base
- *   ports: `.claude/launch.json`, `wrangler.jsonc`'s `dev.port` and the CI
- *   workflows name them.
+ *   port: `.claude/launch.json`, `wrangler.jsonc`'s `dev.port` and the CI
+ *   workflows name it.
  * - A linked worktree (its `.git` is a file) adds an offset of 1–99 hashed
  *   from its own path: stable across restarts, distinct between worktrees
  *   but for a rare collision.
  * - An explicit `PORT` wins over both. The browser preview
  *   (`.claude/launch.json`, `autoPort`) always starts a server with `PORT` set
  *   to the port it waits on: the base port, or a free one when another
- *   checkout holds that. `tools/shot.ts` passes `PORT` too (and `--port` to
- *   The Cantina's Vite, which leaves its port at 5173 for `bun run dev:cantina`).
- * - Every server, the Cantina's Vite included, answers with
+ *   checkout holds that. `tools/shot.ts` passes `PORT` too.
+ * - The dev server answers with
  *   `x-su-checkout: <this checkout's root>`, so a client that finds its port
  *   busy can tell its own server from another checkout's (a collision, or a
  *   stale process) and refuse the latter, as `tools/shot.ts` does.
@@ -28,16 +27,8 @@ import { realpathSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-/**
- * The ports the primary checkout listens on. `cantina` is the Cantina booted signed out
- * with no backend, `bun run shot cantina:/route`'s own server; `bun run dev:cantina`
- * is not on it, and stays on 5173, where its local Convex backend expects it.
- */
-export const BASE_PORTS = { srd: 4321, cantina: 5180 } as const
-
-/** `bun run dev:cantina`'s port: Vite's default, where its local Convex backend expects it. */
-export const CANTINA_DEV_PORT = 5173
-export type DevServer = keyof typeof BASE_PORTS
+/** The port the primary checkout's dev server listens on: the whole site. */
+export const BASE_PORT = 4321
 
 /** The response header each dev server names its checkout in. */
 export const CHECKOUT_HEADER = 'x-su-checkout'
@@ -65,10 +56,13 @@ export function portOffset(root: string, primary: boolean): number {
   return 1 + (hash % (SPAN - 1))
 }
 
-/** The port `server` listens on in this checkout (CI always uses the base port). */
-export function portFor(
-  server: DevServer,
-  { root = CHECKOUT_ROOT, ci = Boolean(process.env.CI) }: { root?: string; ci?: boolean } = {}
-): number {
-  return BASE_PORTS[server] + (ci ? 0 : portOffset(root, isPrimaryCheckout(root)))
+/** The port the dev server listens on in this checkout (CI always uses the base port). */
+export function portFor({
+  root = CHECKOUT_ROOT,
+  ci = Boolean(process.env.CI),
+}: {
+  root?: string
+  ci?: boolean
+} = {}): number {
+  return BASE_PORT + (ci ? 0 : portOffset(root, isPrimaryCheckout(root)))
 }

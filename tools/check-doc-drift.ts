@@ -40,7 +40,7 @@
  *            every session. A collapsed doc (`COLLAPSED_DOCS`) holds its own
  *            budget: terse is the point.
  *   load     each named session profile (`SESSION_PROFILES`: srd,
- *            cantina+component-lib, bot) totals what it loads (the root
+ *            cantina+ui, bot) totals what it loads (the root
  *            CLAUDE.md and its imports, each CLAUDE.md under its directories,
  *            every rule whose `paths:` match a file there, and the docs its
  *            text says to read first), held to a ratchet (`SESSION_CEILINGS`).
@@ -945,17 +945,15 @@ const RULE_BUDGET = 4_000
  * Files over budget when the budget landed, held at that size until they are
  * cut. Lower an entry when its file shrinks; delete it once under budget.
  */
-const OVER_BUDGET: Record<string, number> = {
-  'apps/cantina/CLAUDE.md': 8_266,
-}
+const OVER_BUDGET: Record<string, number> = {}
 
 /**
  * Context docs collapsed to terse lists, each held near its collapsed size so
  * prose cannot creep back. Raise one only on purpose, saying why in the PR.
  */
 const COLLAPSED_DOCS: Record<string, number> = {
-  'apps/srd/ssg/DESIGN.md': 5_400,
-  'docs/ARCHITECTURE.md': 20_500,
+  'apps/web/ssg/DESIGN.md': 5_400,
+  'docs/ARCHITECTURE.md': 20_850,
   'docs/README.md': 2_600,
   'docs/architecture/dashboard.md': 3_000,
   'docs/architecture/mediator-dashboard.md': 4_500,
@@ -972,9 +970,10 @@ export function checkDocSizes(
   collapsed: Record<string, number> = COLLAPSED_DOCS
 ): CheckResult {
   const failures: string[] = []
-  const claudeMds = ['CLAUDE.md', ...workspaceDirs(root).map((ws) => `${ws}/CLAUDE.md`)].filter(
-    (doc) => existsSync(join(root, doc))
+  const guides = [...workspaceDirs(root), 'apps/web/src/routes', 'apps/web/src/components'].map(
+    (dir) => `${dir}/CLAUDE.md`
   )
+  const claudeMds = ['CLAUDE.md', ...guides].filter((doc) => existsSync(join(root, doc)))
   const rules = markdownIn(root, '.claude/rules')
   const budgeted: [string, number][] = [
     ...claudeMds.map((doc): [string, number] => [doc, CLAUDE_MD_BUDGET]),
@@ -1013,12 +1012,8 @@ export function checkDocSizes(
 
 /** The sessions the repo budgets (`gates/lib/sessionLoad`), each held to `SESSION_CEILINGS`. */
 const SESSION_PROFILES: Record<string, SessionProfile> = {
-  srd: { dirs: ['apps/srd'], reads: [] },
-  /** The Convex CLI writes the guidelines; a Convex upgrade that grows them raises this on purpose. */
-  'cantina+component-lib': {
-    dirs: ['apps/cantina', 'packages/component-lib'],
-    reads: ['apps/cantina/convex/_generated/ai/guidelines.md'],
-  },
+  /** It reads the Convex CLI's guidelines; a Convex upgrade that grows them raises this on purpose. */
+  web: { dirs: ['apps/web'], reads: ['apps/web/convex/_generated/ai/guidelines.md'] },
   bot: { dirs: ['apps/discord-bot'], reads: [] },
 }
 
@@ -1028,8 +1023,7 @@ const SESSION_PROFILES: Record<string, SessionProfile> = {
  * so); raise one only on purpose, saying why in the commit.
  */
 const SESSION_CEILINGS: Record<string, number> = {
-  srd: 24_350,
-  'cantina+component-lib': 58_927,
+  web: 61_924,
   bot: 22_634,
 }
 

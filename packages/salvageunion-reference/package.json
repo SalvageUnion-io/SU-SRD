@@ -22,6 +22,10 @@
       "types": "./lib/proseDeviations.ts",
       "default": "./lib/proseDeviations.ts"
     },
+    "./assetDerivatives": {
+      "types": "./lib/assetDerivatives.ts",
+      "default": "./lib/assetDerivatives.ts"
+    },
     "./zod": {
       "types": "./lib/zod.ts",
       "default": "./lib/zod.ts"

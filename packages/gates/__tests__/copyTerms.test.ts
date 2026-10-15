@@ -19,7 +19,7 @@ import {
 } from '../rules/copyTerms'
 
 /**
- * `tools/check-copy.ts` ratchets lower-case game terms and banned spellings in
+ * `tools/check-rule-sets.ts` (the `copy` check) ratchets lower-case game terms and banned spellings in
  * shipped copy. These pin what the extractor reads as copy, how the term list
  * is weighed from the dataset, and what each rule flags, against fixtures.
  */
@@ -199,7 +199,7 @@ describe('lintCopy', () => {
 })
 
 describe('the rule set', () => {
-  test('reads the product names from component-lib, not a copy of them', () => {
+  test('reads the product names from cantina-domain, not a copy of them', () => {
     const root = fixture({
       [PRODUCT_FILE]: "export const PRODUCT = { name: 'Some Name', shortName: 'SN' } as const",
     })
@@ -212,11 +212,11 @@ describe('the rule set', () => {
       [`${DATA_DIR}/keywords.json`]: JSON.stringify([{ name: 'mech' }]),
       [`${DATA_DIR}/chassis.json`]: JSON.stringify([{ text: 'The Mech '.repeat(MIN_USES) }]),
       [PRODUCT_FILE]: "export const PRODUCT = { name: 'The Cantina', shortName: 'Cantina' }",
-      'apps/cantina/src/A.tsx': 'export const A = () => <p>Build a mech in cantina</p>',
-      'apps/cantina/src/__tests__/A.test.tsx': 'export const B = () => <p>a mech</p>',
+      'apps/web/src/routes/A.tsx': 'export const A = () => <p>Build a mech in cantina</p>',
+      'apps/web/src/routes/__tests__/A.test.tsx': 'export const B = () => <p>a mech</p>',
     })
     const r = copyTerms.scan(root)
-    expect(r['lowercase-term']?.map((f) => f.file)).toEqual(['apps/cantina/src/A.tsx'])
+    expect(r['lowercase-term']?.map((f) => f.file)).toEqual(['apps/web/src/routes/A.tsx'])
     expect(r['banned-variant']).toHaveLength(1)
     expect(copyTerms.summary?.(root)).toBe(
       // product.ts is shipped copy too

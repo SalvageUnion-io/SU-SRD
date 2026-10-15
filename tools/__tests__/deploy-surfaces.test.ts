@@ -3,10 +3,10 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { decideSurfaces, main, planDeploy, SURFACES } from '../deploy-surfaces'
+import { decideSurfaces, isShared, main, planDeploy, SURFACES } from '../deploy-surfaces'
 
-const EVERYTHING = { assets: true, srd: true, cantina: true, bot: true }
-const NOTHING = { assets: false, srd: false, cantina: false, bot: false }
+const EVERYTHING = { 'su-assets': true, web: true, 'discord-bot': true }
+const NOTHING = { 'su-assets': false, web: false, 'discord-bot': false }
 
 describe('deploy-surfaces — decideSurfaces', () => {
   test('no deploy record deploys every surface', () => {
@@ -31,21 +31,33 @@ describe('deploy-surfaces — decideSurfaces', () => {
    * recorded deploy sees both.
    */
   test('changes from several commits since the record are all deployed', () => {
-    const since = ['apps/cantina/src/app.tsx', 'apps/srd/src/pages/index.page.tsx']
-    expect(decideSurfaces(since, false)).toEqual({ ...NOTHING, cantina: true, srd: true })
+    const since = ['apps/web/src/routes/app.tsx', 'apps/web/src/pages/index.page.tsx']
+    expect(decideSurfaces(since, false)).toEqual({ ...NOTHING, web: true })
   })
 
-  test.each(Object.entries(SURFACES))(
-    'a change under apps/%s selects only that surface',
-    (key, dir) => {
-      const decision = decideSurfaces([`apps/${dir}/x.ts`], false)
-      expect(decision).toEqual({ ...NOTHING, [key]: true })
-    }
-  )
+  test.each([...SURFACES])('a change under apps/%s selects only that surface', (app) => {
+    const decision = decideSurfaces([`apps/${app}/x.ts`], false)
+    expect(decision).toEqual({ ...NOTHING, [app]: true })
+  })
+
+  // The UI library lives in apps/web, and nothing else ships it.
+  test('a src/components change ships web alone', () => {
+    expect(decideSurfaces(['apps/web/src/components/index.ts'], false)).toEqual({
+      ...NOTHING,
+      web: true,
+    })
+  })
+
+  // The Cantina is part of the one site.
+  test('a Cantina change ships web', () => {
+    expect(decideSurfaces(['apps/web/src/routes/app.tsx'], false)).toEqual({
+      ...NOTHING,
+      web: true,
+    })
+  })
 
   test.each([
-    'packages/component-lib/src/index.ts',
-    'packages/observability/src/cloudflare.ts',
+    'packages/cantina-domain/src/product.ts',
     'packages/salvageunion-reference/package.json',
     'package.json',
     'bun.lock',
@@ -71,14 +83,22 @@ describe('deploy-surfaces — decideSurfaces', () => {
   })
 
   test('a directory that merely shares a prefix does not match', () => {
-    // `apps/srd-legacy/` must not be read as `apps/srd/`.
-    expect(decideSurfaces(['apps/srd-legacy/x.ts', 'apps/cantina-docs/y.md'], false)).toEqual(
+    // `apps/web-legacy/` must not be read as `apps/web/`.
+    expect(decideSurfaces(['apps/web-legacy/x.ts', 'apps/cantina-docs/y.md'], false)).toEqual(
       NOTHING
     )
   })
 
   test('a root file that only starts like a shared one is not shared', () => {
     expect(decideSurfaces(['package.json.bak', 'bun.lockb.md'], false)).toEqual(NOTHING)
+  })
+
+  test('isShared reads a trailing / or * as a prefix and anything else as one path', () => {
+    expect(isShared('packages/x/y.ts')).toBe(true)
+    expect(isShared('tsconfig.worker.json')).toBe(true)
+    expect(isShared('.github/workflows/deploy-cloudflare.yml')).toBe(true)
+    expect(isShared('.github/workflows/deploy-cloudflare.yml.orig')).toBe(false)
+    expect(isShared('apps/packages/x.ts')).toBe(false)
   })
 })
 
@@ -99,7 +119,7 @@ describe('deploy-surfaces — planDeploy', () => {
 
   test('a rollback dispatch may deploy an older commit', () => {
     const plan = planDeploy(['apps/su-assets/src/index.ts'], false, 'behind', true)
-    expect(plan).toEqual({ stale: false, surfaces: { ...NOTHING, assets: true } })
+    expect(plan).toEqual({ stale: false, surfaces: { ...NOTHING, 'su-assets': true } })
   })
 
   test.each(['ahead', 'same', 'none', 'diverged'] as const)(
@@ -110,8 +130,8 @@ describe('deploy-surfaces — planDeploy', () => {
   )
 
   test('ahead of the record deploys what changed', () => {
-    const plan = planDeploy(['apps/cantina/src/app.tsx'], false, 'ahead', false)
-    expect(plan).toEqual({ stale: false, surfaces: { ...NOTHING, cantina: true } })
+    const plan = planDeploy(['apps/web/src/routes/app.tsx'], false, 'ahead', false)
+    expect(plan).toEqual({ stale: false, surfaces: { ...NOTHING, web: true } })
   })
 })
 
@@ -163,7 +183,7 @@ describe('deploy-surfaces — script against a real git history', () => {
     return git(work, 'rev-parse', 'HEAD')
   }
   commit('README.md')
-  const a = commit('apps/cantina/app.ts')
+  const a = commit('apps/web/src/routes/app.ts')
   const b = commit('apps/su-assets/index.ts')
   git(
     work,
@@ -206,24 +226,18 @@ describe('deploy-surfaces — script against a real git history', () => {
 
   test('a newer commit deploys what changed since the record', () => {
     git(work, 'checkout', '--quiet', '--detach', b)
-    const c = commit('apps/srd/page.tsx')
-    expect(decide(c)).toEqual({ stale: 'false', deploy: '["srd"]' })
+    const c = commit('apps/web/page.tsx')
+    expect(decide(c)).toEqual({ stale: 'false', deploy: '["web"]' })
   })
   test('says why it ships what it ships', () => {
     const stale = decideLogged(a).lines
     expect(stale[0]).toBe(`last recorded deploy: ${b}`)
     expect(stale[1]).toContain(`HEAD is older than the recorded deploy ${b}`)
-    expect(stale.slice(2)).toEqual([
-      '  skip   su-assets',
-      '  skip   srd',
-      '  skip   cantina',
-      '  skip   discord-bot',
-    ])
+    expect(stale.slice(2)).toEqual(['  skip   su-assets', '  skip   web', '  skip   discord-bot'])
     expect(decideLogged(b, '--force-all').lines.slice(1)).toEqual([
       'force_all — deploying every surface',
       '  deploy su-assets',
-      '  deploy srd',
-      '  deploy cantina',
+      '  deploy web',
       '  deploy discord-bot',
     ])
   })
@@ -234,7 +248,7 @@ describe('deploy-surfaces — script against a real git history', () => {
     const lines: string[] = []
     main([], { cwd: lonely, env: cleanEnv }, (l) => lines.push(l))
     expect(lines[0]).toBe('no usable deployed/cloudflare record — deploying every surface')
-    expect(lines).toHaveLength(5)
+    expect(lines).toHaveLength(4)
   })
 
   test('the CLI entry runs the same decision and writes $GITHUB_OUTPUT', () => {

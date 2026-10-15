@@ -9,14 +9,14 @@ paths:
 ## Layout
 
 Every test lives in a `__tests__/` beside its subject; Cantina's Convex suites in
-`apps/cantina/test/convex/__tests__/` (Convex deploys any helper inside `convex/`).
+`apps/web/test/convex/__tests__/` (Convex deploys any helper inside `convex/`).
 `check test-layout` enforces it and one `test` script per workspace. Preloads
 live in workspace bunfigs, not the root's.
 
 ## Component Testing
 
 - Test user interactions, query by role/label, `waitFor` async updates
-- React's "not wrapped in act(...)" and "a style property during rerender" warnings fail the test (`test/testing-library.ts`): settle async work inside `await act(async () => …)`, and in Cantina load the real stores first with `hydrateStores` (`src/components/__tests__/hydrateStores.ts`)
+- React's "not wrapped in act(...)" and "a style property during rerender" warnings fail the test (`apps/web/test/testing-library.ts`): settle async work inside `await act(async () => …)`, and in Cantina load the real stores first with `hydrateStores` (`src/components/__tests__/hydrateStores.ts`)
 
 ## Mocking
 
@@ -53,15 +53,14 @@ Two corollaries:
 
 ### Never re-declare `afterEach(cleanup)` — the preload already runs it
 
-`test/testing-library.ts`, which every workspace running component tests
-preloads, registers an `act()`-wrapped `afterEach(cleanup)` (it also clears
+`apps/web/test/testing-library.ts`, the web preload, registers an `act()`-wrapped `afterEach(cleanup)` (it also clears
 `sessionStorage`/`localStorage`). A bare re-declaration unmounts without
 flushing pending React updates; `noBareCleanupHook.grit` fails it.
 To unmount **mid-test** (e.g. asserting on a remount), call `cleanup()` inline.
 
 ### Never call `SalvageUnionReference.preload()` in a test file
 
-`test/reference-preload.ts` already loads every schema, and the loaded-schema
+`packages/salvageunion-reference/tools/testPreload.ts` already loads every schema, and the loaded-schema
 set is module-global, so a narrow per-file list can pass only because a sibling
 file loaded everything; `noTestReferencePreload.grit`
 fails it. The exceptions re-preload after `resetAllForTesting()` to assert on
@@ -72,9 +71,9 @@ load behaviour, and biome.jsonc excludes each by path with its reason.
 Never sleep (`setTimeout`) past a debounce: a CI flake and dead wall-clock. Use:
 
 - `jest.useFakeTimers()` + `jest.advanceTimersByTime(DEBOUNCE_MS)` inside
-  `act()` to drive the component's own timer (`GlobalSearch.test.tsx`).
+  `act()` to drive the component's own timer (`useSearchCombobox.test.tsx`).
 - `setSystemTime()` when the code under test reads `Date.now()` rather than a
-  timer — see the stale-write tests in `apps/cantina/test/convex/__tests__/appId.test.ts`.
+  timer — see the stale-write tests in `apps/web/test/convex/__tests__/appId.test.ts`.
 - `await screen.findByText(...)` / `waitFor(...)`, which poll.
 
 **Fake timers and `waitFor` do not mix:** `waitFor` polls on a real interval,
@@ -82,8 +81,8 @@ so it hangs under faked timers. Scope `useFakeTimers()` to the helper that needs
 
 ### Fixtures carry one frozen timestamp
 
-Entity fixtures come from `apps/cantina/src/components/__tests__/fixtures.ts`
-(the Convex suites' via `apps/cantina/test/convex/fixtures.ts`), stamped with
+Entity fixtures come from `apps/web/src/components/__tests__/fixtures.ts`
+(the Convex suites' via `apps/web/test/convex/fixtures.ts`), stamped with
 `FIXTURE_NOW`; pass a distinct timestamp through overrides when needed. Never
 write `new Date().toISOString()` into a fixture:
 `noLiveClockFixture.grit` fails it.

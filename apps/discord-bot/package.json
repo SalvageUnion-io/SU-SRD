@@ -12,18 +12,15 @@
     "test": "bun test --parallel=4 --no-isolate",
     "deploy": "wrangler deploy",
     "worker:bundle": "wrangler deploy --dry-run",
-    "dev": "wrangler dev",
-    "build": "bun run typecheck && bun run worker:bundle"
+    "dev": "wrangler dev"
   },
   "dependencies": {
     "@discordjs/builders": "1.14.1",
     "@discordjs/rest": "2.6.3",
     "@randsum/roller": "catalog:",
     "@randsum/salvageunion": "catalog:",
-    "component-lib": "workspace:*",
     "discord-api-types": "0.38.53",
     "cantina-domain": "workspace:*",
-    "observability": "workspace:*",
     "salvageunion-reference": "workspace:*"
   }
 }

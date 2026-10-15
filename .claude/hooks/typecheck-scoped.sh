@@ -45,21 +45,17 @@ cd "$ROOT" || exit 0
 . "$(dirname "${BASH_SOURCE[0]}")/ensure-install.sh"
 ensure_install || exit 2
 
-# The edited project plus every project that imports it. `tools` typechecks
-# `test/` too and imports every package; srd's and cantina's e2e configs import
-# `packages/gates`.
+# The edited project plus every project that imports it. `tools` imports
+# every package; apps/web's e2e configs import `packages/gates`.
 # Repo-root config belongs to no project — leave it to CI.
 case "$REL" in
   packages/salvageunion-reference/*) TARGETS="*" ;;
-  packages/component-lib/*) TARGETS="packages/component-lib apps/srd apps/cantina tools" ;;
-  packages/observability/*) TARGETS="packages/observability apps/discord-bot apps/cantina apps/srd apps/su-assets tools" ;;
-  packages/cantina-domain/*) TARGETS="packages/cantina-domain apps/discord-bot apps/cantina tools" ;;
+  packages/cantina-domain/*) TARGETS="packages/cantina-domain apps/discord-bot apps/web tools" ;;
   apps/discord-bot/*) TARGETS="apps/discord-bot" ;;
-  apps/cantina/*) TARGETS="apps/cantina" ;;
-  apps/srd/*) TARGETS="apps/srd" ;;
+  apps/web/*) TARGETS="apps/web" ;;
   apps/su-assets/*) TARGETS="apps/su-assets" ;;
-  packages/gates/*) TARGETS="packages/gates apps/srd apps/cantina tools" ;;
-  tools/* | test/*) TARGETS="tools" ;;
+  packages/gates/*) TARGETS="packages/gates apps/web tools" ;;
+  tools/*) TARGETS="tools" ;;
   *) exit 0 ;;
 esac
 

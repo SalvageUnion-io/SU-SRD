@@ -10,7 +10,7 @@ rust for actions. It does not use the dash: ruleset §3.9 says canon is solid
 and dashes mark homebrew and the edit state, and no board on the origin gives
 the modified treatment a dash.
 **Amended (EDL):** `ReferenceEntityCard` is the Card and Page form; lists,
-prose and Peeks go through `src/entity/` (the
+prose and Peeks go through `src/components/entity/` (the
 [entity display language](../design-system/entity-display-language.md)), whose
 Peek draws this card at small size.
 

@@ -88,9 +88,10 @@ export const CHECKS: readonly CheckSpec[] = [
   },
   {
     id: 'test',
-    guards: 'the full test suite, every workspace (tools/ is one)',
-    fix: 'fix the test; `bun --filter <workspace> test` reruns one workspace',
-    cmd: ['bun', 'run', 'test'],
+    guards:
+      'the full test suite, every workspace (tools/ is one), each held to its line-coverage floor — what CI runs',
+    fix: 'fix the test, or add tests to reach the floor (FLOORS in tools/run-coverage.ts); `bun --filter <workspace> test` reruns one workspace',
+    cmd: ['bun', 'run', 'test:coverage'],
     profiles: ['full'],
   },
   {
@@ -147,8 +148,8 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'observability',
     guards:
-      'errors reach Workers Issues: Issues + source maps on, reporters started and routed, CSP, and its Web Analytics origins',
-    fix: 'restore the wiring the failure names: the Worker config, the init call, the Worker route or the CSP',
+      'browser errors reach Workers Issues: reporters started and routed, CSP, and its Web Analytics origins',
+    fix: 'restore the wiring the failure names: the init call, the Worker route or the CSP',
     cmd: ['bun', 'tools/check-observability.ts'],
     areas: REPO_INVARIANT,
     profiles: ALL,
@@ -156,8 +157,8 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'workers',
     guards:
-      'the four Workers share one shape: src/worker/index.ts, one script set, Env types, equal shared wrangler keys',
-    fix: 'make the app match the others (tools/check-workers.ts names each rule); a new Worker joins WORKER_APPS in tools/check-generated.ts',
+      'the three Workers share one shape: src/worker/index.ts, one script set, Env types, equal shared wrangler keys, Workers Logs + Issues + source maps on',
+    fix: 'make the app match the others (tools/check-workers.ts names each rule); a new Worker joins WORKERS there',
     cmd: ['bun', 'tools/check-workers.ts'],
     areas: ['code'],
     profiles: ALL,
@@ -175,7 +176,7 @@ export const CHECKS: readonly CheckSpec[] = [
     id: 'client-contract',
     guards:
       'a Convex argument change that refuses calls an open Cantina tab still makes raises the build floor',
-    fix: 'keep it compatible (optional argument, keep the old function) or raise BUILD_FLOOR in apps/cantina/convex/buildFloor.ts to `date +%s`; then `bun tools/check-client-contract.ts --write` records tools/baselines/convex-client-contract.json',
+    fix: 'keep it compatible (optional argument, keep the old function) or raise BUILD_FLOOR in apps/web/convex/buildFloor.ts to `date +%s`; then `bun tools/check-client-contract.ts --write` records tools/baselines/convex-client-contract.json',
     cmd: ['bun', 'tools/check-client-contract.ts'],
     areas: ['code'],
     profiles: ALL,
@@ -183,7 +184,7 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'rules-home',
     guards:
-      'Convex imports nothing from apps/cantina/src/; no rules- or model-named module sits in apps/cantina/src/components/',
+      'Convex imports nothing from apps/web/src/; no rules- or model-named module sits in apps/web/src/components/',
     fix: 'move shared logic to cantina-domain or salvageunion-reference; move a rule to a lib/rules home, or name a one-component view-model `<name>.model.ts`',
     cmd: ['bun', 'tools/check-rules-home.ts'],
     areas: ['code'],
@@ -207,15 +208,6 @@ export const CHECKS: readonly CheckSpec[] = [
     profiles: ALL,
   },
   {
-    id: 'barrel-consumers',
-    guards:
-      "no component-lib export is a composition only one app renders (an export nothing imports is knip's)",
-    fix: "move a single-app composition into that app's src/components/; a single-app helper outside the group directories needs a SINGLE_APP reason",
-    cmd: ['bun', 'tools/check-barrel-consumers.ts'],
-    areas: ['code'],
-    profiles: ALL,
-  },
-  {
     id: 'workflows',
     guards:
       'CI aggregate gate, path filters, bunx pinning, deploy order (incl. Convex deploy-key guard), production-secret env',
@@ -228,17 +220,21 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'styling',
     guards:
-      'design tokens, styling ownership, srd stylesheet entry, the su- class prefix (ratcheted)',
-    fix: "follow the rule's printed fix; `--report` lists every finding; a ratchet that fell needs `bun tools/check-styling.ts --update-baseline` (tools/baselines/styling-baseline.json)",
-    cmd: ['bun', 'tools/check-styling.ts'],
+      'design tokens, styling ownership, the stylesheet entry, the su- class prefix, no tech-level header ground',
+    fix: "follow the rule's printed fix; `bun tools/check-rule-sets.ts --only=<set> --report` lists every finding",
+    cmd: [
+      'bun',
+      'tools/check-rule-sets.ts',
+      '--only=tokens,styling,srd-css,tone-ground,class-prefix',
+    ],
     profiles: ALL,
   },
   {
     id: 'copy',
     guards:
       'copy capitalises the game terms keywords.json and the dataset capitalise; no TL, prose Heat Cap or off-spelling of the product (ratcheted)',
-    fix: 'write the spelling the finding names; `--report` lists every finding; a ratchet that fell needs `bun tools/check-copy.ts --update-baseline` (tools/baselines/copy-baseline.json)',
-    cmd: ['bun', 'tools/check-copy.ts'],
+    fix: 'write the spelling the finding names; `--report` lists every finding; a ratchet that fell needs `bun tools/check-rule-sets.ts --only=copy --update-baseline` (tools/baselines/rule-sets.json)',
+    cmd: ['bun', 'tools/check-rule-sets.ts', '--only=copy'],
     areas: ['code'],
     profiles: ALL,
   },

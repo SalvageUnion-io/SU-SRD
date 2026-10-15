@@ -32,30 +32,54 @@
  */
 
 import { appendFileSync } from 'node:fs'
+import { WORKERS } from './check-workers'
 
 const DEPLOY_RECORD = 'deployed/cloudflare'
 
-/** Surface -> the app directory whose changes require that deploy. */
-export const SURFACES = {
-  assets: 'su-assets',
-  srd: 'srd',
-  cantina: 'cantina',
-  bot: 'discord-bot',
-} as const
+/**
+ * The surfaces, each one Worker app and named by its directory under `apps/`
+ * (the deploy job's matrix entry): a change under `apps/<app>/` ships that
+ * surface alone. `web` is the whole site, the reference and the Cantina under
+ * `/build`, as one Worker.
+ */
+export const SURFACES = WORKERS.map(({ app }) => app)
 
-type Surface = keyof typeof SURFACES
+type Surface = (typeof SURFACES)[number]
 
 /**
  * A change under any of these can move every surface, so all of them ship.
+ * An entry ending in `/` or `*` is a prefix; any other is one exact path.
  *
- * The three root prose files are rendered INTO srd's about page and bundled
+ * The three root prose files are rendered INTO the about page and bundled
  * `?raw` into the Cantina (ci.yml's `shared` filter carries them for the same
  * reason), so an edit to one changes what those surfaces serve even though
  * nothing under `apps/` moved. Of `.github/`, only this deploy's own workflow
- * and the setup action its jobs run can change what ships.
+ * and the actions its jobs run can change what ships. Every entry but
+ * `packages/` (which ci.yml filters per app) is in ci.yml's `shared` filter
+ * too, so what redeploys every surface was tested against every app:
+ * tools/check-workflows.ts (path-filters) holds the two lists together.
  */
-const SHARED =
-  /^(packages\/|package\.json$|bun\.lock$|bunfig\.toml$|tsconfig|\.github\/workflows\/deploy-cloudflare\.yml$|\.github\/actions\/|ABOUT_JRVS\.md$|LLM_STATEMENT\.md$|SPECIAL_THANKS\.md$)/
+export const SHARED_PATHS = [
+  'packages/',
+  'package.json',
+  'bun.lock',
+  'bunfig.toml',
+  'tsconfig*',
+  '.github/workflows/deploy-cloudflare.yml',
+  '.github/actions/',
+  'ABOUT_JRVS.md',
+  'LLM_STATEMENT.md',
+  'SPECIAL_THANKS.md',
+] as const
+
+/** Does `path` fall under one of `SHARED_PATHS`? */
+export function isShared(path: string): boolean {
+  return SHARED_PATHS.some((entry) =>
+    entry.endsWith('/') || entry.endsWith('*')
+      ? path.startsWith(entry.replace(/\*$/, ''))
+      : path === entry
+  )
+}
 
 /**
  * The pure decision. `changed === null` means there is no usable deploy record,
@@ -65,10 +89,10 @@ export function decideSurfaces(
   changed: readonly string[] | null,
   forceAll: boolean
 ): Record<Surface, boolean> {
-  const all = forceAll || changed === null || changed.some((path) => SHARED.test(path))
+  const all = forceAll || changed === null || changed.some(isShared)
   const result = {} as Record<Surface, boolean>
-  for (const [key, dir] of Object.entries(SURFACES) as [Surface, string][]) {
-    result[key] = all || (changed ?? []).some((path) => path.startsWith(`apps/${dir}/`))
+  for (const app of SURFACES) {
+    result[app] = all || (changed ?? []).some((path) => path.startsWith(`apps/${app}/`))
   }
   return result
 }
@@ -98,7 +122,7 @@ export function planDeploy(
 ): DeployPlan {
   if (ancestry === 'behind' && !allowBackwards) {
     const surfaces = {} as Record<Surface, boolean>
-    for (const key of Object.keys(SURFACES) as Surface[]) surfaces[key] = false
+    for (const app of SURFACES) surfaces[app] = false
     return { stale: true, surfaces }
   }
   return { stale: false, surfaces: decideSurfaces(changed, forceAll) }
@@ -173,9 +197,9 @@ export function main(
   else if (changed === null) log(`no usable ${DEPLOY_RECORD} record — deploying every surface`)
 
   const ship: string[] = []
-  for (const [key, deploy] of Object.entries(plan.surfaces) as [Surface, boolean][]) {
-    log(`  ${deploy ? 'deploy' : 'skip  '} ${SURFACES[key]}`)
-    if (deploy) ship.push(SURFACES[key])
+  for (const [app, deploy] of Object.entries(plan.surfaces) as [Surface, boolean][]) {
+    log(`  ${deploy ? 'deploy' : 'skip  '} ${app}`)
+    if (deploy) ship.push(app)
   }
   const output = (context.env ?? process.env).GITHUB_OUTPUT
   if (output) appendFileSync(output, `stale=${plan.stale}\ndeploy=${JSON.stringify(ship)}\n`)

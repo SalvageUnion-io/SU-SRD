@@ -1,18 +1,10 @@
 {
-  // The `tools` workspace's type-check, which also owns `test/**`: the preload
-  // files every workspace bunfig loads belong to no workspace of their own, so
-  // the workspace that holds the repo's root-level TypeScript checks them.
-  // A reference of the root solution tsconfig.json, so `bun run typecheck`
-  // (`tsc -b`) reaches it.
+  // The `tools` workspace's type-check. A reference of the root solution
+  // tsconfig.json, so `bun run typecheck` (`tsc -b`) reaches it.
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "lib": ["ES2022"]
   },
-  "include": ["**/*.ts", "../test/**/*.ts"],
-  "references": [
-    { "path": "../packages/component-lib" },
-    { "path": "../packages/gates" },
-    { "path": "../packages/observability" },
-    { "path": "../packages/salvageunion-reference" }
-  ]
+  "include": ["**/*.ts"],
+  "references": [{ "path": "../packages/gates" }, { "path": "../packages/salvageunion-reference" }]
 }

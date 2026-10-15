@@ -1,0 +1,257 @@
+/**
+ * prerender — the SSG's render pass: every page, endpoint and sitemap, into the
+ * `dist/` the Vite pass just bundled. It runs inside that pass, as the first
+ * `closeBundle` step (`prerender` in `ssg/cantinaPlugins.ts`), so the service
+ * worker generated after it sees a complete site.
+ *
+ *   1. read `dist/.vite/manifest.json` -> entry JS + CSS urls, and the emitted
+ *      url of every asset under `src/assets/`.
+ *   2. enumerate `ssg/routes.ts` and render each route.
+ *   3. write endpoints and the sitemap.
+ *
+ * Its own process: React cannot be loaded twice in one, and the Vite pass has
+ * already loaded production `react-dom/server` to render the builder's shell.
+ *
+ * ## The css/SSR hazard
+ *
+ * This runs under Bun, NOT through Vite, so a `.css` import anywhere in the
+ * SSR module graph lands in a runtime that has no css loader. Today the graph
+ * is css-free; the stub is the guard for the next one: Bun happens to load `.css` as a text module, which
+ * would let a stray import "work" unguarded until the first `@fontsource`
+ * import that drifts into an SSR module broke it. The `Bun.plugin` below stubs
+ * `.css` to an empty module so the behaviour is ours rather than the runtime's.
+ *
+ * The plugin only affects modules loaded AFTER it is registered, so everything
+ * downstream of it is imported dynamically — do not turn those `await import`s
+ * into top-level imports.
+ */
+
+import { plugin } from 'bun'
+import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+// Type-only, so it is erased before Bun resolves `./document`, whose graph
+// (`BaseLayout` -> `src/components` -> third-party deps) must load only after the
+// css-stub plugin below is registered.
+import type { BuildAssets } from './document'
+import { pickFontPreloads } from './fontPreloads'
+import { outputPathFor } from './outputPath'
+import { assertNoRawMarkup, findRawMarkup } from './rawMarkup'
+
+const appRoot = fileURLToPath(new URL('..', import.meta.url))
+const distDir = join(appRoot, 'dist')
+
+plugin({
+  name: 'ssg-css-stub',
+  setup(builder) {
+    builder.onLoad({ filter: /\.css$/ }, () => ({
+      contents: 'export default ""',
+      loader: 'js',
+    }))
+  },
+})
+
+type ManifestChunk = {
+  file: string
+  css?: string[]
+  assets?: string[]
+  isEntry?: boolean
+}
+
+type Manifest = Record<string, ManifestChunk>
+
+/**
+ * Entries that exist only to pull non-JS resources through Vite. Their JS chunks
+ * are empty (or hold a discarded url string) and are deliberately never linked
+ * into a page: `styles.entry.ts` carries the css, `assets.entry.ts` carries the
+ * static files under `src/assets/`.
+ */
+const NON_LINKED_ENTRIES = ['styles.entry.ts', 'assets.entry.ts']
+
+/** The Cantina's entry, its shell: its own document, never linked from srd's. */
+const CANTINA_ENTRY = 'build/index.html'
+
+/**
+ * Manifest keys under this prefix are static assets a page may point at, keyed
+ * by their source path relative to the Vite root. See `BuiltAssets` in
+ * `ssg/types.ts` for why the emit and the address are two separate steps.
+ */
+const BUILT_ASSET_PREFIX = 'src/assets/'
+
+/** Entry JS + CSS urls (in `<head>` order), the preloaded fonts, and the emitted `src/assets/` urls. */
+async function readAssets(): Promise<BuildAssets> {
+  const manifestPath = join(distDir, '.vite', 'manifest.json')
+  const manifest = JSON.parse(await readFile(manifestPath, 'utf-8')) as Manifest
+
+  // The base stylesheet (`src/styles/baseStylesheet.ts`) links first, ahead of srd's own;
+  // its fonts are the only ones srd emits.
+  const emitted = (await readdir(join(distDir, 'assets'))).map((name) => `assets/${name}`)
+  const base = emitted.filter((file) => /^assets\/base-[\w-]+\.css$/.test(file))
+  if (base.length !== 1) throw new Error(`[ssg] expected one base stylesheet, found ${base.length}`)
+
+  const scripts: string[] = []
+  const styles = base.map((file) => `/${file}`)
+  const built: Record<string, string> = {}
+  const fontFiles = emitted.filter((file) => file.endsWith('.woff2'))
+
+  for (const [key, chunk] of Object.entries(manifest)) {
+    if (key.startsWith(BUILT_ASSET_PREFIX)) {
+      built[key] = `/${chunk.file}`
+      continue
+    }
+    if (!chunk.isEntry || key === CANTINA_ENTRY) continue
+    for (const css of chunk.css ?? []) {
+      const href = `/${css}`
+      if (!styles.includes(href)) styles.push(href)
+    }
+    if (NON_LINKED_ENTRIES.some((entry) => key.endsWith(entry))) continue
+    scripts.push(`/${chunk.file}`)
+  }
+
+  return { scripts, styles, fonts: pickFontPreloads(fontFiles), built }
+}
+
+// `outputPathFor` (URL -> dist file) lives in `./outputPath` so it can be read
+// and tested without executing this pass — importing THIS module runs
+// `await main()` and renders the whole site.
+
+async function writeOutput(relativePath: string, contents: string): Promise<void> {
+  const target = join(distDir, relativePath)
+  await mkdir(dirname(target), { recursive: true })
+  await writeFile(target, contents, 'utf-8')
+}
+
+/**
+ * Non-HTML outputs (llms.txt, search-index.json, the JSON API).
+ *
+ * Dynamic import, like `./routes` above and for the same reason: the endpoint
+ * modules reach `src/lib/gameData` and (through `staticPaths`) `src/components`,
+ * so they must be loaded AFTER the css-stub plugin is registered.
+ *
+ * An endpoint's `outputPath` is written verbatim — `schema/chassis.json` is a
+ * file, never a `schema/chassis.json/index.html` directory.
+ */
+async function writeEndpoints(): Promise<void> {
+  const { endpoints } = await import('./endpoints')
+
+  let count = 0
+  for (const registration of endpoints) {
+    for (const { outputPath, body } of registration.resolve()) {
+      await writeOutput(outputPath, body())
+      count += 1
+    }
+  }
+  // biome-ignore lint/suspicious/noConsole: build-time CLI — progress output is the interface
+  console.log(`[ssg] wrote ${count} endpoint(s)`)
+}
+
+/**
+ * `sitemap-index.xml` + `sitemap-0.xml`.
+ *
+ * `routes` is collected during the render pass above, from the registrations
+ * that declare `sitemap: true` — so a page is in the sitemap because it said so
+ * at its registration site, not because its URL happened to survive a regex.
+ * `ssg/sitemap.ts` applies a URL filter on top as a safety net.
+ *
+ * Dynamic import for the usual reason: it reaches `./render` (and through
+ * `src/lib/constants`, the reference package), so it must load AFTER the
+ * css-stub plugin is registered.
+ */
+async function writeSitemap(routes: string[]): Promise<void> {
+  const { writeSitemap: write } = await import('./sitemap')
+  const count = await write({ routes, distDir })
+  // biome-ignore lint/suspicious/noConsole: build-time CLI — progress output is the interface
+  console.log(`[ssg] wrote sitemap-index.xml + sitemap-0.xml (${count} url(s))`)
+}
+
+async function main(): Promise<void> {
+  const started = Date.now()
+
+  const assets = await readAssets()
+  // biome-ignore lint/suspicious/noConsole: build-time CLI — progress output is the interface
+  console.log(
+    `[ssg] assets: ${assets.scripts.length} script(s), ${assets.styles.length} style(s), ${Object.keys(assets.built).length} emitted asset(s)`
+  )
+
+  // A build that emits pages with no script or no stylesheet is a catastrophe
+  // that looks like a success: every page renders, the exit code is 0, and the
+  // deploy publishes an unstyled, inert site. Vite changing its manifest shape
+  // or an entry being renamed would do exactly that, silently, so refuse.
+  if (assets.scripts.length === 0 || assets.styles.length === 0) {
+    throw new Error(
+      `[ssg] refusing to render: expected at least one script and one stylesheet from the Vite manifest, got ${assets.scripts.length} script(s) and ${assets.styles.length} style(s). The manifest is at dist/.vite/manifest.json; check the entry names in vite.config.ts.`
+    )
+  }
+
+  // Dynamic, so the css-stub plugin above is registered before the SSR module
+  // graph (pages -> src/components -> deps) is first loaded. That graph is
+  // css-free by the srd-css gate; the stub guards what the gate does not scan
+  // (node_modules, other workspaces).
+  const { routes } = await import('./routes')
+
+  let count = 0
+  const sitemapRoutes: string[] = []
+  // `writeOutput` is a bare write: two registrations resolving to the same file
+  // silently clobber each other, last one wins, and the page count still looks
+  // right. That is a plausible mistake — an over-broad getStaticPaths, or a new
+  // route whose pattern collides with an existing one — and the only symptom
+  // would be a page quietly serving the wrong content. Refuse instead.
+  const written = new Map<string, string>()
+  // Raw `[[markup]]` is checked on each page as it renders (see ./rawMarkup):
+  // the corpus is drawn once, here, and never again by a test.
+  const rawMarkup: string[] = []
+  for (const registration of routes) {
+    for (const { route, render } of registration.resolve()) {
+      const outputPath = outputPathFor(route)
+      const previous = written.get(outputPath)
+      if (previous !== undefined) {
+        throw new Error(
+          `[ssg] two routes resolve to the same output file: ${outputPath}\n` +
+            `  first:  ${previous}\n  second: ${route}\n` +
+            `  Check ssg/routes.ts for overlapping patterns or an over-broad getStaticPaths().`
+        )
+      }
+      written.set(outputPath, route)
+      const html = render(assets)
+      const raw = findRawMarkup(html)
+      if (raw !== undefined) rawMarkup.push(`${route}: ${raw}`)
+      await writeOutput(outputPath, html)
+      if (registration.sitemap) sitemapRoutes.push(route)
+      count += 1
+    }
+  }
+  // biome-ignore lint/suspicious/noConsole: build-time CLI — progress output is the interface
+  console.log(`[ssg] rendered ${count} page(s)`)
+
+  // The same class of silent catastrophe one level up: a registry that resolves
+  // to nothing (a bad glob, an exception swallowed inside resolve()) would emit
+  // an empty dist and still exit 0, and the deploy would happily publish it.
+  // `ssg/__tests__/routes.test.ts` holds the per-route and total floors.
+  if (count === 0) {
+    throw new Error('[ssg] refusing to finish: the route registry rendered 0 pages.')
+  }
+  assertNoRawMarkup(rawMarkup)
+
+  await writeEndpoints()
+  await writeSitemap(sitemapRoutes)
+
+  // Entity links must use slugs, never UUIDs (CLAUDE.md, Data Conventions).
+  // Asserted against the emitted HTML rather than the source, because that is
+  // where the property holds or fails: one helper can produce a slug for one
+  // entity and fall back to an id for another whose slug is missing.
+  const { assertNoUuidLinks } = await import('./linkAudit')
+  await assertNoUuidLinks(distDir)
+
+  // `manifest: true` is required — it is how this script learns the hashed
+  // entry filenames — but the manifest itself is a BUILD input, not site
+  // content, and leaving it would ship a 33 KB
+  // file enumerating every internal chunk to anyone who asks. Everything that
+  // reads it has already run by here (readAssets above, and the service worker
+  // globs only js/css/woff2/svg, so it was never precached).
+  await rm(join(distDir, '.vite'), { recursive: true, force: true })
+
+  // biome-ignore lint/suspicious/noConsole: build-time CLI — progress output is the interface
+  console.log(`[ssg] done in ${((Date.now() - started) / 1000).toFixed(1)}s`)
+}
+
+await main()

@@ -44,14 +44,22 @@ jobs:
           filters: |
             shared: &shared
               - 'packages/ref/**'
-            cantina:
+              - 'package.json'
+              - 'bun.lock'
+              - 'bunfig.toml'
+              - 'tsconfig*.json'
+              - '.github/workflows/**'
+              - '.github/actions/**'
+              - 'ABOUT_JRVS.md'
+              - 'LLM_STATEMENT.md'
+              - 'SPECIAL_THANKS.md'
+            workers:
               - *shared
-              - 'apps/cantina/**'
+              - 'apps/su-assets/**'
+              - 'apps/discord-bot/**'
             web:
               - *shared
-              - 'apps/srd/**'
-            bot:
-              - *shared
+              - 'apps/web/**'
             code:
               - 'apps/**'
   build:
@@ -97,7 +105,7 @@ jobs:
     if: contains(fromJSON(needs.plan.outputs.deploy), 'srd')
     runs-on: ubuntu-latest
     steps:
-      - run: bun --filter srd build
+      - run: bun --filter web build
       - uses: actions/upload-artifact@v7
         with:
           name: srd-build
@@ -195,11 +203,11 @@ function ctx(overrides: {
     Object.entries(
       overrides.manifests ?? {
         'package.json': { devDependencies: { convex: '1.0.0' } },
-        'apps/cantina/package.json': {
-          name: 'cantina',
+        'apps/su-assets/package.json': {
+          name: 'su-assets',
           dependencies: { ref: 'workspace:*', lib: 'workspace:*' },
         },
-        'apps/srd/package.json': {
+        'apps/web/package.json': {
           name: 'srd',
           dependencies: { ref: 'workspace:*', lib: 'workspace:*' },
         },
@@ -294,7 +302,7 @@ describe('aggregator', () => {
 describe('path-filters', () => {
   test('passes when every workspace dependency is covered, expanding the *shared alias', () => {
     const c = ctx({})
-    for (const app of ['cantina', 'srd']) {
+    for (const app of ['su-assets', 'web']) {
       c.manifests.set(`apps/${app}/package.json`, {
         name: app,
         dependencies: { ref: 'workspace:*' },
@@ -307,8 +315,8 @@ describe('path-filters', () => {
 
   test('an app depending on a workspace its group does not cover fails', () => {
     const failures = checkPathFilters(ctx({})).failures.join('\n')
-    expect(failures).toContain('apps/cantina depends on `lib` (packages/lib)')
-    expect(failures).toContain('apps/srd depends on `lib`')
+    expect(failures).toContain('apps/su-assets depends on `lib` (packages/lib)')
+    expect(failures).toContain('apps/web depends on `lib`')
   })
 
   test('an app with no filter group and no exemption fails', () => {
@@ -330,13 +338,29 @@ describe('path-filters', () => {
   })
 
   test('an app mapped to a group ci.yml does not define fails, naming the group', () => {
-    const c = ctx({})
+    const c = ctx({
+      ci: CI_TEXT.replace(
+        "            workers:\n              - *shared\n              - 'apps/su-assets/**'\n              - 'apps/discord-bot/**'\n",
+        ''
+      ),
+    })
     c.manifests.set('apps/su-assets/package.json', {
       name: 'su-assets',
       dependencies: { ref: 'workspace:*' },
     })
     expect(checkPathFilters(c).failures).toContain(
-      'apps/su-assets maps to filter group `assets`, which .github/workflows/ci.yml does not define.'
+      'apps/su-assets maps to filter group `workers`, which .github/workflows/ci.yml does not define.'
+    )
+  })
+
+  test('a path the deploy treats as shared but ci.yml does not fails', () => {
+    const c = ctx({ ci: CI_TEXT.replace("              - 'bun.lock'\n", '') })
+    expect(checkPathFilters(c).failures).toContainEqual(
+      expect.stringContaining('ships every surface on a change to `bun.lock`')
+    )
+    const globbed = ctx({ ci: CI_TEXT.replace("              - 'tsconfig*.json'\n", '') })
+    expect(checkPathFilters(globbed).failures).toContainEqual(
+      expect.stringContaining('a change to `tsconfig*`, but')
     )
   })
 
@@ -373,7 +397,7 @@ describe('pinning', () => {
     const run = (declared: boolean) => {
       const c = ctx({})
       if (declared)
-        c.manifests.set('apps/srd/package.json', {
+        c.manifests.set('apps/web/package.json', {
           devDependencies: { '@playwright/test': '1.0.0' },
         })
       c.files.push(
@@ -390,8 +414,8 @@ describe('pinning', () => {
 
   test('a bare name that is only the suffix of a scoped dependency is NOT exempt', () => {
     const c = ctx({})
-    c.manifests.set('apps/cantina/package.json', {
-      name: 'cantina',
+    c.manifests.set('apps/su-assets/package.json', {
+      name: 'su-assets',
       dependencies: { '@convex-dev/auth': '1.0.0' },
     })
     c.files.push(
@@ -503,6 +527,33 @@ describe('deploy-order', () => {
     ])
   })
 
+  test('a step inside a local composite action counts as the calling job’s', () => {
+    const deploy = DEPLOY_TEXT.replace(
+      '      - name: Push\n        run: bunx convex deploy --cmd "true"\n',
+      '      - name: Push\n        uses: ./.github/actions/push\n'
+    ).replace(
+      '      - run: bun run build\n      - uses: actions/upload-artifact@v7\n        with:\n          name: cantina-dist\n',
+      '      - uses: ./.github/actions/build/\n'
+    )
+    const actions = [
+      yaml(
+        '.github/actions/push/action.yml',
+        'runs:\n  using: composite\n  steps:\n    - run: bunx convex deploy\n      shell: bash\n'
+      ),
+      yaml(
+        '.github/actions/build/action.yml',
+        'runs:\n  using: composite\n  steps:\n    - run: bun run build\n      shell: bash\n' +
+          '    - uses: actions/upload-artifact@v7\n      with:\n        name: cantina-dist\n'
+      ),
+    ]
+    expect(checkDeployOrder(ctx({ deploy, extra: actions })).failures).toEqual([])
+    // The action read through, not merely named: without it there is no push or build.
+    expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
+      expect.stringContaining('has no job that runs `convex deploy`'),
+      expect.stringContaining('downloads `cantina-dist`, which no job uploads'),
+    ])
+  })
+
   test('a Convex push that does not wait for EVERY build fails', () => {
     const deploy = DEPLOY_TEXT.replace(
       '  push-convex:\n    needs: [plan, build-srd, build-cantina]',
@@ -539,7 +590,7 @@ describe('deploy-order', () => {
   })
 
   test('split deploy jobs: only the one shipping the post-build output waits for it', () => {
-    const srdLeg = `  deploy-srd:
+    const srdLeg = `  deploy-web:
     needs: [plan, build-srd, og-srd, build-cantina, push-convex]
     if: \${{ !cancelled() && !failure() && contains(fromJSON(needs.plan.outputs.deploy), 'srd') }}
     runs-on: ubuntu-latest
@@ -557,22 +608,22 @@ describe('deploy-order', () => {
         "      - uses: actions/download-artifact@v8\n        if: matrix.app == 'srd'\n        with:\n          name: srd-dist\n",
         ''
       )
-      .replace('    needs: [plan, deploy]', '    needs: [plan, deploy-srd, deploy]')
+      .replace('    needs: [plan, deploy]', '    needs: [plan, deploy-web, deploy]')
     expect(checkDeployOrder(ctx({ deploy: split })).failures).toEqual([])
 
     const early = split.replace(
-      '  deploy-srd:\n    needs: [plan, build-srd, og-srd, build-cantina, push-convex]',
-      '  deploy-srd:\n    needs: [plan, og-srd]'
+      '  deploy-web:\n    needs: [plan, build-srd, og-srd, build-cantina, push-convex]',
+      '  deploy-web:\n    needs: [plan, og-srd]'
     )
     expect(checkDeployOrder(ctx({ deploy: early })).failures).toContainEqual(
-      expect.stringContaining('`deploy-srd` does not need `build-cantina`')
+      expect.stringContaining('`deploy-web` does not need `build-cantina`')
     )
     const unsmoked = split.replace(
-      '    needs: [plan, deploy-srd, deploy]',
+      '    needs: [plan, deploy-web, deploy]',
       '    needs: [plan, deploy]'
     )
     expect(checkDeployOrder(ctx({ deploy: unsmoked })).failures).toEqual([
-      expect.stringContaining('`smoke` does not need `deploy-srd`'),
+      expect.stringContaining('`smoke` does not need `deploy-web`'),
     ])
   })
 
@@ -802,6 +853,6 @@ describe('main', () => {
     expect(r.out).toHaveLength(1)
     expect(r.err[0]).toMatch(/^✗ .*:$/)
     expect(r.err.slice(1).every((l) => l.startsWith('    • '))).toBe(true)
-    expect(r.err.join('\n')).toContain('apps/cantina depends on `lib`')
+    expect(r.err.join('\n')).toContain('apps/su-assets depends on `lib`')
   })
 })

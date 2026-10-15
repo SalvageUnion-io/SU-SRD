@@ -11,49 +11,51 @@ import {
   resolveBaseBranch,
 } from '../lib/baseBranch'
 
-const near = (main: number, designRefresh: number) =>
+/** Commits ahead of main, and of a branch that is no candidate. */
+const near = (main: number, release: number) =>
   new Map([
     ['main', main],
-    ['design-refresh', designRefresh],
+    ['release', release],
   ])
 
 describe('pickBase', () => {
   test('$SU_BASE wins over everything, with or without origin/', () => {
     const inputs = { prBase: 'main', upstream: 'origin/x', current: 'y', distances: near(0, 9) }
-    expect(pickBase({ ...inputs, suBase: 'origin/design-refresh' })).toEqual({
-      branch: 'design-refresh',
-      ref: 'origin/design-refresh',
+    expect(pickBase({ ...inputs, suBase: 'origin/release' })).toEqual({
+      branch: 'release',
+      ref: 'origin/release',
       source: 'SU_BASE',
     })
     expect(pickBase({ ...inputs, suBase: 'main' })?.ref).toBe('origin/main')
   })
 
   test("the PR's base comes next", () => {
-    expect(
-      pickBase({ prBase: 'design-refresh', upstream: 'origin/x', distances: near(0, 9) })
-    ).toEqual({ branch: 'design-refresh', ref: 'origin/design-refresh', source: 'pr' })
+    expect(pickBase({ prBase: 'release', upstream: 'origin/x', distances: near(0, 9) })).toEqual({
+      branch: 'release',
+      ref: 'origin/release',
+      source: 'pr',
+    })
   })
 
   test('then an upstream on origin that is another branch', () => {
     expect(
-      pickBase({ upstream: 'origin/design-refresh', current: 'refit2/g2', distances: near(1, 9) })
-    ).toMatchObject({ branch: 'design-refresh', source: 'upstream' })
+      pickBase({ upstream: 'origin/release', current: 'refit2/g2', distances: near(1, 9) })
+    ).toMatchObject({ branch: 'release', source: 'upstream' })
   })
 
   test('an upstream of the same name, or off origin, says nothing about the base', () => {
     for (const upstream of ['origin/feature', 'fork/main']) {
       expect(pickBase({ upstream, current: 'feature', distances: near(5, 2) })).toMatchObject({
-        branch: 'design-refresh',
+        branch: 'main',
         source: 'nearest',
       })
     }
   })
 
-  test('else the candidate HEAD is fewest commits ahead of, main on a tie', () => {
-    expect(pickBase({ distances: near(145, 3) })?.branch).toBe('design-refresh')
+  test('else main, the one candidate, however near another branch is', () => {
+    expect(pickBase({ distances: near(145, 3) })?.branch).toBe('main')
     expect(pickBase({ distances: near(2, 7) })?.branch).toBe('main')
-    expect(pickBase({ distances: near(4, 4) })?.branch).toBe('main')
-    expect(pickBase({ distances: new Map([['design-refresh', 4]]) })?.branch).toBe('design-refresh')
+    expect(pickBase({ distances: new Map([['release', 4]]) })).toBeNull()
   })
 
   test('nothing to go on is null, not main', () => {
@@ -62,7 +64,7 @@ describe('pickBase', () => {
 
   test('describeBase names the source', () => {
     expect(describeBase({ branch: 'main', ref: 'origin/main', source: 'nearest' })).toBe(
-      'nearest of main and design-refresh'
+      'nearest of main'
     )
   })
 })
@@ -82,7 +84,7 @@ describe('parseCliArgs', () => {
     expect(parseCliArgs([])).toBeUndefined()
     expect(parseCliArgs(['--no-pr'])).toBeNull()
     expect(parseCliArgs(['--no-pr', '--pr-base=main'])).toBeNull()
-    expect(parseCliArgs(['--pr-base=design-refresh'])).toBe('design-refresh')
+    expect(parseCliArgs(['--pr-base=release'])).toBe('release')
     expect(parseCliArgs(['--pr-base='])).toBeNull()
   })
 })
@@ -115,10 +117,10 @@ describe('resolveBaseBranch', () => {
     await git(dir, 'clone', '-q', origin, work)
     await git(work, 'commit', '-q', '--allow-empty', '-m', 'base')
     await git(work, 'push', '-q', 'origin', 'main')
-    await git(work, 'checkout', '-q', '-b', 'design-refresh')
+    await git(work, 'checkout', '-q', '-b', 'release')
     await git(work, 'commit', '-q', '--allow-empty', '-m', 'release')
     await git(work, 'commit', '-q', '--allow-empty', '-m', 'release 2')
-    await git(work, 'push', '-q', 'origin', 'design-refresh')
+    await git(work, 'push', '-q', 'origin', 'release')
     await git(work, 'checkout', '-q', '-b', 'feature')
     await git(work, 'commit', '-q', '--allow-empty', '-m', 'one')
     return { dir, work, git, cleanup: () => rmSync(dir, { recursive: true, force: true }) }
@@ -136,12 +138,12 @@ describe('resolveBaseBranch', () => {
     return { ...env, PATH: `${bin}:${env.PATH ?? ''}` }
   }
 
-  test('a branch cut from design-refresh resolves to it, not main', async () => {
+  test('with no PR or upstream, a branch cut from another resolves to main', async () => {
     const f = await fixture()
     try {
       expect(await resolveBaseBranch({ cwd: f.work, env, prBase: null })).toEqual({
-        branch: 'design-refresh',
-        ref: 'origin/design-refresh',
+        branch: 'main',
+        ref: 'origin/main',
         source: 'nearest',
       })
     } finally {
@@ -157,9 +159,10 @@ describe('resolveBaseBranch', () => {
         branch: 'main',
         source: 'upstream',
       })
-      expect(await resolveBaseBranch({ cwd: f.work, env, prBase: 'design-refresh' })).toMatchObject(
-        { branch: 'design-refresh', source: 'pr' }
-      )
+      expect(await resolveBaseBranch({ cwd: f.work, env, prBase: 'release' })).toMatchObject({
+        branch: 'release',
+        source: 'pr',
+      })
       expect(
         await resolveBaseBranch({ cwd: f.work, env: { ...env, SU_BASE: 'main' }, prBase: 'x' })
       ).toMatchObject({ branch: 'main', source: 'SU_BASE' })
@@ -191,7 +194,7 @@ describe('resolveBaseBranch', () => {
       for (const body of ['exit 1', 'exec sleep 5']) {
         const ghEnv = await withGh(f, body)
         expect(await resolveBaseBranch({ cwd: f.work, env: ghEnv, timeoutMs: 200 })).toMatchObject({
-          branch: 'design-refresh',
+          branch: 'main',
           source: 'nearest',
         })
       }
@@ -203,9 +206,7 @@ describe('resolveBaseBranch', () => {
   test('the CLI line is the branch and where it came from', async () => {
     const f = await fixture()
     try {
-      expect(await cliLine(['--no-pr'], { cwd: f.work, env })).toBe(
-        'design-refresh\tnearest of main and design-refresh'
-      )
+      expect(await cliLine(['--no-pr'], { cwd: f.work, env })).toBe('main\tnearest of main')
       expect(await cliLine(['--pr-base=main'], { cwd: f.work, env })).toBe("main\tthe PR's base")
     } finally {
       f.cleanup()

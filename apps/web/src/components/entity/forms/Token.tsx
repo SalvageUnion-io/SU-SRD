@@ -1,0 +1,192 @@
+import type { CSSProperties, ReactNode } from 'react'
+import type { EntityInstance, Fact } from 'salvageunion-reference'
+import { splitStatLine } from 'salvageunion-reference'
+import { cn } from '../../../lib/cn'
+import { Badge } from '../../atoms/Badge'
+import { Stat } from '../../atoms/Stat'
+import type { CardOuterProps } from '../../referenceEntity/card/CardOuter'
+import { CardOuter } from '../../referenceEntity/card/CardOuter'
+import type { Down } from '../../referenceEntity/card/cardChrome'
+import { downOf, USER_MADE_TITLE } from '../../referenceEntity/card/cardChrome'
+import { LinkSurface } from '../modes/link'
+import { useLinkTarget } from '../modes/linkTarget'
+import { actionTypeStamps } from '../parts/actionStamps'
+import { CostBox } from '../parts/Chips'
+import { KindLabel } from '../parts/KindLabel'
+import { paintFor } from '../parts/paint'
+import { usePeekAttrs } from '../peekContext'
+import type { EntityMode, EntityRowModel } from '../types'
+
+/** One Token chip, label first: `[TL | 2]`, `[ACTIONS | 3]`. */
+type TokenChip = { label: string; value?: string }
+
+/**
+ * The facts a Token keeps, by their chip label (owner's set, 2026-10-14): Tech
+ * Level, the slots it takes or has, its hit or structure points, a player
+ * unit's live reading (`SP 7/9`) included, and its range as the book's code
+ * (`RNG | C`). Everything else (SV, EP, DMG, traits) is the Row's and the
+ * Page's, but a chassis keeps its chip set (the model's `entityStats`) less
+ * its SYS and MODS (owner, 2026-10-14): TL, SV, SP, EP.
+ */
+const TOKEN_FACTS: ReadonlySet<string> = new Set(['TL', 'Slots', 'SYS', 'MODS', 'SP', 'HP', 'RNG'])
+
+/** The chassis facts a Token drops: its slot capacities are the Row's and the Page's. */
+const CHASSIS_DROPPED: ReadonlySet<string> = new Set(['SYS', 'MODS'])
+
+/**
+ * A Token's own chips, in the stat order (E17): the kept stats (TL first),
+ * then its one action's type or, with two or more, how many it has
+ * (`ACTIONS | 3`: the actions its Peek and Page list, its folded self-action
+ * not among them, since that is the entity's own facts and cost), then the
+ * action's kept facets (`RNG | C`). The cost box follows, drawn by the Token.
+ * An ability's tier is its numeral before the name, never a chip.
+ */
+function tokenChips(model: EntityRowModel): TokenChip[] {
+  const chassis = model.ref.schemaName === 'chassis' && !model.ref.synthetic
+  const kept = (facts: readonly Fact[]): TokenChip[] =>
+    facts
+      .filter((fact) => (chassis ? !CHASSIS_DROPPED.has(fact.short) : TOKEN_FACTS.has(fact.short)))
+      .map((fact) => ({ label: fact.short, value: fact.shortValue ?? fact.value }))
+  const { stats, action } = splitStatLine(model.facts)
+  const chips: TokenChip[] = kept(stats)
+  const actions = model.actions?.length ?? 0
+  // A folded self-action's type is the entity's own; one listed action beside
+  // it is still a count, or its type would read as the entity's.
+  if (actions > 1 || (actions === 1 && model.folded)) {
+    chips.push({ label: 'Actions', value: String(actions) })
+  } else {
+    for (const stamp of actionTypeStamps(model.actionType, model.mechActionType)) {
+      chips.push({ label: stamp })
+    }
+  }
+  chips.push(...kept(action))
+  if (chips.length === 0 && model.kind.classKind) chips.push({ label: model.kind.classKind })
+  return chips
+}
+
+/** The adapter's resolved parts (`ReferenceEntityCard` `size="small" extent="head"`). */
+export type TokenSlots = {
+  outer?: CardOuterProps
+  /** Peek this address in place of the entity's own (`embeddedPeekAddress`). */
+  peekAt?: string
+  frameStyle?: CSSProperties
+  /** The kind, for screen readers (`KindLabel`). */
+  kind?: string
+  /** The Dashboard's pennant button. */
+  pennant?: ReactNode
+  /** A read cost ("1 EP"), as its chip. */
+  cost?: string
+  down?: Down
+  /** The host's chip, last in the chip group after the cost box (a damaged thing's condition). */
+  trailing?: ReactNode
+}
+
+/*
+ * The pill, its note stamp and its name are `.su-entity-token__*` classes
+ * (`styles/index.css`), not style objects: a page lists tokens by the dozen,
+ * so inline they repeated on every one (ADR-046, repeated elements). The
+ * pill's paint and a caller's frame stay inline; a player-made pill's dashes
+ * ride `data-user-made`.
+ */
+
+/**
+ * TOKEN — the shortform (§3): `name [chips]`, one size, for many on a line or
+ * a slot under 12rem (E3). Its chips are a short set (`tokenChips`), then the
+ * cost box, the same in every context; an ability's tier numeral sits before
+ * its name, as on its band. It is always one row (E18): the chips take at
+ * most 65% of it, dropping whole from the end until they fit, and the name
+ * takes the rest, ending in "…" when that is too little. Its kind is never
+ * stamped (E9): screen readers hear it after the name (`KindLabel`); a player
+ * unit's note ("Engineer") leads in its place. A tone pill for a thing you have, the tier
+ * tone or ink for a thing you do, dashed when player-made. It wraps as a
+ * whole, never mid-token; in link mode it opens its entity. Hover, focus or a
+ * long press Peeks it: the whole card, read-only (E16).
+ */
+export function Token({
+  model,
+  instance,
+  mode = { kind: 'read' },
+  slots = {},
+}: {
+  model: EntityRowModel
+  instance?: EntityInstance
+  mode?: EntityMode
+  slots?: TokenSlots
+}) {
+  const target = useLinkTarget(mode, model.ref)
+  const down = slots.down ?? downOf(instance?.condition)
+  const peek = usePeekAttrs(model.ref, slots.peekAt, down)
+  const paint = paintFor(model.tone, { down, texture: false })
+  const userMade = !!(model.userMade || instance?.userMade)
+  const title = instance?.title ?? model.title
+  const chips = tokenChips(model)
+  const cost = slots.cost ?? model.cost
+  const pill = (
+    <span
+      data-user-made={userMade || undefined}
+      title={userMade ? USER_MADE_TITLE : undefined}
+      className="su-entity-token__pill"
+      style={{ backgroundColor: paint.background, color: paint.color, ...slots.frameStyle }}
+    >
+      {/* Read by assistive tech only: the dashes are the pill's only visual user-made cue. */}
+      {userMade && <span className="su-sr-only">User-made </span>}
+      {model.kind.note && (
+        <Badge
+          shape="stamp"
+          size="mini"
+          className={cn('su-entity-token__kind', paint.ink && 'su-entity-token__kind--on-ink')}
+        >
+          {model.kind.note}
+        </Badge>
+      )}
+      {model.tier && <span className="su-entity-token__tier">{model.tier}</span>}
+      {/* The cut-out: the name on a tab of paper, in ink, notched into the pill
+          from a thin strip of paint to its foot (a Row's head, at Token size). */}
+      <span className="su-entity-token__notch">
+        <span className="su-entity-token__name">
+          {title}
+          <KindLabel kind={slots.kind ?? model.kind.type} />
+        </span>
+      </span>
+      {slots.pennant}
+      {(chips.length > 0 || cost || slots.trailing) && (
+        <span className="su-entity-token__chips">
+          {chips.map((chip) => (
+            <Stat
+              key={chip.label}
+              orientation="horizontal"
+              label={chip.label}
+              value={chip.value}
+              size="mini"
+              inverse={paint.ink}
+            />
+          ))}
+          {cost && <CostBox cost={cost} rung="mini" onInk={paint.ink} />}
+          {slots.trailing}
+        </span>
+      )}
+    </span>
+  )
+  if (slots.outer) {
+    return (
+      <CardOuter
+        {...slots.outer}
+        className={cn(slots.outer.className, 'su-entity-token')}
+        peek={peek}
+      >
+        {pill}
+      </CardOuter>
+    )
+  }
+  return (
+    <LinkSurface
+      target={target}
+      label={title}
+      attrs={mode.kind === 'link' ? mode.attrs : undefined}
+      peek={peek}
+      className="su-entity-token"
+    >
+      {pill}
+    </LinkSurface>
+  )
+}

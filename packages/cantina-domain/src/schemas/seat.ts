@@ -10,7 +10,7 @@ import { z } from 'salvageunion-reference/zod'
  * soft-link ends do, and is never a field on either record. That keeps mount
  * state out of sheets and public sheets.
  *
- * This is the source of truth for `seats` in `apps/cantina/convex/schema.ts`: its
+ * This is the source of truth for `seats` in `apps/web/convex/schema.ts`: its
  * range, mount and resolve validators are built from the schemas below
  * (`zodToConvex`), and the row is checked against `Seat` when it compiles.
  *

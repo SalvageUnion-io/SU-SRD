@@ -162,7 +162,7 @@ export function techLevelRank(techLevel: number | 'B' | 'N' | undefined): number
  * Use {@link techLevelRank}.
  *
  * **One hand-rolled comparator is deliberately NOT folded in.**
- * `component-lib/src/components/compositions/EntitySearcher.tsx` composes
+ * `apps/web/src/components/compositions/EntitySearcher.tsx` composes
  * `techLevelRank` correctly — no NaN — but short-circuits to the name tiebreak
  * whenever EITHER side's Tech Level is `undefined`, where this ranks `undefined`
  * last. That is a real behavioural difference on TL-less entities, so switching

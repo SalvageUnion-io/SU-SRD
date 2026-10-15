@@ -16,13 +16,13 @@ Id · title — where code cites it (`board NN`); "—" means no code cites it. 
 
 1. **01** The brief —. **02** Issue register —. **02b** From the book —.
 2. **03** Colour: paper page, legible bands — `tokens.ts`, `contrast.test.ts`, `theme.css`. **04** Type: raise the floor — `theme.css`.
-3. **05** One union bar — `AppBar`, the Cantina `GlobalSearch`, `index.css`. **05b** Texture trial —. **05c** Speckle only — ruleset, `Speckle`, `cardGrain`, tokens.
+3. **05** One union bar — `AppBar`, the site's `SearchIsland`, `index.css`. **05b** Texture trial —. **05c** Speckle only — ruleset, `Speckle`, `cardGrain`, tokens.
 4. **06** SRD home — `HomeContents`, `HeroSearch`, `SearchIsland`, `TopNavigation`, `index.page`, `Footer`, `chapters`, `ChapterFoot`, `Slab`.
 5. **07** SRD entity page — `EntityPageFrame`, `EntityPageStamps`, `CardPage`, `entityPage`, `CardImage`, `StatColumn`, `Footer`. **08** Entity, phone — `NavDrawer`, `EntityCardStatic`, `index.css`.
 6. **08b** SRD roll table — `RollTablePage`, `RollTableView`, `RollTableIsland`, `rollTablePage`, `columnsTablePage`, `RollTableInstrument`.
 7. **E1** Card size × extent — `referenceEntity/card/` head, labels, pennant, facets, tone. **E2** Nesting — `NestedCards`, `bodyBlocks`.
 8. **E3** Five contexts — `StatusRail`, `CardPennant`, `peekPlate`. **E4** Embedded roll table — `CardRollTable`, `RollTableInstrument`.
-9. **09** The Cantina front door — `FrontDoor`, `Roster`, `AppHeader`. **10** Pilot sheet, printed — the Cantina `components/sheet/`, `Field`.
+9. **09** The Cantina front door — `FrontDoor`, `Roster`, `shell/unionBar.ts`. **10** Pilot sheet, printed — the Cantina `components/sheet/`, `Field`.
 10. **D1–D5** Dashboard: boarded, Crew tab, Downtime, phone Mech tab, phone resolve — the Cantina `components/dashboard/`, `VitalGauge`, `pipRows`.
 11. **P1** Saving a pattern — `SavePatternPage`, `patterns`, `CardLabels`, `NpcSheet`, `Sheet`, the Cantina `mechs/patterns/new`, cantina-domain `pattern`, convex `shelf`. **P2** Shared pattern page — `PublicPattern`, convex `publicSheet`.
 12. **N1** Generic NPC designer — `AnyNpcDesigner`. **N2** Crawler crew — `CrewBoard`, `crewFormState`.

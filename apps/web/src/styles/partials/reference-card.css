@@ -1,0 +1,150 @@
+/*
+ * The package stylesheet, part 19 of 21: the reference entity card.
+ * `../index.css` imports the parts in cascade order.
+ */
+
+/* ── the reference entity card ── */
+
+/* The card's outer box (`card/cardChrome.ts`). Classes rather than a style
+   object because a caller's `className` may override any of them. */
+.su-ec-outer {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  overflow: visible;
+}
+
+.su-ec-outer--dim {
+  opacity: 0.5;
+}
+
+/* A card the picker cannot take: dimmed and drained. */
+.su-ec-outer--unselectable {
+  opacity: 0.5;
+  filter: saturate(50%);
+}
+
+.su-ec-outer--clickable {
+  cursor: pointer;
+}
+
+/* A block in the card body (a prose run, a folded action, the bonus row):
+   the gap to whatever follows it, dropped on the last. */
+.su-ec-block:not(:last-child) {
+  margin-bottom: var(--space-12);
+}
+
+/* A pattern's name tab on a card: shrink-to-fit, so the solid Slab's leader
+   rule collapses to its stub instead of running across the card. */
+.su-ec-name-tab {
+  width: fit-content;
+}
+
+/* ══ The entity Page's band stamps ═════════════════════════════════════════
+ *
+ * After the badges, stats and tags they resize (`atoms-badges.css`,
+ * `atoms.css`): at one class each, source order decides.
+ */
+/* An entity Page's band line (`EntityPageStamps`: an SRD entity page, the Cantina's
+   detail dialog). Under the title on a phone it wraps down; beside it from
+   `sm` it sits on the title's baseline,
+   every stamp and stat's foot on it, flush right. The chips are inline boxes
+   in a balanced block rather than flex items, so when they take two rows
+   (or more) the rows come out even instead of one long and one short.
+   Each chip's 4px margin, cancelled at the edges, is the 8px gap. */
+.su-entity-stamps {
+  margin: calc(-1 * var(--space-4));
+  text-wrap: balance;
+}
+
+.su-entity-stamps > *,
+.su-entity-stamps > dl > * {
+  display: inline-flex;
+  margin: var(--space-4);
+  /* The row's balance and alignment are for the chips, not the words in them. */
+  text-align: start;
+  text-wrap: wrap;
+  vertical-align: bottom;
+}
+
+/* The stat column (`StatColumn`, a `dl`): its cells break across rows like
+   the other chips. */
+.su-entity-stamps > dl {
+  display: inline;
+  margin: 0;
+}
+
+@media (min-width: 40rem) {
+  .su-entity-stamps {
+    text-align: end;
+  }
+}
+
+/*
+ * The type and cost stamps beside an entity page's stats
+ * (`EntityPageStamps`): the height and type of the band's compact stat label
+ * (`.su-stat-column__label` on a `ChapterBand`), so the row reads as one size.
+ */
+.su-entity-stamp {
+  align-items: center;
+  display: inline-flex;
+  font-size: var(--text-badge);
+  min-height: 32px;
+  padding-inline: var(--space-8);
+}
+
+/* The facts and traits on the band (`Stat`, `Tag`): each cell at the stamps'
+   height (its plates inside the cell's hairline frame) and type, so every
+   chip on the band reads as one size. */
+.su-entity-stamps .su-stat-plate {
+  align-items: center;
+  display: inline-flex;
+  font-size: var(--text-badge);
+  min-height: calc(32px - 2 * var(--bw-hairline));
+  padding-inline: var(--space-8);
+}
+
+/* One value size per band: a fact's or trait's value (`RNG | Long`,
+   `POP | 5,000–15,000`, `Explosive | 1`) takes the stat column's framed
+   numeral type, so a word and a number on one band read at one size. */
+.su-entity-stamps .su-stat-plate + .su-stat-plate {
+  font-family: var(--font-cond);
+  font-size: var(--text-readout);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  justify-content: center;
+  min-width: 36px;
+}
+
+/* An ability's cost on its band: the book's pointy box at the stamps'
+   height (it stretches to its flex line), in the stamps' type. */
+.su-entity-cost {
+  align-self: stretch;
+  display: inline-flex;
+  font-size: var(--text-badge);
+  min-height: 32px;
+}
+
+/* ══ The detail dialog's Page (`referenceEntity/EntityDetailDialog.tsx`) ════
+ *
+ * The Cantina's detail view is the Page (EDL Form 5): its body sits under the band
+ * at the SRD page body's gutters (`.su-page-body`), which change at `sm`.
+ */
+/* The popup (`ModalShell`'s `maxWidth` class): 72rem at most, with 12px
+ * gutters the close stamp straddles into, since a bare popup clips. */
+.su-entity-dialog {
+  max-width: 72rem;
+  padding: var(--space-12);
+}
+
+.su-entity-dialog__body {
+  padding: var(--space-20) var(--space-16) var(--space-32);
+  width: 100%;
+}
+
+@media (min-width: 40rem) {
+  .su-entity-dialog__body {
+    padding: var(--space-24) var(--space-24) var(--space-32);
+  }
+}

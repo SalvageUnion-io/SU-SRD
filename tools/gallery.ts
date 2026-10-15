@@ -1,24 +1,24 @@
 #!/usr/bin/env bun
 /**
  * gallery — the screenshot gallery: every page in `GALLERY_SECTIONS` at
- * desktop (1440×900) and phone (390×844), each srd page's link preview, and
- * The Cantina signed in, written as `index.html` beside its shots.
+ * desktop (1440×900) and phone (390×844), each page's link preview, and
+ * the Cantina signed in, written as `index.html` beside its shots.
  *
- *   bun run gallery --srd <url> [--cantina <url>] [--signed-in] [--out <dir>]
+ *   bun run gallery --base <url> [--signed-in] [--out <dir>]
  *                   [--sha <sha>] [--pr <n>] [--linkable]
  *
- * `gallery.yml` (dispatched by hand) runs it against a branch's own builds,
- * served on localhost (srd's `dist`, the Cantina's `dist` built against a throwaway
- * Convex backend with the test sign-in), and `gallery-pages.yml` publishes
- * the result to GitHub Pages. It replaced a
- * hand-run Playwright loop over the old shared preview deploy.
+ * `--base` is the site's origin; every page's path is on it, the Cantina's
+ * under `/build` (`BUILDER_BASE`). `gallery.yml` (dispatched by hand) runs it
+ * against a branch's own build, served on localhost (the one `dist`, its
+ * Cantina built against a throwaway Convex backend with the test sign-in), and
+ * `gallery-pages.yml` publishes the result to GitHub Pages.
  *
- * - A link preview is rendered the way `apps/srd/scripts/og-screenshots.ts`
+ * - A link preview is rendered the way `apps/web/scripts/og-screenshots.ts`
  *   renders it (`/og-card/`, `window.__ogSetEntity`), so the gallery shows the
  *   PR's cards, not whatever production last generated. A page whose og:image
  *   is the site default fetches that file from the same build.
  * - `--signed-in` signs a fresh account up through the test seam
- *   (`__cantinaTestSignIn`, `apps/cantina/e2e/fixtures.ts`), copies Bonesaw, the
+ *   (`__cantinaTestSignIn`, `apps/web/e2e/fixtures.ts`), copies Bonesaw, the
  *   Mazona and Tenacity from the Starter Set to its Shelves, starts a Game and
  *   moves Bonesaw in, then shoots the `signedIn` pages in that one browser
  *   context: the session's refresh token rotates on use, so a second context
@@ -34,12 +34,12 @@ import { launchBrowser } from 'gates/lib/chromium'
 import type { OgMeta } from 'gates/lib/galleryHtml'
 import { renderGallery } from 'gates/lib/galleryHtml'
 import type { GalleryPage } from 'gates/lib/galleryPages'
-import { GALLERY_SECTIONS, pageSlug } from 'gates/lib/galleryPages'
+import { BUILDER_BASE, GALLERY_SECTIONS, isBuilderPath, pageSlug } from 'gates/lib/galleryPages'
 import { isSchemaName } from 'salvageunion-reference'
 
 export type GalleryArgs = {
-  srd: string
-  cantina?: string
+  /** The site's origin, e.g. `http://localhost:4321`. */
+  base: string
   signedIn: boolean
   out: string
   sha: string
@@ -48,7 +48,7 @@ export type GalleryArgs = {
 }
 
 const USAGE =
-  'usage: bun run gallery --srd <url> [--cantina <url>] [--signed-in] [--out <dir>] [--sha <sha>] [--pr <n>] [--linkable]'
+  'usage: bun run gallery --base <url> [--signed-in] [--out <dir>] [--sha <sha>] [--pr <n>] [--linkable]'
 
 const VIEWS = [
   { key: 'desk', width: 1440, height: 900 },
@@ -70,8 +70,7 @@ export function parseGalleryArgs(argv: readonly string[]): GalleryArgs {
       if (!v) throw new Error(`${flag} needs a value\n${USAGE}`)
       return v
     }
-    if (flag === '--srd') args.srd = trimSlash(value())
-    else if (flag === '--cantina') args.cantina = trimSlash(value())
+    if (flag === '--base') args.base = trimSlash(value())
     else if (flag === '--signed-in') args.signedIn = true
     else if (flag === '--linkable') args.linkable = true
     else if (flag === '--out') args.out = resolve(value())
@@ -82,11 +81,9 @@ export function parseGalleryArgs(argv: readonly string[]): GalleryArgs {
       args.pr = n
     } else throw new Error(`unknown argument ${arg}\n${USAGE}`)
   }
-  if (!args.srd) throw new Error(`--srd is required\n${USAGE}`)
-  if (args.signedIn && !args.cantina) throw new Error(`--signed-in needs --cantina\n${USAGE}`)
+  if (!args.base) throw new Error(`--base is required\n${USAGE}`)
   return {
-    srd: args.srd,
-    cantina: args.cantina,
+    base: args.base,
     signedIn: args.signedIn ?? false,
     out: args.out ?? resolve('.gallery'),
     sha: args.sha ?? 'local',
@@ -96,10 +93,10 @@ export function parseGalleryArgs(argv: readonly string[]): GalleryArgs {
 }
 
 /**
- * The entity an srd page shows, when it has a card of its own. A plain build
- * emits the DEFAULT og:image on every page (srd's CLAUDE.md, "Social preview
- * images"); the deploy's OG render (`.github/actions/srd-og`) rewrites it only for the cards it
- * rendered, so the gallery reads the entity off the page's own path.
+ * The entity a reference page shows, when it has a card of its own. A plain
+ * build emits the DEFAULT og:image on every page (.claude/rules/srd-og-images.md);
+ * the deploy's OG render (`.github/actions/build-site`) rewrites it only for
+ * the cards it rendered, so the gallery reads the entity off the page's own path.
  */
 export function pageEntity(
   path: string
@@ -147,17 +144,17 @@ async function readOg(
   })
 }
 
-/** Renders one srd entity's card on `/og-card/` and writes it to `file`. */
+/** Renders one entity's card on `/og-card/` and writes it to `file`. */
 async function renderOgCard(
   context: BrowserContext,
-  srd: string,
+  base: string,
   entity: NonNullable<ReturnType<typeof pageEntity>>,
   file: string
 ): Promise<void> {
   const page = await context.newPage()
   try {
     await page.setViewportSize({ width: 1200, height: 630 })
-    await page.goto(`${srd}/og-card/`, { waitUntil: 'domcontentloaded' })
+    await page.goto(`${base}/og-card/`, { waitUntil: 'domcontentloaded' })
     await page.waitForFunction(() =>
       (globalThis as unknown as InPage).document.documentElement.hasAttribute('data-og-ready')
     )
@@ -194,28 +191,14 @@ async function shootPage(page: Page, url: string, file: (view: string) => string
   }
 }
 
-/**
- * A path the app rendered (`/build/sheet/pilot/x`) as the route the gallery's
- * pages name (`/sheet/pilot/x`): `--cantina` already carries the Cantina's base
- * (`http://localhost:5173/build`, ADR-048), and the targets append the route.
- */
-export function routeOf(cantina: string, path: string): string {
-  const base = new URL(cantina).pathname.replace(/\/+$/, '')
-  return base !== '' && path.startsWith(`${base}/`) ? path.slice(base.length) : path
-}
-
-/**
- * The Cantina's root page with its trailing slash: `--cantina` arrives trimmed
- * (`http://localhost:5173/build`), and `vite preview` answers the bare base
- * with a 404 where production's Worker redirects it.
- */
-export function rootOf(cantina: string): string {
-  return `${cantina}/`
+/** The Cantina's root page on `base`, with its trailing slash. */
+export function builderRoot(base: string): string {
+  return `${base}${BUILDER_BASE}/`
 }
 
 /** Signs a fresh test account up and gives it something to edit. */
-async function seed(page: Page, cantina: string): Promise<Partial<Seeded>> {
-  await page.goto(rootOf(cantina), { waitUntil: 'networkidle' })
+async function seed(page: Page, base: string): Promise<Partial<Seeded>> {
+  await page.goto(builderRoot(base), { waitUntil: 'networkidle' })
   await page.waitForFunction(
     () => '__cantinaTestSignIn' in (globalThis as unknown as InPage),
     null,
@@ -228,7 +211,7 @@ async function seed(page: Page, cantina: string): Promise<Partial<Seeded>> {
   }, `gallery-${Date.now()}@example.com`)
   await page.getByRole('button', { name: 'Games' }).first().waitFor({ timeout: 30_000 })
   for (const label of ['Copy Bonesaw to…', 'Copy Mazona to…', "Copy Crawler #430 'Tenacity' to…"]) {
-    await page.goto(`${cantina}/starter`, { waitUntil: 'networkidle' })
+    await page.goto(`${base}${BUILDER_BASE}/starter`, { waitUntil: 'networkidle' })
     const select = page.locator(`select[aria-label="${label}"]`).first()
     const shelves = await select.evaluate(
       (s) =>
@@ -242,7 +225,7 @@ async function seed(page: Page, cantina: string): Promise<Partial<Seeded>> {
       .first()
       .waitFor({ timeout: 20_000 })
   }
-  await page.goto(rootOf(cantina), { waitUntil: 'networkidle' })
+  await page.goto(builderRoot(base), { waitUntil: 'networkidle' })
   await page
     .getByRole('button', { name: /new game/i })
     .first()
@@ -250,16 +233,14 @@ async function seed(page: Page, cantina: string): Promise<Partial<Seeded>> {
   await page.getByLabel('New Game name').fill('The Long Haul')
   await page.getByRole('button', { name: 'Create', exact: true }).click()
   await page.waitForURL(/\/games\//, { timeout: 20_000 })
-  const game = routeOf(cantina, new URL(page.url()).pathname)
-  await page.goto(rootOf(cantina), { waitUntil: 'networkidle' })
-  const links = await page
-    .evaluate(() =>
-      [...(globalThis as unknown as InPage).document.querySelectorAll('a[href]')].map(
-        (a) => a.getAttribute('href') ?? ''
-      )
+  const game = new URL(page.url()).pathname
+  await page.goto(builderRoot(base), { waitUntil: 'networkidle' })
+  const links = await page.evaluate(() =>
+    [...(globalThis as unknown as InPage).document.querySelectorAll('a[href]')].map(
+      (a) => a.getAttribute('href') ?? ''
     )
-    .then((hrefs) => hrefs.map((href) => routeOf(cantina, href)))
-  const find = (prefix: string) => links.find((l) => l.startsWith(prefix))
+  )
+  const find = (route: string) => links.find((l) => l.startsWith(`${BUILDER_BASE}${route}`))
   const seeded: Partial<Seeded> = {
     pilot: find('/sheet/pilot/'),
     mech: find('/sheet/mech/'),
@@ -275,28 +256,29 @@ async function seed(page: Page, cantina: string): Promise<Partial<Seeded>> {
   return seeded
 }
 
-/** One page to shoot: its file stem, its site's base and the URL it is shot from. */
-export type GalleryTarget = { page: GalleryPage; slug: string; base: string; url: string }
+/** One page to shoot: its file stem and the URL it is shot from. */
+export type GalleryTarget = { page: GalleryPage; slug: string; url: string }
 
-/** The signed-out pages, each on its site's base; a page whose site was not given is left out. */
-export function signedOutTargets(args: Pick<GalleryArgs, 'srd' | 'cantina'>): GalleryTarget[] {
-  return GALLERY_PAGES.filter((p) => !p.signedIn).flatMap((page) => {
-    const base = page.site === 'srd' ? args.srd : args.cantina
-    return base ? [{ page, slug: pageSlug(page), base, url: `${base}${page.path}` }] : []
-  })
+/** The signed-out pages, each on `base`. */
+export function signedOutTargets(base: string): GalleryTarget[] {
+  return GALLERY_PAGES.filter((p) => !p.signedIn).map((page) => ({
+    page,
+    slug: pageSlug(page),
+    url: `${base}${page.path}`,
+  }))
 }
 
 /** The signed-in pages with the seed's placeholders resolved, and a failure for each the seed did not make. */
 export function signedInTargets(
-  cantina: string,
+  base: string,
   seeded: Partial<Seeded>
 ): { targets: GalleryTarget[]; failures: string[] } {
   const targets: GalleryTarget[] = []
   const failures: string[] = []
   for (const page of GALLERY_PAGES.filter((p) => p.signedIn)) {
     const path = resolvePath(page.path, seeded)
-    if (path) targets.push({ page, slug: pageSlug(page), base: cantina, url: `${cantina}${path}` })
-    else failures.push(`cantina ${page.path}: the seed made no such entity`)
+    if (path) targets.push({ page, slug: pageSlug(page), url: `${base}${path}` })
+    else failures.push(`${page.path}: the seed made no such entity`)
   }
   return { targets, failures }
 }
@@ -314,7 +296,7 @@ export function ogSource(
   | { kind: 'card'; entity: NonNullable<ReturnType<typeof pageEntity>> }
   | { kind: 'file'; url: string }
   | undefined {
-  const entity = page.site === 'srd' ? pageEntity(page.path) : undefined
+  const entity = isBuilderPath(page.path) ? undefined : pageEntity(page.path)
   if (entity) return { kind: 'card', entity }
   // The image's own path, base included, on the origin the gallery shot.
   if (image) return { kind: 'file', url: `${new URL(base).origin}${new URL(image).pathname}` }
@@ -350,7 +332,7 @@ export function writeGallery(
       {
         sha: args.sha,
         pr: args.pr,
-        bases: { srd: args.srd, cantina: args.cantina },
+        base: args.base,
         linkable: args.linkable,
         capturedAt,
       }
@@ -399,43 +381,43 @@ async function run(
   try {
     const context = await browser.newContext()
     const page = await context.newPage()
-    for (const t of signedOutTargets(args)) {
+    for (const t of signedOutTargets(args.base)) {
       try {
         await shootPage(page, t.url, file(t.slug), false)
         shot.add(t.slug)
         const meta = await readOg(page)
-        const source = ogSource(t.page, t.base, meta.image)
+        const source = ogSource(t.page, args.base, meta.image)
         const ogFile = join(shots, `${t.slug}-og.png`)
         let image = false
         if (source?.kind === 'card') {
-          await renderOgCard(context, args.srd, source.entity, ogFile)
+          await renderOgCard(context, args.base, source.entity, ogFile)
           image = true
         } else if (source) image = await fetchOgImage(source.url, ogFile)
         og.set(t.slug, { title: meta.title, description: meta.description, image })
       } catch (error) {
-        failures.push(failureLine(`${t.page.site} ${t.page.path}`, error))
+        failures.push(failureLine(t.page.path, error))
       }
       progress('.')
     }
     await context.close()
 
-    if (args.signedIn && args.cantina) {
+    if (args.signedIn) {
       const signed = await browser.newContext()
       const sp = await signed.newPage()
       let seeded: Partial<Seeded> = {}
       try {
-        seeded = await seed(sp, args.cantina)
+        seeded = await seed(sp, args.base)
       } catch (error) {
-        failures.push(failureLine('cantina seed', error))
+        failures.push(failureLine('seed', error))
       }
-      const planned = signedInTargets(args.cantina, seeded)
+      const planned = signedInTargets(args.base, seeded)
       failures.push(...planned.failures)
       for (const t of planned.targets) {
         try {
           await shootPage(sp, t.url, file(t.slug), !!t.page.edit)
           shot.add(t.slug)
         } catch (error) {
-          failures.push(failureLine(`cantina ${t.page.path}`, error))
+          failures.push(failureLine(`signed in ${t.page.path}`, error))
         }
         progress('.')
       }

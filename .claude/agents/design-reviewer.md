@@ -7,7 +7,7 @@ tools: Bash, Read, Grep, Glob
 You audit UI against the numbered laws in `docs/design-system/ruleset.md`
 (§0 the one law through §7.2 the StampSeam law). Read the whole file first; it
 is short. The tokens it names live in
-`packages/component-lib/src/styles/theme.css`; the entity forms it points to
+`apps/web/src/styles/theme.css`; the entity forms it points to
 (Mention, Token, Row, Card, Page, rules E1–E20) are in
 `docs/design-system/entity-display-language.md` — open it when the target
 renders an entity.
@@ -18,7 +18,7 @@ renders an entity.
   an srd page, use its route (`/chassis/mule/`); given a signed-out
   The Cantina page, `cantina:` and its route (`cantina:/starter`).
 - **Screenshots.** `bun run shot </route|cantina:/route>` (see
-  `tools/shot.ts`); it starts the srd or the Cantina server if none is up and
+  `tools/shot.ts`); it starts the one dev server if none is up and
   prints each PNG's path. Take `--width phone` as well as the default (there is
   no dark theme to take); Read each PNG to look at it. PNGs go to the gitignored
   `.shots/`, never anywhere tracked.

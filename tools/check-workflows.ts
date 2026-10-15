@@ -19,11 +19,15 @@
  *   path-filters  every `workspace:*` dependency of an app is covered by the
  *                 ci.yml filter group gating that app's build job. `CI Success`
  *                 treats a skipped job as a pass, so an uncovered dependency
- *                 merges with its build never having run.
+ *                 merges with its build never having run. And every path the
+ *                 deploy treats as shared (`SHARED_PATHS` in
+ *                 tools/deploy-surfaces.ts) is in ci.yml's `shared` group, so
+ *                 a change that redeploys every surface was built for each.
  *   pinning       every `bunx`/`npx` tool with no manifest entry carries an
  *                 exact version: it runs in jobs holding deploy credentials.
  *                 zizmor's `unpinned-uses` covers action SHAs only.
- *   deploy-order  in `deploy-cloudflare.yml`, the Convex push needs the job
+ *   deploy-order  in `deploy-cloudflare.yml` (read through the local composite
+ *                 actions its jobs use), the Convex push needs the job
  *                 refusing a deploy with no CONVEX_DEPLOY_KEY (a step whose
  *                 script names the key and can `exit 1`) and every build
  *                 job, every deploy job needs every build job and the push,
@@ -59,13 +63,23 @@
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import type { WorkflowFile, Yaml } from 'gates/lib/workflowYaml'
+import {
+  ancestorsOf,
+  executable,
+  expandedStepsOf,
+  isObject,
+  jobOf,
+  needsOf,
+  stepsOf,
+} from 'gates/lib/workflowYaml'
 import { readManifests } from 'gates/lib/workspaceGraph'
+import { WORKERS } from './check-workers'
+import { SHARED_PATHS } from './deploy-surfaces'
 import type { EnvironmentSpec, RulesetSpec } from './environments'
 import { ENVIRONMENTS, MAIN_RULESET, SECRET_SENTINEL } from './environments'
 
-type Yaml = Record<string, unknown>
-
-export type WorkflowFile = { path: string; doc: Yaml }
+export type { WorkflowFile }
 
 type Manifest = {
   name?: string
@@ -93,8 +107,6 @@ export type WorkflowCheck = {
 
 // ─── shared helpers ─────────────────────────────────────────────────────────
 
-const isObject = (v: unknown): v is Yaml => typeof v === 'object' && v !== null && !Array.isArray(v)
-
 const CI = '.github/workflows/ci.yml'
 const DEPLOY = '.github/workflows/deploy-cloudflare.yml'
 
@@ -104,34 +116,6 @@ function file(ctx: WorkflowContext, path: string): Yaml | undefined {
 
 const workflowsOnly = (ctx: WorkflowContext) =>
   ctx.files.filter((f) => f.path.startsWith('.github/workflows/'))
-
-type Step = { where: string; step: Yaml }
-
-/** Every step in a workflow's jobs, or a composite action's `runs.steps`. */
-function stepsOf(f: WorkflowFile): Step[] {
-  const out: Step[] = []
-  const jobs = isObject(f.doc.jobs) ? f.doc.jobs : {}
-  for (const [job, def] of Object.entries(jobs)) {
-    if (!isObject(def) || !Array.isArray(def.steps)) continue
-    def.steps.forEach((step, i) => {
-      if (isObject(step)) out.push({ where: `jobs.${job}.steps[${i}]`, step })
-    })
-  }
-  const runs = isObject(f.doc.runs) ? f.doc.runs : undefined
-  if (runs && Array.isArray(runs.steps)) {
-    runs.steps.forEach((step, i) => {
-      if (isObject(step)) out.push({ where: `runs.steps[${i}]`, step })
-    })
-  }
-  return out
-}
-
-/** Shell text with comment lines removed — prose about a command is not the command. */
-const executable = (script: string): string =>
-  script
-    .split('\n')
-    .filter((line) => !/^\s*#/.test(line))
-    .join('\n')
 
 // ─── aggregator ─────────────────────────────────────────────────────────────
 
@@ -155,29 +139,6 @@ const GATE_WORKFLOWS: Record<string, string> = {
 
 /** Jobs deliberately left out of the gate, each with a reason. Empty, and the bar is high. */
 const UNGATED_BY_DESIGN: Record<string, string> = {}
-
-function needsOf(job: unknown): string[] {
-  if (!isObject(job)) return []
-  const needs = job.needs
-  if (typeof needs === 'string') return [needs]
-  return Array.isArray(needs) ? needs.filter((n): n is string => typeof n === 'string') : []
-}
-
-/** `jobs.<id>.steps[n]` -> `<id>`. */
-const jobOf = (where: string): string => where.split('.')[1] ?? ''
-
-/** Every job `job` transitively `needs`. */
-function ancestorsOf(jobs: Yaml, job: string): Set<string> {
-  const seen = new Set<string>()
-  const queue = needsOf(jobs[job])
-  while (queue.length > 0) {
-    const next = queue.pop() as string
-    if (seen.has(next)) continue
-    seen.add(next)
-    queue.push(...needsOf(jobs[next]))
-  }
-  return seen
-}
 
 export function checkAggregator(
   ctx: WorkflowContext,
@@ -255,19 +216,26 @@ export function checkAggregator(
 // ─── path-filters ───────────────────────────────────────────────────────────
 
 /**
- * Which filter group gates each app's build job. A genuine translation
- * (`apps/srd` is gated by `web`), so it cannot be derived; an app missing from
- * both this and NO_FILTER_GROUP is a hard failure.
+ * Which filter group gates each app's build job: `ciFilter` in WORKERS
+ * (tools/check-workers.ts), the one list of apps. An app missing from both
+ * this and NO_FILTER_GROUP is a hard failure.
  */
-const APP_TO_FILTER: Record<string, string> = {
-  cantina: 'cantina',
-  srd: 'web',
-  'discord-bot': 'bot',
-  'su-assets': 'assets',
-}
+const APP_TO_FILTER: Record<string, string> = Object.fromEntries(
+  WORKERS.map(({ app, ciFilter }) => [app, ciFilter])
+)
 
-/** Apps with no filter group, each with a reason and an exit condition. */
-const NO_FILTER_GROUP: Record<string, string> = { catalog: 'no PR job: its axe scan is nightly' }
+/** Apps with no filter group, each with a reason and an exit condition. Empty. */
+const NO_FILTER_GROUP: Record<string, string> = {}
+
+/**
+ * `SHARED_PATHS` entries ci.yml's `shared` group need not carry, each with a
+ * reason. `packages/` is filtered per app: the dependency edges above.
+ */
+const SHARED_BY_APP = new Set(['packages/'])
+
+/** A path that falls under a deploy `SHARED_PATHS` entry, to match ci.yml's globs against. */
+const probeFor = (entry: string): string =>
+  entry.endsWith('/') ? `${entry}x` : entry.replace(/\*$/, '.json')
 
 /** The `dorny/paths-filter` groups in ci.yml's `changes` job, aliases expanded. */
 function filterGroups(ci: Yaml): Map<string, string[]> {
@@ -360,8 +328,27 @@ export function checkPathFilters(ctx: WorkflowContext): CheckResult {
   if (edges < 5 && apps.length >= 3) {
     failures.push(`checked ${edges} workspace dependency edge(s); expected at least 5.`)
   }
+
+  const shared = groups.get('shared') ?? []
+  if (shared.length === 0) failures.push(`${CI} has no \`shared\` filter group.`)
+  const sharedPaths = shared.map((p) => new Bun.Glob(p))
+  const deployShared = sharedPaths.length
+    ? SHARED_PATHS.filter((entry) => !SHARED_BY_APP.has(entry))
+    : []
+  for (const entry of deployShared) {
+    const probe = probeFor(entry)
+    if (!sharedPaths.some((glob) => glob.match(probe))) {
+      failures.push(
+        `tools/deploy-surfaces.ts ships every surface on a change to \`${entry}\`, but ${CI}'s ` +
+          `\`shared\` group does not cover it (\`${probe}\`) — such a change could deploy an app ` +
+          'whose build CI skipped. Add it to `shared`, or drop it from SHARED_PATHS.'
+      )
+    }
+  }
   return {
-    ok: `${edges} workspace dependency edge(s) across ${apps.length} app(s) covered by their filter groups`,
+    ok:
+      `${edges} workspace dependency edge(s) across ${apps.length} app(s) covered by their ` +
+      `filter groups; ${deployShared.length} deploy-shared path(s) in \`shared\``,
     failures,
   }
 }
@@ -496,7 +483,7 @@ export function checkDeployOrder(ctx: WorkflowContext): CheckResult {
   const doc = file(ctx, DEPLOY)
   if (!doc) return { ok: '', failures: [`${DEPLOY} is missing`] }
   const jobs = isObject(doc.jobs) ? doc.jobs : {}
-  const steps = stepsOf({ path: DEPLOY, doc })
+  const steps = expandedStepsOf(ctx.files, { path: DEPLOY, doc })
   const runs = (step: Yaml) => (typeof step.run === 'string' ? executable(step.run) : '')
   const jobsWhere = (pred: (step: Yaml) => boolean) =>
     [...new Set(steps.filter(({ step }) => pred(step)).map(({ where }) => jobOf(where)))].sort()

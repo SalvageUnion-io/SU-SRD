@@ -161,7 +161,7 @@ the player's confirmed act. A player never writes another player's state.
 
 ### 7. Reuse the SRD display; the instruments are bespoke
 
-The display renders the same `component-lib` entity display the rest of the
+The display renders the same `src/components` entity display the rest of the
 app shows (`ReferenceEntityCard`, `RollTableInstrument`), with entity-level
 interactivity passed as typed `controls`. Only the instruments (gauges, bays,
 slots, buttons) are Dashboard components. One display system means one place

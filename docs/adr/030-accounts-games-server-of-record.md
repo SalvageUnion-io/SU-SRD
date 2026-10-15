@@ -222,7 +222,7 @@ that there is a proposal (§4).
 
 Enforced in `convex/model/permissions.ts` (`requireTableRunner`) and
 `convex/entities.ts`, and mirrored — never re-decided — for the UI in
-`apps/cantina/src/lib/games/gameRoster.ts`.
+`apps/web/src/lib/games/gameRoster.ts`.
 
 ### 6. Surfaces
 
@@ -256,7 +256,7 @@ nobody already seated is removed. Who mediates is chosen afterwards among the
 members (`games.setMediator`). Signed out, the page previews the Game and
 offers "Sign in to join", returning with `?join=1` to join on arrival; old
 `/join/:code` links 301 to `/invite/:code`
-(`apps/cantina/src/worker/retiredRedirects.ts`). The live code is the Game's
+(`apps/web/src/lib/redirects.ts`). The live code is the Game's
 newest open standing invite row (`convex/model/invites.ts#currentInvite`);
 every other row opens nothing.
 
@@ -343,4 +343,4 @@ retired snapshots.
   ADR-033); Convex is a data backend, not a host.
 - Not adopted, deliberately: CRDTs or full offline sync; turn/initiative
   enforcement across players; net-new homebrew authoring; any change to snapshot
-  sharing; accounts on `apps/srd`, which stays static, public, and login-free.
+  sharing; accounts on `apps/web`, which stays static, public, and login-free.

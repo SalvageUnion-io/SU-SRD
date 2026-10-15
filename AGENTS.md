@@ -22,7 +22,7 @@ Intent → doc map: [`docs/README.md`](docs/README.md): open it to find a doc.
 
 ## UI Development
 
-- Reuse shared components (`ReferenceEntityCard`, `Card`, …) before building one-off UI; check `component-lib` first.
+- Reuse shared components (`ReferenceEntityCard`, `Card`, …) before building one-off UI; check `apps/web/src/components` first.
 - Get CSS/layout right first time by reasoning about the rendering context (float does nothing in grid/flex). Verify a visual change yourself: `bun run shot </route|cantina:/route> --width phone|column|page` prints PNGs to read. Prefer simple, well-understood CSS.
 - Default to compact, header-only, clickable listings for entity lists; never render nested entities as separate grids — render them inside the parent's expanded/modal view. Ask if unsure how much detail to show.
 - Styling is tokens, style objects and one stylesheet ([ADR-046](docs/ARCHITECTURE.md#decisions); rules: [`.claude/rules/styling.md`](.claude/rules/styling.md)). There is no utility framework: never write a utility class.
@@ -34,8 +34,7 @@ After any cross-package change, run typecheck, tests and lint before calling the
 ```bash
 bun install              # first-time setup; postinstall builds the reference schemas
 
-bun run dev              # srd dev server (ssg/dev.ts, same render path as prod)
-bun run dev:cantina      # Cantina dev server on a local Convex backend
+bun run dev              # the app (reference pages + the Cantina at /build) beside a local Convex backend
 
 bun run check:fast       # the inner loop: every gate except the suite, the network
                          # and regeneration
@@ -43,10 +42,10 @@ bun run check            # THE full gate: every check in tools/check.ts in paral
                          # ending in a pass/fail table
 bun run check <id> …     # just those checks (`--list` names them: data, styling, workflows, …)
 bun run test             # full suite, each workspace with its own bunfig — what CI runs
-bun --filter <workspace> test      # one workspace, by package name (cantina, tools, …)
+bun --filter <workspace> test      # one workspace, by package name (web, tools, …)
 bun run lint | format | typecheck  # Biome is the only formatter; .md/.yml are formatted by nothing
 
-bun run build            # reference generation + srd + Cantina (the Worker-only apps build at deploy)
+bun run build            # reference generation + the app in one Vite pass (the Worker-only apps build at deploy)
 
 bun run deploy-commands[:global]   # Discord slash commands: test guild / production
 ```
@@ -75,7 +74,7 @@ Workspaces: [README.md](README.md)'s table; dependency graph: [packages](docs/AR
 - **Bun** for package management — never npm/yarn.
 - Game-data types come from `salvageunion-reference` as `Ref*` (`RefChassis`, `RefSchemaName`, …).
 - Generated files (`routeTree.gen.ts`, `schemas/*.schema.json`, `lib/generated/`) are never hand-edited.
-- When a prop must reach nested entity cards, pass it explicitly (there is no shared display context; card size is the `size` × `extent` pair in `packages/component-lib/src/components/containers/displayMode.ts`) and typecheck immediately.
+- When a prop must reach nested entity cards, pass it explicitly (there is no shared display context; card size is the `size` × `extent` pair in `apps/web/src/components/containers/displayMode.ts`) and typecheck immediately.
 
 ### Data conventions
 

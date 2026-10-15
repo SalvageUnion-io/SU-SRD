@@ -39,7 +39,7 @@ const SETS: [RuleSet, string][] = [
   [designTokens, 'design tokens: scanned 0 files'],
   [stylingOwnership, 'styling ownership (app CSS): scanned 0 files'],
   [copyTerms, 'copy: scanned 0 files'],
-  [srdCss, 'srd-css (srd source files): scanned 0 files'],
+  [srdCss, 'srd-css (modules a static page reaches): scanned 0 files'],
   [toneGround, 'tone-ground (header grounds): scanned 0 files'],
 ]
 
@@ -55,14 +55,6 @@ describe('rule set preflights', () => {
       expect(errors).toEqual([])
     })
   }
-
-  test('srd-css checks component-lib separately: a full srd tree with no library still fails', () => {
-    const root = emptyTree()
-    mkdirSync(join(root, 'apps/srd/src'), { recursive: true })
-    for (let i = 0; i < 70; i++) writeFileSync(join(root, `apps/srd/src/m${i}.ts`), '')
-    expect(() => srdCss.preflight?.(root)).toThrow(new Exited(1))
-    expect(errors.join('\n')).toContain('srd-css (component-lib source files): scanned 0 files')
-  })
 
   test('tone-ground reads a data directory that is not an array of entities as no grounds', () => {
     const root = emptyTree()
@@ -80,17 +72,17 @@ describe('designTokens.scan on a tree', () => {
   test('reads authored files and skips tests, generated routes and route trees', () => {
     const root = emptyTree()
     const files: Record<string, string> = {
-      'apps/srd/src/A.tsx': 'const c = "#ff0000"\n',
-      'apps/srd/src/__tests__/A.test.tsx': 'const c = "#ff0000"\n',
-      'apps/srd/src/B.test.ts': 'const c = "#ff0000"\n',
-      'apps/srd/src/routeTree.gen.ts': 'const c = "#ff0000"\n',
+      'apps/web/src/A.tsx': 'const c = "#ff0000"\n',
+      'apps/web/src/__tests__/A.test.tsx': 'const c = "#ff0000"\n',
+      'apps/web/src/B.test.ts': 'const c = "#ff0000"\n',
+      'apps/web/src/routeTree.gen.ts': 'const c = "#ff0000"\n',
     }
     for (const [rel, text] of Object.entries(files)) {
       mkdirSync(join(root, rel, '..'), { recursive: true })
       writeFileSync(join(root, rel), text)
     }
     const found = designTokens.scan(root)
-    expect(found['raw-color']?.map((f) => f.file)).toEqual(['apps/srd/src/A.tsx'])
+    expect(found['raw-color']?.map((f) => f.file)).toEqual(['apps/web/src/A.tsx'])
     expect(designTokens.summary?.(root)).toBe('1 files scanned')
   })
 })

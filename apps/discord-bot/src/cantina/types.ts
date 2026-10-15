@@ -14,7 +14,7 @@
  * `SheetResult.publicRead` for the worked example of a key an older deployment
  * does not send.
  *
- * Server-side coverage of these shapes: `apps/cantina/test/convex/__tests__/bot.test.ts`.
+ * Server-side coverage of these shapes: `apps/web/test/convex/__tests__/bot.test.ts`.
  */
 
 import type { BotDenialReason } from 'cantina-domain/botWire'
@@ -28,8 +28,8 @@ export type {
   MineResult,
   PilotDerived,
   SheetResult,
-  SheetTable,
 } from 'cantina-domain/botWire'
+export type { SheetTable } from 'cantina-domain/entityKinds'
 
 /** Why a call could not be satisfied. */
 export type DenialReason = BotDenialReason

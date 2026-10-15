@@ -20,39 +20,39 @@ This skill is the procedures.
 Production is `exuberant-porpoise-183` (`--prod`, or `--deployment
 alex-jarvis:susrd:prod`). Staging is the cloud dev deployment
 `perfect-donkey-72` (`--deployment perfect-donkey-72`), the Worker
-Previews' backend: only `deploy-preview.yml` pushes to it, never `dev:cantina`.
+Previews' backend: only `deploy-preview.yml` pushes to it, never `bun run dev`.
 Without either flag, `bunx convex` targets the **local** deployment `bun run
-dev:cantina` runs. Confirm which one you mean before running anything, and say so in your
+dev` runs. Confirm which one you mean before running anything, and say so in your
 report.
 
 ## Local backend
 
-`bun run dev:cantina` runs `convex dev --start vite` on a local deployment: it
+`bun run dev` runs `convex dev` beside the dev server on a local deployment: it
 pushes `convex/` on every save and writes `CONVEX_DEPLOYMENT`,
-`VITE_CONVEX_URL` and `VITE_CONVEX_SITE_URL` into `apps/cantina/.env.local`. It
+`VITE_CONVEX_URL` and `VITE_CONVEX_SITE_URL` into `apps/web/.env.local`. It
 signs in through the test seam, not Discord: the `dev` script sets
 `VITE_TEST_AUTH=true`, and the deployment needs `CANTINA_TEST_AUTH`. Production
 has neither. It refuses to start on a cloud `CONVEX_DEPLOYMENT`
 (`scripts/assert-local-convex.ts`): `.worktreeinclude` copies `.env.local` into
 every worktree, so a cloud dev deployment is one backend that every worktree's
-pushes overwrite. One-time setup, from `apps/cantina`:
+pushes overwrite. One-time setup, from `apps/web`:
 
 ```bash
-# Pick a local deployment. Not signed in to Convex: run `bun run dev:cantina` and
+# Pick a local deployment. Not signed in to Convex: run `bun run dev` and
 # choose "Start without an account (run Convex locally)". Signed in, or with a
 # .env.local that names a cloud deployment:
 bunx convex dev --configure existing --team alex-jarvis --project susrd \
   --dev-deployment local --once
 
-# Then, with `bun run dev:cantina` running, in a second terminal:
-bunx @convex-dev/auth --web-server-url http://localhost:5173/build   # SITE_URL + JWT keys
+# Then, with `bun run dev` running, in a second terminal:
+bunx @convex-dev/auth --web-server-url http://localhost:4321/build   # SITE_URL + JWT keys
 bunx convex env set CANTINA_TEST_AUTH true
 ```
 
 To sign in, run `await __cantinaTestSignIn('<any email>', '<8+ char password>')`
-in the browser console on `http://localhost:5173/build/`. Each call signs up a new
+in the browser console on `http://localhost:4321/build/`. Each call signs up a new
 password account (a repeated email is refused), and the session survives
-reloads. `bun run e2e:cantina` starts `dev:cantina` itself (or reuses a running one),
+reloads. `bun run e2e` starts `bun run dev` itself (or reuses a running one),
 so its signed-in specs fail until this setup is done.
 
 ## Secrets never touch argv or stdout
@@ -81,7 +81,7 @@ bunx convex env set --prod SITE_URL        https://salvageunion.io/build
 as in the rotation sections below. `SITE_URL` is the **frontend** address,
 base included (`https://salvageunion.io/build`, ADR-048), not
 `VITE_CONVEX_SITE_URL` and not the `.convex.site` host; every production
-deploy of cantina sets it (`deploy-cloudflare.yml`), so set it by hand only on a
+deploy of the web app sets it (`deploy-cloudflare.yml`), so set it by hand only on a
 new deployment. Without the JWT pair, sign-in
 fails only after Discord redirects back, which the probe in step 3 never
 reaches, so check both by length.
@@ -157,11 +157,11 @@ beats writing garbage into production auth. Only a real sign-in proves it.
 
 Convex reports through a **log stream**: Convex dashboard → the production
 deployment → **Settings → Integrations → Log Streams → Webhook**, URL
-`https://salvageunion.io/build/__convex-logs`. The Cantina Worker verifies each
+`https://salvageunion.io/__convex-logs`. The su-srd Worker verifies each
 delivery's `x-webhook-signature` against `CONVEX_LOG_STREAM_SECRET` (copy the
 secret the dashboard shows into `wrangler secret put CONVEX_LOG_STREAM_SECRET`
-in `apps/cantina`) and logs every failed function and every `console.error` for
-Workers Issues (`packages/observability/src/cloudflare.ts`). There is no code
+in `apps/web`) and logs every failed function and every `console.error` for
+Workers Issues (`apps/web/src/worker/errorReports.ts`). There is no code
 to add in `convex/`: queries and mutations have no network egress. Log streams
 need the Convex Pro plan.
 
@@ -171,15 +171,15 @@ check the deployment log (ground truth) and Workers Issues (the thing being
 tested).
 
 ```bash
-cd apps/cantina
+cd apps/web
 bunx convex run --deployment alex-jarvis:susrd:prod \
   botClient:me '{"discordId":0}'      # forces one ArgumentValidationError
 bunx convex logs --deployment alex-jarvis:susrd:prod --history 6 --jsonl
 ```
 
-then the su-cantina Worker's **Issues** tab in the Cloudflare dashboard, for a
+then the su-srd Worker's **Issues** tab in the Cloudflare dashboard, for a
 `ConvexFunctionError` naming `botClient:me`. In the log but not in Issues means
-the stream has stopped delivering: a `401` in the su-cantina Worker's logs is a
+the stream has stopped delivering: a `401` in the su-srd Worker's logs is a
 secret mismatch, a `503` an unset secret.
 
 ## Running a one-off data repair
@@ -196,8 +196,8 @@ Record the counts in the PR that deletes it.
 Production builds with `VITE_CONVEX_URL` from `CANTINA_CONVEX_URL` in
 `.github/workflows/deploy-cloudflare.yml`, whose `push-convex` job refuses to
 push if it differs from the URL the deploy key resolves to; a change takes
-effect on the next deploy. Unset, the cantina build fails (`requireConvexUrl` in
-`apps/cantina/vite.config.ts`), and with it the deploy: there is no build without
+effect on the next deploy. Unset, the web build fails (`requireConvexUrl` in
+`apps/web/vite.config.ts`), and with it the deploy: there is no build without
 a deployment, so taking Convex out of the path is an outage, not a toggle.
 
 ## Report

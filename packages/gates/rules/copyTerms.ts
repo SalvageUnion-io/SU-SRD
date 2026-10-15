@@ -1,5 +1,5 @@
 /**
- * Copy lint for game terms — the rule set behind `tools/check-copy.ts`.
+ * Copy lint for game terms — the `copy` rule set of `tools/check-rule-sets.ts`.
  *
  * The book capitalises its game nouns: the Core Book writes "Mech" 968 times
  * and "mech" 15, "Pilot" 452 and "pilot" 16. An audit of the Cantina's copy found it
@@ -35,9 +35,9 @@
  *     ("move", "damaged", "group").
  *   - `banned-variant` — a spelling the book or the product does not use:
  *     `BANNED`, plus any other casing of the product's names in
- *     `component-lib/src/product.ts` (read from that file, never retyped).
+ *     `cantina-domain/src/product.ts` (read from that file, never retyped).
  *
- * Both are ratchets against `tools/baselines/copy-baseline.json`: today's copy
+ * Both are ratchets against `tools/baselines/rule-sets.json`: today's copy
  * is the baseline, a new finding fails, and a fixed one must be locked in.
  */
 
@@ -53,11 +53,9 @@ import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
 
 /** The source trees whose strings reach a reader. */
 const COPY_DIRS = [
-  'apps/cantina/src',
-  'apps/cantina/convex',
-  'apps/srd/src',
+  'apps/web/convex',
+  'apps/web/src',
   'apps/discord-bot/src',
-  'packages/component-lib/src',
   'packages/cantina-domain/src',
   'packages/salvageunion-reference/lib',
 ] as const
@@ -308,7 +306,7 @@ export const BANNED: readonly Banned[] = [
   },
 ]
 
-export const PRODUCT_FILE = 'packages/component-lib/src/product.ts'
+export const PRODUCT_FILE = 'packages/cantina-domain/src/product.ts'
 
 /** `name` and `shortName` of `PRODUCT`, read from its source. */
 export function productNames(root: string): { name: string; shortName: string } {
@@ -404,7 +402,6 @@ export const copyTerms: RuleSet = {
     )
     assertCoversWorkspaces('copy', COPY_DIRS, {
       'apps/su-assets': 'a Worker that serves image bytes and short error strings; no copy.',
-      'packages/observability': 'Error reporting only; no copy.',
       'packages/gates': 'the gates themselves; their fixtures spell the variants they catch.',
     })
   },

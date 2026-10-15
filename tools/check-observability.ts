@@ -2,30 +2,30 @@
 /**
  * check-observability — the repo half of "can an error be reported at all?".
  *
- * Workers Issues is the error tracker (packages/observability/src/cloudflare.ts).
+ * Workers Issues is the error tracker (apps/web/src/worker/errorReports.ts).
  * It needs nothing in a Worker's code, so the ways to go blind are all wiring:
- * a Worker that never turned Issues on, a browser app that never starts its
- * reporter or whose Worker never routes the report, a CSP that blocks the
- * report before it leaves the page. Each looks exactly like a healthy app with
- * no errors. This gate (the `observability` check, so every PR) asserts:
+ * a browser app that never starts its reporter or whose Worker never routes
+ * the report, a CSP that blocks the report before it leaves the page. Each
+ * looks exactly like a healthy app with no errors. (A Worker that never turned
+ * Issues on is the `workers` check's: tools/check-workers.ts reads every
+ * wrangler.jsonc already.) This gate (the `observability` check, so every PR)
+ * asserts:
  *
- *   1. each browser app's observability module posts to `ERROR_REPORT_PATH`,
- *   2. its init is CALLED from the app entry,
+ *   1. the app's observability module posts to `ERROR_REPORT_PATH`,
+ *   2. its init is CALLED from both entries: the static pages' islands and the
+ *      Cantina's `main.tsx`,
  *   3. its `public/_headers` CSP `connect-src` allows `'self'`, where it posts,
  *      and admits Cloudflare Web Analytics: `script-src` its beacon's origin,
  *      `connect-src` where the beacon posts page loads. The zone's automatic
  *      setup injects the beacon at the edge, so nothing in the source names
  *      it, and a CSP without the two origins records nothing: from the site's
  *      creation until 3.0.0 the dashboard counted one page load in six weeks.
- *   4. its Worker routes `ERROR_REPORT_PATH` to `handleErrorReport` (and the Cantina's
- *      routes `CONVEX_LOG_STREAM_PATH` to `handleConvexLogStream`),
- *   5. every Worker's config turns on logs, Issues and `upload_source_maps`.
+ *   4. its Worker routes `ERROR_REPORT_PATH` to `handleErrorReport` and
+ *      `CONVEX_LOG_STREAM_PATH` to `handleConvexLogStream`.
  *
- * Every assertion reads PARSED source, never raw text: TypeScript goes through
- * `Bun.Transpiler` (which drops comments) and `wrangler.jsonc` through Bun's
- * JSONC loader. These files are heavily commented, and a text match is
- * satisfied by the prose — an init call commented out, or a setting named only
- * in a comment.
+ * Every TypeScript assertion reads PARSED source, never raw text, through
+ * `Bun.Transpiler` (which drops comments). These files are heavily commented,
+ * and a text match is satisfied by the prose — an init call commented out.
  *
  * Usage: bun tools/check-observability.ts
  */
@@ -37,9 +37,9 @@ type BrowserApp = {
   name: string
   /** Module that owns init, relative to repo root. */
   modulePath: string
-  /** Entry that must CALL the init. */
-  entryPath: string
-  /** The `_headers` Workers Static Assets reads: the app's CSP source. */
+  /** Entries that must each CALL the init. */
+  entryPaths: string[]
+  /** The app's CSP source: the `_headers` Workers Static Assets reads. */
   headersPath: string
   /** The Worker that answers the app's error reports. */
   workerPath: string
@@ -47,46 +47,13 @@ type BrowserApp = {
   extraHandlers: string[]
 }
 
-const BROWSER_APPS: BrowserApp[] = [
-  {
-    name: 'srd',
-    modulePath: 'apps/srd/src/lib/observability.ts',
-    entryPath: 'apps/srd/src/runtime/islands.client.ts',
-    headersPath: 'apps/srd/public/_headers',
-    workerPath: 'apps/srd/src/worker/index.ts',
-    extraHandlers: [],
-  },
-  {
-    name: 'cantina',
-    modulePath: 'apps/cantina/src/lib/observability.ts',
-    entryPath: 'apps/cantina/src/main.tsx',
-    headersPath: 'apps/cantina/public/_headers',
-    workerPath: 'apps/cantina/src/worker/index.ts',
-    extraHandlers: ['handleConvexLogStream'],
-  },
-]
-
-/**
- * The Cloudflare Workers that serve production. A guard that does not know
- * about a surface cannot fail for it, so every production Worker is listed.
- */
-type WorkerSurface = {
-  name: string
-  /** Its wrangler config, relative to repo root. */
-  configPath: string
-}
-
-const WORKER_SURFACES: WorkerSurface[] = [
-  { name: 'srd-worker', configPath: 'apps/srd/wrangler.jsonc' },
-  { name: 'cantina-worker', configPath: 'apps/cantina/wrangler.jsonc' },
-  { name: 'su-assets-worker', configPath: 'apps/su-assets/wrangler.jsonc' },
-  { name: 'discord-bot-worker', configPath: 'apps/discord-bot/wrangler.jsonc' },
-]
-
-/** The slice of a `wrangler.jsonc` this gate reads. */
-type WranglerConfig = {
-  observability?: { enabled?: boolean; issues?: { enabled?: boolean } }
-  upload_source_maps?: boolean
+const BROWSER_APP: BrowserApp = {
+  name: 'web',
+  modulePath: 'apps/web/src/lib/observability.ts',
+  entryPaths: ['apps/web/src/runtime/islands.client.ts', 'apps/web/src/main.tsx'],
+  headersPath: 'apps/web/public/_headers',
+  workerPath: 'apps/web/src/worker/index.ts',
+  extraHandlers: ['handleConvexLogStream'],
 }
 
 const failures: string[] = []
@@ -106,13 +73,6 @@ function code(path: string): string | null {
   return new Bun.Transpiler({ loader }).transformSync(
     readFileSync(join(process.cwd(), path), 'utf8')
   )
-}
-
-/** A `wrangler.jsonc`, parsed; null when absent. */
-async function wranglerConfig(path: string): Promise<WranglerConfig | null> {
-  if (!exists(path)) return null
-  const module = (await import(join(process.cwd(), path))) as { default: WranglerConfig }
-  return module.default
 }
 
 /** A `_headers` file without its `#` comment lines; null when absent. */
@@ -151,11 +111,13 @@ function checkBrowserApp(app: BrowserApp): void {
   }
 
   // An init that is never called is indistinguishable from no init at all.
-  const entry = code(app.entryPath)
-  if (entry === null) {
-    fail(app.name, `entry missing at ${app.entryPath}`)
-  } else if (!/\binitBrowserObservability\(/.test(entry)) {
-    fail(app.name, `${app.entryPath} never calls initBrowserObservability()`)
+  for (const entryPath of app.entryPaths) {
+    const entry = code(entryPath)
+    if (entry === null) {
+      fail(app.name, `entry missing at ${entryPath}`)
+    } else if (!/\binitBrowserObservability\(/.test(entry)) {
+      fail(app.name, `${entryPath} never calls initBrowserObservability()`)
+    }
   }
 
   // A report posted to a Worker that does not route it is a 404 nobody sees.
@@ -203,35 +165,9 @@ function checkBrowserApp(app: BrowserApp): void {
   }
 }
 
-async function checkWorkerSurface(surface: WorkerSurface): Promise<void> {
-  const config = await wranglerConfig(surface.configPath)
-  if (config === null) {
-    fail(surface.name, `no wrangler config at ${surface.configPath}`)
-    return
-  }
-  if (config.observability?.enabled !== true) {
-    fail(surface.name, `${surface.configPath} does not turn on "observability" (Workers Logs)`)
-  }
-  if (config.observability?.issues?.enabled !== true) {
-    fail(
-      surface.name,
-      `${surface.configPath} does not turn on "observability.issues" — this Worker's ` +
-        `errors would be logged and grouped by nothing.`
-    )
-  }
-  if (config.upload_source_maps !== true) {
-    fail(
-      surface.name,
-      `${surface.configPath} does not set "upload_source_maps" — its issues would ` +
-        `point at the bundle, not the source.`
-    )
-  }
-}
+console.log('Checking observability wiring (module → entry → Worker → CSP)…')
 
-console.log('Checking observability wiring (module → entry → Worker → CSP, and the Workers)…')
-
-for (const app of BROWSER_APPS) checkBrowserApp(app)
-for (const surface of WORKER_SURFACES) await checkWorkerSurface(surface)
+checkBrowserApp(BROWSER_APP)
 
 if (failures.length > 0) {
   console.error(`\n✗ observability wiring failed:\n${failures.join('\n')}\n`)

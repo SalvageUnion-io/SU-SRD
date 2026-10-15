@@ -1,14 +1,12 @@
 ---
 paths:
-  - 'apps/cantina/src/stores/**'
-  - 'apps/cantina/src/hooks/**'
-  - 'apps/cantina/src/lib/connection/**'
-  - 'apps/cantina/src/lib/export/**'
-  - 'apps/cantina/src/components/account/**'
-  - 'apps/cantina/src/components/container/**'
-  - 'apps/cantina/src/components/games/**'
-  - 'apps/cantina/convex/**'
-  - 'apps/cantina/e2e/**'
+  - 'apps/web/src/stores/**'
+  - 'apps/web/src/lib/entities/**'
+  - 'apps/web/src/lib/connection/**'
+  - 'apps/web/src/lib/export/**'
+  - 'apps/web/src/components/{account,entityContainer,crawler,dashboard,export,games,mech,mediator,npc,roster,shared,sharing,sheet,shelves,starterSet,wiring,wizard}/**'
+  - 'apps/web/convex/**'
+  - 'apps/web/e2e/**'
   - 'packages/cantina-domain/**'
 ---
 
@@ -42,17 +40,17 @@ await useEntityStore.getState().update('pilots', id, { hp: next }) // server-fir
 - **There is no anonymous backend.** `selectBackend()` (`src/stores/entityBackend.ts`)
   is `signedOut | remote | blocked`. `signedOut` holds nothing and refuses
   writes; `blocked` is offline, mid-handshake or Outdated, read-only too.
-  Check `canWrite` before offering an edit affordance. A unit test that writes calls
+  Check `canWrite` before offering an edit. A unit test that writes calls
   `withSignedInBackend()` (`src/stores/__tests__/signedInBackend.ts`).
 - **[No device cache](../../docs/ARCHITECTURE.md#no-device-cache).** Nothing player-owned goes in IndexedDB or
-  `localStorage` but `accountHint`. `AccountReconciler` (root) mounts `ShelfSync` while
+  `localStorage` but `accountHint` and the active container's id
+  (a preference). `AccountReconciler` (root) mounts `ShelfSync` while
   Connected; `hydrate()` waits for its first answer (`src/stores/rowArrival.ts`),
   and a tab's rows go when its session ends (`src/stores/sessionRows.ts`).
 - **A container written twice is written together** — the row's `gameId`
   column and the body's `gameId`; where they disagree, the column wins.
 - **e2e durability specs need an account** (`e2e/fixtures.ts`): without
-  `VITE_TEST_AUTH` in the build and `CANTINA_TEST_AUTH` on the deployment they
-  SKIP; the nightly `e2e-cantina` job runs them against a throwaway backend.
+  `VITE_TEST_AUTH` and `CANTINA_TEST_AUTH` they SKIP (nightly runs them).
 
 ## Accounts / Games / ownership — Convex hooks
 
@@ -64,15 +62,15 @@ a unit test rendering a Convex consumer mocks the hooks with
 ## Do not
 
 - **Add a record kind without a Convex table and commit seam** —
-  `apps/cantina/test/convex/__tests__/containerParity.test.ts` fails on one. A row with
+  `apps/web/test/convex/__tests__/containerParity.test.ts` fails on one. A row with
   no Convex counterpart is a defect; if the schema cannot say where a record
   lives, **the schema moves**.
 - Add a Convex-backed collection by hand: copy the `commit` seam on
   `makeHydratedCollectionSlice` (`mechPatterns`, `encounterNpcs`) or
   `commitChangeLog` — the one deliberate fire-and-forget write.
 - Duplicate locally what Convex owns (membership, ownership, invites,
-  proposals, crew vitals) — check `apps/cantina/convex/` first.
-- Add a query cache: entity reads are the hooks in `src/hooks/entities/`.
+  proposals, crew vitals) — check `apps/web/convex/` first.
+- Add a query cache: entity reads are the hooks in `src/lib/entities/`.
 
 More: [data flow](../../docs/ARCHITECTURE.md#data-flow),
 [accounts](../../docs/ARCHITECTURE.md#convex).

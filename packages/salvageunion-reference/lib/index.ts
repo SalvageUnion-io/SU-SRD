@@ -24,7 +24,7 @@ import { invalidateSearchIndex } from './search'
 
 // ---------------------------------------------------------------------------
 // Public API — every name below is re-exported EXPLICITLY, and each one has a
-// consumer outside this package (srd, cantina, component-lib or the Discord bot;
+// consumer outside this package (srd, cantina (and their src/components) or the Discord bot;
 // their tests count, since the exports map blocks deep imports).
 //
 // A wildcard makes the surface whatever the modules happen to export; a list
@@ -43,7 +43,6 @@ export {
 export {
   assetUrl,
   getAssetUrl,
-  SRD_SITE_URL,
   srdEntityPath,
   srdEntityUrl,
   srdSchemaPath,
@@ -86,6 +85,7 @@ export { getInventorySlots } from './inventorySlots'
 export { type EnhancedSchemaMetadata, getDataMaps, getSchemaCatalog } from './ModelFactory'
 export { nameToSlug } from './nameToSlug'
 export { displayTitle } from './naming'
+export { SRD_SITE_URL } from './origin'
 export {
   getPatterns,
   isBioTitanPattern,
@@ -117,7 +117,7 @@ export type {
 export {
   extractContentText,
   // Search primitives. Public because every consumer that needs them today had
-  // forked them instead (discord-bot + component-lib forked `isSchemaName`).
+  // forked them instead (discord-bot + src/components forked `isSchemaName`).
   // One implementation, one behaviour.
   isSchemaName,
   patternSearchText,
@@ -141,8 +141,12 @@ export { parseTraitReferences, plainTraitText } from './traitText'
 export { truncate } from './truncate'
 export { resultForColumnsTable, resultForTable } from './utils/resultForTable'
 export {
-  type DiscordBlock,
+  DISCORD_NEUTRAL_ACCENT,
+  DISCORD_ROLL_ACCENT,
   discordAccent,
+} from './view/discordAccents'
+export {
+  type DiscordBlock,
   discordCard,
   discordCardParts,
   discordCiteLine,
@@ -156,7 +160,7 @@ export {
 } from './view/discordEntryCard'
 // The entity VIEW MODEL (docs/design-system/entity-display-language.md): an
 // entity resolved once into what every form draws. Its parts are public too,
-// for component-lib's card helpers, which read them rather than keep a copy.
+// for the UI library's card helpers, which read them rather than keep a copy.
 export {
   droneOwnLoadout,
   foldedActionOf,

@@ -4,7 +4,7 @@
 
 import { describe, expect, it } from 'bun:test'
 import { extractActions, getChassisAbilities } from '../actionResolution'
-import { getAssetUrl, SRD_SITE_URL, srdEntityPath, srdEntityUrl } from '../assets'
+import { getAssetUrl, srdEntityPath, srdEntityUrl } from '../assets'
 import {
   getCargoCapacity,
   getEnergyPoints,
@@ -23,6 +23,7 @@ import {
 } from '../entityFields'
 // Import SalvageUnionReference - use lazy getter to avoid initialization issues
 import type { SalvageUnionReference as RefType } from '../index'
+import { SRD_SITE_URL } from '../origin'
 import { getPatterns, isHiddenPattern, normalizePatternName, visiblePatterns } from '../patterns'
 import { getEntitySlug } from '../slug'
 
@@ -733,8 +734,8 @@ describe('homebrew patterns (stored data tag — never computed)', () => {
 })
 
 /**
- * The reference site's origin and route grammar, held once for `apps/srd`,
- * `apps/cantina` and the Discord bot, as `ASSET_BASE_URL`/`getAssetUrl` is for
+ * The reference site's origin and route grammar, held once for `apps/web`,
+ * the Cantina and the Discord bot, as `ASSET_BASE_URL`/`getAssetUrl` is for
  * artwork.
  */
 describe('SRD site URLs', () => {

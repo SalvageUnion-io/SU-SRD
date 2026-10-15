@@ -21,7 +21,7 @@
  * count closely becomes a second baseline to maintain, and the failure it
  * exists to catch is order-of-magnitude, not incremental.
  *
- * The counterpart worth copying is `packages/component-lib/src/utils/__tests__/cn.test.ts`,
+ * The counterpart worth copying is `apps/web/src/lib/__tests__/cn.test.ts`,
  * which parses `theme.css` and asserts the file was actually read
  * (`expect(themeCss).toContain('@utility')`) before making any claim about its
  * contents. Same idea, applied to a file tree instead of a file.

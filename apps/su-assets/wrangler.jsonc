@@ -32,7 +32,7 @@
   // Traces: a span per binding call and outbound fetch (Convex, R2, Images,
   // Browser Rendering), in the dashboard next to the logs. Issues is the error
   // tracker: it groups uncaught exceptions, 5xx answers and `console.error`
-  // (`observability/cloudflare`'s `reportError`) into issues, alerted on by the
+  // (`reportError`, `src/worker/reportError.ts`) into issues, alerted on by the
   // dashboard's Issues automations. tools/check-observability.ts requires all three.
   "observability": {
     "enabled": true,

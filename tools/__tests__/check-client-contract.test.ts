@@ -187,18 +187,18 @@ describe('main', () => {
     `{ isPublic: ${isPublic}, exportArgs: () => ${JSON.stringify(JSON.stringify(args))} }`
   const deployment = (floor: number, gamesArgs: ValidatorJSON) =>
     tree({
-      'apps/cantina/convex/_generated/api.d.ts': [
+      'apps/web/convex/_generated/api.d.ts': [
         'import type * as games from "../games.js";',
         'import type * as model_x from "../model/x.js";',
       ].join('\n'),
-      'apps/cantina/convex/buildFloor.ts': `export const BUILD_FLOOR = ${floor}\n`,
-      'apps/cantina/convex/games.ts': [
+      'apps/web/convex/buildFloor.ts': `export const BUILD_FLOOR = ${floor}\n`,
+      'apps/web/convex/games.ts': [
         `export const rename = ${fn(gamesArgs)}`,
         `export const sweep = ${fn(obj({}), false)}`,
         'export const helper = 3',
         'export const nothing = null',
       ].join('\n'),
-      'apps/cantina/convex/model/x.ts': `export const read = ${fn(obj({ id: str }))}\n`,
+      'apps/web/convex/model/x.ts': `export const read = ${fn(obj({ id: str }))}\n`,
     })
   const run = async (root: string, argv: string[] = []) => {
     const io = captured()

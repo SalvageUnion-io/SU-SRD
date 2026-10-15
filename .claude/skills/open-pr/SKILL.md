@@ -6,7 +6,7 @@ allowed-tools: Bash, Read
 
 # Opening a PR
 
-`main` squash-merges: the PR **title** becomes the commit subject each site's
+`main` squash-merges: the PR **title** becomes the commit subject the
 changelog reads, and the PR **body** becomes the commit body, the decision
 record (`git log --format='%h %s%n%b'`). Write both for that reader, not for
 the review.
@@ -47,8 +47,7 @@ tokens, secrets or environment values into a body: it is permanent history.
 
 Validate first: `bun run check:fast` at least, `bun run check` for anything
 cross-package. Push the branch, then open the PR as a **draft** against the
-base `bun packages/gates/lib/baseBranch.ts` prints (a branch cut from
-`design-refresh` targets it, not `main`):
+base `bun packages/gates/lib/baseBranch.ts` prints:
 
 - **Locally:** `gh pr create --draft --title … --body-file …`.
 - **Cloud session:** `gh` answers REST only, so `gh pr create` gets 403. Use

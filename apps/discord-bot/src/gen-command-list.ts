@@ -7,7 +7,7 @@ import { renderCommandListModule } from './commandList'
  * local CLI like `deploy-commands.ts`, never imported by the Worker.
  */
 
-const OUTPUT = join(import.meta.dir, '../../srd/src/generated/discordCommands.ts')
+const OUTPUT = join(import.meta.dir, '../../web/src/generated/discordCommands.ts')
 
 await writeFile(OUTPUT, renderCommandListModule(), 'utf-8')
 console.log(`[command-list] wrote ${OUTPUT}`)

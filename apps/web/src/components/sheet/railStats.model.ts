@@ -1,0 +1,149 @@
+/**
+ * Rail vitals + status derivations — pure functions, no JSX.
+ *
+ * Split out of SheetRailParts.tsx because these are not components: keeping
+ * them beside one meant the file mixed component and non-component exports,
+ * which breaks React Fast Refresh (and needed a suppression per function).
+ */
+
+import type { pilotingContext } from 'cantina-domain/rules/pilotingContext'
+import type { Crawler } from 'cantina-domain/schemas/crawler'
+import type { Mech } from 'cantina-domain/schemas/mech'
+import type { Pilot } from 'cantina-domain/schemas/pilot'
+import { CONDITION_LABELS, STAT_LABELS } from 'salvageunion-reference'
+import {
+  crawlerMaxSP,
+  mechMaxEP,
+  mechMaxHeat,
+  mechMaxSP,
+  pilotMaxAP,
+  pilotMaxHP,
+  resolveGauge,
+  resolvePool,
+} from 'salvageunion-reference/rules'
+import type { BadgeTone, StatState } from '../index'
+
+/**
+ * One reading on a rail line — plain builders below, NOT components.
+ *
+ * These were three components that each hand-wrote the same inline markup and
+ * differed only in WHICH stats they listed. The markup itself is now the
+ * canonical `Stat` (`orientation="horizontal" surface="plain"`, ruleset §3.7);
+ * `rowStats` (below) adapts a list of these into the `UnitRow` readings the
+ * text, and these functions just supply the numbers.
+ *
+ * The rules math stays here rather than moving into src/components, which is
+ * data-source agnostic (ADR-010).
+ */
+export type RailStat = {
+  /** Short stat name as printed — "SP", "EP", "Heat", "Bays". */
+  label: string
+  value: number
+  max: number
+  /**
+   * Trailing word after the reading ("Intact" in "Bays 4/5 Intact"). It belongs
+   * to the READING, not to the cell — `rowStats` appends it after the value so
+   * `Stat` keeps a clean `label | value` contract.
+   */
+  suffix?: string
+}
+
+/**
+ * The piloting context a mech's maxima need, assembled by `pilotingContext`
+ * (ADR-029). Typed off that helper rather than re-declared, so the rail can
+ * never drift from the one place the context is built.
+ */
+type Piloting = ReturnType<typeof pilotingContext>
+
+/** The stats' short names, from the reference vocabulary. */
+const { short: SP } = STAT_LABELS.structurePoints
+const { short: EP } = STAT_LABELS.energyPoints
+const { short: HEAT } = STAT_LABELS.heatCapacity
+const { short: HP } = STAT_LABELS.hitPoints
+
+/**
+ * Mech rail vitals: "SP 9/13 · EP 6/11 · Heat 4/12".
+ *
+ * `piloting` is REQUIRED wherever a pilot is in scope: Beefcake is a pilot
+ * ability that raises the piloted mech's Max SP by 3+TechLevel (ADR-029), so a
+ * rail built without it reads a lower cap than the mech's own sheet — the
+ * pilot's assigned-mech chip and the mech sheet disagreeing about the same
+ * mech. Build it with `pilotingContext(mech, pilot?.abilities)`, never by hand.
+ * Omit it only when there is genuinely no pilot (an unlinked mech), which is
+ * the no-contribution reading an unlinked mech should show.
+ */
+export function mechRailItems(mech: Mech, piloting?: Piloting): RailStat[] {
+  const maxSP = mechMaxSP(mech, undefined, piloting)
+  const maxEP = mechMaxEP(mech, undefined, piloting)
+  const maxHeat = mechMaxHeat(mech, undefined, piloting)
+  return [
+    { label: SP, value: resolvePool(mech.currentSP, maxSP), max: maxSP },
+    { label: EP, value: resolvePool(mech.currentEP, maxEP), max: maxEP },
+    { label: HEAT, value: resolveGauge(mech.currentHeat, maxHeat), max: maxHeat },
+  ]
+}
+
+/**
+ * Pilot rail vitals: "HP 7/10 · AP 4/6".
+ *
+ * `crawlerTechLevel` is the pilot's EFFECTIVE crawler tier
+ * (`resolveEffectiveCrawlerLevel(pilot, theirCrawler)`), which raises max HP/AP
+ * via Stat Training. Omitting it reads a Tech 1 pilot — lower than their own
+ * sheet whenever they are aboard a higher-tier crawler.
+ */
+export function pilotRailItems(pilot: Pilot, crawlerTechLevel?: number): RailStat[] {
+  const input = { ...pilot, crawlerTechLevel }
+  const maxHP = Math.max(0, pilotMaxHP(input))
+  const maxAP = Math.max(0, pilotMaxAP(input))
+  return [
+    { label: HP, value: resolvePool(pilot.currentHP, maxHP), max: maxHP },
+    { label: 'AP', value: resolvePool(pilot.currentAP, maxAP), max: maxAP },
+  ]
+}
+
+/** Crawler rail vitals: "SP 9/13 · Bays 4/5 Intact". */
+export function crawlerRailItems(crawler: Crawler): RailStat[] {
+  const maxSP = crawlerMaxSP(crawler)
+  const states = bayStates(crawler)
+  const intact = states.filter((s) => s === 'intact').length
+  return [
+    { label: SP, value: resolvePool(crawler.currentSP, maxSP), max: maxSP },
+    // Bays only appear once the crawler HAS bays — an empty "Bays 0/0" line was
+    // never rendered before and must not start now.
+    ...(states.length > 0
+      ? [{ label: 'Bays', value: intact, max: states.length, suffix: CONDITION_LABELS.intact }]
+      : []),
+  ]
+}
+
+/** Bay conditions as StatBlock pip states (Intact/Damaged only). */
+export function bayStates(crawler: Crawler): StatState[] {
+  return (crawler.crawlerBays ?? []).map((bay) => bay.condition ?? 'intact')
+}
+
+/** Destroyed > Damaged > Intact status pill for a mech. */
+export function mechStatusPill(mech: Mech): { label: string; tone: BadgeTone } {
+  if (mech.destroyed) return { label: CONDITION_LABELS.destroyed, tone: 'bad' }
+  const anyDamaged = [
+    ...Object.values(mech.systemConditions ?? {}),
+    ...Object.values(mech.moduleConditions ?? {}),
+  ].some((c) => c !== 'intact')
+  return anyDamaged
+    ? { label: CONDITION_LABELS.damaged, tone: 'warn' }
+    : { label: CONDITION_LABELS.intact, tone: 'ok' }
+}
+
+/**
+ * A rail stat as a `UnitRow` reading: `SP 9/13`, `Bays 4/5 Intact`.
+ *
+ * `UnitRow` (the library Row the linked-unit slots use) takes flat
+ * `label | value` pairs, while a rail stat carries its own max and sometimes a
+ * trailing word, so both fold into the value here rather than the row growing
+ * a shape only these call sites would use.
+ */
+export function rowStats(items: RailStat[]): { label: string; value: string }[] {
+  return items.map((item) => ({
+    label: item.label,
+    value: `${item.value}/${item.max}${item.suffix ? ` ${item.suffix}` : ''}`,
+  }))
+}

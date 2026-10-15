@@ -1,6 +1,6 @@
 ---
 paths:
-  - 'apps/cantina/src/routes/**'
+  - 'apps/web/src/routes/**'
 ---
 
 # TanStack Router (The Cantina)

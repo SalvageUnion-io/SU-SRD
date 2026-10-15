@@ -50,7 +50,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
       Each sanctioned pattern (Slab leader, tile ramps, user-made hatch) is in `EXEMPTIONS` (`packages/gates/rules/designTokens.ts`).
       1. **Texture: the light speckle** — ink speckle on colour bands and tone headers; paper flecks on dark and ink headers and unit stamps.
          Never on paper, buttons, fields, the Dashboard or the Peek (`tokens/texture-placement`).
-      2. **One shading exemption** — the `.pilot-panel` illustration on srd's `/about`. A one-off, not precedent.
+      2. **One shading exemption** — the `.su-pilot-panel` illustration on srd's `/about`. A one-off, not precedent.
    6. **§3.6 Copy is 1:1 with real SRD data** — everywhere.
    7. **§3.7 Stats render through Stat** — any `label | value` is a `Stat`, never hand-assembled `<span>SP {n}</span>`.
       Game data renders through the shared primitives, never one-off markup.
@@ -61,7 +61,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    11. **§3.11 One union, two tools** — one Union bar; the switcher reads Reference | Build; the builder is The Cantina, named on its front door; no off-site arrows between the two.
    12. **§3.12 Microcopy** — sentence case ("Make a copy"); game terms keep the book's casing ("End Downtime"), as do Game, Shelf and the roles ([glossary](../architecture/glossary.md)).
        Caps only through the stamp (`Badge shape="stamp"`) and `Button`, which sets every label in condensed caps. Verbs: Copy, Move, Delete, Break down; Scrap is the currency, never the verb (p.248). `bun run check copy` holds what it can.
-4. **§4 Foundations** — the token layer, one home: `packages/component-lib/src/styles/theme.css`.
+4. **§4 Foundations** — the token layer, one home: `apps/web/src/styles/theme.css`.
    1. **§4.1 Colour roles** — values in `theme.css` alone, one spelling each. `--color-paper` is the one light surface (pure white retired), `--color-wk-bg` the page ground (the cool `-2` is off-palette on screen: tokens rule `cool-ground`), `--color-band-cream` the one cream.
       The ink ramp is warm ink at opacity, never a grey; rules blue is a band, never a ground. `contrast.test.ts` pins every pair.
    2. **§4.2 The tracking ladder** — tokens only: `--tracking-caps-tight` (0.04em) is the label default, `-snug` at the 11px floor, `--tracking-caps` chips, `-wide` header stamps, `--tracking-eyebrow` brand caption.
@@ -70,7 +70,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    5. **§4.5 The pip-row split** — at most 6 per row, balanced and bottom-heavy (7 → 3/4, 13 → 4/4/5), for every pip surface. The redline pip sits at 70%.
    6. **§4.6 The floors: type and touch** — nothing under 11px at the size the reader sees (a 1200px link preview: 34px), wizards included; the stat column label is 14px.
       Every coarse-pointer target is 44px; nothing floats over content.
-5. **§5 The irreducible set** — an ontology, not a roster (the barrel `packages/component-lib/src/index.ts` is the roster): 11 atoms and one technique.
+5. **§5 The irreducible set** — an ontology, not a roster (the barrel `apps/web/src/components/index.ts` is the roster): 11 atoms and one technique.
    1. **Stamp** — ink block, paper text: `Badge shape="stamp"`.
    2. **Frame** — bordered container, `--bw-*` weights: `Card` / `Panel`.
    3. **Badge** — the stamp-chip family: `Badge`.

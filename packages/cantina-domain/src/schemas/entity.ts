@@ -1,19 +1,14 @@
 import { z } from 'salvageunion-reference/zod'
+import { ENTITY_KINDS } from '../entityKinds'
 
 export const EntityRefSchema = z
   .object({
-    type: z.enum(['pilot', 'mech', 'crawler', 'npc']),
+    type: z.enum(ENTITY_KINDS),
     id: z.string(),
   })
   .strict()
 
 export type EntityRef = z.infer<typeof EntityRefSchema>
-
-/**
- * The three kinds the composed Live Sheet (`<Sheet>`) renders. A built NPC has
- * a sheet of its own (`NpcSheet`, ADR-044), so it is the one ref kind outside.
- */
-export type SheetEntityKind = Exclude<EntityRef['type'], 'npc'>
 
 /**
  * The container key every contained record carries — pilot, mech, crawler,

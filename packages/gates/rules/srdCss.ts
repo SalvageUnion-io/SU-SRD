@@ -1,14 +1,14 @@
 /**
- * srd's stylesheet entry rule — the `srd-css` rule set of `tools/check-styling.ts`.
+ * srd's stylesheet entry rule — the `srd-css` rule set of `tools/check-rule-sets.ts`.
  *
- * `apps/srd/ssg/DESIGN.md` states this as **hard rule 1**: all css is imported from
+ * `apps/web/ssg/DESIGN.md` states this as **hard rule 1**: all css is imported from
  * `src/runtime/styles.entry.ts`, which is a client-bundle entry and nothing
  * else, and `ssg/**`, `src/pages/**`, `src/layouts/BaseLayout.tsx` and
  * `src/runtime/Island.tsx` must stay stylesheet-free.
  *
  * ## The rule was enforced by nothing, in either direction
  *
- * `apps/srd/CLAUDE.md` and `ssg/DESIGN.md` once said a stray `import './x.css'` in the SSR
+ * `apps/web/CLAUDE.md` and `ssg/DESIGN.md` once said a stray `import './x.css'` in the SSR
  * graph **breaks the build**. It does not. Measured under this repo's Bun: a
  * `.css` import in an SSR module resolves and returns an object, exit 0 —
  * including a package import, and including a file with an unresolvable
@@ -31,42 +31,72 @@
  *
  * ## What this asserts
  *
- * 1. Exactly one module in `apps/srd` may import a stylesheet, and it is
- *    `src/runtime/styles.entry.ts`.
- * 2. No **shipping** `component-lib` module may import a stylesheet (tests
- *    are exempt). A component-side
- *    `import './x.css'` rides the barrel into every consumer: that is how srd
- *    bundled — and its service worker precached — the dashboard's 20 KB of
- *    `.pc-*` rules that no srd page can use. A component's
- *    stylesheet is a package EXPORT (`component-lib/styles/*.css`) that the app
- *    which renders the component imports.
+ * 1. Exactly one module a static page reaches may import a stylesheet, and
+ *    it is `src/runtime/styles.entry.ts`. "Reaches" is the relative-import
+ *    graph from srd's own trees (`ssg/`, `src/pages/`, `src/endpoints/`,
+ *    `src/layouts/`, `src/runtime/`), so a component a page renders is held
+ *    to it too. A component-side `import './x.css'` on that graph rides into
+ *    every page's bundle: that is how srd bundled, and its service worker
+ *    precached, the dashboard's 20 KB of rules no page can use.
+ * 2. A module only the builder reaches (its routes and the components they
+ *    alone render) imports its own stylesheet: Vite code-splits it with the
+ *    route, and `stylingOwnership` owns it.
  *
  */
 
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { existsSync, readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import type { Finding, Rule, RuleSet } from '../lib/ruleEngine'
 import { listFiles } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
 
 /** The one module allowed to import a stylesheet, repo-relative. */
-export const SRD_CSS_ENTRY = 'apps/srd/src/runtime/styles.entry.ts'
+export const SRD_CSS_ENTRY = 'apps/web/src/runtime/styles.entry.ts'
 
-const SRD_DIRS = ['apps/srd/ssg', 'apps/srd/src']
-const LIB_DIRS = ['packages/component-lib/src']
+/** srd's own trees: every file in them is a root of the static-page graph. */
+const SRD_ROOTS = ['ssg', 'src/pages', 'src/endpoints', 'src/layouts', 'src/runtime'].map(
+  (d) => `apps/web/${d}`
+)
 const EXTENSIONS = ['.ts', '.tsx', '.mts', '.cts']
 
 /** `import './x.css'`, `import 'pkg/y.css'`, and the `await import()` form. */
 const CSS_IMPORT =
   /(?:^|\n)\s*import\s+(?:[^'"\n]*\s+from\s+)?['"]([^'"]+\.css)['"]|import\(\s*['"]([^'"]+\.css)['"]\s*\)/g
 
-/** Tests never reach a consumer. */
-const isLibExempt = (rel: string): boolean =>
+/** Every relative module specifier: static imports, re-exports and `import()`. */
+const RELATIVE_IMPORT = /(?:from\s+|import\s*\(\s*|import\s+)['"](\.{1,2}\/[^'"]+)['"]/g
+
+/** Tests never reach a page. */
+const isTest = (rel: string): boolean =>
   rel.includes('/__tests__/') || /\.(test|spec)\.[cm]?tsx?$/.test(rel)
 
-const srdFiles = (root: string) => listFiles(root, SRD_DIRS, EXTENSIONS)
-const libFiles = (root: string) =>
-  listFiles(root, LIB_DIRS, EXTENSIONS).filter((rel) => !isLibExempt(rel))
+function resolveRelative(root: string, from: string, spec: string): string | null {
+  const base = join(dirname(from), spec)
+  for (const candidate of [
+    base,
+    ...EXTENSIONS.flatMap((e) => [base + e, join(base, `index${e}`)]),
+  ]) {
+    if (EXTENSIONS.some((e) => candidate.endsWith(e)) && existsSync(join(root, candidate))) {
+      return candidate
+    }
+  }
+  return null
+}
+
+/** Every non-test module a static page reaches, repo-relative. */
+function srdReach(root: string): string[] {
+  const seen = new Set(listFiles(root, SRD_ROOTS, EXTENSIONS).filter((rel) => !isTest(rel)))
+  const queue = [...seen]
+  for (let rel = queue.pop(); rel !== undefined; rel = queue.pop()) {
+    for (const m of readFileSync(join(root, rel), 'utf8').matchAll(RELATIVE_IMPORT)) {
+      const next = resolveRelative(root, rel, m[1] ?? '')
+      if (next === null || seen.has(next) || isTest(next)) continue
+      seen.add(next)
+      queue.push(next)
+    }
+  }
+  return [...seen].sort()
+}
 
 function cssImports(source: string): string[] {
   return [...source.matchAll(CSS_IMPORT)].map((m) => m[1] ?? m[2] ?? '')
@@ -76,22 +106,12 @@ const RULES: Rule[] = [
   {
     id: 'srd-css-entry',
     mode: 'zero',
-    rule: 'apps/srd hard rule 1 — every stylesheet is imported from the one client entry',
+    rule: 'apps/web hard rule 1 — every stylesheet a static page reaches is imported from the one client entry',
     fix:
-      `Move the import into ${SRD_CSS_ENTRY}. This does NOT break the build — that is the ` +
-      'problem: the SSR pass stubs `.css` to an empty module and the client bundle is fed ' +
-      'only from the entry, so an import anywhere else means its rules never ship. If the ' +
-      'entry itself imports nothing, the site ships unstyled.',
-  },
-  {
-    id: 'lib-css-import',
-    mode: 'zero',
-    rule: 'component-lib ships no side-effect stylesheet import',
-    fix:
-      'Export the stylesheet instead (`component-lib/styles/<name>.css` in the package ' +
-      '`exports`) and import it from the app that renders the component. A component-side ' +
-      'import rides the barrel into EVERY consumer — srd shipped the whole dashboard ' +
-      'stylesheet this way.',
+      `Move the import into ${SRD_CSS_ENTRY}, or keep the module off the static-page graph. ` +
+      'This does NOT break the build — that is the problem: the SSR pass stubs `.css` to an ' +
+      'empty module and the client bundle is fed only from the entry, so an import anywhere ' +
+      'else means its rules never ship. If the entry itself imports nothing, the site ships unstyled.',
   },
 ]
 
@@ -101,13 +121,12 @@ export const srdCss: RuleSet = {
   rules: RULES,
   exemptionsLive: 'packages/gates/rules/srdCss.ts',
   preflight(root) {
-    assertScanFloor('srd-css (srd source files)', srdFiles(root).length, 65)
-    assertScanFloor('srd-css (component-lib source files)', libFiles(root).length, 100)
+    assertScanFloor('srd-css (modules a static page reaches)', srdReach(root).length, 165)
   },
   scan(root) {
     const entry: Finding[] = []
     let entryImports = 0
-    for (const rel of srdFiles(root)) {
+    for (const rel of srdReach(root)) {
       const imports = cssImports(readFileSync(join(root, rel), 'utf8'))
       if (rel === SRD_CSS_ENTRY) {
         entryImports += imports.length
@@ -122,13 +141,7 @@ export const srdCss: RuleSet = {
         detail: 'imports no stylesheet at all — the site would ship unstyled (or the entry moved)',
       })
     }
-    const lib: Finding[] = []
-    for (const rel of libFiles(root)) {
-      for (const spec of cssImports(readFileSync(join(root, rel), 'utf8'))) {
-        lib.push({ file: rel, line: 1, detail: `imports '${spec}'` })
-      }
-    }
-    return { 'srd-css-entry': entry, 'lib-css-import': lib }
+    return { 'srd-css-entry': entry }
   },
-  summary: (root) => `${srdFiles(root).length} srd + ${libFiles(root).length} component-lib files`,
+  summary: (root) => `${srdReach(root).length} modules a static page reaches`,
 }
