@@ -44,6 +44,11 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  * the cluster follows the title, below the band on the page ground. The
  * notch stays on the band's foot either way.
  *
+ * `action` is a show page's one button ("Build With This"), after the cluster
+ * from `sm` and on its last line. On a phone it stays on the band: right of
+ * the title, centred on its capitals, or on a line of its own just above the
+ * title when the two don't fit, so it never drops onto the page ground.
+ *
  * `corner` sits in the band's top-right corner, above the title row, at every
  * width: a page's own controls where they are not the entity's stamps (an
  * The Cantina sheet's Read | Edit, Share and "⋯", the Starter Set's "Make a copy").
@@ -100,6 +105,11 @@ export type ChapterBandProps = {
    * title from `sm` (each child a right-aligned line) and below it on a phone.
    */
   asideAt?: 'end' | 'notch'
+  /**
+   * With `asideAt="notch"`: the page's action, ending the cluster from `sm`
+   * and on the band beside the title on a phone.
+   */
+  action?: ReactNode
   /** Controls in the band's top-right corner, above the title row. */
   corner?: ReactNode
   /**
@@ -220,6 +230,7 @@ export function ChapterBand({
   lead,
   aside,
   asideAt = 'end',
+  action,
   corner,
   measure,
   id,
@@ -253,6 +264,7 @@ export function ChapterBand({
       data-layout={bleed ? 'bleed' : undefined}
       data-measured={measure ? '' : undefined}
       data-aside={aside && asideAt === 'notch' ? 'notch' : undefined}
+      data-action={action ? '' : undefined}
       style={{
         ...ROOT,
         ...(bleed ? {} : INSET),
@@ -305,6 +317,7 @@ export function ChapterBand({
             {aside}
           </div>
         )}
+        {action && <div className="su-chapter-band__action">{action}</div>}
       </div>
     </div>
   )

@@ -117,13 +117,6 @@
   min-width: 36px;
 }
 
-/* The SRD page's action on the band ("Build With This"): the chips' height, not
-   `.su-page-action`'s 40px, so every chip and button on the band is one size.
-   A coarse pointer's 44px floor still lifts it. */
-.su-entity-stamps .su-page-action {
-  height: 32px;
-}
-
 /* An ability's cost on its band: the book's pointy box at the stamps'
    height (it stretches to its flex line), in the stamps' type. */
 .su-entity-cost {

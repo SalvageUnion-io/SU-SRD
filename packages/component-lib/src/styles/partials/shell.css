@@ -599,6 +599,61 @@
   }
 }
 
+/* `action`, a show page's "Build With This": at the chips' height, not
+   `.su-page-action`'s 40px, so every chip and button on the band is one size
+   (a coarse pointer's 44px floor still lifts it). */
+.su-chapter-band__action {
+  display: flex;
+  flex: none;
+}
+
+.su-chapter-band__action .su-page-action {
+  height: 32px;
+}
+
+/* On a phone it stays on the band on a phone:
+   the row wraps upward (`wrap-reverse`), so its first line, the cluster's
+   page-ground strip (`order: -1`), sits at the foot, the title and the
+   action share the line above it, the action right-aligned with its middle
+   on the notch's capitals (as the cluster's last line is from `sm`), and an
+   action that doesn't fit beside the title takes a line of its own above it,
+   still on the band. `align-items: flex-start` is the foot of each line under
+   `wrap-reverse`. The strip's negative top margin takes back the row gap, so
+   the notch stays flush on it. */
+@media (max-width: 39.99rem) {
+  .su-chapter-band[data-aside='notch'][data-action] .su-chapter-band__row {
+    align-items: flex-start;
+    column-gap: var(--space-12);
+    flex-flow: row wrap-reverse;
+    row-gap: var(--space-8);
+  }
+
+  .su-chapter-band[data-aside='notch'][data-action] .su-chapter-band__aside {
+    flex-basis: calc(100% + 2 * var(--space-16));
+    margin-top: calc(-1 * var(--space-8));
+    order: -1;
+  }
+
+  .su-chapter-band[data-aside='notch'][data-action] .su-chapter-band__title,
+  .su-chapter-band[data-aside='notch'][data-action] .su-chapter-band__heading {
+    align-self: flex-start;
+  }
+
+  .su-chapter-band__action {
+    margin-inline-start: auto;
+    padding-bottom: calc(var(--text-hero) * 0.428 - 16px);
+  }
+}
+
+/* From `sm` it ends the cluster, on its last line: the chips' gap from them
+   (the row's own gap less the chips'), not the row's. */
+@media (min-width: 40rem) {
+  .su-chapter-band__action {
+    margin-inline-start: calc(var(--space-8) - var(--space-24));
+    padding-bottom: calc(var(--text-chapter) * 0.428 - 16px);
+  }
+}
+
 /* ══ The nav drawer's index (`components/compositions/NavDrawer.tsx`) ═════════════
  *
  * A section stamp over compact rows (board 08): each row the full width, the
