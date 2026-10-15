@@ -136,15 +136,20 @@ function hybridTrees(plan: Extract<ClassPlan, { kind: 'hybrid' }>): RefText {
 function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
   return (
     <aside className="srd-class-brief" aria-label="Training">
-      <div className="srd-class-brief__head">
-        <Slab variant="dashed" label="Training" count={`p.${GAINING_ABILITIES_PAGE}`} />
-        <Stat
-          orientation="horizontal"
-          label="Abilities"
-          value={`Up to ${plan.classEntity.maxAbilities}`}
-          size="compact"
-        />
-      </div>
+      {/* The limit rides the slab's own row, centred on its label and rule. */}
+      <Slab
+        variant="dashed"
+        label="Training"
+        count={`p.${GAINING_ABILITIES_PAGE}`}
+        actions={
+          <Stat
+            orientation="horizontal"
+            label="Abilities"
+            value={`Up to ${plan.classEntity.maxAbilities}`}
+            size="compact"
+          />
+        }
+      />
       <ul className="srd-class-brief__cards">
         {briefCards(plan).map((card) => (
           <li key={card.label} className="srd-class-brief__card">
