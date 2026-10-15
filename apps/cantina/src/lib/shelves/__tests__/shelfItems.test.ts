@@ -44,7 +44,7 @@ const chipLabels = (chips: { label: string; value?: string }[]) =>
   chips.map((c) => (c.value ? `${c.label} | ${c.value}` : c.label))
 
 describe('the Showing toggle', () => {
-  test('Everything shows a unit in a Game; Not in a Game does not', () => {
+  test('Everything shows a unit in a Game; Unassigned does not', () => {
     expect(shownUnder('everything', { gameId: 'g1' })).toBe(true)
     expect(shownUnder('not-in-game', { gameId: 'g1' })).toBe(false)
     expect(shownUnder('not-in-game', { gameId: null })).toBe(true)

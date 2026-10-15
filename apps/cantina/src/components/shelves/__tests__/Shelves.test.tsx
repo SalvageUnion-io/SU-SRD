@@ -186,16 +186,16 @@ async function downloadedJson(index = 0): Promise<Record<string, unknown>> {
 // --- tests -----------------------------------------------------------------
 
 describe('Showing', () => {
-  test('Not in a Game hides what is in one, and says why a Hangar is empty', async () => {
+  test('Unassigned hides what is in one, and says why a Hangar is empty', async () => {
     await renderShelves()
     const pilots = screen.getByRole('region', { name: 'Pilots' })
     expect(within(pilots).getByText('Rook')).toBeTruthy()
     expect(screen.getByText(/Tray Grunt/)).toBeTruthy()
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Not in a Game' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Unassigned' }))
     })
-    expect(screen.getByRole('button', { name: 'Not in a Game' }).getAttribute('aria-pressed')).toBe(
+    expect(screen.getByRole('button', { name: 'Unassigned' }).getAttribute('aria-pressed')).toBe(
       'true'
     )
     expect(within(pilots).queryByText('Rook')).toBeNull()
@@ -208,7 +208,7 @@ describe('Showing', () => {
     await useEntityStore.getState().forget('pilot', 'p-nia')
     await renderShelves()
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Not in a Game' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Unassigned' }))
     })
     expect(screen.getByText('Every pilot is in a Game.')).toBeTruthy()
   })

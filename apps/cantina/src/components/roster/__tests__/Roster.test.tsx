@@ -225,7 +225,7 @@ describe('Hangar — the band', () => {
         .map((b) => [b.textContent, b.getAttribute('aria-pressed')])
     ).toEqual([
       ['Everything', 'true'],
-      ['Not in a Game', 'false'],
+      ['Unassigned', 'false'],
     ])
     expect(screen.getByRole('button', { name: 'Import' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Export all' })).toBeTruthy()
