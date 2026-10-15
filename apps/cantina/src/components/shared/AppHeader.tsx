@@ -131,6 +131,9 @@ export function AppHeader({
       buildHref="/"
       LinkComponent={LinkComponent}
       markSrc={MARK_SRC}
+      // The SRD's bar wears the same name, so a cross-document view transition
+      // between the two apps (index.css) matches the bar instead of fading it.
+      viewTransitionName="nav"
       navItems={[
         { label: 'Hangar', href: '/', active: onShelves },
         ...(games ? [{ id: 'games', node: games }] : []),
