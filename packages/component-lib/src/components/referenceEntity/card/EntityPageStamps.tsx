@@ -18,8 +18,8 @@ import { LEGAL_STARTING_PATTERN, LEGAL_STARTING_PATTERN_NOTE } from './legalStar
  * stat order: its stats (Tech Level first, at the band's compact size; a
  * chassis's lead its page body instead), its action type and facets
  * (`RNG | Close`), its traits, linking to their entries, and last its cost in
- * the pointy box, every chip the same gap apart;
- * then `end` (the SRD page's "Build With This"). An ability's level is the band's
+ * the pointy box, every chip the same gap apart (the SRD page's "Build With
+ * This" is the band's `action`, after them). An ability's level is the band's
  * `lead`, left of the title. Never the kind (E9: the title says it to screen
  * readers, the foot band stamps it). Every chip is at the stat column's height
  * and type (`.su-entity-stamp`, `.su-entity-stamps .su-stat-plate`). The same
@@ -35,8 +35,6 @@ type EntityPageStampsProps = {
   legalStartingPattern?: boolean
   /** Before the stamps: the link to what the entity is built on. */
   lead?: ReactNode
-  /** After the stamps: the page's action. */
-  end?: ReactNode
 }
 
 function bandFact(fact: StatItem) {
@@ -58,7 +56,6 @@ export function EntityPageStamps({
   name,
   legalStartingPattern = false,
   lead,
-  end,
 }: EntityPageStampsProps) {
   const { stats: leadFacts, action: actionFacts } = splitStatLine(meta.facts)
   return (
@@ -91,7 +88,6 @@ export function EntityPageStamps({
           <ActivationCost cost={meta.cost.value} currency={meta.cost.currency} />
         </span>
       )}
-      {end}
     </div>
   )
 }

@@ -59,6 +59,34 @@ describe('ChapterBand', () => {
     expect(heading.compareDocumentPosition(stamp) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
+  test("`action` (a show page's button) follows the aside on the title row, and is absent when unset", () => {
+    const { container } = render(
+      <ChapterBand
+        tone="mech"
+        asideAt="notch"
+        aside={<span>Chassis</span>}
+        action={<a href="/build/">Build With This</a>}
+      >
+        Mule
+      </ChapterBand>
+    )
+    const band = container.firstElementChild as HTMLElement
+    expect(band.dataset.action).toBe('')
+    const action = screen.getByRole('link', { name: 'Build With This' })
+    expect(action.parentElement?.className).toBe('su-chapter-band__action')
+    expect(action.parentElement?.parentElement?.className).toBe('su-chapter-band__row')
+    const stamp = screen.getByText('Chassis')
+    expect(stamp.compareDocumentPosition(action) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+
+    const bare = renderToStaticMarkup(
+      <ChapterBand asideAt="notch" aside={<span>Chassis</span>}>
+        Mule
+      </ChapterBand>
+    )
+    expect(bare).not.toContain('data-action')
+    expect(bare).not.toContain('su-chapter-band__action')
+  })
+
   test('`corner` sits above the title row, right-aligned, and is absent when unset', () => {
     const { container } = render(
       <ChapterBand corner={<button type="button">Make a copy</button>}>Bonesaw</ChapterBand>
