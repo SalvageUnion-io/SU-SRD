@@ -1087,19 +1087,6 @@ a.srd-home__discord:hover {
   gap: var(--space-12);
 }
 
-/* The slab, and the ability limit at its end. */
-.srd-class-brief__head {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-8) var(--space-12);
-}
-
-.srd-class-brief__head > :first-child {
-  flex: 1 1 12rem;
-  min-width: 0;
-}
-
 /* The tier cards: side by side while each keeps 9.5rem, stacked on a phone. */
 .srd-class-brief__cards {
   display: grid;
