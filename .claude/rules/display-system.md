@@ -22,8 +22,7 @@ There are two, and the separation is a decision, not an accident:
   clipping element so the control rail escapes the clip, the facets row (E17),
   an identity footer.
 - **`Card`** (`containers/`) — the generic four-band container (header /
-  sub-header / body / footer) that the poster, sheet and modal surfaces compose.
-  `ModalShell` is built on it.
+  sub-header / body / footer) of the poster and sheet surfaces.
 
 **They are NOT being merged**.
 
