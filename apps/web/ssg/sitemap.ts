@@ -8,11 +8,8 @@
  *
  * The Cantina's public pages (`/build/`) have their own urlset,
  * `/build/sitemap.xml` (`apps/web/src/worker/publicPages.ts`), and the index
- * lists it, so the one `robots.txt` line reaches both.
- *
- * The shape is fixed: no newlines, no indentation, no `<lastmod>` /
- * `<changefreq>` / `<priority>`, and four namespace declarations on `<urlset>`
- * that nothing uses but crawlers accept.
+ * lists it, so the one `robots.txt` line reaches both. Both urlsets and the
+ * index are written by `src/lib/sitemapXml.ts`.
  *
  * ## Two independent exclusion mechanisms, on purpose
  *
@@ -31,6 +28,7 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { SITE_URL } from '../src/lib/constants'
 import { appPath } from '../src/lib/site'
+import { sitemapIndexXml, urlsetXml } from '../src/lib/sitemapXml'
 import { withTrailingSlash } from './render'
 
 /**
@@ -59,16 +57,6 @@ function passesSitemapFilter(page: string): boolean {
  */
 const collator = new Intl.Collator('en', { numeric: true })
 
-/** `<`, `&` and friends are illegal raw in XML text. Slugs never contain them today; be correct anyway. */
-function escapeXml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;')
-}
-
 /**
  * Route paths (no trailing slash, as `ErasedRoute.route` carries them) -> the
  * absolute, trailing-slashed, filtered, sorted URL list that goes in the urlset.
@@ -83,38 +71,15 @@ function sitemapUrls(routes: readonly string[]): string[] {
   return [...urls].sort((a, b) => collator.compare(a, b))
 }
 
-/** One `sitemap-N.xml` body. */
-function renderUrlset(urls: readonly string[]): string {
-  const entries = urls.map((url) => `<url><loc>${escapeXml(url)}</loc></url>`).join('')
-  return [
-    '<?xml version="1.0" encoding="UTF-8"?>',
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
-    ' xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"',
-    ' xmlns:xhtml="http://www.w3.org/1999/xhtml"',
-    ' xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"',
-    ' xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">',
-    entries,
-    '</urlset>',
-  ].join('')
-}
-
 /** The Cantina's urlset, served by its Worker. */
 const CANTINA_SITEMAP_URL = `${SITE_URL}${appPath('/sitemap.xml')}`
 
 /** The `sitemap-index.xml` body. */
 function renderSitemapIndex(fileNames: readonly string[]): string {
-  const entries = [
+  return sitemapIndexXml([
     ...fileNames.map((name) => new URL(`/${name}`, SITE_URL).href),
     CANTINA_SITEMAP_URL,
-  ]
-    .map((loc) => `<sitemap><loc>${escapeXml(loc)}</loc></sitemap>`)
-    .join('')
-  return [
-    '<?xml version="1.0" encoding="UTF-8"?>',
-    '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-    entries,
-    '</sitemapindex>',
-  ].join('')
+  ])
 }
 
 /** `sitemap-0.xml`, `sitemap-1.xml`, … one chunk per `SITEMAP_ENTRY_LIMIT` urls. */
@@ -149,7 +114,7 @@ export async function writeSitemap({ routes, distDir }: WriteSitemapOptions): Pr
     fileNames.push(fileName)
     const target = join(distDir, fileName)
     await mkdir(dirname(target), { recursive: true })
-    await writeFile(target, renderUrlset(chunk), 'utf-8')
+    await writeFile(target, urlsetXml(chunk), 'utf-8')
   }
 
   const indexTarget = join(distDir, 'sitemap-index.xml')

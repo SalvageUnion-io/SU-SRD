@@ -27,6 +27,7 @@
 
 import { PRODUCT } from 'cantina-domain/product'
 import { color } from '../design/tokens'
+import { urlsetXml } from '../lib/sitemapXml'
 import type { StarterKind, StarterPage } from '../lib/starterSet/starterTemplates'
 import {
   isStarterKind,
@@ -91,21 +92,9 @@ function publicMeta(page: PublicPage, origin: string, base: string): ShellMeta {
   }
 }
 
-function escapeXml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;')
-}
-
 /** The public pages' urlset: `sitemap.xml`, inside the app's base. */
 export function sitemapXml(origin: string, base: string): string {
-  const entries = publicPaths()
-    .map((path) => `<url><loc>${escapeXml(publicUrl(origin, base, path))}</loc></url>`)
-    .join('')
-  return `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${entries}</urlset>`
+  return urlsetXml(publicPaths().map((path) => publicUrl(origin, base, path)))
 }
 
 /** A page's pre-rendered shell, by its file under the base. */
