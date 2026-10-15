@@ -38,6 +38,8 @@ export type FakeExecute = {
   edits: ReplyArg[]
   /** Everything passed to `followUp`, in order. */
   followUps: ReplyArg[]
+  /** Which of `editReply` and `followUp` was called, in order. */
+  sent: Array<'edit' | 'followUp'>
   /** Whether `deferReply` was called, and with what. */
   deferred: { called: boolean; ephemeral: boolean }
 }
@@ -59,6 +61,7 @@ export function fakeExecute(options: FakeExecuteOptions = {}): FakeExecute {
   const replies: ReplyArg[] = []
   const edits: ReplyArg[] = []
   const followUps: ReplyArg[] = []
+  const sent: Array<'edit' | 'followUp'> = []
   const deferred = { called: false, ephemeral: false }
   const strings = options.strings ?? {}
   const booleans = options.booleans ?? {}
@@ -92,15 +95,17 @@ export function fakeExecute(options: FakeExecuteOptions = {}): FakeExecute {
     },
     editReply: (arg: ReplyArg) => {
       edits.push(arg)
+      sent.push('edit')
       return Promise.resolve()
     },
     followUp: (arg: ReplyArg) => {
       followUps.push(arg)
+      sent.push('followUp')
       return Promise.resolve()
     },
   }
 
-  return { interaction, replies, edits, followUps, deferred }
+  return { interaction, replies, edits, followUps, sent, deferred }
 }
 
 export type FakeAutocomplete = {

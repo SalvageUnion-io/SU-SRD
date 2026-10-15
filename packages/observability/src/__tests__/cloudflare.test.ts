@@ -30,7 +30,23 @@ describe('reportError', () => {
   test('logs the error and its context at error level', () => {
     const boom = new Error('r2 down')
     reportError(boom, { op: 'r2.get' })
-    expect(logged).toEqual([[boom, { op: 'r2.get' }]])
+    expect(logged).toEqual([[boom, { message: 'Error: r2 down', op: 'r2.get' }]])
+  })
+
+  test('puts a many-line message on one line, where Workers Logs shows it', () => {
+    const refused = Object.assign(new Error('Invalid Form Body\ncontent[BASE_TYPE]: refused'), {
+      name: 'DiscordAPIError[50035]',
+    })
+    reportError(refused, { op: 'patch-original' })
+    expect(logged[0]?.[1]).toEqual({
+      message: 'DiscordAPIError[50035]: Invalid Form Body content[BASE_TYPE]: refused',
+      op: 'patch-original',
+    })
+  })
+
+  test('a message of the caller’s own wins', () => {
+    reportError(new Error('x'), { message: 'mine' })
+    expect(logged[0]?.[1]).toEqual({ message: 'mine' })
   })
 
   test('logs an empty context rather than undefined', () => {
