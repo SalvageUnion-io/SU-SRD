@@ -2,11 +2,12 @@ import { AlertDialog } from '@base-ui/react/alert-dialog'
 import { Dialog } from '@base-ui/react/dialog'
 import { X } from 'lucide-react'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
-import { color, fontSize, space } from '../../design/tokens'
+import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
+import { useEntitySurface } from '../../entity/entitySurfaceContext'
+import { Head } from '../../entity/parts/Head'
+import { paintFor } from '../../entity/parts/paint'
 import { cn } from '../../utils/cn'
-import { Badge } from '../atoms/Badge'
 import { buttonVariants } from '../atoms/buttonVariants'
-import { Card } from './Card'
 
 type ModalShellProps = {
   open: boolean
@@ -37,8 +38,8 @@ type ModalShellProps = {
    */
   role?: 'dialog' | 'alertdialog'
   /**
-   * Header tone (ruleset §6): 'action' (pilot blue, the default) for
-   * constructive flows, 'danger' (adversary rust) for destructive confirms.
+   * Band tone (ruleset §6): 'action' (pilot, the default) for constructive
+   * flows, 'danger' (adversary rust) for destructive confirms.
    */
   tone?: 'action' | 'danger'
   /**
@@ -53,7 +54,7 @@ type ModalShellProps = {
    *  like search. */
   initialFocus?: RefObject<HTMLElement | null>
   /**
-   * Chromeless: skip the Card header/frame and render `children` as the
+   * Chromeless: skip the cut-out frame and its head and render `children` as the
    * entire modal body inside a NON-scrolling, fit-height popup. The child owns
    * its own frame + header + close control + any internal scroll (e.g. the
    * floating EntitySearcher). `title` is still used for the sr-only a11y label.
@@ -101,32 +102,20 @@ const POPUP = {
   outline: 'none',
 } satisfies CSSProperties
 
-const HEAD = {
-  display: 'flex',
-  width: '100%',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: space[8],
-} satisfies CSSProperties
-
-const TITLES = {
-  display: 'flex',
-  minWidth: 0,
-  flexDirection: 'column',
-  gap: space[2],
-} satisfies CSSProperties
-
-/** A stamp sized over the stamp ladder's top rung, as a single-line plate. */
-const STAMP = {
-  display: 'block',
-  alignSelf: 'flex-start',
-  lineHeight: 1,
-} satisfies CSSProperties
-
+/**
+ * The subtitle: a line of the paper under the cut-out, in the head's
+ * condensed caps, muted, before the body (it says what the dialog acts on).
+ */
 const SUBTITLE = {
-  ...STAMP,
+  margin: 0,
+  padding: `${space[10]} ${space[20]} 0`,
+  fontFamily: font.cond,
   fontSize: fontSize.xs,
-  color: `color-mix(in oklab, ${color.paper} 80%, transparent)`,
+  fontWeight: weight.bold,
+  letterSpacing: tracking.capsTight,
+  lineHeight: 1.2,
+  textTransform: 'uppercase',
+  color: color.wkMuted,
 } satisfies CSSProperties
 
 const CLOSE_ICON = { width: space[20], height: space[20] } satisfies CSSProperties
@@ -160,8 +149,10 @@ export function ModalShell({
 }: ModalShellProps) {
   // `tone` is the whole API: a union, never a raw class string compared by
   // value, so a token rename cannot silently change the behaviour.
-  const isDanger = tone === 'danger'
-  const headerBgColor = isDanger ? 'var(--color-status-bad)' : 'var(--color-pilot)'
+  const surface = useEntitySurface()
+  const paint = paintFor(tone === 'danger' ? 'status-bad' : 'pilot', {
+    texture: surface.texture,
+  })
 
   // Bare mode: a fit-height, non-scrolling popup — the child owns its frame and
   // any internal scroll. Default: a scrolling popup wrapping the Card.
@@ -204,49 +195,36 @@ export function ModalShell({
         {bare ? (
           children
         ) : (
-          <Card
-            headerBgColor={headerBgColor}
-            headerContent={
-              <div style={HEAD}>
-                <div style={TITLES}>
-                  {/*
-                   * `xl` / `2xl` sit ABOVE the stamp ladder's top rung
-                   * (`full` = `sm`), so the dialog title keeps an explicit
-                   * font-size override rather than inventing a new rung, at
-                   * line-height 1: the stamp is a single-line plate.
-                   */}
-                  <Badge
-                    shape="stamp"
-                    size="mini"
-                    style={{
-                      ...STAMP,
-                      fontSize: isDanger ? fontSize.xl : fontSize['2xl'],
-                      color: color.paper,
-                    }}
-                  >
-                    {title}
-                  </Badge>
-                  {subtitle && (
-                    <Badge shape="stamp" size="mini" style={SUBTITLE}>
-                      {subtitle}
-                    </Badge>
-                  )}
+          // The cut-out head every entity card and Row wears (ruleset,
+          // "Chapter band"): the band in the dialog's tone, the title on a
+          // square paper tab notched into its foot, the × on the band.
+          <div className="su-entity-row su-modal-panel">
+            <div className="su-entity-row__frame">
+              <div className="su-entity-row__main">
+                <Head
+                  title={title}
+                  paint={paint}
+                  notch
+                  controls={
+                    <Dialog.Close
+                      className={cn(
+                        buttonVariants({ variant: 'quiet', size: 'iconOnly' }),
+                        'su-modal-close'
+                      )}
+                      data-on-paper={paint.color === 'var(--color-paper)' || undefined}
+                    >
+                      <X style={CLOSE_ICON} />
+                      <span className="su-sr-only">Close</span>
+                    </Dialog.Close>
+                  }
+                />
+                <div className="su-card-body">
+                  {subtitle && <p style={SUBTITLE}>{subtitle}</p>}
+                  {children}
                 </div>
-                <Dialog.Close
-                  className={cn(
-                    buttonVariants({ variant: 'quiet', size: 'iconOnly' }),
-                    'su-modal-close'
-                  )}
-                  data-tone={isDanger ? 'danger' : undefined}
-                >
-                  <X style={CLOSE_ICON} />
-                  <span className="su-sr-only">Close</span>
-                </Dialog.Close>
               </div>
-            }
-          >
-            {children}
-          </Card>
+            </div>
+          </div>
         )}
       </Dialog.Popup>
     </Dialog.Portal>
