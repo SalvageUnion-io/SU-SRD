@@ -1,18 +1,17 @@
 /**
- * useSearchCombobox — the shared logic layer behind the SRD search
- * comboboxes.
+ * useSearchCombobox — the shared logic layer behind the search comboboxes:
+ * the site's one search (`SearchIsland`, in the Union bar of both the
+ * reference pages and the Cantina) and the Dashboard's SRD explorer.
  *
- * srd's SearchIsland (dropdown-under-input, URL navigation) and the Cantina's
- * GlobalSearch (the Union bar's search dialog, detail-modal navigation) duplicated the
- * same ~150 lines: 150 ms debounce, category+entity result blending
- * (3 schema slots inside a 10-row budget), ArrowUp/Down/Enter selection, and
- * the combobox ARIA id wiring. This hook owns that logic; the apps own their
- * shells, row rendering, and what "open a result" means (onSubmit).
+ * It owns the 150 ms debounce, category+entity result blending (3 schema
+ * slots inside a 10-row budget), ArrowUp/Down/Enter selection and the
+ * combobox ARIA id wiring; the callers own their shells, row rendering, and
+ * what "open a result" means (onSubmit).
  *
  * Deliberately headless and router/persistence-agnostic: results are
  * normalized ({kind, id, title, group, schemaId, entity?}) and every
  * side-effectful decision is a callback. Escape/open-state handling stays
- * with the caller — the two shells close very differently.
+ * with the caller.
  */
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'

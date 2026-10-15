@@ -25,7 +25,7 @@ import { Speckle } from '../atoms/Speckle'
  * 56px row at every width, one height for the mark and every control in it
  * (`--su-union-bar-control`, `styles/partials/shell.css`), the product
  * nav inline beside the switcher from `lg`, and the search entry at the same
- * place in the same shape (`SearchField` / `SearchFieldTrigger`). There are no
+ * place in the same shape (the one `SearchField` combobox). There are no
  * densities: the SRD's 64px bar and the Cantina's 48px one were two products.
  *
  * ## Breadcrumbs
@@ -91,8 +91,8 @@ type AppBarProps = {
   /** The product's own nav (desktop), inline beside the switcher. */
   navItems?: AppBarNavEntry[]
   /**
-   * Desktop search slot — the SRD's `SearchField` combobox or the Cantina's
-   * `SearchFieldTrigger`: one shape, `su-union-bar__search-input` wide.
+   * Desktop search slot — the site's one `SearchField` combobox,
+   * `su-union-bar__search-input` wide.
    */
   search?: ReactNode
   /** "Buy the game" outbound link. Omit to hide. */

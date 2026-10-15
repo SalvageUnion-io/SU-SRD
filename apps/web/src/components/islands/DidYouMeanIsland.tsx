@@ -7,6 +7,7 @@ import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import type { CompactSearchEntry } from '../../lib/searchIndexTypes'
 import { useSearchIndex } from '../../lib/useSearchIndex'
 import { Entity, Slab } from '../index'
+import { DocumentLinks } from './DocumentLinks'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 /** The section's slab: the section's own gap spaces it. */
@@ -104,23 +105,25 @@ export function DidYouMeanIsland({ pathname }: DidYouMeanIslandProps = {}) {
           label={guesses.length > 0 ? 'Did you mean' : `Nothing close to “${query}”`}
         />
         {guesses.length > 0 && (
-          <ul className="su-not-found__results">
-            {guesses.map((result) => {
-              const href = itemHref(result.schemaName, getEntitySlug(result.entity))
-              const model = models.get(result.entityId)
-              return (
-                <li key={result.entityId}>
-                  {model ? (
-                    <Entity form="row" model={model} mode={{ kind: 'link', href }} />
-                  ) : (
-                    <a href={href} className="su-not-found__link">
-                      {result.entityName}
-                    </a>
-                  )}
-                </li>
-              )
-            })}
-          </ul>
+          <DocumentLinks>
+            <ul className="su-not-found__results">
+              {guesses.map((result) => {
+                const href = itemHref(result.schemaName, getEntitySlug(result.entity))
+                const model = models.get(result.entityId)
+                return (
+                  <li key={result.entityId}>
+                    {model ? (
+                      <Entity form="row" model={model} mode={{ kind: 'link', href }} />
+                    ) : (
+                      <a href={href} className="su-not-found__link">
+                        {result.entityName}
+                      </a>
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+          </DocumentLinks>
         )}
         <a href={searchHref} className="su-not-found__link">
           Search the SRD for “{query}”

@@ -202,11 +202,9 @@
   }
 }
 
-/* The search entry's width, one for both tools: the SRD's field
-   (`SearchField`'s input) and the Cantina's trigger (`SearchFieldTrigger`'s label).
-   Scoped to the bar so it outranks the field's own `width: 100%`
-   (atoms-leaves.css loads later), and the label a block so it takes a width:
-   unscoped, neither applied and the two tools' fields differed by 4rem. */
+/* The search field's width in the bar (`SearchField`'s input). Scoped to the
+   bar so it outranks the field's own `width: 100%` (atoms-leaves.css loads
+   later). */
 .su-union-bar__end .su-union-bar__search-input {
   display: block;
   flex: 0 1 auto;

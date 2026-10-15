@@ -4,7 +4,8 @@
  *
  * The Barlow faces, then the token set, the reset and the package stylesheet
  * in their load-bearing cascade order from the one shared entry (see its
- * header), then the few page-wide rules every page shares. Each surface's own
+ * header), the parts both surfaces draw (`shared.css`), then the few
+ * page-wide rules every page shares. Each surface's own
  * stylesheet loads after it: the reference pages' `global.css`, the
  * Cantina's `cantina.css`.
  *
@@ -18,6 +19,8 @@
 @import '@fontsource/barlow-semi-condensed/600.css';
 @import '@fontsource/barlow-semi-condensed/700.css';
 @import './entry.css';
+/* What the reference pages and the Cantina both draw: the search, the 404. */
+@import './shared.css';
 
 /*
  * Cross-document view transitions. Every link between two reference pages,
