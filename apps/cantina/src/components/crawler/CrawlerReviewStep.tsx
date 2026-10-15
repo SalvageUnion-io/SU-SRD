@@ -1,6 +1,6 @@
 import { Callout, FieldError, Panel, ReferenceEntityCard, Stat, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
-import type { SURefCrawler, SURefMetaCrawlerTechLevel, SURefSystem } from 'salvageunion-reference'
+import type { RefCrawler, RefMetaCrawlerTechLevel, RefSystem } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
 import { resolveCrawlerTypeAbilities } from '../../lib/crawlerRefs'
 import { unitRowModel } from '../../lib/units/unitModel'
@@ -38,11 +38,11 @@ const EMPTY_LINE = {
 type CrawlerReviewStepProps = {
   form: CrawlerWizardFormState
   /** Resolved tech-level entity for the form's chosen level. */
-  techLevel: SURefMetaCrawlerTechLevel | undefined
+  techLevel: RefMetaCrawlerTechLevel | undefined
   /** The chosen crawler type, resolved. */
-  selectedType: SURefCrawler | undefined
+  selectedType: RefCrawler | undefined
   /** Chosen systems resolved from the form's system ids. */
-  systems: SURefSystem[]
+  systems: RefSystem[]
   submitError: string | null
 }
 

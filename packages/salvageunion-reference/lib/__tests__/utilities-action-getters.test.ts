@@ -9,9 +9,9 @@ function defined<T>(value: T | null | undefined): T {
 }
 
 // Import SalvageUnionReference - use lazy getter to avoid initialization issues
-import type { SalvageUnionReference as SURefType } from '../index'
+import type { SalvageUnionReference as RefType } from '../index'
 
-let SalvageUnionReference: typeof SURefType
+let SalvageUnionReference: typeof RefType
 
 function getReference() {
   if (!SalvageUnionReference) {

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'bun:test'
 import { resolveDataValueForTechLevel } from '../contentBlockHelpers'
-import type { SURefObjectDataValue } from '../schemas/index'
+import type { RefObjectDataValue } from '../schemas/index'
 
-const damage: SURefObjectDataValue = {
+const damage: RefObjectDataValue = {
   label: 'Damage',
   type: 'keyword',
   value: 2,
@@ -27,12 +27,12 @@ describe('resolveDataValueForTechLevel', () => {
   })
 
   it('does not scale a value without perTechLevel', () => {
-    const range: SURefObjectDataValue = { label: 'Range', value: 'Long' }
+    const range: RefObjectDataValue = { label: 'Range', value: 'Long' }
     expect(resolveDataValueForTechLevel(range, 5)).toEqual({ value: 'Long', scaled: false })
   })
 
   it('does not scale a non-numeric value even if perTechLevel is set', () => {
-    const weird: SURefObjectDataValue = { label: 'X', value: 'n/a', perTechLevel: 2 }
+    const weird: RefObjectDataValue = { label: 'X', value: 'n/a', perTechLevel: 2 }
     expect(resolveDataValueForTechLevel(weird, 4)).toEqual({ value: 'n/a', scaled: false })
   })
 

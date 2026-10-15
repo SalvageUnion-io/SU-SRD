@@ -1,6 +1,6 @@
 import type { ElementType } from 'react'
 import { useMemo } from 'react'
-import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
+import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { firstParagraphText, normalizePatternName, toEntityModel } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
 import { useEntitySurface } from '../../../entity/entitySurfaceContext'
@@ -47,12 +47,12 @@ function PatternListRow({
 }: {
   chassis: ReferenceCardEntity
   chassisName: string
-  pattern: SURefObjectAnyPattern
+  pattern: RefObjectAnyPattern
   depth: number
   hostDown?: Down
   NestedCard: NestedCard
 }) {
-  const href = usePatternHref(chassis as SURefEntity, pattern)
+  const href = usePatternHref(chassis as RefEntity, pattern)
   const card = (
     <NestedCard
       data={chassis}
@@ -101,7 +101,7 @@ export function PatternList({
 }: {
   chassis: ReferenceCardEntity
   chassisName: string
-  patterns: SURefObjectAnyPattern[]
+  patterns: RefObjectAnyPattern[]
   /** The depth the rows render at (the host's + 1). */
   depth: number
   hostDown: Down
@@ -142,13 +142,13 @@ function PatternLinkRow({
 }: {
   chassis: ReferenceCardEntity
   chassisName: string
-  pattern: SURefObjectAnyPattern
+  pattern: RefObjectAnyPattern
   host: PatternRowsHost
 }) {
-  const href = usePatternHref(chassis as SURefEntity, pattern)
+  const href = usePatternHref(chassis as RefEntity, pattern)
   const surface = useEntitySurface()
   const model = useMemo(
-    () => toEntityModel(chassis as SURefEntity, undefined, { pattern }),
+    () => toEntityModel(chassis as RefEntity, undefined, { pattern }),
     [chassis, pattern]
   )
   const name = normalizePatternName(pattern.name)
@@ -230,7 +230,7 @@ export function PatternLinkRows({
 }: {
   chassis: ReferenceCardEntity
   chassisName: string
-  patterns: SURefObjectAnyPattern[]
+  patterns: RefObjectAnyPattern[]
   /** A real heading on the page (`sectionHeadingLevel`). */
   sectionAs?: ElementType
   host: PatternRowsHost

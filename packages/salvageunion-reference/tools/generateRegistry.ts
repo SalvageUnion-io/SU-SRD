@@ -24,8 +24,8 @@
  *       never does, so the entity schemas stay out of client chunks.
  *
  *   - lib/generated/entityTypes.generated.ts
- *       the SURef* entity type aliases (`z.infer` of each registry schema)
- *       and the SURefEntity / SURefMetaEntity unions, whose membership comes
+ *       the Ref* entity type aliases (`z.infer` of each registry schema)
+ *       and the RefEntity / RefMetaEntity unions, whose membership comes
  *       from each entry's `entity` / `excludeFromEntityUnion` flags. Type-only: it imports the
  *       schemas with `import type`, so it adds nothing to any bundle. The
  *       lib/schemas barrel re-exports it.
@@ -90,8 +90,8 @@ function validateRegistry(entries: RegistryEntry[]): void {
           'non-entity schema is in neither union already, so the flag would mean nothing.'
       )
     }
-    if (!/^SURef[A-Z]\w*$/.test(entry.typeName)) {
-      throw new Error(`Registry entry "${entry.id}" typeName must be SURef-prefixed PascalCase.`)
+    if (!/^Ref[A-Z]\w*$/.test(entry.typeName)) {
+      throw new Error(`Registry entry "${entry.id}" typeName must be Ref-prefixed PascalCase.`)
     }
   }
 }
@@ -100,12 +100,12 @@ function validateRegistry(entries: RegistryEntry[]): void {
 // lib/generated/entityTypes.generated.ts
 // ---------------------------------------------------------------------------
 
-/** Registry entries in the SURefMetaEntity union: every entity schema. */
+/** Registry entries in the RefMetaEntity union: every entity schema. */
 function metaEntityMembers(entries: RegistryEntry[]): RegistryEntry[] {
   return entries.filter((e) => e.entity !== false)
 }
 
-/** Registry entries in the narrower SURefEntity union: entities that are not rules metadata. */
+/** Registry entries in the narrower RefEntity union: entities that are not rules metadata. */
 function entityMembers(entries: RegistryEntry[]): RegistryEntry[] {
   return metaEntityMembers(entries).filter((e) => !e.excludeFromEntityUnion)
 }
@@ -128,11 +128,11 @@ ${zodImports}
 ${aliases}
 
 /** Every reference entity (registry entries without \`excludeFromEntityUnion\` or \`entity: false\`). */
-export type SURefEntity =
+export type RefEntity =
 ${union(entityMembers(entries))}
 
-/** SURefEntity plus the rules-metadata schemas (registry entries with \`excludeFromEntityUnion\`). */
-export type SURefMetaEntity =
+/** RefEntity plus the rules-metadata schemas (registry entries with \`excludeFromEntityUnion\`). */
+export type RefMetaEntity =
 ${union(metaEntityMembers(entries))}
 `
   )

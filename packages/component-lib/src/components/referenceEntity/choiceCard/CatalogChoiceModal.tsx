@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { EntitySchemaName, SURefObjectChoice } from 'salvageunion-reference'
+import type { EntitySchemaName, RefObjectChoice } from 'salvageunion-reference'
 import { resolveCatalogChoiceEntities } from 'salvageunion-reference/rules'
 import { EntitySearcher } from '../../compositions/EntitySearcher'
 import { PICKER_MODAL_WIDTH } from '../../compositions/pickerModalWidth'
@@ -9,7 +9,7 @@ type CatalogChoiceModalProps = {
   open: boolean
   onClose: () => void
   /** The schema-only catalog choice being picked (e.g. Armament Bay Weapons System). */
-  choice: SURefObjectChoice
+  choice: RefObjectChoice
   /** Cap the pool to this Tech Level or lower (the crawler's, when known). */
   techLevel?: number
   /** Current selection (option values — entity names). */

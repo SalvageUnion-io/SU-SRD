@@ -18,7 +18,7 @@
  * rules blue.
  */
 import { describe, expect, test } from 'bun:test'
-import type { SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-reference'
+import type { RefEnumSchemaName, RefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { malformed } from 'salvageunion-reference/testing'
 import { entityGuideToneColor, resolveDomainTone } from '../entityCardTone'
@@ -76,7 +76,7 @@ describe('guide tone — the card matches the index tile', () => {
 describe('guide tone — no other domain is disturbed', () => {
   test('a guide record with no type falls back to the domain tone, rules blue', () => {
     // A record missing its type must not produce a transparent header band.
-    const tone = resolveDomainTone('guides', malformed<SURefMetaEntity>({}))
+    const tone = resolveDomainTone('guides', malformed<RefMetaEntity>({}))
     expect(tone.bgColor).toBeUndefined()
     expect(tone.bg).toBe('var(--color-wk-line)')
   })
@@ -88,8 +88,8 @@ describe('guide tone — no other domain is disturbed', () => {
       'distances',
       'sources',
       'roll-tables',
-    ] as SURefEnumSchemaName[]) {
-      const tone = resolveDomainTone(schemaName, malformed<SURefMetaEntity>({}))
+    ] as RefEnumSchemaName[]) {
+      const tone = resolveDomainTone(schemaName, malformed<RefMetaEntity>({}))
       expect(tone.bg).toBe('var(--color-wk-line)')
       expect(tone.bgColor).toBeUndefined()
     }

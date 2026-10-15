@@ -5,7 +5,7 @@
 
 import type { TableDie } from 'component-lib'
 import { dieForTable } from 'component-lib'
-import type { SURefRollTable } from 'salvageunion-reference'
+import type { RefRollTable } from 'salvageunion-reference'
 import { NO_EFFECT, rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
 
 /** Roll IDs for pilot wizard identity fields. */
@@ -23,7 +23,7 @@ export type PilotRollField = keyof typeof PILOT_ROLL_TABLE_NAMES
  * Dependency interface for roll table lookup — injectable for testing.
  */
 export type RollTableDeps = {
-  findTable: (name: string) => (SURefRollTable & { schemaName: string }) | undefined
+  findTable: (name: string) => (RefRollTable & { schemaName: string }) | undefined
   /** The die for a table, by name (component-lib's `dieForTable`). */
   d20For: (tableName: string) => Promise<TableDie>
 }

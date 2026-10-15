@@ -16,7 +16,7 @@
  * The Cantina (salvageunion.io/build) is that one constant.
  */
 
-import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
+import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { getEntitySlug, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import {
   isLegalCreationChassis,
@@ -57,7 +57,7 @@ function wizardHref(path: string, preselect: Record<string, string> = {}): strin
 export const STARTER_SET_HREF = cantinaHref('/starter')
 
 /** The page's "Build With This" link, or `null` where there is nothing to build from it. */
-export function buildLinkFor(schemaId: string, item: SURefEntity): BuildLink | null {
+export function buildLinkFor(schemaId: string, item: RefEntity): BuildLink | null {
   const slug = getEntitySlug(item)
   switch (schemaId) {
     case 'chassis':
@@ -98,8 +98,8 @@ export function buildLinkFor(schemaId: string, item: SURefEntity): BuildLink | n
  */
 export function patternBuildLinkFor(
   schemaId: string,
-  host: SURefEntity,
-  pattern: SURefObjectAnyPattern
+  host: RefEntity,
+  pattern: RefObjectAnyPattern
 ): BuildLink | null {
   if (schemaId !== 'chassis' || !('techLevel' in host) || host.techLevel === undefined) return null
   if (!isLegalCreationChassis(host.techLevel)) return null
@@ -135,7 +135,7 @@ const CREATION_GUIDES = [
 ] as const
 
 /** A creation guide's exits, or `null` for any other page. */
-export function guideExitsFor(schemaId: string, item: SURefEntity): GuideExits | null {
+export function guideExitsFor(schemaId: string, item: RefEntity): GuideExits | null {
   if (schemaId !== 'guides' || !('guideType' in item)) return null
   const index = CREATION_GUIDES.findIndex((guide) => guide.guideType === item.guideType)
   const step = CREATION_GUIDES[index]

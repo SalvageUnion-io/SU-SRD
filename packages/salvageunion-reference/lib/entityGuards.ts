@@ -8,12 +8,7 @@
  * The package barrel (`lib/index.ts`) re-exports, by name, only what consumers import.
  */
 
-import type {
-  SURefAbility,
-  SURefClass,
-  SURefMetaEntity,
-  SURefObjectAdvancedClass,
-} from './schemas/index'
+import type { RefAbility, RefClass, RefMetaEntity, RefObjectAdvancedClass } from './schemas/index'
 
 // ============================================================================
 // TYPE GUARDS - Schema-specific
@@ -25,7 +20,7 @@ import type {
  * @returns True if the entity is an Ability
  */
 
-export function isAbility(entity: SURefMetaEntity | null | undefined): entity is SURefAbility {
+export function isAbility(entity: RefMetaEntity | null | undefined): entity is RefAbility {
   return entity !== null && typeof entity === 'object' && 'tree' in entity && 'level' in entity
 }
 
@@ -35,9 +30,7 @@ export function isAbility(entity: SURefMetaEntity | null | undefined): entity is
  * @returns True if the entity is a Core Class
  */
 
-export function isCoreClass(
-  entity: SURefMetaEntity
-): entity is SURefClass & { coreTrees: string[] } {
+export function isCoreClass(entity: RefMetaEntity): entity is RefClass & { coreTrees: string[] } {
   // Not `maxAbilities` or `advanceable`: hybrid records carry them too.
   // `coreTrees` and the explicit `hybrid` flag are what separate the branches.
   return (
@@ -55,7 +48,7 @@ export function isCoreClass(
  * @returns True if the entity is an Advanced/Hybrid Class
  */
 
-export function isBaseAdvancedClass(entity: SURefMetaEntity): entity is SURefObjectAdvancedClass {
+export function isBaseAdvancedClass(entity: RefMetaEntity): entity is RefObjectAdvancedClass {
   // Every class record carries the `hybrid` flag; it is what excludes a hybrid.
   return (
     entity !== null &&

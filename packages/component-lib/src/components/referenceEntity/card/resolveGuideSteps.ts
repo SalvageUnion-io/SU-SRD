@@ -1,8 +1,8 @@
 import type {
-  SURefEntity,
-  SURefMetaEntity,
-  SURefObjectGuideStep,
-  SURefObjectTable,
+  RefEntity,
+  RefMetaEntity,
+  RefObjectGuideStep,
+  RefObjectTable,
 } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
@@ -22,17 +22,17 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 
 /** A single guide step, with every reference it names already resolved. */
 export type ResolvedGuideStep = {
-  step: SURefObjectGuideStep
+  step: RefObjectGuideStep
   /** 1-based position WITHIN its section — restarts at each `section` boundary. */
   number: number
   /** Section label this step opens (absent ⇒ it continues the current one). */
   section?: string
   /** Entities the step selects from (`schema` + `schemaEntities`/`filters`). */
-  entities: SURefEntity[]
+  entities: RefEntity[]
   /** The step's roll table, resolved by name from the `roll-tables` schema. */
-  table?: { name: string; table: SURefObjectTable }
+  table?: { name: string; table: RefObjectTable }
   /** A `sub-guide` step's target guide, resolved by id. */
-  subGuide?: SURefEntity
+  subGuide?: RefEntity
 }
 
 /**
@@ -125,39 +125,39 @@ export function enrichForFiltering(
  * `actions` is not a real schema (it is a virtual one on the step type), so a
  * step naming it resolves to no entities and renders as prose only.
  */
-function resolveStepEntities(step: SURefObjectGuideStep): SURefEntity[] {
+function resolveStepEntities(step: RefObjectGuideStep): RefEntity[] {
   const schemaName = step.schema?.[0]
   if (!schemaName || schemaName === 'actions') return []
 
   const filters = step.filters ?? []
-  const passes = (entity: SURefEntity): boolean =>
+  const passes = (entity: RefEntity): boolean =>
     filters.length === 0 ||
     filters.every((filter) =>
       matchesFilter(enrichForFiltering(entity as Record<string, unknown>, schemaName), filter)
     )
 
   if (!step.schemaEntities || step.schemaEntities.length === 0) {
-    return SalvageUnionReference.findAllIn(schemaName, passes) as SURefEntity[]
+    return SalvageUnionReference.findAllIn(schemaName, passes) as RefEntity[]
   }
 
   const wanted = new Set(step.schemaEntities)
   const found = SalvageUnionReference.findAllIn(
     schemaName,
-    (entity) => wanted.has(entity.name) && passes(entity as SURefEntity)
-  ) as SURefEntity[]
+    (entity) => wanted.has(entity.name) && passes(entity as RefEntity)
+  ) as RefEntity[]
   const byName = new Map(found.map((entity) => [entity.name, entity]))
   return step.schemaEntities
     .map((name) => byName.get(name))
-    .filter((entity): entity is SURefEntity => entity !== undefined)
+    .filter((entity): entity is RefEntity => entity !== undefined)
 }
 
 /**
  * Resolve every step of a guide. Returns `[]` for any entity that is not a
  * guide (or a guide with no steps), so the caller can render unconditionally.
  */
-export function resolveGuideSteps(entity: SURefMetaEntity): ResolvedGuideStep[] {
+export function resolveGuideSteps(entity: RefMetaEntity): ResolvedGuideStep[] {
   if (!('steps' in entity) || !Array.isArray(entity.steps)) return []
-  const steps = entity.steps as SURefObjectGuideStep[]
+  const steps = entity.steps as RefObjectGuideStep[]
 
   let number = 0
   return steps.map((step) => {
@@ -178,9 +178,9 @@ export function resolveGuideSteps(entity: SURefMetaEntity): ResolvedGuideStep[] 
       entities: resolveStepEntities(step),
       table:
         table && 'table' in table && table.table
-          ? { name: table.name, table: table.table as SURefObjectTable }
+          ? { name: table.name, table: table.table as RefObjectTable }
           : undefined,
-      subGuide: (subGuide as SURefEntity | undefined) ?? undefined,
+      subGuide: (subGuide as RefEntity | undefined) ?? undefined,
     }
   })
 }

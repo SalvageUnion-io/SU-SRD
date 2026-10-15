@@ -1,4 +1,4 @@
-import type { SURefClass, SURefMetaEntity } from 'salvageunion-reference'
+import type { RefClass, RefMetaEntity } from 'salvageunion-reference'
 import { isBaseAdvancedClass, isCoreClass, SalvageUnionReference } from 'salvageunion-reference'
 
 type SURClassesAccessor = {
@@ -11,16 +11,16 @@ type SURClassesAccessor = {
  * The accessor is `unknown`-typed for its test seam, so the one cast is here.
  */
 function isBaseClass(cls: unknown): cls is SelectableBaseClass {
-  return isCoreClass(cls as SURefMetaEntity)
+  return isCoreClass(cls as RefMetaEntity)
 }
 
 /** An Advanced/Hybrid specialisation class — the reference's `isBaseAdvancedClass`. */
-function isSpecialisationClass(cls: unknown): cls is SURefClass {
-  return isBaseAdvancedClass(cls as SURefMetaEntity)
+function isSpecialisationClass(cls: unknown): cls is RefClass {
+  return isBaseAdvancedClass(cls as RefMetaEntity)
 }
 
 /** A base class as narrowed by `isBaseClass` — `coreTrees` guaranteed present. */
-export type SelectableBaseClass = SURefClass & { coreTrees: string[] }
+export type SelectableBaseClass = RefClass & { coreTrees: string[] }
 
 /**
  * Selectable classes: base classes, plus — with `includeSpecialisations` (the
@@ -30,7 +30,7 @@ export type SelectableBaseClass = SURefClass & { coreTrees: string[] }
 export function selectableClasses(
   sur: SURClassesAccessor | undefined,
   includeSpecialisations: boolean
-): { base: SelectableBaseClass[]; specialisations: SURefClass[] } {
+): { base: SelectableBaseClass[]; specialisations: RefClass[] } {
   const all = (sur ?? SalvageUnionReference.Classes).all()
   return {
     base: all.filter(isBaseClass),

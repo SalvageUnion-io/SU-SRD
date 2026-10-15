@@ -11,7 +11,7 @@
  * fallback for every other unfurler.
  */
 
-import type { SURefMetaEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
+import type { RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { componentEmbedJson, discordEntryCard } from 'salvageunion-reference'
 import { SITE_URL } from './constants'
 
@@ -22,9 +22,6 @@ export { COMPONENT_EMBED_MAX_BYTES } from 'salvageunion-reference'
  * page. Its links are on the origin the page is served from, so a Worker
  * Preview's pasted link opens that Preview.
  */
-export function componentEmbedFor(
-  entity: SURefMetaEntity,
-  pattern?: SURefObjectAnyPattern
-): string {
+export function componentEmbedFor(entity: RefMetaEntity, pattern?: RefObjectAnyPattern): string {
   return componentEmbedJson(discordEntryCard(entity, pattern, { srdOrigin: SITE_URL }))
 }

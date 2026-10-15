@@ -9,7 +9,7 @@ import {
 } from 'component-lib'
 import { X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import type { SURefAbility, SURefEntity } from 'salvageunion-reference'
+import type { RefAbility, RefEntity } from 'salvageunion-reference'
 import {
   getAssetUrl,
   getEntitySlug,
@@ -274,7 +274,7 @@ function SchemaViewer({
     () =>
       new Map(
         groupBy === 'tree'
-          ? groups.map((group) => [group.key, trackForTree(group.items as SURefAbility[])])
+          ? groups.map((group) => [group.key, trackForTree(group.items as RefAbility[])])
           : []
       ),
     [groups, groupBy]
@@ -418,7 +418,7 @@ function SchemaViewer({
                 {group.label && <Slab variant="solid" label={group.label} />}
                 {view === 'catalog' ? (
                   <ul className="srd-listing__tiles">
-                    {group.items.map((item: SURefEntity, index) => (
+                    {group.items.map((item: RefEntity, index) => (
                       <li key={item.id}>
                         <Entity
                           form="tile"
@@ -434,12 +434,12 @@ function SchemaViewer({
                   </ul>
                 ) : treeTracks.get(group.key) ? (
                   <AbilityTrack
-                    abilities={group.items as SURefAbility[]}
+                    abilities={group.items as RefAbility[]}
                     track={treeTracks.get(group.key) ?? 'core'}
                   />
                 ) : (
                   <ul className="srd-listing__cards" data-entity-fit="">
-                    {group.items.map((item: SURefEntity) => (
+                    {group.items.map((item: RefEntity) => (
                       <li key={item.id}>
                         <EntityListingRow
                           entity={item}

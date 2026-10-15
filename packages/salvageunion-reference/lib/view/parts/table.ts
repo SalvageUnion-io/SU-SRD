@@ -3,7 +3,7 @@
  */
 
 import { SalvageUnionReference } from '../../index'
-import type { SURefObjectTable } from '../../schemas/index'
+import type { RefObjectTable } from '../../schemas/index'
 import { isColumnsTable } from '../../utils/resultForTable'
 import { tableRows } from '../../utils/tableRows'
 import type { EntityTable } from '../types'
@@ -14,11 +14,11 @@ import type { EntityTable } from '../types'
  * Software Hacker" IS its d20 outcomes). Degrades to no table when the
  * `roll-tables` schema is not loaded.
  */
-export function resolveTable(source: unknown): SURefObjectTable | undefined {
+export function resolveTable(source: unknown): RefObjectTable | undefined {
   if (source === null || typeof source !== 'object') return undefined
   if ('table' in source) {
     const table = (source as { table?: unknown }).table
-    if (table !== null && typeof table === 'object') return table as SURefObjectTable
+    if (table !== null && typeof table === 'object') return table as RefObjectTable
   }
   if ('tableName' in source) {
     const tableName = (source as { tableName?: unknown }).tableName

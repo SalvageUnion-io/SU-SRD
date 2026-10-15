@@ -10,7 +10,7 @@
 
 import type { Mech } from 'cantina-domain/schemas/mech'
 import type { MechPattern } from 'cantina-domain/schemas/pattern'
-import type { SURefChassis, SURefEntity, SURefObjectPattern } from 'salvageunion-reference'
+import type { RefChassis, RefEntity, RefObjectPattern } from 'salvageunion-reference'
 import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
 import type { CreateInput } from '../../stores/types'
 
@@ -81,8 +81,8 @@ export function mechFromPattern(pattern: MechPattern): CreateInput<'mech'> {
 
 /** The pattern's loadout as reference entities, in its stored order. */
 export function patternLoadout(pattern: Pick<MechPattern, 'systems' | 'modules'>): {
-  systems: SURefEntity[]
-  modules: SURefEntity[]
+  systems: RefEntity[]
+  modules: RefEntity[]
 } {
   return {
     systems: pattern.systems.flatMap((ref) => resolveSystemRef(ref) ?? []),
@@ -91,7 +91,7 @@ export function patternLoadout(pattern: Pick<MechPattern, 'systems' | 'modules'>
 }
 
 /** Slots a loadout fills: a system or module's `slotsRequired`, one when unstated. */
-export function slotsUsed(items: SURefEntity[]): number {
+export function slotsUsed(items: RefEntity[]): number {
   return items.reduce((sum, item) => {
     const slots = 'slotsRequired' in item ? Number(item.slotsRequired) : Number.NaN
     return sum + (Number.isFinite(slots) ? slots : 1)
@@ -105,7 +105,7 @@ export function slotsUsed(items: SURefEntity[]): number {
  */
 export function asReferencePattern(
   pattern: Pick<MechPattern, 'name' | 'systems' | 'modules'>
-): SURefObjectPattern {
+): RefObjectPattern {
   const { systems, modules } = patternLoadout(pattern)
   return {
     name: pattern.name,
@@ -115,6 +115,6 @@ export function asReferencePattern(
 }
 
 /** The chassis a pattern is built on, or null for a slug the reference lacks. */
-export function patternChassis(pattern: Pick<MechPattern, 'chassisRef'>): SURefChassis | null {
+export function patternChassis(pattern: Pick<MechPattern, 'chassisRef'>): RefChassis | null {
   return resolveChassisRef(pattern.chassisRef)
 }

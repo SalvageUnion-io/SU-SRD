@@ -7,7 +7,7 @@
  * from the card would make every section a circular dependency.
  */
 
-import type { SURefObjectChoice, SURefObjectContentBlock } from 'salvageunion-reference'
+import type { RefObjectChoice, RefObjectContentBlock } from 'salvageunion-reference'
 import { getChoiceSourceKind } from '../choiceCard/choiceSelectionHelpers'
 import type { CardTitleTag, ReferenceCardEntity } from './referenceEntityCardTypes'
 
@@ -116,7 +116,7 @@ export function cardKey(nested: ReferenceCardEntity, index: number): string {
  * render. Same behaviour, no captured state.
  */
 export function choiceRendersNothing(
-  choice: SURefObjectChoice,
+  choice: RefObjectChoice,
   editableChoices: boolean | undefined,
   selections: Record<string, string[] | undefined> | undefined
 ): boolean {
@@ -125,6 +125,6 @@ export function choiceRendersNothing(
 }
 
 /** A content block's plain text, or '' for anything that is not plain prose. */
-export function blockPlainText(b: SURefObjectContentBlock): string {
+export function blockPlainText(b: RefObjectContentBlock): string {
   return b && b.type !== 'choice' && typeof b.value === 'string' ? b.value : ''
 }

@@ -1,4 +1,4 @@
-import type { SURefObjectChoice, SURefObjectContentBlock } from 'salvageunion-reference'
+import type { RefObjectChoice, RefObjectContentBlock } from 'salvageunion-reference'
 
 /**
  * Synthetic CLIENT-SIDE marker spliced into a card's body walk: renders the
@@ -9,7 +9,7 @@ import type { SURefObjectChoice, SURefObjectContentBlock } from 'salvageunion-re
 type BonusMarkerBlock = { type: 'bonus'; value?: undefined; choiceId?: undefined }
 
 /** A reference content block, or the synthetic `{type:'bonus'}` marker. */
-export type AnchoredContentBlock = SURefObjectContentBlock | BonusMarkerBlock
+export type AnchoredContentBlock = RefObjectContentBlock | BonusMarkerBlock
 
 /** Words too generic to anchor a choice by (see `anchorChoiceMarkers`). */
 const STOP_WORDS = new Set(['ai', 'the', 'and', 'for', 'your', 'you'])
@@ -38,7 +38,7 @@ const blockLowerText = (b: AnchoredContentBlock): string =>
  */
 export function anchorChoiceMarkers(
   blocks: AnchoredContentBlock[],
-  choices: SURefObjectChoice[]
+  choices: RefObjectChoice[]
 ): void {
   const marked = new Set(
     blocks

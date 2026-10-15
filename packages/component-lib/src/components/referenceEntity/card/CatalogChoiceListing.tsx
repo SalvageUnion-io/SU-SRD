@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { useMemo, useState } from 'react'
-import type { SURefEntity, SURefMetaEntity, SURefObjectChoice } from 'salvageunion-reference'
+import type { RefEntity, RefMetaEntity, RefObjectChoice } from 'salvageunion-reference'
 import { firstParagraphText } from 'salvageunion-reference'
 import { resolveCatalogChoiceEntities } from 'salvageunion-reference/rules'
 import { color, font, fontSize, space } from '../../../design/tokens'
@@ -66,12 +66,12 @@ export function CatalogChoiceListing({
   onSelectionChange,
   renderEntity,
 }: {
-  choice: SURefObjectChoice
+  choice: RefObjectChoice
   techLevel?: number
   selections?: ChoiceSelections
   onSelectionChange?: (selections: ChoiceSelections) => void
   /** Renders one resolved entity as a listing card (key included by the caller). */
-  renderEntity: (entity: SURefEntity | SURefMetaEntity, key: string) => ReactNode
+  renderEntity: (entity: RefEntity | RefMetaEntity, key: string) => ReactNode
 }): ReactNode {
   const options = useDisclosure()
   const [modalOpen, setModalOpen] = useState(false)
@@ -122,7 +122,7 @@ export function CatalogChoiceListing({
 
   // READ-ONLY — a static reference listing under its slab, resolved lazily
   // when the reader asks for it.
-  let entities: SURefMetaEntity[] = []
+  let entities: RefMetaEntity[] = []
   if (options.open) {
     try {
       entities = resolveCatalogChoiceEntities(

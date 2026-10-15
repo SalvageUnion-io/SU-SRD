@@ -13,7 +13,7 @@ import { describe, expect, it } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { renderToStaticMarkup } from 'react-dom/server'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import { getModel } from 'salvageunion-reference'
 import { BaseLayout } from '../../../layouts/BaseLayout'
 import { cardNeedsHydration } from '../../../lib/cardNeedsHydration'
@@ -84,7 +84,7 @@ function renderIslands(node: React.ReactNode): {
  * so a fixture pinned by id would go stale the moment the card's internals
  * changed — silently taking the branch it was meant to prove.
  */
-function firstEntity(schemaId: string, needsHydration: boolean): SURefEntity {
+function firstEntity(schemaId: string, needsHydration: boolean): RefEntity {
   const model = getModel(schemaId)
   if (!model) throw new Error(`no model for "${schemaId}"`)
   const match = model.all().find((item) => cardNeedsHydration(item) === needsHydration)

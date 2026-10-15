@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from '../../index'
 import { nameToSlug } from '../../nameToSlug'
-import type { SURefMetaEntity } from '../../schemas/index'
+import type { RefMetaEntity } from '../../schemas/index'
 import {
   COMPONENT_EMBED_MAX_BYTES,
   componentEmbedBytes,
@@ -14,13 +14,13 @@ import {
  * shed to the Component Embed's 3,000 bytes as served, a long table whole.
  */
 
-function entry(schema: 'roll-tables' | 'chassis', slug: string): SURefMetaEntity {
+function entry(schema: 'roll-tables' | 'chassis', slug: string): RefMetaEntity {
   const found =
     schema === 'chassis'
       ? SalvageUnionReference.Chassis.getBySlug(slug)
       : SalvageUnionReference.RollTables.getBySlug(slug)
   if (!found) throw new Error(`no ${schema} ${slug}`)
-  return found as SURefMetaEntity
+  return found as RefMetaEntity
 }
 
 describe('discordEntryCard', () => {

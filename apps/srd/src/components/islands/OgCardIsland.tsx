@@ -1,10 +1,6 @@
 import { BrandCard, OgCard } from 'component-lib'
 import { useEffect, useMemo, useState } from 'react'
-import type {
-  SURefEntity,
-  SURefEnumSchemaName,
-  SURefObjectAnyPattern,
-} from 'salvageunion-reference'
+import type { RefEntity, RefEnumSchemaName, RefObjectAnyPattern } from 'salvageunion-reference'
 import {
   getEntitySlug,
   nameToSlug,
@@ -76,10 +72,10 @@ function OgCardResolved() {
 
   // Match the entity the same way getItemStaticPaths builds the og.png path:
   // by getEntitySlug (which getReferenceEntityData().slug also uses).
-  const entity = useMemo<SURefEntity | null>(() => {
+  const entity = useMemo<RefEntity | null>(() => {
     if (!target.schema || !target.item) return null
     try {
-      const all = SalvageUnionReference.findAllIn(target.schema as SURefEnumSchemaName, () => true)
+      const all = SalvageUnionReference.findAllIn(target.schema as RefEnumSchemaName, () => true)
       return all.find((candidate) => getEntitySlug(candidate) === target.item) ?? null
     } catch {
       // An unknown schema in the query string: render no card, as for an
@@ -92,11 +88,11 @@ function OgCardResolved() {
   // chassis's VISIBLE patterns, keyed by nameToSlug. A pattern target that
   // doesn't resolve must not silently fall back to the chassis tile — that would
   // ship the wrong card — so it reports MISSING below and is skipped.
-  const pattern = useMemo<SURefObjectAnyPattern | null>(() => {
+  const pattern = useMemo<RefObjectAnyPattern | null>(() => {
     if (!entity || !target.pattern) return null
-    // `patterns` lives on chassis only, so it isn't on the SURefEntity union —
+    // `patterns` lives on chassis only, so it isn't on the RefEntity union —
     // read it through a narrow accessor rather than widening the union.
-    const patterns = (entity as { patterns?: SURefObjectAnyPattern[] }).patterns ?? []
+    const patterns = (entity as { patterns?: RefObjectAnyPattern[] }).patterns ?? []
     return visiblePatterns(patterns).find((p) => nameToSlug(p.name) === target.pattern) ?? null
   }, [entity, target.pattern])
 

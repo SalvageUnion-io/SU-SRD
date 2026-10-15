@@ -9,7 +9,7 @@
  */
 import { describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from '../../index'
-import type { SURefAbility, SURefChassis, SURefClass, SURefEquipment } from '../../schemas/index'
+import type { RefAbility, RefChassis, RefClass, RefEquipment } from '../../schemas/index'
 import {
   CRAWLER_CREATION_MIN_WEAPONS,
   CRAWLER_CREATION_TECH_LEVEL,
@@ -37,7 +37,7 @@ import {
 
 const CORE_CLASS_NAMES = ['Engineer', 'Hacker', 'Hauler', 'Salvager', 'Scout', 'Soldier'] as const
 
-function classByName(name: string): SURefClass {
+function classByName(name: string): RefClass {
   const cls = SalvageUnionReference.Classes.getByName(name)
   if (!cls) throw new Error(`class "${name}" not found`)
   return cls
@@ -58,7 +58,7 @@ function coreTreesOf(name: string): readonly string[] | undefined {
   return 'coreTrees' in cls ? cls.coreTrees : undefined
 }
 
-function allAbilities(): SURefAbility[] {
+function allAbilities(): RefAbility[] {
   return SalvageUnionReference.Abilities.all()
 }
 
@@ -141,7 +141,7 @@ describe('legalCreationAbilities', () => {
 
 describe('isLegalCreationEquipment', () => {
   it('accepts Tech 1 and rejects every higher tier in the real catalog', () => {
-    const equipment: SURefEquipment[] = SalvageUnionReference.Equipment.all()
+    const equipment: RefEquipment[] = SalvageUnionReference.Equipment.all()
     const legal = equipment.filter((e) => isLegalCreationEquipment(e))
     expect(legal.length).toBeGreaterThan(0)
     for (const item of legal) expect(item.techLevel).toBe(1)
@@ -179,7 +179,7 @@ describe('pilot pick budgets (1 ability / 2 equipment)', () => {
 
 describe('isLegalCreationChassis / System / Module (Tech 1 only)', () => {
   it('accepts exactly the Tech 1 chassis in the real catalog', () => {
-    const chassis: SURefChassis[] = SalvageUnionReference.Chassis.all()
+    const chassis: RefChassis[] = SalvageUnionReference.Chassis.all()
     const legal = chassis.filter((c) => isLegalCreationChassis(c.techLevel))
     expect(legal.length).toBeGreaterThan(0)
     for (const c of legal) expect(c.techLevel).toBe(1)
@@ -224,7 +224,7 @@ describe('legalStartingPatterns (stored data tag — never computed)', () => {
   })
 
   it('every filtered pattern in the real catalog carries the stored flag', () => {
-    const chassis: SURefChassis[] = SalvageUnionReference.Chassis.all()
+    const chassis: RefChassis[] = SalvageUnionReference.Chassis.all()
     const allPatterns = chassis.flatMap((c) => c.patterns)
     const legal = legalStartingPatterns(allPatterns)
     expect(legal.length).toBeGreaterThan(0)

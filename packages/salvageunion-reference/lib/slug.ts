@@ -8,7 +8,7 @@
 
 import { getLoadedModelBySchemaId } from './ModelFactory'
 import { nameToSlug } from './nameToSlug'
-import type { SURefEntity, SURefEnumSchemaName } from './schemas/index'
+import type { RefEntity, RefEnumSchemaName } from './schemas/index'
 
 /**
  * Finds an entity in a schema by its slug
@@ -18,14 +18,11 @@ import type { SURefEntity, SURefEnumSchemaName } from './schemas/index'
  * Rows without a truthy string `name` are not slug-addressable, and on a slug
  * collision the FIRST row in data order wins.
  */
-export function findEntityBySlug(
-  schemaName: SURefEnumSchemaName,
-  slug: string
-): SURefEntity | null {
+export function findEntityBySlug(schemaName: RefEnumSchemaName, slug: string): RefEntity | null {
   try {
     const model = getLoadedModelBySchemaId(schemaName)
     if (!model) return null
-    return (model.getBySlug(slug) as SURefEntity | undefined) ?? null
+    return (model.getBySlug(slug) as RefEntity | undefined) ?? null
   } catch {
     return null
   }
@@ -35,7 +32,7 @@ export function findEntityBySlug(
  * Gets the slug for an entity
  * Returns the slug if the entity has a name, otherwise returns the ID
  */
-export function getEntitySlug(entity: SURefEntity): string {
+export function getEntitySlug(entity: RefEntity): string {
   if ('name' in entity && entity.name) {
     return nameToSlug(entity.name)
   }

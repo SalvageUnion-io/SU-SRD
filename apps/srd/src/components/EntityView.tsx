@@ -25,7 +25,7 @@
  * of the CLIENT island, where the narrow list is the point.
  */
 
-import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
+import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
 import { cardNeedsHydration } from '../lib/cardNeedsHydration'
 import { itemHref } from '../lib/entityHref'
@@ -38,10 +38,10 @@ import { EntityCardStatic } from './EntityCardStatic'
 import { StaticEntityContent } from './StaticEntityContent'
 
 type EntityViewProps = {
-  item: SURefEntity
+  item: RefEntity
   schemaId: string
   /** Render one of `item`'s patterns (chassis only) rather than `item` itself. */
-  pattern?: SURefObjectAnyPattern
+  pattern?: RefObjectAnyPattern
 }
 
 export function EntityView({ item, schemaId, pattern }: EntityViewProps) {

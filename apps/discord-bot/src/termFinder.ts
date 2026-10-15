@@ -14,7 +14,7 @@
  * any case.
  */
 
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import { getDataMaps, getSchemaCatalog, isSchemaName, toEntityModel } from 'salvageunion-reference'
 import type { LookupHit } from './lookupCard'
 
@@ -40,7 +40,7 @@ function termIndex(): Map<string, IndexEntry> {
   for (const schema of getSchemaCatalog().schemas) {
     if (schema.meta || !isSchemaName(schema.id)) continue
     const schemaName = schema.id
-    for (const entity of (dataMap[schemaName] as SURefEntity[] | undefined) ?? []) {
+    for (const entity of (dataMap[schemaName] as RefEntity[] | undefined) ?? []) {
       const hit: LookupHit = { schemaName, entity: { ...entity, schemaName } }
       const name = 'name' in entity && typeof entity.name === 'string' ? entity.name : ''
       if (name && !built.has(name.toLowerCase())) built.set(name.toLowerCase(), { hit })

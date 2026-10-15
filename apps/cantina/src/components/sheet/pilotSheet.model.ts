@@ -18,7 +18,7 @@ import type { GenericInventoryEntry, Pilot } from 'cantina-domain/schemas/pilot'
 import type { ProvenanceLine, TreeTrack } from 'component-lib'
 import { linesFromBreakdown, trackForTree } from 'component-lib'
 import { useMemo } from 'react'
-import type { SURefAbility } from 'salvageunion-reference'
+import type { RefAbility } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import {
   isPilotDead,
@@ -46,7 +46,7 @@ import type { SheetStoreState } from './sheetViewProps.model'
 const GENERIC_TREE = 'Generic'
 
 /** One learned ability, keyed by the slug the pilot record actually stores. */
-export type AbilityEntry = { slug: string; ability: SURefAbility }
+export type AbilityEntry = { slug: string; ability: RefAbility }
 
 /**
  * One tree the pilot has trained in: its taken Abilities in the tree's own

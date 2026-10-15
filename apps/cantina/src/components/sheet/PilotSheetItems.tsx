@@ -21,7 +21,7 @@ import {
 } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import type { SURefAbility } from 'salvageunion-reference'
+import type { RefAbility } from 'salvageunion-reference'
 import { resolveAbilityApCost } from '../../lib/abilityCost'
 import {
   equipmentMaxUses,
@@ -130,7 +130,7 @@ const CONDITION_CYCLE: Record<ItemCondition, ItemCondition> = {
 // ---------------------------------------------------------------------------
 
 type PilotAbilityItemProps = {
-  ability: SURefAbility
+  ability: RefAbility
   /** Pilot's current AP — gates whether the spend action is enabled. */
   currentAP: number
   /** Whether this ability has been marked used (once-per-rest tracking). */

@@ -3,10 +3,10 @@ import { toast, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type {
-  SURefCrawler,
-  SURefEntity,
-  SURefMetaCrawlerTechLevel,
-  SURefSystem,
+  RefCrawler,
+  RefEntity,
+  RefMetaCrawlerTechLevel,
+  RefSystem,
 } from 'salvageunion-reference'
 import { bookQuote, SalvageUnionReference } from 'salvageunion-reference'
 import {
@@ -126,14 +126,14 @@ export function CrawlerBuilder({
   // crawler-bays seeds the default bays + the Crew step; crawler-tech-levels
   // backs the Statistics step + the SP derivation. No per-component preload:
   // it is redundant behind the gate and costs an empty first render.
-  const techLevels = useMemo<SURefMetaCrawlerTechLevel[]>(
+  const techLevels = useMemo<RefMetaCrawlerTechLevel[]>(
     () =>
       [...SalvageUnionReference.CrawlerTechLevels.all()].sort((a, b) => a.techLevel - b.techLevel),
     []
   )
-  const allSystems = useMemo<SURefSystem[]>(() => SalvageUnionReference.Systems.all(), [])
-  const allBays = useMemo<SURefEntity[]>(() => SalvageUnionReference.CrawlerBays.all(), [])
-  const types = useMemo<SURefCrawler[]>(() => SalvageUnionReference.Crawlers.all(), [])
+  const allSystems = useMemo<RefSystem[]>(() => SalvageUnionReference.Systems.all(), [])
+  const allBays = useMemo<RefEntity[]>(() => SalvageUnionReference.CrawlerBays.all(), [])
+  const types = useMemo<RefCrawler[]>(() => SalvageUnionReference.Crawlers.all(), [])
 
   // Advisory prelude context (step 0): a gentle count of the pilots
   // and mechs saved here — surfaced in step 1's RuleBrief, NEVER a blocker
@@ -260,7 +260,7 @@ export function CrawlerBuilder({
 
   const chosenSystems = form.systems
     .map(resolveSystemRef)
-    .filter((s): s is SURefSystem & { schemaName: string } => s !== null)
+    .filter((s): s is RefSystem & { schemaName: string } => s !== null)
 
   // The Armament-Bay cap comes from the type's STORED `mutations` rows
   // (weapon_slots; Battle = 2). Selection clamps at this.

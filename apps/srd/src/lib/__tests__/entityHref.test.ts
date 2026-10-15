@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { itemHref, patternHref, schemaHref, srdEntityHref } from '../entityHref'
 import { ogImagePath } from '../ogCard'
@@ -43,7 +43,7 @@ describe('srd route grammar', () => {
 describe('srdEntityHref', () => {
   // A REAL entity off the ORM (preloaded by apps/srd/test/preload-reference.ts).
   // A hand-built literal cannot be used here: `schemaName` is stamped on by the
-  // ORM, not declared on `SURefEntity`, so a fake either fails to typecheck or
+  // ORM, not declared on `RefEntity`, so a fake either fails to typecheck or
   // stops testing the property the builder actually reads.
   const [chassis] = SalvageUnionReference.Chassis.all()
   if (!chassis) throw new Error('reference data was not preloaded')
@@ -53,7 +53,7 @@ describe('srdEntityHref', () => {
   })
 
   it('returns undefined when the entity carries no schemaName', () => {
-    // `schemaName` is NOT part of `SURefEntity` — the ORM stamps it on. So a
+    // `schemaName` is NOT part of `RefEntity` — the ORM stamps it on. So a
     // record that never went through the ORM is a real, reachable input here,
     // and the builder must decline it rather than emit `/undefined/...`.
     const { schemaName: _stampedByTheOrm, ...bare } = chassis
@@ -71,7 +71,7 @@ describe('srdEntityHref', () => {
       ...bay.npc,
       name: 'position' in bay.npc ? bay.npc.position : 'NPC',
       schemaName: 'npcs',
-    } as unknown as SURefEntity
+    } as unknown as RefEntity
     expect(srdEntityHref(commander)).toBeUndefined()
   })
 })

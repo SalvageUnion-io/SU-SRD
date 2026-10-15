@@ -1,11 +1,11 @@
 /**
  * Schema index - exports all Zod schemas and inferred TypeScript types.
  *
- * The per-entity SURef* aliases and the SURefEntity / SURefMetaEntity unions
+ * The per-entity Ref* aliases and the RefEntity / RefMetaEntity unions
  * are GENERATED from lib/schemas/registry.ts (tools/generateRegistry.ts) into
  * lib/generated/entityTypes.generated.ts and re-exported here, so union
  * membership cannot drift from the registry. Only the object-level aliases
- * (SURefObject*), which have no registry entry, are written below.
+ * (RefObject*), which have no registry entry, are written below.
  */
 
 import type { z } from '../zod'
@@ -36,25 +36,25 @@ import type {
   TraitSchema,
 } from './objects'
 
-// Inferred types, exported under the SURef* prefix used across the monorepo.
+// Inferred types, exported under the Ref* prefix used across the monorepo.
 
 // Enum types
-export type SURefEnumSchemaName = z.infer<typeof SchemaNameSchema>
+export type RefEnumSchemaName = z.infer<typeof SchemaNameSchema>
 
 // Object types
-export type SURefObjectTrait = z.infer<typeof TraitSchema>
-export type SURefObjectDataValue = z.infer<typeof DataValueSchema>
-export type SURefObjectContentBlock = z.infer<typeof ContentBlockSchema>
-export type SURefObjectTableContent = z.infer<typeof TableContentSchema>
-export type SURefObjectTable = z.infer<typeof TableSchema>
-export type SURefObjectSystemModule = z.infer<typeof SystemModuleSchema>
-export type SURefObjectChoice = z.infer<typeof ChoiceSchema>
-export type SURefObjectPattern = z.infer<typeof PatternSchema>
-export type SURefObjectBioTitanPattern = z.infer<typeof BioTitanPatternSchema>
+export type RefObjectTrait = z.infer<typeof TraitSchema>
+export type RefObjectDataValue = z.infer<typeof DataValueSchema>
+export type RefObjectContentBlock = z.infer<typeof ContentBlockSchema>
+export type RefObjectTableContent = z.infer<typeof TableContentSchema>
+export type RefObjectTable = z.infer<typeof TableSchema>
+export type RefObjectSystemModule = z.infer<typeof SystemModuleSchema>
+export type RefObjectChoice = z.infer<typeof ChoiceSchema>
+export type RefObjectPattern = z.infer<typeof PatternSchema>
+export type RefObjectBioTitanPattern = z.infer<typeof BioTitanPatternSchema>
 /** A pattern of either host: a mech pattern (on a chassis) or a Bio-Titan's. */
-export type SURefObjectAnyPattern = SURefObjectPattern | SURefObjectBioTitanPattern
-export type SURefObjectDamage = z.infer<typeof DamageSchema>
-export type SURefObjectBonusPerTechLevel = z.infer<typeof StatsSchema>
-export type SURefObjectAdvancedClass = z.infer<typeof AdvancedClassSchema>
-export type SURefObjectGrant = z.infer<typeof GrantSchema>
-export type SURefObjectGuideStep = z.infer<typeof GuideStepSchema>
+export type RefObjectAnyPattern = RefObjectPattern | RefObjectBioTitanPattern
+export type RefObjectDamage = z.infer<typeof DamageSchema>
+export type RefObjectBonusPerTechLevel = z.infer<typeof StatsSchema>
+export type RefObjectAdvancedClass = z.infer<typeof AdvancedClassSchema>
+export type RefObjectGrant = z.infer<typeof GrantSchema>
+export type RefObjectGuideStep = z.infer<typeof GuideStepSchema>

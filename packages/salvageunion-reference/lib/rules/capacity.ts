@@ -11,7 +11,7 @@
  */
 
 import { nameToSlug } from '../nameToSlug'
-import type { SURefChassis } from '../schemas/index'
+import type { RefChassis } from '../schemas/index'
 import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from './resolveRefs'
 import type { CapacityViolation, MechCapacityResult, MechInput } from './types'
 
@@ -209,7 +209,7 @@ export function computeMechCapacity(mech: MechInput): MechCapacityResult {
 }
 
 /** A pattern list's slugs, one per copy (`count` expanded), sorted. */
-function patternRefs(items: SURefChassis['patterns'][number]['systems']): string[] {
+function patternRefs(items: RefChassis['patterns'][number]['systems']): string[] {
   return items.flatMap((item) => Array<string>(item.count ?? 1).fill(nameToSlug(item.name))).sort()
 }
 
@@ -218,10 +218,7 @@ function sameRefs(a: readonly string[], b: readonly string[]): boolean {
 }
 
 /** The `AS_PRINTED_OVERFLOW` entry whose printed loadout this mech's is, if any. */
-function asPrintedOverflowOf(
-  chassis: SURefChassis,
-  mech: MechInput
-): AsPrintedOverflow | undefined {
+function asPrintedOverflowOf(chassis: RefChassis, mech: MechInput): AsPrintedOverflow | undefined {
   const entries = AS_PRINTED_OVERFLOW.filter((entry) => entry.chassis === chassis.name)
   if (entries.length === 0) return undefined
   const systems = mech.systems.map((s) => s.ref).sort()

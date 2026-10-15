@@ -29,7 +29,7 @@
  * there while the colour ramp stays.
  */
 
-import type { RollOnTableOutcome, SURefRollTable } from 'salvageunion-reference'
+import type { RefRollTable, RollOnTableOutcome } from 'salvageunion-reference'
 import {
   discordCiteLine,
   linkTraitReferences,
@@ -67,7 +67,7 @@ const TIERED_TABLE_TYPES = new Set([
   'salvage-cache',
 ])
 
-export function isTieredTable(table: SURefRollTable): boolean {
+export function isTieredTable(table: RefRollTable): boolean {
   return TIERED_TABLE_TYPES.has(table.table.type)
 }
 
@@ -158,7 +158,7 @@ function landsOn(outcome: Extract<RollOnTableOutcome, { kind: 'flat' | 'columns'
  * blocks.
  */
 export function buildRollContainerData(
-  table: SURefRollTable,
+  table: RefRollTable,
   outcome: Extract<RollOnTableOutcome, { kind: 'flat' | 'columns' }>,
   context: RollContext = {}
 ): ContainerData {

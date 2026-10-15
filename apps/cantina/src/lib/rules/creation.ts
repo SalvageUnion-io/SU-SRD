@@ -13,7 +13,7 @@
  * route loaders already do).
  */
 
-import type { SURefAbility, SURefClass, SURefEquipment, SURefSystem } from 'salvageunion-reference'
+import type { RefAbility, RefClass, RefEquipment, RefSystem } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { CrawlerMutationInput, MechCreationBudget } from 'salvageunion-reference/rules'
 import {
@@ -101,37 +101,37 @@ function npcHitPointsGate(text: string): StepGateResult {
   return hp >= 1 ? OK : { ok: false, reason: 'An NPC needs at least 1 HP.' }
 }
 
-function findClass(classId: string): SURefClass | undefined {
+function findClass(classId: string): RefClass | undefined {
   if (!classId) return undefined
   return SalvageUnionReference.Classes.getById(classId)
 }
 
 /**
- * The class branch of the `SURefClass` union that actually carries `coreTrees`.
+ * The class branch of the `RefClass` union that actually carries `coreTrees`.
  * Reaching the field type through the schema-inferred type keeps the tree
  * NAMES a closed union (`z.array(TreeSchema)`, 36 literals) instead of
  * flattening them to `string` — a hand-typed tree name is then a compile
  * error here rather than a silently-empty ability list at runtime.
  */
-type ClassCoreTrees = Extract<SURefClass, { coreTrees: unknown }>['coreTrees']
+type ClassCoreTrees = Extract<RefClass, { coreTrees: unknown }>['coreTrees']
 
 /**
  * The neutral input the package predicates read: a class's core ability trees,
- * or `undefined`. Narrowing the `SURefClass` union to `coreTrees` HERE (the
+ * or `undefined`. Narrowing the `RefClass` union to `coreTrees` HERE (the
  * specialisation branch has no such property) keeps the package predicates
  * free of the union entirely. The predicates take the widened
  * `readonly string[]`, so the union survives this hop by covariance without
  * forcing the package to know about it.
  */
-function coreTreesOf(cls: SURefClass | undefined): ClassCoreTrees | undefined {
+function coreTreesOf(cls: RefClass | undefined): ClassCoreTrees | undefined {
   return cls && 'coreTrees' in cls ? cls.coreTrees : undefined
 }
 
-function findAbility(slug: string): SURefAbility | undefined {
+function findAbility(slug: string): RefAbility | undefined {
   return SalvageUnionReference.Abilities.getBySlug(slug)
 }
 
-function findEquipment(slug: string): SURefEquipment | undefined {
+function findEquipment(slug: string): RefEquipment | undefined {
   return SalvageUnionReference.Equipment.getBySlug(slug)
 }
 
@@ -594,7 +594,7 @@ export function crawlerWeaponSlotsFor(typeRef: string | null): number {
   return crawlerWeaponSlots(crawlerTypeMutationsOf(typeRef))
 }
 
-function findCrawlerWeapon(ref: string): SURefSystem | null {
+function findCrawlerWeapon(ref: string): RefSystem | null {
   return resolveSystemRef(ref)
 }
 

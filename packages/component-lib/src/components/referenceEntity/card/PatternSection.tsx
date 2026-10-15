@@ -1,5 +1,5 @@
 import type { ElementType, ReactNode } from 'react'
-import type { SURefMetaAction } from 'salvageunion-reference'
+import type { RefMetaAction } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
 import { Slab } from '../../atoms/Slab'
 import { cardKey, nestedTitleLevel } from './cardHelpers'
@@ -29,7 +29,7 @@ export function PatternSection({
   /** The mech loadout — empty when hidden or for a Bio-Titan pattern. */
   groups: NestedGroup[]
   /** The actions a Bio-Titan pattern adds — empty when hidden. */
-  actions: SURefMetaAction[]
+  actions: RefMetaAction[]
   padding: string
   sectionAs: ElementType | undefined
   host: NestedCardHost

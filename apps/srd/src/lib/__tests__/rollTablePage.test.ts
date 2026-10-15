@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { rollTablePageData } from '../../components/RollTablePage'
 import type { RollTableRow } from '../rollTablePage'
@@ -19,12 +19,12 @@ const need = <T>(value: T | undefined, label: string): T => {
 }
 
 const tableNamed = (name: string) =>
-  need(SalvageUnionReference.RollTables.getByName(name), name) as SURefEntity
+  need(SalvageUnionReference.RollTables.getByName(name), name) as RefEntity
 const firstOfType = (type: string) =>
   need(
     SalvageUnionReference.RollTables.all().find((t) => t.table.type === type),
     `a ${type} table`
-  ) as SURefEntity
+  ) as RefEntity
 
 describe('refText', () => {
   test('a band’s trait markup becomes references, resolved where the trait exists', () => {

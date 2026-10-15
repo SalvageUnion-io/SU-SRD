@@ -26,7 +26,7 @@
  * resolves to nothing.
  */
 
-import type { SURefClass } from 'salvageunion-reference'
+import type { RefClass } from 'salvageunion-reference'
 import { isBaseAdvancedClass, isCoreClass } from 'salvageunion-reference'
 import type { AdvancementOption } from 'salvageunion-reference/rules'
 import {
@@ -40,7 +40,7 @@ export type ClassPathGroupKind = 'reachable' | 'core' | 'off-ring'
 
 export type ClassPathOption = {
   /** The class record to select. */
-  cls: SURefClass
+  cls: RefClass
   /** Short caption: how this destination is reached, or why it is demoted. */
   note?: string
   /** True for the pilot's current class. */
@@ -76,7 +76,7 @@ export type ClassPathConsequence = {
  * a Salvager never had it.
  */
 export function classPathGroups(
-  allClasses: readonly SURefClass[],
+  allClasses: readonly RefClass[],
   currentClassRef: string
 ): ClassPathGroup[] {
   const data = liveAdvancementDataset()
@@ -137,7 +137,7 @@ export function classPathGroups(
  * is "do I lose the abilities I already have?" — and the answer is never.
  */
 export function classPathConsequence(
-  allClasses: readonly SURefClass[],
+  allClasses: readonly RefClass[],
   currentClassRef: string,
   pendingRef: string
 ): ClassPathConsequence | undefined {
@@ -208,7 +208,7 @@ export function classPathConsequence(
  * who is not a hybrid has no origin to record.
  */
 export function classChangePatch(
-  allClasses: readonly SURefClass[],
+  allClasses: readonly RefClass[],
   pendingRef: string,
   answeredOrigin: string | undefined
 ): { classRef: string; originClassRef?: string | undefined } {

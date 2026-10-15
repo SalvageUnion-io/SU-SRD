@@ -1,4 +1,4 @@
-import type { FacetCell, SURefEnumSchemaName } from 'salvageunion-reference'
+import type { FacetCell, RefEnumSchemaName } from 'salvageunion-reference'
 import { glossaryRef } from 'salvageunion-reference'
 import { actionTypeStamps } from '../../../entity/parts/actionStamps'
 import type { TagItem } from '../../../entity/parts/tagItems'
@@ -17,7 +17,7 @@ export type CardFacetCell = {
   /** Marks a stat a choice or the Tech Level changed (the modified-stats language). */
   borderColor?: string
   /** The rules entity the cell names (a trait, a keyword), for its hovercard. */
-  entityRef?: { schemaName: SURefEnumSchemaName; name: string }
+  entityRef?: { schemaName: RefEnumSchemaName; name: string }
   /** The entity model's facet this cell is. */
   facet?: Pick<
     FacetCell,

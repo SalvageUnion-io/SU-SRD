@@ -12,7 +12,7 @@
  * consumers import.
  */
 
-import type { SURefMetaEntity } from './schemas/index'
+import type { RefMetaEntity } from './schemas/index'
 import { getEntitySlug } from './slug'
 
 /**
@@ -35,7 +35,7 @@ const ASSET_BASE_URL = 'https://assets.salvageunion.io'
  * @returns The asset URL, or undefined if the entity has no artwork
  */
 
-export function getAssetUrl(entity: SURefMetaEntity): string | undefined {
+export function getAssetUrl(entity: RefMetaEntity): string | undefined {
   if (!('hasArtwork' in entity) || entity.hasArtwork !== true) {
     return undefined
   }

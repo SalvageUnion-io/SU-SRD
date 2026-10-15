@@ -1,4 +1,4 @@
-import type { SURefObjectTable, SURefObjectTableContent } from '../schemas/index'
+import type { RefObjectTable, RefObjectTableContent } from '../schemas/index'
 
 /**
  * Column range keys for columns-type tables
@@ -8,7 +8,7 @@ const COLUMN_RANGE_KEYS = ['1-4', '5-8', '9-12', '13-16', '17-20'] as const
 /**
  * The multi-column (two-roll) member of the table union
  */
-type ColumnsTable = Extract<SURefObjectTable, { type: 'columns' }>
+type ColumnsTable = Extract<RefObjectTable, { type: 'columns' }>
 
 /**
  * Entry keys ('1'–'20') within a single column of a columns-type table
@@ -30,13 +30,13 @@ export type ColumnsTableRollResult = {
   success: boolean
   columnKey: string
   entryKey: string
-  result: SURefObjectTableContent
+  result: RefObjectTableContent
 }
 
 /**
  * Checks whether a table is a columns-type table (multi-column, two-roll)
  */
-export function isColumnsTable(table: SURefObjectTable | undefined): table is ColumnsTable {
+export function isColumnsTable(table: RefObjectTable | undefined): table is ColumnsTable {
   if (!table) return false
   return table.type === 'columns'
 }
@@ -50,7 +50,7 @@ export function isColumnsTable(table: SURefObjectTable | undefined): table is Co
  * @returns Object with success flag, column key, entry key, and result
  */
 export function resultForColumnsTable(
-  table: SURefObjectTable | undefined,
+  table: RefObjectTable | undefined,
   columnRoll: number,
   entryRoll: number
 ): ColumnsTableRollResult {
@@ -100,14 +100,14 @@ export function resultForColumnsTable(
  */
 export type TableRollResult = {
   success: boolean
-  result: SURefObjectTableContent
+  result: RefObjectTableContent
   key: string
 }
 
 /**
  * Resolves a d20 roll against a table to get the result
  *
- * @param table - The roll table data (SURefRollTable['table'] | SURefSystem['table'] | undefined)
+ * @param table - The roll table data (RefRollTable['table'] | RefSystem['table'] | undefined)
  * @param roll - The d20 roll result (1-20)
  * @returns Object with success flag and result object containing optional label and required value
  *
@@ -119,7 +119,7 @@ export type TableRollResult = {
  *   console.log(result.result.label); // "Success" (if present)
  * }
  */
-export function resultForTable(table: SURefObjectTable | undefined, roll: number): TableRollResult {
+export function resultForTable(table: RefObjectTable | undefined, roll: number): TableRollResult {
   if (!table) {
     return {
       success: false,
@@ -168,7 +168,7 @@ export function resultForTable(table: SURefObjectTable | undefined, roll: number
  * unreadable content), a columns table or an impossible roll is not a miss: it
  * is a fault.
  */
-export function isNoEffectRoll(table: SURefObjectTable | undefined, roll: number): boolean {
+export function isNoEffectRoll(table: RefObjectTable | undefined, roll: number): boolean {
   if (!table || isColumnsTable(table)) return false
   if (!Number.isInteger(roll) || roll < 1 || roll > 20) return false
   const keys = Object.keys(table).filter((k) => /^\d+(-\d+)?$/.test(k))

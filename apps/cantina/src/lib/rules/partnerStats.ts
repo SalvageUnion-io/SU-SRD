@@ -29,7 +29,7 @@
  */
 
 import type { PartnerInstance } from 'cantina-domain/schemas/partner'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { StatBreakdown } from 'salvageunion-reference/rules'
 import { partnerGrantCount } from './partnerGrants'
@@ -68,7 +68,7 @@ export type PartnerDerivedStats = Record<PartnerStatKey, number>
  * (an opposition stat block: SP 1 and nothing else). Searching both files by
  * slug would resolve the wrong one roughly half the time.
  */
-export function resolvePartnerStatBlock(partner: PartnerInstance): SURefEntity | null {
+export function resolvePartnerStatBlock(partner: PartnerInstance): RefEntity | null {
   const model =
     partner.hostSchema === 'equipment'
       ? SalvageUnionReference.Equipment
@@ -77,7 +77,7 @@ export function resolvePartnerStatBlock(partner: PartnerInstance): SURefEntity |
 }
 
 /** Read a numeric field off a resolved reference record. */
-function statOf(entity: SURefEntity | null, key: string): number | undefined {
+function statOf(entity: RefEntity | null, key: string): number | undefined {
   if (!entity) return undefined
   const value = (entity as Record<string, unknown>)[key]
   return typeof value === 'number' ? value : undefined

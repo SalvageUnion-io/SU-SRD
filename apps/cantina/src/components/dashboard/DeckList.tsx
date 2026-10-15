@@ -26,7 +26,7 @@ import type { CSSProperties } from 'react'
  */
 export type DeckRow = {
   key: string
-  /** Any card-renderable entity — ACTIONS are meta-entities, not `SURefEntity`. */
+  /** Any card-renderable entity — ACTIONS are meta-entities, not `RefEntity`. */
   entity: ReferenceCardEntity
   /** Accessible name for the clickable tile (the action name). */
   name: string

@@ -3,11 +3,11 @@
  * what it promises before you confirm.
  */
 import { describe, expect, it } from 'bun:test'
-import type { SURefClass } from 'salvageunion-reference'
+import type { RefClass } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { classChangePatch, classPathConsequence, classPathGroups } from '../classPath'
 
-const all = () => SalvageUnionReference.Classes.all() as SURefClass[]
+const all = () => SalvageUnionReference.Classes.all() as RefClass[]
 const idOf = (name: string): string => {
   const cls = all().find((c) => c.name === name)
   if (cls === undefined) throw new Error(`no such class: ${name}`)

@@ -8,7 +8,7 @@
  * grouping, the name -> entity resolution, and the "nothing to resolve" exits.
  */
 import { describe, expect, test } from 'bun:test'
-import type { SURefEntity, SURefMetaEntity, SURefObjectPattern } from 'salvageunion-reference'
+import type { RefEntity, RefMetaEntity, RefObjectPattern } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { malformed } from 'salvageunion-reference/testing'
 import {
@@ -19,20 +19,20 @@ import {
   resolvePatternGroups,
 } from '../resolveNestedEntities'
 
-const chassis = (name: string): SURefMetaEntity => {
+const chassis = (name: string): RefMetaEntity => {
   const match = SalvageUnionReference.Chassis.getByName(name)
   if (!match) throw new Error(`fixture missing: chassis ${name}`)
-  return match as SURefMetaEntity
+  return match as RefMetaEntity
 }
 
-const pattern = (chassisName: string, patternName: string): SURefObjectPattern => {
-  const patterns = (chassis(chassisName) as { patterns?: SURefObjectPattern[] }).patterns ?? []
+const pattern = (chassisName: string, patternName: string): RefObjectPattern => {
+  const patterns = (chassis(chassisName) as { patterns?: RefObjectPattern[] }).patterns ?? []
   const match = patterns.find((p) => p.name === patternName)
   if (!match) throw new Error(`fixture missing: pattern ${chassisName}/${patternName}`)
   return match
 }
 
-const names = (entities: readonly SURefEntity[]): string[] =>
+const names = (entities: readonly RefEntity[]): string[] =>
   entities.map((e) => ('name' in e && typeof e.name === 'string' ? e.name : '?'))
 
 const group = (groups: ReturnType<typeof resolveNestedEntities>, label: string) =>
@@ -46,7 +46,7 @@ describe('resolveNestedEntities', () => {
     // handles for real chassis — see the drone-loadout suite below).
     // `null` is not a legal entry; it is here to prove the reader skips it.
     const groups = resolveNestedEntities(
-      malformed<SURefMetaEntity>({
+      malformed<RefMetaEntity>({
         chassisAbilities: [
           'some-ability-id',
           { name: 'Controller', drone: 'Sestra Drone' },
@@ -60,7 +60,7 @@ describe('resolveNestedEntities', () => {
 
   test('the same drone named by two abilities is listed once', () => {
     const groups = resolveNestedEntities(
-      malformed<SURefMetaEntity>({
+      malformed<RefMetaEntity>({
         chassisAbilities: [
           { drone: 'Sestra Drone' },
           { drone: 'Sestra Drone' },
@@ -77,7 +77,7 @@ describe('resolveNestedEntities', () => {
 
   test("a crawler's embedded commander is synthesized into an npcs-schema entity", () => {
     const groups = resolveNestedEntities(
-      SalvageUnionReference.Crawlers.getByName('Augmented') as SURefMetaEntity
+      SalvageUnionReference.Crawlers.getByName('Augmented') as RefMetaEntity
     )
     const npcs = group(groups, 'NPCs')
     expect(npcs).toBeDefined()
@@ -92,14 +92,14 @@ describe('resolveNestedEntities', () => {
   test('an ability that grants equipment surfaces it under "Grants"', () => {
     const ability = SalvageUnionReference.Abilities.getByName('Auto-Turret')
     if (!ability) throw new Error('fixture missing: Auto-Turret')
-    const grants = group(resolveNestedEntities(ability as SURefMetaEntity), 'Grants')
+    const grants = group(resolveNestedEntities(ability as RefMetaEntity), 'Grants')
     expect(names(grants?.entities ?? [])).toContain('Auto-Turret')
   })
 
   test('an entity with nothing nested resolves to no groups at all', () => {
     const plain = SalvageUnionReference.Systems.getByName('Red Laser')
     if (!plain) throw new Error('fixture missing: Red Laser')
-    expect(resolveNestedEntities(plain as SURefMetaEntity)).toEqual([])
+    expect(resolveNestedEntities(plain as RefMetaEntity)).toEqual([])
   })
 })
 
@@ -124,7 +124,7 @@ describe('resolvePatternGroups', () => {
     const groups = resolvePatternGroups({
       name: 'Fake',
       systems: [{ name: 'Green Laser' }, { name: 'No Such System' }],
-    } as SURefObjectPattern)
+    } as RefObjectPattern)
     expect(names(group(groups, 'Systems')?.entities ?? [])).toEqual(['Green Laser'])
   })
 
@@ -175,7 +175,7 @@ describe('resolvePatternGroups', () => {
     const groups = resolvePatternGroups({
       name: 'Fake',
       systems: [{ name: 'Green Laser', count: 1 }, { name: 'Escape Hatch' }],
-    } as SURefObjectPattern)
+    } as RefObjectPattern)
     expect(names(group(groups, 'Systems')?.entities ?? [])).toEqual(['Green Laser', 'Escape Hatch'])
   })
 
@@ -185,7 +185,7 @@ describe('resolvePatternGroups', () => {
     const groups = resolvePatternGroups({
       name: 'Fake',
       systems: [{ name: 'Green Laser', count: 0 }, { name: 'Escape Hatch' }],
-    } as SURefObjectPattern)
+    } as RefObjectPattern)
     expect(names(group(groups, 'Systems')?.entities ?? [])).toEqual(['Escape Hatch'])
   })
 
@@ -193,7 +193,7 @@ describe('resolvePatternGroups', () => {
     const groups = resolvePatternGroups({
       name: 'Fake',
       systems: [{ name: 'Green Laser', count: 0 }],
-    } as SURefObjectPattern)
+    } as RefObjectPattern)
     expect(group(groups, 'Systems')).toBeUndefined()
   })
 
@@ -201,12 +201,12 @@ describe('resolvePatternGroups', () => {
     const groups = resolvePatternGroups({
       name: 'Fake',
       modules: [{ name: 'Comms Module', count: 3 }],
-    } as SURefObjectPattern)
+    } as RefObjectPattern)
     expect(group(groups, 'Modules')?.entities).toHaveLength(3)
   })
 
   test('an empty pattern yields no groups', () => {
-    expect(resolvePatternGroups({ name: 'Fake' } as SURefObjectPattern)).toEqual([])
+    expect(resolvePatternGroups({ name: 'Fake' } as RefObjectPattern)).toEqual([])
   })
 })
 
@@ -222,10 +222,10 @@ describe('drone loadouts', () => {
 
   test('resolveChassisDrone returns undefined when no ability names a drone', () => {
     const noDrone = SalvageUnionReference.Chassis.all().find(
-      (c) => resolveChassisDrone(c as SURefMetaEntity) === undefined
+      (c) => resolveChassisDrone(c as RefMetaEntity) === undefined
     )
     expect(noDrone).toBeDefined()
-    expect(resolveChassisDrone(noDrone as SURefMetaEntity)).toBeUndefined()
+    expect(resolveChassisDrone(noDrone as RefMetaEntity)).toBeUndefined()
   })
 
   test("resolvePatternDrones resolves the PATTERN's drone loadout by name", () => {
@@ -297,15 +297,15 @@ describe('drone loadouts', () => {
   test("resolveDroneOwnLoadout reads the drone entity's own name arrays", () => {
     const drone = SalvageUnionReference.findIn('drones', (d) => d.name === 'Sestra Drone')
     if (!drone) throw new Error('fixture missing: Sestra Drone')
-    const loadout = resolveDroneOwnLoadout(drone as SURefMetaEntity)
+    const loadout = resolveDroneOwnLoadout(drone as RefMetaEntity)
     expect(names(loadout.systems)).toEqual(['Hover Locomotion System'])
     expect(loadout.modules).toEqual([])
   })
 
   test('resolveDroneOwnLoadout tolerates missing / non-array loadout fields', () => {
-    expect(resolveDroneOwnLoadout({} as SURefMetaEntity)).toEqual({ systems: [], modules: [] })
+    expect(resolveDroneOwnLoadout({} as RefMetaEntity)).toEqual({ systems: [], modules: [] })
     expect(
-      resolveDroneOwnLoadout(malformed<SURefMetaEntity>({ systems: 'Green Laser', modules: null }))
+      resolveDroneOwnLoadout(malformed<RefMetaEntity>({ systems: 'Green Laser', modules: null }))
     ).toEqual({ systems: [], modules: [] })
   })
 })

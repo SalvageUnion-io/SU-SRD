@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import type { SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-reference'
+import type { RefEnumSchemaName, RefMetaEntity } from 'salvageunion-reference'
 import { EntitySchemaNames, SalvageUnionReference } from 'salvageunion-reference'
 import { CHAPTER_BAND_COLOR } from '../../components/atoms/chapterBandColor'
 import { rollBandColor } from '../../components/compositions/rollTableBands'
@@ -106,9 +106,9 @@ function everyCardTone(): Map<string, DomainTone> {
   const tones = new Map<string, DomainTone>()
   for (const schema of EntitySchemaNames) {
     if (!resolveSchemaDomain(schema)) continue
-    const name = schema as SURefEnumSchemaName
+    const name = schema as RefEnumSchemaName
     for (const entity of SalvageUnionReference.findAllIn(name, () => true)) {
-      const tone = resolveCardTone(name, entity as SURefMetaEntity)
+      const tone = resolveCardTone(name, entity as RefMetaEntity)
       tones.set(tone.bgColor ?? tone.bg ?? 'none', tone)
     }
   }
@@ -324,7 +324,7 @@ describe('ink on colour — the refresh pairs', () => {
  */
 describe('roll-table bands in the surface tone', () => {
   const guideTones = SalvageUnionReference.Guides.all().flatMap((guide) => {
-    const tone = entityGuideToneColor(guide as SURefMetaEntity)
+    const tone = entityGuideToneColor(guide as RefMetaEntity)
     return tone ? [tone] : []
   })
   const techLevels = ['1', '2', '3', '4', '5', '6', 'b', 'n'].map((tl) => `var(--color-tl-${tl})`)

@@ -7,14 +7,14 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
-import type { SURefMetaEntity } from 'salvageunion-reference'
+import type { RefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { Entity } from '../Entity'
 
 const get = (schema: string, name: string) => {
   const entity = SalvageUnionReference.getByNameIn(schema as never, name)
   if (!entity) throw new Error(`fixture missing: ${schema} ${name}`)
-  return entity as SURefMetaEntity
+  return entity as RefMetaEntity
 }
 
 /** Each chip's text, and the cost box's, in order. */

@@ -13,7 +13,7 @@
 
 import type { CargoLot } from 'cantina-domain/schemas/cargoLot'
 import type { Mech } from 'cantina-domain/schemas/mech'
-import type { SURefChassis } from 'salvageunion-reference'
+import type { RefChassis } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { mechPartnerSeeds, syncPartners } from '../rules/partnerGrants'
@@ -52,7 +52,7 @@ export const EMPTY_MECH_FORM_STATE: MechWizardFormState = {
 }
 
 /** One of a chassis's printed patterns: a name and its loadout. */
-export type MechPattern = SURefChassis['patterns'][number]
+export type MechPattern = RefChassis['patterns'][number]
 
 /**
  * The canonical starting-pattern prefill: the pattern's name (and the mech's,

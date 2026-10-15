@@ -1,5 +1,5 @@
 import type { CSSProperties, ElementType } from 'react'
-import type { SURefEntity, SURefMetaEntity } from 'salvageunion-reference'
+import type { RefEntity, RefMetaEntity } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
 import { Entity } from '../../../entity/Entity'
 import { cn } from '../../../utils/cn'
@@ -118,11 +118,11 @@ export function PatternLoadout({
  * host's band does.
  */
 export function LoadoutToken({ data, hostDown }: { data: ReferenceCardEntity; hostDown?: Down }) {
-  const href = useEntityHref(data as SURefEntity)
+  const href = useEntityHref(data as RefEntity)
   return (
     <Entity
       form="token"
-      entity={data as SURefMetaEntity}
+      entity={data as RefMetaEntity}
       mode={href ? { kind: 'link', href } : { kind: 'link' }}
       {...(hostDown ? { instance: { condition: conditionOf(hostDown) } } : {})}
     />

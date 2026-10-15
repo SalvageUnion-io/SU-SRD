@@ -9,15 +9,15 @@
  * requirement names one of its own trees. The Salvager advances into nothing
  * (`advanceable: false`), though its trees span every class.
  */
-import type { SURefAbility, SURefClass } from 'salvageunion-reference'
+import type { RefAbility, RefClass } from 'salvageunion-reference'
 import { isBaseAdvancedClass, isCoreClass, SalvageUnionReference } from 'salvageunion-reference'
 
-export type AbilityTreeGroup = { tree: string; abilities: SURefAbility[] }
+export type AbilityTreeGroup = { tree: string; abilities: RefAbility[] }
 
 /** One way a Core class advances, or a Hybrid Class's own trees. */
 export type ClassPath = {
   /** The Hybrid Class; absent for the Core class's own Advanced tree. */
-  hybrid?: SURefClass
+  hybrid?: RefClass
   advanced: AbilityTreeGroup
   legendary: AbilityTreeGroup | null
   /** The Core trees the book requires, any one of them (`ability-tree-requirements`). */
@@ -30,12 +30,12 @@ export type ClassPath = {
 export type BranchTree = {
   tree: string
   group: AbilityTreeGroup | null
-  owner: SURefClass | undefined
+  owner: RefClass | undefined
 }
 
 export type ClassPlan =
-  | { kind: 'core'; classEntity: SURefClass; coreTrees: AbilityTreeGroup[]; paths: ClassPath[] }
-  | { kind: 'hybrid'; classEntity: SURefClass; path: ClassPath; branches: BranchTree[] }
+  | { kind: 'core'; classEntity: RefClass; coreTrees: AbilityTreeGroup[]; paths: ClassPath[] }
+  | { kind: 'hybrid'; classEntity: RefClass; path: ClassPath; branches: BranchTree[] }
   | { kind: 'none' }
 
 function levelOrder(level: number | 'L' | 'G'): number {
@@ -71,7 +71,7 @@ function pathFor(
 }
 
 /** The Core class that owns a tree: one that advances, so never the Salvager. */
-function treeOwner(tree: string): SURefClass | undefined {
+function treeOwner(tree: string): RefClass | undefined {
   return SalvageUnionReference.Classes.all().find((c) => {
     if (!isCoreClass(c) || !c.advanceable) return false
     const trees: readonly string[] = c.coreTrees
@@ -79,7 +79,7 @@ function treeOwner(tree: string): SURefClass | undefined {
   })
 }
 
-export function resolveClassPlan(classEntity: SURefClass): ClassPlan {
+export function resolveClassPlan(classEntity: RefClass): ClassPlan {
   const requirements = requirementsByTree()
   if (isCoreClass(classEntity)) {
     const ownTrees: readonly string[] = classEntity.coreTrees

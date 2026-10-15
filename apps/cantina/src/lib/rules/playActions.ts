@@ -19,12 +19,7 @@ import type { ItemCondition } from 'cantina-domain/schemas/itemCondition'
 import type { Mech } from 'cantina-domain/schemas/mech'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
 import type { RangeBand } from 'cantina-domain/schemas/seat'
-import type {
-  SURefAbility,
-  SURefEquipment,
-  SURefMetaAction,
-  SURefMetaEntity,
-} from 'salvageunion-reference'
+import type { RefAbility, RefEquipment, RefMetaAction, RefMetaEntity } from 'salvageunion-reference'
 import { resultForTable, SalvageUnionReference } from 'salvageunion-reference'
 import type {
   CoreRollBand,
@@ -241,7 +236,7 @@ export type PlayAction = {
   /** What one activation costs / produces (per action). */
   economy: MechItemEconomy
   /** The action itself, for the reference card + range/damage/traits meta. */
-  action: SURefMetaAction
+  action: RefMetaAction
   /** Live condition of the owning item ('intact' for chassis/pilot abilities). */
   condition: ItemCondition
 }
@@ -265,7 +260,7 @@ function traitAmount(trait: { amount?: unknown }): number {
 }
 
 /** Per-action economy (EP/AP from cost, Heat from Hot, uses from Uses). */
-function actionEconomy(action: SURefMetaAction): MechItemEconomy {
+function actionEconomy(action: RefMetaAction): MechItemEconomy {
   const epCost = typeof action.activationCost === 'number' ? action.activationCost : 0
   const heat = (action.traits ?? [])
     .filter((t) => t.type === 'hot')
@@ -276,12 +271,12 @@ function actionEconomy(action: SURefMetaAction): MechItemEconomy {
   return { epCost, heat, maxUses }
 }
 
-function entityActions(entity: SURefMetaEntity): SURefMetaAction[] {
+function entityActions(entity: RefMetaEntity): RefMetaAction[] {
   return SalvageUnionReference.resolveActions(entity) ?? []
 }
 
 /** Non-rendering `hidden` actions are book-keeping only — never deck cards. */
-function deckActions(entity: SURefMetaEntity): SURefMetaAction[] {
+function deckActions(entity: RefMetaEntity): RefMetaAction[] {
   return entityActions(entity).filter((a) => !a.hidden)
 }
 
@@ -344,7 +339,7 @@ export function buildMechActions(mech: Mech): PlayAction[] {
 }
 
 /** Resolve a pilot ability slug against the reference ORM. */
-function resolveAbilityBySlug(slug: string): SURefAbility | null {
+function resolveAbilityBySlug(slug: string): RefAbility | null {
   return SalvageUnionReference.Abilities.getBySlug(slug) ?? null
 }
 
@@ -377,7 +372,7 @@ export function buildPilotActions(pilot: Pilot): PlayAction[] {
   }
 
   for (const slug of pilot.equipment ?? []) {
-    const equip: SURefEquipment | null = resolveEquipment(slug)
+    const equip: RefEquipment | null = resolveEquipment(slug)
     if (!equip) continue
     const condition = pilot.equipmentConditions?.[slug] ?? 'intact'
     deckActions(equip).forEach((action, i) => {
@@ -404,7 +399,7 @@ export function buildPilotActions(pilot: Pilot): PlayAction[] {
 // ---------------------------------------------------------------------------
 
 /** Whether a timing tab admits this action (`All` admits everything). */
-export function tabMatchesAction(tab: TimingTab, action: SURefMetaAction): boolean {
+export function tabMatchesAction(tab: TimingTab, action: RefMetaAction): boolean {
   if (tab === 'All') return true
   const want = tab === 'React' ? 'Reaction' : tab
   return action.actionType === want
@@ -414,7 +409,7 @@ export function tabMatchesAction(tab: TimingTab, action: SURefMetaAction): boole
  * Whether an action's declared range covers the given band. Actions with NO
  * declared range (utility / passive) are treated as always in range.
  */
-export function actionInRange(action: SURefMetaAction, band: RangeBand): boolean {
+export function actionInRange(action: RefMetaAction, band: RangeBand): boolean {
   const ranges = action.range
   if (!ranges || ranges.length === 0) return true
   return ranges.includes(band)
@@ -476,7 +471,7 @@ export function groupBySource(actions: PlayAction[]): PlayActionGroup[] {
  * `activationCurrency` enum is descriptive text no rules helper consumes; a real
  * choice ('EP or AP') is authored in the Dashboard resolve flow as a radio pair.
  */
-export function hasCurrencyChoice(action: SURefMetaAction): boolean {
+export function hasCurrencyChoice(action: RefMetaAction): boolean {
   return action.activationCurrency === 'EP or AP'
 }
 
@@ -485,7 +480,7 @@ export function hasCurrencyChoice(action: SURefMetaAction): boolean {
  * These need a player-picked amount (a `− X +` stepper); the stored data only
  * marks heat as variable, never a value/range.
  */
-export function hasVariableHot(action: SURefMetaAction): boolean {
+export function hasVariableHot(action: RefMetaAction): boolean {
   return (action.traits ?? []).some((t) => t.type === 'hot' && t.amount === 'X')
 }
 
@@ -495,7 +490,7 @@ export function hasVariableHot(action: SURefMetaAction): boolean {
  * `actionEconomy`); the variable 'X' Hot uses the picked value (clamped ≥ 0).
  * Non-Hot actions produce 0.
  */
-export function hotHeatFor(action: SURefMetaAction, hotX: number): number {
+export function hotHeatFor(action: RefMetaAction, hotX: number): number {
   return (action.traits ?? [])
     .filter((t) => t.type === 'hot')
     .reduce((sum, t) => {
@@ -511,7 +506,7 @@ export function hotHeatFor(action: SURefMetaAction, hotX: number): number {
  */
 export function economyForActivation(
   base: MechItemEconomy,
-  action: SURefMetaAction,
+  action: RefMetaAction,
   hotX: number
 ): MechItemEconomy {
   if (!hasVariableHot(action)) return base

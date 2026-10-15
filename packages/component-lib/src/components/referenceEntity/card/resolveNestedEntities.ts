@@ -1,4 +1,4 @@
-import type { SURefEntity, SURefMetaEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
+import type { RefEntity, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import {
   droneOwnLoadout,
   getChassisAbilities,
@@ -31,9 +31,9 @@ export const resolvePatternGroups = patternGroups
 /** A drone plus its resolved systems/modules loadout — rendered as a compact
  * drone card with listing rows for its systems + modules. */
 export type DroneLoadout = {
-  drone: SURefEntity
-  systems: SURefEntity[]
-  modules: SURefEntity[]
+  drone: RefEntity
+  systems: RefEntity[]
+  modules: RefEntity[]
   /**
    * The name this pattern gives THIS drone, when it differs from the stat
    * block's own name. Big Brother's DronTek pattern fields four Big Brother
@@ -46,7 +46,7 @@ export type DroneLoadout = {
 
 /** The drone a CHASSIS controls — named by a chassis ability's `drone` field;
  * its systems/modules come from the drone entity's own loadout. */
-export function resolveChassisDrone(entity: SURefMetaEntity): DroneLoadout | undefined {
+export function resolveChassisDrone(entity: RefMetaEntity): DroneLoadout | undefined {
   const abilities = getChassisAbilities(entity) ?? []
   const droneName = abilities
     .map((ability) => (ability as { drone?: unknown }).drone)
@@ -70,7 +70,7 @@ export function resolveChassisDrone(entity: SURefMetaEntity): DroneLoadout | und
  * ("Shield Drone") sit over a shared stat block ("Big Brother Drone"). Configs
  * that resolve to nothing are skipped rather than failing the whole pattern.
  */
-export function resolvePatternDrones(pattern: SURefObjectAnyPattern): DroneLoadout[] {
+export function resolvePatternDrones(pattern: RefObjectAnyPattern): DroneLoadout[] {
   if (isBioTitanPattern(pattern)) return []
   return (pattern.drones ?? []).flatMap((config) => {
     const statBlockName = config.ref ?? config.name

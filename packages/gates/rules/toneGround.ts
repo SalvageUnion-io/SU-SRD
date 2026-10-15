@@ -33,7 +33,7 @@
 
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import type { SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-reference'
+import type { RefEnumSchemaName, RefMetaEntity } from 'salvageunion-reference'
 import { entityTone, headerFill } from 'salvageunion-reference'
 import type { Finding, Rule, RuleSet } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
@@ -68,7 +68,7 @@ const RULES: Rule[] = [
   },
 ]
 
-type Entity = SURefMetaEntity & { id?: unknown; name?: unknown }
+type Entity = RefMetaEntity & { id?: unknown; name?: unknown }
 
 function dataFiles(root: string): string[] {
   try {
@@ -100,7 +100,7 @@ function headerGrounds(
     const schema = f.slice(0, -'.json'.length)
     for (const entity of data as Entity[]) {
       if (headerFill(entity, 'card') === 'ink') continue
-      const tone = entityTone(schema as SURefEnumSchemaName, entity)
+      const tone = entityTone(schema as RefEnumSchemaName, entity)
       out.push({
         file,
         schema,

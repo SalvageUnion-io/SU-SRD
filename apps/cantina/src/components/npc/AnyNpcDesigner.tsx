@@ -34,7 +34,7 @@ import {
 } from 'component-lib'
 import type { CSSProperties, ReactNode } from 'react'
 import { useMemo, useState } from 'react'
-import type { SURefEntity, SURefNPC } from 'salvageunion-reference'
+import type { RefEntity, RefNPC } from 'salvageunion-reference'
 import { displayTitle, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { npcActionName, npcActionSlug, resolveNpcAction } from '../../lib/npcs/npcModel'
@@ -153,7 +153,7 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
   )
   const formDirty = useWizardDraftSync(draftKey, form, EMPTY_NPC_FORM)
   /** A restart waiting on the player's yes: a template, or `'blank'` (D4). */
-  const [pendingStart, setPendingStart] = useState<SURefNPC | 'blank' | null>(null)
+  const [pendingStart, setPendingStart] = useState<RefNPC | 'blank' | null>(null)
   const [previewOpen, setPreviewOpen] = useState(false)
   const [confirmingCancel, setConfirmingCancel] = useState(false)
 
@@ -194,7 +194,7 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
   }
 
   /** Choose a template: fill at once, or ask first when the stats were edited (D4). */
-  function chooseTemplate(ref: SURefNPC) {
+  function chooseTemplate(ref: RefNPC) {
     if (form.templateChosen && statsEditedSinceFill(form)) {
       setPendingStart(ref)
       return
@@ -393,7 +393,7 @@ function TemplateStep({
   onBlank,
 }: {
   form: NpcFormState
-  onTemplate: (ref: SURefNPC) => void
+  onTemplate: (ref: RefNPC) => void
   onBlank: () => void
 }) {
   const [query, setQuery] = useState('')
@@ -583,7 +583,7 @@ function ActionPick({
   const action = resolveNpcAction(slug)
   // An action is a meta entity, which the detail modal's card renders as it
   // renders any other; the hook is typed to the plain union only.
-  const detail = useDetailModal((action ?? undefined) as SURefEntity | undefined)
+  const detail = useDetailModal((action ?? undefined) as RefEntity | undefined)
   const name = action?.name ?? npcActionName(slug)
   return (
     <PickRow label={`Carry ${name}`} carried={carried} onToggle={onToggle}>

@@ -1,7 +1,7 @@
 import { Field, navigateControl, ReferenceEntityCard, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import type { SURefCrawler, SURefEntity } from 'salvageunion-reference'
+import type { RefCrawler, RefEntity } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
 import type { ResolvedNpc } from '../../lib/crawlerRefs'
 import { findNpcChoiceByName } from '../../lib/crawlerRefs'
@@ -32,22 +32,22 @@ type NpcSource = {
   /** Stable key — the bay slug or the type slug. */
   ref: string
   /** The SRD entity (bay or crawler type) — rendered as its entity card. */
-  entity: SURefEntity
+  entity: RefEntity
   npc: ResolvedNpc
 }
 
 type CrawlerCrewStepProps = {
   /** Base bays that carry an NPC (the 10 crewed bays), as SRD entities. */
-  bays: ReadonlyArray<SURefEntity>
+  bays: ReadonlyArray<RefEntity>
   /** The selected crawler type (its special NPC heads the crew), if any. */
-  selectedType: SURefCrawler | undefined
+  selectedType: RefCrawler | undefined
   /** Crew form state keyed by bay/type slug. */
   crew: Record<string, CrewNpcForm>
   onChange: (patch: Partial<CrawlerWizardFormState>) => void
 }
 
 /** Read the embedded NPC off a bay/type entity (data-shape check). */
-function npcOf(entity: SURefEntity): ResolvedNpc | undefined {
+function npcOf(entity: RefEntity): ResolvedNpc | undefined {
   return 'npc' in entity && entity.npc != null ? entity.npc : undefined
 }
 

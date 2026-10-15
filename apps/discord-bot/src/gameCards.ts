@@ -1,5 +1,5 @@
 import { PRODUCT } from 'component-lib/product'
-import type { ItemCondition, SURefEnumSchemaName } from 'salvageunion-reference'
+import type { ItemCondition, RefEnumSchemaName } from 'salvageunion-reference'
 import {
   CONDITION_LABELS,
   discordAccent,
@@ -359,14 +359,14 @@ type RenderedSheet = {
  * does not know is still something the player put on their sheet, and hiding it
  * would make the card disagree with the app about what they own.
  */
-function refLink(schemaName: SURefEnumSchemaName, slug: string): string {
+function refLink(schemaName: RefEnumSchemaName, slug: string): string {
   const entity = findEntityBySlug(schemaName, slug)
   if (entity === null) return slug
   return `[${entity.name}](${srdEntityUrl(schemaName, getEntitySlug(entity))})`
 }
 
 /** A resolved display name, or the slug when the dataset does not know it. */
-function refName(schemaName: SURefEnumSchemaName, slug: string | null): string {
+function refName(schemaName: RefEnumSchemaName, slug: string | null): string {
   if (slug === null) return '—'
   return findEntityBySlug(schemaName, slug)?.name ?? slug
 }
@@ -378,7 +378,7 @@ function refName(schemaName: SURefEnumSchemaName, slug: string | null): string {
  * the entity is flagged `hasArtwork`, so an entity without art omits the
  * thumbnail rather than pointing Discord at a 404.
  */
-function refArtwork(schemaName: SURefEnumSchemaName, slug: string | null): string | undefined {
+function refArtwork(schemaName: RefEnumSchemaName, slug: string | null): string | undefined {
   if (slug === null) return undefined
   const entity = findEntityBySlug(schemaName, slug)
   return entity === null ? undefined : getAssetUrl(entity)
@@ -402,7 +402,7 @@ function conditionOf(body: EntityBody, key: string, slug: string): ItemCondition
  */
 function collectionLines(
   slugs: string[],
-  schemaName: SURefEnumSchemaName,
+  schemaName: RefEnumSchemaName,
   body?: EntityBody,
   conditionKey?: string
 ): string {

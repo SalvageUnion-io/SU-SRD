@@ -12,7 +12,7 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import type { SURefObjectPattern } from 'salvageunion-reference'
+import type { RefObjectPattern } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { formatProvenance, resolveAdditionalSources } from '../provenance'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
@@ -35,7 +35,7 @@ const chassisNamed = (name: string) => {
   return found
 }
 
-const patternOf = (chassis: string, pattern: string): SURefObjectPattern => {
+const patternOf = (chassis: string, pattern: string): RefObjectPattern => {
   const found = chassisNamed(chassis).patterns?.find((p) => p.name === pattern)
   if (!found) throw new Error(`${chassis}/${pattern} pattern fixture missing`)
   return found

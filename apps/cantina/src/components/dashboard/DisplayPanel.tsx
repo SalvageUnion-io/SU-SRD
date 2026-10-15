@@ -23,7 +23,7 @@ import type { ReferenceEntityControl } from 'component-lib'
 import { CHAPTER_BAND_COLOR, ControlButtons, ReferenceEntityCard, Toggle } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useRef, useState } from 'react'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
@@ -105,7 +105,7 @@ function EntityCard({
   note,
   controls,
 }: {
-  data: SURefEntity | null
+  data: RefEntity | null
   note: string
   controls?: ReferenceEntityControl[]
 }) {
@@ -129,7 +129,7 @@ export type DisplayContent =
   | { kind: 'note'; text: string }
   | { kind: 'tables'; onRoll?: TableRoll }
   | { kind: 'srd' }
-  | { kind: 'entity'; data: SURefEntity | null; note: string; controls?: ReferenceEntityControl[] }
+  | { kind: 'entity'; data: RefEntity | null; note: string; controls?: ReferenceEntityControl[] }
 
 /**
  * The presentational half: renders an already-resolved `content`.

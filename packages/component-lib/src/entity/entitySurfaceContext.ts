@@ -1,6 +1,6 @@
 import type { AnchorHTMLAttributes, ComponentType, ReactNode, Ref } from 'react'
 import { createContext, useContext, useMemo } from 'react'
-import type { EntityRef, SURefEntity } from 'salvageunion-reference'
+import type { EntityRef, RefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { CardTextureContext } from '../components/referenceEntity/card/cardTexture'
 import type {
@@ -60,9 +60,9 @@ export function useAppliesRules(): boolean {
 }
 
 /** The dataset record a ref names, when its schema is loaded. */
-function recordOf(ref: EntityRef): SURefEntity | undefined {
+function recordOf(ref: EntityRef): RefEntity | undefined {
   if (ref.synthetic || !SalvageUnionReference.isLoaded(ref.schemaName)) return undefined
-  return SalvageUnionReference.get(ref.schemaName, ref.id) as SURefEntity | undefined
+  return SalvageUnionReference.get(ref.schemaName, ref.id) as RefEntity | undefined
 }
 
 /**

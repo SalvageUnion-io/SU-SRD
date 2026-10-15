@@ -13,11 +13,7 @@ import {
   isLegalStartingPatternOf,
   resolveEntityPageMeta,
 } from 'component-lib'
-import type {
-  EnhancedSchemaMetadata,
-  SURefEntity,
-  SURefObjectAnyPattern,
-} from 'salvageunion-reference'
+import type { EnhancedSchemaMetadata, RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { toEntityModel, truncate } from 'salvageunion-reference'
 import type { PageModule, PageResult, RouteContext, StructuredData } from '../../../../../ssg/types'
 import { EntityPageFrame, entityPageFoot } from '../../../../components/EntityPageFrame'
@@ -40,9 +36,9 @@ import { getPatternStaticPaths } from '../../../../lib/staticPaths'
 type Params = { schemaId: string; itemId: string; patternId: string }
 
 type Props = {
-  host: SURefEntity
+  host: RefEntity
   schema: EnhancedSchemaMetadata
-  pattern: SURefObjectAnyPattern
+  pattern: RefObjectAnyPattern
   hostName: string
   patternName: string
 }

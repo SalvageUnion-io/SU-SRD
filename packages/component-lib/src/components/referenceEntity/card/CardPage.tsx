@@ -1,5 +1,5 @@
 import type { ElementType, ReactNode } from 'react'
-import type { SURefMetaEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
+import type { RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { cn } from '../../../utils/cn'
 import { Slab } from '../../atoms/Slab'
 import { StatColumn } from '../../atoms/StatColumn'
@@ -26,7 +26,7 @@ import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes
  */
 
 type CardPageProps = {
-  entity: SURefMetaEntity
+  entity: RefMetaEntity
   /** The artwork, as `CardImage hero`. */
   hero: ReactNode
   /** Chassis abilities: framed cards in the right column, beneath the prose. */
@@ -53,7 +53,7 @@ type CardPageProps = {
   /** The nested cards. */
   sections: ReactNode
   /** A basic host's patterns, as full-width link rows. */
-  patterns: SURefObjectAnyPattern[]
+  patterns: RefObjectAnyPattern[]
   /** `afterExtraContent` and `expand`. */
   after: ReactNode
   sectionAs?: ElementType

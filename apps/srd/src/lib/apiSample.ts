@@ -1,4 +1,4 @@
-import type { SURefChassis } from 'salvageunion-reference'
+import type { RefChassis } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
 import { SalvageUnionReference } from './gameData'
 
@@ -14,7 +14,7 @@ import { SalvageUnionReference } from './gameData'
  * `noModuleScopeReferenceCall` Biome plugin forbids a `SalvageUnionReference`
  * call that would run before the build's `preload()`.
  */
-export function apiSampleChassis(): SURefChassis {
+export function apiSampleChassis(): RefChassis {
   const [first] = [...SalvageUnionReference.Chassis.all()].sort((a, b) =>
     getEntitySlug(a).localeCompare(getEntitySlug(b))
   )

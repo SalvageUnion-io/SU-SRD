@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { SURefObjectChoice, SURefObjectContentBlock } from 'salvageunion-reference'
+import type { RefObjectChoice, RefObjectContentBlock } from 'salvageunion-reference'
 import type { CardProseContext } from './CardProse'
 import { CardProse } from './CardProse'
 import type { AnchoredContentBlock } from './choiceAnchoring'
@@ -28,12 +28,12 @@ export function interleaveBody({
   prose,
 }: {
   blocks: AnchoredContentBlock[]
-  choices: SURefObjectChoice[]
+  choices: RefObjectChoice[]
   hideChoices: boolean
   /** Prose segments render at all (the card shows a body, and `hide.content` is off). */
   showProse: boolean
-  choiceIsEmpty: (choice: SURefObjectChoice) => boolean
-  renderChoice: (choice: SURefObjectChoice) => ReactNode
+  choiceIsEmpty: (choice: RefObjectChoice) => boolean
+  renderChoice: (choice: RefObjectChoice) => ReactNode
   bonusNode: ReactNode
   bonusAnchored: boolean
   prose: CardProseContext
@@ -41,7 +41,7 @@ export function interleaveBody({
   const nodes: ReactNode[] = []
   const choiceById = new Map(choices.map((c) => [c.id, c] as const))
   const rendered = new Set<string>()
-  let buffer: SURefObjectContentBlock[] = []
+  let buffer: RefObjectContentBlock[] = []
   let seg = 0
   const flush = () => {
     if (buffer.length > 0 && showProse) {

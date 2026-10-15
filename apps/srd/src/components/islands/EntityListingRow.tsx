@@ -1,8 +1,8 @@
 import { Entity } from 'component-lib'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 
 type EntityListingRowProps = {
-  entity: SURefEntity
+  entity: RefEntity
   /** The entity's own page. */
   href: string
   /** What the listing's context already says: `kind` under a one-kind listing,

@@ -22,7 +22,7 @@
 // nothing and keeps the index's field extraction byte-identical to the
 // ORM-backed `search()` it mirrors.
 import type { EntityRowModel } from 'component-lib'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import {
   extractContentText,
   getEntitySlug,
@@ -36,7 +36,7 @@ import type { CompactSearchEntry } from './searchIndexTypes'
 const TEXT_FIELDS = ['description', 'effect', 'goals', 'assets', 'weaknesses'] as const
 
 /** The Row's parts of an entity's model, for a search result (no lead, no hints). */
-function rowModel(entity: SURefEntity): EntityRowModel {
+function rowModel(entity: RefEntity): EntityRowModel {
   const m = toEntityModel(entity)
   return {
     ref: m.ref,

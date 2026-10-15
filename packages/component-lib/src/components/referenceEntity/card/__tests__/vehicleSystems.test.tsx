@@ -8,14 +8,14 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 const vehicle = (name: string) => {
   const found = SalvageUnionReference.getByNameIn('vehicles', name)
   if (!found) throw new Error(`fixture missing: ${name}`)
-  return found as SURefEntity
+  return found as RefEntity
 }
 
 /** The vehicle's Page, as text: its slab labels and every card's title and prose, in order. */

@@ -11,7 +11,7 @@ import type { Crawler } from 'cantina-domain/schemas/crawler'
 import type { Mech } from 'cantina-domain/schemas/mech'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
 import { linesFromBreakdown } from 'component-lib'
-import type { SURefCrawlerBay } from 'salvageunion-reference'
+import type { RefCrawlerBay } from 'salvageunion-reference'
 import {
   crawlerMaxSPParts,
   mechMaxCargo,
@@ -209,7 +209,7 @@ export function scrapLine(crawler: Crawler): string {
  */
 export function bayConditions(
   crawler: Crawler
-): { name: string; entity: SURefCrawlerBay | null; damaged: boolean }[] {
+): { name: string; entity: RefCrawlerBay | null; damaged: boolean }[] {
   return (crawler.crawlerBays ?? []).map((bay) => {
     const entity = resolveCrawlerBay(bay.bayRef)
     return {

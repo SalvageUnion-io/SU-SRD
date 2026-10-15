@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { renderToStaticMarkup } from 'react-dom/server'
-import type { SURefMetaEntity } from 'salvageunion-reference'
+import type { RefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { color } from '../../../design/tokens'
 import { readPackageStylesheet } from '../../../styles/__tests__/packageStylesheet'
@@ -86,13 +86,13 @@ const LONG_INVITE: OgCardProps = { ...INVITE, title: LONG } as OgCardProps
 
 const PRIVATE: OgCardProps = { kind: 'private', address: 'cantina.salvageunion.io' }
 
-function chassis(name: string): SURefMetaEntity {
+function chassis(name: string): RefMetaEntity {
   const entity = SalvageUnionReference.Chassis.getByName(name)
   if (!entity) throw new Error(`no chassis ${name}`)
   return entity
 }
 
-function ability(name: string): SURefMetaEntity {
+function ability(name: string): RefMetaEntity {
   const entity = SalvageUnionReference.Abilities.getByName(name)
   if (!entity) throw new Error(`no ability ${name}`)
   return entity

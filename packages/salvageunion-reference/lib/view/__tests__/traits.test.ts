@@ -5,10 +5,10 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from '../../index'
-import type { SURefMetaEntity } from '../../schemas/index'
+import type { RefMetaEntity } from '../../schemas/index'
 import { actionFacets, populationRange } from '../parts/traits'
 
-const tier = (name: string): SURefMetaEntity => {
+const tier = (name: string): RefMetaEntity => {
   const found = SalvageUnionReference.CrawlerTechLevels.getByName(name)
   if (!found) throw new Error(`${name} fixture missing`)
   return found

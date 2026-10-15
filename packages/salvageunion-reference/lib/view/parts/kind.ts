@@ -6,7 +6,7 @@
 import { isAbility } from '../../entityGuards'
 import { getDisplayName, getHybridClasses } from '../../helpers'
 import { SalvageUnionReference } from '../../index'
-import type { SURefEnumSchemaName, SURefMetaEntity } from '../../schemas/index'
+import type { RefEnumSchemaName, RefMetaEntity } from '../../schemas/index'
 import type { BayKind, ClassKind, EntityDomain } from '../types'
 
 /**
@@ -15,7 +15,7 @@ import type { BayKind, ClassKind, EntityDomain } from '../types'
  * (Core Book 2.0a): pilot = orange, mech (chassis) = green, crawler = pink,
  * actor = rust, gear = tech-level ramp, glossary = ink.
  */
-const SCHEMA_DOMAIN: Record<SURefEnumSchemaName, EntityDomain> = {
+const SCHEMA_DOMAIN: Record<RefEnumSchemaName, EntityDomain> = {
   abilities: 'pilot',
   'ability-tree-requirements': 'pilot',
   classes: 'pilot',
@@ -54,20 +54,20 @@ export function schemaDomain(schemaName: string): EntityDomain | undefined {
  * book's ink banner; everything you HAVE wears its own tone. A data-shape
  * check: an ability carries `tree` + `level`, an action its `actionSource`.
  */
-export function isDoEntity(entity: SURefMetaEntity): boolean {
+export function isDoEntity(entity: RefMetaEntity): boolean {
   if (entity == null || typeof entity !== 'object') return false
   return isAbility(entity) || 'actionSource' in entity
 }
 
 /** An ability's tier numeral: its numeric level in the tree (not G or L). */
-export function tierNumeral(entity: SURefMetaEntity): string | undefined {
+export function tierNumeral(entity: RefMetaEntity): string | undefined {
   if (!isAbility(entity)) return undefined
   const level = entity.level
   return level != null && Number.isFinite(Number(level)) ? String(level) : undefined
 }
 
 /** The bare type: "Action", "Crawler Type", else the schema's display name. */
-export function entityTypeLabel(schemaName: SURefEnumSchemaName | 'actions'): string {
+export function entityTypeLabel(schemaName: RefEnumSchemaName | 'actions'): string {
   if (schemaName === 'actions') return 'Action'
   if (schemaName === 'crawlers') return 'Crawler Type'
   return getDisplayName(schemaName)
@@ -76,8 +76,8 @@ export function entityTypeLabel(schemaName: SURefEnumSchemaName | 'actions'): st
 /** The seam's type stamp: the type, and for an ability its tree too
  * ("Ability · Forging Tree"). */
 export function entityStamp(
-  schemaName: SURefEnumSchemaName | 'actions',
-  entity: SURefMetaEntity
+  schemaName: RefEnumSchemaName | 'actions',
+  entity: RefMetaEntity
 ): string {
   const type = entityTypeLabel(schemaName)
   if (isAbility(entity) && entity.tree != null && String(entity.tree).length > 0) {
@@ -87,7 +87,7 @@ export function entityStamp(
 }
 
 /** A pilot CLASS, by data shape: `coreTrees` and `hybrid` are class-only keys. */
-export function isClassEntity(entity: SURefMetaEntity): boolean {
+export function isClassEntity(entity: RefMetaEntity): boolean {
   if (entity == null || typeof entity !== 'object') return false
   return 'coreTrees' in entity || 'hybrid' in entity
 }
@@ -97,7 +97,7 @@ export function isClassEntity(entity: SURefMetaEntity): boolean {
  * is undefined on every hybrid, so a falsiness test would stamp all five
  * hybrids NON-ADVANCEABLE.
  */
-export function classKind(entity: SURefMetaEntity): ClassKind | undefined {
+export function classKind(entity: RefMetaEntity): ClassKind | undefined {
   if (!isClassEntity(entity)) return undefined
   if ('hybrid' in entity && entity.hybrid === true) return 'HYBRID'
   if ('advanceable' in entity && entity.advanceable === false) return 'NON-ADVANCEABLE'
@@ -109,13 +109,13 @@ export function classKind(entity: SURefMetaEntity): ClassKind | undefined {
  * carries: Standard (on every Union Crawler, Core Book p.221) or Expansion
  * (built or found in play). `undefined` for anything without the tag.
  */
-export function bayKind(entity: SURefMetaEntity): BayKind | undefined {
+export function bayKind(entity: RefMetaEntity): BayKind | undefined {
   if (entity == null || typeof entity !== 'object' || !('expansion' in entity)) return undefined
   return entity.expansion === true ? 'Expansion' : 'Standard'
 }
 
 /** The trees a HYBRID class advances from, read by the class's own name. */
-export function classRequirements(entity: SURefMetaEntity): string[] {
+export function classRequirements(entity: RefMetaEntity): string[] {
   if (classKind(entity) !== 'HYBRID') return []
   const name = 'name' in entity && entity.name != null ? String(entity.name) : ''
   if (!name) return []

@@ -1,5 +1,5 @@
 import { useContext } from 'react'
-import type { SURefEntity, SURefMetaEntity } from 'salvageunion-reference'
+import type { RefEntity, RefMetaEntity } from 'salvageunion-reference'
 import { Entity } from '../../../entity/Entity'
 import { InsidePeekContext } from '../../../entity/peekContext'
 import { useEntityHref } from '../entityHrefContext'
@@ -34,12 +34,12 @@ export function EntityTokenList({
 }
 
 function ListToken({ data }: { data: ReferenceCardEntity }) {
-  const href = useEntityHref(data as SURefEntity)
+  const href = useEntityHref(data as RefEntity)
   const insidePeek = useContext(InsidePeekContext)
   return (
     <Entity
       form="token"
-      entity={data as SURefMetaEntity}
+      entity={data as RefMetaEntity}
       mode={insidePeek ? { kind: 'read' } : href ? { kind: 'link', href } : { kind: 'link' }}
     />
   )

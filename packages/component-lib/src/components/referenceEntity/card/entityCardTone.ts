@@ -1,4 +1,4 @@
-import type { EntityDomain, SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-reference'
+import type { EntityDomain, RefEnumSchemaName, RefMetaEntity } from 'salvageunion-reference'
 import {
   bayKind,
   classKind,
@@ -41,7 +41,7 @@ export type DomainTone = {
  * band (the entity model's `guideTone`) — or `undefined` for every other
  * entity. The colour behind the token lives in `theme.css`.
  */
-export function entityGuideToneColor(entity: SURefMetaEntity): string | undefined {
+export function entityGuideToneColor(entity: RefMetaEntity): string | undefined {
   const token = guideTone(entity)
   return token ? `var(--color-${token})` : undefined
 }
@@ -80,8 +80,8 @@ function toneColor(token: string): string | undefined {
  * every other tone as `bg`, its token's colour.
  */
 export function resolveDomainTone(
-  schemaName: SURefEnumSchemaName,
-  entity: SURefMetaEntity
+  schemaName: RefEnumSchemaName,
+  entity: RefMetaEntity
 ): DomainTone {
   const domain = schemaDomain(schemaName) ?? 'glossary'
   const guideColor = entityGuideToneColor(entity)
@@ -95,8 +95,8 @@ export function resolveDomainTone(
  * ink banner (see `isDoEntity`) — so this returns a neutral placeholder.
  */
 export function resolveCardTone(
-  schemaName: SURefEnumSchemaName | 'actions',
-  entity: SURefMetaEntity
+  schemaName: RefEnumSchemaName | 'actions',
+  entity: RefMetaEntity
 ): DomainTone {
   if (schemaName === 'actions') {
     return { domain: 'action', bg: undefined, bgColor: undefined }
@@ -105,19 +105,19 @@ export function resolveCardTone(
 }
 
 /** HAVE vs DO (ruleset §5, board E1), by data shape — the entity model's. */
-export function isDoEntity(entity: SURefMetaEntity): boolean {
+export function isDoEntity(entity: RefMetaEntity): boolean {
   return isDoRecord(entity)
 }
 
 /** The ability TIER NUMERAL the book prints at the left of an ability banner. */
-export function resolveTierNumeral(entity: SURefMetaEntity): string | undefined {
+export function resolveTierNumeral(entity: RefMetaEntity): string | undefined {
   return tierNumeral(entity)
 }
 
 /** The TYPE STAMP's wording ("Ability · Forging Tree"). */
 export function resolveSeamLabel(
-  schemaName: SURefEnumSchemaName | 'actions',
-  entity: SURefMetaEntity
+  schemaName: RefEnumSchemaName | 'actions',
+  entity: RefMetaEntity
 ): string {
   return entityStamp(schemaName, entity)
 }
@@ -190,7 +190,7 @@ export type AxisMarker = { label: string; value?: string }
  * Numeric vitals (SP/EP/Heat/Structure) stay in the header's top-right stat
  * cluster; only this classification axis lives in the header labels.
  */
-export function resolveAxisMarkers(entity: SURefMetaEntity): AxisMarker[] {
+export function resolveAxisMarkers(entity: RefMetaEntity): AxisMarker[] {
   // An ABILITY carries no pill: its tree rides the type stamp and its
   // level is the banner's tier numeral (`resolveSeamLabel`,
   // `resolveTierNumeral`). TECH LEVEL is a header stat.

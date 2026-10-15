@@ -13,7 +13,7 @@
  */
 
 import { ChapterBand } from 'component-lib'
-import type { SURefEnumSchemaName } from 'salvageunion-reference'
+import type { RefEnumSchemaName } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { HeroSearchStatic } from '../components/HeroSearch'
@@ -31,7 +31,7 @@ const DESCRIPTION =
   'System Reference Document (SRD) for the Salvage Union TTRPG. Complete reference guide with chassis, systems, modules, abilities, and more.'
 
 /** An entity's page by name, or nothing when the dataset no longer has it. */
-function hrefByName(schemaName: SURefEnumSchemaName, name: string): string | undefined {
+function hrefByName(schemaName: RefEnumSchemaName, name: string): string | undefined {
   const entity = SalvageUnionReference.findIn(schemaName, (e) => e.name === name)
   return entity ? itemHref(schemaName, getEntitySlug(entity)) : undefined
 }
@@ -44,7 +44,7 @@ const STEP_GUIDES = {
 } as const
 
 /** The rules a table reaches for mid-session (board 06, "At the table"). */
-const AT_THE_TABLE: { schema: SURefEnumSchemaName; name: string; label: string }[] = [
+const AT_THE_TABLE: { schema: RefEnumSchemaName; name: string; label: string }[] = [
   { schema: 'roll-tables', name: 'Core Mechanic', label: 'The Core Mechanic' },
   { schema: 'guides', name: 'Heat', label: 'Heat' },
   { schema: 'guides', name: 'Mech Damage', label: 'Mech Damage' },

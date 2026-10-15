@@ -37,7 +37,7 @@ import {
 } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useEffect, useMemo, useState } from 'react'
-import type { SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
+import type { RefEntity, RefEnumSchemaName } from 'salvageunion-reference'
 import { isSchemaName, SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 
 const HIDE_CHOICES = { choices: true } as const
@@ -97,7 +97,7 @@ function SrdHome({
 }: {
   ready: boolean
   onPickSchema: (schemaName: string, label: string) => void
-  onPickEntity: (entity: SURefEntity) => void
+  onPickEntity: (entity: RefEntity) => void
 }) {
   const {
     query,
@@ -225,7 +225,7 @@ function SrdHome({
 }
 
 /** Entity view: the faithful reference card + a back affordance. */
-function SrdEntity({ entity, onBack }: { entity: SURefEntity; onBack: () => void }) {
+function SrdEntity({ entity, onBack }: { entity: RefEntity; onBack: () => void }) {
   return (
     <div>
       <div style={BACK_ROW}>
@@ -238,12 +238,12 @@ function SrdEntity({ entity, onBack }: { entity: SURefEntity; onBack: () => void
   )
 }
 
-type SrdCategoryRef = { schemaName: SURefEnumSchemaName; label: string }
+type SrdCategoryRef = { schemaName: RefEnumSchemaName; label: string }
 
 type SrdView =
   | { kind: 'home' }
   | ({ kind: 'category' } & SrdCategoryRef)
-  | { kind: 'entity'; entity: SURefEntity; from: 'home' | SrdCategoryRef }
+  | { kind: 'entity'; entity: RefEntity; from: 'home' | SrdCategoryRef }
 
 export function SrdExplorer() {
   // Seed readiness synchronously if the ORM is already loaded (usual dashboard

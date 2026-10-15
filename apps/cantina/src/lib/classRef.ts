@@ -1,4 +1,4 @@
-import type { SURefClass } from 'salvageunion-reference'
+import type { RefClass } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { readReference } from './readReference'
 
@@ -10,7 +10,7 @@ import { readReference } from './readReference'
  * only hydrate abilities/equipment), so an unloaded catalog resolves to
  * `undefined` rather than throwing.
  */
-export function resolveClass(ref: string): SURefClass | undefined {
+export function resolveClass(ref: string): RefClass | undefined {
   return readReference(
     'resolveClass',
     () =>

@@ -17,12 +17,12 @@
  */
 
 import type { GenericInventoryEntry, Pilot } from 'cantina-domain/schemas/pilot'
-import type { SURefEquipment } from 'salvageunion-reference'
+import type { RefEquipment } from 'salvageunion-reference'
 import { getInventorySlots, getTraits, SalvageUnionReference } from 'salvageunion-reference'
 import { pilotMaxInventorySlots } from 'salvageunion-reference/rules'
 
 /** Resolve a stored equipment slug (e.g. `remote-mine`) against the reference data. */
-export function resolveEquipment(slug: string): SURefEquipment | null {
+export function resolveEquipment(slug: string): RefEquipment | null {
   return SalvageUnionReference.Equipment.getBySlug(slug) ?? null
 }
 
@@ -30,7 +30,7 @@ export function resolveEquipment(slug: string): SURefEquipment | null {
  * Inventory slots one equipment item occupies: 1, or 2 when it carries the
  * Heavy/Portable trait. Unresolved items count 1.
  */
-export function equipmentSlotCost(equipment: SURefEquipment | null): number {
+export function equipmentSlotCost(equipment: RefEquipment | null): number {
   if (!equipment) return 1
   return getInventorySlots(equipment)
 }
@@ -39,7 +39,7 @@ export function equipmentSlotCost(equipment: SURefEquipment | null): number {
  * Max uses for an equipment item from its `uses` trait, or null
  * when the item has no uses counter (no trait / variable amount).
  */
-export function equipmentMaxUses(equipment: SURefEquipment | null): number | null {
+export function equipmentMaxUses(equipment: RefEquipment | null): number | null {
   if (!equipment) return null
   const traits = getTraits(equipment)
   for (const trait of traits ?? []) {

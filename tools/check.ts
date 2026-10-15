@@ -436,7 +436,7 @@ export async function main(
   {
     registry = CHECKS,
     root = join(import.meta.dir, '..'),
-    generate = [join(import.meta.dir, 'node_modules/.bin/su-ref-generate')],
+    generate = [join(import.meta.dir, 'node_modules/.bin/ref-generate')],
     ci = process.env.GITHUB_ACTIONS === 'true',
     log = console.log,
     error = console.error,
@@ -471,13 +471,13 @@ export async function main(
 
   // The reference package's generated files are gitignored build output that
   // half the checks read. Bring them current once, here, rather than letting
-  // parallel checks race to do it, through the package's `su-ref-generate` bin
+  // parallel checks race to do it, through the package's `ref-generate` bin
   // (this workspace declares the package, so bun links the bin here).
   const generated = Bun.spawnSync(generate)
   if (generated.exitCode !== 0) {
     stderr(generated.stdout)
     stderr(generated.stderr)
-    error('✗ su-ref-generate failed: the checks read lib/generated/ and schemas/')
+    error('✗ ref-generate failed: the checks read lib/generated/ and schemas/')
     return 1
   }
 

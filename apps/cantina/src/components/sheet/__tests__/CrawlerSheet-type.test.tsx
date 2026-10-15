@@ -18,7 +18,7 @@
 import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { SURefCrawler } from 'salvageunion-reference'
+import type { RefCrawler } from 'salvageunion-reference'
 import { patchModelRows } from '../../../../../../test/patchModel'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
@@ -37,7 +37,7 @@ const BATTLE_MOTTO_ID = 'battle-motto-1'
 
 const AUGMENTED_REF = 'augmented'
 
-const MOCK_TYPES: Array<SURefCrawler & { schemaName: string }> = [
+const MOCK_TYPES: Array<RefCrawler & { schemaName: string }> = [
   {
     id: 'battle-type',
     name: 'Battle',

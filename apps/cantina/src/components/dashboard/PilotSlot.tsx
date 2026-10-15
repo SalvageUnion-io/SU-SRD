@@ -15,7 +15,7 @@ import type { Crawler } from 'cantina-domain/schemas/crawler'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
 import { CountStepper, rollForTable } from 'component-lib'
 import { useEffect, useRef, useState } from 'react'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { CriticalInjuryEffect } from 'salvageunion-reference/rules'
 import { pilotMaxHPParts, resolvePoolStart } from 'salvageunion-reference/rules'
@@ -57,10 +57,10 @@ export function PilotMinor({
  * A Kit or Abilities chip for a stored ref: the reference entity when it
  * resolves (its shortform pill), else the ref itself as a plain chip.
  */
-function refChip<T extends SURefEntity>(
+function refChip<T extends RefEntity>(
   ref: string,
   find: (ref: string) => T | undefined
-): { text: string; entity?: SURefEntity } {
+): { text: string; entity?: RefEntity } {
   const entity = readReference('dashboard.pilotKit', () => find(ref), undefined)
   return entity === undefined ? { text: ref } : { text: entity.name, entity }
 }

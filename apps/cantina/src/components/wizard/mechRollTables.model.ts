@@ -6,7 +6,7 @@
  */
 
 import { rollD20 } from 'component-lib'
-import type { SURefRollTable } from 'salvageunion-reference'
+import type { RefRollTable } from 'salvageunion-reference'
 import { NO_EFFECT, rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
 
 /** Roll-table names for mech wizard flavor fields. */
@@ -20,7 +20,7 @@ export type MechRollField = keyof typeof MECH_ROLL_TABLE_NAMES
 
 /** Dependency interface for roll table lookup — injectable for testing. */
 export type MechRollTableDeps = {
-  findTable: (name: string) => (SURefRollTable & { schemaName: string }) | undefined
+  findTable: (name: string) => (RefRollTable & { schemaName: string }) | undefined
   rollD20: () => number
 }
 

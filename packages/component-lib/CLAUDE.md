@@ -36,7 +36,7 @@ Apps inject their renderers through **generic slot props** (`afterExtraContent`,
 
 A primitive (an Atom or a Container) stays here however many apps render it. A composition only one app renders lives in that app's `src/components/`: `bun run check barrel-consumers` fails a barrel export only one app reaches that sits under `components/compositions/` ([component-lib](../../docs/ARCHITECTURE.md#component-lib)).
 
-- **Name components for what they are** — no `-Display` / `-View` / `-Renderer` suffixes or redundant `Reference*` prefixes (`Stat`, never `StatDisplay`). **`ReferenceEntityCard` is a sanctioned exception — do not re-flag it:** `Reference*` marks the card over a `SURefEntity`, distinct from the content-agnostic `Card` (see [`.claude/rules/display-system.md`](../../.claude/rules/display-system.md)). An exception's prefix must carry information the bare name loses; record any new one here.
+- **Name components for what they are** — no `-Display` / `-View` / `-Renderer` suffixes or redundant `Reference*` prefixes (`Stat`, never `StatDisplay`). **`ReferenceEntityCard` is a sanctioned exception — do not re-flag it:** `Reference*` marks the card over a `RefEntity`, distinct from the content-agnostic `Card` (see [`.claude/rules/display-system.md`](../../.claude/rules/display-system.md)). An exception's prefix must carry information the bare name loses; record any new one here.
 - **Nothing lives only in a test.** A module whose only importers are tests ships in no app: delete it.
 
 ## Testing

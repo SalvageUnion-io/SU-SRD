@@ -1,4 +1,4 @@
-import type { SURefEntity, SURefObjectContentBlock } from 'salvageunion-reference'
+import type { RefEntity, RefObjectContentBlock } from 'salvageunion-reference'
 import {
   extractVisibleActions,
   firstParagraphText,
@@ -42,9 +42,9 @@ import {
  * twice, and the next candidate is tried in its place.
  */
 export function resolveCatalogLeadBlocks(
-  entity: SURefEntity,
+  entity: RefEntity,
   exclude?: string
-): SURefObjectContentBlock[] {
+): RefObjectContentBlock[] {
   const normalize = (text: string) => text.trim().replace(/\s+/g, ' ').toLowerCase()
   const excluded = exclude ? normalize(exclude) : undefined
 

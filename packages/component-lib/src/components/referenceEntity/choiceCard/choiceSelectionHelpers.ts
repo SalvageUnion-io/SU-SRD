@@ -1,4 +1,4 @@
-import type { SURefObjectChoice } from 'salvageunion-reference'
+import type { RefObjectChoice } from 'salvageunion-reference'
 
 /**
  * Canonical selections type (keyed by choice id, each holding the selected
@@ -31,12 +31,12 @@ export type ChoiceSourceKind = 'text' | 'table' | 'options' | 'catalog' | 'syste
  * The choice's source kind — the ONE axis the renderer switches on. A choice
  * without a `source` is free text.
  */
-export function getChoiceSourceKind(choice: SURefObjectChoice): ChoiceSourceKind {
+export function getChoiceSourceKind(choice: RefObjectChoice): ChoiceSourceKind {
   return choice.source?.kind ?? 'text'
 }
 
 /** The named roll table a `table` choice points at (or undefined). */
-export function getChoiceTableName(choice: SURefObjectChoice): string | undefined {
+export function getChoiceTableName(choice: RefObjectChoice): string | undefined {
   return choice.source?.kind === 'table' ? choice.source.rollTable : undefined
 }
 
@@ -44,7 +44,7 @@ export function getChoiceTableName(choice: SURefObjectChoice): string | undefine
  * Whether a choice allows multiple selections: its `cardinality` max is above
  * one, or a `scalesWith` cap.
  */
-export function isMultiSelectChoice(choice: SURefObjectChoice): boolean {
+export function isMultiSelectChoice(choice: RefObjectChoice): boolean {
   const c = choice.cardinality
   if (!c) return false
   return typeof c.max === 'object' ? true : c.max > 1
@@ -55,7 +55,7 @@ export function isMultiSelectChoice(choice: SURefObjectChoice): boolean {
  * discriminated `source`: options / systemVariant inline, or a catalog's named
  * entities.
  */
-export function getChoiceCardOptions(choice: SURefObjectChoice): ChoiceCardOption[] {
+export function getChoiceCardOptions(choice: RefObjectChoice): ChoiceCardOption[] {
   const source = choice.source
   if (source?.kind === 'options') {
     return source.options.map((option) => ({
@@ -86,7 +86,7 @@ export function getChoiceCardOptions(choice: SURefObjectChoice): ChoiceCardOptio
  * Returns `undefined` when no cap applies (unbounded multi-select).
  */
 export function resolveMultiSelectCap(
-  choice: SURefObjectChoice,
+  choice: RefObjectChoice,
   parent: Record<string, unknown> | undefined
 ): number | undefined {
   const cardinality = choice.cardinality

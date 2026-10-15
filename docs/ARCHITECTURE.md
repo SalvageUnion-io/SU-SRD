@@ -10,7 +10,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
    `salvageunion-reference` → `component-lib` → `srd` / `cantina`; `cantina-domain` → `cantina` / `discord-bot`; `component-lib/product` alone → bot, `convex/`; `gates` → `tools/`, app e2e.
    Packages never import an app (`noRestrictedImports`); deps use `workspace:*`.
 2. **salvageunion-reference** <a id="reference"></a>
-   Private, no build, no version. Zod in `lib/schemas/` generates JSON Schema and `SURef*` types, gitignored and rebuilt on install, typecheck, build and test (its `su-ref-generate` bin).
+   Private, no build, no version. Zod in `lib/schemas/` generates JSON Schema and `Ref*` types, gitignored and rebuilt on install, typecheck, build and test (its `ref-generate` bin).
    Exports `.`, `./rules`, `./zod`, `./testing`, `./proseDeviations`, `./data/*`, `./schemas/*`; `lib/index.ts` is an explicit barrel; refs are `schemaId::entityId`.
 3. **Lazy loading** <a id="lazy-loading"></a>
    Call `preload()` before any accessor; a module-scope ORM call fails Biome (`noModuleScopeReferenceCall.grit`).

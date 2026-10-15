@@ -1,7 +1,7 @@
 import { PreviewCard } from '@base-ui/react/preview-card'
 import type { ReactNode } from 'react'
 import { Component, useEffect, useState } from 'react'
-import type { EntitySchemaName, SURefEntity } from 'salvageunion-reference'
+import type { EntitySchemaName, RefEntity } from 'salvageunion-reference'
 import {
   EntitySchemaNames,
   nestedEntityGroups,
@@ -24,10 +24,10 @@ function isEntitySchema(name: string): name is EntitySchemaName {
  * `embeddedPeekAddress`) is the crew NPC embedded in that record, synthesized
  * exactly as its host card nests it.
  */
-function entityAt(schemaName: string, id: string): SURefEntity | undefined {
+function entityAt(schemaName: string, id: string): RefEntity | undefined {
   if (!isEntitySchema(schemaName) || !SalvageUnionReference.isLoaded(schemaName)) return undefined
   const [hostId, part] = id.split('/')
-  const host = SalvageUnionReference.get(schemaName, hostId ?? id) as SURefEntity | undefined
+  const host = SalvageUnionReference.get(schemaName, hostId ?? id) as RefEntity | undefined
   if (!part || !host) return host
   return part === 'npc'
     ? nestedEntityGroups(host).find((group) => group.label === 'NPCs')?.entities[0]

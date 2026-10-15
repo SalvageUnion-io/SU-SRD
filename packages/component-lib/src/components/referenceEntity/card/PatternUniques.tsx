@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import type { SURefObjectAnyPattern } from 'salvageunion-reference'
+import type { RefObjectAnyPattern } from 'salvageunion-reference'
 import { extractPatternActions, normalizePatternName } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
 import type { Down } from './cardChrome'
@@ -37,7 +37,7 @@ export function PatternUniques({
   className,
   loadout: showLoadout = true,
 }: {
-  pattern: SURefObjectAnyPattern
+  pattern: RefObjectAnyPattern
   /** The depth the embedded cards render at. */
   depth: number
   hostDown?: Down

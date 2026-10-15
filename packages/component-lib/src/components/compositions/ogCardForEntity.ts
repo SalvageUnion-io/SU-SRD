@@ -1,11 +1,11 @@
 import type {
   EntityModel,
   Fact,
-  SURefEnumSchemaName,
-  SURefMetaAction,
-  SURefMetaEntity,
-  SURefObjectAnyPattern,
-  SURefObjectContentBlock,
+  RefEnumSchemaName,
+  RefMetaAction,
+  RefMetaEntity,
+  RefObjectAnyPattern,
+  RefObjectContentBlock,
 } from 'salvageunion-reference'
 import {
   extractVisibleActions,
@@ -38,9 +38,9 @@ import type { OgCardProps, OgCardStat } from './ogCardText'
  * on its foot, and the pattern's own provenance.
  */
 export function ogCardForEntity(options: {
-  schemaName: SURefEnumSchemaName
-  entity: SURefMetaEntity
-  pattern?: SURefObjectAnyPattern
+  schemaName: RefEnumSchemaName
+  entity: RefMetaEntity
+  pattern?: RefObjectAnyPattern
   /** The address the foot prints: the page's bare path (`/chassis/scrapper`). */
   address: string
 }): OgCardProps {
@@ -98,22 +98,22 @@ function chipsOf(model: EntityModel): OgCardStat[] {
 }
 
 type ActionShape = Pick<
-  SURefMetaAction,
+  RefMetaAction,
   'activationCost' | 'actionSource' | 'actionType' | 'range' | 'content' | 'name'
 > & { displayName?: string }
 
 /** The action the card folds into itself: the entity, or its self-action. */
-function selfAction(entity: SURefMetaEntity, name: string): ActionShape | undefined {
+function selfAction(entity: RefMetaEntity, name: string): ActionShape | undefined {
   if ('actionSource' in entity) return entity as ActionShape
   const actions = (extractVisibleActions(entity) ?? []) as ActionShape[]
   return foldedActionOf(actions, name) ?? actions[0]
 }
 
 /** One line of rules: the action's first paragraph, else the entity's own. */
-function rulesText(entity: SURefMetaEntity, action: ActionShape | undefined): string | undefined {
+function rulesText(entity: RefMetaEntity, action: ActionShape | undefined): string | undefined {
   const fromAction = firstParagraphText(action?.content)
   if (fromAction) return fromAction
-  const content = 'content' in entity ? (entity.content as SURefObjectContentBlock[]) : undefined
+  const content = 'content' in entity ? (entity.content as RefObjectContentBlock[]) : undefined
   const fromEntity = firstParagraphText(content)
   if (fromEntity) return fromEntity
   const description = 'description' in entity ? entity.description : undefined
@@ -121,7 +121,7 @@ function rulesText(entity: SURefMetaEntity, action: ActionShape | undefined): st
 }
 
 /** The entity's tone as a CSS colour: a guide's own, else its domain tone. */
-function toneOf(schemaName: SURefEnumSchemaName, entity: SURefMetaEntity): string {
+function toneOf(schemaName: RefEnumSchemaName, entity: RefMetaEntity): string {
   const { bg, bgColor } = resolveDomainTone(schemaName, entity)
   return bgColor ?? bg ?? 'var(--color-ink-2)'
 }

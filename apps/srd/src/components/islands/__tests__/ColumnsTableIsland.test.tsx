@@ -4,7 +4,7 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { columnsAnnouncement, columnsHit, rangeHolds } from '../../../lib/columnsTablePage'
 import { ColumnsTableView } from '../../ColumnsTableView'
@@ -12,7 +12,7 @@ import { columnsTablePageData, rollTablePageData } from '../../RollTablePage'
 import { ColumnsTableIsland } from '../ColumnsTableIsland'
 
 const tableNamed = (name: string) => {
-  const table = SalvageUnionReference.RollTables.getByName(name) as SURefEntity | undefined
+  const table = SalvageUnionReference.RollTables.getByName(name) as RefEntity | undefined
   if (!table) throw new Error(`fixture missing: ${name}`)
   return table
 }

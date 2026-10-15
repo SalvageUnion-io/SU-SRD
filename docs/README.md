@@ -1,4 +1,4 @@
-# SURef Docs
+# SUSRD Docs
 
 Intent → doc. Area links and "ADR-N" are entries in [ARCHITECTURE.md](ARCHITECTURE.md).
 

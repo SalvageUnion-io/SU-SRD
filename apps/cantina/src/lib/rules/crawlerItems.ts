@@ -5,13 +5,13 @@
  */
 
 import type { Crawler, ScrapPool } from 'cantina-domain/schemas/crawler'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import { resolveSystemRef } from 'salvageunion-reference/rules'
 import { readReference } from '../readReference'
 import { drawFromPool, poolAvailableAtOrAbove } from './crawlerEconomy'
 
 /** Resolve a stored crawler-system slug to its SRD entity. */
-export function resolveCrawlerSystem(ref: string): SURefEntity | null {
+export function resolveCrawlerSystem(ref: string): RefEntity | null {
   return readReference('resolveCrawlerSystem', () => resolveSystemRef(ref), null)
 }
 
