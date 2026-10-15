@@ -327,12 +327,6 @@ const EXEMPTIONS: Exemption[] = [
     reason:
       'PRINT MEDIA. Inside `@media print` the surface is physical paper and the ink is real ink, so #fff / #000 are the correct values rather than the screen palette — warm paper (#fbfaf7) printed as a fill wastes toner and reads grey. theme.css already carves out exactly this exception in its paper note ("the only remaining #ffffff is one scoped exception: the @media print sheet"); this is that exception, in the app that owns the sheet. cool-ground rides along because the print sheet whites `--color-wk-bg-2` out with the other themed grounds, so nothing that still reads it prints a tint.',
   },
-  {
-    file: 'apps/discord-bot/src/gameCards.ts',
-    rules: ['raw-color'],
-    reason:
-      "Not CSS, same reason as discordAccents.ts above: SHEET_ACCENT is the Discord container accent for pilot / mech / crawler sheets, the `--color-sheet-*` tones (= `--color-pilot` / `--color-mech` / `--color-crawler`) as the 0xRRGGBB integers `setAccentColor()` takes. Values verified equal to theme.css when exempted; unlike format.ts's colours, no test pins them to theme.css yet.",
-  },
 ]
 
 /**

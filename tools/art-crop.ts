@@ -34,14 +34,13 @@ import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import type { Box } from 'gates/lib/inkBox'
 import { inkBox } from 'gates/lib/inkBox'
-import { nameToSlug } from 'salvageunion-reference'
+import { assetUrl, nameToSlug } from 'salvageunion-reference'
 import sharp from 'sharp'
 
 const REPO = resolve(import.meta.dir, '..')
 const DATA = join(REPO, 'packages/salvageunion-reference/data')
 const OUT = join(REPO, 'apps/web/src/components/compositions/heroArtCrop.data.ts')
-const ASSET_BASE_URL = 'https://assets.salvageunion.io'
-const ASSET_ORIGIN = new URL(ASSET_BASE_URL).origin
+const ASSET_ORIGIN = new URL(assetUrl('')).origin
 const ART_KEY = /^[a-z0-9-]+\/[a-z0-9-]+$/
 
 /** `schemaName/slug` for every entity flagged `hasArtwork`, as `getAssetUrl` derives it. */
@@ -70,7 +69,7 @@ async function main() {
       console.warn(`[art-crop] ${key}: not a schema/slug key, skipped`)
       continue
     }
-    const url = new URL(`${key}-440.webp`, `${ASSET_BASE_URL}/`)
+    const url = new URL(assetUrl(`${key}-440.webp`))
     if (url.origin !== ASSET_ORIGIN) throw new Error(`[art-crop] ${key} left the asset origin`)
     const res = await fetch(url)
     if (!res.ok) {
