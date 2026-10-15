@@ -106,6 +106,23 @@ if [ "${CLAUDE_CODE_REMOTE:-}" = "true" ] && [ -n "${CLAUDE_ENV_FILE:-}" ]; then
   echo 'export CONVEX_AGENT_MODE=anonymous' >>"$CLAUDE_ENV_FILE"
 fi
 
+# The cloud environment's one secret is a 1Password service-account token
+# (docs/ops/cloud-environment.md item 12); `op` turns the repo's `op://SUSRD/…`
+# references into values. The setup script runs this hook as root, so the
+# binary lands in the snapshot and later sessions skip the download.
+OP_VERSION=2.30.3
+if [ -n "${OP_SERVICE_ACCOUNT_TOKEN:-}" ] && ! command -v op >/dev/null 2>&1; then
+  OP_TMP="$(mktemp -d)"
+  OP_URL="https://cache.agilebits.com/dist/1P/op2/pkg/v${OP_VERSION}/op_linux_$(dpkg --print-architecture 2>/dev/null || echo amd64)_v${OP_VERSION}.zip"
+  if curl -fsSL --max-time 60 -o "$OP_TMP/op.zip" "$OP_URL" && unzip -oq "$OP_TMP/op.zip" -d "$OP_TMP" &&
+    install -m 0755 "$OP_TMP/op" /usr/local/bin/op 2>/dev/null; then
+    note "1Password CLI $(op --version) installed."
+  else
+    note "could not install the 1Password CLI from ${OP_URL}."
+  fi
+  rm -rf "$OP_TMP"
+fi
+
 command -v gh >/dev/null 2>&1 ||
   note "gh is not installed — use the GitHub MCP tools (mcp__github__*) instead of gh-based steps."
 
