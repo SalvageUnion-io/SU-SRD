@@ -98,6 +98,37 @@ export type BrowserObservability = {
 /** The most reports one page sends. */
 export const MAX_REPORTS_PER_PAGE = 20
 
+/**
+ * The browser abandoning a cross-document view transition: noise that is not
+ * the app's to fix, for an app's `ignoreErrors`.
+ *
+ * A same-origin navigation can run a cross-document view transition (srd opts
+ * in with `@view-transition { navigation: auto }`; a page that does not opt in
+ * still receives the one srd started). The promises that transition exposes
+ * belong to the **user agent**, so there is no JS handle to `.catch()`: when
+ * the browser abandons a transition it rejects one of them and the
+ * `unhandledrejection` handler hears it. The navigation itself completes
+ * normally either way. Three messages, one mechanism:
+ *
+ * - **`Transition was skipped`**: a second navigation superseded an in-flight
+ *   transition (Chrome's wording).
+ * - **`Skipping view transition`**: the same, worded `Skipping view transition
+ *   because skipTransition() was called.` by WebKit and the iOS in-app
+ *   browsers. The `skipTransition()` call is the browser's own.
+ * - **`Transition was aborted because of invalid state`**: the document was
+ *   made ineligible mid-transition, by being hidden, or (`ViewTransition
+ *   opt-in disabled`) by being a page that does not opt in, as the Cantina
+ *   does not when the SRD's header links into it. An `InvalidStateError`, so
+ *   only the message identifies it.
+ *
+ * Matched as substrings of `${name}: ${message}`.
+ */
+export const ABANDONED_VIEW_TRANSITIONS = [
+  'Transition was skipped',
+  'Skipping view transition',
+  'Transition was aborted because of invalid state',
+]
+
 /** Long enough for any real message and a deep minified stack; the Worker reads 16 KB. */
 const MAX_MESSAGE_CHARS = 1_000
 const MAX_STACK_CHARS = 8_000

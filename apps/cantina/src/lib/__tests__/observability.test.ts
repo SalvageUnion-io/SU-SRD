@@ -109,6 +109,22 @@ describe('observability', () => {
     expect(posts).toHaveLength(1)
   })
 
+  test('a view transition the browser aborts on the way in is never reported', () => {
+    // The shared header links an SRD page into the Cantina; the SRD's
+    // cross-document transition reaches a page that does not opt in, and the
+    // browser rejects its own promise. The real title of the issue it was
+    // added for.
+    captureException(
+      Object.assign(
+        new Error(
+          'Transition was aborted because of invalid state. ViewTransition opt-in disabled'
+        ),
+        { name: 'InvalidStateError' }
+      )
+    )
+    expect(posts).toEqual([])
+  })
+
   test('captureException carries fingerprint and tags', () => {
     // The grouping half. Without it a Convex defect groups by its own message,
     // which carries a per-request id — one condition, N issues.
