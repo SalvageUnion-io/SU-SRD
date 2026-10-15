@@ -30,7 +30,7 @@ export type EntityRef = {
  * Which part of THE stat order a fact belongs to (`parts/facts.ts`): where
  * it comes from (TL, Slots, SV), what it can take (SP or HP, EP, Heat), what
  * it can hold (SYS, MODS, Cargo), what its action does (RNG, DMG, Uses). The
- * forms keep the groups in this order and set a wider gap between them.
+ * forms keep the groups in this order, every chip the same gap apart.
  */
 export type StatGroup = 'provenance' | 'vitals' | 'capacity' | 'action'
 

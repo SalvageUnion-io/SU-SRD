@@ -151,16 +151,14 @@ describe('one stat order on every surface', () => {
     expect(ogLabels('systems', shield)[0]).toBe('TL')
   })
 
-  test('a wider gap (a seam) sets each group apart in a chip group', () => {
+  test('every chip in a group sits the same gap apart: no wider gap between groups', () => {
     const mule = SalvageUnionReference.getByNameIn('chassis', 'Mule') as SURefMetaEntity
     const { container } = render(<Entity form="row" entity={mule} />)
     const group = container.querySelector('[data-chip-group]')
-    const sequence = Array.from(group?.children ?? []).map((child) =>
-      child.classList.contains('su-chips__seam')
-        ? '|'
-        : (child.querySelector('.su-stat-plate--label')?.textContent ?? '?')
+    const sequence = Array.from(group?.children ?? []).map(
+      (child) => child.querySelector('.su-stat-plate--label')?.textContent ?? '?'
     )
-    expect(sequence).toEqual(['TL', 'SV', '|', 'SP', 'EP', '|', 'SYS', 'MODS'])
+    expect(sequence).toEqual(['TL', 'SV', 'SP', 'EP', 'SYS', 'MODS'])
   })
 
   test('the cost, the pointy box, comes last in every chip group that has one', () => {

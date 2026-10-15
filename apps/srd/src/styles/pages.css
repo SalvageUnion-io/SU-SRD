@@ -1195,14 +1195,6 @@ a.srd-home__discord:hover {
   padding: var(--space-14);
 }
 
-.srd-class-path__req {
-  align-items: center;
-  display: flex;
-  flex: 0 1 auto;
-  flex-wrap: wrap;
-  gap: var(--space-6);
-}
-
 /* The requirement as ONE chip: its cells (REQ | tree, then OR | tree for each
    other tree) butt into one rounded cell, sharing their inner edges. */
 .srd-class-path__req-chip {

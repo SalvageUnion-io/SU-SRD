@@ -7,7 +7,6 @@ import { cn } from '../../utils/cn'
 import type { ChipSet } from './chipSet'
 import { chipCount, costCell } from './chipSet'
 import { Facts } from './Facts'
-import { GroupedFacts, Seam } from './Seam'
 import { Tags } from './Tags'
 
 /**
@@ -16,9 +15,9 @@ import { Tags } from './Tags'
  * `SP | 12`), the action type ("Turn Action") and the action's facts
  * (`RNG | L`, `DMG | 4 SP`), the traits (`[Hot | 2]`, linking to their entry
  * where `linkable`), each the horizontal `Stat` cell, then last the cost in
- * the book's pointy box (`CostBox`). A wider gap (`Seam`) sets each group
- * apart: provenance, vitals, capacity, the action, the traits. The group
- * wraps; it never clips a chip (E18).
+ * the book's pointy box (`CostBox`). Every chip sits the same gap from its
+ * neighbours, groups included (owner, 2026-10-15). The group wraps; it never
+ * clips a chip (E18).
  *
  * One look on every band: an action's chips on the ink banner are the same
  * plates, rung and cost box as an entity's on its tone band. There
@@ -58,13 +57,11 @@ export function Chips({
       )}
     >
       {leading}
-      <GroupedFacts cells={stats} rung={rung} />
-      {stats.length > 0 && (chips.durations.length > 0 || action.length > 0) && <Seam />}
+      <Facts cells={stats} size={rung} />
       {chips.durations.map((duration) => (
         <Stat key={duration} orientation="horizontal" label={duration} size={rung} />
       ))}
       <Facts cells={action} size={rung} />
-      {chips.tags.length > 0 && chips.durations.length + chips.facts.length > 0 && <Seam />}
       <Tags tags={chips.tags} linkable={linkable} rung={rung} />
       {chips.cost && <CostBox cost={chips.cost} rung={rung} onInk={onInk} />}
     </div>
