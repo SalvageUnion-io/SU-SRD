@@ -2,6 +2,7 @@ import { createRootRoute, HeadContent, Outlet, useRouterState } from '@tanstack/
 import type { EntitySurfaceValue } from 'component-lib'
 import { EntityHrefProvider, EntitySurfaceProvider, Toaster } from 'component-lib'
 import { useState } from 'react'
+import { AccountHintSync } from '../components/account/AccountHintSync'
 import { AccountReconciler } from '../components/account/AccountReconciler'
 import {
   HeaderActions,
@@ -120,6 +121,8 @@ function RootComponent() {
             about any route — and it must stay mounted across the sign-in flip,
             which is exactly when its work runs. */}
           <AccountReconciler />
+          {/* Who is signed in, left for the SRD's bar to show. */}
+          <AccountHintSync />
           {/* A test seam, compiled out of production builds — see its header. */}
           <TestAuthBridge />
           {/* The Page opener every Mention and Tag reads, and the app's Peek. */}

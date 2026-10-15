@@ -11,6 +11,8 @@ import { islandRegistry } from '../islandRegistry'
 const modulePaths: Record<keyof typeof islandRegistry, string> = {
   SearchIsland: '../../components/islands/SearchIsland',
   MobileSearchIsland: '../../components/islands/MobileSearchIsland',
+  AccountIsland: '../../components/islands/AccountIsland',
+  AccountAvatarIsland: '../../components/islands/AccountIsland',
   MobileNavIsland: '../../components/islands/MobileNavIsland',
   SchemaViewerIsland: '../../components/islands/SchemaViewerIsland',
   ReferenceEntityIsland: '../../components/islands/ReferenceEntityIsland',

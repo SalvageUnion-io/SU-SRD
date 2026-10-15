@@ -3,8 +3,6 @@
 // `apps/srd/src/lib/chapters.ts`.)
 export { buildCatalogSections } from './catalog/catalogSections'
 export { ActivationCost } from './components/atoms/ActivationCost'
-// Avatar — a person's picture in a circle, falling back to their initial
-export { Avatar } from './components/atoms/Avatar'
 export type { BadgeTone } from './components/atoms/Badge'
 // Chrome primitives (The Cantina design handoff — design-spec §2)
 // Badge — the unified stamp-chip family: the quiet keyword chip is
@@ -75,6 +73,8 @@ export { VitalGauge } from './components/atoms/VitalGauge'
 // AbilityTrack — an ability tree on its track (tier numerals, a Legendary
 // tree's "or"): the SRD's class page and abilities Tree, the Cantina's pilot sheet.
 export { AbilityTrack } from './components/compositions/AbilityTrack'
+// AccountMenu — who is signed in, at the Union bar's end, on both tools.
+export { AccountMenu } from './components/compositions/AccountMenu'
 export { AppBar } from './components/compositions/AppBar'
 // Deliberately its own module rather than the card-image component's file,
 // which stays internal.
@@ -140,6 +140,10 @@ export { Card } from './components/containers/Card'
 export { ConfirmDialog } from './components/containers/ConfirmDialog'
 // EmptyState — dashed stamp-headline empty slot (ruleset §"Empty state")
 export { EmptyState } from './components/containers/EmptyState'
+// HeaderMenu — a dropdown menu (Base UI's menu button): the Union bar's account
+// and Games menus, and the "⋯" overflow on a row.
+export type { HeaderMenuItem } from './components/containers/HeaderMenu'
+export { HeaderMenu } from './components/containers/HeaderMenu'
 export { Inset } from './components/containers/Inset'
 export { MasonryColumns } from './components/containers/MasonryColumns'
 export { ModalShell } from './components/containers/ModalShell'

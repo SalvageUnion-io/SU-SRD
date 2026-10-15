@@ -195,13 +195,21 @@ describe('hydration directives', () => {
     it('the chrome islands in TopNavigation are server-rendered and client="interaction"', () => {
       const { islands, props } = renderIslands(<TopNavigation />)
 
-      expect(islands.map((i) => `${i.name}:${i.client}`)).toEqual([
+      // The account islands are not reached for: they mount on idle, and only
+      // while somebody is signed in (`lib/accountBar.ts`), over no server markup.
+      const account = islands.filter((i) => i.name.startsWith('Account'))
+      expect(account.map((i) => `${i.name}:${i.client}:${i.inner}`)).toEqual([
+        'AccountIsland:idle:',
+        'AccountAvatarIsland:idle:',
+      ])
+      const chrome = islands.filter((i) => !i.name.startsWith('Account'))
+      expect(chrome.map((i) => `${i.name}:${i.client}`)).toEqual([
         'SearchIsland:interaction',
         'MobileSearchIsland:interaction',
         'MobileNavIsland:interaction',
       ])
       // Each one's control is in the HTML, so there is something to reach for.
-      for (const island of islands) expect(island.inner.length).toBeGreaterThan(0)
+      for (const island of chrome) expect(island.inner.length).toBeGreaterThan(0)
       // Chrome takes no props at all. `MobileNavIsland` computing its own
       // catalog instead of receiving one is what keeps 17.3 MB of duplicated
       // props out of the build (ssg/DESIGN.md, "props designed out").

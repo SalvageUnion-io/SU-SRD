@@ -156,10 +156,16 @@ describe('island props payload', () => {
       'data-island="SearchIsland" data-client="interaction" data-island-id="i0"'
     )
     expect(html).toContain(
-      'data-island="MobileSearchIsland" data-client="interaction" data-island-id="i1"'
+      'data-island="AccountIsland" data-client="idle" data-island-id="i1" data-when="signed-in"'
     )
     expect(html).toContain(
-      'data-island="MobileNavIsland" data-client="interaction" data-island-id="i2"'
+      'data-island="MobileSearchIsland" data-client="interaction" data-island-id="i2"'
+    )
+    expect(html).toContain(
+      'data-island="AccountAvatarIsland" data-client="idle" data-island-id="i3" data-when="signed-in"'
+    )
+    expect(html).toContain(
+      'data-island="MobileNavIsland" data-client="interaction" data-island-id="i4"'
     )
     // …and none of them carries props, so the page ships no props tag at all.
     // MobileNavIsland taking zero props is what removed 17.3 MB from the build.

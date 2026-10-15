@@ -25,37 +25,21 @@
         "wrangler": "4.147.0",
       },
     },
-    "apps/discord-bot": {
-      "name": "discord-bot",
-      "version": "0.0.1",
-      "dependencies": {
-        "@discordjs/builders": "1.14.1",
-        "@discordjs/rest": "2.6.3",
-        "@randsum/roller": "catalog:",
-        "@randsum/salvageunion": "catalog:",
-        "component-lib": "workspace:*",
-        "discord-api-types": "0.38.53",
-        "cantina-domain": "workspace:*",
-        "observability": "workspace:*",
-        "salvageunion-reference": "workspace:*",
-      },
-    },
     "apps/cantina": {
       "name": "cantina",
       "version": "0.0.0",
       "dependencies": {
         "@auth/core": "0.41.3",
-        "@base-ui/react": "catalog:",
         "@convex-dev/auth": "0.0.95",
         "@fontsource/barlow": "catalog:",
         "@fontsource/barlow-semi-condensed": "catalog:",
         "@fontsource/caveat": "catalog:",
         "@tanstack/react-router": "1.170.31",
         "@tanstack/router-plugin": "1.168.34",
+        "cantina-domain": "workspace:*",
         "component-lib": "workspace:*",
         "convex": "catalog:",
         "convex-helpers": "0.1.124",
-        "cantina-domain": "workspace:*",
         "lucide-react": "catalog:",
         "observability": "workspace:*",
         "qrcode": "1.5.4",
@@ -70,6 +54,21 @@
         "convex-test": "0.0.56",
         "gates": "workspace:*",
         "vite-plugin-pwa": "1.3.0",
+      },
+    },
+    "apps/discord-bot": {
+      "name": "discord-bot",
+      "version": "0.0.1",
+      "dependencies": {
+        "@discordjs/builders": "1.14.1",
+        "@discordjs/rest": "2.6.3",
+        "@randsum/roller": "catalog:",
+        "@randsum/salvageunion": "catalog:",
+        "cantina-domain": "workspace:*",
+        "component-lib": "workspace:*",
+        "discord-api-types": "0.38.53",
+        "observability": "workspace:*",
+        "salvageunion-reference": "workspace:*",
       },
     },
     "apps/srd": {
@@ -99,6 +98,14 @@
         "observability": "workspace:*",
       },
     },
+    "packages/cantina-domain": {
+      "name": "cantina-domain",
+      "version": "0.0.0",
+      "dependencies": {
+        "convex": "catalog:",
+        "salvageunion-reference": "workspace:*",
+      },
+    },
     "packages/component-lib": {
       "name": "component-lib",
       "version": "0.0.0",
@@ -126,14 +133,6 @@
       "devDependencies": {
         "axe-core": "4.13.0",
         "oxc-parser": "0.143.0",
-        "salvageunion-reference": "workspace:*",
-      },
-    },
-    "packages/cantina-domain": {
-      "name": "cantina-domain",
-      "version": "0.0.0",
-      "dependencies": {
-        "convex": "catalog:",
         "salvageunion-reference": "workspace:*",
       },
     },
@@ -950,6 +949,10 @@
 
     "caniuse-lite": ["caniuse-lite@1.0.30001809", "", {}, "sha512-xxWVywk6a6Arlk+hymeycyn/VgqEfLDxupvhH/xiY5SJ/18kmi9o6MiO320DCUzypORHLtvh0I4i04tUhCNHNQ=="],
 
+    "cantina": ["cantina@workspace:apps/cantina"],
+
+    "cantina-domain": ["cantina-domain@workspace:packages/cantina-domain"],
+
     "chokidar": ["chokidar@5.0.0", "", { "dependencies": { "readdirp": "^5.0.0" } }, "sha512-TQMmc3w+5AxjpL8iIiwebF73dRDF4fBIieAqGn9RGCWaEVwQ6Fb2cGe31Yns0RRIzii5goJ1Y7xbMwo1TxMplw=="],
 
     "cliui": ["cliui@6.0.0", "", { "dependencies": { "string-width": "^4.2.0", "strip-ansi": "^6.0.0", "wrap-ansi": "^6.2.0" } }, "sha512-t6wbgtoCXvAzst7QgXxJYqPt0usEfbgQdftEPbLL/cvv6HPE5VgvqCuAIDR0NgU52ds6rFwqrgakNLrHEjCbrQ=="],
@@ -1193,10 +1196,6 @@
     "isbot": ["isbot@5.2.1", "", {}, "sha512-dJ+LpKyClQZ7NG+j3OensC/mAZkGpukE9YUrgPYvAZj2doVL0edfDgywTUh5CXa0o+nW9a1V9e5+CJTX8+SxRw=="],
 
     "isexe": ["isexe@2.0.0", "", {}, "sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw=="],
-
-    "cantina": ["cantina@workspace:apps/cantina"],
-
-    "cantina-domain": ["cantina-domain@workspace:packages/cantina-domain"],
 
     "jackspeak": ["jackspeak@4.2.3", "", { "dependencies": { "@isaacs/cliui": "^9.0.0" } }, "sha512-ykkVRwrYvFm1nb2AJfKKYPr0emF6IiXDYUaFx4Zn9ZuIH7MrzEZ3sD5RlqGXNRpHtvUHJyOnCEFxOlNDtGo7wg=="],
 

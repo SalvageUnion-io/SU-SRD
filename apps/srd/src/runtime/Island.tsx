@@ -72,6 +72,11 @@ export type IslandProps = {
    * whole page (the Peek) rather than its own placeholder.
    */
   trigger?: string
+  /**
+   * Mount only while somebody is signed in (`lib/accountBar.ts`): the account
+   * menu, which a signed-out reader never loads.
+   */
+  when?: 'signed-in'
 }
 
 /** Props for every island rendered during one page render, by `data-island-id`. */
@@ -106,6 +111,7 @@ export function Island({
   children,
   hydrate = false,
   trigger,
+  when,
 }: IslandProps) {
   if (!active) {
     throw new Error(
@@ -125,6 +131,7 @@ export function Island({
       data-island-id={id}
       data-hydrate={hydrate ? '' : undefined}
       data-trigger={trigger}
+      data-when={when}
       {...(ssr && hydrate ? { dangerouslySetInnerHTML: { __html: renderToString(children) } } : {})}
     >
       {ssr && !hydrate ? children : null}

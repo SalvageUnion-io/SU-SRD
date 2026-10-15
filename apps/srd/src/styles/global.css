@@ -28,6 +28,17 @@
   navigation: auto;
 }
 
+/* The Union bar's account controls (`lib/accountBar.ts`): Sign in gives way
+   to the account menu while somebody is signed in, and an account island that
+   has not mounted (signed out, or not yet) takes no place in the bar's gap. */
+html[data-srd-signed-in] .srd-sign-in {
+  display: none;
+}
+[data-island='AccountIsland']:empty,
+[data-island='AccountAvatarIsland']:empty {
+  display: none;
+}
+
 /* Buttons, masthead, section headers and catalog tiles are component-lib's
    (`Button`, `AppBar`, `ChapterBand` / `Slab`, `CatalogTile`); no srd
    class restates them. */

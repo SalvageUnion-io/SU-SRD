@@ -19,6 +19,8 @@
  * it (`interaction.ts`), so a page nobody touches loads no React.
  */
 
+import { readAccountHint } from 'component-lib/accountHint'
+import { browserStorage, markSignedIn } from '../lib/accountBar'
 import { initBrowserObservability, installChunkRecovery } from '../lib/observability'
 import { revealWikiLinks } from '../lib/wikiLink'
 import { replayInteraction, watchInteraction } from './interaction'
@@ -35,6 +37,11 @@ initBrowserObservability()
 // `mountIslands` runs, and on a page older than the deploy that import is the
 // first thing to fail. See `installChunkRecovery` in observability/browser.
 installChunkRecovery()
+
+// Before the islands: Sign in hides and the account islands mount only while
+// somebody is signed in (`lib/accountBar.ts`).
+const signedIn = readAccountHint(browserStorage()) !== null
+markSignedIn(document, signedIn)
 
 type PropsById = Record<string, Record<string, unknown>>
 
@@ -55,6 +62,7 @@ function mountIslands(): void {
   for (const el of document.querySelectorAll<HTMLElement>('[data-island]')) {
     const name = el.dataset.island
     if (!name) continue
+    if (el.dataset.when === 'signed-in' && !signedIn) continue
     // `name` comes off the DOM, so it is genuinely an unknown string here —
     // the compile-time `IslandName` guarantee lives at the `<Island>` call
     // site, not on this side of the serialization boundary. Narrow explicitly

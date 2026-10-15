@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as SignOutRouteImport } from './routes/sign-out'
 import { Route as CrawlersNewRouteImport } from './routes/crawlers/new'
 import { Route as DashboardPilotIdRouteImport } from './routes/dashboard/$pilotId'
 import { Route as GamesGameIdRouteImport } from './routes/games_/$gameId'
@@ -44,6 +46,16 @@ const AccountRoute = AccountRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignInRoute = SignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignOutRoute = SignOutRouteImport.update({
+  id: '/sign-out',
+  path: '/sign-out',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CrawlersNewRoute = CrawlersNewRouteImport.update({
@@ -141,6 +153,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
   '/settings': typeof SettingsRoute
+  '/sign-in': typeof SignInRoute
+  '/sign-out': typeof SignOutRoute
   '/crawlers/new': typeof CrawlersNewRoute
   '/dashboard/$pilotId': typeof DashboardPilotIdRoute
   '/games/$gameId': typeof GamesGameIdRoute
@@ -164,6 +178,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
   '/settings': typeof SettingsRoute
+  '/sign-in': typeof SignInRoute
+  '/sign-out': typeof SignOutRoute
   '/crawlers/new': typeof CrawlersNewRoute
   '/dashboard/$pilotId': typeof DashboardPilotIdRoute
   '/games/$gameId': typeof GamesGameIdRoute
@@ -188,6 +204,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
   '/settings': typeof SettingsRoute
+  '/sign-in': typeof SignInRoute
+  '/sign-out': typeof SignOutRoute
   '/crawlers/new': typeof CrawlersNewRoute
   '/dashboard/$pilotId': typeof DashboardPilotIdRoute
   '/games_/$gameId': typeof GamesGameIdRoute
@@ -213,6 +231,8 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/settings'
+    | '/sign-in'
+    | '/sign-out'
     | '/crawlers/new'
     | '/dashboard/$pilotId'
     | '/games/$gameId'
@@ -236,6 +256,8 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/settings'
+    | '/sign-in'
+    | '/sign-out'
     | '/crawlers/new'
     | '/dashboard/$pilotId'
     | '/games/$gameId'
@@ -259,6 +281,8 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/settings'
+    | '/sign-in'
+    | '/sign-out'
     | '/crawlers/new'
     | '/dashboard/$pilotId'
     | '/games_/$gameId'
@@ -283,6 +307,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountRoute: typeof AccountRoute
   SettingsRoute: typeof SettingsRoute
+  SignInRoute: typeof SignInRoute
+  SignOutRoute: typeof SignOutRoute
   CrawlersNewRoute: typeof CrawlersNewRoute
   DashboardPilotIdRoute: typeof DashboardPilotIdRoute
   GamesGameIdRoute: typeof GamesGameIdRoute
@@ -324,6 +350,20 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sign-in': {
+      id: '/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof SignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sign-out': {
+      id: '/sign-out'
+      path: '/sign-out'
+      fullPath: '/sign-out'
+      preLoaderRoute: typeof SignOutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/crawlers/new': {
@@ -459,6 +499,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRoute,
   SettingsRoute: SettingsRoute,
+  SignInRoute: SignInRoute,
+  SignOutRoute: SignOutRoute,
   CrawlersNewRoute: CrawlersNewRoute,
   DashboardPilotIdRoute: DashboardPilotIdRoute,
   GamesGameIdRoute: GamesGameIdRoute,

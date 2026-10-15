@@ -11,11 +11,10 @@
  * opens the page's one confirm, which has to outlive the menu that asked.
  */
 
-import { Stat } from 'component-lib'
+import type { HeaderMenuItem } from 'component-lib'
+import { HeaderMenu, Stat } from 'component-lib'
 import type { CSSProperties } from 'react'
 import type { ShelfChip, ShelfReading } from '../../lib/shelves/shelfItems'
-import type { HeaderMenuItem } from '../shared/HeaderMenu'
-import { HeaderMenu } from '../shared/HeaderMenu'
 import type { ShelfKind } from './ShelfPill'
 import { ShelfPill } from './ShelfPill'
 
