@@ -1,27 +1,27 @@
 # observability
 
-Sentry and platform wiring shared by every surface. Ships TypeScript source (no
-build step), like the other packages. Three subpaths, each imported by name —
-there is no root export:
+Error reporting shared by every surface: Workers Issues is the error tracker
+(ADR-049). Ships TypeScript source (no build step), like the other packages.
+Two subpaths, each imported by name — there is no root export, and no
+third-party SDK:
 
 | Subpath | Consumers | What it is |
 | --- | --- | --- |
-| `observability/cloudflare` | the four Workers (`apps/srd/src/worker`, `apps/itun/src/worker`, `apps/su-assets/src/worker`, `apps/discord-bot/src/worker`) | `withObservability` wraps a Worker's default export for Sentry; `reportError` logs a handled error to Workers Logs and Sentry, and is imported directly (no per-app reporter) |
-| `observability/browser` | `apps/srd` and `apps/itun` (`src/lib/observability.ts`) | `createBrowserObservability` (init, capture verbs, `installChunkRecovery`) and `buildCaptureHint` — the half of the browser shim that imports **no** Sentry code |
-| `observability/vite` | both apps' Vite configs (`apps/srd/ssg/vite.config.ts`, `apps/itun/vite.config.ts`) | `sentrySourcemaps(outDir)` — the Sentry sourcemap upload, inert without `SENTRY_AUTH_TOKEN`, `hidden` maps deleted after upload |
+| `observability/cloudflare` | the four Workers (`apps/srd/src/worker`, `apps/itun/src/worker`, `apps/su-assets/src/worker`, `apps/discord-bot/src/worker`) | `reportError` logs a handled error with `console.error`, which Issues records; `handleErrorReport` answers a browser's report at `ERROR_REPORT_PATH`; `handleConvexLogStream` answers the Convex log stream at `CONVEX_LOG_STREAM_PATH` (ITUN only) |
+| `observability/browser` | `apps/srd` and `apps/itun` (`src/lib/observability.ts`) | `createBrowserObservability` (init, which hears the window's `error` and `unhandledrejection`; `captureException`; `installChunkRecovery`) |
 
 ## Rules that are easy to break
 
-- **No module-scope Sentry initialisation in a Worker.** Workers forbid I/O and
-  timers at module scope (ADR-033), so the wrapper builds its options per
-  request from `env`. Never add a top-level `Sentry.init()`.
-- **The browser DSN guard stays in each app.** `browser.ts` takes a *loader*,
-  not the SDK, so the app's `if (!dsn) return` still guards its dynamic
-  `import('@sentry/browser')` and Vite drops the SDK from a build with no DSN.
-  Hoisting the guard in here would ship the SDK to every visitor.
-- `@sentry/cloudflare` is a runtime `dependency` here, not a devDependency: the
-  Workers get it through this package. `@sentry/vite-plugin` likewise: the apps'
-  Vite configs get it through `observability/vite` and declare it nowhere else.
+- **Issues needs the Worker config, not code.** Every `wrangler.jsonc` keeps
+  `observability.issues.enabled` and `upload_source_maps`;
+  `tools/check-observability.ts` fails a Worker without them.
+- **A handled error is reported with `reportError`, never swallowed.** Issues
+  sees only an uncaught throw, a `5xx` and `console.error`.
+- **The report endpoints never answer `5xx` for a bad report.** Issues would
+  record it as this endpoint failing. A malformed report is a `4xx`.
+- **The browser gate is `import.meta.env.PROD`, in each app.** The dev servers
+  have no Worker to post to.
+- Browser stacks stay minified: Cloudflare applies source maps to a Worker's
+  own code only.
 
-Tests are in `src/__tests__/` and drive the real SDK with `fetch` replaced, so
-they assert what actually leaves the Worker: `bun --filter observability test`.
+Tests are in `src/__tests__/`: `bun --filter observability test`.

@@ -21,7 +21,6 @@
     "@fontsource/barlow": "catalog:",
     "@fontsource/barlow-semi-condensed": "catalog:",
     "@fontsource/caveat": "catalog:",
-    "@sentry/browser": "catalog:",
     "@tanstack/react-router": "1.170.31",
     "@tanstack/router-plugin": "1.168.34",
     "component-lib": "workspace:*",

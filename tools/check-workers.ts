@@ -36,7 +36,12 @@ export const SCRIPTS = ['dev', 'build', 'test', 'typecheck', 'deploy', 'worker:b
 const SAME_SCRIPTS = ['deploy', 'worker:bundle'] as const
 
 /** wrangler.jsonc keys every Worker sets to the same value. */
-const SHARED_KEYS = ['compatibility_date', 'compatibility_flags', 'observability'] as const
+const SHARED_KEYS = [
+  'compatibility_date',
+  'compatibility_flags',
+  'observability',
+  'upload_source_maps',
+] as const
 
 export const ENTRY = 'src/worker/index.ts'
 

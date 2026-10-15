@@ -9,18 +9,11 @@
 
   // At or below the workerd the wrangler devDependency bundles (deploy-cloudflare.yml).
   "compatibility_date": "2026-07-13",
-  // AsyncLocalStorage for @sentry/cloudflare; tools/check-observability.ts requires it.
-  "compatibility_flags": ["nodejs_als"],
 
   // Workers Caching: a repeat request is answered from the edge without running
   // the Worker, keyed on the `Cache-Control` each response sets (src/worker/index.ts).
   "cache": {
     "enabled": true
-  },
-
-  // A deploy fails while one is unset; set with `wrangler secret put`.
-  "secrets": {
-    "required": ["SENTRY_DSN"]
   },
 
   // Renders the -440/-880 derivatives. Needs Images Transformations on the zone
@@ -37,9 +30,16 @@
   ],
 
   // Traces: a span per binding call and outbound fetch (Convex, R2, Images,
-  // Browser Rendering), in the dashboard next to the logs.
+  // Browser Rendering), in the dashboard next to the logs. Issues is the error
+  // tracker: it groups uncaught exceptions, 5xx answers and `console.error`
+  // (`observability/cloudflare`'s `reportError`) into issues, alerted on by the
+  // dashboard's Issues automations. tools/check-observability.ts requires all three.
   "observability": {
     "enabled": true,
-    "traces": { "enabled": true }
-  }
+    "traces": { "enabled": true },
+    "issues": { "enabled": true }
+  },
+
+  // Issues' stacks point at the source, not the bundle.
+  "upload_source_maps": true
 }

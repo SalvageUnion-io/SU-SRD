@@ -34,8 +34,8 @@ rewrites everything between its markers: amend it here, never inside it.
 - **Docs** (`convex-docs`): the pinned version is the root `catalog:` entry;
   context7 serves its docs.
 - **Errors** (`convex-sentinel`, `convex-monitor`, `convex-insights`): Convex
-  errors already reach Sentry (convex-ops section on error reporting); do not
-  add Sentinel.
+  errors already reach Workers Issues through the log stream (convex-ops section
+  on error reporting); do not add Sentinel.
 - **Adding things** (`convex-add`, `convex-auth`, `convex-agent`,
   `convex-billing`, `convex-crons`, `convex-domains`, `convex-suggest`,
   `convex-quickstart`, `convex-create-component`): auth is already

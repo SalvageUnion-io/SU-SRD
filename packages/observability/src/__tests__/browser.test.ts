@@ -1,175 +1,224 @@
-import { describe, expect, test } from 'bun:test'
-import type { BrowserSentrySdk } from '../browser'
-import { buildCaptureHint, createBrowserObservability } from '../browser'
+import { afterEach, describe, expect, test } from 'bun:test'
+import type { ErrorReport } from '../browser'
+import { createBrowserObservability, ERROR_REPORT_PATH, MAX_REPORTS_PER_PAGE } from '../browser'
 
-/**
- * `createBrowserObservability` is tested at the bottom.
- *
- * What `buildCaptureHint` protects is not obvious from the function: it returns
- * `undefined` rather than `{}` because `Sentry.captureException(err, {})` and
- * `captureException(err)` are not the same call — an empty hint overrides
- * nothing but still travels through the SDK's hint-merging path. And the
- * fingerprint/tags fields exist because Convex's redacted errors
- * (`"[CONVEX M(fn)] [Request ID: 1b66…] Server Error"`) carry a per-request id
- * in the message, so without an explicit fingerprint one condition scatters
- * across issues titled with request ids. That happened in production.
- */
-describe('buildCaptureHint', () => {
-  test('returns undefined when there is nothing to attach', () => {
-    // Not `{}`: an empty hint is a different call to the SDK, not a no-op.
-    expect(buildCaptureHint()).toBeUndefined()
-    expect(buildCaptureHint(undefined, undefined)).toBeUndefined()
-    expect(buildCaptureHint(undefined, {})).toBeUndefined()
-  })
-
-  test('puts context under `extra`, which Sentry does not index', () => {
-    expect(buildCaptureHint({ appId: 'abc' })).toEqual({ extra: { appId: 'abc' } })
-  })
-
-  test('carries tags and fingerprint through unchanged', () => {
-    expect(buildCaptureHint(undefined, { tags: { surface: 'itun' } })).toEqual({
-      tags: { surface: 'itun' },
-    })
-    expect(buildCaptureHint(undefined, { fingerprint: ['convex', 'games.create'] })).toEqual({
-      fingerprint: ['convex', 'games.create'],
-    })
-  })
-
-  test('combines all three without reordering or dropping any', () => {
-    expect(
-      buildCaptureHint(
-        { requestId: '1b66' },
-        { tags: { surface: 'srd' }, fingerprint: ['convex', 'server-error'] }
-      )
-    ).toEqual({
-      extra: { requestId: '1b66' },
-      tags: { surface: 'srd' },
-      fingerprint: ['convex', 'server-error'],
-    })
-  })
-
-  test('an empty context object still produces a hint', () => {
-    // `{}` is truthy, so this attaches `extra: {}` rather than returning
-    // undefined. Pinned because it is the one case where the "nothing to
-    // attach" shortcut does NOT apply, and a future `Object.keys(context)`
-    // guard would silently change it.
-    expect(buildCaptureHint({})).toEqual({ extra: {} })
-  })
-
-  test('does not mutate the caller’s objects', () => {
-    // The shims pass objects they keep using; the hint must be a fresh one.
-    const context = { appId: 'abc' }
-    const options = { tags: { surface: 'itun' } }
-    const hint = buildCaptureHint(context, options)
-
-    expect(hint).not.toBe(context)
-    expect(hint?.extra).toBe(context)
-    expect(context).toEqual({ appId: 'abc' })
-    expect(options).toEqual({ tags: { surface: 'itun' } })
-  })
-})
-
-/** A recording stand-in for the `@sentry/browser` namespace. */
-function fakeSdk() {
-  const calls: Array<{ fn: string; args: unknown[] }> = []
-  const sdk: BrowserSentrySdk = {
-    init: (...args) => calls.push({ fn: 'init', args }),
-    captureException: (...args) => calls.push({ fn: 'captureException', args }),
-    captureMessage: (...args) => calls.push({ fn: 'captureMessage', args }),
+/** A recording transport: every report that would leave the page. */
+function recorder() {
+  const sent: Array<{ endpoint: string; report: ErrorReport }> = []
+  const transport = (endpoint: string, body: string) => {
+    sent.push({ endpoint, report: JSON.parse(body) as ErrorReport })
   }
-  return { sdk, calls }
+  return { sent, transport }
 }
 
-const DSN = 'https://public@o0.ingest.de.sentry.io/1'
+const ENDPOINT = `/build${ERROR_REPORT_PATH}`
 
 describe('createBrowserObservability', () => {
-  test('before init, both capture verbs are silent no-ops', () => {
-    const { calls } = fakeSdk()
-    const obs = createBrowserObservability()
-    obs.captureException(new Error('early'))
-    obs.captureMessage('early')
-    expect(calls).toEqual([])
+  test('before init, captureException is a silent no-op', () => {
+    const { sent, transport } = recorder()
+    createBrowserObservability({ transport }).captureException(new Error('early'))
+    expect(sent).toEqual([])
   })
 
-  test('init is errors-only and passes the deploy values through', async () => {
-    const { sdk, calls } = fakeSdk()
-    const obs = createBrowserObservability()
-    await obs.init(async () => sdk, { dsn: DSN, environment: 'production', release: 'abc123' })
-
-    expect(calls).toEqual([
-      {
-        fn: 'init',
-        args: [{ dsn: DSN, environment: 'production', release: 'abc123', tracesSampleRate: 0 }],
-      },
-    ])
-  })
-
-  test('an empty release is omitted rather than naming a release ""', async () => {
-    // Unset locally, Vite inlines `VITE_COMMIT_REF` as "" — not undefined.
-    const { sdk, calls } = fakeSdk()
-    await createBrowserObservability().init(async () => sdk, { dsn: DSN, release: '' })
-    const options = calls[0]?.args[0] as Record<string, unknown>
-    expect(options.release).toBeUndefined()
-  })
-
-  test('ignoreErrors is sent only when configured', async () => {
-    const withList = fakeSdk()
-    await createBrowserObservability({ ignoreErrors: ['Transition was skipped'] }).init(
-      async () => withList.sdk,
-      { dsn: DSN }
-    )
-    expect(
-      (withList.calls[0]?.args[0] as Record<string, unknown> | undefined)?.ignoreErrors
-    ).toEqual(['Transition was skipped'])
-
-    const without = fakeSdk()
-    await createBrowserObservability().init(async () => without.sdk, { dsn: DSN })
-    expect(without.calls[0]?.args[0]).not.toHaveProperty('ignoreErrors')
-  })
-
-  test('init runs once, even when two callers race on load', async () => {
-    const { sdk, calls } = fakeSdk()
-    let loads = 0
-    const load = async () => {
-      loads += 1
-      return sdk
-    }
-    const obs = createBrowserObservability()
-    await Promise.all([obs.init(load, { dsn: DSN }), obs.init(load, { dsn: DSN })])
-    await obs.init(load, { dsn: DSN })
-
-    expect(loads).toBe(1)
-    expect(calls.filter((c) => c.fn === 'init')).toHaveLength(1)
-  })
-
-  test('after init, captures forward with the shared hint shape', async () => {
-    const { sdk, calls } = fakeSdk()
-    const obs = createBrowserObservability()
-    await obs.init(async () => sdk, { dsn: DSN })
-    calls.length = 0
+  test('after init, a caught error is posted to the endpoint with its context', () => {
+    const { sent, transport } = recorder()
+    const obs = createBrowserObservability({ transport })
+    obs.init({ endpoint: ENDPOINT, release: 'abc123', target: new EventTarget() })
 
     const boom = new Error('boom')
     obs.captureException(boom, { where: 'island' }, { tags: { surface: 'srd' } })
-    obs.captureMessage('snapshot backend down', { status: 503 })
-    obs.captureMessage('bare')
 
-    expect(calls).toEqual([
+    expect(sent).toHaveLength(1)
+    expect(sent[0]?.endpoint).toBe(ENDPOINT)
+    expect(sent[0]?.report).toMatchObject({
+      name: 'Error',
+      message: 'boom',
+      release: 'abc123',
+      context: { where: 'island' },
+      tags: { surface: 'srd' },
+    })
+    expect(sent[0]?.report.stack).toContain('boom')
+  })
+
+  test('an empty release is omitted rather than naming a release ""', () => {
+    // Unset locally, Vite inlines `VITE_COMMIT_REF` as "" — not undefined.
+    const { sent, transport } = recorder()
+    const obs = createBrowserObservability({ transport })
+    obs.init({ endpoint: ENDPOINT, release: '', target: new EventTarget() })
+    obs.captureException(new Error('x'))
+    expect(sent[0]?.report).not.toHaveProperty('release')
+  })
+
+  test('the fingerprint travels with the report, for the Worker to group by', () => {
+    // Convex's redacted errors carry a per-request id in the message, so
+    // without a fingerprint one condition scatters across issues.
+    const { sent, transport } = recorder()
+    const obs = createBrowserObservability({ transport })
+    obs.init({ endpoint: ENDPOINT, target: new EventTarget() })
+    obs.captureException(
+      new Error('[CONVEX M(games:create)] [Request ID: 1b66] Server Error'),
+      undefined,
       {
-        fn: 'captureException',
-        args: [boom, { extra: { where: 'island' }, tags: { surface: 'srd' } }],
+        fingerprint: ['convex', 'games:create'],
+      }
+    )
+    expect(sent[0]?.report.fingerprint).toEqual(['convex', 'games:create'])
+  })
+
+  test('ignoreErrors drops a match of the error’s name and message, and only a match', () => {
+    const { sent, transport } = recorder()
+    const obs = createBrowserObservability({ transport, ignoreErrors: ['Transition was skipped'] })
+    obs.init({ endpoint: ENDPOINT, target: new EventTarget() })
+    obs.captureException(Object.assign(new Error('Transition was skipped'), { name: 'AbortError' }))
+    obs.captureException(new Error('a real one'))
+    expect(sent.map((s) => s.report.message)).toEqual(['a real one'])
+  })
+
+  test('the same error object is reported once, however many handlers see it', () => {
+    const { sent, transport } = recorder()
+    const obs = createBrowserObservability({ transport })
+    obs.init({ endpoint: ENDPOINT, target: new EventTarget() })
+    const boom = new Error('seen twice')
+    obs.captureException(boom)
+    obs.captureException(boom)
+    expect(sent).toHaveLength(1)
+  })
+
+  test('a page sends at most MAX_REPORTS_PER_PAGE reports', () => {
+    const { sent, transport } = recorder()
+    const obs = createBrowserObservability({ transport })
+    obs.init({ endpoint: ENDPOINT, target: new EventTarget() })
+    for (let i = 0; i < MAX_REPORTS_PER_PAGE + 5; i++) obs.captureException(new Error(`loop ${i}`))
+    expect(sent).toHaveLength(MAX_REPORTS_PER_PAGE)
+  })
+
+  test('a thrown non-Error, a cyclic context and a failing transport never throw', () => {
+    const obs = createBrowserObservability({
+      transport: () => {
+        throw new Error('offline')
       },
-      { fn: 'captureMessage', args: ['snapshot backend down', { extra: { status: 503 } }] },
-      { fn: 'captureMessage', args: ['bare', undefined] },
+    })
+    obs.init({ endpoint: ENDPOINT, target: new EventTarget() })
+    const cyclic: Record<string, unknown> = {}
+    cyclic.self = cyclic
+    expect(() => obs.captureException('a string', cyclic)).not.toThrow()
+  })
+
+  test('a non-Error is named NonError, with its JSON as the message', () => {
+    const { sent, transport } = recorder()
+    const obs = createBrowserObservability({ transport })
+    obs.init({ endpoint: ENDPOINT, target: new EventTarget() })
+    obs.captureException({ code: 42 })
+    expect(sent[0]?.report).toMatchObject({ name: 'NonError', message: '{"code":42}' })
+  })
+
+  test('init hears the window’s error and unhandledrejection events, once', () => {
+    const { sent, transport } = recorder()
+    const target = new EventTarget()
+    const obs = createBrowserObservability({ transport })
+    obs.init({ endpoint: ENDPOINT, target })
+    obs.init({ endpoint: '/elsewhere', target })
+
+    const uncaught = new Event('error')
+    Object.assign(uncaught, { error: new Error('uncaught'), message: 'Uncaught Error: uncaught' })
+    target.dispatchEvent(uncaught)
+    const rejection = new Event('unhandledrejection')
+    Object.assign(rejection, { reason: new Error('rejected') })
+    target.dispatchEvent(rejection)
+
+    expect(sent.map((s) => [s.endpoint, s.report.message, s.report.tags])).toEqual([
+      [ENDPOINT, 'uncaught', { handler: 'error' }],
+      [ENDPOINT, 'rejected', { handler: 'unhandledrejection' }],
     ])
   })
 
-  test('each instance keeps its own state', async () => {
-    const first = fakeSdk()
-    const a = createBrowserObservability()
-    const b = createBrowserObservability()
-    await a.init(async () => first.sdk, { dsn: DSN })
+  test('teardown stops reporting and removes the window listeners', () => {
+    const { sent, transport } = recorder()
+    const target = new EventTarget()
+    const obs = createBrowserObservability({ transport })
+    const teardown = obs.init({ endpoint: ENDPOINT, target })
+    teardown()
+
+    obs.captureException(new Error('after teardown'))
+    const rejection = new Event('unhandledrejection')
+    Object.assign(rejection, { reason: new Error('after teardown too') })
+    target.dispatchEvent(rejection)
+    expect(sent).toEqual([])
+  })
+
+  test('a thrown value JSON cannot serialise is reported by its string form', () => {
+    const { sent, transport } = recorder()
+    const obs = createBrowserObservability({ transport })
+    obs.init({ endpoint: ENDPOINT, target: new EventTarget() })
+    obs.captureException(10n)
+    expect(sent[0]?.report).toMatchObject({ name: 'NonError', message: '10' })
+  })
+
+  test('an oversized context is sent truncated, not dropped', () => {
+    const { sent, transport } = recorder()
+    const obs = createBrowserObservability({ transport })
+    obs.init({ endpoint: ENDPOINT, target: new EventTarget() })
+    obs.captureException(new Error('big'), { blob: 'x'.repeat(5_000) })
+    const context = sent[0]?.report.context as { truncated?: string }
+    expect(context.truncated?.length).toBeLessThan(2_100)
+  })
+
+  test('each instance keeps its own state', () => {
+    const { sent, transport } = recorder()
+    const a = createBrowserObservability({ transport })
+    const b = createBrowserObservability({ transport })
+    a.init({ endpoint: ENDPOINT, target: new EventTarget() })
     b.captureException(new Error('b is not initialised'))
-    expect(first.calls.filter((c) => c.fn === 'captureException')).toHaveLength(0)
+    expect(sent).toHaveLength(0)
+  })
+})
+
+/**
+ * The default transport: `navigator.sendBeacon`, and a `keepalive` fetch where
+ * the beacon is missing or refuses the report.
+ */
+describe('the default transport', () => {
+  const nav = globalThis.navigator as unknown as { sendBeacon?: unknown }
+  const realBeacon = nav.sendBeacon
+  const realFetch = globalThis.fetch
+
+  afterEach(() => {
+    nav.sendBeacon = realBeacon
+    globalThis.fetch = realFetch
+  })
+
+  function capture(): void {
+    const obs = createBrowserObservability()
+    const teardown = obs.init({ endpoint: ENDPOINT, target: new EventTarget() })
+    obs.captureException(new Error('sent'))
+    teardown()
+  }
+
+  test('sends with sendBeacon when it accepts the report', () => {
+    const beacons: unknown[][] = []
+    nav.sendBeacon = (...args: unknown[]) => {
+      beacons.push(args)
+      return true
+    }
+    globalThis.fetch = (() => {
+      throw new Error('fetch must not run')
+    }) as unknown as typeof fetch
+    capture()
+    expect(beacons).toHaveLength(1)
+    expect(beacons[0]?.[0]).toBe(ENDPOINT)
+  })
+
+  test('falls back to a keepalive POST, and swallows its failure', async () => {
+    nav.sendBeacon = () => false
+    const fetched: RequestInit[] = []
+    globalThis.fetch = (async (_: unknown, init?: RequestInit) => {
+      fetched.push(init ?? {})
+      throw new Error('offline')
+    }) as unknown as typeof fetch
+    capture()
+    await Promise.resolve()
+    expect(fetched).toHaveLength(1)
+    expect(fetched[0]).toMatchObject({ method: 'POST', keepalive: true })
   })
 })
 
@@ -217,9 +266,15 @@ function firePreloadError(target: EventTarget): Event {
  * touches a real page.
  */
 describe('installChunkRecovery', () => {
-  function setup(deps: { storage?: Storage; now?: () => number } = {}) {
+  function setup(
+    deps: {
+      storage?: Storage
+      now?: () => number
+      transport?: (endpoint: string, body: string) => void
+    } = {}
+  ) {
     const target = new EventTarget()
-    const obs = createBrowserObservability()
+    const obs = createBrowserObservability({ transport: deps.transport })
     let reloads = 0
     const teardown = obs.installChunkRecovery({
       target,
@@ -241,12 +296,12 @@ describe('installChunkRecovery', () => {
     expect(event.defaultPrevented).toBe(true)
   })
 
-  test('a burst of failures in one page is one reload and one event', async () => {
+  test('a burst of failures in one page is one reload and one event', () => {
     // A page that fails several imports at once: the first schedules the
     // reload, and the rest are the same skew, not failed recoveries.
-    const { sdk, calls } = fakeSdk()
-    const { obs, target, teardown, reloads } = setup()
-    await obs.init(async () => sdk, { dsn: DSN })
+    const { sent, transport } = recorder()
+    const { obs, target, teardown, reloads } = setup({ transport })
+    obs.init({ endpoint: ENDPOINT, target: new EventTarget() })
 
     firePreloadError(target)
     const second = firePreloadError(target)
@@ -256,9 +311,11 @@ describe('installChunkRecovery', () => {
     expect(reloads()).toBe(1)
     expect(second.defaultPrevented).toBe(true)
     expect(third.defaultPrevented).toBe(true)
-    const captured = calls.filter((c) => c.fn === 'captureException')
-    expect(captured).toHaveLength(1)
-    expect(captured[0]?.args[1]).toMatchObject({ tags: { recovered: 'true' } })
+    expect(sent).toHaveLength(1)
+    expect(sent[0]?.report).toMatchObject({
+      fingerprint: ['chunk-preload-error'],
+      tags: { recovered: 'true' },
+    })
   })
 
   test('does NOT reload inside a cooldown a previous load recorded — the loop guard', () => {

@@ -1,66 +1,51 @@
-import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
+import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 
 /**
  * observability — ITUN's only channel for finding out that production broke.
  *
- * It is entirely env-gated, and the gate is the interesting part: with no DSN
- * every function must be a silent no-op (local dev, CI and every build without
- * the var provisioned run that way), and with one it must actually report. A
- * regression in either direction is invisible until the day you need it — an
- * app that has stopped reporting looks exactly like an app with no errors.
- * That is the argument `apps/discord-bot/src/__tests__/observability.test.ts`
- * makes, and this file follows its mocking discipline deliberately, as its
- * srd counterpart does.
+ * It is gated on a production build, and the gate is the interesting part:
+ * outside one every function must be a silent no-op (the dev server has no
+ * Worker to post to), and inside one it must actually report. A regression in
+ * either direction is invisible until the day you need it — an app that has
+ * stopped reporting looks exactly like an app with no errors.
  *
  * `captureException` earns its own cases here: catching is exactly what
- * PREVENTS an error reaching
- * Sentry's `globalHandlers` integration, so a deliberately-caught failure —
- * including a failed Change Log commit — is reportable ONLY through this
- * function.
- *
- * `mock.module` is process-global in Bun, not file-scoped, so the real
- * `@sentry/browser` namespace is captured BEFORE mocking and restored in
- * `afterAll`. Skipping that leaks the stub into every one of ITUN's ~180 test
- * files that happens to run later in the same process.
+ * PREVENTS an error reaching the window's `error` event, so a
+ * deliberately-caught failure — including a failed Change Log commit — is
+ * reportable ONLY through this function.
  *
  * The module is imported ONCE, statically, and the cases below walk its real
- * state machine in order — unconfigured, then configured, then already
- * configured. Re-importing under a cache-busting query instead would create a
- * fresh module each time and, more to the point, attribute no coverage to the
- * file under test. The DSN is driven through `process.env` because Bun backs
- * `import.meta.env` with it (asserted below rather than assumed) and the
- * module reads the var inside `initBrowserObservability`, not at module scope.
+ * state machine in order. The gate is driven through `process.env` because Bun
+ * backs `import.meta.env` with it (asserted below rather than assumed). What
+ * leaves the page is read off `fetch`: the transport falls back to a
+ * `keepalive` fetch where there is no `sendBeacon`.
  */
 
-const sentryCalls: Array<{ fn: string; args: unknown[] }> = []
+const posts: Array<{ url: string; body: Record<string, unknown> }> = []
+const realFetch = globalThis.fetch
+const nav = globalThis.navigator as unknown as { sendBeacon?: unknown }
+const realBeacon = nav.sendBeacon
+/** Env keys this file writes, so `afterAll` can put the environment back. */
+const ENV_KEYS = ['PROD', 'VITE_COMMIT_REF'] as const
+const realEnv = new Map(ENV_KEYS.map((key) => [key, process.env[key]]))
 
-const realSentry = { ...(await import('@sentry/browser')) }
-
-mock.module('@sentry/browser', () => ({
-  ...realSentry,
-  init: (...args: unknown[]) => {
-    sentryCalls.push({ fn: 'init', args })
-  },
-  captureException: (...args: unknown[]) => {
-    sentryCalls.push({ fn: 'captureException', args })
-  },
-  captureMessage: (...args: unknown[]) => {
-    sentryCalls.push({ fn: 'captureMessage', args })
-  },
-}))
+nav.sendBeacon = undefined
+globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+  posts.push({ url: String(input), body: JSON.parse(String(init?.body)) })
+  return new Response(null, { status: 204 })
+}) as typeof fetch
 
 const { captureException, initBrowserObservability, reactRootErrorHandlers } = await import(
   '../observability'
 )
 
-/** Env keys this file writes, so `afterAll` can put the environment back. */
-const ENV_KEYS = ['VITE_SENTRY_DSN', 'VITE_COMMIT_REF'] as const
-const realEnv = new Map(ENV_KEYS.map((key) => [key, process.env[key]]))
+/** Stops the module's reporting, so it does not outlive this file. */
+let teardown = () => {}
 
 afterAll(() => {
-  mock.module('@sentry/browser', () => realSentry)
-  // Restore rather than blank: a leaked DSN-shaped string would make every
-  // later file in this process think observability is configured.
+  teardown()
+  globalThis.fetch = realFetch
+  nav.sendBeacon = realBeacon
   for (const [key, value] of realEnv) {
     if (value === undefined) delete process.env[key]
     else process.env[key] = value
@@ -68,151 +53,102 @@ afterAll(() => {
 })
 
 beforeEach(() => {
-  sentryCalls.length = 0
+  posts.length = 0
 })
 
+/** Runs `fn` with `console.error` silenced: the React hooks still log. */
+function quietly(fn: () => void): void {
+  const realConsoleError = console.error
+  console.error = () => {}
+  try {
+    fn()
+  } finally {
+    console.error = realConsoleError
+  }
+}
+
 describe('observability', () => {
-  // Order matters: these walk one module's state machine, unconfigured first.
+  // Order matters: these walk one module's state machine, not production first.
 
   test('a process.env write is visible through import.meta.env — the premise the gate is driven through', () => {
-    // Stated as an assertion, not a comment. If Bun ever stops backing one
-    // with the other, every case below would still pass while testing only
-    // the no-DSN branch, which is precisely the silent-hole failure mode this
-    // file exists to prevent.
-    // Asserted as observable behaviour rather than object identity: the two
-    // are the same object under Bun, but their TYPES differ (ImportMetaEnv vs
-    // ProcessEnv), and what this file actually depends on is that a write to
-    // one is visible through the other.
+    // If Bun ever stops backing one with the other, every case below would
+    // still pass while testing only the no-op branch.
     process.env.VITE_ENV_PREMISE_CHECK = 'yes'
     expect(import.meta.env.VITE_ENV_PREMISE_CHECK).toBe('yes')
     delete process.env.VITE_ENV_PREMISE_CHECK
-
-    expect(import.meta.env.VITE_SENTRY_DSN).toBeUndefined()
   })
 
-  test('with no DSN, init loads nothing and capture is a silent no-op', async () => {
-    await initBrowserObservability()
+  test('outside a production build, init does nothing and capture is a silent no-op', () => {
+    delete process.env.PROD
+    initBrowserObservability()
     captureException(new Error('unreported'))
-
-    // Not merely "does not throw" — nothing reached Sentry at all, so an
-    // un-provisioned deploy ships no Sentry code and makes no requests.
-    expect(sentryCalls).toEqual([])
+    expect(posts).toEqual([])
   })
 
-  test('with a DSN, init configures Sentry with the environment and release', async () => {
-    process.env.VITE_SENTRY_DSN = 'https://public@o0.ingest.de.sentry.io/1'
+  test('in a production build, a caught error is posted under the base with the release', () => {
+    process.env.PROD = 'true'
     process.env.VITE_COMMIT_REF = 'deadbeef'
+    // That this call initialises at all is the assertion: the call in the
+    // previous case must NOT have latched.
+    teardown = initBrowserObservability()
 
-    // That this call initialises at all is the assertion: the DSN-less call in
-    // the previous case must NOT have latched. It guards the ORDER of the two
-    // early returns — `initialized` is set after the DSN check, not before, so
-    // one call on an un-provisioned load cannot permanently disable reporting.
-    await initBrowserObservability()
+    captureException(new Error('change log commit failed'), { entityKind: 'pilot' })
 
-    const init = sentryCalls.find((c) => c.fn === 'init')
-    expect(init).toBeTruthy()
-    const options = init?.args[0] as Record<string, unknown>
-
-    expect(options.dsn).toBe('https://public@o0.ingest.de.sentry.io/1')
-    // Release tagging is what maps a production error back to a deploy, and it
-    // has to stay in step with the release name @sentry/vite-plugin uploads
-    // sourcemaps under — a mismatch means sourcemaps silently do not apply.
-    expect(options.release).toBe('deadbeef')
-    expect(options).toHaveProperty('environment')
-    // Errors only — no tracing or replay. Keeps the CSP surface to the ingest
-    // origin and the network chatter to actual failures.
-    expect(options.tracesSampleRate).toBe(0)
+    expect(posts).toHaveLength(1)
+    expect(posts[0]?.url).toBe('/build/__errors')
+    expect(posts[0]?.body).toMatchObject({
+      message: 'change log commit failed',
+      release: 'deadbeef',
+      context: { entityKind: 'pilot' },
+    })
   })
 
-  test('init is idempotent — a second call does not reconfigure Sentry', async () => {
-    await initBrowserObservability()
-
-    expect(sentryCalls.filter((c) => c.fn === 'init')).toHaveLength(0)
+  test('init is idempotent', () => {
+    initBrowserObservability()
+    captureException(new Error('once'))
+    expect(posts).toHaveLength(1)
   })
 
-  test('concurrent calls still init once', async () => {
-    // `initialized` is set BEFORE the dynamic import is awaited, specifically
-    // so two callers racing on load cannot both reach `Sentry.init`.
-    await Promise.all([initBrowserObservability(), initBrowserObservability()])
-
-    expect(sentryCalls.filter((c) => c.fn === 'init')).toHaveLength(0)
-  })
-
-  test('captureException forwards the error, with context as extra when given', () => {
-    const boom = new Error('change log commit failed')
-    captureException(boom, { entityKind: 'pilot' })
-
-    const captured = sentryCalls.find((c) => c.fn === 'captureException')
-    expect(captured?.args[0]).toBe(boom)
-    expect(captured?.args[1]).toEqual({ extra: { entityKind: 'pilot' } })
-  })
-
-  test('captureException with no context sends undefined, not an empty extra bag', () => {
-    captureException(new Error('bare'))
-
-    expect(sentryCalls.find((c) => c.fn === 'captureException')?.args[1]).toBeUndefined()
-  })
-
-  test('captureException forwards fingerprint and tags alongside extra', () => {
-    // The grouping half of the hint. Without it a Convex defect groups by its
-    // own message, which carries a per-request id — one condition, N issues,
-    // none of them titled with anything you can search for.
-    const boom = new Error('[CONVEX M(entities:upsertByAppId)] [Request ID: abc] Server Error')
+  test('captureException carries fingerprint and tags', () => {
+    // The grouping half. Without it a Convex defect groups by its own message,
+    // which carries a per-request id — one condition, N issues.
     captureException(
-      boom,
+      new Error('[CONVEX M(entities:upsertByAppId)] [Request ID: abc] Server Error'),
       { source: 'commitWrite' },
-      { fingerprint: ['itun-commit-write-failed', 'entities:upsertByAppId', 'defect'] }
+      {
+        fingerprint: ['itun-commit-write-failed', 'entities:upsertByAppId', 'defect'],
+        tags: { convex_function: 'entities:upsertByAppId' },
+      }
     )
 
-    const captured = sentryCalls.find((c) => c.fn === 'captureException')
-    expect(captured?.args[1]).toEqual({
-      extra: { source: 'commitWrite' },
+    expect(posts[0]?.body).toMatchObject({
+      context: { source: 'commitWrite' },
       fingerprint: ['itun-commit-write-failed', 'entities:upsertByAppId', 'defect'],
+      tags: { convex_function: 'entities:upsertByAppId' },
     })
   })
 
-  test('captureException with only options still omits extra', () => {
-    captureException(new Error('tagged'), undefined, { tags: { convex_function: 'games:create' } })
-
-    expect(sentryCalls.find((c) => c.fn === 'captureException')?.args[1]).toEqual({
-      tags: { convex_function: 'games:create' },
-    })
-  })
-
-  test('a render error a boundary catches reaches Sentry, with its component stack', () => {
+  test('a render error a boundary catches is reported, with its component stack', () => {
     // The whole point of the createRoot hooks: a caught render error never
-    // reaches window.onerror, so without this it was recorded nowhere.
-    const realConsoleError = console.error
-    console.error = () => {}
-    try {
-      const boom = new Error('Cannot read properties of undefined (reading hp)')
-      reactRootErrorHandlers.onCaughtError(boom, { componentStack: '\n    at MechSheet' })
+    // reaches the window's `error` event, so without this it was recorded nowhere.
+    quietly(() => {
+      reactRootErrorHandlers.onCaughtError(
+        new Error('Cannot read properties of undefined (reading hp)'),
+        { componentStack: '\n    at MechSheet' }
+      )
+    })
 
-      const captured = sentryCalls.find((c) => c.fn === 'captureException')
-      expect(captured?.args[0]).toBe(boom)
-      expect(captured?.args[1]).toEqual({
-        extra: { componentStack: '\n    at MechSheet' },
-        tags: { boundary: 'caught' },
-      })
-    } finally {
-      console.error = realConsoleError
-    }
+    expect(posts[0]?.body).toMatchObject({
+      context: { componentStack: '\n    at MechSheet' },
+      tags: { boundary: 'caught' },
+    })
   })
 
   test('an error no boundary catches is reported and tagged as such', () => {
-    const realConsoleError = console.error
-    console.error = () => {}
-    try {
-      const boom = new Error('escaped every boundary')
-      reactRootErrorHandlers.onUncaughtError(boom, {})
+    quietly(() => {
+      reactRootErrorHandlers.onUncaughtError(new Error('escaped every boundary'), {})
+    })
 
-      const captured = sentryCalls.find((c) => c.fn === 'captureException')
-      expect(captured?.args[0]).toBe(boom)
-      expect((captured?.args[1] as { tags?: unknown } | undefined)?.tags).toEqual({
-        boundary: 'uncaught',
-      })
-    } finally {
-      console.error = realConsoleError
-    }
+    expect(posts[0]?.body).toMatchObject({ tags: { boundary: 'uncaught' } })
   })
 })

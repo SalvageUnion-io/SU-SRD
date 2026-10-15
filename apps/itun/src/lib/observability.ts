@@ -1,49 +1,37 @@
 /**
- * observability — optional browser Sentry error tracking for ITUN.
+ * observability — browser error reporting for ITUN.
  *
- * Entirely env-gated: when `VITE_SENTRY_DSN` is unset (local dev, tests, and
- * any build without the var provisioned) this is a no-op and no Sentry code
- * runs or ships. Because the DSN is read from `import.meta.env` — which Vite
- * statically inlines at build — an unset DSN makes the `@sentry/browser`
- * dynamic import unreachable, so it is tree-shaken out of the client bundle
- * entirely. That guard is the one part that must live here; the rest (init
- * options, idempotency, the capture verbs, chunk recovery) is
+ * Errors are posted to ITUN's own Worker at `/build/__errors`, which logs them
+ * for Workers Issues (`observability/cloudflare`'s `handleErrorReport`). Same
+ * origin, so the CSP's `connect-src 'self'` covers it. Production builds only:
+ * the dev server has no Worker to post to. Everything after that gate (the
+ * window handlers, the capture verb, chunk recovery) is
  * `createBrowserObservability` in `observability/browser`, shared with srd.
  *
- * `deploy-cloudflare.yml` supplies the DSN as `VITE_SENTRY_DSN` from its public
- * `ITUN_SENTRY_DSN` constant, with `VITE_COMMIT_REF` set to the deployed SHA — the same value `vite.config.ts` names the sourcemap release
- * with, so the two must stay in step.
+ * `deploy-cloudflare.yml` sets `VITE_COMMIT_REF` to the deployed SHA, which
+ * each report carries as its release.
  */
 
-import { createBrowserObservability } from 'observability/browser'
+import { createBrowserObservability, ERROR_REPORT_PATH } from 'observability/browser'
+import { basePathOf, SITE } from './site'
 
 const observability = createBrowserObservability()
 
-/**
- * Initializes browser Sentry when `VITE_SENTRY_DSN` is configured. Idempotent
- * and safe to call once on load. Resolves immediately (no-op) when the DSN is
- * absent.
- */
-export async function initBrowserObservability(): Promise<void> {
-  const dsn = import.meta.env.VITE_SENTRY_DSN
-  // Keep this guard HERE, ahead of the import below: it is what Vite folds to
-  // make `@sentry/browser` unreachable in a DSN-less build.
-  if (!dsn) return
-
-  await observability.init(() => import('@sentry/browser'), {
-    dsn,
-    environment: import.meta.env.MODE,
+/** Starts reporting in a production build. Idempotent; call it once on load. Returns a teardown (tests). */
+export function initBrowserObservability(): () => void {
+  if (!import.meta.env.PROD) return () => undefined
+  return observability.init({
+    endpoint: `${basePathOf(SITE.base)}${ERROR_REPORT_PATH}`,
     release: import.meta.env.VITE_COMMIT_REF,
   })
 }
 
 /**
- * Reports a caught exception to Sentry when enabled; otherwise a no-op.
+ * Reports a caught exception; a no-op before `initBrowserObservability`.
  *
- * This exists because catching is exactly what PREVENTS an error reaching
- * Sentry's `globalHandlers` integration, so every deliberately-caught error in
- * the app — including a failed Change Log commit — is reportable
- * only through this function.
+ * Catching is exactly what keeps an error from the window's `error` event, so
+ * every deliberately-caught error in the app — including a failed Change Log
+ * commit — is reportable only through this function.
  */
 export const captureException = observability.captureException
 
@@ -57,10 +45,10 @@ export const installChunkRecovery = observability.installChunkRecovery
 type ReactErrorInfo = { componentStack?: string | null }
 
 /**
- * The `createRoot` error hooks, which are what make a render crash reach
- * Sentry at all.
+ * The `createRoot` error hooks, which are what make a render crash get
+ * reported at all.
  *
- * Sentry's browser SDK hears errors through `window.onerror`, and a render
+ * The reporter hears uncaught errors through the window's `error` event, and a render
  * error caught by an error boundary never gets there: React catches it, the
  * router renders its error screen, and by default the only trace is a
  * `console.error`. Every route has a boundary (`RouteErrors.tsx`), so that was
@@ -71,8 +59,8 @@ type ReactErrorInfo = { componentStack?: string | null }
  *
  * Both still log, because overriding a hook replaces React's default rather
  * than adding to it — and for `onUncaughtError` the default is `reportError`,
- * which is how Sentry would otherwise have heard of it, so reporting here and
- * not re-raising keeps that to one event.
+ * which is how the window's `error` event would otherwise have heard of it, so
+ * reporting here and not re-raising keeps that to one event.
  */
 export const reactRootErrorHandlers = {
   onCaughtError(error: unknown, errorInfo: ReactErrorInfo): void {

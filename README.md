@@ -30,7 +30,7 @@ A Bun monorepo of tools for **Salvage Union**, the tabletop RPG by
 | [`packages/salvageunion-reference`](packages/salvageunion-reference) | The schema-validated game dataset and its TypeScript ORM. |
 | [`packages/component-lib`](packages/component-lib) | The shared React components and design tokens. |
 | [`packages/itun-domain`](packages/itun-domain) | The schemas and rules The Cantina, its Convex backend and the bot share. |
-| [`packages/observability`](packages/observability) | The Sentry wiring for Workers and browsers. |
+| [`packages/observability`](packages/observability) | Error reporting into Workers Issues, for Workers, browsers and Convex. |
 | [`packages/gates`](packages/gates) | The library behind the repo's gates, run from [`tools/`](tools). |
 
 ## Getting started

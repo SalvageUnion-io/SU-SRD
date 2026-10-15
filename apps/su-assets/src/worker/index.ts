@@ -20,12 +20,12 @@
  *
  * A 404 is not an error. This Worker answers every path on a public,
  * crawler-visible host, so alerting on unknown keys, traversal attempts and
- * unsupported extensions would turn the Sentry project into a scanner log. What
+ * unsupported extensions would turn Workers Issues into a scanner log. What
  * IS reported is the store failing to answer at all — the failure mode that
  * silently breaks entity artwork in both srd and itun at once.
  */
 
-import { reportError, withObservability } from 'observability/cloudflare'
+import { reportError } from 'observability/cloudflare'
 
 /** The slice of an R2 bucket binding this Worker uses. */
 export type AssetBucket = {
@@ -117,7 +117,7 @@ export const BASE_SECURITY_HEADERS: Readonly<Record<string, string>> = {
  *
  * `default-src 'none'; sandbox` because the extension allowlist admits `svg`,
  * and SVG is script-capable: fetched by direct navigation it executes in this
- * origin. No Sentry `connect-src`: nothing here runs the SDK.
+ * origin.
  */
 const COMMON_HEADERS: Record<string, string> = {
   ...BASE_SECURITY_HEADERS,
@@ -175,7 +175,7 @@ export function makeAssetHandler(openBucket: () => AssetBucket, images?: ImagesB
 
     // A malformed percent-escape (`%E0%A4%A`) makes `decodeURIComponent` throw.
     // That is a scanner or a mangled link, not a fault: a quiet 404 like any
-    // other miss, rather than a 500 that reaches Sentry.
+    // other miss, rather than a 500 that Workers Issues records.
     let key: string
     try {
       key = decodeURIComponent(pathname.replace(/^\/+/, ''))
@@ -285,7 +285,7 @@ function imageResponse(body: ReadableStream, contentType: string): Response {
 }
 
 /** @public Cloudflare Worker entrypoint — loaded by workerd, not imported. */
-export default withObservability('su-assets', {
+export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const handler = makeAssetHandler(() => env.LP_ASSETS, env.IMAGES)
     try {
@@ -298,4 +298,4 @@ export default withObservability('su-assets', {
       return plain('Internal Server Error', 500)
     }
   },
-})
+}

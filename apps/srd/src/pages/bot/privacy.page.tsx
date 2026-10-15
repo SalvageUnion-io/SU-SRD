@@ -58,8 +58,8 @@ function page(): PageResult {
           <div>
             <Slab as="h2" variant="solid" label="Error diagnostics" />
             <p>
-              To keep the Bot reliable, unexpected errors may be sent to our error-monitoring
-              provider (Sentry). These reports can include technical details about the error and the
+              To keep the Bot reliable, unexpected errors are logged by our hosting provider
+              (Cloudflare). These logs can include technical details about the error and the
               interaction that triggered it. They are used only to diagnose and fix bugs and are
               retained per that provider’s standard retention.
             </p>
@@ -73,7 +73,7 @@ function page(): PageResult {
                 Policy.
               </li>
               <li>
-                <strong>Sentry</strong> — used for error monitoring, as described above.
+                <strong>Cloudflare</strong> — hosts the Bot and logs its errors, as described above.
               </li>
             </ul>
           </div>
