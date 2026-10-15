@@ -20,8 +20,8 @@ export async function createGame(page: Page, name: string): Promise<string> {
   await page.waitForURL(/\/games\/[^/]+$/, { timeout: 20_000 })
   const id = new URL(page.url()).pathname.split('/').pop()
   if (!id) throw new Error(`No Game id in ${page.url()}`)
-  // The Game's own page is up: its band names it.
-  await expect(page.getByRole('heading', { level: 2, name })).toBeVisible({ timeout: 20_000 })
+  // The Game's own page is up: its band names it, as the page's h1.
+  await expect(page.getByRole('heading', { level: 1, name })).toBeVisible({ timeout: 20_000 })
   return id
 }
 
