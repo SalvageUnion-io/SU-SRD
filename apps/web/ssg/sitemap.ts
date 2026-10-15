@@ -6,8 +6,8 @@
  *   sitemap-index.xml   one <sitemap> entry per urlset file, then The Cantina's
  *   sitemap-0.xml       the urlset itself
  *
- * The Cantina (The Cantina, `/build/`) is its own app, Worker and deploy (ADR-048):
- * its Worker serves the urlset of its public pages at `/build/sitemap.xml`
+ * The Cantina (`/build/`) is its own build (ADR-048): it writes the urlset of
+ * its public pages to `/build/sitemap.xml`
  * (`apps/web/src/cantina/worker/publicPages.ts`), and the index lists it, so the one
  * `robots.txt` line reaches both.
  *

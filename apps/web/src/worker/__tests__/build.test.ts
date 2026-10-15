@@ -154,13 +154,11 @@ describe('/build/* — the Cantina, answered as a single-page app', () => {
     expect(res.headers.get('location')).toBe('https://pr-7-su-srd.example.workers.dev/about/')
   })
 
-  it('answers the Cantina sitemap without the binding', async () => {
+  it('answers the Cantina sitemap from the binding: the build writes it', async () => {
     const env = envWith()
-    const res = await worker.fetch(req(`${BUILD_BASE}/sitemap.xml`), env)
+    await worker.fetch(req(`${BUILD_BASE}/sitemap.xml`), env)
 
-    expect(res.status).toBe(200)
-    expect(await res.text()).toContain('<urlset')
-    expect(env.ASSETS.asked).toEqual([])
+    expect(env.ASSETS.asked).toContain(`${BUILD_BASE}/sitemap.xml`)
   })
 })
 

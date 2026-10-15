@@ -26,8 +26,6 @@
  *      Redirect Rule sends its old links here.
  *   0. `/og/*.png`        → a link preview's picture (`linkPreview.ts`),
  *      rendered on request and cached by version.
- *   S. `/sitemap.xml`     → the public pages' urlset (`publicPages.ts`), which
- *      the SRD's `sitemap-index.xml` lists.
  *   1. `/assets/*`, or a dot in the last segment: a FILE, asked of the asset
  *      binding. A file that is there comes back as itself. A file that is not
  *      comes back from the binding as the shell (it answers every miss under
@@ -39,12 +37,12 @@
  *      (`shellMeta.ts`): what a stranger may see, or the plain Private card.
  *      The shell is `/build/` read through the binding — the directory rather
  *      than `index.html`, which the asset server's HTML handling may answer
- *      with a redirect. A public page (the front door, `/starter` and each
- *      Starter Set build, `publicPages.ts`) asked for the same way gets the
- *      shell with its own title, description, canonical and `og:*`.
+ *      with a redirect. The front door asked for the same way gets the shell
+ *      with its canonical.
  *   3. anything else      → the binding's answer: the shell for a navigation
  *      to any client route (marked to hide the Union bar on the routes that
- *      draw none).
+ *      draw none). The Starter Set, each of its builds and `/sitemap.xml` are
+ *      files the build pre-renders (`publicPages.ts`), which it answers too.
  *
  * Rules 2 and 3 answer with the shell, and every client route but the public
  * ones (`indexable`) carries `X-Robots-Tag: noindex`: a game, a pilot's sheet
@@ -90,10 +88,9 @@ import { hidesUnionBar } from '../shell/unionSlots'
 import { inBase, outsideBase, pathInApp } from './basePath'
 import type { ImageCache, PreviewEnv, PreviewRoute } from './linkPreview'
 import { isOgImagePath, metaFor, ogImage, previewRouteOf } from './linkPreview'
-import type { PublicPage } from './publicPages'
-import { publicMeta, publicPageOf, publicUrl, SITEMAP_PATH, sitemap } from './publicPages'
+import { frontDoorShell } from './publicPages'
 import { retiredTarget } from './retiredRedirects'
-import { applyCanonical, applyMeta, hideUnionBar } from './shellMeta'
+import { applyMeta, hideUnionBar } from './shellMeta'
 
 export type Env = PreviewEnv & {
   /**
@@ -164,9 +161,6 @@ export default {
     // 0. A link preview's picture — a file that exists only on request.
     if (isOgImagePath(path)) return ogImage(request, env, { cache: defaultCache(), base })
 
-    // S. The public pages' sitemap — a file that exists only on request.
-    if (path === SITEMAP_PATH) return sitemap(url.origin, base)
-
     // 1. A FILE: itself, or a 404 — never the shell. A rotated chunk above all.
     if (wantsFile(path)) return fileOrNotFound(request, env)
 
@@ -175,8 +169,8 @@ export default {
     const crawled = !isNavigation(request)
     const route = crawled ? previewRouteOf(path) : null
     if (route !== null) return robotsFor(path, await sharedShell(route, url, env, base))
-    const page = crawled ? publicPageOf(path) : null
-    if (page !== null) return robotsFor(path, await publicShell(page, url, env, base))
+    // The front door, asked for the same way: the shell with its canonical.
+    if (crawled && path === '/') return robotsFor(path, await frontDoor(url, env, base))
 
     // 3. Everything else: the asset server's answer, `_headers` and all. A
     // route that draws no Union bar gets a shell that hides it from the start.
@@ -255,16 +249,14 @@ async function sharedShell(
   return rewritten(shell, (html) => applyMeta(html, meta))
 }
 
-/** Rule 2, for a public page: its own words, or the shell's defaults with its canonical. */
-async function publicShell(page: PublicPage, url: URL, env: Env, base: string): Promise<Response> {
+/**
+ * Rule 2, for the front door: the shell with its canonical. The other public
+ * pages are pre-rendered (`publicPages.ts`).
+ */
+async function frontDoor(url: URL, env: Env, base: string): Promise<Response> {
   const shell = await shellOf(url, env, base)
   if (!shell.ok) return shell
-  const words = page.words
-  return rewritten(shell, (html) =>
-    words === null
-      ? applyCanonical(html, publicUrl(url.origin, base, page.path))
-      : applyMeta(html, publicMeta({ ...page, words }, url.origin, base))
-  )
+  return rewritten(shell, (html) => frontDoorShell(html, url.origin, base))
 }
 
 /** The shell, read as the base's directory rather than `index.html`. */

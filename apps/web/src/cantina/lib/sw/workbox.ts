@@ -66,8 +66,16 @@ export const WORKBOX_OPTIONS = {
   globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
   // The Cantina loads `actions` in full (GameDataReady's preload('all')), never as the
   // list projection the reference package also emits as a chunk, so the
-  // precache skips that one. The first entry is workbox-build's default.
-  globIgnores: ['**/node_modules/**/*', '**/actions.list.generated-*.js', UNFETCHED_FONT_SUBSETS],
+  // precache skips that one. The first entry is workbox-build's default. The
+  // Starter Set's pre-rendered pages are the shell with other words for
+  // crawlers (`worker/publicPages.ts`); offline, the shell answers them.
+  globIgnores: [
+    '**/node_modules/**/*',
+    '**/actions.list.generated-*.js',
+    UNFETCHED_FONT_SUBSETS,
+    'starter.html',
+    'starter/**',
+  ],
   // Replaces a worker from before network-first navigations at once and
   // reloads its tabs, which `prompt` would otherwise leave on the old build
   // indefinitely. See the header of public/sw-takeover.js.

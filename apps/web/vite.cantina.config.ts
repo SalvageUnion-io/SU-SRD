@@ -13,6 +13,7 @@ import { WORKBOX_OPTIONS } from './src/cantina/lib/sw/workbox'
 // only Vite's module runner resolves: load this file with `--configLoader runner`
 // (`build:cantina`, `ssg/dev.ts`); the default loader leaves the package to Node.
 import { renderShell, SHELL_DESCRIPTION, SHELL_THEME_COLOR } from './src/cantina/shell/shell'
+import { publicShells, sitemapXml } from './src/cantina/worker/publicPages'
 import { buildBaseStylesheet, DEV_BASE_STYLESHEET } from './src/styles/baseStylesheet'
 
 /**
@@ -170,6 +171,32 @@ function baseStylesheet(): Plugin {
 }
 
 /**
+ * The public pages a crawler reads (`src/cantina/worker/publicPages.ts`): the
+ * Starter Set's and each build's shell, with its own title, description,
+ * canonical and `og:*`, beside the app's, and `sitemap.xml`. Named for the
+ * deployment's origin, as `shellOrigin` names the shell's.
+ */
+function publicPages(base: string): Plugin {
+  let origin = SITE.origin
+  return {
+    name: 'cantina-public-pages',
+    apply: 'build',
+    configResolved({ env }) {
+      origin = (env.VITE_CANTINA_ORIGIN || SITE.origin).replace(/\/+$/, '')
+    },
+    writeBundle({ dir = '' }) {
+      const prefix = basePathOf(base)
+      const shell = readFileSync(join(dir, 'index.html'), 'utf8')
+      for (const { file, html } of publicShells(shell, origin, prefix)) {
+        mkdirSync(dirname(join(dir, file)), { recursive: true })
+        writeFileSync(join(dir, file), html)
+      }
+      writeFileSync(join(dir, 'sitemap.xml'), sitemapXml(origin, prefix))
+    },
+  }
+}
+
+/**
  * The shell's default link-preview tags (`index.html`'s `cantina:meta` block) name
  * production's address. A Worker Preview's build is given its own origin as
  * `VITE_CANTINA_ORIGIN` (`deploy-preview.yml`), and its shell names that instead,
@@ -289,6 +316,7 @@ export default defineConfig({
         ],
       },
     }),
+    publicPages(SITE.base),
     siteLayout(SITE.base),
   ],
   build: {
