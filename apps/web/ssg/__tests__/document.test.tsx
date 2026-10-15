@@ -214,7 +214,7 @@ describe('head assembly from DocumentMeta', () => {
   it('falls back to the site title and description', () => {
     const html = renderAbout()
     expect(html).toContain('<title>SalvageUnion.io</title>')
-    expect(metaContent(html, 'description')).toContain('System Reference Document (SRD)')
+    expect(metaContent(html, 'description')).toContain('rules reference and character manager')
   })
 
   it('mirrors title and description into og: and twitter:', () => {
@@ -309,6 +309,26 @@ describe('JSON-LD', () => {
       { '@type': 'BreadcrumbList', itemListElement: [] },
       { '@type': 'Product', name: 'Aegis' },
     ])
+  })
+})
+
+describe('the breadcrumb JSON-LD', () => {
+  it('keeps absolute URLs while the visible trail links root-relative', () => {
+    const html = renderAbout({
+      breadcrumbs: [
+        { name: 'Contents', url: 'https://salvageunion.io/' },
+        { name: 'About', url: 'https://salvageunion.io/about/' },
+      ],
+    })
+    const [list] = [
+      ...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g),
+    ].map((match) => JSON.parse(match[1] ?? 'null') as { itemListElement: { item: string }[] })
+
+    expect(list?.itemListElement.map((crumb) => crumb.item)).toEqual([
+      'https://salvageunion.io/',
+      'https://salvageunion.io/about/',
+    ])
+    expect(html).toContain('href="/"')
   })
 })
 

@@ -35,7 +35,7 @@ import { Speckle } from '../atoms/Speckle'
  * keeps a row of its own under it, unless the page's chapter band carries it
  * (`ChapterBandTrail`): then the row steps aside. Both render the same list, one of
  * them `display: none` at any width, so the accessibility tree holds one. The
- * BreadcrumbList JSON-LD is emitted once either way.
+ * BreadcrumbList JSON-LD is the page head's (`BaseLayout`), with absolute URLs.
  *
  * ## Slots
  *
@@ -280,28 +280,9 @@ export function AppBar({
       </header>
 
       {hasCrumbs && (
-        <>
-          <nav aria-label="Breadcrumb" className="su-crumbs su-crumbs--row">
-            <BreadcrumbTrail breadcrumbs={breadcrumbs} description={breadcrumbDescription} />
-          </nav>
-
-          <script
-            type="application/ld+json"
-            // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD breadcrumb structured data serialized from trusted build-time breadcrumb props, no user input
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
-                '@context': 'https://schema.org',
-                '@type': 'BreadcrumbList',
-                itemListElement: breadcrumbs.map((item, index) => ({
-                  '@type': 'ListItem',
-                  position: index + 1,
-                  name: item.name,
-                  item: item.url,
-                })),
-              }),
-            }}
-          />
-        </>
+        <nav aria-label="Breadcrumb" className="su-crumbs su-crumbs--row">
+          <BreadcrumbTrail breadcrumbs={breadcrumbs} description={breadcrumbDescription} />
+        </nav>
       )}
     </>
   )

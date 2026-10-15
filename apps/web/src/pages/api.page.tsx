@@ -14,7 +14,7 @@ import { DocPage } from '../components/DocPage'
 import { InlineRef, Panel, Slab } from '../components/index'
 import { color, font, fontSize, radius, space, weight } from '../design/tokens'
 import { apiSampleChassis } from '../lib/apiSample'
-import { SITE_URL } from '../lib/constants'
+import { SITE_URL, WEBSITE } from '../lib/constants'
 import {
   ASIDE,
   BOLD,
@@ -221,11 +221,7 @@ function page(): PageResult {
         description:
           'Documentation for the public JSON API endpoints available at salvageunion.io.',
         url: `${SITE_URL}/api/`,
-        isPartOf: {
-          '@type': 'WebSite',
-          name: 'Salvage Union System Reference Document',
-          url: `${SITE_URL}/`,
-        },
+        isPartOf: WEBSITE,
       },
     },
     children: (

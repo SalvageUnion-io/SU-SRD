@@ -13,7 +13,7 @@ import { Changelog } from '../components/Changelog'
 import { DocPage } from '../components/DocPage'
 import { InlineRef } from '../components/index'
 import { space } from '../design/tokens'
-import { CONTENTS_CRUMB, SITE_URL } from '../lib/constants'
+import { CONTENTS_CRUMB, SITE_URL, WEBSITE } from '../lib/constants'
 import { BOLD, PROSE } from '../lib/docPageStyles'
 import { readChangelog } from '../lib/gitChangelog'
 import { pageTitle } from '../lib/pageTitle'
@@ -34,11 +34,7 @@ function page(): PageResult {
         name: TITLE,
         description: DESCRIPTION,
         url: `${SITE_URL}/changelog/`,
-        isPartOf: {
-          '@type': 'WebSite',
-          name: 'Salvage Union System Reference Document',
-          url: `${SITE_URL}/`,
-        },
+        isPartOf: WEBSITE,
       },
       breadcrumbs: [CONTENTS_CRUMB, { name: 'Changelog', url: `${SITE_URL}/changelog/` }],
     },

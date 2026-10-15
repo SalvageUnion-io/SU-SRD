@@ -23,7 +23,7 @@ import type { PageModule, PageResult, RouteContext } from '../../../ssg/types'
 import { ChapterBand } from '../../components/index'
 import { SchemaViewerListing } from '../../components/islands/SchemaViewerIsland'
 import { chapterForSchema } from '../../lib/chapters'
-import { CONTENTS_CRUMB, SITE_URL } from '../../lib/constants'
+import { CONTENTS_CRUMB, SITE_URL, WEBSITE } from '../../lib/constants'
 import { schemaHref } from '../../lib/entityHref'
 import { getUniqueSources, getUniqueTechLevels, getUniqueTrees } from '../../lib/gameData'
 import { listingEntries } from '../../lib/listingEntries'
@@ -86,11 +86,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         description,
         url: canonicalUrl,
         keywords: ['Salvage Union', 'TTRPG', 'SRD', 'System Reference Document', schemaName],
-        isPartOf: {
-          '@type': 'WebSite',
-          name: 'Salvage Union System Reference Document',
-          url: `${SITE_URL}/`,
-        },
+        isPartOf: WEBSITE,
         mainEntity: {
           '@type': 'ItemList',
           numberOfItems: data.length,

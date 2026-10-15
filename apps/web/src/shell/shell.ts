@@ -41,13 +41,13 @@ const PRODUCT_NAME = 'The Cantina'
 /** The front door's title, which every route starts from. */
 const SHELL_TITLE = pageTitle(PRODUCT_NAME)
 
-/** The sitewide meta description, which the PWA manifest repeats. */
+/** The Cantina's meta description: the site's character manager. */
 const SHELL_DESCRIPTION =
-  'The Salvage Union Character Builder. Build and run Salvage Union Pilots, Mechs and Union Crawlers. Character sheets, roster management and shareable live sheets for the post-apocalyptic Mech TTRPG.'
+  "The Cantina, SalvageUnion.io's character manager: build and run Salvage Union Pilots, Mechs and Union Crawlers, with character sheets, rosters and shareable live sheets."
 
 /** The link preview's description: the meta description without its last clause. */
 const PREVIEW_DESCRIPTION =
-  'The Salvage Union Character Builder. Build and run Salvage Union Pilots, Mechs and Union Crawlers. Character sheets, roster management and shareable live sheets.'
+  "The Cantina, SalvageUnion.io's character manager: build and run Salvage Union Pilots, Mechs and Union Crawlers."
 
 /** The app's front door on production's origin; a Preview's build names its own (`shellOrigin`). */
 const siteUrl = appUrl('/', originOf())

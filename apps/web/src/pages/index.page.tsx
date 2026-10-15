@@ -20,7 +20,7 @@ import type { ContentsRow } from '../components/HomeContents'
 import { ContentsChapter, DiscordButton, HomeStartHere } from '../components/HomeContents'
 import { ChapterBand } from '../components/index'
 import { buildChapters } from '../lib/chapters'
-import { DISCORD_INSTALL_URL, SITE_URL } from '../lib/constants'
+import { DEFAULT_DESCRIPTION, DISCORD_INSTALL_URL, WEBSITE } from '../lib/constants'
 import { itemHref } from '../lib/entityHref'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { pageTitle } from '../lib/pageTitle'
@@ -28,11 +28,7 @@ import '../lib/gameData'
 import { Island } from '../runtime/Island'
 
 /** The site's name and what this page is: there is no page name to put ahead of it. */
-const TITLE = `${pageTitle()} · Salvage Union SRD`
-/** The WebSite structured data's name. */
-const WEBSITE_NAME = 'Salvage Union System Reference Document'
-const DESCRIPTION =
-  'System Reference Document (SRD) for the Salvage Union TTRPG. Complete reference guide with chassis, systems, modules, abilities, and more.'
+const TITLE = `${pageTitle()} · Salvage Union SRD and Character Manager`
 
 /** An entity's page by name, or nothing when the dataset no longer has it. */
 function hrefByName(schemaName: RefEnumSchemaName, name: string): string | undefined {
@@ -72,12 +68,12 @@ function page(): PageResult {
   return {
     meta: {
       title: TITLE,
-      description: DESCRIPTION,
+      description: DEFAULT_DESCRIPTION,
       structuredData: {
         '@context': 'https://schema.org',
-        '@type': 'WebSite',
-        name: WEBSITE_NAME,
-        url: SITE_URL,
+        ...WEBSITE,
+        alternateName: 'Salvage Union SRD',
+        description: DEFAULT_DESCRIPTION,
       },
     },
     children: (

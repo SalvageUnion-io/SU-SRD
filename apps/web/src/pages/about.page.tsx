@@ -31,7 +31,7 @@ import { ColophonIsland } from '../components/islands/ColophonIsland'
 import { color, font, fontSize, space, tracking, weight } from '../design/tokens'
 import { appPath } from '../lib/appBase'
 import { builtAssetUrl, ELDRIDGE_COAST_MAP } from '../lib/builtAssets'
-import { SITE_URL } from '../lib/constants'
+import { SITE_URL, WEBSITE } from '../lib/constants'
 import { BOLD, PROSE } from '../lib/docPageStyles'
 import { pageTitle } from '../lib/pageTitle'
 import { Island } from '../runtime/Island'
@@ -175,11 +175,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
         description:
           'About salvageunion.io, an open-source System Reference Document for the Salvage Union TTRPG by Leyline Press.',
         url: `${SITE_URL}/about/`,
-        isPartOf: {
-          '@type': 'WebSite',
-          name: 'Salvage Union System Reference Document',
-          url: `${SITE_URL}/`,
-        },
+        isPartOf: WEBSITE,
       },
     },
     children: (

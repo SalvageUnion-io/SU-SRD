@@ -16,7 +16,7 @@ import type { DocumentMeta, PageFoot } from '../../ssg/types'
 import { BreadcrumbTrail, ChapterBandTrail, Footer } from '../components/index'
 import { TopNavigation } from '../components/TopNavigation'
 import { color } from '../design/tokens'
-import { DEFAULT_OG_IMAGE, SITE_URL } from '../lib/constants'
+import { DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE, SITE_URL } from '../lib/constants'
 import { SITE_LINKS } from '../lib/docPages'
 import { metaTags, SITE_ICONS, THEME_COLOR } from '../lib/documentHead'
 import { escapeJsonForScript } from '../lib/escapeJsonForScript'
@@ -24,9 +24,6 @@ import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { pageTitle } from '../lib/pageTitle'
 import { SITE_MANIFEST } from '../pwa'
 import { Island } from '../runtime/Island'
-
-const DEFAULT_DESCRIPTION =
-  'System Reference Document (SRD) for the Salvage Union TTRPG. Complete reference guide with chassis, systems, modules, abilities, and more.'
 
 /**
  * Pages whose own search (the home band's, the 404's) stands in for the Union
@@ -160,6 +157,27 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
             // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD payload, JSON.stringify + script-escaped
             dangerouslySetInnerHTML={{
               __html: escapeJsonForScript(JSON.stringify(structuredData)),
+            }}
+          />
+        ) : null}
+        {/* The trail as search reads it: absolute, unlike the links above. */}
+        {breadcrumbs?.length ? (
+          <script
+            type="application/ld+json"
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: JSON-LD payload, JSON.stringify + script-escaped
+            dangerouslySetInnerHTML={{
+              __html: escapeJsonForScript(
+                JSON.stringify({
+                  '@context': 'https://schema.org',
+                  '@type': 'BreadcrumbList',
+                  itemListElement: breadcrumbs.map((crumb, index) => ({
+                    '@type': 'ListItem',
+                    position: index + 1,
+                    name: crumb.name,
+                    item: crumb.url,
+                  })),
+                })
+              ),
             }}
           />
         ) : null}

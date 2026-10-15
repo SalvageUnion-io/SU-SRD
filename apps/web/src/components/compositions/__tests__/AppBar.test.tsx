@@ -84,7 +84,7 @@ describe('AppBar', () => {
     expect(buy.className).toContain('su-union-bar__buy')
   })
 
-  test('breadcrumbs: in the bar and on the phone row, the current page bold, JSON-LD once', () => {
+  test('breadcrumbs: in the bar and on the phone row, the current page bold, JSON-LD left to the page head', () => {
     const html = renderToStaticMarkup(
       <AppBar product="reference" referenceHref="/" buildHref="/" breadcrumbs={CRUMBS} />
     )
@@ -104,9 +104,7 @@ describe('AppBar', () => {
         'Chassis',
       ])
     }
-    const ld = doc.querySelectorAll('script[type="application/ld+json"]')
-    expect(ld).toHaveLength(1)
-    expect(JSON.parse(ld[0]?.textContent ?? '{}').itemListElement).toHaveLength(3)
+    expect(doc.querySelectorAll('script[type="application/ld+json"]')).toHaveLength(0)
   })
 
   test('paper flecks lie behind the bar, hidden from assistive tech', () => {
