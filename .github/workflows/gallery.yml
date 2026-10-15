@@ -15,7 +15,7 @@ name: Screenshot gallery
 #
 # READ-ONLY on purpose: this runs the branch's code, so it holds no write token
 # and no secret. The Cantina is built against a THROWAWAY self-hosted Convex backend
-# with the test sign-in (the same setup as e2e-nightly.yml's `e2e-cantina`), so
+# with the test sign-in (the same setup as e2e-nightly.yml's `e2e`), so
 # the gallery can sign a fresh account up and edit characters without touching
 # the staging or production backend. Publishing, which needs `pages: write`,
 # runs in the separate `workflow_run` workflow, from main's code.

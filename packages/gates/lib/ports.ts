@@ -2,9 +2,9 @@
  * ports — each checkout's own dev-server ports, so parallel worktrees never
  * share one.
  *
- * On a fixed port (srd's dev server on 4321), a
+ * On a fixed port (the dev server on 4321), a
  * second worktree either fails to start its server or, worse, `bun run shot`
- * and srd's Playwright suite reuse the first checkout's server and silently
+ * and the Playwright suite reuse the first checkout's server and silently
  * measure that checkout's code.
  *
  * - The primary checkout (its `.git` is a directory) and CI keep the base
@@ -27,8 +27,8 @@ import { realpathSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-/** The port the primary checkout's dev server listens on: srd, and the Cantina under `/build`. */
-export const BASE_PORTS = { srd: 4321 } as const
+/** The port the primary checkout's dev server listens on: the whole site. */
+export const BASE_PORTS = { web: 4321 } as const
 export type DevServer = keyof typeof BASE_PORTS
 
 /** The response header each dev server names its checkout in. */

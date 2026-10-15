@@ -27,7 +27,7 @@ name: Deploy (Cloudflare)
 #              best-effort: a failed render keeps the default og:image.
 #   push-convex  the Convex backend push, only once the build is green, and
 #              before any traffic moves.
-#   deploy-srd / deploy   a leg per surface in the deploy set, in parallel:
+#   deploy-web / deploy   a leg per surface in the deploy set, in parallel:
 #              srd's own job, and a matrix over the rest. NO leg starts until
 #              EVERY build job has finished green and the backend push (when
 #              srd ships) succeeded. Each
@@ -135,7 +135,7 @@ jobs:
       stale: ${{ steps.surfaces.outputs.stale }}
       # A JSON array of the app directories to ship, `[]` on a stale run.
       deploy: ${{ steps.surfaces.outputs.deploy }}
-      # The same, less srd (which `deploy-srd` ships): the `deploy` matrix.
+      # The same, less srd (which `deploy-web` ships): the `deploy` matrix.
       others: ${{ steps.others.outputs.others }}
     steps:
       - name: Checkout
@@ -372,7 +372,7 @@ jobs:
   # EVERY build is green and the backend push (if srd ships) succeeded.
   # ===========================================================================
   #
-  # Two jobs over the same steps: `deploy-srd`, and `deploy`, a matrix over
+  # Two jobs over the same steps: `deploy-web`, and `deploy`, a matrix over
   # the rest of the deploy set. Keep the two jobs' steps in step.
   #
   # Both `need` the build and the push, not just what one leg ships: a failed
@@ -400,7 +400,7 @@ jobs:
   # only deploy path; its secrets (DISCORD_TOKEN and friends) are wrangler
   # secrets set out of band, and a deploy does not touch them. The bot leg
   # also registers the slash commands, with the Environment's DISCORD_TOKEN.
-  deploy-srd:
+  deploy-web:
     needs: [plan, build-web, push-convex]
     if: ${{ !cancelled() && !failure() && needs.plan.result == 'success' && contains(fromJSON(needs.plan.outputs.deploy), 'web') }}
     runs-on: ubuntu-latest
@@ -496,7 +496,7 @@ jobs:
   # the same checks on a schedule, catching a regression that happens
   # between deploys (a DNS record, a Redirect Rule, a rotated bot token).
   smoke:
-    needs: [plan, deploy-srd, deploy]
+    needs: [plan, deploy-web, deploy]
     if: ${{ !cancelled() && !failure() && needs.plan.result == 'success' && needs.plan.outputs.stale != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10

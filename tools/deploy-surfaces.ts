@@ -37,13 +37,12 @@ const DEPLOY_RECORD = 'deployed/cloudflare'
 
 /**
  * Surface -> the app directory it ships (the deploy job's matrix entry),
- * then every app directory whose changes require that deploy. su-srd serves
- * the Cantina under `/build` too, so a change to either app ships srd, with
- * the Cantina's build inside its `dist/build/`.
+ * then every app directory whose changes require that deploy. `web` is the
+ * whole site, the reference and the Cantina under `/build`, as one Worker.
  */
 export const SURFACES = {
   assets: ['su-assets'],
-  srd: ['web'],
+  web: ['web'],
   bot: ['discord-bot'],
 } as const satisfies Record<string, readonly [string, ...string[]]>
 
@@ -52,7 +51,7 @@ type Surface = keyof typeof SURFACES
 /**
  * A change under any of these can move every surface, so all of them ship.
  *
- * The three root prose files are rendered INTO srd's about page and bundled
+ * The three root prose files are rendered INTO the about page and bundled
  * `?raw` into the Cantina (ci.yml's `shared` filter carries them for the same
  * reason), so an edit to one changes what those surfaces serve even though
  * nothing under `apps/` moved. Of `.github/`, only this deploy's own workflow

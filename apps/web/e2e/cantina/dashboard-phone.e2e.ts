@@ -42,7 +42,7 @@ import { expect, test } from './fixtures'
  * there. The phone viewport is set just before the Dashboard opens.
  *
  * Skips without the test sign-in seam, like every signed-in spec
- * (`fixtures.ts`); the nightly `e2e-cantina` job runs it for real.
+ * (`fixtures.ts`); the nightly `e2e` job runs it for real.
  */
 
 const PHONES = [

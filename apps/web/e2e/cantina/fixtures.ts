@@ -18,7 +18,7 @@ import { waitForReady } from './_helpers'
  * test-only `password` provider. Each test signs up a fresh account, because a
  * reused one would inherit the last run's roster and assert against it. Two
  * things must line up (see `signin-save.e2e.ts`'s header): `VITE_TEST_AUTH=true`
- * in the build, and `CANTINA_TEST_AUTH=true` on the deployment. `e2e-cantina` in
+ * in the build, and `CANTINA_TEST_AUTH=true` on the deployment. `e2e` in
  * `.github/workflows/e2e-nightly.yml` provides both against a throwaway
  * self-hosted Convex backend.
  *

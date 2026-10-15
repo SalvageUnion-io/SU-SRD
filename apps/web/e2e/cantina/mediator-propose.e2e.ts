@@ -14,7 +14,7 @@ import { expect, test } from './fixtures'
  * writing the sheet (ADR-030 §4).
  *
  * Two accounts, so it SKIPS without the test sign-in seam and runs for real in
- * the nightly `e2e-cantina` job (`fixtures.ts`).
+ * the nightly `e2e` job (`fixtures.ts`).
  */
 
 test('a Mediator proposes a change and the player applies it', async ({ page, browser }, info) => {

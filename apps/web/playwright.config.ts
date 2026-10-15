@@ -23,7 +23,7 @@ import { portFor } from 'gates/ports'
  * backend" setup in .claude/skills/convex-ops/SKILL.md and FAIL without it.
  */
 export default e2eConfig({
-  port: portFor('srd'),
+  port: portFor('web'),
   apps: [
     { name: 'srd', local: { timeout: 60_000, expect: 15_000 } },
     {

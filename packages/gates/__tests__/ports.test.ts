@@ -48,11 +48,11 @@ describe('isPrimaryCheckout', () => {
 
 describe('portFor', () => {
   test('CI always uses the base port', () => {
-    expect(portFor('srd', { root: '/repo/.claude/worktrees/a', ci: true })).toBe(BASE_PORTS.srd)
+    expect(portFor('web', { root: '/repo/.claude/worktrees/a', ci: true })).toBe(BASE_PORTS.web)
   })
 
   test("this checkout's port is the base plus its offset", () => {
     const offset = portOffset(CHECKOUT_ROOT, isPrimaryCheckout(CHECKOUT_ROOT))
-    expect(portFor('srd', { ci: false })).toBe(BASE_PORTS.srd + offset)
+    expect(portFor('web', { ci: false })).toBe(BASE_PORTS.web + offset)
   })
 })

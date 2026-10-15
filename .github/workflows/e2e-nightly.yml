@@ -34,7 +34,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  e2e-cantina:
+  e2e:
     # The full the Cantina Playwright suite, SIGNED IN, against a THROWAWAY self-hosted
     # Convex backend and a production bundle built against it.
     #
@@ -190,7 +190,7 @@ jobs:
   # dispatch (blocked by the production environment's main-only policy, so red
   # with zero steps) would otherwise open a false alarm or close a real one.
   notify:
-    needs: [e2e-cantina, production-smoke, audit, environments]
+    needs: [e2e, production-smoke, audit, environments]
     if: always() && !cancelled() && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     # Two REST calls. A wedged notifier is the worst one to leave unbounded —

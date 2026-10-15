@@ -7,7 +7,7 @@ import { expect, test } from './fixtures'
  *
  * Signed in (the default `test` from `fixtures.ts`), so it SKIPS with a stated
  * reason in a build with no test sign-in seam and runs for real in the nightly
- * `e2e-cantina` job. Saving and sharing are Convex writes, and the page is the
+ * `e2e` job. Saving and sharing are Convex writes, and the page is the
  * deliberately unauthenticated `publicSheet.pattern` — so it needs a backend.
  */
 

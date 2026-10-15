@@ -28,7 +28,7 @@ test.use({ account: 'anonymous' })
  * the dev-server case: a spec that went red in the ordinary run would be
  * deleted the first time it annoyed somebody.
  *
- * **It runs nightly.** `e2e-cantina` in `.github/workflows/e2e-nightly.yml`
+ * **It runs nightly.** `e2e` in `.github/workflows/e2e-nightly.yml`
  * provides both against a throwaway self-hosted Convex backend — a
  * container destroyed with the runner, so it needs no credentials and never
  * puts a password provider on production. The same seam signs in every other

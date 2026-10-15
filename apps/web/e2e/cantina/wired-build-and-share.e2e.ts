@@ -19,7 +19,7 @@ import { expect, test } from './fixtures'
  *
  * Both are signed in (the default `test` from `fixtures.ts`), so both SKIP with
  * a stated reason in a build with no test sign-in seam and run for real in the
- * nightly `e2e-cantina` job, which provisions one. Publishing is a Convex write,
+ * nightly `e2e` job, which provisions one. Publishing is a Convex write,
  * and reading the page back is the deliberately unauthenticated
  * `publicSheet.get` — so the share test needs a Convex backend.
  *

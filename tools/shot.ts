@@ -72,7 +72,7 @@ export const NO_BACKEND = 'http://127.0.0.1:9'
 
 const DEV: Server = {
   name: 'dev',
-  port: portFor('srd'),
+  port: portFor('web'),
   // The dev server itself, not `bun run dev`, which starts a Convex backend.
   cmd: ['bun', 'ssg/dev.ts'],
   cwd: join(REPO, 'apps/web'),

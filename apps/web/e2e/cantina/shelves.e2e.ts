@@ -7,7 +7,7 @@ import { expect, test } from './fixtures'
  *
  * Signed in (the default `test` from `fixtures.ts`), so each spec SKIPS with a
  * stated reason in a build with no test sign-in seam and runs for real in the
- * nightly `e2e-cantina` job: moving, copying and importing are all Convex writes.
+ * nightly `e2e` job: moving, copying and importing are all Convex writes.
  */
 
 async function openShelves(page: Page): Promise<void> {

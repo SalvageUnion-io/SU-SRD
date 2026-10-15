@@ -5,8 +5,8 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { decideSurfaces, main, planDeploy, SURFACES } from '../deploy-surfaces'
 
-const EVERYTHING = { assets: true, srd: true, bot: true }
-const NOTHING = { assets: false, srd: false, bot: false }
+const EVERYTHING = { assets: true, web: true, bot: true }
+const NOTHING = { assets: false, web: false, bot: false }
 
 describe('deploy-surfaces — decideSurfaces', () => {
   test('no deploy record deploys every surface', () => {
@@ -32,7 +32,7 @@ describe('deploy-surfaces — decideSurfaces', () => {
    */
   test('changes from several commits since the record are all deployed', () => {
     const since = ['apps/web/src/routes/app.tsx', 'apps/web/src/pages/index.page.tsx']
-    expect(decideSurfaces(since, false)).toEqual({ ...NOTHING, srd: true })
+    expect(decideSurfaces(since, false)).toEqual({ ...NOTHING, web: true })
   })
 
   test.each(
@@ -43,18 +43,18 @@ describe('deploy-surfaces — decideSurfaces', () => {
   })
 
   // The UI library lives in apps/web, and nothing else ships it.
-  test('a src/components change ships srd alone', () => {
+  test('a src/components change ships web alone', () => {
     expect(decideSurfaces(['apps/web/src/components/index.ts'], false)).toEqual({
       ...NOTHING,
-      srd: true,
+      web: true,
     })
   })
 
-  // su-srd serves the Cantina under /build, with its build in dist/build/.
-  test('a Cantina change ships srd', () => {
+  // The Cantina is part of the one site.
+  test('a Cantina change ships web', () => {
     expect(decideSurfaces(['apps/web/src/routes/app.tsx'], false)).toEqual({
       ...NOTHING,
-      srd: true,
+      web: true,
     })
   })
 
@@ -125,7 +125,7 @@ describe('deploy-surfaces — planDeploy', () => {
 
   test('ahead of the record deploys what changed', () => {
     const plan = planDeploy(['apps/web/src/routes/app.tsx'], false, 'ahead', false)
-    expect(plan).toEqual({ stale: false, surfaces: { ...NOTHING, srd: true } })
+    expect(plan).toEqual({ stale: false, surfaces: { ...NOTHING, web: true } })
   })
 })
 

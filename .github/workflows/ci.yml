@@ -64,7 +64,7 @@ jobs:
               - 'LLM_STATEMENT.md'
               - 'SPECIAL_THANKS.md'
             # srd and the Cantina, one workspace and one build: build-web and
-            # perf-srd both key on it.
+            # perf both key on it.
             web:
               - *shared
               - 'apps/web/**'
@@ -203,7 +203,7 @@ jobs:
         uses: ./.github/actions/playwright
 
       # Both apps' PR tier in one run: every spec but the performance budget
-      # (perf-srd, below) and the Cantina's signed-in specs (e2e-nightly.yml:
+      # (perf, below) and the Cantina's signed-in specs (e2e-nightly.yml:
       # they need the test seam). A file runs in every app that has it, so
       # `smoke.e2e.ts` is both apps' smoke. Add a spec to this line; do NOT
       # add a step or a job.
@@ -233,7 +233,7 @@ jobs:
   # build-web's would put it on the critical path. One worker per runner:
   # measured loads must not share the CPU, so the pages are split across two
   # runners instead (one page per test, so `--shard` splits by page).
-  perf-srd:
+  perf:
     needs: [changes]
     if: needs.changes.outputs.web == 'true'
     runs-on: ubuntu-latest
@@ -268,7 +268,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: playwright-report-perf-srd-${{ matrix.shard }}
+          name: playwright-report-perf-${{ matrix.shard }}
           path: apps/web/playwright-report/
           retention-days: 7
 
@@ -350,7 +350,7 @@ jobs:
       - static-checks
       - coverage
       - build-web
-      - perf-srd
+      - perf
       - build-discord-bot
       - build-su-assets
       - version-bump

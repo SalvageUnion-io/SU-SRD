@@ -15,7 +15,7 @@ import { expect, test } from './fixtures'
  * plays (`setUpTable`), and scans each of those pages with that session.
  *
  * Like every signed-in spec it SKIPS in a build with no test sign-in seam, so
- * the PR tier never runs it; the nightly `e2e-cantina` job does.
+ * the PR tier never runs it; the nightly `e2e` job does.
  */
 
 // A violation that fires only sometimes must not pass on a retry.

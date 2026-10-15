@@ -2,8 +2,8 @@ name: Throwaway Convex backend
 description: Start a self-hosted Convex backend in a container, push the Cantina's functions to it and build the site against it
 
 # The backend a CI job builds the site against when it must not touch production:
-# ci.yml's `build-web` (the PR browser gate) and `perf-srd`, e2e-nightly.yml's
-# `e2e-cantina` (the signed-in suite) and gallery.yml's `shoot`. The build is
+# ci.yml's `build-web` (the PR browser gate) and `perf`, e2e-nightly.yml's
+# `e2e` (the signed-in suite) and gallery.yml's `shoot`. The build is
 # the one `bun run build` (srd, then the Cantina into `dist/build/`), which
 # needs a Convex URL for the Cantina. The container dies with
 # the runner, holds no data and needs no credentials, so a job using it

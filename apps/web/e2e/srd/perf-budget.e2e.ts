@@ -24,7 +24,7 @@ import {
  * change makes a page faster, lower its budget in the same PR to lock it in;
  * raise one only on purpose, saying why in the PR.
  *
- * It runs in CI's own `perf-srd` job, split by page across two runners
+ * It runs in CI's own `perf` job, split by page across two runners
  * (`--shard`), one page at a time on each (`--workers=1`), so no other test
  * competes for the CPU it measures. Each page's medians land in
  * the job summary and, in Actions, as annotations on the PR.

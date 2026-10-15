@@ -544,7 +544,7 @@ describe('deploy-order', () => {
   })
 
   test('split deploy jobs: only the one shipping the post-build output waits for it', () => {
-    const srdLeg = `  deploy-srd:
+    const srdLeg = `  deploy-web:
     needs: [plan, build-srd, og-srd, build-cantina, push-convex]
     if: \${{ !cancelled() && !failure() && contains(fromJSON(needs.plan.outputs.deploy), 'srd') }}
     runs-on: ubuntu-latest
@@ -562,22 +562,22 @@ describe('deploy-order', () => {
         "      - uses: actions/download-artifact@v8\n        if: matrix.app == 'srd'\n        with:\n          name: srd-dist\n",
         ''
       )
-      .replace('    needs: [plan, deploy]', '    needs: [plan, deploy-srd, deploy]')
+      .replace('    needs: [plan, deploy]', '    needs: [plan, deploy-web, deploy]')
     expect(checkDeployOrder(ctx({ deploy: split })).failures).toEqual([])
 
     const early = split.replace(
-      '  deploy-srd:\n    needs: [plan, build-srd, og-srd, build-cantina, push-convex]',
-      '  deploy-srd:\n    needs: [plan, og-srd]'
+      '  deploy-web:\n    needs: [plan, build-srd, og-srd, build-cantina, push-convex]',
+      '  deploy-web:\n    needs: [plan, og-srd]'
     )
     expect(checkDeployOrder(ctx({ deploy: early })).failures).toContainEqual(
-      expect.stringContaining('`deploy-srd` does not need `build-cantina`')
+      expect.stringContaining('`deploy-web` does not need `build-cantina`')
     )
     const unsmoked = split.replace(
-      '    needs: [plan, deploy-srd, deploy]',
+      '    needs: [plan, deploy-web, deploy]',
       '    needs: [plan, deploy]'
     )
     expect(checkDeployOrder(ctx({ deploy: unsmoked })).failures).toEqual([
-      expect.stringContaining('`smoke` does not need `deploy-srd`'),
+      expect.stringContaining('`smoke` does not need `deploy-web`'),
     ])
   })
 
