@@ -12,8 +12,8 @@
  *    and centred on its capitals as a show page's chips are, the **Showing**
  *    toggle (Everything | Not in a Game), **Import** and **Export all**, and
  *    "+ New Game", the one way to start a table.
- *  - **One shelf per kind**: Pilots, Mechs and Crawlers; Patterns and NPCs,
- *    which are user-made and so dashed (ruleset §3.9); and, under them all and
+ *  - **Three rows of shelves**: Pilots, Mechs and Crawlers side by side; then
+ *    NPCs and Patterns, which are user-made and so dashed (ruleset §3.9); then,
  *    folded, the Starter Set, read-only, as the front door shows it
  *    (`StarterShelf`).
  *
@@ -137,19 +137,16 @@ const BODY = {
   paddingTop: tokens.space[20],
 } satisfies CSSProperties
 
-/** Two columns where there is room — your units, then what you made and the book's. */
-const COLUMNS = {
+/**
+ * One row of shelves (owner, 2026-10-15): your units (Pilots, Mechs,
+ * Crawlers), then what you made (NPCs, Patterns), side by side where there is
+ * room, stacked on a phone. The Starter Set is the third row, folded.
+ */
+const ROW = {
   alignItems: 'start',
   display: 'grid',
   gap: tokens.space[32],
-  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 26rem), 1fr))',
-} satisfies CSSProperties
-
-const COLUMN = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[32],
-  minWidth: 0,
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 20rem), 1fr))',
 } satisfies CSSProperties
 
 const NEW_LINK = { textDecoration: 'none' } satisfies CSSProperties
@@ -441,8 +438,8 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
         {!ready ? (
           <RosterSkeleton />
         ) : (
-          <div style={COLUMNS}>
-            <div style={COLUMN}>
+          <>
+            <div style={ROW}>
               <Shelf
                 id="shelf-pilots"
                 title="Pilots"
@@ -516,42 +513,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
               </Shelf>
             </div>
 
-            <div style={COLUMN}>
-              <Shelf
-                id="shelf-patterns"
-                title="Patterns"
-                aside="Yours"
-                note="Your patterns, ready to build a Mech from."
-                action={
-                  canWrite ? (
-                    <HeaderMenu
-                      variant="button"
-                      trigger="+ From a mech"
-                      className="su-shelves-action"
-                      label="+ From a mech"
-                      chevron={false}
-                      sections={[fromAMech]}
-                    />
-                  ) : undefined
-                }
-                isEmpty={patterns.length === 0}
-                empty="No patterns yet. Save one from a mech."
-              >
-                {patterns.map((p) => (
-                  <ShelfItem
-                    key={p.id}
-                    kind="pattern"
-                    note={chassisFact(p.chassisRef)}
-                    name={p.name}
-                    reading={patternReading(p)}
-                    href={patternHref(p.id)}
-                    userMade
-                    chips={patternChips(sharing?.find((s) => s.appId === p.id))}
-                    menu={patternMenu(p)}
-                  />
-                ))}
-              </Shelf>
-
+            <div style={ROW}>
               <Shelf
                 id="shelf-npcs"
                 title="NPCs"
@@ -595,8 +557,43 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   />
                 ))}
               </Shelf>
+
+              <Shelf
+                id="shelf-patterns"
+                title="Patterns"
+                aside="Yours"
+                note="Your patterns, ready to build a Mech from."
+                action={
+                  canWrite ? (
+                    <HeaderMenu
+                      variant="button"
+                      trigger="+ From a mech"
+                      className="su-shelves-action"
+                      label="+ From a mech"
+                      chevron={false}
+                      sections={[fromAMech]}
+                    />
+                  ) : undefined
+                }
+                isEmpty={patterns.length === 0}
+                empty="No patterns yet. Save one from a mech."
+              >
+                {patterns.map((p) => (
+                  <ShelfItem
+                    key={p.id}
+                    kind="pattern"
+                    note={chassisFact(p.chassisRef)}
+                    name={p.name}
+                    reading={patternReading(p)}
+                    href={patternHref(p.id)}
+                    userMade
+                    chips={patternChips(sharing?.find((s) => s.appId === p.id))}
+                    menu={patternMenu(p)}
+                  />
+                ))}
+              </Shelf>
             </div>
-          </div>
+          </>
         )}
         {ready && <StarterShelf />}
       </div>
