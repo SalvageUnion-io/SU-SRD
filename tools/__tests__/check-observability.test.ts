@@ -16,12 +16,12 @@ import { dirname, join } from 'node:path'
  * Behaviour tests for the CSP half of `tools/check-observability.ts`.
  *
  * A `connect-src` that blocks the report's destination blocks every error in
- * the browser while the app looks completely healthy. Each app has one CSP
- * source (srd's `public/_headers`, the Cantina's `CANTINA_CSP`), which must
- * declare a `connect-src` allowing `'self'`, where the app posts its reports.
+ * the browser while the app looks completely healthy. The app has one CSP
+ * source, `public/_headers`, which must declare a `connect-src` allowing
+ * `'self'`, where the app posts its reports.
  */
 
-const CANTINA_HEADERS = 'apps/web/src/worker/build.ts'
+const HEADERS = 'apps/web/public/_headers'
 
 const ROOT = join(import.meta.dir, '..', '..')
 const TOOL = join(ROOT, 'tools', 'check-observability.ts')
@@ -39,13 +39,10 @@ const SELF = "connect-src 'self'"
 const CHECKED_FILES = [
   'apps/web/src/lib/observability.ts',
   'apps/web/src/runtime/islands.client.ts',
-  'apps/web/public/_headers',
+  HEADERS,
   'apps/web/wrangler.jsonc',
   'apps/web/src/worker/index.ts',
-  'apps/web/src/lib/builderObservability.ts',
   'apps/web/src/main.tsx',
-  CANTINA_HEADERS,
-  'apps/web/src/worker/builder/index.ts',
   'apps/su-assets/wrangler.jsonc',
   'apps/su-assets/src/worker/index.ts',
   'apps/discord-bot/wrangler.jsonc',
@@ -111,8 +108,8 @@ describe('check-observability CSP', () => {
 
   test("'self' named only in a comment does not count", async () => {
     await withFileContents(
-      CANTINA_HEADERS,
-      (s) => `${s.replace(SELF, 'connect-src https://example.invalid')}\n// ${SELF}\n`,
+      HEADERS,
+      (s) => `${s.replace(SELF, 'connect-src https://example.invalid')}\n# ${SELF}\n`,
       async () => {
         const { exitCode, stderr } = await runCheck()
         expect(exitCode).toBe(1)
@@ -123,7 +120,7 @@ describe('check-observability CSP', () => {
 
   test("a CSP that omits 'self' fails", async () => {
     await withFileContents(
-      CANTINA_HEADERS,
+      HEADERS,
       (s) => s.replace(SELF, 'connect-src https://example.invalid'),
       async () => {
         const { exitCode, stderr } = await runCheck()
@@ -133,31 +130,15 @@ describe('check-observability CSP', () => {
     )
   })
 
-  test('a failure names only the app whose CSP is missing', async () => {
-    await withFileContents(
-      'apps/web/public/_headers',
-      (s) => s.replace(/^\s*Content-Security-Policy:.*$/m, '  X-Retired-Policy: none'),
-      async () => {
-        const { exitCode, stderr } = await runCheck()
-        expect(exitCode).toBe(1)
-        expect(stderr).toContain('[srd]')
-        // cantina is untouched and must not be implicated.
-        expect(stderr).not.toContain('[cantina]')
-      }
-    )
-  })
-
   // The edge injects the Web Analytics beacon, so the CSP is the only place
   // the repo can blind it: from the site's creation until 3.0.0 neither origin
   // was allowed and the dashboard recorded one page load in six weeks.
   test.each([
-    ['apps/web/public/_headers', 'script-src', 'https://static.cloudflareinsights.com'],
-    ['apps/web/public/_headers', 'connect-src', 'https://cloudflareinsights.com'],
-    [CANTINA_HEADERS, 'script-src', 'https://static.cloudflareinsights.com'],
-    [CANTINA_HEADERS, 'connect-src', 'https://cloudflareinsights.com'],
-  ])('%s: a %s without %s fails', async (path, directive, source) => {
+    ['script-src', 'https://static.cloudflareinsights.com'],
+    ['connect-src', 'https://cloudflareinsights.com'],
+  ])('a %s without %s fails', async (directive, source) => {
     await withFileContents(
-      path,
+      HEADERS,
       (s) => s.replace(` ${source}`, ''),
       async () => {
         const { exitCode, stderr } = await runCheck()
@@ -167,16 +148,13 @@ describe('check-observability CSP', () => {
     )
   })
 
-  test.each(['apps/web/public/_headers', CANTINA_HEADERS])(
-    'a missing %s fails as no CSP source',
-    async (path) => {
-      await withFileAbsent(path, async () => {
-        const { exitCode, stderr } = await runCheck()
-        expect(exitCode).toBe(1)
-        expect(stderr).toContain(`no CSP source found at ${path}`)
-      })
-    }
-  )
+  test('a missing _headers fails as no CSP source', async () => {
+    await withFileAbsent(HEADERS, async () => {
+      const { exitCode, stderr } = await runCheck()
+      expect(exitCode).toBe(1)
+      expect(stderr).toContain(`no CSP source found at ${HEADERS}`)
+    })
+  })
 })
 
 /**
@@ -184,21 +162,24 @@ describe('check-observability CSP', () => {
  * old spelling in a comment. Every one must fail on its own.
  */
 describe('check-observability reads parsed source, not prose', () => {
-  test('an init call that is commented out fails', async () => {
-    await withFileContents(
-      'apps/web/src/runtime/islands.client.ts',
-      (s) => s.replace('\ninitBrowserObservability()', '\n// initBrowserObservability()'),
-      async () => {
-        const { exitCode, stderr } = await runCheck()
-        expect(exitCode).toBe(1)
-        expect(stderr).toContain('never calls initBrowserObservability()')
-      }
-    )
-  })
+  test.each(['apps/web/src/runtime/islands.client.ts', 'apps/web/src/main.tsx'])(
+    'an init call commented out of %s fails',
+    async (entry) => {
+      await withFileContents(
+        entry,
+        (s) => s.replace('\ninitBrowserObservability()', '\n// initBrowserObservability()'),
+        async () => {
+          const { exitCode, stderr } = await runCheck()
+          expect(exitCode).toBe(1)
+          expect(stderr).toContain(`[web] ${entry} never calls initBrowserObservability()`)
+        }
+      )
+    }
+  )
 
   test('an error report route that is commented out fails', async () => {
     await withFileContents(
-      'apps/web/src/worker/builder/index.ts',
+      'apps/web/src/worker/index.ts',
       (s) =>
         s.replace(
           'return handleConvexLogStream(',
@@ -208,7 +189,7 @@ describe('check-observability reads parsed source, not prose', () => {
         const { exitCode, stderr } = await runCheck()
         expect(exitCode).toBe(1)
         expect(stderr).toContain(
-          '[cantina] apps/web/src/worker/builder/index.ts never calls handleConvexLogStream()'
+          '[web] apps/web/src/worker/index.ts never calls handleConvexLogStream()'
         )
       }
     )

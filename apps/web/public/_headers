@@ -1,9 +1,9 @@
 # Response headers for salvageunion.io.
 #
 # Copied verbatim into `dist/` by Vite's publicDir, and read by Workers Static
-# Assets (ADR-033) for every file it serves. srd's Worker answers only misses
-# (src/worker/index.ts), and its 404 page comes back through the asset binding,
-# so this file is still the ONLY source of security headers.
+# Assets (ADR-033) for every file it serves. The Worker answers only misses
+# and `/build` (src/worker/index.ts), and every page it answers comes back
+# through the asset binding, so this file is the ONLY source of security headers.
 #
 # `tools/check-observability.ts` requires the CSP here to allow 'self', where the
 # browser posts its error reports (`/__errors`, src/worker/index.ts);
@@ -41,7 +41,10 @@
   # loaded from static.cloudflareinsights.com and posting page loads to
   # cloudflareinsights.com; drop either origin and the dashboard silently
   # records nothing.
-  Content-Security-Policy: default-src 'self'; script-src 'inline-speculation-rules' 'self' https://storage.ko-fi.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com;
+  #
+  # The Convex origins are the Cantina's accounts client and live queries
+  # (ADR-030), under `/build`: one policy for the one app.
+  Content-Security-Policy: default-src 'self'; script-src 'inline-speculation-rules' 'self' https://storage.ko-fi.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com https://*.convex.cloud wss://*.convex.cloud https://*.convex.site;
 
 # The production Worker's own workers.dev address serves the same pages as
 # salvageunion.io (it stays on for the smoke check). Its canonicals already name
@@ -55,12 +58,6 @@ https://su-srd.alxjrvs.workers.dev/*
 # and the Worker's `/assets/` prefix too. A MISS here never sees this rule: the
 # Worker answers it with `no-store` (src/worker/index.ts).
 /assets/*
-  Cache-Control: public, max-age=31536000, immutable
-
-# The Cantina's content-hashed bundle output: the one build writes it into
-# this `dist` under `build/`, and its own `_headers` does not ship. A miss never sees this rule either: the Worker answers every `/build`
-# request (src/worker/build.ts) and 404s a missing chunk with `no-store`.
-/build/assets/*
   Cache-Control: public, max-age=31536000, immutable
 
 # `/assets/*` is the ONLY content-hashed path srd emits — every image an

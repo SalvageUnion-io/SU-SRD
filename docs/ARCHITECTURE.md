@@ -110,7 +110,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     Workers `su-srd` (`salvageunion.io`, `/build`), `su-assets` (R2 `su-lp-assets`), `su-discord-bot`.
     The account is shared with RANDSUM; re-derive from `apps/*/wrangler.jsonc`, `wrangler deployments list`.
 36. **Error tracking** <a id="errors"></a>
-    Workers Issues (ADR-049); browsers post to `/__errors`, Convex's log stream to `/build/__convex-logs`.
+    Workers Issues (ADR-049); browsers post to `/__errors`, Convex's log stream to `/__convex-logs`.
     `tools/check-observability.ts` guards it.
 37. **Convex and GitHub identifiers** <a id="identifiers"></a>
     Project `alex-jarvis:susrd`; `.convex.cloud` is the client, `.convex.site` HTTP actions (swapped, both "unreachable").

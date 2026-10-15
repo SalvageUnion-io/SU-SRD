@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { BUILD_BASE, CANTINA_CSP, RUN_WORKER_FIRST, spaAssets } from '../build'
+import { BUILD_BASE, RUN_WORKER_FIRST, spaAssets } from '../builder'
 import type { Env } from '../index'
 import worker from '../index'
 
 /**
- * The Cantina under `/build`, served by this Worker (`../build.ts`): srd's
- * binding is `not_found_handling: none`, so the Cantina's Worker gets a
- * binding that answers a miss under the base with the shell, as SPA mode
- * would, and every answer carrying a CSP gets the Cantina's.
+ * The Cantina under `/build`, served by the one Worker (`../builder.ts`): the
+ * site's binding is `not_found_handling: none`, so its rules read a binding
+ * that answers a miss under the base with the shell, as SPA mode would. Every
+ * answer keeps the site's `_headers`, its one CSP included.
  */
 
 const SHELL = '<!doctype html>Cantina shell'
@@ -52,7 +52,7 @@ const FILES = {
 }
 
 function envWith(files: Record<string, { body: string; type: string }> = FILES) {
-  return { ASSETS: assetsWith(files), BASE_PATH: BUILD_BASE } as Env & {
+  return { ASSETS: assetsWith(files) } as Env & {
     ASSETS: ReturnType<typeof assetsWith>
   }
 }
@@ -68,7 +68,7 @@ describe('wrangler.jsonc agrees with the Worker', () => {
   // Bun's JSONC loader, as tools/check-workers.ts reads it.
   const config = WRANGLER as {
     assets: { run_worker_first: unknown }
-    vars: { BASE_PATH: string; CONVEX_URL: string }
+    vars: { CONVEX_URL: string }
     previews: { vars: Record<string, string> }
   }
   const workflow = (name: string) =>
@@ -76,11 +76,6 @@ describe('wrangler.jsonc agrees with the Worker', () => {
 
   it('runs the script first for /build and below, and nothing else', () => {
     expect(config.assets.run_worker_first).toEqual(RUN_WORKER_FIRST)
-  })
-
-  it('serves the Cantina under BUILD_BASE in production and in a Preview', () => {
-    expect(config.vars.BASE_PATH).toBe(BUILD_BASE)
-    expect(config.previews.vars.BASE_PATH).toBe(BUILD_BASE)
   })
 
   it('reads link previews from the Convex deployment the Cantina is built against', () => {
@@ -95,23 +90,26 @@ describe('wrangler.jsonc agrees with the Worker', () => {
     const built = workflow('deploy-preview.yml').match(/^\s*STAGING_CONVEX_URL:\s*(\S+)\s*$/m)?.[1]
     expect(built).toBeString()
     // A Preview inherits none of the top-level vars.
-    expect(config.previews.vars).toEqual({ CONVEX_URL: built as string, BASE_PATH: BUILD_BASE })
+    expect(config.previews.vars).toEqual({ CONVEX_URL: built as string })
   })
 
-  it("sets the Cantina's own CSP", () => {
-    expect(CANTINA_CSP).toContain("connect-src 'self'")
-    expect(CANTINA_CSP).toContain('wss://*.convex.cloud')
+  it("sets one CSP for the whole app, Convex's origins included", () => {
+    const headers = readFileSync(join(import.meta.dir, '../../../public/_headers'), 'utf8')
+    const csp = headers.match(/^\s*Content-Security-Policy:\s*(.*)$/gm) ?? []
+    expect(csp).toHaveLength(1)
+    expect(csp[0]).toContain("connect-src 'self'")
+    expect(csp[0]).toContain('wss://*.convex.cloud')
   })
 })
 
 describe('/build/* — the Cantina, answered as a single-page app', () => {
-  it('answers a client route with the shell, carrying the Cantina CSP', async () => {
+  it('answers a client route with the shell, carrying the site CSP', async () => {
     const env = envWith()
     const res = await worker.fetch(req(`${BUILD_BASE}/pilots/new`), env)
 
     expect(res.status).toBe(200)
     expect(await res.text()).toBe(SHELL)
-    expect(res.headers.get('content-security-policy')).toBe(CANTINA_CSP)
+    expect(res.headers.get('content-security-policy')).toBe(SRD_CSP)
     // Not a public page: kept out of search.
     expect(res.headers.get('x-robots-tag')).toBe('noindex')
     // The miss, then the shell: SPA mode, emulated.
@@ -160,7 +158,7 @@ describe('/build/* — the Cantina, answered as a single-page app', () => {
 })
 
 describe('the SRD is untouched', () => {
-  it('still answers its own miss with its 404 page and its own CSP', async () => {
+  it('still answers its own miss with its 404 page and the site CSP', async () => {
     const env = envWith()
     const res = await worker.fetch(req('/chassis/nope/'), env)
 

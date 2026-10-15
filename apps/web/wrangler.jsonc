@@ -1,8 +1,8 @@
 {
-  // salvageunion.io — the static SRD on Workers Static Assets (ADR-033). The
-  // script runs only for a miss and for everything under `/build`, the
-  // Cantina's (src/worker/index.ts, src/worker/build.ts); every header on a
-  // real SRD file is public/_headers. Built in GitHub Actions, not Workers Builds
+  // salvageunion.io on Workers Static Assets (ADR-033): the one Worker for
+  // the whole app. The script runs only for a miss and for everything under
+  // `/build`, the Cantina's (src/worker/index.ts, src/worker/builder.ts);
+  // every header on a real file is public/_headers. Built in GitHub Actions, not Workers Builds
   // (ADR-033 §4).
   "name": "su-srd",
   "main": "src/worker/index.ts",
@@ -20,39 +20,35 @@
   // (tools/smoke-production.sh).
   "workers_dev": true,
 
-  // Secrets for the Cantina under `/build` (src/worker/build.ts), set with
+  // Secrets, set with
   // `wrangler secret put`, all OPTIONAL and so not listed in a
   // `secrets.required` block:
   //
   // - CF_ACCOUNT_ID and BROWSER_RENDERING_TOKEN (a token with Browser
   //   Rendering edit permission). With both, a shared thing's link preview
-  //   carries its rendered card (apps/web/src/worker/builder/linkPreview.ts);
+  //   carries its rendered card (apps/web/src/worker/linkPreview.ts);
   //   without them it unfurls as text.
   // - CONVEX_LOG_STREAM_SECRET, the production Convex log stream's webhook
-  //   secret. Without it POST /build/__convex-logs answers 503.
+  //   secret. Without it POST /__convex-logs answers 503.
 
   // CONVEX_URL: the Convex deployment a link preview reads what a stranger
   // may see from: the URL the Cantina is built against, `CANTINA_CONVEX_URL`
-  // in deploy-cloudflare.yml. BASE_PATH: the base the Cantina is built under
-  // (`SITE.base` in apps/web/src/lib/site.ts). The routing test holds
-  // BASE_PATH equal to `BUILD_BASE`.
+  // in deploy-cloudflare.yml.
   "vars": {
-    "CONVEX_URL": "https://exuberant-porpoise-183.convex.cloud",
-    "BASE_PATH": "/build"
+    "CONVEX_URL": "https://exuberant-porpoise-183.convex.cloud"
   },
 
   // A Worker Preview (deploy-preview.yml) inherits none of the vars above:
-  // the staging deployment the Cantina is built against, and the same base.
+  // the staging deployment the Cantina is built against.
   // Its error endpoints run without the rate limits, which the Worker allows.
   "previews": {
     "vars": {
-      "CONVEX_URL": "https://perfect-donkey-72.convex.cloud",
-      "BASE_PATH": "/build"
+      "CONVEX_URL": "https://perfect-donkey-72.convex.cloud"
     }
   },
 
-  // ERROR_REPORT_LIMIT caps browser error reports (POST /__errors and
-  // /build/__errors) per address. OG_RENDER_LIMIT caps fresh link-preview
+  // ERROR_REPORT_LIMIT caps browser error reports (POST /__errors) per
+  // address. OG_RENDER_LIMIT caps fresh link-preview
   // renders (Browser Rendering time) per Cloudflare location.
   // `namespace_id` is any integer unique on the account.
   "ratelimits": [
@@ -74,7 +70,7 @@
     // pre-rendered, so a miss is genuinely a miss.
     "not_found_handling": "none",
     // `/build` and below: the Cantina, whose Worker reads every answer
-    // (src/worker/build.ts, `RUN_WORKER_FIRST`, which the routing test holds
+    // (src/worker/builder.ts, `RUN_WORKER_FIRST`, which the routing test holds
     // equal). A positive list only: a negative pattern sends its matches
     // straight to the assets, and `true` would run the script for every SRD
     // page.

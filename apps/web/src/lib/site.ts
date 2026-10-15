@@ -1,11 +1,11 @@
 /**
  * Where the Cantina is served: `salvageunion.io/build/`, beside the SRD on one
- * origin, as its own app, Worker and deploy (ADR-048).
+ * origin (ADR-048).
  *
  * The shell and the app's own files land in `dist/build/` (`vite.config.ts`);
  * its chunks share `dist/assets/` with srd's. App code reads the base back
- * through `import.meta.env.CANTINA_BASE` (`appUrl.ts`); the Worker through its
- * `BASE_PATH` var (`wrangler.jsonc`), which the routing test holds equal.
+ * through `import.meta.env.CANTINA_BASE` (`appUrl.ts`); the Worker reads `SITE`
+ * itself (`../worker/builder.ts`).
  */
 
 export type CantinaSite = {
@@ -22,7 +22,7 @@ export const SITE: CantinaSite = {
 
 /**
  * A base without its trailing slash: `''` at the root, `/build` under it. The
- * prefix a root-relative route path is appended to, the Worker's `BASE_PATH`,
+ * prefix a root-relative route path is appended to, the Worker's `BUILD_BASE`,
  * and (as `/` for the root) the router's `basepath`.
  */
 export function basePathOf(base: string): string {

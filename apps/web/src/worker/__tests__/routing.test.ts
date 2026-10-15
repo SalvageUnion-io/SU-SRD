@@ -3,7 +3,7 @@ import type { Env } from '../index'
 import worker from '../index'
 
 /**
- * The srd Worker, which Static Assets runs only for a miss
+ * The one Worker, which Static Assets runs only for a miss
  * (`not_found_handling: "none"` — see `../index.ts`).
  *
  * The rule production broke: a miss under `/assets/` must never be cacheable.
@@ -130,11 +130,34 @@ describe('POST /__errors — a browser error report, logged for Workers Issues',
       console.error = realConsoleError
     }
     expect((logged[0]?.[0] as Error | undefined)?.message).toBe('x is undefined')
-    expect(logged[0]?.[1]).toMatchObject({ source: 'browser', app: 'srd' })
+    expect(logged[0]?.[1]).toMatchObject({ source: 'browser', app: 'web' })
     expect(env.ASSETS.asked).toEqual([])
   })
 
   it('answers a GET 405, so a crawler never gets a page there', async () => {
     expect((await worker.fetch(req('/__errors'), envWith())).status).toBe(405)
   })
+})
+
+describe("POST /__convex-logs — Convex's log stream", () => {
+  // `/build/__convex-logs` is where the stream posted before the app was one.
+  for (const path of ['/__convex-logs', '/build/__convex-logs']) {
+    it(`answers ${path} 503 while the stream secret is unset`, async () => {
+      const res = await worker.fetch(
+        new Request(`https://salvageunion.io${path}`, { method: 'POST', body: '[]' }),
+        envWith()
+      )
+      expect(res.status).toBe(503)
+    })
+
+    it(`refuses an unsigned delivery to ${path} once the secret is set`, async () => {
+      const env = { ...envWith(), CONVEX_LOG_STREAM_SECRET: 'whsec' }
+      const res = await worker.fetch(
+        new Request(`https://salvageunion.io${path}`, { method: 'POST', body: '[]' }),
+        env
+      )
+      expect(res.status).toBe(401)
+      expect(env.ASSETS.asked).toEqual([])
+    })
+  }
 })

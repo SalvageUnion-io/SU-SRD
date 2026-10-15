@@ -6,10 +6,9 @@
  *   sitemap-index.xml   one <sitemap> entry per urlset file, then The Cantina's
  *   sitemap-0.xml       the urlset itself
  *
- * The Cantina (`/build/`) is its own build (ADR-048): it writes the urlset of
- * its public pages to `/build/sitemap.xml`
- * (`apps/web/src/worker/builder/publicPages.ts`), and the index lists it, so the one
- * `robots.txt` line reaches both.
+ * The Cantina's public pages (`/build/`) have their own urlset,
+ * `/build/sitemap.xml` (`apps/web/src/worker/publicPages.ts`), and the index
+ * lists it, so the one `robots.txt` line reaches both.
  *
  * The shape is fixed: no newlines, no indentation, no `<lastmod>` /
  * `<changefreq>` / `<priority>`, and four namespace declarations on `<urlset>`

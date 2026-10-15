@@ -1,5 +1,5 @@
 import { SchemaNotLoadedError } from 'salvageunion-reference'
-import { captureException } from './builderObservability'
+import { captureException } from './observability'
 
 type Report = (error: unknown, context: { source: string }) => void
 

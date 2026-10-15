@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'bun:test'
-import { color } from '../../../design/tokens'
-import { renderShell } from '../../../shell/shell'
+import { color } from '../../design/tokens'
+import { renderShell } from '../../shell/shell'
 import type { Env } from '../index'
 import worker from '../index'
 import type { ImageCache } from '../linkPreview'
@@ -90,7 +90,6 @@ function env(over: Partial<Env> = {}): Env {
       },
     },
     CONVEX_URL,
-    BASE_PATH: '/build',
     CF_ACCOUNT_ID: 'acct',
     BROWSER_RENDERING_TOKEN: 'token',
     ...over,

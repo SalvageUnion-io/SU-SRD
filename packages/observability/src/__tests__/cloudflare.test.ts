@@ -176,7 +176,7 @@ async function sign(body: string, secret = SECRET): Promise<string> {
 function delivery(body: string, signature?: string): Request {
   const headers: Record<string, string> = { 'content-type': 'application/json' }
   if (signature !== undefined) headers['x-webhook-signature'] = signature
-  return new Request('https://salvageunion.io/build/__convex-logs', {
+  return new Request('https://salvageunion.io/__convex-logs', {
     method: 'POST',
     body,
     headers,
@@ -263,7 +263,7 @@ describe('handleConvexLogStream', () => {
     expect((await handleConvexLogStream(delivery(body, await sign(body)), undefined)).status).toBe(
       503
     )
-    const get = new Request('https://salvageunion.io/build/__convex-logs')
+    const get = new Request('https://salvageunion.io/__convex-logs')
     expect((await handleConvexLogStream(get, SECRET)).status).toBe(405)
     expect(logged).toEqual([])
   })

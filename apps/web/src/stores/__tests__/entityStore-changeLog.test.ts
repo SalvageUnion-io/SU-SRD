@@ -34,7 +34,7 @@ const captured: { error: unknown; options: unknown }[] = []
 let refuseAppend = false
 
 // Spread before anything is mocked: every other export stays real.
-const realObservability = { ...(await import('../../lib/builderObservability')) }
+const realObservability = { ...(await import('../../lib/observability')) }
 
 const convexMocks = await installConvexMocks({
   convexClient: {
@@ -48,7 +48,7 @@ const convexMocks = await installConvexMocks({
     },
   },
   also: {
-    '../../lib/builderObservability': () => ({
+    '../../lib/observability': () => ({
       ...realObservability,
       captureException: (error: unknown, _context: unknown, options: unknown) => {
         captured.push({ error, options })

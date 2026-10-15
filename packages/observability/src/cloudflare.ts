@@ -47,13 +47,12 @@ export type RateLimiter = {
 }
 
 /**
- * Where a browser app posts its errors, under the app's own base: srd's at
- * `/__errors`, the Cantina's at `/build/__errors`. Same origin, so the CSP's
+ * Where a browser app posts its errors. Same origin, so the CSP's
  * `connect-src 'self'` already allows it.
  */
 export const ERROR_REPORT_PATH = '/__errors'
 
-/** Where the Convex log stream posts, under the Cantina's base: `/build/__convex-logs`. */
+/** Where the Convex log stream posts. */
 export const CONVEX_LOG_STREAM_PATH = '/__convex-logs'
 
 /**

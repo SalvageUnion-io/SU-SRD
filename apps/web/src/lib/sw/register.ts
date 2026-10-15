@@ -59,7 +59,7 @@
 
 import type { RegisterSWOptions } from 'vite-plugin-pwa/types'
 import { BASE_PATH } from '../appUrl'
-import { captureException } from '../builderObservability'
+import { captureException } from '../observability'
 
 export type RegisterOptions = {
   /**

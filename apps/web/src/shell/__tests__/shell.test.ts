@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import * as shellMeta from '../../worker/builder/shellMeta'
+import * as shellMeta from '../../worker/shellMeta'
 import { META_END, META_START, renderShell } from '../shell'
 
 describe('renderShell', () => {

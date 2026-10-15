@@ -20,7 +20,7 @@
  */
 
 import { PRODUCT } from 'cantina-domain/product'
-import { BAR_HIDDEN_ATTRIBUTE } from '../../shell/unionSlots'
+import { BAR_HIDDEN_ATTRIBUTE } from '../shell/unionSlots'
 
 /** Everything the shell's meta block says for one route. */
 export type ShellMeta = {

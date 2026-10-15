@@ -4,7 +4,6 @@ import type { SoftLink } from 'cantina-domain/schemas/softLink'
 import type { FunctionArgs } from 'convex/server'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import { captureException } from '../lib/builderObservability'
 import type { ConnectionMode } from '../lib/connection/connectionMode'
 import {
   isSettlingConnection,
@@ -12,6 +11,7 @@ import {
   usesServerOfRecord,
 } from '../lib/connection/connectionMode'
 import { convexClient } from '../lib/connection/convexClient'
+import { captureException } from '../lib/observability'
 import { knownVersion, noteVersion } from './serverVersions'
 
 /**

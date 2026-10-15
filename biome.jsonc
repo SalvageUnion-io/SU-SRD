@@ -400,10 +400,8 @@
         // explicitly rather than globbing `src/**`, so an ordinary module in the
         // same app cannot quietly acquire a default export under this exemption.
         // This glob is the `main` of every wrangler config (the `workers`
-        // check holds them to it); the Cantina's Worker, which srd's runs for
-        // `/build`, has the same shape.
+        // check holds them to it).
         "apps/*/src/worker/index.ts",
-        "apps/web/src/worker/builder/index.ts",
         "apps/web/convex/http.ts",
         "apps/web/convex/crons.ts",
         "apps/web/convex/schema.ts",

@@ -9,16 +9,17 @@
  * report before it leaves the page. Each looks exactly like a healthy app with
  * no errors. This gate (the `observability` check, so every PR) asserts:
  *
- *   1. each browser app's observability module posts to `ERROR_REPORT_PATH`,
- *   2. its init is CALLED from the app entry,
+ *   1. the app's observability module posts to `ERROR_REPORT_PATH`,
+ *   2. its init is CALLED from both entries: the static pages' islands and the
+ *      Cantina's `main.tsx`,
  *   3. its `public/_headers` CSP `connect-src` allows `'self'`, where it posts,
  *      and admits Cloudflare Web Analytics: `script-src` its beacon's origin,
  *      `connect-src` where the beacon posts page loads. The zone's automatic
  *      setup injects the beacon at the edge, so nothing in the source names
  *      it, and a CSP without the two origins records nothing: from the site's
  *      creation until 3.0.0 the dashboard counted one page load in six weeks.
- *   4. its Worker routes `ERROR_REPORT_PATH` to `handleErrorReport` (and the Cantina's
- *      routes `CONVEX_LOG_STREAM_PATH` to `handleConvexLogStream`),
+ *   4. its Worker routes `ERROR_REPORT_PATH` to `handleErrorReport` and
+ *      `CONVEX_LOG_STREAM_PATH` to `handleConvexLogStream`,
  *   5. every Worker's config turns on logs, Issues and `upload_source_maps`.
  *
  * Every assertion reads PARSED source, never raw text: TypeScript goes through
@@ -37,13 +38,9 @@ type BrowserApp = {
   name: string
   /** Module that owns init, relative to repo root. */
   modulePath: string
-  /** Entry that must CALL the init. */
-  entryPath: string
-  /**
-   * The app's CSP source: srd's `_headers`, which Workers Static Assets reads,
-   * or the Cantina's `CANTINA_CSP`, which su-srd's Worker sets on every
-   * `/build` answer.
-   */
+  /** Entries that must each CALL the init. */
+  entryPaths: string[]
+  /** The app's CSP source: the `_headers` Workers Static Assets reads. */
   headersPath: string
   /** The Worker that answers the app's error reports. */
   workerPath: string
@@ -51,24 +48,14 @@ type BrowserApp = {
   extraHandlers: string[]
 }
 
-const BROWSER_APPS: BrowserApp[] = [
-  {
-    name: 'srd',
-    modulePath: 'apps/web/src/lib/observability.ts',
-    entryPath: 'apps/web/src/runtime/islands.client.ts',
-    headersPath: 'apps/web/public/_headers',
-    workerPath: 'apps/web/src/worker/index.ts',
-    extraHandlers: [],
-  },
-  {
-    name: 'cantina',
-    modulePath: 'apps/web/src/lib/builderObservability.ts',
-    entryPath: 'apps/web/src/main.tsx',
-    headersPath: 'apps/web/src/worker/build.ts',
-    workerPath: 'apps/web/src/worker/builder/index.ts',
-    extraHandlers: ['handleConvexLogStream'],
-  },
-]
+const BROWSER_APP: BrowserApp = {
+  name: 'web',
+  modulePath: 'apps/web/src/lib/observability.ts',
+  entryPaths: ['apps/web/src/runtime/islands.client.ts', 'apps/web/src/main.tsx'],
+  headersPath: 'apps/web/public/_headers',
+  workerPath: 'apps/web/src/worker/index.ts',
+  extraHandlers: ['handleConvexLogStream'],
+}
 
 /**
  * The Cloudflare Workers that serve production. A guard that does not know
@@ -118,16 +105,9 @@ async function wranglerConfig(path: string): Promise<WranglerConfig | null> {
   return module.default
 }
 
-/**
- * A `_headers` file without its `#` comment lines, or a module's `…_CSP`
- * string as the header line it becomes; null when absent.
- */
+/** A `_headers` file without its `#` comment lines; null when absent. */
 function headersFile(path: string): string | null {
   if (!exists(path)) return null
-  if (path.endsWith('.ts')) {
-    const csp = code(path)?.match(/_CSP\s*=\s*(["'])(.*?)\1/s)?.[2]
-    return csp === undefined ? '' : `Content-Security-Policy: ${csp}`
-  }
   return readFileSync(join(process.cwd(), path), 'utf8')
     .split('\n')
     .filter((line) => !line.trim().startsWith('#'))
@@ -161,11 +141,13 @@ function checkBrowserApp(app: BrowserApp): void {
   }
 
   // An init that is never called is indistinguishable from no init at all.
-  const entry = code(app.entryPath)
-  if (entry === null) {
-    fail(app.name, `entry missing at ${app.entryPath}`)
-  } else if (!/\binitBrowserObservability\(/.test(entry)) {
-    fail(app.name, `${app.entryPath} never calls initBrowserObservability()`)
+  for (const entryPath of app.entryPaths) {
+    const entry = code(entryPath)
+    if (entry === null) {
+      fail(app.name, `entry missing at ${entryPath}`)
+    } else if (!/\binitBrowserObservability\(/.test(entry)) {
+      fail(app.name, `${entryPath} never calls initBrowserObservability()`)
+    }
   }
 
   // A report posted to a Worker that does not route it is a 404 nobody sees.
@@ -240,7 +222,7 @@ async function checkWorkerSurface(surface: WorkerSurface): Promise<void> {
 
 console.log('Checking observability wiring (module → entry → Worker → CSP, and the Workers)…')
 
-for (const app of BROWSER_APPS) checkBrowserApp(app)
+checkBrowserApp(BROWSER_APP)
 for (const surface of WORKER_SURFACES) await checkWorkerSurface(surface)
 
 if (failures.length > 0) {

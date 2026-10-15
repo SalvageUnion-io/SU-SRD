@@ -7,8 +7,8 @@ third-party SDK:
 
 | Subpath | Consumers | What it is |
 | --- | --- | --- |
-| `observability/cloudflare` | the three Workers (`apps/web/src/worker`, which runs `apps/web/src/worker/builder` for `/build`, `apps/su-assets/src/worker`, `apps/discord-bot/src/worker`) | `reportError` logs a handled error with `console.error`, which Issues records; `handleErrorReport` answers a browser's report at `ERROR_REPORT_PATH`; `handleConvexLogStream` answers the Convex log stream at `CONVEX_LOG_STREAM_PATH` (The Cantina only) |
-| `observability/browser` | srd and the Cantina (`apps/web/src/lib/observability.ts`, `apps/web/src/lib/builderObservability.ts`) | `createBrowserObservability` (init, which hears the window's `error` and `unhandledrejection`; `captureException`; `installChunkRecovery`) |
+| `observability/cloudflare` | the three Workers (`apps/web/src/worker`, `apps/su-assets/src/worker`, `apps/discord-bot/src/worker`) | `reportError` logs a handled error with `console.error`, which Issues records; `handleErrorReport` answers a browser's report at `ERROR_REPORT_PATH`; `handleConvexLogStream` answers the Convex log stream at `CONVEX_LOG_STREAM_PATH` (`apps/web` only) |
+| `observability/browser` | `apps/web` (`apps/web/src/lib/observability.ts`) | `createBrowserObservability` (init, which hears the window's `error` and `unhandledrejection`; `captureException`; `installChunkRecovery`) |
 
 ## Rules that are easy to break
 
@@ -19,8 +19,8 @@ third-party SDK:
   sees only an uncaught throw, a `5xx` and `console.error`.
 - **The report endpoints never answer `5xx` for a bad report.** Issues would
   record it as this endpoint failing. A malformed report is a `4xx`.
-- **The browser gate is `import.meta.env.PROD`, in each app.** The dev servers
-  have no Worker to post to.
+- **The browser gate is `import.meta.env.PROD`, in the app.** The dev server
+  has no Worker to post to.
 - Browser stacks stay minified: Cloudflare applies source maps to a Worker's
   own code only.
 

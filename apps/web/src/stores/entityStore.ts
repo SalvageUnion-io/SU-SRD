@@ -44,9 +44,9 @@ import type { Npc } from 'cantina-domain/schemas/npc'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
 import type { SoftLink } from 'cantina-domain/schemas/softLink'
 import { create } from 'zustand'
-import { captureException } from '../lib/builderObservability'
 import { linksClearedByMove } from '../lib/links/clearedByMove'
 import { LinkRefused } from '../lib/links/linkRefused'
+import { captureException } from '../lib/observability'
 import { getActiveContainer } from './activeContainerStore'
 import {
   commitEntityWrite,

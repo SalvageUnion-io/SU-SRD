@@ -4,9 +4,9 @@ import {
   STARTER_MECHS,
   STARTER_PILOTS,
 } from 'cantina-domain/starterSet/starterSet'
-import { NATIVE_FETCH_GLOBALS } from '../../../../test/env'
-import { color } from '../../../design/tokens'
-import { renderShell } from '../../../shell/shell'
+import { NATIVE_FETCH_GLOBALS } from '../../../test/env'
+import { color } from '../../design/tokens'
+import { renderShell } from '../../shell/shell'
 import type { Env } from '../index'
 import worker from '../index'
 import { publicShells, sitemapXml } from '../publicPages'
@@ -51,7 +51,6 @@ function env(): Env & { asked: string[] } {
         return new Response(SHELL, { headers: { 'content-type': 'text/html', etag: '"shell"' } })
       },
     },
-    BASE_PATH: BASE,
     CONVEX_URL: 'https://convex.example',
   } as Env & { asked: string[] }
 }
@@ -228,6 +227,6 @@ describe('sitemap.xml', () => {
   it('is a file the asset server answers, not one the Worker makes', async () => {
     const e = env()
     await worker.fetch(crawl('/sitemap.xml'), e)
-    expect(e.asked).toEqual([`${BASE}/sitemap.xml`])
+    expect(e.asked[0]).toBe(`${BASE}/sitemap.xml`)
   })
 })

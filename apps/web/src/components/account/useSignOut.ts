@@ -1,7 +1,7 @@
 import { useAuthActions } from '@convex-dev/auth/react'
 import { useCallback } from 'react'
 import { clearAccountHint } from '../../lib/accountHint'
-import { captureException } from '../../lib/builderObservability'
+import { captureException } from '../../lib/observability'
 import { localStore } from '../../lib/safeLocalStorage'
 
 /**

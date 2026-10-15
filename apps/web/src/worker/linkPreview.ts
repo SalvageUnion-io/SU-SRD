@@ -46,7 +46,7 @@ import type {
   PreviewAnswer,
   PreviewCard,
   PreviewKind,
-} from '../../lib/linkPreview/previewSummary'
+} from '../lib/linkPreview/previewSummary'
 import {
   inviteCard,
   isPreviewKind,
@@ -54,7 +54,7 @@ import {
   privateCard,
   sheetCard,
   titleCaseSlug,
-} from '../../lib/linkPreview/previewSummary'
+} from '../lib/linkPreview/previewSummary'
 import { pathInApp } from './basePath'
 import type { ShellMeta } from './shellMeta'
 

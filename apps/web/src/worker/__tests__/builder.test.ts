@@ -1,20 +1,19 @@
 import { describe, expect, it } from 'bun:test'
-import { NATIVE_FETCH_GLOBALS } from '../../../../test/env'
-import { basePathOf, SITE } from '../../../lib/site'
+import { NATIVE_FETCH_GLOBALS } from '../../../test/env'
+import { basePathOf, SITE } from '../../lib/site'
 import type { Env } from '../index'
 import worker from '../index'
 
 /**
- * The Cantina's Worker code at salvageunion.io/build (ADR-048), which su-srd's
- * Worker runs first for every request under the base: it reads each answer
- * through an asset binding that answers a miss with the shell (see
- * `../index.ts` and apps/web/src/worker/build.ts).
+ * The Cantina at salvageunion.io/build (ADR-048), which the one Worker runs
+ * first for every request under the base: it reads each answer through an
+ * asset binding that answers a miss with the shell (see `../builder.ts`).
  *
  * The rule that has already broken production: `/assets/*` on a miss must be
  * **404**, never the SPA shell. Answering 200 with HTML let the `immutable`
  * header pin that HTML into the HTTP cache for a year under a rotated chunk's
- * URL. The Worker can only answer a miss it is handed, so su-srd's
- * `run_worker_first` is held to handing it every one (its build.test.ts).
+ * URL. The Worker can only answer a miss it is handed, so `run_worker_first`
+ * is held to handing it every one (`build.test.ts`).
  */
 
 const BASE = '/build'
@@ -23,6 +22,7 @@ const CSP = "default-src 'self'"
 const IMMUTABLE = 'public, max-age=31536000, immutable'
 const CHUNK = `${BASE}/assets/index-C0FFEE12.js`
 const ICON = `${BASE}/icon-192.png`
+const NOT_FOUND_PAGE = '<!doctype html><title>404 - Page Not Found</title>'
 
 /**
  * A fake asset binding in `single-page-application` mode, the way Static
@@ -60,9 +60,10 @@ function envWith(
   files: Record<string, { body: string; type: string }> = {
     [CHUNK]: { body: 'export const chunk = 1', type: 'text/javascript' },
     [ICON]: { body: 'PNG', type: 'image/png' },
+    '/404': { body: NOT_FOUND_PAGE, type: 'text/html; charset=utf-8' },
   }
 ) {
-  return { ASSETS: assetsWith(files), BASE_PATH: BASE } as Env & {
+  return { ASSETS: assetsWith(files) } as Env & {
     ASSETS: ReturnType<typeof assetsWith>
   }
 }
@@ -146,7 +147,14 @@ describe('/assets/* — a miss must 404, never the shell', () => {
   })
 })
 
-describe('a missing FILE is 404, not the shell', () => {
+/** The site's own miss: its 404 page, uncacheable. */
+async function expectSiteMiss(res: Response) {
+  expect(res.status).toBe(404)
+  expect(res.headers.get('cache-control')).toBe('no-store')
+  expect(await res.text()).toBe(NOT_FOUND_PAGE)
+}
+
+describe("a missing FILE is the site's 404, not the shell", () => {
   for (const path of [
     '/foo.png',
     '/favicon.ico',
@@ -157,10 +165,7 @@ describe('a missing FILE is 404, not the shell', () => {
     '/missing.html',
   ]) {
     it(`404s ${path}`, async () => {
-      const res = await worker.fetch(req(path), envWith())
-
-      expectNotFound(res)
-      expect(await res.text()).not.toContain('SPA')
+      await expectSiteMiss(await worker.fetch(req(path), envWith()))
     })
   }
 
@@ -338,89 +343,23 @@ describe('a retired address 301s to where it lives now', () => {
   })
 })
 
-describe('outside the base on any other host', () => {
-  it("301s the root and the bare base to the base's directory", async () => {
-    for (const url of [
-      'https://salvageunion.io/build',
-      'https://salvageunion.io/build?x=1',
-      'http://localhost:5173/',
-      'https://pr-1-su-srd.alxjrvs.workers.dev/',
-    ]) {
+describe('the bare base', () => {
+  it("301s to the base's directory, query kept", async () => {
+    for (const url of ['https://salvageunion.io/build', 'https://salvageunion.io/build?x=1']) {
       const res = await worker.fetch(navigateTo(url), envWith())
       expect(res.status).toBe(301)
       expect(res.headers.get('location')).toBe(`${BASE}/${new URL(url).search}`)
     }
   })
-
-  it('404s anything else: The Cantina serves nothing outside its base', async () => {
-    for (const url of ['https://salvageunion.io/buildings', 'http://localhost:5173/p/pilot/x']) {
-      const env = envWith()
-      const res = await worker.fetch(navigateTo(url), env)
-      expect(res.status).toBe(404)
-      expect(res.headers.get('cache-control')).toBe('no-store')
-      expect(env.ASSETS.asked).toEqual([])
-    }
-  })
 })
 
 describe('the deploy', () => {
-  it('serves the base the app is built for', async () => {
-    // srd's Worker serves the Cantina; read as text, since an app never
-    // imports another app's files.
-    const config = await Bun.file(new URL('../../../../wrangler.jsonc', import.meta.url)).text()
-    const bases = [...config.matchAll(/"BASE_PATH":\s*"([^"]*)"/g)].map((m) => m[1])
-    expect(bases.length).toBeGreaterThan(0)
-    for (const base of bases) expect(base).toBe(basePathOf(SITE.base))
-  })
-
   it("sets Convex Auth's SITE_URL to where the app is served, on every deploy", async () => {
     const workflow = await Bun.file(
-      new URL('../../../../../../.github/workflows/deploy-cloudflare.yml', import.meta.url)
+      new URL('../../../../../.github/workflows/deploy-cloudflare.yml', import.meta.url)
     ).text()
     const siteUrlEnv = workflow.match(/^\s*CANTINA_SITE_URL:\s*(\S+)\s*$/m)?.[1]
     expect(siteUrlEnv).toBe(`${SITE.origin}${basePathOf(SITE.base)}`)
     expect(workflow).toContain('bunx convex env set SITE_URL "$CANTINA_SITE_URL"')
-  })
-})
-
-describe('the error endpoints under the base, logged for Workers Issues', () => {
-  it('POST /__errors logs a browser report as cantina’s and answers 204', async () => {
-    const env = envWith()
-    const logged: unknown[][] = []
-    const realConsoleError = console.error
-    console.error = (...args: unknown[]) => {
-      logged.push(args)
-    }
-    try {
-      const res = await worker.fetch(
-        new Request(`https://salvageunion.io${BASE}/__errors`, {
-          method: 'POST',
-          body: JSON.stringify({ message: 'boom' }),
-        }),
-        env
-      )
-      expect(res.status).toBe(204)
-    } finally {
-      console.error = realConsoleError
-    }
-    expect(logged[0]?.[1]).toMatchObject({ source: 'browser', app: 'cantina' })
-    expect(env.ASSETS.asked).toEqual([])
-  })
-
-  it('POST /__convex-logs answers 503 while the stream secret is unset', async () => {
-    const res = await worker.fetch(
-      new Request(`https://salvageunion.io${BASE}/__convex-logs`, { method: 'POST', body: '[]' }),
-      envWith()
-    )
-    expect(res.status).toBe(503)
-  })
-
-  it('POST /__convex-logs refuses an unsigned delivery once the secret is set', async () => {
-    const env = { ...envWith(), CONVEX_LOG_STREAM_SECRET: 'whsec' }
-    const res = await worker.fetch(
-      new Request(`https://salvageunion.io${BASE}/__convex-logs`, { method: 'POST', body: '[]' }),
-      env
-    )
-    expect(res.status).toBe(401)
   })
 })

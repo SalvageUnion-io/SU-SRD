@@ -1,19 +1,22 @@
 /**
- * salvageunion.io — the static SRD on Workers Static Assets (ADR-033). Every
- * page is pre-rendered; this script answers only the requests no file matches,
- * and everything under `/build`, which is the Cantina's (`./build.ts`).
+ * salvageunion.io on Workers Static Assets (ADR-033): the one Worker for the
+ * whole app. Every reference page is pre-rendered, so this script answers only
+ * the requests no file matches, and everything under `/build`, the Cantina's
+ * (`./builder.ts`).
  *
  * ## What reaches this script, and what does not
  *
  * Static Assets answers first, with `public/_headers` applied: a real file is
  * served as itself and never runs this script. `not_found_handling` is `none`,
- * so a miss lands here instead of on the platform's `404-page` handling:
+ * so a miss lands here instead of on the platform's `404-page` handling.
+ * `run_worker_first` sends `/build` and below here before Static Assets looks.
  *
- *   B. `/build` and below → the Cantina (`./build.ts`). `run_worker_first`
- *      sends these here before Static Assets looks, files and all.
- *   0. `POST /__errors` → a browser error report, logged for Workers Issues
- *      (`observability/cloudflare`'s `handleErrorReport`).
- *   1. `/assets/*` → a bare **404**.
+ *   E. `POST /__errors` → a browser error report, and `POST /__convex-logs` →
+ *      Convex's log stream, both logged for Workers Issues
+ *      (`observability/cloudflare`).
+ *   B. `/build` and below → the Cantina (`./builder.ts`); a file it does not
+ *      have falls through to the rules below.
+ *   1. `/assets/*` (or `/build/assets/*`) → a bare **404**.
  *   2. a page path from before the move out of `/schema/…/item/` → a **301**
  *      to where it lives now (`../lib/legacyPaths.ts`).
  *   3. anything else → `404.html`, read through the asset binding, with a 404.
@@ -30,23 +33,34 @@
  * response this script builds, so the 404s here carry only what is set below.
  * The page in rule 3 comes back from the binding, which does apply `_headers`
  * (the CSP and the rest of the `/*` block) for its path, `/404`.
- *
- * A 404 is never cached, whatever its path: the next deploy may bring the file.
- * A legacy 301 is, for a day: nothing will be emitted under that grammar again.
  */
 
 import type { RateLimiter } from 'observability/cloudflare'
-import { ERROR_REPORT_PATH, handleErrorReport } from 'observability/cloudflare'
+import {
+  CONVEX_LOG_STREAM_PATH,
+  ERROR_REPORT_PATH,
+  handleConvexLogStream,
+  handleErrorReport,
+} from 'observability/cloudflare'
 import { currentPathFor } from '../lib/legacyPaths'
-import type { BuildEnv } from './build'
-import { isBuildPath, serveBuild } from './build'
+import type { BuilderEnv } from './builder'
+import { BUILD_BASE, isBuildPath, serveBuilder } from './builder'
 
-export type Env = BuildEnv & {
-  /** Static assets (the built site), with `not_found_handling: none`. */
-  ASSETS: { fetch(request: Request): Promise<Response> }
+export type Env = BuilderEnv & {
   /** Caps error reports per address (`wrangler.jsonc`); absent in a Preview. */
   ERROR_REPORT_LIMIT?: RateLimiter
+  /**
+   * The Convex log stream's webhook secret, from the Convex dashboard. Set
+   * with `wrangler secret put`; unset, the stream endpoint answers 503.
+   */
+  CONVEX_LOG_STREAM_SECRET?: string
 }
+
+/**
+ * Where the Convex log stream posted before the app was one: the webhook the
+ * Convex dashboard still names until it is pointed at `CONVEX_LOG_STREAM_PATH`.
+ */
+const RETIRED_CONVEX_LOG_STREAM_PATH = `${BUILD_BASE}${CONVEX_LOG_STREAM_PATH}`
 
 /** `/404`, not `/404.html`: the asset server's HTML handling redirects the latter. */
 const NOT_FOUND_PAGE = '/404'
@@ -57,21 +71,35 @@ function notFound(body: BodyInit | null, headers?: HeadersInit): Response {
   return new Response(body, { status: 404, headers: merged })
 }
 
+/** A rotated or never-built chunk: nothing a browser could render. */
+function isChunk(pathname: string): boolean {
+  return pathname.startsWith('/assets/') || pathname.startsWith(`${BUILD_BASE}/assets/`)
+}
+
 /** @public Cloudflare Worker entrypoint — loaded by workerd, not imported. */
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url)
 
-    // B. The Cantina, under its base.
-    if (isBuildPath(url.pathname)) return serveBuild(request, env)
-
-    // 0. A browser error report.
+    // E. Errors from elsewhere: the browser's, and Convex's log stream.
     if (url.pathname === ERROR_REPORT_PATH) {
-      return handleErrorReport(request, { app: 'srd', limiter: env.ERROR_REPORT_LIMIT })
+      return handleErrorReport(request, { app: 'web', limiter: env.ERROR_REPORT_LIMIT })
+    }
+    if (
+      url.pathname === CONVEX_LOG_STREAM_PATH ||
+      url.pathname === RETIRED_CONVEX_LOG_STREAM_PATH
+    ) {
+      return handleConvexLogStream(request, env.CONVEX_LOG_STREAM_SECRET)
     }
 
-    // 1. A rotated or never-built chunk: nothing a browser could render.
-    if (url.pathname.startsWith('/assets/')) {
+    // B. The Cantina, under its base.
+    if (isBuildPath(url.pathname)) {
+      const res = await serveBuilder(request, env)
+      if (res !== null) return res
+    }
+
+    // 1. A rotated or never-built chunk.
+    if (isChunk(url.pathname)) {
       return notFound('Not found', { 'content-type': 'text/plain;charset=UTF-8' })
     }
 

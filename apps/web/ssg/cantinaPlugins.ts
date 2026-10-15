@@ -16,7 +16,7 @@ import { basePathOf, SITE } from '../src/lib/site'
 import { SITE_MANIFEST } from '../src/pwa'
 import { renderShell } from '../src/shell/shell'
 import { buildBaseStylesheet, DEV_BASE_STYLESHEET } from '../src/styles/baseStylesheet'
-import { publicShells, sitemapXml } from '../src/worker/builder/publicPages'
+import { publicShells, sitemapXml } from '../src/worker/publicPages'
 
 const APP_ROOT = join(import.meta.dirname, '..')
 
@@ -161,7 +161,7 @@ export function shellOrigin(): Plugin {
 }
 
 /**
- * The public pages a crawler reads (`src/worker/builder/publicPages.ts`): the
+ * The public pages a crawler reads (`src/worker/publicPages.ts`): the
  * Starter Set's and each build's shell, with its own title, description,
  * canonical and `og:*`, beside the app's, and `build/sitemap.xml`. Named for
  * the deployment's origin, as `shellOrigin` names the shell's.

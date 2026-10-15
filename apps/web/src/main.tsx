@@ -9,7 +9,7 @@ import {
   initBrowserObservability,
   installChunkRecovery,
   reactRootErrorHandlers,
-} from './lib/builderObservability'
+} from './lib/observability'
 import { preloadScriptFont } from './lib/scriptFont'
 import { registerServiceWorker } from './lib/sw/register'
 import { installSoftUpdate, newBuild } from './lib/sw/softUpdate'

@@ -26,15 +26,15 @@
  */
 
 import { PRODUCT } from 'cantina-domain/product'
-import { color } from '../../design/tokens'
-import type { StarterKind, StarterPage } from '../../lib/starterSet/starterTemplates'
+import { color } from '../design/tokens'
+import type { StarterKind, StarterPage } from '../lib/starterSet/starterTemplates'
 import {
   isStarterKind,
   STARTER_SET_ADVENTURE,
   STARTER_SET_PUBLISHER,
   STARTER_SET_TITLE,
   starterPages,
-} from '../../lib/starterSet/starterTemplates'
+} from '../lib/starterSet/starterTemplates'
 import type { ShellMeta } from './shellMeta'
 import { applyCanonical, applyMeta } from './shellMeta'
 

@@ -19,13 +19,13 @@ import type { ServerActionResult } from '../useServerAction'
 const captured: unknown[] = []
 
 // Spread before anything is mocked: every other export stays real.
-const realObservability = { ...(await import('../../builderObservability')) }
+const realObservability = { ...(await import('../../observability')) }
 
 // Module scope, before the imports below: `mock.module` only affects imports
 // that resolve after it runs. `also` specifiers resolve from convexMock.ts.
 const convexMocks = await installConvexMocks({
   also: {
-    '../../lib/builderObservability': () => ({
+    '../../lib/observability': () => ({
       ...realObservability,
       captureException: (error: unknown) => {
         captured.push(error)

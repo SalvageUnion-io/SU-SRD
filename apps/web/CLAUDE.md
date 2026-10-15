@@ -13,9 +13,8 @@ In-house SSG in `ssg/`, not Astro ([ADR-031](../../docs/ARCHITECTURE.md#decision
   islands for interactivity
 - **Game data:** `salvageunion-reference` workspace package
 - **Deployment:** Cloudflare Workers Static Assets (`wrangler.jsonc`). Every
-  page is pre-rendered; the Worker script (`src/worker/index.ts`) runs only for
-  a miss (404, `no-store`), and first for `/build/*`, which `src/worker/build.ts`
-  hands to the Cantina's (`src/worker/builder/`).
+  page is pre-rendered; the one Worker script (`src/worker/index.ts`) runs only
+  for a miss (404, `no-store`), and first for `/build/*` (`src/worker/builder.ts`).
 
 ## Architecture
 
