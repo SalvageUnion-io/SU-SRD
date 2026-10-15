@@ -336,10 +336,10 @@ describe('a Game’s page', () => {
     expect(getActiveContainer()).toEqual({ kind: 'game', gameId: 'g1' })
     // The shelf's rows are not this Game's.
     expect(screen.queryByText('Mira Cole')).toBeNull()
-    expect(within(screen.getByRole('list', { name: 'Yours' })).getByText('Roach-Boy')).toBeTruthy()
-    expect(
-      within(screen.getByRole('list', { name: 'Everyone else' })).getByText('Ash')
-    ).toBeTruthy()
+    const names = screen
+      .getAllByRole('link', { name: /^(Roach-Boy|Ash)$/ })
+      .map((link) => link.getAttribute('aria-label'))
+    expect(names).toEqual(['Roach-Boy', 'Ash'])
     expect(screen.getByRole('region', { name: 'Crew & seats' })).toBeTruthy()
     // A player, not the Mediator: no proposals of theirs, no Mediator door.
     expect(screen.queryByRole('region', { name: 'Proposals you sent' })).toBeNull()

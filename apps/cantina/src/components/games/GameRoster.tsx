@@ -12,12 +12,11 @@
  *
  * ## Yours first
  *
- * Each column lists **your** pilots or mechs first, in a framed YOURS group,
- * and everybody else's below — the crewmates' (their name on the seal) and the
- * unclaimed ones (an UNCLAIMED seal you press to pick it up). What you came to
- * act on is at the top; the rest of the table is the context it sits in. A
- * crawler is the crew's, owned by nobody, so its column has no YOURS group and
- * the ★ Primary leads (`groupColumn`).
+ * Each column lists **your** pilots or mechs first, then everybody else's —
+ * the crewmates' (their name on the seal) and the unclaimed ones (an UNCLAIMED
+ * seal you press to pick it up). The seal says whose a row is, so the list needs
+ * no group headings. A crawler is the crew's, owned by nobody, so the ★ Primary
+ * leads its column (`groupColumn`).
  *
  * ## Creation goes through the wizards
  *
@@ -51,7 +50,7 @@
 import type { Crawler } from 'cantina-domain/schemas/crawler'
 import type { Mech } from 'cantina-domain/schemas/mech'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
-import { Badge, buttonVariants, FieldError, Text, tokens } from 'component-lib'
+import { buttonVariants, FieldError, Text, tokens } from 'component-lib'
 import { useMutation, useQuery } from 'convex/react'
 import type { CSSProperties, ReactNode } from 'react'
 import { api } from '../../../convex/_generated/api'
@@ -114,41 +113,9 @@ const COLUMNS: ReadonlyArray<{
   },
 ]
 
-const STACK = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[16],
-} satisfies CSSProperties
-
 const HINT = { marginTop: tokens.space[16], textAlign: 'left' } satisfies CSSProperties
 
-/**
- * The YOURS group: framed in ink on the warm band ground, so your own rows read
- * as a set at a glance. Not rust — rust is the action colour, and this marks a
- * fact, not a thing to press.
- */
-const YOURS = {
-  backgroundColor: tokens.color.bandCream,
-  borderColor: tokens.color.ink,
-  borderRadius: tokens.radius.panel,
-  borderStyle: 'solid',
-  borderWidth: tokens.borderWidth.pill,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[10],
-  padding: tokens.space[10],
-} satisfies CSSProperties
-
-const GROUP = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[10],
-} satisfies CSSProperties
-
 const ITEM = { listStyle: 'none', minWidth: 0 } satisfies CSSProperties
-
-/** Stamps sit at their own width, not stretched across the group. */
-const LABEL = { alignSelf: 'flex-start' } satisfies CSSProperties
 
 const PATTERNS_LINK = { textDecoration: 'none' } satisfies CSSProperties
 
@@ -302,41 +269,10 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
     )
   }
 
-  /** A column's body: your rows framed under YOURS, then everyone else's. */
-  function columnBody(kind: RosterKind, columnRows: readonly RosterRow[]): ReactNode {
+  /** A column's body: your rows first, then everyone else's, in one list. */
+  function columnBody(columnRows: readonly RosterRow[]): ReactNode {
     const { yours, others } = groupColumn(columnRows)
-    const yoursId = `${kind}-yours-label`
-    const othersId = `${kind}-others-label`
-    return (
-      <div style={STACK}>
-        {yours.length > 0 && (
-          <div style={YOURS}>
-            <Badge shape="stamp" size="mini" as="h3" id={yoursId} style={LABEL}>
-              Yours
-            </Badge>
-            <RosterList labelledBy={yoursId}>{yours.map(renderRow)}</RosterList>
-          </div>
-        )}
-        {others.length > 0 &&
-          (yours.length > 0 ? (
-            <div style={GROUP}>
-              <Badge
-                shape="stamp"
-                size="mini"
-                surface="inverse"
-                as="h3"
-                id={othersId}
-                style={LABEL}
-              >
-                Everyone else
-              </Badge>
-              <RosterList labelledBy={othersId}>{others.map(renderRow)}</RosterList>
-            </div>
-          ) : (
-            <RosterList>{others.map(renderRow)}</RosterList>
-          ))}
-      </div>
-    )
+    return <RosterList>{[...yours, ...others].map(renderRow)}</RosterList>
   }
 
   const loading = listing === undefined || members === undefined
@@ -393,7 +329,7 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
                   }
                   empty={columnRows.length === 0}
                 >
-                  {columnBody(column.kind, columnRows)}
+                  {columnBody(columnRows)}
                 </RosterColumn>
               )
             })}
