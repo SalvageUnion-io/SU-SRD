@@ -346,7 +346,7 @@ describe('downtimePilotPatch', () => {
 
   it("restores HP/AP to the crawler tier's Stat Training maxima", () => {
     const pilot = makePilot({ currentHP: 3, currentAP: 1 })
-    // Tech 4: 10 + 2×3 = 16 HP, 5 + 1×3 = 8 AP (house rule: tier-derived).
+    // Tech 4: 10 + 2×3 = 16 HP, 5 + 1×3 = 8 AP (tier-derived).
     const patch = downtimePilotPatch(pilot, medBay(), allDowntimeSteps(), 4)
     expect(patch.currentHP).toBe(16)
     expect(patch.currentAP).toBe(8)

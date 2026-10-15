@@ -58,7 +58,7 @@ export const OVER_BUDGET: Readonly<Record<string, number>> = {
   'packages/component-lib/src/components/referenceEntity/card/ReferenceEntityCard.tsx': 817,
   'packages/gates/lib/statFidelity.ts': 780,
   'packages/gates/rules/stylingOwnership.ts': 631,
-  'packages/salvageunion-reference/lib/rules/derivedStats.ts': 654,
+  'packages/salvageunion-reference/lib/rules/derivedStats.ts': 652,
   'tools/check-doc-drift.ts': 1_069,
   'tools/check-rules-fidelity.ts': 1_014,
   'tools/check-workflows.ts': 810,

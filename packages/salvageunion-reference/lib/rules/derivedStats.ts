@@ -151,8 +151,7 @@ const STAT_TRAINING_AP_PER_TIER = 1
  * RULES: the Pilot Bay's "Stat Training" grants a one-off +2 HP / +1 AP for
  * training during Downtime in each of a Tech 2..6 Pilot Bay, in order.
  *
- * HOUSE RULE `stat-training-follows-crawler` (registered in `houseRules.ts`,
- * which cites the book; the line is tagged so the ledger says so): the
+ * The tools read that rule through the crawler: the
  * bonus is ALWAYS derived from the crawler's tech level — +2 HP and +1 AP per
  * tier above Tech 1 — with no per-pilot record of which tiers were actually
  * trained. A pilot aboard a Tech 3 crawler reads 14 HP / 7 AP whether or not
@@ -179,7 +178,6 @@ function pilotStatTrainingContributions(
       stat,
       amount: perTier * tiers,
       copies: 1,
-      houseRule: 'stat-training-follows-crawler',
     },
   ]
 }
