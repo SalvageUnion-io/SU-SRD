@@ -36,7 +36,7 @@ describe('scannedFiles', () => {
       scannedFiles([
         'apps/web/src/Card.tsx',
         'packages/a/lib/index.ts',
-        'apps/web/public/registerSW.js',
+        'apps/web/public/sw-lifecycle.js',
         'tools/check.ts',
         'apps/b/src/__tests__/Card.test.tsx',
         'apps/b/e2e/flow.e2e.ts',
@@ -50,7 +50,7 @@ describe('scannedFiles', () => {
     ).toEqual([
       'apps/web/src/Card.tsx',
       'packages/a/lib/index.ts',
-      'apps/web/public/registerSW.js',
+      'apps/web/public/sw-lifecycle.js',
       'tools/check.ts',
     ])
   })

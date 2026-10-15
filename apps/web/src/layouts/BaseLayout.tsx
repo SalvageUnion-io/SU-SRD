@@ -121,8 +121,6 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
           <link key={icon.href} {...icon} />
         ))}
         <link rel="manifest" href={SITE_MANIFEST} />
-        {/* Service-worker registration: public/registerSW.js. */}
-        <script defer src="/registerSW.js" />
 
         {/* Discord's Component Embed: a pasted link to this page renders as the
             bot's card (`src/lib/componentEmbed.ts`). Data, never run. */}
