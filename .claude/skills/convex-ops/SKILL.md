@@ -81,7 +81,7 @@ bunx convex env set --prod SITE_URL        https://salvageunion.io/build
 as in the rotation sections below. `SITE_URL` is the **frontend** address,
 base included (`https://salvageunion.io/build`, ADR-048), not
 `VITE_CONVEX_SITE_URL` and not the `.convex.site` host; every production
-deploy of cantina sets it (`deploy-cloudflare.yml`), so set it by hand only on a
+deploy of the web app sets it (`deploy-cloudflare.yml`), so set it by hand only on a
 new deployment. Without the JWT pair, sign-in
 fails only after Discord redirects back, which the probe in step 3 never
 reaches, so check both by length.
@@ -157,7 +157,7 @@ beats writing garbage into production auth. Only a real sign-in proves it.
 
 Convex reports through a **log stream**: Convex dashboard → the production
 deployment → **Settings → Integrations → Log Streams → Webhook**, URL
-`https://salvageunion.io/build/__convex-logs`. The Cantina Worker verifies each
+`https://salvageunion.io/__convex-logs`. The su-srd Worker verifies each
 delivery's `x-webhook-signature` against `CONVEX_LOG_STREAM_SECRET` (copy the
 secret the dashboard shows into `wrangler secret put CONVEX_LOG_STREAM_SECRET`
 in `apps/web`) and logs every failed function and every `console.error` for
@@ -196,7 +196,7 @@ Record the counts in the PR that deletes it.
 Production builds with `VITE_CONVEX_URL` from `CANTINA_CONVEX_URL` in
 `.github/workflows/deploy-cloudflare.yml`, whose `push-convex` job refuses to
 push if it differs from the URL the deploy key resolves to; a change takes
-effect on the next deploy. Unset, the cantina build fails (`requireConvexUrl` in
+effect on the next deploy. Unset, the web build fails (`requireConvexUrl` in
 `apps/web/vite.config.ts`), and with it the deploy: there is no build without
 a deployment, so taking Convex out of the path is an outage, not a toggle.
 

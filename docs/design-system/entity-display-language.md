@@ -6,7 +6,7 @@ Status: agreed. Code: `apps/web/src/components/entity/`.
 ## Pipeline
 
 1. **Entity** — a `salvageunion-reference` record plus an optional instance (condition, uses, count, notes, title, user-made).
-2. **Model** — `toEntityModel(entity, instance?)` in `packages/salvageunion-reference/lib/view/`: pure, serialisable, shared by both apps and the bot.
+2. **Model** — `toEntityModel(entity, instance?)` in `packages/salvageunion-reference/lib/view/`: pure, serialisable, shared by every surface and the bot.
    Resolves identity, tone, facts, traits, prose, actions, children, table, art and cite once; no form computes a fact.
 3. **Form** — which parts to draw, in a fixed order. **Mode** — which affordances fill the form's slots. Only these two are React.
 4. **Surface context** — reference resolution, band texture and the user-made treatment come once, never per call.
@@ -58,7 +58,7 @@ Each is checkable; breaking one needs an amendment here.
 ## Which form, where
 
 1. **SRD index** — Tiles (lead), link (E2). **SRD entity, pattern, table or guide page** — Page, read; children link. **A pattern** — the chassis ability on its page (E19), then Systems and Modules as full-width Tokens, one a line.
-2. **Search, both apps** — Row (no lead), link; SRD header dropdown: Token, link. **Any prose** — Mention: Peek, then Page.
+2. **Search, everywhere** — Row (no lead), link; SRD header dropdown: Token, link. **Any prose** — Mention: Peek, then Page.
 3. **Cantina wizard or picker** — Row, Card for the focused pick; select. **Live sheet** — Row and Card.
 4. **Cantina dense slots** (inventory, bays, loadouts) — Token, link. **Deck, resolve** — Row / Card.
 5. **Cantina "open" anywhere** — the detail dialog's Page. **Mediator opposition tray** — Row. **OG cards, the bot** — fed by the model.

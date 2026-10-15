@@ -58,7 +58,7 @@ wired through `ssg/endpoints.ts` — **endpoints are not routes.**
 
 ## Verification
 
-There is no output snapshot. CI's `build-web` job builds both apps once, then runs
+There is no output snapshot. CI's `build-web` job builds the app once, then runs
 `bun --filter web check:examples` (`ssg/checkPageExamples.ts`), then the Playwright
 smoke, bundle-budget, JSON API and axe-core specs against that `dist`.
 CI's `perf` runs `perf-budget.e2e.ts` (LCP, TBT, CLS, phone throttling);

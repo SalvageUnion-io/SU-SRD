@@ -4,9 +4,7 @@ paths:
   - 'apps/web/src/hooks/**'
   - 'apps/web/src/lib/connection/**'
   - 'apps/web/src/lib/export/**'
-  - 'apps/web/src/components/account/**'
-  - 'apps/web/src/components/container/**'
-  - 'apps/web/src/components/games/**'
+  - 'apps/web/src/components/{account,container,crawler,dashboard,export,games,mech,mediator,npc,roster,shared,sharing,sheet,shelves,starterSet,wiring,wizard}/**'
   - 'apps/web/convex/**'
   - 'apps/web/e2e/cantina/**'
   - 'packages/cantina-domain/**'
@@ -45,7 +43,8 @@ await useEntityStore.getState().update('pilots', id, { hp: next }) // server-fir
   Check `canWrite` before offering an edit. A unit test that writes calls
   `withSignedInBackend()` (`src/stores/__tests__/signedInBackend.ts`).
 - **[No device cache](../../docs/ARCHITECTURE.md#no-device-cache).** Nothing player-owned goes in IndexedDB or
-  `localStorage` but `accountHint`. `AccountReconciler` (root) mounts `ShelfSync` while
+  `localStorage` but `accountHint` and the active container's id
+  (a preference). `AccountReconciler` (root) mounts `ShelfSync` while
   Connected; `hydrate()` waits for its first answer (`src/stores/rowArrival.ts`),
   and a tab's rows go when its session ends (`src/stores/sessionRows.ts`).
 - **A container written twice is written together** — the row's `gameId`

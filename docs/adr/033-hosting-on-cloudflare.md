@@ -15,7 +15,7 @@ buckets, zones) are in [Cloudflare](../ARCHITECTURE.md#cloudflare).
 Worker; `intheunionnow.com` is a zone Redirect Rule to the same page there. **ADR-047** (one edge Worker for `api.`) is
 accepted, not built.
 
-**Amended by ADR-050:** one workspace, `apps/web`, builds both apps into one
+**Amended by ADR-050:** one workspace, `apps/web`, builds the reference pages and the Cantina into one
 `dist/` that `su-srd` ships in one deploy leg ([full text](050-one-app.md)).
 
 **Amended — srd answers misses.** `src/worker/index.ts` runs for every miss and

@@ -5,7 +5,7 @@ React app for building and running Salvage Union pilots, mechs, and crawlers.
 **Storage modes — read
 [`.claude/rules/cantina-data-access.md`](../../../../.claude/rules/cantina-data-access.md)
 before touching data** (it loads with the stores, hooks, `src/lib/connection/`,
-`convex/` and `e2e/`).
+product component folders, `convex/`, `e2e/cantina/`).
 
 - Every read-only sheet (`/sheet/:kind/:id`, `/p/:kind/:appId`) is the live
   `<Sheet readOnly>` over `src/components/sheet/readOnlySheetStore.model.ts`;
@@ -16,8 +16,8 @@ before touching data** (it loads with the stores, hooks, `src/lib/connection/`,
 - React 19 + Vite, TypeScript.
 - **TanStack Router** — file-based routes in `src/routes/`, generated to
   `src/routeTree.gen.ts`.
-- **Zustand** stores (`src/stores/`), in memory; only the active container
-  persists (`localStorage`).
+- **Zustand** stores (`src/stores/`), in memory (what may persist:
+  `cantina-data-access.md`).
 - **Base UI** primitives from `src/components` (`atoms/`, `containers/`) —
   there is no app-local primitives folder. Styling is the `src/components`
   tokens and stylesheet (ADR-046).
@@ -26,7 +26,7 @@ before touching data** (it loads with the stores, hooks, `src/lib/connection/`,
   is `prompt` and must stay that way: `autoUpdate` force-sets `skipWaiting` +
   `clientsClaim`, which activated a new worker under a live page and dropped
   the precache entries it was still resolving chunks against. Navigations are
-  **network-first** (`src/lib/sw/workbox.ts`): online boots the deployed shell,
+  **network-first** (`src/pwa.ts`): online boots the deployed shell,
   offline the precached one. A compatible build is picked up at the next page
   change (`src/lib/sw/softUpdate.ts`); a breaking one raises the build floor
   (`convex/buildFloor.ts`, by hand), which reloads stale tabs.
@@ -45,7 +45,7 @@ before touching data** (it loads with the stores, hooks, `src/lib/connection/`,
   nothing to show, and Disconnected has no live Game list to filter against, so
   it shows what it holds whole. `Roster` shows Shelves at `/` (all you
   keep, Games too) and a Game at `/games/$gameId`.
-- **Assignments** ([ADR-037](../../../../docs/ARCHITECTURE.md)):
+- **Assignments** ([ADR-037](../../../../docs/ARCHITECTURE.md#decisions)):
   draw soft links only via `assignLink`; the rules are
   `cantina-domain/links/linkRules`, shared with Convex.
 
@@ -64,7 +64,7 @@ before touching data** (it loads with the stores, hooks, `src/lib/connection/`,
 ## Conventions
 
 - Choices stay persistence-agnostic in the shared library — Cantina owns the
-  selections ([ADR-010](../../../../docs/ARCHITECTURE.md)).
+  selections ([ADR-010](../../../../docs/ARCHITECTURE.md#decisions)).
 - No error SDK in `convex/`; verify reporting by probe, see
   [convex-ops](../../../../.claude/skills/convex-ops/SKILL.md).
 - **Throw `ConvexError` when the message is for a player; plain `Error` when it
@@ -112,16 +112,7 @@ before touching data** (it loads with the stores, hooks, `src/lib/connection/`,
 
 ## Commands
 
-```bash
-bun run dev                  # srd + /build, local Convex; setup: convex-ops skill
-bun --filter web test
-bun run e2e                  # Playwright e2e, both apps (`--project=cantina`)
-bun --filter web typecheck
-```
-
-Served at **salvageunion.io/build** (ADR-048): base `/build/` everywhere, dev
-too (`lib/site.ts`); e2e opens routes via `at()`. The workspace's one Vite
-pass (`vite.config.ts`) builds it beside srd: its shell is `dist/build/`, its
-chunks share `dist/assets/`, and the one Worker serves it, running
-`src/worker/builder.ts` for `/build`. `bun run preview` serves both
-through the workspace's `wrangler.jsonc`.
+The root `AGENTS.md` list, plus `bun run e2e --project=cantina`; local Convex
+setup is the convex-ops skill. Base `/build/` everywhere, dev too
+(`lib/site.ts`); e2e opens routes via `at()`. How it builds and serves:
+[ADR-050](../../../../docs/adr/050-one-app.md).

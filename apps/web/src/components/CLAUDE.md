@@ -6,7 +6,7 @@ Cantina's routes draw on this one folder.
 ## Key Facts
 
 - **One barrel** - `index.ts` exports the public surface, named exports only ([ADR-011](../../../../docs/ARCHITECTURE.md#decisions))
-- **Data-source agnostic** - keep components free of any backend/persistence dependency; consumers inject behavior via slot props, and choice components are persistence-agnostic ([ADR-010](../../../../docs/ARCHITECTURE.md#decisions))
+- **Data-source agnostic** - atoms, containers, compositions, `entity/` and `referenceEntity/` import no stores or Convex; consumers inject behaviour via slot props ([ADR-010](../../../../docs/ARCHITECTURE.md#decisions)). Only product folders (`sheet/`, `games/`, …) wire data
 - **Never rely on an import running code**: bundlers drop any module whose exports go unused ([dependencies](../../../../docs/ARCHITECTURE.md#dependencies))
 - **Design intent:** [the origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm) is the source of truth, its boards indexed in [sources.md](../../../../docs/design-system/sources.md); [`ruleset.md`](../../../../docs/design-system/ruleset.md) codifies it and yields where they disagree
 
@@ -24,7 +24,7 @@ import): [the UI library](../../../../docs/ARCHITECTURE.md#ui-library).
 
 Forms per the [entity display language](../../../../docs/design-system/entity-display-language.md): Row, Tile, Token, Mention and Peek in `entity/`; Card and Page are `ReferenceEntityCard`.
 
-Apps inject their renderers through **generic slot props** (`afterExtraContent`, `titleOverride`, …), so the library knows nothing app-specific. The caller computes schema-specific overrides and passes them as generic slot props.
+Callers inject their renderers through **generic slot props** (`afterExtraContent`, `titleOverride`, …), so the display layer knows nothing about where it is drawn. The caller computes schema-specific overrides and passes them as generic slot props.
 
 ## Groups
 

@@ -6,7 +6,7 @@ allowed-tools: Bash, Read
 
 # Opening a PR
 
-`main` squash-merges: the PR **title** becomes the commit subject each site's
+`main` squash-merges: the PR **title** becomes the commit subject the
 changelog reads, and the PR **body** becomes the commit body, the decision
 record (`git log --format='%h %s%n%b'`). Write both for that reader, not for
 the review.

@@ -42,8 +42,8 @@ What an editor needs:
   source order decides. A class also loses to an app's unlayered element
   rule (The Cantina's heading face, `print.css`'s `span` and `h1`–`h3` sizes) and
   drops out of a rule that matched the inline style (`print.css`'s
-  `[style*='border']` ink): check both apps, print included. The Cantina hands a
-  class back with `revert-layer` (`styles/libHandback.css`, `print.css`)
+  `[style*='border']` ink): check the pages and the Cantina, print included. The Cantina hands a
+  class back with `revert-layer` (`styles/builder/libHandback.css`, `styles/builder/print.css`)
   and names it in the border-ink rule.
 - **Class-string exports** (`buttonVariants`, `capsLabel`, the `FOCUS_*` /
   `DISABLED` / `SELECTION_RING*` vocabulary) are stylesheet-only, and their
@@ -54,7 +54,7 @@ What an editor needs:
   `apps/web/src/design/__tests__/tokens.parity.test.ts` fails if they disagree.
 - **The one entry:** `apps/web/src/styles/entry.css` declares
   `@layer su-reset, su-base;`, imports `theme.css` unlayered, `reset.css` into
-  `su-reset` and `index.css` into `su-base`. The two apps import it, never
+  `su-reset` and `index.css` into `su-base`. Both render modes import it, never
   `index.css`, and their own stylesheets stay unlayered so an app rule
   outranks a package rule (`package-stylesheet-import` guards it).
 - Every package and the Cantina class is `su-*` (`su-wiz-*`; srd's are `srd-*`):

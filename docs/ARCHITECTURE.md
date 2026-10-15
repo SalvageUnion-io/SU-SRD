@@ -3,11 +3,12 @@
 What is true now: one entry each, a headline and at most two lines. Cite an Area by its anchor (`#ci`), never its number.
 The ADRs code cites by § keep their full text in [`docs/adr/`](adr/), linked from their entries; the rest of
 the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
+**Names:** one app, `apps/web` (ADR-050): reference pages (old: srd), the Cantina.
 
 ## Areas
 
 1. **Packages** <a id="packages"></a>
-   `salvageunion-reference` → `apps/web` (srd and the Cantina, over its `src/components`); `cantina-domain` → `apps/web` / bot / `convex/`; `gates` → `tools/`, app e2e.
+   `salvageunion-reference` → `apps/web` (over its `src/components`); `cantina-domain` → `apps/web` / bot / `convex/`; `gates` → `tools/`, app e2e.
    Packages never import an app (`noRestrictedImports`); deps use `workspace:*`.
 2. **salvageunion-reference** <a id="reference"></a>
    Private, no build, no version. Zod in `lib/schemas/` generates JSON Schema and `Ref*` types, gitignored and rebuilt on install, typecheck, build and test (its `ref-generate` bin).
@@ -16,12 +17,12 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
    Call `preload()` before any accessor; a module-scope ORM call fails Biome (`noModuleScopeReferenceCall.grit`).
    Tests preload through `test/reference-preload.ts` in each workspace's `bunfig.toml`, never `preload('all')` per file.
 4. **UI library** <a id="ui-library"></a>
-   `apps/web/src/components/index.ts` barrel; tokens in `apps/web/src/styles/theme.css`, mirrored by `design/tokens.ts`; Biome keeps app code out.
+   `apps/web/src/components/index.ts` barrel; tokens in `apps/web/src/styles/theme.css`, mirrored by `apps/web/src/design/tokens.ts`. Only product folders (`sheet/`, …) wire stores or Convex.
    Unused exports: [knip](#dead-code).
 5. **Stylesheet wiring** <a id="stylesheets"></a>
-   One entry, `apps/web/src/styles/entry.css` (tokens, `layer(su-reset)`, `layer(su-base)`), imported by the apps.
+   One entry, `apps/web/src/styles/entry.css` (tokens, `layer(su-reset)`, `layer(su-base)`), imported by both render modes.
    App stylesheets stay unlayered, so they win; rules: `.claude/rules/styling.md`.
-6. **srd build** <a id="srd-build"></a>
+6. **Static pages (SSG)** <a id="ssg"></a>
    In-house Vite SSG with React islands ([DESIGN.md](../apps/web/ssg/DESIGN.md)); routes and endpoints are registered, never discovered.
    No `.css` import reachable from SSR (CSS enters via `src/runtime/styles.entry.ts`); no auth, router or Zustand.
 7. **Dataset API** <a id="dataset-api"></a>
@@ -78,10 +79,10 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     srd's head is `BaseLayout.tsx` from `DocumentMeta`; JSON-LD, `ssg/sitemap.ts`, `/llms.txt` (byte for byte), one PWA and service worker via `src/pwa.ts`.
     No-JS fallback: `StaticEntityContent`, replaced by islands mounted with `createRoot`; an `<Island hydrate>` whose server markup is its own first render adopts it with `hydrateRoot`.
 25. **Accessibility** <a id="a11y"></a>
-    Biome's a11y rules plus axe (WCAG 2.2 AA) specs: each app's `PAGES`, Cantina signed in.
-    Contrast is held by `design/__tests__/contrast.test.ts`; coarse-pointer touch targets are 44px.
+    Biome's a11y rules plus axe (WCAG 2.2 AA) specs over `PAGES`, Cantina signed in.
+    Contrast is held by `apps/web/src/design/__tests__/contrast.test.ts`; coarse-pointer touch targets are 44px.
 26. **CI** <a id="ci"></a>
-    `ci.yml` runs on every `pull_request` (no branch filter), path-filtered per app; `CI Success` must need every job.
+    `ci.yml` runs on every `pull_request` (no branch filter), path-filtered; `CI Success` must need every job.
     Static checks are `bun tools/check.ts --profile=ci`; tests are `bun run test:coverage` against per-workspace `FLOORS`.
 27. **Repository settings** <a id="repo-settings"></a>
     `main` ruleset (`MAIN_RULESET` in `tools/environments.ts`): linear history, strict `CI Success` + PR-title checks, CodeQL.
@@ -195,7 +196,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
 33. **ADR-033 Hosting on Cloudflare** · [full text](adr/033-hosting-on-cloudflare.md)
     Accepted, delivered: Workers (Static Assets, R2) serve every site; Actions builds, `wrangler` deploys. Amended by ADR-047, ADR-048, ADR-050.
 34. **ADR-034 Persistence requires an account; the local store is a cache**
-    Accepted: signed out is read-only, every record is Convex-backed, both apps are PWAs; the pre-account migration is gone.
+    Accepted: signed out is read-only, every record is Convex-backed, the app is a PWA; the pre-account migration is gone.
     Supersedes ADR-030's Solo guarantee; amends ADR-002 and ADR-022. [No device cache](#no-device-cache) followed.
 35. **ADR-035 No isolated local-only data**
     Partly superseded by its 2026-10-08 amendment and by [no device cache](#no-device-cache): anonymous visitors get the `signedOut` backend; no legacy claim.

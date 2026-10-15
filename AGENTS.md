@@ -34,7 +34,7 @@ After any cross-package change, run typecheck, tests and lint before calling the
 ```bash
 bun install              # first-time setup; postinstall builds the reference schemas
 
-bun run dev              # srd + the Cantina at /build, beside a local Convex backend
+bun run dev              # the app (reference pages + the Cantina at /build) beside a local Convex backend
 
 bun run check:fast       # the inner loop: every gate except the suite, the network
                          # and regeneration
@@ -45,7 +45,7 @@ bun run test             # full suite, each workspace with its own bunfig — wh
 bun --filter <workspace> test      # one workspace, by package name (web, tools, …)
 bun run lint | format | typecheck  # Biome is the only formatter; .md/.yml are formatted by nothing
 
-bun run build            # reference generation + srd + Cantina (the Worker-only apps build at deploy)
+bun run build            # reference generation + the app in one Vite pass (the Worker-only apps build at deploy)
 
 bun run deploy-commands[:global]   # Discord slash commands: test guild / production
 ```

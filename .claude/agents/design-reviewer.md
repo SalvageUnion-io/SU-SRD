@@ -18,7 +18,7 @@ renders an entity.
   an srd page, use its route (`/chassis/mule/`); given a signed-out
   The Cantina page, `cantina:` and its route (`cantina:/starter`).
 - **Screenshots.** `bun run shot </route|cantina:/route>` (see
-  `tools/shot.ts`); it starts the srd or the Cantina server if none is up and
+  `tools/shot.ts`); it starts the one dev server if none is up and
   prints each PNG's path. Take `--width phone` as well as the default (there is
   no dark theme to take); Read each PNG to look at it. PNGs go to the gitignored
   `.shots/`, never anywhere tracked.

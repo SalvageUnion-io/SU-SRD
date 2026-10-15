@@ -483,6 +483,53 @@
       }
     },
     {
+      // The display layer draws whatever data it is handed: only the product
+      // folders (sheet/, games/, …) wire the stores or Convex
+      // (apps/web/src/components/CLAUDE.md). Restates the root rule's options
+      // in full: Biome overrides REPLACE a rule's options.
+      "includes": [
+        "apps/web/src/components/{atoms,containers,compositions,entity,referenceEntity,catalog,markdownSection}/**",
+        "!**/__tests__/**",
+        "!**/*.test.ts",
+        "!**/*.test.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses).",
+                  "react": {
+                    "importNames": ["forwardRef"],
+                    "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
+                  },
+                  "convex/react": "The display layer takes its data as props; a product folder wires Convex.",
+                  "convex/browser": "The display layer takes its data as props; a product folder wires Convex.",
+                  "zustand": "The display layer takes its data as props; a product folder wires the stores."
+                },
+                "patterns": [
+                  {
+                    "group": ["@/*"],
+                    "message": "Use relative imports instead of @/ path aliases."
+                  },
+                  {
+                    "group": ["salvageunion-reference/lib/**"],
+                    "message": "Import from 'salvageunion-reference' or a declared subpath export — never a path inside the package."
+                  },
+                  {
+                    "group": ["**/convex/**", "**/stores/**"],
+                    "message": "The display layer takes its data as props; a product folder wires the stores and Convex."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
       // Every Convex mutation is built through `convex/model/entities.ts`, whose
       // `mutation` / `internalMutation` run the database triggers that keep
       // `games.summary` current. A mutation built from the generated builders
