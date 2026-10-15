@@ -16,6 +16,7 @@
 
 import type { Container, ContainerFields } from 'cantina-domain/container'
 import { containerOf } from 'cantina-domain/container'
+import { TABLE_OF_KIND } from 'cantina-domain/entityKinds'
 import type { LinkShape, SoftLinkType } from 'cantina-domain/links/linkRules'
 import { linksBrokenByMove } from 'cantina-domain/links/linkRules'
 import type { EntityRef } from 'cantina-domain/schemas/entity'
@@ -44,15 +45,8 @@ export type ClearedAssignment = {
   other: { kind: EndType; name: string | null }
 }
 
-const LIST_OF: Readonly<Record<EndType, 'pilots' | 'mechs' | 'crawlers' | 'npcs'>> = {
-  pilot: 'pilots',
-  mech: 'mechs',
-  crawler: 'crawlers',
-  npc: 'npcs',
-}
-
 function heldEnd(held: HeldEntities, ref: Moved): HeldEntity | null {
-  return held[LIST_OF[ref.type]].find((e) => e.id === ref.id) ?? null
+  return held[TABLE_OF_KIND[ref.type]].find((e) => e.id === ref.id) ?? null
 }
 
 /**

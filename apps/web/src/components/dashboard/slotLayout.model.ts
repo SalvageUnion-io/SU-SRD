@@ -16,9 +16,10 @@
  * and leaves this answer alone.
  */
 
+import type { SheetKind } from 'cantina-domain/entityKinds'
 import type { MountState } from './useSeat'
 
-export type SlotKind = 'pilot' | 'mech' | 'crawler'
+export type SlotKind = SheetKind
 
 /** What a slot (or a phone unit tab) says when the pilot has no such unit. */
 export const NO_CRAWLER = 'No crawler. Assign one on the pilot’s sheet.'

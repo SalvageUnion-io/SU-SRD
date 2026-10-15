@@ -18,11 +18,13 @@
 
 import type { Container } from 'cantina-domain/container'
 import { sameContainer } from 'cantina-domain/container'
+import type { SheetKind } from 'cantina-domain/entityKinds'
+import { sheetPath } from 'cantina-domain/entityKinds'
 import { hasMediator, runsTable } from 'cantina-domain/games/roles'
 import type { OwnerChip } from '../ownership/ownerChip'
 import { ownerChipFor } from '../ownership/ownerChip'
 
-export type RosterKind = 'pilot' | 'mech' | 'crawler'
+export type RosterKind = SheetKind
 
 /** A pilot or mech as `entities.listForGame` returns it. */
 export type ServerOwnable = {
@@ -252,7 +254,7 @@ function rosterEntityId(row: RosterRow): string {
  * route resolves in every form.
  */
 export function rosterSheetHref(row: RosterRow): string {
-  return `/sheet/${row.kind}/${rosterEntityId(row)}`
+  return sheetPath(row.kind, rosterEntityId(row))
 }
 
 /** Best-effort display name off an opaque server body. */

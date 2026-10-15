@@ -20,11 +20,12 @@
  * table, `default` for the two that only add — picking up and copying.
  */
 
+import type { EntityKind } from 'cantina-domain/entityKinds'
 import { copyName } from '../copyEntity'
 import type { ClearedAssignment } from '../links/clearedByMove'
 
 /** Which kind of build a confirm is about. Decides the pronoun, nothing else. */
-export type RowActionKind = 'pilot' | 'mech' | 'crawler' | 'npc'
+export type RowActionKind = EntityKind
 
 export type ConfirmCopy = {
   /** The question, naming the build: "Delete Tenacity?". */

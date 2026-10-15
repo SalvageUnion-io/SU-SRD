@@ -16,8 +16,10 @@
  * live — and hands the views resolved data via props.
  */
 
+import type { SheetKind } from 'cantina-domain/entityKinds'
+import { sheetPath } from 'cantina-domain/entityKinds'
 import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { EntityRef, SheetEntityKind } from 'cantina-domain/schemas/entity'
+import type { EntityRef } from 'cantina-domain/schemas/entity'
 import type { Mech } from 'cantina-domain/schemas/mech'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
 import type { CSSProperties, ReactNode } from 'react'
@@ -61,7 +63,7 @@ type ResolvedSheetEntity =
 
 function resolveSheetEntity(
   lookup: EntityLookup,
-  kind: SheetEntityKind,
+  kind: SheetKind,
   id: string
 ): ResolvedSheetEntity | null {
   switch (kind) {
@@ -81,7 +83,7 @@ function resolveSheetEntity(
 }
 
 type SheetProps = {
-  kind: SheetEntityKind
+  kind: SheetKind
   id: string
   /** Injectable entity lookup for testing; the live store when omitted. */
   entityStore?: EntityLookup
@@ -146,9 +148,6 @@ type SheetProps = {
   bandActions?: ReactNode
 }
 
-/** The live sheet route: one address per entity, editable or read-only by who is looking. */
-const liveSheetHref = (kind: EntityRef['type'], id: string): string => `/sheet/${kind}/${id}`
-
 const NONE_WITHHELD: readonly WithheldUnit[] = []
 
 /** The bar's trailing cluster: Share (or the offline lozenge) and ⋯. */
@@ -171,7 +170,7 @@ export function Sheet({
   back = { href: '/', label: 'Hangar' },
   pilotAbilities,
   others,
-  hrefFor = liveSheetHref,
+  hrefFor = sheetPath,
   withheld = NONE_WITHHELD,
   bandActions,
 }: SheetProps) {

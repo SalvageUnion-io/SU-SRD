@@ -1,3 +1,4 @@
+import type { EntityKind } from 'cantina-domain/entityKinds'
 import type { Crawler } from 'cantina-domain/schemas/crawler'
 import type { Mech } from 'cantina-domain/schemas/mech'
 import type { Npc } from 'cantina-domain/schemas/npc'
@@ -32,4 +33,4 @@ export type CreateInput<T extends EntityType> = Omit<
 >
 
 /** The entity types that carry a container (SoftLink does not). */
-export type AssignableType = 'pilot' | 'mech' | 'crawler' | 'npc'
+export type AssignableType = EntityKind

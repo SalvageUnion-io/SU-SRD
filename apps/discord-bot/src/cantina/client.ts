@@ -1,3 +1,5 @@
+import type { BotOpName } from 'cantina-domain/botWire'
+import { BOT_PATH_PREFIX } from 'cantina-domain/botWire'
 import { PRODUCT } from 'cantina-domain/product'
 import type {
   CantinaResult,
@@ -113,13 +115,13 @@ export function createCantinaClient(config: Partial<CantinaClientConfig>): Canti
   const origin = siteUrl?.replace(/\/+$/, '') ?? ''
 
   async function call<T>(
-    op: string,
+    op: BotOpName,
     payload: Record<string, unknown>,
     forAutocomplete = false
   ): Promise<CantinaResult<T>> {
     if (!origin || !botSecret) return UNCONFIGURED
     try {
-      const response = await fetch(`${origin}/bot/${op}`, {
+      const response = await fetch(`${origin}${BOT_PATH_PREFIX}${op}`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${botSecret}`,

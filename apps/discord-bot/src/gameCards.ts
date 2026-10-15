@@ -1,3 +1,4 @@
+import { gamePath, kindOf, publicPath, sheetPath } from 'cantina-domain/entityKinds'
 import { PRODUCT } from 'cantina-domain/product'
 import type { ItemCondition, RefEnumSchemaName } from 'salvageunion-reference'
 import {
@@ -182,13 +183,7 @@ function mechStats(body: EntityBody, derived: MechDerived | null) {
  * Game's own page in the Cantina.
  */
 export function gameUrl(gameId: string): string {
-  return `${CANTINA_ORIGIN}/games/${encodeURIComponent(gameId)}`
-}
-
-/** `pilots` → `pilot`. The web routes speak singular; the tables speak plural. */
-function kindOf(table: SheetTable): string {
-  if (table === 'pilots') return 'pilot'
-  return table === 'mechs' ? 'mech' : 'crawler'
+  return `${CANTINA_ORIGIN}${gamePath(gameId)}`
 }
 
 /**
@@ -209,7 +204,7 @@ export function publicSheetUrl(
 ): string | null {
   if (publicRead !== true) return null
   if (appId === null || appId.length === 0) return null
-  return `${CANTINA_ORIGIN}/p/${kindOf(table)}/${encodeURIComponent(appId)}`
+  return `${CANTINA_ORIGIN}${publicPath(kindOf(table), appId)}`
 }
 
 /**
@@ -224,7 +219,7 @@ export function publicSheetUrl(
  */
 export function sheetUrl(table: SheetTable, rowId: string | null | undefined): string | null {
   if (typeof rowId !== 'string' || rowId.length === 0) return null
-  return `${CANTINA_ORIGIN}/sheet/${kindOf(table)}/${encodeURIComponent(rowId)}`
+  return `${CANTINA_ORIGIN}${sheetPath(kindOf(table), rowId)}`
 }
 
 /**
