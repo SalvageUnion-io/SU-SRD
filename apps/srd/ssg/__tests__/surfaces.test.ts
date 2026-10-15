@@ -76,14 +76,14 @@ describe('home: the manual’s Contents page (board 06)', () => {
   })
 
   it('sets "At the table" as a section of the index', () => {
-    const index = html.slice(html.indexOf('srd-home__index'), html.indexOf('<footer'))
+    const index = html.slice(html.indexOf('srd-home__index'), html.indexOf('srd-home__aside'))
     expect(index).toContain('<span>At the table</span>')
     expect(index).toContain('href="/roll-tables/core-mechanic/"')
     expect(index).not.toContain('On Discord')
   })
 
   it('offers the Discord bot as one button straight under "Start here"', () => {
-    const aside = html.slice(html.indexOf('srd-home__aside'), html.indexOf('srd-home__index'))
+    const aside = html.slice(html.indexOf('srd-home__aside'), html.indexOf('<footer'))
     const discord = aside.slice(aside.indexOf('<a href="https://discord.com/'))
     expect(aside.indexOf('id="start-here"')).toBeLessThan(aside.indexOf('id="discord-bot"'))
     expect(discord).toContain('SalvageUnion.io On Discord')
@@ -96,13 +96,13 @@ describe('home: the manual’s Contents page (board 06)', () => {
     expect(index).not.toContain('<img')
   })
 
-  it('puts first-timer content first: title, search, "Start here", Discord, then the index', () => {
+  it('reads title, search, the index, then "Start here" and Discord below it', () => {
     const at = (needle: string) => html.indexOf(needle)
     expect(at('<h1')).toBeGreaterThan(-1)
     expect(at('<h1')).toBeLessThan(at('action="/search/"'))
-    expect(at('action="/search/"')).toBeLessThan(at('id="start-here"'))
+    expect(at('action="/search/"')).toBeLessThan(at('id="pilot-bay"'))
+    expect(at('id="pilot-bay"')).toBeLessThan(at('id="start-here"'))
     expect(at('id="start-here"')).toBeLessThan(at('id="discord-bot"'))
-    expect(at('id="discord-bot"')).toBeLessThan(at('id="pilot-bay"'))
   })
 })
 
