@@ -210,7 +210,7 @@ describe('asset worker — reporting policy', () => {
   ] as const) {
     it(`reports nothing for ${label}`, async () => {
       // This Worker answers every path on a public, crawler-visible host.
-      // Alerting on these would turn the Sentry project into a scanner log.
+      // Alerting on these would turn Workers Issues into a scanner log.
       const bucket = bucketWith({})
       await makeAssetHandler(() => bucket)(req(path))
 

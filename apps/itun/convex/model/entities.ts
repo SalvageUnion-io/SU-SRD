@@ -192,7 +192,7 @@ export function oldestOf<T extends { _creationTime: number }>(rows: readonly T[]
  * `warn` is for the write paths: there the write succeeds, so the warning is
  * the only remaining signal that a roster needs de-duplicating. It lands in the
  * deployment log stream, the one place a Convex server-side message is
- * readable at all (there is no Sentry SDK in here). Reactive queries leave it
+ * readable at all (there is no error SDK in here). Reactive queries leave it
  * off, since they re-run on every change.
  */
 export async function oldestByAppId(

@@ -21,6 +21,9 @@
  *
  * Under `/build/` this script reads the path inside the base (`basePath.ts`):
  *
+ *   E. `POST /__errors`, `POST /__convex-logs` → the browser's error reports
+ *      and Convex's log stream, logged for Workers Issues
+ *      (`observability/cloudflare`).
  *   D. `/about`, `/changelog` → a 301 to the SRD's page (`docPages.ts`); ITUN
  *      keeps no copy of the doc pages both tools share.
  *   0. `/og/*.png`        → a link preview's picture (`linkPreview.ts`),
@@ -70,8 +73,13 @@
  * outlives the deploy that brings the chunk (smoke-production.sh probes it).
  */
 
-import type { ObservabilityEnv } from 'observability/cloudflare'
-import { withObservability } from 'observability/cloudflare'
+import type { RateLimiter } from 'observability/cloudflare'
+import {
+  CONVEX_LOG_STREAM_PATH,
+  ERROR_REPORT_PATH,
+  handleConvexLogStream,
+  handleErrorReport,
+} from 'observability/cloudflare'
 import { retiredDocPage } from '../lib/docPages'
 import { pathInApp } from './basePath'
 import { inBase, outsideBase } from './legacyHost'
@@ -79,25 +87,31 @@ import type { ImageCache, PreviewEnv, PreviewRoute } from './linkPreview'
 import { isOgImagePath, metaFor, ogImage, previewRouteOf } from './linkPreview'
 import { applyMeta } from './shellMeta'
 
-export type Env = ObservabilityEnv &
-  PreviewEnv & {
-    /**
-     * Static assets (the built SPA), in `single-page-application` mode: a miss
-     * is answered with the shell. `_headers` applies to every answer.
-     */
-    ASSETS: { fetch(request: Request): Promise<Response> }
-    /**
-     * The path ITUN is served under, without a trailing slash: `/build`
-     * (`wrangler.jsonc`, held equal to `SITE.base` by the routing test).
-     */
-    BASE_PATH: string
-    /**
-     * The SRD a Worker Preview's redirects go to: the same PR's SRD Preview,
-     * passed by `deploy-preview.yml`. Unset in production, which sends them to
-     * salvageunion.io.
-     */
-    SRD_ORIGIN?: string
-  }
+export type Env = PreviewEnv & {
+  /**
+   * Static assets (the built SPA), in `single-page-application` mode: a miss
+   * is answered with the shell. `_headers` applies to every answer.
+   */
+  ASSETS: { fetch(request: Request): Promise<Response> }
+  /**
+   * The path ITUN is served under, without a trailing slash: `/build`
+   * (`wrangler.jsonc`, held equal to `SITE.base` by the routing test).
+   */
+  BASE_PATH: string
+  /**
+   * The SRD a Worker Preview's redirects go to: the same PR's SRD Preview,
+   * passed by `deploy-preview.yml`. Unset in production, which sends them to
+   * salvageunion.io.
+   */
+  SRD_ORIGIN?: string
+  /** Caps error reports per address (`wrangler.jsonc`); absent in a Preview. */
+  ERROR_REPORT_LIMIT?: RateLimiter
+  /**
+   * The Convex log stream's webhook secret, from the Convex dashboard. Set
+   * with `wrangler secret put`; unset, the stream endpoint answers 503.
+   */
+  CONVEX_LOG_STREAM_SECRET?: string
+}
 
 /** The Cache API's default cache, where the runtime has one (never under Bun). */
 function defaultCache(): ImageCache | undefined {
@@ -105,7 +119,7 @@ function defaultCache(): ImageCache | undefined {
 }
 
 /** @public Cloudflare Worker entrypoint — loaded by workerd, not imported. */
-export default withObservability('su-itun', {
+export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url)
     const base = env.BASE_PATH
@@ -116,6 +130,15 @@ export default withObservability('su-itun', {
     // Every rule below reads the path inside the app; a URL it builds puts the
     // base back.
     const path = pathInApp(url.pathname, base)
+
+    // E. Errors from elsewhere, logged for Workers Issues: the browser's, and
+    // Convex's through its log stream (`observability/cloudflare`).
+    if (path === ERROR_REPORT_PATH) {
+      return handleErrorReport(request, { app: 'itun', limiter: env.ERROR_REPORT_LIMIT })
+    }
+    if (path === CONVEX_LOG_STREAM_PATH) {
+      return handleConvexLogStream(request, env.CONVEX_LOG_STREAM_SECRET)
+    }
 
     // D. A doc page ITUN no longer has: the SRD's, where both tools share it.
     const docPage = retiredDocPage(path, env.SRD_ORIGIN)
@@ -134,7 +157,7 @@ export default withObservability('su-itun', {
     // 3. Everything else: the asset server's answer, `_headers` and all.
     return robotsFor(path, await env.ASSETS.fetch(request))
   },
-})
+}
 
 /**
  * The client routes search may index: the app's front door, the public

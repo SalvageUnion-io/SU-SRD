@@ -6,7 +6,7 @@
  * no issuer, and `oauth4webapi` rejected each callback with `unexpected "iss"
  * (issuer) response parameter value`. `@convex-dev/auth` catches that, logs it
  * and redirects home without a code, so the user saw "refused access" and
- * Sentry saw nothing.
+ * error reporting saw nothing.
  *
  * Pinning the issuer string (`authProviders.test.ts`) does not prove it reaches
  * the check, so this drives the real flow: the `signIn` action, the

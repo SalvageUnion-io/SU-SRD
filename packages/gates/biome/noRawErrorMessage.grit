@@ -1,7 +1,7 @@
 // `err instanceof Error ? err.message : fallback` puts whatever was thrown on
 // screen. For a Convex write that is the redacted `[CONVEX M(fn)] … Server
 // Error`, and for a client bug a developer's string; and catching it is what
-// kept the defect from reaching Sentry. A refusal the server meant for the
+// kept the defect from being reported. A refusal the server meant for the
 // player is a `ConvexError`, which this does not even read.
 //
 // Run the write through `useServerAction`, or say its failure with

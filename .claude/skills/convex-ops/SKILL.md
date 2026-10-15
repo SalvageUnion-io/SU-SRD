@@ -1,6 +1,6 @@
 ---
 name: convex-ops
-description: Use when setting up or checking an ITUN Convex deployment, when Discord sign-in fails with a 500 or "deployment unreachable", when the bot replies "The Cantina is not configured for this bot", answers `unavailable` or `unauthorized`, or its `/health` returns 503, when a Convex tool says "No CONVEX_DEPLOYMENT set", when rotating JWT_PRIVATE_KEY/JWKS or AUTH_DISCORD_SECRET, when running a one-off data repair, or when enabling or re-verifying Convex error reporting to Sentry.
+description: Use when setting up or checking an ITUN Convex deployment, when Discord sign-in fails with a 500 or "deployment unreachable", when the bot replies "The Cantina is not configured for this bot", answers `unavailable` or `unauthorized`, or its `/health` returns 503, when a Convex tool says "No CONVEX_DEPLOYMENT set", when rotating JWT_PRIVATE_KEY/JWKS or AUTH_DISCORD_SECRET, when running a one-off data repair, or when enabling or re-verifying Convex error reporting (the log stream into Workers Issues).
 allowed-tools: Bash, Read
 ---
 
@@ -155,14 +155,20 @@ beats writing garbage into production auth. Only a real sign-in proves it.
 
 ## Convex error reporting
 
-Convex reports through the dashboard's Exception Reporting integration (Convex
-dashboard → the deployment → **Settings → Integrations → Sentry**, the
-`itun-convex` DSN). There is no code to add: queries and mutations have no
-network egress, and the default runtime is not Node.
+Convex reports through a **log stream**: Convex dashboard → the production
+deployment → **Settings → Integrations → Log Streams → Webhook**, URL
+`https://salvageunion.io/build/__convex-logs`. The ITUN Worker verifies each
+delivery's `x-webhook-signature` against `CONVEX_LOG_STREAM_SECRET` (copy the
+secret the dashboard shows into `wrangler secret put CONVEX_LOG_STREAM_SECRET`
+in `apps/itun`) and logs every failed function and every `console.error` for
+Workers Issues (`packages/observability/src/cloudflare.ts`). There is no code
+to add in `convex/`: queries and mutations have no network egress. Log streams
+need the Convex Pro plan.
 
 **A reporting integration that reports nothing looks exactly like a healthy one
 with no errors.** Verify by probe, never by status line: force an error, then
-check the deployment log (ground truth) and Sentry (the thing being tested).
+check the deployment log (ground truth) and Workers Issues (the thing being
+tested).
 
 ```bash
 cd apps/itun
@@ -171,8 +177,10 @@ bunx convex run --deployment alex-jarvis:suref-itun:prod \
 bunx convex logs --deployment alex-jarvis:suref-itun:prod --history 6 --jsonl
 ```
 
-then <https://susrd.sentry.io/issues/?project=itun-convex>. In the log but not in
-Sentry means it has stopped delivering.
+then the su-itun Worker's **Issues** tab in the Cloudflare dashboard, for a
+`ConvexFunctionError` naming `botClient:me`. In the log but not in Issues means
+the stream has stopped delivering: a `401` in the su-itun Worker's logs is a
+secret mismatch, a `503` an unset secret.
 
 ## Running a one-off data repair
 

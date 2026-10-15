@@ -40,8 +40,8 @@ name: Deploy (Cloudflare)
 # leave srd on the new commit and itun on the old — a partial deploy nobody
 # chose — and the two long builds overlap.
 #
-# ARTIFACTS ARE BUILT HERE, NOT TAKEN FROM CI. CI's srd build has no Sentry
-# DSN, source maps or OG images; CI's itun build targets a throwaway Convex
+# ARTIFACTS ARE BUILT HERE, NOT TAKEN FROM CI. CI's srd build has no release
+# SHA or OG images; CI's itun build targets a throwaway Convex
 # backend, not `ITUN_CONVEX_URL`; and CI path-filters per PR while this deploys
 # per last recorded deploy, so a surface can need shipping on a commit where CI
 # skipped its build.
@@ -108,13 +108,6 @@ env:
   # no trailing slash, as Convex Auth's SITE_URL wants it (the routing test
   # holds them equal). The itun deploy leg sets it on the production backend.
   ITUN_SITE_URL: https://salvageunion.io/build
-  # Sentry's client keys and org slug. Public by construction: each DSN is
-  # inlined into a bundle anyone can download, and the slug is in every Sentry
-  # URL (docs/ARCHITECTURE.md#sentry). The one Sentry secret is
-  # SENTRY_AUTH_TOKEN, which can write to the org.
-  SRD_SENTRY_DSN: https://543122dc077d63448e70d33b0a120283@o4511811110764544.ingest.de.sentry.io/4511811268902992
-  ITUN_SENTRY_DSN: https://bc1ea4e8e45b338d4b5d8ac5ee1016ae@o4511811110764544.ingest.de.sentry.io/4511811273097296
-  SENTRY_ORG: susrd
 
 jobs:
   # ===========================================================================
@@ -296,23 +289,6 @@ jobs:
             exit 1
           fi
 
-      # A DSN gets events to Sentry; source maps make them readable. Both apps'
-      # Vite builds take `sentrySourcemaps()` from
-      # `packages/observability/src/vite.ts`, which gates BOTH the plugin and
-      # `build.sourcemap` on `SENTRY_AUTH_TOKEN`, so with the secret absent the
-      # build silently emits no maps and every production event is a minified
-      # stack. It FAILS rather than warns, in line with ADR-033 §7.
-      - name: Refuse to build a browser app with no Sentry source-map upload
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-        run: |
-          if [ -z "$SENTRY_AUTH_TOKEN" ]; then
-            echo "FATAL: SENTRY_AUTH_TOKEN is not set — itun and srd would ship with no source maps," >&2
-            echo "       making every production Sentry event a minified stack." >&2
-            echo "Set it in Settings > Environments > production > Environment secrets." >&2
-            exit 1
-          fi
-
   # ===========================================================================
   # Builds — one job per surface that has one, in parallel. Each uploads the
   # exact `dist` it produced; its deploy job ships that artifact, unrebuilt.
@@ -346,29 +322,14 @@ jobs:
       - name: Build srd
         env:
           VITE_COMMIT_REF: ${{ needs.plan.outputs.sha }}
-          VITE_SENTRY_DSN: ${{ env.SRD_SENTRY_DSN }}
-          # Source-map upload (packages/observability/src/vite.ts). SENTRY_ORG
-          # is the workflow env above; a project slug is public, like the org.
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_PROJECT: srd
         run: bun --filter srd build
 
-      # `import.meta.env` is inlined at build, so a bundle with no EU DSN in it
-      # had the SDK tree-shaken out and would ship blind.
-      - name: Refuse an srd bundle with no inlined Sentry DSN
-        run: |
-          if ! grep -rqE --include='*.js' 'https://[0-9a-f]{16,}@[a-z0-9.-]+\.ingest\.de\.sentry\.io/' apps/srd/dist; then
-            echo "FATAL: no EU Sentry DSN is inlined in apps/srd/dist — srd would ship with error tracking off." >&2
-            exit 1
-          fi
 
       # Chromium, the render cache and the render: shared with
       # deploy-preview.yml. Here rather than in a job of its own, which paid
       # a second checkout, install and artifact round trip on the deploy's
       # critical path. Best-effort: a failed render (or browser install)
-      # keeps the default og:image and never stops the deploy. Secrets reach
-      # only the steps that name them, so the browser never sees the
-      # Sentry token the build step uses.
+      # keeps the default og:image and never stops the deploy.
       - name: Render srd OG images
         continue-on-error: true
         uses: ./.github/actions/srd-og
@@ -418,19 +379,8 @@ jobs:
         env:
           VITE_CONVEX_URL: ${{ env.ITUN_CONVEX_URL }}
           VITE_COMMIT_REF: ${{ needs.plan.outputs.sha }}
-          VITE_SENTRY_DSN: ${{ env.ITUN_SENTRY_DSN }}
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_PROJECT: itun
         run: bun run build
 
-      # `import.meta.env` is inlined at build, so a bundle with no EU DSN in it
-      # had the SDK tree-shaken out and would ship blind.
-      - name: Refuse an itun bundle with no inlined Sentry DSN
-        run: |
-          if ! grep -rqE --include='*.js' 'https://[0-9a-f]{16,}@[a-z0-9.-]+\.ingest\.de\.sentry\.io/' apps/itun/dist; then
-            echo "FATAL: no EU Sentry DSN is inlined in apps/itun/dist — itun would ship with error tracking off." >&2
-            exit 1
-          fi
 
       - name: Upload the itun artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -515,10 +465,8 @@ jobs:
   # moves all four together; keep `compatibility_date` in the four
   # wrangler.jsonc files at or below the workerd it bundles.
   #
-  # Every Worker deploys with `--var SENTRY_RELEASE:<sha>`: @sentry/cloudflare
-  # reads it from env as the release, so Worker events carry the same SHA as
-  # the browser bundles and their sourcemaps. wrangler bundles every Worker
-  # script here; su-assets and the bot have no other build. Discord's
+  # wrangler bundles every Worker script here, and uploads its source maps
+  # for Workers Issues (`upload_source_maps`); su-assets and the bot have no other build. Discord's
   # Interactions Endpoint URL points at the bot's Worker, so this is the bot's
   # only deploy path; its secrets (DISCORD_TOKEN and friends) are wrangler
   # secrets set out of band, and a deploy does not touch them. The bot leg
@@ -549,8 +497,7 @@ jobs:
         working-directory: apps/srd
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          DEPLOYED_SHA: ${{ needs.plan.outputs.sha }}
-        run: bun run deploy -- --var "SENTRY_RELEASE:$DEPLOYED_SHA"
+        run: bun run deploy
 
   # Every surface in the deploy set but srd: itun, the bot and su-assets.
   deploy:
@@ -587,8 +534,7 @@ jobs:
         working-directory: apps/${{ matrix.app }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          DEPLOYED_SHA: ${{ needs.plan.outputs.sha }}
-        run: bun run deploy -- --var "SENTRY_RELEASE:$DEPLOYED_SHA"
+        run: bun run deploy
 
       # Every itun deploy, once it is live: Convex Auth sends a signed-in
       # player back to SITE_URL, which must be where the app is served

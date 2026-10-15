@@ -10,8 +10,6 @@
 
   // At or below the workerd the wrangler devDependency bundles (deploy-cloudflare.yml).
   "compatibility_date": "2026-07-13",
-  // AsyncLocalStorage for @sentry/cloudflare; tools/check-observability.ts requires it.
-  "compatibility_flags": ["nodejs_als"],
 
   // Public, not secrets: the application id is in every invite URL and the
   // public key only verifies Discord's signatures.
@@ -23,7 +21,7 @@
   // A deploy fails while one is unset; set with `wrangler secret put`.
   // ITUN_CONVEX_SITE_URL is the `.convex.site` HTTP-actions origin, not `.convex.cloud`.
   "secrets": {
-    "required": ["SENTRY_DSN", "DISCORD_TOKEN", "ITUN_BOT_SECRET", "ITUN_CONVEX_SITE_URL"]
+    "required": ["DISCORD_TOKEN", "ITUN_BOT_SECRET", "ITUN_CONVEX_SITE_URL"]
   },
 
   // Per-command usage, one data point per interaction (src/worker/index.ts),
@@ -32,9 +30,16 @@
   "analytics_engine_datasets": [{ "binding": "USAGE", "dataset": "su_discord_bot_usage" }],
 
   // Traces: a span per binding call and outbound fetch (Convex, R2, Images,
-  // Browser Rendering), in the dashboard next to the logs.
+  // Browser Rendering), in the dashboard next to the logs. Issues is the error
+  // tracker: it groups uncaught exceptions, 5xx answers and `console.error`
+  // (`observability/cloudflare`'s `reportError`) into issues, alerted on by the
+  // dashboard's Issues automations. tools/check-observability.ts requires all three.
   "observability": {
     "enabled": true,
-    "traces": { "enabled": true }
-  }
+    "traces": { "enabled": true },
+    "issues": { "enabled": true }
+  },
+
+  // Issues' stacks point at the source, not the bundle.
+  "upload_source_maps": true
 }

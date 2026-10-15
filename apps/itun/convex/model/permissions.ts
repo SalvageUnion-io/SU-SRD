@@ -50,7 +50,7 @@ type AnyCtx = QueryCtx | MutationCtx
  * The distinction this draws is the one worth keeping: a `NotAuthorized` is an
  * **expected answer** to a request the rules refuse, and it says so out loud. A
  * plain `Error` remains what it was — a defect nobody planned for, opaque to
- * the client on purpose and legible only in the Convex logs and Sentry.
+ * the client on purpose and legible only in the Convex logs and Workers Issues.
  *
  * Note the subclass itself does not survive the wire: the client receives a
  * plain `ConvexError` whose `data` is this message, so it narrows with

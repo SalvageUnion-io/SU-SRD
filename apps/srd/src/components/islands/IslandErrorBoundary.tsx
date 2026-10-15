@@ -38,7 +38,7 @@ export class IslandErrorBoundary extends Component<Props, State> {
 
   /**
    * Report, don't just render. Catching an error is precisely what stops it
-   * reaching `window.onerror` and Sentry's `globalHandlers`, so a boundary is
+   * reaching the window's `error` event, which the reporter hears, so a boundary is
    * the ONLY place a render crash can still be seen. Without this report, an
    * island crash blanks a surface, shows the recovery panel, and produces no
    * production signal at all.

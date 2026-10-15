@@ -6,8 +6,8 @@ import { internalAction, internalQuery } from './_generated/server'
  *
  * From 2026-10-06 to 2026-10-09 every sign-in failed and nothing alerted.
  * `@convex-dev/auth` catches a failed OAuth callback, logs it and redirects home
- * without a code — it never throws, so Convex's Exception Reporting had nothing
- * to send to Sentry. Watching for that one error would only catch that one
+ * without a code — it never throws, so Convex's error reporting had nothing
+ * to send. Watching for that one error would only catch that one
  * cause, so this watches the outcome instead.
  *
  * Every sign-in leaves an `authVerifiers` row with a `signature` once the user
@@ -17,9 +17,10 @@ import { internalAction, internalQuery } from './_generated/server'
  * not getting back in, whatever the reason: a provider change, a rotated
  * secret, a wrong `SITE_URL`.
  *
- * When that happens `check` throws. Exception Reporting sends the throw to the
- * `itun-convex` Sentry project, whose "high priority issues" alert emails the
- * owners. The alert lives in Sentry; this only has to throw.
+ * When that happens `check` throws. The deployment's log stream posts the
+ * failure to the ITUN Worker (`observability/cloudflare`), which logs it for
+ * Workers Issues, whose automations alert the owners. The alert lives there;
+ * this only has to throw.
  */
 
 /** How far back an hourly run looks. */

@@ -10,7 +10,6 @@
 
 import { fileURLToPath } from 'node:url'
 import react from '@vitejs/plugin-react-swc'
-import { sentrySourcemaps } from 'observability/vite'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import { WORKBOX_OPTIONS } from './pwa'
@@ -34,8 +33,6 @@ export default defineConfig({
       registerType: 'autoUpdate',
       workbox: WORKBOX_OPTIONS,
     }),
-    // Must run last; inert without SENTRY_AUTH_TOKEN (see observability/vite).
-    ...sentrySourcemaps(outDir),
   ],
   // Fixes a dev-only bug: the island deps live under component-lib/node_modules
   // (@base-ui, sonner, lucide-react) and were only DISCOVERED

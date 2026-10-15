@@ -165,11 +165,11 @@ describe('compare', () => {
 })
 
 describe('the declaration', () => {
-  test('production admits main alone, unreviewed, and holds the four deploy secrets', () => {
+  test('production admits main alone, unreviewed, and holds the three deploy secrets', () => {
     expect(ENVIRONMENTS[0]).toEqual({
       name: 'production',
       branches: ['main'],
-      secrets: ['CLOUDFLARE_API_TOKEN', 'CONVEX_DEPLOY_KEY', 'DISCORD_TOKEN', 'SENTRY_AUTH_TOKEN'],
+      secrets: ['CLOUDFLARE_API_TOKEN', 'CONVEX_DEPLOY_KEY', 'DISCORD_TOKEN'],
     })
   })
 
@@ -277,7 +277,7 @@ describe('readLive', () => {
       [`${E}?`]: ok({ environments: [{ name: 'production', deployment_branch_policy: null }] }),
       [`repos/${REPO}/actions/secrets`]: forbidden,
     })
-    const state = readLive(true, api, { CONVEX_DEPLOY_KEY: 'x', SENTRY_AUTH_TOKEN: '' })
+    const state = readLive(true, api, { CONVEX_DEPLOY_KEY: 'x', DISCORD_TOKEN: '' })
     expect(state.environments[0]?.secrets).toBeNull()
     expect(state.repositorySecrets).toBeNull()
     expect(state.readableOutside).toEqual(['CONVEX_DEPLOY_KEY'])

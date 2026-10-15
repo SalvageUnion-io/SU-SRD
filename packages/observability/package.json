@@ -12,18 +12,10 @@
     "./cloudflare": {
       "types": "./src/cloudflare.ts",
       "default": "./src/cloudflare.ts"
-    },
-    "./vite": {
-      "types": "./src/vite.ts",
-      "default": "./src/vite.ts"
     }
   },
   "scripts": {
     "typecheck": "tsc -b",
     "test": "bun test --parallel=4 --no-isolate"
-  },
-  "dependencies": {
-    "@sentry/cloudflare": "10.69.0",
-    "@sentry/vite-plugin": "5.4.0"
   }
 }

@@ -172,7 +172,6 @@ jobs:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
           CONVEX_PREVIEW_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: bun tools/environments.ts --secrets-from-env
 
   # ONE notifier: on any result that is not `success` it opens (or comments

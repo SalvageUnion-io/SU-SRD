@@ -65,9 +65,8 @@
  *   page that does need one still fetches it from the network.
  * - `navigateFallback: null` — this is a static site, so an unvisited page
  *   should 404 offline rather than resolve to a stale shell.
- * - `sourcemap: false`: the plugin otherwise follows `build.sourcemap`, which
- *   `observability/vite` sets to `'hidden'` for the Sentry upload, and
- *   `dist/sw.js.map` would ship in the output.
+ * - `sourcemap: false`: the plugin otherwise follows `build.sourcemap`, and
+ *   `dist/sw.js.map` would ship in the output if a build ever turned maps on.
  * - `skipWaiting` + `clientsClaim` are set here, not left to `registerType`:
  *   the plugin forces them only when it injects its own registration, and srd
  *   registers through `public/registerSW.js` (`injectRegister: false`).

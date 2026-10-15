@@ -146,8 +146,9 @@ export const CHECKS: readonly CheckSpec[] = [
   },
   {
     id: 'observability',
-    guards: 'Sentry can report: DSN gating, CSP ingest host, Worker wrapping',
-    fix: 'change the CSP and Sentry wiring in every source for that app together',
+    guards:
+      'errors reach Workers Issues: Issues + source maps on, reporters started and routed, CSP',
+    fix: 'restore the wiring the failure names: the Worker config, the init call, the Worker route or the CSP',
     cmd: ['bun', 'tools/check-observability.ts'],
     areas: REPO_INVARIANT,
     profiles: ALL,

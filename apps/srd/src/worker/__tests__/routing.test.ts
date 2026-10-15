@@ -108,3 +108,33 @@ describe('any other miss is the 404 page, uncacheable', () => {
     expect(res.headers.get('cache-control')).toBe('no-store')
   })
 })
+
+describe('POST /__errors — a browser error report, logged for Workers Issues', () => {
+  it('logs the report and answers 204, without touching the binding', async () => {
+    const env = envWith()
+    const logged: unknown[][] = []
+    const realConsoleError = console.error
+    console.error = (...args: unknown[]) => {
+      logged.push(args)
+    }
+    try {
+      const res = await worker.fetch(
+        new Request('https://salvageunion.io/__errors', {
+          method: 'POST',
+          body: JSON.stringify({ name: 'TypeError', message: 'x is undefined' }),
+        }),
+        env
+      )
+      expect(res.status).toBe(204)
+    } finally {
+      console.error = realConsoleError
+    }
+    expect((logged[0]?.[0] as Error | undefined)?.message).toBe('x is undefined')
+    expect(logged[0]?.[1]).toMatchObject({ source: 'browser', app: 'srd' })
+    expect(env.ASSETS.asked).toEqual([])
+  })
+
+  it('answers a GET 405, so a crawler never gets a page there', async () => {
+    expect((await worker.fetch(req('/__errors'), envWith())).status).toBe(405)
+  })
+})

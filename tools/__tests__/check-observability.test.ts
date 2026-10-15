@@ -15,18 +15,17 @@ import { dirname, join } from 'node:path'
 /**
  * Behaviour tests for the CSP half of `tools/check-observability.ts`.
  *
- * This is the check whose absence let a fully-built Sentry stack sit dark in
- * production: a `connect-src` missing the ingest origin blocks every event in
+ * A `connect-src` that blocks the report's destination blocks every error in
  * the browser while the app looks completely healthy. Each app has one CSP
- * source, its `public/_headers`, which must declare a `connect-src` that
- * permits the Sentry origin.
+ * source, its `public/_headers`, which must declare a `connect-src` allowing
+ * `'self'`, where the app posts its reports.
  */
 
 const ITUN_HEADERS = 'apps/itun/public/_headers'
 
 const ROOT = join(import.meta.dir, '..', '..')
 const TOOL = join(ROOT, 'tools', 'check-observability.ts')
-const SENTRY_HOST = 'https://*.ingest.de.sentry.io'
+const SELF = "connect-src 'self'"
 
 /**
  * Every file the check reads (it resolves them from its cwd). These tests run
@@ -111,10 +110,10 @@ describe('check-observability CSP', () => {
     expect(exitCode).toBe(0)
   })
 
-  test('a Sentry origin named only in a comment does not count', async () => {
+  test("'self' named only in a comment does not count", async () => {
     await withFileContents(
       ITUN_HEADERS,
-      (s) => `${s.replace(SENTRY_HOST, 'https://example.invalid')}\n# connect-src ${SENTRY_HOST}\n`,
+      (s) => `${s.replace(SELF, 'connect-src https://example.invalid')}\n# ${SELF}\n`,
       async () => {
         const { exitCode, stderr } = await runCheck()
         expect(exitCode).toBe(1)
@@ -123,10 +122,10 @@ describe('check-observability CSP', () => {
     )
   })
 
-  test('a CSP that omits the Sentry origin fails', async () => {
+  test("a CSP that omits 'self' fails", async () => {
     await withFileContents(
       ITUN_HEADERS,
-      (s) => s.replace(SENTRY_HOST, 'https://example.invalid'),
+      (s) => s.replace(SELF, 'connect-src https://example.invalid'),
       async () => {
         const { exitCode, stderr } = await runCheck()
         expect(exitCode).toBe(1)
@@ -162,14 +161,14 @@ describe('check-observability CSP', () => {
 })
 
 /**
- * The negative control: the three edits a text match was fooled by, each
- * leaving its old spelling in a comment. Every one must fail on its own.
+ * The negative control: edits a text match would be fooled by, each leaving its
+ * old spelling in a comment. Every one must fail on its own.
  */
 describe('check-observability reads parsed source, not prose', () => {
   test('an init call that is commented out fails', async () => {
     await withFileContents(
       'apps/srd/src/runtime/islands.client.ts',
-      (s) => s.replace('void initBrowserObservability()', '// void initBrowserObservability()'),
+      (s) => s.replace('\ninitBrowserObservability()', '\n// initBrowserObservability()'),
       async () => {
         const { exitCode, stderr } = await runCheck()
         expect(exitCode).toBe(1)
@@ -178,38 +177,46 @@ describe('check-observability reads parsed source, not prose', () => {
     )
   })
 
-  test('a Worker export unwrapped from withObservability fails', async () => {
+  test('an error report route that is commented out fails', async () => {
     await withFileContents(
-      'apps/su-assets/src/worker/index.ts',
+      'apps/itun/src/worker/index.ts',
       (s) =>
         s.replace(
-          "export default withObservability('su-assets', {",
-          "// was: withObservability('su-assets', ...)\nexport default ((_: string, h: object) => h)('su-assets', {"
+          'return handleConvexLogStream(',
+          'return null as never // handleConvexLogStream('
         ),
       async () => {
         const { exitCode, stderr } = await runCheck()
         expect(exitCode).toBe(1)
         expect(stderr).toContain(
-          "[su-assets-worker] apps/su-assets/src/worker/index.ts's default export"
+          '[itun] apps/itun/src/worker/index.ts never calls handleConvexLogStream()'
         )
       }
     )
   })
 
-  test('nodejs_als named only in a comment fails', async () => {
+  test('Issues turned on only in a comment fails', async () => {
     await withFileContents(
       'apps/discord-bot/wrangler.jsonc',
-      (s) =>
-        s.replace(
-          '"compatibility_flags": ["nodejs_als"],',
-          '// "compatibility_flags": ["nodejs_als"],'
-        ),
+      (s) => s.replace('"issues": { "enabled": true }', '// "issues": { "enabled": true }'),
       async () => {
         const { exitCode, stderr } = await runCheck()
         expect(exitCode).toBe(1)
         expect(stderr).toContain(
-          '[discord-bot-worker] apps/discord-bot/wrangler.jsonc does not grant'
+          '[discord-bot-worker] apps/discord-bot/wrangler.jsonc does not turn on "observability.issues"'
         )
+      }
+    )
+  })
+
+  test('a Worker without upload_source_maps fails', async () => {
+    await withFileContents(
+      'apps/su-assets/wrangler.jsonc',
+      (s) => s.replace('"upload_source_maps": true', '"upload_source_maps": false'),
+      async () => {
+        const { exitCode, stderr } = await runCheck()
+        expect(exitCode).toBe(1)
+        expect(stderr).toContain('[su-assets-worker] apps/su-assets/wrangler.jsonc does not set')
       }
     )
   })
