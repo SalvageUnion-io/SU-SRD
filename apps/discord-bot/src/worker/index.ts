@@ -47,8 +47,6 @@ import {
   ResponseSink,
   webhookRoutes,
 } from './adapter'
-import type { BotEnv } from './cantinaEnv'
-import { cantinaConfig } from './cantinaEnv'
 import { isValidDiscordRequest, SIGNATURE_HEADER, TIMESTAMP_HEADER } from './verify'
 
 /**
@@ -179,14 +177,14 @@ async function dispatch(
  * Unauthenticated on purpose: it reveals only public facts, and requiring a
  * credential to check a credential is a loop that helps nobody at 3am.
  */
-async function health(env: BotEnv): Promise<Response> {
+async function health(env: Env): Promise<Response> {
   const configured = {
     applicationId: Boolean(env.DISCORD_APPLICATION_ID),
     publicKey: Boolean(env.DISCORD_PUBLIC_KEY),
     token: Boolean(env.DISCORD_TOKEN),
     // Either alone is as broken as neither: every Game command would answer
     // that Cantina cannot be reached.
-    cantina: Boolean(cantinaConfig(env).siteUrl) && Boolean(cantinaConfig(env).botSecret),
+    cantina: Boolean(env.CANTINA_CONVEX_SITE_URL) && Boolean(env.CANTINA_BOT_SECRET),
   }
 
   if (!configured.token) {
@@ -258,7 +256,7 @@ async function health(env: BotEnv): Promise<Response> {
 
 /** @public Cloudflare Worker entrypoint — loaded by workerd, not imported. */
 export default {
-  async fetch(request: Request, env: BotEnv, ctx: ExecutionCtx): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionCtx): Promise<Response> {
     if (request.method === 'GET' && new URL(request.url).pathname === '/health') {
       return health(env)
     }
@@ -287,7 +285,12 @@ export default {
 
     // Configuration arrives as `env`, so the client can only be built once a
     // request exists. Cheap: a client is two strings and a closure.
-    setCantinaClient(createCantinaClient(cantinaConfig(env)))
+    setCantinaClient(
+      createCantinaClient({
+        siteUrl: env.CANTINA_CONVEX_SITE_URL,
+        botSecret: env.CANTINA_BOT_SECRET,
+      })
+    )
 
     let interaction: APIInteraction
     try {

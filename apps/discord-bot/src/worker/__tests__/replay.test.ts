@@ -1,6 +1,5 @@
 import { describe, expect, test } from 'bun:test'
 import { InteractionResponseType, InteractionType, MessageFlags } from 'discord-api-types/v10'
-import type { BotEnv } from '../cantinaEnv'
 import worker from '../index'
 
 /**
@@ -99,7 +98,7 @@ async function signedRequest(
 /** Every data point the Worker wrote to Analytics Engine, newest last. */
 let usagePoints: AnalyticsEngineDataPoint[] = []
 
-function envFor(keys: KeyPairHex): BotEnv {
+function envFor(keys: KeyPairHex): Env {
   usagePoints = []
   return {
     USAGE: { writeDataPoint: (point) => void usagePoints.push(point ?? {}) },

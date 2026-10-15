@@ -96,8 +96,7 @@ function json(body: unknown, status: number): Response {
 }
 
 export const botRoute = httpAction(async (ctx, request) => {
-  // The old name still answers until the new one is set.
-  const expected = process.env.CANTINA_BOT_SECRET || process.env.ITUN_BOT_SECRET
+  const expected = process.env.CANTINA_BOT_SECRET
   // Unconfigured is 404, not 401: a deployment that has not opted in should be
   // indistinguishable from one where this route does not exist.
   if (expected === undefined || expected.length === 0) {

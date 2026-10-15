@@ -57,8 +57,7 @@ against a linked account and a real membership. See
   spine, and the one client (`cantina()`, installed per request from `env`)
 
 **One client that degrades.** `CANTINA_CONVEX_SITE_URL` and `CANTINA_BOT_SECRET` are
-both needed (`/health` answers 503 while either is missing; the old
-`ITUN_*` names still answer, `src/worker/cantinaEnv.ts`). When the deployment is down, unreachable or
+both needed (`/health` answers 503 while either is missing). When the deployment is down, unreachable or
 unconfigured, every call is `unavailable` and the Game commands say so as an
 outage rather than a permissions problem, while `/su roll` and `/su lookup`
 behave exactly the same. `src/__tests__/degradedMode.test.ts` is the guard;

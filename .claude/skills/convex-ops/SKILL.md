@@ -18,7 +18,7 @@ This skill is the procedures.
 ## Before anything: which deployment?
 
 Production is `exuberant-porpoise-183` (`--prod`, or `--deployment
-alex-jarvis:suref-itun:prod`). Staging is the cloud dev deployment
+alex-jarvis:susrd:prod`). Staging is the cloud dev deployment
 `perfect-donkey-72` (`--deployment perfect-donkey-72`), the Worker
 Previews' backend: only `deploy-preview.yml` pushes to it, never `dev:cantina`.
 Without either flag, `bunx convex` targets the **local** deployment `bun run
@@ -41,7 +41,7 @@ pushes overwrite. One-time setup, from `apps/cantina`:
 # Pick a local deployment. Not signed in to Convex: run `bun run dev:cantina` and
 # choose "Start without an account (run Convex locally)". Signed in, or with a
 # .env.local that names a cloud deployment:
-bunx convex dev --configure existing --team alex-jarvis --project suref-itun \
+bunx convex dev --configure existing --team alex-jarvis --project susrd \
   --dev-deployment local --once
 
 # Then, with `bun run dev:cantina` running, in a second terminal:
@@ -172,9 +172,9 @@ tested).
 
 ```bash
 cd apps/cantina
-bunx convex run --deployment alex-jarvis:suref-itun:prod \
+bunx convex run --deployment alex-jarvis:susrd:prod \
   botClient:me '{"discordId":0}'      # forces one ArgumentValidationError
-bunx convex logs --deployment alex-jarvis:suref-itun:prod --history 6 --jsonl
+bunx convex logs --deployment alex-jarvis:susrd:prod --history 6 --jsonl
 ```
 
 then the su-cantina Worker's **Issues** tab in the Cloudflare dashboard, for a

@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, test } from 'bun:test'
-import type { BotEnv } from '../cantinaEnv'
 import worker from '../index'
 
 /**
@@ -41,7 +40,7 @@ function stubFetch(
   globalThis.fetch = handler as typeof fetch
 }
 
-function envWith(overrides: Partial<BotEnv> = {}): BotEnv {
+function envWith(overrides: Partial<Env> = {}): Env {
   return {
     DISCORD_PUBLIC_KEY: 'ab'.repeat(32),
     DISCORD_APPLICATION_ID: '111111111111111111',
@@ -49,7 +48,7 @@ function envWith(overrides: Partial<BotEnv> = {}): BotEnv {
     CANTINA_CONVEX_SITE_URL: 'https://x.convex.site',
     CANTINA_BOT_SECRET: 'a-secret',
     ...overrides,
-  } as BotEnv
+  } as Env
 }
 
 const ctx = { waitUntil: () => {} }
