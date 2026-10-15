@@ -22,7 +22,7 @@ describe('the app base', () => {
 
   test("the shell's sitewide og:url and og:image point there", () => {
     const html = renderShell()
-    expect(html).toContain(`<meta property="og:url" content="${siteUrl}"/>`)
+    expect(html).toContain(`<meta property="og:url" content="${siteUrl}" />`)
     expect(html).toContain(`content="${siteUrl}og-image.png"`)
     expect(html).not.toContain('intheunionnow.com/')
   })

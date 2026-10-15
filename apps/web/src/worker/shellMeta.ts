@@ -19,38 +19,18 @@
  * tag and a default tag can never both survive for a parser to choose between.
  */
 
-import { SITE_NAME } from '../lib/documentHead'
+import type { PreviewMeta } from '../lib/documentHead'
+import { escapeMarkup, META_END, META_START, metaTags, renderTags } from '../lib/documentHead'
 import { BAR_HIDDEN_ATTRIBUTE } from '../shell/unionSlots'
 
-/** Everything the shell's meta block says for one route. */
-export type ShellMeta = {
-  title: string
-  description: string
-  /** Absolute URL of the page being served. */
-  url: string
-  /**
-   * The page's canonical address, for a page search may list
-   * (`publicPages.ts`). A shared thing's preview has none: the shell names no
-   * canonical (`shell/shell.ts`), and neither does its swap.
-   */
-  canonical?: string
-  /** The band's tone, so the unfurl's side bar matches the card. */
-  themeColor: string
-  /** The card's image, when one can be rendered; without it the unfurl is text. */
-  image?: { url: string; alt: string }
-}
-
-export const META_START = '<!-- cantina:meta:start -->'
-export const META_END = '<!-- cantina:meta:end -->'
-
-/** Minimal HTML-attribute escaping. Names are player-controlled. */
-function escapeAttr(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-}
+/**
+ * Everything the shell's meta block says for one route. `canonical` is the
+ * page's address for a page search may list (`publicPages.ts`); a shared
+ * thing's preview has none: the shell names no canonical (`shell/shell.ts`),
+ * and neither does its swap. `themeColor` is the band's tone, so the unfurl's
+ * side bar matches the card.
+ */
+export type ShellMeta = Omit<PreviewMeta, 'previewDescription' | 'type'>
 
 /** Collapse whitespace and cap length, so a long name cannot bloat the head. */
 function tidy(value: string, max: number): string {
@@ -58,40 +38,15 @@ function tidy(value: string, max: number): string {
   return flat.length > max ? `${flat.slice(0, max - 1).trimEnd()}…` : flat
 }
 
-function canonicalTag(href: string): string {
-  return `<link rel="canonical" href="${escapeAttr(href)}" />`
-}
-
-/** Render the meta block for one route. */
+/** Render the meta block for one route. Names are player-controlled: `renderTags` escapes them. */
 function renderMeta(meta: ShellMeta): string {
-  const title = escapeAttr(tidy(meta.title, 70))
-  const description = escapeAttr(tidy(meta.description, 200))
-  const url = escapeAttr(meta.url)
-  const image = meta.image
-  return [
-    META_START,
-    `<meta name="theme-color" content="${escapeAttr(meta.themeColor)}" />`,
-    `<meta name="description" content="${description}" />`,
-    `<meta property="og:type" content="website" />`,
-    `<meta property="og:site_name" content="${escapeAttr(SITE_NAME)}" />`,
-    `<meta property="og:title" content="${title}" />`,
-    `<meta property="og:description" content="${description}" />`,
-    `<meta property="og:url" content="${url}" />`,
-    ...(meta.canonical ? [canonicalTag(meta.canonical)] : []),
-    ...(image
-      ? [
-          `<meta property="og:image" content="${escapeAttr(image.url)}" />`,
-          `<meta property="og:image:width" content="1200" />`,
-          `<meta property="og:image:height" content="630" />`,
-          `<meta property="og:image:alt" content="${escapeAttr(tidy(image.alt, 120))}" />`,
-          `<meta name="twitter:card" content="summary_large_image" />`,
-          `<meta name="twitter:image" content="${escapeAttr(image.url)}" />`,
-        ]
-      : [`<meta name="twitter:card" content="summary" />`]),
-    `<meta name="twitter:title" content="${title}" />`,
-    `<meta name="twitter:description" content="${description}" />`,
-    META_END,
-  ].join('\n    ')
+  const tags = metaTags({
+    ...meta,
+    title: tidy(meta.title, 70),
+    description: tidy(meta.description, 200),
+    ...(meta.image ? { image: { ...meta.image, alt: tidy(meta.image.alt, 120) } } : {}),
+  })
+  return [META_START, renderTags(tags, '    '), META_END].join('\n    ')
 }
 
 /**
@@ -112,7 +67,7 @@ export function applyMeta(shell: string, meta: ShellMeta): string {
   // A function replacer: a string one reads `$&`, `$'` and `` $` `` in a
   // player-typed name as replacement patterns, splicing the document into
   // the title and ending the <head> early.
-  const title = `<title>${escapeAttr(tidy(meta.title, 70))}</title>`
+  const title = `<title>${escapeMarkup(tidy(meta.title, 70))}</title>`
   return withMeta.replace(/<title>[\s\S]*?<\/title>/, () => title)
 }
 
@@ -125,7 +80,8 @@ export function applyCanonical(shell: string, href: string): string {
   const start = shell.indexOf(META_START)
   const end = shell.indexOf(META_END)
   if (start === -1 || end === -1 || end < start) return shell
-  return `${shell.slice(0, end)}${canonicalTag(href)}\n    ${shell.slice(end)}`
+  const canonical = renderTags([{ tag: 'link', attrs: { rel: 'canonical', href } }])
+  return `${shell.slice(0, end)}${canonical}\n    ${shell.slice(end)}`
 }
 
 /**

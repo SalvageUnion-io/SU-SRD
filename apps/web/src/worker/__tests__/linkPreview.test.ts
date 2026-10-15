@@ -1,11 +1,12 @@
 import { afterEach, describe, expect, it } from 'bun:test'
 import { color } from '../../design/tokens'
+import { META_END, META_START } from '../../lib/documentHead'
 import { renderShell } from '../../shell/shell'
 import type { Env } from '../index'
 import worker from '../index'
 import type { ImageCache } from '../linkPreview'
 import { ogImage, previewRouteOf, versionOf } from '../linkPreview'
-import { applyMeta, META_END, META_START } from '../shellMeta'
+import { applyMeta } from '../shellMeta'
 
 /**
  * Link previews for player things. Discord's unfurler

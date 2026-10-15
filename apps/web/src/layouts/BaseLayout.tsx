@@ -18,7 +18,7 @@ import { TopNavigation } from '../components/TopNavigation'
 import { color } from '../design/tokens'
 import { DEFAULT_OG_IMAGE, SITE_URL } from '../lib/constants'
 import { SITE_LINKS } from '../lib/docPages'
-import { SITE_ICONS, SITE_NAME, THEME_COLOR } from '../lib/documentHead'
+import { metaTags, SITE_ICONS, THEME_COLOR } from '../lib/documentHead'
 import { escapeJsonForScript } from '../lib/escapeJsonForScript'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { SITE_MANIFEST } from '../pwa'
@@ -103,33 +103,26 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>{title}</title>
-        <meta name="description" content={description} />
-        <link rel="canonical" href={canonicalUrl} />
+        {/* The link-preview block every document carries (`metaTags`). All OG
+            images the site emits are 1200×630 (the default banner). */}
+        {metaTags({
+          title: ogTitle,
+          description,
+          previewDescription: ogDescription,
+          url: canonicalUrl,
+          canonical: canonicalUrl,
+          type: ogType,
+          themeColor,
+          image: { url: ogImageUrl, alt: ogImageAlt ?? ogTitle },
+        }).map(({ tag: Tag, attrs }) => (
+          <Tag key={`${Tag}:${attrs.name ?? attrs.property ?? attrs.rel}`} {...attrs} />
+        ))}
         {SITE_ICONS.map((icon) => (
           <link key={icon.href} {...icon} />
         ))}
         <link rel="manifest" href={SITE_MANIFEST} />
-        <meta name="theme-color" content={themeColor} />
         {/* Service-worker registration: public/registerSW.js. */}
         <script defer src="/registerSW.js" />
-
-        {/* Open Graph */}
-        <meta property="og:title" content={ogTitle} />
-        <meta property="og:description" content={ogDescription} />
-        <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:type" content={ogType} />
-        <meta property="og:site_name" content={SITE_NAME} />
-        {/* All OG images the site emits are 1200×630 (the default banner). */}
-        <meta property="og:image" content={ogImageUrl} />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content={ogImageAlt ?? ogTitle} />
-
-        {/* Twitter */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={ogTitle} />
-        <meta name="twitter:description" content={ogDescription} />
-        <meta name="twitter:image" content={ogImageUrl} />
 
         {/* Discord's Component Embed: a pasted link to this page renders as the
             bot's card (`src/lib/componentEmbed.ts`). Data, never run. */}

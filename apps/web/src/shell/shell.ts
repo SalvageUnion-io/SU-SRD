@@ -23,7 +23,14 @@
  */
 import { createElement, Fragment } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { SITE_ICONS, SITE_NAME, THEME_COLOR } from '../lib/documentHead'
+import {
+  META_END,
+  META_START,
+  metaTags,
+  renderTags,
+  SITE_ICONS,
+  THEME_COLOR,
+} from '../lib/documentHead'
 import { appUrl, originOf } from '../lib/site'
 import { renderUnionBar } from './unionBar'
 
@@ -38,10 +45,6 @@ const SHELL_DESCRIPTION =
 const PREVIEW_DESCRIPTION =
   'The Salvage Union Character Builder. Build and run Salvage Union Pilots, Mechs and Union Crawlers. Character sheets, roster management and shareable live sheets.'
 
-/** The markers the Worker swaps a shared page's link preview between. */
-export const META_START = '<!-- cantina:meta:start -->'
-export const META_END = '<!-- cantina:meta:end -->'
-
 /** The app's front door on production's origin; a Preview's build names its own (`shellOrigin`). */
 const siteUrl = appUrl('/', originOf())
 const ogImage = `${siteUrl}og-image.png`
@@ -50,26 +53,15 @@ const meta = (attrs: Record<string, string>) => createElement('meta', attrs)
 
 /** The sitewide link-preview block: the defaults every route starts from. */
 function previewTags(): string {
-  return renderToStaticMarkup(
-    createElement(
-      Fragment,
-      null,
-      meta({ name: 'theme-color', content: THEME_COLOR }),
-      meta({ name: 'description', content: SHELL_DESCRIPTION }),
-      meta({ property: 'og:type', content: 'website' }),
-      meta({ property: 'og:site_name', content: SITE_NAME }),
-      meta({ property: 'og:title', content: SHELL_TITLE }),
-      meta({ property: 'og:description', content: PREVIEW_DESCRIPTION }),
-      meta({ property: 'og:url', content: siteUrl }),
-      meta({ property: 'og:image', content: ogImage }),
-      meta({ property: 'og:image:width', content: '1200' }),
-      meta({ property: 'og:image:height', content: '630' }),
-      meta({ property: 'og:image:alt', content: SHELL_TITLE }),
-      meta({ name: 'twitter:card', content: 'summary_large_image' }),
-      meta({ name: 'twitter:title', content: SHELL_TITLE }),
-      meta({ name: 'twitter:description', content: PREVIEW_DESCRIPTION }),
-      meta({ name: 'twitter:image', content: ogImage })
-    )
+  return renderTags(
+    metaTags({
+      title: SHELL_TITLE,
+      description: SHELL_DESCRIPTION,
+      previewDescription: PREVIEW_DESCRIPTION,
+      url: siteUrl,
+      themeColor: THEME_COLOR,
+      image: { url: ogImage, alt: SHELL_TITLE },
+    })
   )
 }
 
