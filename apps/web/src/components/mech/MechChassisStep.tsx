@@ -14,7 +14,7 @@ import {
 } from 'salvageunion-reference/rules'
 import { chassisFitsCreationBudget } from '../../lib/rules/creation'
 import { MasonryColumns, ReferenceEntityCard, Sel, Slab, tokens } from '../index'
-import '../../styles/builder/wizard.css'
+import '../../styles/cantina/wizard.css'
 import { fullWidthStyle, textSmStyle } from '../wizard/wizardStyles.model'
 
 const HINT = {

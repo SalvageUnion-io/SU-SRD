@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { Button, ChapterBand, ModalShell, tokens } from '../index'
-import '../../styles/builder/wizard.css'
+import '../../styles/cantina/wizard.css'
 import { dialogActionsStyle, dialogBodyStyle, dialogNoteStyle } from './wizardStyles.model'
 
 /** Sheet tone context — picks the `.su-sheet--{kind}` poster theming. */

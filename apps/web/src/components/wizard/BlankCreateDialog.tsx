@@ -22,7 +22,7 @@ import { readReference } from '../../lib/readReference'
 import type { BlankCreateKind } from '../../lib/wizard/blankCreate'
 import { createBlank } from '../../lib/wizard/blankCreate'
 import { Button, Field, FieldError, Input, ModalShell, Select } from '../index'
-import '../../styles/builder/wizard.css'
+import '../../styles/cantina/wizard.css'
 import { dialogActionsStyle, dialogBodyStyle, dialogNoteStyle } from './wizardStyles.model'
 
 const noteStyle = { ...dialogNoteStyle, margin: 0 } satisfies CSSProperties

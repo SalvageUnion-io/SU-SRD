@@ -6,7 +6,7 @@ import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { invitePath } from '../../lib/games/inviteLink'
 import { SignInControl } from '../account/SignInControl'
-import { useShowContainer } from '../container/useShowContainer'
+import { useShowContainer } from '../entityContainer/useShowContainer'
 import { Badge, Button, Card, ChapterBand, FieldError, PageShell, Text, tokens } from '../index'
 import { WayOutLink } from '../shared/WayOutLink'
 

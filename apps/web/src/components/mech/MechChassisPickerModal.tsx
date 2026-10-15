@@ -18,7 +18,7 @@
 import { useEffect, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import { Button, EntitySearcher, ModalShell } from '../index'
-import '../../styles/builder/wizard.css'
+import '../../styles/cantina/wizard.css'
 import { dialogActionsStyle, dialogBodyStyle, dialogNoteStyle } from '../wizard/wizardStyles.model'
 
 type MechChassisPickerModalProps = {

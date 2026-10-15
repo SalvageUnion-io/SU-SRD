@@ -3,7 +3,7 @@ import type { RefCrawler } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
 import { crawlerMaxSpBonus, crawlerWeaponSlots } from 'salvageunion-reference/rules'
 import { Callout, EmptyState, MasonryColumns, ReferenceEntityCard, Slab, tokens } from '../index'
-import '../../styles/builder/wizard.css'
+import '../../styles/cantina/wizard.css'
 import { fullWidthStyle, stepColumnStyle } from './wizardStyles.model'
 
 const bonusStyle = { display: 'block', fontFamily: tokens.font.body } satisfies CSSProperties

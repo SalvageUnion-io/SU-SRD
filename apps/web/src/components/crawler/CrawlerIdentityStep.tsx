@@ -3,7 +3,7 @@ import type { CrawlerWizardFormState, ScrapPoolForm } from '../../lib/wizard/cra
 import { Button, Field, Input, Panel, Slab, tokens } from '../index'
 import type { CrawlerRollTableDeps } from './crawlerRollTables.model'
 import { rollCrawlerName } from './crawlerRollTables.model'
-import '../../styles/builder/wizard.css'
+import '../../styles/cantina/wizard.css'
 
 /** The step's column, capped at 48rem. */
 const COLUMN = { maxWidth: '48rem' } satisfies CSSProperties

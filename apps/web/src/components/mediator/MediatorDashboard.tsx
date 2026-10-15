@@ -18,7 +18,7 @@
 
 // The dashboard's `.su-dash-*` stylesheet (the canvas, grid and rail), loaded with
 // this route's chunk as the player Dashboard loads it with its own.
-import '../../styles/builder/dashboard.css'
+import '../../styles/cantina/dashboard.css'
 import { PROPOSALS_PAGE, proposalTargets } from 'cantina-domain/games/proposals'
 import { downtimeStepNames } from 'cantina-domain/rules/downtime'
 import { rollMorale } from 'cantina-domain/rules/opposition'

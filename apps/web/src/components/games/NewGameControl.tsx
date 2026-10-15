@@ -25,7 +25,7 @@ import { useEffect, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
-import { useShowContainer } from '../container/useShowContainer'
+import { useShowContainer } from '../entityContainer/useShowContainer'
 import { Button, Field, FieldError, Input, ModalShell, PageHeading, Text, tokens } from '../index'
 
 type TemplateId = FunctionArgs<typeof api.templates.createGame>['templateId']

@@ -92,7 +92,7 @@ check https://www.salvageunion.io/ 301 "srd www redirect"
 # cantina's is checked for the same reason.
 check https://www.intheunionnow.com/ 301 "cantina www redirect"
 # The Cantina lives at salvageunion.io/build (ADR-048), served by su-srd
-# (apps/web/src/worker/builder.ts). intheunionnow.com, where it lived before,
+# (apps/web/src/worker/cantina.ts). intheunionnow.com, where it lived before,
 # 301s every page to the same path there: a zone Redirect Rule, not repo config
 # (ADR-033, "Configuration outside the repo"). su-srd then sends a retired
 # address on to where it lives now (apps/web/src/worker/retiredRedirects.ts).

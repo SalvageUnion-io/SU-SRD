@@ -5,8 +5,8 @@
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen, within } from '@testing-library/react'
+import { inAppRoute, isCurrent } from '../../../lib/barLinks'
 import { srdOrigin } from '../../../lib/srdOrigin'
-import { inAppRoute, isCurrent } from '../../../lib/unionBar'
 import { renderUnionBar } from '../../../shell/unionBar'
 import { hidesUnionBar, slotSelector } from '../../../shell/unionSlots'
 import { UnionBarSlots } from '../UnionBarSlots'

@@ -24,7 +24,7 @@ import { serializeContainer } from '../../stores/activeContainerStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
 import type { AssignableType } from '../../stores/types'
-import { requestMove } from '../container/requestMove.model'
+import { requestMove } from '../entityContainer/requestMove.model'
 import { Button, ModalShell, Text, toast, tokens } from '../index'
 import type { Confirm } from '../shared/useConfirm'
 

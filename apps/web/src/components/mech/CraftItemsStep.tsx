@@ -4,7 +4,7 @@ import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationModule, isLegalCreationSystem } from 'salvageunion-reference/rules'
 import { maxAddableCopies } from '../../lib/rules/creation'
 import { MasonryColumns, ReferenceEntityCard, Slab, tokens } from '../index'
-import '../../styles/builder/wizard.css'
+import '../../styles/cantina/wizard.css'
 import { fullWidthStyle, textSmStyle } from '../wizard/wizardStyles.model'
 
 const EMPTY_NOTE = {

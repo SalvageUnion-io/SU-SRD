@@ -53,13 +53,13 @@ const SRD_INPUT = {
 /** The Cantina's entry, by input key (`CANTINA_CHUNK` in ssg/build.ts). */
 const CANTINA_CHUNK = 'cantina'
 
-const graph = appGraph({ srdEntries: Object.values(SRD_INPUT) })
+const graph = appGraph({ pageEntries: Object.values(SRD_INPUT) })
 
 /** A Cantina chunk group: never a module an srd page reaches (`ssg/appGraph.ts`). */
-const cantinaOnly =
+const notOnPages =
   (pattern: RegExp) =>
   (id: string): boolean =>
-    pattern.test(id) && !graph.srdReaches(id)
+    pattern.test(id) && !graph.pageReaches(id)
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -146,7 +146,7 @@ export default defineConfig({
         // `tags: ['$initial']` keeps a library only one lazy route uses (qrcode)
         // in that route's chunk. Priority decides who claims a module first.
         //
-        // No group takes a module an srd page reaches (`cantinaOnly`): the page
+        // No group takes a module an srd page reaches (`notOnPages`): the page
         // would download the whole group. Those split as Rolldown shares them.
         // There is deliberately no group for the reference package's data:
         // its JSON is dynamically imported per schema, and one chunk would
@@ -160,7 +160,7 @@ export default defineConfig({
           groups: [
             {
               name: 'zod',
-              test: cantinaOnly(/[\\/]node_modules[\\/].*[\\/]zod[\\/]/),
+              test: notOnPages(/[\\/]node_modules[\\/].*[\\/]zod[\\/]/),
               priority: 40,
             },
             {
@@ -170,13 +170,13 @@ export default defineConfig({
             },
             {
               name: 'vendor',
-              test: cantinaOnly(/[\\/]node_modules[\\/]/),
+              test: notOnPages(/[\\/]node_modules[\\/]/),
               tags: ['$initial'],
               priority: 30,
             },
             {
               name: 'reference',
-              test: cantinaOnly(/[\\/]packages[\\/]salvageunion-reference[\\/]lib[\\/]/),
+              test: notOnPages(/[\\/]packages[\\/]salvageunion-reference[\\/]lib[\\/]/),
               tags: ['$initial'],
               priority: 20,
             },
@@ -185,7 +185,7 @@ export default defineConfig({
             // whose URL is the build's name (`entryChunk` in main.tsx).
             {
               name: 'app',
-              test: cantinaOnly(
+              test: notOnPages(
                 /[\\/]apps[\\/]web[\\/](src[\\/](?!main\.tsx$)|convex[\\/])|[\\/]packages[\\/]cantina-domain[\\/]/
               ),
               tags: ['$initial'],

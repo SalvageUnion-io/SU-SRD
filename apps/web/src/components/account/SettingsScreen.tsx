@@ -14,7 +14,7 @@ import { SignInControl } from './SignInControl'
  *
  * `/account` redirects here (`routes/account.tsx`), so old links and the
  * Discord bot's still land. Your Games are listed in the masthead's Games menu
- * (`components/container/GamesMenu.tsx`), which is where a player picks what
+ * (`components/entityContainer/GamesMenu.tsx`), which is where a player picks what
  * the Roster shows.
  *
  * It wears the Hangar's clothes (`components/shelves/Shelves.tsx`): the ink

@@ -3,7 +3,7 @@ import type { RefCrawler, RefMetaCrawlerTechLevel } from 'salvageunion-reference
 import { getEntitySlug } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
 import { EmptyState, Stat, tokens } from '../index'
-import '../../styles/builder/wizard.css'
+import '../../styles/cantina/wizard.css'
 import { fullWidthStyle } from './wizardStyles.model'
 
 const statRowStyle = {

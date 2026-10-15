@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { EmptyState, ReferenceEntityCard, Slab, Stat, tokens } from '../index'
-import '../../styles/builder/wizard.css'
+import '../../styles/cantina/wizard.css'
 import { fullWidthStyle } from '../wizard/wizardStyles.model'
 
 const STAT_ROW = {

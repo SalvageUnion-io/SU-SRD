@@ -6,7 +6,7 @@
  * in their load-bearing cascade order from the one shared entry (see its
  * header), then the few page-wide rules every page shares. Each surface's own
  * stylesheet loads after it: the reference pages' `global.css`, the
- * Cantina's `builder.css`.
+ * Cantina's `cantina.css`.
  *
  * Built once, by `baseStylesheet.ts`, into `/assets/base-<hash>.css`.
  */
@@ -43,7 +43,7 @@ body {
 /*
  * The `data-print` vocabulary, one attribute with two values, and the chrome
  * no page prints. Each surface's print rules build on it: the reference
- * pages' in `global.css`, the Cantina's in `builder/print.css`.
+ * pages' in `global.css`, the Cantina's in `cantina/print.css`.
  *
  *   data-print="hide"  hide this on paper even though its element type is kept
  *   data-print="keep"  print this even though its element type is hidden

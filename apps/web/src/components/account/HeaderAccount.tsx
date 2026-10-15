@@ -1,5 +1,5 @@
 import { useConnection } from '../../lib/connection/connectionContext'
-import { GamesDrawerList, GamesMenu } from '../container/GamesMenu'
+import { GamesDrawerList, GamesMenu } from '../entityContainer/GamesMenu'
 import { AccountMenu } from './AccountMenu'
 import { SignInControl } from './SignInControl'
 

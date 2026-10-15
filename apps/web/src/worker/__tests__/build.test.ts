@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { BUILD_BASE, RUN_WORKER_FIRST, spaAssets } from '../builder'
+import { BUILD_BASE, RUN_WORKER_FIRST, spaAssets } from '../cantina'
 import type { Env } from '../index'
 import worker from '../index'
 
 /**
- * The Cantina under `/build`, served by the one Worker (`../builder.ts`): the
+ * The Cantina under `/build`, served by the one Worker (`../cantina.ts`): the
  * site's binding is `not_found_handling: none`, so its rules read a binding
  * that answers a miss under the base with the shell, as SPA mode would. Every
  * answer keeps the site's `_headers`, its one CSP included.

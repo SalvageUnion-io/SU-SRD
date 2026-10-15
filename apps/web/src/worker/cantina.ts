@@ -68,7 +68,7 @@ export const RUN_WORKER_FIRST = [BUILD_BASE, `${BUILD_BASE}/*`]
 
 type Assets = { fetch(request: Request): Promise<Response> }
 
-export type BuilderEnv = PreviewEnv & {
+export type CantinaEnv = PreviewEnv & {
   /** The site's static assets, `not_found_handling: none`. */
   ASSETS: Assets
 }
@@ -105,9 +105,9 @@ function defaultCache(): ImageCache | undefined {
  * A request under the base (`isBuildPath`); `null` for a missing file, which
  * the site answers as any other miss.
  */
-export async function serveBuilder(
+export async function serveCantina(
   request: Request,
-  siteEnv: BuilderEnv,
+  siteEnv: CantinaEnv,
   base = BUILD_BASE
 ): Promise<Response | null> {
   const url = new URL(request.url)
@@ -188,7 +188,7 @@ function isNavigation(request: Request): boolean {
  * that cached the shell under a chunk's URL revalidates against the shell's
  * ETag — so the binding is asked again without the validators.
  */
-async function fileOrMiss(request: Request, env: BuilderEnv): Promise<Response | null> {
+async function fileOrMiss(request: Request, env: CantinaEnv): Promise<Response | null> {
   const res = await env.ASSETS.fetch(request)
   if (res.status !== 304) return isShell(res) ? null : res
   return isShell(await env.ASSETS.fetch(withoutValidators(request))) ? null : res
@@ -209,7 +209,7 @@ function withoutValidators(request: Request): Request {
 async function sharedShell(
   route: PreviewRoute,
   url: URL,
-  env: BuilderEnv,
+  env: CantinaEnv,
   base: string
 ): Promise<Response> {
   const shell = await shellOf(url, env, base)
@@ -223,14 +223,14 @@ async function sharedShell(
  * Rule 2, for the front door: the shell with its canonical. The other public
  * pages are pre-rendered (`publicPages.ts`).
  */
-async function frontDoor(url: URL, env: BuilderEnv, base: string): Promise<Response> {
+async function frontDoor(url: URL, env: CantinaEnv, base: string): Promise<Response> {
   const shell = await shellOf(url, env, base)
   if (!shell.ok) return shell
   return rewritten(shell, (html) => frontDoorShell(html, url.origin, base))
 }
 
 /** The shell, read as the base's directory rather than `index.html`. */
-function shellOf(url: URL, env: BuilderEnv, base: string): Promise<Response> {
+function shellOf(url: URL, env: CantinaEnv, base: string): Promise<Response> {
   return env.ASSETS.fetch(new Request(new URL(`${base}/`, url), { method: 'GET' }))
 }
 

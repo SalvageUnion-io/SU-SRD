@@ -15,7 +15,7 @@ import type { CSSProperties } from 'react'
 import type { BlankCreateKind } from '../../lib/wizard/blankCreate'
 import { ChapterBand, ModeDoor, tokens } from '../index'
 import { AppLink } from '../shared/AppLink'
-import '../../styles/builder/wizard.css'
+import '../../styles/cantina/wizard.css'
 
 type CreateModeChooserProps = {
   kind: BlankCreateKind

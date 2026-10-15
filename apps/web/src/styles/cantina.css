@@ -5,23 +5,23 @@
  */
 /* The Cantina's print rules, over the shared `data-print` vocabulary in
    `base.css`. index.css declares no print rules of its own. */
-@import './builder/print.css';
+@import './cantina/print.css';
 /* GlobalSearch's result-row hover/selected ground. */
-@import './builder/globalSearch.css';
+@import './cantina/globalSearch.css';
 /* The NPC designer's responsive rules (step strip, phone preview). */
-@import './builder/npc.css';
+@import './cantina/npc.css';
 /* The Shelves band's paper-on-ink controls. */
-@import './builder/shelves.css';
+@import './cantina/shelves.css';
 /* The stateful halves of the Cantina's other components. */
-@import './builder/unitSlot.css';
-@import './builder/routeStates.css';
-@import './builder/screens.css';
-@import './builder/controls.css';
+@import './cantina/unitSlot.css';
+@import './cantina/routeStates.css';
+@import './cantina/screens.css';
+@import './cantina/controls.css';
 /* The live and public sheet. */
-@import './builder/sheet.css';
+@import './cantina/sheet.css';
 /* src/components classes handed back their own type over this file's heading
    rule. */
-@import './builder/libHandback.css';
+@import './cantina/libHandback.css';
 
 /* === Base layout === */
 html,

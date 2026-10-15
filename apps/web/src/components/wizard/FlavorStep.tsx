@@ -1,5 +1,5 @@
 import { Field, Input, Textarea } from '../index'
-import '../../styles/builder/wizard.css'
+import '../../styles/cantina/wizard.css'
 import { RollTableButton } from './RollTableButton'
 import type { PilotRollField, RollTableDeps } from './rollTableHelpers.model'
 import { fieldRowStyle, stepColumnStyle } from './wizardStyles.model'

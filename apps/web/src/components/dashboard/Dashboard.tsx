@@ -54,7 +54,7 @@ import { buttonVariants, EmptyState } from '../index'
 // import no CSS themselves — that rode the barrel into srd — so
 // the one app that renders a dashboard loads it here, and it lands in this
 // route's chunk rather than in every page's stylesheet.
-import '../../styles/builder/dashboard.css'
+import '../../styles/cantina/dashboard.css'
 import { resolveEffectiveCrawlerLevel } from 'cantina-domain/crawlerLevel'
 import { downtimeStepCount, isUpkeepStep } from 'cantina-domain/rules/downtime'
 import { pilotingContext } from 'cantina-domain/rules/pilotingContext'

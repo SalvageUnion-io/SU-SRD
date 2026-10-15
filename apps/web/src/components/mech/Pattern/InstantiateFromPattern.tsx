@@ -22,7 +22,7 @@ import { useServerAction } from '../../../lib/connection/useServerAction'
 import { mechFromPattern } from '../../../lib/patterns/patterns'
 import { useEntityStore } from '../../../stores/entityStore'
 import { Button, FieldError, ModalShell, tokens } from '../../index'
-import '../../../styles/builder/wizard.css'
+import '../../../styles/cantina/wizard.css'
 import {
   dialogActionsStyle,
   dialogBodyStyle,

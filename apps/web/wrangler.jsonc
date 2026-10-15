@@ -1,7 +1,7 @@
 {
   // salvageunion.io on Workers Static Assets (ADR-033): the one Worker for
   // the whole app. The script runs only for a miss and for everything under
-  // `/build`, the Cantina's (src/worker/index.ts, src/worker/builder.ts);
+  // `/build`, the Cantina's (src/worker/index.ts, src/worker/cantina.ts);
   // every header on a real file is public/_headers. Built in GitHub Actions, not Workers Builds
   // (ADR-033 §4).
   "name": "su-srd",
@@ -70,7 +70,7 @@
     // pre-rendered, so a miss is genuinely a miss.
     "not_found_handling": "none",
     // `/build` and below: the Cantina, whose Worker reads every answer
-    // (src/worker/builder.ts, `RUN_WORKER_FIRST`, which the routing test holds
+    // (src/worker/cantina.ts, `RUN_WORKER_FIRST`, which the routing test holds
     // equal). A positive list only: a negative pattern sends its matches
     // straight to the assets, and `true` would run the script for every SRD
     // page.

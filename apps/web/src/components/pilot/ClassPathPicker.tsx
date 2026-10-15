@@ -14,7 +14,7 @@ import type { RefClass } from 'salvageunion-reference'
 import type { ClassPathConsequence } from '../../lib/rules/classPath'
 import { classPathConsequence, classPathGroups } from '../../lib/rules/classPath'
 import { Callout, Entity, RadioCardGroup, ReferenceEntityCard, Slab, tokens } from '../index'
-import '../../styles/builder/wizard.css'
+import '../../styles/cantina/wizard.css'
 
 /** An unreachable (off-ring) class, demoted but still pickable. */
 const DIMMED = { opacity: 0.7 } satisfies CSSProperties

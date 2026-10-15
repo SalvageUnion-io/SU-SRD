@@ -8,7 +8,7 @@
 
 import type { CSSProperties } from 'react'
 import { tokens } from '../index'
-import '../../styles/builder/wizard.css'
+import '../../styles/cantina/wizard.css'
 
 /** Static half; the colour, which brightens on hover, is `.su-wiz-off-rules`. */
 const escapeStyle = {

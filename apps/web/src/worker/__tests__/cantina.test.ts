@@ -7,7 +7,7 @@ import worker from '../index'
 /**
  * The Cantina at salvageunion.io/build (ADR-048), which the one Worker runs
  * first for every request under the base: it reads each answer through an
- * asset binding that answers a miss with the shell (see `../builder.ts`).
+ * asset binding that answers a miss with the shell (see `../cantina.ts`).
  *
  * The rule that has already broken production: `/assets/*` on a miss must be
  * **404**, never the SPA shell. Answering 200 with HTML let the `immutable`

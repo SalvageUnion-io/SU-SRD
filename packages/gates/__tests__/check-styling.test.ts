@@ -238,7 +238,7 @@ describe('tokens rule set', () => {
     const ref = "filter: 'url(#su-blot)', opacity: tokens.texture.blotOpacity"
     for (const file of [
       'apps/web/src/components/dashboard/MajorFrame.tsx',
-      'apps/web/src/styles/builder/dashboard/instruments.css',
+      'apps/web/src/styles/cantina/dashboard/instruments.css',
       'apps/web/src/components/atoms/Button.tsx',
       'apps/web/src/components/atoms/KofiButton.tsx',
       'apps/web/src/components/atoms/buttonVariants.ts',
@@ -287,7 +287,7 @@ describe('tokens rule set', () => {
       '--color-wk-bg-2',
       'wkBg2',
     ])
-    expect(scan('apps/web/src/styles/builder/print.css', text)['cool-ground']).toEqual([])
+    expect(scan('apps/web/src/styles/cantina/print.css', text)['cool-ground']).toEqual([])
   })
 })
 
@@ -306,12 +306,12 @@ const STYLING_BASE: Record<string, string> = {
   [ENTRY]:
     "@layer su-reset, su-base;\n@import './theme.css';\n@import './reset.css' layer(su-reset);\n@import './index.css' layer(su-base);\n",
   'apps/web/src/styles/base.css': "@import './entry.css';\n",
-  'apps/web/src/styles/builder.css': "@import './styles/print.css';\n",
+  'apps/web/src/styles/cantina.css': "@import './styles/print.css';\n",
   'apps/web/src/styles/global.css': "@import './pages.css';\n",
-  'apps/web/src/styles/builder/dashboard/DashboardCanvas.css': '.su-dash-used { color: red }\n',
-  'apps/web/src/styles/builder/dashboard/DashboardGrid.css': '',
-  'apps/web/src/styles/builder/dashboard/instruments.css': '',
-  'apps/web/src/styles/builder/dashboard/DashboardPhone.css': '',
+  'apps/web/src/styles/cantina/dashboard/DashboardCanvas.css': '.su-dash-used { color: red }\n',
+  'apps/web/src/styles/cantina/dashboard/DashboardGrid.css': '',
+  'apps/web/src/styles/cantina/dashboard/instruments.css': '',
+  'apps/web/src/styles/cantina/dashboard/DashboardPhone.css': '',
   'apps/web/src/components/dashboard/Thing.tsx':
     'export const T = () => <div className="su-dash-used" />\n',
 }
@@ -395,7 +395,7 @@ describe('styling rule set', () => {
     const found = stylingOwnership.scan(
       fixture({
         ...STYLING_BASE,
-        'apps/web/src/styles/builder/dashboard/DashboardGrid.css': '.su-dash-dead { color: red }\n',
+        'apps/web/src/styles/cantina/dashboard/DashboardGrid.css': '.su-dash-dead { color: red }\n',
       })
     )
     expect(found['dash-class-contract']?.map((f) => f.detail)).toEqual([
@@ -498,7 +498,7 @@ describe('styling rule set', () => {
     const found = stylingOwnership.scan(
       fixture({
         ...STYLING_BASE,
-        'apps/web/src/styles/builder.css': "@import './entry.css';\n",
+        'apps/web/src/styles/cantina.css': "@import './entry.css';\n",
       })
     )
     expect(found['package-stylesheet-import']?.map((f) => f.detail)).toEqual([
@@ -523,7 +523,7 @@ describe('styling rule set', () => {
 describe('class-prefix rule set', () => {
   test('a clean fixture has no findings', () => {
     const found = classPrefix.scan(
-      fixture({ 'apps/web/src/styles/builder/a.css': '.su-a, .su-b:hover { color: red }\n' })
+      fixture({ 'apps/web/src/styles/cantina/a.css': '.su-a, .su-b:hover { color: red }\n' })
     )
     expect(found['class-prefix']).toEqual([])
   })
@@ -531,7 +531,7 @@ describe('class-prefix rule set', () => {
   test('a class without the su- prefix is found, nested ones included, in every stylesheet', () => {
     const found = classPrefix.scan(
       fixture({
-        'apps/web/src/styles/builder/wizard.css':
+        'apps/web/src/styles/cantina/wizard.css':
           '/* .wiz-old in a comment is prose */\n.su-wiz-ok, .wiz-pill:hover { color: red }\n@media (min-width: 40rem) {\n  .su-wiz-ok .npc-step { color: red }\n}\n',
         'apps/web/src/styles/theme.css':
           ".sheet--pilot,\n.su-sheet--mech { --tone: red }\n@import 'x.css';\n",
@@ -539,8 +539,8 @@ describe('class-prefix rule set', () => {
       })
     )
     expect(found['class-prefix']?.map((f) => `${f.file}:${f.line} ${f.detail}`)).toEqual([
-      'apps/web/src/styles/builder/wizard.css:2 .wiz-pill is not a .su-* class',
-      'apps/web/src/styles/builder/wizard.css:4 .npc-step is not a .su-* class',
+      'apps/web/src/styles/cantina/wizard.css:2 .wiz-pill is not a .su-* class',
+      'apps/web/src/styles/cantina/wizard.css:4 .npc-step is not a .su-* class',
       'apps/web/src/styles/pages.css:1 .srd-page is not a .su-* class',
       'apps/web/src/styles/theme.css:1 .sheet--pilot is not a .su-* class',
     ])

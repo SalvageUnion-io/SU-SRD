@@ -18,7 +18,7 @@ import { useState } from 'react'
 import { useServerAction } from '../../../lib/connection/useServerAction'
 import { usePatternStore } from '../../../stores/patternStore'
 import { Button, Field, FieldError, Input, ModalShell, toast } from '../../index'
-import '../../../styles/builder/wizard.css'
+import '../../../styles/cantina/wizard.css'
 import { dialogActionsStyle, dialogBodyStyle } from '../../wizard/wizardStyles.model'
 
 type SavePatternButtonProps = {

@@ -22,7 +22,7 @@ import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
 import { EMPTY_CRAWLER_FORM_STATE } from '../../lib/wizard/crawlerFormState'
 import type { EntityState } from '../../stores/entityStore'
 import { Button, EntitySearcher, ModalShell, toast, tokens } from '../index'
-import '../../styles/builder/wizard.css'
+import '../../styles/cantina/wizard.css'
 
 /** The confirm dialog's body. */
 const CONFIRM_BODY = {

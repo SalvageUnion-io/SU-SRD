@@ -37,7 +37,7 @@ const LIB_CSS = new Set(
 )
 const notLib = (rel: string) =>
   !LIB_CSS.has(rel) && !rel.startsWith('apps/web/src/styles/partials/')
-const DASHBOARD_DIR = 'apps/web/src/styles/builder/dashboard'
+const DASHBOARD_DIR = 'apps/web/src/styles/cantina/dashboard'
 
 /** The file sets the rules share, gathered once per scan. Repo-relative paths. */
 type Corpus = {
@@ -316,7 +316,7 @@ const STYLESHEET_ENTRY = 'apps/web/src/styles/entry.css'
 /** The consumer (the base stylesheet, `apps/web/src/styles/baseStylesheet.ts`), then the apps' own, which must not import it again. */
 const ENTRY_CONSUMERS = [
   'apps/web/src/styles/base.css',
-  'apps/web/src/styles/builder.css',
+  'apps/web/src/styles/cantina.css',
   'apps/web/src/styles/global.css',
 ] as const
 
@@ -549,7 +549,7 @@ const RULES: OwnershipRule[] = [
     id: 'dash-class-contract',
     mode: 'zero',
     rule: 'source-of-truth §the dashboard class contract is closed and bidirectional',
-    fix: 'used-but-undefined: define the `su-dash-*` class in apps/web/src/styles/builder/dashboard/*.css (or fix the className typo in the .tsx). defined-but-unused: delete the dead rule, or reference it. Match the EXACT class name — su-dash-display and su-dash-display-light are different classes.',
+    fix: 'used-but-undefined: define the `su-dash-*` class in apps/web/src/styles/cantina/dashboard/*.css (or fix the className typo in the .tsx). defined-but-unused: delete the dead rule, or reference it. Match the EXACT class name — su-dash-display and su-dash-display-light are different classes.',
     scan: scanDashContract,
   },
   {
