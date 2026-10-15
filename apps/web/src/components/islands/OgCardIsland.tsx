@@ -120,7 +120,7 @@ function OgCardResolved() {
 }
 
 /** The default preview's kicker; the Discord banner's says the Cantina's. */
-const SRD_KICKER = 'The Salvage Union SRD'
+const SRD_KICKER = 'SRD and Character Manager'
 
 /**
  * Deliberately NOT wrapped in `IslandErrorBoundary`: this is rendered by the
