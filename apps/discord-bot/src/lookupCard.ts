@@ -112,7 +112,7 @@ function rollButtons(hit: LookupHit): ButtonSpec[] {
 
 /**
  * The linked-entries menu: one option per entry the card links (its children
- * groups, in the card's order), at most Discord's 25. Each value is the entry's
+ * groups, in the card's order, then the classes a class advances into), at most Discord's 25. Each value is the entry's
  * key, so a pick needs nothing but itself. Null when the card links nothing, or
  * the menu's id would not fit Discord's cap.
  */
@@ -120,7 +120,11 @@ function linkedMenu(hit: LookupHit): ContainerBlock | null {
   const parts = partsOf(hit)
   const options: Extract<ContainerBlock, { kind: 'select' }>['options'] = []
   const seen = new Set<string>()
-  for (const group of parts.children) {
+  const groups = [
+    ...parts.children,
+    ...(parts.headLinks.length > 0 ? [{ label: 'Advances into', items: parts.headLinks }] : []),
+  ]
+  for (const group of groups) {
     for (const item of group.items) {
       // Linked on the card, so linked here: never a synthetic record or an action.
       if (item.synthetic || item.schemaName === 'actions' || !isSchemaName(item.schemaName)) {
