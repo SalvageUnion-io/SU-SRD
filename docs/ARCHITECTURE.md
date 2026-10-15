@@ -142,7 +142,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
 10. **ADR-010 Choices in the shared display**
     Accepted: `ChoiceGroups` is uncontrolled in srd and controlled, persisted, in Cantina; `readOnly` renders static text.
 11. **ADR-011 component-lib ships TypeScript source**
-    Accepted: no build step; React is a peer; data-source agnostic, behaviour injected through slot props.
+    Accepted: no build step; data-source agnostic, behaviour injected through slot props. Amended by ADR-050 (now `src/ui`).
 12. **ADR-012 srd as an Astro static site**
     Superseded by ADR-031, which keeps the static, no-backend, islands decision.
 13. **ADR-013 CSP-compliant Zod**
@@ -188,12 +188,12 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Accepted, governing: Discord-only accounts; Convex of record; Games and Shelves; roles; cross-player writes by proposal.
     Amends ADR-022; supersedes ADR-001. Amended by ADR-032, ADR-034, ADR-037 and ADR-038 (ADR-039's amendment retired with it).
 31. **ADR-031 srd builds on an in-house Vite SSG**
-    Accepted; supersedes ADR-012. Registered routes, `renderToStaticMarkup`, React islands; contract `apps/web/ssg/DESIGN.md`.
+    Accepted; supersedes ADR-012. Registered routes, `renderToStaticMarkup`, React islands; contract `apps/web/ssg/DESIGN.md`. Amended by ADR-050.
 32. **ADR-032 Public, read-only sheets** · [full text](adr/032-public-read-only-sheets.md)
     Accepted: opt-in `publicRead` per entity; the owner decides, the table runner for a crawler.
     Amends ADR-030's visibility rule; amended by ADR-036.
 33. **ADR-033 Hosting on Cloudflare** · [full text](adr/033-hosting-on-cloudflare.md)
-    Accepted, delivered: Workers (Static Assets, R2) serve every site; Actions builds, `wrangler` deploys. Amended by ADR-047, ADR-048.
+    Accepted, delivered: Workers (Static Assets, R2) serve every site; Actions builds, `wrangler` deploys. Amended by ADR-047, ADR-048, ADR-050.
 34. **ADR-034 Persistence requires an account; the local store is a cache**
     Accepted: signed out is read-only, every record is Convex-backed, both apps are PWAs; the pre-account migration is gone.
     Supersedes ADR-030's Solo guarantee; amends ADR-002 and ADR-022. [No device cache](#no-device-cache) followed.
@@ -235,6 +235,9 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Accepted, not built: `su-srd` serves `api.salvageunion.io` too, from one `dist/`; `assets.` stays apart.
     Supersedes ADR-043 decision 1; amends ADR-033.
 48. **ADR-048 Cantina at salvageunion.io/build**
-    Accepted, built: su-srd serves `/build`; the old host 301s by zone rule. Amends ADR-033.
+    Accepted, built: su-srd serves `/build`; the old host 301s by zone rule. Amends ADR-033; amended by ADR-050.
 49. **ADR-049 Workers Issues, not Sentry**
     Accepted, built: no SDK; browsers and Convex report via the Workers; browser stacks minified.
+50. **ADR-050 One app, two render modes** · [full text](adr/050-one-app-two-render-modes.md)
+    Accepted, built: `apps/web` holds the pre-rendered SRD and the client-only Cantina at `/build/`; one Worker, header and manifest.
+    Amends ADR-011, ADR-031, ADR-033 and ADR-048.
