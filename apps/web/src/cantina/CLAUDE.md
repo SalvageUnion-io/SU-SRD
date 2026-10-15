@@ -120,8 +120,8 @@ bun --filter web typecheck
 ```
 
 Served at **salvageunion.io/build** (ADR-048): base `/build/` everywhere, dev
-too (`lib/site.ts`); e2e opens routes via `at()`. Vite's root is this folder
-(`vite.cantina.config.ts`); the workspace's one `bun run build` writes it to
-`dist/build/` after srd (`ssg/build.ts`), and su-srd serves it there, running
-`worker/` for `/build` (`src/worker/build.ts`). `bun run preview` serves both
+too (`lib/site.ts`); e2e opens routes via `at()`. The workspace's one Vite
+pass (`vite.config.ts`) builds it beside srd: its shell is `dist/build/`, its
+chunks share `dist/assets/`, and su-srd serves it, running `worker/` for
+`/build` (`src/worker/build.ts`). `bun run preview` serves both
 through the workspace's `wrangler.jsonc`.

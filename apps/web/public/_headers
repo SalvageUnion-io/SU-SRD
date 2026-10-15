@@ -50,7 +50,7 @@
 https://su-srd.alxjrvs.workers.dev/*
   X-Robots-Tag: noindex
 
-# Content-hashed bundle output (`ssg/vite.config.ts` uses Vite's default
+# Content-hashed bundle output (`vite.config.ts` uses Vite's default
 # assetsDir). If it ever sets a different build.assetsDir, change this with it,
 # and the Worker's `/assets/` prefix too. A MISS here never sees this rule: the
 # Worker answers it with `no-store` (src/worker/index.ts).

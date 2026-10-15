@@ -25,10 +25,13 @@ One workspace, `apps/web`, holds both apps, in two render modes:
    SSG, under the 20 KB JS budget, with no Convex on the page and a CSP without
    Convex origins. Biome bars SRD `pages`, `endpoints`, `runtime` and islands
    from importing `src/cantina` or `convex`.
-2. **The Cantina is a client app at `/build/`.** Its own Vite build
-   (`vite.cantina.config.ts`) writes `dist/build/`; `src/cantina/shell/shell.ts`
-   renders its HTML shell at build time with the Union bar, and the public
-   pages' shells and `/build/sitemap.xml` are pre-rendered with real titles.
+2. **The Cantina is a client app at `/build/`.** One Vite pass
+   (`vite.config.ts`) builds both apps into one `dist/`: srd's entries, and the
+   Cantina's shell as `dist/build/index.html`, rendered at build time with the
+   Union bar (`src/cantina/shell/shell.ts`). Their chunks share `dist/assets/`;
+   no Cantina chunk group takes a module an srd page reaches
+   (`ssg/appGraph.ts`). The public pages' shells and `/build/sitemap.xml` are
+   pre-rendered with real titles.
 3. **One Worker.** `su-srd` answers SRD misses and, through
    `run_worker_first` on `/build` and `/build/*`, everything under `/build`, setting the
    Cantina's CSP there. `su-cantina` is retired.
@@ -44,8 +47,10 @@ One workspace, `apps/web`, holds both apps, in two render modes:
 
 ## Deviations from the plan
 
-- The `/build/` shell is the Cantina build's own render, not an SRD SSG page,
-  so the Cantina's chunking and the srd build stay independent.
+- The `/build/` shell is the Vite pass's own render, not an SRD SSG page.
+- The plan kept two Vite builds; they are one pass, one config. The Vite pass
+  runs in its own process (`ssg/bundle.ts`), because the shell needs
+  production React and the SSR render after it runs development React.
 - Coverage floors stay per folder: `apps/web (srd)` 99, `apps/web (cantina)` 97,
   `apps/web (ui)` 95.5 (`tools/run-coverage.ts`).
 
@@ -53,8 +58,8 @@ One workspace, `apps/web`, holds both apps, in two render modes:
 
 - One deploy leg and one Preview per PR; `deploy-surfaces.ts` maps every
   `apps/web` change onto the `srd` surface.
-- One `bun run dev` serves both, with the Cantina's Vite server in middleware
-  mode beside a local Convex.
-- Two Vite builds remain; merging them waits on reconciling the Cantina's chunk
-  groups with the SRD's per-schema data chunks.
+- One `bun run dev` serves both from one Vite server on the same config,
+  beside a local Convex.
+- Each app's service worker precaches only its own files: srd's drops what
+  only the Cantina loads, and the Cantina's adds its chunks from `assets/`.
 - Commit scopes `srd` and `cantina` stay, because `/changelog` sorts by them.

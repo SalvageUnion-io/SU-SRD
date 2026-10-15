@@ -2,17 +2,16 @@
  * baseStylesheet — the one stylesheet both apps link: the Barlow faces and the
  * src/ui entry (`./base.css`), at `/assets/base-<hash>.css`.
  *
- * srd and the Cantina are two Vite passes of the one `bun run build`, and each
- * once bundled the fonts and the package stylesheet into its own CSS, under its
- * own base: a visit crossing from one to the other downloaded the same ~115 KB
- * twice, from two URLs. Both passes now run THIS build, with the same input and
- * the same options, so both link the same URL. srd's pass writes the files to
- * `dist/assets/`; the Cantina's checks that they are byte for byte the ones it
- * links, and fails the build if not.
+ * srd and the Cantina once bundled the fonts and the package stylesheet into
+ * their own CSS, under their own bases: a visit crossing from one to the other
+ * downloaded the same ~115 KB twice, from two URLs. It is built once here, with
+ * no config either app could change, and the one Vite pass (`vite.config.ts`)
+ * emits it (`emitBaseStylesheet`) and links it from the Cantina's shell
+ * (`baseStylesheetLink`, `ssg/cantinaPlugins.ts`); srd's pages link it from
+ * the manifest (`ssg/build.ts`).
  *
  * In dev there is nothing to build: both apps link `/src/styles/base.css`,
- * which srd's Vite server serves as CSS (`ssg/dev.ts` routes every path outside
- * `/build/` to it).
+ * which the dev server serves as CSS.
  */
 
 import { fileURLToPath } from 'node:url'
@@ -73,8 +72,8 @@ async function run(): Promise<BaseStylesheet> {
 }
 
 /**
- * srd's half: the files go into its bundle, at their own names, so its service
- * worker precaches them like the rest of `dist/assets/`.
+ * The files go into the bundle at their own names, so srd's service worker
+ * precaches them like the rest of `dist/assets/`.
  */
 export function emitBaseStylesheet(): Plugin {
   return {

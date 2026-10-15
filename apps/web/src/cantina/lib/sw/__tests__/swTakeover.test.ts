@@ -1,5 +1,5 @@
 /**
- * `public/sw-takeover.js` — the one-time takeover from a legacy worker —
+ * `public/build/sw-takeover.js` — the one-time takeover from a legacy worker —
  * run against a fake worker global. It is plain JS evaluated in the worker's
  * scope, so the test evaluates its source with `self` bound to the fake.
  */
@@ -9,7 +9,10 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { WORKBOX_OPTIONS } from '../workbox'
 
-const SOURCE = readFileSync(join(import.meta.dir, '../../../public/sw-takeover.js'), 'utf-8')
+const SOURCE = readFileSync(
+  join(import.meta.dir, '../../../../../public/build/sw-takeover.js'),
+  'utf-8'
+)
 
 type Listener = (event: { waitUntil(promise: Promise<unknown>): void }) => void
 

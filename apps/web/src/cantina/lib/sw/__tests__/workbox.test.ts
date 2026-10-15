@@ -2,7 +2,7 @@
  * The service worker's workbox options (`../workbox.ts`) — the half of "every
  * visit gets the latest version" that lives in the worker.
  *
- * These are the values `vite.cantina.config.ts` hands `VitePWA`, asserted directly.
+ * These are the values `vite.config.ts` hands `VitePWA`, asserted directly.
  * What they cannot prove is how workbox-build renders them into `sw.js`; that
  * was checked against a real build (the emitted worker registers
  * `precacheAndRoute(…, {directoryIndex: null})` and a `NetworkOnly` navigation

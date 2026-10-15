@@ -197,7 +197,7 @@ Production builds with `VITE_CONVEX_URL` from `CANTINA_CONVEX_URL` in
 `.github/workflows/deploy-cloudflare.yml`, whose `push-convex` job refuses to
 push if it differs from the URL the deploy key resolves to; a change takes
 effect on the next deploy. Unset, the cantina build fails (`requireConvexUrl` in
-`apps/web/vite.cantina.config.ts`), and with it the deploy: there is no build without
+`apps/web/vite.config.ts`), and with it the deploy: there is no build without
 a deployment, so taking Convex out of the path is an outage, not a toggle.
 
 ## Report

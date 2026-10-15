@@ -98,7 +98,7 @@ const CONTENT_TYPES: Record<string, string> = {
 /**
  * The security headers srd and cantina send from `public/_headers` (`/*`), which
  * Static Assets applies there and nothing applies here: this Worker builds every
- * response itself. `headers.test.ts` holds the three in agreement.
+ * response itself. `headers.test.ts` holds the two in agreement.
  */
 export const BASE_SECURITY_HEADERS: Readonly<Record<string, string>> = {
   'x-frame-options': 'DENY',

@@ -71,7 +71,7 @@ createRoot(rootEl, reactRootErrorHandlers).render(
 )
 
 // The one service-worker registration: `virtual:pwa-register`, handed to
-// lib/sw/register.ts. `registerType: 'prompt'` (vite.cantina.config.ts) means a new
+// lib/sw/register.ts. `registerType: 'prompt'` (vite.config.ts) means a new
 // worker installs and then waits rather than claiming this page mid-session.
 // A breaking deploy's build floor reloads an open tab at once
 // (lib/connection/buildFloor.ts); a compatible one waits for its next page

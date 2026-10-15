@@ -17,11 +17,11 @@ import { dirname, join } from 'node:path'
  *
  * A `connect-src` that blocks the report's destination blocks every error in
  * the browser while the app looks completely healthy. Each app has one CSP
- * source, its `public/_headers`, which must declare a `connect-src` allowing
- * `'self'`, where the app posts its reports.
+ * source (srd's `public/_headers`, the Cantina's `CANTINA_CSP`), which must
+ * declare a `connect-src` allowing `'self'`, where the app posts its reports.
  */
 
-const CANTINA_HEADERS = 'apps/web/src/cantina/public/_headers'
+const CANTINA_HEADERS = 'apps/web/src/worker/build.ts'
 
 const ROOT = join(import.meta.dir, '..', '..')
 const TOOL = join(ROOT, 'tools', 'check-observability.ts')
@@ -112,7 +112,7 @@ describe('check-observability CSP', () => {
   test("'self' named only in a comment does not count", async () => {
     await withFileContents(
       CANTINA_HEADERS,
-      (s) => `${s.replace(SELF, 'connect-src https://example.invalid')}\n# ${SELF}\n`,
+      (s) => `${s.replace(SELF, 'connect-src https://example.invalid')}\n// ${SELF}\n`,
       async () => {
         const { exitCode, stderr } = await runCheck()
         expect(exitCode).toBe(1)

@@ -6,7 +6,7 @@
  * because the SSR pass runs under Bun and never goes through Vite:
  *
  *   1. **Emit** — this file. It is a client-bundle entry (see
- *      `ssg/vite.config.ts`), so importing an asset here makes Vite copy it into
+ *      `vite.config.ts`), so importing an asset here makes Vite copy it into
  *      `dist/assets/` with a content hash and record it in
  *      `dist/.vite/manifest.json` under its source path.
  *   2. **Address** — `ssg/build.ts` reads those manifest entries into

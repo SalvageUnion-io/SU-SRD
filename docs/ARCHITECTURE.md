@@ -239,5 +239,5 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
 49. **ADR-049 Workers Issues, not Sentry**
     Accepted, built: no SDK; browsers and Convex report via the Workers; browser stacks minified.
 50. **ADR-050 One app, two render modes** · [full text](adr/050-one-app-two-render-modes.md)
-    Accepted, built: `apps/web` holds the pre-rendered SRD and the client-only Cantina at `/build/`; one Worker, header and manifest.
+    Accepted, built: `apps/web` holds the pre-rendered SRD and the client-only Cantina at `/build/`; one Vite pass, Worker, header and manifest.
     Amends ADR-011, ADR-031, ADR-033 and ADR-048.

@@ -32,9 +32,10 @@ export const BUILD_BASE = '/build'
 export const RUN_WORKER_FIRST = [BUILD_BASE, `${BUILD_BASE}/*`]
 
 /**
- * The Cantina's Content-Security-Policy: `apps/web/src/cantina/public/_headers`, which
- * the routing test holds equal. `connect-src` keeps 'self' (error reports) and
- * the Convex origins (the accounts client, ADR-030).
+ * The Cantina's Content-Security-Policy, set on every `/build` answer; the
+ * rest of its headers are srd's `public/_headers` `/*` block, as for every
+ * file. `connect-src` keeps 'self' (error reports, `tools/check-observability.ts`)
+ * and the Convex origins (the accounts client, ADR-030).
  */
 export const CANTINA_CSP =
   "default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com https://*.convex.cloud wss://*.convex.cloud https://*.convex.site;"

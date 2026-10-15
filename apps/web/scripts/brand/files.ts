@@ -8,7 +8,7 @@ import { markSvg } from './mark'
 export const SVG_FILES: Record<string, string> = {
   'apps/web/public/logos/su-cargo-dark.svg': markSvg({ title: 'Salvage Union' }),
   'apps/web/public/favicons/su/favicon.svg': markSvg({ title: 'Salvage Union SRD' }),
-  'apps/web/src/cantina/public/favicon.svg': markSvg({ title: 'The Cantina' }),
+  'apps/web/public/build/favicon.svg': markSvg({ title: 'The Cantina' }),
   'apps/discord-bot/brand/icon.svg': markSvg({
     title: 'Salvage Union',
     avatar: true,

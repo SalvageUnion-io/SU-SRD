@@ -2,10 +2,10 @@ import { basePathOf } from './site'
 
 /**
  * The path every Cantina URL starts with, without a trailing slash: `/build`
- * (ADR-048, `site.ts`). Read from the built bundle's `BASE_URL`, which Vite
- * sets from `base`; Bun's tests have none, so they see the root.
+ * (ADR-048, `site.ts`). Read from `CANTINA_BASE`, which `vite.config.ts`
+ * defines; Bun's tests have none, so they see the root.
  */
-export const BASE_PATH = basePathOf(import.meta.env.BASE_URL ?? '/')
+export const BASE_PATH = basePathOf(import.meta.env.CANTINA_BASE ?? '/')
 
 /**
  * An absolute link to a Cantina route, for a link that leaves the app: copied to

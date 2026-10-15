@@ -66,7 +66,7 @@ async function generateRouteTree(root: string, scratch: string): Promise<void> {
 }
 
 if (import.meta.main) {
-  const root = join(import.meta.dir, '../src/cantina')
+  const root = join(import.meta.dir, '..')
   const target = join(root, ROUTER_PLUGIN_OPTIONS.generatedRouteTree)
   try {
     await replaceAtomically(target, (scratch) => generateRouteTree(root, scratch))

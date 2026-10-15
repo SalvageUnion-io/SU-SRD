@@ -3,7 +3,7 @@
  * rendered at build time rather than kept as a hand-written `index.html`.
  *
  * Vite takes it as the app's HTML entry (`cantinaShell` in
- * `vite.cantina.config.ts`): the build injects the hashed entry, its CSS and
+ * `ssg/cantinaPlugins.ts`): the build injects the hashed entry, its CSS and
  * modulepreloads and writes `dist/build/index.html`, which the Worker
  * serves and the service worker precaches; the dev server answers navigations
  * with it. Plain `createElement`, no JSX and only relative imports, because the
@@ -101,7 +101,7 @@ function headTags(): string {
 
 /**
  * The body: the Union bar (`./unionBar`), the root the app mounts on, and
- * `/main.tsx`, the source entry, which the build replaces with its hashed chunk
+ * `main.tsx`, the source entry, which the build replaces with its hashed chunk
  * (and the dev server serves as is).
  */
 function bodyTags(): string {
@@ -112,7 +112,7 @@ function bodyTags(): string {
         Fragment,
         null,
         createElement('div', { id: 'root' }),
-        createElement('script', { type: 'module', src: '/main.tsx' })
+        createElement('script', { type: 'module', src: '/src/cantina/main.tsx' })
       )
     )
   )

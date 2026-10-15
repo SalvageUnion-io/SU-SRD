@@ -1,17 +1,14 @@
 /**
  * build — the site's one build: srd's pages and the Cantina, into one `dist/`.
  *
- *   1. `vite build` (client only): the islands entry, the css entry and the
- *      static-asset entry, with a manifest. It also copies `public/` and
- *      writes the service worker (`vite-plugin-pwa`, options in `ssg/pwa.ts`).
+ *   1. the one `vite build` (`vite.config.ts`, in a child process:
+ *      `ssg/bundle.ts` says why): srd's islands, css and static-asset entries,
+ *      with a manifest, and the Cantina into `build/`. It also copies
+ *      `public/` and writes both service workers.
  *   2. read `dist/.vite/manifest.json` -> entry JS + CSS urls, and the emitted
  *      url of every asset under `src/assets/`.
  *   3. enumerate `ssg/routes.ts` and render each route.
  *   4. write endpoints and the sitemap.
- *   5. the Cantina's client build (`vite.cantina.config.ts`) into `dist/build/`
- *      (ADR-050), in a child process (`ssg/buildCantina.ts` says why). Last,
- *      because srd's `vite build` empties `dist/` and its service worker must
- *      not precache the Cantina. It needs `VITE_CONVEX_URL`.
  *
  * ## The css/SSR hazard
  *
@@ -31,7 +28,6 @@ import { plugin } from 'bun'
 import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { build as viteBuild } from 'vite'
 // Type-only, so it is erased before Bun resolves `./document`, whose graph
 // (`BaseLayout` -> `src/ui` -> third-party deps) must load only after the
 // css-stub plugin below is registered.
@@ -42,8 +38,7 @@ import { assertNoRawMarkup, findRawMarkup } from './rawMarkup'
 
 const appRoot = fileURLToPath(new URL('..', import.meta.url))
 const distDir = join(appRoot, 'dist')
-const viteConfigFile = fileURLToPath(new URL('./vite.config.ts', import.meta.url))
-const cantinaBuildFile = fileURLToPath(new URL('./buildCantina.ts', import.meta.url))
+const bundleFile = fileURLToPath(new URL('./bundle.ts', import.meta.url))
 const navCatalogFile = fileURLToPath(new URL('../src/generated/navCatalog.ts', import.meta.url))
 
 plugin({
@@ -73,6 +68,9 @@ type Manifest = Record<string, ManifestChunk>
  */
 const NON_LINKED_ENTRIES = ['styles.entry.ts', 'assets.entry.ts']
 
+/** The Cantina's entry, its shell: its own document, never linked from srd's. */
+const CANTINA_ENTRY = 'build/index.html'
+
 /**
  * Manifest keys under this prefix are static assets a page may point at, keyed
  * by their source path relative to the Vite root. See `BuiltAssets` in
@@ -101,7 +99,7 @@ async function readAssets(): Promise<BuildAssets> {
       built[key] = `/${chunk.file}`
       continue
     }
-    if (!chunk.isEntry) continue
+    if (!chunk.isEntry || key === CANTINA_ENTRY) continue
     for (const css of chunk.css ?? []) {
       const href = `/${css}`
       if (!styles.includes(href)) styles.push(href)
@@ -177,17 +175,13 @@ async function main(): Promise<void> {
   await writeFile(navCatalogFile, await renderNavCatalogModule(), 'utf-8')
 
   // biome-ignore lint/suspicious/noConsole: build-time CLI — progress output is the interface
-  console.log('[ssg] vite build (client)')
-  // `vite build` sets process.env.NODE_ENV='production' in THIS process, and
-  // that breaks the SSR pass below in a genuinely confusing way: Bun picked its
-  // JSX transform at startup (NODE_ENV was unset -> `jsxDEV`), but React's
-  // `jsx-dev-runtime` re-resolves at import time and its *production* build is
-  // an empty stub — so every src/ui module dies with
-  // "jsxDEV_… is not a function". Restore what we found.
-  const previousNodeEnv = process.env.NODE_ENV
-  await viteBuild({ configFile: viteConfigFile, logLevel: 'warn' })
-  if (previousNodeEnv === undefined) delete process.env.NODE_ENV
-  else process.env.NODE_ENV = previousNodeEnv
+  console.log('[ssg] vite build (srd and the Cantina)')
+  const bundle = Bun.spawn([process.execPath, bundleFile], {
+    cwd: appRoot,
+    stdout: 'inherit',
+    stderr: 'inherit',
+  })
+  if ((await bundle.exited) !== 0) throw new Error('[ssg] vite build failed (above).')
 
   const assets = await readAssets()
   // biome-ignore lint/suspicious/noConsole: build-time CLI — progress output is the interface
@@ -201,7 +195,7 @@ async function main(): Promise<void> {
   // or an entry being renamed would do exactly that, silently, so refuse.
   if (assets.scripts.length === 0 || assets.styles.length === 0) {
     throw new Error(
-      `[ssg] refusing to render: expected at least one script and one stylesheet from the Vite manifest, got ${assets.scripts.length} script(s) and ${assets.styles.length} style(s). The manifest is at dist/.vite/manifest.json; check the entry names in ssg/vite.config.ts.`
+      `[ssg] refusing to render: expected at least one script and one stylesheet from the Vite manifest, got ${assets.scripts.length} script(s) and ${assets.styles.length} style(s). The manifest is at dist/.vite/manifest.json; check the entry names in vite.config.ts.`
     )
   }
 
@@ -271,15 +265,6 @@ async function main(): Promise<void> {
   // reads it has already run by here (readAssets above, and the service worker
   // globs only js/css/woff2/svg, so it was never precached).
   await rm(join(distDir, '.vite'), { recursive: true, force: true })
-
-  // biome-ignore lint/suspicious/noConsole: build-time CLI — progress output is the interface
-  console.log('[ssg] vite build (cantina)')
-  const cantina = Bun.spawn([process.execPath, cantinaBuildFile], {
-    cwd: appRoot,
-    stdout: 'inherit',
-    stderr: 'inherit',
-  })
-  if ((await cantina.exited) !== 0) throw new Error('[ssg] the Cantina build failed (above).')
 
   // biome-ignore lint/suspicious/noConsole: build-time CLI — progress output is the interface
   console.log(`[ssg] done in ${((Date.now() - started) / 1000).toFixed(1)}s`)

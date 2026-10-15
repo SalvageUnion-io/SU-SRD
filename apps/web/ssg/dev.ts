@@ -64,15 +64,7 @@ const PORT = Number(process.env.PORT ?? portFor('srd'))
 // `import.meta.env`; a value given wins.
 process.env.VITE_SITE_ORIGIN ||= `http://localhost:${PORT}`
 
-const viteConfigFile = fileURLToPath(new URL('./vite.config.ts', import.meta.url))
-const cantinaConfigFile = fileURLToPath(new URL('../vite.cantina.config.ts', import.meta.url))
-
-/** The Cantina's base (ADR-048), without its trailing slash. */
-const CANTINA_BASE = '/build'
-
-/** Whether a request belongs to the Cantina's Vite server rather than srd's. */
-const isCantinaPath = (url: string): boolean =>
-  url === CANTINA_BASE || url.startsWith(`${CANTINA_BASE}/`) || url.startsWith(`${CANTINA_BASE}?`)
+const viteConfigFile = fileURLToPath(new URL('../vite.config.ts', import.meta.url))
 
 const ASSETS_DIR = fileURLToPath(new URL('../src/assets/', import.meta.url))
 
@@ -278,29 +270,25 @@ async function serve(vite: ViteDevServer, req: IncomingMessage, res: ServerRespo
 }
 
 async function main(): Promise<void> {
-  // Created first so both Vite servers attach their HMR sockets to it: each
-  // answers only upgrades on its own base (`/` and `/build/`).
+  // Created first so Vite attaches its HMR socket to it.
   const server = createHttpServer()
+  // The same config `vite build` reads (ADR-050). Its shell plugin answers the
+  // Cantina's navigations (`/build/**`) with the shell, as production does;
+  // every other document comes from the route registry below.
   const vite = await createViteServer({
     configFile: viteConfigFile,
-    // 'custom' stops Vite from serving an index.html fallback: this app has no
+    // The shell renders the Union bar from the UI library's source, which only
+    // Vite's module runner resolves (the bundling loader leaves it to Node).
+    configLoader: 'runner',
+    // 'custom' stops Vite from serving an index.html fallback: srd has no
     // index.html at all, every document comes from the route registry.
     appType: 'custom',
     server: { middlewareMode: true, hmr: { server } },
   })
-  // The Cantina is a single-page app: its own Vite server, in middleware mode,
-  // serves `/build/**` and falls back to its `index.html`, as in production.
-  const cantina = await createViteServer({
-    configFile: cantinaConfigFile,
-    // The shell renders the Union bar from the UI library's source, which only
-    // Vite's module runner resolves (the bundling loader leaves it to Node).
-    configLoader: 'runner',
-    appType: 'spa',
-    server: { middlewareMode: true, hmr: { server } },
-  })
 
   // Vite's own middlewares get every request first (public/, /src/**, /@vite/**,
-  // /@fs/**); whatever they leave unclaimed falls through to the renderer.
+  // /@fs/**, the Cantina's shell); whatever they leave unclaimed falls through
+  // to the renderer.
   //
   // The renderer is deliberately NOT pushed onto `vite.middlewares` with
   // `.use()`. Vite restarts itself whenever `vite.config.ts` changes, and its
@@ -312,13 +300,6 @@ async function main(): Promise<void> {
   server.on('request', (req: IncomingMessage, res: ServerResponse) => {
     // Names this checkout, so `bun run shot` can refuse another checkout's server.
     res.setHeader(CHECKOUT_HEADER, CHECKOUT_ROOT)
-    if (isCantinaPath(req.url ?? '/')) {
-      cantina.middlewares(req, res, () => {
-        res.statusCode = 404
-        res.end()
-      })
-      return
-    }
     vite.middlewares(req, res, () => {
       if (req.method !== 'GET' && req.method !== 'HEAD') {
         res.statusCode = 405
@@ -348,7 +329,7 @@ async function main(): Promise<void> {
 
   const shutdown = () => {
     server.close()
-    void Promise.all([vite.close(), cantina.close()]).then(() => process.exit(0))
+    void vite.close().then(() => process.exit(0))
   }
   process.on('SIGINT', shutdown)
   process.on('SIGTERM', shutdown)

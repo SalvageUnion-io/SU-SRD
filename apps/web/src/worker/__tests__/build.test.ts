@@ -98,10 +98,7 @@ describe('wrangler.jsonc agrees with the Worker', () => {
     expect(config.previews.vars).toEqual({ CONVEX_URL: built as string, BASE_PATH: BUILD_BASE })
   })
 
-  it("sets the Cantina's own CSP, the one in its _headers", () => {
-    const headers = readFileSync(join(import.meta.dir, '../../cantina/public/_headers'), 'utf8')
-    const csp = headers.match(/^\s*Content-Security-Policy: (.+)$/m)?.[1]
-    expect(csp).toBe(CANTINA_CSP)
+  it("sets the Cantina's own CSP", () => {
     expect(CANTINA_CSP).toContain("connect-src 'self'")
     expect(CANTINA_CSP).toContain('wss://*.convex.cloud')
   })

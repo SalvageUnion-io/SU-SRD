@@ -22,7 +22,7 @@ type ResourceTotals = { count: number; bytes: number; names: string[] }
  *  counted. `names` records the chunk filenames for assert-not-present checks.
  *
  *  Keep the `/assets/` prefix in step with `build.assetsDir` in
- *  ssg/vite.config.ts, and the `name-HASH.js` separator in step with Vite's
+ *  vite.config.ts, and the `name-HASH.js` separator in step with Vite's
  *  chunk naming: if either drifts this guard silently matches NOTHING, the
  *  budget sums 0 bytes and every assertion passes vacuously. See the
  *  zero-chunk assertion below. */

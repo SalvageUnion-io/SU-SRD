@@ -22,7 +22,7 @@ import { OG_CARD_HEIGHT, OG_CARD_WIDTH, OG_GUTTER, OG_NOTCH_INSET } from './ogCa
  * renders anything. Re-shoot both when it changes:
  *
  *   bun run shot '/og-card?brand' --width page        → apps/web/public/og-image.png
- *   bun run shot cantina:/og/brand --width page          → apps/web/src/cantina/public/og-image.png
+ *   bun run shot cantina:/og/brand --width page          → apps/web/public/build/og-image.png
  */
 
 export type BrandCardProps = {

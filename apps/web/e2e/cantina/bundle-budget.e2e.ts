@@ -8,7 +8,7 @@ test.use({ account: 'anonymous' })
 /**
  * Bundle-size budget suite — the Cantina's counterpart to
  * `apps/web/e2e/srd/bundle-budget.e2e.ts`, and the regression guard for the
- * route-level code splitting turned on in `vite.cantina.config.ts`
+ * route-level code splitting turned on in `vite.config.ts`
  * (`TanStackRouterVite({ autoCodeSplitting: true })`).
  *
  * ## What this measures, and why it differs from srd's suite
@@ -52,7 +52,7 @@ test.use({ account: 'anonymous' })
  * Three changes moved the numbers down together: `/s/$id` and `/p/$kind/$appId`
  * stopped exporting page bodies from their route files, which had kept
  * `autoCodeSplitting` from splitting them and so pinned the whole live-sheet
- * tree into the entry; `vite.cantina.config.ts` gained named `codeSplitting` groups
+ * tree into the entry; `vite.config.ts` gained named `codeSplitting` groups
  * (react, vendor, zod, reference, ui) for the initial graph; and
  * the reference package's trusted load path dropped Zod's entity schemas and
  * locales from cantina's client. App JS per route fell by roughly: roster

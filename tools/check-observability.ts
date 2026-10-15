@@ -39,7 +39,11 @@ type BrowserApp = {
   modulePath: string
   /** Entry that must CALL the init. */
   entryPath: string
-  /** The `_headers` Workers Static Assets reads: the app's CSP source. */
+  /**
+   * The app's CSP source: srd's `_headers`, which Workers Static Assets reads,
+   * or the Cantina's `CANTINA_CSP`, which su-srd's Worker sets on every
+   * `/build` answer.
+   */
   headersPath: string
   /** The Worker that answers the app's error reports. */
   workerPath: string
@@ -60,7 +64,7 @@ const BROWSER_APPS: BrowserApp[] = [
     name: 'cantina',
     modulePath: 'apps/web/src/cantina/lib/observability.ts',
     entryPath: 'apps/web/src/cantina/main.tsx',
-    headersPath: 'apps/web/src/cantina/public/_headers',
+    headersPath: 'apps/web/src/worker/build.ts',
     workerPath: 'apps/web/src/cantina/worker/index.ts',
     extraHandlers: ['handleConvexLogStream'],
   },
@@ -114,9 +118,16 @@ async function wranglerConfig(path: string): Promise<WranglerConfig | null> {
   return module.default
 }
 
-/** A `_headers` file without its `#` comment lines; null when absent. */
+/**
+ * A `_headers` file without its `#` comment lines, or a module's `…_CSP`
+ * string as the header line it becomes; null when absent.
+ */
 function headersFile(path: string): string | null {
   if (!exists(path)) return null
+  if (path.endsWith('.ts')) {
+    const csp = code(path)?.match(/_CSP\s*=\s*(["'])(.*?)\1/s)?.[2]
+    return csp === undefined ? '' : `Content-Security-Policy: ${csp}`
+  }
   return readFileSync(join(process.cwd(), path), 'utf8')
     .split('\n')
     .filter((line) => !line.trim().startsWith('#'))

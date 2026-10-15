@@ -4,10 +4,10 @@ import { join } from 'node:path'
 import { BASE_SECURITY_HEADERS } from '../worker'
 
 /**
- * The one place the three origins' base security headers are held together.
- * srd and cantina send them from the `/*` block of `public/_headers`; this
- * Worker builds its own responses and sends `BASE_SECURITY_HEADERS`. A header
- * changed in one source and not the others fails here.
+ * The one place the two sources of the base security headers are held together.
+ * salvageunion.io (srd and the Cantina) sends them from the `/*` block of
+ * `apps/web/public/_headers`; this Worker builds its own responses and sends
+ * `BASE_SECURITY_HEADERS`. A header changed in one and not the other fails here.
  */
 
 const REPO = join(import.meta.dir, '..', '..', '..', '..')
@@ -29,10 +29,8 @@ function rootRule(file: string): Record<string, string> {
 }
 
 describe('base security headers', () => {
-  for (const file of ['apps/web/public/_headers', 'apps/web/src/cantina/public/_headers']) {
-    it(`match ${file}`, () => {
-      const { 'content-security-policy': _csp, ...base } = rootRule(file)
-      expect(base).toEqual({ ...BASE_SECURITY_HEADERS })
-    })
-  }
+  it('match apps/web/public/_headers', () => {
+    const { 'content-security-policy': _csp, ...base } = rootRule('apps/web/public/_headers')
+    expect(base).toEqual({ ...BASE_SECURITY_HEADERS })
+  })
 })

@@ -1,5 +1,5 @@
 /**
- * pwa — the service worker's workbox options, which `ssg/vite.config.ts` hands
+ * pwa — the service worker's workbox options, which `vite.config.ts` hands
  * `VitePWA({ workbox })`. They live here rather than inline in the config so
  * `__tests__/pwa.test.ts` can assert the real values. What this worker shares
  * with the Cantina's (`/build/`), the one manifest included, is `src/pwa.ts`.
@@ -128,7 +128,7 @@ export const RUNTIME_CACHING = [
   },
 ]
 
-/** What `ssg/vite.config.ts` hands `VitePWA({ workbox })`. */
+/** What `vite.config.ts` hands `VitePWA({ workbox })`. */
 export const WORKBOX_OPTIONS = {
   mode: 'production',
   sourcemap: false,

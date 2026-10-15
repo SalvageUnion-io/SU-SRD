@@ -74,23 +74,20 @@ jobs:
         with:
           browser: full
 
-      # srd is static files: a plain server answers `/route/` with its
-      # index.html. The Cantina is a single-page app: `vite preview` serves its
-      # `dist/build/` and falls back to index.html for its routes. `vite preview` loads apps/web/vite.cantina.config.ts,
-      # which refuses to start without VITE_CONVEX_URL (the build already
-      # carries it; the config only checks it is set), so pass the same URL.
-      - name: Serve both apps
+      # One server for both apps, as in production: the workspace's Worker
+      # (`bun run preview`, wrangler on 4321) serves srd's pages and answers
+      # `/build` with the Cantina, as CI's e2e does. Its link previews read
+      # the throwaway backend, not production's.
+      - name: Serve the app
         env:
-          VITE_CONVEX_URL: ${{ steps.convex.outputs.url }}
+          CONVEX_URL: ${{ steps.convex.outputs.url }}
         run: |
-          (cd apps/web/dist && python3 -m http.server 4321 --bind 127.0.0.1 > /tmp/srd.log 2>&1 &)
-          (cd apps/web && bunx vite preview -c vite.cantina.config.ts --configLoader runner --port 5173 --strictPort > /tmp/cantina.log 2>&1 &)
-          for url in http://127.0.0.1:4321/ http://localhost:5173/build/; do
+          (cd apps/web && bun run preview --var "CONVEX_URL:$CONVEX_URL" > /tmp/web.log 2>&1 &)
+          for url in http://localhost:4321/ http://localhost:4321/build/; do
             for _ in $(seq 1 60); do curl -sf -o /dev/null "$url" && break; sleep 1; done
             curl -sf -o /dev/null "$url" || {
               echo "::error::$url never answered"
-              echo "--- /tmp/srd.log"; cat /tmp/srd.log
-              echo "--- /tmp/cantina.log"; cat /tmp/cantina.log
+              cat /tmp/web.log
               exit 1
             }
           done
@@ -102,7 +99,7 @@ jobs:
           PR_NUMBER: ${{ inputs.pr }}
           HEAD_SHA: ${{ github.sha }}
         run: >-
-          bun run gallery --srd http://127.0.0.1:4321 --cantina http://localhost:5173/build
+          bun run gallery --srd http://localhost:4321 --cantina http://localhost:4321/build
           --signed-in ${PR_NUMBER:+--pr "$PR_NUMBER"} --sha "$HEAD_SHA" --out gallery
 
       # The tour keeps 90 days: Pages republishes the newest one on every

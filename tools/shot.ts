@@ -65,7 +65,7 @@ export const CANTINA_BASE = '/build'
 /**
  * Where the signed-out boot's Convex client points: a closed port on this
  * machine, so it fails fast and nothing leaves the machine. Any URL will do
- * (`vite.cantina.config.ts` refuses only a missing one); it beats a `.convex.cloud`
+ * (`vite.config.ts` refuses only a missing one); it beats a `.convex.cloud`
  * name, which would be looked up and might be someone's deployment.
  */
 export const NO_BACKEND = 'http://127.0.0.1:9'

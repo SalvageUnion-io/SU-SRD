@@ -2,16 +2,16 @@
  * Where the Cantina is served: `salvageunion.io/build/`, beside the SRD on one
  * origin, as its own app, Worker and deploy (ADR-048).
  *
- * The build lands in `dist/build/` so Static Assets finds every file under the
- * path the browser asks for (`vite.cantina.config.ts`). App code reads the base back
- * through `import.meta.env.BASE_URL` (`appUrl.ts`); the Worker through its
+ * The shell and the app's own files land in `dist/build/` (`vite.config.ts`);
+ * its chunks share `dist/assets/` with srd's. App code reads the base back
+ * through `import.meta.env.CANTINA_BASE` (`appUrl.ts`); the Worker through its
  * `BASE_PATH` var (`wrangler.jsonc`), which the routing test holds equal.
  */
 
 export type CantinaSite = {
   /** The public origin, without a trailing slash. */
   origin: string
-  /** Vite's `base`: the path every URL the app serves starts with. */
+  /** The path every URL the app serves starts with. */
   base: string
 }
 

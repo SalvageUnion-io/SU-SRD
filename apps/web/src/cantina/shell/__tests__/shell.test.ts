@@ -14,7 +14,7 @@ describe('renderShell', () => {
   test('is a document whose one script is the source entry, with no canonical', () => {
     expect(html).toStartWith('<!doctype html>')
     expect(html.match(/<script/g)).toEqual(['<script'])
-    expect(html).toContain('<script type="module" src="/main.tsx"></script>')
+    expect(html).toContain('<script type="module" src="/src/cantina/main.tsx"></script>')
     expect(html).toContain('<div id="root"></div>')
     expect(html).not.toContain('rel="canonical"')
   })

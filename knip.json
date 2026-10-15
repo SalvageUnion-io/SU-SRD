@@ -40,7 +40,7 @@
     "apps/web": {
       // `ssg/build.ts` is the in-house static-site generator's entry (it reaches
       // routes -> pages -> layouts). `src/runtime/*.entry`-style files are
-      // *client bundle* entries, named in ssg/vite.config.ts rather than
+      // *client bundle* entries, named in vite.config.ts rather than
       // imported by anything, so knip cannot infer them.
       "entry": [
         // build/dev/preview are matched by knip's own bin/script detection from

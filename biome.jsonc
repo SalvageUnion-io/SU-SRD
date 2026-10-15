@@ -443,14 +443,16 @@
       }
     },
     {
-      // srd: every file in apps/web outside the Cantina's folders.
+      // srd: every file in apps/web outside the Cantina's folders, and outside
+      // the one build config and its Cantina plugins, which build both apps.
       "includes": [
         "apps/web/**",
         "!apps/web/src/cantina/**",
         "!apps/web/convex/**",
         "!apps/web/test/**",
         "!apps/web/e2e/cantina/**",
-        "!apps/web/*.cantina.config.ts"
+        "!apps/web/vite.config.ts",
+        "!apps/web/ssg/cantinaPlugins.ts"
       ],
       "linter": {
         "rules": {

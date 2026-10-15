@@ -5,7 +5,7 @@ import { PRODUCT } from 'cantina-domain/product'
 import { renderShell } from '../../shell/shell'
 
 /**
- * The shell (`shell/shell.ts`), `public/favicon.svg` and the site's web
+ * The shell (`shell/shell.ts`), `public/build/favicon.svg` and the site's web
  * manifest (`public/site.webmanifest`, which installs the Cantina) cannot import
  * `PRODUCT`: the SVG and the manifest are static, and the shell is loaded by the
  * Vite config before any workspace package is. They spell the name as text, so
@@ -15,7 +15,7 @@ const appDir = join(import.meta.dir, '..', '..')
 const workspace = join(appDir, '..', '..')
 const html = renderShell()
 const manifest = JSON.parse(readFileSync(join(workspace, 'public', 'site.webmanifest'), 'utf8'))
-const favicon = readFileSync(join(appDir, 'public', 'favicon.svg'), 'utf8')
+const favicon = readFileSync(join(workspace, 'public', 'build', 'favicon.svg'), 'utf8')
 
 describe('the product name outside TypeScript', () => {
   test("the shell's title and sitewide meta say PRODUCT.name", () => {

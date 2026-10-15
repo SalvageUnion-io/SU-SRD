@@ -1,5 +1,5 @@
 /**
- * The service worker's workbox options — what `vite.cantina.config.ts` hands
+ * The service worker's workbox options — what `vite.config.ts` hands
  * `VitePWA({ workbox })`. They live here rather than inline in the config so
  * `__tests__/workbox.test.ts` can assert the real values instead of grepping
  * the config's source text.
@@ -7,7 +7,7 @@
  * ## Navigations go to the network first
  *
  * Not workbox's SPA default (a `NavigationRoute` bound to the precached
- * `index.html`): combined with `registerType: 'prompt'` (see `vite.cantina.config.ts`
+ * `index.html`): combined with `registerType: 'prompt'` (see `vite.config.ts`
  * — it must stay), that boots a returning visitor into the build they last saw,
  * and an installed PWA that is never closed could sit on an old build
  * indefinitely.
@@ -68,7 +68,7 @@ export const WORKBOX_OPTIONS = {
   ],
   // Replaces a worker from before network-first navigations at once and
   // reloads its tabs, which `prompt` would otherwise leave on the old build
-  // indefinitely. See the header of public/sw-takeover.js.
+  // indefinitely. See the header of public/build/sw-takeover.js.
   importScripts: ['sw-takeover.js'],
   // No precache-bound NavigationRoute. Navigations are the runtime rule below.
   navigateFallback: null,

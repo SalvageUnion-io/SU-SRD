@@ -4,7 +4,7 @@
  * (ADR-021: signed-out surfaces), and none is a player's own thing, so what
  * each says is known without asking Convex.
  *
- * So the build pre-renders them (`publicShells`, from `vite.cantina.config.ts`):
+ * So the build pre-renders them (`publicShells`, from `vite.config.ts`):
  * the Starter Set and each build get a copy of the shell whose `cantina:meta`
  * block carries the page's own title, description, canonical and `og:*`,
  * written beside it as `starter.html` and `starter/<kind>/<id>.html`, which the
