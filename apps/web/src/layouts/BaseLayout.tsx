@@ -16,7 +16,8 @@ import type { DocumentMeta, PageFoot } from '../../ssg/types'
 import { Footer } from '../components/index'
 import { TopNavigation } from '../components/TopNavigation'
 import { color } from '../design/tokens'
-import { DEFAULT_OG_IMAGE, SITE_LINKS, SITE_URL, THEME_COLOR } from '../lib/constants'
+import { DEFAULT_OG_IMAGE, SITE_LINKS, SITE_URL } from '../lib/constants'
+import { SITE_ICONS, SITE_NAME, THEME_COLOR } from '../lib/documentHead'
 import { escapeJsonForScript } from '../lib/escapeJsonForScript'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { SITE_MANIFEST } from '../pwa'
@@ -103,11 +104,9 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
         <title>{title}</title>
         <meta name="description" content={description} />
         <link rel="canonical" href={canonicalUrl} />
-        {/* Cargo "SU" mark — solid ink plate, white SU + orange stripes */}
-        <link rel="icon" type="image/svg+xml" href="/favicons/su/favicon.svg" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicons/su/favicon-32.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicons/su/favicon-16.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/favicons/su/favicon-180.png" />
+        {SITE_ICONS.map((icon) => (
+          <link key={icon.href} {...icon} />
+        ))}
         <link rel="manifest" href={SITE_MANIFEST} />
         <meta name="theme-color" content={themeColor} />
         {/* Service-worker registration: public/registerSW.js. */}
@@ -118,7 +117,7 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
         <meta property="og:description" content={ogDescription} />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:type" content={ogType} />
-        <meta property="og:site_name" content="Salvage Union SRD" />
+        <meta property="og:site_name" content={SITE_NAME} />
         {/* All OG images the site emits are 1200×630 (the default banner). */}
         <meta property="og:image" content={ogImageUrl} />
         <meta property="og:image:width" content="1200" />

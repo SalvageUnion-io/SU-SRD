@@ -266,7 +266,7 @@ describe('the results', () => {
       fireEvent.click(must(categoryOption))
 
       expect(openSpy).toHaveBeenCalledWith(
-        `${srdOrigin()}/chassis`,
+        `${srdOrigin()}/chassis/`,
         '_blank',
         'noopener,noreferrer'
       )

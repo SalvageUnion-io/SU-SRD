@@ -28,7 +28,6 @@ import {
   getEntitySlug,
 } from 'salvageunion-reference'
 import { BASE_PATH } from '../../../lib/appUrl'
-import { cantinaEntityHref } from '../../../lib/builderEntityHref'
 import { useConnection } from '../../../lib/connection/connectionContext'
 import { serverMessage } from '../../../lib/connection/serverError'
 import { formatDay } from '../../../lib/formatDate'
@@ -41,7 +40,7 @@ import {
   patternLoadout,
   slotsUsed,
 } from '../../../lib/patterns/patterns'
-import { deepLinkTo } from '../../../lib/srd-deep-link'
+import { cantinaEntityHref, deepLinkTo } from '../../../lib/srd-deep-link'
 import { useEntityStore } from '../../../stores/entityStore'
 import { usePatternStore } from '../../../stores/patternStore'
 import { SignInControl } from '../../account/SignInControl'

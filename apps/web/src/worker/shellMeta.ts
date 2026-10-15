@@ -19,7 +19,7 @@
  * tag and a default tag can never both survive for a parser to choose between.
  */
 
-import { PRODUCT } from 'cantina-domain/product'
+import { SITE_NAME } from '../lib/documentHead'
 import { BAR_HIDDEN_ATTRIBUTE } from '../shell/unionSlots'
 
 /** Everything the shell's meta block says for one route. */
@@ -73,7 +73,7 @@ function renderMeta(meta: ShellMeta): string {
     `<meta name="theme-color" content="${escapeAttr(meta.themeColor)}" />`,
     `<meta name="description" content="${description}" />`,
     `<meta property="og:type" content="website" />`,
-    `<meta property="og:site_name" content="${escapeAttr(PRODUCT.name)}" />`,
+    `<meta property="og:site_name" content="${escapeAttr(SITE_NAME)}" />`,
     `<meta property="og:title" content="${title}" />`,
     `<meta property="og:description" content="${description}" />`,
     `<meta property="og:url" content="${url}" />`,

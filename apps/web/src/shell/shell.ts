@@ -23,6 +23,7 @@
  */
 import { createElement, Fragment } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
+import { SITE_ICONS, SITE_NAME, THEME_COLOR } from '../lib/documentHead'
 import { SITE } from '../lib/site'
 import { renderUnionBar } from './unionBar'
 
@@ -36,9 +37,6 @@ const SHELL_DESCRIPTION =
 /** The link preview's description: the meta description without its last clause. */
 const PREVIEW_DESCRIPTION =
   'The Salvage Union Character Builder. Build and run Salvage Union Pilots, Mechs and Union Crawlers. Character sheets, roster management and shareable live sheets.'
-
-/** The SU mark's ink stamp (`color.ink`), as text: this module cannot import the tokens. */
-const SHELL_THEME_COLOR = '#282019' // design-tokens-ignore: the shell loads before any package
 
 /** The markers the Worker swaps a shared page's link preview between. */
 export const META_START = '<!-- cantina:meta:start -->'
@@ -55,10 +53,10 @@ function previewTags(): string {
     createElement(
       Fragment,
       null,
-      meta({ name: 'theme-color', content: SHELL_THEME_COLOR }),
+      meta({ name: 'theme-color', content: THEME_COLOR }),
       meta({ name: 'description', content: SHELL_DESCRIPTION }),
       meta({ property: 'og:type', content: 'website' }),
-      meta({ property: 'og:site_name', content: SHELL_TITLE }),
+      meta({ property: 'og:site_name', content: SITE_NAME }),
       meta({ property: 'og:title', content: SHELL_TITLE }),
       meta({ property: 'og:description', content: PREVIEW_DESCRIPTION }),
       meta({ property: 'og:url', content: siteUrl }),
@@ -74,7 +72,7 @@ function previewTags(): string {
   )
 }
 
-/** The head tags before the preview block: charset, viewport, icons, title. */
+/** The head tags before the preview block: charset, viewport, the site's icons, title. */
 function headTags(): string {
   return renderToStaticMarkup(
     createElement(
@@ -82,18 +80,7 @@ function headTags(): string {
       null,
       meta({ charSet: 'UTF-8' }),
       meta({ name: 'viewport', content: 'width=device-width, initial-scale=1.0' }),
-      createElement('link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }),
-      createElement('link', {
-        rel: 'icon',
-        type: 'image/png',
-        sizes: '192x192',
-        href: '/web-app-manifest-192x192.png',
-      }),
-      createElement('link', {
-        rel: 'apple-touch-icon',
-        sizes: '192x192',
-        href: '/web-app-manifest-192x192.png',
-      }),
+      ...SITE_ICONS.map((icon) => createElement('link', { key: icon.href, ...icon })),
       createElement('title', null, SHELL_TITLE)
     )
   )

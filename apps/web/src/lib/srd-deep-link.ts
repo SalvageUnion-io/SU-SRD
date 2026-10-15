@@ -1,15 +1,15 @@
 /**
- * Deep-link URL builder for srd entity pages.
+ * The Cantina's links into the reference pages: the paths the pages are
+ * emitted at (`entityHref.ts`, trailing slash and all), absolute on the page's
+ * own origin (`srdOrigin`), because a root-relative path handed to the router
+ * would read as one of the Cantina's own routes under `/build`.
  *
- * Verified srd URL pattern (from apps/web/src/pages/):
- *   Base: the page's own origin (`srdOrigin`)
- *   Item route: /[schemaId]/[itemSlug]
- *   Uses slugs (never UUIDs) per CLAUDE.md data convention
- *
- * See: apps/web/src/pages/[schemaId]/[itemId].page.tsx
+ * Slugs, never UUIDs (`getEntitySlug`).
  */
 
-import { getEntitySchemas, srdEntityPath, srdSchemaPath } from 'salvageunion-reference'
+import { getEntitySchemas, getEntitySlug } from 'salvageunion-reference'
+import type { EntityHrefBuilder } from '../components/index'
+import { itemHref, schemaHref } from './entityHref'
 import { srdOrigin } from './srdOrigin'
 
 type EntityRef = {
@@ -44,7 +44,7 @@ export function hasSRDPage(schemaName: string): boolean {
  * @returns Absolute URL to the entity on srd
  */
 export function deepLinkTo({ schemaName, slug }: EntityRef): string {
-  return `${srdOrigin()}${srdEntityPath(schemaName, slug)}`
+  return `${srdOrigin()}${itemHref(schemaName, slug)}`
 }
 
 /**
@@ -53,5 +53,21 @@ export function deepLinkTo({ schemaName, slug }: EntityRef): string {
  * The Cantina has no in-app schema list routes.
  */
 export function deepLinkToSchema(schemaName: string): string {
-  return `${srdOrigin()}${srdSchemaPath(schemaName)}`
+  return `${srdOrigin()}${schemaHref(schemaName)}`
+}
+
+/**
+ * The Cantina's entity href builder for nested reference-entity links,
+ * supplied app-wide through `EntityHrefProvider` in `routes/__root.tsx`: the
+ * entity's reference page.
+ *
+ * Gated on `hasSRDPage`, exactly like `srdEntityExternalLink`: no page is
+ * emitted for a meta schema, so an ungated link on e.g. an action would render
+ * as a link and 404. No href means the card renders plain text.
+ */
+export const cantinaEntityHref: EntityHrefBuilder = (entity) => {
+  const schemaName =
+    'schemaName' in entity && typeof entity.schemaName === 'string' ? entity.schemaName : undefined
+  if (!schemaName || !hasSRDPage(schemaName)) return undefined
+  return deepLinkTo({ schemaName, slug: getEntitySlug(entity) })
 }

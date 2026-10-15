@@ -1,32 +1,38 @@
 import { describe, expect, it } from 'bun:test'
-import { getEntitySchemas, getSchemaCatalog } from 'salvageunion-reference'
-import { deepLinkTo, hasSRDPage } from '../srd-deep-link'
+import type { RefEntity } from 'salvageunion-reference'
+import { getEntitySchemas, getSchemaCatalog, SalvageUnionReference } from 'salvageunion-reference'
+import { must } from '../../components/__tests__/must'
+import { cantinaEntityHref, deepLinkTo, deepLinkToSchema, hasSRDPage } from '../srd-deep-link'
 import { srdOrigin } from '../srdOrigin'
 
 describe('srd-deep-link', () => {
   it('builds a chassis deep-link URL', () => {
     const url = deepLinkTo({ schemaName: 'chassis', slug: 'iron-mongrel' })
-    expect(url).toBe(`${srdOrigin()}/chassis/iron-mongrel`)
+    expect(url).toBe(`${srdOrigin()}/chassis/iron-mongrel/`)
   })
 
   it('builds an equipment deep-link URL', () => {
     const url = deepLinkTo({ schemaName: 'equipment', slug: 'armor-plating' })
-    expect(url).toBe(`${srdOrigin()}/equipment/armor-plating`)
+    expect(url).toBe(`${srdOrigin()}/equipment/armor-plating/`)
   })
 
   it('builds an abilities deep-link URL', () => {
     const url = deepLinkTo({ schemaName: 'abilities', slug: 'rapid-fire' })
-    expect(url).toBe(`${srdOrigin()}/abilities/rapid-fire`)
+    expect(url).toBe(`${srdOrigin()}/abilities/rapid-fire/`)
   })
 
   it('builds a classes deep-link URL', () => {
     const url = deepLinkTo({ schemaName: 'classes', slug: 'scrapyard-scrounger' })
-    expect(url).toBe(`${srdOrigin()}/classes/scrapyard-scrounger`)
+    expect(url).toBe(`${srdOrigin()}/classes/scrapyard-scrounger/`)
   })
 
   it('builds a mech-systems deep-link URL', () => {
     const url = deepLinkTo({ schemaName: 'mech-systems', slug: 'comms-array' })
-    expect(url).toBe(`${srdOrigin()}/mech-systems/comms-array`)
+    expect(url).toBe(`${srdOrigin()}/mech-systems/comms-array/`)
+  })
+
+  it('builds a category deep-link URL', () => {
+    expect(deepLinkToSchema('chassis')).toBe(`${srdOrigin()}/chassis/`)
   })
 
   it('uses the exact slug provided (no UUID processing)', () => {
@@ -67,5 +73,49 @@ describe('hasSRDPage', () => {
     expect(metaIds.length).toBeGreaterThan(0)
     for (const id of metaIds) expect(hasSRDPage(id)).toBe(false)
     for (const schema of getEntitySchemas()) expect(hasSRDPage(schema.id)).toBe(true)
+  })
+})
+
+/** A complete entity that only differs in the schema it claims to come from. */
+function taggedAs(schemaName: string): RefEntity & { schemaName: string } {
+  return {
+    id: 'x',
+    name: 'Bolster',
+    source: 'Salvage Union Workshop Manual',
+    page: 1,
+    blackMarket: false,
+    schemaName,
+  }
+}
+
+/**
+ * The nested-entity href builder applies the same `hasSRDPage` guard as
+ * `srdEntityExternalLink`: an unguarded link on a meta-schema entity (an
+ * action) renders as a link and 404s.
+ */
+describe('cantinaEntityHref', () => {
+  it('links entities whose schema has an SRD page', () => {
+    // ORM entities carry their own `schemaName`, so this is the real shape
+    // every card passes to the provider.
+    const chassis = must(SalvageUnionReference.Chassis.getByName('Mule'))
+    expect(cantinaEntityHref(chassis)).toBe(`${srdOrigin()}/chassis/mule/`)
+  })
+
+  it('emits no href for a meta schema srd never generates pages for', () => {
+    expect(cantinaEntityHref(taggedAs('actions'))).toBeUndefined()
+    expect(cantinaEntityHref(taggedAs('catalog-categories'))).toBeUndefined()
+    expect(cantinaEntityHref(taggedAs('ability-tree-requirements'))).toBeUndefined()
+  })
+
+  it('emits no href for a schema outside the catalog, or none at all', () => {
+    expect(cantinaEntityHref(taggedAs('not-a-schema'))).toBeUndefined()
+    const untagged: RefEntity = {
+      id: 'x',
+      name: 'No Schema',
+      source: 'Salvage Union Workshop Manual',
+      page: 1,
+      blackMarket: false,
+    }
+    expect(cantinaEntityHref(untagged)).toBeUndefined()
   })
 })

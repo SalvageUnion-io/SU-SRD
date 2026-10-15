@@ -20,8 +20,8 @@ import { NotConnectedBanner } from '../components/shared/NotConnectedBanner'
 import { RootErrorComponent } from '../components/shared/RouteErrors'
 import { SiteFooter } from '../components/shared/SiteFooter'
 import { UnionBarSlots } from '../components/shared/UnionBarSlots'
-import { cantinaEntityHref } from '../lib/builderEntityHref'
 import { pageTitle } from '../lib/pageTitle'
+import { cantinaEntityHref } from '../lib/srd-deep-link'
 import { BAR_HIDDEN_ATTRIBUTE, hidesUnionBar } from '../shell/unionSlots'
 // The tagline's script face, self-hosted like the Barlow faces in the shared base
 // stylesheet: fonts stay on-origin, so the CSP needs no external host.

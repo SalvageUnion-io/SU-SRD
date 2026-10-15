@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test'
-import { entityTitle, SITE_URL, THEME_COLOR, TITLE_MAX } from '../constants'
+import { entityTitle, SITE_URL, TITLE_MAX } from '../constants'
+import { THEME_COLOR } from '../documentHead'
 
 describe('SITE_URL', () => {
   it('equals the production site URL', () => {

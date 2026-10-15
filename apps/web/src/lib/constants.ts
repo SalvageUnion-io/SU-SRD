@@ -1,6 +1,7 @@
 // The production origin is the dataset's, beside ASSET_BASE_URL, so a domain
 // change is one edit; this build's own origin is read from its environment.
 import { SRD_SITE_URL } from 'salvageunion-reference'
+import { SITE } from './site'
 
 /**
  * Where this build is served, and every absolute link to a page of it:
@@ -22,9 +23,9 @@ export const CONTENTS_CRUMB = { name: 'Contents', url: `${SITE_URL}/` } as const
  * this origin at /build (ADR-048). Root-relative: a link built from it opens
  * the Cantina beside whichever SRD served the page, production, a Worker
  * Preview or the dev server. Prefix `SITE_URL` where an address must be
- * absolute (the sitemap).
+ * absolute (the sitemap). The base itself is `SITE.base` (`site.ts`).
  */
-export const CANTINA_PATH = '/build/'
+export const CANTINA_PATH = SITE.base
 
 /**
  * The SalvageUnion.io Discord bot's install link. The client id is public by design —
@@ -61,13 +62,6 @@ export function entityTitle(name: string, kind: string): string {
 
 /** Meta descriptions are cut to this, ellipsis included: about what a search snippet shows. */
 export const META_DESCRIPTION_MAX = 155
-
-/**
- * The browser-chrome colour every BaseLayout page emits as `theme-color`. It
- * must equal `theme_color` in `public/site.webmanifest`, which only an
- * installed PWA reads; `constants.test.ts` holds the two together.
- */
-export const THEME_COLOR = '#1b1712' // design-tokens-ignore: --color-ink-deep, spelled as the manifest spells it
 
 /**
  * The site's own pages, which left the Union bar when the SRD dropped its second

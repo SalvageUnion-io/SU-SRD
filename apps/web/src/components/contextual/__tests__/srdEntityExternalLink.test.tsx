@@ -23,7 +23,7 @@ describe('srdEntityExternalLink', () => {
 
     const { container } = render(node)
     const link = container.querySelector('a')
-    expect(link?.href).toBe(`${srdOrigin()}/chassis/mule`)
+    expect(link?.href).toBe(`${srdOrigin()}/chassis/mule/`)
     // Same tab, no arrow: the SRD is not off-site (ruleset §3.11, EDL E5).
     expect(link?.hasAttribute('target')).toBe(false)
     expect(link?.hasAttribute('rel')).toBe(false)

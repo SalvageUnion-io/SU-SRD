@@ -7,8 +7,7 @@ import { markSvg } from './mark'
 /** Every SVG `build.ts` writes, by repo path. The drift test reads this list. */
 export const SVG_FILES: Record<string, string> = {
   'apps/web/public/logos/su-cargo-dark.svg': markSvg({ title: 'Salvage Union' }),
-  'apps/web/public/favicons/su/favicon.svg': markSvg({ title: 'Salvage Union SRD' }),
-  'apps/web/public/build/favicon.svg': markSvg({ title: 'The Cantina' }),
+  'apps/web/public/favicons/su/favicon.svg': markSvg({ title: 'Salvage Union' }),
   'apps/discord-bot/brand/icon.svg': markSvg({
     title: 'Salvage Union',
     avatar: true,

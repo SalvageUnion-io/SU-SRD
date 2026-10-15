@@ -9,7 +9,8 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import { SITE_URL, THEME_COLOR } from '../../src/lib/constants'
+import { SITE_URL } from '../../src/lib/constants'
+import { THEME_COLOR } from '../../src/lib/documentHead'
 import { Island } from '../../src/runtime/Island'
 import type { BuildAssets } from '../document'
 import { renderDocument } from '../document'
