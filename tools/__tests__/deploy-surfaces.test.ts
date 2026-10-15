@@ -3,10 +3,10 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { decideSurfaces, main, planDeploy, SURFACES } from '../deploy-surfaces'
+import { decideSurfaces, isShared, main, planDeploy, SURFACES } from '../deploy-surfaces'
 
-const EVERYTHING = { assets: true, web: true, bot: true }
-const NOTHING = { assets: false, web: false, bot: false }
+const EVERYTHING = { 'su-assets': true, web: true, 'discord-bot': true }
+const NOTHING = { 'su-assets': false, web: false, 'discord-bot': false }
 
 describe('deploy-surfaces — decideSurfaces', () => {
   test('no deploy record deploys every surface', () => {
@@ -35,11 +35,9 @@ describe('deploy-surfaces — decideSurfaces', () => {
     expect(decideSurfaces(since, false)).toEqual({ ...NOTHING, web: true })
   })
 
-  test.each(
-    Object.entries(SURFACES).flatMap(([key, dirs]) => dirs.map((dir) => [dir, key] as const))
-  )('a change under apps/%s selects only the %s surface', (dir, key) => {
-    const decision = decideSurfaces([`apps/${dir}/x.ts`], false)
-    expect(decision).toEqual({ ...NOTHING, [key]: true })
+  test.each([...SURFACES])('a change under apps/%s selects only that surface', (app) => {
+    const decision = decideSurfaces([`apps/${app}/x.ts`], false)
+    expect(decision).toEqual({ ...NOTHING, [app]: true })
   })
 
   // The UI library lives in apps/web, and nothing else ships it.
@@ -94,6 +92,14 @@ describe('deploy-surfaces — decideSurfaces', () => {
   test('a root file that only starts like a shared one is not shared', () => {
     expect(decideSurfaces(['package.json.bak', 'bun.lockb.md'], false)).toEqual(NOTHING)
   })
+
+  test('isShared reads a trailing / or * as a prefix and anything else as one path', () => {
+    expect(isShared('packages/x/y.ts')).toBe(true)
+    expect(isShared('tsconfig.worker.json')).toBe(true)
+    expect(isShared('.github/workflows/deploy-cloudflare.yml')).toBe(true)
+    expect(isShared('.github/workflows/deploy-cloudflare.yml.orig')).toBe(false)
+    expect(isShared('apps/packages/x.ts')).toBe(false)
+  })
 })
 
 describe('deploy-surfaces — planDeploy', () => {
@@ -113,7 +119,7 @@ describe('deploy-surfaces — planDeploy', () => {
 
   test('a rollback dispatch may deploy an older commit', () => {
     const plan = planDeploy(['apps/su-assets/src/index.ts'], false, 'behind', true)
-    expect(plan).toEqual({ stale: false, surfaces: { ...NOTHING, assets: true } })
+    expect(plan).toEqual({ stale: false, surfaces: { ...NOTHING, 'su-assets': true } })
   })
 
   test.each(['ahead', 'same', 'none', 'diverged'] as const)(

@@ -15,8 +15,7 @@ const tree = fixtureTrees('gallery-run')
 const log = spyOn(console, 'log').mockImplementation(() => {})
 afterAll(() => log.mockRestore())
 
-const SRD = 'http://srd.test'
-const CANTINA = 'http://cantina.test/build'
+const SITE = 'http://site.test'
 const ALL = GALLERY_SECTIONS.flatMap((s) => s.pages)
 
 type Fn = (...args: unknown[]) => unknown
@@ -102,7 +101,7 @@ function fakePage(world: World): Record<string, Fn> {
     waitForTimeout: async () => {},
     waitForFunction: async () => {},
     waitForURL: async () => {
-      world.url = `${CANTINA}/games/g1`
+      world.url = `${SITE}/build/games/g1`
     },
     url: () => world.url,
     evaluate: (fn, arg) => inPage(world, fn as Fn, arg),
@@ -152,20 +151,20 @@ const gallery = async (argv: string[], w: World) => {
 describe('gallery run', () => {
   test('a bad argument exits 2 without launching a browser', async () => {
     const errors: string[] = []
-    const code = await main(['--srd'], {
+    const code = await main(['--base'], {
       launch: async () => {
         throw new Error('launched')
       },
       error: (l) => errors.push(l),
     })
     expect(code).toBe(2)
-    expect(errors[0]).toStartWith('--srd needs a value')
+    expect(errors[0]).toStartWith('--base needs a value')
   })
 
   test('shoots every signed-out page at both widths and renders each entity card', async () => {
     const w = world()
-    const targets = signedOutTargets({ srd: SRD, cantina: CANTINA })
-    const r = await gallery(['--srd', SRD, '--cantina', CANTINA], w)
+    const targets = signedOutTargets(SITE)
+    const r = await gallery(['--base', SITE], w)
     expect(r.code).toBe(0)
     expect(r.dots).toHaveLength(targets.length)
     expect(r.manifest).toEqual({
@@ -182,32 +181,36 @@ describe('gallery run', () => {
     // Entity pages get their card rendered on /og-card/; nothing else is fetched.
     const cards = w.calls.filter((c) => c.startsWith('card '))
     expect(cards.length).toBeGreaterThan(0)
-    expect(w.calls).toContain(`goto ${SRD}/og-card/`)
+    expect(w.calls).toContain(`goto ${SITE}/og-card/`)
     expect(w.calls.filter((c) => c.startsWith('og-entity'))).toHaveLength(cards.length)
     expect(w.calls.at(-1)).toBe('browser closed')
     expect(w.calls.some((c) => c.includes('sign-in'))).toBe(false)
   })
 
   test('a page that errors or answers 4xx is a failure line; the rest are still shot', async () => {
-    const [a, b] = signedOutTargets({ srd: SRD })
+    const [a, b] = signedOutTargets(SITE)
     if (!a || !b) throw new Error('need two pages')
     const w = world({ status: new Map([[a.url, 404]]), broken: new Set([b.url]) })
-    const r = await gallery(['--srd', SRD], w)
+    const r = await gallery(['--base', SITE], w)
     expect(r.code).toBe(1)
     expect(r.manifest.failures).toEqual([
-      `srd ${a.page.path}: ${a.url} answered 404`,
-      `srd ${b.page.path}: net::ERR at ${b.url}`,
+      `${a.page.path}: ${a.url} answered 404`,
+      `${b.page.path}: net::ERR at ${b.url}`,
     ])
-    expect(r.manifest.pages).toBe(signedOutTargets({ srd: SRD }).length - 2)
+    expect(r.manifest.pages).toBe(signedOutTargets(SITE).length - 2)
   })
 
   test('signed in: seeds an account, shoots its pages in Edit, and reports what it could not make', async () => {
     const w = world({
       links: ['/build/sheet/pilot/p1', '/build/sheet/mech/m1', '/elsewhere'],
     })
-    const r = await gallery(['--srd', SRD, '--cantina', CANTINA, '--signed-in'], w)
-    const seeded = { pilot: '/sheet/pilot/p1', mech: '/sheet/mech/m1', game: '/games/g1' }
-    const planned = signedInTargets(CANTINA, seeded)
+    const r = await gallery(['--base', SITE, '--signed-in'], w)
+    const seeded = {
+      pilot: '/build/sheet/pilot/p1',
+      mech: '/build/sheet/mech/m1',
+      game: '/build/games/g1',
+    }
+    const planned = signedInTargets(SITE, seeded)
     expect(planned.failures.length).toBe(1)
     expect(r.manifest.failures).toEqual(planned.failures)
     expect(r.code).toBe(1)
@@ -223,13 +226,13 @@ describe('gallery run', () => {
   })
 
   test('a seed that fails is one failure, and every placeholder page is reported unmade', async () => {
-    const w = world({ broken: new Set([`${CANTINA}/`]) })
-    const r = await gallery(['--srd', SRD, '--cantina', CANTINA, '--signed-in'], w)
+    const w = world({ broken: new Set([`${SITE}/build/`]) })
+    const r = await gallery(['--base', SITE, '--signed-in'], w)
     expect(r.code).toBe(1)
-    expect(r.manifest.failures).toContain(`cantina seed: net::ERR at ${CANTINA}/`)
-    expect(r.manifest.failures).toContain('cantina :pilot: the seed made no such entity')
-    // The signed-out root page fails too: it is the same broken URL.
-    expect(r.manifest.failures).toContain(`cantina /: net::ERR at ${CANTINA}/`)
+    expect(r.manifest.failures).toContain(`seed: net::ERR at ${SITE}/build/`)
+    expect(r.manifest.failures).toContain(':pilot: the seed made no such entity')
+    // The signed-out Cantina root fails too: it is the same broken URL.
+    expect(r.manifest.failures).toContain(`/build/: net::ERR at ${SITE}/build/`)
   })
 
   test('a non-entity page with an og:image fetches it from the shot origin', async () => {
@@ -240,10 +243,10 @@ describe('gallery run', () => {
       return new Response('png', { headers: { 'content-type': 'image/png' } })
     }) as unknown as typeof fetch
     try {
-      const r = await gallery(['--srd', SRD], world({ ogImage: 'https://cdn.example/og/x.png' }))
+      const r = await gallery(['--base', SITE], world({ ogImage: 'https://cdn.example/og/x.png' }))
       expect(r.code).toBe(0)
       expect(fetched.length).toBeGreaterThan(0)
-      expect(fetched.every((u) => u === `${SRD}/og/x.png`)).toBe(true)
+      expect(fetched.every((u) => u === `${SITE}/og/x.png`)).toBe(true)
     } finally {
       globalThis.fetch = realFetch
     }

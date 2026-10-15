@@ -1,5 +1,5 @@
 /**
- * Design-token laws — the `tokens` rule set of `tools/check-styling.ts`.
+ * Design-token laws — the `tokens` rule set of `tools/check-rule-sets.ts`.
  *
  * Nothing enforced these laws before this rule set. That absence is why the
  * `su-*` shadow token family survived: the drift was never raw hex (which reads

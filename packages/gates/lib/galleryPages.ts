@@ -1,16 +1,21 @@
 /**
  * The pages the screenshot gallery shoots (`tools/gallery.ts`): the screens worth a
- * reviewer's look, grouped the way the gallery prints them. A page names its
- * site; `signedIn` pages are reached through a seeded test account
- * (`tools/gallery.ts` copies three Starter Set characters to its Shelves), and
- * their `path` may name a seeded entity by kind (`:pilot`, `:mech`,
- * `:crawler`, `:game`), resolved once the seed has run.
+ * reviewer's look, grouped the way the gallery prints them. Every path is on
+ * the one site, the Cantina's under `BUILDER_BASE`; `signedIn` pages are
+ * reached through a seeded test account (`tools/gallery.ts` copies three
+ * Starter Set characters to its Shelves), and their `path` may name a seeded
+ * entity by kind (`:pilot`, `:mech`, `:crawler`, `:game`), resolved once the
+ * seed has run.
  */
 
-type GallerySite = 'srd' | 'cantina'
+/** Where the Cantina is served on the site (ADR-048). */
+export const BUILDER_BASE = '/build'
+
+/** True for a path the Cantina serves (under `BUILDER_BASE`). */
+export const isBuilderPath = (path: string): boolean =>
+  path === BUILDER_BASE || path.startsWith(`${BUILDER_BASE}/`)
 
 export type GalleryPage = {
-  site: GallerySite
   path: string
   name: string
   note: string
@@ -31,14 +36,21 @@ export type GallerySection = {
 }
 
 const srd = (path: string, name: string, note: string, chips: readonly string[] = []) =>
-  ({ site: 'srd', path, name, note, chips }) satisfies GalleryPage
+  ({ path, name, note, chips }) satisfies GalleryPage
 
+/** A Cantina page: its route under `BUILDER_BASE`, or a seeded `:kind`. */
 const cantina = (
-  path: string,
+  route: string,
   name: string,
   note: string,
   extra: Partial<Pick<GalleryPage, 'signedIn' | 'edit' | 'chips'>> = {}
-) => ({ site: 'cantina', path, name, note, ...extra }) satisfies GalleryPage
+) =>
+  ({
+    path: route.startsWith(':') ? route : `${BUILDER_BASE}${route}`,
+    name,
+    note,
+    ...extra,
+  }) satisfies GalleryPage
 
 export const GALLERY_SECTIONS: readonly GallerySection[] = [
   {
@@ -155,11 +167,11 @@ export const GALLERY_SECTIONS: readonly GallerySection[] = [
   },
 ]
 
-/** A page's file stem: its site (and whether signed in), then its path, lowercase and dashed. */
-export function pageSlug(page: Pick<GalleryPage, 'site' | 'path' | 'signedIn'>): string {
+/** A page's file stem: `in-` when signed in, then its path, lowercase and dashed. */
+export function pageSlug(page: Pick<GalleryPage, 'path' | 'signedIn'>): string {
   const path = page.path
     .replace(/^\/|\/$/g, '')
     .replace(/[^a-z0-9]+/gi, '-')
     .replace(/^-|-$/g, '')
-  return `${page.site}${page.signedIn ? '-in' : ''}-${path.toLowerCase() || 'home'}`
+  return `${page.signedIn ? 'in-' : ''}${path.toLowerCase() || 'home'}`
 }

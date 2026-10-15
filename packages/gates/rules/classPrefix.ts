@@ -1,5 +1,5 @@
 /**
- * One class prefix — the `class-prefix` rule set of `tools/check-styling.ts`.
+ * One class prefix — the `class-prefix` rule set of `tools/check-rule-sets.ts`.
  *
  * Every class the package and the Cantina author is `su-*` (the Dashboard's
  * `su-dash-*` among them; `.claude/rules/styling.md`). The Cantina once grew `wiz-`,

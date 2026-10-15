@@ -1,9 +1,17 @@
 name: Setup Bun
-description: Set up Bun and install dependencies
+description: Set up Bun and, unless told not to, install dependencies
 
 # No actions/cache: restoring bun's extracted-package cache costs more than a
 # cold install, and its size evicts the Playwright browser cache.
 # `oven-sh/setup-bun` has its own small binary cache and stays.
+#
+# `install: 'false'` sets up Bun alone, for a job whose script imports nothing
+# installed (tools/release.ts in ci.yml's version-bump and release.yml).
+inputs:
+  install:
+    description: "'false' to skip `bun install`"
+    required: false
+    default: 'true'
 runs:
   using: composite
   steps:
@@ -13,5 +21,6 @@ runs:
         bun-version-file: package.json
 
     - name: Install dependencies
+      if: inputs.install != 'false'
       run: bun install --frozen-lockfile
       shell: bash

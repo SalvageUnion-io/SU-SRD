@@ -15,7 +15,7 @@
  * The Worker files hold `Env` only (`--include-runtime=false`): the workerd
  * runtime globals come once from the `@cloudflare/workers-types` root
  * devDependency, listed in su-assets' and the bot's tsconfig `types`, instead
- * of a 16k-line copy per Worker. srd typechecks its Worker with the
+ * of a 16k-line copy per Worker. apps/web typechecks its Worker with the
  * DOM lib, which conflicts with that package, so its file is committed and
  * drift-checked but no tsconfig includes it; its `Env` stays hand-written. Bump it with `wrangler` — its peer range names the version
  * matching the workerd it bundles.
@@ -68,6 +68,7 @@ import {
   writeFileSync,
 } from 'node:fs'
 import { dirname, join } from 'node:path'
+import { WORKER_APPS } from './check-workers'
 
 const ROOT = join(import.meta.dir, '..')
 
@@ -101,17 +102,14 @@ const SHARED_INPUTS = [
   'tools/check-generated.ts',
 ]
 
-/** The three Worker apps; the `workers` check holds them to one shape. */
-export const WORKER_APPS = ['apps/web', 'apps/su-assets', 'apps/discord-bot'] as const
-
 const workerTypes = (app: (typeof WORKER_APPS)[number]): GeneratorSpec => ({
   label: `${app} worker types`,
   cmd: ['bunx', 'wrangler', 'types', '--strict-vars=false', '--include-runtime=false'],
   cwd: app,
   outputs: [`${app}/worker-configuration.d.ts`],
   // What wrangler reads: wrangler.jsonc, the `.dev.vars`/`.env*` it takes
-  // secret names from, and the main module it names. Not the whole app: srd
-  // would re-run it on every UI edit.
+  // secret names from, and the main module it names. Not the whole app: the
+  // site would re-run it on every UI edit.
   inputs: [
     `${app}/wrangler.jsonc`,
     `${app}/.dev.vars`,
@@ -134,7 +132,7 @@ export const GENERATORS: GeneratorSpec[] = [
     tools: ['zod', '@biomejs/biome'],
   },
   {
-    label: 'cantina route tree',
+    label: 'apps/web route tree',
     cmd: ['bun', 'scripts/generate-route-tree.ts'],
     cwd: 'apps/web',
     outputs: ['apps/web/src/routeTree.gen.ts'],

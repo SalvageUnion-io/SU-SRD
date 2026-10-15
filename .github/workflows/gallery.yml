@@ -1,7 +1,7 @@
 name: Screenshot gallery
 
-# Screenshots of the PR's own srd and the Cantina builds — every page in
-# packages/gates/lib/galleryPages.ts at desktop and phone, each srd page's link
+# Screenshots of the PR's own build — every page in
+# packages/gates/lib/galleryPages.ts at desktop and phone, each page's link
 # preview, and the Cantina signed in — uploaded as the `gallery-<n>` artifact.
 # `gallery-pages.yml` publishes the artifact to GitHub Pages at
 # /<owner>.github.io/<repo>/<n>/ once this run completes.
@@ -74,8 +74,8 @@ jobs:
         with:
           browser: full
 
-      # One server for both apps, as in production: the workspace's Worker
-      # (`bun run preview`, wrangler on 4321) serves srd's pages and answers
+      # One server, as in production: the workspace's Worker (`bun run
+      # preview`, wrangler on 4321) serves the reference pages and answers
       # `/build` with the Cantina, as CI's e2e does. Its link previews read
       # the throwaway backend, not production's.
       - name: Serve the app
@@ -99,7 +99,7 @@ jobs:
           PR_NUMBER: ${{ inputs.pr }}
           HEAD_SHA: ${{ github.sha }}
         run: >-
-          bun run gallery --srd http://localhost:4321 --cantina http://localhost:4321/build
+          bun run gallery --base http://localhost:4321
           --signed-in ${PR_NUMBER:+--pr "$PR_NUMBER"} --sha "$HEAD_SHA" --out gallery
 
       # The tour keeps 90 days: Pages republishes the newest one on every

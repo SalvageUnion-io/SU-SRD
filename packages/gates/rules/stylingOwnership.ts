@@ -1,5 +1,5 @@
 /**
- * Styling-ownership laws — the `styling` rule set of `tools/check-styling.ts`.
+ * Styling-ownership laws — the `styling` rule set of `tools/check-rule-sets.ts`.
  *
  * The property this locks: **src/components is the single source of truth for all
  * components and shared styling.** An app is a composition root — it wires the
@@ -15,8 +15,7 @@
  *
  * The analyses here are structural (cross-file reference graphs, brace-context
  * parsing) rather than per-line regexes, so each rule has its own scan function.
- * Every rule is `zero` (any finding fails) but `style-object-annotation`, a
- * ratchet burning down the second spelling of a style object.
+ * Every rule is `zero`: any finding fails.
  */
 
 import { existsSync, readFileSync } from 'node:fs'
@@ -44,7 +43,7 @@ type Corpus = {
   root: string
   appCss: string[]
   appSource: string[]
-  /** su-dash-* usage is checked repo-wide (both apps + the library + tests). */
+  /** su-dash-* usage is checked repo-wide (the app, the library and the tests). */
   allTs: string[]
   read: (rel: string) => string
 }
@@ -509,7 +508,7 @@ function scanNoTailwind(c: Corpus): Finding[] {
  * `const NAME: CSSProperties = { … }`, widens every value to the whole
  * property type, so the object no longer says what it holds, and it is the
  * second of two spellings for one thing. It was 531 lines when this rule
- * landed; the ratchet only lets that fall. A function that builds a style
+ * landed as a ratchet, and none is left. A function that builds a style
  * (`(x): CSSProperties => ({ … })`) is not this spelling and is not counted.
  */
 const STYLE_OBJECT_ANNOTATION = /:\s*(?:React\.)?CSSProperties\s*=(?!>)/
@@ -535,7 +534,7 @@ const RULES: OwnershipRule[] = [
     id: 'app-theme',
     mode: 'zero',
     rule: 'source-of-truth §src/components owns shared styling — no app-local design tokens',
-    fix: 'Move the token into apps/web/src/styles/theme.css so both apps share one source. A print-time re-point of an EXISTING lib token belongs inside @media print (already allowed).',
+    fix: 'Move the token into apps/web/src/styles/theme.css, the one source. A print-time re-point of an EXISTING lib token belongs inside @media print (already allowed).',
     scan: scanAppTheme,
   },
   {
@@ -556,7 +555,7 @@ const RULES: OwnershipRule[] = [
     id: 'package-stylesheet-import',
     mode: 'zero',
     rule: 'ruleset §the package stylesheet is the ONE stylesheet a consumer loads, layered under the apps (#799, epic #802)',
-    fix: "The base stylesheet both apps link (apps/web/src/styles/base.css) imports './entry.css'; nothing imports index.css or reset.css itself. That one entry declares the order (`@layer su-reset, su-base;`) and imports './reset.css' layer(su-reset) and './index.css' layer(su-base), after the theme.css import.",
+    fix: "The base stylesheet the app links (apps/web/src/styles/base.css) imports './entry.css'; nothing imports index.css or reset.css itself. That one entry declares the order (`@layer su-reset, su-base;`) and imports './reset.css' layer(su-reset) and './index.css' layer(su-base), after the theme.css import.",
     scan: scanPackageStylesheetImport,
   },
   {
@@ -568,9 +567,9 @@ const RULES: OwnershipRule[] = [
   },
   {
     id: 'style-object-annotation',
-    mode: 'ratchet',
+    mode: 'zero',
     rule: '.claude/rules/styling.md §the written form: a style object is `const NAME = { … } satisfies CSSProperties`',
-    fix: 'Write `const NAME = { … } satisfies CSSProperties` instead of `const NAME: CSSProperties = { … }`. A value that varies by instance spreads the object (`style={{ ...NAME, color }}`); a stateful, responsive or repeated property is a `.su-*` class. Then lower the baseline: bun tools/check-styling.ts --update-baseline.',
+    fix: 'Write `const NAME = { … } satisfies CSSProperties` instead of `const NAME: CSSProperties = { … }`. A value that varies by instance spreads the object (`style={{ ...NAME, color }}`); a stateful, responsive or repeated property is a `.su-*` class.',
     scan: scanStyleObjectAnnotation,
   },
 ]

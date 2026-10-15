@@ -1,0 +1,98 @@
+name: Build the site
+description: Build the site against a Convex URL, render its OG images into apps/web/dist and upload it as `web-dist`
+
+# The site's one release build, shared by the `build-web` jobs of
+# deploy-cloudflare.yml (production) and deploy-preview.yml (a PR's Worker
+# Preview). The caller checks out first (a local action cannot run before the
+# checkout that holds it), with `fetch-depth: 0`: the changelog page is
+# `main`'s history (ADR-041), and a shallow clone would render one commit of it.
+#
+# THE BUILD HOLDS NO SECRET and pushes nothing anywhere. The Convex URL is a
+# constant the caller passes; the job that pushes the backend checks the
+# deploy key resolves to it (`.github/actions/convex-push`).
+#
+# The OG render is best-effort, every step of it `continue-on-error`: a
+# missing browser or a wedged page keeps the default og:image and never stops
+# the build. `include-hidden-files`: the artifact is what ships, byte for
+# byte, so it must not silently drop a dotfile the build emitted.
+inputs:
+  convex-url:
+    description: The Convex client URL the Cantina is compiled against (VITE_CONVEX_URL)
+    required: true
+  commit-ref:
+    description: The commit stamped into the build (VITE_COMMIT_REF)
+    required: true
+  site-origin:
+    description: "The deployment's origin (VITE_SITE_ORIGIN); empty means production's"
+    required: false
+    default: ''
+  retention-days:
+    description: How long the `web-dist` artifact is kept
+    required: false
+    default: '7'
+runs:
+  using: composite
+  steps:
+    - name: Setup Bun
+      uses: ./.github/actions/setup-bun
+
+    - name: Build the site
+      shell: bash
+      env:
+        VITE_CONVEX_URL: ${{ inputs.convex-url }}
+        VITE_COMMIT_REF: ${{ inputs.commit-ref }}
+        VITE_SITE_ORIGIN: ${{ inputs.site-origin }}
+      run: bun --filter web build
+
+    # The same cache as ci.yml's, so either workflow's save serves both.
+    - name: Set up Playwright
+      continue-on-error: true
+      uses: ./.github/actions/playwright
+
+    # Each cached PNG is keyed on its entity's JSON and the render key: a hash
+    # of the built bytes that draw the card (the og-card page, its CSS and
+    # fonts, the OgCardIsland chunk graph, never the data chunks), the script
+    # and the Playwright and sharp versions. A commit that changes none of those
+    # restores every card; an unknowable key falls back to the commit, which
+    # restores nothing and renders all of them.
+    - name: Key the OG cache
+      id: og-key
+      continue-on-error: true
+      shell: bash
+      working-directory: apps/web
+      env:
+        DATA: ${{ hashFiles('packages/salvageunion-reference/data/**') }}
+      run: |
+        render=$(bun scripts/og-screenshots.ts --fingerprint) || render=""
+        [[ "$render" =~ ^[0-9a-f]{64}$ ]] || render=""
+        echo "render=${render:-commit-$GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+        echo "data=$DATA" >> "$GITHUB_OUTPUT"
+
+    # The `srd-og` key prefix (and the script's cache directory) is what every
+    # saved cache carries: renaming it would restore nothing and re-render
+    # every card once.
+    - name: Cache the OG renders
+      continue-on-error: true
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: apps/web/node_modules/.cache/srd-og
+        key: srd-og-${{ steps.og-key.outputs.render }}-${{ steps.og-key.outputs.data }}
+        restore-keys: srd-og-${{ steps.og-key.outputs.render }}-
+
+    - name: Render the OG images
+      continue-on-error: true
+      shell: bash
+      working-directory: apps/web
+      env:
+        OG_SCREENSHOTS: '1'
+        OG_SCREENSHOTS_BUDGET_MS: '300000'
+      run: bun scripts/og-screenshots.ts
+
+    - name: Upload the site artifact
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: web-dist
+        path: apps/web/dist/
+        include-hidden-files: true
+        if-no-files-found: error
+        retention-days: ${{ inputs.retention-days }}

@@ -56,7 +56,7 @@ import type { ErasedRoute, RouteRegistration } from './render'
  * primary checkout, offset in a worktree: `packages/gates/lib/ports.ts`) and is
  * restarted in place. An explicit `PORT` wins.
  */
-const PORT = Number(process.env.PORT ?? portFor('web'))
+const PORT = Number(process.env.PORT ?? portFor())
 
 // Absolute addresses follow the env they are served from
 // (`src/lib/constants.ts`): the dev server names itself, for both apps, since

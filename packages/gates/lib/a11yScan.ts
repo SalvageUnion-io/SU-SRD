@@ -200,7 +200,7 @@ async function scanAs(
     ...EMULATIONS[device],
     baseURL,
     storageState,
-    // As in both suites' configs (packages/gates/lib/playwrightBase.ts): a PWA worker
+    // As in the suite's config (apps/web/playwright.config.ts): a PWA worker
     // activating mid-navigation can abort the goto, and the production CSP
     // `bun run preview` serves would refuse the injected axe script.
     serviceWorkers: 'block',
