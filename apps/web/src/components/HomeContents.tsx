@@ -13,7 +13,7 @@ import { buttonVariants, CHAPTER_BAND_COLOR, cn, StartHere } from './index'
  * static: every row is a plain link.
  *
  * Rows are 36px for a fine pointer and 44px under `(pointer: coarse)` or on a phone width (the
- * repo's touch floor, ruleset §4.6) — `global.css`'s `.srd-contents__row`.
+ * repo's touch floor, ruleset §4.6) — `global.css`'s `.su-contents__row`.
  */
 
 /** One row of the index: an entry and, for a chapter's catalog, its count. */
@@ -32,22 +32,22 @@ type ContentsChapterProps = {
 export function ContentsChapter({ id, title, tone, rows, total }: ContentsChapterProps) {
   const headingId = `${id}-heading`
   return (
-    <section id={id} className="srd-contents__chapter" aria-labelledby={headingId}>
+    <section id={id} className="su-contents__chapter" aria-labelledby={headingId}>
       <div
         aria-hidden="true"
-        className="srd-contents__band"
+        className="su-contents__band"
         style={{ backgroundColor: tone === 'ink' ? 'var(--color-ink)' : CHAPTER_BAND_COLOR[tone] }}
       />
-      <h2 id={headingId} className="srd-contents__heading">
+      <h2 id={headingId} className="su-contents__heading">
         <span>{title}</span>
-        {total !== undefined && <span className="srd-contents__total">{total}</span>}
+        {total !== undefined && <span className="su-contents__total">{total}</span>}
       </h2>
-      <ul className="srd-contents__rows">
+      <ul className="su-contents__rows">
         {rows.map((row) => (
           <li key={row.href}>
-            <a href={row.href} className="srd-contents__row">
+            <a href={row.href} className="su-contents__row">
               <span>{row.label}</span>
-              {row.count !== undefined && <span className="srd-contents__count">{row.count}</span>}
+              {row.count !== undefined && <span className="su-contents__count">{row.count}</span>}
             </a>
           </li>
         ))}
@@ -87,13 +87,13 @@ export function DiscordButton({ installHref }: { installHref: string }) {
       target="_blank"
       rel="noopener noreferrer"
       id="discord-bot"
-      className={cn(buttonVariants({ variant: 'ink', size: 'full' }), 'srd-home__discord')}
+      className={cn(buttonVariants({ variant: 'ink', size: 'full' }), 'su-home__discord')}
     >
       <svg
         viewBox="0 0 24 24"
         aria-hidden="true"
         focusable="false"
-        className="srd-home__discord-mark"
+        className="su-home__discord-mark"
       >
         <path fill="currentColor" d={DISCORD_MARK} />
       </svg>

@@ -95,7 +95,7 @@ export function DidYouMeanIsland({ pathname }: DidYouMeanIslandProps = {}) {
 
   return (
     <IslandErrorBoundary>
-      <section className="srd-not-found__guesses" aria-labelledby="did-you-mean">
+      <section className="su-not-found__guesses" aria-labelledby="did-you-mean">
         <Slab
           variant="solid"
           as="h2"
@@ -104,7 +104,7 @@ export function DidYouMeanIsland({ pathname }: DidYouMeanIslandProps = {}) {
           label={guesses.length > 0 ? 'Did you mean' : `Nothing close to “${query}”`}
         />
         {guesses.length > 0 && (
-          <ul className="srd-not-found__results">
+          <ul className="su-not-found__results">
             {guesses.map((result) => {
               const href = itemHref(result.schemaName, getEntitySlug(result.entity))
               const model = models.get(result.entityId)
@@ -113,7 +113,7 @@ export function DidYouMeanIsland({ pathname }: DidYouMeanIslandProps = {}) {
                   {model ? (
                     <Entity form="row" model={model} mode={{ kind: 'link', href }} />
                   ) : (
-                    <a href={href} className="srd-not-found__link">
+                    <a href={href} className="su-not-found__link">
                       {result.entityName}
                     </a>
                   )}
@@ -122,7 +122,7 @@ export function DidYouMeanIsland({ pathname }: DidYouMeanIslandProps = {}) {
             })}
           </ul>
         )}
-        <a href={searchHref} className="srd-not-found__link">
+        <a href={searchHref} className="su-not-found__link">
           Search the SRD for “{query}”
         </a>
       </section>

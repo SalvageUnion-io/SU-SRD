@@ -77,11 +77,7 @@ describe('rendered pages', () => {
       'su-entity-row__title" title="Hybrid"><span>Hybrid<',
     ],
     ['a two-roll columns table', '/roll-tables/callsign-table', 'data-island="ColumnsTableIsland"'],
-    [
-      'a static fallback with a Traits line',
-      '/abilities/auto-turret',
-      'srd-static__label">Traits:',
-    ],
+    ['a static fallback with a Traits line', '/abilities/auto-turret', 'su-static__label">Traits:'],
   ])('renders %s without raw markup', (_label, route, marker) => {
     const html = renderRoute(route)
     expect(renderedBody(html)).toContain(marker)

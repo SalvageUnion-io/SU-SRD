@@ -36,12 +36,12 @@ function page(): PageResult {
       noindex: true,
     },
     children: (
-      <div className="srd-not-found">
-        <div className="srd-not-found__band">
+      <div className="su-not-found">
+        <div className="su-not-found__band">
           <ChapterBand
             measure={PAGE_MEASURE}
             aside={
-              <div className="srd-not-found__lede">
+              <div className="su-not-found__lede">
                 <p>
                   <strong>404 · Salvage operation failed.</strong> This page was broken down,
                   relocated, or never existed. Search the SRD for it, or open a chapter.
@@ -55,9 +55,9 @@ function page(): PageResult {
             Page not found
           </ChapterBand>
         </div>
-        <div className="srd-not-found__body srd-page-body">
+        <div className="su-not-found__body su-page-body">
           <Island name="DidYouMeanIsland" client="idle" />
-          <nav className="srd-not-found__chapters" aria-labelledby="not-found-chapters">
+          <nav className="su-not-found__chapters" aria-labelledby="not-found-chapters">
             <Slab
               variant="solid"
               as="h2"
@@ -65,19 +65,19 @@ function page(): PageResult {
               label="Or open a chapter"
               style={SLAB}
             />
-            <ul className="srd-not-found__chapter-list">
+            <ul className="su-not-found__chapter-list">
               {chapters.map((chapter) => (
                 <li key={chapter.id}>
                   {/* The home index's chapter column: a top band in the
                       chapter's colour over its name (ruleset §3.10: colour
                       rides in top bands, never a left rail). */}
-                  <a href={chapter.href} className="srd-not-found__chapter">
+                  <a href={chapter.href} className="su-not-found__chapter">
                     <span
                       aria-hidden="true"
-                      className="srd-contents__band"
+                      className="su-contents__band"
                       style={{ backgroundColor: CHAPTER_BAND_COLOR[chapter.tone] }}
                     />
-                    <span className="srd-not-found__chapter-name">{chapter.title}</span>
+                    <span className="su-not-found__chapter-name">{chapter.title}</span>
                   </a>
                 </li>
               ))}

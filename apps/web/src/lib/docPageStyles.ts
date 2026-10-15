@@ -5,7 +5,7 @@
  *
  * Style objects over `tokens.ts`, not classes, because none of these has a
  * stateful or responsive variant (ADR-046). A part that does
- * — a hover, a breakpoint — is a `srd-*` class in `styles/pages.css`.
+ * — a hover, a breakpoint — is a `su-*` class in `styles/pages.css`.
  */
 
 import type { CSSProperties } from 'react'

@@ -43,7 +43,7 @@ type EntityParent = { label: string; entityRef: EntityRef; href: string }
  */
 function GuideExitsFoot({ build, next, starterSet }: GuideExits) {
   return (
-    <nav className="srd-guide-exits" aria-label="Where next">
+    <nav className="su-guide-exits" aria-label="Where next">
       <a
         href={build.href}
         aria-label={build.ariaLabel}
@@ -52,12 +52,12 @@ function GuideExitsFoot({ build, next, starterSet }: GuideExits) {
         {build.label}
       </a>
       {next && (
-        <a href={next.href} className="srd-guide-exits__next">
+        <a href={next.href} className="su-guide-exits__next">
           {next.label}
           <span aria-hidden="true">→</span>
         </a>
       )}
-      <a href={starterSet.href} className="srd-guide-exits__starter">
+      <a href={starterSet.href} className="su-guide-exits__starter">
         {starterSet.label}
       </a>
     </nav>
@@ -94,7 +94,7 @@ export function EntityPageFrame({
   children,
 }: EntityPageFrameProps) {
   return (
-    <article className="srd-entity">
+    <article className="su-entity">
       <ChapterBand
         tone={tone}
         fill={fill}
@@ -138,7 +138,7 @@ export function EntityPageFrame({
         {title}
         <KindLabel kind={meta.typeLabel} />
       </ChapterBand>
-      <div className="srd-entity__body srd-page-body">
+      <div className="su-entity__body su-page-body">
         {children}
         {exits && <GuideExitsFoot {...exits} />}
       </div>

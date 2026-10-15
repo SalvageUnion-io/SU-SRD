@@ -17,7 +17,7 @@ import { MentionProse } from './MentionProse'
  * Mention resolved at build time (`mentionRef`): a link to its page
  * with its Peek. The summary keeps its prose's `[[Trait]]` markup
  * (`keepReferences`) for exactly that; a summary without it reads as words.
- * The parent link is an `InlineRef`. Layout is `pages.css`'s `.srd-static*`.
+ * The parent link is an `InlineRef`. Layout is `pages.css`'s `.su-static*`.
  */
 
 /** Prose with its references drawn as Mentions. */
@@ -33,12 +33,12 @@ type StaticEntityContentProps = {
 
 export function StaticEntityContent({ summary, parent }: StaticEntityContentProps) {
   return (
-    <div data-static-fallback className="srd-static">
+    <div data-static-fallback className="su-static">
       {/* No heading of its own: the page's chapter band is its <h1>, for
           crawlers, no-JS readers and the hydrated page alike. */}
       {parent && (
         <p>
-          <span className="srd-static__label">{parent.label}</span>{' '}
+          <span className="su-static__label">{parent.label}</span>{' '}
           <InlineRef href={parent.href}>{parent.name}</InlineRef>
         </p>
       )}
@@ -50,10 +50,10 @@ export function StaticEntityContent({ summary, parent }: StaticEntityContentProp
       )}
 
       {summary.stats.length > 0 && (
-        <dl className="srd-static__stats">
+        <dl className="su-static__stats">
           {summary.stats.map(({ label, value }) => (
             <Fragment key={label}>
-              <dt className="srd-static__label">{label}</dt>
+              <dt className="su-static__label">{label}</dt>
               <dd>{value}</dd>
             </Fragment>
           ))}
@@ -80,8 +80,8 @@ export function StaticEntityContent({ summary, parent }: StaticEntityContentProp
         what a rotor listing reads.
       */}
       {summary.table.length > 0 && (
-        <div className="srd-static__table-wrap">
-          <table className="srd-static__table">
+        <div className="su-static__table-wrap">
+          <table className="su-static__table">
             <caption className="su-sr-only">{`${summary.name} roll table`}</caption>
             <thead>
               <tr>
@@ -109,7 +109,7 @@ export function StaticEntityContent({ summary, parent }: StaticEntityContentProp
           rendering is a title and one paragraph. Headings are h2: they sit
           under the h1 above. */}
       {summary.sections.map((section) => (
-        <section key={section.name} className="srd-static__section">
+        <section key={section.name} className="su-static__section">
           <Slab as="h2" variant="solid" label={section.name} />
           {section.paragraphs.map((p) => (
             <p key={p}>
@@ -121,7 +121,7 @@ export function StaticEntityContent({ summary, parent }: StaticEntityContentProp
 
       {summary.traits.length > 0 && (
         <p>
-          <span className="srd-static__label">Traits:</span>{' '}
+          <span className="su-static__label">Traits:</span>{' '}
           {summary.traits.map((t, i) => (
             <Fragment key={t}>
               {i > 0 && ', '}
@@ -132,7 +132,7 @@ export function StaticEntityContent({ summary, parent }: StaticEntityContentProp
       )}
 
       {summary.source && (
-        <p className="srd-static__source">
+        <p className="su-static__source">
           Source: {summary.source}
           {summary.page ? `, p. ${summary.page}` : ''}
         </p>

@@ -57,7 +57,7 @@ What an editor needs:
   `su-reset` and `index.css` into `su-base`. Both render modes import it, never
   `index.css`, and their own stylesheets stay unlayered so an app rule
   outranks a package rule (`package-stylesheet-import` guards it).
-- Every package and the Cantina class is `su-*` (`su-wiz-*`; srd's are `srd-*`):
+- Every class, in every stylesheet, is `su-*` (`su-wiz-*`, `su-dash-*`):
   `class-prefix`. `dash-class-contract` holds `su-dash-*` usage and
   definitions to each other.
 - **Checking a focus ring with `el.focus()` lies**: `:focus-visible` needs a

@@ -54,7 +54,7 @@ function WikiLink() {
  */
 function SignInLink() {
   return (
-    <a href={SIGN_IN_HREF} className={cn('su-union-bar__sign-in', 'srd-sign-in', FOCUS_RING)}>
+    <a href={SIGN_IN_HREF} className={cn('su-union-bar__sign-in', 'su-sign-in', FOCUS_RING)}>
       Sign in with Discord
     </a>
   )

@@ -114,7 +114,7 @@ describe('SearchResultsIsland', () => {
     const { container } = render(<SearchResultsIsland />)
     const link = await screen.findByRole('link', { name: 'Gopher' })
     expect(link.getAttribute('href')).toBe('/chassis/gopher/')
-    expect(link.className).toBe('srd-listing__fallback-row')
+    expect(link.className).toBe('su-listing__fallback-row')
     expect(container.querySelector('.su-entity-row')).toBeNull()
   })
 })

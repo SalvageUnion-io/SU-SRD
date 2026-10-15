@@ -51,7 +51,7 @@ const TITLE = {
 
 // The two icon buttons over the shared icon rung. Their ground is the rung's
 // (`.su-btn--ghost`), except the trigger's hover, which is
-// `.srd-mobile-search__trigger` in pages.css. The trigger takes the Union
+// `.su-mobile-search__trigger` in pages.css. The trigger takes the Union
 // bar's control height (`--su-union-bar-control`); the sheet's close is 44px.
 const ICON_BUTTON = {
   borderColor: 'transparent',
@@ -93,7 +93,7 @@ export function MobileSearchDialog({ children }: MobileSearchDialogProps) {
           // supplies the focus ring this trigger simply did not have.
           <button
             type="button"
-            className={cn(iconButtonClass, 'srd-mobile-search__trigger')}
+            className={cn(iconButtonClass, 'su-mobile-search__trigger')}
             style={TRIGGER}
             aria-label="Search the SRD"
           >

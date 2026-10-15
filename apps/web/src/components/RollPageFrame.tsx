@@ -18,14 +18,14 @@ type RollPageFrameProps = {
  */
 export function RollPageFrame({ density, description, children }: RollPageFrameProps) {
   return (
-    <div className="srd-roll" data-density={density}>
+    <div className="su-roll-page" data-density={density}>
       {description.map((paragraph) => (
-        <p key={paragraph} className="srd-roll__description">
+        <p key={paragraph} className="su-roll-page__description">
           {paragraph}
         </p>
       ))}
       {children}
-      <p className="srd-roll__credit">
+      <p className="su-roll-page__credit">
         Dice rolling powered by{' '}
         <InlineRef href="https://randsum.dev" target="_blank" rel="noopener noreferrer">
           Randsum.dev

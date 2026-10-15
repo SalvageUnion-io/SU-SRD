@@ -13,7 +13,7 @@ import { FOCUS_RING, FOCUS_WITHIN } from './interaction'
  * Purely presentational: it forwards `ref` and every extra prop straight to the
  * `<input>`, so a caller can wire it as a plain text input (the `/search` page)
  * or as an ARIA combobox (the header dropdown) without this component knowing
- * which. The default look is the header's compact `.srd-search`; override
+ * which. The default look is the header's compact search; override
  * padding/size via `containerClassName` and width/etc. via `className`.
  */
 

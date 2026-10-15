@@ -63,7 +63,7 @@ describe('home: the manual’s Contents page (board 06)', () => {
 
   it('starts a new player on the shared "Start here" block, each step opening its guide', () => {
     const startHere = html.slice(
-      html.indexOf('srd-home__aside'),
+      html.indexOf('su-home__aside'),
       html.indexOf('<a href="https://discord.com/')
     )
     expect(startHere).toContain('>Start here<')
@@ -76,14 +76,14 @@ describe('home: the manual’s Contents page (board 06)', () => {
   })
 
   it('sets "At the table" as a section of the index', () => {
-    const index = html.slice(html.indexOf('srd-home__index'), html.indexOf('srd-home__aside'))
+    const index = html.slice(html.indexOf('su-home__index'), html.indexOf('su-home__aside'))
     expect(index).toContain('<span>At the table</span>')
     expect(index).toContain('href="/roll-tables/core-mechanic/"')
     expect(index).not.toContain('On Discord')
   })
 
   it('offers the Discord bot as one button straight under "Start here"', () => {
-    const aside = html.slice(html.indexOf('srd-home__aside'), html.indexOf('<footer'))
+    const aside = html.slice(html.indexOf('su-home__aside'), html.indexOf('<footer'))
     const discord = aside.slice(aside.indexOf('<a href="https://discord.com/'))
     expect(aside.indexOf('id="start-here"')).toBeLessThan(aside.indexOf('id="discord-bot"'))
     expect(discord).toContain('SalvageUnion.io On Discord')
@@ -92,7 +92,7 @@ describe('home: the manual’s Contents page (board 06)', () => {
   })
 
   it('opens each chapter on its band alone, with no artwork', () => {
-    const index = html.slice(html.indexOf('srd-home__index'), html.indexOf('<footer'))
+    const index = html.slice(html.indexOf('su-home__index'), html.indexOf('<footer'))
     expect(index).not.toContain('<img')
   })
 
@@ -118,20 +118,20 @@ describe('a listing (compact cards under a visible heading)', () => {
   it('first paints the listing itself, so the mount draws nothing new', () => {
     // The island's own cards from build-time data, not a stand-in: one tile
     // per chassis, each linking to its page.
-    expect(html).not.toContain('srd-listing__fallback-row')
+    expect(html).not.toContain('su-listing__fallback-row')
     expect(html.match(/class="su-entity-tile[ "]/g)?.length).toBeGreaterThan(40)
     expect(html).toContain('href="/chassis/mule/"')
   })
 
   it('first paints the island’s rail and its one flat Catalog, so the mount moves nothing', () => {
     // The Catalog has one group, with no heading.
-    expect(html.match(/class="srd-listing__group"/g)).toHaveLength(1)
-    expect(html).not.toMatch(/class="srd-listing__group" aria-label=/)
+    expect(html.match(/class="su-listing__group"/g)).toHaveLength(1)
+    expect(html).not.toMatch(/class="su-listing__group" aria-label=/)
     expect(html).toContain('data-view="catalog"')
     // The rail is the island's, without its actions, above the group. It is
     // not inert: a press on it wakes the island, which plays the press back.
-    expect(html).toContain('<div class="srd-rail">')
-    expect(html.indexOf('srd-rail')).toBeLessThan(html.indexOf('srd-listing__group'))
+    expect(html).toContain('<div class="su-rail">')
+    expect(html.indexOf('su-rail')).toBeLessThan(html.indexOf('su-listing__group'))
     // The skeleton takes the same group from the island's props.
     expect(html).toContain('"groups":[{"key":"all","count":')
   })

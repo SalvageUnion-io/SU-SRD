@@ -36,7 +36,7 @@ function TreeSection({
   note,
 }: AbilityTreeGroup & { track: TreeTrack; note?: string }) {
   return (
-    <section className="srd-ability-tree__group">
+    <section className="su-ability-tree__group">
       <Slab variant="solid" as="h2" label={tree} count={note ?? noteFor(track)} />
       <AbilityTrack abilities={abilities} track={track} titleAs="h3" />
     </section>
@@ -135,7 +135,7 @@ function hybridTrees(plan: Extract<ClassPlan, { kind: 'hybrid' }>): RefText {
  */
 function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
   return (
-    <aside className="srd-class-brief" aria-label="Training">
+    <aside className="su-class-brief" aria-label="Training">
       {/* The limit rides the slab's own row, centred on its label and rule. */}
       <Slab
         variant="dashed"
@@ -150,9 +150,9 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
           />
         }
       />
-      <ul className="srd-class-brief__cards">
+      <ul className="su-class-brief__cards">
         {briefCards(plan).map((card) => (
-          <li key={card.label} className="srd-class-brief__card">
+          <li key={card.label} className="su-class-brief__card">
             <Head
               title={card.label}
               paint={tierPaint(card.tier)}
@@ -166,15 +166,15 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
               notch
               chipsBeside
             />
-            <p className="srd-class-brief__body">
+            <p className="su-class-brief__body">
               <MentionProse parts={card.value} />
             </p>
           </li>
         ))}
       </ul>
       {plan.kind === 'hybrid' && (
-        <p className="srd-class-brief__trees">
-          <span className="srd-class-brief__trees-label">Trees</span>{' '}
+        <p className="su-class-brief__trees">
+          <span className="su-class-brief__trees-label">Trees</span>{' '}
           <MentionProse parts={hybridTrees(plan)} />
         </p>
       )}
@@ -197,7 +197,7 @@ function PathRequirement({ path, classEntity }: { path: ClassPath; classEntity: 
     : [path.via, ...path.requirement.filter((tree) => tree !== path.via)]
   return (
     <>
-      <span className="srd-class-path__req-chip">
+      <span className="su-class-path__req-chip">
         {trees.map((tree, index) => (
           <Stat
             key={tree}
@@ -205,7 +205,7 @@ function PathRequirement({ path, classEntity }: { path: ClassPath; classEntity: 
             label={index === 0 ? 'REQ' : 'or'}
             value={tree}
             size="compact"
-            className="srd-class-path__req-cell"
+            className="su-class-path__req-cell"
           />
         ))}
       </span>
@@ -248,23 +248,23 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: RefClas
     />
   )
   return (
-    <li className="srd-class-path" data-kind={kind.toLowerCase()}>
+    <li className="su-class-path" data-kind={kind.toLowerCase()}>
       {hybrid ? (
-        <a className="srd-class-path__link" href={classHref(hybrid)}>
+        <a className="su-class-path__link" href={classHref(hybrid)}>
           {head}
         </a>
       ) : (
         head
       )}
-      <div className="srd-class-path__body">
-        {note && <p className="srd-class-path__note">{note}</p>}
-        <div className="srd-class-path__trees" data-entity-fit="">
+      <div className="su-class-path__body">
+        {note && <p className="su-class-path__note">{note}</p>}
+        <div className="su-class-path__trees" data-entity-fit="">
           <TreeSection {...path.advanced} track={hybrid ? 'hybrid' : 'advanced'} />
           {path.legendary && <TreeSection {...path.legendary} track="legendary" />}
         </div>
       </div>
       {/* Cited as every card's footer cites: text, never chips (EDL E9). */}
-      <p className="srd-class-path__foot">Workshop Manual · p.{(hybrid ?? classEntity).page}</p>
+      <p className="su-class-path__foot">Workshop Manual · p.{(hybrid ?? classEntity).page}</p>
     </li>
   )
 }
@@ -276,11 +276,11 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
   if (plan.kind === 'hybrid') {
     const { path, branches } = plan
     return (
-      <div className="srd-ability-tree">
+      <div className="su-ability-tree">
         <ClassBrief plan={plan} />
-        <section className="srd-ability-tree__section">
+        <section className="su-ability-tree__section">
           <Slab variant="dashed" label="Abilities" />
-          <div className="srd-ability-tree__row" data-entity-fit="">
+          <div className="su-ability-tree__row" data-entity-fit="">
             <TreeSection {...path.advanced} track="hybrid" />
             {path.legendary && <TreeSection {...path.legendary} track="legendary" />}
           </div>
@@ -294,12 +294,12 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
   // advances along, its own (Legendary) first, then each Hybrid Class, all
   // the same card with their trees side by side.
   return (
-    <div className="srd-ability-tree">
+    <div className="su-ability-tree">
       <ClassBrief plan={plan} />
       {plan.coreTrees.length > 0 && (
-        <section className="srd-ability-tree__section">
+        <section className="su-ability-tree__section">
           <Slab variant="dashed" label="Core trees" />
-          <div className="srd-ability-tree__row srd-ability-tree__row--stack">
+          <div className="su-ability-tree__row su-ability-tree__row--stack">
             {plan.coreTrees.map((group) => (
               <TreeSection key={group.tree} {...group} track="core" />
             ))}
@@ -307,9 +307,9 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
         </section>
       )}
       {plan.paths.length > 0 && (
-        <section className="srd-ability-tree__section">
+        <section className="su-ability-tree__section">
           <Slab variant="dashed" label="Advancement" />
-          <ul className="srd-class-paths">
+          <ul className="su-class-paths">
             {[...plan.paths]
               .sort((a, b) => Number(Boolean(a.hybrid)) - Number(Boolean(b.hybrid)))
               .map((path) => (
@@ -334,9 +334,9 @@ function BranchTrees({ branches }: { branches: BranchTree[] }) {
   const groups = branches.flatMap(({ group, owner }) => (group ? [{ group, owner }] : []))
   if (groups.length === 0) return null
   return (
-    <section className="srd-ability-tree__section">
+    <section className="su-ability-tree__section">
       <Slab variant="dashed" label="Required Trees" />
-      <div className="srd-ability-tree__row" data-entity-fit="">
+      <div className="su-ability-tree__row" data-entity-fit="">
         {groups.map(({ group, owner }) => (
           <TreeSection key={group.tree} {...group} track="core" note={owner?.name} />
         ))}

@@ -77,12 +77,12 @@ function page(): PageResult {
       },
     },
     children: (
-      <div className="srd-home">
-        <div className="srd-home__band">
+      <div className="su-home">
+        <div className="su-home__band">
           <ChapterBand
             measure={PAGE_MEASURE}
             aside={
-              <div className="srd-home__lede">
+              <div className="su-home__lede">
                 <Island name="SearchIsland" client="interaction" ssr props={{ variant: 'hero' }}>
                   <HeroSearchStatic />
                 </Island>
@@ -92,8 +92,8 @@ function page(): PageResult {
             The Salvage Union SRD
           </ChapterBand>
         </div>
-        <div className="srd-home__body srd-page-body">
-          <div className="srd-home__index">
+        <div className="su-home__body su-page-body">
+          <div className="su-home__index">
             {chapters.map((chapter) => (
               <ContentsChapter
                 key={chapter.id}
@@ -106,7 +106,7 @@ function page(): PageResult {
             ))}
             <ContentsChapter id="at-the-table" title="At the table" tone="ink" rows={atTheTable} />
           </div>
-          <aside className="srd-home__aside" aria-label="Getting started">
+          <aside className="su-home__aside" aria-label="Getting started">
             <HomeStartHere guideHrefs={guideHrefs} />
             <DiscordButton installHref={DISCORD_INSTALL_URL} />
           </aside>

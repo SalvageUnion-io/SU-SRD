@@ -322,7 +322,7 @@ function SchemaViewer({
 
   return (
     <div
-      className="srd-listing"
+      className="su-listing"
       data-wide={WIDE_LISTINGS.has(schemaId) || undefined}
       data-catalog={(view === 'catalog' && !hasArt) || undefined}
       data-view={view}
@@ -350,8 +350,8 @@ function SchemaViewer({
         status={
           hasActiveFilters &&
           filteredData.length > 0 && (
-            <output className="srd-rail__status" aria-live="polite">
-              <span className="srd-rail__tally">
+            <output className="su-rail__status" aria-live="polite">
+              <span className="su-rail__tally">
                 {filteredData.length} of {initialData.length}
               </span>
               {[...techLevelFilters].map((key) => {
@@ -387,11 +387,7 @@ function SchemaViewer({
                   onRemove={() => setNameFilter('')}
                 />
               )}
-              <button
-                type="button"
-                className="srd-rail__clear su-focus-ring"
-                onClick={clearFilters}
-              >
+              <button type="button" className="su-rail__clear su-focus-ring" onClick={clearFilters}>
                 Clear all
               </button>
             </output>
@@ -413,12 +409,12 @@ function SchemaViewer({
         />
       ) : (
         <EntitySurfaceProvider value={{ hrefFor: srdHrefFor }}>
-          <div className="srd-listing__groups">
+          <div className="su-listing__groups">
             {groups.map((group, groupIndex) => (
-              <section key={group.key} className="srd-listing__group" aria-label={group.label}>
+              <section key={group.key} className="su-listing__group" aria-label={group.label}>
                 {group.label && <Slab variant="solid" label={group.label} />}
                 {view === 'catalog' ? (
-                  <ul className="srd-listing__tiles">
+                  <ul className="su-listing__tiles">
                     {group.items.map((item: RefEntity, index) => (
                       <li key={item.id}>
                         <Entity
@@ -439,7 +435,7 @@ function SchemaViewer({
                     track={treeTracks.get(group.key) ?? 'core'}
                   />
                 ) : (
-                  <ul className="srd-listing__cards" data-entity-fit="">
+                  <ul className="su-listing__cards" data-entity-fit="">
                     {group.items.map((item: RefEntity) => (
                       <li key={item.id}>
                         <EntityListingRow
@@ -485,7 +481,7 @@ function ListingSkeleton({
     shape && !catalog ? shape.groups : [{ key: 'all', label: undefined, count: shape?.count ?? 12 }]
   return (
     <div
-      className="srd-listing"
+      className="su-listing"
       data-wide={WIDE_LISTINGS.has(schemaId) || undefined}
       data-catalog={(catalog && !hasArt) || undefined}
       data-view={view}
@@ -503,19 +499,19 @@ function ListingSkeleton({
           view={view}
         />
       )}
-      <div className="srd-listing__groups">
+      <div className="su-listing__groups">
         {groups.map((group) => (
-          <section key={group.key} className="srd-listing__group">
+          <section key={group.key} className="su-listing__group">
             {group.label && <Slab variant="solid" label={group.label} />}
             {catalog ? (
-              <ul className="srd-listing__tiles">
+              <ul className="su-listing__tiles">
                 {Array.from({ length: group.count }, (_, i) => (
                   // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton placeholder list, never reordered — index is stable
-                  <li key={i} className="srd-listing__tile-skeleton" />
+                  <li key={i} className="su-listing__tile-skeleton" />
                 ))}
               </ul>
             ) : (
-              <ul className="srd-listing__cards" data-entity-grid="">
+              <ul className="su-listing__cards" data-entity-grid="">
                 {Array.from({ length: group.count }, (_, i) => (
                   // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton placeholder list, never reordered — index is stable
                   <li key={i}>
@@ -544,7 +540,7 @@ function FilterToken({
   return (
     <button
       type="button"
-      className="srd-rail__token su-focus-ring"
+      className="su-rail__token su-focus-ring"
       aria-label={`Remove ${name}`}
       onClick={onRemove}
     >

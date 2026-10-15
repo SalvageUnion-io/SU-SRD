@@ -7,7 +7,7 @@ import { ChapterBand } from './index'
  * DocPage — the frame every plain document page wears (`/about`, `/api`,
  * `/changelog`, `/discord` and the two `/bot` policies): the page column, its
  * `ChapterBand` title, then the body on the one page measure the band shares
- * (`.srd-page-body`), its text in a reading column from the same gutter.
+ * (`.su-page-body`), its text in a reading column from the same gutter.
  */
 export function DocPage({
   title,
@@ -25,7 +25,7 @@ export function DocPage({
   return (
     <div style={DOC_PAGE}>
       <ChapterBand measure={PAGE_MEASURE}>{title}</ChapterBand>
-      <div className="srd-page-body">
+      <div className="su-page-body">
         <div style={docMeasure(measure, gap)}>{children}</div>
       </div>
     </div>

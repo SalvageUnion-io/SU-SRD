@@ -12,7 +12,7 @@ function MobileSearchIslandBody() {
   return (
     <MobileSearchDialog>
       {/* Force the combobox input (the bar's fixed 14rem) to fill the sheet. */}
-      <div className="srd-mobile-search__body">
+      <div className="su-mobile-search__body">
         <SearchIsland />
       </div>
     </MobileSearchDialog>

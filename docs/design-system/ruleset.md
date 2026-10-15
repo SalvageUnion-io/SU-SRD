@@ -50,7 +50,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
       Each sanctioned pattern (Slab leader, tile ramps, user-made hatch) is in `EXEMPTIONS` (`packages/gates/rules/designTokens.ts`).
       1. **Texture: the light speckle** — ink speckle on colour bands and tone headers; paper flecks on dark and ink headers and unit stamps.
          Never on paper, buttons, fields, the Dashboard or the Peek (`tokens/texture-placement`).
-      2. **One shading exemption** — the `.pilot-panel` illustration on srd's `/about`. A one-off, not precedent.
+      2. **One shading exemption** — the `.su-pilot-panel` illustration on srd's `/about`. A one-off, not precedent.
    6. **§3.6 Copy is 1:1 with real SRD data** — everywhere.
    7. **§3.7 Stats render through Stat** — any `label | value` is a `Stat`, never hand-assembled `<span>SP {n}</span>`.
       Game data renders through the shared primitives, never one-off markup.

@@ -66,7 +66,7 @@ const CODE_SAMPLE = {
   overflowX: 'auto',
 } satisfies CSSProperties
 
-// — The schema table. Its narrow-screen column drop is `.srd-api__wide-cell`. —
+// — The schema table. Its narrow-screen column drop is `.su-api__wide-cell`. —
 const TABLE = {
   fontSize: fontSize.sm,
   lineHeight: 'calc(1.25 / 0.875)',
@@ -359,13 +359,13 @@ function page(): PageResult {
             The following schema IDs are available. Use them in the endpoint patterns above.
           </p>
 
-          <Panel soft className="srd-api__schemas">
+          <Panel soft className="su-api__schemas">
             <table style={TABLE}>
               <thead>
-                <tr className="srd-print-ink" style={TABLE_HEAD}>
+                <tr className="su-print-ink" style={TABLE_HEAD}>
                   <th style={TH}>Schema ID</th>
                   <th style={TH}>Name</th>
-                  <th className="srd-api__wide-cell" style={TH}>
+                  <th className="su-api__wide-cell" style={TH}>
                     Description
                   </th>
                   <th style={TH_END}>Items</th>
@@ -386,7 +386,7 @@ function page(): PageResult {
                       </InlineRef>
                     </td>
                     <td style={TD_NAME}>{schema.displayNamePlural}</td>
-                    <td className="srd-api__wide-cell" style={TD_DESCRIPTION}>
+                    <td className="su-api__wide-cell" style={TD_DESCRIPTION}>
                       {schema.description}
                     </td>
                     <td style={TD_COUNT}>{schema.itemCount}</td>

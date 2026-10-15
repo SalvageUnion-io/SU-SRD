@@ -49,7 +49,7 @@ const DESCRIPTION = `About salvageunion.io, an open-source System Reference Docu
 
 const imageAltText = 'Map of The Eldridge Coast, created using Shmeppy.com'
 
-/** The riveted plate's padding; `.pilot-panel` (global.css) is the plate. */
+/** The riveted plate's padding; `.su-pilot-panel` (global.css) is the plate. */
 const PANEL = {
   paddingBlock: space[32],
   paddingInline: space[40],
@@ -65,7 +65,7 @@ const PANEL_BODY = {
   zIndex: 1,
 } satisfies CSSProperties
 
-/** An engraved caps line — `.engraved-text` (global.css) is the paint. */
+/** An engraved caps line — `.su-engraved-text` (global.css) is the paint. */
 const ENGRAVED_LINE = {
   fontFamily: font.cond,
   fontSize: fontSize.sm,
@@ -114,7 +114,7 @@ const PARAGRAPH = { marginBottom: space[8] } satisfies CSSProperties
 
 const HIDDEN = { display: 'none' } satisfies CSSProperties
 
-/** The map lightbox, a native `<dialog>`; its scrim is `.srd-about-lightbox`. */
+/** The map lightbox, a native `<dialog>`; its scrim is `.su-about-lightbox`. */
 const LIGHTBOX = {
   backgroundColor: 'transparent',
   margin: 'auto',
@@ -154,7 +154,7 @@ const MAP_CREDIT = {
   textAlign: 'center',
 } satisfies CSSProperties
 
-/** The credit link; its hover underline is `.srd-about-lightbox__credit`. */
+/** The credit link; its hover underline is `.su-about-lightbox__credit`. */
 const MAP_CREDIT_LINK = { color: color.pilotLight, fontWeight: weight.bold } satisfies CSSProperties
 
 const pilots = ['STUMPY', 'ROACH BOY', 'NELL', 'PART', 'PARCÈL', 'CALI']
@@ -184,19 +184,19 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
       <>
         <DocPage title="About the Salvage Union SRD" measure="64rem" gap={space[32]}>
           {/* Riveted scrap metal panel */}
-          <div className="pilot-panel-shadow">
-            <div className="pilot-panel" style={PANEL}>
+          <div className="su-pilot-panel-shadow">
+            <div className="su-pilot-panel" style={PANEL}>
               {/* Top edge rivets — inset from clipped edges */}
               <div
-                className="rivet rivet-green"
+                className="su-rivet su-rivet-green"
                 style={{ top: '16px', left: '24px', width: '13px', height: '13px' }}
               />
               <div
-                className="rivet rivet-worn"
+                className="su-rivet su-rivet-worn"
                 style={{ top: '14px', left: '22%', width: '10px', height: '10px' }}
               />
               <div
-                className="rivet"
+                className="su-rivet"
                 style={{
                   top: '15px',
                   left: '48%',
@@ -206,16 +206,16 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
                 }}
               />
               <div
-                className="rivet rivet-flush"
+                className="su-rivet su-rivet-flush"
                 style={{ top: '13px', left: '71%', width: '14px', height: '14px' }}
               />
               <div
-                className="rivet rivet-green"
+                className="su-rivet su-rivet-green"
                 style={{ top: '15px', right: '24px', width: '11px', height: '11px' }}
               />
               {/* Left edge rivets */}
               <div
-                className="rivet"
+                className="su-rivet"
                 style={{
                   top: '28%',
                   left: '16px',
@@ -224,14 +224,14 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
                   transform: 'rotate(-8deg)',
                 }}
               />
-              <div className="rivet-hole" style={{ top: '55%', left: '18px' }} />
+              <div className="su-rivet-hole" style={{ top: '55%', left: '18px' }} />
               {/* Right edge rivets */}
               <div
-                className="rivet rivet-green"
+                className="su-rivet su-rivet-green"
                 style={{ top: '32%', right: '18px', width: '10px', height: '10px' }}
               />
               <div
-                className="rivet"
+                className="su-rivet"
                 style={{
                   top: '62%',
                   right: '16px',
@@ -242,11 +242,11 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
               />
               {/* Bottom edge rivets — one missing, uneven */}
               <div
-                className="rivet rivet-worn"
+                className="su-rivet su-rivet-worn"
                 style={{ bottom: '16px', left: '28px', width: '12px', height: '12px' }}
               />
               <div
-                className="rivet rivet-flush"
+                className="su-rivet su-rivet-flush"
                 style={{
                   bottom: '14px',
                   left: '28%',
@@ -255,13 +255,13 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
                   transform: 'rotate(-12deg)',
                 }}
               />
-              <div className="rivet-hole" style={{ bottom: '15px', left: '53%' }} />
+              <div className="su-rivet-hole" style={{ bottom: '15px', left: '53%' }} />
               <div
-                className="rivet rivet-green"
+                className="su-rivet su-rivet-green"
                 style={{ bottom: '14px', left: '73%', width: '13px', height: '13px' }}
               />
               <div
-                className="rivet rivet-worn"
+                className="su-rivet su-rivet-worn"
                 style={{
                   bottom: '16px',
                   right: '24px',
@@ -273,7 +273,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
 
               <div style={PANEL_BODY}>
                 {/* Inspiration text */}
-                <div className="engraved-text" style={INSPIRATION}>
+                <div className="su-engraved-text" style={INSPIRATION}>
                   <p>Inspired by the pilots of</p>
                   <p style={INSPIRATION_NAME}>#812 Haven</p>
                   <p>of</p>
@@ -285,34 +285,34 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
                   </p>
                 </div>
 
-                <hr className="metal-separator" />
+                <hr className="su-metal-separator" />
 
                 {/* Pilot names */}
                 <div style={PILOTS}>
                   {pilots.map((name, i) => (
                     <Fragment key={name}>
                       {i > 0 && (
-                        <span className="engraved-text" style={PILOT_GAP}>
+                        <span className="su-engraved-text" style={PILOT_GAP}>
                           &ensp;&ensp;
                         </span>
                       )}
-                      <span className="engraved-text" style={PILOT}>
+                      <span className="su-engraved-text" style={PILOT}>
                         {name}
                       </span>
                     </Fragment>
                   ))}
                 </div>
 
-                <hr className="metal-separator" />
+                <hr className="su-metal-separator" />
 
-                <p className="engraved-text" style={ENGRAVED_LINE}>
+                <p className="su-engraved-text" style={ENGRAVED_LINE}>
                   And union crawlers everywhere
                 </p>
 
-                <hr className="metal-separator" />
+                <hr className="su-metal-separator" />
 
                 {/* Friends text */}
-                <p className="engraved-text" style={FRIENDS}>
+                <p className="su-engraved-text" style={FRIENDS}>
                   "We get by with a little help from our friends"
                 </p>
               </div>
@@ -441,14 +441,14 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
         {/* Image lightbox with native dialog */}
         <dialog
           id="image-modal"
-          className="srd-about-lightbox"
+          className="su-about-lightbox"
           style={LIGHTBOX}
           aria-label="Eldridge Coast Map"
         >
           <div style={RELATIVE}>
             <button
               type="button"
-              className={cn(buttonVariants({ variant: 'ink', size: 'iconOnly' }), 'srd-print-ink')}
+              className={cn(buttonVariants({ variant: 'ink', size: 'iconOnly' }), 'su-print-ink')}
               style={LIGHTBOX_CLOSE}
               id="close-modal"
               aria-label="Close"
@@ -470,13 +470,13 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
                 decoding="async"
                 style={MAP}
               />
-              <p className="srd-print-ink" style={MAP_CREDIT}>
+              <p className="su-print-ink" style={MAP_CREDIT}>
                 Created using{' '}
                 <a
                   href="https://shmeppy.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="srd-about-lightbox__credit"
+                  className="su-about-lightbox__credit"
                   style={MAP_CREDIT_LINK}
                 >
                   Shmeppy.com

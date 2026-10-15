@@ -41,10 +41,7 @@ describe('SchemaViewerIsland', () => {
     )
 
     // Scope to the rail: entity cards also surface a "Tech Level" cell in the grid.
-    const filterRail = required(
-      container.querySelector<HTMLElement>('.srd-rail'),
-      'the filter rail'
-    )
+    const filterRail = required(container.querySelector<HTMLElement>('.su-rail'), 'the filter rail')
     expect(within(filterRail).getByRole('group', { name: 'Tech Level' })).toBeTruthy()
     expect(within(filterRail).getByRole('combobox', { name: 'Source' })).toBeTruthy()
   })
@@ -230,10 +227,7 @@ describe('SchemaViewerIsland', () => {
       />
     )
 
-    const filterRail = required(
-      container.querySelector<HTMLElement>('.srd-rail'),
-      'the filter rail'
-    )
+    const filterRail = required(container.querySelector<HTMLElement>('.su-rail'), 'the filter rail')
     expect(within(filterRail).getByRole('combobox', { name: 'Tree' })).toBeTruthy()
   })
 
@@ -369,14 +363,14 @@ describe('SchemaViewerIsland', () => {
 
     it('one art-first Tile per entity, in one flat grid with no group heading and no toggle', () => {
       const { container } = renderChassis()
-      expect(container.querySelector('.srd-listing[data-view="catalog"]')).toBeTruthy()
-      expect(container.querySelector('.srd-listing__cards')).toBeNull()
-      const groups = container.querySelectorAll('.srd-listing__group')
+      expect(container.querySelector('.su-listing[data-view="catalog"]')).toBeTruthy()
+      expect(container.querySelector('.su-listing__cards')).toBeNull()
+      const groups = container.querySelectorAll('.su-listing__group')
       expect(groups.length).toBe(1)
       expect(groups[0]?.getAttribute('aria-label')).toBeNull()
-      const tiles = container.querySelectorAll('.srd-listing__tiles > li > a.su-entity-tile')
+      const tiles = container.querySelectorAll('.su-listing__tiles > li > a.su-entity-tile')
       expect(tiles.length).toBe(chassisEntities().length)
-      expect(container.querySelector('.srd-rail__view')).toBeNull()
+      expect(container.querySelector('.su-rail__view')).toBeNull()
       expect(screen.queryByRole('button', { name: 'List' })).toBeNull()
       // Art from the su-assets 440 derivative, its box sized before it loads.
       // The opening row's art loads at once and first (it is the page's
@@ -396,7 +390,7 @@ describe('SchemaViewerIsland', () => {
     it('carries each entity’s lore under its cells', () => {
       const { container } = renderChassis()
       const gopher = required(
-        container.querySelector<HTMLElement>('.srd-listing__tiles a[aria-label="Gopher"]'),
+        container.querySelector<HTMLElement>('.su-listing__tiles a[aria-label="Gopher"]'),
         'the Gopher tile'
       )
       expect(gopher.querySelector('p')?.textContent).toStartWith(
@@ -406,14 +400,14 @@ describe('SchemaViewerIsland', () => {
 
     it('shows the filtered count and a removable token only while a filter is on', () => {
       const { container } = renderChassis()
-      expect(container.querySelector('.srd-rail__status')).toBeNull()
+      expect(container.querySelector('.su-rail__status')).toBeNull()
       fireEvent.click(screen.getByRole('button', { name: 'Tech Level 2' }))
-      const status = required(container.querySelector('.srd-rail__status'), 'the status line')
+      const status = required(container.querySelector('.su-rail__status'), 'the status line')
       const matching = chassisEntities().filter((e) => getTechLevel(e) === 2)
       expect(status.textContent).toContain(`${matching.length} of ${chassisEntities().length}`)
-      expect(container.querySelectorAll('.srd-listing__tiles > li').length).toBe(matching.length)
+      expect(container.querySelectorAll('.su-listing__tiles > li').length).toBe(matching.length)
       fireEvent.click(screen.getByRole('button', { name: 'Remove Tech Level 2' }))
-      expect(container.querySelector('.srd-rail__status')).toBeNull()
+      expect(container.querySelector('.su-rail__status')).toBeNull()
     })
 
     it('a schema with no art takes the wider art-less columns', () => {
@@ -425,8 +419,8 @@ describe('SchemaViewerIsland', () => {
           sources={getUniqueSources(systems)}
         />
       )
-      expect(container.querySelector('.srd-listing[data-catalog]')).toBeTruthy()
-      expect(container.querySelectorAll('.srd-listing__tiles > li').length).toBe(systems.length)
+      expect(container.querySelector('.su-listing[data-catalog]')).toBeTruthy()
+      expect(container.querySelectorAll('.su-listing__tiles > li').length).toBe(systems.length)
     })
 
     it('a ?view=list or ?view=tree link elsewhere is ignored', () => {
@@ -439,7 +433,7 @@ describe('SchemaViewerIsland', () => {
           sources={getUniqueSources(systems)}
         />
       )
-      expect(container.querySelector('.srd-listing[data-view="catalog"]')).toBeTruthy()
+      expect(container.querySelector('.su-listing[data-view="catalog"]')).toBeTruthy()
     })
   })
 
@@ -460,7 +454,7 @@ describe('SchemaViewerIsland', () => {
     it('offers Catalog | Tree and opens on the Tree', () => {
       const { container } = renderAbilities()
       const views = required(
-        container.querySelector<HTMLElement>('.srd-rail__view'),
+        container.querySelector<HTMLElement>('.su-rail__view'),
         'the view toggle'
       )
       expect(
@@ -476,10 +470,10 @@ describe('SchemaViewerIsland', () => {
       const { container } = renderAbilities()
       fireEvent.click(screen.getByRole('button', { name: 'Catalog' }))
       expect(container.querySelector('.su-ability-track')).toBeNull()
-      const groups = container.querySelectorAll('.srd-listing__group')
+      const groups = container.querySelectorAll('.su-listing__group')
       expect(groups.length).toBe(1)
       expect(groups[0]?.getAttribute('aria-label')).toBeNull()
-      const names = [...container.querySelectorAll('.srd-listing__tiles > li > a[aria-label]')].map(
+      const names = [...container.querySelectorAll('.su-listing__tiles > li > a[aria-label]')].map(
         (tile) => tile.getAttribute('aria-label') ?? ''
       )
       expect(names.length).toBe(abilities().length)
@@ -528,11 +522,11 @@ describe('SchemaViewerIsland', () => {
 
     it('lists only the ids it is handed, with no book headings, each with its lead', () => {
       const { container } = renderTables()
-      const tiles = [...container.querySelectorAll('.srd-listing__tiles > li > a[aria-label]')]
+      const tiles = [...container.querySelectorAll('.su-listing__tiles > li > a[aria-label]')]
       expect(tiles.map((tile) => tile.getAttribute('aria-label')).sort()).toEqual(
         [...listed].sort()
       )
-      expect(container.querySelectorAll('.srd-listing__group').length).toBe(1)
+      expect(container.querySelectorAll('.su-listing__group').length).toBe(1)
       for (const tile of tiles) expect(tile.querySelector('p')?.textContent).toBeTruthy()
       // The rail counts what the listing lists.
       expect(screen.queryByRole('searchbox', { name: 'Filter items by name' })).toBeNull()

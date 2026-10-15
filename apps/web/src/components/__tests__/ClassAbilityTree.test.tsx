@@ -106,7 +106,7 @@ describe('ClassAbilityTree banners and track', () => {
 describe('ClassAbilityTree advancement paths', () => {
   test('a path head carries its name on the cut-out, its requirement right of it; its text opens the body', () => {
     render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
-    const paths = [...document.querySelectorAll('.srd-class-path')]
+    const paths = [...document.querySelectorAll('.su-class-path')]
     expect(paths.length).toBeGreaterThan(1)
     for (const path of paths) {
       // The shared cut-out head (`Head`): the name on the tab, the chips right of it.
@@ -114,21 +114,21 @@ describe('ClassAbilityTree advancement paths', () => {
       expect(head?.querySelector('.su-entity-row__notch')?.textContent).not.toBe('')
       // Every chip (requirement, kind) is a direct chip of the head's one group.
       expect(
-        head?.querySelector('.su-entity-row__heading--cut > .su-chips > .srd-class-path__req-chip')
+        head?.querySelector('.su-entity-row__heading--cut > .su-chips > .su-class-path__req-chip')
       ).not.toBeNull()
-      expect(head?.querySelector('.srd-class-path__note')).toBeNull()
-      expect(path.querySelector('.srd-class-path__body')?.firstElementChild?.className).toBe(
-        'srd-class-path__note'
+      expect(head?.querySelector('.su-class-path__note')).toBeNull()
+      expect(path.querySelector('.su-class-path__body')?.firstElementChild?.className).toBe(
+        'su-class-path__note'
       )
     }
-    expect(paths[0]?.querySelector('.srd-class-path__note')?.textContent).toContain(
+    expect(paths[0]?.querySelector('.su-class-path__note')?.textContent).toContain(
       'Stay an Engineer'
     )
   })
 
   test('the class’s own path says it is that class’s only, as a chip like its neighbours', () => {
     render(<ClassAbilityTree classEntity={classNamed('Hacker')} />)
-    const own = document.querySelector('.srd-class-path[data-kind="legendary"]')
+    const own = document.querySelector('.su-class-path[data-kind="legendary"]')
     const group = own?.querySelector('.su-entity-row__heading--cut > .su-chips')
     const chips = [...(group?.children ?? [])]
     // One chip line: the requirement, "Hacker only", then the kind, as siblings.
@@ -141,13 +141,13 @@ describe('ClassAbilityTree advancement paths', () => {
 
   test('a Hybrid Class’s requirement is one chip naming its trees, no owning class', () => {
     render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
-    const hybrids = [...document.querySelectorAll('.srd-class-path[data-kind="hybrid"]')]
+    const hybrids = [...document.querySelectorAll('.su-class-path[data-kind="hybrid"]')]
     expect(hybrids.length).toBeGreaterThan(0)
     for (const hybrid of hybrids) {
       const chips = hybrid.querySelector('.su-entity-row__heading--cut > .su-chips')
       // The requirement chip, then the kind: no owning-class chip.
       expect(chips?.childElementCount).toBe(2)
-      const req = chips?.querySelector(':scope > .srd-class-path__req-chip')
+      const req = chips?.querySelector(':scope > .su-class-path__req-chip')
       const labels = [...(req?.querySelectorAll('.su-stat-plate--label') ?? [])].map(
         (label) => label.textContent
       )
@@ -160,26 +160,26 @@ describe('ClassAbilityTree advancement paths', () => {
 
   test('a Hybrid Class’s whole cut-out head opens its page; the own path’s links nowhere', () => {
     render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
-    const own = document.querySelector('.srd-class-path[data-kind="legendary"]')
+    const own = document.querySelector('.su-class-path[data-kind="legendary"]')
     expect(own?.querySelector(':scope > a')).toBeNull()
-    const hybrid = document.querySelector('.srd-class-path[data-kind="hybrid"]')
-    const link = hybrid?.querySelector('a.srd-class-path__link')
+    const hybrid = document.querySelector('.su-class-path[data-kind="hybrid"]')
+    const link = hybrid?.querySelector('a.su-class-path__link')
     expect(link?.getAttribute('href')).toMatch(/^\/classes\//)
     expect(link?.firstElementChild?.classList.contains('su-entity-row__head')).toBe(true)
   })
 
   test('the Core trees run in one column; the class’s own path leads the Hybrid Classes', () => {
     render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
-    const core = document.querySelector('.srd-ability-tree__row--stack')
-    expect(core?.querySelectorAll(':scope > .srd-ability-tree__group').length).toBeGreaterThan(1)
-    expect(core?.querySelector('.srd-class-path')).toBeNull()
-    const kinds = [...document.querySelectorAll('.srd-class-paths > .srd-class-path')].map((path) =>
+    const core = document.querySelector('.su-ability-tree__row--stack')
+    expect(core?.querySelectorAll(':scope > .su-ability-tree__group').length).toBeGreaterThan(1)
+    expect(core?.querySelector('.su-class-path')).toBeNull()
+    const kinds = [...document.querySelectorAll('.su-class-paths > .su-class-path')].map((path) =>
       path.getAttribute('data-kind')
     )
     expect(kinds[0]).toBe('legendary')
     expect(kinds.slice(1).length).toBeGreaterThan(0)
     expect(new Set(kinds.slice(1))).toEqual(new Set(['hybrid']))
-    expect(document.querySelectorAll('.srd-class-paths')).toHaveLength(1)
+    expect(document.querySelectorAll('.su-class-paths')).toHaveLength(1)
   })
 })
 
@@ -187,18 +187,18 @@ describe('ClassAbilityTree training brief', () => {
   test("a Hybrid Class's brief says what it takes to advance, in the book's verb (p.23)", () => {
     render(<ClassAbilityTree classEntity={classNamed('Fabricator')} />)
     const labels = [
-      ...document.querySelectorAll('.srd-class-brief__card .su-entity-row__notch'),
+      ...document.querySelectorAll('.su-class-brief__card .su-entity-row__notch'),
     ].map((tab) => tab.textContent)
     expect(labels).toEqual(['Advance', 'Hybrid', 'Legendary'])
     expect(labels).not.toContain('Entry')
     // Its trees, with the classes that own them, follow the cards.
-    expect(document.querySelector('.srd-class-brief__trees')?.textContent).toContain('Engineer')
+    expect(document.querySelector('.su-class-brief__trees')?.textContent).toContain('Engineer')
   })
 
   test('a Core class gets a tier card per tier, each costed in the pointy box', () => {
     render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
     const brief = screen.getByRole('complementary', { name: 'Training' })
-    const cards = [...brief.querySelectorAll<HTMLElement>('.srd-class-brief__card')]
+    const cards = [...brief.querySelectorAll<HTMLElement>('.su-class-brief__card')]
     // Each head wears its tier's book hue (§3.8), the trees' own.
     expect(cards.map((card) => headBand(card))).toEqual([
       'var(--color-pilot)',
@@ -218,7 +218,7 @@ describe('ClassAbilityTree training brief', () => {
   test('a Core class that never advances (Salvager) gets one Core card, from any of its trees', () => {
     render(<ClassAbilityTree classEntity={classNamed('Salvager')} />)
     const brief = screen.getByRole('complementary', { name: 'Training' })
-    const cards = [...brief.querySelectorAll<HTMLElement>('.srd-class-brief__card')]
+    const cards = [...brief.querySelectorAll<HTMLElement>('.su-class-brief__card')]
     expect(cards.map((card) => headBand(card))).toEqual(['var(--color-pilot)'])
     expect(cards[0]?.querySelector('.su-entity-row__head')?.textContent).toBe('Core1 TP')
     expect(cards[0]?.textContent).toContain(

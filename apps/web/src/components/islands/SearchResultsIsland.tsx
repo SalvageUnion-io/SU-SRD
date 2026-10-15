@@ -65,7 +65,7 @@ export function SearchResultsIsland() {
   return (
     <IslandErrorBoundary>
       {/* Mixed kinds, chassis among them: the wide listing's column. */}
-      <div className="srd-listing" data-wide="">
+      <div className="su-listing" data-wide="">
         <SearchResults query={query} setQuery={setQuery} ready={ready} index={index} />
       </div>
     </IslandErrorBoundary>
@@ -77,9 +77,9 @@ type QueryProps = { query: string; setQuery: (query: string) => void }
 /** The listing's rail: the search box, then (with results) the type facet. */
 function SearchRail({ query, setQuery, children }: QueryProps & { children?: ReactNode }) {
   return (
-    <div className="srd-rail">
+    <div className="su-rail">
       {/* biome-ignore lint/a11y/useSemanticElements: role="search" on <form> is the established search-landmark pattern; the <search> element is not a form, so swapping would change Enter-key submit semantics */}
-      <form role="search" className="srd-rail__search" onSubmit={(e) => e.preventDefault()}>
+      <form role="search" className="su-rail__search" onSubmit={(e) => e.preventDefault()}>
         <SearchField
           type="search"
           name="search"
@@ -87,12 +87,12 @@ function SearchRail({ query, setQuery, children }: QueryProps & { children?: Rea
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search the SRD…"
           aria-label="Search the SRD"
-          containerClassName="srd-rail__field"
+          containerClassName="su-rail__field"
           glyphSize={18}
           autoFocus
         />
       </form>
-      <span className="srd-rail__spring" />
+      <span className="su-rail__spring" />
       {children}
     </div>
   )
@@ -161,7 +161,7 @@ function SearchResults({
     return (
       <>
         {rail}
-        <ul className="srd-listing__cards" data-entity-grid="" data-entity-fit="">
+        <ul className="su-listing__cards" data-entity-grid="" data-entity-fit="">
           {Array.from({ length: 4 }, (_, i) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: static 4-item skeleton placeholder list, never reordered — index is stable
             <li key={i}>
@@ -196,15 +196,15 @@ function SearchResults({
   return (
     <>
       {rail}
-      <output className="srd-rail__status" aria-live="polite">
-        <span className="srd-rail__tally">
+      <output className="su-rail__status" aria-live="polite">
+        <span className="su-rail__tally">
           {results.length} result{results.length === 1 ? '' : 's'} for “{trimmed}”
         </span>
       </output>
 
       {/* SEARCH (ruleset §1.5, entity display language E11): every result is
           a listing Row in link mode, with the lead, as a schema listing's. */}
-      <ul className="srd-listing__cards" data-entity-grid="" data-entity-fit="">
+      <ul className="su-listing__cards" data-entity-grid="" data-entity-fit="">
         {visible.map((result) => {
           const model = models.get(result.entityId)
           return (
@@ -217,7 +217,7 @@ function SearchResults({
                   lead
                 />
               ) : (
-                <a href={resultUrl(result)} className="srd-listing__fallback-row">
+                <a href={resultUrl(result)} className="su-listing__fallback-row">
                   {result.entityName}
                 </a>
               )}

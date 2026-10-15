@@ -39,7 +39,7 @@ afterEach(() => {
 })
 
 function skeleton(container: HTMLElement): HTMLElement {
-  const el = container.querySelector<HTMLElement>('.srd-listing')
+  const el = container.querySelector<HTMLElement>('.su-listing')
   if (!el) throw new Error('no listing skeleton')
   return el
 }
@@ -59,7 +59,7 @@ describe('SchemaViewerIsland skeleton', () => {
     const listing = skeleton(container)
     expect(listing.getAttribute('aria-hidden')).toBe('true')
     expect(listing.getAttribute('data-view')).toBe('catalog')
-    const rail = listing.querySelector('.srd-rail')
+    const rail = listing.querySelector('.su-rail')
     expect(rail).not.toBeNull()
     // No view toggle; the Tech Level toggle in the book's order whatever
     // order it was handed.
@@ -69,12 +69,12 @@ describe('SchemaViewerIsland skeleton', () => {
     expect(toggles).toEqual(['All', '1', '2'])
 
     // The Catalog has no group headings: one run of the shape's count.
-    const groups = [...listing.querySelectorAll('.srd-listing__group')]
+    const groups = [...listing.querySelectorAll('.su-listing__group')]
     expect(groups.map((g) => g.textContent)).toEqual([''])
     expect(
-      listing.querySelectorAll('.srd-listing__tiles > li.srd-listing__tile-skeleton').length
+      listing.querySelectorAll('.su-listing__tiles > li.su-listing__tile-skeleton').length
     ).toBe(14)
-    expect(listing.querySelector('.srd-listing__cards')).toBeNull()
+    expect(listing.querySelector('.su-listing__cards')).toBeNull()
     expect(preloadSpy).toHaveBeenCalledWith(['chassis'], { projection: 'list' })
   })
 
@@ -83,11 +83,11 @@ describe('SchemaViewerIsland skeleton', () => {
       <SchemaViewerIsland schemaId="systems" techLevels={[]} sources={[]} />
     )
     const listing = skeleton(container)
-    expect(listing.querySelector('.srd-rail')).toBeNull()
+    expect(listing.querySelector('.su-rail')).toBeNull()
     // No art: the wider art-less columns.
     expect(listing.hasAttribute('data-catalog')).toBe(true)
-    expect(listing.querySelectorAll('.srd-listing__group').length).toBe(1)
-    expect(listing.querySelectorAll('.srd-listing__tiles > li').length).toBe(12)
+    expect(listing.querySelectorAll('.su-listing__group').length).toBe(1)
+    expect(listing.querySelectorAll('.su-listing__tiles > li').length).toBe(12)
   })
 
   it('the abilities’ Tree sets each tree under its heading, a card placeholder per ability', () => {
@@ -109,9 +109,9 @@ describe('SchemaViewerIsland skeleton', () => {
     )
     const listing = skeleton(container)
     expect(listing.getAttribute('data-view')).toBe('tree')
-    const groups = [...listing.querySelectorAll('.srd-listing__group')]
+    const groups = [...listing.querySelectorAll('.su-listing__group')]
     expect(groups.map((g) => g.textContent)).toEqual(['Forging Tree', 'Hacking Tree'])
-    expect(groups.map((g) => g.querySelectorAll('.srd-listing__cards > li').length)).toEqual([3, 2])
+    expect(groups.map((g) => g.querySelectorAll('.su-listing__cards > li').length)).toEqual([3, 2])
   })
 
   it('a ?view=catalog link on the abilities shapes the skeleton as one run of tiles', () => {
@@ -127,7 +127,7 @@ describe('SchemaViewerIsland skeleton', () => {
     )
     const listing = skeleton(container)
     expect(listing.getAttribute('data-view')).toBe('catalog')
-    const tiles = [...listing.querySelectorAll('.srd-listing__tiles')]
+    const tiles = [...listing.querySelectorAll('.su-listing__tiles')]
     expect(tiles.map((ul) => ul.children.length)).toEqual([14])
   })
 })

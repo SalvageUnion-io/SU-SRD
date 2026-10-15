@@ -108,7 +108,7 @@ describe('DidYouMeanIsland', () => {
     const { container } = render(<DidYouMeanIsland pathname="/chassis/gophr/" />)
     const link = await screen.findByRole('link', { name: 'Gopher' })
     expect(link.getAttribute('href')).toBe('/chassis/gopher/')
-    expect(link.className).toBe('srd-not-found__link')
+    expect(link.className).toBe('su-not-found__link')
     expect(container.querySelector('.su-entity-row')).toBeNull()
   })
 })

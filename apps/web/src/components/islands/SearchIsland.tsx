@@ -57,7 +57,7 @@ const STATUS = {
   paddingInline: space[16],
 } satisfies CSSProperties
 
-/** A category result; its hover ground is `.srd-search__category` (pages.css). */
+/** A category result; its hover ground is `.su-search__category` (pages.css). */
 const CATEGORY = {
   ...SMALL,
   display: 'block',
@@ -196,7 +196,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
     </div>
   )
 
-  // Search container — .srd-search treatment via the shared SearchField. The
+  // Search container — the header's compact look, via the shared SearchField. The
   // inner input keeps focus:outline-none, so the container carries the
   // visible keyboard-focus indicator via focus-within (WCAG 2.4.7).
   const shortcut = useModKeyHint()
@@ -220,7 +220,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
       // The bar's width is the Union bar's (The Cantina's trigger shares it), a class
       // so the mobile sheet can widen it.
       className={hero ? undefined : 'su-union-bar__search-input'}
-      containerClassName={hero ? 'srd-hero-search__field' : undefined}
+      containerClassName={hero ? 'su-hero-search__field' : undefined}
       glyphSize={hero ? 18 : undefined}
       {...inputProps}
       aria-label="Search the SRD"
@@ -258,7 +258,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
                 key={result.id}
                 {...option}
                 href={resultUrl(result)}
-                className="srd-search__category"
+                className="su-search__category"
                 style={CATEGORY}
               >
                 <div style={CATEGORY_TITLE}>{result.title}</div>
@@ -285,7 +285,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
     return (
       <IslandErrorBoundary>
         <HeroSearchForm onSubmit={onSubmit}>
-          <div className="srd-hero-search__box" ref={containerRef}>
+          <div className="su-hero-search__box" ref={containerRef}>
             {live}
             {field}
             {listbox}

@@ -111,13 +111,13 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
     // The listing ends on its chapter's band, as its entity pages do.
     foot: { tone: chapter.tone },
     children: (
-      <div className="srd-listing-shell">
+      <div className="su-listing-shell">
         {/* The chapter band is the visible heading: the plural name in the
             notch. The description rides the trail. */}
         <ChapterBand tone={chapter.tone} measure={PAGE_MEASURE}>
           {pluralName}
         </ChapterBand>
-        <div className="srd-listing-page srd-page-body">
+        <div className="su-listing-page su-page-body">
           <Island
             name="SchemaViewerIsland"
             client="interaction"

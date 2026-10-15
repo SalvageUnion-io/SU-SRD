@@ -129,7 +129,7 @@
 /* ══ The detail dialog's Page (`referenceEntity/EntityDetailDialog.tsx`) ════
  *
  * The Cantina's detail view is the Page (EDL Form 5): its body sits under the band
- * at the SRD page body's gutters (`.srd-page-body`), which change at `sm`.
+ * at the SRD page body's gutters (`.su-page-body`), which change at `sm`.
  */
 /* The popup (`ModalShell`'s `maxWidth` class): 72rem at most, with 12px
  * gutters the close stamp straddles into, since a bare popup clips. */

@@ -1,16 +1,13 @@
 /**
  * One class prefix — the `class-prefix` rule set of `tools/check-styling.ts`.
  *
- * Every class the package and the Cantina author is `su-*` (the Dashboard's
+ * Every class the app's stylesheets author is `su-*` (the Dashboard's
  * `su-dash-*` among them; `.claude/rules/styling.md`). The Cantina once grew `wiz-`,
  * `header-menu-`, `npc-`, `shelves-` and a dozen more families beside some 800
  * `su-` selectors, and the UI library's tone contexts were `sheet--{kind}`: two
  * naming schemes for one stylesheet system, with nothing to say which a new
  * class should take. A wrong prefix compiles and renders, so only a scan
  * catches it.
- *
- * srd's page stylesheets (`base.css`, `global.css`, `pages.css`) keep their
- * `srd-*` names and are outside this set.
  */
 
 import { readFileSync } from 'node:fs'
@@ -20,14 +17,9 @@ import { listFiles } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
 
 const STYLES_DIR = 'apps/web/src/styles'
-/** srd's own page stylesheets, which keep their `srd-*` names. */
-const SRD_STYLESHEETS = new Set(
-  ['base.css', 'global.css', 'pages.css'].map((f) => `${STYLES_DIR}/${f}`)
-)
 const CLASS_PREFIX = 'su-'
 
-const stylesheets = (root: string) =>
-  listFiles(root, [STYLES_DIR], ['.css']).filter((rel) => !SRD_STYLESHEETS.has(rel))
+const stylesheets = (root: string) => listFiles(root, [STYLES_DIR], ['.css'])
 
 /**
  * Every class named in a selector, nested and inside at-rule blocks too, with
@@ -69,7 +61,7 @@ const RULES: Rule[] = [
   {
     id: 'class-prefix',
     mode: 'zero',
-    rule: '.claude/rules/styling.md — every package and the Cantina class is `su-*`',
+    rule: '.claude/rules/styling.md — every class is `su-*`',
     fix: 'Rename the class to `su-<name>`, keeping its family word (`su-wiz-*`, `su-sheet-*`; the Dashboard is `su-dash-*`), in the stylesheet and in every className, test and comment that names it.',
   },
 ]

@@ -107,8 +107,8 @@ describe('EntityPageFrame', () => {
         <p>Heat body</p>
       </EntityPageFrame>
     )
-    const body = container.querySelector<HTMLElement>('.srd-entity__body')
-    expect(body?.classList.contains('srd-page-body')).toBe(true)
+    const body = container.querySelector<HTMLElement>('.su-entity__body')
+    expect(body?.classList.contains('su-page-body')).toBe(true)
   })
 })
 

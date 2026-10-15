@@ -186,6 +186,6 @@ describe('register', () => {
     const html = register(notFoundPage).resolve()[0]?.render(NO_ASSETS) ?? ''
 
     expect(html.match(/data-island="SearchIsland"/g)).toHaveLength(1)
-    expect(html).toContain('srd-hero-search')
+    expect(html).toContain('su-hero-search')
   })
 })

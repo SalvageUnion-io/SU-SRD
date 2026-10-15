@@ -132,8 +132,8 @@ for (const width of [375, 1440]) {
 // its chips and cells stay inside instead of being pushed past its edge. A
 // systems Tile's frame; an ability Row's head, on the Tree.
 for (const [schema, part] of [
-  ['systems', '.srd-listing__tiles a[aria-label] .su-entity-tile__frame'],
-  ['abilities', '.srd-listing__cards a[aria-label] [data-fill]'],
+  ['systems', '.su-listing__tiles a[aria-label] .su-entity-tile__frame'],
+  ['abilities', '.su-listing__cards a[aria-label] [data-fill]'],
 ] as const) {
   test(`every ${schema} listing card at 375px keeps its parts inside it`, async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 900 })
@@ -177,11 +177,11 @@ for (const width of [1440, 390]) {
   test(`the /chassis/ Catalog is one flat grid at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 })
     await page.goto('/chassis/')
-    const tile = page.locator('.srd-listing__tiles a.su-entity-tile').first()
+    const tile = page.locator('.su-listing__tiles a.su-entity-tile').first()
     await expect(tile).toBeVisible({ timeout: 30_000 })
-    await expect(page.locator('.srd-listing__group')).toHaveCount(1)
-    await expect(page.locator('.srd-listing__group[aria-label]')).toHaveCount(0)
-    await expect(page.locator('.srd-rail__view')).toHaveCount(0)
+    await expect(page.locator('.su-listing__group')).toHaveCount(1)
+    await expect(page.locator('.su-listing__group[aria-label]')).toHaveCount(0)
+    await expect(page.locator('.su-rail__view')).toHaveCount(0)
     // boundingBox() does not wait, so wait for the art box to lay out first.
     const art = tile.locator('.su-entity-tile__art')
     await expect(art).toBeVisible()
@@ -202,7 +202,7 @@ test('the abilities open on their Tree and offer a flat Catalog', async ({ page 
   await expect(page.locator('.su-ability-track').first()).toBeVisible()
   await page.getByRole('button', { name: 'Catalog' }).click()
   await expect(page.locator('.su-ability-track')).toHaveCount(0)
-  await expect(page.locator('.srd-listing__group')).toHaveCount(1)
-  await expect(page.locator('.srd-listing__tiles a.su-entity-tile').first()).toBeVisible()
+  await expect(page.locator('.su-listing__group')).toHaveCount(1)
+  await expect(page.locator('.su-listing__tiles a.su-entity-tile').first()).toBeVisible()
   await expect(page).toHaveURL(/view=catalog/)
 })

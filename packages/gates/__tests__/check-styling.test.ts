@@ -528,7 +528,7 @@ describe('class-prefix rule set', () => {
     expect(found['class-prefix']).toEqual([])
   })
 
-  test('a package or the Cantina class without the su- prefix is found, nested ones included; srd is out of scope', () => {
+  test('a class without the su- prefix is found, nested ones included, in every stylesheet', () => {
     const found = classPrefix.scan(
       fixture({
         'apps/web/src/styles/builder/wizard.css':
@@ -541,6 +541,7 @@ describe('class-prefix rule set', () => {
     expect(found['class-prefix']?.map((f) => `${f.file}:${f.line} ${f.detail}`)).toEqual([
       'apps/web/src/styles/builder/wizard.css:2 .wiz-pill is not a .su-* class',
       'apps/web/src/styles/builder/wizard.css:4 .npc-step is not a .su-* class',
+      'apps/web/src/styles/pages.css:1 .srd-page is not a .su-* class',
       'apps/web/src/styles/theme.css:1 .sheet--pilot is not a .su-* class',
     ])
   })

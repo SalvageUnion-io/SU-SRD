@@ -30,11 +30,11 @@ function page(): PageResult {
     },
     foot: { tone: 'rules' },
     children: (
-      <div className="srd-listing-shell">
+      <div className="su-listing-shell">
         <ChapterBand tone="rules" measure={PAGE_MEASURE}>
           Search
         </ChapterBand>
-        <div className="srd-listing-page srd-page-body">
+        <div className="su-listing-page su-page-body">
           {/* Client-only: results are inherently dynamic (query-driven), there
               is no SEO content to server-render, and the page is noindex. */}
           <Island name="SearchResultsIsland" client="only" />

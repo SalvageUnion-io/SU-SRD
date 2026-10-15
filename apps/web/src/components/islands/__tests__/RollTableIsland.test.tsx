@@ -64,7 +64,7 @@ describe('the roll-table page, before a roll (the server markup)', () => {
     const data = table ? rollTablePageData(table) : null
     if (!data) throw new Error('fixture missing: Mechapult')
     const { container } = render(<RollTableView data={data} roll={null} />)
-    expect(container.querySelector('.srd-roll')?.getAttribute('data-density')).toBe('dense')
+    expect(container.querySelector('.su-roll-page')?.getAttribute('data-density')).toBe('dense')
     const left = screen.getByRole('list', { name: 'Mechapult table' })
     const right = screen.getByRole('list', { name: 'Mechapult table, continued' })
     expect(right.getAttribute('data-side')).toBe('right')
@@ -74,7 +74,7 @@ describe('the roll-table page, before a roll (the server markup)', () => {
 
   test('a short table stays one column at the board’s setting', () => {
     const { container } = render(<RollTableView data={coreMechanic()} roll={null} />)
-    expect(container.querySelector('.srd-roll')?.getAttribute('data-density')).toBe('roomy')
+    expect(container.querySelector('.su-roll-page')?.getAttribute('data-density')).toBe('roomy')
     expect(screen.getAllByRole('list', { name: /^Core Mechanic table/ })).toHaveLength(1)
   })
 

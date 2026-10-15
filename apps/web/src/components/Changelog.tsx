@@ -10,7 +10,7 @@ const LIST = {
 } satisfies CSSProperties
 
 // The bullets. Their spacing between items and their marker colour are child /
-// pseudo-element selectors, so those two are `.srd-changelog__items`.
+// pseudo-element selectors, so those two are `.su-changelog__items`.
 const ITEMS = {
   color: color.wkMuted,
   fontFamily: font.body,
@@ -47,7 +47,7 @@ const BAND = {
  * Each entry is a framed card with the cut-out head every other card wears
  * (the shared `Head`): a band in the page's rules blue, the date notched into
  * its foot on a tab of the paper below (in ink). The bullets are the paper body the tab opens into. The frame is
- * `.srd-changelog__entry`.
+ * `.su-changelog__entry`.
  */
 export function Changelog({ entries }: ChangelogProps) {
   if (entries.length === 0) {
@@ -58,7 +58,7 @@ export function Changelog({ entries }: ChangelogProps) {
     <ol style={LIST}>
       {entries.map((entry) => (
         <li key={entry.date}>
-          <article className="srd-changelog__entry">
+          <article className="su-changelog__entry">
             {/* `h2`: each entry is a direct division of the changelog, under
                 its one `h1`. */}
             <Head
@@ -68,7 +68,7 @@ export function Changelog({ entries }: ChangelogProps) {
               paint={BAND}
               notch
             />
-            <ul className="srd-changelog__items" style={ITEMS}>
+            <ul className="su-changelog__items" style={ITEMS}>
               {entry.items.map((item) => (
                 <li key={item}>
                   <InlineMarkdown text={item} />

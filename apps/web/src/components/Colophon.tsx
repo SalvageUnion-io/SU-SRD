@@ -15,7 +15,7 @@ type ColophonProps = {
   kofiCode: string
 }
 
-// Two columns from `md` up: the column template is `.srd-colophon`, the rest is
+// Two columns from `md` up: the column template is `.su-colophon`, the rest is
 // static.
 const ROOT = { display: 'grid', gap: space[32] } satisfies CSSProperties
 
@@ -46,7 +46,7 @@ export function Colophon({
   kofiCode,
 }: ColophonProps) {
   return (
-    <div className="srd-colophon" style={ROOT}>
+    <div className="su-colophon" style={ROOT}>
       <div style={COLUMN}>
         <MarkdownSection markdown={aboutMarkdown} />
 

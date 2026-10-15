@@ -22,7 +22,7 @@ type HeroSearchFormProps = {
 export function HeroSearchForm({ children, onSubmit }: HeroSearchFormProps) {
   return (
     <search>
-      <form action="/search/" method="get" className="srd-hero-search" onSubmit={onSubmit}>
+      <form action="/search/" method="get" className="su-hero-search" onSubmit={onSubmit}>
         {children}
         <Button type="submit" variant="primary" size="full">
           Search
@@ -36,7 +36,7 @@ export function HeroSearchForm({ children, onSubmit }: HeroSearchFormProps) {
 export function HeroSearchStatic() {
   return (
     <HeroSearchForm>
-      <div className="srd-hero-search__box">
+      <div className="su-hero-search__box">
         <SearchField
           type="search"
           name="q"
@@ -44,7 +44,7 @@ export function HeroSearchStatic() {
           aria-label="Search the SRD"
           shortcut="⌘K"
           glyphSize={18}
-          containerClassName="srd-hero-search__field"
+          containerClassName="su-hero-search__field"
         />
       </div>
     </HeroSearchForm>
