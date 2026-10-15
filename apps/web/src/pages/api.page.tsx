@@ -14,7 +14,7 @@ import { DocPage } from '../components/DocPage'
 import { InlineRef, Panel, Slab } from '../components/index'
 import { color, font, fontSize, radius, space, weight } from '../design/tokens'
 import { apiSampleChassis } from '../lib/apiSample'
-import { SITE_URL, TITLE_SUFFIX } from '../lib/constants'
+import { SITE_URL } from '../lib/constants'
 import {
   ASIDE,
   BOLD,
@@ -29,8 +29,9 @@ import {
 } from '../lib/docPageStyles'
 import { itemHref, schemaHref } from '../lib/entityHref'
 import { getEntitySchemas } from '../lib/gameData'
+import { pageTitle } from '../lib/pageTitle'
 
-const TITLE = `API Reference${TITLE_SUFFIX}`
+const TITLE = pageTitle('API Reference')
 const DESCRIPTION =
   'Public JSON API documentation for salvageunion.io. Access Salvage Union game data programmatically via CORS-enabled JSON endpoints.'
 

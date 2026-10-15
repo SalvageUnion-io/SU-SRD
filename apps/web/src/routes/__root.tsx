@@ -1,4 +1,5 @@
 import { createRootRoute, HeadContent, Outlet, useRouterState } from '@tanstack/react-router'
+import { PRODUCT } from 'cantina-domain/product'
 import { useLayoutEffect, useState } from 'react'
 import { AccountHintSync } from '../components/account/AccountHintSync'
 import { AccountReconciler } from '../components/account/AccountReconciler'
@@ -40,8 +41,8 @@ import '../styles/cantina.css'
 const ENTITY_SURFACE: Partial<EntitySurfaceValue> = { linkAs: AppLink, appliesRules: true }
 
 export const Route = createRootRoute({
-  // The default tab title; a page with its own sets it in its route's `head`.
-  head: () => ({ meta: [{ title: pageTitle() }] }),
+  // The default tab title, the front door's; a page with its own sets it in its route's `head`.
+  head: () => ({ meta: [{ title: pageTitle(PRODUCT.name) }] }),
   component: RootComponent,
   errorComponent: RootErrorComponent,
 })

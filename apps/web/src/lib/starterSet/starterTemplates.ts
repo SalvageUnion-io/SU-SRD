@@ -54,7 +54,7 @@ const KIND_LABEL: Record<StarterKind, string> = {
 export type StarterPage = {
   /** The client route, inside the app's base: `/starter/pilot/starter-pilot-bonesaw`. */
   path: string
-  /** The tab title: `Bonesaw · Starter Set Pilot · The Cantina`. */
+  /** The tab title: `Bonesaw · Starter Set Pilot · SalvageUnion.io`. */
   title: string
   description: string
 }

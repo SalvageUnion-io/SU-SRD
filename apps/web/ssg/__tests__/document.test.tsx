@@ -213,7 +213,7 @@ describe('head assembly from DocumentMeta', () => {
 
   it('falls back to the site title and description', () => {
     const html = renderAbout()
-    expect(html).toContain('<title>Salvage Union System Reference Document</title>')
+    expect(html).toContain('<title>SalvageUnion.io</title>')
     expect(metaContent(html, 'description')).toContain('System Reference Document (SRD)')
   })
 

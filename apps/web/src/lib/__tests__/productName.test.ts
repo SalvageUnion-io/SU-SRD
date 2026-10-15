@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { PRODUCT } from 'cantina-domain/product'
 import { renderShell } from '../../shell/shell'
+import { pageTitle } from '../pageTitle'
 
 /**
  * The shell (`shell/shell.ts`) cannot import `PRODUCT`: the Vite config loads
@@ -10,11 +11,12 @@ import { renderShell } from '../../shell/shell'
 const html = renderShell()
 
 describe('the product name outside TypeScript', () => {
-  test("the shell's title and sitewide meta say PRODUCT.name", () => {
-    expect(html).toContain(`<title>${PRODUCT.name}</title>`)
+  test("the shell's title and sitewide meta name PRODUCT.name on the site", () => {
+    const title = pageTitle(PRODUCT.name)
+    expect(html).toContain(`<title>${title}</title>`)
     for (const property of ['og:title', 'og:image:alt']) {
-      expect(html).toContain(`<meta property="${property}" content="${PRODUCT.name}" />`)
+      expect(html).toContain(`<meta property="${property}" content="${title}" />`)
     }
-    expect(html).toContain(`<meta name="twitter:title" content="${PRODUCT.name}" />`)
+    expect(html).toContain(`<meta name="twitter:title" content="${title}" />`)
   })
 })

@@ -9,8 +9,11 @@
  * before any `import.meta.env` exists, and the Worker bundles it.
  */
 
-/** The site's name, as `og:site_name` gives it on every page. */
-const SITE_NAME = 'Salvage Union'
+/**
+ * The site's name: every title's suffix (`pageTitle`), `og:site_name`, and the
+ * name an installed app or a home-screen icon wears.
+ */
+export const SITE_NAME = 'SalvageUnion.io'
 
 /**
  * The browser-chrome colour every page emits as `theme-color` unless it names
@@ -64,6 +67,8 @@ export function metaTags(page: PreviewMeta): HeadTag[] {
   const image = page.image
   return [
     meta({ name: 'theme-color', content: page.themeColor }),
+    meta({ name: 'application-name', content: SITE_NAME }),
+    meta({ name: 'apple-mobile-web-app-title', content: SITE_NAME }),
     meta({ name: 'description', content: page.description }),
     meta({ property: 'og:type', content: page.type ?? 'website' }),
     meta({ property: 'og:site_name', content: SITE_NAME }),

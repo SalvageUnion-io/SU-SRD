@@ -18,7 +18,7 @@ import type { PageModule, PageResult } from '../../ssg/types'
 import { HeroSearchStatic } from '../components/HeroSearch'
 import { CHAPTER_BAND_COLOR, ChapterBand, Slab } from '../components/index'
 import { buildChapters } from '../lib/chapters'
-import { TITLE_SUFFIX } from '../lib/constants'
+import { pageTitle } from '../lib/pageTitle'
 import '../lib/gameData'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { Island } from '../runtime/Island'
@@ -31,7 +31,7 @@ function page(): PageResult {
 
   return {
     meta: {
-      title: `404 - Page Not Found${TITLE_SUFFIX}`,
+      title: pageTitle('404 - Page Not Found'),
       description: 'The page you are looking for could not be found.',
       noindex: true,
     },

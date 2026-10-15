@@ -17,7 +17,7 @@ import { borderWidth, color, font, fontSize, space } from '../design/tokens'
 import type { DiscordCommand } from '../generated/discordCommands'
 import { DISCORD_COMMANDS } from '../generated/discordCommands'
 import { appPath } from '../lib/appBase'
-import { CONTENTS_CRUMB, DISCORD_INSTALL_URL, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
+import { CONTENTS_CRUMB, DISCORD_INSTALL_URL, SITE_URL } from '../lib/constants'
 import {
   ASIDE,
   BOLD,
@@ -31,6 +31,7 @@ import {
   proseColumn,
 } from '../lib/docPageStyles'
 import { SalvageUnionReference } from '../lib/gameData'
+import { pageTitle } from '../lib/pageTitle'
 
 /**
  * Both values are DERIVED, and both are built inside `page()`.
@@ -58,7 +59,7 @@ function buildExamples() {
   return { rollTableCount, lookupExample }
 }
 
-const TITLE = `Discord Bot${TITLE_SUFFIX}`
+const TITLE = pageTitle('Discord Bot')
 const DESCRIPTION =
   'Add the SalvageUnion.io bot to your Discord server: roll on every Salvage Union table and look up any chassis, system, module, or piece of equipment with /su.'
 

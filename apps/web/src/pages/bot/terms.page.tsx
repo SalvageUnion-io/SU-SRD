@@ -8,8 +8,8 @@ import type { PageModule, PageResult } from '../../../ssg/types'
 import { DocPage } from '../../components/DocPage'
 import { InlineRef, Slab } from '../../components/index'
 import { space } from '../../design/tokens'
-import { TITLE_SUFFIX } from '../../lib/constants'
 import { BOLD, proseColumn, SMALL_PRINT } from '../../lib/docPageStyles'
+import { pageTitle } from '../../lib/pageTitle'
 
 const BODY = proseColumn(space[16])
 
@@ -18,7 +18,7 @@ const LAST_UPDATED = '6 July 2026'
 function page(): PageResult {
   return {
     meta: {
-      title: `Discord Bot Terms of Service${TITLE_SUFFIX}`,
+      title: pageTitle('Discord Bot Terms of Service'),
       description:
         'Terms of Service for the Salvage Union Discord bot — an unofficial, community reference tool for the Salvage Union TTRPG.',
     },

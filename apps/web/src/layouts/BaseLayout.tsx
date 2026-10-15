@@ -21,10 +21,10 @@ import { SITE_LINKS } from '../lib/docPages'
 import { metaTags, SITE_ICONS, THEME_COLOR } from '../lib/documentHead'
 import { escapeJsonForScript } from '../lib/escapeJsonForScript'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
+import { pageTitle } from '../lib/pageTitle'
 import { SITE_MANIFEST } from '../pwa'
 import { Island } from '../runtime/Island'
 
-const DEFAULT_TITLE = 'Salvage Union System Reference Document'
 const DEFAULT_DESCRIPTION =
   'System Reference Document (SRD) for the Salvage Union TTRPG. Complete reference guide with chassis, systems, modules, abilities, and more.'
 
@@ -67,7 +67,7 @@ export type BaseLayoutProps = {
 
 export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) {
   const {
-    title = DEFAULT_TITLE,
+    title = pageTitle(),
     description = DEFAULT_DESCRIPTION,
     canonical,
     ogType = 'website',

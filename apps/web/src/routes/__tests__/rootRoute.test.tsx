@@ -81,7 +81,7 @@ describe('the root route', () => {
 
   test('the tab gets the default title', async () => {
     await mountAt('/')
-    expect(document.title).toBe(pageTitle())
+    expect(document.title).toBe(pageTitle('The Cantina'))
   })
 
   test('the Dashboard draws its own bar, so the Union bar steps aside', async () => {

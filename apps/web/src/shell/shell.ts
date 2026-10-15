@@ -31,11 +31,15 @@ import {
   SITE_ICONS,
   THEME_COLOR,
 } from '../lib/documentHead'
+import { pageTitle } from '../lib/pageTitle'
 import { appUrl, originOf } from '../lib/site'
 import { renderUnionBar } from './unionBar'
 
 /** The product's name (`PRODUCT.name`; `lib/__tests__/productName.test.ts` holds them equal). */
-const SHELL_TITLE = 'The Cantina'
+const PRODUCT_NAME = 'The Cantina'
+
+/** The front door's title, which every route starts from. */
+const SHELL_TITLE = pageTitle(PRODUCT_NAME)
 
 /** The sitewide meta description, which the PWA manifest repeats. */
 const SHELL_DESCRIPTION =

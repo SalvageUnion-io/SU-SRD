@@ -211,7 +211,7 @@ describe('a Discordbot fetch of an invite', () => {
   })
 
   it('keeps the sitewide defaults for a dead code', async () => {
-    expect(meta(await unfurl('/invite/DEADCODE'), 'og:title')).toBe('The Cantina')
+    expect(meta(await unfurl('/invite/DEADCODE'), 'og:title')).toBe('The Cantina · SalvageUnion.io')
   })
 })
 
@@ -230,7 +230,7 @@ describe('when Convex does not answer', () => {
       new Response('down', { status: 503 })) as unknown as typeof fetch
     const res = await worker.fetch(discordbot('/p/pilot/p-1'), env())
     expect(res.status).toBe(200)
-    expect(meta(await res.text(), 'og:title')).toBe('The Cantina')
+    expect(meta(await res.text(), 'og:title')).toBe('The Cantina · SalvageUnion.io')
   })
 })
 

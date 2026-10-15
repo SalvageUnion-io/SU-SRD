@@ -8,8 +8,8 @@ import type { PageModule, PageResult } from '../../../ssg/types'
 import { DocPage } from '../../components/DocPage'
 import { InlineRef, Slab } from '../../components/index'
 import { space } from '../../design/tokens'
-import { TITLE_SUFFIX } from '../../lib/constants'
 import { BOLD, bulletList, proseColumn, SMALL_PRINT } from '../../lib/docPageStyles'
+import { pageTitle } from '../../lib/pageTitle'
 
 const BODY = proseColumn(space[16])
 const LIST = bulletList(space[4], 'padding')
@@ -20,7 +20,7 @@ const LAST_UPDATED = '6 July 2026'
 function page(): PageResult {
   return {
     meta: {
-      title: `Discord Bot Privacy Policy${TITLE_SUFFIX}`,
+      title: pageTitle('Discord Bot Privacy Policy'),
       description:
         'Privacy Policy for the Salvage Union Discord bot. The Bot is stateless and stores no personal data.',
     },

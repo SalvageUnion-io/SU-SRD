@@ -12,8 +12,9 @@
 
 import type { PageModule, PageResult } from '../../ssg/types'
 import { ChapterBand } from '../components/index'
-import { CONTENTS_CRUMB, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
+import { CONTENTS_CRUMB, SITE_URL } from '../lib/constants'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
+import { pageTitle } from '../lib/pageTitle'
 import { Island } from '../runtime/Island'
 
 const CANONICAL_URL = `${SITE_URL}/search/`
@@ -21,7 +22,7 @@ const CANONICAL_URL = `${SITE_URL}/search/`
 function page(): PageResult {
   return {
     meta: {
-      title: `Search${TITLE_SUFFIX}`,
+      title: pageTitle('Search'),
       description:
         'Search the full Salvage Union SRD — chassis, systems, modules, abilities, equipment, and more.',
       canonical: CANONICAL_URL,
