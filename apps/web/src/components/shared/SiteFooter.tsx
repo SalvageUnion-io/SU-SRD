@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { DOC_PAGES } from '../../lib/docPages'
+import { SITE_LINKS } from '../../lib/docPages'
 import { Footer, tokens } from '../index'
 
 /**
@@ -15,9 +15,6 @@ import { Footer, tokens } from '../index'
  * viewport, so the page scrolls on to it.
  */
 
-/** The SRD's own footer links, in its order (`apps/web/src/lib/constants.ts`). */
-const LINKS = [DOC_PAGES.changelog, DOC_PAGES.api, DOC_PAGES.discord, DOC_PAGES.about]
-
 /** Room between the page and its foot band, as the old hairline foot had. */
 const GAP = { marginTop: tokens.space[48] } satisfies CSSProperties
 
@@ -27,7 +24,7 @@ const MARK = '/Powered_by_Salvage_Black.webp'
 export function SiteFooter() {
   return (
     <div style={GAP}>
-      <Footer links={LINKS} poweredBySalvageUrl={MARK} />
+      <Footer links={SITE_LINKS} poweredBySalvageUrl={MARK} />
     </div>
   )
 }

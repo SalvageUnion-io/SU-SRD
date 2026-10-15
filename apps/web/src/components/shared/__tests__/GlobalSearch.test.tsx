@@ -21,7 +21,6 @@
 import { describe, expect, jest, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { useState } from 'react'
-import { pageOrigin } from '../../../lib/site'
 import { must } from '../../__tests__/must'
 import { GlobalSearch } from '../GlobalSearch'
 
@@ -265,11 +264,7 @@ describe('the results', () => {
         .find((option) => option.textContent?.includes('Category'))
       fireEvent.click(must(categoryOption))
 
-      expect(openSpy).toHaveBeenCalledWith(
-        `${pageOrigin()}/chassis/`,
-        '_blank',
-        'noopener,noreferrer'
-      )
+      expect(openSpy).toHaveBeenCalledWith('/chassis/', '_blank', 'noopener,noreferrer')
       // Category rows leave the panel open (an outbound side-trip).
       expect(panel()).toBeTruthy()
     } finally {

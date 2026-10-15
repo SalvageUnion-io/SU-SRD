@@ -30,7 +30,7 @@ function schemaLabel(result: SearchResult): string {
   return schemaPluralLabel(result.schemaName)
 }
 
-/** Show-page URL for a result entity. Mirrors srdEntityHref / the combobox. */
+/** Show-page URL for a result entity. Mirrors entityHref / the combobox. */
 function resultUrl(result: SearchResult): string {
   return itemHref(result.schemaName, getEntitySlug(result.entity))
 }

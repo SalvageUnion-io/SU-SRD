@@ -1,5 +1,11 @@
 import type { EntityRef } from 'salvageunion-reference'
-import { getEntitySlug, nameToSlug, srdEntityPath, srdSchemaPath } from 'salvageunion-reference'
+import {
+  getEntitySchemas,
+  getEntitySlug,
+  nameToSlug,
+  srdEntityPath,
+  srdSchemaPath,
+} from 'salvageunion-reference'
 import type { EntityHrefBuilder } from '../components/index'
 
 /**
@@ -36,22 +42,38 @@ export function patternHref(schemaName: string, slug: string, patternSlug: strin
   return `${itemHref(schemaName, slug)}pattern/${patternSlug}/`
 }
 
+// Item pages are emitted for ENTITY schemas only (`getItemStaticPaths` in
+// `staticPaths.ts` iterates `getEntitySchemas()`): the meta schemas
+// (actions, catalog-categories, ability-tree-requirements) are in the catalog
+// but have no page. Lazily cached.
+let pageSchemaIds: Set<string> | undefined
+
+/** Whether the site emits an item page for entities of this schema. */
+export function hasPage(schemaName: string): boolean {
+  pageSchemaIds ??= new Set(getEntitySchemas().map((schema) => schema.id))
+  return pageSchemaIds.has(schemaName)
+}
+
 /**
- * srd's show-page route for an entity, as a `src/components` href builder.
- * Supplied to src/components via `EntityHrefProvider` so nested "View Details"
- * links resolve to this app's routes (the shared library stays route-agnostic).
+ * An entity's page, as a `src/components` href builder: the reference pages
+ * and the Cantina supply it through `EntityHrefProvider`, so nested "View
+ * Details" links resolve to it (the shared library stays route-agnostic).
+ * Root-relative on both: the Cantina renders these as plain anchors, never
+ * through its router.
  *
- * Only a dataset record has a page. A record with no `id` was assembled for
- * display — a crawler bay's commander is its bay's embedded `npc` object,
- * dressed as an `npcs` entity so it wears the NPC card (`resolveNestedEntities`)
- * — and a link built from its name would 404, so it gets none and renders
- * unlinked.
+ * Only a dataset record of a schema with pages has one. A record with no `id`
+ * was assembled for display (a crawler bay's commander is its bay's embedded
+ * `npc` object, dressed as an `npcs` entity so it wears the NPC card,
+ * `resolveNestedEntities`), and a meta schema has no pages; a link built for
+ * either would 404, so it gets none and renders unlinked.
  */
-export const srdEntityHref: EntityHrefBuilder = (entity) => {
+export const entityHref: EntityHrefBuilder = (entity) => {
   const schemaName =
     'schemaName' in entity && typeof entity.schemaName === 'string' ? entity.schemaName : undefined
   const isRecord = 'id' in entity && typeof entity.id === 'string' && entity.id.length > 0
-  return schemaName && isRecord ? itemHref(schemaName, getEntitySlug(entity)) : undefined
+  return schemaName && isRecord && hasPage(schemaName)
+    ? itemHref(schemaName, getEntitySlug(entity))
+    : undefined
 }
 
 /**

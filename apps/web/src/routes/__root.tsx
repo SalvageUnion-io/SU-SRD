@@ -20,8 +20,8 @@ import { NotConnectedBanner } from '../components/shared/NotConnectedBanner'
 import { RootErrorComponent } from '../components/shared/RouteErrors'
 import { SiteFooter } from '../components/shared/SiteFooter'
 import { UnionBarSlots } from '../components/shared/UnionBarSlots'
+import { entityHref } from '../lib/entityHref'
 import { pageTitle } from '../lib/pageTitle'
-import { cantinaEntityHref } from '../lib/srd-deep-link'
 import { BAR_HIDDEN_ATTRIBUTE, hidesUnionBar } from '../shell/unionSlots'
 // The tagline's script face, self-hosted like the Barlow faces in the shared base
 // stylesheet: fonts stay on-origin, so the CSP needs no external host.
@@ -95,7 +95,7 @@ function RootComponent() {
   return (
     <AppConvexProvider>
       <HeadContent />
-      <EntityHrefProvider value={cantinaEntityHref}>
+      <EntityHrefProvider value={entityHref}>
         <EntitySurfaceProvider value={ENTITY_SURFACE}>
           {/* The Union bar is the shell's, above this root, with the skip
             link (WCAG 2.4.1) ahead of it. `RootHeader` fills the not-connected

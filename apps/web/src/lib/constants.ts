@@ -50,15 +50,3 @@ export function entityTitle(name: string, kind: string): string {
 
 /** Meta descriptions are cut to this, ellipsis included: about what a search snippet shows. */
 export const META_DESCRIPTION_MAX = 155
-
-/**
- * The site's own pages, which left the Union bar when the SRD dropped its second
- * nav row (ruleset §3.11, origin v60): the bar carries the switcher, the search
- * and the trail, and these four live in the shared `Footer`.
- */
-export const SITE_LINKS = [
-  { label: 'Changelog', href: '/changelog/' },
-  { label: 'API', href: '/api/' },
-  { label: 'Discord', href: '/discord/' },
-  { label: 'About', href: '/about/' },
-] as const

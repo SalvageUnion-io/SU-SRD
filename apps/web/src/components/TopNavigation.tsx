@@ -21,6 +21,7 @@
  */
 
 import { SIGN_IN_HREF } from '../lib/accountBar'
+import { BUY_HREF } from '../lib/docPages'
 import { appPath } from '../lib/site'
 import { WIKI_LINK_ATTRIBUTE } from '../lib/wikiLink'
 import { Island } from '../runtime/Island'
@@ -87,7 +88,7 @@ export function TopNavigation({
       product="reference"
       referenceHref="/"
       buildHref={appPath('/')}
-      buyHref="https://leyline.press/collections/salvage-union"
+      buyHref={BUY_HREF}
       breadcrumbs={breadcrumbs}
       breadcrumbDescription={breadcrumbDescription}
       // Cross-document view transitions (`@view-transition { navigation: auto }`)

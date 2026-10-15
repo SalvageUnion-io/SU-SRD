@@ -17,11 +17,11 @@ import type { AnchorHTMLAttributes } from 'react'
 import { createElement, Fragment } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { AppBar } from '../components/index'
+import { BUY_HREF } from '../lib/docPages'
+import { MARK_SRC } from '../lib/documentHead'
 import { appPath } from '../lib/site'
 import type { UnionSlot } from './unionSlots'
 import { UNION_NAV } from './unionSlots'
-
-const BUY_HREF = 'https://leyline.press/collections/salvage-union'
 
 const slot = (name: UnionSlot) =>
   createElement('div', { 'data-union-slot': name, style: { display: 'contents' } })
@@ -46,9 +46,7 @@ export function renderUnionBar(): string {
         referenceHref: '/',
         buildHref: '/',
         LinkComponent: BaseLink,
-        // The Cantina's public copy, root-relative: Vite puts the base in front
-        // of an asset tag's URL, dev and build alike.
-        markSrc: '/logos/su-cargo-dark.svg',
+        markSrc: MARK_SRC,
         // srd's bar wears the same name, so a cross-document view transition
         // between the two apps matches the bar instead of fading it.
         viewTransitionName: 'nav',

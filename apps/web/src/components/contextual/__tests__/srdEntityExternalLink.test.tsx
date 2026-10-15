@@ -11,7 +11,6 @@ import { describe, expect, it } from 'bun:test'
 import { render } from '@testing-library/react'
 import type { RefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { pageOrigin } from '../../../lib/site'
 import { must } from '../../__tests__/must'
 import { srdEntityExternalLink } from '../srdEntityExternalLink'
 
@@ -23,7 +22,7 @@ describe('srdEntityExternalLink', () => {
 
     const { container } = render(node)
     const link = container.querySelector('a')
-    expect(link?.href).toBe(`${pageOrigin()}/chassis/mule/`)
+    expect(link?.getAttribute('href')).toBe('/chassis/mule/')
     // Same tab, no arrow: the SRD is not off-site (ruleset §3.11, EDL E5).
     expect(link?.hasAttribute('target')).toBe(false)
     expect(link?.hasAttribute('rel')).toBe(false)

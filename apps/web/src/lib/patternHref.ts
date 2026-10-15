@@ -8,7 +8,7 @@ import { patternHref } from './entityHref'
  * for a Bio-Titan's.
  *
  * A pattern is a nested object on its host — no id, no `schemaName` — so it
- * cannot use `srdEntityHref`, and its URL is deliberately a SECOND segment
+ * cannot use `entityHref`, and its URL is deliberately a SECOND segment
  * under the host it belongs to rather than a top-level `/patterns/`
  * listing: patterns are not their own schema, and the route says so. Pattern
  * names are unique within a host, which is all this slug has to disambiguate.

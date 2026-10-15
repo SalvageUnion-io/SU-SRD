@@ -2,6 +2,7 @@ import { PRODUCT } from 'cantina-domain/product'
 import type { CSSProperties } from 'react'
 import { foregroundOn } from '../../design/contrast'
 import { borderWidth, color, font, space, tracking, weight } from '../../design/tokens'
+import { MARK_SRC } from '../../lib/documentHead'
 import { ChapterBand } from '../atoms/ChapterBand'
 import { Speckle } from '../atoms/Speckle'
 import { Stat } from '../atoms/Stat'
@@ -299,10 +300,7 @@ function UnionFoot({
  * `markSrc` is the SU mark's URL, the app's own copy (The Cantina serves its files
  * under `/build/`, ADR-048); the root's by default.
  */
-export function OgCard({
-  markSrc = '/logos/su-cargo-dark.svg',
-  ...props
-}: OgCardProps & { markSrc?: string }) {
+export function OgCard({ markSrc = MARK_SRC, ...props }: OgCardProps & { markSrc?: string }) {
   const fill = bandColor(props)
   const ink = foregroundOn(fill, 'ink') === 'ink'
   const userMade = props.kind === 'userMade'

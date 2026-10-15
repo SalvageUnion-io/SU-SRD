@@ -101,15 +101,13 @@ describe('UnionBarSlots', () => {
     // The page you are on is an ink plate, never the rust primary.
     expect(hangar.getAttribute('aria-current')).toBe('page')
     expect(hangar.className).toContain('su-btn--here')
-    expect(drawer.getByRole('link', { name: 'Discord' }).getAttribute('href')).toBe(
-      `${SRD}/discord/`
-    )
+    expect(drawer.getByRole('link', { name: 'Discord' }).getAttribute('href')).toBe('/discord/')
     expect(drawer.getByRole('link', { name: /buy the game/i }).getAttribute('target')).toBe(
       '_blank'
     )
     const foot = within(screen.getByRole('navigation', { name: 'More' }))
-    expect(foot.getByRole('link', { name: 'About' }).getAttribute('href')).toBe(`${SRD}/about/`)
-    expect(foot.getByRole('link', { name: 'API' }).getAttribute('href')).toBe(`${SRD}/api/`)
+    expect(foot.getByRole('link', { name: 'About' }).getAttribute('href')).toBe('/about/')
+    expect(foot.getByRole('link', { name: 'API' }).getAttribute('href')).toBe('/api/')
     fireEvent.click(drawer.getByRole('button', { name: 'Sign in' }))
     expect(screen.queryByRole('dialog')).toBeNull()
   })

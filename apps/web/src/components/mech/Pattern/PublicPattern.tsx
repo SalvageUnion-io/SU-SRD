@@ -29,6 +29,7 @@ import {
 } from 'salvageunion-reference'
 import { useConnection } from '../../../lib/connection/connectionContext'
 import { serverMessage } from '../../../lib/connection/serverError'
+import { entityHref, itemHref } from '../../../lib/entityHref'
 import { formatDay } from '../../../lib/formatDate'
 import type { PatternVisibility } from '../../../lib/patterns/patterns'
 import {
@@ -40,7 +41,6 @@ import {
   slotsUsed,
 } from '../../../lib/patterns/patterns'
 import { appPath } from '../../../lib/site'
-import { cantinaEntityHref, deepLinkTo } from '../../../lib/srd-deep-link'
 import { useEntityStore } from '../../../stores/entityStore'
 import { usePatternStore } from '../../../stores/patternStore'
 import { SignInControl } from '../../account/SignInControl'
@@ -311,7 +311,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
                   slug: getEntitySlug(chassis),
                   name: chassis.name,
                 }}
-                href={deepLinkTo({ schemaName: 'chassis', slug: getEntitySlug(chassis) })}
+                href={itemHref('chassis', getEntitySlug(chassis))}
               />
             )}
             {chassis && <Stat orientation="horizontal" label="TL" value={chassis.techLevel} />}
@@ -459,7 +459,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
                 <Entity
                   form="token"
                   entity={part}
-                  mode={{ kind: 'link', href: cantinaEntityHref(part) }}
+                  mode={{ kind: 'link', href: entityHref(part) }}
                 />
               </li>
             ))}

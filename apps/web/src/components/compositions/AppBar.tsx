@@ -2,6 +2,7 @@ import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { Fragment } from 'react'
 import { borderWidth, color, radius, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
+import { MARK_SRC } from '../../lib/documentHead'
 import type { BreadcrumbItem } from '../atoms/BreadcrumbTrail'
 import { BreadcrumbTrail } from '../atoms/BreadcrumbTrail'
 import { FOCUS_RING } from '../atoms/interaction'
@@ -175,7 +176,7 @@ export function AppBar({
   referenceHref,
   buildHref,
   LinkComponent = 'a',
-  markSrc = '/logos/su-cargo-dark.svg',
+  markSrc = MARK_SRC,
   viewTransitionName,
   navItems = [],
   search,

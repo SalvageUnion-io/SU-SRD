@@ -1,6 +1,7 @@
 import { SETTINGS_HREF, signOutHref } from '../../lib/accountBar'
 import { readAccountHint } from '../../lib/accountHint'
 import { browserStorage } from '../../lib/accountState'
+import { DOC_PAGES } from '../../lib/docPages'
 import { AccountMenu } from '../index'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
@@ -21,8 +22,8 @@ function AccountIslandBody({ compact }: { compact: boolean }) {
         compact={compact}
         onSettings={() => window.location.assign(SETTINGS_HREF)}
         onSignOut={() => window.location.assign(signOutHref(window.location.href))}
-        aboutHref="/about/"
-        changelogHref="/changelog/"
+        aboutHref={DOC_PAGES.about.href}
+        changelogHref={DOC_PAGES.changelog.href}
       />
     </IslandErrorBoundary>
   )
