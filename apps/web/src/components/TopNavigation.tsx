@@ -1,10 +1,10 @@
 /**
  * TopNavigation — the site header.
  *
- * Static brand chrome via the shared Union bar (`AppBar`, ruleset §3.11) on its
- * **Reference** side; the interactive search
- * + mobile nav are slotted in as independently-mounted islands so the shared
- * component ships no client JS of its own.
+ * The one Union bar (`unionBar/UnionBar`, ruleset §3.11) on its **Reference**
+ * side; the interactive search, account and phone drawer (`UnionDrawer`, as
+ * `MobileNavIsland`) are slotted in as independently-mounted islands so the
+ * bar ships no client JS of its own.
  *
  * The chrome islands are server-rendered and `client="interaction"`: the
  * field and the two phone buttons are in the HTML, and React loads only when a
@@ -21,14 +21,13 @@
  */
 
 import { SIGN_IN_HREF } from '../lib/accountBar'
-import { appPath } from '../lib/appBase'
-import { BUY_HREF } from '../lib/docPages'
 import { WIKI_LINK_ATTRIBUTE } from '../lib/wikiLink'
 import { Island } from '../runtime/Island'
-import { AppBar, cn, FOCUS_RING } from './index'
+import { cn, FOCUS_RING } from './index'
 import { MobileNavIsland } from './islands/MobileNavIsland'
 import { MobileSearchIsland } from './islands/MobileSearchIsland'
 import { SearchIsland } from './islands/SearchIsland'
+import { UnionBar } from './unionBar/UnionBar'
 
 /**
  * The quiet "WIKI" link to the `/greembeem` easter egg, served hidden: the
@@ -84,16 +83,10 @@ export function TopNavigation({
   pageHasSearch = false,
 }: TopNavigationProps) {
   return (
-    <AppBar
+    <UnionBar
       product="reference"
-      referenceHref="/"
-      buildHref={appPath('/')}
-      buyHref={BUY_HREF}
       breadcrumbs={breadcrumbs}
       breadcrumbDescription={breadcrumbDescription}
-      // Cross-document view transitions (`@view-transition { navigation: auto }`)
-      // match on this name.
-      viewTransitionName="nav"
       // The WIKI link sits left of the search, so it rides the search slot; it
       // stays when the page carries its own search.
       search={

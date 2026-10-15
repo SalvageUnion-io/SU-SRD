@@ -84,7 +84,7 @@ describe('UnionBarSlots', () => {
     expect(screen.queryByRole('button', { name: 'Open menu' })).toBeNull()
   })
 
-  test('the drawer: the nav, the SRD’s pages at its foot, Buy the game, and the app’s extra', () => {
+  test('the drawer: the reference pages’ own, the Cantina’s nav first, and the app’s extra', () => {
     render(
       <UnionBarSlots
         pathname="/"
@@ -97,17 +97,23 @@ describe('UnionBarSlots', () => {
     )
     fireEvent.click(screen.getByRole('button', { name: 'Open menu' }))
     const drawer = within(screen.getByRole('dialog'))
+    expect(drawer.getByRole('link', { name: 'Salvage Union SRD' }).getAttribute('href')).toBe('/')
     const hangar = drawer.getByRole('link', { name: 'Hangar' })
     // The page you are on is an ink plate, never the rust primary.
     expect(hangar.getAttribute('aria-current')).toBe('page')
     expect(hangar.className).toContain('su-btn--here')
+    expect(
+      drawer
+        .getAllByRole('link')
+        .filter((link) => link.className.includes('su-nav-drawer__link'))
+        .map((link) => link.textContent)
+    ).toEqual(['Hangar', 'Starter Set', 'About', 'Changelog', 'Discord', 'API', 'Buy the game'])
     expect(drawer.getByRole('link', { name: 'Discord' }).getAttribute('href')).toBe('/discord/')
     expect(drawer.getByRole('link', { name: /buy the game/i }).getAttribute('target')).toBe(
       '_blank'
     )
-    const foot = within(screen.getByRole('navigation', { name: 'More' }))
-    expect(foot.getByRole('link', { name: 'About' }).getAttribute('href')).toBe('/about/')
-    expect(foot.getByRole('link', { name: 'API' }).getAttribute('href')).toBe('/api/')
+    // The book's chapter index, as on a reference page.
+    expect(drawer.getByRole('heading', { name: 'Mech Workshop' })).toBeTruthy()
     fireEvent.click(drawer.getByRole('button', { name: 'Sign in' }))
     expect(screen.queryByRole('dialog')).toBeNull()
   })

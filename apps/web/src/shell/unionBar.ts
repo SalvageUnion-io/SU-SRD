@@ -1,7 +1,8 @@
 /**
- * The Union bar as the Cantina's shell serves it: the shared `AppBar` on its
- * **Build** side, rendered once at build time, so the bar is in the document
- * before any JavaScript runs, as srd's is.
+ * The Union bar as the Cantina's shell serves it: the one `UnionBar`
+ * (`components/unionBar/UnionBar.tsx`) on its **Build** side, rendered once
+ * at build time, so the bar is in the document before any JavaScript runs, as
+ * the reference pages' is.
  *
  * The bar is static. What in it is live, the Games menu, the search, the account
  * and the phone's drawer, the app renders into the empty slots below through
@@ -13,23 +14,13 @@
  * click on one in place and marks the page you are on.
  */
 
-import type { AnchorHTMLAttributes } from 'react'
 import { createElement, Fragment } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { AppBar } from '../components/index'
-import { appPath } from '../lib/appBase'
-import { BUY_HREF } from '../lib/docPages'
-import { MARK_SRC } from '../lib/documentHead'
+import { UnionBar } from '../components/unionBar/UnionBar'
 import type { UnionSlot } from './unionSlots'
-import { UNION_NAV } from './unionSlots'
 
 const slot = (name: UnionSlot) =>
   createElement('div', { 'data-union-slot': name, style: { display: 'contents' } })
-
-/** An internal link: a route under the base. */
-function BaseLink({ href = '/', ...rest }: AnchorHTMLAttributes<HTMLAnchorElement>) {
-  return createElement('a', { ...rest, href: appPath(`/${href.replace(/^\/+/, '')}`) })
-}
 
 /** The skip link, the banner slot and the bar, ahead of the app's root. */
 export function renderUnionBar(): string {
@@ -40,23 +31,10 @@ export function renderUnionBar(): string {
       // Skip link (WCAG 2.4.1), the SRD's: the first focusable thing on the page.
       createElement('a', { href: '#main-content', className: 'su-skip-link' }, 'Skip to content'),
       slot('banner'),
-      createElement(AppBar, {
+      createElement(UnionBar, {
         product: 'build',
-        // One origin (ADR-048): the reference is the site's root.
-        referenceHref: '/',
-        buildHref: '/',
-        LinkComponent: BaseLink,
-        markSrc: MARK_SRC,
-        // srd's bar wears the same name, so a cross-document view transition
-        // between the two apps matches the bar instead of fading it.
-        viewTransitionName: 'nav',
-        navItems: [
-          { label: UNION_NAV[0].label, href: UNION_NAV[0].path },
-          { id: 'games', node: slot('games') },
-          { label: UNION_NAV[1].label, href: UNION_NAV[1].path },
-        ],
+        games: slot('games'),
         search: slot('search'),
-        buyHref: BUY_HREF,
         actions: slot('actions'),
         mobile: slot('mobile'),
       })

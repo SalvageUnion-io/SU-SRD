@@ -1,17 +1,13 @@
 import type { LinkProps } from '@tanstack/react-router'
 import { useRouter } from '@tanstack/react-router'
-import { PRODUCT } from 'cantina-domain/product'
-import type { CSSProperties, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { useEffect, useLayoutEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { borderWidth, color } from '../../design/tokens'
 import { appPath } from '../../lib/appBase'
-import { inAppRoute, isCurrent } from '../../lib/barLinks'
-import { BUY_HREF, DOC_PAGES } from '../../lib/docPages'
+import { CANTINA_NAV, inAppRoute, isCurrent } from '../../lib/barLinks'
 import type { UnionSlot } from '../../shell/unionSlots'
-import { slotSelector, UNION_NAV, UNION_SLOTS } from '../../shell/unionSlots'
-import type { NavDrawerItem } from '../index'
-import { Badge, NavDrawer } from '../index'
+import { slotSelector, UNION_SLOTS } from '../../shell/unionSlots'
+import { UnionDrawer } from '../unionBar/UnionDrawer'
 import { SiteLink } from './AppLink'
 
 /**
@@ -29,43 +25,11 @@ import { SiteLink } from './AppLink'
  * Convex or Games; `routes/__root.tsx` fills them
  * (`components/account/HeaderAccount.tsx`).
  *
- * About and Changelog are not destinations in the nav: they sit at the
- * drawer's foot, in the account menu on a signed-in desktop, and in the page
- * foot (`SiteFooter`). The drawer's Discord entry is the SRD's `/discord` page,
- * in this tab; only "Buy the game" leaves the site, in a new one. The drawer's
- * links are site paths, as the bar's are: `SiteLink` routes the app's in
- * place and loads the reference pages.
+ * The phone drawer is the bar's one `UnionDrawer`, the reference pages' own,
+ * with the Cantina's nav ahead of the site's pages and its account controls
+ * at the top. Its links are site paths, as the bar's are: `SiteLink` routes the
+ * app's in place and loads the reference pages.
  */
-
-const BRAND_FRAME = {
-  borderColor: color.ink,
-  borderStyle: 'solid',
-  borderWidth: borderWidth.hairline,
-  display: 'inline-flex',
-  flexShrink: 0,
-} satisfies CSSProperties
-
-// Narrower than the full rung's 8px inline padding.
-const BRAND_PLATE = { paddingInline: '6px' } satisfies CSSProperties
-
-// No inset ring: the outer span draws the ink frame, so the inverse plate's
-// own ring would double the seam.
-const BRAND_PLATE_INVERSE = { ...BRAND_PLATE, boxShadow: 'none' } satisfies CSSProperties
-
-/** The product name in two plates: all but its last word, then the last word inverse. */
-const BRAND_SPLIT = PRODUCT.name.lastIndexOf(' ')
-
-/** The Cantina's two-tone brand tag for the mobile drawer. */
-const CANTINA_DRAWER_BRAND = (
-  <span style={BRAND_FRAME}>
-    <Badge shape="stamp" size="full" style={BRAND_PLATE}>
-      {PRODUCT.name.slice(0, BRAND_SPLIT)}
-    </Badge>
-    <Badge shape="stamp" size="full" surface="inverse" style={BRAND_PLATE_INVERSE}>
-      {PRODUCT.name.slice(BRAND_SPLIT + 1)}
-    </Badge>
-  </span>
-)
 
 type UnionBarSlotsProps = {
   /** The current route, to mark "you are here" in the nav. */
@@ -135,37 +99,25 @@ export function UnionBarSlots({
   // "You are here" on the nav, which the shell cannot know.
   useEffect(() => {
     for (const link of document.querySelectorAll<HTMLAnchorElement>('.su-union-bar__nav a')) {
-      const nav = UNION_NAV.find((item) => link.textContent === item.label)
+      const nav = CANTINA_NAV.find((item) => link.textContent === item.label)
       if (!nav) continue
       if (isCurrent(nav.path, pathname)) link.setAttribute('aria-current', 'page')
       else link.removeAttribute('aria-current')
     }
   }, [pathname])
 
-  const drawerNav: NavDrawerItem[] = [
-    ...UNION_NAV.map((item) => ({
-      label: item.label,
-      href: appPath(item.path),
-      active: isCurrent(item.path, pathname),
-    })),
-    DOC_PAGES.discord,
-    { label: 'Buy the game', href: BUY_HREF, external: true },
-  ]
-
   const mobile = (
     <>
       {mobileSearch}
       {mobileActions}
-      <NavDrawer
-        brand={CANTINA_DRAWER_BRAND}
-        navItems={drawerNav}
-        footItems={[DOC_PAGES.about, DOC_PAGES.changelog, DOC_PAGES.api]}
+      <UnionDrawer
+        productNav={CANTINA_NAV.map((item) => ({
+          label: item.label,
+          href: appPath(item.path),
+          active: isCurrent(item.path, pathname),
+        }))}
         extra={drawerExtra}
         LinkComponent={SiteLink}
-        // NavDrawer takes classes, not styles, here: its own padding and
-        // width are stylesheet rules these override (`styles/screens.css`).
-        triggerClassName="su-union-slots__drawer-trigger"
-        panelClassName="su-union-slots__drawer-panel"
       />
     </>
   )

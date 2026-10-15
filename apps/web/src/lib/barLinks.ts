@@ -1,9 +1,15 @@
 /**
- * The rules the Cantina applies to the shell's Union bar
- * (`components/shared/UnionBarSlots.tsx`).
+ * The Union bar's Cantina side: its nav (`components/unionBar/UnionBar.tsx`)
+ * and the rules the app applies to it (`components/shared/UnionBarSlots.tsx`).
  */
 import { routeInApp } from './appBase'
 import { pageOrigin } from './site'
+
+/** The Cantina's own nav, as routes inside the app; the bar shows them under the base. */
+export const CANTINA_NAV = [
+  { label: 'Hangar', path: '/' },
+  { label: 'Starter Set', path: '/starter/' },
+] as const
 
 /** Whether a nav route is the page you are on. */
 export function isCurrent(path: string, pathname: string): boolean {
