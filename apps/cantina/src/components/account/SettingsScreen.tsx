@@ -28,7 +28,7 @@ import { SignInControl } from './SignInControl'
  *
  * It wears the Hangar's clothes (`components/shelves/Shelves.tsx`): the ink
  * band on the workshop ground, the 75rem column, and each concern a section
- * under a solid Slab stamp, side by side where there is room.
+ * under a solid Slab stamp, one full-width row each.
  *
  * What remains lives on one page deliberately. Holding somebody's Discord
  * identity creates obligations — let me see it, let me correct it, let me take
@@ -50,12 +50,11 @@ const BODY = {
   paddingTop: tokens.space[20],
 } satisfies CSSProperties
 
-/** One column per concern where there is room; stacked on a phone. */
-const COLUMNS = {
-  alignItems: 'start',
-  display: 'grid',
+/** One row per concern, full width (owner's call, 2026-10-15). */
+const ROWS = {
+  display: 'flex',
+  flexDirection: 'column',
   gap: tokens.space[32],
-  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 22rem), 1fr))',
 } satisfies CSSProperties
 
 const SECTION = {
@@ -77,7 +76,7 @@ const ROW = {
   gap: tokens.space[8],
 } satisfies CSSProperties
 
-const GROW = { flex: '1 1 12rem', minWidth: 0 } satisfies CSSProperties
+const GROW = { flex: '1 1 12rem', maxWidth: '24rem', minWidth: 0 } satisfies CSSProperties
 
 /** The Hangar's action type: uppercase display face at page-action height. */
 const ACTION = 'su-shelves-action'
@@ -123,7 +122,7 @@ function SignedInAccount() {
   const value = name ?? me.displayName ?? ''
 
   return (
-    <div style={COLUMNS}>
+    <div style={ROWS}>
       <Section id="settings-name" title="Display name">
         {/* No `Field` wrapper: the stamp already reads "Display name". A blank
             name falls back to the Discord one, which the placeholder says. */}
