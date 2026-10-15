@@ -10,7 +10,7 @@ written, with the cutover's context and hazards:
 `git show bc9f08ce:docs/ARCHITECTURE.md`. Current identifiers (Workers,
 buckets, zones) are in [Cloudflare](../ARCHITECTURE.md#cloudflare).
 
-**Amended by ADR-048:** the Cantina is the Workers route `salvageunion.io/build*` on
+**Amended by ADR-048:** The Cantina is the Workers route `salvageunion.io/build*` on
 `su-itun`, ahead of `su-srd`'s Custom Domain; `intheunionnow.com` stays attached
 only to 301 to the same page there. **ADR-047** (one edge Worker for `api.`) is
 accepted, not built.

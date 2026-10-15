@@ -20,7 +20,9 @@
 
       No `<link rel="canonical">` on purpose. A fixed canonical in a SPA shell
       claims every client route is the homepage, which is worse than none —
-      it asks search engines to collapse the whole site into one URL.
+      it asks search engines to collapse the whole site into one URL. The
+      Worker adds each public page's own (the front door, the Starter Set and
+      its builds: src/worker/publicPages.ts) for a crawler's request.
     -->
     <!-- cantina:meta:start -->
     <meta name="theme-color" content="#282019" />

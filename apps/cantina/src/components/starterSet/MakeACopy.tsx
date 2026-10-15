@@ -16,8 +16,9 @@
 import { SHELF } from 'cantina-domain/container'
 import { Button, toast } from 'component-lib'
 import { useConnection } from '../../lib/connection/connectionContext'
-import type { StarterKind } from '../../lib/starterSet/copyStarter'
-import { copyStarter, STARTER_SET_PUBLISHER } from '../../lib/starterSet/copyStarter'
+import { copyStarter } from '../../lib/starterSet/copyStarter'
+import type { StarterKind } from '../../lib/starterSet/starterTemplates'
+import { STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
 import { SignInControl } from '../account/SignInControl'
 import type { Confirm } from '../shared/useConfirm'
 

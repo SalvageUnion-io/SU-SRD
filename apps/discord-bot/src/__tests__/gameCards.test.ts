@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import type { EntityBody, SheetResult } from '../cantina/types'
+import { ROLL_COLORS } from '../format'
 import {
   CANTINA_ORIGIN,
   denialMessage,
@@ -15,15 +16,50 @@ import { cardText, cardUrl } from './cardText'
  * Card builders for the Cantina Game commands.
  *
  * These are pure `data → ContainerData`, so every one of them is exercised here
- * with no Discord client, no network and no mock. The maxima are DERIVED from
- * chassis and class data (the workspace preload loads the dataset); Convex's
- * crew.vitals derives the same numbers; the bot does not read those yet.
+ * with no Discord client, no network and no mock. A pilot's and a mech's
+ * maxima and status are the SERVER's (`SheetResult.vitals`, derived as
+ * `crew.vitals` derives them); these fixtures carry what it sends for a
+ * fresh pilot and a bare Mule.
  */
 
 const WEB = CANTINA_ORIGIN
+const CRITICAL = ROLL_COLORS.cascade
 
-function sheet(table: SheetResult['table'], body: EntityBody): SheetResult {
-  return { table, id: 'cx1', appId: 'app1', publicRead: false, ownerName: 'alxjrvs', body }
+/** A fresh pilot as the server derives it: base HP 10 and AP 5, alive. */
+const PILOT_VITALS: SheetResult['vitals'] = {
+  kind: 'pilot',
+  maxHP: 10,
+  maxAP: 5,
+  status: { dead: false, injured: false, ejected: false },
+  attention: false,
+}
+
+/** A bare Mule as the server derives it: SP 12, EP 6, Heat Capacity 6, intact. */
+const MULE_VITALS: SheetResult['vitals'] = {
+  kind: 'mech',
+  maxSP: 12,
+  maxEP: 6,
+  maxHeat: 6,
+  status: {
+    destroyed: false,
+    shutdown: false,
+    overheating: false,
+    destroyedSystems: [],
+    destroyedModules: [],
+  },
+  attention: false,
+}
+
+function sheet(
+  table: SheetResult['table'],
+  body: EntityBody,
+  vitals: SheetResult['vitals'] = table === 'pilots'
+    ? PILOT_VITALS
+    : table === 'mechs'
+      ? MULE_VITALS
+      : null
+): SheetResult {
+  return { table, id: 'cx1', appId: 'app1', publicRead: false, ownerName: 'alxjrvs', body, vitals }
 }
 
 describe('gauge', () => {
@@ -107,6 +143,73 @@ describe('absent vitals', () => {
     expect(cardText(sheetCard(sheet('mechs', { name: 'Mule', chassisRef: 'mule' })))).toContain(
       '0/6'
     )
+  })
+})
+
+describe('the server derives the maxima and status', () => {
+  test('its maxima are the ones drawn, whatever the bot could work out', () => {
+    // A Mule's chassis says 12 SP; a piloted mech's Beefcake or a switched-on
+    // effect can raise it, and only the server reads the seat and the pilot.
+    const mech = sheet('mechs', { name: 'Mule', chassisRef: 'mule', currentSP: 13 }, {
+      ...MULE_VITALS,
+      maxSP: 15,
+    } as SheetResult['vitals'])
+    expect(cardText(sheetCard(mech))).toContain('13/15')
+    // Stat Training follows the LINKED crawler's tech level, which the body's
+    // own `crawlerLevel` can lag; the server's answer wins.
+    const pilot = sheet('pilots', { callsign: 'Rook', crawlerLevel: 1 }, {
+      ...PILOT_VITALS,
+      maxHP: 12,
+    } as SheetResult['vitals'])
+    expect(cardText(sheetCard(pilot))).toContain('12/12')
+  })
+
+  test('a pilot the server reports dead is critical', () => {
+    const dead = sheet('pilots', { callsign: 'Rook', currentHP: 0 }, {
+      ...PILOT_VITALS,
+      maxHP: 0,
+      status: { dead: true, injured: true, ejected: false },
+      attention: true,
+    } as SheetResult['vitals'])
+    expect(sheetCard(dead).accent).toBe(CRITICAL)
+  })
+
+  test('a mech the server reports destroyed is critical and says so', () => {
+    const wreck = sheet('mechs', { name: 'Mule', chassisRef: 'mule' }, {
+      ...MULE_VITALS,
+      status: {
+        destroyed: true,
+        shutdown: true,
+        overheating: false,
+        destroyedSystems: [],
+        destroyedModules: [],
+      },
+      attention: true,
+    } as SheetResult['vitals'])
+    const card = sheetCard(wreck)
+    expect(card.accent).toBe(CRITICAL)
+    expect(cardText(card)).toContain('Shutdown · Destroyed')
+  })
+
+  test('a deployment older than `vitals` shows the current values alone', () => {
+    // Convex is pushed before the bot ships, but a rolled-back backend still
+    // answers without the field. The bot no longer derives maxima, so the
+    // honest render is the stored number, or a dash when there is none.
+    const { vitals: _sent, ...older } = sheet('pilots', { callsign: 'Rook', currentHP: 6 })
+    const pilot = cardText(sheetCard(older))
+    expect(pilot).toContain('**Hit Points** 6\n')
+    expect(pilot).toContain('**Ability Points** —')
+    const mech = cardText(
+      sheetCard(sheet('mechs', { name: 'Mule', chassisRef: 'mule', currentHeat: 2 }, null))
+    )
+    expect(mech).toContain('**Structure Points** —')
+    expect(mech).toContain('**Heat** 2')
+  })
+
+  test('vitals tagged for the other kind are not read', () => {
+    // `kind` is what narrows the payload, never the table alone.
+    const text = cardText(sheetCard(sheet('pilots', { callsign: 'Rook' }, MULE_VITALS)))
+    expect(text).toContain('**Hit Points** —')
   })
 })
 

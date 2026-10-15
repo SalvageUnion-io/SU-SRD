@@ -10,6 +10,7 @@ import {
   installChunkRecovery,
   reactRootErrorHandlers,
 } from './lib/observability'
+import { preloadScriptFont } from './lib/scriptFont'
 import { registerServiceWorker } from './lib/sw/register'
 import { installSoftUpdate, newBuild } from './lib/sw/softUpdate'
 import { routeTree } from './routeTree.gen'
@@ -53,6 +54,10 @@ installChunkRecovery()
 // opened at boot waits for them (stores/rowArrival.ts) rather than rendering
 // an empty roster that fills a moment later.
 setEntityBackendAuthState({ signedIn: false, online: navigator.onLine, authSettled: false })
+
+// The front door's quote face, asked for now so it is in hand before the quote
+// paints rather than swapped in under it (lib/scriptFont.ts).
+preloadScriptFont(window.location.pathname, BASE_PATH, document.fonts)
 
 const rootEl = document.getElementById('root')
 if (!rootEl) throw new Error('Root element not found')

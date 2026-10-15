@@ -236,6 +236,17 @@ export default defineConfig({
               tags: ['$initial'],
               priority: 10,
             },
+            // The app's own code every route loads, as one chunk. Left alone,
+            // each module the entry shares with a lazy route became its own
+            // sub-kilobyte chunk: a dozen extra requests on every first load.
+            // `main.tsx` stays the entry chunk itself, whose URL is the build's
+            // name (`entryChunk` in main.tsx, lib/sw/register.ts).
+            {
+              name: 'app',
+              test: /[\\/]apps[\\/]cantina[\\/](src[\\/](?!main\.tsx$)|convex[\\/])|[\\/]packages[\\/]cantina-domain[\\/]/,
+              tags: ['$initial'],
+              priority: 5,
+            },
           ],
         },
       },

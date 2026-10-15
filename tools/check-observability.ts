@@ -12,6 +12,11 @@
  *   1. each browser app's observability module posts to `ERROR_REPORT_PATH`,
  *   2. its init is CALLED from the app entry,
  *   3. its `public/_headers` CSP `connect-src` allows `'self'`, where it posts,
+ *      and admits Cloudflare Web Analytics: `script-src` its beacon's origin,
+ *      `connect-src` where the beacon posts page loads. The zone's automatic
+ *      setup injects the beacon at the edge, so nothing in the source names
+ *      it, and a CSP without the two origins records nothing: from the site's
+ *      creation until 3.0.0 the dashboard counted one page load in six weeks.
  *   4. its Worker routes `ERROR_REPORT_PATH` to `handleErrorReport` (and the Cantina's
  *      routes `CONVEX_LOG_STREAM_PATH` to `handleConvexLogStream`),
  *   5. every Worker's config turns on logs, Issues and `upload_source_maps`.
@@ -119,14 +124,23 @@ function headersFile(path: string): string | null {
     .join('\n')
 }
 
-/** The source list of a policy's `connect-src`, or null when it has none. */
-function connectSrcOf(policy: string): string[] | null {
+/** The source list of a policy's `name` directive, or null when it has none. */
+function directiveOf(policy: string, name: string): string[] | null {
   const directive = policy
     .split(';')
     .map((d) => d.trim().split(/\s+/))
-    .find(([name]) => name === 'connect-src')
+    .find(([directiveName]) => directiveName === name)
   return directive ? directive.slice(1) : null
 }
+
+/**
+ * Cloudflare Web Analytics' two origins, by the directive that must allow
+ * each: the edge-injected beacon loads from the first and posts to the second.
+ */
+const WEB_ANALYTICS_SOURCES = [
+  ['script-src', 'https://static.cloudflareinsights.com'],
+  ['connect-src', 'https://cloudflareinsights.com'],
+] as const
 
 function checkBrowserApp(app: BrowserApp): void {
   const module = code(app.modulePath)
@@ -161,8 +175,8 @@ function checkBrowserApp(app: BrowserApp): void {
     fail(app.name, `no CSP source found at ${app.headersPath} — the error report is unguarded`)
     return
   }
-  const policy = headers.match(/Content-Security-Policy\s*:\s*([^\n]*)/)?.[1]
-  const connectSrc = policy === undefined ? null : connectSrcOf(policy)
+  const policy = headers.match(/Content-Security-Policy\s*:\s*([^\n]*)/)?.[1] ?? ''
+  const connectSrc = directiveOf(policy, 'connect-src')
   if (connectSrc === null) {
     fail(
       app.name,
@@ -176,6 +190,16 @@ function checkBrowserApp(app: BrowserApp): void {
       `${app.headersPath}: CSP connect-src does not allow 'self' — error reports ` +
         `would be blocked in the browser.\n      got: connect-src ${connectSrc.join(' ')}`
     )
+  }
+  for (const [name, source] of WEB_ANALYTICS_SOURCES) {
+    const sources = directiveOf(policy, name) ?? []
+    if (!sources.includes(source)) {
+      fail(
+        app.name,
+        `${app.headersPath}: CSP ${name} does not allow ${source} — the edge-injected ` +
+          `Web Analytics beacon would be blocked and the dashboard would record nothing.`
+      )
+    }
   }
 }
 

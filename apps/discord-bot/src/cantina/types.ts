@@ -23,8 +23,10 @@ export type {
   EntityBody,
   GameSummary,
   GamesResult,
+  MechDerived,
   MeResult,
   MineResult,
+  PilotDerived,
   SheetResult,
   SheetTable,
 } from 'cantina-domain/botWire'

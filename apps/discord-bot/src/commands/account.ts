@@ -5,7 +5,7 @@ import { respondWithCantina } from './cantinaReply'
 import type { CommandExecuteInteraction } from './interactions'
 
 /**
- * The two **personal** the Cantina subcommands: `/su me` and `/su games`.
+ * The two **personal** The Cantina subcommands: `/su me` and `/su games`.
  *
  * Grouped in one module rather than two because they are one idea — "what
  * does the Cantina know about *me*" — and each is a handful of lines. The

@@ -25,31 +25,9 @@
 
 import type { Container } from 'cantina-domain/container'
 import { moveTo } from 'cantina-domain/container'
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
-import {
-  STARTER_CRAWLERS,
-  STARTER_MECHS,
-  STARTER_PILOTS,
-} from 'cantina-domain/starterSet/starterSet'
-import type { EntityType } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
-
-/** Who the Starter Set belongs to — the seal on every row and sheet. */
-export const STARTER_SET_PUBLISHER = 'Leyline Press'
-
-/** The adventure the pre-generated crew comes from. */
-export const STARTER_SET_ADVENTURE = 'Reclamation of the Wastes'
-
-export type StarterKind = Exclude<EntityType, 'softLink' | 'npc'>
-
-/** One template by kind and id, or null when there is no such template. */
-export function starterTemplate(kind: StarterKind, id: string): Pilot | Mech | Crawler | null {
-  const all: readonly (Pilot | Mech | Crawler)[] =
-    kind === 'pilot' ? STARTER_PILOTS : kind === 'mech' ? STARTER_MECHS : STARTER_CRAWLERS
-  return all.find((t) => t.id === id) ?? null
-}
+import type { StarterKind } from './starterTemplates'
+import { starterTemplate } from './starterTemplates'
 
 /**
  * Copy one template into `to`, as a build the player owns. Resolves to what was

@@ -3,8 +3,13 @@
  *
  * Emits two files at the dist root:
  *
- *   sitemap-index.xml   one <sitemap> entry per urlset file
+ *   sitemap-index.xml   one <sitemap> entry per urlset file, then The Cantina's
  *   sitemap-0.xml       the urlset itself
+ *
+ * The Cantina (The Cantina, `/build/`) is its own app, Worker and deploy (ADR-048):
+ * its Worker serves the urlset of its public pages at `/build/sitemap.xml`
+ * (`apps/cantina/src/worker/publicPages.ts`), and the index lists it, so the one
+ * `robots.txt` line reaches both.
  *
  * The shape is fixed: no newlines, no indentation, no `<lastmod>` /
  * `<changefreq>` / `<priority>`, and four namespace declarations on `<urlset>`
@@ -25,7 +30,7 @@
 
 import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
-import { SITE_URL } from '../src/lib/constants'
+import { CANTINA_URL, SITE_URL } from '../src/lib/constants'
 import { withTrailingSlash } from './render'
 
 /**
@@ -93,10 +98,16 @@ function renderUrlset(urls: readonly string[]): string {
   ].join('')
 }
 
+/** The Cantina's urlset, served by its Worker. */
+const CANTINA_SITEMAP_URL = new URL('sitemap.xml', CANTINA_URL).href
+
 /** The `sitemap-index.xml` body. */
 function renderSitemapIndex(fileNames: readonly string[]): string {
-  const entries = fileNames
-    .map((name) => `<sitemap><loc>${escapeXml(new URL(`/${name}`, SITE_URL).href)}</loc></sitemap>`)
+  const entries = [
+    ...fileNames.map((name) => new URL(`/${name}`, SITE_URL).href),
+    CANTINA_SITEMAP_URL,
+  ]
+    .map((loc) => `<sitemap><loc>${escapeXml(loc)}</loc></sitemap>`)
     .join('')
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',

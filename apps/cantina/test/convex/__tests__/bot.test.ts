@@ -1,7 +1,9 @@
 import { describe, expect, test } from 'bun:test'
+import { pilotMaxima } from 'cantina-domain/rules/crewStatus'
+import { PilotSchema } from 'cantina-domain/schemas/pilot'
 import { api, internal } from '../../../convex/_generated/api'
 import type { Ctx } from '../fixtures'
-import { makeUser } from '../fixtures'
+import { makeUser, pilotBody } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
@@ -260,6 +262,63 @@ describe('/su sheet reaches beyond one channel', () => {
   })
 })
 
+describe('/su sheet carries the server-derived vitals', () => {
+  test('a shelved pilot is derived over its owner’s shelf', async () => {
+    const t = testConvex()
+    const { player } = await seedGame(t)
+    const body = pilotBody({ id: 'shelf-1', gameId: null, crawlerLevel: 2 })
+    await t.run(
+      async (ctx) =>
+        await ctx.db.insert('pilots', {
+          gameId: null,
+          ownerId: player.userId,
+          appId: 'shelf-1',
+          body,
+          updatedAt: Date.now(),
+        })
+    )
+
+    const result = await t.query(internal.botClient.sheet, {
+      discordId: 'discord-player',
+      table: 'pilots',
+      entityId: 'shelf-1',
+    })
+    const { maxHP, maxAP } = pilotMaxima(PilotSchema.parse(body), null)
+    expect(result).toMatchObject({
+      ok: true,
+      vitals: {
+        kind: 'pilot',
+        maxHP,
+        maxAP,
+        status: { dead: false, injured: false, ejected: false },
+      },
+    })
+  })
+
+  test('a body that is not a readable mech sends nulls, not a guess', async () => {
+    const t = testConvex()
+    const { player } = await seedGame(t)
+    const mechId = await t.run(
+      async (ctx) =>
+        await ctx.db.insert('mechs', {
+          gameId: null,
+          ownerId: player.userId,
+          body: { name: 'Scrap' },
+          updatedAt: Date.now(),
+        })
+    )
+    const result = await t.query(internal.botClient.sheet, {
+      discordId: 'discord-player',
+      table: 'mechs',
+      entityId: mechId,
+    })
+    expect(result).toMatchObject({
+      ok: true,
+      vitals: { kind: 'mech', maxSP: null, maxHeat: null, status: null },
+    })
+  })
+})
+
 describe('the communal crawler is readable', () => {
   test('a member may open the crawler, which has no owner at all', async () => {
     const t = testConvex()
@@ -287,6 +346,8 @@ describe('the communal crawler is readable', () => {
       table: 'crawlers',
       ownerName: null,
       body: { name: 'The Ossuary' },
+      // The crawler is not crew: the server derives nothing for it.
+      vitals: null,
     })
   })
 

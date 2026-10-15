@@ -19,8 +19,7 @@ import {
   STARTER_PILOTS,
   STARTER_SOFT_LINKS,
 } from 'cantina-domain/starterSet/starterSet'
-import type { StarterKind } from '../../lib/starterSet/copyStarter'
-import { starterTemplate } from '../../lib/starterSet/copyStarter'
+import { isStarterKind, starterTemplate } from '../../lib/starterSet/starterTemplates'
 import { NotFoundPanel } from '../shared/RouteFallbacks'
 import { useConfirm } from '../shared/useConfirm'
 import { makeReadOnlySheetStore } from '../sheet/readOnlySheetStore.model'
@@ -37,10 +36,6 @@ const STARTER_STORE = makeReadOnlySheetStore({
 })
 
 const starterHref = (kind: EntityRef['type'], id: string) => `/starter/${kind}/${id}`
-
-function isStarterKind(value: string): value is StarterKind {
-  return value === 'pilot' || value === 'mech' || value === 'crawler'
-}
 
 export function StarterSheetView({ kind, id }: { kind: string; id: string }) {
   const { confirm, dialog } = useConfirm()

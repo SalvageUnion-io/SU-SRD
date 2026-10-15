@@ -57,7 +57,7 @@ import { expect, test } from './fixtures'
 /**
  * Get the page to a state where a service worker is actually serving it.
  *
- * **A first load is never controlled, and that is by design.** the Cantina runs
+ * **A first load is never controlled, and that is by design.** The Cantina runs
  * `registerType: 'prompt'`, which deliberately does not set `clientsClaim` — a
  * worker that claimed the open page would run `cleanupOutdatedCaches()` under
  * it and delete the precache it was still resolving chunks against. That is the

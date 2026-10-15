@@ -147,7 +147,7 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'observability',
     guards:
-      'errors reach Workers Issues: Issues + source maps on, reporters started and routed, CSP',
+      'errors reach Workers Issues: Issues + source maps on, reporters started and routed, CSP, and its Web Analytics origins',
     fix: 'restore the wiring the failure names: the Worker config, the init call, the Worker route or the CSP',
     cmd: ['bun', 'tools/check-observability.ts'],
     areas: REPO_INVARIANT,
