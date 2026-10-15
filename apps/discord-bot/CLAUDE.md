@@ -68,9 +68,8 @@ behave exactly the same. `src/__tests__/degradedMode.test.ts` is the guard;
 writing another player's sheet is forbidden on every surface (ADR-030 §4); it
 becomes a proposal or it does not exist.
 
-**Maxima are derived here, not fetched** (`gameCards.ts` header,
-[ADR-006](../../docs/ARCHITECTURE.md#decisions)); Convex's `crew.vitals` derives
-the same maxima, and the two must agree.
+**Crew maxima and status come from the server** (`SheetResult.vitals`, the
+`crew.vitals` derivation); absent, a vital shows its current value alone.
 
 **ITUN commands:** `/su me`, `games`, `sheet`. `sheet` takes your own entity
 or any sheet link; `botClient.sheet` decides what you may read.

@@ -4,7 +4,7 @@ import type { Mech } from 'itun-domain/schemas/mech'
 import { MechSchema } from 'itun-domain/schemas/mech'
 import type { Pilot } from 'itun-domain/schemas/pilot'
 import { PilotSchema } from 'itun-domain/schemas/pilot'
-import { api } from '../../../convex/_generated/api'
+import { api, internal } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { mechStats, pilotVitals } from '../../../src/components/dashboard/slots.model'
 import { crewLines } from '../../../src/components/dashboard/useGameFeed'
@@ -89,7 +89,8 @@ function muleAtCapacity(): Mech {
 }
 
 async function seedCrew(t: Ctx) {
-  const gm = await makeUser(t, 'Mediator')
+  // Linked to Discord, so the bot can read the crew's sheets as the Mediator.
+  const gm = await makeUser(t, 'Mediator', 'discord-gm')
   const ash = await makeUser(t, 'Ash')
   const bex = await makeUser(t, 'Bex')
   const gameId = await gm.as.mutation(api.games.create, { name: 'Tenacity' })
@@ -232,6 +233,48 @@ describe('crew.vitals derives what the client derives', () => {
     const wren = byAppId((await bex.as.query(api.crew.vitals, { gameId })).pilots, 'wren')
     expect(wren.status.ejected).toBe(false)
     expect(wren.attention).toBe(false)
+  })
+})
+
+describe('the bot reads the same derivation (#1068)', () => {
+  test('/su sheet carries what crew.vitals derives, for every crewmate', async () => {
+    const t = testConvex()
+    const { ash, gameId } = await seedCrew(t)
+    const crew = await ash.as.query(api.crew.vitals, { gameId })
+
+    const sheetOf = async (table: 'pilots' | 'mechs', entityId: string) => {
+      const result = await t.query(internal.botClient.sheet, {
+        discordId: 'discord-gm',
+        table,
+        entityId,
+      })
+      if (!result.ok) throw new Error(`no sheet ${entityId}`)
+      return result.vitals
+    }
+
+    for (const id of ['rook', 'wren']) {
+      const { maxHP, maxAP, status, attention } = byAppId(crew.pilots, id)
+      expect(await sheetOf('pilots', id)).toEqual({
+        kind: 'pilot',
+        maxHP,
+        maxAP,
+        status,
+        attention,
+      })
+    }
+    for (const id of ['mule-1', 'scrapper-1']) {
+      const { maxSP, maxEP, maxHeat, status, attention } = byAppId(crew.mechs, id)
+      expect(await sheetOf('mechs', id)).toEqual({
+        kind: 'mech',
+        maxSP,
+        maxEP,
+        maxHeat,
+        status,
+        attention,
+      })
+    }
+    // Not two nulls agreeing: Rook's crawler, Beefcake and the Mule's seat all count.
+    expect(await sheetOf('pilots', 'rook')).toMatchObject({ maxHP: 17 })
   })
 })
 
