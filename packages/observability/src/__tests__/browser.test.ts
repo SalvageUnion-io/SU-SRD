@@ -74,6 +74,16 @@ describe('createBrowserObservability', () => {
     expect(sent.map((s) => s.report.message)).toEqual(['a real one'])
   })
 
+  test('the ResizeObserver loop notice is dropped with no ignoreErrors of the app’s own', () => {
+    const { sent, transport } = recorder()
+    const obs = createBrowserObservability({ transport })
+    obs.init({ endpoint: ENDPOINT, target: new EventTarget() })
+    obs.captureException('ResizeObserver loop completed with undelivered notifications.')
+    obs.captureException(new Error('ResizeObserver loop limit exceeded'))
+    obs.captureException(new Error('a real one'))
+    expect(sent.map((s) => s.report.message)).toEqual(['a real one'])
+  })
+
   test('the same error object is reported once, however many handlers see it', () => {
     const { sent, transport } = recorder()
     const obs = createBrowserObservability({ transport })

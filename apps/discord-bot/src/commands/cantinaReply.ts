@@ -103,13 +103,17 @@ export async function respondWithCantina<T>(
   if (result.kind !== 'ok') return explainFailure(interaction, result)
 
   const ephemeral = options.visibility !== 'public'
+  // The placeholder is edited FIRST. While a deferred placeholder is still
+  // "thinking…", Discord makes the first follow-up *become* it: the V2
+  // container lands in @original, keeps the defer's ephemerality whatever its
+  // own flags say, and the edit that came after it was refused (400: plain
+  // `content` on a V2 message). Resolved first, the placeholder is an ordinary
+  // message, and the follow-up is a new one with its own flags.
+  await interaction.editReply({
+    content: ephemeral ? 'Rendered below.' : 'Posted to the channel.',
+  })
   // Always a follow-up: a new message carries the V2 flag from creation,
   // where an edit of the deferred placeholder would be a toggle Discord
   // refuses. See the note above.
   await interaction.followUp(v2Reply(options.render(result.value), ephemeral))
-  // The placeholder still has to become something, or it sits on
-  // "thinking…" forever. Mirrors the public path's grammar.
-  await interaction.editReply({
-    content: ephemeral ? 'Rendered below.' : 'Posted to the channel.',
-  })
 }

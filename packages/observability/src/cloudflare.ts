@@ -38,7 +38,19 @@
  * so shared code and its tests import it directly.
  */
 export function reportError(error: unknown, context?: Record<string, unknown>): void {
-  console.error(error, context ?? {})
+  // The error's first line rides along as `message`, which Workers Logs shows
+  // as the event's message. Logged bare, an error whose message spans lines
+  // (a Discord `DiscordAPIError[50035]: Invalid Form Body` and its field
+  // list) showed only its stack frames: the reason was nowhere in the log.
+  // The caller's own `message`, if it passes one, wins.
+  const headline = error instanceof Error ? { message: headlineOf(error) } : {}
+  console.error(error, { ...headline, ...context })
+}
+
+/** `${name}: ${message}` on one line, as a stack would open with it. */
+function headlineOf(error: Error): string {
+  const text = `${error.name}: ${error.message}`.replace(/\s*\n\s*/g, ' ')
+  return text.length > 1_000 ? `${text.slice(0, 1_000)}…` : text
 }
 
 /** A Workers rate limiting binding (`ratelimits` in `wrangler.jsonc`). */
