@@ -240,38 +240,6 @@ jobs:
             exit 1
           fi
 
-      # su-srd serves the Cantina under `/build`. su-cantina's Workers ROUTE,
-      # `salvageunion.io/build*`, runs ahead of su-srd's Custom Domain, so the
-      # srd leg deletes it once su-srd is live (`deploy-srd`). A token that
-      # cannot touch the zone's routes would leave su-cantina answering
-      # `/build` with an old build, so it is checked here, before anything is
-      # built. Workers Scripts: Edit (the rest of the token, ADR-033
-      # §Credentials) does not cover it; the token also needs, on the
-      # salvageunion.io zone, Zone: Read and Workers Routes: Edit. A GET proves
-      # the read half of that; a refusal to write still fails the leg loudly.
-      - name: Refuse to deploy srd without access to salvageunion.io's Workers routes
-        if: contains(fromJSON(steps.surfaces.outputs.deploy), 'srd')
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          ZONE: salvageunion.io
-        run: |
-          set -euo pipefail
-          api() {
-            curl -sS -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "https://api.cloudflare.com/client/v4$1"
-          }
-          zone_id=$(api "/zones?name=$ZONE" | jq -r '.result[0].id // empty')
-          if [ -z "$zone_id" ]; then
-            echo "FATAL: the Cloudflare token cannot read the $ZONE zone." >&2
-            echo "Add Zone: Read and Workers Routes: Edit on $ZONE to the production token (ADR-048)." >&2
-            exit 1
-          fi
-          if [ "$(api "/zones/$zone_id/workers/routes" | jq -r '.success')" != "true" ]; then
-            echo "FATAL: the Cloudflare token cannot read $ZONE's Workers routes." >&2
-            echo "Add Workers Routes: Edit on $ZONE to the production token (ADR-048)." >&2
-            exit 1
-          fi
-          echo "OK: the token reads $ZONE and its Workers routes."
-
       # The bot leg registers the slash commands after its Worker ships (see
       # `deploy`), with the bot token. Without it the Worker would ship command
       # handlers Discord never offers, so a run that ships the bot needs the
@@ -523,42 +491,6 @@ jobs:
         env:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
         run: bunx convex env set SITE_URL "$CANTINA_SITE_URL"
-
-      # su-cantina's `salvageunion.io/build*` route runs ahead of su-srd's
-      # Custom Domain. Now that su-srd serves `/build`, the route goes, and
-      # su-srd answers `/build` from the next request on. Until then
-      # su-cantina still answered, so `/build` never served nothing.
-      # Idempotent: no such route is no failure. su-cantina keeps
-      # intheunionnow.com, whose 301s land on su-srd.
-      - name: Retire su-cantina's /build route
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          ZONE: salvageunion.io
-          PATTERN: salvageunion.io/build*
-        run: |
-          set -euo pipefail
-          api() {
-            curl -sS -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "$@"
-          }
-          base=https://api.cloudflare.com/client/v4
-          zone_id=$(api "$base/zones?name=$ZONE" | jq -r '.result[0].id // empty')
-          if [ -z "$zone_id" ]; then
-            echo "FATAL: the Cloudflare token cannot read the $ZONE zone." >&2
-            exit 1
-          fi
-          ids=$(api "$base/zones/$zone_id/workers/routes" |
-            jq -r --arg p "$PATTERN" '.result[] | select(.pattern == $p) | .id')
-          if [ -z "$ids" ]; then
-            echo "OK: no $PATTERN route left."
-            exit 0
-          fi
-          for id in $ids; do
-            if [ "$(api -X DELETE "$base/zones/$zone_id/workers/routes/$id" | jq -r '.success')" != "true" ]; then
-              echo "FATAL: could not delete the $PATTERN route ($id)." >&2
-              exit 1
-            fi
-            echo "OK: deleted the $PATTERN route ($id)."
-          done
 
   # Every surface in the deploy set but srd: the bot and su-assets.
   deploy:

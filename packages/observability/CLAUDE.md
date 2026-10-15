@@ -7,7 +7,7 @@ third-party SDK:
 
 | Subpath | Consumers | What it is |
 | --- | --- | --- |
-| `observability/cloudflare` | the four Workers (`apps/srd/src/worker`, `apps/cantina/src/worker`, `apps/su-assets/src/worker`, `apps/discord-bot/src/worker`) | `reportError` logs a handled error with `console.error`, which Issues records; `handleErrorReport` answers a browser's report at `ERROR_REPORT_PATH`; `handleConvexLogStream` answers the Convex log stream at `CONVEX_LOG_STREAM_PATH` (The Cantina only) |
+| `observability/cloudflare` | the three Workers (`apps/srd/src/worker`, which runs `apps/cantina/src/worker` for `/build`, `apps/su-assets/src/worker`, `apps/discord-bot/src/worker`) | `reportError` logs a handled error with `console.error`, which Issues records; `handleErrorReport` answers a browser's report at `ERROR_REPORT_PATH`; `handleConvexLogStream` answers the Convex log stream at `CONVEX_LOG_STREAM_PATH` (The Cantina only) |
 | `observability/browser` | `apps/srd` and `apps/cantina` (`src/lib/observability.ts`) | `createBrowserObservability` (init, which hears the window's `error` and `unhandledrejection`; `captureException`; `installChunkRecovery`) |
 
 ## Rules that are easy to break

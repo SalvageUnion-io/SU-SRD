@@ -4,8 +4,8 @@
  * `wrangler.jsonc`'s `run_worker_first` sends `/build` and everything under
  * it here before Static Assets looks (`RUN_WORKER_FIRST`, which the routing
  * test holds equal). Every other SRD page still never runs the script. The
- * Cantina's own Worker (`cantina/worker`) answers those requests unchanged; this
- * module only hands it what it expects of the su-cantina Worker it ran on:
+ * Cantina's own Worker (`cantina/worker`) answers those requests; this module
+ * hands it what a single-page app's Worker expects:
  *
  * - **an asset binding in single-page-application mode.** srd's binding is
  *   `not_found_handling: none`, so a miss under the base comes back 404. The
@@ -53,7 +53,7 @@ export function isBuildPath(pathname: string): boolean {
   return pathname === BUILD_BASE || pathname.startsWith(`${BUILD_BASE}/`)
 }
 
-/** Answer a request under `/build` the way su-cantina did. */
+/** Answer a request under `/build` through the Cantina's Worker. */
 export async function serveBuild(request: Request, env: BuildEnv & { ASSETS: Assets }) {
   const base = env.BASE_PATH ?? BUILD_BASE
   const res = await cantina.fetch(request, {

@@ -53,9 +53,8 @@
 
   // ERROR_REPORT_LIMIT caps browser error reports (POST /__errors and
   // /build/__errors) per address. OG_RENDER_LIMIT caps fresh link-preview
-  // renders (Browser Rendering time) per Cloudflare location; it shares
-  // su-cantina's namespace, so the two count against one budget while both
-  // exist. `namespace_id` is any integer unique on the account.
+  // renders (Browser Rendering time) per Cloudflare location.
+  // `namespace_id` is any integer unique on the account.
   "ratelimits": [
     {
       "name": "ERROR_REPORT_LIMIT",

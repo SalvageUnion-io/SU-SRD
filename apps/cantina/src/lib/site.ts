@@ -21,13 +21,6 @@ export const SITE: CantinaSite = {
 }
 
 /**
- * Where the Cantina was served until ADR-048. Its Worker keeps both custom domains
- * and answers every request on them with a 301 to the same page under `SITE`
- * (`src/worker/legacyHost.ts`), so links already posted keep working.
- */
-export const LEGACY_HOSTS: readonly string[] = ['intheunionnow.com', 'www.intheunionnow.com']
-
-/**
  * A base without its trailing slash: `''` at the root, `/build` under it. The
  * prefix a root-relative route path is appended to, the Worker's `BASE_PATH`,
  * and (as `/` for the root) the router's `basepath`.

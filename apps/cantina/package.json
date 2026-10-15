@@ -12,10 +12,8 @@
     "typecheck": "tsc -b",
     "build": "bun run typecheck && bun run build:untyped",
     "build:untyped": "vite build",
-    "preview": "wrangler dev",
-    "test": "bun test --parallel=4 --no-isolate",
-    "deploy": "wrangler deploy",
-    "worker:bundle": "wrangler deploy --dry-run"
+    "preview": "wrangler dev -c ../srd/wrangler.jsonc --assets dist --port 5173",
+    "test": "bun test --parallel=4 --no-isolate"
   },
   "dependencies": {
     "@auth/core": "0.41.3",

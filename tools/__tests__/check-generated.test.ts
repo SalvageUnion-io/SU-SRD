@@ -77,9 +77,6 @@ describe('the cache key', () => {
     'apps/su-assets/worker-configuration.d.ts',
     'apps/discord-bot/wrangler.jsonc',
     'apps/discord-bot/worker-configuration.d.ts',
-    'apps/cantina/wrangler.jsonc',
-    'apps/cantina/src/worker/index.ts',
-    'apps/cantina/worker-configuration.d.ts',
     'apps/srd/wrangler.jsonc',
     'apps/srd/worker-configuration.d.ts',
     'node_modules/wrangler/package.json',
@@ -97,7 +94,6 @@ describe('the cache key', () => {
   const assets = gen('apps/su-assets worker types')
   const bot = gen('apps/discord-bot worker types')
   const srd = gen('apps/srd worker types')
-  const cantina = gen('apps/cantina worker types')
 
   /** Touch `rel` and report which generators' keys moved. */
   const moved = (rel: string, content = `changed ${Math.random()}`) => {
@@ -131,14 +127,10 @@ describe('the cache key', () => {
     ['apps/su-assets/worker-configuration.d.ts', [assets.label]],
     ['apps/discord-bot/wrangler.jsonc', [bot.label]],
     ['apps/discord-bot/worker-configuration.d.ts', [bot.label]],
-    ['apps/cantina/wrangler.jsonc', [cantina.label]],
-    ['apps/cantina/.env.local', [cantina.label]],
-    ['apps/cantina/src/worker/index.ts', [cantina.label]],
-    ['apps/cantina/worker-configuration.d.ts', [cantina.label]],
     ['apps/srd/wrangler.jsonc', [srd.label]],
     ['apps/srd/worker-configuration.d.ts', [srd.label]],
     ['apps/cantina/src/main.tsx', []],
-    ['node_modules/wrangler/package.json', [srd.label, cantina.label, assets.label, bot.label]],
+    ['node_modules/wrangler/package.json', [srd.label, assets.label, bot.label]],
     ['bun.lock', ALL],
     ['package.json', ALL],
     ['biome.jsonc', ALL],

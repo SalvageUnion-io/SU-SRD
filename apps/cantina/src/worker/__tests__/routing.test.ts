@@ -3,20 +3,18 @@ import { NATIVE_FETCH_GLOBALS } from '../../../test/env'
 import { basePathOf, SITE } from '../../lib/site'
 import type { Env } from '../index'
 import worker from '../index'
-import { RUN_WORKER_FIRST } from '../legacyHost'
 
 /**
- * The cantina Worker at salvageunion.io/build (ADR-048), which runs first for
- * every request (`run_worker_first`): under the base it reads each answer
- * through the asset binding (`single-page-application` mode — see
- * `../index.ts`), outside it it answers intheunionnow.com's 301s
- * (`../legacyHost.ts`).
+ * The Cantina's Worker code at salvageunion.io/build (ADR-048), which su-srd's
+ * Worker runs first for every request under the base: it reads each answer
+ * through an asset binding that answers a miss with the shell (see
+ * `../index.ts` and apps/srd/src/worker/build.ts).
  *
  * The rule that has already broken production: `/assets/*` on a miss must be
  * **404**, never the SPA shell. Answering 200 with HTML let the `immutable`
  * header pin that HTML into the HTTP cache for a year under a rotated chunk's
- * URL. The Worker can only answer a miss it is handed, so `wrangler.jsonc`'s
- * `run_worker_first` is held to handing it every one.
+ * URL. The Worker can only answer a miss it is handed, so su-srd's
+ * `run_worker_first` is held to handing it every one (its build.test.ts).
  */
 
 const BASE = '/build'
@@ -257,12 +255,6 @@ describe('only the public client routes are indexable', () => {
 })
 
 /**
- * intheunionnow.com, where the Cantina lived until ADR-048: every request is a 301 to
- * the same page under salvageunion.io/build, query kept, and a retired address
- * goes straight to where it lives now. One hop, decided without the asset
- * binding.
- */
-/**
  * The Cantina keeps no About or Changelog of its own: both tools share the SRD's, so
  * the old addresses, under the base or on the old host, 301 straight there.
  */
@@ -271,8 +263,6 @@ describe('the doc pages 301 to the SRD', () => {
     [`https://salvageunion.io${BASE}/about`, 'https://salvageunion.io/about/'],
     [`https://salvageunion.io${BASE}/about/`, 'https://salvageunion.io/about/'],
     [`https://salvageunion.io${BASE}/changelog`, 'https://salvageunion.io/changelog/'],
-    ['https://intheunionnow.com/about', 'https://salvageunion.io/about/'],
-    ['https://www.intheunionnow.com/changelog', 'https://salvageunion.io/changelog/'],
   ]
   for (const [from, to] of cases) {
     it(`${from} → ${to}`, async () => {
@@ -289,7 +279,7 @@ describe('the doc pages 301 to the SRD', () => {
     const srd = 'https://pr-1-su-srd.example.workers.dev'
     const env = { ...envWith(), SRD_ORIGIN: srd }
     const res = await worker.fetch(
-      navigateTo(`https://pr-1-su-cantina.example.workers.dev${BASE}/changelog`),
+      navigateTo(`https://pr-1-su-srd.example.workers.dev${BASE}/changelog`),
       env
     )
 
@@ -298,33 +288,36 @@ describe('the doc pages 301 to the SRD', () => {
   })
 })
 
-describe('the old host 301s to salvageunion.io/build', () => {
+/**
+ * The retired addresses links in Discord history still point at. Those links
+ * name intheunionnow.com, whose zone Redirect Rule sends every path to the same
+ * path here; the Worker sends each retired one on to where it lives now.
+ */
+describe('a retired address 301s to where it lives now', () => {
   const cases: [string, string][] = [
-    ['https://intheunionnow.com/', '/'],
-    ['https://intheunionnow.com/p/pilot/abc', '/p/pilot/abc'],
-    ['https://intheunionnow.com/invite/A1B2C3D4?ref=dm', '/invite/A1B2C3D4?ref=dm'],
-    ['https://intheunionnow.com/sheet/mech/row-2', '/sheet/mech/row-2'],
-    ['https://intheunionnow.com/assets/index-DEADBEEF.js', '/assets/index-DEADBEEF.js'],
-    ['https://www.intheunionnow.com/settings', '/settings'],
-    // The retired addresses, mapped on the way.
-    ['https://intheunionnow.com/games', '/'],
-    ['https://intheunionnow.com/games?from=discord', '/?from=discord'],
-    ['https://intheunionnow.com/games/g1/view/pilot/row-1', '/sheet/pilot/row-1'],
-    ['https://intheunionnow.com/join/A1B2C3D4', '/invite/A1B2C3D4'],
-    ['https://intheunionnow.com/join/A1B2C3D4?ref=dm', '/invite/A1B2C3D4?ref=dm'],
-    // Under a retired prefix but no retired shape: its own path, the app's 404.
-    ['https://intheunionnow.com/join/a/b', '/join/a/b'],
+    ['/games', '/'],
+    ['/games?from=discord', '/?from=discord'],
+    ['/games/g1/view/pilot/row-1', '/sheet/pilot/row-1'],
+    ['/join/A1B2C3D4', '/invite/A1B2C3D4'],
+    ['/join/A1B2C3D4?ref=dm', '/invite/A1B2C3D4?ref=dm'],
   ]
   for (const [from, to] of cases) {
-    it(`${from} → ${to}`, async () => {
+    it(`${BASE}${from} → ${BASE}${to}`, async () => {
       const env = envWith()
-      const res = await worker.fetch(navigateTo(from), env)
+      const res = await worker.fetch(navigateTo(`https://salvageunion.io${BASE}${from}`), env)
 
       expect(res.status).toBe(301)
-      expect(res.headers.get('location')).toBe(`https://salvageunion.io${BASE}${to}`)
+      expect(res.headers.get('location')).toBe(`${BASE}${to}`)
       expect(env.ASSETS.asked).toEqual([])
     })
   }
+
+  it('leaves a live route under a retired prefix alone', async () => {
+    for (const path of ['/games/g1', '/join/a/b']) {
+      const res = await worker.fetch(navigateTo(`https://salvageunion.io${BASE}${path}`), envWith())
+      expect(res.status).toBe(200)
+    }
+  })
 })
 
 describe('outside the base on any other host', () => {
@@ -333,7 +326,7 @@ describe('outside the base on any other host', () => {
       'https://salvageunion.io/build',
       'https://salvageunion.io/build?x=1',
       'http://localhost:5173/',
-      'https://pr-1-su-cantina.alxjrvs.workers.dev/',
+      'https://pr-1-su-srd.alxjrvs.workers.dev/',
     ]) {
       const res = await worker.fetch(navigateTo(url), envWith())
       expect(res.status).toBe(301)
@@ -352,112 +345,14 @@ describe('outside the base on any other host', () => {
   })
 })
 
-describe('wrangler.jsonc', () => {
-  type Config = {
-    name: string
-    compatibility_date: string
-    routes: { pattern: string; zone_name?: string; custom_domain?: boolean }[]
-    vars?: Record<string, string>
-    previews?: { vars?: Record<string, string> }
-    assets: Record<string, unknown>
-    env?: unknown
-  }
-  const load = async () =>
-    ((await import('../../../wrangler.jsonc')) as { default: Config }).default
-
-  it('is in single-page-application mode, with the Worker first', async () => {
-    const config = await load()
-
-    expect(config.assets.not_found_handling).toBe('single-page-application')
-    expect(config.assets.run_worker_first).toBe(RUN_WORKER_FIRST)
-    expect(config.assets.directory).toBe('./dist')
-  })
-
-  /**
-   * Which requests Static Assets hands the Worker before it looks for a file,
-   * as its router decides (workers-shared `router-worker`): `true` is every
-   * request; in a list, a negative (`!`) match goes to the assets ahead of any
-   * positive one, a positive match to the Worker, and anything else to the
-   * assets — whose `single-page-application` mode answers a miss with the shell,
-   * navigation or not.
-   */
-  function workerFirst(setting: unknown, path: string): boolean {
-    if (typeof setting === 'boolean') return setting
-    const patterns = (setting ?? []) as string[]
-    const matches = (pattern: string) =>
-      new RegExp(`^${pattern.split('*').map(RegExp.escape).join('.*')}$`).test(path)
-    if (patterns.some((p) => p.startsWith('!') && matches(p.slice(1)))) return false
-    return patterns.some((p) => !p.startsWith('!') && matches(p))
-  }
-
-  it('sends every miss the Worker turns into a 404 to the Worker first', async () => {
-    const { assets } = await load()
-    // A miss here, answered by the assets, would be the shell: `200 text/html`,
-    // and `immutable` under `/assets/`.
-    for (const path of [
-      `${BASE}/assets/index-DEADBEEF.js`,
-      `${BASE}/assets/style-DEADBEEF.css`,
-      `${BASE}/foo.png`,
-      `${BASE}/og/pilot/p-1.png`,
-      `${BASE}/p/pilot/p-1`,
-      `${BASE}`,
-      '/',
-      '/games/g1/view/pilot/row-1',
-    ]) {
-      expect({ path, workerFirst: workerFirst(assets.run_worker_first, path) }).toEqual({
-        path,
-        workerFirst: true,
-      })
-    }
-  })
-
-  it('reads routing the way the asset router does', () => {
-    // The shape that shipped the shell for a rotated chunk under `/build`.
-    const shipped = ['/*', '!/build/*', '/build/assets/*']
-    expect(workerFirst(shipped, '/build/assets/index-DEADBEEF.js')).toBe(false)
-    expect(workerFirst(shipped, '/games')).toBe(true)
-    expect(workerFirst(true, '/build/assets/index-DEADBEEF.js')).toBe(true)
-    expect(workerFirst(undefined, '/build/assets/index-DEADBEEF.js')).toBe(false)
-  })
-
-  it('serves the base the app is built for, and leaves salvageunion.io/build to su-srd', async () => {
-    const config = await load()
-
-    expect(config.vars?.BASE_PATH).toBe(basePathOf(SITE.base))
-    // su-srd serves `/build` (apps/srd/src/worker/build.ts): a route here
-    // would run ahead of its Custom Domain with this Worker's stale build.
-    expect(config.routes.map((route) => route.pattern)).not.toContain(
-      `${new URL(SITE.origin).host}${basePathOf(SITE.base)}*`
-    )
-    // The old host stays attached, so its 301s keep answering.
-    for (const host of ['intheunionnow.com', 'www.intheunionnow.com']) {
-      expect(config.routes).toContainEqual({ pattern: host, custom_domain: true })
-    }
-    // One configuration: `wrangler deploy` deploys it, with no `--env`.
-    expect(config.env).toBeUndefined()
-  })
-  it('reads link previews from the Convex deployment the SPA is built against', async () => {
-    const config = await load()
-    const workflow = await Bun.file(
-      new URL('../../../../../.github/workflows/deploy-cloudflare.yml', import.meta.url)
-    ).text()
-    const built = workflow.match(/^\s*CANTINA_CONVEX_URL:\s*(\S+)\s*$/m)?.[1]
-    expect(built).toBeString()
-    expect(config.vars?.CONVEX_URL).toBe(built)
-  })
-
-  it('points a Worker Preview at the staging deployment its SPA is built against', async () => {
-    const config = await load()
-    const workflow = await Bun.file(
-      new URL('../../../../../.github/workflows/deploy-preview.yml', import.meta.url)
-    ).text()
-    const built = workflow.match(/^\s*STAGING_CONVEX_URL:\s*(\S+)\s*$/m)?.[1]
-    expect(built).toBeString()
-    // A preview inherits none of the top-level vars.
-    expect(config.previews?.vars).toEqual({
-      CONVEX_URL: built as string,
-      BASE_PATH: basePathOf(SITE.base),
-    })
+describe('the deploy', () => {
+  it('serves the base the app is built for', async () => {
+    // srd's Worker serves the Cantina; read as text, since an app never
+    // imports another app's files.
+    const config = await Bun.file(new URL('../../../../srd/wrangler.jsonc', import.meta.url)).text()
+    const bases = [...config.matchAll(/"BASE_PATH":\s*"([^"]*)"/g)].map((m) => m[1])
+    expect(bases.length).toBeGreaterThan(0)
+    for (const base of bases) expect(base).toBe(basePathOf(SITE.base))
   })
 
   it("sets Convex Auth's SITE_URL to where the app is served, on every deploy", async () => {

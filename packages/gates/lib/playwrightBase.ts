@@ -4,9 +4,10 @@
  *
  * - Specs are `e2e/*.e2e.ts`, not `.spec.ts`, so Bun's test runner — which
  *   auto-discovers `.spec.ts` and `.test.ts` — never tries to execute them.
- * - CI serves the BUILT app with `bun run preview`: `wrangler dev` over the
- *   app's own `wrangler.jsonc`, so the specs run against the Worker, the
- *   `not_found_handling` mode and the `_headers` production serves, in workerd.
+ * - CI serves the BUILT app with `bun run preview`: `wrangler dev` over
+ *   srd's `wrangler.jsonc` (one Worker serves both apps), so the specs run
+ *   against the Worker and the `not_found_handling` mode production serves,
+ *   in workerd.
  *   An existing `dist/` is reused (the PR jobs have just built it). Locally
  *   the running dev server on the same port is reused. srd passes its
  *   checkout's own port (`ports.ts`: offset in a linked worktree), so a

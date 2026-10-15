@@ -93,13 +93,15 @@ check https://www.salvageunion.io/ 301 "srd www redirect"
 check https://www.intheunionnow.com/ 301 "cantina www redirect"
 # The Cantina lives at salvageunion.io/build (ADR-048), served by su-srd
 # (apps/srd/src/worker/build.ts). intheunionnow.com, where it lived before,
-# 301s every page to the same page there, a retired address straight to where
-# it lives now (apps/cantina/src/worker/legacyHost.ts).
+# 301s every page to the same path there: a zone Redirect Rule, not repo config
+# (ADR-033, "Configuration outside the repo"). su-srd then sends a retired
+# address on to where it lives now (apps/cantina/src/worker/retiredRedirects.ts).
 check https://salvageunion.io/build/ 200 "cantina shell"
 check_redirect https://salvageunion.io/build 301 https://salvageunion.io/build/ "cantina bare base to its directory"
 check_redirect https://intheunionnow.com/ 301 https://salvageunion.io/build/ "cantina old host 301s to salvageunion.io/build"
 check_redirect https://intheunionnow.com/p/pilot/smoke?x=1 301 "https://salvageunion.io/build/p/pilot/smoke?x=1" "cantina old link keeps its path and query"
-check_redirect https://intheunionnow.com/join/SMOKE 301 https://salvageunion.io/build/invite/SMOKE "cantina retired /join link 301s straight to /invite (D6)"
+check_redirect https://intheunionnow.com/join/SMOKE 301 https://salvageunion.io/build/join/SMOKE "cantina old host keeps a retired path"
+check_redirect https://salvageunion.io/build/join/SMOKE 301 https://salvageunion.io/build/invite/SMOKE "cantina retired /join link 301s to /invite (D6)"
 # Plain http must never be served. Always Use HTTPS is a zone toggle, not repo
 # config (ADR-033, "Configuration outside the repo"); without it every hostname
 # answers http with 200 and HSTS never reaches a first-time visitor.

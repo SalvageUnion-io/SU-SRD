@@ -44,7 +44,6 @@ const CHECKED_FILES = [
   'apps/srd/src/worker/index.ts',
   'apps/cantina/src/lib/observability.ts',
   'apps/cantina/src/main.tsx',
-  'apps/cantina/wrangler.jsonc',
   CANTINA_HEADERS,
   'apps/cantina/src/worker/index.ts',
   'apps/su-assets/wrangler.jsonc',

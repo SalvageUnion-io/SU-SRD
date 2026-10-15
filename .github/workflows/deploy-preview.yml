@@ -311,8 +311,7 @@ jobs:
             gh api "repos/$REPO/issues/$PR/comments" -f body="$body" > /dev/null
           fi
 
-  # A closed PR's Preview goes if it ever had the label, with any su-cantina
-  # Preview an older run of it left.
+  # A closed PR's Preview goes if it ever had the label.
   teardown:
     if: >-
       github.event.action == 'closed'
@@ -330,15 +329,13 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      # Each config names an assets directory, absent without a build. A
+      # The config names an assets directory, absent without a build. A
       # Preview that never shipped (a failed first run) is no failure here.
-      - name: Delete the Previews
+      - name: Delete the Preview
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           set -uo pipefail
-          for app in srd cantina; do
-            mkdir -p "apps/$app/dist"
-            (cd "apps/$app" && bunx wrangler preview delete --name "$PREVIEW_NAME" -y) ||
-              echo "::warning::no $PREVIEW_NAME Preview of $app to delete"
-          done
+          mkdir -p apps/srd/dist
+          (cd apps/srd && bunx wrangler preview delete --name "$PREVIEW_NAME" -y) ||
+            echo "::warning::no $PREVIEW_NAME Preview to delete"

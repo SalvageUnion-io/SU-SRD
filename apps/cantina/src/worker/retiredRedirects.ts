@@ -1,8 +1,9 @@
 /**
  * Retired addresses that links in Discord history still point at, all on
- * intheunionnow.com. These were once TanStack routes that redirected
- * in the browser; since ADR-048 the old host's 301 (`legacyHost.ts`) sends each
- * straight to where it lives now under salvageunion.io/build, in one hop:
+ * intheunionnow.com. These were once TanStack routes that redirected in the
+ * browser. intheunionnow.com's zone Redirect Rule sends every path to the same
+ * path under salvageunion.io/build, and the Worker (`index.ts`) 301s each of
+ * these from there to where it lives now:
  *
  *   - `/games`                                → `/` (the Games page became the hub)
  *   - `/games/:gameId/view/:kind/:entityId`   → `/sheet/:kind/:entityId` (the old

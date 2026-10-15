@@ -1,23 +1,18 @@
 /**
- * The Cantina at salvageunion.io/build (ADR-048) — the SPA on Workers Static Assets,
- * in `single-page-application` mode, on a Workers route (`salvageunion.io/build*`)
- * that runs ahead of su-srd's Custom Domain. It also keeps intheunionnow.com
- * and its `www`, where the Cantina lived before, to redirect them.
+ * The Cantina at salvageunion.io/build (ADR-048): the SPA's Worker code, which
+ * su-srd's Worker runs for `/build` and everything under it
+ * (apps/srd/src/worker/build.ts). That module hands it an asset binding that
+ * answers a miss under the base with the shell, as `single-page-application`
+ * mode does, and puts the Cantina's CSP on every answer.
  *
- * ## Every request reaches this script first
+ * ## Every request under the base reaches this script first
  *
- * `run_worker_first` is `true` (`RUN_WORKER_FIRST` in `legacyHost.ts`). It
- * cannot be narrower. In a pattern list, a request matching a negative pattern
- * (`!/build/*`) goes straight to the assets, ahead of every positive one, and a
- * list switches off the `Sec-Fetch-Mode: navigate` split, so every miss it
- * leaves to the assets is answered with the shell. Patterns are `*` globs only,
- * so no list both keeps navigations asset-first and sends a missing
- * `/build/assets/*` here; `["/*", "!/build/*"]` answered a rotated chunk
- * `200 text/html`, pinned `immutable` by `_headers`.
+ * su-srd's `run_worker_first` is `["/build", "/build/*"]`, so no file under the
+ * base is served before this script reads it.
  *
- *   L. outside the base   → intheunionnow.com 301s to the same page under
- *      salvageunion.io/build; anything else is the Cantina's root (a 301 to `/build/`)
- *      or a 404 (`legacyHost.ts`). None of it touches the asset binding.
+ *   L. outside the base   → the bare base (`/build`) 301s to `/build/`;
+ *      anything else is a 404 (`basePath.ts`). None of it touches the asset
+ *      binding.
  *
  * Under `/build/` this script reads the path inside the base (`basePath.ts`):
  *
@@ -26,14 +21,18 @@
  *      (`observability/cloudflare`).
  *   D. `/about`, `/changelog` → a 301 to the SRD's page (`docPages.ts`); the Cantina
  *      keeps no copy of the doc pages both tools share.
+ *   R. a retired address (`/games`, `/join/:code`, the old crew view) → a 301
+ *      to where it lives now (`retiredRedirects.ts`). intheunionnow.com's zone
+ *      Redirect Rule sends its old links here.
  *   0. `/og/*.png`        → a link preview's picture (`linkPreview.ts`),
  *      rendered on request and cached by version.
  *   S. `/sitemap.xml`     → the public pages' urlset (`publicPages.ts`), which
  *      the SRD's `sitemap-index.xml` lists.
  *   1. `/assets/*`, or a dot in the last segment: a FILE, asked of the asset
  *      binding. A file that is there comes back as itself. A file that is not
- *      comes back from the binding as the shell (SPA mode answers every miss
- *      with `index.html`), and this script answers **404**, `no-store`, instead.
+ *      comes back from the binding as the shell (it answers every miss under
+ *      the base with `/build/`), and this script answers **404**, `no-store`,
+ *      instead.
  *   2. a shared thing's route (`/p/:kind/:appId`, `/invite/:token`) asked for
  *      without `Sec-Fetch-Mode: navigate` — a crawler, an unfurl bot → the
  *      shell with its `cantina:meta` block swapped for that thing's preview
@@ -52,10 +51,11 @@
  * shell's one title. Unfurls are unaffected; noindex only keeps them out of
  * search results.
  *
- * `_headers` (every security header and the CSP; the build moves it to
- * `dist/`) is applied by the asset server, so it reaches whatever the binding
- * answers — rules 1 to 3; rule 2's swap keeps the shell's headers. What this
- * script builds itself (the 404s, the 301s, the picture) runs no script.
+ * su-srd's `_headers` (every security header) is applied by the asset server,
+ * so it reaches whatever the binding answers — rules 1 to 3; rule 2's swap
+ * keeps the shell's headers, and su-srd's Worker swaps in the Cantina's CSP.
+ * What this script builds itself (the 404s, the 301s, the picture) runs no
+ * script.
  *
  * ## Rule 1 is the one that has already broken production
  *
@@ -85,32 +85,32 @@ import {
   handleErrorReport,
 } from 'observability/cloudflare'
 import { retiredDocPage } from '../lib/docPages'
-import { pathInApp } from './basePath'
-import { inBase, outsideBase } from './legacyHost'
+import { inBase, outsideBase, pathInApp } from './basePath'
 import type { ImageCache, PreviewEnv, PreviewRoute } from './linkPreview'
 import { isOgImagePath, metaFor, ogImage, previewRouteOf } from './linkPreview'
 import type { PublicPage } from './publicPages'
 import { publicMeta, publicPageOf, publicUrl, SITEMAP_PATH, sitemap } from './publicPages'
+import { retiredTarget } from './retiredRedirects'
 import { applyCanonical, applyMeta } from './shellMeta'
 
 export type Env = PreviewEnv & {
   /**
-   * Static assets (the built SPA), in `single-page-application` mode: a miss
-   * is answered with the shell. `_headers` applies to every answer.
+   * Static assets (su-srd's, the SPA under `build/`): a miss under the base is
+   * answered with the shell (apps/srd/src/worker/build.ts). `_headers` applies
+   * to every answer.
    */
   ASSETS: { fetch(request: Request): Promise<Response> }
   /**
    * The path the Cantina is served under, without a trailing slash: `/build`
-   * (`wrangler.jsonc`, held equal to `SITE.base` by the routing test).
+   * (su-srd's `wrangler.jsonc`, held equal to `SITE.base` by the routing test).
    */
   BASE_PATH: string
   /**
-   * The SRD a Worker Preview's redirects go to: the same PR's SRD Preview,
-   * passed by `deploy-preview.yml`. Unset in production, which sends them to
-   * salvageunion.io.
+   * The SRD the doc-page redirects go to: the request's own origin, set by
+   * su-srd's Worker. Unset, they go to salvageunion.io.
    */
   SRD_ORIGIN?: string
-  /** Caps error reports per address (`wrangler.jsonc`); absent in a Preview. */
+  /** Caps error reports per address (su-srd's `wrangler.jsonc`); absent in a Preview. */
   ERROR_REPORT_LIMIT?: RateLimiter
   /**
    * The Convex log stream's webhook secret, from the Convex dashboard. Set
@@ -130,7 +130,7 @@ export default {
     const url = new URL(request.url)
     const base = env.BASE_PATH
 
-    // L. Outside the base: the old host's 301s, or the Cantina's root (`legacyHost.ts`).
+    // L. Outside the base: the bare base's 301, or a 404 (`basePath.ts`).
     if (!inBase(url.pathname, base)) return outsideBase(url, base)
 
     // Every rule below reads the path inside the app; a URL it builds puts the
@@ -149,6 +149,15 @@ export default {
     // D. A doc page the Cantina no longer has: the SRD's, where both tools share it.
     const docPage = retiredDocPage(path, env.SRD_ORIGIN)
     if (docPage !== null) return Response.redirect(docPage, 301)
+
+    // R. A retired address: one hop to where it lives now, query kept.
+    const retired = retiredTarget(path)
+    if (retired !== null) {
+      return new Response(null, {
+        status: 301,
+        headers: { location: `${base}${retired}${url.search}` },
+      })
+    }
 
     // 0. A link preview's picture — a file that exists only on request.
     if (isOgImagePath(path)) return ogImage(request, env, { cache: defaultCache(), base })

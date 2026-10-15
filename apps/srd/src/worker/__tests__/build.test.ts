@@ -8,8 +8,8 @@ import worker from '../index'
 /**
  * The Cantina under `/build`, served by this Worker (`../build.ts`): srd's
  * binding is `not_found_handling: none`, so the Cantina's Worker gets a
- * binding that answers a miss under the base with the shell, as su-cantina's
- * SPA mode did, and every answer carrying a CSP gets the Cantina's.
+ * binding that answers a miss under the base with the shell, as SPA mode
+ * would, and every answer carrying a CSP gets the Cantina's.
  */
 
 const SHELL = '<!doctype html>Cantina shell'
@@ -68,9 +68,11 @@ describe('wrangler.jsonc agrees with the Worker', () => {
   // Bun's JSONC loader, as tools/check-workers.ts reads it.
   const config = WRANGLER as {
     assets: { run_worker_first: unknown }
-    vars: { BASE_PATH: string }
-    previews: { vars: { BASE_PATH: string } }
+    vars: { BASE_PATH: string; CONVEX_URL: string }
+    previews: { vars: Record<string, string> }
   }
+  const workflow = (name: string) =>
+    readFileSync(join(import.meta.dir, `../../../../../.github/workflows/${name}`), 'utf8')
 
   it('runs the script first for /build and below, and nothing else', () => {
     expect(config.assets.run_worker_first).toEqual(RUN_WORKER_FIRST)
@@ -79,6 +81,21 @@ describe('wrangler.jsonc agrees with the Worker', () => {
   it('serves the Cantina under BUILD_BASE in production and in a Preview', () => {
     expect(config.vars.BASE_PATH).toBe(BUILD_BASE)
     expect(config.previews.vars.BASE_PATH).toBe(BUILD_BASE)
+  })
+
+  it('reads link previews from the Convex deployment the Cantina is built against', () => {
+    const built = workflow('deploy-cloudflare.yml').match(
+      /^\s*CANTINA_CONVEX_URL:\s*(\S+)\s*$/m
+    )?.[1]
+    expect(built).toBeString()
+    expect(config.vars.CONVEX_URL).toBe(built as string)
+  })
+
+  it('points a Worker Preview at the staging deployment its Cantina is built against', () => {
+    const built = workflow('deploy-preview.yml').match(/^\s*STAGING_CONVEX_URL:\s*(\S+)\s*$/m)?.[1]
+    expect(built).toBeString()
+    // A Preview inherits none of the top-level vars.
+    expect(config.previews.vars).toEqual({ CONVEX_URL: built as string, BASE_PATH: BUILD_BASE })
   })
 
   it("sets the Cantina's own CSP, the one in its _headers", () => {
@@ -93,7 +110,7 @@ describe('wrangler.jsonc agrees with the Worker', () => {
   })
 })
 
-describe('/build/* — the Cantina, answered as su-cantina answered it', () => {
+describe('/build/* — the Cantina, answered as a single-page app', () => {
   it('answers a client route with the shell, carrying the Cantina CSP', async () => {
     const env = envWith()
     const res = await worker.fetch(req(`${BUILD_BASE}/pilots/new`), env)

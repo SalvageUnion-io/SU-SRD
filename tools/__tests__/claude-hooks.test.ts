@@ -86,10 +86,6 @@ describe('settings.json deny rules', () => {
       file: 'apps/srd/worker-configuration.d.ts',
       denied: true,
     },
-    'apps/cantina/worker-configuration.d.ts': {
-      file: 'apps/cantina/worker-configuration.d.ts',
-      denied: true,
-    },
     'apps/su-assets/worker-configuration.d.ts': {
       file: 'apps/su-assets/worker-configuration.d.ts',
       denied: true,

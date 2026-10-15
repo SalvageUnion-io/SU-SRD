@@ -288,10 +288,6 @@ jobs:
       - name: Start a throwaway Convex backend and build cantina against it
         uses: ./.github/actions/convex-backend
 
-      # The build emits the assets; this bundles the Worker `main` that ships.
-      - name: Bundle the Worker that actually deploys
-        run: bun --filter cantina worker:bundle --outdir /tmp/cantina-worker
-
       - name: Set up Playwright
         uses: ./.github/actions/playwright
 

@@ -104,7 +104,7 @@ describe('shapeProblems', () => {
 })
 
 describe('the repo', () => {
-  test('finds exactly the four Workers, and they share one shape', async () => {
+  test('finds exactly the three Workers, and they share one shape', async () => {
     const workers = await loadWorkers(ROOT)
     expect(workers.map((w) => w.app)).toEqual([...WORKER_APPS].sort())
     expect(shapeProblems(workers, WORKER_APPS)).toEqual([])
@@ -113,7 +113,7 @@ describe('the repo', () => {
   test('main passes and says how many it checked', async () => {
     const out: string[] = []
     expect(await main(ROOT, (l) => out.push(l))).toBe(0)
-    expect(out.join('\n')).toContain('4 Workers share one shape')
+    expect(out.join('\n')).toContain('3 Workers share one shape')
   })
 })
 

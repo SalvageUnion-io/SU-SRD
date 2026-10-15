@@ -202,12 +202,13 @@ describe('a Discordbot fetch of an invite', () => {
   })
 
   it('sends an old /join/<code> link to /invite/<code> before unfurling, so the bot unfurls that', async () => {
-    const old = new Request('https://intheunionnow.com/join/K7QR2XA', {
+    // Where intheunionnow.com's zone Redirect Rule sends an old link.
+    const old = new Request('https://salvageunion.io/build/join/K7QR2XA', {
       headers: { 'user-agent': 'Discordbot/2.0' },
     })
     const res = await worker.fetch(old, env())
     expect(res.status).toBe(301)
-    expect(res.headers.get('location')).toBe('https://salvageunion.io/build/invite/K7QR2XA')
+    expect(res.headers.get('location')).toBe('/build/invite/K7QR2XA')
   })
 
   it('keeps the sitewide defaults for a dead code', async () => {

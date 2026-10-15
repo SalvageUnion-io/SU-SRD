@@ -78,7 +78,6 @@ type WorkerSurface = {
 
 const WORKER_SURFACES: WorkerSurface[] = [
   { name: 'srd-worker', configPath: 'apps/srd/wrangler.jsonc' },
-  { name: 'cantina-worker', configPath: 'apps/cantina/wrangler.jsonc' },
   { name: 'su-assets-worker', configPath: 'apps/su-assets/wrangler.jsonc' },
   { name: 'discord-bot-worker', configPath: 'apps/discord-bot/wrangler.jsonc' },
 ]

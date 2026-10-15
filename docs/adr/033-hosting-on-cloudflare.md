@@ -10,9 +10,9 @@ written, with the cutover's context and hazards:
 `git show bc9f08ce:docs/ARCHITECTURE.md`. Current identifiers (Workers,
 buckets, zones) are in [Cloudflare](../ARCHITECTURE.md#cloudflare).
 
-**Amended by ADR-048:** The Cantina is the Workers route `salvageunion.io/build*` on
-`su-cantina`, ahead of `su-srd`'s Custom Domain; `intheunionnow.com` stays attached
-only to 301 to the same page there. **ADR-047** (one edge Worker for `api.`) is
+**Amended by ADR-048:** The Cantina is served at `salvageunion.io/build` by
+`su-srd` itself (`run_worker_first` on `/build`), and there is no `su-cantina`
+Worker; `intheunionnow.com` is a zone Redirect Rule to the same page there. **ADR-047** (one edge Worker for `api.`) is
 accepted, not built.
 
 **Amended — srd answers misses.** `src/worker/index.ts` runs for every miss and
@@ -91,9 +91,7 @@ that can deploy production. The bar it is held to:
   **narrowed to the named buckets** rather than account-wide. Cloudflare scopes
   R2 per bucket but not Workers per script, so the Workers half can edit any
   Worker on the account (§6). Narrow the half that can be narrowed, and do not
-  describe the other half as contained. Since ADR-048 it also holds *Zone:
-  Read* and *Workers Routes: Edit* on `salvageunion.io`; the deploy refuses to
-  start without them.
+  describe the other half as contained.
 - Stored as a secret of the `production` GitHub Environment, restricted to
   `main`, with no reviewers. Never at repository
   level, in a `wrangler.jsonc`, or in a `.env` git can see. The same
@@ -151,8 +149,10 @@ seen an https response, and the Redirect Rule matches `www` over https only.
 | ------------------- | ----------------------- | --------------------------------------------- |
 | `salvageunion.io`   | `www.salvageunion.io`   | 301 → `https://salvageunion.io` + path, query |
 | `intheunionnow.com` | `www.intheunionnow.com` | 301 → `https://intheunionnow.com` + path, query |
+| `intheunionnow.com` | `intheunionnow.com`     | 301 → `https://salvageunion.io/build` + path, query (ADR-048) |
 
-`intheunionnow.com` itself 301s to `salvageunion.io/build` (ADR-048), so `www` takes two hops.
+So `www.intheunionnow.com` takes two hops. No Worker answers that zone: its
+apex rule is the whole of the old host.
 
 `_redirects` cannot do this: Cloudflare lists domain-level redirects as
 unsupported and ignores malformed rules silently. Built from the dashboard's
