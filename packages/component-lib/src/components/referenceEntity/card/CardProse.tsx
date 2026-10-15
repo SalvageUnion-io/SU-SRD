@@ -5,7 +5,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import type { SURefObjectContentBlock } from 'salvageunion-reference'
+import type { RefObjectContentBlock } from 'salvageunion-reference'
 import { normalizePatternName } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
 import { Slab } from '../../atoms/Slab'
@@ -39,7 +39,7 @@ export function CardProse({
   className,
   labelStampSize,
 }: {
-  body: SURefObjectContentBlock[]
+  body: RefObjectContentBlock[]
   context: CardProseContext
   /** A class on the run's root, for a surface that sets its own reading rhythm. */
   className?: string
@@ -76,7 +76,7 @@ export function FoldedActionProse({
 }: {
   action: { name?: string; displayName?: string }
   entityName: string
-  content: SURefObjectContentBlock[]
+  content: RefObjectContentBlock[]
   context: CardProseContext
 }) {
   return (
@@ -108,7 +108,7 @@ export function PatternProse({
   note,
 }: {
   name: string
-  content: SURefObjectContentBlock[]
+  content: RefObjectContentBlock[]
   context: CardProseContext
   /** On its own page the band's title already names the pattern: no stamp. */
   onPage?: boolean
@@ -118,7 +118,7 @@ export function PatternProse({
    */
   note?: string
 }) {
-  const body: SURefObjectContentBlock[] = note
+  const body: RefObjectContentBlock[] = note
     ? [...content, { type: 'paragraph', value: note }]
     : content
   if (onPage) return <CardProse body={body} context={context} />

@@ -1,7 +1,7 @@
 import type { TreeTrack } from 'component-lib'
 import { ActivationCost, Head, Slab, Stat } from 'component-lib'
 import { useMemo } from 'react'
-import type { SURefClass } from 'salvageunion-reference'
+import type { RefClass } from 'salvageunion-reference'
 import { getEntitySlug, toEntityModel } from 'salvageunion-reference'
 import type { AbilityTreeGroup, BranchTree, ClassPath, ClassPlan } from '../lib/classPaths'
 import { resolveClassPlan } from '../lib/classPaths'
@@ -11,13 +11,13 @@ import { AbilityTrack } from './AbilityTrack'
 import { MentionProse } from './MentionProse'
 
 type ClassAbilityTreeProps = {
-  classEntity: SURefClass
+  classEntity: RefClass
 }
 
 /** The Workshop Manual page "Gaining Abilities" sits on: the brief cites it. */
 const GAINING_ABILITIES_PAGE = 23
 
-const classHref = (c: SURefClass) => itemHref('classes', getEntitySlug(c))
+const classHref = (c: RefClass) => itemHref('classes', getEntitySlug(c))
 
 /** What a tree's slab notes: "Tree" for a sequence, "Choose 1" for a Legendary tree. */
 const noteFor = (track: TreeTrack) => (track === 'legendary' ? 'Choose 1' : 'Tree')
@@ -44,7 +44,7 @@ function TreeSection({
 }
 
 /** A class named in the brief: a Mention, so it links and Peeks like prose does. */
-const classMention = (c: SURefClass): RefText[number] => ({
+const classMention = (c: RefClass): RefText[number] => ({
   text: c.name,
   ref: { schemaName: 'classes', id: c.id, slug: getEntitySlug(c), name: c.name },
 })
@@ -185,7 +185,7 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
  * lone-label chip as the path's kind beside it. Its chips are the head's own
  * chips, one line with the kind under the head's chip rules (E17).
  */
-function PathRequirement({ path, classEntity }: { path: ClassPath; classEntity: SURefClass }) {
+function PathRequirement({ path, classEntity }: { path: ClassPath; classEntity: RefClass }) {
   const own = !path.hybrid || !path.via
   const trees = own
     ? path.requirement
@@ -221,7 +221,7 @@ const articleFor = (name: string) => (/^[AEIOU]/i.test(name) ? 'an' : 'a')
  * tree is no entity of its own, so its head names where it ends ("Legendary
  * Engineer") and links nowhere; a Hybrid Class's head opens its page.
  */
-function PathCard({ path, classEntity }: { path: ClassPath; classEntity: SURefClass }) {
+function PathCard({ path, classEntity }: { path: ClassPath; classEntity: RefClass }) {
   const hybrid = path.hybrid
   const name = hybrid?.name ?? path.legendary?.tree ?? path.advanced.tree
   const kind = hybrid ? 'Hybrid' : 'Legendary'

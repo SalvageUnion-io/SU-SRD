@@ -2,7 +2,7 @@
  * Helper functions for working with content blocks in entity data
  */
 
-import type { SURefObjectContentBlock, SURefObjectDataValue } from './schemas/index'
+import type { RefObjectContentBlock, RefObjectDataValue } from './schemas/index'
 
 /**
  * Replace [(CHASSIS)] placeholder with actual chassis name, prefixed with "The"
@@ -27,7 +27,7 @@ export function replaceChassisPlaceholder(text: string | undefined, chassisName?
  */
 
 export function parseContentBlockString(
-  block: SURefObjectContentBlock,
+  block: RefObjectContentBlock,
   chassisName?: string
 ): string {
   const blockValue = block.value
@@ -49,7 +49,7 @@ export function parseContentBlockString(
  */
 
 export function resolveDataValueForTechLevel(
-  dv: SURefObjectDataValue,
+  dv: RefObjectDataValue,
   effectiveTechLevel: number | undefined
 ): { value: number | string | undefined; scaled: boolean } {
   const base = dv.value

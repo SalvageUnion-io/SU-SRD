@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'bun:test'
-import type { SURefObjectTable, SURefRollTable } from '../../index'
+import type { RefObjectTable, RefRollTable } from '../../index'
 import { malformed } from '../../testing'
 import { isColumnsTable, resultForColumnsTable, resultForTable } from '../resultForTable'
 
-const mockStandardTable: SURefRollTable = {
+const mockStandardTable: RefRollTable = {
   id: 'test-standard',
   source: 'Salvage Union Workshop Manual',
   name: 'Test Standard',
@@ -19,7 +19,7 @@ const mockStandardTable: SURefRollTable = {
   page: 1,
 }
 
-const mockFlatTable: SURefRollTable = {
+const mockFlatTable: RefRollTable = {
   id: 'test-flat',
   source: 'Salvage Union Workshop Manual',
   name: 'Test Flat',
@@ -50,7 +50,7 @@ const mockFlatTable: SURefRollTable = {
   page: 1,
 }
 
-const mockFullTable: SURefRollTable = {
+const mockFullTable: RefRollTable = {
   id: 'test-full',
   source: 'Salvage Union Workshop Manual',
   name: 'Test Full',
@@ -252,7 +252,7 @@ describe('resultForTable', () => {
   })
 
   describe('New Format with Labels', () => {
-    const mockTableWithLabels: SURefRollTable = {
+    const mockTableWithLabels: RefRollTable = {
       id: 'test-labels',
       source: 'Salvage Union Workshop Manual',
       name: 'Test Labels',
@@ -297,7 +297,7 @@ describe('resultForTable', () => {
         // the current schema type cannot represent (entries are
         // `{ value, label? }` objects). resultForTable still handles it at
         // runtime for backward compatibility — that is the behavior under test.
-        table: malformed<SURefObjectTable>({
+        table: malformed<RefObjectTable>({
           '1': 'Label: Value with colon',
           '20': 'Just a value',
           type: 'standard',
@@ -323,7 +323,7 @@ describe('resultForTable', () => {
 })
 
 // The multi-column member of the table union, and one of its columns
-type ColumnsTable = Extract<SURefObjectTable, { type: 'columns' }>
+type ColumnsTable = Extract<RefObjectTable, { type: 'columns' }>
 type ColumnEntries = ColumnsTable['1-4']
 
 // Helper to build a column with 20 entries
@@ -353,7 +353,7 @@ function buildColumn(prefix: string): ColumnEntries {
   }
 }
 
-const mockColumnsTable: SURefObjectTable = {
+const mockColumnsTable: RefObjectTable = {
   type: 'columns',
   '1-4': buildColumn('A'),
   '5-8': buildColumn('B'),

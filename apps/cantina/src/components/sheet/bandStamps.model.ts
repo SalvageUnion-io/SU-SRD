@@ -6,7 +6,7 @@
  * goes nowhere; with nothing stored there is no chip.
  */
 
-import type { EntityRef, SURefEntity } from 'salvageunion-reference'
+import type { EntityRef, RefEntity } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { resolveClass } from '../../lib/classRef'
@@ -28,7 +28,7 @@ function stampOf(
   label: string,
   schemaName: RefSchema,
   stored: string,
-  entity: (SURefEntity & { name: string }) | null | undefined
+  entity: (RefEntity & { name: string }) | null | undefined
 ): BandStamp {
   if (!entity) return { label, name: stored }
   return {

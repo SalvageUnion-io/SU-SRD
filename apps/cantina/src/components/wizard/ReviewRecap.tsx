@@ -9,7 +9,7 @@ import type { EntityRowModel } from 'component-lib'
 import { Entity, EntityStat, Slab, Stat, tokens } from 'component-lib'
 import type { CSSProperties, ReactNode } from 'react'
 import { useMemo } from 'react'
-import type { SURefMetaEntity } from 'salvageunion-reference'
+import type { RefMetaEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 
 /** The recap: its facts, then its lists, down one column. */
@@ -63,7 +63,7 @@ export function RecapEntity({
   required = false,
 }: {
   label: string
-  entity: SURefMetaEntity | undefined
+  entity: RefMetaEntity | undefined
   required?: boolean
 }) {
   const entityRef = useMemo(() => (entity ? toEntityModel(entity).ref : undefined), [entity])
@@ -83,7 +83,7 @@ export function RecapTokens({
 }: {
   label: string
   /** Reference entities, each drawn from its own model. */
-  entities?: readonly SURefMetaEntity[]
+  entities?: readonly RefMetaEntity[]
   /** Or models resolved elsewhere (a player's crew NPCs). */
   models?: readonly EntityRowModel[]
   empty?: string

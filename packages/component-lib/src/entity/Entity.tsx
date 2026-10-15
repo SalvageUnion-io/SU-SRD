@@ -1,6 +1,6 @@
 import type { ElementType, ReactNode } from 'react'
 import { useMemo } from 'react'
-import type { EntityInstance, SURefMetaEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
+import type { EntityInstance, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 import { Row } from './forms/Row'
 import { Tile } from './forms/Tile'
@@ -11,7 +11,7 @@ import type { EntityForm, EntityMode, EntityOmit, EntityRowModel } from './types
 
 type EntitySource =
   /** A reference record (or a chassis, with `pattern`): resolved to its model here. */
-  | { entity: SURefMetaEntity; pattern?: SURefObjectAnyPattern; model?: never }
+  | { entity: RefMetaEntity; pattern?: RefObjectAnyPattern; model?: never }
   /** A model resolved elsewhere (a build-time index, a list that resolved once). */
   | { model: EntityRowModel; entity?: never; pattern?: never }
 

@@ -7,7 +7,7 @@
  * (`apps/cantina/src/components/mediator/opposition.model.ts`).
  */
 
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import { NO_EFFECT, rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
 import type { EncounterNpc } from '../schemas/encounterNpc'
 
@@ -15,7 +15,7 @@ import type { EncounterNpc } from '../schemas/encounterNpc'
 export type MoraleRoll = NonNullable<EncounterNpc['lastMediatorRoll']>
 
 /** A reference entity's HP or SP, whichever it tracks. */
-export function trackOf(entity: SURefEntity): { maxHp: number; statKind: 'hp' | 'sp' } {
+export function trackOf(entity: RefEntity): { maxHp: number; statKind: 'hp' | 'sp' } {
   if ('structurePoints' in entity && typeof entity.structurePoints === 'number') {
     return { maxHp: entity.structurePoints, statKind: 'sp' }
   }

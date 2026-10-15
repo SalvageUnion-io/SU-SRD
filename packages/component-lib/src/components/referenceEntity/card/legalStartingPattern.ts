@@ -5,7 +5,7 @@
  * same way.
  */
 
-import type { SURefObjectAnyPattern } from 'salvageunion-reference'
+import type { RefObjectAnyPattern } from 'salvageunion-reference'
 import { isLegalStartingPattern } from 'salvageunion-reference/rules'
 
 /** The stamp a pattern the book sanctions as a starting build wears. */
@@ -22,6 +22,6 @@ export const LEGAL_STARTING_PATTERN_NOTE =
  * Whether a pattern carries the stored `legalStarting` data tag — a Bio-Titan
  * pattern never does. Never computed from tech level or salvage value.
  */
-export function isLegalStartingPatternOf(pattern: SURefObjectAnyPattern | undefined): boolean {
+export function isLegalStartingPatternOf(pattern: RefObjectAnyPattern | undefined): boolean {
   return !!pattern && 'legalStarting' in pattern && isLegalStartingPattern(pattern.legalStarting)
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import type { SURefChassis } from 'salvageunion-reference'
+import type { RefChassis } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
@@ -11,7 +11,7 @@ import { ReferenceEntityCard } from '../ReferenceEntityCard'
  * check wrongly labels untagged patterns (e.g. every Gopher pattern).
  */
 describe('the pattern card’s legal starting label', () => {
-  const mule = SalvageUnionReference.Chassis.getByName('Mule') as SURefChassis
+  const mule = SalvageUnionReference.Chassis.getByName('Mule') as RefChassis
 
   const labelPresent = (patternName: string): boolean => {
     const pattern = mule.patterns.find((p) => p.name === patternName)

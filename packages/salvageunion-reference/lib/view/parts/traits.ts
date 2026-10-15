@@ -14,11 +14,11 @@ import { isAbility } from '../../entityGuards'
 import type { ChoiceSelections } from '../../resolveChoiceView'
 import { resolveChoiceView } from '../../resolveChoiceView'
 import type {
-  SURefMetaEntity,
-  SURefObjectChoice,
-  SURefObjectContentBlock,
-  SURefObjectDamage,
-  SURefObjectTrait,
+  RefMetaEntity,
+  RefObjectChoice,
+  RefObjectContentBlock,
+  RefObjectDamage,
+  RefObjectTrait,
 } from '../../schemas/index'
 import type { StatGroup } from '../types'
 import { ACTION_TYPE_LABELS } from './facts'
@@ -28,8 +28,8 @@ import { classRequirements } from './kind'
 export type ActionFacets = {
   actionType?: string
   range?: string[]
-  damage?: SURefObjectDamage
-  traits?: SURefObjectTrait[]
+  damage?: RefObjectDamage
+  traits?: RefObjectTrait[]
   activationCost?: string | number
   actionSource?: string
 }
@@ -87,7 +87,7 @@ function rangeCodes(range: readonly string[]): string {
 }
 
 /** Traits → cells: "Explosive (1)" is name Explosive, value 1. */
-function traitFacets(traits: SURefObjectTrait[]): FacetCell[] {
+function traitFacets(traits: RefObjectTrait[]): FacetCell[] {
   return traits.map((trait) => ({
     key: `trait-${trait.type}`,
     label: capitalize(trait.type),
@@ -156,7 +156,7 @@ const GROUPED = new Intl.NumberFormat('en-US')
  * A crawler tech level's population band, as the book's table prints it
  * (p.218). `populationMax` null (or a legacy 0) is open-ended: "25,000+".
  */
-export function populationRange(entity: SURefMetaEntity): string | undefined {
+export function populationRange(entity: RefMetaEntity): string | undefined {
   if (!('populationMin' in entity) || typeof entity.populationMin !== 'number') return undefined
   const min = entity.populationMin
   const max =
@@ -178,13 +178,13 @@ function formatDataValue(dv: { value?: unknown; unit?: string }): string {
  * a choice or the Tech Level changed it.
  */
 export function facetCells(options: {
-  entity: SURefMetaEntity
+  entity: RefMetaEntity
   entityName: string
   /** The entity's own fields, when it IS an action. */
   action: ActionFacets | undefined
   /** The self-action folded into it. */
-  foldedAction: (ActionFacets & { name?: string; content?: SURefObjectContentBlock[] }) | undefined
-  choices: SURefObjectChoice[]
+  foldedAction: (ActionFacets & { name?: string; content?: RefObjectContentBlock[] }) | undefined
+  choices: RefObjectChoice[]
   selections?: ChoiceSelections
   /** Datavalue label (lowered) → per-level increment. */
   perTechLevelByLabel: ReadonlyMap<string, number>
@@ -303,7 +303,7 @@ function orderTraits(cells: FacetCell[]): FacetCell[] {
  * The datavalues that scale with Tech Level (`perTechLevel`), by lowered label:
  * Custom Sniper Rifle damage "+1 SP per Tech Level".
  */
-export function perTechLevelByLabel(entity: SURefMetaEntity): Map<string, number> {
+export function perTechLevelByLabel(entity: RefMetaEntity): Map<string, number> {
   const out = new Map<string, number>()
   for (const block of 'content' in entity ? (entity.content ?? []) : []) {
     if (!Array.isArray(block.value)) continue

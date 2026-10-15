@@ -7,13 +7,13 @@
  * ~1.3 MB reference corpus.
  */
 import type { EntityRowModel } from 'component-lib'
-import type { SURefEnumSchemaName } from 'salvageunion-reference'
+import type { RefEnumSchemaName } from 'salvageunion-reference'
 
 export type CompactSearchEntry = {
   id: string
   name: string
   slug: string
-  schemaName: SURefEnumSchemaName
+  schemaName: RefEnumSchemaName
   schemaTitle: string
   /** Lowercased, concatenated searchable text (name + description/effect/
    *  goals/assets/weaknesses/content + resolved action content). */

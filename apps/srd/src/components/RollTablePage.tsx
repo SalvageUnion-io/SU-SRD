@@ -13,7 +13,7 @@
  */
 
 import { digestColumnsTable, digestRollTable, mentionRef } from 'component-lib'
-import type { SURefEntity, SURefObjectTable } from 'salvageunion-reference'
+import type { RefEntity, RefObjectTable } from 'salvageunion-reference'
 import { extractStaticEntitySummary } from 'salvageunion-reference'
 import type { ColumnsTablePageData } from '../lib/columnsTablePage'
 import type { RollTablePageData } from '../lib/rollTablePage'
@@ -23,11 +23,11 @@ import { ColumnsTableIsland } from './islands/ColumnsTableIsland'
 import { RollTableIsland } from './islands/RollTableIsland'
 
 /** A roll table's name, prose and table; `undefined` for any other entity. */
-function rollTableParts(item: SURefEntity) {
+function rollTableParts(item: RefEntity) {
   if (!('schemaName' in item) || item.schemaName !== 'roll-tables') return undefined
   const table =
     'table' in item && item.table && typeof item.table === 'object'
-      ? (item.table as SURefObjectTable)
+      ? (item.table as RefObjectTable)
       : undefined
   return { name: item.name, description: extractStaticEntitySummary(item).contentParagraphs, table }
 }
@@ -37,7 +37,7 @@ function rollTableParts(item: SURefEntity) {
  * else: an entity that is not a roll table, and the two-roll `columns` table
  * (Callsign), which has its own page (`columnsTablePageData`).
  */
-export function rollTablePageData(item: SURefEntity): RollTablePageData | null {
+export function rollTablePageData(item: RefEntity): RollTablePageData | null {
   const parts = rollTableParts(item)
   const table = parts?.table
   if (!parts || !table || table.type === 'columns') return null
@@ -51,7 +51,7 @@ export function rollTablePageData(item: SURefEntity): RollTablePageData | null {
 }
 
 /** The page's data for a two-roll `columns` table (Callsign), or `null`. */
-export function columnsTablePageData(item: SURefEntity): ColumnsTablePageData | null {
+export function columnsTablePageData(item: RefEntity): ColumnsTablePageData | null {
   const parts = rollTableParts(item)
   const columns = parts?.table ? digestColumnsTable(parts.table) : []
   if (!parts || columns.length === 0) return null

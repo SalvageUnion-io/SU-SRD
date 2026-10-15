@@ -11,7 +11,7 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
-import type { SURefEntity, SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-reference'
+import type { RefEntity, RefEnumSchemaName, RefMetaEntity } from 'salvageunion-reference'
 import {
   discordCardParts,
   SalvageUnionReference,
@@ -26,7 +26,7 @@ import { Entity } from '../Entity'
 import { PeekCard } from '../PeekCard'
 import { actionTypeStamps } from '../parts/actionStamps'
 
-const SCHEMAS: SURefEnumSchemaName[] = [
+const SCHEMAS: RefEnumSchemaName[] = [
   'chassis',
   'systems',
   'modules',
@@ -43,8 +43,8 @@ const SCHEMAS: SURefEnumSchemaName[] = [
 ]
 
 /** A few of each kind: the first, and the first with an action type and stats both. */
-function fixtures(schemaName: SURefEnumSchemaName): SURefMetaEntity[] {
-  const all = SalvageUnionReference.findAllIn(schemaName, () => true) as SURefMetaEntity[]
+function fixtures(schemaName: RefEnumSchemaName): RefMetaEntity[] {
+  const all = SalvageUnionReference.findAllIn(schemaName, () => true) as RefMetaEntity[]
   const both = all.find((entity) => {
     const model = toEntityModel(entity)
     return model.actionType && model.facts.some((fact) => fact.group !== 'action')
@@ -55,7 +55,7 @@ function fixtures(schemaName: SURefEnumSchemaName): SURefMetaEntity[] {
 const squash = (text: string) => text.replace(/[^a-z]/gi, '').toLowerCase()
 
 /** The canonical order, each label under every name a surface prints it by. */
-function canonical(entity: SURefMetaEntity) {
+function canonical(entity: RefMetaEntity) {
   const model = toEntityModel(entity)
   const { action } = splitStatLine(model.facts)
   const order: { id: string; names: string[] }[] = [
@@ -77,7 +77,7 @@ function canonical(entity: SURefMetaEntity) {
 }
 
 /** The positions in the canonical order of the labels a surface printed, in its order. */
-function positions(entity: SURefMetaEntity, labels: string[]): number[] {
+function positions(entity: RefMetaEntity, labels: string[]): number[] {
   const { index } = canonical(entity)
   return labels.flatMap((label) => {
     const at = index.get(squash(label))
@@ -85,7 +85,7 @@ function positions(entity: SURefMetaEntity, labels: string[]): number[] {
   })
 }
 
-function expectInOrder(entity: SURefMetaEntity, surface: string, labels: string[]) {
+function expectInOrder(entity: RefMetaEntity, surface: string, labels: string[]) {
   const at = positions(entity, labels)
   const sorted = [...at].sort((a, b) => a - b)
   expect({ surface, at }).toEqual({ surface, at: sorted })
@@ -100,7 +100,7 @@ function domLabels(root: Element | null): string[] {
 }
 
 /** The link preview's chip labels, in order. */
-function ogLabels(schemaName: SURefEnumSchemaName, entity: SURefMetaEntity): string[] {
+function ogLabels(schemaName: RefEnumSchemaName, entity: RefMetaEntity): string[] {
   const card = ogCardForEntity({ schemaName, entity, address: '/x' })
   return 'stats' in card ? card.stats.map((stat) => stat.label) : []
 }
@@ -122,7 +122,7 @@ describe('one stat order on every surface', () => {
           domLabels(card.container.querySelector('[data-chip-group]'))
         )
         card.unmount()
-        const peek = render(<PeekCard entity={entity as SURefEntity} />)
+        const peek = render(<PeekCard entity={entity as RefEntity} />)
         expectInOrder(
           entity,
           `${name} peek`,
@@ -144,7 +144,7 @@ describe('one stat order on every surface', () => {
     const shield = SalvageUnionReference.getByNameIn(
       'systems',
       'Electro-Magnetic Shield Projector'
-    ) as SURefMetaEntity
+    ) as RefMetaEntity
     const { container } = render(<Entity form="row" entity={shield} />)
     expect(domLabels(container)[0]).toBe('TL')
     expect(resolveEntityPageMeta(shield).stats[0]?.label).toBe('Tech Level')
@@ -152,7 +152,7 @@ describe('one stat order on every surface', () => {
   })
 
   test('every chip in a group sits the same gap apart: no wider gap between groups', () => {
-    const mule = SalvageUnionReference.getByNameIn('chassis', 'Mule') as SURefMetaEntity
+    const mule = SalvageUnionReference.getByNameIn('chassis', 'Mule') as RefMetaEntity
     const { container } = render(<Entity form="row" entity={mule} />)
     const group = container.querySelector('[data-chip-group]')
     const sequence = Array.from(group?.children ?? []).map(
@@ -186,7 +186,7 @@ describe('one stat order on every surface', () => {
       for (const entity of SalvageUnionReference.findAllIn(
         schemaName,
         () => true
-      ) as SURefMetaEntity[]) {
+      ) as RefMetaEntity[]) {
         const names = toEntityModel(entity).traits.map((trait) => trait.name.toLowerCase())
         const rest = names.filter((trait) => trait !== 'uses')
         const expected = [

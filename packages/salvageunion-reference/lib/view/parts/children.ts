@@ -9,16 +9,16 @@ import { resolveGrantedEntities } from '../../helpers'
 import { SalvageUnionReference } from '../../index'
 import { getPatterns, isBioTitanPattern } from '../../patterns'
 import type {
-  SURefEntity,
-  SURefMetaAction,
-  SURefMetaEntity,
-  SURefObjectAnyPattern,
+  RefEntity,
+  RefMetaAction,
+  RefMetaEntity,
+  RefObjectAnyPattern,
 } from '../../schemas/index'
 import { getEntitySlug } from '../../slug'
 import type { EntityRef } from '../types'
 
 /** A labelled group of nested entities. */
-export type NestedGroup = { label: string; entities: SURefEntity[] }
+export type NestedGroup = { label: string; entities: RefEntity[] }
 
 /** An ability's place in its tree: 1, 2, 3, then L (Legendary), then G. */
 function levelOrder(level: number | 'L' | 'G'): number {
@@ -31,7 +31,7 @@ function levelOrder(level: number | 'L' | 'G'): number {
  * Class's own tree. Advanced and Legendary trees are not listed. A tree with
  * no abilities is dropped; any other entity has none.
  */
-export function classTrees(entity: SURefMetaEntity): NestedGroup[] {
+export function classTrees(entity: RefMetaEntity): NestedGroup[] {
   const core = isCoreClass(entity)
   if (!core && !isBaseAdvancedClass(entity)) return []
   const names: readonly string[] = core
@@ -53,7 +53,7 @@ export function classTrees(entity: SURefMetaEntity): NestedGroup[] {
  * opens (`ability-tree-requirements`). None for a Hybrid Class, the Salvager
  * or any other entity.
  */
-export function classAdvancement(entity: SURefMetaEntity): SURefEntity[] {
+export function classAdvancement(entity: RefMetaEntity): RefEntity[] {
   if (!isCoreClass(entity) || !entity.advanceable) return []
   const names: readonly string[] = entity.coreTrees
   const requirements = new Map(
@@ -73,10 +73,10 @@ export function classAdvancement(entity: SURefMetaEntity): SURefEntity[] {
  * synthesized into an npcs-schema record so it renders as one. De-duplicated
  * by `schemaName:id`. Patterns and actions are not here.
  */
-export function nestedEntityGroups(entity: SURefMetaEntity): NestedGroup[] {
-  const groups = new Map<string, SURefEntity[]>()
+export function nestedEntityGroups(entity: RefMetaEntity): NestedGroup[] {
+  const groups = new Map<string, RefEntity[]>()
   const seen = new Set<string>()
-  const push = (label: string, candidate: SURefEntity | undefined): void => {
+  const push = (label: string, candidate: RefEntity | undefined): void => {
     if (!candidate) return
     const schema =
       'schemaName' in candidate && typeof candidate.schemaName === 'string'
@@ -92,7 +92,7 @@ export function nestedEntityGroups(entity: SURefMetaEntity): NestedGroup[] {
     else groups.set(label, [candidate])
   }
 
-  for (const granted of resolveGrantedEntities(entity as SURefEntity)) push('Grants', granted)
+  for (const granted of resolveGrantedEntities(entity as RefEntity)) push('Grants', granted)
 
   if ('chassisAbilities' in entity && Array.isArray(entity.chassisAbilities)) {
     for (const ability of entity.chassisAbilities) {
@@ -119,7 +119,7 @@ export function nestedEntityGroups(entity: SURefMetaEntity): NestedGroup[] {
         ...embedded,
         name: npcName,
         schemaName: 'npcs',
-      } as unknown as SURefEntity
+      } as unknown as RefEntity
       push('NPCs', synthesized)
     }
   }
@@ -141,7 +141,7 @@ export function chassisCardGroups(chassis: EntityRef): { label: string; items: E
     const drone =
       typeof name === 'string' ? SalvageUnionReference.getByNameIn('drones', name) : null
     if (!drone || drones.some((one) => one.id === drone.id)) continue
-    const slug = getEntitySlug(drone as SURefEntity)
+    const slug = getEntitySlug(drone as RefEntity)
     drones.push({ schemaName: 'drones', id: drone.id, slug, name: drone.name })
   }
   const patterns = (getPatterns(record) ?? []).map((pattern) => ({
@@ -162,11 +162,11 @@ export function chassisCardGroups(chassis: EntityRef): { label: string; items: E
  * through `ref ?? name` (an instance name over a shared stat block). A
  * Bio-Titan pattern has no loadout, so it groups to nothing.
  */
-export function patternGroups(pattern: SURefObjectAnyPattern): NestedGroup[] {
+export function patternGroups(pattern: RefObjectAnyPattern): NestedGroup[] {
   // A Bio-Titan pattern installs nothing: its difference is the actions it adds.
   if (isBioTitanPattern(pattern)) return []
-  const groups = new Map<string, SURefEntity[]>()
-  const push = (label: string, candidate: SURefEntity | undefined, count = 1): void => {
+  const groups = new Map<string, RefEntity[]>()
+  const push = (label: string, candidate: RefEntity | undefined, count = 1): void => {
     if (!candidate) return
     const copies = Array.from({ length: count }, () => candidate)
     if (copies.length === 0) return
@@ -187,7 +187,7 @@ export function patternGroups(pattern: SURefObjectAnyPattern): NestedGroup[] {
 export function resolveLoadout(
   systemNames: string[],
   moduleNames: string[]
-): { systems: SURefEntity[]; modules: SURefEntity[] } {
+): { systems: RefEntity[]; modules: RefEntity[] } {
   const systems = systemNames.flatMap((name) => {
     const found = SalvageUnionReference.getByNameIn('systems', name)
     return found ? [found] : []
@@ -208,12 +208,12 @@ const stringsOf = (value: unknown): string[] =>
  * name (the Power Loader's "Rigging Arm (Vehicle)", the Tombstone Trackbox's
  * Shanty Home), which carries its own range, damage, traits and prose.
  */
-function vehicleItem(name: string): SURefEntity | undefined {
+function vehicleItem(name: string): RefEntity | undefined {
   const system = SalvageUnionReference.getByNameIn('systems', name)
   if (system) return system
-  // An action is not in the `SURefEntity` union, but it draws as a card all the
+  // An action is not in the `RefEntity` union, but it draws as a card all the
   // same, as a chassis ability or a Bio-Titan pattern's action does.
-  return SalvageUnionReference.getByNameIn('actions', name) as SURefEntity | undefined
+  return SalvageUnionReference.getByNameIn('actions', name) as RefEntity | undefined
 }
 
 /**
@@ -223,7 +223,7 @@ function vehicleItem(name: string): SURefEntity | undefined {
  * whether the data names a systems entry or the vehicle's own action; a
  * vehicle has no ACTIONS slab. A name that resolves to neither is dropped.
  */
-export function vehicleSystemNames(entity: SURefMetaEntity): string[] {
+export function vehicleSystemNames(entity: RefMetaEntity): string[] {
   if (!('schemaName' in entity) || entity.schemaName !== 'vehicles') return []
   return stringsOf('actions' in entity ? entity.actions : undefined).filter(
     (name) => vehicleItem(name) !== undefined
@@ -234,9 +234,9 @@ export function vehicleSystemNames(entity: SURefMetaEntity): string[] {
  * A drone's or vehicle's OWN systems/modules loadout: a drone's from its name
  * arrays, a vehicle's from every item it lists (`vehicleSystemNames`).
  */
-export function droneOwnLoadout(entity: SURefMetaEntity): {
-  systems: SURefEntity[]
-  modules: SURefEntity[]
+export function droneOwnLoadout(entity: RefMetaEntity): {
+  systems: RefEntity[]
+  modules: RefEntity[]
 } {
   const systems = stringsOf('systems' in entity ? entity.systems : undefined)
   const modules = stringsOf('modules' in entity ? entity.modules : undefined)
@@ -270,8 +270,8 @@ export function foldedActionOf<T extends { name?: string; displayName?: string }
 }
 
 /** An ability that grants entities: its actions belong to what it grants. */
-function isGrantingAbility(entity: SURefMetaEntity): boolean {
-  return isAbility(entity) && resolveGrantedEntities(entity as SURefEntity).length > 0
+function isGrantingAbility(entity: RefMetaEntity): boolean {
+  return isAbility(entity) && resolveGrantedEntities(entity as RefEntity).length > 0
 }
 
 /**
@@ -279,9 +279,9 @@ function isGrantingAbility(entity: SURefMetaEntity): boolean {
  * one (titanic ones included). A granting ability has none of its own.
  */
 export function entityActions(
-  entity: SURefMetaEntity,
+  entity: RefMetaEntity,
   entityName: string
-): { folded: SURefMetaAction | undefined; others: SURefMetaAction[] } {
+): { folded: RefMetaAction | undefined; others: RefMetaAction[] } {
   if ('actionSource' in entity || isGrantingAbility(entity))
     return { folded: undefined, others: [] }
   // A vehicle's systems are its children, not its actions.

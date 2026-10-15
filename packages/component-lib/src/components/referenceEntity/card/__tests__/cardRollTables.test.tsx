@@ -7,7 +7,7 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import { extractVisibleActions, resolveTable, SalvageUnionReference } from 'salvageunion-reference'
 import { malformed } from 'salvageunion-reference/testing'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
@@ -45,8 +45,8 @@ describe('roll tables reach the card by reference, not just inline', () => {
 
   test('an action entity that names a table renders it on its own card', () => {
     const action = find(SalvageUnionReference.Actions.all(), 'Area Salvage')
-    // Actions are meta entities, outside SURefEntity; the card renders them anyway.
-    render(<ReferenceEntityCard data={malformed<SURefEntity>(action)} />)
+    // Actions are meta entities, outside RefEntity; the card renders them anyway.
+    render(<ReferenceEntityCard data={malformed<RefEntity>(action)} />)
 
     expect(screen.getByLabelText(ROLL_BUTTON)).toBeTruthy()
   })

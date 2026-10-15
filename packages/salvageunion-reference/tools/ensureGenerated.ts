@@ -34,7 +34,7 @@
  * (`mkdir` is atomic) and regenerates; the rest wait for it, then find the
  * stamp current and return — so no reader ever sees a half-written file.
  *
- * Usage: su-ref-generate [--force] (this file is the package's bin)
+ * Usage: ref-generate [--force] (this file is the package's bin)
  */
 
 import { spawnSync } from 'node:child_process'

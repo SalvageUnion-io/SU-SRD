@@ -7,11 +7,7 @@
  * name.
  */
 
-import type {
-  SURefMetaEntity,
-  SURefObjectAnyPattern,
-  SURefObjectBioTitanPattern,
-} from './schemas/index'
+import type { RefMetaEntity, RefObjectAnyPattern, RefObjectBioTitanPattern } from './schemas/index'
 
 /**
  * Extract patterns from an entity
@@ -19,9 +15,9 @@ import type {
  * @returns The patterns or undefined
  */
 
-export function getPatterns(entity: SURefMetaEntity): SURefObjectAnyPattern[] | undefined {
+export function getPatterns(entity: RefMetaEntity): RefObjectAnyPattern[] | undefined {
   if (!('patterns' in entity) || !Array.isArray(entity.patterns)) return undefined
-  const patterns: readonly SURefObjectAnyPattern[] = entity.patterns
+  const patterns: readonly RefObjectAnyPattern[] = entity.patterns
   return visiblePatterns(patterns)
 }
 
@@ -31,8 +27,8 @@ export function getPatterns(entity: SURefMetaEntity): SURefObjectAnyPattern[] | 
  * host's schema, so a surface handed a bare pattern can still tell.
  */
 export function isBioTitanPattern(
-  pattern: SURefObjectAnyPattern
-): pattern is SURefObjectBioTitanPattern {
+  pattern: RefObjectAnyPattern
+): pattern is RefObjectBioTitanPattern {
   return 'actions' in pattern
 }
 

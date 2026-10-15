@@ -18,7 +18,7 @@
  */
 
 import { ChapterBand } from 'component-lib'
-import type { EnhancedSchemaMetadata, SURefEntity } from 'salvageunion-reference'
+import type { EnhancedSchemaMetadata, RefEntity } from 'salvageunion-reference'
 import { getAssetUrl } from 'salvageunion-reference'
 import type { PageModule, PageResult, RouteContext } from '../../../ssg/types'
 import { SchemaViewerListing } from '../../components/islands/SchemaViewerIsland'
@@ -36,7 +36,7 @@ import { getSchemaStaticPaths } from '../../lib/staticPaths'
 import { Island } from '../../runtime/Island'
 
 type Params = { schemaId: string }
-type Props = { schema: EnhancedSchemaMetadata; data: SURefEntity[] }
+type Props = { schema: EnhancedSchemaMetadata; data: RefEntity[] }
 
 function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const { schemaId } = params

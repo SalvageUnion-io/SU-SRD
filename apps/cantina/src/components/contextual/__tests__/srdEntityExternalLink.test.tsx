@@ -9,7 +9,7 @@
 
 import { describe, expect, it } from 'bun:test'
 import { render } from '@testing-library/react'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { must } from '../../__tests__/must'
 import { srdEntityExternalLink } from '../srdEntityExternalLink'
@@ -33,7 +33,7 @@ describe('srdEntityExternalLink', () => {
 
   it('returns undefined for entities without a schemaName', () => {
     // A complete keyword entity that simply carries no schemaName tag.
-    const entity: SURefEntity = {
+    const entity: RefEntity = {
       id: 'x',
       name: 'No Schema',
       source: 'Salvage Union Workshop Manual',
@@ -44,7 +44,7 @@ describe('srdEntityExternalLink', () => {
   })
 
   it('returns undefined for schemas outside the SRD catalog', () => {
-    const entity: SURefEntity & { schemaName: string } = {
+    const entity: RefEntity & { schemaName: string } = {
       id: 'x',
       name: 'Ghost',
       source: 'Salvage Union Workshop Manual',

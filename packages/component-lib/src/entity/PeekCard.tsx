@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import {
   getChassisAbilities,
   replaceChassisPlaceholder,
@@ -21,7 +21,7 @@ const ANY_CHASSIS = 'Mech'
  * Mule", as its chassis page prints it), or "The Mech" for an ability several
  * share. Undefined for anything that is not an action with the placeholder.
  */
-function peekChassisName(entity: SURefEntity): string | undefined {
+function peekChassisName(entity: RefEntity): string | undefined {
   if (!('schemaName' in entity) || entity.schemaName !== 'actions') return undefined
   if (!JSON.stringify(entity).includes('[(CHASSIS)]')) return undefined
   try {
@@ -49,7 +49,7 @@ const ABILITY_ROWS = {
  * 2026-10-14): the ability as a library Row with its lead, as the mech
  * sheet's hero shows it, its `[(CHASSIS)]` naming this chassis ("The Mule").
  */
-function peekChassisAbilities(entity: SURefEntity) {
+function peekChassisAbilities(entity: RefEntity) {
   const abilities = getChassisAbilities(entity) ?? []
   return abilities.length > 0 ? (
     <ul aria-label="Chassis ability" style={ABILITY_ROWS}>
@@ -76,7 +76,7 @@ function peekChassisAbilities(entity: SURefEntity) {
  * chassis shows its chassis ability (`peekChassisAbilities`), never its patterns. A
  * `down` Peek (its trigger damaged or destroyed) paints its band as the trigger does.
  */
-export function PeekCard({ entity, down = false }: { entity: SURefEntity; down?: Down }) {
+export function PeekCard({ entity, down = false }: { entity: RefEntity; down?: Down }) {
   const chassis = 'schemaName' in entity && entity.schemaName === 'chassis'
   return (
     <InsidePeekContext.Provider value={true}>

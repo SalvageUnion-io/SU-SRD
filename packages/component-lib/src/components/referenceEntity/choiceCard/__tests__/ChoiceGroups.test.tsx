@@ -1,17 +1,17 @@
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { useState } from 'react'
-import type { SURefObjectChoice } from 'salvageunion-reference'
+import type { RefObjectChoice } from 'salvageunion-reference'
 import { ChoiceGroups } from '../ChoiceGroups'
 import type { ChoiceSelections } from '../choiceSelectionHelpers'
 
-const weaponTypeChoice: SURefObjectChoice = {
+const weaponTypeChoice: RefObjectChoice = {
   id: 'weapon-type',
   name: 'Weapon Type',
   source: { kind: 'catalog', schema: ['traits'], entities: ['Ballistic', 'Energy'] },
 }
 
-const modificationChoice: SURefObjectChoice = {
+const modificationChoice: RefObjectChoice = {
   id: 'modification',
   name: 'Modification',
   cardinality: { min: 0, max: { scalesWith: 'techLevel' } },
@@ -25,7 +25,7 @@ const modificationChoice: SURefObjectChoice = {
   },
 }
 
-const nameChoice: SURefObjectChoice = {
+const nameChoice: RefObjectChoice = {
   id: 'name',
   name: 'Name',
   content: [{ type: 'paragraph', value: 'The name of your companion.' }],
@@ -216,7 +216,7 @@ describe('ChoiceGroups — empty', () => {
 // resolves by name.
 // ---------------------------------------------------------------------------
 
-const tableChoice: SURefObjectChoice = {
+const tableChoice: RefObjectChoice = {
   id: 'ai-personality',
   name: 'A.I. Personality',
   content: [{ type: 'paragraph', value: 'Roll on the A.I. Personality Table or choose your own.' }],

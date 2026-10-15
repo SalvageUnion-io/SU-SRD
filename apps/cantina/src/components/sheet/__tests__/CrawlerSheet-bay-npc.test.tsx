@@ -21,7 +21,7 @@ import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Crawler } from 'cantina-domain/schemas/crawler'
 import { CrawlerSchema } from 'cantina-domain/schemas/crawler'
-import type { SURefCrawlerBay } from 'salvageunion-reference'
+import type { RefCrawlerBay } from 'salvageunion-reference'
 import { patchModelRows } from '../../../../../../test/patchModel'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
@@ -46,7 +46,7 @@ function crewToken(name: string): Element {
 const KEEPSAKE_CHOICE_ID = 'command-bay-keepsake-1'
 const MOTTO_CHOICE_ID = 'command-bay-motto-1'
 
-const MOCK_BAYS: Array<SURefCrawlerBay & { schemaName: string }> = [
+const MOCK_BAYS: Array<RefCrawlerBay & { schemaName: string }> = [
   {
     id: 'command-bay',
     name: 'Command Bay',

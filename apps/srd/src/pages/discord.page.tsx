@@ -65,7 +65,7 @@ function buildExamples() {
 
 const TITLE = `Discord Bot${TITLE_SUFFIX}`
 const DESCRIPTION =
-  'Add the SURef bot to your Discord server: roll on every Salvage Union table and look up any chassis, system, module, or piece of equipment with /su.'
+  'Add the SalvageUnion.io bot to your Discord server: roll on every Salvage Union table and look up any chassis, system, module, or piece of equipment with /su.'
 
 // The install CTA is an <a> styled as THE primary (rust) action — the lib
 // Button recipe as a class string (buttonVariants), at the home page's CTA size.
@@ -200,7 +200,7 @@ function page(): PageResult {
       structuredData: {
         '@context': 'https://schema.org',
         '@type': 'SoftwareApplication',
-        name: 'SURef Discord Bot',
+        name: 'SalvageUnion.io Discord Bot',
         applicationCategory: 'UtilitiesApplication',
         operatingSystem: 'Discord',
         description:
@@ -220,10 +220,10 @@ function page(): PageResult {
         {/* Overview + install */}
         <section style={PROSE_16}>
           <p>
-            The SURef bot brings this reference to your table&rsquo;s Discord server: roll on every
-            Salvage Union table and look up any game entity — chassis, systems, modules, equipment,
-            keywords, and more — without leaving the conversation. Results link back to the full
-            entry on this site.
+            The SalvageUnion.io bot brings this reference to your table&rsquo;s Discord server: roll
+            on every Salvage Union table and look up any game entity — chassis, systems, modules,
+            equipment, keywords, and more — without leaving the conversation. Results link back to
+            the full entry on this site.
           </p>
           <p>
             It asks for no server permissions — it only ever replies to slash commands. Free and

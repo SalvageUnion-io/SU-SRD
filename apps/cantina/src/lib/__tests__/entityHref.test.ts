@@ -5,13 +5,13 @@
  * and 404s.
  */
 import { describe, expect, it } from 'bun:test'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { must } from '../../components/__tests__/must'
 import { cantinaEntityHref } from '../entityHref'
 
 /** A complete entity that only differs in the schema it claims to come from. */
-function taggedAs(schemaName: string): SURefEntity & { schemaName: string } {
+function taggedAs(schemaName: string): RefEntity & { schemaName: string } {
   return {
     id: 'x',
     name: 'Bolster',
@@ -38,7 +38,7 @@ describe('cantinaEntityHref', () => {
 
   it('emits no href for a schema outside the catalog, or none at all', () => {
     expect(cantinaEntityHref(taggedAs('not-a-schema'))).toBeUndefined()
-    const untagged: SURefEntity = {
+    const untagged: RefEntity = {
       id: 'x',
       name: 'No Schema',
       source: 'Salvage Union Workshop Manual',

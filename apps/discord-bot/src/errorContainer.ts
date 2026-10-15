@@ -15,7 +15,7 @@
  */
 
 import { ButtonStyle } from 'discord-api-types/v10'
-import type { SURefRollTable } from 'salvageunion-reference'
+import type { RefRollTable } from 'salvageunion-reference'
 import { NO_EFFECT, searchIn } from 'salvageunion-reference'
 import type { ButtonSpec, ContainerData } from './container'
 import { encodeRollRequest, makeCustomId } from './customId'
@@ -33,7 +33,7 @@ const SUGGESTIONS = 3
  * plumbing.
  */
 function suggestionButtons(query: string): ButtonSpec[] {
-  const hits = searchIn<SURefRollTable>('roll-tables', query, { limit: SUGGESTIONS })
+  const hits = searchIn<RefRollTable>('roll-tables', query, { limit: SUGGESTIONS })
   return hits.flatMap((hit) => {
     const customId = makeCustomId('roll', hit.name)
     return customId ? [{ kind: 'action' as const, customId, label: hit.name }] : []
@@ -77,7 +77,7 @@ export function unknownTableContainer(query: string, indexed: number): Container
  * no outcome tier applies to "nothing happened".
  */
 export function noEffectContainer(
-  table: SURefRollTable,
+  table: RefRollTable,
   roll: number,
   roller?: string,
   /** The roller's Discord id: only they can roll again. */

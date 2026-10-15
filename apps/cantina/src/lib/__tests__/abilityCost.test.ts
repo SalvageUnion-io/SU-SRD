@@ -7,12 +7,12 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import type { SURefAbility } from 'salvageunion-reference'
+import type { RefAbility } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveAbilityApCost } from '../abilityCost'
 
-function findAbility(name: string): SURefAbility {
-  const all = SalvageUnionReference.Abilities.all() as ReadonlyArray<SURefAbility>
+function findAbility(name: string): RefAbility {
+  const all = SalvageUnionReference.Abilities.all() as ReadonlyArray<RefAbility>
   const ability = all.find((a) => a.name === name)
   if (!ability) throw new Error(`Ability "${name}" not found in reference data`)
   return ability
@@ -35,7 +35,7 @@ describe('resolveAbilityApCost', () => {
   })
 
   test('returns null when the ability has no resolvable actions', () => {
-    const bogus: SURefAbility = {
+    const bogus: RefAbility = {
       id: 'bogus',
       name: 'Nonexistent Ability',
       source: 'Salvage Union Workshop Manual',

@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { useContext, useState } from 'react'
-import type { SURefEntity, SURefMetaEntity } from 'salvageunion-reference'
+import type { RefEntity, RefMetaEntity } from 'salvageunion-reference'
 import { getReferenceEntityName } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
 import { Entity } from '../../../entity/Entity'
@@ -140,7 +140,7 @@ function PeekTokens({ entities }: { entities: ReferenceCardEntity[] }) {
         <Entity
           key={cardKey(nested, index)}
           form="token"
-          entity={nested as SURefMetaEntity}
+          entity={nested as RefMetaEntity}
           mode={{ kind: 'read' }}
         />
       ))}
@@ -169,7 +169,7 @@ export function EmbeddedNpcTokens({
       <ul className="su-entity-token-list">
         {entities.map((npc, index) => (
           <li key={cardKey(npc, index)}>
-            <Entity form="token" entity={npc as SURefMetaEntity} peekAt={peekAt} />
+            <Entity form="token" entity={npc as RefMetaEntity} peekAt={peekAt} />
           </li>
         ))}
       </ul>
@@ -232,7 +232,7 @@ function NestedRow({ data, host }: { data: ReferenceCardEntity; host: NestedCard
   const { NestedCard } = host
   const [open, setOpen] = useState(false)
   const insidePeek = useContext(InsidePeekContext)
-  const href = useEntityHref(data as SURefEntity)
+  const href = useEntityHref(data as RefEntity)
   const linkOut = useEntityDetailLink() && !!href
   const entityName = getReferenceEntityName(data) ?? 'Entity details'
   // A nested ACTION drops its ` (Host)` suffix: its host is right above it.
@@ -250,13 +250,13 @@ function NestedRow({ data, host }: { data: ReferenceCardEntity; host: NestedCard
         }
   return (
     <>
-      <Entity form="row" entity={data as SURefMetaEntity} instance={instance} mode={mode} />
+      <Entity form="row" entity={data as RefMetaEntity} instance={instance} mode={mode} />
       {mode.kind === 'link' && mode.onOpen && (
         // The Page (EDL Form 5): the dialog's band and foot, the card its body.
         <EntityDetailDialog
           open={open}
           onOpenChange={setOpen}
-          entity={data as SURefMetaEntity}
+          entity={data as RefMetaEntity}
           title={entityName}
         >
           <NestedCard data={data} chassisName={host.chassisName} presentation="page" />

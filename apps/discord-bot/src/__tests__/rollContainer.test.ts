@@ -6,7 +6,7 @@
 
 import { describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
-import type { SURefRollTable } from 'salvageunion-reference'
+import type { RefRollTable } from 'salvageunion-reference'
 import { rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
 import { buildPostedRollMessage, buildRollMessage } from '../commands/roll'
 import type { ContainerData } from '../container'
@@ -18,7 +18,7 @@ import { buildRollContainerData, isTieredTable } from '../rollContainer'
 // whole workspace — a per-file `preload('all')` is at best a no-op and at
 // worst hides an ordering bug, which is why `packages/gates/biome/noTestReferencePreload.grit` bans it.
 
-function table(name: string): SURefRollTable {
+function table(name: string): RefRollTable {
   const found = SalvageUnionReference.RollTables.getByName(name)
   if (!found) throw new Error(`no such table: ${name}`)
   return found

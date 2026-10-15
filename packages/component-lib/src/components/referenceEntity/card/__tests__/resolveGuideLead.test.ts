@@ -13,7 +13,7 @@
  * data, verbatim, and every shipped guide must produce one.
  */
 import { describe, expect, test } from 'bun:test'
-import type { SURefMetaEntity } from 'salvageunion-reference'
+import type { RefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { entityFixture, malformed } from 'salvageunion-reference/testing'
 import { resolveGuideLead } from '../resolveGuideLead'
@@ -105,10 +105,10 @@ describe('resolveGuideLead — nothing else is touched', () => {
   })
 
   test('is defensive about malformed input', () => {
-    expect(resolveGuideLead(malformed<SURefMetaEntity>(undefined))).toBeUndefined()
-    expect(resolveGuideLead(malformed<SURefMetaEntity>(null))).toBeUndefined()
-    expect(resolveGuideLead(malformed<SURefMetaEntity>({}))).toBeUndefined()
-    expect(resolveGuideLead(malformed<SURefMetaEntity>({ steps: 'nope' }))).toBeUndefined()
+    expect(resolveGuideLead(malformed<RefMetaEntity>(undefined))).toBeUndefined()
+    expect(resolveGuideLead(malformed<RefMetaEntity>(null))).toBeUndefined()
+    expect(resolveGuideLead(malformed<RefMetaEntity>({}))).toBeUndefined()
+    expect(resolveGuideLead(malformed<RefMetaEntity>({ steps: 'nope' }))).toBeUndefined()
     // A guide-shaped record with no prose anywhere falls through to the card's
     // ordinary body rather than rendering an empty paragraph.
     expect(resolveGuideLead(entityFixture('guides', { steps: [], content: [] }))).toBeUndefined()

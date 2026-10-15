@@ -11,14 +11,14 @@
  * actions deals damage (the action has a `damage` payload).
  */
 import { SalvageUnionReference } from '../index'
-import type { SURefSystem } from '../schemas/index'
+import type { RefSystem } from '../schemas/index'
 
 /**
  * True when `system` is a Weapons System — i.e. at least one of its resolved
  * actions deals damage. Requires the `systems` and `actions` reference data to
  * be preloaded (the ORM resolves action-name refs against the action map).
  */
-export function isWeaponSystem(system: SURefSystem): boolean {
+export function isWeaponSystem(system: RefSystem): boolean {
   const actions = SalvageUnionReference.resolveActions(system) ?? []
   return actions.some((action) => action.damage != null)
 }

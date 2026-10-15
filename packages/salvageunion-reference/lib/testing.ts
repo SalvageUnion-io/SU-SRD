@@ -2,7 +2,7 @@
  * Typed test fixtures for reference entities — the `salvageunion-reference/testing`
  * entry point. Test code only: nothing in a runtime graph imports it.
  *
- * Not an object literal cast through `as unknown as SURefEntity`: that cast
+ * Not an object literal cast through `as unknown as RefEntity`: that cast
  * accepts anything, so a misspelled field (`techlevel`), a field from the wrong
  * schema, or a value of the wrong type compiles silently and the test exercises
  * something other than what it claims. There are two honest cases, and one

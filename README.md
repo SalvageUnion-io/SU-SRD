@@ -1,4 +1,4 @@
-# SURef
+# SUSRD
 
 [![CI](https://github.com/SalvageUnion-io/SU-SRD/actions/workflows/ci.yml/badge.svg)](https://github.com/SalvageUnion-io/SU-SRD/actions/workflows/ci.yml)
 [![Deploy](https://github.com/SalvageUnion-io/SU-SRD/actions/workflows/deploy-cloudflare.yml/badge.svg?branch=main)](https://github.com/SalvageUnion-io/SU-SRD/actions/workflows/deploy-cloudflare.yml)

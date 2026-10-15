@@ -15,7 +15,7 @@ import {
   heroImageSizes,
   resolveEntityPageMeta,
 } from 'component-lib'
-import type { EnhancedSchemaMetadata, SURefEntity } from 'salvageunion-reference'
+import type { EnhancedSchemaMetadata, RefEntity } from 'salvageunion-reference'
 import { truncate } from 'salvageunion-reference'
 import type { PageModule, PageResult, RouteContext, StructuredData } from '../../../ssg/types'
 import { EntityPageFrame, entityPageFoot } from '../../components/EntityPageFrame'
@@ -38,7 +38,7 @@ import { getItemStaticPaths } from '../../lib/staticPaths'
 type Params = { schemaId: string; itemId: string }
 
 type Props = {
-  item: SURefEntity
+  item: RefEntity
   schema: EnhancedSchemaMetadata
   itemName: string
   itemDescription: string

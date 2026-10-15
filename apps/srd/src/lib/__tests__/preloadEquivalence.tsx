@@ -8,7 +8,7 @@ import {
 } from 'component-lib'
 import { Suspense } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import {
   getEntitySchemas,
   getEntitySlug,
@@ -59,7 +59,7 @@ function normalize(html: string): string {
     .replace(/aria-labelledby="[^"]*"/g, 'aria-labelledby="…"')
 }
 
-function renderEntity(entity: SURefEntity): string {
+function renderEntity(entity: RefEntity): string {
   return normalize(
     renderToStaticMarkup(
       <EntityHrefProvider value={srdEntityHref}>
@@ -74,7 +74,7 @@ function renderEntity(entity: SURefEntity): string {
 }
 
 /** One listing row, as `SchemaViewerIsland` renders it. */
-function renderListingRow(schemaId: string, entity: SURefEntity): string {
+function renderListingRow(schemaId: string, entity: RefEntity): string {
   return normalize(
     renderToStaticMarkup(
       <EntitySurfaceProvider value={{ hrefFor: srdHrefFor }}>
@@ -111,7 +111,7 @@ export function describePreloadEquivalence(shard: number): void {
 
       it(`${schema.id}: computed preload list (${preloadList.join(', ')}) renders identically to 'all'`, async () => {
         const model = getModel(schema.id)
-        const entities: SURefEntity[] = model?.all() ?? []
+        const entities: RefEntity[] = model?.all() ?? []
         expect(entities.length).toBeGreaterThan(0)
 
         try {
@@ -131,7 +131,7 @@ export function describePreloadEquivalence(shard: number): void {
       })
 
       it(`${schema.id}: listing rows render identically from the list projection`, async () => {
-        const entities: SURefEntity[] = getModel(schema.id)?.all() ?? []
+        const entities: RefEntity[] = getModel(schema.id)?.all() ?? []
         try {
           const baseline = entities.map((entity) => renderListingRow(schema.id, entity))
 

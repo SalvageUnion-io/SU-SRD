@@ -19,7 +19,7 @@ import {
   resetLoadStateForTesting,
   toPascalCase,
 } from './ModelFactory'
-import type { SURefMetaAction, SURefMetaEntity } from './schemas/index'
+import type { RefMetaAction, RefMetaEntity } from './schemas/index'
 import { invalidateSearchIndex } from './search'
 
 // ---------------------------------------------------------------------------
@@ -62,7 +62,7 @@ export {
 } from './entityFields'
 export { isAbility, isBaseAdvancedClass, isCoreClass } from './entityGuards'
 export { formerSlugsIn, resolveFormerSlug } from './formerSlugs'
-// Every SURef* entity type and the SURefEntity / SURefMetaEntity unions,
+// Every Ref* entity type and the RefEntity / RefMetaEntity unions,
 // generated from lib/schemas/registry.ts. Exported as a family rather than
 // name by name: they are 1:1 with SchemaToEntityMap (below), so each is already
 // reachable as `SchemaToEntityMap['<id>']`, and a new registry entry should not
@@ -102,17 +102,17 @@ export {
 } from './rollOnTable'
 export { SchemaNotLoadedError } from './SchemaNotLoadedError'
 export type {
-  SURefEnumSchemaName,
-  SURefObjectAnyPattern,
-  SURefObjectBonusPerTechLevel,
-  SURefObjectChoice,
-  SURefObjectContentBlock,
-  SURefObjectDamage,
-  SURefObjectDataValue,
-  SURefObjectGuideStep,
-  SURefObjectPattern,
-  SURefObjectTable,
-  SURefObjectTrait,
+  RefEnumSchemaName,
+  RefObjectAnyPattern,
+  RefObjectBonusPerTechLevel,
+  RefObjectChoice,
+  RefObjectContentBlock,
+  RefObjectDamage,
+  RefObjectDataValue,
+  RefObjectGuideStep,
+  RefObjectPattern,
+  RefObjectTable,
+  RefObjectTrait,
 } from './schemas/index'
 export {
   extractContentText,
@@ -438,7 +438,7 @@ export class SalvageUnionReference {
   /**
    * Resolve actions from any entity that might have actions
    */
-  public static resolveActions(entity: SURefMetaEntity): SURefMetaAction[] | undefined {
+  public static resolveActions(entity: RefMetaEntity): RefMetaAction[] | undefined {
     return getChassisAbilities(entity) ?? extractActions(entity)
   }
 
@@ -453,7 +453,7 @@ export class SalvageUnionReference {
       // lazyModelMap is a homomorphic mapped type, so a generic indexed access
       // resolves to LazyModel<SchemaToEntityMap[K]> — no cast needed, and the
       // result is typed by the exact schemas the caller passed (e.g.
-      // catalog-categories entities are never mislabelled SURefMetaEntity).
+      // catalog-categories entities are never mislabelled RefMetaEntity).
       const model = lazyModelMap[schemaName]
       for (const entity of model.all()) {
         result.push({ schemaName, entity })

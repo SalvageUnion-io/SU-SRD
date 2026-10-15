@@ -11,7 +11,7 @@
 import type { Crawler } from 'cantina-domain/schemas/crawler'
 import { EntitySearcher, ModalShell, PICKER_MODAL_WIDTH } from 'component-lib'
 import { useMemo } from 'react'
-import type { SURefSystem } from 'salvageunion-reference'
+import type { RefSystem } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
 import {
   computeCrawlerCapacity,
@@ -72,7 +72,7 @@ export function CrawlerSystemsEditModal({
         schema="systems"
         selected={crawler.systems}
         filter={(item) => {
-          const s = item as SURefSystem
+          const s = item as RefSystem
           const installed = crawler.systems.includes(nameToSlug(s.name))
           // Keep installed weapons visible/removable even above the current TL.
           if (installed) return isWeaponSystem(s)

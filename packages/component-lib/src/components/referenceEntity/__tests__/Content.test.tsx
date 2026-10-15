@@ -10,18 +10,18 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
-import type { SURefObjectContentBlock } from 'salvageunion-reference'
+import type { RefObjectContentBlock } from 'salvageunion-reference'
 import { malformed } from 'salvageunion-reference/testing'
 import { Content } from '../Content'
 
-const blocks = (...items: unknown[]) => items as SURefObjectContentBlock[]
+const blocks = (...items: unknown[]) => items as RefObjectContentBlock[]
 
 describe('Content — empty inputs', () => {
   test('renders nothing for an absent or empty body', () => {
     expect(render(<Content body={[]} />).container.innerHTML).toBe('')
     cleanup()
     expect(
-      render(<Content body={malformed<SURefObjectContentBlock[]>(undefined)} />).container.innerHTML
+      render(<Content body={malformed<RefObjectContentBlock[]>(undefined)} />).container.innerHTML
     ).toBe('')
   })
 

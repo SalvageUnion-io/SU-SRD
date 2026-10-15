@@ -9,7 +9,7 @@
  */
 
 import type { EntitySchemaName } from '../generated/schemaRegistry.generated'
-import type { SURefObjectContentBlock, SURefObjectTable } from '../schemas/index'
+import type { RefObjectContentBlock, RefObjectTable } from '../schemas/index'
 import type { TableRow } from '../utils/tableRows'
 
 /** An entity as something a form can name and link. */
@@ -77,7 +77,7 @@ export type EntityTable =
   /** A one-roll table, as printable bands, highest roll first. */
   | { kind: 'bands'; name: string; rows: TableRow[] }
   /** A two-roll table: the raw buckets, since bands would misstate it. */
-  | { kind: 'columns'; name: string; table: SURefObjectTable }
+  | { kind: 'columns'; name: string; table: RefObjectTable }
 
 /** An entity's artwork, or none: an entity without art has no art place. */
 export type EntityArt = { kind: 'image'; url: string } | { kind: 'none' }
@@ -153,7 +153,7 @@ export type EntityModel = {
   traits: TraitMention[]
   /** Plain text: the entity's own opening prose. */
   lead?: string
-  prose: SURefObjectContentBlock[]
+  prose: RefObjectContentBlock[]
   /** The self-action whose facets and cost are this entity's own. */
   folded?: EntityRef
   /** Every other visible action, as its own band. */

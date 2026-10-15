@@ -16,11 +16,11 @@ import { resolveActivationCurrency } from '../helpers'
 import { SalvageUnionReference } from '../index'
 import { nameToSlug } from '../nameToSlug'
 import type {
-  SURefEntity,
-  SURefEnumSchemaName,
-  SURefMetaEntity,
-  SURefObjectAnyPattern,
-  SURefObjectContentBlock,
+  RefEntity,
+  RefEnumSchemaName,
+  RefMetaEntity,
+  RefObjectAnyPattern,
+  RefObjectContentBlock,
 } from '../schemas/index'
 import { getEntitySlug } from '../slug'
 import { plainTraitText } from '../traitText'
@@ -58,14 +58,14 @@ import type {
   TraitMention,
 } from './types'
 
-function schemaNameOf(entity: SURefMetaEntity): EntitySchemaName | undefined {
+function schemaNameOf(entity: RefMetaEntity): EntitySchemaName | undefined {
   return 'schemaName' in entity && typeof entity.schemaName === 'string'
     ? (entity.schemaName as EntitySchemaName)
     : undefined
 }
 
 /** An entity as a ref. A record with no `id` is synthetic, never linked. */
-function refOf(entity: SURefMetaEntity, parentId?: string): EntityRef {
+function refOf(entity: RefMetaEntity, parentId?: string): EntityRef {
   const schemaName = schemaNameOf(entity) ?? 'npcs'
   const name = getReferenceEntityName(entity) ?? ('name' in entity ? String(entity.name) : '')
   const id = typeof entity.id === 'string' ? entity.id : ''
@@ -73,7 +73,7 @@ function refOf(entity: SURefMetaEntity, parentId?: string): EntityRef {
     const slug = nameToSlug(name)
     return { schemaName, id: `${parentId ?? ''}/${slug}`, slug, name, synthetic: true }
   }
-  return { schemaName, id, slug: getEntitySlug(entity as SURefEntity), name }
+  return { schemaName, id, slug: getEntitySlug(entity as RefEntity), name }
 }
 
 function groupsOf(groups: NestedGroup[], parentId: string): EntityChildGroup[] {
@@ -156,12 +156,12 @@ function withRef(ref: EntityRef | undefined): { ref?: EntityRef } {
  * does: its title and whether it is user-made.
  */
 export function toEntityModel(
-  entity: SURefMetaEntity,
+  entity: RefMetaEntity,
   instance?: EntityInstance,
-  view?: { pattern?: SURefObjectAnyPattern }
+  view?: { pattern?: RefObjectAnyPattern }
 ): EntityModel {
   const pattern = view?.pattern
-  const schemaName = (schemaNameOf(entity) ?? 'npcs') as SURefEnumSchemaName | 'actions'
+  const schemaName = (schemaNameOf(entity) ?? 'npcs') as RefEnumSchemaName | 'actions'
   const isAction = schemaName === 'actions'
   const entityName = getReferenceEntityName(entity) ?? ('name' in entity ? String(entity.name) : '')
   const baseRef = refOf(entity)
@@ -186,7 +186,7 @@ export function toEntityModel(
     costSource?.activationCost != null
       ? formatCost(
           costSource.activationCost,
-          resolveActivationCurrency(costSource.actionSource as SURefEnumSchemaName | undefined)
+          resolveActivationCurrency(costSource.actionSource as RefEnumSchemaName | undefined)
         )
       : undefined
 
@@ -211,7 +211,7 @@ export function toEntityModel(
     ...facets.facts,
   ]
 
-  const ownContent: SURefObjectContentBlock[] =
+  const ownContent: RefObjectContentBlock[] =
     'content' in entity && Array.isArray(entity.content) ? entity.content : []
   const children: EntityChildGroup[] = pattern
     ? groupsOf(patternGroups(pattern), baseRef.id)

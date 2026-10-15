@@ -9,7 +9,7 @@
  */
 import { describe, expect, mock, test } from 'bun:test'
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import type { EntityRef, SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
+import type { EntityRef, RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { EntitySurfaceProvider } from '../../../entity/EntitySurface'
 import { ReferenceEntityCard } from '../card/ReferenceEntityCard'
@@ -21,11 +21,11 @@ const need = <T,>(value: T | undefined, label: string): T => {
   return value
 }
 const redLaser = () =>
-  need(SalvageUnionReference.Systems.getByName('Red Laser'), 'red laser') as SURefEntity
-const mule = () => need(SalvageUnionReference.Chassis.getByName('Mule'), 'mule') as SURefEntity
+  need(SalvageUnionReference.Systems.getByName('Red Laser'), 'red laser') as RefEntity
+const mule = () => need(SalvageUnionReference.Chassis.getByName('Mule'), 'mule') as RefEntity
 const sestra = () => need(SalvageUnionReference.Chassis.getByName('Little Sestra'), 'sestra')
 
-function Harness({ data, pattern }: { data: SURefEntity; pattern?: SURefObjectAnyPattern }) {
+function Harness({ data, pattern }: { data: RefEntity; pattern?: RefObjectAnyPattern }) {
   const { control, modal } = useDetailModal(data, { forceModal: true, pattern })
   return (
     <>
@@ -37,7 +37,7 @@ function Harness({ data, pattern }: { data: SURefEntity; pattern?: SURefObjectAn
   )
 }
 
-function openPage(data: SURefEntity, pattern?: SURefObjectAnyPattern): HTMLElement {
+function openPage(data: RefEntity, pattern?: RefObjectAnyPattern): HTMLElement {
   render(<Harness data={data} pattern={pattern} />)
   fireEvent.click(screen.getByRole('button', { name: 'open' }))
   return screen.getByRole('dialog')
@@ -110,7 +110,7 @@ describe('the detail dialog is the Page', () => {
     const pattern = need(
       'patterns' in chassis && Array.isArray(chassis.patterns) ? chassis.patterns[0] : undefined,
       'mule pattern'
-    ) as SURefObjectAnyPattern
+    ) as RefObjectAnyPattern
     const dialog = openPage(chassis, pattern)
     const heading = within(dialog).getAllByRole('heading')[0]
     expect(heading?.textContent).toContain(`“${pattern.name}”`)
@@ -121,7 +121,7 @@ describe('the detail dialog is the Page', () => {
     const pattern = need(
       'patterns' in chassis && Array.isArray(chassis.patterns) ? chassis.patterns[0] : undefined,
       'mule pattern'
-    ) as SURefObjectAnyPattern
+    ) as RefObjectAnyPattern
     const opener = mock((_ref: EntityRef) => {})
     render(
       <EntitySurfaceProvider value={{ openPage: opener }}>

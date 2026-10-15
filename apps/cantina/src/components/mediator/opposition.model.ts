@@ -11,7 +11,7 @@ import type { MoraleRoll } from 'cantina-domain/rules/opposition'
 import { isDown, trackOf } from 'cantina-domain/rules/opposition'
 import type { EncounterNpc } from 'cantina-domain/schemas/encounterNpc'
 import { ENCOUNTER_REF_SCHEMAS } from 'cantina-domain/schemas/encounterNpc'
-import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
+import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { findEntityBySlug, getEntitySlug, resolveFormerSlug } from 'salvageunion-reference'
 
 export type EncounterRefSchema = (typeof ENCOUNTER_REF_SCHEMAS)[number]
@@ -31,13 +31,13 @@ export type TrayNpc = {
   id: string
   name: string
   /** The reference entity it was drawn from, when it still resolves. */
-  entity: SURefEntity | null
+  entity: RefEntity | null
   /**
    * Set when the row's slug is a FORMER one that now names a pattern (ADR-043):
    * a "Hill Worm Pattern Typhon" drawn before it became Typhon's "Hill Worm"
    * pattern. `entity` is then the pattern's host, which supplies its stats.
    */
-  pattern: SURefObjectAnyPattern | null
+  pattern: RefObjectAnyPattern | null
   currentHp: number
   maxHp: number
   statKind: 'hp' | 'sp'
@@ -92,7 +92,7 @@ export function instanceName(refName: string, taken: readonly string[]): string 
 
 /** The slug a reference entity is stored by (data conventions: slugs, never ids). */
 export function slugOf(entity: { name: string }): string {
-  return getEntitySlug(entity as SURefEntity)
+  return getEntitySlug(entity as RefEntity)
 }
 
 /**
@@ -101,7 +101,7 @@ export function slugOf(entity: { name: string }): string {
  */
 export function newTrayNpc(
   schema: EncounterRefSchema,
-  entity: SURefEntity,
+  entity: RefEntity,
   taken: readonly string[],
   now: string
 ): Omit<EncounterNpc, 'id' | 'gameId'> {

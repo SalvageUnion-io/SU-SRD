@@ -1,13 +1,13 @@
 import { describe, expect, test } from 'bun:test'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import { firstParagraphText, SalvageUnionReference } from 'salvageunion-reference'
 import { listingEntries } from '../listingEntries'
 
-const rollTables = () => SalvageUnionReference.RollTables.all() as SURefEntity[]
+const rollTables = () => SalvageUnionReference.RollTables.all() as RefEntity[]
 
 describe('listingEntries', () => {
   test('a listing lists every entry of its schema', () => {
-    const keywords = SalvageUnionReference.Keywords.all() as SURefEntity[]
+    const keywords = SalvageUnionReference.Keywords.all() as RefEntity[]
     expect(listingEntries('keywords', keywords)).toBe(keywords)
   })
 

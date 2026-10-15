@@ -12,7 +12,7 @@
  * consumers import.
  */
 
-import type { SURefMetaEntity, SURefObjectGrant } from './schemas/index'
+import type { RefMetaEntity, RefObjectGrant } from './schemas/index'
 
 // ============================================================================
 // PROPERTY EXTRACTORS
@@ -24,7 +24,7 @@ import type { SURefMetaEntity, SURefObjectGrant } from './schemas/index'
  * @returns The tech level (number, 'B', 'N') or undefined
  */
 
-export function getTechLevel(entity: SURefMetaEntity): number | 'B' | 'N' | undefined {
+export function getTechLevel(entity: RefMetaEntity): number | 'B' | 'N' | undefined {
   if ('techLevel' in entity) {
     const techLevel = entity.techLevel
     if (typeof techLevel === 'number' || techLevel === 'B' || techLevel === 'N') {
@@ -41,7 +41,7 @@ export function getTechLevel(entity: SURefMetaEntity): number | 'B' | 'N' | unde
  * @returns The tech level as a number or undefined
  */
 
-export function getTechLevelNumber(entity: SURefMetaEntity): number | undefined {
+export function getTechLevelNumber(entity: RefMetaEntity): number | undefined {
   if ('techLevel' in entity) {
     const techLevel = entity.techLevel
     if (typeof techLevel === 'number') {
@@ -60,7 +60,7 @@ export function getTechLevelNumber(entity: SURefMetaEntity): number | undefined 
  * @returns The salvage value or undefined
  */
 
-export function getSalvageValue(entity: SURefMetaEntity): number | undefined {
+export function getSalvageValue(entity: RefMetaEntity): number | undefined {
   return 'salvageValue' in entity && typeof entity.salvageValue === 'number'
     ? entity.salvageValue
     : undefined
@@ -72,7 +72,7 @@ export function getSalvageValue(entity: SURefMetaEntity): number | undefined {
  * @returns The slots required or undefined
  */
 
-export function getSlotsRequired(entity: SURefMetaEntity): number | undefined {
+export function getSlotsRequired(entity: RefMetaEntity): number | undefined {
   return 'slotsRequired' in entity && typeof entity.slotsRequired === 'number'
     ? entity.slotsRequired
     : undefined
@@ -84,7 +84,7 @@ export function getSlotsRequired(entity: SURefMetaEntity): number | undefined {
  * @returns The page number or undefined
  */
 
-export function getPageReference(entity: SURefMetaEntity): number | undefined {
+export function getPageReference(entity: RefMetaEntity): number | undefined {
   return 'page' in entity && typeof entity.page === 'number' ? entity.page : undefined
 }
 
@@ -94,7 +94,7 @@ export function getPageReference(entity: SURefMetaEntity): number | undefined {
  * @returns The structure points or undefined
  */
 
-export function getStructurePoints(entity: SURefMetaEntity): number | undefined {
+export function getStructurePoints(entity: RefMetaEntity): number | undefined {
   return 'structurePoints' in entity && typeof entity.structurePoints === 'number'
     ? entity.structurePoints
     : undefined
@@ -106,7 +106,7 @@ export function getStructurePoints(entity: SURefMetaEntity): number | undefined 
  * @returns The energy points or undefined
  */
 
-export function getEnergyPoints(entity: SURefMetaEntity): number | undefined {
+export function getEnergyPoints(entity: RefMetaEntity): number | undefined {
   return 'energyPoints' in entity && typeof entity.energyPoints === 'number'
     ? entity.energyPoints
     : undefined
@@ -118,7 +118,7 @@ export function getEnergyPoints(entity: SURefMetaEntity): number | undefined {
  * @returns The heat capacity or undefined
  */
 
-export function getHeatCapacity(entity: SURefMetaEntity): number | undefined {
+export function getHeatCapacity(entity: RefMetaEntity): number | undefined {
   return 'heatCapacity' in entity && typeof entity.heatCapacity === 'number'
     ? entity.heatCapacity
     : undefined
@@ -130,7 +130,7 @@ export function getHeatCapacity(entity: SURefMetaEntity): number | undefined {
  * @returns The number of system slots or undefined
  */
 
-export function getSystemSlots(entity: SURefMetaEntity): number | undefined {
+export function getSystemSlots(entity: RefMetaEntity): number | undefined {
   return 'systemSlots' in entity && typeof entity.systemSlots === 'number'
     ? entity.systemSlots
     : undefined
@@ -142,7 +142,7 @@ export function getSystemSlots(entity: SURefMetaEntity): number | undefined {
  * @returns The number of module slots or undefined
  */
 
-export function getModuleSlots(entity: SURefMetaEntity): number | undefined {
+export function getModuleSlots(entity: RefMetaEntity): number | undefined {
   return 'moduleSlots' in entity && typeof entity.moduleSlots === 'number'
     ? entity.moduleSlots
     : undefined
@@ -154,7 +154,7 @@ export function getModuleSlots(entity: SURefMetaEntity): number | undefined {
  * @returns The cargo capacity or undefined
  */
 
-export function getCargoCapacity(entity: SURefMetaEntity): number | undefined {
+export function getCargoCapacity(entity: RefMetaEntity): number | undefined {
   return 'cargoCapacity' in entity && typeof entity.cargoCapacity === 'number'
     ? entity.cargoCapacity
     : undefined
@@ -167,7 +167,7 @@ export function getCargoCapacity(entity: SURefMetaEntity): number | undefined {
  * @returns The upkeep cost or undefined
  */
 
-export function getUpkeepCost(entity: SURefMetaEntity): number | undefined {
+export function getUpkeepCost(entity: RefMetaEntity): number | undefined {
   return 'upkeepCost' in entity && typeof entity.upkeepCost === 'number'
     ? entity.upkeepCost
     : undefined
@@ -182,7 +182,7 @@ export function getUpkeepCost(entity: SURefMetaEntity): number | undefined {
  * @returns The upgrade cost, or undefined at the maximum tech level
  */
 
-export function getUpgradeCost(entity: SURefMetaEntity): number | undefined {
+export function getUpgradeCost(entity: RefMetaEntity): number | undefined {
   return 'upgradeCost' in entity && typeof entity.upgradeCost === 'number'
     ? entity.upgradeCost
     : undefined
@@ -195,7 +195,7 @@ export function getUpgradeCost(entity: SURefMetaEntity): number | undefined {
  * @returns The hit points or undefined
  */
 
-export function getHitPoints(entity: SURefMetaEntity): number | undefined {
+export function getHitPoints(entity: RefMetaEntity): number | undefined {
   return 'hitPoints' in entity && typeof entity.hitPoints === 'number'
     ? entity.hitPoints
     : undefined
@@ -207,7 +207,7 @@ export function getHitPoints(entity: SURefMetaEntity): number | undefined {
  * @returns True if the entity is from the Black Market, false if not, undefined if not present
  */
 
-export function getBlackMarket(entity: SURefMetaEntity): boolean | undefined {
+export function getBlackMarket(entity: RefMetaEntity): boolean | undefined {
   return 'blackMarket' in entity && typeof entity.blackMarket === 'boolean'
     ? entity.blackMarket
     : undefined
@@ -223,7 +223,7 @@ export function getBlackMarket(entity: SURefMetaEntity): boolean | undefined {
  * @returns The content or undefined
  */
 
-export function getContent(entity: SURefMetaEntity): unknown | undefined {
+export function getContent(entity: RefMetaEntity): unknown | undefined {
   return 'content' in entity ? entity.content : undefined
 }
 
@@ -233,7 +233,7 @@ export function getContent(entity: SURefMetaEntity): unknown | undefined {
  * @returns The name or undefined
  */
 
-export function getName(entity: SURefMetaEntity): string | undefined {
+export function getName(entity: RefMetaEntity): string | undefined {
   return 'name' in entity && typeof entity.name === 'string' ? entity.name : undefined
 }
 
@@ -243,7 +243,7 @@ export function getName(entity: SURefMetaEntity): string | undefined {
  * @returns The source or undefined
  */
 
-export function getSource(entity: SURefMetaEntity): string | undefined {
+export function getSource(entity: RefMetaEntity): string | undefined {
   return 'source' in entity && typeof entity.source === 'string' ? entity.source : undefined
 }
 
@@ -254,7 +254,7 @@ export function getSource(entity: SURefMetaEntity): string | undefined {
  * @returns The booklet code or undefined
  */
 
-export function getBooklet(entity: SURefMetaEntity): string | undefined {
+export function getBooklet(entity: RefMetaEntity): string | undefined {
   return 'booklet' in entity && typeof entity.booklet === 'string' ? entity.booklet : undefined
 }
 
@@ -264,7 +264,7 @@ export function getBooklet(entity: SURefMetaEntity): string | undefined {
  * @returns The tree or undefined
  */
 
-export function getTree(entity: SURefMetaEntity): unknown | undefined {
+export function getTree(entity: RefMetaEntity): unknown | undefined {
   return 'tree' in entity ? entity.tree : undefined
 }
 
@@ -274,7 +274,7 @@ export function getTree(entity: SURefMetaEntity): unknown | undefined {
  * @returns The bioSalvageValue or undefined
  */
 
-export function getBioSalvageValue(entity: SURefMetaEntity): number | undefined {
+export function getBioSalvageValue(entity: RefMetaEntity): number | undefined {
   return 'bioSalvageValue' in entity && typeof entity.bioSalvageValue === 'number'
     ? entity.bioSalvageValue
     : undefined
@@ -287,7 +287,7 @@ export function getBioSalvageValue(entity: SURefMetaEntity): number | undefined 
  * @returns The display name or name, or undefined if neither is present
  */
 
-export function getReferenceEntityName(entity: SURefMetaEntity): string | undefined {
+export function getReferenceEntityName(entity: RefMetaEntity): string | undefined {
   // Check for displayName first (for actions)
   if ('displayName' in entity && typeof entity.displayName === 'string') {
     return entity.displayName
@@ -307,7 +307,7 @@ export function getReferenceEntityName(entity: SURefMetaEntity): string | undefi
  * @returns The description or undefined if not an ability
  */
 
-export function getDescription(entity: SURefMetaEntity): string | undefined {
+export function getDescription(entity: RefMetaEntity): string | undefined {
   // Only return description for abilities
   if ('description' in entity && typeof entity.description === 'string') {
     return entity.description
@@ -322,7 +322,7 @@ export function getDescription(entity: SURefMetaEntity): string | undefined {
  * @returns The grants array or undefined if not present
  */
 
-export function getGrants(entity: SURefMetaEntity): SURefObjectGrant[] | undefined {
+export function getGrants(entity: RefMetaEntity): RefObjectGrant[] | undefined {
   if ('grants' in entity && Array.isArray(entity.grants)) {
     return entity.grants
   }

@@ -10,7 +10,7 @@
  * pick by hand.
  */
 import { describe, expect, test } from 'bun:test'
-import type { SURefEntity, SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-reference'
+import type { RefEntity, RefEnumSchemaName, RefMetaEntity } from 'salvageunion-reference'
 import {
   discordEntryCard,
   findEntityBySlug,
@@ -27,20 +27,20 @@ import type { LookupHit } from '../lookupCard'
 import { entityFromKey, lookupCard, lookupKey, openCard, patternOf, readCard } from '../lookupCard'
 import { cardText } from './cardText'
 
-type Entity = SURefEntity & { schemaName: SURefEnumSchemaName }
+type Entity = RefEntity & { schemaName: RefEnumSchemaName }
 
 /** The reply as sent must arrive whole: the container guard sheds no block. */
 function assertFits(data: ContainerData, label: string): void {
   expect(enforceContainerLimits(data).blocks, `${label}: shed a block`).toEqual(data.blocks)
 }
 
-function entity(schemaName: SURefEnumSchemaName, slug: string): Entity {
+function entity(schemaName: RefEnumSchemaName, slug: string): Entity {
   const found = findEntityBySlug(schemaName, slug)
   if (!found) throw new Error(`fixture missing: ${schemaName}/${slug}`)
   return { ...found, schemaName }
 }
 
-const hit = (schemaName: SURefEnumSchemaName, slug: string): LookupHit => ({
+const hit = (schemaName: RefEnumSchemaName, slug: string): LookupHit => ({
   schemaName,
   entity: entity(schemaName, slug),
 })
@@ -70,7 +70,7 @@ describe('lookupCard — exhaustive across the whole dataset', () => {
     const schemaName = schema.id
     test(`every ${schemaName} entry and pattern renders whole, never in rust, and IS its pasted link’s card`, () => {
       if (!isSchemaName(schemaName)) throw new Error(`non-canonical schema id: ${schemaName}`)
-      for (const raw of (dataMap[schemaName] as SURefEntity[] | undefined) ?? []) {
+      for (const raw of (dataMap[schemaName] as RefEntity[] | undefined) ?? []) {
         const withSchema: Entity = { ...raw, schemaName }
         const hits: LookupHit[] = [
           { schemaName, entity: withSchema },
@@ -88,7 +88,7 @@ describe('lookupCard — exhaustive across the whole dataset', () => {
           expect(card.accent).not.toBe(NEUTRAL_ACCENT)
           expect(cardText(card)).not.toContain('[[')
           // The pasted link's card, block for block, its shed link included.
-          const embed = discordEntryCard(withSchema as SURefMetaEntity, one.pattern)
+          const embed = discordEntryCard(withSchema as RefMetaEntity, one.pattern)
           expect(cardBlocks(card), `${label}: differs from its Component Embed`).toEqual(
             embed.blocks.map((block) =>
               block.kind === 'text' ? { kind: 'text', content: block.content } : block

@@ -9,14 +9,14 @@
  * and a developer surface may say `schema`.
  */
 
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import type { EndpointModule, StaticPath } from '../../ssg/types'
 import { getItemStaticPaths } from '../lib/staticPaths'
 
 type Params = { schemaId: string; itemId: string }
 type Props = ReturnType<typeof getItemStaticPaths>[number]['props']
 
-function committedRow(item: SURefEntity): Record<string, unknown> {
+function committedRow(item: RefEntity): Record<string, unknown> {
   return Object.fromEntries(Object.entries(item).filter(([key]) => key !== 'schemaName'))
 }
 

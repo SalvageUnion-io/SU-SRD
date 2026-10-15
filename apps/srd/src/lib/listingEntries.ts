@@ -8,14 +8,14 @@
  * them all), never from an island. The page hands the island the ids.
  */
 
-import type { EntitySchemaName, SURefEntity } from 'salvageunion-reference'
+import type { EntitySchemaName, RefEntity } from 'salvageunion-reference'
 import {
   EntitySchemaNames,
   SalvageUnionReference,
   topLevelRollTables,
 } from 'salvageunion-reference'
 
-export function listingEntries(schemaId: string, data: SURefEntity[]): SURefEntity[] {
+export function listingEntries(schemaId: string, data: RefEntity[]): RefEntity[] {
   if (schemaId !== 'roll-tables') return data
   const others = [...EntitySchemaNames].filter(
     (name): name is Exclude<EntitySchemaName, 'roll-tables'> => name !== 'roll-tables'

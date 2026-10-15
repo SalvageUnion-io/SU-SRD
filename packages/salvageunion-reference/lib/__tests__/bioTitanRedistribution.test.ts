@@ -6,7 +6,7 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import type { SalvageUnionReference as SURefType } from '../index'
+import type { SalvageUnionReference as RefType } from '../index'
 
 /** Narrow away null/undefined; throws (failing the test) when the value is missing. */
 function defined<T>(value: T | null | undefined): T {
@@ -16,7 +16,7 @@ function defined<T>(value: T | null | undefined): T {
   return value
 }
 
-let SalvageUnionReference: typeof SURefType
+let SalvageUnionReference: typeof RefType
 
 function getReference() {
   if (!SalvageUnionReference) {

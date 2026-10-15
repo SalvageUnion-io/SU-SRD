@@ -7,7 +7,7 @@
 import { describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { Mention, useDetailModal } from 'component-lib'
-import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
+import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { EntityPageHost } from '../EntityPageHost'
 
@@ -18,13 +18,7 @@ const vulnerable = () => {
 }
 
 /** A pattern's Page, opened as the Mediator's tray opens one. */
-function PatternOpener({
-  chassis,
-  pattern,
-}: {
-  chassis: SURefEntity
-  pattern: SURefObjectAnyPattern
-}) {
+function PatternOpener({ chassis, pattern }: { chassis: RefEntity; pattern: RefObjectAnyPattern }) {
   const { control, modal } = useDetailModal(chassis, { pattern })
   return (
     <>
@@ -55,10 +49,10 @@ describe('EntityPageHost', () => {
   })
 
   test("a pattern's PATTERN OF chip opens its chassis's Page in the dialog", async () => {
-    const chassis = SalvageUnionReference.Chassis.getByName('Mule') as SURefEntity | undefined
+    const chassis = SalvageUnionReference.Chassis.getByName('Mule') as RefEntity | undefined
     const pattern =
       chassis && 'patterns' in chassis && Array.isArray(chassis.patterns)
-        ? (chassis.patterns[0] as SURefObjectAnyPattern | undefined)
+        ? (chassis.patterns[0] as RefObjectAnyPattern | undefined)
         : undefined
     if (!chassis || !pattern) throw new Error('mule pattern fixture missing')
     render(

@@ -15,7 +15,7 @@
  */
 
 import { SRD_SITE_URL } from '../assets'
-import type { SURefMetaEntity, SURefObjectAnyPattern } from '../schemas/index'
+import type { RefMetaEntity, RefObjectAnyPattern } from '../schemas/index'
 import type { DiscordBlock, DiscordCard } from './discordCard'
 import { discordAccent, discordCard, discordCardParts } from './discordCard'
 import { toEntityModel } from './toEntityModel'
@@ -115,8 +115,8 @@ type DiscordEntryCardOptions = {
  * links, since a longer origin can shed a part production's keeps.
  */
 export function discordEntryCard(
-  entity: SURefMetaEntity,
-  pattern?: SURefObjectAnyPattern,
+  entity: RefMetaEntity,
+  pattern?: RefObjectAnyPattern,
   options: DiscordEntryCardOptions = {}
 ): DiscordCard {
   const parts = discordCardParts(

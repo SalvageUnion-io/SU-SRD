@@ -10,8 +10,8 @@
  *   3. Adding ONE entry to the array below.
  *   4. Running `bun run build:package`.
  *
- * Everything else — the SURef* entity type aliases and the SURefEntity /
- * SURefMetaEntity unions (membership decided by `entity` / `excludeFromEntityUnion` below),
+ * Everything else — the Ref* entity type aliases and the RefEntity /
+ * RefMetaEntity unions (membership decided by `entity` / `excludeFromEntityUnion` below),
  * ModelFactory's dataLoaders /
  * zodSchemaMap / schemaDisplayNames, index.ts's LazyModel instances /
  * lazyModelMap / SchemaToEntityMap / SCHEMA_REGISTRY / static accessors — is
@@ -30,7 +30,7 @@
 export type RegistryEntry = {
   /** kebab-case schema id, e.g. "power-cores" — the data/schema filename stem */
   id: string
-  /** SURef* type name to generate, e.g. "SURefChassis" — `z.infer` of `zodExportName` */
+  /** Ref* type name to generate, e.g. "RefChassis" — `z.infer` of `zodExportName` */
   typeName: string
   /** Exported Zod schema variable name from lib/schemas/entities.ts, e.g. "ChassisSchema" */
   zodExportName: string
@@ -41,15 +41,15 @@ export type RegistryEntry = {
   /**
    * Set to `false` for non-entity metadata schemas (e.g. catalog-categories):
    * excluded from EntitySchemaNames and from BOTH generated unions
-   * (SURefEntity and SURefMetaEntity). Defaults to an entity schema (`true`)
+   * (RefEntity and RefMetaEntity). Defaults to an entity schema (`true`)
    * when omitted.
    */
   entity?: boolean
   /**
    * Set to `true` for the rules-metadata schemas (actions, ability-tree
    * requirements, crawler tech levels): they are entities, so they stay in
-   * SURefMetaEntity and EntitySchemaNames, but they are left out of the
-   * narrower SURefEntity union. (Unrelated to `meta` below, which is a
+   * RefMetaEntity and EntitySchemaNames, but they are left out of the
+   * narrower RefEntity union. (Unrelated to `meta` below, which is a
    * different set.)
    */
   excludeFromEntityUnion?: boolean
@@ -69,14 +69,14 @@ export type RegistryEntry = {
 export const registry: RegistryEntry[] = [
   {
     id: 'abilities',
-    typeName: 'SURefAbility',
+    typeName: 'RefAbility',
     zodExportName: 'AbilitySchema',
     singular: 'Ability',
     plural: 'Abilities',
   },
   {
     id: 'ability-tree-requirements',
-    typeName: 'SURefMetaAbilityTreeRequirement',
+    typeName: 'RefMetaAbilityTreeRequirement',
     zodExportName: 'AbilityTreeRequirementSchema',
     singular: 'Ability Tree Requirement',
     plural: 'Ability Tree Requirements',
@@ -85,7 +85,7 @@ export const registry: RegistryEntry[] = [
   },
   {
     id: 'actions',
-    typeName: 'SURefMetaAction',
+    typeName: 'RefMetaAction',
     zodExportName: 'MetaActionSchema',
     singular: 'Action',
     plural: 'Actions',
@@ -95,28 +95,28 @@ export const registry: RegistryEntry[] = [
   },
   {
     id: 'chassis',
-    typeName: 'SURefChassis',
+    typeName: 'RefChassis',
     zodExportName: 'ChassisSchema',
     singular: 'Chassis',
     plural: 'Chassis',
   },
   {
     id: 'classes',
-    typeName: 'SURefClass',
+    typeName: 'RefClass',
     zodExportName: 'ClassSchema',
     singular: 'Class',
     plural: 'Classes',
   },
   {
     id: 'crawler-bays',
-    typeName: 'SURefCrawlerBay',
+    typeName: 'RefCrawlerBay',
     zodExportName: 'CrawlerBaySchema',
     singular: 'Crawler Bay',
     plural: 'Crawler Bays',
   },
   {
     id: 'crawler-tech-levels',
-    typeName: 'SURefMetaCrawlerTechLevel',
+    typeName: 'RefMetaCrawlerTechLevel',
     zodExportName: 'CrawlerTechLevelSchema',
     singular: 'Crawler Tech Level',
     plural: 'Crawler Tech Levels',
@@ -124,134 +124,134 @@ export const registry: RegistryEntry[] = [
   },
   {
     id: 'crawlers',
-    typeName: 'SURefCrawler',
+    typeName: 'RefCrawler',
     zodExportName: 'CrawlerSchema',
     singular: 'Crawler',
     plural: 'Crawlers',
   },
   {
     id: 'creatures',
-    typeName: 'SURefCreature',
+    typeName: 'RefCreature',
     zodExportName: 'CreatureSchema',
     singular: 'Creature',
     plural: 'Creatures',
   },
   {
     id: 'distances',
-    typeName: 'SURefDistance',
+    typeName: 'RefDistance',
     zodExportName: 'DistanceSchema',
     singular: 'Distance',
     plural: 'Distances',
   },
   {
     id: 'drones',
-    typeName: 'SURefDrone',
+    typeName: 'RefDrone',
     zodExportName: 'DroneSchema',
     singular: 'Drone',
     plural: 'Drones',
   },
   {
     id: 'equipment',
-    typeName: 'SURefEquipment',
+    typeName: 'RefEquipment',
     zodExportName: 'EquipmentSchema',
     singular: 'Equipment',
     plural: 'Equipment',
   },
   {
     id: 'factions',
-    typeName: 'SURefFaction',
+    typeName: 'RefFaction',
     zodExportName: 'FactionSchema',
     singular: 'Faction',
     plural: 'Factions',
   },
   {
     id: 'guides',
-    typeName: 'SURefGuide',
+    typeName: 'RefGuide',
     zodExportName: 'GuideSchema',
     singular: 'Guide',
     plural: 'Guides',
   },
   {
     id: 'keywords',
-    typeName: 'SURefKeyword',
+    typeName: 'RefKeyword',
     zodExportName: 'KeywordSchema',
     singular: 'Keyword',
     plural: 'Keywords',
   },
   {
     id: 'meld',
-    typeName: 'SURefMeld',
+    typeName: 'RefMeld',
     zodExportName: 'MeldSchema',
     singular: 'Meld',
     plural: 'Meld',
   },
   {
     id: 'modules',
-    typeName: 'SURefModule',
+    typeName: 'RefModule',
     zodExportName: 'ModuleSchema',
     singular: 'Module',
     plural: 'Modules',
   },
-  { id: 'npcs', typeName: 'SURefNPC', zodExportName: 'NPCSchema', singular: 'NPC', plural: 'NPCs' },
+  { id: 'npcs', typeName: 'RefNPC', zodExportName: 'NPCSchema', singular: 'NPC', plural: 'NPCs' },
   {
     id: 'roll-tables',
-    typeName: 'SURefRollTable',
+    typeName: 'RefRollTable',
     zodExportName: 'RollTableSchema',
     singular: 'Roll Table',
     plural: 'Roll Tables',
   },
   {
     id: 'squads',
-    typeName: 'SURefSquad',
+    typeName: 'RefSquad',
     zodExportName: 'SquadSchema',
     singular: 'Squad',
     plural: 'Squads',
   },
   {
     id: 'systems',
-    typeName: 'SURefSystem',
+    typeName: 'RefSystem',
     zodExportName: 'SystemSchema',
     singular: 'System',
     plural: 'Systems',
   },
   {
     id: 'bio-titans',
-    typeName: 'SURefBioTitan',
+    typeName: 'RefBioTitan',
     zodExportName: 'BioTitanSchema',
     singular: 'Bio-Titan',
     plural: 'Bio-Titans',
   },
   {
     id: 'traits',
-    typeName: 'SURefTrait',
+    typeName: 'RefTrait',
     zodExportName: 'TraitEntitySchema',
     singular: 'Trait',
     plural: 'Traits',
   },
   {
     id: 'vehicles',
-    typeName: 'SURefVehicle',
+    typeName: 'RefVehicle',
     zodExportName: 'VehicleSchema',
     singular: 'Vehicle',
     plural: 'Vehicles',
   },
   {
     id: 'sources',
-    typeName: 'SURefSource',
+    typeName: 'RefSource',
     zodExportName: 'SourceEntitySchema',
     singular: 'Source',
     plural: 'Sources',
   },
   {
     id: 'tech-levels',
-    typeName: 'SURefTechLevel',
+    typeName: 'RefTechLevel',
     zodExportName: 'TechLevelEntitySchema',
     singular: 'Tech Level',
     plural: 'Tech Levels',
   },
   {
     id: 'catalog-categories',
-    typeName: 'SURefCatalogCategory',
+    typeName: 'RefCatalogCategory',
     zodExportName: 'CatalogCategorySchema',
     singular: 'Catalog Category',
     plural: 'Catalog Categories',

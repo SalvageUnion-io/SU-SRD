@@ -1,7 +1,7 @@
 import { PilotSchema } from 'cantina-domain/schemas/pilot'
 import { toast } from 'component-lib'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { SURefAbility, SURefClass, SURefEquipment } from 'salvageunion-reference'
+import type { RefAbility, RefClass, RefEquipment } from 'salvageunion-reference'
 import { bookQuote, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import {
   isLegalCreationAbility,
@@ -77,11 +77,11 @@ const STEP_TITLES: Record<PilotWizardStepId, string> = {
  */
 type SURDeps = {
   Classes: {
-    all: () => SURefClass[]
-    find: (fn: (x: SURefClass) => boolean) => SURefClass | undefined
+    all: () => RefClass[]
+    find: (fn: (x: RefClass) => boolean) => RefClass | undefined
   }
-  Abilities: { findAll: (fn: (x: SURefAbility) => boolean) => SURefAbility[] }
-  Equipment: { findAll: (fn: (x: SURefEquipment) => boolean) => SURefEquipment[] }
+  Abilities: { findAll: (fn: (x: RefAbility) => boolean) => RefAbility[] }
+  Equipment: { findAll: (fn: (x: RefEquipment) => boolean) => RefEquipment[] }
 }
 
 type PilotWizardProps = {

@@ -1,7 +1,7 @@
 import { Dialog } from '@base-ui/react/dialog'
 import { X } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import type { SURefEntity, SURefMetaEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
+import type { RefEntity, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 import { borderWidth, color, space } from '../../design/tokens'
 import { EntityStat } from '../../entity/parts/EntityStat'
@@ -23,9 +23,9 @@ type EntityDetailDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   /** The entity the Page is of: its band and its foot read it. */
-  entity: SURefMetaEntity
+  entity: RefMetaEntity
   /** The Page is of this pattern of `entity` (a chassis's), not of `entity` itself. */
-  pattern?: SURefObjectAnyPattern
+  pattern?: RefObjectAnyPattern
   /**
    * The Page's title, notched into its band, and the dialog's name: the
    * entity's name, a pattern's quoted name, an action without its host's
@@ -87,7 +87,7 @@ const pageStyle = {
  * action). The SRD's route picks its chapter's band where the entity has no
  * tone of its own; a dialog has no chapter, so the tone is the band.
  */
-function pageBand(entity: SURefMetaEntity): { tone: ChapterTone; fill?: string } {
+function pageBand(entity: RefMetaEntity): { tone: ChapterTone; fill?: string } {
   const schemaName =
     'schemaName' in entity && typeof entity.schemaName === 'string' ? entity.schemaName : undefined
   if (!schemaName || schemaName === 'actions') return { tone: 'ink' }
@@ -115,7 +115,7 @@ function EntityDetailPage({
   const band = pageBand(entity)
   const provenance = resolveFooterProvenance(entity, pattern)
   // The Cantina's "View in SRD" link, carried in the Page's foot.
-  const externalLink = useEntityExternalLink(entity as SURefEntity)
+  const externalLink = useEntityExternalLink(entity as RefEntity)
   const parent = pattern ? toEntityModel(entity, undefined, { pattern }).parent : undefined
   return (
     <>

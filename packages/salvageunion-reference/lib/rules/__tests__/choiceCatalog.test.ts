@@ -5,17 +5,17 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from '../../index'
-import type { SURefObjectChoice } from '../../schemas/index'
+import type { RefObjectChoice } from '../../schemas/index'
 import { isSchemaOnlyCatalogChoice, resolveCatalogChoiceEntities } from '../choiceCatalog'
 import { isWeaponSystem } from '../crawlerSystems'
 
-const armamentBayChoice: SURefObjectChoice = {
+const armamentBayChoice: RefObjectChoice = {
   id: 'armament-bay-weapon',
   name: 'Armament Bay Weapons System',
   source: { kind: 'catalog', schema: ['systems'], filter: { damageType: 'SP' } },
 }
 
-const shortlistChoice: SURefObjectChoice = {
+const shortlistChoice: RefObjectChoice = {
   id: 'weapon-type',
   name: 'Weapon Type',
   source: { kind: 'catalog', schema: ['traits'], entities: ['ballistic', 'energy'] },
@@ -69,7 +69,7 @@ describe('resolveCatalogChoiceEntities — shortlist catalog', () => {
   })
 
   test('matches shortlist names without case, as the data writes traits in Title Case', () => {
-    const titleCase: SURefObjectChoice = {
+    const titleCase: RefObjectChoice = {
       ...shortlistChoice,
       source: { kind: 'catalog', schema: ['traits'], entities: ['Ballistic', 'Energy'] },
     }
@@ -86,7 +86,7 @@ describe('resolveCatalogChoiceEntities — shortlist catalog', () => {
 
 describe('resolveCatalogChoiceEntities — non-catalog', () => {
   test('returns [] for a text choice', () => {
-    const textChoice: SURefObjectChoice = {
+    const textChoice: RefObjectChoice = {
       id: 't',
       name: 'Name',
       source: { kind: 'text' },

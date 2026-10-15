@@ -1,4 +1,4 @@
-import type { SURefMetaEntity, SURefObjectGuideStep } from 'salvageunion-reference'
+import type { RefMetaEntity, RefObjectGuideStep } from 'salvageunion-reference'
 import { firstParagraphText } from 'salvageunion-reference'
 
 /**
@@ -33,14 +33,14 @@ import { firstParagraphText } from 'salvageunion-reference'
  * A DATA-SHAPE check (`steps`), matching `resolveGuideSteps` — the card layer
  * does not branch on schema names.
  */
-export function resolveGuideLead(entity: SURefMetaEntity): string | undefined {
+export function resolveGuideLead(entity: RefMetaEntity): string | undefined {
   if (entity == null || typeof entity !== 'object') return undefined
   if (!('steps' in entity) || !Array.isArray(entity.steps)) return undefined
 
   const own = firstParagraphText('content' in entity ? entity.content : undefined)
   if (own) return own
 
-  for (const step of entity.steps as SURefObjectGuideStep[]) {
+  for (const step of entity.steps as RefObjectGuideStep[]) {
     const lead = firstParagraphText(step?.content)
     if (lead) return lead
   }

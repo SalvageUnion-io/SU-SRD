@@ -5,7 +5,7 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { readPackageStylesheet } from '../../styles/__tests__/packageStylesheet'
 import { Entity } from '../Entity'
@@ -15,7 +15,7 @@ const need = <T,>(value: T | undefined, label: string): T => {
   return value
 }
 const table = (name: string) =>
-  need(SalvageUnionReference.RollTables.getByName(name), name) as SURefEntity
+  need(SalvageUnionReference.RollTables.getByName(name), name) as RefEntity
 
 describe('Row body', () => {
   test('a Row with nothing to say past its head has no body and is marked bodyless', () => {

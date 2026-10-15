@@ -5,11 +5,11 @@
  */
 
 import type {
-  SURefEntity,
-  SURefEnumSchemaName,
-  SURefMetaAction,
-  SURefMetaEntity,
-  SURefObjectAnyPattern,
+  RefEntity,
+  RefEnumSchemaName,
+  RefMetaAction,
+  RefMetaEntity,
+  RefObjectAnyPattern,
 } from 'salvageunion-reference'
 import {
   extractPatternActions,
@@ -41,10 +41,10 @@ export function resolveNestedSections({
   foldedAction,
   droneLoadout,
 }: {
-  entity: SURefMetaEntity
-  schemaName: SURefEnumSchemaName | 'actions'
+  entity: RefMetaEntity
+  schemaName: RefEnumSchemaName | 'actions'
   /** Set on a PATTERN view, whose `entity` is its host (chassis or Bio-Titan). */
-  pattern: SURefObjectAnyPattern | undefined
+  pattern: RefObjectAnyPattern | undefined
   isCatalog: boolean
   /** The card IS the page (`presentation="page"` at the top level). */
   onPage: boolean
@@ -56,7 +56,7 @@ export function resolveNestedSections({
   /** The action folded into the body — every OTHER action gets its own card. */
   foldedAction: { name?: string } | undefined
   /** A parent-resolved loadout for THIS card, when it is a drone. */
-  droneLoadout: { systems: SURefEntity[]; modules: SURefEntity[] } | undefined
+  droneLoadout: { systems: RefEntity[]; modules: RefEntity[] } | undefined
 }) {
   const isAction = schemaName === 'actions'
   const isPattern = !!pattern
@@ -90,9 +90,8 @@ export function resolveNestedSections({
   const patternGroups = pattern
     ? resolvePatternGroups(pattern).filter((group) => group.label !== 'Drones')
     : []
-  const patternActions: SURefMetaAction[] =
-    pattern && canExpand ? extractPatternActions(pattern) : []
-  const patternList: SURefObjectAnyPattern[] =
+  const patternActions: RefMetaAction[] = pattern && canExpand ? extractPatternActions(pattern) : []
+  const patternList: RefObjectAnyPattern[] =
     !isPattern && !isCatalog ? (getPatterns(entity) ?? []) : []
 
   // TITANIC actions always get their own full-width row (never the masonry).

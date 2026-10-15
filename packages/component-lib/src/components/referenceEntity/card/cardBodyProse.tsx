@@ -10,13 +10,13 @@
 
 import type { ReactNode } from 'react'
 import type {
-  SURefEntity,
-  SURefEnumSchemaName,
-  SURefMetaAction,
-  SURefMetaEntity,
-  SURefObjectAnyPattern,
-  SURefObjectChoice,
-  SURefObjectContentBlock,
+  RefEntity,
+  RefEnumSchemaName,
+  RefMetaAction,
+  RefMetaEntity,
+  RefObjectAnyPattern,
+  RefObjectChoice,
+  RefObjectContentBlock,
 } from 'salvageunion-reference'
 import { getChoices, isAbility, resolveGrantedEntities } from 'salvageunion-reference'
 import type { CardSize } from '../../containers/displayMode'
@@ -56,9 +56,9 @@ export type CardBodyInput = Pick<
   | 'showChassisAbility'
 > & {
   data: ReferenceCardEntity
-  entity: SURefMetaEntity
-  schemaName: SURefEnumSchemaName | 'actions'
-  pattern: SURefObjectAnyPattern | undefined
+  entity: RefMetaEntity
+  schemaName: RefEnumSchemaName | 'actions'
+  pattern: RefObjectAnyPattern | undefined
   entityName: string
   resolvedChassisName: string | undefined
   size: CardSize
@@ -76,15 +76,15 @@ export type CardBodyInput = Pick<
   tone: DomainTone
   hide: ReferenceEntityCardHideConfig | undefined
   /** The self-action folded into the body (`foldedActionOf`). */
-  foldedAction: SURefMetaAction | undefined
-  titanicBodyContent: SURefObjectContentBlock[] | undefined
+  foldedAction: RefMetaAction | undefined
+  titanicBodyContent: RefObjectContentBlock[] | undefined
   hintText: string | undefined
   leadHint: string | undefined
   assetUrl: string | undefined
   assetSrcSet: string | undefined
   effTechLevel: number | undefined
   dataValueBonuses: BonusCell[]
-  entityChoices: SURefObjectChoice[]
+  entityChoices: RefObjectChoice[]
   sectionAs: 'h2' | undefined
   /** This card, for the sections that nest cards (no circular import). */
   NestedCard: NestedCard
@@ -131,7 +131,7 @@ export function resolveBodyProse(input: CardBodyInput) {
   // BODY — content + nested groups. A granting ability collapses its own
   // content AND actions (they belong to the granted entity); its description
   // leads, then the granted cards.
-  const grantedCount = resolveGrantedEntities(entity as SURefEntity).length
+  const grantedCount = resolveGrantedEntities(entity as RefEntity).length
   const isGrantingAbility = !isCatalog && isAbility(entity) && grantedCount > 0
   // CATALOG guide lead — narrow a guide tile to its own opening paragraph,
   // falling back to its first step's (see `resolveGuideLead`).
@@ -180,8 +180,7 @@ export function resolveBodyProse(input: CardBodyInput) {
   const bodyBlocks = hideShownProse(resolvedBody.bodyBlocks, shownProse, resolvedChassisName)
   const showBody = resolvedBody.showBody && bodyBlocks.length > 0
 
-  const choiceIsEmpty = (c: SURefObjectChoice) =>
-    choiceRendersNothing(c, editableChoices, selections)
+  const choiceIsEmpty = (c: RefObjectChoice) => choiceRendersNothing(c, editableChoices, selections)
 
   // The card context every prose band renders with.
   const prose: CardProseContext = {
@@ -204,7 +203,7 @@ export function resolveBodyProse(input: CardBodyInput) {
       <BonusPerTechLevel key="bonus-per-tech" cells={bonusCellList} compact={compact} />
     ) : null
 
-  const renderChoiceRegion = (choice: SURefObjectChoice): ReactNode => (
+  const renderChoiceRegion = (choice: RefObjectChoice): ReactNode => (
     <ChoiceRegion
       key={`choice-region-${choice.id}`}
       choice={choice}
@@ -246,7 +245,7 @@ export function resolveBodyProse(input: CardBodyInput) {
 
   // The LEAD — the hint as the body's first paragraph (unless the body
   // already opens with it).
-  const leadBlocks: SURefObjectContentBlock[] =
+  const leadBlocks: RefObjectContentBlock[] =
     leadHint && !hide?.content && !bodyBlocks.some((b) => blockPlainText(b).startsWith(leadHint))
       ? [{ type: 'paragraph', value: leadHint }]
       : []
@@ -254,9 +253,9 @@ export function resolveBodyProse(input: CardBodyInput) {
   // CATALOG LEAD — a tile with no prose of its own borrows an opening
   // paragraph from what it suppressed (grants, then actions), deduplicated
   // against the hint.
-  const catalogLeadBlocks: SURefObjectContentBlock[] =
+  const catalogLeadBlocks: RefObjectContentBlock[] =
     isCatalog && bodyNodes.length === 0
-      ? resolveCatalogLeadBlocks(entity as SURefEntity, hintText)
+      ? resolveCatalogLeadBlocks(entity as RefEntity, hintText)
       : []
 
   // What this card prints, for its nested children to not repeat.

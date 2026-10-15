@@ -6,7 +6,7 @@
  */
 
 import { useMemo, useState } from 'react'
-import type { EntitySchemaName, SURefEnumSchemaName } from 'salvageunion-reference'
+import type { EntitySchemaName, RefEnumSchemaName } from 'salvageunion-reference'
 import { SalvageUnionReference, searchIn, techLevelRank } from 'salvageunion-reference'
 import type { TechLevel } from 'salvageunion-reference/rules'
 import type {
@@ -131,7 +131,7 @@ export function useSearcherPool({
   const searchOrder = useMemo(() => {
     const q = query.trim()
     if (!q) return null
-    const ranked: EntityLike[] = searchIn(schema as SURefEnumSchemaName, q)
+    const ranked: EntityLike[] = searchIn(schema as RefEnumSchemaName, q)
     const order = new Map<string, number>()
     ranked.forEach((e, i) => {
       order.set(e.id, i)

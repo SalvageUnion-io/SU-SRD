@@ -16,21 +16,21 @@ import { getGrants } from './entityFields'
 import { getModel } from './helpers'
 import { getDataMaps } from './ModelFactory'
 import type {
-  SURefEntity,
-  SURefMetaAction,
-  SURefMetaEntity,
-  SURefObjectAnyPattern,
-  SURefObjectChoice,
-  SURefObjectSystemModule,
-  SURefObjectTrait,
+  RefEntity,
+  RefMetaAction,
+  RefMetaEntity,
+  RefObjectAnyPattern,
+  RefObjectChoice,
+  RefObjectSystemModule,
+  RefObjectTrait,
 } from './schemas/index'
 
 // Cached action map - built once since action data is static
-let _actionMap: Map<string, SURefMetaAction> | null = null
-function getActionMap(): Map<string, SURefMetaAction> {
+let _actionMap: Map<string, RefMetaAction> | null = null
+function getActionMap(): Map<string, RefMetaAction> {
   if (_actionMap) return _actionMap
   const { dataMap } = getDataMaps()
-  const actionsData = dataMap.actions as SURefMetaAction[] | undefined
+  const actionsData = dataMap.actions as RefMetaAction[] | undefined
   if (!actionsData) return new Map()
   _actionMap = new Map(actionsData.map((a) => [a.name, a]))
   return _actionMap
@@ -49,18 +49,18 @@ export function invalidateActionMap(): void {
  * @returns The actions array or undefined
  */
 
-export function extractActions(entity: SURefMetaEntity): SURefMetaAction[] | undefined {
+export function extractActions(entity: RefMetaEntity): RefMetaAction[] | undefined {
   return extractActionsFromCarrier(entity)
 }
 
 /**
  * Internal widened form of {@link extractActions}: also accepts a bare
- * `SURefObjectSystemModule` or a Bio-Titan pattern (`actions` carriers that are
+ * `RefObjectSystemModule` or a Bio-Titan pattern (`actions` carriers that are
  * not themselves entities), so those callers don't need an entity assertion.
  */
 function extractActionsFromCarrier(
-  entity: SURefMetaEntity | SURefObjectSystemModule | SURefObjectAnyPattern
-): SURefMetaAction[] | undefined {
+  entity: RefMetaEntity | RefObjectSystemModule | RefObjectAnyPattern
+): RefMetaAction[] | undefined {
   if (!('actions' in entity) || !Array.isArray(entity.actions)) {
     return undefined
   }
@@ -74,7 +74,7 @@ function extractActionsFromCarrier(
   }
 
   // Resolve each action name to its object
-  const resolved: SURefMetaAction[] = []
+  const resolved: RefMetaAction[] = []
   for (const actionName of actionNames) {
     if (typeof actionName !== 'string') {
       console.warn(`Invalid action: expected string, got ${typeof actionName}`)
@@ -97,7 +97,7 @@ function extractActionsFromCarrier(
  * systems and modules), so it resolves to an empty list.
  */
 
-export function extractPatternActions(pattern: SURefObjectAnyPattern): SURefMetaAction[] {
+export function extractPatternActions(pattern: RefObjectAnyPattern): RefMetaAction[] {
   if (!('actions' in pattern)) return []
   return (extractActionsFromCarrier(pattern) ?? []).filter((action) => !action.hidden)
 }
@@ -120,7 +120,7 @@ export function extractPatternActions(pattern: SURefObjectAnyPattern): SURefMeta
  * @param entity - The entity to check
  * @returns The matching action or undefined
  */
-function findMatchingAction(entity: SURefMetaEntity): SURefMetaAction | undefined {
+function findMatchingAction(entity: RefMetaEntity): RefMetaAction | undefined {
   if (!('name' in entity) || typeof entity.name !== 'string') {
     return undefined
   }
@@ -143,7 +143,7 @@ function findMatchingAction(entity: SURefMetaEntity): SURefMetaAction | undefine
  * @returns The visible actions array or undefined
  */
 
-export function extractVisibleActions(entity: SURefMetaEntity): SURefMetaAction[] | undefined {
+export function extractVisibleActions(entity: RefMetaEntity): RefMetaAction[] | undefined {
   const actions = extractActions(entity)
   if (!actions) return undefined
   return actions.filter((action) => !action.hidden)
@@ -156,7 +156,7 @@ export function extractVisibleActions(entity: SURefMetaEntity): SURefMetaAction[
  * @returns The chassis abilities array or undefined
  */
 
-export function getChassisAbilities(entity: SURefMetaEntity): SURefMetaAction[] | undefined {
+export function getChassisAbilities(entity: RefMetaEntity): RefMetaAction[] | undefined {
   if (!('chassisAbilities' in entity) || !Array.isArray(entity.chassisAbilities)) {
     return undefined
   }
@@ -172,7 +172,7 @@ export function getChassisAbilities(entity: SURefMetaEntity): SURefMetaAction[] 
   // Resolve each ability name to its object
   // Use a Set to track IDs to prevent duplicates (in case same ability is referenced multiple times)
   const seenIds = new Set<string>()
-  const resolved: SURefMetaAction[] = []
+  const resolved: RefMetaAction[] = []
   for (const abilityName of chassisAbilities) {
     if (typeof abilityName !== 'string') {
       console.warn(`Invalid chassis ability: expected string, got ${typeof abilityName}`)
@@ -208,7 +208,7 @@ export function getChassisAbilities(entity: SURefMetaEntity): SURefMetaAction[] 
  * dead for every entity in the repo — kept only for a raw action passed in).
  */
 function selfActionField<T>(
-  entity: SURefMetaEntity,
+  entity: RefMetaEntity,
   key: string,
   valid: (v: unknown) => v is T
 ): T | undefined {
@@ -235,7 +235,7 @@ const isDamage = (v: unknown): v is DamageValue => v !== null && typeof v === 'o
  * Get action type from an entity (self-action fallback).
  */
 
-export function getActionType(entity: SURefMetaEntity): string | undefined {
+export function getActionType(entity: RefMetaEntity): string | undefined {
   return selfActionField(entity, 'actionType', isString)
 }
 
@@ -243,7 +243,7 @@ export function getActionType(entity: SURefMetaEntity): string | undefined {
  * Get range from an entity (self-action fallback).
  */
 
-export function getRange(entity: SURefMetaEntity): string[] | undefined {
+export function getRange(entity: RefMetaEntity): string[] | undefined {
   return selfActionField(entity, 'range', isStringArray)
 }
 
@@ -251,7 +251,7 @@ export function getRange(entity: SURefMetaEntity): string[] | undefined {
  * Get damage from an entity (self-action fallback).
  */
 
-export function getDamage(entity: SURefMetaEntity): DamageValue | undefined {
+export function getDamage(entity: RefMetaEntity): DamageValue | undefined {
   return selfActionField(entity, 'damage', isDamage)
 }
 
@@ -262,7 +262,7 @@ export function getDamage(entity: SURefMetaEntity): DamageValue | undefined {
  * @returns The traits array or undefined if not present
  */
 
-export function getTraits(entity: SURefMetaEntity): SURefObjectTrait[] | undefined {
+export function getTraits(entity: RefMetaEntity): RefObjectTrait[] | undefined {
   // Check base level first
   if ('traits' in entity && Array.isArray(entity.traits)) {
     return entity.traits
@@ -292,7 +292,7 @@ export function getTraits(entity: SURefMetaEntity): SURefObjectTrait[] | undefin
  * @returns The choices array or undefined if not present
  */
 
-export function getChoices(entity: SURefMetaEntity): SURefObjectChoice[] | undefined {
+export function getChoices(entity: RefMetaEntity): RefObjectChoice[] | undefined {
   // Check if entity has an action with matching name that has choices - use those first
   const matchingAction = findMatchingAction(entity)
   const hasMatchingActionWithChoices =
@@ -325,7 +325,7 @@ export function getChoices(entity: SURefMetaEntity): SURefObjectChoice[] | undef
         if (!model) continue
 
         // O(1) via the model's name index (was a linear scan per grant).
-        const grantedEntity: SURefEntity | undefined = model.getByName(grant.name)
+        const grantedEntity: RefEntity | undefined = model.getByName(grant.name)
         if (!grantedEntity) continue
 
         // Check if granted entity has an action with the same name as the base entity

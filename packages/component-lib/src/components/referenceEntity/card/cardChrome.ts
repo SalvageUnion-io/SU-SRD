@@ -6,7 +6,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import type { SURefMetaEntity, SURefObjectContentBlock } from 'salvageunion-reference'
+import type { RefMetaEntity, RefObjectContentBlock } from 'salvageunion-reference'
 import {
   firstParagraphText,
   headerFill,
@@ -92,7 +92,7 @@ export type HeaderFill = 'tone' | 'ink'
  * of the Token, Row or Tile that opened it, never a different one.
  */
 export function resolveHeaderFill(
-  entity: SURefMetaEntity,
+  entity: RefMetaEntity,
   extent: CardExtent,
   insidePeek = false
 ): HeaderFill {
@@ -297,16 +297,16 @@ export function resolveCardInteraction({
  *   to the row's one line.
  */
 export function resolveHeaderHint(
-  entity: SURefMetaEntity,
+  entity: RefMetaEntity,
   {
     isTitanicMeta,
     patternListingContent,
   }: {
     isTitanicMeta: boolean
     /** A pattern LISTING row's content, else undefined. */
-    patternListingContent: SURefObjectContentBlock[] | undefined
+    patternListingContent: RefObjectContentBlock[] | undefined
   }
-): { hintText: string | undefined; titanicBodyContent: SURefObjectContentBlock[] | undefined } {
+): { hintText: string | undefined; titanicBodyContent: RefObjectContentBlock[] | undefined } {
   const description =
     isAbility(entity) && typeof entity.description === 'string' ? entity.description : undefined
   const titanicContent = isTitanicMeta && 'content' in entity ? entity.content : undefined

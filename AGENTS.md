@@ -61,7 +61,7 @@ bun run deploy-commands[:global]   # Discord slash commands: test guild / produc
 
 ## Repository Overview
 
-Bun monorepo ("SURef") for Salvage Union (tabletop RPG) tools: a static reference site, a character builder, a Discord bot, and shared packages.
+Bun monorepo ("SUSRD") for Salvage Union (tabletop RPG) tools: a static reference site, a character builder, a Discord bot, and shared packages.
 
 Workspaces: [README.md](README.md)'s table; dependency graph: [packages](docs/ARCHITECTURE.md#packages).
 
@@ -73,7 +73,7 @@ Workspaces: [README.md](README.md)'s table; dependency graph: [packages](docs/AR
 
 - Relative imports only, `type` over `interface`, no `any`, `import type`, named exports (routes and Worker entries excepted) — **all Biome rules**, so `bun run lint` is the authority ([`biome.jsonc`](biome.jsonc)).
 - **Bun** for package management — never npm/yarn.
-- Game-data types come from `salvageunion-reference` as `SURef*` (`SURefChassis`, `SURefSchemaName`, …).
+- Game-data types come from `salvageunion-reference` as `Ref*` (`RefChassis`, `RefSchemaName`, …).
 - Generated files (`routeTree.gen.ts`, `schemas/*.schema.json`, `lib/generated/`) are never hand-edited.
 - When a prop must reach nested entity cards, pass it explicitly (there is no shared display context; card size is the `size` × `extent` pair in `packages/component-lib/src/components/containers/displayMode.ts`) and typecheck immediately.
 

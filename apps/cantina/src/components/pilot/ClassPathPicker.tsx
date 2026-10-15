@@ -11,7 +11,7 @@
 
 import { Callout, Entity, RadioCardGroup, ReferenceEntityCard, Slab, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
-import type { SURefClass } from 'salvageunion-reference'
+import type { RefClass } from 'salvageunion-reference'
 import type { ClassPathConsequence } from '../../lib/rules/classPath'
 import { classPathConsequence, classPathGroups } from '../../lib/rules/classPath'
 import '../../styles/wizard.css'
@@ -73,7 +73,7 @@ const IMPLIED_ORIGIN = {
 } satisfies CSSProperties
 
 type ClassPathPickerProps = {
-  allClasses: readonly SURefClass[]
+  allClasses: readonly RefClass[]
   currentClassRef: string
   pendingClassRef: string
   onSelect: (classId: string) => void
@@ -89,7 +89,7 @@ function OptionCard({
   note,
   onSelect,
 }: {
-  cls: SURefClass
+  cls: RefClass
   selected: boolean
   dimmed: boolean
   note?: string
@@ -124,7 +124,7 @@ function LedgerList({
 }: {
   label: string
   items: readonly string[]
-  allClasses: readonly SURefClass[]
+  allClasses: readonly RefClass[]
 }) {
   if (items.length === 0) return null
   return (
@@ -149,7 +149,7 @@ function Ledger({
   allClasses,
 }: {
   consequence: ClassPathConsequence
-  allClasses: readonly SURefClass[]
+  allClasses: readonly RefClass[]
 }) {
   return (
     <div style={LEDGER}>
@@ -173,7 +173,7 @@ export function ClassPathPicker({
 
   const originChoiceClasses = (consequence?.originChoices ?? [])
     .map((name) => allClasses.find((c) => c.name === name))
-    .filter((c): c is SURefClass => c !== undefined)
+    .filter((c): c is RefClass => c !== undefined)
 
   return (
     <div className="su-wiz-class-path" style={PICKER}>

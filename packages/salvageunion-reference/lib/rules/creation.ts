@@ -227,7 +227,7 @@ export function isLegalCreationCrawlerWeapon(techLevel: number | string): boolea
 /**
  * The neutral mutation line a crawler type's stored `mutations` rows carry —
  * the exact values these rules read (a discriminator string + a number), NOT
- * the whole SURef crawler record. A consumer narrows its resolved type record
+ * the whole reference crawler record. A consumer narrows its resolved type record
  * to `mutations` at the call site.
  */
 export type CrawlerMutationInput = { type: string; value: number }

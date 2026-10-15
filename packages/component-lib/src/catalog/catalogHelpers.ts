@@ -1,8 +1,8 @@
 import type {
   EnhancedSchemaMetadata,
-  SURefEntity,
-  SURefEnumSchemaName,
-  SURefMetaEntity,
+  RefEntity,
+  RefEnumSchemaName,
+  RefMetaEntity,
 } from 'salvageunion-reference'
 import { isSchemaName, srdEntityPath, srdSchemaPath } from 'salvageunion-reference'
 import { entityGuideToneColor } from '../components/referenceEntity/card/entityCardTone'
@@ -66,10 +66,10 @@ type BuildCatalogCategoriesOptions = {
   catalogCategories: CatalogCategory[]
   schemaMap: Map<string, SchemaMapEntry>
   findAllIn: (
-    schemaName: SURefEnumSchemaName,
-    predicate: (entity: SURefEntity) => boolean
+    schemaName: RefEnumSchemaName,
+    predicate: (entity: RefEntity) => boolean
   ) => Array<{ id: string; name: string; [key: string]: unknown }>
-  getReferenceEntityData: (item: SURefEntity) => {
+  getReferenceEntityData: (item: RefEntity) => {
     slug: string
     [key: string]: unknown
   }
@@ -99,13 +99,13 @@ export function buildCatalogCategories({
       return {
         label: cat.name.toUpperCase(),
         schemas: items.map((item) => {
-          const display = getReferenceEntityData(item as SURefEntity)
+          const display = getReferenceEntityData(item as RefEntity)
           const rawName = item.name
           const labelText = catalogNameOverrides[rawName] ?? rawName
           // Every guide paints rules blue (`entityGuideToneColor`, a
           // `theme.css` token), so the tile and the card it opens paint from
           // one place.
-          const guideColor = entityGuideToneColor(item as SURefMetaEntity)
+          const guideColor = entityGuideToneColor(item as RefMetaEntity)
           return {
             id: item.id,
             href: `${srdEntityPath(schemaName, display.slug)}/`,

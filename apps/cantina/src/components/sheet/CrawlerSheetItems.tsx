@@ -17,7 +17,7 @@ import {
   useDisclosure,
 } from 'component-lib'
 import type { CSSProperties, ReactNode } from 'react'
-import type { SURefEntity, SURefMetaEntity } from 'salvageunion-reference'
+import type { RefEntity, RefMetaEntity } from 'salvageunion-reference'
 import { findNpcChoiceByName, resolveCrawlerBay } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { BAY_REPAIR_COST, bayTechLines } from '../../lib/rules/crawlerItems'
@@ -345,7 +345,7 @@ export function CrawlerBayCard({
                 form="token"
                 // The embedded crew, as its bay card nests it (`nestedEntityGroups`).
                 entity={
-                  { ...npc, name: npc.position, schemaName: 'npcs' } as unknown as SURefMetaEntity
+                  { ...npc, name: npc.position, schemaName: 'npcs' } as unknown as RefMetaEntity
                 }
                 instance={{ title: entry.npcName?.trim() || npc.position }}
                 peekAt={embeddedPeekAddress('crawler-bays', bay.id, 'npc')}
@@ -422,7 +422,7 @@ export function CrawlerBayCard({
     typeof (bay as { damagedEffect?: unknown }).damagedEffect === 'string'
       ? (bay as { damagedEffect: string }).damagedEffect
       : ''
-  const cardData = { ...bay, npc: undefined, content: normal } as unknown as SURefEntity
+  const cardData = { ...bay, npc: undefined, content: normal } as unknown as RefEntity
 
   return (
     <>

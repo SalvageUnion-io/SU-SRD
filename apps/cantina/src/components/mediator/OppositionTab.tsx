@@ -34,7 +34,7 @@ import {
 } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import { findEntityBySlug } from 'salvageunion-reference'
 import { SheetPickerModal } from '../sheet/SheetSection'
 import { BODY, EYEBROW, HEAD_ROW, MUTED, NUMBERS } from './mediatorStyles.model'
@@ -45,7 +45,7 @@ const { borderWidth, color, font, fontSize, radius, space, weight } = tokens
 
 /** What a row can ask of the tray. */
 export type TrayWrites = {
-  add: (schema: EncounterRefSchema, entity: SURefEntity) => Promise<unknown>
+  add: (schema: EncounterRefSchema, entity: RefEntity) => Promise<unknown>
   setHp: (npc: TrayNpc, next: number) => Promise<unknown>
   morale: (npc: TrayNpc) => Promise<unknown>
   remove: (npc: TrayNpc) => Promise<unknown>
@@ -217,7 +217,7 @@ function OppositionPicker({
   onClose,
 }: {
   npcs: readonly TrayNpc[]
-  onAdd: (schema: EncounterRefSchema, entity: SURefEntity) => void
+  onAdd: (schema: EncounterRefSchema, entity: RefEntity) => void
   title?: string
   onClose?: () => void
 }) {

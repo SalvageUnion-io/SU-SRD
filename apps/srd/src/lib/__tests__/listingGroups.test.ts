@@ -1,10 +1,10 @@
 import { describe, expect, test } from 'bun:test'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import { getPageReference, getSource, SalvageUnionReference } from 'salvageunion-reference'
 import { listingEntries } from '../listingEntries'
 import { defaultGroups, resolveGroupBy } from '../listingGroups'
 
-const rollTables = () => SalvageUnionReference.RollTables.all() as SURefEntity[]
+const rollTables = () => SalvageUnionReference.RollTables.all() as RefEntity[]
 const listed = () => listingEntries('roll-tables', rollTables())
 
 /**

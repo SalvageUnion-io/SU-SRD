@@ -14,7 +14,7 @@ package is the single source of truth for game data.
 ## Build & generated files
 
 No compile step. `schemas/` and `lib/generated/` are **gitignored**: never
-commit them. `tools/ensureGenerated.ts`, the package's `su-ref-generate` bin,
+commit them. `tools/ensureGenerated.ts`, the package's `ref-generate` bin,
 runs the registry, JSON-schema and docs generators when its input hash (Zod,
 registry, data, generators) is stale; it runs once per run on postinstall, the
 root `typecheck`/`test`/`build`, each app's `dev`, the test preload and
@@ -28,8 +28,8 @@ generated block.
 - `schemas/*.schema.json` and the `schemas/index.json` catalog entries
 - `lib/generated/modelFactoryRegistry.generated.ts`,
   `lib/generated/zodSchemaMap.generated.ts`,
-  `lib/generated/entityTypes.generated.ts` (every `SURef*` entity type and the
-  `SURefEntity` / `SURefMetaEntity` unions — membership comes from each
+  `lib/generated/entityTypes.generated.ts` (every `Ref*` entity type and the
+  `RefEntity` / `RefMetaEntity` unions — membership comes from each
   registry entry's `entity` / `excludeFromEntityUnion` flag) and
   `lib/generated/schemaRegistry.generated.ts`, from the manifest in
   `lib/schemas/registry.ts`

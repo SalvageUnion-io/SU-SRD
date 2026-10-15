@@ -1,17 +1,17 @@
 import type { PageRefIndex } from 'component-lib'
 import { Toaster } from 'component-lib'
 import { Suspense, useLayoutEffect } from 'react'
-import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
+import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import type { SchemaList } from '../../lib/useGameData'
 import { GameDataGate } from '../../lib/useGameData'
 import { EntityCardStatic } from '../EntityCardStatic'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 type ReferenceEntityIslandProps = {
-  item: SURefEntity
+  item: RefEntity
   /** Render one of `item`'s patterns (chassis only) instead of the chassis
    *  itself — the pattern page's view. */
-  pattern?: SURefObjectAnyPattern
+  pattern?: RefObjectAnyPattern
   /** Which schemas to preload — defaults to `'all'`. Pass the per-route list
    *  from `../../lib/schemaPreloadDeps.ts` to load only what this item needs. */
   preloadSchemas?: SchemaList

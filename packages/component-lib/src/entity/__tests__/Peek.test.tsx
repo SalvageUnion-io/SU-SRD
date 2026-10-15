@@ -5,7 +5,7 @@
  */
 import { describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import type { EntityRef, SURefMetaEntity } from 'salvageunion-reference'
+import type { EntityRef, RefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { Entity } from '../Entity'
 import { EntitySurfaceProvider } from '../EntitySurface'
@@ -124,7 +124,7 @@ describe('PeekHost', () => {
       <>
         <Entity
           form="token"
-          entity={npc as unknown as SURefMetaEntity}
+          entity={npc as unknown as RefMetaEntity}
           peekAt={embeddedPeekAddress('crawler-bays', bay.id, 'npc')}
         />
         <PeekHost />

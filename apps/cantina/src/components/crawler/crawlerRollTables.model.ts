@@ -6,14 +6,14 @@
  */
 
 import { rollD20 } from 'component-lib'
-import type { SURefRollTable } from 'salvageunion-reference'
+import type { RefRollTable } from 'salvageunion-reference'
 import { NO_EFFECT, rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
 
 const CRAWLER_NAME_TABLE = 'Crawler Name'
 
 /** Dependency interface for roll table lookup — injectable for testing. */
 export type CrawlerRollTableDeps = {
-  findTable: (name: string) => (SURefRollTable & { schemaName: string }) | undefined
+  findTable: (name: string) => (RefRollTable & { schemaName: string }) | undefined
   rollD20: () => number
 }
 

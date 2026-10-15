@@ -14,7 +14,7 @@
  * describing an entity differently from its own card.
  */
 
-import type { EntityModel, SURefMetaEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
+import type { EntityModel, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 import { actionTypeStamps } from '../../../entity/parts/actionStamps'
 import { costCell } from '../../../entity/parts/chipSet'
@@ -68,7 +68,7 @@ function isOwnStat(key: string): boolean {
 }
 
 /** A chassis (its patterns' pages too) keeps its stats in the page body. */
-function statsInBody(entity: SURefMetaEntity): boolean {
+function statsInBody(entity: RefMetaEntity): boolean {
   return 'schemaName' in entity && entity.schemaName === 'chassis'
 }
 
@@ -83,14 +83,14 @@ function bookStatsOf(model: EntityModel): BookStat[] {
 }
 
 /** The stats that lead a page's body, inline: a chassis's; nothing else's. */
-export function pageBodyStats(entity: SURefMetaEntity): BookStat[] {
+export function pageBodyStats(entity: RefMetaEntity): BookStat[] {
   return statsInBody(entity) ? bookStatsOf(toEntityModel(entity)) : []
 }
 
 /** What an entity's page says around its body, read off its entity model. */
 export function resolveEntityPageMeta(
-  entity: SURefMetaEntity,
-  pattern?: SURefObjectAnyPattern
+  entity: RefMetaEntity,
+  pattern?: RefObjectAnyPattern
 ): EntityPageMeta {
   const model = toEntityModel(entity, undefined, { pattern })
   const cost = model.cost ? costCell(model.cost) : undefined

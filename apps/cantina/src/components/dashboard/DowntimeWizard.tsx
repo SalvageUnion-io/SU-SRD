@@ -50,7 +50,7 @@ import type { Pilot } from 'cantina-domain/schemas/pilot'
 import { Badge, Button, CHAPTER_BAND_COLOR, Content } from 'component-lib'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
-import type { SURefObjectGuideStep, SURefObjectTable } from 'salvageunion-reference'
+import type { RefObjectGuideStep, RefObjectTable } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { bayGate } from '../../lib/rules/crawlerEconomy'
 import { runWrite } from '../../lib/runWrite'
@@ -241,7 +241,7 @@ type DowntimeWizardFrameProps = {
   /** Mediator only: move the whole table to the next step. Absent for a player. */
   onNext?: () => void
   /** App-computed read-only rules readout for a step (crawler + rules modules). */
-  renderStepGate?: (step: SURefObjectGuideStep) => ReactNode
+  renderStepGate?: (step: RefObjectGuideStep) => ReactNode
 }
 
 /**
@@ -278,7 +278,7 @@ function DowntimeWizardFrame({
 
   const tableName = STEP_ROLL_TABLE[step.name]
   const table = tableName
-    ? (SalvageUnionReference.RollTables.getByName(tableName) as SURefObjectTable | undefined)
+    ? (SalvageUnionReference.RollTables.getByName(tableName) as RefObjectTable | undefined)
     : undefined
   const doneCount = ready.filter((r) => r.done).length
 
@@ -405,7 +405,7 @@ function StepGate({
   crawler,
   upkeepSpent,
 }: {
-  step: SURefObjectGuideStep
+  step: RefObjectGuideStep
   crawler: Crawler
   upkeepSpent: boolean
 }) {

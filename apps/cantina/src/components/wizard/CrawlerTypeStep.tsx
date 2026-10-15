@@ -7,7 +7,7 @@ import {
   tokens,
 } from 'component-lib'
 import type { CSSProperties } from 'react'
-import type { SURefCrawler } from 'salvageunion-reference'
+import type { RefCrawler } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
 import { crawlerMaxSpBonus, crawlerWeaponSlots } from 'salvageunion-reference/rules'
 import '../../styles/wizard.css'
@@ -16,7 +16,7 @@ import { fullWidthStyle, stepColumnStyle } from './wizardStyles.model'
 const bonusStyle = { display: 'block', fontFamily: tokens.font.body } satisfies CSSProperties
 
 type CrawlerTypeSelectStepProps = {
-  types: SURefCrawler[]
+  types: RefCrawler[]
   /** The chosen type's slug. */
   selectedType: string | null
   onSelect: (slug: string) => void

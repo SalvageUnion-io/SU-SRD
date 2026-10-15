@@ -11,7 +11,7 @@
 
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import type { TrayWrites } from '../OppositionTab'
 import { OppositionTab } from '../OppositionTab'
 import type { EncounterRefSchema, TrayNpc } from '../opposition.model'
@@ -215,7 +215,7 @@ describe('+ From the reference', () => {
 
     await click(picker.getByRole('button', { name: 'Add Trooper' }))
     expect(calls).toHaveLength(1)
-    const [schema, entity] = (calls[0]?.args ?? []) as [EncounterRefSchema, SURefEntity]
+    const [schema, entity] = (calls[0]?.args ?? []) as [EncounterRefSchema, RefEntity]
     expect(calls[0]?.name).toBe('add')
     expect(schema).toBe('npcs')
     expect(entity.name).toBe('Trooper')
@@ -229,7 +229,7 @@ describe('+ From the reference', () => {
     })
     expect(picker.queryByRole('button', { name: 'Add Trooper' })).toBeNull()
     await click(picker.getByRole('button', { name: 'Add Wasteland Bear' }))
-    const [schema, entity] = (calls[0]?.args ?? []) as [EncounterRefSchema, SURefEntity]
+    const [schema, entity] = (calls[0]?.args ?? []) as [EncounterRefSchema, RefEntity]
     expect(schema).toBe('creatures')
     expect(entity.name).toBe('Wasteland Bear')
   })

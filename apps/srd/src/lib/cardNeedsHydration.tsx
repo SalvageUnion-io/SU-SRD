@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server'
-import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
+import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { EntityCardStatic } from '../components/EntityCardStatic'
 
 /**
@@ -30,7 +30,7 @@ const NEEDS_A_LISTENER =
  * island path is the status quo and always correct, just heavier. The static
  * path is the optimization, and an optimization must never be the fallback.
  */
-export function cardNeedsHydration(item: SURefEntity, pattern?: SURefObjectAnyPattern): boolean {
+export function cardNeedsHydration(item: RefEntity, pattern?: RefObjectAnyPattern): boolean {
   try {
     const markup = renderToStaticMarkup(<EntityCardStatic item={item} pattern={pattern} />)
     return NEEDS_A_LISTENER.test(markup)

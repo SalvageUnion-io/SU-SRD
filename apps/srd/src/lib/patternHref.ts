@@ -1,4 +1,4 @@
-import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
+import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { getEntitySlug, isBioTitanPattern, nameToSlug } from 'salvageunion-reference'
 import { patternHref } from './entityHref'
 
@@ -15,7 +15,7 @@ import { patternHref } from './entityHref'
  * The host's schema is read off the pattern's own shape, so a host handed
  * across an island boundary without its `schemaName` still links correctly.
  */
-export function srdPatternHref(host: SURefEntity, pattern: SURefObjectAnyPattern): string {
+export function srdPatternHref(host: RefEntity, pattern: RefObjectAnyPattern): string {
   const schemaName = isBioTitanPattern(pattern) ? 'bio-titans' : 'chassis'
   return patternHref(schemaName, getEntitySlug(host), nameToSlug(pattern.name))
 }

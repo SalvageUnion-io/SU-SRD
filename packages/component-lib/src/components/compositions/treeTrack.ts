@@ -1,4 +1,4 @@
-import type { SURefAbility } from 'salvageunion-reference'
+import type { RefAbility } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 
 /**
@@ -26,7 +26,7 @@ function trackForTone(tone: string | undefined, tree: string): TreeTrack | undef
  * none for a tree with no tiers that is not a pick-one (the Generic
  * Abilities, which any class takes in any order).
  */
-export function trackForTree(abilities: readonly SURefAbility[]): TreeTrack | undefined {
+export function trackForTree(abilities: readonly RefAbility[]): TreeTrack | undefined {
   const first = abilities[0]
   if (!first) return undefined
   const model = toEntityModel(first)

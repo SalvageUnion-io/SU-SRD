@@ -14,13 +14,7 @@
  */
 
 import { SalvageUnionReference } from '../index'
-import type {
-  SURefChassis,
-  SURefCrawler,
-  SURefCrawlerBay,
-  SURefModule,
-  SURefSystem,
-} from '../schemas/index'
+import type { RefChassis, RefCrawler, RefCrawlerBay, RefModule, RefSystem } from '../schemas/index'
 
 /**
  * A resolved row: the entity plus the `schemaName` `BaseModel` stamps on it.
@@ -31,17 +25,17 @@ import type {
 type Resolved<T> = (T & { schemaName: string }) | null
 
 /** Resolve a mech `chassisRef` slug. */
-export function resolveChassisRef(ref: string): Resolved<SURefChassis> {
+export function resolveChassisRef(ref: string): Resolved<RefChassis> {
   return SalvageUnionReference.Chassis.getBySlug(ref) ?? null
 }
 
 /** Resolve an installed system slug. */
-export function resolveSystemRef(ref: string): Resolved<SURefSystem> {
+export function resolveSystemRef(ref: string): Resolved<RefSystem> {
   return SalvageUnionReference.Systems.getBySlug(ref) ?? null
 }
 
 /** Resolve an installed module slug. */
-export function resolveModuleRef(ref: string): Resolved<SURefModule> {
+export function resolveModuleRef(ref: string): Resolved<RefModule> {
   return SalvageUnionReference.Modules.getBySlug(ref) ?? null
 }
 
@@ -49,16 +43,16 @@ export function resolveModuleRef(ref: string): Resolved<SURefModule> {
  * Resolve an installed system-or-module slug — systems win a (theoretical)
  * cross-schema slug collision.
  */
-export function resolveInstalledRef(ref: string): Resolved<SURefSystem | SURefModule> {
+export function resolveInstalledRef(ref: string): Resolved<RefSystem | RefModule> {
   return resolveSystemRef(ref) ?? resolveModuleRef(ref)
 }
 
 /** Resolve a crawler `type` slug. */
-export function resolveCrawlerRef(ref: string): Resolved<SURefCrawler> {
+export function resolveCrawlerRef(ref: string): Resolved<RefCrawler> {
   return SalvageUnionReference.Crawlers.getBySlug(ref) ?? null
 }
 
 /** Resolve a crawler-bay slug (`crawlerBays[].bayRef`, the `bayChoices` keys). */
-export function resolveCrawlerBayRef(ref: string): Resolved<SURefCrawlerBay> {
+export function resolveCrawlerBayRef(ref: string): Resolved<RefCrawlerBay> {
   return SalvageUnionReference.CrawlerBays.getBySlug(ref) ?? null
 }

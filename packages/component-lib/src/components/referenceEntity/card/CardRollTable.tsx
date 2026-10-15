@@ -1,7 +1,7 @@
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import type { SURefObjectTable } from 'salvageunion-reference'
+import type { RefObjectTable } from 'salvageunion-reference'
 import { plainTraitText, resultForColumnsTable, resultForTable } from 'salvageunion-reference'
 import { dieForTable, rollD20 } from '../../../utils/dice'
 import { useParseTraitReferences } from '../../../utils/parseTraitReferences'
@@ -71,7 +71,7 @@ export function CardRollTable({
   tone,
   onRollResult,
 }: {
-  table: SURefObjectTable
+  table: RefObjectTable
   /** The table's name, for the bar. */
   name: string
   size: CardSize

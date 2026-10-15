@@ -10,7 +10,7 @@ import {
 } from 'component-lib'
 import { Copy } from 'lucide-react'
 import { useState } from 'react'
-import type { SURefObjectTable } from 'salvageunion-reference'
+import type { RefObjectTable } from 'salvageunion-reference'
 import { plainTraitText, resultForColumnsTable, resultForTable } from 'salvageunion-reference'
 import { dieForTable, rollD20 } from '../../lib/rollTableDice'
 
@@ -65,7 +65,7 @@ export function DashboardRollTable({
   const rollBands = () => {
     void dieForTable(name).then((d20) => {
       const roll = d20()
-      const { key } = resultForTable(table as SURefObjectTable, roll)
+      const { key } = resultForTable(table as RefObjectTable, roll)
       const entry = rows.find((row) => row.key === key)
       if (!entry) return
       const text = entry.label ? `${entry.label}: ${entry.value}` : entry.value
@@ -86,7 +86,7 @@ export function DashboardRollTable({
     // and @randsum/salvageunion's rollTable reads banded tables only.
     const columnRoll = rollD20()
     const entryRoll = rollD20()
-    const res = resultForColumnsTable(table as SURefObjectTable, columnRoll, entryRoll)
+    const res = resultForColumnsTable(table as RefObjectTable, columnRoll, entryRoll)
     if (!res.success) return
     const { columnKey, entryKey, result } = res
     setLanded({ kind: 'columns', column: columnKey, entry: entryKey, text: result.value })
@@ -131,7 +131,7 @@ export function DashboardRollTable({
         table.type === 'columns'
           ? {
               kind: 'columns',
-              columns: digestColumnsTable(table as SURefObjectTable),
+              columns: digestColumnsTable(table as RefObjectTable),
               mark:
                 landed?.kind === 'columns'
                   ? { column: landed.column, entry: landed.entry }

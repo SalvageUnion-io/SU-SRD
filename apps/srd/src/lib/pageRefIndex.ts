@@ -10,7 +10,7 @@
  */
 import type { PageRefCandidate, PageRefIndex } from 'component-lib'
 import { findPageRefs } from 'component-lib'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import { getEntitySlug, isSchemaName } from 'salvageunion-reference'
 import { getEntitySchemas, SalvageUnionReference } from './gameData'
 
@@ -48,7 +48,7 @@ function workshopManualPages(): Map<number, PageRefCandidate[]> {
  * The index for the pages `item`'s text cites, less `item` itself, or
  * `undefined` when it cites none.
  */
-export function pageRefIndexFor(item: SURefEntity): PageRefIndex | undefined {
+export function pageRefIndexFor(item: RefEntity): PageRefIndex | undefined {
   const pages = new Set(findPageRefs(JSON.stringify(item)).map((m) => m.page))
   if (pages.size === 0) return undefined
   const all = workshopManualPages()
@@ -66,6 +66,6 @@ export function pageRefIndexFor(item: SURefEntity): PageRefIndex | undefined {
  * guide cites the book; it does not send the reader across the site
  * mid-procedure). Any other entity's resolve through `pageRefIndexFor`.
  */
-export function pageRefsFor(schemaId: string, item: SURefEntity): PageRefIndex | undefined {
+export function pageRefsFor(schemaId: string, item: RefEntity): PageRefIndex | undefined {
   return schemaId === 'guides' ? undefined : pageRefIndexFor(item)
 }

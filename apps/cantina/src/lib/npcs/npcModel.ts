@@ -20,7 +20,7 @@ import { slotKey } from 'cantina-domain/links/linkRules'
 import type { Crawler } from 'cantina-domain/schemas/crawler'
 import type { Npc, NpcTemplateRef, NpcTrait } from 'cantina-domain/schemas/npc'
 import type { CrewSlot, SoftLink } from 'cantina-domain/schemas/softLink'
-import type { SURefNPC, SURefObjectChoice } from 'salvageunion-reference'
+import type { RefNPC, RefObjectChoice } from 'salvageunion-reference'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { resolvePool } from 'salvageunion-reference/rules'
 import { readReference } from '../readReference'
@@ -43,7 +43,7 @@ export type NpcView = Pick<
 > & { id?: string; currentHP?: number }
 
 /** A reference NPC, as `npcs.json` stores one. */
-export type ReferenceNpc = SURefNPC & { schemaName: string }
+export type ReferenceNpc = RefNPC & { schemaName: string }
 
 /* -------------------------------------------------------------------------- */
 /* Actions: slugs on the record, names in the data                            */
@@ -181,7 +181,7 @@ export type NpcStatFill = Pick<
 }
 
 /** A reference NPC's stat block, as a built NPC stores it: actions as slugs (Q3). */
-export function statFillFromReference(ref: SURefNPC): NpcStatFill {
+export function statFillFromReference(ref: RefNPC): NpcStatFill {
   return {
     templateRef: { schema: 'npcs', slug: nameToSlug(ref.name) },
     hitPoints: ref.hitPoints,
@@ -213,13 +213,13 @@ export type CrewSlotView = {
   /** Fixed by the slot's data (D2): 4 for a bay, 0 for the Augmented A.I. */
   hitPoints: number
   /** The slot's own choices, in data order (D3). */
-  choices: readonly SURefObjectChoice[]
+  choices: readonly RefObjectChoice[]
   templateRef: NpcTemplateRef
   /** The inline crew's name the crawler holds for this slot, if it has one. */
   bookName: string | undefined
 }
 
-type EmbeddedNpc = { position: string; hitPoints: number; choices?: SURefObjectChoice[] }
+type EmbeddedNpc = { position: string; hitPoints: number; choices?: RefObjectChoice[] }
 
 /**
  * Every crew slot a crawler has, type first, then one per bay in the crawler's

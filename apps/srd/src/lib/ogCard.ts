@@ -16,11 +16,7 @@ import {
   ogCardTitle,
   ogReferenceAddressFits,
 } from 'component-lib'
-import type {
-  SURefEnumSchemaName,
-  SURefMetaEntity,
-  SURefObjectAnyPattern,
-} from 'salvageunion-reference'
+import type { RefEnumSchemaName, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { displayTitle } from 'salvageunion-reference'
 import { itemHref, patternHref } from './entityHref'
 
@@ -37,14 +33,14 @@ export const OG_HEIGHT = OG_CARD_HEIGHT
 export function ogCardFor(
   schemaId: string,
   itemId: string,
-  entity: SURefMetaEntity,
-  pattern?: SURefObjectAnyPattern,
+  entity: RefMetaEntity,
+  pattern?: RefObjectAnyPattern,
   patternId?: string
 ): OgCardProps {
   const href =
     pattern && patternId ? patternHref(schemaId, itemId, patternId) : itemHref(schemaId, itemId)
   return ogCardForEntity({
-    schemaName: schemaId as SURefEnumSchemaName,
+    schemaName: schemaId as RefEnumSchemaName,
     entity,
     pattern,
     address: ogAddress(href),

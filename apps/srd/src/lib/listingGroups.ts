@@ -1,4 +1,4 @@
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import {
   bayKind,
   bookName,
@@ -31,7 +31,7 @@ export function tlName(level: TechLevel): string {
 }
 
 /** A listing's groups, in the order the book prints them. */
-export type ListingGroup = { key: string; label: string | undefined; items: SURefEntity[] }
+export type ListingGroup = { key: string; label: string | undefined; items: RefEntity[] }
 
 /**
  * A listing's default shape, unfiltered: its size and each group's heading and
@@ -63,8 +63,8 @@ const SOURCE_LISTINGS: ReadonlySet<string> = new Set(['roll-tables'])
  * lists them (`getUniqueSources`: the core book, then the supplements by
  * name); within a book, by page.
  */
-function groupBySource(items: SURefEntity[]): ListingGroup[] {
-  const bySource = new Map<string, SURefEntity[]>()
+function groupBySource(items: RefEntity[]): ListingGroup[] {
+  const bySource = new Map<string, RefEntity[]>()
   for (const item of items) {
     const source = getSource(item) ?? ''
     bySource.set(source, [...(bySource.get(source) ?? []), item])
@@ -80,7 +80,7 @@ function groupBySource(items: SURefEntity[]): ListingGroup[] {
 }
 
 export function resolveGroupBy(
-  items: SURefEntity[],
+  items: RefEntity[],
   trees: string[],
   techLevels: TechLevel[],
   schemaId?: string
@@ -93,7 +93,7 @@ export function resolveGroupBy(
   return 'none'
 }
 
-export function groupEntities(items: SURefEntity[], groupBy: GroupBy): ListingGroup[] {
+export function groupEntities(items: RefEntity[], groupBy: GroupBy): ListingGroup[] {
   if (groupBy === 'none') return [{ key: 'all', label: undefined, items }]
   if (groupBy === 'source') return groupBySource(items)
   const byKey = new Map<string, ListingGroup>()
@@ -140,7 +140,7 @@ export function groupEntities(items: SURefEntity[], groupBy: GroupBy): ListingGr
 
 /** A listing's default groups, unfiltered: what the island renders on mount. */
 export function defaultGroups(
-  items: SURefEntity[],
+  items: RefEntity[],
   trees: string[],
   techLevels: readonly TechLevel[],
   schemaId?: string
