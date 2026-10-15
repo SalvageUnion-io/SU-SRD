@@ -15,7 +15,7 @@ import { ConvexError } from 'convex/values'
 import { installConvexMocks } from '../../../components/__tests__/convexMock'
 import type { ServerActionResult } from '../useServerAction'
 
-/** Every `captureException` the hook made — what Sentry would have heard. */
+/** Every `captureException` the hook made — what gets reported. */
 const captured: unknown[] = []
 
 // Spread before anything is mocked: every other export stays real.
@@ -85,10 +85,10 @@ describe('failureMessage', () => {
   })
 })
 
-// A caught error never reaches Sentry's global handler, so whether a failure
+// A caught error never reaches the window's `error` event, so whether a failure
 // is reported is decided here: a defect is, once; anything with words written
 // for the player was meant to happen and is not.
-describe('what Sentry hears', () => {
+describe('what gets reported', () => {
   test('a defect is reported once', () => {
     const defect = new Error('[CONVEX M(games:create)] [Request ID: 1] Server Error')
     failureMessage(defect, FAILURE)

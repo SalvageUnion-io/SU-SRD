@@ -101,17 +101,17 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
 32. **Dead code** <a id="dead-code"></a>
     `bun run knip` with `includeEntryExports`; delete what it flags; `@public` and `@knipignore` are the only escape hatches.
 33. **MCP servers** <a id="mcp"></a>
-    `.mcp.json` is secret-free: `cloudflare-bindings`, `cloudflare-observability`, `sentry`, `convex` (local deployment), `context7`.
-    Only `context7` and `convex` are enabled; opt into the OAuth three in `.claude/settings.local.json`. `claude mcp list` proves one works.
+    `.mcp.json` is secret-free: `cloudflare-bindings`, `cloudflare-observability`, `convex` (local deployment), `context7`.
+    Only `context7` and `convex` are enabled; opt into the OAuth two in `.claude/settings.local.json`. `claude mcp list` proves one works.
 34. **Cloud sessions** <a id="cloud"></a>
     `gh` is REST only (GraphQL gets 403): use `gh api` or `mcp__github__*`; no route means report it unread.
     Merge: `gh api -X PUT repos/{owner}/{repo}/pulls/<n>/merge -f merge_method=squash` or `mcp__github__merge_pull_request`; no `gh stack`. Environment, `su-rules`: [cloud-environment.md](ops/cloud-environment.md).
 35. **Cloudflare** <a id="cloudflare"></a>
     Workers `su-srd` (`salvageunion.io`), `su-itun` (route `/build`), `su-assets` (R2 `su-lp-assets`), `su-discord-bot`.
     The account is shared with RANDSUM; re-derive from `apps/*/wrangler.jsonc` and `wrangler deployments list`.
-36. **Sentry** <a id="sentry"></a>
-    Org `susrd`, EU region; projects `srd`, `itun`, `itun-convex` (a Convex dashboard toggle), `workers`.
-    `tools/check-observability.ts` guards DSN gating and CSP; change an app's CSP or region in every source together.
+36. **Error tracking** <a id="errors"></a>
+    Workers Issues (ADR-049); browsers post to `/__errors`, Convex's log stream to `/build/__convex-logs`.
+    `tools/check-observability.ts` guards it.
 37. **Convex and GitHub identifiers** <a id="identifiers"></a>
     Project `alex-jarvis:suref-itun`; `.convex.cloud` is the client, `.convex.site` HTTP actions (swapped, both read "unreachable").
     Repo `SalvageUnion-io/SU-SRD`, branch `main`; the deployed commit is the release (ADR-041).
@@ -236,3 +236,5 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Supersedes ADR-043 decision 1; amends ADR-033.
 48. **ADR-048 ITUN at salvageunion.io/build**
     Accepted, built: a route ahead of srd; the old host 301s. Amends ADR-033.
+49. **ADR-049 Workers Issues, not Sentry**
+    Accepted, built: no SDK; browsers and Convex report via the Workers; browser stacks minified.

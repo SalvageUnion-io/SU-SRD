@@ -76,7 +76,7 @@ const WARMED_BUILD_KEY = 'su-offline-warmed-build'
 
 /**
  * The build this page came from: the deployed commit, which the deploy workflow
- * sets for every production build (it is also the Sentry release). A local or
+ * sets for every production build (it is also the error reports' release). A local or
  * CI build has none, and is treated as one build that never changes — nobody
  * keeps an installed app pointed at a local preview.
  */

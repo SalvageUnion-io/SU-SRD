@@ -30,18 +30,17 @@
   "main": "src/worker/index.ts",
   // At or below the workerd the wrangler devDependency bundles (deploy-cloudflare.yml).
   "compatibility_date": "2026-07-13",
-  // AsyncLocalStorage for @sentry/cloudflare; tools/check-observability.ts requires it.
-  "compatibility_flags": ["nodejs_als"],
 
-  // A deploy fails while one is unset; set with `wrangler secret put`.
+  // Secrets, set with `wrangler secret put`, all OPTIONAL and so not listed in
+  // a `secrets.required` block:
   //
-  // Two more are OPTIONAL and so not listed: CF_ACCOUNT_ID and
-  // BROWSER_RENDERING_TOKEN (a token with Browser Rendering edit permission).
-  // With both, a shared thing's link preview carries its rendered card
-  // (src/worker/linkPreview.ts, issue 1280); without them it unfurls as text.
-  "secrets": {
-    "required": ["SENTRY_DSN"]
-  },
+  // - CF_ACCOUNT_ID and BROWSER_RENDERING_TOKEN (a token with Browser
+  //   Rendering edit permission). With both, a shared thing's link preview
+  //   carries its rendered card (src/worker/linkPreview.ts, issue 1280);
+  //   without them it unfurls as text.
+  // - CONVEX_LOG_STREAM_SECRET, the production Convex log stream's webhook
+  //   secret. Without it POST /build/__convex-logs answers 503 and Convex's
+  //   errors reach nothing (packages/observability/src/cloudflare.ts).
 
   // CONVEX_URL: the Convex deployment a link preview reads what a stranger
   // may see from (`publicSheet.preview`, issue 1280): the URL the SPA is built
@@ -65,8 +64,16 @@
   // Caps fresh link-preview renders (Browser Rendering time) per Cloudflare
   // location: src/worker/linkPreview.ts. A cached picture is never counted.
   // `namespace_id` is any integer unique on the account.
+  //
+  // ERROR_REPORT_LIMIT caps browser error reports (POST /build/__errors) per
+  // address.
   "ratelimits": [
-    { "name": "OG_RENDER_LIMIT", "namespace_id": "1001", "simple": { "limit": 30, "period": 60 } }
+    { "name": "OG_RENDER_LIMIT", "namespace_id": "1001", "simple": { "limit": 30, "period": 60 } },
+    {
+      "name": "ERROR_REPORT_LIMIT",
+      "namespace_id": "1003",
+      "simple": { "limit": 30, "period": 60 }
+    }
   ],
 
   "assets": {
@@ -84,11 +91,18 @@
   },
 
   // Traces: a span per binding call and outbound fetch (Convex, R2, Images,
-  // Browser Rendering), in the dashboard next to the logs.
+  // Browser Rendering), in the dashboard next to the logs. Issues is the error
+  // tracker: it groups uncaught exceptions, 5xx answers and `console.error`
+  // (`observability/cloudflare`'s `reportError`) into issues, alerted on by the
+  // dashboard's Issues automations. tools/check-observability.ts requires all three.
   "observability": {
     "enabled": true,
-    "traces": { "enabled": true }
+    "traces": { "enabled": true },
+    "issues": { "enabled": true }
   },
+
+  // Issues' stacks point at the source, not the bundle.
+  "upload_source_maps": true,
 
   // `bun run preview` (`wrangler dev`) serves the built `dist/` through this
   // Worker on the dev server's port: the e2e suite's CI server.

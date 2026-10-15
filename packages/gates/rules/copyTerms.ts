@@ -404,7 +404,7 @@ export const copyTerms: RuleSet = {
     )
     assertCoversWorkspaces('copy', COPY_DIRS, {
       'apps/su-assets': 'a Worker that serves image bytes and short error strings; no copy.',
-      'packages/observability': 'Sentry wiring only; no copy.',
+      'packages/observability': 'Error reporting only; no copy.',
       'packages/gates': 'the gates themselves; their fixtures spell the variants they catch.',
     })
   },

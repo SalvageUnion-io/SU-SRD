@@ -8,10 +8,6 @@
       "type": "http",
       "url": "https://observability.mcp.cloudflare.com/mcp"
     },
-    "sentry": {
-      "type": "http",
-      "url": "https://mcp.sentry.dev/mcp"
-    },
     "convex": {
       "command": "bunx",
       "args": [

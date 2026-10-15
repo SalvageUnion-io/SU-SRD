@@ -33,11 +33,9 @@ name: Deploy preview (Cloudflare)
 # both, so two labelled PRs with different schemas, or a sign-in on an older
 # one, collide.
 #
-# THE BUILDS HOLD NO SECRET. They are deploy-cloudflare.yml's builds minus
-# Sentry: the browser bundles carry no DSN (a preview's errors would otherwise
-# land in the production projects as `environment: production`) and upload no
-# source maps. The Workers report as SENTRY_ENVIRONMENT=preview when the
-# Preview base config holds a SENTRY_DSN; without one their SDK is off.
+# THE BUILDS HOLD NO SECRET. They are deploy-cloudflare.yml's builds. A
+# Preview's browser posts its errors to its own Preview Worker, and its Workers
+# log them for Workers Issues like production's, under the Preview's version.
 
 on:
   pull_request:
@@ -247,8 +245,6 @@ jobs:
             (cd "apps/$app" && WRANGLER_OUTPUT_FILE_PATH="$out" bunx wrangler preview \
               --name "$PREVIEW_NAME" \
               --message "$PREVIEW_NAME@${SHA:0:12}" \
-              --var "SENTRY_RELEASE:$SHA" \
-              --var "SENTRY_ENVIRONMENT:preview" \
               --var "SRD_ORIGIN:$PREVIEW_SRD_ORIGIN")
             url=$(jq -rs '[.[] | select(.type == "preview")] | last | .preview_urls[0]
               | if type == "object" then .url else . end // empty' "$out")

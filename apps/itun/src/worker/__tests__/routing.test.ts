@@ -470,3 +470,45 @@ describe('wrangler.jsonc', () => {
     expect(workflow).toContain('bunx convex env set SITE_URL "$ITUN_SITE_URL"')
   })
 })
+
+describe('the error endpoints under the base, logged for Workers Issues', () => {
+  it('POST /__errors logs a browser report as itun’s and answers 204', async () => {
+    const env = envWith()
+    const logged: unknown[][] = []
+    const realConsoleError = console.error
+    console.error = (...args: unknown[]) => {
+      logged.push(args)
+    }
+    try {
+      const res = await worker.fetch(
+        new Request(`https://salvageunion.io${BASE}/__errors`, {
+          method: 'POST',
+          body: JSON.stringify({ message: 'boom' }),
+        }),
+        env
+      )
+      expect(res.status).toBe(204)
+    } finally {
+      console.error = realConsoleError
+    }
+    expect(logged[0]?.[1]).toMatchObject({ source: 'browser', app: 'itun' })
+    expect(env.ASSETS.asked).toEqual([])
+  })
+
+  it('POST /__convex-logs answers 503 while the stream secret is unset', async () => {
+    const res = await worker.fetch(
+      new Request(`https://salvageunion.io${BASE}/__convex-logs`, { method: 'POST', body: '[]' }),
+      envWith()
+    )
+    expect(res.status).toBe(503)
+  })
+
+  it('POST /__convex-logs refuses an unsigned delivery once the secret is set', async () => {
+    const env = { ...envWith(), CONVEX_LOG_STREAM_SECRET: 'whsec' }
+    const res = await worker.fetch(
+      new Request(`https://salvageunion.io${BASE}/__convex-logs`, { method: 'POST', body: '[]' }),
+      env
+    )
+    expect(res.status).toBe(401)
+  })
+})

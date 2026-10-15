@@ -7,8 +7,8 @@ The record of the claude.ai/code environment (selector → Cloud); no CLI or API
 3. **Extra allowed hosts.** `mcp.context7.com`, `version.convex.dev` (`bun run dev:itun`), `salvageunion.io`, `www.salvageunion.io`, `assets.salvageunion.io`, `intheunionnow.com`, `www.intheunionnow.com`,
    `su-srd.alxjrvs.workers.dev`, `su-discord-bot.alxjrvs.workers.dev`, `cdn.playwright.dev`, `playwright.download.prss.microsoft.com`,
    `cache.agilebits.com`, `my.1password.com`, `discord.com`, `*.r2.cloudflarestorage.com`.
-4. **No Cloudflare or Sentry MCP hosts.** OAuth fails in the cloud; the connectors below stand in.
-5. **Connectors (claude.ai → Settings → Connectors).** Cloudflare Developer Platform, Sentry (org `susrd`), and custom Cloudflare Observability
+4. **No Cloudflare MCP hosts.** OAuth fails in the cloud; the connectors below stand in.
+5. **Connectors (claude.ai → Settings → Connectors).** Cloudflare Developer Platform and custom Cloudflare Observability
    at `https://observability.mcp.cloudflare.com/mcp`.
 6. **Convex.** The SessionStart hook exports `CONVEX_AGENT_MODE=anonymous`, so `bun run dev:itun` runs a local backend with no account.
    Test-auth setup: [`convex-ops`](../../.claude/skills/convex-ops/SKILL.md#local-backend), per container.

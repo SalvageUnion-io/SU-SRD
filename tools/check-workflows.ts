@@ -38,7 +38,7 @@
  *                 whenever any ancestor was skipped.
  *   secrets-env   every job that reads an Environment secret declared in
  *                 `tools/environments.ts` (`production`: Cloudflare, Convex
- *                 and Sentry; `preview`: Cloudflare and the staging Convex
+ *                 and Discord; `preview`: Cloudflare and the staging Convex
  *                 key) declares an Environment holding it, and every
  *                 Environment a job names is declared there. The secrets live
  *                 only in Environments: `production` admits `main` alone, and

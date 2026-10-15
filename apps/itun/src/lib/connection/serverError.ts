@@ -29,7 +29,7 @@ import { ConvexError } from 'convex/values'
  *
  * `null` is the meaningful case: it means the throw was **not** a deliberate
  * refusal, so there is no sanctioned copy to show and the honest options are a
- * generic message plus a Sentry report. Never fall back to `String(err)` for
+ * generic message plus an error report. Never fall back to `String(err)` for
  * display — that is where the opaque `"[CONVEX M(entities:upsertByAppId)] […]
  * Server Error"` string comes from, and showing it to a player is strictly
  * worse than saying nothing.

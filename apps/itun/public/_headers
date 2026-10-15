@@ -13,9 +13,9 @@
 # Shared sheets stay crawlable (ADR-032): a link pasted into Discord should
 # unfurl and resolve.
 #
-# `tools/check-observability.ts` requires the CSP here to allow Sentry's ingest
-# origin; tools/smoke-production.sh asserts the CSP and HSTS actually reach the
-# browser.
+# `tools/check-observability.ts` requires the CSP here to allow 'self', where the
+# browser posts its error reports (`/build/__errors`, src/worker/index.ts);
+# tools/smoke-production.sh asserts the CSP and HSTS actually reach the browser.
 
 /*
   X-Frame-Options: DENY
@@ -24,12 +24,8 @@
   Permissions-Policy: geolocation=(), microphone=(), camera=()
   Strict-Transport-Security: max-age=63072000; includeSubDomains
   X-DNS-Prefetch-Control: on
-  # connect-src MUST list Sentry's ingest origin or the browser blocks every
-  # event before it leaves the page — a DSN alone is not enough, and that
-  # failure is silent AND looks healthy (zero errors reported). `de`, not `us`:
-  # this org is in Sentry's EU data region. Kept in lockstep with
-  # SENTRY_INGEST_HOST in tools/check-observability.ts, which fails CI if this
-  # drifts. Wildcarded subdomain because the host encodes the Sentry org id.
+  # connect-src MUST keep 'self', or the browser blocks every error report
+  # before it leaves the page — silent, and it looks healthy (zero errors).
   #
   # The Convex entries fail the same silent way. The accounts client (ADR-030)
   # opens a WebSocket to the deployment for its reactive queries and POSTs
@@ -51,7 +47,7 @@
   # loaded from static.cloudflareinsights.com and posting page loads to
   # cloudflareinsights.com; drop either origin and the dashboard silently
   # records nothing.
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com https://*.ingest.de.sentry.io https://*.convex.cloud wss://*.convex.cloud https://*.convex.site;
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com https://*.convex.cloud wss://*.convex.cloud https://*.convex.site;
 
 # Content-hashed bundle output from Vite's default assetsDir.
 #

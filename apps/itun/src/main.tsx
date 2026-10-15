@@ -40,8 +40,8 @@ declare module '@tanstack/react-router' {
   }
 }
 
-// Optional, env-gated browser error tracking (no-op unless VITE_SENTRY_DSN set).
-void initBrowserObservability()
+// Browser error reporting to the Worker, production builds only.
+initBrowserObservability()
 
 // Installed BEFORE render, because the failure it recovers from — a lazy chunk
 // whose build no longer exists on the server — can be thrown by the very first
@@ -57,8 +57,8 @@ setEntityBackendAuthState({ signedIn: false, online: navigator.onLine, authSettl
 const rootEl = document.getElementById('root')
 if (!rootEl) throw new Error('Root element not found')
 
-// The error hooks are how a render crash reaches Sentry: an error a boundary
-// catches never reaches window.onerror, which is all the SDK listens to.
+// The error hooks are how a render crash gets reported: an error a boundary
+// catches never reaches the window's `error` event, which is all the reporter hears.
 createRoot(rootEl, reactRootErrorHandlers).render(
   <StrictMode>
     <RouterProvider router={router} />

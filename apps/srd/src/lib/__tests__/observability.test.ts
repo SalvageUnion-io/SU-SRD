@@ -1,130 +1,103 @@
-import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
+import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 
 /**
  * observability — srd's only channel for finding out that production broke.
  *
- * It is entirely env-gated, and the gate is the interesting part: with no DSN
- * every function must be a silent no-op (local dev, CI and every build without
- * the var provisioned run that way), and with one it must actually report. A
- * regression in either direction is invisible until the day you need it — a
- * site that has stopped reporting looks exactly like a site with no errors.
- * That is the argument `apps/discord-bot/src/__tests__/observability.test.ts`
- * makes, and this file follows its mocking discipline deliberately.
- *
- * `mock.module` is process-global in Bun, not file-scoped, so the real
- * `@sentry/browser` namespace is captured BEFORE mocking and restored in
- * `afterAll`. Skipping that leaks the stub into every test file that runs
- * later in the same process.
+ * It is gated on a production build, and the gate is the interesting part:
+ * outside one every function must be a silent no-op (the dev server has no
+ * Worker to post to), and inside one it must actually report. A regression in
+ * either direction is invisible until the day you need it — a site that has
+ * stopped reporting looks exactly like a site with no errors.
  *
  * The module is imported ONCE, statically, and the cases below walk its real
- * state machine in order — unconfigured, then configured, then already
- * configured. Re-importing under a cache-busting query instead would create a
- * fresh module each time and, more to the point, attribute no coverage to the
- * file under test. The DSN is driven through `process.env` because Bun backs
- * `import.meta.env` with it (verified) and the module reads the var inside
- * `initBrowserObservability`, not at module scope.
+ * state machine in order — not production, then production. The gate is
+ * driven through `process.env` because Bun backs `import.meta.env` with it and
+ * the module reads `PROD` inside `initBrowserObservability`, not at module
+ * scope. What leaves the page is read off `fetch`: the transport falls back to
+ * a `keepalive` fetch where there is no `sendBeacon`, as under happy-dom here.
  */
 
-const sentryCalls: Array<{ fn: string; args: unknown[] }> = []
+const posts: Array<{ url: string; body: Record<string, unknown> }> = []
+const realFetch = globalThis.fetch
+const nav = globalThis.navigator as unknown as { sendBeacon?: unknown }
+const realBeacon = nav.sendBeacon
+const ENV_KEYS = ['PROD', 'VITE_COMMIT_REF'] as const
+const realEnv = new Map(ENV_KEYS.map((key) => [key, process.env[key]]))
 
-const realSentry = { ...(await import('@sentry/browser')) }
-
-mock.module('@sentry/browser', () => ({
-  ...realSentry,
-  init: (...args: unknown[]) => {
-    sentryCalls.push({ fn: 'init', args })
-  },
-  captureException: (...args: unknown[]) => {
-    sentryCalls.push({ fn: 'captureException', args })
-  },
-}))
+nav.sendBeacon = undefined
+globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+  posts.push({ url: String(input), body: JSON.parse(String(init?.body)) })
+  return new Response(null, { status: 204 })
+}) as typeof fetch
 
 const { captureException, initBrowserObservability } = await import('../observability')
 
+/** Stops the module's reporting, so it does not outlive this file. */
+let teardown = () => {}
+
 afterAll(() => {
-  mock.module('@sentry/browser', () => realSentry)
-  process.env.VITE_SENTRY_DSN = ''
-  process.env.VITE_COMMIT_REF = ''
+  teardown()
+  globalThis.fetch = realFetch
+  nav.sendBeacon = realBeacon
+  for (const [key, value] of realEnv) {
+    if (value === undefined) delete process.env[key]
+    else process.env[key] = value
+  }
 })
 
 beforeEach(() => {
-  sentryCalls.length = 0
+  posts.length = 0
 })
 
 describe('observability', () => {
-  // Order matters: these walk one module's state machine, unconfigured first.
+  // Order matters: these walk one module's state machine, not production first.
 
-  test('with no DSN, init loads nothing and capture is a silent no-op', async () => {
-    process.env.VITE_SENTRY_DSN = ''
-
-    await initBrowserObservability()
+  test('outside a production build, init does nothing and capture is a silent no-op', () => {
+    delete process.env.PROD
+    initBrowserObservability()
     captureException(new Error('unreported'))
-
-    // Not merely "does not throw" — nothing reached Sentry at all, so an
-    // un-provisioned deploy ships no Sentry code and makes no requests.
-    expect(sentryCalls).toEqual([])
+    expect(posts).toEqual([])
   })
 
-  test('with a DSN, init configures Sentry and captureException forwards to it', async () => {
-    process.env.VITE_SENTRY_DSN = 'https://public@o0.ingest.de.sentry.io/1'
+  test('in a production build, a caught error is posted to srd’s Worker with the release', () => {
+    process.env.PROD = 'true'
     process.env.VITE_COMMIT_REF = 'deadbeef'
+    // That this call initialises at all is the assertion: the call in the
+    // previous case must NOT have latched.
+    teardown = initBrowserObservability()
 
-    await initBrowserObservability()
+    captureException(new Error('boom'), { where: 'island' })
 
-    const init = sentryCalls.find((c) => c.fn === 'init')
-    expect(init).toBeTruthy()
-    const options = init?.args[0] as Record<string, unknown>
-    expect(options.dsn).toBe('https://public@o0.ingest.de.sentry.io/1')
-    // Release tagging is what maps a production error back to a deploy, and it
-    // has to stay in step with the sourcemap release name.
-    expect(options.release).toBe('deadbeef')
-    // Errors only — no tracing. Keeps the CSP surface to the ingest origin
-    // `tools/check-observability.ts` asserts against `public/_headers`.
-    expect(options.tracesSampleRate).toBe(0)
+    expect(posts).toHaveLength(1)
+    expect(posts[0]?.url).toBe('/__errors')
+    expect(posts[0]?.body).toMatchObject({
+      name: 'Error',
+      message: 'boom',
+      release: 'deadbeef',
+      context: { where: 'island' },
+    })
+  })
 
+  test('the browser’s abandoned view transitions are never reported', () => {
     // Cross-document view transitions reject a promise the browser owns
-    // whenever it abandons a transition — superseded by a second navigation, or
-    // made ineligible by the document being hidden. It is not ours to catch and
-    // it means nothing went wrong, so it must never reach Sentry.
-    //
-    // Asserted by matching each entry the way Sentry does, as a substring of
-    // `${type}: ${value}`, against the real titles of the three issues these
-    // were added for. Asserting `toContain(entry)` alone would pass on a
-    // typo'd entry that matches nothing.
-    const ignored = options.ignoreErrors as string[]
-    const realEventTitles = [
-      'AbortError: Transition was skipped', // SRD-A
-      'AbortError: Skipping view transition because skipTransition() was called.', // SRD-B
-      'InvalidStateError: Transition was aborted because of invalid state', // SRD-D
+    // whenever it abandons a transition. It is not ours to catch and it means
+    // nothing went wrong. Matched against the real titles of the three issues
+    // these were added for.
+    const titles: Array<[string, string]> = [
+      ['AbortError', 'Transition was skipped'], // SRD-A
+      ['AbortError', 'Skipping view transition because skipTransition() was called.'], // SRD-B
+      ['InvalidStateError', 'Transition was aborted because of invalid state'], // SRD-D
     ]
-    for (const title of realEventTitles) {
-      expect(ignored.some((pattern) => title.includes(pattern))).toBe(true)
+    for (const [name, message] of titles) {
+      captureException(Object.assign(new Error(message), { name }))
     }
-
-    // No `beforeSend`: a hook that drops events should be a deliberate,
-    // reviewed addition, so its appearance fails here.
-    expect(options.beforeSend).toBeUndefined()
-
-    const boom = new Error('boom')
-    captureException(boom, { where: 'island' })
-
-    const captured = sentryCalls.find((c) => c.fn === 'captureException')
-    expect(captured?.args[0]).toBe(boom)
-    expect(captured?.args[1]).toEqual({ extra: { where: 'island' } })
+    expect(posts).toEqual([])
   })
 
-  test('init is idempotent — a second call does not reconfigure Sentry', async () => {
-    await initBrowserObservability()
-
-    expect(sentryCalls.filter((c) => c.fn === 'init')).toHaveLength(0)
-  })
-
-  test('captureException still forwards after init, with no context', () => {
-    const boom = new Error('later')
-    captureException(boom)
-
-    const captured = sentryCalls.find((c) => c.fn === 'captureException')
-    expect(captured?.args[0]).toBe(boom)
-    expect(captured?.args[1]).toBeUndefined()
+  test('init is idempotent, and capture still posts after a second call', () => {
+    initBrowserObservability()
+    captureException(new Error('later'))
+    expect(posts).toHaveLength(1)
+    expect(posts[0]?.body).not.toHaveProperty('context')
   })
 })

@@ -37,7 +37,7 @@ export function makeReferenceReader(report: Report) {
  *   and it stays silent.
  * - **Anything else.** A real fault in the dataset or a resolver. The fallback
  *   still keeps the screen up — a label degrading to its raw ref beats an
- *   error boundary — but it is reported to Sentry, once per `source` per page
+ *   error boundary — but it is reported, once per `source` per page
  *   load, instead of vanishing.
  *
  * `source` names the call site, so an event says which reader broke.

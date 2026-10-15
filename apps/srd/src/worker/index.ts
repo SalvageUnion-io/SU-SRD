@@ -8,6 +8,8 @@
  * served as itself and never runs this script. `not_found_handling` is `none`,
  * so a miss lands here instead of on the platform's `404-page` handling:
  *
+ *   0. `POST /__errors` → a browser error report, logged for Workers Issues
+ *      (`observability/cloudflare`'s `handleErrorReport`).
  *   1. `/assets/*` → a bare **404**.
  *   2. a page path from before the move out of `/schema/…/item/` → a **301**
  *      to where it lives now (`../lib/legacyPaths.ts`).
@@ -30,13 +32,15 @@
  * A legacy 301 is, for a day: nothing will be emitted under that grammar again.
  */
 
-import type { ObservabilityEnv } from 'observability/cloudflare'
-import { withObservability } from 'observability/cloudflare'
+import type { RateLimiter } from 'observability/cloudflare'
+import { ERROR_REPORT_PATH, handleErrorReport } from 'observability/cloudflare'
 import { currentPathFor } from '../lib/legacyPaths'
 
-export type Env = ObservabilityEnv & {
+export type Env = {
   /** Static assets (the built site), with `not_found_handling: none`. */
   ASSETS: { fetch(request: Request): Promise<Response> }
+  /** Caps error reports per address (`wrangler.jsonc`); absent in a Preview. */
+  ERROR_REPORT_LIMIT?: RateLimiter
 }
 
 /** `/404`, not `/404.html`: the asset server's HTML handling redirects the latter. */
@@ -49,9 +53,14 @@ function notFound(body: BodyInit | null, headers?: HeadersInit): Response {
 }
 
 /** @public Cloudflare Worker entrypoint — loaded by workerd, not imported. */
-export default withObservability('su-srd', {
+export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url)
+
+    // 0. A browser error report.
+    if (url.pathname === ERROR_REPORT_PATH) {
+      return handleErrorReport(request, { app: 'srd', limiter: env.ERROR_REPORT_LIMIT })
+    }
 
     // 1. A rotated or never-built chunk: nothing a browser could render.
     if (url.pathname.startsWith('/assets/')) {
@@ -77,4 +86,4 @@ export default withObservability('su-srd', {
     if (!page.ok) return notFound('Not found', { 'content-type': 'text/plain;charset=UTF-8' })
     return notFound(page.body, page.headers)
   },
-})
+}

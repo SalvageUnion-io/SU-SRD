@@ -48,7 +48,7 @@ describe('the Discord provider declares its issuer', () => {
     // Discord appends the RFC 9207 `iss` parameter to its authorization
     // response. With no issuer declared, @convex-dev/auth compares it against a
     // placeholder and every sign-in fails — logged, never thrown, so it is
-    // invisible to Sentry. The value is the `issuer` in Discord's
+    // invisible to error reporting. The value is the `issuer` in Discord's
     // `/.well-known/openid-configuration`.
     const discord = providersFor(false)[0] as { issuer?: string }
     expect(discord.issuer).toBe('https://discord.com')

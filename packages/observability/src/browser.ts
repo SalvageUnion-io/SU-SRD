@@ -1,126 +1,91 @@
 /**
- * The shared half of the two browser Sentry shims (`apps/itun` and `apps/srd`).
+ * The shared half of the two browser apps' error reporting (`apps/itun` and
+ * `apps/srd`).
  *
- * This module imports NO Sentry code, deliberately — not even a type. Each app
- * keeps its own `initBrowserObservability`, and the one line that must stay in
- * the app is the DSN guard: each reads its own `import.meta.env` DSN
- * (`VITE_SENTRY_DSN`), Vite inlines that statically at
- * build, and the resulting `if (!dsn) return` is what makes the app's
- * `import('@sentry/browser')` unreachable, so Rollup drops the SDK entirely
- * from a build with no DSN provisioned. Hoisting the guard into a shared
- * function would take a constant Vite can fold and turn it into a runtime
- * argument it cannot — shipping the SDK to every visitor.
+ * Cloudflare has no browser error tracking, so each app posts its errors to its
+ * own Worker, at `ERROR_REPORT_PATH` under the app's base. The Worker
+ * (`observability/cloudflare`'s `handleErrorReport`) logs each one as an
+ * `Error`, and Workers Issues groups it with the Worker's own.
  *
- * Everything AFTER the guard lives here, in {@link createBrowserObservability}:
- * the idempotent init with its race guard, the errors-only init options, the
- * module handle, the capture verbs and the deploy-skew chunk recovery. The app
- * hands it a LOADER rather than the SDK, so the dynamic import still sits
- * behind the app's own guard.
+ * What this reports:
+ *
+ * - **Uncaught errors and unhandled rejections**, through the window's own
+ *   `error` and `unhandledrejection` events, once `init` has run.
+ * - **Caught errors**, through {@link BrowserObservability.captureException}.
+ *   Catching is exactly what keeps an error away from those window events, so
+ *   every deliberately-caught error is reported through it.
+ * - **Chunk failures**, through `installChunkRecovery`.
+ *
+ * It never throws and never retries: a report that cannot be sent is dropped.
+ * At most {@link MAX_REPORTS_PER_PAGE} leave one page, so a render loop cannot
+ * flood the endpoint, and an error object is reported once however many
+ * handlers see it.
  */
+
+import type { ErrorReport } from './cloudflare'
+import { ERROR_REPORT_PATH } from './cloudflare'
+
+export type { ErrorReport }
+export { ERROR_REPORT_PATH }
 
 /**
  * Grouping and labelling for a captured event.
  *
- * Both fields exist for the same reason: a Sentry issue is only useful if all
- * the events of one condition land in it and its title says what the condition
- * is. Convex's redacted errors satisfy neither by default — the message is
+ * Convex's redacted errors are the reason `fingerprint` exists: the message is
  * `"[CONVEX M(fn)] [Request ID: 1b66…] Server Error"`, so the request id makes
- * every event's message unique and the rest of it says nothing. In production
- * that produced two separate issues titled with request ids, for one condition,
- * with the actual cause nowhere in either.
+ * every event's message unique and the rest of it says nothing. Grouped by
+ * message, one condition became one issue per event.
  */
-export type CaptureOptions = {
+type CaptureOptions = {
   /**
-   * Stable grouping key. Overrides Sentry's default fingerprint entirely, so
-   * pass the things that identify the *condition* and nothing that varies per
-   * event (never a request id, an entity id, or a bundle hash).
+   * Stable name for the condition. The Worker logs the error under it instead
+   * of the message, so pass the things that identify the *condition* and
+   * nothing that varies per event (never a request id, an entity id, or a
+   * bundle hash).
    */
   fingerprint?: string[]
-  /** Searchable, aggregatable labels. Sentry indexes these; `extra` it does not. */
+  /** Short labels, logged with the event. */
   tags?: Record<string, string>
-}
-
-/** The subset of Sentry's event hint this repo uses. */
-export type CaptureHint = {
-  extra?: Record<string, unknown>
-  tags?: Record<string, string>
-  fingerprint?: string[]
-}
-
-/**
- * Build the hint object for `Sentry.captureException`, or `undefined` when
- * there is nothing to attach.
- *
- * Spelled out rather than derived from
- * `Parameters<typeof Sentry.captureException>[1]`. That compiles, but it pins
- * the shape to Sentry's `ExclusiveEventHintOrCaptureContext` union — three
- * overlapping shapes whose members are mutually `never` — so the day the SDK
- * reshapes that union the breakage lands here rather than at the call site.
- * These three fields are the whole contract we use; naming them is both clearer
- * and stabler.
- */
-export function buildCaptureHint(
-  context?: Record<string, unknown>,
-  options?: CaptureOptions
-): CaptureHint | undefined {
-  const hint: CaptureHint = {}
-  if (context) hint.extra = context
-  if (options?.tags) hint.tags = options.tags
-  if (options?.fingerprint) hint.fingerprint = options.fingerprint
-  return Object.keys(hint).length > 0 ? hint : undefined
-}
-
-/**
- * The slice of `@sentry/browser`'s namespace this module drives.
- *
- * Structural, so this package needs no dependency on the SDK: the app's
- * `import('@sentry/browser')` satisfies it as-is.
- */
-export type BrowserSentrySdk = {
-  init(options: BrowserSentryInitOptions): unknown
-  captureException(error: unknown, hint?: CaptureHint): unknown
-  captureMessage(message: string, hint?: CaptureHint): unknown
-}
-
-/** What `init` is called with. Errors only: no tracing, no replay. */
-type BrowserSentryInitOptions = {
-  dsn: string
-  environment?: string
-  release?: string
-  tracesSampleRate: number
-  ignoreErrors?: string[]
 }
 
 /** Per-app settings that do not come from the environment. */
 export type BrowserObservabilityConfig = {
   /**
-   * Substrings of `${type}: ${value}` to drop before sending. Omitted from the
-   * init options entirely when absent, rather than sent as `[]`.
+   * Substrings of `${name}: ${message}` to drop before sending. Browser noise
+   * that is not the app's to fix.
    */
   ignoreErrors?: string[]
+  /**
+   * How a report leaves the page. Defaults to `navigator.sendBeacon`, falling
+   * back to a `keepalive` fetch; tests inject one.
+   */
+  transport?: (endpoint: string, body: string) => void
 }
 
-/** The per-deploy values the app reads from `import.meta.env`. */
+/** What `init` is called with, from the app's `import.meta.env`. */
 type BrowserInitEnv = {
-  dsn: string
-  environment?: string
+  /** The app's report endpoint: its base plus `ERROR_REPORT_PATH`. */
+  endpoint: string
+  /** The deployed commit, `VITE_COMMIT_REF`. */
   release?: string
+  /** Where the window events are heard. Defaults to `window`; tests inject one. */
+  target?: EventTarget
 }
 
 export type BrowserObservability = {
   /**
-   * Initialise once. Call it only AFTER the app's own `if (!dsn) return`, and
-   * pass `() => import('@sentry/browser')` as `load` — see the module header.
+   * Start reporting, once; later calls are no-ops.
+   *
+   * @returns a teardown that stops reporting and removes the listeners (used
+   * by tests, so a module-level instance does not outlive its test file).
    */
-  init(load: () => Promise<BrowserSentrySdk>, env: BrowserInitEnv): Promise<void>
+  init(env: BrowserInitEnv): () => void
   /** Report a caught exception when initialised; otherwise a no-op. */
   captureException(
     error: unknown,
     context?: Record<string, unknown>,
     options?: CaptureOptions
   ): void
-  /** Report an informational message when initialised; otherwise a no-op. */
-  captureMessage(message: string, context?: Record<string, unknown>): void
   /**
    * Install the deploy-skew reload guard (see {@link ChunkRecoveryDeps}). Call
    * it once, from the app's client entry, before anything lazy is imported.
@@ -128,6 +93,71 @@ export type BrowserObservability = {
    * @returns a teardown that removes the listener (used by tests).
    */
   installChunkRecovery(deps?: ChunkRecoveryDeps): () => void
+}
+
+/** The most reports one page sends. */
+export const MAX_REPORTS_PER_PAGE = 20
+
+/** Long enough for any real message and a deep minified stack; the Worker reads 16 KB. */
+const MAX_MESSAGE_CHARS = 1_000
+const MAX_STACK_CHARS = 8_000
+const MAX_CONTEXT_CHARS = 2_000
+
+function clip(text: string, max: number): string {
+  return text.length > max ? `${text.slice(0, max)}…` : text
+}
+
+/** Name, message and stack of anything thrown, an `Error` or not. */
+function describe(error: unknown): Pick<ErrorReport, 'name' | 'message' | 'stack'> {
+  if (error instanceof Error) {
+    return {
+      name: error.name || 'Error',
+      message: clip(error.message, MAX_MESSAGE_CHARS),
+      stack: error.stack ? clip(error.stack, MAX_STACK_CHARS) : undefined,
+    }
+  }
+  let message: string
+  try {
+    message = typeof error === 'string' ? error : (JSON.stringify(error) ?? String(error))
+  } catch {
+    // A cycle or a BigInt: its string form will do.
+    message = String(error)
+  }
+  return { name: 'NonError', message: clip(message, MAX_MESSAGE_CHARS) }
+}
+
+/** The context, when it serialises within its budget; otherwise a note saying why not. */
+function boundedContext(
+  context: Record<string, unknown> | undefined
+): Record<string, unknown> | undefined {
+  if (!context) return undefined
+  try {
+    const json = JSON.stringify(context)
+    if (json.length <= MAX_CONTEXT_CHARS) return context
+    return { truncated: clip(json, MAX_CONTEXT_CHARS) }
+  } catch {
+    // A cycle in the context: the error is still worth sending without it.
+    return { unserialisable: true }
+  }
+}
+
+/** The page, without its query or hash: those can carry what is not ours to log. */
+function currentPage(): string | undefined {
+  const location = (globalThis as { location?: Location }).location
+  return location ? `${location.origin}${location.pathname}` : undefined
+}
+
+function beacon(endpoint: string, body: string): void {
+  const nav = (globalThis as { navigator?: Navigator }).navigator
+  if (nav?.sendBeacon?.(endpoint, new Blob([body], { type: 'application/json' }))) return
+  void fetch(endpoint, {
+    method: 'POST',
+    body,
+    headers: { 'content-type': 'application/json' },
+    keepalive: true,
+  }).catch(() => {
+    // Reporting must never become the error: a report that fails is dropped.
+  })
 }
 
 /**
@@ -204,58 +234,76 @@ function writeLastReloadAt(storage: Storage | undefined, at: number): void {
 }
 
 /**
- * Build one app's browser observability.
- *
- * `init` marks itself initialised BEFORE awaiting the loader, so two callers
- * racing on page load cannot both reach `Sentry.init`. Until the loader
- * resolves, and forever on a build with no DSN, both capture verbs are silent
- * no-ops — capturing is never an error.
+ * Build one app's browser observability. Until `init`, and forever in a build
+ * that never calls it, `captureException` is a silent no-op — capturing is
+ * never an error.
  */
 export function createBrowserObservability(
   config: BrowserObservabilityConfig = {}
 ): BrowserObservability {
-  let initialized = false
-  let sdk: BrowserSentrySdk | null = null
+  const transport = config.transport ?? beacon
+  const ignored = config.ignoreErrors ?? []
+  let endpoint: string | null = null
+  let release: string | undefined
+  let sent = 0
+  // An error seen by two handlers (a chunk failure, then its boundary) is one report.
+  const reported = new WeakSet<object>()
 
   function captureException(
     error: unknown,
     context?: Record<string, unknown>,
     options?: CaptureOptions
   ): void {
-    // The SDK's own client drops an error object it has already captured, so
-    // a chunk failure seen by both the recovery and an error boundary is one
-    // event.
-    if (!sdk) return
-    sdk.captureException(error, buildCaptureHint(context, options))
+    if (endpoint === null || sent >= MAX_REPORTS_PER_PAGE) return
+    if (typeof error === 'object' && error !== null) {
+      if (reported.has(error)) return
+      reported.add(error)
+    }
+    const described = describe(error)
+    const label = `${described.name}: ${described.message}`
+    if (ignored.some((fragment) => label.includes(fragment))) return
+
+    const report: ErrorReport = {
+      ...described,
+      url: currentPage(),
+      release,
+      context: boundedContext(context),
+      tags: options?.tags,
+      fingerprint: options?.fingerprint,
+    }
+    sent += 1
+    try {
+      transport(endpoint, JSON.stringify(report))
+    } catch {
+      // Reporting must never become the error: a report that fails is dropped.
+    }
   }
 
   return {
-    async init(load, env) {
-      if (initialized) return
-      initialized = true
-
-      const loaded = await load()
-      sdk = loaded
-      const options: BrowserSentryInitOptions = {
-        dsn: env.dsn,
-        environment: env.environment,
-        // Tags events with the deployed commit so an error maps back to a
-        // deploy — and must match the release name the Vite plugin uploads
-        // sourcemaps under, or the maps silently never apply. `||` so an empty
-        // string (unset locally) omits the tag rather than naming a release "".
-        release: env.release || undefined,
-        // Errors only — no performance tracing or session replay. Keeps network
-        // chatter minimal and the CSP surface to the ingest origin.
-        tracesSampleRate: 0,
+    init(env) {
+      if (endpoint !== null) return () => undefined
+      endpoint = env.endpoint
+      // `||` so an empty string (unset locally) omits the release rather than naming one "".
+      release = env.release || undefined
+      const target = env.target ?? globalThis
+      const onError = (event: Event) => {
+        const { error, message } = event as ErrorEvent
+        captureException(error ?? message, undefined, { tags: { handler: 'error' } })
       }
-      if (config.ignoreErrors) options.ignoreErrors = config.ignoreErrors
-      loaded.init(options)
+      const onRejection = (event: Event) => {
+        captureException((event as PromiseRejectionEvent).reason, undefined, {
+          tags: { handler: 'unhandledrejection' },
+        })
+      }
+      target.addEventListener('error', onError)
+      target.addEventListener('unhandledrejection', onRejection)
+      return () => {
+        target.removeEventListener('error', onError)
+        target.removeEventListener('unhandledrejection', onRejection)
+        endpoint = null
+      }
     },
     captureException,
-    captureMessage(message, context) {
-      if (!sdk) return
-      sdk.captureMessage(message, buildCaptureHint(context))
-    },
     installChunkRecovery(deps = {}) {
       // `globalThis` is `window` in a page.
       const target = deps.target ?? globalThis
@@ -280,8 +328,8 @@ export function createBrowserObservability(
 
         // Reported either way: a failure that reloads is invisible to the user
         // and would otherwise be invisible to us too. A fixed fingerprint,
-        // because the message carries a bundle hash and Sentry's default
-        // grouping would mint a new issue per deploy.
+        // because the message carries a bundle hash and grouping by it
+        // would mint a new issue per deploy.
         captureException(
           error,
           { recovered: willReload, msSinceLastReload: since },

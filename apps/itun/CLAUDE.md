@@ -65,7 +65,7 @@ before touching data** (it loads with the stores, hooks, `src/lib/connection/`,
 
 - Choices stay persistence-agnostic in the shared library — ITUN owns the
   selections ([ADR-010](../../docs/ARCHITECTURE.md)).
-- No Sentry SDK in `convex/`; verify reporting by probe, see
+- No error SDK in `convex/`; verify reporting by probe, see
   [convex-ops](../../.claude/skills/convex-ops/SKILL.md).
 - **Throw `ConvexError` when the message is for a player; plain `Error` when it
   is not.** Convex redacts every non-`ConvexError` throw to
@@ -77,7 +77,7 @@ before touching data** (it loads with the stores, hooks, `src/lib/connection/`,
   (`src/lib/connection/useServerAction.ts`) — never by string-matching
   `'Server Error'` or rendering the caught error's text.
 - **A caught error is either reported or explained — never just dropped.**
-  Catching is what keeps an error away from Sentry's global handlers, so a
+  Catching is what keeps an error away from the window's `error` event, so a
   `catch` must do one of three things: produce an outcome the user or caller
   sees (an error state, a 4xx/5xx, a rethrow with `cause`), report through
   `captureException` (browser) or `reportError`

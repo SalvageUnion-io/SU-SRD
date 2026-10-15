@@ -108,8 +108,6 @@ function envFor(keys: KeyPairHex): Env {
     // Unconfigured: every ITUN call degrades to `unavailable` with no request.
     ITUN_CONVEX_SITE_URL: '',
     ITUN_BOT_SECRET: '',
-    // Unset: the SDK initialises disabled.
-    SENTRY_DSN: '',
   }
 }
 

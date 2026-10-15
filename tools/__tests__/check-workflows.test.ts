@@ -648,7 +648,7 @@ describe('secrets-env', () => {
       {
         name: 'production',
         branches: ['main'],
-        secrets: ['CONVEX_DEPLOY_KEY', 'SENTRY_AUTH_TOKEN'],
+        secrets: ['CONVEX_DEPLOY_KEY', 'DISCORD_TOKEN'],
       },
     ],
     sentinel: null,
@@ -667,11 +667,11 @@ describe('secrets-env', () => {
   })
 
   test('an environment tools/environments.ts does not declare fails, as does reading outside production', () => {
-    expect(run(job('SENTRY_AUTH_TOKEN', 'staging'))).toEqual([
+    expect(run(job('DISCORD_TOKEN', 'staging'))).toEqual([
       expect.stringContaining(
         'names environment `staging`, which tools/environments.ts does not declare'
       ),
-      expect.stringContaining('reads secrets.SENTRY_AUTH_TOKEN without `environment: production`'),
+      expect.stringContaining('reads secrets.DISCORD_TOKEN without `environment: production`'),
     ])
   })
 
@@ -679,23 +679,23 @@ describe('secrets-env', () => {
     const shared = {
       environments: [
         ...decl.environments,
-        { name: 'preview', branches: ['**/*'], secrets: ['SENTRY_AUTH_TOKEN'], reviewers: ['o'] },
+        { name: 'preview', branches: ['**/*'], secrets: ['DISCORD_TOKEN'], reviewers: ['o'] },
       ],
       sentinel: null,
     }
     const runShared = (...extra: WorkflowFile[]) => checkSecretsEnv(ctx({ extra }), shared).failures
-    expect(runShared(job('SENTRY_AUTH_TOKEN', 'production'))).toEqual([])
-    expect(runShared(job('SENTRY_AUTH_TOKEN', 'preview'))).toEqual([])
+    expect(runShared(job('DISCORD_TOKEN', 'production'))).toEqual([])
+    expect(runShared(job('DISCORD_TOKEN', 'preview'))).toEqual([])
     expect(runShared(job('CONVEX_DEPLOY_KEY', 'preview'))).toEqual([
       expect.stringContaining('without `environment: production`'),
     ])
-    expect(runShared(job('SENTRY_AUTH_TOKEN'))).toEqual([
+    expect(runShared(job('DISCORD_TOKEN'))).toEqual([
       expect.stringContaining('without `environment: production` or `preview`'),
     ])
   })
 
   test('a job reading only GITHUB_TOKEN needs no environment', () => {
-    expect(run(job('GITHUB_TOKEN'), job('SENTRY_AUTH_TOKEN', 'production'))).toEqual([])
+    expect(run(job('GITHUB_TOKEN'), job('DISCORD_TOKEN', 'production'))).toEqual([])
   })
 
   test('no job reading a production secret fails rather than passing empty', () => {
@@ -706,11 +706,11 @@ describe('secrets-env', () => {
   describe('the repository-secret sentinel', () => {
     const SENTINEL = { file: '.github/workflows/nightly.yml', job: 'environments' }
     const withSentinel = (...extra: WorkflowFile[]) =>
-      checkSecretsEnv(ctx({ extra: [job('SENTRY_AUTH_TOKEN', 'production'), ...extra] }), {
+      checkSecretsEnv(ctx({ extra: [job('DISCORD_TOKEN', 'production'), ...extra] }), {
         ...decl,
         sentinel: SENTINEL,
       }).failures
-    const sentinel = (env?: string, secrets = ['CONVEX_DEPLOY_KEY', 'SENTRY_AUTH_TOKEN']) =>
+    const sentinel = (env?: string, secrets = ['CONVEX_DEPLOY_KEY', 'DISCORD_TOKEN']) =>
       yaml(
         SENTINEL.file,
         [
@@ -746,7 +746,7 @@ describe('secrets-env', () => {
 
     test('a secret it does not map is named', () => {
       expect(withSentinel(sentinel(undefined, ['CONVEX_DEPLOY_KEY']))).toEqual([
-        expect.stringContaining('does not map secrets.SENTRY_AUTH_TOKEN'),
+        expect.stringContaining('does not map secrets.DISCORD_TOKEN'),
       ])
     })
 

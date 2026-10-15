@@ -20,9 +20,9 @@ import { serverMessage } from './serverError'
  *   cannot read, a file that is not a backup);
  * - **anything else** is a defect. Its text is never fit to show: a redacted
  *   server error reads `[CONVEX M(fn)] … Server Error`, and a client bug's
- *   message is a developer's. So it gets the caller's own line, and a Sentry
- *   report, because catching it is exactly what kept it from reaching Sentry's
- *   global handler.
+ *   message is a developer's. So it gets the caller's own line, and a
+ *   report, because catching it is exactly what kept it from reaching the
+ *   window's `error` event.
  *
  * `err instanceof Error ? err.message : …` gets all three wrong at once, which
  * is why lint bans it (`packages/gates/biome/noRawErrorMessage.grit`).

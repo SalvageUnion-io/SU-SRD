@@ -28,8 +28,8 @@ import type * as MountModule from './mountIsland'
 import { mountsNow } from './mountNow'
 import { schedule } from './scheduleIsland'
 
-// Env-gated browser error tracking, initialised from the single client entry.
-void initBrowserObservability()
+// Browser error reporting to the Worker (production builds), from the single client entry.
+initBrowserObservability()
 
 // Before any island is scheduled: a `load` island imports its chunk the moment
 // `mountIslands` runs, and on a page older than the deploy that import is the

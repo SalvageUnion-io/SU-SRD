@@ -3,7 +3,6 @@ import { join } from 'node:path'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import react from '@vitejs/plugin-react-swc'
 import { CHECKOUT_HEADER, CHECKOUT_ROOT, portFor } from 'gates/ports'
-import { sentrySourcemaps } from 'observability/vite'
 import type { Plugin } from 'vite'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -182,8 +181,6 @@ export default defineConfig({
       },
     }),
     siteLayout(SITE.base),
-    // Must run last; inert without SENTRY_AUTH_TOKEN (see observability/vite).
-    ...sentrySourcemaps('dist'),
   ],
   build: {
     // `dist/build/`, so a file's path on disk is its URL path.

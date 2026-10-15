@@ -33,7 +33,7 @@ import type { ResponseLike } from '@discordjs/rest'
 import { DiscordAPIError, HTTPError, RateLimitError, REST } from '@discordjs/rest'
 import type { APIInteraction, APIUser } from 'discord-api-types/v10'
 import { InteractionResponseType, InteractionType, Routes } from 'discord-api-types/v10'
-import { reportError, withObservability } from 'observability/cloudflare'
+import { reportError } from 'observability/cloudflare'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { handleButtonInteraction } from '../buttons'
 import { commands } from '../commands/index'
@@ -255,7 +255,7 @@ async function health(env: Env): Promise<Response> {
 }
 
 /** @public Cloudflare Worker entrypoint — loaded by workerd, not imported. */
-export default withObservability('su-discord-bot', {
+export default {
   async fetch(request: Request, env: Env, ctx: ExecutionCtx): Promise<Response> {
     if (request.method === 'GET' && new URL(request.url).pathname === '/health') {
       return health(env)
@@ -302,4 +302,4 @@ export default withObservability('su-discord-bot', {
 
     return Response.json(await dispatch(interaction, env, ctx))
   },
-})
+}

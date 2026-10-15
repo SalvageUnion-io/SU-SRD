@@ -110,13 +110,18 @@ check http://www.intheunionnow.com/ 301 "itun www http redirect"
 # Not `/robots.txt`: with the zone's AI bot policies on, Cloudflare's managed
 # robots.txt answers that path over http itself (200) before the redirect.
 check http://assets.salvageunion.io/ 301 "artwork http redirect"
-# The CSP must also admit Sentry's EU ingest host, or every event is blocked in
-# the browser while the project looks quiet (tools/check-observability.ts pins
-# the same host in the repo's CSP sources).
-check_header https://salvageunion.io/ content-security-policy "srd CSP reaches the browser and admits Sentry" ingest.de.sentry.io
+# The CSP must also admit 'self', where the browser posts its error reports, or
+# every report is blocked while Workers Issues looks quiet
+# (tools/check-observability.ts pins the same in the repo's CSP sources).
+check_header https://salvageunion.io/ content-security-policy "srd CSP reaches the browser and admits error reports" "connect-src 'self'"
 check_header https://salvageunion.io/ strict-transport-security "srd HSTS reaches the browser"
-check_header https://salvageunion.io/build/ content-security-policy "itun CSP reaches the browser and admits Sentry" ingest.de.sentry.io
+check_header https://salvageunion.io/build/ content-security-policy "itun CSP reaches the browser and admits error reports" "connect-src 'self'"
 check_header https://salvageunion.io/build/ strict-transport-security "itun HSTS reaches the browser"
+# The endpoints that bring the browser's and Convex's errors into Workers Issues
+# are routed (packages/observability/src/cloudflare.ts): they take POST only.
+check https://salvageunion.io/__errors 405 "srd error report endpoint is routed"
+check https://salvageunion.io/build/__errors 405 "itun error report endpoint is routed"
+check https://salvageunion.io/build/__convex-logs 405 "Convex log stream endpoint is routed"
 # itun runs in single-page-application mode, so only its Worker keeps a missing
 # chunk from #759, where a missing hashed chunk answered `200 text/html` and the
 # `immutable` header pinned that HTML into the HTTP cache for a year. curl sends

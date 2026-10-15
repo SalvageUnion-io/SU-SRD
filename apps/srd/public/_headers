@@ -5,9 +5,9 @@
 # (src/worker/index.ts), and its 404 page comes back through the asset binding,
 # so this file is still the ONLY source of security headers.
 #
-# `tools/check-observability.ts` requires the CSP here to allow Sentry's ingest
-# origin; tools/smoke-production.sh asserts the CSP and HSTS actually reach the
-# browser.
+# `tools/check-observability.ts` requires the CSP here to allow 'self', where the
+# browser posts its error reports (`/__errors`, src/worker/index.ts);
+# tools/smoke-production.sh asserts the CSP and HSTS actually reach the browser.
 
 /*
   X-Frame-Options: DENY
@@ -16,17 +16,8 @@
   Permissions-Policy: geolocation=(), microphone=(), camera=()
   Strict-Transport-Security: max-age=63072000; includeSubDomains
   X-DNS-Prefetch-Control: on
-  # connect-src MUST list Sentry's ingest origin or the browser blocks every
-  # event before it leaves the page — a DSN alone is not enough, and that
-  # failure is silent AND looks healthy (zero errors reported).
-  #
-  # `de`, not `us`: this org is in Sentry's EU data region. A DSN issued in one
-  # region under a CSP written for the other is blocked in the browser and the
-  # project reports nothing — indistinguishable, from outside, from "no errors".
-  #
-  # Kept in lockstep with SENTRY_INGEST_HOST in tools/check-observability.ts,
-  # which fails CI if this drifts. Wildcarded subdomain because the host encodes
-  # the Sentry org id.
+  # connect-src MUST keep 'self', or the browser blocks every error report
+  # before it leaves the page — silent, and it looks healthy (zero errors).
   # script-src carries NO 'unsafe-inline' and NO hashes. With 'unsafe-inline',
   # an injected <script> executes and CSP's primary XSS control is gone. srd
   # emits no executable inline script at all — the /about and /greembeem
@@ -50,7 +41,7 @@
   # loaded from static.cloudflareinsights.com and posting page loads to
   # cloudflareinsights.com; drop either origin and the dashboard silently
   # records nothing.
-  Content-Security-Policy: default-src 'self'; script-src 'inline-speculation-rules' 'self' https://storage.ko-fi.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com https://*.ingest.de.sentry.io;
+  Content-Security-Policy: default-src 'self'; script-src 'inline-speculation-rules' 'self' https://storage.ko-fi.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com;
 
 # The production Worker's own workers.dev address serves the same pages as
 # salvageunion.io (it stays on for the smoke check). Its canonicals already name

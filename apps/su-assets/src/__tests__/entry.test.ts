@@ -19,16 +19,12 @@ afterAll(() => {
   reportError.mockRestore()
 })
 
-const ctx = { waitUntil: () => {}, passThroughOnException: () => {} } as unknown as ExecutionContext
-
 function envWith(entries: Record<string, string>): Env {
-  return { LP_ASSETS: bucketWith(entries), IMAGES: undefined, SENTRY_DSN: '' } as unknown as Env
+  return { LP_ASSETS: bucketWith(entries), IMAGES: undefined } as unknown as Env
 }
 
 async function fetchVia(env: Env, path: string): Promise<Response> {
-  const fetch = worker.fetch
-  if (!fetch) throw new Error('the Worker exports no fetch handler')
-  return fetch(req(path) as Parameters<typeof fetch>[0], env, ctx)
+  return worker.fetch(req(path) as Parameters<typeof worker.fetch>[0], env)
 }
 
 describe('asset worker — entrypoint', () => {
@@ -70,7 +66,7 @@ describe('asset worker — entrypoint', () => {
         }
       },
     }
-    const env = { LP_ASSETS: broken, IMAGES: undefined, SENTRY_DSN: '' } as unknown as Env
+    const env = { LP_ASSETS: broken, IMAGES: undefined } as unknown as Env
     const res = await fetchVia(env, '/chassis/mule.webp')
 
     expect(res.status).toBe(500)

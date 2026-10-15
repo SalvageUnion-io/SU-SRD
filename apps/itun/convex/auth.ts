@@ -40,7 +40,7 @@ const discord = Discord({})
  * provider's issuer. The stock provider declares none, so `@convex-dev/auth`
  * falls back to the placeholder `theremustbeastringhere.dev` — and every
  * sign-in failed with `unexpected "iss" (issuer) response parameter value`,
- * logged rather than thrown, so nothing reached Sentry. Setting it does not
+ * logged rather than thrown, so nothing reached error reporting. Setting it does not
  * trigger discovery: the provider already names all three endpoints, so this
  * only changes what `iss` is compared against.
  */

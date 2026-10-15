@@ -1,130 +1,299 @@
 /**
- * Sentry wiring for the Cloudflare Workers surfaces.
+ * Error reporting for the Cloudflare Workers, and the two endpoints that bring
+ * the browser's and Convex's errors into them.
  *
- * ## Why it imports the SDK directly
+ * ## Workers Issues is the error tracker
  *
- * wrangler bundles with esbuild, which resolves workspace packages normally, so
- * this module imports `@sentry/cloudflare` itself and the four Workers get it
- * through one dependency declared in one place — a runtime `dependency` of this
- * package, not a devDependency.
+ * Every Worker turns on `observability.issues` (`wrangler.jsonc`). Issues
+ * records, with no SDK and no wrapper, an uncaught exception, a failed
+ * invocation, a `5xx` the Worker returns, and any `console.error` — and groups
+ * them into issues, alerted on by the dashboard's Issues automations.
+ * `upload_source_maps` makes a Worker's own stacks point at the source.
  *
- * `@sentry/cloudflare` is built for workerd: it hooks `fetch` through a
- * wrapper instead of installing global instrumentation, and needs the
- * `nodejs_als` compatibility flag, which `tools/check-observability.ts`
- * asserts for every Worker.
+ * So a Worker reports a handled error by logging it: {@link reportError}.
+ * There is no module-scope initialisation of anything (ADR-033 forbids I/O at
+ * module scope), and nothing to wrap a default export in.
  *
- * ## Why a wrapper and not `Sentry.init()`
+ * ## The two errors Cloudflare cannot see by itself
  *
- * ADR-033 is explicit that **module scope on Workers forbids timers, async I/O
- * and randomness**, and says this "also applies to any module-scope
- * observability initialisation". A top-level `Sentry.init()` is exactly the
- * thing that breaks — at startup, not at build.
- *
- * `withSentry` exists for that constraint: it takes a function from `env` to
- * options and evaluates it per request, inside the request context, where the
- * DSN is available and I/O is legal. It also wires `waitUntil` for event
- * flushing, which a hand-rolled `captureException` in a Worker cannot do —
- * without it the isolate can be torn down before the event leaves.
- *
- * Without it a Worker's errors reach only `console.error`, which lands in
- * Workers Logs — retained for days and alerted on by nothing.
+ * - **The browser.** Cloudflare has no browser error tracking. The apps post
+ *   their errors to their own Worker ({@link handleErrorReport}, at
+ *   {@link ERROR_REPORT_PATH}), which logs each one as an `Error` so Issues
+ *   groups it like a Worker's own. The stacks stay minified: Cloudflare maps
+ *   only a Worker's own code.
+ * - **Convex.** A Convex log stream (a webhook, configured in the Convex
+ *   dashboard) posts the deployment's logs to the ITUN Worker
+ *   ({@link handleConvexLogStream}), which logs each failed function and each
+ *   `console.error` as an `Error`.
  */
-import * as Sentry from '@sentry/cloudflare'
-
-/**
- * The environment fields this module reads.
- *
- * Deliberately structural rather than each Worker's full `Env`: this package
- * must not know what bindings any particular Worker has.
- */
-export type ObservabilityEnv = {
-  /**
-   * Absent means Sentry is off — the deliberate default for local dev. Read by
-   * the SDK itself, not by this module.
-   */
-  SENTRY_DSN?: string
-  /**
-   * Commit SHA, used as the Sentry release — the same SHA the browser bundles
-   * and their sourcemaps are tagged with. The deploy workflow passes it as
-   * `wrangler deploy --var SENTRY_RELEASE:<sha>`. Read by the SDK itself: it
-   * must not be set in the options below, where even an `undefined` value
-   * overrides the SDK's own env read.
-   */
-  SENTRY_RELEASE?: string
-  /** `production` unless set otherwise. */
-  SENTRY_ENVIRONMENT?: string
-}
-
-/**
- * A Worker's default export, as much of it as this wrapper needs.
- *
- * `ctx` is optional so the Workers' own routing tests can call `fetch(req, env)`
- * with two arguments. workerd always supplies it.
- */
-type ExportedHandler<E> = {
-  fetch(request: Request, env: E, ctx?: ExecutionContext): Promise<Response> | Response
-}
-
-type ExecutionContext = {
-  waitUntil(promise: Promise<unknown>): void
-  passThroughOnException?(): void
-}
-
-/**
- * Wrap a Worker's default export so unhandled errors reach Sentry.
- *
- * `serverName` is the Worker's wrangler `name`: all four Workers report into
- * the one `workers` Sentry project, and `server_name` is what tells them apart.
- *
- * With no `SENTRY_DSN` the SDK initialises disabled: the Worker runs exactly as
- * before and events go nowhere. That is the same env-gated shape the browser
- * shims use, and it is what keeps `wrangler dev` and the tests free of Sentry.
- */
-export function withObservability<E extends ObservabilityEnv>(
-  serverName: string,
-  handler: ExportedHandler<E>
-): ExportedHandler<E> {
-  return Sentry.withSentry(
-    (env: E) => ({
-      environment: env.SENTRY_ENVIRONMENT ?? 'production',
-      serverName,
-      // No tracing. These Workers are latency-sensitive and the question being
-      // answered is "did it throw", not "where did the time go" — and a Free
-      // plan's 10 ms CPU budget is not the place to spend on span overhead.
-      tracesSampleRate: 0,
-      // No PII by default (cookies, IPs, user identity).
-      sendDefaultPii: false,
-      // Do not send request bodies. The Discord interaction body is a signed
-      // payload including user content, which does not belong in an error
-      // report.
-      //
-      // `sendDefaultPii: false` does NOT achieve this. The SDK's default
-      // HttpServer integration captures any textual request body (up to
-      // `'medium'`, ~10 KB) regardless of that flag. Supplying our own
-      // instance replaces the default one by name — the SDK dedupes
-      // integrations and a user-supplied one wins — so this is the only
-      // HttpServer integration that runs. The test posts a JSON body with an
-      // explicit content-type and asserts it never reaches an envelope.
-      integrations: [Sentry.httpServerIntegration({ maxRequestBodySize: 'none' })],
-    }),
-    handler
-  ) as ExportedHandler<E>
-}
 
 /**
  * Report a handled error — one the Worker caught and turned into a response.
  *
- * `withObservability` only sees what escapes the handler, and these Workers
+ * Issues only sees an uncaught throw or a `5xx` on its own, and these Workers
  * deliberately catch nearly everything (a storage failure becomes a 503, a
- * transformation failure becomes a 404). Those are the events actually worth
- * alerting on, so they have to be reported explicitly.
- *
- * Both sinks, every time: `console.error` for Workers Logs (what `wrangler tail`
- * shows during an incident) and Sentry (what alerts). Safe to call when Sentry
- * is disabled — `captureException` is a no-op without a DSN — and under Bun,
+ * transformation failure becomes a 404). Logging the error at error level is
+ * what makes Issues record it, and it lands in Workers Logs (what
+ * `wrangler tail` shows during an incident) at the same time. Safe under Bun,
  * so shared code and its tests import it directly.
  */
 export function reportError(error: unknown, context?: Record<string, unknown>): void {
   console.error(error, context ?? {})
-  Sentry.captureException(error, context ? { extra: context } : undefined)
+}
+
+/** A Workers rate limiting binding (`ratelimits` in `wrangler.jsonc`). */
+export type RateLimiter = {
+  limit(options: { key: string }): Promise<{ success: boolean }>
+}
+
+/**
+ * Where a browser app posts its errors, under the app's own base: srd's at
+ * `/__errors`, ITUN's at `/build/__errors`. Same origin, so the CSP's
+ * `connect-src 'self'` already allows it.
+ */
+export const ERROR_REPORT_PATH = '/__errors'
+
+/** Where the Convex log stream posts, under ITUN's base: `/build/__convex-logs`. */
+export const CONVEX_LOG_STREAM_PATH = '/__convex-logs'
+
+/**
+ * The largest report body the endpoint reads. The browser truncates its
+ * stack and context well under this; anything bigger is not ours.
+ */
+const MAX_REPORT_BYTES = 16 * 1024
+
+/** What a browser app posts: `observability/browser`'s `ErrorReport`. */
+export type ErrorReport = {
+  name: string
+  message: string
+  stack?: string
+  /** The page, without its query or hash. */
+  url?: string
+  /** The deployed commit, `VITE_COMMIT_REF`. */
+  release?: string
+  context?: Record<string, unknown>
+  tags?: Record<string, string>
+  /**
+   * A stable name for the condition, for an error whose message varies per
+   * event (a request id, a bundle hash). It becomes the logged error's
+   * message, so Issues groups every event of the condition together.
+   */
+  fingerprint?: string[]
+}
+
+function noStore(status: number, headers?: Record<string, string>): Response {
+  return new Response(null, { status, headers: { 'cache-control': 'no-store', ...headers } })
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function stringRecord(value: unknown): Record<string, string> | undefined {
+  if (!isRecord(value)) return undefined
+  const entries = Object.entries(value).filter(
+    (entry): entry is [string, string] => typeof entry[1] === 'string'
+  )
+  return entries.length > 0 ? Object.fromEntries(entries) : undefined
+}
+
+function optionalString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.length > 0 ? value : undefined
+}
+
+/** A posted body as an {@link ErrorReport}, or null when it is not one. */
+export function parseErrorReport(value: unknown): ErrorReport | null {
+  if (!isRecord(value)) return null
+  if (typeof value.message !== 'string') return null
+  const fingerprint = Array.isArray(value.fingerprint)
+    ? value.fingerprint.filter((part): part is string => typeof part === 'string')
+    : []
+  return {
+    name: optionalString(value.name) ?? 'Error',
+    message: value.message,
+    stack: optionalString(value.stack),
+    url: optionalString(value.url),
+    release: optionalString(value.release),
+    context: isRecord(value.context) ? value.context : undefined,
+    tags: stringRecord(value.tags),
+    fingerprint: fingerprint.length > 0 ? fingerprint : undefined,
+  }
+}
+
+/**
+ * An `Error` standing in for one that happened somewhere else, so Issues reads
+ * its name, message and stack as if this Worker had thrown it.
+ */
+function remoteError(name: string, message: string, stack: string | undefined): Error {
+  const error = new Error(message)
+  error.name = name
+  error.stack = stack ?? `${name}: ${message}`
+  return error
+}
+
+/** The error a report is logged as: by its fingerprint when it has one. */
+export function errorOfReport(report: ErrorReport): Error {
+  if (report.fingerprint) {
+    return remoteError(report.name, report.fingerprint.join(' '), undefined)
+  }
+  return remoteError(report.name, report.message, report.stack)
+}
+
+/**
+ * Answer a browser app's error report: log it as an error, answer `204`.
+ *
+ * Never a `5xx`, which Issues would record as a failure of this endpoint.
+ * Abuse is bounded three ways: the body size, the shape, and, when the Worker
+ * binds one, a per-address rate limit.
+ */
+export async function handleErrorReport(
+  request: Request,
+  options: { app: string; limiter?: RateLimiter }
+): Promise<Response> {
+  if (request.method !== 'POST') return noStore(405, { allow: 'POST' })
+
+  if (options.limiter) {
+    const key = request.headers.get('cf-connecting-ip') ?? 'unknown'
+    const { success } = await options.limiter.limit({ key })
+    if (!success) return noStore(429)
+  }
+
+  if (Number(request.headers.get('content-length') ?? 0) > MAX_REPORT_BYTES) return noStore(413)
+  const body = await request.text()
+  if (body.length > MAX_REPORT_BYTES) return noStore(413)
+
+  let report: ErrorReport | null
+  try {
+    report = parseErrorReport(JSON.parse(body))
+  } catch {
+    // Not JSON: not a report, and nothing worth logging.
+    report = null
+  }
+  if (report === null) return noStore(400)
+
+  console.error(errorOfReport(report), {
+    source: 'browser',
+    app: options.app,
+    url: report.url,
+    release: report.release,
+    tags: report.tags,
+    context: report.context,
+    ...(report.fingerprint ? { message: report.message } : {}),
+    userAgent: request.headers.get('user-agent') ?? undefined,
+  })
+  return noStore(204)
+}
+
+/** The slice of a Convex log stream event this reads. */
+type ConvexLogEvent = {
+  topic?: unknown
+  status?: unknown
+  error_message?: unknown
+  log_level?: unknown
+  message?: unknown
+  function?: unknown
+}
+
+function hexBytes(hex: string): Uint8Array<ArrayBuffer> | null {
+  if (hex.length % 2 !== 0 || !/^[0-9a-f]*$/i.test(hex)) return null
+  const bytes = new Uint8Array(hex.length / 2)
+  for (let i = 0; i < bytes.length; i++) bytes[i] = Number.parseInt(hex.slice(i * 2, i * 2 + 2), 16)
+  return bytes
+}
+
+/**
+ * Whether `x-webhook-signature` is the HMAC-SHA256 of the raw body under the
+ * stream's secret: lowercase hex, with or without a `sha256=` prefix.
+ */
+export async function verifyConvexSignature(
+  body: Uint8Array<ArrayBuffer>,
+  signature: string | null,
+  secret: string
+): Promise<boolean> {
+  if (!signature) return false
+  const expected = hexBytes(signature.trim().replace(/^sha256=/, ''))
+  if (expected === null) return false
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['verify']
+  )
+  return crypto.subtle.verify('HMAC', key, expected, body)
+}
+
+/** A delivery's events: a JSON array, one JSON object, or JSON lines. */
+function eventsOf(text: string): ConvexLogEvent[] {
+  try {
+    const parsed: unknown = JSON.parse(text)
+    if (Array.isArray(parsed)) return parsed.filter(isRecord)
+    return isRecord(parsed) ? [parsed] : []
+  } catch {
+    // Not one JSON value: read it as JSON lines below.
+  }
+  const events: ConvexLogEvent[] = []
+  for (const line of text.split('\n')) {
+    if (line.trim().length === 0) continue
+    try {
+      const parsed: unknown = JSON.parse(line)
+      if (isRecord(parsed)) events.push(parsed)
+    } catch {
+      // One malformed line does not lose the rest of the delivery.
+    }
+  }
+  return events
+}
+
+function firstLine(text: string): string {
+  return text.split('\n', 1)[0] ?? text
+}
+
+/** The error a Convex log event is logged as, or null when it is not a failure. */
+export function errorOfConvexEvent(
+  event: ConvexLogEvent
+): { error: Error; context: Record<string, unknown> } | null {
+  const fn = isRecord(event.function) ? event.function : {}
+  const context = {
+    source: 'convex',
+    function: optionalString(fn.path),
+    type: optionalString(fn.type),
+    requestId: optionalString(fn.request_id),
+  }
+  if (event.topic === 'function_execution' && event.status === 'failure') {
+    const text = optionalString(event.error_message) ?? 'Convex function failed'
+    return { error: remoteError('ConvexFunctionError', firstLine(text), text), context }
+  }
+  if (event.topic === 'console' && event.log_level === 'ERROR') {
+    const text = optionalString(event.message) ?? 'console.error'
+    return { error: remoteError('ConvexConsoleError', firstLine(text), text), context }
+  }
+  return null
+}
+
+/**
+ * Answer a Convex log stream delivery: verify it, log every failed function
+ * and every `console.error` in it as an error, answer `200`.
+ *
+ * With no secret configured the endpoint answers `503`, which Issues records:
+ * a stream pointed at a Worker that cannot verify it is a misconfiguration to
+ * see, not to swallow.
+ */
+export async function handleConvexLogStream(
+  request: Request,
+  secret: string | undefined
+): Promise<Response> {
+  if (request.method !== 'POST') return noStore(405, { allow: 'POST' })
+  if (!secret) return noStore(503)
+
+  const body = new Uint8Array(await request.arrayBuffer())
+  if (!(await verifyConvexSignature(body, request.headers.get('x-webhook-signature'), secret))) {
+    return noStore(401)
+  }
+
+  for (const event of eventsOf(new TextDecoder().decode(body))) {
+    const failure = errorOfConvexEvent(event)
+    if (failure) console.error(failure.error, failure.context)
+  }
+  return noStore(200)
 }
