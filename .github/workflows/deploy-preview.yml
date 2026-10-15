@@ -1,14 +1,14 @@
 name: Deploy preview (Cloudflare)
 
 # A Cloudflare Worker Preview per pull request into `main`, once it carries the
-# `preview` label:
+# `preview` label: one su-srd Preview, as production is one su-srd Worker.
 #
-#   srd   https://pr-<n>-su-srd.alxjrvs.workers.dev
-#   cantina  https://pr-<n>-su-cantina.alxjrvs.workers.dev/build, against the
-#         staging Convex deployment perfect-donkey-72
+#   srd      https://pr-<n>-su-srd.alxjrvs.workers.dev
+#   cantina  https://pr-<n>-su-srd.alxjrvs.workers.dev/build, against the
+#            staging Convex deployment perfect-donkey-72
 #
 # Adding the label builds and ships the PR; each later push to it ships again;
-# closing it deletes both Previews. The run's summary and one PR comment carry
+# closing it deletes the Preview. The run's summary and one PR comment carry
 # the URLs. docs/ARCHITECTURE.md#previews has the trade-offs.
 #
 # IT CANNOT MOVE PRODUCTION. `wrangler preview` makes a Preview, which is
@@ -57,14 +57,14 @@ env:
   # production's (docs/ARCHITECTURE.md#previews).
   STAGING_CONVEX_DEPLOYMENT: perfect-donkey-72
   STAGING_CONVEX_URL: https://perfect-donkey-72.convex.cloud
-  # Each Preview's address, known before it exists: `<name>-<worker>.<account
-  # subdomain>`. Both builds take both, and the Cantina's Worker its SRD_ORIGIN (its
-  # redirects to the SRD), so every link a Preview prints names this PR's
-  # Previews, never production: cross links, canonicals, og: tags, the Discord
-  # Component Embed, the sitemap. A Preview answers noindex, so search never
-  # sees them. `ship` fails if wrangler reports any other address.
+  # The Preview's address, known before it exists: `<name>-<worker>.<account
+  # subdomain>`. Both builds take it as both origins (the SRD and the Cantina
+  # are one origin), so every link a Preview prints names this PR's Preview,
+  # never production: cross links, canonicals, og: tags, the Discord Component
+  # Embed, the sitemap. A Preview answers noindex, so search never sees it.
+  # `ship` fails if wrangler reports any other address.
   PREVIEW_SRD_ORIGIN: https://pr-${{ github.event.pull_request.number }}-su-srd.alxjrvs.workers.dev
-  PREVIEW_CANTINA_ORIGIN: https://pr-${{ github.event.pull_request.number }}-su-cantina.alxjrvs.workers.dev
+  PREVIEW_CANTINA_ORIGIN: https://pr-${{ github.event.pull_request.number }}-su-srd.alxjrvs.workers.dev
 
 jobs:
   build-srd:
@@ -152,15 +152,14 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  # Push the staging backend, then ship both Workers as Previews, only after
-  # both builds are green.
+  # Push the staging backend, then ship su-srd, with the Cantina in its
+  # `dist/build/`, as a Preview, only after both builds are green.
   ship:
     needs: [build-srd, build-cantina]
     runs-on: ubuntu-latest
     environment: preview
     outputs:
       srd: ${{ steps.preview.outputs.srd }}
-      cantina: ${{ steps.preview.outputs.cantina }}
     timeout-minutes: 15
     steps:
       - name: Checkout
@@ -229,38 +228,38 @@ jobs:
           name: cantina-dist
           path: apps/cantina/dist
 
+      - name: Put the Cantina in srd's dist
+        run: bash tools/merge-dist.sh
+
       # A Preview, never a version or a deployment of the production Worker.
-      # Its vars are each wrangler.jsonc's `previews` block plus these. Its URL
-      # is read back from wrangler's output file, never guessed: `--json`
-      # still prints the asset upload's progress on stdout around the JSON.
-      - name: Ship both Workers as Previews
+      # Its vars are wrangler.jsonc's `previews` block. Its URL is read back
+      # from wrangler's output file, never guessed: `--json` still prints the
+      # asset upload's progress on stdout around the JSON.
+      - name: Ship su-srd as a Preview
         id: preview
+        working-directory: apps/srd
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
-          for app in srd cantina; do
-            out="$RUNNER_TEMP/$app.ndjson"
-            (cd "apps/$app" && WRANGLER_OUTPUT_FILE_PATH="$out" bunx wrangler preview \
-              --name "$PREVIEW_NAME" \
-              --message "$PREVIEW_NAME@${SHA:0:12}" \
-              --var "SRD_ORIGIN:$PREVIEW_SRD_ORIGIN")
-            url=$(jq -rs '[.[] | select(.type == "preview")] | last | .preview_urls[0]
-              | if type == "object" then .url else . end // empty' "$out")
-            if [ -z "$url" ]; then
-              echo "FATAL: the $app Preview has no URL." >&2
-              exit 1
-            fi
-            # The builds baked in the address this Preview was predicted at.
-            if [ "$app" = srd ]; then expected="$PREVIEW_SRD_ORIGIN"; else expected="$PREVIEW_CANTINA_ORIGIN"; fi
-            if [ "${url%/}" != "$expected" ]; then
-              echo "FATAL: the $app Preview is at ${url%/}, but its links were built for $expected." >&2
-              echo "Fix PREVIEW_SRD_ORIGIN / PREVIEW_CANTINA_ORIGIN in this workflow." >&2
-              exit 1
-            fi
-            echo "$app=${url%/}" >> "$GITHUB_OUTPUT"
-          done
+          out="$RUNNER_TEMP/srd.ndjson"
+          WRANGLER_OUTPUT_FILE_PATH="$out" bunx wrangler preview \
+            --name "$PREVIEW_NAME" \
+            --message "$PREVIEW_NAME@${SHA:0:12}"
+          url=$(jq -rs '[.[] | select(.type == "preview")] | last | .preview_urls[0]
+            | if type == "object" then .url else . end // empty' "$out")
+          if [ -z "$url" ]; then
+            echo "FATAL: the Preview has no URL." >&2
+            exit 1
+          fi
+          # The builds baked in the address this Preview was predicted at.
+          if [ "${url%/}" != "$PREVIEW_SRD_ORIGIN" ]; then
+            echo "FATAL: the Preview is at ${url%/}, but its links were built for $PREVIEW_SRD_ORIGIN." >&2
+            echo "Fix PREVIEW_SRD_ORIGIN in this workflow." >&2
+            exit 1
+          fi
+          echo "srd=${url%/}" >> "$GITHUB_OUTPUT"
 
       # Every run: the OAuth callback redirects to SITE_URL, which must be the
       # Preview's address, base included. Not a secret.
@@ -268,20 +267,19 @@ jobs:
         working-directory: apps/cantina
         env:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
-          CANTINA_URL: ${{ steps.preview.outputs.cantina }}
-        run: bunx convex env set SITE_URL "$CANTINA_URL/build"
+          SRD_URL: ${{ steps.preview.outputs.srd }}
+        run: bunx convex env set SITE_URL "$SRD_URL/build"
 
       - name: Summary
         env:
           SHA: ${{ github.event.pull_request.head.sha }}
           SRD_URL: ${{ steps.preview.outputs.srd }}
-          CANTINA_URL: ${{ steps.preview.outputs.cantina }}
         run: |
           {
             echo "### \`$PREVIEW_NAME\` now serves \`$SHA\`"
             echo
             echo "- srd: $SRD_URL"
-            echo "- cantina: $CANTINA_URL/build (Convex \`$STAGING_CONVEX_DEPLOYMENT\`)"
+            echo "- cantina: $SRD_URL/build (Convex \`$STAGING_CONVEX_DEPLOYMENT\`)"
           } >> "$GITHUB_STEP_SUMMARY"
 
   # One comment per PR carrying the URLs, edited in place on every ship. Its own
@@ -300,12 +298,11 @@ jobs:
           PR: ${{ github.event.pull_request.number }}
           SHA: ${{ github.event.pull_request.head.sha }}
           SRD_URL: ${{ needs.ship.outputs.srd }}
-          CANTINA_URL: ${{ needs.ship.outputs.cantina }}
         run: |
           set -euo pipefail
           marker='<!-- deploy-preview -->'
           body=$(printf '%s\n**Preview** of %s\n\n- srd: %s\n- cantina: %s/build (staging Convex, shared by every Preview)\n' \
-            "$marker" "${SHA:0:12}" "$SRD_URL" "$CANTINA_URL")
+            "$marker" "${SHA:0:12}" "$SRD_URL" "$SRD_URL")
           id=$(gh api "repos/$REPO/issues/$PR/comments" --paginate \
             --jq "[.[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$marker\")))][0].id // empty")
           if [ -n "$id" ]; then
@@ -314,7 +311,8 @@ jobs:
             gh api "repos/$REPO/issues/$PR/comments" -f body="$body" > /dev/null
           fi
 
-  # A closed PR's Previews go, both Workers, if it ever had the label.
+  # A closed PR's Preview goes if it ever had the label, with any su-cantina
+  # Preview an older run of it left.
   teardown:
     if: >-
       github.event.action == 'closed'
@@ -334,7 +332,7 @@ jobs:
 
       # Each config names an assets directory, absent without a build. A
       # Preview that never shipped (a failed first run) is no failure here.
-      - name: Delete both Previews
+      - name: Delete the Previews
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |

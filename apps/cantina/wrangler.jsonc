@@ -1,31 +1,21 @@
 {
-  // The Cantina at salvageunion.io/build (ADR-048) — the SPA on Workers Static Assets
-  // (ADR-033). The script runs first for every request: outside `/build/` it
-  // answers the old host's 301s, and under it it reads every answer through
-  // the asset binding, turning a missing file into a 404 (src/worker/index.ts).
-  // Every header is public/_headers, which the build moves to `dist/_headers`
-  // (vite.config.ts) and the asset server applies to what the binding answers.
+  // su-cantina: the 301s from intheunionnow.com, where the Cantina lived until
+  // ADR-048, to the same page under salvageunion.io/build, which su-srd serves
+  // (apps/srd/src/worker/build.ts, the same Worker code as this one's `/build`
+  // branch). deploy-cloudflare.yml does not deploy it: it stays as it is until
+  // intheunionnow.com has a zone Redirect Rule, and then it is deleted.
   "name": "su-cantina",
 
-  // A Workers ROUTE, not a Custom Domain: a route runs before su-srd's Custom
-  // Domain on the same hostname, so `/build*` never reaches srd. Publishing it
-  // needs the deploy token's Zone → Workers Routes: Edit on salvageunion.io,
-  // which deploy-cloudflare.yml checks before anything ships.
-  //
-  // intheunionnow.com and its `www` stay attached, where the Cantina lived until
-  // ADR-048: the Worker 301s them to the same page here (legacyHost.ts). `www`
-  // also keeps the zone's Redirect Rule acting on it (ADR-033, "Configuration
-  // outside the repo").
+  // intheunionnow.com and its `www`. `www` also keeps the zone's Redirect Rule
+  // acting on it (ADR-033, "Configuration outside the repo").
   "routes": [
-    { "pattern": "salvageunion.io/build*", "zone_name": "salvageunion.io" },
     { "pattern": "intheunionnow.com", "custom_domain": true },
     { "pattern": "www.intheunionnow.com", "custom_domain": true }
   ],
   "workers_dev": false,
-  // Preview URLs (`pr-<n>-su-cantina.alxjrvs.workers.dev`), for the Worker
-  // Previews (.github/workflows/deploy-preview.yml). Separate from
-  // `workers_dev`: su-cantina.alxjrvs.workers.dev stays off. Unset, they follow
-  // `workers_dev` and are off.
+  // Preview URLs (`pr-<n>-su-cantina.alxjrvs.workers.dev`): a PR's Preview is
+  // su-srd's now, and deploy-preview.yml's teardown deletes any left here.
+  // Separate from `workers_dev`: su-cantina.alxjrvs.workers.dev stays off.
   "preview_urls": true,
   "main": "src/worker/index.ts",
   // At or below the workerd the wrangler devDependency bundles (deploy-cloudflare.yml).

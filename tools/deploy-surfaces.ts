@@ -35,13 +35,17 @@ import { appendFileSync } from 'node:fs'
 
 const DEPLOY_RECORD = 'deployed/cloudflare'
 
-/** Surface -> the app directory whose changes require that deploy. */
+/**
+ * Surface -> the app directory it ships (the deploy job's matrix entry),
+ * then every app directory whose changes require that deploy. su-srd serves
+ * the Cantina under `/build` too, so a change to either app ships srd, with
+ * the Cantina's build inside its `dist/build/`.
+ */
 export const SURFACES = {
-  assets: 'su-assets',
-  srd: 'srd',
-  cantina: 'cantina',
-  bot: 'discord-bot',
-} as const
+  assets: ['su-assets'],
+  srd: ['srd', 'cantina'],
+  bot: ['discord-bot'],
+} as const satisfies Record<string, readonly [string, ...string[]]>
 
 type Surface = keyof typeof SURFACES
 
@@ -67,8 +71,9 @@ export function decideSurfaces(
 ): Record<Surface, boolean> {
   const all = forceAll || changed === null || changed.some((path) => SHARED.test(path))
   const result = {} as Record<Surface, boolean>
-  for (const [key, dir] of Object.entries(SURFACES) as [Surface, string][]) {
-    result[key] = all || (changed ?? []).some((path) => path.startsWith(`apps/${dir}/`))
+  for (const [key, dirs] of Object.entries(SURFACES) as [Surface, readonly string[]][]) {
+    result[key] =
+      all || (changed ?? []).some((path) => dirs.some((dir) => path.startsWith(`apps/${dir}/`)))
   }
   return result
 }
@@ -174,8 +179,9 @@ export function main(
 
   const ship: string[] = []
   for (const [key, deploy] of Object.entries(plan.surfaces) as [Surface, boolean][]) {
-    log(`  ${deploy ? 'deploy' : 'skip  '} ${SURFACES[key]}`)
-    if (deploy) ship.push(SURFACES[key])
+    const [app] = SURFACES[key]
+    log(`  ${deploy ? 'deploy' : 'skip  '} ${app}`)
+    if (deploy) ship.push(app)
   }
   const output = (context.env ?? process.env).GITHUB_OUTPUT
   if (output) appendFileSync(output, `stale=${plan.stale}\ndeploy=${JSON.stringify(ship)}\n`)

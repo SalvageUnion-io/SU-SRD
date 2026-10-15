@@ -5,7 +5,7 @@
  * file:
  *
  * - `immutable` belongs to content-hashed URLs only, and srd's only hashed
- *   path is `/assets/*`. A fixed name marked immutable (the old `/*.png` …
+ *   paths are `/assets/*` and the Cantina's `/build/assets/*`. A fixed name marked immutable (the old `/*.png` …
  *   `/*.svg` rules) can never be updated in a browser that has it.
  * - Every path gets ONE Cache-Control. Cloudflare applies every matching rule
  *   and joins a repeated header with a comma, so overlapping rules produce
@@ -78,11 +78,11 @@ function publicImages(dir = PUBLIC_DIR): string[] {
 }
 
 describe('immutable is for content-hashed URLs only', () => {
-  test('no rule but /assets/* says immutable', () => {
+  test('no rule but /assets/* and /build/assets/* says immutable', () => {
     const immutable = RULES.filter((rule) =>
       rule.headers.get('cache-control')?.includes('immutable')
     ).map((rule) => rule.pattern)
-    expect(immutable).toEqual(['/assets/*'])
+    expect(immutable).toEqual(['/assets/*', '/build/assets/*'])
   })
 
   test.each([
@@ -92,6 +92,8 @@ describe('immutable is for content-hashed URLs only', () => {
     '/assets/barlow-latin-400-normal-qiz4-Cze.woff2',
     '/assets/some-icon-AbC123.svg',
     '/assets/some-image-AbC123.png',
+    '/build/assets/index-C0FFEE12.js',
+    '/build/assets/index-C0FFEE12.css',
   ])('%s gets exactly one Cache-Control, immutable', (path) => {
     expect(cacheControlsFor(path)).toEqual(['public, max-age=31536000, immutable'])
   })

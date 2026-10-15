@@ -177,9 +177,9 @@ bunx convex run --deployment alex-jarvis:susrd:prod \
 bunx convex logs --deployment alex-jarvis:susrd:prod --history 6 --jsonl
 ```
 
-then the su-cantina Worker's **Issues** tab in the Cloudflare dashboard, for a
+then the su-srd Worker's **Issues** tab in the Cloudflare dashboard, for a
 `ConvexFunctionError` naming `botClient:me`. In the log but not in Issues means
-the stream has stopped delivering: a `401` in the su-cantina Worker's logs is a
+the stream has stopped delivering: a `401` in the su-srd Worker's logs is a
 secret mismatch, a `503` an unset secret.
 
 ## Running a one-off data repair

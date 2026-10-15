@@ -420,16 +420,15 @@ describe('wrangler.jsonc', () => {
     expect(workerFirst(undefined, '/build/assets/index-DEADBEEF.js')).toBe(false)
   })
 
-  it('serves the base the app is built for, on the route that puts it at salvageunion.io/build', async () => {
+  it('serves the base the app is built for, and leaves salvageunion.io/build to su-srd', async () => {
     const config = await load()
 
     expect(config.vars?.BASE_PATH).toBe(basePathOf(SITE.base))
-    // A route, not a Custom Domain: it runs before su-srd's Custom Domain on
-    // the same hostname, so `/build*` never reaches srd.
-    expect(config.routes).toContainEqual({
-      pattern: `${new URL(SITE.origin).host}${basePathOf(SITE.base)}*`,
-      zone_name: new URL(SITE.origin).host,
-    })
+    // su-srd serves `/build` (apps/srd/src/worker/build.ts): a route here
+    // would run ahead of its Custom Domain with this Worker's stale build.
+    expect(config.routes.map((route) => route.pattern)).not.toContain(
+      `${new URL(SITE.origin).host}${basePathOf(SITE.base)}*`
+    )
     // The old host stays attached, so its 301s keep answering.
     for (const host of ['intheunionnow.com', 'www.intheunionnow.com']) {
       expect(config.routes).toContainEqual({ pattern: host, custom_domain: true })

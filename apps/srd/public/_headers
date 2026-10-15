@@ -57,6 +57,13 @@ https://su-srd.alxjrvs.workers.dev/*
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 
+# The Cantina's content-hashed bundle output: its build ships inside this
+# `dist` under `build/` (tools/merge-dist.sh), and its own `_headers` does not
+# ship. A miss never sees this rule either: the Worker answers every `/build`
+# request (src/worker/build.ts) and 404s a missing chunk with `no-store`.
+/build/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
 # `/assets/*` is the ONLY content-hashed path srd emits — every image an
 # import references (eldridge-coast-map) lands there with a hash in its name.
 # Every other image is a FIXED name replaced in place when it changes: the

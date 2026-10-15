@@ -90,7 +90,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     `deploy-cloudflare.yml` on `main` push: plan → build → `push-convex` → deploy → smoke → record (tag `deployed/cloudflare`).
     `tools/deploy-surfaces.ts` picks what ships and fails safe to everything; a dispatched `sha` rolls back. srd's OG images build at deploy; the bot leg registers its slash commands.
 29. **Preview deploys** <a id="previews"></a>
-    A PR into `main` labelled `preview` gets Worker Previews `pr-<n>` (srd, Cantina on staging Convex) per push, linked in a comment, deleted on close.
+    A PR into `main` labelled `preview` gets a su-srd Preview `pr-<n>` (Cantina on staging Convex) per push, linked in a comment, deleted on close.
     The label is the approval (no Environment reviewer); staging's schema and `SITE_URL` follow the last PR shipped.
 30. **Dependencies** <a id="dependencies"></a>
     Dependabot updates Actions only; Bun deps by hand, pinned exactly, with a 3-day `bunfig.toml` cooldown.
@@ -107,7 +107,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     `gh` is REST only (GraphQL gets 403): use `gh api` or `mcp__github__*`; no route means report it unread.
     Merge: `gh api -X PUT repos/{owner}/{repo}/pulls/<n>/merge -f merge_method=squash` or `mcp__github__merge_pull_request`; no `gh stack`. Environment, `su-rules`: [cloud-environment.md](ops/cloud-environment.md).
 35. **Cloudflare** <a id="cloudflare"></a>
-    Workers `su-srd` (`salvageunion.io`), `su-cantina` (route `/build`), `su-assets` (R2 `su-lp-assets`), `su-discord-bot`.
+    Workers `su-srd` (`salvageunion.io`, `/build`), `su-cantina` (intheunionnow.com), `su-assets` (R2 `su-lp-assets`), `su-discord-bot`.
     The account is shared with RANDSUM; re-derive from `apps/*/wrangler.jsonc`, `wrangler deployments list`.
 36. **Error tracking** <a id="errors"></a>
     Workers Issues (ADR-049); browsers post to `/__errors`, Convex's log stream to `/build/__convex-logs`.

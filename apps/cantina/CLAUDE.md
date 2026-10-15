@@ -120,11 +120,10 @@ bun --filter cantina typecheck
 ```
 
 Served at **salvageunion.io/build** (ADR-048): base `/build/` everywhere, dev
-too (`src/lib/site.ts`); e2e opens routes via `at()`. Deploys to Workers
-Static Assets in single-page-application mode on a Workers route, a script
-for misses and intheunionnow.com's 301s; config in
-`wrangler.jsonc`, headers in `public/_headers`, deployed from
-`.github/workflows/deploy-cloudflare.yml`.
+too (`src/lib/site.ts`); e2e opens routes via `at()`. su-srd serves it: its
+build ships in srd's `dist/build/` (`tools/merge-dist.sh`) and srd's Worker
+runs `src/worker/` for `/build` (`apps/srd/src/worker/build.ts`). su-cantina
+(`wrangler.jsonc`) keeps only intheunionnow.com's 301s.
 
 The block below binds `convex/` only; `bunx`, not `npx`; the vendored
 skills: [AGENTS.md](AGENTS.md).
