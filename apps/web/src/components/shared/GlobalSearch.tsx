@@ -33,7 +33,7 @@ import type { CSSProperties } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { RefEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
-import { deepLinkToSchema } from '../../lib/srd-deep-link'
+import { schemaHref } from '../../lib/entityHref'
 import { useGameData } from '../../lib/useGameData'
 import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
 import type { EntitySurfaceValue, SearchComboboxResult } from '../index'
@@ -193,7 +193,7 @@ export function GlobalSearch({ variant = 'bar', open, onOpenChange }: GlobalSear
     (result: SearchComboboxResult) => {
       if (result.kind === 'schema') {
         // No in-app schema listing — open the SRD category page in a new tab.
-        window.open(deepLinkToSchema(result.schemaId), '_blank', 'noopener,noreferrer')
+        window.open(schemaHref(result.schemaId), '_blank', 'noopener,noreferrer')
         return
       }
       openEntity(result.entity)

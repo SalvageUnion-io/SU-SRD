@@ -4,6 +4,7 @@ import { NAV_CATALOG } from '../../generated/navCatalog'
 import { SIGN_IN_HREF } from '../../lib/accountBar'
 import { readAccountHint } from '../../lib/accountHint'
 import { browserStorage } from '../../lib/accountState'
+import { BUY_HREF } from '../../lib/docPages'
 import type { NavDrawerItem } from '../index'
 import { Badge, buttonVariants, NavDrawer } from '../index'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
@@ -70,7 +71,7 @@ function MobileNavIslandBody() {
     { label: 'API', href: '/api/', active: isActive('/api') },
     {
       label: 'Buy the game',
-      href: 'https://leyline.press/collections/salvage-union',
+      href: BUY_HREF,
       external: true,
     },
   ]

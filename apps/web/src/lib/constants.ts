@@ -1,31 +1,19 @@
-// The production origin is the dataset's, beside ASSET_BASE_URL, so a domain
-// change is one edit; this build's own origin is read from its environment.
-import { SRD_SITE_URL } from 'salvageunion-reference'
-import { SITE } from './site'
+import { originOf } from './site'
 
 /**
  * Where this build is served, and every absolute link to a page of it:
- * production's `SRD_SITE_URL`, or a Worker Preview's origin, which
+ * production's origin (`site.ts`), or a Worker Preview's, which
  * `deploy-preview.yml` passes as `VITE_SITE_ORIGIN` (the dev server sets its
  * own, `ssg/dev.ts`). Canonicals, `og:` tags, the
  * Discord Component Embed, structured data, the sitemap and llms.txt all follow
  * it, so a Preview names only itself. A Preview answers `noindex`, so its
  * canonicals are never indexed.
  */
-export const SITE_URL = (import.meta.env.VITE_SITE_ORIGIN || SRD_SITE_URL).replace(/\/+$/, '')
+export const SITE_URL = originOf(import.meta.env.VITE_SITE_ORIGIN)
 
 /** Every breadcrumb trail's root: the home page is the book's Contents, on
  *  every page that has a trail (never "Home" on some and "Contents" on others). */
 export const CONTENTS_CRUMB = { name: 'Contents', url: `${SITE_URL}/` } as const
-
-/**
- * The Cantina — the companion character builder & game manager, served on
- * this origin at /build (ADR-048). Root-relative: a link built from it opens
- * the Cantina beside whichever SRD served the page, production, a Worker
- * Preview or the dev server. Prefix `SITE_URL` where an address must be
- * absolute (the sitemap). The base itself is `SITE.base` (`site.ts`).
- */
-export const CANTINA_PATH = SITE.base
 
 /**
  * The SalvageUnion.io Discord bot's install link. The client id is public by design —
@@ -62,15 +50,3 @@ export function entityTitle(name: string, kind: string): string {
 
 /** Meta descriptions are cut to this, ellipsis included: about what a search snippet shows. */
 export const META_DESCRIPTION_MAX = 155
-
-/**
- * The site's own pages, which left the Union bar when the SRD dropped its second
- * nav row (ruleset §3.11, origin v60): the bar carries the switcher, the search
- * and the trail, and these four live in the shared `Footer`.
- */
-export const SITE_LINKS = [
-  { label: 'Changelog', href: '/changelog/' },
-  { label: 'API', href: '/api/' },
-  { label: 'Discord', href: '/discord/' },
-  { label: 'About', href: '/about/' },
-] as const

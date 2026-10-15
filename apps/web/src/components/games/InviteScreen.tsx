@@ -32,7 +32,7 @@ import { WayOutLink } from '../shared/WayOutLink'
  * OAuth round trip and still works when pasted into a different browser.
  *
  * Old `/join/:code` links from Discord history land here too (the Worker 301s
- * them, `src/worker/retiredRedirects.ts`): the Game's current code joins like
+ * them, `src/lib/redirects.ts`): the Game's current code joins like
  * any link, and any other code gets the same explanation of invite links.
  */
 

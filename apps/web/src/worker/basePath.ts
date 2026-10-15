@@ -1,6 +1,6 @@
 /**
- * The Cantina's base path on the Worker: `/build` (`BUILD_BASE`), `''` at the
- * root in a test. The rules in `cantina.ts`, `retiredRedirects.ts` and
+ * The Cantina's base path on the Worker: `/build` (`APP_BASE`), `''` at the
+ * root in a test. The rules in `cantina.ts`, `../lib/redirects.ts` and
  * `linkPreview.ts` match on the path inside the app, and put the base back on
  * every URL they build.
  *

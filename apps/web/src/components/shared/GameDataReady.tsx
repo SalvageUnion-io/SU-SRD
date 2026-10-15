@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { useLayoutEffect } from 'react'
 import { color, font, fontSize, radius, space, tracking, weight } from '../../design/tokens'
-import { MARK_SRC } from '../../lib/appUrl'
+import { MARK_SRC } from '../../lib/documentHead'
 import { preloadGameData } from '../../lib/useGameData'
 import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
 import { GameDataGate } from '../GameDataGate'

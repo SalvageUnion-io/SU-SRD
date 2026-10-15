@@ -13,8 +13,8 @@ describe('the product name outside TypeScript', () => {
   test("the shell's title and sitewide meta say PRODUCT.name", () => {
     expect(html).toContain(`<title>${PRODUCT.name}</title>`)
     for (const property of ['og:title', 'og:image:alt']) {
-      expect(html).toContain(`<meta property="${property}" content="${PRODUCT.name}"/>`)
+      expect(html).toContain(`<meta property="${property}" content="${PRODUCT.name}" />`)
     }
-    expect(html).toContain(`<meta name="twitter:title" content="${PRODUCT.name}"/>`)
+    expect(html).toContain(`<meta name="twitter:title" content="${PRODUCT.name}" />`)
   })
 })

@@ -19,8 +19,9 @@ import type { PageRefIndex } from './pageRefs'
  *   routes). A synthetic ref (built from embedded data) never links.
  * - `openPage(ref)`: The Cantina's Page opener (the detail dialog).
  * - `texture`: whether bands wear the speckle; the Dashboard turns it off once.
- * - `linkAs`: the app's router link (The Cantina's `AppLink`), for an in-app path, so
- *   a link-mode form navigates client-side; an external href stays an `<a>`.
+ * - `linkAs`: the app's router link for a root-relative path (The Cantina's
+ *   `SiteLink`, since entity pages are site paths outside its base), so a
+ *   link-mode form navigates client-side; an external href stays an `<a>`.
  * - `pageRefs`: the entities on each Workshop Manual page the prose cites, so a
  *   "p. 235" links to the page that covers it (`pageRefs.ts`). Absent, a
  *   reference stays text.

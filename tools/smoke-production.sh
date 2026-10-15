@@ -95,7 +95,7 @@ check https://www.intheunionnow.com/ 301 "cantina www redirect"
 # (apps/web/src/worker/cantina.ts). intheunionnow.com, where it lived before,
 # 301s every page to the same path there: a zone Redirect Rule, not repo config
 # (ADR-033, "Configuration outside the repo"). su-srd then sends a retired
-# address on to where it lives now (apps/web/src/worker/retiredRedirects.ts).
+# address on to where it lives now (apps/web/src/lib/redirects.ts).
 check https://salvageunion.io/build/ 200 "cantina shell"
 check_redirect https://salvageunion.io/build 301 https://salvageunion.io/build/ "cantina bare base to its directory"
 check_redirect https://intheunionnow.com/ 301 https://salvageunion.io/build/ "cantina old host 301s to salvageunion.io/build"

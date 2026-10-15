@@ -58,7 +58,7 @@
  */
 
 import type { RegisterSWOptions } from 'vite-plugin-pwa/types'
-import { BASE_PATH } from '../appUrl'
+import { appPath } from '../appBase'
 import { captureException } from '../observability'
 
 export type RegisterOptions = {
@@ -100,7 +100,7 @@ const MIN_CHECK_GAP_MS = 60 * 1000
  * Under the app's base (`/build/` on salvageunion.io), not the
  * origin's root, which is another app's page there.
  */
-const SHELL_PROBE = `${BASE_PATH}/?sw-shell-probe`
+const SHELL_PROBE = `${appPath('/')}?sw-shell-probe`
 
 /** The entry chunk `registerServiceWorker` was told this page booted from. */
 let bootedEntryChunk: string | undefined

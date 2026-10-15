@@ -1,5 +1,5 @@
 import type { RefClass, RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
-import { srdEntityHref } from '../lib/entityHref'
+import { entityHref } from '../lib/entityHref'
 import { srdPatternHref } from '../lib/patternHref'
 import { ClassAbilityTree } from './ClassAbilityTree'
 import type { PageRefIndex } from './index'
@@ -51,7 +51,7 @@ export function EntityCardStatic({ item, pattern, pageRefs }: EntityCardStaticPr
   const classEntity = classOf(item)
 
   return (
-    <EntityHrefProvider value={srdEntityHref}>
+    <EntityHrefProvider value={entityHref}>
       <EntityDetailLinkProvider value={true}>
         <PatternHrefProvider value={srdPatternHref}>
           <ReferenceSurface pageRefs={pageRefs}>

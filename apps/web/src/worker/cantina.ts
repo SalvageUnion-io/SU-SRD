@@ -10,9 +10,10 @@
  *
  * Under `/build/` the rules read the path inside the base (`basePath.ts`):
  *
- *   D. `/about`, `/changelog` → a 301 to the SRD's page (`docPages.ts`).
+ *   D. `/about`, `/changelog` → a 301 to the SRD's page.
  *   R. a retired address (`/games`, `/join/:code`, the old crew view) → a 301
- *      to where it lives now (`retiredRedirects.ts`). intheunionnow.com's zone
+ *      to where it lives now. Both read the moved-path table
+ *      (`../lib/redirects.ts`). intheunionnow.com's zone
  *      Redirect Rule sends its old links here.
  *   0. `/og/*.png` → a link preview's picture (`linkPreview.ts`), rendered on
  *      request and cached by version.
@@ -46,25 +47,21 @@
  * never has a file extension, so a dot in the last segment means a FILE.
  */
 
-import { retiredDocPage } from '../lib/docPages'
-import { basePathOf, SITE } from '../lib/site'
+import { APP_BASE, routeInApp } from '../lib/appBase'
+import { retiredDocPage, retiredTarget } from '../lib/redirects'
 import { hidesUnionBar } from '../shell/unionSlots'
 import { pathInApp } from './basePath'
 import type { ImageCache, PreviewEnv, PreviewRoute } from './linkPreview'
 import { isOgImagePath, metaFor, ogImage, previewRouteOf } from './linkPreview'
 import { frontDoorShell } from './publicPages'
-import { retiredTarget } from './retiredRedirects'
 import { applyMeta, hideUnionBar } from './shellMeta'
-
-/** The Cantina's base path, without a trailing slash (`SITE.base`). */
-export const BUILD_BASE = basePathOf(SITE.base)
 
 /**
  * `wrangler.jsonc`'s `run_worker_first`. A positive list only: a negative
  * pattern sends its matches straight to the assets, and `true` would run the
  * script for every SRD page.
  */
-export const RUN_WORKER_FIRST = [BUILD_BASE, `${BUILD_BASE}/*`]
+export const RUN_WORKER_FIRST = [APP_BASE, `${APP_BASE}/*`]
 
 type Assets = { fetch(request: Request): Promise<Response> }
 
@@ -75,7 +72,7 @@ export type CantinaEnv = PreviewEnv & {
 
 /** Whether a path is the Cantina's: `/build` itself or anything under it. */
 export function isBuildPath(pathname: string): boolean {
-  return pathname === BUILD_BASE || pathname.startsWith(`${BUILD_BASE}/`)
+  return routeInApp(pathname) !== null
 }
 
 /**
@@ -108,7 +105,7 @@ function defaultCache(): ImageCache | undefined {
 export async function serveCantina(
   request: Request,
   siteEnv: CantinaEnv,
-  base = BUILD_BASE
+  base = APP_BASE
 ): Promise<Response | null> {
   const url = new URL(request.url)
   // The bare base: its directory, query kept.

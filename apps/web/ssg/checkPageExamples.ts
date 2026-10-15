@@ -20,7 +20,8 @@
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { CANTINA_PATH, SITE_URL } from '../src/lib/constants'
+import { appPath } from '../src/lib/appBase'
+import { SITE_URL } from '../src/lib/constants'
 
 const DIST = join(import.meta.dir, '../dist')
 
@@ -101,7 +102,7 @@ const documentedUrls = [
       .map((u) => u.replace(/[.,]$/, ''))
       // The Cantina's (the Union bar's Build tab): another app's Worker serves it on
       // this origin (ADR-048), so srd's `dist` never holds it.
-      .filter((u) => !u.startsWith(`${SITE_URL}${CANTINA_PATH}`))
+      .filter((u) => !u.startsWith(`${SITE_URL}${appPath('/')}`))
   ),
 ]
 

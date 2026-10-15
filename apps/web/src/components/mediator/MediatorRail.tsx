@@ -12,7 +12,7 @@
 import { gamePath } from 'cantina-domain/entityKinds'
 import { ChevronLeft } from 'lucide-react'
 import type { CSSProperties } from 'react'
-import { MARK_SRC } from '../../lib/appUrl'
+import { MARK_SRC } from '../../lib/documentHead'
 import { SavedIndicator } from '../dashboard/SavedIndicator'
 import { Badge, buttonVariants, tokens } from '../index'
 import { AppLink } from '../shared/AppLink'

@@ -1,7 +1,7 @@
 type SRDLinkProps = {
   /**
-   * The resolved absolute URL to the SRD entity page. The URL logic is
-   * app-specific (The Cantina builds it via its own `deepLinkTo`), so it is injected
+   * The entity page's path. The URL logic is app-specific (the app's
+   * `entityHref`), so it is injected
    * as a prop — this component owns only the presentation of the link.
    */
   href: string

@@ -23,6 +23,4 @@ interface ImportMetaEnv {
    * (`vite.config.ts`); links need none.
    */
   readonly VITE_SITE_ORIGIN?: string
-  /** The Cantina's base, `/build/`, which `vite.config.ts` defines (`appUrl.ts`). */
-  readonly CANTINA_BASE?: string
 }

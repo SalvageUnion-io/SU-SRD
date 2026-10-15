@@ -2,7 +2,8 @@
  * The rules the Cantina applies to the shell's Union bar
  * (`components/shared/UnionBarSlots.tsx`).
  */
-import { BASE_PATH } from './appUrl'
+import { routeInApp } from './appBase'
+import { pageOrigin } from './site'
 
 /** Whether a nav route is the page you are on. */
 export function isCurrent(path: string, pathname: string): boolean {
@@ -15,17 +16,13 @@ export function isCurrent(path: string, pathname: string): boolean {
  * The route a click on one of the bar's links should take in place, or null to
  * leave it to the browser: another tool, a new tab, a modified click.
  */
-export function inAppRoute(
-  event: MouseEvent,
-  base: string = BASE_PATH,
-  origin: string = window.location.origin
-): string | null {
+export function inAppRoute(event: MouseEvent, origin: string = pageOrigin()): string | null {
   if (event.defaultPrevented || event.button !== 0) return null
   if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return null
   const link = event.target instanceof Element ? event.target.closest('a') : null
   if (!link || link.target) return null
   const url = new URL(link.getAttribute('href') ?? '', origin)
   if (url.origin !== origin) return null
-  if (url.pathname !== base && !url.pathname.startsWith(`${base}/`)) return null
-  return `${url.pathname.slice(base.length) || '/'}${url.search}${url.hash}`
+  const route = routeInApp(url.pathname)
+  return route === null ? null : `${route}${url.search}${url.hash}`
 }

@@ -17,7 +17,7 @@ import {
   Skeleton,
 } from '../../components/index'
 import { EntityListingRow } from '../../components/islands/EntityListingRow'
-import { itemHref, srdEntityHref, srdHrefFor } from '../entityHref'
+import { entityHref, itemHref, srdHrefFor } from '../entityHref'
 import { getSchemaPreloadList } from '../schemaPreloadDeps'
 
 /**
@@ -62,7 +62,7 @@ function normalize(html: string): string {
 function renderEntity(entity: RefEntity): string {
   return normalize(
     renderToStaticMarkup(
-      <EntityHrefProvider value={srdEntityHref}>
+      <EntityHrefProvider value={entityHref}>
         <EntityDetailLinkProvider value={true}>
           <Suspense fallback={<Skeleton />}>
             <ReferenceEntityCard data={entity} />

@@ -62,6 +62,7 @@
  */
 
 import type { VitePWAOptions } from 'vite-plugin-pwa'
+import { APP_BASE } from './lib/appBase'
 
 /** The one web manifest, at the site's root; every page links it. */
 export const SITE_MANIFEST = '/site.webmanifest'
@@ -94,7 +95,10 @@ export const NAVIGATION_TIMEOUT_SECONDS = 3
 
 /** The precached pages navigations fall back to. */
 const HOME = 'index.html'
-const BUILDER_SHELL = 'build/index.html'
+
+/** The app's base as `dist` spells it, without the leading slash. */
+const APP_DIR = APP_BASE.slice(1)
+const BUILDER_SHELL = `${APP_DIR}/index.html`
 
 /**
  * The runtime rules, in match order. Each `urlPattern` is stringified into
@@ -103,7 +107,8 @@ const BUILDER_SHELL = 'build/index.html'
  */
 export const RUNTIME_CACHING = [
   {
-    // The builder: the network's shell, else the precached one.
+    // The builder: the network's shell, else the precached one. A literal
+    // `APP_BASE`: workbox-build stringifies the function on its own.
     urlPattern: ({ request, url }: { request: Request; url: URL }) =>
       request.mode === 'navigate' && /^\/build(\/|$)/.test(url.pathname),
     handler: 'NetworkOnly' as const,
@@ -159,9 +164,9 @@ export const WORKBOX_OPTIONS = {
     '**/node_modules/**/*',
     UNFETCHED_FONT_SUBSETS,
     '**/actions.list.generated-*.js',
-    'build/starter.html',
-    'build/starter/**',
-    'build/sw.js',
+    `${APP_DIR}/starter.html`,
+    `${APP_DIR}/starter/**`,
+    `${APP_DIR}/sw.js`,
     'sw-lifecycle.js',
   ],
   // Waits while a builder tab is open, takes over otherwise (see the header).

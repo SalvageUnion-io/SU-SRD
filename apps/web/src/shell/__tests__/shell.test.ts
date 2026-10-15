@@ -1,12 +1,11 @@
 import { describe, expect, test } from 'bun:test'
-import * as shellMeta from '../../worker/shellMeta'
-import { META_END, META_START, renderShell } from '../shell'
+import { META_END, META_START } from '../../lib/documentHead'
+import { renderShell } from '../shell'
 
 describe('renderShell', () => {
   const html = renderShell()
 
   test('wraps its link-preview block in the markers the Worker swaps between', () => {
-    expect([META_START, META_END]).toEqual([shellMeta.META_START, shellMeta.META_END])
     expect(html.indexOf(META_START)).toBeLessThan(html.indexOf(META_END))
     expect(html.slice(html.indexOf(META_START), html.indexOf(META_END))).toContain('og:image')
   })

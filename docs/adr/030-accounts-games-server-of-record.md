@@ -256,7 +256,7 @@ nobody already seated is removed. Who mediates is chosen afterwards among the
 members (`games.setMediator`). Signed out, the page previews the Game and
 offers "Sign in to join", returning with `?join=1` to join on arrival; old
 `/join/:code` links 301 to `/invite/:code`
-(`apps/web/src/worker/retiredRedirects.ts`). The live code is the Game's
+(`apps/web/src/lib/redirects.ts`). The live code is the Game's
 newest open standing invite row (`convex/model/invites.ts#currentInvite`);
 every other row opens nothing.
 

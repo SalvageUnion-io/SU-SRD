@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'bun:test'
 import type { RefEntity } from 'salvageunion-reference'
-import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
-import { itemHref, patternHref, schemaHref, srdEntityHref } from '../entityHref'
+import {
+  getEntitySchemas,
+  getEntitySlug,
+  getSchemaCatalog,
+  SalvageUnionReference,
+} from 'salvageunion-reference'
+import { entityHref, hasPage, itemHref, patternHref, schemaHref } from '../entityHref'
 import { ogImagePath } from '../ogCard'
 
 /**
@@ -40,7 +45,7 @@ describe('srd route grammar', () => {
   })
 })
 
-describe('srdEntityHref', () => {
+describe('entityHref', () => {
   // A REAL entity off the ORM (preloaded by apps/web/test/preload-reference.ts).
   // A hand-built literal cannot be used here: `schemaName` is stamped on by the
   // ORM, not declared on `RefEntity`, so a fake either fails to typecheck or
@@ -49,7 +54,7 @@ describe('srdEntityHref', () => {
   if (!chassis) throw new Error('reference data was not preloaded')
 
   it('resolves an entity to its show page via schemaName + slug', () => {
-    expect(srdEntityHref(chassis)).toBe(itemHref('chassis', getEntitySlug(chassis)))
+    expect(entityHref(chassis)).toBe(itemHref('chassis', getEntitySlug(chassis)))
   })
 
   it('returns undefined when the entity carries no schemaName', () => {
@@ -57,7 +62,7 @@ describe('srdEntityHref', () => {
     // record that never went through the ORM is a real, reachable input here,
     // and the builder must decline it rather than emit `/undefined/...`.
     const { schemaName: _stampedByTheOrm, ...bare } = chassis
-    expect(srdEntityHref(bare)).toBeUndefined()
+    expect(entityHref(bare)).toBeUndefined()
   })
 
   it('declines a record assembled for display, which has no page', () => {
@@ -72,6 +77,44 @@ describe('srdEntityHref', () => {
       name: 'position' in bay.npc ? bay.npc.position : 'NPC',
       schemaName: 'npcs',
     } as unknown as RefEntity
-    expect(srdEntityHref(commander)).toBeUndefined()
+    expect(entityHref(commander)).toBeUndefined()
+  })
+})
+
+/** A complete entity that only differs in the schema it claims to come from. */
+function taggedAs(schemaName: string): RefEntity & { schemaName: string } {
+  return {
+    id: 'x',
+    name: 'Bolster',
+    source: 'Salvage Union Workshop Manual',
+    page: 1,
+    blackMarket: false,
+    schemaName,
+  }
+}
+
+describe('hasPage', () => {
+  it('agrees with the catalog filter the pages are generated from', () => {
+    const metaIds = getSchemaCatalog()
+      .schemas.filter((s) => s.meta)
+      .map((s) => s.id)
+    expect(metaIds.length).toBeGreaterThan(0)
+    for (const id of metaIds) expect(hasPage(id)).toBe(false)
+    for (const schema of getEntitySchemas()) expect(hasPage(schema.id)).toBe(true)
+  })
+
+  it('rejects names outside the schema catalog', () => {
+    expect(hasPage('not-a-schema')).toBe(false)
+    expect(hasPage('')).toBe(false)
+  })
+
+  // A meta schema has no item page, so a link on one (an action, among the
+  // most common entities in play) would 404.
+  it('keeps entityHref off a meta schema or an unknown one', () => {
+    expect(entityHref(taggedAs('chassis'))).toBe('/chassis/bolster/')
+    expect(entityHref(taggedAs('actions'))).toBeUndefined()
+    expect(entityHref(taggedAs('catalog-categories'))).toBeUndefined()
+    expect(entityHref(taggedAs('ability-tree-requirements'))).toBeUndefined()
+    expect(entityHref(taggedAs('not-a-schema'))).toBeUndefined()
   })
 })

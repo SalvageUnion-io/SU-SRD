@@ -18,7 +18,7 @@
  *      have falls through to the rules below.
  *   1. `/assets/*` (or `/build/assets/*`) → a bare **404**.
  *   2. a page path from before the move out of `/schema/…/item/` → a **301**
- *      to where it lives now (`../lib/legacyPaths.ts`).
+ *      to where it lives now (`../lib/redirects.ts`).
  *   3. anything else → `404.html`, read through the asset binding, with a 404.
  *
  * The 404s say `cache-control: no-store`; the 301 is permanent and cacheable.
@@ -35,9 +35,10 @@
  * (the CSP and the rest of the `/*` block) for its path, `/404`.
  */
 
-import { currentPathFor } from '../lib/legacyPaths'
+import { appPath } from '../lib/appBase'
+import { currentPathFor } from '../lib/redirects'
 import type { CantinaEnv } from './cantina'
-import { BUILD_BASE, isBuildPath, serveCantina } from './cantina'
+import { isBuildPath, serveCantina } from './cantina'
 import type { RateLimiter } from './errorReports'
 import {
   CONVEX_LOG_STREAM_PATH,
@@ -60,7 +61,7 @@ export type Env = CantinaEnv & {
  * Where the Convex log stream posted before the app was one: the webhook the
  * Convex dashboard still names until it is pointed at `CONVEX_LOG_STREAM_PATH`.
  */
-const RETIRED_CONVEX_LOG_STREAM_PATH = `${BUILD_BASE}${CONVEX_LOG_STREAM_PATH}`
+const RETIRED_CONVEX_LOG_STREAM_PATH = appPath(CONVEX_LOG_STREAM_PATH)
 
 /** `/404`, not `/404.html`: the asset server's HTML handling redirects the latter. */
 const NOT_FOUND_PAGE = '/404'
@@ -73,7 +74,7 @@ function notFound(body: BodyInit | null, headers?: HeadersInit): Response {
 
 /** A rotated or never-built chunk: nothing a browser could render. */
 function isChunk(pathname: string): boolean {
-  return pathname.startsWith('/assets/') || pathname.startsWith(`${BUILD_BASE}/assets/`)
+  return pathname.startsWith('/assets/') || pathname.startsWith(appPath('/assets/'))
 }
 
 /** @public Cloudflare Worker entrypoint — loaded by workerd, not imported. */

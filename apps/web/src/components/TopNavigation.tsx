@@ -21,7 +21,8 @@
  */
 
 import { SIGN_IN_HREF } from '../lib/accountBar'
-import { CANTINA_PATH } from '../lib/constants'
+import { appPath } from '../lib/appBase'
+import { BUY_HREF } from '../lib/docPages'
 import { WIKI_LINK_ATTRIBUTE } from '../lib/wikiLink'
 import { Island } from '../runtime/Island'
 import { AppBar, cn, FOCUS_RING } from './index'
@@ -86,8 +87,8 @@ export function TopNavigation({
     <AppBar
       product="reference"
       referenceHref="/"
-      buildHref={CANTINA_PATH}
-      buyHref="https://leyline.press/collections/salvage-union"
+      buildHref={appPath('/')}
+      buyHref={BUY_HREF}
       breadcrumbs={breadcrumbs}
       breadcrumbDescription={breadcrumbDescription}
       // Cross-document view transitions (`@view-transition { navigation: auto }`)

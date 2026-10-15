@@ -6,13 +6,13 @@
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { inAppRoute, isCurrent } from '../../../lib/barLinks'
-import { srdOrigin } from '../../../lib/srdOrigin'
+import { pageOrigin } from '../../../lib/site'
 import { renderUnionBar } from '../../../shell/unionBar'
 import { hidesUnionBar, slotSelector } from '../../../shell/unionSlots'
 import { UnionBarSlots } from '../UnionBarSlots'
 
 /** The SRD: the page's own origin, or production's where the test has none. */
-const SRD = srdOrigin()
+const SRD = pageOrigin()
 
 beforeEach(() => {
   document.body.innerHTML = renderUnionBar()
@@ -101,15 +101,13 @@ describe('UnionBarSlots', () => {
     // The page you are on is an ink plate, never the rust primary.
     expect(hangar.getAttribute('aria-current')).toBe('page')
     expect(hangar.className).toContain('su-btn--here')
-    expect(drawer.getByRole('link', { name: 'Discord' }).getAttribute('href')).toBe(
-      `${SRD}/discord/`
-    )
+    expect(drawer.getByRole('link', { name: 'Discord' }).getAttribute('href')).toBe('/discord/')
     expect(drawer.getByRole('link', { name: /buy the game/i }).getAttribute('target')).toBe(
       '_blank'
     )
     const foot = within(screen.getByRole('navigation', { name: 'More' }))
-    expect(foot.getByRole('link', { name: 'About' }).getAttribute('href')).toBe(`${SRD}/about/`)
-    expect(foot.getByRole('link', { name: 'API' }).getAttribute('href')).toBe(`${SRD}/api/`)
+    expect(foot.getByRole('link', { name: 'About' }).getAttribute('href')).toBe('/about/')
+    expect(foot.getByRole('link', { name: 'API' }).getAttribute('href')).toBe('/api/')
     fireEvent.click(drawer.getByRole('button', { name: 'Sign in' }))
     expect(screen.queryByRole('dialog')).toBeNull()
   })
@@ -141,7 +139,7 @@ describe('the bar’s rules', () => {
     const click = (id: string, init: MouseEventInit = {}) => {
       const event = new MouseEvent('click', { bubbles: true, button: 0, ...init })
       Object.defineProperty(event, 'target', { value: document.getElementById(id) })
-      return inAppRoute(event, '/build', SRD)
+      return inAppRoute(event, SRD)
     }
     expect(click('in')).toBe('/starter/?a=1#b')
     expect(click('home')).toBe('/')

@@ -5,13 +5,14 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useLayoutEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { borderWidth, color } from '../../design/tokens'
+import { appPath } from '../../lib/appBase'
 import { inAppRoute, isCurrent } from '../../lib/barLinks'
-import { DOC_PAGES } from '../../lib/docPages'
+import { BUY_HREF, DOC_PAGES } from '../../lib/docPages'
 import type { UnionSlot } from '../../shell/unionSlots'
 import { slotSelector, UNION_NAV, UNION_SLOTS } from '../../shell/unionSlots'
 import type { NavDrawerItem } from '../index'
 import { Badge, NavDrawer } from '../index'
-import { AppLink } from './AppLink'
+import { SiteLink } from './AppLink'
 
 /**
  * UnionBarSlots — the Cantina's live half of the Union bar.
@@ -31,10 +32,10 @@ import { AppLink } from './AppLink'
  * About and Changelog are not destinations in the nav: they sit at the
  * drawer's foot, in the account menu on a signed-in desktop, and in the page
  * foot (`SiteFooter`). The drawer's Discord entry is the SRD's `/discord` page,
- * in this tab; only "Buy the game" leaves the site, in a new one.
+ * in this tab; only "Buy the game" leaves the site, in a new one. The drawer's
+ * links are site paths, as the bar's are: `SiteLink` routes the app's in
+ * place and loads the reference pages.
  */
-
-const BUY_HREF = 'https://leyline.press/collections/salvage-union'
 
 const BRAND_FRAME = {
   borderColor: color.ink,
@@ -144,7 +145,7 @@ export function UnionBarSlots({
   const drawerNav: NavDrawerItem[] = [
     ...UNION_NAV.map((item) => ({
       label: item.label,
-      href: item.path,
+      href: appPath(item.path),
       active: isCurrent(item.path, pathname),
     })),
     DOC_PAGES.discord,
@@ -160,7 +161,7 @@ export function UnionBarSlots({
         navItems={drawerNav}
         footItems={[DOC_PAGES.about, DOC_PAGES.changelog, DOC_PAGES.api]}
         extra={drawerExtra}
-        LinkComponent={AppLink}
+        LinkComponent={SiteLink}
         // NavDrawer takes classes, not styles, here: its own padding and
         // width are stylesheet rules these override (`styles/screens.css`).
         triggerClassName="su-union-slots__drawer-trigger"

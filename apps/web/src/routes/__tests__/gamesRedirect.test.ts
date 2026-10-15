@@ -13,7 +13,7 @@ import { getActiveContainer, setActiveContainer } from '../../stores/activeConta
  *    put without picking the Game: it is not a container's page;
  *
  * The retired `/games`, `/join/$code` and crew-view addresses are no longer
- * routes: the Worker 301s them (`src/worker/retiredRedirects.ts`).
+ * routes: the Worker 301s them (`src/lib/redirects.ts`).
  *
  * `router.load()` runs every `beforeLoad` without rendering, which is all a
  * redirect needs and keeps the app shell out of this test.

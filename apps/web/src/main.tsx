@@ -4,7 +4,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouteErrorComponent } from './components/shared/RouteErrors'
 import { RouteNotFound, RoutePending } from './components/shared/RouteFallbacks'
-import { BASE_PATH } from './lib/appUrl'
+import { APP_BASE } from './lib/appBase'
 import {
   initBrowserObservability,
   installChunkRecovery,
@@ -18,8 +18,8 @@ import { setEntityBackendAuthState } from './stores/entityBackend'
 
 const router = createRouter({
   routeTree,
-  // `/build`: The Cantina at salvageunion.io/build (ADR-048, lib/site.ts). Routes and links stay root-relative; the router adds it.
-  basepath: BASE_PATH || '/',
+  // The Cantina at salvageunion.io/build (ADR-048, lib/appBase.ts). Routes and links stay root-relative; the router adds it.
+  basepath: APP_BASE,
   defaultNotFoundComponent: RouteNotFound,
   defaultPendingComponent: RoutePending,
   // Every route gets its own error boundary, so a crash in one route replaces
@@ -57,7 +57,7 @@ setEntityBackendAuthState({ signedIn: false, online: navigator.onLine, authSettl
 
 // The front door's quote face, asked for now so it is in hand before the quote
 // paints rather than swapped in under it (lib/scriptFont.ts).
-preloadScriptFont(window.location.pathname, BASE_PATH, document.fonts)
+preloadScriptFont(window.location.pathname, APP_BASE, document.fonts)
 
 const rootEl = document.getElementById('root')
 if (!rootEl) throw new Error('Root element not found')

@@ -1,7 +1,7 @@
-import { basePathOf, SITE } from '../../src/lib/site'
+import { APP_BASE } from '../../src/lib/appBase'
 
 /** The Cantina's base, `/build` (ADR-048): every page the specs open lives under it. */
-export const BASE = basePathOf(SITE.base)
+export const BASE = APP_BASE
 
 /**
  * An app route (`/pilots/new`) as the path the browser opens (`/build/pilots/new`).
