@@ -25,8 +25,8 @@
  * never has.
  */
 
+import { PRODUCT } from 'cantina-domain/product'
 import { color } from 'component-lib/design/tokens'
-import { PRODUCT } from 'component-lib/product'
 import type { StarterKind, StarterPage } from '../lib/starterSet/starterTemplates'
 import {
   isStarterKind,

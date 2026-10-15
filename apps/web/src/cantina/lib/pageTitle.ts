@@ -7,7 +7,7 @@
  * `Route` (`routes/__tests__/routeExports.test.ts`).
  */
 
-import { PRODUCT } from 'component-lib/product'
+import { PRODUCT } from 'cantina-domain/product'
 
 const SITE_TITLE = PRODUCT.name
 

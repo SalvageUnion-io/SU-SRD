@@ -8,9 +8,9 @@
  * fetch — only the rendered entries ship.
  */
 
+import { PRODUCT } from 'cantina-domain/product'
 import { InlineRef } from 'component-lib'
 import { space } from 'component-lib/design/tokens'
-import { PRODUCT } from 'component-lib/product'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { Changelog } from '../components/Changelog'
 import { DocPage } from '../components/DocPage'

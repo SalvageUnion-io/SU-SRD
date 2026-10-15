@@ -20,9 +20,9 @@
 
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
+import { PRODUCT } from 'cantina-domain/product'
 import { buttonVariants, cn, InlineRef, Slab } from 'component-lib'
 import { color, font, fontSize, space, tracking, weight } from 'component-lib/design/tokens'
-import { PRODUCT } from 'component-lib/product'
 import { X } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { Fragment } from 'react'

@@ -199,7 +199,7 @@ describe('census of this repository', () => {
   const repo = census()
 
   test('reads the barrel and every consuming app', () => {
-    expect(repo.workspaces).toEqual(['apps/discord-bot', 'apps/web'])
+    expect(repo.workspaces).toEqual(['apps/web'])
     expect(repo.exports.length).toBeGreaterThan(60)
     expect(repo.scanned).toBeGreaterThan(270)
   })

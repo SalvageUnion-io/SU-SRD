@@ -1,6 +1,6 @@
+import { PRODUCT } from 'cantina-domain/product'
 import type { EntityRef } from 'cantina-domain/schemas/entity'
 import type { SoftLink } from 'cantina-domain/schemas/softLink'
-import { PRODUCT } from 'component-lib/product'
 import type { FunctionArgs } from 'convex/server'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'

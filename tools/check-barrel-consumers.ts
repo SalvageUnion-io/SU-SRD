@@ -303,7 +303,8 @@ export function explain(v: ExportVerdict): [string, string] {
 }
 
 /** The scan floors `main` holds a census to: exports, consuming workspaces, app files. */
-const FLOORS = { exports: 60, workspaces: 2, scanned: 270 }
+// One consuming workspace: the bot read only `PRODUCT`, now `cantina-domain/product`.
+const FLOORS = { exports: 60, workspaces: 1, scanned: 270 }
 
 /** Judge a census and report; returns the exit code. */
 export function main(

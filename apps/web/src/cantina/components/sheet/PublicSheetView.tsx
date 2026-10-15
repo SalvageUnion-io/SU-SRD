@@ -13,9 +13,9 @@
  * query, drawn as its own read-only page (`NpcSheet`).
  */
 
+import { PRODUCT } from 'cantina-domain/product'
 import { NpcSchema } from 'cantina-domain/schemas/npc'
 import { MechPatternSchema } from 'cantina-domain/schemas/pattern'
-import { PRODUCT } from 'component-lib/product'
 import { useQuery } from 'convex/react'
 import { api } from '../../../../convex/_generated/api'
 import { PublicPattern } from '../mech/Pattern/PublicPattern'

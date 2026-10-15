@@ -19,7 +19,7 @@
  * tag and a default tag can never both survive for a parser to choose between.
  */
 
-import { PRODUCT } from 'component-lib/product'
+import { PRODUCT } from 'cantina-domain/product'
 import { BAR_HIDDEN_ATTRIBUTE } from '../shell/unionSlots'
 
 /** Everything the shell's meta block says for one route. */

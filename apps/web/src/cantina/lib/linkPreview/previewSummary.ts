@@ -13,9 +13,10 @@
  * `publicSheet.preview` and `publicSheet.invitePreview`, which serve only what
  * anyone with the link may read; a null answer becomes the plain private card.
  */
+
+import { PRODUCT } from 'cantina-domain/product'
 import type { OgCardProps } from 'component-lib'
 import { color } from 'component-lib/design/tokens'
-import { PRODUCT } from 'component-lib/product'
 
 /** The kinds of player thing a link previews. */
 export type PreviewKind = 'pilot' | 'mech' | 'crawler' | 'npc' | 'pattern'

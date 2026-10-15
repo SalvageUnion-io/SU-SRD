@@ -8,7 +8,7 @@ import type {
   MineResult,
   SheetResult,
 } from 'cantina-domain/botWire'
-import { PRODUCT } from 'component-lib/product'
+import { PRODUCT } from 'cantina-domain/product'
 import { v } from 'convex/values'
 import type { Id } from './_generated/dataModel'
 import { internalQuery } from './_generated/server'

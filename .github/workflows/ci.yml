@@ -78,7 +78,7 @@ jobs:
               - 'apps/discord-bot/**'
               # the bot's wire types (`cantina-domain/botWire`, `import type`)
               - 'packages/cantina-domain/**'
-              # the product's names (`component-lib/product`)
+              # the theme its colours mirror (themeLockstep.test.ts)
               - 'packages/component-lib/**'
             assets:
               - *shared

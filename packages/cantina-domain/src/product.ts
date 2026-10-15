@@ -13,8 +13,9 @@
  *   `taglineBy`, who it is quoted from.
  * - `wordmark` — the site's own name, as the reference OG card draws it.
  *
- * Dependency-free on purpose: the Discord bot Worker imports it through the
- * `component-lib/product` subpath without pulling in React.
+ * Dependency-free on purpose: the Discord bot Worker and Convex import it as
+ * `cantina-domain/product` without pulling in React, and the UI library's OG
+ * card draws it too.
  */
 export const PRODUCT = {
   name: 'The Cantina',

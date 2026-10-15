@@ -1,7 +1,7 @@
+import { PRODUCT } from 'cantina-domain/product'
 import type { CSSProperties } from 'react'
 import { foregroundOn } from '../../design/contrast'
 import { borderWidth, color, font, space, tracking, weight } from '../../design/tokens'
-import { PRODUCT } from '../../product'
 import { ChapterBand } from '../atoms/ChapterBand'
 import { Speckle } from '../atoms/Speckle'
 import { Stat } from '../atoms/Stat'

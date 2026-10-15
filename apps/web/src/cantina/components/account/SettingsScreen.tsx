@@ -1,3 +1,4 @@
+import { PRODUCT } from 'cantina-domain/product'
 import {
   Button,
   ChapterBand,
@@ -8,7 +9,6 @@ import {
   Text,
   tokens,
 } from 'component-lib'
-import { PRODUCT } from 'component-lib/product'
 import { useMutation, useQuery } from 'convex/react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
