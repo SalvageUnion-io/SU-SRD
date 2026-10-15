@@ -42,7 +42,7 @@ const PAGE = {
   backgroundColor: color.paper,
   display: 'flex',
   flexDirection: 'column',
-  minHeight: '100vh',
+  minHeight: '100dvh',
 } satisfies CSSProperties
 
 /** The content, on the book's page ground, taking the column's spare height. */
