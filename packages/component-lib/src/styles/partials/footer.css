@@ -98,8 +98,10 @@
   padding: 0 var(--space-8);
 }
 
-/* Thumb first (ruleset §4.6): 44px targets under a coarse pointer. */
-@media (pointer: coarse) {
+/* Thumb first (ruleset §4.6): 44px targets under a coarse pointer, and at
+ * phone width whatever the pointer, so a phone-sized window never draws the
+ * footer's links at 32px. */
+@media (pointer: coarse), (max-width: 40rem) {
   .su-footer__link {
     justify-content: center;
     min-height: 44px;
