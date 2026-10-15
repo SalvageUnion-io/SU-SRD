@@ -71,7 +71,7 @@ load behaviour, and biome.jsonc excludes each by path with its reason.
 Never sleep (`setTimeout`) past a debounce: a CI flake and dead wall-clock. Use:
 
 - `jest.useFakeTimers()` + `jest.advanceTimersByTime(DEBOUNCE_MS)` inside
-  `act()` to drive the component's own timer (`GlobalSearch.test.tsx`).
+  `act()` to drive the component's own timer (`useSearchCombobox.test.tsx`).
 - `setSystemTime()` when the code under test reads `Date.now()` rather than a
   timer — see the stale-write tests in `apps/web/test/convex/__tests__/appId.test.ts`.
 - `await screen.findByText(...)` / `waitFor(...)`, which poll.

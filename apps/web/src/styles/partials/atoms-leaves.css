@@ -113,20 +113,6 @@
   outline-style: none;
 }
 
-/* `SearchFieldTrigger`: the field as a button. The label reads as the
-   placeholder, left-aligned where the input's text would sit. */
-.su-search-field--trigger {
-  cursor: pointer;
-  text-align: left;
-}
-
-.su-search-field__label {
-  color: var(--color-wk-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 /* ── Toaster ── */
 /* components/containers/Toaster.tsx — a success or error toast's status icon takes
  * the status colour. Sonner renders the icon, so only a descendant rule

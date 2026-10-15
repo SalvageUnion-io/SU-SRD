@@ -5,7 +5,7 @@
  * and the citation start on one gutter, and the Cantina's Mech Patterns page
  * shares it. It is the show page's (board 07), the canon reading layout. The
  * value is `--page-measure` in `theme.css`; the body
- * that shares it is `.su-page-body` (`pages.css`), whose side padding is the
+ * that shares it is `.su-page-body` (`shared.css`), whose side padding is the
  * gutter inside it (16px on a phone, 24px from `sm`).
  */
 export const PAGE_MEASURE = 'var(--page-measure)'

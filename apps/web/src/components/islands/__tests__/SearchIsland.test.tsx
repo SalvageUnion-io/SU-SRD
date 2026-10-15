@@ -1,8 +1,11 @@
 import type { Mock } from 'bun:test'
 import { afterEach, beforeEach, describe, expect, jest, mock, spyOn, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import type { ComponentProps } from 'react'
 import { buildSearchIndexEntries } from '../../../lib/searchIndexBuild'
 import { resetSearchIndexForTests } from '../../../lib/useSearchIndex'
+import type { EntitySurfaceValue } from '../../index'
+import { EntitySurfaceProvider } from '../../index'
 import { SearchIsland } from '../SearchIsland'
 
 // SearchIsland now fetches the build-time compact index (`/search-index.json`)
@@ -311,6 +314,36 @@ describe('SearchIsland', () => {
       expect(assign).toHaveBeenCalledWith('/search?q=mule%20pattern')
     } finally {
       assign.mockRestore()
+    }
+  })
+
+  test('inside a host that routes entity links, every result stays a same-tab page link', async () => {
+    // The Cantina's surface hands link-mode forms its router link, which would
+    // put a reference page under its own base.
+    function RouterLink({
+      children,
+      ...rest
+    }: ComponentProps<NonNullable<EntitySurfaceValue['linkAs']>>) {
+      return (
+        <a data-router="" {...rest}>
+          {children}
+        </a>
+      )
+    }
+    render(
+      <EntitySurfaceProvider value={{ linkAs: RouterLink }}>
+        <SearchIsland />
+      </EntitySurfaceProvider>
+    )
+    await typeAndSettle(screen.getByRole('combobox'), 'mule')
+
+    const options = screen.getAllByRole('option')
+    expect(options.length).toBeGreaterThan(0)
+    for (const option of options) {
+      expect(option.tagName).toBe('A')
+      expect(option.hasAttribute('data-router')).toBe(false)
+      expect(option.hasAttribute('target')).toBe(false)
+      expect(option.getAttribute('href')).toMatch(/^\/[a-z-]+\/([a-z0-9-]+\/)?$/)
     }
   })
 

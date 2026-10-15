@@ -6,8 +6,6 @@
 /* The Cantina's print rules, over the shared `data-print` vocabulary in
    `base.css`. index.css declares no print rules of its own. */
 @import './cantina/print.css';
-/* GlobalSearch's result-row hover/selected ground. */
-@import './cantina/globalSearch.css';
 /* The NPC designer's responsive rules (step strip, phone preview). */
 @import './cantina/npc.css';
 /* The Shelves band's paper-on-ink controls. */

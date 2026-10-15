@@ -16,7 +16,7 @@ Id · title — where code cites it (`board NN`); "—" means no code cites it. 
 
 1. **01** The brief —. **02** Issue register —. **02b** From the book —.
 2. **03** Colour: paper page, legible bands — `tokens.ts`, `contrast.test.ts`, `theme.css`. **04** Type: raise the floor — `theme.css`.
-3. **05** One union bar — `AppBar`, the Cantina `GlobalSearch`, `index.css`. **05b** Texture trial —. **05c** Speckle only — ruleset, `Speckle`, `cardGrain`, tokens.
+3. **05** One union bar — `AppBar`, the site's `SearchIsland`, `index.css`. **05b** Texture trial —. **05c** Speckle only — ruleset, `Speckle`, `cardGrain`, tokens.
 4. **06** SRD home — `HomeContents`, `HeroSearch`, `SearchIsland`, `TopNavigation`, `index.page`, `Footer`, `chapters`, `ChapterFoot`, `Slab`.
 5. **07** SRD entity page — `EntityPageFrame`, `EntityPageStamps`, `CardPage`, `entityPage`, `CardImage`, `StatColumn`, `Footer`. **08** Entity, phone — `NavDrawer`, `EntityCardStatic`, `index.css`.
 6. **08b** SRD roll table — `RollTablePage`, `RollTableView`, `RollTableIsland`, `rollTablePage`, `columnsTablePage`, `RollTableInstrument`.

@@ -22,13 +22,6 @@
   width: 100%;
 }
 
-/* The not-found page's lede type. */
-.su-not-found__lede p {
-  font-size: var(--text-readout);
-  line-height: 1.5;
-  margin: 0;
-}
-
 /* Below the desktop the lede has no room beside the title, so it follows the
    title instead of riding above it (the band's own stack is column-reverse):
    the title notched into the band's foot, then the lede and search on the
@@ -87,8 +80,7 @@
 /* The index, then the aside: one stack on a phone, the catalogs first and
    "Start here" (with the Discord button under it) below them (owner,
    2026-10-15). */
-.su-home__body,
-.su-not-found__body {
+.su-home__body {
   display: flex;
   flex-direction: column;
   gap: var(--space-24);
@@ -135,128 +127,11 @@
   }
 }
 
-/* The hero search on the Contents band (`HeroSearch.tsx`). */
-.su-hero-search {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-10);
-}
-
-.su-hero-search__box {
-  flex: 1 1 16rem;
-  min-width: 0;
-  position: relative;
-}
-
-.su-hero-search__field {
-  border-width: var(--bw-chrome);
-  min-height: 46px;
-  padding-inline: var(--space-14);
-}
-
-/*
- * The not-found page (`404.page.tsx`, `islands/DidYouMeanIsland.tsx`): the
- * rules band with the hero search, then the guesses and the five chapters on
- * the page ground. Ink on paper throughout; a chapter's colour is only its
- * swatch (ruleset §3.8).
- */
-.su-not-found__lede {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-12);
-  max-width: 34rem;
-  width: 100%;
-}
-
-@media (min-width: 40rem) and (max-width: 63.99rem) {
-  .su-not-found__band .su-chapter-band__row {
-    align-items: flex-start;
-    flex-direction: column-reverse;
-  }
-}
-
-@media (min-width: 64rem) {
-  .su-not-found__band .su-chapter-band__title {
-    flex: none;
-  }
-
-  .su-not-found__band .su-chapter-band__aside {
-    flex: 0 1 34rem;
-    min-width: 0;
-  }
-}
-
-.su-not-found__body {
-  gap: var(--space-28);
-}
-
-.su-not-found__guesses,
-.su-not-found__chapters {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-12);
-  min-width: 0;
-}
-
-/* The guesses: search-result Rows. */
-.su-not-found__results {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-12);
-}
-
-.su-not-found__link {
-  align-self: flex-start;
-  color: var(--color-ink);
-  font-family: var(--font-cond);
-  font-weight: var(--font-weight-semibold);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.su-not-found__chapter-list {
-  display: grid;
-  gap: var(--space-10);
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
-}
-
-/* A chapter as the home index opens one: its colour band on top
-   (`.su-contents__band`), then its name under an ink rule. */
-.su-not-found__chapter {
-  color: var(--color-ink);
-  display: flex;
-  flex-direction: column;
-  text-decoration: none;
-}
-
-.su-not-found__chapter-name {
-  align-items: center;
-  border-top: var(--bw-chrome) solid var(--color-ink);
-  display: flex;
-  font-family: var(--font-cond);
-  font-size: var(--text-title);
-  font-weight: var(--font-weight-bold);
-  line-height: 1.1;
-  min-height: 44px;
-  padding: var(--space-6) 0;
-}
-
-.su-not-found__chapter:hover .su-not-found__chapter-name {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
 /* A chapter of the index: its colour band, its name and count, its rows. */
 .su-contents__chapter {
   display: flex;
   flex-direction: column;
   min-width: 0;
-}
-
-.su-contents__band {
-  border: var(--bw-chrome) solid var(--color-ink);
-  border-bottom: 0;
-  height: 8px;
 }
 
 .su-contents__heading {
@@ -357,27 +232,6 @@ a.su-home__discord:hover {
   flex: 1;
   flex-direction: column;
   justify-content: center;
-}
-
-/*
- * The one page body (`.su-page-body`): every page family's content under its
- * band — show pages, listings, search, the Contents home, the document pages
- * and the 404 — at the one measure (`--page-measure`, `lib/pageMeasure.ts`),
- * centred, its side padding the gutter: 16px on a phone, 24px from `sm`. The
- * band's row and the foot's share the measure and the padding, so the notch,
- * the content and the citation start on one line.
- */
-.su-page-body {
-  margin-inline: auto;
-  max-width: var(--page-measure);
-  padding: var(--space-20) var(--space-16) var(--space-32);
-  width: 100%;
-}
-
-@media (min-width: 40rem) {
-  .su-page-body {
-    padding: var(--space-24) var(--space-24) var(--space-32);
-  }
 }
 
 /*
@@ -1247,33 +1101,6 @@ a.su-home__discord:hover {
  * page. The hovers sit behind `(hover: hover)`, so a tap never leaves one
  * stuck on a touch screen.
  */
-
-/* `MobileSearchDialog`: the bar's magnifier, a paper wash on the ink bar. */
-@media (hover: hover) {
-  .su-mobile-search__trigger:hover {
-    background-color: var(--color-paper-15);
-  }
-}
-
-/* `MobileSearchIsland`: the sheet's field fills the sheet, over the bar's
-   fixed width below (a descendant rule, so it outranks that class). */
-.su-mobile-search__body input {
-  width: 100%;
-}
-
-/* A category result in the search dropdown. */
-.su-search__category {
-  transition-duration: 150ms;
-  transition-property:
-    color, background-color, border-color, outline-color, text-decoration-color, fill, stroke;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@media (hover: hover) {
-  .su-search__category:hover {
-    background-color: var(--color-wk-bg);
-  }
-}
 
 /* `/about`: the map lightbox (a native `<dialog>`) — its scrim, its close
    button's ground, its credit link's underline. */

@@ -105,8 +105,8 @@ function GameDataFallback() {
  * not loaded" when it renders a chosen entity. The dataset is ~1-2 MB of static
  * JSON; docs/ARCHITECTURE.md#data-flow has the fuller rationale.
  *
- * Off the critical rendering path: this wraps only `<Outlet />` and
- * `<GlobalSearch />` in routes/__root.tsx. The Union bar (brand chrome, no
+ * Off the critical rendering path: this wraps only `<Outlet />` in
+ * routes/__root.tsx; the bar's search reads its own compact index. The Union bar (brand chrome, no
  * reference data) is the shell's, outside the app's root altogether, so it
  * paints before the app boots. A non-blocking preload would need every
  * ORM-touching component to tolerate a not-ready state. One trade-off:
