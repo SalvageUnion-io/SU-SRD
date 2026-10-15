@@ -9,9 +9,10 @@ import { buttonVariants, ChapterBand, cn, EntityPageStamps, EntityStat, KindLabe
  * EntityPageFrame — a Workshop Manual page around one entity (boards 07, 08,
  * 08b): its chapter's band at the head, the title notched in and, right of
  * it, one cluster of everything else the head carries — the parent link, the
- * stamps and "Build With This" (EDL E20: nothing but the breadcrumb sits
+ * stamps, then "Build With This" (EDL E20: nothing but the breadcrumb sits
  * above a show page's title; on a phone the cluster follows the title, the
- * band's `asideAt="notch"`); then the body. The page's foot band — its kind
+ * band's `asideAt="notch"`, and the button, the band's `action`, stays on the
+ * band beside it); then the body. The page's foot band — its kind
  * and its printings (`Workshop Manual · p.112`, then any reprint) — is the site
  * `Footer`'s, so the page ends once: the page module hands `entityPageFoot`
  * (`lib/entityPageFoot.ts`) to the layout as its `PageResult.foot`.
@@ -74,7 +75,7 @@ type EntityPageFrameProps = {
   parent?: EntityParent
   /** A pattern the book sanctions as a starting build: the band wears its stamp. */
   legalStartingPattern?: boolean
-  /** "Build With This": the deep link into the Cantina's builder (`buildLinkFor`), ending the cluster. */
+  /** "Build With This": the deep link into the Cantina's builder (`buildLinkFor`), ending the cluster (the band's `action`). */
   build?: BuildLink | null
   /** A creation guide's way out (`guideExitsFor`), under the body. */
   exits?: GuideExits | null
@@ -104,26 +105,26 @@ export function EntityPageFrame({
             name={typeof title === 'string' ? title : undefined}
             legalStartingPattern={legalStartingPattern}
             lead={parent && <ParentLink {...parent} />}
-            end={
-              build && (
-                // A link that looks like the shared Button (`buttonVariants`):
-                // same tab, no off-site arrow — the Reference and Build are one
-                // union (ruleset §3.11).
-                <a
-                  href={build.href}
-                  aria-label={build.ariaLabel}
-                  className={cn(
-                    buttonVariants({ variant: 'primary', size: 'compact' }),
-                    'su-page-action'
-                  )}
-                >
-                  {build.label}
-                </a>
-              )
-            }
           />
         }
         asideAt="notch"
+        action={
+          build && (
+            // A link that looks like the shared Button (`buttonVariants`):
+            // same tab, no off-site arrow — the Reference and Build are one
+            // union (ruleset §3.11).
+            <a
+              href={build.href}
+              aria-label={build.ariaLabel}
+              className={cn(
+                buttonVariants({ variant: 'primary', size: 'compact' }),
+                'su-page-action'
+              )}
+            >
+              {build.label}
+            </a>
+          )
+        }
         lead={
           // An ability's level, left of its title as its Row sets it: just the number.
           meta.numeral && (

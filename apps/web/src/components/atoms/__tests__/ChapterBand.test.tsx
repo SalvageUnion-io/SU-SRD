@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { color } from '../../../design/tokens'
 import { ChapterBand } from '../ChapterBand'
+import { ChapterBandTrail } from '../ChapterBandTrail'
 
 /**
  * ChapterBand (brand refresh P2a): the page title notched into a band in the chapter's
@@ -57,6 +58,62 @@ describe('ChapterBand', () => {
     const heading = screen.getByRole('heading', { name: 'Mule' })
     const stamp = screen.getByText('Chassis')
     expect(heading.compareDocumentPosition(stamp) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  test("`action` (a show page's button) follows the aside on the title row, and is absent when unset", () => {
+    const { container } = render(
+      <ChapterBand
+        tone="mech"
+        asideAt="notch"
+        aside={<span>Chassis</span>}
+        action={<a href="/build/">Build With This</a>}
+      >
+        Mule
+      </ChapterBand>
+    )
+    const band = container.firstElementChild as HTMLElement
+    expect(band.dataset.action).toBe('')
+    const action = screen.getByRole('link', { name: 'Build With This' })
+    expect(action.parentElement?.className).toBe('su-chapter-band__action')
+    expect(action.parentElement?.parentElement?.className).toBe('su-chapter-band__row')
+    const stamp = screen.getByText('Chassis')
+    expect(stamp.compareDocumentPosition(action) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+
+    const bare = renderToStaticMarkup(
+      <ChapterBand asideAt="notch" aside={<span>Chassis</span>}>
+        Mule
+      </ChapterBand>
+    )
+    expect(bare).not.toContain('data-action')
+    expect(bare).not.toContain('su-chapter-band__action')
+  })
+
+  test("a page band leads with the layout's trail, in the band's foreground", () => {
+    const trail = <nav aria-label="Breadcrumb">Contents / Mule</nav>
+    const page = renderToStaticMarkup(
+      <ChapterBandTrail.Provider value={trail}>
+        <ChapterBand tone="denizen">Ace</ChapterBand>
+      </ChapterBandTrail.Provider>
+    )
+    expect(page).toContain('su-chapter-band__trail')
+    expect(page.indexOf('Contents / Mule')).toBeLessThan(page.indexOf('Ace'))
+    expect(page).toContain(`color:${color.paper}`)
+  })
+
+  test("the trail gives way to a band's own eyebrow, and never rides a link preview", () => {
+    const trail = <nav aria-label="Breadcrumb">Contents / Mule</nav>
+    const own = renderToStaticMarkup(
+      <ChapterBandTrail.Provider value={trail}>
+        <ChapterBand eyebrow={<span>Kicker</span>}>Home</ChapterBand>
+      </ChapterBandTrail.Provider>
+    )
+    expect(own).not.toContain('Contents / Mule')
+    const og = renderToStaticMarkup(
+      <ChapterBandTrail.Provider value={trail}>
+        <ChapterBand scale="og">Mule</ChapterBand>
+      </ChapterBandTrail.Provider>
+    )
+    expect(og).not.toContain('Contents / Mule')
   })
 
   test('`corner` sits above the title row, right-aligned, and is absent when unset', () => {

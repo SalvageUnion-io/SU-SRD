@@ -13,7 +13,7 @@
 
 import type { CSSProperties, ReactNode } from 'react'
 import type { DocumentMeta, PageFoot } from '../../ssg/types'
-import { Footer } from '../components/index'
+import { BreadcrumbTrail, ChapterBandTrail, Footer } from '../components/index'
 import { TopNavigation } from '../components/TopNavigation'
 import { color } from '../design/tokens'
 import { DEFAULT_OG_IMAGE, SITE_LINKS, SITE_URL } from '../lib/constants'
@@ -211,7 +211,21 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
             order; -1 means "focusable by script or fragment, not by Tab".
           */}
           <main id="main-content" tabIndex={-1} style={MAIN}>
-            {children}
+            {/* The trail again for the page's band, which carries it wherever
+                the bar has no room (`ChapterBandTrail`); one of the three is
+                displayed at any width. */}
+            <ChapterBandTrail.Provider
+              value={
+                trail &&
+                trail.length > 0 && (
+                  <nav aria-label="Breadcrumb" className="su-crumbs su-crumbs--band">
+                    <BreadcrumbTrail breadcrumbs={trail} description={breadcrumbDescription} />
+                  </nav>
+                )
+              }
+            >
+              {children}
+            </ChapterBandTrail.Provider>
           </main>
           <Footer
             links={SITE_LINKS}

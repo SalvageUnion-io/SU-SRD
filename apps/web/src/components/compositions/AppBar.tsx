@@ -2,6 +2,8 @@ import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { Fragment } from 'react'
 import { borderWidth, color, radius, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
+import type { BreadcrumbItem } from '../atoms/BreadcrumbTrail'
+import { BreadcrumbTrail } from '../atoms/BreadcrumbTrail'
 import { FOCUS_RING } from '../atoms/interaction'
 import { Speckle } from '../atoms/Speckle'
 
@@ -28,8 +30,9 @@ import { Speckle } from '../atoms/Speckle'
  * ## Breadcrumbs
  *
  * On desktop the trail is in the bar, in paper, the current page in bold; there
- * is no separate breadcrumb row. A phone has no room in the bar, so below `lg`
- * the trail keeps a row of its own under it. Both render the same list, one of
+ * is no separate breadcrumb row. Where the bar has no room for it the trail
+ * keeps a row of its own under it, unless the page's chapter band carries it
+ * (`ChapterBandTrail`): then the row steps aside. Both render the same list, one of
  * them `display: none` at any width, so the accessibility tree holds one. The
  * BreadcrumbList JSON-LD is emitted once either way.
  *
@@ -67,11 +70,6 @@ export type AppBarNavSlot = {
 }
 
 export type AppBarNavEntry = AppBarNavItem | AppBarNavSlot
-
-type BreadcrumbItem = {
-  name: string
-  url: string
-}
 
 type AppBarProps = {
   /** The tool this bar is mounted in: its switcher tab is the inverse stamp. */
@@ -145,23 +143,6 @@ const SWITCH = {
   overflow: 'hidden',
 } satisfies CSSProperties
 
-const LIST = {
-  alignItems: 'center',
-  display: 'flex',
-  listStyle: 'none',
-  margin: 0,
-  padding: 0,
-} satisfies CSSProperties
-
-const CRUMB_SEPARATOR = { userSelect: 'none' } satisfies CSSProperties
-
-const CRUMB_DESCRIPTION = {
-  minWidth: 0,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-} satisfies CSSProperties
-
 function isSlot(entry: AppBarNavEntry): entry is AppBarNavSlot {
   return 'node' in entry
 }
@@ -186,46 +167,6 @@ function NavLink({ item, className, LinkComponent }: NavLinkProps) {
       {item.label}
       {item.badge}
     </Link>
-  )
-}
-
-function Trail({
-  breadcrumbs,
-  description,
-}: {
-  breadcrumbs: BreadcrumbItem[]
-  description?: string
-}) {
-  return (
-    <>
-      <ol className="su-crumbs__list" style={LIST}>
-        {breadcrumbs.map((item, index) => (
-          <Fragment key={item.url}>
-            {index > 0 && (
-              <li aria-hidden="true" className="su-crumbs__separator" style={CRUMB_SEPARATOR}>
-                /
-              </li>
-            )}
-            <li className="su-crumbs__item">
-              {index === breadcrumbs.length - 1 ? (
-                <span aria-current="page" className="su-crumbs__here">
-                  {item.name}
-                </span>
-              ) : (
-                <a href={item.url} className={cn('su-crumbs__link', FOCUS_RING)}>
-                  {item.name}
-                </a>
-              )}
-            </li>
-          </Fragment>
-        ))}
-      </ol>
-      {description && (
-        <span className="su-crumbs__description" style={CRUMB_DESCRIPTION} title={description}>
-          — {description}
-        </span>
-      )}
-    </>
   )
 }
 
@@ -312,7 +253,7 @@ export function AppBar({
 
           {hasCrumbs && (
             <nav aria-label="Breadcrumb" className="su-crumbs su-crumbs--bar">
-              <Trail breadcrumbs={breadcrumbs} description={breadcrumbDescription} />
+              <BreadcrumbTrail breadcrumbs={breadcrumbs} description={breadcrumbDescription} />
             </nav>
           )}
 
@@ -340,7 +281,7 @@ export function AppBar({
       {hasCrumbs && (
         <>
           <nav aria-label="Breadcrumb" className="su-crumbs su-crumbs--row">
-            <Trail breadcrumbs={breadcrumbs} description={breadcrumbDescription} />
+            <BreadcrumbTrail breadcrumbs={breadcrumbs} description={breadcrumbDescription} />
           </nav>
 
           <script
