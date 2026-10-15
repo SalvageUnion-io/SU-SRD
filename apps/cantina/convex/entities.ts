@@ -560,7 +560,7 @@ export const remove = mutation({
  */
 export const createCrawler = mutation({
   args: {
-    /** The Game this crawler is raised in, or `null` to raise it on your shelf. */
+    /** The Game this crawler is raised in, or `null` to raise it on your Hangar. */
     gameId: v.union(v.id('games'), v.null()),
     /** The app-level UUID this row carries — see `pilots.appId`. */
     appId: v.optional(v.string()),

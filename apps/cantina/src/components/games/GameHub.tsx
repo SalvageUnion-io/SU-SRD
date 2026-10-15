@@ -96,7 +96,7 @@ function NotInGame() {
           </Text>
           <div>
             <Button variant="default" size="compact" onClick={() => showContainer(SHELF)}>
-              Back to Shelves
+              Back to Hangar
             </Button>
           </div>
         </div>

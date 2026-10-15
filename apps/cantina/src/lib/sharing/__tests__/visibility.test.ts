@@ -34,7 +34,7 @@ describe('a sheet', () => {
     const choices = sheetChoices({ inGame: true, gameName: 'Dustbowl Run' })
     expect(open(choices)).toEqual(['game', 'link'])
     expect(choices[1]?.description).toMatch(/everyone in Dustbowl Run/i)
-    expect(choices[0]?.description).toMatch(/move it to your shelf/i)
+    expect(choices[0]?.description).toMatch(/move it to your Hangar/i)
   })
 
   test('its answer is the link when public, else where it is', () => {

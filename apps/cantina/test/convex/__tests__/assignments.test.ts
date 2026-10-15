@@ -172,7 +172,7 @@ describe('cardinality — a new assignment replaces the one it conflicts with', 
 })
 
 describe('one container — both ends share a Game or the same shelf', () => {
-  test('a shelf pilot cannot be assigned to a crawler in a Game', async () => {
+  test('a Hangar pilot cannot be assigned to a crawler in a Game', async () => {
     const t = testConvex()
     const { organizer: o, gameId } = await seedTable(t)
     await addCrawler(o, 'c1', gameId)

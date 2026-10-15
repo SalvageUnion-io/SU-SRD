@@ -433,7 +433,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
           </div>
         }
       >
-        Shelves
+        Hangar
       </ChapterBand>
 
       <div className="su-page-column" style={BODY}>

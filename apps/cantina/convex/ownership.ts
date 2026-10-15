@@ -89,7 +89,7 @@ export const claim = mutation({
   handler: async (ctx, args): Promise<void> => {
     const doc = await loadOwnable(ctx, args.table, args.entityId)
     if (doc.gameId === null) {
-      throw new NotAuthorized('That build is on somebody’s shelf, not in a Game')
+      throw new NotAuthorized('That build is in somebody’s Hangar, not in a Game')
     }
 
     const membership = await requireMember(ctx, doc.gameId)
@@ -141,7 +141,7 @@ export const release = mutation({
        * it was teaching the wrong model to the person least able to check it.
        */
       throw new NotAuthorized(
-        'A build on your shelf is already yours — there is no crew here to release it to. Move it into a Game first.'
+        'A build in your Hangar is already yours — there is no crew here to release it to. Move it into a Game first.'
       )
     }
     if (doc.ownerId === null) return

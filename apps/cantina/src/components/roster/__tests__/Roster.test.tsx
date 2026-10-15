@@ -212,12 +212,12 @@ describe('Roster — signed out, it is the front door (board 09)', () => {
 // Signed in: Shelves
 // ---------------------------------------------------------------------------
 
-describe('Shelves — the band', () => {
+describe('Hangar — the band', () => {
   test('the notched title, the Showing toggle on Everything, Import and Export all', async () => {
     await renderShelves()
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Shelves' })).toBeTruthy()
-    expect(screen.queryByText(/Units in a Game stay on your shelf too\./)).toBeNull()
+    expect(screen.getByRole('heading', { level: 1, name: 'Hangar' })).toBeTruthy()
+    expect(screen.queryByText(/Units in a Game stay on your Hangar too\./)).toBeNull()
     const showing = screen.getByRole('group', { name: 'Showing' })
     expect(
       within(showing)
@@ -234,7 +234,7 @@ describe('Shelves — the band', () => {
   })
 })
 
-describe('Shelves — one shelf per kind', () => {
+describe('Hangar — one shelf per kind', () => {
   test('Pilots, Mechs, Crawlers, Patterns and NPCs, then the Starter Set', async () => {
     await renderShelves()
 
@@ -270,7 +270,7 @@ describe('Shelves — one shelf per kind', () => {
     )
   })
 
-  test('a designed NPC is a dashed line with who can see it, on a shelf marked yours', async () => {
+  test('a designed NPC is a dashed line with who can see it, in a Hangar marked yours', async () => {
     const store = useEntityStore.getState()
     await store.hydrate('npc')
     const npc = await store.create('npc', {
@@ -311,7 +311,7 @@ describe('Shelves — one shelf per kind', () => {
   })
 })
 
-describe('Shelves — items', () => {
+describe('Hangar — items', () => {
   test('an item is one line that opens its sheet, with a chip saying where it is', async () => {
     const id = await seedEntity('pilot', 'Nia Vale')
     await renderShelves()
@@ -369,7 +369,7 @@ describe('Shelves — items', () => {
   })
 })
 
-describe('Shelves — Make a copy', () => {
+describe('Hangar — Make a copy', () => {
   test('asks first, then puts a separate copy on the shelf', async () => {
     await seedEntity('pilot', 'Fen Oya')
     await renderShelves()
@@ -396,7 +396,7 @@ describe('Shelves — Make a copy', () => {
   })
 })
 
-describe('Shelves — delete flow', () => {
+describe('Hangar — delete flow', () => {
   test('Delete… opens the confirm, naming the build', async () => {
     await seedEntity('pilot', 'Mira Cole')
     await renderShelves()

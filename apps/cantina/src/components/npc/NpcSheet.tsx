@@ -98,7 +98,7 @@ export function NpcSheet({
   crewing,
   confirm,
   onDeleted,
-  back = { href: '/', label: 'Shelves' },
+  back = { href: '/', label: 'Hangar' },
   readOnlyNote = 'You are reading a crewmate’s NPC. Only whoever made it can change it.',
 }: NpcSheetProps) {
   const [shareOpen, setShareOpen] = useState(false)

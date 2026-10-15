@@ -46,7 +46,7 @@ describe('AppBar', () => {
         referenceHref="https://salvageunion.io"
         buildHref="/"
         navItems={[
-          { label: 'Shelves', href: '/', active: true },
+          { label: 'Hangar', href: '/', active: true },
           { id: 'games', node: <button type="button">Games</button> },
           { label: 'Starter Set', href: '/starter/' },
         ]}
@@ -55,11 +55,11 @@ describe('AppBar', () => {
     const nav = screen.getByRole('navigation', { name: 'Main navigation' })
     expect(nav.className).toContain('su-union-bar__nav')
     expect(Array.from(nav.children).map((el) => el.textContent)).toEqual([
-      'Shelves',
+      'Hangar',
       'Games',
       'Starter Set',
     ])
-    expect(within(nav).getByRole('link', { name: 'Shelves' }).getAttribute('aria-current')).toBe(
+    expect(within(nav).getByRole('link', { name: 'Hangar' }).getAttribute('aria-current')).toBe(
       'page'
     )
     const banner = screen.getByRole('banner')

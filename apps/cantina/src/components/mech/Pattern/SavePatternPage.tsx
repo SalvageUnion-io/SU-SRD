@@ -257,7 +257,7 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
         eyebrow={
           <nav aria-label="Breadcrumb" style={CRUMBS}>
             <AppLink href="/" style={CRUMB_LINK}>
-              Shelves
+              Hangar
             </AppLink>
             {' / '}
             <AppLink href={`/sheet/mech/${mech.id}`} style={CRUMB_LINK}>
@@ -322,7 +322,7 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
               checked={visibility === 'private'}
               onChange={() => setVisibilityChoice('private')}
               label="Only me"
-              description="Kept on your shelf. Build mechs from it any time."
+              description="Kept in your Hangar. Build mechs from it any time."
             />
             <Radio
               stacked

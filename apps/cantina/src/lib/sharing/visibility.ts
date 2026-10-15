@@ -60,8 +60,8 @@ export function sheetChoices(args: {
       value: 'private',
       label: LABEL.private,
       description: inGame
-        ? `It is in ${game}, so its crew can see it. Move it to your shelf to keep it to yourself.`
-        : 'Kept on your shelf. Nobody else can open it.',
+        ? `It is in ${game}, so its crew can see it. Move it to your Hangar to keep it to yourself.`
+        : 'Kept in your Hangar. Nobody else can open it.',
       disabled: inGame,
     },
     {
@@ -88,7 +88,7 @@ export function patternChoices(args: { gameName: string | null }): VisibilityCho
     {
       value: 'private',
       label: LABEL.private,
-      description: 'Kept on your shelf. Build mechs from it any time.',
+      description: 'Kept in your Hangar. Build mechs from it any time.',
       disabled: false,
     },
     {

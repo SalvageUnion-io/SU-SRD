@@ -60,7 +60,7 @@ export function StarterShelf() {
       />
       <Text variant="body" style={LEAD}>
         The book&rsquo;s ready-made pilots, mechs and crawler. Browse them like the reference; make
-        a copy to put one on your own shelf.
+        a copy to put one in your own Hangar.
       </Text>
       <ul style={LIST}>
         {UNITS.map((unit) => (

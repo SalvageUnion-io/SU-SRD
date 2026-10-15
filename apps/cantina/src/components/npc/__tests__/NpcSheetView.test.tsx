@@ -104,7 +104,7 @@ describe('yours', () => {
     expect(screen.getByText('Made by you')).toBeTruthy()
   })
 
-  test('deleting it goes back to the Shelves', async () => {
+  test('deleting it goes back to the Hangar', async () => {
     await renderView('n-mine')
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Delete Doc Ambrose' }))

@@ -286,7 +286,7 @@ export function meCard(me: MeResult): ContainerData {
   })
 }
 
-/** `/su games` — every Game you belong to, linked to Shelves: The Cantina has no `/games` page. */
+/** `/su games` — every Game you belong to, linked to the Hangar: The Cantina has no `/games` page. */
 export function gamesCard(games: GameSummary[]): ContainerData {
   return entityCard({
     title: `Your Games (${games.length})`,

@@ -193,14 +193,16 @@ describe('the sections under the roster (board M2)', () => {
     ])
   })
 
-  test('ending the game asks first, says where everything lands, and then shows Shelves', async () => {
+  test('ending the game asks first, says where everything lands, and then shows Hangar', async () => {
     await renderHub({ 'games:get': { ...GAME, organizer: true } })
 
     fireEvent.click(screen.getByRole('button', { name: 'Delete this Game' }))
     const dialog = screen.getByRole('alertdialog')
     expect(dialog.textContent).toContain('It cannot be undone')
     expect(dialog.textContent).toContain('4 pilots and 3 mechs go back to whoever owns them')
-    expect(dialog.textContent).toContain('Hamlet and anything unclaimed come to you, on your shelf')
+    expect(dialog.textContent).toContain(
+      'Hamlet and anything unclaimed come to you, in your Hangar'
+    )
     expect(mutations).toHaveLength(0)
 
     await act(async () => {
@@ -214,7 +216,7 @@ describe('the sections under the roster (board M2)', () => {
     await renderHub({ 'games:get': { ...GAME, organizer: true, crawlerName: null, pilotCount: 0 } })
     fireEvent.click(screen.getByRole('button', { name: 'Delete this Game' }))
 
-    expect(screen.getByText(/^Anything unclaimed comes to you, on your shelf\.$/)).toBeTruthy()
+    expect(screen.getByText(/^Anything unclaimed comes to you, in your Hangar\.$/)).toBeTruthy()
     // With no pilots there is no "0 pilots" line to read past.
     expect(screen.queryByText(/0 pilots/)).toBeNull()
   })
@@ -299,13 +301,13 @@ describe('the Mediator on the Game page', () => {
 })
 
 describe('a game the viewer is not in', () => {
-  test('explains itself, and offers the way back to Shelves, instead of rendering the table', async () => {
+  test('explains itself, and offers the way back to Hangar, instead of rendering the table', async () => {
     await renderHub({ 'games:get': null })
 
     expect(screen.getByText(/not in this Game/i)).toBeTruthy()
     expect(screen.getByText(/invite link/i)).toBeTruthy()
     expect(heading('Crew & seats')).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: 'Back to Shelves' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Back to Hangar' }))
     expect(navigations).toEqual([{ to: '/' }])
   })
 
