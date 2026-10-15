@@ -1,13 +1,13 @@
 import type { ReactNode } from 'react'
 import { createContext, useContext } from 'react'
-import type { SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
+import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 
 /**
  * Builds a navigable href (show-page link) for an entity. The shape is the
  * consuming app's concern — srd supplies its `/<schema>/<slug>/` route,
  * The Cantina its own — so the shared library stays route-agnostic.
  */
-export type EntityHrefBuilder = (entity: SURefEntity) => string | undefined
+export type EntityHrefBuilder = (entity: RefEntity) => string | undefined
 
 const EntityHrefContext = createContext<EntityHrefBuilder | undefined>(undefined)
 
@@ -20,7 +20,7 @@ export function useEntityHrefBuilder(): EntityHrefBuilder | undefined {
 }
 
 /** Resolve an entity's href via the provided builder (undefined when none). */
-export function useEntityHref(entity: SURefEntity | undefined): string | undefined {
+export function useEntityHref(entity: RefEntity | undefined): string | undefined {
   const builder = useContext(EntityHrefContext)
   return builder && entity ? builder(entity) : undefined
 }
@@ -48,7 +48,7 @@ export function useEntityDetailLink(): boolean {
  * for entities without an external page. srd (which *is* the SRD)
  * provides no builder, so nothing renders there.
  */
-export type EntityExternalLinkBuilder = (entity: SURefEntity) => ReactNode | undefined
+export type EntityExternalLinkBuilder = (entity: RefEntity) => ReactNode | undefined
 
 const EntityExternalLinkContext = createContext<EntityExternalLinkBuilder | undefined>(undefined)
 
@@ -56,7 +56,7 @@ const EntityExternalLinkContext = createContext<EntityExternalLinkBuilder | unde
 export const EntityExternalLinkProvider = EntityExternalLinkContext.Provider
 
 /** Resolve an entity's external cross-link via the provided builder (undefined when none). */
-export function useEntityExternalLink(entity: SURefEntity | undefined): ReactNode | undefined {
+export function useEntityExternalLink(entity: RefEntity | undefined): ReactNode | undefined {
   const builder = useContext(EntityExternalLinkContext)
   return builder && entity ? builder(entity) : undefined
 }
@@ -72,8 +72,8 @@ export function useEntityExternalLink(entity: SURefEntity | undefined): ReactNod
  * rather than navigating somewhere that doesn't exist.
  */
 export type PatternHrefBuilder = (
-  chassis: SURefEntity,
-  pattern: SURefObjectAnyPattern
+  chassis: RefEntity,
+  pattern: RefObjectAnyPattern
 ) => string | undefined
 
 const PatternHrefContext = createContext<PatternHrefBuilder | undefined>(undefined)
@@ -88,8 +88,8 @@ export function usePatternHrefBuilder(): PatternHrefBuilder | undefined {
 
 /** Resolve a pattern's page href via the provided builder (undefined when none). */
 export function usePatternHref(
-  chassis: SURefEntity | undefined,
-  pattern: SURefObjectAnyPattern | undefined
+  chassis: RefEntity | undefined,
+  pattern: RefObjectAnyPattern | undefined
 ): string | undefined {
   const builder = useContext(PatternHrefContext)
   return builder && chassis && pattern ? builder(chassis, pattern) : undefined

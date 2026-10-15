@@ -16,14 +16,14 @@
  */
 
 import { getTraits } from './actionResolution'
-import type { SURefMetaEntity } from './schemas/index'
+import type { RefMetaEntity } from './schemas/index'
 
 /**
  * Get the number of inventory slots an equipment entity occupies.
  * Default is 1. Heavy or Portable traits make it 2.
  */
 
-export function getInventorySlots(entity: SURefMetaEntity): number {
+export function getInventorySlots(entity: RefMetaEntity): number {
   const traits = getTraits(entity)
   if (traits) {
     for (const t of traits) {

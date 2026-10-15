@@ -33,7 +33,7 @@ import {
 import { useMutation, useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import { STAT_LABELS } from 'salvageunion-reference'
 import { api } from '../../../../convex/_generated/api'
 import type { Id } from '../../../../convex/_generated/dataModel'
@@ -436,7 +436,7 @@ function LoadoutList({
 }: {
   label: string
   count: SlabCount
-  items: SURefEntity[]
+  items: RefEntity[]
 }) {
   if (items.length === 0) return null
   return (

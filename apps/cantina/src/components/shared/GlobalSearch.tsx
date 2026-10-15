@@ -47,7 +47,7 @@ import {
 import { Search } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 import { useGameDataLoaded } from '../../hooks/useGameDataLoaded'
 import { deepLinkToSchema } from '../../lib/srd-deep-link'
@@ -148,8 +148,8 @@ const PANEL = {
 
 /** A result's Page opener: the entity it already holds, opened in the detail view. */
 function openerFor(
-  entity: SURefEntity,
-  open: (entity: SURefEntity) => void
+  entity: RefEntity,
+  open: (entity: RefEntity) => void
 ): EntitySurfaceValue['openPage'] {
   return () => open(entity)
 }
@@ -166,7 +166,7 @@ export function GlobalSearch({ variant = 'bar', open, onOpenChange }: GlobalSear
   /** Binds Cmd/Ctrl+K to toggle the panel: one instance owns it, the bar's. */
   const shortcut = variant === 'bar'
   const keyCap = useModKeyHint()
-  const [detailEntity, setDetailEntity] = useState<SURefEntity | undefined>(undefined)
+  const [detailEntity, setDetailEntity] = useState<RefEntity | undefined>(undefined)
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
   const desktop = useMediaQuery(DESKTOP_QUERY)
@@ -181,7 +181,7 @@ export function GlobalSearch({ variant = 'bar', open, onOpenChange }: GlobalSear
   // The Page opener every result Row reads (entity display language §2): the
   // detail modal.
   const openEntity = useCallback(
-    (entity: SURefEntity) => {
+    (entity: RefEntity) => {
       onOpenChange(false)
       setDetailEntity(entity)
       detailControl.onClick?.()

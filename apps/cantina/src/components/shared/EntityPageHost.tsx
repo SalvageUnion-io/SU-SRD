@@ -2,7 +2,7 @@ import type { EntitySurfaceValue } from 'component-lib'
 import { EntitySurfaceProvider, PeekHost, useDetailModal } from 'component-lib'
 import type { ReactNode } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 
 /**
@@ -15,7 +15,7 @@ import { SalvageUnionReference } from 'salvageunion-reference'
  * entity a ref names is already loaded.
  */
 export function EntityPageHost({ children }: { children: ReactNode }) {
-  const [entity, setEntity] = useState<SURefEntity | undefined>(undefined)
+  const [entity, setEntity] = useState<RefEntity | undefined>(undefined)
   const detail = useDetailModal(entity, { forceModal: true })
   // The dialog's opener is a fresh closure each render; the surface reads the
   // latest through a ref, so it stays one stable value for every consumer.
@@ -27,7 +27,7 @@ export function EntityPageHost({ children }: { children: ReactNode }) {
     () => ({
       openPage: (ref) => {
         const found = SalvageUnionReference.isLoaded(ref.schemaName)
-          ? (SalvageUnionReference.get(ref.schemaName, ref.id) as SURefEntity | undefined)
+          ? (SalvageUnionReference.get(ref.schemaName, ref.id) as RefEntity | undefined)
           : undefined
         if (!found) return
         setEntity(found)

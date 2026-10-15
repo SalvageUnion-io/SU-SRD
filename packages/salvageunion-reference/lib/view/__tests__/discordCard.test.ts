@@ -11,7 +11,7 @@ import { join } from 'node:path'
 import { getModel } from '../../helpers'
 import { EntitySchemaNames, findEntityBySlug } from '../../index'
 import { getPatterns } from '../../patterns'
-import type { SURefEnumSchemaName, SURefMetaEntity } from '../../schemas/index'
+import type { RefEnumSchemaName, RefMetaEntity } from '../../schemas/index'
 import type { DiscordCard } from '../discordCard'
 import {
   DISCORD_TONE_ACCENT,
@@ -38,7 +38,7 @@ const need = <T>(value: T | undefined | null, label: string): T => {
   return value
 }
 
-const partsFor = (schemaName: SURefEnumSchemaName, slug: string) =>
+const partsFor = (schemaName: RefEnumSchemaName, slug: string) =>
   discordCardParts(toEntityModel(need(findEntityBySlug(schemaName, slug), slug)))
 
 const text = (card: DiscordCard): string =>
@@ -204,7 +204,7 @@ describe('discordCardParts', () => {
 
   test('renders every entity without throwing, and never leaves raw [[ markup', () => {
     for (const schemaName of EntitySchemaNames) {
-      for (const entity of (getModel(schemaName)?.all() ?? []) as SURefMetaEntity[]) {
+      for (const entity of (getModel(schemaName)?.all() ?? []) as RefMetaEntity[]) {
         const card = discordCard(discordCardParts(toEntityModel(entity)))
         expect(text(card)).not.toContain('[[')
       }

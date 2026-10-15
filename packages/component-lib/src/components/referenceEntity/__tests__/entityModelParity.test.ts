@@ -14,11 +14,11 @@
 import { describe, expect, test } from 'bun:test'
 import type {
   EntityModel,
-  SURefEntity,
-  SURefEnumSchemaName,
-  SURefMetaEntity,
-  SURefObjectAnyPattern,
-  SURefObjectTable,
+  RefEntity,
+  RefEnumSchemaName,
+  RefMetaEntity,
+  RefObjectAnyPattern,
+  RefObjectTable,
 } from 'salvageunion-reference'
 import {
   EntitySchemaNames,
@@ -56,19 +56,19 @@ import {
 } from '../card/resolveNestedEntities'
 import { buildReferenceEntityStats } from '../referenceEntityStatsConfig'
 
-type Schema = SURefEnumSchemaName | 'actions'
+type Schema = RefEnumSchemaName | 'actions'
 
 const ENTITIES = [...EntitySchemaNames].flatMap((schemaName) =>
   (getModel(schemaName)?.all() ?? []).map((entity) => ({
     schemaName: schemaName as Schema,
-    entity: entity as SURefMetaEntity,
+    entity: entity as RefMetaEntity,
   }))
 )
 
-const nameOf = (entity: SURefMetaEntity) =>
+const nameOf = (entity: RefMetaEntity) =>
   getReferenceEntityName(entity) ?? ('name' in entity ? String(entity.name) : '')
 
-const label = ({ schemaName, entity }: { schemaName: Schema; entity: SURefMetaEntity }) =>
+const label = ({ schemaName, entity }: { schemaName: Schema; entity: RefMetaEntity }) =>
   `${schemaName}/${nameOf(entity) || entity.id}`
 
 /** One assertion, labelled with the entity it is about so a failure names it. */
@@ -77,7 +77,7 @@ function agree(id: string, actual: unknown, expected: unknown): void {
 }
 
 /** The self-action the card folds in, computed as `ReferenceEntityCard` does. */
-function cardFoldedAction(schemaName: Schema, entity: SURefMetaEntity) {
+function cardFoldedAction(schemaName: Schema, entity: RefMetaEntity) {
   if (schemaName === 'actions') return undefined
   if (isAbility(entity) && resolveGrantedEntities(entity as never).length > 0) return undefined
   const foldable = (extractVisibleActions(entity) ?? []).filter((a) => !isTitanicAction(a))
@@ -265,7 +265,7 @@ describe('toEntityModel parity, every entity', () => {
         hintText ||
         firstParagraphText('content' in entity ? entity.content : undefined) ||
         resolveGuideLead(entity) ||
-        String(resolveCatalogLeadBlocks(entity as SURefEntity)[0]?.value ?? '')
+        String(resolveCatalogLeadBlocks(entity as RefEntity)[0]?.value ?? '')
       agree(label(row), toEntityModel(entity).lead, lead ? plainTraitText(lead) : undefined)
     }
   })
@@ -336,7 +336,7 @@ describe('toEntityModel parity, every entity', () => {
 
       // The same table, and drawn as bands unless it is a two-roll table.
       const table = resolveTable(entity) ?? resolveTable(folded)
-      const shape = (t: SURefObjectTable | undefined) =>
+      const shape = (t: RefObjectTable | undefined) =>
         t ? [t.type === 'columns' ? 'columns' : 'bands', t] : undefined
       agree(
         label(row),
@@ -351,8 +351,8 @@ describe('toEntityModel parity, every entity', () => {
 
 describe('toEntityModel parity, every chassis pattern', () => {
   const PATTERNS = (getModel('chassis')?.all() ?? []).flatMap((chassis) => {
-    const patterns: SURefObjectAnyPattern[] = getPatterns(chassis) ?? []
-    return patterns.map((pattern) => ({ chassis: chassis as SURefMetaEntity, pattern }))
+    const patterns: RefObjectAnyPattern[] = getPatterns(chassis) ?? []
+    return patterns.map((pattern) => ({ chassis: chassis as RefMetaEntity, pattern }))
   })
 
   test('names its chassis as parent, with page meta and loadout as the card resolves them', () => {

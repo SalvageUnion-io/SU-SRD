@@ -16,7 +16,7 @@
  */
 
 import type { ChapterTone } from 'component-lib'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import {
   entityTone,
   getModel,
@@ -181,7 +181,7 @@ const FOOT_SHADE: Partial<Record<string, string>> = {
  * the deeper crawler band, as the Row paints it (it carries paper); Core is
  * the chapter's own orange (`undefined`).
  */
-function abilityBandFill(entity: SURefEntity): BandFill | undefined {
+function abilityBandFill(entity: RefEntity): BandFill | undefined {
   const tone = entityTone('abilities', entity)
   if (tone === 'pilot') return undefined
   const band = tone === 'crawler' ? 'var(--color-crawler-band)' : `var(--color-${tone})`
@@ -201,7 +201,7 @@ const TECH_LEVEL_BAND_SCHEMAS: ReadonlySet<string> = new Set(['systems', 'module
  * ability's, its tier's colour (E12). Every other page, every listing
  * included, wears its chapter's band from the colour map (`undefined`).
  */
-export function bandFillFor(schemaId: string, entity: SURefEntity): BandFill | undefined {
+export function bandFillFor(schemaId: string, entity: RefEntity): BandFill | undefined {
   if (schemaId === 'abilities') return abilityBandFill(entity)
   if (!TECH_LEVEL_BAND_SCHEMAS.has(schemaId)) return undefined
   const techLevel = getTechLevel(entity)

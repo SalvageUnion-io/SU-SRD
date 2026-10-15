@@ -22,11 +22,11 @@ import {
   getUpkeepCost,
 } from '../entityFields'
 // Import SalvageUnionReference - use lazy getter to avoid initialization issues
-import type { SalvageUnionReference as SURefType } from '../index'
+import type { SalvageUnionReference as RefType } from '../index'
 import { getPatterns, isHiddenPattern, normalizePatternName, visiblePatterns } from '../patterns'
 import { getEntitySlug } from '../slug'
 
-let SalvageUnionReference: typeof SURefType
+let SalvageUnionReference: typeof RefType
 
 function getReference() {
   if (!SalvageUnionReference) {

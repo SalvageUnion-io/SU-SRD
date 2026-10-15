@@ -1,11 +1,11 @@
 import type { ComponentType, ReactNode } from 'react'
 import type {
-  SURefEntity,
-  SURefEnumSchemaName,
-  SURefMetaEntity,
-  SURefObjectAnyPattern,
-  SURefObjectDamage,
-  SURefObjectTrait,
+  RefEntity,
+  RefEnumSchemaName,
+  RefMetaEntity,
+  RefObjectAnyPattern,
+  RefObjectDamage,
+  RefObjectTrait,
 } from 'salvageunion-reference'
 import type { EntityStatus } from '../../atoms/entityStatus'
 import type { CardFootMeta } from '../../containers/Card'
@@ -21,7 +21,7 @@ import type { Down } from './cardChrome'
  * and nested recursion (folded/grid/titanic actions, chassis abilities) feeds
  * them straight back through the card.
  */
-export type ReferenceCardEntity = SURefEntity | SURefMetaEntity
+export type ReferenceCardEntity = RefEntity | RefMetaEntity
 
 export type ReferenceEntityCardProps = {
   data: ReferenceCardEntity
@@ -42,7 +42,7 @@ export type ReferenceEntityCardProps = {
   /** CHASSIS TWO-RENDERINGS: when set (with a chassis `data`), the card renders
    * the PATTERN view — pattern name as the title, the pattern's systems/modules
    * loadout as nested cards (a `size="medium" extent="head"` pattern shows name + description). */
-  pattern?: SURefObjectAnyPattern
+  pattern?: RefObjectAnyPattern
   /**
    * PAGE — the card IS the page (boards 07, 08): an SRD entity page. The card
    * draws no frame, header or footer, because the page's `ChapterBand`
@@ -109,7 +109,7 @@ export type ReferenceEntityCardProps = {
   /** A DRONE card's systems/modules loadout, resolved by the parent (chassis
    * uses the drone's own loadout; a pattern uses its pattern-specific config).
    * Rendered as listings INSIDE this drone card, never at the parent level. */
-  droneLoadout?: { systems: SURefEntity[]; modules: SURefEntity[] }
+  droneLoadout?: { systems: RefEntity[]; modules: RefEntity[] }
 
   // ─── WRITE LAYER (all additive — absent ⇒ read-only is byte-identical) ───
   /** Render guards that SUBTRACT already-rendered sections. */
@@ -231,11 +231,11 @@ export type ReferenceEntityCardHideConfig = {
 /** The action-shaped fields the card reads when `schemaName === 'actions'`. */
 export type ActionFields = {
   range?: string[]
-  damage?: SURefObjectDamage
-  traits?: SURefObjectTrait[]
+  damage?: RefObjectDamage
+  traits?: RefObjectTrait[]
   activationCost?: string | number
   actionType?: string
-  actionSource?: SURefEnumSchemaName | 'actions'
+  actionSource?: RefEnumSchemaName | 'actions'
 }
 
 /**

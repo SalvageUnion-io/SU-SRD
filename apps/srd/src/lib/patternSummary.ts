@@ -1,8 +1,4 @@
-import type {
-  StaticEntitySummary,
-  SURefEntity,
-  SURefObjectAnyPattern,
-} from 'salvageunion-reference'
+import type { RefEntity, RefObjectAnyPattern, StaticEntitySummary } from 'salvageunion-reference'
 import {
   extractContentText,
   extractPatternActions,
@@ -33,8 +29,8 @@ function loadoutLine(items: { name: string; count?: number }[] | undefined): str
  * island.
  */
 export function patternStaticSummary(
-  host: SURefEntity,
-  pattern: SURefObjectAnyPattern,
+  host: RefEntity,
+  pattern: RefObjectAnyPattern,
   /** Keep `[[Trait]]` markup for a renderer that draws Mentions (the fallback). */
   options: { keepReferences?: boolean } = {}
 ): StaticEntitySummary {

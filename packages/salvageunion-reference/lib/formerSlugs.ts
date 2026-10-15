@@ -16,10 +16,10 @@ import { getModel } from './helpers'
 import { getLoadedModelBySchemaId } from './ModelFactory'
 import { getPatterns } from './patterns'
 import type {
-  SURefEntity,
-  SURefEnumSchemaName,
-  SURefMetaEntity,
-  SURefObjectAnyPattern,
+  RefEntity,
+  RefEnumSchemaName,
+  RefMetaEntity,
+  RefObjectAnyPattern,
 } from './schemas/index'
 
 /** A slug no row carries any more, and the pattern it now names. */
@@ -27,20 +27,20 @@ export type FormerSlug = {
   /** The retired slug, unique within `host`'s schema. */
   slug: string
   /** The entity the pattern belongs to. */
-  host: SURefEntity
-  pattern: SURefObjectAnyPattern
+  host: RefEntity
+  pattern: RefObjectAnyPattern
 }
 
 /**
  * Every former slug in one schema. Only visible patterns count: a hidden
  * pattern has no page to send anyone to.
  */
-export function formerSlugsIn(schemaName: SURefEnumSchemaName | string): FormerSlug[] {
+export function formerSlugsIn(schemaName: RefEnumSchemaName | string): FormerSlug[] {
   // Only a loaded schema: an unloaded one has no rows to have retired a slug.
   if (!getLoadedModelBySchemaId(schemaName)) return []
   const found: FormerSlug[] = []
   for (const row of getModel(schemaName)?.all() ?? []) {
-    for (const pattern of getPatterns(row as SURefMetaEntity) ?? []) {
+    for (const pattern of getPatterns(row as RefMetaEntity) ?? []) {
       if (!('formerSlugs' in pattern) || !pattern.formerSlugs) continue
       for (const slug of pattern.formerSlugs) found.push({ slug, host: row, pattern })
     }
@@ -54,7 +54,7 @@ export function formerSlugsIn(schemaName: SURefEnumSchemaName | string): FormerS
  * a former slug from ever shadowing one.
  */
 export function resolveFormerSlug(
-  schemaName: SURefEnumSchemaName | string,
+  schemaName: RefEnumSchemaName | string,
   slug: string
 ): FormerSlug | null {
   return formerSlugsIn(schemaName).find((entry) => entry.slug === slug) ?? null

@@ -1,4 +1,4 @@
-import type { SURefObjectTable } from 'salvageunion-reference'
+import type { RefObjectTable } from 'salvageunion-reference'
 
 /** One banded row of a d20 table: its range `key`, its outcome `label`
  * (when the row names one) and its text. */
@@ -12,7 +12,7 @@ export type DigestedRollTable = {
 type TableContent = string | { label?: string; value: string }
 
 export type RollTableType =
-  | SURefObjectTable
+  | RefObjectTable
   | { type: 'standard' | 'alternate' | 'flat' | 'full'; [key: string]: TableContent }
 
 /**
@@ -87,7 +87,7 @@ const isColumnsEntry = (value: unknown): value is { value: string } =>
  * the entry), in the book's order; empty for any other table. Shared by the
  * entity card's table (`CardRollTable`) and the SRD's roll-table page.
  */
-export function digestColumnsTable(table: SURefObjectTable): DigestedColumnsColumn[] {
+export function digestColumnsTable(table: RefObjectTable): DigestedColumnsColumn[] {
   if (table.type !== 'columns') return []
   return Object.entries(table).flatMap(([key, column]): DigestedColumnsColumn[] => {
     if (key === 'type' || !column || typeof column !== 'object') return []

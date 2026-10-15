@@ -9,7 +9,7 @@
  */
 
 import type { Npc, NpcTemplateRef, NpcTrait } from 'cantina-domain/schemas/npc'
-import type { SURefNPC } from 'salvageunion-reference'
+import type { RefNPC } from 'salvageunion-reference'
 import type { CreateInput } from '../../stores/types'
 import type { NpcStatFill } from '../npcs/npcModel'
 import { statFillFromReference } from '../npcs/npcModel'
@@ -126,7 +126,7 @@ const BLANK_STATS: ReturnType<typeof statsOf> = {
 }
 
 /** A reference NPC's own description: its first paragraph. */
-function npcTemplateProse(ref: SURefNPC | undefined): string {
+function npcTemplateProse(ref: RefNPC | undefined): string {
   const first = ref?.content?.find((b) => b.type === 'paragraph')
   return typeof first?.value === 'string' ? first.value : ''
 }
@@ -141,7 +141,7 @@ function untouchedDescription(form: NpcFormState): boolean {
  * Identity the player wrote (D4), and pre-fills the description with the
  * template's own words until the player changes them (D5).
  */
-export function applyNpcTemplate(form: NpcFormState, ref: SURefNPC): NpcFormState {
+export function applyNpcTemplate(form: NpcFormState, ref: RefNPC): NpcFormState {
   const fill = statFillFromReference(ref)
   const prose = npcTemplateProse(ref)
   return {

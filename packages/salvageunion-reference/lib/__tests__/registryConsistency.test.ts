@@ -17,12 +17,12 @@ import type { SchemaToEntityMap } from '../generated/schemaRegistry.generated'
 import { zodSchemaMap } from '../generated/zodSchemaMap.generated'
 import { _registryKeySets, getSchemaCatalog, schemaDisplayNames } from '../ModelFactory'
 import type {
-  SURefCatalogCategory,
-  SURefEntity,
-  SURefMetaAbilityTreeRequirement,
-  SURefMetaAction,
-  SURefMetaCrawlerTechLevel,
-  SURefMetaEntity,
+  RefCatalogCategory,
+  RefEntity,
+  RefMetaAbilityTreeRequirement,
+  RefMetaAction,
+  RefMetaCrawlerTechLevel,
+  RefMetaEntity,
 } from '../schemas/index'
 import { registry } from '../schemas/registry'
 
@@ -55,7 +55,7 @@ describe('schema registry consistency', () => {
 })
 
 // ---------------------------------------------------------------------------
-// The SURef* entity types and unions are GENERATED from the registry. These
+// The Ref* entity types and unions are GENERATED from the registry. These
 // pin the generated unions to the registry's flags, so a flag
 // edited without regenerating — or a generator bug — fails here rather than
 // silently widening or narrowing every consumer's types.
@@ -65,28 +65,28 @@ describe('schema registry consistency', () => {
 type Equal<A, B> =
   (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false
 
-type MetaOnly = SURefMetaAbilityTreeRequirement | SURefMetaAction | SURefMetaCrawlerTechLevel
+type MetaOnly = RefMetaAbilityTreeRequirement | RefMetaAction | RefMetaCrawlerTechLevel
 
 describe('generated entity unions', () => {
-  test('SURefMetaEntity is every registry type except the non-entity catalog', () => {
+  test('RefMetaEntity is every registry type except the non-entity catalog', () => {
     const exact: Equal<
       SchemaToEntityMap[keyof SchemaToEntityMap],
-      SURefMetaEntity | SURefCatalogCategory
+      RefMetaEntity | RefCatalogCategory
     > = true
     expect(exact).toBe(true)
   })
 
-  test('SURefEntity is SURefMetaEntity minus the excludeFromEntityUnion schemas', () => {
-    const exact: Equal<SURefEntity | MetaOnly, SURefMetaEntity> = true
+  test('RefEntity is RefMetaEntity minus the excludeFromEntityUnion schemas', () => {
+    const exact: Equal<RefEntity | MetaOnly, RefMetaEntity> = true
     expect(exact).toBe(true)
   })
 
   test('the flags that drive the unions are set where the type names say they are', () => {
-    // SURefMeta* is the naming convention for the rules-metadata schemas; the
+    // RefMeta* is the naming convention for the rules-metadata schemas; the
     // flag is what the generator actually reads. They must agree.
     for (const entry of registry) {
       expect(
-        entry.typeName.startsWith('SURefMeta'),
+        entry.typeName.startsWith('RefMeta'),
         `"${entry.id}": typeName and excludeFromEntityUnion disagree`
       ).toBe(entry.excludeFromEntityUnion === true)
     }

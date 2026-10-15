@@ -7,7 +7,7 @@
 import { describe, expect, test } from 'bun:test'
 import { getModel } from '../../helpers'
 import { EntitySchemaNames, SalvageUnionReference } from '../../index'
-import type { SURefMetaEntity } from '../../schemas/index'
+import type { RefMetaEntity } from '../../schemas/index'
 import { entityTone, headerFill } from '../parts/fill'
 import { toEntityModel } from '../toEntityModel'
 
@@ -17,7 +17,7 @@ const need = <T>(value: T | undefined | null, label: string): T => {
 }
 
 const ALL = [...EntitySchemaNames].flatMap(
-  (schemaName) => (getModel(schemaName)?.all() ?? []) as SURefMetaEntity[]
+  (schemaName) => (getModel(schemaName)?.all() ?? []) as RefMetaEntity[]
 )
 
 describe('toEntityModel', () => {
@@ -154,7 +154,7 @@ describe('toEntityModel', () => {
 
 describe('entityTone', () => {
   const base = { id: 'test', name: 'Test', source: 'Salvage Union Workshop Manual', page: 1 }
-  const as = (record: object) => record as unknown as SURefMetaEntity
+  const as = (record: object) => record as unknown as RefMetaEntity
 
   test('a rules entry wears rules blue', () => {
     for (const schema of [
@@ -236,7 +236,7 @@ describe('headerFill (E12)', () => {
 
 describe('a vehicle’s systems', () => {
   const vehicle = (name: string) =>
-    need(SalvageUnionReference.getByNameIn('vehicles', name), name) as SURefMetaEntity
+    need(SalvageUnionReference.getByNameIn('vehicles', name), name) as RefMetaEntity
 
   test('an action name that is a systems entry is a Systems child, the drone way', () => {
     const model = toEntityModel(vehicle('Fighting Box Wheel'))
@@ -277,7 +277,7 @@ describe('a vehicle’s systems', () => {
 
   test('every vehicle draws every item it lists as a card, with no ACTIONS left', () => {
     for (const v of SalvageUnionReference.Vehicles.all()) {
-      const model = toEntityModel(v as SURefMetaEntity)
+      const model = toEntityModel(v as RefMetaEntity)
       const listed = 'actions' in v && Array.isArray(v.actions) ? v.actions.length : 0
       const items = model.children.find((g) => g.label === 'Systems')?.items ?? []
       expect([v.name, items.length]).toEqual([v.name, listed])

@@ -7,7 +7,7 @@
  * to one fails here, next to the rule, rather than as a text diff on a page.
  */
 import { describe, expect, test } from 'bun:test'
-import type { SURefMetaEntity, SURefObjectContentBlock } from 'salvageunion-reference'
+import type { RefMetaEntity, RefObjectContentBlock } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { entityFixture } from 'salvageunion-reference/testing'
 import { resolveBodyBlocks, resolveBodyLayout } from '../bodyBlocks'
@@ -22,7 +22,7 @@ import {
 } from '../cardChrome'
 import { resolveNestedSections } from '../nestedSections'
 
-const paragraph = (value: string): SURefObjectContentBlock => ({ type: 'paragraph', value })
+const paragraph = (value: string): RefObjectContentBlock => ({ type: 'paragraph', value })
 
 describe('cardCells', () => {
   test('bonusCells drops zero and absent fields', () => {
@@ -53,7 +53,7 @@ describe('cardCells', () => {
     const chassis = SalvageUnionReference.Chassis.all()[0]
     if (!chassis) throw new Error('no chassis fixture')
     const base = {
-      entity: chassis as SURefMetaEntity,
+      entity: chassis as RefMetaEntity,
       schemaName: 'chassis' as const,
       techLevel: 2 as const,
       techLevelDisplay: 2 as const,
@@ -257,7 +257,7 @@ describe('cardChrome', () => {
 
 describe('nestedSections', () => {
   test('a catalog tile and an action expand nothing', () => {
-    const chassis = SalvageUnionReference.Chassis.all()[0] as SURefMetaEntity
+    const chassis = SalvageUnionReference.Chassis.all()[0] as RefMetaEntity
     const common = {
       entity: chassis,
       pattern: undefined,
@@ -277,7 +277,7 @@ describe('nestedSections', () => {
   })
 
   test('the chassis ability resolves only on a page, for a chassis and its pattern', () => {
-    const chassis = SalvageUnionReference.Chassis.getByName('Mule') as SURefMetaEntity
+    const chassis = SalvageUnionReference.Chassis.getByName('Mule') as RefMetaEntity
     const pattern = SalvageUnionReference.Chassis.getByName('Mule')?.patterns?.[0]
     const common = {
       entity: chassis,
@@ -297,7 +297,7 @@ describe('nestedSections', () => {
   })
 
   test('a builder pick (`showChassisAbility`) resolves the chassis ability off the page, never on a tile', () => {
-    const chassis = SalvageUnionReference.Chassis.getByName('Mule') as SURefMetaEntity
+    const chassis = SalvageUnionReference.Chassis.getByName('Mule') as RefMetaEntity
     const common = {
       entity: chassis,
       schemaName: 'chassis' as const,

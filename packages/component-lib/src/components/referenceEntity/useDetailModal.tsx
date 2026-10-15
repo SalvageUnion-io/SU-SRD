@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useState } from 'react'
-import type { SURefEntity, SURefMetaEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
+import type { RefEntity, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { ReferenceEntityCard } from './card/ReferenceEntityCard'
 import { DetailIcon } from './DetailIcon'
 import { EntityDetailDialog } from './EntityDetailDialog'
@@ -19,11 +19,11 @@ type UseDetailModalOptions = {
    */
   forceModal?: boolean
   /** Open the card in its PATTERN view: `data` is the pattern's host. */
-  pattern?: SURefObjectAnyPattern
+  pattern?: RefObjectAnyPattern
 }
 
 export function useDetailModal(
-  data: SURefEntity | undefined,
+  data: RefEntity | undefined,
   options?: UseDetailModalOptions
 ): {
   control: ReferenceEntityControl
@@ -66,7 +66,7 @@ export function useDetailModal(
       <EntityDetailDialog
         open={open}
         onOpenChange={setOpen}
-        entity={data as SURefMetaEntity}
+        entity={data as RefMetaEntity}
         pattern={options?.pattern}
         title={title}
       >

@@ -1,10 +1,10 @@
 import { EmptyState, MasonryColumns, ReferenceEntityCard } from 'component-lib'
-import type { SURefSystem } from 'salvageunion-reference'
+import type { RefSystem } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
 
 type SystemsListProps = {
   /** Weapons systems available to install, already filtered by the parent. */
-  systems: SURefSystem[]
+  systems: RefSystem[]
   selectedSystemSlugs: string[]
   /**
    * Hard cap on how many WEAPONS systems may be installed — the crawler

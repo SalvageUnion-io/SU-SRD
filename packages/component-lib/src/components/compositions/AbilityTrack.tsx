@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { SURefAbility } from 'salvageunion-reference'
+import type { RefAbility } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 import type { TreeTrack } from './treeTrack'
 
@@ -17,9 +17,9 @@ export function AbilityTrack({
   track,
   renderAbility,
 }: {
-  abilities: readonly SURefAbility[]
+  abilities: readonly RefAbility[]
   track: TreeTrack
-  renderAbility: (ability: SURefAbility) => ReactNode
+  renderAbility: (ability: RefAbility) => ReactNode
 }) {
   return (
     <ol className="su-ability-track" data-track={track}>

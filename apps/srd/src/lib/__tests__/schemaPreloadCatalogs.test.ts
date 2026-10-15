@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import type { SURefMetaEntity } from 'salvageunion-reference'
+import type { RefMetaEntity } from 'salvageunion-reference'
 import { getEntitySchemas, getModel, SalvageUnionReference } from 'salvageunion-reference'
 import { getSchemaPreloadList } from '../schemaPreloadDeps'
 
@@ -30,7 +30,7 @@ describe('schemaPreloadDeps: catalog choices', () => {
 
     it(`${schema.id}: every catalog its pages open is preloaded`, () => {
       const needed = new Set<string>()
-      for (const entity of (getModel(schema.id)?.all() ?? []) as SURefMetaEntity[]) {
+      for (const entity of (getModel(schema.id)?.all() ?? []) as RefMetaEntity[]) {
         catalogSchemas(entity, needed)
         catalogSchemas(SalvageUnionReference.resolveActions(entity) ?? [], needed)
       }

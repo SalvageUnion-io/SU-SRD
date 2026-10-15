@@ -7,7 +7,7 @@
  */
 
 import type { AnnouncedRoll } from 'component-lib'
-import type { EntityRef, SURefObjectTable } from 'salvageunion-reference'
+import type { EntityRef, RefObjectTable } from 'salvageunion-reference'
 import { NO_EFFECT, parseTraitReferences, resultForTable } from 'salvageunion-reference'
 
 /**
@@ -55,7 +55,7 @@ export type RollTablePageData = {
   /** The table's prose, as plain paragraphs. */
   description: string[]
   rows: RollTableRow[]
-  table: SURefObjectTable
+  table: RefObjectTable
 }
 
 /** The characters a table's bands print: every label and every outcome's text. */
@@ -113,7 +113,7 @@ export function rangeLabel(key: string): string {
  * "dramatic" table prints only its 20: any other roll has no effect).
  */
 export function rowForRoll(
-  table: SURefObjectTable,
+  table: RefObjectTable,
   rows: RollTableRow[],
   roll: number
 ): RollTableRow | undefined {

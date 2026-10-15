@@ -9,22 +9,22 @@
  */
 import { afterEach, describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { entityFixture } from 'salvageunion-reference/testing'
 import { EntityDetailLinkProvider, EntityHrefProvider } from '../entityHrefContext'
 import { useDetailModal } from '../useDetailModal'
 
-const system = (name: string): SURefEntity => {
+const system = (name: string): RefEntity => {
   const match = SalvageUnionReference.Systems.getByName(name)
   if (!match) throw new Error(`fixture missing: system ${name}`)
-  return match as SURefEntity
+  return match as RefEntity
 }
 
 /** Minimal consumer: a plain trigger wired to the hook's control, plus the
  *  modal node the hook hands back. Keeps the assertions about the hook rather
  *  than about whichever card happens to host the control. */
-function Harness({ data, forceModal }: { data: SURefEntity | undefined; forceModal?: boolean }) {
+function Harness({ data, forceModal }: { data: RefEntity | undefined; forceModal?: boolean }) {
   const { control, modal } = useDetailModal(data, { forceModal })
   return (
     <>

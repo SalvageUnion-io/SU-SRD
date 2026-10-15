@@ -1,5 +1,5 @@
 import { EmptyState, MasonryColumns, ReferenceEntityCard, Slab } from 'component-lib'
-import type { SURefAbility, SURefClass } from 'salvageunion-reference'
+import type { RefAbility, RefClass } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationClass, legalCreationAbilities } from 'salvageunion-reference/rules'
 import { selectableClasses } from './classOptions.model'
@@ -49,11 +49,11 @@ export function ClassAbilityStep({
 
   // The injectable accessor is `unknown`-typed for test seams (cantina's
   // PilotWizard passes the same shape), so the ONE cast lives here at the
-  // seam: the production accessor really returns `SURefAbility[]`, and a
+  // seam: the production accessor really returns `RefAbility[]`, and a
   // properly-typed ability then flows into the card with no further forcing.
-  const allAbilities = surAbilities.findAll(() => true) as SURefAbility[]
+  const allAbilities = surAbilities.findAll(() => true) as RefAbility[]
 
-  const renderClassCard = (cls: SURefClass) => (
+  const renderClassCard = (cls: RefClass) => (
     <ReferenceEntityCard
       key={cls.id}
       data={cls}
@@ -66,7 +66,7 @@ export function ClassAbilityStep({
     />
   )
 
-  const renderAbilityCard = (ability: SURefAbility) => (
+  const renderAbilityCard = (ability: RefAbility) => (
     <ReferenceEntityCard
       key={ability.id}
       data={ability}

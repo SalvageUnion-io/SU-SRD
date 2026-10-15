@@ -25,10 +25,10 @@ import { ButtonStyle } from 'discord-api-types/v10'
 import type {
   DiscordBlock,
   EntityRef,
-  SURefEntity,
-  SURefEnumSchemaName,
-  SURefMetaEntity,
-  SURefObjectAnyPattern,
+  RefEntity,
+  RefEnumSchemaName,
+  RefMetaEntity,
+  RefObjectAnyPattern,
 } from 'salvageunion-reference'
 import {
   discordAccent,
@@ -48,10 +48,10 @@ import { makeCustomId } from './customId'
 
 /** An entry the lookup resolved, with the schema it came from, or one of its patterns. */
 export type LookupHit = {
-  schemaName: SURefEnumSchemaName
-  entity: SURefEntity & { schemaName: SURefEnumSchemaName }
+  schemaName: RefEnumSchemaName
+  entity: RefEntity & { schemaName: RefEnumSchemaName }
   /** A pattern of `entity`: the hit is the pattern, its own entry. */
-  pattern?: SURefObjectAnyPattern
+  pattern?: RefObjectAnyPattern
 }
 
 /** Roll buttons on one card: one tap to a chained roll, never a wall of them. */
@@ -89,7 +89,7 @@ export function entityFromKey(key: string): LookupHit | null {
 }
 
 /** One of an entry's patterns, by its slug. */
-export function patternOf(host: SURefEntity, patternSlug: string): SURefObjectAnyPattern | null {
+export function patternOf(host: RefEntity, patternSlug: string): RefObjectAnyPattern | null {
   return (getPatterns(host) ?? []).find((p) => nameToSlug(p.name) === patternSlug) ?? null
 }
 
@@ -163,7 +163,7 @@ export function openCard(key: string): ContainerData | null {
 
 /** The entry's one card, as the Component Embed draws it, with no controls. */
 function entityCard(hit: LookupHit): ContainerData {
-  const card = discordEntryCard(hit.entity as SURefMetaEntity, hit.pattern)
+  const card = discordEntryCard(hit.entity as RefMetaEntity, hit.pattern)
   return { accent: discordAccent(card.tone), blocks: card.blocks.map(plain) }
 }
 
@@ -176,7 +176,7 @@ function plain(block: DiscordBlock): ContainerBlock {
 function partsOf(hit: LookupHit): ReturnType<typeof discordCardParts> {
   return discordCardParts(
     toEntityModel(
-      hit.entity as SURefMetaEntity,
+      hit.entity as RefMetaEntity,
       undefined,
       hit.pattern ? { pattern: hit.pattern } : undefined
     )

@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import type { SURefObjectContentBlock, SURefObjectDataValue } from 'salvageunion-reference'
+import type { RefObjectContentBlock, RefObjectDataValue } from 'salvageunion-reference'
 import { glossaryRef, parseContentBlockString } from 'salvageunion-reference'
 import { statesMechanicalChange } from 'salvageunion-reference/rules'
 import { space, fontSize as typeScale, weight } from '../../design/tokens'
@@ -71,7 +71,7 @@ const MEASURED_KEYWORD_SHORT: Record<string, string> = { Damage: 'DMG', Range: '
  * with a `label | value` — a measured keyword ("Damage | 2 SP") included — is
  * a horizontal Stat (§3.7), Peeking its keyword.
  */
-function DataValueChip({ item, compact }: { item: SURefObjectDataValue; compact?: boolean }) {
+function DataValueChip({ item, compact }: { item: RefObjectDataValue; compact?: boolean }) {
   if (item.type === 'cost') {
     let cost: string | number = item.label
     let currency = item.value
@@ -123,7 +123,7 @@ function DataValueChip({ item, compact }: { item: SURefObjectDataValue; compact?
 
 type ContentProps = {
   /** The content blocks to render. */
-  body: SURefObjectContentBlock[]
+  body: RefObjectContentBlock[]
   /** Reading size for the content (`'inherit'` keeps the page's own). */
   fontSize?: ContentFontSize
   /** Whether to use compact styling */
@@ -196,11 +196,11 @@ export function Content({
   const sectionStarters = new Set(['heading', 'datavalues'])
   const sections: {
     startsSection: boolean
-    blocks: { block: SURefObjectContentBlock; originalIndex: number }[]
+    blocks: { block: RefObjectContentBlock; originalIndex: number }[]
   }[] = []
   let current: {
     startsSection: boolean
-    blocks: { block: SURefObjectContentBlock; originalIndex: number }[]
+    blocks: { block: RefObjectContentBlock; originalIndex: number }[]
   } = { startsSection: false, blocks: [] }
 
   for (let i = 0; i < content.length; i++) {
@@ -301,7 +301,7 @@ function ContentBlock({
   rulesBearing = false,
   labelStampSize = 'compact',
 }: {
-  block: SURefObjectContentBlock
+  block: RefObjectContentBlock
   fontSize: ContentFontSize
   compact: boolean
   chassisName?: string

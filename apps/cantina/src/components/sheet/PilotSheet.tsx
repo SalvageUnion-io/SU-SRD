@@ -64,7 +64,7 @@ import {
 } from 'component-lib'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
-import type { SURefAbility } from 'salvageunion-reference'
+import type { RefAbility } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
 import { pinFor } from 'salvageunion-reference/rules'
 import { classArt } from '../../lib/photos/defaultArt'
@@ -595,11 +595,11 @@ export function PilotSheet({
           idOf={(item) => nameToSlug(item.name)}
           filter={
             model.abilityTrees
-              ? (item) => model.abilityTrees?.has((item as SURefAbility).tree) ?? false
+              ? (item) => model.abilityTrees?.has((item as RefAbility).tree) ?? false
               : undefined
           }
           facets={{
-            category: { label: 'Tree', of: (item) => (item as SURefAbility).tree },
+            category: { label: 'Tree', of: (item) => (item as RefAbility).tree },
           }}
           railName={pilot.name}
           chosenLabel="Learned"

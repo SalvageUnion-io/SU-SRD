@@ -1,6 +1,6 @@
 import { EmptyState, FieldError, Panel, ReferenceEntityCard, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
-import type { SURefAbility, SURefClass, SURefEquipment } from 'salvageunion-reference'
+import type { RefAbility, RefClass, RefEquipment } from 'salvageunion-reference'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
 import '../../styles/wizard.css'
@@ -21,9 +21,9 @@ type ReviewStepProps = {
   submitError: string | null
   /** Injectable SUR for testing. */
   _sur?: {
-    Classes: SURFind<SURefClass>
-    Abilities: SURFindAll<SURefAbility>
-    Equipment: SURFindAll<SURefEquipment>
+    Classes: SURFind<RefClass>
+    Abilities: SURFindAll<RefAbility>
+    Equipment: SURFindAll<RefEquipment>
   }
 }
 

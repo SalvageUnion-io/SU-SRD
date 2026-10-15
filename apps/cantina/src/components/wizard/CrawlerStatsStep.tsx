@@ -1,6 +1,6 @@
 import { EmptyState, Stat, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
-import type { SURefCrawler, SURefMetaCrawlerTechLevel } from 'salvageunion-reference'
+import type { RefCrawler, RefMetaCrawlerTechLevel } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
 import '../../styles/wizard.css'
@@ -24,9 +24,9 @@ const paragraphStyle = { margin: 0 } satisfies CSSProperties
 
 type CrawlerStatsStepProps = {
   /** The Tech Level 1 (Hamlet Crawler) entity — creation is fixed there. */
-  techLevel: SURefMetaCrawlerTechLevel | undefined
+  techLevel: RefMetaCrawlerTechLevel | undefined
   /** The chosen crawler type — its max_sp_bonus mutations surface at read. */
-  selectedType: SURefCrawler | undefined
+  selectedType: RefCrawler | undefined
 }
 
 /**

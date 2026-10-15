@@ -18,7 +18,7 @@
 import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { SURefCrawlerBay } from 'salvageunion-reference'
+import type { RefCrawlerBay } from 'salvageunion-reference'
 import { patchModelRows } from '../../../../../../test/patchModel'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_TXN } from '../../../stores/surfaceProvenance'
@@ -31,7 +31,7 @@ import { CrawlerSheet } from '../CrawlerSheet'
 // SalvageUnionReference.CrawlerBays.all patch (so bays resolve in the sheet)
 // ---------------------------------------------------------------------------
 
-const MOCK_BAYS: Array<SURefCrawlerBay & { schemaName: string }> = [
+const MOCK_BAYS: Array<RefCrawlerBay & { schemaName: string }> = [
   {
     id: 'command-bay',
     name: 'Command Bay',

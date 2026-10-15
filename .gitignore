@@ -33,7 +33,7 @@ dist
 *.heapsnapshot
 
 # salvageunion-reference build output. Regenerated from lib/schemas/ by
-# the package's su-ref-generate bin (tools/ensureGenerated.ts), which postinstall,
+# the package's ref-generate bin (tools/ensureGenerated.ts), which postinstall,
 # the root typecheck/test/build, bun run check, each app's dev and the test
 # preload run first.
 packages/salvageunion-reference/lib/generated/

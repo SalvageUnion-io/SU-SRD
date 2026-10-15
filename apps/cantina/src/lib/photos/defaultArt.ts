@@ -7,14 +7,14 @@
  */
 
 import type { NpcTemplateRef } from 'cantina-domain/schemas/npc'
-import type { SURefMetaEntity } from 'salvageunion-reference'
+import type { RefMetaEntity } from 'salvageunion-reference'
 import { findEntityBySlug, getAssetUrl } from 'salvageunion-reference'
 import { resolveChassisRef, resolveCrawlerRef } from 'salvageunion-reference/rules'
 import type { DefaultArt } from '../../components/shared/EntityPhoto'
 import { resolveClass } from '../classRef'
 import { readReference } from '../readReference'
 
-function artOf(entity: SURefMetaEntity | null | undefined): DefaultArt | undefined {
+function artOf(entity: RefMetaEntity | null | undefined): DefaultArt | undefined {
   if (!entity) return undefined
   const url = getAssetUrl(entity)
   if (url === undefined) return undefined
@@ -42,7 +42,7 @@ export function npcTemplateArt(templateRef: NpcTemplateRef | undefined): Default
   if (templateRef?.schema !== 'npcs') return undefined
   return readReference(
     'photo:npc',
-    () => artOf(findEntityBySlug('npcs', templateRef.slug) as SURefMetaEntity | null),
+    () => artOf(findEntityBySlug('npcs', templateRef.slug) as RefMetaEntity | null),
     undefined
   )
 }

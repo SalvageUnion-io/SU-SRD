@@ -2,10 +2,10 @@ import { describe, expect, it } from 'bun:test'
 import type { ChoiceSelections } from '../resolveChoiceView'
 import { resolveChoiceView } from '../resolveChoiceView'
 import type {
-  SURefObjectChoice,
-  SURefObjectContentBlock,
-  SURefObjectDataValue,
-  SURefObjectTrait,
+  RefObjectChoice,
+  RefObjectContentBlock,
+  RefObjectDataValue,
+  RefObjectTrait,
 } from '../schemas/index'
 
 /**
@@ -17,15 +17,15 @@ import type {
  */
 
 type ResolvableEntity = {
-  content?: SURefObjectContentBlock[]
-  traits?: SURefObjectTrait[]
-  choices?: SURefObjectChoice[]
+  content?: RefObjectContentBlock[]
+  traits?: RefObjectTrait[]
+  choices?: RefObjectChoice[]
 }
 
-type OptionsSource = Extract<NonNullable<SURefObjectChoice['source']>, { kind: 'options' }>
+type OptionsSource = Extract<NonNullable<RefObjectChoice['source']>, { kind: 'options' }>
 type ChoiceOption = OptionsSource['options'][number]
 type ChoiceEffect = NonNullable<ChoiceOption['effects']>[number]
-type Cardinality = NonNullable<SURefObjectChoice['cardinality']>
+type Cardinality = NonNullable<RefObjectChoice['cardinality']>
 
 /** An optional multi-pick choice ("take as many modifications as you like"). */
 const OPTIONAL_MULTI: Cardinality = { min: 0, max: 99 }
@@ -33,13 +33,13 @@ const OPTIONAL_MULTI: Cardinality = { min: 0, max: 99 }
 // --- fixture builders -------------------------------------------------------
 
 function entity(parts: {
-  datavalues?: SURefObjectDataValue[]
-  traits?: SURefObjectTrait[]
-  choices?: SURefObjectChoice[]
+  datavalues?: RefObjectDataValue[]
+  traits?: RefObjectTrait[]
+  choices?: RefObjectChoice[]
 }): ResolvableEntity {
   return {
     content: parts.datavalues
-      ? [{ type: 'datavalues', value: parts.datavalues } satisfies SURefObjectContentBlock]
+      ? [{ type: 'datavalues', value: parts.datavalues } satisfies RefObjectContentBlock]
       : undefined,
     traits: parts.traits,
     choices: parts.choices,
@@ -64,7 +64,7 @@ function optionChoice(
   id: string,
   options: ChoiceOption[],
   opts: { name?: string; cardinality?: Cardinality } = {}
-): SURefObjectChoice {
+): RefObjectChoice {
   return {
     id,
     name: opts.name ?? id,
@@ -81,7 +81,7 @@ function traitSchemaChoice(
   id: string,
   entities: string[],
   opts: { name?: string; cardinality?: Cardinality } = {}
-): SURefObjectChoice {
+): RefObjectChoice {
   return {
     id,
     name: opts.name ?? id,
@@ -99,7 +99,7 @@ const range = (view: View) => datavalue(view, 'Range')?.value
 const traitTypes = (view: View) => view.traits.map((t) => t.type)
 const traitAmount = (view: View, type: string) => view.traits.find((t) => t.type === type)?.amount
 
-const DV: SURefObjectDataValue[] = [
+const DV: RefObjectDataValue[] = [
   { label: 'Damage', type: 'keyword', value: 2 },
   { label: 'Range', type: 'keyword', value: 'Long' },
 ]

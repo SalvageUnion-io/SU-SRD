@@ -1,4 +1,4 @@
-import type { SURefObjectTable } from '../schemas/index'
+import type { RefObjectTable } from '../schemas/index'
 
 /**
  * One row of a roll table, flattened out of the nine-variant bucket union.
@@ -57,7 +57,7 @@ function sortValue(key: string): number {
  * further 1–20 mapping, so a flat row list would misrepresent a two-roll
  * table. Callers detect them with `isColumnsTable` and handle both rolls.
  */
-export function tableRows(table: SURefObjectTable | undefined | null): TableRow[] {
+export function tableRows(table: RefObjectTable | undefined | null): TableRow[] {
   if (!table) return []
 
   const keys = Object.keys(table)

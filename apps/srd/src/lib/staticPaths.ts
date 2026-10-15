@@ -1,8 +1,4 @@
-import type {
-  EnhancedSchemaMetadata,
-  SURefEntity,
-  SURefObjectAnyPattern,
-} from 'salvageunion-reference'
+import type { EnhancedSchemaMetadata, RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import {
   displayTitle,
   getPatterns,
@@ -20,7 +16,7 @@ import {
 export function getSchemaStaticPaths() {
   return getEntitySchemas().map((schema) => {
     const model = getModel(schema.id)
-    const data: SURefEntity[] = model ? model.all() : []
+    const data: RefEntity[] = model ? model.all() : []
     return {
       params: { schemaId: schema.id },
       props: {
@@ -35,7 +31,7 @@ export function getItemStaticPaths() {
   const paths: {
     params: { schemaId: string; itemId: string }
     props: {
-      item: SURefEntity
+      item: RefEntity
       schema: EnhancedSchemaMetadata
       itemName: string
       itemDescription: string
@@ -96,9 +92,9 @@ export function getPatternStaticPaths() {
   const paths: {
     params: { schemaId: string; itemId: string; patternId: string }
     props: {
-      host: SURefEntity
+      host: RefEntity
       schema: EnhancedSchemaMetadata
-      pattern: SURefObjectAnyPattern
+      pattern: RefObjectAnyPattern
       hostName: string
       patternName: string
     }

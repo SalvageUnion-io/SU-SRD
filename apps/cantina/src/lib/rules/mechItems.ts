@@ -10,19 +10,19 @@
 import type { ScrapPool } from 'cantina-domain/schemas/crawler'
 import type { ItemCondition } from 'cantina-domain/schemas/itemCondition'
 import type { Mech } from 'cantina-domain/schemas/mech'
-import type { SURefMetaAction, SURefModule, SURefSystem } from 'salvageunion-reference'
+import type { RefMetaAction, RefModule, RefSystem } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
 import { scrapPoolBucket } from '../cargo/cargoTransfer'
 
-export type MechItem = SURefSystem | SURefModule
+export type MechItem = RefSystem | RefModule
 
 /** Installed system/module refs are slugs (`escape-hatch`), resolved by the package (ADR-006). */
-export function resolveSystem(slug: string): SURefSystem | null {
+export function resolveSystem(slug: string): RefSystem | null {
   return resolveSystemRef(slug)
 }
 
-export function resolveModule(slug: string): SURefModule | null {
+export function resolveModule(slug: string): RefModule | null {
   return resolveModuleRef(slug)
 }
 
@@ -43,7 +43,7 @@ function traitAmount(trait: { amount?: unknown }): number {
   return typeof trait.amount === 'number' ? trait.amount : 0
 }
 
-function itemActions(entity: MechItem): SURefMetaAction[] {
+function itemActions(entity: MechItem): RefMetaAction[] {
   return SalvageUnionReference.resolveActions(entity) ?? []
 }
 

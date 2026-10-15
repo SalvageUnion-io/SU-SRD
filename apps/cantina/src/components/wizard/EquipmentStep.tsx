@@ -1,5 +1,5 @@
 import { EmptyState, MasonryColumns, ReferenceEntityCard } from 'component-lib'
-import type { SURefEquipment } from 'salvageunion-reference'
+import type { RefEquipment } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationEquipment } from 'salvageunion-reference/rules'
 import { fullWidthStyle } from './wizardStyles.model'
@@ -36,11 +36,11 @@ export function EquipmentStep({
 
   // The injectable accessor is `unknown`-typed for test seams (cantina's
   // PilotWizard passes the same shape), so the ONE cast lives here at the
-  // seam: the production accessor really returns `SURefEquipment[]`, and a
+  // seam: the production accessor really returns `RefEquipment[]`, and a
   // properly-typed item then flows into the card with no further forcing.
   const equipment = surEquipment.findAll((e: unknown) =>
-    isLegalCreationEquipment(e as SURefEquipment)
-  ) as SURefEquipment[]
+    isLegalCreationEquipment(e as RefEquipment)
+  ) as RefEquipment[]
 
   // Copies picked per slug (duplicates allowed).
   const counts = new Map<string, number>()

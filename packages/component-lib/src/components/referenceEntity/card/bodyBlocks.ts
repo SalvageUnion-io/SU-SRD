@@ -3,7 +3,7 @@
  * `ReferenceEntityCard.tsx`.
  */
 
-import type { SURefObjectContentBlock } from 'salvageunion-reference'
+import type { RefObjectContentBlock } from 'salvageunion-reference'
 import { blockPlainText } from './cardHelpers'
 
 /**
@@ -41,16 +41,16 @@ export function resolveBodyBlocks({
   isGrantingAbility,
 }: {
   /** The entity's own content (or the titanic meta-action's remainder). */
-  content: SURefObjectContentBlock[] | undefined
+  content: RefObjectContentBlock[] | undefined
   damagedEffect: string | undefined
   isGrantContext: boolean
   /** The folded action's content, when it is the entity's SELF-action. */
-  selfActionContent: SURefObjectContentBlock[] | undefined
+  selfActionContent: RefObjectContentBlock[] | undefined
   /** A pattern view or the titanic meta-action shows its body whenever it has one. */
   alwaysShow: boolean
   /** A granting ability collapses its own prose in favour of the granted cards. */
   isGrantingAbility: boolean
-}): { bodyBlocks: SURefObjectContentBlock[]; showBody: boolean } {
+}): { bodyBlocks: RefObjectContentBlock[]; showBody: boolean } {
   const bodyContent = content?.filter((block) => {
     if (
       damagedEffect &&
@@ -73,7 +73,7 @@ export function resolveBodyBlocks({
         return t.length === 0 || !selfActionText.includes(t.slice(0, 40))
       })
     : entityBodyBlocks
-  const bodyBlocks: SURefObjectContentBlock[] = [...dedupedEntityBlocks, ...selfActionBlocks]
+  const bodyBlocks: RefObjectContentBlock[] = [...dedupedEntityBlocks, ...selfActionBlocks]
   const showBody = alwaysShow ? bodyBlocks.length > 0 : !isGrantingAbility && bodyBlocks.length > 0
   return { bodyBlocks, showBody }
 }
@@ -108,10 +108,10 @@ export function choiceKey(name: string, chassisName: string | undefined): string
  * ability that says the same thing. `shown` holds the parent's `proseKey`s.
  */
 export function hideShownProse(
-  blocks: SURefObjectContentBlock[],
+  blocks: RefObjectContentBlock[],
   shown: readonly string[] | undefined,
   chassisName: string | undefined
-): SURefObjectContentBlock[] {
+): RefObjectContentBlock[] {
   if (!shown || shown.length === 0) return blocks
   return blocks.filter((block) => {
     if (block?.type !== 'paragraph') return true

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import type { SURefObjectChoice } from 'salvageunion-reference'
+import type { RefObjectChoice } from 'salvageunion-reference'
 import {
   getChoiceCardOptions,
   getChoiceSourceKind,
@@ -8,13 +8,13 @@ import {
   toggleSelection,
 } from '../choiceSelectionHelpers'
 
-const traitChoice: SURefObjectChoice = {
+const traitChoice: RefObjectChoice = {
   id: 'weapon-type',
   name: 'Weapon Type',
   source: { kind: 'catalog', schema: ['traits'], entities: ['Ballistic', 'Energy'] },
 }
 
-const optionChoice: SURefObjectChoice = {
+const optionChoice: RefObjectChoice = {
   id: 'mod',
   name: 'Modification',
   cardinality: { min: 0, max: { scalesWith: 'techLevel' } },
@@ -59,7 +59,7 @@ describe('resolveMultiSelectCap', () => {
     expect(resolveMultiSelectCap(optionChoice, { techLevel: 3 })).toBe(3)
   })
   test('a fixed max above one is the cap', () => {
-    const choice: SURefObjectChoice = { id: 'm', name: 'M', cardinality: { min: 0, max: 2 } }
+    const choice: RefObjectChoice = { id: 'm', name: 'M', cardinality: { min: 0, max: 2 } }
     expect(resolveMultiSelectCap(choice, { techLevel: 5 })).toBe(2)
   })
   test('undefined when no cardinality or field resolves', () => {
@@ -93,7 +93,7 @@ describe('toggleSelection', () => {
 // The discriminant the renderer switches on. A table choice (A.I. Personality)
 // is NOT free-text, so it does not render as a bare input.
 describe('getChoiceSourceKind — the discriminated source', () => {
-  const bySource = (source: SURefObjectChoice['source']): SURefObjectChoice => ({
+  const bySource = (source: RefObjectChoice['source']): RefObjectChoice => ({
     id: 'x',
     name: 'X',
     source,

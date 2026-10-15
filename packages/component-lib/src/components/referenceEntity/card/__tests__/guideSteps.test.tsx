@@ -16,7 +16,7 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { render, within } from '@testing-library/react'
-import type { SURefMetaEntity, SURefObjectContentBlock } from 'salvageunion-reference'
+import type { RefMetaEntity, RefObjectContentBlock } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { malformed } from 'salvageunion-reference/testing'
 import { EntitySurfaceProvider } from '../../../../entity/EntitySurface'
@@ -31,7 +31,7 @@ const guide = (name: string) => {
   return found
 }
 
-const paragraph = (value: string): SURefObjectContentBlock => ({ type: 'paragraph', value })
+const paragraph = (value: string): RefObjectContentBlock => ({ type: 'paragraph', value })
 
 describe('chunkGuideStepProse', () => {
   test('a hint becomes a note, in place, between runs of prose', () => {
@@ -104,7 +104,7 @@ describe('chunkGuideStepProse', () => {
       },
     ])
 
-    const kept: SURefObjectContentBlock[] = [
+    const kept: RefObjectContentBlock[] = [
       { type: 'heading', level: 1, value: 'Downtime' },
       { type: 'label', label: 'EFFECT', value: 'Deals 3 damage.' },
       paragraph('Then roll.'),
@@ -113,7 +113,7 @@ describe('chunkGuideStepProse', () => {
   })
 
   test('a trailing label with nothing to head stays as it is', () => {
-    const blocks: SURefObjectContentBlock[] = [{ type: 'label', value: 'Off Camera' }]
+    const blocks: RefObjectContentBlock[] = [{ type: 'label', value: 'Off Camera' }]
     expect(chunkGuideStepProse(blocks)).toEqual([{ kind: 'prose', blocks }])
   })
 
@@ -346,7 +346,7 @@ describe('GuideSteps on the page', () => {
     const heat = guide('Heat')
     const tone = entityGuideToneColor(heat)
     if (!tone) throw new Error('fixture has no guide tone: Heat')
-    const owning = malformed<SURefMetaEntity>({ ...heat, steps: [], table: rollTable.table })
+    const owning = malformed<RefMetaEntity>({ ...heat, steps: [], table: rollTable.table })
     const { container } = render(<ReferenceEntityCard data={owning} presentation="page" />)
     const table = container.querySelector<HTMLElement>('.su-roll')
     expect(table).not.toBeNull()

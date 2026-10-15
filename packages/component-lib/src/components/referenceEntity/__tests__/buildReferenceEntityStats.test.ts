@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import type { SURefMetaEntity } from 'salvageunion-reference'
+import type { RefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { buildReferenceEntityStats } from '../referenceEntityStatsConfig'
 
@@ -14,7 +14,7 @@ import { buildReferenceEntityStats } from '../referenceEntityStatsConfig'
  */
 const muleFound = SalvageUnionReference.Chassis.getByName('Mule')
 if (!muleFound) throw new Error('Mule chassis missing from reference data')
-const mule: SURefMetaEntity = muleFound
+const mule: RefMetaEntity = muleFound
 
 const byLabel = (stats: ReturnType<typeof buildReferenceEntityStats>, label: string) =>
   stats.find((s) => s.label === label)
@@ -39,7 +39,7 @@ describe('buildReferenceEntityStats', () => {
   })
 
   test('an entity with no stat values yields an empty list', () => {
-    const bare = { id: 'x', name: 'Bare' } as SURefMetaEntity
+    const bare = { id: 'x', name: 'Bare' } as RefMetaEntity
     expect(buildReferenceEntityStats(bare, { compact: false })).toEqual([])
   })
 

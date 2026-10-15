@@ -14,7 +14,7 @@ import {
   STARTER_PILOTS,
 } from 'cantina-domain/starterSet/starterSet'
 import type { EntityRowModel, TagItem } from 'component-lib'
-import type { SURefMetaEntity } from 'salvageunion-reference'
+import type { RefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
@@ -40,7 +40,7 @@ function photoArt(photo: Photo | undefined): EntityRowModel['art'] | undefined {
 }
 
 /** The art of the reference entity a build is made from; none when it cannot be read. */
-function artOf(source: string, entity: () => SURefMetaEntity | null | undefined) {
+function artOf(source: string, entity: () => RefMetaEntity | null | undefined) {
   return readReference(
     `StarterCard.${source}`,
     () => {
@@ -68,7 +68,7 @@ function readings(stats: UnitReading[] | undefined) {
 function sourceLink(
   label: string,
   source: string,
-  entity: () => SURefMetaEntity | null | undefined
+  entity: () => RefMetaEntity | null | undefined
 ): TagItem[] {
   return readReference(`StarterCard.${source}`, () => {
     const found = entity()

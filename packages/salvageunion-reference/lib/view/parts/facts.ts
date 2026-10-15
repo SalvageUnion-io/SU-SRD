@@ -19,7 +19,7 @@ import {
   getUpgradeCost,
   getUpkeepCost,
 } from '../../entityFields'
-import type { SURefEnumSchemaName, SURefMetaEntity } from '../../schemas/index'
+import type { RefEnumSchemaName, RefMetaEntity } from '../../schemas/index'
 import type { Fact, StatGroup } from '../types'
 
 /** A stat's names, as every surface prints it: one vocabulary, read everywhere. */
@@ -83,7 +83,7 @@ export const ACTION_TYPE_LABELS = {
 
 type StatConfig = {
   key: StatKey
-  getter: (data: SURefMetaEntity) => number | undefined
+  getter: (data: RefMetaEntity) => number | undefined
   group: StatGroup
   hint: string
 }
@@ -203,8 +203,8 @@ const STATS: StatConfig[] = [
 /** A stat's value, or `undefined` when absent or zero (zeros are not printed). */
 function statValue(
   config: StatConfig,
-  entity: SURefMetaEntity,
-  schemaName: SURefEnumSchemaName | 'actions' | undefined
+  entity: RefMetaEntity,
+  schemaName: RefEnumSchemaName | 'actions' | undefined
 ): string | undefined {
   let value = config.getter(entity)
   // Bio-Titans yield bio-salvage equal to their Structure Points (core-book
@@ -228,13 +228,13 @@ const CHASSIS_CHIPS: ReadonlySet<StatKey> = new Set([
 ])
 
 type StatOptions = {
-  schemaName?: SURefEnumSchemaName | 'actions'
+  schemaName?: RefEnumSchemaName | 'actions'
   techLevel?: number | 'B' | 'N'
 }
 
 /** Every stat the entity has, in THE order (`STATS`), with the names it prints. */
 function orderedStats(
-  entity: SURefMetaEntity,
+  entity: RefMetaEntity,
   options: StatOptions
 ): { config: StatConfig; value: string; names: StatLabel }[] {
   const isBio = options.techLevel === 'B'
@@ -253,7 +253,7 @@ function orderedStats(
  * (`STATS`), the Tech Level not among them (`techLevelFact` leads them). A
  * chassis keeps its chip set (`CHASSIS_CHIPS`).
  */
-export function entityStats(entity: SURefMetaEntity, options: StatOptions): Fact[] {
+export function entityStats(entity: RefMetaEntity, options: StatOptions): Fact[] {
   const chassis = options.schemaName === 'chassis'
   return orderedStats(entity, options)
     .filter(({ config }) => !chassis || CHASSIS_CHIPS.has(config.key))
@@ -284,7 +284,7 @@ export function techLevelFact(techLevel: number | 'B' | 'N'): Fact {
  * "Structure Pts."): a Page's band and a chassis's body stats print the long
  * label, every smaller form the short one, in the same order.
  */
-export function bookStats(entity: SURefMetaEntity, options: StatOptions): Fact[] {
+export function bookStats(entity: RefMetaEntity, options: StatOptions): Fact[] {
   const { techLevel } = options
   return [
     ...(techLevel != null ? [techLevelFact(techLevel)] : []),

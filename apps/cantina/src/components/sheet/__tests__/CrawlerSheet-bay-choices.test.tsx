@@ -26,7 +26,7 @@
 import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { SURefCrawlerBay } from 'salvageunion-reference'
+import type { RefCrawlerBay } from 'salvageunion-reference'
 import { patchModelRows } from '../../../../../../test/patchModel'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { expandCards } from '../../__tests__/expandCards'
@@ -42,7 +42,7 @@ import { CrawlerSheet } from '../CrawlerSheet'
 const BAY_REF = 'armament-bay'
 const CHOICE_ID = 'bay-weapon-choice-1'
 
-const MOCK_BAYS: Array<SURefCrawlerBay & { schemaName: string }> = [
+const MOCK_BAYS: Array<RefCrawlerBay & { schemaName: string }> = [
   {
     id: BAY_REF,
     name: 'Armament Bay',

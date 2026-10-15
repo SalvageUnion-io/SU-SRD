@@ -13,7 +13,7 @@
  */
 import { describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from '../../index'
-import type { SURefClass } from '../../schemas/index'
+import type { RefClass } from '../../schemas/index'
 import type { AdvancementDataset } from '../advancement'
 import {
   advancementOptionsFor,
@@ -24,7 +24,7 @@ import {
 } from '../advancement'
 
 const data: AdvancementDataset = {
-  classes: (SalvageUnionReference.Classes.all() as SURefClass[]).map((c) => ({
+  classes: (SalvageUnionReference.Classes.all() as RefClass[]).map((c) => ({
     name: c.name,
     coreTrees: 'coreTrees' in c ? c.coreTrees : undefined,
     advancedTree: 'advancedTree' in c ? c.advancedTree : undefined,
@@ -243,7 +243,7 @@ describe('the class flags are filled, and load-bearing', () => {
     // parse failure rather than a silent `undefined` that reads as "no".
     // Asserted on the RECORDS, not on `data` — `AdvancementDataset` narrows to
     // the primitives these rules read, and `maxAbilities` is not one of them.
-    const records = SalvageUnionReference.Classes.all() as SURefClass[]
+    const records = SalvageUnionReference.Classes.all() as RefClass[]
     expect(records).toHaveLength(11)
     for (const cls of records) {
       expect(typeof (cls as { hybrid?: unknown }).hybrid).toBe('boolean')
@@ -255,7 +255,7 @@ describe('the class flags are filled, and load-bearing', () => {
   it('marks every hybrid as already advanced, so it cannot advance again', () => {
     // "Once a Pilot has chosen their Hybrid Class they cannot advance into any
     // other Hybrid Class or Advanced Tree" (p. 321).
-    const records = SalvageUnionReference.Classes.all() as SURefClass[]
+    const records = SalvageUnionReference.Classes.all() as RefClass[]
     for (const { hybrid } of RING) {
       const cls = records.find((c) => c.name === hybrid) as
         | { hybrid?: boolean; advanceable?: boolean; maxAbilities?: number }
@@ -267,7 +267,7 @@ describe('the class flags are filled, and load-bearing', () => {
   })
 
   it('keeps the Salvager the only class with a raised cap', () => {
-    const raised = (SalvageUnionReference.Classes.all() as SURefClass[])
+    const raised = (SalvageUnionReference.Classes.all() as RefClass[])
       .filter((c) => ((c as { maxAbilities?: number }).maxAbilities ?? 0) > 10)
       .map((c) => c.name)
     expect(raised).toEqual(['Salvager'])

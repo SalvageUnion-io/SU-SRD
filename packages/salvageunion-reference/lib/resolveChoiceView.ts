@@ -23,10 +23,10 @@
  */
 
 import type {
-  SURefObjectChoice,
-  SURefObjectContentBlock,
-  SURefObjectDataValue,
-  SURefObjectTrait,
+  RefObjectChoice,
+  RefObjectContentBlock,
+  RefObjectDataValue,
+  RefObjectTrait,
 } from './schemas/index'
 
 /**
@@ -47,27 +47,27 @@ type ChoicePrompt = {
  * The resolved dataview for an entity given a set of selections.
  */
 export type ResolvedChoiceView = {
-  datavalues: SURefObjectDataValue[]
-  traits: SURefObjectTrait[]
+  datavalues: RefObjectDataValue[]
+  traits: RefObjectTrait[]
   prompts: ChoicePrompt[]
 }
 
 /**
  * Minimal structural shape the resolver needs from an entity. Kept local so
  * the resolver accepts any entity carrying content + choices without forcing
- * the caller through the full SURefEntity union.
+ * the caller through the full RefEntity union.
  */
 type ResolvableEntity = {
-  content?: SURefObjectContentBlock[]
-  traits?: SURefObjectTrait[]
-  choices?: SURefObjectChoice[]
+  content?: RefObjectContentBlock[]
+  traits?: RefObjectTrait[]
+  choices?: RefObjectChoice[]
 }
 
 /**
  * Find the entity's base `datavalues` content block and return a deep-ish copy
  * of its values (so effects mutate the view, never the source data).
  */
-function baseDataValues(entity: ResolvableEntity): SURefObjectDataValue[] {
+function baseDataValues(entity: ResolvableEntity): RefObjectDataValue[] {
   const block = entity.content?.find((c) => c.type === 'datavalues')
   if (!block || !Array.isArray(block.value)) {
     return []
@@ -79,9 +79,9 @@ function baseDataValues(entity: ResolvableEntity): SURefObjectDataValue[] {
  * Locate a datavalue by case-insensitive label match.
  */
 function findByLabel(
-  datavalues: SURefObjectDataValue[],
+  datavalues: RefObjectDataValue[],
   label: string
-): SURefObjectDataValue | undefined {
+): RefObjectDataValue | undefined {
   return datavalues.find(
     (dv) => typeof dv.label === 'string' && dv.label.toLowerCase() === label.toLowerCase()
   )
@@ -96,7 +96,7 @@ function findByLabel(
  * A catalog with no shortlist ("pick any System that deals SP damage") is not
  * one of these: the pick is an entity, not a trait.
  */
-function isInferredTraitChoice(choice: SURefObjectChoice): boolean {
+function isInferredTraitChoice(choice: RefObjectChoice): boolean {
   const source = choice.source
   return source?.kind === 'catalog' && Array.isArray(source.entities) && source.entities.length > 0
 }
@@ -110,7 +110,7 @@ function isInferredTraitChoice(choice: SURefObjectChoice): boolean {
  * and so never prompts. A shortlist catalog with no declared cardinality is a
  * pick-one and is required.
  */
-function isRequired(choice: SURefObjectChoice): boolean {
+function isRequired(choice: RefObjectChoice): boolean {
   if (choice.cardinality) {
     return choice.cardinality.min > 0
   }
@@ -120,7 +120,7 @@ function isRequired(choice: SURefObjectChoice): boolean {
 /**
  * Human-readable list of option labels for a choice, used in prompt text.
  */
-function promptOptionLabels(choice: SURefObjectChoice): string[] {
+function promptOptionLabels(choice: RefObjectChoice): string[] {
   const source = choice.source
   if (source?.kind === 'options') {
     return source.options.map((o) => o.label)
@@ -134,7 +134,7 @@ function promptOptionLabels(choice: SURefObjectChoice): string[] {
 /**
  * Build the `Choose: A or B` prompt text from a choice's options.
  */
-function buildPromptText(choice: SURefObjectChoice): string {
+function buildPromptText(choice: RefObjectChoice): string {
   const labels = promptOptionLabels(choice)
   if (labels.length === 0) {
     return `Choose: ${choice.name}`
@@ -153,7 +153,7 @@ function buildPromptText(choice: SURefObjectChoice): string {
  * otherwise leave the existing entry untouched. A fresh trait is pushed with its
  * `amount` when provided (e.g. Burn 1).
  */
-function addTrait(traits: SURefObjectTrait[], type: string, amount?: string | number): void {
+function addTrait(traits: RefObjectTrait[], type: string, amount?: string | number): void {
   const existing = traits.find((t) => t.type.toLowerCase() === type.toLowerCase())
   if (existing) {
     if (amount !== undefined) {
@@ -168,7 +168,7 @@ function addTrait(traits: SURefObjectTrait[], type: string, amount?: string | nu
  * Remove a trait (by name) from the trait list, if present (e.g. Portable strips
  * Heavy). No-op when the trait isn't there.
  */
-function removeTrait(traits: SURefObjectTrait[], type: string): void {
+function removeTrait(traits: RefObjectTrait[], type: string): void {
   const index = traits.findIndex((t) => t.type.toLowerCase() === type.toLowerCase())
   if (index !== -1) {
     traits.splice(index, 1)
@@ -178,7 +178,7 @@ function removeTrait(traits: SURefObjectTrait[], type: string): void {
 /**
  * Apply a `setRange` effect: replace the Range datavalue's value.
  */
-function applySetRange(datavalues: SURefObjectDataValue[], value: string | number): void {
+function applySetRange(datavalues: RefObjectDataValue[], value: string | number): void {
   const range = findByLabel(datavalues, 'Range')
   if (range) {
     range.value = value
@@ -193,7 +193,7 @@ function applySetRange(datavalues: SURefObjectDataValue[], value: string | numbe
  * the unit (e.g. "2 SP / +1 SP") so no information is silently dropped.
  */
 function applyAddDamage(
-  datavalues: SURefObjectDataValue[],
+  datavalues: RefObjectDataValue[],
   value: string | number,
   unit?: string
 ): void {
@@ -229,7 +229,7 @@ export function resolveChoiceView(
   selections: ChoiceSelections
 ): ResolvedChoiceView {
   const datavalues = baseDataValues(entity)
-  const traits: SURefObjectTrait[] = (entity.traits ?? []).map((t) => ({ ...t }))
+  const traits: RefObjectTrait[] = (entity.traits ?? []).map((t) => ({ ...t }))
   const prompts: ChoicePrompt[] = []
 
   const choices = entity.choices ?? []

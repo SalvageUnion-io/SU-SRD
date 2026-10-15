@@ -5,21 +5,21 @@ import {
   PatternHrefProvider,
   ReferenceEntityCard,
 } from 'component-lib'
-import type { SURefClass, SURefEntity, SURefObjectAnyPattern } from 'salvageunion-reference'
+import type { RefClass, RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { srdEntityHref } from '../lib/entityHref'
 import { srdPatternHref } from '../lib/patternHref'
 import { ClassAbilityTree } from './ClassAbilityTree'
 import { ReferenceSurface } from './ReferenceSurface'
 
 type EntityCardStaticProps = {
-  item: SURefEntity
-  pattern?: SURefObjectAnyPattern
+  item: RefEntity
+  pattern?: RefObjectAnyPattern
   /** The pages its text cites (`lib/pageRefIndex.ts`), to link "p. N". */
   pageRefs?: PageRefIndex
 }
 
 /** The class (core trees) or advanced class (hybrid) whose ability tree the card carries. */
-function classOf(item: SURefEntity): SURefClass | undefined {
+function classOf(item: RefEntity): RefClass | undefined {
   if ('coreTrees' in item && Array.isArray(item.coreTrees)) return item
   if ('hybrid' in item && item.hybrid === true) return item
   return undefined

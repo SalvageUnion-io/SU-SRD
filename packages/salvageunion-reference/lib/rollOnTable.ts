@@ -14,7 +14,7 @@
  * owns them (component-lib's and the bot's `dice.ts`).
  */
 
-import type { SURefObjectTable } from './schemas/index'
+import type { RefObjectTable } from './schemas/index'
 import {
   isColumnsTable,
   isNoEffectRoll,
@@ -71,7 +71,7 @@ export type RollOnTableOutcome =
  * missing table data as `{ success: false }`.
  */
 export function rollOnTable(
-  table: SURefObjectTable | undefined,
+  table: RefObjectTable | undefined,
   rollD20: D20Roller
 ): RollOnTableOutcome {
   if (isColumnsTable(table)) {

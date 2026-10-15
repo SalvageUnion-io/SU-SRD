@@ -12,12 +12,12 @@
  */
 
 import { SalvageUnionReference } from '../index'
-import type { SURefClass } from '../schemas/index'
+import type { RefClass } from '../schemas/index'
 import type { AdvancementClassInput, AdvancementDataset } from './advancement'
 import { hybridGrantedTrees } from './advancement'
 
 /** Narrow a reference class record to the primitives advancement reads. */
-export function toAdvancementClass(cls: SURefClass): AdvancementClassInput {
+export function toAdvancementClass(cls: RefClass): AdvancementClassInput {
   return {
     name: cls.name,
     coreTrees: 'coreTrees' in cls ? cls.coreTrees : undefined,
@@ -37,7 +37,7 @@ export function toAdvancementClass(cls: SURefClass): AdvancementClassInput {
  */
 export function liveAdvancementDataset(): AdvancementDataset {
   return {
-    classes: (SalvageUnionReference.Classes.all() as SURefClass[]).map(toAdvancementClass),
+    classes: (SalvageUnionReference.Classes.all() as RefClass[]).map(toAdvancementClass),
     requirements: SalvageUnionReference.AbilityTreeRequirements.all().map((r) => ({
       name: r.name,
       requirement: r.requirement,

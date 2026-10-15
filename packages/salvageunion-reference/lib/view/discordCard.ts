@@ -27,7 +27,7 @@ import { replaceChassisPlaceholder } from '../contentBlockHelpers'
 import { SalvageUnionReference } from '../index'
 import { nameToSlug } from '../nameToSlug'
 import { displayTitle } from '../naming'
-import type { SURefMetaEntity, SURefObjectContentBlock } from '../schemas/index'
+import type { RefMetaEntity, RefObjectContentBlock } from '../schemas/index'
 import { replaceTraitReferences } from '../traitText'
 import { chipLines, costChip, factChips } from './discordChips'
 import { chassisCardGroups } from './parts/children'
@@ -167,7 +167,7 @@ export function rangeLabel(key: string): string {
 
 /** Content blocks as markdown paragraphs, one string per block. */
 function contentMarkdown(
-  blocks: SURefObjectContentBlock[] | undefined,
+  blocks: RefObjectContentBlock[] | undefined,
   chassisName?: string
 ): string[] {
   if (!Array.isArray(blocks)) return []
@@ -308,7 +308,7 @@ export function discordCiteLine(model: EntityModel): string {
 function actionBand(ref: EntityRef, ownName: string, chassisName?: string): DiscordAction | null {
   const record = SalvageUnionReference.get('actions', ref.id)
   if (!record) return null
-  const model = toEntityModel(record as SURefMetaEntity)
+  const model = toEntityModel(record as RefMetaEntity)
   const name = stripOwnerSuffix(model.title, ownName)
   // A band's chips run on one line, the cost closing it.
   const chips = chipGroup(model, model.facts, 99).join(' · ')
@@ -367,7 +367,7 @@ export function discordCardParts(model: EntityModel): DiscordCardParts {
   // The entity's own prose, then its folded self-action's: a system's rules
   // live in the action that IS it. An ability's description is its lead.
   const folded = model.folded ? SalvageUnionReference.get('actions', model.folded.id) : undefined
-  const foldedProse = folded ? toEntityModel(folded as SURefMetaEntity).prose : []
+  const foldedProse = folded ? toEntityModel(folded as RefMetaEntity).prose : []
   // Where the entry and its self-action carry the same paragraph (pilot
   // equipment, some NPCs and squads), the card prints it once.
   const own = contentMarkdown(model.prose, chassisName)

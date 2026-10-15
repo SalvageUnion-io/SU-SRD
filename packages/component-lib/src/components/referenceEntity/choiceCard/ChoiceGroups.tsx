@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { useCallback, useContext, useState } from 'react'
-import type { SURefEntity, SURefObjectChoice } from 'salvageunion-reference'
+import type { RefEntity, RefObjectChoice } from 'salvageunion-reference'
 import { isSchemaName, SalvageUnionReference } from 'salvageunion-reference'
 import { color, font, fontSize, space, tracking, weight } from '../../../design/tokens'
 import { SELECTED_RING } from '../../../entity/modes/selectedRing'
@@ -41,7 +41,7 @@ import {
  */
 
 type ChoiceGroupsProps = {
-  choices: SURefObjectChoice[]
+  choices: RefObjectChoice[]
   /** Parent entity — resolves `cardinality.max.scalesWith` caps (e.g. techLevel). */
   parent?: Record<string, unknown>
   /** Controlled selections (id-keyed). With `onSelectionChange` → controlled. */
@@ -62,7 +62,7 @@ type ChoiceGroupsProps = {
 
 /** An option that IS an entity, with its selection state, for `renderEntityOption`. */
 type EntityOption = {
-  entity: SURefEntity
+  entity: RefEntity
   label: string
   chosen: boolean
   /** Static (readable, not choosable). */
@@ -73,7 +73,7 @@ type EntityOption = {
 }
 
 /** The entity a catalog option names, when its schema is loaded and holds it. */
-function resolveOptionEntity(option: ChoiceCardOption): SURefEntity | undefined {
+function resolveOptionEntity(option: ChoiceCardOption): RefEntity | undefined {
   if (!option.schema || !isSchemaName(option.schema)) return undefined
   try {
     const target = option.value.toLowerCase()
@@ -81,9 +81,7 @@ function resolveOptionEntity(option: ChoiceCardOption): SURefEntity | undefined 
       option.schema,
       (e) => 'name' in e && String(e.name).toLowerCase() === target
     )
-    return found && 'id' in found && typeof found.id === 'string'
-      ? (found as SURefEntity)
-      : undefined
+    return found && 'id' in found && typeof found.id === 'string' ? (found as RefEntity) : undefined
   } catch {
     return undefined
   }
@@ -306,7 +304,7 @@ function ChoiceOptionGroup({
   toneColor,
   renderEntityOption,
 }: {
-  choice: SURefObjectChoice
+  choice: RefObjectChoice
   selected: string[]
   cap?: number
   onToggleOption: (value: string) => void
@@ -460,7 +458,7 @@ export function ChoiceGroups({
     [isControlled, onSelectionChange]
   )
   const toggleOption = useCallback(
-    (choice: SURefObjectChoice, value: string) => {
+    (choice: RefObjectChoice, value: string) => {
       const current = selections[choice.id] ?? []
       // The cap is the LAST word: even though at-cap options render disabled,
       // the state transition itself also refuses to grow past the cap.
@@ -477,7 +475,7 @@ export function ChoiceGroups({
     [selections, commit, parent]
   )
   const freeTextChange = useCallback(
-    (choice: SURefObjectChoice, value: string) => {
+    (choice: RefObjectChoice, value: string) => {
       commit({ ...selections, [choice.id]: value.length > 0 ? [value] : [] })
     },
     [selections, commit]

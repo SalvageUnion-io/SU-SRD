@@ -63,7 +63,7 @@ export function searchCompactIndex(
       schemaName: entry.schemaName,
       schemaTitle: entry.schemaTitle,
       // Minimal stub — see doc comment above. `as` is intentional/narrow: the
-      // full SURefEntity shape is never read by any srd consumer.
+      // full RefEntity shape is never read by any srd consumer.
       entity: {
         id: entry.id,
         name: entry.name,

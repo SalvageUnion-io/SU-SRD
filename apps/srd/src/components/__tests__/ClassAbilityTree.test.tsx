@@ -5,11 +5,11 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import type { SURefClass } from 'salvageunion-reference'
+import type { RefClass } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { ClassAbilityTree } from '../ClassAbilityTree'
 
-const classNamed = (name: string): SURefClass => {
+const classNamed = (name: string): RefClass => {
   const found = SalvageUnionReference.Classes.getByName(name)
   if (!found) throw new Error(`fixture missing: ${name}`)
   return found

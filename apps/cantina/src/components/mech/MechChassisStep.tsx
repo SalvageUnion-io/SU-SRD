@@ -1,7 +1,7 @@
 import { MasonryColumns, ReferenceEntityCard, Sel, Slab, tokens } from 'component-lib'
 import type { CSSProperties } from 'react'
 import { useMemo } from 'react'
-import type { SURefChassis } from 'salvageunion-reference'
+import type { RefChassis } from 'salvageunion-reference'
 import {
   nameToSlug,
   normalizePatternName,
@@ -51,7 +51,7 @@ const CUSTOM_BODY = {
 } satisfies CSSProperties
 
 /** A canonical chassis pattern as stored on the reference chassis record. */
-export type ChassisPattern = SURefChassis['patterns'][number]
+export type ChassisPattern = RefChassis['patterns'][number]
 
 type MechChassisStepProps = {
   /** Chassis slug ref ('' while unchosen). */
@@ -78,7 +78,7 @@ function PatternSelCard({
   selected,
   onToggle,
 }: {
-  chassis: SURefChassis
+  chassis: RefChassis
   pattern: ChassisPattern
   selected: boolean
   onToggle: () => void

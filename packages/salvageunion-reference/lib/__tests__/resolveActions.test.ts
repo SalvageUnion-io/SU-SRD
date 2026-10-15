@@ -3,9 +3,9 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import type { SalvageUnionReference as SURefType } from '../index'
+import type { SalvageUnionReference as RefType } from '../index'
 
-let SalvageUnionReference: typeof SURefType
+let SalvageUnionReference: typeof RefType
 
 function getReference() {
   if (!SalvageUnionReference) {
@@ -33,7 +33,7 @@ describe('SalvageUnionReference.resolveActions', () => {
       expect(defined(actions).length).toBeGreaterThan(0)
     })
 
-    it('should return resolved SURefMetaAction objects', () => {
+    it('should return resolved RefMetaAction objects', () => {
       const chassis = defined(getReference().Chassis.all()[0])
       const actions = getReference().resolveActions(chassis)
       if (actions && actions.length > 0) {
@@ -63,7 +63,7 @@ describe('SalvageUnionReference.resolveActions', () => {
       expect(defined(actions).length).toBeGreaterThan(0)
     })
 
-    it('should return resolved SURefMetaAction objects from systems', () => {
+    it('should return resolved RefMetaAction objects from systems', () => {
       const system = defined(getReference().Systems.all()[0])
       const actions = getReference().resolveActions(system)
       if (actions && actions.length > 0) {
@@ -83,7 +83,7 @@ describe('SalvageUnionReference.resolveActions', () => {
       expect(defined(actions).length).toBeGreaterThan(0)
     })
 
-    it('should return resolved SURefMetaAction objects from modules', () => {
+    it('should return resolved RefMetaAction objects from modules', () => {
       const module = defined(getReference().Modules.all()[0])
       const actions = getReference().resolveActions(module)
       if (actions && actions.length > 0) {
@@ -103,7 +103,7 @@ describe('SalvageUnionReference.resolveActions', () => {
       expect(defined(actions).length).toBeGreaterThan(0)
     })
 
-    it('should return resolved SURefMetaAction objects from abilities', () => {
+    it('should return resolved RefMetaAction objects from abilities', () => {
       const ability = defined(getReference().Abilities.all()[0])
       const actions = getReference().resolveActions(ability)
       if (actions && actions.length > 0) {
@@ -123,7 +123,7 @@ describe('SalvageUnionReference.resolveActions', () => {
       expect(defined(actions).length).toBeGreaterThan(0)
     })
 
-    it('should return resolved SURefMetaAction objects from equipment', () => {
+    it('should return resolved RefMetaAction objects from equipment', () => {
       const equipment = defined(getReference().Equipment.all()[0])
       const actions = getReference().resolveActions(equipment)
       if (actions && actions.length > 0) {

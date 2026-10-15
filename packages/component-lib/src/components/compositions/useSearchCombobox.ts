@@ -16,7 +16,7 @@
  */
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
-import type { SearchResult, SURefEntity, SURefEnumSchemaName } from 'salvageunion-reference'
+import type { RefEntity, RefEnumSchemaName, SearchResult } from 'salvageunion-reference'
 import { getEntitySchemas, search } from 'salvageunion-reference'
 import { schemaPluralLabel } from '../../utils/schemaLabels'
 
@@ -27,7 +27,7 @@ export type SearchComboboxResult =
       title: string
       /** Right-hand label — always 'Category' for schema rows. */
       group: string
-      schemaId: SURefEnumSchemaName
+      schemaId: RefEnumSchemaName
     }
   | {
       kind: 'entity'
@@ -39,8 +39,8 @@ export type SearchComboboxResult =
        * spells a schema two ways.
        */
       group: string
-      schemaId: SURefEnumSchemaName
-      entity: SearchResult['entity'] & SURefEntity
+      schemaId: RefEnumSchemaName
+      entity: SearchResult['entity'] & RefEntity
     }
 
 export type UseSearchComboboxOptions = {
@@ -86,7 +86,7 @@ function matchSchemas(query: string, slots: number): SearchComboboxResult[] {
       id: `schema:${s.id}`,
       title: s.displayNamePlural,
       group: 'Category',
-      schemaId: s.id as SURefEnumSchemaName,
+      schemaId: s.id as RefEnumSchemaName,
     }))
 }
 

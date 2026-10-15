@@ -19,13 +19,13 @@
  * (and `actions`, for a `damageType` filter) to be preloaded.
  */
 import { SalvageUnionReference } from '../index'
-import type { SURefMetaAction, SURefMetaEntity, SURefObjectChoice } from '../schemas/index'
+import type { RefMetaAction, RefMetaEntity, RefObjectChoice } from '../schemas/index'
 
 type DamageType = 'HP' | 'SP'
 
 /** The schema-name list a catalog references (`source.schema`). */
 type CatalogSchema = NonNullable<
-  Extract<NonNullable<SURefObjectChoice['source']>, { kind: 'catalog' }>['schema']
+  Extract<NonNullable<RefObjectChoice['source']>, { kind: 'catalog' }>['schema']
 >
 
 type CatalogFilter = {
@@ -36,13 +36,13 @@ type CatalogFilter = {
 }
 
 /** True when any of `entity`'s resolved actions deals `damageType` damage. */
-function dealsDamageType(entity: SURefMetaEntity, damageType: DamageType): boolean {
-  const actions: SURefMetaAction[] = SalvageUnionReference.resolveActions(entity) ?? []
+function dealsDamageType(entity: RefMetaEntity, damageType: DamageType): boolean {
+  const actions: RefMetaAction[] = SalvageUnionReference.resolveActions(entity) ?? []
   return actions.some((action) => action.damage?.damageType === damageType)
 }
 
 /** Apply a catalog `filter` to a single candidate entity. */
-function matchesFilter(entity: SURefMetaEntity, filter: CatalogFilter): boolean {
+function matchesFilter(entity: RefMetaEntity, filter: CatalogFilter): boolean {
   if (filter.damageType && !dealsDamageType(entity, filter.damageType)) return false
   if (filter.field) {
     const value = (entity as Record<string, unknown>)[filter.field]
@@ -54,8 +54,8 @@ function matchesFilter(entity: SURefMetaEntity, filter: CatalogFilter): boolean 
 }
 
 /** Stable listing order: Tech Level ascending (non-numeric last), then name. */
-function byTechThenName(a: SURefMetaEntity, b: SURefMetaEntity): number {
-  const tl = (e: SURefMetaEntity): number => {
+function byTechThenName(a: RefMetaEntity, b: RefMetaEntity): number {
+  const tl = (e: RefMetaEntity): number => {
     const v = 'techLevel' in e ? e.techLevel : undefined
     return typeof v === 'number' ? v : Number.POSITIVE_INFINITY
   }
@@ -67,7 +67,7 @@ function byTechThenName(a: SURefMetaEntity, b: SURefMetaEntity): number {
 }
 
 /** The catalog fields, read from the choice's `source`. */
-function catalogSpec(choice: SURefObjectChoice): {
+function catalogSpec(choice: RefObjectChoice): {
   schema?: CatalogSchema
   shortlist?: string[]
   filter?: CatalogFilter
@@ -93,15 +93,15 @@ function catalogSpec(choice: SURefObjectChoice): {
  * Returns `[]` for any non-catalog choice, or a catalog with no schema.
  */
 export function resolveCatalogChoiceEntities(
-  choice: SURefObjectChoice,
+  choice: RefObjectChoice,
   opts?: { techLevel?: number }
-): SURefMetaEntity[] {
+): RefMetaEntity[] {
   const { schema, shortlist, filter } = catalogSpec(choice)
   if (!schema || schema.length === 0) return []
 
   const all = SalvageUnionReference.getAllBySchemaNames(schema).map((row) => row.entity)
 
-  let entities: SURefMetaEntity[]
+  let entities: RefMetaEntity[]
   if (shortlist && shortlist.length > 0) {
     // Without case: a trait shortlist names traits as the rules text does
     // ("Ballistic"), while traits.json names them lower-case ("ballistic").
@@ -133,7 +133,7 @@ export function resolveCatalogChoiceEntities(
  * collection" (no fixed shortlist). These render as an entity listing; a
  * shortlist catalog renders as an option-card grid instead.
  */
-export function isSchemaOnlyCatalogChoice(choice: SURefObjectChoice): boolean {
+export function isSchemaOnlyCatalogChoice(choice: RefObjectChoice): boolean {
   const { schema, shortlist } = catalogSpec(choice)
   return !!schema && schema.length > 0 && (!shortlist || shortlist.length === 0)
 }

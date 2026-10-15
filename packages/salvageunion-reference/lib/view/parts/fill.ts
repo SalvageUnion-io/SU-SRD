@@ -6,7 +6,7 @@
 
 import { getBlackMarket, getTechLevel, getTechLevelNumber } from '../../entityFields'
 import { isAbility } from '../../entityGuards'
-import type { SURefEnumSchemaName, SURefMetaEntity } from '../../schemas/index'
+import type { RefEnumSchemaName, RefMetaEntity } from '../../schemas/index'
 import { isDoEntity, isHybridTree, schemaDomain } from './kind'
 
 /** The rules-blue token (`--color-wk-line`): the Rules · Salvaging chapter's band. */
@@ -17,7 +17,7 @@ const RULES_BLUE = 'wk-line'
  * every guide, as its page's band is (owner's call, 2026-10-14), so the guides
  * index reads as one chapter. A guide is the record with a `guideType`.
  */
-export function guideTone(entity: SURefMetaEntity): string | undefined {
+export function guideTone(entity: RefMetaEntity): string | undefined {
   if (entity == null || typeof entity !== 'object' || !('guideType' in entity)) return undefined
   return typeof entity.guideType === 'string' ? RULES_BLUE : undefined
 }
@@ -31,7 +31,7 @@ function techLevelTone(level: number | undefined): string | undefined {
  * pilot orange, Advanced and Hybrid = rust (`tier-hybrid`), Legendary =
  * crawler pink. The abilities index and an ability's show page both read
  * this, so they cannot disagree. */
-function abilityTierTone(entity: SURefMetaEntity): string {
+function abilityTierTone(entity: RefMetaEntity): string {
   const isLegendary =
     ('level' in entity && String(entity.level).toUpperCase() === 'L') ||
     ('tree' in entity && String(entity.tree).includes('Legendary'))
@@ -40,14 +40,14 @@ function abilityTierTone(entity: SURefMetaEntity): string {
   return isHybridTree(tree) || tree.includes('Advanced') ? 'tier-hybrid' : 'pilot'
 }
 
-function treeRequirementTone(entity: SURefMetaEntity): string {
+function treeRequirementTone(entity: RefMetaEntity): string {
   const name = 'name' in entity ? String(entity.name).toLowerCase() : ''
   if (name.includes('legendary')) return 'crawler'
   if (name.includes('hybrid') || name.includes('advanced')) return 'tier-hybrid'
   return 'pilot'
 }
 
-const SCHEMA_TONE: Partial<Record<SURefEnumSchemaName, string>> = {
+const SCHEMA_TONE: Partial<Record<RefEnumSchemaName, string>> = {
   chassis: 'mech',
   crawlers: 'crawler',
   'crawler-tech-levels': 'crawler',
@@ -78,8 +78,8 @@ const SCHEMA_TONE: Partial<Record<SURefEnumSchemaName, string>> = {
  * take their tier tone; everything else its schema's hue.
  */
 export function entityTone(
-  schemaName: SURefEnumSchemaName | 'actions',
-  entity: SURefMetaEntity
+  schemaName: RefEnumSchemaName | 'actions',
+  entity: RefMetaEntity
 ): string {
   if (schemaName === 'actions') return 'ink'
   const guide = guideTone(entity)
@@ -106,7 +106,7 @@ export type HeaderFill = 'tone' | 'ink'
  * except an ability's Row, which wears its tier tone (Core orange, Advanced
  * and Hybrid rust, Legendary pink) wherever abilities are listed.
  */
-export function headerFill(entity: SURefMetaEntity, form: 'row' | 'card' | 'page'): HeaderFill {
+export function headerFill(entity: RefMetaEntity, form: 'row' | 'card' | 'page'): HeaderFill {
   if (form === 'row' && isAbility(entity)) return 'tone'
   return isDoEntity(entity) ? 'ink' : 'tone'
 }

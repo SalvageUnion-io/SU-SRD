@@ -12,7 +12,7 @@ import {
   resolveActivationCurrency,
   resolveGrantedEntities,
 } from '../helpers'
-import type { SURefEntity } from '../index'
+import type { RefEntity } from '../index'
 import { SalvageUnionReference } from '../index'
 import { entityFixture, malformed } from '../testing'
 
@@ -54,7 +54,7 @@ describe('schema names', () => {
 describe('grants', () => {
   test('an entity with no grants resolves to nothing', () => {
     const [chassis] = SalvageUnionReference.Chassis.all()
-    expect(resolveGrantedEntities(chassis as SURefEntity)).toEqual([])
+    expect(resolveGrantedEntities(chassis as RefEntity)).toEqual([])
   })
 
   test('granted entities resolve to real records, and `choice` grants are skipped', () => {
@@ -66,7 +66,7 @@ describe('grants', () => {
     expect(granters.length).toBeGreaterThan(0)
 
     for (const granter of granters) {
-      const resolved = resolveGrantedEntities(granter as SURefEntity)
+      const resolved = resolveGrantedEntities(granter as RefEntity)
       // Never a hole: unresolvable grants are dropped, not returned as null.
       expect(resolved.every((e) => e != null && typeof e.id === 'string')).toBe(true)
       const nonChoice = (granter.grants ?? []).filter((g) => g.schema !== 'choice')
@@ -106,7 +106,7 @@ describe('activation currency', () => {
 
 describe('facets', () => {
   test('tech levels come back unique and in game order: numbers, then B, then N', () => {
-    const entities: SURefEntity[] = [
+    const entities: RefEntity[] = [
       entityFixture('systems', { id: 'a', techLevel: 3 }),
       entityFixture('systems', { id: 'b', techLevel: 1 }),
       entityFixture('systems', { id: 'c', techLevel: 'N' }),
@@ -126,7 +126,7 @@ describe('facets', () => {
     // the facet regardless of alphabet.
     // Sources outside the SourceSchema enum, so the alphabetical rule is
     // exercised on names that cannot collide with a real book.
-    const entities = malformed<SURefEntity[]>([
+    const entities = malformed<RefEntity[]>([
       { id: 'a', source: 'Zephyr Expansion' },
       { id: 'b', source: 'Salvage Union Workshop Manual' },
       { id: 'c', source: 'Alpha Expansion' },
@@ -139,7 +139,7 @@ describe('facets', () => {
   })
 
   test('without the core book the rest are simply alphabetical', () => {
-    const entities = malformed<SURefEntity[]>([
+    const entities = malformed<RefEntity[]>([
       { id: 'a', source: 'Zephyr' },
       { id: 'b', source: 'Alpha' },
     ])
@@ -147,7 +147,7 @@ describe('facets', () => {
   })
 
   test('trees are unique, sorted, and entities without one are skipped', () => {
-    const entities: SURefEntity[] = [
+    const entities: RefEntity[] = [
       entityFixture('abilities', { id: 'a', tree: 'Forging' }),
       entityFixture('abilities', { id: 'b', tree: 'Electronics' }),
       entityFixture('abilities', { id: 'c', tree: 'Forging' }),
@@ -157,7 +157,7 @@ describe('facets', () => {
   })
 
   test('the real ability set produces real, sorted trees', () => {
-    const trees = getUniqueTrees(SalvageUnionReference.Abilities.all() as SURefEntity[])
+    const trees = getUniqueTrees(SalvageUnionReference.Abilities.all() as RefEntity[])
     expect(trees.length).toBeGreaterThan(0)
     expect(trees).toEqual([...trees].sort())
   })
@@ -168,7 +168,7 @@ describe('display data', () => {
     // The three fields every consumer indexes and links on. A blank name here
     // is an unclickable card.
     for (const chassis of SalvageUnionReference.Chassis.all()) {
-      const data = getReferenceEntityData(chassis as SURefEntity)
+      const data = getReferenceEntityData(chassis as RefEntity)
       expect(data.id).toBe(chassis.id)
       expect(data.name.length).toBeGreaterThan(0)
       expect(data.slug.length).toBeGreaterThan(0)
@@ -176,7 +176,7 @@ describe('display data', () => {
   })
 
   test('a nameless entity falls back to its id rather than to blank', () => {
-    const data = getReferenceEntityData(malformed<SURefEntity>({ id: 'orphan' }))
+    const data = getReferenceEntityData(malformed<RefEntity>({ id: 'orphan' }))
     expect(data.name).toBe('orphan')
     expect(data.description).toBeUndefined()
     expect(data.techLevel).toBeUndefined()
@@ -185,7 +185,7 @@ describe('display data', () => {
 
 describe('the static summary the SRD indexes on', () => {
   test('a chassis contributes its numeric stats, labelled', () => {
-    const chassis = SalvageUnionReference.Chassis.all()[0] as SURefEntity
+    const chassis = SalvageUnionReference.Chassis.all()[0] as RefEntity
     const summary = extractStaticEntitySummary(chassis)
 
     expect(summary.name.length).toBeGreaterThan(0)
@@ -196,7 +196,7 @@ describe('the static summary the SRD indexes on', () => {
   })
 
   test('references read as words, unless the caller draws them', () => {
-    const entity = malformed<SURefEntity>({
+    const entity = malformed<RefEntity>({
       id: 'x',
       name: 'X',
       content: [{ type: 'paragraph', value: 'It gains the [[Vulnerable]] Trait.' }],
@@ -211,7 +211,7 @@ describe('the static summary the SRD indexes on', () => {
 
   test('paragraph blocks are collected and non-paragraph blocks are not', () => {
     const summary = extractStaticEntitySummary(
-      malformed<SURefEntity>({
+      malformed<RefEntity>({
         id: 'x',
         name: 'X',
         content: [
@@ -229,7 +229,7 @@ describe('the static summary the SRD indexes on', () => {
 
   test('range and damage are flattened into readable values', () => {
     const summary = extractStaticEntitySummary(
-      malformed<SURefEntity>({
+      malformed<RefEntity>({
         id: 'w',
         name: 'W',
         range: ['Close', 'Medium'],
@@ -244,7 +244,7 @@ describe('the static summary the SRD indexes on', () => {
 
   test('trait names are collected, and malformed traits are skipped', () => {
     const summary = extractStaticEntitySummary(
-      malformed<SURefEntity>({
+      malformed<RefEntity>({
         id: 't',
         name: 'T',
         traits: [{ type: 'reliable' }, { value: 'no type' }, null, 'bare string'],
@@ -261,13 +261,13 @@ describe('the static summary the SRD indexes on', () => {
     expect(withSteps.length).toBeGreaterThan(0)
 
     for (const guide of withSteps) {
-      const summary = extractStaticEntitySummary(guide as SURefEntity)
+      const summary = extractStaticEntitySummary(guide as RefEntity)
       expect(summary.sections.length).toBe(guide.steps?.length ?? 0)
       expect(summary.sections.every((s) => s.name.length > 0)).toBe(true)
     }
 
     const totalProse = withSteps
-      .map((g) => extractStaticEntitySummary(g as SURefEntity))
+      .map((g) => extractStaticEntitySummary(g as RefEntity))
       .flatMap((s) => s.sections.flatMap((sec) => sec.paragraphs))
       .join('').length
     expect(totalProse).toBeGreaterThan(1000)
@@ -275,7 +275,7 @@ describe('the static summary the SRD indexes on', () => {
 
   test('a malformed step is skipped rather than producing a nameless section', () => {
     const summary = extractStaticEntitySummary(
-      malformed<SURefEntity>({
+      malformed<RefEntity>({
         id: 'g',
         name: 'G',
         steps: [
@@ -295,7 +295,7 @@ describe('the static summary the SRD indexes on', () => {
 
   test('an entity with nothing to say yields empty collections, never undefined', () => {
     // Consumers map over all four without guarding.
-    const summary = extractStaticEntitySummary(malformed<SURefEntity>({ id: 'bare' }))
+    const summary = extractStaticEntitySummary(malformed<RefEntity>({ id: 'bare' }))
     expect(summary.name).toBe('bare')
     expect(summary.contentParagraphs).toEqual([])
     expect(summary.stats).toEqual([])

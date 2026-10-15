@@ -5,7 +5,7 @@
 import { extractActions, extractPatternActions } from './actionResolution'
 import { getDataMaps, getSchemaCatalog } from './ModelFactory'
 import { getPatterns } from './patterns'
-import type { SURefEntity, SURefEnumSchemaName, SURefMetaEntity } from './schemas/index'
+import type { RefEntity, RefEnumSchemaName, RefMetaEntity } from './schemas/index'
 import {
   matchSearchTokens,
   scoreSearchMatch,
@@ -30,7 +30,7 @@ let indexableSchemaNames: ReadonlySet<string> | null = null
  * `getSchemaCatalog()` reads the static schema index and needs no `preload()`,
  * so this is safe from any build-time or test context.
  */
-export function isSchemaName(id: string): id is SURefEnumSchemaName {
+export function isSchemaName(id: string): id is RefEnumSchemaName {
   indexableSchemaNames ??= new Set(
     getSchemaCatalog()
       .schemas.filter((s) => !s.meta)
@@ -41,7 +41,7 @@ export function isSchemaName(id: string): id is SURefEnumSchemaName {
 
 export type SearchOptions = {
   query: string
-  schemas?: SURefEnumSchemaName[]
+  schemas?: RefEnumSchemaName[]
   limit?: number
 }
 
@@ -51,9 +51,9 @@ const searchCache = new Map<string, SearchResult[]>()
 
 // Lazy singleton search index
 type SearchIndexEntry = {
-  schemaName: SURefEnumSchemaName
+  schemaName: RefEnumSchemaName
   schemaTitle: string
-  entity: SURefEntity & { schemaName: SURefEnumSchemaName }
+  entity: RefEntity & { schemaName: RefEnumSchemaName }
   entityId: string
   entityName: string
   nameText: string
@@ -85,8 +85,8 @@ export function invalidateSearchIndex(): void {
  * is found through its host — "Hill Worm" finds Typhon, "Hauler" the Mule.
  * Shared with srd's compact index (`searchIndexBuild.ts`), which mirrors this.
  */
-export function patternSearchText(entity: SURefEntity): string {
-  return (getPatterns(entity as SURefMetaEntity) ?? [])
+export function patternSearchText(entity: RefEntity): string {
+  return (getPatterns(entity as RefMetaEntity) ?? [])
     .flatMap((pattern) => [
       pattern.name,
       extractContentText(pattern.content ?? []),
@@ -120,8 +120,8 @@ function buildSearchIndex(): SearchIndexEntry[] {
       continue
     }
 
-    for (const entity of data as SURefEntity[]) {
-      const entityWithSchema: SURefEntity & { schemaName: SURefEnumSchemaName } = {
+    for (const entity of data as RefEntity[]) {
+      const entityWithSchema: RefEntity & { schemaName: RefEnumSchemaName } = {
         ...entity,
         schemaName: schemaId,
       }
@@ -226,9 +226,9 @@ function trimCache(): void {
 }
 
 export type SearchResult = {
-  schemaName: SURefEnumSchemaName
+  schemaName: RefEnumSchemaName
   schemaTitle: string
-  entity: SURefEntity & { schemaName: SURefEnumSchemaName }
+  entity: RefEntity & { schemaName: RefEnumSchemaName }
   entityId: string
   entityName: string
   matchedFields: string[]
@@ -365,16 +365,16 @@ export function search(options: SearchOptions): SearchResult[] {
 /**
  * Search within a specific schema
  */
-export function searchIn<T extends SURefEntity>(
-  schemaName: SURefEnumSchemaName,
+export function searchIn<T extends RefEntity>(
+  schemaName: RefEnumSchemaName,
   query: string,
   options?: { limit?: number }
-): (T & { schemaName: SURefEnumSchemaName })[] {
+): (T & { schemaName: RefEnumSchemaName })[] {
   const results = search({
     query,
     schemas: [schemaName],
     limit: options?.limit,
   })
 
-  return results.map((r) => r.entity as T & { schemaName: SURefEnumSchemaName })
+  return results.map((r) => r.entity as T & { schemaName: RefEnumSchemaName })
 }

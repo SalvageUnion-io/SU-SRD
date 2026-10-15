@@ -2,10 +2,10 @@ import type { ReactNode } from 'react'
 import { useContext } from 'react'
 import type {
   EntityInstance,
-  SURefEntity,
-  SURefEnumSchemaName,
-  SURefMetaEntity,
-  SURefObjectAnyPattern,
+  RefEntity,
+  RefEnumSchemaName,
+  RefMetaEntity,
+  RefObjectAnyPattern,
 } from 'salvageunion-reference'
 import {
   extractVisibleActions,
@@ -190,8 +190,8 @@ function HeadForm({
   token,
   row,
 }: {
-  entity: SURefMetaEntity
-  pattern: SURefObjectAnyPattern | undefined
+  entity: RefMetaEntity
+  pattern: RefObjectAnyPattern | undefined
   instance: EntityInstance
   shared: Pick<RowSlots, 'outer' | 'frameStyle' | 'down'>
   token: Pick<TokenSlots, 'kind' | 'pennant' | 'cost'> | false
@@ -263,16 +263,16 @@ function ReferenceEntityCardInner({
   const selected = selectedProp ?? (isMultiSelect ? countValue >= 1 : undefined)
 
   // `SalvageUnionReference.*.all()` entities carry a runtime `schemaName` the
-  // static `SURefEntity` union omits: the display system's boundary cast.
-  const entity = data as SURefMetaEntity
+  // static `RefEntity` union omits: the display system's boundary cast.
+  const entity = data as RefMetaEntity
   // Hooks run above every early return below.
-  const externalLinkNode = useEntityExternalLink(data as SURefEntity)
+  const externalLinkNode = useEntityExternalLink(data as RefEntity)
   const insidePeek = useContext(InsidePeekContext)
   const textureFromHost = useContext(CardTextureContext)
   const textured = texture ?? textureFromHost
   const schemaName = (
     'schemaName' in entity && typeof entity.schemaName === 'string' ? entity.schemaName : undefined
-  ) as SURefEnumSchemaName | 'actions' | undefined
+  ) as RefEnumSchemaName | 'actions' | undefined
 
   if (!schemaName) {
     console.warn('ReferenceEntityCard: data does not have a schemaName property', data)
@@ -356,7 +356,7 @@ function ReferenceEntityCardInner({
     !isAction &&
     !isPattern &&
     depth < MAX_DEPTH &&
-    !(isAbility(entity) && resolveGrantedEntities(entity as SURefEntity).length > 0)
+    !(isAbility(entity) && resolveGrantedEntities(entity as RefEntity).length > 0)
       ? (extractVisibleActions(entity) ?? []).filter((a) => !isTitanicAction(a))
       : []
   const foldedAction = foldedActionOf(foldableActions, entityName)

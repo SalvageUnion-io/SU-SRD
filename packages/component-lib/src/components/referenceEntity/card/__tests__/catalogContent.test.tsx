@@ -11,22 +11,22 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import { getModel, getSchemaCatalog, SalvageUnionReference } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 /** Text the tile renders, with the entity's own name removed — what a reader
  * learns from the tile beyond the label they clicked. */
-function contentBeyondName(entity: SURefEntity): string {
+function contentBeyondName(entity: RefEntity): string {
   const { container } = render(<ReferenceEntityCard data={entity} size="medium" extent="catalog" />)
   const text = container.textContent ?? ''
   return text.split(entity.name).join('').trim()
 }
 
-function findByName(model: string, name: string): SURefEntity {
+function findByName(model: string, name: string): RefEntity {
   const found = (
     SalvageUnionReference[model as keyof typeof SalvageUnionReference] as unknown as {
-      getByName: (name: string) => SURefEntity | undefined
+      getByName: (name: string) => RefEntity | undefined
     }
   ).getByName(name)
   if (!found) throw new Error(`fixture missing: ${model} / ${name}`)

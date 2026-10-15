@@ -20,10 +20,10 @@ import { SalvageUnionReference, SchemaToDisplayName } from './index'
 import type { EnhancedSchemaMetadata } from './ModelFactory'
 import { getSchemaCatalog } from './ModelFactory'
 import type {
-  SURefEntity,
-  SURefEnumSchemaName,
-  SURefMetaEntity,
-  SURefObjectAdvancedClass,
+  RefEntity,
+  RefEnumSchemaName,
+  RefMetaEntity,
+  RefObjectAdvancedClass,
 } from './schemas/index'
 import { getEntitySlug } from './slug'
 import { plainTraitText } from './traitText'
@@ -38,7 +38,7 @@ import { bookStats } from './view/parts/facts'
  * @returns The display name or the schema name if not found
  */
 
-export function getDisplayName(schemaName: SURefEnumSchemaName): string {
+export function getDisplayName(schemaName: RefEnumSchemaName): string {
   return SchemaToDisplayName[schemaName] || schemaName
 }
 
@@ -49,17 +49,15 @@ export function getDisplayName(schemaName: SURefEnumSchemaName): string {
  */
 
 export function getModel(
-  schemaName: string | SURefEnumSchemaName
-): ModelWithMetadata<SURefEntity> | undefined {
+  schemaName: string | RefEnumSchemaName
+): ModelWithMetadata<RefEntity> | undefined {
   // Two assertions. The key: lazyModelMap is keyed by the schema enum, and a
   // string id is looked up as-is — `| undefined` covers a runtime-invalid one.
   // The value: lazyModelMap's per-schema union includes meta-entity models
   // (ability-tree-requirements, crawler-tech-levels) whose element types are not
-  // in SURefEntity, so the union cannot be assigned to the declared
-  // SURefEntity-typed model.
-  return lazyModelMap[schemaName as SURefEnumSchemaName] as
-    | ModelWithMetadata<SURefEntity>
-    | undefined
+  // in RefEntity, so the union cannot be assigned to the declared
+  // RefEntity-typed model.
+  return lazyModelMap[schemaName as RefEnumSchemaName] as ModelWithMetadata<RefEntity> | undefined
 }
 
 /**
@@ -68,7 +66,7 @@ export function getModel(
  * walk — used by the display layer (Grants block) and any tooling.
  */
 
-export function resolveGrantedEntities(entity: SURefEntity): SURefEntity[] {
+export function resolveGrantedEntities(entity: RefEntity): RefEntity[] {
   const grants = 'grants' in entity && Array.isArray(entity.grants) ? entity.grants : []
   return (
     grants
@@ -77,10 +75,10 @@ export function resolveGrantedEntities(entity: SURefEntity): SURefEntity[] {
       // runs per grant per render, and the predicate form scanned the whole
       // target schema each time.
       .map(
-        (grant): SURefEntity | null =>
+        (grant): RefEntity | null =>
           getModel(grant.schema.toLowerCase())?.getByName(grant.name) ?? null
       )
-      .filter((e): e is SURefEntity => e !== null)
+      .filter((e): e is RefEntity => e !== null)
   )
 }
 
@@ -93,12 +91,11 @@ export function resolveGrantedEntities(entity: SURefEntity): SURefEntity[] {
  * @returns Array of hybrid classes
  */
 
-export function getHybridClasses(): (SURefObjectAdvancedClass & {
+export function getHybridClasses(): (RefObjectAdvancedClass & {
   schemaName: string
 })[] {
   return SalvageUnionReference.Classes.all().filter(
-    (c): c is SURefObjectAdvancedClass & { schemaName: string } =>
-      'hybrid' in c && c.hybrid === true
+    (c): c is RefObjectAdvancedClass & { schemaName: string } => 'hybrid' in c && c.hybrid === true
   )
 }
 
@@ -109,7 +106,7 @@ export function getHybridClasses(): (SURefObjectAdvancedClass & {
  */
 
 export function resolveActivationCurrency(
-  schemaName: SURefEnumSchemaName | 'actions' | undefined,
+  schemaName: RefEnumSchemaName | 'actions' | undefined,
   variable: boolean = false
 ): 'AP' | 'EP' | 'XP' {
   if (variable) return 'XP'
@@ -189,7 +186,7 @@ export function byTechLevelThenName(
  * @returns Sorted array of unique tech levels
  */
 
-export function getUniqueTechLevels(entities: SURefEntity[]): (number | 'B' | 'N')[] {
+export function getUniqueTechLevels(entities: RefEntity[]): (number | 'B' | 'N')[] {
   const levels = new Set<number | 'B' | 'N'>()
   for (const entity of entities) {
     const tl = getTechLevel(entity)
@@ -205,7 +202,7 @@ export function getUniqueTechLevels(entities: SURefEntity[]): (number | 'B' | 'N
  * @returns Sorted array of unique source strings
  */
 
-export function getUniqueSources(entities: SURefEntity[]): string[] {
+export function getUniqueSources(entities: RefEntity[]): string[] {
   const sourceSet = new Set<string>()
   for (const entity of entities) {
     const source = getSource(entity)
@@ -226,7 +223,7 @@ export function getUniqueSources(entities: SURefEntity[]): string[] {
  * @returns Sorted array of unique tree strings
  */
 
-export function getUniqueTrees(entities: SURefEntity[]): string[] {
+export function getUniqueTrees(entities: RefEntity[]): string[] {
   const treeSet = new Set<string>()
   for (const entity of entities) {
     const tree = getTree(entity)
@@ -261,7 +258,7 @@ export type ReferenceEntityData = {
  * @returns Aggregated display data
  */
 
-export function getReferenceEntityData(entity: SURefEntity): ReferenceEntityData {
+export function getReferenceEntityData(entity: RefEntity): ReferenceEntityData {
   return {
     id: entity.id,
     name: getName(entity) ?? entity.id,
@@ -329,7 +326,7 @@ export type StaticEntitySummary = {
  */
 
 export function extractStaticEntitySummary(
-  entity: SURefEntity,
+  entity: RefEntity,
   options: { keepReferences?: boolean } = {}
 ): StaticEntitySummary {
   const prose = options.keepReferences ? (text: string) => text : plainTraitText
@@ -357,7 +354,7 @@ export function extractStaticEntitySummary(
 
   // The stats in the order every surface keeps (`bookStats`): Tech Level,
   // then each group, under its full name; zeros are not printed.
-  const stats: { label: string; value: string | number }[] = bookStats(entity as SURefMetaEntity, {
+  const stats: { label: string; value: string | number }[] = bookStats(entity as RefMetaEntity, {
     techLevel,
   }).map((fact) => ({ label: fact.label, value: fact.value }))
 

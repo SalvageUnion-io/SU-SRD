@@ -10,11 +10,11 @@
 
 import type {
   FacetCell,
-  SURefEnumSchemaName,
-  SURefMetaEntity,
-  SURefObjectBonusPerTechLevel,
-  SURefObjectChoice,
-  SURefObjectContentBlock,
+  RefEnumSchemaName,
+  RefMetaEntity,
+  RefObjectBonusPerTechLevel,
+  RefObjectChoice,
+  RefObjectContentBlock,
 } from 'salvageunion-reference'
 import { facetCells } from 'salvageunion-reference'
 import type { StatItem } from '../../containers/statsBarTypes'
@@ -58,7 +58,7 @@ function toSubHeaderCell(cell: FacetCell): CardFacetCell {
 /** `bonusPerTechLevel` fields → "+N" label-first chips (zeros/absent dropped).
  * Each entry is [field, first word, second word]; the chip's label joins the
  * two ("Structure Points"), and a Damage cell carries the second as its unit. */
-const BONUS_LABELS: [keyof SURefObjectBonusPerTechLevel, string, string][] = [
+const BONUS_LABELS: [keyof RefObjectBonusPerTechLevel, string, string][] = [
   ['structurePoints', 'Structure', 'Points'],
   ['energyPoints', 'Energy', 'Points'],
   ['heatCapacity', 'Heat', 'Capacity'],
@@ -70,7 +70,7 @@ const BONUS_LABELS: [keyof SURefObjectBonusPerTechLevel, string, string][] = [
 
 export type BonusCell = { key: string; label: string; bottomLabel: string; value: string }
 
-export function bonusCells(bonus: SURefObjectBonusPerTechLevel): BonusCell[] {
+export function bonusCells(bonus: RefObjectBonusPerTechLevel): BonusCell[] {
   return BONUS_LABELS.flatMap(([field, top, bottom]) => {
     const amount = bonus[field]
     return typeof amount === 'number' && amount !== 0
@@ -104,9 +104,9 @@ export type TechScaling = {
 }
 
 export function resolveTechScaling(
-  entity: SURefMetaEntity,
+  entity: RefMetaEntity,
   techLevel: number | 'B' | 'N' | undefined,
-  entityChoices: SURefObjectChoice[],
+  entityChoices: RefObjectChoice[],
   scalingParent: Record<string, unknown> | undefined
 ): TechScaling {
   const baseTechLevel = typeof techLevel === 'number' ? techLevel : undefined
@@ -165,8 +165,8 @@ export function resolveTechScaling(
  * the two-line long form.
  */
 export function buildHeaderStats(options: {
-  entity: SURefMetaEntity
-  schemaName: SURefEnumSchemaName | 'actions'
+  entity: RefMetaEntity
+  schemaName: RefEnumSchemaName | 'actions'
   asCompact: boolean
   /** Actions and pattern LISTING rows carry no header stats at all. */
   none: boolean
@@ -223,13 +223,13 @@ export function buildHeaderStats(options: {
  * to this row.
  */
 export function resolveSubHeaderCells(options: {
-  entity: SURefMetaEntity
+  entity: RefMetaEntity
   entityName: string
   /** The entity's own action fields, when the card IS an action. */
   action: ActionFields | undefined
   /** The lone action that folds into this entity's body, if any. */
-  foldedAction: (ActionFields & { name?: string; content?: SURefObjectContentBlock[] }) | undefined
-  entityChoices: SURefObjectChoice[]
+  foldedAction: (ActionFields & { name?: string; content?: RefObjectContentBlock[] }) | undefined
+  entityChoices: RefObjectChoice[]
   selections: ChoiceSelections | undefined
   perTechLevelByLabel: ReadonlyMap<string, number>
   effTechLevel: number | undefined

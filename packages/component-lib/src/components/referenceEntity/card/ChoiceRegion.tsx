@@ -1,4 +1,4 @@
-import type { SURefObjectChoice } from 'salvageunion-reference'
+import type { RefObjectChoice } from 'salvageunion-reference'
 import { isSchemaOnlyCatalogChoice } from 'salvageunion-reference/rules'
 import { ChoiceGroups } from '../choiceCard/ChoiceGroups'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
@@ -22,7 +22,7 @@ export function ChoiceRegion({
   chassisName,
   NestedCard,
 }: {
-  choice: SURefObjectChoice
+  choice: RefObjectChoice
   effTechLevel: number | undefined
   scalingParent: Record<string, unknown> | undefined
   selections: ChoiceSelections | undefined

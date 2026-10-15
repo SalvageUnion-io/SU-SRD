@@ -5,7 +5,7 @@
   "description": "Comprehensive, schema-validated JSON dataset and TypeScript ORM for the Salvage Union tabletop RPG",
   "type": "module",
   "bin": {
-    "su-ref-generate": "./tools/ensureGenerated.ts"
+    "ref-generate": "./tools/ensureGenerated.ts"
   },
   "main": "./lib/index.ts",
   "types": "./lib/index.ts",

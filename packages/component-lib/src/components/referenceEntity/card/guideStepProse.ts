@@ -1,4 +1,4 @@
-import type { SURefObjectContentBlock } from 'salvageunion-reference'
+import type { RefObjectContentBlock } from 'salvageunion-reference'
 
 /**
  * A guide step's prose, split into what the step renders in order: runs of
@@ -28,7 +28,7 @@ import type { SURefObjectContentBlock } from 'salvageunion-reference'
  * Pure and copy-preserving: no block's text is changed, only regrouped.
  */
 export type GuideStepChunk =
-  | { kind: 'prose'; blocks: SURefObjectContentBlock[] }
+  | { kind: 'prose'; blocks: RefObjectContentBlock[] }
   | { kind: 'note'; text: string }
   | { kind: 'aside'; text: string; flavor: boolean; label?: string }
 
@@ -36,10 +36,10 @@ export type GuideStepChunk =
 const PAGE_POINTER = /\bp\.\s?\d/
 
 export function chunkGuideStepProse(
-  content: SURefObjectContentBlock[] | undefined
+  content: RefObjectContentBlock[] | undefined
 ): GuideStepChunk[] {
   const chunks: GuideStepChunk[] = []
-  let run: SURefObjectContentBlock[] = []
+  let run: RefObjectContentBlock[] = []
   const flush = () => {
     if (run.length > 0) chunks.push({ kind: 'prose', blocks: run })
     run = []
@@ -90,7 +90,7 @@ export function chunkGuideStepProse(
 }
 
 /** A head the book runs into its paragraph: a value-only label, or a sub-heading. */
-function isRunInHead(block: SURefObjectContentBlock): boolean {
+function isRunInHead(block: RefObjectContentBlock): boolean {
   if (block.type === 'label') return !block.label
   return block.type === 'heading' && block.level !== 1
 }

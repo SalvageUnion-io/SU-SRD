@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import type { SURefEnumSchemaName, SURefMetaEntity } from 'salvageunion-reference'
+import type { RefEnumSchemaName, RefMetaEntity } from 'salvageunion-reference'
 import { buildReferenceEntityStats } from '../referenceEntityStatsConfig'
 
 /**
@@ -9,7 +9,7 @@ import { buildReferenceEntityStats } from '../referenceEntityStatsConfig'
  * `bio-titans` schema so no other entity gains a derived bio-salvage stat.
  */
 describe('Bio-Titan bio-salvage derivation', () => {
-  const bioTitan = { id: 'x', name: 'Scylla', structurePoints: 39 } as SURefMetaEntity
+  const bioTitan = { id: 'x', name: 'Scylla', structurePoints: 39 } as RefMetaEntity
 
   const findBioSalvage = (stats: ReturnType<typeof buildReferenceEntityStats>) =>
     stats.find((s) => s.label === 'Bio-Salvage' && s.bottomLabel === 'Value')
@@ -22,7 +22,7 @@ describe('Bio-Titan bio-salvage derivation', () => {
   })
 
   it('does NOT derive bio-salvage for non-bio-titan schemas with structurePoints', () => {
-    const nonBioTitanSchemas: (SURefEnumSchemaName | undefined)[] = [
+    const nonBioTitanSchemas: (RefEnumSchemaName | undefined)[] = [
       'drones',
       'meld',
       'npcs',
@@ -41,7 +41,7 @@ describe('Bio-Titan bio-salvage derivation', () => {
       name: 'Chimerium Mutant',
       hitPoints: 10,
       bioSalvageValue: 3,
-    } as SURefMetaEntity
+    } as RefMetaEntity
     const stats = buildReferenceEntityStats(npc, { compact: false, schemaName: 'npcs' })
     const bioSalvage = findBioSalvage(stats)
     expect(bioSalvage?.value).toBe('3')

@@ -8,7 +8,7 @@
 import { describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from '../../index'
 import { nameToSlug } from '../../nameToSlug'
-import type { SURefChassis, SURefObjectPattern } from '../../schemas/index'
+import type { RefChassis, RefObjectPattern } from '../../schemas/index'
 import { AS_PRINTED_OVERFLOW } from '../capacity'
 import { resolveModuleRef, resolveSystemRef } from '../resolveRefs'
 
@@ -27,7 +27,7 @@ type MountSlotUsage = {
  * `computeMechCapacity`) times their `count`. An item placed on a head the
  * chassis does not have gets a mount of its own with no slots.
  */
-function patternSlotUsage(chassis: SURefChassis, pattern: SURefObjectPattern): MountSlotUsage[] {
+function patternSlotUsage(chassis: RefChassis, pattern: RefObjectPattern): MountSlotUsage[] {
   const mounts: MountSlotUsage[] = [
     {
       systemSlotsUsed: 0,

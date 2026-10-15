@@ -7,16 +7,16 @@ import { parseContentBlockString } from '../../contentBlockHelpers'
 import { isAbility } from '../../entityGuards'
 import { resolveGrantedEntities } from '../../helpers'
 import type {
-  SURefEntity,
-  SURefMetaEntity,
-  SURefObjectContentBlock,
-  SURefObjectGuideStep,
+  RefEntity,
+  RefMetaEntity,
+  RefObjectContentBlock,
+  RefObjectGuideStep,
 } from '../../schemas/index'
 import { plainTraitText } from '../../traitText'
 
 /** A content array's first paragraph, as text (references still marked up). */
 export function firstParagraphText(
-  content: SURefObjectContentBlock[] | undefined
+  content: RefObjectContentBlock[] | undefined
 ): string | undefined {
   const paragraph = content?.find((block) => block?.type === 'paragraph')
   return paragraph ? parseContentBlockString(paragraph) : undefined
@@ -27,9 +27,9 @@ export function firstParagraphText(
  * your Union Crawler) that keeps every word in `steps`. A data-shape check, as
  * component-lib's `resolveGuideLead`.
  */
-function firstStepParagraphText(entity: SURefMetaEntity): string | undefined {
+function firstStepParagraphText(entity: RefMetaEntity): string | undefined {
   if (!('steps' in entity) || !Array.isArray(entity.steps)) return undefined
-  for (const step of entity.steps as SURefObjectGuideStep[]) {
+  for (const step of entity.steps as RefObjectGuideStep[]) {
     const lead = firstParagraphText(step?.content)
     if (lead) return lead
   }
@@ -42,8 +42,8 @@ function firstStepParagraphText(entity: SURefMetaEntity): string | undefined {
  * keeps all of its prose. The same order as component-lib's
  * `resolveCatalogLeadBlocks`.
  */
-function borrowedParagraphText(entity: SURefMetaEntity): string | undefined {
-  for (const granted of resolveGrantedEntities(entity as SURefEntity)) {
+function borrowedParagraphText(entity: RefMetaEntity): string | undefined {
+  for (const granted of resolveGrantedEntities(entity as RefEntity)) {
     const lead = firstParagraphText('content' in granted ? granted.content : undefined)
     if (lead) return lead
   }
@@ -62,7 +62,7 @@ function borrowedParagraphText(entity: SURefMetaEntity): string | undefined {
  * when the entity carries any. Plain text, since a clamped line renders no
  * references.
  */
-export function entityLead(entity: SURefMetaEntity): string | undefined {
+export function entityLead(entity: RefMetaEntity): string | undefined {
   const description =
     isAbility(entity) && typeof entity.description === 'string' ? entity.description : undefined
   const lead =

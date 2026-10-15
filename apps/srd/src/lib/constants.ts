@@ -31,7 +31,7 @@ export const CONTENTS_CRUMB = { name: 'Contents', url: `${SITE_URL}/` } as const
 export const CANTINA_URL = `${originOr(import.meta.env.VITE_CANTINA_ORIGIN, SRD_SITE_URL)}/build/`
 
 /**
- * The SURef Discord bot's install link. The client id is public by design —
+ * The SalvageUnion.io Discord bot's install link. The client id is public by design —
  * it appears in every Discord invite URL; the bot authenticates with its
  * token, never this id. It asks for no server permissions.
  */

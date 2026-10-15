@@ -1,6 +1,6 @@
 import type { TreeTrack } from 'component-lib'
 import { Entity, AbilityTrack as Track } from 'component-lib'
-import type { SURefAbility } from 'salvageunion-reference'
+import type { RefAbility } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
 import { itemHref } from '../lib/entityHref'
 
@@ -10,7 +10,7 @@ import { itemHref } from '../lib/entityHref'
  */
 const OMIT_KIND_TIER = ['kind', 'tier'] as const
 
-const abilityHref = (ability: SURefAbility) => itemHref('abilities', getEntitySlug(ability))
+const abilityHref = (ability: RefAbility) => itemHref('abilities', getEntitySlug(ability))
 
 /**
  * A tree's Abilities as Rows on its track (component-lib's `AbilityTrack`), in
@@ -26,7 +26,7 @@ export function AbilityTrack({
   track,
   titleAs,
 }: {
-  abilities: readonly SURefAbility[]
+  abilities: readonly RefAbility[]
   track: TreeTrack
   titleAs?: 'h3'
 }) {

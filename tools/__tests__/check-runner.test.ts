@@ -270,7 +270,7 @@ describe('main', () => {
     const r = await run(['--fast'], { generate: sh('echo gen out; echo gen err >&2; exit 1') })
     expect(r.code).toBe(1)
     expect(r.raw).toBe('gen out\ngen err\n')
-    expect(r.err).toEqual(['✗ su-ref-generate failed: the checks read lib/generated/ and schemas/'])
+    expect(r.err).toEqual(['✗ ref-generate failed: the checks read lib/generated/ and schemas/'])
     expect(r.out).toBe('Running 3 check(s) — profile fast')
   })
 })

@@ -1,15 +1,13 @@
 import { describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
-import type { SURefEntity } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { rollTablePageData } from '../../RollTablePage'
 import { RollTableView } from '../../RollTableView'
 import { RollTableIsland } from '../RollTableIsland'
 
 const coreMechanic = () => {
-  const table = SalvageUnionReference.RollTables.getByName('Core Mechanic') as
-    | SURefEntity
-    | undefined
+  const table = SalvageUnionReference.RollTables.getByName('Core Mechanic') as RefEntity | undefined
   const data = table ? rollTablePageData(table) : null
   if (!data) throw new Error('fixture missing: Core Mechanic')
   return data
@@ -62,7 +60,7 @@ describe('the roll-table page, before a roll (the server markup)', () => {
   })
 
   test('a dense table splits in two, ranges outside, and sets the page dense', () => {
-    const table = SalvageUnionReference.RollTables.getByName('Mechapult') as SURefEntity | undefined
+    const table = SalvageUnionReference.RollTables.getByName('Mechapult') as RefEntity | undefined
     const data = table ? rollTablePageData(table) : null
     if (!data) throw new Error('fixture missing: Mechapult')
     const { container } = render(<RollTableView data={data} roll={null} />)

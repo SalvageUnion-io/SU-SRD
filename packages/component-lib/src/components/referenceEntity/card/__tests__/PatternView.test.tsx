@@ -18,9 +18,9 @@ import { cleanup, render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import type {
   EntityRef,
-  SURefEntity,
-  SURefObjectAnyPattern,
-  SURefObjectPattern,
+  RefEntity,
+  RefObjectAnyPattern,
+  RefObjectPattern,
 } from 'salvageunion-reference'
 import { nameToSlug, SalvageUnionReference, visiblePatterns } from 'salvageunion-reference'
 import { EntitySurfaceProvider } from '../../../../entity/EntitySurface'
@@ -40,7 +40,7 @@ const mule = () => {
 }
 
 /** Stands in for srd's route builder. */
-const testPatternHref = (chassis: SURefEntity, pattern: SURefObjectAnyPattern) =>
+const testPatternHref = (chassis: RefEntity, pattern: RefObjectAnyPattern) =>
   `/chassis/${'name' in chassis ? nameToSlug(String(chassis.name)) : ''}/pattern/${nameToSlug(pattern.name)}`
 
 describe('chassis pattern rows', () => {
@@ -235,7 +235,7 @@ describe('full pattern view reading order', () => {
  */
 describe('pattern loadout tokens', () => {
   /** Stands in for srd's entity route builder. */
-  const testEntityHref = (entity: SURefEntity) =>
+  const testEntityHref = (entity: RefEntity) =>
     `/${'schemaName' in entity ? String(entity.schemaName) : ''}/${
       'name' in entity ? nameToSlug(String(entity.name)) : ''
     }`
@@ -386,7 +386,7 @@ describe('pattern drone rows keep their keys', () => {
  * page.
  */
 describe('pattern footer provenance', () => {
-  const patternOf = (name: string): SURefObjectPattern => {
+  const patternOf = (name: string): RefObjectPattern => {
     const found = mule().patterns?.find((p) => p.name === name)
     if (!found) throw new Error(`${name} pattern fixture missing`)
     return found
@@ -428,7 +428,7 @@ describe('pattern footer provenance', () => {
  * `legalStarting` data tag; never computed from tech level or salvage value.
  */
 describe('legal starting pattern stamp', () => {
-  const patternOf = (name: string): SURefObjectPattern => {
+  const patternOf = (name: string): RefObjectPattern => {
     const found = mule().patterns?.find((p) => p.name === name)
     if (!found) throw new Error(`${name} pattern fixture missing`)
     return found
@@ -505,7 +505,7 @@ describe('pattern rows show what each pattern changes', () => {
     if (!found) throw new Error('Typhon fixture missing')
     return found
   }
-  const testHref = (host: SURefEntity, pattern: SURefObjectAnyPattern) =>
+  const testHref = (host: RefEntity, pattern: RefObjectAnyPattern) =>
     `/${'name' in host ? nameToSlug(String(host.name)) : ''}/pattern/${nameToSlug(pattern.name)}`
 
   for (const presentation of ['card', 'page'] as const) {

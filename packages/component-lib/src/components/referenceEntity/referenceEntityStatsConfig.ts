@@ -8,9 +8,9 @@
  */
 
 import type {
-  SURefEnumSchemaName,
-  SURefMetaEntity,
-  SURefObjectBonusPerTechLevel,
+  RefEnumSchemaName,
+  RefMetaEntity,
+  RefObjectBonusPerTechLevel,
 } from 'salvageunion-reference'
 import { entityStats } from 'salvageunion-reference'
 import type { StatColumnCell } from '../atoms/StatColumn'
@@ -20,7 +20,7 @@ type BuildReferenceEntityStatsOptions = {
   compact: boolean
   techLevel?: number | 'B' | 'N'
   /** Schema name of the entity — used to scope schema-specific stat derivations. */
-  schemaName?: SURefEnumSchemaName
+  schemaName?: RefEnumSchemaName
 }
 
 /**
@@ -29,11 +29,11 @@ type BuildReferenceEntityStatsOptions = {
  * the full name on two lines ("Structure" / "Points").
  */
 export function buildReferenceEntityStats(
-  data: SURefMetaEntity | SURefObjectBonusPerTechLevel,
+  data: RefMetaEntity | RefObjectBonusPerTechLevel,
   options: BuildReferenceEntityStatsOptions
 ): StatItem[] {
   const { compact, techLevel, schemaName } = options
-  return entityStats(data as SURefMetaEntity, { schemaName, techLevel }).map((fact) => {
+  return entityStats(data as RefMetaEntity, { schemaName, techLevel }).map((fact) => {
     const [top = fact.label, ...rest] = fact.label.split(' ')
     return {
       key: fact.key,
