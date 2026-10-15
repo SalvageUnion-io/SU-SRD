@@ -29,7 +29,6 @@
  * with the server, which enforces the same ones.
  */
 
-import { staleWriteOf } from 'cantina-domain/connection/staleWrite'
 import type { ContainerFields } from 'cantina-domain/container'
 import { containerOf, moveTo, sameContainer } from 'cantina-domain/container'
 import {
@@ -44,6 +43,7 @@ import type { Npc } from 'cantina-domain/schemas/npc'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
 import type { SoftLink } from 'cantina-domain/schemas/softLink'
 import { create } from 'zustand'
+import { staleWriteOf } from '../../convex/model/staleWrite'
 import { linksClearedByMove } from '../lib/links/clearedByMove'
 import { LinkRefused } from '../lib/links/linkRefused'
 import { captureException } from '../lib/observability'

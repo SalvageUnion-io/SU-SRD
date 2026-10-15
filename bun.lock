@@ -86,7 +86,6 @@
       "name": "cantina-domain",
       "version": "0.0.0",
       "dependencies": {
-        "convex": "catalog:",
         "salvageunion-reference": "workspace:*",
       },
     },

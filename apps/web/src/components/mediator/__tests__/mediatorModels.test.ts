@@ -3,7 +3,7 @@
  * (docs/architecture/mediator-dashboard.md): the seat cards (Q5), the
  * proposal targets and values (Q8), how a sent proposal reads, and the
  * Opposition tray's instances (Q9). The Morale roll and what an NPC tracks
- * are rules: `cantina-domain/rules/opposition`.
+ * are rules: `src/lib/rules/opposition.ts`.
  */
 
 import { describe, expect, test } from 'bun:test'
