@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * check-workers — the four Cloudflare Workers keep one shape (`bun run check workers`).
+ * check-workers — the three Cloudflare Workers keep one shape (`bun run check workers`).
  *
  * The Workers grew apart one at a time: three entry layouts (`src/worker.ts`,
  * `src/http/worker.ts`, `src/worker/index.ts`), `workers_dev` true, false or
@@ -9,7 +9,7 @@
  * reader has to answer per app. This gate fails when one comes back:
  *
  *   1. every `apps/<app>/wrangler.jsonc` is one of `WORKER_APPS`, and the
- *      reverse, so a fifth Worker cannot skip the gate or the type generator;
+ *      reverse, so a fourth Worker cannot skip the gate or the type generator;
  *   2. `main` is `src/worker/index.ts`, and that file exists;
  *   3. `workers_dev` is an explicit boolean: unset, `routes` silently decides
  *      whether the workers.dev address is live;
@@ -17,7 +17,7 @@
  *      `SAME_SCRIPTS` read the same in every app;
  *   5. `worker-configuration.d.ts` is committed (the `generated` check keeps it
  *      current);
- *   6. the keys in `SHARED_KEYS` are equal across all four, printed as a diff.
+ *   6. the keys in `SHARED_KEYS` are equal across all three, printed as a diff.
  *
  * `wrangler.jsonc` goes through Bun's JSONC loader, never a text match: the
  * configs are heavily commented.
@@ -48,7 +48,7 @@ export const ENTRY = 'src/worker/index.ts'
 const TYPES_FILE = 'worker-configuration.d.ts'
 
 export type WorkerApp = {
-  /** Repo-relative, e.g. `apps/srd`. */
+  /** Repo-relative, e.g. `apps/web`. */
   app: string
   config: Record<string, unknown>
   scripts: Record<string, string>

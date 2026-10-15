@@ -1,14 +1,14 @@
 /**
  * srd's stylesheet entry rule — the `srd-css` rule set of `tools/check-styling.ts`.
  *
- * `apps/srd/ssg/DESIGN.md` states this as **hard rule 1**: all css is imported from
+ * `apps/web/ssg/DESIGN.md` states this as **hard rule 1**: all css is imported from
  * `src/runtime/styles.entry.ts`, which is a client-bundle entry and nothing
  * else, and `ssg/**`, `src/pages/**`, `src/layouts/BaseLayout.tsx` and
  * `src/runtime/Island.tsx` must stay stylesheet-free.
  *
  * ## The rule was enforced by nothing, in either direction
  *
- * `apps/srd/CLAUDE.md` and `ssg/DESIGN.md` once said a stray `import './x.css'` in the SSR
+ * `apps/web/CLAUDE.md` and `ssg/DESIGN.md` once said a stray `import './x.css'` in the SSR
  * graph **breaks the build**. It does not. Measured under this repo's Bun: a
  * `.css` import in an SSR module resolves and returns an object, exit 0 —
  * including a package import, and including a file with an unresolvable
@@ -31,15 +31,16 @@
  *
  * ## What this asserts
  *
- * 1. Exactly one module in `apps/srd` may import a stylesheet, and it is
- *    `src/runtime/styles.entry.ts`.
- * 2. No **shipping** `component-lib` module may import a stylesheet (tests
+ * 1. Exactly one srd module in `apps/web` may import a stylesheet, and it is
+ *    `src/runtime/styles.entry.ts`. The Cantina (`src/cantina/`) is a Vite app
+ *    whose CSS imports are its own, owned by `stylingOwnership`.
+ * 2. No **shipping** `src/ui` module may import a stylesheet (tests
  *    are exempt). A component-side
  *    `import './x.css'` rides the barrel into every consumer: that is how srd
  *    bundled — and its service worker precached — the dashboard's 20 KB of
  *    `.pc-*` rules that no srd page can use. A component's
- *    stylesheet is a package EXPORT (`component-lib/styles/*.css`) that the app
- *    which renders the component imports.
+ *    stylesheet sits in `apps/web/src/ui/styles/` and the app
+ *    which renders the component imports it.
  *
  */
 
@@ -50,10 +51,10 @@ import { listFiles } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
 
 /** The one module allowed to import a stylesheet, repo-relative. */
-export const SRD_CSS_ENTRY = 'apps/srd/src/runtime/styles.entry.ts'
+export const SRD_CSS_ENTRY = 'apps/web/src/runtime/styles.entry.ts'
 
-const SRD_DIRS = ['apps/srd/ssg', 'apps/srd/src']
-const LIB_DIRS = ['packages/component-lib/src']
+const SRD_DIRS = ['apps/web/ssg', 'apps/web/src']
+const LIB_DIR = 'apps/web/src/ui'
 const EXTENSIONS = ['.ts', '.tsx', '.mts', '.cts']
 
 /** `import './x.css'`, `import 'pkg/y.css'`, and the `await import()` form. */
@@ -64,9 +65,13 @@ const CSS_IMPORT =
 const isLibExempt = (rel: string): boolean =>
   rel.includes('/__tests__/') || /\.(test|spec)\.[cm]?tsx?$/.test(rel)
 
-const srdFiles = (root: string) => listFiles(root, SRD_DIRS, EXTENSIONS)
+const CANTINA_DIR = 'apps/web/src/cantina/'
+const srdFiles = (root: string) =>
+  listFiles(root, SRD_DIRS, EXTENSIONS).filter(
+    (rel) => !rel.startsWith(CANTINA_DIR) && !rel.startsWith(`${LIB_DIR}/`)
+  )
 const libFiles = (root: string) =>
-  listFiles(root, LIB_DIRS, EXTENSIONS).filter((rel) => !isLibExempt(rel))
+  listFiles(root, [LIB_DIR], EXTENSIONS).filter((rel) => !isLibExempt(rel))
 
 function cssImports(source: string): string[] {
   return [...source.matchAll(CSS_IMPORT)].map((m) => m[1] ?? m[2] ?? '')
@@ -76,7 +81,7 @@ const RULES: Rule[] = [
   {
     id: 'srd-css-entry',
     mode: 'zero',
-    rule: 'apps/srd hard rule 1 — every stylesheet is imported from the one client entry',
+    rule: 'apps/web hard rule 1 — every stylesheet is imported from the one client entry',
     fix:
       `Move the import into ${SRD_CSS_ENTRY}. This does NOT break the build — that is the ` +
       'problem: the SSR pass stubs `.css` to an empty module and the client bundle is fed ' +
@@ -86,12 +91,11 @@ const RULES: Rule[] = [
   {
     id: 'lib-css-import',
     mode: 'zero',
-    rule: 'component-lib ships no side-effect stylesheet import',
+    rule: 'src/ui ships no side-effect stylesheet import',
     fix:
-      'Export the stylesheet instead (`component-lib/styles/<name>.css` in the package ' +
-      '`exports`) and import it from the app that renders the component. A component-side ' +
-      'import rides the barrel into EVERY consumer — srd shipped the whole dashboard ' +
-      'stylesheet this way.',
+      'Keep the stylesheet beside the component (`apps/web/src/ui/styles/<name>.css`) and ' +
+      'import it from the app that renders the component. A component-side import rides ' +
+      'the barrel into EVERY consumer — srd shipped the whole dashboard stylesheet this way.',
   },
 ]
 
@@ -102,7 +106,7 @@ export const srdCss: RuleSet = {
   exemptionsLive: 'packages/gates/rules/srdCss.ts',
   preflight(root) {
     assertScanFloor('srd-css (srd source files)', srdFiles(root).length, 65)
-    assertScanFloor('srd-css (component-lib source files)', libFiles(root).length, 100)
+    assertScanFloor('srd-css (src/ui source files)', libFiles(root).length, 100)
   },
   scan(root) {
     const entry: Finding[] = []
@@ -130,5 +134,5 @@ export const srdCss: RuleSet = {
     }
     return { 'srd-css-entry': entry, 'lib-css-import': lib }
   },
-  summary: (root) => `${srdFiles(root).length} srd + ${libFiles(root).length} component-lib files`,
+  summary: (root) => `${srdFiles(root).length} srd + ${libFiles(root).length} src/ui files`,
 }

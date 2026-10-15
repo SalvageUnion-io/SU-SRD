@@ -11,7 +11,7 @@ name: E2E (nightly)
 # notification service or webhook secret.
 #
 # srd has no job here: its whole Playwright suite gates every srd PR in
-# ci.yml's `build-srd`, and srd is a hermetic static build.
+# ci.yml's `build-web`, and srd is a hermetic static build.
 #
 # `production-smoke` re-runs deploy-cloudflare.yml's post-deploy smoke list
 # (tools/smoke-production.sh) against the live hostnames, so drift between
@@ -40,7 +40,7 @@ jobs:
     #
     # Why signed in: signed out, the Cantina is read-only (#1113, #1117), so a spec
     # that builds something and reads it back is by definition a test of the
-    # signed-in path. `apps/cantina/e2e/fixtures.ts` signs each such spec up with a
+    # signed-in path. `apps/web/e2e/cantina/fixtures.ts` signs each such spec up with a
     # fresh account through the `TestAuthBridge` seam; the specs about what a
     # signed-out visitor sees opt out with `account: 'anonymous'`.
     #
@@ -67,7 +67,7 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      - name: Start a throwaway Convex backend and build cantina against it
+      - name: Start a throwaway Convex backend and build the site against it
         uses: ./.github/actions/convex-backend
         with:
           test-auth: 'true'
@@ -81,10 +81,10 @@ jobs:
       # the seam or a lost build variable fails the run instead of turning the
       # whole suite green-because-it-did-nothing.
       - name: Run E2E tests
-        working-directory: apps/cantina
+        working-directory: apps/web
         env:
           CANTINA_E2E_EXPECT_AUTH_SEAM: '1'
-        run: bunx playwright test
+        run: bunx playwright test -c playwright.cantina.config.ts
 
       - name: Backend logs on failure
         if: failure()
@@ -101,7 +101,7 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright-report-cantina
-          path: apps/cantina/playwright-report/
+          path: apps/web/playwright-report/cantina/
           retention-days: 7
 
   production-smoke:

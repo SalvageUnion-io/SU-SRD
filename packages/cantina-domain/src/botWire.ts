@@ -10,7 +10,7 @@
  *
  * ## Why this module imports NOTHING
  *
- * That is the whole reason it is separate from `apps/cantina/convex/model/bot.ts`.
+ * That is the whole reason it is separate from `apps/web/convex/model/bot.ts`.
  * Every file the bot imports is type-checked under the bot's settings —
  * including this one. `model/bot.ts` imports `_generated/*`, which would drag
  * Convex's generated data model (and the `convex` package the bot does not
@@ -62,7 +62,7 @@ export type GamesResult = { games: GameSummary[] }
 /**
  * An entity body, exactly as Convex stores it — opaque.
  *
- * Convex cannot validate these (ADR-030: the Zod schemas in `apps/cantina` are the
+ * Convex cannot validate these (ADR-030: the Zod schemas in `apps/web/src/cantina` are the
  * source of truth and Convex stores bodies as `v.any()`), so the bot must not
  * pretend otherwise. Everything read off a body is read defensively, and the
  * derived maxima come from the server's `SheetResult.vitals` rather than from

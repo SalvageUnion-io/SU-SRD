@@ -91,15 +91,17 @@ check https://www.salvageunion.io/ 301 "srd www redirect"
 # standing up a second origin; only an explicit 301 assertion tells them apart.
 # cantina's is checked for the same reason.
 check https://www.intheunionnow.com/ 301 "cantina www redirect"
-# The Cantina lives at salvageunion.io/build (ADR-048): a Workers route ahead of srd's
-# Custom Domain. intheunionnow.com, where it lived before, 301s every page to
-# the same page there, a retired address straight to where it lives now
-# (apps/cantina/src/worker/legacyHost.ts).
+# The Cantina lives at salvageunion.io/build (ADR-048), served by su-srd
+# (apps/web/src/worker/build.ts). intheunionnow.com, where it lived before,
+# 301s every page to the same path there: a zone Redirect Rule, not repo config
+# (ADR-033, "Configuration outside the repo"). su-srd then sends a retired
+# address on to where it lives now (apps/web/src/cantina/worker/retiredRedirects.ts).
 check https://salvageunion.io/build/ 200 "cantina shell"
 check_redirect https://salvageunion.io/build 301 https://salvageunion.io/build/ "cantina bare base to its directory"
 check_redirect https://intheunionnow.com/ 301 https://salvageunion.io/build/ "cantina old host 301s to salvageunion.io/build"
 check_redirect https://intheunionnow.com/p/pilot/smoke?x=1 301 "https://salvageunion.io/build/p/pilot/smoke?x=1" "cantina old link keeps its path and query"
-check_redirect https://intheunionnow.com/join/SMOKE 301 https://salvageunion.io/build/invite/SMOKE "cantina retired /join link 301s straight to /invite (D6)"
+check_redirect https://intheunionnow.com/join/SMOKE 301 https://salvageunion.io/build/join/SMOKE "cantina old host keeps a retired path"
+check_redirect https://salvageunion.io/build/join/SMOKE 301 https://salvageunion.io/build/invite/SMOKE "cantina retired /join link 301s to /invite (D6)"
 # Plain http must never be served. Always Use HTTPS is a zone toggle, not repo
 # config (ADR-033, "Configuration outside the repo"); without it every hostname
 # answers http with 200 and HSTS never reaches a first-time visitor.
@@ -117,13 +119,18 @@ check_header https://salvageunion.io/ content-security-policy "srd CSP reaches t
 check_header https://salvageunion.io/ strict-transport-security "srd HSTS reaches the browser"
 check_header https://salvageunion.io/build/ content-security-policy "cantina CSP reaches the browser and admits error reports" "connect-src 'self'"
 check_header https://salvageunion.io/build/ strict-transport-security "cantina HSTS reaches the browser"
+# One Worker, two CSPs: su-srd's Worker overwrites srd's on every `/build`
+# answer (apps/web/src/worker/build.ts). Two CSP headers would both apply and
+# the stricter would block Convex, so sign-in would never complete.
+check_header https://salvageunion.io/build/ content-security-policy "cantina CSP admits Convex" "wss://*.convex.cloud"
+check_header_lacks https://salvageunion.io/ content-security-policy "srd CSP admits no Convex" "convex"
 # The endpoints that bring the browser's and Convex's errors into Workers Issues
 # are routed (packages/observability/src/cloudflare.ts): they take POST only.
 check https://salvageunion.io/__errors 405 "srd error report endpoint is routed"
 check https://salvageunion.io/build/__errors 405 "cantina error report endpoint is routed"
 check https://salvageunion.io/build/__convex-logs 405 "Convex log stream endpoint is routed"
-# cantina runs in single-page-application mode, so only its Worker keeps a missing
-# chunk from #759, where a missing hashed chunk answered `200 text/html` and the
+# The Cantina is a single-page app, so only su-srd's Worker keeps a missing
+# chunk under /build from #759, where a missing hashed chunk answered `200 text/html` and the
 # `immutable` header pinned that HTML into the HTTP cache for a year. curl sends
 # no `Sec-Fetch-Mode: navigate`, so these two reach the Worker exactly as a
 # module import and an unfurl bot do.
@@ -131,9 +138,9 @@ check https://salvageunion.io/build/assets/index-DEADBEEF.js 404 "cantina rotate
 check https://salvageunion.io/build/p/pilot/smoke 200 "cantina client route without a navigation"
 # `_headers` matches by path, not status, so its `/assets/*` rule would mark a
 # missing chunk's 404 `immutable` and a client that asks before a deploy
-# finishes would keep the 404 for a year. On both sites a Worker answers every
+# finishes would keep the 404 for a year. su-srd's Worker answers every such
 # miss with `no-store` instead, where `_headers` does not reach
-# (apps/srd/src/worker/index.ts, apps/cantina/src/worker/index.ts).
+# (apps/web/src/worker/index.ts, apps/web/src/cantina/worker/index.ts).
 check_header_lacks https://salvageunion.io/assets/index-DEADBEEF.js cache-control "srd rotated chunk 404 is not immutable" immutable
 check_header_lacks https://salvageunion.io/build/assets/index-DEADBEEF.js cache-control "cantina rotated chunk 404 is not immutable" immutable
 # A derivative, not the master: entity cards ask for `-440`/`-880` first. It
@@ -156,6 +163,8 @@ fi
 # One workers.dev check, deliberately: if the custom domains fail and this
 # passes, the Worker deployed fine and the routing layer is what broke.
 check https://su-srd.alxjrvs.workers.dev/ 200 "srd reachable on workers.dev"
+# su-srd, not a route ahead of it, serves the Cantina.
+check https://su-srd.alxjrvs.workers.dev/build/ 200 "cantina shell from su-srd on workers.dev"
 
 # /health answers 200 only when both the Cantina secrets are set and Discord itself
 # accepted the bot token (it calls /users/@me); 503 when a Cantina secret is

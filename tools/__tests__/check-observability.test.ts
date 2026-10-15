@@ -21,7 +21,7 @@ import { dirname, join } from 'node:path'
  * `'self'`, where the app posts its reports.
  */
 
-const CANTINA_HEADERS = 'apps/cantina/public/_headers'
+const CANTINA_HEADERS = 'apps/web/src/cantina/public/_headers'
 
 const ROOT = join(import.meta.dir, '..', '..')
 const TOOL = join(ROOT, 'tools', 'check-observability.ts')
@@ -32,21 +32,20 @@ const SELF = "connect-src 'self'"
  * it against a private copy of them and mutate only the copy — never the
  * working tree. Renaming the real `_headers` aside raced every other
  * workspace's tests that read it, because `test:coverage` runs the workspaces
- * concurrently: an srd test read `apps/srd/public/_headers` while it was
+ * concurrently: an srd test read `apps/web/public/_headers` while it was
  * stashed, and failed with ENOENT. A file the check starts reading without
  * being listed here fails the first test below, not silently.
  */
 const CHECKED_FILES = [
-  'apps/srd/src/lib/observability.ts',
-  'apps/srd/src/runtime/islands.client.ts',
-  'apps/srd/public/_headers',
-  'apps/srd/wrangler.jsonc',
-  'apps/srd/src/worker/index.ts',
-  'apps/cantina/src/lib/observability.ts',
-  'apps/cantina/src/main.tsx',
-  'apps/cantina/wrangler.jsonc',
+  'apps/web/src/lib/observability.ts',
+  'apps/web/src/runtime/islands.client.ts',
+  'apps/web/public/_headers',
+  'apps/web/wrangler.jsonc',
+  'apps/web/src/worker/index.ts',
+  'apps/web/src/cantina/lib/observability.ts',
+  'apps/web/src/cantina/main.tsx',
   CANTINA_HEADERS,
-  'apps/cantina/src/worker/index.ts',
+  'apps/web/src/cantina/worker/index.ts',
   'apps/su-assets/wrangler.jsonc',
   'apps/su-assets/src/worker/index.ts',
   'apps/discord-bot/wrangler.jsonc',
@@ -136,7 +135,7 @@ describe('check-observability CSP', () => {
 
   test('a failure names only the app whose CSP is missing', async () => {
     await withFileContents(
-      'apps/srd/public/_headers',
+      'apps/web/public/_headers',
       (s) => s.replace(/^\s*Content-Security-Policy:.*$/m, '  X-Retired-Policy: none'),
       async () => {
         const { exitCode, stderr } = await runCheck()
@@ -152,8 +151,8 @@ describe('check-observability CSP', () => {
   // the repo can blind it: from the site's creation until 3.0.0 neither origin
   // was allowed and the dashboard recorded one page load in six weeks.
   test.each([
-    ['apps/srd/public/_headers', 'script-src', 'https://static.cloudflareinsights.com'],
-    ['apps/srd/public/_headers', 'connect-src', 'https://cloudflareinsights.com'],
+    ['apps/web/public/_headers', 'script-src', 'https://static.cloudflareinsights.com'],
+    ['apps/web/public/_headers', 'connect-src', 'https://cloudflareinsights.com'],
     [CANTINA_HEADERS, 'script-src', 'https://static.cloudflareinsights.com'],
     [CANTINA_HEADERS, 'connect-src', 'https://cloudflareinsights.com'],
   ])('%s: a %s without %s fails', async (path, directive, source) => {
@@ -168,7 +167,7 @@ describe('check-observability CSP', () => {
     )
   })
 
-  test.each(['apps/srd/public/_headers', CANTINA_HEADERS])(
+  test.each(['apps/web/public/_headers', CANTINA_HEADERS])(
     'a missing %s fails as no CSP source',
     async (path) => {
       await withFileAbsent(path, async () => {
@@ -187,7 +186,7 @@ describe('check-observability CSP', () => {
 describe('check-observability reads parsed source, not prose', () => {
   test('an init call that is commented out fails', async () => {
     await withFileContents(
-      'apps/srd/src/runtime/islands.client.ts',
+      'apps/web/src/runtime/islands.client.ts',
       (s) => s.replace('\ninitBrowserObservability()', '\n// initBrowserObservability()'),
       async () => {
         const { exitCode, stderr } = await runCheck()
@@ -199,7 +198,7 @@ describe('check-observability reads parsed source, not prose', () => {
 
   test('an error report route that is commented out fails', async () => {
     await withFileContents(
-      'apps/cantina/src/worker/index.ts',
+      'apps/web/src/cantina/worker/index.ts',
       (s) =>
         s.replace(
           'return handleConvexLogStream(',
@@ -209,7 +208,7 @@ describe('check-observability reads parsed source, not prose', () => {
         const { exitCode, stderr } = await runCheck()
         expect(exitCode).toBe(1)
         expect(stderr).toContain(
-          '[cantina] apps/cantina/src/worker/index.ts never calls handleConvexLogStream()'
+          '[cantina] apps/web/src/cantina/worker/index.ts never calls handleConvexLogStream()'
         )
       }
     )

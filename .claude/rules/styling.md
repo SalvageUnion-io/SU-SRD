@@ -2,7 +2,7 @@
 paths:
   - '**/*.css'
   - '**/styles/**'
-  - 'packages/component-lib/src/design/**'
+  - 'apps/web/src/ui/design/**'
 ---
 
 # Styling — tokens, style objects, one stylesheet
@@ -11,13 +11,13 @@ The system is [ADR-046](../../docs/ARCHITECTURE.md#decisions); there is no
 utility framework (`bun run check styling`'s `no-tailwind` keeps it out).
 What an editor needs:
 
-- **The pattern:** `packages/component-lib/src/design/tokens.ts` (typed
-  scale) + `packages/component-lib/src/styles/index.css` (the one stylesheet
+- **The pattern:** `apps/web/src/ui/design/tokens.ts` (typed
+  scale) + `apps/web/src/ui/styles/index.css` (the one stylesheet
   every consumer loads; `.su-*` classes over the `theme.css` tokens). Its
   rules live in `styles/partials/`, one part per group, which `index.css`
   `@import`s in cascade order; tests read them joined
   (`styles/__tests__/packageStylesheet.ts`). The Dashboard's `.su-dash-*`
-  rules are the Cantina's (`apps/cantina/src/styles/dashboard/`); any other Cantina- or
+  rules are the Cantina's (`apps/web/src/cantina/styles/dashboard/`); any other Cantina- or
   srd-only rule lives in that app's stylesheets, because srd loads
   `index.css` too.
 - **The written form**, one spelling each:
@@ -51,8 +51,8 @@ What an editor needs:
   components. No speculative style object: add one with the component that
   needs it.
 - **Edit `tokens.ts` and `theme.css` together**:
-  `src/design/__tests__/tokens.parity.test.ts` fails if they disagree.
-- **The one entry:** `packages/component-lib/src/styles/entry.css` declares
+  `apps/web/src/ui/design/__tests__/tokens.parity.test.ts` fails if they disagree.
+- **The one entry:** `apps/web/src/ui/styles/entry.css` declares
   `@layer su-reset, su-base;`, imports `theme.css` unlayered, `reset.css` into
   `su-reset` and `index.css` into `su-base`. The two apps import it, never
   `index.css`, and their own stylesheets stay unlayered so an app rule

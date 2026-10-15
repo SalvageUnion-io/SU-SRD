@@ -10,15 +10,15 @@
  * once hand-rolled a Playwright script for its screenshots). This is that
  * script, once.
  *
- * - A target starting with `/` is an srd route, served by `bun run dev`.
- *   `cantina:/route` is a Cantina route (under its `/build` base, so `cantina:/starter`
- *   is `/build/starter`), served by the Cantina's Vite dev server booted signed out
- *   with no backend: `VITE_CONVEX_URL` points at a closed local port, so the
- *   pages that need no account (the front door, the Starter Set, a sign-in
- *   prompt) render, and anything that waits on Convex shows its loading or
- *   offline state. `bun run dev:cantina` (a real local backend) is not reused.
- * - Each server listens on this checkout's port (`packages/gates/lib/ports.ts`:
- *   4321 and 5180 in the primary checkout, offset in a linked worktree). One
+ * - A target starting with `/` is an srd route. `cantina:/route` is a Cantina
+ *   route (under its `/build` base, so `cantina:/starter` is `/build/starter`).
+ *   One dev server answers both: a running `bun run dev`, or else the dev server
+ *   alone (`ssg/dev.ts`, no `convex dev`) booted signed out with no backend:
+ *   `VITE_CONVEX_URL` points at a closed local port, so the Cantina's pages that
+ *   need no account (the front door, the Starter Set, a sign-in prompt) render,
+ *   and anything that waits on Convex shows its loading or offline state.
+ * - The server listens on this checkout's port (`packages/gates/lib/ports.ts`:
+ *   4321 in the primary checkout, offset in a linked worktree). One
  *   already answering there is reused only when its `x-su-checkout` header
  *   names this checkout; a server from another checkout is refused, never
  *   screenshotted. With none answering, this starts one and stops it
@@ -56,32 +56,27 @@ export type Server = {
   cwd: string
   env?: Readonly<Record<string, string>>
 }
-const SRD: Server = { name: 'srd', port: portFor('srd'), cmd: ['bun', 'run', 'dev'], cwd: REPO }
-
 /** The prefix that makes a target a Cantina route. */
 const CANTINA_PREFIX = 'cantina:'
 
-/** The Cantina's base path (`SITE.base` in `apps/cantina/src/lib/site.ts`, ADR-048). */
+/** The Cantina's base path (`SITE.base` in `apps/web/src/cantina/lib/site.ts`, ADR-048). */
 export const CANTINA_BASE = '/build'
 
 /**
  * Where the signed-out boot's Convex client points: a closed port on this
  * machine, so it fails fast and nothing leaves the machine. Any URL will do
- * (`vite.config.ts` refuses only a missing one); it beats a `.convex.cloud`
+ * (`vite.cantina.config.ts` refuses only a missing one); it beats a `.convex.cloud`
  * name, which would be looked up and might be someone's deployment.
  */
 export const NO_BACKEND = 'http://127.0.0.1:9'
 
-const CANTINA_PORT = portFor('cantina')
-const CANTINA: Server = {
-  name: 'cantina',
-  port: CANTINA_PORT,
-  // Vite itself, not `bun run dev:cantina`, which starts a Convex backend. The
-  // port goes on the command line: `vite.config.ts` leaves it at 5173 for
-  // `dev:cantina`.
-  cmd: ['bun', 'x', 'vite', '--port', String(CANTINA_PORT), '--strictPort'],
-  cwd: join(REPO, 'apps/cantina'),
-  // Over any `apps/cantina/.env.local` a `dev:cantina` run wrote: Vite lets the
+const DEV: Server = {
+  name: 'dev',
+  port: portFor('srd'),
+  // The dev server itself, not `bun run dev`, which starts a Convex backend.
+  cmd: ['bun', 'ssg/dev.ts'],
+  cwd: join(REPO, 'apps/web'),
+  // Over any `apps/web/.env.local` a `bun run dev` run wrote: Vite lets the
   // environment win.
   env: { VITE_CONVEX_URL: NO_BACKEND },
 }
@@ -127,8 +122,8 @@ export function planShot({ target }: Pick<ShotArgs, 'target'>): {
   path: string
 } {
   if (target.startsWith(CANTINA_PREFIX))
-    return { server: CANTINA, path: CANTINA_BASE + target.slice(CANTINA_PREFIX.length) }
-  return { server: SRD, path: target }
+    return { server: DEV, path: CANTINA_BASE + target.slice(CANTINA_PREFIX.length) }
+  return { server: DEV, path: target }
 }
 
 /** `<target>-<width>.png`, the target reduced to a safe file name. */
@@ -182,7 +177,7 @@ export async function ensureServer(server: Server): Promise<() => void> {
   console.error(`[shot] starting ${server.name} (${server.cmd.join(' ')}) on :${server.port}…`)
   const proc = Bun.spawn([...server.cmd], {
     cwd: server.cwd,
-    // srd honours an explicit `PORT`, so pin the one probed
+    // The dev server honours an explicit `PORT`, so pin the one probed
     // below over any `PORT` this shell inherited.
     env: { ...process.env, ...server.env, PORT: String(server.port) },
     stdout: 'ignore',
@@ -190,7 +185,7 @@ export async function ensureServer(server: Server): Promise<() => void> {
     detached: true,
   })
   const stop = () => {
-    // `bun run` → `bun --filter` → the server: signal the whole group.
+    // Signal the whole group: the server and anything it spawned.
     try {
       process.kill(-proc.pid, 'SIGTERM')
     } catch {

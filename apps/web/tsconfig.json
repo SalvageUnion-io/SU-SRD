@@ -1,0 +1,34 @@
+{
+  "extends": "../../tsconfig.dom.json",
+  "compilerOptions": {
+    "target": "ESNext",
+    "types": ["vite/client", "node", "bun-types", "@testing-library/jest-dom"]
+  },
+  // `convex/**/*` is the Convex backend — auth, ownership, games, invites,
+  // proposals, schema and the bot HTTP seam, i.e. the server of record for
+  // accounts (ADR-030). This include is the only thing that type-checks it
+  // (`bun run typecheck`, CI, pre-push); knip and Biome claim the directory for
+  // this workspace too, but neither checks types.
+  //
+  // `e2e/**/*` and the Playwright configs are the same hole one layer out:
+  // Playwright transpiles specs without type-checking them, and biome.jsonc
+  // disables the linter for both paths, so this include is their only check
+  // beyond the formatter.
+  "include": [
+    "src/**/*",
+    "ssg/**/*",
+    "scripts/**/*",
+    "test/**/*",
+    "convex/**/*",
+    "e2e/**/*",
+    "*.config.ts"
+  ],
+  // `include` is explicit, but a stale build output must never be typechecked.
+  "exclude": ["dist"],
+  "references": [
+    { "path": "../../packages/cantina-domain" },
+    { "path": "../../packages/gates" },
+    { "path": "../../packages/observability" },
+    { "path": "../../packages/salvageunion-reference" }
+  ]
+}

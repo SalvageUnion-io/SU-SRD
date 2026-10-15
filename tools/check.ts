@@ -156,7 +156,7 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'workers',
     guards:
-      'the four Workers share one shape: src/worker/index.ts, one script set, Env types, equal shared wrangler keys',
+      'the three Workers share one shape: src/worker/index.ts, one script set, Env types, equal shared wrangler keys',
     fix: 'make the app match the others (tools/check-workers.ts names each rule); a new Worker joins WORKER_APPS in tools/check-generated.ts',
     cmd: ['bun', 'tools/check-workers.ts'],
     areas: ['code'],
@@ -175,7 +175,7 @@ export const CHECKS: readonly CheckSpec[] = [
     id: 'client-contract',
     guards:
       'a Convex argument change that refuses calls an open Cantina tab still makes raises the build floor',
-    fix: 'keep it compatible (optional argument, keep the old function) or raise BUILD_FLOOR in apps/cantina/convex/buildFloor.ts to `date +%s`; then `bun tools/check-client-contract.ts --write` records tools/baselines/convex-client-contract.json',
+    fix: 'keep it compatible (optional argument, keep the old function) or raise BUILD_FLOOR in apps/web/convex/buildFloor.ts to `date +%s`; then `bun tools/check-client-contract.ts --write` records tools/baselines/convex-client-contract.json',
     cmd: ['bun', 'tools/check-client-contract.ts'],
     areas: ['code'],
     profiles: ALL,
@@ -183,7 +183,7 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'rules-home',
     guards:
-      'Convex imports nothing from apps/cantina/src/; no rules- or model-named module sits in apps/cantina/src/components/',
+      'Convex imports nothing from apps/web/src/cantina/; no rules- or model-named module sits in apps/web/src/cantina/components/',
     fix: 'move shared logic to cantina-domain or salvageunion-reference; move a rule to a lib/rules home, or name a one-component view-model `<name>.model.ts`',
     cmd: ['bun', 'tools/check-rules-home.ts'],
     areas: ['code'],
@@ -209,7 +209,7 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'barrel-consumers',
     guards:
-      "no component-lib export is a composition only one app renders (an export nothing imports is knip's)",
+      "no src/ui export is a composition only one app renders (an export nothing imports is knip's)",
     fix: "move a single-app composition into that app's src/components/; a single-app helper outside the group directories needs a SINGLE_APP reason",
     cmd: ['bun', 'tools/check-barrel-consumers.ts'],
     areas: ['code'],

@@ -58,7 +58,7 @@ export function assetUrl(path: string): string {
 }
 
 /**
- * Origin of the public Salvage Union reference site (`apps/srd`). Every deep
+ * Origin of the public Salvage Union reference site (`apps/web`). Every deep
  * link into the SRD — from the Cantina, from the Discord bot, from the site's own
  * canonical/OG tags — is this base plus {@link srdEntityPath},
  * so the host is named once here rather than retyped per surface.
@@ -95,7 +95,7 @@ export function srdEntityPath(schemaName: string, slug: string): string {
  * The other half of the route grammar, and it exists for the same reason
  * {@link srdEntityPath} does. Both are written WITHOUT a trailing slash; srd
  * emits directory-style output and appends the slash itself in exactly one
- * place (`apps/srd/src/lib/entityHref.ts`), so the slash is a rendering
+ * place (`apps/web/src/lib/entityHref.ts`), so the slash is a rendering
  * decision of that app rather than part of the grammar.
  *
  * Keep this the only place either shape is spelled. Directory-style output

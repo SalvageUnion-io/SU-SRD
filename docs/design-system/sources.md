@@ -22,7 +22,7 @@ Id · title — where code cites it (`board NN`); "—" means no code cites it. 
 6. **08b** SRD roll table — `RollTablePage`, `RollTableView`, `RollTableIsland`, `rollTablePage`, `columnsTablePage`, `RollTableInstrument`.
 7. **E1** Card size × extent — `referenceEntity/card/` head, labels, pennant, facets, tone. **E2** Nesting — `NestedCards`, `bodyBlocks`.
 8. **E3** Five contexts — `StatusRail`, `CardPennant`, `peekPlate`. **E4** Embedded roll table — `CardRollTable`, `RollTableInstrument`.
-9. **09** The Cantina front door — `FrontDoor`, `Roster`, `AppHeader`. **10** Pilot sheet, printed — the Cantina `components/sheet/`, `Field`.
+9. **09** The Cantina front door — `FrontDoor`, `Roster`, `shell/unionBar.ts`. **10** Pilot sheet, printed — the Cantina `components/sheet/`, `Field`.
 10. **D1–D5** Dashboard: boarded, Crew tab, Downtime, phone Mech tab, phone resolve — the Cantina `components/dashboard/`, `VitalGauge`, `pipRows`.
 11. **P1** Saving a pattern — `SavePatternPage`, `patterns`, `CardLabels`, `NpcSheet`, `Sheet`, the Cantina `mechs/patterns/new`, cantina-domain `pattern`, convex `shelf`. **P2** Shared pattern page — `PublicPattern`, convex `publicSheet`.
 12. **N1** Generic NPC designer — `AnyNpcDesigner`. **N2** Crawler crew — `CrewBoard`, `crewFormState`.

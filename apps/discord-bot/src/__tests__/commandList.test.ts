@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { commandList, renderCommandListModule } from '../commandList'
 
-const COMMITTED = join(import.meta.dir, '../../../srd/src/generated/discordCommands.ts')
+const COMMITTED = join(import.meta.dir, '../../../web/src/generated/discordCommands.ts')
 
 describe('the /su command list', () => {
   test('lists every leaf subcommand in registration order', () => {

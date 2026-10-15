@@ -2,10 +2,10 @@
   The canonical author bio for this project.
 
   Rendered verbatim in the colophon on the About page both tools share,
-  alongside `LLM_STATEMENT.md` — srd's `/about` (`apps/srd/src/pages/about.page.tsx`,
+  alongside `LLM_STATEMENT.md` — srd's `/about` (`apps/web/src/pages/about.page.tsx`,
   read at build time with node:fs). The Cantina links there and keeps no copy.
 
-  Format contract (see `packages/component-lib/src/markdownSection/`): one `#`
+  Format contract (see `apps/web/src/ui/markdownSection/`): one `#`
   heading, then blank-line-separated paragraphs. `[label](href)` links are the
   only inline markdown the renderer interprets — bold, italics and lists would
   ship as literal punctuation.

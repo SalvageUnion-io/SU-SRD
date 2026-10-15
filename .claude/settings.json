@@ -127,7 +127,7 @@
       "Edit(**/worker-configuration.d.ts)",
       "Edit(**/dist/**)",
       "Edit(**/*.tsbuildinfo)",
-      "Edit(**/apps/cantina/convex/_generated/**)",
+      "Edit(**/apps/web/convex/_generated/**)",
       "Edit(**/bun.lock)"
     ]
   },

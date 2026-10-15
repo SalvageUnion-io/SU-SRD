@@ -55,8 +55,8 @@ export function discoverWorkspaceDirs(root: string = ROOT, { withTools = false }
  *
  * `scanned` holds repo-relative paths — directories or globs, as the calling
  * gate happens to express them. A workspace counts as covered when some entry
- * is that workspace directory or sits beneath it, so `apps/srd/src` and
- * `apps/srd/src/**\/*.tsx` both cover `apps/srd`.
+ * is that workspace directory or sits beneath it, so `apps/web/src` and
+ * `apps/web/src/**\/*.tsx` both cover `apps/web`.
  */
 export function assertCoversWorkspaces(
   label: string,

@@ -1,0 +1,1339 @@
+/*
+ * srd's page layouts — the Contents home (board 06), the entity page frame
+ * (boards 07, 08), the roll-table page (board 08b), the listing rows and the
+ * footer band, and the About and Changelog pages' parts.
+ *
+ * `global.css` imports it. Classes are `srd-*`; the shared parts they compose
+ * (`ChapterBand`, `ChapterFoot`, the card's page presentation) style
+ * themselves.
+ */
+
+/*
+ * The home page — the manual's Contents page (board 06, `index.page.tsx` and
+ * `components/HomeContents.tsx`). At the one page measure: the index in columns and
+ * the "Getting started" sidebar at its right; on a phone, the title, the
+ * search, "Start here", then the index.
+ */
+.srd-home__lede {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  max-width: 38rem;
+  width: 100%;
+}
+
+/* The not-found page's lede type. */
+.srd-not-found__lede p {
+  font-size: var(--text-readout);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Below the desktop the lede has no room beside the title, so it follows the
+   title instead of riding above it (the band's own stack is column-reverse):
+   the title notched into the band's foot, then the lede and search on the
+   page ground the notch is cut from. The aside spans the row's padding so the
+   ground runs edge to edge, and the row drops its gap so the notch sits flush
+   on the band's foot. */
+@media (max-width: 63.99rem) {
+  .srd-home__band .su-chapter-band__row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .srd-home__band .su-chapter-band__aside {
+    align-self: stretch;
+    background-color: var(--color-wk-bg);
+    margin-inline: calc(-1 * var(--space-16));
+    padding: var(--space-16) var(--space-16) 0;
+  }
+}
+
+@media (min-width: 40rem) and (max-width: 63.99rem) {
+  .srd-home__band .su-chapter-band__aside {
+    margin-inline: calc(-1 * var(--space-24));
+    padding-inline: var(--space-24);
+  }
+}
+
+/* The home band holds only the title and the search (owner, 2026-10-14) and
+   is as tall as the Cantina's front-door band: its title opens where the
+   Cantina's does under that band's eyebrow (the eyebrow's top padding, its
+   caption line, then 12px). */
+@media (max-width: 39.99rem) {
+  .srd-home__band .su-chapter-band__row {
+    padding-top: calc(var(--space-48) + var(--space-8));
+  }
+}
+
+@media (min-width: 40rem) {
+  .srd-home__band .su-chapter-band__row {
+    padding-top: var(--space-64);
+  }
+}
+
+@media (min-width: 64rem) {
+  .srd-home__band .su-chapter-band__title {
+    flex: none;
+  }
+
+  .srd-home__band .su-chapter-band__aside {
+    flex: 0 1 38rem;
+    min-width: 0;
+  }
+}
+
+/* The index, then the aside: one stack on a phone, the catalogs first and
+   "Start here" (with the Discord button under it) below them (owner,
+   2026-10-15). */
+.srd-home__body,
+.srd-not-found__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+.srd-home__aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+  min-width: 0;
+}
+
+/* The index's sections in one flow: up to three columns of at least 16rem,
+   filled down then across and balanced, so no column ends on a hole. Multi-
+   column has no row gap, so each section carries its own. */
+.srd-home__index {
+  column-gap: var(--space-28);
+  columns: 3 15rem;
+  min-width: 0;
+}
+
+.srd-home__index > * {
+  break-inside: avoid;
+  margin-block-end: var(--space-24);
+}
+
+/* A desktop pins the aside to a 20rem sidebar at the right of the index. */
+@media (min-width: 64rem) {
+  .srd-home__body {
+    align-items: start;
+    column-gap: var(--space-28);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 20rem;
+  }
+
+  .srd-home__aside {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .srd-home__index {
+    grid-column: 1;
+    grid-row: 1;
+  }
+}
+
+/* The hero search on the Contents band (`HeroSearch.tsx`). */
+.srd-hero-search {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-10);
+}
+
+.srd-hero-search__box {
+  flex: 1 1 16rem;
+  min-width: 0;
+  position: relative;
+}
+
+.srd-hero-search__field {
+  border-width: var(--bw-chrome);
+  min-height: 46px;
+  padding-inline: var(--space-14);
+}
+
+/*
+ * The not-found page (`404.page.tsx`, `islands/DidYouMeanIsland.tsx`): the
+ * rules band with the hero search, then the guesses and the five chapters on
+ * the page ground. Ink on paper throughout; a chapter's colour is only its
+ * swatch (ruleset §3.8).
+ */
+.srd-not-found__lede {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  max-width: 34rem;
+  width: 100%;
+}
+
+@media (min-width: 40rem) and (max-width: 63.99rem) {
+  .srd-not-found__band .su-chapter-band__row {
+    align-items: flex-start;
+    flex-direction: column-reverse;
+  }
+}
+
+@media (min-width: 64rem) {
+  .srd-not-found__band .su-chapter-band__title {
+    flex: none;
+  }
+
+  .srd-not-found__band .su-chapter-band__aside {
+    flex: 0 1 34rem;
+    min-width: 0;
+  }
+}
+
+.srd-not-found__body {
+  gap: var(--space-28);
+}
+
+.srd-not-found__guesses,
+.srd-not-found__chapters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+/* The guesses: search-result Rows. */
+.srd-not-found__results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.srd-not-found__link {
+  align-self: flex-start;
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.srd-not-found__chapter-list {
+  display: grid;
+  gap: var(--space-10);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+}
+
+/* A chapter as the home index opens one: its colour band on top
+   (`.srd-contents__band`), then its name under an ink rule. */
+.srd-not-found__chapter {
+  color: var(--color-ink);
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+}
+
+.srd-not-found__chapter-name {
+  align-items: center;
+  border-top: var(--bw-chrome) solid var(--color-ink);
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.1;
+  min-height: 44px;
+  padding: var(--space-6) 0;
+}
+
+.srd-not-found__chapter:hover .srd-not-found__chapter-name {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* A chapter of the index: its colour band, its name and count, its rows. */
+.srd-contents__chapter {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.srd-contents__band {
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-bottom: 0;
+  height: 8px;
+}
+
+.srd-contents__heading {
+  align-items: baseline;
+  border-top: var(--bw-chrome) solid var(--color-ink);
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-bold);
+  gap: var(--space-12);
+  justify-content: space-between;
+  line-height: 1.1;
+  margin: 0;
+  padding: var(--space-6) 0;
+}
+
+.srd-contents__total {
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+}
+
+.srd-contents__rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.srd-contents__rows > li {
+  border-top: var(--bw-hairline) solid var(--color-ink-15);
+}
+
+.srd-contents__row {
+  align-items: center;
+  color: var(--color-ink);
+  display: flex;
+  font-size: var(--text-base);
+  gap: var(--space-12);
+  justify-content: space-between;
+  min-height: 36px;
+  text-decoration: none;
+}
+
+.srd-contents__row:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.srd-contents__count {
+  color: var(--color-ink-2);
+  font-family: var(--font-cond);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-semibold);
+}
+
+/* The touch floor (ruleset §4.6), as theme.css's coarse-pointer rule. A phone
+   width takes it too: the pointer query alone flips during a full-page
+   capture, so the page was laid out at 44px rows and painted at 36px. */
+@media (pointer: coarse), (max-width: 40rem) {
+  .srd-contents__row {
+    min-height: 44px;
+  }
+}
+
+/* The home page's Discord button (`DiscordButton` in `HomeContents.tsx`): a
+   full-size button in Discord's blurple (a one-off, owner's call 2026-10-14)
+   with Discord's mark, the width of "Start here" above it. */
+a.srd-home__discord {
+  background-color: var(--color-discord);
+  border-color: var(--color-discord);
+  color: var(--color-paper);
+}
+
+a.srd-home__discord:hover {
+  filter: brightness(0.9);
+}
+
+.srd-home__discord-mark {
+  flex: none;
+  height: 1.25em;
+  width: 1.25em;
+}
+
+/*
+ * An entity page (`EntityPageFrame`): band, then body. The article fills the
+ * page so the site footer's citation band closes it at the foot. The band
+ * always sits flush under the site bar; the body takes the rest of the
+ * height, and a page too short to fill the screen centres its content in
+ * that space, while a long one runs on from the band as before.
+ */
+.srd-entity {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+/* A show page's body: the rest of the height, its content centred in it. */
+.srd-entity__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/*
+ * The one page body (`.srd-page-body`): every page family's content under its
+ * band — show pages, listings, search, the Contents home, the document pages
+ * and the 404 — at the one measure (`--srd-measure`, `lib/pageMeasure.ts`),
+ * centred, its side padding the gutter: 16px on a phone, 24px from `sm`. The
+ * band's row and the foot's share the measure and the padding, so the notch,
+ * the content and the citation start on one line.
+ */
+.srd-page-body {
+  margin-inline: auto;
+  max-width: var(--srd-measure);
+  padding: var(--space-20) var(--space-16) var(--space-32);
+  width: 100%;
+}
+
+@media (min-width: 40rem) {
+  .srd-page-body {
+    padding: var(--space-24) var(--space-24) var(--space-32);
+  }
+}
+
+/*
+ * A creation guide's exits (`EntityPageFrame`'s `exits`): under the card,
+ * behind an ink rule: the build action, the next guide as the book's exit
+ * arrow, and the Starter Set. One row that wraps on a phone.
+ */
+.srd-guide-exits {
+  align-items: center;
+  border-top: var(--bw-chrome) solid var(--color-ink);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-20);
+  margin-block-start: var(--space-24);
+  padding-block-start: var(--space-16);
+}
+
+.srd-guide-exits__next,
+.srd-guide-exits__starter {
+  align-items: center;
+  color: var(--color-ink);
+  display: inline-flex;
+  font-family: var(--font-cond);
+  min-height: 44px;
+  text-underline-offset: 3px;
+}
+
+.srd-guide-exits__next {
+  font-size: var(--text-readout);
+  gap: var(--space-4);
+  font-weight: var(--font-weight-bold);
+  text-decoration: none;
+}
+
+.srd-guide-exits__next:hover {
+  text-decoration: underline;
+}
+
+.srd-guide-exits__starter {
+  font-weight: var(--font-weight-semibold);
+  text-decoration: underline;
+}
+
+/*
+ * The SEO / no-JS entity fallback (`StaticEntityContent`): plain reading
+ * prose, a label/value stat list, a real roll table and named sections. Its
+ * references are src/ui `InlineRef`s.
+ */
+.srd-static {
+  color: var(--color-ink);
+  display: flex;
+  flex-direction: column;
+  font-size: var(--text-base);
+  gap: var(--space-12);
+  line-height: 1.6;
+  max-width: 52rem;
+}
+
+.srd-static__label {
+  font-family: var(--font-cond);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-snug);
+  text-transform: uppercase;
+}
+
+.srd-static__stats {
+  display: grid;
+  gap: var(--space-4) var(--space-16);
+  grid-template-columns: auto 1fr;
+}
+
+.srd-static__table-wrap {
+  overflow-x: auto;
+}
+
+.srd-static__table {
+  border-collapse: collapse;
+  text-align: left;
+  width: 100%;
+}
+
+.srd-static__table th,
+.srd-static__table td {
+  border-bottom: var(--bw-hairline) solid var(--color-ink-20);
+  padding: var(--space-4) var(--space-8);
+  vertical-align: top;
+}
+
+.srd-static__table thead th {
+  border-bottom: var(--bw-chrome) solid var(--color-ink);
+  font-family: var(--font-cond);
+  text-transform: uppercase;
+}
+
+.srd-static__table tbody th {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.srd-static__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.srd-static__source {
+  color: var(--color-wk-muted);
+  font-size: var(--text-caption);
+}
+
+/*
+ * The roll-table page (`RollTableView`, board 08b): the table's prose, the
+ * table, then the Randsum credit. A roll's result is a toast, not a panel.
+ */
+.srd-roll {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  min-width: 0;
+}
+
+.srd-roll__description {
+  font-size: var(--text-lg);
+  line-height: 1.55;
+  margin: 0;
+  max-width: 68ch;
+}
+
+/* At the column's foot, under the table: the Randsum credit, very small. */
+.srd-roll__credit {
+  color: var(--color-wk-muted);
+  font-size: var(--text-badge);
+  margin: 0;
+}
+
+@media (min-width: 64rem) {
+  .srd-roll {
+    gap: var(--space-12);
+  }
+
+  /* Wide screens set the note tighter, so a table reads on one screen. */
+  .srd-roll__description {
+    font-size: var(--text-base);
+    line-height: 1.5;
+  }
+
+  /*
+   * A wordy page (`rollTableDensity`) sets tighter so it ends above the fold:
+   * `compact` sets the note smaller across a wider measure. The bands' own
+   * setting is the instrument's (`RollTableInstrument`'s `density`,
+   * the UI library's index.css).
+   */
+  .srd-roll:is([data-density='compact'], [data-density='dense']) .srd-roll__description {
+    font-size: var(--text-sm);
+    line-height: 1.45;
+    max-width: 92ch;
+  }
+
+  /* The page sits closer under its band: a line the fold needs. */
+  .srd-page-body:has(.srd-roll) {
+    padding-top: var(--space-16);
+  }
+}
+
+/*
+ * A schema listing (`SchemaViewerIsland`): the filter rail, then the entities
+ * as compact cards (`EntityListingRow`, `extent="head"`) in groups the book
+ * prints them in, each under a solid slab. Each listing sets how narrow a card
+ * may get: chassis, with a long row of value cells, take two across; the rest
+ * three. The server renders the same grid as plain named rows
+ * (`schema/[schemaId]/index.page.tsx`), so the first paint is the index, not a
+ * blank band, before the island mounts.
+ */
+.srd-listing-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.srd-listing-page {
+  background-color: var(--color-wk-bg);
+}
+
+.srd-listing {
+  --srd-listing-min: 19rem;
+  /* A tile's band under its art (the Catalog's placeholders, below). */
+  --srd-tile-band: 8.3125rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  width: 100%;
+}
+
+.srd-listing[data-wide] {
+  --srd-listing-min: 31rem;
+}
+
+.srd-listing__groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+}
+
+.srd-listing__group {
+  container: srd-group / inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* An entity grid (`data-entity-grid`): every Row in it is one height, at
+   every width, and its heads end on one line (the UI library's entity forms).
+   Its row tracks are the UI library's (`[data-entity-grid]`): equal (`1fr`),
+   each Row stretched to fill its cell, or a line's own height where a Row is
+   its head alone. Setting them here, unlayered, would override that. */
+.srd-listing__cards {
+  /* The Row's art column, wider here so the line art reads at a glance; the
+     art fills it top to bottom. */
+  --su-head-art-min: 7rem;
+  --su-head-art-min-phone: 6rem;
+  --su-head-art-width: 6.5rem;
+  --su-head-art-width-phone: 5rem;
+  display: grid;
+  gap: var(--space-8);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--srd-listing-min)), 1fr));
+}
+
+/* A listing's Rows (`data-entity-fit`): each as wide as its title on one line
+   (the UI library's entity forms), no narrower than the listing's measure,
+   growing to fill its line, so a short group never leaves the line's end
+   empty; a phone stacks them. Rows on a line share its height. */
+.srd-listing__cards[data-entity-fit] {
+  align-items: stretch;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.srd-listing__cards[data-entity-fit] > * {
+  flex: 1 1 auto;
+  min-width: min(100%, var(--srd-listing-min));
+}
+
+@media (max-width: 40rem) {
+  .srd-listing__cards[data-entity-fit] > * {
+    flex-basis: 100%;
+  }
+}
+
+/* The abilities' Tree (`data-view="tree"`) is one flat column: its tracks,
+   and a tree's plain rows, a Row a line, each its own height. */
+:where(.srd-listing[data-view='tree']) .srd-listing__cards {
+  grid-auto-rows: auto;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.srd-listing[data-view='tree'] .srd-listing__cards[data-entity-fit] {
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+
+.srd-listing[data-view='tree'] .srd-listing__cards[data-entity-fit] > * {
+  flex: none;
+  min-width: 0;
+}
+
+.srd-listing__fallback-row {
+  align-items: center;
+  background-color: var(--color-paper);
+  border: var(--bw-entity-compact) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  color: var(--color-ink);
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-readout);
+  font-weight: var(--font-weight-bold);
+  min-height: 44px;
+  overflow: hidden;
+  padding: 0 var(--space-12);
+  text-decoration: none;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/*
+ * THE CATALOG (`data-view="catalog"`): the Tiles (the UI library's
+ * `.su-entity-tile`), every listing's view at every width, one flat grid
+ * (`lib/listingView.ts`). It fills its line to the page's margin: as many
+ * 17rem-or-wider tracks as the measure holds (four at the page's), stretched
+ * to share the room, the remainder on a shorter last line. Every tile on the
+ * page is one width. A tile's art box holds 3:4 before its image loads.
+ */
+.srd-listing__tiles {
+  align-items: stretch;
+  display: grid;
+  gap: var(--space-12);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+}
+
+.srd-listing__tiles > li {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* The browser skips laying out and painting a tile until it nears the
+   viewport: an index ships every tile as HTML (200–290 KB), and laying them
+   all out was most of what still blocked the main thread on load. The
+   reserved height is a tile's (3:4 art over its band) until it has been
+   laid out once, then its own (`auto`). Off-screen only, so the opening row
+   and anything in view are unaffected; find-in-page still reaches them.
+   `content-visibility` also contains paint, which would clip the focus
+   ring's 4px drawn outside the tile, so the item reaches 4px past its grid
+   area on every side and pads the tile back into place: the ring paints
+   inside it. (`overflow-clip-margin` would do it, but Safari ignores it.) */
+.srd-listing__tiles > li:nth-child(n + 5) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto calc(36rem + 8px);
+  margin: -4px;
+  padding: 4px;
+}
+
+/* On a phone a tile's art is a 2:1 band (`.su-entity-tile__art`,
+   the UI library's `entity-forms.css`), not 3:4: 310px a tile at 390px, so
+   the reserve and the skeleton's art box take that shape. */
+@media (max-width: 40rem) {
+  .srd-listing__tiles > li:nth-child(n + 5) {
+    contain-intrinsic-size: auto calc(19.375rem + 8px);
+  }
+
+  .srd-listing__tile-skeleton::before {
+    aspect-ratio: 2 / 1;
+  }
+}
+
+/* An art-less Catalog's tile is its band and lead alone (`data-catalog`). */
+.srd-listing[data-catalog] .srd-listing__tiles > li:nth-child(n + 5) {
+  contain-intrinsic-size: auto calc(9rem + 8px);
+}
+
+/* The Tree view's trees, after the first two, skip layout and paint the same
+   way: the abilities index draws 36 trees of Rows, and laying them all out
+   was what still blocked its main thread on load. The reserved height is a
+   tree's (one track of Rows) until it has been laid out once: about 18.5rem
+   at desktop widths, where most trees measure 294px, and 25rem on a phone,
+   where their Rows wrap to 380–420px. The same 4px reach keeps the Rows'
+   focus rings inside the paint containment. */
+.srd-listing[data-view='tree'] .srd-listing__group:nth-child(n + 3) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto calc(18.5rem + 8px);
+  margin: -4px;
+  padding: 4px;
+}
+
+@media (max-width: 40rem) {
+  .srd-listing[data-view='tree'] .srd-listing__group:nth-child(n + 3) {
+    contain-intrinsic-size: auto calc(25rem + 8px);
+  }
+}
+
+/* A tile's place while the data loads, in the tile's own structure: its 3:4
+   art box (inside the frame's border), then a fixed band for the tone band
+   (its chips beside the name) and the lore line's three lines. The band does
+   not scale with the column, so the shape holds at every column width.
+   Measured at 1280px and 1440px, the band under the art runs 8.3125rem where
+   the chips keep to two rows (chassis, bio-titans, classes); a row whose
+   tiles fall short of that stretches to it. The
+   server-rendered names below take the same shape. */
+.srd-listing__tile-skeleton {
+  background-color: var(--color-paper);
+  border: var(--bw-entity-compact) solid var(--color-ink-20);
+  border-radius: var(--radius-card);
+  padding-bottom: var(--srd-tile-band);
+}
+
+.srd-listing__tile-skeleton::before {
+  aspect-ratio: 3 / 4;
+  content: '';
+}
+
+/*
+ * A Catalog of tiles with no art (`data-catalog`): each tile is its band,
+ * cells and lead, so wider columns — three across at the page's measure, two
+ * on a tablet, one on a phone — hold the lead in two or three lines. 8.25rem
+ * on the built site. Before the island mounts, its skeletons and
+ * server-rendered names take that shape.
+ */
+.srd-listing[data-catalog] {
+  --srd-tile-band: 8.25rem;
+}
+
+.srd-listing[data-catalog] .srd-listing__tiles {
+  gap: var(--space-12);
+  grid-auto-rows: auto;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+}
+
+.srd-listing[data-catalog] .srd-listing__tile-skeleton::before {
+  content: none;
+}
+
+/* The abilities' Catalog | Tree toggle sits at the rail's end, beside the facets. */
+.srd-rail__view {
+  flex: none;
+}
+
+/*
+ * THE RAIL — one row of 44px controls (origin boards S1 and 05): search, the
+ * TL badge as a toggle, the Source / Tree menus, then Catalog | Tree on the
+ * abilities. On a phone the facets fold behind a Filters button that counts
+ * the active ones.
+ */
+.srd-rail {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-10) var(--space-12);
+}
+
+.srd-rail .srd-rail__search {
+  flex: 1 1 16rem;
+  max-width: 22rem;
+  min-height: 44px;
+}
+
+.srd-rail form.srd-rail__search {
+  display: flex;
+}
+
+/* The search page's field fills its form, at the rail's 44px. */
+.srd-rail__search > .srd-rail__field {
+  flex: 1 1 auto;
+  min-height: 44px;
+}
+
+/* The field's clear button, in ink like the rest of the rail (the browser's
+   own is a blue glyph). */
+.srd-rail input[type='search']::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: var(--color-ink);
+  cursor: pointer;
+  height: 14px;
+  mask:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round'><path d='M6 6l12 12M18 6L6 18'/></svg>")
+    center / contain no-repeat;
+  width: 14px;
+}
+
+.srd-rail__spring {
+  flex: 1 1 0;
+}
+
+.srd-rail__facets {
+  display: contents;
+}
+
+.srd-rail__filters {
+  align-items: center;
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  color: var(--color-ink);
+  cursor: pointer;
+  display: none;
+  font-family: var(--font-cond);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  gap: var(--space-8);
+  letter-spacing: var(--tracking-caps-tight);
+  min-height: 44px;
+  padding: 0 var(--space-14);
+  text-transform: uppercase;
+}
+
+.srd-rail__count {
+  align-items: center;
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  display: inline-flex;
+  font-size: var(--text-xs);
+  height: 20px;
+  justify-content: center;
+  min-width: 20px;
+  padding: 0 var(--space-4);
+}
+
+.srd-rail .srd-rail__menu {
+  font-family: var(--font-cond);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  max-width: 16rem;
+  min-height: 44px;
+  text-transform: uppercase;
+  width: auto;
+}
+
+.srd-rail .srd-rail__menu[data-on] {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+/* The TL badge: its ink stamp leads the Tech Level `Segmented`, as `[TL | 2]` reads on a card. */
+.srd-rail__stamp {
+  align-items: center;
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  display: flex;
+  flex: none;
+  font-family: var(--font-cond);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  padding: 0 var(--space-10);
+}
+
+/* What is filtered: the count, a token per filter, Clear all. On an index it
+   sits in the rail between the search and the menus, taking the room between
+   them (the spring steps aside) and wrapping its tokens there. Below 15rem of
+   room it is the next line's lead instead, and the controls after it follow. */
+.srd-rail__status {
+  align-items: center;
+  color: var(--color-ink-2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6) var(--space-10);
+}
+
+.srd-rail > .srd-rail__status {
+  flex: 1 1 0;
+  min-width: min(100%, 15rem);
+}
+
+.srd-rail__status > * {
+  white-space: nowrap;
+}
+
+.srd-rail__status ~ .srd-rail__spring {
+  display: none;
+}
+
+.srd-rail__tally {
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  text-transform: uppercase;
+}
+
+.srd-rail__token {
+  align-items: center;
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  color: var(--color-ink);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-bold);
+  gap: var(--space-6);
+  letter-spacing: var(--tracking-caps-tight);
+  min-height: 32px;
+  padding: 0 var(--space-6) 0 var(--space-10);
+  text-transform: uppercase;
+}
+
+.srd-rail__token:hover {
+  background-color: var(--color-band-cream);
+}
+
+.srd-rail__clear {
+  background: none;
+  border: 0;
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  font-weight: var(--font-weight-semibold);
+  min-height: 32px;
+  padding: 0 var(--space-2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Phone: search takes the row, then Filters and Catalog | Tree; the facets open beneath. */
+@media (max-width: 40rem) {
+  .srd-rail .srd-rail__search {
+    flex-basis: 100%;
+    max-width: none;
+  }
+
+  .srd-rail__filters {
+    display: inline-flex;
+  }
+
+  .srd-rail__facets {
+    display: none;
+  }
+
+  .srd-rail[data-open] .srd-rail__facets {
+    background-color: var(--color-paper);
+    border: var(--bw-chrome) solid var(--color-ink);
+    border-radius: var(--radius-card);
+    display: flex;
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    gap: var(--space-10);
+    padding: var(--space-12);
+  }
+
+  .srd-rail[data-open] .srd-rail__menu {
+    max-width: none;
+    width: 100%;
+  }
+
+  /* Below the controls and any open facets, on its own line. */
+  .srd-rail > .srd-rail__status {
+    flex-basis: 100%;
+    order: 1;
+  }
+
+  .srd-rail__status ~ .srd-rail__spring {
+    display: block;
+  }
+}
+
+@media print {
+  .srd-rail {
+    display: none;
+  }
+}
+
+/*
+ * A class page's ability trees (`components/ClassAbilityTree.tsx`): the
+ * training brief, then sections under dashed slabs — a Core class's Core trees
+ * (stacked, beside its own path from 64rem) and its Hybrid Classes; a Hybrid Class's
+ * own tree + Legendary tree (two across) and the Core trees it branches into.
+ *
+ * Each tree draws the book's track: the UI library's `AbilityTrack`
+ * (`.su-ability-track`, `partials/compositions.css`).
+ */
+.srd-ability-tree {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-32);
+}
+
+.srd-ability-tree__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* The trees side by side, each as wide as its longest title on one line
+   (the UI library's `data-entity-fit`), growing to fill the line and wrapping
+   when the next does not fit; a phone stacks them. A title wraps only when it
+   alone is wider than the line. */
+.srd-ability-tree__row,
+.srd-class-path__trees {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16);
+  min-width: 0;
+}
+
+.srd-ability-tree__row > *,
+.srd-class-path__trees > * {
+  flex: 1 1 auto;
+  min-width: min(100%, 16rem);
+}
+
+@media (max-width: 40rem) {
+  .srd-ability-tree__row > *,
+  .srd-class-path__trees > * {
+    flex-basis: 100%;
+  }
+}
+
+/* A Core class's Core trees, one column the page's width. */
+.srd-ability-tree__row--stack {
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+
+.srd-ability-tree__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  padding-top: var(--space-8);
+}
+
+/*
+ * The training brief (Workshop Manual p.23, "Gaining Abilities"): a dashed
+ * slab with the ability limit at its end, then tier cards, each band in its
+ * tier's book hue with the name on a cut-out tab and the TP cost in the
+ * pointy box. On a wide page it fills the room beside the
+ * art that a class's short prose leaves: the trees' slot stops clearing the
+ * float (CardPage's `__wide` clears it), the brief becomes a block formatting
+ * context so it narrows beside the art, and everything after it clears.
+ */
+.srd-class-brief {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+/* The tier cards: side by side while each keeps 9.5rem, stacked on a phone. */
+.srd-class-brief__cards {
+  display: grid;
+  gap: var(--space-10);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr));
+}
+
+/* A lone card (a Core class with no paths: the Salvager) spans the area. */
+.srd-class-brief__cards:has(> :only-child) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* A tier card: its cut-out head (`Head`, in the tier's book hue, §3.8) opens
+   into the body, no rule between them. */
+.srd-class-brief__card {
+  background: var(--color-paper);
+  border: var(--bw-entity-compact) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.srd-class-brief__body {
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  margin: 0;
+  padding: var(--space-6) var(--space-10) var(--space-10);
+}
+
+/* A Hybrid Class's trees, a line under its cards. */
+.srd-class-brief__trees {
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.srd-class-brief__trees-label {
+  font-family: var(--font-cond);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-snug);
+  text-transform: uppercase;
+}
+
+@media (min-width: 64rem) {
+  .su-entity-page--flow:has(.srd-class-brief) > .su-entity-page__wide {
+    clear: none;
+  }
+
+  .su-entity-page--flow:has(.srd-class-brief) > .su-entity-page__wide:empty {
+    display: none;
+  }
+
+  .srd-ability-tree:has(> .srd-class-brief) {
+    display: block;
+  }
+
+  /* A flex container, like a block formatting context, narrows beside the float. */
+  .srd-ability-tree > .srd-class-brief {
+    display: flex;
+  }
+
+  .srd-ability-tree:has(> .srd-class-brief) > :not(.srd-class-brief) {
+    clear: left;
+    margin-top: var(--space-32);
+  }
+}
+
+/*
+ * A Core class's paths (the book's spread lists them under its Advanced and
+ * Legendary Abilities and "Hybrid Classes"), one card each, full width under
+ * its Core trees: the class's own Advanced tree first, then each Hybrid Class.
+ * Every card is the same shell, one column — a pilot head with the name on
+ * the paper cut-out at the band's foot (a Row's) and, right of it, what opens
+ * the path and its kind; then the body, what the path is over its trees
+ * (their Rows on the same track as the class's own); then the citation. A hybrid's head is a link to its page;
+ * the class's own path has no page, so its head links nowhere.
+ */
+.srd-class-paths {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-20);
+}
+
+.srd-class-path {
+  background: var(--color-paper);
+  border: var(--bw-entity-compact) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+/* A Hybrid Class's head opens its page: the whole cut-out head is the link. */
+.srd-class-path__link {
+  color: var(--color-ink);
+  display: block;
+  text-decoration: none;
+}
+
+.srd-class-path__link:focus-visible {
+  outline: var(--bw-chrome) solid var(--color-ink);
+  outline-offset: calc(-1 * var(--space-4));
+}
+
+.srd-class-path__body {
+  padding: var(--space-14);
+}
+
+/* The requirement as ONE chip: its cells (REQ | tree, then OR | tree for each
+   other tree) butt into one rounded cell, sharing their inner edges. */
+.srd-class-path__req-chip {
+  display: inline-flex;
+  flex-wrap: wrap;
+}
+
+.srd-class-path__req-cell:not(:first-child) {
+  border-bottom-left-radius: 0;
+  border-left-width: 0;
+  border-top-left-radius: 0;
+}
+
+.srd-class-path__req-cell:not(:last-child) {
+  border-bottom-right-radius: 0;
+  border-top-right-radius: 0;
+}
+
+/* The path's text, at the head of the body over its trees. */
+.srd-class-path__note {
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  margin: 0 0 var(--space-12);
+  max-width: 72ch;
+}
+
+/* A path's trees split the card in equal columns, the same in every path
+   card on the page (its own Advanced and Legendary trees, each Hybrid
+   Class's): as many as fit at 16rem, one each on a phone. */
+.srd-class-path__trees {
+  display: grid;
+  gap: var(--space-8) var(--space-24);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+}
+
+.srd-class-path__foot {
+  border-top: var(--bw-chrome) solid var(--color-ink);
+  color: var(--color-ink-2);
+  font-size: var(--text-caption);
+  margin: 0;
+  padding: var(--space-8) var(--space-14);
+  text-align: right;
+}
+
+/*
+ * The site chrome's and the document pages' stateful parts — the hover,
+ * breakpoint and descendant rules a style object cannot express (ADR-046).
+ * Everything static on those elements is a style object in the component or
+ * page. The hovers sit behind `(hover: hover)`, so a tap never leaves one
+ * stuck on a touch screen.
+ */
+
+/* `MobileSearchDialog`: the bar's magnifier, a paper wash on the ink bar. */
+@media (hover: hover) {
+  .srd-mobile-search__trigger:hover {
+    background-color: var(--color-paper-15);
+  }
+}
+
+/* `MobileSearchIsland`: the sheet's field fills the sheet, over the bar's
+   fixed width below (a descendant rule, so it outranks that class). */
+.srd-mobile-search__body input {
+  width: 100%;
+}
+
+/* A category result in the search dropdown. */
+.srd-search__category {
+  transition-duration: 150ms;
+  transition-property:
+    color, background-color, border-color, outline-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (hover: hover) {
+  .srd-search__category:hover {
+    background-color: var(--color-wk-bg);
+  }
+}
+
+/* `/about`: the map lightbox (a native `<dialog>`) — its scrim, its close
+   button's ground, its credit link's underline. */
+.srd-about-lightbox::backdrop {
+  background-color: color-mix(in oklab, var(--color-ink) 70%, transparent);
+}
+
+@media (hover: hover) {
+  .srd-about-lightbox__credit:hover {
+    text-decoration-line: underline;
+  }
+}
+
+/* `/api`: the schema table's Panel clips the table to its frame, and the
+   description column is dropped below 40rem. */
+.srd-api__schemas {
+  overflow: hidden;
+}
+
+.srd-api__wide-cell {
+  display: none;
+}
+
+@media (min-width: 40rem) {
+  .srd-api__wide-cell {
+    display: table-cell;
+  }
+}
+
+/* The changelog page's entries (`components/Changelog.tsx`). The bullets' spacing and marker colour
+   are child and pseudo-element selectors. */
+.srd-changelog__items > :not(:last-child) {
+  margin-block-end: var(--space-4);
+}
+
+.srd-changelog__items *::marker,
+.srd-changelog__items::marker {
+  color: var(--color-wk-muted);
+}
+
+/* A changelog entry (`components/Changelog.tsx`): a card's frame round its
+   cut-out head (`Head`) and the paper body the tab opens into. */
+.srd-changelog__entry {
+  background-color: var(--color-paper);
+  border: var(--bw-entity-compact) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.srd-changelog__items {
+  padding: var(--space-8) var(--space-12) var(--space-12) var(--space-16);
+}
+
+/* The About page's colophon (`components/Colophon.tsx`): one column, two from `md` (48rem) up. */
+.srd-colophon {
+  grid-template-columns: none;
+}
+
+@media (min-width: 48rem) {
+  .srd-colophon {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

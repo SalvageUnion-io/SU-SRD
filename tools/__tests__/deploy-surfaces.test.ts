@@ -5,8 +5,8 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { decideSurfaces, main, planDeploy, SURFACES } from '../deploy-surfaces'
 
-const EVERYTHING = { assets: true, srd: true, cantina: true, bot: true }
-const NOTHING = { assets: false, srd: false, cantina: false, bot: false }
+const EVERYTHING = { assets: true, srd: true, bot: true }
+const NOTHING = { assets: false, srd: false, bot: false }
 
 describe('deploy-surfaces — decideSurfaces', () => {
   test('no deploy record deploys every surface', () => {
@@ -31,20 +31,31 @@ describe('deploy-surfaces — decideSurfaces', () => {
    * recorded deploy sees both.
    */
   test('changes from several commits since the record are all deployed', () => {
-    const since = ['apps/cantina/src/app.tsx', 'apps/srd/src/pages/index.page.tsx']
-    expect(decideSurfaces(since, false)).toEqual({ ...NOTHING, cantina: true, srd: true })
+    const since = ['apps/web/src/cantina/app.tsx', 'apps/web/src/pages/index.page.tsx']
+    expect(decideSurfaces(since, false)).toEqual({ ...NOTHING, srd: true })
   })
 
-  test.each(Object.entries(SURFACES))(
-    'a change under apps/%s selects only that surface',
-    (key, dir) => {
-      const decision = decideSurfaces([`apps/${dir}/x.ts`], false)
-      expect(decision).toEqual({ ...NOTHING, [key]: true })
-    }
-  )
+  test.each(
+    Object.entries(SURFACES).flatMap(([key, dirs]) => dirs.map((dir) => [dir, key] as const))
+  )('a change under apps/%s selects only the %s surface', (dir, key) => {
+    const decision = decideSurfaces([`apps/${dir}/x.ts`], false)
+    expect(decision).toEqual({ ...NOTHING, [key]: true })
+  })
+
+  // The UI library lives in apps/web, and nothing else ships it.
+  test('a src/ui change ships srd alone', () => {
+    expect(decideSurfaces(['apps/web/src/ui/index.ts'], false)).toEqual({ ...NOTHING, srd: true })
+  })
+
+  // su-srd serves the Cantina under /build, with its build in dist/build/.
+  test('a Cantina change ships srd', () => {
+    expect(decideSurfaces(['apps/web/src/cantina/app.tsx'], false)).toEqual({
+      ...NOTHING,
+      srd: true,
+    })
+  })
 
   test.each([
-    'packages/component-lib/src/index.ts',
     'packages/observability/src/cloudflare.ts',
     'packages/salvageunion-reference/package.json',
     'package.json',
@@ -71,8 +82,8 @@ describe('deploy-surfaces — decideSurfaces', () => {
   })
 
   test('a directory that merely shares a prefix does not match', () => {
-    // `apps/srd-legacy/` must not be read as `apps/srd/`.
-    expect(decideSurfaces(['apps/srd-legacy/x.ts', 'apps/cantina-docs/y.md'], false)).toEqual(
+    // `apps/web-legacy/` must not be read as `apps/web/`.
+    expect(decideSurfaces(['apps/web-legacy/x.ts', 'apps/cantina-docs/y.md'], false)).toEqual(
       NOTHING
     )
   })
@@ -110,8 +121,8 @@ describe('deploy-surfaces — planDeploy', () => {
   )
 
   test('ahead of the record deploys what changed', () => {
-    const plan = planDeploy(['apps/cantina/src/app.tsx'], false, 'ahead', false)
-    expect(plan).toEqual({ stale: false, surfaces: { ...NOTHING, cantina: true } })
+    const plan = planDeploy(['apps/web/src/cantina/app.tsx'], false, 'ahead', false)
+    expect(plan).toEqual({ stale: false, surfaces: { ...NOTHING, srd: true } })
   })
 })
 
@@ -163,7 +174,7 @@ describe('deploy-surfaces — script against a real git history', () => {
     return git(work, 'rev-parse', 'HEAD')
   }
   commit('README.md')
-  const a = commit('apps/cantina/app.ts')
+  const a = commit('apps/web/src/cantina/app.ts')
   const b = commit('apps/su-assets/index.ts')
   git(
     work,
@@ -206,24 +217,18 @@ describe('deploy-surfaces — script against a real git history', () => {
 
   test('a newer commit deploys what changed since the record', () => {
     git(work, 'checkout', '--quiet', '--detach', b)
-    const c = commit('apps/srd/page.tsx')
-    expect(decide(c)).toEqual({ stale: 'false', deploy: '["srd"]' })
+    const c = commit('apps/web/page.tsx')
+    expect(decide(c)).toEqual({ stale: 'false', deploy: '["web"]' })
   })
   test('says why it ships what it ships', () => {
     const stale = decideLogged(a).lines
     expect(stale[0]).toBe(`last recorded deploy: ${b}`)
     expect(stale[1]).toContain(`HEAD is older than the recorded deploy ${b}`)
-    expect(stale.slice(2)).toEqual([
-      '  skip   su-assets',
-      '  skip   srd',
-      '  skip   cantina',
-      '  skip   discord-bot',
-    ])
+    expect(stale.slice(2)).toEqual(['  skip   su-assets', '  skip   web', '  skip   discord-bot'])
     expect(decideLogged(b, '--force-all').lines.slice(1)).toEqual([
       'force_all — deploying every surface',
       '  deploy su-assets',
-      '  deploy srd',
-      '  deploy cantina',
+      '  deploy web',
       '  deploy discord-bot',
     ])
   })
@@ -234,7 +239,7 @@ describe('deploy-surfaces — script against a real git history', () => {
     const lines: string[] = []
     main([], { cwd: lonely, env: cleanEnv }, (l) => lines.push(l))
     expect(lines[0]).toBe('no usable deployed/cloudflare record — deploying every surface')
-    expect(lines).toHaveLength(5)
+    expect(lines).toHaveLength(4)
   })
 
   test('the CLI entry runs the same decision and writes $GITHUB_OUTPUT', () => {

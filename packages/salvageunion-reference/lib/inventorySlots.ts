@@ -8,7 +8,7 @@
  * entry point: moving it there would either add a name to that entry point's
  * public surface or remove one from the main barrel, and this split is meant to
  * be invisible from outside the package. Its one consumer
- * (`apps/cantina/src/lib/rules/pilotInventory.ts`) imports it from the main
+ * (`apps/web/src/cantina/lib/rules/pilotInventory.ts`) imports it from the main
  * barrel today.
  *
  * The package barrel (`lib/index.ts`) re-exports, by name, only what

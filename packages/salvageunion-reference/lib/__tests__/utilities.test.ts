@@ -733,8 +733,8 @@ describe('homebrew patterns (stored data tag — never computed)', () => {
 })
 
 /**
- * The reference site's origin and route grammar, held once for `apps/srd`,
- * `apps/cantina` and the Discord bot, as `ASSET_BASE_URL`/`getAssetUrl` is for
+ * The reference site's origin and route grammar, held once for `apps/web`,
+ * the Cantina and the Discord bot, as `ASSET_BASE_URL`/`getAssetUrl` is for
  * artwork.
  */
 describe('SRD site URLs', () => {

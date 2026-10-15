@@ -5,7 +5,7 @@
  * One engine (`packages/gates/lib/ruleEngine.ts`), five rule sets:
  *
  *   - `tokens`   — design-token laws (packages/gates/rules/designTokens.ts)
- *   - `styling`  — component-lib owns shared styling (packages/gates/rules/stylingOwnership.ts)
+ *   - `styling`  — src/ui owns shared styling (packages/gates/rules/stylingOwnership.ts)
  *   - `srd-css`  — srd's single stylesheet entry (packages/gates/rules/srdCss.ts)
  *   - `tone-ground` — no tech-level blue as a header ground (packages/gates/rules/toneGround.ts)
  *   - `class-prefix` — every package and the Cantina class is `su-*` (packages/gates/rules/classPrefix.ts)

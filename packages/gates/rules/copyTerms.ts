@@ -35,7 +35,7 @@
  *     ("move", "damaged", "group").
  *   - `banned-variant` — a spelling the book or the product does not use:
  *     `BANNED`, plus any other casing of the product's names in
- *     `component-lib/src/product.ts` (read from that file, never retyped).
+ *     `cantina-domain/src/product.ts` (read from that file, never retyped).
  *
  * Both are ratchets against `tools/baselines/copy-baseline.json`: today's copy
  * is the baseline, a new finding fails, and a fixed one must be locked in.
@@ -53,11 +53,9 @@ import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
 
 /** The source trees whose strings reach a reader. */
 const COPY_DIRS = [
-  'apps/cantina/src',
-  'apps/cantina/convex',
-  'apps/srd/src',
+  'apps/web/convex',
+  'apps/web/src',
   'apps/discord-bot/src',
-  'packages/component-lib/src',
   'packages/cantina-domain/src',
   'packages/salvageunion-reference/lib',
 ] as const
@@ -308,7 +306,7 @@ export const BANNED: readonly Banned[] = [
   },
 ]
 
-export const PRODUCT_FILE = 'packages/component-lib/src/product.ts'
+export const PRODUCT_FILE = 'packages/cantina-domain/src/product.ts'
 
 /** `name` and `shortName` of `PRODUCT`, read from its source. */
 export function productNames(root: string): { name: string; shortName: string } {

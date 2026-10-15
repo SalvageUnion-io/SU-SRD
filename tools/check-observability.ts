@@ -50,18 +50,18 @@ type BrowserApp = {
 const BROWSER_APPS: BrowserApp[] = [
   {
     name: 'srd',
-    modulePath: 'apps/srd/src/lib/observability.ts',
-    entryPath: 'apps/srd/src/runtime/islands.client.ts',
-    headersPath: 'apps/srd/public/_headers',
-    workerPath: 'apps/srd/src/worker/index.ts',
+    modulePath: 'apps/web/src/lib/observability.ts',
+    entryPath: 'apps/web/src/runtime/islands.client.ts',
+    headersPath: 'apps/web/public/_headers',
+    workerPath: 'apps/web/src/worker/index.ts',
     extraHandlers: [],
   },
   {
     name: 'cantina',
-    modulePath: 'apps/cantina/src/lib/observability.ts',
-    entryPath: 'apps/cantina/src/main.tsx',
-    headersPath: 'apps/cantina/public/_headers',
-    workerPath: 'apps/cantina/src/worker/index.ts',
+    modulePath: 'apps/web/src/cantina/lib/observability.ts',
+    entryPath: 'apps/web/src/cantina/main.tsx',
+    headersPath: 'apps/web/src/cantina/public/_headers',
+    workerPath: 'apps/web/src/cantina/worker/index.ts',
     extraHandlers: ['handleConvexLogStream'],
   },
 ]
@@ -77,8 +77,7 @@ type WorkerSurface = {
 }
 
 const WORKER_SURFACES: WorkerSurface[] = [
-  { name: 'srd-worker', configPath: 'apps/srd/wrangler.jsonc' },
-  { name: 'cantina-worker', configPath: 'apps/cantina/wrangler.jsonc' },
+  { name: 'srd-worker', configPath: 'apps/web/wrangler.jsonc' },
   { name: 'su-assets-worker', configPath: 'apps/su-assets/wrangler.jsonc' },
   { name: 'discord-bot-worker', configPath: 'apps/discord-bot/wrangler.jsonc' },
 ]

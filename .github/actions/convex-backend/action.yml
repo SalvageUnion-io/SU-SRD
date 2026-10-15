@@ -1,9 +1,11 @@
 name: Throwaway Convex backend
-description: Start a self-hosted Convex backend in a container, push cantina's functions to it and build cantina against it
+description: Start a self-hosted Convex backend in a container, push the Cantina's functions to it and build the site against it
 
-# The backend a CI job builds cantina against when it must not touch production:
-# ci.yml's `build-cantina` (the PR browser gate), e2e-nightly.yml's `e2e-cantina`
-# (the signed-in suite) and gallery.yml's `shoot`. The container dies with
+# The backend a CI job builds the site against when it must not touch production:
+# ci.yml's `build-web` (the PR browser gate) and `perf-srd`, e2e-nightly.yml's
+# `e2e-cantina` (the signed-in suite) and gallery.yml's `shoot`. The build is
+# the one `bun run build` (srd, then the Cantina into `dist/build/`), which
+# needs a Convex URL for the Cantina. The container dies with
 # the runner, holds no data and needs no credentials, so a job using it
 # requests no secrets.
 #
@@ -16,7 +18,7 @@ description: Start a self-hosted Convex backend in a container, push cantina's f
 # `docker logs convex-e2e`.
 inputs:
   test-auth:
-    description: "'true' to provision the test sign-in on the backend and build cantina with its seam"
+    description: "'true' to provision the test sign-in on the backend and build the Cantina with its seam"
     required: false
     default: 'false'
 outputs:
@@ -92,7 +94,7 @@ runs:
     - name: Provision auth keys and deployment env
       if: inputs.test-auth == 'true'
       shell: bash
-      working-directory: apps/cantina
+      working-directory: apps/web
       env:
         CONVEX_SELF_HOSTED_URL: http://127.0.0.1:3210
         CONVEX_SELF_HOSTED_ADMIN_KEY: ${{ steps.adminkey.outputs.key }}
@@ -119,16 +121,16 @@ runs:
         # SITE_URL is the FRONTEND's address, base included (The Cantina is served
         # under /build, ADR-048), not the Convex site URL. Nothing prompts
         # for it, and omitting it fails as an opaque 500.
-        bunx convex env set SITE_URL http://localhost:5173/build
+        bunx convex env set SITE_URL http://localhost:4321/build
 
     # `build:untyped` skips `build`'s typecheck: ci.yml's static-checks
     # typechecks every workspace, and nothing here is a type gate.
-    # `--cmd` builds with VITE_CONVEX_URL injected — the same shape
-    # deploy-cloudflare.yml uses. Playwright's CI webServer reuses an existing
-    # `apps/cantina/dist`, so this build is what the browser actually receives.
-    - name: Push functions and build cantina against the backend
+    # `--cmd` builds with VITE_CONVEX_URL injected. Playwright's CI webServer
+    # reuses an existing `apps/web/dist`, so this build is what the browser
+    # actually receives.
+    - name: Push functions and build the site against the backend
       shell: bash
-      working-directory: apps/cantina
+      working-directory: apps/web
       env:
         CONVEX_SELF_HOSTED_URL: http://127.0.0.1:3210
         CONVEX_SELF_HOSTED_ADMIN_KEY: ${{ steps.adminkey.outputs.key }}

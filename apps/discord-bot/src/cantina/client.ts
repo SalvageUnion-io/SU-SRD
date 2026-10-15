@@ -1,4 +1,4 @@
-import { PRODUCT } from 'component-lib/product'
+import { PRODUCT } from 'cantina-domain/product'
 import type {
   CantinaResult,
   DenialReason,

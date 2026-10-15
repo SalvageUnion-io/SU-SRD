@@ -1,6 +1,6 @@
 # The bot's Discord profile art, and the Ko-fi page's
 
-`bun run brand` writes every file here from `apps/srd/scripts/brand/`
+`bun run brand` writes every file here from `apps/web/scripts/brand/`
 (`mark.ts` for the icon, `banner.ts` for the banners). Nothing in the build
 reads them. `bun run brand:discord` also uploads the icon and the banner to
 Discord, with the bot token read from 1Password

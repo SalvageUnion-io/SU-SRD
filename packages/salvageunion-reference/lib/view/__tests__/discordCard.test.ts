@@ -271,7 +271,7 @@ describe('discordCard — a rolled table', () => {
 
 describe('DISCORD_TONE_ACCENT', () => {
   const css = readFileSync(
-    join(import.meta.dir, '../../../../component-lib/src/styles/theme.css'),
+    join(import.meta.dir, '../../../../../apps/web/src/ui/styles/theme.css'),
     'utf8'
   )
   const token = (name: string): number => {

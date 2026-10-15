@@ -10,10 +10,10 @@
  * side code into the backend, and a component folder is where nobody looks for
  * a rule. This gate fails when either comes back:
  *
- *   1. a file under `apps/cantina/convex/` (not `_generated/`) imports a module
- *      that resolves into `apps/cantina/src/`. Shared logic goes to `cantina-domain`
+ *   1. a file under `apps/web/convex/` (not `_generated/`) imports a module
+ *      that resolves into `apps/web/src/cantina/`. Shared logic goes to `cantina-domain`
  *      or `salvageunion-reference`;
- *   2. a non-test `.ts` file under `apps/cantina/src/components/` is neither a
+ *   2. a non-test `.ts` file under `apps/web/src/cantina/components/` is neither a
  *      hook (`useSeat.ts`) nor a view-model (`<name>.model.ts`). A rule goes
  *      to a rules home (the reference's `lib/rules`, `cantina-domain/src/rules`,
  *      The Cantina's `src/lib/rules`); a view-model for one component stays beside
@@ -29,9 +29,9 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { dirname, join, relative, resolve, sep } from 'node:path'
 import { assertScanFloor } from 'gates/lib/scanFloor'
 
-export const CONVEX_DIR = 'apps/cantina/convex'
-const CLIENT_SRC = 'apps/cantina/src'
-export const COMPONENTS_DIR = 'apps/cantina/src/components'
+export const CONVEX_DIR = 'apps/web/convex'
+const CLIENT_SRC = 'apps/web/src'
+export const COMPONENTS_DIR = 'apps/web/src/cantina/components'
 
 /** ~65% of today's counts (31 Convex files, 437 component files): a catastrophe floor. */
 const CONVEX_FLOOR = 20

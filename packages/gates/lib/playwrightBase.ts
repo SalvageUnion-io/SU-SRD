@@ -1,18 +1,18 @@
 /**
- * The one Playwright configuration both apps run
- * (`apps/{srd,cantina}/playwright.config.ts` pass only what differs).
+ * The one Playwright configuration both suites run (`apps/web`'s
+ * `playwright.config.ts` and `playwright.cantina.config.ts` pass only what differs).
  *
  * - Specs are `e2e/*.e2e.ts`, not `.spec.ts`, so Bun's test runner — which
  *   auto-discovers `.spec.ts` and `.test.ts` — never tries to execute them.
- * - CI serves the BUILT app with `bun run preview`: `wrangler dev` over the
- *   app's own `wrangler.jsonc`, so the specs run against the Worker, the
- *   `not_found_handling` mode and the `_headers` production serves, in workerd.
+ * - CI serves the BUILT app with `bun run preview`: `wrangler dev` over
+ *   srd's `wrangler.jsonc` (one Worker serves both apps), so the specs run
+ *   against the Worker and the `not_found_handling` mode production serves,
+ *   in workerd.
  *   An existing `dist/` is reused (the PR jobs have just built it). Locally
- *   the running dev server on the same port is reused. srd passes its
- *   checkout's own port (`ports.ts`: offset in a linked worktree), so a
- *   worktree's suite boots and reuses its own server, never another
- *   checkout's; the Cantina's stays on 5173, where its local Convex backend expects
- *   it.
+ *   both suites run against the one dev server (`bun run dev`), reused when
+ *   running, on the checkout's own port (`ports.ts`: offset in a linked
+ *   worktree), so a worktree's suite boots and reuses its own server, never
+ *   another checkout's.
  * - `E2E_BASE_URL` runs the same suite against a deployed origin and boots
  *   nothing; per-test budgets widen to `external` there, because every test
  *   pays real network round trips.
@@ -36,6 +36,12 @@ import { defineConfig, devices } from '@playwright/test'
 type Budget = { timeout: number; expect: number }
 
 export type AppE2E = {
+  /**
+   * Which suite: its specs are `e2e/<suite>/`, its results and report go under
+   * `test-results/<suite>/` and `playwright-report/<suite>/`. `apps/web` holds
+   * two, `srd` and `cantina`.
+   */
+  suite: string
   /** The port the app's dev server listens on (and `preview`, in CI). */
   port: number
   /**
@@ -51,6 +57,7 @@ export type AppE2E = {
 }
 
 export function e2eConfig({
+  suite,
   port,
   basePath = '/',
   local,
@@ -62,7 +69,8 @@ export function e2eConfig({
   const url = `http://localhost:${port}`
 
   return defineConfig({
-    testDir: './e2e',
+    testDir: `./e2e/${suite}`,
+    outputDir: `./test-results/${suite}`,
     testMatch: /.*\.e2e\.ts$/,
     timeout: budget.timeout,
     expect: { timeout: budget.expect },
@@ -71,7 +79,9 @@ export function e2eConfig({
     retries: ci ? 2 : 0,
     failOnFlakyTests: ci,
     workers: ci ? 2 : undefined,
-    reporter: ci ? [['github'], ['html', { open: 'never' }]] : 'list',
+    reporter: ci
+      ? [['github'], ['html', { open: 'never', outputFolder: `playwright-report/${suite}` }]]
+      : 'list',
     use: {
       baseURL: externalBaseURL ?? url,
       trace: 'on-first-retry',

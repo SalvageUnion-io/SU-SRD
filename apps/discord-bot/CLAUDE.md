@@ -10,9 +10,9 @@ at startup ([ADR-005](../../docs/ARCHITECTURE.md#decisions)).
 - **Runtime:** a Cloudflare Worker (workerd); Bun runs the tooling and tests
 - **Library:** `@discordjs/builders` (commands + Components V2),
   `@discordjs/rest`, `discord-api-types`.
-- **Data:** `salvageunion-reference` workspace package. From `component-lib` it
-  imports only the dependency-free `component-lib/product` subpath (the product's
-  names), never the barrel.
+- **Data:** `salvageunion-reference` workspace package; the product's names
+  and wire types from `cantina-domain` (`cantina-domain/product`). It never
+  imports `apps/web/src/ui`.
 
 ## Runtime
 

@@ -16,8 +16,8 @@ describe('readWorkspaces, against this repo', () => {
 
   test('reads the workspace: edges', () => {
     const deps = (name: string) => graph.find((ws) => ws.name === name)?.deps
-    expect(deps('component-lib')).toContain('salvageunion-reference')
-    expect(deps('srd')).toEqual(expect.arrayContaining(['component-lib', 'observability']))
+    expect(deps('cantina-domain')).toContain('salvageunion-reference')
+    expect(deps('web')).toEqual(expect.arrayContaining(['cantina-domain', 'observability']))
   })
 })
 

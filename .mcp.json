@@ -15,7 +15,7 @@
         "mcp",
         "start",
         "--project-dir",
-        "apps/cantina",
+        "apps/web",
         "--disable-tools",
         "envSet,envRemove,run"
       ]

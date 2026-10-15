@@ -44,12 +44,12 @@ jobs:
           filters: |
             shared: &shared
               - 'packages/ref/**'
-            cantina:
+            assets:
               - *shared
-              - 'apps/cantina/**'
+              - 'apps/su-assets/**'
             web:
               - *shared
-              - 'apps/srd/**'
+              - 'apps/web/**'
             bot:
               - *shared
             code:
@@ -97,7 +97,7 @@ jobs:
     if: contains(fromJSON(needs.plan.outputs.deploy), 'srd')
     runs-on: ubuntu-latest
     steps:
-      - run: bun --filter srd build
+      - run: bun --filter web build
       - uses: actions/upload-artifact@v7
         with:
           name: srd-build
@@ -195,11 +195,11 @@ function ctx(overrides: {
     Object.entries(
       overrides.manifests ?? {
         'package.json': { devDependencies: { convex: '1.0.0' } },
-        'apps/cantina/package.json': {
-          name: 'cantina',
+        'apps/su-assets/package.json': {
+          name: 'su-assets',
           dependencies: { ref: 'workspace:*', lib: 'workspace:*' },
         },
-        'apps/srd/package.json': {
+        'apps/web/package.json': {
           name: 'srd',
           dependencies: { ref: 'workspace:*', lib: 'workspace:*' },
         },
@@ -294,7 +294,7 @@ describe('aggregator', () => {
 describe('path-filters', () => {
   test('passes when every workspace dependency is covered, expanding the *shared alias', () => {
     const c = ctx({})
-    for (const app of ['cantina', 'srd']) {
+    for (const app of ['su-assets', 'web']) {
       c.manifests.set(`apps/${app}/package.json`, {
         name: app,
         dependencies: { ref: 'workspace:*' },
@@ -307,8 +307,8 @@ describe('path-filters', () => {
 
   test('an app depending on a workspace its group does not cover fails', () => {
     const failures = checkPathFilters(ctx({})).failures.join('\n')
-    expect(failures).toContain('apps/cantina depends on `lib` (packages/lib)')
-    expect(failures).toContain('apps/srd depends on `lib`')
+    expect(failures).toContain('apps/su-assets depends on `lib` (packages/lib)')
+    expect(failures).toContain('apps/web depends on `lib`')
   })
 
   test('an app with no filter group and no exemption fails', () => {
@@ -330,7 +330,12 @@ describe('path-filters', () => {
   })
 
   test('an app mapped to a group ci.yml does not define fails, naming the group', () => {
-    const c = ctx({})
+    const c = ctx({
+      ci: CI_TEXT.replace(
+        "            assets:\n              - *shared\n              - 'apps/su-assets/**'\n",
+        ''
+      ),
+    })
     c.manifests.set('apps/su-assets/package.json', {
       name: 'su-assets',
       dependencies: { ref: 'workspace:*' },
@@ -373,7 +378,7 @@ describe('pinning', () => {
     const run = (declared: boolean) => {
       const c = ctx({})
       if (declared)
-        c.manifests.set('apps/srd/package.json', {
+        c.manifests.set('apps/web/package.json', {
           devDependencies: { '@playwright/test': '1.0.0' },
         })
       c.files.push(
@@ -390,8 +395,8 @@ describe('pinning', () => {
 
   test('a bare name that is only the suffix of a scoped dependency is NOT exempt', () => {
     const c = ctx({})
-    c.manifests.set('apps/cantina/package.json', {
-      name: 'cantina',
+    c.manifests.set('apps/su-assets/package.json', {
+      name: 'su-assets',
       dependencies: { '@convex-dev/auth': '1.0.0' },
     })
     c.files.push(
@@ -802,6 +807,6 @@ describe('main', () => {
     expect(r.out).toHaveLength(1)
     expect(r.err[0]).toMatch(/^✗ .*:$/)
     expect(r.err.slice(1).every((l) => l.startsWith('    • '))).toBe(true)
-    expect(r.err.join('\n')).toContain('apps/cantina depends on `lib`')
+    expect(r.err.join('\n')).toContain('apps/su-assets depends on `lib`')
   })
 })

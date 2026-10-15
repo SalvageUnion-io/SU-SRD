@@ -1,0 +1,138 @@
+import type { ReactNode } from 'react'
+import type { FooterFoot } from '../src/ui/index'
+
+/** A JSON-LD object. */
+export type StructuredData = Record<string, unknown>
+
+type BreadcrumbItem = { name: string; url: string }
+
+/** Everything BaseLayout needs to build <head>. */
+export type DocumentMeta = {
+  title?: string
+  description?: string
+  canonical?: string
+  ogType?: string
+  ogImage?: string
+  ogImageAlt?: string
+  /**
+   * The link preview's own title and description, when they differ
+   * from the page's: `og:title` is the thing's name and `og:description` its
+   * kicker and byline, never the body, while `<title>` and the meta description
+   * keep serving search. Unset, both mirror `title` and `description`.
+   */
+  ogTitle?: string
+  ogDescription?: string
+  /** The page's `theme-color`: an entity's tone, so an unfurl's side bar matches its card. */
+  themeColor?: string
+  /**
+   * The page's Discord Component Embed, as its JSON (`componentEmbedFor`):
+   * the card Discord draws for a pasted link to an entity page.
+   */
+  componentEmbed?: string
+  structuredData?: StructuredData
+  additionalStructuredData?: StructuredData[]
+  noindex?: boolean
+  preloadImage?: string
+  /**
+   * `imagesrcset` / `imagesizes` for `preloadImage`.
+   *
+   * A preload for a responsive image MUST carry the same srcset and sizes as
+   * the `<img>`, or it selects a different candidate and the page downloads
+   * BOTH. Measured: the `<img>` took the 30 KB 440w derivative while a bare
+   * `href` preload pulled the 446 KB master alongside it.
+   */
+  preloadImageSrcSet?: string
+  preloadImageSizes?: string
+  breadcrumbs?: BreadcrumbItem[]
+  breadcrumbDescription?: string
+}
+
+/**
+ * Which document shell wraps a page's `children`.
+ *
+ * - `'base'` (the default): `children` is the `<main>` content and `BaseLayout`
+ *   builds `<html>`, `<head>` and the site chrome around it from `meta`.
+ * - `'bare'`: `children` **is** the whole `<html>` document and `meta` is
+ *   ignored — the page owns its own `<head>`. `og-card` is written this way and
+ *   must stay that way: routing it through `BaseLayout` would add a `<main>`, a
+ *   canonical link and the whole og/twitter block that this page must not emit.
+ *   `ssg/__tests__/render.test.tsx` catches every one of those.
+ *
+ * A bare page is still a full member of the island system: the built asset tags
+ * and the island-props script are injected into the rendered string either way,
+ * and the island-collection window is open around the render. A document
+ * that needs neither assets nor islands is not a page at all: it is a static
+ * file in `public/` (as `greembeem` is).
+ */
+export type DocumentShell = 'base' | 'bare'
+
+/**
+ * A book page's foot: the shared `Footer`'s (src/ui), named for the
+ * page. When the page has a citation, the footer bands it in the page's chapter
+ * tone — the page number set large and the book (and any reprint) — above the
+ * licence row, which is the Union bar's ink on every page. A page without a
+ * citation (a listing, search) passes only its tone; the layout sets the one
+ * page measure on every foot.
+ */
+export type PageFoot = FooterFoot
+
+/** What a page returns: its head metadata, its body tree and, for a book page, its foot. */
+export type PageResult = {
+  meta: DocumentMeta
+  children: ReactNode
+  shell?: DocumentShell
+  foot?: PageFoot
+}
+
+/**
+ * Content-hashed URLs of the static assets Vite emitted, keyed by each asset's
+ * source path relative to the Vite root (`src/assets/eldridge-coast-map.webp` ->
+ * `/assets/eldridge-coast-map-Bx1.webp`).
+ *
+ * Emitting a file and handing the page its URL are split, because the SSR pass
+ * runs under Bun and never goes through Vite. `src/runtime/assets.entry.ts`
+ * (a client-bundle entry) imports the asset so Vite emits it; `ssg/build.ts`
+ * reads the emitted URL out of `dist/.vite/manifest.json` and passes it down
+ * here. Look one up with `builtAssetUrl()` from `src/lib/builtAssets.ts` rather
+ * than indexing the record, so a missing asset throws instead of rendering an
+ * empty `src`.
+ *
+ * Empty for surfaces that get no build assets at all — endpoints.
+ */
+export type BuiltAssets = Readonly<Record<string, string>>
+
+export type RouteContext<Params, Props> = {
+  params: Params
+  props: Props
+  /** Full URL of the page being rendered, e.g. https://salvageunion.io/about/ */
+  url: URL
+  /** Pathname with a trailing slash, e.g. /chassis/aegis/ */
+  pathname: string
+  /** Emitted URLs of assets from `src/assets/`. See `BuiltAssets`. */
+  builtAssets: BuiltAssets
+}
+
+export type StaticPath<Params, Props> = { params: Params; props: Props }
+
+export type PageModule<Params = Record<string, string>, Props = unknown> = {
+  /** Route pattern, e.g. '/[schemaId]/[itemId]' */
+  pattern: string
+  /** Omit for a single fixed route. */
+  getStaticPaths?: () => StaticPath<Params, Props>[]
+  page: (ctx: RouteContext<Params, Props>) => PageResult
+}
+
+/**
+ * A non-HTML build output.
+ *
+ * Part of the SSG contract in `ssg/DESIGN.md`.
+ * `src/endpoints/{itemJson,llmsTxt,schemaDefinitionJson,schemaJson,searchIndexJson}.ts`
+ * implement it.
+ */
+export type EndpointModule<Params = Record<string, string>, Props = unknown> = {
+  /** Concrete output path relative to dist, may contain [params]. */
+  pattern: string
+  getStaticPaths?: () => StaticPath<Params, Props>[]
+  contentType: string
+  body: (ctx: RouteContext<Params, Props>) => string
+}

@@ -1,0 +1,128 @@
+/*
+ * controls.css — the stateful/responsive half of the
+ * The Cantina components listed below; their static styling is style objects over
+ * src/ui tokens. Loaded by `index.css`.
+ *
+ *   - roster/RosterColumn.tsx — the phone segment switch, the column grid and an
+ *     inactive column (each changes at `md`, 48rem).
+ *   - games/OwnerSeal.tsx — the claimable seal's lift on hover and fade when
+ *     disabled.
+ *   - container/ContainerSwitcher.tsx, container/MoveToContainerControl.tsx —
+ *     the compact select height from `sm` (40rem), the disabled fade, the error
+ *     line's spacing (`FieldError` takes no style).
+ *   - wiring/AssignPicker.tsx — the dialog's width cap (`ModalShell` takes a
+ *     class) and the candidate list's stacking.
+ *   - shared/CargoLotRow.tsx — a lot row's hairline, dropped on the last row.
+ *
+ * Every rule keeps its RESTING value beside the state or breakpoint that
+ * changes it (the per-property split rule).
+ */
+
+/* ── RosterColumn ── */
+
+/* The Pilot/Mech/Crawler switch shows only below `md`. */
+.su-segment-switch {
+  display: flex;
+}
+@media (width >= 48rem) {
+  .su-segment-switch {
+    display: none;
+  }
+}
+
+/* One column on a phone, three from `md` up. */
+.su-roster-grid {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  margin-top: 20px;
+}
+@media (width >= 48rem) {
+  .su-roster-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 24px;
+  }
+}
+
+/* A column that is not the active phone segment: hidden below `md`, shown from
+   it (all three columns stand side by side). */
+.su-roster-column--inactive {
+  display: none;
+}
+@media (width >= 48rem) {
+  .su-roster-column--inactive {
+    display: block;
+  }
+}
+
+/* ── OwnerSeal ── */
+
+/* The claimable seal lifts a pixel on hover; disabled, it fades and stops
+   looking pressable. */
+.su-owner-seal__claim {
+  cursor: pointer;
+  opacity: 1;
+  translate: none;
+}
+@media (hover: hover) {
+  .su-owner-seal__claim:hover {
+    translate: 0 -1px;
+  }
+}
+.su-owner-seal__claim:disabled {
+  cursor: default;
+  opacity: 50%;
+}
+
+/* ── ContainerSwitcher, MoveToContainerControl ── */
+
+/* The container selects step down from `Select`'s 44px to 40px from `sm`. The
+   coarse-pointer floor (theme.css) is restated here, after the step, so it
+   keeps winning on touch. */
+.su-container-select {
+  min-height: 2.75rem;
+}
+@media (width >= 40rem) {
+  .su-container-select {
+    min-height: 2.5rem; /* 40px: the band buttons beside it (`.su-shelves-band__btn`) */
+  }
+}
+@media (pointer: coarse) {
+  .su-container-select {
+    min-height: 44px;
+  }
+}
+
+.su-move-to-container__select {
+  opacity: 1;
+}
+.su-move-to-container__select:disabled {
+  opacity: 50%;
+}
+
+/* `FieldError` takes call-site spacing as a class only. */
+.su-move-to-container__error {
+  margin-top: 4px;
+}
+
+/* ── AssignPicker ── */
+
+/* The dialog's width cap: `ModalShell`'s `maxWidth` is a class. */
+.su-assign-picker__dialog {
+  max-width: 28rem;
+}
+
+/* The candidate Rows (select mode, one radio group), 8px apart. */
+:where(.su-assign-picker__candidates > :not(:last-child)) {
+  margin-block-end: 8px;
+  margin-block-start: 0;
+}
+
+/* ── CargoLotRow ── */
+
+/* A lot row's rule, dropped on the last row (a sibling selector, so a class). */
+.su-cargo-lot {
+  border-bottom: var(--bw-hairline) solid var(--color-ink-10);
+}
+
+.su-cargo-lot:last-child {
+  border-bottom-width: 0;
+}

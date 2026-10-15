@@ -1,0 +1,25 @@
+{
+  "id": "/build/",
+  "name": "The Cantina — The Salvage Union Character Builder",
+  "short_name": "Cantina",
+  "description": "The Salvage Union Character Builder. Build and run Salvage Union Pilots, Mechs and Union Crawlers. Character sheets, roster management and shareable live sheets for the post-apocalyptic Mech TTRPG.",
+  "start_url": "/build/",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "theme_color": "#1b1712",
+  "background_color": "#1b1712",
+  "display": "standalone"
+}

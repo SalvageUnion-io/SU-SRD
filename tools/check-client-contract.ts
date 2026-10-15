@@ -9,7 +9,7 @@
  * `expectedUpdatedAt` required. A tab that was open across that deploy still
  * ran the old bundle, which never sent the field, so the backend refused the
  * pilot it had just built. The build floor exists to stop such a tab before it
- * writes (`apps/cantina/convex/buildFloor.ts`). The floor only moves when somebody
+ * writes (`apps/web/convex/buildFloor.ts`). The floor only moves when somebody
  * raises it, though, so a breaking change needs something to catch the PR that
  * forgets to.
  *
@@ -50,7 +50,7 @@ import { join } from 'node:path'
 import { assertScanFloor } from 'gates/lib/scanFloor'
 
 const ROOT = join(import.meta.dir, '..')
-const convexDir = (root: string) => join(root, 'apps/cantina/convex')
+const convexDir = (root: string) => join(root, 'apps/web/convex')
 export const SNAPSHOT_PATH = join(ROOT, 'tools/baselines/convex-client-contract.json')
 
 /** Well under today's ~77: trips only if the import walk found next to nothing. */
@@ -177,7 +177,7 @@ export function breaksBetween(prev: Contract, next: Contract): string[] {
 export type Verdict = { ok: true; write: boolean; message: string } | { ok: false; message: string }
 
 const RAISE =
-  'raise BUILD_FLOOR in apps/cantina/convex/buildFloor.ts to the current time (`date +%s`), then run `bun tools/check-client-contract.ts --write`.'
+  'raise BUILD_FLOOR in apps/web/convex/buildFloor.ts to the current time (`date +%s`), then run `bun tools/check-client-contract.ts --write`.'
 
 /**
  * The decision, apart from the filesystem. `write` is whether the snapshot on

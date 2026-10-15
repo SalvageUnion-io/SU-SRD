@@ -1,7 +1,7 @@
 # Entity Display Language
 
 The law for **how an entity is drawn**, SRD and Cantina alike; [ruleset.md](ruleset.md) governs primitives, tokens and contexts (amend one first if they disagree).
-Status: agreed. Code: `packages/component-lib/src/entity/`.
+Status: agreed. Code: `apps/web/src/ui/entity/`.
 
 ## Pipeline
 

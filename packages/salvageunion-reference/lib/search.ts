@@ -239,7 +239,7 @@ export type SearchResult = {
  * Extract all text from content blocks recursively.
  *
  * The canonical implementation of "flatten a ContentBlock tree to searchable
- * text"; `apps/srd/src/lib/searchIndexBuild.ts` imports it.
+ * text"; `apps/web/src/lib/searchIndexBuild.ts` imports it.
  */
 export function extractContentText(content: unknown): string {
   if (!content) return ''

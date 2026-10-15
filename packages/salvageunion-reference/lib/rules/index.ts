@@ -4,7 +4,7 @@
  * Pure TypeScript — no React, no IndexedDB, no app dependency.
  * All functions are synchronous; same input always yields same output. There
  * is no randomness here: every die arrives as an injected `Roll`, which
- * production callers back with Randsum (component-lib's `rollDie`).
+ * production callers back with Randsum (the UI library's `rollDie`).
  *
  * Prerequisites: the salvageunion-reference schemas used by these utilities
  * must be preloaded before the first call:

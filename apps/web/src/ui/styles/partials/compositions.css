@@ -1,0 +1,287 @@
+/*
+ * The package stylesheet, part 17 of 21: EntitySearcher and the shell's flat
+ * leaves (Compositions). `../index.css` imports the parts in cascade order.
+ */
+
+/* ── compositions/EntitySearcher ── */
+
+/* The search input's text colour. A class, not a style object, because the
+   `::placeholder` recolours it — the resting `color` comes along so the two
+   live in one place. Every other input property is the component's style. */
+/* The wide sub-header's search slot: the full row until `sm` (40rem), then a
+   fixed 280px opposite the Show facet. A class because the width is
+   responsive. */
+.su-searcher__search-slot {
+  width: 100%;
+}
+
+@media (min-width: 40rem) {
+  .su-searcher__search-slot {
+    width: 280px;
+  }
+}
+
+/* The header titles never outgrow their column, so `BandTitle`'s truncation
+   engages. A class only because `BandTitle` takes a className, not a style. */
+.su-searcher__band-title {
+  max-width: 100%;
+}
+
+/* ── compositions/StartHere ── */
+
+/* The three steps are catalog tiles (`.su-entity-tile`): stacked until the
+   block is 48rem wide, then three across. A class because the layout changes
+   with the container's width. */
+.su-start-here {
+  container-type: inline-size;
+}
+
+.su-start-here__steps {
+  display: grid;
+  gap: var(--space-14);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.su-start-here__item {
+  display: flex;
+}
+
+@container (min-width: 48rem) {
+  .su-start-here__steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* A step that opens its guide underlines its title on hover. A class because
+   a style object has no `:hover`. */
+.su-start-here__step:hover .su-start-here__title {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ── shell and flat leaves ── */
+
+/* ControlButtons (`compositions/ControlButtons.tsx`). The link control and the paper
+   icon stamp flip fill and ink on hover, so both colours are here, resting
+   value included; their geometry is the component's style objects. */
+.su-control-link,
+.su-control-icon--plain {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+}
+
+.su-control-link:hover,
+.su-control-icon--plain:hover {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+/* A live worded control, and the red icon stamp, brighten on hover. */
+.su-control-button--live:hover {
+  filter: brightness(110%);
+}
+
+/* The icon stamp's glyph. A class rather than a style object only because the
+   control's `icon` contract takes `className` and nothing else. */
+.su-control-icon__glyph {
+  height: var(--space-12);
+  width: var(--space-12);
+}
+
+/* A folded card's chevron (`ReferenceEntityCard` `collapsible`): the card's ONE
+   fold control, so it takes the WCAG 2.2 minimum target (24px) a stamp's 24×20
+   misses. A coarse pointer lifts it to 44px through the shared touch floor. */
+.su-card-fold {
+  min-height: var(--space-24);
+  min-width: var(--space-24);
+}
+
+/* NavDrawer (`compositions/NavDrawer.tsx`). The trigger's padding and ink, and the
+   panel's width, are classes because the app overrides them through
+   `triggerClassName` / `panelClassName`: an app stylesheet class still beats
+   this layer, where an inline style would not. */
+.su-nav-drawer__trigger {
+  color: var(--color-paper);
+  padding: var(--space-8);
+}
+
+.su-nav-drawer__panel {
+  width: 100%;
+}
+
+/* The search slot: its field fills the drawer whatever width the app's own
+   field asks for. That width is the app's own rule, which outranks this layer,
+   so only `!important` reaches past it from here. */
+.su-nav-drawer__search {
+  margin-bottom: var(--space-12);
+}
+
+.su-nav-drawer__search input,
+.su-nav-drawer__search input:focus {
+  /* biome-ignore lint/complexity/noImportantStyles: the slot's input carries the app's own width, which outranks this layer */
+  width: 100% !important;
+}
+
+/* A primary nav link spans the drawer. A class, because the link is a
+   `buttonVariants` element rendered through the app's own LinkComponent. */
+.su-nav-drawer__link {
+  width: 100%;
+}
+
+/* ── compositions/AbilityTrack ──
+ * An ability tree on the book's track (Core Book 2.0a pp.34, 36, 37; ruleset,
+ * "Where the screen departs from print"): a thick pipe in the tier's hue down
+ * the tree's left, with each tier's numeral on it and a stub into that tier's
+ * Row, so tiers 1-2-3 read as one chain trained in order. The Rows wear the
+ * same tier hue as their track. It is a diagram beside the Rows, never a left
+ * border on a card (§3.10). The pipe is one segment per tier, numeral to
+ * numeral: the first starts at its numeral, each but the last runs down
+ * through the gap to the next, and the last ends under its numeral, so nothing
+ * hangs below the final tier. `data-track` picks the tier hue; a Legendary
+ * tree (pick one) has none. The SRD's class page and abilities Tree, and
+ * The Cantina's pilot sheet, draw it. */
+.su-ability-track {
+  /* The numeral's stamp, the pipe's centre line (under the stamp), its
+     weight, the gap it bridges between tiers, and how far down a Row the
+     numeral and stub land (the middle of a one-line head). */
+  --su-track-numeral: 1.75rem;
+  --su-track-x: calc(var(--su-track-numeral) / 2);
+  --su-track-weight: var(--space-10);
+  --su-track-gap: var(--space-16);
+  --su-track-node: 1.2rem;
+  --su-track-inset: calc(var(--su-track-numeral) + var(--space-8));
+  display: flex;
+  flex-direction: column;
+  gap: var(--su-track-gap);
+}
+
+/* The tier's hue, and the numeral's foreground on it (§3.8: ink on the Core
+   orange, paper on the Advanced and Hybrid rust). */
+.su-ability-track[data-track='core'] {
+  --su-track-color: var(--color-pilot);
+  --su-track-on: var(--color-ink);
+}
+
+.su-ability-track[data-track='advanced'],
+.su-ability-track[data-track='hybrid'] {
+  --su-track-color: var(--color-tier-hybrid);
+  --su-track-on: var(--color-paper);
+}
+
+/* A Legendary tree (pick one) runs on its deeper pink band, which carries
+   paper (§3.8): no numerals, an "or" stamp on the pipe between picks. */
+.su-ability-track[data-track='legendary'] {
+  --su-track-color: var(--color-crawler-band);
+  --su-track-on: var(--color-paper);
+}
+
+.su-ability-track__tier {
+  position: relative;
+}
+
+.su-ability-track[data-track] > .su-ability-track__tier {
+  padding-left: var(--su-track-inset);
+}
+
+.su-ability-track[data-track] > .su-ability-track__tier::before,
+.su-ability-track[data-track] > .su-ability-track__tier::after {
+  background: var(--su-track-color);
+  content: '';
+  position: absolute;
+}
+
+/* The pipe segment: from this tier's stub down to the next tier's, each end
+   flush with the outer edge of its stub, so a corner is one square joint and
+   no step shows where segments meet (they overlap at a middle tier). The last
+   tier draws none, so nothing hangs below the tree. */
+.su-ability-track[data-track] > .su-ability-track__tier:not(:last-child)::before {
+  bottom: calc(-1 * (var(--su-track-gap) + var(--su-track-node) + var(--su-track-weight) / 2));
+  left: calc(var(--su-track-x) - var(--su-track-weight) / 2);
+  top: calc(var(--su-track-node) - var(--su-track-weight) / 2);
+  width: var(--su-track-weight);
+}
+
+.su-ability-track[data-track] > .su-ability-track__tier:last-child::before {
+  content: none;
+}
+
+/* The stub from the pipe into the tier's Row. */
+.su-ability-track[data-track] > .su-ability-track__tier::after {
+  height: var(--su-track-weight);
+  left: var(--su-track-x);
+  right: calc(100% - var(--su-track-inset));
+  top: calc(var(--su-track-node) - var(--su-track-weight) / 2);
+}
+
+/* A lone Legendary pick (a pilot's one Legendary Ability) has no "or" to
+   join, so no stub and no pipe: it sits flush (owner's call, 2026-10-14). A
+   pick-one tree keeps its stubs into the "or" pipe. */
+.su-ability-track[data-track='legendary'] > .su-ability-track__tier:only-child {
+  padding-left: 0;
+}
+
+.su-ability-track[data-track='legendary'] > .su-ability-track__tier:only-child::after {
+  content: none;
+}
+
+/* A Row on a track is framed in the track's hue (the UI library's
+   `--su-row-frame`), so the stub runs into a border of its own colour. */
+.su-ability-track[data-track] > .su-ability-track__tier {
+  --su-row-frame: var(--su-track-color);
+}
+
+/* The tier numeral, set on the track outside the banner: a square stamp
+   (§4.4) in the tier's hue. */
+.su-ability-track__numeral {
+  align-items: center;
+  background: var(--su-track-color);
+  color: var(--su-track-on);
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-extrabold);
+  height: var(--su-track-numeral);
+  justify-content: center;
+  left: 0;
+  line-height: 1;
+  position: absolute;
+  top: calc(var(--su-track-node) - var(--su-track-numeral) / 2);
+  width: var(--su-track-numeral);
+  z-index: 1;
+}
+
+/* A pick-one tree's "or", on the pipe between each pick and the next: a box
+   over the run from this pick's stub to the next's, the stamp's face (in the
+   track's hue) set across its middle, so the "or" sits at the run's true
+   centre however tall either Row is, and the bar reads as one choice, not a
+   chain. */
+.su-ability-track__or {
+  align-items: center;
+  bottom: calc(-1 * (var(--su-track-gap) + var(--su-track-node)));
+  color: var(--su-track-on);
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-badge);
+  font-weight: var(--font-weight-extrabold);
+  justify-content: center;
+  left: 0;
+  letter-spacing: var(--tracking-caps-tight);
+  line-height: 1;
+  position: absolute;
+  text-transform: uppercase;
+  top: var(--su-track-node);
+  width: var(--su-track-numeral);
+  z-index: 1;
+}
+
+/* The stamp's face, under the "or" (the box is its own stacking context). */
+.su-ability-track__or::before {
+  background: var(--su-track-color);
+  content: '';
+  height: var(--su-track-numeral);
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: calc(50% - var(--su-track-numeral) / 2);
+  z-index: -1;
+}

@@ -16,9 +16,8 @@
  * - An explicit `PORT` wins over both. The browser preview
  *   (`.claude/launch.json`, `autoPort`) always starts a server with `PORT` set
  *   to the port it waits on: the base port, or a free one when another
- *   checkout holds that. `tools/shot.ts` passes `PORT` too (and `--port` to
- *   The Cantina's Vite, which leaves its port at 5173 for `bun run dev:cantina`).
- * - Every server, the Cantina's Vite included, answers with
+ *   checkout holds that. `tools/shot.ts` passes `PORT` too.
+ * - The dev server answers with
  *   `x-su-checkout: <this checkout's root>`, so a client that finds its port
  *   busy can tell its own server from another checkout's (a collision, or a
  *   stale process) and refuse the latter, as `tools/shot.ts` does.
@@ -28,15 +27,8 @@ import { realpathSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-/**
- * The ports the primary checkout listens on. `cantina` is the Cantina booted signed out
- * with no backend, `bun run shot cantina:/route`'s own server; `bun run dev:cantina`
- * is not on it, and stays on 5173, where its local Convex backend expects it.
- */
-export const BASE_PORTS = { srd: 4321, cantina: 5180 } as const
-
-/** `bun run dev:cantina`'s port: Vite's default, where its local Convex backend expects it. */
-export const CANTINA_DEV_PORT = 5173
+/** The port the primary checkout's dev server listens on: srd, and the Cantina under `/build`. */
+export const BASE_PORTS = { srd: 4321 } as const
 export type DevServer = keyof typeof BASE_PORTS
 
 /** The response header each dev server names its checkout in. */

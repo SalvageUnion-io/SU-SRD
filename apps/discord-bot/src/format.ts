@@ -15,7 +15,7 @@ export const ROLL_ATTRIBUTION = 'Powered by Randsum.dev'
  * Neutral SU rust accent for replies without pass/fail semantics.
  *
  * `--color-rust: rgb(168, 82, 34)` from
- * `packages/component-lib/src/styles/theme.css`, annotated there as "THE single
+ * `apps/web/src/ui/styles/theme.css`, annotated there as "THE single
  * action color". Same lockstep rule as {@link ROLL_COLORS}.
  */
 export const NEUTRAL_ACCENT = 0xa85222
@@ -23,7 +23,7 @@ export const NEUTRAL_ACCENT = 0xa85222
 /**
  * Single source for the Core Mechanic roll-outcome accents. These mirror the
  * canon `--color-roll-*` ramp in
- * `packages/component-lib/src/styles/theme.css` — the tokens are the authority,
+ * `apps/web/src/ui/styles/theme.css` — the tokens are the authority,
  * and each value here is the same rgb() converted to the 0xRRGGBB integer a
  * container accent needs. Keep in lockstep with theme.css; do not introduce
  * off-canon hues.

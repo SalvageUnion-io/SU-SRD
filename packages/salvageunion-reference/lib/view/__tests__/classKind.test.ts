@@ -5,7 +5,7 @@
  * (`hybrid`, `advanceable`), never from a third stored field. Every assertion
  * runs on the real fixtures — all eleven classes by name — so a data change
  * that breaks the derivation fails here rather than silently mis-stamping a
- * card. How the card renders them is component-lib's `classKind.test.tsx`.
+ * card. How the card renders them is the UI library's `classKind.test.tsx`.
  */
 import { describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from '../../index'

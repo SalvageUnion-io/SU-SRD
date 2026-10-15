@@ -1,14 +1,14 @@
 ---
 paths:
-  - 'apps/cantina/src/stores/**'
-  - 'apps/cantina/src/hooks/**'
-  - 'apps/cantina/src/lib/connection/**'
-  - 'apps/cantina/src/lib/export/**'
-  - 'apps/cantina/src/components/account/**'
-  - 'apps/cantina/src/components/container/**'
-  - 'apps/cantina/src/components/games/**'
-  - 'apps/cantina/convex/**'
-  - 'apps/cantina/e2e/**'
+  - 'apps/web/src/cantina/stores/**'
+  - 'apps/web/src/cantina/hooks/**'
+  - 'apps/web/src/cantina/lib/connection/**'
+  - 'apps/web/src/cantina/lib/export/**'
+  - 'apps/web/src/cantina/components/account/**'
+  - 'apps/web/src/cantina/components/container/**'
+  - 'apps/web/src/cantina/components/games/**'
+  - 'apps/web/convex/**'
+  - 'apps/web/e2e/cantina/**'
   - 'packages/cantina-domain/**'
 ---
 
@@ -24,12 +24,12 @@ Why: [ADR-030, 034, 035](../../docs/ARCHITECTURE.md#decisions).
 | **Outdated** | bundle below `build.floor` | read-only until it reloads |
 
 Resolve the mode with `useConnection()` or `resolveConnectionMode()` /
-`writesAllowed()` from `src/lib/connection/` — never `navigator.onLine` or an
+`writesAllowed()` from `src/cantina/lib/connection/` — never `navigator.onLine` or an
 auth flag. Two persistence domains; know which you are in before writing a hook:
 
 | Domain | Path | Truth |
 | --- | --- | --- |
-| **Player entities** — pilots, mechs, crawlers, built NPCs, soft-links, patterns, encounter NPCs | Zustand stores in `src/stores/`, in memory | Convex when signed in; nothing signed out |
+| **Player entities** — pilots, mechs, crawlers, built NPCs, soft-links, patterns, encounter NPCs | Zustand stores in `src/cantina/stores/`, in memory | Convex when signed in; nothing signed out |
 | **Accounts, Games, invites, ownership, proposals, crew** | `useQuery` / `useMutation` from `convex/react` | Convex, always |
 
 ## Player entities — go through the store
@@ -39,40 +39,39 @@ const pilots = useEntityStore((s) => s.list('pilots')) // sync; rows arrive via 
 await useEntityStore.getState().update('pilots', id, { hp: next }) // server-first
 ```
 
-- **There is no anonymous backend.** `selectBackend()` (`src/stores/entityBackend.ts`)
+- **There is no anonymous backend.** `selectBackend()` (`src/cantina/stores/entityBackend.ts`)
   is `signedOut | remote | blocked`. `signedOut` holds nothing and refuses
   writes; `blocked` is offline, mid-handshake or Outdated, read-only too.
-  Check `canWrite` before offering an edit affordance. A unit test that writes calls
-  `withSignedInBackend()` (`src/stores/__tests__/signedInBackend.ts`).
+  Check `canWrite` before offering an edit. A unit test that writes calls
+  `withSignedInBackend()` (`src/cantina/stores/__tests__/signedInBackend.ts`).
 - **[No device cache](../../docs/ARCHITECTURE.md#no-device-cache).** Nothing player-owned goes in IndexedDB or
   `localStorage` but `accountHint`. `AccountReconciler` (root) mounts `ShelfSync` while
-  Connected; `hydrate()` waits for its first answer (`src/stores/rowArrival.ts`),
-  and a tab's rows go when its session ends (`src/stores/sessionRows.ts`).
+  Connected; `hydrate()` waits for its first answer (`src/cantina/stores/rowArrival.ts`),
+  and a tab's rows go when its session ends (`src/cantina/stores/sessionRows.ts`).
 - **A container written twice is written together** — the row's `gameId`
   column and the body's `gameId`; where they disagree, the column wins.
-- **e2e durability specs need an account** (`e2e/fixtures.ts`): without
-  `VITE_TEST_AUTH` in the build and `CANTINA_TEST_AUTH` on the deployment they
-  SKIP; the nightly `e2e-cantina` job runs them against a throwaway backend.
+- **e2e durability specs need an account** (`e2e/cantina/fixtures.ts`): without
+  `VITE_TEST_AUTH` and `CANTINA_TEST_AUTH` they SKIP (nightly runs them).
 
 ## Accounts / Games / ownership — Convex hooks
 
 `useQuery(api.games.members, { gameId })`. **Loading is `undefined`**, not a
 flag (`DowntimeTrack.tsx`). The provider (`AppConvexProvider`) is always there;
 a unit test rendering a Convex consumer mocks the hooks with
-`installConvexMocks()` (`src/components/__tests__/convexMock.ts`).
+`installConvexMocks()` (`src/cantina/components/__tests__/convexMock.ts`).
 
 ## Do not
 
 - **Add a record kind without a Convex table and commit seam** —
-  `apps/cantina/test/convex/__tests__/containerParity.test.ts` fails on one. A row with
+  `apps/web/test/convex/__tests__/containerParity.test.ts` fails on one. A row with
   no Convex counterpart is a defect; if the schema cannot say where a record
   lives, **the schema moves**.
 - Add a Convex-backed collection by hand: copy the `commit` seam on
   `makeHydratedCollectionSlice` (`mechPatterns`, `encounterNpcs`) or
   `commitChangeLog` — the one deliberate fire-and-forget write.
 - Duplicate locally what Convex owns (membership, ownership, invites,
-  proposals, crew vitals) — check `apps/cantina/convex/` first.
-- Add a query cache: entity reads are the hooks in `src/hooks/entities/`.
+  proposals, crew vitals) — check `apps/web/convex/` first.
+- Add a query cache: entity reads are the hooks in `src/cantina/hooks/entities/`.
 
 More: [data flow](../../docs/ARCHITECTURE.md#data-flow),
 [accounts](../../docs/ARCHITECTURE.md#convex).

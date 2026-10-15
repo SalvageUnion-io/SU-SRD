@@ -57,26 +57,19 @@ describe('parseArgs', () => {
 })
 
 describe('planShot', () => {
-  test("a /route goes to this checkout's srd dev server as is", () => {
+  test("a /route goes to this checkout's dev server as is", () => {
     expect(planShot({ target: '/chassis/mule/' })).toEqual({
-      server: expect.objectContaining({ name: 'srd', port: portFor('srd') }),
+      server: expect.objectContaining({ name: 'dev', port: portFor('srd') }),
       path: '/chassis/mule/',
     })
   })
 
-  test('cantina:/route is a Cantina route under its base, on its own signed-out boot', () => {
+  test('cantina:/route is a Cantina route under its base, on the same signed-out server', () => {
     const { server, path } = planShot({ target: 'cantina:/starter' })
     expect(path).toBe(`${CANTINA_BASE}/starter`)
-    expect(server.port).toBe(portFor('cantina'))
-    expect(server.cmd).toEqual([
-      'bun',
-      'x',
-      'vite',
-      '--port',
-      String(portFor('cantina')),
-      '--strictPort',
-    ])
-    expect(server.cwd.endsWith('apps/cantina')).toBe(true)
+    expect(server).toEqual(planShot({ target: '/' }).server)
+    expect(server.cmd).toEqual(['bun', 'ssg/dev.ts'])
+    expect(server.cwd.endsWith('apps/web')).toBe(true)
     expect(server.env).toEqual({ VITE_CONVEX_URL: NO_BACKEND })
     expect(planShot({ target: 'cantina:/' }).path).toBe(`${CANTINA_BASE}/`)
   })

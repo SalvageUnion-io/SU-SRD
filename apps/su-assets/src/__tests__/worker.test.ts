@@ -109,8 +109,8 @@ describe('asset worker — serving', () => {
     expect(res.status).toBe(200)
     expect(res.headers.get('content-type')).toBe('image/webp')
     expect(res.headers.get('cache-control')).toBe('public, max-age=31536000, immutable')
-    // Required, not decorative: this host is addressed cross-origin from both
-    // salvageunion.io and intheunionnow.com.
+    // Required, not decorative: this host is addressed cross-origin from
+    // salvageunion.io.
     expect(res.headers.get('access-control-allow-origin')).toBe('*')
     expect(await res.text()).toBe('imagebytes')
   })

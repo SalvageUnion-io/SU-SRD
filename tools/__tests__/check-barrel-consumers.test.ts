@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { join } from 'node:path'
 import type { BarrelExport } from '../check-barrel-consumers'
 import {
+  appOf,
   census,
   explain,
   groupOf,
@@ -43,18 +44,26 @@ describe('parseBarrel', () => {
 })
 
 describe('namesImportedFromLib', () => {
-  test('reads the root import only, with type and aliased bindings', () => {
+  test('reads the barrel import only, with type and aliased bindings', () => {
     const source = [
-      "import { Button, type ButtonProps, Stat as S } from 'component-lib'",
-      "import type { CardFootMeta } from 'component-lib'",
-      "import { color } from 'component-lib/design/tokens'",
-      "// import { Gone } from 'component-lib'",
+      "import { Button, type ButtonProps, Stat as S } from '../ui/index'",
+      "import type { CardFootMeta } from '../../../ui/index'",
+      "import { color } from '../ui/design/tokens'",
+      "// import { Gone } from '../ui/index'",
     ].join('\n')
     expect(namesImportedFromLib(source)).toEqual(['Button', 'ButtonProps', 'Stat', 'CardFootMeta'])
   })
 })
 
-const lib = 'packages/component-lib/src'
+const lib = 'apps/web/src/ui'
+
+describe('appOf', () => {
+  test('the Cantina folder in apps/web is its own app; anything else is its workspace', () => {
+    expect(appOf('apps/web', 'apps/web/src/cantina/main.tsx')).toBe('cantina')
+    expect(appOf('apps/web', 'apps/web/src/pages/index.page.tsx')).toBe('web')
+    expect(appOf('apps/discord-bot', 'apps/discord-bot/src/a.ts')).toBe('discord-bot')
+  })
+})
 
 describe('groupOf', () => {
   test("a component is filed under its directory's group", () => {
@@ -121,7 +130,7 @@ describe('judge', () => {
   const read = (keep: (e: BarrelExport) => boolean) => () => ({
     exports: exports.filter(keep),
     reach,
-    workspaces: ['apps/cantina', 'apps/srd'],
+    workspaces: ['apps/cantina', 'apps/web'],
     scanned: 12,
   })
 
@@ -178,10 +187,10 @@ describe('explain', () => {
       })
     ).toEqual([
       "✗ Wiz (m): only cantina renders it, and its directory files it under 'Compositions'.",
-      "  → Move it and its tests into apps/cantina/src/components/: a composition one app renders is that app's.",
+      "  → Move it and its tests into apps/web/src/cantina/components/: a composition one app renders is that app's.",
     ])
-    expect(explain({ kind: 'unclassified', name: 'heat', app: 'srd', module: 'm' })[1]).toContain(
-      'apps/srd/src/'
+    expect(explain({ kind: 'unclassified', name: 'heat', app: 'web', module: 'm' })[1]).toContain(
+      'apps/web/src/'
     )
   })
 })
@@ -190,13 +199,13 @@ describe('census of this repository', () => {
   const repo = census()
 
   test('reads the barrel and every consuming app', () => {
-    expect(repo.workspaces).toEqual(['apps/cantina', 'apps/discord-bot', 'apps/srd'])
+    expect(repo.workspaces).toEqual(['apps/web'])
     expect(repo.exports.length).toBeGreaterThan(60)
     expect(repo.scanned).toBeGreaterThan(270)
   })
 
-  test('reach is transitive: srd reaches ControlButtons through the card it renders', () => {
-    expect(repo.reach.get('ControlButtons')).toEqual(new Set(['cantina', 'srd']))
+  test('reach is transitive: web reaches ControlButtons through the card it renders', () => {
+    expect(repo.reach.get('ControlButtons')).toEqual(new Set(['cantina', 'web']))
   })
 
   test('has no failing verdict and no stale SINGLE_APP entry', () => {

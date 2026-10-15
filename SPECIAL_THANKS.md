@@ -3,10 +3,10 @@
 
   Rendered verbatim in the colophon on the About page both tools share,
   between `ABOUT_JRVS.md` and the Ko-fi support block — srd's `/about`
-  (`apps/srd/src/pages/about.page.tsx`, read at build time with node:fs). The Cantina
+  (`apps/web/src/pages/about.page.tsx`, read at build time with node:fs). The Cantina
   links there and keeps no copy.
 
-  Format contract (see `packages/component-lib/src/markdownSection/`): one `#`
+  Format contract (see `apps/web/src/ui/markdownSection/`): one `#`
   heading, then blank-line-separated blocks. A block is either a paragraph or a
   `- ` bullet list — a list only when EVERY line in the block is an item, so
   keep the blank line between the lead-in line and the list below it.
