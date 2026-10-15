@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'bun:test'
 import { NATIVE_FETCH_GLOBALS } from '../../../test/env'
-import { APP_BASE, appUrl, originOf } from '../../lib/site'
+import { APP_BASE } from '../../lib/appBase'
+import { appUrl, originOf } from '../../lib/site'
 import type { Env } from '../index'
 import worker from '../index'
 

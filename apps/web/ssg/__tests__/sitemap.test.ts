@@ -18,8 +18,8 @@ import { describe, expect, it } from 'bun:test'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { appPath } from '../../src/lib/appBase'
 import { SITE_URL } from '../../src/lib/constants'
-import { appPath } from '../../src/lib/site'
 import { writeSitemap } from '../sitemap'
 
 type Emitted = { count: number; index: string; urlsets: Record<string, string> }

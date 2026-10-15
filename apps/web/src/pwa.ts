@@ -62,7 +62,7 @@
  */
 
 import type { VitePWAOptions } from 'vite-plugin-pwa'
-import { APP_BASE } from './lib/site'
+import { APP_BASE } from './lib/appBase'
 
 /** The one web manifest, at the site's root; every page links it. */
 export const SITE_MANIFEST = '/site.webmanifest'

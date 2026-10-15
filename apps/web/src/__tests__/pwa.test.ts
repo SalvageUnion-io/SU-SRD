@@ -9,7 +9,7 @@ import { describe, expect, test } from 'bun:test'
 import { Glob } from 'bun'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { APP_BASE, appPath } from '../lib/site'
+import { APP_BASE, appPath } from '../lib/appBase'
 import {
   NAVIGATION_TIMEOUT_SECONDS,
   PAGES_CACHE,

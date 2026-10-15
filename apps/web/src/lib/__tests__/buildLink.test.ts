@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
+import { appPath } from '../appBase'
 import { buildLinkFor, guideExitsFor, patternBuildLinkFor, STARTER_SET_HREF } from '../buildLink'
-import { appPath } from '../site'
 
 function must<T>(value: T | undefined): T {
   if (value === undefined) throw new Error('fixture not found')

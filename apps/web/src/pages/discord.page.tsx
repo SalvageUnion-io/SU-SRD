@@ -16,6 +16,7 @@ import { buttonVariants, InlineRef, Panel, Slab } from '../components/index'
 import { borderWidth, color, font, fontSize, space } from '../design/tokens'
 import type { DiscordCommand } from '../generated/discordCommands'
 import { DISCORD_COMMANDS } from '../generated/discordCommands'
+import { appPath } from '../lib/appBase'
 import { CONTENTS_CRUMB, DISCORD_INSTALL_URL, SITE_URL, TITLE_SUFFIX } from '../lib/constants'
 import {
   ASIDE,
@@ -30,7 +31,6 @@ import {
   proseColumn,
 } from '../lib/docPageStyles'
 import { SalvageUnionReference } from '../lib/gameData'
-import { appPath } from '../lib/site'
 
 /**
  * Both values are DERIVED, and both are built inside `page()`.

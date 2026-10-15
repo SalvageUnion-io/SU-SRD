@@ -8,7 +8,7 @@
  * - **The Cantina** is one HTML entry, its shell, rendered rather than read
  *   (`ssg/cantinaPlugins.ts`) and emitted as `build/index.html`. Its chunks
  *   share `assets/` with srd's; its router and service worker live under
- *   `/build/` (`APP_BASE` in `src/lib/site.ts`, ADR-048).
+ *   `/build/` (`APP_BASE` in `src/lib/appBase.ts`, ADR-048).
  *
  * The shell renders the Union bar from the UI library's TypeScript source,
  * which only Vite's module runner resolves: load this file with

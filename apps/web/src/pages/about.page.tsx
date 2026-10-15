@@ -29,10 +29,10 @@ import { DocPage } from '../components/DocPage'
 import { buttonVariants, cn, InlineRef, Slab } from '../components/index'
 import { ColophonIsland } from '../components/islands/ColophonIsland'
 import { color, font, fontSize, space, tracking, weight } from '../design/tokens'
+import { appPath } from '../lib/appBase'
 import { builtAssetUrl, ELDRIDGE_COAST_MAP } from '../lib/builtAssets'
 import { SITE_URL, TITLE_SUFFIX } from '../lib/constants'
 import { BOLD, PROSE } from '../lib/docPageStyles'
-import { appPath } from '../lib/site'
 import { Island } from '../runtime/Island'
 
 /** Repo root, relative to this module — `apps/web/src/pages` -> four levels up. */

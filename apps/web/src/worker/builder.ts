@@ -47,8 +47,8 @@
  * never has a file extension, so a dot in the last segment means a FILE.
  */
 
+import { APP_BASE, routeInApp } from '../lib/appBase'
 import { retiredDocPage, retiredTarget } from '../lib/redirects'
-import { APP_BASE, routeInApp } from '../lib/site'
 import { hidesUnionBar } from '../shell/unionSlots'
 import { pathInApp } from './basePath'
 import type { ImageCache, PreviewEnv, PreviewRoute } from './linkPreview'

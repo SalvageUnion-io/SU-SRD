@@ -12,7 +12,7 @@
  * A creation guide ends on its exits (`guideExitsFor`): the same wizard, unseeded,
  * the next guide, and the Starter Set.
  *
- * Every path is under the app's base (`appPath`, `site.ts`), as the Union bar's
+ * Every path is under the app's base (`appPath`, `appBase.ts`), as the Union bar's
  * Build link is.
  */
 
@@ -23,8 +23,8 @@ import {
   isLegalCreationClass,
   isLegalStartingPattern,
 } from 'salvageunion-reference/rules'
+import { appPath } from './appBase'
 import { itemHref } from './entityHref'
-import { appPath } from './site'
 
 /**
  * A build link: its visible `label`, and, where the label leaves out what is

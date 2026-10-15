@@ -21,8 +21,8 @@
  */
 
 import { SIGN_IN_HREF } from '../lib/accountBar'
+import { appPath } from '../lib/appBase'
 import { BUY_HREF } from '../lib/docPages'
-import { appPath } from '../lib/site'
 import { WIKI_LINK_ATTRIBUTE } from '../lib/wikiLink'
 import { Island } from '../runtime/Island'
 import { AppBar, cn, FOCUS_RING } from './index'

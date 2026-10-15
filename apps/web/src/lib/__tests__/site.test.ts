@@ -1,10 +1,11 @@
 import { describe, expect, test } from 'bun:test'
 import { renderShell } from '../../shell/shell'
-import { APP_BASE, appPath, appRoot, appUrl, originOf, pageOrigin, routeInApp } from '../site'
+import { APP_BASE, appPath, routeInApp } from '../appBase'
+import { appRoot, appUrl, originOf, pageOrigin } from '../site'
 
 const siteUrl = appUrl('/', originOf())
 
-/** The Cantina at salvageunion.io/build (ADR-048, `site.ts`). */
+/** The Cantina at salvageunion.io/build (ADR-048, `appBase.ts`). */
 describe('the app base', () => {
   test('is salvageunion.io/build', () => {
     expect(siteUrl).toBe('https://salvageunion.io/build/')

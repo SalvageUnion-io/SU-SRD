@@ -9,7 +9,7 @@ import {
 } from '@tanstack/react-router'
 import { render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import { APP_BASE, appPath } from '../../../lib/site'
+import { APP_BASE, appPath } from '../../../lib/appBase'
 import { SiteLink } from '../AppLink'
 
 /** A router under the app's base, as `main.tsx` makes it, drawing `links` on its one route. */

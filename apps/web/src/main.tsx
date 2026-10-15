@@ -4,13 +4,13 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouteErrorComponent } from './components/shared/RouteErrors'
 import { RouteNotFound, RoutePending } from './components/shared/RouteFallbacks'
+import { APP_BASE } from './lib/appBase'
 import {
   initBrowserObservability,
   installChunkRecovery,
   reactRootErrorHandlers,
 } from './lib/observability'
 import { preloadScriptFont } from './lib/scriptFont'
-import { APP_BASE } from './lib/site'
 import { registerServiceWorker } from './lib/sw/register'
 import { installSoftUpdate, newBuild } from './lib/sw/softUpdate'
 import { routeTree } from './routeTree.gen'
@@ -18,7 +18,7 @@ import { setEntityBackendAuthState } from './stores/entityBackend'
 
 const router = createRouter({
   routeTree,
-  // The Cantina at salvageunion.io/build (ADR-048, lib/site.ts). Routes and links stay root-relative; the router adds it.
+  // The Cantina at salvageunion.io/build (ADR-048, lib/appBase.ts). Routes and links stay root-relative; the router adds it.
   basepath: APP_BASE,
   defaultNotFoundComponent: RouteNotFound,
   defaultPendingComponent: RoutePending,

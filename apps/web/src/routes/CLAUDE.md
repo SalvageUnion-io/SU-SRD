@@ -114,5 +114,5 @@ product component folders, `convex/`, `e2e/cantina/`).
 
 The root `AGENTS.md` list, plus `bun run e2e --project=cantina`; local Convex
 setup is the convex-ops skill. Base `/build/` everywhere, dev too
-(`lib/site.ts`); e2e opens routes via `at()`. How it builds and serves:
+(`lib/appBase.ts`); e2e opens routes via `at()`. How it builds and serves:
 [ADR-050](../../../../docs/adr/050-one-app.md).

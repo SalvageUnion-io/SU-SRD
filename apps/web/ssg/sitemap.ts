@@ -26,8 +26,8 @@
 
 import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
+import { appPath } from '../src/lib/appBase'
 import { SITE_URL } from '../src/lib/constants'
-import { appPath } from '../src/lib/site'
 import { sitemapIndexXml, urlsetXml } from '../src/lib/sitemapXml'
 import { withTrailingSlash } from './render'
 

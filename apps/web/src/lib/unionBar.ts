@@ -2,7 +2,8 @@
  * The rules the Cantina applies to the shell's Union bar
  * (`components/shared/UnionBarSlots.tsx`).
  */
-import { pageOrigin, routeInApp } from './site'
+import { routeInApp } from './appBase'
+import { pageOrigin } from './site'
 
 /** Whether a nav route is the page you are on. */
 export function isCurrent(path: string, pathname: string): boolean {

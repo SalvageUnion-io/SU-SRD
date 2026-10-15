@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { APP_BASE } from '../../lib/site'
+import { APP_BASE } from '../../lib/appBase'
 import { RUN_WORKER_FIRST, spaAssets } from '../builder'
 import type { Env } from '../index'
 import worker from '../index'

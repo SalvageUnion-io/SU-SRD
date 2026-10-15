@@ -20,8 +20,8 @@
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { appPath } from '../src/lib/appBase'
 import { SITE_URL } from '../src/lib/constants'
-import { appPath } from '../src/lib/site'
 
 const DIST = join(import.meta.dir, '../dist')
 

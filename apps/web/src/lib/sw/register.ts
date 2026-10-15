@@ -58,8 +58,8 @@
  */
 
 import type { RegisterSWOptions } from 'vite-plugin-pwa/types'
+import { appPath } from '../appBase'
 import { captureException } from '../observability'
-import { appPath } from '../site'
 
 export type RegisterOptions = {
   /**

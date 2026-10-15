@@ -35,8 +35,8 @@
  * (the CSP and the rest of the `/*` block) for its path, `/404`.
  */
 
+import { appPath } from '../lib/appBase'
 import { currentPathFor } from '../lib/redirects'
-import { appPath } from '../lib/site'
 import type { BuilderEnv } from './builder'
 import { isBuildPath, serveBuilder } from './builder'
 import type { RateLimiter } from './errorReports'

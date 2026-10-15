@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { SETTINGS_HREF, SIGN_IN_HREF, signOutHref } from '../accountBar'
 import { markSignedIn } from '../accountState'
-import { appPath } from '../site'
+import { appPath } from '../appBase'
 
 describe('accountBar', () => {
   test('Sign in, Settings and Sign out are The Cantina’s', () => {

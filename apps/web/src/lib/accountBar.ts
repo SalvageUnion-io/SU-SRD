@@ -10,7 +10,7 @@
  * never mount, so a reader who never signed in loads no React for them.
  */
 
-import { appPath } from './site'
+import { appPath } from './appBase'
 
 /** Where Sign in goes: The Cantina starts Discord's round trip (`/sign-in`). */
 export const SIGN_IN_HREF = appPath('/sign-in')

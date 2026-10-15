@@ -27,6 +27,7 @@ import {
   getChassisAbilities,
   getEntitySlug,
 } from 'salvageunion-reference'
+import { appPath } from '../../../lib/appBase'
 import { useConnection } from '../../../lib/connection/connectionContext'
 import { serverMessage } from '../../../lib/connection/serverError'
 import { entityHref, itemHref } from '../../../lib/entityHref'
@@ -40,7 +41,6 @@ import {
   patternLoadout,
   slotsUsed,
 } from '../../../lib/patterns/patterns'
-import { appPath } from '../../../lib/site'
 import { useEntityStore } from '../../../stores/entityStore'
 import { usePatternStore } from '../../../stores/patternStore'
 import { SignInControl } from '../../account/SignInControl'

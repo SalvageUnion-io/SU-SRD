@@ -19,7 +19,7 @@
 import type { LinkProps } from '@tanstack/react-router'
 import { Link, useRouter } from '@tanstack/react-router'
 import type { ComponentPropsWithRef } from 'react'
-import { routeInApp } from '../../lib/site'
+import { routeInApp } from '../../lib/appBase'
 
 type AppLinkProps = Omit<ComponentPropsWithRef<'a'>, 'href'> & {
   href: string

@@ -6,9 +6,9 @@
 import { describe, expect, test } from 'bun:test'
 import { render, screen, within } from '@testing-library/react'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
+import { appPath } from '../../lib/appBase'
 import { buildLinkFor, guideExitsFor, STARTER_SET_HREF } from '../../lib/buildLink'
 import { entityPageFoot } from '../../lib/entityPageFoot'
-import { appPath } from '../../lib/site'
 import { EntityPageFrame } from '../EntityPageFrame'
 import { resolveEntityPageMeta } from '../index'
 
