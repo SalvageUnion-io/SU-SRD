@@ -15,7 +15,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
 3. **Lazy loading** <a id="lazy-loading"></a>
    Call `preload()` before any accessor; a module-scope ORM call fails Biome (`noModuleScopeReferenceCall.grit`).
    Tests preload through `test/reference-preload.ts` in each workspace's `bunfig.toml`, never `preload('all')` per file.
-4. **UI library** <a id="component-lib"></a>
+4. **UI library** <a id="ui-library"></a>
    `apps/web/src/ui/index.ts` barrel; tokens in `apps/web/src/ui/styles/theme.css`, mirrored by `design/tokens.ts`; Biome keeps app code out.
    One app's composition lives in that app (`barrel-consumers`); unused exports: [knip](#dead-code).
 5. **Stylesheet wiring** <a id="stylesheets"></a>

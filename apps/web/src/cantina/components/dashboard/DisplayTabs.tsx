@@ -10,7 +10,7 @@
  *   - **Crew** — each crewmate's vitals and status (`CrewTab`), with a ▲ on
  *     the tab while any of them needs looking at.
  *
- * The tabs are src/ui's `Tabs`, so they carry the tabs keyboard model:
+ * The tabs are the UI library's `Tabs`, so they carry the tabs keyboard model:
  * ArrowLeft/ArrowRight select the neighbouring tab, Home/End the ends, and Tab
  * moves into the open panel. Which tab is open is the caller's state, kept on
  * the device (ADR-038 §2): it is screen arrangement, not play state.

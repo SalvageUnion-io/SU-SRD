@@ -16,7 +16,7 @@ import { InlineEditField } from '../InlineEditField'
 // Unmounting between tests is load-bearing here: every test renders the same
 // `Callsign` label, so a single leaked render turns every later
 // `getByLabelText` into "found multiple elements". The shared preload
-// (../../test/testing-library.ts, wired in via src/ui's bunfig) runs an
+// (../../test/testing-library.ts, wired in via the UI library's bunfig) runs an
 // act()-wrapped `afterEach(cleanup)` for every file in the workspace.
 
 /** Render with a recording `onSave`; returns the calls array. */

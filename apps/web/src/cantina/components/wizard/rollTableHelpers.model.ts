@@ -24,7 +24,7 @@ export type PilotRollField = keyof typeof PILOT_ROLL_TABLE_NAMES
  */
 export type RollTableDeps = {
   findTable: (name: string) => (RefRollTable & { schemaName: string }) | undefined
-  /** The die for a table, by name (src/ui's `dieForTable`). */
+  /** The die for a table, by name (the UI library's `dieForTable`). */
   d20For: (tableName: string) => Promise<TableDie>
 }
 

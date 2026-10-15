@@ -348,12 +348,12 @@ describe('styling rule set', () => {
           null,
           2
         ),
-        'packages/component-lib/package.json': JSON.stringify(
+        'packages/cantina-domain/package.json': JSON.stringify(
           { dependencies: { clsx: '2.1.1', 'tailwind-merge': '3.0.0' } },
           null,
           2
         ),
-        'apps/cantina/package.json': JSON.stringify(
+        'apps/web/package.json': JSON.stringify(
           { devDependencies: { '@tailwindcss/vite': '4.1.0' } },
           null,
           2
@@ -366,8 +366,8 @@ describe('styling rule set', () => {
     )
     expect(found['no-tailwind']?.map((f) => `${f.file}:${f.line} ${f.detail}`)).toEqual([
       "package.json:3 devDependencies declares 'tailwindcss'",
-      "apps/cantina/package.json:3 devDependencies declares '@tailwindcss/vite'",
-      "packages/component-lib/package.json:4 dependencies declares 'tailwind-merge'",
+      "apps/web/package.json:3 devDependencies declares '@tailwindcss/vite'",
+      "packages/cantina-domain/package.json:4 dependencies declares 'tailwind-merge'",
       "tools/package.json:3 devDependencies declares '@tailwindcss/cli'",
       "apps/web/src/styles/global.css:2 Tailwind directive '@source'",
       "apps/web/src/styles/global.css:4 Tailwind directive '@apply'",

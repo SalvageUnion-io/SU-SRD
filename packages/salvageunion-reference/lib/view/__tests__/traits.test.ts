@@ -1,7 +1,7 @@
 /**
  * The entity model's trait facets, on their own terms: an action's sub-header
  * cells and a crawler tech level's population band. (Moved here from
- * src/ui's card tests with the pass-through wrappers they tested.)
+ * the UI library's card tests with the pass-through wrappers they tested.)
  */
 import { describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from '../../index'

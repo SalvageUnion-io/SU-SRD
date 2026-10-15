@@ -11,7 +11,7 @@
  *            crawler-tech-levels.json; the default SRD bays are seeded).
  *
  * Reuses the app's standard dialog shell (src/ui ModalShell — the same
- * shell behind src/ui's ConfirmDialog) and Field/Input chrome.
+ * shell behind the UI library's ConfirmDialog) and Field/Input chrome.
  */
 
 import type { CSSProperties } from 'react'

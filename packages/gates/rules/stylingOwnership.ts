@@ -81,7 +81,7 @@ const EXEMPTIONS: Exemption[] = [
     file: 'apps/web/src/cantina/styles/libHandback.css',
     rules: ['dead-app-css'],
     reason:
-      "Its selectors are src/ui's own classes, referenced in src/ui source rather than the Cantina's: the file only hands those classes back their layered values (`revert-layer`) over the Cantina's unlayered element rules, and styles nothing of its own.",
+      "Its selectors are the UI library's own classes, referenced in src/ui source rather than the Cantina's: the file only hands those classes back their layered values (`revert-layer`) over the Cantina's unlayered element rules, and styles nothing of its own.",
   },
 ]
 

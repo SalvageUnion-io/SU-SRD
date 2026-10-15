@@ -58,7 +58,7 @@ const ALLOWED_WIDTHS = new Set([440, 880])
 /**
  * The WebP quality every derivative renders at, and the only one a URL may
  * name (`mule-440q80.webp`): one value, so the quality, like the width, cannot
- * be walked. Mirrors `ASSET_RENDER_QUALITY` in src/ui's `assetSrcSet.ts`.
+ * be walked. Mirrors `ASSET_RENDER_QUALITY` in the UI library's `assetSrcSet.ts`.
  *
  * Named in the URL because the bare `-440`/`-880` keys are spent: the first ones
  * were baked into the bucket close to lossless, and the edge and every browser

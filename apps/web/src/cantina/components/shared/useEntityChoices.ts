@@ -1,6 +1,6 @@
 /**
  * useEntityChoices — controlled-selection adapter between an entity's persisted
- * per-item choice map and src/ui's ReferenceEntityCard `selections` /
+ * per-item choice map and the UI library's ReferenceEntityCard `selections` /
  * `onSelectionChange` props.
  *
  * Given an entity (`entityType`/`entityId`), an item slug, the name of the field

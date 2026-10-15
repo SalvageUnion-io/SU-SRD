@@ -21,7 +21,7 @@ describe('getCatalogBg', () => {
     }
 
     expect(missing).toEqual(
-      // If this fails, the schema has no domain in src/ui's SCHEMA_DOMAIN
+      // If this fails, the schema has no domain in the UI library's SCHEMA_DOMAIN
       // — declare it there (the card resolves its tone from the same map).
       []
     )

@@ -106,7 +106,7 @@ export type ActionsDeckProps = {
   store?: PlayStore
   /**
    * The dice for a roll on a table, by its name. Injectable so a test controls
-   * the roll; defaults to src/ui's `rollForTable` (Randsum).
+   * the roll; defaults to the UI library's `rollForTable` (Randsum).
    */
   rollFor?: typeof rollForTable
 }

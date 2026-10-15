@@ -528,7 +528,7 @@ a.srd-home__discord:hover {
    * A wordy page (`rollTableDensity`) sets tighter so it ends above the fold:
    * `compact` sets the note smaller across a wider measure. The bands' own
    * setting is the instrument's (`RollTableInstrument`'s `density`,
-   * src/ui's index.css).
+   * the UI library's index.css).
    */
   .srd-roll:is([data-density='compact'], [data-density='dense']) .srd-roll__description {
     font-size: var(--text-sm);
@@ -589,8 +589,8 @@ a.srd-home__discord:hover {
 }
 
 /* An entity grid (`data-entity-grid`): every Row in it is one height, at
-   every width, and its heads end on one line (src/ui's entity forms).
-   Its row tracks are src/ui's (`[data-entity-grid]`): equal (`1fr`),
+   every width, and its heads end on one line (the UI library's entity forms).
+   Its row tracks are the UI library's (`[data-entity-grid]`): equal (`1fr`),
    each Row stretched to fill its cell, or a line's own height where a Row is
    its head alone. Setting them here, unlayered, would override that. */
 .srd-listing__cards {
@@ -606,7 +606,7 @@ a.srd-home__discord:hover {
 }
 
 /* A listing's Rows (`data-entity-fit`): each as wide as its title on one line
-   (src/ui's entity forms), no narrower than the listing's measure,
+   (the UI library's entity forms), no narrower than the listing's measure,
    growing to fill its line, so a short group never leaves the line's end
    empty; a phone stacks them. Rows on a line share its height. */
 .srd-listing__cards[data-entity-fit] {
@@ -663,7 +663,7 @@ a.srd-home__discord:hover {
 }
 
 /*
- * THE CATALOG (`data-view="catalog"`): the Tiles (src/ui's
+ * THE CATALOG (`data-view="catalog"`): the Tiles (the UI library's
  * `.su-entity-tile`), every listing's view at every width, one flat grid
  * (`lib/listingView.ts`). It fills its line to the page's margin: as many
  * 17rem-or-wider tracks as the measure holds (four at the page's), stretched
@@ -701,7 +701,7 @@ a.srd-home__discord:hover {
 }
 
 /* On a phone a tile's art is a 2:1 band (`.su-entity-tile__art`,
-   src/ui's `entity-forms.css`), not 3:4: 310px a tile at 390px, so
+   the UI library's `entity-forms.css`), not 3:4: 310px a tile at 390px, so
    the reserve and the skeleton's art box take that shape. */
 @media (max-width: 40rem) {
   .srd-listing__tiles > li:nth-child(n + 5) {
@@ -1019,7 +1019,7 @@ a.srd-home__discord:hover {
  * (stacked, beside its own path from 64rem) and its Hybrid Classes; a Hybrid Class's
  * own tree + Legendary tree (two across) and the Core trees it branches into.
  *
- * Each tree draws the book's track: src/ui's `AbilityTrack`
+ * Each tree draws the book's track: the UI library's `AbilityTrack`
  * (`.su-ability-track`, `partials/compositions.css`).
  */
 .srd-ability-tree {
@@ -1035,7 +1035,7 @@ a.srd-home__discord:hover {
 }
 
 /* The trees side by side, each as wide as its longest title on one line
-   (src/ui's `data-entity-fit`), growing to fill the line and wrapping
+   (the UI library's `data-entity-fit`), growing to fill the line and wrapping
    when the next does not fit; a phone stacks them. A title wraps only when it
    alone is wider than the line. */
 .srd-ability-tree__row,

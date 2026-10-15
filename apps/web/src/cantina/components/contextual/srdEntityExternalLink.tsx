@@ -6,7 +6,7 @@ import { deepLinkTo, hasSRDPage } from '../../lib/srd-deep-link'
 /**
  * The Cantina's app-wide "View in SRD" cross-link builder.
  *
- * Supplied through src/ui's `EntityExternalLinkProvider` (wired in
+ * Supplied through the UI library's `EntityExternalLinkProvider` (wired in
  * `GameDataReady`), so every FULL — non-compact, non-listing — entity card,
  * including the `useDetailModal` detail view, uniformly renders the link in
  * its foot band. Compact/listing cards stay uncluttered by design; entities

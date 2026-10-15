@@ -1,6 +1,6 @@
 # ui — the shared component library
 
-The React components, tokens and stylesheet both srd and the Cantina render (formerly the `src/ui` package).
+The React components, tokens and stylesheet both srd and the Cantina render.
 
 ## Key Facts
 
@@ -17,7 +17,7 @@ Rules: [`.claude/rules/styling.md`](../../../../.claude/rules/styling.md) (loads
 
 No roster here: the barrel, [`index.ts`](index.ts), is the public API and the only
 list of exports — read it. The rules for that surface (what may be exported, what consumers may
-import): [src/ui](../../../../docs/ARCHITECTURE.md#component-lib).
+import): [the UI library](../../../../docs/ARCHITECTURE.md#ui-library).
 
 ## Entity Display System
 
@@ -33,7 +33,7 @@ Apps inject their renderers through **generic slot props** (`afterExtraContent`,
 - **Containers** — content-agnostic wrappers / state shells that would make sense with entirely different content inside.
 - **Compositions** — know about Salvage Union entities, or assemble atoms into a product surface.
 
-A primitive (an Atom or a Container) stays here however many apps render it. A composition only one app renders lives in that app's `src/components/`: `bun run check barrel-consumers` fails a barrel export only one app reaches that sits under `components/compositions/` ([src/ui](../../../../docs/ARCHITECTURE.md#component-lib)).
+A primitive (an Atom or a Container) stays here however many apps render it. A composition only one app renders lives in that app's `src/components/`: `bun run check barrel-consumers` fails a barrel export only one app reaches that sits under `components/compositions/` ([the UI library](../../../../docs/ARCHITECTURE.md#ui-library)).
 
 - **Name components for what they are** — no `-Display` / `-View` / `-Renderer` suffixes or redundant `Reference*` prefixes (`Stat`, never `StatDisplay`). **`ReferenceEntityCard` is a sanctioned exception — do not re-flag it:** `Reference*` marks the card over a `RefEntity`, distinct from the content-agnostic `Card` (see [`.claude/rules/display-system.md`](../../../../.claude/rules/display-system.md)). An exception's prefix must carry information the bare name loses; record any new one here.
 - **Nothing lives only in a test.** A module whose only importers are tests ships in no app: delete it.

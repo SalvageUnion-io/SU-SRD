@@ -183,7 +183,7 @@ type CrawlerEconomyControlProps = {
   onClose: () => void
   /**
    * The dice for a roll on a table, by its name: d20s and the random Bay.
-   * Injectable for tests; defaults to src/ui's `rollForTable`
+   * Injectable for tests; defaults to the UI library's `rollForTable`
    * (@randsum/salvageunion for Crawler Deterioration, a named table).
    */
   rollFor?: (tableName: string) => Promise<Roll>

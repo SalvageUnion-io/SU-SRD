@@ -156,7 +156,7 @@ export {
 } from './view/discordEntryCard'
 // The entity VIEW MODEL (docs/design-system/entity-display-language.md): an
 // entity resolved once into what every form draws. Its parts are public too,
-// for src/ui's card helpers, which read them rather than keep a copy.
+// for the UI library's card helpers, which read them rather than keep a copy.
 export {
   droneOwnLoadout,
   foldedActionOf,

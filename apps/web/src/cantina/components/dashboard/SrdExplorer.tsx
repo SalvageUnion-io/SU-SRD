@@ -8,7 +8,7 @@
  *
  * Three views, every one of them a shared src/ui surface:
  *
- *  1. **Home** — the catalog, with search above it. Search is src/ui's
+ *  1. **Home** — the catalog, with search above it. Search is the UI library's
  *     `useSearchCombobox` (the hook behind the Cantina's GlobalSearch and srd's
  *     SearchIsland) in the shared `SearchField`; tiles **drill in place**
  *     (`onActivate`) rather than navigating, which would leave the Dashboard.

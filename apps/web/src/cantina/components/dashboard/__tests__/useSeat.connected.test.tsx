@@ -608,7 +608,7 @@ describe("the Dashboard's display: the deck, the tabs and the table", () => {
       await act(async () => {
         screen.getByText('Roll').click()
       })
-      // The dice load on the first roll (src/ui's `rollForTable`).
+      // The dice load on the first roll (the UI library's `rollForTable`).
       await waitFor(() => expect(sent.some((w) => w.name === 'seats:setResolving')).toBe(true))
       const write = sent.find((w) => w.name === 'seats:setResolving')
       expect(write?.args).toMatchObject({

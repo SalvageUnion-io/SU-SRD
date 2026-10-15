@@ -3,7 +3,7 @@
  *
  * At small widths the condensed sheet bar is too crowded for every sheet
  * action, so Sheet.tsx folds the reads and admin moves (Print, Export, the
- * container move, the Change Log) into this anchored panel — src/ui's
+ * container move, the Change Log) into this anchored panel — the UI library's
  * `PopoverPanel`: non-modal, closed by Escape, a press outside it or the
  * trigger, focus back on the trigger. Its items only mount while open, so
  * whatever an item opens (the Change Log, a confirm) keeps its state on the

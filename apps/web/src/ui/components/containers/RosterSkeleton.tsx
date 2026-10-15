@@ -45,7 +45,7 @@ const COLUMN_ACTION = {
 
 const ROWS = { display: 'flex', flexDirection: 'column', gap: space[10] } satisfies CSSProperties
 
-/** Row-shaped shimmer placeholder matching src/ui's `Row` frame. */
+/** Row-shaped shimmer placeholder matching the UI library's `Row` frame. */
 function SkeletonRow() {
   return (
     <li style={{ listStyle: 'none' }}>

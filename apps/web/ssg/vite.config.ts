@@ -51,7 +51,7 @@ export default defineConfig({
   // request.
   //
   // `include` lists every entry point of salvageunion-reference, not just '.':
-  // src/ui's islands import './rules', whose modules import lib/index.ts,
+  // the UI library's islands import './rules', whose modules import lib/index.ts,
   // so served raw beside a pre-bundled '.' it loaded a second ORM instance whose
   // LazyModels are never preloaded. Bundling every subpath in one pass dedupes
   // lib/index.ts — the same list, and reason, as the Cantina's vite.config.ts.

@@ -9,7 +9,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { ROUTER_PLUGIN_OPTIONS } from './routeTree.config'
 import { basePathOf, headersForBase, SITE } from './src/cantina/lib/site'
 import { WORKBOX_OPTIONS } from './src/cantina/lib/sw/workbox'
-// The shell renders the Union bar from src/ui's TypeScript source, which
+// The shell renders the Union bar from the UI library's TypeScript source, which
 // only Vite's module runner resolves: load this file with `--configLoader runner`
 // (`build:cantina`, `ssg/dev.ts`); the default loader leaves the package to Node.
 import { renderShell } from './src/cantina/shell/shell'

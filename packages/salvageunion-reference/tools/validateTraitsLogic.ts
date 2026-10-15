@@ -218,7 +218,7 @@ function collectStrings(node: unknown, out: string[] = []): string[] {
 /**
  * Flag every inline trait link, in any string of any row, whose name is not a
  * trait, and any inline markup that renders wrong. The renderers resolve
- * against traits.json only, ignoring case; src/ui's TraitRef does not
+ * against traits.json only, ignoring case; the UI library's TraitRef does not
  * trim, so neither does this.
  */
 export function findDeadInlineTraitLinks(

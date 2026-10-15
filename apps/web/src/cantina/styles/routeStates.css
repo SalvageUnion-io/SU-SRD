@@ -4,7 +4,7 @@
  * src/ui tokens. Loaded by `index.css`.
  *
  * - components/shared/RouteFallbacks.tsx — `.su-not-found-panel`: the 404 card's
- *   padding opens up from `sm`. (RoutePending's pulse is src/ui's
+ *   padding opens up from `sm`. (RoutePending's pulse is the UI library's
  *   `su-pulse`.)
  * - components/shared/GameDataReady.tsx — `.su-game-data-fallback__mark`: the SU
  *   mark steps up from `sm`; `.su-game-data-fallback__bar`: the indeterminate

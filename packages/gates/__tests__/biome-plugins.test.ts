@@ -1,5 +1,5 @@
 /**
- * The GritQL plugins in `packages/gates/biome/` and the src/ui and the Cantina
+ * The GritQL plugins in `packages/gates/biome/` and the UI library and the Cantina
  * function-size caps are wired up by `includes` globs in biome.jsonc, and the real tree is clean.
  * A bad glob, or a Biome update that changes how plugins match, would make a
  * rule check nothing while `bun run check`

@@ -224,7 +224,7 @@
   content: none;
 }
 
-/* A Row on a track is framed in the track's hue (src/ui's
+/* A Row on a track is framed in the track's hue (the UI library's
    `--su-row-frame`), so the stub runs into a border of its own colour. */
 .su-ability-track[data-track] > .su-ability-track__tier {
   --su-row-frame: var(--su-track-color);

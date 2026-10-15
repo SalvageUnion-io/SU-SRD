@@ -53,7 +53,7 @@ before touching data** (it loads with the stores, hooks, `src/lib/connection/`,
 
 - Pure math: the `salvageunion-reference/rules` subpath, never the main barrel
   or a local re-export; `src/lib/rules/` is Cantina's app-local rules only. Every
-  die is src/ui's `utils/dice.ts`.
+  die is the UI library's `utils/dice.ts`.
 - Play actions go on the Dashboard; the one sheet-local play control is
   `CrawlerEconomyControl.tsx`.
 - Destructive condition changes stay player-driven via `StatusBadge` →

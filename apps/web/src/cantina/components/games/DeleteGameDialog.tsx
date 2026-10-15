@@ -23,7 +23,7 @@
  * opposition tray, and the crew's wiring. Softening that would be the failure
  * mode of a confirm dialog: it exists to be read once, correctly.
  *
- * The dialog itself is src/ui's `ConfirmDialog`, which owns the pending
+ * The dialog itself is the UI library's `ConfirmDialog`, which owns the pending
  * state, keeps the dialog open on a failure, and starts focus on Cancel. This
  * file owns only the words.
  */

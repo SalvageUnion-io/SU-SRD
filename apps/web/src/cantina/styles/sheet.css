@@ -2,7 +2,7 @@
  * The live and public sheet's own rules:
  * the properties with a hover, focus, responsive or pseudo-element variant,
  * resting value included (ADR-046). Everything static is a
- * style object over src/ui's `tokens`.
+ * style object over the UI library's `tokens`.
  *
  * Unlayered, so it sits over the shared `su-base` layer.
  * The app loads it from `index.css`.

@@ -292,7 +292,7 @@ async function main(): Promise<void> {
   // serves `/build/**` and falls back to its `index.html`, as in production.
   const cantina = await createViteServer({
     configFile: cantinaConfigFile,
-    // The shell renders the Union bar from src/ui's source, which only
+    // The shell renders the Union bar from the UI library's source, which only
     // Vite's module runner resolves (the bundling loader leaves it to Node).
     configLoader: 'runner',
     appType: 'spa',

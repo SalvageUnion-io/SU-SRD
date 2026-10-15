@@ -173,7 +173,7 @@ describe('DisplayPanel', () => {
     const focus: DisplayFocus = 'srd'
     const { container } = renderDV(focus)
     // The explorer renders its search + the SRD catalog, never the generic
-    // placeholder. The catalog's exact contents are src/ui's business
+    // placeholder. The catalog's exact contents are the UI library's business
     // (asserted there against `buildCatalogSections`); here we only care that
     // the real explorer mounted.
     expect(container.querySelector('input[role="combobox"]')).toBeTruthy()

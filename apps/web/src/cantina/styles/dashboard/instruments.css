@@ -26,7 +26,7 @@
  * The table picker's items are native <button>s that set their own border
  * and background, so each takes the canonical ring (`--focus-ring-shadow`, the
  * two-ring construction that holds on paper and on the `.is-active` ink fill;
- * see `.su-focus-ring` in src/ui's `styles/partials/foundation.css`).
+ * see `.su-focus-ring` in the UI library's `styles/partials/foundation.css`).
  * `:focus-visible`, so a mouse click leaves no ring; the offset keeps it clear
  * of the surface's own border.
  */

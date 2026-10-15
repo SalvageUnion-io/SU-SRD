@@ -7,7 +7,7 @@ import { DOC_PAGES } from '../../lib/docPages'
 import { useSignOut } from './useSignOut'
 
 /**
- * The Cantina's account menu: src/ui's `AccountMenu`, the one the SRD's
+ * The Cantina's account menu: the UI library's `AccountMenu`, the one the SRD's
  * bar shows too, over this session. The name and avatar come from
  * `api.account.me`; Settings routes in place and Sign out ends the session
  * here.

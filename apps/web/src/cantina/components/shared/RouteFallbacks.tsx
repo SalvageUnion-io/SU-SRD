@@ -7,7 +7,7 @@
  *
  * `NotFoundPanel` is the single implementation of that treatment: this one,
  * `Sheet`'s missing-entity state and `routes/sheet/$kind/$id`'s unknown-kind
- * state compose it. It is deliberately NOT src/ui's `RecoveryPanel`: that
+ * state compose it. It is deliberately NOT the UI library's `RecoveryPanel`: that
  * panel carries `role="alert"` and centres its content, which is right for a
  * crash and wrong for a mistyped URL — announcing every 404 as an alert is an
  * accessibility regression, not a consolidation.
