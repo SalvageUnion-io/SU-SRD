@@ -95,9 +95,9 @@ describe('a Starter Set build’s pre-rendered shell', () => {
     expect(meta(html, 'theme-color')).toBe(color.pilot)
   })
 
-  it("unfurls with the app's own picture: the render surfaces read Convex, which has no template", () => {
+  it("unfurls with the site's own picture: the render surfaces read Convex, which has no template", () => {
     const html = shellFor(path)
-    expect(meta(html, 'og:image')).toBe(`${PROD}${BASE}/og-image.png`)
+    expect(meta(html, 'og:image')).toBe(`${PROD}/og-image.png`)
     expect(meta(html, 'twitter:card')).toBe('summary_large_image')
   })
 
@@ -111,7 +111,7 @@ describe('a Starter Set build’s pre-rendered shell', () => {
   it("follows the deployment's origin: a Preview's canonical is the Preview's", () => {
     const html = shellFor(path, PREVIEW)
     expect(canonical(html)).toEqual([`${PREVIEW}${BASE}${path}`])
-    expect(meta(html, 'og:image')).toBe(`${PREVIEW}${BASE}/og-image.png`)
+    expect(meta(html, 'og:image')).toBe(`${PREVIEW}/og-image.png`)
   })
 
   it('names the crawler by its own name', () => {
@@ -149,7 +149,7 @@ describe('the Starter Set’s pre-rendered shell, and the front door', () => {
     const res = await worker.fetch(crawl('/'), env())
     const html = await res.text()
     expect(title(html)).toBe('The Cantina')
-    expect(meta(html, 'og:image')).toBe(`${PROD}${BASE}/og-image.png`)
+    expect(meta(html, 'og:image')).toBe(`${PROD}/og-image.png`)
     expect(canonical(html)).toEqual([`${PROD}${BASE}/`])
     expect(html.indexOf('rel="canonical"')).toBeLessThan(html.indexOf('<!-- cantina:meta:end -->'))
     expect(html.replace(/<link rel="canonical"[^>]*>\n\s*/, '')).toBe(SHELL)

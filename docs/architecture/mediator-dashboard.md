@@ -22,7 +22,7 @@ M1 is the Mediator's surface (`apps/web/src/components/mediator/`); M2 is the Ga
   - **Q13 The Game** — Who mediates, with Hand over (Appoint when nobody does), who organises, and Delete; Archive is the owner's call.
   - **Q14 Tabs** — Opposition, Proposals, Tell the table, Tables (rolls private), SRD, Log.
 - **§4 Server additions** — `changeLog.reason`, Mediator-only `proposals.sent` (indexed) and `mediator.updateNpc` (clamped, parsed).
-- **§5 Tests** — Propose → apply → Applied (`apps/web/e2e/cantina/mediator-propose.e2e.ts`); server in `apps/web/test/convex/__tests__/mediatorDashboard.test.ts`.
+- **§5 Tests** — Propose → apply → Applied (`apps/web/e2e/mediator-propose.e2e.ts`); server in `apps/web/test/convex/__tests__/mediatorDashboard.test.ts`.
 - **§6 M1 layout** — Rail; The table, Crawler minor, Downtime minor; tabs left, propose dock right. Ground ink-deep, instruments band-cream, display paper.
   Controls are 48 design units tall, so at least 38px at the 0.8 floor.
 - **§7 Accessibility** — Base UI tabs; a seat card is a button whose label reads its whole line (▲ `aria-hidden`); polite live regions only; `ConfirmDialog` focuses Cancel.

@@ -12,7 +12,7 @@
  *  - Computing it at runtime with `useGameData()` buys the bytes back as
  *    LATENCY (the drawer waits on the whole ~1.4 MB corpus), or as a
  *    `guides-*.js` + `catalog-categories-*.js` request on every page — which
- *    `e2e/bundle-budget.e2e.ts` explicitly forbids on leaf-schema pages.
+ *    `e2e/reference-bundle-budget.e2e.ts` explicitly forbids on leaf-schema pages.
  *  - So, per DESIGN.md, the island imports its own static data in its OWN
  *    chunk. One shared copy, no ORM at runtime, no
  *     preload, no per-page duplication. The payload is small — the catalog

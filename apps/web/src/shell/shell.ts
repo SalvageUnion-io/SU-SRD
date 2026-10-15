@@ -47,7 +47,8 @@ const PREVIEW_DESCRIPTION =
 
 /** The app's front door on production's origin; a Preview's build names its own (`shellOrigin`). */
 const siteUrl = appUrl('/', originOf())
-const ogImage = `${siteUrl}og-image.png`
+/** The site's own link preview (`public/og-image.png`), the reference pages' default too. */
+const ogImage = `${originOf()}/og-image.png`
 
 const meta = (attrs: Record<string, string>) => createElement('meta', attrs)
 

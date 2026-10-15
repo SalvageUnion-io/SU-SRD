@@ -1,4 +1,7 @@
+import type { Page } from '@playwright/test'
 import { at } from './_base'
+import type { JsTotals } from './_bundle'
+import { captureJsTotals } from './_bundle'
 import { waitForReady } from './_helpers'
 import { expect, test } from './fixtures'
 
@@ -7,7 +10,7 @@ test.use({ account: 'anonymous' })
 
 /**
  * Bundle-size budget suite — the Cantina's counterpart to
- * `apps/web/e2e/srd/bundle-budget.e2e.ts`, and the regression guard for the
+ * `reference-bundle-budget.e2e.ts`, and the regression guard for the
  * route-level code splitting turned on in `vite.config.ts`
  * (`TanStackRouterVite({ autoCodeSplitting: true })`).
  *
@@ -27,7 +30,7 @@ test.use({ account: 'anonymous' })
  * `autoCodeSplitting` moves: each route's component now ships as its own
  * chunk instead of being linked into one monolithic entry bundle.
  *
- * ## Why `decodedBodySize`
+ * ## Why `decodedBodySize` (`e2e/_bundle.ts`)
  *
  * `bun run preview` (`wrangler dev`, the CI target) gzips, so
  * `transferSize`/`encodedBodySize` report compressed bytes, while the local
@@ -78,45 +81,12 @@ test.use({ account: 'anonymous' })
  * it.
  */
 
-type JsTotals = { count: number; bytes: number; names: string[]; largest: number }
-
-/** Sum uncompressed bytes of every same-origin `/assets/*.js` chunk the page
- *  pulled in, keyed by URL so duplicates aren't double counted. `names`
- *  records the chunk filenames for assert-not-present checks; `largest` is
- *  the biggest single chunk (the code-splitting tripwire below). */
-async function captureJsTotals(
-  page: import('@playwright/test').Page,
-  path: string
-): Promise<JsTotals> {
-  await page.goto(at(path))
-  await waitForReady(page)
-  await page.waitForLoadState('networkidle')
-
-  const entries = await page.evaluate(() =>
-    performance
-      .getEntriesByType('resource')
-      .filter((e) => e.name.includes('/assets/') && e.name.endsWith('.js'))
-      .map((e) => ({
-        name: e.name.split('/assets/')[1] ?? e.name,
-        // decodedBodySize is the uncompressed size regardless of Content-
-        // Encoding; encodedBodySize is the fallback for the (unexpected)
-        // case of a response that reports neither.
-        size:
-          (e as PerformanceResourceTiming).decodedBodySize ||
-          (e as PerformanceResourceTiming).encodedBodySize,
-      }))
-  )
-
-  const seen = new Map<string, number>()
-  for (const e of entries) if (!seen.has(e.name)) seen.set(e.name, e.size)
-
-  const sizes = [...seen.values()]
-  return {
-    count: seen.size,
-    bytes: sizes.reduce((sum, n) => sum + n, 0),
-    names: [...seen.keys()],
-    largest: sizes.length ? Math.max(...sizes) : 0,
-  }
+/** `path` under the Cantina's base, ready, with its JS totalled. */
+async function captureRouteJs(page: Page, path: string): Promise<JsTotals> {
+  return await captureJsTotals(page, async () => {
+    await page.goto(at(path))
+    await waitForReady(page)
+  })
 }
 
 /** Print the real numbers into the CI log so the measured-vs-ceiling margin
@@ -138,7 +108,7 @@ function report(label: string, totals: JsTotals, ceiling: number): void {
 test.describe('bundle-size budget', () => {
   test('roster stays under budget and route components are split out', async ({ page }) => {
     const CEILING = 2_440_000
-    const totals = await captureJsTotals(page, '/')
+    const totals = await captureRouteJs(page, '/')
     report('/ (roster)', totals, CEILING)
 
     // The single-largest-chunk tripwire. With autoCodeSplitting and the
@@ -175,7 +145,7 @@ test.describe('bundle-size budget', () => {
     // budget that would sit green while the thing it claims to guard grew
     // unwatched. `mode=guided` is what mounts PilotWizard (NewEntityScreen.tsx).
     const CEILING = 2_390_000
-    const totals = await captureJsTotals(page, '/pilots/new?mode=guided')
+    const totals = await captureRouteJs(page, '/pilots/new?mode=guided')
     report('/pilots/new?mode=guided (wizard)', totals, CEILING)
     expect(totals.bytes).toBeLessThan(CEILING)
   })
@@ -186,7 +156,7 @@ test.describe('bundle-size budget', () => {
     // route chunk, so this measures the route's real JS cost without paying
     // for a full wizard run to seed an entity first.
     const CEILING = 2_590_000
-    const totals = await captureJsTotals(page, '/sheet/pilot/budget-probe')
+    const totals = await captureRouteJs(page, '/sheet/pilot/budget-probe')
     report('/sheet/pilot/:id', totals, CEILING)
     expect(totals.bytes).toBeLessThan(CEILING)
   })
@@ -198,7 +168,7 @@ test.describe('bundle-size budget', () => {
     // (instruments, slot row, display) statically. The byte count is the route's
     // true cost.
     const CEILING = 2_480_000
-    const totals = await captureJsTotals(page, '/dashboard/budget-probe')
+    const totals = await captureRouteJs(page, '/dashboard/budget-probe')
     report('/dashboard/:pilotId', totals, CEILING)
     expect(totals.bytes).toBeLessThan(CEILING)
   })

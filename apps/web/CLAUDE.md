@@ -75,7 +75,7 @@ lower a budget when a page gets faster.
 ## The Cantina
 
 Guide: [`src/routes/CLAUDE.md`](src/routes/CLAUDE.md); Convex in `convex/`, tests in
-`test/` and `e2e/cantina/`; static pages never import them (Biome). The block below
+`test/` and `e2e/`; static pages never import them (Biome). The block below
 binds `convex/` only; `bunx`, not `npx`; vendored skills: [AGENTS.md](AGENTS.md).
 
 <!-- convex-ai-start -->

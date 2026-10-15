@@ -41,7 +41,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     `apps/web/convex/`: opaque bodies (`v.any()`), Zod-parsed per mutation; an entity is [in a Game or on a Shelf](architecture/glossary.md).
     Every store commits through a `commit*` in `src/stores/`; `containerParity.test.ts` asserts each has a table.
 12. **No device cache** <a id="no-device-cache"></a>
-    No IndexedDB: an offline reload boots the SW shell, signed out and empty. The PWA stays installable; `e2e/cantina/offline.e2e.ts` pins both.
+    No IndexedDB: an offline reload boots the SW shell, signed out and empty. The PWA stays installable; `e2e/cantina-offline.e2e.ts` pins both.
 13. **Zustand stores** <a id="stores"></a>
     `src/stores/` hold rows in memory, filled by `ShelfSync`; `update()` validates, awaits Convex, then logs; a refused write changes nothing.
     No TanStack Query; reads: `src/lib/entities/`, `convex/react`. Shared state: a store; context: what varies by placement.

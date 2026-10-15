@@ -423,7 +423,7 @@
       // A static page: what the SSG renders and the islands it hydrates. It
       // ships at most 20 KB of JS, so it never imports the Cantina's router,
       // stores or shell, or Convex. A relative import does not say what it
-      // reaches, so the rule names those folders; `bundle-budget.e2e.ts` and
+      // reaches, so the rule names those folders; `reference-bundle-budget.e2e.ts` and
       // the Vite pass's chunk groups (`ssg/appGraph.ts`) catch what a shared
       // component pulls in further down.
       //
