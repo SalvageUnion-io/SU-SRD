@@ -28,7 +28,7 @@ jobs:
   # and agent config only.
   # ---------------------------------------------------------------------------
   changes:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     outputs:
       cantina: ${{ steps.filter.outputs.cantina }}
@@ -118,7 +118,7 @@ jobs:
   static-checks:
     # Every run reports; each check gates itself by area.
     needs: [changes]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
       - name: Checkout
@@ -155,7 +155,7 @@ jobs:
   coverage:
     needs: [changes]
     if: needs.changes.outputs.code == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     steps:
       - name: Checkout
@@ -174,7 +174,7 @@ jobs:
   build-srd:
     needs: [changes]
     if: needs.changes.outputs.web == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 25
     steps:
       - name: Checkout
@@ -227,7 +227,7 @@ jobs:
   perf-srd:
     needs: [changes]
     if: needs.changes.outputs.web == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -265,7 +265,7 @@ jobs:
   build-cantina:
     needs: [changes]
     if: needs.changes.outputs.cantina == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 25
     steps:
       - name: Checkout
@@ -314,7 +314,7 @@ jobs:
   build-discord-bot:
     needs: [changes]
     if: needs.changes.outputs.bot == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     steps:
       - name: Checkout
@@ -333,7 +333,7 @@ jobs:
   build-su-assets:
     needs: [changes]
     if: needs.changes.outputs.assets == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
       - name: Checkout
@@ -354,7 +354,7 @@ jobs:
   # ---------------------------------------------------------------------------
   version-bump:
     if: github.base_ref == 'main'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 5
     steps:
       # The PR's merge commit and its first parent, main's tip.
@@ -394,7 +394,7 @@ jobs:
       - build-discord-bot
       - build-su-assets
       - version-bump
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     steps:
       - name: Verify no job failed
