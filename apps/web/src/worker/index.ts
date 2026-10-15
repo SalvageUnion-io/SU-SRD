@@ -18,7 +18,7 @@
  *      have falls through to the rules below.
  *   1. `/assets/*` (or `/build/assets/*`) → a bare **404**.
  *   2. a page path from before the move out of `/schema/…/item/` → a **301**
- *      to where it lives now (`../lib/legacyPaths.ts`).
+ *      to where it lives now (`../lib/redirects.ts`).
  *   3. anything else → `404.html`, read through the asset binding, with a 404.
  *
  * The 404s say `cache-control: no-store`; the 301 is permanent and cacheable.
@@ -42,7 +42,7 @@ import {
   handleConvexLogStream,
   handleErrorReport,
 } from 'observability/cloudflare'
-import { currentPathFor } from '../lib/legacyPaths'
+import { currentPathFor } from '../lib/redirects'
 import { appPath } from '../lib/site'
 import type { BuilderEnv } from './builder'
 import { isBuildPath, serveBuilder } from './builder'

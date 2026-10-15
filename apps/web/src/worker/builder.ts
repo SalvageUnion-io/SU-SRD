@@ -10,9 +10,10 @@
  *
  * Under `/build/` the rules read the path inside the base (`basePath.ts`):
  *
- *   D. `/about`, `/changelog` → a 301 to the SRD's page (`docPages.ts`).
+ *   D. `/about`, `/changelog` → a 301 to the SRD's page.
  *   R. a retired address (`/games`, `/join/:code`, the old crew view) → a 301
- *      to where it lives now (`retiredRedirects.ts`). intheunionnow.com's zone
+ *      to where it lives now. Both read the moved-path table
+ *      (`../lib/redirects.ts`). intheunionnow.com's zone
  *      Redirect Rule sends its old links here.
  *   0. `/og/*.png` → a link preview's picture (`linkPreview.ts`), rendered on
  *      request and cached by version.
@@ -46,14 +47,13 @@
  * never has a file extension, so a dot in the last segment means a FILE.
  */
 
-import { retiredDocPage } from '../lib/docPages'
+import { retiredDocPage, retiredTarget } from '../lib/redirects'
 import { APP_BASE, routeInApp } from '../lib/site'
 import { hidesUnionBar } from '../shell/unionSlots'
 import { pathInApp } from './basePath'
 import type { ImageCache, PreviewEnv, PreviewRoute } from './linkPreview'
 import { isOgImagePath, metaFor, ogImage, previewRouteOf } from './linkPreview'
 import { frontDoorShell } from './publicPages'
-import { retiredTarget } from './retiredRedirects'
 import { applyMeta, hideUnionBar } from './shellMeta'
 
 /**

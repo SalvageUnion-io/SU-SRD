@@ -1,19 +1,38 @@
 /**
+ * The moved-path table (`lib/redirects.ts`) and its answerers.
+ *
  * The generated `_redirects`: the sitemap alias, and a 301 for every former
  * slug (ADR-043) to a page the build actually emits — a redirect to a page
  * that does not exist would trade one dead link for another.
+ *
+ * The old page grammar (`/schema/<schema>/item/<slug>/`) and where each of its
+ * paths lives now. The Worker answers a miss with this mapping, so every page
+ * the build emits must be reachable from its old address.
  */
 import { describe, expect, it } from 'bun:test'
 import type { RouteContext } from '../../../ssg/types'
 import { redirectRules, redirectsEndpoint } from '../../endpoints/redirects'
+import { DOC_PAGES } from '../docPages'
+import { itemHref, patternHref, schemaHref } from '../entityHref'
 import { ogImagePath } from '../ogCard'
-import { getPatternStaticPaths } from '../staticPaths'
+import {
+  currentPathFor,
+  FIXED_MOVES,
+  legacyItemHref,
+  retiredDocPage,
+  retiredTarget,
+} from '../redirects'
+import { getItemStaticPaths, getPatternStaticPaths, getSchemaStaticPaths } from '../staticPaths'
 
 describe('_redirects', () => {
   const rules = redirectRules()
 
   it('keeps the sitemap alias', () => {
     expect(rules).toContainEqual({ from: '/sitemap.xml', to: '/sitemap-index.xml' })
+  })
+
+  it('opens with the fixed moves', () => {
+    expect(rules.slice(0, FIXED_MOVES.length)).toEqual([...FIXED_MOVES])
   })
 
   it('sends the Hill Worm’s old Bio-Titan page to its pattern page', () => {
@@ -67,5 +86,79 @@ describe('_redirects', () => {
       .filter((line) => line.startsWith('/'))
     expect(lines).toHaveLength(rules.length)
     for (const line of lines) expect(line).toMatch(/^\S+ {2}\S+ {2}301$/)
+  })
+})
+
+describe('currentPathFor', () => {
+  it('maps every emitted page from its old address to its current one', () => {
+    for (const { params } of getSchemaStaticPaths()) {
+      expect(currentPathFor(`/schema/${params.schemaId}/`)).toBe(schemaHref(params.schemaId))
+    }
+    for (const { params } of getItemStaticPaths()) {
+      expect(currentPathFor(legacyItemHref(params.schemaId, params.itemId))).toBe(
+        itemHref(params.schemaId, params.itemId)
+      )
+    }
+    for (const { params } of getPatternStaticPaths()) {
+      const old = `/schema/${params.schemaId}/item/${params.itemId}/pattern/${params.patternId}/`
+      expect(currentPathFor(old)).toBe(
+        patternHref(params.schemaId, params.itemId, params.patternId)
+      )
+    }
+  })
+
+  it('moves an unfurl with its page', () => {
+    expect(currentPathFor('/schema/chassis/item/mule.og.png')).toBe(ogImagePath('chassis', 'mule'))
+    expect(currentPathFor('/schema/chassis/item/mule/pattern/hauler.og.png')).toBe(
+      ogImagePath('chassis', 'mule', 'hauler')
+    )
+  })
+
+  it('adds the trailing slash a page wants, so the 301 is the only hop', () => {
+    expect(currentPathFor('/schema/chassis/item/mule')).toBe('/chassis/mule/')
+    expect(currentPathFor('/schema/chassis')).toBe('/chassis/')
+  })
+
+  it('leaves the JSON API and anything else alone', () => {
+    for (const path of [
+      '/schema/chassis.json',
+      '/schema/chassis.schema.json',
+      '/schema/chassis/item/mule.json',
+      '/schema/',
+      '/schema/chassis/item/',
+      '/chassis/mule/',
+      '/about/',
+    ]) {
+      expect(currentPathFor(path)).toBeUndefined()
+    }
+  })
+})
+
+describe('retiredDocPage', () => {
+  it('sends the Cantina doc pages to the site pages, with or without a slash', () => {
+    for (const path of ['/about', '/about/', 'about']) {
+      expect(retiredDocPage(path)).toBe(DOC_PAGES.about.href)
+    }
+    expect(retiredDocPage('/changelog/')).toBe(DOC_PAGES.changelog.href)
+  })
+
+  it('leaves every other path alone', () => {
+    for (const path of ['/', '/api', '/discord', '/about/team', '/constructor']) {
+      expect(retiredDocPage(path)).toBeNull()
+    }
+  })
+})
+
+describe('retiredTarget', () => {
+  it('maps each retired shape', () => {
+    expect(retiredTarget('/games')).toBe('/')
+    expect(retiredTarget('/games/g1/view/pilot/row-1')).toBe('/sheet/pilot/row-1')
+    expect(retiredTarget('/join/ABCD')).toBe('/invite/ABCD')
+  })
+
+  it('leaves a live route under a retired prefix alone', () => {
+    for (const path of ['/games/g1', '/join/a/b', '/sheet/pilot/x']) {
+      expect(retiredTarget(path)).toBeNull()
+    }
   })
 })

@@ -4,9 +4,8 @@
  *
  * Two kinds of rule:
  *
- * - **The sitemap.** The build emits `sitemap-index.xml`, while every crawler
- *   and every human types `sitemap.xml`. A 301 is correct here — the canonical
- *   name really is the index, and the redirect is permanent.
+ * - **The fixed moves** (`FIXED_MOVES` in `lib/redirects.ts`, the table every
+ *   301 reads): `sitemap.xml` to the index the build emits.
  * - **Former slugs** (ADR-043, decision 4: a published slug never dies). A row
  *   that became a pattern of another — "Hill Worm Pattern Typhon", now
  *   Typhon's "Hill Worm" — keeps its old URL answering: the page 301s to the
@@ -17,7 +16,7 @@
  *   both grammars too.
  *
  * The bulk move of every page out of `/schema/…/item/` is NOT here: that is one
- * pattern, not a rule per page, and the Worker answers it (`lib/legacyPaths.ts`).
+ * pattern, not a rule per page, and the Worker answers it (`lib/redirects.ts`).
  *
  * It replaces a hand-written `public/_redirects`: an endpoint is written after
  * Vite copies `public/`, so a second copy there would be overwritten silently.
@@ -27,14 +26,14 @@ import { formerSlugsIn } from 'salvageunion-reference'
 import type { EndpointModule } from '../../ssg/types'
 import { itemHref } from '../lib/entityHref'
 import { getEntitySchemas, getReferenceEntityData } from '../lib/gameData'
-import { legacyItemHref } from '../lib/legacyPaths'
 import { ogImagePath } from '../lib/ogCard'
 import { srdPatternHref } from '../lib/patternHref'
+import { FIXED_MOVES, legacyItemHref } from '../lib/redirects'
 import { itemJsonPath } from './itemJson'
 
 /** Each `from → to` pair, in output order. */
 export function redirectRules(): Array<{ from: string; to: string }> {
-  const rules = [{ from: '/sitemap.xml', to: '/sitemap-index.xml' }]
+  const rules = [...FIXED_MOVES]
   for (const schema of getEntitySchemas()) {
     for (const { slug, host, pattern } of formerSlugsIn(schema.id)) {
       const page = srdPatternHref(host, pattern)
