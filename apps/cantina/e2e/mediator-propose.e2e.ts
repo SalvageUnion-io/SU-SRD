@@ -40,7 +40,7 @@ test('a Mediator proposes a change and the player applies it', async ({ page, br
     // --- The Mediator proposes from the dashboard ---
     await page.getByRole('link', { name: 'Launch Dashboard' }).click()
     await page.waitForURL(new RegExp(`/mediator/${gameId}$`))
-    const seat = page.getByRole('button', { name: /^Sparks, HP / })
+    const seat = page.getByRole('radio', { name: /^Sparks, HP / })
     await expect(seat).toBeVisible({ timeout: 30_000 })
     await seat.click()
     await expect(page.getByLabel('Target')).toHaveValue(/.+/)
@@ -65,7 +65,7 @@ test('a Mediator proposes a change and the player applies it', async ({ page, br
 
     // --- The Mediator's screen follows, live ---
     await expect(newest.getByText('Applied', { exact: true })).toBeVisible({ timeout: 20_000 })
-    await expect(page.getByRole('button', { name: /^Sparks, HP 4 of / })).toBeVisible()
+    await expect(page.getByRole('radio', { name: /^Sparks, HP 4 of / })).toBeVisible()
   } finally {
     await player.context.close()
   }

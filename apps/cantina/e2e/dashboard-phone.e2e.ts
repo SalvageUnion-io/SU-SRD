@@ -29,10 +29,11 @@ import { expect, test } from './fixtures'
  * same constant; `crypto` is left alone.
  *
  * The seed goes in after setup, never as an init script: the Convex client
- * draws its session id from `Math.random()` when the page loads, and the
+ * draws its session id from `Math.random()` when it first connects, and the
  * server replays a mutation it has already seen from a session id. With every
  * browser on one constant id, `createGame` answered with another account's
- * Game, and the Appoint button never came.
+ * Game, and the Appoint button never came. On the Dashboard the client
+ * connects after the page reports ready, so the seed waits for its socket.
  *
  * ## Viewport
  *
@@ -113,10 +114,16 @@ for (const phone of PHONES) {
     test.slow()
     await setUpTable(page)
     await page.setViewportSize(phone)
-    await gotoStable(page, await pilotDashboard(page, 'Bonesaw'))
+    const dashboard = await pilotDashboard(page, 'Bonesaw')
+    // The Dashboard's Convex client opens its socket after the page reports
+    // ready, so the seed waits for that socket: by then the client has drawn
+    // its session id. Seeded any earlier, every run shares one id, and the
+    // server replays the first run's Board instead of boarding.
+    const socket = page.waitForEvent('websocket', (ws) => ws.url().endsWith('/sync'))
+    await gotoStable(page, dashboard)
     await waitForReady(page)
-    // After the Convex client has its session id, and after the last page
-    // load, so the seed holds for the whole turn.
+    await socket
+    // After the last page load, so the seed holds for the whole turn.
     await page.evaluate(seedDice)
 
     // ── The phone form, on foot ──────────────────────────────────────────────
