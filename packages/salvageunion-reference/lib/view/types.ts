@@ -162,10 +162,15 @@ export type EntityModel = {
   abilities: EntityRef[]
   children: EntityChildGroup[]
   /**
-   * Groups only a Discord card lists, as bare links: a class's Core trees and
-   * the classes it advances into (`classTrees`).
+   * Groups only a Discord card lists, as bare links: a class's Core trees
+   * (`classTrees`).
    */
   links?: EntityChildGroup[]
+  /**
+   * What only a class's Discord card heads with: how many Pilot Abilities it
+   * may hold, and the Hybrid Classes it advances into (`classAdvancement`).
+   */
+  classPath?: { maxAbilities: number; advancesInto: EntityRef[] }
   table?: EntityTable
   art: EntityArt
   cite: EntityCite

@@ -27,6 +27,7 @@ import { plainTraitText } from '../traitText'
 import { entityArt } from './parts/art'
 import type { NestedGroup } from './parts/children'
 import {
+  classAdvancement,
   classTrees,
   droneOwnLoadout,
   entityActions,
@@ -228,6 +229,10 @@ export function toEntityModel(
           : []),
       ]
   const links = pattern ? [] : groupsOf(classTrees(entity), baseRef.id)
+  const maxAbilities =
+    !pattern && 'maxAbilities' in entity && typeof entity.maxAbilities === 'number'
+      ? entity.maxAbilities
+      : undefined
   const table = pattern ? undefined : entityTable(entity, folded, entityName)
   const patternLead = pattern ? firstParagraphText(pattern.content) : undefined
   const lead = pattern
@@ -268,6 +273,14 @@ export function toEntityModel(
     abilities: (getChassisAbilities(entity) ?? []).map((a) => refOf(a)),
     children,
     ...(links.length > 0 ? { links } : {}),
+    ...(maxAbilities !== undefined && kindMarker
+      ? {
+          classPath: {
+            maxAbilities,
+            advancesInto: classAdvancement(entity).map((c) => refOf(c, baseRef.id)),
+          },
+        }
+      : {}),
     ...(table ? { table } : {}),
     art,
     cite: entityCite(entity, pattern),
