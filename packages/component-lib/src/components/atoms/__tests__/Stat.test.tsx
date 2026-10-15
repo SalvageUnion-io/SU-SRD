@@ -9,4 +9,11 @@ describe('Stat', () => {
     expect(cell?.textContent).toBe('HP10/12')
     expect(cell?.firstElementChild?.textContent).toBe('HP')
   })
+
+  test('hollow is an outline: the cell says so, a plain chip does not', () => {
+    const { container } = render(<Stat label="Unassigned" hollow size="compact" />)
+    expect(container.querySelector('.su-stat-cell--hollow')?.textContent).toBe('Unassigned')
+    const plain = render(<Stat label="Only me" size="compact" />).container
+    expect(plain.querySelector('.su-stat-cell--hollow')).toBeNull()
+  })
 })

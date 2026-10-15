@@ -341,7 +341,7 @@ describe('Hangar — items', () => {
     expect(line?.textContent).toContain('Engineer')
     expect(line?.textContent).not.toContain('Pilot ·')
     expect(line?.textContent).toContain('HP')
-    expect(line?.textContent).toContain('Not in a Game')
+    expect(line?.textContent).toContain('Unassigned')
   })
 
   test('linked units are named in each other’s chips', async () => {

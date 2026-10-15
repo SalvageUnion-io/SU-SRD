@@ -65,7 +65,14 @@ export function ShelfItem({
           labels={
             chips.length > 0
               ? chips.map((chip) => (
-                  <Stat key={chip.key} orientation="horizontal" label={chip.label} size="compact" />
+                  <Stat
+                    key={chip.key}
+                    orientation="horizontal"
+                    label={chip.label}
+                    value={chip.value}
+                    hollow={chip.hollow}
+                    size="compact"
+                  />
                 ))
               : undefined
           }

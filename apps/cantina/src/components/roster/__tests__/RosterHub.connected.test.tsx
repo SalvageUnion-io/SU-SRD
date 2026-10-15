@@ -181,7 +181,7 @@ describe('Hangar: everything you keep', () => {
     expect(within(pilots).getByText('Roach-Boy')).toBeTruthy()
     expect(within(pilots).getByText('Union Crawler #430')).toBeTruthy()
     expect(within(pilots).getByText('Mira Cole')).toBeTruthy()
-    expect(within(pilots).getByText('Not in a Game')).toBeTruthy()
+    expect(within(pilots).getByText('Unassigned')).toBeTruthy()
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Not in a Game' }))
