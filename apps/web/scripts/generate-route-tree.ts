@@ -3,7 +3,7 @@
  *
  * The tree is normally written by TanStack Router's Vite plugin as a side
  * effect of `vite build` / `vite dev`. That made its drift check an inline
- * step in CI's `build-cantina` job and nothing else: locally, and in `bun run
+ * step in CI's build job and nothing else: locally, and in `bun run
  * check`, a stale committed tree was invisible until CI rebuilt the app.
  * `tools/check-generated.ts` runs this instead — the plugin's own generator,
  * with the same options object the Vite config uses, in ~300 ms.

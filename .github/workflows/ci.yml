@@ -63,8 +63,8 @@ jobs:
               - 'ABOUT_JRVS.md'
               - 'LLM_STATEMENT.md'
               - 'SPECIAL_THANKS.md'
-            # srd and the Cantina, one workspace: build-srd, perf-srd and
-            # build-cantina all key on it.
+            # srd and the Cantina, one workspace and one build: build-web and
+            # perf-srd both key on it.
             web:
               - *shared
               - 'apps/web/**'
@@ -166,11 +166,18 @@ jobs:
 
   # The build jobs need only `changes`: they take no artifact from the check
   # jobs, and `CI Success` already fails on any of them.
-  build-srd:
+  # The site's one build (`bun run build`: srd, then the Cantina into
+  # `dist/build/`, ADR-050), then both apps' PR-blocking browser tiers against
+  # it. The Cantina is compiled against a Convex URL, the variant production
+  # ships, so the specs and the scans see the signed-out read-only UI players
+  # get. The URL is a throwaway backend carrying this PR's own functions, not
+  # production: a PR's client must run against the backend it ships with, and
+  # a PR gate makes no production calls.
+  build-web:
     needs: [changes]
     if: needs.changes.outputs.web == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -180,10 +187,10 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      # `build:untyped` is `build` without its typecheck: static-checks
+      # `build:untyped`, `build` without its typecheck: static-checks
       # typechecks every workspace already (the bot's job skips it likewise).
-      - name: Build srd
-        run: bun --filter web build:untyped
+      - name: Start a throwaway Convex backend and build the site against it
+        uses: ./.github/actions/convex-backend
 
       - name: Check printed examples against the built site
         run: bun --filter web check:examples
@@ -195,28 +202,41 @@ jobs:
       - name: Set up Playwright
         uses: ./.github/actions/playwright
 
-      # The PR-blocking browser tier, and srd's whole Playwright suite but the
-      # performance budget (perf-srd, below): there is no nightly srd run. Add
-      # a spec to this line; do NOT add a job.
+      # srd's whole Playwright suite but the performance budget (perf-srd,
+      # below): there is no nightly srd run. Add a spec to this line; do NOT
+      # add a job.
       # `a11y.e2e.ts` is WCAG 2.2 AA on the pages it lists, at desktop and as a
       # phone: it blocks on any violation.
-      - name: Run smoke + bundle-budget + JSON API + a11y specs
+      - name: Run srd's smoke + bundle-budget + JSON API + a11y specs
         working-directory: apps/web
         run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts json-api.e2e.ts a11y.e2e.ts
 
-      - name: Upload Playwright report on failure
+      # Add a spec to this line; do NOT add a job.
+      # `a11y.e2e.ts` is srd's scan, for the Cantina: the routes it lists, signed out,
+      # at desktop and as a phone. The signed-in pages are
+      # `a11y-signed-in.e2e.ts`'s, in e2e-nightly.yml: it needs the test seam.
+      - name: Run the Cantina's smoke + bundle-budget + a11y specs
+        if: ${{ !cancelled() }}
+        working-directory: apps/web
+        run: bunx playwright test -c playwright.cantina.config.ts smoke.e2e.ts bundle-budget.e2e.ts a11y.e2e.ts
+
+      - name: Upload Playwright reports on failure
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright-report-e2e-web
-          path: apps/web/playwright-report/srd/
+          path: apps/web/playwright-report/
           retention-days: 7
+
+      - name: Backend logs on failure
+        if: failure()
+        run: docker logs convex-e2e || true
 
   # srd's performance budget (`e2e/perf-budget.e2e.ts`): LCP, TBT and CLS on
   # a few pages under Lighthouse's mobile throttling. Its own job, beside
-  # build-srd rather than after it, so it adds its run time to CI's wall time
-  # only where it outlasts build-srd. It builds its own `dist`; downloading
-  # build-srd's would put it on the critical path. One worker per runner:
+  # build-web rather than after it, so it adds its run time to CI's wall time
+  # only where it outlasts build-web. It builds its own `dist`; downloading
+  # build-web's would put it on the critical path. One worker per runner:
   # measured loads must not share the CPU, so the pages are split across two
   # runners instead (one page per test, so `--shard` splits by page).
   perf-srd:
@@ -237,8 +257,9 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      - name: Build srd
-        run: bun --filter web build:untyped
+      # The one build, as build-web makes it: the Cantina in it needs a backend.
+      - name: Start a throwaway Convex backend and build the site against it
+        uses: ./.github/actions/convex-backend
 
       - name: Set up Playwright
         uses: ./.github/actions/playwright
@@ -256,51 +277,6 @@ jobs:
           name: playwright-report-perf-srd-${{ matrix.shard }}
           path: apps/web/playwright-report/srd/
           retention-days: 7
-
-  build-cantina:
-    needs: [changes]
-    if: needs.changes.outputs.web == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Setup Bun
-        uses: ./.github/actions/setup-bun
-
-      # The variant production ships: compiled against a Convex URL, so the
-      # specs and the scan below see the signed-out read-only UI players get.
-      # The URL is a throwaway backend carrying this PR's own functions, not
-      # production: a PR's client must run against the backend it ships with,
-      # and a PR gate makes no production calls.
-      - name: Start a throwaway Convex backend and build cantina against it
-        uses: ./.github/actions/convex-backend
-
-      - name: Set up Playwright
-        uses: ./.github/actions/playwright
-
-      # The PR-blocking browser tier. Add a spec to this line; do NOT add a job.
-      # `a11y.e2e.ts` is srd's scan, for the Cantina: the routes it lists, signed out,
-      # at desktop and as a phone. The signed-in pages are
-      # `a11y-signed-in.e2e.ts`'s, in e2e-nightly.yml: it needs the test seam.
-      - name: Run smoke + bundle-budget + a11y specs
-        working-directory: apps/web
-        run: bunx playwright test -c playwright.cantina.config.ts smoke.e2e.ts bundle-budget.e2e.ts a11y.e2e.ts
-
-      - name: Upload Playwright report on failure
-        if: failure()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: playwright-report-e2e-cantina
-          path: apps/web/playwright-report/cantina/
-          retention-days: 7
-
-      - name: Backend logs on failure
-        if: failure()
-        run: docker logs convex-e2e || true
 
   build-discord-bot:
     needs: [changes]
@@ -379,9 +355,8 @@ jobs:
       - changes
       - static-checks
       - coverage
-      - build-srd
+      - build-web
       - perf-srd
-      - build-cantina
       - build-discord-bot
       - build-su-assets
       - version-bump

@@ -1,6 +1,5 @@
 import type { CSSProperties } from 'react'
 import { Footer, tokens } from '../../../ui/index'
-import { publicPath } from '../../lib/appUrl'
 import { DOC_PAGES } from '../../lib/docPages'
 
 /**
@@ -22,8 +21,8 @@ const LINKS = [DOC_PAGES.changelog, DOC_PAGES.api, DOC_PAGES.discord, DOC_PAGES.
 /** Room between the page and its foot band, as the old hairline foot had. */
 const GAP = { marginTop: tokens.space[48] } satisfies CSSProperties
 
-/** The mark ships in the Cantina's own `public/`, under the base. */
-const MARK = publicPath('Powered_by_Salvage_Black.webp')
+/** srd's `public/` file, at the site's root. */
+const MARK = '/Powered_by_Salvage_Black.webp'
 
 export function SiteFooter() {
   return (

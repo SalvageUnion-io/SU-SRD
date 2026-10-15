@@ -12,7 +12,7 @@ import { SITE } from './src/cantina/lib/site'
  * without masking a real hang.
  *
  * Signed out, the Cantina is read-only, so every spec that builds something signs in
- * through `e2e/cantina/fixtures.ts`. The PR bundle (ci.yml's `build-cantina`) has a Convex
+ * through `e2e/cantina/fixtures.ts`. The PR bundle (ci.yml's `build-web`) has a Convex
  * URL but no `VITE_TEST_AUTH`, so it SKIPS those specs, by design; the nightly
  * `e2e-cantina` job provisions a throwaway Convex backend and runs them for real.
  * Locally, `bun run dev` (the one dev server, srd's suite's too) always carries
@@ -21,12 +21,6 @@ import { SITE } from './src/cantina/lib/site'
  */
 export default e2eConfig({
   suite: 'cantina',
-  scripts: {
-    dev: 'dev',
-    build: 'build:cantina',
-    preview: 'preview:cantina',
-    dist: 'dist-cantina',
-  },
   port: portFor('srd'),
   // The Cantina at salvageunion.io/build (ADR-048); specs open `at(route)` (e2e/cantina/_base.ts).
   basePath: SITE.base,

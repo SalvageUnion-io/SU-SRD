@@ -4,7 +4,7 @@
  *
  * Vite takes it as the app's HTML entry (`cantinaShell` in
  * `vite.cantina.config.ts`): the build injects the hashed entry, its CSS and
- * modulepreloads and writes `dist-cantina/build/index.html`, which the Worker
+ * modulepreloads and writes `dist/build/index.html`, which the Worker
  * serves and the service worker precaches; the dev server answers navigations
  * with it. Plain `createElement`, no JSX and only relative imports, because the
  * Vite config loads this module itself.
@@ -87,9 +87,13 @@ function headTags(): string {
         rel: 'icon',
         type: 'image/png',
         sizes: '192x192',
-        href: '/icon-192.png',
+        href: '/web-app-manifest-192x192.png',
       }),
-      createElement('link', { rel: 'apple-touch-icon', sizes: '192x192', href: '/icon-192.png' }),
+      createElement('link', {
+        rel: 'apple-touch-icon',
+        sizes: '192x192',
+        href: '/web-app-manifest-192x192.png',
+      }),
       createElement('title', null, SHELL_TITLE)
     )
   )

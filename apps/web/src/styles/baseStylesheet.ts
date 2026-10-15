@@ -2,15 +2,13 @@
  * baseStylesheet — the one stylesheet both apps link: the Barlow faces and the
  * src/ui entry (`./base.css`), at `/assets/base-<hash>.css`.
  *
- * srd and the Cantina are separate Vite builds (separate CI jobs, too), and each
+ * srd and the Cantina are two Vite passes of the one `bun run build`, and each
  * once bundled the fonts and the package stylesheet into its own CSS, under its
  * own base: a visit crossing from one to the other downloaded the same ~115 KB
- * twice, from two URLs. Both builds now run THIS build, with the same input and
- * the same options, so both emit byte-identical files under the same names, and
- * both link the same URL. srd ships them in `dist/assets/`; the Cantina writes
- * them to `dist-cantina/assets/`, outside the `build/` that `tools/merge-dist.sh`
- * copies, so its own preview is styled and the merged site keeps srd's copy
- * (merge-dist refuses a pair that differs).
+ * twice, from two URLs. Both passes now run THIS build, with the same input and
+ * the same options, so both link the same URL. srd's pass writes the files to
+ * `dist/assets/`; the Cantina's checks that they are byte for byte the ones it
+ * links, and fails the build if not.
  *
  * In dev there is nothing to build: both apps link `/src/styles/base.css`,
  * which srd's Vite server serves as CSS (`ssg/dev.ts` routes every path outside

@@ -42,12 +42,6 @@ export type AppE2E = {
    * two, `srd` and `cantina`.
    */
   suite: string
-  /**
-   * The workspace scripts that serve it, when not `dev`, `build` and `preview`,
-   * and the folder `build` writes, when not `dist` (the Cantina's build and
-   * preview are suffixed `:cantina` and it builds into `dist-cantina`).
-   */
-  scripts?: { dev: string; build: string; preview: string; dist: string }
   /** The port the app's dev server listens on (and `preview`, in CI). */
   port: number
   /**
@@ -62,11 +56,8 @@ export type AppE2E = {
   external?: Budget
 }
 
-const DEFAULT_SCRIPTS = { dev: 'dev', build: 'build', preview: 'preview', dist: 'dist' }
-
 export function e2eConfig({
   suite,
-  scripts = DEFAULT_SCRIPTS,
   port,
   basePath = '/',
   local,
@@ -106,9 +97,7 @@ export function e2eConfig({
     webServer: externalBaseURL
       ? undefined
       : {
-          command: ci
-            ? `[ -d ${scripts.dist} ] || bun run ${scripts.build}; bun run ${scripts.preview}`
-            : `bun run ${scripts.dev}`,
+          command: ci ? '[ -d dist ] || bun run build; bun run preview' : 'bun run dev',
           url: `${url}${basePath}`,
           reuseExistingServer: !ci,
           timeout: 240_000,
