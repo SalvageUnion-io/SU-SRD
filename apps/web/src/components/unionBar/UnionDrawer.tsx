@@ -15,7 +15,7 @@ import { Badge, buttonVariants, NavDrawer } from '../index'
  *
  * The wordmark home, the search, the book's chapter index with its counts
  * (`NAV_CATALOG`, frozen at build time: building it at runtime would pull the
- * reference ORM onto every page, which `bundle-budget.e2e.ts` forbids), then the
+ * reference ORM onto every page, which `reference-bundle-budget.e2e.ts` forbids), then the
  * site's pages and "Buy the game". The Cantina adds its own nav ahead of those
  * (`productNav`) and its account controls (`extra`); without them the drawer
  * offers Sign in while nobody is signed in, from the account hint.

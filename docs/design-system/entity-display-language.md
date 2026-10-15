@@ -58,7 +58,7 @@ Each is checkable; breaking one needs an amendment here.
 ## Which form, where
 
 1. **SRD index** — Tiles (lead), link (E2). **SRD entity, pattern, table or guide page** — Page, read; children link. **A pattern** — the chassis ability on its page (E19), then Systems and Modules as full-width Tokens, one a line.
-2. **Search, everywhere** — Row (no lead), link; SRD header dropdown: Token, link. **Any prose** — Mention: Peek, then Page.
+2. **Search, everywhere** — Row (no lead), link; the bar's dropdown: Token, link. **Any prose** — Mention: Peek, then Page.
 3. **Cantina wizard or picker** — Row, Card for the focused pick; select. **Live sheet** — Row and Card.
 4. **Cantina dense slots** (inventory, bays, loadouts) — Token, link. **Deck, resolve** — Row / Card.
 5. **Cantina "open" anywhere** — the detail dialog's Page. **Mediator opposition tray** — Row. **OG cards, the bot** — fed by the model.

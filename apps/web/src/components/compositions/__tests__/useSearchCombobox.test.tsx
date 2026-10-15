@@ -1,7 +1,7 @@
 /**
  * useSearchCombobox — shared combobox logic.
- * Consumer-shell behavior (dropdown vs dialog) is covered by the apps' own
- * SearchIsland/GlobalSearch tests; these pin the hook contract.
+ * The shell's behaviour is covered by the SearchIsland tests; these pin the
+ * hook contract.
  */
 import { afterEach, beforeEach, describe, expect, jest, mock, test } from 'bun:test'
 import { act, renderHook } from '@testing-library/react'
@@ -19,7 +19,7 @@ function must<T>(value: T | null | undefined): T {
 
 // The debounce is driven, not slept through: a fixed real-time margin over a
 // real timer is a latent flake on a loaded runner and pure dead wall-clock
-// everywhere else. Same approach as the Cantina's GlobalSearch.test.tsx.
+// everywhere else.
 beforeEach(() => {
   jest.useFakeTimers()
 })

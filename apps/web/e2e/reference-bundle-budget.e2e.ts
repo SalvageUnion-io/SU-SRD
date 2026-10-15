@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { captureJsTotals, jsChunkTotals } from './_bundle'
 
 /**
  * Bundle-size budget suite — proves the per-route preload lists
@@ -14,52 +15,6 @@ import { expect, test } from '@playwright/test'
  * PR description for before/after numbers) — they should fail on a
  * meaningful regression, not on every dependency bump.
  */
-
-type ResourceTotals = { count: number; bytes: number; names: string[] }
-
-/** Sum the decoded bytes of same-origin `assets/*.js` chunks requested during
- *  a page load, keyed by response so redirects/duplicates aren't double
- *  counted. `names` records the chunk filenames for assert-not-present checks.
- *
- *  Keep the `/assets/` prefix in step with `build.assetsDir` in
- *  vite.config.ts, and the `name-HASH.js` separator in step with Vite's
- *  chunk naming: if either drifts this guard silently matches NOTHING, the
- *  budget sums 0 bytes and every assertion passes vacuously. See the
- *  zero-chunk assertion below. */
-async function captureJsTotals(
-  page: import('@playwright/test').Page,
-  navigate: () => Promise<unknown>
-): Promise<ResourceTotals> {
-  const totals: ResourceTotals = { count: 0, bytes: 0, names: [] }
-  const seen = new Set<string>()
-
-  page.on('response', (response) => {
-    const url = response.url()
-    if (!url.includes('/assets/') || !url.endsWith('.js')) return
-    if (seen.has(url)) return
-    seen.add(url)
-    totals.names.push(url.split('/assets/')[1] ?? url)
-    totals.count += 1
-  })
-
-  await navigate()
-  await page.waitForLoadState('networkidle')
-
-  // Sizes via the Resource Timing API rather than re-fetching each URL.
-  // `decodedBodySize` is the uncompressed byte count the browser parses, so
-  // the budget does not move with the server's compression: CI's `bun run
-  // preview` (wrangler dev) gzips, and the ceilings below were measured
-  // uncompressed, against `dist/assets/` file sizes.
-  const sizes = await page.evaluate(() =>
-    performance
-      .getEntriesByType('resource')
-      .filter((e) => e.name.includes('/assets/') && e.name.endsWith('.js'))
-      .map((e) => (e as PerformanceResourceTiming).decodedBodySize)
-  )
-  totals.bytes = sizes.reduce((sum, n) => sum + n, 0)
-
-  return totals
-}
 
 /**
  * This suite is only meaningful against a PRODUCTION BUILD, and locally it does
@@ -158,7 +113,7 @@ test.describe('bundle-size budget', () => {
   test('search never loads the salvageunion-reference data chunks — only the compact index', async ({
     page,
   }) => {
-    const jsTotals = await captureJsTotals(page, () => page.goto('/'))
+    await page.goto('/')
 
     let sawSearchIndex = false
     page.on('response', (response) => {
@@ -178,6 +133,7 @@ test.describe('bundle-size budget', () => {
     })
 
     expect(sawSearchIndex).toBe(true)
+    const jsTotals = await jsChunkTotals(page)
     // Zero salvageunion-reference schema data chunks — search runs entirely
     // against the compact index, never the ORM.
     const dataChunkPattern =

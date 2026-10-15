@@ -5,7 +5,7 @@ React app for building and running Salvage Union pilots, mechs, and crawlers.
 **Storage modes — read
 [`.claude/rules/cantina-data-access.md`](../../../../.claude/rules/cantina-data-access.md)
 before touching data** (it loads with the stores, `src/lib/entities/`, `src/lib/connection/`,
-product component folders, `convex/`, `e2e/cantina/`).
+product component folders, `convex/`, `e2e/`).
 
 - Every read-only sheet (`/sheet/:kind/:id`, `/p/:kind/:appId`) is the live
   `<Sheet readOnly>` over `src/components/sheet/readOnlySheetStore.model.ts`;
@@ -112,7 +112,7 @@ product component folders, `convex/`, `e2e/cantina/`).
 
 ## Commands
 
-The root `AGENTS.md` list, plus `bun run e2e --project=cantina`; local Convex
+The root `AGENTS.md` list, plus `bun run e2e` (one file: `bun run e2e <name>.e2e.ts`); local Convex
 setup is the convex-ops skill. Base `/build/` everywhere, dev too
 (`lib/appBase.ts`); e2e opens routes via `at()`. How it builds and serves:
 [ADR-050](../../../../docs/adr/050-one-app.md).

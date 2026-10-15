@@ -20,7 +20,7 @@
  * build, the request's for the Worker) and the app's base, so a Preview names
  * only itself, as `linkPreview.ts` does.
  *
- * The picture is the app's own `og-image.png`: the render surfaces
+ * The picture is the site's own `/og-image.png`: the render surfaces
  * (`/og/:kind/:id`) read Convex's public answer, which a Starter Set template
  * never has.
  */
@@ -80,14 +80,14 @@ function publicUrl(origin: string, base: string, path: string): string {
   return `${origin}${base}${path}`
 }
 
-/** The shell's meta block for a page with words of its own; the picture is the app's own. */
+/** The shell's meta block for a page with words of its own; the picture is the site's own. */
 function publicMeta(page: PublicPage, origin: string, base: string): ShellMeta {
   const url = publicUrl(origin, base, page.path)
   return {
     ...page.words,
     url,
     canonical: url,
-    image: { url: `${origin}${base}/og-image.png`, alt: page.words.title },
+    image: { url: `${origin}/og-image.png`, alt: page.words.title },
   }
 }
 

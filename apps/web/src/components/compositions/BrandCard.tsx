@@ -1,7 +1,6 @@
 import type { CSSProperties } from 'react'
 import { foregroundOn } from '../../design/contrast'
 import { borderWidth, color, font, space, tracking, weight } from '../../design/tokens'
-import type { ChapterTone } from '../atoms/chapterBandColor'
 import { CHAPTER_BAND_COLOR } from '../atoms/chapterBandColor'
 import { Speckle } from '../atoms/Speckle'
 import { OG_CARD_HEIGHT, OG_CARD_WIDTH, OG_GUTTER, OG_NOTCH_INSET } from './ogCardText'
@@ -9,7 +8,8 @@ import { OG_CARD_HEIGHT, OG_CARD_WIDTH, OG_GUTTER, OG_NOTCH_INSET } from './ogCa
 /**
  * BrandCard — the site's own link preview: the picture a link unfurls with
  * when the page it opens has no card of its own (the SRD's home, chapter and
- * rules pages; every Cantina route but a shared sheet or invite).
+ * rules pages; every Cantina route but a shared sheet or invite, which carry
+ * their own).
  *
  * It is the Discord bot's profile banner (`apps/discord-bot/brand/banner.png`)
  * redrawn to fill the 1200 × 630 of a link preview, so every surface a player
@@ -17,33 +17,16 @@ import { OG_CARD_HEIGHT, OG_CARD_WIDTH, OG_GUTTER, OG_NOTCH_INSET } from './ogCa
  * speckle, a kicker across the top, "SALVAGE UNION.io" notched in ink on the page
  * ground, and the book's five chapter colours along the foot in book order.
  *
- * Each app draws it on its own render surface and commits the screenshot as
- * its default `og-image.png`, so the image exists whether or not a build
- * renders anything. Re-shoot both when it changes:
+ * `/og-card?brand` draws it, and its screenshot is committed as the default
+ * `og-image.png`, so the image exists whether or not a build renders anything.
+ * Re-shoot it when it changes:
  *
  *   bun run shot '/og-card?brand' --width page        → apps/web/public/og-image.png
- *   bun run shot cantina:/og/brand --width page          → apps/web/public/build/og-image.png
  */
 
 export type BrandCardProps = {
-  /** The line across the top, set in caps. A `quote` takes its place. */
-  kicker?: string
-  /**
-   * A quote across the top instead of the kicker: `text` in the caller's
-   * `font` (a face the render surface loads), paper on the band, and `by`
-   * under it in small caps.
-   */
-  quote?: { text: string; by: string; font: string }
-  /**
-   * The two lines notched in ink, for a product of the site rather than the
-   * site itself (The Cantina's own preview). Without it the card says
-   * "SALVAGE UNION.io".
-   */
-  title?: readonly [string, string]
-  /** The band's colour. The site's card wears rules-blue; The Cantina's its pink. */
-  tone?: ChapterTone
-  /** Where the link goes, set at the right of the kicker's line, as typed. */
-  address?: string
+  /** The line across the top, set in caps. */
+  kicker: string
 }
 
 /** The frame: twice the entity card's 3px, as `OgCard`'s. */
@@ -69,9 +52,8 @@ const CARD = {
 
 /**
  * The band: the kicker on one line, the notch filling everything under it.
- * It is set on the entity previews' grid (`OG_GUTTER`): the kicker, quote and
- * credit start on the notch's side, as an entity card's chips and cite do,
- * and the address ends on it, as the Union bar's address does.
+ * It is set on the entity previews' grid (`OG_GUTTER`): the kicker starts on
+ * the notch's side, as an entity card's chips and cite do.
  */
 const BODY = {
   display: 'flex',
@@ -122,58 +104,6 @@ const TITLE = {
   textTransform: 'uppercase',
 } satisfies CSSProperties
 
-/**
- * The kicker's line: the kicker, and the address at its right when there is
- * one. The address sits on the LAST baseline, so under a quote it reads with
- * the credit, the quote's smaller second line, not with the quote.
- */
-const KICKER_ROW = {
-  alignItems: 'last baseline',
-  display: 'flex',
-  gap: space[24],
-  justifyContent: 'space-between',
-} satisfies CSSProperties
-
-/** The wordmark under a quote, which stands taller than a kicker's one line. */
-const QUOTED_TITLE_SIZE = '236px'
-
-/** The quote: large, so paper reads on any band (WCAG large text). */
-const QUOTE = {
-  fontSize: '68px',
-  fontWeight: weight.semibold,
-  lineHeight: 0.95,
-  // A script face sets its first capital well inside its box: pull the
-  // quote's first letter back onto the text edge the credit starts on.
-  margin: '0 0 0 -0.2em',
-  position: 'relative',
-} satisfies CSSProperties
-
-/**
- * The opening mark hangs in the margin, so the quote's first letter, not its
- * punctuation, sits on the text edge with the credit under it.
- */
-const HANGING_MARK = { position: 'absolute', right: '100%' } satisfies CSSProperties
-
-/** Who said it: the kicker's caps, small and italic, in the band's ink. */
-const QUOTE_BY = {
-  fontFamily: font.cond,
-  fontSize: '26px',
-  fontStyle: 'italic',
-  fontWeight: weight.bold,
-  letterSpacing: tracking.eyebrow,
-  margin: `${space[8]} 0 0`,
-  textTransform: 'uppercase',
-} satisfies CSSProperties
-
-/** The address: the kicker's face, smaller and as typed (a URL is not caps). */
-const ADDRESS = {
-  ...KICKER,
-  fontSize: '40px',
-  fontWeight: weight.bold,
-  textTransform: 'none',
-  whiteSpace: 'nowrap',
-} satisfies CSSProperties
-
 /** ".io", set small on the second line's baseline. */
 const TLD = { fontSize: '128px', textTransform: 'none' } satisfies CSSProperties
 
@@ -185,42 +115,19 @@ const FOOT = {
   flex: '0 0 28px',
 } satisfies CSSProperties
 
-export function BrandCard({ kicker, quote, title, tone = 'rules', address }: BrandCardProps) {
-  const band = CHAPTER_BAND_COLOR[tone]
+export function BrandCard({ kicker }: BrandCardProps) {
+  const band = CHAPTER_BAND_COLOR.rules
   const kickerColor = foregroundOn(band, 'ink') === 'ink' ? color.ink : color.paper
   return (
     <div data-brand-card="" style={{ ...CARD, backgroundColor: band }}>
       <Speckle grain="ink" />
       <div style={BODY}>
-        <div style={KICKER_ROW}>
-          {quote ? (
-            <figure style={{ margin: 0 }}>
-              <blockquote style={{ ...QUOTE, color: color.paper, fontFamily: quote.font }}>
-                <span style={HANGING_MARK}>“</span>
-                {quote.text}”
-              </blockquote>
-              <figcaption style={{ ...QUOTE_BY, color: kickerColor }}>— {quote.by}</figcaption>
-            </figure>
-          ) : (
-            <p style={{ ...KICKER, color: kickerColor }}>{kicker}</p>
-          )}
-          {address && <p style={{ ...ADDRESS, color: kickerColor }}>{address}</p>}
-        </div>
+        <p style={{ ...KICKER, color: kickerColor }}>{kicker}</p>
         <div style={NOTCH}>
-          <p style={quote ? { ...TITLE, fontSize: QUOTED_TITLE_SIZE } : TITLE}>
-            {title ? (
-              <>
-                {title[0]}
-                <br />
-                {title[1]}
-              </>
-            ) : (
-              <>
-                Salvage
-                <br />
-                Union<span style={TLD}>.io</span>
-              </>
-            )}
+          <p style={TITLE}>
+            Salvage
+            <br />
+            Union<span style={TLD}>.io</span>
           </p>
         </div>
       </div>

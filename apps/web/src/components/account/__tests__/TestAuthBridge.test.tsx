@@ -48,7 +48,7 @@ describe('the global name is shared, not retyped', () => {
     // `fixtures.ts` is what signs in every durable e2e spec, and it carries
     // its own copy of the name because Playwright code cannot import app source.
     const fixtures = await Bun.file(
-      new URL('../../../../e2e/cantina/fixtures.ts', import.meta.url).pathname
+      new URL('../../../../e2e/fixtures.ts', import.meta.url).pathname
     ).text()
     expect(fixtures).toContain(`'${TEST_SIGN_IN_GLOBAL}'`)
   })

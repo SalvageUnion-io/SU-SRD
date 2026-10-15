@@ -130,6 +130,16 @@ export function buildChapters(): SrdChapter[] {
 /** What a page needs to know about the chapter it sits in. */
 export type ChapterRef = Pick<SrdChapter, 'id' | 'title' | 'tone' | 'href'>
 
+/** The five chapters by name, colour and anchor: no entry counts, so no ORM read. */
+export const CHAPTER_REFS: readonly ChapterRef[] = CHAPTER_DEFINITIONS.map(
+  ({ id, title, tone }) => ({
+    id,
+    title,
+    tone,
+    href: `/#${id}`,
+  })
+)
+
 /** The Contents chapter: the home page, and anything no chapter claims. */
 export const CONTENTS: ChapterRef = {
   id: 'contents',

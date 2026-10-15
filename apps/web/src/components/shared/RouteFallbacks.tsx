@@ -1,15 +1,16 @@
 /**
- * Router-level default fallbacks and the "not found" panel they
- * share with the sheet surfaces.
+ * Router-level default fallbacks, and the panel the sheet surfaces show for a
+ * record that is missing.
  *
  * Without them an unmatched URL hits TanStack's unstyled default and a slow
  * loader flashes a blank page.
  *
- * `NotFoundPanel` is the single implementation of that treatment: this one,
- * `Sheet`'s missing-entity state and `routes/sheet/$kind/$id`'s unknown-kind
- * state compose it. It is deliberately NOT the UI library's `RecoveryPanel`: that
- * panel carries `role="alert"` and centres its content, which is right for a
- * crash and wrong for a mistyped URL — announcing every 404 as an alert is an
+ * An unmatched URL is the site's own 404 (`NotFound`, as the static `/404`
+ * draws it) with a way back to the Hangar. `NotFoundPanel` is the missing
+ * record's: `Sheet`'s missing-entity state and `routes/sheet/$kind/$id`'s
+ * unknown-kind state compose it. Neither is the UI library's `RecoveryPanel`:
+ * that panel carries `role="alert"` and centres its content, which is right for
+ * a crash and wrong for a mistyped URL — announcing every 404 as an alert is an
  * accessibility regression, not a consolidation.
  */
 
@@ -25,6 +26,9 @@ import {
   weight,
 } from '../../design/tokens'
 import { buttonVariants } from '../index'
+import { DidYouMeanIsland } from '../islands/DidYouMeanIsland'
+import { SearchIsland } from '../islands/SearchIsland'
+import { NotFound } from '../NotFound'
 import { AppLink } from './AppLink'
 
 const SHELL = {
@@ -69,6 +73,9 @@ const PANEL_MESSAGE = {
 } satisfies CSSProperties
 
 const BACK_LINK = { textDecorationLine: 'none' } satisfies CSSProperties
+
+/** The 404's exit, at the head of its column (a flex column that would stretch it). */
+const HANGAR_LINK = { ...BACK_LINK, alignSelf: 'flex-start' } satisfies CSSProperties
 
 /** The pending line; it breathes with the shared skeleton pulse (`su-pulse`). */
 const PENDING = {
@@ -125,13 +132,27 @@ export function NotFoundPanel({
   )
 }
 
-/** Styled 404 for any unmatched URL (router defaultNotFoundComponent). */
+/**
+ * Any unmatched URL (router defaultNotFoundComponent): the site's 404, its
+ * search and "did you mean" rendered live, and the way back to the Hangar.
+ */
 export function RouteNotFound() {
   return (
-    <NotFoundPanel
-      title="Page not found"
-      message="Nothing lives at this address. It may have been deleted, or the link may be mistyped."
-    />
+    <main>
+      <NotFound
+        search={<SearchIsland variant="hero" />}
+        didYouMean={<DidYouMeanIsland />}
+        back={
+          <AppLink
+            href="/"
+            className={buttonVariants({ variant: 'ghost', size: 'compact' })}
+            style={HANGAR_LINK}
+          >
+            &larr; Back to Hangar
+          </AppLink>
+        }
+      />
+    </main>
   )
 }
 

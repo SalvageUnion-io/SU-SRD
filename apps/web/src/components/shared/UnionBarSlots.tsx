@@ -44,6 +44,8 @@ type UnionBarSlotsProps = {
   actions?: ReactNode
   /** Mobile controls beside the hamburger, below `lg`: the avatar-only account menu. */
   mobileActions?: ReactNode
+  /** The search at the head of the mobile drawer. */
+  drawerSearch?: ReactNode
   /** Controls at the top of the mobile drawer, handed `close` to dismiss it. */
   drawerExtra?: (close: () => void) => ReactNode
   /** Above the bar: the not-connected banner, filled even while the bar is hidden. */
@@ -73,6 +75,7 @@ export function UnionBarSlots({
   mobileSearch,
   actions,
   mobileActions,
+  drawerSearch,
   drawerExtra,
   banner,
   barHidden = false,
@@ -111,6 +114,7 @@ export function UnionBarSlots({
       {mobileSearch}
       {mobileActions}
       <UnionDrawer
+        search={drawerSearch}
         productNav={CANTINA_NAV.map((item) => ({
           label: item.label,
           href: appPath(item.path),

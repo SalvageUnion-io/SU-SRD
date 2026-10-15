@@ -1,6 +1,6 @@
 import { createRootRoute, HeadContent, Outlet, useRouterState } from '@tanstack/react-router'
 import { PRODUCT } from 'cantina-domain/product'
-import { useLayoutEffect, useState } from 'react'
+import { useLayoutEffect } from 'react'
 import { AccountHintSync } from '../components/account/AccountHintSync'
 import { AccountReconciler } from '../components/account/AccountReconciler'
 import {
@@ -12,11 +12,12 @@ import {
 import { TestAuthBridge } from '../components/account/TestAuthBridge'
 import type { EntitySurfaceValue } from '../components/index'
 import { EntityHrefProvider, EntitySurfaceProvider, Toaster } from '../components/index'
+import { MobileSearchIsland } from '../components/islands/MobileSearchIsland'
+import { SearchIsland } from '../components/islands/SearchIsland'
 import { AppConvexProvider } from '../components/shared/AppConvexProvider'
 import { AppLink } from '../components/shared/AppLink'
 import { EntityPageHost } from '../components/shared/EntityPageHost'
 import { GameDataReady } from '../components/shared/GameDataReady'
-import { GlobalSearch } from '../components/shared/GlobalSearch'
 import { NotConnectedBanner } from '../components/shared/NotConnectedBanner'
 import { RootErrorComponent } from '../components/shared/RouteErrors'
 import { SiteFooter } from '../components/shared/SiteFooter'
@@ -53,16 +54,15 @@ export const Route = createRootRoute({
  * exists inside `AppConvexProvider`.
  */
 function RootHeader({ pathname, barHidden }: { pathname: string; barHidden: boolean }) {
-  // The reference search's open state, shared by its desktop and phone triggers.
-  const [searchOpen, setSearchOpen] = useState(false)
   return (
     <UnionBarSlots
       pathname={pathname}
       barHidden={barHidden}
       banner={<NotConnectedBanner />}
       games={<HeaderGames pathname={pathname} />}
-      search={<GlobalSearch variant="bar" open={searchOpen} onOpenChange={setSearchOpen} />}
-      mobileSearch={<GlobalSearch variant="icon" open={searchOpen} onOpenChange={setSearchOpen} />}
+      search={<SearchIsland />}
+      mobileSearch={<MobileSearchIsland />}
+      drawerSearch={<SearchIsland />}
       actions={<HeaderActions />}
       mobileActions={<HeaderMobileActions />}
       drawerExtra={(close) => <HeaderDrawerAccount close={close} />}

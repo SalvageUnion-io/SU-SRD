@@ -1,3 +1,11 @@
+/**
+ * The site's one search: the reference pages hydrate it as an island (the
+ * Union bar's field, the home and 404 hero), and the Cantina renders the same
+ * component in its bar. One engine, the build-time compact index
+ * (`/search-index.json`, `searchCompactIndex`); one panel, hung under the
+ * field; Cmd/Ctrl+K focuses it. Every result is a reference page, followed
+ * in the same tab.
+ */
 import type { CSSProperties } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getEntitySlug } from 'salvageunion-reference'
@@ -10,6 +18,7 @@ import { useSearchIndex } from '../../lib/useSearchIndex'
 import { HeroSearchForm } from '../HeroSearch'
 import type { SearchComboboxResult } from '../index'
 import { Entity, SearchField, useModKeyHint, useSearchCombobox } from '../index'
+import { DocumentLinks } from './DocumentLinks'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 type SearchIslandProps = {
@@ -238,35 +247,37 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
         // HEADER SEARCH (entity display language, "Which form, where"): every
         // entity result is a Token in link mode, one a line; a category is a
         // plain link. The full /search page keeps its Rows.
-        <div className="su-entity-token-list" style={RESULTS}>
-          {results.map((result, index) => {
-            const option = {
-              id: optionId(index),
-              role: 'option',
-              'aria-selected': index === selectedIndex,
-            } as const
-            const model = result.kind === 'entity' ? models.get(result.id) : undefined
-            return model ? (
-              <Entity
-                key={result.id}
-                form="token"
-                model={model}
-                mode={{ kind: 'link', href: resultUrl(result), attrs: option }}
-              />
-            ) : (
-              <a
-                key={result.id}
-                {...option}
-                href={resultUrl(result)}
-                className="su-search__category"
-                style={CATEGORY}
-              >
-                <div style={CATEGORY_TITLE}>{result.title}</div>
-                <div style={CATEGORY_GROUP}>{result.group}</div>
-              </a>
-            )
-          })}
-        </div>
+        <DocumentLinks>
+          <div className="su-entity-token-list" style={RESULTS}>
+            {results.map((result, index) => {
+              const option = {
+                id: optionId(index),
+                role: 'option',
+                'aria-selected': index === selectedIndex,
+              } as const
+              const model = result.kind === 'entity' ? models.get(result.id) : undefined
+              return model ? (
+                <Entity
+                  key={result.id}
+                  form="token"
+                  model={model}
+                  mode={{ kind: 'link', href: resultUrl(result), attrs: option }}
+                />
+              ) : (
+                <a
+                  key={result.id}
+                  {...option}
+                  href={resultUrl(result)}
+                  className="su-search__category"
+                  style={CATEGORY}
+                >
+                  <div style={CATEGORY_TITLE}>{result.title}</div>
+                  <div style={CATEGORY_GROUP}>{result.group}</div>
+                </a>
+              )
+            })}
+          </div>
+        </DocumentLinks>
       ) : (
         <div style={STATUS}>No results found</div>
       )}

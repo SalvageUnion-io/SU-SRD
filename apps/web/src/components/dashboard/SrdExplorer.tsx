@@ -9,7 +9,7 @@
  * Three views, every one of them a shared src/components surface:
  *
  *  1. **Home** — the catalog, with search above it. Search is the UI library's
- *     `useSearchCombobox` (the hook behind the Cantina's GlobalSearch and srd's
+ *     `useSearchCombobox` (the hook behind the site's
  *     SearchIsland) in the shared `SearchField`; tiles **drill in place**
  *     (`onActivate`) rather than navigating, which would leave the Dashboard.
  *  2. **Category** — that schema in `EntitySearcher`: its text search and

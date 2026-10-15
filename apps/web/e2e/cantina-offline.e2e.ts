@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test'
 import { at } from './_base'
 import { buildPilot, editSheet, openSheetFor, waitForReady } from './_helpers'
+import { serviceWorkerReady } from './_serviceWorker'
 import { expect, test } from './fixtures'
 
 /**
@@ -69,33 +70,8 @@ import { expect, test } from './fixtures'
  * controller. Checking control on the first load is how this spec first
  * reported "no service worker" against a build that had one.
  */
-async function ensureServiceWorkerControls(
-  page: import('@playwright/test').Page
-): Promise<boolean> {
-  // `page.evaluate` genuinely awaits a returned promise. `page.waitForFunction`
-  // does NOT for an async predicate — it sees the Promise object, finds it
-  // truthy, and resolves on the first poll. Using it here made this helper
-  // return "registered" at ~0ms, reload before the worker had activated, and
-  // then skip every test as though the build had no service worker at all.
-  const registered = await page
-    .evaluate(async () => {
-      if (!('serviceWorker' in navigator)) return false
-      // `ready` resolves once a registration is ACTIVE for this scope, which is
-      // the state the reload below needs in order to be controlled.
-      //
-      // Raced against a timer because on a dev server there is no worker to
-      // become ready and `ready` simply never settles — an un-raced await would
-      // hang until the whole test timed out, turning "this environment has no
-      // service worker" into a red test instead of a skip.
-      const ready = navigator.serviceWorker.ready.then(() => true)
-      const gaveUp = new Promise<boolean>((resolve) => {
-        setTimeout(() => resolve(false), 15_000)
-      })
-      return await Promise.race([ready, gaveUp])
-    })
-    .catch(() => false)
-
-  if (!registered) return false
+async function ensureServiceWorkerControls(page: Page): Promise<boolean> {
+  if (!(await serviceWorkerReady(page))) return false
 
   await page.reload()
   // Settle the new document before polling it: `waitForFunction` evaluates in a
