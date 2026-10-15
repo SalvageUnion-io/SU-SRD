@@ -13,7 +13,7 @@
  */
 
 import { cn, Entity, FOCUS_RING } from 'component-lib'
-import type { StarterKind } from '../../lib/starterSet/copyStarter'
+import type { StarterKind } from '../../lib/starterSet/starterTemplates'
 import { AppLink } from '../shared/AppLink'
 import type { StarterBuild } from './starterShelves.model'
 

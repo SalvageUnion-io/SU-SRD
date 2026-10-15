@@ -65,8 +65,8 @@ export type GamesResult = { games: GameSummary[] }
  * Convex cannot validate these (ADR-030: the Zod schemas in `apps/itun` are the
  * source of truth and Convex stores bodies as `v.any()`), so the bot must not
  * pretend otherwise. Everything read off a body is read defensively, and the
- * derived maxima come from `salvageunion-reference/rules` rather than from any
- * field claimed to be here.
+ * derived maxima come from the server's `SheetResult.vitals` rather than from
+ * any field claimed to be here.
  */
 export type EntityBody = Record<string, unknown>
 
@@ -107,4 +107,54 @@ export type SheetResult = {
   publicRead?: boolean
   ownerName: string | null
   body: EntityBody
+  /**
+   * The server's derived maxima and status for a pilot or a mech: the same
+   * derivation `crew.vitals` serves the Dashboard's Crew tab (ADR-038 §4), so
+   * the bot and every client show one answer. Null for a crawler, which is
+   * not crew.
+   *
+   * Optional in the TYPE for the same reason as `publicRead`: a bot can meet a
+   * deployment older than this field (Convex is pushed before the bot ships,
+   * but a rolled-back backend still answers). Absent reads as "maxima
+   * unknown", and the bot shows the current values alone.
+   */
+  vitals?: SheetVitals | null
 }
+
+/** A pilot's derived status (`PilotStatus` in `itun-domain/rules/crewStatus`). */
+type PilotCrewStatus = { dead: boolean; injured: boolean; ejected: boolean }
+
+/** A mech's derived status (`MechStatus` in `itun-domain/rules/crewStatus`). */
+type MechCrewStatus = {
+  destroyed: boolean
+  shutdown: boolean
+  overheating: boolean
+  destroyedSystems: string[]
+  destroyedModules: string[]
+}
+
+/**
+ * A pilot's derived numbers, or nulls when the body is not a readable pilot.
+ * `crew.vitals` returns exactly these fields on each pilot row; its validator
+ * mirrors this type, so the two cannot drift.
+ */
+export type PilotDerived = {
+  maxHP: number | null
+  maxAP: number | null
+  status: PilotCrewStatus
+  /** Whether the Crew tab flags this pilot: dead, injured or ejected. */
+  attention: boolean
+}
+
+/** A mech's derived numbers, or nulls when the body is not a readable mech. */
+export type MechDerived = {
+  maxSP: number | null
+  maxEP: number | null
+  maxHeat: number | null
+  status: MechCrewStatus | null
+  /** Whether the Crew tab flags this mech: destroyed, overheating, or an item destroyed. */
+  attention: boolean
+}
+
+/** `SheetResult.vitals`, tagged so a reader need not trust `table` to narrow it. */
+export type SheetVitals = ({ kind: 'pilot' } & PilotDerived) | ({ kind: 'mech' } & MechDerived)

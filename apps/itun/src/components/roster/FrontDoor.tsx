@@ -23,7 +23,7 @@ import { ChapterBand, Slab, StartHere, tokens } from 'component-lib'
 import { PRODUCT } from 'component-lib/product'
 import type { CSSProperties } from 'react'
 import { SCRIPT_FONT } from '../../lib/scriptFont'
-import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/copyStarter'
+import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
 import { StarterCard } from '../starterSet/StarterCard'
 import { starterShelves } from '../starterSet/starterShelves.model'
 

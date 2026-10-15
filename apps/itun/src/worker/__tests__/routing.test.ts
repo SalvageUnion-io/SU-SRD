@@ -152,7 +152,7 @@ describe('a missing FILE is 404, not the shell', () => {
   for (const path of [
     '/foo.png',
     '/favicon.ico',
-    '/sitemap.xml',
+    '/robots.txt',
     '/apple-touch-icon.png',
     '/manifest.json',
     '/deep/path/thing.txt',

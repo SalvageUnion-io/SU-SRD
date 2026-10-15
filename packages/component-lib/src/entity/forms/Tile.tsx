@@ -1,6 +1,8 @@
 import { assetDerivativeUrl, assetSrcSetFor } from '../../components/compositions/assetSrcSet'
+import { heroArtCrop } from '../../components/compositions/heroArtCrop'
 import { grainClass } from '../../components/referenceEntity/card/cardGrain'
 import { space } from '../../design/tokens'
+import type { CSSVarStyle } from '../../styles/cssVars'
 import { cn } from '../../utils/cn'
 import { useEntitySurface } from '../entitySurfaceContext'
 import { LinkSurface } from '../modes/link'
@@ -43,9 +45,33 @@ const READ: TileMode = { kind: 'read' }
 
 /**
  * The 440 derivative is the tile's own rendition: a catalog column tops out
- * near 22rem, so 440 covers it at 1x–1.25x and 880 at 2x and up.
+ * near 22rem, so 440 covers it at 1x–1.25x and 880 at 2x and up. On a phone
+ * the art is cropped to its ink in a 2:1 band (`tileArtWindow`), where it
+ * draws about half the viewport wide: 50vw is that slot too.
  */
 const SIZES = '(min-width: 75rem) 22rem, 50vw'
+
+/**
+ * The art's measured ink box (`heroArtCrop`) as custom properties on the
+ * tile's art window. Only the phone band reads them (`.su-entity-tile__window`
+ * in `entity-forms.css`): there the window takes the ink's aspect inside the
+ * short band and the canvas's empty margin falls outside it, so a mech is
+ * never cut off. At wider widths the window is `display: contents` and the
+ * art draws whole at 3:4, as before. Unmeasured art has no window and draws
+ * whole in the band.
+ */
+function tileArtWindow(url: string): CSSVarStyle | undefined {
+  const crop = heroArtCrop(url)
+  if (!crop) return undefined
+  const { left, top, width, height } = crop.image
+  return {
+    ...crop.frame,
+    '--su-tile-art-left': String(left),
+    '--su-tile-art-top': String(top),
+    '--su-tile-art-width': String(width),
+    '--su-tile-art-height': String(height),
+  }
+}
 
 /**
  * Systems and modules: their catalog chips keep to two lines (owner,
@@ -83,11 +109,26 @@ export function Tile({
     (cell) => !(gear && GEAR_HIDDEN.has(cell.label))
   )
   const { art } = model
+  const artWindow = art.kind === 'image' ? tileArtWindow(art.url) : undefined
   const leadText = lead ? model.lead : undefined
   const mark =
     art.kind === 'none' && missingArt !== undefined
       ? censorMark(`${model.ref.schemaName}/${model.ref.id}`, missingArt, model.cite?.page)
       : undefined
+  const image =
+    art.kind === 'image' ? (
+      <img
+        src={assetDerivativeUrl(art.url, 440)}
+        srcSet={assetSrcSetFor(art.url)}
+        sizes={SIZES}
+        width={440}
+        height={587}
+        alt=""
+        loading={priority ? 'eager' : 'lazy'}
+        fetchPriority={priority ? 'high' : undefined}
+        decoding="async"
+      />
+    ) : null
   const hasChips = Boolean(model.cost) || facts.length > 0
   const chips = [
     ...facts.map((cell) => <Facts key={cell.key} cells={[cell]} size="compact" />),
@@ -107,17 +148,13 @@ export function Tile({
       <div className="su-entity-tile__frame" data-user-made={model.userMade || undefined}>
         {art.kind === 'image' && (
           <span className="su-entity-tile__art">
-            <img
-              src={assetDerivativeUrl(art.url, 440)}
-              srcSet={assetSrcSetFor(art.url)}
-              sizes={SIZES}
-              width={440}
-              height={587}
-              alt=""
-              loading={priority ? 'eager' : 'lazy'}
-              fetchPriority={priority ? 'high' : undefined}
-              decoding="async"
-            />
+            {artWindow ? (
+              <span className="su-entity-tile__window" style={artWindow}>
+                {image}
+              </span>
+            ) : (
+              image
+            )}
           </span>
         )}
         {mark && (

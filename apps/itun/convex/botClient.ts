@@ -13,6 +13,8 @@ import type {
 import type { Id } from './_generated/dataModel'
 import { internalQuery } from './_generated/server'
 import { displayNameOf } from './account'
+import type { SheetRow } from './crew'
+import { sheetVitals } from './crew'
 import { gamesForUser, userByDiscordId } from './model/bot'
 import { oldestByAppId, primaryCrawlerOf } from './model/entities'
 import { getMembership } from './model/permissions'
@@ -40,12 +42,10 @@ import { getMembership } from './model/permissions'
  * that path would be absurd. The bot is not that path: `/su sheet` is one
  * request, typed by a person, a few times a session.
  *
- * The bot still derives max HP, max SP and max Heat itself: it depends on
- * `salvageunion-reference` and preloads it at startup (ADR-006 — rules math
- * lives in the package), so these return what Convex stores. Convex can derive
- * them too now — `crew.vitals` runs the same rules over the same records for
- * the Dashboard's Crew tab (`model/referenceData.ts` loads the data) — but the
- * bot does not read those values yet.
+ * A pilot's or mech's derived maxima and status ride beside the body
+ * (`SheetResult.vitals`): the derivation `crew.vitals` serves the Dashboard's
+ * Crew tab (`sheetVitals` in `crew.ts`), so the bot shows the server's numbers
+ * rather than working out its own (ADR-038 §4).
  */
 
 /*
@@ -212,6 +212,8 @@ export const sheet = internalQuery({
       publicRead,
       ownerName: ownerId === null ? null : displayNameOf(owner, 'Crewmate'),
       body: row.body,
+      // `normalizeId` / `oldestByAppId` read `doc` from `args.table`.
+      vitals: await sheetVitals(ctx, { table: args.table, row: doc } as SheetRow),
     }
   },
 })

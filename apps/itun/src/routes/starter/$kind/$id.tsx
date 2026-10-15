@@ -1,6 +1,6 @@
 import { createFileRoute, useParams } from '@tanstack/react-router'
 import { StarterSheetView } from '../../../components/starterSet/StarterSheetView'
-import { pageTitle } from '../../../lib/pageTitle'
+import { starterPageTitle } from '../../../lib/starterSet/starterTemplates'
 
 /**
  * `/starter/$kind/$id` — one Starter Set build's sheet, read-only and open to
@@ -12,7 +12,7 @@ import { pageTitle } from '../../../lib/pageTitle'
  * `routes/__tests__/routeExports.test.ts`).
  */
 export const Route = createFileRoute('/starter/$kind/$id')({
-  head: () => ({ meta: [{ title: pageTitle('Starter Set') }] }),
+  head: ({ params }) => ({ meta: [{ title: starterPageTitle(params.kind, params.id) }] }),
   component: StarterSheetRoute,
 })
 

@@ -171,7 +171,8 @@ test('a roll table page rolls and marks the result', async ({ page }) => {
 })
 
 // (g) Every listing is the Catalog at every width: one flat grid of Tiles, no
-// group headings and no view toggle, each art box 3:4 before its image loads.
+// group headings and no view toggle, each art box 3:4 before its image loads
+// (on a phone, at 40rem and below, a 2:1 band).
 for (const width of [1440, 390]) {
   test(`the /chassis/ Catalog is one flat grid at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 })
@@ -186,7 +187,8 @@ for (const width of [1440, 390]) {
     await expect(art).toBeVisible()
     const box = await art.boundingBox()
     expect(box).not.toBeNull()
-    if (box) expect(Math.abs(box.width / box.height - 3 / 4)).toBeLessThan(0.02)
+    const ratio = width > 640 ? 3 / 4 : 2 / 1
+    if (box) expect(Math.abs(box.width / box.height - ratio)).toBeLessThan(0.02)
   })
 }
 

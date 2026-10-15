@@ -9,15 +9,7 @@ import {
   STAT_LABELS,
   srdEntityUrl,
 } from 'salvageunion-reference'
-import {
-  crawlerMaxSP,
-  mechMaxHeat,
-  mechMaxSP,
-  pilotMaxAP,
-  pilotMaxHP,
-  resolveGauge,
-  resolvePool,
-} from 'salvageunion-reference/rules'
+import { crawlerMaxSP, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import type { BodyKey } from './bodyRead'
 import { num, str, strArray } from './bodyRead'
 import type { CardField, ContainerData } from './container'
@@ -27,7 +19,9 @@ import type {
   DenialReason,
   EntityBody,
   GameSummary,
+  MechDerived,
   MeResult,
+  PilotDerived,
   SheetResult,
   SheetTable,
 } from './itun/types'
@@ -41,13 +35,13 @@ import type {
  *
  * ## Where the numbers come from
  *
- * The bot derives max HP, max SP and max Heat itself: it depends on
- * `salvageunion-reference` and preloads the whole dataset at startup, so it
- * runs the package's rules here (ADR-006: rules math lives in the package,
- * never re-implemented at a call site). Convex's `crew.vitals` runs the same
- * rules over the same records for the Dashboard's Crew tab
- * (`model/referenceData.ts` loads the data); the bot computes its own and does
- * not read those values.
+ * A pilot's and a mech's maxima and status are the SERVER's: `/su sheet`
+ * carries them as `SheetResult.vitals`, the same derivation `crew.vitals`
+ * serves the Dashboard's Crew tab (ADR-038 §4), so the bot never disagrees
+ * with the app about a crewmate. A deployment older than that field sends
+ * none, and the vitals then show their current values alone. The crawler is
+ * not crew and the server derives nothing for it, so its max SP is still
+ * worked out here (`crawlerMaxSP`).
  *
  * Every read off a body is defensive. The body is `v.any()` on the server by
  * design, so a missing or wrong-typed field must render as "—" rather than
@@ -121,67 +115,61 @@ export function gauge(
   return `${value} ${bar}`
 }
 
-/** The narrow view of a pilot body the derivation functions need. */
-function pilotStats(body: EntityBody): {
-  hp: number | null
-  maxHp: number
-  ap: number | null
-  maxAp: number
-} {
-  const input = {
-    abilities: strArray(body, 'abilities'),
-    injuries: Array.isArray(body.injuries) ? (body.injuries as never) : [],
-    maxHpModifier: num(body, 'maxHpModifier') ?? undefined,
-    maxApModifier: num(body, 'maxApModifier') ?? undefined,
-    maxHpOverride: num(body, 'maxHpOverride') ?? undefined,
-    maxApOverride: num(body, 'maxApOverride') ?? undefined,
-    // Stat Training follows the crawler tier. The app resolves it from the
-    // pilot's LINKED crawler first; the bot only ever sees one pilot body, with
-    // no SoftLinks, so it uses the pilot's manual `crawlerLevel` fallback —
-    // which is the whole answer for an unlinked pilot and may lag a linked one.
-    crawlerTechLevel: num(body, 'crawlerLevel') ?? undefined,
-  }
-  const maxHp = pilotMaxHP(input)
-  const maxAp = pilotMaxAP(input)
+/** A finite number from a wire value, or null: the payload is still a network boundary. */
+function finite(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null
+}
+
+/** The server's derived numbers for a pilot sheet, or null when it sent none. */
+function pilotDerived(sheet: SheetResult): PilotDerived | null {
+  return sheet.vitals?.kind === 'pilot' ? sheet.vitals : null
+}
+
+/** The server's derived numbers for a mech sheet, or null when it sent none. */
+function mechDerived(sheet: SheetResult): MechDerived | null {
+  return sheet.vitals?.kind === 'mech' ? sheet.vitals : null
+}
+
+/**
+ * A pool's current value against the server's max: absent means FULL
+ * (`resolvePool`). Defaulting to 0 instead would render a fresh, undamaged crew
+ * as wiped out, which is precisely backwards on the one surface built to show
+ * it. With no max to resolve against, the stored value stands alone.
+ */
+function pool(current: number | null, max: number | null): number | null {
+  return max === null ? current : resolvePool(current ?? undefined, max)
+}
+
+/** A pilot's vitals: the body's current values, the server's maxima and status. */
+function pilotStats(body: EntityBody, derived: PilotDerived | null) {
+  const maxHp = finite(derived?.maxHP)
+  const maxAp = finite(derived?.maxAP)
   return {
-    // The absent-means-FULL rule is `resolvePool` in the reference package.
-    // Defaulting to 0 instead would render a fresh, undamaged crew as wiped
-    // out, which is precisely backwards on the one surface built to show it.
-    hp: resolvePool(num(body, 'currentHP') ?? undefined, maxHp),
+    hp: pool(num(body, 'currentHP'), maxHp),
     maxHp,
-    ap: resolvePool(num(body, 'currentAP') ?? undefined, maxAp),
+    ap: pool(num(body, 'currentAP'), maxAp),
     maxAp,
+    dead: derived?.status.dead === true,
   }
 }
 
-/** The narrow view of a mech body the derivation functions need. */
-function mechStats(body: EntityBody): {
-  sp: number | null
-  maxSp: number
-  heat: number | null
-  maxHeat: number
-} {
-  const input = {
-    chassisRef: str(body, 'chassisRef') ?? '',
-    systems: strArray(body, 'systems'),
-    modules: strArray(body, 'modules'),
-    maxSpModifier: num(body, 'maxSpModifier') ?? undefined,
-    maxHeatModifier: num(body, 'maxHeatModifier') ?? undefined,
-    maxSpOverride: num(body, 'maxSpOverride') ?? undefined,
-    maxHeatOverride: num(body, 'maxHeatOverride') ?? undefined,
-  }
-  const maxSp = mechMaxSP(input)
+/** A mech's vitals: the body's current values, the server's maxima and status. */
+function mechStats(body: EntityBody, derived: MechDerived | null) {
+  const maxSp = finite(derived?.maxSP)
+  const maxHeat = finite(derived?.maxHeat)
   return {
-    // Absent SP means full, as above.
-    sp: resolvePool(num(body, 'currentSP') ?? undefined, maxSp),
+    sp: pool(num(body, 'currentSP'), maxSp),
     maxSp,
     // Heat is the exception and reads the other way: absent means COLD, which
     // is 0. A mech starts at no heat and gains it, where SP starts full and is
     // lost — so the same "field not written yet" state means opposite numbers.
     // That inversion is `resolveGauge`, named beside `resolvePool` so the two
     // cannot be confused for each other.
-    heat: resolveGauge(num(body, 'currentHeat') ?? undefined, mechMaxHeat(input)),
-    maxHeat: mechMaxHeat(input),
+    heat: resolveGauge(num(body, 'currentHeat') ?? undefined, maxHeat ?? undefined),
+    maxHeat,
+    // The server's status when it sent one; the body's flags otherwise.
+    destroyed: derived?.status?.destroyed ?? body.destroyed === true,
+    shutdown: derived?.status?.shutdown ?? body.shutdown === true,
   }
 }
 
@@ -322,15 +310,14 @@ export function bodyName(body: EntityBody, keys: BodyKey[]): string {
 /** ADR-030: an entity with no owner is a STATE, never a blank. */
 const UNCLAIMED = 'Unclaimed'
 
-/** A pilot's critical state: max HP at or below 0 is dead, 0 HP a Critical Injury. */
-function pilotState(stats: { hp: number | null; maxHp: number }): 'dead' | 'criticalInjury' | null {
-  if (stats.maxHp <= 0) return 'dead'
-  return stats.hp === 0 ? 'criticalInjury' : null
+/** A pilot is critical when dead (the server's status) or on 0 HP, a Critical Injury. */
+function pilotCritical(stats: { hp: number | null; dead: boolean }): boolean {
+  return stats.dead || stats.hp === 0
 }
 
-/** A mech on 0 SP is taking Critical Damage. */
-function mechCritical(stats: { sp: number | null }): boolean {
-  return stats.sp === 0
+/** A mech is critical when destroyed, or on 0 SP and taking Critical Damage. */
+function mechCritical(stats: { sp: number | null; destroyed: boolean }): boolean {
+  return stats.destroyed || stats.sp === 0
 }
 
 /**
@@ -470,8 +457,8 @@ function chipRun(values: string[]): string | null {
 }
 
 /** Identity band + vitals rail + Abilities + Inventory. */
-function pilotSheet(body: EntityBody): RenderedSheet {
-  const stats = pilotStats(body)
+function pilotSheet(body: EntityBody, derived: PilotDerived | null): RenderedSheet {
+  const stats = pilotStats(body, derived)
   const classRef = str(body, 'classRef')
   const fields: CardField[] = [
     { name: HP, value: gauge(stats.hp, stats.maxHp), inline: true },
@@ -503,13 +490,13 @@ function pilotSheet(body: EntityBody): RenderedSheet {
     fields,
     thumbnail: refArtwork('classes', classRef),
     // Max HP of zero is the app's own "killed in action" condition.
-    critical: pilotState(stats) !== null,
+    critical: pilotCritical(stats),
   }
 }
 
 /** Identity band + vitals rail + Systems + Modules + The Hold. */
-function mechSheet(body: EntityBody): RenderedSheet {
-  const stats = mechStats(body)
+function mechSheet(body: EntityBody, derived: MechDerived | null): RenderedSheet {
+  const stats = mechStats(body, derived)
   const chassisRef = str(body, 'chassisRef')
   const fields: CardField[] = [
     { name: SP, value: gauge(stats.sp, stats.maxSp), inline: true },
@@ -530,9 +517,9 @@ function mechSheet(body: EntityBody): RenderedSheet {
   })
 
   const status = chipRun([
-    body.shutdown === true ? 'Shutdown' : '',
+    stats.shutdown ? 'Shutdown' : '',
     body.vulnerable === true ? 'Vulnerable' : '',
-    body.destroyed === true ? CONDITION_LABELS.destroyed : '',
+    stats.destroyed ? CONDITION_LABELS.destroyed : '',
     ...strArray(body, 'conditions'),
   ])
   if (status !== null) fields.push({ name: 'Status', value: status, inline: true })
@@ -543,7 +530,7 @@ function mechSheet(body: EntityBody): RenderedSheet {
     subtitle: `*${refName('chassis', chassisRef)}*${quirk === null ? '' : `\n> ${quirk}`}`,
     fields,
     thumbnail: refArtwork('chassis', chassisRef),
-    critical: body.destroyed === true || mechCritical(stats),
+    critical: mechCritical(stats),
   }
 }
 
@@ -558,7 +545,7 @@ function crawlerSheet(body: EntityBody): RenderedSheet {
   const techLevel = str(body, 'techLevel')
   const fields: CardField[] = []
 
-  // The max is derived, as a mech's is: the tech level's SP, the type's bonus,
+  // The max is derived here (the server derives nothing for a crawler): the tech level’s SP, the type’s bonus,
   // the modifier, or the override when one is set. An unresolvable tech level
   // derives 0, which has no gauge to draw, so the current value stands alone.
   const maxSp = crawlerMaxSP({
@@ -639,9 +626,9 @@ export function sheetCard(sheet: SheetResult): ContainerData {
 
   const rendered =
     sheet.table === 'pilots'
-      ? pilotSheet(body)
+      ? pilotSheet(body, pilotDerived(sheet))
       : sheet.table === 'mechs'
-        ? mechSheet(body)
+        ? mechSheet(body, mechDerived(sheet))
         : crawlerSheet(body)
 
   const fields = rendered.fields
