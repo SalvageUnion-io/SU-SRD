@@ -103,14 +103,13 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
           : [{ name: chapter.title, url: `${SITE_URL}${chapter.href}` }]),
         { name: pluralName, url: canonicalUrl },
       ],
-      breadcrumbDescription: schema.description,
     },
     // The listing ends on its chapter's band, as its entity pages do.
     foot: { tone: chapter.tone },
     children: (
       <div className="su-listing-shell">
         {/* The chapter band is the visible heading: the plural name in the
-            notch. The description rides the trail. */}
+            notch. */}
         <ChapterBand tone={chapter.tone} measure={PAGE_MEASURE}>
           {pluralName}
         </ChapterBand>

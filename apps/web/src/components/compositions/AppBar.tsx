@@ -113,8 +113,6 @@ type AppBarProps = {
   /** Mobile cluster (search trigger + hamburger drawer), shown below `lg`. */
   mobile?: ReactNode
   breadcrumbs?: BreadcrumbItem[]
-  /** A quiet tail after the trail (a listing's one-line description). */
-  breadcrumbDescription?: string
 }
 
 // Its ground, ink and rule colour are `.su-union-bar`'s: a page's leading band
@@ -190,7 +188,6 @@ export function AppBar({
   actions,
   mobile,
   breadcrumbs,
-  breadcrumbDescription,
 }: AppBarProps) {
   const hasCrumbs = breadcrumbs !== undefined && breadcrumbs.length > 0
 
@@ -266,7 +263,7 @@ export function AppBar({
 
           {hasCrumbs && (
             <nav aria-label="Breadcrumb" className="su-crumbs su-crumbs--bar">
-              <BreadcrumbTrail breadcrumbs={breadcrumbs} description={breadcrumbDescription} />
+              <BreadcrumbTrail breadcrumbs={breadcrumbs} />
             </nav>
           )}
 
@@ -293,7 +290,7 @@ export function AppBar({
 
       {hasCrumbs && (
         <nav aria-label="Breadcrumb" className="su-crumbs su-crumbs--row">
-          <BreadcrumbTrail breadcrumbs={breadcrumbs} description={breadcrumbDescription} />
+          <BreadcrumbTrail breadcrumbs={breadcrumbs} />
         </nav>
       )}
     </>
