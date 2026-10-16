@@ -399,6 +399,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
     <main className="su-shelves" style={PAGE}>
       <ChapterBand
         tone="ink"
+        matchBar={false}
         measure={MEASURE}
         eyebrow={
           <p role="status" aria-live="polite" className="su-shelves-band__status">
