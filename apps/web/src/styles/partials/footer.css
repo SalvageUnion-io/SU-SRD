@@ -69,6 +69,19 @@
   font-size: var(--text-caption);
 }
 
+/* On a phone a book page's cite band ends the first screen: the licence row
+ * leaves the page column's flow and hangs just below it, so a short page's
+ * spare height goes above the cite band and the licence is one scroll away.
+ * The column is positioned (`BaseLayout`); on a long page it sits where it
+ * always did. Wider screens keep both rows at the foot of the screen. */
+@media (max-width: 39.99rem) {
+  .su-footer__cite + .su-footer__licence {
+    inset-inline: 0;
+    position: absolute;
+    top: 100%;
+  }
+}
+
 .su-footer__kind,
 .su-footer__printings {
   font-size: var(--text-caption);
