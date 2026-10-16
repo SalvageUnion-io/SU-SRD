@@ -118,7 +118,7 @@ export function EntityPageFrame({
               aria-label={build.ariaLabel}
               className={cn(
                 buttonVariants({ variant: 'primary', size: 'compact' }),
-                'su-page-action'
+                'su-page-action su-hit-area'
               )}
             >
               {build.label}

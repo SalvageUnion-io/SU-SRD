@@ -48,9 +48,9 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  * notch stays on the band's foot either way.
  *
  * `action` is a show page's one button ("Build With This"), after the cluster
- * from `sm` and on its last line. On a phone it sits on the band right of the
- * title, centred on its capitals; a title too long to share the line pushes it
- * under the title, on the page ground with the cluster.
+ * from `sm` and on its last line. On a phone it is chip-sized and always
+ * shares the title's line: right of the title, centred on the notch, the title
+ * wrapping in the room it leaves.
  *
  * A band that leads the page (a `PageShell`'s first child) also colours the
  * Union bar above it: the bar takes its colour, foreground and grain
@@ -120,7 +120,7 @@ export type ChapterBandProps = {
   asideAt?: 'end' | 'notch'
   /**
    * With `asideAt="notch"`: the page's action, ending the cluster from `sm`
-   * and on the band beside the title on a phone.
+   * and on the band beside the title, chip-sized, on a phone.
    */
   action?: ReactNode
   /** Controls in the band's top-right corner, above the title row. */
