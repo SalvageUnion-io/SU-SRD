@@ -1,5 +1,5 @@
 import type { CSSProperties, ElementType, ReactNode } from 'react'
-import { useContext } from 'react'
+import { useContext, useId } from 'react'
 import { foregroundOn } from '../../design/contrast'
 import { color, font, space, weight } from '../../design/tokens'
 import { ChapterBandTrail } from './ChapterBandTrail'
@@ -7,6 +7,7 @@ import type { ChapterTone } from './chapterBandColor'
 import { CHAPTER_BAND_COLOR } from './chapterBandColor'
 import type { SpeckleGrain } from './Speckle'
 import { Speckle } from './Speckle'
+import { BAND_KEY_ATTRIBUTE, unionBarMatchCss } from './unionBarMatch'
 import { USER_MADE_HATCH } from './userMadeHatch'
 
 /**
@@ -50,6 +51,10 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  * from `sm` and on its last line. On a phone it sits on the band right of the
  * title, centred on its capitals; a title too long to share the line pushes it
  * under the title, on the page ground with the cluster.
+ *
+ * A band that leads the page (a `PageShell`'s first child) also colours the
+ * Union bar above it: the bar takes its colour, foreground and grain
+ * (`unionBarMatch.ts`), so the site header and the band are one colour.
  *
  * The page's breadcrumb trail (`ChapterBandTrail`, which a site's layout
  * provides) leads a page band where the Union bar has no room for it, on the
@@ -258,6 +263,10 @@ export function ChapterBand({
     ? { ...TITLE, ...userMadeTitle(scale === 'og' ? OG_DASH : DASH) }
     : TITLE
   const band = fill ?? CHAPTER_BAND_COLOR[tone]
+  const speckle = grain ?? (tone === 'ink' ? 'paper' : 'ink')
+  // The key the Union bar's rule matches this band by (`unionBarMatch.ts`),
+  // in the characters an attribute selector takes unescaped.
+  const key = useId().replace(/[^\w-]/g, '')
   const title = (
     <Tag
       id={id}
@@ -276,6 +285,7 @@ export function ChapterBand({
       data-measured={measure ? '' : undefined}
       data-aside={aside && asideAt === 'notch' ? 'notch' : undefined}
       data-action={action ? '' : undefined}
+      {...(bleed ? { [BAND_KEY_ATTRIBUTE]: key } : {})}
       style={{
         ...ROOT,
         ...(bleed ? {} : INSET),
@@ -283,7 +293,8 @@ export function ChapterBand({
         ...(userMade ? { backgroundImage: USER_MADE_HATCH } : {}),
       }}
     >
-      <Speckle grain={grain ?? (tone === 'ink' ? 'paper' : 'ink')} />
+      {bleed && <style>{unionBarMatchCss(key, band, foregroundOn(band, 'ink'), speckle)}</style>}
+      <Speckle grain={speckle} />
       {corner && (
         <div
           className="su-chapter-band__corner"

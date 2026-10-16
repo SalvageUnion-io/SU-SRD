@@ -46,6 +46,13 @@ import { Speckle } from '../atoms/Speckle'
  * dependency.
  *
  * Paper flecks lie behind the bar's content (`Speckle`, §3.5).
+ *
+ * ## Colour
+ *
+ * The bar is ink, paper on it, until a page leads with a chapter band: then it
+ * wears that band's colour, foreground and grain, so the site header and the
+ * band read as one (`atoms/unionBarMatch.ts`). Its colours are the
+ * `--su-bar-*` properties on `.su-union-bar`; the footer stays ink.
  */
 
 type AppBarProduct = 'reference' | 'build'
@@ -110,12 +117,12 @@ type AppBarProps = {
   breadcrumbDescription?: string
 }
 
+// Its ground and ink are `.su-union-bar`'s: a page's leading band recolours
+// them (`unionBarMatch.ts`), which a style object would outrank.
 const BAR = {
-  backgroundColor: color.inkDeep,
   borderBottomColor: color.ink,
   borderBottomStyle: 'solid',
   borderBottomWidth: borderWidth.entity,
-  color: color.paper,
   isolation: 'isolate',
   position: 'relative',
   zIndex: 50,
@@ -137,7 +144,7 @@ const SWITCH = {
   borderRadius: radius.card,
   display: 'inline-flex',
   flexShrink: 0,
-  outlineColor: color.paper30,
+  outlineColor: 'var(--su-bar-fg-30)',
   outlineOffset: `calc(-1 * ${borderWidth.chrome})`,
   outlineStyle: 'solid',
   outlineWidth: borderWidth.chrome,
@@ -215,7 +222,13 @@ export function AppBar({
         className="su-union-bar"
         style={viewTransitionName ? { ...BAR, viewTransitionName } : BAR}
       >
-        <Speckle grain="paper" />
+        {/* Both grains are served; the ground's shows (`.su-union-bar__grain`). */}
+        <span className="su-union-bar__grain su-union-bar__grain--paper">
+          <Speckle grain="paper" />
+        </span>
+        <span className="su-union-bar__grain su-union-bar__grain--ink">
+          <Speckle grain="ink" />
+        </span>
         <div className="su-union-bar__row">
           {/* The lockup is the mark alone; its alt names the link. */}
           <LinkComponent href="/" className={cn('su-union-bar__brand', FOCUS_RING)} style={BRAND}>
