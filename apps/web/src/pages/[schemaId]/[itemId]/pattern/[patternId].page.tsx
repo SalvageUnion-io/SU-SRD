@@ -21,12 +21,7 @@ import {
 import { patternBuildLinkFor } from '../../../../lib/buildLink'
 import { chapterForSchema } from '../../../../lib/chapters'
 import { componentEmbedFor } from '../../../../lib/componentEmbed'
-import {
-  CONTENTS_CRUMB,
-  entityTitle,
-  META_DESCRIPTION_MAX,
-  SITE_URL,
-} from '../../../../lib/constants'
+import { entityTitle, META_DESCRIPTION_MAX, SITE_URL, SRD_CRUMB } from '../../../../lib/constants'
 import { itemHref, patternHref, schemaHref } from '../../../../lib/entityHref'
 import { entityPageFoot } from '../../../../lib/entityPageFoot'
 import { getReferenceEntityData } from '../../../../lib/gameData'
@@ -125,10 +120,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
       // The art is the page's hero now, so the preload repeats ITS `sizes`.
       preloadImageSizes: preloadImageSrcSet ? heroImageSizes() : undefined,
       breadcrumbs: [
-        CONTENTS_CRUMB,
-        ...(chapter.href === '/'
-          ? []
-          : [{ name: chapter.title, url: `${SITE_URL}${chapter.href}` }]),
+        SRD_CRUMB,
         { name: pluralName, url: `${SITE_URL}${schemaHref(schemaId)}` },
         { name: hostName, url: hostUrl },
         { name: patternName, url: canonicalUrl },

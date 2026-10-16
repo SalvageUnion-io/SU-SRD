@@ -17,7 +17,7 @@ import { borderWidth, color, font, fontSize, space } from '../design/tokens'
 import type { DiscordCommand } from '../generated/discordCommands'
 import { DISCORD_COMMANDS } from '../generated/discordCommands'
 import { appPath } from '../lib/appBase'
-import { CONTENTS_CRUMB, DISCORD_INSTALL_URL, SITE_URL, WEBSITE } from '../lib/constants'
+import { DISCORD_INSTALL_URL, SITE_URL, SRD_CRUMB, WEBSITE } from '../lib/constants'
 import {
   ASIDE,
   BOLD,
@@ -205,7 +205,7 @@ function page(): PageResult {
         offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
         isPartOf: WEBSITE,
       },
-      breadcrumbs: [CONTENTS_CRUMB, { name: 'Discord Bot', url: `${SITE_URL}/discord/` }],
+      breadcrumbs: [SRD_CRUMB, { name: 'Discord Bot', url: `${SITE_URL}/discord/` }],
     },
     children: (
       <DocPage title="Discord Bot" measure="48rem" gap={space[32]}>

@@ -13,7 +13,7 @@ import { Changelog } from '../components/Changelog'
 import { DocPage } from '../components/DocPage'
 import { InlineRef } from '../components/index'
 import { space } from '../design/tokens'
-import { CONTENTS_CRUMB, SITE_URL, WEBSITE } from '../lib/constants'
+import { SITE_URL, SRD_CRUMB, WEBSITE } from '../lib/constants'
 import { BOLD, PROSE } from '../lib/docPageStyles'
 import { readChangelog } from '../lib/gitChangelog'
 import { pageTitle } from '../lib/pageTitle'
@@ -36,7 +36,7 @@ function page(): PageResult {
         url: `${SITE_URL}/changelog/`,
         isPartOf: WEBSITE,
       },
-      breadcrumbs: [CONTENTS_CRUMB, { name: 'Changelog', url: `${SITE_URL}/changelog/` }],
+      breadcrumbs: [SRD_CRUMB, { name: 'Changelog', url: `${SITE_URL}/changelog/` }],
     },
     children: (
       <DocPage title="Changelog" measure="48rem" gap={space[32]}>

@@ -23,7 +23,7 @@ import type { PageModule, PageResult, RouteContext } from '../../../ssg/types'
 import { ChapterBand } from '../../components/index'
 import { SchemaViewerListing } from '../../components/islands/SchemaViewerIsland'
 import { chapterForSchema } from '../../lib/chapters'
-import { CONTENTS_CRUMB, SITE_URL, WEBSITE } from '../../lib/constants'
+import { SITE_URL, SRD_CRUMB, WEBSITE } from '../../lib/constants'
 import { schemaHref } from '../../lib/entityHref'
 import { getUniqueSources, getUniqueTechLevels, getUniqueTrees } from '../../lib/gameData'
 import { listingEntries } from '../../lib/listingEntries'
@@ -96,13 +96,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
           name: 'Leyline Press',
         },
       },
-      breadcrumbs: [
-        CONTENTS_CRUMB,
-        ...(chapter.href === '/'
-          ? []
-          : [{ name: chapter.title, url: `${SITE_URL}${chapter.href}` }]),
-        { name: pluralName, url: canonicalUrl },
-      ],
+      breadcrumbs: [SRD_CRUMB, { name: pluralName, url: canonicalUrl }],
     },
     // The listing ends on its chapter's band, as its entity pages do.
     foot: { tone: chapter.tone },
