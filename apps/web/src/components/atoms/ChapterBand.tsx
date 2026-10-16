@@ -59,8 +59,9 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  * and keeps the ink bar.
  *
  * The page's breadcrumb trail (`ChapterBandTrail`, which a site's layout
- * provides) leads a page band where the Union bar has no room for it, on the
- * band above the title row, in the band's foreground.
+ * provides) is the notch's kicker on a page band, at every width: a line of
+ * small caps on the cut-out above the name (`SRD//CHASSIS//`), the cut-out
+ * one plate around both (owner's rule, 2026-10-16).
  *
  * `corner` sits in the band's top-right corner, above the title row, at every
  * width: a page's own controls where they are not the entity's stamps (an
@@ -135,7 +136,7 @@ export type ChapterBandProps = {
   id?: string
   /**
    * Content on the band ABOVE the title row, left-aligned with the notch: a
-   * breadcrumb, or a front page's kicker. Never a show page's stamps or
+   * front page's kicker. It stands in for the layout's trail. Never a show page's stamps or
    * controls: those are its `aside` (EDL E20).
    */
   eyebrow?: ReactNode
@@ -211,10 +212,6 @@ const EYEBROW = {
   marginInline: 'auto',
 } satisfies CSSProperties
 
-// The trail's `display` is the stylesheet's: it steps aside where the Union bar
-// holds the trail (`.su-chapter-band__trail`).
-const TRAIL = { marginInline: 'auto' } satisfies CSSProperties
-
 // `align-items` is the stylesheet's: a show page's cluster (`asideAt="notch"`)
 // changes it at `sm`.
 const ASIDE = {
@@ -235,6 +232,17 @@ const TITLE = {
   maxWidth: '100%',
   overflowWrap: 'anywhere',
   textTransform: 'uppercase',
+} satisfies CSSProperties
+
+// The plate: the notch's cut-out around the trail and the title, so the two
+// read as one label at the wider one's width. Its padding is the parts'.
+const PLATE = {
+  backgroundColor: color.wkBg,
+  color: color.ink,
+  display: 'flex',
+  flexDirection: 'column',
+  maxWidth: '100%',
+  minWidth: 0,
 } satisfies CSSProperties
 
 // The lead: the notch's type, on the band, its foot on the band's foot.
@@ -266,10 +274,12 @@ export function ChapterBand({
 }: ChapterBandProps) {
   // A link preview is a picture at one size: it never bleeds.
   const bleed = scale === 'page'
-  const trail = useContext(ChapterBandTrail)
-  const titleStyle = userMade
-    ? { ...TITLE, ...userMadeTitle(scale === 'og' ? OG_DASH : DASH) }
-    : TITLE
+  const context = useContext(ChapterBandTrail)
+  // A page band carries the layout's trail, unless it brings its own eyebrow.
+  const trail = bleed && !eyebrow ? context : null
+  const dashes = userMade ? userMadeTitle(scale === 'og' ? OG_DASH : DASH) : undefined
+  // With a trail the dashes frame the plate, around both.
+  const titleStyle = dashes && !trail ? { ...TITLE, ...dashes } : TITLE
   const band = fill ?? CHAPTER_BAND_COLOR[tone]
   const speckle = grain ?? (tone === 'ink' ? 'paper' : 'ink')
   // The key the Union bar's rule matches this band by (`unionBarMatch.ts`),
@@ -283,6 +293,14 @@ export function ChapterBand({
     >
       {children}
     </Tag>
+  )
+  const notch = trail ? (
+    <div className="su-chapter-band__plate" style={dashes ? { ...PLATE, ...dashes } : PLATE}>
+      <div className="su-chapter-band__trail">{trail}</div>
+      {title}
+    </div>
+  ) : (
+    title
   )
   return (
     <div
@@ -313,18 +331,6 @@ export function ChapterBand({
           {corner}
         </div>
       )}
-      {bleed && trail && !eyebrow && (
-        <div
-          className="su-chapter-band__eyebrow su-chapter-band__trail"
-          style={{
-            ...TRAIL,
-            ...(measure ? { maxWidth: measure } : {}),
-            color: foregroundOn(band, 'ink') === 'ink' ? color.ink : color.paper,
-          }}
-        >
-          {trail}
-        </div>
-      )}
       {eyebrow && (
         <div
           className="su-chapter-band__eyebrow"
@@ -351,10 +357,10 @@ export function ChapterBand({
             >
               {lead}
             </span>
-            {title}
+            {notch}
           </div>
         ) : (
-          title
+          notch
         )}
         {aside && (
           <div className="su-chapter-band__aside" style={ASIDE}>

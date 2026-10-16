@@ -53,7 +53,7 @@ Each is checkable; breaking one needs an amendment here.
 - **E17** No "//" line: all chips are one head group, one even gap, in stat order (ruleset §2.6): stats, action type and facets, traits, the cost's pointy box (`2 EP`). Right of the title, last line on its middle, more balanced above; under it on a phone if they don't fit. On ink each chip has a paper rule.
 - **E18** No form cuts a name (bar a Token's), stamp or chip to "…": it wraps or widens. A Token is one row: its chips fill ≤ 65%, dropped whole from the end; its name ends in "…".
 - **E19** A chassis ability shows only on its chassis and pattern pages, Cantina pick cards and mech hero, a chassis Peek and Discord card; never a Row, Tile, nested or other Card.
-- **E20** Above a show page's title: only the breadcrumb (Cantina sheet: `corner` controls); stamps, chips, controls cluster as E17 (`asideAt="notch"`), Build With This last (phone: chip-sized, centred right of title); a chassis's stats lead its body.
+- **E20** Above a show page's title: only the trail, on its plate (Cantina sheet: `corner`); stamps, chips, controls cluster as E17 (`asideAt="notch"`), Build With This last (phone: chip-sized, centred right of title); a chassis's stats lead its body.
 
 ## Which form, where
 

@@ -281,9 +281,11 @@
 
 /* ══ Breadcrumbs (the Union bar's trail) ════════════════════════════════════
  *
- * One list, two placements: in the bar on desktop, in paper with the current
+ * One list, three placements: in the bar on desktop, in paper with the current
  * page in bold (`--bar`), and on a row of its own under the bar below `lg`
- * (`--row`), where the bar has no room. Exactly one is displayed at any width.
+ * (`--row`), where the bar has no room; a page band carries it on its title's
+ * plate instead (`--band`, below), and then neither shows. Exactly one is
+ * displayed at any width.
  */
 .su-crumbs {
   align-items: baseline;
@@ -473,7 +475,7 @@
   min-width: 0;
 }
 
-.su-chapter-band__heading > .su-chapter-band__title,
+.su-chapter-band__heading > :is(.su-chapter-band__title, .su-chapter-band__plate),
 .su-chapter-band[data-aside] .su-chapter-band__heading > .su-chapter-band__title {
   align-self: flex-end;
   min-width: 0;
@@ -564,8 +566,9 @@
   flex-direction: column;
 }
 
-.su-chapter-band[data-aside='notch'] .su-chapter-band__title,
-.su-chapter-band[data-aside='notch'] .su-chapter-band__heading {
+.su-chapter-band[data-aside='notch'] .su-chapter-band__row > .su-chapter-band__title,
+.su-chapter-band[data-aside='notch'] .su-chapter-band__row > .su-chapter-band__plate,
+.su-chapter-band[data-aside='notch'] .su-chapter-band__row > .su-chapter-band__heading {
   align-self: flex-start;
 }
 
@@ -588,8 +591,9 @@
     flex-direction: row;
   }
 
-  .su-chapter-band[data-aside='notch'] .su-chapter-band__title,
-  .su-chapter-band[data-aside='notch'] .su-chapter-band__heading {
+  .su-chapter-band[data-aside='notch'] .su-chapter-band__row > .su-chapter-band__title,
+  .su-chapter-band[data-aside='notch'] .su-chapter-band__row > .su-chapter-band__plate,
+  .su-chapter-band[data-aside='notch'] .su-chapter-band__row > .su-chapter-band__heading {
     align-self: flex-end;
     flex: 0 1 auto;
     min-width: 0;
@@ -662,15 +666,20 @@
   .su-chapter-band[data-aside='notch'][data-action] .su-chapter-band__row {
     column-gap: var(--space-12);
     display: grid;
-    grid-template-columns: minmax(0, max-content) max-content;
+    /* The title's track is the flexible one, so the cluster spanning both
+       lines below never widens the action's track past the button. */
+    grid-template-columns: minmax(0, 1fr) max-content;
     justify-content: space-between;
     position: relative;
     row-gap: var(--space-8);
     z-index: 0;
   }
 
-  .su-chapter-band[data-aside='notch'][data-action] .su-chapter-band__title,
-  .su-chapter-band[data-aside='notch'][data-action] .su-chapter-band__heading {
+  .su-chapter-band[data-aside='notch'][data-action] .su-chapter-band__row > .su-chapter-band__title,
+  .su-chapter-band[data-aside='notch'][data-action] .su-chapter-band__row > .su-chapter-band__plate,
+  .su-chapter-band[data-aside='notch'][data-action]
+    .su-chapter-band__row
+    > .su-chapter-band__heading {
     align-self: end;
     justify-self: start;
   }
@@ -721,60 +730,76 @@
   }
 }
 
-/* The page's trail on its band (`ChapterBandTrail`): wherever the Union bar
-   has no room for it (below 80rem, `.su-crumbs--bar`), in the band's
-   foreground, and the trail's own row under the bar steps aside. From 80rem
-   the bar holds it, and the band keeps its full top padding. */
+/* The page's trail on its band (`ChapterBandTrail`): the notch's kicker, at
+   every width, on the cut-out above the name (`.su-chapter-band__plate`). The
+   ancestors in small ink caps, each followed by `//` (`SRD//CHASSIS//`); the
+   title under it names the page. The bar's trail and its row step aside. */
 .su-chapter-band__trail {
   display: flex;
+  padding: var(--space-8) var(--space-12) 0;
 }
 
-/* On a phone the trail floats just under the Union bar: the band runs on from
-   the bar in one colour (`unionBarMatch.ts`), so the trail reads as the
-   header's foot. The title row keeps its place, so the top padding the trail
-   gives up goes under it instead, as room between the trail and the title.
-   From `sm` the trail keeps the eyebrow's place. Two classes, to outrank the
-   eyebrow's padding. */
-@media (max-width: 39.99rem) {
-  .su-chapter-band__eyebrow.su-chapter-band__trail {
-    padding-top: var(--space-8);
+.su-chapter-band__plate > .su-chapter-band__title {
+  padding-top: var(--space-4);
+}
+
+/* The trail no longer needs the band's room above the notch, so a band that
+   carries it closes up under the Union bar: a tighter header, more page. */
+.su-chapter-band__row:has(.su-chapter-band__plate) {
+  padding-top: var(--space-16);
+}
+
+@media (min-width: 40rem) {
+  .su-chapter-band__trail {
+    padding: var(--space-12) var(--space-20) 0;
   }
 
-  .su-chapter-band__eyebrow.su-chapter-band__trail + .su-chapter-band__row {
-    padding-top: calc(var(--space-12) + var(--space-24) - var(--space-8));
+  .su-chapter-band__plate > .su-chapter-band__title {
+    padding-top: var(--space-6);
+  }
+
+  .su-chapter-band__row:has(.su-chapter-band__plate) {
+    padding-top: var(--space-24);
   }
 }
 
 .su-crumbs--band {
   display: flex;
+  font-size: var(--text-badge);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.su-crumbs--band .su-crumbs__list {
+  column-gap: 0.2em;
   flex-wrap: wrap;
   row-gap: var(--space-4);
 }
 
-.su-crumbs--band .su-crumbs__list {
-  flex-wrap: wrap;
+.su-crumbs--band .su-crumbs__link {
+  color: var(--color-ink-75);
+  text-decoration: none;
 }
 
-.su-crumbs--band .su-crumbs__link {
-  color: inherit;
+.su-crumbs--band .su-crumbs__link:hover {
+  color: var(--color-ink);
+  text-decoration: underline;
 }
 
 .su-crumbs--band .su-crumbs__separator {
-  opacity: 0.75;
+  color: var(--color-wk-muted);
 }
 
-:root:has(.su-crumbs--band) .su-crumbs--row {
+@media (min-width: 40rem) {
+  .su-crumbs--band {
+    font-size: var(--text-caption);
+  }
+}
+
+:root:has(.su-crumbs--band) :is(.su-crumbs--bar, .su-crumbs--row) {
   display: none;
-}
-
-@media (min-width: 80rem) {
-  .su-chapter-band__trail {
-    display: none;
-  }
-
-  .su-chapter-band__trail + .su-chapter-band__row {
-    padding-top: var(--space-48);
-  }
 }
 
 /* ══ The nav drawer's index (`components/compositions/NavDrawer.tsx`) ═════════════

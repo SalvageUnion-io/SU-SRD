@@ -32,8 +32,8 @@ import { Speckle } from '../atoms/Speckle'
  *
  * On desktop the trail is in the bar, in paper, the current page in bold; there
  * is no separate breadcrumb row. Where the bar has no room for it the trail
- * keeps a row of its own under it, unless the page's chapter band carries it
- * (`ChapterBandTrail`): then the row steps aside. Both render the same list, one of
+ * keeps a row of its own under it. A page whose chapter band carries the trail
+ * on its title's plate (`ChapterBandTrail`) shows neither: both step aside. Both render the same list, one of
  * them `display: none` at any width, so the accessibility tree holds one. The
  * BreadcrumbList JSON-LD is the page head's (`BaseLayout`), with absolute URLs.
  *
