@@ -57,10 +57,11 @@ runs:
         chmod +x "$dir/convex-local-backend"
 
         # A fresh secret per run: the backend dies with the runner, so nothing
-        # needs to know it beyond the admin key minted from it below.
+        # needs to know it beyond the admin key minted from it below. It goes
+        # to a file the next step reads, not to GITHUB_ENV (zizmor: github-env).
         secret="$(openssl rand -hex 32)"
         echo "::add-mask::$secret"
-        printf 'CONVEX_E2E_INSTANCE_SECRET=%s\n' "$secret" >> "$GITHUB_ENV"
+        (umask 077 && printf '%s' "$secret" > "$dir/instance-secret")
 
         # --convex-origin / --convex-site are NOT optional. Left unset, the
         # backend accepts an empty origin ("so you can start up a self-hosted
@@ -95,7 +96,7 @@ runs:
       shell: bash
       run: |
         KEY="$("$RUNNER_TEMP/convex-backend/convex-local-backend" keygen admin-key \
-          --instance-name e2e --instance-secret "$CONVEX_E2E_INSTANCE_SECRET" | tail -n1 | tr -d '\r')"
+          --instance-name e2e --instance-secret "$(cat "$RUNNER_TEMP/convex-backend/instance-secret")" | tail -n1 | tr -d '\r')"
         if [ -z "$KEY" ]; then
           echo "::error::keygen produced no admin key"
           cat "$RUNNER_TEMP/convex-backend.log" || true
