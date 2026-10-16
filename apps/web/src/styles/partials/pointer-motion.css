@@ -40,9 +40,12 @@
     --su-union-bar-control: 44px;
   }
 
-  /* A show page's band action is the bar's button, so it takes the same floor
-     (and centres on the title by it, `shell.css`). */
-  .su-chapter-band__action {
-    --su-band-action: 44px;
+  /* From `sm` a show page's band action is the bar's button, so it takes the
+     same floor (and centres on the title by it, `shell.css`). On a phone it is
+     chip-sized and its hit area (`.su-hit-area`) carries the 44px. */
+  @media (min-width: 40rem) {
+    .su-chapter-band__action {
+      --su-band-action: 44px;
+    }
   }
 }

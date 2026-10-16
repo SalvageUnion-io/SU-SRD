@@ -37,7 +37,7 @@ Each is checkable; breaking one needs an amendment here.
 - **E2** Every list of entities is a list of Rows (grid, masonry and columns are layout). Except an SRD index: Tiles, each line filled to the margin; abilities add a Tree (first).
 - **E3** Use a Token only when a Row will not fit: three or more on a line, a slot under 12rem, or a pattern's loadout.
 - **E4** An entity named in prose is a Mention: Peek on hover or long-press, the Page on click. Never a chip, Stat or raw markup.
-- **E5** The detail view is always a Page (Cantina: its detail dialog): no new-tab `window.open`.
+- **E5** The detail view is always a Page (form 5): no new-tab `window.open`.
 - **E6** Nest one form down, two levels deep (Page → Row, Card → Row, Row → count chip); a third level is a link or a Peek.
 - **E7** Modes fill slots; they never change anatomy.
 - **E8** A Listing never expands in place (ruleset §1.5).
@@ -46,14 +46,14 @@ Each is checkable; breaking one needs an amendment here.
 - **E11** The lead appears only while browsing (SRD index, search page).
 - **E12** Fill follows kind: "have" entities wear their tone; "do" entities the ink banner as a Card or Page, and as a Row but for an ability.
   An ability's Row wears its tier, as its track and page band do: Core `pilot`, Advanced and Hybrid `tier-hybrid`, Legendary `crawler`.
-- **E13** Texture and the user-made treatment come from the surface and the instance.
+- **E13** Texture and user-made come from the surface and instance.
 - **E14** Tables are the Table instrument: a roll bar in a Card (nested: Token, Table, Roll the Die), the roll instrument on a Page or panel; its ROLL THE DIE stamp is the roll button.
 - **E15** No hand-built entity markup outside `entity/`.
 - **E16** A Peek is read-only and terminal.
 - **E17** No "//" line: all chips are one head group, one even gap, in stat order (ruleset §2.6): stats, action type and facets, traits, the cost's pointy box (`2 EP`). Right of the title, last line on its middle, more balanced above; under it on a phone if they don't fit. On ink each chip has a paper rule.
 - **E18** No form cuts a name (bar a Token's), stamp or chip to "…": it wraps or widens. A Token is one row: its chips fill ≤ 65%, dropped whole from the end; its name ends in "…".
 - **E19** A chassis ability shows only on its chassis and pattern pages, Cantina pick cards and mech hero, a chassis Peek and Discord card; never a Row, Tile, nested or other Card.
-- **E20** Above a show page's title: only the breadcrumb (Cantina sheet: controls top right, `corner`); stamps, chips, other controls cluster as E17 (`asideAt="notch"`); a chassis's stats lead its body.
+- **E20** Above a show page's title: only the breadcrumb (Cantina sheet: `corner` controls); stamps, chips, controls cluster as E17 (`asideAt="notch"`), Build With This last (phone: chip-sized, centred right of title); a chassis's stats lead its body.
 
 ## Which form, where
 

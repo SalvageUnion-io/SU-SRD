@@ -202,7 +202,7 @@ describe('Mobile responsive — 44px touch targets', () => {
     // …and a touch screen lifts every `.su-btn` to the 44px floor.
     const css = readFileSync(new URL(import.meta.resolve('../../../styles/theme.css')), 'utf8')
     expect(css).toMatch(
-      /@media \(pointer: coarse\) \{[^}]*\.su-btn:not\(\.su-btn--mini\)[^}]*min-height: 44px;/
+      /@media \(pointer: coarse\) \{[^}]*\.su-btn:not\(\.su-btn--mini, \.su-hit-area\)[^}]*min-height: 44px;/
     )
   })
 })

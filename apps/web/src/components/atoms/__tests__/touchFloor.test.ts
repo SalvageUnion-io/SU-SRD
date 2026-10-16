@@ -47,8 +47,8 @@ describe('the coarse-pointer touch floor', () => {
     expect(index).not.toMatch(/min-height:\s*44px/)
   })
 
-  test('every .su-btn size is on the floor, the mini rung excepted', () => {
-    expect(floorSelectors(theme)).toContain('.su-btn:not(.su-btn--mini)')
+  test('every .su-btn size is on the floor, the mini rung and hit-area buttons excepted', () => {
+    expect(floorSelectors(theme)).toContain('.su-btn:not(.su-btn--mini, .su-hit-area)')
   })
 
   test('the Union bar switcher tabs and the brand link are on the floor', () => {
