@@ -190,9 +190,19 @@ describe('a pattern page names and links its base chassis', () => {
     expect(html.slice(link, link + 600)).toContain('su-stat-plate--label')
     // The title leads the heading order; the band's cluster follows it.
     expect(link).toBeGreaterThan(html.indexOf('<h1'))
-    // Nothing but the page's trail sits above the title (EDL E20).
-    expect(html.match(/su-chapter-band__eyebrow/g)).toEqual(['su-chapter-band__eyebrow'])
-    expect(html).toContain('su-chapter-band__eyebrow su-chapter-band__trail')
+    // Nothing but the page's trail sits above the title, on its plate (EDL E20).
+    expect(html).not.toContain('su-chapter-band__eyebrow')
+    expect(html).toContain(
+      '<div class="su-chapter-band__plate" style="background-color:rgb(239, 236, 230);color:rgb(40, 32, 25);display:flex;flex-direction:column;max-width:100%;min-width:0"><div class="su-chapter-band__trail">'
+    )
+    // The ancestors, each followed by `//`; the title names the page.
+    const trail = html.slice(html.indexOf('su-crumbs--band'), html.indexOf('<h1'))
+    expect(trail.match(/<a [^>]*>([^<]*)<\/a>/g)?.map((a) => a.replace(/<[^>]*>/g, ''))).toEqual([
+      'SRD',
+      'Chassis',
+      'Mazona',
+    ])
+    expect(trail.match(/>\/\/</g)).toHaveLength(3)
     expect(h1s(html)).toEqual(['“Buzzard” (Pattern)'])
   })
 

@@ -221,15 +221,16 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
             order; -1 means "focusable by script or fragment, not by Tab".
           */}
           <main id="main-content" tabIndex={-1} style={MAIN}>
-            {/* The trail again for the page's band, which carries it wherever
-                the bar has no room (`ChapterBandTrail`); one of the three is
-                displayed at any width. */}
+            {/* The trail again for the page's band, which carries it on the
+                title's cut-out at every width (`ChapterBandTrail`); the bar's
+                trail steps aside. A trail of the page alone has no ancestors
+                to show there. */}
             <ChapterBandTrail.Provider
               value={
                 trail &&
-                trail.length > 0 && (
+                trail.length > 1 && (
                   <nav aria-label="Breadcrumb" className="su-crumbs su-crumbs--band">
-                    <BreadcrumbTrail breadcrumbs={trail} />
+                    <BreadcrumbTrail breadcrumbs={trail} plate />
                   </nav>
                 )
               }

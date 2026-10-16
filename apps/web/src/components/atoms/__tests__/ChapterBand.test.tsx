@@ -88,16 +88,31 @@ describe('ChapterBand', () => {
     expect(bare).not.toContain('su-chapter-band__action')
   })
 
-  test("a page band leads with the layout's trail, in the band's foreground", () => {
-    const trail = <nav aria-label="Breadcrumb">Contents / Mule</nav>
-    const page = renderToStaticMarkup(
+  test("a page band sets the layout's trail on the notch's plate, above the title", () => {
+    const trail = <nav aria-label="Breadcrumb">{'SRD//NPCs//'}</nav>
+    const { container } = render(
       <ChapterBandTrail.Provider value={trail}>
         <ChapterBand tone="denizen">Ace</ChapterBand>
       </ChapterBandTrail.Provider>
     )
-    expect(page).toContain('su-chapter-band__trail')
-    expect(page.indexOf('Contents / Mule')).toBeLessThan(page.indexOf('Ace'))
-    expect(page).toContain(`color:${color.paper}`)
+    const plate = container.querySelector('.su-chapter-band__plate')
+    expect(plate?.parentElement?.classList.contains('su-chapter-band__row')).toBe(true)
+    expect(plate?.firstElementChild?.className).toBe('su-chapter-band__trail')
+    expect(plate?.lastElementChild?.tagName).toBe('H1')
+    // On the cut-out, so in ink whatever the band: never the band's foreground.
+    expect((plate as HTMLElement).style.color).toBe(color.ink)
+    expect(container.querySelector('.su-chapter-band__eyebrow')).toBeNull()
+  })
+
+  test('a user-made band with a trail frames the whole plate in dashes', () => {
+    const { container } = render(
+      <ChapterBandTrail.Provider value={<nav aria-label="Breadcrumb">{'SRD//'}</nav>}>
+        <ChapterBand userMade>Mule</ChapterBand>
+      </ChapterBandTrail.Provider>
+    )
+    const plate = container.querySelector('.su-chapter-band__plate') as HTMLElement
+    expect(plate.style.borderTopStyle).toBe('dashed')
+    expect((container.querySelector('h1') as HTMLElement).style.borderTopStyle).toBe('')
   })
 
   test("the trail gives way to a band's own eyebrow, and never rides a link preview", () => {
