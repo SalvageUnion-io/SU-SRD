@@ -88,13 +88,13 @@ jobs:
 
       - name: Backend logs on failure
         if: failure()
-        run: docker logs convex-e2e || true
+        run: cat "$RUNNER_TEMP/convex-backend.log" || true
 
       # Ephemeral runners discard this anyway; a self-hosted one would fail the
-      # next run with "name already in use".
-      - name: Remove the backend container
+      # next run with the backend's ports already in use.
+      - name: Stop the backend
         if: always()
-        run: docker rm -f convex-e2e || true
+        run: pkill -f convex-local-backend || true
 
       - name: Upload Playwright report on failure
         if: failure()

@@ -1,11 +1,11 @@
 name: Throwaway Convex backend
-description: Start a self-hosted Convex backend in a container, push the Cantina's functions to it and build the site against it
+description: Start a self-hosted Convex backend, push the Cantina's functions to it and build the site against it
 
 # The backend a CI job builds the site against when it must not touch production:
 # ci.yml's `build-web` (the PR browser gate) and `perf`, e2e-nightly.yml's
 # `e2e` (the signed-in suite) and gallery.yml's `shoot`. The build is
 # the one `bun run build` (the reference pages, then the Cantina into `dist/build/`), which
-# needs a Convex URL for the Cantina. The container dies with
+# needs a Convex URL for the Cantina. The backend dies with
 # the runner, holds no data and needs no credentials, so a job using it
 # requests no secrets.
 #
@@ -14,8 +14,8 @@ description: Start a self-hosted Convex backend in a container, push the Cantina
 # and `VITE_TEST_AUTH` in the build. Left off, the build is the signed-out
 # production variant.
 #
-# The container is named `convex-e2e`; a job reads its logs with
-# `docker logs convex-e2e`.
+# The backend writes its log to `$RUNNER_TEMP/convex-backend.log`; a job reads
+# it on failure with `cat "$RUNNER_TEMP/convex-backend.log"`.
 inputs:
   test-auth:
     description: "'true' to provision the test sign-in on the backend and build the Cantina with its seam"
@@ -31,39 +31,55 @@ outputs:
 runs:
   using: composite
   steps:
-    # `docker run`, not a `services:` block: the admin key has to be produced
-    # by exec-ing into the container after it starts, and `services:` gives no
-    # predictable name to exec into.
+    # The precompiled release binary, not the `ghcr.io/get-convex/convex-backend`
+    # image: since 2026-10-16 GHCR refuses anonymous pulls of that image (the
+    # token endpoint answers DENIED for get-convex/* while other public images
+    # pull fine), so every job that started it failed before a test ran. The
+    # binary is the same `convex-local-backend` the image wraps, and the one
+    # `convex dev --local` downloads, from the repo's GitHub releases.
+    #
+    # Pinned by release tag AND checksum, not `version.convex.dev`'s latest:
+    # a mutable "latest" in CI is an unreviewed fetch, and the pinning gate
+    # cannot see a `curl` to catch it. To move it, take the version from
+    # https://version.convex.dev/v1/local_backend_version and the zip's sha256.
     - name: Start a self-hosted Convex backend
       shell: bash
+      env:
+        CONVEX_BACKEND_VERSION: precompiled-2026-10-06-a3538c6
+        CONVEX_BACKEND_SHA256: eba2eeab62632e0c153e83f9f1c5ada9e98834e2db3386e32f825a3a97f8c093
       run: |
-        # CONVEX_CLOUD_ORIGIN / CONVEX_SITE_ORIGIN are NOT optional here.
-        # `run_backend.sh` passes `--convex-origin "$CONVEX_CLOUD_ORIGIN"
-        # --convex-site "$CONVEX_SITE_ORIGIN"` unconditionally, so leaving
-        # them unset supplies EMPTY STRING arguments rather than omitting the
-        # flags — and the backend deliberately accepts an empty origin ("so
-        # you can start up a self-hosted backend without knowing its url
-        # yet"), which means the built-in defaults never fire. Upstream's
-        # defaults live in their docker-compose.yml, which a bare `docker run`
-        # skips.
-        #
-        # Downstream that lands exactly where a signed-in job is meant to be
-        # immune: `convex/auth.config.ts` is `domain: process.env.CONVEX_SITE_URL`,
-        # and @convex-dev/auth signs tokens with `setIssuer(requireEnv(...))`,
-        # whose guard rejects only `undefined` — so an empty string is signed
-        # in as the issuer and sign-in fails for a reason nothing names.
-        #
-        # Pinned by digest, not `:latest`. This stack's whole argument is that
-        # a mutable tag in CI is an unreviewed fetch; shipping one in the job
-        # that makes the argument would be a poor look, and the pinning gate
-        # cannot see `docker run` to catch it.
-        docker run -d --name convex-e2e \
-          -p 3210:3210 -p 3211:3211 \
-          -e INSTANCE_NAME=e2e \
-          -e CONVEX_CLOUD_ORIGIN=http://127.0.0.1:3210 \
-          -e CONVEX_SITE_ORIGIN=http://127.0.0.1:3211 \
-          -e DISABLE_BEACON=true \
-          ghcr.io/get-convex/convex-backend@sha256:1f2044e3eac463ac78973b136c0baf72d4ada602611d853d6f99f280e29e0a98
+        dir="$RUNNER_TEMP/convex-backend"
+        mkdir -p "$dir"
+        curl -fsSL --retry 3 -o "$dir/backend.zip" \
+          "https://github.com/get-convex/convex-backend/releases/download/$CONVEX_BACKEND_VERSION/convex-local-backend-x86_64-unknown-linux-gnu.zip"
+        echo "$CONVEX_BACKEND_SHA256  $dir/backend.zip" | sha256sum -c -
+        unzip -oq "$dir/backend.zip" -d "$dir"
+        chmod +x "$dir/convex-local-backend"
+
+        # A fresh secret per run: the backend dies with the runner, so nothing
+        # needs to know it beyond the admin key minted from it below. It goes
+        # to a file the next step reads, not to GITHUB_ENV (zizmor: github-env).
+        secret="$(openssl rand -hex 32)"
+        echo "::add-mask::$secret"
+        (umask 077 && printf '%s' "$secret" > "$dir/instance-secret")
+
+        # --convex-origin / --convex-site are NOT optional. Left unset, the
+        # backend accepts an empty origin ("so you can start up a self-hosted
+        # backend without knowing its url yet"), and downstream that lands
+        # exactly where a signed-in job is meant to be immune:
+        # `convex/auth.config.ts` is `domain: process.env.CONVEX_SITE_URL`, and
+        # @convex-dev/auth signs tokens with `setIssuer(requireEnv(...))`, whose
+        # guard rejects only `undefined` — so an empty string is signed in as
+        # the issuer and sign-in fails for a reason nothing names.
+        nohup "$dir/convex-local-backend" \
+          --port 3210 --site-proxy-port 3211 \
+          --instance-name e2e --instance-secret "$secret" \
+          --convex-origin http://127.0.0.1:3210 \
+          --convex-site http://127.0.0.1:3211 \
+          --local-storage "$dir/storage" \
+          --disable-beacon \
+          "$dir/convex_local_backend.sqlite3" \
+          > "$RUNNER_TEMP/convex-backend.log" 2>&1 &
         for i in $(seq 1 60); do
           if curl -fsS http://127.0.0.1:3210/version >/dev/null 2>&1; then
             echo "backend ready after ${i}s"
@@ -72,17 +88,18 @@ runs:
           sleep 1
         done
         echo "::error::Convex backend did not become ready within 60s"
-        docker logs convex-e2e || true
+        cat "$RUNNER_TEMP/convex-backend.log" || true
         exit 1
 
     - name: Generate an admin key
       id: adminkey
       shell: bash
       run: |
-        KEY="$(docker exec convex-e2e ./generate_admin_key.sh | tail -n1 | tr -d '\r')"
+        KEY="$("$RUNNER_TEMP/convex-backend/convex-local-backend" keygen admin-key \
+          --instance-name e2e --instance-secret "$(cat "$RUNNER_TEMP/convex-backend/instance-secret")" | tail -n1 | tr -d '\r')"
         if [ -z "$KEY" ]; then
-          echo "::error::generate_admin_key.sh produced no key"
-          docker logs convex-e2e || true
+          echo "::error::keygen produced no admin key"
+          cat "$RUNNER_TEMP/convex-backend.log" || true
           exit 1
         fi
         echo "::add-mask::$KEY"
