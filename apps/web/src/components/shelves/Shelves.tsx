@@ -76,6 +76,7 @@ import {
   patternReading,
   pilotChips,
   pilotFact,
+  SHELF_FILTERS,
   shownUnder,
 } from '../../lib/shelves/shelfItems'
 import { useEncounterStore } from '../../stores/encounterStore'
@@ -152,11 +153,6 @@ const NEW_LINK = { textDecoration: 'none' } satisfies CSSProperties
 
 /** The on-ink outline the band's buttons wear (`styles/shelves.css`). */
 const ON_INK_BUTTON = 'su-shelves-band__btn'
-
-const FILTERS: { value: ShelfFilter; label: string }[] = [
-  { value: 'everything', label: 'Everything' },
-  { value: 'not-in-game', label: 'Unassigned' },
-]
 
 // ---------------------------------------------------------------------------
 // Data: the server's facts, read only when there is a server to ask
@@ -399,6 +395,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
     <main className="su-shelves" style={PAGE}>
       <ChapterBand
         tone="ink"
+        matchBar={false}
         measure={MEASURE}
         eyebrow={
           <p role="status" aria-live="polite" className="su-shelves-band__status">
@@ -408,7 +405,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
         aside={
           <div style={BAND_CONTROLS}>
             <Segmented label="Showing" ground="ink" size="page">
-              {FILTERS.map((option) => (
+              {SHELF_FILTERS.map((option) => (
                 <SegmentedOption
                   key={option.value}
                   pressed={filter === option.value}

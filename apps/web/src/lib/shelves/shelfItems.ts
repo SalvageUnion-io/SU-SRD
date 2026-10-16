@@ -30,6 +30,12 @@ import { readReference } from '../readReference'
 /** The Showing toggle: everything you keep, or only what is in no Game. */
 export type ShelfFilter = 'everything' | 'not-in-game'
 
+/** The Hangar band's "Showing" choices, in order. */
+export const SHELF_FILTERS: { value: ShelfFilter; label: string }[] = [
+  { value: 'everything', label: 'Everything' },
+  { value: 'not-in-game', label: 'Unassigned' },
+]
+
 /** A Game the viewer is in, as `games.listMine` answers. */
 export type ShelfGame = { _id: string; name: string; mediator: boolean }
 

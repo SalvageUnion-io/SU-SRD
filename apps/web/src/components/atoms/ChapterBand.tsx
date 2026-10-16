@@ -54,7 +54,9 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  *
  * A band that leads the page (a `PageShell`'s first child) also colours the
  * Union bar above it: the bar takes its colour, foreground and grain
- * (`unionBarMatch.ts`), so the site header and the band are one colour.
+ * (`unionBarMatch.ts`), so the site header and the band are one colour. A
+ * front page (the SRD's home, the Cantina's `/build`) sets `matchBar={false}`
+ * and keeps the ink bar.
  *
  * The page's breadcrumb trail (`ChapterBandTrail`, which a site's layout
  * provides) leads a page band where the Union bar has no room for it, on the
@@ -153,6 +155,11 @@ export type ChapterBandProps = {
   scale?: 'page' | 'og'
   /** The notched title's font size, when the scale's own does not fit the name. */
   titleSize?: string
+  /**
+   * Whether a page band colours the Union bar while it leads the page.
+   * Defaults to `true`; a front page passes `false` to keep the ink bar.
+   */
+  matchBar?: boolean
 }
 
 const ROOT = {
@@ -255,6 +262,7 @@ export function ChapterBand({
   grain,
   scale = 'page',
   titleSize,
+  matchBar = true,
 }: ChapterBandProps) {
   // A link preview is a picture at one size: it never bleeds.
   const bleed = scale === 'page'
@@ -293,7 +301,9 @@ export function ChapterBand({
         ...(userMade ? { backgroundImage: USER_MADE_HATCH } : {}),
       }}
     >
-      {bleed && <style>{unionBarMatchCss(key, band, foregroundOn(band, 'ink'), speckle)}</style>}
+      {bleed && matchBar && (
+        <style>{unionBarMatchCss(key, band, foregroundOn(band, 'ink'), speckle)}</style>
+      )}
       <Speckle grain={speckle} />
       {corner && (
         <div
