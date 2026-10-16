@@ -176,6 +176,29 @@ describe('the Opposition tray', () => {
     expect(npc).toMatchObject({ name: 'Hill Worm Pattern Typhon', currentHp: 40, maxHp: 67 })
   })
 
+  test('a mech drawn as a pattern keeps its chassis SP and reads back as that pattern', () => {
+    const mule = SalvageUnionReference.Chassis.getByName('Mule')
+    const hauler = mule?.patterns?.find((p) => p.name === 'Hauler')
+    if (mule === undefined || hauler === undefined)
+      throw new Error('no Mule Hauler in the reference')
+    const body = newTrayNpc('chassis', mule, [], NOW, hauler)
+    expect(body).toMatchObject({
+      refSchema: 'chassis',
+      refSlug: 'mule',
+      refPattern: 'hauler',
+      refName: 'Hauler',
+      name: 'Hauler',
+      maxHp: mule.structurePoints,
+      statKind: 'sp',
+    })
+    const npc = readTrayNpc({ _id: 'n1', body })
+    expect(npc.entity?.name).toBe('Mule')
+    expect(npc.pattern?.name).toBe('Hauler')
+    // The bare chassis carries no pattern.
+    const bare = readTrayNpc({ _id: 'n2', body: newTrayNpc('chassis', mule, [], NOW) })
+    expect(bare).toMatchObject({ name: 'Mule', pattern: null, statKind: 'sp' })
+  })
+
   test('numbered names skip the ones taken', () => {
     expect(instanceName('Raider Band', [])).toBe('Raider Band')
     expect(instanceName('Raider Band', ['Raider Band', 'Raider Band 2'])).toBe('Raider Band 3')

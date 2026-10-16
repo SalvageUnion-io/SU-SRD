@@ -134,14 +134,15 @@ export function MediatorDashboard({ gameId, gameName }: { gameId: string; gameNa
       spendUpkeep: () => spendUpkeep({ gameId: id }),
     },
     tray: {
-      add: (schema, entity) =>
+      add: (schema, entity, pattern) =>
         addNpc({
           gameId: id,
           body: newTrayNpc(
             schema,
             entity,
             (tray ?? []).map((n) => n.name),
-            new Date().toISOString()
+            new Date().toISOString(),
+            pattern
           ),
         }),
       setHp: (npc, next) =>
