@@ -4,7 +4,7 @@ import type { SpeckleGrain } from './Speckle'
 /**
  * The Union bar wears the colour of the band a page leads with: its ground,
  * its foreground and its grain, so the site header and the page's band read as
- * one colour. The footer stays ink.
+ * one colour, with no rule between them. The footer stays ink.
  *
  * A band cannot reach the bar through the cascade (the bar is the page's
  * sibling, not its ancestor), so each page-scale band serves a rule that
@@ -45,6 +45,8 @@ export function unionBarMatchCss(
     `--su-bar-bg:${band};` +
     `--su-bar-fg:var(--color-${foreground});` +
     `--su-bar-on-fg:var(--color-${ON[foreground]});` +
+    // No rule between the bar and the band: they are one colour.
+    '--su-bar-rule:transparent;' +
     `--su-bar-grain-paper:${shown('paper')};` +
     `--su-bar-grain-ink:${shown('ink')}}`
   )

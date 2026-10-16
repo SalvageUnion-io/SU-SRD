@@ -22,9 +22,10 @@
  */
 .su-union-bar {
   --su-union-bar-control: 36px;
-  /* Its colours: ink, paper on it, until a page leads with a chapter band,
-     whose rule (`atoms/unionBarMatch.ts`) sets these to the band's colour,
-     foreground and grain. `--su-bar-on-fg` is the text on a plate of the
+  /* Its colours: ink, paper on it, ruled off in ink, until a page leads with
+     a chapter band, whose rule (`atoms/unionBarMatch.ts`) sets these to the
+     band's colour, foreground and grain, and drops the rule (transparent,
+     so the bar keeps its height and the band runs up under it). `--su-bar-on-fg` is the text on a plate of the
      foreground (the current tab). */
   --su-bar-bg: var(--color-ink-deep);
   --su-bar-fg: var(--color-paper);
@@ -36,7 +37,9 @@
   --su-bar-fg-15: color-mix(in srgb, var(--su-bar-fg) 15%, transparent);
   --su-bar-grain-paper: contents;
   --su-bar-grain-ink: none;
+  --su-bar-rule: var(--color-ink);
   background-color: var(--su-bar-bg);
+  border-bottom-color: var(--su-bar-rule);
   color: var(--su-bar-fg);
 }
 

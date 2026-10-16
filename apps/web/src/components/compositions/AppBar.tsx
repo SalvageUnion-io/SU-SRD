@@ -1,6 +1,6 @@
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { Fragment } from 'react'
-import { borderWidth, color, radius, space } from '../../design/tokens'
+import { borderWidth, radius, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { MARK_SRC } from '../../lib/documentHead'
 import type { BreadcrumbItem } from '../atoms/BreadcrumbTrail'
@@ -117,10 +117,9 @@ type AppBarProps = {
   breadcrumbDescription?: string
 }
 
-// Its ground and ink are `.su-union-bar`'s: a page's leading band recolours
-// them (`unionBarMatch.ts`), which a style object would outrank.
+// Its ground, ink and rule colour are `.su-union-bar`'s: a page's leading band
+// recolours them (`unionBarMatch.ts`), which a style object would outrank.
 const BAR = {
-  borderBottomColor: color.ink,
   borderBottomStyle: 'solid',
   borderBottomWidth: borderWidth.entity,
   isolation: 'isolate',

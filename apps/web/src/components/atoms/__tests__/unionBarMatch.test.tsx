@@ -16,6 +16,7 @@ describe('unionBarMatchCss', () => {
     expect(css).toContain(`--su-bar-bg:${color.mech};`)
     expect(css).toContain('--su-bar-fg:var(--color-ink);')
     expect(css).toContain('--su-bar-on-fg:var(--color-paper);')
+    expect(css).toContain('--su-bar-rule:transparent;')
     expect(css).toContain('--su-bar-grain-paper:none;--su-bar-grain-ink:contents}')
   })
 
