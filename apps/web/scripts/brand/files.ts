@@ -23,6 +23,16 @@ export const PNG_FILES: readonly [string, number, string][] = [
   ['apps/web/public/favicons/su/favicon-180.png', 180, markSvg({ title: '', flecks: true })],
   ['apps/web/public/web-app-manifest-192x192.png', 192, markSvg({ title: '', flecks: true })],
   ['apps/web/public/web-app-manifest-512x512.png', 512, markSvg({ title: '', flecks: true })],
+  [
+    'apps/web/public/web-app-manifest-maskable-192x192.png',
+    192,
+    markSvg({ title: '', maskable: true, flecks: true }),
+  ],
+  [
+    'apps/web/public/web-app-manifest-maskable-512x512.png',
+    512,
+    markSvg({ title: '', maskable: true, flecks: true }),
+  ],
   ['apps/discord-bot/brand/icon.png', 1024, markSvg({ title: '', avatar: true, flecks: true })],
 ]
 

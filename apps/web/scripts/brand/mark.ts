@@ -24,6 +24,17 @@ const EDGE = 18
 const FOOT_TONES = [color.wkLine, color.pilot, color.mech, color.crawler, color.denizenBand]
 const FOOT_TOP = 388
 
+/**
+ * The maskable icon (Android's installed-app icon): the launcher crops it to
+ * its own shape, guaranteeing only the centre circle of radius 40% (the
+ * maskable safe zone). So it bleeds the ink to every edge, drops the tile's
+ * corners and paper edge, and sets the SU and the foot inside that circle,
+ * the foot's colours spread over the chord the circle leaves them.
+ */
+const MASKABLE_FOOT_TOP = 352
+const MASKABLE_FOOT_LEFT = 76
+const MASKABLE_FOOT_STEP = 72
+
 type Rect = readonly [x: number, y: number, width: number, height: number]
 
 // Each letter is 72 × 100 units with 20-unit strokes; the cuts are the
@@ -63,7 +74,7 @@ function glyphs(height: number, top: number): string {
 }
 
 /** Paper flecks on the ink (ruleset §3.5.1): a fixed scatter, so output is stable. */
-function flecks(): string {
+function flecks(footTop: number): string {
   let seed = 7
   const next = () => {
     seed = (seed * 9301 + 49297) % 233280
@@ -72,7 +83,7 @@ function flecks(): string {
   const dots: string[] = []
   for (let i = 0; i < 160; i++) {
     const x = (next() * SIZE).toFixed(1)
-    const y = (next() * (FOOT_TOP - 4)).toFixed(1)
+    const y = (next() * (footTop - 4)).toFixed(1)
     const r = (1.2 + next() * 2).toFixed(2)
     dots.push(`<circle cx="${x}" cy="${y}" r="${r}"/>`)
   }
@@ -88,6 +99,8 @@ export type MarkOptions = {
    * else is a rounded tile with a paper edge.
    */
   avatar?: boolean
+  /** The manifest's maskable icon: full bleed, everything inside the safe zone. */
+  maskable?: boolean
   /** Paper flecks: only at sizes where they read as texture, not noise. */
   flecks?: boolean
   /** Pixel width and height the SVG declares; its viewBox is always 512. */
@@ -97,28 +110,40 @@ export type MarkOptions = {
 export function markSvg({
   title,
   avatar = false,
+  maskable = false,
   flecks: withFlecks = false,
   px = SIZE,
 }: MarkOptions): string {
-  const radius = avatar ? 0 : RADIUS
+  const radius = avatar || maskable ? 0 : RADIUS
+  const footTop = maskable ? MASKABLE_FOOT_TOP : FOOT_TOP
+  const last = FOOT_TONES.length - 1
   const step = SIZE / FOOT_TONES.length
-  const foot = FOOT_TONES.map(
-    (fill, i) =>
-      `<rect x="${i * step}" y="${FOOT_TOP}" width="${step + 0.5}" height="${SIZE - FOOT_TOP}" fill="${fill}"/>`
-  ).join('')
+  // Each tone's [x, width]: even fifths, or the maskable foot's centred steps
+  // with the outer two run out to the edges.
+  const span = (i: number): [number, number] => {
+    if (!maskable) return [i * step, step]
+    const left = i === 0 ? 0 : MASKABLE_FOOT_LEFT + i * MASKABLE_FOOT_STEP
+    const right = i === last ? SIZE : MASKABLE_FOOT_LEFT + (i + 1) * MASKABLE_FOOT_STEP
+    return [left, right - left]
+  }
+  const foot = FOOT_TONES.map((fill, i) => {
+    const [x, width] = span(i)
+    return `<rect x="${x}" y="${footTop}" width="${width + 0.5}" height="${SIZE - footTop}" fill="${fill}"/>`
+  }).join('')
+  const framed = !avatar && !maskable
   const parts = [
     `<svg xmlns="http://www.w3.org/2000/svg" width="${px}" height="${px}" viewBox="0 0 ${SIZE} ${SIZE}" shape-rendering="geometricPrecision">`,
     `<title>${title}</title>`,
     `<defs><clipPath id="su-tile"><rect width="${SIZE}" height="${SIZE}" rx="${radius}"/></clipPath></defs>`,
     `<g clip-path="url(#su-tile)">`,
     `<rect width="${SIZE}" height="${SIZE}" fill="${color.ink}"/>`,
-    withFlecks ? flecks() : '',
+    withFlecks ? flecks(footTop) : '',
     foot,
     '</g>',
-    avatar
-      ? ''
-      : `<rect x="${EDGE / 2}" y="${EDGE / 2}" width="${SIZE - EDGE}" height="${SIZE - EDGE}" rx="${RADIUS - EDGE / 2}" fill="none" stroke="${color.paper}" stroke-width="${EDGE}"/>`,
-    avatar ? glyphs(200, 96) : glyphs(240, 72),
+    framed
+      ? `<rect x="${EDGE / 2}" y="${EDGE / 2}" width="${SIZE - EDGE}" height="${SIZE - EDGE}" rx="${RADIUS - EDGE / 2}" fill="none" stroke="${color.paper}" stroke-width="${EDGE}"/>`
+      : '',
+    maskable ? glyphs(180, 150) : avatar ? glyphs(200, 96) : glyphs(240, 72),
     '</svg>',
   ]
   return `${parts.join('')}\n`
