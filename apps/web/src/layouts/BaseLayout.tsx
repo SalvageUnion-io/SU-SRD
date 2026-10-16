@@ -86,7 +86,6 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
     preloadImageSrcSet,
     preloadImageSizes,
     breadcrumbs,
-    breadcrumbDescription,
   } = meta
 
   const canonicalUrl = canonical || new URL(pathname, SITE_URL).href
@@ -212,11 +211,7 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
           <a href="#main-content" className="su-skip-link">
             Skip to content
           </a>
-          <TopNavigation
-            breadcrumbs={trail}
-            breadcrumbDescription={breadcrumbDescription}
-            pageHasSearch={PAGES_WITH_SEARCH.has(pathname)}
-          />
+          <TopNavigation breadcrumbs={trail} pageHasSearch={PAGES_WITH_SEARCH.has(pathname)} />
           {/*
             `tabIndex={-1}` is what makes the skip link actually work. Following
             a fragment moves the browser's scroll position but NOT its focus
@@ -234,7 +229,7 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
                 trail &&
                 trail.length > 0 && (
                   <nav aria-label="Breadcrumb" className="su-crumbs su-crumbs--band">
-                    <BreadcrumbTrail breadcrumbs={trail} description={breadcrumbDescription} />
+                    <BreadcrumbTrail breadcrumbs={trail} />
                   </nav>
                 )
               }
