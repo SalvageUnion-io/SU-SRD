@@ -19,4 +19,14 @@ describe('brand files', () => {
       expect(written).toContain(`apps/web/public${src}`)
     }
   })
+
+  test('the manifest gives Android a maskable icon, so it is not shrunk onto a white disc', () => {
+    const manifest = JSON.parse(
+      readFileSync(join(ROOT, 'apps/web/public/site.webmanifest'), 'utf8')
+    )
+    const maskable = (manifest.icons as { sizes: string; purpose?: string }[])
+      .filter((icon) => icon.purpose === 'maskable')
+      .map((icon) => icon.sizes)
+    expect(maskable).toEqual(['192x192', '512x512'])
+  })
 })
