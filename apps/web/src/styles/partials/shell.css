@@ -732,25 +732,19 @@
   display: flex;
 }
 
-/* The trail floats just under the Union bar: the band runs on from the bar in
-   one colour (`unionBarMatch.ts`), so the trail reads as the header's foot.
-   The title row keeps its place, so the top padding the trail gives up goes
-   under it instead, as room between the trail and the title. Two classes, to
-   outrank the eyebrow's padding at every width. */
-.su-chapter-band__eyebrow.su-chapter-band__trail {
-  padding-top: var(--space-8);
-}
+/* On a phone the trail floats just under the Union bar: the band runs on from
+   the bar in one colour (`unionBarMatch.ts`), so the trail reads as the
+   header's foot. The title row keeps its place, so the top padding the trail
+   gives up goes under it instead, as room between the trail and the title.
+   From `sm` the trail keeps the eyebrow's place. Two classes, to outrank the
+   eyebrow's padding. */
+@media (max-width: 39.99rem) {
+  .su-chapter-band__eyebrow.su-chapter-band__trail {
+    padding-top: var(--space-8);
+  }
 
-/* From 80rem the trail is the bar's and steps aside (below). */
-@media (max-width: 79.99rem) {
   .su-chapter-band__eyebrow.su-chapter-band__trail + .su-chapter-band__row {
     padding-top: calc(var(--space-12) + var(--space-24) - var(--space-8));
-  }
-}
-
-@media (min-width: 40rem) and (max-width: 79.99rem) {
-  .su-chapter-band__eyebrow.su-chapter-band__trail + .su-chapter-band__row {
-    padding-top: calc(var(--space-12) + var(--space-32) - var(--space-8));
   }
 }
 
