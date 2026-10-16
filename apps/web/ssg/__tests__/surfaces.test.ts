@@ -32,6 +32,18 @@ const h1s = (html: string) =>
     (inner ?? '').replace(/<[^>]+>/g, '')
   )
 
+/** The names in a page's breadcrumb trail, in order. */
+const crumbs = (html: string) => {
+  const list = html.match(/<ol class="su-crumbs__list"[^>]*>(.*?)<\/ol>/s)?.[1] ?? ''
+  return [...list.matchAll(/<li class="su-crumbs__item">(.*?)<\/li>/gs)].map(([, inner]) =>
+    (inner ?? '').replace(/<[^>]+>/g, '')
+  )
+}
+
+/** The names in a page's structured-data BreadcrumbList, in order. */
+const ldCrumbs = (html: string) =>
+  [...html.matchAll(/"@type":"ListItem","position":\d+,"name":"([^"]+)"/g)].map(([, name]) => name)
+
 const islands = (html: string, name: string) =>
   html.match(new RegExp(`data-island="${name}"`, 'g'))?.length ?? 0
 
@@ -136,9 +148,9 @@ describe('a listing (compact cards under a visible heading)', () => {
     expect(html).toContain('"groups":[{"key":"all","count":')
   })
 
-  it('trails Contents / Mech Workshop / Chassis', () => {
-    expect(html).toContain('>Contents<')
-    expect(html).toContain('>Mech Workshop<')
+  it('trails Contents // Chassis, without the home page’s chapter', () => {
+    expect(crumbs(html)).toEqual(['Contents', 'Chassis'])
+    expect(ldCrumbs(html)).toEqual(['Contents', 'Chassis'])
   })
 })
 
@@ -155,6 +167,11 @@ describe('an entity page (boards 07, 08)', () => {
     expect(html).toContain('Structure Points')
     expect(html).toContain('Heat Capacity')
     expect(html).not.toContain('Structure Pts.')
+  })
+
+  it('trails Contents // Chassis // Gopher, without the home page’s chapter', () => {
+    expect(crumbs(html)).toEqual(['Contents', 'Chassis', 'Gopher'])
+    expect(ldCrumbs(html)).toEqual(['Contents', 'Chassis', 'Gopher'])
   })
 
   it('lists its patterns as link rows, and cites its page on the foot band', () => {

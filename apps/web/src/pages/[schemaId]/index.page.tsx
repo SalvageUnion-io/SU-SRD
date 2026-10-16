@@ -96,13 +96,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
           name: 'Leyline Press',
         },
       },
-      breadcrumbs: [
-        CONTENTS_CRUMB,
-        ...(chapter.href === '/'
-          ? []
-          : [{ name: chapter.title, url: `${SITE_URL}${chapter.href}` }]),
-        { name: pluralName, url: canonicalUrl },
-      ],
+      breadcrumbs: [CONTENTS_CRUMB, { name: pluralName, url: canonicalUrl }],
       breadcrumbDescription: schema.description,
     },
     // The listing ends on its chapter's band, as its entity pages do.

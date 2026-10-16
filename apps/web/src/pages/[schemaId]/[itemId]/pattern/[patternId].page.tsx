@@ -126,9 +126,6 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
       preloadImageSizes: preloadImageSrcSet ? heroImageSizes() : undefined,
       breadcrumbs: [
         CONTENTS_CRUMB,
-        ...(chapter.href === '/'
-          ? []
-          : [{ name: chapter.title, url: `${SITE_URL}${chapter.href}` }]),
         { name: pluralName, url: `${SITE_URL}${schemaHref(schemaId)}` },
         { name: hostName, url: hostUrl },
         { name: patternName, url: canonicalUrl },
