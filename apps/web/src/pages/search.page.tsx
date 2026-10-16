@@ -12,7 +12,7 @@
 
 import type { PageModule, PageResult } from '../../ssg/types'
 import { ChapterBand } from '../components/index'
-import { CONTENTS_CRUMB, SITE_URL } from '../lib/constants'
+import { SITE_URL, SRD_CRUMB } from '../lib/constants'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { pageTitle } from '../lib/pageTitle'
 import { Island } from '../runtime/Island'
@@ -27,7 +27,7 @@ function page(): PageResult {
         'Search the full Salvage Union SRD — chassis, systems, modules, abilities, equipment, and more.',
       canonical: CANONICAL_URL,
       noindex: true,
-      breadcrumbs: [CONTENTS_CRUMB, { name: 'Search', url: CANONICAL_URL }],
+      breadcrumbs: [SRD_CRUMB, { name: 'Search', url: CANONICAL_URL }],
     },
     foot: { tone: 'rules' },
     children: (

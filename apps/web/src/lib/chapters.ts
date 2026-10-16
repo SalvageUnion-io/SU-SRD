@@ -8,8 +8,8 @@
  * One source for three surfaces: the home page's index, the nav drawer
  * (frozen into `src/generated/navCatalog.ts` by `ssg/genNavCatalog.ts`) and
  * the chapter band a listing or entity page wears. The breadcrumb trail skips
- * the chapter: it runs Contents // listing // entry ("Contents // Chassis //
- * Gopher"), since the chapters are the home page's own groupings.
+ * the chapter: it runs SRD // listing // entry ("SRD // Chassis // Gopher"),
+ * since the chapters are the home page's own groupings.
  *
  * Reads the ORM: call it only after `SalvageUnionReference.preload('all')`
  * (srd's build-time `gameData` import does that). Never import it from an

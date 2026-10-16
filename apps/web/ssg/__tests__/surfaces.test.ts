@@ -148,9 +148,9 @@ describe('a listing (compact cards under a visible heading)', () => {
     expect(html).toContain('"groups":[{"key":"all","count":')
   })
 
-  it('trails Contents // Chassis, without the home page’s chapter', () => {
-    expect(crumbs(html)).toEqual(['Contents', 'Chassis'])
-    expect(ldCrumbs(html)).toEqual(['Contents', 'Chassis'])
+  it('trails SRD // Chassis, without the home page’s chapter', () => {
+    expect(crumbs(html)).toEqual(['SRD', 'Chassis'])
+    expect(ldCrumbs(html)).toEqual(['SRD', 'Chassis'])
   })
 })
 
@@ -169,9 +169,9 @@ describe('an entity page (boards 07, 08)', () => {
     expect(html).not.toContain('Structure Pts.')
   })
 
-  it('trails Contents // Chassis // Gopher, without the home page’s chapter', () => {
-    expect(crumbs(html)).toEqual(['Contents', 'Chassis', 'Gopher'])
-    expect(ldCrumbs(html)).toEqual(['Contents', 'Chassis', 'Gopher'])
+  it('trails SRD // Chassis // Gopher, without the home page’s chapter', () => {
+    expect(crumbs(html)).toEqual(['SRD', 'Chassis', 'Gopher'])
+    expect(ldCrumbs(html)).toEqual(['SRD', 'Chassis', 'Gopher'])
   })
 
   it('lists its patterns as link rows, and cites its page on the foot band', () => {
