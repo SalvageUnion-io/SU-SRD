@@ -157,13 +157,17 @@ export function Footer({ links, poweredBySalvageUrl, foot, LinkComponent = 'a' }
           />
         </div>
       )}
-      <ChapterFoot
-        fill={SITE_FILL}
-        grain="paper"
-        measure={measure}
-        start={<Legal />}
-        end={<End links={links} src={poweredBySalvageUrl} LinkComponent={LinkComponent} />}
-      />
+      {/* On a phone a cited page's licence row starts below the first screen
+          (`.su-footer__licence`), so the cite band ends it. */}
+      <div className="su-footer__licence">
+        <ChapterFoot
+          fill={SITE_FILL}
+          grain="paper"
+          measure={measure}
+          start={<Legal />}
+          end={<End links={links} src={poweredBySalvageUrl} LinkComponent={LinkComponent} />}
+        />
+      </div>
     </footer>
   )
 }
