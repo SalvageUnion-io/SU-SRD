@@ -4,7 +4,7 @@ import { cn } from '../../lib/cn'
 import { FOCUS_RING } from './interaction'
 
 /**
- * BreadcrumbTrail — a page's trail: its ancestors as links, `/` between them,
+ * BreadcrumbTrail — a page's trail: its ancestors as links, `//` between them,
  * the current page in bold, then an optional description. The caller wraps it
  * in its `nav aria-label="Breadcrumb"` and places it: the Union bar's own
  * (`AppBar`, in the bar or on a row under it) or a page's chapter band
@@ -47,7 +47,7 @@ export function BreadcrumbTrail({
           <Fragment key={item.url}>
             {index > 0 && (
               <li aria-hidden="true" className="su-crumbs__separator" style={CRUMB_SEPARATOR}>
-                /
+                {'//'}
               </li>
             )}
             <li className="su-crumbs__item">

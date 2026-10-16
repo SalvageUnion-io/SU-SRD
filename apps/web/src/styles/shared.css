@@ -153,10 +153,10 @@
   height: 8px;
 }
 
-/* `MobileSearchDialog`: the bar's magnifier, a paper wash on the ink bar. */
+/* `MobileSearchDialog`: the bar's magnifier, a wash of the bar's foreground. */
 @media (hover: hover) {
   .su-mobile-search__trigger:hover {
-    background-color: var(--color-paper-15);
+    background-color: var(--su-bar-fg-15, var(--color-paper-15));
   }
 }
 

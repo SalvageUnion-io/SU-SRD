@@ -58,7 +58,8 @@ const ICON_BUTTON = {
   borderRadius: radius.panel,
 } satisfies CSSProperties
 
-const TRIGGER = { ...ICON_BUTTON, color: color.paper } satisfies CSSProperties
+// The bar's foreground: paper, or the ink of a page band that recolours it.
+const TRIGGER = { ...ICON_BUTTON, color: 'var(--su-bar-fg)' } satisfies CSSProperties
 
 const CLOSE = {
   ...ICON_BUTTON,
