@@ -630,6 +630,10 @@
    chips beside it. */
 .su-chapter-band__action {
   --su-band-action: 36px;
+  /* The least band left under the action, so it never sits flush on the
+     band's foot: the band shows beneath it. On a phone the capitals' centre
+     would put it there, so this wins and the action rides a little high. */
+  --su-band-action-clear: var(--space-8);
   display: flex;
   flex: none;
 }
@@ -643,7 +647,8 @@
 
 /* On a phone the row wraps: the title, a spacer that pushes the action to the
    line's end, the action (its middle on the notch's capitals, as the
-   cluster's last line is from `sm`), then the cluster's strip on a line of
+   cluster's last line is from `sm`, but never closer than
+   `--su-band-action-clear` to the band's foot), then the cluster's strip on a line of
    its own. A title too long to share its line sends the action under it, at
    the line's start. Everything under the title is page ground: the notch's
    `::after` paints it to the band's clipped edges, under the row's content,
@@ -692,7 +697,10 @@
   }
 
   .su-chapter-band__action {
-    margin-bottom: calc(var(--text-hero) * 0.428 - var(--su-band-action) / 2);
+    margin-bottom: max(
+      var(--su-band-action-clear),
+      calc(var(--text-hero) * 0.428 - var(--su-band-action) / 2)
+    );
     order: 2;
   }
 
@@ -708,7 +716,10 @@
    (the row's own gap less the chips'), not the row's. */
 @media (min-width: 40rem) {
   .su-chapter-band__action {
-    margin-bottom: calc(var(--text-chapter) * 0.428 - var(--su-band-action) / 2);
+    margin-bottom: max(
+      var(--su-band-action-clear),
+      calc(var(--text-chapter) * 0.428 - var(--su-band-action) / 2)
+    );
     margin-inline-start: calc(var(--space-8) - var(--space-24));
   }
 }
