@@ -732,6 +732,13 @@
   display: flex;
 }
 
+/* The trail rides up against the Union bar: the band runs on from the bar in
+   one colour (`unionBarMatch.ts`), so the trail reads as the header's foot.
+   Two classes, to outrank the eyebrow's top padding at every width. */
+.su-chapter-band__eyebrow.su-chapter-band__trail {
+  padding-top: var(--space-8);
+}
+
 .su-crumbs--band {
   display: flex;
   flex-wrap: wrap;
