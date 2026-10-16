@@ -67,8 +67,6 @@ type BreadcrumbItem = {
 
 type TopNavigationProps = {
   breadcrumbs?: BreadcrumbItem[]
-  /** Optional descriptive tail rendered after the trail (e.g. a schema description) */
-  breadcrumbDescription?: string
   /**
    * The page carries its own search (the home page's Contents band, board 06),
    * so the bar's desktop field would be a second copy. The phone's search
@@ -77,16 +75,11 @@ type TopNavigationProps = {
   pageHasSearch?: boolean
 }
 
-export function TopNavigation({
-  breadcrumbs,
-  breadcrumbDescription,
-  pageHasSearch = false,
-}: TopNavigationProps) {
+export function TopNavigation({ breadcrumbs, pageHasSearch = false }: TopNavigationProps) {
   return (
     <UnionBar
       product="reference"
       breadcrumbs={breadcrumbs}
-      breadcrumbDescription={breadcrumbDescription}
       // The WIKI link sits left of the search, so it rides the search slot; it
       // stays when the page carries its own search.
       search={

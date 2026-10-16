@@ -31,7 +31,6 @@ type UnionBarProps = {
   /** The phone cluster below `lg`: search trigger, avatar and the drawer. */
   mobile?: ReactNode
   breadcrumbs?: BreadcrumbItem[]
-  breadcrumbDescription?: string
 }
 
 /** A Cantina link: a route under the base. */
@@ -49,15 +48,7 @@ function cantinaNav(games: ReactNode): AppBarNavEntry[] {
   ]
 }
 
-export function UnionBar({
-  product,
-  games,
-  search,
-  actions,
-  mobile,
-  breadcrumbs,
-  breadcrumbDescription,
-}: UnionBarProps) {
+export function UnionBar({ product, games, search, actions, mobile, breadcrumbs }: UnionBarProps) {
   const build = product === 'build'
   return (
     <AppBar
@@ -78,7 +69,6 @@ export function UnionBar({
       actions={actions}
       mobile={mobile}
       breadcrumbs={breadcrumbs}
-      breadcrumbDescription={breadcrumbDescription}
     />
   )
 }

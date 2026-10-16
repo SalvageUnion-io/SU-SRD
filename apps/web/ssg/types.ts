@@ -44,7 +44,6 @@ export type DocumentMeta = {
   preloadImageSrcSet?: string
   preloadImageSizes?: string
   breadcrumbs?: BreadcrumbItem[]
-  breadcrumbDescription?: string
 }
 
 /**
