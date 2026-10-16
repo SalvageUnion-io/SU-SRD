@@ -220,7 +220,7 @@ jobs:
 
       - name: Backend logs on failure
         if: failure()
-        run: docker logs convex-e2e || true
+        run: cat "$RUNNER_TEMP/convex-backend.log" || true
 
   # The site's performance budget (`e2e/perf-budget.e2e.ts`): LCP, TBT and CLS on
   # a few pages under Lighthouse's mobile throttling. Its own job, beside
