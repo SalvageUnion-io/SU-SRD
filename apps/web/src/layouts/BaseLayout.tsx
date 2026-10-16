@@ -37,12 +37,17 @@ const SPECULATION_RULES = JSON.stringify({
   prefetch: [{ source: 'document', where: { href_matches: '/*' }, eagerness: 'moderate' }],
 })
 
-/** The page column: the bar, the content, the footer, at least a screen tall. */
+/**
+ * The page column: the bar, the content, the footer, at least a screen tall.
+ * Positioned: on a phone a cited page's licence row hangs below it
+ * (`.su-footer__licence`).
+ */
 const PAGE = {
   backgroundColor: color.paper,
   display: 'flex',
   flexDirection: 'column',
   minHeight: '100dvh',
+  position: 'relative',
 } satisfies CSSProperties
 
 /** The content, on the book's page ground, taking the column's spare height. */
