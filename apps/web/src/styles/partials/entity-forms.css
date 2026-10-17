@@ -474,16 +474,13 @@
   cursor: pointer;
 }
 
-/* A linked chip is Mini (18px), as tall as the chips beside it; WCAG 2.2's
-   24px target (2.5.8) is a hit area past its edges, not a taller box. */
+/* A linked chip is a Mini (18px) cell, under WCAG 2.2's 24px target (2.5.8):
+   its button is 24px tall, the cell centred in it, so the chip still draws at
+   its siblings' height (ruleset §4.7 measures the cell). Under a coarse
+   pointer `.su-hit-area` carries it to 44px. */
 :is(a, button, [role='button']).su-chip-link {
   align-items: center;
-  position: relative;
-}
-:is(a, button, [role='button']).su-chip-link::after {
-  content: '';
-  inset: calc((var(--size-mini) - var(--space-24)) / 2) 0;
-  position: absolute;
+  min-block-size: var(--space-24);
 }
 
 :is(a, button).su-chip-link:hover .su-stat-plate--label {

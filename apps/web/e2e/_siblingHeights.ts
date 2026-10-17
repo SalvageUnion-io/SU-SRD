@@ -7,7 +7,8 @@ import type { Page } from '@playwright/test'
  * line whose controls differ by a pixel or more.
  *
  * - A control is the outermost element matching `CONTROL`, so a chip's two
- *   plates count once, as their cell.
+ *   plates count once, as their cell. A linked chip counts as its cell too:
+ *   its button is a 24px target (WCAG 2.5.8) around the drawn 18px chip.
  * - Its line is its nearest flex or grid ancestor (four levels up at most)
  *   holding another control beside it: overlapping vertically by at least half
  *   the shorter one's height, and no more than `MAX_GAP` from its neighbour, so
@@ -21,16 +22,15 @@ export type SiblingMismatch = {
 }
 
 const CONTROL = [
-  'button',
+  'button:not(.su-chip-link)',
   'a.su-btn',
-  '[role=button]',
+  '[role=button]:not(.su-chip-link)',
   '[role=radio]',
   '[role=tab]',
   'input:not([type=hidden]):not([type=checkbox]):not([type=radio])',
   'select',
   '.su-stat-cell',
   '.su-badge-stamp',
-  '.su-chip-link',
   '.su-cost-edge',
   '.su-cost',
   '.su-entity-token',
