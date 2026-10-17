@@ -42,7 +42,7 @@ describe('ClassAbilityTree headings', () => {
 })
 
 describe('ClassAbilityTree banners and track', () => {
-  test('every ability banner wears its tier; a tracked tier sets its numeral on the track', () => {
+  test('every ability banner wears its tier; a tracked tier sets its numeral in its band', () => {
     render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
     const heads = [
       ...document.querySelectorAll<HTMLElement>('.su-ability-track__tier .su-entity-row__head'),
@@ -65,14 +65,13 @@ describe('ClassAbilityTree banners and track', () => {
     const forging = screen.getByRole('heading', { level: 2, name: 'Forging' }).closest('section')
     if (!forging) throw new Error('no Forging tree')
     const tiers = [...forging.querySelectorAll('.su-ability-track__tier')]
+    // The numeral leads the band, left of the name, as every ability Row sets it.
     expect(
-      tiers.map((tier) => tier.querySelector('.su-ability-track__numeral')?.textContent)
+      tiers.map(
+        (tier) =>
+          tier.querySelector('.su-entity-row__line > .su-entity-row__tier:first-child')?.textContent
+      )
     ).toEqual(['1', '2', '3'])
-    // The numeral sits outside the banner: the band leads with the name.
-    for (const tier of tiers) {
-      const line = tier.querySelector('.su-entity-row__line')
-      expect(line?.firstElementChild?.querySelector('h3')).not.toBeNull()
-    }
   })
 
   test('a Legendary tree (pick one) runs on a track with an "or" between picks, no numerals', () => {
@@ -85,12 +84,15 @@ describe('ClassAbilityTree banners and track', () => {
     expect(legendary.querySelector('.su-ability-track')?.getAttribute('data-track')).toBe(
       'legendary'
     )
-    expect(legendary.querySelector('.su-ability-track__numeral')).toBeNull()
-    // The "or" sits on the track below each pick but the last, centred on the run to the next.
-    const tiers = [...legendary.querySelectorAll('.su-ability-track__tier')]
-    expect(
-      tiers.map((tier) => tier.querySelector(':scope > .su-ability-track__or')?.textContent)
-    ).toEqual(tiers.map((_, index) => (index === tiers.length - 1 ? undefined : 'or')))
+    expect(legendary.querySelector('.su-entity-row__tier')).toBeNull()
+    // The "or" is its own row on the track, between each pick and the next.
+    const track = legendary.querySelector('.su-ability-track')
+    expect([...(track?.children ?? [])].map((li) => li.className)).toEqual([
+      'su-ability-track__tier',
+      'su-ability-track__or',
+      'su-ability-track__tier',
+    ])
+    expect(track?.querySelector('.su-ability-track__or')?.textContent).toBe('or')
   })
 
   test('every Row on a track Peeks its ability', () => {

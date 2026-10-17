@@ -231,7 +231,7 @@ describe('SchemaViewerIsland', () => {
     expect(within(filterRail).getByRole('combobox', { name: 'Tree' })).toBeTruthy()
   })
 
-  it('draws each ability tree on its track: numerals 1-2-3, a Legendary tree its "or"', () => {
+  it('draws each ability tree on its track: Rows numbered 1-2-3, a Legendary tree its "or"', () => {
     const abilitiesModel = required(getModel('abilities'), 'abilities model')
     const entities = abilitiesModel.all()
 
@@ -254,13 +254,15 @@ describe('SchemaViewerIsland', () => {
     const forging = trackOf('Forging')
     expect(forging.dataset.track).toBe('core')
     expect(
-      [...forging.querySelectorAll('.su-ability-track__numeral')].map((n) => n.textContent)
+      [...forging.querySelectorAll('.su-ability-track__tier .su-entity-row__tier')].map(
+        (n) => n.textContent
+      )
     ).toEqual(['1', '2', '3'])
     expect(trackOf('Advanced Engineer').dataset.track).toBe('advanced')
     expect(trackOf('Fabricator').dataset.track).toBe('hybrid')
     const legendary = trackOf('Legendary Engineer')
     expect(legendary.dataset.track).toBe('legendary')
-    expect(legendary.querySelector('.su-ability-track__numeral')).toBeNull()
+    expect(legendary.querySelector('.su-ability-track__tier .su-entity-row__tier')).toBeNull()
     expect(legendary.querySelectorAll('.su-ability-track__or')).toHaveLength(1)
     // The Generic Abilities have no tiers and no order: plain rows, no track.
     expect(

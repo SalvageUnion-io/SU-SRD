@@ -141,14 +141,14 @@ type PilotAbilityItemProps = {
   readOnly: boolean
   /**
    * `row` on a tree's track (the SRD's Tree view): the Row, which Peeks the
-   * card, its tier left to the track's numeral and its kind to the tree's
+   * card, its tier numeral in its band and its kind left to the tree's
    * slab, the controls on the line under it. A Token otherwise.
    */
   form?: 'token' | 'row'
 }
 
-/** On a track the tree's slab names the kind and the track numbers the tier. */
-const OMIT_KIND_TIER = ['kind', 'tier'] as const
+/** On a track the tree's slab names the kind. */
+const OMIT_KIND = ['kind'] as const
 
 /**
  * One ability: its Token, which Peeks the whole card (owner's call,
@@ -173,14 +173,7 @@ export function PilotAbilityItem({
       rowForm={form === 'row'}
       token={
         form === 'row' ? (
-          <Entity
-            form="row"
-            entity={ability}
-            mode={{ kind: 'link' }}
-            omit={OMIT_KIND_TIER}
-            lead
-            peek
-          />
+          <Entity form="row" entity={ability} mode={{ kind: 'link' }} omit={OMIT_KIND} lead peek />
         ) : (
           <Entity form="token" entity={ability} mode={{ kind: 'link' }} />
         )
