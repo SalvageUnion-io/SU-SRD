@@ -1,31 +1,7 @@
 /*
- * The package stylesheet, part 17 of 21: EntitySearcher and the shell's flat
- * leaves (Compositions). `../index.css` imports the parts in cascade order.
+ * The package stylesheet, part 17 of 21: the shell's flat leaves
+ * (Compositions). `../index.css` imports the parts in cascade order.
  */
-
-/* ── compositions/EntitySearcher ── */
-
-/* The search input's text colour. A class, not a style object, because the
-   `::placeholder` recolours it — the resting `color` comes along so the two
-   live in one place. Every other input property is the component's style. */
-/* The wide sub-header's search slot: the full row until `sm` (40rem), then a
-   fixed 280px opposite the Show facet. A class because the width is
-   responsive. */
-.su-searcher__search-slot {
-  width: 100%;
-}
-
-@media (min-width: 40rem) {
-  .su-searcher__search-slot {
-    width: 280px;
-  }
-}
-
-/* The header titles never outgrow their column, so `BandTitle`'s truncation
-   engages. A class only because `BandTitle` takes a className, not a style. */
-.su-searcher__band-title {
-  max-width: 100%;
-}
 
 /* ── compositions/StartHere ── */
 

@@ -158,7 +158,7 @@
 /* ══ The entity-searcher picker ══════════════════════════════════════════════
  *
  * `compositions/EntitySearcher.tsx` — the "add an entity" body every sheet picker
- * opens: a list of Tokens, the focused entity's Card, and the chosen sidebar.
+ * opens: a list of Tokens, the opened entity's Page, and the chosen sidebar.
  * Classes, not style objects, because these properties change at the 64rem
  * breakpoint or with state (the split rule: a property with a responsive or
  * stateful variant lives here, resting value included). The component's static
@@ -171,21 +171,58 @@
  * `overflow: hidden`). Each part scrolls in its own `.su-searcher__scroll`.
  *
  * Below 64rem it is one column: the list over the rail's bar. `--takeover` is
- * a Token opened there: its Card fills the body and the list and bar are
+ * a Token opened there: its Page fills the body and the list and bar are
  * hidden (the `hidden` attribute, so they stay mounted). From 64rem it is three
- * columns at a fixed height, so opening a different entity never resizes the
- * picker. `--browse` (the SRD Explorer) is the list alone, as a grid.
+ * columns at a fixed height: the list a third of the width, the opened Page,
+ * the sidebar. The middle stays empty paper until a Token is opened, and
+ * opening one never resizes the picker. `--browse` (the SRD Explorer) is the
+ * list alone, as a grid.
  *
  * The breakpoint is mirrored by `WIDE_QUERY` in the component — change both or
  * neither.
  */
-/* Narrow, the frame takes the whole screen, so opening a Token's Card (or
+/* Narrow, the frame takes the whole screen, so opening a Token's Page (or
    filtering the list down) never resizes the picker under a thumb. Its cap is
    a style object on the Card; this only fills it. */
 @media (max-width: 63.99rem) {
   .su-searcher-frame {
     height: calc(100dvh - 4rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   }
+}
+
+/* ONE HEIGHT PER ROW. Every control in the picker matches its siblings: the
+   bars (the toolbar, the Page's action bar, the phone's bottom bar) all run at
+   the compact button's height, and a list line (the Token, its chosen label,
+   its ✕) at a Token's. */
+.su-searcher-panel {
+  --su-searcher-control: 32px;
+  --su-searcher-line: 25px;
+}
+
+.su-searcher__toolbar .su-searcher__search,
+.su-searcher__toolbar [role='group'] > .su-badge,
+.su-searcher__actions > .su-badge-stamp,
+.su-searcher__bar .su-searcher__bar-toggle,
+.su-searcher__bar .su-stat-cell {
+  box-sizing: border-box;
+  height: var(--su-searcher-control);
+}
+
+.su-searcher__actions > .su-badge-stamp {
+  align-items: center;
+  display: inline-flex;
+}
+
+/* The sidebar's budgets sit together under its heading: one line's height. */
+.su-searcher__rail > div:not(.su-searcher__bar) > .su-searcher__budgets .su-stat-cell {
+  height: var(--su-searcher-line);
+}
+
+.su-btn.su-searcher__remove {
+  flex: 0 0 var(--su-searcher-line);
+  height: var(--su-searcher-line);
+  padding: 0;
+  justify-content: center;
 }
 
 .su-searcher__toolbar {
@@ -246,13 +283,13 @@
   grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
 }
 
-/* One line per entity: the box, then the Token filling the rest. Doubled
-   classes, to hold the line together over `.su-entity-token-line`'s phone wrap
-   (choices-patterns.css, later in the cascade). */
+/* One line per entity: the Token filling it, and once chosen its label.
+   Doubled classes, to hold the line together over `.su-entity-token-line`'s
+   phone wrap (choices-patterns.css, later in the cascade). */
 .su-searcher__item.su-entity-token-line {
   display: flex;
   flex-wrap: nowrap;
-  align-items: center;
+  align-items: stretch;
   gap: 6px;
   min-width: 0;
   padding: 2px;
@@ -263,49 +300,58 @@
   min-width: 0;
 }
 
-/* The focused entity: an ink ring, as a selection ring is (a state, never
-   rust: ruleset §3.1). */
+/* The entity whose Page is open: a dashed ink outline, so it never reads as
+   chosen. */
 .su-searcher__item[data-focused] {
+  outline: var(--bw-chrome) dashed var(--color-ink);
+  outline-offset: 1px;
+}
+
+/* A chosen entity: the selection ring (`.su-selection-ring`, ink — a state,
+   never rust: ruleset §3.1), its chosen label an ink plate joined to the ring
+   at the line's end. */
+.su-searcher__item[data-selected] {
   box-shadow: 0 0 0 3px var(--color-ink);
 }
 
-/* The box before a Token: paper until chosen, then the inverse plate. Square,
-   like every cut-out. Chip-sized: `.su-hit-area` carries its 44px under a
-   coarse pointer (pointer-motion.css). */
-.su-searcher__mark {
-  flex: 0 0 22px;
-  height: 22px;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: var(--bw-chrome) solid var(--color-ink);
-  border-radius: 0;
-  background-color: var(--color-paper);
-  color: var(--color-ink);
-  font: 700 12px / 1 var(--font-cond);
-  cursor: pointer;
+.su-searcher__item[data-focused][data-selected] {
+  outline-offset: 4px;
 }
 
-.su-searcher__mark[data-on] {
+.su-searcher__chosen {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  margin: -2px -2px -2px 0;
+  padding: 0 8px;
   background-color: var(--color-ink);
   color: var(--color-paper);
+  font: 700 var(--text-badge) / 1 var(--font-cond);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
-.su-searcher__mark:focus-visible {
-  outline: 2px solid var(--color-ink);
-  outline-offset: 2px;
+/* The opened Page: the page ground, the band flush with the column's top. */
+.su-searcher__page {
+  background-color: var(--color-wk-bg);
 }
 
 @media (min-width: 64rem) {
   .su-searcher:not(.su-searcher--browse) {
     height: min(68dvh, 44rem);
     display: grid;
-    grid-template-columns: 19rem minmax(0, 1fr) 17rem;
+    grid-template-columns: calc(100% / 3) minmax(0, 1fr) 17rem;
     grid-template-rows: minmax(0, 1fr);
   }
 
   .su-searcher:not(.su-searcher--browse) > .su-searcher__browser {
     border-right: var(--bw-chrome) solid var(--color-ink);
+  }
+
+  /* With no Page open the middle column is simply empty. */
+  .su-searcher:not(.su-searcher--browse) > .su-searcher__rail-slot {
+    grid-column: 3;
   }
 
   /* A column: heading and budgets pinned, the list scrolling, actions pinned. */

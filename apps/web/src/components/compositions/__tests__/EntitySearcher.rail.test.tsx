@@ -1,5 +1,5 @@
 /**
- * EntitySearcher — the rail, and the narrow layout's Card takeover, on each
+ * EntitySearcher — the rail, and the narrow layout's Page takeover, on each
  * viewport. Split from EntitySearcher.test.tsx (the suite's contract and the
  * viewport note are there) so the parallel runner can spread the pool renders
  * over its workers.
@@ -105,7 +105,9 @@ describe('EntitySearcher — a phone (390×844)', () => {
       expect(status.getAttribute('aria-live')).toBe('polite')
       expect(status.textContent).toBe('')
 
-      fireEvent.click(screen.getByRole('button', { name: `Select ${eq.name}` }))
+      fireEvent.click(screen.getByRole('button', { name: eq.name }))
+      const bar = screen.getByRole('group', { name: `${eq.name} actions` })
+      fireEvent.click(within(bar).getByRole('button', { name: /^add/i }))
       expect(status.textContent).toBe('1 equipped')
     },
     POOL_RENDER_MS
@@ -136,7 +138,7 @@ describe('EntitySearcher — a phone (390×844)', () => {
   )
 
   it(
-    'opens a Token as its Card over the whole picker, and Back returns to that Token',
+    'opens a Token as its Page over the whole picker, and Back returns to that Token',
     () => {
       const eq = nth(allEquipment(), 0)
       render(<ControlledEquipment initial={[]} />)
@@ -229,11 +231,12 @@ describe('EntitySearcher — the rail on a wide screen', () => {
   )
 
   it(
-    'a chosen Token in the rail opens that entity’s Card',
+    'a chosen Token in the rail opens that entity’s Page',
     () => {
       const [a, b] = threeEquipment()
       render(<ControlledEquipment initial={[a.id, b.id]} />)
-      expect(screen.getByRole('group', { name: `${a.name} actions` })).toBeTruthy()
+      // Nothing is open until a Token is, even with entities chosen.
+      expect(screen.queryByRole('group', { name: `${a.name} actions` })).toBeNull()
       fireEvent.click(within(rail()).getByRole('button', { name: b.name }))
       expect(screen.getByRole('group', { name: `${b.name} actions` })).toBeTruthy()
     },

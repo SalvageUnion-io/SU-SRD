@@ -12,6 +12,7 @@ import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 're
 import type { EntitySchemaName } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { borderWidth, color, font, fontSize, radius, space } from '../../design/tokens'
+import { cn } from '../../lib/cn'
 import { useDisclosure } from '../../lib/useDisclosure'
 import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
@@ -197,6 +198,7 @@ export function SelectionRail({
                 removeRefs.current[position] = el
               }}
               size="mini"
+              className="su-searcher__remove"
               onClick={() => remove(entry, position)}
               // Duplicates are legal in count mode, so each copy's button
               // names its copy — three identical "Remove Ion Cannon" buttons
@@ -217,7 +219,7 @@ export function SelectionRail({
   )
 
   const budgetNode = budgets.length > 0 && (
-    <div style={BUDGET_ROW_STYLE}>
+    <div className="su-searcher__budgets" style={BUDGET_ROW_STYLE}>
       <BudgetChips budgets={budgets} />
     </div>
   )
@@ -247,14 +249,14 @@ export function SelectionRail({
   return (
     <section aria-labelledby={headingId} className="su-searcher__rail" style={RAIL_STYLE}>
       {listNode}
-      <div style={BAR_STYLE}>
+      <div className="su-searcher__bar" style={BAR_STYLE}>
         <div style={BAR_HEADING_STYLE}>
           <PageHeading variant="section" as="h2" id={headingId}>
             <button
               ref={toggleRef}
               type="button"
               {...list.toggleProps}
-              className={FOCUS_RING}
+              className={cn('su-searcher__bar-toggle', FOCUS_RING)}
               style={TOGGLE_STYLE}
             >
               {title}

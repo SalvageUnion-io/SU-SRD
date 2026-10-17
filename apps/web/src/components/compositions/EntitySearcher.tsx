@@ -4,27 +4,27 @@
  * crawler weapons, chassis/NPC pickers) and the Dashboard's SRD Explorer.
  *
  * BROWSE, READ, KEEP. The pool is a list of Tokens, so a long collection
- * scans at a glance; the box before each Token adds it (or ticks it) without
- * leaving the list. Opening a Token shows that entity whole, as its medium
- * Card, with an action bar that adds or removes it — the detail is there when
- * it is wanted, never in the way of the list. What is already chosen sits in
- * its own sidebar of Tokens with the budgets.
+ * scans at a glance; a chosen Token wears the selection ring with its chosen
+ * label (EQUIPPED, 2 INSTALLED) joined to it. Opening a Token shows that
+ * entity whole, as its Page, with an action bar that adds it — the detail is
+ * there when it is wanted, never in the way of the list. What is already
+ * chosen sits in its own sidebar of Tokens with the budgets, and removing is
+ * done there.
  *
  * Persistence-agnostic: the caller owns `selected` and the add/remove handlers
  * (ADR-010). One identity both ways: an entity is chosen when `selected` holds
  * its `idOf`, and adding it emits that same `idOf` (default the entity name).
  *
  * `mode="single"` covers the exactly-one swaps (chassis, crawler type): the
- * box is a radio, the action bar says CHOOSE, and `railActions` carries the
- * confirm affordance. `hide` drops the Card sections a picker cannot act on.
+ * action bar says CHOOSE, and `railActions` carries the confirm affordance. `hide` drops the Card sections a picker cannot act on.
  *
  * THE LAYOUT (in the `.su-searcher*` classes, styles/partials/controls.css):
- *   - from 64rem, three columns: the Token list, the focused Card, and the
- *     chosen sidebar, each scrolling alone. Something is always focused: the
- *     first chosen entity, else the first in the list.
+ *   - from 64rem, the Token list (a third of the width) and the chosen
+ *     sidebar; opening a Token fills the middle column with its Page. Each
+ *     column scrolls alone. Until a Token is opened the middle is empty paper.
  *   - below it, one column: the Token list over a bar holding the chosen
  *     count (a disclosure that opens the chosen list), the budgets and the
- *     actions. Opening a Token gives its Card the whole picker, with Back to
+ *     actions. Opening a Token gives its Page the whole picker, with Back to
  *     list above and the action bar below; the list stays mounted, hidden, so
  *     its scroll position survives the round trip.
  *   - browse has no choosing: a grid of Tokens, each opening via `onOpen`.
@@ -38,7 +38,7 @@
  *
  * THE PARTS. This module composes; each part lives beside it: the pool and
  * its facets (`useSearcherPool`), the toolbar (`EntitySearcherFilters`), the
- * focused Card (`EntitySearcherFocus`), the sidebar (`EntitySearcherRail`)
+ * focused Page (`EntitySearcherFocus`), the sidebar (`EntitySearcherRail`)
  * and its budgets (`EntitySearcherBudget`).
  */
 
@@ -47,15 +47,17 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { EntitySchemaName } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { color, font, fontSize, radius, space, tracking, weight } from '../../design/tokens'
+import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { useDisclosure } from '../../lib/useDisclosure'
 import { useMediaQuery } from '../../lib/useMediaQuery'
-import { BandTitle } from '../atoms/BandTitle'
 import { Button } from '../atoms/Button'
+import { buttonVariants } from '../atoms/buttonVariants'
 import { SearchField } from '../atoms/SearchField'
-import { Card } from '../containers/Card'
 import { Entity } from '../entity/Entity'
+import { useEntitySurface } from '../entity/entitySurfaceContext'
+import { Head } from '../entity/parts/Head'
+import { paintFor } from '../entity/parts/paint'
 import type { EntityLinkAttrs } from '../entity/types'
 import type { ReferenceEntityCardHideConfig } from '../referenceEntity/card/referenceEntityCardTypes'
 import { SearcherToolbar } from './EntitySearcherFilters'
@@ -70,16 +72,16 @@ type EntitySearcherProps = {
   /** Refs currently on the sheet (may contain duplicates in `count` mode). */
   selected: string[]
   /**
-   * `toggle` (default): one copy per entity — a Token's box, or the focused
-   * Card's ADD / REMOVE, adds or removes it.
-   * `count`: duplicates are legal — the box and ADD ANOTHER append a copy;
-   * REMOVE takes the last copy off, and each copy has its own ✕ in the rail.
-   * `single`: exactly one — the boxes are a `radiogroup`. The emission
+   * `toggle` (default): one copy per entity — the focused Page's ADD adds it,
+   * its ✕ in the rail removes it.
+   * `count`: duplicates are legal — ADD ANOTHER appends a copy, and each copy
+   * has its own ✕ in the rail.
+   * `single`: exactly one — the focused Page's CHOOSE picks it. The emission
    * contract is the same as `toggle` (the caller replaces its selection rather
    * than appending), so a single-select picker differs only in semantics, not
    * in wiring.
    * `browse`: nothing is chosen — a reference browser, not a picker (the
-   * Dashboard's SRD Explorer). No rail, no boxes, no Status facet; a Token's
+   * Dashboard's SRD Explorer). No rail, no Status facet; a Token's
    * click emits `onOpen`.
    */
   mode?: 'toggle' | 'count' | 'single' | 'browse'
@@ -115,14 +117,14 @@ type EntitySearcherProps = {
    * of a toggle or count picker. */
   onClose?: () => void
   /**
-   * Extra `hide` config for the focused Card, merged OVER the searcher's
+   * Extra `hide` config for the focused Page, merged OVER the searcher's
    * own defaults (actions/choices are always suppressed). Big entities — a
    * chassis, a crawler type — carry sections a picker has no room for
    * (`{ patterns: true }`), and that is a property of the entity, not of the
    * surface, so it is the caller's call rather than a schema check in here.
    */
   hide?: ReferenceEntityCardHideConfig
-  /** The mech builder's chassis picker: the focused Card shows its chassis
+  /** The mech builder's chassis picker: the focused Page shows its chassis
    * ability despite the forced `hide.actions` (E19). */
   showChassisAbility?: boolean
   /**
@@ -168,13 +170,15 @@ export function EntitySearcher({
   // three columns.
   const wide = useMediaQuery(WIDE_QUERY, false)
   const filters = useDisclosure(false)
+  const surface = useEntitySurface()
+  const paint = paintFor('pilot', { texture: surface.texture })
   const chosen = chosenLabel.toLowerCase()
 
-  // ---- Focus: the entity whose Card is showing ----
+  // ---- Focus: the entity whose Page is showing ----
   const [focusId, setFocusId] = useState<string | null>(null)
   const listRef = useRef<HTMLDivElement>(null)
   const backRef = useRef<HTMLButtonElement>(null)
-  // Which way focus should move after the narrow view swaps (Card ↔ list).
+  // Which way focus should move after the narrow view swaps (Page ↔ list).
   const pendingFocus = useRef<'back' | string | null>(null)
   // The whole collection, not the filtered pool: a rail entry the caller's
   // `filter` (or a facet) has since excluded can still be focused.
@@ -185,10 +189,8 @@ export function EntitySearcher({
     }
     return map
   }, [schema, idOf])
-  // Wide, something is always focused: the caller's pick, else the first
-  // chosen entity, else the first in the list. Narrow, only what was opened.
-  const defaultId = selected.find((ref) => byId.has(ref)) ?? (visible[0] && idOf(visible[0]))
-  const focusedId = browse ? null : (focusId ?? (wide ? (defaultId ?? null) : null))
+  // Only what was opened: until then the list stands alone.
+  const focusedId = browse ? null : focusId
   const focused = focusedId ? byId.get(focusedId) : undefined
   const takeover = !wide && !!focused
 
@@ -201,7 +203,7 @@ export function EntitySearcher({
     setFocusId(null)
   }
 
-  // A layout effect, so focus moves before paint: into the Card view on its
+  // A layout effect, so focus moves before paint: into the Page view on its
   // Back button, and back out onto the Token that opened it.
   useLayoutEffect(() => {
     const target = pendingFocus.current
@@ -224,12 +226,6 @@ export function EntitySearcher({
     if (mode === 'count') onAdd?.(ref)
     else onToggle?.(ref)
   }
-  function removeOne(ref: string) {
-    if (mode === 'count') {
-      const index = selected.lastIndexOf(ref)
-      if (index >= 0) onRemove?.(index)
-    } else onToggle?.(ref)
-  }
 
   // ---- Toolbar: Tech level beside the search when there is room ----
   const techRow = facetRows.find((row) => row.label === TECH_LEVEL_ROW) ?? null
@@ -244,6 +240,7 @@ export function EntitySearcher({
           placeholder="Search by name or trait…"
           aria-label="Search"
           autoComplete="off"
+          containerClassName="su-searcher__search"
         />
       }
       inline={inline}
@@ -282,9 +279,14 @@ export function EntitySearcher({
         key={item.id}
         className="su-searcher__item su-entity-token-line"
         data-focused={ref === focusedId || undefined}
+        data-selected={count > 0 || undefined}
       >
-        <SelectBox mode={mode} name={item.name} count={count} onClick={() => add(ref)} />
         {token}
+        {count > 0 && (
+          <span className="su-searcher__chosen">
+            {count > 1 ? `${count} ${chosenLabel}` : chosenLabel}
+          </span>
+        )}
       </div>
     )
   })
@@ -295,42 +297,27 @@ export function EntitySearcher({
         <p style={SUMMARY_STYLE}>
           Showing {visible.length} of {pool.length}
         </p>
-        <div
-          className="su-searcher__list"
-          {...(single ? { role: 'radiogroup', 'aria-label': title ?? 'Options' } : {})}
-        >
-          {tokens}
-        </div>
+        <div className="su-searcher__list">{tokens}</div>
         {visible.length === 0 && <p style={POOL_EMPTY_STYLE}>{emptyMessage}</p>}
       </div>
     </div>
   )
 
   const focusMode = mode === 'browse' ? 'toggle' : mode
-  const focusPane =
-    !browse && (wide || focused) ? (
-      focused ? (
-        <FocusPane
-          entity={focused}
-          mode={focusMode}
-          count={selected.filter((ref) => ref === focusedId).length}
-          chosenLabel={chosenLabel}
-          railName={railName}
-          hide={cardHide}
-          showChassisAbility={showChassisAbility}
-          onAdd={() => focusedId && add(focusedId)}
-          onRemove={
-            (mode === 'count' ? onRemove : onToggle)
-              ? () => focusedId && removeOne(focusedId)
-              : undefined
-          }
-          onBack={wide ? undefined : back}
-          backRef={backRef}
-        />
-      ) : (
-        <div className="su-searcher__focus" />
-      )
-    ) : null
+  const focusPane = focused ? (
+    <FocusPane
+      entity={focused}
+      mode={focusMode}
+      count={selected.filter((ref) => ref === focusedId).length}
+      chosenLabel={chosenLabel}
+      railName={railName}
+      hide={cardHide}
+      showChassisAbility={showChassisAbility}
+      onAdd={() => focusedId && add(focusedId)}
+      onBack={wide ? undefined : back}
+      backRef={backRef}
+    />
+  ) : null
 
   const actions =
     railActions ??
@@ -359,96 +346,57 @@ export function EntitySearcher({
     </div>
   )
 
+  // The cut-out head every entity card, Row and modal wears (ruleset, "Chapter
+  // band"), as ModalShell draws it: the band in the pilot tone, the title on a
+  // square paper tab notched into its foot, the × on the band.
   return (
-    <Card
-      headerBgColor="var(--color-pilot)"
-      headerContent={
-        <div style={HEADER_ROW_STYLE}>
-          {/* Column, so `fill` is off on both — `flex-1` inside a flex-col
-              would grow the title vertically, not claim the band's width.
-              The wrapper takes the track instead and the titles truncate. */}
-          <div style={HEADER_TITLES_STYLE}>
-            <BandTitle className="su-searcher__band-title">{title}</BandTitle>
-            {subtitle && (
-              <BandTitle variant="mute" className="su-searcher__band-title">
-                {subtitle}
-              </BandTitle>
+    <section
+      aria-label={title}
+      className={cn(
+        'su-entity-row su-modal-panel su-searcher-panel',
+        !browse && 'su-searcher-frame'
+      )}
+      style={FRAME_STYLE}
+    >
+      <div className="su-entity-row__frame" style={FILL_STYLE}>
+        <div className="su-entity-row__main" style={FILL_STYLE}>
+          <Head
+            title={title ?? ''}
+            paint={paint}
+            notch
+            controls={
+              onClose && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  aria-label="Close"
+                  className={cn(
+                    buttonVariants({ variant: 'quiet', size: 'iconOnly' }),
+                    'su-modal-close'
+                  )}
+                >
+                  <X aria-hidden="true" style={CLOSE_ICON_STYLE} />
+                </button>
+              )
+            }
+          />
+          {subtitle && <p style={SUBTITLE_STYLE}>{subtitle}</p>}
+          {!takeover && toolbar}
+          <div
+            className={cn(
+              'su-searcher',
+              browse && 'su-searcher--browse',
+              takeover && 'su-searcher--takeover'
             )}
+          >
+            {browser}
+            {focusPane}
+            {rail}
           </div>
-          {onClose && (
-            <Button
-              variant="default"
-              size="iconOnly"
-              onClick={onClose}
-              aria-label="Close"
-              style={CLOSE_STYLE}
-            >
-              <X aria-hidden="true" size={16} />
-            </Button>
-          )}
+          {!browse && <SelectionStatus message={`${selected.length} ${chosen}`} />}
         </div>
-      }
-      cardStyle={{ className: browse ? undefined : 'su-searcher-frame', style: FRAME_STYLE }}
-      bodyStyle={BODY_STYLE}
-    >
-      {!takeover && toolbar}
-      <div
-        className={cn(
-          'su-searcher',
-          browse && 'su-searcher--browse',
-          takeover && 'su-searcher--takeover'
-        )}
-      >
-        {browser}
-        {focusPane}
-        {rail}
       </div>
-      {!browse && <SelectionStatus message={`${selected.length} ${chosen}`} />}
-    </Card>
-  )
-}
-
-/**
- * The box before each Token: it chooses without opening. Toggle — a pressed
- * button with a tick; single — a radio; count — an Add button showing how many
- * copies are chosen.
- */
-function SelectBox({
-  mode,
-  name,
-  count,
-  onClick,
-}: {
-  mode: 'toggle' | 'count' | 'single'
-  name: string
-  count: number
-  onClick: () => void
-}) {
-  const on = count > 0
-  if (mode === 'count') {
-    return (
-      <button
-        type="button"
-        className="su-searcher__mark su-hit-area"
-        data-on={on || undefined}
-        aria-label={`Add ${name}`}
-        onClick={onClick}
-      >
-        {on ? count : <span aria-hidden="true">+</span>}
-      </button>
-    )
-  }
-  return (
-    <button
-      type="button"
-      className="su-searcher__mark su-hit-area"
-      data-on={on || undefined}
-      {...(mode === 'single' ? { role: 'radio', 'aria-checked': on } : { 'aria-pressed': on })}
-      aria-label={`Select ${name}`}
-      onClick={onClick}
-    >
-      {on && <span aria-hidden="true">✓</span>}
-    </button>
+    </section>
   )
 }
 
@@ -461,7 +409,7 @@ function SelectBox({
  * `.su-searcher` media query in styles/partials/controls.css — change both or
  * neither. CSS owns the LAYOUT; this only decides what the parts ARE at that
  * width: the rail a column or a bar, the Tech level chips inline or folded,
- * and whether something is always focused.
+ * and whether an opened Token takes the picker over.
  */
 const WIDE_QUERY = '(min-width: 64rem)'
 
@@ -479,12 +427,24 @@ const FRAME_STYLE = {
   maxHeight:
     'calc(100dvh - 4rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))',
 } satisfies CSSProperties
-const BODY_STYLE = {
-  minHeight: 0,
-  display: 'flex',
-  flexDirection: 'column',
-  backgroundColor: color.paper,
+/** The frame and its main column shrink with the frame's cap, so the
+ * searcher under the head takes what is left and scrolls in it. */
+const FILL_STYLE = { minHeight: 0 } satisfies CSSProperties
+
+/** The subtitle: a line of the paper under the cut-out, as ModalShell's. */
+const SUBTITLE_STYLE = {
+  margin: space[0],
+  padding: `${space[10]} ${space[16]} ${space[0]}`,
+  fontFamily: font.cond,
+  fontSize: fontSize.xs,
+  fontWeight: weight.bold,
+  letterSpacing: tracking.capsTight,
+  lineHeight: 1.2,
+  textTransform: 'uppercase',
+  color: color.wkMuted,
 } satisfies CSSProperties
+
+const CLOSE_ICON_STYLE = { width: space[20], height: space[20] } satisfies CSSProperties
 
 const LIST_SCROLL_STYLE = {
   padding: `${space[12]} ${space[16]} ${space[16]}`,
@@ -504,24 +464,4 @@ const POOL_EMPTY_STYLE = {
   fontSize: fontSize.sm,
   lineHeight: '1.25rem',
   color: color.wkMuted,
-} satisfies CSSProperties
-
-const HEADER_ROW_STYLE = {
-  display: 'flex',
-  width: '100%',
-  alignItems: 'center',
-  gap: space[12],
-} satisfies CSSProperties
-const HEADER_TITLES_STYLE = {
-  display: 'flex',
-  minWidth: 0,
-  flex: '1 1 0%',
-  flexDirection: 'column',
-  alignItems: 'flex-start',
-  gap: space[2],
-} satisfies CSSProperties
-const CLOSE_STYLE = {
-  borderRadius: radius.badge,
-  fontFamily: font.cond,
-  fontWeight: weight.bold,
 } satisfies CSSProperties

@@ -627,7 +627,7 @@ function ReferenceEntityCardInner({
       <CardPage
         entity={entity}
         hero={heroNode}
-        leadActions={hide?.actions ? [] : chassisAbilityEntities}
+        leadActions={hide?.actions && !showChassisAbility ? [] : chassisAbilityEntities}
         otherActions={hide?.actions ? [] : [...gridActions, ...titanicActions]}
         subLine={
           (subtitleExtra || hasSubLine) && (

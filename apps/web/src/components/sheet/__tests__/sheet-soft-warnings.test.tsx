@@ -131,11 +131,17 @@ async function click(name: RegExp) {
 /**
  * Remove a collection item the way a player now does: the per-card ✕ is gone,
  * so management happens in the section's picker. Open it from the slab's
- * "Manage …" button, then untick the item's box in the searcher.
+ * "Manage …" button, then press the item's ✕ in the searcher's chosen rail.
  */
 async function removeViaPicker(manage: RegExp, item: string) {
   await click(manage)
-  await click(new RegExp(`^Select ${item}$`, 'i'))
+  await act(async () => {
+    fireEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', {
+        name: new RegExp(`^Remove ${item}$`, 'i'),
+      })
+    )
+  })
 }
 
 /**
@@ -197,7 +203,7 @@ describe('MechSheet — soft warnings on system removal', () => {
     render(<MechSheet mech={mech} chassis={fakeChassis} store={makeMechStore(mech, captured)} />)
 
     await click(/^Manage systems$/i)
-    // The rail's Remove: the focused Card's action bar has one too.
+    // Removing is the rail's ✕.
     await act(async () => {
       fireEvent.click(
         within(screen.getByRole('region', { name: /^Installed/i })).getByRole('button', {

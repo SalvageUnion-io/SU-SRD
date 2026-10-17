@@ -1,6 +1,6 @@
 import { Dialog } from '@base-ui/react/dialog'
 import { X } from 'lucide-react'
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties, ElementType, ReactNode } from 'react'
 import type { RefEntity, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 import { borderWidth, color, space } from '../../design/tokens'
@@ -104,13 +104,27 @@ function pageBand(entity: RefMetaEntity): { tone: ChapterTone; fill?: string } {
  * `EntityStat` chip the SRD's pattern page carries: the surface opens it (The Cantina's
  * Page opener, so in the dialog) and Peeks it. Its own component so a closed
  * dialog resolves none of it: a list renders a dialog per Row.
+ *
+ * The entity picker's middle column (`EntitySearcherFocus`) is this Page too,
+ * outside a dialog: it names its own heading element (`titleAs`) and leaves the
+ * Union bar its own colour (`matchBar`).
  */
-function EntityDetailPage({
+export function EntityDetailPage({
   entity,
   pattern,
   title,
+  titleAs = Dialog.Title,
+  matchBar,
+  titleSize,
   children,
-}: Pick<EntityDetailDialogProps, 'entity' | 'pattern' | 'title' | 'children'>) {
+}: Pick<EntityDetailDialogProps, 'entity' | 'pattern' | 'title' | 'children'> & {
+  /** The title's element: the dialog's title by default. */
+  titleAs?: ElementType
+  /** Whether the band colours the Union bar (`ChapterBand`'s `matchBar`). */
+  matchBar?: boolean
+  /** The notched title's size, where the band is narrower than a page (`ChapterBand`'s). */
+  titleSize?: string
+}) {
   const meta = resolveEntityPageMeta(entity, pattern)
   const band = pageBand(entity)
   const provenance = resolveFooterProvenance(entity, pattern)
@@ -121,7 +135,9 @@ function EntityDetailPage({
     <>
       <ChapterBand
         // The band's title names the dialog (`ModalShell`'s `ownTitle`).
-        as={Dialog.Title}
+        as={titleAs}
+        matchBar={matchBar}
+        titleSize={titleSize}
         tone={band.tone}
         fill={band.fill}
         aside={

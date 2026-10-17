@@ -11,7 +11,7 @@ import { EntitySearcher } from '../EntitySearcher'
 import { rail } from './entitySearcherHarness'
 
 describe('EntitySearcher — single mode', () => {
-  it('is a radio group; the chosen one has no Remove, and the rail carries the confirm actions', () => {
+  it('labels the chosen Token; the chosen one has no Remove, and the rail carries the confirm actions', () => {
     const [chosen, other] = SalvageUnionReference.Chassis.all()
     if (!chosen || !other) throw new Error('Need two chassis in reference data')
     const toggled: string[] = []
@@ -31,9 +31,12 @@ describe('EntitySearcher — single mode', () => {
         railActions={<button type="button">Apply chassis</button>}
       />
     )
-    const group = screen.getByRole('radiogroup', { name: 'Change Chassis' })
-    const radio = within(group).getByRole('radio', { name: `Select ${chosen.name}` })
-    expect(radio.getAttribute('aria-checked')).toBe('true')
+    const list = document.querySelector<HTMLElement>('.su-searcher__list') as HTMLElement
+    const line = within(list)
+      .getByRole('button', { name: chosen.name })
+      .closest('.su-searcher__item')
+    expect(line?.hasAttribute('data-selected')).toBe(true)
+    expect(line?.textContent).toContain('Chosen')
 
     const bar = rail(/chosen/i)
     expect(
@@ -44,7 +47,7 @@ describe('EntitySearcher — single mode', () => {
     expect(within(bar).getByRole('button', { name: 'Apply chassis' })).toBeTruthy()
     expect(within(bar).queryByRole('button', { name: 'Done' })).toBeNull()
 
-    fireEvent.click(screen.getByRole('button', { name: other.name }))
+    fireEvent.click(within(list).getByRole('button', { name: other.name }))
     fireEvent.click(
       within(screen.getByRole('group', { name: `${other.name} actions` })).getByRole('button', {
         name: 'Choose',
