@@ -518,33 +518,33 @@
 /* The picker trigger is the roll instrument's bar title itself (`titleSelect`), so
  * this focus has no mini-bar of its own. */
 
-/* Full picker overlay — covers the display area with the 5-column grid. */
+/* Full picker overlay — a TitledBox covering the display area; its body
+   holds the 5-column grid, which scrolls inside it. */
 .su-dash-tablepick {
   position: absolute;
   inset: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 10px 12px 12px;
-  background: var(--color-band-cream);
-  border: var(--bw-chrome) solid var(--color-ink);
-  border-radius: var(--radius-panel);
   z-index: 4;
 }
-.su-dash-tablepick-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  flex: 0 0 auto;
+.su-dash-tablepick .su-entity-row__frame,
+.su-dash-tablepick .su-entity-row__main,
+.su-dash-tablepick .su-box__body {
+  min-height: 0;
 }
-.su-dash-tablepick-title {
-  font-family: var(--font-cond);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps-tight);
-  font-size: var(--text-badge);
-  color: var(--color-wk-muted);
+
+/* A titled box that fills its panel and scrolls its own body (the Mediator's
+   propose dock): the box and its frame shrink to the panel, so the body gets
+   the room left under the head and scrolls in it. */
+.su-dash-box {
+  height: 100%;
+  min-height: 0;
+}
+.su-dash-box .su-entity-row__frame,
+.su-dash-box .su-entity-row__main,
+.su-dash-box .su-box__body {
+  min-height: 0;
+}
+.su-dash-box .su-box__body {
+  overflow-y: auto;
 }
 .su-dash-tablepick-grid {
   flex: 1 1 auto;

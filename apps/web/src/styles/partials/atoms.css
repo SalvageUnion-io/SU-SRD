@@ -64,6 +64,19 @@
   z-index: 10;
 }
 
+/* `Eyebrow` (`atoms/Eyebrow.tsx`), after `capsLabel`: the small caps label's
+ * three tones. `muted` is `wkMuted`, the secondary tone that clears AA on every
+ * light ground. */
+.su-eyebrow--ink {
+  color: var(--color-ink);
+}
+.su-eyebrow--muted {
+  color: var(--color-wk-muted);
+}
+.su-eyebrow--tone-deep {
+  color: var(--tone-deep, var(--color-ink));
+}
+
 /* `POSTER_STAMP` (`atoms/posterStamp.ts`), after `capsLabel`: the wrapping
  * ink label whose ground repeats on every line. */
 .su-poster-stamp {
@@ -163,30 +176,6 @@
   box-shadow: 0 0 0 1px var(--color-ink);
 }
 
-/* The +/- steppers: the chip's own height (its Size), never a taller box that
- * stretches the chip beside it; under a coarse pointer a 44px hit area
- * (`pointer-motion.css`). A resting fill/ink that swaps on hover while the
- * stepper is live (not at its limit). */
-.su-stat-step--on-paper {
-  background-color: var(--color-paper);
-  color: var(--color-ink);
-}
-
-.su-stat-step--on-paper.su-stat-step--live:hover {
-  background-color: var(--color-ink);
-  color: var(--color-paper);
-}
-
-.su-stat-step--on-ink {
-  background-color: var(--color-ink);
-  color: var(--color-paper);
-}
-
-.su-stat-step--on-ink.su-stat-step--live:hover {
-  background-color: var(--color-paper);
-  color: var(--color-ink);
-}
-
 /* ── VitalGauge ── */
 /* components/atoms/VitalGauge.tsx — the hover halves; the rest is inline.
  * An editable segment lifts a pixel on hover, unless motion is reduced. */
@@ -259,4 +248,13 @@
 
 .su-stat-provenance__trigger.su-vital-gauge__prov-info:hover {
   color: var(--color-ink);
+}
+
+/* TONE STRIP (`atoms/ToneStrip.tsx`): the 8px colour band opening a section
+   from above, framed on three sides; the section's own rule closes it. */
+.su-tone-strip {
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-bottom: 0;
+  display: block;
+  height: 8px;
 }

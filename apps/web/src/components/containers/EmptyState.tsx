@@ -41,7 +41,24 @@ type QuietEmptyStateProps = {
   className?: string
 }
 
-type EmptyStateProps = StampEmptyStateProps | QuietEmptyStateProps
+type InlineEmptyStateProps = {
+  /**
+   * 'inline' — one unframed muted line, for an empty list inside a section
+   * that already frames it (a menu, a strip, a list under its heading): the
+   * quiet variant's message without its frame, glyph or action.
+   */
+  variant: 'inline'
+  headline?: never
+  /** The muted message line. */
+  body: ReactNode
+  icon?: never
+  action?: never
+  /** As the quiet variant's: 'inherit' prints it in the surrounding ink. */
+  bodyInk?: 'muted' | 'inherit'
+  className?: string
+}
+
+type EmptyStateProps = StampEmptyStateProps | QuietEmptyStateProps | InlineEmptyStateProps
 
 const FRAME = {
   display: 'flex',
@@ -96,6 +113,8 @@ const BODY_INHERIT = { ...BODY, color: 'currentcolor' } satisfies CSSProperties
  * 'quiet': the muted app-chrome placeholder (design-spec §2.10 `.empty`):
  * 1.5px dashed faint frame, centered muted
  * message + CTA, with an optional decorative glyph on top.
+ *
+ * 'inline': the quiet message alone, one unframed line.
  */
 export function EmptyState({
   variant = 'stamp',
@@ -106,6 +125,13 @@ export function EmptyState({
   bodyInk = 'muted',
   className,
 }: EmptyStateProps) {
+  if (variant === 'inline') {
+    return (
+      <p className={className} style={bodyInk === 'inherit' ? BODY_INHERIT : BODY}>
+        {body}
+      </p>
+    )
+  }
   const quiet = variant === 'quiet'
   return (
     <div className={className} style={quiet ? QUIET : STAMP}>

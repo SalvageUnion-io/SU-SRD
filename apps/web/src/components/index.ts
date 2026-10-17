@@ -53,12 +53,16 @@ export { CatalogTile } from './atoms/CatalogTile'
 // ChapterBand — the page title notched into a band in the chapter's colour
 export { ChapterBand } from './atoms/ChapterBand'
 export { ChapterBandTrail } from './atoms/ChapterBandTrail'
+export { Checkbox } from './atoms/Checkbox'
+// CloseButton — the one ×: every dialog, drawer and sheet closes on it.
+export { CloseButton } from './atoms/CloseButton'
 // Conditions — the entity-condition chip row. Public because the Cantina's sheet
 // editors (ConditionsEditor, NpcFactsEditor) compose it.
 export { Conditions } from './atoms/Conditions'
 export { CountStepper } from './atoms/CountStepper'
 export type { ChapterTone } from './atoms/chapterBandColor'
 export { CHAPTER_BAND_COLOR } from './atoms/chapterBandColor'
+export { Eyebrow } from './atoms/Eyebrow'
 export { Field, Select } from './atoms/Field'
 // FieldError — the one single-message validation line (role="alert", danger tone)
 export { FieldError } from './atoms/FieldError'
@@ -80,6 +84,8 @@ export {
 } from './atoms/interaction'
 // KofiButton — the Ko-fi support widget, with a plain link until its script loads
 export { KofiButton } from './atoms/KofiButton'
+// Message — the one single-line feedback message (bad = role="alert", else status)
+export { Message } from './atoms/Message'
 export { ModeDoor } from './atoms/ModeDoor'
 export { useModKeyHint } from './atoms/modKeyHint'
 export { PageHeading } from './atoms/PageHeading'
@@ -97,9 +103,11 @@ export type { StatState, StatTone } from './atoms/Stat'
 export { Stat } from './atoms/Stat'
 export { StatColumn } from './atoms/StatColumn'
 export type { ProvenanceLine } from './atoms/StatProvenance'
-export { Tab, TabList, TabPanel, Tabs, Toggle } from './atoms/Tabs'
+export { Tab, TabList, TabPanel, Tabs, Toggle, ToggleGroup } from './atoms/Tabs'
 // Base typography
 export { Text } from './atoms/Text'
+// ToneStrip — the 8px colour band that opens a section from above (§3.10).
+export { ToneStrip } from './atoms/ToneStrip'
 // USER_MADE_HATCH — the hatch a user-made page wears on its colour bands
 // (ruleset §3.9): ChapterBand's `userMade`, and the page's hatched foot.
 export { USER_MADE_HATCH } from './atoms/userMadeHatch'
@@ -165,6 +173,8 @@ export type { TreeTrack } from './compositions/treeTrack'
 export { trackForTree } from './compositions/treeTrack'
 export type { SearchComboboxResult } from './compositions/useSearchCombobox'
 export { useSearchCombobox } from './compositions/useSearchCombobox'
+// AdderBox — the dashed "+ add" intake under a list; AdderField labels a field in it.
+export { AdderBox, AdderField } from './containers/AdderBox'
 export { Banner } from './containers/Banner'
 // Callout — accent-framed note (stamp header + accent-bar body); list-items,
 // "When Damaged" effects, and similar accented notes compose on it.
@@ -172,11 +182,20 @@ export { Callout } from './containers/Callout'
 export type { CardFootMeta } from './containers/Card'
 // Shared components
 export { Card } from './containers/Card'
+// Stack, Cluster and Grid — the layout primitives: a column, a wrapping row,
+// and as many equal columns as fit, each a space step apart (`gap`).
+export { Cluster } from './containers/Cluster'
 // ConfirmDialog — the one "are you sure?": an alert dialog on ModalShell with a
 // pending state, an inline failure line, and focus on Cancel for destructive confirms.
 export { ConfirmDialog } from './containers/ConfirmDialog'
+// DialogActions — a dialog's buttons, right-aligned and wrapping.
+export { DialogActions } from './containers/DialogActions'
 // EmptyState — dashed stamp-headline empty slot (ruleset §"Empty state")
 export { EmptyState } from './containers/EmptyState'
+// FeedLine — one entry in a feed (a roll, an alert, a proposal, a change) in
+// a FeedList; FeedTime writes its time in the format that feed reads in.
+export { FeedLine, FeedList, FeedTime } from './containers/FeedLine'
+export { Grid } from './containers/Grid'
 // HeaderMenu — a dropdown menu (Base UI's menu button): the Union bar's account
 // and Games menus, and the "⋯" overflow on a row.
 export type { HeaderMenuItem } from './containers/HeaderMenu'
@@ -186,6 +205,8 @@ export { MasonryColumns } from './containers/MasonryColumns'
 export { ModalShell } from './containers/ModalShell'
 // PageShell — the full-bleed <main> landmark for a top-level app screen
 export { PageShell } from './containers/PageShell'
+// Pending — the one "Loading X…" line (role="status"), for data that resolves inside a screen
+export { Pending } from './containers/Pending'
 // PopoverPanel — a trigger and the small non-modal panel of controls it opens
 // (Base UI Popover); the Cantina's sheet "⋯" overflow
 export { PopoverPanel } from './containers/PopoverPanel'
@@ -200,6 +221,7 @@ export { Sel } from './containers/Sel'
 export { SheetSectionCard } from './containers/SheetSectionCard'
 export { SheetSectionSlab } from './containers/SheetSectionSlab'
 export { Skeleton } from './containers/Skeleton'
+export { Stack } from './containers/Stack'
 /** The `statsOverride` element type — public because the prop that takes it is. */
 export type { StatItem } from './containers/statsBarTypes'
 // TitledBox — the house `Box` (square frame, paper body) with the cut-out head:

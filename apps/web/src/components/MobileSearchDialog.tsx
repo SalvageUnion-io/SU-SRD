@@ -1,10 +1,10 @@
 import { Drawer } from '@base-ui/react/drawer'
-import { Search, X } from 'lucide-react'
+import { Search } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
-import { color, font, fontSize, radius, space, weight } from '../design/tokens'
-import { LIFT_SHADOW } from '../lib/liftShadow'
-import { buttonVariants, cn } from './index'
+import { color, font, fontSize, layer, radius, space, weight } from '../design/tokens'
+import { POPUP_SURFACE } from './atoms/popupSurface'
+import { buttonVariants, CloseButton, cn } from './index'
 
 type MobileSearchDialogProps = {
   /**
@@ -21,13 +21,12 @@ const VIEWPORT = {
   flexDirection: 'column',
   inset: 0,
   position: 'fixed',
-  zIndex: 50,
+  zIndex: layer.overlay,
 } satisfies CSSProperties
 
 /** The sheet: the title row over the hosted search. `.su-drawer` slides it. */
 const POPUP = {
-  backgroundColor: color.paper,
-  boxShadow: LIFT_SHADOW,
+  ...POPUP_SURFACE.paper,
   display: 'flex',
   flexDirection: 'column',
   gap: space[12],
@@ -49,23 +48,15 @@ const TITLE = {
   textTransform: 'uppercase',
 } satisfies CSSProperties
 
-// The two icon buttons over the shared icon rung. Their ground is the rung's
-// (`.su-btn--ghost`), except the trigger's hover, which is
-// `.su-mobile-search__trigger` in pages.css. The trigger takes the Union
-// bar's control height (`--su-union-bar-control`); the sheet's close is 44px.
-const ICON_BUTTON = {
+// The trigger over the shared icon rung. Its ground is the rung's
+// (`.su-btn--ghost`), except its hover, which is `.su-mobile-search__trigger`
+// in pages.css; it takes the Union bar's control height
+// (`--su-union-bar-control`). Its foreground is the bar's: paper, or the ink of
+// a page band that recolours it.
+const TRIGGER = {
   borderColor: 'transparent',
   borderRadius: radius.panel,
-} satisfies CSSProperties
-
-// The bar's foreground: paper, or the ink of a page band that recolours it.
-const TRIGGER = { ...ICON_BUTTON, color: 'var(--su-bar-fg)' } satisfies CSSProperties
-
-const CLOSE = {
-  ...ICON_BUTTON,
-  color: color.ink,
-  height: '44px',
-  width: '44px',
+  color: 'var(--su-bar-fg)',
 } satisfies CSSProperties
 
 const iconButtonClass = buttonVariants({ variant: 'ghost', size: 'iconOnly' })
@@ -109,18 +100,7 @@ export function MobileSearchDialog({ children }: MobileSearchDialogProps) {
           <Drawer.Popup className="su-drawer" style={POPUP}>
             <div style={TITLE_ROW}>
               <Drawer.Title style={TITLE}>Search</Drawer.Title>
-              <Drawer.Close
-                render={
-                  <button
-                    type="button"
-                    className={iconButtonClass}
-                    style={CLOSE}
-                    aria-label="Close search"
-                  >
-                    <X aria-hidden="true" size={24} />
-                  </button>
-                }
-              />
+              <Drawer.Close render={<CloseButton label="Close search" />} />
             </div>
             {children}
           </Drawer.Popup>

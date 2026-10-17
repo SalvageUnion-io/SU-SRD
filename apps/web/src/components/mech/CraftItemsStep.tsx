@@ -1,17 +1,10 @@
-import type { CSSProperties } from 'react'
 import { useMemo } from 'react'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationModule, isLegalCreationSystem } from 'salvageunion-reference/rules'
 import { maxAddableCopies } from '../../lib/rules/creation'
-import { MasonryColumns, ReferenceEntityCard, Slab, tokens } from '../index'
+import { EmptyState, MasonryColumns, ReferenceEntityCard, Slab } from '../index'
 import '../../styles/cantina/wizard.css'
-import { fullWidthStyle, textSmStyle } from '../wizard/wizardStyles.model'
-
-const EMPTY_NOTE = {
-  ...textSmStyle,
-  color: 'currentcolor',
-  fontFamily: tokens.font.body,
-} satisfies CSSProperties
+import { fullWidthStyle } from '../wizard/wizardStyles.model'
 
 type CraftItemsStepProps = {
   /** Which dataset this step crafts from (against its own slot budget). */
@@ -120,7 +113,9 @@ export function CraftItemsStep({
           )
         })}
       </MasonryColumns>
-      {items.length === 0 && <p style={EMPTY_NOTE}>No Tech 1 {kind} found.</p>}
+      {items.length === 0 && (
+        <EmptyState variant="inline" body={`No Tech 1 ${kind} found.`} bodyInk="inherit" />
+      )}
     </div>
   )
 }

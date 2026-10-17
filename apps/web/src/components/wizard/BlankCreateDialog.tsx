@@ -21,9 +21,9 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import { readReference } from '../../lib/readReference'
 import type { BlankCreateKind } from '../../lib/wizard/blankCreate'
 import { createBlank } from '../../lib/wizard/blankCreate'
-import { Button, Field, FieldError, Input, ModalShell, Select } from '../index'
+import { Button, DialogActions, Field, FieldError, Input, ModalShell, Select } from '../index'
 import '../../styles/cantina/wizard.css'
-import { dialogActionsStyle, dialogBodyStyle, dialogNoteStyle } from './wizardStyles.model'
+import { dialogBodyStyle, dialogNoteStyle } from './wizardStyles.model'
 
 const noteStyle = { ...dialogNoteStyle, margin: 0 } satisfies CSSProperties
 
@@ -196,7 +196,7 @@ export function BlankCreateDialog({ kind, open, onClose, onCreated }: BlankCreat
 
         {error && <FieldError>{error}</FieldError>}
 
-        <div style={dialogActionsStyle}>
+        <DialogActions>
           <Button variant="ghost" size="compact" onClick={onClose} disabled={pending}>
             Cancel
           </Button>
@@ -209,7 +209,7 @@ export function BlankCreateDialog({ kind, open, onClose, onCreated }: BlankCreat
           >
             {pending ? 'Creating…' : `Create ${label}`}
           </Button>
-        </div>
+        </DialogActions>
       </div>
     </ModalShell>
   )

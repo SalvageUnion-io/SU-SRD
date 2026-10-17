@@ -44,7 +44,16 @@ import { useHydrateEntities, usePilots } from '../../lib/entities'
 import type { RosterRow } from '../../lib/games/gameRoster'
 import { groupColumn, ownableRows } from '../../lib/games/gameRoster'
 import { unitRowModel } from '../../lib/units/unitModel'
-import { Button, Entity, ModalShell, RadioCardGroup, Text, tokens } from '../index'
+import {
+  Button,
+  DialogActions,
+  Entity,
+  ModalShell,
+  Pending,
+  RadioCardGroup,
+  Text,
+  tokens,
+} from '../index'
 import { OwnerSeal } from './OwnerSeal'
 
 const HINT = { textAlign: 'left' } satisfies CSSProperties
@@ -77,13 +86,6 @@ const CHOICES = {
   display: 'flex',
   flexDirection: 'column',
   gap: tokens.space[8],
-} satisfies CSSProperties
-
-const ACTIONS = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[8],
-  justifyContent: 'flex-end',
 } satisfies CSSProperties
 
 /** The pilot a viewer is offered first: their own, in the roster's order. */
@@ -160,9 +162,7 @@ export function LaunchDashboard({ gameId }: { gameId: string }) {
               Game.
             </Text>
           ) : listing === undefined ? (
-            <Text variant="hint" style={HINT}>
-              Loading pilots…
-            </Text>
+            <Pending label="pilots" />
           ) : pilots.length === 0 ? (
             <Text variant="hint" style={HINT}>
               None of this Game's pilots is saved in this browser. Create or claim one from the
@@ -200,7 +200,7 @@ export function LaunchDashboard({ gameId }: { gameId: string }) {
               </RadioCardGroup>
             </div>
           )}
-          <div style={ACTIONS}>
+          <DialogActions>
             <Button variant="ghost" size="compact" onClick={() => setOpen(false)}>
               Cancel
             </Button>
@@ -212,7 +212,7 @@ export function LaunchDashboard({ gameId }: { gameId: string }) {
             >
               Launch
             </Button>
-          </div>
+          </DialogActions>
         </div>
       </ModalShell>
     </>

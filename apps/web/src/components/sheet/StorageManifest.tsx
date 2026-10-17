@@ -48,7 +48,7 @@ import { totalLotUnits } from 'cantina-domain/schemas/cargoLot'
 import type { CSSProperties } from 'react'
 import { reportCargo as report } from '../../lib/cargo/reportCargo'
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
-import { BandTitle, cn, EmptyState, InfoCutout, SlotGrid, Stat, tokens } from '../index'
+import { BandTitle, cn, EmptyState, Eyebrow, InfoCutout, SlotGrid, Stat, tokens } from '../index'
 import type { StorageManifestSide } from './CargoLotItem'
 import { CargoLotItem } from './CargoLotItem'
 import { HoldAdder } from './HoldAdder'
@@ -121,15 +121,6 @@ const COUNTERPART_EMPTY = {
   ...COUNTERPART,
   borderStyle: 'dashed',
   borderColor: tokens.color.wkFaint,
-} satisfies CSSProperties
-
-const COUNTERPART_LABEL = {
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.badge,
-  fontWeight: tokens.weight.bold,
-  textTransform: 'uppercase',
-  letterSpacing: tokens.tracking.caps,
-  color: 'var(--tone-deep, var(--color-ink))',
 } satisfies CSSProperties
 
 const NOTE = {
@@ -251,9 +242,7 @@ export function StorageManifest({
       {/* Counterpart panel */}
       {showCounterpart && (
         <div style={linkedCounterpart !== null ? COUNTERPART_LINKED : COUNTERPART_EMPTY}>
-          <span style={COUNTERPART_LABEL}>
-            {side === 'mech' ? 'Stow target →' : '← Load target'}
-          </span>
+          <Eyebrow tone="toneDeep">{side === 'mech' ? 'Stow target →' : '← Load target'}</Eyebrow>
           {linkedCounterpart !== null ? (
             <>
               <LinkedUnitLink

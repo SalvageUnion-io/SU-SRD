@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react'
 import type { RefCrawler, RefMetaCrawlerTechLevel } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
-import { EmptyState, Stat, tokens } from '../index'
+import { Pending, Stat, tokens } from '../index'
 import '../../styles/cantina/wizard.css'
 import { fullWidthStyle } from './wizardStyles.model'
 
@@ -40,12 +40,7 @@ type CrawlerStatsStepProps = {
  */
 export function CrawlerStatsStep({ techLevel, selectedType }: CrawlerStatsStepProps) {
   if (!techLevel) {
-    return (
-      <EmptyState
-        headline="Loading"
-        body="Tech Level 1 statistics are loading — they appear here."
-      />
-    )
+    return <Pending label="Tech Level 1 statistics" />
   }
 
   const sp = crawlerMaxSPParts({

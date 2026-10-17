@@ -8,8 +8,8 @@ export type BoxProps = {
   art?: ReactNode
   /** The frame's colour token value (`var(--color-…)`); ink by default. */
   frameColor?: string
-  /** The landmark: `section` (named by `label`) or a plain `div`. */
-  as?: 'section' | 'div'
+  /** The landmark: `section` (named by `label`), an `article`, or a plain `div`. */
+  as?: 'section' | 'article' | 'div'
   /** Names a `section`. */
   label?: string
   /** A role on the root (`alert`, `note`). */

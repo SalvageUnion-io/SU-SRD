@@ -62,11 +62,6 @@
   }
 }
 
-/* FieldError takes call-site spacing as a class. */
-.su-sheet-share-error {
-  margin-top: var(--space-8);
-}
-
 /* LinkQr: the encoder's SVG fills the tile. */
 .su-sheet-qr > svg {
   height: 100%;

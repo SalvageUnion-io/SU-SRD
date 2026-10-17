@@ -17,9 +17,9 @@ import type { CargoLot } from 'cantina-domain/schemas/cargoLot'
 import { useState } from 'react'
 import { useServerAction } from '../../../lib/connection/useServerAction'
 import { usePatternStore } from '../../../stores/patternStore'
-import { Button, Field, FieldError, Input, ModalShell, toast } from '../../index'
+import { Button, DialogActions, Field, FieldError, Input, ModalShell, toast } from '../../index'
 import '../../../styles/cantina/wizard.css'
-import { dialogActionsStyle, dialogBodyStyle } from '../../wizard/wizardStyles.model'
+import { dialogBodyStyle } from '../../wizard/wizardStyles.model'
 
 type SavePatternButtonProps = {
   /** Name of the source mech — pre-fills the pattern name field. */
@@ -112,7 +112,7 @@ export function SavePatternButton({
 
           {saveError && <FieldError>{saveError}</FieldError>}
 
-          <div style={dialogActionsStyle}>
+          <DialogActions>
             <Button
               type="button"
               variant="ghost"
@@ -132,7 +132,7 @@ export function SavePatternButton({
             >
               {isSaving ? 'Saving…' : 'Save'}
             </Button>
-          </div>
+          </DialogActions>
         </div>
       </ModalShell>
     </>

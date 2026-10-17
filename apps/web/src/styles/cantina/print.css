@@ -105,7 +105,8 @@
   .su-entity-row__tier,
   .su-entity-token__pill,
   .su-entity-token__kind,
-  .su-pennant {
+  .su-pennant,
+  .su-eyebrow {
     font-size: revert-layer;
     margin-bottom: revert-layer;
   }

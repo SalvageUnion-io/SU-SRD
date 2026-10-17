@@ -84,8 +84,6 @@ const BODY = {
 
 const ROLL = { display: 'flex', alignItems: 'center', gap: space[12] } satisfies CSSProperties
 
-const ROLL_STAMP = { fontSize: fontSize.caption } satisfies CSSProperties
-
 const DIE = {
   fontFamily: font.cond,
   fontWeight: weight.bold,
@@ -323,7 +321,7 @@ export function PhoneResolve({
               {resolving.roll && (
                 <>
                   <div style={ROLL}>
-                    <Badge shape="stamp" style={ROLL_STAMP}>
+                    <Badge shape="stamp" size="compact">
                       Roll the die:
                     </Badge>
                     <span style={DIE}>{resolving.roll.roll}</span>

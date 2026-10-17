@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import { color, font, fontSize, space } from '../../design/tokens'
 import { Button } from '../atoms/Button'
 import { FieldError } from '../atoms/FieldError'
+import { DialogActions } from './DialogActions'
 import { ModalShell } from './ModalShell'
 
 /**
@@ -92,13 +93,6 @@ const bodyStyle = {
   color: color.wkMuted,
 } satisfies CSSProperties
 
-const actionsStyle = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  justifyContent: 'flex-end',
-  gap: space[8],
-} satisfies CSSProperties
-
 export function ConfirmDialog({
   open,
   onOpenChange,
@@ -169,7 +163,7 @@ export function ConfirmDialog({
           {body}
         </Dialog.Description>
         <FieldError>{error}</FieldError>
-        <div style={actionsStyle}>
+        <DialogActions>
           <Button
             ref={cancelRef}
             variant="ghost"
@@ -188,7 +182,7 @@ export function ConfirmDialog({
           >
             {pending ? pendingLabel : confirmLabel}
           </Button>
-        </div>
+        </DialogActions>
       </div>
     </ModalShell>
   )

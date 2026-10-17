@@ -21,10 +21,10 @@ describe('Changelog', () => {
     expect(screen.getByText('Fixed a typo')).toBeTruthy()
   })
 
-  test('each entry wears the shared cut-out head, the date on the tab', () => {
+  test('each entry is a TitledBox article, the date on the tab', () => {
     const entries: ChangelogEntry[] = [{ date: '2026-07-20', items: ['Added a chassis'] }]
     const { container } = render(<Changelog entries={entries} />)
-    const head = container.querySelector('.su-changelog__entry > .su-entity-row__head')
+    const head = container.querySelector('article.su-box .su-entity-row__head')
     expect(head?.getAttribute('style')).toContain('background-color')
     expect(head?.hasAttribute('data-notch')).toBe(true)
     expect(head?.querySelector('.su-entity-row__notch h2 time')).not.toBeNull()

@@ -2,10 +2,11 @@
  * MediatorDashboardView — the Mediator Dashboard laid out (board M1;
  * docs/architecture/mediator-dashboard.md §6): a 1280×800 `DashboardCanvas`
  * with the rail, The table beside the Crawler and Downtime minors, and the
- * display (tabs and the propose dock) below.
+ * display (tabs and the propose dock) below. The table, the minors and the
+ * dock are each a `TitledBox`.
  *
  * Below a 0.8 scale (a phone, or a narrow window) the same panels stack in one
- * scrolling column instead — rail, The table (two cards a row), Downtime,
+ * scrolling column instead — rail, The table (a seat a row), Downtime,
  * Crawler, then the tabs — so a Mediator on a phone keeps everything the Game
  * page gave them before (Q4). A 1024px tablet in landscape keeps the canvas.
  *
@@ -22,7 +23,7 @@ import { DisplayPanelFrame } from '../dashboard/DisplayPanel'
 import { LogTab } from '../dashboard/LogTab'
 import { SrdExplorer } from '../dashboard/SrdExplorer'
 import type { AlertLine, RollLine } from '../dashboard/useGameFeed'
-import { tokens } from '../index'
+import { Grid, tokens } from '../index'
 import { CrawlerMinor } from './CrawlerMinor'
 import type { CrawlerReading } from './crawlerReading.model'
 import type { DowntimeReading, DowntimeWrites } from './DowntimeMinor'
@@ -83,11 +84,15 @@ export type MediatorTableWrites = {
   onFailure: (err: unknown) => void
 }
 
-/** Rail · the table and the minors · the display, in the grid's three rows. */
+/**
+ * Rail · the table and the minors · the display, in the grid's three rows.
+ * A minor is wide enough that the crawler Row's chips keep their values on
+ * one line beside its name; the table takes the rest, two seats across.
+ */
 const PRIMARY = {
   height: '100%',
   display: 'grid',
-  gridTemplateColumns: 'minmax(0, 1fr) 218px 218px',
+  gridTemplateColumns: 'minmax(0, 1fr) 16rem 16rem',
   gap: '10px',
 } satisfies CSSProperties
 
@@ -104,12 +109,6 @@ const STACKED_RAIL = {
   minHeight: '40px',
   flexWrap: 'wrap',
   padding: space[8],
-} satisfies CSSProperties
-
-const STACKED_MINORS = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 16rem), 1fr))',
-  gap: space[10],
 } satisfies CSSProperties
 
 const STACKED_DISPLAY = { borderRadius: '6px' } satisfies CSSProperties
@@ -223,10 +222,10 @@ function Panels({
           {rail}
         </div>
         {seats}
-        <div style={STACKED_MINORS}>
+        <Grid min="16rem" gap={10}>
           {downtime}
           {crawler}
-        </div>
+        </Grid>
         <div className="su-dash-display su-dash-display-light" style={STACKED_DISPLAY}>
           {display}
         </div>

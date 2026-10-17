@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { useState } from 'react'
-import { Tab, TabList, TabPanel, Tabs, Toggle } from '../Tabs'
+import { Tab, TabList, TabPanel, Tabs, Toggle, ToggleGroup } from '../Tabs'
 
 const VALUES = ['resolve', 'reference', 'tables'] as const
 type Value = (typeof VALUES)[number]
@@ -108,5 +108,28 @@ describe('Toggle', () => {
     expect(reaction.className).toContain('su-tab')
     fireEvent.click(reaction)
     expect(presses).toEqual(['reaction'])
+  })
+})
+
+describe('ToggleGroup', () => {
+  it('is a frameless fieldset named by its hidden legend', () => {
+    render(
+      <ToggleGroup
+        label="Filter actions by timing"
+        className="su-dash-deck-tabs"
+        style={{ gap: 4 }}
+      >
+        <Toggle pressed onClick={() => {}}>
+          All
+        </Toggle>
+      </ToggleGroup>
+    )
+    const group = screen.getByRole('group', { name: 'Filter actions by timing' })
+    expect(group.tagName).toBe('FIELDSET')
+    expect(group.className).toBe('su-dash-deck-tabs')
+    expect(group.style.borderWidth === '0' || group.style.border.startsWith('0')).toBe(true)
+    expect(group.style.gap).toBe('4px')
+    expect(group.querySelector('legend')?.className).toBe('su-sr-only')
+    expect(screen.getByRole('button', { name: 'All' })).toBeTruthy()
   })
 })

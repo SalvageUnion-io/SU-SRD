@@ -25,7 +25,7 @@ import {
   repairPoolTl,
   repairScrapCost,
 } from '../../lib/rules/mechItems'
-import { Button, Entity, ModalShell, StatusBadge, tokens } from '../index'
+import { Button, DialogActions, Entity, ModalShell, StatusBadge, tokens } from '../index'
 import { SheetItemLine } from './SheetItemLine'
 import { CardRemoveButton } from './SheetSection'
 
@@ -63,13 +63,6 @@ const CONFIRM = {
   flexDirection: 'column',
   gap: tokens.space[12],
   padding: tokens.space[20],
-} satisfies CSSProperties
-
-const CONFIRM_ACTIONS = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[8],
-  justifyContent: 'flex-end',
 } satisfies CSSProperties
 
 type MechItemTokenProps = {
@@ -164,7 +157,7 @@ export function MechItemToken({
             Repairing costs {cost} Scrap (Tech {Math.max(1, itemTl ?? 1)} or higher) from the
             crawler pool.
           </p>
-          <div style={CONFIRM_ACTIONS}>
+          <DialogActions>
             <Button
               size="compact"
               variant="primary"
@@ -191,7 +184,7 @@ export function MechItemToken({
             <Button size="compact" variant="ghost" onClick={() => setConfirmingRepair(false)}>
               Cancel
             </Button>
-          </div>
+          </DialogActions>
         </div>
       </ModalShell>
     ) : null

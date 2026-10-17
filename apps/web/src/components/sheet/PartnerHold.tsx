@@ -24,7 +24,7 @@
 import type { CSSProperties } from 'react'
 import { reportCargo } from '../../lib/cargo/reportCargo'
 import type { UsePartnerCargoResult } from '../../lib/cargo/usePartnerCargo'
-import { Button, EmptyState, Slab, Stat, tokens } from '../index'
+import { Button, EmptyState, Slab, Stack, Stat, tokens } from '../index'
 import { CargoLotRow } from '../shared/CargoLotRow'
 
 type PartnerHoldProps = {
@@ -33,12 +33,6 @@ type PartnerHoldProps = {
   crawlerLinked: boolean
   readOnly?: boolean
 }
-
-const HOLD = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[16],
-} satisfies CSSProperties
 
 /** A side's Slab, close over its lots. */
 const SIDE_SLAB = { marginBottom: tokens.space[4] } satisfies CSSProperties
@@ -60,7 +54,7 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
   const loadBlocked = crawlerLocked ?? (usage.free <= 0 ? 'The hold is full.' : null)
 
   return (
-    <div style={HOLD}>
+    <Stack gap={16}>
       {/* Over-capacity is shown honestly rather than clamped — same rule the
           mech Hold follows. */}
       <Stat orientation="horizontal" label="Cargo" value={usage.used} max={usage.cap} />
@@ -128,6 +122,6 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
           )}
         </div>
       )}
-    </div>
+    </Stack>
   )
 }

@@ -33,9 +33,11 @@ import {
   EmptyState,
   Entity,
   EntitySearcher,
+  Pending,
   ReferenceEntityCard,
   SearchField,
   Slab,
+  Stack,
   tokens,
   useSearchCombobox,
 } from '../index'
@@ -128,7 +130,7 @@ function SrdHome({
   const open = results.length > 0
 
   return (
-    <div style={STACK}>
+    <Stack gap={12}>
       <div>
         <SearchField
           type="text"
@@ -218,9 +220,9 @@ function SrdHome({
           ))}
         </div>
       ) : (
-        <div className="su-dash-display-note">Loading reference data…</div>
+        <Pending label="reference data" />
       )}
-    </div>
+    </Stack>
   )
 }
 
@@ -265,7 +267,7 @@ export function SrdExplorer() {
     if (!ready) {
       return (
         <div className="su-dash-display-scroll">
-          <div className="su-dash-display-note">Loading reference data…</div>
+          <Pending label="reference data" />
         </div>
       )
     }

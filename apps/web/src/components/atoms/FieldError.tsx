@@ -1,11 +1,13 @@
-import type { CSSProperties, ReactNode } from 'react'
-import { color, font, fontSize } from '../../design/tokens'
+import type { ComponentProps, ReactNode } from 'react'
+import { Message } from './Message'
 
 type FieldErrorProps = {
   /** The message. Renders nothing when null/undefined/false — call sites can pass a bare expression. */
   children?: ReactNode
-  /** Call-site spacing only (`mt-1`, `mb-0 mt-2`, …). Never restyle colour or type here. */
+  /** Call-site classes (spacing only). Never restyle colour or type here. */
   className?: string
+  /** Call-site spacing: the margin above the line, a step of the space scale. */
+  spaceAbove?: ComponentProps<typeof Message>['spaceAbove']
   /**
    * DOM id, so an input can point at this message with `aria-describedby` —
    * the standard way to associate an error with the control it describes.
@@ -20,13 +22,6 @@ type FieldErrorProps = {
   id?: string
 }
 
-const ERROR_LINE = {
-  color: color.statusBad,
-  display: 'block',
-  fontFamily: font.body,
-  fontSize: fontSize.caption,
-} satisfies CSSProperties
-
 /**
  * FieldError — the ONE single-message validation / advisory line.
  *
@@ -40,22 +35,15 @@ const ERROR_LINE = {
  *   - `Banner`  — a LIST of soft warnings with severity pills.
  *   - `Callout` — a 3px accent-framed CONTENT note; no aria role.
  *   - `FieldError` — one inline message, announced via `role="alert"`.
+ *
+ * It is `Message tone="bad"` under the validation name; the empty-child guard
+ * and the block-level `<span>` (valid inside phrasing content, such as
+ * InlineEditField's wrapper) are Message's.
  */
-export function FieldError({ children, className, id }: FieldErrorProps) {
-  // A falsy child is the common shape at call sites (`{error && <p…>}` becomes
-  // `<FieldError>{error}</FieldError>`), so absorb it rather than rendering an
-  // empty alert — an empty live region still announces on some screen readers.
-  if (children === null || children === undefined || children === false || children === '') {
-    return null
-  }
-
-  // A block-level <span>, not a <p>: several call sites sit inside phrasing
-  // content (InlineEditField wraps its editor and error in a <span>), where a
-  // <p> is invalid nesting. A span carries role="alert" identically and, having
-  // no default margin, matches the zero margin most call sites already specified.
+export function FieldError({ children, className, spaceAbove, id }: FieldErrorProps) {
   return (
-    <span id={id} role="alert" className={className} style={ERROR_LINE}>
+    <Message tone="bad" id={id} className={className} spaceAbove={spaceAbove}>
       {children}
-    </span>
+    </Message>
   )
 }

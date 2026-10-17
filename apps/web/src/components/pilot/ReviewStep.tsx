@@ -60,7 +60,7 @@ export function ReviewStep({ form, submitError, _sur }: ReviewStepProps) {
           <RecapTokens label="Abilities" entities={chosenAbilities} />
           <RecapTokens label="Equipment" entities={chosenEquipment} />
         </Recap>
-        {submitError && <FieldError className="su-wiz-review-error">{submitError}</FieldError>}
+        {submitError && <FieldError spaceAbove={12}>{submitError}</FieldError>}
       </Panel>
 
       {/* chosen cards */}

@@ -10,7 +10,7 @@
  */
 
 import { beforeAll, describe, expect, test } from 'bun:test'
-import { act, fireEvent, render, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { crawlerFixture, mechFixture } from '../../__tests__/fixtures'
 import { hydrateStores } from '../../__tests__/hydrateStores'
@@ -203,7 +203,7 @@ describe('DisplayPicker (the Reference tab’s entity)', () => {
     const { container } = render(
       <DisplayPicker focus="pilot" options={options} onFocus={() => {}} />
     )
-    expect(container.querySelector('fieldset')?.getAttribute('aria-label')).toBe('Reference')
+    expect(screen.getByRole('group', { name: 'Reference' }).tagName).toBe('FIELDSET')
     expect(container.querySelector('[role="tablist"], [role="tab"], [role="listbox"]')).toBeNull()
   })
 })

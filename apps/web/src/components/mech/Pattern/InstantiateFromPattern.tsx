@@ -16,18 +16,11 @@
  */
 
 import type { MechPattern } from 'cantina-domain/schemas/pattern'
-import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { useServerAction } from '../../../lib/connection/useServerAction'
 import { mechFromPattern } from '../../../lib/patterns/patterns'
 import { useEntityStore } from '../../../stores/entityStore'
-import { Button, ConfirmDialog, FieldError, tokens } from '../../index'
-
-const ROOT = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[4],
-} satisfies CSSProperties
+import { Button, ConfirmDialog, FieldError, Stack } from '../../index'
 
 type InstantiateFromPatternProps = {
   pattern: MechPattern
@@ -49,7 +42,7 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
   }
 
   return (
-    <div style={ROOT}>
+    <Stack gap={4}>
       <Button
         type="button"
         size="compact"
@@ -70,6 +63,6 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
         onConfirm={() => void handleInstantiate()}
       />
       {error && <FieldError>{error}</FieldError>}
-    </div>
+    </Stack>
   )
 }

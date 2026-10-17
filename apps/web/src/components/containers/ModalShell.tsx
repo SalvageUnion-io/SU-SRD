@@ -1,10 +1,8 @@
 import { AlertDialog } from '@base-ui/react/alert-dialog'
 import { Dialog } from '@base-ui/react/dialog'
-import { X } from 'lucide-react'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
-import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
-import { cn } from '../../lib/cn'
-import { buttonVariants } from '../atoms/buttonVariants'
+import { color, font, fontSize, layer, space, tracking, weight } from '../../design/tokens'
+import { CloseButton } from '../atoms/CloseButton'
 import { useEntitySurface } from '../entity/entitySurfaceContext'
 import { paintFor } from '../entity/parts/paint'
 import { TitledBox } from './TitledBox'
@@ -86,7 +84,7 @@ const CONTAINED_BACKDROP = { position: 'absolute' } satisfies CSSProperties
 const CONTAINED_POPUP = {
   position: 'absolute',
   inset: 0,
-  zIndex: 50,
+  zIndex: layer.overlay,
   outline: 'none',
 } satisfies CSSProperties
 
@@ -94,7 +92,7 @@ const CONTAINED_POPUP = {
 const POPUP = {
   position: 'fixed',
   inset: 0,
-  zIndex: 50,
+  zIndex: layer.overlay,
   height: 'fit-content',
   maxHeight: 'calc(100vh - 4rem)',
   width: '100%',
@@ -118,13 +116,11 @@ const SUBTITLE = {
   color: color.wkMuted,
 } satisfies CSSProperties
 
-const CLOSE_ICON = { width: space[20], height: space[20] } satisfies CSSProperties
-
 /** A full-screen popup covers the viewport and scrolls inside itself. */
 const FULLSCREEN_POPUP = {
   position: 'fixed',
   inset: 0,
-  zIndex: 50,
+  zIndex: layer.overlay,
   overflowY: 'auto',
   outline: 'none',
 } satisfies CSSProperties
@@ -205,15 +201,8 @@ export function ModalShell({
             body="flush"
             controls={
               <Dialog.Close
-                className={cn(
-                  buttonVariants({ variant: 'quiet', size: 'iconOnly' }),
-                  'su-modal-close'
-                )}
-                data-on-paper={paint.color === 'var(--color-paper)' || undefined}
-              >
-                <X style={CLOSE_ICON} />
-                <span className="su-sr-only">Close</span>
-              </Dialog.Close>
+                render={<CloseButton onPaper={paint.color === 'var(--color-paper)'} />}
+              />
             }
           >
             {subtitle && <p style={SUBTITLE}>{subtitle}</p>}

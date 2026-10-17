@@ -21,7 +21,7 @@ import {
   tracking,
   weight,
 } from '../../design/tokens'
-import { buttonVariants } from '../index'
+import { buttonVariants, EmptyState } from '../index'
 import { AppLink } from '../shared/AppLink'
 import type { AlertLine } from './useGameFeed'
 
@@ -59,8 +59,6 @@ const ALERT = {
 } satisfies CSSProperties
 
 const SPACER = { flex: 1 } satisfies CSSProperties
-
-const QUIET = { ...LABEL, textTransform: 'none', letterSpacing: 'normal' } satisfies CSSProperties
 
 /**
  * The phone menu's Game box (ADR-045 D9): one row each, so a long Game name
@@ -120,7 +118,7 @@ export function DashboardStrip({
           Inbox · {proposals(inbox)}
         </AppLink>
       ) : (
-        <span style={QUIET}>No proposals waiting</span>
+        <EmptyState variant="inline" body="No proposals waiting" />
       )}
     </section>
   )

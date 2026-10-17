@@ -13,25 +13,17 @@ const { space } = tokens
 export const GAME_MEASURE = '75rem'
 
 /**
- * The page body under the band. Its side padding and centring are
- * `.su-page-column`'s, the band's row padding; the height reserves a stable
- * footprint, so the roster replacing the skeleton does not shift the page.
+ * The page body under the band (`PageShell`'s measured body, at
+ * `GAME_MEASURE`): its height reserves a stable footprint, so the roster
+ * replacing the skeleton does not shift the page.
  */
-export const GAME_BODY = {
-  maxWidth: GAME_MEASURE,
-  minHeight: '60vh',
-  paddingBottom: space[48],
-  paddingTop: space[20],
-} satisfies CSSProperties
+export const GAME_BODY = { minHeight: '60vh' } satisfies CSSProperties
 
 /** The two columns of sections under the roster. */
-export const HUB_COLUMNS = {
-  alignItems: 'start',
-  display: 'grid',
-  gap: `${space[32]} ${space[32]}`,
-  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 26rem), 1fr))',
-  marginTop: space[40],
-} satisfies CSSProperties
+export const HUB_COLUMNS = { alignItems: 'start', marginTop: space[40] } satisfies CSSProperties
+
+/** `HUB_COLUMNS`' narrowest column (a `Grid`'s `min`). */
+export const HUB_COLUMN_MIN = '26rem'
 
 /** One column: its sections stacked. */
 export const HUB_COLUMN = {

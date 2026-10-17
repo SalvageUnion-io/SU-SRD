@@ -19,6 +19,8 @@ import {
 import type { useEntityStore } from '../../stores/entityStore'
 import type { ChoiceSelections } from '../index'
 import {
+  AdderBox,
+  AdderField,
   Button,
   Entity,
   Input,
@@ -32,6 +34,7 @@ import {
 import { useEntityChoices } from '../shared/useEntityChoices'
 import { SheetItemLine } from './SheetItemLine'
 import { CardRemoveButton } from './SheetSection'
+import { UsedToggle } from './UsedToggle'
 
 /** An inventory item in Edit: the pill, its control row, then any details. */
 const ITEM_EDIT = {
@@ -84,32 +87,10 @@ const ENTRY_NOTE = {
   lineHeight: 'calc(1 / 0.75)',
 } satisfies CSSProperties
 
-const ADDER = {
-  alignItems: 'center',
-  border: `${tokens.borderWidth.chrome} dashed ${tokens.color.wkFaint}`,
-  borderRadius: tokens.radius.card,
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[8],
-  padding: tokens.space[10],
-} satisfies CSSProperties
-
 /** The adder's inputs, a rung smaller than the `Input` skin. */
 const NAME_INPUT = { flex: '1 1 0%', width: '9rem' } satisfies CSSProperties
 
 const NUMBER_INPUT = { width: '3.5rem' } satisfies CSSProperties
-
-const ADDER_LABEL = {
-  alignItems: 'center',
-  color: tokens.color.wkMuted,
-  display: 'flex',
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.badge,
-  fontWeight: tokens.weight.bold,
-  gap: tokens.space[4],
-  letterSpacing: '0.025em',
-  textTransform: 'uppercase',
-} satisfies CSSProperties
 
 /** Per-item condition cycle (Intact → Damaged → Destroyed → Intact). */
 const CONDITION_CYCLE: Record<ItemCondition, ItemCondition> = {
@@ -178,7 +159,8 @@ export function PilotAbilityItem({
         <>
           {apCost !== null && (
             <Button
-              className="su-sheet-ctl"
+              variant="pencil"
+              className="su-sheet-item__ctl"
               aria-label={`Spend ${apCost} AP for ${ability.name}`}
               disabled={currentAP < apCost}
               onClick={() => onSpend(apCost)}
@@ -186,14 +168,12 @@ export function PilotAbilityItem({
               Spend AP
             </Button>
           )}
-          <Button
-            className="su-sheet-ctl"
+          <UsedToggle
+            className="su-sheet-item__ctl"
+            used={used}
+            onToggle={onToggleUsed}
             aria-label={used ? `Recharge ${ability.name}` : `Mark ${ability.name} used`}
-            aria-pressed={used}
-            onClick={() => onToggleUsed(!used)}
-          >
-            {used ? 'Used' : 'Mark Used'}
-          </Button>
+          />
         </>
       }
     />
@@ -336,7 +316,8 @@ export function PilotEquipmentItem({
         actions={
           hasChoices && (
             <Button
-              className="su-sheet-ctl"
+              variant="pencil"
+              className="su-sheet-item__ctl"
               {...details.toggleProps}
               aria-label={`${details.open ? 'Collapse' : 'Expand'} ${equipment.name}`}
             >
@@ -425,7 +406,7 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
   }
 
   return (
-    <div style={ADDER}>
+    <AdderBox>
       <Button
         size="compact"
         aria-label="Add Scrap (3 slots)"
@@ -444,8 +425,7 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
         onChange={(e) => setName(e.target.value)}
         style={NAME_INPUT}
       />
-      <label htmlFor="new-item-slots" style={ADDER_LABEL}>
-        Slots
+      <AdderField label="Slots" htmlFor="new-item-slots">
         <Input
           size="compact"
           id="new-item-slots"
@@ -457,9 +437,8 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
           onChange={(e) => setSlots(Number(e.target.value))}
           style={NUMBER_INPUT}
         />
-      </label>
-      <label htmlFor="new-item-qty" style={ADDER_LABEL}>
-        Qty
+      </AdderField>
+      <AdderField label="Qty" htmlFor="new-item-qty">
         <Input
           size="compact"
           id="new-item-qty"
@@ -471,7 +450,7 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
           onChange={(e) => setQty(Math.max(1, Number(e.target.value)))}
           style={NUMBER_INPUT}
         />
-      </label>
+      </AdderField>
       <Button
         size="compact"
         disabled={!name.trim()}
@@ -480,7 +459,7 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
       >
         Add
       </Button>
-    </div>
+    </AdderBox>
   )
 }
 

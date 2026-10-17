@@ -12,7 +12,7 @@ import { PRODUCT } from 'cantina-domain/product'
 import type { CSSProperties, ReactNode } from 'react'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { DocPage } from '../components/DocPage'
-import { buttonVariants, InlineRef, Panel, Slab } from '../components/index'
+import { buttonVariants, InlineRef, Panel, Slab, Stack } from '../components/index'
 import { borderWidth, color, font, fontSize, space } from '../design/tokens'
 import type { DiscordCommand } from '../generated/discordCommands'
 import { DISCORD_COMMANDS } from '../generated/discordCommands'
@@ -22,7 +22,6 @@ import {
   ASIDE,
   BOLD,
   bulletList,
-  column,
   ITALIC,
   inlineCode,
   PANEL_BODY,
@@ -69,7 +68,6 @@ const installButtonClass = buttonVariants({ variant: 'primary', size: 'full' })
 
 const PROSE_12 = proseColumn(space[12])
 const PROSE_16 = proseColumn(space[16])
-const COLUMN_24 = column(space[24])
 const CODE = inlineCode()
 const LIST_4 = bulletList(space[4], 'margin')
 const LIST_8 = bulletList(space[8], 'margin')
@@ -234,7 +232,7 @@ function page(): PageResult {
         </section>
 
         {/* Commands: every /su subcommand, from the bot's own builder */}
-        <section style={COLUMN_24}>
+        <Stack as="section" gap={24}>
           <Slab as="h2" variant="solid" label="Commands" />
 
           {reference.map((command) => (
@@ -249,7 +247,7 @@ function page(): PageResult {
               </div>
             </Panel>
           ))}
-        </section>
+        </Stack>
 
         <section style={PROSE_12}>
           <Slab as="h2" variant="solid" label={`With ${PRODUCT.name}`} />

@@ -7,26 +7,12 @@
  */
 
 import type { CSSProperties } from 'react'
-import { Slab, tokens } from '../index'
+import { Grid, Slab, Stack, tokens } from '../index'
 import { StarterCard } from './StarterCard'
 import { starterShelves } from './starterShelves.model'
 
 /** Cards that fit as many ~18rem columns as there is room for; one on a phone. */
-const GRID = {
-  alignItems: 'start',
-  display: 'grid',
-  gap: tokens.space[16],
-  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 18rem), 1fr))',
-  listStyle: 'none',
-  margin: 0,
-  padding: 0,
-} satisfies CSSProperties
-
-const SHELF = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[10],
-} satisfies CSSProperties
+const GRID = { alignItems: 'start' } satisfies CSSProperties
 
 const CARDS = {
   display: 'flex',
@@ -39,12 +25,13 @@ const CARDS = {
 
 export function StarterSetGrid() {
   return (
-    <div style={GRID}>
+    <Grid min="18rem" gap={16} style={GRID}>
       {starterShelves().map((shelf) => (
-        <section
+        <Stack
+          as="section"
+          gap={10}
           key={shelf.kind}
           aria-label={`Starter Set ${shelf.title.toLowerCase()}`}
-          style={SHELF}
         >
           {/* Each kind's section stamp is a Slab, as on `/starter` (ruleset
               §3.2: slabs section). */}
@@ -56,8 +43,8 @@ export function StarterSetGrid() {
               </li>
             ))}
           </ul>
-        </section>
+        </Stack>
       ))}
-    </div>
+    </Grid>
   )
 }

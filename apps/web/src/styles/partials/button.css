@@ -117,6 +117,23 @@
   color: var(--color-ink);
 }
 
+/* Pencil: paper on a dashed ink edge, the control on an editable sheet line
+   (dashed means editable, as the User-made stamp is dashed: ruleset §3.9). It
+   inverts to ink under the pointer, and stays inverted while pressed (an
+   ability marked Used). */
+.su-btn--pencil {
+  background-color: var(--color-paper);
+  border-color: var(--color-ink);
+  border-style: dashed;
+  color: var(--color-ink);
+}
+
+.su-btn--pencil:hover:not(:disabled),
+.su-btn--pencil[aria-pressed='true'] {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
 /*
  * The DRAINED disabled treatment, for the FILLED variants only.
  *
@@ -164,6 +181,22 @@
 .su-btn--instrument.su-btn--ghost:hover:not(:disabled) {
   background-color: var(--color-paper);
   border-color: var(--color-ink-50);
+}
+
+/*
+ * INK × ghost — the on-ink ghost: a paper outline with paper text on an ink
+ * band or plate (Shelves' and the Roster's band, a wizard's ink pill), a
+ * faint paper wash under the pointer. Two classes, like the instrument
+ * ghost, so it beats plain `.su-btn--ghost` without relying on source order.
+ */
+.su-btn--on-ink.su-btn--ghost {
+  background-color: transparent;
+  border-color: var(--color-paper);
+  color: var(--color-paper);
+}
+
+.su-btn--on-ink.su-btn--ghost:hover:not(:disabled) {
+  background-color: var(--color-paper-15);
 }
 
 /* ── The Sizes (styles/sizing.ts). Each Size's height is its token

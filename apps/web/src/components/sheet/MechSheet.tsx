@@ -66,10 +66,12 @@ import {
   Conditions,
   EmptyState,
   EntitySearcher,
+  Eyebrow,
   Field,
   FieldError,
   heatDangerFrom,
   SheetSectionSlab,
+  Stack,
   tokens,
   VitalGauge,
 } from '../index'
@@ -118,15 +120,6 @@ const CONDITIONS = {
   width: '100%',
 } satisfies CSSProperties
 
-const CONDITIONS_LABEL = {
-  color: 'var(--tone-deep, var(--color-ink))',
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.badge,
-  fontWeight: tokens.weight.bold,
-  letterSpacing: tokens.tracking.caps,
-  textTransform: 'uppercase',
-} satisfies CSSProperties
-
 /** The book's pattern behind an over-slot loadout (`computeMechCapacity`'s `asPrinted`). */
 type AsPrinted = { pattern: string; cite: string } | undefined
 
@@ -155,12 +148,6 @@ function slotCount(used: number, max: number, asPrinted: AsPrinted): SlabCount {
   }
   return { label: 'Slots', value: used, max, ...(used > max ? { state: 'critical' } : {}) }
 }
-
-const PARTNERS = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[12],
-} satisfies CSSProperties
 
 type MechSheetProps = {
   mech: Mech
@@ -421,7 +408,7 @@ export function MechSheet({
                 prints as chips only when there is one to read. */}
             {(!readOnly || readConditions.length > 0) && (
               <div style={CONDITIONS}>
-                <span style={CONDITIONS_LABEL}>Conditions</span>
+                <Eyebrow tone="toneDeep">Conditions</Eyebrow>
                 {readOnly ? (
                   <Conditions conditions={readConditions} />
                 ) : (
@@ -492,7 +479,7 @@ export function MechSheet({
           Union Crawler, unlike a pilot's ability-granted partners. ===== */}
       {(mech.partners ?? []).length > 0 && (
         <SheetSectionSlab title="Partners">
-          <div style={PARTNERS}>
+          <Stack gap={12}>
             {(mech.partners ?? []).map((partner) => (
               <PartnerCard
                 key={partner.id}
@@ -502,7 +489,7 @@ export function MechSheet({
                 store={store}
               />
             ))}
-          </div>
+          </Stack>
         </SheetSectionSlab>
       )}
 

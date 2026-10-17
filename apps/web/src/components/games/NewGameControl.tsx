@@ -26,7 +26,18 @@ import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { useShowContainer } from '../entityContainer/useShowContainer'
-import { Button, Field, FieldError, Input, ModalShell, PageHeading, Text, tokens } from '../index'
+import {
+  Button,
+  Field,
+  FieldError,
+  Input,
+  ModalShell,
+  PageHeading,
+  Pending,
+  Stack,
+  Text,
+  tokens,
+} from '../index'
 
 type TemplateId = FunctionArgs<typeof api.templates.createGame>['templateId']
 
@@ -65,8 +76,8 @@ const GROW = { flex: '1 1 12rem', minWidth: 0 } satisfies CSSProperties
 const HINT = { textAlign: 'left' } satisfies CSSProperties
 
 type NewGameControlProps = {
-  /** Extra classes for the trigger (the Shelves band's on-ink outline). */
-  className?: string
+  /** The ground it sits on: `ink` on Shelves' band, where it is the on-ink ghost. */
+  ground?: 'paper' | 'ink'
 }
 
 type NewGameDialogProps = {
@@ -111,7 +122,7 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
   return (
     <ModalShell open={open} onOpenChange={onOpenChange} title="New Game">
       <div style={BODY}>
-        <section aria-labelledby="new-game-start" style={SECTION}>
+        <Stack as="section" gap={10} aria-labelledby="new-game-start">
           <PageHeading variant="section" as="h3" id="new-game-start">
             Start a Game
           </PageHeading>
@@ -135,19 +146,15 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
               Create
             </Button>
           </div>
-        </section>
+        </Stack>
 
         <section aria-labelledby="new-game-template" style={RULED}>
           <PageHeading variant="section" as="h3" id="new-game-template">
             From a template
           </PageHeading>
-          {templates === undefined && (
-            <Text variant="hint" style={HINT}>
-              Loading templates…
-            </Text>
-          )}
+          {templates === undefined && <Pending label="templates" />}
           {templates?.map((t) => (
-            <div key={t.id} style={SECTION}>
+            <Stack gap={10} key={t.id}>
               <PageHeading as="h4">{t.name}</PageHeading>
               <Text variant="hint" style={HINT}>
                 {t.description}
@@ -163,7 +170,7 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
                   Start this Game
                 </Button>
               </div>
-            </div>
+            </Stack>
           ))}
         </section>
 
@@ -184,11 +191,16 @@ export function NewGameDialog(props: NewGameDialogProps) {
   return <ConnectedNewGameDialog {...props} />
 }
 
-function ConnectedNewGameControl({ className }: NewGameControlProps) {
+function ConnectedNewGameControl({ ground = 'paper' }: NewGameControlProps) {
   const [open, setOpen] = useState(false)
   return (
     <>
-      <Button variant="default" size="compact" onClick={() => setOpen(true)} className={className}>
+      <Button
+        variant={ground === 'ink' ? 'ghost' : 'default'}
+        surface={ground}
+        size="compact"
+        onClick={() => setOpen(true)}
+      >
         + New Game
       </Button>
       <ConnectedNewGameDialog open={open} onOpenChange={setOpen} />

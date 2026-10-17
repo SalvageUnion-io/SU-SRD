@@ -3,13 +3,24 @@ import { font, fontSize, space, weight } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { DISABLED, FOCUS_RING } from './interaction'
 
-type StepButtonProps = ComponentPropsWithRef<'button'>
+type StepButtonProps = ComponentPropsWithRef<'button'> & {
+  /**
+   * The ground the button sits on, which picks its plate: on `paper` it is the
+   * ink block with a paper glyph (CountStepper's pill); on `ink` it inverts to
+   * a paper block with an ink glyph (an inverse `Stat`).
+   */
+  ground?: 'paper' | 'ink'
+  /**
+   * `square` (default) is the 24×24 button; `cell` takes the height of the
+   * cell it stands beside (an editable `Stat`), its width from the caller.
+   */
+  fit?: 'square' | 'cell'
+}
 
 /**
- * The static geometry and type. The ground, frame, radius and ink stay in
- * `.su-step-btn` (`styles/index.css`): the ground has a hover, the tap floor a
- * breakpoint, and `CountStepper` re-skins the frame and fill through
- * `className`, which an inline style would outrank.
+ * The static type and alignment. The plate, radius and tap floor stay in
+ * `.su-step-btn` (`styles/index.css`): the plate has a hover, the tap floor a
+ * breakpoint, and an inline style would outrank both.
  */
 const STEP_BUTTON = {
   alignItems: 'center',
@@ -18,26 +29,43 @@ const STEP_BUTTON = {
   fontFamily: font.body,
   fontSize: fontSize.lede,
   fontWeight: weight.bold,
-  height: space[24],
   justifyContent: 'center',
   lineHeight: 1,
-  width: space[24],
 } satisfies CSSProperties
 
+const SQUARE = { ...STEP_BUTTON, height: space[24], width: space[24] } satisfies CSSProperties
+
+const GROUND = { paper: 'su-step-btn--on-paper', ink: 'su-step-btn--on-ink' } as const
+
 /**
- * 24×24 stat stepper button (design-spec §2.10 `stepbtn`): '–'/'+' beside a
- * StatBlock value. Hovers to the sheet `--ground` when present. Stays visually
- * 24px square on desktop; `.su-step-btn` grows the tap area to the 44px touch
- * minimum below `sm` without changing the desktop layout.
+ * The one +/− stepper button (design-spec §2.10 `stepbtn`): CountStepper's
+ * pill and an editable `Stat` both draw it. `square` stays visually 24px on
+ * desktop; `.su-step-btn` grows the tap area to the 44px touch minimum below
+ * `sm` without changing the desktop layout.
  * The accessible name comes from the caller (pass an `aria-label`).
  */
-export function StepButton({ className, style, type = 'button', ref, ...props }: StepButtonProps) {
+export function StepButton({
+  className,
+  style,
+  type = 'button',
+  ground = 'paper',
+  fit = 'square',
+  ref,
+  ...props
+}: StepButtonProps) {
   return (
     <button
       ref={ref}
       type={type}
-      className={cn('su-step-btn', FOCUS_RING, DISABLED, className)}
-      style={{ ...STEP_BUTTON, ...style }}
+      className={cn(
+        'su-step-btn',
+        GROUND[ground],
+        fit === 'cell' && 'su-step-btn--cell su-stat-step',
+        FOCUS_RING,
+        DISABLED,
+        className
+      )}
+      style={{ ...(fit === 'square' ? SQUARE : STEP_BUTTON), ...style }}
       {...props}
     />
   )

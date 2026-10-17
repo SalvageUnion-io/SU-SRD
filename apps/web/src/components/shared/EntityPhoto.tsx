@@ -22,7 +22,7 @@ import type { Id } from '../../../convex/_generated/dataModel'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import type { PhotoUploader } from '../../lib/photos/uploadPhoto'
 import { PhotoRefused, postPhoto, shrinkPhoto, uploadPhoto } from '../../lib/photos/uploadPhoto'
-import { assetSrcSetFor, Button, Text, tokens } from '../index'
+import { assetSrcSetFor, Button, EmptyState, tokens } from '../index'
 
 /** Default art from the artwork CDN, which serves `-440q80`/`-880q80` derivatives. */
 export type DefaultArt = { url: string; alt: string }
@@ -123,7 +123,7 @@ export function EntityPhoto({ photo, fallback, name, onChange, frame }: EntityPh
     <figure style={FIGURE} className="su-entity-photo">
       {src === undefined ? (
         <div style={{ ...EMPTY, ...frame }}>
-          <Text variant="hint">No picture yet.</Text>
+          <EmptyState variant="inline" body="No picture yet." bodyInk="inherit" />
         </div>
       ) : (
         <div style={{ ...FRAME, ...frame }}>

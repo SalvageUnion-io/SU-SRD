@@ -32,7 +32,7 @@ import { runWrite } from '../../lib/runWrite'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { MoveToContainerControl } from '../entityContainer/MoveToContainerControl'
-import { Badge, Button, ChapterBand, Slab, Text, tokens, UserMadeStamp } from '../index'
+import { Badge, Button, ChapterBand, Grid, Slab, Text, tokens, UserMadeStamp } from '../index'
 import { AppLink } from '../shared/AppLink'
 import { EntityPhoto } from '../shared/EntityPhoto'
 import type { Confirm } from '../shared/useConfirm'
@@ -42,9 +42,6 @@ import { NpcCard } from './NpcCard'
 import { COLUMN, NOTE, PAGE, ROW } from './npcStyles.model'
 
 const COLUMNS = {
-  display: 'grid',
-  gap: tokens.space[32],
-  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 26rem), 1fr))',
   margin: '0 auto',
   maxWidth: '80rem',
   padding: `${tokens.space[24]} ${tokens.space[16]} 0`,
@@ -152,7 +149,7 @@ export function NpcSheet({
         {npc.name}
       </ChapterBand>
 
-      <div style={COLUMNS}>
+      <Grid min="26rem" gap={32} style={COLUMNS}>
         <section style={COLUMN} aria-labelledby="npc-stat-block">
           <Slab variant="solid" id="npc-stat-block" label="Stat block" />
           <NpcCard npc={view} madeBy={madeBy} />
@@ -241,7 +238,7 @@ export function NpcSheet({
             </p>
           )}
         </section>
-      </div>
+      </Grid>
       {editable && (
         <ShareStatusDialog
           kind="npc"

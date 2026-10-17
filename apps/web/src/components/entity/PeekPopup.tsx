@@ -1,5 +1,5 @@
 import { PreviewCard } from '@base-ui/react/preview-card'
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { Component, useEffect, useState } from 'react'
 import type { EntitySchemaName, RefEntity } from 'salvageunion-reference'
 import {
@@ -7,12 +7,16 @@ import {
   nestedEntityGroups,
   SalvageUnionReference,
 } from 'salvageunion-reference'
+import { layer } from '../../design/tokens'
 import { Skeleton } from '../containers/Skeleton'
 import type { Down } from '../referenceEntity/card/cardChrome'
 import type { PeekLoader } from './Peek'
 import { PeekCard } from './PeekCard'
 import { PEEK_POPUP_ATTRIBUTE } from './peekController'
 import { PEEK_PLATE } from './peekPlate'
+
+/** A peek hangs at the overlay layer, over the page and its sticky bars. */
+const PEEK_LAYER = { zIndex: layer.overlay } satisfies CSSProperties
 
 function isEntitySchema(name: string): name is EntitySchemaName {
   const names: ReadonlySet<string> = EntitySchemaNames
@@ -108,7 +112,7 @@ export function PeekPopup({
           align="start"
           sideOffset={5}
           collisionPadding={8}
-          style={{ zIndex: 50 }}
+          style={PEEK_LAYER}
         >
           <PreviewCard.Popup
             id={id}

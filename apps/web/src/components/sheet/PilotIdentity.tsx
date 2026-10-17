@@ -37,23 +37,9 @@ import { ClassPathPicker } from '../pilot/ClassPathPicker'
 import { selectableClasses } from '../wizard/classOptions.model'
 import { SheetPickerModal } from './SheetSection'
 import type { SheetPatch } from './sheetViewProps.model'
+import { UsedPip, UsedToggle } from './UsedToggle'
 
 export type UsedToggleKey = 'background' | 'motto' | 'keepsake'
-
-/** The used pip: a hollow chip in the stamp's current colour. */
-const PIP = {
-  border: `${tokens.borderWidth.pill} solid currentColor`,
-  borderRadius: tokens.radius.badge,
-  flexShrink: 0,
-  height: '12px',
-  width: '16px',
-} satisfies CSSProperties
-
-/** Set: the pip fills with the sheet's tone. */
-const PIP_SET = {
-  backgroundColor: 'var(--tone, var(--color-pilot))',
-  borderColor: 'var(--tone, var(--color-pilot))',
-} satisfies CSSProperties
 
 const USED_CHIP = { gap: tokens.space[6] } satisfies CSSProperties
 
@@ -100,8 +86,12 @@ const PICKER_ACTIONS = {
 // always available while editable (not gated behind the section edit).
 // ---------------------------------------------------------------------------
 
-/** Round `.used` pill toggle (poster design-spec): hollow leading dot, ON =
- * ink fill + white text + accent-filled dot. */
+/**
+ * A trait's once-per-Downtime flag: the shared `UsedToggle` while editable
+ * (live play, not gated behind the section edit), at the Mini Size beside the
+ * field's label. Read-only, a static "Used" stamp shows only when set (an
+ * unset one would be a control that isn't).
+ */
 function UsedChip({
   label,
   used,
@@ -111,36 +101,22 @@ function UsedChip({
   used: boolean
   onToggle?: (next: boolean) => void
 }) {
-  // The stamp itself never changes: black at every state, so the row's shape is
-  // stable and the eye isn't asked to re-read the label to learn the state.
-  // ONLY the pip carries it — a small CHIP (the stamp's own rectangular
-  // vocabulary), hollow when unset and tone-filled when set.
-  const pip = <span aria-hidden="true" style={{ ...PIP, ...(used && PIP_SET) }} />
   if (!onToggle) {
-    // Read-only: the stamp shows only when set (nothing to toggle, so an unset
-    // one would be a control that isn't).
     if (!used) return null
     return (
       <Badge shape="chip" style={USED_CHIP}>
-        {pip}
+        <UsedPip used />
         Used
       </Badge>
     )
   }
-  // Interactive: `aria-pressed` carries the state for assistive tech, since the
-  // surface does not show it visually.
   return (
-    <Badge
-      as="button"
-      shape="chip"
-      aria-pressed={used}
+    <UsedToggle
+      size="mini"
+      used={used}
+      onToggle={onToggle}
       aria-label={used ? `Reset ${label} used` : `Mark ${label} used`}
-      onClick={() => onToggle(!used)}
-      style={USED_CHIP}
-    >
-      {pip}
-      Used
-    </Badge>
+    />
   )
 }
 

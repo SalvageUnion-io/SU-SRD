@@ -60,6 +60,21 @@ export const size = {
 } as const
 
 /**
+ * The stacking layers, lowest first — the only z-index values above a page's
+ * own local stacking (`--z-*` in theme.css). A sticky bar sits under a page
+ * popover, which sits under every overlay (the masthead, a dialog and its
+ * scrim, a drawer, a tooltip or peek); a menu hanging off the masthead, or a
+ * stamp riding a dialog's frame, sits above them; the skip link tops all.
+ */
+export const layer = {
+  sticky: 40,
+  popover: 45,
+  overlay: 50,
+  menu: 60,
+  skip: 100,
+} as const
+
+/**
  * The type ladder.
  *
  * The first block is the SEMANTIC ladder (ruleset §4.2) — the one to reach for,

@@ -10,11 +10,19 @@
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import type { AlertLine } from '../dashboard/useGameFeed'
-import { Button, EmptyState, Field, Input, tokens } from '../index'
-import { BODY, EYEBROW, MUTED, NUMBERS } from './mediatorStyles.model'
-import { ago } from './proposalLine.model'
+import {
+  Button,
+  EmptyState,
+  Eyebrow,
+  FeedLine,
+  FeedList,
+  FeedTime,
+  Field,
+  Input,
+  tokens,
+} from '../index'
 
-const { borderWidth, color, radius, space } = tokens
+const { space } = tokens
 
 const SCROLL = {
   height: '100%',
@@ -31,27 +39,6 @@ const FORM = {
   gap: space[8],
   alignItems: 'end',
 } satisfies CSSProperties
-
-const LIST = {
-  listStyle: 'none',
-  margin: 0,
-  padding: 0,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: space[6],
-} satisfies CSSProperties
-
-const ROW = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  gap: space[12],
-  padding: `${space[6]} ${space[10]}`,
-  background: color.paper,
-  border: `${borderWidth.chrome} solid ${color.ink20}`,
-  borderRadius: radius.card,
-} satisfies CSSProperties
-
-const WHEN = { ...MUTED, ...NUMBERS, whiteSpace: 'nowrap' } satisfies CSSProperties
 
 export function TellTheTable({
   alerts,
@@ -79,7 +66,9 @@ export function TellTheTable({
 
   return (
     <div style={SCROLL}>
-      <h3 style={EYEBROW}>Every player sees this on their Dashboard</h3>
+      <Eyebrow as="h3" tone="muted">
+        Every player sees this on their Dashboard
+      </Eyebrow>
       <div style={FORM}>
         <Field label="Alert" htmlFor={`${id}-alert`}>
           <Input
@@ -105,14 +94,13 @@ export function TellTheTable({
       {alerts.length === 0 ? (
         <EmptyState variant="quiet" body="Nothing sent yet." />
       ) : (
-        <ul style={LIST} aria-label="Sent to the table">
+        <FeedList label="Sent to the table">
           {alerts.slice(0, 5).map((a) => (
-            <li key={a._id} style={ROW}>
-              <span style={BODY}>{a.message}</span>
-              <span style={WHEN}>{ago(a.ts, now)}</span>
-            </li>
+            <FeedLine key={a._id} end={<FeedTime ts={a.ts} format="ago" now={now} />}>
+              {a.message}
+            </FeedLine>
           ))}
-        </ul>
+        </FeedList>
       )}
     </div>
   )

@@ -85,14 +85,82 @@
   padding: 0;
 }
 
-/* ModalShell's close × is Button's quiet icon rung; on a band that prints
-   paper (the danger rust) its ink turns paper. Doubled with `.su-btn` to
-   out-rank the quiet variant's resting and hover ink. */
-.su-btn.su-modal-close[data-on-paper] {
+/* FEED LINE (`containers/FeedLine.tsx`): one entry in a feed (a roll, an
+   alert, a proposal, a change), a paper line in an ink-20 chrome frame. The
+   text takes the room; the end group (time, state, actions) wraps under it
+   when the line is narrow. */
+.su-feed-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-feed-line {
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink-20);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-6) var(--space-10);
+}
+
+.su-feed-line__head {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-8);
+}
+
+.su-feed-line__row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-12);
+}
+
+.su-feed-line__text {
+  color: var(--color-ink);
+  flex: 1 1 12rem;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  line-height: 1.45;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.su-feed-line__text[data-struck] {
+  text-decoration-line: line-through;
+}
+
+.su-feed-line__end {
+  align-items: center;
+  color: var(--color-ink-75);
+  display: flex;
+  flex-wrap: wrap;
+  font-family: var(--font-body);
+  font-size: var(--text-note);
+  gap: var(--space-6) var(--space-8);
+  margin-left: auto;
+}
+
+.su-feed-line__time {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* CloseButton (the ×) is Button's quiet icon rung; on a band that prints
+   paper (the danger rust, an ink sheet head) its ink turns paper. Doubled
+   with `.su-btn` to out-rank the quiet variant's resting and hover ink. */
+.su-btn.su-close-button[data-on-paper] {
   color: color-mix(in oklab, var(--color-paper) 60%, transparent);
 }
 
-.su-btn.su-modal-close[data-on-paper]:hover:not(:disabled) {
+.su-btn.su-close-button[data-on-paper]:hover:not(:disabled) {
   color: var(--color-paper);
 }
 

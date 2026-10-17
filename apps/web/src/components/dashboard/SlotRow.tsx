@@ -27,6 +27,7 @@ import type { Pilot } from 'cantina-domain/schemas/pilot'
 import type { CSSProperties } from 'react'
 import type { EntityState } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
+import { EmptyState } from '../index'
 import type { BoardMenu } from './boardMenu.model'
 import { boardMenu, NO_BOARD_SOURCES } from './boardMenu.model'
 import type { CrawlerUpkeep } from './CrawlerSlot'
@@ -80,25 +81,24 @@ const ROW = {
 /** Downtime: the Crawler alone, across the whole row. */
 const ROW_ALONE = { ...ROW, gridTemplateColumns: 'minmax(0, 1fr)' } satisfies CSSProperties
 
-const EMPTY = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  height: '100%',
-  padding: '8px',
-  textAlign: 'center',
+/** The empty state stretches over the slot it stands in for. */
+/** The slot's cream ground on the ink canvas: the quiet frame has none of its
+ *  own. ink-75, not ink-50, holds AA on band-cream for the small message. */
+const EMPTY_FILL = {
   background: 'var(--color-band-cream)',
-  border: 'var(--bw-chrome) dashed color-mix(in srgb, var(--color-ink) 30%, transparent)',
   borderRadius: 'var(--radius-panel)',
-  fontFamily: 'var(--font-body)',
-  fontSize: 'var(--text-note)',
-  // ink-75: ink-50 on band-cream fails AA contrast for small text (3.04:1).
   color: 'var(--color-ink-75)',
+  display: 'grid',
+  height: '100%',
 } satisfies CSSProperties
 
 /** A slot whose entity the pilot doesn't have (no crawler, no mech yet). */
 function EmptySlot({ text }: { text: string }) {
-  return <div style={EMPTY}>{text}</div>
+  return (
+    <div style={EMPTY_FILL}>
+      <EmptyState variant="quiet" body={text} bodyInk="inherit" />
+    </div>
+  )
 }
 
 /**

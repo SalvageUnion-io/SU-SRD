@@ -5,8 +5,20 @@ import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
-import { Button, ChapterBand, EmptyState, FieldError, Input, Slab, Text, tokens } from '../index'
-import { ConvexPending } from '../shared/ConvexPending'
+import {
+  Button,
+  ChapterBand,
+  Cluster,
+  EmptyState,
+  FieldError,
+  Input,
+  PageShell,
+  Pending,
+  Slab,
+  Stack,
+  Text,
+  tokens,
+} from '../index'
 import { SignInControl } from './SignInControl'
 
 /**
@@ -29,25 +41,6 @@ import { SignInControl } from './SignInControl'
 
 const MEASURE = '75rem'
 
-const PAGE = {
-  backgroundColor: tokens.color.wkBg,
-  minHeight: '100%',
-  paddingBottom: tokens.space[48],
-} satisfies CSSProperties
-
-// Its side padding and centring are `.su-page-column`'s, as on the Hangar.
-const BODY = {
-  maxWidth: MEASURE,
-  paddingTop: tokens.space[20],
-} satisfies CSSProperties
-
-/** One row per concern, full width (owner's call, 2026-10-15). */
-const ROWS = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[32],
-} satisfies CSSProperties
-
 const SECTION = {
   display: 'flex',
   flexDirection: 'column',
@@ -59,13 +52,6 @@ const SECTION = {
 const SLAB = { marginBottom: tokens.space[4] } satisfies CSSProperties
 
 const NOTE = { margin: 0, textAlign: 'left' } satisfies CSSProperties
-
-const ROW = {
-  alignItems: 'center',
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[8],
-} satisfies CSSProperties
 
 const GROW = { flex: '1 1 12rem', maxWidth: '24rem', minWidth: 0 } satisfies CSSProperties
 
@@ -107,17 +93,17 @@ function SignedInAccount() {
   const [name, setName] = useState<string | null>(null)
   const [confirming, setConfirming] = useState(false)
 
-  if (me === undefined) return <ConvexPending label="your account" />
+  if (me === undefined) return <Pending label="your account" />
   if (me === null) return <Text>No account found.</Text>
 
   const value = name ?? me.displayName ?? ''
 
   return (
-    <div style={ROWS}>
+    <Stack gap={32}>
       <Section id="settings-name" title="Display name">
         {/* No `Field` wrapper: the stamp already reads "Display name". A blank
             name falls back to the Discord one, which the placeholder says. */}
-        <div style={ROW}>
+        <Cluster gap={8}>
           <Input
             aria-label="Display name"
             placeholder="Your Discord name"
@@ -134,7 +120,7 @@ function SignedInAccount() {
           >
             {save.pending ? 'Saving…' : 'Save'}
           </Button>
-        </div>
+        </Cluster>
         <FieldError>{save.error}</FieldError>
       </Section>
 
@@ -142,7 +128,7 @@ function SignedInAccount() {
         <Text variant="hint" style={NOTE}>
           Everything you own. Crewmates' characters and shared crawlers are theirs.
         </Text>
-        <div style={ROW}>
+        <Cluster gap={8}>
           <Button
             className={ACTION}
             disabled={exported === undefined}
@@ -150,7 +136,7 @@ function SignedInAccount() {
           >
             Download my data
           </Button>
-        </div>
+        </Cluster>
       </Section>
 
       <Section id="settings-delete" title="Delete account">
@@ -158,7 +144,7 @@ function SignedInAccount() {
           Deletes your pilots and mechs. Games you are in survive: their crawler stays, and one you
           organise passes to its longest-standing member. This cannot be undone.
         </Text>
-        <div style={ROW}>
+        <Cluster gap={8}>
           {confirming ? (
             <>
               <Button
@@ -186,10 +172,10 @@ function SignedInAccount() {
               Delete my account
             </Button>
           )}
-        </div>
+        </Cluster>
         <FieldError>{erase.error}</FieldError>
       </Section>
-    </div>
+    </Stack>
   )
 }
 
@@ -218,13 +204,16 @@ function SettingsBody() {
 
 export function SettingsScreen() {
   return (
-    <main style={PAGE}>
-      <ChapterBand tone="ink" measure={MEASURE}>
-        Settings
-      </ChapterBand>
-      <div className="su-page-column" style={BODY}>
-        <SettingsBody />
-      </div>
-    </main>
+    <PageShell
+      measure={MEASURE}
+      stack={false}
+      band={
+        <ChapterBand tone="ink" measure={MEASURE}>
+          Settings
+        </ChapterBand>
+      }
+    >
+      <SettingsBody />
+    </PageShell>
   )
 }

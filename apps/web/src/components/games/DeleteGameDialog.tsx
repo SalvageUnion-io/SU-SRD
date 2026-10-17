@@ -34,7 +34,7 @@ import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { space } from '../../design/tokens'
 import { failureMessage } from '../../lib/connection/useServerAction'
-import { ConfirmDialog, Text } from '../index'
+import { ConfirmDialog, Stack, Text } from '../index'
 
 /** The little a confirm needs to know: what it is ending, and how big it is. */
 type DeletableGame = {
@@ -59,12 +59,6 @@ type Props = {
    */
   onDeleted?: () => void
 }
-
-const SURVIVORS = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: space[8],
-} satisfies CSSProperties
 
 const SURVIVOR_LIST = {
   display: 'flex',
@@ -125,7 +119,7 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
             This ends the table for all {game?.memberCount ?? 0} of you. It cannot be undone.
           </Text>
 
-          <div style={SURVIVORS}>
+          <Stack gap={8}>
             <Text variant="hint" style={LEFT}>
               Nothing anybody built is destroyed:
             </Text>
@@ -145,7 +139,7 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
                 </Text>
               </li>
             </ul>
-          </div>
+          </Stack>
 
           <Text variant="hint" style={LEFT}>
             The crew, its invite link, the opposition tray and the assignments between everyone's

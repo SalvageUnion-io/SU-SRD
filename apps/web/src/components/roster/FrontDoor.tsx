@@ -23,7 +23,7 @@ import { PRODUCT } from 'cantina-domain/product'
 import type { CSSProperties } from 'react'
 import { SCRIPT_FONT } from '../../lib/scriptFont'
 import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
-import { ChapterBand, Slab, StartHere, tokens } from '../index'
+import { ChapterBand, Slab, Stack, StartHere, tokens } from '../index'
 import { StarterSetGrid } from '../starterSet/StarterSetGrid'
 
 /** The width the band's notch and the content under it share. */
@@ -35,7 +35,7 @@ const PAGE = {
   minHeight: '100vh',
 } satisfies CSSProperties
 
-// Its side padding and centring are `.su-page-column`'s: the band's row padding.
+// Its side padding and centring are `.su-page-body`'s: the band's row padding.
 const COLUMN = {
   display: 'flex',
   flexDirection: 'column',
@@ -68,12 +68,6 @@ const QUOTE_BY = {
   margin: `${tokens.space[4]} 0 0`,
 } satisfies CSSProperties
 
-const SECTION = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[16],
-} satisfies CSSProperties
-
 const CREDIT = {
   color: tokens.color.ink,
   fontFamily: tokens.font.body,
@@ -100,17 +94,17 @@ export function FrontDoor() {
         {PRODUCT.name}
       </ChapterBand>
 
-      <div className="su-page-column" style={{ ...COLUMN, paddingBlock: tokens.space[32] }}>
+      <div className="su-page-body" style={{ ...COLUMN, paddingBlock: tokens.space[32] }}>
         <StartHere id="front-door-start" />
 
-        <section aria-labelledby="front-door-starter" style={SECTION}>
+        <Stack as="section" gap={16} aria-labelledby="front-door-starter">
           <Slab label="Starter Set" id="front-door-starter" as="h2" variant="solid" />
           <p style={CREDIT}>
             The pre-generated crew of <em>{STARTER_SET_ADVENTURE}</em>, by {STARTER_SET_PUBLISHER}.
             Open any sheet to read it; sign in to copy one.
           </p>
           <StarterSetGrid />
-        </section>
+        </Stack>
       </div>
     </main>
   )

@@ -28,10 +28,14 @@ import { DISABLED, FOCUS_RING } from './interaction'
  * ## The axes
  *
  * The `surface` axis picks the WORLD the button lives on: `paper` (default —
- * the light app chrome) or `instrument` (the dashboard HUD scope, `.su-dash-root`).
+ * the light app chrome), `instrument` (the dashboard HUD scope, `.su-dash-root`)
+ * or `ink` (an ink band or plate).
  * The instrument surface swaps in the condensed-caps HUD typography and the
  * recessed treatment — one standard Button for both worlds. Colour deltas ride on `compoundVariants` (surface × variant);
  * only `ghost` has an instrument recolour — the sole variant the HUD uses.
+ *
+ * `ink` is the inverse ground (an ink band or plate): `ghost` on it is a
+ * paper outline with paper text, the one on-ink ghost every band shares.
  *
  * Note the instrument surface is a TYPOGRAPHY choice as much as a colour one:
  * the cockpit's chassis is cream, not dark, so its buttons are ink like the
@@ -49,6 +53,9 @@ const VARIANT = {
   ink: 'su-btn--ink',
   /** Frameless, ink at 60%: an icon control inside a header (a close ×). */
   quiet: 'su-btn--quiet',
+  /** Paper on a DASHED ink edge: the pencil control on an editable line
+   *  (dashed means editable, as the User-made stamp is dashed). */
+  pencil: 'su-btn--pencil',
 } as const
 
 const SURFACE = {
@@ -59,6 +66,10 @@ const SURFACE = {
   // `.su-btn--instrument.su-btn--ghost` in index.css, whose two-class
   // specificity beats plain `.su-btn--ghost` without relying on source order.
   instrument: `su-btn--instrument ${capsLabel()}`,
+  // The ink band or plate (Shelves' and the Roster's band, a wizard's ink
+  // pill): `ghost` recolours to paper on ink, the compound selector
+  // `.su-btn--on-ink.su-btn--ghost` — the one variant drawn there.
+  ink: 'su-btn--on-ink',
 } as const
 
 // The canonical size ladder (styles/sizing.ts) — full / compact / mini.

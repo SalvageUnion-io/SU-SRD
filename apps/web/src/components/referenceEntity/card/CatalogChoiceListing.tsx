@@ -7,15 +7,10 @@ import { color, font, fontSize, space } from '../../../design/tokens'
 import { useDisclosure } from '../../../lib/useDisclosure'
 import { Button } from '../../atoms/Button'
 import { Slab } from '../../atoms/Slab'
+import { Stack } from '../../index'
 import { CatalogChoiceModal } from '../choiceCard/CatalogChoiceModal'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { EntityTokenList } from './EntityTokenList'
-
-const stackStyle = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: space[6],
-} satisfies CSSProperties
 
 /** The prompt: a caption (13px body face, `wkMuted`, sentence case), the
  *  rung the type ladder names for hints. */
@@ -97,7 +92,7 @@ export function CatalogChoiceListing({
   // EDITABLE — the modal picker (launched by a button), plus the current pick.
   if (editable) {
     return (
-      <div style={stackStyle}>
+      <Stack gap={6}>
         {prompt && <p style={promptStyle}>{prompt}</p>}
         {chosenEntity && renderEntity(chosenEntity, 'chosen')}
         <Button
@@ -116,7 +111,7 @@ export function CatalogChoiceListing({
           selected={selections?.[choice.id] ?? []}
           onSelect={(values) => onSelectionChange?.({ ...(selections ?? {}), [choice.id]: values })}
         />
-      </div>
+      </Stack>
     )
   }
 
@@ -135,7 +130,7 @@ export function CatalogChoiceListing({
   }
   const label = chosen ? `${choice.name}: ${chosen}` : choice.name
   return (
-    <div style={stackStyle}>
+    <Stack gap={6}>
       {prompt && <p style={promptStyle}>{prompt}</p>}
       <div>
         <Slab variant="solid" label={label} style={SLAB} />
@@ -150,6 +145,6 @@ export function CatalogChoiceListing({
           </div>
         )}
       </div>
-    </div>
+    </Stack>
   )
 }

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { pipClickValue, statBlockRows, trackSegmentState } from '../pipRows'
+import { pipClickValue, slotPips, statBlockRows, trackSegmentState } from '../pipRows'
 
 describe('statBlockRows — ≤6 per row, extras to LAST rows (ruleset §4.5)', () => {
   test('fits a single row up to 6', () => {
@@ -60,5 +60,18 @@ describe('trackSegmentState — the redline reads lit or unlit (ruleset §4.5, b
 
   test('with no redline an unlit pip is plain off', () => {
     expect(trackSegmentState(7, 0, 8)).toBe('off')
+  })
+})
+
+describe('slotPips — a tracker tab’s slot line', () => {
+  test('fills to used, clamped, with a trailing space', () => {
+    expect(slotPips(3, 5)).toBe('●●●○○ ')
+    expect(slotPips(9, 4)).toBe('●●●● ')
+    expect(slotPips(-1, 2)).toBe('○○ ')
+  })
+
+  test('is empty with no slots or past 12', () => {
+    expect(slotPips(0, 0)).toBe('')
+    expect(slotPips(2, 13)).toBe('')
   })
 })

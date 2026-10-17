@@ -47,6 +47,13 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  * the cluster follows the title, below the band on the page ground. The
  * notch stays on the band's foot either way.
  *
+ * A page whose aside is its action buttons (the Cantina's Hangar and Game
+ * pages) passes `asideAt="controls"`: each control is its own item on the
+ * title's line, right-aligned on the band's foot beside the name, and the
+ * ones that do not fit there wrap onto lines ABOVE it, right-aligned, into
+ * the band's top room before they grow the band (owner's rule, 2026-10-17).
+ * Pass the controls as a fragment: a wrapper would wrap as one piece.
+ *
  * `action` is a show page's one button ("Build With This"), after the cluster
  * from `sm` and on its last line. On a phone it is chip-sized and always
  * shares the title's line: right of the title, centred on the notch, the title
@@ -116,9 +123,11 @@ export type ChapterBandProps = {
   /**
    * Where `aside` sits: `end` (default), at the band's far end from `sm` and
    * above the notch on a phone; `notch`, a show page's cluster beside the
-   * title from `sm` (each child a right-aligned line) and below it on a phone.
+   * title from `sm` (each child a right-aligned line) and below it on a phone;
+   * `controls`, a page's action buttons, each beside the title on the band's
+   * foot while it fits and wrapping upward over the name when it does not.
    */
-  asideAt?: 'end' | 'notch'
+  asideAt?: 'end' | 'notch' | 'controls'
   /**
    * With `asideAt="notch"`: the page's action, ending the cluster from `sm`
    * and on the band beside the title, chip-sized, on a phone.
@@ -234,6 +243,10 @@ const TITLE = {
   textTransform: 'uppercase',
 } satisfies CSSProperties
 
+// The title of a band whose aside is controls: its line's free room is on its
+// right, so the controls beside it sit at the band's right edge.
+const BESIDE_CONTROLS = { margin: '0 auto 0 0' } satisfies CSSProperties
+
 // The plate: the notch's cut-out around the trail and the title, so the two
 // read as one label at the wider one's width. Its padding is the parts'.
 const PLATE = {
@@ -279,7 +292,12 @@ export function ChapterBand({
   const trail = bleed && !eyebrow ? context : null
   const dashes = userMade ? userMadeTitle(scale === 'og' ? OG_DASH : DASH) : undefined
   // With a trail the dashes frame the plate, around both.
-  const titleStyle = dashes && !trail ? { ...TITLE, ...dashes } : TITLE
+  const titleStyle = {
+    ...TITLE,
+    ...(dashes && !trail ? dashes : {}),
+    // Beside controls the title holds the left of its line; they keep the right.
+    ...(aside && asideAt === 'controls' ? BESIDE_CONTROLS : {}),
+  }
   const band = fill ?? CHAPTER_BAND_COLOR[tone]
   const speckle = grain ?? (tone === 'ink' ? 'paper' : 'ink')
   // The key the Union bar's rule matches this band by (`unionBarMatch.ts`),
@@ -309,7 +327,7 @@ export function ChapterBand({
       data-scale={scale === 'og' ? 'og' : undefined}
       data-layout={bleed ? 'bleed' : undefined}
       data-measured={measure ? '' : undefined}
-      data-aside={aside && asideAt === 'notch' ? 'notch' : undefined}
+      data-aside={aside && asideAt !== 'end' ? asideAt : undefined}
       data-action={action ? '' : undefined}
       {...(bleed ? { [BAND_KEY_ATTRIBUTE]: key } : {})}
       style={{
@@ -363,7 +381,12 @@ export function ChapterBand({
           notch
         )}
         {aside && (
-          <div className="su-chapter-band__aside" style={ASIDE}>
+          // As controls the aside is `display: contents` (the stylesheet's), so
+          // each control is an item of the title's row.
+          <div
+            className="su-chapter-band__aside"
+            style={asideAt === 'controls' ? undefined : ASIDE}
+          >
             {aside}
           </div>
         )}

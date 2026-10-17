@@ -9,15 +9,22 @@
 import type { CSSProperties } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getEntitySlug } from 'salvageunion-reference'
-import { borderWidth, color, fontSize, radius, space, weight } from '../../design/tokens'
+import { color, fontSize, layer, space, weight } from '../../design/tokens'
 import { itemHref, schemaHref } from '../../lib/entityHref'
 import { HERO_SEARCH_PLACEHOLDER } from '../../lib/heroSearch'
-import { LIFT_SHADOW } from '../../lib/liftShadow'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import { useSearchIndex } from '../../lib/useSearchIndex'
+import { POPUP_SURFACE } from '../atoms/popupSurface'
 import { HeroSearchForm } from '../HeroSearch'
 import type { SearchComboboxResult } from '../index'
-import { Entity, SearchField, useModKeyHint, useSearchCombobox } from '../index'
+import {
+  EmptyState,
+  Entity,
+  Pending,
+  SearchField,
+  useModKeyHint,
+  useSearchCombobox,
+} from '../index'
 import { DocumentLinks } from './DocumentLinks'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
@@ -38,18 +45,13 @@ const RESULTS = { padding: space[8] } satisfies CSSProperties
 
 /** The dropdown, hung under the field: full width in the hero, 20rem in the bar. */
 const LISTBOX = {
-  backgroundColor: color.paper,
-  borderColor: color.wkFaint,
-  borderRadius: radius.panel,
-  borderStyle: 'solid',
-  borderWidth: borderWidth.hairline,
-  boxShadow: LIFT_SHADOW,
+  ...POPUP_SURFACE.paper,
   marginTop: space[4],
   maxHeight: '24rem',
   overflowY: 'auto',
   position: 'absolute',
   top: '100%',
-  zIndex: 50,
+  zIndex: layer.overlay,
 } satisfies CSSProperties
 
 const LISTBOX_HERO = { ...LISTBOX, left: 0, width: '100%' } satisfies CSSProperties
@@ -58,10 +60,8 @@ const LISTBOX_BAR = { ...LISTBOX, right: 0, width: '20rem' } satisfies CSSProper
 
 const SMALL = { fontSize: fontSize.sm, lineHeight: 'calc(1.25 / 0.875)' } satisfies CSSProperties
 
-/** The loading and empty states. */
+/** The loading and empty states' place in the listbox. */
 const STATUS = {
-  ...SMALL,
-  color: color.wkMuted,
   paddingBlock: space[12],
   paddingInline: space[16],
 } satisfies CSSProperties
@@ -242,7 +242,9 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
   const listbox = isOpen && (
     <div id={listboxId} role="listbox" style={hero ? LISTBOX_HERO : LISTBOX_BAR}>
       {!ready ? (
-        <div style={STATUS}>Loading search index…</div>
+        <div style={STATUS}>
+          <Pending label="search index" />
+        </div>
       ) : results.length > 0 ? (
         // HEADER SEARCH (entity display language, "Which form, where"): every
         // entity result is a Token in link mode, one a line; a category is a
@@ -279,7 +281,9 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
           </div>
         </DocumentLinks>
       ) : (
-        <div style={STATUS}>No results found</div>
+        <div style={STATUS}>
+          <EmptyState variant="inline" body="No results found" />
+        </div>
       )}
     </div>
   )

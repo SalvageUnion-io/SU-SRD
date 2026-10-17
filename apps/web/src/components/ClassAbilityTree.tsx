@@ -7,7 +7,7 @@ import { itemHref } from '../lib/entityHref'
 import type { RefText } from '../lib/rollTablePage'
 import { AbilityTrack } from './AbilityTrack'
 import type { TreeTrack } from './index'
-import { ActivationCost, Head, Slab, Stat } from './index'
+import { ActivationCost, Head, Slab, Stat, TitledBox } from './index'
 import { MentionProse } from './MentionProse'
 
 type ClassAbilityTreeProps = {
@@ -153,7 +153,7 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
       <ul className="su-class-brief__cards">
         {briefCards(plan).map((card) => (
           <li key={card.label} className="su-class-brief__card">
-            <Head
+            <TitledBox
               title={card.label}
               paint={tierPaint(card.tier)}
               chips={
@@ -163,12 +163,11 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
                   </div>
                 )
               }
-              notch
-              chipsBeside
-            />
-            <p className="su-class-brief__body">
-              <MentionProse parts={card.value} />
-            </p>
+            >
+              <p className="su-class-brief__body">
+                <MentionProse parts={card.value} />
+              </p>
+            </TitledBox>
           </li>
         ))}
       </ul>

@@ -11,7 +11,7 @@
  *    the Game page. No disabled controls.
  *  - **Disconnected / Outdated:** what the subscriptions last delivered stays
  *    on screen under the app's offline banner, with every control disabled.
- *    Opened cold while offline, it waits (`ConvexPending`).
+ *    Opened cold while offline, it waits (`Pending`).
  *
  * Live, because `games.get` is reactive: a Mediator who hands the table over
  * falls back to the refusal at once. None of this is a boundary; the server
@@ -25,8 +25,7 @@ import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { DashboardRefusal } from '../dashboard/DashboardGate'
-import { tokens } from '../index'
-import { ConvexPending } from '../shared/ConvexPending'
+import { Pending, tokens } from '../index'
 import { MediatorDashboard } from './MediatorDashboard'
 
 const PENDING = { padding: tokens.space[24] } satisfies CSSProperties
@@ -47,7 +46,7 @@ export function MediatorGate({ gameId }: { gameId: string }) {
   if (mode === 'connecting') {
     return (
       <div style={PENDING}>
-        <ConvexPending label="your session" />
+        <Pending label="your session" />
       </div>
     )
   }
@@ -63,7 +62,7 @@ function SignedInMediatorGate({ gameId }: { gameId: string }) {
   if (game === undefined || (game !== null && mediates === undefined)) {
     return (
       <div style={PENDING}>
-        <ConvexPending label="the Game" />
+        <Pending label="the Game" />
       </div>
     )
   }

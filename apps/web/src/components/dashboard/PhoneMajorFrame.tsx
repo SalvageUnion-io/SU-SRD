@@ -40,7 +40,7 @@ import {
   tracking,
   weight,
 } from '../../design/tokens'
-import { Badge, Button, Entity, StatusBadge } from '../index'
+import { Badge, Button, Entity, Stack, StatusBadge } from '../index'
 import { BandStats } from './BandStats'
 import { DashboardGauge } from './DashboardGauge'
 import { DAMAGED } from './damaged.model'
@@ -148,8 +148,6 @@ const OVERLAY_TITLE = {
   letterSpacing: tracking.capsTight,
   textTransform: 'uppercase',
 } satisfies CSSProperties
-
-const ACTIONS = { display: 'flex', flexDirection: 'column', gap: space[8] } satisfies CSSProperties
 
 /** The bays while a prompt covers them. */
 const COVERED = { display: 'none' } satisfies CSSProperties
@@ -310,11 +308,11 @@ function PhoneOverlay({
       {overlay.gauges && overlay.gauges.length > 0 && <Cells gauges={overlay.gauges} />}
       {overlay.body}
       {overlay.actions && overlay.actions.length > 0 && (
-        <div style={ACTIONS}>
+        <Stack gap={8}>
           {overlay.actions.map((btn) => (
             <PhoneButton key={btn.label} btn={btn} />
           ))}
-        </div>
+        </Stack>
       )}
     </div>
   )

@@ -7,6 +7,7 @@ import {
   color,
   font,
   fontSize,
+  layer,
   radius,
   space,
   tracking,
@@ -14,7 +15,9 @@ import {
 } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { buttonVariants } from '../atoms/buttonVariants'
+import { Eyebrow } from '../atoms/Eyebrow'
 import { FOCUS_RING } from '../atoms/interaction'
+import { POPUP_SURFACE } from '../atoms/popupSurface'
 
 /**
  * HeaderMenu — a dropdown menu for the masthead's action slot (`AppBar`'s
@@ -124,19 +127,13 @@ const OVERFLOW_TRIGGER_CLASS = cn(
 
 const POSITIONER = {
   // Above the masthead (z-50) and the sticky sheet bars beneath it.
-  zIndex: 60,
+  zIndex: layer.menu,
 } satisfies CSSProperties
 
+// The paper popup surface every floating panel shares (`POPUP_SURFACE`).
 const POPUP = {
-  backgroundColor: color.paper,
-  borderColor: color.ink,
-  borderRadius: radius.card,
-  borderStyle: 'solid',
-  // Flat paper on an ink hairline, like every other piece of chrome (ruleset
-  // §3.5): no drop shadow, the rule alone lifts it off the page.
-  borderWidth: borderWidth.hairline,
+  ...POPUP_SURFACE.paper,
   boxSizing: 'border-box',
-  color: color.ink,
   // Long game lists scroll inside the popup rather than off the screen.
   maxHeight: 'var(--available-height)',
   maxWidth: 'min(320px, var(--available-width))',
@@ -161,16 +158,6 @@ const ITEM_LABEL = {
   fontSize: fontSize.sm,
   lineHeight: 1.3,
   overflowWrap: 'anywhere',
-} satisfies CSSProperties
-
-// No `color`: it flips with the row's highlight, so it lives in the class.
-const ITEM_HINT = {
-  fontFamily: font.cond,
-  fontSize: fontSize.badge,
-  fontWeight: weight.semibold,
-  letterSpacing: tracking.caps,
-  lineHeight: 1.2,
-  textTransform: 'uppercase',
 } satisfies CSSProperties
 
 const SEPARATOR = {
@@ -239,12 +226,14 @@ export function HeaderMenu({
                   >
                     <span style={ITEM_LABEL}>{item.label}</span>
                     {item.hint != null && (
-                      <span className="su-header-menu-item__hint" style={ITEM_HINT}>
+                      // The hint's colour flips with the row's highlight:
+                      // `.su-header-menu-item__hint` comes after the tone class.
+                      <Eyebrow tone="muted" className="su-header-menu-item__hint">
                         {/* The two lines are separate blocks visually; this keeps
                             them separate words in the accessible name too. */}
                         <span className="su-sr-only">, </span>
                         {item.hint}
-                      </span>
+                      </Eyebrow>
                     )}
                   </Menu.Item>
                 ))}

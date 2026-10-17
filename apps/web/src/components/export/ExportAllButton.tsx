@@ -1,41 +1,18 @@
-/**
- * ExportAllButton — triggers a full backup download (all pilots, mechs,
- * crawlers, and softLinks) as a single JSON file.
- *
- * Uses buildExportBundle + downloadJson from lib/export.
- * Success/failure surface as toasts; errors also render inline so the
- * failure stays visible next to the retry affordance.
- */
-
-import type { CSSProperties } from 'react'
-import { color, font, fontSize, space } from '../../design/tokens'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { buildExportBundle } from '../../lib/export/buildExportBundle'
 import { downloadJson } from '../../lib/export/downloadJson'
 import { useEntityStore } from '../../stores/entityStore'
-import { Button, toast } from '../index'
-
-const STACK = { display: 'flex', flexDirection: 'column', gap: space[4] } satisfies CSSProperties
-
-/** The inline failure line. */
-const FAILURE = {
-  color: color.statusBad,
-  fontFamily: font.body,
-  fontSize: fontSize.xs,
-  lineHeight: 'calc(1 / 0.75)',
-} satisfies CSSProperties
-
-/** The same line on the ink band (Shelves): paper, not the danger colour. */
-const FAILURE_ON_INK = { ...FAILURE, color: color.paper } satisfies CSSProperties
+import { Button, Message, Stack, toast } from '../index'
 
 type ExportAllButtonProps = {
-  /** Extra classes for the button (the Shelves band's on-ink outline). */
-  className?: string
-  /** It sits on the ink band (Shelves, board S1): its failure line reads in paper. */
-  onInk?: boolean
+  /**
+   * The ground it sits on: `ink` on an ink band (Shelves, the Roster, board
+   * S1), where the button is the on-ink ghost and its failure line reads in paper.
+   */
+  ground?: 'paper' | 'ink'
 }
 
-export function ExportAllButton({ className, onInk = false }: ExportAllButtonProps = {}) {
+export function ExportAllButton({ ground = 'paper' }: ExportAllButtonProps = {}) {
   const exportAll = useServerAction(
     async () => {
       const bundle = await buildExportBundle(useEntityStore.getState())
@@ -53,16 +30,19 @@ export function ExportAllButton({ className, onInk = false }: ExportAllButtonPro
   }
 
   return (
-    <div style={STACK}>
+    <Stack gap={4}>
       <Button
+        variant={ground === 'ink' ? 'ghost' : 'default'}
+        surface={ground}
         size="compact"
         disabled={busy}
         onClick={() => void handleExportAll()}
-        className={className}
       >
         {busy ? 'Exporting…' : 'Export all'}
       </Button>
-      {error && <p style={onInk ? FAILURE_ON_INK : FAILURE}>{error}</p>}
-    </div>
+      <Message tone="bad" ground={ground}>
+        {error}
+      </Message>
+    </Stack>
   )
 }

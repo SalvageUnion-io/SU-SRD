@@ -337,7 +337,7 @@
   position: sticky;
   row-gap: var(--space-4);
   top: 0;
-  z-index: 40;
+  z-index: var(--z-sticky);
 }
 
 .su-crumbs--row .su-crumbs__list {
@@ -403,22 +403,6 @@
   .su-page-shell,
   .su-page-gutters {
     --su-page-gutter-inline: var(--space-48);
-  }
-}
-
-/* A measured page's body column (a Cantina page under a band with `measure`):
-   its side padding is the measured band's own row padding, 16px on a phone
-   and 24px from `sm`, so the notch and the content start on one line, as
-   srd's `.su-page-body` does. The caller sets the measure (`max-width`). */
-.su-page-column {
-  margin-inline: auto;
-  padding-inline: var(--space-16);
-  width: 100%;
-}
-
-@media (min-width: 40rem) {
-  .su-page-column {
-    padding-inline: var(--space-24);
   }
 }
 
@@ -677,6 +661,58 @@
 
   .su-chapter-band[data-aside='notch'] .su-chapter-band__aside > * {
     justify-content: flex-end;
+  }
+}
+
+/* `asideAt="controls"`: a page's action buttons (the Hangar's, a Game's).
+   The aside steps out of the way (`display: contents`), so every control is
+   an item on the title's line: right-aligned on the band's foot beside the
+   name while it fits, and past that on lines that wrap UPWARD
+   (`wrap-reverse`), right-aligned over the name. The row keeps the band's
+   top room as a floor rather than as padding, so the first lines that wrap
+   up fill that room before they grow the band (owner's rule, 2026-10-17).
+   `--su-band-title` is a one-line notch's height (its top padding and 0.92
+   line), `--su-band-room` the row's usual top padding. */
+.su-chapter-band[data-aside='controls'] .su-chapter-band__row {
+  --su-band-room: var(--space-32);
+  --su-band-title: calc(var(--space-8) + var(--text-hero) * 0.92);
+  /* Under `wrap-reverse` the cross axis runs up: `flex-start` is the foot,
+     so every line, and the lines together, sit on the band's foot. */
+  align-content: flex-start;
+  align-items: flex-start;
+  column-gap: var(--space-12);
+  flex-direction: row;
+  flex-wrap: wrap-reverse;
+  justify-content: flex-end;
+  min-height: calc(var(--su-band-room) + var(--su-band-title));
+  padding-top: var(--space-12);
+  row-gap: 0;
+}
+
+.su-chapter-band[data-aside='controls'] .su-chapter-band__eyebrow + .su-chapter-band__row {
+  --su-band-room: var(--space-12);
+}
+
+/* The name holds the left of its line, so the controls beside it sit at the
+   right (a bare title's margin is the component's, over its inline `margin`). */
+.su-chapter-band[data-aside='controls']
+  .su-chapter-band__row
+  > :is(.su-chapter-band__plate, .su-chapter-band__heading) {
+  margin-inline-end: auto;
+}
+
+.su-chapter-band[data-aside='controls'] .su-chapter-band__aside {
+  display: contents;
+}
+
+.su-chapter-band[data-aside='controls'] .su-chapter-band__aside > * {
+  margin-bottom: var(--space-12);
+}
+
+@media (min-width: 40rem) {
+  .su-chapter-band[data-aside='controls'] .su-chapter-band__row {
+    --su-band-room: var(--space-48);
+    --su-band-title: calc(var(--space-12) + var(--text-chapter) * 0.92);
   }
 }
 

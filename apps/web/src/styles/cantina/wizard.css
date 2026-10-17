@@ -131,15 +131,6 @@
   padding: var(--space-20);
 }
 
-/* The tinted step card's frame, its number tab, and the tab's gutter. */
-.su-wiz-step-tab {
-  display: none;
-}
-
-.su-wiz-step-card {
-  padding-left: var(--space-20);
-}
-
 /* The action bar: a flat ink card, stacked on a phone, one row from sm. */
 .su-wiz-pill {
   align-items: stretch;
@@ -166,37 +157,7 @@
   width: 100%;
 }
 
-/* Back / Cancel on the ink pill: paper ghosts. */
-.su-wiz-pill-ghost {
-  border-color: color-mix(in oklab, var(--color-paper) 40%, transparent);
-  color: var(--color-paper);
-}
-
-@media (hover: hover) {
-  .su-wiz-pill-ghost:hover {
-    background-color: color-mix(in oklab, var(--color-paper) 10%, transparent);
-  }
-}
-
 @media (min-width: 40rem) {
-  .su-wiz-step-tab {
-    display: grid;
-  }
-
-  .su-wiz-step-frame {
-    padding-left: var(--space-20);
-  }
-
-  /* The 48px gutter is LOAD-BEARING: the number tab (`.su-wiz-step-tab`,
-     `stepTabStyle` in WizShell.tsx) is 56px wide at -20px, so its right edge
-     lands 36px inside the card. 48px clears it by 12px; at 32px the tab would
-     print over the step title's first glyph and the RuleBrief panel's left
-     edge. Same overhang-plus-clearance relationship as `ModeDoor`'s tab. Move
-     one of the three numbers and you must move the others. */
-  .su-wiz-step-card {
-    padding-left: var(--space-48);
-  }
-
   .su-wiz-pill {
     align-items: center;
     flex-direction: row;
@@ -312,12 +273,6 @@
 /* Pilot ReviewStep: its kv-panel is itself the grid item, aligned to the start. */
 .su-wiz-review-panel--start {
   align-self: start;
-}
-
-/* CrawlerReviewStep, pilot and MechReviewStep: the submit error under the kv rows.
-   A class: FieldError takes no `style`. */
-.su-wiz-review-error {
-  margin-top: var(--space-12);
 }
 
 /* ClassPathPicker: the class list, with the consequences beside it from sm. */

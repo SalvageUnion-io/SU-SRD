@@ -61,12 +61,16 @@ import type { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_TXN } from '../../stores/surfaceProvenance'
 import {
   Button,
+  Cluster,
+  DialogActions,
   EmptyState,
+  Eyebrow,
   FieldError,
   ModalShell,
   rollForTable,
   Select,
   Slab,
+  Stack,
   Stat,
   tokens,
 } from '../index'
@@ -104,27 +108,6 @@ const TEXT_TIGHT = { ...TEXT, margin: 0 } satisfies CSSProperties
 
 const TEXT_AFTER = { ...TEXT, marginTop: tokens.space[8] } satisfies CSSProperties
 
-const FOOT = {
-  display: 'flex',
-  justifyContent: 'flex-end',
-  gap: tokens.space[8],
-} satisfies CSSProperties
-
-const FOOT_ONE = { display: 'flex', justifyContent: 'flex-end' } satisfies CSSProperties
-
-const STACK_12 = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[12],
-} satisfies CSSProperties
-
-const ROW = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  alignItems: 'center',
-  gap: tokens.space[8],
-} satisfies CSSProperties
-
 const CONTRIBUTE_LABEL = {
   fontFamily: tokens.font.cond,
   fontSize: tokens.fontSize.xs,
@@ -148,12 +131,6 @@ const PICKER_LABEL = {
   display: 'flex',
   flexDirection: 'column',
   gap: tokens.space[4],
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.badge,
-  fontWeight: tokens.weight.bold,
-  textTransform: 'uppercase',
-  letterSpacing: tokens.tracking.caps,
-  color: tokens.color.ink,
 } satisfies CSSProperties
 
 /** A compact select: tighter than the `Select` skin's own padding. */
@@ -351,7 +328,7 @@ function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFo
           </FieldError>
         )}
 
-        <div style={FOOT}>
+        <DialogActions>
           <Button variant="ghost" size="compact" onClick={onClose}>
             {done ? 'Done' : 'Cancel'}
           </Button>
@@ -377,7 +354,7 @@ function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFo
               Roll Deterioration (d20)
             </Button>
           )}
-        </div>
+        </DialogActions>
       </div>
     </ModalShell>
   )
@@ -442,7 +419,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
     >
       <div style={BODY}>
         {quote ? (
-          <div style={STACK_12}>
+          <Stack gap={12}>
             <p>
               Upgrading from Tech {quote.fromTl} to Tech {quote.toTl} consumes{' '}
               <strong>{quote.cost}</strong> from the Upgrade Pool (currently{' '}
@@ -455,7 +432,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
                 below to fill it.
               </FieldError>
             )}
-            <div style={ROW}>
+            <Cluster gap={8}>
               <span style={CONTRIBUTE_LABEL}>Contribute scrap (Tech {tl}+)</span>
               <Stat
                 orientation="horizontal"
@@ -479,17 +456,17 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
               >
                 Add to Upgrade Pool
               </Button>
-            </div>
+            </Cluster>
             <p style={SMALL}>
               Pool holds {contributable} scrap at Tech {tl}+.
             </p>
-          </div>
+          </Stack>
         ) : (
           <p>
             Tech 6 is the highest level of Union Crawler — it cannot be upgraded further (p.218).
           </p>
         )}
-        <div style={FOOT}>
+        <DialogActions>
           <Button variant="ghost" size="compact" onClick={onClose}>
             Cancel
           </Button>
@@ -503,7 +480,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
           >
             {quote ? `Upgrade to Tech ${quote.toTl}` : 'Upgrade'}
           </Button>
-        </div>
+        </DialogActions>
       </div>
     </ModalShell>
   )
@@ -582,7 +559,7 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
                 count="fixed equal-value rates · no bartering"
               />
               <div style={PICKERS}>
-                <label htmlFor="trade-from-tl" style={PICKER_LABEL}>
+                <Eyebrow as="label" tone="ink" htmlFor="trade-from-tl" style={PICKER_LABEL}>
                   From
                   <Select
                     id="trade-from-tl"
@@ -596,8 +573,8 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
                       </option>
                     ))}
                   </Select>
-                </label>
-                <label htmlFor="trade-to-tl" style={PICKER_LABEL}>
+                </Eyebrow>
+                <Eyebrow as="label" tone="ink" htmlFor="trade-to-tl" style={PICKER_LABEL}>
                   To
                   <Select
                     id="trade-to-tl"
@@ -611,7 +588,7 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
                       </option>
                     ))}
                   </Select>
-                </label>
+                </Eyebrow>
                 <span style={QTY}>
                   <Stat
                     orientation="horizontal"
@@ -684,11 +661,11 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
           </>
         )}
 
-        <div style={FOOT_ONE}>
+        <DialogActions>
           <Button variant="ghost" size="compact" onClick={onClose}>
             Close
           </Button>
-        </div>
+        </DialogActions>
       </div>
     </ModalShell>
   )

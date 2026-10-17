@@ -32,18 +32,21 @@ import { resolveChassisRef } from 'salvageunion-reference/rules'
 import type { CSSVarStyle } from '../index'
 import {
   Button,
+  Cluster,
   ConfirmDialog,
   EmptyState,
   Entity,
   EntitySearcher,
+  Eyebrow,
   Input,
   Select,
+  Stack,
   tokens,
   useDetailModal,
   VitalGauge,
 } from '../index'
 import { SheetPickerModal } from '../sheet/SheetSection'
-import { BODY, EYEBROW, HEAD_ROW, MUTED, NUMBERS } from './mediatorStyles.model'
+import { BODY, HEAD_ROW, MUTED, NUMBERS } from './mediatorStyles.model'
 import type { EncounterRefSchema, SavedPattern, TrayDraw, TrayNpc } from './opposition.model'
 import { OPPOSITION_SCHEMAS, patternSlugOf, patternsOf, slugOf } from './opposition.model'
 
@@ -85,15 +88,6 @@ const GAUGE_GROUP = { border: 0, margin: 0, minWidth: 0, padding: 0 } satisfies 
 /** The gauge lights in the opposition's own tone, the one its Row's band wears. */
 const ADVERSARY_TONE: CSSVarStyle = { '--tone': color.adversary, '--tone-deep': color.adversary }
 
-// Wraps: where the panel is too narrow for all three side by side (a phone),
-// the gauge and the actions drop under the Row rather than overflowing it.
-const ROW = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  alignItems: 'center',
-  gap: space[8],
-} satisfies CSSProperties
-
 /** The Row's share: everything the gauge and actions leave, never under 14rem. */
 const ROW_ENTITY = { flex: '1 1 14rem', minWidth: 0 } satisfies CSSProperties
 
@@ -125,12 +119,6 @@ const PLAIN = {
   background: color.paper,
   border: `${borderWidth.entityCompact} solid ${color.ink}`,
   borderRadius: radius.card,
-} satisfies CSSProperties
-
-const PICKER_RAIL = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: space[6],
 } satisfies CSSProperties
 
 const PATTERN_ACTIONS = {
@@ -180,7 +168,7 @@ function NpcRow({
   const stat = npc.statKind === 'sp' ? 'SP' : 'HP'
   return (
     <li>
-      <div style={ROW}>
+      <Cluster gap={8}>
         <div style={npc.down ? { ...ROW_ENTITY, ...DOWN } : ROW_ENTITY}>
           {npc.entity === null ? (
             <div style={PLAIN}>{npc.name}</div>
@@ -244,7 +232,7 @@ function NpcRow({
             Remove
           </Button>
         </div>
-      </div>
+      </Cluster>
       <p role="status" aria-live="polite" style={RESULT}>
         {npc.down ? <span style={RESULT_HEAD}>Down. </span> : null}
         {npc.lastRoll ? (
@@ -323,10 +311,10 @@ function OppositionPicker({
       title={title}
       onClose={onClose}
       railActions={
-        <div style={PICKER_RAIL}>
-          <label htmlFor={`${id}-schema`} style={EYEBROW}>
+        <Stack gap={6}>
+          <Eyebrow as="label" tone="muted" htmlFor={`${id}-schema`}>
             Draw from
-          </label>
+          </Eyebrow>
           <Select
             id={`${id}-schema`}
             value={schema}
@@ -341,9 +329,9 @@ function OppositionPicker({
               </option>
             ))}
           </Select>
-          <label htmlFor={`${id}-name`} style={EYEBROW}>
+          <Eyebrow as="label" tone="muted" htmlFor={`${id}-name`}>
             Name (optional)
-          </label>
+          </Eyebrow>
           <Input
             id={`${id}-name`}
             value={name}
@@ -353,9 +341,9 @@ function OppositionPicker({
           />
           {pending ? (
             <>
-              <label htmlFor={`${id}-pattern`} style={EYEBROW}>
+              <Eyebrow as="label" tone="muted" htmlFor={`${id}-pattern`}>
                 {pending.entity.name} pattern
-              </label>
+              </Eyebrow>
               <Select
                 id={`${id}-pattern`}
                 value={pending.pattern}
@@ -391,7 +379,7 @@ function OppositionPicker({
               </div>
             </>
           ) : null}
-        </div>
+        </Stack>
       }
     />
   )
@@ -425,7 +413,9 @@ export function OppositionTab({
   return (
     <div style={SCROLL}>
       <div style={HEAD_ROW}>
-        <h3 style={EYEBROW}>Hidden from players · {onField} on the field</h3>
+        <Eyebrow as="h3" tone="muted">
+          Hidden from players · {onField} on the field
+        </Eyebrow>
         <Button variant="default" size="full" disabled={!canWrite} onClick={() => setPicking(true)}>
           + From the reference
         </Button>
@@ -485,9 +475,9 @@ export function OppositionTab({
         title={`Rename ${renaming?.name ?? 'this NPC'}`}
         body={
           <>
-            <label htmlFor={renameId} style={EYEBROW}>
+            <Eyebrow as="label" tone="muted" htmlFor={renameId}>
               Name
-            </label>
+            </Eyebrow>
             <Input
               id={renameId}
               value={newName}

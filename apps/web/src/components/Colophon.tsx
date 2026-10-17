@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import { space } from '../design/tokens'
-import { column, proseColumn } from '../lib/docPageStyles'
-import { KofiButton, MarkdownSection, Slab } from './index'
+import { proseColumn } from '../lib/docPageStyles'
+import { KofiButton, MarkdownSection, Slab, Stack } from './index'
 
 type ColophonProps = {
   /** Raw contents of the repo-root `ABOUT_JRVS.md` (left column, top). */
@@ -18,8 +18,6 @@ type ColophonProps = {
 // Two columns from `md` up: the column template is `.su-colophon`, the rest is
 // static.
 const ROOT = { display: 'grid', gap: space[32] } satisfies CSSProperties
-
-const COLUMN = column(space[32])
 
 const SUPPORT_SLAB = { marginBottom: 0, width: '100%' } satisfies CSSProperties
 
@@ -47,7 +45,7 @@ export function Colophon({
 }: ColophonProps) {
   return (
     <div className="su-colophon" style={ROOT}>
-      <div style={COLUMN}>
+      <Stack gap={32}>
         <MarkdownSection markdown={aboutMarkdown} />
 
         <section style={SUPPORT}>
@@ -62,7 +60,7 @@ export function Colophon({
         </section>
 
         <MarkdownSection markdown={specialThanksMarkdown} />
-      </div>
+      </Stack>
 
       <MarkdownSection markdown={llmMarkdown} />
     </div>

@@ -53,6 +53,17 @@ describe('Button', () => {
     expect(screen.getByRole('button').className).toContain(variantClass('ghost'))
   })
 
+  test('an ink-surface ghost is the on-ink ghost, recoloured by the compound rule', () => {
+    render(
+      <Button variant="ghost" surface="ink">
+        Import
+      </Button>
+    )
+    const cls = screen.getByRole('button').className.split(' ')
+    expect(cls).toContain('su-btn--ghost')
+    expect(cls).toContain('su-btn--on-ink')
+  })
+
   test('danger variant uses the status-bad fill', () => {
     render(<Button variant="danger">Delete</Button>)
     // status-bad, not a bespoke `danger` red: --color-danger was the third red

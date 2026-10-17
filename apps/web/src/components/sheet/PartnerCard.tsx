@@ -49,28 +49,10 @@ import { runWrite } from '../../lib/runWrite'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import type { ReferenceEntityControl, StatItem } from '../index'
-import { Field, ReferenceEntityCard, Slab, summarizeBreakdown, tokens } from '../index'
+import { Field, ReferenceEntityCard, Slab, Stack, summarizeBreakdown } from '../index'
 import { MechItemToken } from './MechItemToken'
 import { PartnerHold } from './PartnerHold'
 import { partnerDisplayName } from './partnerDisplay.model'
-
-const STACK = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[16],
-} satisfies CSSProperties
-
-const FIELDS = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[12],
-} satisfies CSSProperties
-
-const ITEMS = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[8],
-} satisfies CSSProperties
 
 /** The section's Slab sits on the list's own gap, not its default margin. */
 const ITEMS_SLAB = { marginBottom: 0 } satisfies CSSProperties
@@ -273,7 +255,7 @@ export function PartnerCard({
     // Keyed by occurrence, not index — see occurrenceKeys.
     const keys = occurrenceKeys(slugs)
     return (
-      <div style={ITEMS}>
+      <Stack gap={8}>
         <Slab as="h4" label={kind === 'system' ? 'Systems' : 'Modules'} style={ITEMS_SLAB} />
         {/* One Token a line, each Peeking its whole card. */}
         <ul className={readOnly ? 'su-entity-token-list' : 'su-entity-token-list su-sheet-items'}>
@@ -307,7 +289,7 @@ export function PartnerCard({
             </li>
           ))}
         </ul>
-      </div>
+      </Stack>
     )
   }
 
@@ -319,8 +301,8 @@ export function PartnerCard({
       statsOverride={stats}
       controls={controls.length > 0 ? controls : undefined}
       afterExtraContent={
-        <div style={STACK}>
-          <div style={FIELDS}>
+        <Stack gap={16}>
+          <Stack gap={12}>
             <Field
               label="Name"
               value={partner.name ?? ''}
@@ -344,7 +326,7 @@ export function PartnerCard({
               ariaLabel="Edit appearance"
               onSave={editable ? (next) => patch({ appearance: next }) : undefined}
             />
-          </div>
+          </Stack>
 
           {/* THE HOLD — absent, not empty, when the partner cannot carry.
               Auto-Turret has cargoCapacity 0 AND the Immobile trait: it is not
@@ -355,7 +337,7 @@ export function PartnerCard({
 
           {renderItems('system')}
           {renderItems('module')}
-        </div>
+        </Stack>
       }
     />
   )

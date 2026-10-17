@@ -17,7 +17,7 @@ import type { RefEntity } from 'salvageunion-reference'
 import { radius } from '../../design/tokens'
 import { useEscapeKey } from '../../lib/useEscapeKey'
 import type { ProvenanceLine, VitalGaugeBreakdown } from '../index'
-import { Badge, Button, Entity, Stat, StatusBadge } from '../index'
+import { Badge, Button, Entity, Stack, Stat, StatusBadge } from '../index'
 import { CargoLotRow } from '../shared/CargoLotRow'
 import type { BandStat } from './BandStats'
 import { BandStats } from './BandStats'
@@ -152,12 +152,6 @@ const STAMP_BG: Record<MajorModel['fam'], string> = {
   crawler: 'var(--color-sheet-crawler-deep)',
 }
 
-const STAMP = {
-  padding: '5px 9px',
-  fontSize: 'var(--text-caption)',
-  color: 'var(--color-paper)',
-} satisfies CSSProperties
-
 /** The bay row: the main bays, then the side column. */
 const BAYS = { gap: 0 } satisfies CSSProperties
 
@@ -181,8 +175,6 @@ const SIDE = {
  * in, which a `transform` would not.
  */
 const LARGE = { zoom: 1.5, gap: '6px' } satisfies CSSProperties
-
-const SIDE_BAY = { display: 'flex', flexDirection: 'column', gap: '4px' } satisfies CSSProperties
 
 const LINE = {
   margin: 0,
@@ -467,7 +459,7 @@ export function MajorFrame({ view }: { view: MajorModel }) {
     >
       {live}
       <div className="su-dash-band-id">
-        <Badge shape="stamp" style={{ ...STAMP, backgroundColor: STAMP_BG[view.fam] }}>
+        <Badge shape="stamp" size="compact" style={{ backgroundColor: STAMP_BG[view.fam] }}>
           {view.stampLabel}
         </Badge>
       </div>
@@ -491,9 +483,9 @@ export function MajorFrame({ view }: { view: MajorModel }) {
         {side.length > 0 && (
           <div style={SIDE}>
             {side.map((bay) => (
-              <div key={bay.label} style={SIDE_BAY}>
+              <Stack gap={4} key={bay.label}>
                 <BayBody bay={bay} />
-              </div>
+              </Stack>
             ))}
           </div>
         )}

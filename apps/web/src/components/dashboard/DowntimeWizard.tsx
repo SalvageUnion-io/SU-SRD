@@ -55,7 +55,7 @@ import { bayGate } from '../../lib/rules/crawlerEconomy'
 import { runWrite } from '../../lib/runWrite'
 import { useEntityStore } from '../../stores/entityStore'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
-import { Badge, Button, CHAPTER_BAND_COLOR, Content } from '../index'
+import { Badge, Button, CHAPTER_BAND_COLOR, Content, Eyebrow } from '../index'
 import { DashboardRollTable } from './DashboardRollTable'
 import type { DowntimeHandle } from './useDowntime'
 
@@ -114,16 +114,7 @@ const TRACK = {
   listStyle: 'none',
 } satisfies CSSProperties
 
-const SECTION_LABEL = {
-  display: 'block',
-  padding: '8px 6px 4px',
-  fontFamily: 'var(--font-cond)',
-  fontWeight: 700,
-  fontSize: 'var(--text-badge)',
-  letterSpacing: 'var(--tracking-caps)',
-  textTransform: 'uppercase',
-  color: 'var(--color-ink)',
-} satisfies CSSProperties
+const SECTION_LABEL = { display: 'block', padding: '8px 6px 4px' } satisfies CSSProperties
 
 const MARK = {
   display: 'flex',
@@ -292,7 +283,11 @@ function DowntimeWizardFrame({
               aria-label={`Step ${i + 1}: ${s.name}${i < idx ? ', done' : ''}`}
               aria-current={i === idx ? 'step' : undefined}
             >
-              {s.section && <span style={SECTION_LABEL}>{s.section}</span>}
+              {s.section && (
+                <Eyebrow tone="ink" style={SECTION_LABEL}>
+                  {s.section}
+                </Eyebrow>
+              )}
               <span style={i < idx ? MARK_PAST : i === idx ? MARK_NOW : MARK_NEXT}>
                 <span style={MARK_NUMBER}>{i < idx ? '✓' : i + 1}</span>
                 {s.name}

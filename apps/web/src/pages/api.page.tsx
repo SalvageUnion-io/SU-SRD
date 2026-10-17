@@ -11,14 +11,13 @@ import type { CSSProperties } from 'react'
 import { getEntitySlug } from 'salvageunion-reference'
 import type { PageModule, PageResult } from '../../ssg/types'
 import { DocPage } from '../components/DocPage'
-import { InlineRef, Panel, Slab } from '../components/index'
+import { InlineRef, Panel, Slab, Stack } from '../components/index'
 import { color, font, fontSize, radius, space, weight } from '../design/tokens'
 import { apiSampleChassis } from '../lib/apiSample'
 import { SITE_URL, WEBSITE } from '../lib/constants'
 import {
   ASIDE,
   BOLD,
-  column,
   ITALIC,
   inlineCode,
   PANEL_BODY,
@@ -38,9 +37,6 @@ const DESCRIPTION =
 const baseUrl = SITE_URL
 
 const PROSE_12 = proseColumn(space[12])
-const COLUMN_24 = column(space[24])
-const COLUMN_16 = column(space[16])
-const COLUMN_12 = column(space[12])
 /** An endpoint's example URL: a long one breaks at phone width. */
 const EXAMPLE_LINK = { ...BOLD, overflowWrap: 'anywhere' } satisfies CSSProperties
 
@@ -253,7 +249,7 @@ function page(): PageResult {
         </section>
 
         {/* Endpoints */}
-        <section style={COLUMN_24}>
+        <Stack as="section" gap={24}>
           <Slab as="h2" variant="solid" label="Endpoints" />
 
           {/* Schema data array */}
@@ -340,17 +336,17 @@ function page(): PageResult {
               <CodeSample>{samples.entity}</CodeSample>
             </div>
           </Panel>
-        </section>
+        </Stack>
 
         {/* Usage example */}
-        <section style={COLUMN_12}>
+        <Stack as="section" gap={12}>
           <Slab as="h2" variant="solid" label="Usage Example" />
           <p style={PROSE}>Fetch all chassis data in browser JavaScript:</p>
           <CodeSample roomy>{samples.fetch}</CodeSample>
-        </section>
+        </Stack>
 
         {/* Available schemas */}
-        <section style={COLUMN_16}>
+        <Stack as="section" gap={16}>
           <Slab as="h2" variant="solid" label="Available Schemas" />
           <p style={PROSE}>
             The following schema IDs are available. Use them in the endpoint patterns above.
@@ -392,17 +388,17 @@ function page(): PageResult {
               </tbody>
             </table>
           </Panel>
-        </section>
+        </Stack>
 
         {/* CORS & headers */}
-        <section style={COLUMN_12}>
+        <Stack as="section" gap={12}>
           <Slab as="h2" variant="solid" label="CORS Policy" />
           <p style={PROSE}>
             All <code style={CODE}>/schema/</code> endpoints include the following response headers:
           </p>
           <CodeSample roomy>{CORS_HEADERS_SAMPLE}</CodeSample>
           <p style={PROSE}>No preflight requests are required for standard GET requests.</p>
-        </section>
+        </Stack>
 
         {/* Licensing note */}
         <section style={PROSE_12}>

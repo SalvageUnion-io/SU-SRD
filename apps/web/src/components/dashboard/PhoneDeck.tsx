@@ -6,7 +6,7 @@
  *  - **Filters** sit above the rows and wrap; there is no horizontal
  *    scroller. Range is four `aria-pressed` keys (it is seat state, shared
  *    with the crew), then timing, then source.
- *  - **A row** is the action's `ReferenceEntityCard` at its head extent. Its
+ *  - **A row** is a `DeckRow`: the action's card at its head extent. Its
  *    pennant is the action button: it opens the action AND pays for it
  *    (`onActivate`), the same `activate` the resolve's own pennant calls. The
  *    row's body opens it without paying (`onOpen`). Either way the resolve
@@ -19,11 +19,9 @@
 
 import type { CSSProperties } from 'react'
 import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
-import type { ReferenceEntityControl } from '../index'
-import { EmptyState, ReferenceEntityCard, Toggle } from '../index'
+import { EmptyState, Stack, Toggle, ToggleGroup } from '../index'
 import type { DeckListModel } from './DeckList'
-
-const ROOT = { display: 'flex', flexDirection: 'column', gap: space[10] } satisfies CSSProperties
+import { DeckRow } from './DeckRow'
 
 const HEADING = {
   margin: 0,
@@ -35,15 +33,12 @@ const HEADING = {
   color: color.ink,
 } satisfies CSSProperties
 
+/** A row of toggles, wrapping (the bare fieldset is `ToggleGroup`'s). */
 const GROUP = {
   display: 'flex',
   flexWrap: 'wrap',
   alignItems: 'center',
   gap: space[6],
-  border: 0,
-  margin: 0,
-  padding: 0,
-  minInlineSize: 0,
 } satisfies CSSProperties
 
 const REACH = {
@@ -61,15 +56,6 @@ const ROWS = {
   padding: 0,
 } satisfies CSSProperties
 
-const LOCKED = { opacity: 0.6 } satisfies CSSProperties
-
-const LOCK_NOTE = {
-  margin: `${space[4]} 0 0`,
-  fontFamily: font.body,
-  fontSize: fontSize.caption,
-  color: color.ink,
-} satisfies CSSProperties
-
 export function PhoneDeck({
   view,
   onOpen,
@@ -83,20 +69,20 @@ export function PhoneDeck({
 }) {
   if (view.kind === 'empty') {
     return (
-      <section aria-labelledby="dash-phone-deck" style={ROOT}>
+      <Stack as="section" gap={10} aria-labelledby="dash-phone-deck">
         <h3 id="dash-phone-deck" style={HEADING}>
           Actions
         </h3>
         <EmptyState variant="quiet" body={view.text} />
-      </section>
+      </Stack>
     )
   }
   return (
-    <section aria-labelledby="dash-phone-deck" style={ROOT}>
+    <Stack as="section" gap={10} aria-labelledby="dash-phone-deck">
       <h3 id="dash-phone-deck" style={HEADING}>
         Actions
       </h3>
-      <fieldset style={GROUP} aria-label="Engagement range">
+      <ToggleGroup style={GROUP} label="Engagement range">
         {view.rangeBands.map((band) => (
           <Toggle
             key={band}
@@ -108,16 +94,16 @@ export function PhoneDeck({
           </Toggle>
         ))}
         <span style={REACH}>{view.reachText}</span>
-      </fieldset>
-      <fieldset style={GROUP} aria-label="Filter actions by timing">
+      </ToggleGroup>
+      <ToggleGroup style={GROUP} label="Filter actions by timing">
         {view.tabs.map((t) => (
           <Toggle key={t} pressed={view.activeTab === t} onClick={() => view.onTab(t)}>
             {t}
           </Toggle>
         ))}
-      </fieldset>
+      </ToggleGroup>
       {view.sources.length > 1 && (
-        <fieldset style={GROUP} aria-label="Filter actions by source">
+        <ToggleGroup style={GROUP} label="Filter actions by source">
           <Toggle pressed={view.sourceFilter === null} onClick={() => view.onSourceFilter(null)}>
             All
           </Toggle>
@@ -132,43 +118,27 @@ export function PhoneDeck({
               {src.label}
             </Toggle>
           ))}
-        </fieldset>
+        </ToggleGroup>
       )}
       {view.rows.length === 0 ? (
         <EmptyState variant="quiet" body="No actions match this filter." />
       ) : (
         <ul style={ROWS}>
-          {view.rows.map((row) => {
-            const pennant: ReferenceEntityControl = {
-              key: 'activate',
-              pennant: true,
-              label: 'Activate',
-              onClick: () => onActivate(row.key),
-              disabled: row.locked,
-            }
-            return (
-              <li key={row.key} data-deck-key={row.key} style={row.locked ? LOCKED : undefined}>
-                <ReferenceEntityCard
-                  data={row.entity}
-                  // `compact` at the head extent is the one-line listing row
-                  // (ruleset §1 Listing): it spans the column, truncates a
-                  // long name with its full name in a tooltip, and keeps the
-                  // pennant right-aligned. `mini` is the shortform pill,
-                  // which sizes to its content.
-                  size="compact"
-                  extent="head"
-                  // The Dashboard stays flat: no speckle.
-                  texture={false}
-                  controls={[pennant]}
-                  cardClickLabel={`Open ${row.name}`}
-                  onCardClick={() => onOpen(row.key)}
-                />
-                {row.locked && row.lockTitle ? <p style={LOCK_NOTE}>{row.lockTitle}</p> : null}
-              </li>
-            )
-          })}
+          {view.rows.map((row) => (
+            <DeckRow
+              key={row.key}
+              row={row}
+              lock="note"
+              pennant={{
+                label: 'Activate',
+                onClick: () => onActivate(row.key),
+                disabledWhenLocked: true,
+              }}
+              onOpen={() => onOpen(row.key)}
+            />
+          ))}
         </ul>
       )}
-    </section>
+    </Stack>
   )
 }

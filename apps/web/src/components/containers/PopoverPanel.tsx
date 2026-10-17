@@ -1,7 +1,8 @@
 import { Popover } from '@base-ui/react/popover'
 import type { CSSProperties, ReactElement, ReactNode, RefObject } from 'react'
 import { useState } from 'react'
-import { borderWidth, color, radius, space } from '../../design/tokens'
+import { layer, space } from '../../design/tokens'
+import { POPUP_SURFACE } from '../atoms/popupSurface'
 
 /**
  * PopoverPanel — a trigger and the small panel it opens beside it: THE Base UI
@@ -50,18 +51,13 @@ type PopoverPanelProps = {
 }
 
 const LAYER = {
-  page: { zIndex: 45 },
-  masthead: { zIndex: 60 },
+  page: { zIndex: layer.popover },
+  masthead: { zIndex: layer.menu },
 } satisfies Record<NonNullable<PopoverPanelProps['layer']>, CSSProperties>
 
 const PANEL = {
+  ...POPUP_SURFACE.paper,
   alignItems: 'stretch',
-  backgroundColor: color.paper,
-  borderColor: color.ink,
-  borderRadius: radius.panel,
-  borderStyle: 'solid',
-  borderWidth: borderWidth.pill,
-  boxShadow: `0 14px 28px -14px ${color.ink50}`,
   display: 'flex',
   flexDirection: 'column',
   gap: space[6],

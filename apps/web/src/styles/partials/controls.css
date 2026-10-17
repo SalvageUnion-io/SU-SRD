@@ -120,7 +120,7 @@
 .su-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: var(--z-overlay);
   background-color: color-mix(in srgb, var(--color-ink-deep) 80%, transparent);
 }
 

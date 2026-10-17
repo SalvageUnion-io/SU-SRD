@@ -61,7 +61,15 @@ import type { UnitReading } from '../../lib/units/unitModel'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { WritesBlockedOffline } from '../../stores/entityBackend'
 import { useEntityStore } from '../../stores/entityStore'
-import { Button, EmptyState, Entity, FieldError, ModalShell, RadioCardGroup } from '../index'
+import {
+  Button,
+  DialogActions,
+  EmptyState,
+  Entity,
+  FieldError,
+  ModalShell,
+  RadioCardGroup,
+} from '../index'
 import type { SoftLinkStore } from './useSoftLinks'
 
 type Kind = EntityRef['type']
@@ -79,12 +87,6 @@ const NOTE = {
   fontFamily: font.body,
   fontSize: fontSize.xs,
   lineHeight: 'calc(1 / 0.75)',
-} satisfies CSSProperties
-
-const ACTIONS = {
-  display: 'flex',
-  gap: space[8],
-  justifyContent: 'flex-end',
 } satisfies CSSProperties
 
 /** The store surface the picker reads and writes — injectable in tests. */
@@ -381,7 +383,7 @@ export function AssignPicker({
 
           {error && <FieldError>{error}</FieldError>}
 
-          <div style={ACTIONS}>
+          <DialogActions>
             <Button variant="ghost" size="compact" onClick={closeDialog} disabled={pending}>
               Cancel
             </Button>
@@ -394,7 +396,7 @@ export function AssignPicker({
             >
               {pending ? copy.pending : copy.confirm}
             </Button>
-          </div>
+          </DialogActions>
         </div>
       </ModalShell>
     </>

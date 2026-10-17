@@ -15,11 +15,11 @@
  * `.su-dash-root` scope the panels' `.su-dash-*` rules key off.
  */
 
-import { ChevronLeft, X } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useRef } from 'react'
 import { borderWidth, color, font, fontSize, space, tracking, weight } from '../../design/tokens'
-import { Button, buttonVariants, ModalShell } from '../index'
+import { Button, buttonVariants, CloseButton, ModalShell } from '../index'
 import { AppLink } from '../shared/AppLink'
 
 export type PhonePanel = 'log' | 'crew' | 'reference' | 'tables' | 'srd'
@@ -179,15 +179,7 @@ export function PhoneMenu({
           <h2 ref={heading} tabIndex={-1} style={TITLE}>
             {view === 'menu' ? 'Menu' : PANEL_TITLE[view]}
           </h2>
-          <Button
-            variant="ghost"
-            size="iconOnly"
-            style={ICON}
-            aria-label="Close the menu"
-            onClick={onClose}
-          >
-            <X size={22} aria-hidden="true" />
-          </Button>
+          <CloseButton label="Close the menu" onPaper onClick={onClose} />
         </div>
         {view === 'menu' ? (
           <nav aria-label="Dashboard" style={LIST}>

@@ -143,7 +143,7 @@ describe('PilotSheet — spend AP (Slice D)', () => {
 
     const spendBtn = screen.getByRole('button', { name: /spend 3 ap for talk shop/i })
     expect(spendBtn.classList.contains('su-btn')).toBe(true)
-    expect(spendBtn.classList.contains('su-sheet-ctl')).toBe(true)
+    expect(spendBtn.classList.contains('su-btn--pencil')).toBe(true)
   })
 })
 

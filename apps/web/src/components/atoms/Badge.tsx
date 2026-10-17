@@ -134,7 +134,7 @@ type BadgeChipProps = {
 type BadgeStampProps = {
   children: ReactNode
   shape: 'stamp'
-  /** Text scale on the FULL / COMPACT / MINI ladder. `compact` is the default. */
+  /** Text scale on the FULL / COMPACT / MINI ladder, or the 13px `caption`. `compact` is the default. */
   size?: StampSize
   /**
    * The plate the stamp sits on:

@@ -8,16 +8,16 @@
  * mech and crawler of yours this browser holds, wherever it is, and a chip
  * under each says where.
  *
- *  - **The band** (ink, paper flecks): the notched title and, right of it
- *    and centred on its capitals as a show page's chips are, the **Showing**
- *    toggle (Everything | Unassigned), **Import** and **Export all**, and
- *    "+ New Game", the one way to start a table.
+ *  - **The band** (ink, paper flecks): the notched title and, right of it on
+ *    the band's foot, "+ New Game" (the one way to start a table), **Import**,
+ *    **Export all** and the **Showing** toggle (Everything | Unassigned); what
+ *    does not fit beside the name wraps up over it (`asideAt="controls"`).
  *  - **Three rows of shelves**: Pilots, Mechs and Crawlers side by side; then
  *    NPCs and Patterns, which are user-made and so dashed (ruleset §3.9); then,
  *    folded, the Starter Set, read-only, as the front door shows it
  *    (`StarterShelf`).
  *
- * Each item is a library Row (`ShelfPill`) with its chips and a ⋯ menu: Open, Move
+ * Each item is a library Row (`UnitRow`) with its chips and a ⋯ menu: Open, Move
  * to a Game…, Make a copy, Save as pattern (mechs), Export and Delete…. Every
  * verb that changes what you have asks first, through the page's one confirm,
  * which has to outlive the menu that asked.
@@ -90,12 +90,13 @@ import type { HeaderMenuItem } from '../index'
 import {
   buttonVariants,
   ChapterBand,
+  Grid,
   HeaderMenu,
+  PageShell,
   RosterSkeleton,
   Segmented,
   SegmentedOption,
   toast,
-  tokens,
 } from '../index'
 import { AppLink } from '../shared/AppLink'
 import { useConfirm } from '../shared/useConfirm'
@@ -113,46 +114,14 @@ import { StarterShelf } from './StarterShelf'
 
 const MEASURE = '75rem'
 
-const PAGE = {
-  backgroundColor: tokens.color.wkBg,
-  minHeight: '100%',
-  paddingBottom: tokens.space[48],
-} satisfies CSSProperties
-
-/** The band's controls, right of the notched title (`shelves.css` centres them on it). */
-const BAND_CONTROLS = {
-  alignItems: 'flex-start',
-  justifyContent: 'flex-end',
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[12],
-} satisfies CSSProperties
-
-// Its side padding and centring are `.su-page-column`'s: the band's row padding.
-const BODY = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[24],
-  maxWidth: MEASURE,
-  paddingTop: tokens.space[20],
-} satisfies CSSProperties
-
 /**
  * One row of shelves (owner, 2026-10-15): your units (Pilots, Mechs,
  * Crawlers), then what you made (NPCs, Patterns), side by side where there is
  * room, stacked on a phone. The Starter Set is the third row, folded.
  */
-const ROW = {
-  alignItems: 'start',
-  display: 'grid',
-  gap: tokens.space[32],
-  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 20rem), 1fr))',
-} satisfies CSSProperties
+const ROW = { alignItems: 'start' } satisfies CSSProperties
 
 const NEW_LINK = { textDecoration: 'none' } satisfies CSSProperties
-
-/** The on-ink outline the band's buttons wear (`styles/shelves.css`). */
-const ON_INK_BUTTON = 'su-shelves-band__btn'
 
 // ---------------------------------------------------------------------------
 // Data: the server's facts, read only when there is a server to ask
@@ -392,203 +361,202 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   const ready = hydratedUnits && hydratedPatterns && hydratedTray
 
   return (
-    <main className="su-shelves" style={PAGE}>
-      <ChapterBand
-        tone="ink"
-        matchBar={false}
-        measure={MEASURE}
-        eyebrow={
-          <p role="status" aria-live="polite" className="su-shelves-band__status">
-            {importResult}
-          </p>
-        }
-        aside={
-          <div style={BAND_CONTROLS}>
-            <Segmented label="Showing" ground="ink" size="compact">
-              {SHELF_FILTERS.map((option) => (
-                <SegmentedOption
-                  key={option.value}
-                  pressed={filter === option.value}
-                  onClick={() => setFilter(option.value)}
-                >
-                  {option.label}
-                </SegmentedOption>
+    <PageShell
+      className="su-shelves"
+      measure={MEASURE}
+      band={
+        <ChapterBand
+          tone="ink"
+          matchBar={false}
+          measure={MEASURE}
+          eyebrow={
+            <p role="status" aria-live="polite" className="su-shelves-band__status">
+              {importResult}
+            </p>
+          }
+          // Beside the name while they fit, wrapping up over it when they do
+          // not: the first in the list sit nearest the name.
+          asideAt="controls"
+          aside={
+            <>
+              <NewGameControl ground="ink" />
+              {canWrite && <ImportButton ground="ink" onResult={setImportResult} />}
+              <ExportAllButton ground="ink" />
+              <Segmented label="Showing" ground="ink" size="compact">
+                {SHELF_FILTERS.map((option) => (
+                  <SegmentedOption
+                    key={option.value}
+                    pressed={filter === option.value}
+                    onClick={() => setFilter(option.value)}
+                  >
+                    {option.label}
+                  </SegmentedOption>
+                ))}
+              </Segmented>
+            </>
+          }
+        >
+          Hangar
+        </ChapterBand>
+      }
+    >
+      {!ready ? (
+        <RosterSkeleton />
+      ) : (
+        <>
+          <Grid min="20rem" gap={32} style={ROW}>
+            <Shelf
+              id="shelf-pilots"
+              title="Pilots"
+              action={newLink('/pilots/new', '+ New pilot')}
+              isEmpty={pilots.length === 0}
+              empty={emptyText(allPilots.length, 'No pilots yet.', 'pilot')}
+            >
+              {pilots.map((p) => (
+                <ShelfItem
+                  key={p.id}
+                  kind="pilot"
+                  note={pilotFact(p)}
+                  name={p.name}
+                  reading={rowStats(pilotRailItems(p))[0]}
+                  href={`/sheet/pilot/${p.id}`}
+                  chips={[
+                    ...pilotChips({ pilot: p, games, softLinks, mechNames }),
+                    ...linkChip(sharedByLink, p.id),
+                  ]}
+                  menu={unitMenu('pilot', p, p)}
+                />
               ))}
-            </Segmented>
-            {canWrite && (
-              <ImportButton className={ON_INK_BUTTON} onInk onResult={setImportResult} />
-            )}
-            <ExportAllButton className={ON_INK_BUTTON} onInk />
-            <NewGameControl className={ON_INK_BUTTON} />
-          </div>
-        }
-      >
-        Hangar
-      </ChapterBand>
+            </Shelf>
 
-      <div className="su-page-column" style={BODY}>
-        {!ready ? (
-          <RosterSkeleton />
-        ) : (
-          <>
-            <div style={ROW}>
-              <Shelf
-                id="shelf-pilots"
-                title="Pilots"
-                action={newLink('/pilots/new', '+ New pilot')}
-                isEmpty={pilots.length === 0}
-                empty={emptyText(allPilots.length, 'No pilots yet.', 'pilot')}
-              >
-                {pilots.map((p) => (
-                  <ShelfItem
-                    key={p.id}
-                    kind="pilot"
-                    note={pilotFact(p)}
-                    name={p.name}
-                    reading={rowStats(pilotRailItems(p))[0]}
-                    href={`/sheet/pilot/${p.id}`}
-                    chips={[
-                      ...pilotChips({ pilot: p, games, softLinks, mechNames }),
-                      ...linkChip(sharedByLink, p.id),
-                    ]}
-                    menu={unitMenu('pilot', p, p)}
-                  />
-                ))}
-              </Shelf>
+            <Shelf
+              id="shelf-mechs"
+              title="Mechs"
+              action={newLink('/mechs/new', '+ New mech')}
+              isEmpty={mechs.length === 0}
+              empty={emptyText(allMechs.length, 'No mechs yet.', 'mech')}
+            >
+              {mechs.map((m) => (
+                <ShelfItem
+                  key={m.id}
+                  kind="mech"
+                  note={chassisFact(m.chassisRef)}
+                  name={m.name}
+                  reading={rowStats(mechRailItems(m))[0]}
+                  href={`/sheet/mech/${m.id}`}
+                  chips={[
+                    ...mechChips({ mech: m, games, softLinks, pilotNames }),
+                    ...linkChip(sharedByLink, m.id),
+                  ]}
+                  menu={unitMenu('mech', m, m)}
+                />
+              ))}
+            </Shelf>
 
-              <Shelf
-                id="shelf-mechs"
-                title="Mechs"
-                action={newLink('/mechs/new', '+ New mech')}
-                isEmpty={mechs.length === 0}
-                empty={emptyText(allMechs.length, 'No mechs yet.', 'mech')}
-              >
-                {mechs.map((m) => (
-                  <ShelfItem
-                    key={m.id}
-                    kind="mech"
-                    note={chassisFact(m.chassisRef)}
-                    name={m.name}
-                    reading={rowStats(mechRailItems(m))[0]}
-                    href={`/sheet/mech/${m.id}`}
-                    chips={[
-                      ...mechChips({ mech: m, games, softLinks, pilotNames }),
-                      ...linkChip(sharedByLink, m.id),
-                    ]}
-                    menu={unitMenu('mech', m, m)}
-                  />
-                ))}
-              </Shelf>
+            <Shelf
+              id="shelf-crawlers"
+              title="Crawlers"
+              action={newLink('/crawlers/new', '+ New crawler')}
+              isEmpty={crawlers.length === 0}
+              empty={emptyText(keptCrawlers.length, 'No crawlers yet.', 'crawler')}
+            >
+              {crawlers.map((c) => (
+                <ShelfItem
+                  key={c.id}
+                  kind="crawler"
+                  note={crawlerFact(c)}
+                  name={c.name}
+                  reading={crawlerReading(c) ?? rowStats(crawlerRailItems(c))[0]}
+                  href={`/sheet/crawler/${c.id}`}
+                  chips={[...crawlerChips({ crawler: c, games }), ...linkChip(sharedByLink, c.id)]}
+                  menu={unitMenu('crawler', c, c)}
+                />
+              ))}
+            </Shelf>
+          </Grid>
 
-              <Shelf
-                id="shelf-crawlers"
-                title="Crawlers"
-                action={newLink('/crawlers/new', '+ New crawler')}
-                isEmpty={crawlers.length === 0}
-                empty={emptyText(keptCrawlers.length, 'No crawlers yet.', 'crawler')}
-              >
-                {crawlers.map((c) => (
-                  <ShelfItem
-                    key={c.id}
-                    kind="crawler"
-                    note={crawlerFact(c)}
-                    name={c.name}
-                    reading={crawlerReading(c) ?? rowStats(crawlerRailItems(c))[0]}
-                    href={`/sheet/crawler/${c.id}`}
-                    chips={[
-                      ...crawlerChips({ crawler: c, games }),
-                      ...linkChip(sharedByLink, c.id),
-                    ]}
-                    menu={unitMenu('crawler', c, c)}
-                  />
-                ))}
-              </Shelf>
-            </div>
+          <Grid min="20rem" gap={32} style={ROW}>
+            <Shelf
+              id="shelf-npcs"
+              title="NPCs"
+              aside="Yours"
+              note="Your NPCs, ready to drop into a Game you mediate."
+              action={newLink('/npcs/new', '+ Design an NPC')}
+              isEmpty={npcs.length + tray.length === 0}
+              empty={emptyText(
+                allNpcs.length + tray.length,
+                'No NPCs yet. Design one and it is kept here.',
+                'NPC'
+              )}
+            >
+              {npcs.map((n) => (
+                <ShelfItem
+                  key={n.id}
+                  kind="npc"
+                  note={n.position}
+                  name={n.name}
+                  reading={npcReading(n)}
+                  href={`/sheet/npc/${n.id}`}
+                  userMade
+                  chips={npcChips({
+                    npc: n,
+                    games,
+                    sharedByLink: sharedByLink?.includes(n.id) ?? false,
+                  })}
+                  menu={unitMenu('npc', n, n)}
+                />
+              ))}
+              {tray.map((n) => (
+                <ShelfItem
+                  key={n.id}
+                  kind="npc"
+                  note="Tray"
+                  name={n.name}
+                  reading={encounterNpcReading(n)}
+                  userMade
+                  chips={encounterNpcChips()}
+                  menu={trayMenu(n)}
+                />
+              ))}
+            </Shelf>
 
-            <div style={ROW}>
-              <Shelf
-                id="shelf-npcs"
-                title="NPCs"
-                aside="Yours"
-                note="Your NPCs, ready to drop into a Game you mediate."
-                action={newLink('/npcs/new', '+ Design an NPC')}
-                isEmpty={npcs.length + tray.length === 0}
-                empty={emptyText(
-                  allNpcs.length + tray.length,
-                  'No NPCs yet. Design one and it is kept here.',
-                  'NPC'
-                )}
-              >
-                {npcs.map((n) => (
-                  <ShelfItem
-                    key={n.id}
-                    kind="npc"
-                    note={n.position}
-                    name={n.name}
-                    reading={npcReading(n)}
-                    href={`/sheet/npc/${n.id}`}
-                    userMade
-                    chips={npcChips({
-                      npc: n,
-                      games,
-                      sharedByLink: sharedByLink?.includes(n.id) ?? false,
-                    })}
-                    menu={unitMenu('npc', n, n)}
+            <Shelf
+              id="shelf-patterns"
+              title="Patterns"
+              aside="Yours"
+              note="Your patterns, ready to build a Mech from."
+              action={
+                canWrite ? (
+                  <HeaderMenu
+                    variant="button"
+                    trigger="+ From a mech"
+                    label="+ From a mech"
+                    chevron={false}
+                    sections={[fromAMech]}
                   />
-                ))}
-                {tray.map((n) => (
-                  <ShelfItem
-                    key={n.id}
-                    kind="npc"
-                    note="Tray"
-                    name={n.name}
-                    reading={encounterNpcReading(n)}
-                    userMade
-                    chips={encounterNpcChips()}
-                    menu={trayMenu(n)}
-                  />
-                ))}
-              </Shelf>
-
-              <Shelf
-                id="shelf-patterns"
-                title="Patterns"
-                aside="Yours"
-                note="Your patterns, ready to build a Mech from."
-                action={
-                  canWrite ? (
-                    <HeaderMenu
-                      variant="button"
-                      trigger="+ From a mech"
-                      label="+ From a mech"
-                      chevron={false}
-                      sections={[fromAMech]}
-                    />
-                  ) : undefined
-                }
-                isEmpty={patterns.length === 0}
-                empty="No patterns yet. Save one from a mech."
-              >
-                {patterns.map((p) => (
-                  <ShelfItem
-                    key={p.id}
-                    kind="pattern"
-                    note={chassisFact(p.chassisRef)}
-                    name={p.name}
-                    reading={patternReading(p)}
-                    href={patternHref(p.id)}
-                    userMade
-                    chips={patternChips(sharing?.find((s) => s.appId === p.id))}
-                    menu={patternMenu(p)}
-                  />
-                ))}
-              </Shelf>
-            </div>
-          </>
-        )}
-        {ready && <StarterShelf />}
-      </div>
-
+                ) : undefined
+              }
+              isEmpty={patterns.length === 0}
+              empty="No patterns yet. Save one from a mech."
+            >
+              {patterns.map((p) => (
+                <ShelfItem
+                  key={p.id}
+                  kind="pattern"
+                  note={chassisFact(p.chassisRef)}
+                  name={p.name}
+                  reading={patternReading(p)}
+                  href={patternHref(p.id)}
+                  userMade
+                  chips={patternChips(sharing?.find((s) => s.appId === p.id))}
+                  menu={patternMenu(p)}
+                />
+              ))}
+            </Shelf>
+          </Grid>
+        </>
+      )}
+      {ready && <StarterShelf />}
       <MoveToGameDialog
         subject={moving}
         onClose={() => setMoving(null)}
@@ -596,6 +564,6 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
         confirm={confirm}
       />
       {dialog}
-    </main>
+    </PageShell>
   )
 }

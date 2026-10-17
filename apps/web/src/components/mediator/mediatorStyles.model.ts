@@ -1,8 +1,8 @@
 /**
  * The Mediator Dashboard's shared style objects (docs/architecture/
- * mediator-dashboard.md §6): the instrument panels sit on the canvas's
- * `--color-ink-deep` ground in `--color-band-cream`, and the display is
- * `--color-paper`, as on the player Dashboard (ruleset §1).
+ * mediator-dashboard.md §6): the text inside its sections. The sections
+ * themselves are `TitledBox`es on the canvas's `--color-ink-deep` ground, and
+ * the display is `--color-paper`, as on the player Dashboard (ruleset §1).
  *
  * Style objects over `tokens` only: no Dashboard stylesheet class (ADR-046).
  */
@@ -10,49 +10,7 @@
 import type { CSSProperties } from 'react'
 import { tokens } from '../index'
 
-const { borderWidth, color, font, fontSize, radius, space, tracking, weight } = tokens
-
-/** An instrument panel: the rail, The table, the two minors. */
-export const PANEL = {
-  minWidth: 0,
-  minHeight: 0,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: space[8],
-  padding: space[12],
-  background: color.bandCream,
-  border: `${borderWidth.rail} solid color-mix(in srgb, ${color.ink} 35%, transparent)`,
-  borderRadius: radius.panel,
-} satisfies CSSProperties
-
-/** A minor's ontology band along its top edge (the crawler's pink). */
-export const bandTop = (fill: string): CSSProperties => ({
-  ...PANEL,
-  borderTop: `8px solid ${fill}`,
-})
-
-/** A panel's heading: condensed caps, ink. */
-export const HEADING = {
-  margin: 0,
-  fontFamily: font.cond,
-  fontWeight: weight.bold,
-  fontSize: fontSize.readout,
-  letterSpacing: tracking.capsTight,
-  textTransform: 'uppercase',
-  color: color.ink,
-  lineHeight: 1.1,
-} satisfies CSSProperties
-
-/** The small caps line beside or under a heading. */
-export const EYEBROW = {
-  margin: 0,
-  fontFamily: font.cond,
-  fontWeight: weight.bold,
-  fontSize: fontSize.badge,
-  letterSpacing: tracking.caps,
-  textTransform: 'uppercase',
-  color: color.ink75,
-} satisfies CSSProperties
+const { color, font, fontSize, space } = tokens
 
 /** Body copy on an instrument or the display. */
 export const BODY = {

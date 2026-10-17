@@ -47,8 +47,10 @@ import { SignInControl } from '../../account/SignInControl'
 import {
   Button,
   ChapterBand,
+  Cluster,
   Entity,
   EntityStat,
+  Grid,
   quotePatternName,
   ReferenceEntityCard,
   Slab,
@@ -119,19 +121,13 @@ const BANG = {
   width: '1.75rem',
 } satisfies CSSProperties
 
-// Its side padding and centring are `.su-page-column`'s: the band's row padding.
+// Its side padding and centring are `.su-page-body`'s: the band's row padding.
 const BODY = {
   display: 'flex',
   flexDirection: 'column',
   gap: tokens.space[32],
   maxWidth: MEASURE,
   paddingBlock: `${tokens.space[24]} ${tokens.space[48]}`,
-} satisfies CSSProperties
-
-const COLUMNS = {
-  display: 'grid',
-  gap: tokens.space[32],
-  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 26rem), 1fr))',
 } satisfies CSSProperties
 
 const COLUMN = {
@@ -194,13 +190,6 @@ const ACTION_BUTTON = {
   letterSpacing: tokens.tracking.capsSnug,
   minHeight: '2.75rem',
   textTransform: 'uppercase',
-} satisfies CSSProperties
-
-const ACTIONS = {
-  alignItems: 'center',
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[12],
 } satisfies CSSProperties
 
 const FOOT = {
@@ -333,8 +322,8 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
         </div>
       </div>
 
-      <div className="su-page-column" style={BODY}>
-        <div style={COLUMNS}>
+      <div className="su-page-body" style={BODY}>
+        <Grid min="26rem" gap={32}>
           <section style={COLUMN} aria-label="Chassis">
             {/* The maker's photo where they gave one, else the chassis art. */}
             <EntityPhoto
@@ -381,7 +370,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
               />
             ))}
 
-            <div style={ACTIONS}>
+            <Cluster gap={12}>
               {canWrite && mode === 'connected' ? (
                 <>
                   <Button
@@ -409,9 +398,9 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
                 </>
               )}
               <Text variant="hint">{builtLine}</Text>
-            </div>
+            </Cluster>
             {mine && visibility && (
-              <div style={ACTIONS}>
+              <Cluster gap={12}>
                 <Text variant="hint">{VISIBILITY_COPY[visibility]}</Text>
                 {canWrite && mode === 'connected' && (
                   <Button
@@ -423,10 +412,10 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
                     Share
                   </Button>
                 )}
-              </div>
+              </Cluster>
             )}
           </section>
-        </div>
+        </Grid>
 
         <section aria-labelledby="pattern-loadout">
           <Slab

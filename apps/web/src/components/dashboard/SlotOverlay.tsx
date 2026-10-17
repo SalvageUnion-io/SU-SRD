@@ -11,7 +11,7 @@
  */
 
 import type { CSSProperties, ReactNode, RefObject } from 'react'
-import { Button, ModalShell } from '../index'
+import { CloseButton, ModalShell } from '../index'
 
 /** The title row and the Major, laid over the scrim that dims the display. */
 const FRAME = {
@@ -70,9 +70,7 @@ export function SlotOverlay({
       <div style={FRAME}>
         <div style={HEAD}>
           <h2 style={TITLE}>{title}</h2>
-          <Button size="compact" onClick={onClose}>
-            Close
-          </Button>
+          <CloseButton onPaper onClick={onClose} />
         </div>
         <div style={BODY}>{children}</div>
       </div>

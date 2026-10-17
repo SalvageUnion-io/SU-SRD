@@ -1,12 +1,13 @@
 import { Drawer } from '@base-ui/react/drawer'
-import { Menu, X } from 'lucide-react'
+import { Menu } from 'lucide-react'
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { useState } from 'react'
 import { srdSchemaPath } from 'salvageunion-reference'
-import { borderWidth, color, radius, space } from '../../design/tokens'
+import { borderWidth, color, layer, radius, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { Badge } from '../atoms/Badge'
 import { buttonVariants } from '../atoms/buttonVariants'
+import { CloseButton } from '../atoms/CloseButton'
 import { FOCUS_RING } from '../atoms/interaction'
 import { TRANSITION_COLORS } from '../atoms/transition'
 
@@ -96,7 +97,7 @@ const VIEWPORT = {
   inset: 0,
   justifyContent: 'flex-end',
   position: 'fixed',
-  zIndex: 50,
+  zIndex: layer.overlay,
 } satisfies CSSProperties
 
 // The hamburger. Its padding and ink are on `.su-nav-drawer__trigger`, which
@@ -173,17 +174,7 @@ export function NavDrawer({
             {/* Brand row: lockup | Close */}
             <div style={BRAND_ROW}>
               {brand}
-              <Drawer.Close
-                render={
-                  <button
-                    type="button"
-                    aria-label="Close menu"
-                    className={buttonVariants({ variant: 'quiet', size: 'iconOnly' })}
-                  >
-                    <X size={22} aria-hidden="true" />
-                  </button>
-                }
-              />
+              <Drawer.Close render={<CloseButton label="Close menu" />} />
             </div>
 
             {search && <div className="su-nav-drawer__search">{search}</div>}

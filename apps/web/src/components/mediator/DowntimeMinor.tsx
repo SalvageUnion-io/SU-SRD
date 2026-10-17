@@ -14,6 +14,8 @@
  * (ADR-007). Starting it moves every player's Crawler to their Major slot
  * (ADR-038 §5); nothing here builds that.
  *
+ * A `TitledBox` in the crawler's pink, as each of the dashboard's sections is.
+ *
  * Presentational: the Dashboard hands in the state and the writes. Every
  * control is disabled, never hidden, while the table cannot be written.
  */
@@ -25,10 +27,10 @@ import {
 } from 'cantina-domain/rules/downtime'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { Button, ConfirmDialog, tokens } from '../index'
-import { BODY, bandTop, HEADING, MUTED, NUMBERS } from './mediatorStyles.model'
+import { Button, ConfirmDialog, TitledBox, tokens } from '../index'
+import { BODY, MUTED, NUMBERS } from './mediatorStyles.model'
 
-const { color, space, weight } = tokens
+const { space, weight } = tokens
 
 export type DowntimeReading = {
   running: boolean
@@ -81,16 +83,12 @@ export function DowntimeMinor({
 }) {
   const [confirmEnd, setConfirmEnd] = useState(false)
   const run = (write: () => Promise<unknown>) => () => void write().catch(onFailure)
-  const panel = { ...bandTop(color.crawler), height: '100%' }
   const index = downtime.stepIndex ?? 0
   const last = index >= steps.length - 1
   const upkeepStep = isUpkeepStep(downtime.stepIndex)
 
   return (
-    <section aria-labelledby="mediator-downtime" style={panel}>
-      <h2 id="mediator-downtime" style={HEADING}>
-        Downtime
-      </h2>
+    <TitledBox as="section" title="Downtime" titleAs="h2" tone="crawler">
       {!downtime.running ? (
         <>
           <p style={MUTED}>
@@ -172,6 +170,6 @@ export function DowntimeMinor({
           />
         </>
       )}
-    </section>
+    </TitledBox>
   )
 }

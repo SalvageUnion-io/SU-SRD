@@ -17,7 +17,7 @@
 
 import { NpcSchema } from 'cantina-domain/schemas/npc'
 import type { CSSProperties, ReactNode } from 'react'
-import { useMemo, useState } from 'react'
+import { useId, useMemo, useState } from 'react'
 import type { RefEntity, RefNPC } from 'salvageunion-reference'
 import { displayTitle, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { useConnection } from '../../lib/connection/connectionContext'
@@ -42,6 +42,7 @@ import {
 import { readWizardDraft, useWizardDraftSync, wizardDraftKey } from '../../lib/wizard/wizardDraft'
 import {
   Button,
+  Checkbox,
   ConfirmDialog,
   EmptyState,
   Entity,
@@ -79,14 +80,6 @@ const CHECK_HIT = {
   justifyContent: 'center',
   minHeight: '2.75rem',
   minWidth: '2.75rem',
-} satisfies CSSProperties
-
-const CHECK = {
-  accentColor: tokens.color.ink,
-  cursor: 'pointer',
-  height: '1.375rem',
-  margin: 0,
-  width: '1.375rem',
 } satisfies CSSProperties
 
 const PICK_ROW = {
@@ -555,12 +548,12 @@ function PickRow({
   onToggle: (carried: boolean) => void
   children: ReactNode
 }) {
+  const id = useId()
   return (
     <li className="su-npc-pick" style={PICK_ROW}>
-      <label style={CHECK_HIT}>
-        <input
-          type="checkbox"
-          style={CHECK}
+      <label htmlFor={id} style={CHECK_HIT}>
+        <Checkbox
+          id={id}
           checked={carried}
           aria-label={label}
           onChange={(e) => onToggle(e.target.checked)}

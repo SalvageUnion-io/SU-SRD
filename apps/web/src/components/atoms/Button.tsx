@@ -23,6 +23,8 @@ type ButtonProps = ComponentPropsWithRef<'button'> &
  * `surface="instrument"` re-skins the same button for the dark dashboard HUD
  * (condensed caps; a `ghost` recolour, the one variant the HUD uses) — one
  * Button for both the paper app chrome and the instrument scope.
+ * `surface="ink"` with `variant="ghost"` is the on-ink ghost: a paper outline
+ * on an ink band or plate.
  */
 export function Button({
   variant,

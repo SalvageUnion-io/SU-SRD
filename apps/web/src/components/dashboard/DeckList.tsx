@@ -13,26 +13,9 @@
 
 import type { CSSProperties } from 'react'
 import { fontSize, radius, space } from '../../design/tokens'
-import type { ReferenceCardEntity } from '../index'
-import { Badge, EmptyState, ReferenceEntityCard, Toggle } from '../index'
-
-/**
- * A render-ready action card. The action ENTITY drives a header-only
- * (`extent="head"`) `ReferenceEntityCard` row, so the deck reuses the canonical
- * action rendering instead of a hand-rolled row.
- * The card states its own name, so the deck adds no describing label above it.
- * Reach/lock is resolved by the caller and layered on top (dim + tooltip), never
- * baked into the card.
- */
-export type DeckRow = {
-  key: string
-  /** Any card-renderable entity — ACTIONS are meta-entities, not `RefEntity`. */
-  entity: ReferenceCardEntity
-  /** Accessible name for the clickable tile (the action name). */
-  name: string
-  locked: boolean
-  lockTitle?: string
-}
+import { Badge, EmptyState, Toggle, ToggleGroup } from '../index'
+import type { DeckEntry } from './DeckRow'
+import { DeckRow } from './DeckRow'
 
 export type DeckListModel =
   | { kind: 'empty'; text: string }
@@ -49,7 +32,7 @@ export type DeckListModel =
       sourceFilter: string | null
       onSourceFilter: (source: string | null) => void
       /** The whole deck, flat — one grid, no source/timing headings above it. */
-      rows: DeckRow[]
+      rows: DeckEntry[]
       onOpen: (key: string) => void
       /**
        * Open an action and pay for it in one press: the phone's pennant
@@ -57,9 +40,6 @@ export type DeckListModel =
        */
       onActivate: (key: string) => void
     }
-
-/** A bare fieldset: the group, without the browser's frame around it. */
-const GROUP = { border: 0, margin: 0, padding: 0, minInlineSize: 0 } satisfies CSSProperties
 
 /** A source toggle carries its stamp before its label. */
 const SOURCE = {
@@ -88,16 +68,16 @@ export function DeckList({ view }: { view: DeckListModel }) {
   return (
     <div className="su-dash-display-scroll">
       <div className="su-dash-deck-controls-bar">
-        <fieldset className="su-dash-deck-tabs" style={GROUP} aria-label="Filter actions by timing">
+        <ToggleGroup className="su-dash-deck-tabs" label="Filter actions by timing">
           {view.tabs.map((t) => (
             <Toggle key={t} pressed={view.activeTab === t} onClick={() => view.onTab(t)}>
               {t}
             </Toggle>
           ))}
-        </fieldset>
+        </ToggleGroup>
 
         <div className="su-dash-deck-toolrow">
-          <fieldset className="su-dash-deck-range" style={GROUP} aria-label="Engagement Range">
+          <ToggleGroup className="su-dash-deck-range" label="Engagement Range">
             {view.rangeBands.map((band) => (
               <Toggle
                 key={band}
@@ -110,15 +90,11 @@ export function DeckList({ view }: { view: DeckListModel }) {
               </Toggle>
             ))}
             <span className="su-dash-deck-reach">{view.reachText}</span>
-          </fieldset>
+          </ToggleGroup>
         </div>
 
         {view.sources.length > 1 && (
-          <fieldset
-            className="su-dash-deck-sources"
-            style={GROUP}
-            aria-label="Filter actions by source"
-          >
+          <ToggleGroup className="su-dash-deck-sources" label="Filter actions by source">
             <Toggle pressed={view.sourceFilter === null} onClick={() => view.onSourceFilter(null)}>
               All
             </Toggle>
@@ -138,7 +114,7 @@ export function DeckList({ view }: { view: DeckListModel }) {
                 {src.label}
               </Toggle>
             ))}
-          </fieldset>
+          </ToggleGroup>
         )}
       </div>
 
@@ -158,39 +134,19 @@ export function DeckList({ view }: { view: DeckListModel }) {
            */}
           <ul className="su-dash-deck-grid">
             {view.rows.map((row) => (
-              // Lock (out of range / overheat) is a caller-resolved overlay,
-              // layered on the canonical card — dim + tooltip — never a
-              // property of the action card itself.
-              <li
+              // The cost pennant IS the deck's action (ruleset §1, board D1):
+              // filled rust, in the pennant's own place, and tapping it takes
+              // the action to Resolve. No separate deck button, no chevron.
+              <DeckRow
                 key={row.key}
-                className={row.locked ? 'is-locked' : undefined}
-                title={row.lockTitle}
-              >
-                {/* The cost pennant IS the deck's action (ruleset §1, board
-                    D1): filled rust, in the pennant's own place, and tapping it
-                    takes the action to Resolve. There is no separate deck
-                    button and no chevron beside it. */}
-                <ReferenceEntityCard
-                  data={row.entity}
-                  size="compact"
-                  extent="head"
-                  // The Dashboard stays flat (ruleset §3.5): no speckle.
-                  texture={false}
-                  // Dimmed, still openable: the lock is a caller-resolved
-                  // overlay (see above), and Resolve says why it cannot run.
-                  disabled={row.locked}
-                  controls={[
-                    {
-                      key: 'resolve',
-                      pennant: true,
-                      label: 'Resolve',
-                      ariaLabel: `Resolve ${row.name}`,
-                      title: row.lockTitle,
-                      onClick: () => view.onOpen(row.key),
-                    },
-                  ]}
-                />
-              </li>
+                row={row}
+                lock="title"
+                pennant={{
+                  label: 'Resolve',
+                  ariaLabel: `Resolve ${row.name}`,
+                  onClick: () => view.onOpen(row.key),
+                }}
+              />
             ))}
           </ul>
         </div>

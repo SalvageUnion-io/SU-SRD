@@ -34,7 +34,7 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import type { ShareKind, Visibility } from '../../lib/sharing/visibility'
 import { patternChoices, sheetChoices, sheetVisibility } from '../../lib/sharing/visibility'
 import { appUrl } from '../../lib/site'
-import { Button, Field, FieldError, Select, tokens } from '../index'
+import { Button, Field, FieldError, Select, Stack, tokens } from '../index'
 import { LinkQr } from './LinkQr'
 import { WhoCanSee } from './WhoCanSee'
 
@@ -48,22 +48,10 @@ type ShareSettingsProps = {
   clipboardWriter?: (text: string) => Promise<void>
 }
 
-const STACK = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[12],
-} satisfies CSSProperties
-
 const MUTED_CAPTION = {
   color: tokens.color.wkMuted,
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.caption,
-} satisfies CSSProperties
-
-const LINK_BLOCK = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[8],
 } satisfies CSSProperties
 
 const ROW = { display: 'flex', alignItems: 'center', gap: tokens.space[8] } satisfies CSSProperties
@@ -117,7 +105,7 @@ function SheetShareSettings({
     published === undefined ? null : sheetVisibility({ isPublic: published !== null, inGame })
 
   return (
-    <div style={STACK}>
+    <Stack gap={12}>
       <WhoCanSee
         name={`share-${kind}-${appId}`}
         choices={sheetChoices({ inGame, gameName })}
@@ -128,8 +116,8 @@ function SheetShareSettings({
       {value === 'link' && (
         <ShareLink url={appUrl(publicPath(kind, appId))} clipboardWriter={clipboardWriter} />
       )}
-      {error !== null && <FieldError className="su-sheet-share-error">{error}</FieldError>}
-    </div>
+      {error !== null && <FieldError spaceAbove={8}>{error}</FieldError>}
+    </Stack>
   )
 }
 
@@ -161,7 +149,7 @@ function PatternShareSettings({ appId, clipboardWriter }: ShareSettingsProps) {
     void share.run(next, nextGame)
 
   return (
-    <div style={STACK}>
+    <Stack gap={12}>
       <WhoCanSee
         name={`share-pattern-${appId}`}
         choices={patternChoices({ gameName: gameChoices.length > 0 ? gameName : null })}
@@ -191,8 +179,8 @@ function PatternShareSettings({ appId, clipboardWriter }: ShareSettingsProps) {
       {value === 'link' && (
         <ShareLink url={appUrl(publicPath('pattern', appId))} clipboardWriter={clipboardWriter} />
       )}
-      {error !== null && <FieldError className="su-sheet-share-error">{error}</FieldError>}
-    </div>
+      {error !== null && <FieldError spaceAbove={8}>{error}</FieldError>}
+    </Stack>
   )
 }
 
@@ -219,7 +207,7 @@ function ShareLink({
   }
 
   return (
-    <div style={LINK_BLOCK}>
+    <Stack gap={8}>
       <div style={ROW}>
         <code style={URL_TEXT}>{url}</code>
         <Button
@@ -240,7 +228,7 @@ function ShareLink({
         <LinkQr url={url} />
         <p style={QR_NOTE}>Scan to open on another device.</p>
       </div>
-      {error !== null && <FieldError className="su-sheet-share-error">{error}</FieldError>}
-    </div>
+      {error !== null && <FieldError spaceAbove={8}>{error}</FieldError>}
+    </Stack>
   )
 }

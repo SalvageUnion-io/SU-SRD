@@ -15,9 +15,17 @@ import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { formatDateTime } from '../../lib/formatDate'
 import type { BadgeTone } from '../index'
-import { Badge, EmptyState, ModalShell, tokens } from '../index'
+import {
+  Badge,
+  EmptyState,
+  FeedLine,
+  FeedList,
+  FeedTime,
+  ModalShell,
+  Pending,
+  tokens,
+} from '../index'
 
 type ChangeLogDrawerProps = {
   entityType: EntityRef['type']
@@ -26,9 +34,6 @@ type ChangeLogDrawerProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
-
-/** A `color-mix()` wash of a theme colour: `pct`% of it over transparent. */
-const wash = (value: string, pct: number) => `color-mix(in oklab, ${value} ${pct}%, transparent)`
 
 /** Kind → human label + its chip: a tone chip for the two kinds a rule wrote, quiet for a hand edit. */
 const KIND_META: Record<ChangeLogKind, { label: string; tone?: BadgeTone }> = {
@@ -55,56 +60,8 @@ const NOTE = {
   color: tokens.color.wkMuted,
 } satisfies CSSProperties
 
-const LIST = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[8],
-} satisfies CSSProperties
-
-const ENTRY = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[4],
-  borderRadius: tokens.radius.card,
-  border: `${tokens.borderWidth.hairline} solid ${tokens.color.ink15}`,
-  backgroundColor: wash(tokens.color.ink, 3),
-  padding: `${tokens.space[8]} ${tokens.space[12]}`,
-} satisfies CSSProperties
-
-const ENTRY_HEAD = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  alignItems: 'center',
-  gap: tokens.space[8],
-} satisfies CSSProperties
-
-const FIELD = {
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.sm,
-  lineHeight: 'calc(1.25 / 0.875)',
-  fontWeight: tokens.weight.bold,
-  textTransform: 'uppercase',
-  letterSpacing: tokens.tracking.capsTight,
-  color: tokens.color.ink,
-} satisfies CSSProperties
-
-const TIME = {
-  marginLeft: 'auto',
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.xs,
-  lineHeight: 'calc(1 / 0.75)',
-  color: tokens.color.wkMuted,
-} satisfies CSSProperties
-
-const VALUES = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  alignItems: 'baseline',
-  gap: tokens.space[6],
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.sm,
-  lineHeight: 'calc(1.25 / 0.875)',
-} satisfies CSSProperties
+/** The time keeps to the head line's far end. */
+const PUSH = { marginLeft: 'auto' } satisfies CSSProperties
 
 const MUTED = { color: tokens.color.wkMuted } satisfies CSSProperties
 
@@ -130,7 +87,7 @@ function ChangeLogEntries({
 }: Pick<ChangeLogDrawerProps, 'entityType' | 'entityId'>) {
   const entries = useQuery(api.changeLog.forEntity, { entityType, entityId })
 
-  if (entries === undefined) return <p style={NOTE}>Loading…</p>
+  if (entries === undefined) return <Pending />
   if (entries.length === 0) {
     return (
       <EmptyState
@@ -140,30 +97,32 @@ function ChangeLogEntries({
     )
   }
   return (
-    <ul style={LIST}>
+    <FeedList>
       {entries.map((entry) => {
         const kind = KIND_META[entry.kind]
         return (
-          <li key={entry._id} style={ENTRY}>
-            <div style={ENTRY_HEAD}>
-              <KindChip label={kind.label} tone={kind.tone} />
-              {entry.state === 'proposed' && <KindChip label="Proposed" />}
-              <span style={FIELD}>{entry.field}</span>
-              <time dateTime={new Date(entry.ts).toISOString()} style={TIME}>
-                {formatDateTime(entry.ts)}
-              </time>
-            </div>
-            <div style={VALUES}>
-              <span style={BEFORE}>{formatValue(entry.before)}</span>
-              <span aria-hidden="true" style={MUTED}>
-                →
-              </span>
-              <span style={AFTER}>{formatValue(entry.after)}</span>
-            </div>
-          </li>
+          <FeedLine
+            key={entry._id}
+            head={
+              <>
+                <KindChip label={kind.label} tone={kind.tone} />
+                {entry.state === 'proposed' && <KindChip label="Proposed" />}
+                <span>{entry.field}</span>
+                <span style={PUSH}>
+                  <FeedTime ts={entry.ts} format="datetime" />
+                </span>
+              </>
+            }
+          >
+            <span style={BEFORE}>{formatValue(entry.before)}</span>{' '}
+            <span aria-hidden="true" style={MUTED}>
+              →
+            </span>{' '}
+            <span style={AFTER}>{formatValue(entry.after)}</span>
+          </FeedLine>
         )
       })}
-    </ul>
+    </FeedList>
   )
 }
 
