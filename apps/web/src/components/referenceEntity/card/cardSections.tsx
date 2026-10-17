@@ -19,13 +19,7 @@ import type { BodyProse, CardBodyInput } from './cardBodyProse'
 import { DamagedEffectCallout } from './DamagedEffectCallout'
 import { GuideSteps } from './GuideSteps'
 import { LEGAL_STARTING_PATTERN_NOTE } from './legalStartingPattern'
-import {
-  ActionsChip,
-  DroneCards,
-  EmbeddedNpcTokens,
-  InlineActions,
-  NestedCardGroup,
-} from './NestedCards'
+import { DroneCards, EmbeddedNpcTokens, InlineActions, NestedCardGroup } from './NestedCards'
 import { PatternSection } from './PatternSection'
 import { resolveGuideSteps } from './resolveGuideSteps'
 
@@ -186,16 +180,10 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
     (!hide?.damagedEffect && !!damagedEffect) ||
     (!onPage && !!guideStepsNode)
 
-  // ACTIONS — inline, flush. Below depth 1 they fold behind a chip.
+  // ACTIONS — inline, flush; below a Page, contentful Tokens (N3, `InlineActions`).
   const actionsNode: ReactNode =
     inlineActionEntities.length > 0 ? (
-      depth >= 2 ? (
-        <ActionsChip count={inlineActionEntities.length} size={size}>
-          <InlineActions actions={inlineActionEntities} host={nestedHost} />
-        </ActionsChip>
-      ) : (
-        <InlineActions actions={inlineActionEntities} host={nestedHost} />
-      )
+      <InlineActions actions={inlineActionEntities} host={nestedHost} />
     ) : null
 
   const bodyContent: ReactNode = (
@@ -275,7 +263,8 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
   // (`CardLead`) opens only for nested content, so a head-only card (a
   // creature's Stinger) closes on its head with no paper strip under it.
   // A crawler bay's crew NPC is a Peek Token, unless its crew choices are
-  // being made here (a picker's write layer keeps the card and its inputs).
+  // being made here: on a Page the write layer keeps the card and its inputs;
+  // under any other host the NPC is level 2, a Token (N1, `NestedCardList`).
   const bayCrewPeek =
     schemaName === 'crawler-bays' && !onSelectionChange && typeof entity.id === 'string'
       ? embeddedPeekAddress('crawler-bays', entity.id, 'npc')

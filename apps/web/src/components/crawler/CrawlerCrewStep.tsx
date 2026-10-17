@@ -54,9 +54,9 @@ function npcOf(entity: RefEntity): ResolvedNpc | undefined {
 /**
  * Step 4 · Name your Crew (Union Crawler p.213) — the bay roster, restyled to
  * the poster idiom: the 10 base bays auto-seed (not
- * choosable, not removable; expansion bays never appear) and each renders as
- * its SRD entity card (the universal entity-card rule), header-only until its
- * row expands into the sheets' IdentityFields for the NPC's four crew facts
+ * choosable, not removable; expansion bays never appear) and each is its
+ * SRD entity's Token (header-only is a Token, EDL N2) until it opens into its
+ * compact card and the sheets' IdentityFields for the NPC's four crew facts
  * (Name, Background, Keepsake, Motto — guarded off the NPC's own choice set:
  * Augmented's A.I. carries neither Keepsake nor Motto). NPC HP is fixed by
  * the data (4; Grizzled Veteran 10; the A.I. none) — nothing to input. The
@@ -102,8 +102,8 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
   return (
     <div className="su-wiz-stack su-wiz-stack--12" style={COLUMN}>
       <p style={LEDE}>
-        Each crewed Bay is run by its own lead, and your Crawler type brings a special NPC. Open a
-        row to name and detail them now, or leave them blank and fill them in during play.
+        Each crewed Bay is run by its own lead, and your Crawler type brings a special NPC. Open one
+        to name and detail them now, or leave them blank and fill them in during play.
       </p>
 
       {sources.map((source) => {
@@ -115,7 +115,7 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
           <section key={source.ref} className="su-wiz-stack su-wiz-stack--12">
             <ReferenceEntityCard
               data={source.entity}
-              size="compact"
+              size={isOpen ? 'compact' : 'mini'}
               extent={isOpen ? 'full' : 'head'}
               hide={{ actions: true, choices: true }}
               controls={[navigateControl(() => toggle(source.ref))]}

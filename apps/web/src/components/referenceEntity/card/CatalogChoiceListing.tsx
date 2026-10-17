@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { useMemo, useState } from 'react'
+import { useContext, useMemo, useState } from 'react'
 import type { RefEntity, RefMetaEntity, RefObjectChoice } from 'salvageunion-reference'
 import { firstParagraphText } from 'salvageunion-reference'
 import { resolveCatalogChoiceEntities } from 'salvageunion-reference/rules'
@@ -7,6 +7,7 @@ import { color, font, fontSize, space } from '../../../design/tokens'
 import { useDisclosure } from '../../../lib/useDisclosure'
 import { Button } from '../../atoms/Button'
 import { Slab } from '../../atoms/Slab'
+import { InsidePeekContext } from '../../entity/peekContext'
 import { Stack } from '../../index'
 import { CatalogChoiceModal } from '../choiceCard/CatalogChoiceModal'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
@@ -37,13 +38,14 @@ const chooseButtonStyle = {
  * Armament Bay's Weapons System = any Mech System dealing SP damage). Two faces:
  *
  * - **Editable** launches the shared `CatalogChoiceModal` (search + facets +
- *   rail) via a "Choose…" button, and shows the current pick as a real listing
- *   card. Single-select — the modal owns the pool (filtered to the catalog).
+ *   rail) via a "Choose…" button, and shows the current pick as its Token.
+ *   Single-select — the modal owns the pool (filtered to the catalog).
  * - **Read-only** is a static reference: a Slab naming the choice, then a
- *   "Show options" button (as a card's "Show N actions") that lists the
- *   qualifying entities, each a Token (`EntityTokenList`). No disclosure
+ *   "Show options" button that lists the qualifying entities, each a Token
+ *   (`EntityTokenList`). No disclosure
  *   triangle: a chevron belongs only to Tokens, rows, the roll-table toggle
- *   and the Cantina's folds.
+ *   and the Cantina's folds. Inside a Peek, which is terminal (E16), the Slab
+ *   stands alone: no button.
  *
  * The collection is resolved LAZILY — only when the picker or the listing is
  * opened — so the default render touches no cross-schema collection (the
@@ -69,14 +71,15 @@ export function CatalogChoiceListing({
   renderEntity: (entity: RefEntity | RefMetaEntity, key: string) => ReactNode
 }): ReactNode {
   const options = useDisclosure()
+  const insidePeek = useContext(InsidePeekContext)
   const [modalOpen, setModalOpen] = useState(false)
   const editable = !!onSelectionChange
   const chosen = selections?.[choice.id]?.[0]
   // The choice owns its prompt prose (the content data owns the prose).
   const prompt = firstParagraphText(choice.content)
 
-  // The chosen entity (editable), resolved on demand and guarded — shown as a
-  // real listing card so the pick reads like every other entity on the sheet.
+  // The chosen entity (editable), resolved on demand and guarded — shown as
+  // its Token, so the pick reads like every other entity in a card.
   const chosenEntity = useMemo(() => {
     if (!chosen) return undefined
     try {
@@ -134,10 +137,12 @@ export function CatalogChoiceListing({
       {prompt && <p style={promptStyle}>{prompt}</p>}
       <div>
         <Slab variant="solid" label={label} style={SLAB} />
-        <Button size="compact" {...options.toggleProps}>
-          {options.open ? 'Hide options' : 'Show options'}
-        </Button>
-        {options.open && (
+        {!insidePeek && (
+          <Button size="compact" {...options.toggleProps}>
+            {options.open ? 'Hide options' : 'Show options'}
+          </Button>
+        )}
+        {!insidePeek && options.open && (
           // The whole qualifying collection is a big grouping: Tokens
           // (owner's call, 2026-10-14).
           <div id={options.panelId} style={LIST}>

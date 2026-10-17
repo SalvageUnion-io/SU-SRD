@@ -169,7 +169,6 @@ export function CardPage({
           patterns={patterns}
           sectionAs={sectionAs}
           host={{
-            NestedCard,
             hostDown: action.hostDown,
             chassisName: action.chassisName,
           }}

@@ -3,8 +3,7 @@
  *
  * These were four independent `absolute right-{0,2}` nodes at z-30, all pinned
  * to the same coordinate: a card carrying two of them (controls + a condition
- * status) painted them ON TOP of one
- * another. The regression is invisible to a "did it render" assertion — both
+ * status) painted them ON TOP of one another. The regression is invisible to a "did it render" assertion — both
  * nodes are in the DOM either way — so these tests assert the LAYOUT
  * relationship instead: a common flex-row parent, and no stray absolute
  * positioning on the individual cells.
@@ -34,37 +33,34 @@ function rail(el: HTMLElement): HTMLElement {
 }
 
 describe('top-right rail', () => {
-  test('a status seal and a control share one flex row', () => {
+  test('a selection seal and a control share one flex row', () => {
     render(
       <ReferenceEntityCard
         data={equipment()}
-        extent="head"
-        status="damaged"
-        onStatusClick={() => {}}
-        controls={[{ key: 'remove', ariaLabel: 'Remove', label: 'Remove', onClick: () => {} }]}
+        selected
+        selectionSeal="Equipped"
+        controls={[{ key: 'swap', ariaLabel: 'Swap', label: 'Swap', onClick: () => {} }]}
       />
     )
 
-    const status = screen.getByRole('button', { name: /damaged/i })
-    const control = screen.getByRole('button', { name: 'Remove' })
+    const seal = screen.getByText('Equipped')
+    const control = screen.getByRole('button', { name: 'Swap' })
 
     // The whole point: one shared row, not two overlapping absolute nodes.
-    expect(rail(status).contains(control)).toBe(true)
+    expect(rail(seal).contains(control)).toBe(true)
   })
 
   test('the rail is the only absolutely-positioned node — cells are static', () => {
     const { container } = render(
       <ReferenceEntityCard
         data={equipment()}
-        extent="head"
-        status="intact"
-        onStatusClick={() => {}}
+        selected
+        selectionSeal="Equipped"
         controls={[{ key: 'swap', ariaLabel: 'Swap', label: 'Swap', onClick: () => {} }]}
       />
     )
 
-    const status = screen.getByRole('button', { name: /intact/i })
-    const row = rail(status)
+    const row = rail(screen.getByRole('button', { name: 'Swap' }))
 
     expect(row.style.position).toBe('absolute')
     expect(row.style.flexWrap).toBe('wrap')
@@ -114,26 +110,16 @@ describe('read-state condition', () => {
     expect(screen.queryByText('Destroyed')).toBeNull()
   })
 
-  test.each(['head', 'full'] as const)(
-    'a damaged read %s card prints one stamp, not the switch',
-    (extent) => {
-      render(<ReferenceEntityCard data={equipment()} extent={extent} status="damaged" />)
-      expect(screen.getByText('Damaged')).toBeTruthy()
-      expect(screen.queryByText('Intact')).toBeNull()
-      expect(screen.queryByText('Destroyed')).toBeNull()
-      expect(screen.queryByRole('button', { name: /status/i })).toBeNull()
-    }
-  )
+  test('a damaged read card prints one stamp, not the switch', () => {
+    render(<ReferenceEntityCard data={equipment()} status="damaged" />)
+    expect(screen.getByText('Damaged')).toBeTruthy()
+    expect(screen.queryByText('Intact')).toBeNull()
+    expect(screen.queryByText('Destroyed')).toBeNull()
+    expect(screen.queryByRole('button', { name: /status/i })).toBeNull()
+  })
 
   test('with a handler the switch keeps all three states', () => {
-    render(
-      <ReferenceEntityCard
-        data={equipment()}
-        extent="head"
-        status="intact"
-        onStatusClick={() => {}}
-      />
-    )
+    render(<ReferenceEntityCard data={equipment()} status="intact" onStatusClick={() => {}} />)
     const status = screen.getByRole('button', { name: /intact/i })
     expect(status.textContent).toContain('Damaged')
     expect(status.textContent).toContain('Destroyed')

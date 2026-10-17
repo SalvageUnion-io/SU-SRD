@@ -55,9 +55,10 @@ export type ReferenceEntityCardProps = {
    */
   presentation?: 'card' | 'page'
   /**
-   * BUILDER PICK — a chassis (or its pattern) card shows the chassis ability,
-   * as a page does (E19's one exception: The Cantina's mech-builder pick cards, where
-   * choosing needs it). It shows even under `hide.actions`, which a picker
+   * BUILDER PICK — a chassis (or its pattern) card shows the chassis ability
+   * as a page does, nested in the pick as a contentful Token (N3, E19: The
+   * Cantina's mech-builder pick cards, where choosing needs it). It shows
+   * even under `hide.actions`, which a picker
    * sets. Off everywhere else; nested cards never inherit it.
    */
   showChassisAbility?: boolean

@@ -76,7 +76,6 @@ const COLUMN = {
 } satisfies CSSProperties
 
 const LIST = {
-  alignItems: 'flex-start',
   display: 'flex',
   flexDirection: 'column',
   gap: tokens.space[8],

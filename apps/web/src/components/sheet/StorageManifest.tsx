@@ -12,9 +12,10 @@
  *     shows a dynamic 'Load N' label); counterpart = the docked mech's
  *     capacity.
  *
- * The Hold is a flat panel (the Live Sheet is flat) headed by a Slab, as the
- * sheet's sections are; the linked counterpart unit is a Token
- * (`LinkedUnitLink`).
+ * The mech's Hold is an Info Cutout under the mech sheet's own "The Hold"
+ * Slab. The crawler's Hold sits inside the Storage Bay's card, so it is a
+ * section of that bay: a Slab over its content, never a titled box (ruleset
+ * N5). The linked counterpart unit is a Token (`LinkedUnitLink`).
  *
  * All transfer semantics live in the useCargo reducer — this component only
  * renders its state and dispatches. Unlinked boundary = disabled move
@@ -46,9 +47,20 @@
 
 import { totalLotUnits } from 'cantina-domain/schemas/cargoLot'
 import type { CSSProperties } from 'react'
+import { useId } from 'react'
 import { reportCargo as report } from '../../lib/cargo/reportCargo'
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
-import { BandTitle, cn, EmptyState, Eyebrow, InfoCutout, SlotGrid, Stat, tokens } from '../index'
+import {
+  BandTitle,
+  cn,
+  EmptyState,
+  Eyebrow,
+  InfoCutout,
+  Slab,
+  SlotGrid,
+  Stat,
+  tokens,
+} from '../index'
 import type { StorageManifestSide } from './CargoLotItem'
 import { CargoLotItem } from './CargoLotItem'
 import { HoldAdder } from './HoldAdder'
@@ -76,9 +88,6 @@ const STRIP = {
   flexWrap: 'wrap',
   alignItems: 'center',
   gap: tokens.space[8],
-  // The flush body has no padding of its own: the strip's top is the 12px
-  // gutter every other card's body opens with, off the cut-out band.
-  padding: `${tokens.space[12]} ${tokens.space[12]} ${tokens.space[8]}`,
 } satisfies CSSProperties
 
 const SMALL_TEXT = {
@@ -92,18 +101,36 @@ const MUTED_TEXT = { ...SMALL_TEXT, color: tokens.color.wkMuted } satisfies CSSP
 
 const OVER_TEXT = { ...SMALL_TEXT, color: tokens.color.statusBad } satisfies CSSProperties
 
-const LOT_LIST = {
-  margin: 0,
-  listStyle: 'none',
-  padding: `0 ${tokens.space[12]} ${tokens.space[6]}`,
-} satisfies CSSProperties
+const LOT_LIST = { margin: 0, listStyle: 'none' } satisfies CSSProperties
 
-const ADDER_WRAP = { padding: tokens.space[12] } satisfies CSSProperties
+/**
+ * The hold's padding by its frame. In the Info Cutout the flush body has none
+ * of its own: the strip's top is the 12px gutter every other card's body opens
+ * with, off the cut-out band. Under a Slab the host's body already pads it.
+ */
+const HOLD_PAD = {
+  framed: {
+    strip: `${tokens.space[12]} ${tokens.space[12]} ${tokens.space[8]}`,
+    list: `0 ${tokens.space[12]} ${tokens.space[6]}`,
+    adder: tokens.space[12],
+  },
+  open: {
+    strip: `0 0 ${tokens.space[8]}`,
+    list: `0 0 ${tokens.space[6]}`,
+    adder: `${tokens.space[12]} 0 0`,
+  },
+} satisfies Record<string, Record<'strip' | 'list' | 'adder', string>>
 
+/** The Slab sits close over the strip, as a picker's section label does. */
+const HOLD_SLAB = { marginBottom: tokens.space[6] } satisfies CSSProperties
+
+/** The open hold: a grid cell that may shrink beside its counterpart. */
+const HOLD_OPEN = { minWidth: 0 } satisfies CSSProperties
+
+/** A column whose lines stretch: the counterpart's Token fills its line (N4). */
 const COUNTERPART = {
   display: 'flex',
   flexDirection: 'column',
-  alignItems: 'flex-start',
   gap: tokens.space[8],
   borderRadius: tokens.radius.card,
   borderWidth: tokens.borderWidth.pill,
@@ -145,6 +172,89 @@ export function StorageManifest({
   // Read draws no write cue: a stow or load target with nothing wired to it is a
   // dashed drop box, so a read sheet says nothing rather than show one.
   const showCounterpart = !readOnly || linkedCounterpart !== null
+  const holdId = useId()
+  // The crawler's hold is inside the Storage Bay's card: a Slab over content.
+  const framed = side === 'mech'
+  const pad = HOLD_PAD[framed ? 'framed' : 'open']
+
+  const holdBody = (
+    <>
+      {/* Capacity strip: label-first chips, as every count reads. */}
+      <div style={{ ...STRIP, padding: pad.strip }}>
+        {side === 'mech' ? (
+          <>
+            <Stat
+              orientation="horizontal"
+              size="compact"
+              label="Units"
+              value={used}
+              max={cap}
+              state={over ? 'critical' : undefined}
+            />
+            {/* The canonical addressable-slot cells (ruleset §5 atom 10):
+                dashed = empty, cargo = filled, status-bad = over-capacity —
+                never clamped. */}
+            <SlotGrid
+              used={used}
+              cap={cap}
+              readOnly={readOnly}
+              label={`Hold ${used} of ${cap} slots used${over ? ' — over capacity' : ''}`}
+            />
+            {free > 0 && <span style={MUTED_TEXT}>{free} free</span>}
+            {over && <span style={OVER_TEXT}>Over capacity</span>}
+          </>
+        ) : (
+          <>
+            <Stat
+              orientation="horizontal"
+              size="compact"
+              label="Units"
+              value={totalLotUnits(lots)}
+            />
+            <Stat orientation="horizontal" size="compact" label="Lots" value={lots.length} />
+            <span style={MUTED_TEXT}>Unlimited</span>
+          </>
+        )}
+      </div>
+
+      {lots.length === 0 ? (
+        <EmptyState variant="quiet" body="Hold empty." />
+      ) : (
+        <ul style={{ ...LOT_LIST, padding: pad.list }}>
+          {lots.map((lot) => (
+            <CargoLotItem
+              key={lot.id}
+              lot={lot}
+              side={side}
+              cargo={cargo}
+              linked={linkedCounterpart !== null}
+              readOnly={readOnly}
+              onRemove={() =>
+                report(
+                  side === 'mech' ? cargo.removeMechLot(lot.id) : cargo.removeCrawlerLot(lot.id)
+                )
+              }
+            />
+          ))}
+        </ul>
+      )}
+
+      {/* Each container's own intake — always available, never gated on the
+          other side of the boundary: 'Load' into the mech hold (no crawler
+          needed), 'Stow' into the crawler Storage Bay (no docked mech needed). */}
+      {!readOnly && (
+        <div style={{ padding: pad.adder }}>
+          <HoldAdder
+            verb={side === 'mech' ? 'Load' : 'Stow'}
+            containerLabel={side === 'mech' ? 'mech hold' : 'Storage Bay'}
+            onAdd={(lot) =>
+              side === 'mech' ? report(cargo.addMechLot(lot)) : report(cargo.addCrawlerLot(lot))
+            }
+          />
+        </div>
+      )}
+    </>
+  )
 
   return (
     <div
@@ -155,89 +265,23 @@ export function StorageManifest({
       style={MANIFEST}
       data-storage-side={side}
     >
-      {/* Hold panel */}
-      {/* The standard Info Cutout block, as the Chassis card and every
-          listing Row (owner's call, 2026-10-14). */}
-      <InfoCutout
-        title={side === 'mech' ? 'Mech Hold' : 'Crawler Hold'}
-        aside={<BandTitle variant="mute">{side === 'mech' ? mechName : crawlerName}</BandTitle>}
-        flush
-      >
-        {/* Capacity strip: label-first chips, as every count reads. */}
-        <div style={STRIP}>
-          {side === 'mech' ? (
-            <>
-              <Stat
-                orientation="horizontal"
-                size="compact"
-                label="Units"
-                value={used}
-                max={cap}
-                state={over ? 'critical' : undefined}
-              />
-              {/* The canonical addressable-slot cells (ruleset §5 atom 10):
-                  dashed = empty, cargo = filled, status-bad = over-capacity —
-                  never clamped. */}
-              <SlotGrid
-                used={used}
-                cap={cap}
-                readOnly={readOnly}
-                label={`Hold ${used} of ${cap} slots used${over ? ' — over capacity' : ''}`}
-              />
-              {free > 0 && <span style={MUTED_TEXT}>{free} free</span>}
-              {over && <span style={OVER_TEXT}>Over capacity</span>}
-            </>
-          ) : (
-            <>
-              <Stat
-                orientation="horizontal"
-                size="compact"
-                label="Units"
-                value={totalLotUnits(lots)}
-              />
-              <Stat orientation="horizontal" size="compact" label="Lots" value={lots.length} />
-              <span style={MUTED_TEXT}>Unlimited</span>
-            </>
-          )}
-        </div>
-
-        {lots.length === 0 ? (
-          <EmptyState variant="quiet" body="Hold empty." />
-        ) : (
-          <ul style={LOT_LIST}>
-            {lots.map((lot) => (
-              <CargoLotItem
-                key={lot.id}
-                lot={lot}
-                side={side}
-                cargo={cargo}
-                linked={linkedCounterpart !== null}
-                readOnly={readOnly}
-                onRemove={() =>
-                  report(
-                    side === 'mech' ? cargo.removeMechLot(lot.id) : cargo.removeCrawlerLot(lot.id)
-                  )
-                }
-              />
-            ))}
-          </ul>
-        )}
-
-        {/* Each container's own intake — always available, never gated on the
-            other side of the boundary: 'Load' into the mech hold (no crawler
-            needed), 'Stow' into the crawler Storage Bay (no docked mech needed). */}
-        {!readOnly && (
-          <div style={ADDER_WRAP}>
-            <HoldAdder
-              verb={side === 'mech' ? 'Load' : 'Stow'}
-              containerLabel={side === 'mech' ? 'mech hold' : 'Storage Bay'}
-              onAdd={(lot) =>
-                side === 'mech' ? report(cargo.addMechLot(lot)) : report(cargo.addCrawlerLot(lot))
-              }
-            />
-          </div>
-        )}
-      </InfoCutout>
+      {/* Hold panel. The mech's: the standard Info Cutout block, as the
+          Chassis card and every listing Row (owner's call, 2026-10-14). The
+          crawler's is a section of the Storage Bay it sits in (N5). */}
+      {framed ? (
+        <InfoCutout
+          title="Mech Hold"
+          aside={<BandTitle variant="mute">{mechName}</BandTitle>}
+          flush
+        >
+          {holdBody}
+        </InfoCutout>
+      ) : (
+        <section aria-labelledby={holdId} style={HOLD_OPEN}>
+          <Slab variant="solid" label="Crawler Hold" id={holdId} style={HOLD_SLAB} />
+          {holdBody}
+        </section>
+      )}
 
       {/* Counterpart panel */}
       {showCounterpart && (

@@ -1,8 +1,8 @@
 import type { SheetKind } from 'cantina-domain/entityKinds'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
-import type { Paint } from '../entity/parts/paint'
-import { Button, ChapterBand, ConfirmDialog, TitledBox, tokens } from '../index'
+import { Box } from '../containers/Box'
+import { Badge, Button, ChapterBand, ConfirmDialog, tokens } from '../index'
 import '../../styles/cantina/wizard.css'
 
 /** Sheet tone context — picks the `.su-sheet--{kind}` poster theming. */
@@ -19,7 +19,7 @@ type WizShellProps = {
   active: number
   /** When provided, completed stepper entries navigate back. */
   onStepClick?: (index: number) => void
-  /** Step heading — the step card's title, read as 'Step n of N · {title}'. */
+  /** Step heading — the page's h1 over the step's content, read as 'Step n of N · {title}'. */
   title: string
   /** Main pane content (detail card, Sel grid, form, review). */
   children: ReactNode
@@ -326,13 +326,36 @@ const mainStyle = {
 
 const fillStyle = { flex: '1 1 0%', minHeight: 0 } satisfies CSSProperties
 
-/** The step's band: the sheet's own tone (`--tone`); its title on the paper tab. */
-const STEP_PAINT = {
-  background: 'var(--tone)',
-  color: 'var(--color-ink)',
-  ink: false,
-  nameOnPaper: false,
-} satisfies Paint
+/** The step's head: its number stamp and its title on one line, over the frame. */
+const stepHeadStyle = {
+  alignItems: 'baseline',
+  display: 'flex',
+  gap: tokens.space[10],
+  marginBottom: tokens.space[12],
+} satisfies CSSProperties
+
+/** The step's number: the ink Stamp (ruleset §5.1), at the title's size. */
+const stepNumberStyle = {
+  flex: 'none',
+  fontSize: tokens.fontSize.title,
+  fontWeight: tokens.weight.extrabold,
+  lineHeight: 1.05,
+  padding: `${tokens.space[4]} ${tokens.space[8]} ${tokens.space[2]}`,
+} satisfies CSSProperties
+
+/** The title, in `.su-entity-row__title`'s face. */
+const stepTitleStyle = {
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.title,
+  fontWeight: tokens.weight.extrabold,
+  letterSpacing: tokens.tracking.capsTight,
+  lineHeight: 1.05,
+  textTransform: 'uppercase',
+  color: tokens.color.ink,
+  margin: 0,
+  minWidth: 0,
+  overflowWrap: 'break-word',
+} satisfies CSSProperties
 
 /** The step's paper body, a plain block (not the box's flex column): 20px in. */
 const stepBodyStyle = { padding: tokens.space[20] } satisfies CSSProperties
@@ -351,8 +374,10 @@ const footerPillStyle = {
  * Shared wizard skeleton, a poster sibling: the `.su-sheet--{kind}` tone context
  * on the `var(--ground)` page, a tone band banner up top, the manual's
  * connector-pipe stepper rail (196px) and a flex-1 main pane holding the
- * step's `TitledBox` (its number chip on the head), with a floating ink action pill (ghost Back/Cancel +
- * primary CTA + tracker tabs + gate text).
+ * step: its number stamp and h1 title over an untitled frame of its content
+ * (ruleset N6: a container that holds entities is untitled, so the entities
+ * in the step are the titled things), with a floating ink action pill (ghost
+ * Back/Cancel + primary CTA + tracker tabs + gate text).
  * The shell is layout-only — all wizard state lives in the caller.
  *
  * Mobile (≤lg) stacks the panes full-width with a horizontal tab rail
@@ -442,8 +467,8 @@ export function WizShell({
 
   return (
     <div className={`su-sheet--${kind}`} style={shellStyle}>
-      {/* The page title as every other page sets it. A paragraph: the step
-          card's title is the page's h1. */}
+      {/* The page title as every other page sets it. A paragraph: the step's
+          title is the page's h1. */}
       <ChapterBand tone={kind} as="p">
         {eyebrow}
       </ChapterBand>
@@ -476,29 +501,27 @@ export function WizShell({
 
         {/* (b) flex-1 main pane — always owns the step heading */}
         <main className="su-wiz-main" style={mainStyle}>
-          {/* The step: a `TitledBox` in the sheet's tone, its number an ink
-              chip butted against the cut-out title, the step on its paper. */}
+          {/* The step (N6): its number stamp and h1 over an untitled frame,
+              with no band, so the entities in it are the titled things. */}
           {/* The sticky footer overlaps content when pinned, so the frame
               reserves scroll room beneath it. */}
           <div className="su-wiz-step-frame" style={{ ...fillStyle, paddingBottom: '6rem' }}>
-            <TitledBox
-              as="article"
-              title={title}
-              titleAs="h1"
-              titleContent={
-                <>
+            <article>
+              <div style={stepHeadStyle}>
+                <Badge shape="stamp" size="full" aria-hidden="true" style={stepNumberStyle}>
+                  {active + 1}
+                </Badge>
+                <h1 style={stepTitleStyle}>
                   <span className="su-sr-only">
                     Step {active + 1} of {steps.length} ·{' '}
                   </span>
                   {title}
-                </>
-              }
-              number={String(active + 1)}
-              paint={STEP_PAINT}
-              body="flush"
-            >
-              <div style={stepBodyStyle}>{children}</div>
-            </TitledBox>
+                </h1>
+              </div>
+              <Box body="flush">
+                <div style={stepBodyStyle}>{children}</div>
+              </Box>
+            </article>
           </div>
 
           {/* Footer — floats sticky at the bottom-right of the viewport as the

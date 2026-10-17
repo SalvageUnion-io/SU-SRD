@@ -320,11 +320,9 @@ export function EntitySearcher({
       backRef={backRef}
     />
   ) : wide && !browse ? (
-    // Nothing open yet: a callout in the middle saying what goes there.
+    // Nothing open yet: a note in the middle saying what goes there.
     <div className="su-searcher__empty">
-      <Callout label="Select to read">
-        Open any entry in the list to read it here, then add it from its page.
-      </Callout>
+      <Callout>Open any entry in the list to read it here, then add it from its page.</Callout>
     </div>
   ) : null
 
@@ -357,7 +355,9 @@ export function EntitySearcher({
 
   // The cut-out head every titled container wears (`TitledBox`, as ModalShell
   // draws it): the band in the pilot tone, the title on a square paper tab
-  // notched into its foot, the × on the band.
+  // notched into its foot, the × on the band. A dialog's head is its chrome,
+  // level 0 (ruleset §5, N6), so the opened entry's Page under it is level 0
+  // too.
   return (
     <TitledBox
       as="section"

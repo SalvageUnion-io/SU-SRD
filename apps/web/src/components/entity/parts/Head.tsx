@@ -1,25 +1,11 @@
-import type { CSSProperties, ElementType, ReactNode } from 'react'
+import type { ElementType, ReactNode } from 'react'
 import { useRef } from 'react'
-import { font } from '../../../design/tokens'
 import { cn } from '../../../lib/cn'
 import { grainClass } from '../../referenceEntity/card/cardGrain'
 import { KindLabel } from './KindLabel'
 import type { Paint } from './paint'
 import { PAPER_NAME } from './paint'
 import { useChipsFit } from './useChipsFit'
-
-/** A one-line hint on the band (a pattern row's description), truncated. */
-const HINT = {
-  contain: 'inline-size',
-  flex: '1 1 0',
-  fontFamily: font.body,
-  fontStyle: 'italic',
-  minWidth: 0,
-  overflow: 'hidden',
-  textAlign: 'right',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-} satisfies CSSProperties
 
 /*
  * The band's parts are `.su-entity-row__*` classes (`styles/index.css`), not
@@ -48,8 +34,6 @@ export type HeadProps = {
   tierChip?: boolean
   /** The entity's chip group (`Chips`, E17): right of the name, or under it. */
   chips?: ReactNode
-  /** A one-line hint, after the title. */
-  hint?: ReactNode
   /** The pennant button (act): the Dashboard's. A read cost is a chip. */
   pennant?: ReactNode
   /** The mode's affordance: the "Selected" seal, a toggle's check. */
@@ -78,7 +62,7 @@ export type HeadProps = {
  * HEAD — a Row's band: the tier (on the band), the name (it wraps, never
  * clipped; with `notch`, on the paper cut-out at the band's foot) with its labels to its
  * right, the chip group (right of the name while it fits, under it when it
- * does not: the band's own width decides), a hint, the pennant
+ * does not: the band's own width decides), the pennant
  * button and the mode's affordance, in that order; the affordance stays on
  * the band's right, centred on it, never alone on a line. The band wears the
  * paint (`paintFor`): the tone or ink, grey when down.
@@ -92,7 +76,6 @@ export function Head({
   tier,
   tierChip = false,
   chips,
-  hint,
   pennant,
   affordance,
   controls,
@@ -161,11 +144,6 @@ export function Head({
           </div>
         ) : (
           name
-        )}
-        {hint && (
-          <span className="su-entity-row__hint" style={HINT}>
-            {hint}
-          </span>
         )}
         {pennant && <span style={{ display: 'flex', flex: 'none' }}>{pennant}</span>}
         {affordance}

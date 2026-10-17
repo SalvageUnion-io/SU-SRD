@@ -10,8 +10,7 @@ import type { ReferenceCardEntity } from './referenceEntityCardTypes'
  * A BIG GROUPING of entities as Tokens (owner's call, 2026-10-14: "any big
  * grouping should be tokens"): a guide step's options, a catalog choice's
  * qualifying entities. A real list, so a screen reader announces its count;
- * the Tokens wrap into as many full-width columns as the measure holds
- * (`.su-entity-token-list--grid`). Each opens its Page and Peeks its whole
+ * one Token a line, filling it (N4). Each opens its Page and Peeks its whole
  * card; inside a Peek it reads only.
  */
 export function EntityTokenList({
@@ -23,7 +22,7 @@ export function EntityTokenList({
   label: string
 }) {
   return (
-    <ul aria-label={label} className="su-entity-token-list su-entity-token-list--grid">
+    <ul aria-label={label} className="su-entity-token-list">
       {entities.map((entity, index) => (
         <li key={cardKey(entity, index)}>
           <ListToken data={entity} />

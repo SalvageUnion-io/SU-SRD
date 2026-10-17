@@ -109,7 +109,7 @@ export function CrawlerReviewStep({
           {submitError && <FieldError spaceAbove={12}>{submitError}</FieldError>}
         </Panel>
         {isAugmented && (
-          <Callout label="Reminder" tone="crawler">
+          <Callout tone="crawler">
             <span style={REMINDER}>
               Every Pilot gains <strong>+1 Training Point</strong> (Augment ability tree only).
               Apply it on each Pilot&rsquo;s sheet yourself.

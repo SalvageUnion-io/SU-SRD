@@ -28,8 +28,8 @@ export const resolveNestedEntities = nestedEntityGroups
  */
 export const resolvePatternGroups = patternGroups
 
-/** A drone plus its resolved systems/modules loadout — rendered as a compact
- * drone card with listing rows for its systems + modules. */
+/** A drone plus its resolved systems/modules loadout — on a Page, a compact
+ * drone card with a Token for each system and module; elsewhere a Token (N1). */
 export type DroneLoadout = {
   drone: RefEntity
   systems: RefEntity[]

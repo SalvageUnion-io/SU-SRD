@@ -118,7 +118,7 @@ export function PatternLoadout({
  * never the TL glued onto it. Under a host that is down it greys, as the
  * host's band does.
  */
-export function LoadoutToken({ data, hostDown }: { data: ReferenceCardEntity; hostDown?: Down }) {
+function LoadoutToken({ data, hostDown }: { data: ReferenceCardEntity; hostDown?: Down }) {
   const href = useEntityHref(data as RefEntity)
   return (
     <Entity

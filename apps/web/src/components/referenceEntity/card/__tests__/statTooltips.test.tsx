@@ -75,17 +75,26 @@ describe('trait tags (E17)', () => {
   })
 })
 
+/**
+ * The card's own element whose whole text IS `text`: the chassis's stat, not
+ * a nested pattern Token's chip of the same name.
+ */
+const bandLeaf = (container: HTMLElement, text: string) =>
+  [...container.querySelectorAll('*')]
+    .filter((el) => el.textContent === text && !el.closest('.su-entity-token'))
+    .at(-1)
+
 describe('header stat cluster', () => {
   test('a COMPACT card explains its stats', () => {
     // The regression: `hoverText` reached the value box but never the compact
     // horizontal cell, so every listing and nested card lost its glossary.
-    render(<ReferenceEntityCard data={mule()} size="compact" />)
-    expect(leafWithText('SP')?.closest(TRIGGER)).toBeTruthy()
-    expect(leafWithText('EP')?.closest(TRIGGER)).toBeTruthy()
+    const { container } = render(<ReferenceEntityCard data={mule()} size="compact" />)
+    expect(bandLeaf(container, 'SP')?.closest(TRIGGER)).toBeTruthy()
+    expect(bandLeaf(container, 'EP')?.closest(TRIGGER)).toBeTruthy()
   })
 
   test('a FULL card still explains its stats', () => {
-    render(<ReferenceEntityCard data={mule()} size="full" />)
-    expect(leafWithText('SP')?.closest(TRIGGER)).toBeTruthy()
+    const { container } = render(<ReferenceEntityCard data={mule()} size="full" />)
+    expect(bandLeaf(container, 'SP')?.closest(TRIGGER)).toBeTruthy()
   })
 })

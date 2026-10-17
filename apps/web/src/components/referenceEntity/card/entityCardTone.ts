@@ -135,8 +135,8 @@ export function resolveSeamLabel(
  * The invariant this keeps: a nested title is NEVER LARGER than its parent's.
  * Under a full card it is strictly smaller at every level (31 → 22 → 17 → 15).
  * A compact card's depth-1 child is compact too and shares its rung — what tells
- * them apart there is containment, the frame (3 → 2 → 1.5px) and the depth-2 head
- * row, not the type. Nested children are spawned at `compact`, or at `mini`
+ * them apart there is containment, the frame (3 → 2 → 1.5px) and the level-2
+ * Token, not the type. Nested children are spawned at `compact`, or at `mini`
  * inside a mini card (`nestedChildSize`), so a child never outgrows its parent.
  *
  * THE FLOOR: the ladder bottoms out at `badge` (11px), the legibility floor

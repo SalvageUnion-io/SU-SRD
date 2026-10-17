@@ -70,7 +70,7 @@ type MechChassisStepProps = {
  * One pattern option as the pattern reference card (the universal entity-card
  * rule): the chassis rendered in its PATTERN view, as everywhere else a
  * pattern is drawn — the quoted pattern title, the `Legal Starting Pattern`
- * label and the loadout as Tokens.
+ * label, the chassis ability as a contentful Token and the loadout as Tokens.
  */
 function PatternSelCard({
   chassis,
@@ -93,7 +93,8 @@ function PatternSelCard({
       cardClickLabel={`${pattern.name} pattern`}
       onCardClick={onToggle}
       hide={{ actions: true, choices: true }}
-      // Choosing a pattern needs its chassis ability (E19's builder exception).
+      // Choosing a pattern needs its chassis ability: nested in the pick, a
+      // contentful Token (N3, E19).
       showChassisAbility
     />
   )
@@ -158,7 +159,8 @@ export function MechChassisStep({
               selectable={!reason}
               onCardClick={reason ? undefined : () => onSelectChassis(nameToSlug(chassis.name))}
               hide={{ actions: true, choices: true, patterns: true }}
-              // Choosing a chassis needs its ability (E19's builder exception).
+              // Choosing a chassis needs its ability: nested in the pick, a
+              // contentful Token (N3, E19).
               showChassisAbility
               footMeta={[
                 { label: 'Costs', value: `${cost} scrap` },

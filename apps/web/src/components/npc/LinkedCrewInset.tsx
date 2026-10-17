@@ -10,6 +10,10 @@
  * A link whose NPC this view cannot read (deleted elsewhere, not yet synced)
  * renders the inline crew with an "Assigned NPC unavailable" badge — never a
  * blank slot.
+ *
+ * This is the level-1 form (the crawler type's panel): the `NpcInset`, with
+ * the stamp and an "Open" link. Inside a bay card no titled box nests (N5):
+ * there it is `LinkedCrewToken`.
  */
 
 import type { CSSProperties, ReactNode } from 'react'

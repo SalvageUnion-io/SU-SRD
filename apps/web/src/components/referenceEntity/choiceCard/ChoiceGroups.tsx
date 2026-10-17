@@ -8,6 +8,8 @@ import { useParseTraitReferences } from '../../../lib/parseTraitReferences'
 import type { CSSVarStyle } from '../../../styles/cssVars'
 import { Badge } from '../../atoms/Badge'
 import { FOCUS_RING, INPUT_FOCUS } from '../../atoms/interaction'
+import { Slab } from '../../atoms/Slab'
+import { SelectedSeal } from '../../entity/modes/select'
 import { SELECTED_RING } from '../../entity/modes/selectedRing'
 import { InsidePeekContext } from '../../entity/peekContext'
 import { CardRollTable } from '../card/CardRollTable'
@@ -26,15 +28,14 @@ import {
 /**
  * ChoiceGroups — the write-layer choice renderer in the NEW design language.
  *
- * A choice is just another nested group: a masonry of option cards in the
- * compact card's anatomy. An option that IS an entity (a catalog shortlist —
- * Ballistic / Energy, Thermal Optics…) is that entity's compact card
- * (`renderEntityOption`); any other option takes the same anatomy — the ink
- * frame, the tone head with its title, the paper body. The selection layer is
- * the card's own write-layer idiom: dim-until-chosen (editable), the canonical
- * `SELECTION_RING` and the "Chosen ✓" seal when chosen. Read-only shows every
- * option full and static (the choices are readable; they just aren't
- * choosable).
+ * A choice is just another nested group: a masonry of options. An option
+ * that IS an entity (a catalog shortlist — Ballistic / Energy, Thermal
+ * Optics…) is that entity's Token (`renderEntityOption`); any other option is
+ * drawn by where it sits (`ChoiceOption`): on its entity's Page a headed
+ * option card, elsewhere untitled (N1). The selection layer is the card's own
+ * write-layer idiom: dim-until-chosen (editable), the canonical
+ * `SELECTION_RING` when chosen. Read-only shows every option full and static
+ * (the choices are readable; they just aren't choosable).
  *
  * One selection state machinery (controlled / ephemeral, id-keyed, cap
  * resolution) serves Cantina persistence and the SRD ephemeral case alike.
@@ -53,11 +54,16 @@ type ChoiceGroupsProps = {
   /** Parent tone as a raw CSS colour — the option-card head band. */
   toneColor?: string
   /**
-   * Renders an option that resolves to an entity as that entity's compact card
+   * Renders an option that resolves to an entity as that entity's Token
    * (the card supplies it, so this file never imports the card back). Absent,
    * every option takes the plain option card.
    */
   renderEntityOption?: (option: EntityOption) => ReactNode
+  /**
+   * The choice is its entity's own Page's (level 1): an option that is not an
+   * entity is a headed option card. Elsewhere it is level 2 and untitled (N1).
+   */
+  onPage?: boolean
 }
 
 /** An option that IS an entity, with its selection state, for `renderEntityOption`. */
@@ -137,12 +143,29 @@ const fieldLabelStyle = {
   transitionDuration: '150ms',
 } satisfies CSSProperties
 
+/** Off a Page, an option's Slab sits close over its text, as When Damaged's does. */
+const OPTION_SLAB = { marginBottom: space[6] } satisfies CSSProperties
+
+/** Off a Page, an option's text at the card body's size. */
+const optionTextStyle = {
+  color: color.ink,
+  fontSize: fontSize.xs,
+  lineHeight: 1.5,
+  margin: 0,
+} satisfies CSSProperties
+
 /**
- * A selectable OPTION that is not an entity, in the compact card's anatomy
- * (ruleset §5): an ink frame, the tone head with the option's title in ink or
- * paper (whichever the tone carries), and the paper body. Dim-until-chosen,
- * with the selection ring and the "Chosen ✓" seal when chosen — the entity
- * card's own write layer.
+ * A selectable OPTION that is not an entity. On its entity's own Page (level
+ * 1) it takes the compact card's anatomy (ruleset §5): an ink frame, the tone
+ * head with the option's title in ink or paper (whichever the tone carries),
+ * and the paper body; dim-until-chosen, with the selection ring and the
+ * "Chosen ✓" seal when chosen — the entity card's own write layer.
+ *
+ * Anywhere else it sits inside a card at level 2, where nothing is titled
+ * (N1, N5): read-only (a Peek included) its name is a Slab over its text,
+ * unframed, a "Chosen" seal at the Slab's end when it was chosen; editable it
+ * is an unheaded toggle, its name and text on the paper of a plain frame,
+ * pressed and ringed when chosen, dim until then, with no band or seal.
  */
 function ChoiceOption({
   label,
@@ -153,6 +176,7 @@ function ChoiceOption({
   onToggle,
   toneColor,
   compact,
+  onPage,
 }: {
   label: string
   description?: string
@@ -163,8 +187,24 @@ function ChoiceOption({
   onToggle: () => void
   toneColor?: string
   compact?: boolean
+  /** The option is its entity's own Page's (level 1): the headed option card. */
+  onPage?: boolean
 }): ReactNode {
   const parsedDescription = useParseTraitReferences(description ?? '')
+  const insidePeek = useContext(InsidePeekContext)
+  if (insidePeek || (!onPage && readOnly)) {
+    return (
+      <div>
+        <Slab
+          variant="solid"
+          label={label}
+          style={OPTION_SLAB}
+          actions={chosen ? <SelectedSeal word="Chosen" /> : undefined}
+        />
+        {description && <p style={optionTextStyle}>{parsedDescription}</p>}
+      </div>
+    )
+  }
   const band = textBand(toneColor)
   const onBand = onTone(band, 'ink') === 'paper' ? color.paper : color.ink
   const button = {
@@ -190,23 +230,36 @@ function ChoiceOption({
     overflow: 'hidden',
     ...(chosen ? SELECTED_RING : undefined),
   } satisfies CSSProperties
-  const head = {
-    backgroundColor: band ?? 'var(--color-ink)',
-    borderBottom: description ? 'var(--bw-chrome) solid var(--color-ink)' : undefined,
-    color: band ? onBand : color.paper,
+  const [padY, padX] = compact ? [space[6], space[8]] : [space[8], space[10]]
+  const inset = `${padY} ${padX}`
+  const name = {
     fontFamily: font.cond,
     fontSize: compact ? fontSize.caption : fontSize.lede,
     fontWeight: weight.bold,
     letterSpacing: tracking.capsTight,
     lineHeight: 1.15,
-    padding: compact ? `${space[6]} ${space[8]}` : `${space[8]} ${space[10]}`,
+    padding: inset,
     textTransform: 'uppercase',
   } satisfies CSSProperties
+  // On the Page the name is the tone head; elsewhere ink on the frame's paper.
+  const head = onPage
+    ? {
+        ...name,
+        backgroundColor: band ?? 'var(--color-ink)',
+        borderBottom: description ? 'var(--bw-chrome) solid var(--color-ink)' : undefined,
+        color: band ? onBand : color.paper,
+      }
+    : {
+        ...name,
+        color: color.ink,
+        // The text sits right under the name: no band between them.
+        padding: description ? `${padY} ${padX} 0` : inset,
+      }
   const body = {
     color: color.ink,
     fontSize: compact ? fontSize.badge : fontSize.xs,
     lineHeight: 1.375,
-    padding: compact ? `${space[6]} ${space[8]}` : `${space[8]} ${space[10]}`,
+    padding: inset,
   } satisfies CSSProperties
   return (
     <button
@@ -218,16 +271,12 @@ function ChoiceOption({
       style={button}
     >
       <div style={{ position: 'relative' }}>
-        <CardTopRail
-          controls={undefined}
-          status={undefined}
-          onStatusClick={undefined}
-          subject={label}
-          selected={chosen}
-          selectionSeal="Chosen"
-        />
-        <div style={frame}>
-          <div style={head}>{label}</div>
+        {onPage && <CardTopRail controls={undefined} selected={chosen} selectionSeal="Chosen" />}
+        {/* `data-option-*`: the frame and titled head the nesting gate counts (N1). */}
+        <div data-option-frame="" style={frame}>
+          <div data-option-head={onPage || undefined} style={head}>
+            {label}
+          </div>
           {description && <div style={body}>{parsedDescription}</div>}
         </div>
       </div>
@@ -302,6 +351,7 @@ function ChoiceOptionGroup({
   compact,
   toneColor,
   renderEntityOption,
+  onPage,
 }: {
   choice: RefObjectChoice
   selected: string[]
@@ -312,6 +362,7 @@ function ChoiceOptionGroup({
   compact?: boolean
   toneColor?: string
   renderEntityOption?: (option: EntityOption) => ReactNode
+  onPage?: boolean
 }): ReactNode {
   // Terminal in a tooltip popup (ruleset §1): the table's Roll/Show controls go.
   const insidePeek = useContext(InsidePeekContext)
@@ -425,6 +476,7 @@ function ChoiceOptionGroup({
                   onToggle={onToggle}
                   toneColor={toneColor}
                   compact={compact}
+                  onPage={onPage}
                 />
               )}
             </div>
@@ -444,6 +496,7 @@ export function ChoiceGroups({
   compact,
   toneColor,
   renderEntityOption,
+  onPage,
 }: ChoiceGroupsProps) {
   const isControlled = controlled !== undefined
   const [internal, setInternal] = useState<ChoiceSelections>({})
@@ -495,6 +548,7 @@ export function ChoiceGroups({
           compact={compact}
           toneColor={toneColor}
           renderEntityOption={renderEntityOption}
+          onPage={onPage}
         />
       ))}
     </div>

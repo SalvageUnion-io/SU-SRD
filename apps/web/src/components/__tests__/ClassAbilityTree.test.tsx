@@ -1,7 +1,9 @@
 /**
  * A class page's ability trees are part of the page's outline (WCAG 1.3.1,
- * 2.4.6): each tree's slab is an `h2` and each Ability's title an `h3`, so a
- * screen-reader user jumps tree to tree and Ability to Ability.
+ * 2.4.6): each tree's slab is an `h2` and each Ability Row's title an `h3`, so
+ * a screen-reader user jumps tree to tree and Ability to Ability. Inside a
+ * path card (level 1) the track is level 2, so its Abilities are contentful
+ * Tokens (N1, N3), whose pills hold no heading.
  */
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
@@ -28,8 +30,24 @@ describe('ClassAbilityTree headings', () => {
     const abilities = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)
     expect(abilities).toContain('Jury Rig')
     // Every Ability Row in a tree titles itself with a heading.
-    const rows = document.querySelectorAll('.su-ability-track__tier')
+    const tiers = [...document.querySelectorAll('.su-ability-track__tier')]
+    const rows = tiers.filter((tier) => !tier.closest('.su-class-path'))
     expect(abilities).toHaveLength(rows.length)
+  })
+
+  test("a path card's tracks are contentful Tokens: a link head, then the ability's text", () => {
+    render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
+    const tiers = [...document.querySelectorAll('.su-class-path .su-ability-track__tier')]
+    expect(tiers.length).toBeGreaterThan(0)
+    for (const tier of tiers) {
+      expect(tier.querySelector('.su-entity-row__head')).toBeNull()
+      const token = tier.querySelector(':scope > .su-entity-token[data-contentful]')
+      expect(token).not.toBeNull()
+      expect(
+        token?.querySelector(':scope > a.su-entity-token__head')?.getAttribute('href')
+      ).toMatch(/^\/abilities\//)
+      expect(token?.querySelector('.su-entity-token__body')?.textContent).not.toBe('')
+    }
   })
 
   test('a Hybrid Class: its own trees and its required trees are h2s', () => {
@@ -49,11 +67,14 @@ describe('ClassAbilityTree banners and track', () => {
     ]
     expect(heads.length).toBeGreaterThan(0)
     for (const head of heads) expect(head.dataset.fill).toBe('tone')
+    // A Row's band, or a path card's Token's pill (N3), wears the tier.
     const bandsOf = (tree: string) =>
       screen
         .getAllByRole('heading', { level: 2, name: tree })
         .flatMap((h) => [
-          ...(h.closest('section')?.querySelectorAll<HTMLElement>('.su-entity-row__head') ?? []),
+          ...(h
+            .closest('section')
+            ?.querySelectorAll<HTMLElement>('.su-entity-row__head, .su-entity-token__pill') ?? []),
         ])
         .map((head) => head.style.backgroundColor)
     // Core orange, Advanced and Hybrid rust, Legendary pink (its deeper band).
@@ -84,7 +105,7 @@ describe('ClassAbilityTree banners and track', () => {
     expect(legendary.querySelector('.su-ability-track')?.getAttribute('data-track')).toBe(
       'legendary'
     )
-    expect(legendary.querySelector('.su-entity-row__tier')).toBeNull()
+    expect(legendary.querySelector('.su-entity-row__tier, .su-entity-token__tier')).toBeNull()
     // The "or" is its own row on the track, between each pick and the next.
     const track = legendary.querySelector('.su-ability-track')
     expect([...(track?.children ?? [])].map((li) => li.className)).toEqual([
@@ -95,7 +116,7 @@ describe('ClassAbilityTree banners and track', () => {
     expect(track?.querySelector('.su-ability-track__or')?.textContent).toBe('or')
   })
 
-  test('every Row on a track Peeks its ability', () => {
+  test('every Ability on a track Peeks its ability', () => {
     const { container } = render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
     const tiers = [...container.querySelectorAll('.su-ability-track > .su-ability-track__tier')]
     expect(tiers.length).toBeGreaterThan(0)

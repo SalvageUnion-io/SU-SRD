@@ -7,17 +7,12 @@
 
 import type { CSSProperties } from 'react'
 import type { RefMetaEntity, RefObjectContentBlock } from 'salvageunion-reference'
-import {
-  firstParagraphText,
-  headerFill,
-  isAbility,
-  parseContentBlockString,
-} from 'salvageunion-reference'
+import { headerFill, isAbility, parseContentBlockString } from 'salvageunion-reference'
 import type { Foreground } from '../../../design/contrast'
 import { foregroundOn } from '../../../design/contrast'
 import { cn } from '../../../lib/cn'
 import { activateOnKey, FOCUS_RING } from '../../atoms/interaction'
-import type { CardExtent, CardSize } from '../../containers/displayMode'
+import type { CardSize } from '../../containers/displayMode'
 import { SELECTED_RING } from '../../entity/modes/selectedRing'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 import { onTone, textBand } from '../referenceEntityHelpers'
@@ -87,17 +82,13 @@ export type HeaderFill = 'tone' | 'ink'
 
 /**
  * Which fill a card's header takes, by data shape. Things you do (abilities,
- * actions) are the ink banner on a card; an ability's head-only card is its
- * Row, and wears its tier tone (E12). So does a PEEK's card: it wears the fill
- * of the Token, Row or Tile that opened it, never a different one.
+ * actions) are the ink banner on a card. A PEEK's card wears the fill of the
+ * Token, Row or Tile that opened it, never a different one: an ability's, its
+ * tier tone (E12). A head-only card is a Token, which paints itself.
  */
-export function resolveHeaderFill(
-  entity: RefMetaEntity,
-  extent: CardExtent,
-  insidePeek = false
-): HeaderFill {
-  // The entity model's rule (E12), with the compact card and the Peek as its Row.
-  return headerFill(entity, extent === 'head' || insidePeek ? 'row' : 'card')
+export function resolveHeaderFill(entity: RefMetaEntity, insidePeek = false): HeaderFill {
+  // The entity model's rule (E12), with the Peek as its Row.
+  return headerFill(entity, insidePeek ? 'row' : 'card')
 }
 
 /** Every colour a card's header takes. The frame, the "//" line and the footer
@@ -150,20 +141,12 @@ export function resolveCardColors({
 }
 
 /**
- * The frame's weight. It steps with size and depth (ruleset §4.3, board E2):
- * 3px for the large solo card, 2px one size down, 1.5px for a small card and
- * for the one-line head row a card nests at depth 2.
+ * The frame's weight. It steps with size (ruleset §4.3, board E2): 3px for
+ * the large solo card, 2px one size down, 1.5px for a small card (and a
+ * head-only card's Token).
  */
-export function resolveFrameWidth({
-  size,
-  extent,
-  depth,
-}: {
-  size: CardSize
-  extent: CardExtent
-  depth: number
-}): string {
-  if (size === 'mini' || (extent === 'head' && depth >= 2)) return 'var(--bw-chrome)'
+export function resolveFrameWidth(size: CardSize): string {
+  if (size === 'mini') return 'var(--bw-chrome)'
   return size === 'full' ? 'var(--bw-entity)' : 'var(--bw-entity-compact)'
 }
 
@@ -293,19 +276,10 @@ export function resolveCardInteraction({
  *   lead rather than on the band.
  * - TITANIC: the intro paragraph becomes the hint; the REMAINING content
  *   blocks (the options list) render in the body.
- * - A pattern LISTING row shows its first paragraph on the header, truncated
- *   to the row's one line.
  */
 export function resolveHeaderHint(
   entity: RefMetaEntity,
-  {
-    isTitanicMeta,
-    patternListingContent,
-  }: {
-    isTitanicMeta: boolean
-    /** A pattern LISTING row's content, else undefined. */
-    patternListingContent: RefObjectContentBlock[] | undefined
-  }
+  { isTitanicMeta }: { isTitanicMeta: boolean }
 ): { hintText: string | undefined; titanicBodyContent: RefObjectContentBlock[] | undefined } {
   const description =
     isAbility(entity) && typeof entity.description === 'string' ? entity.description : undefined
@@ -319,9 +293,8 @@ export function resolveHeaderHint(
       ? titanicContent.slice(1)
       : titanicContent
     : undefined
-  const patternListingHint = firstParagraphText(patternListingContent)
   return {
-    hintText: description ?? (titanicHintText || undefined) ?? patternListingHint,
+    hintText: description ?? (titanicHintText || undefined),
     titanicBodyContent,
   }
 }

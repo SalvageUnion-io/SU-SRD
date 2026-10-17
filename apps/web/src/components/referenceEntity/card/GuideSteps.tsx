@@ -10,7 +10,6 @@ import type { CardProseContext } from './CardProse'
 import { CardProse } from './CardProse'
 import { CardRollTable } from './CardRollTable'
 import type { Down } from './cardChrome'
-import { cardKey } from './cardHelpers'
 import { EntityTokenList } from './EntityTokenList'
 import { watchGuideContents } from './guideContents'
 import { chunkGuideStepProse } from './guideStepProse'
@@ -26,9 +25,10 @@ function GuideNote({ text }: { text: string }) {
  * A step's aside — a tip or a worked example — as a framed callout: a full
  * chrome-weight ink frame on paper, never a left rail (ruleset §3.10), as the
  * srd's other asides are. With a `label` ("Note") it is a stamped callout:
- * the stamp rides the frame's top border (StampSeam, §7.2), as a crawler
- * bay's WHEN DAMAGED does. A `note` role, not an `<aside>`: a complementary
- * landmark may not sit inside the page's `main`.
+ * the stamp rides the frame's top border (StampSeam, §7.2). Only the guide's
+ * own Page stamps it: anywhere else (a Peek) the steps sit inside the guide's
+ * frame, where a note is an unlabelled callout (N5). A `note` role, not an
+ * `<aside>`: a complementary landmark may not sit inside the page's `main`.
  */
 function GuideAside({ text, flavor, label }: { text: string; flavor: boolean; label?: string }) {
   return (
@@ -65,9 +65,8 @@ function GuideAside({ text, flavor, label }: { text: string; flavor: boolean; la
  * restarts inside it. Under each slab: the step's prose, its page pointers
  * as left-aligned notes, its asides (a tip, a worked example) as framed
  * callouts, the entities it selects from as Tokens (a crawler's tech-level
- * ladder as compact cards), its
- * roll table and any sub-guide — every one through the primitive its kind
- * already has.
+ * ladder too, down its own column), its roll table and any sub-guide as its
+ * Token — every one through the primitive its kind already has.
  *
  * Layout is `index.css`'s `.su-guide*`. On a page (`CardPage`'s `guide`) the
  * steps stand beside the prose rather than inside the card body, and take the
@@ -121,17 +120,6 @@ export function GuideSteps({
   useEffect(() => (pageRef.current ? watchGuideContents(pageRef.current) : undefined), [])
 
   const renderStep = ({ step, number, entities, table, subGuide }: ResolvedGuideStep) => {
-    const card = (option: (typeof entities)[number], index: number) => (
-      <NestedCard
-        key={cardKey(option, index)}
-        size="compact"
-        extent="head"
-        depth={depth + 1}
-        hostDown={isDown}
-        data={option}
-        chassisName={chassisName}
-      />
-    )
     const stepProse = chunkGuideStepProse(step.content).map((chunk, index) => {
       if (chunk.kind === 'note') {
         // biome-ignore lint/suspicious/noArrayIndexKey: a step's blocks are static reference content
@@ -144,7 +132,7 @@ export function GuideSteps({
             key={index}
             text={chunk.text}
             flavor={chunk.flavor}
-            label={chunk.label}
+            label={page ? chunk.label : undefined}
           />
         )
       }
@@ -161,16 +149,19 @@ export function GuideSteps({
       )
     })
     // `sidebar` marks a step whose entities are a progression LADDER (crawler
-    // tech levels) rather than a set of options — they read down a narrow
-    // column beside the prose instead of across a grid. The prose comes first
-    // in the document, so a phone reads it before the ladder it explains.
+    // tech levels) rather than a set of options — their Tokens read down a
+    // narrow column beside the prose instead of across the page. The prose
+    // comes first in the document, so a phone reads it before the ladder it
+    // explains.
     const ladder = step.entityLayout === 'sidebar' && entities.length > 0
     let options: ReactNode = null
     if (ladder) {
       options = (
         <div className="su-guide__ladder">
           <div className="su-guide__ladder-prose">{stepProse}</div>
-          <div className="su-guide__ladder-cards">{entities.map(card)}</div>
+          <div className="su-guide__ladder-cards">
+            <EntityTokenList entities={entities} label={step.name} />
+          </div>
         </div>
       )
     } else if (entities.length > 0) {
@@ -211,11 +202,12 @@ export function GuideSteps({
           )}
           {subGuide && (
             <NestedCard
-              size="compact"
+              size="mini"
               extent="head"
               depth={depth + 1}
               hostDown={isDown}
               data={subGuide}
+              chassisName={chassisName}
             />
           )}
         </div>

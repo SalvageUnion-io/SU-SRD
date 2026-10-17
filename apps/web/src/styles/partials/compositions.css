@@ -144,6 +144,12 @@
   grid-auto-rows: 1fr;
 }
 
+/* A track of contentful Tokens (a class page's path card, N3) runs its stem
+   under the Token's numeral: the pill's edge and inset plus half the numeral. */
+.su-ability-track:not([data-track='legendary']):has(> .su-ability-track__tier > .su-entity-token) {
+  --su-track-stem-x: calc(var(--bw-chrome) + var(--space-4) + 0.3rem);
+}
+
 /* A Row on a track is framed in the track's hue (the UI library's
    `--su-row-frame`). */
 .su-ability-track[data-track] > li {

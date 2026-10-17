@@ -28,8 +28,9 @@ const AUGMENTED_CRAWLER_ID = '8bffb508-8c8f-418d-b6ce-f24f7266e41b'
  * +5 max SP — read from the data, never string-matched). The selected type's
  * FULL card renders below the grid — its unique Ability, its special NPC, and
  * (Augmented) the A.I. Personality roll — plus the Augmented type's
- * instructional +1 Training Point callout (TEXT ONLY: the wizard never writes
- * to other characters — ADR-007 automation boundary).
+ * instructional +1 Training Point note (TEXT ONLY: the wizard never writes
+ * to other characters — ADR-007 automation boundary). Every card here is
+ * level 1, so its NPC is a Token (N1); the note is an unlabelled Callout (N5).
  */
 export function CrawlerTypeSelectStep({
   types,
@@ -76,7 +77,7 @@ export function CrawlerTypeSelectStep({
           <div className="su-wiz-stack su-wiz-stack--12" style={stepColumnStyle}>
             <ReferenceEntityCard data={selected} />
             {isAugmented && (
-              <Callout label="Augmented Bonus" tone="crawler">
+              <Callout tone="crawler">
                 <span style={bonusStyle}>
                   Every Pilot gains <strong>+1 Training Point</strong>, spendable on the{' '}
                   <strong>Augment ability tree only</strong>. Apply it on each Pilot&rsquo;s sheet

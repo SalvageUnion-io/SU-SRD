@@ -11,13 +11,12 @@ import { findNpcChoiceByName, resolveCrawlerBay } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { BAY_REPAIR_COST, bayTechLines } from '../../lib/rules/crawlerItems'
 import { runWrite } from '../../lib/runWrite'
+import { unitRowModel } from '../../lib/units/unitModel'
 import type { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import type { CardFootMeta, ChoiceSelections, ReferenceEntityControl } from '../index'
 import {
-  Button,
   DamagedEffectCallout,
-  Entity,
   embeddedPeekAddress,
   foldControl,
   ReferenceEntityCard,
@@ -25,11 +24,10 @@ import {
   useDetailModal,
   useDisclosure,
 } from '../index'
-import { LinkedCrewInset } from '../npc/LinkedCrewInset'
+import { LinkedCrewToken } from '../npc/LinkedCrewToken'
 import { useEntityChoices } from '../shared/useEntityChoices'
+import { CrewLeadToken } from './CrewLeadToken'
 import { LinkedUnitLink } from './LinkedUnitLink'
-import { NpcInset } from './NpcInset'
-import { SheetItemLine } from './SheetItemLine'
 
 export type CrawlerBayEntry = NonNullable<Crawler['crawlerBays']>[number]
 
@@ -51,9 +49,9 @@ const BAY_FUNCTIONS: Record<string, string> = {
 /**
  * A bay on the sheet is drawn as the SRD's bay Page draws it: no kind pill
  * right of its title (its foot names no kind off a Page, EDL E9). An INTACT
- * bay shows its "When Damaged" callout, as the book prints it; a DAMAGED bay
- * re-renders the clause as a centred callout over the dimmed card instead, so
- * the card's own is held back then.
+ * bay shows its "When Damaged" section (a Slab over the clause, N5), as the
+ * book prints it; a DAMAGED bay re-renders the clause in its expanded body
+ * instead, so the card's own is held back then.
  */
 const HIDE_INTACT = { axisMarkers: true } as const
 const HIDE_DAMAGED = { ...HIDE_INTACT, damagedEffect: true } as const
@@ -71,14 +69,6 @@ const HIDE_DAMAGED_READ = { ...HIDE_DAMAGED, choices: true } as const
  */
 const WHEN_DAMAGED = /\b(?:is|becomes|are|become)\s+damaged\b/i
 
-/** A bay's crew: its Token's line, then (Edit, opened) the crew's fields. */
-const CREW_STACK = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[8],
-  minWidth: 0,
-} satisfies CSSProperties
-
 /** The placeholder for a bay ref the catalog does not know. */
 const UNKNOWN_BAY = {
   borderRadius: '0.25rem',
@@ -89,12 +79,11 @@ const UNKNOWN_BAY = {
   color: tokens.color.wkMuted,
 } satisfies CSSProperties
 
-/** "Docks [mech]": the word, then the docked mech's Token. */
+/** "Docks [mech]": the word, then under it the docked mech's Token, filling its line (N4). */
 const DOCKS = {
-  alignItems: 'center',
   color: tokens.color.ink,
   display: 'flex',
-  flexWrap: 'wrap',
+  flexDirection: 'column',
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.caption,
   gap: tokens.space[6],
@@ -151,12 +140,12 @@ type CrawlerBayCardProps = {
   readOnly: boolean
   /**
    * Docked-mech one-liner (poster: "Docks <mech>") — set on the Mech Bay when
-   * the composition has a docked mech; renders above the crew inset, the mech
+   * the composition has a docked mech; renders above the crew lead, the mech
    * as its Token, linking to its sheet where it has one.
    */
   dockedMech?: { name: string; href: string | undefined }
   /**
-   * Contents this bay HOLDS, rendered inside it above the crew inset — the
+   * Contents this bay HOLDS, rendered inside it above the crew lead — the
    * Armament Bay's mounted weapons. A bay's contents belong in the bay, not in
    * a section elsewhere on the sheet describing it from a distance.
    */
@@ -177,7 +166,8 @@ type CrawlerBayCardProps = {
 
 /**
  * CrawlerBayCard — one installed bay as a compact cb entity card: status
- * badge (Intact ↔ Damaged toggle), crew-lead NpcInset in the expand slot,
+ * badge (Intact ↔ Damaged toggle), its crew lead's contentful Token
+ * (`CrewLeadToken`, N3) in the expand slot,
  * function/Repair foot actions, and the bay's SRD choices (e.g. the Armament
  * Bay weapon pick). The bay's full rules open in a detail modal from the
  * function action.
@@ -221,8 +211,6 @@ export function CrawlerBayCard({
   // Open is the bay's full prose; shut, it folds to its lead.
   const prose = useDisclosure()
   const folded = !prose.open
-  // Edit: whether the crew's fields are open under their Token.
-  const crewFields = useDisclosure()
 
   if (!bay) {
     return <div style={UNKNOWN_BAY}>{entry.bayRef}</div>
@@ -272,8 +260,19 @@ export function CrawlerBayCard({
   // While a built NPC is assigned, the inline crew is never written: read-only
   // is what lets the unlink restore it byte for byte (Q2).
   const inlineReadOnly = readOnly || assigned !== undefined
+  // The crew lead is a contentful Token (N3): its head Peeks the bay's crew
+  // NPC, embedded as its bay card nests it (`nestedEntityGroups`); its body is
+  // what the sheet tracks about them, and in Edit their fields (owner's call,
+  // 2026-10-17). A bay the book gives no crew NPC still has a crew lead.
   const inlineCrew = (
-    <NpcInset
+    <CrewLeadToken
+      {...(npc
+        ? {
+            entity: { ...npc, name: npc.position, schemaName: 'npcs' } as unknown as RefMetaEntity,
+            peekAt: embeddedPeekAddress('crawler-bays', bay.id, 'npc'),
+          }
+        : { model: unitRowModel({ kind: 'npc', name: 'Crew' }) })}
+      instance={{ title: entry.npcName?.trim() || npc?.position || 'Crew' }}
       bayName={bay.name}
       title={npc?.position}
       name={entry.npcName ?? ''}
@@ -301,44 +300,12 @@ export function CrawlerBayCard({
     <>
       {dockedMech && (
         <div style={DOCKS}>
-          Docks
+          <span>Docks</span>
           <LinkedUnitLink kind="mech" name={dockedMech.name} href={dockedMech.href} stats={[]} />
         </div>
       )}
       {assigned ? (
-        <LinkedCrewInset slotName={bay.name} assignment={assigned} fallback={inlineCrew} />
-      ) : npc ? (
-        // The crew is a Token named for them, Peeking the bay's NPC card
-        // (owner's calls, 2026-10-14). Edit puts Details on its line, opening
-        // the crew's fields under it, as a pilot's equipment does.
-        <div className="su-sheet-crew" style={CREW_STACK}>
-          <SheetItemLine
-            token={
-              <Entity
-                form="token"
-                // The embedded crew, as its bay card nests it (`nestedEntityGroups`).
-                entity={
-                  { ...npc, name: npc.position, schemaName: 'npcs' } as unknown as RefMetaEntity
-                }
-                instance={{ title: entry.npcName?.trim() || npc.position }}
-                peekAt={embeddedPeekAddress('crawler-bays', bay.id, 'npc')}
-              />
-            }
-            name={`${bay.name} crew`}
-            readOnly={readOnly}
-            actions={
-              <Button
-                variant="pencil"
-                className="su-sheet-item__ctl"
-                {...crewFields.toggleProps}
-                aria-label={`${crewFields.open ? 'Collapse' : 'Expand'} ${bay.name} crew`}
-              >
-                Details
-              </Button>
-            }
-          />
-          {!readOnly && crewFields.open && <div id={crewFields.panelId}>{inlineCrew}</div>}
-        </div>
+        <LinkedCrewToken slotName={bay.name} assignment={assigned} fallback={inlineCrew} />
       ) : (
         inlineCrew
       )}
@@ -381,15 +348,15 @@ export function CrawlerBayCard({
 
   // Folds the prose only: the card keeps its Card form and every live field,
   // so the disclosure is the one way to open it (no card-wide click — typing
-  // in the crew inset must never unfold the bay around it).
+  // in the crew lead must never unfold the bay around it).
   const fold = foldControl({
     subject: bay.name,
     disclosure: prose,
   })
 
   // The card renders WITHOUT the SRD npc block — the crew lead lives in the
-  // expand inset instead — and without the prose restating the "when damaged"
-  // clause (see WHEN_DAMAGED): its callout says it once.
+  // expand slot instead, as its Token — and without the prose restating the
+  // "when damaged" clause (see WHEN_DAMAGED): its section says it once.
   const { normal: bayRules } = splitBayContent(bay.content)
   const normal = folded ? foldedBayContent(bayRules, crawlerTl) : bayRules
   const damagedText =

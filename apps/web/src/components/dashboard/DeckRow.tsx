@@ -1,8 +1,8 @@
 /**
  * DeckRow — one action in the Actions deck, on the canvas (`DeckList`) and the
- * phone (`PhoneDeck`): the action's `ReferenceEntityCard` at its compact head
- * extent (the one-line listing row, ruleset §1), its cost pennant the deck's
- * action (board D1). The Dashboard stays flat: no speckle.
+ * phone (`PhoneDeck`): the action's `ReferenceEntityCard` at its head extent,
+ * which draws a Token (the head adapter, N2): one line, its cost pennant the
+ * deck's action (board D1). The Dashboard stays flat: no speckle.
  *
  * A locked action (out of range, overheated) is a caller-resolved overlay on
  * the canonical card, never a property of the card: it dims, and says why
@@ -17,7 +17,7 @@ import type { ReferenceCardEntity, ReferenceEntityControl } from '../index'
 import { ReferenceEntityCard } from '../index'
 
 /**
- * A render-ready action: the action ENTITY drives the header-only card, so the
+ * A render-ready action: the action ENTITY drives the header-only Token, so the
  * deck reuses the canonical action rendering instead of a hand-rolled row.
  */
 export type DeckEntry = {
@@ -67,7 +67,7 @@ export function DeckRow({ row, pennant, onOpen, lock }: DeckRowProps) {
     <li data-deck-key={row.key} title={lock === 'title' ? row.lockTitle : undefined}>
       <ReferenceEntityCard
         data={row.entity}
-        size="compact"
+        size="mini"
         extent="head"
         texture={false}
         // Dimmed, still openable: Resolve says why it cannot run.

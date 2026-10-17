@@ -1,47 +1,26 @@
-import type { ReactNode } from 'react'
-import type { EntityStatus } from '../../atoms/entityStatus'
 import { CardControlRail } from '../../containers/CardControlRail'
 import { SelectedSeal } from '../../entity/modes/select'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 
 /**
  * The top-right rail. It lives at the Card layer (`CardControlRail`) — this
- * card inherits it. The selection seal rides in as a `seal` because it
- * carries bespoke tone styling the control variants don't cover; the status
- * and action cells come through `controls`.
- *
- * Condition is routed into the rail as a status CONTROL leading the caller's
- * controls, rather than a bespoke seal, so the condition badge has one
- * implementation: the rail's.
+ * card inherits it. The selection seal rides in as a `seal` because it carries
+ * bespoke tone styling the control variants don't cover; the action
+ * cells come through `controls`. A card's condition is not here: it is the
+ * body's `StatusRail`.
  */
 export function CardTopRail({
   controls,
-  status,
-  onStatusClick,
-  subject,
   selected,
   selectionSeal,
-  statusSeal,
 }: {
   controls: ReferenceEntityControl[] | undefined
-  status: EntityStatus | undefined
-  onStatusClick: (() => void) | undefined
-  /** Names the status control ("Mark {subject} damaged"). */
-  subject: string
   selected: boolean | undefined
   selectionSeal: string | undefined
-  /** The condition as a neutral tri-state seal (a head row has no body rail). */
-  statusSeal?: ReactNode
 }) {
-  const railControls: ReferenceEntityControl[] = status
-    ? [
-        { key: '__status', status: { value: status, onClick: onStatusClick, subject } },
-        ...(controls ?? []),
-      ]
-    : (controls ?? [])
   // Selection seal — select mode's ink seal (EDL Modes: "ink ring and
   // 'Selected' seal"; §3.3: a state is a treatment, not a hue), in the
   // caller's word, when selected (the picker-cell affordance).
   const selectionSealNode = selected && selectionSeal ? <SelectedSeal word={selectionSeal} /> : null
-  return <CardControlRail controls={railControls} seals={[statusSeal, selectionSealNode]} />
+  return <CardControlRail controls={controls} seals={[selectionSealNode]} />
 }

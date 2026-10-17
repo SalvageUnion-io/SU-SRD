@@ -1,5 +1,6 @@
 import type { RefObjectChoice } from 'salvageunion-reference'
 import { isSchemaOnlyCatalogChoice } from 'salvageunion-reference/rules'
+import { SelectedSeal } from '../../entity/modes/select'
 import { ChoiceGroups } from '../choiceCard/ChoiceGroups'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { CatalogChoiceListing } from './CatalogChoiceListing'
@@ -7,8 +8,15 @@ import type { NestedCard } from './referenceEntityCardTypes'
 
 /**
  * One choice, rendered where the body walk placed it — at its prose marker, or
- * trailing. Read-only renders the same choice cards, static (readable);
- * editable (`onSelectionChange` present) makes them selectable.
+ * trailing. Read-only renders the same options, static (readable); editable
+ * (`onSelectionChange` present) makes them selectable. An option that IS an
+ * entity, and an editable catalog choice's pick, sit inside the host card, so
+ * each is that entity's TOKEN (EDL N1, N2), never a head-only Row. Editable,
+ * the Token IS the toggle (EDL Modes): pressed when chosen, the ring on its
+ * pill, an unchosen one dimmed, no seal; `data-choice-toggle` marks it, the
+ * one Token the nesting gate lets take a pressed state (N7 keeps radio and
+ * checkbox picks on Row and Card). Read-only, a chosen option's Token says so
+ * in a "Chosen" seal on its line.
  */
 export function ChoiceRegion({
   choice,
@@ -19,6 +27,7 @@ export function ChoiceRegion({
   compact,
   toneColor,
   depth,
+  onPage,
   chassisName,
   NestedCard,
 }: {
@@ -31,6 +40,8 @@ export function ChoiceRegion({
   toneColor: string | undefined
   /** The HOST card's depth — listed entities render one level below it. */
   depth: number
+  /** The host is its entity's own Page (level 0): see `ChoiceGroups`' `onPage`. */
+  onPage: boolean
   chassisName: string | undefined
   NestedCard: NestedCard
 }) {
@@ -52,7 +63,7 @@ export function ChoiceRegion({
           renderEntity={(resolved, key) => (
             <NestedCard
               key={key}
-              size="compact"
+              size="mini"
               extent="head"
               depth={depth + 1}
               data={resolved}
@@ -73,28 +84,46 @@ export function ChoiceRegion({
         readOnly={!editableChoices}
         compact={compact}
         toneColor={toneColor}
-        // An option that IS an entity is its compact card (ruleset §5, nesting),
-        // carrying the option's selection the way a picker cell does.
-        renderEntityOption={(option) => (
-          <NestedCard
-            size="compact"
-            extent="head"
-            depth={depth + 1}
-            data={option.entity}
-            chassisName={chassisName}
-            selected={option.chosen}
-            selectionSeal="Chosen"
-            {...(option.readOnly
-              ? {}
-              : {
-                  selectionRole: 'toggle' as const,
-                  selectable: option.chosen,
-                  disabled: option.disabled,
-                  onCardClick: option.onToggle,
-                  cardClickLabel: option.label,
-                })}
-          />
-        )}
+        onPage={onPage}
+        // An option that IS an entity is its Token: read-only it reads, a
+        // chosen one sealed on its line; editable it is the toggle itself.
+        renderEntityOption={(option) => {
+          if (!option.readOnly) {
+            return (
+              <div data-choice-toggle="">
+                <NestedCard
+                  size="mini"
+                  extent="head"
+                  depth={depth + 1}
+                  data={option.entity}
+                  chassisName={chassisName}
+                  selected={option.chosen}
+                  selectionRole="toggle"
+                  selectable={option.chosen}
+                  disabled={option.disabled}
+                  onCardClick={option.onToggle}
+                  cardClickLabel={option.label}
+                />
+              </div>
+            )
+          }
+          const token = (
+            <NestedCard
+              size="mini"
+              extent="head"
+              depth={depth + 1}
+              data={option.entity}
+              chassisName={chassisName}
+            />
+          )
+          if (!option.chosen) return token
+          return (
+            <div className="su-entity-token-line">
+              {token}
+              <SelectedSeal word="Chosen" />
+            </div>
+          )
+        }}
       />
     </div>
   )

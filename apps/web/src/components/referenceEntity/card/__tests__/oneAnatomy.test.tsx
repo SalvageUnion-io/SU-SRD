@@ -6,8 +6,8 @@
  * - every card wears the type stamp in its header; an ability adds its tree and its
  *   tier numeral;
  * - actions nest as framed ink-headed cards, with no "Action" stamp;
- * - nested entities stack under their own type stamp with no tray label, depth 2 is a one-line row that
- *   opens the entity, and a child hides prose its parent already prints;
+ * - nested entities stack under their own type stamp with no tray label, level 2 is a Token that
+ *   opens the entity (N1), and a child hides prose its parent already prints;
  * - below depth 1 actions fold behind a chip;
  * - the user-made flag dashes the frame, the footer rule and the pill;
  * - `texture={false}` flattens the card and every card inside it;
@@ -16,6 +16,7 @@
 import { describe, expect, mock, test } from 'bun:test'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { InsidePeekContext } from '../../../entity/peekContext'
 import { hideShownProse, proseKey } from '../bodyBlocks'
 import { isDoEntity } from '../entityCardTone'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
@@ -59,41 +60,45 @@ describe('have vs do', () => {
 })
 
 describe('actions nest', () => {
-  test("a system's actions are self-contained framed cards, with no Action stamp", () => {
+  test("a card's actions are contentful Tokens, with no Action stamp (N3)", () => {
     const { container } = render(<ReferenceEntityCard data={drill()} />)
-    // Each action is its own frame inset in the system's.
-    expect(container.querySelectorAll('.su-ec-frame .su-ec-frame')).toHaveLength(2)
-    // The card's own tone header, then one ink band per action.
-    expect(fills(container)).toEqual(['tone', 'ink', 'ink'])
+    // A card is level 1, so its actions are level 2: no frame inside its own.
+    expect(container.querySelectorAll('.su-ec-frame .su-ec-frame')).toHaveLength(0)
+    const tokens = container.querySelectorAll('.su-entity-token[data-contentful]')
+    expect([...tokens].map((t) => t.querySelector('.su-entity-token__name')?.textContent)).toEqual([
+      'Auger (Action)',
+      'Drill (Action)',
+    ])
+    // The card's own tone header is its only band.
+    expect(fills(container)).toEqual(['tone'])
     expect(screen.queryByText('Action')).toBeNull()
-    // E17: one chip group per band: the action type in the book's words,
-    // the facts, the traits. No "//" line.
+    // E17: one chip group on each head, no "//" line: the action type in the
+    // book's words, every facet (its range as the book's code), its traits.
     expect(container.textContent).not.toContain('//')
     expect(screen.getAllByText('Turn Action').length).toBeGreaterThan(0)
-    // A Card is no Page: its range is the book's code.
     expect(container.textContent).toContain('RNGC')
     expect(container.textContent).toContain('DMG1 SP')
     expect(screen.getAllByText('Melee').length).toBeGreaterThan(0)
+    // Then each one's text, in its body, never in its head.
+    const drillToken = tokens[1] as HTMLElement
+    const body = drillToken.querySelector('.su-entity-token__body')
+    expect(body?.textContent).toContain('tear apart a Mech with surgical precision')
+    expect(drillToken.querySelector('.su-entity-token__head')?.textContent).not.toContain(
+      'surgical precision'
+    )
   })
 
-  test("an action's chips are the entity's own: the same plates and the ink cost box", () => {
+  test("an action Token's head closes on its ink cost box", () => {
     const { container } = render(<ReferenceEntityCard data={drill()} />)
-    const groups = [...container.querySelectorAll<HTMLElement>('[data-chip-group]')]
-    const [host, ...actions] = groups
-    const plates = (group: HTMLElement | undefined) =>
-      [...(group?.querySelectorAll('.su-stat-plate--label') ?? [])].map((el) =>
-        el.classList.contains('su-badge--inverse')
-      )
-    expect(actions).toHaveLength(2)
-    // Every label plate is ink on the host's tone band and on each ink band alike.
-    expect(plates(host).every((inverse) => !inverse)).toBe(true)
-    for (const group of actions) {
-      expect(plates(group).length).toBeGreaterThan(0)
-      expect(plates(group).every((inverse) => !inverse)).toBe(true)
-      // The cost is last: the ink pointy box, edged in paper so it clears the band.
-      const edge = group.lastElementChild
-      expect(edge?.classList.contains('su-cost-edge')).toBe(true)
-      expect(edge?.querySelector('.su-cost')?.textContent).toBe('1 EP')
+    const heads = [
+      ...container.querySelectorAll<HTMLElement>(
+        '.su-entity-token[data-contentful] .su-entity-token__chips'
+      ),
+    ]
+    expect(heads).toHaveLength(2)
+    for (const chips of heads) {
+      const cost = chips.lastElementChild?.querySelector('.su-cost') ?? chips.lastElementChild
+      expect(cost?.textContent).toContain('1 EP')
     }
   })
 
@@ -108,36 +113,67 @@ describe('actions nest', () => {
     }
   })
 
-  test('below depth 1 they fold behind a "Show N actions" chip', () => {
+  test('on a Page they stay level-1 framed cards, never Tokens', () => {
+    const { container } = render(<ReferenceEntityCard data={drill()} presentation="page" />)
+    expect(container.querySelectorAll('.su-entity-token[data-contentful]')).toHaveLength(0)
+    expect(fills(container)).toEqual(['ink', 'ink'])
+  })
+
+  test('deeper they are still contentful Tokens, never folded behind a chip', () => {
     const { container } = render(<ReferenceEntityCard data={drill()} size="compact" depth={2} />)
+    expect(container.querySelectorAll('.su-entity-token[data-contentful]')).toHaveLength(2)
+    expect(screen.queryByRole('button', { name: /Show \d+ actions/ })).toBeNull()
     expect(fills(container)).toEqual(['tone'])
-    fireEvent.click(screen.getByRole('button', { name: 'Show 2 actions' }))
-    expect(fills(container)).toEqual(['tone', 'ink', 'ink'])
-    expect(screen.getByRole('button', { name: 'Hide 2 actions' })).toBeTruthy()
+  })
+
+  test('inside a Peek an action Token reads: no link, no Peek of its own (E16)', () => {
+    const { container } = render(
+      <InsidePeekContext.Provider value={true}>
+        <ReferenceEntityCard data={drill()} size="mini" />
+      </InsidePeekContext.Provider>
+    )
+    const tokens = container.querySelectorAll('.su-entity-token[data-contentful]')
+    expect(tokens).toHaveLength(2)
+    for (const token of tokens) {
+      expect(token.querySelector('a, button, [data-peek]')).toBeNull()
+    }
   })
 })
 
 describe('nesting legibility', () => {
   test('the drone stacks with no stamp or tray label, and hides the prose its parent prints', () => {
-    render(<ReferenceEntityCard data={sestra()} />)
+    // On a Page the drone is a level-1 card (N1).
+    const { container } = render(<ReferenceEntityCard data={sestra()} presentation="page" />)
+    const drone = [...container.querySelectorAll<HTMLElement>('.su-ec-frame')].find((frame) =>
+      frame.textContent?.includes('Hover Locomotion System')
+    )
+    if (!drone) throw new Error('no drone card')
     // No "Drone" stamp (E9: the title reads its kind out) and no "Systems"
     // tray label.
-    expect(screen.queryByText('Drone')).toBeNull()
-    expect(screen.getAllByText(/\(Drone\)/).length).toBeGreaterThan(0)
-    expect(screen.queryByText('Systems')).toBeNull()
+    expect(within(drone).queryByText('Drone')).toBeNull()
+    expect(within(drone).getAllByText(/\(Drone\)/).length).toBeGreaterThan(0)
+    expect(within(drone).queryByText('Systems')).toBeNull()
     // "…comes with a single Sestra Drone…" is printed once — by the Drone
     // Controller ability — not again by the drone it names.
     expect(screen.getAllByText(/comes with a single Sestra Drone/).length).toBe(1)
   })
 
-  test('depth 2 is a one-line row that opens the entity', () => {
-    render(<ReferenceEntityCard data={sestra()} />)
-    const row = screen.getByRole('button', { name: 'Open Hover Locomotion System' })
-    const title = within(row).getByText('Hover Locomotion System')
-    // The full name rides the clamped title (on a TL band, around its paper chip).
-    expect(title.closest('[title]')?.getAttribute('title')).toBe('Hover Locomotion System')
-    fireEvent.click(row)
+  test('level 2 is a Token that opens the entity (N1)', () => {
+    // Page → drone card (level 1) → its system, a Token (level 2).
+    render(<ReferenceEntityCard data={sestra()} presentation="page" />)
+    const token = screen.getByRole('button', { name: 'Open Hover Locomotion System' })
+    expect(token.classList.contains('su-entity-token')).toBe(true)
+    fireEvent.click(token)
     expect(screen.getByRole('dialog')).toBeTruthy()
+  })
+
+  test('a card that is not a Page nests Tokens: the drone, not its card (N1)', () => {
+    const { container } = render(<ReferenceEntityCard data={sestra()} />)
+    const drone = screen.getByRole('button', { name: 'Open Sestra Drone' })
+    expect(drone.classList.contains('su-entity-token')).toBe(true)
+    // Its loadout is its Peek's and its Page's, not nested a level deeper.
+    expect(screen.queryByRole('button', { name: 'Open Hover Locomotion System' })).toBeNull()
+    expect(container.querySelectorAll('.su-ec-frame')).toHaveLength(1)
   })
 
   test('proseKey matches the same sentence through the chassis token', () => {
@@ -209,9 +245,11 @@ describe('the user-made flag', () => {
 
 describe('contexts', () => {
   test('texture={false} flattens the card and every card nested in it', () => {
-    const { container } = render(<ReferenceEntityCard data={sestra()} texture={false} />)
+    const { container } = render(
+      <ReferenceEntityCard data={sestra()} presentation="page" texture={false} />
+    )
     expect(container.querySelectorAll('[data-grain]').length).toBe(0)
-    const textured = render(<ReferenceEntityCard data={sestra()} />)
+    const textured = render(<ReferenceEntityCard data={sestra()} presentation="page" />)
     expect(textured.container.querySelectorAll('[data-grain]').length).toBeGreaterThan(2)
   })
 

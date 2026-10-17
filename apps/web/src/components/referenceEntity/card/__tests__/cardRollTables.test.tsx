@@ -60,14 +60,20 @@ describe('roll tables reach the card by reference, not just inline', () => {
     expect(screen.getByText('An Intact Mech Chassis is available for trade.')).toBeTruthy()
   })
 
-  test('a NON-self action keeps its table on its own nested card — printed once', () => {
-    // "Trade Caravan" hosts "Improved Trading Bay", which names a table. The
-    // action renders as its own nested card, so pulling the table up to the
-    // host as well would print the same table twice.
+  test('a NON-self action keeps its table under its own Token — printed once', () => {
+    // "Trade Caravan" hosts "Improved Trading Bay", which names a table. In a
+    // card the action is a contentful Token (N3) with its folded table on the
+    // line under it, so pulling the table up to the host as well would print
+    // the same table twice.
     const crawler = find(SalvageUnionReference.Crawlers.all(), 'Trade Caravan')
-    render(<ReferenceEntityCard data={crawler} />)
+    const { container } = render(<ReferenceEntityCard data={crawler} />)
 
     expect(screen.getAllByLabelText(ROLL_BUTTON)).toHaveLength(1)
+    // Beside the Token, never inside it: a Token nests nothing (E6).
+    expect(container.querySelector('.su-entity-token[data-contentful] .su-roll-token')).toBeNull()
+    expect(
+      container.querySelector('.su-entity-token[data-contentful] + .su-roll-token')
+    ).not.toBeNull()
   })
 
   test('every ability with by-reference table data resolves a table', () => {
@@ -78,8 +84,10 @@ describe('roll tables reach the card by reference, not just inline', () => {
     // Guard the guard: this set is non-empty in the shipped dataset.
     expect(abilities.length).toBeGreaterThan(0)
 
+    // On its Page: a granting ability's table rides the granted entity, a
+    // level-1 card there and a Token inside any other card (N1).
     for (const ability of abilities) {
-      render(<ReferenceEntityCard data={ability} />)
+      render(<ReferenceEntityCard data={ability} presentation="page" />)
       expect(screen.getAllByLabelText(ROLL_BUTTON).length).toBeGreaterThan(0)
       cleanup()
     }

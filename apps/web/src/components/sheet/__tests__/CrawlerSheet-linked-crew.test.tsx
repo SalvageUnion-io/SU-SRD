@@ -43,6 +43,11 @@ function store() {
   })
 }
 
+/** The name a crew lead's Token head wears. */
+function headName(crewLead: HTMLElement): string {
+  return crewLead.querySelector('.su-entity-token__head .su-entity-token__name')?.textContent ?? ''
+}
+
 function assigned(npc: CrewAssignment['npc']): CrewAssignment[] {
   return [{ link: MED_BAY_LINK, slot: { kind: 'bay', bayRef: 'med-bay' }, npcId: 'n1', npc }]
 }
@@ -53,9 +58,12 @@ describe('a linked bay shows its NPC in place of the inline crew', () => {
     expandCards()
 
     const inset = screen.getByLabelText('Med Bay crew lead')
-    expect(within(inset).getByText('Doc Ambrose')).toBeTruthy()
+    expect(headName(inset)).toContain('Doc Ambrose')
     expect(within(inset).getByText('Bleed later.')).toBeTruthy()
     expect(screen.queryByText('Old Mags')).toBeNull()
+    // A contentful Token, as the inline crew is: no titled box in the bay (N5).
+    expect(inset.querySelector('.su-box')).toBeNull()
+    expect(inset.querySelector('.su-entity-token[data-contentful]')).toBeTruthy()
     expect(screen.getByText('User-made crew')).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Open Doc Ambrose' })).toHaveProperty(
       'href',
@@ -69,7 +77,7 @@ describe('a linked bay shows its NPC in place of the inline crew', () => {
     render(<CrawlerSheet crawler={crawler} store={store()} crew={assigned(DOC)} />)
     expandCards()
     const inset = screen.getByLabelText('Command Bay crew lead')
-    expect(within(inset).getByText('Ilsa Varn')).toBeTruthy()
+    expect(headName(inset)).toContain('Ilsa Varn')
     expect(within(inset).getByRole('button', { name: /Edit Command Bay crew name/ })).toBeTruthy()
   })
 
@@ -83,7 +91,7 @@ describe('a linked bay shows its NPC in place of the inline crew', () => {
   test('with no link, the inline crew is the crew', () => {
     render(<CrawlerSheet crawler={crawler} store={store()} crew={[]} />)
     expandCards()
-    expect(within(screen.getByLabelText('Med Bay crew lead')).getByText('Old Mags')).toBeTruthy()
+    expect(headName(screen.getByLabelText('Med Bay crew lead'))).toContain('Old Mags')
     expect(screen.queryByText('User-made crew')).toBeNull()
   })
 })

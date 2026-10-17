@@ -47,9 +47,9 @@ export type EntityMode =
 
 /**
  * What a Row or a Token draws: the model's identity, kind, fill, facts,
- * traits, lead and art. A full `EntityModel` is one; so is the slim copy a
- * build-time index carries (the SRD's search index), which has no prose,
- * children or table to ship.
+ * traits, lead and art, and a contentful Token its prose. A full
+ * `EntityModel` is one; so is the slim copy a build-time index carries (the
+ * SRD's search index), which has no prose, children or table to ship.
  */
 export type EntityRowModel = Pick<
   EntityModel,
@@ -64,6 +64,7 @@ export type EntityRowModel = Pick<
       | 'actionType'
       | 'mechActionType'
       | 'lead'
+      | 'prose'
       | 'userMade'
       | 'folded'
       | 'actions'
