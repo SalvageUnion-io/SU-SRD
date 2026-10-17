@@ -17,6 +17,7 @@ import type { Crawler } from 'cantina-domain/schemas/crawler'
 import { WIZARD_TXN } from '../../../stores/surfaceProvenance'
 import { crawlerFixture } from '../../__tests__/fixtures'
 import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { openInSearcher, pickInSearcher } from '../../__tests__/searcherPick'
 import { Toaster, toast } from '../../index'
 import { CrawlerTypeEditModal } from '../CrawlerTypeEditModal'
 
@@ -73,11 +74,9 @@ describe('CrawlerTypeEditModal', () => {
     expect(screen.getByTestId('rail-entry').textContent).toContain('Augmented')
     expect(changeButton().hasAttribute('disabled')).toBe(true)
 
-    // Clicking the current type clears the pick — still no change to make.
-    await act(async () => {
-      fireEvent.click(screen.getByRole('radio', { name: 'Augmented' }))
-    })
-    expect(screen.queryAllByTestId('rail-entry')).toHaveLength(0)
+    // Opening the current type offers nothing to choose: it is the pick.
+    const bar = await openInSearcher('Augmented')
+    expect(within(bar).queryByRole('button', { name: 'Choose' })).toBeNull()
     expect(changeButton().hasAttribute('disabled')).toBe(true)
     expect(writes).toEqual([])
   })
@@ -88,9 +87,7 @@ describe('CrawlerTypeEditModal', () => {
       writes.push(args)
     })
 
-    await act(async () => {
-      fireEvent.click(screen.getByRole('radio', { name: 'Battle' }))
-    })
+    await pickInSearcher('Battle')
     expect(changeButton().hasAttribute('disabled')).toBe(false)
     await act(async () => {
       fireEvent.click(changeButton())
@@ -127,9 +124,7 @@ describe('CrawlerTypeEditModal', () => {
     const writes: unknown[] = []
     const { onClose } = renderModal((...args) => writes.push(args))
 
-    await act(async () => {
-      fireEvent.click(screen.getByRole('radio', { name: 'Engineering' }))
-    })
+    await pickInSearcher('Engineering')
     await act(async () => {
       fireEvent.click(changeButton())
     })
@@ -149,9 +144,7 @@ describe('CrawlerTypeEditModal', () => {
       throw new Error('boom')
     })
 
-    await act(async () => {
-      fireEvent.click(screen.getByRole('radio', { name: 'Exploratory' }))
-    })
+    await pickInSearcher('Exploratory')
     await act(async () => {
       fireEvent.click(changeButton())
     })

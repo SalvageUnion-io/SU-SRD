@@ -49,7 +49,7 @@ export function rail(name: RegExp | string = /equipped/i): HTMLElement {
   return screen.getByRole('region', { name })
 }
 
-/** Open the narrow band's disclosure and return it. */
+/** Open the narrow bar's disclosure and return it. */
 export function expand(region: HTMLElement): HTMLElement {
   const toggle = within(region).getByRole('button', { expanded: false })
   fireEvent.click(toggle)
@@ -61,14 +61,14 @@ type HappyWindow = {
 }
 
 /** Inside `act()`: a resize fires matchMedia `change`, and the searcher — still
- * mounted when an `afterEach` runs — re-renders through `useWideRail`. */
+ * mounted when an `afterEach` runs — re-renders through `useMediaQuery`. */
 export function setViewport(width: number, height: number) {
   act(() => {
     ;(window as unknown as HappyWindow).happyDOM.setViewport({ width, height })
   })
 }
 
-// Every test renders the whole pool (the full equipment or chassis catalog),
-// about 1 s alone but past the default 5 s once the pre-push gates and every
+// Every test renders the whole pool (the full equipment or chassis catalog, as
+// Tokens) and one Card, about 1 s alone but past the default 5 s once the pre-push gates and every
 // workspace's suite share the cores.
 export const POOL_RENDER_MS = 20_000

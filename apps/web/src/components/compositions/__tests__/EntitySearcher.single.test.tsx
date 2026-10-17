@@ -1,36 +1,58 @@
 /**
  * EntitySearcher — single mode. Split from EntitySearcher.test.tsx (the suite's
- * contract and the narrow-viewport note are there) so the parallel runner can
- * spread the pool renders over its workers.
+ * contract and the viewport note are there) so the parallel runner can spread
+ * the pool renders over its workers.
  */
 
 import { describe, expect, it } from 'bun:test'
-import { render, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { EntitySearcher } from '../EntitySearcher'
 import { rail } from './entitySearcherHarness'
 
 describe('EntitySearcher — single mode', () => {
-  it('is a one-line bar: the chosen name and the confirm actions, nothing to fold', () => {
-    const chassis = SalvageUnionReference.Chassis.all()[0]
-    if (!chassis) throw new Error('No chassis in reference data')
+  it('labels the chosen Token; the chosen one has no Remove, and the rail carries the confirm actions', () => {
+    const [chosen, other] = SalvageUnionReference.Chassis.all()
+    if (!chosen || !other) throw new Error('Need two chassis in reference data')
+    const toggled: string[] = []
     render(
       <EntitySearcher
         schema="chassis"
         mode="single"
-        selected={[chassis.id]}
-        onToggle={() => {}}
+        selected={[chosen.id]}
+        onToggle={(ref) => toggled.push(ref)}
         idOf={(i) => i.id}
-        // The bar is the subject; a pool of every chassis card took ~5 s to
-        // render on a 4-core runner, the whole default budget.
-        filter={(i) => i.id === chassis.id}
+        // A pool of every chassis took ~5 s to render on a 4-core runner, the
+        // whole default budget; two make the point.
+        filter={(i) => i.id === chosen.id || i.id === other.id}
         chosenLabel="Chosen"
+        title="Change Chassis"
+        onClose={() => {}}
         railActions={<button type="button">Apply chassis</button>}
       />
     )
-    const bar = rail('Chosen')
-    expect(within(bar).getByTestId('rail-entry').textContent).toBe(chassis.name)
-    expect(bar.querySelector('[aria-expanded]')).toBeNull()
+    const list = document.querySelector<HTMLElement>('.su-searcher__list') as HTMLElement
+    const line = within(list)
+      .getByRole('button', { name: chosen.name })
+      .closest('.su-searcher__item')
+    expect(line?.hasAttribute('data-selected')).toBe(true)
+    expect(line?.textContent).toContain('Chosen')
+
+    const bar = rail(/chosen/i)
+    expect(
+      within(within(bar).getByTestId('rail-entry')).getByRole('button', { name: chosen.name })
+    ).toBeTruthy()
+    expect(within(bar).queryByRole('button', { name: /^Remove/ })).toBeNull()
+    // The caller's actions replace DONE.
     expect(within(bar).getByRole('button', { name: 'Apply chassis' })).toBeTruthy()
+    expect(within(bar).queryByRole('button', { name: 'Done' })).toBeNull()
+
+    fireEvent.click(within(list).getByRole('button', { name: other.name }))
+    fireEvent.click(
+      within(screen.getByRole('group', { name: `${other.name} actions` })).getByRole('button', {
+        name: 'Choose',
+      })
+    )
+    expect(toggled).toEqual([other.id])
   })
 })

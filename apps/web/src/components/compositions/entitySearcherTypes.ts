@@ -34,8 +34,6 @@ export type BudgetConfig = {
   label: string
   used: number
   max: number
-  /** 'ap' renders rust pips (e.g. Energy); default ink. */
-  tone?: 'default' | 'ap'
 }
 
 /** One facet row: its label and its chips, rendered through the shared FilterRow. */

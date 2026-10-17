@@ -15,7 +15,7 @@ import { CostBox } from '../parts/Chips'
 import { KindLabel } from '../parts/KindLabel'
 import { paintFor } from '../parts/paint'
 import { usePeekAttrs } from '../peekContext'
-import type { EntityMode, EntityRowModel } from '../types'
+import type { EntityMode, EntityOmit, EntityRowModel } from '../types'
 
 /** One Token chip, label first: `[TL | 2]`, `[ACTIONS | 3]`. */
 type TokenChip = { label: string; value?: string }
@@ -41,11 +41,12 @@ const CHASSIS_DROPPED: ReadonlySet<string> = new Set(['SYS', 'MODS'])
  * action's kept facets (`RNG | C`). The cost box follows, drawn by the Token.
  * An ability's tier is its numeral before the name, never a chip.
  */
-function tokenChips(model: EntityRowModel): TokenChip[] {
+function tokenChips(model: EntityRowModel, omit: readonly EntityOmit[]): TokenChip[] {
   const chassis = model.ref.schemaName === 'chassis' && !model.ref.synthetic
   const kept = (facts: readonly Fact[]): TokenChip[] =>
     facts
       .filter((fact) => (chassis ? !CHASSIS_DROPPED.has(fact.short) : TOKEN_FACTS.has(fact.short)))
+      .filter((fact) => !omit.includes(fact.key))
       .map((fact) => ({ label: fact.short, value: fact.shortValue ?? fact.value }))
   const { stats, action } = splitStatLine(model.facts)
   const chips: TokenChip[] = kept(stats)
@@ -106,11 +107,14 @@ export function Token({
   model,
   instance,
   mode = { kind: 'read' },
+  omit = [],
   slots = {},
 }: {
   model: EntityRowModel
   instance?: EntityInstance
   mode?: EntityMode
+  /** Facts the context already states, by key (`tech-level`), left off its chips. */
+  omit?: readonly EntityOmit[]
   slots?: TokenSlots
 }) {
   const target = useLinkTarget(mode, model.ref)
@@ -119,7 +123,7 @@ export function Token({
   const paint = paintFor(model.tone, { down, texture: false })
   const userMade = !!(model.userMade || instance?.userMade)
   const title = instance?.title ?? model.title
-  const chips = tokenChips(model)
+  const chips = tokenChips(model, omit)
   const cost = slots.cost ?? model.cost
   const pill = (
     <span

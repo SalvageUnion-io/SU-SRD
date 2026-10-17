@@ -17,7 +17,7 @@
  */
 
 import { describe, expect, mock, test } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Mech } from 'cantina-domain/schemas/mech'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
@@ -131,11 +131,17 @@ async function click(name: RegExp) {
 /**
  * Remove a collection item the way a player now does: the per-card ✕ is gone,
  * so management happens in the section's picker. Open it from the slab's
- * "Manage …" button, then toggle the item off in the searcher.
+ * "Manage …" button, then press the item's ✕ in the searcher's chosen rail.
  */
-async function removeViaPicker(manage: RegExp, item: RegExp) {
+async function removeViaPicker(manage: RegExp, item: string) {
   await click(manage)
-  await click(item)
+  await act(async () => {
+    fireEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', {
+        name: new RegExp(`^Remove ${item}$`, 'i'),
+      })
+    )
+  })
 }
 
 /**
@@ -150,7 +156,7 @@ describe('PilotSheet — soft warnings on ability edits', () => {
     const pilot = makePilot()
     render(<PilotSheet pilot={pilot} store={makePilotStore(pilot, captured)} />)
 
-    await removeViaPicker(/^Manage abilities$/i, new RegExp(`^${ABILITY_L1}$`, 'i'))
+    await removeViaPicker(/^Manage abilities$/i, ABILITY_L1)
 
     // The advisory dialog names the offending rule…
     expect(screen.getByText(/trees are taken in order/i)).toBeTruthy()
@@ -169,7 +175,7 @@ describe('PilotSheet — soft warnings on ability edits', () => {
     const pilot = makePilot()
     render(<PilotSheet pilot={pilot} store={makePilotStore(pilot, captured)} />)
 
-    await removeViaPicker(/^Manage abilities$/i, new RegExp(`^${ABILITY_L1}$`, 'i'))
+    await removeViaPicker(/^Manage abilities$/i, ABILITY_L1)
     await click(/save anyway/i)
 
     expect(captured).toHaveLength(1)
@@ -182,7 +188,7 @@ describe('PilotSheet — soft warnings on ability edits', () => {
     render(<PilotSheet pilot={pilot} store={makePilotStore(pilot, captured)} />)
 
     // Dropping the L2 leaves a well-ordered tree — nothing to warn about.
-    await removeViaPicker(/^Manage abilities$/i, new RegExp(`^${ABILITY_L2}$`, 'i'))
+    await removeViaPicker(/^Manage abilities$/i, ABILITY_L2)
 
     expect(screen.queryByRole('button', { name: /save anyway/i })).toBeNull()
     expect(captured).toHaveLength(1)
@@ -197,12 +203,14 @@ describe('MechSheet — soft warnings on system removal', () => {
     render(<MechSheet mech={mech} chassis={fakeChassis} store={makeMechStore(mech, captured)} />)
 
     await click(/^Manage systems$/i)
-    // Below 80rem the picker's selection rail starts folded (EntitySearcher),
-    // so its Remove buttons sit behind the "Installed" disclosure.
+    // Removing is the rail's ✕.
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /^Installed/i, expanded: false }))
+      fireEvent.click(
+        within(screen.getByRole('region', { name: /^Installed/i })).getByRole('button', {
+          name: /^Remove Smoke Machine$/i,
+        })
+      )
     })
-    await click(/^Remove Smoke Machine$/i)
 
     expect(screen.queryByRole('button', { name: /save anyway/i })).toBeNull()
     expect(captured).toHaveLength(1)

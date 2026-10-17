@@ -1,40 +1,63 @@
 /**
  * Unit tests for the shared EntitySearcher.
  *
- * Focus: the legibility contract that motivated the component — equipped items
- * are unmistakable (rail + Equipped tag), the Status facet splits equipped vs.
- * available, the budget track renders honestly, and toggle/count emit the
- * caller's identity. Then the rail's own contract: it is a named region that
- * never sits over the results — a collapsed disclosure band on a narrow screen,
- * an always-open column on a wide one, a one-line bar in single mode — and a
- * Remove hands focus on instead of dropping it. Renders against real
- * SalvageUnionReference data (the searcher reads the ORM directly).
+ * Focus: the contract that motivated the component — the pool is a list of
+ * Tokens, nothing open until one is; opening a Token shows that entity's Page
+ * with an action bar that adds it; removing is the rail's; what is chosen is
+ * unmistakable (the rail, the Token's chosen label, the Page's stamp); the
+ * Status facet splits chosen vs. available; budgets render honestly; and
+ * toggle/count emit the caller's identity. The rail's own contract (a column
+ * on a wide screen, a bar on a narrow one) is EntitySearcher.rail.test.tsx.
+ * Renders against real SalvageUnionReference data (the searcher reads the ORM
+ * directly).
  *
- * happy-dom's viewport is 1024px wide, below the rail's 80rem breakpoint, so
- * every test renders the NARROW rail unless it widens the window itself.
+ * happy-dom's viewport is 1024px wide, exactly the 64rem breakpoint, so every
+ * test renders the WIDE layout unless it narrows the window itself.
  */
 
 import { describe, expect, it } from 'bun:test'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { EntitySearcher } from '../EntitySearcher'
-import { allEquipment, expand, nth, POOL_RENDER_MS, rail } from './entitySearcherHarness'
+import { allEquipment, nth, POOL_RENDER_MS, rail } from './entitySearcherHarness'
+
+/** The focused entity's action bar. */
+function actions(name: string): HTMLElement {
+  return screen.getByRole('group', { name: `${name} actions` })
+}
+
+/** Open the list's Token for `name` (the first match: the list leads the rail). */
+function openToken(name: string) {
+  const [token] = screen.getAllByRole('button', { name })
+  if (!token) throw new Error(`No Token named ${name}`)
+  fireEvent.click(token)
+}
+
+/** The list line holding the Token for `name`. */
+function line(name: string): HTMLElement {
+  const el = screen.getAllByRole('button', { name })[0]?.closest<HTMLElement>('.su-searcher__item')
+  if (!el) throw new Error(`No list line for ${name}`)
+  return el
+}
 
 describe('EntitySearcher — equipment (toggle mode)', () => {
   it(
-    'renders a Tech level and a Show facet',
+    'puts Tech level beside the search, and the Show facet behind Filters',
     () => {
       render(
         <EntitySearcher schema="equipment" selected={[]} onToggle={() => {}} idOf={(i) => i.id} />
       )
       expect(screen.getByRole('group', { name: /filter by tech level/i })).toBeTruthy()
+      const filters = screen.getByRole('button', { name: /^filters/i })
+      expect(filters.getAttribute('aria-expanded')).toBe('false')
+      fireEvent.click(filters)
       expect(screen.getByRole('group', { name: /filter by show/i })).toBeTruthy()
     },
     POOL_RENDER_MS
   )
 
   it(
-    'lists an equipped item in the rail with an Equipped tag',
+    'lists an equipped item in the rail, labels its Token and stamps its Page',
     () => {
       const eq = nth(allEquipment(), 0)
       render(
@@ -48,15 +71,37 @@ describe('EntitySearcher — equipment (toggle mode)', () => {
       )
       const entry = screen.getByTestId('rail-entry')
       expect(within(entry).getByText(eq.name)).toBeTruthy()
-      expect(screen.getByText('Equipped', { selector: '.su-badge-stamp' })).toBeTruthy()
+      const chosen = line(eq.name)
+      expect(chosen.hasAttribute('data-selected')).toBe(true)
+      expect(within(chosen).getByText('Equipped')).toBeTruthy()
+      // Nothing is open until a Token is.
+      expect(screen.queryByRole('group', { name: `${eq.name} actions` })).toBeNull()
+      openToken(eq.name)
+      expect(
+        within(actions(eq.name)).getByText('Equipped', { selector: '.su-badge-stamp' })
+      ).toBeTruthy()
     },
     POOL_RENDER_MS
   )
 
   it(
-    'clicking an unselected card toggles with idOf(item)',
+    'opens nothing until a Token is opened, and has no box to choose from the list',
     () => {
-      const eq = nth(allEquipment(), 0)
+      const b = nth(allEquipment(), 1)
+      render(
+        <EntitySearcher schema="equipment" selected={[]} onToggle={() => {}} idOf={(i) => i.id} />
+      )
+      expect(screen.queryByRole('group', { name: /actions$/ })).toBeNull()
+      expect(screen.queryByRole('button', { name: `Select ${b.name}` })).toBeNull()
+      expect(line(b.name).hasAttribute('data-selected')).toBe(false)
+    },
+    POOL_RENDER_MS
+  )
+
+  it(
+    'opening a Token shows its Page, whose ADD names the sheet',
+    () => {
+      const b = nth(allEquipment(), 1)
       const toggled: string[] = []
       render(
         <EntitySearcher
@@ -64,18 +109,19 @@ describe('EntitySearcher — equipment (toggle mode)', () => {
           selected={[]}
           onToggle={(ref) => toggled.push(ref)}
           idOf={(i) => i.id}
+          railName="Bonesaw"
         />
       )
-      const toggleBtn = screen.getAllByRole('button', { name: eq.name })[0]
-      if (!toggleBtn) throw new Error('no toggle button rendered')
-      fireEvent.click(toggleBtn)
-      expect(toggled).toEqual([eq.id])
+      openToken(b.name)
+      expect(screen.getByRole('article', { name: b.name }).querySelector('h2')).toBeTruthy()
+      fireEvent.click(within(actions(b.name)).getByRole('button', { name: 'Add to Bonesaw' }))
+      expect(toggled).toEqual([b.id])
     },
     POOL_RENDER_MS
   )
 
   it(
-    'removing from the rail emits the matched stored ref',
+    'removing is the rail’s, and emits the matched stored ref',
     () => {
       const eq = nth(allEquipment(), 0)
       const toggled: string[] = []
@@ -87,10 +133,11 @@ describe('EntitySearcher — equipment (toggle mode)', () => {
           idOf={(i) => i.id}
         />
       )
-      const region = rail(/selected/i)
-      expand(region)
-      fireEvent.click(within(region).getByRole('button', { name: `Remove ${eq.name}` }))
+      fireEvent.click(within(rail(/selected/i)).getByRole('button', { name: `Remove ${eq.name}` }))
       expect(toggled).toEqual([eq.id])
+      // The opened Page offers no Remove (and no second Add).
+      openToken(eq.name)
+      expect(within(actions(eq.name)).queryAllByRole('button')).toHaveLength(0)
     },
     POOL_RENDER_MS
   )
@@ -108,18 +155,20 @@ describe('EntitySearcher — equipment (toggle mode)', () => {
           idOf={(i) => i.id}
         />
       )
-      expect(screen.getAllByRole('button', { name: a.name }).length).toBeGreaterThan(0)
+      const list = () => document.querySelector<HTMLElement>('.su-searcher__list') as HTMLElement
+      expect(within(list()).getByRole('button', { name: b.name })).toBeTruthy()
+      fireEvent.click(screen.getByRole('button', { name: /^filters/i }))
       fireEvent.click(screen.getByRole('button', { name: /selected only/i }))
-      expect(screen.getAllByRole('button', { name: a.name }).length).toBeGreaterThan(0)
-      if (b.id !== a.id) {
-        expect(screen.queryByRole('button', { name: b.name })).toBeNull()
+      expect(within(list()).getByRole('button', { name: a.name })).toBeTruthy()
+      if (b.name !== a.name) {
+        expect(within(list()).queryByRole('button', { name: b.name })).toBeNull()
       }
     },
     POOL_RENDER_MS
   )
 
   it(
-    'renders a soft budget track when budget is provided',
+    'shows a soft budget in the rail, over its max as critical',
     () => {
       render(
         <EntitySearcher
@@ -127,12 +176,15 @@ describe('EntitySearcher — equipment (toggle mode)', () => {
           selected={[]}
           onToggle={() => {}}
           idOf={(i) => i.id}
-          budget={{ label: 'Inventory slots', used: 2, max: 5 }}
+          budget={[
+            { label: 'Inventory slots', used: 2, max: 5 },
+            { label: 'Weight', used: 6, max: 5 },
+          ]}
         />
       )
-      expand(rail(/selected/i))
-      expect(screen.getByText('2 / 5')).toBeTruthy()
-      expect(screen.getByRole('img', { name: 'Inventory slots 2 of 5' })).toBeTruthy()
+      const region = rail(/selected/i)
+      expect(within(region).getByText('Inventory slots')).toBeTruthy()
+      expect(within(region).getByText('Weight')).toBeTruthy()
     },
     POOL_RENDER_MS
   )
@@ -140,28 +192,31 @@ describe('EntitySearcher — equipment (toggle mode)', () => {
 
 describe('EntitySearcher — systems (count mode)', () => {
   it(
-    'shows an Add affordance and emits idOf on add',
+    'a Token shows its count; the Page adds another',
     () => {
-      const sys = SalvageUnionReference.Systems.all()
-      const first = sys[0]
+      const first = SalvageUnionReference.Systems.all()[0]
       if (!first) throw new Error('No systems in reference data')
       const added: string[] = []
+      const removed: number[] = []
       render(
         <EntitySearcher
           schema="systems"
           mode="count"
-          selected={[]}
+          selected={[first.name, 'Not a system', first.name]}
           onAdd={(ref) => added.push(ref)}
+          onRemove={(index) => removed.push(index)}
           idOf={(i) => i.name}
           chosenLabel="Installed"
         />
       )
-      const addBtn = screen.getAllByRole('button', {
-        name: new RegExp(`Add ${first.name}`, 'i'),
-      })[0]
-      if (!addBtn) throw new Error('no Add button rendered')
-      fireEvent.click(addBtn)
+      expect(within(line(first.name)).getByText('2 Installed')).toBeTruthy()
+      openToken(first.name)
+      const bar = actions(first.name)
+      expect(within(bar).getByText('2 Installed')).toBeTruthy()
+      fireEvent.click(within(bar).getByRole('button', { name: 'Add another' }))
+      expect(within(bar).queryByRole('button', { name: `Remove ${first.name}` })).toBeNull()
       expect(added).toEqual([first.name])
+      expect(removed).toEqual([])
     },
     POOL_RENDER_MS
   )
@@ -182,7 +237,6 @@ describe('EntitySearcher — systems (count mode)', () => {
         />
       )
       const region = rail(/installed/i)
-      expand(region)
       expect(
         within(region).getByRole('button', { name: `Remove ${first.name}, copy 1 of 2` })
       ).toBeTruthy()
