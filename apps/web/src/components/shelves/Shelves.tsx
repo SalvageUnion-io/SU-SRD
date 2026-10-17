@@ -8,10 +8,10 @@
  * mech and crawler of yours this browser holds, wherever it is, and a chip
  * under each says where.
  *
- *  - **The band** (ink, paper flecks): the notched title and, right of it
- *    and centred on its capitals as a show page's chips are, the **Showing**
- *    toggle (Everything | Unassigned), **Import** and **Export all**, and
- *    "+ New Game", the one way to start a table.
+ *  - **The band** (ink, paper flecks): the notched title and, right of it on
+ *    the band's foot, "+ New Game" (the one way to start a table), **Import**,
+ *    **Export all** and the **Showing** toggle (Everything | Unassigned); what
+ *    does not fit beside the name wraps up over it (`asideAt="controls"`).
  *  - **Three rows of shelves**: Pilots, Mechs and Crawlers side by side; then
  *    NPCs and Patterns, which are user-made and so dashed (ruleset §3.9); then,
  *    folded, the Starter Set, read-only, as the front door shows it
@@ -97,7 +97,6 @@ import {
   Segmented,
   SegmentedOption,
   toast,
-  tokens,
 } from '../index'
 import { AppLink } from '../shared/AppLink'
 import { useConfirm } from '../shared/useConfirm'
@@ -114,15 +113,6 @@ import { StarterShelf } from './StarterShelf'
 // ---------------------------------------------------------------------------
 
 const MEASURE = '75rem'
-
-/** The band's controls, right of the notched title (`shelves.css` centres them on it). */
-const BAND_CONTROLS = {
-  alignItems: 'flex-start',
-  justifyContent: 'flex-end',
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[12],
-} satisfies CSSProperties
 
 /**
  * One row of shelves (owner, 2026-10-15): your units (Pilots, Mechs,
@@ -384,8 +374,14 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
               {importResult}
             </p>
           }
+          // Beside the name while they fit, wrapping up over it when they do
+          // not: the first in the list sit nearest the name.
+          asideAt="controls"
           aside={
-            <div style={BAND_CONTROLS}>
+            <>
+              <NewGameControl ground="ink" />
+              {canWrite && <ImportButton ground="ink" onResult={setImportResult} />}
+              <ExportAllButton ground="ink" />
               <Segmented label="Showing" ground="ink" size="compact">
                 {SHELF_FILTERS.map((option) => (
                   <SegmentedOption
@@ -397,10 +393,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   </SegmentedOption>
                 ))}
               </Segmented>
-              {canWrite && <ImportButton ground="ink" onResult={setImportResult} />}
-              <ExportAllButton ground="ink" />
-              <NewGameControl ground="ink" />
-            </div>
+            </>
           }
         >
           Hangar

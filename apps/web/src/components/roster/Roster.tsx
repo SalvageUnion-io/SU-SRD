@@ -8,8 +8,8 @@
  *    to: with no live Game to show, the whole cached pile is the only rendering
  *    that cannot lose a build.
  *  - **A Game** — that table's own page, drawn as Shelves is: a full-width
- *    band carrying the page's controls (the Games select, whose last entry is
- *    "+ New Game", import and backup) above the Game's notched name, any
+ *    band carrying the Game's notched name and, beside it, the page's controls
+ *    (import, backup and the Games select, whose last entry is "+ New Game"), any
  *    invitation, and `GameHub` — its roster, yours first, with every player and
  *    Mediator action below the lists. Connected only; while the connection is
  *    still being worked out, a remembered Game shows a skeleton rather than
@@ -20,7 +20,6 @@
  * kept here so it survives switching between Games.
  */
 
-import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useActiveContainer } from '../../stores/activeContainerStore'
@@ -31,21 +30,12 @@ import { ImportButton } from '../export/ImportButton'
 import { GameBand } from '../games/GameBand'
 import { GameHub } from '../games/GameHub'
 import { GAME_BODY, GAME_MEASURE } from '../games/hubStyles.model'
-import { PageShell, RosterSkeleton, tokens } from '../index'
+import { PageShell, RosterSkeleton } from '../index'
 import { Shelves } from '../shelves/Shelves'
 import { FrontDoor } from './FrontDoor'
 import type { SegmentKind } from './RosterColumn'
 
 /** The band's controls, at its end. */
-const BAND_CONTROLS = {
-  alignItems: 'center',
-  display: 'flex',
-  flex: '1 1 100%',
-  flexWrap: 'wrap',
-  gap: tokens.space[12],
-  justifyContent: 'flex-end',
-} satisfies CSSProperties
-
 export function Roster() {
   const activeContainer = useActiveContainer()
   const { mode } = useConnection()
@@ -73,13 +63,13 @@ function GamePage({ gameId }: { gameId: string | null }) {
   const [activeSegment, setActiveSegment] = useState<SegmentKind>('pilot')
 
   const controls = (
-    <div style={BAND_CONTROLS}>
+    <>
+      <ImportButton ground="ink" />
+      <ExportAllButton ground="ink" />
       {/* Where else to go: the select lists Shelves and every Game, and ends
           with "+ New Game". It renders nothing outside Connected. */}
       <ContainerSwitcher activeContainer={activeContainer} onSelect={showContainer} />
-      <ImportButton ground="ink" />
-      <ExportAllButton ground="ink" />
-    </div>
+    </>
   )
 
   return gameId === null ? (
