@@ -61,27 +61,25 @@
 
 /* ── shell and flat leaves ── */
 
-/* ControlButtons (`compositions/ControlButtons.tsx`). The link control and the paper
-   icon stamp flip fill and ink on hover, so both colours are here, resting
-   value included; their geometry is the component's style objects. */
-.su-control-link,
-.su-control-icon--plain {
+/* ControlButtons (`compositions/ControlButtons.tsx`). The link control flips
+   fill and ink on hover, so both colours are here, resting value included;
+   its geometry is the component's style object. */
+.su-control-link {
   background-color: var(--color-paper);
   color: var(--color-ink);
 }
 
-.su-control-link:hover,
-.su-control-icon--plain:hover {
+.su-control-link:hover {
   background-color: var(--color-ink);
   color: var(--color-paper);
 }
 
-/* A live worded control, and the red icon stamp, brighten on hover. */
+/* A live worded control brightens on hover. */
 .su-control-button--live:hover {
   filter: brightness(110%);
 }
 
-/* The icon stamp's glyph. A class rather than a style object only because the
+/* The icon button's glyph. A class rather than a style object only because the
    control's `icon` contract takes `className` and nothing else. */
 .su-control-icon__glyph {
   height: var(--space-12);

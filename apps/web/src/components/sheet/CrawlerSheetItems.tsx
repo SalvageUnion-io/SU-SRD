@@ -328,7 +328,8 @@ export function CrawlerBayCard({
             readOnly={readOnly}
             actions={
               <Button
-                className="su-sheet-ctl"
+                variant="pencil"
+                className="su-sheet-item__ctl"
                 {...crewFields.toggleProps}
                 aria-label={`${crewFields.open ? 'Collapse' : 'Expand'} ${bay.name} crew`}
               >

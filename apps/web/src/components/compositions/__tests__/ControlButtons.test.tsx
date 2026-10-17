@@ -160,9 +160,10 @@ describe('ControlButtons', () => {
     const button = screen.getByLabelText('Remove Charge')
     // The accessible name comes from ariaLabel, not visible text.
     expect(button.textContent).toBe('')
-    // Stamp chrome at the same rung as a worded control (no fixed 28/32px
-    // square), so an icon button and a worded one are interchangeable in a row.
-    expect(button.className).toContain('su-rung-pad--mini')
+    // Button's mini rung, the action chip a Row's controls share (not the
+    // 36px icon square), so an icon button and a worded one share a row.
+    expect(button.className).toContain('su-btn--mini')
+    expect(button.className).not.toContain('su-btn--icon-only')
     // No fixed 28/32px square. Checked per class TOKEN rather than as a
     // substring, because a substring match also fires on any variant-prefixed
     // or pseudo-element utility that merely CONTAINS a size (`before:h-8`,
@@ -190,11 +191,9 @@ describe('ControlButtons', () => {
     // Remove is the one control in the rail that DESTROYS something; in
     // paper-and-ink it read like the fold chevron beside it.
     const button = screen.getByLabelText('Remove Charge')
-    expect(button.style.backgroundColor).toBe(color.statusBad)
-    expect(button.style.borderColor).toBe(color.statusBad)
-    // Not the paper stamp's class, which would paint it paper-and-ink.
-    expect(button.classList.contains('su-control-icon--plain')).toBe(false)
-    expect(button.classList.contains('su-control-button--live')).toBe(true)
+    expect(button.classList.contains('su-btn--danger')).toBe(true)
+    // Not the paper button, which would paint it paper-and-ink.
+    expect(button.classList.contains('su-btn--default')).toBe(false)
   })
 
   test('icon-only control carries no width-keyed tap floor of its own', () => {

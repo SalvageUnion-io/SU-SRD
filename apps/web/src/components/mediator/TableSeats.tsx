@@ -23,9 +23,9 @@
 import type { CSSProperties } from 'react'
 import { space } from '../../design/tokens'
 import { CrewRow } from '../dashboard/CrewRow'
-import { buttonVariants, EmptyState } from '../index'
+import { buttonVariants, EmptyState, Eyebrow } from '../index'
 import { AppLink } from '../shared/AppLink'
-import { EYEBROW, HEAD_ROW, HEADING, PANEL } from './mediatorStyles.model'
+import { HEAD_ROW, HEADING, PANEL } from './mediatorStyles.model'
 import type { SeatCard } from './seatCards.model'
 
 const LIST = {
@@ -77,7 +77,7 @@ export function TableSeats({
         <h2 id="mediator-table" style={HEADING}>
           The table
         </h2>
-        <span style={EYEBROW}>Every seat, live</span>
+        <Eyebrow tone="muted">Every seat, live</Eyebrow>
       </div>
       {seats.length === 0 ? (
         <EmptyState

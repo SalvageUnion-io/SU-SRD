@@ -23,7 +23,7 @@ import {
   weight,
 } from '../../design/tokens'
 import { formatClock } from '../../lib/formatDate'
-import { EmptyState } from '../index'
+import { EmptyState, Eyebrow } from '../index'
 import type { AlertLine, RollLine } from './useGameFeed'
 
 const SCROLL = {
@@ -35,15 +35,7 @@ const SCROLL = {
   gap: space[16],
 } satisfies CSSProperties
 
-const HEADING = {
-  margin: `0 0 ${space[6]}`,
-  fontFamily: font.cond,
-  fontWeight: weight.bold,
-  fontSize: fontSize.badge,
-  letterSpacing: tracking.capsTight,
-  textTransform: 'uppercase',
-  color: color.ink75,
-} satisfies CSSProperties
+const HEADING = { margin: `0 0 ${space[6]}` } satisfies CSSProperties
 
 const LIST = {
   listStyle: 'none',
@@ -87,9 +79,9 @@ export function LogTab({ rolls, alerts }: { rolls: RollLine[] | null; alerts: Al
     <div style={SCROLL}>
       {alerts.length > 0 ? (
         <section aria-labelledby="dash-log-alerts">
-          <h3 id="dash-log-alerts" style={HEADING}>
+          <Eyebrow as="h3" tone="muted" id="dash-log-alerts" style={HEADING}>
             From the Mediator
-          </h3>
+          </Eyebrow>
           <ul style={LIST}>
             {alerts.map((a) => (
               <li key={a._id} style={ROW}>
@@ -102,9 +94,9 @@ export function LogTab({ rolls, alerts }: { rolls: RollLine[] | null; alerts: Al
       ) : null}
 
       <section aria-labelledby="dash-log-rolls">
-        <h3 id="dash-log-rolls" style={HEADING}>
+        <Eyebrow as="h3" tone="muted" id="dash-log-rolls" style={HEADING}>
           Rolls
-        </h3>
+        </Eyebrow>
         {rolls === null ? (
           <p style={NOTE}>The Game's rolls appear here.</p>
         ) : rolls.length === 0 ? (

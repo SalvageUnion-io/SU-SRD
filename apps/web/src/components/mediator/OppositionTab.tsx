@@ -36,6 +36,7 @@ import {
   EmptyState,
   Entity,
   EntitySearcher,
+  Eyebrow,
   Input,
   Select,
   tokens,
@@ -43,7 +44,7 @@ import {
   VitalGauge,
 } from '../index'
 import { SheetPickerModal } from '../sheet/SheetSection'
-import { BODY, EYEBROW, HEAD_ROW, MUTED, NUMBERS } from './mediatorStyles.model'
+import { BODY, HEAD_ROW, MUTED, NUMBERS } from './mediatorStyles.model'
 import type { EncounterRefSchema, SavedPattern, TrayDraw, TrayNpc } from './opposition.model'
 import { OPPOSITION_SCHEMAS, patternSlugOf, patternsOf, slugOf } from './opposition.model'
 
@@ -324,9 +325,9 @@ function OppositionPicker({
       onClose={onClose}
       railActions={
         <div style={PICKER_RAIL}>
-          <label htmlFor={`${id}-schema`} style={EYEBROW}>
+          <Eyebrow as="label" tone="muted" htmlFor={`${id}-schema`}>
             Draw from
-          </label>
+          </Eyebrow>
           <Select
             id={`${id}-schema`}
             value={schema}
@@ -341,9 +342,9 @@ function OppositionPicker({
               </option>
             ))}
           </Select>
-          <label htmlFor={`${id}-name`} style={EYEBROW}>
+          <Eyebrow as="label" tone="muted" htmlFor={`${id}-name`}>
             Name (optional)
-          </label>
+          </Eyebrow>
           <Input
             id={`${id}-name`}
             value={name}
@@ -353,9 +354,9 @@ function OppositionPicker({
           />
           {pending ? (
             <>
-              <label htmlFor={`${id}-pattern`} style={EYEBROW}>
+              <Eyebrow as="label" tone="muted" htmlFor={`${id}-pattern`}>
                 {pending.entity.name} pattern
-              </label>
+              </Eyebrow>
               <Select
                 id={`${id}-pattern`}
                 value={pending.pattern}
@@ -425,7 +426,9 @@ export function OppositionTab({
   return (
     <div style={SCROLL}>
       <div style={HEAD_ROW}>
-        <h3 style={EYEBROW}>Hidden from players · {onField} on the field</h3>
+        <Eyebrow as="h3" tone="muted">
+          Hidden from players · {onField} on the field
+        </Eyebrow>
         <Button variant="default" size="full" disabled={!canWrite} onClick={() => setPicking(true)}>
           + From the reference
         </Button>
@@ -485,9 +488,9 @@ export function OppositionTab({
         title={`Rename ${renaming?.name ?? 'this NPC'}`}
         body={
           <>
-            <label htmlFor={renameId} style={EYEBROW}>
+            <Eyebrow as="label" tone="muted" htmlFor={renameId}>
               Name
-            </label>
+            </Eyebrow>
             <Input
               id={renameId}
               value={newName}

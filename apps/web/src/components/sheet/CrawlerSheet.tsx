@@ -85,6 +85,7 @@ import {
   buttonVariants,
   EmptyState,
   Entity,
+  Eyebrow,
   MasonryColumns,
   SheetSectionSlab,
   Stat,
@@ -137,17 +138,7 @@ const TRUNCATE = {
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
 
-const POOL_LABEL = {
-  marginBottom: tokens.space[8],
-  display: 'block',
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.badge,
-  fontWeight: tokens.weight.bold,
-  textTransform: 'uppercase',
-  lineHeight: 1,
-  letterSpacing: tokens.tracking.caps,
-  color: 'var(--tone-deep, var(--color-ink))',
-} satisfies CSSProperties
+const POOL_LABEL = { marginBottom: tokens.space[8], display: 'block' } satisfies CSSProperties
 
 const POOL_ROW = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
 
@@ -323,7 +314,9 @@ export function CrawlerSheet({
           a crawler stow arbitrary scrap by hand (Free Edit). The
           physical-scrap-cargo path lives in the Hold add-form's Scrap kind. */}
       <div>
-        <span style={POOL_LABEL}>Scrap Pool</span>
+        <Eyebrow tone="toneDeep" style={POOL_LABEL}>
+          Scrap Pool
+        </Eyebrow>
         <div style={POOL_ROW}>
           {SCRAP_TLS.map((t) => (
             <Stat

@@ -66,6 +66,7 @@ import {
   Conditions,
   EmptyState,
   EntitySearcher,
+  Eyebrow,
   Field,
   FieldError,
   heatDangerFrom,
@@ -116,15 +117,6 @@ const CONDITIONS = {
   flexDirection: 'column',
   gap: tokens.space[8],
   width: '100%',
-} satisfies CSSProperties
-
-const CONDITIONS_LABEL = {
-  color: 'var(--tone-deep, var(--color-ink))',
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.badge,
-  fontWeight: tokens.weight.bold,
-  letterSpacing: tokens.tracking.caps,
-  textTransform: 'uppercase',
 } satisfies CSSProperties
 
 /** The book's pattern behind an over-slot loadout (`computeMechCapacity`'s `asPrinted`). */
@@ -421,7 +413,7 @@ export function MechSheet({
                 prints as chips only when there is one to read. */}
             {(!readOnly || readConditions.length > 0) && (
               <div style={CONDITIONS}>
-                <span style={CONDITIONS_LABEL}>Conditions</span>
+                <Eyebrow tone="toneDeep">Conditions</Eyebrow>
                 {readOnly ? (
                   <Conditions conditions={readConditions} />
                 ) : (

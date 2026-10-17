@@ -152,12 +152,6 @@ const STAMP_BG: Record<MajorModel['fam'], string> = {
   crawler: 'var(--color-sheet-crawler-deep)',
 }
 
-const STAMP = {
-  padding: '5px 9px',
-  fontSize: 'var(--text-caption)',
-  color: 'var(--color-paper)',
-} satisfies CSSProperties
-
 /** The bay row: the main bays, then the side column. */
 const BAYS = { gap: 0 } satisfies CSSProperties
 
@@ -467,7 +461,7 @@ export function MajorFrame({ view }: { view: MajorModel }) {
     >
       {live}
       <div className="su-dash-band-id">
-        <Badge shape="stamp" style={{ ...STAMP, backgroundColor: STAMP_BG[view.fam] }}>
+        <Badge shape="stamp" size="caption" style={{ backgroundColor: STAMP_BG[view.fam] }}>
           {view.stampLabel}
         </Badge>
       </div>

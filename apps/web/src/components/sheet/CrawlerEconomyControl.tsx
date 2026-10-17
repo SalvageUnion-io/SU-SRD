@@ -63,6 +63,7 @@ import {
   Button,
   DialogActions,
   EmptyState,
+  Eyebrow,
   FieldError,
   ModalShell,
   rollForTable,
@@ -141,12 +142,6 @@ const PICKER_LABEL = {
   display: 'flex',
   flexDirection: 'column',
   gap: tokens.space[4],
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.badge,
-  fontWeight: tokens.weight.bold,
-  textTransform: 'uppercase',
-  letterSpacing: tokens.tracking.caps,
-  color: tokens.color.ink,
 } satisfies CSSProperties
 
 /** A compact select: tighter than the `Select` skin's own padding. */
@@ -575,7 +570,7 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
                 count="fixed equal-value rates · no bartering"
               />
               <div style={PICKERS}>
-                <label htmlFor="trade-from-tl" style={PICKER_LABEL}>
+                <Eyebrow as="label" tone="ink" htmlFor="trade-from-tl" style={PICKER_LABEL}>
                   From
                   <Select
                     id="trade-from-tl"
@@ -589,8 +584,8 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
                       </option>
                     ))}
                   </Select>
-                </label>
-                <label htmlFor="trade-to-tl" style={PICKER_LABEL}>
+                </Eyebrow>
+                <Eyebrow as="label" tone="ink" htmlFor="trade-to-tl" style={PICKER_LABEL}>
                   To
                   <Select
                     id="trade-to-tl"
@@ -604,7 +599,7 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
                       </option>
                     ))}
                   </Select>
-                </label>
+                </Eyebrow>
                 <span style={QTY}>
                   <Stat
                     orientation="horizontal"

@@ -10,8 +10,8 @@
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import type { AlertLine } from '../dashboard/useGameFeed'
-import { Button, EmptyState, Field, Input, tokens } from '../index'
-import { BODY, EYEBROW, MUTED, NUMBERS } from './mediatorStyles.model'
+import { Button, EmptyState, Eyebrow, Field, Input, tokens } from '../index'
+import { BODY, MUTED, NUMBERS } from './mediatorStyles.model'
 import { ago } from './proposalLine.model'
 
 const { borderWidth, color, radius, space } = tokens
@@ -79,7 +79,9 @@ export function TellTheTable({
 
   return (
     <div style={SCROLL}>
-      <h3 style={EYEBROW}>Every player sees this on their Dashboard</h3>
+      <Eyebrow as="h3" tone="muted">
+        Every player sees this on their Dashboard
+      </Eyebrow>
       <div style={FORM}>
         <Field label="Alert" htmlFor={`${id}-alert`}>
           <Input

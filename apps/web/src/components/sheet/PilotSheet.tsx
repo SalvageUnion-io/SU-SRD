@@ -63,6 +63,7 @@ import {
   Conditions,
   EmptyState,
   EntitySearcher,
+  Eyebrow,
   SheetSectionCard,
   SheetSectionSlab,
   SlotGrid,
@@ -110,24 +111,6 @@ function TpBlock({
     />
   )
 }
-
-/** A Vitals caps label: the badge rung, set solid. */
-const CAPS_LABEL = {
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.badge,
-  fontWeight: tokens.weight.bold,
-  letterSpacing: tokens.tracking.caps,
-  lineHeight: 1,
-  textTransform: 'uppercase',
-} satisfies CSSProperties
-
-/** The Conditions label over the chip row, in the sheet's deep tone. */
-const CONDITIONS_LABEL = {
-  ...CAPS_LABEL,
-  color: 'var(--tone-deep, var(--color-ink))',
-  display: 'block',
-  marginBottom: tokens.space[8],
-} satisfies CSSProperties
 
 /**
  * TP in the read state (board 10): a counter, not a gauge (ruleset §2.1: no
@@ -178,6 +161,9 @@ const STACK_12 = {
 
 /** The Vitals rows; the dashed rule between them is `.su-sheet-pilot-vitals`. */
 const VITALS = { display: 'flex', flexDirection: 'column', width: '100%' } satisfies CSSProperties
+
+/** The Conditions label's place over the chip row. */
+const CONDITIONS_LABEL = { display: 'block', marginBottom: tokens.space[8] } satisfies CSSProperties
 
 const TP_AND_CONDITIONS = {
   alignItems: 'flex-start',
@@ -383,7 +369,9 @@ export function PilotSheet({
                       when there is one to read. */}
                   {pilot.conditions.length > 0 && (
                     <div style={MIN_W_0}>
-                      <span style={CONDITIONS_LABEL}>Conditions</span>
+                      <Eyebrow tone="toneDeep" style={CONDITIONS_LABEL}>
+                        Conditions
+                      </Eyebrow>
                       <Conditions conditions={[...pilot.conditions]} />
                     </div>
                   )}
@@ -400,7 +388,9 @@ export function PilotSheet({
                     editable
                   />
                   <div style={CONDITIONS_CELL}>
-                    <span style={CONDITIONS_LABEL}>Conditions</span>
+                    <Eyebrow tone="toneDeep" style={CONDITIONS_LABEL}>
+                      Conditions
+                    </Eyebrow>
                     <ConditionsEditor
                       conditions={pilot.conditions}
                       onChange={actions.handleConditionsChange}

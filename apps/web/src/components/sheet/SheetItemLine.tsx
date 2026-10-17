@@ -2,7 +2,7 @@
  * SheetItemLine — one installed or carried item on a sheet: its TOKEN (which
  * Peeks the whole card), then its controls ON the same line (owner's call,
  * 2026-10-14: "consistency is the key"). Every control is the sheet control's
- * height (`.su-sheet-ctl`, `styles/sheet/items.css`): 32px from `sm`, the
+ * height (`.su-sheet-item__ctl`, `styles/cantina/sheet/items.css`): 32px from `sm`, the
  * 44px tap floor on a phone, where the controls take the line under the Token.
  *
  *   - the condition: the tri-state `StatusBadge`, which steps it on
@@ -22,7 +22,7 @@
 import type { ItemCondition } from 'cantina-domain/schemas/itemCondition'
 import { X } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { Button, Stat, StatusBadge } from '../index'
+import { Badge, Button, Stat, StatusBadge } from '../index'
 
 type SheetItemLineProps = {
   /** The item's Token, or a Row (`rowForm`). */
@@ -70,7 +70,11 @@ export function SheetItemLine({
       <div className={lineClass}>
         {token}
         {damaged && <StatusBadge status={condition} />}
-        {stamp && <span className="su-sheet-ctl su-sheet-ctl--readout">{stamp}</span>}
+        {stamp && (
+          <Badge shape="stamp" surface="inverse" size="caption">
+            {stamp}
+          </Badge>
+        )}
       </div>
     )
   }
@@ -104,7 +108,8 @@ export function SheetItemLine({
       {actions}
       {onRemove && (
         <Button
-          className="su-sheet-ctl su-sheet-ctl--square"
+          variant="pencil"
+          className="su-sheet-item__ctl su-sheet-item__ctl--square"
           aria-label={`Remove ${name}`}
           onClick={onRemove}
         >

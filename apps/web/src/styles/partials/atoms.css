@@ -55,6 +55,16 @@
   padding-inline: var(--space-4);
 }
 
+/* The stamp-only `caption` rung (`Badge shape="stamp" size="caption"`): the
+ * 13px ink plate a Dashboard band, gauge or roll line wears, between `full`
+ * and `compact`, on the full rung's padding. */
+.su-badge-stamp--caption {
+  font-size: var(--text-caption);
+  line-height: 1.4;
+  padding-block: var(--space-4);
+  padding-inline: var(--space-8);
+}
+
 /* `STAMP_SEAM` (`atoms/stampSeam.ts`): a stamp centred on its container's
  * top border by its own height. The horizontal inset is the caller's. */
 .su-stamp-seam {
@@ -62,6 +72,25 @@
   top: 0;
   translate: 0 -50%;
   z-index: 10;
+}
+
+/* `Eyebrow` (`atoms/Eyebrow.tsx`), after `capsLabel`: the small caps label's
+ * five tones. `muted` is `wkMuted`, the secondary tone that clears AA on every
+ * light ground. */
+.su-eyebrow--ink {
+  color: var(--color-ink);
+}
+.su-eyebrow--muted {
+  color: var(--color-wk-muted);
+}
+.su-eyebrow--tone-deep {
+  color: var(--tone-deep, var(--color-ink));
+}
+.su-eyebrow--bad {
+  color: var(--color-status-bad);
+}
+.su-eyebrow--paper {
+  color: var(--color-paper);
 }
 
 /* `POSTER_STAMP` (`atoms/posterStamp.ts`), after `capsLabel`: the wrapping
@@ -161,39 +190,6 @@
 /* `state="modified"`: the heavier frame's 1px ink ring. */
 .su-stat--modified {
   box-shadow: 0 0 0 1px var(--color-ink);
-}
-
-/* The +/- steppers: a 44px coarse-pointer floor that drops at sm, and a
- * resting fill/ink that swaps on hover
- * while the stepper is live (not at its limit). */
-.su-stat-step {
-  min-height: 44px;
-}
-
-@media (min-width: 40rem) {
-  .su-stat-step {
-    min-height: 0;
-  }
-}
-
-.su-stat-step--on-paper {
-  background-color: var(--color-paper);
-  color: var(--color-ink);
-}
-
-.su-stat-step--on-paper.su-stat-step--live:hover {
-  background-color: var(--color-ink);
-  color: var(--color-paper);
-}
-
-.su-stat-step--on-ink {
-  background-color: var(--color-ink);
-  color: var(--color-paper);
-}
-
-.su-stat-step--on-ink.su-stat-step--live:hover {
-  background-color: var(--color-paper);
-  color: var(--color-ink);
 }
 
 /* ── VitalGauge ── */

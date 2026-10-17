@@ -241,20 +241,37 @@
   white-space: nowrap;
 }
 
-/* `atoms/SmallButtons.tsx` (`StepButton`): the ground hovers to the sheet's
- * `--ground`, and the 44px tap floor below `sm` relaxes at `sm`. The frame and
- * ink ride along so `CountStepper` can re-skin them by class. */
+/* `atoms/SmallButtons.tsx` (`StepButton`), the one +/− stepper: a frameless
+ * plate set by the ground it sits on, hovering a step lighter, and a 44px tap
+ * floor below `sm` that relaxes at `sm`. A `cell` button takes its height from
+ * the cell beside it and its width from the caller, so it has no width floor. */
 .su-step-btn {
-  background-color: var(--color-paper);
   /* Frameless by design: the `button` reset above sets `border: none`. */
   border-radius: var(--radius-card);
-  color: var(--color-ink);
   min-height: 44px;
   min-width: 44px;
 }
 
-.su-step-btn:hover {
-  background-color: var(--ground, var(--color-ink-8));
+.su-step-btn--on-paper {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.su-step-btn--on-paper:hover {
+  background-color: var(--color-ink-2);
+}
+
+.su-step-btn--on-ink {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+}
+
+.su-step-btn--on-ink:hover {
+  background-color: var(--color-wk-bg);
+}
+
+.su-step-btn--cell {
+  min-width: 0;
 }
 
 @media (min-width: 40rem) {
@@ -264,18 +281,11 @@
   }
 }
 
-/* `atoms/CountStepper.tsx`: the pill's ink step buttons (after `.su-step-btn`,
- * which they re-skin), and the instrument cluster's narrow `Button`s (after
- * `.su-btn--compact`, whose padding they replace). */
+/* `atoms/CountStepper.tsx`: the pill's step buttons square off inside its
+ * frame (after `.su-step-btn`), and the instrument cluster's narrow `Button`s
+ * (after `.su-btn--compact`, whose padding they replace). */
 .su-count-stepper__step {
-  background-color: var(--color-ink);
   border-radius: 0;
-  border-width: 0;
-  color: var(--color-paper);
-}
-
-.su-count-stepper__step:hover {
-  background-color: var(--color-ink-2);
 }
 
 .su-count-stepper__btn {

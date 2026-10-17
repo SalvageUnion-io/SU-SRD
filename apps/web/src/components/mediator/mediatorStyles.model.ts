@@ -43,17 +43,6 @@ export const HEADING = {
   lineHeight: 1.1,
 } satisfies CSSProperties
 
-/** The small caps line beside or under a heading. */
-export const EYEBROW = {
-  margin: 0,
-  fontFamily: font.cond,
-  fontWeight: weight.bold,
-  fontSize: fontSize.badge,
-  letterSpacing: tracking.caps,
-  textTransform: 'uppercase',
-  color: color.ink75,
-} satisfies CSSProperties
-
 /** Body copy on an instrument or the display. */
 export const BODY = {
   margin: 0,

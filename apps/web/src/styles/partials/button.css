@@ -117,6 +117,23 @@
   color: var(--color-ink);
 }
 
+/* Pencil: paper on a dashed ink edge, the control on an editable sheet line
+   (dashed means editable, as the User-made stamp is dashed: ruleset §3.9). It
+   inverts to ink under the pointer, and stays inverted while pressed (an
+   ability marked Used). */
+.su-btn--pencil {
+  background-color: var(--color-paper);
+  border-color: var(--color-ink);
+  border-style: dashed;
+  color: var(--color-ink);
+}
+
+.su-btn--pencil:hover:not(:disabled),
+.su-btn--pencil[aria-pressed='true'] {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
 /*
  * The DRAINED disabled treatment, for the FILLED variants only.
  *

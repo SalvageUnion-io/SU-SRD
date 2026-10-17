@@ -1,12 +1,12 @@
 import type { CSSProperties, ReactElement } from 'react'
-import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
+import { color, fontSize, space, weight } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import type { SizeRung } from '../../styles/sizing'
 import type { StampSurface } from './Badge'
 import { Badge } from './Badge'
 import type { EntityStatus } from './entityStatus'
+import { StepButton } from './SmallButtons'
 import { Tooltip } from './Tooltip'
-import { TRANSITION_COLORS } from './transition'
 
 /**
  * The canonical stat/value primitive (canonical primitive language §2): the
@@ -306,32 +306,14 @@ function HorizontalValue({
   const atMin = numericValue <= min
   const atMax = max !== undefined && numericValue >= max
   // Buttons sit SIDE BY SIDE after the value cell and stretch to its height, so
-  // the stepper adds no vertical height to the row. The resting fill/ink and
-  // the coarse-pointer 44px floor live in classes (they flip on hover / at sm).
-  const stepClass = (atLimit: boolean) =>
-    cn(
-      'su-stat-step',
-      inverse ? 'su-stat-step--on-ink' : 'su-stat-step--on-paper',
-      !atLimit && 'su-stat-step--live'
-    )
-  const stepStyle = (atLimit: boolean) =>
-    ({
-      ...TRANSITION_COLORS,
-      alignItems: 'center',
-      borderColor: inverse ? color.paper : color.ink,
-      borderRadius: radius.badge,
-      borderStyle: 'solid',
-      borderWidth: borderWidth.hairline,
-      cursor: atLimit ? 'not-allowed' : 'pointer',
-      display: 'flex',
-      fontFamily: font.body,
-      fontSize: size === 'compact' ? fontSize.xs : fontSize.sm,
-      fontWeight: weight.bold,
-      justifyContent: 'center',
-      lineHeight: size === 'compact' ? LINE_HEIGHT_XS : LINE_HEIGHT_SM,
-      width: size === 'compact' ? space[16] : space[20],
-      ...(atLimit ? { opacity: 0.3 } : undefined),
-    }) satisfies CSSProperties
+  // the stepper adds no vertical height to the row: the shared `StepButton` at
+  // its `cell` fit, its plate set by the ground the Stat is printed on.
+  const stepGround = inverse ? 'ink' : 'paper'
+  const stepStyle = {
+    fontSize: size === 'compact' ? fontSize.xs : fontSize.sm,
+    lineHeight: size === 'compact' ? LINE_HEIGHT_XS : LINE_HEIGHT_SM,
+    width: size === 'compact' ? space[16] : space[20],
+  } satisfies CSSProperties
 
   const stepName = stepperLabel ?? label
   return withHover(
@@ -339,28 +321,28 @@ function HorizontalValue({
       style={{ alignItems: 'stretch', display: 'inline-flex', gap: space[2], width: 'fit-content' }}
     >
       {cell}
-      <button
-        type="button"
+      <StepButton
+        ground={stepGround}
+        fit="cell"
         aria-label={`Decrease ${stepName}`}
         onClick={() => onChange?.(Math.max(min, numericValue - step))}
         disabled={atMin}
-        className={stepClass(atMin)}
-        style={stepStyle(atMin)}
+        style={stepStyle}
       >
         −
-      </button>
-      <button
-        type="button"
+      </StepButton>
+      <StepButton
+        ground={stepGround}
+        fit="cell"
         aria-label={`Increase ${stepName}`}
         onClick={() =>
           onChange?.(max !== undefined ? Math.min(max, numericValue + step) : numericValue + step)
         }
         disabled={!!atMax}
-        className={stepClass(!!atMax)}
-        style={stepStyle(!!atMax)}
+        style={stepStyle}
       >
         +
-      </button>
+      </StepButton>
     </span>
   )
 }

@@ -28,8 +28,8 @@ import {
 } from 'cantina-domain/games/proposals'
 import type { CSSProperties, RefObject } from 'react'
 import { useId, useState } from 'react'
-import { Button, Field, Input, Select, tokens } from '../index'
-import { EYEBROW, MUTED, NUMBERS } from './mediatorStyles.model'
+import { Button, Eyebrow, Field, Input, Select, tokens } from '../index'
+import { MUTED, NUMBERS } from './mediatorStyles.model'
 import { ProposalRow } from './ProposalRow'
 import type { SentProposal } from './proposalLine.model'
 import { PROPOSAL_LIST } from './proposalLine.model'
@@ -141,9 +141,9 @@ export function ProposeDock({
 
   return (
     <section aria-labelledby={`${id}-heading`} style={DOCK}>
-      <h2 id={`${id}-heading`} style={EYEBROW}>
+      <Eyebrow as="h2" tone="muted" id={`${id}-heading`}>
         Propose a change · the player decides
-      </h2>
+      </Eyebrow>
       <div style={ROW}>
         <Field label="Target" htmlFor={`${id}-target`}>
           <Select

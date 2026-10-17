@@ -6,7 +6,7 @@ import type { CargoLot } from 'cantina-domain/schemas/cargoLot'
 import { makeScrapLot, makeUnitLot } from 'cantina-domain/schemas/cargoLot'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
-import { Button, Input, Segmented, SegmentedOption, tokens } from '../index'
+import { Button, Eyebrow, Input, Segmented, SegmentedOption, tokens } from '../index'
 
 /** A slot cost is a non-negative INTEGER (`CargoLotSchema.units` is `.int()`). */
 function coerceSlots(raw: string): number {
@@ -27,16 +27,11 @@ const ADDER = {
   padding: tokens.space[10],
 } satisfies CSSProperties
 
+/** A label's place beside its field. */
 const ADDER_LABEL = {
-  display: 'flex',
   alignItems: 'center',
+  display: 'flex',
   gap: tokens.space[4],
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.badge,
-  fontWeight: tokens.weight.bold,
-  textTransform: 'uppercase',
-  letterSpacing: '0.025em',
-  color: tokens.color.wkMuted,
 } satisfies CSSProperties
 
 /** A compact `Input`: tighter and smaller than its own skin. */
@@ -124,7 +119,7 @@ export function HoldAdder({
           style={NAME_INPUT}
         />
       ) : (
-        <label htmlFor={tlId} style={ADDER_LABEL}>
+        <Eyebrow as="label" tone="muted" htmlFor={tlId} style={ADDER_LABEL}>
           Tech
           <Input
             id={tlId}
@@ -138,10 +133,10 @@ export function HoldAdder({
             onChange={(e) => setTl(coerceTl(e.target.value))}
             style={NUMBER_INPUT}
           />
-        </label>
+        </Eyebrow>
       )}
 
-      <label htmlFor={slotsId} style={ADDER_LABEL}>
+      <Eyebrow as="label" tone="muted" htmlFor={slotsId} style={ADDER_LABEL}>
         {kind === 'scrap' ? 'Qty' : 'Slots'}
         <Input
           id={slotsId}
@@ -158,7 +153,7 @@ export function HoldAdder({
           onChange={(e) => setAmount(coerceSlots(e.target.value))}
           style={NUMBER_INPUT}
         />
-      </label>
+      </Eyebrow>
       <Button
         size="compact"
         disabled={!canCommit}

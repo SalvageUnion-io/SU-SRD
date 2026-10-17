@@ -13,6 +13,7 @@ import {
 import { cn } from '../../lib/cn'
 import { RUNG_INLINE_PADDING, RUNG_TYPE } from '../../styles/sizing'
 import { Badge } from '../atoms/Badge'
+import { Button } from '../atoms/Button'
 import { CountStepper } from '../atoms/CountStepper'
 import { TRANSITION_COLORS } from '../atoms/transition'
 import type {
@@ -59,16 +60,6 @@ const LINK = {
   textDecoration: 'none',
   textTransform: 'uppercase',
   whiteSpace: 'nowrap',
-} satisfies CSSProperties
-
-const ICON_BUTTON = {
-  ...TRANSITION_COLORS,
-  alignItems: 'center',
-  borderStyle: 'solid',
-  borderWidth: borderWidth.pill,
-  display: 'inline-flex',
-  flexShrink: 0,
-  justifyContent: 'center',
 } satisfies CSSProperties
 
 const TEXT_BUTTON = {
@@ -152,10 +143,10 @@ function ControlButton({
   const segmentClasses = cn(RUNG_INLINE_PADDING.mini, RUNG_TYPE.mini.label)
 
   // Icon-only control (design-spec `.ctl`) — the live-sheet per-card
-  // remove/swap/fold cluster. It is a STAMP like every other control in the
-  // rail: same padding, same height, the glyph sized to the label line it
-  // replaces, so an icon button and a worded one are interchangeable in the
-  // row.
+  // remove/swap/fold cluster. It is the shared `Button` at its `mini` rung, the
+  // action chip every Row and rail already carries, so an icon button and a
+  // worded one are interchangeable in the row, the glyph sized to the label
+  // line it replaces.
   //
   // It carries NO tap-target floor of its own. `theme.css` applies a
   // POINTER-keyed 44px floor to every `button` under `@media (pointer:
@@ -166,46 +157,26 @@ function ControlButton({
   //
   // That distorts the geometry. This button renders inside `CardControlRail`,
   // an ABSOLUTE row centred on a card's top frame line, so a 44px box grows the
-  // rail with it: at 390px, rail 22px → 44px and button 24×20 → 44×44, hanging
-  // 22px down into the header band over the TL/SV stat cells the rail is z-30
-  // above, a 44px square beside a 22px status badge in a row whose whole
-  // premise is that every cell is the same stamp height.
+  // rail with it, hanging down into the header band over the TL/SV stat cells
+  // the rail is z-30 above, a 44px square beside a 22px status badge in a row
+  // whose whole premise is that every cell is the same stamp height.
   //
   // Measure this with touch emulation, not just a narrow viewport — the two
   // disagree here, and a fine-pointer run alone will tell you a coarse-pointer
   // change worked when it did nothing.
   //
-  // A `danger` icon (the ✕ remove) is a RED stamp — filled, not outlined —
-  // because it is the one control in the rail that destroys something, and as
-  // neutral paper chrome it read like the fold chevron beside it.
+  // A `danger` icon (the ✕ remove) is Button's RED `danger` — filled, not
+  // outlined — because it is the one control in the rail that destroys
+  // something, and as neutral paper chrome it read like the fold chevron
+  // beside it.
   const Icon = control.icon
   const isIconOnly = !!Icon && !control.label && !control.segmentText
   if (Icon && isIconOnly) {
-    const danger = variant === 'danger'
     return (
-      <button
-        type="button"
-        className={cn(
-          RUNG_INLINE_PADDING.mini,
-          RUNG_TYPE.mini.label,
-          // Only what changes on hover is a class: the paper stamp's fill and
-          // ink flip, the red stamp brightens.
-          !isDisabled && (danger ? 'su-control-button--live' : 'su-control-icon--plain'),
-          control.className
-        )}
-        style={{
-          ...ICON_BUTTON,
-          ...(isDisabled
-            ? { borderColor: color.wkMuted, color: color.wkMuted, cursor: 'not-allowed' }
-            : danger
-              ? {
-                  backgroundColor: color.statusBad,
-                  borderColor: color.statusBad,
-                  color: color.paper,
-                  cursor: 'pointer',
-                }
-              : { borderColor: color.ink, cursor: 'pointer' }),
-        }}
+      <Button
+        variant={variant === 'danger' ? 'danger' : 'default'}
+        size="mini"
+        className={control.className}
         title={control.title ?? control.ariaLabel}
         aria-label={control.ariaLabel}
         aria-expanded={control.ariaExpanded}
@@ -216,7 +187,7 @@ function ControlButton({
       >
         {/* A class, not a style object: the `icon` contract takes only `className`. */}
         <Icon className="su-control-icon__glyph" />
-      </button>
+      </Button>
     )
   }
 

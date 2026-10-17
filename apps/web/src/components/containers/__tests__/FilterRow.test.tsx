@@ -32,7 +32,7 @@ describe('FilterRow', () => {
     expect(screen.getByRole('group', { name: 'Filter by TL' })).toBeTruthy()
   })
 
-  test('label has uppercase mono styling', () => {
+  test('label is the Eyebrow caps label', () => {
     const { container } = render(
       <FilterRow label="Category">
         <span>chip</span>
@@ -40,8 +40,8 @@ describe('FilterRow', () => {
     )
     const label = container.querySelector('span')
     expect(label).toBeTruthy()
-    // An uppercase caps label rides the CONDENSED face, not the body face.
-    expect(label?.style.fontFamily).toContain('Barlow Semi Condensed')
-    expect(label?.style.textTransform).toBe('uppercase')
+    // An uppercase caps label rides the CONDENSED face (`.su-caps`), in paper.
+    expect(label?.classList.contains('su-caps')).toBe(true)
+    expect(label?.classList.contains('su-eyebrow--paper')).toBe(true)
   })
 })

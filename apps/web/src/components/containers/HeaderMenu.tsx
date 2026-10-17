@@ -14,6 +14,7 @@ import {
 } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { buttonVariants } from '../atoms/buttonVariants'
+import { Eyebrow } from '../atoms/Eyebrow'
 import { FOCUS_RING } from '../atoms/interaction'
 
 /**
@@ -163,16 +164,6 @@ const ITEM_LABEL = {
   overflowWrap: 'anywhere',
 } satisfies CSSProperties
 
-// No `color`: it flips with the row's highlight, so it lives in the class.
-const ITEM_HINT = {
-  fontFamily: font.cond,
-  fontSize: fontSize.badge,
-  fontWeight: weight.semibold,
-  letterSpacing: tracking.caps,
-  lineHeight: 1.2,
-  textTransform: 'uppercase',
-} satisfies CSSProperties
-
 const SEPARATOR = {
   backgroundColor: color.ink15,
   height: borderWidth.hairline,
@@ -239,12 +230,14 @@ export function HeaderMenu({
                   >
                     <span style={ITEM_LABEL}>{item.label}</span>
                     {item.hint != null && (
-                      <span className="su-header-menu-item__hint" style={ITEM_HINT}>
+                      // The hint's colour flips with the row's highlight:
+                      // `.su-header-menu-item__hint` comes after the tone class.
+                      <Eyebrow tone="muted" className="su-header-menu-item__hint">
                         {/* The two lines are separate blocks visually; this keeps
                             them separate words in the accessible name too. */}
                         <span className="su-sr-only">, </span>
                         {item.hint}
-                      </span>
+                      </Eyebrow>
                     )}
                   </Menu.Item>
                 ))}

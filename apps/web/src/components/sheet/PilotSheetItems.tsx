@@ -21,6 +21,7 @@ import type { ChoiceSelections } from '../index'
 import {
   Button,
   Entity,
+  Eyebrow,
   Input,
   Panel,
   ReferenceEntityCard,
@@ -106,16 +107,11 @@ const NAME_INPUT = { ...COMPACT_INPUT, flex: '1 1 0%', width: '9rem' } satisfies
 
 const NUMBER_INPUT = { ...COMPACT_INPUT, width: '3.5rem' } satisfies CSSProperties
 
+/** A label's place beside its field. */
 const ADDER_LABEL = {
   alignItems: 'center',
-  color: tokens.color.wkMuted,
   display: 'flex',
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.badge,
-  fontWeight: tokens.weight.bold,
   gap: tokens.space[4],
-  letterSpacing: '0.025em',
-  textTransform: 'uppercase',
 } satisfies CSSProperties
 
 /** Per-item condition cycle (Intact → Damaged → Destroyed → Intact). */
@@ -185,7 +181,8 @@ export function PilotAbilityItem({
         <>
           {apCost !== null && (
             <Button
-              className="su-sheet-ctl"
+              variant="pencil"
+              className="su-sheet-item__ctl"
               aria-label={`Spend ${apCost} AP for ${ability.name}`}
               disabled={currentAP < apCost}
               onClick={() => onSpend(apCost)}
@@ -194,7 +191,8 @@ export function PilotAbilityItem({
             </Button>
           )}
           <Button
-            className="su-sheet-ctl"
+            variant="pencil"
+            className="su-sheet-item__ctl"
             aria-label={used ? `Recharge ${ability.name}` : `Mark ${ability.name} used`}
             aria-pressed={used}
             onClick={() => onToggleUsed(!used)}
@@ -343,7 +341,8 @@ export function PilotEquipmentItem({
         actions={
           hasChoices && (
             <Button
-              className="su-sheet-ctl"
+              variant="pencil"
+              className="su-sheet-item__ctl"
               {...details.toggleProps}
               aria-label={`${details.open ? 'Collapse' : 'Expand'} ${equipment.name}`}
             >
@@ -450,7 +449,7 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
         onChange={(e) => setName(e.target.value)}
         style={NAME_INPUT}
       />
-      <label htmlFor="new-item-slots" style={ADDER_LABEL}>
+      <Eyebrow as="label" tone="muted" htmlFor="new-item-slots" style={ADDER_LABEL}>
         Slots
         <Input
           id="new-item-slots"
@@ -462,8 +461,8 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
           onChange={(e) => setSlots(Number(e.target.value))}
           style={NUMBER_INPUT}
         />
-      </label>
-      <label htmlFor="new-item-qty" style={ADDER_LABEL}>
+      </Eyebrow>
+      <Eyebrow as="label" tone="muted" htmlFor="new-item-qty" style={ADDER_LABEL}>
         Qty
         <Input
           id="new-item-qty"
@@ -475,7 +474,7 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
           onChange={(e) => setQty(Math.max(1, Number(e.target.value)))}
           style={NUMBER_INPUT}
         />
-      </label>
+      </Eyebrow>
       <Button
         size="compact"
         disabled={!name.trim()}

@@ -39,15 +39,7 @@ const NAME = {
 } satisfies CSSProperties
 
 /** Board D3 sets the stamp on one line: it never gives up width to its neighbours. */
-/** The context stamp: paper caption type on the family's band, at a 9×5 inset. */
-const STAMP = {
-  color: tokens.color.paper,
-  flexShrink: 0,
-  fontSize: tokens.fontSize.caption,
-  paddingBlock: '5px',
-  paddingInline: '9px',
-  whiteSpace: 'nowrap',
-} satisfies CSSProperties
+const STAMP = { flexShrink: 0, whiteSpace: 'nowrap' } satisfies CSSProperties
 
 /** Pushes the units, status and actions to the rail's end. */
 const SPACER = { flex: '1 1 0%' } satisfies CSSProperties
@@ -119,12 +111,8 @@ export function RailBar({
         <span style={NAME}>{name}</span>
         {context && <span style={CONTEXT}>{context}</span>}
       </span>
-      <Badge
-        shape="stamp"
-        // The caption size once merged the stamp's rung size and line-height:1
-        // away, leaving the inherited line-height; the stamp now keeps both.
-        style={{ ...STAMP, backgroundColor: STAMP_BG[fam], lineHeight: 'inherit' }}
-      >
+      {/* The context stamp: the caption plate on the family's band. */}
+      <Badge shape="stamp" size="caption" style={{ ...STAMP, backgroundColor: STAMP_BG[fam] }}>
         {stamp}
       </Badge>
       <span style={SPACER} />

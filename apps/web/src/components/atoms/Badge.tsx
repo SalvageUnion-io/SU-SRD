@@ -15,8 +15,10 @@ type BadgeSurface = 'solid' | 'ghost' | 'outline' | 'tone' | 'quiet'
  * `src/styles/sizing.ts`). Badge is the reference
  * implementation of that vocabulary: every three-step size axis in the system
  * uses these names, so a size means the same thing wherever it is read.
+ * `caption` is the stamp's own fourth rung: the 13px plate (`--text-caption`)
+ * between `full` (14px) and `compact` (12px).
  */
-type StampSize = SizeRung
+type StampSize = SizeRung | 'caption'
 /** Stamp plate (`shape="stamp"`). */
 export type StampSurface = 'on-ink' | 'inverse' | 'dashed'
 
@@ -69,6 +71,7 @@ const STAMP_SIZE: Record<StampSize, string> = {
   full: cn(RUNG_INLINE_PADDING.full, RUNG_TYPE.full.label),
   compact: cn(RUNG_INLINE_PADDING.compact, RUNG_TYPE.compact.label),
   mini: cn(RUNG_INLINE_PADDING.mini, RUNG_TYPE.mini.label),
+  caption: 'su-badge-stamp--caption',
 }
 
 /** Stamp plate fills — the square label/header shape. */
@@ -134,7 +137,7 @@ type BadgeChipProps = {
 type BadgeStampProps = {
   children: ReactNode
   shape: 'stamp'
-  /** Text scale on the FULL / COMPACT / MINI ladder. `compact` is the default. */
+  /** Text scale on the FULL / COMPACT / MINI ladder, or the 13px `caption`. `compact` is the default. */
   size?: StampSize
   /**
    * The plate the stamp sits on:

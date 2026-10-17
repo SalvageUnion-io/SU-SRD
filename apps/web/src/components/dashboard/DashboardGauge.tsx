@@ -70,8 +70,6 @@ const CELL = {
   borderRadius: radius.badge,
 } satisfies CSSProperties
 
-const STAMP = { fontSize: fontSize.caption, lineHeight: 1.4 } satisfies CSSProperties
-
 const NUMERAL = {
   fontFamily: font.cond,
   fontWeight: weight.bold,
@@ -102,7 +100,7 @@ export function DashboardGauge({
     const shown = Math.max(0, value)
     return (
       <div role="img" aria-label={`${label} ${shown} of ${max}`} style={CELL}>
-        <Badge shape="stamp" style={STAMP}>
+        <Badge shape="stamp" size="caption">
           {label}
         </Badge>
         <span style={shown > max ? OVER : NUMERAL}>
