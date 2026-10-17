@@ -4,7 +4,7 @@
  * is the one thing ADR-030 §5 keeps from the crew, and `mediator.npcs` serves
  * it to the Mediator alone.
  *
- * Each NPC is its reference card at `size="medium"`, `extent="head"`, carrying
+ * Each NPC is its reference card at `size="compact"`, `extent="head"`, carrying
  * the instance's own name; tapping it opens the full reference card in the
  * detail modal (listings never expand in place). Beside it, a compact
  * `VitalGauge` for its HP or SP (ruleset §2.1: a vital is a `VitalGauge`, never a bare

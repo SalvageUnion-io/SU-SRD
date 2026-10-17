@@ -19,7 +19,7 @@ const rows = [
 const instrument = (onRoll?: () => void) => (
   <RollTableInstrument
     name="Core Mechanic"
-    size="large"
+    size="full"
     onRoll={onRoll}
     table={{ kind: 'bands', rows }}
   />
@@ -46,7 +46,7 @@ describe('RollTableInstrument — the roll', () => {
     render(
       <RollTableInstrument
         name="Callsign Table"
-        size="large"
+        size="full"
         stamp="Roll twice:"
         onRoll={() => {}}
         table={{ kind: 'columns', columns: [] }}
@@ -76,7 +76,7 @@ describe('RollTableInstrument — the rolled row', () => {
       const { container, unmount } = render(
         <RollTableInstrument
           name="Core Mechanic"
-          size="large"
+          size="full"
           table={{ kind: 'bands', rows, mark }}
         />
       )
@@ -99,7 +99,7 @@ describe('RollTableInstrument — the ink head’s column labels', () => {
   const inked = (split: boolean) => (
     <RollTableInstrument
       name="Core Mechanic"
-      size="large"
+      size="full"
       onRoll={() => {}}
       table={{ kind: 'bands', rows, split }}
     />
@@ -126,7 +126,7 @@ describe('RollTableInstrument — the ink head’s column labels', () => {
       <RollTableInstrument
         name="Core Mechanic"
         title="Core Mechanic"
-        size="medium"
+        size="compact"
         table={{ kind: 'bands', rows }}
       />
     )
@@ -138,7 +138,7 @@ describe('RollTableInstrument — the title as a table picker', () => {
   const picker = (open: boolean, onOpen: () => void) => (
     <RollTableInstrument
       name="Core Mechanic"
-      size="medium"
+      size="compact"
       onRoll={() => {}}
       titleSelect={{ onOpen, open }}
       table={{ kind: 'bands', rows }}
@@ -201,7 +201,7 @@ describe('RollTableInstrument — a roll brings its row on screen', () => {
     return (
       <RollTableInstrument
         name="Core Mechanic"
-        size="large"
+        size="full"
         open={open}
         onRoll={() => setKey('1-19')}
         table={{ kind: 'bands', rows, mark: key ? { key, roll: 7 } : undefined }}
@@ -229,7 +229,7 @@ describe('RollTableInstrument — a roll brings its row on screen', () => {
       return (
         <RollTableInstrument
           name="Core Mechanic"
-          size="large"
+          size="full"
           onRoll={() => {
             setTick((tick) => tick + 1)
             setTimeout(() => setKey('1-19'), 0)

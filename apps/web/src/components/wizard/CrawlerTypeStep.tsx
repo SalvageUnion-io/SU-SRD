@@ -50,7 +50,7 @@ export function CrawlerTypeSelectStep({
             <ReferenceEntityCard
               key={type.id}
               data={type}
-              size="medium"
+              size="compact"
               selected={getEntitySlug(type) === selectedType}
               selectionRole="radio"
               cardClickLabel={type.name}

@@ -71,7 +71,7 @@ export function PatternUniques({
             <NestedCard
               key={cardKey(action, index)}
               data={action}
-              size="medium"
+              size="compact"
               depth={depth}
               hostDown={hostDown}
               hostName={hostName}

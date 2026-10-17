@@ -166,17 +166,21 @@
   border-color: var(--color-ink-50);
 }
 
-/* ── The size ladder (styles/sizing.ts). The odd numbers are the arbitrary
-      values carried verbatim from the first port — 22px, 6px, 3px —
-      because rounding them onto the space scale would resize every button. ── */
+/* ── The Sizes (styles/sizing.ts). Each Size's height is its token
+      (`--size-*`, theme.css), so a button is exactly as tall as the chip,
+      field or switch beside it at the same Size; padding is inline only. The
+      odd inline paddings (22px, 11px) are carried verbatim from the first
+      port. ── */
 .su-btn--full {
   font-size: var(--text-lede);
-  padding: var(--space-12) 22px;
+  min-height: var(--size-full);
+  padding: 0 22px;
 }
 
 .su-btn--compact {
   font-size: var(--text-xs);
-  padding: var(--space-6) 11px;
+  min-height: var(--size-compact);
+  padding: 0 11px;
 }
 
 /* The compact uppercase action chip ('⇄ Swap', '✕ Remove'): badge radius,
@@ -185,7 +189,8 @@
 .su-btn--mini {
   border-radius: var(--radius-badge);
   gap: var(--space-4);
-  padding: 3px var(--space-8);
+  min-height: var(--size-mini);
+  padding: 0 var(--space-8);
 }
 
 /*
@@ -196,18 +201,18 @@
  * a worded one only in geometry: same frame, variants, focus ring and disabled
  * treatment, including the visible focus ring a hand-rolled square forgets.
  *
- * 36px is the resting geometry, comfortably past the WCAG 2.5.8 24px minimum. A
- * call site that must line up with a neighbouring control overrides width and
- * height at the call site.
+ * A square of the Compact Size, past the WCAG 2.5.8 24px minimum. On a line
+ * of another Size it takes that Size (`.su-size-mini`, `.su-size-full`), never
+ * a call site's own height.
  */
 .su-btn--icon-only {
   flex-shrink: 0;
   font-size: var(--text-base);
   gap: 0;
-  height: 36px;
+  height: var(--size-compact);
   line-height: 1;
   padding: 0;
-  width: 36px;
+  width: var(--size-compact);
 }
 
 /*
@@ -218,13 +223,13 @@
  * pointer the 44px floor lifts them all alike.
  */
 .su-page-action {
-  height: var(--space-40);
+  height: var(--size-compact);
 }
 
 /* The icon rung at page-action height is square at that height too: the Cantina
    sheet bar's back and "⋯", and a shelf item's "⋯". */
 .su-btn--icon-only.su-page-action {
-  width: var(--space-40);
+  width: var(--size-compact);
 }
 
 /* ══ The entity card's cost pennant as the action button ════════════════════

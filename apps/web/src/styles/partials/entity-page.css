@@ -102,7 +102,7 @@
    balanced chip line, the same gap apart, no line or gap of their own per
    group (owner, 2026-10-15). */
 .su-chapter-band[data-aside='notch'] .su-stat-column__cell {
-  min-height: 32px;
+  min-height: var(--size-compact);
 }
 
 .su-chapter-band[data-aside='notch'] .su-stat-column__value {

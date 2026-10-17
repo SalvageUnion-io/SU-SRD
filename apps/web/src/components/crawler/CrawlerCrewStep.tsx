@@ -115,7 +115,7 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
           <section key={source.ref} className="su-wiz-stack su-wiz-stack--12">
             <ReferenceEntityCard
               data={source.entity}
-              size="medium"
+              size="compact"
               extent={isOpen ? 'full' : 'head'}
               hide={{ actions: true, choices: true }}
               controls={[navigateControl(() => toggle(source.ref))]}

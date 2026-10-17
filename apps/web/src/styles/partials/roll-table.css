@@ -23,7 +23,7 @@
   min-width: 0;
 }
 
-.su-roll[data-size='medium'] {
+.su-roll[data-size='compact'] {
   --su-roll-pad-x: var(--space-8);
   --su-roll-range: 4rem;
   --su-roll-range-size: var(--text-readout);
@@ -31,7 +31,7 @@
   --su-roll-value-size: var(--text-sm);
 }
 
-.su-roll[data-size='small'] {
+.su-roll[data-size='mini'] {
   --su-roll-pad-x: var(--space-8);
   --su-roll-range: 3rem;
   --su-roll-range-size: var(--text-readout);

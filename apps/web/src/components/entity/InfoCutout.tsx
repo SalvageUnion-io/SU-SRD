@@ -48,7 +48,7 @@ export function InfoCutout({
       <>
         {aside}
         {facts && facts.length > 0 && (
-          <Chips chips={{ durations: [], facts, tags: [] }} rung="compact" onInk={paint.ink} />
+          <Chips chips={{ durations: [], facts, tags: [] }} size="compact" onInk={paint.ink} />
         )}
       </>
     ) : undefined

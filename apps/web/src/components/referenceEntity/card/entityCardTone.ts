@@ -125,19 +125,19 @@ export function resolveSeamLabel(
 /**
  * DEPTH × SIZE → title type scale (boards E1 and E2).
  *
- * The title is set by the card's SIZE — large 31px, medium 22px, small 17px —
- * and nesting steps it down with the card: depth 1 renders medium (22px),
+ * The title is set by the card's SIZE — full 31px, compact 22px, mini 17px —
+ * and nesting steps it down with the card: depth 1 renders compact (22px),
  * depth 2 is the one-line head row (17px), depth 3 one rung below that. So the
  * rung is the LATER of the size's own rung and the depth:
  *
  *   rung = max(SIZE offset, depth)
  *
  * The invariant this keeps: a nested title is NEVER LARGER than its parent's.
- * Under a large card it is strictly smaller at every level (31 → 22 → 17 → 15).
- * A medium card's depth-1 child is medium too and shares its rung — what tells
+ * Under a full card it is strictly smaller at every level (31 → 22 → 17 → 15).
+ * A compact card's depth-1 child is compact too and shares its rung — what tells
  * them apart there is containment, the frame (3 → 2 → 1.5px) and the depth-2 head
- * row, not the type. Nested children are spawned at `medium`, or at `small`
- * inside a small card (`nestedChildSize`), so a child never outgrows its parent.
+ * row, not the type. Nested children are spawned at `compact`, or at `mini`
+ * inside a mini card (`nestedChildSize`), so a child never outgrows its parent.
  *
  * THE FLOOR: the ladder bottoms out at `badge` (11px), the legibility floor
  * (ruleset §4.6); past it a title holds at the floor.
@@ -150,21 +150,21 @@ const TITLE_SIZE_LADDER = ['displayLg', 'title', 'readout', 'lede', 'caption', '
 export type TitleRung = (typeof TITLE_SIZE_LADDER)[number]
 
 /** SIZE as the ladder rung a depth-0 card starts on — see docblock. */
-const SIZE_LADDER_OFFSET: Record<CardSize, number> = { large: 0, medium: 1, small: 2 }
+const SIZE_LADDER_OFFSET: Record<CardSize, number> = { full: 0, compact: 1, mini: 2 }
 
-export function titleSizeRung(depth: number, size: CardSize = 'large'): TitleRung {
+export function titleSizeRung(depth: number, size: CardSize = 'full'): TitleRung {
   const rung = Math.max(depth, 0, SIZE_LADDER_OFFSET[size])
   const index = Math.min(rung, TITLE_SIZE_LADDER.length - 1)
   return TITLE_SIZE_LADDER[index] ?? 'badge'
 }
 
 /**
- * The size a NESTED child renders at: medium — "nested is at least medium"
- * (board E2) — except inside a small card, whose children stay small so a
+ * The size a NESTED child renders at: compact — "nested is at least medium"
+ * (board E2) — except inside a mini card, whose children stay mini so a
  * child never outgrows its parent.
  */
 export function nestedChildSize(parentSize: CardSize): CardSize {
-  return parentSize === 'small' ? 'small' : 'medium'
+  return parentSize === 'mini' ? 'mini' : 'compact'
 }
 
 export type AxisMarker = { label: string; value?: string }

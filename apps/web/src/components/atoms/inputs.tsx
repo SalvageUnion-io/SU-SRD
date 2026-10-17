@@ -27,7 +27,13 @@ import type { ComponentPropsWithRef } from 'react'
 import { cn } from '../../lib/cn'
 import { INPUT_FOCUS } from './interaction'
 
-type InputProps = ComponentPropsWithRef<'input'> & {
+type InputProps = Omit<ComponentPropsWithRef<'input'>, 'size'> & {
+  /**
+   * The Size (`styles/sizing.ts`) of the line it sits on: Full (the default, a
+   * page's field) or Compact (beside a sheet's Compact buttons). Its height is
+   * that Size's token, so it matches them.
+   */
+  size?: 'full' | 'compact'
   /**
    * Integer-only field: opens the digit keypad on phones by setting
    * `inputMode="numeric"`, `pattern="[0-9]*"` and `enterKeyHint="done"`.
@@ -43,11 +49,16 @@ const NUMERIC_KEYPAD = { inputMode: 'numeric', pattern: '[0-9]*', enterKeyHint: 
  * Text input (design-spec §2.5 `.input`): paper bg, 1.5px ink border, 3px
  * radius, the focus ring (no outline).
  */
-export function Input({ className, numeric = false, ref, ...props }: InputProps) {
+export function Input({ className, numeric = false, size = 'full', ref, ...props }: InputProps) {
   return (
     <input
       ref={ref}
-      className={cn('su-text-input', INPUT_FOCUS, className)}
+      className={cn(
+        'su-text-input',
+        size === 'compact' && 'su-text-input--compact',
+        INPUT_FOCUS,
+        className
+      )}
       // Before `props`, so an explicit inputMode/pattern/enterKeyHint wins.
       {...(numeric ? NUMERIC_KEYPAD : {})}
       {...props}

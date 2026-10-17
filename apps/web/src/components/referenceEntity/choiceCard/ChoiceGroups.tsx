@@ -360,7 +360,7 @@ function ChoiceOptionGroup({
           <CardRollTable
             table={table}
             name={`${tableName} Table`}
-            size={compact ? 'small' : 'medium'}
+            size={compact ? 'mini' : 'compact'}
             framed
             nested
             disabled={false}

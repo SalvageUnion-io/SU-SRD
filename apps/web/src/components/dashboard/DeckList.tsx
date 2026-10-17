@@ -150,7 +150,7 @@ export function DeckList({ view }: { view: DeckListModel }) {
            * ONE grid over the whole deck — no source/timing headings, so an
            * action is never filed under a name of its own; the entry already
            * states what it is. Each entry is the COMPACT, header-only card
-           * (`medium` + `head`, board D1): the name, the source stamp and the
+           * (`compact` + `head`, board D1): the name, the source stamp and the
            * cost pennant on one row, so a kitted pilot's deck stays a short
            * list. The full card — description, roll table, choices — is the
            * Resolve pane's, one tap on the pennant away. `<ul>/<li>` stays — a
@@ -172,7 +172,7 @@ export function DeckList({ view }: { view: DeckListModel }) {
                     button and no chevron beside it. */}
                 <ReferenceEntityCard
                   data={row.entity}
-                  size="medium"
+                  size="compact"
                   extent="head"
                   // The Dashboard stays flat (ruleset §3.5): no speckle.
                   texture={false}

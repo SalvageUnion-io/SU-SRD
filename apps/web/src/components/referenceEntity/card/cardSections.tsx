@@ -31,9 +31,9 @@ import { resolveGuideSteps } from './resolveGuideSteps'
 
 /** The body box's padding by size (board E1): tight on top under a "//" line. */
 const BODY_PAD: Record<CardSize, { ruled: string; open: string }> = {
-  large: { ruled: `${space[2]} ${space[14]} ${space[12]}`, open: `${space[12]} ${space[14]}` },
-  medium: { ruled: `${space[2]} ${space[10]} ${space[10]}`, open: `${space[10]}` },
-  small: { ruled: `${space[2]} ${space[8]} ${space[8]}`, open: `${space[8]}` },
+  full: { ruled: `${space[2]} ${space[14]} ${space[12]}`, open: `${space[12]} ${space[14]}` },
+  compact: { ruled: `${space[2]} ${space[10]} ${space[10]}`, open: `${space[10]}` },
+  mini: { ruled: `${space[2]} ${space[8]} ${space[8]}`, open: `${space[8]}` },
 }
 
 /**

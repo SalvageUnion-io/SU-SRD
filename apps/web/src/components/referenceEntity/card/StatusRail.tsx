@@ -9,7 +9,7 @@ import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 const ORDER: EntityStatus[] = ['intact', 'damaged', 'destroyed']
 const STATES = ORDER.map((value) => ({ value, label: CONDITION_LABELS[value] }))
 
-const PAD_X: Record<CardSize, string> = { large: space[14], medium: space[10], small: space[8] }
+const PAD_X: Record<CardSize, string> = { full: space[14], compact: space[10], mini: space[8] }
 
 /**
  * Each segment fills the 44px touch floor (ruleset §4.6) inside the 1.5px

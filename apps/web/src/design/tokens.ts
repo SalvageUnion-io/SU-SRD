@@ -48,6 +48,18 @@ export const space = {
 } as const
 
 /**
+ * The app's three Sizes (`styles/sizing.ts`): the one height of every control
+ * drawn at that Size. Mini is a chip and the controls riding a chip line, Compact
+ * a button, switch or bar control, Full a page field or primary action. Under a
+ * coarse pointer theme.css lifts Compact to Full, the 44px touch floor.
+ */
+export const size = {
+  mini: '18px',
+  compact: '32px',
+  full: '44px',
+} as const
+
+/**
  * The type ladder.
  *
  * The first block is the SEMANTIC ladder (ruleset §4.2) — the one to reach for,

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { splitStatLine } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
-import type { SizeRung } from '../../../styles/sizing'
+import type { Size } from '../../../styles/sizing'
 import { ActivationCost } from '../../atoms/ActivationCost'
 import { Stat } from '../../atoms/Stat'
 import type { ChipSet } from './chipSet'
@@ -20,13 +20,13 @@ import { Tags } from './Tags'
  * clips a chip (E18).
  *
  * One look on every band: an action's chips on the ink banner are the same
- * plates, rung and cost box as an entity's on its tone band. There
+ * plates, size and cost box as an entity's on its tone band. There
  * (`onInk`) `.su-chips--on-ink` only keeps a paper rule round each cell, and
  * the cost box its paper edge, so the ink halves do not sink into the ink.
  */
 export function Chips({
   chips,
-  rung,
+  size,
   onInk = false,
   linkable = false,
   leading,
@@ -35,7 +35,7 @@ export function Chips({
   className,
 }: {
   chips: ChipSet
-  rung: SizeRung
+  size: Size
   onInk?: boolean
   /** Traits may link (not inside a link or a clickable card). */
   linkable?: boolean
@@ -60,13 +60,13 @@ export function Chips({
       )}
     >
       {leading}
-      <Facts cells={stats} size={rung} />
+      <Facts cells={stats} size={size} />
       {chips.durations.map((duration) => (
-        <Stat key={duration} orientation="horizontal" label={duration} size={rung} />
+        <Stat key={duration} orientation="horizontal" label={duration} size={size} />
       ))}
-      <Facts cells={action} size={rung} />
-      <Tags tags={chips.tags} linkable={linkable} rung={rung} />
-      {chips.cost && <CostBox cost={chips.cost} rung={rung} onInk={onInk} />}
+      <Facts cells={action} size={size} />
+      <Tags tags={chips.tags} linkable={linkable} size={size} />
+      {chips.cost && <CostBox cost={chips.cost} size={size} onInk={onInk} />}
       {trailing}
     </div>
   )
@@ -79,11 +79,11 @@ export function Chips({
  */
 export function CostBox({
   cost,
-  rung,
+  size,
   onInk = false,
 }: {
   cost: string
-  rung: SizeRung
+  size: Size
   onInk?: boolean
 }) {
   const cell = costCell(cost)
@@ -91,8 +91,8 @@ export function CostBox({
     <ActivationCost
       cost={cell.value ?? cell.label}
       currency={cell.value ? cell.label : ''}
-      compact={rung !== 'full'}
-      mini={rung === 'mini'}
+      compact={size !== 'full'}
+      mini={size === 'mini'}
       onInk={onInk}
     />
   )

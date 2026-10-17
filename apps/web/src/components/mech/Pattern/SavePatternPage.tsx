@@ -369,7 +369,7 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
             <ReferenceEntityCard
               data={chassis}
               pattern={asReferencePattern({ ...mech, name: patternName || mech.name })}
-              size="medium"
+              size="compact"
               extent="full"
               hide={{ content: true, actions: true, patterns: true, rollTable: true, image: true }}
               statsOverride={[

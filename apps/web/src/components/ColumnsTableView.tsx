@@ -36,7 +36,7 @@ export function ColumnsTableView({ data, tone, roll, onRoll }: ColumnsTableViewP
     <RollPageFrame density="compact" description={data.description}>
       <RollTableInstrument
         name={data.name}
-        size="large"
+        size="full"
         tone={tone}
         density="compact"
         stamp="Roll twice:"

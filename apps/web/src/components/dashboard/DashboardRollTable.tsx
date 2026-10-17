@@ -42,7 +42,7 @@ type Landed =
 export function DashboardRollTable({
   table,
   name,
-  size = 'large',
+  size = 'full',
   tone,
   titleSelect,
   onRollResult,
@@ -50,8 +50,8 @@ export function DashboardRollTable({
   table: RollTableType
   /** The table's name: the bar's title, the toast's, and its die. */
   name: string
-  /** `large` reads a table on its own; `small` sits in a Downtime step. */
-  size?: 'large' | 'small'
+  /** `full` reads a table on its own; `mini` sits in a Downtime step. */
+  size?: 'full' | 'mini'
   /** The surface's tone (a CSS colour), whose band paints every other row. */
   tone?: string
   titleSelect?: RollTableTitleSelect

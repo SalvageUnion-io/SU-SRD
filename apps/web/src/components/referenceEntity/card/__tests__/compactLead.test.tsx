@@ -65,7 +65,7 @@ describe('the row lead', () => {
 
   test('the compact card prints no prose', () => {
     const { container } = render(
-      <ReferenceEntityCard data={gopher()} size="medium" extent="head" />
+      <ReferenceEntityCard data={gopher()} size="compact" extent="head" />
     )
     expect(lead(container)).toBeNull()
   })
@@ -76,10 +76,10 @@ describe("an ability's row wears its tier; its card keeps the ink banner", () =>
     container.querySelector<HTMLElement>('[data-fill]')?.dataset.fill
 
   test('the compact card is a tier-toned Row; the full card takes the ink banner', () => {
-    const row = render(<ReferenceEntityCard data={talkShop()} size="medium" extent="head" />)
+    const row = render(<ReferenceEntityCard data={talkShop()} size="compact" extent="head" />)
     expect(fill(row.container)).toBe('tone')
     row.unmount()
-    const full = render(<ReferenceEntityCard data={talkShop()} size="medium" />)
+    const full = render(<ReferenceEntityCard data={talkShop()} size="compact" />)
     expect(fill(full.container)).toBe('ink')
   })
 })

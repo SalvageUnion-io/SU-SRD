@@ -314,7 +314,7 @@ export function PartnerCard({
   return (
     <ReferenceEntityCard
       data={statBlock ?? undefined}
-      size="medium"
+      size="compact"
       titleOverride={partnerDisplayName(partner)}
       statsOverride={stats}
       controls={controls.length > 0 ? controls : undefined}

@@ -106,14 +106,14 @@
 
 /*
  * The type and cost stamps beside an entity page's stats
- * (`EntityPageStamps`): the height and type of the band's compact stat label
- * (`.su-stat-column__label` on a `ChapterBand`), so the row reads as one size.
+ * (`EntityPageStamps`): the band's Size (Compact, `--size-compact`), the height
+ * of its stat cells and its "Build With This", so the row reads as one size.
  */
 .su-entity-stamp {
   align-items: center;
   display: inline-flex;
   font-size: var(--text-badge);
-  min-height: 32px;
+  min-height: var(--size-compact);
   padding-inline: var(--space-8);
 }
 
@@ -124,7 +124,7 @@
   align-items: center;
   display: inline-flex;
   font-size: var(--text-badge);
-  min-height: calc(32px - 2 * var(--bw-hairline));
+  min-height: calc(var(--size-compact) - 2 * var(--bw-hairline));
   padding-inline: var(--space-8);
 }
 
@@ -146,7 +146,7 @@
   align-self: stretch;
   display: inline-flex;
   font-size: var(--text-badge);
-  min-height: 32px;
+  min-height: var(--size-compact);
 }
 
 /* ══ The detail dialog's Page (`referenceEntity/EntityDetailDialog.tsx`) ════

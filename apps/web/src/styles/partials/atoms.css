@@ -10,8 +10,8 @@
  * Static values live in each component's style objects.
  */
 
-/* The size ladder's class strings (`styles/sizing.ts`: `RUNG_TYPE`,
- * `RUNG_INLINE_PADDING`). The two inherited rungs carry their paired
+/* The size ladder's class strings (`styles/sizing.ts`: `SIZE_TYPE`,
+ * `SIZE_INLINE_PADDING`). The two inherited rungs carry their paired
  * line-height (`text-sm` 1.25rem, `text-xs` 1rem); the semantic rungs set
  * size alone. */
 .su-rung-label--full {
@@ -163,19 +163,10 @@
   box-shadow: 0 0 0 1px var(--color-ink);
 }
 
-/* The +/- steppers: a 44px coarse-pointer floor that drops at sm, and a
- * resting fill/ink that swaps on hover
- * while the stepper is live (not at its limit). */
-.su-stat-step {
-  min-height: 44px;
-}
-
-@media (min-width: 40rem) {
-  .su-stat-step {
-    min-height: 0;
-  }
-}
-
+/* The +/- steppers: the chip's own height (its Size), never a taller box that
+ * stretches the chip beside it; under a coarse pointer a 44px hit area
+ * (`pointer-motion.css`). A resting fill/ink that swaps on hover while the
+ * stepper is live (not at its limit). */
 .su-stat-step--on-paper {
   background-color: var(--color-paper);
   color: var(--color-ink);

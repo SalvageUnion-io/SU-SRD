@@ -237,6 +237,12 @@
   flex-wrap: wrap;
 }
 
+/* Its count chip is the leader's Size, Compact, the height of the fold chevron
+   and the controls beside it, so the leader is one line of one height. */
+.su-sheet-slab-lead .su-stat-cell {
+  min-height: var(--size-compact);
+}
+
 /* ══ HeaderMenu ══════════════════════════════════════════════════════════════
  *
  * The stateful half of `HeaderMenu`

@@ -39,7 +39,7 @@ export function RollTableView({ data, tone, roll, onRoll }: RollTableViewProps) 
     <RollPageFrame density={density} description={data.description}>
       <RollTableInstrument
         name={data.name}
-        size="large"
+        size="full"
         tone={tone}
         density={density}
         onRoll={onRoll}

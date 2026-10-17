@@ -41,7 +41,7 @@
 
 .su-hero-search__field {
   border-width: var(--bw-chrome);
-  min-height: 46px;
+  min-height: var(--size-full);
   padding-inline: var(--space-14);
 }
 

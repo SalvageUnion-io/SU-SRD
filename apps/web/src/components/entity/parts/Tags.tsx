@@ -1,5 +1,5 @@
 import { cn } from '../../../lib/cn'
-import type { SizeRung } from '../../../styles/sizing'
+import type { Size } from '../../../styles/sizing'
 import { FOCUS_RING } from '../../atoms/interaction'
 import { Stat } from '../../atoms/Stat'
 import { useEntitySurface } from '../entitySurfaceContext'
@@ -20,12 +20,12 @@ import type { TagItem } from './tagItems'
 export function Tag({
   tag,
   linkable = false,
-  rung = 'full',
+  size = 'full',
 }: {
   tag: TagItem
   linkable?: boolean
-  /** The chip's rung: `full` in a body, `compact` in a head band. */
-  rung?: SizeRung
+  /** The chip's size: `full` in a body, `compact` in a head band. */
+  size?: Size
 }) {
   const { hrefFor, openPage } = useEntitySurface()
   const insidePeek = useInsidePeek()
@@ -38,7 +38,7 @@ export function Tag({
       orientation="horizontal"
       label={tag.name}
       value={tag.param?.trim() ? tag.param : undefined}
-      size={rung}
+      size={size}
       state={tag.modified ? 'modified' : 'default'}
     />
   )
@@ -49,7 +49,7 @@ export function Tag({
   }
   if (href) {
     return (
-      <a href={href} className={cn('su-chip-link', FOCUS_RING)} {...shared}>
+      <a href={href} className={cn('su-chip-link su-hit-area', FOCUS_RING)} {...shared}>
         {cell}
       </a>
     )
@@ -58,7 +58,7 @@ export function Tag({
     return (
       <button
         type="button"
-        className={cn('su-chip-link', FOCUS_RING)}
+        className={cn('su-chip-link su-hit-area', FOCUS_RING)}
         onClick={(event) => {
           // A tag inside a clickable card opens ITS entry, not the card.
           event.stopPropagation()
@@ -85,16 +85,16 @@ export function Tag({
 export function Tags({
   tags,
   linkable = false,
-  rung,
+  size,
 }: {
   tags: TagItem[]
   linkable?: boolean
-  rung?: SizeRung
+  size?: Size
 }) {
   return (
     <>
       {tags.map((tag) => (
-        <Tag key={tag.key} tag={tag} linkable={linkable} rung={rung} />
+        <Tag key={tag.key} tag={tag} linkable={linkable} size={size} />
       ))}
     </>
   )

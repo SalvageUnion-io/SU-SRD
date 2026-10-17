@@ -45,7 +45,7 @@ describe('EntityCardHeader — two fills', () => {
         bandColor="var(--color-tl-2)"
         titleSize="31px"
         chips={chips}
-        size="large"
+        size="full"
         grain="ink"
         ruled
       />
@@ -77,7 +77,7 @@ describe('EntityCardHeader — two fills', () => {
         titleColor="var(--color-paper)"
         numeral="1"
         pennant={<button type="button">2 AP</button>}
-        size="large"
+        size="full"
         grain="paper"
       />
     )
@@ -105,7 +105,7 @@ describe('EntityCardHeader — two fills', () => {
         fill="tone"
         bandColor="var(--color-tl-2)"
         titleSize="22px"
-        size="medium"
+        size="compact"
       />
     )
     expect(band('Salvaging Drill').dataset.grain).toBeUndefined()
@@ -135,7 +135,7 @@ describe('EntityCardHeader — the chips beside the title or under it', () => {
         bandColor="var(--color-ink)"
         titleSize="22px"
         titleAs="h3"
-        size="medium"
+        size="compact"
       />
     )
     const heading = screen.getByRole('heading', { level: 3 })
@@ -151,7 +151,7 @@ describe('EntityCardHeader — the chips beside the title or under it', () => {
         fill="tone"
         bandColor="var(--color-tl-1)"
         titleSize="22px"
-        size="medium"
+        size="compact"
         labels={<span>User-made</span>}
       />
     )
@@ -171,7 +171,7 @@ describe('EntityCardHeader — the chips beside the title or under it', () => {
         fill="tone"
         bandColor="var(--color-tl-1)"
         titleSize="22px"
-        size="medium"
+        size="compact"
       />
     )
     const title = screen.getByText('Coolant Flush').parentElement as HTMLElement

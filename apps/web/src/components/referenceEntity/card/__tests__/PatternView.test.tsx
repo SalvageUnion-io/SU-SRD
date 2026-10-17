@@ -117,7 +117,7 @@ describe('the chassis ability shows only on a page', () => {
   })
 
   for (const [form, card] of [
-    ['a chassis card', () => <ReferenceEntityCard data={mule()} size="large" />],
+    ['a chassis card', () => <ReferenceEntityCard data={mule()} size="full" />],
     ['a chassis catalog tile', () => <ReferenceEntityCard data={mule()} extent="catalog" />],
     ['a pattern card', () => <ReferenceEntityCard data={mule()} pattern={hauler()} />],
     [
@@ -136,7 +136,7 @@ describe('the chassis ability shows only on a page', () => {
 
   test("the builder's chassis pick card shows it once, under the picker's hide.actions", () => {
     const { container } = render(
-      <ReferenceEntityCard data={mule()} size="medium" hide={PICK_HIDE} showChassisAbility />
+      <ReferenceEntityCard data={mule()} size="compact" hide={PICK_HIDE} showChassisAbility />
     )
     expect(abilityCount(container)).toBe(1)
   })
@@ -154,7 +154,7 @@ describe('the chassis ability shows only on a page', () => {
       <ReferenceEntityCard
         data={mule()}
         pattern={hauler()}
-        size="medium"
+        size="compact"
         hide={{ actions: true, choices: true }}
         showChassisAbility={showChassisAbility}
       />
@@ -179,7 +179,7 @@ describe('full pattern view reading order', () => {
     if (!pattern) throw new Error('Hauler pattern fixture missing')
 
     const { container } = render(
-      <ReferenceEntityCard data={chassis} pattern={pattern} size="large" />
+      <ReferenceEntityCard data={chassis} pattern={pattern} size="full" />
     )
     const text = container.textContent ?? ''
 
@@ -213,7 +213,7 @@ describe('full pattern view reading order', () => {
     // Guard the fixture: the count is what drives the expansion.
     expect(pattern.systems?.find((s) => s.name === '.50 Cal Machine Gun')?.count).toBe(6)
 
-    render(<ReferenceEntityCard data={chassis} pattern={pattern} size="large" />)
+    render(<ReferenceEntityCard data={chassis} pattern={pattern} size="full" />)
 
     // One name node per rendered line.
     expect(screen.getAllByText('.50 Cal Machine Gun')).toHaveLength(6)
@@ -257,7 +257,7 @@ describe('pattern loadout tokens', () => {
 
   test('every loadout entry links to its own page', () => {
     const { chassis, pattern } = thunderStorm()
-    render(srdLinks(<ReferenceEntityCard data={chassis} pattern={pattern} size="large" />))
+    render(srdLinks(<ReferenceEntityCard data={chassis} pattern={pattern} size="full" />))
 
     // All six machine-gun copies are links, each to the system's one page.
     const guns = screen.getAllByRole('link', { name: /\.50 Cal Machine Gun/ })
@@ -274,7 +274,7 @@ describe('pattern loadout tokens', () => {
   test('the loadout does not reprint the entities` rules inline', () => {
     const { chassis, pattern } = thunderStorm()
     const { container } = render(
-      <ReferenceEntityCard data={chassis} pattern={pattern} size="large" />
+      <ReferenceEntityCard data={chassis} pattern={pattern} size="full" />
     )
     // The machine gun's own description belongs on its page, not six times over
     // in a pattern's loadout.
@@ -283,7 +283,7 @@ describe('pattern loadout tokens', () => {
 
   test('without a route the names are not links', () => {
     const { chassis, pattern } = thunderStorm()
-    render(<ReferenceEntityCard data={chassis} pattern={pattern} size="large" />)
+    render(<ReferenceEntityCard data={chassis} pattern={pattern} size="full" />)
     expect(screen.queryAllByRole('link', { name: /\.50 Cal Machine Gun/ })).toHaveLength(0)
     // The names themselves still render — they just aren't navigable.
     expect(screen.getAllByText('.50 Cal Machine Gun')).toHaveLength(6)
@@ -295,7 +295,7 @@ describe('pattern loadout tokens', () => {
     const opened: EntityRef[] = []
     render(
       <EntitySurfaceProvider value={{ openPage: (ref) => opened.push(ref) }}>
-        <ReferenceEntityCard data={chassis} pattern={pattern} size="large" />
+        <ReferenceEntityCard data={chassis} pattern={pattern} size="full" />
       </EntitySurfaceProvider>
     )
     const guns = screen.getAllByRole('button', { name: '.50 Cal Machine Gun' })
@@ -306,7 +306,7 @@ describe('pattern loadout tokens', () => {
 
   test('each entry is one full-width Token: its name (its kind read out), then its action type, TL and Slots', () => {
     const { chassis, pattern } = thunderStorm()
-    render(srdLinks(<ReferenceEntityCard data={chassis} pattern={pattern} size="large" />))
+    render(srdLinks(<ReferenceEntityCard data={chassis} pattern={pattern} size="full" />))
     const systems = screen.getByRole('list', { name: 'Systems installed' })
     expect(systems.classList.contains('su-entity-token-list')).toBe(true)
     const entries = Array.from(systems.querySelectorAll(':scope > li'))
@@ -337,7 +337,7 @@ describe('pattern loadout tokens', () => {
     // anonymous links. The links carry their own name (the entity's), NOT the
     // line's scraped text — that would read ".50 Cal Machine Gun TL 1".
     const { chassis, pattern } = thunderStorm()
-    render(srdLinks(<ReferenceEntityCard data={chassis} pattern={pattern} size="large" />))
+    render(srdLinks(<ReferenceEntityCard data={chassis} pattern={pattern} size="full" />))
     expect(screen.getByRole('list', { name: 'Systems installed' })).toBeTruthy()
     expect(screen.getByRole('list', { name: 'Modules installed' })).toBeTruthy()
     // Exact accessible name, tail excluded.
@@ -365,7 +365,7 @@ describe('pattern drone rows keep their keys', () => {
         const chassis = SalvageUnionReference.Chassis.getByName(name)
         if (!chassis) throw new Error(`${name} fixture missing`)
         for (const pattern of chassis.patterns ?? []) {
-          render(<ReferenceEntityCard data={chassis} pattern={pattern} size="large" />)
+          render(<ReferenceEntityCard data={chassis} pattern={pattern} size="full" />)
           cleanup()
         }
       }
@@ -545,7 +545,7 @@ describe('Bio-Titan pattern view', () => {
     const pattern = host?.patterns?.find((p) => p.name === 'Hill Worm')
     if (!host || !pattern) throw new Error('Hill Worm fixture missing')
 
-    const { container } = render(<ReferenceEntityCard data={host} pattern={pattern} size="large" />)
+    const { container } = render(<ReferenceEntityCard data={host} pattern={pattern} size="full" />)
     const text = container.textContent ?? ''
 
     const patternProse = text.indexOf('lurks beneath the Wild Hills')

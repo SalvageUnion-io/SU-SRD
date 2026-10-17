@@ -95,7 +95,7 @@ export function CardPage({
       data={data}
       // Its chips take the page's rung, as the host's own do.
       presentation="page"
-      size="medium"
+      size="compact"
       depth={1}
       titleAs={titleAs}
       // Every action on a page reads at the regular size (14px), the chassis

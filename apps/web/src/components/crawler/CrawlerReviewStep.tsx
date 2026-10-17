@@ -128,13 +128,13 @@ export function CrawlerReviewStep({
       {/* chosen cards */}
       <div className="su-wiz-stack su-wiz-stack--12">
         {selectedType && (
-          <ReferenceEntityCard data={selectedType} size="medium" hide={{ choices: true }} />
+          <ReferenceEntityCard data={selectedType} size="compact" hide={{ choices: true }} />
         )}
         {systems.map((system) => (
           <ReferenceEntityCard
             key={system.id}
             data={system}
-            size="medium"
+            size="compact"
             status="intact"
             hide={{ actions: true, choices: true }}
           />

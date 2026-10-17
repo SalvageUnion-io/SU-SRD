@@ -58,7 +58,7 @@ export function EntityCardStatic({ item, pattern, pageRefs }: EntityCardStaticPr
             <ReferenceEntityCard
               data={item}
               pattern={pattern}
-              size="large"
+              size="full"
               presentation="page"
               afterExtraContent={
                 classEntity ? <ClassAbilityTree classEntity={classEntity} /> : undefined

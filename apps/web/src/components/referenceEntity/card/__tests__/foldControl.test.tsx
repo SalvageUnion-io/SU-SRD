@@ -20,7 +20,7 @@ const chevron = () => screen.getByRole('button', { name: 'Salvaging Drill detail
 
 describe('a folded card', () => {
   test('its chevron is the one control: a disclosure naming the card', () => {
-    const { container } = render(<ReferenceEntityCard data={drill()} size="medium" collapsible />)
+    const { container } = render(<ReferenceEntityCard data={drill()} size="compact" collapsible />)
     expect(screen.getAllByRole('button')).toHaveLength(1)
     const button = chevron()
     expect(button.getAttribute('aria-expanded')).toBe('false')
@@ -33,7 +33,7 @@ describe('a folded card', () => {
   })
 
   test('the card itself carries no role, tab stop or name', () => {
-    const { container } = render(<ReferenceEntityCard data={drill()} size="medium" collapsible />)
+    const { container } = render(<ReferenceEntityCard data={drill()} size="compact" collapsible />)
     const card = container.firstElementChild
     expect(card?.getAttribute('role')).toBeNull()
     expect(card?.getAttribute('tabindex')).toBeNull()
@@ -41,7 +41,7 @@ describe('a folded card', () => {
   })
 
   test('a pointer click on the card opens it; the chevron toggles it and names the state', () => {
-    const { container } = render(<ReferenceEntityCard data={drill()} size="medium" collapsible />)
+    const { container } = render(<ReferenceEntityCard data={drill()} size="compact" collapsible />)
     const card = container.firstElementChild
     if (!(card instanceof HTMLElement)) throw new Error('no card')
     fireEvent.click(card)
@@ -58,7 +58,7 @@ describe('a folded card', () => {
 
 describe('a folded card with no chevron (foldChevron={false})', () => {
   const renderRow = () =>
-    render(<ReferenceEntityCard data={drill()} size="medium" collapsible foldChevron={false} />)
+    render(<ReferenceEntityCard data={drill()} size="compact" collapsible foldChevron={false} />)
 
   test('the card itself is the disclosure: one button, named, with its state', () => {
     renderRow()

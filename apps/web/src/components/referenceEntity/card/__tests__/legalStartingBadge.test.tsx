@@ -16,7 +16,7 @@ describe('the pattern card’s legal starting label', () => {
   const labelPresent = (patternName: string): boolean => {
     const pattern = mule.patterns.find((p) => p.name === patternName)
     if (!pattern) throw new Error(`fixture missing: Mule pattern ${patternName}`)
-    render(<ReferenceEntityCard data={mule} pattern={pattern} size="medium" />)
+    render(<ReferenceEntityCard data={mule} pattern={pattern} size="compact" />)
     return screen.queryByText('Legal Starting Pattern') !== null
   }
 
