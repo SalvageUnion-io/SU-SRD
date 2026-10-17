@@ -941,23 +941,23 @@ a.su-home__discord:hover {
   gap: var(--space-12);
 }
 
-/* The tier cards: side by side while each keeps 9.5rem, stacked on a phone. */
+/* The tier cards: side by side while each keeps 9.5rem, stacked on a phone.
+   A wrapping flex row, not a grid: the cards on a line share it evenly and
+   stretch to its tallest, and a card alone on the last line (Legendary
+   under Core and Advanced, the Salvager's lone Core) grows to the full width
+   rather than leaving half a row empty (owner's call, 2026-10-17). */
 .su-class-brief__cards {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-10);
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr));
-}
-
-/* A lone card (a Core class with no paths: the Salvager) spans the area. */
-.su-class-brief__cards:has(> :only-child) {
-  grid-template-columns: minmax(0, 1fr);
 }
 
 /* A tier card: a `TitledBox`, its cut-out head in the tier's book hue (§3.8)
    opening into the body, no rule between them. */
 .su-class-brief__card {
   display: flex;
-  min-width: 0;
+  flex: 1 1 9.5rem;
+  min-width: min(100%, 9.5rem);
 }
 
 /* The card is a `TitledBox`; it takes its track's width, under a Row's 12rem floor. */
