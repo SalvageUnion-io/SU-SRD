@@ -11,7 +11,7 @@ export type StackProps = ComponentPropsWithoutRef<'div'> & {
 
 /**
  * STACK — children in a column, a space step apart. A class, not a style
- * object (`.su-stack`, `styles/partials/layout.css`), because srd writes a
+ * object (`.su-stack`, `styles/partials/foundation.css`), because srd writes a
  * style object out on every element that wears it; the gap is `data-gap`.
  * Anything else the element needs (padding, a min width) rides `style`.
  */

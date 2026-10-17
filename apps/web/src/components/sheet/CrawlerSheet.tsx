@@ -88,6 +88,7 @@ import {
   Eyebrow,
   MasonryColumns,
   SheetSectionSlab,
+  Stack,
   Stat,
   tokens,
 } from '../index'
@@ -102,12 +103,8 @@ import { SheetHero } from './SheetHero'
 import { CardRemoveButton } from './SheetSection'
 import { StorageManifest } from './StorageManifest'
 
-/** A full-width column of the given gap. */
-const column = (gap: string) =>
-  ({ display: 'flex', minWidth: 0, flexDirection: 'column', gap }) satisfies CSSProperties
-
-const STACK_16 = column(tokens.space[16])
-const STACK_24 = column(tokens.space[24])
+/** A column that may shrink below its content inside the region grids. */
+const SHRINK = { minWidth: 0 } satisfies CSSProperties
 
 /** The section root: `@container` scopes the region grids to the sheet's own width. */
 const ROOT = {
@@ -308,7 +305,7 @@ export function CrawlerSheet({
 
   /** The Storage Bay's scrap pool + the crawler hold — rendered INSIDE it. */
   const storageContents = (
-    <div style={STACK_16}>
+    <Stack gap={16} style={SHRINK}>
       {/* Scrap Pool — the crawler's abstract TL-bucketed scrap store (the
           bucket bay-repair spends). Per-tech-level `Stat` steppers let
           a crawler stow arbitrary scrap by hand (Free Edit). The
@@ -339,7 +336,7 @@ export function CrawlerSheet({
         crawlerName={crawler.name}
         readOnly={readOnly}
       />
-    </div>
+    </Stack>
   )
 
   /** Which special bay is this? Drives what gets rendered INSIDE it. */
@@ -398,7 +395,7 @@ export function CrawlerSheet({
           Storage is the FULL-WIDTH band at the very bottom (printed
           `Editable_..._Crawler_Sheets.pdf` p.2), not a full-height right
           column. ===== */}
-      <div style={STACK_24}>
+      <Stack gap={24} style={SHRINK}>
         {/* ===== Identity Band (Workshop-Manual crawler sheet top region) =====
             Edge wordmark ∥ Name/Type/Ability/Description fields ∥ the Economy
             rail (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade readouts), in one
@@ -421,7 +418,7 @@ export function CrawlerSheet({
                 />
               }
             >
-              <div style={STACK_16}>
+              <Stack gap={16} style={SHRINK}>
                 <CrawlerIdentityPanel
                   crawler={crawler}
                   store={store}
@@ -430,14 +427,14 @@ export function CrawlerSheet({
                   readOnly={readOnly}
                   typeCrew={assignmentFor(crew, { kind: 'type' })}
                 />
-              </div>
+              </Stack>
             </PhotoBeside>
           }
           vitals={economy}
         />
 
         {/* ----- Content region (Bays, Weapons) ----- */}
-        <div style={STACK_24}>
+        <Stack gap={24} style={SHRINK}>
           {/* Bays — ONE unified grid, all bays together (no crew/functional
               split). // TODO(redesign): render homebrew/custom bays in a
               separate "Custom Bays" group underneath once the data
@@ -483,7 +480,7 @@ export function CrawlerSheet({
               )}
             </SheetSectionSlab>
           )}
-        </div>
+        </Stack>
 
         {/* No Storage Bay installed — the scrap pool and hold still have to go
             somewhere: both are crawler-level data (the pool is what bay REPAIRS
@@ -515,7 +512,7 @@ export function CrawlerSheet({
             full-width box rather than a plain section: the hold IS a bay (Core
             Book p.213), so it wears the same frame its siblings above do
             instead of reading as loose furniture at the foot of the sheet. ----- */}
-      </div>
+      </Stack>
 
       {/* The weapons picker — the existing master-detail modal, mounted
           lazily so its reference preload only runs once '+ Add' opens it. */}

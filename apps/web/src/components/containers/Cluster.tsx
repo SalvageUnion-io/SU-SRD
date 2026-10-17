@@ -10,7 +10,7 @@ export type ClusterProps = ComponentPropsWithoutRef<'div'> & {
 /**
  * CLUSTER — children in a row that wraps, centred on the cross axis, a space
  * step apart: a line of buttons, chips or stamps (`.su-cluster`,
- * `styles/partials/layout.css`). Anything else rides `style`.
+ * `styles/partials/foundation.css`). Anything else rides `style`.
  */
 export function Cluster({ gap, className, ...rest }: ClusterProps) {
   return <div {...rest} className={cn('su-cluster', className)} data-gap={gap} />

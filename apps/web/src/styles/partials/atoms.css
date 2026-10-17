@@ -65,7 +65,7 @@
 }
 
 /* `Eyebrow` (`atoms/Eyebrow.tsx`), after `capsLabel`: the small caps label's
- * five tones. `muted` is `wkMuted`, the secondary tone that clears AA on every
+ * three tones. `muted` is `wkMuted`, the secondary tone that clears AA on every
  * light ground. */
 .su-eyebrow--ink {
   color: var(--color-ink);
@@ -75,12 +75,6 @@
 }
 .su-eyebrow--tone-deep {
   color: var(--tone-deep, var(--color-ink));
-}
-.su-eyebrow--bad {
-  color: var(--color-status-bad);
-}
-.su-eyebrow--paper {
-  color: var(--color-paper);
 }
 
 /* `POSTER_STAMP` (`atoms/posterStamp.ts`), after `capsLabel`: the wrapping

@@ -62,9 +62,9 @@ export { Conditions } from './atoms/Conditions'
 export { CountStepper } from './atoms/CountStepper'
 export type { ChapterTone } from './atoms/chapterBandColor'
 export { CHAPTER_BAND_COLOR } from './atoms/chapterBandColor'
-// FieldError — the one single-message validation line (role="alert", danger tone)
 export { Eyebrow } from './atoms/Eyebrow'
 export { Field, Select } from './atoms/Field'
+// FieldError — the one single-message validation line (role="alert", danger tone)
 export { FieldError } from './atoms/FieldError'
 // Skeletons
 export { Ghost } from './atoms/Ghost'

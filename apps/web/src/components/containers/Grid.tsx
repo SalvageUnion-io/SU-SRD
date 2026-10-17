@@ -16,7 +16,7 @@ export type GridProps = ComponentPropsWithoutRef<'div'> & {
 
 /**
  * GRID — as many equal columns as fit at `min` wide, without a media query
- * (`.su-grid`, `styles/partials/layout.css`; the measure is `--su-grid-min`).
+ * (`.su-grid`, `styles/partials/foundation.css`; the measure is `--su-grid-min`).
  * Anything else (an alignment, a measure of its own) rides `style`.
  */
 export function Grid({ min, gap, className, style, ...rest }: GridProps) {

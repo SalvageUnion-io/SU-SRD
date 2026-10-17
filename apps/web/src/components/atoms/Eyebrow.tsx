@@ -5,14 +5,12 @@ import { capsLabel } from './capsLabel'
 /**
  * The tones an eyebrow is printed in. `muted` is `wkMuted`, the secondary-text
  * tone that clears WCAG AA on every light ground; `toneDeep` follows the
- * sheet's `--tone-deep`, falling back to ink; `paper` is for a dark band.
+ * sheet's `--tone-deep`, falling back to ink.
  */
 const TONE = {
   ink: 'su-eyebrow--ink',
   muted: 'su-eyebrow--muted',
   toneDeep: 'su-eyebrow--tone-deep',
-  bad: 'su-eyebrow--bad',
-  paper: 'su-eyebrow--paper',
 } as const
 
 type EyebrowTone = keyof typeof TONE
@@ -36,7 +34,7 @@ const EYEBROW = cn('su-eyebrow', capsLabel({ size: 'badge', tracking: 'caps' }))
 
 /**
  * The small condensed-caps label over or beside a value, a field or a list:
- * one size (badge), one weight (bold), one tracking (`caps`), in one of five
+ * one size (badge), one weight (bold), one tracking (`caps`), in one of three
  * tones.
  */
 export function Eyebrow({

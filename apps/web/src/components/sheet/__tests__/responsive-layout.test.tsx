@@ -102,10 +102,9 @@ describe('Sheet responsive layout — wired composition (LiveSheet shell)', () =
     )
     // The old right-column macro grid is removed.
     expect(container.querySelector('[class*="54fr"]')).toBeNull()
-    // The crawler body's region flow is a single column.
+    // The crawler body's region flow is a single column (a `Stack`).
     const flow = container.querySelector('section[aria-label$="crawler sheet"] > div')
-    expect(flow).toBeTruthy()
-    expect((flow as HTMLElement).style.flexDirection).toBe('column')
+    expect(flow?.classList.contains('su-stack')).toBe(true)
     // The storage band is present. Asserted on its CONTENT rather than the
     // words "Storage Bay": storage now renders inside the Storage Bay's own bay
     // card when that bay is installed, and as a standalone band when it is not

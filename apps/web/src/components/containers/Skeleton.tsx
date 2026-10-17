@@ -52,34 +52,14 @@ const ROWS = {
   listStyle: 'none',
 } satisfies CSSProperties
 
-/** Tile's frame (`entity/forms/Tile`): the art at 3:4 over the name band. */
-const TILE = {
-  overflow: 'hidden',
-  display: 'flex',
-  flexDirection: 'column',
-  borderStyle: 'solid',
-  borderWidth: borderWidth.chrome,
-  borderColor: color.ink15,
-  backgroundColor: color.paper,
-} satisfies CSSProperties
-
-const TILE_ART = { aspectRatio: '3 / 4', borderRadius: 0 } satisfies CSSProperties
-
-const TILE_BAND = {
-  display: 'flex',
-  alignItems: 'center',
-  backgroundColor: color.ink10,
-  padding: `${space[8]} ${space[12]}`,
-} satisfies CSSProperties
-
 const CARD_BODY = { padding: space[8] } satisfies CSSProperties
 
-type SkeletonShape = 'card' | 'row' | 'rows' | 'tile'
+type SkeletonShape = 'card' | 'rows'
 
 type SkeletonProps = {
   /**
-   * The form it stands in for: 'card' (default) the compact card; 'row' one
-   * Row; 'rows' a list of `count` Rows; 'tile' one catalog Tile.
+   * The form it stands in for: 'card' (default) the compact card; 'rows' a
+   * list of `count` Rows.
    */
   shape?: SkeletonShape
   /** 'rows' only: how many Rows (default 3). */
@@ -88,7 +68,7 @@ type SkeletonProps = {
   label?: string
 }
 
-/** One Row-shaped ghost plate, unannounced: the unit 'row' and 'rows' (and
+/** One Row-shaped ghost plate, unannounced: the unit 'rows' (and
  * `RosterSkeleton`'s columns) are built from. */
 export function GhostRow() {
   return (
@@ -115,24 +95,13 @@ function CardGhost() {
   )
 }
 
-function TileGhost() {
-  return (
-    <>
-      <Ghost style={TILE_ART} />
-      <div style={TILE_BAND}>
-        <Ghost style={{ width: '60%', height: space[16], backgroundColor: color.ink20 }} />
-      </div>
-    </>
-  )
-}
-
 /**
  * Skeleton — the generic loading placeholder (ruleset §"Skeleton").
  *
  * Mirrors the anatomy of the form it stands in for with **ink-alpha ghosts on
  * off-white**, so the loaded content drops in with **zero layout shift**: the
- * compact (medium) card's frame / band / body by default, or a Row, a list of
- * Rows, or a catalog Tile. The pulse is `.su-pulse`, which a reduced-motion
+ * compact (medium) card's frame / band / body by default, or a list of Rows.
+ * The pulse is `.su-pulse`, which a reduced-motion
  * reader never sees.
  */
 export function Skeleton({ shape = 'card', count = 3, label = 'Loading' }: SkeletonProps) {
@@ -148,21 +117,9 @@ export function Skeleton({ shape = 'card', count = 3, label = 'Loading' }: Skele
       </ul>
     )
   }
-  if (shape === 'row') {
-    return (
-      <div role="status" aria-label={label} className="su-pulse">
-        <GhostRow />
-      </div>
-    )
-  }
   return (
-    <div
-      role="status"
-      aria-label={label}
-      className="su-pulse"
-      style={shape === 'tile' ? TILE : CARD}
-    >
-      {shape === 'tile' ? <TileGhost /> : <CardGhost />}
+    <div role="status" aria-label={label} className="su-pulse" style={CARD}>
+      <CardGhost />
     </div>
   )
 }
