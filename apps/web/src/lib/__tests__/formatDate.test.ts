@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { formatClock, formatDateTime, formatDay } from '../formatDate'
+import { formatAgo, formatClock, formatDateTime, formatDay } from '../formatDate'
 
 const TS = Date.UTC(2026, 9, 14, 13, 5)
 
@@ -19,5 +19,12 @@ describe('formatDate', () => {
 
   test('a day names its year', () => {
     expect(formatDay(TS)).toContain('2026')
+  })
+
+  test('ago says when, in words', () => {
+    expect(formatAgo(0, 30_000)).toBe('just now')
+    expect(formatAgo(0, 2 * 60_000)).toBe('2 min ago')
+    expect(formatAgo(0, 3 * 60 * 60_000)).toBe('3 h ago')
+    expect(formatAgo(0, 49 * 60 * 60_000)).toBe('2 days ago')
   })
 })

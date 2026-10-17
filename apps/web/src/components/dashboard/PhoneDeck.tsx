@@ -6,7 +6,7 @@
  *  - **Filters** sit above the rows and wrap; there is no horizontal
  *    scroller. Range is four `aria-pressed` keys (it is seat state, shared
  *    with the crew), then timing, then source.
- *  - **A row** is the action's `ReferenceEntityCard` at its head extent. Its
+ *  - **A row** is a `DeckRow`: the action's card at its head extent. Its
  *    pennant is the action button: it opens the action AND pays for it
  *    (`onActivate`), the same `activate` the resolve's own pennant calls. The
  *    row's body opens it without paying (`onOpen`). Either way the resolve
@@ -19,9 +19,9 @@
 
 import type { CSSProperties } from 'react'
 import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
-import type { ReferenceEntityControl } from '../index'
-import { EmptyState, ReferenceEntityCard, Stack, Toggle, ToggleGroup } from '../index'
+import { EmptyState, Stack, Toggle, ToggleGroup } from '../index'
 import type { DeckListModel } from './DeckList'
+import { DeckRow } from './DeckRow'
 
 const HEADING = {
   margin: 0,
@@ -54,15 +54,6 @@ const ROWS = {
   listStyle: 'none',
   margin: 0,
   padding: 0,
-} satisfies CSSProperties
-
-const LOCKED = { opacity: 0.6 } satisfies CSSProperties
-
-const LOCK_NOTE = {
-  margin: `${space[4]} 0 0`,
-  fontFamily: font.body,
-  fontSize: fontSize.caption,
-  color: color.ink,
 } satisfies CSSProperties
 
 export function PhoneDeck({
@@ -133,35 +124,19 @@ export function PhoneDeck({
         <EmptyState variant="quiet" body="No actions match this filter." />
       ) : (
         <ul style={ROWS}>
-          {view.rows.map((row) => {
-            const pennant: ReferenceEntityControl = {
-              key: 'activate',
-              pennant: true,
-              label: 'Activate',
-              onClick: () => onActivate(row.key),
-              disabled: row.locked,
-            }
-            return (
-              <li key={row.key} data-deck-key={row.key} style={row.locked ? LOCKED : undefined}>
-                <ReferenceEntityCard
-                  data={row.entity}
-                  // `compact` at the head extent is the one-line listing row
-                  // (ruleset §1 Listing): it spans the column, truncates a
-                  // long name with its full name in a tooltip, and keeps the
-                  // pennant right-aligned. `mini` is the shortform pill,
-                  // which sizes to its content.
-                  size="compact"
-                  extent="head"
-                  // The Dashboard stays flat: no speckle.
-                  texture={false}
-                  controls={[pennant]}
-                  cardClickLabel={`Open ${row.name}`}
-                  onCardClick={() => onOpen(row.key)}
-                />
-                {row.locked && row.lockTitle ? <p style={LOCK_NOTE}>{row.lockTitle}</p> : null}
-              </li>
-            )
-          })}
+          {view.rows.map((row) => (
+            <DeckRow
+              key={row.key}
+              row={row}
+              lock="note"
+              pennant={{
+                label: 'Activate',
+                onClick: () => onActivate(row.key),
+                disabledWhenLocked: true,
+              }}
+              onOpen={() => onOpen(row.key)}
+            />
+          ))}
         </ul>
       )}
     </Stack>

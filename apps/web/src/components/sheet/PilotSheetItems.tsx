@@ -19,9 +19,10 @@ import {
 import type { useEntityStore } from '../../stores/entityStore'
 import type { ChoiceSelections } from '../index'
 import {
+  AdderBox,
+  AdderField,
   Button,
   Entity,
-  Eyebrow,
   Input,
   Panel,
   ReferenceEntityCard,
@@ -86,27 +87,10 @@ const ENTRY_NOTE = {
   lineHeight: 'calc(1 / 0.75)',
 } satisfies CSSProperties
 
-const ADDER = {
-  alignItems: 'center',
-  border: `${tokens.borderWidth.chrome} dashed ${tokens.color.wkFaint}`,
-  borderRadius: tokens.radius.card,
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[8],
-  padding: tokens.space[10],
-} satisfies CSSProperties
-
 /** The adder's inputs, a rung smaller than the `Input` skin. */
 const NAME_INPUT = { flex: '1 1 0%', width: '9rem' } satisfies CSSProperties
 
 const NUMBER_INPUT = { width: '3.5rem' } satisfies CSSProperties
-
-/** A label's place beside its field. */
-const ADDER_LABEL = {
-  alignItems: 'center',
-  display: 'flex',
-  gap: tokens.space[4],
-} satisfies CSSProperties
 
 /** Per-item condition cycle (Intact → Damaged → Destroyed → Intact). */
 const CONDITION_CYCLE: Record<ItemCondition, ItemCondition> = {
@@ -422,7 +406,7 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
   }
 
   return (
-    <div style={ADDER}>
+    <AdderBox>
       <Button
         size="compact"
         aria-label="Add Scrap (3 slots)"
@@ -441,8 +425,7 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
         onChange={(e) => setName(e.target.value)}
         style={NAME_INPUT}
       />
-      <Eyebrow as="label" tone="muted" htmlFor="new-item-slots" style={ADDER_LABEL}>
-        Slots
+      <AdderField label="Slots" htmlFor="new-item-slots">
         <Input
           size="compact"
           id="new-item-slots"
@@ -454,9 +437,8 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
           onChange={(e) => setSlots(Number(e.target.value))}
           style={NUMBER_INPUT}
         />
-      </Eyebrow>
-      <Eyebrow as="label" tone="muted" htmlFor="new-item-qty" style={ADDER_LABEL}>
-        Qty
+      </AdderField>
+      <AdderField label="Qty" htmlFor="new-item-qty">
         <Input
           size="compact"
           id="new-item-qty"
@@ -468,7 +450,7 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
           onChange={(e) => setQty(Math.max(1, Number(e.target.value)))}
           style={NUMBER_INPUT}
         />
-      </Eyebrow>
+      </AdderField>
       <Button
         size="compact"
         disabled={!name.trim()}
@@ -477,7 +459,7 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
       >
         Add
       </Button>
-    </div>
+    </AdderBox>
   )
 }
 

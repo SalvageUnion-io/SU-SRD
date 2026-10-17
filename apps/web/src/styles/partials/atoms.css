@@ -255,3 +255,12 @@
 .su-stat-provenance__trigger.su-vital-gauge__prov-info:hover {
   color: var(--color-ink);
 }
+
+/* TONE STRIP (`atoms/ToneStrip.tsx`): the 8px colour band opening a section
+   from above, framed on three sides; the section's own rule closes it. */
+.su-tone-strip {
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-bottom: 0;
+  display: block;
+  height: 8px;
+}

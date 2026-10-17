@@ -12,18 +12,8 @@
  */
 
 import type { CSSProperties } from 'react'
-import {
-  borderWidth,
-  color,
-  font,
-  fontSize,
-  radius,
-  space,
-  tracking,
-  weight,
-} from '../../design/tokens'
-import { formatClock } from '../../lib/formatDate'
-import { EmptyState, Eyebrow } from '../index'
+import { space } from '../../design/tokens'
+import { EmptyState, Eyebrow, FeedLine, FeedList, FeedTime } from '../index'
 import type { AlertLine, RollLine } from './useGameFeed'
 
 const SCROLL = {
@@ -37,39 +27,6 @@ const SCROLL = {
 
 const HEADING = { margin: `0 0 ${space[6]}` } satisfies CSSProperties
 
-const LIST = {
-  listStyle: 'none',
-  margin: 0,
-  padding: 0,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: space[4],
-} satisfies CSSProperties
-
-const ROW = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '1px',
-  padding: `${space[4]} ${space[8]}`,
-  border: `${borderWidth.chrome} solid ${color.ink20}`,
-  borderRadius: radius.card,
-} satisfies CSSProperties
-
-const META = {
-  fontFamily: font.cond,
-  fontWeight: weight.bold,
-  fontSize: fontSize.badge,
-  letterSpacing: tracking.capsTight,
-  textTransform: 'uppercase',
-  color: color.ink75,
-} satisfies CSSProperties
-
-const TEXT = {
-  fontFamily: font.body,
-  fontSize: fontSize.note,
-  color: color.ink,
-} satisfies CSSProperties
-
 const SOURCE: Record<string, string> = { dashboard: 'Dashboard', 'discord-bot': 'Discord' }
 
 export function LogTab({ rolls, alerts }: { rolls: RollLine[] | null; alerts: AlertLine[] }) {
@@ -80,14 +37,13 @@ export function LogTab({ rolls, alerts }: { rolls: RollLine[] | null; alerts: Al
           <Eyebrow as="h3" tone="muted" id="dash-log-alerts" style={HEADING}>
             From the Mediator
           </Eyebrow>
-          <ul style={LIST}>
+          <FeedList>
             {alerts.map((a) => (
-              <li key={a._id} style={ROW}>
-                <span style={META}>{formatClock(a.ts)}</span>
-                <span style={TEXT}>{a.message}</span>
-              </li>
+              <FeedLine key={a._id} head={<FeedTime ts={a.ts} format="clock" />}>
+                {a.message}
+              </FeedLine>
             ))}
-          </ul>
+          </FeedList>
         </section>
       ) : null}
 
@@ -100,18 +56,24 @@ export function LogTab({ rolls, alerts }: { rolls: RollLine[] | null; alerts: Al
         ) : rolls.length === 0 ? (
           <EmptyState variant="quiet" body="No rolls yet. Every roll at this table lands here." />
         ) : (
-          <ul style={LIST}>
+          <FeedList>
             {rolls.map((r) => (
-              <li key={r._id} style={ROW}>
-                <span style={META}>
-                  {[formatClock(r.ts), r.actorName, SOURCE[r.source] ?? r.source]
-                    .filter((part) => part !== null)
-                    .join(' · ')}
-                </span>
-                <span style={TEXT}>{r.description}</span>
-              </li>
+              <FeedLine
+                key={r._id}
+                head={
+                  <span>
+                    <FeedTime ts={r.ts} format="clock" />
+                    {[r.actorName, SOURCE[r.source] ?? r.source]
+                      .filter((part) => part !== null)
+                      .map((part) => ` · ${part}`)
+                      .join('')}
+                  </span>
+                }
+              >
+                {r.description}
+              </FeedLine>
             ))}
-          </ul>
+          </FeedList>
         )}
       </section>
     </div>

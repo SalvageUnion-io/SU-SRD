@@ -28,11 +28,10 @@ import {
 } from 'cantina-domain/games/proposals'
 import type { CSSProperties, RefObject } from 'react'
 import { useId, useState } from 'react'
-import { Button, Eyebrow, Field, Input, Select, tokens } from '../index'
+import { Button, Eyebrow, FeedList, Field, Input, Select, tokens } from '../index'
 import { MUTED, NUMBERS } from './mediatorStyles.model'
 import { ProposalRow } from './ProposalRow'
 import type { SentProposal } from './proposalLine.model'
-import { PROPOSAL_LIST } from './proposalLine.model'
 
 const { color, space } = tokens
 
@@ -215,11 +214,11 @@ export function ProposeDock({
           <span className="su-sr-only" role="status" aria-live="polite">
             {recent[0] ? `Newest proposal: ${PROPOSAL_STATE_WORD[recent[0].state]}` : ''}
           </span>
-          <ul style={PROPOSAL_LIST}>
+          <FeedList>
             {recent.map((p) => (
               <ProposalRow key={p._id} proposal={p} now={now} showTime={false} />
             ))}
-          </ul>
+          </FeedList>
         </section>
       )}
     </section>

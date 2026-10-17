@@ -106,6 +106,8 @@ export type { ProvenanceLine } from './atoms/StatProvenance'
 export { Tab, TabList, TabPanel, Tabs, Toggle, ToggleGroup } from './atoms/Tabs'
 // Base typography
 export { Text } from './atoms/Text'
+// ToneStrip — the 8px colour band that opens a section from above (§3.10).
+export { ToneStrip } from './atoms/ToneStrip'
 // USER_MADE_HATCH — the hatch a user-made page wears on its colour bands
 // (ruleset §3.9): ChapterBand's `userMade`, and the page's hatched foot.
 export { USER_MADE_HATCH } from './atoms/userMadeHatch'
@@ -171,6 +173,8 @@ export type { TreeTrack } from './compositions/treeTrack'
 export { trackForTree } from './compositions/treeTrack'
 export type { SearchComboboxResult } from './compositions/useSearchCombobox'
 export { useSearchCombobox } from './compositions/useSearchCombobox'
+// AdderBox — the dashed "+ add" intake under a list; AdderField labels a field in it.
+export { AdderBox, AdderField } from './containers/AdderBox'
 export { Banner } from './containers/Banner'
 // Callout — accent-framed note (stamp header + accent-bar body); list-items,
 // "When Damaged" effects, and similar accented notes compose on it.
@@ -188,6 +192,9 @@ export { ConfirmDialog } from './containers/ConfirmDialog'
 export { DialogActions } from './containers/DialogActions'
 // EmptyState — dashed stamp-headline empty slot (ruleset §"Empty state")
 export { EmptyState } from './containers/EmptyState'
+// FeedLine — one entry in a feed (a roll, an alert, a proposal, a change) in
+// a FeedList; FeedTime writes its time in the format that feed reads in.
+export { FeedLine, FeedList, FeedTime } from './containers/FeedLine'
 export { Grid } from './containers/Grid'
 // HeaderMenu — a dropdown menu (Base UI's menu button): the Union bar's account
 // and Games menus, and the "⋯" overflow on a row.

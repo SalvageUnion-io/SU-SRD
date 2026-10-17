@@ -11,11 +11,10 @@
 
 import { PROPOSALS_PAGE } from 'cantina-domain/games/proposals'
 import type { CSSProperties } from 'react'
-import { Button, EmptyState, tokens } from '../index'
+import { Button, EmptyState, FeedList, tokens } from '../index'
 import { MUTED } from './mediatorStyles.model'
 import { ProposalRow } from './ProposalRow'
 import type { SentProposal } from './proposalLine.model'
-import { PROPOSAL_LIST } from './proposalLine.model'
 
 const { space } = tokens
 
@@ -42,11 +41,11 @@ export function ProposalsList({
   if (proposals.length === 0) return <EmptyState variant="quiet" body={empty} />
   return (
     <div style={COLUMN}>
-      <ul style={PROPOSAL_LIST} aria-label="Proposals">
+      <FeedList label="Proposals">
         {proposals.map((p) => (
           <ProposalRow key={p._id} proposal={p} now={now} />
         ))}
-      </ul>
+      </FeedList>
       {proposals.length >= limit && (
         <Button variant="ghost" size="compact" style={MORE} onClick={onMore}>
           Show {PROPOSALS_PAGE} more

@@ -17,7 +17,7 @@
  *    folded, the Starter Set, read-only, as the front door shows it
  *    (`StarterShelf`).
  *
- * Each item is a library Row (`ShelfPill`) with its chips and a ⋯ menu: Open, Move
+ * Each item is a library Row (`UnitRow`) with its chips and a ⋯ menu: Open, Move
  * to a Game…, Make a copy, Save as pattern (mechs), Export and Delete…. Every
  * verb that changes what you have asks first, through the page's one confirm,
  * which has to outlive the menu that asked.

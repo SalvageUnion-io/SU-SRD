@@ -74,7 +74,8 @@ import { runWrite } from '../../lib/runWrite'
 import { useEntityStore } from '../../stores/entityStore'
 import { DASHBOARD_TXN } from '../../stores/surfaceProvenance'
 import { rollForTable } from '../index'
-import type { DeckListModel, DeckRow } from './DeckList'
+import type { DeckListModel } from './DeckList'
+import type { DeckEntry } from './DeckRow'
 import { recordRoll } from './dashboardRolls.model'
 import type { ResolveModel } from './ResolvePanel'
 import type { PlayStore } from './SlotRow'
@@ -389,7 +390,7 @@ export function useActionsDeck({
       stamp: g.items[0]?.stamp ?? 'SYS',
     }))
 
-    const rows: DeckRow[] = visible.map((action) => {
+    const rows: DeckEntry[] = visible.map((action) => {
       const reachable = actionReachable(action, range, heatCtx.currentHeat, heatCtx.heatCap)
       return {
         key: action.key,

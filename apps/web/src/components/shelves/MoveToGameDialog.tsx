@@ -20,12 +20,12 @@ import type { CSSProperties } from 'react'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import type { MoveTargetGame } from '../../lib/games/gameRoster'
 import { moveDestinations } from '../../lib/games/gameRoster'
-import { serializeContainer } from '../../stores/activeContainerStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
 import type { AssignableType } from '../../stores/types'
+import { ContainerPicker } from '../entityContainer/ContainerPicker'
 import { requestMove } from '../entityContainer/requestMove.model'
-import { Button, ModalShell, Pending, Text, toast, tokens } from '../index'
+import { ModalShell, toast, tokens } from '../index'
 import type { Confirm } from '../shared/useConfirm'
 
 /** What "out of a Game" is called in the Hangar, as on its chip. */
@@ -38,19 +38,6 @@ const BODY = {
   gap: tokens.space[12],
   padding: tokens.space[20],
 } satisfies CSSProperties
-
-const LIST = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[8],
-  listStyle: 'none',
-  margin: 0,
-  padding: 0,
-} satisfies CSSProperties
-
-const WIDE = { justifyContent: 'flex-start', width: '100%' } satisfies CSSProperties
-
-const HINT = { textAlign: 'left' } satisfies CSSProperties
 
 export type MoveSubject = {
   type: AssignableType
@@ -115,28 +102,24 @@ export function MoveToGameDialog({ subject, onClose, games, confirm }: MoveToGam
       title={subject ? `Move ${subject.entity.name}` : 'Move'}
     >
       <div style={BODY}>
-        {games === undefined ? (
-          <Pending label="your Games" />
-        ) : destinations.length === 0 ? (
-          <Text variant="hint" style={HINT}>
-            {subject?.type === 'crawler'
+        <ContainerPicker
+          variant="list"
+          label="Where to"
+          choices={
+            games === undefined
+              ? undefined
+              : destinations.map((d) =>
+                  d.container.kind === 'shelf' ? { ...d, label: UNASSIGNED } : d
+                )
+          }
+          onPick={(choice) => pick(choice.container, choice.label)}
+          loading="your Games"
+          empty={
+            subject?.type === 'crawler'
               ? 'A crawler goes only into a Game you run. Start one with “+ New Game”.'
-              : 'You are in no Game to move it to. Start one with “+ New Game”, or join one from an invite link.'}
-          </Text>
-        ) : (
-          <ul style={LIST} aria-label="Where to">
-            {destinations.map((d) => {
-              const label = d.container.kind === 'shelf' ? UNASSIGNED : d.label
-              return (
-                <li key={serializeContainer(d.container)}>
-                  <Button style={WIDE} onClick={() => pick(d.container, label)}>
-                    {label}
-                  </Button>
-                </li>
-              )
-            })}
-          </ul>
-        )}
+              : 'You are in no Game to move it to. Start one with “+ New Game”, or join one from an invite link.'
+          }
+        />
       </div>
     </ModalShell>
   )

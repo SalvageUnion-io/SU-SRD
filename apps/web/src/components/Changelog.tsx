@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 import { color, font, fontSize, space } from '../design/tokens'
-import { CHAPTER_BAND_COLOR, EmptyState, Head, InlineMarkdown } from './index'
+import { CHAPTER_BAND_COLOR, EmptyState, InlineMarkdown, TitledBox } from './index'
 
 const LIST = {
   display: 'flex',
@@ -44,10 +44,9 @@ const BAND = {
 /**
  * Presentational, data-source-agnostic renderer for `/changelog`.
  *
- * Each entry is a framed card with the cut-out head every other card wears
- * (the shared `Head`): a band in the page's rules blue, the date notched into
- * its foot on a tab of the paper below (in ink). The bullets are the paper body the tab opens into. The frame is
- * `.su-changelog__entry`.
+ * Each entry is a `TitledBox`, the cut-out head every other card wears: a band
+ * in the page's rules blue, the date notched into its foot on a tab of the
+ * paper below (in ink). The bullets are the paper body the tab opens into.
  */
 export function Changelog({ entries }: ChangelogProps) {
   if (entries.length === 0) {
@@ -58,16 +57,15 @@ export function Changelog({ entries }: ChangelogProps) {
     <ol style={LIST}>
       {entries.map((entry) => (
         <li key={entry.date}>
-          <article className="su-changelog__entry">
-            {/* `h2`: each entry is a direct division of the changelog, under
-                its one `h1`. */}
-            <Head
-              title={entry.date}
-              titleContent={<time dateTime={entry.date}>{entry.date}</time>}
-              titleAs="h2"
-              paint={BAND}
-              notch
-            />
+          {/* `h2`: each entry is a direct division of the changelog, under
+              its one `h1`. */}
+          <TitledBox
+            as="article"
+            title={entry.date}
+            titleContent={<time dateTime={entry.date}>{entry.date}</time>}
+            titleAs="h2"
+            paint={BAND}
+          >
             <ul className="su-changelog__items" style={ITEMS}>
               {entry.items.map((item) => (
                 <li key={item}>
@@ -75,7 +73,7 @@ export function Changelog({ entries }: ChangelogProps) {
                 </li>
               ))}
             </ul>
-          </article>
+          </TitledBox>
         </li>
       ))}
     </ol>

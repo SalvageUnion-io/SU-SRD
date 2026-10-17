@@ -6,7 +6,7 @@ import type { CargoLot } from 'cantina-domain/schemas/cargoLot'
 import { makeScrapLot, makeUnitLot } from 'cantina-domain/schemas/cargoLot'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
-import { Button, Eyebrow, Input, Segmented, SegmentedOption, tokens } from '../index'
+import { AdderBox, AdderField, Button, Input, Segmented, SegmentedOption, tokens } from '../index'
 
 /** A slot cost is a non-negative INTEGER (`CargoLotSchema.units` is `.int()`). */
 function coerceSlots(raw: string): number {
@@ -16,23 +16,8 @@ function coerceSlots(raw: string): number {
 
 // — The intake form —
 
-const ADDER = {
-  marginTop: tokens.space[12],
-  display: 'flex',
-  flexWrap: 'wrap',
-  alignItems: 'center',
-  gap: tokens.space[8],
-  borderRadius: tokens.radius.card,
-  border: `${tokens.borderWidth.chrome} dashed ${tokens.color.wkFaint}`,
-  padding: tokens.space[10],
-} satisfies CSSProperties
-
-/** A label's place beside its field. */
-const ADDER_LABEL = {
-  alignItems: 'center',
-  display: 'flex',
-  gap: tokens.space[4],
-} satisfies CSSProperties
+/** The intake sits 12px under the manifest. */
+const ADDER = { marginTop: tokens.space[12] } satisfies CSSProperties
 
 /** A compact `Input`: tighter and smaller than its own skin. */
 const NAME_INPUT = { width: '144px', flex: 1 } satisfies CSSProperties
@@ -90,7 +75,7 @@ export function HoldAdder({
   }
 
   return (
-    <div style={ADDER}>
+    <AdderBox style={ADDER}>
       {/* Kind toggle — Cargo (named lot) vs Scrap (TL bulk lot). */}
       <Segmented label="Cargo kind" size="compact">
         {(['cargo', 'scrap'] as const).map((k) => (
@@ -114,8 +99,7 @@ export function HoldAdder({
           style={NAME_INPUT}
         />
       ) : (
-        <Eyebrow as="label" tone="muted" htmlFor={tlId} style={ADDER_LABEL}>
-          Tech
+        <AdderField label="Tech" htmlFor={tlId}>
           <Input
             size="compact"
             id={tlId}
@@ -129,11 +113,10 @@ export function HoldAdder({
             onChange={(e) => setTl(coerceTl(e.target.value))}
             style={NUMBER_INPUT}
           />
-        </Eyebrow>
+        </AdderField>
       )}
 
-      <Eyebrow as="label" tone="muted" htmlFor={slotsId} style={ADDER_LABEL}>
-        {kind === 'scrap' ? 'Qty' : 'Slots'}
+      <AdderField label={kind === 'scrap' ? 'Qty' : 'Slots'} htmlFor={slotsId}>
         <Input
           size="compact"
           id={slotsId}
@@ -150,7 +133,7 @@ export function HoldAdder({
           onChange={(e) => setAmount(coerceSlots(e.target.value))}
           style={NUMBER_INPUT}
         />
-      </Eyebrow>
+      </AdderField>
       <Button
         size="compact"
         disabled={!canCommit}
@@ -159,6 +142,6 @@ export function HoldAdder({
       >
         {verb}
       </Button>
-    </div>
+    </AdderBox>
   )
 }

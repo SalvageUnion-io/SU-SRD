@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { CHAPTER_REFS } from '../lib/chapters'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
-import { CHAPTER_BAND_COLOR, ChapterBand, Slab } from './index'
+import { CHAPTER_BAND_COLOR, ChapterBand, Slab, ToneStrip } from './index'
 
 /** A section's slab: the section's own gap spaces it. */
 const SLAB = { marginBottom: 0 } satisfies CSSProperties
@@ -67,11 +67,7 @@ export function NotFound({ search, didYouMean, back }: NotFoundProps) {
                     chapter's colour over its name (ruleset §3.10: colour
                     rides in top bands, never a left rail). */}
                 <a href={chapter.href} className="su-not-found__chapter">
-                  <span
-                    aria-hidden="true"
-                    className="su-contents__band"
-                    style={{ backgroundColor: CHAPTER_BAND_COLOR[chapter.tone] }}
-                  />
+                  <ToneStrip color={CHAPTER_BAND_COLOR[chapter.tone]} />
                   <span className="su-not-found__chapter-name">{chapter.title}</span>
                 </a>
               </li>

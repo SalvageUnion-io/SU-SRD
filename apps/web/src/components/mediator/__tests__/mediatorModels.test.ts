@@ -16,7 +16,7 @@ import {
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { instanceName, newTrayNpc, readSavedPattern, readTrayNpc } from '../opposition.model'
 import type { SentProposal } from '../proposalLine.model'
-import { ago, proposalLine } from '../proposalLine.model'
+import { proposalLine } from '../proposalLine.model'
 import { seatSummary, tableSeats } from '../seatCards.model'
 import { TABLE_CREW, TABLE_MEMBERS, TABLE_SEATS } from './tableFixture'
 
@@ -128,13 +128,6 @@ describe('a sent proposal', () => {
     expect(proposalLine({ ...row, mine: false, actorName: 'Alex', reason: null })).toBe(
       'Judge · HP → 4 · from Alex'
     )
-  })
-
-  test('says when, in words', () => {
-    expect(ago(0, 30_000)).toBe('just now')
-    expect(ago(0, 2 * 60_000)).toBe('2 min ago')
-    expect(ago(0, 3 * 60 * 60_000)).toBe('3 h ago')
-    expect(ago(0, 49 * 60 * 60_000)).toBe('2 days ago')
   })
 })
 

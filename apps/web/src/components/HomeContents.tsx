@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react'
 import type { ChapterTone } from './index'
-import { buttonVariants, CHAPTER_BAND_COLOR, cn, StartHere } from './index'
+import { buttonVariants, CHAPTER_BAND_COLOR, cn, StartHere, ToneStrip } from './index'
 
 /**
  * The home page as the manual's Contents page (board 06): the book's chapters
@@ -33,11 +33,7 @@ export function ContentsChapter({ id, title, tone, rows, total }: ContentsChapte
   const headingId = `${id}-heading`
   return (
     <section id={id} className="su-contents__chapter" aria-labelledby={headingId}>
-      <div
-        aria-hidden="true"
-        className="su-contents__band"
-        style={{ backgroundColor: tone === 'ink' ? 'var(--color-ink)' : CHAPTER_BAND_COLOR[tone] }}
-      />
+      <ToneStrip color={tone === 'ink' ? 'var(--color-ink)' : CHAPTER_BAND_COLOR[tone]} />
       <h2 id={headingId} className="su-contents__heading">
         <span>{title}</span>
         {total !== undefined && <span className="su-contents__total">{total}</span>}

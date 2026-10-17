@@ -2,7 +2,7 @@
  * MoveToContainerControl — live-sheet affordance for moving one entity between
  * **Shelves** (the owner's shelf) and a **Game** (ADR-030 §2).
  *
- * Replaces `AssignToWorkspaceButton`. A select, with Workspaces swapped for the
+ * Replaces `AssignToWorkspaceButton`. A select (`ContainerPicker`), with Workspaces swapped for the
  * two real containers. Moving INTO a Game is one tap unless it clears an
  * assignment; moving OUT of one — back to your shelves, or on to another Game —
  * always asks first. The hub's rows offer the same moves (`MoveToGameSelect`,
@@ -65,12 +65,12 @@ import { color, fontSize, space, weight } from '../../design/tokens'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { moveDestinations } from '../../lib/games/gameRoster'
-import { parseContainer, serializeContainer } from '../../stores/activeContainerStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
 import type { AssignableType } from '../../stores/types'
-import { FieldError, Select } from '../index'
+import { FieldError } from '../index'
 import type { Confirm } from '../shared/useConfirm'
+import { ContainerPicker } from './ContainerPicker'
 import { requestMove } from './requestMove.model'
 
 const ROW = { alignItems: 'center', display: 'flex', gap: space[8] } satisfies CSSProperties
@@ -121,8 +121,6 @@ function ConnectedMoveToContainerControl({
   if (games === undefined && first !== undefined && first.container.kind === 'game') {
     destinations[0] = { ...first, label: '…' }
   }
-  const shelfOptions = destinations.filter((d) => d.container.kind === 'shelf')
-  const gameOptions = destinations.filter((d) => d.container.kind === 'game')
 
   /** A Game's name as the reader knows it, or null when it is not one of theirs. */
   function gameName(gameId: string): string | null {
@@ -137,7 +135,7 @@ function ConnectedMoveToContainerControl({
   const moveNow = useServerAction(move, { failure: 'This build could not be moved. Try again.' })
   const { pending, error } = moveNow
 
-  function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
+  function handlePick(next: Container) {
     // Out of a Game always asks; into one asks only when it clears an
     // assignment (`requestMove`). Either confirm shows a failure on the
     // dialog, which outlives this control, so the move it runs is bare.
@@ -146,11 +144,11 @@ function ConnectedMoveToContainerControl({
       entityId,
       name: entity.name,
       current,
-      next: parseContainer(e.target.value),
+      next,
       gameName,
       confirm,
       move,
-      moveNow: (next) => void moveNow.run(next),
+      moveNow: (to) => void moveNow.run(to),
     })
   }
 
@@ -160,37 +158,21 @@ function ConnectedMoveToContainerControl({
         <label htmlFor={`container-move-${entityId}`} style={LABEL}>
           In:
         </label>
-        <Select
+        {/* A record left in a container that is not among the user's Games —
+            a v13 phantom id, or a Game they have since left — is named
+            "Unknown game" by `moveDestinations` rather than passed off as
+            Shelves, which would be a lie about where it lives. */}
+        <ContainerPicker
+          variant="select"
           id={`container-move-${entityId}`}
-          value={serializeContainer(current)}
-          onChange={handleChange}
+          label="Move to a Game or your Hangar"
+          value={current}
+          choices={destinations}
+          onPick={(choice) => handlePick(choice.container)}
           disabled={pending || destinations.length <= 1}
           className="su-container-select su-move-to-container__select"
           style={SELECT}
-          aria-label="Move to a Game or your Hangar"
-        >
-          {shelfOptions.map((d) => (
-            <option key="shelf" value="shelf">
-              {d.label}
-            </option>
-          ))}
-          {/* A record left in a container that is not among the user's Games —
-              a v13 phantom id, or a Game they have since left — is named
-              "Unknown game" by `moveDestinations` rather than passed off as
-              Shelves, which would be a lie about where it lives. */}
-          {gameOptions.length > 0 && (
-            <optgroup label="Games">
-              {gameOptions.map((d) => (
-                <option
-                  key={serializeContainer(d.container)}
-                  value={serializeContainer(d.container)}
-                >
-                  {d.label}
-                </option>
-              ))}
-            </optgroup>
-          )}
-        </Select>
+        />
       </div>
       {error && <FieldError spaceAbove={4}>{error}</FieldError>}
     </div>
