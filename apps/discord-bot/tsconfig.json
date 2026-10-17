@@ -1,9 +1,11 @@
 {
-  "extends": "../../tsconfig.worker.json",
-  "include": ["src/**/*.ts", "worker-configuration.d.ts"],
-  "exclude": ["node_modules"],
-  "references": [
-    { "path": "../../packages/cantina-domain" },
-    { "path": "../../packages/salvageunion-reference" }
-  ]
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    // The workerd runtime globals. `wrangler types --include-runtime=false`
+    // writes only the Worker's `Env`; under `skipLibCheck` a missing runtime
+    // type is not an error (`R2Bucket` would silently be `any`), so the package
+    // must stay listed here.
+    "types": ["@cloudflare/workers-types", "node", "bun-types"]
+  },
+  "include": ["src/**/*.ts", "worker-configuration.d.ts"]
 }

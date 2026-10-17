@@ -187,7 +187,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Derivations return parts, so provenance shows wherever a value does; duration effects are never persisted.
 30. **ADR-030 Accounts, Games, and a server of record** · [full text](adr/030-accounts-games-server-of-record.md)
     Accepted, governing: Discord-only accounts; Convex of record; Games and Shelves; roles; cross-player writes by proposal.
-    Amends ADR-022; supersedes ADR-001. Amended by ADR-032, ADR-034, ADR-037 and ADR-038 (ADR-039's amendment retired with it).
+    Amends ADR-022; supersedes ADR-001. Amended by ADR-032, ADR-034, ADR-037, ADR-038 and ADR-051 (ADR-039's amendment retired with it).
 31. **ADR-031 srd builds on an in-house Vite SSG**
     Accepted; supersedes ADR-012. Registered routes, `renderToStaticMarkup`, React islands; contract `apps/web/ssg/DESIGN.md`. Amended by ADR-050.
 32. **ADR-032 Public, read-only sheets** · [full text](adr/032-public-read-only-sheets.md)
@@ -208,7 +208,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Amends ADR-030; amended by ADR-044. Code: `packages/cantina-domain/src/links/linkRules.ts`.
 38. **ADR-038 The Dashboard is a Game surface with shared play state** · [full text](adr/038-dashboard-game-surface.md)
     Accepted, built: Game-only with a Mediator; a seat on the Game; Major / Minor slots; fixed 1280×800 canvas.
-    Supersedes ADR-015; amends ADR-029 §4, ADR-030 §5–6 and ADR-034; amended by ADR-045. As built: [dashboard.md](architecture/dashboard.md).
+    Supersedes ADR-015; amends ADR-029 §4, ADR-030 §5–6 and ADR-034; amended by ADR-045, ADR-051. As built: [dashboard.md](architecture/dashboard.md).
 39. **ADR-039 Addressed invites by Discord account**
     Retired with `/su invite`: a Game joins only through its one invite URL (ADR-030), and an addressed row opens nothing.
     Amended ADR-030's invite rules (`convex/model/invites.ts`).
@@ -229,7 +229,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Amends ADR-037. As built: [npc-builder.md](architecture/npc-builder.md).
 45. **ADR-045 The Dashboard has a phone form** · [full text](adr/045-dashboard-phone-form.md)
     Accepted, built: below a 0.62 canvas scale the Dashboard renders a phone form over the same seat, models and enforcement.
-    Amends ADR-038.
+    Amends ADR-038; amended by ADR-051.
 46. **ADR-046 Styling is tokens, style objects and one stylesheet**
     Accepted, built: `theme.css` tokens, `tokens.ts` objects, `index.css` classes, also for styles repeated per page; `no-tailwind` bars Tailwind.
 47. **ADR-047 One salvageunion.io edge Worker**
@@ -242,3 +242,6 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
 50. **ADR-050 One app** · [full text](adr/050-one-app.md)
     Accepted, built: `apps/web` is one app, the pre-rendered reference and the client-rendered Cantina at `/build/`; one source tree, Vite pass, Worker, CSP, head, install and changelog.
     Amends ADR-011, ADR-031, ADR-033 and ADR-048.
+51. **ADR-051 Play mode, a Cockpit** · [full text](adr/051-play-mode.md)
+    Accepted, not built: Play beside Reference and Build; Units | Actions | Crew, Tables, Feed; solo seats.
+    Supersedes ADR-038 §1 and its layout; amends ADR-030 and ADR-045. Design: [play.md](architecture/play.md).

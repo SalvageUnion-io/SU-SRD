@@ -28,7 +28,7 @@ script). For a new schema `<id>` (kebab-case, not already in `lib/schemas/regist
    Then `bun run build:package` regenerates the rest, all gitignored:
    `schemas/<id>.schema.json` and its `schemas/index.json` entry (prose from
    the `.describe()`).
-4. **Verify:** `bun --filter salvageunion-reference typecheck`,
+4. **Verify:** `bun run typecheck`,
    `bun --filter salvageunion-reference test` (the registry-consistency guard:
    a failure there means a missed or mistyped registry entry), and
    `bun run check data` from the root.

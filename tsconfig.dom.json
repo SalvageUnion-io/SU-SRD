@@ -1,9 +1,0 @@
-{
-  // The base for the browser app (`apps/web`): the repo base plus the DOM and JSX.
-  "extends": "./tsconfig.base.json",
-  "compilerOptions": {
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "verbatimModuleSyntax": true,
-    "jsx": "react-jsx"
-  }
-}

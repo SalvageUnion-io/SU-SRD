@@ -46,5 +46,5 @@ on the same commit, per file, before changing the split or the shard count.
 
 Generated output and where `ref-generate` runs:
 `packages/salvageunion-reference/CLAUDE.md` (drift: `bun run check generated`).
-Never add `ref-generate` to another workspace's script: every workspace's
-`typecheck` except the reference package's is plain `tsc -b`.
+Never add `ref-generate` to another workspace's script: the root `typecheck`
+runs it once before `tsc -b`.
