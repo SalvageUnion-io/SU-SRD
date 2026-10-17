@@ -11,10 +11,10 @@
 
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
+import type { RefEntity } from 'salvageunion-reference'
 import type { TrayWrites } from '../OppositionTab'
 import { OppositionTab } from '../OppositionTab'
-import type { EncounterRefSchema, TrayNpc } from '../opposition.model'
+import type { EncounterRefSchema, TrayDraw, TrayNpc } from '../opposition.model'
 import { readTrayNpc } from '../opposition.model'
 
 type Call = { name: keyof TrayWrites; args: unknown[] }
@@ -234,6 +234,21 @@ describe('+ From the reference', () => {
     expect(entity.name).toBe('Wasteland Bear')
   })
 
+  test('a name typed under Draw from goes with the next add, then clears', async () => {
+    await renderTab([])
+    const picker = await openPicker()
+    const name = picker.getByLabelText('Name (optional)') as HTMLInputElement
+    await act(async () => {
+      fireEvent.change(name, { target: { value: 'Red Leader' } })
+    })
+    await click(picker.getByRole('button', { name: 'Add Trooper' }))
+    expect(calls[0]?.args[2]).toEqual({ name: 'Red Leader' })
+    expect(name.value).toBe('')
+    // Left blank, the reference name stands.
+    await click(picker.getByRole('button', { name: 'Add Trooper' }))
+    expect(calls[1]?.args[2]).toEqual({})
+  })
+
   // The Mechs pool is every chassis card at full size: switching to it alone
   // renders for ~2.3s (measured), so one test walks every pattern path and
   // carries a longer timeout.
@@ -264,20 +279,20 @@ describe('+ From the reference', () => {
     await addMule()
     await choose('crusher')
     await click(picker.getByRole('button', { name: 'Add to the field' }))
-    const [schema, entity, drawn] = (calls[0]?.args ?? []) as [
+    const [schema, entity, draw] = (calls[0]?.args ?? []) as [
       EncounterRefSchema,
       RefEntity,
-      RefObjectAnyPattern | undefined,
+      TrayDraw,
     ]
     expect(schema).toBe('chassis')
     expect(entity.name).toBe('Mule')
-    expect(drawn?.name).toBe('Crusher')
+    expect(draw.pattern?.name).toBe('Crusher')
     expect(picker.queryByLabelText('Mule pattern')).toBeNull()
 
     await addMule()
     await choose('')
     await click(picker.getByRole('button', { name: 'Add to the field' }))
-    expect(calls[1]?.args[2]).toBeUndefined()
+    expect(calls[1]?.args[2]).toEqual({})
   }, 20_000)
 
   test('a refused add goes to onFailure', async () => {
