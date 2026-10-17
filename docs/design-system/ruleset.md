@@ -25,11 +25,11 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    3. **Dashboard — the instrument panel** — the only transactional surface: bookkeeping `auto`, destruction `confirm`; every unit mutation writes a Change Log row, every roll a Game log row. Flat: no texture.
       Paper instruments on a dark ground: `--color-ink-deep` ground, `--color-band-cream` for every card, `--color-paper` for the display region alone. On a phone: bar, tab body, resolve screen (ADR-045).
    4. **The cost pennant is the action** — on the Dashboard, tapping the pennant resolves the action: read-pennant size, filled rust, 44px hit area, no separate deck button.
-   5. **Listing — one entity, one click** — the Row (`<Entity form="row">`) is the one rendering for an entity in a list (listing, search, slot, deck, depth 2): art column, one-row head, chip group (E17).
+   5. **Listing — one entity, one click** — the Row (`<Entity form="row">`) is the one rendering for an entity in a list (listing, search, slot, deck) at level 1 (E6): art column, one-row head, chip group (E17).
       Context changes props, never the anatomy; nothing edits or expands in place. An entity without art has no art place (a catalog with art: a censor mark).
       An SRD index draws Tiles (`form="tile"`, EDL E2).
    6. **Peek — the glance** — the Card at compact density (`PeekCard`) on a lifted plate, opened from a `data-peek` Mention or Tag by one `PeekHost` per app.
-      Terminal: no buttons, links, nested Peeks or steppers; children are Tokens (chassis ability: Row), Mentions inert.
+      Terminal: no buttons, links, nested Peeks or steppers; level 1 on its plate, so its children are Tokens (chassis ability contentful, E19), Mentions inert.
    7. **Page — the entity's own route** — on desktop the hero floats and the opening, stats, actions and nested cards flow around it, then run full width, flush with the column.
    8. **Entity forms** — Mention, Token, Row, Card, Page, their modes and rules E1–E20: [entity-display-language.md](entity-display-language.md).
 2. **§2 The rendering matrix** — each role maps to one primitive per surface (Reference → Live Sheet → Dashboard → Listing → Peek).
@@ -85,9 +85,11 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    10. **SlotGrid** — dashed addressable cargo cells: `SlotGrid`.
    11. **Icons** — `currentColor` glyphs: `lucide-react` plus local glyphs. The technique is StampSeam (§7.2): `STAMP_SEAM`.
    - **The entity card: one anatomy, two header fills** — a flush header: the title, its labels right of it (classification pills, User-made; never above it, never riding the frame, never the kind bar a mech sheet's CHASSIS, E9), then its chip group (E17), body only if prose or children remain, foot. Tone header for things you have, ink banner for things you do (E12).
-   - **Actions nest** — framed cards, ink banners, no Actions tray or stamp (on a Page, under an Actions slab); a roll table sits inline under a ROLL THE DIE: bar (nested: a Token, E14).
-   - **Nesting legibility** — nested entities stack in the parent's frame under their own titles, no tray or label naming their kind. One tone each; large → medium → a Row at depth 2 (frames 3 → 2px).
-     A child hides prose its parent shows; below depth 1, actions collapse to "Show N actions".
+   - **Actions nest** — no Actions tray or stamp. On a Page, level 1: compact framed cards, ink banners, under an Actions slab. In a card or Peek, level 2: contentful Tokens (N3), never folded behind a "Show N actions" chip. A roll table sits inline under a ROLL THE DIE: bar (nested: a Token, E14).
+   - **Nesting legibility** — nested entities stack in the parent's frame under their own titles, no tray or label naming their kind, one tone each. Three levels (N1, E6): the page box (Page, dialog, wizard step, Peek plate) → compact Rows or Cards (frames 3 → 2px) → Tokens; nothing titled at level 2 or deeper.
+     A child hides prose its parent shows. Gates: the `entity-nesting` rule set (N2, N3, N5), `apps/web/e2e/nesting-depth.e2e.ts` (N1, N3–N7).
+   - **No titled box inside an entity** (N5) — a non-entity block in an entity is a Slab over content if a section of the parent (When Damaged, Crawler Hold, Scrap Pool), an unlabelled Callout if a note; never a `TitledBox` or its variants (`Inset`, `InfoCutout`, a labelled Callout). On an SRD Page a level-1 block may stay a TitledBox.
+   - **A container of entities is untitled** (N6) — a wizard step is its title and content; the entities in it are the titled things. A dialog's head is its chrome (level 0).
 6. **§6 The merge map** — merge any primitive that does not serve a different reader intent.
    1. **Badge** — folds ValueDisplay, Tag, Pill, Chip, cost pennant, Range, Action-type, TL and the StatusBadge shell.
    2. **Stat** — folds StatControl, inputs, InlineEditField and StatBlock pips: read vs edit is a state.

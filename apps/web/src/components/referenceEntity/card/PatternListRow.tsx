@@ -1,8 +1,7 @@
-import type { ElementType } from 'react'
+import type { CSSProperties, ElementType } from 'react'
 import { useMemo } from 'react'
 import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { firstParagraphText, normalizePatternName, toEntityModel } from 'salvageunion-reference'
-import { space } from '../../../design/tokens'
 import { cn } from '../../../lib/cn'
 import { FOCUS_RING } from '../../atoms/interaction'
 import { Slab } from '../../atoms/Slab'
@@ -19,23 +18,25 @@ import { PatternUniques } from './PatternUniques'
 import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
 import { resolvePatternGroups } from './resolveNestedEntities'
 
+/** The anchor around a pattern's Token fills its line, as the Token does (N4). */
+const LINK = { display: 'block', flex: '1 1 auto', minWidth: 0 } satisfies CSSProperties
+
 /**
- * `PatternListRow` — one row of a host's (a chassis's or a Bio-Titan's)
- * Patterns list, linking to the pattern's own page, with what the pattern
- * changes beneath it (`PatternUniques`).
+ * `PatternListRow` — one entry of a host card's (a chassis's or a
+ * Bio-Titan's) Patterns list: the pattern's TOKEN (inside a card it is named
+ * by its head alone, EDL N2), linking to the pattern's own page. A Token
+ * nests nothing (E6): what the pattern changes (its loadout, a Bio-Titan
+ * pattern's actions) is its Peek's and its Page's, never drawn under it here.
  *
  * A real `<a>`, not a click handler: a pattern page is a page like any other
- * entity's, so the row has to open in a new tab on middle-click, show its
+ * entity's, so the entry has to open in a new tab on middle-click, show its
  * destination on hover, and be followable by a crawler. The anchor carries the
- * interaction; the card inside it takes `cardClickable` for the hover-lift
+ * interaction; the Token inside it takes `cardClickable` for the hover
  * affordance ONLY, which is why it doesn't also become a `role=button` nested
  * inside a link.
  *
  * With no `PatternHrefProvider` above it (any app whose patterns have no pages)
  * the row renders exactly as it always did — inert, not a link to nowhere.
- *
- * The uniques sit OUTSIDE the anchor: their names and cards are links and
- * controls of their own, which cannot nest inside another link.
  */
 function PatternListRow({
   chassis,
@@ -57,40 +58,29 @@ function PatternListRow({
     <NestedCard
       data={chassis}
       pattern={pattern}
-      size="compact"
+      size="mini"
       extent="head"
       depth={depth}
       hostDown={hostDown}
       cardClickable={!!href}
     />
   )
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: space[6] }}>
-      {href ? (
-        <a
-          href={href}
-          aria-label={`${normalizePatternName(pattern.name)} — ${chassisName} pattern`}
-          className={FOCUS_RING}
-          style={{ display: 'block' }}
-        >
-          {card}
-        </a>
-      ) : (
-        card
-      )}
-      <PatternUniques
-        pattern={pattern}
-        depth={depth + 1}
-        hostDown={hostDown}
-        hostName={chassisName}
-        NestedCard={NestedCard}
-      />
-    </div>
+  return href ? (
+    <a
+      href={href}
+      aria-label={`${normalizePatternName(pattern.name)} — ${chassisName} pattern`}
+      className={FOCUS_RING}
+      style={LINK}
+    >
+      {card}
+    </a>
+  ) : (
+    card
   )
 }
 
-/** BASIC HOST → the list of its patterns, as LISTING rows. The card puts
- * them in a "Patterns" tray, the same device as every other nested group. */
+/** BASIC HOST CARD → the list of its patterns, each its Token. A Page lists
+ * them as its own pattern rows instead (`PatternLinkRows`, level 1). */
 export function PatternList({
   chassis,
   chassisName,
@@ -102,25 +92,26 @@ export function PatternList({
   chassis: ReferenceCardEntity
   chassisName: string
   patterns: RefObjectAnyPattern[]
-  /** The depth the rows render at (the host's + 1). */
+  /** The depth the Tokens render at (the host's + 1). */
   depth: number
   hostDown: Down
   NestedCard: NestedCard
 }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: space[14] }}>
+    <ul className="su-entity-token-list">
       {patterns.map((pat) => (
-        <PatternListRow
-          key={pat.name}
-          chassis={chassis}
-          chassisName={chassisName}
-          pattern={pat}
-          depth={depth}
-          hostDown={hostDown}
-          NestedCard={NestedCard}
-        />
+        <li key={pat.name}>
+          <PatternListRow
+            chassis={chassis}
+            chassisName={chassisName}
+            pattern={pat}
+            depth={depth}
+            hostDown={hostDown}
+            NestedCard={NestedCard}
+          />
+        </li>
       ))}
-    </div>
+    </ul>
   )
 }
 
@@ -193,11 +184,9 @@ function PatternLinkRow({
         <PatternUniques
           className="su-pattern-rows__unique"
           pattern={pattern}
-          depth={1}
           hostDown={host.hostDown}
           hostName={chassisName}
           chassisName={host.chassisName}
-          NestedCard={host.NestedCard}
           loadout={false}
         />
       </div>
@@ -207,7 +196,6 @@ function PatternLinkRow({
 
 /** What a page's pattern rows need to render each pattern's uniques. */
 type PatternRowsHost = {
-  NestedCard: NestedCard
   hostDown: Down
   chassisName: string | undefined
 }

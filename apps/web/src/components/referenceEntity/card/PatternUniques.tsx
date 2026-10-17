@@ -1,10 +1,9 @@
 import type { RefObjectAnyPattern } from 'salvageunion-reference'
 import { extractPatternActions, normalizePatternName } from 'salvageunion-reference'
-import { Stack } from '../../index'
 import type { Down } from './cardChrome'
 import { cardKey } from './cardHelpers'
+import { ActionTokens } from './NestedCards'
 import { LoadoutToken } from './PatternLoadout'
-import type { NestedCard } from './referenceEntityCardTypes'
 import { resolvePatternGroups } from './resolveNestedEntities'
 
 /**
@@ -16,9 +15,10 @@ import { resolvePatternGroups } from './resolveNestedEntities'
  * - a MECH pattern's loadout — every system, module and drone it installs, as
  *   the pattern view's full-width Token a line (`LoadoutToken`), multiples repeated
  *   as the pattern view prints them;
- * - a BIO-TITAN pattern's added actions, as embedded action cards — there is
- *   no loadout, and an added rule is the whole of the difference, so it is
- *   printed in full rather than compressed to a name.
+ * - a BIO-TITAN pattern's added actions, as contentful Tokens (N3,
+ *   `ActionTokens`): the pattern is level 1 at most, so they are level 2 —
+ *   there is no loadout, and an added rule is the whole of the difference, so
+ *   it is printed in full rather than compressed to a name.
  *
  * Read off the pattern's shape (`resolvePatternGroups` / `extractPatternActions`
  * each answer empty for the other kind), never the host's schema. Renders
@@ -26,21 +26,16 @@ import { resolvePatternGroups } from './resolveNestedEntities'
  */
 export function PatternUniques({
   pattern,
-  depth,
   hostDown,
   hostName,
   chassisName,
-  NestedCard,
   className,
   loadout: showLoadout = true,
 }: {
   pattern: RefObjectAnyPattern
-  /** The depth the embedded cards render at. */
-  depth: number
   hostDown?: Down
   hostName: string
   chassisName?: string
-  NestedCard: NestedCard
   className?: string
   /** `false` when the caller draws the loadout itself (a page's pattern cards, as Rows). */
   loadout?: boolean
@@ -63,19 +58,13 @@ export function PatternUniques({
         </ul>
       )}
       {actions.length > 0 && (
-        <Stack gap={8}>
-          {actions.map((action, index) => (
-            <NestedCard
-              key={cardKey(action, index)}
-              data={action}
-              size="compact"
-              depth={depth}
-              hostDown={hostDown}
-              hostName={hostName}
-              chassisName={chassisName}
-            />
-          ))}
-        </Stack>
+        <ActionTokens
+          actions={actions}
+          size="compact"
+          hostName={hostName}
+          chassisName={chassisName}
+          hostDown={hostDown}
+        />
       )}
     </div>
   )

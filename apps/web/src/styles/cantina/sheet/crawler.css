@@ -29,25 +29,13 @@
 }
 
 /* ── CrawlerSheet: the Assigned Units body (`SheetSectionSlab` takes a class for
-      its body, not a style). Read is a container-sized grid of listing cards;
-      Edit stacks the full rows. ── */
+      its body, not a style). Read stacks its Tokens one a line, each filling
+      it (N4), as a Token list does; Edit stacks the full rows. ── */
 .su-sheet-crawler-linked-read {
-  column-gap: var(--space-16);
-  display: grid;
-  grid-template-columns: repeat(1, minmax(0, 1fr));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
   min-width: 0;
-}
-
-@container (width >= 48rem) {
-  .su-sheet-crawler-linked-read {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@container (width >= 64rem) {
-  .su-sheet-crawler-linked-read {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
 }
 
 .su-sheet-crawler-linked-edit {

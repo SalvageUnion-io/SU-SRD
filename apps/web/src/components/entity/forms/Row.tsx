@@ -28,11 +28,11 @@ import { usePeekAttrs } from '../peekContext'
 import type { EntityMode, EntityOmit, EntityRowModel } from '../types'
 
 /**
- * What the `ReferenceEntityCard` adapter resolves for itself (its `extent="head"`
- * props, translated). A slot set here replaces what
+ * What a host resolves for the Row (`<Entity form="row">`'s title element,
+ * controls, labels, links and trailing chip). A slot set here replaces what
  * the Row would derive from the model and the mode.
  */
-export type RowSlots = {
+type RowSlots = {
   /** The card's interaction wrapper (`resolveCardInteraction`), in place of the mode's. */
   outer?: CardOuterProps
   /** The card's frame (its weight, dash and selection ring). */

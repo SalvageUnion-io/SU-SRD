@@ -38,7 +38,7 @@ const citeStyle = {
 
 /**
  * RuleBrief — the rule a wizard step (or a blocked Dashboard action) answers
- * to: an untitled `Box` inside the step's own `TitledBox`, the rule text on
+ * to: an untitled `Box` inside the step's own untitled frame, the rule text on
  * its paper and its citation under it. The step's title names the section; the
  * box carries no title of its own (owner's call, 2026-10-17), only the
  * landmark's name for a screen reader.

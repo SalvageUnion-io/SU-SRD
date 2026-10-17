@@ -236,11 +236,13 @@ describe('CrawlerSheet — bay choice cards (Slice B)', () => {
     render(<CrawlerSheet crawler={crawler} store={store} readOnly />)
     expandCards()
 
-    const missile = screen.getByRole('button', { name: /Missile Pod/i })
-    expect(missile.getAttribute('aria-pressed')).toBe('true')
-
-    const autocannon = screen.getByRole('button', { name: /Autocannon/i })
-    expect(autocannon.getAttribute('aria-pressed')).toBe('false')
+    // Read-only inside the bay card (level 2, N1): each option is a Slab over
+    // its text, not a button, and only the persisted pick wears "Chosen".
+    expect(screen.queryByRole('button', { name: /Missile Pod|Autocannon/i })).toBeNull()
+    const seal = screen.getByText('Chosen')
+    expect(seal.parentElement?.parentElement?.textContent).toContain('Missile Pod')
+    expect(screen.getAllByText('Chosen')).toHaveLength(1)
+    expect(screen.getByText(/Autocannon/)).toBeTruthy()
   })
 
   test('readOnly: an unmade pick draws no choice cards, so there is nothing to toggle', async () => {

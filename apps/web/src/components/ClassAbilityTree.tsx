@@ -23,22 +23,30 @@ const classHref = (c: RefClass) => itemHref('classes', getEntitySlug(c))
 const noteFor = (track: TreeTrack) => (track === 'legendary' ? 'Choose 1' : 'Tree')
 
 /**
- * A tree as Rows on its track, under a slab naming it (and, for a branch, its
- * owner). On the class page the slab is an `h2` and each Ability's title an
- * `h3`, the card's own outline (`sectionHeadingLevel`, `nestedTitleLevel` in
- * src/components): a screen-reader user jumps tree to tree and Ability to
- * Ability rather than reading a wall of links (WCAG 1.3.1, 2.4.6).
+ * A tree on its track, under a slab naming it (and, for a branch, its owner).
+ * On the class page the slab is an `h2`, the card's own outline
+ * (`sectionHeadingLevel`, `nestedTitleLevel` in src/components): a
+ * screen-reader user jumps tree to tree rather than reading a wall of links
+ * (WCAG 1.3.1, 2.4.6). At level 1 each Ability is a Row titled with an `h3`;
+ * inside a path card (`form="token"`, level 2: N1) a contentful Token, whose
+ * pill holds no heading.
  */
 function TreeSection({
   tree,
   abilities,
   track,
   note,
-}: AbilityTreeGroup & { track: TreeTrack; note?: string }) {
+  form = 'row',
+}: AbilityTreeGroup & { track: TreeTrack; note?: string; form?: 'row' | 'token' }) {
   return (
     <section className="su-ability-tree__group">
       <Slab variant="solid" as="h2" label={tree} count={note ?? noteFor(track)} />
-      <AbilityTrack abilities={abilities} track={track} titleAs="h3" />
+      <AbilityTrack
+        abilities={abilities}
+        track={track}
+        form={form}
+        {...(form === 'row' ? { titleAs: 'h3' as const } : {})}
+      />
     </section>
   )
 }
@@ -220,8 +228,9 @@ const articleFor = (name: string) => (/^[AEIOU]/i.test(name) ? 'an' : 'a')
  * lists them: Advanced Abilities, then the Hybrid Classes), every one in the
  * same card, one column: a pilot head with its name on the paper cut-out at
  * the band's foot (a Row's, EDL Row) and, right of the name, what opens the
- * path and its kind; then the body, what the path is over its trees as Rows
- * on their tracks. The class's own Advanced
+ * path and its kind; then the body, what the path is over its trees on their
+ * tracks, each Ability a contentful Token (level 2 in this level-1 card: N1,
+ * N3). The class's own Advanced
  * tree is no entity of its own, so its head names where it ends ("Legendary
  * Engineer") and links nowhere; a Hybrid Class's head opens its page.
  */
@@ -258,8 +267,8 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: RefClas
       <div className="su-class-path__body">
         {note && <p className="su-class-path__note">{note}</p>}
         <div className="su-class-path__trees" data-entity-fit="">
-          <TreeSection {...path.advanced} track={hybrid ? 'hybrid' : 'advanced'} />
-          {path.legendary && <TreeSection {...path.legendary} track="legendary" />}
+          <TreeSection {...path.advanced} track={hybrid ? 'hybrid' : 'advanced'} form="token" />
+          {path.legendary && <TreeSection {...path.legendary} track="legendary" form="token" />}
         </div>
       </div>
       {/* Cited as every card's footer cites: text, never chips (EDL E9). */}

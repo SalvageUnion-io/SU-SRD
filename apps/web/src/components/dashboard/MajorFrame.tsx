@@ -186,23 +186,24 @@ const LINE = {
 
 const WARN = { color: 'var(--color-status-bad)', fontWeight: 600 } satisfies CSSProperties
 
-const CHIPS = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  alignContent: 'flex-start',
-  gap: '4px',
-  minHeight: 0,
-  overflowY: 'auto',
-} satisfies CSSProperties
+/** A bay's list scrolls inside the bay when it outgrows it. */
+const SCROLL = { minHeight: 0, overflowY: 'auto' } satisfies CSSProperties
 
 /**
  * A bay of named things with no entity card (a crawler bay whose ref does
  * not resolve) lays them out as TILES in a grid (board D3), not a run of pills.
+ * A bay naming entities lists their Tokens, one a line (N4:
+ * `.su-entity-token-list`).
  */
 const TILES = {
-  ...CHIPS,
+  ...SCROLL,
+  alignContent: 'flex-start',
   display: 'grid',
+  gap: '4px',
   gridTemplateColumns: 'repeat(auto-fill, minmax(118px, 1fr))',
+  listStyle: 'none',
+  margin: 0,
+  padding: 0,
 } satisfies CSSProperties
 
 /**
@@ -296,12 +297,9 @@ function BayBody({ bay }: { bay: BandBay }) {
       {bay.lines && bay.lines.length > 0 && <Lines lines={bay.lines} />}
       {bay.chips && bay.chips.length > 0 && (
         <ul
-          style={{
-            ...(bay.chips.some((c) => c.entity) ? CHIPS : TILES),
-            listStyle: 'none',
-            margin: 0,
-            padding: 0,
-          }}
+          {...(bay.chips.some((c) => c.entity)
+            ? { className: 'su-entity-token-list', style: SCROLL }
+            : { style: TILES })}
         >
           {bay.chips.map((c) =>
             c.entity ? (

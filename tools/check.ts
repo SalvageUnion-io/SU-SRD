@@ -220,12 +220,12 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'styling',
     guards:
-      'design tokens, styling ownership, the stylesheet entry, the su- class prefix, no tech-level header ground',
+      'design tokens, styling ownership, the stylesheet entry, the su- class prefix, no tech-level header ground, entity nesting (N2, N3, N5)',
     fix: "follow the rule's printed fix; `bun tools/check-rule-sets.ts --only=<set> --report` lists every finding",
     cmd: [
       'bun',
       'tools/check-rule-sets.ts',
-      '--only=tokens,styling,srd-css,tone-ground,class-prefix',
+      '--only=tokens,styling,srd-css,tone-ground,class-prefix,entity-nesting',
     ],
     profiles: ALL,
   },

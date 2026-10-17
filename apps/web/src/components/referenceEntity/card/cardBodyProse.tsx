@@ -214,6 +214,7 @@ export function resolveBodyProse(input: CardBodyInput) {
       compact={compact}
       toneColor={tone.bgColor}
       depth={depth}
+      onPage={onPage}
       chassisName={resolvedChassisName}
       NestedCard={NestedCard}
     />

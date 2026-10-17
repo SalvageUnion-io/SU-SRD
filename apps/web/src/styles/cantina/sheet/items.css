@@ -78,15 +78,3 @@
     gap: var(--space-6);
   }
 }
-
-/* The Read inventory (`PILLS` in PilotSheet): every item's Token the list's
-   full width, so a short name and a long one wrapping its chips read as one
-   column of equal pills. */
-.su-sheet-pills .su-entity-token__pill {
-  flex: 1 1 auto;
-}
-
-/* A bay's crew Token keeps its Read width in Edit, Details beside it. */
-.su-sheet-crew .su-entity-token-line > .su-entity-token {
-  flex: 0 1 auto;
-}

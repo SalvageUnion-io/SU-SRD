@@ -2,16 +2,17 @@
 /**
  * Rule-set gates — `bun run check styling` and `bun run check copy`.
  *
- * One engine (`packages/gates/lib/ruleEngine.ts`), one runner, six rule sets:
+ * One engine (`packages/gates/lib/ruleEngine.ts`), one runner, seven rule sets:
  *
  *   - `tokens`       — design-token laws (packages/gates/rules/designTokens.ts)
  *   - `styling`      — src/components owns shared styling (packages/gates/rules/stylingOwnership.ts)
  *   - `srd-css`      — the site's single stylesheet entry (packages/gates/rules/srdCss.ts)
  *   - `tone-ground`  — no tech-level blue as a header ground (packages/gates/rules/toneGround.ts)
  *   - `class-prefix` — every package and app class is `su-*` (packages/gates/rules/classPrefix.ts)
+ *   - `entity-nesting` — entities nest three levels deep, no titled box inside one (packages/gates/rules/entityNesting.ts)
  *   - `copy`         — game terms capitalised as the book does (packages/gates/rules/copyTerms.ts)
  *
- * The `styling` check runs the first five (`--only=` their ids), the `copy`
+ * The `styling` check runs the first six (`--only=` their ids), the `copy`
  * check the last; tools/check.ts registers both.
  *
  * Why these gates exist at all: none of what they catch fails typecheck, lint or
@@ -50,6 +51,7 @@ import {
 import { classPrefix } from 'gates/rules/classPrefix'
 import { copyTerms } from 'gates/rules/copyTerms'
 import { designTokens } from 'gates/rules/designTokens'
+import { entityNesting } from 'gates/rules/entityNesting'
 import { srdCss } from 'gates/rules/srdCss'
 import { stylingOwnership } from 'gates/rules/stylingOwnership'
 import { toneGround } from 'gates/rules/toneGround'
@@ -64,6 +66,7 @@ const RULE_SETS: readonly RuleSet[] = [
   srdCss,
   toneGround,
   classPrefix,
+  entityNesting,
   copyTerms,
 ]
 

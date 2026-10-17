@@ -35,6 +35,12 @@ type TitledBoxProps = Omit<BoxProps, 'head' | 'frameColor'> & {
  * (`ModalShell`), sheet panels (`Inset`, `InfoCutout`), wizard briefs,
  * notices. Entities draw through their own forms (`Row`,
  * `ReferenceEntityCard`), which share the same `Head`.
+ *
+ * Where it may not go (ruleset §5, N5 and N6): inside an entity's Card or
+ * Row, where a section of the entity is a `Slab` over content and a note an
+ * unlabelled `Callout`; nor around a wizard step's entities, since the step is
+ * its title over its content. On an SRD Page a block at level 1 (a bay's When
+ * Damaged) may stay one.
  */
 export function TitledBox({
   title,

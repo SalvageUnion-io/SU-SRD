@@ -100,6 +100,7 @@ const WARN = {
   fontWeight: weight.semibold,
 } satisfies CSSProperties
 
+/** Text chips in a run; a bay naming entities lists their Tokens one a line (N4). */
 const CHIPS = {
   display: 'flex',
   flexWrap: 'wrap',
@@ -244,7 +245,11 @@ function PhoneBay({ bay }: { bay: BandBay }) {
         </p>
       ))}
       {bay.chips && bay.chips.length > 0 && (
-        <ul style={CHIPS}>
+        <ul
+          {...(bay.chips.some((c) => c.entity)
+            ? { className: 'su-entity-token-list' }
+            : { style: CHIPS })}
+        >
           {bay.chips.map((c) =>
             c.entity ? (
               <li key={c.text}>

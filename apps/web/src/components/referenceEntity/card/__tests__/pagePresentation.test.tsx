@@ -233,12 +233,18 @@ describe('the card as a page', () => {
     expect(token.getAttribute('data-peek')).toBe(`crawler-bays:${bay.id}/npc`)
   })
 
-  test('a picker still makes the crew’s choices on a nested NPC card', () => {
+  test('a card’s crew NPC is a Token even under a write layer: level 2 holds Tokens only (N1)', () => {
     const bay = need(SalvageUnionReference.CrawlerBays.getByName('Command Bay'), 'command bay')
     render(<ReferenceEntityCard data={bay} selections={{}} onSelectionChange={() => {}} />)
     const npc = need(bay.npc && 'position' in bay.npc ? bay.npc.position : undefined, 'npc')
-    expect(screen.getAllByText(npc).length).toBeGreaterThan(0)
-    expect(document.querySelector('.su-entity-token')).toBeNull()
+    const token = need(
+      Array.from(document.querySelectorAll('.su-entity-token')).find((t) =>
+        t.textContent?.startsWith(npc)
+      ),
+      'crew token'
+    )
+    expect(token).toBeTruthy()
+    expect(screen.queryByRole('heading', { name: `${npc} (NPC)` })).toBeNull()
   })
 
   test('"When damaged" is a titled box: the label on its cut-out, the effect below', () => {

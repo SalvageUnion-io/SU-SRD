@@ -3,9 +3,10 @@
  * `docs/architecture/npc-builder.md` §4.2).
  *
  * Two columns, as the other user-made pages lay out (board P1): the stat block
- * as the entity card it is — dashed, User-made, "Made by [maker]" — and the
- * identity panel the crawler's bay cards use (`NpcInset`): name, role, current
- * HP, keepsake, motto, description and facts. A full user-made page, so its
+ * as the entity card it is — dashed, User-made, "Made by [maker]" — and its
+ * identity panel (`NpcInset`, at level 1 here; a bay card draws the same lines
+ * under a crew lead's Token): name, role, current HP, keepsake, motto,
+ * description and facts. A full user-made page, so its
  * band is hatched (ruleset §3.9).
  *
  * What the owner edits here is the identity and current HP. The stat block

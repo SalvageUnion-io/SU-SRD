@@ -1,15 +1,8 @@
-import type { CSSProperties } from 'react'
 import type { RefEntity } from 'salvageunion-reference'
-import {
-  getChassisAbilities,
-  replaceChassisPlaceholder,
-  SalvageUnionReference,
-  toEntityModel,
-} from 'salvageunion-reference'
-import { space } from '../../design/tokens'
+import { getChassisAbilities, SalvageUnionReference } from 'salvageunion-reference'
 import type { Down } from '../referenceEntity/card/cardChrome'
+import { ActionTokens } from '../referenceEntity/card/NestedCards'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
-import { Entity } from './Entity'
 import { InsidePeekContext } from './peekContext'
 
 /** What `[(CHASSIS)]` reads when more than one chassis shares the ability. */
@@ -36,44 +29,41 @@ function peekChassisName(entity: RefEntity): string | undefined {
   }
 }
 
-const ABILITY_ROWS = {
-  display: 'grid',
-  gap: space[8],
-  listStyle: 'none',
-  margin: 0,
-  padding: 0,
-} satisfies CSSProperties
-
 /**
  * A chassis's Peek reads its chassis ability, not its patterns (owner's call,
- * 2026-10-14): the ability as a library Row with its lead, as the mech
- * sheet's hero shows it, its `[(CHASSIS)]` naming this chassis ("The Mule").
+ * 2026-10-14). The ability nests in the chassis, so it is a contentful Token
+ * (N3, E19) as any nested action is (`ActionTokens`): its head, then its full
+ * text, its `[(CHASSIS)]` naming this chassis ("The Mule"). In the Peek the
+ * head reads and the roll table is left out (E16).
  */
-function peekChassisAbilities(entity: RefEntity) {
+function peekChassisAbilities(entity: RefEntity, down: Down) {
   const abilities = getChassisAbilities(entity) ?? []
   return abilities.length > 0 ? (
-    <ul aria-label="Chassis ability" style={ABILITY_ROWS}>
-      {abilities.map((ability) => {
-        const model = toEntityModel(ability)
-        const lead = model.lead && replaceChassisPlaceholder(model.lead, entity.name)
-        return (
-          <li key={ability.id}>
-            <Entity form="row" model={{ ...model, ...(lead ? { lead } : {}) }} lead />
-          </li>
-        )
-      })}
-    </ul>
+    <ActionTokens
+      actions={abilities}
+      size="mini"
+      hostName={entity.name}
+      chassisName={entity.name}
+      hostDown={down}
+    />
   ) : undefined
 }
+
+/** A Peek lists no host's patterns (a chassis's, a Bio-Titan's): see `PeekCard`. */
+const PEEK_HIDE = { patterns: true }
 
 /**
  * The PEEK's card (E16): the entity read-only and terminal. It is
  * `ReferenceEntityCard` small, at full extent, flat (no
  * speckle, ruleset §3.5), inside `InsidePeekContext`, which makes everything
  * in it act on nothing: no links (Mentions and Tags go inert), no roll-table
- * controls, no actions chip, children as Tokens, and no Peek inside it. A
- * chassis ability names its chassis (`peekChassisName`), never the raw token. A
- * chassis shows its chassis ability (`peekChassisAbilities`), never its patterns. A
+ * controls, and no Peek inside it. The card is level 1 on its plate (N1, E6),
+ * so everything nested in it is a Token: children, drones, actions (contentful,
+ * `ActionTokens`), choice options and guide ladders. No host lists its
+ * patterns here, a chassis's or a Bio-Titan's: each is a pattern Token with
+ * the actions it adds under it, which a Peek has no room to nest. A chassis
+ * shows its chassis ability instead (`peekChassisAbilities`), its
+ * `[(CHASSIS)]` naming the chassis (`peekChassisName`), never the raw token. A
  * `down` Peek (its trigger damaged or destroyed) paints its band as the trigger does.
  */
 export function PeekCard({ entity, down = false }: { entity: RefEntity; down?: Down }) {
@@ -87,8 +77,8 @@ export function PeekCard({ entity, down = false }: { entity: RefEntity; down?: D
         texture={false}
         chassisName={peekChassisName(entity)}
         hostDown={down}
-        hide={chassis ? { patterns: true } : undefined}
-        afterExtraContent={chassis ? peekChassisAbilities(entity) : undefined}
+        hide={PEEK_HIDE}
+        afterExtraContent={chassis ? peekChassisAbilities(entity, down) : undefined}
       />
     </InsidePeekContext.Provider>
   )

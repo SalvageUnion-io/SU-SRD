@@ -49,20 +49,17 @@ describe('class card rendering', () => {
   })
 
   test('the [Class | KIND] pill stands in for the "Class" type stamp, never beside it', () => {
-    // The list row and the full card alike: one "Class" stamp, the pill's
-    // label cell — not a type stamp reading "Class" before it.
-    for (const extent of ['head', undefined] as const) {
-      const { container, unmount } = render(
-        <ReferenceEntityCard data={classByName('Cyborg')} size="compact" extent={extent} />
-      )
-      const stamps = [...container.querySelectorAll('.su-badge-stamp')].filter(
-        (stamp) => stamp.textContent === 'Class'
-      )
-      expect(stamps).toHaveLength(1)
-      expect(stamps[0]?.parentElement?.classList.contains('su-stat-cell')).toBe(true)
-      expect(stamps[0]?.nextElementSibling?.textContent).toBe('HYBRID')
-      unmount()
-    }
+    // One "Class" stamp, the pill's label cell — not a type stamp reading
+    // "Class" before it.
+    const { container } = render(
+      <ReferenceEntityCard data={classByName('Cyborg')} size="compact" />
+    )
+    const stamps = [...container.querySelectorAll('.su-badge-stamp')].filter(
+      (stamp) => stamp.textContent === 'Class'
+    )
+    expect(stamps).toHaveLength(1)
+    expect(stamps[0]?.parentElement?.classList.contains('su-stat-cell')).toBe(true)
+    expect(stamps[0]?.nextElementSibling?.textContent).toBe('HYBRID')
   })
 
   test('the kind stamp survives extent="catalog" — the deliberate exception', () => {
