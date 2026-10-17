@@ -203,6 +203,8 @@ describe('EntitySearcher — the rail on a wide screen', () => {
       expect(region.querySelector('[aria-expanded]')).toBeNull()
       expect(within(region).getByRole('heading', { name: /equipped/i })).toBeTruthy()
       expect(within(region).getByRole('button', { name: `Remove ${eq.name}` })).toBeTruthy()
+      // The sidebar's Tokens leave the Tech level to the list.
+      expect(within(within(region).getByTestId('rail-entry')).queryByText('TL')).toBeNull()
       expect(within(region).getByText('Inventory slots')).toBeTruthy()
       expect(within(region).getByRole('button', { name: 'Done' })).toBeTruthy()
       const summary = screen.getByText(/showing \d+ of \d+/i)

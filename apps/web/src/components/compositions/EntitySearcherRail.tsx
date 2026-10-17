@@ -184,11 +184,20 @@ export function SelectionRail({
   const listNode = (
     <div id={list.panelId} hidden={!expanded} className="su-searcher__rail-list" style={LIST_STYLE}>
       {entries.map((entry, position) => (
-        <div key={`${entry.ref}#${entry.copy}`} data-testid="rail-entry" style={ENTRY_STYLE}>
+        // The ✕ rides inside the Token's right end, laid over it (a button
+        // cannot nest in the Token's own); the Tech level is the list's to say.
+        <div
+          key={`${entry.ref}#${entry.copy}`}
+          data-testid="rail-entry"
+          className="su-searcher__rail-entry"
+          data-removable={removable || undefined}
+          style={ENTRY_STYLE}
+        >
           <div className="su-entity-token-line" style={ENTRY_TOKEN_STYLE}>
             <Entity
               form="token"
               entity={entry.entity}
+              omit={RAIL_OMIT}
               mode={{ kind: 'link', onOpen: () => onFocus(entry.ref) }}
             />
           </div>
@@ -341,12 +350,9 @@ const BUDGET_ROW_STYLE = {
 
 /** No `display` here: the list is folded with the `hidden` attribute. */
 const LIST_STYLE = { padding: `${space[12]} ${space[16]}` } satisfies CSSProperties
-const ENTRY_STYLE = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: space[6],
-  marginBottom: space[6],
-} satisfies CSSProperties
+const ENTRY_STYLE = { marginBottom: space[6] } satisfies CSSProperties
+/** The sidebar's Tokens leave their Tech level to the list. */
+const RAIL_OMIT = ['tech-level'] as const
 const ENTRY_TOKEN_STYLE = { flex: '1 1 auto', minWidth: 0 } satisfies CSSProperties
 
 const EMPTY_STYLE = {

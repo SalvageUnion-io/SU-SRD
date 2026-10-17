@@ -21,7 +21,8 @@
  * THE LAYOUT (in the `.su-searcher*` classes, styles/partials/controls.css):
  *   - from 64rem, the Token list (a third of the width) and the chosen
  *     sidebar; opening a Token fills the middle column with its Page. Each
- *     column scrolls alone. Until a Token is opened the middle is empty paper.
+ *     column scrolls alone. Until a Token is opened the middle holds a callout
+ *     saying what goes there.
  *   - below it, one column: the Token list over a bar holding the chosen
  *     count (a disclosure that opens the chosen list), the budgets and the
  *     actions. Opening a Token gives its Page the whole picker, with Back to
@@ -56,6 +57,7 @@ import { buttonVariants } from '../atoms/buttonVariants'
 import { SearchField } from '../atoms/SearchField'
 import { Entity } from '../entity/Entity'
 import { useEntitySurface } from '../entity/entitySurfaceContext'
+import { InfoCutout } from '../entity/InfoCutout'
 import { Head } from '../entity/parts/Head'
 import { paintFor } from '../entity/parts/paint'
 import type { EntityLinkAttrs } from '../entity/types'
@@ -317,6 +319,15 @@ export function EntitySearcher({
       onBack={wide ? undefined : back}
       backRef={backRef}
     />
+  ) : wide && !browse ? (
+    // Nothing open yet: a callout in the middle saying what goes there.
+    <div className="su-searcher__empty">
+      <InfoCutout title="Select to read">
+        <p style={EMPTY_HINT_STYLE}>
+          Open any entry in the list to read it here, then add it from its page.
+        </p>
+      </InfoCutout>
+    </div>
   ) : null
 
   const actions =
@@ -457,6 +468,12 @@ const SUMMARY_STYLE = {
   textTransform: 'uppercase',
   letterSpacing: tracking.caps,
   color: color.wkMuted,
+} satisfies CSSProperties
+const EMPTY_HINT_STYLE = {
+  margin: space[0],
+  fontFamily: font.body,
+  fontSize: fontSize.sm,
+  lineHeight: '1.25rem',
 } satisfies CSSProperties
 const POOL_EMPTY_STYLE = {
   marginTop: space[12],

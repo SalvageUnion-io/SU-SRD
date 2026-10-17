@@ -174,7 +174,7 @@
  * a Token opened there: its Page fills the body and the list and bar are
  * hidden (the `hidden` attribute, so they stay mounted). From 64rem it is three
  * columns at a fixed height: the list a third of the width, the opened Page,
- * the sidebar. The middle stays empty paper until a Token is opened, and
+ * the sidebar. The middle holds a callout until a Token is opened, and
  * opening one never resizes the picker. `--browse` (the SRD Explorer) is the
  * list alone, as a grid.
  *
@@ -218,9 +218,23 @@
   height: var(--su-searcher-line);
 }
 
+/* The sidebar's ✕ sits inside its Token, at the far right: laid over the
+   pill (a button cannot nest in the Token's link), which leaves it room. */
+.su-searcher__rail-entry {
+  position: relative;
+}
+
+.su-searcher__rail-entry[data-removable] .su-entity-token__pill {
+  padding-inline-end: calc(var(--su-searcher-line) + 2px);
+}
+
 .su-btn.su-searcher__remove {
-  flex: 0 0 var(--su-searcher-line);
-  height: var(--su-searcher-line);
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  width: 19px;
+  height: 19px;
   padding: 0;
   justify-content: center;
 }
@@ -332,9 +346,35 @@
   white-space: nowrap;
 }
 
-/* The opened Page: the page ground, the band flush with the column's top. */
+/* The opened Page, as a show page lays out: the page ground, the band flush
+   with the column's top, the body taking the height between and centring
+   its content in it, the foot flat on the column's base. */
 .su-searcher__page {
+  display: flex;
+  flex-direction: column;
   background-color: var(--color-wk-bg);
+}
+
+.su-searcher__page > * {
+  flex: none;
+}
+
+.su-searcher__page > .su-entity-dialog__body {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Nothing open: the callout centred in the middle column. */
+.su-searcher__empty {
+  display: grid;
+  place-items: center;
+  padding: var(--space-24);
+}
+
+.su-searcher__empty > .su-info-cutout {
+  width: min(100%, 22rem);
 }
 
 @media (min-width: 64rem) {
@@ -349,7 +389,7 @@
     border-right: var(--bw-chrome) solid var(--color-ink);
   }
 
-  /* With no Page open the middle column is simply empty. */
+  /* The sidebar keeps its column whatever the middle holds. */
   .su-searcher:not(.su-searcher--browse) > .su-searcher__rail-slot {
     grid-column: 3;
   }

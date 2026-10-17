@@ -3,10 +3,12 @@ import { X } from 'lucide-react'
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import type { RefEntity, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
+import { foregroundOn } from '../../design/contrast'
 import { borderWidth, color, space } from '../../design/tokens'
 import { buttonVariants } from '../atoms/buttonVariants'
 import { ChapterBand } from '../atoms/ChapterBand'
 import type { ChapterTone } from '../atoms/chapterBandColor'
+import { CHAPTER_BAND_COLOR } from '../atoms/chapterBandColor'
 import { ModalShell } from '../containers/ModalShell'
 import { EntityStat } from '../entity/parts/EntityStat'
 import { KindLabel } from '../entity/parts/KindLabel'
@@ -116,6 +118,7 @@ export function EntityDetailPage({
   titleAs = Dialog.Title,
   matchBar,
   titleSize,
+  footOnBand = false,
   children,
 }: Pick<EntityDetailDialogProps, 'entity' | 'pattern' | 'title' | 'children'> & {
   /** The title's element: the dialog's title by default. */
@@ -124,9 +127,12 @@ export function EntityDetailPage({
   matchBar?: boolean
   /** The notched title's size, where the band is narrower than a page (`ChapterBand`'s). */
   titleSize?: string
+  /** The foot in the band's colour, as a show page's foot is (the site `Footer`). */
+  footOnBand?: boolean
 }) {
   const meta = resolveEntityPageMeta(entity, pattern)
   const band = pageBand(entity)
+  const bandColor = band.fill ?? CHAPTER_BAND_COLOR[band.tone]
   const provenance = resolveFooterProvenance(entity, pattern)
   // The Cantina's "View in SRD" link, carried in the Page's foot.
   const externalLink = useEntityExternalLink(entity as RefEntity)
@@ -171,6 +177,7 @@ export function EntityDetailPage({
         additionalSources={provenance.additionalSources}
         externalLink={externalLink}
         size="large"
+        band={footOnBand ? { bandColor, onBand: foregroundOn(bandColor, 'ink') } : undefined}
       />
     </>
   )
