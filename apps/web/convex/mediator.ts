@@ -3,6 +3,7 @@ import { ConvexError, v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
 import { query } from './_generated/server'
+import { displayNameOf } from './account'
 import { bodyAppId, mutation, parseBody } from './model/entities'
 import { NotAuthorized, requireMediator, requireUser } from './model/permissions'
 
@@ -45,6 +46,39 @@ export const npcs = query({
       .withIndex('by_game', (q) => q.eq('gameId', args.gameId))
       .collect()
     return rows.map((r) => ({ _id: r._id, body: r.body }))
+  },
+})
+
+/**
+ * The saved mech patterns the Mediator may field as opposition: their own,
+ * and every pattern its maker shared with this Game's crew. A pattern kept to
+ * "Only me" by somebody else stays theirs. Mediator-only, like the tray.
+ */
+export const patterns = query({
+  args: { gameId: v.id('games') },
+  returns: v.array(v.object({ appId: v.string(), body: v.any(), madeBy: v.string() })),
+  handler: async (ctx, args) => {
+    const { userId } = await requireMediator(ctx, args.gameId)
+    const [mine, shared] = await Promise.all([
+      ctx.db
+        .query('mechPatterns')
+        .withIndex('by_owner_app_id', (q) => q.eq('ownerId', userId))
+        .collect(),
+      ctx.db
+        .query('mechPatterns')
+        .withIndex('by_game', (q) => q.eq('gameId', args.gameId))
+        .collect(),
+    ])
+    const theirs = shared.filter((row) => row.ownerId !== userId)
+    const makers = await Promise.all(theirs.map((row) => ctx.db.get(row.ownerId)))
+    return [
+      ...mine.map((row) => ({ appId: row.appId, body: row.body, madeBy: 'You' })),
+      ...theirs.map((row, i) => ({
+        appId: row.appId,
+        body: row.body,
+        madeBy: displayNameOf(makers[i] ?? null, 'A crewmate'),
+      })),
+    ]
   },
 })
 

@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../../convex/_generated/api'
+import type { Id } from '../../../convex/_generated/dataModel'
 import { FIXTURE_NOW } from '../../../src/components/__tests__/fixtures'
 import type { Ctx } from '../fixtures'
 import { makeUser } from '../fixtures'
@@ -146,6 +147,47 @@ describe('the tray parses what it stores', () => {
     const [row] = await t.run(async (ctx) => await ctx.db.query('encounterNpcs').collect())
     expect(row?.appId).toBe('npc-7')
     expect((row?.body as { id?: string })?.id).toBe('npc-7')
+  })
+})
+
+describe('saved patterns the Mediator may field', () => {
+  /** A pattern row, as the shelf commits one. */
+  async function pattern(
+    t: Ctx,
+    ownerId: Id<'users'>,
+    gameId: Id<'games'> | null,
+    appId: string,
+    name: string
+  ) {
+    await t.run(
+      async (ctx) =>
+        await ctx.db.insert('mechPatterns', {
+          ownerId,
+          gameId,
+          appId,
+          body: { id: appId, name, chassisRef: 'mule', systems: [], modules: [] },
+        })
+    )
+  }
+
+  test("the Mediator's own, and those a crewmate shared with this Game", async () => {
+    const t = testConvex()
+    const { mediator, player, gameId } = await seedMediatedGame(t)
+    await pattern(t, mediator.userId, null, 'mine', 'Old Faithful')
+    await pattern(t, player.userId, gameId, 'shared', 'Red Leader')
+    await pattern(t, player.userId, null, 'private', 'Secret Build')
+
+    const rows = await mediator.as.query(api.mediator.patterns, { gameId })
+    expect(rows.map((r) => [r.appId, r.madeBy])).toEqual([
+      ['mine', 'You'],
+      ['shared', 'Player'],
+    ])
+  })
+
+  test('a player cannot read them', async () => {
+    const t = testConvex()
+    const { player, gameId } = await seedMediatedGame(t)
+    await expect(player.as.query(api.mediator.patterns, { gameId })).rejects.toThrow(/mediator/i)
   })
 })
 

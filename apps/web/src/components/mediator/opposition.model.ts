@@ -17,6 +17,7 @@ import {
   nameToSlug,
   resolveFormerSlug,
 } from 'salvageunion-reference'
+import { asReferencePattern } from '../../lib/patterns/patterns'
 import type { MoraleRoll } from '../../lib/rules/opposition'
 import { isDown, trackOf } from '../../lib/rules/opposition'
 
@@ -71,8 +72,14 @@ export function readTrayNpc(row: { _id: string; body: unknown }): TrayNpc {
   const live = refSchema && refSlug ? findEntityBySlug(refSchema, refSlug) : null
   const former = !live && refSchema && refSlug ? resolveFormerSlug(refSchema, refSlug) : null
   const entity = live ?? former?.host ?? null
-  const picked =
-    live && typeof body.refPattern === 'string' ? patternBySlug(live, body.refPattern) : null
+  const saved = readUserPattern(body.userPattern)
+  const picked = !live
+    ? null
+    : saved
+      ? asReferencePattern(saved)
+      : typeof body.refPattern === 'string'
+        ? patternBySlug(live, body.refPattern)
+        : null
   const maxHp = num(body.maxHp, 0)
   const currentHp = num(body.currentHp, maxHp)
   const roll = body.lastMediatorRoll as MoraleRoll | undefined
@@ -89,6 +96,46 @@ export function readTrayNpc(row: { _id: string; body: unknown }): TrayNpc {
     refSchema,
     refSlug,
   }
+}
+
+/** A saved mech pattern the Mediator may field: theirs, or shared with the Game. */
+export type SavedPattern = {
+  id: string
+  name: string
+  /** The chassis it is built on, as the pattern stores it. */
+  chassisRef: string
+  systems: readonly string[]
+  modules: readonly string[]
+  /** "You", or the crewmate who shared it. */
+  madeBy: string
+}
+
+/** Read a `mediator.patterns` row without trusting its body's shape. */
+export function readSavedPattern(row: {
+  appId: string
+  body: unknown
+  madeBy: string
+}): SavedPattern | null {
+  const body = (row.body ?? {}) as Record<string, unknown>
+  const loadout = readUserPattern(body)
+  if (loadout === null || typeof body.chassisRef !== 'string') return null
+  return { id: row.appId, chassisRef: body.chassisRef, madeBy: row.madeBy, ...loadout }
+}
+
+const strings = (value: unknown): string[] | null =>
+  Array.isArray(value) && value.every((v) => typeof v === 'string') ? value : null
+
+/** A stored pattern's name and loadout, or null when it has none. */
+function readUserPattern(
+  value: unknown
+): { name: string; systems: string[]; modules: string[] } | null {
+  if (typeof value !== 'object' || value === null) return null
+  const v = value as Record<string, unknown>
+  const systems = strings(v.systems)
+  const modules = strings(v.modules)
+  if (typeof v.name !== 'string' || v.name === '' || systems === null || modules === null)
+    return null
+  return { name: v.name, systems, modules }
 }
 
 /** A host's visible patterns, the ones a tray instance can be drawn as. */
@@ -119,12 +166,16 @@ export function slugOf(entity: { name: string }): string {
   return getEntitySlug(entity as RefEntity)
 }
 
-/** What the Mediator chose beside the entity: a pattern, and a name of their own. */
-export type TrayDraw = { pattern?: RefObjectAnyPattern; name?: string }
+/**
+ * What the Mediator chose beside the entity: a book pattern or a saved one,
+ * and a name of their own.
+ */
+export type TrayDraw = { pattern?: RefObjectAnyPattern; saved?: SavedPattern; name?: string }
 
 /**
  * A new tray instance of a reference entity, at full HP or SP. Drawn as one of
- * its patterns, it is named for the pattern and keeps the host's stats; a
+ * its patterns, book or saved (whose loadout it copies), it is named for the
+ * pattern and keeps the host's stats; a
  * name the Mediator typed wins over both, numbered like any other when the
  * tray already has it. `mediator.addNpc` mints its id and parses it.
  */
@@ -133,10 +184,10 @@ export function newTrayNpc(
   entity: RefEntity,
   taken: readonly string[],
   now: string,
-  { pattern, name: custom }: TrayDraw = {}
+  { pattern, saved, name: custom }: TrayDraw = {}
 ): Omit<EncounterNpc, 'id' | 'gameId'> {
   const hostName = 'name' in entity && typeof entity.name === 'string' ? entity.name : 'NPC'
-  const name = pattern?.name ?? hostName
+  const name = saved?.name ?? pattern?.name ?? hostName
   const given = custom?.trim() ?? ''
   const { maxHp, statKind } = trackOf(entity)
   return {
@@ -144,7 +195,17 @@ export function newTrayNpc(
     refSchema: schema,
     refSlug: slugOf({ name: hostName }),
     refName: name,
-    ...(pattern ? { refPattern: patternSlugOf(pattern) } : {}),
+    ...(saved
+      ? {
+          userPattern: {
+            name: saved.name,
+            systems: [...saved.systems],
+            modules: [...saved.modules],
+          },
+        }
+      : pattern
+        ? { refPattern: patternSlugOf(pattern) }
+        : {}),
     name: instanceName(given === '' ? name : given, taken),
     currentHp: maxHp,
     maxHp,

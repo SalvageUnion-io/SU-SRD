@@ -39,6 +39,7 @@ const writes: MediatorTableWrites = {
     setHp: record('setHp'),
     morale: record('morale'),
     remove: record('remove'),
+    rename: record('rename'),
   },
   propose: record('propose'),
   broadcast: record('broadcast'),
@@ -66,6 +67,7 @@ function view(over: Partial<MediatorTableView> = {}): MediatorTableView {
     downtime: { running: false, stepIndex: null, done: 0, upkeepSpent: false },
     downtimeSteps: downtimeStepNames(),
     memberCount: 5,
+    savedPatterns: [],
     npcs: [
       readTrayNpc({
         _id: 'n1',

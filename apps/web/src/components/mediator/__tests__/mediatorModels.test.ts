@@ -14,7 +14,7 @@ import {
   proposalTargets,
 } from 'cantina-domain/games/proposals'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { instanceName, newTrayNpc, readTrayNpc } from '../opposition.model'
+import { instanceName, newTrayNpc, readSavedPattern, readTrayNpc } from '../opposition.model'
 import type { SentProposal } from '../proposalLine.model'
 import { ago, proposalLine } from '../proposalLine.model'
 import { seatSummary, tableSeats } from '../seatCards.model'
@@ -197,6 +197,30 @@ describe('the Opposition tray', () => {
     // The bare chassis carries no pattern.
     const bare = readTrayNpc({ _id: 'n2', body: newTrayNpc('chassis', mule, [], NOW) })
     expect(bare).toMatchObject({ name: 'Mule', pattern: null, statKind: 'sp' })
+  })
+
+  test('a saved pattern is copied onto the row and reads back with its loadout', () => {
+    const mule = SalvageUnionReference.Chassis.getByName('Mule')
+    if (mule === undefined) throw new Error('no Mule in the reference')
+    const saved = readSavedPattern({
+      appId: 'p1',
+      madeBy: 'Player',
+      body: { name: 'Red Leader', chassisRef: 'mule', systems: [], modules: [] },
+    })
+    if (saved === null) throw new Error('the saved pattern did not read')
+    const body = newTrayNpc('chassis', mule, [], NOW, { saved })
+    expect(body).toMatchObject({
+      refSlug: 'mule',
+      name: 'Red Leader',
+      userPattern: { name: 'Red Leader', systems: [], modules: [] },
+      maxHp: mule.structurePoints,
+    })
+    expect(body).not.toHaveProperty('refPattern')
+    const npc = readTrayNpc({ _id: 'n1', body })
+    expect(npc.entity?.name).toBe('Mule')
+    expect(npc.pattern?.name).toBe('Red Leader')
+    // A body with no loadout is not a pattern the picker can offer.
+    expect(readSavedPattern({ appId: 'p2', madeBy: 'You', body: { name: 'Draft' } })).toBeNull()
   })
 
   test('a name the Mediator typed wins, trimmed and numbered like any other', () => {

@@ -13,7 +13,8 @@
  * never on the Game's log, which the crew reads.
  *
  * At 0 an NPC is shown as down (struck through) and is never removed for you
- * (ADR-007); Remove asks first. **+ From the reference** opens the picker over
+ * (ADR-007); Remove asks first, and Rename gives a row a name of the
+ * Mediator's own. **+ From the reference** opens the picker over
  * the tray schemas; a new instance starts at full HP and takes a numbered
  * name when it duplicates one, or the name typed under Draw from (cleared
  * once used), so the table can tell its opposition apart. An entity with
@@ -27,6 +28,7 @@ import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { findEntityBySlug } from 'salvageunion-reference'
+import { resolveChassisRef } from 'salvageunion-reference/rules'
 import type { CSSVarStyle } from '../index'
 import {
   Button,
@@ -42,7 +44,7 @@ import {
 } from '../index'
 import { SheetPickerModal } from '../sheet/SheetSection'
 import { BODY, EYEBROW, HEAD_ROW, MUTED, NUMBERS } from './mediatorStyles.model'
-import type { EncounterRefSchema, TrayDraw, TrayNpc } from './opposition.model'
+import type { EncounterRefSchema, SavedPattern, TrayDraw, TrayNpc } from './opposition.model'
 import { OPPOSITION_SCHEMAS, patternSlugOf, patternsOf, slugOf } from './opposition.model'
 
 const { borderWidth, color, font, fontSize, radius, space, weight } = tokens
@@ -53,6 +55,7 @@ export type TrayWrites = {
   setHp: (npc: TrayNpc, next: number) => Promise<unknown>
   morale: (npc: TrayNpc) => Promise<unknown>
   remove: (npc: TrayNpc) => Promise<unknown>
+  rename: (npc: TrayNpc, name: string) => Promise<unknown>
 }
 
 const SCROLL = {
@@ -121,8 +124,25 @@ const PATTERN_ACTIONS = {
   marginTop: space[4],
 } satisfies CSSProperties
 
+/** Why Rename refuses a blank name; the server would refuse it too. */
+const EMPTY_NAME = 'A name cannot be blank.'
+
 /** The bare entity, in the pattern Select: no pattern picked. */
 const NO_PATTERN = ''
+
+/** A pattern Select value: a book pattern by slug, a saved one by id. */
+const bookValue = (pattern: RefObjectAnyPattern) => `book:${patternSlugOf(pattern)}`
+const savedValue = (pattern: SavedPattern) => `saved:${pattern.id}`
+
+/** The saved patterns built on this chassis; none for anything else. */
+function savedFor(
+  schema: EncounterRefSchema,
+  entity: RefEntity,
+  saved: readonly SavedPattern[]
+): SavedPattern[] {
+  if (schema !== 'chassis') return []
+  return saved.filter((p) => resolveChassisRef(p.chassisRef)?.id === entity.id)
+}
 
 function NpcRow({
   npc,
@@ -130,12 +150,14 @@ function NpcRow({
   writes,
   onFailure,
   onRemove,
+  onRename,
 }: {
   npc: TrayNpc
   canWrite: boolean
   writes: TrayWrites
   onFailure: (err: unknown) => void
   onRemove: (npc: TrayNpc) => void
+  onRename: (npc: TrayNpc) => void
 }) {
   const detail = useDetailModal(npc.entity ?? undefined, {
     pattern: npc.pattern ?? undefined,
@@ -194,6 +216,15 @@ function NpcRow({
             variant="ghost"
             size="mini"
             disabled={!canWrite}
+            aria-label={`Rename ${npc.name}`}
+            onClick={() => onRename(npc)}
+          >
+            Rename
+          </Button>
+          <Button
+            variant="ghost"
+            size="mini"
+            disabled={!canWrite}
             aria-label={`Remove ${npc.name}`}
             onClick={() => onRemove(npc)}
           >
@@ -225,11 +256,13 @@ function NpcRow({
  */
 function OppositionPicker({
   npcs,
+  saved,
   onAdd,
   title,
   onClose,
 }: {
   npcs: readonly TrayNpc[]
+  saved: readonly SavedPattern[]
   onAdd: (schema: EncounterRefSchema, entity: RefEntity, draw: TrayDraw) => void
   title?: string
   onClose?: () => void
@@ -249,10 +282,12 @@ function OppositionPicker({
     .filter((n) => n.refSchema === schema && n.refSlug)
     .map((n) => n.refSlug ?? '')
   const pendingPatterns = pending ? patternsOf(pending.entity) : []
+  const pendingSaved = pending ? savedFor(schema, pending.entity, saved) : []
   const addPending = () => {
     if (pending === null) return
-    const pattern = pendingPatterns.find((p) => patternSlugOf(p) === pending.pattern)
-    add(pending.entity, pattern ? { pattern } : {})
+    const pattern = pendingPatterns.find((p) => bookValue(p) === pending.pattern)
+    const own = pendingSaved.find((p) => savedValue(p) === pending.pattern)
+    add(pending.entity, pattern ? { pattern } : own ? { saved: own } : {})
     setPending(null)
   }
   return (
@@ -265,9 +300,11 @@ function OppositionPicker({
       onAdd={(slug) => {
         const entity = findEntityBySlug(schema, slug)
         if (entity === null) return
-        const patterns = patternsOf(entity)
-        if (patterns.length === 0) add(entity)
-        else setPending({ entity, pattern: patternSlugOf(patterns[0] as RefObjectAnyPattern) })
+        const [book] = patternsOf(entity)
+        const [own] = savedFor(schema, entity, saved)
+        if (book) setPending({ entity, pattern: bookValue(book) })
+        else if (own) setPending({ entity, pattern: savedValue(own) })
+        else add(entity)
       }}
       chosenLabel="On the field"
       title={title}
@@ -311,11 +348,24 @@ function OppositionPicker({
                 value={pending.pattern}
                 onChange={(e) => setPending({ ...pending, pattern: e.target.value })}
               >
-                {pendingPatterns.map((p) => (
-                  <option key={p.name} value={patternSlugOf(p)}>
-                    {p.name}
-                  </option>
-                ))}
+                {pendingSaved.length > 0 ? (
+                  <optgroup label="Saved patterns">
+                    {pendingSaved.map((p) => (
+                      <option key={p.id} value={savedValue(p)}>
+                        {p.name} · {p.madeBy}
+                      </option>
+                    ))}
+                  </optgroup>
+                ) : null}
+                {pendingPatterns.length > 0 ? (
+                  <optgroup label="From the book">
+                    {pendingPatterns.map((p) => (
+                      <option key={p.name} value={bookValue(p)}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                ) : null}
                 <option value={NO_PATTERN}>No pattern</option>
               </Select>
               <div style={PATTERN_ACTIONS}>
@@ -336,17 +386,27 @@ function OppositionPicker({
 
 export function OppositionTab({
   npcs,
+  savedPatterns = [],
   canWrite,
   writes,
   onFailure,
 }: {
   npcs: readonly TrayNpc[] | null
+  /** Saved mech patterns the picker may field: the Mediator's, and the crew's shared ones. */
+  savedPatterns?: readonly SavedPattern[]
   canWrite: boolean
   writes: TrayWrites
   onFailure: (err: unknown) => void
 }) {
   const [picking, setPicking] = useState(false)
   const [removing, setRemoving] = useState<TrayNpc | null>(null)
+  const [renaming, setRenaming] = useState<TrayNpc | null>(null)
+  const [newName, setNewName] = useState('')
+  const renameId = useId()
+  const startRename = (npc: TrayNpc) => {
+    setNewName(npc.name)
+    setRenaming(npc)
+  }
   const onField = npcs?.filter((n) => !n.down).length ?? 0
 
   return (
@@ -374,6 +434,7 @@ export function OppositionTab({
               writes={writes}
               onFailure={onFailure}
               onRemove={setRemoving}
+              onRename={startRename}
             />
           ))}
         </ul>
@@ -386,6 +447,7 @@ export function OppositionTab({
       >
         <OppositionPicker
           npcs={npcs ?? []}
+          saved={savedPatterns}
           onAdd={(schema, entity, draw) => void writes.add(schema, entity, draw).catch(onFailure)}
         />
       </SheetPickerModal>
@@ -401,6 +463,36 @@ export function OppositionTab({
         onConfirm={async () => {
           if (removing !== null) await writes.remove(removing)
         }}
+      />
+      <ConfirmDialog
+        open={renaming !== null}
+        onOpenChange={(open) => {
+          if (!open) setRenaming(null)
+        }}
+        title={`Rename ${renaming?.name ?? 'this NPC'}`}
+        body={
+          <>
+            <label htmlFor={renameId} style={EYEBROW}>
+              Name
+            </label>
+            <Input
+              id={renameId}
+              value={newName}
+              autoComplete="off"
+              onChange={(e) => setNewName(e.target.value)}
+            />
+          </>
+        }
+        confirmLabel="Rename"
+        onConfirm={async () => {
+          if (newName.trim() === '') throw new Error(EMPTY_NAME)
+          if (renaming !== null) await writes.rename(renaming, newName.trim())
+        }}
+        describeError={(err) =>
+          err instanceof Error && err.message === EMPTY_NAME
+            ? EMPTY_NAME
+            : 'That did not work. Try again.'
+        }
       />
     </div>
   )
