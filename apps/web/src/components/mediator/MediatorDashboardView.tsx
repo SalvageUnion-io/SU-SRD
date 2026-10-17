@@ -32,7 +32,7 @@ import { MediatorDisplay } from './MediatorDisplay'
 import { MediatorRail } from './MediatorRail'
 import type { TrayWrites } from './OppositionTab'
 import { OppositionTab } from './OppositionTab'
-import type { TrayNpc } from './opposition.model'
+import type { SavedPattern, TrayNpc } from './opposition.model'
 import { ProposalsList } from './ProposalsList'
 import type { ProposeArgs } from './ProposeDock'
 import { ProposeDock } from './ProposeDock'
@@ -59,6 +59,8 @@ export type MediatorTableView = {
   downtimeSteps: readonly string[]
   memberCount: number
   npcs: readonly TrayNpc[] | null
+  /** The Mediator's own saved patterns and those shared with this Game's crew. */
+  savedPatterns: readonly SavedPattern[]
   targets: readonly ProposalTarget[]
   /** Newest first; null while the first answer is on its way. */
   sent: readonly SentProposal[] | null
@@ -169,6 +171,7 @@ function Panels({
         opposition: (
           <OppositionTab
             npcs={view.npcs}
+            savedPatterns={view.savedPatterns}
             canWrite={view.canWrite}
             writes={writes.tray}
             onFailure={writes.onFailure}

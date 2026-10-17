@@ -1456,6 +1456,18 @@
         }
       }
     },
+    "mediator:patterns": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
     "mediator:removeNpc": {
       "type": "object",
       "value": {

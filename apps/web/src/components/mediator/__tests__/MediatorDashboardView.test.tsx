@@ -67,6 +67,7 @@ function view(over: Partial<MediatorTableView> = {}): MediatorTableView {
     downtime: { running: false, stepIndex: null, done: 0, upkeepSpent: false },
     downtimeSteps: downtimeStepNames(),
     memberCount: 5,
+    savedPatterns: [],
     npcs: [
       readTrayNpc({
         _id: 'n1',

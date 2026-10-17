@@ -14,7 +14,7 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import type { RefEntity } from 'salvageunion-reference'
 import type { TrayWrites } from '../OppositionTab'
 import { OppositionTab } from '../OppositionTab'
-import type { EncounterRefSchema, TrayDraw, TrayNpc } from '../opposition.model'
+import type { EncounterRefSchema, SavedPattern, TrayDraw, TrayNpc } from '../opposition.model'
 import { readTrayNpc } from '../opposition.model'
 
 type Call = { name: keyof TrayWrites; args: unknown[] }
@@ -75,12 +75,17 @@ const oldRow = readTrayNpc({ _id: 'n3', body: { name: 'Old Hermit' } })
 
 async function renderTab(
   npcs: readonly TrayNpc[] | null,
-  { canWrite = true, writes = trayWrites() }: { canWrite?: boolean; writes?: TrayWrites } = {}
+  {
+    canWrite = true,
+    writes = trayWrites(),
+    savedPatterns = [],
+  }: { canWrite?: boolean; writes?: TrayWrites; savedPatterns?: readonly SavedPattern[] } = {}
 ) {
   await act(async () => {
     render(
       <OppositionTab
         npcs={npcs}
+        savedPatterns={savedPatterns}
         canWrite={canWrite}
         writes={writes}
         onFailure={(err) => failures.push(err)}
@@ -280,8 +285,22 @@ describe('+ From the reference', () => {
   // The Mechs pool is every chassis card at full size: switching to it alone
   // renders for ~2.3s (measured), so one test walks every pattern path and
   // carries a longer timeout.
-  test('Mechs asks which pattern before adding; Cancel adds nothing, No pattern the bare chassis', async () => {
-    await renderTab([])
+  test('Mechs asks which pattern before adding, saved ones too; Cancel adds nothing, No pattern the bare chassis', async () => {
+    const redLeader: SavedPattern = {
+      id: 'p1',
+      name: 'Red Leader',
+      chassisRef: 'mule',
+      systems: [],
+      modules: [],
+      madeBy: 'Player',
+    }
+    const onAnother: SavedPattern = {
+      ...redLeader,
+      id: 'p2',
+      name: 'Elsewhere',
+      chassisRef: 'brawler',
+    }
+    await renderTab([], { savedPatterns: [redLeader, onAnother] })
     const picker = await openPicker()
     await act(async () => {
       fireEvent.change(picker.getByLabelText('Draw from'), { target: { value: 'chassis' } })
@@ -299,13 +318,17 @@ describe('+ From the reference', () => {
     await addMule()
     // Nothing is added until the pattern is chosen; the first is preselected.
     expect(calls).toHaveLength(0)
-    expect((picker.getByLabelText('Mule pattern') as HTMLSelectElement).value).toBe('hauler')
+    expect((picker.getByLabelText('Mule pattern') as HTMLSelectElement).value).toBe('book:hauler')
     await click(picker.getByRole('button', { name: 'Cancel' }))
     expect(picker.queryByLabelText('Mule pattern')).toBeNull()
     expect(calls).toHaveLength(0)
 
     await addMule()
-    await choose('crusher')
+    // Saved patterns built on this chassis are offered by maker; others are not.
+    const options = [...(picker.getByLabelText('Mule pattern') as HTMLSelectElement).options]
+    expect(options.map((o) => o.text)).toContain('Red Leader · Player')
+    expect(options.map((o) => o.text)).not.toContain('Elsewhere · Player')
+    await choose('book:crusher')
     await click(picker.getByRole('button', { name: 'Add to the field' }))
     const [schema, entity, draw] = (calls[0]?.args ?? []) as [
       EncounterRefSchema,
@@ -318,9 +341,14 @@ describe('+ From the reference', () => {
     expect(picker.queryByLabelText('Mule pattern')).toBeNull()
 
     await addMule()
+    await choose('saved:p1')
+    await click(picker.getByRole('button', { name: 'Add to the field' }))
+    expect(calls[1]?.args[2]).toEqual({ saved: redLeader })
+
+    await addMule()
     await choose('')
     await click(picker.getByRole('button', { name: 'Add to the field' }))
-    expect(calls[1]?.args[2]).toEqual({})
+    expect(calls[2]?.args[2]).toEqual({})
   }, 20_000)
 
   test('a refused add goes to onFailure', async () => {

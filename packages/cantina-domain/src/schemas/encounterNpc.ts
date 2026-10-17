@@ -65,6 +65,19 @@ export const EncounterNpcSchema = z
      * Bio-Titan's variant), when one was picked; absent for the bare entity.
      */
     refPattern: z.string().optional(),
+    /**
+     * A saved mech pattern it was drawn as (the Mediator's own, or one shared
+     * with the Game's crew), copied at add time: the tray keeps it however
+     * its maker later edits, unshares or deletes it. `refSlug` is its chassis.
+     */
+    userPattern: z
+      .object({
+        name: z.string().min(1),
+        systems: z.array(z.string()),
+        modules: z.array(z.string()),
+      })
+      .strict()
+      .optional(),
 
     /** Instance label (defaults to the reference name; e.g. 'Raider 2'). */
     name: z.string(),

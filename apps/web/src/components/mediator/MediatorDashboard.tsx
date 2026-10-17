@@ -32,7 +32,7 @@ import { dieForTable, toast } from '../index'
 import { readCrawler } from './crawlerReading.model'
 import type { MediatorTableView, MediatorTableWrites } from './MediatorDashboardView'
 import { MediatorDashboardView } from './MediatorDashboardView'
-import { newTrayNpc, readTrayNpc } from './opposition.model'
+import { newTrayNpc, readSavedPattern, readTrayNpc } from './opposition.model'
 import { tableSeats } from './seatCards.model'
 
 /** How many alerts and rolls the Log and Tell the table read. */
@@ -64,6 +64,7 @@ export function MediatorDashboard({ gameId, gameName }: { gameId: string; gameNa
   const listing = useQuery(api.entities.listForGame, { gameId: id })
   const downtime = useQuery(api.downtime.state, { gameId: id })
   const npcs = useQuery(api.mediator.npcs, { gameId: id })
+  const patterns = useQuery(api.mediator.patterns, { gameId: id })
   const sent = useQuery(api.proposals.sent, { gameId: id, limit: sentLimit })
   const alerts = useQuery(api.proposals.alerts, { gameId: id, limit: LOG_ALERTS })
   const rolls = useQuery(api.changeLog.rolls, { gameId: id, limit: LOG_ROLLS })
@@ -98,6 +99,7 @@ export function MediatorDashboard({ gameId, gameName }: { gameId: string; gameNa
     downtimeSteps: downtimeStepNames(),
     memberCount: members?.length ?? 0,
     npcs: tray,
+    savedPatterns: (patterns ?? []).flatMap((row) => readSavedPattern(row) ?? []),
     targets: proposalTargets(crew ?? null),
     sent: sent ?? null,
     sentLimit,
