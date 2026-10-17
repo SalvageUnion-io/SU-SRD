@@ -11,7 +11,7 @@ import {
   tracking,
   weight,
 } from '../../design/tokens'
-import type { SizeRung } from '../../styles/sizing'
+import type { Size } from '../../styles/sizing'
 import { capsLabel } from './capsLabel'
 import { FOCUS_RING } from './interaction'
 import { pipClickValue, segmentLit, statBlockRowStarts, trackSegmentState } from './pipRows'
@@ -111,7 +111,7 @@ export type VitalGaugeProps = {
    *          value/max on one line, no big numeral, no caption. Its pips take
    *          the §4.5 row split, each a sixth of the bay wide.
    */
-  size?: Extract<SizeRung, 'full' | 'compact'>
+  size?: Extract<Size, 'full' | 'compact'>
   /**
    * Surface skin (RenderingMatrix `skin sheet|instrument`): `sheet` (default,
    * light paper ground — ink label + numeral) or `instrument` (a dark ground —

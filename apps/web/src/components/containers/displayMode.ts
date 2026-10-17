@@ -1,28 +1,30 @@
+import type { Size } from '../../styles/sizing'
+
 /**
  * THE card sizing vocabulary — owned here, at the `Card` layer, and
  * inherited by every card that composes it (notably `ReferenceEntityCard`).
  *
  * Two axes, deliberately ORTHOGONAL, so every combination is expressible — a
- * small card can still show its content.
+ * mini card can still show its content.
  *
- * SIZE — how big the card renders. Three rungs, and only three:
- * - `large`  — the dominant solo card.
- * - `medium` — reduced density; nested cards are always at least this.
- * - `small`  — the shortform scale.
+ * SIZE — how big the card renders: the app's three Sizes (`styles/sizing.ts`):
+ * - `full`    — the dominant solo card.
+ * - `compact` — reduced density; nested cards are always at least this.
+ * - `mini`    — the shortform scale.
  *
  * EXTENT — how much of the entity renders, at whatever size:
  * - `full`    — the whole card: header, body, expand slot, footer.
  * - `head`    — the COMPACT CARD: the art column, the head row and a paper
  *               body of value cells and the "//" line; the prose, expand and
- *               footer are suppressed. At `small` this is the shortform token:
+ *               footer are suppressed. At `mini` this is the shortform token:
  *               one tone-filled pill carrying the type stamp, the name and the
  *               classification tail.
  * - `catalog` — the index tile: artwork + description ONLY, with every nested
  *               element (entities, actions, choices, patterns, roll tables)
  *               suppressed so an index page reads uniformly whatever the entity
- *               type happens to be. At `small` the artwork is dropped too.
+ *               type happens to be. At `mini` the artwork is dropped too.
  */
-export type CardSize = 'large' | 'medium' | 'small'
+export type CardSize = Size
 
 export type CardExtent = 'full' | 'head' | 'catalog'
 
@@ -31,20 +33,20 @@ export type CardDisplay = { size: CardSize; extent: CardExtent }
 
 /**
  * The size → `{compact, listing}` projection that `Card`'s layout still
- * reads from. `compact` covers both reduced rungs, since `small` inherits
- * medium's tighter padding and then steps its type down further.
+ * reads from. `compact` covers both reduced Sizes, since `mini` inherits
+ * `compact`'s tighter padding and then steps its type down further.
  */
 export function displayBooleans({ size, extent }: CardDisplay): {
   compact: boolean
   listing: boolean
 } {
-  return { compact: size !== 'large', listing: extent === 'head' }
+  return { compact: size !== 'full', listing: extent === 'head' }
 }
 
 /**
  * The defaults for the two axes — a card with neither specified is the dominant
  * solo rendering. There is deliberately no boolean sugar: a `compact` /
- * `listing` pair cannot express `small` + `full`, and would re-admit the drift
+ * `listing` pair cannot express `mini` + `full`, and would re-admit the drift
  * this module exists to prevent.
  */
 export function resolveCardDisplay({
@@ -54,5 +56,5 @@ export function resolveCardDisplay({
   size?: CardSize
   extent?: CardExtent
 }): CardDisplay {
-  return { size: size ?? 'large', extent: extent ?? 'full' }
+  return { size: size ?? 'full', extent: extent ?? 'full' }
 }

@@ -402,7 +402,7 @@ export function CrawlerBayCard({
     <>
       <ReferenceEntityCard
         data={cardData}
-        size="medium"
+        size="compact"
         hide={
           readOnly && !hasPick
             ? damaged

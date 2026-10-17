@@ -1,11 +1,13 @@
 import { Dialog } from '@base-ui/react/dialog'
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties, ElementType, ReactNode } from 'react'
 import type { RefEntity, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
+import { foregroundOn } from '../../design/contrast'
 import { borderWidth, color, space } from '../../design/tokens'
 import { ChapterBand } from '../atoms/ChapterBand'
 import { CloseButton } from '../atoms/CloseButton'
 import type { ChapterTone } from '../atoms/chapterBandColor'
+import { CHAPTER_BAND_COLOR } from '../atoms/chapterBandColor'
 import { ModalShell } from '../containers/ModalShell'
 import { EntityStat } from '../entity/parts/EntityStat'
 import { KindLabel } from '../entity/parts/KindLabel'
@@ -103,15 +105,33 @@ function pageBand(entity: RefMetaEntity): { tone: ChapterTone; fill?: string } {
  * `EntityStat` chip the SRD's pattern page carries: the surface opens it (The Cantina's
  * Page opener, so in the dialog) and Peeks it. Its own component so a closed
  * dialog resolves none of it: a list renders a dialog per Row.
+ *
+ * The entity picker's middle column (`EntitySearcherFocus`) is this Page too,
+ * outside a dialog: it names its own heading element (`titleAs`) and leaves the
+ * Union bar its own colour (`matchBar`).
  */
-function EntityDetailPage({
+export function EntityDetailPage({
   entity,
   pattern,
   title,
+  titleAs = Dialog.Title,
+  matchBar,
+  titleSize,
+  footOnBand = false,
   children,
-}: Pick<EntityDetailDialogProps, 'entity' | 'pattern' | 'title' | 'children'>) {
+}: Pick<EntityDetailDialogProps, 'entity' | 'pattern' | 'title' | 'children'> & {
+  /** The title's element: the dialog's title by default. */
+  titleAs?: ElementType
+  /** Whether the band colours the Union bar (`ChapterBand`'s `matchBar`). */
+  matchBar?: boolean
+  /** The notched title's size, where the band is narrower than a page (`ChapterBand`'s). */
+  titleSize?: string
+  /** The foot in the band's colour, as a show page's foot is (the site `Footer`). */
+  footOnBand?: boolean
+}) {
   const meta = resolveEntityPageMeta(entity, pattern)
   const band = pageBand(entity)
+  const bandColor = band.fill ?? CHAPTER_BAND_COLOR[band.tone]
   const provenance = resolveFooterProvenance(entity, pattern)
   // The Cantina's "View in SRD" link, carried in the Page's foot.
   const externalLink = useEntityExternalLink(entity as RefEntity)
@@ -120,7 +140,9 @@ function EntityDetailPage({
     <>
       <ChapterBand
         // The band's title names the dialog (`ModalShell`'s `ownTitle`).
-        as={Dialog.Title}
+        as={titleAs}
+        matchBar={matchBar}
+        titleSize={titleSize}
         tone={band.tone}
         fill={band.fill}
         aside={
@@ -153,7 +175,8 @@ function EntityDetailPage({
         page={provenance.page}
         additionalSources={provenance.additionalSources}
         externalLink={externalLink}
-        size="large"
+        size="full"
+        band={footOnBand ? { bandColor, onBand: foregroundOn(bandColor, 'ink') } : undefined}
       />
     </>
   )

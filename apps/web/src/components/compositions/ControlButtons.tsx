@@ -11,7 +11,7 @@ import {
   weight,
 } from '../../design/tokens'
 import { cn } from '../../lib/cn'
-import { RUNG_INLINE_PADDING, RUNG_TYPE } from '../../styles/sizing'
+import { SIZE_INLINE_PADDING, SIZE_TYPE } from '../../styles/sizing'
 import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
 import { CountStepper } from '../atoms/CountStepper'
@@ -140,7 +140,7 @@ function ControlButton({
   // own metrics — the same
   // constants `Badge shape="stamp" size="mini"` resolves — so the row and the
   // seam agree by construction rather than by matching numbers by eye.
-  const segmentClasses = cn(RUNG_INLINE_PADDING.mini, RUNG_TYPE.mini.label)
+  const segmentClasses = cn(SIZE_INLINE_PADDING.mini, SIZE_TYPE.mini.label)
 
   // Icon-only control (design-spec `.ctl`) — the live-sheet per-card
   // remove/swap/fold cluster. It is the shared `Button` at its `mini` rung, the

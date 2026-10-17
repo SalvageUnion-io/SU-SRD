@@ -119,6 +119,7 @@ export function Entity(props: EntityProps) {
           model={model}
           instance={instance}
           mode={mode}
+          omit={omit}
           slots={
             trailing || peekAt
               ? { ...(trailing ? { trailing } : {}), ...(peekAt ? { peekAt } : {}) }

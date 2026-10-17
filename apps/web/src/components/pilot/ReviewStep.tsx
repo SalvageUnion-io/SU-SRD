@@ -69,7 +69,7 @@ export function ReviewStep({ form, submitError, _sur }: ReviewStepProps) {
           <ReferenceEntityCard
             key={ability.id}
             data={ability}
-            size="medium"
+            size="compact"
             hide={{ actions: true, choices: true }}
           />
         ))}
@@ -80,7 +80,7 @@ export function ReviewStep({ form, submitError, _sur }: ReviewStepProps) {
             // biome-ignore lint/suspicious/noArrayIndexKey: id alone can't disambiguate duplicate picks; id+index is the stablest available key
             key={`${item.id}-${i}`}
             data={item}
-            size="medium"
+            size="compact"
             status="intact"
             hide={{ actions: true, choices: true }}
           />

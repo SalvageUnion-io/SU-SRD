@@ -46,13 +46,9 @@
 }
 
 /* — ModalShell widths. `maxWidth` takes a class (a style object there would
-   be overridden by the popup's own inline default): 28rem and 64rem. — */
+   be overridden by the popup's own inline default). — */
 .su-wiz-modal-md {
   max-width: 28rem;
-}
-
-.su-wiz-modal-5xl {
-  max-width: 64rem;
 }
 
 /* — CreateModeChooser — */

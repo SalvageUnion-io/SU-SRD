@@ -100,7 +100,7 @@ export function DashboardGauge({
     const shown = Math.max(0, value)
     return (
       <div role="img" aria-label={`${label} ${shown} of ${max}`} style={CELL}>
-        <Badge shape="stamp" size="caption">
+        <Badge shape="stamp" size="compact">
           {label}
         </Badge>
         <span style={shown > max ? OVER : NUMERAL}>

@@ -57,7 +57,7 @@ function PatternListRow({
     <NestedCard
       data={chassis}
       pattern={pattern}
-      size="medium"
+      size="compact"
       extent="head"
       depth={depth}
       hostDown={hostDown}

@@ -80,7 +80,7 @@ export function CraftItemsStep({
             <ReferenceEntityCard
               key={item.id}
               data={item}
-              size="medium"
+              size="compact"
               selected={count >= 1}
               selectionRole="toggle"
               cardClickLabel={name}

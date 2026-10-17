@@ -87,7 +87,7 @@ function PatternSelCard({
     <ReferenceEntityCard
       data={chassis}
       pattern={pattern}
-      size="medium"
+      size="compact"
       selected={selected}
       selectionRole="radio"
       cardClickLabel={`${pattern.name} pattern`}
@@ -151,7 +151,7 @@ export function MechChassisStep({
             <ReferenceEntityCard
               key={chassis.id}
               data={chassis}
-              size="medium"
+              size="compact"
               selected={nameToSlug(chassis.name) === chassisName}
               selectionRole="radio"
               cardClickLabel={chassis.name}

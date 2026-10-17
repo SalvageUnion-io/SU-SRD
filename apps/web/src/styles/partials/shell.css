@@ -12,8 +12,8 @@
  *
  * One geometry for both: a 56px row at every width, the mark alone (no
  * wordmark), the product nav inline from `lg`, the search entry 14rem wide,
- * and one control height (`--su-union-bar-control`) for everything you press
- * in the bar: the switcher, the search, "Buy the game", the account controls
+ * and one control height (`--su-union-bar-control`, the Compact Size) for
+ * everything you press in the bar: the switcher, the search, "Buy the game", the account controls
  * and the phone's icon buttons.
  *
  * "Here" is never rust (§3.1): the switcher's current tab is the inverse stamp,
@@ -21,7 +21,8 @@
  * is ruled under in paper (on ink) or ink (on paper).
  */
 .su-union-bar {
-  --su-union-bar-control: 36px;
+  /* The Compact Size (`--size-compact`): 44px under a coarse pointer. */
+  --su-union-bar-control: var(--size-compact);
   /* Its colours: ink, paper on it, ruled off in ink, until a page leads with
      a chapter band, whose rule (`atoms/unionBarMatch.ts`) sets these to the
      band's colour, foreground and grain, and drops the rule (transparent,
@@ -51,9 +52,6 @@
 .su-union-bar__grain--ink {
   display: var(--su-bar-grain-ink);
 }
-
-/* Under a coarse pointer the bar's one height is the 44px floor
-   (`pointer-motion.css`). */
 
 .su-union-bar__row {
   align-items: center;
@@ -555,13 +553,13 @@
 
 /* The corner's controls (a Cantina sheet's Read | Edit, "Make a copy", Share,
    "⋯") sit a row under the Union bar's buttons, so they are those buttons: the
-   bar's control height (`--su-union-bar-control`, 44px under a coarse
-   pointer), its caps type, and its right edge, the bar row's own padding
+   bar's control height (the Compact Size, 44px under a coarse pointer), its
+   caps type, and its right edge, the bar row's own padding
    (12px under 400px, 16px on a phone, 32px from `sm`), so the two right
    edges line up at every width (owner's call, 2026-10-17). It narrows the
    gutter rule above, so it repeats that rule's selector. */
 .su-chapter-band__corner {
-  --su-band-corner-control: 36px;
+  --su-band-corner-control: var(--size-compact);
 }
 
 :is(
@@ -604,7 +602,7 @@
   width: var(--su-band-corner-control);
 }
 
-.su-chapter-band__corner .su-seg[data-size='page'] {
+.su-chapter-band__corner .su-seg[data-size='compact'] {
   --su-seg-height: var(--su-band-corner-control);
 }
 
@@ -663,12 +661,12 @@
     flex: 1 1 40%;
     margin-inline: auto 0;
     max-width: 60%;
-    /* Its last line (32px chips and buttons) centred on the middle of the
+    /* Its last line (Compact chips and buttons) centred on the middle of the
        notch's capitals: the notch's baseline sits 0.076em above the band's
        foot (Barlow Semi Condensed's descent less the half-leading of its 0.92
        line) and its capitals' middle 0.352em above that. More lines stack up
        the band (owner's rule, 2026-10-14). */
-    padding: 0 0 calc(var(--text-chapter) * 0.428 - 16px);
+    padding: 0 0 calc(var(--text-chapter) * 0.428 - var(--size-compact) / 2);
   }
 
   /* A quote (The Cantina's front door) is not a line of chips: its foot sits on the
@@ -683,10 +681,9 @@
 }
 
 /* `action`, a show page's "Build With This": the Union bar's button, its
-   height (36px; 44px under a coarse pointer, `pointer-motion.css`) and type, whatever the
-   chips beside it. */
+   height (the Compact Size, as the chips beside it) and type. */
 .su-chapter-band__action {
-  --su-band-action: 36px;
+  --su-band-action: var(--size-compact);
   /* The least band left under the action, so it never sits flush on the
      band's foot: the band shows beneath it. On a phone the capitals' centre
      would put it there, so this wins and the action rides a little high. */

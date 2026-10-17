@@ -69,7 +69,7 @@ describe('aside lead is opt-in', () => {
     if (!pattern) throw new Error('Mule pattern fixture missing')
 
     const { container } = render(
-      <ReferenceEntityCard data={chassis} pattern={pattern} size="medium" />
+      <ReferenceEntityCard data={chassis} pattern={pattern} size="compact" />
     )
     expect(container.innerHTML).not.toContain(FLOAT)
     // The loadout still renders — it moved, it did not disappear.
@@ -80,7 +80,7 @@ describe('aside lead is opt-in', () => {
     // Only the PATTERN view takes the lead layout. The chassis card itself
     // still wraps its pattern list around the illustration, so the reversal
     // stays scoped to the one view that asked for it.
-    const { container } = render(<ReferenceEntityCard data={mule()} size="medium" />)
+    const { container } = render(<ReferenceEntityCard data={mule()} size="compact" />)
     expect(container.innerHTML).toContain(FLOAT)
   })
 

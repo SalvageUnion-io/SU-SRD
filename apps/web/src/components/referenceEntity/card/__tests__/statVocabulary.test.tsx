@@ -53,14 +53,14 @@ describe('trait rendering (E17: Tags with a parameter cell)', () => {
 
 describe('stat label short forms', () => {
   test('a compact card uses the abbreviations', () => {
-    const text = textOf(<ReferenceEntityCard data={mule()} size="medium" />)
+    const text = textOf(<ReferenceEntityCard data={mule()} size="compact" />)
     for (const label of ['TL', 'SP', 'EP', 'SV', 'SYS', 'MODS']) {
       expect(text).toContain(label)
     }
   })
 
   test('a compact card never falls back to the half-form labels', () => {
-    const text = textOf(<ReferenceEntityCard data={mule()} size="medium" />)
+    const text = textOf(<ReferenceEntityCard data={mule()} size="compact" />)
     // "Tech" with no "Level" beside it, and bare "System"/"Module", were the
     // three labels that read as neither the long nor the short form.
     expect(text).not.toContain('Tech')
@@ -71,7 +71,7 @@ describe('stat label short forms', () => {
   test('a full card wears the same value cells — one anatomy at every size', () => {
     // Board E1: the large card's header carries the `[label | value]` cells
     // the compact one does; the two-line value boxes are retired.
-    const text = textOf(<ReferenceEntityCard data={mule()} size="large" />)
+    const text = textOf(<ReferenceEntityCard data={mule()} size="full" />)
     for (const label of ['TL', 'SP', 'EP', 'SV', 'SYS', 'MODS']) {
       expect(text).toContain(label)
     }

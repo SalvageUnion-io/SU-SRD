@@ -1,8 +1,8 @@
 /**
- * `EntitySearcher`'s sub-header: the search field and the facet rows. Wide,
- * the rows sit inline with the field opposite the "Show" row; narrow, the
- * field stays in reach and the rows fold behind a Filters disclosure whose
- * panel scrolls on its own, so the header is never taller than the screen.
+ * `EntitySearcher`'s toolbar: the search field, the Tech level chips inline
+ * beside it when there is room, and every other facet row (the Show row
+ * included) folded behind a Filters disclosure whose panel scrolls on its own,
+ * so the toolbar is never taller than the screen.
  */
 
 import { ChevronDown } from 'lucide-react'
@@ -15,69 +15,52 @@ import { FilterRow } from '../containers/FilterRow'
 import { chevronStyle } from './entitySearcherChrome'
 import type { FacetRowConfig } from './entitySearcherTypes'
 
-function FacetRow({ row }: { row: FacetRowConfig }) {
-  return (
-    <FilterRow label={row.label}>
-      {row.chips.map(({ key, label, active, onClick, swatchStyle }) => (
-        <Badge
-          key={key}
-          shape="chip"
-          as="button"
-          aria-pressed={active}
-          surface={active ? 'solid' : 'ghost'}
-          swatch={swatchStyle}
-          onClick={onClick}
-        >
-          {label}
-        </Badge>
-      ))}
-    </FilterRow>
-  )
+function FacetChips({ row }: { row: FacetRowConfig }) {
+  return row.chips.map(({ key, label, active, onClick, swatchStyle }) => (
+    <Badge
+      key={key}
+      shape="chip"
+      as="button"
+      aria-pressed={active}
+      surface={active ? 'solid' : 'ghost'}
+      swatch={swatchStyle}
+      onClick={onClick}
+    >
+      {label}
+    </Badge>
+  ))
 }
 
-/** Wide: the facet rows, with the search field on the final row spaced
- * OPPOSITE the "Show" facet. */
-export function WideSubHeader({
-  facetRows,
-  showRow,
+/**
+ * `inline` is the one facet row that sits beside the search field (Tech
+ * level, on a wide screen); `folded` are the rows behind Filters. A searcher
+ * with neither shows the field alone.
+ */
+export function SearcherToolbar({
   search,
-}: {
-  facetRows: FacetRowConfig[]
-  showRow: FacetRowConfig | null
-  search: ReactNode
-}) {
-  return (
-    <div style={SUBHEADER_STYLE}>
-      {facetRows.map((row) => (
-        <FacetRow key={row.label} row={row} />
-      ))}
-      <div style={WIDE_SEARCH_ROW_STYLE}>
-        {showRow ? <FacetRow row={showRow} /> : <span aria-hidden="true" />}
-        <div className="su-searcher__search-slot">{search}</div>
-      </div>
-    </div>
-  )
-}
-
-/** Narrow: the search field always in reach, every facet row (Show included)
- * behind a Filters disclosure whose panel scrolls on its own. */
-export function NarrowSubHeader({
-  rows,
+  inline,
+  folded,
   activeFilters,
   filters: { open, panelId, toggleProps },
-  search,
 }: {
-  rows: FacetRowConfig[]
+  search: ReactNode
+  inline: FacetRowConfig | null
+  folded: FacetRowConfig[]
   activeFilters: number
   /** The Filters disclosure (`useDisclosure`). */
   filters: Disclosure
-  search: ReactNode
 }) {
   return (
-    <div style={SUBHEADER_STYLE}>
-      <div style={SEARCH_ROW_STYLE}>
+    <div className="su-searcher__toolbar">
+      <div style={TOOL_ROW_STYLE}>
         <div style={SEARCH_SLOT_STYLE}>{search}</div>
-        {rows.length > 0 && (
+        {inline && (
+          // biome-ignore lint/a11y/useSemanticElements: a fieldset+legend carries min-content sizing quirks in this chip row; role="group" + aria-label conveys the same semantics
+          <div role="group" aria-label={`Filter by ${inline.label}`} style={INLINE_CHIPS_STYLE}>
+            <FacetChips row={inline} />
+          </div>
+        )}
+        {folded.length > 0 && (
           <Button size="compact" {...toggleProps} style={FILTERS_TOGGLE_STYLE}>
             Filters
             {activeFilters > 0 && (
@@ -91,11 +74,13 @@ export function NarrowSubHeader({
           </Button>
         )}
       </div>
-      {rows.length > 0 && (
+      {folded.length > 0 && (
         <div id={panelId} hidden={!open} style={FILTER_PANEL_STYLE}>
           <div style={FILTER_STACK_STYLE}>
-            {rows.map((row) => (
-              <FacetRow key={row.label} row={row} />
+            {folded.map((row) => (
+              <FilterRow key={row.label} label={row.label}>
+                <FacetChips row={row} />
+              </FilterRow>
             ))}
           </div>
         </div>
@@ -104,38 +89,28 @@ export function NarrowSubHeader({
   )
 }
 
-/** The search field's frame. The focus ring is `FOCUS_WITHIN`'s box-shadow,
- * the one property that changes, so everything here is static. */
-/** Both sub-headers: a full-width column. */
-const SUBHEADER_STYLE = {
-  display: 'flex',
-  width: '100%',
-  flexDirection: 'column',
-  gap: space[8],
-} satisfies CSSProperties
-
-/** Wide: the facet rows, then the Show row with the search field opposite it.
- * The search slot's width is responsive, so it is `.su-searcher__search-slot`. */
-const WIDE_SEARCH_ROW_STYLE = {
+const TOOL_ROW_STYLE = {
   display: 'flex',
   flexWrap: 'wrap',
   alignItems: 'center',
-  justifyContent: 'space-between',
-  columnGap: space[16],
-  rowGap: space[8],
-} satisfies CSSProperties
-
-const SEARCH_ROW_STYLE = {
-  display: 'flex',
-  alignItems: 'center',
   gap: space[8],
 } satisfies CSSProperties
-const SEARCH_SLOT_STYLE = { flex: '1 1 auto', minWidth: 0 } satisfies CSSProperties
+const SEARCH_SLOT_STYLE = { flex: '1 1 14rem', minWidth: 0 } satisfies CSSProperties
+const INLINE_CHIPS_STYLE = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  gap: space[6],
+} satisfies CSSProperties
 const FILTERS_TOGGLE_STYLE = { flexShrink: 0 } satisfies CSSProperties
 /** Open, the facet rows scroll inside their own panel rather than growing the
- * header, so open filters never take more than 40% of the screen. No `display`
- * here: the panel folds with the `hidden` attribute. */
-const FILTER_PANEL_STYLE = { maxHeight: '40dvh', overflowY: 'auto' } satisfies CSSProperties
+ * toolbar, so open filters never take more than 40% of the screen. No
+ * `display` here: the panel folds with the `hidden` attribute. */
+const FILTER_PANEL_STYLE = {
+  maxHeight: '40dvh',
+  overflowY: 'auto',
+  marginTop: space[8],
+} satisfies CSSProperties
 const FILTER_STACK_STYLE = {
   display: 'flex',
   flexDirection: 'column',

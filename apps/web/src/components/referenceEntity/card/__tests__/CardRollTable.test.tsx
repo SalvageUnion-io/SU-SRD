@@ -25,7 +25,7 @@ const coreMechanic = () => {
 describe('CardRollTable', () => {
   test('hidden by default: the bar alone — the name, the Table toggle and the Roll the Die button', () => {
     render(
-      <CardRollTable table={coreMechanic()} name="Core Mechanic" size="medium" disabled={false} />
+      <CardRollTable table={coreMechanic()} name="Core Mechanic" size="compact" disabled={false} />
     )
     expect(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' }).textContent).toBe(
       'Roll the Die'
@@ -41,7 +41,7 @@ describe('CardRollTable', () => {
       <CardRollTable
         table={coreMechanic()}
         name="Core Mechanic"
-        size="medium"
+        size="compact"
         defaultOpen
         disabled={false}
         defaultRoll={14}
@@ -57,7 +57,12 @@ describe('CardRollTable', () => {
   test('rolling never needs the table open, and the toggle opens it', async () => {
     render(
       <>
-        <CardRollTable table={coreMechanic()} name="Core Mechanic" size="medium" disabled={false} />
+        <CardRollTable
+          table={coreMechanic()}
+          name="Core Mechanic"
+          size="compact"
+          disabled={false}
+        />
         <Toaster />
       </>
     )
@@ -71,7 +76,7 @@ describe('CardRollTable', () => {
 
   test('open, the Table toggle names the bands it controls', () => {
     render(
-      <CardRollTable table={coreMechanic()} name="Core Mechanic" size="medium" disabled={false} />
+      <CardRollTable table={coreMechanic()} name="Core Mechanic" size="compact" disabled={false} />
     )
     const toggle = screen.getByRole('button', { name: 'Show the Core Mechanic table' })
     fireEvent.click(toggle)
@@ -84,7 +89,7 @@ describe('CardRollTable', () => {
       <CardRollTable
         table={coreMechanic()}
         name="Core Mechanic"
-        size="medium"
+        size="compact"
         framed
         nested
         disabled={false}
@@ -105,7 +110,7 @@ describe('CardRollTable', () => {
       <CardRollTable
         table={coreMechanic()}
         name="Core Mechanic"
-        size="medium"
+        size="compact"
         defaultOpen
         disabled
       />
@@ -120,7 +125,7 @@ describe('CardRollTable', () => {
         <CardRollTable
           table={coreMechanic()}
           name="Core Mechanic"
-          size="large"
+          size="full"
           defaultOpen
           disabled={false}
         />
@@ -143,7 +148,7 @@ describe('CardRollTable', () => {
       <CardRollTable
         table={coreMechanic()}
         name="Core Mechanic"
-        size="medium"
+        size="compact"
         defaultOpen
         disabled={false}
       />
@@ -165,7 +170,7 @@ describe('CardRollTable', () => {
       <CardRollTable
         table={coreMechanic()}
         name="Core Mechanic"
-        size="medium"
+        size="compact"
         defaultOpen
         disabled={false}
         tone="var(--color-pilot)"
@@ -186,7 +191,7 @@ describe('CardRollTable', () => {
         <CardRollTable
           table={callsigns()}
           name="Callsign Table"
-          size="large"
+          size="full"
           defaultOpen
           disabled={false}
           tone="var(--color-pilot)"

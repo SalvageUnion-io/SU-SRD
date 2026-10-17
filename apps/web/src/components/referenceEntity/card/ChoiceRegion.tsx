@@ -52,7 +52,7 @@ export function ChoiceRegion({
           renderEntity={(resolved, key) => (
             <NestedCard
               key={key}
-              size="medium"
+              size="compact"
               extent="head"
               depth={depth + 1}
               data={resolved}
@@ -77,7 +77,7 @@ export function ChoiceRegion({
         // carrying the option's selection the way a picker cell does.
         renderEntityOption={(option) => (
           <NestedCard
-            size="medium"
+            size="compact"
             extent="head"
             depth={depth + 1}
             data={option.entity}

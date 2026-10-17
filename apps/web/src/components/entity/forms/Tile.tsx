@@ -133,7 +133,7 @@ export function Tile({
   const hasChips = Boolean(model.cost) || facts.length > 0
   const chips = [
     ...facts.map((cell) => <Facts key={cell.key} cells={[cell]} size="compact" />),
-    ...(model.cost ? [<CostBox key="cost" cost={model.cost} rung="compact" />] : []),
+    ...(model.cost ? [<CostBox key="cost" cost={model.cost} size="compact" />] : []),
   ]
   // Gear's chips keep to two lines, the first the longer half; the name gives way.
   const half = gear && chips.length > 2 ? Math.ceil(chips.length / 2) : 0

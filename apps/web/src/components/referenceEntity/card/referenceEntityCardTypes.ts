@@ -26,7 +26,7 @@ export type ReferenceCardEntity = RefEntity | RefMetaEntity
 export type ReferenceEntityCardProps = {
   data: ReferenceCardEntity
   size?: CardSize
-  /** How much of the entity renders — orthogonal to `size`, so a `small` card
+  /** How much of the entity renders — orthogonal to `size`, so a `mini` card
    * can still show its whole content. */
   extent?: CardExtent
   /** Nesting level — 0 = full/solo, ≥1 = nested (compact, no footer, smaller
@@ -41,7 +41,7 @@ export type ReferenceEntityCardProps = {
   readable?: boolean
   /** CHASSIS TWO-RENDERINGS: when set (with a chassis `data`), the card renders
    * the PATTERN view — pattern name as the title, the pattern's systems/modules
-   * loadout as nested cards (a `size="medium" extent="head"` pattern shows name + description). */
+   * loadout as nested cards (a `size="compact" extent="head"` pattern shows name + description). */
   pattern?: RefObjectAnyPattern
   /**
    * PAGE — the card IS the page (boards 07, 08): an SRD entity page. The card

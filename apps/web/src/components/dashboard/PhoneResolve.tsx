@@ -321,7 +321,7 @@ export function PhoneResolve({
               {resolving.roll && (
                 <>
                   <div style={ROLL}>
-                    <Badge shape="stamp" size="caption">
+                    <Badge shape="stamp" size="compact">
                       Roll the die:
                     </Badge>
                     <span style={DIE}>{resolving.roll.roll}</span>

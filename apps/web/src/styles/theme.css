@@ -325,6 +325,14 @@
   --radius-none: 0px;
   --radius-full: 9999px;
 
+  /* The app's three Sizes (`styles/sizing.ts`, ruleset §4.7): the one height of
+     every control drawn at that Size — a chip, a button, a field, a switch, a
+     search box, a Token. Siblings on a line share one Size, so they share one
+     height. Under a coarse pointer Compact takes the 44px touch floor (below). */
+  --size-mini: 18px;
+  --size-compact: 32px;
+  --size-full: 44px;
+
   /* The spacing rhythm, keyed by its own pixel value (`space[8]` in tokens.ts). */
   --space-0: 0px;
   --space-2: 2px;
@@ -430,14 +438,20 @@
 
 /* Mobile-first touch targets (ruleset §4.6: every target is at least 44px
    under a coarse pointer). Every `.su-btn` size is on the floor, the anchors
-   `buttonVariants` dresses included. A mini button, an interactive chip and a
+   `buttonVariants` dresses included. A mini button, a chip's +/- stepper, an interactive chip and a
    show page's band action (`.su-hit-area`, chip-sized on a phone) keep the size they are drawn at, so they are left off the floor here and
    reach it through the hit-area pseudo-element in partials/pointer-motion.css
    instead, as the Dashboard pennant does. The floor lives only here, unlayered,
    so it also outranks the apps' own (unlayered) stylesheets. */
 @media (pointer: coarse) {
-  button:not(.su-btn--mini, .su-hit-area),
-  [role='button']:not(.su-btn--mini, .su-hit-area),
+  /* Compact controls sit on the touch floor, so a line of them (a chip beside a
+     button on a band, a sheet's section leader) still shares one height. */
+  :root {
+    --size-compact: var(--size-full);
+  }
+
+  button:not(.su-btn--mini, .su-hit-area, .su-stat-step),
+  [role='button']:not(.su-btn--mini, .su-hit-area, .su-stat-step),
   input,
   select,
   textarea,

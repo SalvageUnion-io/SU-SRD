@@ -136,6 +136,7 @@ function SignedInAccount() {
           />
           <Button
             variant="primary"
+            size="full"
             className={ACTION}
             disabled={save.pending}
             onClick={() => void save.run({ displayName: value })}

@@ -65,11 +65,13 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    1. **§4.1 Colour roles** — values in `theme.css` alone, one spelling each. `--color-paper` is the one light surface (pure white retired), `--color-wk-bg` the page ground (the cool `-2` is off-palette on screen: tokens rule `cool-ground`), `--color-band-cream` the one cream.
       The ink ramp is warm ink at opacity, never a grey; rules blue is a band, never a ground. `contrast.test.ts` pins every pair.
    2. **§4.2 The tracking ladder** — tokens only: `--tracking-caps-tight` (0.04em) is the label default, `-snug` at the 11px floor, `--tracking-caps` chips, `-wide` header stamps, `--tracking-eyebrow` brand caption.
-   3. **§4.3 The border map** — one meaning per weight: 3px `--bw-entity` full card, 2px `--bw-entity-compact` (Card below large, and the Row), 1.5px `--bw-chrome` controls, 1px `--bw-hairline` value-cell frames and table rules.
+   3. **§4.3 The border map** — one meaning per weight: 3px `--bw-entity` full card, 2px `--bw-entity-compact` (Card below `full`, and the Row), 1.5px `--bw-chrome` controls, 1px `--bw-hairline` value-cell frames and table rules.
    4. **§4.4 Radius and spacing** — 3px outer on cards and Btn, `calc(3px − frame)` inside, stamps square; rounder only for the ink-banner tail. Spacing is `{2, 4, 6, 8, 12}px`; 12px is the card gutter.
    5. **§4.5 The pip-row split** — at most 6 per row, balanced and bottom-heavy (7 → 3/4, 13 → 4/4/5), for every pip surface. The redline pip sits at 70%.
    6. **§4.6 The floors: type and touch** — nothing under 11px at the size the reader sees (a 1200px link preview: 34px), wizards included; the stat column label is 14px.
       Every coarse-pointer target is 44px; nothing floats over content.
+   7. **§4.7 The Sizes and sibling height** — the three Sizes are heights: Full 44px, Compact 32px, Mini 18px (`--size-*`; touch lifts Compact to Full, Mini takes a 44px hit area).
+      Controls on one line share one Size: never a height of their own. `e2e/sibling-heights.e2e.ts` holds it.
 5. **§5 The irreducible set** — an ontology, not a roster (the barrel `apps/web/src/components/index.ts` is the roster): 11 atoms and one technique.
    1. **Stamp** — ink block, paper text: `Badge shape="stamp"`.
    2. **Frame** — `--bw-*` weights: `Box`, `TitledBox` (cut-out), `Card`, `Panel`.

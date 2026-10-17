@@ -99,17 +99,17 @@ describe('reprint provenance across the size / extent axes', () => {
 
   test('the catalog extent shows no footer, so no reprint line', () => {
     const kit = equipmentNamed('First Aid Kit')
-    const { container } = render(<ReferenceEntityCard data={kit} size="medium" extent="catalog" />)
+    const { container } = render(<ReferenceEntityCard data={kit} size="compact" extent="catalog" />)
     expect(container.textContent ?? '').not.toContain('Also in')
     expect(container.textContent ?? '').not.toContain('Salvage Union Starter Set')
   })
 
   test('a compact full card keeps the primary source and drops the reprints', () => {
-    // Below `large` the footer is the tightest strip on the card (every live-sheet
-    // card is `medium`), and a reprint is a lookup fact, not a play fact. The
+    // Below `full` the footer is the tightest strip on the card (every live-sheet
+    // card is `compact`), and a reprint is a lookup fact, not a play fact. The
     // primary source stays — only the additional printings are dropped.
     const kit = equipmentNamed('First Aid Kit')
-    const { container } = render(<ReferenceEntityCard data={kit} size="medium" />)
+    const { container } = render(<ReferenceEntityCard data={kit} size="compact" />)
     const text = container.textContent ?? ''
     expect(text).toContain(`Workshop Manual · p.${kit.page}`)
     expect(text).not.toContain('Also in')

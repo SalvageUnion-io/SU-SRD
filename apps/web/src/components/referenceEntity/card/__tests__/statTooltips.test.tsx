@@ -67,7 +67,7 @@ describe('trait tags (E17)', () => {
   test('inside a Peek the line is inert — no nested Peek', () => {
     const { container } = render(
       <InsidePeekContext.Provider value={true}>
-        <ReferenceEntityCard data={action('Beta Fission Gun')} size="medium" extent="catalog" />
+        <ReferenceEntityCard data={action('Beta Fission Gun')} size="compact" extent="catalog" />
       </InsidePeekContext.Provider>
     )
     expect(container.querySelector(TRIGGER)).toBeNull()
@@ -79,13 +79,13 @@ describe('header stat cluster', () => {
   test('a COMPACT card explains its stats', () => {
     // The regression: `hoverText` reached the value box but never the compact
     // horizontal cell, so every listing and nested card lost its glossary.
-    render(<ReferenceEntityCard data={mule()} size="medium" />)
+    render(<ReferenceEntityCard data={mule()} size="compact" />)
     expect(leafWithText('SP')?.closest(TRIGGER)).toBeTruthy()
     expect(leafWithText('EP')?.closest(TRIGGER)).toBeTruthy()
   })
 
   test('a FULL card still explains its stats', () => {
-    render(<ReferenceEntityCard data={mule()} size="large" />)
+    render(<ReferenceEntityCard data={mule()} size="full" />)
     expect(leafWithText('SP')?.closest(TRIGGER)).toBeTruthy()
   })
 })

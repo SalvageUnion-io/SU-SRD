@@ -14,11 +14,12 @@ import { describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Crawler } from 'cantina-domain/schemas/crawler'
 import { crawlerFixture } from '../../__tests__/fixtures'
+import { pickInSearcher, searcherToken } from '../../__tests__/searcherPick'
 import { CrawlerSystemsEditModal } from '../CrawlerSystemsEditModal'
 
 type Patch = Partial<Crawler> | ((current: Crawler) => Partial<Crawler>)
 
-/** The searcher renders a pool of cards; give the heavier renders room. */
+/** The searcher renders a pool of Tokens and a Card; give the heavier renders room. */
 const RENDER_TIMEOUT_MS = 10_000
 
 function renderModal(crawler: Crawler) {
@@ -43,7 +44,11 @@ function applyPatch(patch: Patch | undefined, current: Crawler): Partial<Crawler
   return typeof patch === 'function' ? patch(current) : patch
 }
 
-const option = (name: string) => screen.queryByRole('button', { name })
+/** The rail's budget Stat, as text ("1/1"): its value and max are separate nodes. */
+const budgetText = () => screen.getByRole('region', { name: /armed/i }).textContent
+
+/** An option's Token in the searcher's list. */
+const option = (name: string) => searcherToken(name)
 
 describe('CrawlerSystemsEditModal', () => {
   test(
@@ -70,9 +75,7 @@ describe('CrawlerSystemsEditModal', () => {
       const crawler = crawlerFixture({ id: 'c1', techLevel: 'tech-1', systems: ['ion-cannon'] })
       const { patches } = renderModal(crawler)
 
-      await act(async () => {
-        fireEvent.click(screen.getByRole('button', { name: 'Red Laser' }))
-      })
+      await pickInSearcher('Red Laser')
       // The updater reads the CURRENT record, not the one the modal rendered with:
       // a write that landed in between (here, Mini Mortar) survives.
       const fresher = { ...crawler, systems: ['ion-cannon', 'mini-mortar'] }
@@ -81,7 +84,7 @@ describe('CrawlerSystemsEditModal', () => {
       })
 
       await act(async () => {
-        fireEvent.click(screen.getByRole('button', { name: 'Ion Cannon' }))
+        fireEvent.click(screen.getByRole('button', { name: 'Remove Ion Cannon' }))
       })
       expect(applyPatch(patches[1], fresher)).toEqual({ systems: ['mini-mortar'] })
     },
@@ -92,7 +95,7 @@ describe('CrawlerSystemsEditModal', () => {
     'the budget is one weapon, and two on a Battle crawler',
     () => {
       renderModal(crawlerFixture({ id: 'c1', techLevel: 'tech-1', systems: ['red-laser'] }))
-      expect(screen.getAllByText(/1\s*\/\s*1/).length).toBeGreaterThan(0)
+      expect(budgetText()).toMatch(/1\s*\/\s*1/)
     },
     RENDER_TIMEOUT_MS
   )
@@ -103,7 +106,7 @@ describe('CrawlerSystemsEditModal', () => {
       renderModal(
         crawlerFixture({ id: 'c1', techLevel: 'tech-1', type: 'battle', systems: ['red-laser'] })
       )
-      expect(screen.getAllByText(/1\s*\/\s*2/).length).toBeGreaterThan(0)
+      expect(budgetText()).toMatch(/1\s*\/\s*2/)
     },
     RENDER_TIMEOUT_MS
   )

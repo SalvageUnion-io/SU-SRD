@@ -155,8 +155,8 @@ export {
   ogCardTitle,
   ogReferenceAddressFits,
 } from './compositions/ogCardText'
-// The searcher picker's modal width — for a bare ModalShell wrapping a
-// multi-select EntitySearcher (The Cantina's SheetPickerModal applies it itself).
+// The searcher picker's modal width — for a bare ModalShell wrapping an
+// EntitySearcher (The Cantina's SheetPickerModal applies it itself).
 export { PICKER_MODAL_WIDTH } from './compositions/pickerModalWidth'
 // RollTableInstrument — THE roll table (EDL E14): a card's, a guide step's and
 // the SRD roll-table page's bands and the Cantina's Dashboard tables, banded in the

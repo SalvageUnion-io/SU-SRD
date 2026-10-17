@@ -13,8 +13,8 @@
  *     SearchIsland) in the shared `SearchField`; tiles **drill in place**
  *     (`onActivate`) rather than navigating, which would leave the Dashboard.
  *  2. **Category** — that schema in `EntitySearcher`: its text search and
- *     tech-level / trait facets, the pool as reference cards. `mode="browse"`:
- *     nothing is being picked, so there is no rail and a card's click opens it.
+ *     tech-level / trait facets, the pool as Tokens. `mode="browse"`:
+ *     nothing is being picked, so there is no rail and a Token's click opens it.
  *  3. **Entity** — the faithful `ReferenceEntityCard`, with a way back.
  *
  * Preload hazard: the catalog and the schema listings read the ORM, so they are

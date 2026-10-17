@@ -19,6 +19,7 @@ import { ConvexError } from 'convex/values'
 import type { QueryAnswers } from '../../__tests__/convexMock'
 import { installConvexMocks, queryCalls, setQueryAnswers } from '../../__tests__/convexMock'
 import { crawlerFixture } from '../../__tests__/fixtures'
+import { pickInSearcher } from '../../__tests__/searcherPick'
 import { Toaster, toast } from '../../index'
 import { TABLE_CREW, TABLE_MEMBERS, TABLE_SEATS } from './tableFixture'
 
@@ -227,7 +228,7 @@ describe('the tray', () => {
     await act(async () => {
       fireEvent.change(picker.getByLabelText('Draw from'), { target: { value: 'squads' } })
     })
-    await click(picker.getByRole('button', { name: 'Add Rifle Squad' }))
+    await pickInSearcher('Rifle Squad', screen.getByRole('dialog'))
     expect(sent).toHaveLength(1)
     expect(sent[0]?.name).toBe('mediator:addNpc')
     expect(sent[0]?.args.gameId).toBe('g1')

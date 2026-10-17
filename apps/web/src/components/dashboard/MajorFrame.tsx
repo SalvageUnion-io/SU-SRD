@@ -461,7 +461,7 @@ export function MajorFrame({ view }: { view: MajorModel }) {
     >
       {live}
       <div className="su-dash-band-id">
-        <Badge shape="stamp" size="caption" style={{ backgroundColor: STAMP_BG[view.fam] }}>
+        <Badge shape="stamp" size="compact" style={{ backgroundColor: STAMP_BG[view.fam] }}>
           {view.stampLabel}
         </Badge>
       </div>

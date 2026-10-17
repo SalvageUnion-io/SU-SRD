@@ -166,7 +166,7 @@ function PageSubLine({
       {extra}
       <Chips
         chips={NO_CHIPS}
-        rung="full"
+        size="full"
         leading={children}
         align="end"
         className="su-entity-page__tags"
@@ -179,7 +179,7 @@ const NO_CHIPS: ChipSet = { durations: [], facts: [], tags: [] }
 
 /**
  * The head extent as the entity forms (the adapter): the SHORTFORM
- * (`size="small" extent="head"`) is the Token, the COMPACT CARD the Row, each
+ * (`size="mini" extent="head"`) is the Token, the COMPACT CARD the Row, each
  * given the slots this card resolved from its props.
  */
 function HeadForm({
@@ -204,7 +204,7 @@ function HeadForm({
 
 function ReferenceEntityCardInner({
   data,
-  size: sizeProp = 'large',
+  size: sizeProp = 'full',
   extent = 'full',
   depth: depthProp = 0,
   presentation = 'card',
@@ -251,9 +251,9 @@ function ReferenceEntityCardInner({
 }: ReferenceEntityCardProps) {
   // Section bands are h2s (nested titles h3s) only when this card IS the page
   // (`sectionHeadingLevel`), whatever `titleAs` says: a page's title is its h1,
-  // in the chapter band. A card the page carries takes only its chips' rung.
+  // in the chapter band. A card the page carries takes only its chips' size.
   const onPage = presentation === 'page' && depthProp === 0
-  const rung = presentation === 'page' && !onPage ? 'full' : 'compact'
+  const chipSize = presentation === 'page' && !onPage ? 'full' : 'compact'
   const sectionAs = sectionHeadingLevel(onPage ? 'h1' : titleAs)
 
   // MULTI-SELECT: a card driven by `onCountChange` reads as selected whenever its
@@ -282,9 +282,9 @@ function ReferenceEntityCardInner({
   const isAction = schemaName === 'actions'
   // A FRAMED action (the Dashboard's deck and resolve panel) is never the
   // dominant solo card: a large one renders medium, at depth ≥ 1.
-  const size: CardSize = isAction && sizeProp === 'large' ? 'medium' : sizeProp
+  const size: CardSize = isAction && sizeProp === 'full' ? 'compact' : sizeProp
   const depth = isAction ? Math.max(depthProp, 1) : depthProp
-  const compact = depth > 0 || size !== 'large'
+  const compact = depth > 0 || size !== 'full'
   const isCatalog = extent === 'catalog'
   const hide = resolveHide(hideProp, isCatalog, insidePeek)
   const tone = resolveCardTone(schemaName, entity)
@@ -310,7 +310,7 @@ function ReferenceEntityCardInner({
   const titleSize = resolveTitleSize(fill, depth, size)
   // ARTWORK — a MINI catalog tile drops it: at the small size the image would
   // crowd out the description it exists to caption.
-  const isMiniCatalog = isCatalog && size === 'small'
+  const isMiniCatalog = isCatalog && size === 'mini'
   const assetUrl = isMiniCatalog ? undefined : getAssetUrl(entity)
   const assetSrcSet = assetSrcSetFor(assetUrl)
 
@@ -457,7 +457,7 @@ function ReferenceEntityCardInner({
       titleSize={titleSize}
       titleColor={onBand === 'ink' ? 'var(--color-ink)' : 'var(--color-paper)'}
       numeral={numeral}
-      chips={<Chips chips={chips} rung={rung} onInk={fill === 'ink'} leading={suggestedNode} />}
+      chips={<Chips chips={chips} size={chipSize} onInk={fill === 'ink'} leading={suggestedNode} />}
       pennant={pennantNode}
       labels={labels}
       size={size}
@@ -528,7 +528,7 @@ function ReferenceEntityCardInner({
     />
   )
 
-  // SHORTFORM (`size="small" extent="head"`) is the Token form, and the
+  // SHORTFORM (`size="mini" extent="head"`) is the Token form, and the
   // COMPACT CARD (`extent="head"`) the Row form: this card is their adapter,
   // translating its props into the forms' slots.
   if (isHead) {
@@ -539,7 +539,7 @@ function ReferenceEntityCardInner({
         instance={{ title: name, ...(userMade ? { userMade } : {}) }}
         shared={{ outer, frameStyle, down: isDown }}
         token={
-          size === 'small' && {
+          size === 'mini' && {
             kind,
             pennant: isAction ? pennantNode : undefined,
             cost: isAction ? chips.cost : undefined,
@@ -627,7 +627,7 @@ function ReferenceEntityCardInner({
       <CardPage
         entity={entity}
         hero={heroNode}
-        leadActions={hide?.actions ? [] : chassisAbilityEntities}
+        leadActions={hide?.actions && !showChassisAbility ? [] : chassisAbilityEntities}
         otherActions={hide?.actions ? [] : [...gridActions, ...titanicActions]}
         subLine={
           (subtitleExtra || hasSubLine) && (

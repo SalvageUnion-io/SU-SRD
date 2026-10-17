@@ -1,7 +1,7 @@
 /**
  * CloseButton is the one ×: Button's icon rung, named for a screen reader,
- * quiet by default and the ink stamp on request, with paper and touch flags
- * the stylesheet reads.
+ * quiet by default and the ink stamp on request, with a paper flag the
+ * stylesheet reads (a coarse pointer lifts the compact rung to 44px).
  */
 import { describe, expect, mock, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
@@ -19,11 +19,10 @@ describe('CloseButton', () => {
     expect(onClick).toHaveBeenCalledTimes(1)
   })
 
-  test('takes a label, the stamp look and the paper and touch flags', () => {
-    render(<CloseButton label="Close menu" look="stamp" onPaper touch />)
+  test('takes a label, the stamp look and the paper flag', () => {
+    render(<CloseButton label="Close menu" look="stamp" onPaper />)
     const button = screen.getByRole('button', { name: 'Close menu' })
     expect(button.className).toContain('su-btn--ink')
     expect(button.hasAttribute('data-on-paper')).toBe(true)
-    expect(button.hasAttribute('data-touch')).toBe(true)
   })
 })

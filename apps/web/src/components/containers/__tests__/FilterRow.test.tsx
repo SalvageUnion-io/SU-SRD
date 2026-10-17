@@ -40,8 +40,8 @@ describe('FilterRow', () => {
     )
     const label = container.querySelector('span')
     expect(label).toBeTruthy()
-    // An uppercase caps label rides the CONDENSED face (`.su-caps`), in paper.
+    // An uppercase caps label rides the CONDENSED face (`.su-caps`), in ink on the Filters panel's paper.
     expect(label?.classList.contains('su-caps')).toBe(true)
-    expect(label?.classList.contains('su-eyebrow--paper')).toBe(true)
+    expect(label?.classList.contains('su-eyebrow--ink')).toBe(true)
   })
 })

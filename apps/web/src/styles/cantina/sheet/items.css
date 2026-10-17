@@ -4,12 +4,12 @@
       on a phone. Live controls are pencil (dashed), a read-out print
       (solid). ── */
 .su-sheet-item {
-  --sheet-ctl-h: 2.75rem;
+  --sheet-ctl-h: var(--size-full);
 }
 
 @media (min-width: 40rem) {
   .su-sheet-item {
-    --sheet-ctl-h: 2rem;
+    --sheet-ctl-h: var(--size-compact);
   }
 }
 

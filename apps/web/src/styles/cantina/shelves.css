@@ -20,7 +20,7 @@
 }
 
 /* The band's actions (board S1): the uppercase display face at the band's
-   40px, so they read as one row beside the Showing toggle. Geometry and type
+   Size, Compact, so they read as one row beside the Showing toggle. Geometry and type
    only; the on-ink colours are above. A shelf's "+ New…" is an action chip
    (Button's `mini` rung), as a Row's "⋯" is. */
 .su-shelves-band__btn {
@@ -28,7 +28,7 @@
   font-size: var(--text-caption);
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps-tight);
-  min-height: 40px;
+  min-height: var(--size-compact);
   padding-inline: var(--space-14);
   text-transform: uppercase;
 }
@@ -46,28 +46,16 @@
 /* The band's controls sit right of the notched title, their line centred on
    the middle of its capitals, as a show page's chips are (owner's rule,
    2026-10-14; `.su-chapter-band[data-aside='notch']` in shell.css). That rule
-   assumes a 32px line; these are 40px (44px under a coarse pointer), so the
-   half-height is theirs. Below `sm` they stack above the title, on the band. */
-@media (min-width: 40rem) {
-  .su-shelves .su-chapter-band__aside {
-    padding-bottom: calc(var(--text-chapter) * 0.428 - 20px);
-  }
-}
-@media (min-width: 40rem) and (pointer: coarse) {
-  .su-shelves .su-chapter-band__aside {
-    padding-bottom: calc(var(--text-chapter) * 0.428 - 22px);
-  }
-}
+   is the same Compact line, so it needs nothing of its own here. Below `sm`
+   they stack above the title, on the band. */
 
 /* Under a coarse pointer every control on the page is at least 44px tall
-   (ruleset §4.6): the band's buttons and the menu rows (the Starter Set's
-   entries are Tokens). `theme.css` floors `button` and `.su-btn`; this names
-   the band's, whose own 40px would otherwise sit under it, and the menu rows,
-   which are neither. The action chips (a shelf's "+ New…", a Row's "⋯") reach
-   44px through the `mini` rung's hit area (`pointer-motion.css`). */
+   (ruleset §4.6). The band's buttons are Compact, which theme.css lifts to
+   Full there; the menu rows (the Starter Set's entries are Tokens) are named
+   here. The action chips (a shelf's "+ New…", a Row's "⋯") reach 44px through
+   the Mini button's hit area (`pointer-motion.css`). */
 @media (pointer: coarse) {
-  .su-shelves-band__btn,
   .su-header-menu-item {
-    min-height: 44px;
+    min-height: var(--size-full);
   }
 }

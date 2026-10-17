@@ -175,7 +175,7 @@ function owedByTitle(rung: TitleRung): number {
 /** Every rung a card title can be set at: each size, at each nesting depth. */
 const TITLE_RUNGS: TitleRung[] = [
   ...new Set(
-    (['large', 'medium', 'small'] as const).flatMap((size) =>
+    (['full', 'compact', 'mini'] as const).flatMap((size) =>
       [0, 1, 2, 3, 4, 5, 6].map((depth) => titleSizeRung(depth, size))
     )
   ),
@@ -227,9 +227,9 @@ describe('card band contrast', () => {
   })
 
   test('a small card’s title is under the large-text threshold, so owes 4.5:1', () => {
-    expect(px(fontSize[titleSizeRung(0, 'small')])).toBeLessThan(LARGE_BOLD_TEXT_PX)
-    expect(owedByTitle(titleSizeRung(0, 'small'))).toBe(4.5)
-    expect(owedByTitle(titleSizeRung(0, 'large'))).toBe(3)
+    expect(px(fontSize[titleSizeRung(0, 'mini')])).toBeLessThan(LARGE_BOLD_TEXT_PX)
+    expect(owedByTitle(titleSizeRung(0, 'mini'))).toBe(4.5)
+    expect(owedByTitle(titleSizeRung(0, 'full'))).toBe(3)
   })
 
   for (const rung of TITLE_RUNGS) {

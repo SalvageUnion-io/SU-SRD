@@ -1,8 +1,8 @@
 import type { CSSProperties, ElementType, HTMLAttributes, ReactNode, Ref } from 'react'
 import { borderWidth, color, radius, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
-import type { SizeRung } from '../../styles/sizing'
-import { DEFAULT_RUNG, RUNG_INLINE_PADDING, RUNG_TYPE } from '../../styles/sizing'
+import type { Size } from '../../styles/sizing'
+import { DEFAULT_SIZE, SIZE_INLINE_PADDING, SIZE_TYPE } from '../../styles/sizing'
 import { capsLabel } from './capsLabel'
 import { FOCUS_RING } from './interaction'
 import { STAMP_SEAM } from './stampSeam'
@@ -15,10 +15,8 @@ type BadgeSurface = 'solid' | 'ghost' | 'outline' | 'tone' | 'quiet'
  * `src/styles/sizing.ts`). Badge is the reference
  * implementation of that vocabulary: every three-step size axis in the system
  * uses these names, so a size means the same thing wherever it is read.
- * `caption` is the stamp's own fourth rung: the 13px plate (`--text-caption`)
- * between `full` (14px) and `compact` (12px).
  */
-type StampSize = SizeRung | 'caption'
+type StampSize = Size
 /** Stamp plate (`shape="stamp"`). */
 export type StampSurface = 'on-ink' | 'inverse' | 'dashed'
 
@@ -68,10 +66,9 @@ const QUIET_GROUND = { backgroundColor: color.wkBg } satisfies CSSProperties
  * `compact` is the default — the rung a stamp sits at when nothing is asked.
  */
 const STAMP_SIZE: Record<StampSize, string> = {
-  full: cn(RUNG_INLINE_PADDING.full, RUNG_TYPE.full.label),
-  compact: cn(RUNG_INLINE_PADDING.compact, RUNG_TYPE.compact.label),
-  mini: cn(RUNG_INLINE_PADDING.mini, RUNG_TYPE.mini.label),
-  caption: 'su-badge-stamp--caption',
+  full: cn(SIZE_INLINE_PADDING.full, SIZE_TYPE.full.label),
+  compact: cn(SIZE_INLINE_PADDING.compact, SIZE_TYPE.compact.label),
+  mini: cn(SIZE_INLINE_PADDING.mini, SIZE_TYPE.mini.label),
 }
 
 /** Stamp plate fills — the square label/header shape. */
@@ -180,7 +177,7 @@ export function Badge(props: BadgeProps) {
   if (props.shape === 'stamp') {
     const {
       children,
-      size = DEFAULT_RUNG,
+      size = DEFAULT_SIZE,
       surface = 'on-ink',
       seam = false,
       as: Tag = 'span',

@@ -18,7 +18,9 @@ import { ReferenceEntityCard } from '../ReferenceEntityCard'
 /** Text the tile renders, with the entity's own name removed — what a reader
  * learns from the tile beyond the label they clicked. */
 function contentBeyondName(entity: RefEntity): string {
-  const { container } = render(<ReferenceEntityCard data={entity} size="medium" extent="catalog" />)
+  const { container } = render(
+    <ReferenceEntityCard data={entity} size="compact" extent="catalog" />
+  )
   const text = container.textContent ?? ''
   return text.split(entity.name).join('').trim()
 }
@@ -55,7 +57,7 @@ describe('catalog tiles always carry content', () => {
     const bioMaw = findByName('Systems', 'Bio-Maw')
     expect('content' in bioMaw ? (bioMaw.content?.length ?? 0) : 0).toBe(0)
 
-    render(<ReferenceEntityCard data={bioMaw} size="medium" extent="catalog" />)
+    render(<ReferenceEntityCard data={bioMaw} size="compact" extent="catalog" />)
     expect(screen.getByText('You have a mouth, and it must eat.')).toBeTruthy()
   })
 
@@ -64,7 +66,7 @@ describe('catalog tiles always carry content', () => {
     // Grants win: the granted thing is what the ability is for.
     const holo = findByName('Abilities', 'Holo Companion')
 
-    render(<ReferenceEntityCard data={holo} size="medium" extent="catalog" />)
+    render(<ReferenceEntityCard data={holo} size="compact" extent="catalog" />)
     expect(
       screen.getByText(
         'You have created an intelligent, holographic, A.I. companion that only you can use.'
@@ -80,7 +82,7 @@ describe('catalog tiles always carry content', () => {
     // exactly what catalog mode suppressed.
     const adrenal = findByName('Modules', 'Adrenal Glands')
 
-    render(<ReferenceEntityCard data={adrenal} size="medium" extent="catalog" />)
+    render(<ReferenceEntityCard data={adrenal} size="compact" extent="catalog" />)
     expect(screen.getByText(/can move an additional Range band/)).toBeTruthy()
     expect(screen.queryByText(/can make an additional Turn Action/)).toBeNull()
   })
@@ -92,7 +94,7 @@ describe('catalog tiles always carry content', () => {
     const borrowed = 'This handheld Bio-Titan gun fires fleshy spikes that pin a target down.'
 
     const rifle = findByName('Equipment', 'Bio-Rifle')
-    const borrowing = render(<ReferenceEntityCard data={rifle} size="medium" extent="catalog" />)
+    const borrowing = render(<ReferenceEntityCard data={rifle} size="compact" extent="catalog" />)
     expect(borrowing.container.textContent ?? '').toContain(borrowed)
     borrowing.unmount()
 
@@ -102,7 +104,7 @@ describe('catalog tiles always carry content', () => {
     // It wields the Bio-Rifle (Chimerium Chosen) action, whose prose opens the
     // same way — and it must render its OWN description instead.
     const { container } = render(
-      <ReferenceEntityCard data={chosen} size="medium" extent="catalog" />
+      <ReferenceEntityCard data={chosen} size="compact" extent="catalog" />
     )
     expect(container.textContent ?? '').not.toContain(borrowed)
   })
@@ -113,7 +115,9 @@ describe('catalog tiles always carry content', () => {
     // as bare paper. `min-h-[2.5rem]` is what would have reserved that strip.
     const club = findByName('Equipment', 'Steel Billy Club')
 
-    const { container } = render(<ReferenceEntityCard data={club} size="medium" extent="catalog" />)
+    const { container } = render(
+      <ReferenceEntityCard data={club} size="compact" extent="catalog" />
+    )
     expect(container.querySelector('[class*="min-h-[2.5rem]"]')).toBeNull()
     // It still says what it does have.
     expect(contentBeyondName(club)).toContain('TL')
@@ -131,7 +135,7 @@ describe('catalog tiles carry no authorship', () => {
     full.unmount()
 
     const { container } = render(
-      <ReferenceEntityCard data={chassis} size="medium" extent="catalog" />
+      <ReferenceEntityCard data={chassis} size="compact" extent="catalog" />
     )
     const text = container.textContent ?? ''
     expect(text).not.toContain(String(chassis.source))
@@ -157,7 +161,9 @@ describe('catalog tiles carry no authorship', () => {
     expect(ability).toBeUndefined()
 
     const holo = findByName('Abilities', 'Holo Companion')
-    const { container } = render(<ReferenceEntityCard data={holo} size="medium" extent="catalog" />)
+    const { container } = render(
+      <ReferenceEntityCard data={holo} size="compact" extent="catalog" />
+    )
     const description = 'Construct an intelligent, holographic A.I. companion'
     const occurrences = (container.textContent ?? '').split(description).length - 1
     expect(occurrences).toBe(1)

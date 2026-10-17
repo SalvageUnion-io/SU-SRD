@@ -92,7 +92,8 @@
   font-family: var(--font-body);
   font-size: var(--text-caption);
   gap: var(--space-8);
-  padding-block: 7px;
+  min-height: var(--size-compact);
+  padding-block: 0;
   padding-inline: var(--space-12);
 }
 

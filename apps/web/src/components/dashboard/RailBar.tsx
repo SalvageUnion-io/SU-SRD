@@ -112,7 +112,7 @@ export function RailBar({
         {context && <span style={CONTEXT}>{context}</span>}
       </span>
       {/* The context stamp: the caption plate on the family's band. */}
-      <Badge shape="stamp" size="caption" style={{ ...STAMP, backgroundColor: STAMP_BG[fam] }}>
+      <Badge shape="stamp" size="compact" style={{ ...STAMP, backgroundColor: STAMP_BG[fam] }}>
         {stamp}
       </Badge>
       <span style={SPACER} />

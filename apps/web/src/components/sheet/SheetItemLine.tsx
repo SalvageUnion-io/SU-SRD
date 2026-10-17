@@ -71,7 +71,7 @@ export function SheetItemLine({
         {token}
         {damaged && <StatusBadge status={condition} />}
         {stamp && (
-          <Badge shape="stamp" surface="inverse" size="caption">
+          <Badge shape="stamp" surface="inverse" size="compact">
             {stamp}
           </Badge>
         )}

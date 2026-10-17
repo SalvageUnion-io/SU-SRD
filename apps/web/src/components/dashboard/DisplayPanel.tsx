@@ -144,7 +144,7 @@ export function DisplayPanelFrame({ content }: { content: DisplayContent }) {
       return <SrdExplorer />
     case 'entity':
       // Centre the card at a document width, the way the srd reference page
-      // does (a centred 42rem column). Without it the full `large` card
+      // does (a centred 42rem column). Without it the full `full` card
       // stretches to the whole panel and reads squashed — wide-and-short header
       // stats, over-wide art. `su-dash-display-scroll` only provides the scroll box.
       return (

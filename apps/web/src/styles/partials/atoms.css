@@ -10,8 +10,8 @@
  * Static values live in each component's style objects.
  */
 
-/* The size ladder's class strings (`styles/sizing.ts`: `RUNG_TYPE`,
- * `RUNG_INLINE_PADDING`). The two inherited rungs carry their paired
+/* The size ladder's class strings (`styles/sizing.ts`: `SIZE_TYPE`,
+ * `SIZE_INLINE_PADDING`). The two inherited rungs carry their paired
  * line-height (`text-sm` 1.25rem, `text-xs` 1rem); the semantic rungs set
  * size alone. */
 .su-rung-label--full {
@@ -53,16 +53,6 @@
 .su-rung-pad--mini {
   padding-block: var(--space-2);
   padding-inline: var(--space-4);
-}
-
-/* The stamp-only `caption` rung (`Badge shape="stamp" size="caption"`): the
- * 13px ink plate a Dashboard band, gauge or roll line wears, between `full`
- * and `compact`, on the full rung's padding. */
-.su-badge-stamp--caption {
-  font-size: var(--text-caption);
-  line-height: 1.4;
-  padding-block: var(--space-4);
-  padding-inline: var(--space-8);
 }
 
 /* `STAMP_SEAM` (`atoms/stampSeam.ts`): a stamp centred on its container's

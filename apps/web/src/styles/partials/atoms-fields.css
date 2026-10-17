@@ -24,6 +24,22 @@
   width: 100%;
 }
 
+/* A one-line field is its Size's height (`--size-*`): Full by default, Compact
+ * (`Input size="compact"`) beside a sheet's Compact buttons. A textarea keeps
+ * its rows. */
+input.su-text-input,
+select.su-text-input {
+  height: var(--size-full);
+  padding-block: 0;
+}
+
+input.su-text-input--compact {
+  font-size: var(--text-xs);
+  height: var(--size-compact);
+  line-height: calc(1 / 0.75);
+  padding-inline: var(--space-8);
+}
+
 .su-text-input::placeholder {
   color: var(--color-wk-muted);
 }
@@ -32,11 +48,10 @@
   resize: vertical;
 }
 
-/* `Select`: the `Input` skin one rung smaller, held to the 44px target. */
+/* `Select`: the `Input` skin with smaller type, at the Full Size. */
 .su-select {
   font-size: var(--text-sm);
   line-height: calc(1.25 / 0.875);
-  min-height: 2.75rem;
 }
 
 .su-select--chevron {

@@ -404,7 +404,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
         }
         aside={
           <div style={BAND_CONTROLS}>
-            <Segmented label="Showing" ground="ink" size="page">
+            <Segmented label="Showing" ground="ink" size="compact">
               {SHELF_FILTERS.map((option) => (
                 <SegmentedOption
                   key={option.value}

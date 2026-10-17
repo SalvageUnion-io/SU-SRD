@@ -138,7 +138,7 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
             </div>
             <Button
               variant="primary"
-              size="compact"
+              size="full"
               disabled={busy || name.trim().length === 0}
               onClick={() => void startGame({ name })}
             >

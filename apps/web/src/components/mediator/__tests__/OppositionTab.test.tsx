@@ -12,6 +12,7 @@
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { RefEntity } from 'salvageunion-reference'
+import { pickInSearcher, searcherToken } from '../../__tests__/searcherPick'
 import type { TrayWrites } from '../OppositionTab'
 import { OppositionTab } from '../OppositionTab'
 import type { EncounterRefSchema, SavedPattern, TrayDraw, TrayNpc } from '../opposition.model'
@@ -236,17 +237,23 @@ describe('writes', () => {
 describe('+ From the reference', () => {
   async function openPicker() {
     await click(screen.getByRole('button', { name: '+ From the reference' }))
-    return within(screen.getByRole('dialog'))
+    return within(dialog())
+  }
+  const dialog = () => screen.getByRole('dialog')
+  /** Open the entity's Page in the picker and press its Add. */
+  async function add(name: string) {
+    await pickInSearcher(name, dialog())
   }
 
   test('opens on NPCs, adds the one picked, and counts what the tray already holds', async () => {
     await renderTab([fallenRaider])
     const picker = await openPicker()
     expect((picker.getByLabelText('Draw from') as HTMLSelectElement).value).toBe('npcs')
-    // The Raider already on the field is counted on its card.
-    expect(picker.getByText('1 Added')).toBeTruthy()
+    // The Raider already on the field is marked chosen in the list.
+    const raider = searcherToken('Raider', dialog())?.closest('.su-searcher__item')
+    expect(raider?.hasAttribute('data-selected')).toBe(true)
 
-    await click(picker.getByRole('button', { name: 'Add Trooper' }))
+    await add('Trooper')
     expect(calls).toHaveLength(1)
     const [schema, entity] = (calls[0]?.args ?? []) as [EncounterRefSchema, RefEntity]
     expect(calls[0]?.name).toBe('add')
@@ -260,8 +267,8 @@ describe('+ From the reference', () => {
     await act(async () => {
       fireEvent.change(picker.getByLabelText('Draw from'), { target: { value: 'creatures' } })
     })
-    expect(picker.queryByRole('button', { name: 'Add Trooper' })).toBeNull()
-    await click(picker.getByRole('button', { name: 'Add Wasteland Bear' }))
+    expect(searcherToken('Trooper', dialog())).toBeNull()
+    await add('Wasteland Bear')
     const [schema, entity] = (calls[0]?.args ?? []) as [EncounterRefSchema, RefEntity]
     expect(schema).toBe('creatures')
     expect(entity.name).toBe('Wasteland Bear')
@@ -274,11 +281,11 @@ describe('+ From the reference', () => {
     await act(async () => {
       fireEvent.change(name, { target: { value: 'Red Leader' } })
     })
-    await click(picker.getByRole('button', { name: 'Add Trooper' }))
+    await add('Trooper')
     expect(calls[0]?.args[2]).toEqual({ name: 'Red Leader' })
     expect(name.value).toBe('')
     // Left blank, the reference name stands.
-    await click(picker.getByRole('button', { name: 'Add Trooper' }))
+    await add('Trooper')
     expect(calls[1]?.args[2]).toEqual({})
   })
 
@@ -308,7 +315,7 @@ describe('+ From the reference', () => {
     await act(async () => {
       fireEvent.change(picker.getByLabelText('Search'), { target: { value: 'Mule' } })
     })
-    const addMule = () => click(picker.getByRole('button', { name: 'Add Mule' }))
+    const addMule = () => add('Mule')
     const choose = async (value: string) => {
       await act(async () => {
         fireEvent.change(picker.getByLabelText('Mule pattern'), { target: { value } })
@@ -353,8 +360,8 @@ describe('+ From the reference', () => {
 
   test('a refused add goes to onFailure', async () => {
     await renderTab([], { writes: trayWrites(new Set(['add'])) })
-    const picker = await openPicker()
-    await click(picker.getByRole('button', { name: 'Add Raider' }))
+    await openPicker()
+    await add('Raider')
     expect(failures.map((e) => (e as Error).message)).toEqual(['add refused'])
   })
 

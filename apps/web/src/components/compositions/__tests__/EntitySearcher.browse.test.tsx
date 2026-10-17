@@ -12,7 +12,7 @@ import { POOL_RENDER_MS } from './entitySearcherHarness'
 
 describe('EntitySearcher — browse mode', () => {
   it(
-    'has no rail, no Show facet and no on-sheet count; a card click opens it',
+    'has no rail, no boxes and no Show facet; a Token click opens it',
     () => {
       const chassis = SalvageUnionReference.Chassis.all()[0]
       if (!chassis) throw new Error('No chassis in reference data')
@@ -27,13 +27,14 @@ describe('EntitySearcher — browse mode', () => {
           chosenLabel="Chosen"
         />
       )
-      expect(screen.queryByRole('region', { name: 'Chosen' })).toBeNull()
-      expect(screen.queryByRole('group', { name: /filter by show/i })).toBeNull()
-      expect(screen.queryByText(/on sheet/i)).toBeNull()
-      const card = screen.getByRole('button', { name: chassis.name })
+      expect(screen.queryByRole('region', { name: /chosen/i })).toBeNull()
+      expect(screen.queryByRole('button', { name: /^select /i })).toBeNull()
+      // Folded rows are still in the DOM, so this sees past Filters.
+      expect(document.body.textContent).not.toContain('Chosen only')
+      const token = screen.getByRole('button', { name: chassis.name })
       // A plain button: it opens the entity, it does not toggle a selection.
-      expect(card.getAttribute('aria-pressed')).toBeNull()
-      fireEvent.click(card)
+      expect(token.getAttribute('aria-pressed')).toBeNull()
+      fireEvent.click(token)
       expect(opened).toEqual([chassis.id])
     },
     POOL_RENDER_MS

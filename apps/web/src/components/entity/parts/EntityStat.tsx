@@ -1,5 +1,5 @@
 import type { EntityRef } from 'salvageunion-reference'
-import type { SizeRung } from '../../../styles/sizing'
+import type { Size } from '../../../styles/sizing'
 import { Stat } from '../../atoms/Stat'
 import { LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
@@ -20,7 +20,7 @@ export function EntityStat({
   label,
   entityRef,
   href,
-  rung = 'full',
+  size = 'full',
 }: {
   /** What the entity is to its holder: 'Class', 'Chassis', 'Type', 'Pattern of'. */
   label: string
@@ -28,7 +28,7 @@ export function EntityStat({
   entityRef: EntityRef
   /** The entity's route, when the caller has one the surface does not know. */
   href?: string
-  rung?: SizeRung
+  size?: Size
 }) {
   const insidePeek = useInsidePeek()
   const target = useLinkTarget(
@@ -41,9 +41,9 @@ export function EntityStat({
       target={target}
       label={`${label}: ${entityRef.name}`}
       peek={peek}
-      className="su-chip-link su-chip-link--entity"
+      className="su-chip-link su-chip-link--entity su-hit-area"
     >
-      <Stat orientation="horizontal" label={label} value={entityRef.name} size={rung} wrap />
+      <Stat orientation="horizontal" label={label} value={entityRef.name} size={size} wrap />
     </LinkSurface>
   )
 }

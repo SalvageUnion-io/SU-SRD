@@ -60,7 +60,7 @@ export function StepButton({
       className={cn(
         'su-step-btn',
         GROUND[ground],
-        fit === 'cell' && 'su-step-btn--cell',
+        fit === 'cell' && 'su-step-btn--cell su-stat-step',
         FOCUS_RING,
         DISABLED,
         className

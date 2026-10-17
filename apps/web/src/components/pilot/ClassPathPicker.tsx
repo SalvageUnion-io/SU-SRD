@@ -99,7 +99,7 @@ function OptionCard({
     <div style={dimmed && !selected ? DIMMED : undefined}>
       <ReferenceEntityCard
         data={cls}
-        size="medium"
+        size="compact"
         extent="catalog"
         className="su-wiz-class-card"
         selected={selected}
@@ -218,7 +218,7 @@ export function ClassPathPicker({
                     <ReferenceEntityCard
                       key={cls.id}
                       data={cls}
-                      size="small"
+                      size="mini"
                       extent="head"
                       className="su-wiz-class-card"
                       selected={cls.id === answeredOrigin}

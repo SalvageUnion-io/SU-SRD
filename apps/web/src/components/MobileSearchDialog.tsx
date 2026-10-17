@@ -102,7 +102,7 @@ export function MobileSearchDialog({ children }: MobileSearchDialogProps) {
           <Drawer.Popup className="su-drawer" style={POPUP}>
             <div style={TITLE_ROW}>
               <Drawer.Title style={TITLE}>Search</Drawer.Title>
-              <Drawer.Close render={<CloseButton label="Close search" touch />} />
+              <Drawer.Close render={<CloseButton label="Close search" />} />
             </div>
             {children}
           </Drawer.Popup>

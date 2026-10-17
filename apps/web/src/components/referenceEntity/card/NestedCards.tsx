@@ -62,9 +62,9 @@ export type NestedWrite = {
 
 /** A stack's inset from the frame, by the host's size (board E2). */
 const STACK_MARGIN: Record<CardSize, string> = {
-  large: `${space[4]} ${space[14]} ${space[14]}`,
-  medium: `${space[2]} ${space[10]} ${space[10]}`,
-  small: `${space[2]} ${space[8]} ${space[8]}`,
+  full: `${space[4]} ${space[14]} ${space[14]}`,
+  compact: `${space[2]} ${space[10]} ${space[10]}`,
+  mini: `${space[2]} ${space[8]} ${space[8]}`,
 }
 
 /**
@@ -130,7 +130,7 @@ export function CardLead({
   )
 }
 
-const LEAD_GAP: Record<CardSize, string> = { large: space[12], medium: space[10], small: space[8] }
+const LEAD_GAP: Record<CardSize, string> = { full: space[12], compact: space[10], mini: space[8] }
 
 /** Children inside a Peek: one read-only Token each, on a wrapping line (E16). */
 function PeekTokens({ entities }: { entities: ReferenceCardEntity[] }) {
@@ -365,7 +365,7 @@ export function InlineActions({
 }
 
 /** The card's gutter by size — what a chip or a section aligns to. */
-const GUTTER: Record<CardSize, string> = { large: space[14], medium: space[10], small: space[8] }
+const GUTTER: Record<CardSize, string> = { full: space[14], compact: space[10], mini: space[8] }
 
 /**
  * Below depth 1 a card's actions fold behind a "Show N actions" chip that

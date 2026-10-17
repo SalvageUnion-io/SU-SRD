@@ -82,7 +82,7 @@ export function PeekCard({ entity, down = false }: { entity: RefEntity; down?: D
     <InsidePeekContext.Provider value={true}>
       <ReferenceEntityCard
         data={entity}
-        size="small"
+        size="mini"
         extent="full"
         texture={false}
         chassisName={peekChassisName(entity)}

@@ -179,7 +179,7 @@ export function PhoneMenu({
           <h2 ref={heading} tabIndex={-1} style={TITLE}>
             {view === 'menu' ? 'Menu' : PANEL_TITLE[view]}
           </h2>
-          <CloseButton label="Close the menu" onPaper touch onClick={onClose} />
+          <CloseButton label="Close the menu" onPaper onClick={onClose} />
         </div>
         {view === 'menu' ? (
           <nav aria-label="Dashboard" style={LIST}>

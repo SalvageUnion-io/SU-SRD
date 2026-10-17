@@ -329,7 +329,7 @@ function DowntimeWizardFrame({
                 <DashboardRollTable
                   table={table}
                   name={tableName}
-                  size="small"
+                  size="mini"
                   tone={CHAPTER_BAND_COLOR.crawler}
                 />
               </div>

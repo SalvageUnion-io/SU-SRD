@@ -17,6 +17,9 @@ import type {
   TechLevelLike,
 } from './entitySearcherTypes'
 
+/** The Tech level row's label: the one row the toolbar may set inline. */
+export const TECH_LEVEL_ROW = 'Tech level'
+
 const ALL_TLS: TechLevel[] = [1, 2, 3, 4, 5, 6, 'B', 'N']
 
 function tlLabel(tl: TechLevelLike): string {
@@ -188,12 +191,11 @@ export function useSearcherPool({
   )
 
   // Facet rows as one config map, rendered through the shared FilterRow. The
-  // "Show" row stays separate so the floating sub-header can space the search
-  // field OPPOSITE it.
+  // "Show" row stays separate so the toolbar always folds it behind Filters.
   const facetRows: FacetRowConfig[] = []
   if (showTl)
     facetRows.push({
-      label: 'Tech level',
+      label: TECH_LEVEL_ROW,
       chips: tlOptions.map((tl) => ({
         key: String(tl),
         label: tlLabel(tl),

@@ -1,5 +1,5 @@
 /**
- * `size="medium" extent="catalog"` — the SRD index tile. Compact, artwork + description ONLY:
+ * `size="compact" extent="catalog"` — the SRD index tile. Compact, artwork + description ONLY:
  * every nested element (entities, actions, choices, patterns, roll tables) is
  * suppressed so a listing page reads uniformly regardless of what the entity
  * happens to carry. These fixtures are chosen because each one DOES carry
@@ -26,7 +26,7 @@ const armamentBay = () => {
   return bay
 }
 
-describe('ReferenceEntityCard size="medium" extent="catalog"', () => {
+describe('ReferenceEntityCard size="compact" extent="catalog"', () => {
   test('a chassis renders its name but none of its patterns', () => {
     const chassis = chassisWithPatterns()
     const patternName = String(chassis.patterns?.[0]?.name ?? '')
@@ -37,7 +37,7 @@ describe('ReferenceEntityCard size="medium" extent="catalog"', () => {
     expect(screen.queryAllByText(new RegExp(patternName, 'i')).length).toBeGreaterThan(0)
     full.unmount()
 
-    render(<ReferenceEntityCard data={chassis} size="medium" extent="catalog" />)
+    render(<ReferenceEntityCard data={chassis} size="compact" extent="catalog" />)
     expect(screen.getByText(chassis.name)).toBeTruthy()
     expect(screen.queryAllByText(new RegExp(patternName, 'i')).length).toBe(0)
   })
@@ -49,7 +49,7 @@ describe('ReferenceEntityCard size="medium" extent="catalog"', () => {
     expect(screen.queryByText(/Choose a Weapons System to mount/i)).toBeTruthy()
     full.unmount()
 
-    render(<ReferenceEntityCard data={bay} size="medium" extent="catalog" />)
+    render(<ReferenceEntityCard data={bay} size="compact" extent="catalog" />)
     expect(screen.getByText(bay.name)).toBeTruthy()
     expect(screen.queryByText(/Choose a Weapons System to mount/i)).toBeNull()
   })
@@ -58,11 +58,11 @@ describe('ReferenceEntityCard size="medium" extent="catalog"', () => {
     const withArt = SalvageUnionReference.Chassis.all().find((c) => c.hasArtwork)
     if (!withArt) throw new Error('no chassis with artwork in fixtures — the probe is vacuous')
 
-    const medium = render(<ReferenceEntityCard data={withArt} size="medium" extent="catalog" />)
+    const medium = render(<ReferenceEntityCard data={withArt} size="compact" extent="catalog" />)
     expect(document.querySelectorAll('img').length).toBeGreaterThan(0)
     medium.unmount()
 
-    render(<ReferenceEntityCard data={withArt} size="small" extent="catalog" />)
+    render(<ReferenceEntityCard data={withArt} size="mini" extent="catalog" />)
     expect(document.querySelectorAll('img').length).toBe(0)
     // The tile still names the entity — it lost the picture, not the label.
     expect(screen.getByText(withArt.name)).toBeTruthy()
@@ -71,14 +71,14 @@ describe('ReferenceEntityCard size="medium" extent="catalog"', () => {
   test('a SMALL card can still render its whole content — size is not extent', () => {
     const bay = armamentBay()
 
-    // `small` + `head` is the shortform token: the body is gone.
-    const token = render(<ReferenceEntityCard data={bay} size="small" extent="head" />)
+    // `mini` + `head` is the shortform token: the body is gone.
+    const token = render(<ReferenceEntityCard data={bay} size="mini" extent="head" />)
     expect(screen.queryByText(/Choose a Weapons System to mount/i)).toBeNull()
     token.unmount()
 
-    // `small` + `full` is the same small scale WITH the content — the
+    // `mini` + `full` is the same small scale WITH the content — the
     // combination the old conflated enum could not express at all.
-    render(<ReferenceEntityCard data={bay} size="small" extent="full" />)
+    render(<ReferenceEntityCard data={bay} size="mini" extent="full" />)
     expect(screen.getByText(bay.name)).toBeTruthy()
     expect(screen.queryByText(/Choose a Weapons System to mount/i)).toBeTruthy()
   })
@@ -101,7 +101,7 @@ describe('ReferenceEntityCard size="medium" extent="catalog"', () => {
     const lead = typeof leadBlock?.value === 'string' ? leadBlock.value : undefined
     expect(lead).toBeTruthy()
 
-    render(<ReferenceEntityCard data={holo} size="medium" extent="catalog" />)
+    render(<ReferenceEntityCard data={holo} size="compact" extent="catalog" />)
     expect(screen.getByText(holo.name)).toBeTruthy()
     // The granted equipment's opening description now renders in the tile body,
     // while the granted card itself stays suppressed (no "Grants" seal stamp).

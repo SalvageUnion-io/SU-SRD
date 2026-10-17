@@ -15,8 +15,9 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
+import { openInSearcher, pickInSearcher } from '../../__tests__/searcherPick'
 import { MechChassisPickerModal } from '../MechChassisPickerModal'
 
 /** Two distinct real chassis — the current one and the one we swap to. */
@@ -52,7 +53,7 @@ const RENDER_TIMEOUT_MS = 10_000
 describe('MechChassisPickerModal', () => {
   it(
     'renders the shared searcher with the mech’s current chassis in the rail',
-    () => {
+    async () => {
       const { current } = renderPicker()
       // The searcher's own affordances, not a bespoke master/detail pane: a text
       // search and the pool summary.
@@ -60,23 +61,27 @@ describe('MechChassisPickerModal', () => {
       expect(screen.getByText(/showing \d+ of \d+/i)).toBeDefined()
       // The current chassis is pre-selected.
       expect(screen.getByTestId('rail-entry').textContent).toContain(current.name)
-      // A pick card shows its chassis ability (E19's builder exception): once.
+      // An opened chassis's Page shows its chassis ability (E19's builder
+      // exception): once.
+      await openInSearcher(current.name)
       expect((document.body.textContent ?? '').split('Integrated Cargo Bay').length - 1).toBe(1)
     },
     RENDER_TIMEOUT_MS
   )
 
   it(
-    'will not apply an EMPTY chassis after the selection is cleared',
-    () => {
+    'offers no way to clear the chassis, so Apply never writes an EMPTY one',
+    async () => {
       const seen: string[] = []
       const { current } = renderPicker((ref) => seen.push(ref))
 
-      // Single-select clears when the chosen card is clicked again. A mech must
-      // always have a chassis, so this must NOT count as a change — otherwise
-      // Apply writes `chassisRef: ''` and wipes the loadout with it.
-      fireEvent.click(screen.getByRole('radio', { name: current.name }))
-      expect(screen.queryAllByTestId('rail-entry')).toHaveLength(0)
+      // A mech must always have a chassis: the chosen one's Page offers no
+      // Choose and the rail no Remove — otherwise Apply could write
+      // `chassisRef: ''` and wipe the loadout with it.
+      const bar = await openInSearcher(current.name)
+      expect(within(bar).queryByRole('button')).toBeNull()
+      expect(screen.queryByRole('button', { name: `Remove ${current.name}` })).toBeNull()
+      expect(screen.getAllByTestId('rail-entry')).toHaveLength(1)
 
       const apply = screen.getByRole('button', { name: /apply chassis/i })
       expect(apply.hasAttribute('disabled')).toBe(true)
@@ -95,7 +100,7 @@ describe('MechChassisPickerModal', () => {
 
       // Inert until a DIFFERENT chassis is chosen.
       expect(apply().hasAttribute('disabled')).toBe(true)
-      fireEvent.click(screen.getByRole('radio', { name: other.name }))
+      await pickInSearcher(other.name)
       expect(apply().hasAttribute('disabled')).toBe(false)
 
       fireEvent.click(apply())

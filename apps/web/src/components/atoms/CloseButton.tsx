@@ -14,8 +14,6 @@ type CloseButtonProps = Omit<ComponentPropsWithRef<'button'>, 'children'> & {
   look?: 'quiet' | 'stamp'
   /** The glyph prints paper, for a band or scrim that does (the danger rust, ink). */
   onPaper?: boolean
-  /** The 44px touch hit area, for a phone sheet's head. */
-  touch?: boolean
 }
 
 const GLYPH = { width: space[20], height: space[20] } satisfies CSSProperties
@@ -29,7 +27,6 @@ export function CloseButton({
   label = 'Close',
   look = 'quiet',
   onPaper = false,
-  touch = false,
   className,
   ...props
 }: CloseButtonProps) {
@@ -39,7 +36,6 @@ export function CloseButton({
       size="iconOnly"
       className={cn('su-close-button', className)}
       data-on-paper={onPaper || undefined}
-      data-touch={touch || undefined}
       aria-label={label}
       {...props}
     >

@@ -270,7 +270,11 @@
   background-color: var(--color-wk-bg);
 }
 
+/* A Stat's +/- stepper (`fit="cell"`, which also carries `.su-stat-step`)
+ * draws at its chip's height on every pointer; a coarse pointer reaches 44px
+ * through the hit area in partials/pointer-motion.css instead. */
 .su-step-btn--cell {
+  min-height: 0;
   min-width: 0;
 }
 

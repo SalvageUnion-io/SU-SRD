@@ -96,13 +96,6 @@
   color: var(--color-paper);
 }
 
-/* A phone sheet's × (the search sheet, the Dashboard menu) is the 44px
-   touch target, not the 36px icon rung. */
-.su-btn.su-close-button[data-touch] {
-  height: 44px;
-  width: 44px;
-}
-
 /* ModalShell's cut-out head holds one control, the ×: it stays on the band
    beside the title at every width, never on a line of its own above it as a
    narrow Row's controls go (`.su-entity-row__controls`). */
@@ -242,6 +235,12 @@
    their own line rather than overflowing a phone's column. */
 .su-sheet-slab-lead {
   flex-wrap: wrap;
+}
+
+/* Its count chip is the leader's Size, Compact, the height of the fold chevron
+   and the controls beside it, so the leader is one line of one height. */
+.su-sheet-slab-lead .su-stat-cell {
+  min-height: var(--size-compact);
 }
 
 /* ══ HeaderMenu ══════════════════════════════════════════════════════════════

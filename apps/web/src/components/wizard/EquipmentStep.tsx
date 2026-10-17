@@ -60,7 +60,7 @@ export function EquipmentStep({
             <ReferenceEntityCard
               key={item.id}
               data={item}
-              size="medium"
+              size="compact"
               selected={count >= 1}
               selectionRole="toggle"
               cardClickLabel={item.name}
