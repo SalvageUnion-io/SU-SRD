@@ -40,10 +40,10 @@ export function CloseButton({
       className={cn('su-close-button', className)}
       data-on-paper={onPaper || undefined}
       data-touch={touch || undefined}
+      aria-label={label}
       {...props}
     >
       <X style={GLYPH} aria-hidden="true" />
-      <span className="su-sr-only">{label}</span>
     </Button>
   )
 }
