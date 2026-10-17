@@ -13,7 +13,8 @@
  * never on the Game's log, which the crew reads.
  *
  * At 0 an NPC is shown as down (struck through) and is never removed for you
- * (ADR-007); Remove asks first. **+ From the reference** opens the picker over
+ * (ADR-007); Remove asks first, and Rename gives a row a name of the
+ * Mediator's own. **+ From the reference** opens the picker over
  * the tray schemas; a new instance starts at full HP and takes a numbered
  * name when it duplicates one, or the name typed under Draw from (cleared
  * once used), so the table can tell its opposition apart. An entity with
@@ -53,6 +54,7 @@ export type TrayWrites = {
   setHp: (npc: TrayNpc, next: number) => Promise<unknown>
   morale: (npc: TrayNpc) => Promise<unknown>
   remove: (npc: TrayNpc) => Promise<unknown>
+  rename: (npc: TrayNpc, name: string) => Promise<unknown>
 }
 
 const SCROLL = {
@@ -121,6 +123,9 @@ const PATTERN_ACTIONS = {
   marginTop: space[4],
 } satisfies CSSProperties
 
+/** Why Rename refuses a blank name; the server would refuse it too. */
+const EMPTY_NAME = 'A name cannot be blank.'
+
 /** The bare entity, in the pattern Select: no pattern picked. */
 const NO_PATTERN = ''
 
@@ -130,12 +135,14 @@ function NpcRow({
   writes,
   onFailure,
   onRemove,
+  onRename,
 }: {
   npc: TrayNpc
   canWrite: boolean
   writes: TrayWrites
   onFailure: (err: unknown) => void
   onRemove: (npc: TrayNpc) => void
+  onRename: (npc: TrayNpc) => void
 }) {
   const detail = useDetailModal(npc.entity ?? undefined, {
     pattern: npc.pattern ?? undefined,
@@ -189,6 +196,15 @@ function NpcRow({
             onClick={() => void writes.morale(npc).catch(onFailure)}
           >
             Morale
+          </Button>
+          <Button
+            variant="ghost"
+            size="mini"
+            disabled={!canWrite}
+            aria-label={`Rename ${npc.name}`}
+            onClick={() => onRename(npc)}
+          >
+            Rename
           </Button>
           <Button
             variant="ghost"
@@ -347,6 +363,13 @@ export function OppositionTab({
 }) {
   const [picking, setPicking] = useState(false)
   const [removing, setRemoving] = useState<TrayNpc | null>(null)
+  const [renaming, setRenaming] = useState<TrayNpc | null>(null)
+  const [newName, setNewName] = useState('')
+  const renameId = useId()
+  const startRename = (npc: TrayNpc) => {
+    setNewName(npc.name)
+    setRenaming(npc)
+  }
   const onField = npcs?.filter((n) => !n.down).length ?? 0
 
   return (
@@ -374,6 +397,7 @@ export function OppositionTab({
               writes={writes}
               onFailure={onFailure}
               onRemove={setRemoving}
+              onRename={startRename}
             />
           ))}
         </ul>
@@ -401,6 +425,36 @@ export function OppositionTab({
         onConfirm={async () => {
           if (removing !== null) await writes.remove(removing)
         }}
+      />
+      <ConfirmDialog
+        open={renaming !== null}
+        onOpenChange={(open) => {
+          if (!open) setRenaming(null)
+        }}
+        title={`Rename ${renaming?.name ?? 'this NPC'}`}
+        body={
+          <>
+            <label htmlFor={renameId} style={EYEBROW}>
+              Name
+            </label>
+            <Input
+              id={renameId}
+              value={newName}
+              autoComplete="off"
+              onChange={(e) => setNewName(e.target.value)}
+            />
+          </>
+        }
+        confirmLabel="Rename"
+        onConfirm={async () => {
+          if (newName.trim() === '') throw new Error(EMPTY_NAME)
+          if (renaming !== null) await writes.rename(renaming, newName.trim())
+        }}
+        describeError={(err) =>
+          err instanceof Error && err.message === EMPTY_NAME
+            ? EMPTY_NAME
+            : 'That did not work. Try again.'
+        }
       />
     </div>
   )

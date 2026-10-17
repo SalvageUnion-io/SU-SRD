@@ -2,8 +2,8 @@
  * The Opposition tab (mediator-dashboard.md Q9) on its own: the tray's
  * loading and empty states, a row that no longer resolves, a down NPC and its
  * last Morale roll, the reference card a row opens, the picker that adds from
- * any of the tray schemas (a mech as one of its patterns), Remove behind its
- * confirmation, and every refused write handed to `onFailure`.
+ * any of the tray schemas (a mech as one of its patterns), Rename, Remove
+ * behind its confirmation, and every refused write handed to `onFailure`.
  *
  * Presentational: the tab takes the tray and its writes as props, so this
  * records what it asks for.
@@ -34,6 +34,7 @@ function trayWrites(refuse: ReadonlySet<keyof TrayWrites> = new Set()): TrayWrit
     setHp: record('setHp'),
     morale: record('morale'),
     remove: record('remove'),
+    rename: record('rename'),
   }
 }
 
@@ -187,11 +188,38 @@ describe('writes', () => {
     expect(calls).toEqual([{ name: 'remove', args: [fallenRaider] }])
   })
 
-  test('offline, nothing writes: add, Morale and Remove are disabled and the gauge reads out', async () => {
+  test('Rename starts from the current name and saves the new one, trimmed', async () => {
+    await renderTab([rifleSquad])
+    await click(screen.getByRole('button', { name: 'Rename Rifle Squad' }))
+    const dialog = within(screen.getByRole('alertdialog', { name: 'Rename Rifle Squad' }))
+    const field = dialog.getByLabelText('Name') as HTMLInputElement
+    expect(field.value).toBe('Rifle Squad')
+    await act(async () => {
+      fireEvent.change(field, { target: { value: '  Red Leader ' } })
+    })
+    await click(dialog.getByRole('button', { name: 'Rename' }))
+    expect(calls).toEqual([{ name: 'rename', args: [rifleSquad, 'Red Leader'] }])
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull())
+  })
+
+  test('Rename refuses a blank name and stays open', async () => {
+    await renderTab([rifleSquad])
+    await click(screen.getByRole('button', { name: 'Rename Rifle Squad' }))
+    const dialog = within(screen.getByRole('alertdialog'))
+    await act(async () => {
+      fireEvent.change(dialog.getByLabelText('Name'), { target: { value: '   ' } })
+    })
+    await click(dialog.getByRole('button', { name: 'Rename' }))
+    expect(calls).toEqual([])
+    expect(dialog.getByText('A name cannot be blank.')).toBeTruthy()
+  })
+
+  test('offline, nothing writes: add, Morale, Rename and Remove are disabled and the gauge reads out', async () => {
     await renderTab([rifleSquad], { canWrite: false })
     for (const name of [
       '+ From the reference',
       'Roll Morale for Rifle Squad',
+      'Rename Rifle Squad',
       'Remove Rifle Squad',
     ]) {
       expect((screen.getByRole('button', { name }) as HTMLButtonElement).disabled).toBe(true)

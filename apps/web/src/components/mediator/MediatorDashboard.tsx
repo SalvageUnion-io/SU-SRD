@@ -158,6 +158,7 @@ export function MediatorDashboard({ gameId, gameName }: { gameId: string; gameNa
         })
       },
       remove: (npc) => removeNpc({ npcId: npc.id as Id<'encounterNpcs'> }),
+      rename: (npc, name) => updateNpc({ npcId: npc.id as Id<'encounterNpcs'>, patch: { name } }),
     },
     propose: said(async (args) => {
       await propose(args)

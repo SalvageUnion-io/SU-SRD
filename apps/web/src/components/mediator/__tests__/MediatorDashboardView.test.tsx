@@ -39,6 +39,7 @@ const writes: MediatorTableWrites = {
     setHp: record('setHp'),
     morale: record('morale'),
     remove: record('remove'),
+    rename: record('rename'),
   },
   propose: record('propose'),
   broadcast: record('broadcast'),
