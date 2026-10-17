@@ -145,6 +145,31 @@ export const ABANDONED_VIEW_TRANSITIONS = [
  */
 const BROWSER_NOISE = ['ResizeObserver loop']
 
+/**
+ * The URL schemes a browser extension's own scripts run under (Chromium,
+ * Firefox, Safari).
+ *
+ * An extension's content script runs in the page, so its errors reach the
+ * window's `error` and `unhandledrejection` events like the app's own: a
+ * wallet extension's injected script failing to reach its background page
+ * (`Failed to connect to MetaMask`) is the common one. Not the app's to fix.
+ */
+const EXTENSION_SCHEMES = ['chrome-extension://', 'moz-extension://', 'safari-web-extension://']
+
+/**
+ * Whether a stack is wholly an extension's: it names an extension script and
+ * no page script. An error that passes through the app's code on its way is
+ * kept, since that code may be the thing to fix.
+ */
+function isExtensionStack(stack: string | undefined): boolean {
+  if (!stack) return false
+  const urls = stack.match(/[a-z-]+:\/\/[^\s)]+/g) ?? []
+  return (
+    urls.some((url) => EXTENSION_SCHEMES.some((scheme) => url.startsWith(scheme))) &&
+    urls.every((url) => EXTENSION_SCHEMES.some((scheme) => url.startsWith(scheme)))
+  )
+}
+
 /** Long enough for any real message and a deep minified stack; the Worker reads 16 KB. */
 const MAX_MESSAGE_CHARS = 1_000
 const MAX_STACK_CHARS = 8_000
@@ -309,6 +334,7 @@ export function createBrowserObservability(
     const described = describe(error)
     const label = `${described.name}: ${described.message}`
     if (ignored.some((fragment) => label.includes(fragment))) return
+    if (isExtensionStack(described.stack)) return
 
     const report: ErrorReport = {
       ...described,

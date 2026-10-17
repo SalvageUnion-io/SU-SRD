@@ -88,6 +88,31 @@ describe('createBrowserObservability', () => {
     expect(sent.map((s) => s.report.message)).toEqual(['a real one'])
   })
 
+  test('an error raised wholly inside a browser extension is dropped', () => {
+    const { sent, transport } = recorder()
+    const obs = createBrowserObservability({ transport })
+    obs.init({ endpoint: ENDPOINT, target: new EventTarget() })
+    const fromExtension = (stack: string) =>
+      Object.assign(new Error('Failed to connect to MetaMask'), { stack })
+    obs.captureException(
+      fromExtension(
+        'Error: Failed to connect to MetaMask\n    at Object.connect (chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/scripts/inpage.js:7:84292)'
+      )
+    )
+    obs.captureException(fromExtension('connect@moz-extension://1b2c/inpage.js:1:10'))
+    obs.captureException(
+      fromExtension(
+        'Error: Failed to connect to MetaMask\n    at Object.connect (chrome-extension://abc/inpage.js:7:1)\n    at onClick (https://salvageunion.io/assets/index-abc.js:1:2)'
+      )
+    )
+    obs.captureException(new Error('a real one'))
+    // The third passes through a page script, so it is kept.
+    expect(sent.map((s) => s.report.message)).toEqual([
+      'Failed to connect to MetaMask',
+      'a real one',
+    ])
+  })
+
   test('the same error object is reported once, however many handlers see it', () => {
     const { sent, transport } = recorder()
     const obs = createBrowserObservability({ transport })
