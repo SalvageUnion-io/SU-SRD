@@ -377,36 +377,6 @@
 .su-sheet--mech,
 .su-sheet--crawler {
   --tone: var(--sheet-tone, var(--tone-default));
-
-  /* WIZARD STEP-CARD FILL — ONE rule for all three sheets, derived from the
-     page tone rather than three book literals.
-
-     The masthead band, the `--ground` fill and the guided door all resolve
-     from `--tone`, so a fixed book colour here would be the one element
-     mid-screen that does not belong. Deriving it survives a restyle: change
-     `--tone` and the step card follows.
-
-     The formula is a fixed STEP off the tone, not a fixed colour, so each sheet
-     keeps its own hue:
-       lightness +0.13 — enough of a gap that the `var(--tone)` RuleBrief band
-                         sitting INSIDE the card still reads as a distinct band.
-                         A fixed target lightness could not do this: pilot's
-                         tone is already L=0.729, so any shared absolute value
-                         either collapsed against pilot's band or blew past the
-                         legibility ceiling on the other two.
-       chroma   ×0.62  — backs off the saturation so the card reads as the
-                         paper the step is printed on, not a second band.
-     Pilot's ideal value is outside sRGB, so Chromium clips it: #FFC09D
-     (pilot), #AABDB4 (mech), #E296BB (crawler), the fills axe measures.
-
-     Every card therefore lands light and takes DARK ink, at 10.13 / 8.12 /
-     7.11:1; `wk-muted` does not clear AA on any of them, so copy on the card
-     inherits this ink. One fill rule, one ink rule, held by `contrast.test.ts`
-     ("the wizard step card"). See WizShell's step card (`.su-wiz-step-card` /
-     `stepCardTitleStyle`), whose step title inherits this ink rather than
-     hardcoding white. */
-  --tone-card: oklch(from var(--tone) calc(l + 0.13) calc(c * 0.62) h);
-  --tone-card-ink: var(--color-ink);
 }
 
 /* POSTER TEXT ON THE TONE — the `onTone` rule (ruleset §3.8) as two
