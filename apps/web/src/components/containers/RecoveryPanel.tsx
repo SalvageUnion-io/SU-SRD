@@ -1,10 +1,10 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { borderWidth, color, font, fontSize, radius, space } from '../../design/tokens'
+import { color, font, fontSize, space } from '../../design/tokens'
 import { Button } from '../atoms/Button'
-import { PageHeading } from '../atoms/PageHeading'
+import { TitledBox } from './TitledBox'
 
 type RecoveryPanelProps = {
-  /** Stamp heading — the failure summary (e.g. 'Something went wrong'). */
+  /** The title on the cut-out — the failure summary (e.g. 'Something went wrong'). */
   title: string
   /** Body copy: what failed, and the reassurance that saved data is safe. */
   message: ReactNode
@@ -21,21 +21,11 @@ type RecoveryPanelProps = {
   children?: ReactNode
 }
 
-/** The card; its padding is `.su-recovery-panel`'s, which steps up at `sm`. */
-const PANEL = {
-  display: 'flex',
-  width: '100%',
-  maxWidth: '36rem',
-  flexDirection: 'column',
-  alignItems: 'center',
-  gap: space[16],
-  borderRadius: radius.panel,
-  borderStyle: 'solid',
-  borderWidth: borderWidth.chrome,
-  borderColor: color.ink,
-  backgroundColor: color.paper,
-  textAlign: 'center',
-} satisfies CSSProperties
+/** The card's width. */
+const PANEL = { width: '100%', maxWidth: '36rem' } satisfies CSSProperties
+
+/** Its body, centred; the padding is `.su-recovery-panel`'s, which steps up at `sm`. */
+const BODY = { alignItems: 'center', gap: space[16], textAlign: 'center' } satisfies CSSProperties
 
 const MESSAGE = {
   fontFamily: font.body,
@@ -47,8 +37,8 @@ const MESSAGE = {
 /**
  * RecoveryPanel — the shared error-recovery card behind srd's island error
  * boundary and cantina's root error component (which mirrored each other by hand).
- * A bordered paper card with a condensed-caps title, a muted message, optional
- * inline content, and one primary (rust) recovery Button.
+ * A `TitledBox` with the failure on its cut-out, a muted message, optional inline
+ * content, and one primary (rust) recovery Button.
  *
  * Content-agnostic (a Container, not an entity component): it knows nothing
  * about islands, routers, or IndexedDB — the app injects the copy and the
@@ -58,15 +48,14 @@ const MESSAGE = {
  */
 export function RecoveryPanel({ title, message, action, children }: RecoveryPanelProps) {
   return (
-    <div role="alert" className="su-recovery-panel" style={PANEL}>
-      <PageHeading as="h1" className="su-recovery-panel-title">
-        {title}
-      </PageHeading>
-      <p style={MESSAGE}>{message}</p>
-      {children}
-      <Button variant="primary" onClick={action.onClick}>
-        {action.label}
-      </Button>
+    <div role="alert" style={PANEL}>
+      <TitledBox title={title} titleAs="h1" bodyClassName="su-recovery-panel" bodyStyle={BODY}>
+        <p style={MESSAGE}>{message}</p>
+        {children}
+        <Button variant="primary" onClick={action.onClick}>
+          {action.label}
+        </Button>
+      </TitledBox>
     </div>
   )
 }

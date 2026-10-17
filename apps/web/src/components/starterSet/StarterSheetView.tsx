@@ -44,7 +44,7 @@ export function StarterSheetView({ kind, id }: { kind: string; id: string }) {
   if (!isStarterKind(kind) || template === null) {
     return (
       <NotFoundPanel
-        title={<>That isn&rsquo;t in the Starter Set</>}
+        title="That isn’t in the Starter Set"
         message="No Starter Set build lives at this address."
         back={{ href: '/starter', label: 'Starter Set' }}
       />

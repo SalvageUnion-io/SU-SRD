@@ -7,8 +7,8 @@
  * the live sheets:
  *
  *   - a section of INPUTS and/or GAUGES is contained by a CARD
- *     (`SheetSectionCard` — accent frame, header band, paper body: the region
- *     is a form, so it gets a form's enclosure);
+ *     (`SheetSectionCard` — a paper panel under the unit's colour rule: the
+ *     region is a form, so it gets a form's enclosure);
  *   - a section of ENTITY CARDS is contained by a SLAB (this component — a
  *     label and a rule, nothing more).
  *

@@ -1,7 +1,8 @@
 import type { CSSProperties, ReactNode } from 'react'
 import type { BookCite } from 'salvageunion-reference'
 import { formatCite } from 'salvageunion-reference'
-import { SheetSectionCard, tokens } from '../index'
+import type { Paint } from '../entity/parts/paint'
+import { TitledBox, tokens } from '../index'
 
 /** Per-step rule metadata carried by each wizard's step table. */
 export type StepRule = {
@@ -24,23 +25,41 @@ const ruleStyle = {
   maxWidth: '70ch',
 } satisfies CSSProperties
 
+/** The cite under the rule: plain text, as every foot cites (E9). */
+const citeStyle = {
+  color: tokens.color.wkMuted,
+  fontFamily: tokens.font.cond,
+  fontSize: tokens.fontSize.badge,
+  fontWeight: tokens.weight.semibold,
+  letterSpacing: tokens.tracking.caps,
+  margin: 0,
+  textTransform: 'uppercase',
+} satisfies CSSProperties
+
+/** The band: the surface's own tone (`--tone`, the wizard's unit colour); the name is on the paper tab. */
+const TONE_PAINT = {
+  background: 'var(--tone)',
+  color: 'var(--color-ink)',
+  ink: false,
+  nameOnPaper: false,
+} satisfies Paint
+
 /**
- * RuleBrief — the "THE RULE" callout heading every wizard step
- * (mockup Screens 01/02 `.rulebrief`). Composes SheetSectionCard (the
- * poster `.dcard` frame) so the wizard inherits the live sheets' section
- * language verbatim: black THE RULE stamp in a `var(--tone)` header band, the
- * rule text on paper behind the deep-tone left rule, and the citation in the
- * accent footer.
- *
- * Steps without exact Workshop Manual copy yet pass their existing description as
- * `rule` — per-step rule text is filled in by Phases 3–5.
+ * RuleBrief — the "THE RULE" box heading every wizard step (mockup Screens
+ * 01/02 `.rulebrief`): a `TitledBox` whose band wears the wizard's tone, THE RULE on
+ * its cut-out, the rule text on the paper below and its citation under it.
  */
 export function RuleBrief({ rule, cite, className }: RuleBriefProps) {
   return (
-    <section aria-label="The rule" className={className}>
-      <SheetSectionCard title="The Rule" source={cite ? formatCite(cite) : undefined}>
-        <p style={ruleStyle}>{rule}</p>
-      </SheetSectionCard>
-    </section>
+    <TitledBox
+      as="section"
+      title="The Rule"
+      label="The rule"
+      paint={TONE_PAINT}
+      className={className}
+    >
+      <p style={ruleStyle}>{rule}</p>
+      {cite && <p style={citeStyle}>{formatCite(cite)}</p>}
+    </TitledBox>
   )
 }

@@ -7,7 +7,7 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import { invitePath } from '../../lib/games/inviteLink'
 import { SignInControl } from '../account/SignInControl'
 import { useShowContainer } from '../entityContainer/useShowContainer'
-import { Badge, Button, Card, ChapterBand, FieldError, PageShell, Text, tokens } from '../index'
+import { Button, Card, ChapterBand, FieldError, PageShell, Text, TitledBox, tokens } from '../index'
 import { WayOutLink } from '../shared/WayOutLink'
 
 /**
@@ -38,13 +38,8 @@ import { WayOutLink } from '../shared/WayOutLink'
 
 const ACTIONS = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
 
-const BODY = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[12],
-} satisfies CSSProperties
-
-const PAD = { ...BODY, padding: tokens.space[16] } satisfies CSSProperties
+/** The offline note's padding (an unframed Card). */
+const PAD = { padding: tokens.space[16] } satisfies CSSProperties
 
 const HINT = { textAlign: 'left' } satisfies CSSProperties
 
@@ -89,18 +84,15 @@ function DeadLink({
   signIn?: boolean
 }) {
   return (
-    <Card>
-      <div style={PAD}>
-        <Text>{headline}</Text>
-        <Text variant="hint" style={HINT}>
-          {ask}
-        </Text>
-        <Text variant="hint" style={HINT}>
-          {HOW_INVITES_WORK}
-        </Text>
-        <Back signIn={signIn} />
-      </div>
-    </Card>
+    <TitledBox title={headline}>
+      <Text variant="hint" style={HINT}>
+        {ask}
+      </Text>
+      <Text variant="hint" style={HINT}>
+        {HOW_INVITES_WORK}
+      </Text>
+      <Back signIn={signIn} />
+    </TitledBox>
   )
 }
 
@@ -142,32 +134,25 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
   if (preview === null) return <DeadLink headline={DEAD_HEADLINE} ask={DEAD_ASK} />
 
   return (
-    <Card>
-      <div style={PAD}>
-        <div>
-          <Badge shape="stamp" size="mini">
-            You have been invited
-          </Badge>
-        </div>
-        <Text>
-          {preview.invitedBy} invited you to <strong>{preview.gameName}</strong>.
-        </Text>
-        <Text variant="hint" style={HINT}>
-          Everyone at a table can read each other’s sheets.
-        </Text>
-        <div style={ACTIONS}>
-          <Button
-            variant="primary"
-            size="compact"
-            disabled={join.pending}
-            onClick={() => void accept()}
-          >
-            Join this Game
-          </Button>
-        </div>
-        <FieldError>{join.error}</FieldError>
+    <TitledBox title="You have been invited">
+      <Text>
+        {preview.invitedBy} invited you to <strong>{preview.gameName}</strong>.
+      </Text>
+      <Text variant="hint" style={HINT}>
+        Everyone at a table can read each other’s sheets.
+      </Text>
+      <div style={ACTIONS}>
+        <Button
+          variant="primary"
+          size="compact"
+          disabled={join.pending}
+          onClick={() => void accept()}
+        >
+          Join this Game
+        </Button>
       </div>
-    </Card>
+      <FieldError>{join.error}</FieldError>
+    </TitledBox>
   )
 }
 
@@ -183,26 +168,19 @@ function SignedOutInvite({ token }: { token: string }) {
   if (preview === null) return <DeadLink headline={DEAD_HEADLINE} ask={DEAD_ASK} signIn />
 
   return (
-    <Card>
-      <div style={PAD}>
-        <div>
-          <Badge shape="stamp" size="mini">
-            You have been invited
-          </Badge>
-        </div>
-        <Text>
-          {preview.invitedBy} invited you to <strong>{preview.gameName}</strong>.
-        </Text>
-        <Text variant="hint" style={HINT}>
-          Sign in to join. Your pilots, mechs and crawlers live on your account, and signing in is
-          what seats you at the table.
-        </Text>
-        <div>
-          {/* Back here with `?join=1`, so the round trip ends in the Game. */}
-          <SignInControl label="Sign in to join" redirectTo={`${invitePath(token)}?join=1`} />
-        </div>
+    <TitledBox title="You have been invited">
+      <Text>
+        {preview.invitedBy} invited you to <strong>{preview.gameName}</strong>.
+      </Text>
+      <Text variant="hint" style={HINT}>
+        Sign in to join. Your pilots, mechs and crawlers live on your account, and signing in is
+        what seats you at the table.
+      </Text>
+      <div>
+        {/* Back here with `?join=1`, so the round trip ends in the Game. */}
+        <SignInControl label="Sign in to join" redirectTo={`${invitePath(token)}?join=1`} />
       </div>
-    </Card>
+    </TitledBox>
   )
 }
 

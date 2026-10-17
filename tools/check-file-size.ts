@@ -50,7 +50,7 @@ export const OVER_BUDGET: Readonly<Record<string, number>> = {
   'apps/web/src/components/npc/AnyNpcDesigner.tsx': 781,
   'apps/web/src/components/npc/CrewBoard.tsx': 654,
   'apps/web/src/components/sheet/CrawlerEconomyControl.tsx': 695,
-  'apps/web/src/components/sheet/PilotSheet.tsx': 637,
+  'apps/web/src/components/sheet/PilotSheet.tsx': 617,
   'apps/web/src/components/shelves/Shelves.tsx': 601,
   'apps/web/src/lib/rules/creation.ts': 722,
   'apps/web/src/stores/entityStore.ts': 715,
