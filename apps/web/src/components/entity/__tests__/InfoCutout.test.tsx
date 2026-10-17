@@ -19,7 +19,7 @@ describe('InfoCutout', () => {
     expect(panel?.querySelector('.su-entity-row__head[data-notch]')).not.toBeNull()
     expect(panel?.textContent).toContain('Structure Points')
     expect(panel?.textContent).toContain('meta')
-    expect(panel?.querySelector('.su-info-cutout__body')?.textContent).toBe('Body')
+    expect(panel?.querySelector('.su-box__body')?.textContent).toBe('Body')
   })
 
   test('ink by default, bodyless and flush on request', () => {
@@ -31,6 +31,6 @@ describe('InfoCutout', () => {
         <p>Strip</p>
       </InfoCutout>
     )
-    expect(container.querySelector('.su-info-cutout__body')?.hasAttribute('data-flush')).toBe(true)
+    expect(container.querySelector('.su-box__body')?.hasAttribute('data-flush')).toBe(true)
   })
 })

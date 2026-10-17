@@ -54,17 +54,12 @@ export function SheetHero({ name, fields, vitals, fieldsTitle = 'Identity' }: Sh
         title={fieldsTitle}
         // One surface in Read and Edit (owner's call, 2026-10-14: Edit looks
         // like Read), so switching modes never reframes the page.
-        surface="paper"
         className="su-sheet-hero-fields"
         bodyClassName="su-sheet-hero-fields-body"
       >
         {fields}
       </SheetSectionCard>
-      {vitals && (
-        <SheetSectionCard title="Vitals" surface="paper">
-          {vitals}
-        </SheetSectionCard>
-      )}
+      {vitals && <SheetSectionCard title="Vitals">{vitals}</SheetSectionCard>}
     </section>
   )
 }

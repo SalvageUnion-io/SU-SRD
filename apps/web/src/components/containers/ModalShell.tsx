@@ -6,8 +6,8 @@ import { color, font, fontSize, space, tracking, weight } from '../../design/tok
 import { cn } from '../../lib/cn'
 import { buttonVariants } from '../atoms/buttonVariants'
 import { useEntitySurface } from '../entity/entitySurfaceContext'
-import { Head } from '../entity/parts/Head'
 import { paintFor } from '../entity/parts/paint'
+import { TitledBox } from './TitledBox'
 
 type ModalShellProps = {
   open: boolean
@@ -195,36 +195,30 @@ export function ModalShell({
         {bare ? (
           children
         ) : (
-          // The cut-out head every entity card and Row wears (ruleset,
-          // "Chapter band"): the band in the dialog's tone, the title on a
-          // square paper tab notched into its foot, the × on the band.
-          <div className="su-entity-row su-modal-panel">
-            <div className="su-entity-row__frame">
-              <div className="su-entity-row__main">
-                <Head
-                  title={title}
-                  paint={paint}
-                  notch
-                  controls={
-                    <Dialog.Close
-                      className={cn(
-                        buttonVariants({ variant: 'quiet', size: 'iconOnly' }),
-                        'su-modal-close'
-                      )}
-                      data-on-paper={paint.color === 'var(--color-paper)' || undefined}
-                    >
-                      <X style={CLOSE_ICON} />
-                      <span className="su-sr-only">Close</span>
-                    </Dialog.Close>
-                  }
-                />
-                <div className="su-card-body">
-                  {subtitle && <p style={SUBTITLE}>{subtitle}</p>}
-                  {children}
-                </div>
-              </div>
-            </div>
-          </div>
+          // The cut-out head every titled container wears (`TitledBox`): the band in
+          // the dialog's tone, the title on a square paper tab notched into its
+          // foot, the × on the band.
+          <TitledBox
+            title={title}
+            paint={paint}
+            className="su-modal-panel"
+            body="flush"
+            controls={
+              <Dialog.Close
+                className={cn(
+                  buttonVariants({ variant: 'quiet', size: 'iconOnly' }),
+                  'su-modal-close'
+                )}
+                data-on-paper={paint.color === 'var(--color-paper)' || undefined}
+              >
+                <X style={CLOSE_ICON} />
+                <span className="su-sr-only">Close</span>
+              </Dialog.Close>
+            }
+          >
+            {subtitle && <p style={SUBTITLE}>{subtitle}</p>}
+            {children}
+          </TitledBox>
         )}
       </Dialog.Popup>
     </Dialog.Portal>

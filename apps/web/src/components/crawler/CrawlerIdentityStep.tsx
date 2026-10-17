@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 import type { CrawlerWizardFormState, ScrapPoolForm } from '../../lib/wizard/crawlerFormState'
-import { Button, Field, Input, Panel, Slab, tokens } from '../index'
+import { Button, Field, Input, TitledBox, tokens } from '../index'
 import type { CrawlerRollTableDeps } from './crawlerRollTables.model'
 import { rollCrawlerName } from './crawlerRollTables.model'
 import '../../styles/cantina/wizard.css'
@@ -11,9 +11,9 @@ const COLUMN = { maxWidth: '48rem' } satisfies CSSProperties
 /** The Roll button keeps its width beside the field label. */
 const NO_SHRINK = { flexShrink: 0 } satisfies CSSProperties
 
-/** The Scrap Pool's hint under its Slab. */
+/** The Scrap Pool's hint, above its buckets. */
 const SCRAP_HINT = {
-  margin: `${tokens.space[2]} 0 0`,
+  margin: 0,
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.xs,
   lineHeight: 'calc(1 / 0.75)',
@@ -83,14 +83,11 @@ export function CrawlerIdentityStep({
         placeholder="What the crawler is, its build and history."
       />
 
-      <Panel soft className="su-wiz-stack su-wiz-stack--16 su-wiz-scrap-panel">
-        <header>
-          <Slab label="Scrap Pool" />
-          <p style={SCRAP_HINT}>
-            The group&rsquo;s banked Scrap, bucketed by tech level — including whatever your Pilots
-            didn&rsquo;t spend crafting their Mechs. Optional; leave at 0 for a fresh start.
-          </p>
-        </header>
+      <TitledBox title="Scrap Pool" as="section">
+        <p style={SCRAP_HINT}>
+          The group&rsquo;s banked Scrap, bucketed by tech level — including whatever your Pilots
+          didn&rsquo;t spend crafting their Mechs. Optional; leave at 0 for a fresh start.
+        </p>
 
         <div className="su-wiz-scrap-grid" style={SCRAP_GRID}>
           {SCRAP_BUCKETS.map((bucket, i) => {
@@ -116,7 +113,7 @@ export function CrawlerIdentityStep({
             )
           })}
         </div>
-      </Panel>
+      </TitledBox>
     </div>
   )
 }

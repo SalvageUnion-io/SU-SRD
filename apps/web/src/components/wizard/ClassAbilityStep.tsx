@@ -59,7 +59,7 @@ export function ClassAbilityStep({
       data={cls}
       size="medium"
       selected={cls.id === classId}
-      selectionRole="toggle"
+      selectionRole="radio"
       cardClickLabel={cls.name}
       onCardClick={() => onSelectClass(cls.id)}
       hide={{ actions: true, choices: true }}
@@ -72,7 +72,7 @@ export function ClassAbilityStep({
       data={ability}
       size="medium"
       selected={selectedAbilities.includes(getEntitySlug(ability))}
-      selectionRole="toggle"
+      selectionRole="radio"
       cardClickLabel={ability.name}
       onCardClick={() => onSelectAbility(getEntitySlug(ability))}
       hide={{ actions: true, choices: true }}
@@ -88,7 +88,9 @@ export function ClassAbilityStep({
   return (
     <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
       <Slab variant="solid" label="Pilot Class" count="Choose 1" countInk="inherit" />
-      <MasonryColumns maxColumns={2}>{legalClasses.map(renderClassCard)}</MasonryColumns>
+      <MasonryColumns maxColumns={2} radio ariaLabel="Pilot class">
+        {legalClasses.map(renderClassCard)}
+      </MasonryColumns>
 
       {selectedClass === undefined ? (
         <EmptyState
@@ -103,7 +105,9 @@ export function ClassAbilityStep({
             count="Choose 1"
             countInk="inherit"
           />
-          <MasonryColumns maxColumns={2}>{legalPool.map(renderAbilityCard)}</MasonryColumns>
+          <MasonryColumns maxColumns={2} radio ariaLabel="First ability">
+            {legalPool.map(renderAbilityCard)}
+          </MasonryColumns>
           {legalPool.length === 0 && (
             <EmptyState headline="No Abilities" body="No Level-1 abilities found for this class." />
           )}

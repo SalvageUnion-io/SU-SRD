@@ -15,7 +15,7 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { openInSearcher, pickInSearcher } from '../../__tests__/searcherPick'
 import { MechChassisPickerModal } from '../MechChassisPickerModal'
@@ -107,7 +107,10 @@ describe('MechChassisPickerModal', () => {
       // Apply opens the confirm; it must not have written anything yet.
       expect(seen).toEqual([])
 
-      fireEvent.click(screen.getByRole('button', { name: /^change chassis$/i }))
+      // ConfirmDialog settles its pending state after the action resolves.
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: /^change chassis$/i }))
+      })
       expect(seen).toEqual([nameToSlug(other.name)])
     },
     RENDER_TIMEOUT_MS

@@ -11,9 +11,13 @@
 
   // `www` is attached so the zone's Redirect Rule can act on it; the redirect
   // cannot live in `_redirects` (ADR-033, "Configuration outside the repo").
+  // intheunionnow.com, the Cantina's old host, is attached for the same reason:
+  // its zone's Redirect Rule 301s every path to salvageunion.io/build.
   "routes": [
     { "pattern": "salvageunion.io", "custom_domain": true },
-    { "pattern": "www.salvageunion.io", "custom_domain": true }
+    { "pattern": "www.salvageunion.io", "custom_domain": true },
+    { "pattern": "intheunionnow.com", "custom_domain": true },
+    { "pattern": "www.intheunionnow.com", "custom_domain": true }
   ],
   // Explicit: `routes` turns workers.dev off otherwise, and the smoke list
   // probes su-srd there to tell a broken route from a broken deploy

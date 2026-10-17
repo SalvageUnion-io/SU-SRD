@@ -55,10 +55,10 @@ import { useMediaQuery } from '../../lib/useMediaQuery'
 import { Button } from '../atoms/Button'
 import { buttonVariants } from '../atoms/buttonVariants'
 import { SearchField } from '../atoms/SearchField'
+import { Callout } from '../containers/Callout'
+import { TitledBox } from '../containers/TitledBox'
 import { Entity } from '../entity/Entity'
 import { useEntitySurface } from '../entity/entitySurfaceContext'
-import { InfoCutout } from '../entity/InfoCutout'
-import { Head } from '../entity/parts/Head'
 import { paintFor } from '../entity/parts/paint'
 import type { EntityLinkAttrs } from '../entity/types'
 import type { ReferenceEntityCardHideConfig } from '../referenceEntity/card/referenceEntityCardTypes'
@@ -322,11 +322,9 @@ export function EntitySearcher({
   ) : wide && !browse ? (
     // Nothing open yet: a callout in the middle saying what goes there.
     <div className="su-searcher__empty">
-      <InfoCutout title="Select to read">
-        <p style={EMPTY_HINT_STYLE}>
-          Open any entry in the list to read it here, then add it from its page.
-        </p>
-      </InfoCutout>
+      <Callout label="Select to read">
+        Open any entry in the list to read it here, then add it from its page.
+      </Callout>
     </div>
   ) : null
 
@@ -357,57 +355,45 @@ export function EntitySearcher({
     </div>
   )
 
-  // The cut-out head every entity card, Row and modal wears (ruleset, "Chapter
-  // band"), as ModalShell draws it: the band in the pilot tone, the title on a
-  // square paper tab notched into its foot, the × on the band.
+  // The cut-out head every titled container wears (`TitledBox`, as ModalShell
+  // draws it): the band in the pilot tone, the title on a square paper tab
+  // notched into its foot, the × on the band.
   return (
-    <section
-      aria-label={title}
-      className={cn(
-        'su-entity-row su-modal-panel su-searcher-panel',
-        !browse && 'su-searcher-frame'
-      )}
-      style={FRAME_STYLE}
-    >
-      <div className="su-entity-row__frame" style={FILL_STYLE}>
-        <div className="su-entity-row__main" style={FILL_STYLE}>
-          <Head
-            title={title ?? ''}
-            paint={paint}
-            notch
-            controls={
-              onClose && (
-                <button
-                  type="button"
-                  onClick={onClose}
-                  aria-label="Close"
-                  className={cn(
-                    buttonVariants({ variant: 'quiet', size: 'iconOnly' }),
-                    'su-modal-close'
-                  )}
-                >
-                  <X aria-hidden="true" style={CLOSE_ICON_STYLE} />
-                </button>
-              )
-            }
-          />
-          {subtitle && <p style={SUBTITLE_STYLE}>{subtitle}</p>}
-          {!takeover && toolbar}
-          <div
-            className={cn(
-              'su-searcher',
-              browse && 'su-searcher--browse',
-              takeover && 'su-searcher--takeover'
-            )}
+    <TitledBox
+      as="section"
+      title={title ?? ''}
+      paint={paint}
+      className={cn('su-modal-panel su-searcher-panel', !browse && 'su-searcher-frame')}
+      body="flush"
+      bodyStyle={BODY_STYLE}
+      controls={
+        onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className={cn(buttonVariants({ variant: 'quiet', size: 'iconOnly' }), 'su-modal-close')}
           >
-            {browser}
-            {focusPane}
-            {rail}
-          </div>
-          {!browse && <SelectionStatus message={`${selected.length} ${chosen}`} />}
-        </div>
+            <X aria-hidden="true" style={CLOSE_ICON_STYLE} />
+          </button>
+        )
+      }
+    >
+      {subtitle && <p style={SUBTITLE_STYLE}>{subtitle}</p>}
+      {!takeover && toolbar}
+      <div
+        className={cn(
+          'su-searcher',
+          browse && 'su-searcher--browse',
+          takeover && 'su-searcher--takeover'
+        )}
+      >
+        {browser}
+        {focusPane}
+        {rail}
       </div>
-    </section>
+      {!browse && <SelectionStatus message={`${selected.length} ${chosen}`} />}
+    </TitledBox>
   )
 }
 
@@ -427,20 +413,9 @@ const WIDE_QUERY = '(min-width: 64rem)'
 // Static properties only — every property that changes with the breakpoint
 // lives in the `.su-searcher*` classes (the split rule).
 
-/**
- * The frame never exceeds the DYNAMIC viewport (less the bare popup's 2rem
- * margins and any safe-area inset), so its body — allowed to shrink by
- * `BODY_STYLE` — always gets the room left under the header, and scrolls in
- * it. `dvh`, not `vh`: on a phone `100vh` is the toolbar-hidden height, which
- * would put the frame's foot under the browser chrome.
- */
-const FRAME_STYLE = {
-  maxHeight:
-    'calc(100dvh - 4rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))',
-} satisfies CSSProperties
-/** The frame and its main column shrink with the frame's cap, so the
+/** The body shrinks with the frame's cap (`.su-searcher-panel`), so the
  * searcher under the head takes what is left and scrolls in it. */
-const FILL_STYLE = { minHeight: 0 } satisfies CSSProperties
+const BODY_STYLE = { minHeight: 0 } satisfies CSSProperties
 
 /** The subtitle: a line of the paper under the cut-out, as ModalShell's. */
 const SUBTITLE_STYLE = {
@@ -468,12 +443,6 @@ const SUMMARY_STYLE = {
   textTransform: 'uppercase',
   letterSpacing: tracking.caps,
   color: color.wkMuted,
-} satisfies CSSProperties
-const EMPTY_HINT_STYLE = {
-  margin: space[0],
-  fontFamily: font.body,
-  fontSize: fontSize.sm,
-  lineHeight: '1.25rem',
 } satisfies CSSProperties
 const POOL_EMPTY_STYLE = {
   marginTop: space[12],

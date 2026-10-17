@@ -94,7 +94,7 @@ describe('CrawlerTypeEditModal', () => {
     })
 
     // The danger dialog names the destination and has written nothing yet.
-    const dialog = screen.getByRole('dialog', { name: 'Change crawler type?' })
+    const dialog = screen.getByRole('alertdialog', { name: 'Change crawler type?' })
     expect(within(dialog).getByText('Battle')).toBeTruthy()
     expect(writes).toEqual([])
 
@@ -128,12 +128,12 @@ describe('CrawlerTypeEditModal', () => {
     await act(async () => {
       fireEvent.click(changeButton())
     })
-    const dialog = screen.getByRole('dialog', { name: 'Change crawler type?' })
+    const dialog = screen.getByRole('alertdialog', { name: 'Change crawler type?' })
     await act(async () => {
       fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }))
     })
 
-    expect(screen.queryByRole('dialog', { name: 'Change crawler type?' })).toBeNull()
+    expect(screen.queryByRole('alertdialog', { name: 'Change crawler type?' })).toBeNull()
     expect(screen.getByTestId('rail-entry').textContent).toContain('Engineering')
     expect(writes).toEqual([])
     expect(onClose).not.toHaveBeenCalled()
@@ -157,7 +157,7 @@ describe('CrawlerTypeEditModal', () => {
     ).toBeTruthy()
     expect(onClose).not.toHaveBeenCalled()
     // Back on the picker, the pick still in hand.
-    expect(screen.queryByRole('dialog', { name: 'Change crawler type?' })).toBeNull()
+    expect(screen.queryByRole('alertdialog', { name: 'Change crawler type?' })).toBeNull()
     expect(screen.getByTestId('rail-entry').textContent).toContain('Exploratory')
   })
 

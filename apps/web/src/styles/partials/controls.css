@@ -165,7 +165,7 @@
  * properties stay on its own style objects.
  *
  * THE HEIGHT BUDGET. The searcher's frame is capped at the dynamic viewport
- * (a style object on its Card), and `.su-searcher` is the body's flex child
+ * (`.su-searcher-panel`, below), and `.su-searcher` is the body's flex child
  * that takes whatever the header and toolbar leave, so no part of the picker
  * can be pushed below a fold that nothing scrolls (the bare modal popup is
  * `overflow: hidden`). Each part scrolls in its own `.su-searcher__scroll`.
@@ -183,7 +183,7 @@
  */
 /* Narrow, the frame takes the whole screen, so opening a Token's Page (or
    filtering the list down) never resizes the picker under a thumb. Its cap is
-   a style object on the Card; this only fills it. */
+   `.su-searcher-panel`; this only fills it. */
 @media (max-width: 63.99rem) {
   .su-searcher-frame {
     height: calc(100dvh - 4rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
@@ -197,6 +197,24 @@
 .su-searcher-panel {
   --su-searcher-control: 32px;
   --su-searcher-line: 25px;
+}
+
+/* The frame never exceeds the DYNAMIC viewport (less the bare popup's 2rem
+   margins and any safe-area inset), and the frame and its main column shrink
+   with it, so the body always gets the room left under the head and scrolls
+   in it. `dvh`, not `vh`: on a phone `100vh` is the toolbar-hidden height. */
+.su-searcher-panel {
+  max-height: calc(
+    100dvh -
+    4rem -
+    env(safe-area-inset-top, 0px) -
+    env(safe-area-inset-bottom, 0px)
+  );
+}
+
+.su-searcher-panel > .su-entity-row__frame,
+.su-searcher-panel > .su-entity-row__frame > .su-entity-row__main {
+  min-height: 0;
 }
 
 .su-searcher__toolbar .su-searcher__search,
@@ -373,7 +391,7 @@
   padding: var(--space-24);
 }
 
-.su-searcher__empty > .su-info-cutout {
+.su-searcher__empty > .su-box {
   width: min(100%, 22rem);
 }
 
@@ -420,7 +438,7 @@
 /*
  * The searcher picker modal's width — a value for `ModalShell`'s `maxWidth`,
  * exported as `PICKER_MODAL_WIDTH` (`compositions/pickerModalWidth.ts`): room
- * for the Token list and the sidebar either side of a readable medium Card.
+ * for the Token list and the sidebar either side of a readable Page.
  */
 .su-picker-modal {
   max-width: 78rem;

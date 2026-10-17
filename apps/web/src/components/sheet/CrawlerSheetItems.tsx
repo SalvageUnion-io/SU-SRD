@@ -16,6 +16,7 @@ import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import type { CardFootMeta, ChoiceSelections, ReferenceEntityControl } from '../index'
 import {
   Button,
+  DamagedEffectCallout,
   Entity,
   embeddedPeekAddress,
   foldControl,
@@ -104,34 +105,6 @@ const EXPAND_STACK = {
   display: 'flex',
   flexDirection: 'column',
   gap: tokens.space[12],
-} satisfies CSSProperties
-
-const DAMAGED_CALLOUT = {
-  borderRadius: tokens.radius.card,
-  border: `${tokens.borderWidth.chrome} solid ${tokens.color.statusBad}`,
-  backgroundColor: tokens.color.paper,
-  padding: `${tokens.space[12]} ${tokens.space[16]}`,
-  textAlign: 'center',
-} satisfies CSSProperties
-
-const DAMAGED_LABEL = {
-  marginBottom: tokens.space[4],
-  display: 'block',
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.badge,
-  fontWeight: tokens.weight.bold,
-  textTransform: 'uppercase',
-  lineHeight: 1,
-  letterSpacing: tokens.tracking.caps,
-  color: tokens.color.statusBad,
-} satisfies CSSProperties
-
-const DAMAGED_TEXT = {
-  margin: 0,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.sm,
-  lineHeight: 1.375,
-  color: tokens.color.ink,
 } satisfies CSSProperties
 
 /** Split a bay's rules content into its always-true half and its damaged half. */
@@ -451,13 +424,10 @@ export function CrawlerBayCard({
           damaged && damagedText ? (
             <div style={EXPAND_STACK}>
               {contents}
-              {/* The damaged clause, centred: the card itself is greyed by its
-                  `damaged` status, and this is the one thing the reader needs
-                  off it while it is in that state. */}
-              <div style={DAMAGED_CALLOUT}>
-                <span style={DAMAGED_LABEL}>When Damaged</span>
-                <p style={DAMAGED_TEXT}>{damagedText}</p>
-              </div>
+              {/* The damaged clause, as the SRD card draws it: the card itself
+                  is greyed by its `damaged` status, and this is the one thing
+                  the reader needs off it while it is in that state. */}
+              <DamagedEffectCallout effect={damagedText} />
               {crew}
             </div>
           ) : contents ? (

@@ -1,7 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { useEntitySurface } from '../entity/entitySurfaceContext'
-import { Head } from '../entity/parts/Head'
-import { paintFor } from '../entity/parts/paint'
+import { TitledBox } from './TitledBox'
 
 type InsetProps = {
   /** The name on the cut-out; it also names the head. */
@@ -25,40 +23,32 @@ type InsetProps = {
  * and `Head`, so a sheet's crew lead and the SRD's matching NPC read the same
  * (entity display language E15: no hand-built entity markup).
  *
- * The body holds what the sheet tracks (keepsake, motto, detail, facts), which
+ * A `TitledBox` in the entity's tone. The body holds what the sheet tracks (keepsake, motto, detail, facts), which
  * no reference model carries; that is why this is not a `Row` over a model.
  */
 export function Inset({ title, titleContent, tone, chips, bodyStyle, children }: InsetProps) {
-  const surface = useEntitySurface()
-  const paint = paintFor(tone, { texture: surface.texture })
-  // An inset with nothing to say below its head is just the head: no empty
-  // paper strip under it (a read-state crew lead with every field blank).
+  // An inset with nothing to say below its head is just the head (`TitledBox`): no
+  // empty paper strip under it (a read-state crew lead with every field blank).
   const hasBody = children !== null && children !== undefined && children !== false
   return (
-    <div className="su-entity-row">
-      <div className="su-entity-row__frame" data-bodyless={hasBody ? undefined : true}>
-        <div className="su-entity-row__main">
-          <Head
-            title={title}
-            titleContent={titleContent}
-            paint={paint}
-            chips={
-              chips ? (
-                <div data-chip-group="" className="su-chips">
-                  {chips}
-                </div>
-              ) : undefined
-            }
-            notch
-            chipsBeside
-          />
-          {hasBody && (
-            <div className="su-entity-row__body" style={bodyStyle}>
-              {children}
-            </div>
-          )}
+    <TitledBox
+      title={title}
+      titleContent={titleContent}
+      tone={tone}
+      chips={
+        chips ? (
+          <div data-chip-group="" className="su-chips">
+            {chips}
+          </div>
+        ) : undefined
+      }
+      body="flush"
+    >
+      {hasBody && (
+        <div className="su-entity-row__body" style={bodyStyle}>
+          {children}
         </div>
-      </div>
-    </div>
+      )}
+    </TitledBox>
   )
 }

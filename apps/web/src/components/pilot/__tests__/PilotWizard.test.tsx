@@ -52,15 +52,15 @@ afterEach(async () => {
 // ---------------------------------------------------------------------------
 
 /**
- * Class/ability/equipment picks are SelCard rings — div[role="button"] with
- * aria-label set to the entity name.
+ * Class and ability picks are radio cards (exactly one); equipment picks are
+ * SelCard rings — div[role="button"]. Both carry the entity name as label.
  */
 function getPickByName(name: string): HTMLElement {
-  const candidates = screen.getAllByRole('button')
+  const candidates = [...screen.queryAllByRole('radio'), ...screen.getAllByRole('button')]
   const exact = candidates.find((b) => b.getAttribute('aria-label') === name)
   if (exact) return exact
   const row = candidates.find((b) => (b.textContent ?? '').includes(name))
-  if (!row) throw new Error(`No role=button pick for "${name}"`)
+  if (!row) throw new Error(`No radio or button pick for "${name}"`)
   return row
 }
 
@@ -200,8 +200,8 @@ describe('PilotWizard — hard creation enforcement', () => {
     await pick('Jury Rig')
     // Still exactly one pick — replaced, not added.
     expect(screen.getByTestId('ability-count').textContent).toContain('1 / 1')
-    expect(getPickByName('Jury Rig').getAttribute('aria-pressed')).toBe('true')
-    expect(getPickByName('Engineering Expertise').getAttribute('aria-pressed')).toBe('false')
+    expect(getPickByName('Jury Rig').getAttribute('aria-checked')).toBe('true')
+    expect(getPickByName('Engineering Expertise').getAttribute('aria-checked')).toBe('false')
   })
 
   it('changing class clears a now-illegal ability (cross-step invalidation)', async () => {
@@ -227,8 +227,8 @@ describe('PilotWizard — hard creation enforcement', () => {
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
     await clickNext()
     // Non-core classes are filtered OUT of guided create entirely.
-    expect(screen.queryByRole('button', { name: 'Cyborg' })).toBeNull()
-    expect(screen.queryByRole('button', { name: 'Fabricator' })).toBeNull()
+    expect(screen.queryByRole('radio', { name: 'Cyborg' })).toBeNull()
+    expect(screen.queryByRole('radio', { name: 'Fabricator' })).toBeNull()
     await pick('Salvager')
     const level1 = SalvageUnionReference.Abilities.findAll(
       (a) => (a as { level: number | string }).level === 1
@@ -242,14 +242,14 @@ describe('PilotWizard — hard creation enforcement', () => {
     ) as { name: string }[]
     expect(legal.length).toBe(15)
     for (const ability of legal) {
-      expect(screen.getByRole('button', { name: ability.name })).toBeTruthy()
+      expect(screen.getByRole('radio', { name: ability.name })).toBeTruthy()
     }
     // Advanced-tree Level-1s never render in guided create.
     const advanced = level1.filter(
       (a) => !salvager.coreTrees.includes((a as { tree: string }).tree)
     ) as { name: string }[]
     for (const ability of advanced) {
-      expect(screen.queryByRole('button', { name: ability.name })).toBeNull()
+      expect(screen.queryByRole('radio', { name: ability.name })).toBeNull()
     }
   })
 
@@ -323,7 +323,7 @@ describe('PilotWizard — draft restore clamps to the 1/2 budgets', () => {
 
     // Oldest-first removal keeps the NEWEST ability pick (a3).
     expect(screen.getByTestId('ability-count').textContent).toContain('1 / 1')
-    expect(getPickByName('Mass Field Maintenance').getAttribute('aria-pressed')).toBe('true')
+    expect(getPickByName('Mass Field Maintenance').getAttribute('aria-checked')).toBe('true')
     await clickNext() // → Equipment
     expect(screen.getByTestId('equipment-count').textContent).toContain('2 / 2')
   })
@@ -351,7 +351,7 @@ describe('PilotWizard — session drafts', () => {
     // The class pick survived: after advancing to Class & Ability, Engineer's
     // SelCard ring is the active selection.
     await clickNext()
-    expect(getPickByName('Engineer').getAttribute('aria-pressed')).toBe('true')
+    expect(getPickByName('Engineer').getAttribute('aria-checked')).toBe('true')
 
     // Cancel on a dirty form asks first; confirming discards the draft.
     await act(async () => {
@@ -375,7 +375,7 @@ describe('PilotWizard — preselected class', () => {
       />
     )
     await clickNext() // Stats → Class & Ability
-    expect(getPickByName('Engineer').getAttribute('aria-pressed')).toBe('true')
+    expect(getPickByName('Engineer').getAttribute('aria-checked')).toBe('true')
     // The ability is still the player's pick.
     expect(screen.getByText('Choose your first Ability to continue')).toBeTruthy()
   }, 30000)

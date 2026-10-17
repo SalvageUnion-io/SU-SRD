@@ -46,7 +46,7 @@ They are independent: a `small` card can still show its whole content.
   code: Row `<Entity form="row">`, Token `form="token"`, Mention `<Mention>`,
   whole entity `ReferenceEntityCard` (`presentation="page"` for a Page), never
   hand-assembled markup.
-- A non-entity container (modal body, sheet section, poster panel) is `Card`.
+- A titled container is `TitledBox` or its variant; untitled, `Box`/`Card`.
 
 ## Customisation is by slot, never by schema
 
