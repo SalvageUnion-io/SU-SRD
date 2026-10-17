@@ -9,7 +9,7 @@ type CardControlRailProps = {
    * (stepper / badge / status / link). */
   controls?: ReferenceEntityControl[]
   /** Extra nodes rendered between the status cell and the action cluster —
-   * the entity card's selection and multi-select seals, which carry bespoke
+   * the entity card's status and selection seals, which carry bespoke
    * tone styling the `controls` variants deliberately don't cover. Falsy
    * entries are dropped, so a caller can pass conditionals positionally. */
   seals?: ReactNode[]

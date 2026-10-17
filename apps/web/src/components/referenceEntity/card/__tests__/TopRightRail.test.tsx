@@ -3,14 +3,13 @@
  *
  * These were four independent `absolute right-{0,2}` nodes at z-30, all pinned
  * to the same coordinate: a card carrying two of them (controls + a condition
- * status, or a multi-select stepper + controls) painted them ON TOP of one
- * another. The regression is invisible to a "did it render" assertion — both
+ * status) painted them ON TOP of one another. The regression is invisible to a "did it render" assertion — both
  * nodes are in the DOM either way — so these tests assert the LAYOUT
  * relationship instead: a common flex-row parent, and no stray absolute
  * positioning on the individual cells.
  */
-import { describe, expect, mock, test } from 'bun:test'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { describe, expect, test } from 'bun:test'
+import { render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
@@ -49,29 +48,6 @@ describe('top-right rail', () => {
 
     // The whole point: one shared row, not two overlapping absolute nodes.
     expect(rail(seal).contains(control)).toBe(true)
-  })
-
-  test('a multi-select card carries a "Chosen" stamp and its stepper in the rail', () => {
-    const onCountChange = mock((_next: number) => {})
-    render(
-      <ReferenceEntityCard
-        data={equipment()}
-        count={2}
-        onCountChange={onCountChange}
-        cardClickLabel="Combat Knife"
-      />
-    )
-    const stamp = screen.getByText('Chosen')
-    const add = screen.getByRole('button', { name: 'Add one Combat Knife' })
-    expect(rail(stamp).contains(add)).toBe(true)
-    fireEvent.click(add)
-    expect(onCountChange).toHaveBeenCalledWith(3)
-  })
-
-  test('a multi-select card with none picked has its stepper but no stamp', () => {
-    render(<ReferenceEntityCard data={equipment()} count={0} onCountChange={() => {}} />)
-    expect(screen.queryByText('Chosen')).toBeNull()
-    expect(screen.getByRole('button', { name: /^Add one / })).toBeTruthy()
   })
 
   test('the rail is the only absolutely-positioned node — cells are static', () => {

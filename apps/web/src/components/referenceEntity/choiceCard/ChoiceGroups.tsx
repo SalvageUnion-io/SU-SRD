@@ -271,14 +271,7 @@ function ChoiceOption({
       style={button}
     >
       <div style={{ position: 'relative' }}>
-        {onPage && (
-          <CardTopRail
-            controls={undefined}
-            selected={chosen}
-            selectionSeal="Chosen"
-            multiSelect={undefined}
-          />
-        )}
+        {onPage && <CardTopRail controls={undefined} selected={chosen} selectionSeal="Chosen" />}
         {/* `data-option-*`: the frame and titled head the nesting gate counts (N1). */}
         <div data-option-frame="" style={frame}>
           <div data-option-head={onPage || undefined} style={head}>
