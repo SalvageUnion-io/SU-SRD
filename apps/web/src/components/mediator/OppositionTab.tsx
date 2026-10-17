@@ -214,7 +214,7 @@ function NpcRow({
           </Button>
           <Button
             variant="ghost"
-            size="mini"
+            size="compact"
             disabled={!canWrite}
             aria-label={`Rename ${npc.name}`}
             onClick={() => onRename(npc)}
@@ -223,7 +223,7 @@ function NpcRow({
           </Button>
           <Button
             variant="ghost"
-            size="mini"
+            size="compact"
             disabled={!canWrite}
             aria-label={`Remove ${npc.name}`}
             onClick={() => onRemove(npc)}
