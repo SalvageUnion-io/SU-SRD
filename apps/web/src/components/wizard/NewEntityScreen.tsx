@@ -51,13 +51,16 @@ export function NewEntityScreen({
   const connection = useConnection()
   if (connection.mode === 'solo') {
     // Not a PageShell: the routes already wrap this screen in their `<main>`,
-    // and the gate's band runs its full width.
-    return (
+    // and the gate's band runs its full width. The NPC route draws none (its
+    // designer is its own `<main>`), so its gate brings one: without it the
+    // band is not the page's leading band and the Union bar stays ink above it.
+    const gate = (
       <SignInToBuild
         title={kind === 'npc' ? 'Sign in to build an NPC' : `Sign in to build a ${kind}`}
         redirectTo={returnTo}
       />
     )
+    return kind === 'npc' ? <main>{gate}</main> : gate
   }
 
   if (mode === 'guided' || kind === 'npc') {

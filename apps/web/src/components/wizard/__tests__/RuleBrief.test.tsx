@@ -1,7 +1,7 @@
 /**
  * RuleBrief render tests: the "THE RULE" poster
- * callout heading every wizard step — black stamp, rule text, and the accent
- * footer citation, all composed through SheetSectionCard.
+ * box heading every wizard step — THE RULE on the cut-out, rule text, and the
+ * citation under it, all composed through Box.
  */
 
 import { describe, expect, test } from 'bun:test'

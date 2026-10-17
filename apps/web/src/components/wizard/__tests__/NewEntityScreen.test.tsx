@@ -94,6 +94,27 @@ describe('NewEntityScreen — signed out', () => {
   })
 })
 
+describe('NewEntityScreen — the gate’s landmark', () => {
+  // The Union bar takes the colour of the page's leading band, a band first in
+  // `<main>` (`unionBarMatch.ts`). The pilot, mech and crawler routes wrap
+  // the screen in theirs; the NPC route has none, so its gate brings one.
+  test('the NPC gate is its own <main>; the others leave it to their route', () => {
+    for (const kind of ['npc', 'mech'] as const) {
+      rtlRender(
+        <NewEntityScreen
+          kind={kind}
+          mode={undefined}
+          wizard={null}
+          onModeChange={noop}
+          onCreated={noop}
+        />
+      )
+      expect(screen.queryAllByRole('main')).toHaveLength(kind === 'npc' ? 1 : 0)
+      cleanup()
+    }
+  })
+})
+
 describe('NewEntityScreen — signed out, deep-linked', () => {
   test("signing in comes back to the route's own URL, so the preselection survives", async () => {
     convexMocks.signIns.length = 0

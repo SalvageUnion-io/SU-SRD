@@ -203,6 +203,14 @@ describe('LiveSheet — the chapter band (board 10)', () => {
     expect(title.compareDocumentPosition(corner) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy()
   })
 
+  test('nothing shows between the Union bar and the band: the band takes back the sentinel’s 1px', () => {
+    renderShell()
+    const band = must(document.querySelector<HTMLElement>('.su-chapter-band'))
+    const sentinel = must(band.previousElementSibling as HTMLElement | null)
+    expect(sentinel.style.height).toBe('1px')
+    expect(sentinel.style.marginBottom).toBe('-1px')
+  })
+
   test('a sheet with no controls has no corner', () => {
     renderShell()
     expect(document.querySelector('.su-chapter-band__corner')).toBeNull()
