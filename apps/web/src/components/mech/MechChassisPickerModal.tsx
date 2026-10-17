@@ -17,9 +17,8 @@
 
 import { useEffect, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
-import { Button, EntitySearcher, ModalShell } from '../index'
+import { Button, ConfirmDialog, EntitySearcher, ModalShell } from '../index'
 import '../../styles/cantina/wizard.css'
-import { dialogActionsStyle, dialogBodyStyle, dialogNoteStyle } from '../wizard/wizardStyles.model'
 
 type MechChassisPickerModalProps = {
   open: boolean
@@ -112,29 +111,15 @@ export function MechChassisPickerModal({
         />
       </ModalShell>
 
-      <ModalShell
+      <ConfirmDialog
         open={confirming}
-        onOpenChange={(next) => {
-          if (!next) setConfirming(false)
-        }}
+        onOpenChange={setConfirming}
         title="Change chassis?"
         tone="danger"
-        maxWidth="su-wiz-modal-md"
-      >
-        <div style={dialogBodyStyle}>
-          <div style={dialogNoteStyle}>
-            Changing chassis clears the current loadout (pattern, systems, and modules). Continue?
-          </div>
-          <div style={dialogActionsStyle}>
-            <Button variant="ghost" size="compact" onClick={() => setConfirming(false)}>
-              Cancel
-            </Button>
-            <Button variant="danger" size="compact" onClick={confirmChange}>
-              Change chassis
-            </Button>
-          </div>
-        </div>
-      </ModalShell>
+        body="Changing chassis clears the current loadout (pattern, systems, and modules). Continue?"
+        confirmLabel="Change chassis"
+        onConfirm={confirmChange}
+      />
     </>
   )
 }
