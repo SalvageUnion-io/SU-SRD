@@ -234,20 +234,35 @@ describe('+ From the reference', () => {
     expect(entity.name).toBe('Wasteland Bear')
   })
 
-  test('Mechs asks which pattern, then adds the chassis drawn as it', async () => {
+  // The Mechs pool is every chassis card at full size: switching to it alone
+  // renders for ~2.3s (measured), so one test walks every pattern path and
+  // carries a longer timeout.
+  test('Mechs asks which pattern before adding; Cancel adds nothing, No pattern the bare chassis', async () => {
     await renderTab([])
     const picker = await openPicker()
     await act(async () => {
       fireEvent.change(picker.getByLabelText('Draw from'), { target: { value: 'chassis' } })
     })
-    await click(picker.getByRole('button', { name: 'Add Mule' }))
-    // Nothing is added until the pattern is chosen.
-    expect(calls).toHaveLength(0)
-    const pattern = picker.getByLabelText('Mule pattern') as HTMLSelectElement
-    expect(pattern.value).toBe('hauler')
     await act(async () => {
-      fireEvent.change(pattern, { target: { value: 'crusher' } })
+      fireEvent.change(picker.getByLabelText('Search'), { target: { value: 'Mule' } })
     })
+    const addMule = () => click(picker.getByRole('button', { name: 'Add Mule' }))
+    const choose = async (value: string) => {
+      await act(async () => {
+        fireEvent.change(picker.getByLabelText('Mule pattern'), { target: { value } })
+      })
+    }
+
+    await addMule()
+    // Nothing is added until the pattern is chosen; the first is preselected.
+    expect(calls).toHaveLength(0)
+    expect((picker.getByLabelText('Mule pattern') as HTMLSelectElement).value).toBe('hauler')
+    await click(picker.getByRole('button', { name: 'Cancel' }))
+    expect(picker.queryByLabelText('Mule pattern')).toBeNull()
+    expect(calls).toHaveLength(0)
+
+    await addMule()
+    await choose('crusher')
     await click(picker.getByRole('button', { name: 'Add to the field' }))
     const [schema, entity, drawn] = (calls[0]?.args ?? []) as [
       EncounterRefSchema,
@@ -258,24 +273,12 @@ describe('+ From the reference', () => {
     expect(entity.name).toBe('Mule')
     expect(drawn?.name).toBe('Crusher')
     expect(picker.queryByLabelText('Mule pattern')).toBeNull()
-  })
 
-  test('No pattern adds the bare chassis; Cancel adds nothing', async () => {
-    await renderTab([])
-    const picker = await openPicker()
-    await act(async () => {
-      fireEvent.change(picker.getByLabelText('Draw from'), { target: { value: 'chassis' } })
-    })
-    await click(picker.getByRole('button', { name: 'Add Mule' }))
-    await click(picker.getByRole('button', { name: 'Cancel' }))
-    expect(calls).toHaveLength(0)
-    await click(picker.getByRole('button', { name: 'Add Mule' }))
-    await act(async () => {
-      fireEvent.change(picker.getByLabelText('Mule pattern'), { target: { value: '' } })
-    })
+    await addMule()
+    await choose('')
     await click(picker.getByRole('button', { name: 'Add to the field' }))
-    expect(calls[0]?.args[2]).toBeUndefined()
-  })
+    expect(calls[1]?.args[2]).toBeUndefined()
+  }, 20_000)
 
   test('a refused add goes to onFailure', async () => {
     await renderTab([], { writes: trayWrites(new Set(['add'])) })
