@@ -280,7 +280,7 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
         <ClassBrief plan={plan} />
         <section className="su-ability-tree__section">
           <Slab variant="dashed" label="Abilities" />
-          <div className="su-ability-tree__row" data-entity-fit="">
+          <div className="su-class-path__trees" data-entity-fit="">
             <TreeSection {...path.advanced} track="hybrid" />
             {path.legendary && <TreeSection {...path.legendary} track="legendary" />}
           </div>

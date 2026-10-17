@@ -1085,6 +1085,29 @@ a.su-home__discord:hover {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
 }
 
+/* Side by side (two 16rem columns and their gap fit), the trees share rows:
+   each tree is its slab and three tiers on the trees' own grid, so a
+   Legendary tree's two picks and its "or" line up with the three tiers beside
+   it and every tree ends on one line. */
+.su-class-path__trees {
+  container-type: inline-size;
+}
+
+@container (min-width: 33.5rem) {
+  .su-class-path__trees > .su-ability-tree__group {
+    display: grid;
+    grid-row: span 4;
+    grid-template-rows: subgrid;
+    row-gap: var(--space-14);
+  }
+
+  .su-class-path__trees .su-ability-track {
+    display: grid;
+    grid-row: span 3;
+    grid-template-rows: subgrid;
+  }
+}
+
 .su-class-path__foot {
   border-top: var(--bw-chrome) solid var(--color-ink);
   color: var(--color-ink-2);
