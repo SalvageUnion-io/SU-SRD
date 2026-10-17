@@ -14,15 +14,16 @@
  *
  * At 0 an NPC is shown as down (struck through) and is never removed for you
  * (ADR-007); Remove asks first. **+ From the reference** opens the picker over
- * the six tray schemas; a new instance starts at full HP and takes a numbered
- * name when it duplicates one.
+ * the tray schemas; a new instance starts at full HP and takes a numbered
+ * name when it duplicates one. An entity with patterns (a chassis, a
+ * Bio-Titan) asks which one beneath the list before it is added.
  *
  * Presentational: the Dashboard reads the tray and makes the writes.
  */
 
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
-import type { RefEntity } from 'salvageunion-reference'
+import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { findEntityBySlug } from 'salvageunion-reference'
 import type { CSSVarStyle } from '../index'
 import {
@@ -39,13 +40,17 @@ import {
 import { SheetPickerModal } from '../sheet/SheetSection'
 import { BODY, EYEBROW, HEAD_ROW, MUTED, NUMBERS } from './mediatorStyles.model'
 import type { EncounterRefSchema, TrayNpc } from './opposition.model'
-import { OPPOSITION_SCHEMAS, slugOf } from './opposition.model'
+import { OPPOSITION_SCHEMAS, patternSlugOf, patternsOf, slugOf } from './opposition.model'
 
 const { borderWidth, color, font, fontSize, radius, space, weight } = tokens
 
 /** What a row can ask of the tray. */
 export type TrayWrites = {
-  add: (schema: EncounterRefSchema, entity: RefEntity) => Promise<unknown>
+  add: (
+    schema: EncounterRefSchema,
+    entity: RefEntity,
+    pattern?: RefObjectAnyPattern
+  ) => Promise<unknown>
   setHp: (npc: TrayNpc, next: number) => Promise<unknown>
   morale: (npc: TrayNpc) => Promise<unknown>
   remove: (npc: TrayNpc) => Promise<unknown>
@@ -110,6 +115,15 @@ const PICKER_RAIL = {
   flexDirection: 'column',
   gap: space[6],
 } satisfies CSSProperties
+
+const PATTERN_ACTIONS = {
+  display: 'flex',
+  gap: space[6],
+  marginTop: space[4],
+} satisfies CSSProperties
+
+/** The bare entity, in the pattern Select: no pattern picked. */
+const NO_PATTERN = ''
 
 function NpcRow({
   npc,
@@ -217,16 +231,25 @@ function OppositionPicker({
   onClose,
 }: {
   npcs: readonly TrayNpc[]
-  onAdd: (schema: EncounterRefSchema, entity: RefEntity) => void
+  onAdd: (schema: EncounterRefSchema, entity: RefEntity, pattern?: RefObjectAnyPattern) => void
   title?: string
   onClose?: () => void
 }) {
   const id = useId()
   const [schema, setSchema] = useState<EncounterRefSchema>('npcs')
+  // An entity with patterns waits here while its pattern is chosen.
+  const [pending, setPending] = useState<{ entity: RefEntity; pattern: string } | null>(null)
   // The tray's own counts, so a card says how many are already out.
   const selected = npcs
     .filter((n) => n.refSchema === schema && n.refSlug)
     .map((n) => n.refSlug ?? '')
+  const pendingPatterns = pending ? patternsOf(pending.entity) : []
+  const addPending = () => {
+    if (pending === null) return
+    const pattern = pendingPatterns.find((p) => patternSlugOf(p) === pending.pattern)
+    onAdd(schema, pending.entity, pattern)
+    setPending(null)
+  }
   return (
     <EntitySearcher
       key={schema}
@@ -236,7 +259,10 @@ function OppositionPicker({
       idOf={slugOf}
       onAdd={(slug) => {
         const entity = findEntityBySlug(schema, slug)
-        if (entity !== null) onAdd(schema, entity)
+        if (entity === null) return
+        const patterns = patternsOf(entity)
+        if (patterns.length === 0) onAdd(schema, entity)
+        else setPending({ entity, pattern: patternSlugOf(patterns[0] as RefObjectAnyPattern) })
       }}
       chosenLabel="On the field"
       title={title}
@@ -249,7 +275,10 @@ function OppositionPicker({
           <Select
             id={`${id}-schema`}
             value={schema}
-            onChange={(e) => setSchema(e.target.value as EncounterRefSchema)}
+            onChange={(e) => {
+              setPending(null)
+              setSchema(e.target.value as EncounterRefSchema)
+            }}
           >
             {OPPOSITION_SCHEMAS.map((s) => (
               <option key={s.schema} value={s.schema}>
@@ -257,6 +286,33 @@ function OppositionPicker({
               </option>
             ))}
           </Select>
+          {pending ? (
+            <>
+              <label htmlFor={`${id}-pattern`} style={EYEBROW}>
+                {pending.entity.name} pattern
+              </label>
+              <Select
+                id={`${id}-pattern`}
+                value={pending.pattern}
+                onChange={(e) => setPending({ ...pending, pattern: e.target.value })}
+              >
+                {pendingPatterns.map((p) => (
+                  <option key={p.name} value={patternSlugOf(p)}>
+                    {p.name}
+                  </option>
+                ))}
+                <option value={NO_PATTERN}>No pattern</option>
+              </Select>
+              <div style={PATTERN_ACTIONS}>
+                <Button variant="primary" size="compact" onClick={addPending}>
+                  Add to the field
+                </Button>
+                <Button variant="ghost" size="compact" onClick={() => setPending(null)}>
+                  Cancel
+                </Button>
+              </div>
+            </>
+          ) : null}
         </div>
       }
     />
@@ -315,7 +371,9 @@ export function OppositionTab({
       >
         <OppositionPicker
           npcs={npcs ?? []}
-          onAdd={(schema, entity) => void writes.add(schema, entity).catch(onFailure)}
+          onAdd={(schema, entity, pattern) =>
+            void writes.add(schema, entity, pattern).catch(onFailure)
+          }
         />
       </SheetPickerModal>
       <ConfirmDialog

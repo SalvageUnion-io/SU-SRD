@@ -17,6 +17,7 @@ import { containerFields } from './entity'
 /** The reference schemas an encounter-tray NPC can be drawn from. */
 export const ENCOUNTER_REF_SCHEMAS = [
   'npcs',
+  'chassis',
   'squads',
   'creatures',
   'bio-titans',
@@ -59,6 +60,11 @@ export const EncounterNpcSchema = z
     refSlug: z.string(),
     /** Reference entity name at add time — display fallback if lookup drifts. */
     refName: z.string(),
+    /**
+     * Slug of the host's pattern it was drawn as (a chassis's mech pattern, a
+     * Bio-Titan's variant), when one was picked; absent for the bare entity.
+     */
+    refPattern: z.string().optional(),
 
     /** Instance label (defaults to the reference name; e.g. 'Raider 2'). */
     name: z.string(),

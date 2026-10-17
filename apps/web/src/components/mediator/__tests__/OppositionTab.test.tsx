@@ -2,8 +2,8 @@
  * The Opposition tab (mediator-dashboard.md Q9) on its own: the tray's
  * loading and empty states, a row that no longer resolves, a down NPC and its
  * last Morale roll, the reference card a row opens, the picker that adds from
- * any of the six schemas, Remove behind its confirmation, and every refused
- * write handed to `onFailure`.
+ * any of the tray schemas (a mech as one of its patterns), Remove behind its
+ * confirmation, and every refused write handed to `onFailure`.
  *
  * Presentational: the tab takes the tray and its writes as props, so this
  * records what it asks for.
@@ -11,7 +11,7 @@
 
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { RefEntity } from 'salvageunion-reference'
+import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import type { TrayWrites } from '../OppositionTab'
 import { OppositionTab } from '../OppositionTab'
 import type { EncounterRefSchema, TrayNpc } from '../opposition.model'
@@ -233,6 +233,52 @@ describe('+ From the reference', () => {
     expect(schema).toBe('creatures')
     expect(entity.name).toBe('Wasteland Bear')
   })
+
+  // The Mechs pool is every chassis card at full size: switching to it alone
+  // renders for ~2.3s (measured), so one test walks every pattern path and
+  // carries a longer timeout.
+  test('Mechs asks which pattern before adding; Cancel adds nothing, No pattern the bare chassis', async () => {
+    await renderTab([])
+    const picker = await openPicker()
+    await act(async () => {
+      fireEvent.change(picker.getByLabelText('Draw from'), { target: { value: 'chassis' } })
+    })
+    await act(async () => {
+      fireEvent.change(picker.getByLabelText('Search'), { target: { value: 'Mule' } })
+    })
+    const addMule = () => click(picker.getByRole('button', { name: 'Add Mule' }))
+    const choose = async (value: string) => {
+      await act(async () => {
+        fireEvent.change(picker.getByLabelText('Mule pattern'), { target: { value } })
+      })
+    }
+
+    await addMule()
+    // Nothing is added until the pattern is chosen; the first is preselected.
+    expect(calls).toHaveLength(0)
+    expect((picker.getByLabelText('Mule pattern') as HTMLSelectElement).value).toBe('hauler')
+    await click(picker.getByRole('button', { name: 'Cancel' }))
+    expect(picker.queryByLabelText('Mule pattern')).toBeNull()
+    expect(calls).toHaveLength(0)
+
+    await addMule()
+    await choose('crusher')
+    await click(picker.getByRole('button', { name: 'Add to the field' }))
+    const [schema, entity, drawn] = (calls[0]?.args ?? []) as [
+      EncounterRefSchema,
+      RefEntity,
+      RefObjectAnyPattern | undefined,
+    ]
+    expect(schema).toBe('chassis')
+    expect(entity.name).toBe('Mule')
+    expect(drawn?.name).toBe('Crusher')
+    expect(picker.queryByLabelText('Mule pattern')).toBeNull()
+
+    await addMule()
+    await choose('')
+    await click(picker.getByRole('button', { name: 'Add to the field' }))
+    expect(calls[1]?.args[2]).toBeUndefined()
+  }, 20_000)
 
   test('a refused add goes to onFailure', async () => {
     await renderTab([], { writes: trayWrites(new Set(['add'])) })
