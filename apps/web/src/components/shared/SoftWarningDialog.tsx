@@ -16,7 +16,7 @@
 import type { CSSProperties } from 'react'
 import type { SoftWarning } from 'salvageunion-reference/rules'
 import { color, font, fontSize, space } from '../../design/tokens'
-import { Banner, Button, ModalShell } from '../index'
+import { Banner, Button, DialogActions, ModalShell } from '../index'
 
 const BODY = {
   backgroundColor: color.paper,
@@ -32,12 +32,6 @@ const LEDE = {
   fontSize: fontSize.sm,
   lineHeight: '1.25rem',
   margin: 0,
-} satisfies CSSProperties
-
-const ACTIONS = {
-  display: 'flex',
-  gap: space[8],
-  justifyContent: 'flex-end',
 } satisfies CSSProperties
 
 type SoftWarningDialogProps = {
@@ -76,14 +70,14 @@ export function SoftWarningDialog({
           it.
         </p>
         <Banner warnings={warnings} />
-        <div style={ACTIONS}>
+        <DialogActions>
           <Button variant="ghost" size="compact" onClick={onCancel}>
             Cancel
           </Button>
           <Button variant="primary" size="compact" onClick={onSaveAnyway}>
             Save anyway
           </Button>
-        </div>
+        </DialogActions>
       </div>
     </ModalShell>
   )

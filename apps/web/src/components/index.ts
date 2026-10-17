@@ -53,6 +53,8 @@ export { CatalogTile } from './atoms/CatalogTile'
 // ChapterBand — the page title notched into a band in the chapter's colour
 export { ChapterBand } from './atoms/ChapterBand'
 export { ChapterBandTrail } from './atoms/ChapterBandTrail'
+// CloseButton — the one ×: every dialog, drawer and sheet closes on it.
+export { CloseButton } from './atoms/CloseButton'
 // Conditions — the entity-condition chip row. Public because the Cantina's sheet
 // editors (ConditionsEditor, NpcFactsEditor) compose it.
 export { Conditions } from './atoms/Conditions'
@@ -175,6 +177,8 @@ export { Card } from './containers/Card'
 // ConfirmDialog — the one "are you sure?": an alert dialog on ModalShell with a
 // pending state, an inline failure line, and focus on Cancel for destructive confirms.
 export { ConfirmDialog } from './containers/ConfirmDialog'
+// DialogActions — a dialog's buttons, right-aligned and wrapping.
+export { DialogActions } from './containers/DialogActions'
 // EmptyState — dashed stamp-headline empty slot (ruleset §"Empty state")
 export { EmptyState } from './containers/EmptyState'
 // HeaderMenu — a dropdown menu (Base UI's menu button): the Union bar's account

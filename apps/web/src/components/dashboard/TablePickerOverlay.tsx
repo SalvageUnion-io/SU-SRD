@@ -1,7 +1,8 @@
 /**
  * TablePickerOverlay — the Dashboard Tables full picker.
  *
- * A 5-column grid, one column per category (COMBAT / PILOT / SALVAGE /
+ * A dialog on the house cut-out head (`TitledBox`, as `ModalShell` draws
+ * one): a 5-column grid, one column per category (COMBAT / PILOT / SALVAGE /
  * CRAWLER / DOWNTIME), each a stamped column of table buttons. Categories come
  * from the `tableCategories` map (roll tables carry no category field). Picking a
  * table calls `onPick` and closes; Escape, a press outside it or ✕ closes
@@ -13,9 +14,8 @@
  * moves focus into it, keeps it there and hands it back on close.
  */
 
-import { X } from 'lucide-react'
 import type { RefObject } from 'react'
-import { Button, ModalShell } from '../index'
+import { CloseButton, ModalShell, TitledBox } from '../index'
 import type { PickableTable } from './tableCategories.model'
 import { groupTablesByCategory, TABLE_CATEGORY_LABEL } from './tableCategories.model'
 
@@ -51,13 +51,12 @@ export function TablePickerOverlay({
       container={container}
       bare
     >
-      <div className="su-dash-tablepick">
-        <div className="su-dash-tablepick-head">
-          <span className="su-dash-tablepick-title">{TITLE}</span>
-          <Button size="compact" onClick={onClose} aria-label="Close table picker">
-            <X aria-hidden="true" size={14} />
-          </Button>
-        </div>
+      <TitledBox
+        title={TITLE}
+        tone="pilot"
+        className="su-dash-tablepick"
+        controls={<CloseButton label="Close table picker" onClick={onClose} />}
+      >
         <div className="su-dash-tablepick-grid">
           {columns.map(({ category, tables: colTables }) => (
             <div key={category} className="su-dash-tablepick-col">
@@ -87,7 +86,7 @@ export function TablePickerOverlay({
             </div>
           ))}
         </div>
-      </div>
+      </TitledBox>
     </ModalShell>
   )
 }

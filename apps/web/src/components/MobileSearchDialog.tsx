@@ -1,10 +1,10 @@
 import { Drawer } from '@base-ui/react/drawer'
-import { Search, X } from 'lucide-react'
+import { Search } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { color, font, fontSize, radius, space, weight } from '../design/tokens'
 import { LIFT_SHADOW } from '../lib/liftShadow'
-import { buttonVariants, cn } from './index'
+import { buttonVariants, CloseButton, cn } from './index'
 
 type MobileSearchDialogProps = {
   /**
@@ -61,13 +61,6 @@ const ICON_BUTTON = {
 // The bar's foreground: paper, or the ink of a page band that recolours it.
 const TRIGGER = { ...ICON_BUTTON, color: 'var(--su-bar-fg)' } satisfies CSSProperties
 
-const CLOSE = {
-  ...ICON_BUTTON,
-  color: color.ink,
-  height: '44px',
-  width: '44px',
-} satisfies CSSProperties
-
 const iconButtonClass = buttonVariants({ variant: 'ghost', size: 'iconOnly' })
 
 /**
@@ -109,18 +102,7 @@ export function MobileSearchDialog({ children }: MobileSearchDialogProps) {
           <Drawer.Popup className="su-drawer" style={POPUP}>
             <div style={TITLE_ROW}>
               <Drawer.Title style={TITLE}>Search</Drawer.Title>
-              <Drawer.Close
-                render={
-                  <button
-                    type="button"
-                    className={iconButtonClass}
-                    style={CLOSE}
-                    aria-label="Close search"
-                  >
-                    <X aria-hidden="true" size={24} />
-                  </button>
-                }
-              />
+              <Drawer.Close render={<CloseButton label="Close search" touch />} />
             </div>
             {children}
           </Drawer.Popup>

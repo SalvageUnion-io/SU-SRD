@@ -1,10 +1,8 @@
 import { AlertDialog } from '@base-ui/react/alert-dialog'
 import { Dialog } from '@base-ui/react/dialog'
-import { X } from 'lucide-react'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
-import { cn } from '../../lib/cn'
-import { buttonVariants } from '../atoms/buttonVariants'
+import { CloseButton } from '../atoms/CloseButton'
 import { useEntitySurface } from '../entity/entitySurfaceContext'
 import { paintFor } from '../entity/parts/paint'
 import { TitledBox } from './TitledBox'
@@ -118,8 +116,6 @@ const SUBTITLE = {
   color: color.wkMuted,
 } satisfies CSSProperties
 
-const CLOSE_ICON = { width: space[20], height: space[20] } satisfies CSSProperties
-
 /** A full-screen popup covers the viewport and scrolls inside itself. */
 const FULLSCREEN_POPUP = {
   position: 'fixed',
@@ -205,15 +201,8 @@ export function ModalShell({
             body="flush"
             controls={
               <Dialog.Close
-                className={cn(
-                  buttonVariants({ variant: 'quiet', size: 'iconOnly' }),
-                  'su-modal-close'
-                )}
-                data-on-paper={paint.color === 'var(--color-paper)' || undefined}
-              >
-                <X style={CLOSE_ICON} />
-                <span className="su-sr-only">Close</span>
-              </Dialog.Close>
+                render={<CloseButton onPaper={paint.color === 'var(--color-paper)'} />}
+              />
             }
           >
             {subtitle && <p style={SUBTITLE}>{subtitle}</p>}

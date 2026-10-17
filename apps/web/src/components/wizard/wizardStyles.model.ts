@@ -40,10 +40,3 @@ export const dialogNoteStyle = {
   color: tokens.color.wkMuted,
   fontFamily: tokens.font.body,
 } satisfies CSSProperties
-
-/** The dialog's buttons, right-aligned. */
-export const dialogActionsStyle = {
-  display: 'flex',
-  gap: tokens.space[8],
-  justifyContent: 'flex-end',
-} satisfies CSSProperties

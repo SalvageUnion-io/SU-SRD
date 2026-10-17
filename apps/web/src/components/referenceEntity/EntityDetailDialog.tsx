@@ -1,11 +1,10 @@
 import { Dialog } from '@base-ui/react/dialog'
-import { X } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import type { RefEntity, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 import { borderWidth, color, space } from '../../design/tokens'
-import { buttonVariants } from '../atoms/buttonVariants'
 import { ChapterBand } from '../atoms/ChapterBand'
+import { CloseButton } from '../atoms/CloseButton'
 import type { ChapterTone } from '../atoms/chapterBandColor'
 import { ModalShell } from '../containers/ModalShell'
 import { EntityStat } from '../entity/parts/EntityStat'
@@ -192,15 +191,9 @@ export function EntityDetailDialog({
           clipped by it. The SRD black-stamp square button is
           kitty-cornered, straddling the page's top-right corner. */}
       <div style={{ position: 'relative' }}>
-        {/* The SRD black stamp: Button's ink variant at the icon rung, with
-            a paper edge so it reads off the band it straddles. */}
-        <Dialog.Close
-          className={buttonVariants({ variant: 'ink', size: 'iconOnly' })}
-          style={closeStyle}
-        >
-          <X style={{ width: space[20], height: space[20] }} aria-hidden="true" />
-          <span className="su-sr-only">Close</span>
-        </Dialog.Close>
+        {/* The SRD black stamp: CloseButton's ink stamp, with a paper edge
+            so it reads off the band it straddles. */}
+        <Dialog.Close render={<CloseButton look="stamp" style={closeStyle} />} />
         <article style={pageStyle}>
           <EntityDetailPage entity={entity} pattern={pattern} title={title}>
             {children}

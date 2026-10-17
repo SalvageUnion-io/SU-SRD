@@ -1,5 +1,5 @@
 import { Drawer } from '@base-ui/react/drawer'
-import { Menu, X } from 'lucide-react'
+import { Menu } from 'lucide-react'
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { useState } from 'react'
 import { srdSchemaPath } from 'salvageunion-reference'
@@ -7,6 +7,7 @@ import { borderWidth, color, radius, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { Badge } from '../atoms/Badge'
 import { buttonVariants } from '../atoms/buttonVariants'
+import { CloseButton } from '../atoms/CloseButton'
 import { FOCUS_RING } from '../atoms/interaction'
 import { TRANSITION_COLORS } from '../atoms/transition'
 
@@ -173,17 +174,7 @@ export function NavDrawer({
             {/* Brand row: lockup | Close */}
             <div style={BRAND_ROW}>
               {brand}
-              <Drawer.Close
-                render={
-                  <button
-                    type="button"
-                    aria-label="Close menu"
-                    className={buttonVariants({ variant: 'quiet', size: 'iconOnly' })}
-                  >
-                    <X size={22} aria-hidden="true" />
-                  </button>
-                }
-              />
+              <Drawer.Close render={<CloseButton label="Close menu" />} />
             </div>
 
             {search && <div className="su-nav-drawer__search">{search}</div>}

@@ -85,15 +85,22 @@
   padding: 0;
 }
 
-/* ModalShell's close × is Button's quiet icon rung; on a band that prints
-   paper (the danger rust) its ink turns paper. Doubled with `.su-btn` to
-   out-rank the quiet variant's resting and hover ink. */
-.su-btn.su-modal-close[data-on-paper] {
+/* CloseButton (the ×) is Button's quiet icon rung; on a band that prints
+   paper (the danger rust, an ink sheet head) its ink turns paper. Doubled
+   with `.su-btn` to out-rank the quiet variant's resting and hover ink. */
+.su-btn.su-close-button[data-on-paper] {
   color: color-mix(in oklab, var(--color-paper) 60%, transparent);
 }
 
-.su-btn.su-modal-close[data-on-paper]:hover:not(:disabled) {
+.su-btn.su-close-button[data-on-paper]:hover:not(:disabled) {
   color: var(--color-paper);
+}
+
+/* A phone sheet's × (the search sheet, the Dashboard menu) is the 44px
+   touch target, not the 36px icon rung. */
+.su-btn.su-close-button[data-touch] {
+  height: 44px;
+  width: 44px;
 }
 
 /* ModalShell's cut-out head holds one control, the ×: it stays on the band

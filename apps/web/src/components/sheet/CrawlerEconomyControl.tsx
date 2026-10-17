@@ -61,6 +61,7 @@ import type { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_TXN } from '../../stores/surfaceProvenance'
 import {
   Button,
+  DialogActions,
   EmptyState,
   FieldError,
   ModalShell,
@@ -103,14 +104,6 @@ const MUTED = { ...TEXT, color: tokens.color.wkMuted } satisfies CSSProperties
 const TEXT_TIGHT = { ...TEXT, margin: 0 } satisfies CSSProperties
 
 const TEXT_AFTER = { ...TEXT, marginTop: tokens.space[8] } satisfies CSSProperties
-
-const FOOT = {
-  display: 'flex',
-  justifyContent: 'flex-end',
-  gap: tokens.space[8],
-} satisfies CSSProperties
-
-const FOOT_ONE = { display: 'flex', justifyContent: 'flex-end' } satisfies CSSProperties
 
 const STACK_12 = {
   display: 'flex',
@@ -351,7 +344,7 @@ function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFo
           </FieldError>
         )}
 
-        <div style={FOOT}>
+        <DialogActions>
           <Button variant="ghost" size="compact" onClick={onClose}>
             {done ? 'Done' : 'Cancel'}
           </Button>
@@ -377,7 +370,7 @@ function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFo
               Roll Deterioration (d20)
             </Button>
           )}
-        </div>
+        </DialogActions>
       </div>
     </ModalShell>
   )
@@ -489,7 +482,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
             Tech 6 is the highest level of Union Crawler — it cannot be upgraded further (p.218).
           </p>
         )}
-        <div style={FOOT}>
+        <DialogActions>
           <Button variant="ghost" size="compact" onClick={onClose}>
             Cancel
           </Button>
@@ -503,7 +496,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
           >
             {quote ? `Upgrade to Tech ${quote.toTl}` : 'Upgrade'}
           </Button>
-        </div>
+        </DialogActions>
       </div>
     </ModalShell>
   )
@@ -684,11 +677,11 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
           </>
         )}
 
-        <div style={FOOT_ONE}>
+        <DialogActions>
           <Button variant="ghost" size="compact" onClick={onClose}>
             Close
           </Button>
-        </div>
+        </DialogActions>
       </div>
     </ModalShell>
   )
