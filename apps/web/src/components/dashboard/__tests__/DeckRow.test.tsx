@@ -20,14 +20,14 @@ const row = (over: Partial<DeckEntry> = {}): DeckEntry => ({
 })
 
 describe('DeckRow', () => {
-  test('its pennant is the action, and the row carries its deck key', () => {
+  test('a Token whose pennant is the action, and the row carries its deck key', () => {
     const onClick = mock(() => {})
     const { container } = render(
       <ul>
         <DeckRow row={row()} lock="title" pennant={{ label: 'Resolve', onClick }} />
       </ul>
     )
-    expect(container.querySelector('[data-deck-key="auger"]')).not.toBeNull()
+    expect(container.querySelector('[data-deck-key="auger"] > .su-entity-token')).not.toBeNull()
     fireEvent.click(screen.getByRole('button', { name: /Resolve/ }))
     expect(onClick).toHaveBeenCalledTimes(1)
   })

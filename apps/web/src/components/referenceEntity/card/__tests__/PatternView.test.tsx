@@ -496,7 +496,8 @@ describe('legal starting pattern stamp', () => {
  * A HOST'S PATTERN ROWS SHOW WHAT EACH PATTERN CHANGES. The host's stats and
  * abilities are shared by every pattern, so a row carries only the difference:
  * a mech pattern's loadout by name and TL, a Bio-Titan pattern's added
- * actions as embedded cards. Both sit beside the row's link, never inside it —
+ * actions as contentful Tokens (N3: the row is level 1 at most, so they are
+ * level 2). Both sit beside the row's link, never inside it —
  * they are links and controls of their own.
  */
 describe('pattern rows show what each pattern changes', () => {
@@ -508,35 +509,44 @@ describe('pattern rows show what each pattern changes', () => {
   const testHref = (host: RefEntity, pattern: RefObjectAnyPattern) =>
     `/${'name' in host ? nameToSlug(String(host.name)) : ''}/pattern/${nameToSlug(pattern.name)}`
 
-  for (const presentation of ['card', 'page'] as const) {
-    test(`a mech pattern row lists its loadout by name (${presentation})`, () => {
-      render(<ReferenceEntityCard data={mule()} presentation={presentation} />)
-      // A card wraps one list of names; a page's card splits Systems from
-      // Modules, each list named for its pattern.
-      const [systems, modules] =
-        presentation === 'page'
-          ? [
-              screen.getByRole('list', { name: 'Hauler Systems installed' }),
-              screen.getByRole('list', { name: 'Hauler Modules installed' }),
-            ]
-          : [screen.getByRole('list', { name: 'Hauler loadout' })]
-      expect(systems?.textContent).toContain('Transport Hold')
-      expect((modules ?? systems)?.textContent).toContain('Reactor Flare')
-    })
+  test('a mech pattern row on the Page lists its loadout by name', () => {
+    render(<ReferenceEntityCard data={mule()} presentation="page" />)
+    // A page's row splits Systems from Modules, each list named for its pattern.
+    const systems = screen.getByRole('list', { name: 'Hauler Systems installed' })
+    const modules = screen.getByRole('list', { name: 'Hauler Modules installed' })
+    expect(systems.textContent).toContain('Transport Hold')
+    expect(modules.textContent).toContain('Reactor Flare')
+  })
 
-    test(`a Bio-Titan pattern row embeds the action it adds (${presentation})`, () => {
-      render(
-        <PatternHrefProvider value={testHref}>
-          <ReferenceEntityCard data={typhon()} presentation={presentation} />
-        </PatternHrefProvider>
-      )
-      const row = screen.getByRole('link', { name: 'Hill Worm — Typhon pattern' })
-      const added = screen.getByText('Metallic Reconstitution')
-      expect(added).toBeTruthy()
-      // The embedded card is not nested inside the row's link.
-      expect(row.contains(added)).toBe(false)
-    })
-  }
+  test('a Bio-Titan pattern row on the Page embeds the action it adds', () => {
+    render(
+      <PatternHrefProvider value={testHref}>
+        <ReferenceEntityCard data={typhon()} presentation="page" />
+      </PatternHrefProvider>
+    )
+    const row = screen.getByRole('link', { name: 'Hill Worm — Typhon pattern' })
+    const added = screen.getByText('Metallic Reconstitution')
+    // A contentful Token, its rules under its head; never a framed card.
+    const token = added.closest('.su-entity-token[data-contentful]')
+    expect(token?.querySelector('.su-entity-token__body')?.textContent).not.toBe('')
+    expect(added.closest('.su-ec-frame .su-ec-frame')).toBeNull()
+    // It is not nested inside the row's link.
+    expect(row.contains(added)).toBe(false)
+  })
+
+  test("in a card a pattern is its Token alone: what it changes is its Peek's and Page's (E6)", () => {
+    render(
+      <PatternHrefProvider value={testHref}>
+        <ReferenceEntityCard data={typhon()} />
+      </PatternHrefProvider>
+    )
+    expect(screen.getByRole('link', { name: 'Hill Worm — Typhon pattern' })).toBeTruthy()
+    expect(screen.queryByText('Metallic Reconstitution')).toBeNull()
+    cleanup()
+    const { container } = render(<ReferenceEntityCard data={mule()} />)
+    expect(screen.queryByRole('list', { name: 'Hauler loadout' })).toBeNull()
+    expect(container.textContent).not.toContain('Reactor Flare')
+  })
 })
 
 describe('Bio-Titan pattern view', () => {
@@ -555,5 +565,10 @@ describe('Bio-Titan pattern view', () => {
     expect(patternProse).toBeLessThan(added)
     expect(added).toBeLessThan(inherited)
     expect(screen.getByText('Pattern Actions')).toBeTruthy()
+    // On a card the added action is level 2: a contentful Token (N3).
+    const token = screen
+      .getByText('Metallic Reconstitution')
+      .closest('.su-entity-token[data-contentful]')
+    expect(token).not.toBeNull()
   })
 })

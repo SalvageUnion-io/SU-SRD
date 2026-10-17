@@ -149,12 +149,11 @@ describe('toEntityModel parity, every entity', () => {
       const tone = resolveCardTone(schemaName, entity)
       agree(label(row), model.tone, schemaName === 'actions' ? 'ink' : toneToken(tone))
       const doFill = model.kind.nature === 'do' ? 'ink' : 'tone'
-      agree(label(row), resolveHeaderFill(entity, 'full'), doFill)
-      // An ability's head-only card is its Row: it wears its tier tone (E12).
+      agree(label(row), resolveHeaderFill(entity), doFill)
+      // A Peek's card wears the fill of the Token or Row that opened it: an
+      // ability's, its tier tone (E12).
       const rowFill = schemaName === 'abilities' ? 'tone' : doFill
-      agree(label(row), resolveHeaderFill(entity, 'head'), rowFill)
-      // A Peek's card wears the fill of the Token or Row that opened it.
-      agree(label(row), resolveHeaderFill(entity, 'full', true), rowFill)
+      agree(label(row), resolveHeaderFill(entity, true), rowFill)
     }
   })
 
@@ -259,7 +258,6 @@ describe('toEntityModel parity, every entity', () => {
       const { schemaName, entity } = row
       const { hintText } = resolveHeaderHint(entity, {
         isTitanicMeta: schemaName === 'actions' && isTitanicAction(entity as { name?: string }),
-        patternListingContent: undefined,
       })
       const lead =
         hintText ||

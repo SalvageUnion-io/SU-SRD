@@ -70,9 +70,8 @@ generic `Card` takes no controls, `cardClick` or `status`). The one preset
 factory is `navigateControl`; build any other control directly.
 
 A control with `cardClick: true` makes the whole card clickable; `hidden: true`
-keeps it out of the button rail. `status` is presentational sugar that folds into
-a status control in `CardTopRail`, so the condition badge has exactly one
-implementation.
+keeps it out of the button rail. `status` draws in the card's body rail
+(`StatusRail`), so the condition badge has exactly one implementation.
 
 ## Stats
 

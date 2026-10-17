@@ -533,10 +533,11 @@
 }
 
 /* A NESTED table, folded (`CardRollTable nested`): a Token, at a Token's
-   width and height, its Table and Roll buttons beside it, held to the
-   pill's height (the 44px tap floor still holds under a coarse pointer). */
+   height, filling the line its Table and Roll buttons leave it (N4), the
+   buttons beside it held to the pill's height (the 44px tap floor still
+   holds under a coarse pointer). */
 .su-roll-token.su-entity-token-line > .su-entity-token {
-  flex: 0 1 auto;
+  flex: 1 1 auto;
 }
 
 .su-roll-token > .su-roll__roll {

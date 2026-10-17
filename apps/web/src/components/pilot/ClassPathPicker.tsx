@@ -47,8 +47,8 @@ const PICKER = { display: 'grid', gap: tokens.space[16] } satisfies CSSPropertie
 /** One ring group (Core, Advanced, …) in the class list. */
 const GROUP = { marginBottom: tokens.space[16] } satisfies CSSProperties
 
-/** The origin question's copy, above its cards. */
-const ORIGIN_COPY = { margin: `0 0 ${tokens.space[8]}` } satisfies CSSProperties
+/** The origin question's copy, the whole of its note. */
+const ORIGIN_COPY = { margin: 0 } satisfies CSSProperties
 
 /** The derived-origin note. */
 const IMPLIED_ORIGIN = {
@@ -192,20 +192,25 @@ export function ClassPathPicker({
             <Ledger consequence={consequence} allClasses={allClasses} />
 
             {consequence.needsOrigin && (
-              <Callout tone="ink" label="Where did they come from?">
-                <p style={ORIGIN_COPY}>
-                  A {consequence.title} is reached from {consequence.originChoices.join(' or ')}.
-                  This pilot is neither, so the sheet needs to know which —{' '}
-                  <strong>each answer seals a different pair of trees.</strong> You can leave it
-                  unanswered; nothing will be sealed.
-                </p>
+              // The note, then its picks: level-1 cards as the class list's
+              // (N7: select is never a Token), beside it, not inside it.
+              <>
+                <Callout tone="ink">
+                  <p style={ORIGIN_COPY}>
+                    <strong>Where did they come from?</strong> A {consequence.title} is reached from{' '}
+                    {consequence.originChoices.join(' or ')}. This pilot is neither, so the sheet
+                    needs to know which —{' '}
+                    <strong>each answer seals a different pair of trees.</strong> You can leave it
+                    unanswered; nothing will be sealed.
+                  </p>
+                </Callout>
                 <RadioCardGroup label="Origin class">
                   {originChoiceClasses.map((cls) => (
                     <ReferenceEntityCard
                       key={cls.id}
                       data={cls}
-                      size="mini"
-                      extent="head"
+                      size="compact"
+                      extent="catalog"
                       className="su-wiz-class-card"
                       selected={cls.id === answeredOrigin}
                       selectionRole="radio"
@@ -214,7 +219,7 @@ export function ClassPathPicker({
                     />
                   ))}
                 </RadioCardGroup>
-              </Callout>
+              </>
             )}
 
             {consequence.impliedOrigin !== undefined && (

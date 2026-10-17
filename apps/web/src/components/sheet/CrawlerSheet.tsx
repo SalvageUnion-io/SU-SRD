@@ -85,9 +85,9 @@ import {
   buttonVariants,
   EmptyState,
   Entity,
-  Eyebrow,
   MasonryColumns,
   SheetSectionSlab,
+  Slab,
   Stack,
   Stat,
   tokens,
@@ -135,7 +135,8 @@ const TRUNCATE = {
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
 
-const POOL_LABEL = { marginBottom: tokens.space[8], display: 'block' } satisfies CSSProperties
+/** The Slab sits close over the pool's steppers, as the hold's over its strip. */
+const POOL_SLAB = { marginBottom: tokens.space[6] } satisfies CSSProperties
 
 const POOL_ROW = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
 
@@ -307,13 +308,12 @@ export function CrawlerSheet({
   const storageContents = (
     <Stack gap={16} style={SHRINK}>
       {/* Scrap Pool — the crawler's abstract TL-bucketed scrap store (the
-          bucket bay-repair spends). Per-tech-level `Stat` steppers let
+          bucket bay-repair spends), a section of the bay under its Slab, as
+          the Crawler Hold below it is (N5). Per-tech-level `Stat` steppers let
           a crawler stow arbitrary scrap by hand (Free Edit). The
           physical-scrap-cargo path lives in the Hold add-form's Scrap kind. */}
       <div>
-        <Eyebrow tone="toneDeep" style={POOL_LABEL}>
-          Scrap Pool
-        </Eyebrow>
+        <Slab variant="solid" label="Scrap Pool" style={POOL_SLAB} />
         <div style={POOL_ROW}>
           {SCRAP_TLS.map((t) => (
             <Stat
@@ -497,8 +497,8 @@ export function CrawlerSheet({
           <SheetSectionSlab
             id="linked-units"
             title="Assigned units"
-            // A wrapping column, never a row: a row of full unit rows made the
-            // page wider than the viewport. Read stacks one-line listing cards;
+            // A column, never a row: a row of full unit rows made the page
+            // wider than the viewport. Read stacks Tokens, one a line (N4);
             // Edit stacks the full rows with their Assign controls.
             bodyClassName={
               readOnly ? 'su-sheet-crawler-linked-read' : 'su-sheet-crawler-linked-edit'

@@ -142,7 +142,8 @@
   flex: 1 1 0%;
 }
 
-/* Assigned Units: stacked, side by side once the sheet is wide enough. */
+/* Assigned Units: stacked. Edit's Rows sit side by side once the sheet is
+   wide enough; Read's Tokens stay one a line, filling it (N4). */
 .su-sheet-mech-linked {
   display: flex;
   flex-direction: column;
@@ -150,7 +151,7 @@
 }
 
 @container (width >= 48rem) {
-  .su-sheet-mech-linked {
+  .su-sheet-mech-linked:not(:has(> .su-entity-token)) {
     flex-direction: row;
   }
 }

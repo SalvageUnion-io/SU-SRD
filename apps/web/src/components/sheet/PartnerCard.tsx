@@ -57,6 +57,9 @@ import { partnerDisplayName } from './partnerDisplay.model'
 /** The section's Slab sits on the list's own gap, not its default margin. */
 const ITEMS_SLAB = { marginBottom: 0 } satisfies CSSProperties
 
+/** No stat-block loadout: the partner's installed items are its loadout. */
+const NO_LOADOUT = { systems: [], modules: [] }
+
 type PartnerCardProps = {
   /**
    * The partner together with the host that owns it. Taken as the existing
@@ -299,6 +302,9 @@ export function PartnerCard({
       size="compact"
       titleOverride={partnerDisplayName(partner)}
       statsOverride={stats}
+      // The installed Systems / Modules below are the loadout: the stat
+      // block's own (a drone's default) would list them a second time.
+      droneLoadout={NO_LOADOUT}
       controls={controls.length > 0 ? controls : undefined}
       afterExtraContent={
         <Stack gap={16}>

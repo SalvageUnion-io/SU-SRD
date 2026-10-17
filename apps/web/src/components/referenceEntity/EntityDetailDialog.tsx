@@ -187,7 +187,7 @@ export function EntityDetailPage({
  * E5): the backdrop, the kitty-cornered SRD black-stamp close button, and the
  * Page itself — the entity's band, `children` as its body (the card at
  * `presentation="page"`) and its foot citation. Both the entity path
- * (`useDetailModal`) and a depth-2 Row (`NestedCards`) open it, so every
+ * (`useDetailModal`) and a level-2 Token (`NestedCards`) open it, so every
  * detail view in the app is the same Page.
  */
 export function EntityDetailDialog({

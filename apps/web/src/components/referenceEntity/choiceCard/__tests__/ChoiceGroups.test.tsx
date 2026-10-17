@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { useState } from 'react'
 import type { RefObjectChoice } from 'salvageunion-reference'
 import { ChoiceGroups } from '../ChoiceGroups'
@@ -62,11 +62,37 @@ describe('ChoiceGroups — uncontrolled (ephemeral) state', () => {
     const ballistic = screen.getByRole('button', { name: /Ballistic/ })
     fireEvent.click(ballistic)
     expect(ballistic.getAttribute('aria-pressed')).toBe('true')
-    expect(screen.getByText(/^Chosen/)).toBeTruthy()
 
     fireEvent.click(ballistic)
     expect(ballistic.getAttribute('aria-pressed')).toBe('false')
+  })
+
+  // Inside a card (level 2, N1) an option is untitled: no head band, no seal;
+  // on its entity's Page it is the headed option card with its "Chosen" seal.
+  test('only on its Page is an option headed and sealed', () => {
+    const { container } = render(<ChoiceGroups choices={[weaponTypeChoice]} parent={parent} />)
+    fireEvent.click(screen.getByRole('button', { name: /Ballistic/ }))
     expect(screen.queryByText(/^Chosen/)).toBeNull()
+    expect(container.querySelector('[data-option-head]')).toBeNull()
+    cleanup()
+
+    const page = render(<ChoiceGroups choices={[weaponTypeChoice]} parent={parent} onPage />)
+    fireEvent.click(screen.getByRole('button', { name: /Ballistic/ }))
+    expect(screen.getByText(/^Chosen/)).toBeTruthy()
+    expect(page.container.querySelectorAll('[data-option-head]').length).toBeGreaterThan(0)
+  })
+
+  test('read-only off its Page, an option is a Slab over its text', () => {
+    render(
+      <ChoiceGroups
+        choices={[weaponTypeChoice]}
+        parent={parent}
+        selections={{ [weaponTypeChoice.id]: ['Ballistic'] }}
+        readOnly
+      />
+    )
+    expect(screen.queryByRole('button')).toBeNull()
+    expect(screen.getAllByText('Chosen')).toHaveLength(1)
   })
 })
 

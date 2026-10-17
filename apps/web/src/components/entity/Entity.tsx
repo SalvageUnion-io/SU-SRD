@@ -4,6 +4,7 @@ import type { EntityInstance, RefMetaEntity, RefObjectAnyPattern } from 'salvage
 import { toEntityModel } from 'salvageunion-reference'
 import { Row } from './forms/Row'
 import { Tile } from './forms/Tile'
+import type { TokenBody } from './forms/Token'
 import { Token } from './forms/Token'
 import type { TagItem } from './parts/tagItems'
 import { traitTags } from './parts/tagItems'
@@ -57,6 +58,11 @@ export type EntityProps = EntitySource & {
    * listed unit's "⋯" menu.
    */
   trailing?: ReactNode
+  /**
+   * Token only: a CONTENTFUL Token (N3), its head then the entity's text and
+   * the host's content (`TokenBody`); without it the Token is its head alone.
+   */
+  body?: TokenBody
 }
 
 /**
@@ -82,6 +88,7 @@ export function Entity(props: EntityProps) {
     labels,
     links,
     trailing,
+    body,
   } = props
   const { entity, pattern } = props
   const ownModel = props.model
@@ -125,6 +132,7 @@ export function Entity(props: EntityProps) {
               ? { ...(trailing ? { trailing } : {}), ...(peekAt ? { peekAt } : {}) }
               : undefined
           }
+          body={body}
         />
       )
     case 'tile':

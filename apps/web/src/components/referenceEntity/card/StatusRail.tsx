@@ -40,7 +40,7 @@ const segment = (active: boolean, live: boolean): CSSProperties => ({
  * handler the whole group is ONE 44px button that steps to the next state;
  * without one it is a single solid stamp naming the state.
  */
-export function StatusTriState({
+function StatusTriState({
   status,
   onClick,
   subject,

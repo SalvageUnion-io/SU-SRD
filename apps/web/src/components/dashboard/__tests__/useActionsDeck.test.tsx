@@ -103,9 +103,8 @@ beforeAll(async () => {
       break
     }
   }
-  // A module whose visible action carries its own roll table. The catalog extent
-  // keeps roll tables (they ARE the content on an SRD index page), so the deck
-  // has to suppress them — their Show/Roll buttons can't nest in a clickable tile.
+  // A module whose visible action carries its own roll table: the deck's Token
+  // is its head alone, so the table's Show/Roll buttons never reach the row.
   for (const mod of SalvageUnionReference.Modules.all()) {
     if (!mod.id) continue
     const resolved = resolveModule(getEntitySlug(mod))
@@ -209,9 +208,10 @@ function timing(name: string): HTMLElement {
   return within(group).getByRole('button', { name })
 }
 
-/** The deck rows are head-extent `ReferenceEntityCard`s laid out as one grid.
- * Each row's cost pennant IS its action (ruleset §1): the one button on the
- * row, named "Resolve <action>". These are those pennants. */
+/** The deck rows are head-extent `ReferenceEntityCard`s, each drawn as a Token
+ * (the head adapter, N2), laid out as one grid. Each row's cost pennant IS its
+ * action (ruleset §1): the one button on the row, named "Resolve <action>".
+ * These are those pennants. */
 function deckCards(container: HTMLElement): HTMLElement[] {
   return [...container.querySelectorAll<HTMLElement>('.su-dash-deck-grid > li button')]
 }
@@ -254,7 +254,7 @@ describe('the Actions deck', () => {
     expect(deckCards(container).length).toBeGreaterThan(0)
   })
 
-  test('a catalog tile nests no control inside its own clickable card', () => {
+  test('a deck Token nests no control but its pennant', () => {
     const mod = tableModule as { id: string; actionName: string }
     expect(mod).toBeTruthy()
     const mech = mechFixture({
@@ -269,10 +269,12 @@ describe('the Actions deck', () => {
     const { container } = renderDeck(mech, store)
     const card = deckCards(container).find((el) => deckLabel(el) === mod.actionName)
     expect(card).toBeTruthy()
-    // The tile's roll table (Show toggle + Roll button) is suppressed: the
-    // pennant is the row's one control, and the table is one tap away, in the
-    // resolve panel.
-    expect(card?.closest('li')?.querySelectorAll('button, [role="button"]')).toHaveLength(1)
+    // The row is a Token, its head alone: no roll table (Show toggle + Roll
+    // button) on it, so the pennant is the row's one control, and the table is
+    // one tap away, in the resolve panel.
+    const li = card?.closest('li')
+    expect(li?.querySelector(':scope > .su-entity-token')?.contains(card as Element)).toBe(true)
+    expect(li?.querySelectorAll('button, [role="button"]')).toHaveLength(1)
     // …and the resolve panel DOES render it.
     fireEvent.click(card as Element)
     expect(screen.getByText(/Roll the Die/)).toBeTruthy()
