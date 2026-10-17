@@ -270,7 +270,8 @@
 }
 
 /* The box before a Token: paper until chosen, then the inverse plate. Square,
-   like every cut-out. */
+   like every cut-out. Chip-sized: `.su-hit-area` carries its 44px under a
+   coarse pointer (pointer-motion.css). */
 .su-searcher__mark {
   flex: 0 0 22px;
   height: 22px;
@@ -293,19 +294,6 @@
 .su-searcher__mark:focus-visible {
   outline: 2px solid var(--color-ink);
   outline-offset: 2px;
-}
-
-/* A 44px hit area under a coarse pointer, without growing the box. */
-@media (pointer: coarse) {
-  .su-searcher__mark {
-    position: relative;
-  }
-
-  .su-searcher__mark::after {
-    content: '';
-    position: absolute;
-    inset: -11px;
-  }
 }
 
 @media (min-width: 64rem) {

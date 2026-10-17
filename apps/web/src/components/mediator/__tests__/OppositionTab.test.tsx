@@ -243,8 +243,8 @@ describe('+ From the reference', () => {
     await renderTab([fallenRaider])
     const picker = await openPicker()
     expect((picker.getByLabelText('Draw from') as HTMLSelectElement).value).toBe('npcs')
-    // The Raider already on the field is counted on its card.
-    expect(picker.getByText('1 Added')).toBeTruthy()
+    // The Raider already on the field is counted in its box.
+    expect(picker.getByRole('button', { name: 'Add Raider' }).textContent).toBe('1')
 
     await click(picker.getByRole('button', { name: 'Add Trooper' }))
     expect(calls).toHaveLength(1)

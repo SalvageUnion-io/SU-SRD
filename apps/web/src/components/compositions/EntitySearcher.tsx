@@ -62,7 +62,7 @@ import { SearcherToolbar } from './EntitySearcherFilters'
 import { FocusPane } from './EntitySearcherFocus'
 import { SelectionRail, SelectionStatus } from './EntitySearcherRail'
 import type { BudgetConfig, EntityLike, FacetConfig, PoolEntity } from './entitySearcherTypes'
-import { useSearcherPool } from './useSearcherPool'
+import { TECH_LEVEL_ROW, useSearcherPool } from './useSearcherPool'
 
 type EntitySearcherProps = {
   /** Which reference collection to search. */
@@ -231,8 +231,8 @@ export function EntitySearcher({
     } else onToggle?.(ref)
   }
 
-  // ---- Toolbar ----
-  const techRow = facetRows.find((row) => row.label === TECH_ROW_LABEL) ?? null
+  // ---- Toolbar: Tech level beside the search when there is room ----
+  const techRow = facetRows.find((row) => row.label === TECH_LEVEL_ROW) ?? null
   const inline = wide ? techRow : null
   const folded = [...facetRows.filter((row) => row !== inline), ...(showRow ? [showRow] : [])]
   const toolbar = (
@@ -429,7 +429,7 @@ function SelectBox({
     return (
       <button
         type="button"
-        className="su-searcher__mark"
+        className="su-searcher__mark su-hit-area"
         data-on={on || undefined}
         aria-label={`Add ${name}`}
         onClick={onClick}
@@ -441,7 +441,7 @@ function SelectBox({
   return (
     <button
       type="button"
-      className="su-searcher__mark"
+      className="su-searcher__mark su-hit-area"
       data-on={on || undefined}
       {...(mode === 'single' ? { role: 'radio', 'aria-checked': on } : { 'aria-pressed': on })}
       aria-label={`Select ${name}`}
@@ -464,9 +464,6 @@ function SelectBox({
  * and whether something is always focused.
  */
 const WIDE_QUERY = '(min-width: 64rem)'
-
-/** The facet row that sits beside the search field when there is room. */
-const TECH_ROW_LABEL = 'Tech level'
 
 // Static properties only — every property that changes with the breakpoint
 // lives in the `.su-searcher*` classes (the split rule).
