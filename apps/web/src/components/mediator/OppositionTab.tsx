@@ -85,12 +85,19 @@ const GAUGE_GROUP = { border: 0, margin: 0, minWidth: 0, padding: 0 } satisfies 
 /** The gauge lights in the opposition's own tone, the one its Row's band wears. */
 const ADVERSARY_TONE: CSSVarStyle = { '--tone': color.adversary, '--tone-deep': color.adversary }
 
+// Wraps: where the panel is too narrow for all three side by side (a phone),
+// the gauge and the actions drop under the Row rather than overflowing it.
 const ROW = {
-  display: 'grid',
-  gridTemplateColumns: `minmax(0, 1fr) ${GAUGE_WIDTH} auto`,
+  display: 'flex',
+  flexWrap: 'wrap',
   alignItems: 'center',
   gap: space[8],
 } satisfies CSSProperties
+
+/** The Row's share: everything the gauge and actions leave, never under 14rem. */
+const ROW_ENTITY = { flex: '1 1 14rem', minWidth: 0 } satisfies CSSProperties
+
+const GAUGE_CELL = { ...GAUGE_GROUP, flex: `0 0 ${GAUGE_WIDTH}` } satisfies CSSProperties
 
 const DOWN = { textDecoration: 'line-through' } satisfies CSSProperties
 
@@ -98,7 +105,15 @@ const RESULT = { ...BODY, ...NUMBERS, padding: `${space[4]} ${space[2]} 0` } sat
 
 const RESULT_HEAD = { fontWeight: weight.bold } satisfies CSSProperties
 
-const ACTIONS = { display: 'flex', alignItems: 'center', gap: space[6] } satisfies CSSProperties
+const ACTIONS = {
+  display: 'flex',
+  flex: '0 1 auto',
+  marginLeft: 'auto',
+  flexWrap: 'wrap',
+  justifyContent: 'flex-end',
+  alignItems: 'center',
+  gap: space[6],
+} satisfies CSSProperties
 
 /** A row whose reference no longer resolves: its name, plainly. */
 const PLAIN = {
@@ -166,7 +181,7 @@ function NpcRow({
   return (
     <li>
       <div style={ROW}>
-        <div style={npc.down ? DOWN : undefined}>
+        <div style={npc.down ? { ...ROW_ENTITY, ...DOWN } : ROW_ENTITY}>
           {npc.entity === null ? (
             <div style={PLAIN}>{npc.name}</div>
           ) : (
@@ -188,7 +203,7 @@ function NpcRow({
         {npc.maxHp > 0 ? (
           // The gauge's slider is named by its stat alone ("HP"); the group
           // names whose it is, as every row has one.
-          <fieldset aria-label={`${npc.name} ${stat}`} style={GAUGE_GROUP}>
+          <fieldset aria-label={`${npc.name} ${stat}`} style={GAUGE_CELL}>
             <VitalGauge
               size="compact"
               label={stat}
@@ -199,9 +214,7 @@ function NpcRow({
               style={ADVERSARY_TONE}
             />
           </fieldset>
-        ) : (
-          <span />
-        )}
+        ) : null}
         <div style={ACTIONS}>
           <Button
             variant="primary"
