@@ -33,6 +33,7 @@ import {
 import { useEntityChoices } from '../shared/useEntityChoices'
 import { SheetItemLine } from './SheetItemLine'
 import { CardRemoveButton } from './SheetSection'
+import { UsedToggle } from './UsedToggle'
 
 /** An inventory item in Edit: the pill, its control row, then any details. */
 const ITEM_EDIT = {
@@ -183,15 +184,12 @@ export function PilotAbilityItem({
               Spend AP
             </Button>
           )}
-          <Button
-            variant="pencil"
+          <UsedToggle
             className="su-sheet-item__ctl"
+            used={used}
+            onToggle={onToggleUsed}
             aria-label={used ? `Recharge ${ability.name}` : `Mark ${ability.name} used`}
-            aria-pressed={used}
-            onClick={() => onToggleUsed(!used)}
-          >
-            {used ? 'Used' : 'Mark Used'}
-          </Button>
+          />
         </>
       }
     />

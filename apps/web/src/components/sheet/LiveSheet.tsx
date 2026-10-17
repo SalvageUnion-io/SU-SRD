@@ -139,7 +139,7 @@ const BAR_ANCHOR = {
   height: 0,
   position: 'sticky',
   top: 0,
-  zIndex: 40,
+  zIndex: tokens.layer.sticky,
 } satisfies CSSProperties
 
 /** The bar, over the page from its anchor. Its gutter (`.su-sheet-gutter`) widens at sm. */

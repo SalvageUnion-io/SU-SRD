@@ -30,6 +30,7 @@ import {
 } from '../../lib/wizard/crawlerFormState'
 import { withPreselection } from '../../lib/wizard/preselect'
 import { readWizardDraft, useWizardDraftSync, wizardDraftKey } from '../../lib/wizard/wizardDraft'
+import { slotPips } from '../atoms/pipRows'
 import { toast, tokens } from '../index'
 import { CrawlerStatsStep } from '../wizard/CrawlerStatsStep'
 import { CrawlerTypeSelectStep } from '../wizard/CrawlerTypeStep'
@@ -85,13 +86,6 @@ type CrawlerBuilderProps = {
   onOffRules?: () => void
   /** A crawler-type slug to start on (`?type=`), already checked by `preselectedCrawlerType`. */
   preselectType?: string
-}
-
-/** Slot pips for the tracker tab: ●○ (capped so the tab stays a tab). */
-function slotPips(used: number, max: number): string {
-  if (max <= 0 || max > 12) return ''
-  const filled = Math.max(0, Math.min(used, max))
-  return `${'●'.repeat(filled)}${'○'.repeat(max - filled)} `
 }
 
 /**

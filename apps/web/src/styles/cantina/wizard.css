@@ -166,18 +166,6 @@
   width: 100%;
 }
 
-/* Back / Cancel on the ink pill: paper ghosts. */
-.su-wiz-pill-ghost {
-  border-color: color-mix(in oklab, var(--color-paper) 40%, transparent);
-  color: var(--color-paper);
-}
-
-@media (hover: hover) {
-  .su-wiz-pill-ghost:hover {
-    background-color: color-mix(in oklab, var(--color-paper) 10%, transparent);
-  }
-}
-
 @media (min-width: 40rem) {
   .su-wiz-step-tab {
     display: grid;

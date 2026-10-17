@@ -5,33 +5,10 @@
  * colour below changes on hover or on press — so each keeps its RESTING value
  * here too, beside the state that overrides it. Loaded by `index.css`.
  *
- * The band is ink, so its controls are paper on ink: an outlined button
- * (Import, Export all, + New Game). The Showing toggle is the shared
- * `Segmented` on its ink ground.
+ * The band is ink, so its controls are paper on ink: the on-ink ghost
+ * Button (Import, Export all, + New Game: `surface="ink"`). The Showing toggle
+ * is the shared `Segmented` on its ink ground.
  */
-
-.su-shelves-band__btn {
-  background-color: transparent;
-  border-color: var(--color-paper);
-  color: var(--color-paper);
-}
-.su-shelves-band__btn:hover:not(:disabled) {
-  background-color: var(--color-paper-15);
-}
-
-/* The band's actions (board S1): the uppercase display face at the band's
-   Size, Compact, so they read as one row beside the Showing toggle. Geometry and type
-   only; the on-ink colours are above. A shelf's "+ New…" is an action chip
-   (Button's `mini` rung), as a Row's "⋯" is. */
-.su-shelves-band__btn {
-  font-family: var(--font-cond);
-  font-size: var(--text-caption);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-caps-tight);
-  min-height: var(--size-compact);
-  padding-inline: var(--space-14);
-  text-transform: uppercase;
-}
 
 /* The import result: its own line on the band above the title, never a flex
    item beside the button, so the button keeps its intrinsic width. */

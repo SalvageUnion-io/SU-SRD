@@ -333,6 +333,15 @@
   --size-compact: 32px;
   --size-full: 44px;
 
+  /* The stacking layers, lowest first (`layer` in tokens.ts): a sticky bar,
+     a page popover, an overlay (masthead, dialog, scrim, drawer, tooltip),
+     a menu above the masthead, and the skip link over everything. */
+  --z-sticky: 40;
+  --z-popover: 45;
+  --z-overlay: 50;
+  --z-menu: 60;
+  --z-skip: 100;
+
   /* The spacing rhythm, keyed by its own pixel value (`space[8]` in tokens.ts). */
   --space-0: 0px;
   --space-2: 2px;

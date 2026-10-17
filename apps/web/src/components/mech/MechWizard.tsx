@@ -16,6 +16,7 @@ import {
 } from '../../lib/wizard/mechFormState'
 import { withMechPreselection } from '../../lib/wizard/preselect'
 import { readWizardDraft, useWizardDraftSync, wizardDraftKey } from '../../lib/wizard/wizardDraft'
+import { slotPips } from '../atoms/pipRows'
 import { toast } from '../index'
 import '../../styles/cantina/wizard.css'
 import { GainScrapStep } from '../wizard/GainScrapStep'
@@ -80,13 +81,6 @@ type MechWizardProps = {
   preselectChassis?: string
   /** That chassis's pattern to prefill (`?pattern=`), already checked by `preselectedPattern`. */
   preselectPattern?: MechPattern
-}
-
-/** Slot pips for the tracker tab: ●●●○○ (capped so the tab stays a tab). */
-function slotPips(used: number, max: number): string {
-  if (max <= 0 || max > 12) return ''
-  const filled = Math.max(0, Math.min(used, max))
-  return `${'●'.repeat(filled)}${'○'.repeat(max - filled)} `
 }
 
 /**

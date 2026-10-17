@@ -1,6 +1,7 @@
 import type { CSSProperties, MouseEvent, ReactNode } from 'react'
 import { cn } from '../../../lib/cn'
 import { Badge } from '../../atoms/Badge'
+import { Checkbox } from '../../atoms/Checkbox'
 import { FOCUS_RING } from '../../atoms/interaction'
 import { RadioCard } from '../../containers/RadioCardGroup'
 import type { EntityMode } from '../types'
@@ -21,14 +22,6 @@ export function SelectedSeal({ word = 'Selected' }: { word?: string }) {
   )
 }
 
-/** The toggle's checkbox: the WCAG 2.2 minimum target, no shrinking in the head. */
-const CHECK = {
-  flex: 'none',
-  height: 'var(--space-24)',
-  margin: 0,
-  width: 'var(--space-24)',
-} satisfies CSSProperties
-
 /**
  * SELECT's control in `toggle` mode: a real `<input type="checkbox">` in the
  * head, named for what choosing does. It is the surface's one keyboard and
@@ -46,14 +39,12 @@ export function SelectCheck({
   accent: string
 }) {
   return (
-    <input
-      type="checkbox"
+    <Checkbox
       checked={mode.selected}
       onChange={mode.onSelect}
       onClick={(e: MouseEvent) => e.stopPropagation()}
       aria-label={label}
-      className={FOCUS_RING}
-      style={{ ...CHECK, accentColor: accent, cursor: 'pointer' }}
+      accent={accent}
     />
   )
 }

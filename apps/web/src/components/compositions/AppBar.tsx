@@ -1,6 +1,6 @@
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { Fragment } from 'react'
-import { borderWidth, radius, space } from '../../design/tokens'
+import { borderWidth, layer, radius, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { MARK_SRC } from '../../lib/documentHead'
 import type { BreadcrumbItem } from '../atoms/BreadcrumbTrail'
@@ -122,7 +122,7 @@ const BAR = {
   borderBottomWidth: borderWidth.entity,
   isolation: 'isolate',
   position: 'relative',
-  zIndex: 50,
+  zIndex: layer.overlay,
 } satisfies CSSProperties
 
 const BRAND = {

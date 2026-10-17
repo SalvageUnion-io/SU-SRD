@@ -20,7 +20,7 @@
 import type { CSSProperties } from 'react'
 import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
 import type { ReferenceEntityControl } from '../index'
-import { EmptyState, ReferenceEntityCard, Stack, Toggle } from '../index'
+import { EmptyState, ReferenceEntityCard, Stack, Toggle, ToggleGroup } from '../index'
 import type { DeckListModel } from './DeckList'
 
 const HEADING = {
@@ -33,15 +33,12 @@ const HEADING = {
   color: color.ink,
 } satisfies CSSProperties
 
+/** A row of toggles, wrapping (the bare fieldset is `ToggleGroup`'s). */
 const GROUP = {
   display: 'flex',
   flexWrap: 'wrap',
   alignItems: 'center',
   gap: space[6],
-  border: 0,
-  margin: 0,
-  padding: 0,
-  minInlineSize: 0,
 } satisfies CSSProperties
 
 const REACH = {
@@ -94,7 +91,7 @@ export function PhoneDeck({
       <h3 id="dash-phone-deck" style={HEADING}>
         Actions
       </h3>
-      <fieldset style={GROUP} aria-label="Engagement range">
+      <ToggleGroup style={GROUP} label="Engagement range">
         {view.rangeBands.map((band) => (
           <Toggle
             key={band}
@@ -106,16 +103,16 @@ export function PhoneDeck({
           </Toggle>
         ))}
         <span style={REACH}>{view.reachText}</span>
-      </fieldset>
-      <fieldset style={GROUP} aria-label="Filter actions by timing">
+      </ToggleGroup>
+      <ToggleGroup style={GROUP} label="Filter actions by timing">
         {view.tabs.map((t) => (
           <Toggle key={t} pressed={view.activeTab === t} onClick={() => view.onTab(t)}>
             {t}
           </Toggle>
         ))}
-      </fieldset>
+      </ToggleGroup>
       {view.sources.length > 1 && (
-        <fieldset style={GROUP} aria-label="Filter actions by source">
+        <ToggleGroup style={GROUP} label="Filter actions by source">
           <Toggle pressed={view.sourceFilter === null} onClick={() => view.onSourceFilter(null)}>
             All
           </Toggle>
@@ -130,7 +127,7 @@ export function PhoneDeck({
               {src.label}
             </Toggle>
           ))}
-        </fieldset>
+        </ToggleGroup>
       )}
       {view.rows.length === 0 ? (
         <EmptyState variant="quiet" body="No actions match this filter." />

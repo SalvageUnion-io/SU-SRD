@@ -66,3 +66,14 @@ export function trackSegmentState(
 export function segmentLit(state: TrackSegmentState): boolean {
   return state === 'on' || state === 'danger'
 }
+
+/**
+ * A slot count as a line of pips for a wizard's tracker tab: `●●●○○`, filled
+ * to `used` (clamped to 0…max), with a trailing space before the count beside
+ * it. Empty past 12 slots, or with none, so the tab stays a tab.
+ */
+export function slotPips(used: number, max: number): string {
+  if (max <= 0 || max > 12) return ''
+  const filled = Math.max(0, Math.min(used, max))
+  return `${'●'.repeat(filled)}${'○'.repeat(max - filled)} `
+}

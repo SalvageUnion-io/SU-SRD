@@ -5,13 +5,14 @@ import { useEntityStore } from '../../stores/entityStore'
 import { Button, Message, Stack, toast } from '../index'
 
 type ExportAllButtonProps = {
-  /** Extra classes for the button (the Shelves band's on-ink outline). */
-  className?: string
-  /** It sits on the ink band (Shelves, board S1): its failure line reads in paper. */
-  onInk?: boolean
+  /**
+   * The ground it sits on: `ink` on an ink band (Shelves, the Roster, board
+   * S1), where the button is the on-ink ghost and its failure line reads in paper.
+   */
+  ground?: 'paper' | 'ink'
 }
 
-export function ExportAllButton({ className, onInk = false }: ExportAllButtonProps = {}) {
+export function ExportAllButton({ ground = 'paper' }: ExportAllButtonProps = {}) {
   const exportAll = useServerAction(
     async () => {
       const bundle = await buildExportBundle(useEntityStore.getState())
@@ -31,14 +32,15 @@ export function ExportAllButton({ className, onInk = false }: ExportAllButtonPro
   return (
     <Stack gap={4}>
       <Button
+        variant={ground === 'ink' ? 'ghost' : 'default'}
+        surface={ground}
         size="compact"
         disabled={busy}
         onClick={() => void handleExportAll()}
-        className={className}
       >
         {busy ? 'Exporting…' : 'Export all'}
       </Button>
-      <Message tone="bad" ground={onInk ? 'ink' : 'paper'}>
+      <Message tone="bad" ground={ground}>
         {error}
       </Message>
     </Stack>

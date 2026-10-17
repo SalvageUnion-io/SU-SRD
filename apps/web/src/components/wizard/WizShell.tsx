@@ -370,7 +370,7 @@ const footerPillStyle = {
   marginTop: tokens.space[24],
   pointerEvents: 'none',
   position: 'sticky',
-  zIndex: 40,
+  zIndex: tokens.layer.sticky,
 } satisfies CSSProperties
 
 /**
@@ -428,15 +428,15 @@ export function WizShell({
       {/* Ghost nav row on phones; dissolves into the pill row ≥ sm. */}
       <div className="su-wiz-pill-nav" style={pillNavStyle}>
         {onBack && (
-          <Button variant="ghost" onClick={onBack} disabled={busy} className="su-wiz-pill-ghost">
+          <Button variant="ghost" surface="ink" onClick={onBack} disabled={busy}>
             Back
           </Button>
         )}
         <Button
           variant="ghost"
           onClick={() => (confirmCancel ? setConfirmingCancel(true) : onCancel())}
+          surface="ink"
           disabled={busy}
-          className="su-wiz-pill-ghost"
         >
           Cancel
         </Button>

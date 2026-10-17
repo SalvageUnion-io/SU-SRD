@@ -9,12 +9,12 @@
 import type { CSSProperties } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getEntitySlug } from 'salvageunion-reference'
-import { borderWidth, color, fontSize, radius, space, weight } from '../../design/tokens'
+import { color, fontSize, layer, space, weight } from '../../design/tokens'
 import { itemHref, schemaHref } from '../../lib/entityHref'
 import { HERO_SEARCH_PLACEHOLDER } from '../../lib/heroSearch'
-import { LIFT_SHADOW } from '../../lib/liftShadow'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import { useSearchIndex } from '../../lib/useSearchIndex'
+import { POPUP_SURFACE } from '../atoms/popupSurface'
 import { HeroSearchForm } from '../HeroSearch'
 import type { SearchComboboxResult } from '../index'
 import {
@@ -45,18 +45,13 @@ const RESULTS = { padding: space[8] } satisfies CSSProperties
 
 /** The dropdown, hung under the field: full width in the hero, 20rem in the bar. */
 const LISTBOX = {
-  backgroundColor: color.paper,
-  borderColor: color.wkFaint,
-  borderRadius: radius.panel,
-  borderStyle: 'solid',
-  borderWidth: borderWidth.hairline,
-  boxShadow: LIFT_SHADOW,
+  ...POPUP_SURFACE.paper,
   marginTop: space[4],
   maxHeight: '24rem',
   overflowY: 'auto',
   position: 'absolute',
   top: '100%',
-  zIndex: 50,
+  zIndex: layer.overlay,
 } satisfies CSSProperties
 
 const LISTBOX_HERO = { ...LISTBOX, left: 0, width: '100%' } satisfies CSSProperties

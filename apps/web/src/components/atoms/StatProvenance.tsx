@@ -3,8 +3,8 @@ import { color, fontSize, space, weight } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { PopoverPanel } from '../containers/PopoverPanel'
 import { capsLabel } from './capsLabel'
-import { INK_POPUP } from './inkPopup'
 import { FOCUS_RING } from './interaction'
+import { INK_POPUP } from './popupSurface'
 
 /**
  * One line of a derived value's provenance.

@@ -76,8 +76,8 @@ const GROW = { flex: '1 1 12rem', minWidth: 0 } satisfies CSSProperties
 const HINT = { textAlign: 'left' } satisfies CSSProperties
 
 type NewGameControlProps = {
-  /** Extra classes for the trigger (the Shelves band's on-ink outline). */
-  className?: string
+  /** The ground it sits on: `ink` on Shelves' band, where it is the on-ink ghost. */
+  ground?: 'paper' | 'ink'
 }
 
 type NewGameDialogProps = {
@@ -191,11 +191,16 @@ export function NewGameDialog(props: NewGameDialogProps) {
   return <ConnectedNewGameDialog {...props} />
 }
 
-function ConnectedNewGameControl({ className }: NewGameControlProps) {
+function ConnectedNewGameControl({ ground = 'paper' }: NewGameControlProps) {
   const [open, setOpen] = useState(false)
   return (
     <>
-      <Button variant="default" size="compact" onClick={() => setOpen(true)} className={className}>
+      <Button
+        variant={ground === 'ink' ? 'ghost' : 'default'}
+        surface={ground}
+        size="compact"
+        onClick={() => setOpen(true)}
+      >
         + New Game
       </Button>
       <ConnectedNewGameDialog open={open} onOpenChange={setOpen} />

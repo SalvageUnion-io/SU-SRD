@@ -6,6 +6,7 @@ import {
   color,
   font,
   fontSize,
+  layer,
   radius,
   size,
   space,
@@ -54,6 +55,7 @@ const GROUPS = {
   text: fontSize,
   texture,
   tracking,
+  z: layer,
 } as const satisfies Record<string, Record<string, string | number>>
 
 /** Longest first, so `--font-weight-bold` is never read as font `weight-bold`. */

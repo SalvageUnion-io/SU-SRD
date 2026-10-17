@@ -53,6 +53,7 @@ export { CatalogTile } from './atoms/CatalogTile'
 // ChapterBand — the page title notched into a band in the chapter's colour
 export { ChapterBand } from './atoms/ChapterBand'
 export { ChapterBandTrail } from './atoms/ChapterBandTrail'
+export { Checkbox } from './atoms/Checkbox'
 // CloseButton — the one ×: every dialog, drawer and sheet closes on it.
 export { CloseButton } from './atoms/CloseButton'
 // Conditions — the entity-condition chip row. Public because the Cantina's sheet
@@ -102,7 +103,7 @@ export type { StatState, StatTone } from './atoms/Stat'
 export { Stat } from './atoms/Stat'
 export { StatColumn } from './atoms/StatColumn'
 export type { ProvenanceLine } from './atoms/StatProvenance'
-export { Tab, TabList, TabPanel, Tabs, Toggle } from './atoms/Tabs'
+export { Tab, TabList, TabPanel, Tabs, Toggle, ToggleGroup } from './atoms/Tabs'
 // Base typography
 export { Text } from './atoms/Text'
 // USER_MADE_HATCH — the hatch a user-made page wears on its colour bands

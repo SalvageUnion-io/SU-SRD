@@ -133,9 +133,6 @@ const ROW = { alignItems: 'start' } satisfies CSSProperties
 
 const NEW_LINK = { textDecoration: 'none' } satisfies CSSProperties
 
-/** The on-ink outline the band's buttons wear (`styles/shelves.css`). */
-const ON_INK_BUTTON = 'su-shelves-band__btn'
-
 // ---------------------------------------------------------------------------
 // Data: the server's facts, read only when there is a server to ask
 // ---------------------------------------------------------------------------
@@ -400,11 +397,9 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   </SegmentedOption>
                 ))}
               </Segmented>
-              {canWrite && (
-                <ImportButton className={ON_INK_BUTTON} onInk onResult={setImportResult} />
-              )}
-              <ExportAllButton className={ON_INK_BUTTON} onInk />
-              <NewGameControl className={ON_INK_BUTTON} />
+              {canWrite && <ImportButton ground="ink" onResult={setImportResult} />}
+              <ExportAllButton ground="ink" />
+              <NewGameControl ground="ink" />
             </div>
           }
         >

@@ -26,7 +26,13 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { ReferenceEntityControl } from '../index'
-import { CHAPTER_BAND_COLOR, ControlButtons, ReferenceEntityCard, Toggle } from '../index'
+import {
+  CHAPTER_BAND_COLOR,
+  ControlButtons,
+  ReferenceEntityCard,
+  Toggle,
+  ToggleGroup,
+} from '../index'
 import { DashboardRollTable } from './DashboardRollTable'
 import { recordRoll } from './dashboardRolls.model'
 import { SrdExplorer } from './SrdExplorer'
@@ -252,9 +258,6 @@ const ENTITY_COLUMN = {
 
 const PICKER = { padding: '8px 12px 0', flex: '0 0 auto' } satisfies CSSProperties
 
-/** A bare fieldset: the group, without the browser's frame around it. */
-const GROUP = { border: 0, margin: 0, padding: 0, minInlineSize: 0 } satisfies CSSProperties
-
 /**
  * The Reference tab's choice of entity, as a plain row of toggle buttons. Each
  * is a button with `aria-pressed`, not a tab: it filters one panel, and the
@@ -272,13 +275,13 @@ export function DisplayPicker({
 }) {
   return (
     <div style={PICKER}>
-      <fieldset className="su-dash-deck-tabs" style={GROUP} aria-label="Reference">
+      <ToggleGroup className="su-dash-deck-tabs" label="Reference">
         {options.map((o) => (
           <Toggle key={o.focus} pressed={focus === o.focus} onClick={() => onFocus(o.focus)}>
             {o.label}
           </Toggle>
         ))}
-      </fieldset>
+      </ToggleGroup>
     </div>
   )
 }

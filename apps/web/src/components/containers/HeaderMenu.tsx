@@ -7,6 +7,7 @@ import {
   color,
   font,
   fontSize,
+  layer,
   radius,
   space,
   tracking,
@@ -16,6 +17,7 @@ import { cn } from '../../lib/cn'
 import { buttonVariants } from '../atoms/buttonVariants'
 import { Eyebrow } from '../atoms/Eyebrow'
 import { FOCUS_RING } from '../atoms/interaction'
+import { POPUP_SURFACE } from '../atoms/popupSurface'
 
 /**
  * HeaderMenu — a dropdown menu for the masthead's action slot (`AppBar`'s
@@ -125,19 +127,13 @@ const OVERFLOW_TRIGGER_CLASS = cn(
 
 const POSITIONER = {
   // Above the masthead (z-50) and the sticky sheet bars beneath it.
-  zIndex: 60,
+  zIndex: layer.menu,
 } satisfies CSSProperties
 
+// The paper popup surface every floating panel shares (`POPUP_SURFACE`).
 const POPUP = {
-  backgroundColor: color.paper,
-  borderColor: color.ink,
-  borderRadius: radius.card,
-  borderStyle: 'solid',
-  // Flat paper on an ink hairline, like every other piece of chrome (ruleset
-  // §3.5): no drop shadow, the rule alone lifts it off the page.
-  borderWidth: borderWidth.hairline,
+  ...POPUP_SURFACE.paper,
   boxSizing: 'border-box',
-  color: color.ink,
   // Long game lists scroll inside the popup rather than off the screen.
   maxHeight: 'var(--available-height)',
   maxWidth: 'min(320px, var(--available-width))',

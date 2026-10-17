@@ -2,8 +2,8 @@ import { Drawer } from '@base-ui/react/drawer'
 import { Search } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
-import { color, font, fontSize, radius, space, weight } from '../design/tokens'
-import { LIFT_SHADOW } from '../lib/liftShadow'
+import { color, font, fontSize, layer, radius, space, weight } from '../design/tokens'
+import { POPUP_SURFACE } from './atoms/popupSurface'
 import { buttonVariants, CloseButton, cn } from './index'
 
 type MobileSearchDialogProps = {
@@ -21,13 +21,12 @@ const VIEWPORT = {
   flexDirection: 'column',
   inset: 0,
   position: 'fixed',
-  zIndex: 50,
+  zIndex: layer.overlay,
 } satisfies CSSProperties
 
 /** The sheet: the title row over the hosted search. `.su-drawer` slides it. */
 const POPUP = {
-  backgroundColor: color.paper,
-  boxShadow: LIFT_SHADOW,
+  ...POPUP_SURFACE.paper,
   display: 'flex',
   flexDirection: 'column',
   gap: space[12],

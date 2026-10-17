@@ -183,6 +183,22 @@
   border-color: var(--color-ink-50);
 }
 
+/*
+ * INK × ghost — the on-ink ghost: a paper outline with paper text on an ink
+ * band or plate (Shelves' and the Roster's band, a wizard's ink pill), a
+ * faint paper wash under the pointer. Two classes, like the instrument
+ * ghost, so it beats plain `.su-btn--ghost` without relying on source order.
+ */
+.su-btn--on-ink.su-btn--ghost {
+  background-color: transparent;
+  border-color: var(--color-paper);
+  color: var(--color-paper);
+}
+
+.su-btn--on-ink.su-btn--ghost:hover:not(:disabled) {
+  background-color: var(--color-paper-15);
+}
+
 /* ── The Sizes (styles/sizing.ts). Each Size's height is its token
       (`--size-*`, theme.css), so a button is exactly as tall as the chip,
       field or switch beside it at the same Size; padding is inline only. The

@@ -3,7 +3,7 @@ import type { CSSProperties, ElementType, ReactNode } from 'react'
 import type { RefEntity, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 import { foregroundOn } from '../../design/contrast'
-import { borderWidth, color, space } from '../../design/tokens'
+import { borderWidth, color, layer, space } from '../../design/tokens'
 import { ChapterBand } from '../atoms/ChapterBand'
 import { CloseButton } from '../atoms/CloseButton'
 import type { ChapterTone } from '../atoms/chapterBandColor'
@@ -56,7 +56,7 @@ const closeStyle = {
   position: 'absolute',
   top: `-${space[8]}`,
   right: `-${space[8]}`,
-  zIndex: 60,
+  zIndex: layer.menu,
   borderWidth: '2px',
   borderColor: color.paper,
   color: color.paper,

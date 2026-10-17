@@ -43,10 +43,11 @@ function summaryText(summary: MergeSummary): string {
 const IMPORT_PLAYER_ERRORS = [ImportRefused]
 
 type ImportButtonProps = {
-  /** Extra classes for the button (the Shelves band's on-ink outline). */
-  className?: string
-  /** It sits on the ink band (Shelves, board S1): its summary reads in paper. */
-  onInk?: boolean
+  /**
+   * The ground it sits on: `ink` on an ink band (Shelves, the Roster, board
+   * S1), where the button is the on-ink ghost and its result line reads in paper.
+   */
+  ground?: 'paper' | 'ink'
   /**
    * Where the result goes. Given, the button reports its result line (or null
    * to clear it) to the caller and renders none of its own, so the caller can
@@ -55,7 +56,8 @@ type ImportButtonProps = {
   onResult?: (message: string | null) => void
 }
 
-export function ImportButton({ className, onInk = false, onResult }: ImportButtonProps = {}) {
+export function ImportButton({ ground = 'paper', onResult }: ImportButtonProps = {}) {
+  const onInk = ground === 'ink'
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
   const [summary, setSummary] = useState<MergeSummary | null>(null)
@@ -107,7 +109,13 @@ export function ImportButton({ className, onInk = false, onResult }: ImportButto
 
   return (
     <Stack gap={4}>
-      <Button size="compact" disabled={busy} onClick={handleClick} className={className}>
+      <Button
+        variant={onInk ? 'ghost' : 'default'}
+        surface={ground}
+        size="compact"
+        disabled={busy}
+        onClick={handleClick}
+      >
         {busy ? 'Importing…' : 'Import'}
       </Button>
       {/* Hidden file input */}

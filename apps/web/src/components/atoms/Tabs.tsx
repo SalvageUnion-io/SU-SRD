@@ -142,6 +142,38 @@ export function Toggle({
   )
 }
 
+/** A bare fieldset: the group, without the browser's frame around it. */
+const TOGGLE_GROUP = { border: 0, margin: 0, minInlineSize: 0, padding: 0 } satisfies CSSProperties
+
+/**
+ * A row of `Toggle`s that answer one question (a deck's timing filter, its
+ * engagement range, the Dashboard's reference picker): Segmented's shell, a
+ * `fieldset` named by a visually hidden `legend`, so a screen reader hears the
+ * group's name before its options — without Segmented's joined frame, since
+ * each Toggle wears the Tab's own plate.
+ */
+export function ToggleGroup({
+  label,
+  children,
+  className,
+  style,
+}: {
+  /** The group's accessible name ("Filter actions by timing"). */
+  label: string
+  /** The `Toggle`s, and anything that rides the row with them (a reach line). */
+  children: ReactNode
+  className?: string
+  /** Geometry over the bare fieldset (a row's flex and gap); never a colour. */
+  style?: CSSProperties
+}) {
+  return (
+    <fieldset className={className} style={style ? { ...TOGGLE_GROUP, ...style } : TOGGLE_GROUP}>
+      <legend className="su-sr-only">{label}</legend>
+      {children}
+    </fieldset>
+  )
+}
+
 export function TabPanel({
   value,
   children,

@@ -14,7 +14,7 @@
 import type { CSSProperties } from 'react'
 import { fontSize, radius, space } from '../../design/tokens'
 import type { ReferenceCardEntity } from '../index'
-import { Badge, EmptyState, ReferenceEntityCard, Toggle } from '../index'
+import { Badge, EmptyState, ReferenceEntityCard, Toggle, ToggleGroup } from '../index'
 
 /**
  * A render-ready action card. The action ENTITY drives a header-only
@@ -58,9 +58,6 @@ export type DeckListModel =
       onActivate: (key: string) => void
     }
 
-/** A bare fieldset: the group, without the browser's frame around it. */
-const GROUP = { border: 0, margin: 0, padding: 0, minInlineSize: 0 } satisfies CSSProperties
-
 /** A source toggle carries its stamp before its label. */
 const SOURCE = {
   alignItems: 'center',
@@ -88,16 +85,16 @@ export function DeckList({ view }: { view: DeckListModel }) {
   return (
     <div className="su-dash-display-scroll">
       <div className="su-dash-deck-controls-bar">
-        <fieldset className="su-dash-deck-tabs" style={GROUP} aria-label="Filter actions by timing">
+        <ToggleGroup className="su-dash-deck-tabs" label="Filter actions by timing">
           {view.tabs.map((t) => (
             <Toggle key={t} pressed={view.activeTab === t} onClick={() => view.onTab(t)}>
               {t}
             </Toggle>
           ))}
-        </fieldset>
+        </ToggleGroup>
 
         <div className="su-dash-deck-toolrow">
-          <fieldset className="su-dash-deck-range" style={GROUP} aria-label="Engagement Range">
+          <ToggleGroup className="su-dash-deck-range" label="Engagement Range">
             {view.rangeBands.map((band) => (
               <Toggle
                 key={band}
@@ -110,15 +107,11 @@ export function DeckList({ view }: { view: DeckListModel }) {
               </Toggle>
             ))}
             <span className="su-dash-deck-reach">{view.reachText}</span>
-          </fieldset>
+          </ToggleGroup>
         </div>
 
         {view.sources.length > 1 && (
-          <fieldset
-            className="su-dash-deck-sources"
-            style={GROUP}
-            aria-label="Filter actions by source"
-          >
+          <ToggleGroup className="su-dash-deck-sources" label="Filter actions by source">
             <Toggle pressed={view.sourceFilter === null} onClick={() => view.onSourceFilter(null)}>
               All
             </Toggle>
@@ -138,7 +131,7 @@ export function DeckList({ view }: { view: DeckListModel }) {
                 {src.label}
               </Toggle>
             ))}
-          </fieldset>
+          </ToggleGroup>
         )}
       </div>
 

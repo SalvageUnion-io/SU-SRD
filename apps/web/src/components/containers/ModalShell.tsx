@@ -1,7 +1,7 @@
 import { AlertDialog } from '@base-ui/react/alert-dialog'
 import { Dialog } from '@base-ui/react/dialog'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
-import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
+import { color, font, fontSize, layer, space, tracking, weight } from '../../design/tokens'
 import { CloseButton } from '../atoms/CloseButton'
 import { useEntitySurface } from '../entity/entitySurfaceContext'
 import { paintFor } from '../entity/parts/paint'
@@ -84,7 +84,7 @@ const CONTAINED_BACKDROP = { position: 'absolute' } satisfies CSSProperties
 const CONTAINED_POPUP = {
   position: 'absolute',
   inset: 0,
-  zIndex: 50,
+  zIndex: layer.overlay,
   outline: 'none',
 } satisfies CSSProperties
 
@@ -92,7 +92,7 @@ const CONTAINED_POPUP = {
 const POPUP = {
   position: 'fixed',
   inset: 0,
-  zIndex: 50,
+  zIndex: layer.overlay,
   height: 'fit-content',
   maxHeight: 'calc(100vh - 4rem)',
   width: '100%',
@@ -120,7 +120,7 @@ const SUBTITLE = {
 const FULLSCREEN_POPUP = {
   position: 'fixed',
   inset: 0,
-  zIndex: 50,
+  zIndex: layer.overlay,
   overflowY: 'auto',
   outline: 'none',
 } satisfies CSSProperties
