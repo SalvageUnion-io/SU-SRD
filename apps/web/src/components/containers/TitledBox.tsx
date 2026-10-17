@@ -13,6 +13,8 @@ type TitledBoxProps = Omit<BoxProps, 'head' | 'frameColor'> & {
   titleContent?: ReactNode
   /** The title's element (`h1` where the box is the screen's subject). */
   titleAs?: ElementType
+  /** A step's number: an ink chip butted against the cut-out, at its left. */
+  number?: string
   /** The band's tone token (`--color-<tone>`), or `ink` (the default). */
   tone?: string
   /** A paint already resolved (a surface's `--tone`), in place of `tone`'s. */
@@ -38,6 +40,7 @@ export function TitledBox({
   title,
   titleContent,
   titleAs,
+  number,
   tone = 'ink',
   paint: paintProp,
   chips,
@@ -56,6 +59,8 @@ export function TitledBox({
           title={title}
           titleContent={titleContent}
           titleAs={titleAs}
+          tier={number}
+          tierChip
           paint={paint}
           chips={chips}
           controls={controls}

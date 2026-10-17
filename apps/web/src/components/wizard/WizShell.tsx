@@ -1,7 +1,8 @@
 import type { SheetKind } from 'cantina-domain/entityKinds'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
-import { Button, ChapterBand, ConfirmDialog, tokens } from '../index'
+import type { Paint } from '../entity/parts/paint'
+import { Button, ChapterBand, ConfirmDialog, TitledBox, tokens } from '../index'
 import '../../styles/cantina/wizard.css'
 
 /** Sheet tone context — picks the `.su-sheet--{kind}` poster theming. */
@@ -325,43 +326,16 @@ const mainStyle = {
 
 const fillStyle = { flex: '1 1 0%', minHeight: 0 } satisfies CSSProperties
 
-/** Its left padding — the number tab's gutter — opens at sm (`.su-wiz-step-card`). */
-const stepCardStyle = {
-  borderRadius: tokens.radius.card,
-  paddingBottom: tokens.space[24],
-  paddingRight: tokens.space[20],
-  paddingTop: tokens.space[20],
-  position: 'relative',
-} satisfies CSSProperties satisfies CSSProperties
+/** The step's band: the sheet's own tone (`--tone`); its title on the paper tab. */
+const STEP_PAINT = {
+  background: 'var(--tone)',
+  color: 'var(--color-ink)',
+  ink: false,
+  nameOnPaper: false,
+} satisfies Paint
 
-/** Shown from sm (`.su-wiz-step-tab`). */
-const stepTabStyle = {
-  backgroundColor: tokens.color.ink,
-  borderRadius: tokens.radius.badge,
-  color: tokens.color.paper,
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.hero,
-  fontWeight: tokens.weight.extrabold,
-  height: tokens.space[64],
-  left: `-${tokens.space[20]}`,
-  lineHeight: 1,
-  placeItems: 'center',
-  position: 'absolute',
-  top: tokens.space[24],
-  width: '3.5rem',
-} satisfies CSSProperties satisfies CSSProperties
-
-const stepCardTitleStyle = {
-  color: 'currentcolor',
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.display,
-  fontWeight: tokens.weight.bold,
-  lineHeight: 1.05,
-  margin: 0,
-  textTransform: 'uppercase',
-} satisfies CSSProperties
-
-const stepCardBodyStyle = { marginTop: tokens.space[16] } satisfies CSSProperties
+/** The step's paper body, a plain block (not the box's flex column): 20px in. */
+const stepBodyStyle = { padding: tokens.space[20] } satisfies CSSProperties
 
 const footerPillStyle = {
   bottom: tokens.space[16],
@@ -377,7 +351,7 @@ const footerPillStyle = {
  * Shared wizard skeleton, a poster sibling: the `.su-sheet--{kind}` tone context
  * on the `var(--ground)` page, a tone band banner up top, the manual's
  * connector-pipe stepper rail (196px) and a flex-1 main pane holding the
- * tinted step card, with a floating ink action pill (ghost Back/Cancel +
+ * step's `TitledBox` (its number chip on the head), with a floating ink action pill (ghost Back/Cancel +
  * primary CTA + tracker tabs + gate text).
  * The shell is layout-only — all wizard state lives in the caller.
  *
@@ -502,42 +476,29 @@ export function WizShell({
 
         {/* (b) flex-1 main pane — always owns the step heading */}
         <main className="su-wiz-main" style={mainStyle}>
-          {/* Tinted step card: tone-card fill, flush ink number tab, condensed
-              step head in the card ink. */}
+          {/* The step: a `TitledBox` in the sheet's tone, its number an ink
+              chip butted against the cut-out title, the step on its paper. */}
           {/* The sticky footer overlaps content when pinned, so the frame
               reserves scroll room beneath it. */}
           <div className="su-wiz-step-frame" style={{ ...fillStyle, paddingBottom: '6rem' }}>
-            <article
-              className="su-wiz-step-card"
-              style={{
-                ...stepCardStyle,
-                background: 'var(--tone-card, var(--tone))',
-                // Card ink, ONE rule for all three sheets: every step card is
-                // a light tint derived from its page tone, so all of them
-                // take dark ink (6.8–9.7:1). Content sitting directly on the
-                // card — the step head included — inherits it.
-                color: 'var(--tone-card-ink, var(--color-ink))',
-              }}
-            >
-              <span aria-hidden="true" className="su-wiz-step-tab" style={stepTabStyle}>
-                {active + 1}
-              </span>
-              <header>
-                {/* The title INHERITS `--tone-card-ink` from the article
-                      (`currentcolor`) instead of hardcoding paper: on these
-                      light tints a white title measures 1.54:1 on the pilot
-                      fill and 1.91 / 2.18 on mech and crawler — invisible.
-                      Inheriting keeps the title and the body copy on the same
-                      ink rule, so a future dark card flips both together. */}
-                <h1 style={stepCardTitleStyle}>
+            <TitledBox
+              as="article"
+              title={title}
+              titleAs="h1"
+              titleContent={
+                <>
                   <span className="su-sr-only">
                     Step {active + 1} of {steps.length} ·{' '}
                   </span>
                   {title}
-                </h1>
-              </header>
-              <div style={stepCardBodyStyle}>{children}</div>
-            </article>
+                </>
+              }
+              number={String(active + 1)}
+              paint={STEP_PAINT}
+              body="flush"
+            >
+              <div style={stepBodyStyle}>{children}</div>
+            </TitledBox>
           </div>
 
           {/* Footer — floats sticky at the bottom-right of the viewport as the

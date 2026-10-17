@@ -41,6 +41,11 @@ export type HeadProps = {
   paint: Paint
   /** An ability's tier numeral, at the left. */
   tier?: string
+  /**
+   * Draw the tier as a step's number chip: paper on an ink plate, butted
+   * against the cut-out (`1 | FILL OUT YOUR STATS`), as a guide step's slab.
+   */
+  tierChip?: boolean
   /** The entity's chip group (`Chips`, E17): right of the name, or under it. */
   chips?: ReactNode
   /** A one-line hint, after the title. */
@@ -85,6 +90,7 @@ export function Head({
   titleAs: TitleTag = 'span',
   paint,
   tier,
+  tierChip = false,
   chips,
   hint,
   pennant,
@@ -97,7 +103,11 @@ export function Head({
   const cut = notch && (!chips || chipsBeside)
   const headingRef = useRef<HTMLDivElement>(null)
   useChipsFit(headingRef, cut && !!chips)
-  const tierNode = tier && <span className="su-entity-row__tier">{tier}</span>
+  const tierNode = tier && (
+    <span className={cn('su-entity-row__tier', tierChip && 'su-entity-row__tier--chip')}>
+      {tier}
+    </span>
+  )
   const titleNode = (
     <TitleTag
       className="su-entity-row__title"

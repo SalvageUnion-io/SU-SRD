@@ -26,7 +26,7 @@ const ON_PAPER: Record<string, readonly string[]> = {
   'mech/MechChassisStep.tsx': ['CUSTOM_BODY'],
   // The Scrap Pool hint sits in a `TitledBox`'s paper body.
   'crawler/CrawlerIdentityStep.tsx': ['SCRAP_HINT'],
-  // The rule's citation sits in its `TitledBox`'s paper body.
+  // The rule's citation sits in its `Box`'s paper body.
   'wizard/RuleBrief.tsx': ['citeStyle'],
 }
 

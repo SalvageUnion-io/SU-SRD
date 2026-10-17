@@ -1,7 +1,6 @@
 /**
- * RuleBrief render tests: the "THE RULE" poster
- * box heading every wizard step — THE RULE on the cut-out, rule text, and the
- * citation under it, all composed through Box.
+ * RuleBrief render tests: the untitled rule box opening every wizard step —
+ * rule text and the citation under it, composed through Box.
  */
 
 import { describe, expect, test } from 'bun:test'
@@ -9,14 +8,14 @@ import { render, screen } from '@testing-library/react'
 import { RuleBrief } from '../RuleBrief'
 
 describe('RuleBrief', () => {
-  test('renders the THE RULE stamp, the rule text, and the citation footer', () => {
+  test('renders the rule text and the citation footer, with no title of its own', () => {
     render(
       <RuleBrief
         rule="Choose two pieces of Tech 1 Pilot Equipment."
         cite={{ source: 'Salvage Union Workshop Manual', page: [18, 19] }}
       />
     )
-    expect(screen.getByText('The Rule')).toBeTruthy()
+    expect(screen.queryByText('The Rule')).toBeNull()
     expect(screen.getByText('Choose two pieces of Tech 1 Pilot Equipment.')).toBeTruthy()
     expect(screen.getByText('Workshop Manual · pp.18–19')).toBeTruthy()
   })

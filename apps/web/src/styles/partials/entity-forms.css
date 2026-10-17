@@ -189,6 +189,18 @@
   margin-bottom: var(--space-2);
 }
 
+/* A step's number (`TitledBox`'s `number`): the tier as an ink chip, its
+   numeral in paper, as tall as the cut-out and butted against it, so the two
+   read as one two-cell head (`1 | FILL OUT YOUR STATS`), a guide step's slab. */
+.su-entity-row__head[data-notch] .su-entity-row__line > .su-entity-row__tier--chip {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  display: block;
+  /* Less the line's gap and the cut-out's own 2px pull to the left. */
+  margin: 0 calc(-1 * var(--space-6)) 0 calc(-1 * var(--space-2));
+  padding: var(--space-4) var(--space-8) var(--space-2);
+}
+
 .su-entity-row__notch {
   align-items: baseline;
   background-color: var(--color-paper);
