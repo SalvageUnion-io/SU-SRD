@@ -129,14 +129,6 @@ export type ReferenceEntityCardProps = {
   selectionSeal?: string
   /** A rust "Suggested" stamp leading the sub-header — a recommended pick. */
   suggested?: boolean
-  /** MULTI-SELECT: the chosen quantity. With `onCountChange` present the card
-   * renders a "Chosen" seal + `[− n +]` `CountStepper` overlay (mutually
-   * exclusive with the single-select `selectionSeal`), and `count >= 1` reads as
-   * selected (ink ring) unless `selected` is set explicitly. */
-  count?: number
-  /** MULTI-SELECT: emit the next chosen quantity (already clamped by the caller).
-   * Its presence turns the card into a duplicate-allowed multi-select cell. */
-  onCountChange?: (next: number) => void
   /** When off in a picker: dim + desaturate (opacity-50 saturate-50). */
   selectable?: boolean
   /** Whole-card click → role=button + hover-enlarge + focus ring. */

@@ -3,7 +3,7 @@
  *
  * These were four independent `absolute right-{0,2}` nodes at z-30, all pinned
  * to the same coordinate: a card carrying two of them (controls + a condition
- * status, or a multi-select stepper + controls) painted them ON TOP of one
+ * status) painted them ON TOP of one
  * another. The regression is invisible to a "did it render" assertion — both
  * nodes are in the DOM either way — so these tests assert the LAYOUT
  * relationship instead: a common flex-row parent, and no stray absolute

@@ -225,7 +225,6 @@ function ChoiceOption({
           subject={label}
           selected={chosen}
           selectionSeal="Chosen"
-          multiSelect={undefined}
         />
         <div style={frame}>
           <div style={head}>{label}</div>

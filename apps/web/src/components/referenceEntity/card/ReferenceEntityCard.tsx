@@ -225,11 +225,9 @@ function ReferenceEntityCardInner({
   status,
   onStatusClick,
   disabled,
-  selected: selectedProp,
+  selected,
   selectionSeal,
   suggested,
-  count,
-  onCountChange,
   selectable,
   onCardClick,
   cardClickable,
@@ -255,12 +253,6 @@ function ReferenceEntityCardInner({
   const onPage = presentation === 'page' && depthProp === 0
   const chipSize = presentation === 'page' && !onPage ? 'full' : 'compact'
   const sectionAs = sectionHeadingLevel(onPage ? 'h1' : titleAs)
-
-  // MULTI-SELECT: a card driven by `onCountChange` reads as selected whenever its
-  // chosen quantity is ≥ 1, unless `selected` is set explicitly.
-  const countValue = count ?? 0
-  const isMultiSelect = !!onCountChange
-  const selected = selectedProp ?? (isMultiSelect ? countValue >= 1 : undefined)
 
   // `SalvageUnionReference.*.all()` entities carry a runtime `schemaName` the
   // static `RefEntity` union omits: the display system's boundary cast.
@@ -516,15 +508,6 @@ function ReferenceEntityCardInner({
       subject={entityName}
       selected={selected}
       selectionSeal={selectionSeal}
-      multiSelect={
-        isMultiSelect
-          ? {
-              count: countValue,
-              onChange: (next) => onCountChange?.(next),
-              subject: cardClickLabel ?? name,
-            }
-          : undefined
-      }
     />
   )
 
