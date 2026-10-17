@@ -35,6 +35,29 @@
   margin-bottom: var(--space-12);
 }
 
+/* The Bonus per Tech Level strip (`card/BonusPerTechLevel.tsx`): its chips
+   butt edge to edge, sharing one hairline and squared where they meet, so the
+   row reads as one chip; wrapped lines keep a small gap. */
+.su-bonus-strip {
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: var(--space-4);
+}
+
+.su-bonus-strip > .su-stat-cell + .su-stat-cell {
+  margin-left: calc(-1 * var(--bw-hairline));
+}
+
+.su-bonus-strip > .su-stat-cell:not(:first-child) {
+  border-bottom-left-radius: 0;
+  border-top-left-radius: 0;
+}
+
+.su-bonus-strip > .su-stat-cell:not(:last-child) {
+  border-bottom-right-radius: 0;
+  border-top-right-radius: 0;
+}
+
 /* A pattern's name tab on a card: shrink-to-fit, so the solid Slab's leader
    rule collapses to its stub instead of running across the card. */
 .su-ec-name-tab {

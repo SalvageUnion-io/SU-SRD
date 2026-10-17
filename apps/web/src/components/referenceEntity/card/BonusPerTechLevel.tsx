@@ -1,38 +1,39 @@
-import type { CSSProperties } from 'react'
-import { space } from '../../../design/tokens'
+import { cn } from '../../../lib/cn'
 import { Stat } from '../../atoms/Stat'
 import type { BonusCell } from './cardCells'
 
-const CELLS = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  alignItems: 'center',
-  gap: space[6],
-} satisfies CSSProperties
+/** Each bonus's short label, the stat codes the chips use (ruleset §2.6). */
+const SHORT_LABEL: Record<string, string> = {
+  'Structure Points': 'SP',
+  'Energy Points': 'EP',
+  'Heat Capacity': 'Heat',
+  'System Slots': 'SYS',
+  'Module Slots': 'MODS',
+  'Cargo Capacity': 'Cargo',
+  'Salvage Value': 'SV',
+  Damage: 'DMG',
+}
 
 /**
  * BONUS PER TECH LEVEL — anchored INLINE at the prose that describes it
- * (choice-plan): one wrapping row of label-first `Stat` chips (ruleset §3.7),
- * the ink "Bonus per Tech Level" chip leading, then each "+N" delta
- * (`Damage | +1 SP`, `Structure Points | +3`). Every chip is the same ink
- * plate.
+ * (choice-plan): one strip of label-first `Stat` chips (ruleset §3.7) butted
+ * edge to edge (`.su-bonus-strip`), the hollow `Per Tech Level` lead first,
+ * then each "+N" delta under its short label (`SP | +3`). Damage carries its
+ * unit in the value (`DMG | +1 SP`).
  */
 export function BonusPerTechLevel({ cells, compact }: { cells: BonusCell[]; compact: boolean }) {
   const size = compact ? 'compact' : 'full'
   return (
-    <div className="su-ec-block" style={CELLS} data-bonus-per-tech-level="">
-      <Stat orientation="horizontal" label="Bonus per Tech Level" size={size} />
+    <div className={cn('su-ec-block', 'su-bonus-strip')} data-bonus-per-tech-level="">
+      <Stat label="Per Tech Level" hollow size={size} />
       {cells.map((cell) => {
-        // Every cell is a label-first chip: Damage carries its unit in the
-        // value (`Damage | +1 SP`), any other stat its whole name in the
-        // label (`Structure Points | +1`).
         const damage = cell.label.toLowerCase() === 'damage'
         const unit = cell.bottomLabel ? ` ${cell.bottomLabel}` : ''
+        const name = damage ? cell.label : `${cell.label}${unit}`
         return (
           <Stat
             key={cell.key}
-            orientation="horizontal"
-            label={damage ? cell.label : `${cell.label}${unit}`}
+            label={SHORT_LABEL[name] ?? name}
             value={damage ? `${cell.value}${unit}` : cell.value}
             size={size}
           />
