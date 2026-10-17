@@ -40,6 +40,11 @@
     --su-union-bar-control: 44px;
   }
 
+  /* The band corner's controls are the bar's buttons (`shell.css`): the same floor. */
+  .su-chapter-band__corner {
+    --su-band-corner-control: 44px;
+  }
+
   /* From `sm` a show page's band action is the bar's button, so it takes the
      same floor (and centres on the title by it, `shell.css`). On a phone it is
      chip-sized and its hit area (`.su-hit-area`) carries the 44px. */

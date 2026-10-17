@@ -553,6 +553,61 @@
   padding-inline: var(--su-page-gutter-inline);
 }
 
+/* The corner's controls (a Cantina sheet's Read | Edit, "Make a copy", Share,
+   "⋯") sit a row under the Union bar's buttons, so they are those buttons: the
+   bar's control height (`--su-union-bar-control`, 44px under a coarse
+   pointer), its caps type, and its right edge, the bar row's own padding
+   (12px under 400px, 16px on a phone, 32px from `sm`), so the two right
+   edges line up at every width (owner's call, 2026-10-17). It narrows the
+   gutter rule above, so it repeats that rule's selector. */
+.su-chapter-band__corner {
+  --su-band-corner-control: 36px;
+}
+
+:is(
+    .su-page-shell > .su-chapter-band[data-layout='bleed']:first-child,
+    .su-page-gutters > .su-chapter-band[data-layout='bleed']
+  ):not([data-measured])
+  .su-chapter-band__corner {
+  padding-inline-end: var(--space-16);
+}
+
+@media (max-width: 24.99rem) {
+  :is(
+      .su-page-shell > .su-chapter-band[data-layout='bleed']:first-child,
+      .su-page-gutters > .su-chapter-band[data-layout='bleed']
+    ):not([data-measured])
+    .su-chapter-band__corner {
+    padding-inline-end: var(--space-12);
+  }
+}
+
+@media (min-width: 40rem) {
+  :is(
+      .su-page-shell > .su-chapter-band[data-layout='bleed']:first-child,
+      .su-page-gutters > .su-chapter-band[data-layout='bleed']
+    ):not([data-measured])
+    .su-chapter-band__corner {
+    padding-inline-end: var(--space-32);
+  }
+}
+
+.su-chapter-band__corner .su-page-action {
+  font-size: var(--text-caption);
+  height: var(--su-band-corner-control);
+  letter-spacing: var(--tracking-caps-snug);
+  padding-inline: var(--space-14);
+}
+
+.su-chapter-band__corner .su-btn--icon-only.su-page-action {
+  padding-inline: 0;
+  width: var(--su-band-corner-control);
+}
+
+.su-chapter-band__corner .su-seg[data-size='page'] {
+  --su-seg-height: var(--su-band-corner-control);
+}
+
 /* `asideAt="notch"`: a show page's stamps and controls, never above the
    title (EDL E20). From `sm` they are one cluster at the row's far end, its
    last line centred on the title's capitals, so a cluster that wraps grows up
