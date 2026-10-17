@@ -8,7 +8,7 @@ Intent → doc. Area links and "ADR-N" are entries in [ARCHITECTURE.md](ARCHITEC
 4. **Design sources, the origin's boards** — [sources.md](design-system/sources.md).
 5. **Data flow or persistence** — [data flow](ARCHITECTURE.md#data-flow) to [stores](ARCHITECTURE.md#stores); ADR-030, ADR-034.
 6. **Where a rule is enforced, combat** — [surfaces](ARCHITECTURE.md#surfaces) to [combat](ARCHITECTURE.md#combat); ADR-021, ADR-007.
-7. **Dashboard** — [dashboard.md](architecture/dashboard.md); ADR-038, ADR-045.
+7. **Dashboard, Play mode** — [dashboard.md](architecture/dashboard.md); ADR-038, ADR-045. Its successor: [play.md](architecture/play.md); ADR-051.
 8. **Mediator Dashboard, a Game's page** — [mediator-dashboard.md](architecture/mediator-dashboard.md); ADR-030, ADR-038.
 9. **NPCs** — [npc-builder.md](architecture/npc-builder.md); ADR-044.
 10. **Sharing** — ADR-032, ADR-036.

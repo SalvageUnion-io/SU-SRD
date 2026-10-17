@@ -1,5 +1,7 @@
 # Mediator Dashboard
 
+Superseded in design by [play.md](play.md) §10 (ADR-051); this describes what is built today.
+
 M1 is the Mediator's surface (`apps/web/src/components/mediator/`); M2 is the Game page's sections (`apps/web/src/components/games/`). Governing ADRs: 030 §3–§6, 038 and 021 in [ARCHITECTURE.md](../ARCHITECTURE.md).
 
 - **§1 Reuse** — The server predates this surface; M1 and M2 recompose it and reuse `crewLines()` and `SavedIndicator`, never forking the Crew tab's vocabulary.
