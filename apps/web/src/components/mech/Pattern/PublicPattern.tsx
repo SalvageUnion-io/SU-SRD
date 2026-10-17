@@ -447,6 +447,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
               <li key={`${part.id}-${index}`}>
                 <Entity
                   form="token"
+                  context="loadout"
                   entity={part}
                   mode={{ kind: 'link', href: entityHref(part) }}
                 />

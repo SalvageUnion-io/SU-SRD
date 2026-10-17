@@ -103,7 +103,7 @@ describe('PeekHost', () => {
     if (!drill) throw new Error('Salvaging Drill fixture missing')
     render(
       <EntitySurfaceProvider value={{ hrefFor }}>
-        <Entity form="token" entity={drill} mode={{ kind: 'link' }} />
+        <Entity form="token" context="loadout" entity={drill} mode={{ kind: 'link' }} />
         <PeekHost />
       </EntitySurfaceProvider>
     )
@@ -124,6 +124,7 @@ describe('PeekHost', () => {
       <>
         <Entity
           form="token"
+          context="loadout"
           entity={npc as unknown as RefMetaEntity}
           peekAt={embeddedPeekAddress('crawler-bays', bay.id, 'npc')}
         />

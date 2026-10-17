@@ -196,6 +196,7 @@ export function SelectionRail({
           <div className="su-entity-token-line" style={ENTRY_TOKEN_STYLE}>
             <Entity
               form="token"
+              context="loadout"
               entity={entry.entity}
               omit={RAIL_OMIT}
               mode={{ kind: 'link', onOpen: () => onFocus(entry.ref) }}

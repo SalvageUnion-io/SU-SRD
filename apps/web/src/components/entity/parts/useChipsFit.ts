@@ -5,11 +5,12 @@ import { useEffect } from 'react'
 const PHONE = '(max-width: 40rem)'
 
 /**
- * The most lines the chips may take beside the name. More than this and the
- * band would grow into a tall, thin column of chips over a short name: they
- * drop under it instead.
+ * The most lines the chips may take beside the name: a compact head
+ * double-rows its chips, never more (`chips-and-actions.md` C5). More than
+ * this and the band would grow into a tall, thin column of chips over a short
+ * name: they drop under it instead.
  */
-export const MAX_CHIP_LINES = 3
+export const MAX_CHIP_LINES = 2
 
 /** The chips' 2px side margins: the 4px gap between two on a line (`.su-chips`). */
 const CHIP_GAP = 4

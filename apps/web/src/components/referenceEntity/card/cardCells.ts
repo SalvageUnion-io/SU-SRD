@@ -16,7 +16,13 @@ import type {
   RefObjectChoice,
   RefObjectContentBlock,
 } from 'salvageunion-reference'
-import { facetCells } from 'salvageunion-reference'
+import {
+  facetCells,
+  isDoEntity,
+  laneMeasure,
+  naturalContext,
+  schemaDomain,
+} from 'salvageunion-reference'
 import type { StatItem } from '../../containers/statsBarTypes'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { buildReferenceEntityStats } from '../referenceEntityStatsConfig'
@@ -167,14 +173,21 @@ export function resolveTechScaling(
 export function buildHeaderStats(options: {
   entity: RefMetaEntity
   schemaName: RefEnumSchemaName | 'actions'
-  asCompact: boolean
+  /** The short `[label | value]` cells (default), or the full value box's two-line labels. */
+  asCompact?: boolean
+  /**
+   * A compact head's budget (`chips-and-actions.md` C3): its Tech Level and the
+   * one measure its context keeps (`laneMeasure`), every other measure left to
+   * the full card, the Page and the Peek.
+   */
+  budget?: boolean
   /** Actions and pattern LISTING rows carry no header stats at all. */
   none: boolean
   techLevel: number | 'B' | 'N' | undefined
   techLevelDisplay: number | 'B' | 'N' | undefined
   techLevelModified: boolean
 }): StatItem[] {
-  const { entity, schemaName, asCompact, none, techLevel } = options
+  const { entity, schemaName, asCompact = true, none, techLevel } = options
   const rawHeaderStats: StatItem[] = none
     ? []
     : buildReferenceEntityStats(entity, {
@@ -203,13 +216,21 @@ export function buildHeaderStats(options: {
           ...(options.techLevelModified ? { state: 'modified' as const } : {}),
         }
       : undefined
-  return [
+  const stats = [
     ...(techLevelStat ? [techLevelStat] : []),
     // ATOM MODEL: compact = horizontal cells + SHORTFORM labels (SP, TL, Cargo, …).
     // Non-compact = the vertical value box with FULL two-line labels — the
     // slotsRequired stat reads "Slots" / "Required".
     ...rawHeaderStats,
   ]
+  if (!options.budget) return stats
+  const nature = schemaName === 'actions' || isDoEntity(entity) ? 'do' : 'have'
+  const context = naturalContext({ domain: schemaDomain(schemaName), nature })
+  const lane = laneMeasure(
+    context,
+    stats.map((stat) => stat.label)
+  )
+  return stats.filter((stat) => stat.key === 'tech-level' || stat.label === lane)
 }
 
 /**

@@ -121,7 +121,11 @@ function LedgerList({
           const cls = allClasses.find((c) => c.name === item)
           return (
             <li key={item}>
-              {cls ? <Entity form="token" entity={cls} /> : <span style={LEDGER_LINE}>{item}</span>}
+              {cls ? (
+                <Entity form="token" context="browse" entity={cls} />
+              ) : (
+                <span style={LEDGER_LINE}>{item}</span>
+              )}
             </li>
           )
         })}

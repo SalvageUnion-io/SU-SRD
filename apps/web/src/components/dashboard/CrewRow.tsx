@@ -98,6 +98,7 @@ export function CrewRow({
         ) : (
           <Entity
             form="token"
+            context="roster"
             model={unitRowModel({
               kind: 'mech',
               name: mech.name,

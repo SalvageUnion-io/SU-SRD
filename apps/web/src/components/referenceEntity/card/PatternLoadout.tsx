@@ -123,6 +123,7 @@ function LoadoutToken({ data, hostDown }: { data: ReferenceCardEntity; hostDown?
   return (
     <Entity
       form="token"
+      context="loadout"
       entity={data as RefMetaEntity}
       mode={href ? { kind: 'link', href } : { kind: 'link' }}
       {...(hostDown ? { instance: { condition: conditionOf(hostDown) } } : {})}

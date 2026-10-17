@@ -260,6 +260,7 @@ export function EntitySearcher({
     const token = (
       <Entity
         form="token"
+        context="loadout"
         entity={item}
         mode={{
           kind: 'link',
