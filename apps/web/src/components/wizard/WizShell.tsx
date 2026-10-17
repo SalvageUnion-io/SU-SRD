@@ -1,9 +1,8 @@
 import type { SheetKind } from 'cantina-domain/entityKinds'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
-import { Button, ChapterBand, ModalShell, tokens } from '../index'
+import { Button, ChapterBand, ConfirmDialog, tokens } from '../index'
 import '../../styles/cantina/wizard.css'
-import { dialogActionsStyle, dialogBodyStyle, dialogNoteStyle } from './wizardStyles.model'
 
 /** Sheet tone context — picks the `.su-sheet--{kind}` poster theming. */
 type WizKind = SheetKind
@@ -441,34 +440,16 @@ export function WizShell({
         >
           Cancel
         </Button>
-        <ModalShell
+        <ConfirmDialog
           open={confirmingCancel}
-          onOpenChange={(next) => {
-            if (!next) setConfirmingCancel(false)
-          }}
+          onOpenChange={setConfirmingCancel}
           title="Discard this draft?"
           tone="danger"
-          maxWidth="su-wiz-modal-md"
-        >
-          <div style={dialogBodyStyle}>
-            <div style={dialogNoteStyle}>Your unsaved changes will be lost.</div>
-            <div style={dialogActionsStyle}>
-              <Button variant="ghost" size="compact" onClick={() => setConfirmingCancel(false)}>
-                Keep editing
-              </Button>
-              <Button
-                variant="danger"
-                size="compact"
-                onClick={() => {
-                  setConfirmingCancel(false)
-                  onCancel()
-                }}
-              >
-                Discard
-              </Button>
-            </div>
-          </div>
-        </ModalShell>
+          body="Your unsaved changes will be lost."
+          confirmLabel="Discard"
+          cancelLabel="Keep editing"
+          onConfirm={onCancel}
+        />
       </div>
       {/* Locked CTA: hollow, dashed, dimmed weight —
           the blocking reason lives in the footerNote text. */}

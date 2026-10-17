@@ -21,13 +21,7 @@ import { useState } from 'react'
 import { useServerAction } from '../../../lib/connection/useServerAction'
 import { mechFromPattern } from '../../../lib/patterns/patterns'
 import { useEntityStore } from '../../../stores/entityStore'
-import { Button, FieldError, ModalShell, tokens } from '../../index'
-import '../../../styles/cantina/wizard.css'
-import {
-  dialogActionsStyle,
-  dialogBodyStyle,
-  dialogNoteStyle,
-} from '../../wizard/wizardStyles.model'
+import { Button, ConfirmDialog, FieldError, tokens } from '../../index'
 
 const ROOT = {
   display: 'flex',
@@ -67,36 +61,14 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
       >
         {isInstantiating ? 'Building…' : 'Build With This'}
       </Button>
-      <ModalShell
+      <ConfirmDialog
         open={confirming}
-        onOpenChange={(next) => {
-          if (!next) setConfirming(false)
-        }}
+        onOpenChange={setConfirming}
         title={`Build a mech from ${pattern.name}?`}
-        maxWidth="su-wiz-modal-md"
-      >
-        <div style={dialogBodyStyle}>
-          <div style={dialogNoteStyle}>
-            This may exceed the starting rules — a freeform build, like Blank. It stamps the mech
-            exactly as saved; edit freely on its live sheet.
-          </div>
-          <div style={dialogActionsStyle}>
-            <Button variant="ghost" size="compact" onClick={() => setConfirming(false)}>
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              size="compact"
-              onClick={() => {
-                setConfirming(false)
-                void handleInstantiate()
-              }}
-            >
-              Build
-            </Button>
-          </div>
-        </div>
-      </ModalShell>
+        body="This may exceed the starting rules — a freeform build, like Blank. It stamps the mech exactly as saved; edit freely on its live sheet."
+        confirmLabel="Build"
+        onConfirm={() => void handleInstantiate()}
+      />
       {error && <FieldError>{error}</FieldError>}
     </div>
   )
