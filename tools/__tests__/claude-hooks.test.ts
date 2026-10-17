@@ -173,9 +173,8 @@ describe('.claude/rules path globs', () => {
   })
 })
 
-describe('typecheck-scoped.sh', () => {
-  const typecheck = (file_path: string) =>
-    runHook('typecheck-scoped.sh', { tool_input: { file_path } })
+describe('typecheck.sh', () => {
+  const typecheck = (file_path: string) => runHook('typecheck.sh', { tool_input: { file_path } })
 
   test.each([
     ['markdown', 'docs/README.md'],
@@ -187,45 +186,42 @@ describe('typecheck-scoped.sh', () => {
   })
 
   test('an empty payload is allowed rather than erroring', async () => {
-    expect(await runHook('typecheck-scoped.sh', { tool_input: {} })).toBe(ALLOW)
+    expect(await runHook('typecheck.sh', { tool_input: {} })).toBe(ALLOW)
   })
 
-  // The fixture below stubs every `typecheck`; these keep the stubs honest: a
-  // hook calling a deleted script passes a stubbed suite.
   test('the script the hook runs exists in the real root manifest', async () => {
     const manifest = await Bun.file(join(ROOT, 'package.json')).json()
     expect(manifest.scripts.typecheck).toBeString()
   })
 
-  test('every project the hook maps to is a reference of the root solution', async () => {
-    const script = await Bun.file(join(HOOKS, 'typecheck-scoped.sh')).text()
-    const mapped = new Set(
-      [...script.matchAll(/TARGETS="([^"*]+)"/g)].flatMap((m) => m[1]?.split(' ') ?? [])
-    )
-    // Comment-stripped: the solution tsconfig.json is JSONC.
-    const solution = (await Bun.file(join(ROOT, 'tsconfig.json')).text()).replace(
-      /^\s*\/\/.*$/gm,
-      ''
-    )
-    const references = new Set(
-      (JSON.parse(solution) as { references: { path: string }[] }).references.map((r) => r.path)
-    )
+  // A workspace is checked by its own tsconfig.json, which the root script
+  // must name, or by the root project's `include`.
+  test('the root typecheck reaches every workspace', async () => {
+    const manifest = await Bun.file(join(ROOT, 'package.json')).json()
+    const projects = new Set((manifest.scripts.typecheck as string).split('tsc -b ')[1]?.split(' '))
+    // Comment-stripped: tsconfig.json is JSONC.
+    const root = (await Bun.file(join(ROOT, 'tsconfig.json')).text())
+      .replace(/^\s*\/\/.*$/gm, '')
+      .replace(/\/\*.*?\*\//g, '')
+    const { include } = JSON.parse(root) as { include: string[] }
+    expect(projects).toContain('.')
+    let seen = 0
     for (const dir of ['apps/*', 'packages/*', 'tools']) {
       for await (const path of new Bun.Glob(`${dir}/package.json`).scan(ROOT)) {
         const project = path.replace('/package.json', '')
-        // A new workspace needs a line in the map, or its edits are never checked.
-        expect(script).toMatch(new RegExp(`\\n  ${project}/\\*[ )]`))
-        expect(references).toContain(project)
+        const own = await Bun.file(join(ROOT, project, 'tsconfig.json')).exists()
+        if (own) expect(projects).toContain(project)
+        else expect(include.some((i) => project === i || project.startsWith(`${i}/`))).toBe(true)
+        seen++
       }
     }
-    expect(mapped.size).toBeGreaterThan(0)
-    for (const project of mapped) expect(references).toContain(project)
+    expect(seen).toBeGreaterThan(4)
   })
 })
 
 // A throwaway git repo that mirrors the workspace layout, with the root
 // `typecheck` stubbed to log the projects it was handed (Bun appends a script's
-// arguments to its last command), so the scoping, the exit codes and the root
+// arguments to its last command), so the filtering, the exit codes and the root
 // resolution are tested without running tsc.
 describe('typecheck hooks against a stub workspace', () => {
   // Git hooks (lefthook's pre-push runs this suite) export GIT_DIR and friends,
@@ -278,14 +274,12 @@ describe('typecheck hooks against a stub workspace', () => {
       })
     )
     await Bun.spawn(['git', 'init', '-q', dir], { env: cleanEnv }).exited
-    const marker = join(dir, '.git', 'claude-typecheck-pending')
     /** What ran, in the order it ran. */
     const ranInOrder = async () =>
       (await Bun.file(log).exists()) ? (await Bun.file(log).text()).trim().split('\n') : []
     const ran = async () => (await ranInOrder()).sort()
     return {
       dir,
-      marker,
       ran,
       ranInOrder,
       cleanup: () => rmSync(dir, { recursive: true, force: true }),
@@ -310,40 +304,20 @@ describe('typecheck hooks against a stub workspace', () => {
   }
 
   const edit = (dir: string, rel: string) =>
-    run('typecheck-scoped.sh', dir, join(dir, 'apps', 'web'), {
+    run('typecheck.sh', dir, join(dir, 'apps', 'web'), {
       tool_input: { file_path: join(dir, rel) },
     })
 
   test.each([
-    ['an app', 'apps/web/lib/x.ts', ['ROOT apps/web']],
-    ['the bot', 'apps/discord-bot/lib/x.ts', ['ROOT apps/discord-bot']],
-    [
-      'cantina-domain',
-      'packages/cantina-domain/lib/x.ts',
-      ['ROOT packages/cantina-domain apps/discord-bot apps/web tools'],
-    ],
-    ['gates', 'packages/gates/lib/x.ts', ['ROOT packages/gates apps/web tools']],
-  ])(
-    'an edit to %s checks it and its consumers in one run, then asks for a full run',
-    async (_l, rel, expected) => {
-      const f = await fixture()
-      try {
-        const result = await edit(f.dir, rel)
-        expect(result).toEqual({ code: ALLOW, stdout: '', stderr: '' })
-        expect(await f.ran()).toEqual(expected)
-        expect(await Bun.file(f.marker).exists()).toBe(true)
-      } finally {
-        f.cleanup()
-      }
-    }
-  )
-
-  test('a salvageunion-reference edit runs the whole-repo typecheck and no marker', async () => {
+    'apps/web/lib/x.ts',
+    'apps/discord-bot/lib/x.ts',
+    'packages/cantina-domain/lib/x.ts',
+    'tools/lib/x.ts',
+  ])('an edit to %s runs the whole-repo typecheck once, silently', async (rel) => {
     const f = await fixture()
     try {
-      expect((await edit(f.dir, 'packages/salvageunion-reference/lib/x.ts')).code).toBe(ALLOW)
+      expect(await edit(f.dir, rel)).toEqual({ code: ALLOW, stdout: '', stderr: '' })
       expect(await f.ran()).toEqual(['ROOT'])
-      expect(await Bun.file(f.marker).exists()).toBe(false)
     } finally {
       f.cleanup()
     }
@@ -370,11 +344,7 @@ describe('typecheck hooks against a stub workspace', () => {
         stderr: '',
       })
       expect((await edit(f.dir, 'apps/web/lib/x.ts')).code).toBe(ALLOW)
-      expect(await f.ranInOrder()).toEqual([
-        'INSTALL install --frozen-lockfile',
-        'ROOT apps/web',
-        'ROOT apps/web',
-      ])
+      expect(await f.ranInOrder()).toEqual(['INSTALL install --frozen-lockfile', 'ROOT', 'ROOT'])
     } finally {
       f.cleanup()
     }
@@ -390,73 +360,6 @@ describe('typecheck hooks against a stub workspace', () => {
     } finally {
       f.cleanup()
     }
-  })
-
-  describe('typecheck-full.sh (Stop)', () => {
-    const stop = (dir: string, stop_hook_active = false) =>
-      run('typecheck-full.sh', dir, dir, { stop_hook_active })
-
-    test('does nothing when no scoped check ran this turn', async () => {
-      const f = await fixture()
-      try {
-        expect((await stop(f.dir)).code).toBe(ALLOW)
-        expect(await f.ran()).toEqual([])
-      } finally {
-        f.cleanup()
-      }
-    })
-
-    test('runs the whole repo once after a scoped check, silently', async () => {
-      const f = await fixture()
-      try {
-        await edit(f.dir, 'apps/web/lib/x.ts')
-        expect(await stop(f.dir)).toEqual({ code: ALLOW, stdout: '', stderr: '' })
-        expect(await f.ran()).toEqual(['ROOT', 'ROOT apps/web'])
-        expect(await Bun.file(f.marker).exists()).toBe(false)
-      } finally {
-        f.cleanup()
-      }
-    })
-
-    test('a fresh worktree installs once with the frozen lockfile, then typechecks', async () => {
-      const f = await fixture({ install: 'mkdir -p node_modules; exit 0' })
-      try {
-        writeFileSync(f.marker, '')
-        expect(await stop(f.dir)).toEqual({ code: ALLOW, stdout: '', stderr: '' })
-        expect(await f.ranInOrder()).toEqual(['INSTALL install --frozen-lockfile', 'ROOT'])
-        expect(await Bun.file(f.marker).exists()).toBe(false)
-      } finally {
-        f.cleanup()
-      }
-    })
-
-    test('a failed install exits 2 with its output, skips the typecheck, keeps the marker', async () => {
-      const f = await fixture({ install: 'echo lockfile-out-of-date >&2; exit 1' })
-      try {
-        writeFileSync(f.marker, '')
-        const result = await stop(f.dir)
-        expect(result.code).toBe(2)
-        expect(result.stderr).toContain('lockfile-out-of-date')
-        expect(await f.ranInOrder()).toEqual(['INSTALL install --frozen-lockfile'])
-        expect(await Bun.file(f.marker).exists()).toBe(true)
-      } finally {
-        f.cleanup()
-      }
-    })
-
-    test('a failure exits 2 and keeps the marker; a continued stop is let through', async () => {
-      const f = await fixture({ root: 'echo boom-from-root >&2; exit 1' })
-      try {
-        await edit(f.dir, 'apps/web/lib/x.ts')
-        const result = await stop(f.dir)
-        expect(result.code).toBe(2)
-        expect(result.stderr).toContain('boom-from-root')
-        expect(await Bun.file(f.marker).exists()).toBe(true)
-        expect((await stop(f.dir, true)).code).toBe(ALLOW)
-      } finally {
-        f.cleanup()
-      }
-    })
   })
 })
 

@@ -62,7 +62,7 @@ describe('deploy-surfaces — decideSurfaces', () => {
     'package.json',
     'bun.lock',
     'bunfig.toml',
-    'tsconfig.base.json',
+    'tsconfig.json',
     '.github/workflows/deploy-cloudflare.yml',
     '.github/actions/setup-bun/action.yml',
     // rendered into srd's about page and the Cantina's bundle, outside `apps/`
@@ -95,7 +95,7 @@ describe('deploy-surfaces — decideSurfaces', () => {
 
   test('isShared reads a trailing / or * as a prefix and anything else as one path', () => {
     expect(isShared('packages/x/y.ts')).toBe(true)
-    expect(isShared('tsconfig.worker.json')).toBe(true)
+    expect(isShared('tsconfig.json')).toBe(true)
     expect(isShared('.github/workflows/deploy-cloudflare.yml')).toBe(true)
     expect(isShared('.github/workflows/deploy-cloudflare.yml.orig')).toBe(false)
     expect(isShared('apps/packages/x.ts')).toBe(false)
