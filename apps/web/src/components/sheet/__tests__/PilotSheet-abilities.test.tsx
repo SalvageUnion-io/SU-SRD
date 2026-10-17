@@ -261,7 +261,9 @@ describe('PilotSheet — the trees the pilot trained in, on their tracks', () =>
     expect(titles[0]).toContain('Engineering Expertise')
     expect(titles[1]).toContain('Mech Acquisition')
     expect(
-      Array.from(tree.querySelectorAll('.su-ability-track__numeral')).map((n) => n.textContent)
+      Array.from(tree.querySelectorAll('.su-ability-track__tier .su-entity-row__tier')).map(
+        (n) => n.textContent
+      )
     ).toEqual(['1', '3'])
     // The Generic tree is never on a track.
     expect(document.querySelector('section[aria-label="Generic Tree"]')).toBeNull()
@@ -291,7 +293,7 @@ describe('PilotSheet — the trees the pilot trained in, on their tracks', () =>
     expect(legendary.querySelector('.su-ability-track')?.getAttribute('data-track')).toBe(
       'legendary'
     )
-    expect(legendary.querySelector('.su-ability-track__numeral')).toBeNull()
+    expect(legendary.querySelector('.su-ability-track__tier .su-entity-row__tier')).toBeNull()
     expect(legendary.textContent).toContain('Choose 1')
   })
 

@@ -19,7 +19,7 @@ describe('trackForTree', () => {
 })
 
 describe('AbilityTrack', () => {
-  test("a sequential tree numbers each tier and draws the caller's Ability", () => {
+  test("a sequential tree draws the caller's Ability on each tier, its numeral left to the Row", () => {
     const { container } = render(
       <AbilityTrack
         abilities={tree('Mechanical Knowledge')}
@@ -28,19 +28,19 @@ describe('AbilityTrack', () => {
       />
     )
     expect(container.querySelector('.su-ability-track')?.getAttribute('data-track')).toBe('core')
-    expect(
-      [...container.querySelectorAll('.su-ability-track__numeral')].map((n) => n.textContent)
-    ).toEqual(['1', '2', '3'])
-    expect(container.querySelectorAll('.probe')).toHaveLength(3)
+    expect(container.querySelectorAll('.su-ability-track__tier .probe')).toHaveLength(3)
     expect(container.querySelector('.su-ability-track__or')).toBeNull()
   })
 
-  test('a pick-one tree has no numerals, an "or" between each pick', () => {
+  test('a pick-one tree has an "or" row between each pick', () => {
     const picks = tree('Legendary Engineer')
     const { container } = render(
       <AbilityTrack abilities={picks} track="legendary" renderAbility={(a) => a.name} />
     )
-    expect(container.querySelector('.su-ability-track__numeral')).toBeNull()
+    expect(container.querySelectorAll('.su-ability-track__tier')).toHaveLength(picks.length)
     expect(container.querySelectorAll('.su-ability-track__or')).toHaveLength(picks.length - 1)
+    expect(container.querySelector('.su-ability-track > li:first-child')?.className).toBe(
+      'su-ability-track__tier'
+    )
   })
 })
