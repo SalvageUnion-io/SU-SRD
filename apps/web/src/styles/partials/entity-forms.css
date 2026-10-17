@@ -403,6 +403,12 @@
    script (or before it runs) they drop. The strip is painted the band's full
    width by a clipped shadow, since the heading sits inset. */
 @media (max-width: 40rem) {
+  /* Beside, the name keeps its one line: `useChipsFit` measured the room it
+     leaves for the chips, on as many lines as they need (at most three). */
+  .su-entity-row__heading--cut[data-chips='beside'] > .su-entity-row__name {
+    flex-shrink: 0;
+  }
+
   .su-entity-row__heading--cut:not([data-chips='beside']) {
     flex-wrap: wrap;
     row-gap: 0;
