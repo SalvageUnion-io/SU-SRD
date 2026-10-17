@@ -32,10 +32,6 @@
   margin-block-end: var(--space-12);
 }
 
-:where(.su-wiz-stack--16 > :not(:last-child)) {
-  margin-block-end: var(--space-16);
-}
-
 :where(.su-wiz-stack--20 > :not(:last-child)) {
   margin-block-end: var(--space-20);
 }
@@ -285,12 +281,6 @@
   .su-wiz-crew-fields {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-}
-
-/* CrawlerIdentityStep: the Scrap Pool panel's padding. A class:
-   Panel takes no `style`. */
-.su-wiz-scrap-panel {
-  padding: var(--space-16);
 }
 
 /* CrawlerIdentityStep: the six scrap buckets, three across, six from md. */

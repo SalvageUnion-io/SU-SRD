@@ -24,8 +24,10 @@ const WIZARDS = ['pilot/PilotWizard.tsx', 'mech/MechWizard.tsx', 'crawler/Crawle
 const ON_PAPER: Record<string, readonly string[]> = {
   // The Custom-build door is a paper pick card (`CUSTOM_CARD`).
   'mech/MechChassisStep.tsx': ['CUSTOM_BODY'],
-  // The Scrap Pool hint sits in a paper `Panel`.
+  // The Scrap Pool hint sits in a `TitledBox`'s paper body.
   'crawler/CrawlerIdentityStep.tsx': ['SCRAP_HINT'],
+  // The rule's citation sits in its `TitledBox`'s paper body.
+  'wizard/RuleBrief.tsx': ['citeStyle'],
 }
 
 /** The step bodies each wizard renders inside the card, by its imports. */

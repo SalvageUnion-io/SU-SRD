@@ -67,6 +67,7 @@ import {
   SheetSectionSlab,
   SlotGrid,
   Stat,
+  TitledBox,
   tokens,
   VitalGauge,
 } from '../index'
@@ -150,25 +151,6 @@ const BODY = {
   display: 'flex',
   flexDirection: 'column',
   gap: tokens.space[24],
-} satisfies CSSProperties
-
-const DEAD = {
-  backgroundColor: tokens.color.paper,
-  border: `${tokens.borderWidth.entity} solid ${tokens.color.statusBad}`,
-  borderRadius: tokens.radius.card,
-  paddingBlock: tokens.space[12],
-  paddingInline: tokens.space[16],
-} satisfies CSSProperties
-
-const DEAD_TITLE = {
-  color: tokens.color.statusBad,
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.lg,
-  fontWeight: tokens.weight.bold,
-  letterSpacing: tokens.tracking.caps,
-  lineHeight: 'calc(1.75 / 1.125)',
-  margin: 0,
-  textTransform: 'uppercase',
 } satisfies CSSProperties
 
 const DEAD_BODY = {
@@ -276,13 +258,12 @@ export function PilotSheet({
       {/* Dead state (max HP 0 = death). Display-only — the record
           stays editable so an erroneous injury can be removed. */}
       {model.dead && (
-        <div role="alert" style={DEAD}>
-          <p style={DEAD_TITLE}>Killed in Action</p>
+        <TitledBox role="alert" title="Killed in Action" tone="status-bad">
           <p style={DEAD_BODY}>
             Injuries have reduced this pilot&rsquo;s maximum HP to 0. Remove an injury below if this
             was a bookkeeping error — otherwise, raise a glass.
           </p>
-        </div>
+        </TitledBox>
       )}
 
       {/* The printed pilot sheet (board 10): identity and abilities down the
@@ -300,7 +281,6 @@ export function PilotSheet({
         <div className="su-sheet-pilot-column">
           <SheetSectionCard
             title="Identity"
-            surface="paper"
             count={
               model.dead ? (
                 <Badge surface="tone" tone="bad">
@@ -354,7 +334,7 @@ export function PilotSheet({
           />
         </div>
         <div className="su-sheet-pilot-column">
-          <SheetSectionCard title="Vitals" surface="paper">
+          <SheetSectionCard title="Vitals">
             <div className="su-sheet-pilot-vitals" style={VITALS}>
               <VitalGauge
                 label="HP"

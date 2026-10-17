@@ -67,6 +67,24 @@
   padding: 0;
 }
 
+/* BOX (`containers/Box.tsx`): the paper body the head's cut-out opens into,
+   with no rule above it. Padded, its blocks stand 12px apart; flush, the
+   content pads itself or rules its own bands. */
+.su-box__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-12);
+  isolation: isolate;
+  min-width: 0;
+  padding: var(--space-12);
+}
+
+.su-box__body[data-flush] {
+  gap: 0;
+  padding: 0;
+}
+
 /* ModalShell's close × is Button's quiet icon rung; on a band that prints
    paper (the danger rust) its ink turns paper. Doubled with `.su-btn` to
    out-rank the quiet variant's resting and hover ink. */
@@ -98,17 +116,8 @@
   flex-direction: column;
 }
 
-/* The framed surface's paper block. No left rail (ruleset §3.10): the
-   card's tone band on top carries its colour, as the paper surface's top
-   rule does. */
-.su-sheet-section-paper {
-  flex: 1;
-  background-color: var(--color-paper);
-  padding: var(--space-12) var(--space-14);
-}
-
-/* RecoveryPanel (`components/containers/RecoveryPanel.tsx`): the padding steps up
-   at `sm`; the heading takes the tight caps tracking in ink. */
+/* RecoveryPanel (`components/containers/RecoveryPanel.tsx`): its box's body
+   padding steps up at `sm`. */
 .su-recovery-panel {
   padding: var(--space-24);
 }
@@ -117,11 +126,6 @@
   .su-recovery-panel {
     padding: var(--space-32);
   }
-}
-
-.su-recovery-panel-title {
-  letter-spacing: var(--tracking-caps-tight);
-  color: var(--color-ink);
 }
 
 /* FilterRow (`components/containers/FilterRow.tsx`): a centred stack on a phone;

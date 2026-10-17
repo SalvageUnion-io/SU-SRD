@@ -72,7 +72,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
       Every coarse-pointer target is 44px; nothing floats over content.
 5. **§5 The irreducible set** — an ontology, not a roster (the barrel `apps/web/src/components/index.ts` is the roster): 11 atoms and one technique.
    1. **Stamp** — ink block, paper text: `Badge shape="stamp"`.
-   2. **Frame** — bordered container, `--bw-*` weights: `Card` / `Panel`.
+   2. **Frame** — `--bw-*` weights: `Box`, `TitledBox` (cut-out), `Card`, `Panel`.
    3. **Badge** — the stamp-chip family: `Badge`.
    4. **Well** — labelled value: `Stat`, the label-first chip (steppers when edited); no square box.
    5. **Gauge** — segmented current/max: `VitalGauge`.

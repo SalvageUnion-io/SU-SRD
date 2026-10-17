@@ -202,6 +202,10 @@ export { SheetSectionSlab } from './containers/SheetSectionSlab'
 export { Skeleton } from './containers/Skeleton'
 /** The `statsOverride` element type — public because the prop that takes it is. */
 export type { StatItem } from './containers/statsBarTypes'
+// TitledBox — the house `Box` (square frame, paper body) with the cut-out head:
+// dialogs, wizard briefs, notices; Callout, Inset, InfoCutout and RecoveryPanel
+// are its named variants.
+export { TitledBox } from './containers/TitledBox'
 // UI primitives
 export { Toaster, toast } from './containers/Toaster'
 export type { AnnouncedRoll } from './containers/toastRoll'
@@ -238,6 +242,8 @@ export type { EntityMode, EntityRowModel } from './entity/types'
 export { InlineMarkdown } from './markdownSection/InlineMarkdown'
 export { MarkdownSection } from './markdownSection/MarkdownSection'
 export { Content } from './referenceEntity/Content'
+// DamagedEffectCallout — a crawler bay's WHEN DAMAGED box, on the SRD card and the live sheet.
+export { DamagedEffectCallout } from './referenceEntity/card/DamagedEffectCallout'
 // The band line a Page carries right of its title (EDL E20): the SRD's entity
 // pages and the Cantina's detail dialog.
 export { EntityPageStamps } from './referenceEntity/card/EntityPageStamps'

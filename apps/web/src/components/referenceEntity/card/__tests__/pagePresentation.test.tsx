@@ -241,14 +241,17 @@ describe('the card as a page', () => {
     expect(document.querySelector('.su-entity-token')).toBeNull()
   })
 
-  test('"When damaged" is a framed callout, its stamp riding the border', () => {
+  test('"When damaged" is a titled box: the label on its cut-out, the effect below', () => {
     const bay = need(SalvageUnionReference.CrawlerBays.getByName('Cantina'), 'cantina')
-    render(<ReferenceEntityCard data={bay} presentation="page" />)
-    const stamp = screen.getByText('When Damaged')
-    expect(stamp.className).toContain('su-stamp-seam')
-    const frame = need(stamp.parentElement ?? undefined, 'callout')
-    expect(frame.style.borderWidth).toBe('var(--bw-chrome)')
-    expect(frame.textContent).toContain(bay.damagedEffect ?? '')
+    const { container } = render(<ReferenceEntityCard data={bay} presentation="page" />)
+    const notch = need(
+      Array.from(container.querySelectorAll('.su-box .su-entity-row__notch')).find(
+        (n) => n.textContent === 'When Damaged'
+      ),
+      'callout'
+    )
+    const box = need(notch.closest('.su-box') ?? undefined, 'box')
+    expect(box.querySelector('.su-box__body')?.textContent).toContain(bay.damagedEffect ?? '')
   })
 
   test('the chassis ability and its seal stay spans: no band holds them', () => {

@@ -15,17 +15,8 @@
  */
 
 import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from 'react'
-import {
-  borderWidth,
-  color,
-  font,
-  fontSize,
-  radius,
-  space,
-  tracking,
-  weight,
-} from '../../design/tokens'
-import { buttonVariants } from '../index'
+import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
+import { buttonVariants, TitledBox } from '../index'
 import { DidYouMeanIsland } from '../islands/DidYouMeanIsland'
 import { SearchIsland } from '../islands/SearchIsland'
 import { NotFound } from '../NotFound'
@@ -40,30 +31,11 @@ const SHELL = {
   padding: space[24],
 } satisfies CSSProperties
 
-/** The 404 card; its padding opens up from `sm` (routeStates.css). */
-const PANEL = {
-  alignItems: 'flex-start',
-  backgroundColor: color.paper,
-  borderColor: color.ink,
-  borderRadius: radius.panel,
-  borderStyle: 'solid',
-  borderWidth: borderWidth.chrome,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: space[16],
-  maxWidth: '36rem',
-  width: '100%',
-} satisfies CSSProperties
+/** The 404 card's width; its body's padding opens up from `sm` (routeStates.css). */
+const PANEL = { maxWidth: '36rem', width: '100%' } satisfies CSSProperties
 
-const PANEL_TITLE = {
-  color: color.ink,
-  fontFamily: font.cond,
-  fontSize: fontSize.xl,
-  fontWeight: weight.bold,
-  letterSpacing: tracking.capsTight,
-  lineHeight: '1.75rem',
-  textTransform: 'uppercase',
-} satisfies CSSProperties
+/** Its body: a column, the exit at its head's edge. */
+const PANEL_BODY = { alignItems: 'flex-start', gap: space[16] } satisfies CSSProperties
 
 const PANEL_MESSAGE = {
   color: color.wkMuted,
@@ -98,8 +70,8 @@ export function FullPageShell({ children, ...rest }: ComponentPropsWithoutRef<'m
 }
 
 type NotFoundPanelProps = {
-  /** Stamp heading, e.g. 'Page not found' / 'Pilot not found'. */
-  title: ReactNode
+  /** The title on the cut-out, e.g. 'Page not found' / 'Pilot not found'. */
+  title: string
   /** What is missing and why it might be. */
   message: ReactNode
   /** The exit path. Defaults to the Shelves, which are always somewhere to go. */
@@ -107,8 +79,8 @@ type NotFoundPanelProps = {
 }
 
 /**
- * The app's 404 card: a bordered paper panel with a condensed-caps title, a
- * muted explanation, and one ghost-button exit link.
+ * The app's 404 card: a `TitledBox` with the title on its cut-out, a muted
+ * explanation, and one ghost-button exit link.
  */
 export function NotFoundPanel({
   title,
@@ -117,16 +89,22 @@ export function NotFoundPanel({
 }: NotFoundPanelProps) {
   return (
     <FullPageShell>
-      <div className="su-not-found-panel" style={PANEL}>
-        <h1 style={PANEL_TITLE}>{title}</h1>
-        <p style={PANEL_MESSAGE}>{message}</p>
-        <AppLink
-          href={back.href}
-          className={buttonVariants({ variant: 'ghost', size: 'compact' })}
-          style={BACK_LINK}
+      <div style={PANEL}>
+        <TitledBox
+          title={title}
+          titleAs="h1"
+          bodyClassName="su-not-found-panel"
+          bodyStyle={PANEL_BODY}
         >
-          &larr; Back to {back.label}
-        </AppLink>
+          <p style={PANEL_MESSAGE}>{message}</p>
+          <AppLink
+            href={back.href}
+            className={buttonVariants({ variant: 'ghost', size: 'compact' })}
+            style={BACK_LINK}
+          >
+            &larr; Back to {back.label}
+          </AppLink>
+        </TitledBox>
       </div>
     </FullPageShell>
   )

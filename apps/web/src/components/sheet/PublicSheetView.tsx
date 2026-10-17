@@ -34,7 +34,7 @@ function isPublicKind(value: string): value is PublicKind {
 function NotAvailable({ what = 'sheet' }: { what?: 'sheet' | 'pattern' | 'NPC' }) {
   return (
     <NotFoundPanel
-      title={<>This {what} isn&rsquo;t available</>}
+      title={`This ${what} isn’t available`}
       message="The link may be wrong, or its owner may have stopped sharing it."
       back={{ href: '/', label: PRODUCT.name }}
     />
