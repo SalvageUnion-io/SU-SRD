@@ -379,11 +379,10 @@ export function DroneCards({ drones, host }: { drones: DroneLoadout[]; host: Nes
 /**
  * ACTIONS nest in their card (owner's call, 2026-10-14): no tray and no
  * "Action" stamp, an action is part of the thing that does it. Their form is
- * the host's level (N1, N3): a Page's are level 1, each a self-contained
- * framed card inset like any nested entity (`CardStack`), its cut-out ink head
- * carrying the name and its chips, then its body. Under any other host (a
- * card, a Peek) they are level 2: contentful Tokens (`ActionTokens`), never a
- * framed card and never folded away.
+ * the host's level (N1, N3). A Page lays its own out, level 1, as framed
+ * cards (`CardPage`), so the actions drawn here are always under a Card or a
+ * Peek: level 2, contentful Tokens (`ActionTokens`), never a framed card and
+ * never folded away.
  */
 export function InlineActions({
   actions,
@@ -392,34 +391,15 @@ export function InlineActions({
   actions: ReferenceCardEntity[]
   host: NestedCardHost
 }) {
-  const { NestedCard } = host
-  if (nestsTokens(host)) {
-    return (
-      <CardStack size={host.size}>
-        <ActionTokens
-          actions={actions}
-          size={nestedChildSize(host.size)}
-          hostName={host.entityName}
-          chassisName={host.chassisName}
-          hostDown={host.isDown}
-        />
-      </CardStack>
-    )
-  }
   return (
-    <CardStack size={host.size} flush={host.onPage}>
-      {actions.map((action, index) => (
-        <NestedCard
-          key={cardKey(action, index)}
-          size={nestedChildSize(host.size)}
-          depth={host.depth + 1}
-          hostDown={host.isDown}
-          data={action}
-          readable={host.readableProse}
-          hostName={host.entityName}
-          chassisName={host.chassisName}
-        />
-      ))}
+    <CardStack size={host.size}>
+      <ActionTokens
+        actions={actions}
+        size={nestedChildSize(host.size)}
+        hostName={host.entityName}
+        chassisName={host.chassisName}
+        hostDown={host.isDown}
+      />
     </CardStack>
   )
 }

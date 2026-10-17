@@ -143,13 +143,6 @@
   display: none;
 }
 
-/* Beside a hint (a pattern row's description) the name and its labels keep
-   their width and the hint, which has none of its own, takes the rest. */
-.su-entity-row__line:has(> .su-entity-row__hint) > .su-entity-row__name {
-  flex: 0 1 auto;
-  min-width: min-content;
-}
-
 /*
  * THE CUT-OUT (`Head`'s `notch`: a Row with a body, a pattern row): the tier
  * and name sit on a tab of the paper below, notched into the band's foot, in

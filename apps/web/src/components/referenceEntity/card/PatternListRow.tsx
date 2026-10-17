@@ -187,7 +187,6 @@ function PatternLinkRow({
           hostDown={host.hostDown}
           hostName={chassisName}
           chassisName={host.chassisName}
-          loadout={false}
         />
       </div>
     </li>

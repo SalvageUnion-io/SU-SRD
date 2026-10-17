@@ -183,15 +183,10 @@ describe('cardChrome', () => {
     }
   })
 
-  test('the frame steps 3 → 2 → 1.5px with size and depth', () => {
-    expect(resolveFrameWidth({ size: 'full', extent: 'full', depth: 0 })).toBe('var(--bw-entity)')
-    expect(resolveFrameWidth({ size: 'compact', extent: 'full', depth: 1 })).toBe(
-      'var(--bw-entity-compact)'
-    )
-    expect(resolveFrameWidth({ size: 'compact', extent: 'head', depth: 2 })).toBe(
-      'var(--bw-chrome)'
-    )
-    expect(resolveFrameWidth({ size: 'mini', extent: 'full', depth: 0 })).toBe('var(--bw-chrome)')
+  test('the frame steps 3 → 2 → 1.5px with size', () => {
+    expect(resolveFrameWidth('full')).toBe('var(--bw-entity)')
+    expect(resolveFrameWidth('compact')).toBe('var(--bw-entity-compact)')
+    expect(resolveFrameWidth('mini')).toBe('var(--bw-chrome)')
   })
 
   const base = {
@@ -251,9 +246,10 @@ describe('cardChrome', () => {
       }),
       { schemaName: 'actions' }
     )
-    expect(
-      resolveHeaderHint(entity, { isTitanicMeta: true, patternListingContent: undefined })
-    ).toEqual({ hintText: 'Intro.', titanicBodyContent: [paragraph('Option one.')] })
+    expect(resolveHeaderHint(entity, { isTitanicMeta: true })).toEqual({
+      hintText: 'Intro.',
+      titanicBodyContent: [paragraph('Option one.')],
+    })
   })
 })
 

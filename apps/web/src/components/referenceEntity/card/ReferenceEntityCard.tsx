@@ -103,7 +103,7 @@ import { stripHostParenthetical } from './stripHostParenthetical'
  * The frame and the footer are ink on paper on every card; the
  * tone lives in the header alone. An entity's own roll table sits inline as a
  * flush band; its actions, like nested ENTITIES, stack framed in
- * the frame, one size step per depth (large → medium → a one-line head row), the
+ * the frame, one size step per level (large → medium → a Token), the
  * frame stepping 3 → 2 → 1.5px with them.
  *
  * ## How this file is laid out
@@ -287,7 +287,7 @@ function ReferenceEntityCardInner({
   const hide = resolveHide(hideProp, isCatalog, insidePeek)
   const tone = resolveCardTone(schemaName, entity)
   // HAVE vs DO, by data shape.
-  const fill: HeaderFill = resolveHeaderFill(entity, extent, insidePeek)
+  const fill: HeaderFill = resolveHeaderFill(entity, insidePeek)
   // Damaged dulls the header, destroyed greys it (`cardDown`); the body dims.
   const isDown = cardDown(status, hostDown)
   const { onBand, bandColor } = resolveCardColors({ tone, isDown, fill })
@@ -413,7 +413,7 @@ function ReferenceEntityCardInner({
     selectionRole,
     cardClickLabel,
     selected,
-    frameWidth: resolveFrameWidth({ size: isHead ? 'mini' : size, extent, depth }),
+    frameWidth: resolveFrameWidth(isHead ? 'mini' : size),
     dashed: userMade,
   })
 
@@ -449,10 +449,7 @@ function ReferenceEntityCardInner({
 
   // HINT — an ability's description or the titanic meta-action's intro: the
   // body's lead.
-  const { hintText, titanicBodyContent } = resolveHeaderHint(entity, {
-    isTitanicMeta,
-    patternListingContent: undefined,
-  })
+  const { hintText, titanicBodyContent } = resolveHeaderHint(entity, { isTitanicMeta })
 
   // The "//" LINE — an action's facets, then entity traits, then the
   // datavalues, with anything a choice or the Tech Level changed marked
@@ -523,9 +520,6 @@ function ReferenceEntityCardInner({
   const topRightRail = (
     <CardTopRail
       controls={seamControls}
-      status={undefined}
-      onStatusClick={undefined}
-      subject={entityName}
       selected={selected}
       selectionSeal={selectionSeal}
       multiSelect={

@@ -274,9 +274,6 @@ function ChoiceOption({
         {onPage && (
           <CardTopRail
             controls={undefined}
-            status={undefined}
-            onStatusClick={undefined}
-            subject={label}
             selected={chosen}
             selectionSeal="Chosen"
             multiSelect={undefined}

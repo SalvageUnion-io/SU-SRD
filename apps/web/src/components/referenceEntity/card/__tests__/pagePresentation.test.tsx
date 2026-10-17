@@ -118,6 +118,26 @@ describe('the card as a page', () => {
     expect(container.textContent).not.toContain('Workshop Manual')
   })
 
+  test('a suggested pick says so in a stamp under the band, after any extra line', () => {
+    const { container } = render(
+      <ReferenceEntityCard
+        data={juryRig()}
+        presentation="page"
+        suggested
+        subtitleExtra={<span>extra line</span>}
+      />
+    )
+    const tags = container.querySelector('.su-entity-page__tags')
+    expect(tags?.textContent).toBe('Suggested')
+    const text = container.textContent ?? ''
+    expect(text.indexOf('extra line')).toBeLessThan(text.indexOf('Suggested'))
+  })
+
+  test('a page that is not a suggested pick prints no stamp line', () => {
+    const { container } = render(<ReferenceEntityCard data={juryRig()} presentation="page" />)
+    expect(container.querySelector('.su-entity-page__tags')).toBeNull()
+  })
+
   test('the line art is the hero, beside the right column', () => {
     const { container } = render(<ReferenceEntityCard data={gopher()} presentation="page" />)
     expect(container.querySelector('.su-entity-page__main--art')).not.toBeNull()
