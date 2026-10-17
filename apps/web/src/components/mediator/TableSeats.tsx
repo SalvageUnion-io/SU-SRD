@@ -1,21 +1,25 @@
 /**
  * TableSeats — "The table", the Mediator Dashboard's major panel (board M1;
- * docs/architecture/mediator-dashboard.md Q5): every claimed seat, live.
+ * docs/architecture/mediator-dashboard.md Q5): every claimed seat, live, in a
+ * `TitledBox` as each of the dashboard's sections is.
  *
- * Each seat is drawn as every crew list draws a crewmate (`CrewRow`): the
- * pilot's Row with HP and AP as label-first chips (`HP | 8/10`), their mech
- * as a Token (`SP | 6/9`), then "Fine" or ▲ and the first problem. A seat with
- * a problem takes a `--color-status-bad` outline, and the ▲ word always comes
- * with it, so colour is never the only signal.
+ * Each seat is drawn as every crew list draws a crewmate (`CrewRow`, as the
+ * player Dashboard's Crew tab does): the pilot's Row with HP and AP as
+ * label-first chips (`HP | 8/10`), their mech as a Token (`SP | 6/9`) under
+ * it, then "Fine" or ▲ and the first problem. A seat with a problem takes a
+ * `--color-status-bad` outline, and the ▲ word always comes with it, so colour
+ * is never the only signal.
  *
  * The Row is in select mode (EDL "Modes": ink ring and the "Selected" seal):
  * picking it aims the propose dock at that pilot (the commonest Mediator
  * loop, see the problem, propose the fix). Its accessible name reads the
- * whole line; its View control opens the read-only sheet. A seat is a sixth
- * of the strip or a Row's floor, whichever is wider, and its chips wrap
- * rather than end in an ellipsis, so no value is ever cut. Seats past the
- * strip scroll sideways with scroll-snap, the one panel-internal scroll on
- * the canvas.
+ * whole line; its View control opens the read-only sheet.
+ *
+ * The seats are a grid of columns at least `SEAT_MIN` wide, as many as fit:
+ * wide enough that a Row keeps its name, its chips and its controls legible,
+ * two to the canvas's table and one to a phone. On the canvas a full table
+ * scrolls inside the box (the one panel-internal scroll there), so the
+ * display below keeps its room; the phone column takes every seat.
  *
  * Presentational: `tableSeats()` builds the seats.
  */
@@ -23,38 +27,32 @@
 import type { CSSProperties } from 'react'
 import { space } from '../../design/tokens'
 import { CrewRow } from '../dashboard/CrewRow'
-import { buttonVariants, EmptyState, Eyebrow } from '../index'
+import { buttonVariants, EmptyState, TitledBox } from '../index'
 import { AppLink } from '../shared/AppLink'
-import { HEAD_ROW, HEADING, PANEL } from './mediatorStyles.model'
 import type { SeatCard } from './seatCards.model'
+
+/** A seat's narrowest: room for a Row's name, its two chips and its controls. */
+const SEAT_MIN = '20rem'
 
 const LIST = {
   listStyle: 'none',
   margin: 0,
   // Room for the attention outline, which sits outside the Row.
-  padding: `${space[4]} ${space[4]} ${space[8]}`,
-  flex: 1,
-  minHeight: 0,
+  padding: space[4],
   display: 'grid',
-  gridAutoFlow: 'column',
-  // A sixth of the strip, or a Row's floor: no value is cut to fit.
-  gridAutoColumns: 'minmax(13rem, calc((100% - 5 * 12px) / 6))',
-  gap: '12px',
+  gridTemplateColumns: `repeat(auto-fill, minmax(min(100%, ${SEAT_MIN}), 1fr))`,
+  gap: space[12],
   alignItems: 'start',
-  overflowX: 'auto',
-  scrollSnapType: 'x mandatory',
 } satisfies CSSProperties
 
-/** The stacked fallback: two seats a row, no sideways scroll. */
-const LIST_STACKED = {
+/** On the canvas: two rows of seats show, and a third peeks, then it scrolls. */
+const LIST_CANVAS = {
   ...LIST,
-  gridAutoFlow: 'row',
-  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-  gridAutoColumns: undefined,
-  overflowX: 'visible',
+  maxHeight: '15.5rem',
+  overflowY: 'auto',
 } satisfies CSSProperties
 
-const SEAT = { minWidth: 0, scrollSnapAlign: 'start' } satisfies CSSProperties
+const SEAT = { minWidth: 0 } satisfies CSSProperties
 
 const VIEW = { textDecoration: 'none' } satisfies CSSProperties
 
@@ -68,24 +66,18 @@ export function TableSeats({
   /** The pilot row the propose dock is aimed at, if a seat is. */
   picked: string | null
   onPick: (seat: SeatCard) => void
-  /** The phone column: two seats a row instead of one sideways strip. */
+  /** The phone column: every seat, at its own height, no inner scroll. */
   stacked?: boolean
 }) {
   return (
-    <section aria-labelledby="mediator-table" style={{ ...PANEL, height: '100%' }}>
-      <div style={HEAD_ROW}>
-        <h2 id="mediator-table" style={HEADING}>
-          The table
-        </h2>
-        <Eyebrow tone="muted">Every seat, live</Eyebrow>
-      </div>
+    <TitledBox as="section" title="The table" titleAs="h2">
       {seats.length === 0 ? (
         <EmptyState
           variant="quiet"
           body="No one has a seat yet. A player takes one by claiming a pilot in this Game."
         />
       ) : (
-        <ul style={stacked ? LIST_STACKED : LIST} aria-label="Seats">
+        <ul style={stacked ? LIST : LIST_CANVAS} aria-label="Seats">
           {seats.map((seat) => (
             <li key={seat.pilotId} style={SEAT}>
               <CrewRow
@@ -113,6 +105,6 @@ export function TableSeats({
           ))}
         </ul>
       )}
-    </section>
+    </TitledBox>
   )
 }

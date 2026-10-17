@@ -61,12 +61,15 @@ const STACKED = { display: 'flex', flexDirection: 'column' } satisfies CSSProper
 
 const PANEL = { position: 'relative', minHeight: 0, height: '100%' } satisfies CSSProperties
 
+/** The dock's half: its titled box inset by the display's padding. */
 const DOCK = {
   minHeight: 0,
+  padding: space[12],
   borderLeft: `${borderWidth.chrome} solid ${color.ink20}`,
 } satisfies CSSProperties
 
 const DOCK_STACKED = {
+  padding: space[12],
   borderTop: `${borderWidth.chrome} solid ${color.ink20}`,
 } satisfies CSSProperties
 

@@ -530,6 +530,22 @@
 .su-dash-tablepick .su-box__body {
   min-height: 0;
 }
+
+/* A titled box that fills its panel and scrolls its own body (the Mediator's
+   propose dock): the box and its frame shrink to the panel, so the body gets
+   the room left under the head and scrolls in it. */
+.su-dash-box {
+  height: 100%;
+  min-height: 0;
+}
+.su-dash-box .su-entity-row__frame,
+.su-dash-box .su-entity-row__main,
+.su-dash-box .su-box__body {
+  min-height: 0;
+}
+.su-dash-box .su-box__body {
+  overflow-y: auto;
+}
 .su-dash-tablepick-grid {
   flex: 1 1 auto;
   min-height: 0;

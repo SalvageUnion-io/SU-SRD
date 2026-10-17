@@ -1,5 +1,5 @@
 /**
- * ProposeDock — "Propose a change · the player decides", the right half of the
+ * ProposeDock — "Propose a change" (the player decides), the right half of the
  * Mediator Dashboard's display, under every tab (board M1;
  * docs/architecture/mediator-dashboard.md Q8).
  *
@@ -12,6 +12,9 @@
  * ("Pickle's Spectrum"). The value is a whole number from 0 to the field's
  * derived maximum, clamped here; `proposals.apply` still parses it on the
  * server. Tapping a seat card picks its pilot and moves focus to To.
+ *
+ * A `TitledBox`, as each of the dashboard's sections is, filling the display's
+ * right half and scrolling its own body there (`.su-dash-box`).
  *
  * Presentational: the Dashboard owns the target (a seat card sets it) and the
  * write.
@@ -28,12 +31,12 @@ import {
 } from 'cantina-domain/games/proposals'
 import type { CSSProperties, RefObject } from 'react'
 import { useId, useState } from 'react'
-import { Button, Eyebrow, FeedList, Field, Input, Select, tokens } from '../index'
+import { Button, FeedList, Field, Input, Select, TitledBox, tokens } from '../index'
 import { MUTED, NUMBERS } from './mediatorStyles.model'
 import { ProposalRow } from './ProposalRow'
 import type { SentProposal } from './proposalLine.model'
 
-const { color, space } = tokens
+const { space } = tokens
 
 export type ProposeArgs = {
   entityId: string
@@ -42,17 +45,6 @@ export type ProposeArgs = {
   after: number
   reason?: string
 }
-
-const DOCK = {
-  height: '100%',
-  minHeight: 0,
-  overflowY: 'auto',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: space[12],
-  padding: space[12],
-  background: color.wkBg,
-} satisfies CSSProperties
 
 const ROW = {
   display: 'grid',
@@ -139,10 +131,8 @@ export function ProposeDock({
   }
 
   return (
-    <section aria-labelledby={`${id}-heading`} style={DOCK}>
-      <Eyebrow as="h2" tone="muted" id={`${id}-heading`}>
-        Propose a change · the player decides
-      </Eyebrow>
+    <TitledBox as="section" title="Propose a change" titleAs="h2" className="su-dash-box">
+      <p style={MUTED}>The player decides.</p>
       <div style={ROW}>
         <Field label="Target" htmlFor={`${id}-target`}>
           <Select
@@ -221,6 +211,6 @@ export function ProposeDock({
           </FeedList>
         </section>
       )}
-    </section>
+    </TitledBox>
   )
 }
