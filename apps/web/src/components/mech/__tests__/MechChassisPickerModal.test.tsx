@@ -75,7 +75,7 @@ describe('MechChassisPickerModal', () => {
       // Single-select clears when the chosen card is clicked again. A mech must
       // always have a chassis, so this must NOT count as a change — otherwise
       // Apply writes `chassisRef: ''` and wipes the loadout with it.
-      fireEvent.click(screen.getByRole('radio', { name: current.name }))
+      fireEvent.click(screen.getByRole('radio', { name: `Select ${current.name}` }))
       expect(screen.queryAllByTestId('rail-entry')).toHaveLength(0)
 
       const apply = screen.getByRole('button', { name: /apply chassis/i })
@@ -95,7 +95,7 @@ describe('MechChassisPickerModal', () => {
 
       // Inert until a DIFFERENT chassis is chosen.
       expect(apply().hasAttribute('disabled')).toBe(true)
-      fireEvent.click(screen.getByRole('radio', { name: other.name }))
+      fireEvent.click(screen.getByRole('radio', { name: `Select ${other.name}` }))
       expect(apply().hasAttribute('disabled')).toBe(false)
 
       fireEvent.click(apply())

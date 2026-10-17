@@ -18,7 +18,7 @@ import { CrawlerSystemsEditModal } from '../CrawlerSystemsEditModal'
 
 type Patch = Partial<Crawler> | ((current: Crawler) => Partial<Crawler>)
 
-/** The searcher renders a pool of cards; give the heavier renders room. */
+/** The searcher renders a pool of Tokens and a Card; give the heavier renders room. */
 const RENDER_TIMEOUT_MS = 10_000
 
 function renderModal(crawler: Crawler) {

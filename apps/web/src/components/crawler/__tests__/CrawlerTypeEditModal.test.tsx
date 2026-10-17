@@ -75,7 +75,7 @@ describe('CrawlerTypeEditModal', () => {
 
     // Clicking the current type clears the pick — still no change to make.
     await act(async () => {
-      fireEvent.click(screen.getByRole('radio', { name: 'Augmented' }))
+      fireEvent.click(screen.getByRole('radio', { name: 'Select Augmented' }))
     })
     expect(screen.queryAllByTestId('rail-entry')).toHaveLength(0)
     expect(changeButton().hasAttribute('disabled')).toBe(true)
@@ -89,7 +89,7 @@ describe('CrawlerTypeEditModal', () => {
     })
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('radio', { name: 'Battle' }))
+      fireEvent.click(screen.getByRole('radio', { name: 'Select Battle' }))
     })
     expect(changeButton().hasAttribute('disabled')).toBe(false)
     await act(async () => {
@@ -128,7 +128,7 @@ describe('CrawlerTypeEditModal', () => {
     const { onClose } = renderModal((...args) => writes.push(args))
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('radio', { name: 'Engineering' }))
+      fireEvent.click(screen.getByRole('radio', { name: 'Select Engineering' }))
     })
     await act(async () => {
       fireEvent.click(changeButton())
@@ -150,7 +150,7 @@ describe('CrawlerTypeEditModal', () => {
     })
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('radio', { name: 'Exploratory' }))
+      fireEvent.click(screen.getByRole('radio', { name: 'Select Exploratory' }))
     })
     await act(async () => {
       fireEvent.click(changeButton())

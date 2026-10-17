@@ -1,8 +1,7 @@
 /**
  * CrawlerTypeEditModal — the live sheet's inline "Change crawler type" picker
  * (build-edit mode). Uses the shared `EntitySearcher` in a bare ModalShell, the
- * same picker every other "choose a reference entity" modal runs on, so these
- * large cards are never clipped by a narrow option rail.
+ * same picker every other "choose a reference entity" modal runs on.
  *
  * A type change is DESTRUCTIVE and stateful: it resets the crawler's special
  * type NPC to the new type's default, drops the orphaned old type's Keepsake/
@@ -21,7 +20,7 @@ import { applyCrawlerCrewAndTypeEdit } from '../../lib/wizard/applyCrawlerEdit'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
 import { EMPTY_CRAWLER_FORM_STATE } from '../../lib/wizard/crawlerFormState'
 import type { EntityState } from '../../stores/entityStore'
-import { Button, EntitySearcher, ModalShell, toast, tokens } from '../index'
+import { Button, EntitySearcher, ModalShell, PICKER_MODAL_WIDTH, toast, tokens } from '../index'
 import '../../styles/cantina/wizard.css'
 
 /** The confirm dialog's body. */
@@ -111,7 +110,7 @@ export function CrawlerTypeEditModal({
           if (!next) onClose()
         }}
         title="Change Crawler Type"
-        maxWidth="su-wiz-modal-5xl"
+        maxWidth={PICKER_MODAL_WIDTH}
         bare
       >
         <EntitySearcher

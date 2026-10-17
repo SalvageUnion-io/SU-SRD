@@ -550,7 +550,7 @@ export function MechSheet({
               used: capacity.systemSlotsUsed,
               max: capacity.systemSlotsMax,
             },
-            { label: 'Energy', used: model.currentEP, max: maxEP, tone: 'ap' },
+            { label: 'Energy', used: model.currentEP, max: maxEP },
           ]}
         />
       </SheetPickerModal>
@@ -582,7 +582,7 @@ export function MechSheet({
               used: capacity.moduleSlotsUsed,
               max: capacity.moduleSlotsMax,
             },
-            { label: 'Energy', used: model.currentEP, max: maxEP, tone: 'ap' },
+            { label: 'Energy', used: model.currentEP, max: maxEP },
           ]}
         />
       </SheetPickerModal>

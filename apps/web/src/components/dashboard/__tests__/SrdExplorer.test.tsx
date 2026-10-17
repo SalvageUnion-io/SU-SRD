@@ -46,9 +46,9 @@ function tile(container: HTMLElement, name: string): HTMLButtonElement {
   return mustButton(tiles(container).find((b) => b.textContent?.trim() === name))
 }
 
-/** The category view is the shared EntitySearcher; its pool cards carry this. */
+/** The category view is the shared EntitySearcher; its pool Tokens carry this. */
 function poolCards(container: HTMLElement): HTMLElement[] {
-  return [...container.querySelectorAll<HTMLElement>('.su-searcher__pool [role="button"]')]
+  return [...container.querySelectorAll<HTMLElement>('.su-searcher__list [data-searcher-open]')]
 }
 
 /** The ◀ Back button of the entity view. */
@@ -68,9 +68,8 @@ const sections = () => buildCatalogSections()
 /**
  * The listing the drill-in tests open: Crawlers, 5 entries. What these tests
  * pin is the explorer's wiring (tile → searcher → card → back), which a short
- * pool exercises as fully as a long one; the searcher renders every pool card,
- * so opening Chassis (51 full cards) cost 1.6 s to 2.9 s a test inside cantina's
- * 4-worker suite for no extra coverage.
+ * pool exercises as fully as a long one; the searcher renders every pool Token,
+ * so a long listing would cost render time for no extra coverage.
  */
 const LISTING = 'Crawlers'
 
@@ -106,13 +105,13 @@ describe('SrdExplorer', () => {
     expect(container.querySelector('.su-searcher__rail')).toBeNull()
   })
 
-  test('picking a card drills into a reference card, back returns to the list', () => {
+  test('picking a Token drills into a reference card, back returns to the list', () => {
     const { container } = renderSrd()
     fireEvent.click(tile(container, LISTING))
     const [first] = poolCards(container)
     if (!first) throw new Error('no pool cards')
-    const name = first.getAttribute('aria-label')
-    if (!name) throw new Error('pool card has no accessible name')
+    const name = first.querySelector('.su-entity-token__name')?.textContent
+    if (!name) throw new Error('pool Token has no name')
     fireEvent.click(first)
     // The reference card renders; no longer a listing.
     expect(container.querySelector('.su-searcher')).toBeNull()

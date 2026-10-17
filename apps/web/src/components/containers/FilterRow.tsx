@@ -6,10 +6,9 @@ type FilterRowProps = {
   children: ReactNode
 }
 
-/** The label sits on a dark tone band (the EntitySearcher's floating modal
- * sub-header), so it is paper, not the light-ground muted ink. */
+/** The label sits on paper (the EntitySearcher's Filters panel), in ink. */
 const LABEL = {
-  color: color.paper85,
+  color: color.ink,
   fontFamily: font.cond,
   fontSize: fontSize.badge,
   fontWeight: weight.bold,
@@ -18,7 +17,7 @@ const LABEL = {
 } satisfies CSSProperties
 
 /**
- * A row of filter chips under a caps label, on a dark band: stacked and centred on a phone,
+ * A row of filter chips under a caps label, on paper: stacked and centred on a phone,
  * label-left (`.su-filter-row`, `styles/index.css`) from `sm`.
  */
 export function FilterRow({ label, children }: FilterRowProps) {
