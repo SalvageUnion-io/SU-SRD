@@ -101,7 +101,7 @@ export type TokenSlots = {
 
 /**
  * A CONTENTFUL Token's body (N3): what it draws under its one-row head,
- * unframed, with no band. A Token without one is its head alone.
+ * bordered in its tone, with no band. A Token without one is its head alone.
  */
 export type TokenBody = {
   /**
@@ -151,7 +151,7 @@ function TokenText({ model, chassisName }: { model: EntityRowModel; chassisName?
  * read-only (E16).
  *
  * With a `body` it is CONTENTFUL (N3): that head, then the entity's text and
- * the host's content under it, unframed, with no band (the class page's
+ * the host's content under it, held by a border in its tone (the class page's
  * ability track is the look). Only the head is the link and the Peek trigger,
  * so the body's own Mentions and fields never nest in it; inside a Peek the
  * head is read-only too (E16).
@@ -252,7 +252,12 @@ export function Token({
   return (
     <div className="su-entity-token" data-contentful="">
       {head}
-      <div className="su-entity-token__body" style={down ? { opacity: 0.6 } : undefined}>
+      {/* Bordered in the pill's own tone, so the Token contains its content. */}
+      <div
+        data-user-made={userMade || undefined}
+        className="su-entity-token__body"
+        style={{ borderColor: paint.background, ...(down && { opacity: 0.6 }) }}
+      >
         {body.text !== false && <TokenText model={model} chassisName={body.chassisName} />}
         {body.children}
       </div>

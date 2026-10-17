@@ -1,0 +1,22 @@
+/**
+ * Utility functions for converting entity names to URL-safe slugs
+ * and finding entities by their slug
+ *
+ * Note: This module avoids importing from helpers.ts to prevent circular dependencies.
+ * It reaches the loaded BaseModel directly via ModelFactory for entity lookups.
+ */
+import type { RefEntity, RefEnumSchemaName } from './schemas/index';
+/**
+ * Finds an entity in a schema by its slug
+ * Returns the entity if found, null otherwise
+ *
+ * O(1) via `BaseModel`'s slug index (built once per model, on first use).
+ * Rows without a truthy string `name` are not slug-addressable, and on a slug
+ * collision the FIRST row in data order wins.
+ */
+export declare function findEntityBySlug(schemaName: RefEnumSchemaName, slug: string): RefEntity | null;
+/**
+ * Gets the slug for an entity
+ * Returns the slug if the entity has a name, otherwise returns the ID
+ */
+export declare function getEntitySlug(entity: RefEntity): string;

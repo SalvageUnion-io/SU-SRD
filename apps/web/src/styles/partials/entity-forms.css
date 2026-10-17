@@ -844,11 +844,12 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 }
 
 /* A CONTENTFUL Token (N3, `body`): its head, the link and Peek trigger, then
-   the entity's text and the host's content, unframed, with no band, set in
-   from the pill's edge to the name's tab (the class page's ability track). */
+   the entity's text and the host's content, contained under the pill by a
+   border in the Token's own tone (its colour is per instance, inline), with
+   no band, set in from the pill's edge to the name's tab. */
 .su-entity-token[data-contentful] {
   flex-direction: column;
-  gap: var(--space-2);
+  gap: 0;
 }
 
 /* Down the column the head keeps its pill's height: a cell taller than the
@@ -857,13 +858,22 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   flex: none;
 }
 
+/* The body hangs from the pill: sides and foot at the pill's edge width, in
+   the pill's tone, so the Token holds its content; dashed when player-made. */
 .su-entity-token__body {
+  border-style: solid;
+  border-top: 0;
+  border-width: var(--bw-chrome);
   color: var(--color-ink-2);
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
   min-width: 0;
-  padding: 0 var(--space-6) 0 var(--space-10);
+  padding: var(--space-4) var(--space-6) var(--space-6) var(--space-10);
+}
+
+.su-entity-token__body[data-user-made] {
+  border-style: dashed;
 }
 
 .su-entity-token__body:empty {

@@ -1,0 +1,89 @@
+/**
+ * URL derivation for the two hosts the dataset addresses: the artwork CDN
+ * (`assets.salvageunion.io`) and the public reference site
+ * (`salvageunion.io`).
+ *
+ * Both bases live here for the same reason: an entity's artwork URL and its
+ * reference-site page are DERIVED from the dataset (schema name + slug), so
+ * the grammar belongs with the dataset rather than being retyped by every
+ * surface that links out.
+ *
+ * The package barrel (`lib/index.ts`) re-exports, by name, only what
+ * consumers import.
+ */
+import type { RefMetaEntity } from './schemas/index';
+/**
+ * Derive an entity's asset URL from its schema name and slug.
+ *
+ * Artwork is unified on WebP, so the whole URL is inferred:
+ * `{ASSET_BASE_URL}/{schemaName}/{slug}.webp`. The boolean `hasArtwork` flag
+ * marks which entities have artwork; the slug matches `getEntitySlug`, so the
+ * artwork path lines up with the entity's canonical reference path.
+ *
+ * @param entity - The entity to derive from (must carry a stamped `schemaName`)
+ * @returns The asset URL, or undefined if the entity has no artwork
+ */
+export declare function getAssetUrl(entity: RefMetaEntity): string | undefined;
+/**
+ * The artwork CDN URL for one object key — the same base {@link getAssetUrl}
+ * derives from, for artwork that is not a reference entity's (the Starter
+ * Set crew's portraits live under `starter-set/`).
+ *
+ * @param path - The object key, without a leading slash
+ * @returns The asset URL
+ */
+export declare function assetUrl(path: string): string;
+/**
+ * The reference site's ROOT-RELATIVE path for one entity's page.
+ *
+ * This is the site's route grammar (`/{schemaName}/{slug}` — it matches the
+ * srd `getStaticPaths`), expressed once. The pages once lived under
+ * `/schema/{schemaName}/item/{slug}`; the srd Worker 301s that tree here, and
+ * `/schema/*` now names only the JSON API, whose paths are not this grammar.
+ * The srd site itself wants the relative form (it is that origin); anything
+ * linking in from outside prefixes {@link SRD_SITE_URL} via {@link srdEntityUrl}.
+ *
+ * Takes the SLUG rather than the entity, because callers arrive with either —
+ * a resolved entity (slug it with `getEntitySlug`) or a bare name already run
+ * through `nameToSlug` (the bot's trait/table/drone links).
+ *
+ * @param schemaName - The entity's schema id (e.g. `'chassis'`)
+ * @param slug - The entity's slug
+ * @returns The root-relative page path
+ */
+export declare function srdEntityPath(schemaName: string, slug: string): string;
+/**
+ * The reference site's ROOT-RELATIVE path for one schema's LISTING page.
+ *
+ * The other half of the route grammar, and it exists for the same reason
+ * {@link srdEntityPath} does. Both are written WITHOUT a trailing slash; srd
+ * emits directory-style output and appends the slash itself in exactly one
+ * place (`apps/web/src/lib/entityHref.ts`), so the slash is a rendering
+ * decision of that app rather than part of the grammar.
+ *
+ * Keep this the only place either shape is spelled. Directory-style output
+ * redirects an un-slashed form rather than 404ing, so a second spelling would
+ * cost a hop on every bot and the Cantina deep link and split the canonical URL in
+ * two, without ever failing.
+ *
+ * @param schemaName - The entity's schema id (e.g. `'chassis'`)
+ * @returns The root-relative listing path
+ */
+export declare function srdSchemaPath(schemaName: string): string;
+/**
+ * The reference site's ABSOLUTE URL for one schema's listing page —
+ * {@link SRD_SITE_URL} + {@link srdSchemaPath}.
+ *
+ * @param schemaName - The entity's schema id (e.g. `'chassis'`)
+ * @returns The absolute listing URL
+ */
+export declare function srdSchemaUrl(schemaName: string): string;
+/**
+ * The reference site's ABSOLUTE URL for one entity's page —
+ * {@link SRD_SITE_URL} + {@link srdEntityPath}.
+ *
+ * @param schemaName - The entity's schema id (e.g. `'chassis'`)
+ * @param slug - The entity's slug
+ * @returns The absolute page URL
+ */
+export declare function srdEntityUrl(schemaName: string, slug: string): string;

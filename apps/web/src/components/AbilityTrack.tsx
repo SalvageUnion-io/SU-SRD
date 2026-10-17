@@ -26,7 +26,7 @@ const abilityHref = (ability: RefAbility) => itemHref('abilities', getEntitySlug
  * Row (the listing row's shape, `EntityListingRow`). Inside a class page's
  * path card, a level-1 frame, the track is level 2, so each is a contentful
  * Token (`form="token"`, N1, N3): its one-row head (tier, name, chips), then
- * its text, unframed.
+ * its text, held by a border in its tone.
  */
 export function AbilityTrack({
   abilities,

@@ -15,7 +15,7 @@ Status: agreed. Code: `apps/web/src/components/entity/`.
 
 1. **Mention** — names an entity in prose, in the prose's own type; links where a route exists; hover or long-press Peeks.
 2. **Token** — `name [chips]`, one row, name cut out, filling its line (one a line in a list); links and Peeks as a Mention.
-   **Contentful** (N3): that head, then the entity's text, unframed, no band: nested actions, chassis abilities, a bay's crew lead.
+   **Contentful** (N3): that head, then the entity's text, held in a border of its tone: nested actions, chassis abilities, a bay's crew lead.
 3. **Row** — every list: art column (≥ 18rem, where the schema has art), head (tier on the band, name, chips, mode slot; name on the paper cut-out, chips beside it), a paper body only for a lead or stamp.
    In a `data-entity-grid` every Row is the same height and every head's name line reserves two lines.
    **Tile** — the SRD index's Row: 3:4 art if any, name notched in the band, facts, lead; link only.

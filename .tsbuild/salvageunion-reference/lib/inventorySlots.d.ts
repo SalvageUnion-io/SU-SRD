@@ -1,0 +1,22 @@
+/**
+ * The Pilot inventory-slot rule: an item takes one slot, or two if it is Heavy
+ * or Portable.
+ *
+ * This is a RULE, not a field extractor, and by rights belongs beside the other
+ * pure rules math in `lib/rules/` (ADR-006). It is parked here instead because
+ * `lib/rules/` is published as the separate `salvageunion-reference/rules`
+ * entry point: moving it there would either add a name to that entry point's
+ * public surface or remove one from the main barrel, and this split is meant to
+ * be invisible from outside the package. Its one consumer
+ * (`apps/web/src/lib/rules/pilotInventory.ts`) imports it from the main
+ * barrel today.
+ *
+ * The package barrel (`lib/index.ts`) re-exports, by name, only what
+ * consumers import.
+ */
+import type { RefMetaEntity } from './schemas/index';
+/**
+ * Get the number of inventory slots an equipment entity occupies.
+ * Default is 1. Heavy or Portable traits make it 2.
+ */
+export declare function getInventorySlots(entity: RefMetaEntity): number;

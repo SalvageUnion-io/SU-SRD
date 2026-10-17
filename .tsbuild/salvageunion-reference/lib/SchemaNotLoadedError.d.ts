@@ -1,0 +1,12 @@
+/**
+ * Thrown by any model read made before its schema has been preloaded.
+ *
+ * A class rather than a bare `Error` so a caller can tell this — an expected
+ * state in some contexts (a read-only snapshot render that never preloads, a
+ * unit test) — apart from a genuine fault, where a bare `catch {}` would
+ * swallow every OTHER error in the same block too.
+ */
+export declare class SchemaNotLoadedError extends Error {
+    readonly schemaId: string;
+    constructor(schemaId: string);
+}

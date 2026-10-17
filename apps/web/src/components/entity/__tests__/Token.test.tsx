@@ -6,7 +6,7 @@
  * its SYS and MODS. An ability's tier numeral leads its name instead of a chip.
  *
  * It fills its line (N4). With a `body` it is contentful (N3): the same
- * one-row head, then the entity's text and the host's content, unframed;
+ * one-row head, then the entity's text and the host's content, held by a border in its tone;
  * only the head links and Peeks, and inside a Peek it reads (E16).
  */
 import { describe, expect, test } from 'bun:test'
@@ -202,6 +202,19 @@ describe('the contentful Token (N3)', () => {
     expect(body?.textContent).toContain('electro-magnetic field')
     expect(body?.textContent).toContain('When you or a target in Close Range is hit')
     expect(head?.textContent).not.toContain('When you or a target')
+  })
+
+  test("the body is held by a border in the pill's own tone, hung from the pill", () => {
+    const { container } = render(<Entity form="token" entity={shield()} body={{}} />)
+    const pill = container.querySelector<HTMLElement>('.su-entity-token__pill')
+    const body = container.querySelector<HTMLElement>('.su-entity-token__body')
+    expect(pill?.style.backgroundColor).not.toBe('')
+    expect(body?.style.borderColor).toBe(pill?.style.backgroundColor ?? '')
+    const css = readPackageStylesheet()
+    expect(css).toMatch(
+      /\.su-entity-token__body \{[^}]*border-top: 0;[^}]*border-width: var\(--bw-chrome\);/
+    )
+    expect(css).toMatch(/\.su-entity-token\[data-contentful\] \{[^}]*gap: 0;/)
   })
 
   test('its head chips run in the stat order: action type, range, traits, then the cost box', () => {
