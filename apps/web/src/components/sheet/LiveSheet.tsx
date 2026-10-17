@@ -35,6 +35,7 @@ import {
   Badge,
   buttonVariants,
   ChapterBand,
+  Cluster,
   cn,
   EntityExternalLinkProvider,
   EntityStat,
@@ -117,14 +118,6 @@ type LiveSheetProps = {
    */
   quoted?: boolean
 }
-
-/** The type stamp's line beside the name. */
-const BAND_LINE = {
-  alignItems: 'center',
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[8],
-} satisfies CSSProperties
 
 /** Sticky bar height — the IntersectionObserver top inset (design: 58/66px). */
 /** The sheet you are on in the phone's Pilot/Mech/Crawler switch: an ink plate. */
@@ -412,13 +405,13 @@ export function LiveSheet({
         aside={
           <>
             {stamp && (
-              <div style={BAND_LINE}>
+              <Cluster gap={8}>
                 {stamp.entityRef ? (
                   <EntityStat label={stamp.label} entityRef={stamp.entityRef} />
                 ) : (
                   <Stat orientation="horizontal" label={stamp.label} value={stamp.name} wrap />
                 )}
-              </div>
+              </Cluster>
             )}
             {/* The phone's segmented Pilot/Mech/Crawler switch, full width
                 under the name so it stays thumb-reachable. The active segment

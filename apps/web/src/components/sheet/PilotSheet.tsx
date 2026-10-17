@@ -67,6 +67,7 @@ import {
   SheetSectionCard,
   SheetSectionSlab,
   SlotGrid,
+  Stack,
   Stat,
   TitledBox,
   tokens,
@@ -152,12 +153,6 @@ const REGIONS = {
 } satisfies CSSProperties
 
 const MIN_W_0 = { minWidth: 0 } satisfies CSSProperties
-
-const STACK_12 = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[12],
-} satisfies CSSProperties
 
 /** The Vitals rows; the dashed rule between them is `.su-sheet-pilot-vitals`. */
 const VITALS = { display: 'flex', flexDirection: 'column', width: '100%' } satisfies CSSProperties
@@ -532,7 +527,7 @@ export function PilotSheet({
           among the pilot's carried gear. */}
       {model.partners.length > 0 && (
         <SheetSectionSlab title="Partners" count={model.partners.length}>
-          <div style={STACK_12}>
+          <Stack gap={12}>
             {model.partners.map((partner) => (
               <PartnerCard
                 key={partner.id}
@@ -546,7 +541,7 @@ export function PilotSheet({
                 store={store}
               />
             ))}
-          </div>
+          </Stack>
         </SheetSectionSlab>
       )}
 

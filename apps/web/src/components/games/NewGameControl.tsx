@@ -34,6 +34,7 @@ import {
   ModalShell,
   PageHeading,
   Pending,
+  Stack,
   Text,
   tokens,
 } from '../index'
@@ -121,7 +122,7 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
   return (
     <ModalShell open={open} onOpenChange={onOpenChange} title="New Game">
       <div style={BODY}>
-        <section aria-labelledby="new-game-start" style={SECTION}>
+        <Stack as="section" gap={10} aria-labelledby="new-game-start">
           <PageHeading variant="section" as="h3" id="new-game-start">
             Start a Game
           </PageHeading>
@@ -145,7 +146,7 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
               Create
             </Button>
           </div>
-        </section>
+        </Stack>
 
         <section aria-labelledby="new-game-template" style={RULED}>
           <PageHeading variant="section" as="h3" id="new-game-template">
@@ -153,7 +154,7 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
           </PageHeading>
           {templates === undefined && <Pending label="templates" />}
           {templates?.map((t) => (
-            <div key={t.id} style={SECTION}>
+            <Stack gap={10} key={t.id}>
               <PageHeading as="h4">{t.name}</PageHeading>
               <Text variant="hint" style={HINT}>
                 {t.description}
@@ -169,7 +170,7 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
                   Start this Game
                 </Button>
               </div>
-            </div>
+            </Stack>
           ))}
         </section>
 

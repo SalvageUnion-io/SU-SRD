@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import { borderWidth, color, radius, space } from '../../design/tokens'
 import { Ghost } from '../atoms/Ghost'
+import { Stack } from './Stack'
 
 /** The body's ghost lines: the last runs short, the rest alternate full / 80%. */
 const BODY_LINES = ['100%', '80%', '60%']
@@ -71,12 +72,7 @@ const TILE_BAND = {
   padding: `${space[8]} ${space[12]}`,
 } satisfies CSSProperties
 
-const CARD_BODY = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: space[8],
-  padding: space[8],
-} satisfies CSSProperties
+const CARD_BODY = { padding: space[8] } satisfies CSSProperties
 
 type SkeletonShape = 'card' | 'row' | 'rows' | 'tile'
 
@@ -110,11 +106,11 @@ function CardGhost() {
         <Ghost style={{ width: '40%', height: space[16], backgroundColor: color.ink20 }} />
         <Ghost style={{ width: '25%', height: space[12], backgroundColor: color.ink15 }} />
       </div>
-      <div style={CARD_BODY}>
+      <Stack gap={8} style={CARD_BODY}>
         {BODY_LINES.map((width) => (
           <Ghost key={width} style={{ height: space[12], width }} />
         ))}
-      </div>
+      </Stack>
     </>
   )
 }

@@ -71,6 +71,7 @@ import {
   FieldError,
   heatDangerFrom,
   SheetSectionSlab,
+  Stack,
   tokens,
   VitalGauge,
 } from '../index'
@@ -147,12 +148,6 @@ function slotCount(used: number, max: number, asPrinted: AsPrinted): SlabCount {
   }
   return { label: 'Slots', value: used, max, ...(used > max ? { state: 'critical' } : {}) }
 }
-
-const PARTNERS = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[12],
-} satisfies CSSProperties
 
 type MechSheetProps = {
   mech: Mech
@@ -484,7 +479,7 @@ export function MechSheet({
           Union Crawler, unlike a pilot's ability-granted partners. ===== */}
       {(mech.partners ?? []).length > 0 && (
         <SheetSectionSlab title="Partners">
-          <div style={PARTNERS}>
+          <Stack gap={12}>
             {(mech.partners ?? []).map((partner) => (
               <PartnerCard
                 key={partner.id}
@@ -494,7 +489,7 @@ export function MechSheet({
                 store={store}
               />
             ))}
-          </div>
+          </Stack>
         </SheetSectionSlab>
       )}
 

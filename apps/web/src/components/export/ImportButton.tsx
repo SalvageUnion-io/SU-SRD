@@ -14,15 +14,13 @@
 
 import type { CSSProperties } from 'react'
 import { useRef, useState } from 'react'
-import { color, font, fontSize, space } from '../../design/tokens'
+import { color, font, fontSize } from '../../design/tokens'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import type { MergeSummary } from '../../lib/export/mergeImport'
 import { mergeImport } from '../../lib/export/mergeImport'
 import { ImportRefused, parseImportBundle } from '../../lib/export/parseImportBundle'
 import { useEntityStore } from '../../stores/entityStore'
-import { Button, FieldError, toast } from '../index'
-
-const STACK = { display: 'flex', flexDirection: 'column', gap: space[4] } satisfies CSSProperties
+import { Button, FieldError, Stack, toast } from '../index'
 
 /** The inline summary line. */
 const SUMMARY = {
@@ -108,7 +106,7 @@ export function ImportButton({ className, onInk = false, onResult }: ImportButto
   }
 
   return (
-    <div style={STACK}>
+    <Stack gap={4}>
       <Button size="compact" disabled={busy} onClick={handleClick} className={className}>
         {busy ? 'Importing…' : 'Import'}
       </Button>
@@ -126,6 +124,6 @@ export function ImportButton({ className, onInk = false, onResult }: ImportButto
       {!onResult && summary && !error && (
         <p style={onInk ? SUMMARY_ON_INK : SUMMARY}>{summaryText(summary)}</p>
       )}
-    </div>
+    </Stack>
   )
 }

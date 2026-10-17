@@ -1,5 +1,6 @@
 import { useAuthActions } from '@convex-dev/auth/react'
 import { useNavigate } from '@tanstack/react-router'
+import type { CSSProperties } from 'react'
 import { useEffect, useRef } from 'react'
 import { returnTo } from '../../lib/account/returnTo'
 import { useConnection } from '../../lib/connection/connectionContext'
@@ -18,9 +19,12 @@ import { useSignOut } from './useSignOut'
  *   was opened on (`returnTo` keeps that to this site or the SRD).
  */
 
+/** The page body's gutters, without its measure or its head and foot. */
+const HANDOFF = { maxWidth: 'none', paddingBlock: 0 } satisfies CSSProperties
+
 function Handoff({ children }: { children: string }) {
   return (
-    <main className="su-page-column">
+    <main className="su-page-body" style={HANDOFF}>
       <Text variant="hint">{children}</Text>
     </main>
   )

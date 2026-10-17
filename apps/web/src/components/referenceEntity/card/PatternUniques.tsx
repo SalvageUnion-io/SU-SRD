@@ -1,14 +1,11 @@
-import type { CSSProperties } from 'react'
 import type { RefObjectAnyPattern } from 'salvageunion-reference'
 import { extractPatternActions, normalizePatternName } from 'salvageunion-reference'
-import { space } from '../../../design/tokens'
+import { Stack } from '../../index'
 import type { Down } from './cardChrome'
 import { cardKey } from './cardHelpers'
 import { LoadoutToken } from './PatternLoadout'
 import type { NestedCard } from './referenceEntityCardTypes'
 import { resolvePatternGroups } from './resolveNestedEntities'
-
-const CARDS = { display: 'flex', flexDirection: 'column', gap: space[8] } satisfies CSSProperties
 
 /**
  * `PatternUniques` — what makes ONE pattern itself, shown under its row in a
@@ -66,7 +63,7 @@ export function PatternUniques({
         </ul>
       )}
       {actions.length > 0 && (
-        <div style={CARDS}>
+        <Stack gap={8}>
           {actions.map((action, index) => (
             <NestedCard
               key={cardKey(action, index)}
@@ -78,7 +75,7 @@ export function PatternUniques({
               chassisName={chassisName}
             />
           ))}
-        </div>
+        </Stack>
       )}
     </div>
   )

@@ -11,7 +11,9 @@
  * and the 404 — at the one measure (`--page-measure`, `lib/pageMeasure.ts`),
  * centred, its side padding the gutter: 16px on a phone, 24px from `sm`. The
  * band's row and the foot's share the measure and the padding, so the notch,
- * the content and the citation start on one line.
+ * the content and the citation start on one line. A Cantina screen's body
+ * under a measured band (`PageShell`'s `measure`) wears it too, setting its
+ * own measure and block padding inline.
  */
 .su-page-body {
   margin-inline: auto;

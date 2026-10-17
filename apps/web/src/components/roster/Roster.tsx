@@ -30,16 +30,11 @@ import { ExportAllButton } from '../export/ExportAllButton'
 import { ImportButton } from '../export/ImportButton'
 import { GameBand } from '../games/GameBand'
 import { GameHub } from '../games/GameHub'
-import { GAME_BODY } from '../games/hubStyles.model'
-import { RosterSkeleton, tokens } from '../index'
+import { GAME_BODY, GAME_MEASURE } from '../games/hubStyles.model'
+import { PageShell, RosterSkeleton, tokens } from '../index'
 import { Shelves } from '../shelves/Shelves'
 import { FrontDoor } from './FrontDoor'
 import type { SegmentKind } from './RosterColumn'
-
-const PAGE = {
-  backgroundColor: tokens.color.wkBg,
-  minHeight: '100%',
-} satisfies CSSProperties
 
 /** The band's controls, at its end. */
 const BAND_CONTROLS = {
@@ -90,26 +85,24 @@ function GamePage({ gameId }: { gameId: string | null }) {
     </div>
   )
 
-  return (
-    <main style={PAGE}>
-      {gameId === null ? (
-        <>
-          <GameBand gameId={null} name="Game" controls={controls} />
-          <div className="su-page-column" style={GAME_BODY}>
-            <RosterSkeleton />
-          </div>
-        </>
-      ) : (
-        // Remount per Game, so one table's busy and error state never shows
-        // on the next.
-        <GameHub
-          key={gameId}
-          gameId={gameId}
-          controls={controls}
-          activeSegment={activeSegment}
-          onSegmentChange={setActiveSegment}
-        />
-      )}
-    </main>
+  return gameId === null ? (
+    <PageShell
+      measure={GAME_MEASURE}
+      stack={false}
+      band={<GameBand gameId={null} name="Game" controls={controls} />}
+      bodyStyle={GAME_BODY}
+    >
+      <RosterSkeleton />
+    </PageShell>
+  ) : (
+    // Remount per Game, so one table's busy and error state never shows
+    // on the next.
+    <GameHub
+      key={gameId}
+      gameId={gameId}
+      controls={controls}
+      activeSegment={activeSegment}
+      onSegmentChange={setActiveSegment}
+    />
   )
 }

@@ -1,21 +1,8 @@
-/**
- * ExportAllButton — triggers a full backup download (all pilots, mechs,
- * crawlers, and softLinks) as a single JSON file.
- *
- * Uses buildExportBundle + downloadJson from lib/export.
- * Success/failure surface as toasts; errors also render inline so the
- * failure stays visible next to the retry affordance.
- */
-
-import type { CSSProperties } from 'react'
-import { space } from '../../design/tokens'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { buildExportBundle } from '../../lib/export/buildExportBundle'
 import { downloadJson } from '../../lib/export/downloadJson'
 import { useEntityStore } from '../../stores/entityStore'
-import { Button, Message, toast } from '../index'
-
-const STACK = { display: 'flex', flexDirection: 'column', gap: space[4] } satisfies CSSProperties
+import { Button, Message, Stack, toast } from '../index'
 
 type ExportAllButtonProps = {
   /** Extra classes for the button (the Shelves band's on-ink outline). */
@@ -42,7 +29,7 @@ export function ExportAllButton({ className, onInk = false }: ExportAllButtonPro
   }
 
   return (
-    <div style={STACK}>
+    <Stack gap={4}>
       <Button
         size="compact"
         disabled={busy}
@@ -54,6 +41,6 @@ export function ExportAllButton({ className, onInk = false }: ExportAllButtonPro
       <Message tone="bad" ground={onInk ? 'ink' : 'paper'}>
         {error}
       </Message>
-    </div>
+    </Stack>
   )
 }

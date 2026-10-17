@@ -20,10 +20,8 @@
 import type { CSSProperties } from 'react'
 import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
 import type { ReferenceEntityControl } from '../index'
-import { EmptyState, ReferenceEntityCard, Toggle } from '../index'
+import { EmptyState, ReferenceEntityCard, Stack, Toggle } from '../index'
 import type { DeckListModel } from './DeckList'
-
-const ROOT = { display: 'flex', flexDirection: 'column', gap: space[10] } satisfies CSSProperties
 
 const HEADING = {
   margin: 0,
@@ -83,16 +81,16 @@ export function PhoneDeck({
 }) {
   if (view.kind === 'empty') {
     return (
-      <section aria-labelledby="dash-phone-deck" style={ROOT}>
+      <Stack as="section" gap={10} aria-labelledby="dash-phone-deck">
         <h3 id="dash-phone-deck" style={HEADING}>
           Actions
         </h3>
         <EmptyState variant="quiet" body={view.text} />
-      </section>
+      </Stack>
     )
   }
   return (
-    <section aria-labelledby="dash-phone-deck" style={ROOT}>
+    <Stack as="section" gap={10} aria-labelledby="dash-phone-deck">
       <h3 id="dash-phone-deck" style={HEADING}>
         Actions
       </h3>
@@ -169,6 +167,6 @@ export function PhoneDeck({
           })}
         </ul>
       )}
-    </section>
+    </Stack>
   )
 }

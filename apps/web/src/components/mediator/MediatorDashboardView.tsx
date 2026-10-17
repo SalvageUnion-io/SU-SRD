@@ -22,7 +22,7 @@ import { DisplayPanelFrame } from '../dashboard/DisplayPanel'
 import { LogTab } from '../dashboard/LogTab'
 import { SrdExplorer } from '../dashboard/SrdExplorer'
 import type { AlertLine, RollLine } from '../dashboard/useGameFeed'
-import { tokens } from '../index'
+import { Grid, tokens } from '../index'
 import { CrawlerMinor } from './CrawlerMinor'
 import type { CrawlerReading } from './crawlerReading.model'
 import type { DowntimeReading, DowntimeWrites } from './DowntimeMinor'
@@ -104,12 +104,6 @@ const STACKED_RAIL = {
   minHeight: '40px',
   flexWrap: 'wrap',
   padding: space[8],
-} satisfies CSSProperties
-
-const STACKED_MINORS = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 16rem), 1fr))',
-  gap: space[10],
 } satisfies CSSProperties
 
 const STACKED_DISPLAY = { borderRadius: '6px' } satisfies CSSProperties
@@ -223,10 +217,10 @@ function Panels({
           {rail}
         </div>
         {seats}
-        <div style={STACKED_MINORS}>
+        <Grid min="16rem" gap={10}>
           {downtime}
           {crawler}
-        </div>
+        </Grid>
         <div className="su-dash-display su-dash-display-light" style={STACKED_DISPLAY}>
           {display}
         </div>

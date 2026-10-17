@@ -13,7 +13,7 @@ import type { CSSProperties } from 'react'
 import type { RefClass } from 'salvageunion-reference'
 import type { ClassPathConsequence } from '../../lib/rules/classPath'
 import { classPathConsequence, classPathGroups } from '../../lib/rules/classPath'
-import { Callout, Entity, RadioCardGroup, ReferenceEntityCard, Slab, tokens } from '../index'
+import { Callout, Entity, RadioCardGroup, ReferenceEntityCard, Slab, Stack, tokens } from '../index'
 import '../../styles/cantina/wizard.css'
 
 /** An unreachable (off-ring) class, demoted but still pickable. */
@@ -31,13 +31,6 @@ const OPTION_NOTE = {
   color: tokens.color.wkMuted,
 } satisfies CSSProperties
 
-/** The gain / lose / keep lists. */
-const LEDGER = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[12],
-} satisfies CSSProperties
-
 /** Each list's Slab, close over its lines. */
 const LEDGER_SLAB = { marginBottom: tokens.space[6] } satisfies CSSProperties
 
@@ -53,13 +46,6 @@ const PICKER = { display: 'grid', gap: tokens.space[16] } satisfies CSSPropertie
 
 /** One ring group (Core, Advanced, …) in the class list. */
 const GROUP = { marginBottom: tokens.space[16] } satisfies CSSProperties
-
-/** The consequences column. */
-const CONSEQUENCES = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[12],
-} satisfies CSSProperties
 
 /** The origin question's copy, above its cards. */
 const ORIGIN_COPY = { margin: `0 0 ${tokens.space[8]}` } satisfies CSSProperties
@@ -152,11 +138,11 @@ function Ledger({
   allClasses: readonly RefClass[]
 }) {
   return (
-    <div style={LEDGER}>
+    <Stack gap={12}>
       <LedgerList label="Gain" items={consequence.gain} allClasses={allClasses} />
       <LedgerList label="Lose" items={consequence.lose} allClasses={allClasses} />
       <LedgerList label="Keep" items={consequence.keep} allClasses={allClasses} />
-    </div>
+    </Stack>
   )
 }
 
@@ -199,7 +185,7 @@ export function ClassPathPicker({
         ))}
       </RadioCardGroup>
 
-      <div style={CONSEQUENCES}>
+      <Stack gap={12}>
         {consequence === undefined ? null : (
           <>
             <Slab label={consequence.title} variant="solid" />
@@ -239,7 +225,7 @@ export function ClassPathPicker({
             )}
           </>
         )}
-      </div>
+      </Stack>
     </div>
   )
 }

@@ -37,6 +37,7 @@ import {
   ReferenceEntityCard,
   SearchField,
   Slab,
+  Stack,
   tokens,
   useSearchCombobox,
 } from '../index'
@@ -129,7 +130,7 @@ function SrdHome({
   const open = results.length > 0
 
   return (
-    <div style={STACK}>
+    <Stack gap={12}>
       <div>
         <SearchField
           type="text"
@@ -221,7 +222,7 @@ function SrdHome({
       ) : (
         <Pending label="reference data" />
       )}
-    </div>
+    </Stack>
   )
 }
 

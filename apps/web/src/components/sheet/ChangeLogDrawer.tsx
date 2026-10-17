@@ -17,7 +17,7 @@ import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { formatDateTime } from '../../lib/formatDate'
 import type { BadgeTone } from '../index'
-import { Badge, EmptyState, ModalShell, Pending, tokens } from '../index'
+import { Badge, Cluster, EmptyState, ModalShell, Pending, tokens } from '../index'
 
 type ChangeLogDrawerProps = {
   entityType: EntityRef['type']
@@ -69,13 +69,6 @@ const ENTRY = {
   border: `${tokens.borderWidth.hairline} solid ${tokens.color.ink15}`,
   backgroundColor: wash(tokens.color.ink, 3),
   padding: `${tokens.space[8]} ${tokens.space[12]}`,
-} satisfies CSSProperties
-
-const ENTRY_HEAD = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  alignItems: 'center',
-  gap: tokens.space[8],
 } satisfies CSSProperties
 
 const FIELD = {
@@ -145,14 +138,14 @@ function ChangeLogEntries({
         const kind = KIND_META[entry.kind]
         return (
           <li key={entry._id} style={ENTRY}>
-            <div style={ENTRY_HEAD}>
+            <Cluster gap={8}>
               <KindChip label={kind.label} tone={kind.tone} />
               {entry.state === 'proposed' && <KindChip label="Proposed" />}
               <span style={FIELD}>{entry.field}</span>
               <time dateTime={new Date(entry.ts).toISOString()} style={TIME}>
                 {formatDateTime(entry.ts)}
               </time>
-            </div>
+            </Cluster>
             <div style={VALUES}>
               <span style={BEFORE}>{formatValue(entry.before)}</span>
               <span aria-hidden="true" style={MUTED}>

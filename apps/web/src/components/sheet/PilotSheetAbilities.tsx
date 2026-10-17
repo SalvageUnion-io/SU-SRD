@@ -10,28 +10,10 @@
  */
 
 import type { CSSProperties } from 'react'
-import { AbilityTrack, EmptyState, Panel, SheetSectionSlab, Slab, tokens } from '../index'
+import { AbilityTrack, EmptyState, Panel, SheetSectionSlab, Slab, Stack, tokens } from '../index'
 import { PilotAbilityItem } from './PilotSheetItems'
 import type { AbilityEntry, AbilityTreeGroup } from './pilotSheet.model'
 import { SectionManageButton } from './SheetSection'
-
-const STACK_8 = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[8],
-} satisfies CSSProperties
-
-const STACK_16 = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[16],
-} satisfies CSSProperties
-
-const STACK_20 = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[20],
-} satisfies CSSProperties
 
 /** The two slabs, a section's gap apart (the sheet column's own). */
 const SECTIONS = {
@@ -94,9 +76,9 @@ export function PilotSheetAbilities({
         {classTrees.length === 0 && unresolvedAbilities.length === 0 ? (
           <EmptyState variant="quiet" body="No abilities learned yet." />
         ) : (
-          <div style={STACK_20}>
+          <Stack gap={20}>
             {classTrees.map((group) => (
-              <section key={group.tree} aria-label={`${group.tree} Tree`} style={STACK_16}>
+              <Stack as="section" gap={16} key={group.tree} aria-label={`${group.tree} Tree`}>
                 <Slab
                   variant="solid"
                   label={group.tree}
@@ -118,19 +100,19 @@ export function PilotSheetAbilities({
                     ))}
                   </ul>
                 )}
-              </section>
+              </Stack>
             ))}
 
             {unresolvedAbilities.length > 0 && (
-              <div style={STACK_8}>
+              <Stack gap={8}>
                 {unresolvedAbilities.map((slug) => (
                   <Panel key={slug} className="su-sheet-pilot-panel-text">
                     {slug}
                   </Panel>
                 ))}
-              </div>
+              </Stack>
             )}
-          </div>
+          </Stack>
         )}
       </SheetSectionSlab>
       {genericAbilities.length > 0 && (

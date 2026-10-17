@@ -17,7 +17,7 @@ import type { RefEntity } from 'salvageunion-reference'
 import { radius } from '../../design/tokens'
 import { useEscapeKey } from '../../lib/useEscapeKey'
 import type { ProvenanceLine, VitalGaugeBreakdown } from '../index'
-import { Badge, Button, Entity, Stat, StatusBadge } from '../index'
+import { Badge, Button, Entity, Stack, Stat, StatusBadge } from '../index'
 import { CargoLotRow } from '../shared/CargoLotRow'
 import type { BandStat } from './BandStats'
 import { BandStats } from './BandStats'
@@ -175,8 +175,6 @@ const SIDE = {
  * in, which a `transform` would not.
  */
 const LARGE = { zoom: 1.5, gap: '6px' } satisfies CSSProperties
-
-const SIDE_BAY = { display: 'flex', flexDirection: 'column', gap: '4px' } satisfies CSSProperties
 
 const LINE = {
   margin: 0,
@@ -485,9 +483,9 @@ export function MajorFrame({ view }: { view: MajorModel }) {
         {side.length > 0 && (
           <div style={SIDE}>
             {side.map((bay) => (
-              <div key={bay.label} style={SIDE_BAY}>
+              <Stack gap={4} key={bay.label}>
                 <BayBody bay={bay} />
-              </div>
+              </Stack>
             ))}
           </div>
         )}

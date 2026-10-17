@@ -33,7 +33,7 @@ import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useShowContainer } from '../entityContainer/useShowContainer'
-import { Button, Card, Pending, Skeleton, Text, tokens } from '../index'
+import { Button, Card, Grid, PageShell, Pending, Skeleton, Stack, Text, tokens } from '../index'
 import { readCrawler } from '../mediator/crawlerReading.model'
 import type { SegmentKind } from '../roster/RosterColumn'
 import { CopyInviteLink, ResetInviteLink } from './CopyInviteLink'
@@ -42,7 +42,7 @@ import { DeleteGameDialog } from './DeleteGameDialog'
 import { GameBand } from './GameBand'
 import { GameRoster } from './GameRoster'
 import { HubSection } from './HubSection'
-import { GAME_BODY, HUB_COLUMN, HUB_COLUMNS } from './hubStyles.model'
+import { GAME_BODY, GAME_MEASURE, HUB_COLUMN, HUB_COLUMN_MIN, HUB_COLUMNS } from './hubStyles.model'
 import { LaunchDashboard } from './LaunchDashboard'
 import { ProposalInbox } from './ProposalInbox'
 import { ProposalsSent } from './ProposalsSent'
@@ -61,12 +61,7 @@ type GameHubProps = {
 
 const PENDING = { marginTop: tokens.space[24] } satisfies CSSProperties
 
-const NOT_IN = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[12],
-  padding: tokens.space[16],
-} satisfies CSSProperties
+const NOT_IN = { padding: tokens.space[16] } satisfies CSSProperties
 
 const INVITE_ACTIONS = {
   display: 'flex',
@@ -86,7 +81,7 @@ function NotInGame() {
   return (
     <div style={NOT_IN_CARD}>
       <Card>
-        <div style={NOT_IN}>
+        <Stack gap={12} style={NOT_IN}>
           <Text>
             You are not in this Game. Ask its Organiser for the invite link, then open it to join.
           </Text>
@@ -95,7 +90,7 @@ function NotInGame() {
               Back to Hangar
             </Button>
           </div>
-        </div>
+        </Stack>
       </Card>
     </div>
   )
@@ -125,7 +120,7 @@ function GameSections({ game }: { game: Game }) {
 
   return (
     <>
-      <div style={HUB_COLUMNS}>
+      <Grid min={HUB_COLUMN_MIN} gap={32} style={HUB_COLUMNS}>
         <div style={HUB_COLUMN}>
           {seats === null ? (
             <Skeleton shape="rows" label="Loading the crew" />
@@ -160,7 +155,7 @@ function GameSections({ game }: { game: Game }) {
             onDelete={() => setConfirmingDelete(true)}
           />
         </div>
-      </div>
+      </Grid>
 
       <DeleteGameDialog
         game={confirmingDelete ? game : null}
@@ -180,33 +175,37 @@ export function GameHub({ gameId, controls, activeSegment, onSegmentChange }: Ga
   const game = useQuery(api.games.get, { gameId: gameId as Id<'games'> })
 
   return (
-    <>
-      <GameBand
-        gameId={gameId}
-        name={game ? game.name : 'Game'}
-        mediator={game?.mediator}
-        controls={controls}
-        actions={game && !game.mediator ? <LaunchDashboard gameId={gameId} /> : undefined}
-      />
-      <div className="su-page-column" style={GAME_BODY}>
-        {game === undefined ? (
-          <div style={PENDING}>
-            <Pending label="this Game" />
-          </div>
-        ) : game === null ? (
-          <NotInGame />
-        ) : (
-          <>
-            <GameRoster
-              gameId={gameId}
-              gameName={game.name}
-              activeSegment={activeSegment}
-              onSegmentChange={onSegmentChange}
-            />
-            <GameSections game={game} />
-          </>
-        )}
-      </div>
-    </>
+    <PageShell
+      measure={GAME_MEASURE}
+      stack={false}
+      band={
+        <GameBand
+          gameId={gameId}
+          name={game ? game.name : 'Game'}
+          mediator={game?.mediator}
+          controls={controls}
+          actions={game && !game.mediator ? <LaunchDashboard gameId={gameId} /> : undefined}
+        />
+      }
+      bodyStyle={GAME_BODY}
+    >
+      {game === undefined ? (
+        <div style={PENDING}>
+          <Pending label="this Game" />
+        </div>
+      ) : game === null ? (
+        <NotInGame />
+      ) : (
+        <>
+          <GameRoster
+            gameId={gameId}
+            gameName={game.name}
+            activeSegment={activeSegment}
+            onSegmentChange={onSegmentChange}
+          />
+          <GameSections game={game} />
+        </>
+      )}
+    </PageShell>
   )
 }

@@ -61,6 +61,7 @@ import type { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_TXN } from '../../stores/surfaceProvenance'
 import {
   Button,
+  Cluster,
   DialogActions,
   EmptyState,
   Eyebrow,
@@ -69,6 +70,7 @@ import {
   rollForTable,
   Select,
   Slab,
+  Stack,
   Stat,
   tokens,
 } from '../index'
@@ -105,19 +107,6 @@ const MUTED = { ...TEXT, color: tokens.color.wkMuted } satisfies CSSProperties
 const TEXT_TIGHT = { ...TEXT, margin: 0 } satisfies CSSProperties
 
 const TEXT_AFTER = { ...TEXT, marginTop: tokens.space[8] } satisfies CSSProperties
-
-const STACK_12 = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[12],
-} satisfies CSSProperties
-
-const ROW = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  alignItems: 'center',
-  gap: tokens.space[8],
-} satisfies CSSProperties
 
 const CONTRIBUTE_LABEL = {
   fontFamily: tokens.font.cond,
@@ -430,7 +419,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
     >
       <div style={BODY}>
         {quote ? (
-          <div style={STACK_12}>
+          <Stack gap={12}>
             <p>
               Upgrading from Tech {quote.fromTl} to Tech {quote.toTl} consumes{' '}
               <strong>{quote.cost}</strong> from the Upgrade Pool (currently{' '}
@@ -443,7 +432,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
                 below to fill it.
               </FieldError>
             )}
-            <div style={ROW}>
+            <Cluster gap={8}>
               <span style={CONTRIBUTE_LABEL}>Contribute scrap (Tech {tl}+)</span>
               <Stat
                 orientation="horizontal"
@@ -467,11 +456,11 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
               >
                 Add to Upgrade Pool
               </Button>
-            </div>
+            </Cluster>
             <p style={SMALL}>
               Pool holds {contributable} scrap at Tech {tl}+.
             </p>
-          </div>
+          </Stack>
         ) : (
           <p>
             Tech 6 is the highest level of Union Crawler — it cannot be upgraded further (p.218).

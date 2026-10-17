@@ -4,6 +4,7 @@ import { space } from '../../../design/tokens'
 import { cn } from '../../../lib/cn'
 import { Slab } from '../../atoms/Slab'
 import { Entity } from '../../entity/Entity'
+import { Stack } from '../../index'
 import { useEntityHref } from '../entityHrefContext'
 import type { Down } from './cardChrome'
 import { conditionOf } from './cardChrome'
@@ -135,12 +136,6 @@ const LOADOUT_PAGE = {
   gap: space[16],
 } satisfies CSSProperties
 
-const LOADOUT_GROUP = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: space[8],
-} satisfies CSSProperties
-
 /**
  * A pattern PAGE's loadout, under its chassis ability: each group (Systems,
  * Modules) a solid Slab over one full-width Token a line, as on the pattern's
@@ -160,7 +155,7 @@ export function PatternLoadoutRows({
   return (
     <div className="su-entity-page__loadout" style={LOADOUT_PAGE}>
       {groups.map((group) => (
-        <section key={group.label} style={LOADOUT_GROUP}>
+        <Stack as="section" gap={8} key={group.label}>
           <Slab variant="solid" as={sectionAs} label={group.label} />
           <ul aria-label={`${group.label} installed`} className="su-entity-token-list">
             {group.entities.map((item, index) => (
@@ -169,7 +164,7 @@ export function PatternLoadoutRows({
               </li>
             ))}
           </ul>
-        </section>
+        </Stack>
       ))}
     </div>
   )

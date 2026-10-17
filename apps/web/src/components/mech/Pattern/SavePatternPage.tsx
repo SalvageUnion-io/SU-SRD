@@ -37,9 +37,11 @@ import type { SlabCount } from '../../index'
 import {
   Button,
   ChapterBand,
+  Cluster,
   Entity,
   Field,
   FieldError,
+  Grid,
   Input,
   Radio,
   ReferenceEntityCard,
@@ -61,9 +63,6 @@ const PAGE = {
 
 /** Two columns where there is room for them; one, stacked, where there is not. */
 const COLUMNS = {
-  display: 'grid',
-  gap: tokens.space[32],
-  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 26rem), 1fr))',
   margin: '0 auto',
   maxWidth: '80rem',
   padding: `${tokens.space[24]} ${tokens.space[16]} 0`,
@@ -115,13 +114,6 @@ const LEGEND = {
   marginBottom: tokens.space[8],
   padding: 0,
   textTransform: 'uppercase',
-} satisfies CSSProperties
-
-const ACTIONS = {
-  alignItems: 'center',
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[12],
 } satisfies CSSProperties
 
 /** A primary action: 44px at least, in condensed caps. */
@@ -271,7 +263,7 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
         Save as pattern
       </ChapterBand>
 
-      <div style={COLUMNS}>
+      <Grid min="26rem" gap={32} style={COLUMNS}>
         <section style={COLUMN} aria-labelledby="pattern-saved">
           <Slab
             variant="solid"
@@ -399,7 +391,7 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
           )}
 
           {error && <FieldError>{error}</FieldError>}
-          <div style={ACTIONS}>
+          <Cluster gap={12}>
             {canWrite ? (
               <Button
                 variant="primary"
@@ -415,7 +407,7 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
             <Button variant="ghost" style={ACTION_BUTTON} onClick={onCancel} disabled={saving}>
               Cancel
             </Button>
-          </div>
+          </Cluster>
 
           <p style={RULE_NOTE}>
             <strong>User-made, always marked.</strong> Anything players make wears a dashed frame, a
@@ -423,7 +415,7 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
             solid; homebrew is dashed. Nobody can make it look like the Workshop Manual.
           </p>
         </section>
-      </div>
+      </Grid>
     </main>
   )
 }

@@ -41,11 +41,6 @@ export function proseColumn(gap: string): CSSProperties {
   return { ...PROSE, display: 'flex', flexDirection: 'column', gap }
 }
 
-/** A plain column with no type of its own. */
-export function column(gap: string): CSSProperties {
-  return { display: 'flex', flexDirection: 'column', gap }
-}
-
 /** A bulleted list, its items a column. */
 export function bulletList(gap: string, indent: 'padding' | 'margin'): CSSProperties {
   return {

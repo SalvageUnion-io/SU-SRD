@@ -177,6 +177,9 @@ export { Callout } from './containers/Callout'
 export type { CardFootMeta } from './containers/Card'
 // Shared components
 export { Card } from './containers/Card'
+// Stack, Cluster and Grid — the layout primitives: a column, a wrapping row,
+// and as many equal columns as fit, each a space step apart (`gap`).
+export { Cluster } from './containers/Cluster'
 // ConfirmDialog — the one "are you sure?": an alert dialog on ModalShell with a
 // pending state, an inline failure line, and focus on Cancel for destructive confirms.
 export { ConfirmDialog } from './containers/ConfirmDialog'
@@ -184,6 +187,7 @@ export { ConfirmDialog } from './containers/ConfirmDialog'
 export { DialogActions } from './containers/DialogActions'
 // EmptyState — dashed stamp-headline empty slot (ruleset §"Empty state")
 export { EmptyState } from './containers/EmptyState'
+export { Grid } from './containers/Grid'
 // HeaderMenu — a dropdown menu (Base UI's menu button): the Union bar's account
 // and Games menus, and the "⋯" overflow on a row.
 export type { HeaderMenuItem } from './containers/HeaderMenu'
@@ -209,6 +213,7 @@ export { Sel } from './containers/Sel'
 export { SheetSectionCard } from './containers/SheetSectionCard'
 export { SheetSectionSlab } from './containers/SheetSectionSlab'
 export { Skeleton } from './containers/Skeleton'
+export { Stack } from './containers/Stack'
 /** The `statsOverride` element type — public because the prop that takes it is. */
 export type { StatItem } from './containers/statsBarTypes'
 // TitledBox — the house `Box` (square frame, paper body) with the cut-out head:

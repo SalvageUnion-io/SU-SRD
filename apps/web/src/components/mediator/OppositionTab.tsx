@@ -32,6 +32,7 @@ import { resolveChassisRef } from 'salvageunion-reference/rules'
 import type { CSSVarStyle } from '../index'
 import {
   Button,
+  Cluster,
   ConfirmDialog,
   EmptyState,
   Entity,
@@ -39,6 +40,7 @@ import {
   Eyebrow,
   Input,
   Select,
+  Stack,
   tokens,
   useDetailModal,
   VitalGauge,
@@ -86,15 +88,6 @@ const GAUGE_GROUP = { border: 0, margin: 0, minWidth: 0, padding: 0 } satisfies 
 /** The gauge lights in the opposition's own tone, the one its Row's band wears. */
 const ADVERSARY_TONE: CSSVarStyle = { '--tone': color.adversary, '--tone-deep': color.adversary }
 
-// Wraps: where the panel is too narrow for all three side by side (a phone),
-// the gauge and the actions drop under the Row rather than overflowing it.
-const ROW = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  alignItems: 'center',
-  gap: space[8],
-} satisfies CSSProperties
-
 /** The Row's share: everything the gauge and actions leave, never under 14rem. */
 const ROW_ENTITY = { flex: '1 1 14rem', minWidth: 0 } satisfies CSSProperties
 
@@ -126,12 +119,6 @@ const PLAIN = {
   background: color.paper,
   border: `${borderWidth.entityCompact} solid ${color.ink}`,
   borderRadius: radius.card,
-} satisfies CSSProperties
-
-const PICKER_RAIL = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: space[6],
 } satisfies CSSProperties
 
 const PATTERN_ACTIONS = {
@@ -181,7 +168,7 @@ function NpcRow({
   const stat = npc.statKind === 'sp' ? 'SP' : 'HP'
   return (
     <li>
-      <div style={ROW}>
+      <Cluster gap={8}>
         <div style={npc.down ? { ...ROW_ENTITY, ...DOWN } : ROW_ENTITY}>
           {npc.entity === null ? (
             <div style={PLAIN}>{npc.name}</div>
@@ -245,7 +232,7 @@ function NpcRow({
             Remove
           </Button>
         </div>
-      </div>
+      </Cluster>
       <p role="status" aria-live="polite" style={RESULT}>
         {npc.down ? <span style={RESULT_HEAD}>Down. </span> : null}
         {npc.lastRoll ? (
@@ -324,7 +311,7 @@ function OppositionPicker({
       title={title}
       onClose={onClose}
       railActions={
-        <div style={PICKER_RAIL}>
+        <Stack gap={6}>
           <Eyebrow as="label" tone="muted" htmlFor={`${id}-schema`}>
             Draw from
           </Eyebrow>
@@ -392,7 +379,7 @@ function OppositionPicker({
               </div>
             </>
           ) : null}
-        </div>
+        </Stack>
       }
     />
   )
