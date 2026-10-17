@@ -15,8 +15,10 @@
  * At 0 an NPC is shown as down (struck through) and is never removed for you
  * (ADR-007); Remove asks first. **+ From the reference** opens the picker over
  * the tray schemas; a new instance starts at full HP and takes a numbered
- * name when it duplicates one. An entity with patterns (a chassis, a
- * Bio-Titan) asks which one beneath the list before it is added.
+ * name when it duplicates one, or the name typed under Draw from (cleared
+ * once used), so the table can tell its opposition apart. An entity with
+ * patterns (a chassis, a Bio-Titan) asks which one beneath the list before it
+ * is added.
  *
  * Presentational: the Dashboard reads the tray and makes the writes.
  */
@@ -32,6 +34,7 @@ import {
   EmptyState,
   Entity,
   EntitySearcher,
+  Input,
   Select,
   tokens,
   useDetailModal,
@@ -39,18 +42,14 @@ import {
 } from '../index'
 import { SheetPickerModal } from '../sheet/SheetSection'
 import { BODY, EYEBROW, HEAD_ROW, MUTED, NUMBERS } from './mediatorStyles.model'
-import type { EncounterRefSchema, TrayNpc } from './opposition.model'
+import type { EncounterRefSchema, TrayDraw, TrayNpc } from './opposition.model'
 import { OPPOSITION_SCHEMAS, patternSlugOf, patternsOf, slugOf } from './opposition.model'
 
 const { borderWidth, color, font, fontSize, radius, space, weight } = tokens
 
 /** What a row can ask of the tray. */
 export type TrayWrites = {
-  add: (
-    schema: EncounterRefSchema,
-    entity: RefEntity,
-    pattern?: RefObjectAnyPattern
-  ) => Promise<unknown>
+  add: (schema: EncounterRefSchema, entity: RefEntity, draw?: TrayDraw) => Promise<unknown>
   setHp: (npc: TrayNpc, next: number) => Promise<unknown>
   morale: (npc: TrayNpc) => Promise<unknown>
   remove: (npc: TrayNpc) => Promise<unknown>
@@ -231,7 +230,7 @@ function OppositionPicker({
   onClose,
 }: {
   npcs: readonly TrayNpc[]
-  onAdd: (schema: EncounterRefSchema, entity: RefEntity, pattern?: RefObjectAnyPattern) => void
+  onAdd: (schema: EncounterRefSchema, entity: RefEntity, draw: TrayDraw) => void
   title?: string
   onClose?: () => void
 }) {
@@ -239,6 +238,12 @@ function OppositionPicker({
   const [schema, setSchema] = useState<EncounterRefSchema>('npcs')
   // An entity with patterns waits here while its pattern is chosen.
   const [pending, setPending] = useState<{ entity: RefEntity; pattern: string } | null>(null)
+  // The Mediator's own name for the next one added, cleared once used.
+  const [name, setName] = useState('')
+  const add = (entity: RefEntity, draw: TrayDraw = {}) => {
+    onAdd(schema, entity, { ...draw, ...(name.trim() === '' ? {} : { name }) })
+    setName('')
+  }
   // The tray's own counts, so a card says how many are already out.
   const selected = npcs
     .filter((n) => n.refSchema === schema && n.refSlug)
@@ -247,7 +252,7 @@ function OppositionPicker({
   const addPending = () => {
     if (pending === null) return
     const pattern = pendingPatterns.find((p) => patternSlugOf(p) === pending.pattern)
-    onAdd(schema, pending.entity, pattern)
+    add(pending.entity, pattern ? { pattern } : {})
     setPending(null)
   }
   return (
@@ -261,7 +266,7 @@ function OppositionPicker({
         const entity = findEntityBySlug(schema, slug)
         if (entity === null) return
         const patterns = patternsOf(entity)
-        if (patterns.length === 0) onAdd(schema, entity)
+        if (patterns.length === 0) add(entity)
         else setPending({ entity, pattern: patternSlugOf(patterns[0] as RefObjectAnyPattern) })
       }}
       chosenLabel="On the field"
@@ -286,6 +291,16 @@ function OppositionPicker({
               </option>
             ))}
           </Select>
+          <label htmlFor={`${id}-name`} style={EYEBROW}>
+            Name (optional)
+          </label>
+          <Input
+            id={`${id}-name`}
+            value={name}
+            placeholder="e.g. Red Leader"
+            autoComplete="off"
+            onChange={(e) => setName(e.target.value)}
+          />
           {pending ? (
             <>
               <label htmlFor={`${id}-pattern`} style={EYEBROW}>
@@ -371,9 +386,7 @@ export function OppositionTab({
       >
         <OppositionPicker
           npcs={npcs ?? []}
-          onAdd={(schema, entity, pattern) =>
-            void writes.add(schema, entity, pattern).catch(onFailure)
-          }
+          onAdd={(schema, entity, draw) => void writes.add(schema, entity, draw).catch(onFailure)}
         />
       </SheetPickerModal>
       <ConfirmDialog

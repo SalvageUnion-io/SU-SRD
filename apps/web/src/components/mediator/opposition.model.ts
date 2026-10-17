@@ -119,20 +119,25 @@ export function slugOf(entity: { name: string }): string {
   return getEntitySlug(entity as RefEntity)
 }
 
+/** What the Mediator chose beside the entity: a pattern, and a name of their own. */
+export type TrayDraw = { pattern?: RefObjectAnyPattern; name?: string }
+
 /**
  * A new tray instance of a reference entity, at full HP or SP. Drawn as one of
- * its patterns, it is named for the pattern and keeps the host's stats.
- * `mediator.addNpc` mints its id and parses it.
+ * its patterns, it is named for the pattern and keeps the host's stats; a
+ * name the Mediator typed wins over both, numbered like any other when the
+ * tray already has it. `mediator.addNpc` mints its id and parses it.
  */
 export function newTrayNpc(
   schema: EncounterRefSchema,
   entity: RefEntity,
   taken: readonly string[],
   now: string,
-  pattern?: RefObjectAnyPattern
+  { pattern, name: custom }: TrayDraw = {}
 ): Omit<EncounterNpc, 'id' | 'gameId'> {
   const hostName = 'name' in entity && typeof entity.name === 'string' ? entity.name : 'NPC'
   const name = pattern?.name ?? hostName
+  const given = custom?.trim() ?? ''
   const { maxHp, statKind } = trackOf(entity)
   return {
     schemaVersion: 1,
@@ -140,7 +145,7 @@ export function newTrayNpc(
     refSlug: slugOf({ name: hostName }),
     refName: name,
     ...(pattern ? { refPattern: patternSlugOf(pattern) } : {}),
-    name: instanceName(name, taken),
+    name: instanceName(given === '' ? name : given, taken),
     currentHp: maxHp,
     maxHp,
     statKind,

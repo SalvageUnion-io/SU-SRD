@@ -181,7 +181,7 @@ describe('the Opposition tray', () => {
     const hauler = mule?.patterns?.find((p) => p.name === 'Hauler')
     if (mule === undefined || hauler === undefined)
       throw new Error('no Mule Hauler in the reference')
-    const body = newTrayNpc('chassis', mule, [], NOW, hauler)
+    const body = newTrayNpc('chassis', mule, [], NOW, { pattern: hauler })
     expect(body).toMatchObject({
       refSchema: 'chassis',
       refSlug: 'mule',
@@ -197,6 +197,13 @@ describe('the Opposition tray', () => {
     // The bare chassis carries no pattern.
     const bare = readTrayNpc({ _id: 'n2', body: newTrayNpc('chassis', mule, [], NOW) })
     expect(bare).toMatchObject({ name: 'Mule', pattern: null, statKind: 'sp' })
+  })
+
+  test('a name the Mediator typed wins, trimmed and numbered like any other', () => {
+    if (squad === undefined) throw new Error('no squads in the reference')
+    const named = newTrayNpc('squads', squad, ['Red Leader'], NOW, { name: '  Red Leader ' })
+    expect(named).toMatchObject({ name: 'Red Leader 2', refName: squad.name })
+    expect(newTrayNpc('squads', squad, [], NOW, { name: '   ' }).name).toBe(squad.name)
   })
 
   test('numbered names skip the ones taken', () => {
