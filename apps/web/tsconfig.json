@@ -1,7 +1,10 @@
 {
-  "extends": "../../tsconfig.dom.json",
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "target": "ESNext",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "verbatimModuleSyntax": true,
+    "jsx": "react-jsx",
     "types": ["vite/client", "node", "bun-types", "@testing-library/jest-dom"]
   },
   // `convex/**/*` is the Convex backend — auth, ownership, games, invites,
@@ -24,10 +27,5 @@
     "*.config.ts"
   ],
   // `include` is explicit, but a stale build output must never be typechecked.
-  "exclude": ["dist"],
-  "references": [
-    { "path": "../../packages/cantina-domain" },
-    { "path": "../../packages/gates" },
-    { "path": "../../packages/salvageunion-reference" }
-  ]
+  "exclude": ["dist"]
 }

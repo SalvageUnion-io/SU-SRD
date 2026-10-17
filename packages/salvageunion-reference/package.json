@@ -44,7 +44,6 @@
     "build": "bun tools/ensureGenerated.ts --force",
     "validate": "bun tools/validate.ts",
     "edit-data": "bun tools/edit-data.ts",
-    "typecheck": "bun tools/ensureGenerated.ts && tsc -b",
     "test": "bun test --parallel=4 --no-isolate"
   },
   "license": "SEE LICENSE IN LICENCE",

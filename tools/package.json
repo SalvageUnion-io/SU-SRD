@@ -5,7 +5,6 @@
   "type": "module",
   "license": "Salvage Union Open Game Licence 1.0b",
   "scripts": {
-    "typecheck": "tsc -b",
     "test": "bun test --parallel=4 --no-isolate"
   },
   "devDependencies": {

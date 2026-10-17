@@ -1,7 +1,7 @@
 {
   "name": "susrd",
   "private": true,
-  "version": "3.19.7",
+  "version": "3.19.8",
   "type": "module",
   "packageManager": "bun@1.4.2",
   "license": "https://leyline.press/pages/salvage-union-open-game-licence-1-0b",
@@ -56,7 +56,7 @@
     "brand:discord": "bun --filter web brand:discord",
     "rules:extract": "bun tools/extract-rules.ts",
     "rules:find": "bun tools/rules-find.ts",
-    "typecheck": "ref-generate && tsc -b",
+    "typecheck": "ref-generate && tsc -b . apps/web apps/discord-bot apps/su-assets",
     "lint": "biome lint .",
     "format": "biome format --write .",
     "test": "ref-generate && bun --filter \"*\" test",

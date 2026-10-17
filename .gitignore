@@ -13,8 +13,6 @@ pnpm-lock.yaml
 dist
 *.local
 *.tsbuildinfo
-# `tsc -b` declaration output of the referenced libraries (root tsconfig.json)
-.tsbuild/
 # Swift Package Manager's cache directory (a stray `swift` run at the root)
 .build/
 

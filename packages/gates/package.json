@@ -23,7 +23,6 @@
     }
   },
   "scripts": {
-    "typecheck": "tsc -b",
     "test": "bun test --parallel=4 --no-isolate"
   },
   "devDependencies": {
