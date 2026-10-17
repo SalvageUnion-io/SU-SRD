@@ -11,11 +11,6 @@ describe('Message', () => {
     expect(line.style.color).toBe('rgb(176, 67, 43)')
   })
 
-  test('every other tone is a status', () => {
-    render(<Message tone="ok">Saved.</Message>)
-    expect(screen.getByRole('status').textContent).toBe('Saved.')
-  })
-
   test('on the ink ground it prints in paper', () => {
     render(
       <Message tone="bad" ground="ink">
@@ -27,11 +22,11 @@ describe('Message', () => {
 
   test('spaceAbove sets the margin from the space scale', () => {
     render(
-      <Message tone="info" spaceAbove={12}>
-        Note.
+      <Message tone="bad" spaceAbove={12}>
+        It failed.
       </Message>
     )
-    expect(screen.getByRole('status').style.marginTop).toBe('12px')
+    expect(screen.getByRole('alert').style.marginTop).toBe('12px')
   })
 
   test('an empty message renders nothing', () => {

@@ -249,8 +249,9 @@ body {
  * Classes rather than style objects because a page wears dozens of them and
  * srd writes a style object out on every element. First in the cascade, so a
  * component class laid over one wins at one class each, the gap aside. The gap is one step
- * of the space scale, `data-gap`; the Grid's narrowest column is
- * `--su-grid-min`, set inline because it varies by instance.
+ * of the space scale, `data-gap`, one rule per step `containers/layoutGap.ts`
+ * allows; the Grid's narrowest column is `--su-grid-min`, set inline because
+ * it varies by instance.
  */
 .su-stack {
   display: flex;
@@ -266,14 +267,6 @@ body {
 .su-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--su-grid-min)), 1fr));
-}
-
-:is(.su-stack, .su-cluster, .su-grid)[data-gap='0'] {
-  gap: var(--space-0);
-}
-
-:is(.su-stack, .su-cluster, .su-grid)[data-gap='2'] {
-  gap: var(--space-2);
 }
 
 :is(.su-stack, .su-cluster, .su-grid)[data-gap='4'] {
@@ -296,10 +289,6 @@ body {
   gap: var(--space-12);
 }
 
-:is(.su-stack, .su-cluster, .su-grid)[data-gap='14'] {
-  gap: var(--space-14);
-}
-
 :is(.su-stack, .su-cluster, .su-grid)[data-gap='16'] {
   gap: var(--space-16);
 }
@@ -312,22 +301,6 @@ body {
   gap: var(--space-24);
 }
 
-:is(.su-stack, .su-cluster, .su-grid)[data-gap='28'] {
-  gap: var(--space-28);
-}
-
 :is(.su-stack, .su-cluster, .su-grid)[data-gap='32'] {
   gap: var(--space-32);
-}
-
-:is(.su-stack, .su-cluster, .su-grid)[data-gap='40'] {
-  gap: var(--space-40);
-}
-
-:is(.su-stack, .su-cluster, .su-grid)[data-gap='48'] {
-  gap: var(--space-48);
-}
-
-:is(.su-stack, .su-cluster, .su-grid)[data-gap='64'] {
-  gap: var(--space-64);
 }

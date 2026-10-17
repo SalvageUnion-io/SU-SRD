@@ -372,7 +372,7 @@ export function EntitySearcher({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className={cn(buttonVariants({ variant: 'quiet', size: 'iconOnly' }), 'su-modal-close')}
+            className={buttonVariants({ variant: 'quiet', size: 'iconOnly' })}
           >
             <X aria-hidden="true" style={CLOSE_ICON_STYLE} />
           </button>
