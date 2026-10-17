@@ -82,7 +82,15 @@ const ROW = {
 const ROW_ALONE = { ...ROW, gridTemplateColumns: 'minmax(0, 1fr)' } satisfies CSSProperties
 
 /** The empty state stretches over the slot it stands in for. */
-const EMPTY_FILL = { display: 'grid', height: '100%' } satisfies CSSProperties
+/** The slot's cream ground on the ink canvas: the quiet frame has none of its
+ *  own. ink-75, not ink-50, holds AA on band-cream for the small message. */
+const EMPTY_FILL = {
+  background: 'var(--color-band-cream)',
+  borderRadius: 'var(--radius-panel)',
+  color: 'var(--color-ink-75)',
+  display: 'grid',
+  height: '100%',
+} satisfies CSSProperties
 
 /** A slot whose entity the pilot doesn't have (no crawler, no mech yet). */
 function EmptySlot({ text }: { text: string }) {
