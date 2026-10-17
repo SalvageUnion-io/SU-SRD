@@ -14,7 +14,7 @@ Status: agreed. Code: `apps/web/src/components/entity/`.
 ## Forms
 
 1. **Mention** — names an entity in prose, in the prose's own type; links where a route exists; hover or long-press Peeks.
-2. **Token** — `name [chips]`, one row, name cut out, filling its line (one a line in a list); links and Peeks as a Mention.
+2. **Token** — `name [chips] [actions]`, one row, name cut out, filling its line (one a line in a list); links and Peeks as a Mention.
    **Contentful** (N3): that head, then the entity's text, held in a border of its tone: nested actions, chassis abilities, a bay's crew lead.
 3. **Row** — every list: art column (≥ 18rem, where the schema has art), head (tier on the band, name, chips, mode slot; name on the paper cut-out, chips beside it), a paper body only for a lead or stamp.
    In a `data-entity-grid` every Row is the same height and every head's name line reserves two lines.
@@ -56,8 +56,8 @@ Each is checkable; breaking one needs an amendment here. Nesting (N1–N7, rules
 - **E14** Tables are the Table instrument: a roll bar in a Card (nested: Token, Table, Roll the Die), the roll instrument on a Page or panel; its ROLL THE DIE stamp is the roll button.
 - **E15** No hand-built entity markup outside `entity/`.
 - **E16** A Peek is read-only and terminal.
-- **E17** No "//" line: all chips are one head group, one even gap, in stat order (ruleset §2.6): stats, action type and facets, traits, the cost's pointy box (`2 EP`). Right of the title, last line on its middle, more balanced above; under it on a phone if they don't fit. On ink each chip has a paper rule.
-- **E18** No form cuts a name (bar a Token's), stamp or chip to "…": it wraps or widens. A Token's head is one row filling its line (N4): chips ≤ 65%, dropped whole from the end; its name ends in "…".
+- **E17** No "//" line: all chips are one head group, one even gap, in the class order of [chips-and-actions.md](chips-and-actions.md) (C2); actions follow (C8). Right of the title, last line on its middle, more balanced above; under it on a narrow head. On ink each chip has a paper rule.
+- **E18** No form cuts a name (bar a Token's), stamp or chip to "…": it wraps or widens. A Token's head is one row filling its line (N4), of a static budget (C3); its name ends in "…".
 - **E19** A chassis ability shows only on its chassis and pattern pages (level 1), mech hero, Dashboard bay and Discord card;
   nested (mech-wizard picks and stats step, Peek) it is a contentful Token (N3).
 - **E20** Above a show page's title: only the trail, on its plate (Cantina sheet: `corner`); stamps, chips, controls cluster as E17 (`asideAt="notch"`), Build With This last (phone: chip-sized, centred right of title); a chassis's stats lead its body.
