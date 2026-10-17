@@ -60,7 +60,7 @@ describe('the coarse-pointer touch floor', () => {
 
   test('mini buttons and interactive chips reach 44px through a hit area instead', () => {
     for (const selector of floorSelectors(theme).filter((s) => /^(button|\[role)/.test(s))) {
-      expect(selector).toContain(':not(.su-btn--mini, .su-hit-area)')
+      expect(selector).toMatch(/:not\(\.su-btn--mini, \.su-hit-area[,)]/)
     }
     expect(index).toMatch(/\.su-btn--mini::after,\s*\.su-hit-area::after,[^{]*\{[^}]*44px/)
   })

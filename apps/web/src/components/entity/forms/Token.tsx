@@ -65,7 +65,7 @@ function tokenChips(model: EntityRowModel, omit: readonly EntityOmit[]): TokenCh
   return chips
 }
 
-/** The adapter's resolved parts (`ReferenceEntityCard` `size="small" extent="head"`). */
+/** The adapter's resolved parts (`ReferenceEntityCard` `size="mini" extent="head"`). */
 export type TokenSlots = {
   outer?: CardOuterProps
   /** Peek this address in place of the entity's own (`embeddedPeekAddress`). */
@@ -165,7 +165,7 @@ export function Token({
               inverse={paint.ink}
             />
           ))}
-          {cost && <CostBox cost={cost} rung="mini" onInk={paint.ink} />}
+          {cost && <CostBox cost={cost} size="mini" onInk={paint.ink} />}
           {slots.trailing}
         </span>
       )}

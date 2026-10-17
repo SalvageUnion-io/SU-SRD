@@ -5,28 +5,28 @@ import { displayBooleans, resolveCardDisplay } from '../displayMode'
 
 describe('resolveCardDisplay', () => {
   test('size and extent are orthogonal — a small card can still be full', () => {
-    expect(resolveCardDisplay({ size: 'small' })).toEqual({ size: 'small', extent: 'full' })
-    expect(resolveCardDisplay({ size: 'small', extent: 'head' })).toEqual({
-      size: 'small',
+    expect(resolveCardDisplay({ size: 'mini' })).toEqual({ size: 'mini', extent: 'full' })
+    expect(resolveCardDisplay({ size: 'mini', extent: 'head' })).toEqual({
+      size: 'mini',
       extent: 'head',
     })
   })
 
   test('an unspecified card is the dominant solo rendering', () => {
-    expect(resolveCardDisplay({})).toEqual({ size: 'large', extent: 'full' })
+    expect(resolveCardDisplay({})).toEqual({ size: 'full', extent: 'full' })
   })
 
   test('each axis defaults independently of the other', () => {
-    expect(resolveCardDisplay({ size: 'medium' })).toEqual({ size: 'medium', extent: 'full' })
-    expect(resolveCardDisplay({ extent: 'head' })).toEqual({ size: 'large', extent: 'head' })
+    expect(resolveCardDisplay({ size: 'compact' })).toEqual({ size: 'compact', extent: 'full' })
+    expect(resolveCardDisplay({ extent: 'head' })).toEqual({ size: 'full', extent: 'head' })
   })
 
   test('displayBooleans projects back for layout', () => {
-    expect(displayBooleans({ size: 'large', extent: 'full' })).toEqual({
+    expect(displayBooleans({ size: 'full', extent: 'full' })).toEqual({
       compact: false,
       listing: false,
     })
-    expect(displayBooleans({ size: 'small', extent: 'head' })).toEqual({
+    expect(displayBooleans({ size: 'mini', extent: 'head' })).toEqual({
       compact: true,
       listing: true,
     })

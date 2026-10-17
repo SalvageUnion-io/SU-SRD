@@ -37,7 +37,7 @@ type NpcCardProps = {
   kicker?: string
 }
 
-export function NpcCard({ npc, madeBy, size = 'large', kicker }: NpcCardProps) {
+export function NpcCard({ npc, madeBy, size = 'full', kicker }: NpcCardProps) {
   const line = npcIdentityLine(npc)
   return (
     <EntityExternalLinkProvider value={undefined}>

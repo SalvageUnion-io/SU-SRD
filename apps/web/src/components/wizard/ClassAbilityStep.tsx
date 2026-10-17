@@ -57,7 +57,7 @@ export function ClassAbilityStep({
     <ReferenceEntityCard
       key={cls.id}
       data={cls}
-      size="medium"
+      size="compact"
       selected={cls.id === classId}
       selectionRole="radio"
       cardClickLabel={cls.name}
@@ -70,7 +70,7 @@ export function ClassAbilityStep({
     <ReferenceEntityCard
       key={ability.id}
       data={ability}
-      size="medium"
+      size="compact"
       selected={selectedAbilities.includes(getEntitySlug(ability))}
       selectionRole="radio"
       cardClickLabel={ability.name}

@@ -463,7 +463,7 @@ function SlotPanel({
         {heading}
         {npc ? (
           <>
-            <NpcCard npc={npc} madeBy={makerOf(npc)} size="medium" />
+            <NpcCard npc={npc} madeBy={makerOf(npc)} size="compact" />
             <AppLink href={`/sheet/npc/${npc.id}`}>Open {npc.name}</AppLink>
           </>
         ) : (
@@ -602,7 +602,7 @@ function SlotPanel({
       </p>
 
       <section aria-label="Preview" style={COLUMN}>
-        <NpcCard npc={view} madeBy={madeBy} size="medium" kicker={`Crawler crew · ${slot.name}`} />
+        <NpcCard npc={view} madeBy={madeBy} size="compact" kicker={`Crawler crew · ${slot.name}`} />
       </section>
 
       {error && <FieldError>{error}</FieldError>}

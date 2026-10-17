@@ -214,7 +214,7 @@ export function Row({
             chipCount(chips) > 0 || labelsAsChips || slots.trailing ? (
               <Chips
                 chips={chips}
-                rung="compact"
+                size="compact"
                 onInk={paint.ink}
                 linkable={mode.kind === 'read' && !slots.outer}
                 leading={leading}

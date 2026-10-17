@@ -52,7 +52,7 @@ type EntityCardIdentityFooterProps = {
   band?: CardColors
 }
 
-const PAD_X: Record<CardSize, string> = { large: space[14], medium: space[10], small: space[8] }
+const PAD_X: Record<CardSize, string> = { full: space[14], compact: space[10], mini: space[8] }
 
 const capsLabel = {
   fontFamily: font.cond,

@@ -49,7 +49,7 @@ export function PatternSection({
             <NestedCard
               key={cardKey(action, index)}
               data={action}
-              size="medium"
+              size="compact"
               depth={host.depth + 1}
               hostDown={host.isDown}
               // On a page, a heading under the "Pattern Actions" band's h2.

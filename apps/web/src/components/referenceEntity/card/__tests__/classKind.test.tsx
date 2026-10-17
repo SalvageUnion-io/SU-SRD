@@ -53,7 +53,7 @@ describe('class card rendering', () => {
     // label cell — not a type stamp reading "Class" before it.
     for (const extent of ['head', undefined] as const) {
       const { container, unmount } = render(
-        <ReferenceEntityCard data={classByName('Cyborg')} size="medium" extent={extent} />
+        <ReferenceEntityCard data={classByName('Cyborg')} size="compact" extent={extent} />
       )
       const stamps = [...container.querySelectorAll('.su-badge-stamp')].filter(
         (stamp) => stamp.textContent === 'Class'

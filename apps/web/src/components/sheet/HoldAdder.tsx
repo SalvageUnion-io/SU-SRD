@@ -40,15 +40,9 @@ const ADDER_LABEL = {
 } satisfies CSSProperties
 
 /** A compact `Input`: tighter and smaller than its own skin. */
-const COMPACT_INPUT = {
-  padding: `${tokens.space[6]} ${tokens.space[8]}`,
-  fontSize: tokens.fontSize.xs,
-  lineHeight: 1 / 0.75,
-} satisfies CSSProperties
+const NAME_INPUT = { width: '144px', flex: 1 } satisfies CSSProperties
 
-const NAME_INPUT = { ...COMPACT_INPUT, width: '144px', flex: 1 } satisfies CSSProperties
-
-const NUMBER_INPUT = { ...COMPACT_INPUT, width: '56px' } satisfies CSSProperties
+const NUMBER_INPUT = { width: '56px' } satisfies CSSProperties
 
 /** Clamp a typed tech level to the 1–6 scrap range. */
 function coerceTl(raw: string): number {
@@ -103,7 +97,7 @@ export function HoldAdder({
   return (
     <div style={ADDER}>
       {/* Kind toggle — Cargo (named lot) vs Scrap (TL bulk lot). */}
-      <Segmented label="Cargo kind" size="page">
+      <Segmented label="Cargo kind" size="compact">
         {(['cargo', 'scrap'] as const).map((k) => (
           <SegmentedOption key={k} pressed={kind === k} onClick={() => setKind(k)}>
             {k === 'cargo' ? 'Cargo' : 'Scrap'}
@@ -113,6 +107,7 @@ export function HoldAdder({
 
       {kind === 'cargo' ? (
         <Input
+          size="compact"
           type="text"
           value={name}
           aria-label="New cargo name"
@@ -127,6 +122,7 @@ export function HoldAdder({
         <label htmlFor={tlId} style={ADDER_LABEL}>
           Tech
           <Input
+            size="compact"
             id={tlId}
             type="number"
             numeric
@@ -144,6 +140,7 @@ export function HoldAdder({
       <label htmlFor={slotsId} style={ADDER_LABEL}>
         {kind === 'scrap' ? 'Qty' : 'Slots'}
         <Input
+          size="compact"
           id={slotsId}
           type="number"
           numeric

@@ -8,7 +8,7 @@
 /* ══ Mobile-first touch targets ═════════════════════════════════════════════
  *
  * Ruleset §4.6: every target is at least 44px under a coarse pointer. A mini
- * button and an interactive chip (`Badge as="button"` carries `.su-hit-area`)
+ * button, a chip's +/- stepper and an interactive chip (`Badge as="button"` carries `.su-hit-area`)
  * stay off theme.css's floor, keep their drawn size, and get a centred 44px
  * hit area instead. So does a breadcrumb link: the phone's trail row is a line
  * of 17px text, and a 44px box per crumb would stretch it into a toolbar. This
@@ -18,12 +18,14 @@
 @media (pointer: coarse) {
   .su-btn--mini,
   .su-hit-area,
+  .su-stat-step,
   .su-crumbs__link {
     position: relative;
   }
 
   .su-btn--mini::after,
   .su-hit-area::after,
+  .su-stat-step::after,
   .su-crumbs__link::after {
     content: '';
     height: max(100%, 44px);
@@ -32,25 +34,5 @@
     top: 50%;
     transform: translate(-50%, -50%);
     width: max(100%, 44px);
-  }
-
-  /* The Union bar's one control height (`shell.css`) is the floor here, so the
-     switcher, search, buttons and icons still match each other. */
-  .su-union-bar {
-    --su-union-bar-control: 44px;
-  }
-
-  /* The band corner's controls are the bar's buttons (`shell.css`): the same floor. */
-  .su-chapter-band__corner {
-    --su-band-corner-control: 44px;
-  }
-
-  /* From `sm` a show page's band action is the bar's button, so it takes the
-     same floor (and centres on the title by it, `shell.css`). On a phone it is
-     chip-sized and its hit area (`.su-hit-area`) carries the 44px. */
-  @media (min-width: 40rem) {
-    .su-chapter-band__action {
-      --su-band-action: 44px;
-    }
   }
 }

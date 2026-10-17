@@ -449,24 +449,25 @@
  * Options joined in one ink-ruled frame, the pressed one the inverse plate (a
  * state, never rust: ruleset §3.1). Paper by default; on the ink band
  * (`data-ground='ink'`) the frame and text are paper and the pressed plate is
- * paper with ink text. Framed height 44px (`rail`), 40px at `page`, the
- * `.su-page-action` height its neighbours share. Under a coarse pointer each
- * option is a `button` on theme.css's 44px floor.
+ * paper with ink text. Its framed height is its Size's (`--size-*`): Full by
+ * default, Compact (`data-size='compact'`) beside a page's head actions and a
+ * sheet's buttons and fields.
  */
 .su-seg {
-  --su-seg-height: 44px;
+  --su-seg-height: var(--size-full);
   background-color: var(--color-paper);
   border: var(--bw-chrome) solid var(--color-ink);
   border-radius: var(--radius-card);
   display: inline-flex;
   margin: 0;
   max-width: 100%;
+  min-block-size: var(--su-seg-height);
   min-inline-size: 0;
   overflow-x: auto;
   padding: 0;
 }
-.su-seg[data-size='page'] {
-  --su-seg-height: var(--space-40);
+.su-seg[data-size='compact'] {
+  --su-seg-height: var(--size-compact);
 }
 
 .su-seg__option {

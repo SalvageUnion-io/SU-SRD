@@ -74,21 +74,10 @@
 
 /* ── ContainerSwitcher, MoveToContainerControl ── */
 
-/* The container selects step down from `Select`'s 44px to 40px from `sm`. The
-   coarse-pointer floor (theme.css) is restated here, after the step, so it
-   keeps winning on touch. */
-.su-container-select {
-  min-height: 2.75rem;
-}
-@media (width >= 40rem) {
-  .su-container-select {
-    min-height: 2.5rem; /* 40px: the band buttons beside it (`.su-shelves-band__btn`) */
-  }
-}
-@media (pointer: coarse) {
-  .su-container-select {
-    min-height: 44px;
-  }
+/* The container select sits on a band beside its Compact buttons, so it is
+   Compact too (theme.css lifts Compact to Full under a coarse pointer). */
+select.su-container-select {
+  height: var(--size-compact);
 }
 
 .su-move-to-container__select {

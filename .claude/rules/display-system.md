@@ -34,10 +34,10 @@ contract, `CardControlRail`) — not the DOM.
 
 Card size is TWO orthogonal axes, defined in `containers/displayMode.ts`:
 
-- `size`: `large | medium | small` — how big it renders.
+- `size`: `full | compact | mini` — how big it renders (`styles/sizing.ts`).
 - `extent`: `full | head | catalog` — how much of it renders.
 
-They are independent: a `small` card can still show its whole content.
+They are independent: a `mini` card can still show its whole content.
 
 ## When to use which
 

@@ -124,7 +124,7 @@ export function GuideSteps({
     const card = (option: (typeof entities)[number], index: number) => (
       <NestedCard
         key={cardKey(option, index)}
-        size="medium"
+        size="compact"
         extent="head"
         depth={depth + 1}
         hostDown={isDown}
@@ -202,7 +202,7 @@ export function GuideSteps({
               <CardRollTable
                 table={table.table}
                 name={table.name}
-                size={compact ? 'medium' : 'large'}
+                size={compact ? 'compact' : 'full'}
                 disabled={!!isDown}
                 framed
                 tone={tableTone}
@@ -211,7 +211,7 @@ export function GuideSteps({
           )}
           {subGuide && (
             <NestedCard
-              size="medium"
+              size="compact"
               extent="head"
               depth={depth + 1}
               hostDown={isDown}

@@ -7,6 +7,7 @@ import {
   font,
   fontSize,
   radius,
+  size,
   space,
   texture,
   tracking,
@@ -48,6 +49,7 @@ const GROUPS = {
   font,
   'font-weight': weight,
   radius,
+  size,
   space,
   text: fontSize,
   texture,
@@ -84,6 +86,9 @@ function readDeclarations(): Map<string, string> {
     const [, name, value] = m
     if (!name || !value || name.includes('--')) continue
     if (!PREFIXES.some((p) => name.startsWith(`${p}-`))) continue
+    // A token's value is its base declaration; a later one is a media override
+    // (`--size-compact` under a coarse pointer).
+    if (out.has(name)) continue
     out.set(name, value.trim().replace(/\s+/g, ' '))
   }
   return out

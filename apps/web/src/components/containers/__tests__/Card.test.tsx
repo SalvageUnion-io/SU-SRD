@@ -81,7 +81,7 @@ describe('Card', () => {
         headerBgColor="var(--color-mech)"
         headerContent={<span>Header</span>}
         label="CHASSIS"
-        size="medium"
+        size="compact"
       >
         <p>Body</p>
       </Card>
@@ -109,7 +109,7 @@ describe('Card', () => {
         headerBgColor="var(--color-mech)"
         headerContent={<span>Header</span>}
         footerContent={<span>Footer</span>}
-        size="medium"
+        size="compact"
         extent="head"
       >
         <p>Body content</p>

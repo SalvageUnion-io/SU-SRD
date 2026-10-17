@@ -14,7 +14,7 @@ import type { SheetMode } from './sheetMode.model'
  */
 export function SheetModeToggle({ mode, kind }: { mode: SheetMode; kind: string }) {
   return (
-    <Segmented label={`Read or edit this ${kind}`} size="page">
+    <Segmented label={`Read or edit this ${kind}`} size="compact">
       <SegmentedOption pressed={!mode.editing} onClick={() => mode.setEditing(false)}>
         Read
       </SegmentedOption>

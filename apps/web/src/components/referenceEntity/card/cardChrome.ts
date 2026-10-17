@@ -163,8 +163,8 @@ export function resolveFrameWidth({
   extent: CardExtent
   depth: number
 }): string {
-  if (size === 'small' || (extent === 'head' && depth >= 2)) return 'var(--bw-chrome)'
-  return size === 'large' ? 'var(--bw-entity)' : 'var(--bw-entity-compact)'
+  if (size === 'mini' || (extent === 'head' && depth >= 2)) return 'var(--bw-chrome)'
+  return size === 'full' ? 'var(--bw-entity)' : 'var(--bw-entity-compact)'
 }
 
 /**

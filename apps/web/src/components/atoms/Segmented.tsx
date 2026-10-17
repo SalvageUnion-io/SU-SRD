@@ -15,15 +15,15 @@ import { DISABLED, FOCUS_RING } from './interaction'
  * A `fieldset` named by a visually hidden `legend`, so a screen reader hears
  * the group's name before its options. Every colour changes on hover or press,
  * so all of them are `.su-seg*`'s (`styles/partials/controls.css`), as are the
- * heights: 44px framed (the SRD rail's controls), 40px at `size="page"` (a
- * page's head actions, `.su-page-action`); under a coarse pointer each option
- * is a button on theme.css's 44px floor.
+ * heights, one of the app's Sizes (`styles/sizing.ts`): Full for the SRD
+ * rail's controls, Compact for a page's head actions and a sheet's forms, so it
+ * matches the buttons and fields beside it.
  */
 export function Segmented({
   label,
   children,
   ground = 'paper',
-  size = 'rail',
+  size = 'full',
   fill = false,
   className,
   style,
@@ -34,8 +34,8 @@ export function Segmented({
   children: ReactNode
   /** `ink` on the ink band (Shelves), whose controls are paper. */
   ground?: 'paper' | 'ink'
-  /** `rail` 44px; `page` 40px, a page head's action height. */
-  size?: 'rail' | 'page'
+  /** The Size (`styles/sizing.ts`) of the line it sits on. */
+  size?: 'full' | 'compact'
   /** The options share the row's width (a phone's segment switch). */
   fill?: boolean
   className?: string

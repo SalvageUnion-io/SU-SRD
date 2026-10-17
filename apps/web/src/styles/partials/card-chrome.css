@@ -158,15 +158,15 @@
   white-space: nowrap;
 }
 
-.su-pennant--large {
+.su-pennant--full {
   font-size: var(--text-caption);
 }
 
-.su-pennant--medium {
+.su-pennant--compact {
   font-size: var(--text-xs);
 }
 
-.su-pennant--small {
+.su-pennant--mini {
   font-size: var(--text-badge);
 }
 

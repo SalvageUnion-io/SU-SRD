@@ -23,7 +23,7 @@ const textOf = (node: Parameters<typeof render>[0]) =>
 describe('crawler tech level card', () => {
   test('the CATALOG tile carries every stored field', () => {
     const text = textOf(
-      <ReferenceEntityCard data={tier('Hamlet Crawler')} size="medium" extent="catalog" />
+      <ReferenceEntityCard data={tier('Hamlet Crawler')} size="compact" extent="catalog" />
     )
     expect(text).toContain('Hamlet Crawler')
     expect(text).toContain('TL')
@@ -34,7 +34,7 @@ describe('crawler tech level card', () => {
   })
 
   test('the FULL card carries them in the same value cells', () => {
-    const text = textOf(<ReferenceEntityCard data={tier('Town Crawler')} size="large" />)
+    const text = textOf(<ReferenceEntityCard data={tier('Town Crawler')} size="full" />)
     expect(text).toContain('Upkeep')
     expect(text).toContain('Upgrade')
     expect(text).toContain('POP2,000–5,000')
@@ -45,7 +45,7 @@ describe('crawler tech level card', () => {
     // because there is no next tier to buy, and `populationMax` is the
     // dataset's 0 "unbounded" marker.
     const text = textOf(
-      <ReferenceEntityCard data={tier('Megacity Crawler')} size="medium" extent="catalog" />
+      <ReferenceEntityCard data={tier('Megacity Crawler')} size="compact" extent="catalog" />
     )
     expect(text).toContain('Upkeep')
     expect(text).not.toContain('Upgrade')
@@ -54,7 +54,7 @@ describe('crawler tech level card', () => {
 
   test('every tier in the schema renders more than its bare name', () => {
     for (const t of SalvageUnionReference.CrawlerTechLevels.all()) {
-      const text = textOf(<ReferenceEntityCard data={t} size="medium" extent="catalog" />)
+      const text = textOf(<ReferenceEntityCard data={t} size="compact" extent="catalog" />)
       expect(text).toContain('Upkeep')
       expect(text).toContain('POP')
       cleanup()

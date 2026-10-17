@@ -109,7 +109,7 @@ describe('actions nest', () => {
   })
 
   test('below depth 1 they fold behind a "Show N actions" chip', () => {
-    const { container } = render(<ReferenceEntityCard data={drill()} size="medium" depth={2} />)
+    const { container } = render(<ReferenceEntityCard data={drill()} size="compact" depth={2} />)
     expect(fills(container)).toEqual(['tone'])
     fireEvent.click(screen.getByRole('button', { name: 'Show 2 actions' }))
     expect(fills(container)).toEqual(['tone', 'ink', 'ink'])
@@ -198,7 +198,7 @@ describe('the user-made flag', () => {
 
   test('dashes the shortform pill, at the smallest extent', () => {
     const { container } = render(
-      <ReferenceEntityCard data={drill()} size="small" extent="head" userMade />
+      <ReferenceEntityCard data={drill()} size="mini" extent="head" userMade />
     )
     const pill = container.querySelector<HTMLElement>('[title^="Made by a player"]')
     expect(pill?.style.borderStyle).toBe('dashed')

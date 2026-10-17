@@ -1,4 +1,4 @@
-import type { SizeRung } from '../../../styles/sizing'
+import type { Size } from '../../../styles/sizing'
 import { Stat } from '../../atoms/Stat'
 import type { StatItem } from '../../containers/statsBarTypes'
 
@@ -10,7 +10,7 @@ import type { StatItem } from '../../containers/statsBarTypes'
  * hybrid class's requirements in a tile) wraps onto more lines instead of
  * being clipped by the frame (`wrap`).
  */
-export function Facts({ cells, size = 'full' }: { cells: StatItem[]; size?: SizeRung }) {
+export function Facts({ cells, size = 'full' }: { cells: StatItem[]; size?: Size }) {
   return (
     <>
       {cells.map((stat) => (

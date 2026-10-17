@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactElement } from 'react'
 import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
 import { cn } from '../../lib/cn'
-import type { SizeRung } from '../../styles/sizing'
+import type { Size } from '../../styles/sizing'
 import type { StampSurface } from './Badge'
 import { Badge } from './Badge'
 import type { EntityStatus } from './entityStatus'
@@ -55,7 +55,7 @@ const STATE_BORDER_CLASS: Record<StatBorderState, string | undefined> = {
 }
 
 /** The plate halves' type, by rung (`.su-stat-plate--<rung>`). */
-const PLATE_RUNG: Record<SizeRung, string> = {
+const PLATE_SIZE: Record<Size, string> = {
   full: 'su-stat-plate--full',
   compact: 'su-stat-plate--compact',
   mini: 'su-stat-plate--mini',
@@ -111,7 +111,7 @@ type HorizontalValueProps = {
    * `mini` the seam-tag size (text-badge / 11px). One axis: a pair of booleans
    * could be combined into a rung that doesn't exist; a single `size` cannot.
    */
-  size?: SizeRung
+  size?: Size
   inverse?: boolean
   /** inline-flex (default) vs flex. */
   inline?: boolean
@@ -255,7 +255,7 @@ function HorizontalValue({
         // `inverse` plate's inset ring.
         className={cn(
           'su-stat-plate',
-          PLATE_RUNG[size],
+          PLATE_SIZE[size],
           'su-stat-plate--label',
           bottomLabel !== undefined && 'su-stat-plate--stack'
         )}
@@ -276,7 +276,7 @@ function HorizontalValue({
           surface={valueSurface}
           className={cn(
             'su-stat-plate',
-            PLATE_RUNG[size],
+            PLATE_SIZE[size],
             'su-stat-plate--value',
             // Wrapping, it narrows with its cell; a word longer than the row
             // breaks rather than being clipped.

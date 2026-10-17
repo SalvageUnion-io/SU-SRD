@@ -88,7 +88,7 @@ export function MechReviewStep({ form, submitError, bankedScrap }: MechReviewSte
             // biome-ignore lint/suspicious/noArrayIndexKey: the same system/module may be chosen more than once, so the id alone is not unique; the list only appends/removes at stable positions during review
             key={`${(entity as { id?: string }).id ?? 'entity'}-${i}`}
             data={entity}
-            size="medium"
+            size="compact"
             status="intact"
             hide={{ actions: true, choices: true }}
           />

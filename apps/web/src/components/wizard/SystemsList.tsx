@@ -67,7 +67,7 @@ export function SystemsList({
           <ReferenceEntityCard
             key={system.id}
             data={system}
-            size="medium"
+            size="compact"
             selected={selected}
             selectionRole="toggle"
             cardClickLabel={system.name}

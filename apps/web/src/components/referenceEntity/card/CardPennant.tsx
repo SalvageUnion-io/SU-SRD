@@ -10,6 +10,7 @@ import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
  * (ADR-046, repeated elements). Its shape is `PENNANT_SHAPE` (`cardChrome.ts`),
  * which the link preview (`OgCard`) also cuts.
  */
+/** The stylesheet's size modifiers keep their older spelling (public class names). */
 const pennantClass = (size: CardSize) => `su-pennant su-pennant--${size}`
 
 /**

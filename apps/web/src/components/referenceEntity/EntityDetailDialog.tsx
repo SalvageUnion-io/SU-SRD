@@ -176,7 +176,7 @@ export function EntityDetailPage({
         page={provenance.page}
         additionalSources={provenance.additionalSources}
         externalLink={externalLink}
-        size="large"
+        size="full"
         band={footOnBand ? { bandColor, onBand: foregroundOn(bandColor, 'ink') } : undefined}
       />
     </>

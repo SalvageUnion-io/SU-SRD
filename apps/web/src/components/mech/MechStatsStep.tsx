@@ -89,7 +89,7 @@ export function MechStatsStep({ chassisName }: MechStatsStepProps) {
               <ReferenceEntityCard
                 key={ability.id}
                 data={ability}
-                size="medium"
+                size="compact"
                 chassisName={chassis.name}
               />
             ))}

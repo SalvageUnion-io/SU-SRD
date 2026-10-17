@@ -24,11 +24,11 @@ type CardProps = {
   children?: ReactNode
   /** Optional pseudoheader label above the card */
   label?: string
-  /** How big the card renders — `large` | `medium` | `small`. Orthogonal to
+  /** How big the card renders — `full` | `compact` | `mini`. Orthogonal to
    * `extent`. The vocabulary lives in `displayMode.ts`; see it for the rungs. */
   size?: CardSize
   /** How much of the card renders — `full` | `head` | `catalog`. Orthogonal to
-   * `size`, so a `small` card can still show its whole content. */
+   * `size`, so a `mini` card can still show its whole content. */
   extent?: CardExtent
   /**
    * Inline style on the body band. The case it exists for: a height-capped

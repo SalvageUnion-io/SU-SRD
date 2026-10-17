@@ -184,12 +184,14 @@ describe('cardChrome', () => {
   })
 
   test('the frame steps 3 → 2 → 1.5px with size and depth', () => {
-    expect(resolveFrameWidth({ size: 'large', extent: 'full', depth: 0 })).toBe('var(--bw-entity)')
-    expect(resolveFrameWidth({ size: 'medium', extent: 'full', depth: 1 })).toBe(
+    expect(resolveFrameWidth({ size: 'full', extent: 'full', depth: 0 })).toBe('var(--bw-entity)')
+    expect(resolveFrameWidth({ size: 'compact', extent: 'full', depth: 1 })).toBe(
       'var(--bw-entity-compact)'
     )
-    expect(resolveFrameWidth({ size: 'medium', extent: 'head', depth: 2 })).toBe('var(--bw-chrome)')
-    expect(resolveFrameWidth({ size: 'small', extent: 'full', depth: 0 })).toBe('var(--bw-chrome)')
+    expect(resolveFrameWidth({ size: 'compact', extent: 'head', depth: 2 })).toBe(
+      'var(--bw-chrome)'
+    )
+    expect(resolveFrameWidth({ size: 'mini', extent: 'full', depth: 0 })).toBe('var(--bw-chrome)')
   })
 
   const base = {

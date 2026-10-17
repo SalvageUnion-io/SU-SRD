@@ -95,16 +95,9 @@ const ADDER = {
 } satisfies CSSProperties
 
 /** The adder's inputs, a rung smaller than the `Input` skin. */
-const COMPACT_INPUT = {
-  fontSize: tokens.fontSize.xs,
-  lineHeight: 'calc(1 / 0.75)',
-  paddingBlock: tokens.space[6],
-  paddingInline: tokens.space[8],
-} satisfies CSSProperties
+const NAME_INPUT = { flex: '1 1 0%', width: '9rem' } satisfies CSSProperties
 
-const NAME_INPUT = { ...COMPACT_INPUT, flex: '1 1 0%', width: '9rem' } satisfies CSSProperties
-
-const NUMBER_INPUT = { ...COMPACT_INPUT, width: '3.5rem' } satisfies CSSProperties
+const NUMBER_INPUT = { width: '3.5rem' } satisfies CSSProperties
 
 const ADDER_LABEL = {
   alignItems: 'center',
@@ -357,7 +350,7 @@ export function PilotEquipmentItem({
         <div id={details.panelId}>
           <ReferenceEntityCard
             data={equipment}
-            size="medium"
+            size="compact"
             selections={selections}
             onSelectionChange={setSelections}
             scalingParent={scalingParent}
@@ -443,6 +436,7 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
         + Scrap
       </Button>
       <Input
+        size="compact"
         type="text"
         value={name}
         aria-label="New item name"
@@ -453,6 +447,7 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
       <label htmlFor="new-item-slots" style={ADDER_LABEL}>
         Slots
         <Input
+          size="compact"
           id="new-item-slots"
           type="number"
           numeric
@@ -466,6 +461,7 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
       <label htmlFor="new-item-qty" style={ADDER_LABEL}>
         Qty
         <Input
+          size="compact"
           id="new-item-qty"
           type="number"
           numeric

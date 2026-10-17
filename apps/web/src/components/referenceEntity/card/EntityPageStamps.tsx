@@ -81,7 +81,7 @@ export function EntityPageStamps({
       ))}
       {actionFacts.map(bandFact)}
       {meta.tags.map((tag) => (
-        <Tag key={tag.key} tag={tag} rung="full" linkable />
+        <Tag key={tag.key} tag={tag} size="full" linkable />
       ))}
       {meta.cost && (
         <span className="su-entity-cost">

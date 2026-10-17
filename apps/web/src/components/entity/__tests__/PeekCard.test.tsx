@@ -44,7 +44,7 @@ describe('Peek footer', () => {
   })
 
   test('a card off a Peek keeps its footer on paper', () => {
-    render(<ReferenceEntityCard data={frost()} size="small" extent="full" />)
+    render(<ReferenceEntityCard data={frost()} size="mini" extent="full" />)
     expect(footerOf().style.background).toBe('')
   })
 

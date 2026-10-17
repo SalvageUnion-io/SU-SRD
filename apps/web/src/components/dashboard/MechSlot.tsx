@@ -532,7 +532,7 @@ export function MechMajor({
         card: (
           <ReferenceEntityCard
             data={ability}
-            size="medium"
+            size="compact"
             // The Dashboard stays flat (ruleset §3.5): no speckle.
             texture={false}
             // `[(CHASSIS)]` reads as this machine, as on the Live Sheet.
