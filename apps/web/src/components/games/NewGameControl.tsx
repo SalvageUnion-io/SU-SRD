@@ -26,7 +26,17 @@ import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { useShowContainer } from '../entityContainer/useShowContainer'
-import { Button, Field, FieldError, Input, ModalShell, PageHeading, Text, tokens } from '../index'
+import {
+  Button,
+  Field,
+  FieldError,
+  Input,
+  ModalShell,
+  PageHeading,
+  Pending,
+  Text,
+  tokens,
+} from '../index'
 
 type TemplateId = FunctionArgs<typeof api.templates.createGame>['templateId']
 
@@ -141,11 +151,7 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
           <PageHeading variant="section" as="h3" id="new-game-template">
             From a template
           </PageHeading>
-          {templates === undefined && (
-            <Text variant="hint" style={HINT}>
-              Loading templates…
-            </Text>
-          )}
+          {templates === undefined && <Pending label="templates" />}
           {templates?.map((t) => (
             <div key={t.id} style={SECTION}>
               <PageHeading as="h4">{t.name}</PageHeading>

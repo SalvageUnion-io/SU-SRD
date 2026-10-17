@@ -25,7 +25,7 @@ import { useEntityStore } from '../../stores/entityStore'
 import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
 import type { AssignableType } from '../../stores/types'
 import { requestMove } from '../entityContainer/requestMove.model'
-import { Button, ModalShell, Text, toast, tokens } from '../index'
+import { Button, ModalShell, Pending, Text, toast, tokens } from '../index'
 import type { Confirm } from '../shared/useConfirm'
 
 /** What "out of a Game" is called in the Hangar, as on its chip. */
@@ -116,9 +116,7 @@ export function MoveToGameDialog({ subject, onClose, games, confirm }: MoveToGam
     >
       <div style={BODY}>
         {games === undefined ? (
-          <Text variant="hint" style={HINT}>
-            Loading your Games…
-          </Text>
+          <Pending label="your Games" />
         ) : destinations.length === 0 ? (
           <Text variant="hint" style={HINT}>
             {subject?.type === 'crawler'

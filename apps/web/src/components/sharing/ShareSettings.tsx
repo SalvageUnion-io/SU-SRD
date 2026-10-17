@@ -128,7 +128,7 @@ function SheetShareSettings({
       {value === 'link' && (
         <ShareLink url={appUrl(publicPath(kind, appId))} clipboardWriter={clipboardWriter} />
       )}
-      {error !== null && <FieldError className="su-sheet-share-error">{error}</FieldError>}
+      {error !== null && <FieldError spaceAbove={8}>{error}</FieldError>}
     </div>
   )
 }
@@ -191,7 +191,7 @@ function PatternShareSettings({ appId, clipboardWriter }: ShareSettingsProps) {
       {value === 'link' && (
         <ShareLink url={appUrl(publicPath('pattern', appId))} clipboardWriter={clipboardWriter} />
       )}
-      {error !== null && <FieldError className="su-sheet-share-error">{error}</FieldError>}
+      {error !== null && <FieldError spaceAbove={8}>{error}</FieldError>}
     </div>
   )
 }
@@ -240,7 +240,7 @@ function ShareLink({
         <LinkQr url={url} />
         <p style={QR_NOTE}>Scan to open on another device.</p>
       </div>
-      {error !== null && <FieldError className="su-sheet-share-error">{error}</FieldError>}
+      {error !== null && <FieldError spaceAbove={8}>{error}</FieldError>}
     </div>
   )
 }

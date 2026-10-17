@@ -8,25 +8,14 @@
  */
 
 import type { CSSProperties } from 'react'
-import { color, font, fontSize, space } from '../../design/tokens'
+import { space } from '../../design/tokens'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { buildExportBundle } from '../../lib/export/buildExportBundle'
 import { downloadJson } from '../../lib/export/downloadJson'
 import { useEntityStore } from '../../stores/entityStore'
-import { Button, toast } from '../index'
+import { Button, Message, toast } from '../index'
 
 const STACK = { display: 'flex', flexDirection: 'column', gap: space[4] } satisfies CSSProperties
-
-/** The inline failure line. */
-const FAILURE = {
-  color: color.statusBad,
-  fontFamily: font.body,
-  fontSize: fontSize.xs,
-  lineHeight: 'calc(1 / 0.75)',
-} satisfies CSSProperties
-
-/** The same line on the ink band (Shelves): paper, not the danger colour. */
-const FAILURE_ON_INK = { ...FAILURE, color: color.paper } satisfies CSSProperties
 
 type ExportAllButtonProps = {
   /** Extra classes for the button (the Shelves band's on-ink outline). */
@@ -62,7 +51,9 @@ export function ExportAllButton({ className, onInk = false }: ExportAllButtonPro
       >
         {busy ? 'Exporting…' : 'Export all'}
       </Button>
-      {error && <p style={onInk ? FAILURE_ON_INK : FAILURE}>{error}</p>}
+      <Message tone="bad" ground={onInk ? 'ink' : 'paper'}>
+        {error}
+      </Message>
     </div>
   )
 }

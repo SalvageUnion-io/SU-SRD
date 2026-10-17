@@ -17,7 +17,7 @@ import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { formatDateTime } from '../../lib/formatDate'
 import type { BadgeTone } from '../index'
-import { Badge, EmptyState, ModalShell, tokens } from '../index'
+import { Badge, EmptyState, ModalShell, Pending, tokens } from '../index'
 
 type ChangeLogDrawerProps = {
   entityType: EntityRef['type']
@@ -130,7 +130,7 @@ function ChangeLogEntries({
 }: Pick<ChangeLogDrawerProps, 'entityType' | 'entityId'>) {
   const entries = useQuery(api.changeLog.forEntity, { entityType, entityId })
 
-  if (entries === undefined) return <p style={NOTE}>Loading…</p>
+  if (entries === undefined) return <Pending />
   if (entries.length === 0) {
     return (
       <EmptyState

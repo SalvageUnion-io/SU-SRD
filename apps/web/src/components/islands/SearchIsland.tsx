@@ -17,7 +17,14 @@ import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import { useSearchIndex } from '../../lib/useSearchIndex'
 import { HeroSearchForm } from '../HeroSearch'
 import type { SearchComboboxResult } from '../index'
-import { Entity, SearchField, useModKeyHint, useSearchCombobox } from '../index'
+import {
+  EmptyState,
+  Entity,
+  Pending,
+  SearchField,
+  useModKeyHint,
+  useSearchCombobox,
+} from '../index'
 import { DocumentLinks } from './DocumentLinks'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
@@ -58,10 +65,8 @@ const LISTBOX_BAR = { ...LISTBOX, right: 0, width: '20rem' } satisfies CSSProper
 
 const SMALL = { fontSize: fontSize.sm, lineHeight: 'calc(1.25 / 0.875)' } satisfies CSSProperties
 
-/** The loading and empty states. */
+/** The loading and empty states' place in the listbox. */
 const STATUS = {
-  ...SMALL,
-  color: color.wkMuted,
   paddingBlock: space[12],
   paddingInline: space[16],
 } satisfies CSSProperties
@@ -242,7 +247,9 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
   const listbox = isOpen && (
     <div id={listboxId} role="listbox" style={hero ? LISTBOX_HERO : LISTBOX_BAR}>
       {!ready ? (
-        <div style={STATUS}>Loading search index…</div>
+        <div style={STATUS}>
+          <Pending label="search index" />
+        </div>
       ) : results.length > 0 ? (
         // HEADER SEARCH (entity display language, "Which form, where"): every
         // entity result is a Token in link mode, one a line; a category is a
@@ -279,7 +286,9 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
           </div>
         </DocumentLinks>
       ) : (
-        <div style={STATUS}>No results found</div>
+        <div style={STATUS}>
+          <EmptyState variant="inline" body="No results found" />
+        </div>
       )}
     </div>
   )

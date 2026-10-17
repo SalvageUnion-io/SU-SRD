@@ -7,23 +7,17 @@
 
 import type { SheetKind } from 'cantina-domain/entityKinds'
 import type { CSSProperties } from 'react'
-import { color, fontSize, space } from '../../design/tokens'
+import { space } from '../../design/tokens'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { buildEntityExport } from '../../lib/export/buildExportBundle'
 import { downloadJson } from '../../lib/export/downloadJson'
 import { useEntityStore } from '../../stores/entityStore'
-import { Button, toast } from '../index'
+import { Button, FieldError, toast } from '../index'
 
 const STACK = { display: 'flex', flexDirection: 'column', gap: space[4] } satisfies CSSProperties
 
 /** The 44px touch target. */
 const BUTTON = { minHeight: '2.75rem' } satisfies CSSProperties
-
-const FAILURE = {
-  color: color.statusBad,
-  fontSize: fontSize.sm,
-  lineHeight: 'calc(1.25 / 0.875)',
-} satisfies CSSProperties
 
 type ExportEntityButtonProps = {
   type: SheetKind
@@ -58,7 +52,7 @@ export function ExportEntityButton({ type, id, name }: ExportEntityButtonProps) 
       <Button size="compact" disabled={busy} onClick={() => void handleExport()} style={BUTTON}>
         {busy ? 'Exporting…' : 'Export'}
       </Button>
-      {error && <p style={FAILURE}>{error}</p>}
+      <FieldError>{error}</FieldError>
     </div>
   )
 }

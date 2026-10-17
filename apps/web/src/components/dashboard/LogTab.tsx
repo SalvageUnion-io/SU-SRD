@@ -70,8 +70,6 @@ const TEXT = {
   color: color.ink,
 } satisfies CSSProperties
 
-const NOTE = { ...TEXT, margin: 0, color: color.ink75 } satisfies CSSProperties
-
 const SOURCE: Record<string, string> = { dashboard: 'Dashboard', 'discord-bot': 'Discord' }
 
 export function LogTab({ rolls, alerts }: { rolls: RollLine[] | null; alerts: AlertLine[] }) {
@@ -98,7 +96,7 @@ export function LogTab({ rolls, alerts }: { rolls: RollLine[] | null; alerts: Al
           Rolls
         </Eyebrow>
         {rolls === null ? (
-          <p style={NOTE}>The Game's rolls appear here.</p>
+          <EmptyState variant="inline" body="The Game's rolls appear here." />
         ) : rolls.length === 0 ? (
           <EmptyState variant="quiet" body="No rolls yet. Every roll at this table lands here." />
         ) : (

@@ -5,8 +5,17 @@ import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
-import { Button, ChapterBand, EmptyState, FieldError, Input, Slab, Text, tokens } from '../index'
-import { ConvexPending } from '../shared/ConvexPending'
+import {
+  Button,
+  ChapterBand,
+  EmptyState,
+  FieldError,
+  Input,
+  Pending,
+  Slab,
+  Text,
+  tokens,
+} from '../index'
 import { SignInControl } from './SignInControl'
 
 /**
@@ -107,7 +116,7 @@ function SignedInAccount() {
   const [name, setName] = useState<string | null>(null)
   const [confirming, setConfirming] = useState(false)
 
-  if (me === undefined) return <ConvexPending label="your account" />
+  if (me === undefined) return <Pending label="your account" />
   if (me === null) return <Text>No account found.</Text>
 
   const value = name ?? me.displayName ?? ''

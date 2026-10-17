@@ -44,7 +44,16 @@ import { useHydrateEntities, usePilots } from '../../lib/entities'
 import type { RosterRow } from '../../lib/games/gameRoster'
 import { groupColumn, ownableRows } from '../../lib/games/gameRoster'
 import { unitRowModel } from '../../lib/units/unitModel'
-import { Button, DialogActions, Entity, ModalShell, RadioCardGroup, Text, tokens } from '../index'
+import {
+  Button,
+  DialogActions,
+  Entity,
+  ModalShell,
+  Pending,
+  RadioCardGroup,
+  Text,
+  tokens,
+} from '../index'
 import { OwnerSeal } from './OwnerSeal'
 
 const HINT = { textAlign: 'left' } satisfies CSSProperties
@@ -153,9 +162,7 @@ export function LaunchDashboard({ gameId }: { gameId: string }) {
               Game.
             </Text>
           ) : listing === undefined ? (
-            <Text variant="hint" style={HINT}>
-              Loading pilots…
-            </Text>
+            <Pending label="pilots" />
           ) : pilots.length === 0 ? (
             <Text variant="hint" style={HINT}>
               None of this Game's pilots is saved in this browser. Create or claim one from the

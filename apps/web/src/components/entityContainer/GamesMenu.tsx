@@ -29,7 +29,7 @@ import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import type { HeaderMenuItem } from '../index'
-import { Badge, Button, HeaderMenu, Text, tokens } from '../index'
+import { Badge, Button, EmptyState, HeaderMenu, Pending, tokens } from '../index'
 import { useShowContainer } from './useShowContainer'
 
 /** One row of the list: what it says, and the container it picks. */
@@ -126,8 +126,8 @@ function ConnectedGamesDrawerList({ onPick }: { onPick: () => void }) {
       <div>
         <Badge shape="stamp">Games</Badge>
       </div>
-      {games === undefined && <Text variant="hint">Loading your Games…</Text>}
-      {games?.length === 0 && <Text variant="hint">No Games yet</Text>}
+      {games === undefined && <Pending label="your Games" />}
+      {games?.length === 0 && <EmptyState variant="inline" body="No Games yet" />}
       {games?.map(row)}
     </nav>
   )

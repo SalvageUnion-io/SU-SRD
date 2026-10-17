@@ -33,10 +33,9 @@ import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useShowContainer } from '../entityContainer/useShowContainer'
-import { Button, Card, Text, tokens } from '../index'
+import { Button, Card, Pending, Skeleton, Text, tokens } from '../index'
 import { readCrawler } from '../mediator/crawlerReading.model'
 import type { SegmentKind } from '../roster/RosterColumn'
-import { ConvexPending } from '../shared/ConvexPending'
 import { CopyInviteLink, ResetInviteLink } from './CopyInviteLink'
 import { CrewSeats } from './CrewSeats'
 import { DeleteGameDialog } from './DeleteGameDialog'
@@ -129,7 +128,7 @@ function GameSections({ game }: { game: Game }) {
       <div style={HUB_COLUMNS}>
         <div style={HUB_COLUMN}>
           {seats === null ? (
-            <ConvexPending label="the crew" />
+            <Skeleton shape="rows" label="Loading the crew" />
           ) : (
             <CrewSeats
               crawler={crawler}
@@ -192,7 +191,7 @@ export function GameHub({ gameId, controls, activeSegment, onSegmentChange }: Ga
       <div className="su-page-column" style={GAME_BODY}>
         {game === undefined ? (
           <div style={PENDING}>
-            <ConvexPending label="this Game" />
+            <Pending label="this Game" />
           </div>
         ) : game === null ? (
           <NotInGame />

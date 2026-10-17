@@ -65,11 +65,10 @@ import {
   tableCapabilities,
 } from '../../lib/games/gameRoster'
 import type { HeaderMenuItem } from '../index'
-import { buttonVariants, FieldError, HeaderMenu, Text, tokens } from '../index'
+import { buttonVariants, FieldError, HeaderMenu, RosterSkeleton, Text, tokens } from '../index'
 import type { ColumnCreate, SegmentKind } from '../roster/RosterColumn'
 import { RosterColumn, RosterGrid, RosterList, SegmentSwitch } from '../roster/RosterColumn'
 import { AppLink } from '../shared/AppLink'
-import { ConvexPending } from '../shared/ConvexPending'
 import { UnitRow } from '../shared/UnitRow'
 import { useConfirm } from '../shared/useConfirm'
 import { useGo } from '../shared/useGo'
@@ -291,9 +290,7 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
       )}
 
       {loading ? (
-        <div style={HINT}>
-          <ConvexPending label="the crew" />
-        </div>
+        <RosterSkeleton label="the crew" />
       ) : (
         <>
           <SegmentSwitch active={activeSegment} onChange={onSegmentChange} />

@@ -83,6 +83,8 @@ export {
 } from './atoms/interaction'
 // KofiButton — the Ko-fi support widget, with a plain link until its script loads
 export { KofiButton } from './atoms/KofiButton'
+// Message — the one single-line feedback message (bad = role="alert", else status)
+export { Message } from './atoms/Message'
 export { ModeDoor } from './atoms/ModeDoor'
 export { useModKeyHint } from './atoms/modKeyHint'
 export { PageHeading } from './atoms/PageHeading'
@@ -191,6 +193,8 @@ export { MasonryColumns } from './containers/MasonryColumns'
 export { ModalShell } from './containers/ModalShell'
 // PageShell — the full-bleed <main> landmark for a top-level app screen
 export { PageShell } from './containers/PageShell'
+// Pending — the one "Loading X…" line (role="status"), for data that resolves inside a screen
+export { Pending } from './containers/Pending'
 // PopoverPanel — a trigger and the small non-modal panel of controls it opens
 // (Base UI Popover); the Cantina's sheet "⋯" overflow
 export { PopoverPanel } from './containers/PopoverPanel'

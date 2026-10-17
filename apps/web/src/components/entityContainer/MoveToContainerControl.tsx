@@ -192,7 +192,7 @@ function ConnectedMoveToContainerControl({
           )}
         </Select>
       </div>
-      {error && <FieldError className="su-move-to-container__error">{error}</FieldError>}
+      {error && <FieldError spaceAbove={4}>{error}</FieldError>}
     </div>
   )
 }

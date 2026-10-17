@@ -3,22 +3,14 @@
  * while entityStore hydration is in flight.
  *
  * Mirrors the hydrated layout (the same grid shell, `.su-roster-skeleton`, and
- * Row-shaped placeholders) so the swap to real content doesn't shift the
+ * the shared Row ghost, `GhostRow`) so the swap to real content doesn't shift the
  * page. Columns 2–3 hide below `md`, matching the mobile single-column view.
  */
 
 import type { CSSProperties } from 'react'
 import { borderWidth, color, radius, space } from '../../design/tokens'
 import { Ghost } from '../atoms/Ghost'
-
-const ROW = {
-  borderRadius: radius.card,
-  borderStyle: 'solid',
-  borderWidth: borderWidth.chrome,
-  borderColor: color.ink15,
-  backgroundColor: color.paper,
-  padding: `${space[10]} ${space[12]}`,
-} satisfies CSSProperties
+import { GhostRow } from './Skeleton'
 
 const COLUMN_HEAD = {
   marginBottom: space[12],
@@ -45,21 +37,11 @@ const COLUMN_ACTION = {
 
 const ROWS = { display: 'flex', flexDirection: 'column', gap: space[10] } satisfies CSSProperties
 
-/** Row-shaped shimmer placeholder matching the UI library's `Row` frame. */
+/** One list item of the shared Row ghost (`Skeleton`'s 'row' shape). */
 function SkeletonRow() {
   return (
     <li style={{ listStyle: 'none' }}>
-      <div style={ROW}>
-        <Ghost style={{ height: space[16], width: '40%' }} />
-        <Ghost
-          style={{
-            marginTop: space[8],
-            height: space[12],
-            width: '60%',
-            backgroundColor: color.ink5,
-          }}
-        />
-      </div>
+      <GhostRow />
     </li>
   )
 }
@@ -80,9 +62,14 @@ function SkeletonColumn({ hiddenOnMobile = false }: { hiddenOnMobile?: boolean }
   )
 }
 
-export function RosterSkeleton() {
+type RosterSkeletonProps = {
+  /** What is loading, for the status's name: "Loading {label}". */
+  label?: string
+}
+
+export function RosterSkeleton({ label = 'saved builds' }: RosterSkeletonProps) {
   return (
-    <div role="status" aria-label="Loading saved builds" className="su-pulse">
+    <div role="status" aria-label={`Loading ${label}`} className="su-pulse">
       <div className="su-roster-skeleton">
         <SkeletonColumn />
         <SkeletonColumn hiddenOnMobile />

@@ -33,6 +33,7 @@ import {
   EmptyState,
   Entity,
   EntitySearcher,
+  Pending,
   ReferenceEntityCard,
   SearchField,
   Slab,
@@ -218,7 +219,7 @@ function SrdHome({
           ))}
         </div>
       ) : (
-        <div className="su-dash-display-note">Loading reference data…</div>
+        <Pending label="reference data" />
       )}
     </div>
   )
@@ -265,7 +266,7 @@ export function SrdExplorer() {
     if (!ready) {
       return (
         <div className="su-dash-display-scroll">
-          <div className="su-dash-display-note">Loading reference data…</div>
+          <Pending label="reference data" />
         </div>
       )
     }

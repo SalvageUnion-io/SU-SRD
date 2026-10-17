@@ -5,7 +5,7 @@ import { resolveCrawlerTypeAbilities } from '../../lib/crawlerRefs'
 import { unitRowModel } from '../../lib/units/unitModel'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
 import { toScrapPoolPatch } from '../../lib/wizard/crawlerFormState'
-import { Callout, FieldError, Panel, ReferenceEntityCard, Stat, tokens } from '../index'
+import { Callout, EmptyState, FieldError, Panel, ReferenceEntityCard, Stat, tokens } from '../index'
 import '../../styles/cantina/wizard.css'
 import { Recap, RecapEntity, RecapStat, RecapTokens } from '../wizard/ReviewRecap'
 
@@ -27,13 +27,6 @@ const CHIPS = {
 } satisfies CSSProperties
 
 /** The empty-weapons line, in the surrounding text colour. */
-const EMPTY_LINE = {
-  margin: 0,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.sm,
-  lineHeight: 'calc(1.25 / 0.875)',
-  color: 'currentcolor',
-} satisfies CSSProperties
 
 type CrawlerReviewStepProps = {
   form: CrawlerWizardFormState
@@ -113,7 +106,7 @@ export function CrawlerReviewStep({
             <RecapTokens label="Weapons" entities={systems} empty="Required" />
             <RecapTokens label="Crew" models={crew} empty="Unnamed — fill in during play" />
           </Recap>
-          {submitError && <FieldError className="su-wiz-review-error">{submitError}</FieldError>}
+          {submitError && <FieldError spaceAbove={12}>{submitError}</FieldError>}
         </Panel>
         {isAugmented && (
           <Callout label="Reminder" tone="crawler">
@@ -139,7 +132,9 @@ export function CrawlerReviewStep({
             hide={{ actions: true, choices: true }}
           />
         ))}
-        {systems.length === 0 && <p style={EMPTY_LINE}>No weapons mounted.</p>}
+        {systems.length === 0 && (
+          <EmptyState variant="quiet" body="No weapons mounted." bodyInk="inherit" />
+        )}
       </div>
     </div>
   )

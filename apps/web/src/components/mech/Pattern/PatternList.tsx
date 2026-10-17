@@ -17,7 +17,7 @@ import { api } from '../../../../convex/_generated/api'
 import { useConnection } from '../../../lib/connection/connectionContext'
 import { asReferencePattern, patternChassis, patternHref } from '../../../lib/patterns/patterns'
 import { usePatternStore } from '../../../stores/patternStore'
-import { EmptyState, Entity, quotePatternName, Text, tokens } from '../../index'
+import { EmptyState, Entity, Pending, quotePatternName, Text, tokens } from '../../index'
 import { AppLink } from '../../shared/AppLink'
 import { InstantiateFromPattern } from './InstantiateFromPattern'
 
@@ -34,12 +34,6 @@ const ROW = {
   display: 'flex',
   flexDirection: 'column',
   gap: tokens.space[8],
-} satisfies CSSProperties
-
-const LOADING = {
-  color: tokens.color.wkMuted,
-  fontSize: tokens.fontSize.sm,
-  lineHeight: 'calc(1.25 / 0.875)',
 } satisfies CSSProperties
 
 const LINK = { color: 'inherit', display: 'block', textDecoration: 'none' } satisfies CSSProperties
@@ -65,11 +59,7 @@ export function PatternList({ onInstantiated }: PatternListProps) {
   }
 
   if (isLoading) {
-    return (
-      <p style={LOADING} aria-live="polite">
-        Loading patterns…
-      </p>
-    )
+    return <Pending label="patterns" />
   }
 
   if (patterns.length === 0) {

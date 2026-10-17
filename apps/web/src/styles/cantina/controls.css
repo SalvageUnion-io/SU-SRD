@@ -98,11 +98,6 @@
   opacity: 50%;
 }
 
-/* `FieldError` takes call-site spacing as a class only. */
-.su-move-to-container__error {
-  margin-top: 4px;
-}
-
 /* ── AssignPicker ── */
 
 /* The dialog's width cap: `ModalShell`'s `maxWidth` is a class. */

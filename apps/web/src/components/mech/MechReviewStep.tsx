@@ -1,11 +1,10 @@
 import type { CSSProperties } from 'react'
 import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
 import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
-import { FieldError, Panel, ReferenceEntityCard, tokens } from '../index'
+import { EmptyState, FieldError, Panel, ReferenceEntityCard, tokens } from '../index'
 import '../../styles/cantina/wizard.css'
 import { readReference } from '../../lib/readReference'
 import { Recap, RecapEntity, RecapStat, RecapTokens } from '../wizard/ReviewRecap'
-import { textSmStyle } from '../wizard/wizardStyles.model'
 import { SavePatternButton } from './Pattern/SavePatternButton'
 
 /** Columns are `.su-wiz-review-grid` (they change at lg). */
@@ -14,8 +13,6 @@ const LAYOUT = { display: 'grid', gap: tokens.space[24] } satisfies CSSPropertie
 const KV_COLUMN = { alignSelf: 'flex-start' } satisfies CSSProperties
 
 const SAVE_ROW = { marginTop: tokens.space[12] } satisfies CSSProperties
-
-const EMPTY_NOTE = { ...textSmStyle, color: 'currentcolor' } satisfies CSSProperties
 
 type MechReviewStepProps = {
   form: MechWizardFormState
@@ -62,7 +59,7 @@ export function MechReviewStep({ form, submitError, bankedScrap }: MechReviewSte
             <RecapTokens label="Systems" entities={chosenSystems} />
             <RecapTokens label="Modules" entities={chosenModules} />
           </Recap>
-          {submitError && <FieldError className="su-wiz-review-error">{submitError}</FieldError>}
+          {submitError && <FieldError spaceAbove={12}>{submitError}</FieldError>}
         </Panel>
         <Panel data-testid="banking-callout" className="su-wiz-mech-banking">
           {bankedScrap} Tech 1 Scrap banks to your Union Crawler — note it in the Crawler&rsquo;s
@@ -94,7 +91,7 @@ export function MechReviewStep({ form, submitError, bankedScrap }: MechReviewSte
           />
         ))}
         {chosenSystems.length === 0 && chosenModules.length === 0 && (
-          <p style={EMPTY_NOTE}>No systems or modules installed.</p>
+          <EmptyState variant="quiet" body="No systems or modules installed." bodyInk="inherit" />
         )}
       </div>
     </div>

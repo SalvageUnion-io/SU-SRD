@@ -38,8 +38,7 @@ import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useEntityStore } from '../../stores/entityStore'
-import { ChapterBand, PageShell, Text, tokens } from '../index'
-import { ConvexPending } from '../shared/ConvexPending'
+import { ChapterBand, PageShell, Pending, Text, tokens } from '../index'
 import { WayOutLink } from '../shared/WayOutLink'
 import { Dashboard } from './Dashboard'
 
@@ -94,7 +93,7 @@ export function DashboardGate({ id }: { id: string }) {
   if (mode === 'connecting') {
     return (
       <div style={PENDING}>
-        <ConvexPending label="your session" />
+        <Pending label="your session" />
       </div>
     )
   }
@@ -163,7 +162,7 @@ function SignedInGate({ id, offline }: { id: string; offline: boolean }) {
   if (unanswered) {
     return (
       <div style={PENDING}>
-        <ConvexPending label="the Game" />
+        <Pending label="the Game" />
       </div>
     )
   }
