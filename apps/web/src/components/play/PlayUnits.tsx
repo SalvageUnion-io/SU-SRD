@@ -28,6 +28,7 @@ import type { RangeBand } from 'cantina-domain/schemas/seat'
 import { RANGE_BANDS } from 'cantina-domain/schemas/seat'
 import type { CSSProperties, ReactNode } from 'react'
 import { resolveClassName } from '../../lib/classRef'
+import { activatableEffects } from '../../lib/rules/activatableEffects'
 import { crawlerTechLevelOf } from '../../lib/rules/downtimeEconomy'
 import { runWrite } from '../../lib/runWrite'
 import { unitRowModel } from '../../lib/units/unitModel'
@@ -42,8 +43,11 @@ import {
   heatDangerFrom,
   Segmented,
   SegmentedOption,
+  Slab,
   Stat,
   TitledBox,
+  Toggle,
+  ToggleGroup,
   tokens,
 } from '../index'
 import { PlayVital } from './PlayVital'
@@ -200,6 +204,11 @@ export type PlayMechUnitProps = {
   pilotAbilities?: string[]
   /** The seat's switched-on effects (ADR-029 §4). */
   activeEffects?: readonly string[]
+  /**
+   * Switch an activated effect on or off (`seats.toggleEffect`). Shown while
+   * Boarded; omitted, the effects read but cannot be changed.
+   */
+  onToggleEffect?: (ref: string) => void
   place: MechPlace
   /** − / + on SP, EP and Heat, and the range band; only while Boarded. */
   live: boolean
@@ -224,6 +233,7 @@ export function PlayMechUnit({
   mech,
   pilotAbilities,
   activeEffects = [],
+  onToggleEffect,
   place,
   live,
   range,
@@ -237,6 +247,9 @@ export function PlayMechUnit({
   const write = writer(store, 'mech', mech.id)
   const chassis = s.chassis?.name ?? null
   const showHeat = place !== 'parked'
+  // What the mech and its pilot can switch on (ADR-029 §4): the table keeps
+  // time, so an effect stays on until the player ends it.
+  const effects = place === 'boarded' ? activatableEffects(mech, pilotAbilities) : []
   return (
     <TitledBox
       as="section"
@@ -273,6 +286,27 @@ export function PlayMechUnit({
           restoresTo={restore.heat}
           onChange={live ? (v) => write({ currentHeat: v }) : undefined}
         />
+      ) : null}
+      {effects.length > 0 ? (
+        <>
+          <Slab as="h4" label="Effects" />
+          <ToggleGroup label={`Effects of ${mech.name}`} style={CHIPS}>
+            {effects.map((e) => {
+              const on = activeEffects.includes(e.ref)
+              return (
+                <Toggle
+                  key={e.ref}
+                  pressed={on}
+                  disabled={!live || onToggleEffect === undefined}
+                  title={on ? `${e.name} is on: press to end it` : `${e.name}: ${e.summary}`}
+                  onClick={() => onToggleEffect?.(e.ref)}
+                >
+                  {e.name}
+                </Toggle>
+              )
+            })}
+          </ToggleGroup>
+        </>
       ) : null}
       {place === 'boarded' ? (
         <div style={CHIPS}>

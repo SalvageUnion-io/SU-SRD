@@ -51,6 +51,7 @@ export function PlayUnitsColumn({ play }: PlayColumnProps) {
           mech={units.mech.mech}
           pilotAbilities={pilot?.abilities}
           activeEffects={units.mech.place === 'boarded' ? seat.seat.activeEffects : []}
+          onToggleEffect={units.live.mech ? seat.toggleEffect : undefined}
           place={units.mech.place}
           live={units.live.mech}
           range={seat.seat.range}

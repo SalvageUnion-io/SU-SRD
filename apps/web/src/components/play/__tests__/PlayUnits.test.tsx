@@ -114,6 +114,50 @@ describe('a boarded mech', () => {
   })
 })
 
+describe('activated effects (ADR-029 §4)', () => {
+  const magnetised = { ...mech, modules: ['hull-magnetiser'] }
+  const effect = () => screen.getByRole('button', { name: /hull magnetiser/i })
+
+  test('boarded and live, each effect is a toggle that switches it on the seat', () => {
+    const toggled: string[] = []
+    render(
+      <PlayMechUnit
+        mech={magnetised}
+        place="boarded"
+        live
+        onToggleEffect={(ref) => toggled.push(ref)}
+      />
+    )
+    expect(screen.getByRole('group', { name: 'Effects of Buzzard' })).toBeTruthy()
+    expect(effect().getAttribute('aria-pressed')).toBe('false')
+    fireEvent.click(effect())
+    expect(toggled).toEqual(['hull-magnetiser'])
+  })
+
+  test('an effect the seat has on reads pressed', () => {
+    render(
+      <PlayMechUnit
+        mech={magnetised}
+        place="boarded"
+        live
+        activeEffects={['hull-magnetiser']}
+        onToggleEffect={() => undefined}
+      />
+    )
+    expect(effect().getAttribute('aria-pressed')).toBe('true')
+  })
+
+  test('read only, the toggles show but cannot be pressed', () => {
+    render(<PlayMechUnit mech={magnetised} place="boarded" live={false} />)
+    expect(effect().hasAttribute('disabled')).toBe(true)
+  })
+
+  test('a parked mech has no effects to switch', () => {
+    render(<PlayMechUnit mech={magnetised} place="parked" live={false} onBoard={() => undefined} />)
+    expect(screen.queryByRole('group', { name: 'Effects of Buzzard' })).toBeNull()
+  })
+})
+
 describe('a reference unit cannot be edited', () => {
   test('a parked mech: read-outs only, and Board is its one control', () => {
     const { store, updates } = recordingStore()
