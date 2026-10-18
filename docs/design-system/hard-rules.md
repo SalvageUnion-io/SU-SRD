@@ -51,7 +51,7 @@ The loop: define it here, land its gate with a baseline, burn the baseline to ze
 - **R19 One ground signal** (K1) — the surface sets `data-ground` once; no `onInk`, `ground` or ink `surface` prop; paper on ink is `--color-paper-NN`.
   Gate: held, `chrome/ground-signal` (zero: those props, Stat's `inverse`, and `data-ground` outside the frames in `packages/gates/rules/chrome.ts`) and `chrome/paper-mix` (zero: a `color-mix` fading paper).
 - **R30 No left-rail borders** (§3.10) — colour rides in bands, stamps and gauges.
-  Gate: planned, `tokens/left-rail` (zero): `border-left` / `borderLeft` / `border-inline-start` with a width.
+  Gate: held, `tokens/left-rail` (zero, `packages/gates/rules/chromeTokens.ts`): `border-left` / `borderLeft` / `border-inline-start` with a width, unless its rule draws the right edge at that width (a frame) or reaches it through a sibling combinator (a divider, `a + b`).
 - **R32 Dashed means user-made** (§3.9) — or a Play reference unit, an edit field, an empty slot.
   Gate: planned, `tokens/dashed` (zero): `dashed` only under the user-made, reference-unit, field and SlotGrid selectors.
 - **R34 The detail view is a Page, never a new tab** (E5).

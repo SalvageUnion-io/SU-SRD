@@ -2,7 +2,6 @@ import type { CSSProperties, ElementType } from 'react'
 import type { RefEntity, RefMetaEntity } from 'salvageunion-reference'
 import { getReferenceEntityName } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
-import { cn } from '../../../lib/cn'
 import { Slab } from '../../atoms/Slab'
 import { Entity } from '../../entity/Entity'
 import { Stack } from '../../index'
@@ -82,16 +81,16 @@ export function PatternLoadout({
 }) {
   return (
     <div className="su-pattern-loadout" style={gridStyle}>
-      {groups.map((group, index) => (
+      {groups.map((group) => (
         <div
           key={group.label}
-          // A VERTICAL RULE between the columns (`--ruled`). On the column
-          // itself rather than a third grid cell, so it spans whichever column
-          // is taller (Systems usually far outruns Modules) instead of standing
-          // at the height of an empty divider track. Suppressed on the first
-          // column and below `sm`, where the groups stack and the rule would
-          // sit across the flow rather than between two columns.
-          className={cn(index > 0 && 'su-pattern-loadout__column--ruled')}
+          // A VERTICAL RULE between the columns (`column + column`). On the
+          // column itself rather than a third grid cell, so it spans whichever
+          // column is taller (Systems usually far outruns Modules) instead of
+          // standing at the height of an empty divider track. Absent on the
+          // first column and below `sm`, where the groups stack and the rule
+          // would sit across the flow rather than between two columns.
+          className="su-pattern-loadout__column"
           style={columnStyle}
         >
           <Slab label={group.label} as={sectionAs} />

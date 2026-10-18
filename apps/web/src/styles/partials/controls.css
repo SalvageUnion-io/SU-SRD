@@ -418,6 +418,10 @@
     flex-direction: column;
     min-height: 0;
     border-top: 0;
+  }
+
+  /* Ruled off from the column before it. */
+  .su-searcher > * + .su-searcher__rail-slot {
     border-left: var(--bw-chrome) solid var(--color-ink);
   }
 

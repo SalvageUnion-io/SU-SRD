@@ -2,9 +2,11 @@
 /**
  * Rule-set gates — `bun run check styling` and `bun run check copy`.
  *
- * One engine (`packages/gates/lib/ruleEngine.ts`), one runner, eight rule sets:
+ * One engine (`packages/gates/lib/ruleEngine.ts`), one runner, nine rule sets (two share the `tokens` id):
  *
- *   - `tokens`       — design-token laws (packages/gates/rules/designTokens.ts)
+ *   - `tokens`       — design-token laws (packages/gates/rules/designTokens.ts),
+ *                      and the chrome-token laws, which share its id
+ *                      (packages/gates/rules/chromeTokens.ts)
  *   - `styling`      — src/components owns shared styling (packages/gates/rules/stylingOwnership.ts)
  *   - `srd-css`      — the site's single stylesheet entry (packages/gates/rules/srdCss.ts)
  *   - `tone-ground`  — no tech-level blue as a header ground (packages/gates/rules/toneGround.ts)
@@ -51,6 +53,7 @@ import {
   readBaseline,
 } from 'gates/lib/ruleEngine'
 import { chromeLaws } from 'gates/rules/chrome'
+import { chromeTokens } from 'gates/rules/chromeTokens'
 import { classPrefix } from 'gates/rules/classPrefix'
 import { copyTerms } from 'gates/rules/copyTerms'
 import { designTokens } from 'gates/rules/designTokens'
@@ -65,6 +68,7 @@ const UPDATE = 'bun tools/check-rule-sets.ts --update-baseline'
 
 const RULE_SETS: readonly RuleSet[] = [
   designTokens,
+  chromeTokens,
   stylingOwnership,
   srdCss,
   toneGround,
@@ -91,12 +95,13 @@ function selectedSets(argv: readonly string[]): RuleSet[] {
 function main(argv: readonly string[]): void {
   const sets = selectedSets(argv)
   for (const set of sets) set.preflight?.(ROOT)
-  const results = new Map(sets.map((set) => [set.id, set.scan(ROOT)] as const))
+  // Keyed by the set, not its id: the two `tokens` halves share one id.
+  const results = new Map(sets.map((set) => [set, set.scan(ROOT)] as const))
 
   if (argv.includes('--report')) {
     for (const set of sets) {
       for (const rule of set.rules) {
-        const list = results.get(set.id)?.[rule.id] ?? []
+        const list = results.get(set)?.[rule.id] ?? []
         console.log(`\n── ${set.id}/${rule.id} [${rule.mode}] (${list.length})`)
         for (const f of list) console.log(`   ${f.file}:${f.line}  ${f.detail}`)
       }
@@ -110,7 +115,7 @@ function main(argv: readonly string[]): void {
     const next: Baseline = { ...baseline }
     const raised: string[] = []
     for (const set of sets) {
-      const counts = ratchetCounts(set, results.get(set.id) ?? {})
+      const counts = ratchetCounts(set, results.get(set) ?? {})
       raised.push(...increases(baseline[set.id] ?? {}, counts).map((r) => `${set.id}/${r}`))
       next[set.id] = counts
     }
@@ -143,7 +148,7 @@ function main(argv: readonly string[]): void {
 
   let failed = false
   for (const set of sets) {
-    const verdict = evaluate(set, results.get(set.id) ?? {}, baseline[set.id])
+    const verdict = evaluate(set, results.get(set) ?? {}, baseline[set.id])
     const zero = verdict.rules.filter((r) => r.rule.mode === 'zero').length
     const known = verdict.rules.reduce((n, r) => n + (r.rule.mode === 'ratchet' ? r.found : 0), 0)
     if (verdict.ok) {

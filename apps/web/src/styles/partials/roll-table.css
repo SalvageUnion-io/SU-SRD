@@ -333,7 +333,7 @@
   border-right: var(--bw-hairline) solid var(--color-ink);
 }
 
-.su-roll__table tbody .su-roll__edge:last-child {
+.su-roll__table tbody .su-roll__cell + .su-roll__edge {
   border-left: var(--bw-hairline) solid var(--color-ink);
 }
 
@@ -398,7 +398,7 @@
     grid-template-rows: subgrid;
   }
 
-  .su-roll__bands[data-split] > .su-roll__rows[data-side='right'] {
+  .su-roll__bands[data-split] > .su-roll__rows + .su-roll__rows {
     border-left: var(--bw-hairline) solid var(--color-ink);
   }
 
@@ -410,9 +410,14 @@
     flex-direction: row-reverse;
   }
 
+  /* Mirrored, the range sits at the row's right end: the rule between it and
+     the text is the text's right edge (no left rail: ruleset §3.10). */
   .su-roll__rows[data-side='right'] .su-roll__range {
-    border-left: var(--bw-hairline) solid var(--color-ink);
     border-right: 0;
+  }
+
+  .su-roll__rows[data-side='right'] .su-roll__range + .su-roll__body {
+    border-right: var(--bw-hairline) solid var(--color-ink);
   }
 
   /* The second half's text sits right, against its numbers; its rolled

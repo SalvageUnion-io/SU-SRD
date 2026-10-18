@@ -67,7 +67,7 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .su-pattern-loadout__column--ruled {
+  .su-pattern-loadout__column + .su-pattern-loadout__column {
     border-left: var(--bw-chrome) solid var(--color-ink-20);
     padding-left: var(--space-12);
   }
