@@ -5,6 +5,7 @@
  */
 
 import type { FunctionReturnType } from 'convex/server'
+import { sheetPath } from 'game-domain/entityKinds'
 import { resolvePool } from 'salvageunion-reference/rules'
 import type { api } from '../../../convex/_generated/api'
 
@@ -20,10 +21,11 @@ export type SeatRow = {
   who: string
   unit: string
   /**
-   * The seat's pilot, as its Row and Token read it: the callsign, and the
-   * mech assigned to them (null on foot). Null for a member with no pilot.
+   * The seat's pilot, as its Row reads it: the callsign and the sheet the Row
+   * opens, and the mech assigned to them with its sheet (null on foot). Null
+   * for a member with no pilot.
    */
-  pilot: { name: string; mech: string | null } | null
+  pilot: { name: string; href: string; mech: string | null; mechHref: string | null } | null
   /** The pilot's `current/max` HP, from `crew.vitals`; null while it loads or with no pilot. */
   hp: string | null
 }
@@ -69,11 +71,18 @@ export function seatRows(
     const id = linkId(m)
     if (id !== null) mechName.set(id, text(m.body, 'name') ?? 'a mech')
   }
-  const pilotOf = (pilot: Listing['pilots'][number]): { name: string; mech: string | null } => {
+  const pilotOf = (pilot: Listing['pilots'][number]): NonNullable<SeatRow['pilot']> => {
     const callsign = text(pilot.body, 'callsign') ?? text(pilot.body, 'name') ?? 'Pilot'
     const id = linkId(pilot)
-    const mech = id === null ? undefined : mechOfPilot.get(id)
-    return { name: callsign, mech: (mech === undefined ? undefined : mechName.get(mech)) ?? null }
+    const mechId = id === null ? undefined : mechOfPilot.get(id)
+    const mech = (mechId === undefined ? undefined : mechName.get(mechId)) ?? null
+    return {
+      name: callsign,
+      // The sheet route resolves an app id, a pre-gen's body id or a row id alike.
+      href: sheetPath('pilot', id ?? pilot._id),
+      mech,
+      mechHref: mech === null || mechId === undefined ? null : sheetPath('mech', mechId),
+    }
   }
   const unitOf = (pilot: Listing['pilots'][number]): string => {
     const { name, mech } = pilotOf(pilot)
@@ -116,7 +125,7 @@ export function seatRows(
       role: 'Open',
       who: callsign,
       unit: 'Waiting for a player',
-      pilot: { name: callsign, mech: pilotOf(pilot).mech },
+      pilot: { ...pilotOf(pilot), name: callsign },
       hp: hp.get(pilot._id) ?? null,
     })
   }

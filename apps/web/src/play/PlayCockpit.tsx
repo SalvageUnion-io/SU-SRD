@@ -18,7 +18,8 @@
  * gives way to a read-only stamp when the connection drops or the tab is
  * outdated (`play.readOnly`).
  * The channel button shows where rolls post, or Connect (`PlayChannelButton`,
- * §9). The ⋯ menu is inert until its own issue lands.
+ * §9). In a Game, ⋯ opens the Game's page, and so does "‹ Game" (ADR-052
+ * §5–§6); solo, "‹ Play" goes back to the Play hub and ⋯ is inert.
  *
  * Below the canvas's floor the same columns go on tabs (`PlayCockpitPhone`,
  * play.md §11): Act, Units, Tables, Crew under the pinned vitals and the
@@ -26,11 +27,13 @@
  * dispatch is too.
  */
 
+import { useRouter } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
+import { gamePath } from 'game-domain/entityKinds'
 import type { ReactNode } from 'react'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import { Button } from '../components/index'
+import { Button, HeaderMenu } from '../components/index'
 import { useConnection } from '../lib/connection/connectionContext'
 import { hereCount } from './crew.model'
 import { PlayActionsColumn } from './PlayActionsColumn'
@@ -71,6 +74,8 @@ export function PlayCockpit({ target, situation }: PlayCockpitProps) {
     <PlayBar
       phone={phone}
       title={playTitle(target, play.pilot?.name ?? 'Pilot')}
+      backHref={target.gameId === null ? '/play/' : gamePath(target.gameId)}
+      backLabel={target.gameId === null ? 'Play' : 'Game'}
       live={mode === 'connected' && target.gameId !== null}
       here={seats === undefined ? null : hereCount(seats, now)}
       readOnly={play.readOnly}
@@ -84,11 +89,7 @@ export function PlayCockpit({ target, situation }: PlayCockpitProps) {
           compact={phone}
         />
       }
-      menu={
-        <Button variant="ghost" size="compact" aria-label="More" disabled>
-          ⋯
-        </Button>
-      }
+      menu={<CockpitMenu target={target} />}
     />
   )
   return (
@@ -100,6 +101,44 @@ export function PlayCockpit({ target, situation }: PlayCockpitProps) {
       end={<PlaySideColumn target={target} play={play} />}
       foot={<PlayFoot solo={target.gameId === null} />}
       phone={<PlayCockpitPhone target={target} play={play} bar={bar(true)} situation={situation} />}
+    />
+  )
+}
+
+/**
+ * The bar's ⋯: in a Game, the Game's page (ADR-052 §5), as the Mediator's ⋯
+ * offers it; solo there is nothing to open yet, so it stays inert.
+ */
+function CockpitMenu({ target }: { target: PlayTarget }) {
+  const router = useRouter({ warn: false })
+  const { gameId } = target
+  if (gameId === null) {
+    return (
+      <Button variant="ghost" size="compact" aria-label="More" disabled>
+        ⋯
+      </Button>
+    )
+  }
+  return (
+    <HeaderMenu
+      variant="button"
+      size="compact"
+      label="More"
+      chevron={false}
+      trigger="⋯"
+      sections={[
+        [
+          {
+            id: 'game',
+            label: 'Game page',
+            hint: target.gameName ?? undefined,
+            onSelect: () => {
+              if (router) void router.navigate({ to: '/play/games/$gameId', params: { gameId } })
+              else window.location.assign(gamePath(gameId))
+            },
+          },
+        ],
+      ]}
     />
   )
 }

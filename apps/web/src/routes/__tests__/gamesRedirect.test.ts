@@ -6,8 +6,11 @@ import { landOn } from './landOn'
  * Where a container is shown, through the real generated route tree:
  *
  *  - `/` is Shelves, so it shows the shelf whatever was showing before;
- *  - `/games/$gameId` is a Game's own page, and stays put — the Discord bot's
- *    game links and the read-only sheet's way back to "the crew" land on it;
+ *  - `/games/$gameId` is retired: it redirects to the Game's page in Play and
+ *    picks no container on the way (ADR-052 §3; the redirect:
+ *    `retiredRoutes.test.ts`);
+ *  - `/play/games/$gameId`, the Game's page, picks none either: a unit's Game
+ *    is the unit's, never the page's;
  *  - `/mediator/$gameId` lands on Play's Mediator screen without picking the
  *    Game: it is not a container's page (its redirect: `retiredRoutes.test.ts`);
  *
@@ -26,10 +29,15 @@ describe('/', () => {
   })
 })
 
-describe('/games/$gameId', () => {
-  test('is the Game’s own page, and shows that Game', async () => {
-    expect(await landOn('/games/g1')).toBe('/games/g1')
-    expect(getActiveContainer()).toEqual({ kind: 'game', gameId: 'g1' })
+describe('a Game’s page', () => {
+  test('the retired Build address shows no container on the way to Play', async () => {
+    await landOn('/games/g1')
+    expect(getActiveContainer()).toEqual({ kind: 'shelf' })
+  })
+
+  test('the Game’s page in Play shows no container', async () => {
+    expect(await landOn('/play/games/g1')).toBe('/play/games/g1')
+    expect(getActiveContainer()).toEqual({ kind: 'shelf' })
   })
 })
 

@@ -2,8 +2,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } fr
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 
 /**
- * Shelves at `/` and a Game's page at `/games/:id`, signed in, end to end
- * through the real `Roster` (board S1).
+ * Shelves at `/`, signed in, end to end through the real `Roster` (board S1).
  *
  * What these pin:
  *
@@ -14,10 +13,8 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
  *  - "Move to a Game…" moves the same record into a Game, and back out again
  *    behind a confirm; it never copies
  *  - a pattern's chips say who can see it and how often it has been built
- *  - a Game's page carries the Games select, which lists Shelves, every Game
- *    and "+ New Game", and shows that Game's roster, yours first
- *  - a remembered Game (the `/games/:id` redirect, a reload) opens straight
- *    into it
+ *  - Build renders no Game page: a Game's page is Play's
+ *    (`play/games/__tests__/GameHub.connected`)
  *
  * The finer rules each have their own file: `GameRoster.connected` (rows and
  * their verbs), `GameHub.connected` (sections by role), `NewGameControl.connected`
@@ -56,7 +53,7 @@ const { hydrateStores } = await import('../../../components/__tests__/hydrateSto
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { usePatternStore } = await import('../../../stores/patternStore')
 const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
-const { getActiveContainer, setActiveContainer } = await import(
+const { setActiveContainer } = await import(
   '../../../stores/activeContainerStore'
 )
 const { resetStores } = await import('../../../stores/__tests__/resetStores')
@@ -309,51 +306,13 @@ describe('Move to a Game…', () => {
   })
 })
 
-describe('a Game’s page', () => {
-  const showing = () => screen.getByLabelText('Games') as HTMLSelectElement
-
-  test('the Games select lists Hangar, every Game and "+ New Game"; the band nothing else but Import and Export all', async () => {
+describe('a Game’s page is Play’s, not Build’s (ADR-052 §5)', () => {
+  test('a remembered Game no longer turns the Hangar into its page', async () => {
     setActiveContainer({ kind: 'game', gameId: 'g1' })
     await renderHub()
 
-    expect([...showing().options].map((o) => o.textContent)).toEqual([
-      'Hangar',
-      'Union Crawler #430',
-      'The Long Haul',
-      '+ New Game',
-    ])
-    expect(showing().value).toBe('game:g1')
-    // "+ New Game" is the select's entry, not a button; the Starter Set is the masthead's.
-    expect(screen.queryByRole('button', { name: '+ New Game' })).toBeNull()
-    expect(screen.queryByRole('link', { name: 'Starter Set' })).toBeNull()
-    expect(screen.queryByText(/Saved to your account/)).toBeNull()
-  })
-
-  test('shows that Game’s roster, yours first, then the Game section', async () => {
-    setActiveContainer({ kind: 'game', gameId: 'g1' })
-    await renderHub()
-
-    expect(getActiveContainer()).toEqual({ kind: 'game', gameId: 'g1' })
-    // The shelf's rows are not this Game's.
-    expect(screen.queryByText('Mira Cole')).toBeNull()
-    const names = screen
-      .getAllByRole('link', { name: /^(Roach-Boy|Ash)$/ })
-      .map((link) => link.getAttribute('aria-label'))
-    expect(names).toEqual(['Roach-Boy', 'Ash'])
-    expect(screen.getByRole('region', { name: 'Crew & seats' })).toBeTruthy()
-    // A player, not the Mediator: no proposals of theirs, no Mediator door.
-    expect(screen.queryByRole('region', { name: 'Proposals you sent' })).toBeNull()
-    expect(screen.queryByRole('link', { name: 'Mediate' })).toBeNull()
-  })
-
-  test('picking Hangar in the Games select goes back to the shelf', async () => {
-    setActiveContainer({ kind: 'game', gameId: 'g1' })
-    await renderHub()
-    await act(async () => {
-      fireEvent.change(showing(), { target: { value: 'shelf' } })
-    })
-
-    expect(getActiveContainer()).toEqual({ kind: 'shelf' })
     expect(screen.getByRole('heading', { level: 1, name: 'Hangar' })).toBeTruthy()
+    expect(screen.queryByRole('region', { name: 'Crew & seats' })).toBeNull()
+    expect(screen.queryByLabelText('Games')).toBeNull()
   })
 })

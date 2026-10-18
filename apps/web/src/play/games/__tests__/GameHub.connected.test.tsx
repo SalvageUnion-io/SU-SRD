@@ -2,8 +2,12 @@ import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:tes
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 
 /**
- * `GameHub` — a Game's own page (board M2): the band, the roster,
- * then two columns of sections. What this file defends:
+ * `GameHub` — a Game's own page in Play, `/play/games/$gameId` (board M2,
+ * ADR-052 §5): the band, the roster, then two columns of sections. What this
+ * file defends:
+ *
+ *  - it is a Manage page under Play's band, with none of Build's controls
+ *    (Import, Export, the Games select) and no container of its own
  *
  *  - every member gets Crew & seats, their answer queue and The
  *    Game; only the Organizer gets the admin (the invite link, Hand over,
@@ -72,7 +76,17 @@ const { ConnectionContext } = await import('../../../lib/connection/connectionCo
 const { hydrateStores } = await import('../../../components/__tests__/hydrateStores')
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
-const { setActiveContainer } = await import('../../../stores/activeContainerStore')
+const { getActiveContainer, setActiveContainer } = await import(
+  '../../../stores/activeContainerStore'
+)
+const { CHAPTER_BAND_COLOR } = await import('../../../components/index')
+
+/** A colour as the DOM reads it back off an inline style. */
+function colorOf(value: string): string {
+  const probe = document.createElement('div')
+  probe.style.backgroundColor = value
+  return probe.style.backgroundColor
+}
 
 beforeAll(hydrateStores)
 
@@ -128,6 +142,28 @@ async function renderHub(over: QueryAnswers = {}): Promise<void> {
 }
 
 const heading = (name: string) => screen.queryByRole('heading', { level: 2, name })
+
+describe('a Manage page in Play (ADR-052 §5, §7)', () => {
+  test('the Game’s name on Play’s band, and none of Build’s controls', async () => {
+    setActiveContainer({ kind: 'shelf' })
+    await renderHub()
+    const title = screen.getByRole('heading', { level: 1, name: 'Union Crawler #430' })
+    const band = title.closest('.su-chapter-band') as HTMLElement
+    expect(band.style.backgroundColor).toBe(colorOf(CHAPTER_BAND_COLOR.play))
+    expect(screen.queryByLabelText('Games')).toBeNull()
+    expect(screen.queryByRole('button', { name: /Import/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Export/ })).toBeNull()
+    // Opening a Game's page never makes it a container: a unit's Game is its own.
+    expect(getActiveContainer()).toEqual({ kind: 'shelf' })
+  })
+
+  test('the sections are Slabs (solid stamps), level 2 under the page’s h1', async () => {
+    await renderHub({ 'games:get': { ...GAME, organizer: true } })
+    for (const name of ['Pilots', 'Mechs', 'Crawlers', 'Crew & seats', 'Invite link', 'The Game']) {
+      expect(heading(name)).toBeTruthy()
+    }
+  })
+})
 
 describe('the sections under the roster (board M2)', () => {
   test('every member gets Crew & seats, the answer queue and The Game, below the lists', async () => {
@@ -197,7 +233,7 @@ describe('the sections under the roster (board M2)', () => {
     ])
   })
 
-  test('ending the game asks first, says where everything lands, and then shows Hangar', async () => {
+  test('ending the game asks first, says where everything lands, and then shows your Games', async () => {
     await renderHub({ 'games:get': { ...GAME, organizer: true } })
 
     fireEvent.click(screen.getByRole('button', { name: 'Delete this Game' }))
@@ -213,7 +249,7 @@ describe('the sections under the roster (board M2)', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Delete Game' }))
     })
     expect(mutations).toEqual([{ name: 'games:destroy', args: { gameId: 'g1' } }])
-    expect(navigations).toEqual([{ to: '/' }])
+    expect(navigations).toEqual([{ to: '/play' }])
   })
 
   test('a game with no crawler does not promise one', async () => {
@@ -260,10 +296,11 @@ describe('Crew & seats', () => {
     const seats = within(screen.getByRole('list', { name: 'Seats' }))
     const rows = seats.getAllByRole('listitem').map((li) => li.textContent)
     // Join order; a Mediator with no pilot is their name alone; an unclaimed pilot is an open seat.
-    // A pilot seat is the pilot's Row: who holds it, its mech as a chip, then role.
+    // A pilot seat is the pilot's Row: who holds it, its role and HP, then its
+    // mech as a relation chip (C11).
     expect(rows).toEqual([
       'Ash (you)',
-      'Pickle (Pilot)BeefcakeMechSpectrumPlayerHP4/10',
+      'Pickle (Pilot)BeefcakePlayerHP4/10MechSpectrum',
       'Hotdog (Pilot)OpenHP8/8',
     ])
     // The count is the label-first chip, `SEATS | 1/2`.
@@ -313,14 +350,15 @@ describe('the Mediator on the Game page', () => {
 })
 
 describe('a game the viewer is not in', () => {
-  test('explains itself, and offers the way back to Hangar, instead of rendering the table', async () => {
+  test('explains itself, and offers the way back to your Games, instead of rendering the table', async () => {
     await renderHub({ 'games:get': null })
 
     expect(screen.getByText(/not in this Game/i)).toBeTruthy()
     expect(screen.getByText(/invite link/i)).toBeTruthy()
     expect(heading('Crew & seats')).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: 'Back to Hangar' }))
-    expect(navigations).toEqual([{ to: '/' }])
+    expect(screen.getByRole('link', { name: /Back to your Games/ }).getAttribute('href')).toBe(
+      '/play/'
+    )
   })
 
   test('still loading is not the same as not a member', async () => {

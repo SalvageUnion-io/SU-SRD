@@ -46,13 +46,33 @@
  * `lib/games/rowActionCopy.ts` — so every surface offering them says the same.
  */
 
+import { useMutation, useQuery } from 'convex/react'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
-import { useMutation, useQuery } from 'convex/react'
 import type { CSSProperties, ReactNode } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
+import type { ColumnCreate, SegmentKind } from '../../build/roster/RosterColumn'
+import {
+  RosterColumn,
+  RosterGrid,
+  RosterList,
+  SegmentSwitch,
+} from '../../build/roster/RosterColumn'
+import type { HeaderMenuItem } from '../../components/index'
+import {
+  buttonVariants,
+  FieldError,
+  HeaderMenu,
+  RosterSkeleton,
+  Text,
+  tokens,
+} from '../../components/index'
+import { AppLink } from '../../components/shared/AppLink'
+import { UnitRow } from '../../components/shared/UnitRow'
+import { useConfirm } from '../../components/shared/useConfirm'
+import { useGo } from '../../components/shared/useGo'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { useCrawlers, useHydrateEntities, useMechs, usePilots } from '../../lib/entities'
 import type { RosterKind, RosterRow } from '../../lib/games/gameRoster'
@@ -63,14 +83,6 @@ import {
   rosterSheetHref,
   tableCapabilities,
 } from '../../lib/games/gameRoster'
-import type { HeaderMenuItem } from '../../components/index'
-import { buttonVariants, FieldError, HeaderMenu, RosterSkeleton, Text, tokens } from '../../components/index'
-import type { ColumnCreate, SegmentKind } from '../roster/RosterColumn'
-import { RosterColumn, RosterGrid, RosterList, SegmentSwitch } from '../roster/RosterColumn'
-import { AppLink } from '../../components/shared/AppLink'
-import { UnitRow } from '../../components/shared/UnitRow'
-import { useConfirm } from '../../components/shared/useConfirm'
-import { useGo } from '../../components/shared/useGo'
 import { OwnerSeal } from './OwnerSeal'
 import { useRowActions } from './useRowActions'
 

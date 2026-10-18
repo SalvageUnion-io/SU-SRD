@@ -19,9 +19,9 @@ import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
+import { Button, ConfirmDialog, Field, Select, tokens } from '../../components/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { failureMessage } from '../../lib/connection/useServerAction'
-import { Button, ConfirmDialog, Field, Select, tokens } from '../../components/index'
 import { HubSection } from './HubSection'
 
 const { color, font, fontSize, space, tracking, weight } = tokens

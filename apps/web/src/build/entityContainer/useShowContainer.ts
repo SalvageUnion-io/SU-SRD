@@ -3,9 +3,9 @@ import type { Container } from 'game-domain/container'
 import { getActiveContainer, setActiveContainer } from '../../stores/activeContainerStore'
 
 /**
- * Go to where a container is shown: Shelves at `/`, or the Game's own page at
- * `/games/$gameId`. The route picks the container as it loads
- * (`routes/index.tsx`, `routes/games_/$gameId.tsx`), so navigating is the whole
+ * Go to where a container is shown: the Hangar at `/`, or the Game's own page in Play at
+ * `/play/games/$gameId`. The Hangar's route picks the container as it loads
+ * (`routes/index.tsx`); a Game's page picks none (ADR-052 §3). Navigating is the whole
  * of choosing what the hub shows.
  *
  * With no router mounted (a component test), it picks the container
@@ -20,7 +20,7 @@ export function useShowContainer(): (container: Container) => void {
       return
     }
     if (container.kind === 'game') {
-      void router.navigate({ to: '/games/$gameId', params: { gameId: container.gameId } })
+      void router.navigate({ to: '/play/games/$gameId', params: { gameId: container.gameId } })
     } else {
       void router.navigate({ to: '/' })
     }

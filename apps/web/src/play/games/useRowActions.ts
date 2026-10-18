@@ -14,18 +14,18 @@
  * still `row.can` (`lib/games/gameRoster.ts`); this only does it.
  */
 
+import { useMutation } from 'convex/react'
 import { moveTo, SHELF } from 'game-domain/container'
 import type { OwnableTable } from 'game-domain/entityKinds'
-import { useMutation } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
+import { toast } from '../../components/index'
+import type { Confirm } from '../../components/shared/useConfirm'
 import { copyForShelf } from '../../lib/copyEntity'
 import type { RosterRow } from '../../lib/games/gameRoster'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { useEntityStore } from '../../stores/entityStore'
 import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
-import { toast } from '../../components/index'
-import type { Confirm } from '../../components/shared/useConfirm'
 
 /** The table a pilot or mech row's ownership mutations address. */
 function ownableTable(row: RosterRow): OwnableTable {

@@ -1,40 +1,50 @@
 /**
- * GameHub — a Game's own page, `/games/$gameId`.
+ * GameHub — a Game's own page in Play, `/play/games/$gameId` (ADR-052 §5).
  *
- * One place per table: the hub lists a Game the way Shelves lists your things
- * and puts everything you can do about the table below the lists, as board M2
- * draws it (docs/architecture/mediator-dashboard.md Q10–Q13):
+ * One place per table, in the Manage context (ruleset §1.9): paper under the
+ * `play` band, level 0, Slab sections, Rows that link. It lists a Game the
+ * way the Hangar lists your things and puts everything you can do about the
+ * table below the lists, as board M2 draws it
+ * (docs/architecture/mediator-dashboard.md Q10–Q13):
  *
- *  0. **The band** (`GameBand`): the page's controls (`Roster`'s), the
- *     Game's name on the crawler's pink, and one way into Play: the
- *     Mediator's **Mediate** (after a YOU MEDIATE stamp) opens Play's Mediator
- *     screen (`/play/game/$gameId`); a player's **Play** (`LaunchPlay`) asks
- *     which pilot and opens Play for it.
+ *  0. **The band** (`GameBand`): the Game's name on Play's band, and one way
+ *     into the Cockpit: the Mediator's **Mediate** (after a YOU MEDIATE stamp)
+ *     opens Play's Mediator screen (`/play/game/$gameId`); a player's **Play**
+ *     (`LaunchPlay`) asks which pilot and opens Play for it.
  *  2. **The roster** (`GameRoster`): the three columns, yours first.
  *  3. Two columns of sections. **Every member:** Crew & seats and the
  *     proposals awaiting their answer. **The Mediator:** Proposals you sent.
- *     Downtime runs in Play, not here. **The Organizer:** the
+ *     Downtime runs in the Cockpit, not here. **The Organiser:** the
  *     Invite link (copy and reset) and The Game's Hand over, which the
  *     server refuses anyone else (`requireOrganizer`).
  *
- * Starting a Game is "+ New Game" in the band's Games select (`ContainerSwitcher`), and
- * joining one is an invite link (`InviteScreen`), so nothing here is about
- * choosing a table.
+ * Moving between Games is Play's, and joining one is an invite link
+ * (`InviteScreen`), so nothing here is about choosing a table. Nothing here
+ * picks a container either: a unit's Game is the unit's (ADR-052 §3).
  *
- * Connected only: `Roster` mounts this only when the mode is Connected and the
- * active container is a Game, so every hook below has a provider.
+ * Connected only: `GamePage` mounts this only when the mode is Connected, so
+ * every hook below has a provider.
  */
 
-import { SHELF } from 'game-domain/container'
+import { useRouter } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { useShowContainer } from '../entityContainer/useShowContainer'
-import { Button, Card, Grid, PageShell, Pending, Skeleton, Stack, Text, tokens } from '../../components/index'
-import type { SegmentKind } from '../roster/RosterColumn'
+import type { SegmentKind } from '../../build/roster/RosterColumn'
+import {
+  Card,
+  Grid,
+  PageShell,
+  Pending,
+  Skeleton,
+  Stack,
+  Text,
+  tokens,
+} from '../../components/index'
+import { WayOutLink } from '../../components/shared/WayOutLink'
 import { CopyInviteLink, ResetInviteLink } from './CopyInviteLink'
 import { CrewSeats } from './CrewSeats'
 import { readCrawler } from './crawlerReading.model'
@@ -53,8 +63,6 @@ type Game = NonNullable<FunctionReturnType<typeof api.games.get>>
 
 type GameHubProps = {
   gameId: string
-  /** The page's controls, on the band above the Game's name (`Roster`'s). */
-  controls?: ReactNode
   activeSegment: SegmentKind
   onSegmentChange: (kind: SegmentKind) => void
 }
@@ -71,13 +79,15 @@ const INVITE_ACTIONS = {
 
 const NOT_IN_CARD = { marginTop: tokens.space[24] } satisfies CSSProperties
 
+/** Play's hub, where your Games are listed. */
+const PLAY_HUB = '/play/'
+
 /**
- * A Game the viewer is not in: they left, it ended, or a stale selection
- * points at it. `games.get` answers `null` for all of them alike, deliberately
- * — a non-member must not be able to tell an existing Game from a deleted one.
+ * A Game the viewer is not in: they left, it ended, or an old link points at
+ * it. `games.get` answers `null` for all of them alike, deliberately — a
+ * non-member must not be able to tell an existing Game from a deleted one.
  */
 function NotInGame() {
-  const showContainer = useShowContainer()
   return (
     <div style={NOT_IN_CARD}>
       <Card>
@@ -86,9 +96,7 @@ function NotInGame() {
             You are not in this Game. Ask its Organiser for the invite link, then open it to join.
           </Text>
           <div>
-            <Button variant="default" size="compact" onClick={() => showContainer(SHELF)}>
-              Back to Hangar
-            </Button>
+            <WayOutLink href={PLAY_HUB} label="Back to your Games" />
           </div>
         </Stack>
       </Card>
@@ -100,7 +108,9 @@ function NotInGame() {
 function GameSections({ game }: { game: Game }) {
   const gameId = game._id as Id<'games'>
   const [confirmingDelete, setConfirmingDelete] = useState(false)
-  const showContainer = useShowContainer()
+  // Probed rather than required: component tests render the page without a
+  // RouterProvider, and `AppLink` degrades the same way.
+  const router = useRouter({ warn: false })
   const listing = useQuery(api.entities.listForGame, { gameId })
   const members = useQuery(api.games.members, { gameId })
   // The seats' HP: the server derives every crewmate's max (ADR-038 §4).
@@ -120,7 +130,7 @@ function GameSections({ game }: { game: Game }) {
 
   return (
     <>
-      <Grid min={HUB_COLUMN_MIN} gap={32} style={HUB_COLUMNS}>
+      <Grid min={HUB_COLUMN_MIN} gap={24} style={HUB_COLUMNS}>
         <div style={HUB_COLUMN}>
           {seats === null ? (
             <Skeleton shape="rows" label="Loading the crew" />
@@ -160,16 +170,19 @@ function GameSections({ game }: { game: Game }) {
       <DeleteGameDialog
         game={confirmingDelete ? game : null}
         onClose={() => setConfirmingDelete(false)}
-        // Back to Shelves BEFORE `games.get` resolves to `null`, which would
+        // Back to your Games BEFORE `games.get` resolves to `null`, which would
         // otherwise show "You are not in this game" — true, and read as an
         // error by someone who just deleted it.
-        onDeleted={() => showContainer(SHELF)}
+        onDeleted={() => {
+          if (router) void router.navigate({ to: '/play' })
+          else window.location.assign(PLAY_HUB)
+        }}
       />
     </>
   )
 }
 
-export function GameHub({ gameId, controls, activeSegment, onSegmentChange }: GameHubProps) {
+export function GameHub({ gameId, activeSegment, onSegmentChange }: GameHubProps) {
   // `games.get` rather than listMine-and-find: it distinguishes "still
   // loading" from "not a member" without fetching every table you are in.
   const game = useQuery(api.games.get, { gameId: gameId as Id<'games'> })
@@ -183,7 +196,6 @@ export function GameHub({ gameId, controls, activeSegment, onSegmentChange }: Ga
           gameId={gameId}
           name={game ? game.name : 'Game'}
           mediator={game?.mediator}
-          controls={controls}
           actions={game && !game.mediator ? <LaunchPlay gameId={gameId} /> : undefined}
         />
       }

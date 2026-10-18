@@ -8,7 +8,7 @@
  */
 
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
-import { act, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
 import { pilotFixture } from '../../components/__tests__/fixtures'
 import type { ConnectionMode } from '../../lib/connection/connectionMode'
@@ -94,6 +94,18 @@ describe('the Cockpit frame', () => {
     expect(within(screen.getByRole('banner')).getByText(/● Live/)).toBeTruthy()
   })
 
+  test('in a Game, “‹ Game” and ⋯ › Game page open the Game’s page (ADR-052 §5–§6)', async () => {
+    await renderCockpit({ gameId: 'g1', gameName: 'Tenacity' })
+    const bar = within(screen.getByRole('banner'))
+    expect(bar.getByRole('link', { name: 'Game' }).getAttribute('href')).toBe('/play/games/g1')
+    const more = bar.getByRole('button', { name: 'More' })
+    expect(more.hasAttribute('disabled')).toBe(false)
+    await act(async () => {
+      fireEvent.click(more)
+    })
+    expect(await screen.findByRole('menuitem', { name: /Game page/ })).toBeTruthy()
+  })
+
   test('a bound channel: the button names it, as it was when bound', async () => {
     setQueryAnswers({
       ...ANSWERS,
@@ -161,7 +173,7 @@ describe('below the canvas’s floor: the phone form (play.md §11)', () => {
       const bar = within(screen.getByRole('banner'))
       expect(bar.getByRole('heading', { level: 1 }).textContent).toBe('Tenacity')
       // "‹" alone for the way back; the Situation is pinned, not in the bar.
-      expect(bar.getByRole('link', { name: 'Play' }).textContent).toBe('')
+      expect(bar.getByRole('link', { name: 'Game' }).textContent).toBe('')
       expect(bar.queryByRole('group', { name: 'Situation' })).toBeNull()
       expect(screen.getByRole('group', { name: 'Situation' })).toBeTruthy()
       // The page never scrolls: the host fits the screen and hides overflow.

@@ -37,10 +37,6 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { useHydrateEntities, usePilots } from '../../lib/entities'
-import type { RosterRow } from '../../lib/games/gameRoster'
-import { groupColumn, ownableRows } from '../../lib/games/gameRoster'
-import { unitRowModel } from '../../lib/units/unitModel'
 import {
   Button,
   DialogActions,
@@ -51,6 +47,10 @@ import {
   Text,
   tokens,
 } from '../../components/index'
+import { useHydrateEntities, usePilots } from '../../lib/entities'
+import type { RosterRow } from '../../lib/games/gameRoster'
+import { groupColumn, ownableRows } from '../../lib/games/gameRoster'
+import { unitRowModel } from '../../lib/units/unitModel'
 import { OwnerSeal } from './OwnerSeal'
 
 const HINT = { textAlign: 'left' } satisfies CSSProperties

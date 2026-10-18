@@ -179,10 +179,10 @@ function mechStats(body: EntityBody, derived: MechDerived | null) {
 /**
  * Web URLs. The glance lives in Discord; the surface lives in the app.
  *
- * Both mirror real TanStack routes — `/games/$gameId` and `/sheet/$kind/$id`.
- * A link that 404s is worse than no link: it reads as the app having lost the
- * thing, rather than as the bot having guessed. `/games/$gameId` is the
- * Game's own page in the app.
+ * Both mirror real TanStack routes — `/play/games/$gameId` and
+ * `/sheet/$kind/$id`. A link that 404s is worse than no link: it reads as the
+ * app having lost the thing, rather than as the bot having guessed.
+ * `/play/games/$gameId` is the Game's own page, in Play (ADR-052 §5).
  */
 export function gameUrl(gameId: string): string {
   return `${APP_ORIGIN}${gamePath(gameId)}`

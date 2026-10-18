@@ -214,6 +214,13 @@ describe('the bar’s rules', () => {
     expect(unionHere('/play/p1')).toEqual({ mode: 'play', nav: null })
   })
 
+  test('a Game’s page keeps the bar, in Play: it is a Manage page, not a Cockpit', () => {
+    expect(hidesUnionBar('/play/games/g1')).toBe(false)
+    expect(unionHere('/play/games/g1').mode).toBe('play')
+    // The Mediator's Cockpit for the same Game still draws its own bar.
+    expect(hidesUnionBar('/play/game/g1')).toBe(true)
+  })
+
   test('Hangar is here only at the root; Starter Set on every page under it', () => {
     expect(isCurrent('/', '/')).toBe(true)
     expect(isCurrent('/', '/starter/')).toBe(false)

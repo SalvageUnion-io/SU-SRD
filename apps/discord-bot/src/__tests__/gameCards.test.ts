@@ -231,9 +231,10 @@ describe('denialMessage', () => {
 
 describe('deep links', () => {
   test('a game links to its own route, not a query string', () => {
-    // /games/$gameId is the real TanStack route (games_/$gameId.tsx). A link
-    // that 404s reads as the app having lost the game, not as the bot guessing.
-    expect(gameUrl('g1')).toBe(`${WEB}/games/g1`)
+    // /play/games/$gameId is the real TanStack route, the Game's page in Play
+    // (ADR-052 §5). A link that 404s reads as the app having lost the game,
+    // not as the bot guessing.
+    expect(gameUrl('g1')).toBe(`${WEB}/play/games/g1`)
   })
 
   test('every sheet links to the live sheet by its row id', () => {

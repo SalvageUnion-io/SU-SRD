@@ -25,6 +25,7 @@
  * switch.
  */
 
+import { gamePath } from 'game-domain/entityKinds'
 import { useRef, useState } from 'react'
 import type { rollForTable } from '../components/index'
 import { useConnection } from '../lib/connection/connectionContext'
@@ -66,6 +67,8 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
     <PlayBar
       phone={phone}
       title={gameName}
+      backHref={gamePath(gameId)}
+      backLabel="Game"
       stamp="Mediator"
       live={mode === 'connected'}
       here={mediator.crew === null ? null : here}

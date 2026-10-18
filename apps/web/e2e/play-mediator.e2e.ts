@@ -63,7 +63,7 @@ test('the Mediator runs the table from Play, and the player answers', async ({
     await gotoStable(player.page, `/invite/${token}`)
     await waitForReady(player.page)
     await player.page.getByRole('button', { name: 'Join this Game' }).click()
-    await player.page.waitForURL(/\/games\/[^/]+$/, { timeout: 20_000 })
+    await player.page.waitForURL(/\/play\/games\/[^/]+$/, { timeout: 20_000 })
     await buildPilot(player.page, 'Mira Voss', 'Sparks')
 
     // --- Both screens, from the Play landing ---

@@ -20,7 +20,7 @@ export const GAME_MEASURE = '75rem'
 export const GAME_BODY = { minHeight: '60vh' } satisfies CSSProperties
 
 /** The two columns of sections under the roster. */
-export const HUB_COLUMNS = { alignItems: 'start', marginTop: space[40] } satisfies CSSProperties
+export const HUB_COLUMNS = { alignItems: 'start', marginTop: space[24] } satisfies CSSProperties
 
 /** `HUB_COLUMNS`' narrowest column (a `Grid`'s `min`). */
 export const HUB_COLUMN_MIN = '26rem'
@@ -29,6 +29,6 @@ export const HUB_COLUMN_MIN = '26rem'
 export const HUB_COLUMN = {
   display: 'flex',
   flexDirection: 'column',
-  gap: space[32],
+  gap: space[24],
   minWidth: 0,
 } satisfies CSSProperties

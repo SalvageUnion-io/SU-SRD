@@ -29,7 +29,7 @@ describe('app addresses', () => {
     expect(sheetPath('mech', 'm1')).toBe('/sheet/mech/m1')
     expect(publicPath('npc', 'n1')).toBe('/p/npc/n1')
     expect(publicPath('pattern', 'pat-1')).toBe('/p/pattern/pat-1')
-    expect(gamePath('g1')).toBe('/games/g1')
+    expect(gamePath('g1')).toBe('/play/games/g1')
   })
 
   test('an id is one path segment', () => {

@@ -28,7 +28,7 @@ const ROWS: SeatRow[] = [
     role: 'Mediator',
     who: 'alxjrvs',
     unit: 'Bonesaw · on foot',
-    pilot: { name: 'Bonesaw', mech: null },
+    pilot: { name: 'Bonesaw', href: '/sheet/pilot/bonesaw', mech: null, mechHref: null },
     hp: null,
   },
   {
@@ -36,7 +36,12 @@ const ROWS: SeatRow[] = [
     role: 'Player',
     who: 'Sam',
     unit: 'Ghost · Iron Jaw',
-    pilot: { name: 'Ghost', mech: 'Iron Jaw' },
+    pilot: {
+      name: 'Ghost',
+      href: '/sheet/pilot/ghost',
+      mech: 'Iron Jaw',
+      mechHref: '/sheet/mech/iron-jaw',
+    },
     hp: '7/10',
   },
   {
@@ -44,7 +49,7 @@ const ROWS: SeatRow[] = [
     role: 'Open',
     who: 'Rook',
     unit: 'Waiting for a player',
-    pilot: { name: 'Rook', mech: null },
+    pilot: { name: 'Rook', href: '/sheet/pilot/rook', mech: null, mechHref: null },
     hp: '10/10',
   },
 ]
@@ -67,10 +72,11 @@ describe('CrewSeats', () => {
     // The Mediator's pilot carries no MEDIATOR chip, and on foot no mech.
     if (!mediatorPilot) throw new Error('missing seats')
     expect(cellsOf(mediatorPilot)).toEqual(['alxjrvs'])
-    // A pilot is a Row: who holds it, then `MECH | name`, then its role, right of the name.
+    // A pilot is a Row: who holds it, its role and HP, then its mech as the
+    // relation chip `MECH | name` (C11), never a loose `Stat`.
     if (!player || !open) throw new Error('missing seats')
     expect(within(player).getByText('Ghost')).toBeTruthy()
-    expect(cellsOf(player)).toEqual(['Sam', 'MechIron Jaw', 'Player', 'HP7/10'])
+    expect(cellsOf(player)).toEqual(['Sam', 'Player', 'HP7/10', 'MechIron Jaw'])
     expect(player.querySelector('.su-entity-token')).toBeNull()
     // An open seat is its OPEN chip, with no line of text under it.
     expect(within(open).getByText('Rook')).toBeTruthy()
@@ -79,6 +85,18 @@ describe('CrewSeats', () => {
     expect(screen.queryByText('On foot')).toBeNull()
     // The count is the label-first chip, `SEATS | 1/2`.
     expect(screen.getByText('Seats').closest('.su-stat-cell')?.textContent).toBe('Seats1/2')
+  })
+
+  test('a seat is a Row that opens its pilot’s sheet; its mech a relation chip (C11)', () => {
+    render(<CrewSeats crawler={null} rows={ROWS} claimed={1} total={2} />)
+    const [, , player] = seats()
+    if (!player) throw new Error('missing seats')
+    const hrefs = [...player.querySelectorAll('a')].map((a) => a.getAttribute('href'))
+    expect(hrefs).toEqual(['/sheet/pilot/ghost'])
+    // The mech chip is a relation (a tag in the chip group), never a label
+    // beside the name, and the Row opens as one link: no link nests in it.
+    const chip = player.querySelector('[data-tag]')
+    expect(chip?.textContent).toBe('MechIron Jaw')
   })
 
   test('the crawler Row carries its name and label-first TL and SP chips, never a bay count', () => {

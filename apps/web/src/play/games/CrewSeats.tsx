@@ -2,9 +2,10 @@
  * CrewSeats — "Crew & seats" on a Game's own page (board M2;
  * docs/architecture/mediator-dashboard.md Q11): the crawler as a Row, then
  * one entry per member's pilot, then the open seats, drawn as every crew list
- * draws them: the pilot's Row with, right of the name, who holds the seat, its
- * assigned mech as a `MECH | name` chip, the seat's role (PLAYER or OPEN) and
- * the pilot's `HP | current/max` (`crew.vitals`).
+ * draws them: the pilot's Row, opening its sheet (a Manage Row links, ruleset
+ * §1.9), with who holds the seat right of the name, the seat's role (PLAYER or
+ * OPEN), the pilot's `HP | current/max` (`crew.vitals`) and its assigned mech
+ * as a relation chip, `MECH | name`, opening the mech's sheet (C11).
  * The Mediator's seat carries no role chip: the page's band already says who
  * mediates. (Play's Mediator screen shows where they **are**.) A member with
  * no pilot is a plain line. An open seat is an unclaimed pilot. The
@@ -16,9 +17,9 @@
  */
 
 import type { CSSProperties } from 'react'
-import { color, font, fontSize, size, space } from '../../design/tokens'
-import { Badge, Stat } from '../../components/index'
+import { Badge, relation, Stat } from '../../components/index'
 import { UnitRow } from '../../components/shared/UnitRow'
+import { color, font, fontSize, size, space } from '../../design/tokens'
 import type { CrawlerReading } from './crawlerReading.model'
 import { crawlerVitals } from './crawlerReading.model'
 import { HubSection } from './HubSection'
@@ -68,25 +69,26 @@ function Seat({ row }: { row: SeatRow }) {
       </div>
     )
   }
-  const { mech } = row.pilot
+  const { mech, mechHref, href } = row.pilot
   return (
     <UnitRow
       kind="pilot"
       name={row.pilot.name}
+      mode={{ kind: 'link', href }}
       note={row.role === 'Mediator' ? undefined : row.role}
       readings={row.hp === null ? undefined : [{ label: 'HP', value: row.hp }]}
-      // Who holds the seat, then their mech: the Row's first chips.
+      // Who holds the seat: the Row's first chip.
       labels={
-        row.role === 'Open' && mech === null ? undefined : (
-          <>
-            {row.role !== 'Open' && (
-              <Stat orientation="horizontal" label={row.who} size="compact" />
-            )}
-            {mech !== null && (
-              <Stat orientation="horizontal" label="Mech" value={mech} size="compact" />
-            )}
-          </>
+        row.role === 'Open' ? undefined : (
+          <Stat orientation="horizontal" label={row.who} size="compact" />
         )
+      }
+      // The mech the pilot is assigned, a relation chip opening its sheet (C11);
+      // on foot the lane stays empty (C6).
+      relations={
+        mech === null
+          ? undefined
+          : [relation('mech', 'Mech', mech, { href: mechHref ?? undefined })]
       }
     />
   )

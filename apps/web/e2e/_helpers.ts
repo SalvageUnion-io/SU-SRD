@@ -241,12 +241,12 @@ export async function fillIdentity(page: Page, label: string, value: string): Pr
 
 /** Shelves at `/`, or a Game's own page: where a finished build returns to. */
 function isContainerPage(pathname: string): boolean {
-  return pathname === at('/') || new RegExp(`^${BASE}/games/[^/]+/?$`).test(pathname)
+  return pathname === at('/') || new RegExp(`^${BASE}/play/games/[^/]+/?$`).test(pathname)
 }
 
 /**
  * Drive a `/new` wizard to completion and return once the redirect to the
- * active container's page lands: `/` for Shelves, or `/games/<id>` when a Game
+ * active container's page lands: `/` for Shelves, or `/play/games/<id>` when a Game
  * is active (`useReturnToContainer`), so a pilot built in a Game finishes too.
  *
  * Deliberately step-AGNOSTIC. These wizards have been restructured repeatedly —
@@ -556,12 +556,9 @@ export type DesignRoute = {
   peek?: { schema: string; name: string }
 }
 
-/**
- * A Game's own page, the one place to repoint it: `/games/$gameId` today, under
- * Play (`/play/games/$gameId`) later in this release.
- */
+/** A Game's own page, in Play (`/play/games/$gameId`, ADR-052 §5): the one place to repoint it. */
 export function gamePageRoute(gameId: string): string {
-  return `/games/${gameId}`
+  return `/play/games/${gameId}`
 }
 
 const BOTH: readonly DesignWidth[] = ['page', 'phone']

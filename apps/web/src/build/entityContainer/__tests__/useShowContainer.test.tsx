@@ -14,7 +14,7 @@ import { useShowContainer } from '../useShowContainer'
 
 /**
  * Where a container is shown: Shelves at `/`, a Game at its own
- * `/games/$gameId`. With a router, showing one is navigating there; with none
+ * `/play/games/$gameId`. With a router, showing one is navigating there; with none
  * (a component test) it falls back to picking it in the store.
  */
 
@@ -35,7 +35,7 @@ function routerFor(container: Container, at: string) {
   const page = () => <Show container={container} />
   const routeTree = root.addChildren([
     createRoute({ getParentRoute: () => root, path: '/', component: page }),
-    createRoute({ getParentRoute: () => root, path: '/games/$gameId', component: page }),
+    createRoute({ getParentRoute: () => root, path: '/play/games/$gameId', component: page }),
   ])
   return createRouter({ routeTree, history: createMemoryHistory({ initialEntries: [at] }) })
 }
@@ -53,11 +53,11 @@ async function press(container: Container, at: string): Promise<string> {
 
 describe('useShowContainer', () => {
   test('a Game opens at its own address', async () => {
-    expect(await press({ kind: 'game', gameId: 'g1' }, '/')).toBe('/games/g1')
+    expect(await press({ kind: 'game', gameId: 'g1' }, '/')).toBe('/play/games/g1')
   })
 
   test('the shelf opens at Hangar', async () => {
-    expect(await press({ kind: 'shelf' }, '/games/g1')).toBe('/')
+    expect(await press({ kind: 'shelf' }, '/play/games/g1')).toBe('/')
   })
 
   test('with no router, it picks the container in the store', () => {

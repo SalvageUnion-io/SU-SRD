@@ -8,12 +8,12 @@
  * of what they asked, and the players' answers.
  */
 
-import { PROPOSALS_PAGE } from 'game-domain/games/proposals'
 import { useQuery } from 'convex/react'
+import { PROPOSALS_PAGE } from 'game-domain/games/proposals'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { ProposalsList } from '../../play/mediator/ProposalsList'
+import { ProposalsList } from '../mediator/ProposalsList'
 import { HubSection } from './HubSection'
 
 export function ProposalsSent({ gameId }: { gameId: Id<'games'> }) {

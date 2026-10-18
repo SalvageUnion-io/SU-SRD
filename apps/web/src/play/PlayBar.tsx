@@ -1,5 +1,6 @@
 /**
- * PlayBar — the Cockpit's top bar: "‹ Play" back to the Play landing, the
+ * PlayBar — the Cockpit's top bar: "‹ Game" back to the Game's page (solo,
+ * "‹ Play" back to the Play hub; ADR-052 §6), the
  * screen's title (the Game's name, or "Solo · <pilot>"), the role stamp
  * (the Mediator's screen says MEDIATOR), the LIVE stamp
  * while play reaches the server, then the Situation switch (On foot /
@@ -87,8 +88,10 @@ const SPACER = { flex: '1 1 0%' } satisfies CSSProperties
 export type PlayBarProps = {
   /** The Game's name, or "Solo · <pilot>" (`playTitle`). */
   title: string
-  /** Where "‹ Play" goes: the Play landing. */
+  /** Where "‹" goes: the Game's page, or (solo) the Play hub. */
   backHref?: string
+  /** What "‹" says: "Game" back to a Game's page, "Play" back to the hub. */
+  backLabel?: string
   /** Play reaches the server: the LIVE stamp shows. */
   live: boolean
   /** In a Game, how many seats are here (`hereCount`): the stamp reads "● Live · 4 here". */
@@ -120,6 +123,7 @@ export type PlayBarProps = {
 export function PlayBar({
   title,
   backHref = '/play/',
+  backLabel = 'Play',
   live,
   here = null,
   of = null,
@@ -136,10 +140,10 @@ export function PlayBar({
         href={backHref}
         className={buttonVariants({ surface: 'instrument', variant: 'ghost', size: 'compact' })}
         style={BACK}
-        aria-label={phone ? 'Play' : undefined}
+        aria-label={phone ? backLabel : undefined}
       >
         <ChevronLeft size={18} aria-hidden="true" />
-        {!phone && 'Play'}
+        {!phone && backLabel}
       </AppLink>
       <h1 style={TITLE}>{title}</h1>
       {stamp && (

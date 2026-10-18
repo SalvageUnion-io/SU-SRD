@@ -27,6 +27,6 @@ Id · title — where code cites it (`board NN`); "—" means no code cites it. 
 10. **D1–D5** Dashboard (retired; its successor is Play, `docs/wireframes/dashboard-cockpit/`): boarded, Crew tab, Downtime, phone Mech tab, phone resolve — the app `play/`, `VitalGauge`, `pipRows`.
 11. **P1** Saving a pattern — `SavePatternPage`, `patterns`, `CardLabels`, `NpcSheet`, `Sheet`, the app `mechs/patterns/new`, game-domain `pattern`, convex `shelf`. **P2** Shared pattern page — `PublicPattern`, convex `publicSheet`.
 12. **N1** Generic NPC designer — `AnyNpcDesigner`. **N2** Crawler crew — `CrewBoard`, `crewFormState`.
-13. **M1** Mediator dashboard (retired) — the app `play/mediator/`. **M2** Running a Game — the app `build/games/`.
+13. **M1** Mediator dashboard (retired) — the app `play/mediator/`. **M2** Running a Game — the app `play/games/`.
 14. **S1** Shelves — the app `build/shelves/`, `ChapterBand`, `Slab`. **PV1** Link previews — `OgCard`, `ogCardText`, `previewSummary`.
 15. **12** Roadmap —. Component boards EntityCard and OgCard —.

@@ -70,7 +70,7 @@ export function publicPath(kind: PublicKind, appId: string): string {
   return `/p/${kind}/${encodeURIComponent(appId)}`
 }
 
-/** A Game's own page: `/games/<gameId>`. */
+/** A Game's own page, in Play (ADR-052 §5): `/play/games/<gameId>`. */
 export function gamePath(gameId: string): string {
-  return `/games/${encodeURIComponent(gameId)}`
+  return `/play/games/${encodeURIComponent(gameId)}`
 }

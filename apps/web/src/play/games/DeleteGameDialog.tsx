@@ -32,9 +32,9 @@ import { useMutation } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
+import { ConfirmDialog, Stack, Text } from '../../components/index'
 import { space } from '../../design/tokens'
 import { failureMessage } from '../../lib/connection/useServerAction'
-import { ConfirmDialog, Stack, Text } from '../../components/index'
 
 /** The little a confirm needs to know: what it is ending, and how big it is. */
 type DeletableGame = {

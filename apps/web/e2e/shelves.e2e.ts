@@ -36,7 +36,7 @@ test('move a unit into a Game and back: it never leaves the shelf', async ({ pag
   await page.getByRole('button', { name: '+ New Game' }).click()
   await page.getByLabel('New Game name').fill('Dustbowl Run')
   await page.getByRole('button', { name: 'Create', exact: true }).click()
-  await page.waitForURL(/\/games\//, { timeout: 20_000 })
+  await page.waitForURL(/\/play\/games\//, { timeout: 20_000 })
 
   await openShelves(page)
   const pilots = page.getByRole('region', { name: 'Pilots' })

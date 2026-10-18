@@ -440,6 +440,12 @@ describe('every Mediator capability is reachable here', () => {
     expect(screen.getByRole('menuitem', { name: /Game page/ })).toBeTruthy()
   })
 
+  test('the bar’s “‹ Game” goes back to the Game’s page (ADR-052 §6)', async () => {
+    await renderCockpit()
+    const bar = within(screen.getAllByRole('banner')[0] as HTMLElement)
+    expect(bar.getByRole('link', { name: 'Game' }).getAttribute('href')).toBe(`/play/games/${GAME}`)
+  })
+
   test('the seats needing attention are the seats’ ▲ and rings', async () => {
     await renderCockpit()
     const flagged = document.querySelectorAll('.su-play-seat[data-attention]')

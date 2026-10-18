@@ -2,13 +2,22 @@ import { useMutation, useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { useEffect, useRef } from 'react'
 import { api } from '../../../convex/_generated/api'
+import { SignInControl } from '../../build/account/SignInControl'
+import { useShowContainer } from '../../build/entityContainer/useShowContainer'
+import {
+  Button,
+  Card,
+  ChapterBand,
+  FieldError,
+  PageShell,
+  Text,
+  TitledBox,
+  tokens,
+} from '../../components/index'
+import { WayOutLink } from '../../components/shared/WayOutLink'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { invitePath } from '../../lib/games/inviteLink'
-import { SignInControl } from '../account/SignInControl'
-import { useShowContainer } from '../entityContainer/useShowContainer'
-import { Button, Card, ChapterBand, FieldError, PageShell, Text, TitledBox, tokens } from '../../components/index'
-import { WayOutLink } from '../../components/shared/WayOutLink'
 
 /**
  * `/invite/$token` — a Game's invite URL. A Game is joined from its link,

@@ -16,7 +16,7 @@ export async function createGame(page: Page, name: string): Promise<string> {
   await page.getByRole('button', { name: '+ New Game' }).click()
   await page.getByLabel('New Game name').fill(name)
   await page.getByRole('button', { name: 'Create', exact: true }).click()
-  await page.waitForURL(/\/games\/[^/]+$/, { timeout: 20_000 })
+  await page.waitForURL(/\/play\/games\/[^/]+$/, { timeout: 20_000 })
   const id = new URL(page.url()).pathname.split('/').pop()
   if (!id) throw new Error(`No Game id in ${page.url()}`)
   // The Game's own page is up: its band names it, as the page's h1.
@@ -74,7 +74,7 @@ export async function setUpTable(page: Page): Promise<{ gameId: string; gameName
   await waitForReady(page)
   await page.getByRole('button', { name: '+ New Game' }).click()
   await page.getByRole('dialog').getByRole('button', { name: 'Start this Game' }).first().click()
-  await page.waitForURL(/\/games\/[^/]+$/, { timeout: 20_000 })
+  await page.waitForURL(/\/play\/games\/[^/]+$/, { timeout: 20_000 })
   // The Organizer appoints the Mediator, here themselves (TheGame's Appoint).
   await page.getByRole('button', { name: 'Appoint' }).click()
   await page.getByRole('alertdialog').getByRole('button', { name: 'Appoint' }).click()

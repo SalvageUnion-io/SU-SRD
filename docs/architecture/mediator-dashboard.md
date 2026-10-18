@@ -1,6 +1,6 @@
 # Mediating and the Game Page
 
-Superseded by [play.md](play.md) §10 (ADR-051): the Mediator's surface (M1) is Play's Mediator screen, and `/mediator/$gameId` redirects to `/play/game/$gameId`. The decisions Play kept, and the Game page's sections (M2, `apps/web/src/build/games/`), stand below.
+Superseded by [play.md](play.md) §10 (ADR-051): the Mediator's surface (M1) is Play's Mediator screen, and `/mediator/$gameId` redirects to `/play/game/$gameId`. The decisions Play kept, and the Game page's sections (M2, `apps/web/src/play/games/`, at `/play/games/$gameId` since ADR-052), stand below.
 
 Governing ADRs: 030 §3–§6, 038 and 021 in [ARCHITECTURE.md](../ARCHITECTURE.md).
 

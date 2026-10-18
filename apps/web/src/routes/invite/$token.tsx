@@ -1,7 +1,7 @@
 import { createFileRoute, useParams } from '@tanstack/react-router'
 import { PRODUCT } from 'game-domain/product'
-import { InviteScreen } from '../../build/games/InviteScreen'
 import { areaTitle } from '../../lib/pageTitle'
+import { InviteScreen } from '../../play/games/InviteScreen'
 
 /**
  * `/invite/$token` — an invite link. `?join=1` marks the return from
