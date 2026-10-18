@@ -116,6 +116,7 @@
 /* The pointy cost box (`ActivationCost`): ink on every band, in the chips'
    condensed caps face, whatever face its row inherits. */
 .su-cost {
+  align-self: stretch;
   background-color: var(--color-ink);
   color: var(--color-paper);
   font-family: var(--font-cond);

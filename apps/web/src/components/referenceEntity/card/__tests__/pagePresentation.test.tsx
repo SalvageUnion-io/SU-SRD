@@ -178,7 +178,7 @@ describe('the card as a page', () => {
     expect(sizes).not.toContain('0.75rem')
   })
 
-  test('a pattern page lists its loadout after its chassis ability, as full-width Tokens that Peek', () => {
+  test('a pattern page lists its loadout after its chassis ability, as level-1 compact Cards', () => {
     const chassis = gopher()
     const pattern = need(
       chassis.patterns?.find((p) => (p.systems?.length ?? 0) > 0),
@@ -199,14 +199,19 @@ describe('the card as a page', () => {
       !!(before.compareDocumentPosition(loadout) & Node.DOCUMENT_POSITION_FOLLOWING)
     expect(following(container.querySelector('.su-entity-page__lead'))).toBe(true)
     expect(container.querySelector('.su-entity-page__opening .su-entity-token')).toBeNull()
-    // One Token a line, never a grid of Rows.
+    // One framed card per installed part (multiples repeat), each titled
+    // under its group's Slab, never a Token or a grid of Rows.
+    const parts = (pattern.systems ?? [])
+      .concat(pattern.modules ?? [])
+      .reduce((sum, part) => sum + (part.count ?? 1), 0)
+    const cards = [...(loadout?.querySelectorAll('.su-ec-frame') ?? [])]
+    expect(cards).toHaveLength(parts)
     expect(loadout?.querySelector('.su-entity-row')).toBeNull()
-    const lists = loadout?.querySelectorAll('ul.su-entity-token-list') ?? []
-    expect(lists.length).toBeGreaterThan(0)
-    for (const list of lists) {
-      for (const item of list.children) {
-        expect(item.querySelectorAll('.su-entity-token[data-peek]')).toHaveLength(1)
-      }
+    expect(loadout?.querySelector(':scope > section > ul.su-entity-token-list')).toBeNull()
+    for (const card of cards) {
+      expect(card.querySelector('h3')).not.toBeNull()
+      // Level 1 nests no framed card: its actions are level-2 Tokens.
+      expect(card.querySelector('.su-ec-frame')).toBeNull()
     }
   })
 

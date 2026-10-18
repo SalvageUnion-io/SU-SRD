@@ -1,5 +1,4 @@
 import type { StatGroup } from 'salvageunion-reference'
-import { opensGroup } from 'salvageunion-reference'
 
 /**
  * StatColumn — the Workshop Manual's stat column at page scale (ruleset, "The
@@ -10,8 +9,8 @@ import { opensGroup } from 'salvageunion-reference'
  *
  * Two to a row on a phone, and as many as fit at 200px from there up (board
  * 07: two columns beside the art). The cells keep the stat order: build them
- * from the entity model's `bookStats`; each group (provenance, vitals,
- * capacity) starts a new row of the grid; on a line it is just the next cell.
+ * from the entity model's `bookStats`. They fill the rows from the top down,
+ * every row full but the last, whose cells centre under the others.
  *
  * A description list, so a screen reader reads "Structure Points, 14", in the
  * order it is drawn: label first, as every chip and stat reads.
@@ -23,7 +22,7 @@ export type StatColumnCell = {
   label: string
   value: string
   hoverText?: string
-  /** Its part of the stat order: a cell that opens a new one starts its own grid row. */
+  /** Its part of the stat order (provenance, vitals, capacity). */
   group?: StatGroup
 }
 
@@ -45,13 +44,8 @@ export function StatColumn({ stats, label, compact = false }: StatColumnProps) {
       className={compact ? 'su-stat-column su-stat-column--compact' : 'su-stat-column'}
       aria-label={label}
     >
-      {stats.map((stat, index) => (
-        <div
-          key={stat.key}
-          className="su-stat-column__cell"
-          title={stat.hoverText}
-          data-group-start={opensGroup(stats, index) || undefined}
-        >
+      {stats.map((stat) => (
+        <div key={stat.key} className="su-stat-column__cell" title={stat.hoverText}>
           <dt className="su-stat-column__label">{stat.label}</dt>
           <dd className="su-stat-column__value">{stat.value}</dd>
         </div>
