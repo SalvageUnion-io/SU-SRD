@@ -29,7 +29,7 @@ import { LEGAL_STARTING_PATTERN, LEGAL_STARTING_PATTERN_NOTE } from './legalStar
 
 type EntityPageStampsProps = {
   meta: EntityPageMeta
-  /** The page's title, naming its stats for a screen reader ("Gopher stats"). */
+  /** The page's title, naming its stats for a screen reader ("Gopher header stats"). */
   name?: string
   /** A pattern the book sanctions as a starting build: its stamp after the parent link. */
   legalStartingPattern?: boolean
@@ -106,7 +106,8 @@ export function EntityPageStamps({
       )}
       <StatColumn
         stats={meta.stats}
-        label={name ? `${name} stats` : 'Stats'}
+        // Its own name: a chassis page's body column is "<name> stats".
+        label={name ? `${name} header stats` : 'Header stats'}
         cellStyle={(index) => fillAt(placeOf(2, index))}
       />
       {leadFacts.map((fact, index) => bandFact(fact, placeOf(3, index)))}
