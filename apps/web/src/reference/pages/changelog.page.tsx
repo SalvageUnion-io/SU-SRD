@@ -8,15 +8,15 @@
  */
 
 import { PRODUCT } from 'cantina-domain/product'
-import type { PageModule, PageResult } from '../../ssg/types'
-import { Changelog } from '../components/Changelog'
-import { DocPage } from '../components/DocPage'
-import { InlineRef } from '../components/index'
-import { space } from '../design/tokens'
-import { SITE_URL, SRD_CRUMB, WEBSITE } from '../lib/constants'
-import { BOLD, PROSE } from '../lib/docPageStyles'
-import { readChangelog } from '../lib/gitChangelog'
-import { pageTitle } from '../lib/pageTitle'
+import type { PageModule, PageResult } from '../../../ssg/types'
+import { InlineRef } from '../../components/index'
+import { space } from '../../design/tokens'
+import { SITE_URL, SRD_CRUMB, WEBSITE } from '../../lib/constants'
+import { BOLD, PROSE } from '../../lib/docPageStyles'
+import { readChangelog } from '../../lib/gitChangelog'
+import { pageTitle } from '../../lib/pageTitle'
+import { Changelog } from '../Changelog'
+import { DocPage } from '../DocPage'
 
 const TITLE = pageTitle('Changelog')
 const DESCRIPTION = `Changes to the salvageunion.io reference site and ${PRODUCT.name} over time.`

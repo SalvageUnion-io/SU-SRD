@@ -20,7 +20,7 @@ import {
   Segmented,
   SegmentedOption,
   Slab,
-} from '../index'
+} from '../components/index'
 import { PlayActionEntry } from './PlayActionEntry'
 import type { ListEntry } from './playActions.model'
 import { TYPE_FILTERS } from './playActions.model'

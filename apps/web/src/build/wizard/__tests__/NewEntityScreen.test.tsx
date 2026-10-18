@@ -21,7 +21,7 @@ import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { ConnectionState } from '../../../lib/connection/connectionContext'
 import { parseCreateMode } from '../../../lib/wizard/createMode'
-import { installConvexMocks } from '../../__tests__/convexMock'
+import { installConvexMocks } from '../../../components/__tests__/convexMock'
 
 // Module scope, before the imports below — see `convexMock.ts`. The signed-out
 // panel mounts `SignInControl`, whose auth hook needs the auth module.

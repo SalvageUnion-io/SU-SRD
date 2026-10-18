@@ -13,8 +13,8 @@ import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { ConnectionState } from '../../../lib/connection/connectionContext'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
-import { crawlerFixture, npcFixture, softLinkFixture } from '../../__tests__/fixtures'
+import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import { crawlerFixture, npcFixture, softLinkFixture } from '../../../components/__tests__/fixtures'
 
 // Module scope, before the imports below — see `convexMock.ts`.
 const convexMocks = await installConvexMocks({

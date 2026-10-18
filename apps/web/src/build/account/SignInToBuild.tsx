@@ -10,7 +10,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { ChapterBand, Text, tokens } from '../index'
+import { ChapterBand, Text, tokens } from '../../components/index'
 import { SignInControl } from './SignInControl'
 
 /** The column under the band; the band's notch starts where it does. */

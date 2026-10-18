@@ -18,10 +18,10 @@ import type { Npc } from 'cantina-domain/schemas/npc'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
 import type { SoftLink } from 'cantina-domain/schemas/softLink'
 import { create } from 'zustand'
+import type { EntityLookup } from '../../build/sheet/composition.model'
+import type { SoftLinkStore } from '../../build/wiring/useSoftLinks'
 import type { ChangeMeta, EntityState, useEntityStore } from '../../stores/entityStore'
 import type { CreateInput, EntityForType, EntityType } from '../../stores/types'
-import type { EntityLookup } from '../sheet/composition.model'
-import type { SoftLinkStore } from '../wiring/useSoftLinks'
 
 type AnyEntity = Pilot | Mech | Crawler | Npc | SoftLink
 

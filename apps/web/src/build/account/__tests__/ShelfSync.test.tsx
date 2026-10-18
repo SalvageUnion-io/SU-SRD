@@ -11,8 +11,8 @@ import { act, render, waitFor } from '@testing-library/react'
  * issued for it — the prune `forget`s a copy, it never sends a delete.
  */
 
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
-import { FIXTURE_NOW, mechFixture, pilotFixture } from '../../__tests__/fixtures'
+import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import { FIXTURE_NOW, mechFixture, pilotFixture } from '../../../components/__tests__/fixtures'
 
 const mutations: { name: string; args: unknown }[] = []
 

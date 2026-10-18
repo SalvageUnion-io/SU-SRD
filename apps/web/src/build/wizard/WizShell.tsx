@@ -1,9 +1,9 @@
 import type { SheetKind } from 'cantina-domain/entityKinds'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
-import { Box } from '../containers/Box'
-import { Badge, Button, ChapterBand, ConfirmDialog, tokens } from '../index'
-import '../../styles/cantina/wizard.css'
+import { Box } from '../../components/containers/Box'
+import { Badge, Button, ChapterBand, ConfirmDialog, tokens } from '../../components/index'
+import '../../styles/build/wizard.css'
 
 /** Sheet tone context — picks the `.su-sheet--{kind}` poster theming. */
 type WizKind = SheetKind

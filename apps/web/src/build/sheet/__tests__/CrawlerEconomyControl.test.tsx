@@ -23,8 +23,8 @@ import type { Crawler } from 'cantina-domain/schemas/crawler'
 import type { Roll } from 'salvageunion-reference/rules'
 import type { ChangeMeta } from '../../../stores/entityStore'
 import { LIVE_SHEET_TXN } from '../../../stores/surfaceProvenance'
-import { crawlerFixture } from '../../__tests__/fixtures'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { crawlerFixture } from '../../../components/__tests__/fixtures'
+import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { CrawlerEconomyControl } from '../CrawlerEconomyControl'
 
 // ---------------------------------------------------------------------------

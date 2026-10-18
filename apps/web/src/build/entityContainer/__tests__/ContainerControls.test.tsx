@@ -21,8 +21,8 @@ import type { ComponentProps, ReactNode } from 'react'
 
 import type { FunctionReference } from 'convex/server'
 import { getFunctionName } from 'convex/server'
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
-import { crawlerFixture, FIXTURE_NOW, mechFixture, pilotFixture } from '../../__tests__/fixtures'
+import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import { crawlerFixture, FIXTURE_NOW, mechFixture, pilotFixture } from '../../../components/__tests__/fixtures'
 
 let authed = true
 const serverWrites: { name: string; args: Record<string, unknown> }[] = []
@@ -48,7 +48,7 @@ const convexMocks = await installConvexMocks({
 const { ContainerSwitcher } = await import('../ContainerSwitcher')
 const { MoveToContainerControl } = await import('../MoveToContainerControl')
 const { MoveToGameDialog } = await import('../../shelves/MoveToGameDialog')
-const { useConfirm } = await import('../../shared/useConfirm')
+const { useConfirm } = await import('../../../components/shared/useConfirm')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')

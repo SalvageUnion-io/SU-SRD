@@ -7,7 +7,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { Grid, Slab, Stack, tokens } from '../index'
+import { Grid, Slab, Stack, tokens } from '../../components/index'
 import { StarterCard } from './StarterCard'
 import { starterShelves } from './starterShelves.model'
 

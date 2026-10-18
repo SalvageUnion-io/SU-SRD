@@ -17,7 +17,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { Conditions, INPUT_FOCUS, tokens } from '../index'
+import { Conditions, INPUT_FOCUS, tokens } from '../../components/index'
 import { useChipDraft } from './useChipDraft'
 
 /** The sheet's bordered well around the chip row. */

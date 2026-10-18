@@ -17,11 +17,11 @@ import type { Pilot } from 'cantina-domain/schemas/pilot'
 import type { SeatResolving } from 'cantina-domain/schemas/seat'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { mechMaxHeat, pilotMaxAP, resolveChassisRef } from 'salvageunion-reference/rules'
-import { itemEconomy, resolveModule, resolveSystem } from '../../../lib/rules/mechItems'
-import { buildMechActions, hasCurrencyChoice, VENT_PATCH } from '../../../lib/rules/playActions'
-import { PLAY_TXN } from '../../../stores/surfaceProvenance'
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
-import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
+import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
+import { mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
+import { itemEconomy, resolveModule, resolveSystem } from '../../lib/rules/mechItems'
+import { buildMechActions, hasCurrencyChoice, VENT_PATCH } from '../../lib/rules/playActions'
+import { PLAY_TXN } from '../../stores/surfaceProvenance'
 import type { PlayRoll } from '../playRolls.model'
 import type { Write } from './playActionsHarness'
 import { stubStore } from './stubStore'
@@ -29,7 +29,7 @@ import { stubStore } from './stubStore'
 const convexMocks = await installConvexMocks()
 setQueryAnswers({ 'account:me': null })
 
-const { hydrateStores } = await import('../../__tests__/hydrateStores')
+const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
 const { Harness } = await import('./playActionsHarness')
 const { onPlayRoll } = await import('../playRolls.model')
 

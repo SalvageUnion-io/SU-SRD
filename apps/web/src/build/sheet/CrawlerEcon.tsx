@@ -22,7 +22,7 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
-import { Button, Stat, tokens } from '../index'
+import { Button, Stat, tokens } from '../../components/index'
 
 export type EconLozItem = {
   /** Stat label, e.g. 'Upkeep'. */

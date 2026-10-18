@@ -17,7 +17,7 @@ import {
   resolveGauge,
   resolvePool,
 } from 'salvageunion-reference/rules'
-import { resolveCrawlerBay } from '../../lib/crawlerRefs'
+import { resolveCrawlerBay } from '../lib/crawlerRefs'
 
 /** One vital: its current value and its derived maximum. */
 export type UnitGauge = { label: string; value: number; max: number }

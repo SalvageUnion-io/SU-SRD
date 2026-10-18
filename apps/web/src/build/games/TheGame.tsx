@@ -21,7 +21,7 @@ import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { failureMessage } from '../../lib/connection/useServerAction'
-import { Button, ConfirmDialog, Field, Select, tokens } from '../index'
+import { Button, ConfirmDialog, Field, Select, tokens } from '../../components/index'
 import { HubSection } from './HubSection'
 
 const { color, font, fontSize, space, tracking, weight } = tokens

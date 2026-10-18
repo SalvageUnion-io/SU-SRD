@@ -1,9 +1,16 @@
 import type { ReactNode } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
+import type { ChapterTone, EntityPageMeta } from '../components/index'
+import {
+  buttonVariants,
+  ChapterBand,
+  cn,
+  EntityPageStamps,
+  EntityStat,
+  KindLabel,
+} from '../components/index'
 import type { BuildLink, GuideExits } from '../lib/buildLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
-import type { ChapterTone, EntityPageMeta } from './index'
-import { buttonVariants, ChapterBand, cn, EntityPageStamps, EntityStat, KindLabel } from './index'
 
 /**
  * EntityPageFrame — a Workshop Manual page around one entity (boards 07, 08,

@@ -10,10 +10,10 @@
 import { describe, expect, mock, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import type { Mech } from 'cantina-domain/schemas/mech'
-import { FIXTURE_NOW } from '../../__tests__/fixtures'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
-import { must } from '../../__tests__/must'
-import { slabChip } from '../../__tests__/slabChip'
+import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
+import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
+import { must } from '../../../components/__tests__/must'
+import { slabChip } from '../../../components/__tests__/slabChip'
 import { MechSheet } from '../MechSheet'
 
 const MANIC_MINER_SYSTEMS = [

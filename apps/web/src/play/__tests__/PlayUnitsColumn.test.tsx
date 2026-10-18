@@ -14,13 +14,13 @@ import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { downtimeGuideSteps } from 'cantina-domain/rules/downtime'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
+import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
 import {
   crawlerFixture,
   mechFixture,
   pilotFixture,
   softLinkFixture,
-} from '../../__tests__/fixtures'
+} from '../../components/__tests__/fixtures'
 import type { BoardOption } from '../boardMenu.model'
 import type { Play, Situation } from '../situation.model'
 import { RESTORE_STEP_NAME } from '../units.model'
@@ -29,9 +29,9 @@ import { fakeSeat } from './seatFixture'
 // Module scope, before the imports below — see `convexMock.ts`.
 const convexMocks = await installConvexMocks()
 
-const { useEntityStore } = await import('../../../stores/entityStore')
-const { hydrateStores } = await import('../../__tests__/hydrateStores')
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
+const { useEntityStore } = await import('../../stores/entityStore')
+const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
+const { ConnectionContext } = await import('../../lib/connection/connectionContext')
 const { PlayUnitsColumn } = await import('../PlayUnitsColumn')
 
 const PILOT = 'units-bonesaw'

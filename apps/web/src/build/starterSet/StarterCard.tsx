@@ -13,8 +13,8 @@
  */
 
 import type { StarterKind } from '../../lib/starterSet/starterTemplates'
-import { cn, Entity, FOCUS_RING } from '../index'
-import { AppLink } from '../shared/AppLink'
+import { cn, Entity, FOCUS_RING } from '../../components/index'
+import { AppLink } from '../../components/shared/AppLink'
 import type { StarterBuild } from './starterShelves.model'
 
 type StarterCardProps = { kind: StarterKind; build: StarterBuild }

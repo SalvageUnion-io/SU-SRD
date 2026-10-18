@@ -11,8 +11,8 @@
 
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import { crawlerFixture, mechFixture, pilotFixture } from '../../__tests__/fixtures'
-import { hydrateStores } from '../../__tests__/hydrateStores'
+import { crawlerFixture, mechFixture, pilotFixture } from '../../../components/__tests__/fixtures'
+import { hydrateStores } from '../../../components/__tests__/hydrateStores'
 import { PublicSheet } from '../PublicSheet'
 
 beforeAll(hydrateStores)

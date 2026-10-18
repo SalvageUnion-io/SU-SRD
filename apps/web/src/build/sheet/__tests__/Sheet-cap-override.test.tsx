@@ -10,7 +10,7 @@ import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { FunctionReference } from 'convex/server'
 import { getFunctionName } from 'convex/server'
-import { installConvexMocks } from '../../__tests__/convexMock'
+import { installConvexMocks } from '../../../components/__tests__/convexMock'
 
 const logged: { kind: string; field: string }[] = []
 

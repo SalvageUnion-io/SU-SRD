@@ -374,8 +374,8 @@
       "includes": [
         "apps/web/**",
         "!apps/web/ssg/**",
-        "!apps/web/src/pages/**",
-        "!apps/web/src/endpoints/**",
+        "!apps/web/src/reference/pages/**",
+        "!apps/web/src/reference/endpoints/**",
         "!apps/web/src/runtime/**",
         "!apps/web/src/components/islands/**"
       ],
@@ -432,9 +432,7 @@
       // merging — see the note at the root declaration.
       "includes": [
         "apps/web/ssg/**",
-        "apps/web/src/pages/**",
-        "apps/web/src/endpoints/**",
-        "apps/web/src/layouts/**",
+        "apps/web/src/reference/**",
         "apps/web/src/runtime/**",
         "apps/web/src/components/islands/**",
         "!apps/web/ssg/cantinaPlugins.ts"

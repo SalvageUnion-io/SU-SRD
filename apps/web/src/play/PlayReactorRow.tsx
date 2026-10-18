@@ -24,16 +24,16 @@ import {
   resolveGauge,
   resolvePoolStart,
 } from 'salvageunion-reference/rules'
+import { Button, TitledBox } from '../components/index'
 import {
   describeHeatCheck,
   heatCheckOncePatch,
   mechPush,
   shutdownTogglePatch,
   VENT_PATCH,
-} from '../../lib/rules/playActions'
-import { runWrite } from '../../lib/runWrite'
-import { PLAY_TXN } from '../../stores/surfaceProvenance'
-import { Button, TitledBox } from '../index'
+} from '../lib/rules/playActions'
+import { runWrite } from '../lib/runWrite'
+import { PLAY_TXN } from '../stores/surfaceProvenance'
 import type { PlayStore } from './play.model'
 import { recordPlayChange } from './playRolls.model'
 import type { PlayActions } from './usePlayActions'

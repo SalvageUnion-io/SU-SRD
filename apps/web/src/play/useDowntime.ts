@@ -18,9 +18,9 @@
  */
 
 import { useMutation, useQuery } from 'convex/react'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
-import { useConnection } from '../../lib/connection/connectionContext'
+import { api } from '../../convex/_generated/api'
+import type { Id } from '../../convex/_generated/dataModel'
+import { useConnection } from '../lib/connection/connectionContext'
 import { reportBlockedWrite, reportRefusedWrite } from './useSeat'
 
 /** A member of the Game, as a ready pip names them. */

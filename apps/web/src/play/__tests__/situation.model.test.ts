@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { mechFixture, softLinkFixture } from '../../__tests__/fixtures'
+import { mechFixture, softLinkFixture } from '../../components/__tests__/fixtures'
 import { situationOf, soloMechOptions } from '../situation.model'
 
 describe('situationOf', () => {

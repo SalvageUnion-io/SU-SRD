@@ -34,7 +34,7 @@ import type { CSSProperties } from 'react'
 import { useConnection } from '../../lib/connection/connectionContext'
 import type { ShareKind } from '../../lib/sharing/visibility'
 import { SignInControl } from '../account/SignInControl'
-import { ModalShell, tokens } from '../index'
+import { ModalShell, tokens } from '../../components/index'
 import { ShareSettings } from './ShareSettings'
 
 type ShareStatusDialogProps = {

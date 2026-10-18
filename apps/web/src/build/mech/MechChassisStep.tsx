@@ -13,8 +13,8 @@ import {
   MECH_CREATION_SCRAP_CAP,
 } from 'salvageunion-reference/rules'
 import { chassisFitsCreationBudget } from '../../lib/rules/creation'
-import { MasonryColumns, ReferenceEntityCard, Sel, Slab, tokens } from '../index'
-import '../../styles/cantina/wizard.css'
+import { MasonryColumns, ReferenceEntityCard, Sel, Slab, tokens } from '../../components/index'
+import '../../styles/build/wizard.css'
 import { fullWidthStyle, textSmStyle } from '../wizard/wizardStyles.model'
 
 const HINT = {

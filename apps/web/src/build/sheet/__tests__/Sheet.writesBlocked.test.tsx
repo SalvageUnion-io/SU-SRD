@@ -14,9 +14,9 @@ import { render, screen } from '@testing-library/react'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
 import type { ConnectionState } from '../../../lib/connection/connectionContext'
 import { ConnectionContext } from '../../../lib/connection/connectionContext'
-import { FIXTURE_NOW } from '../../__tests__/fixtures'
-import { hydrateStores } from '../../__tests__/hydrateStores'
-import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../__tests__/mockEntityStore'
+import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
+import { hydrateStores } from '../../../components/__tests__/hydrateStores'
+import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { Sheet } from '../Sheet'
 
 beforeAll(hydrateStores)

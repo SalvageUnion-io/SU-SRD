@@ -16,8 +16,8 @@
 
 import { useEffect, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
-import { Button, ConfirmDialog, EntitySearcher, ModalShell, PICKER_MODAL_WIDTH } from '../index'
-import '../../styles/cantina/wizard.css'
+import { Button, ConfirmDialog, EntitySearcher, ModalShell, PICKER_MODAL_WIDTH } from '../../components/index'
+import '../../styles/build/wizard.css'
 
 type MechChassisPickerModalProps = {
   open: boolean

@@ -20,8 +20,8 @@ import {
   STARTER_SOFT_LINKS,
 } from 'cantina-domain/starterSet/starterSet'
 import { isStarterKind, starterTemplate } from '../../lib/starterSet/starterTemplates'
-import { NotFoundPanel } from '../shared/RouteFallbacks'
-import { useConfirm } from '../shared/useConfirm'
+import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
+import { useConfirm } from '../../components/shared/useConfirm'
 import { makeReadOnlySheetStore } from '../sheet/readOnlySheetStore.model'
 import { Sheet } from '../sheet/Sheet'
 import { MakeACopy } from './MakeACopy'

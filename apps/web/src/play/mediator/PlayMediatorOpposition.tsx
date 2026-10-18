@@ -11,9 +11,9 @@
  */
 
 import { useState } from 'react'
-import type { rollForTable } from '../../index'
-import { Button, EmptyState, Slab } from '../../index'
-import { SheetPickerModal } from '../../sheet/SheetSection'
+import { SheetPickerModal } from '../../build/sheet/SheetSection'
+import type { rollForTable } from '../../components/index'
+import { Button, EmptyState, Slab } from '../../components/index'
 import { OppositionDialogs, OppositionPicker } from './OppositionPicker'
 import type { TrayNpc } from './opposition.model'
 import { PlayNpcActions } from './PlayNpcActions'

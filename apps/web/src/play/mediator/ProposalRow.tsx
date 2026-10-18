@@ -10,7 +10,7 @@
  */
 
 import { PROPOSAL_STATE_WORD } from 'cantina-domain/games/proposals'
-import { Eyebrow, FeedLine, FeedTime } from '../../index'
+import { Eyebrow, FeedLine, FeedTime } from '../../components/index'
 import type { SentProposal } from './proposalLine.model'
 import { proposalLine } from './proposalLine.model'
 

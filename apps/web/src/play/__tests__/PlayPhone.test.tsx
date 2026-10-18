@@ -20,9 +20,9 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Mech } from 'cantina-domain/schemas/mech'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
-import { resolveSystem } from '../../../lib/rules/mechItems'
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
-import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
+import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
+import { mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
+import { resolveSystem } from '../../lib/rules/mechItems'
 import type { Situation } from '../situation.model'
 import { mechStats } from '../unitStats.model'
 import { stubStore } from './stubStore'
@@ -44,8 +44,8 @@ setQueryAnswers({
   'crew:vitals': null,
 })
 
-const { hydrateStores } = await import('../../__tests__/hydrateStores')
-const { EntityHrefProvider } = await import('../../index')
+const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
+const { EntityHrefProvider } = await import('../../components/index')
 const { rollFourteen, useHarnessPlay } = await import('./playActionsHarness')
 const { PlayCockpitPhone } = await import('../PlayCockpitPhone')
 const { mediatorPhoneTabs, pinnedUnits, playerPhoneTabs } = await import('../playPhone.model')

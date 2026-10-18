@@ -11,11 +11,11 @@
 
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
-import type { ChangeMeta, EntityType } from '../../../stores/entityStore'
-import { PLAY_TXN } from '../../../stores/surfaceProvenance'
-import { crawlerFixture, mechFixture, pilotFixture } from '../../__tests__/fixtures'
-import { hydrateStores } from '../../__tests__/hydrateStores'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { crawlerFixture, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
+import { hydrateStores } from '../../components/__tests__/hydrateStores'
+import { makeEntityStoreMock } from '../../components/__tests__/mockEntityStore'
+import type { ChangeMeta, EntityType } from '../../stores/entityStore'
+import { PLAY_TXN } from '../../stores/surfaceProvenance'
 import { PlayCrawlerUnit, PlayHangarMech, PlayMechUnit, PlayPilotUnit } from '../PlayUnits'
 
 type Update = { type: EntityType; id: string; patch: Record<string, unknown>; meta?: ChangeMeta }

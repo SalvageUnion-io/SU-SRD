@@ -28,8 +28,8 @@ import {
   PICKER_MODAL_WIDTH,
   toast,
   tokens,
-} from '../index'
-import '../../styles/cantina/wizard.css'
+} from '../../components/index'
+import '../../styles/build/wizard.css'
 
 /** The confirm dialog's consequence copy. */
 const CONFIRM_COPY = {

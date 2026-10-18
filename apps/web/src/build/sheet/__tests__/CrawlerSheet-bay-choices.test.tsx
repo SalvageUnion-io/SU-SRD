@@ -29,9 +29,9 @@ import type { Crawler } from 'cantina-domain/schemas/crawler'
 import type { RefCrawlerBay } from 'salvageunion-reference'
 import { patchModelRows } from '../../../../test/patchModel'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
-import { expandCards } from '../../__tests__/expandCards'
-import { FIXTURE_NOW } from '../../__tests__/fixtures'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { expandCards } from '../../../components/__tests__/expandCards'
+import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
+import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { CrawlerSheet } from '../CrawlerSheet'
 
 // ---------------------------------------------------------------------------

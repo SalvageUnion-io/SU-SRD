@@ -1,5 +1,5 @@
-import { Field, Input } from '../index'
-import '../../styles/cantina/wizard.css'
+import { Field, Input } from '../../components/index'
+import '../../styles/build/wizard.css'
 import { RollTableButton } from './RollTableButton'
 import type { RollTableDeps } from './rollTableHelpers.model'
 import { fieldRowStyle, stepColumnStyle } from './wizardStyles.model'

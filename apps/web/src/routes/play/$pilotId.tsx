@@ -14,8 +14,8 @@
  */
 
 import { createFileRoute } from '@tanstack/react-router'
-import { PlayGate } from '../../components/play/PlayGate'
 import { pageTitle } from '../../lib/pageTitle'
+import { PlayGate } from '../../play/PlayGate'
 import { useEntityStore } from '../../stores/entityStore'
 
 export const Route = createFileRoute('/play/$pilotId')({

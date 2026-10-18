@@ -20,7 +20,7 @@ import type { MergeSummary } from '../../lib/export/mergeImport'
 import { mergeImport } from '../../lib/export/mergeImport'
 import { ImportRefused, parseImportBundle } from '../../lib/export/parseImportBundle'
 import { useEntityStore } from '../../stores/entityStore'
-import { Button, FieldError, Stack, toast } from '../index'
+import { Button, FieldError, Stack, toast } from '../../components/index'
 
 /** The inline summary line. */
 const SUMMARY = {

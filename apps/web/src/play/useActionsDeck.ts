@@ -43,8 +43,9 @@ import {
   resolveGauge,
   resolvePoolStart,
 } from 'salvageunion-reference/rules'
-import type { MechItemEconomy } from '../../lib/rules/mechItems'
-import type { PlayAction, PlayActionCurrency } from '../../lib/rules/playActions'
+import { rollForTable } from '../components/index'
+import type { MechItemEconomy } from '../lib/rules/mechItems'
+import type { PlayAction, PlayActionCurrency } from '../lib/rules/playActions'
 import {
   activationHeatGate,
   activationPatch,
@@ -57,11 +58,10 @@ import {
   isDestructiveOutcome,
   mechPush,
   pilotActivationPatch,
-} from '../../lib/rules/playActions'
-import { runWrite } from '../../lib/runWrite'
-import { useEntityStore } from '../../stores/entityStore'
-import { PLAY_TXN } from '../../stores/surfaceProvenance'
-import { rollForTable } from '../index'
+} from '../lib/rules/playActions'
+import { runWrite } from '../lib/runWrite'
+import { useEntityStore } from '../stores/entityStore'
+import { PLAY_TXN } from '../stores/surfaceProvenance'
 import type { PlayStore } from './play.model'
 import type { MountState } from './useSeat'
 

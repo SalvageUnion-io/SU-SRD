@@ -8,12 +8,12 @@
  * search, so the Union bar carries none here (`BaseLayout`).
  */
 
-import type { PageModule, PageResult } from '../../ssg/types'
-import { HeroSearchStatic } from '../components/HeroSearch'
-import { NotFound } from '../components/NotFound'
-import '../lib/gameData'
-import { pageTitle } from '../lib/pageTitle'
-import { Island } from '../runtime/Island'
+import type { PageModule, PageResult } from '../../../ssg/types'
+import { HeroSearchStatic } from '../../components/HeroSearch'
+import { NotFound } from '../../components/NotFound'
+import '../../lib/gameData'
+import { pageTitle } from '../../lib/pageTitle'
+import { Island } from '../../runtime/Island'
 
 function page(): PageResult {
   return {

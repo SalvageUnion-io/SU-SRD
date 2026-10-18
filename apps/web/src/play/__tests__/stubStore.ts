@@ -1,8 +1,8 @@
 import type { Crawler } from 'cantina-domain/schemas/crawler'
 import type { Mech } from 'cantina-domain/schemas/mech'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
-import type { ChangeMeta } from '../../../stores/entityStore'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { makeEntityStoreMock } from '../../components/__tests__/mockEntityStore'
+import type { ChangeMeta } from '../../stores/entityStore'
 import type { PlayStore } from '../play.model'
 
 /** One `store.update` Play sent. */

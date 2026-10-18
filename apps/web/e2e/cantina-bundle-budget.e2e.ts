@@ -160,7 +160,7 @@ test.describe('bundle-size budget', () => {
 
   test('a live sheet stays under budget', async ({ page }) => {
     // An unknown id on purpose: the sheet route renders its own "not found"
-    // state (src/components/sheet/Sheet.tsx) *after* downloading the whole
+    // state (src/build/sheet/Sheet.tsx) *after* downloading the whole
     // route chunk, so this measures the route's real JS cost without paying
     // for a full wizard run to seed an entity first.
     const CEILING = 2_590_000

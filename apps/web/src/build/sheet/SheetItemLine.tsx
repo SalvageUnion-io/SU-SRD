@@ -2,7 +2,7 @@
  * SheetItemLine — one installed or carried item on a sheet: its TOKEN (which
  * Peeks the whole card), then its controls ON the same line (owner's call,
  * 2026-10-14: "consistency is the key"). Every control is the sheet control's
- * height (`.su-sheet-item__ctl`, `styles/cantina/sheet/items.css`): 32px from `sm`, the
+ * height (`.su-sheet-item__ctl`, `styles/build/sheet/items.css`): 32px from `sm`, the
  * 44px tap floor on a phone, where the controls take the line under the Token.
  *
  *   - the condition: the tri-state `StatusBadge`, which steps it on
@@ -22,7 +22,7 @@
 import type { ItemCondition } from 'cantina-domain/schemas/itemCondition'
 import { X } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { Badge, Button, Stat, StatusBadge } from '../index'
+import { Badge, Button, Stat, StatusBadge } from '../../components/index'
 
 type SheetItemLineProps = {
   /** The item's Token, or a Row (`rowForm`). */

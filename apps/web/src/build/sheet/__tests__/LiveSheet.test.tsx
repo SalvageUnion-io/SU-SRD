@@ -12,8 +12,8 @@ import { beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { EntityRef } from 'salvageunion-reference'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
-import { must } from '../../__tests__/must'
-import { EntitySurfaceProvider } from '../../index'
+import { must } from '../../../components/__tests__/must'
+import { EntitySurfaceProvider } from '../../../components/index'
 import { LiveSheet } from '../LiveSheet'
 
 const ENGINEER = { label: 'Class', name: 'Engineer' }

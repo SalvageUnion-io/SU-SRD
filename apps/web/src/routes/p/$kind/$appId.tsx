@@ -1,5 +1,5 @@
 import { createFileRoute, useParams } from '@tanstack/react-router'
-import { PublicSheetView } from '../../../components/sheet/PublicSheetView'
+import { PublicSheetView } from '../../../build/sheet/PublicSheetView'
 import { pageTitle } from '../../../lib/pageTitle'
 
 /**
@@ -18,7 +18,7 @@ import { pageTitle } from '../../../lib/pageTitle'
  * pattern its maker shared. `PublicSheetView` routes a pattern and
  * an NPC to their own pages.
  *
- * The page body is `PublicSheetView` (`components/sheet/PublicSheetView.tsx`).
+ * The page body is `PublicSheetView` (`build/sheet/PublicSheetView.tsx`).
  * This file exports only `Route` so `autoCodeSplitting` can keep the sheet
  * tree out of the entry chunk (see `routes/__tests__/routeExports.test.ts`).
  */

@@ -7,7 +7,7 @@
 import { describe, expect, test } from 'bun:test'
 import { render, screen, within } from '@testing-library/react'
 import type { CrewAssignment } from '../../../lib/npcs/npcModel'
-import { npcFixture, softLinkFixture } from '../../__tests__/fixtures'
+import { npcFixture, softLinkFixture } from '../../../components/__tests__/fixtures'
 import { LinkedCrewToken } from '../LinkedCrewToken'
 
 const DOC = npcFixture({

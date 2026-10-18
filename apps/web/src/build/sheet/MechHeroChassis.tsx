@@ -6,7 +6,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { Entity, StatColumn, tokens } from '../index'
+import { Entity, StatColumn, tokens } from '../../components/index'
 import type { MechSheetModel } from './mechSheet.model'
 
 const ABILITY = {

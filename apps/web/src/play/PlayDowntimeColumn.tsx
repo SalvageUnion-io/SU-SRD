@@ -12,7 +12,7 @@
  */
 
 import { downtimeGuideSteps } from 'cantina-domain/rules/downtime'
-import { Slab } from '../index'
+import { Slab } from '../components/index'
 import { PlayAwayGroup, PlayEntryList, PlayOrphanResolve } from './PlayActionsList'
 import { PlayDowntimeStep } from './PlayDowntimeStep'
 import { PlayDowntimeTrack } from './PlayDowntimeTrack'

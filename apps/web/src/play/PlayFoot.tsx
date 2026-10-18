@@ -8,8 +8,8 @@
  */
 
 import type { CSSProperties } from 'react'
-import { useConnection } from '../../lib/connection/connectionContext'
-import { tokens } from '../index'
+import { tokens } from '../components/index'
+import { useConnection } from '../lib/connection/connectionContext'
 import { connectionLine } from './play.model'
 import { SavedIndicator } from './SavedIndicator'
 

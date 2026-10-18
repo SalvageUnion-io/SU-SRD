@@ -20,7 +20,7 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
-import { InlineEditField, Inset, Stat, tokens } from '../index'
+import { InlineEditField, Inset, Stat, tokens } from '../../components/index'
 import { NpcFactsEditor } from './NpcFactsEditor'
 
 const ROW = {

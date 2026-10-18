@@ -61,7 +61,7 @@ import { resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import { runWrite } from '../../lib/runWrite'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
-import type { SlabCount } from '../index'
+import type { SlabCount } from '../../components/index'
 import {
   Conditions,
   EmptyState,
@@ -74,9 +74,9 @@ import {
   Stack,
   tokens,
   VitalGauge,
-} from '../index'
-import { EntityPhoto } from '../shared/EntityPhoto'
-import { SoftWarningDialog } from '../shared/SoftWarningDialog'
+} from '../../components/index'
+import { EntityPhoto } from '../../components/shared/EntityPhoto'
+import { SoftWarningDialog } from '../../components/shared/SoftWarningDialog'
 import { MechChassisCard } from './MechChassisCard'
 import { MechConditionsEditor } from './MechConditionsEditor'
 import { MechHeroChassis } from './MechHeroChassis'

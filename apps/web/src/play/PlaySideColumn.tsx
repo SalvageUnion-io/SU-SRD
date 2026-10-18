@@ -21,7 +21,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { Slab, tokens } from '../index'
+import { Slab, tokens } from '../components/index'
 import { PlayCrew } from './PlayCrew'
 import { PlayFeed } from './PlayFeed'
 import { PlayTables } from './PlayTables'

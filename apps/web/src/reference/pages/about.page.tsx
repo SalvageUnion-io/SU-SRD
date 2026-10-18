@@ -24,21 +24,21 @@ import { PRODUCT } from 'cantina-domain/product'
 import { X } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { Fragment } from 'react'
-import type { PageModule, PageResult, RouteContext } from '../../ssg/types'
-import { DocPage } from '../components/DocPage'
-import { buttonVariants, cn, InlineRef, Slab } from '../components/index'
-import { ColophonIsland } from '../components/islands/ColophonIsland'
-import { color, font, fontSize, space, tracking, weight } from '../design/tokens'
-import { appPath } from '../lib/appBase'
-import { builtAssetUrl, ELDRIDGE_COAST_MAP } from '../lib/builtAssets'
-import { SITE_URL, WEBSITE } from '../lib/constants'
-import { BOLD, PROSE } from '../lib/docPageStyles'
-import { pageTitle } from '../lib/pageTitle'
-import { Island } from '../runtime/Island'
+import type { PageModule, PageResult, RouteContext } from '../../../ssg/types'
+import { buttonVariants, cn, InlineRef, Slab } from '../../components/index'
+import { ColophonIsland } from '../../components/islands/ColophonIsland'
+import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
+import { appPath } from '../../lib/appBase'
+import { builtAssetUrl, ELDRIDGE_COAST_MAP } from '../../lib/builtAssets'
+import { SITE_URL, WEBSITE } from '../../lib/constants'
+import { BOLD, PROSE } from '../../lib/docPageStyles'
+import { pageTitle } from '../../lib/pageTitle'
+import { Island } from '../../runtime/Island'
+import { DocPage } from '../DocPage'
 
-/** Repo root, relative to this module — `apps/web/src/pages` -> four levels up. */
+/** Repo root, relative to this module — `apps/web/src/reference/pages` -> five levels up. */
 const repoRootFile = (name: string): string =>
-  fileURLToPath(new URL(`../../../../${name}`, import.meta.url))
+  fileURLToPath(new URL(`../../../../../${name}`, import.meta.url))
 
 // The shared colophon prose, read at build time from the repo root. This page
 // is the About page of both tools: The Cantina links here and keeps no copy.

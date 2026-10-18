@@ -9,7 +9,7 @@
  */
 
 import { useState } from 'react'
-import { Button, ConfirmDialog, HeaderMenu, TitledBox } from '../index'
+import { Button, ConfirmDialog, HeaderMenu, TitledBox } from '../components/index'
 import type { BoardOption } from './boardMenu.model'
 import { boardable } from './boardMenu.model'
 import type { Play } from './situation.model'

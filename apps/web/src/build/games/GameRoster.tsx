@@ -63,14 +63,14 @@ import {
   rosterSheetHref,
   tableCapabilities,
 } from '../../lib/games/gameRoster'
-import type { HeaderMenuItem } from '../index'
-import { buttonVariants, FieldError, HeaderMenu, RosterSkeleton, Text, tokens } from '../index'
+import type { HeaderMenuItem } from '../../components/index'
+import { buttonVariants, FieldError, HeaderMenu, RosterSkeleton, Text, tokens } from '../../components/index'
 import type { ColumnCreate, SegmentKind } from '../roster/RosterColumn'
 import { RosterColumn, RosterGrid, RosterList, SegmentSwitch } from '../roster/RosterColumn'
-import { AppLink } from '../shared/AppLink'
-import { UnitRow } from '../shared/UnitRow'
-import { useConfirm } from '../shared/useConfirm'
-import { useGo } from '../shared/useGo'
+import { AppLink } from '../../components/shared/AppLink'
+import { UnitRow } from '../../components/shared/UnitRow'
+import { useConfirm } from '../../components/shared/useConfirm'
+import { useGo } from '../../components/shared/useGo'
 import { OwnerSeal } from './OwnerSeal'
 import { useRowActions } from './useRowActions'
 

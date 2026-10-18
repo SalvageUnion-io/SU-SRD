@@ -5,7 +5,7 @@
  * A Game's page (`GameRoster`) and the Starter Set (`StarterSetRoster`) lay
  * their units out in these columns. What goes INSIDE a column is the caller's:
  * yours-then-everyone-else's in a Game, the book's crew in the Starter Set.
- * Shelves (`components/shelves/`) has shelves of its own, board S1.
+ * Shelves (`build/shelves/`) has shelves of its own, board S1.
  *
  * At the mobile endpoint (≤ md) the three columns collapse to one, behind a
  * segmented switch the page owns — so the segment a player picked survives
@@ -16,8 +16,8 @@ import type { SheetKind } from 'cantina-domain/entityKinds'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { color, space } from '../../design/tokens'
-import { buttonVariants, EmptyState, Segmented, SegmentedOption, Slab } from '../index'
-import { AppLink } from '../shared/AppLink'
+import { buttonVariants, EmptyState, Segmented, SegmentedOption, Slab } from '../../components/index'
+import { AppLink } from '../../components/shared/AppLink'
 
 export type SegmentKind = SheetKind
 

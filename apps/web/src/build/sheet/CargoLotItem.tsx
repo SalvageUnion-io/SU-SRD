@@ -8,8 +8,8 @@ import type { CargoLot } from 'cantina-domain/schemas/cargoLot'
 import { loadableQty } from '../../lib/cargo/cargoTransfer'
 import { reportCargo as report } from '../../lib/cargo/reportCargo'
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
-import { Button } from '../index'
-import { CargoLotRow } from '../shared/CargoLotRow'
+import { Button } from '../../components/index'
+import { CargoLotRow } from '../../components/shared/CargoLotRow'
 
 export type StorageManifestSide = 'mech' | 'crawler'
 

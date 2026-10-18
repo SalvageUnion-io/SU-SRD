@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 import { MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
-import { Stat, tokens } from '../index'
+import { Stat, tokens } from '../../components/index'
 
 const rowStyle = {
   alignItems: 'flex-start',

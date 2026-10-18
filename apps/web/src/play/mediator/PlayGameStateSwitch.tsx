@@ -16,7 +16,7 @@
 import { downtimeStepCount, UPKEEP_STEP_NAME } from 'cantina-domain/rules/downtime'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { ConfirmDialog, Segmented, SegmentedOption, tokens } from '../../index'
+import { ConfirmDialog, Segmented, SegmentedOption, tokens } from '../../components/index'
 import type { PlayDowntime } from '../situation.model'
 import { downtimeOptionLabel } from './mediatorTable.model'
 

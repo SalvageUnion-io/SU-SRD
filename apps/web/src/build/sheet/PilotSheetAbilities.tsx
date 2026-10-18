@@ -10,7 +10,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { AbilityTrack, EmptyState, Panel, SheetSectionSlab, Slab, Stack, tokens } from '../index'
+import { AbilityTrack, EmptyState, Panel, SheetSectionSlab, Slab, Stack, tokens } from '../../components/index'
 import { PilotAbilityItem } from './PilotSheetItems'
 import type { AbilityEntry, AbilityTreeGroup } from './pilotSheet.model'
 import { SectionManageButton } from './SheetSection'

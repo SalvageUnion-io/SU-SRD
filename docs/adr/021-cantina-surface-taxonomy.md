@@ -89,7 +89,7 @@ the behavior.
 **Play is a separate, multi-entity surface — built.** It composes a
 player's Pilot + Mech + Crawler into one live play surface (distinct from the
 single-entity Live Sheet), at `/play/$pilotId` and the Mediator's
-`/play/game/$gameId` (`src/components/play/`). Detail in
+`/play/game/$gameId` (`src/play/`). Detail in
 [play.md](../architecture/play.md).
 
 ## Supersession / precedence

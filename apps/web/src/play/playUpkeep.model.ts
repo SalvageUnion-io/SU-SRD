@@ -8,9 +8,9 @@
  */
 
 import type { Crawler } from 'cantina-domain/schemas/crawler'
-import { payUpkeep, upkeepShortfall } from '../../lib/rules/crawlerEconomy'
-import { runWrite } from '../../lib/runWrite'
-import { PLAY_TXN } from '../../stores/surfaceProvenance'
+import { payUpkeep, upkeepShortfall } from '../lib/rules/crawlerEconomy'
+import { runWrite } from '../lib/runWrite'
+import { PLAY_TXN } from '../stores/surfaceProvenance'
 import type { PlayStore } from './play.model'
 import { crawlerTl } from './playDowntime.model'
 

@@ -12,14 +12,14 @@ import { downtimeStepNames } from 'cantina-domain/rules/downtime'
 import type { Crawler } from 'cantina-domain/schemas/crawler'
 import type { Mech } from 'cantina-domain/schemas/mech'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
-import { PLAY_TXN } from '../../../stores/surfaceProvenance'
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
+import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
 import {
   crawlerFixture,
   mechFixture,
   pilotFixture,
   softLinkFixture,
-} from '../../__tests__/fixtures'
+} from '../../components/__tests__/fixtures'
+import { PLAY_TXN } from '../../stores/surfaceProvenance'
 import type { PlayRoll } from '../playRolls.model'
 import type { Write } from './playActionsHarness'
 import { stubStore } from './stubStore'
@@ -27,9 +27,9 @@ import { stubStore } from './stubStore'
 const convexMocks = await installConvexMocks()
 setQueryAnswers({ 'account:me': { _id: 'u-me', displayName: 'Me', avatarUrl: null, email: null } })
 
-const { hydrateStores } = await import('../../__tests__/hydrateStores')
-const { useEntityStore } = await import('../../../stores/entityStore')
-const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
+const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
+const { useEntityStore } = await import('../../stores/entityStore')
+const { setEntityBackendAuthState } = await import('../../stores/entityBackend')
 const { Harness } = await import('./playActionsHarness')
 const { onPlayRoll } = await import('../playRolls.model')
 

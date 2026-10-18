@@ -18,7 +18,7 @@ import { legalStartingPatterns, MECH_CREATION_SCRAP_CAP } from 'salvageunion-ref
 import { resetStores } from '../../../stores/__tests__/resetStores'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
-import { must } from '../../__tests__/must'
+import { must } from '../../../components/__tests__/must'
 import { MechWizard } from '../MechWizard'
 
 // Building and editing need an account (ADR-034 as amended), so these writes run signed in.

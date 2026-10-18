@@ -9,8 +9,8 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import { useState } from 'react'
 import type { ConnectionState } from '../../../lib/connection/connectionContext'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
-import { crawlerFixture } from '../../__tests__/fixtures'
+import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import { crawlerFixture } from '../../../components/__tests__/fixtures'
 
 const writes: unknown[] = []
 

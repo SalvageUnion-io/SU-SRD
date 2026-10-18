@@ -5,7 +5,7 @@
  * `aria-pressed` carries it, so a screen reader hears which of the two is on.
  */
 
-import { Segmented, SegmentedOption } from '../index'
+import { Segmented, SegmentedOption } from '../../components/index'
 import type { SheetMode } from './sheetMode.model'
 
 /**

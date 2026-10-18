@@ -24,8 +24,8 @@ import { createElement } from 'react'
  */
 
 import { makeUnitLot } from 'cantina-domain/schemas/cargoLot'
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
-import { crawlerFixture, FIXTURE_NOW, mechFixture, pilotFixture } from '../../__tests__/fixtures'
+import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import { crawlerFixture, FIXTURE_NOW, mechFixture, pilotFixture } from '../../../components/__tests__/fixtures'
 
 /** Every `router.navigate` the view made. */
 const navigations: unknown[] = []
@@ -52,7 +52,7 @@ const convexMocks = await installConvexMocks({
 
 const { SheetView } = await import('../SheetView')
 const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
-const { hydrateStores } = await import('../../__tests__/hydrateStores')
+const { hydrateStores } = await import('../../../components/__tests__/hydrateStores')
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { useSheetModeStore } = await import('../sheetMode.model')
 

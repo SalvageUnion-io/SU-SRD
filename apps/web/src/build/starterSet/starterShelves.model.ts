@@ -21,8 +21,8 @@ import { readReference } from '../../lib/readReference'
 import type { StarterKind } from '../../lib/starterSet/starterTemplates'
 import type { UnitReading } from '../../lib/units/unitModel'
 import { unitRowModel } from '../../lib/units/unitModel'
-import type { EntityRowModel, TagItem } from '../index'
-import { relation } from '../index'
+import type { EntityRowModel, TagItem } from '../../components/index'
+import { relation } from '../../components/index'
 import { crawlerStats, mechChassisStats, pilotStats } from '../roster/rowStats.model'
 
 /**

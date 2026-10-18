@@ -13,8 +13,8 @@ import { ConvexError } from 'convex/values'
 import { useState } from 'react'
 import type { ConnectionState } from '../../../lib/connection/connectionContext'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
-import { crawlerFixture, npcFixture, softLinkFixture } from '../../__tests__/fixtures'
+import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import { crawlerFixture, npcFixture, softLinkFixture } from '../../../components/__tests__/fixtures'
 
 /** How the stub server answers a link write this test. */
 let linkWrite: 'ok' | 'defect' | 'refused' = 'ok'
@@ -32,7 +32,7 @@ const convexMocks = await installConvexMocks({
 })
 afterAll(() => convexMocks.restore())
 
-const { Toaster, toast } = await import('../../index')
+const { Toaster, toast } = await import('../../../components/index')
 const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { CrewBoard } = await import('../CrewBoard')

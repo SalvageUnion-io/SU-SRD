@@ -20,7 +20,7 @@ import {
 } from 'salvageunion-reference/rules'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { craftableAtTl } from '../../lib/rules/crafting'
-import { EntitySearcher, ModalShell, PICKER_MODAL_WIDTH } from '../index'
+import { EntitySearcher, ModalShell, PICKER_MODAL_WIDTH } from '../../components/index'
 
 type CrawlerSystemsEditModalProps = {
   open: boolean

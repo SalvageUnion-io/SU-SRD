@@ -24,13 +24,13 @@
  * "Schema not loaded".
  */
 
-import { itemJsonEndpoint } from '../src/endpoints/itemJson'
-import { llmsTxtEndpoint } from '../src/endpoints/llmsTxt'
-import { redirectsEndpoint } from '../src/endpoints/redirects'
-import { schemaDefinitionJsonEndpoint } from '../src/endpoints/schemaDefinitionJson'
-import { schemaJsonEndpoint } from '../src/endpoints/schemaJson'
-import { searchIndexJsonEndpoint } from '../src/endpoints/searchIndexJson'
 import { SITE_URL } from '../src/lib/constants'
+import { itemJsonEndpoint } from '../src/reference/endpoints/itemJson'
+import { llmsTxtEndpoint } from '../src/reference/endpoints/llmsTxt'
+import { redirectsEndpoint } from '../src/reference/endpoints/redirects'
+import { schemaDefinitionJsonEndpoint } from '../src/reference/endpoints/schemaDefinitionJson'
+import { schemaJsonEndpoint } from '../src/reference/endpoints/schemaJson'
+import { searchIndexJsonEndpoint } from '../src/reference/endpoints/searchIndexJson'
 import { fillPattern } from './render'
 import type { EndpointModule, RouteContext, StaticPath } from './types'
 

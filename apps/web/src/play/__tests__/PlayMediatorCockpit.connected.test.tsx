@@ -20,9 +20,9 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, mock, tes
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { FunctionReference } from 'convex/server'
 import { getFunctionName } from 'convex/server'
-import type { QueryAnswers } from '../../__tests__/convexMock'
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
-import { crawlerFixture } from '../../__tests__/fixtures'
+import type { QueryAnswers } from '../../components/__tests__/convexMock'
+import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
+import { crawlerFixture } from '../../components/__tests__/fixtures'
 import { MEDIATOR_MEMBERS, MEDIATOR_SEATS, mediatorCrewAt } from './mediatorFixture'
 import { phoneViewport } from './phoneViewport'
 
@@ -55,11 +55,11 @@ const convexMocks = await installConvexMocks({
 })
 
 const { PlayMediatorCockpit } = await import('../PlayMediatorCockpit')
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
-const { hydrateStores } = await import('../../__tests__/hydrateStores')
-const { useEntityStore } = await import('../../../stores/entityStore')
+const { ConnectionContext } = await import('../../lib/connection/connectionContext')
+const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
+const { useEntityStore } = await import('../../stores/entityStore')
 const { clearPlayRolls } = await import('../playRolls.model')
-const { withSignedInBackend } = await import('../../../stores/__tests__/signedInBackend')
+const { withSignedInBackend } = await import('../../stores/__tests__/signedInBackend')
 
 withSignedInBackend()
 

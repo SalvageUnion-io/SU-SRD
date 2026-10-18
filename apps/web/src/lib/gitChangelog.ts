@@ -12,7 +12,7 @@
 
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import type { ChangelogEntry } from '../components/Changelog'
+import type { ChangelogEntry } from '../reference/Changelog'
 
 const REPO = 'https://github.com/SalvageUnion-io/SU-SRD'
 /** The app's scope, then the ones its history used. */

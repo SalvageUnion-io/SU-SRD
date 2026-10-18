@@ -1,7 +1,7 @@
 import type { RefEquipment } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationEquipment } from 'salvageunion-reference/rules'
-import { EmptyState, MasonryColumns, ReferenceEntityCard } from '../index'
+import { EmptyState, MasonryColumns, ReferenceEntityCard } from '../../components/index'
 import { fullWidthStyle } from './wizardStyles.model'
 
 type SUREquipmentAccessor = {

@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react'
-import type { ChapterTone } from './index'
-import { buttonVariants, CHAPTER_BAND_COLOR, cn, StartHere, ToneStrip } from './index'
+import type { ChapterTone } from '../components/index'
+import { buttonVariants, CHAPTER_BAND_COLOR, cn, StartHere, ToneStrip } from '../components/index'
 
 /**
  * The home page as the manual's Contents page (board 06): the book's chapters

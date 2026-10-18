@@ -13,7 +13,7 @@
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
-import { Button, Slab, tokens, useDisclosure } from '../index'
+import { Button, Slab, tokens, useDisclosure } from '../../components/index'
 import { StarterSetGrid } from '../starterSet/StarterSetGrid'
 
 const SECTION = {

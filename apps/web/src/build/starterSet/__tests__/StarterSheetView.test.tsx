@@ -7,7 +7,7 @@
 
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import { installConvexMocks } from '../../__tests__/convexMock'
+import { installConvexMocks } from '../../../components/__tests__/convexMock'
 
 // The signed-out "Make a copy" is the sign-in button, whose provider wants a
 // live Convex client. Module scope, before the imports below.
@@ -17,7 +17,7 @@ const convexMocks = await installConvexMocks({
 })
 afterAll(() => convexMocks.restore())
 
-const { hydrateStores } = await import('../../__tests__/hydrateStores')
+const { hydrateStores } = await import('../../../components/__tests__/hydrateStores')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
 const { StarterSheetView } = await import('../StarterSheetView')
 

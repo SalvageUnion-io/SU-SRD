@@ -3,7 +3,7 @@
  * The Cantina components listed below; their static styling is style objects over
  * src/components tokens. Loaded by `index.css`.
  *
- *   - `components/account/SignInControl.tsx` — `.su-sign-in-control--dark`, the
+ *   - `build/account/SignInControl.tsx` — `.su-sign-in-control--dark`, the
  *     ghost Button recoloured for the dark masthead (hover included).
  *
  * These rules are unlayered, so they outrank the UI library's `su-base` layer —
@@ -35,7 +35,7 @@ html[data-union-bar-hidden] .su-union-bar {
   display: none;
 }
 
-/* The front door's quoted tagline (`components/roster/FrontDoor.tsx`): on the
+/* The front door's quoted tagline (`build/roster/FrontDoor.tsx`): on the
    cantina band, at its right end and set right, it is paper; on a phone
    ChapterBand sets it under the band on the page ground, where it takes the
    deep crawler pink and sets left. */

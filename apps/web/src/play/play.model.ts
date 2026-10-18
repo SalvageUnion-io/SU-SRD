@@ -11,8 +11,8 @@ import { containerOf } from 'cantina-domain/container'
 import type { Mech } from 'cantina-domain/schemas/mech'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
 import type { SoftLink } from 'cantina-domain/schemas/softLink'
-import type { ConnectionMode } from '../../lib/connection/connectionMode'
-import type { EntityState } from '../../stores/entityStore'
+import type { ConnectionMode } from '../lib/connection/connectionMode'
+import type { EntityState } from '../stores/entityStore'
 
 /** The store surface Play writes through: injectable, so a test can assert the patches. */
 export type PlayStore = Pick<EntityState, 'get' | 'update' | 'transfer'>

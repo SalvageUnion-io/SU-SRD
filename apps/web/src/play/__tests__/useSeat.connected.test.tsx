@@ -13,10 +13,14 @@ import { ConvexError } from 'convex/values'
  * against a stand-in for Convex's local query cache.
  */
 
-import type { Id } from '../../../../convex/_generated/dataModel'
-import type { ConnectionMode } from '../../../lib/connection/connectionMode'
-import { installConvexMocks, queryCalls, setQueryAnswers } from '../../__tests__/convexMock'
-import { FIXTURE_NOW, mechFixture, pilotFixture } from '../../__tests__/fixtures'
+import type { Id } from '../../../convex/_generated/dataModel'
+import {
+  installConvexMocks,
+  queryCalls,
+  setQueryAnswers,
+} from '../../components/__tests__/convexMock'
+import { FIXTURE_NOW, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
+import type { ConnectionMode } from '../../lib/connection/connectionMode'
 
 type Sent = { name: string; args: Record<string, unknown> }
 type Updater = (store: LocalStore, args: Record<string, unknown>) => void
@@ -51,11 +55,11 @@ function useMutationMock(ref: unknown) {
 const convexMocks = await installConvexMocks({ convexReact: { useMutation: useMutationMock } })
 
 const { useSeatAt } = await import('../useSeat')
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
-const { hydrateStores } = await import('../../__tests__/hydrateStores')
-const { useEntityStore } = await import('../../../stores/entityStore')
-const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
-const { Toaster } = await import('../../index')
+const { ConnectionContext } = await import('../../lib/connection/connectionContext')
+const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
+const { useEntityStore } = await import('../../stores/entityStore')
+const { setEntityBackendAuthState } = await import('../../stores/entityBackend')
+const { Toaster } = await import('../../components/index')
 
 const GAME_ID = 'g-seat'
 const rook = pilotFixture({ id: 'seat-rook', name: 'Rook', gameId: GAME_ID })

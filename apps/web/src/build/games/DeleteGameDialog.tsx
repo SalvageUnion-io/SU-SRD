@@ -34,7 +34,7 @@ import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { space } from '../../design/tokens'
 import { failureMessage } from '../../lib/connection/useServerAction'
-import { ConfirmDialog, Stack, Text } from '../index'
+import { ConfirmDialog, Stack, Text } from '../../components/index'
 
 /** The little a confirm needs to know: what it is ending, and how big it is. */
 type DeletableGame = {

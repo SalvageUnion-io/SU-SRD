@@ -16,8 +16,8 @@ import type { EncounterNpc } from 'cantina-domain/schemas/encounterNpc'
 import type { MechPattern } from 'cantina-domain/schemas/pattern'
 import type { ConnectionState } from '../../../lib/connection/connectionContext'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
-import { crawlerFixture, FIXTURE_NOW, mechFixture, pilotFixture } from '../../__tests__/fixtures'
+import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import { crawlerFixture, FIXTURE_NOW, mechFixture, pilotFixture } from '../../../components/__tests__/fixtures'
 
 // Module scope, before the imports below — see `convexMock.ts`.
 const convexMocks = await installConvexMocks({
@@ -25,7 +25,7 @@ const convexMocks = await installConvexMocks({
 })
 afterAll(() => convexMocks.restore())
 
-const { Toaster, toast } = await import('../../index')
+const { Toaster, toast } = await import('../../../components/index')
 const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
 const { resetStores } = await import('../../../stores/__tests__/resetStores')
 const { useEncounterStore } = await import('../../../stores/encounterStore')

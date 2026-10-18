@@ -14,17 +14,21 @@ import { act, render, screen, within } from '@testing-library/react'
  * router, so links are anchors.
  */
 
-import type { ConnectionMode } from '../../../lib/connection/connectionMode'
-import { installConvexMocks, queryCalls, setQueryAnswers } from '../../__tests__/convexMock'
-import { FIXTURE_NOW, mechFixture, pilotFixture } from '../../__tests__/fixtures'
+import {
+  installConvexMocks,
+  queryCalls,
+  setQueryAnswers,
+} from '../../components/__tests__/convexMock'
+import { FIXTURE_NOW, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
+import type { ConnectionMode } from '../../lib/connection/connectionMode'
 
 const convexMocks = await installConvexMocks()
 
 const { PlayLanding } = await import('../PlayLanding')
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
-const { hydrateStores } = await import('../../__tests__/hydrateStores')
-const { useEntityStore } = await import('../../../stores/entityStore')
-const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
+const { ConnectionContext } = await import('../../lib/connection/connectionContext')
+const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
+const { useEntityStore } = await import('../../stores/entityStore')
+const { setEntityBackendAuthState } = await import('../../stores/entityBackend')
 
 const SUMMARY = { templateOrigin: undefined, organizer: false, tableRunner: false }
 const TENACITY = {

@@ -17,7 +17,7 @@ import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
 import { EMPTY_PILOT_FORM_STATE, pilotFormToCreateInput } from '../../lib/wizard/pilotFormState'
 import { withPreselection } from '../../lib/wizard/preselect'
 import { readWizardDraft, useWizardDraftSync, wizardDraftKey } from '../../lib/wizard/wizardDraft'
-import { toast } from '../index'
+import { toast } from '../../components/index'
 import { BackgroundStep } from '../wizard/BackgroundStep'
 import { CallsignStep } from '../wizard/CallsignStep'
 import { ClassAbilityStep } from '../wizard/ClassAbilityStep'
@@ -30,7 +30,7 @@ import { useWizardFlow } from '../wizard/useWizardFlow'
 import { WizShell, WizTracker } from '../wizard/WizShell'
 import { ReviewStep } from './ReviewStep'
 import { StatsStep } from './StatsStep'
-import '../../styles/cantina/wizard.css'
+import '../../styles/build/wizard.css'
 
 /** Book-order steps (Pilot Bay pp.18–19 + Review). */
 const STEPS: readonly PilotWizardStepId[] = [

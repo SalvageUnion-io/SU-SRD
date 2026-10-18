@@ -28,7 +28,7 @@ import {
   Select,
   Stack,
   tokens,
-} from '../../index'
+} from '../../components/index'
 import type { EncounterRefSchema, SavedPattern, TrayDraw, TrayNpc } from './opposition.model'
 import { OPPOSITION_SCHEMAS, patternSlugOf, patternsOf, slugOf } from './opposition.model'
 

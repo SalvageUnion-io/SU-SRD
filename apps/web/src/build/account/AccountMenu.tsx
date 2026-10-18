@@ -3,7 +3,7 @@ import { useQuery } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { DOC_PAGES } from '../../lib/docPages'
-import { AccountMenu as SharedAccountMenu } from '../index'
+import { AccountMenu as SharedAccountMenu } from '../../components/index'
 import { useSignOut } from './useSignOut'
 
 /**

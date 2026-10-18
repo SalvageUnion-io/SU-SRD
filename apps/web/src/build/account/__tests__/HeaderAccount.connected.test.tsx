@@ -17,8 +17,8 @@ import type { ReactNode } from 'react'
  *   the mobile drawer; the mobile header row stays empty.
  */
 
-import type { QueryAnswers } from '../../__tests__/convexMock'
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
+import type { QueryAnswers } from '../../../components/__tests__/convexMock'
+import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 
 let authed = true
 const signIn = mock(async (_provider: string) => undefined)

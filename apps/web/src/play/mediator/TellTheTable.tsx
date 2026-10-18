@@ -19,7 +19,7 @@ import {
   Field,
   Input,
   tokens,
-} from '../../index'
+} from '../../components/index'
 import type { AlertLine } from '../useGameFeed'
 
 const { space } = tokens

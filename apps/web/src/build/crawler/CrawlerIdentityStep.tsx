@@ -1,10 +1,10 @@
 import type { CSSProperties } from 'react'
 import { useId } from 'react'
 import type { CrawlerWizardFormState, ScrapPoolForm } from '../../lib/wizard/crawlerFormState'
-import { Button, Field, Input, Slab, tokens } from '../index'
+import { Button, Field, Input, Slab, tokens } from '../../components/index'
 import type { CrawlerRollTableDeps } from './crawlerRollTables.model'
 import { rollCrawlerName } from './crawlerRollTables.model'
-import '../../styles/cantina/wizard.css'
+import '../../styles/build/wizard.css'
 
 /** The step's column, capped at 48rem. */
 const COLUMN = { maxWidth: '48rem' } satisfies CSSProperties

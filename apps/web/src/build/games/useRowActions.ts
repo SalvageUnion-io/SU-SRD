@@ -24,8 +24,8 @@ import type { RosterRow } from '../../lib/games/gameRoster'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { useEntityStore } from '../../stores/entityStore'
 import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
-import { toast } from '../index'
-import type { Confirm } from '../shared/useConfirm'
+import { toast } from '../../components/index'
+import type { Confirm } from '../../components/shared/useConfirm'
 
 /** The table a pilot or mech row's ownership mutations address. */
 function ownableTable(row: RosterRow): OwnableTable {

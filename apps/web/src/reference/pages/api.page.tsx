@@ -9,12 +9,11 @@
 
 import type { CSSProperties } from 'react'
 import { getEntitySlug } from 'salvageunion-reference'
-import type { PageModule, PageResult } from '../../ssg/types'
-import { DocPage } from '../components/DocPage'
-import { InlineRef, Panel, Slab, Stack } from '../components/index'
-import { color, font, fontSize, radius, space, weight } from '../design/tokens'
-import { apiSampleChassis } from '../lib/apiSample'
-import { SITE_URL, WEBSITE } from '../lib/constants'
+import type { PageModule, PageResult } from '../../../ssg/types'
+import { InlineRef, Panel, Slab, Stack } from '../../components/index'
+import { color, font, fontSize, radius, space, weight } from '../../design/tokens'
+import { apiSampleChassis } from '../../lib/apiSample'
+import { SITE_URL, WEBSITE } from '../../lib/constants'
 import {
   ASIDE,
   BOLD,
@@ -25,10 +24,11 @@ import {
   PANEL_TITLE,
   PROSE,
   proseColumn,
-} from '../lib/docPageStyles'
-import { itemHref, schemaHref } from '../lib/entityHref'
-import { getEntitySchemas } from '../lib/gameData'
-import { pageTitle } from '../lib/pageTitle'
+} from '../../lib/docPageStyles'
+import { itemHref, schemaHref } from '../../lib/entityHref'
+import { getEntitySchemas } from '../../lib/gameData'
+import { pageTitle } from '../../lib/pageTitle'
+import { DocPage } from '../DocPage'
 
 const TITLE = pageTitle('API Reference')
 const DESCRIPTION =

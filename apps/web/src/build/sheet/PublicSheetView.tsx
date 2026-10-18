@@ -20,7 +20,7 @@ import { useQuery } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
 import { PublicPattern } from '../mech/Pattern/PublicPattern'
 import { NpcSheet } from '../npc/NpcSheet'
-import { NotFoundPanel } from '../shared/RouteFallbacks'
+import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
 import { PublicSheet } from './PublicSheet'
 import { SheetSkeleton } from './SheetSkeleton'
 

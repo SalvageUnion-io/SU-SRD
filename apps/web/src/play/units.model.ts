@@ -18,7 +18,7 @@ import {
 } from 'cantina-domain/rules/downtime'
 import type { Crawler } from 'cantina-domain/schemas/crawler'
 import type { Mech } from 'cantina-domain/schemas/mech'
-import { crawlerTechLevelOf } from '../../lib/rules/downtimeEconomy'
+import { crawlerTechLevelOf } from '../lib/rules/downtimeEconomy'
 import type { BoardOption } from './boardMenu.model'
 import type { Situation } from './situation.model'
 import { bayConditions } from './unitStats.model'

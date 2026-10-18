@@ -10,14 +10,13 @@
 
 import { PRODUCT } from 'cantina-domain/product'
 import type { CSSProperties, ReactNode } from 'react'
-import type { PageModule, PageResult } from '../../ssg/types'
-import { DocPage } from '../components/DocPage'
-import { buttonVariants, InlineRef, Panel, Slab, Stack } from '../components/index'
-import { borderWidth, color, font, fontSize, space } from '../design/tokens'
-import type { DiscordCommand } from '../generated/discordCommands'
-import { DISCORD_COMMANDS } from '../generated/discordCommands'
-import { appPath } from '../lib/appBase'
-import { DISCORD_INSTALL_URL, SITE_URL, SRD_CRUMB, WEBSITE } from '../lib/constants'
+import type { PageModule, PageResult } from '../../../ssg/types'
+import { buttonVariants, InlineRef, Panel, Slab, Stack } from '../../components/index'
+import { borderWidth, color, font, fontSize, space } from '../../design/tokens'
+import type { DiscordCommand } from '../../generated/discordCommands'
+import { DISCORD_COMMANDS } from '../../generated/discordCommands'
+import { appPath } from '../../lib/appBase'
+import { DISCORD_INSTALL_URL, SITE_URL, SRD_CRUMB, WEBSITE } from '../../lib/constants'
 import {
   ASIDE,
   BOLD,
@@ -28,9 +27,10 @@ import {
   PANEL_HEAD,
   PANEL_TITLE,
   proseColumn,
-} from '../lib/docPageStyles'
-import { SalvageUnionReference } from '../lib/gameData'
-import { pageTitle } from '../lib/pageTitle'
+} from '../../lib/docPageStyles'
+import { SalvageUnionReference } from '../../lib/gameData'
+import { pageTitle } from '../../lib/pageTitle'
+import { DocPage } from '../DocPage'
 
 /**
  * Both values are DERIVED, and both are built inside `page()`.

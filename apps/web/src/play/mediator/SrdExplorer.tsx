@@ -25,7 +25,6 @@ import type { CSSProperties } from 'react'
 import { useMemo, useState } from 'react'
 import type { RefEntity, RefEnumSchemaName } from 'salvageunion-reference'
 import { isSchemaName, SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
-import { useGameData } from '../../../lib/useGameData'
 import {
   Button,
   buildCatalogSections,
@@ -40,7 +39,8 @@ import {
   Stack,
   tokens,
   useSearchCombobox,
-} from '../../index'
+} from '../../components/index'
+import { useGameData } from '../../lib/useGameData'
 
 const HIDE_CHOICES = { choices: true } as const
 const NOTHING_SELECTED: string[] = []

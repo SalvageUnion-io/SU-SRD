@@ -17,8 +17,8 @@
 
 import type { CSSProperties } from 'react'
 import { color, font, fontSize, space } from '../../design/tokens'
-import { Badge, Stat } from '../index'
-import { UnitRow } from '../shared/UnitRow'
+import { Badge, Stat } from '../../components/index'
+import { UnitRow } from '../../components/shared/UnitRow'
 import type { CrawlerReading } from './crawlerReading.model'
 import { crawlerVitals } from './crawlerReading.model'
 import { HubSection } from './HubSection'

@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 import type { OwnerChip } from '../../lib/ownership/ownerChip'
-import { Stat } from '../index'
+import { Stat } from '../../components/index'
 
 /**
  * The pressable seal's bare button. Its cursor, lift and fade change on hover or

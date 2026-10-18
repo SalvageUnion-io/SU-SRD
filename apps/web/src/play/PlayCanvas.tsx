@@ -16,7 +16,7 @@
  * exactly the height below its top, and `phone` scrolls inside itself (only
  * the open tab's list scrolls, ADR-051 §10).
  *
- * It owns the `.su-dash-root` scope (`styles/cantina/dashboard/`) that every
+ * It owns the `.su-dash-root` scope (`styles/play/dashboard/`) that every
  * Play surface inherits, and paints the dark ground the columns sit on. It
  * imports no stylesheet: `PlayFrame` loads Play's.
  *

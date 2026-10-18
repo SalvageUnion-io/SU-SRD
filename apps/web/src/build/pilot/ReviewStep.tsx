@@ -2,8 +2,8 @@ import type { CSSProperties } from 'react'
 import type { RefAbility, RefClass, RefEquipment } from 'salvageunion-reference'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
-import { EmptyState, FieldError, Panel, ReferenceEntityCard, tokens } from '../index'
-import '../../styles/cantina/wizard.css'
+import { EmptyState, FieldError, Panel, ReferenceEntityCard, tokens } from '../../components/index'
+import '../../styles/build/wizard.css'
 import { Recap, RecapEntity, RecapStat, RecapTokens } from '../wizard/ReviewRecap'
 
 /** Recap and cards; the column split is `.su-wiz-review-grid`. */

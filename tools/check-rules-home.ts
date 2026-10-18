@@ -13,8 +13,9 @@
  *   1. a file under `apps/web/convex/` (not `_generated/`) imports a module
  *      that resolves into the client, `apps/web/src/`. Shared logic goes to `cantina-domain`
  *      or `salvageunion-reference`;
- *   2. a non-test `.ts` file in a product surface's folder under
- *      `apps/web/src/components/` (not the design system's) is neither a
+ *   2. a non-test `.ts` file in a product surface's folder (under
+ *      `apps/web/src/components/`, not the design system's, or in the Build
+ *      and Play areas, `apps/web/src/build/` and `apps/web/src/play/`) is neither a
  *      hook (`useSeat.ts`) nor a view-model (`<name>.model.ts`). A rule goes
  *      to a rules home (the reference's `lib/rules`, `cantina-domain/src/rules`,
  *      the client's `src/lib/rules`); a view-model for one component stays beside
@@ -33,6 +34,8 @@ import { assertScanFloor } from 'gates/lib/scanFloor'
 export const CONVEX_DIR = 'apps/web/convex'
 const CLIENT_SRC = 'apps/web/src'
 export const COMPONENTS_DIR = 'apps/web/src/components'
+/** The areas' product surfaces: Build's folders and Play (the reference area holds pages, not product folders). */
+export const AREA_DIRS = ['apps/web/src/build', 'apps/web/src/play'] as const
 
 /** ~65% of today's counts (31 Convex files, 437 component files): a catastrophe floor. */
 const CONVEX_FLOOR = 20
@@ -98,11 +101,15 @@ const DESIGN_SYSTEM = new Set([
   'index.ts',
 ])
 
-/** Non-test `.ts` files under a product surface's `components/` folder that are neither a hook nor a `*.model.ts`. */
+/** Non-test `.ts` files under a product surface's folder that are neither a hook nor a `*.model.ts`. */
 export function misplacedRules(root: string): { scanned: number; problems: string[] } {
-  const files = walk(join(root, COMPONENTS_DIR), (p) => p.endsWith(`${sep}node_modules`)).filter(
-    (f) => !DESIGN_SYSTEM.has(relative(join(root, COMPONENTS_DIR), f).split(sep)[0] ?? '')
-  )
+  const skip = (p: string) => p.endsWith(`${sep}node_modules`)
+  const files = [
+    ...walk(join(root, COMPONENTS_DIR), skip).filter(
+      (f) => !DESIGN_SYSTEM.has(relative(join(root, COMPONENTS_DIR), f).split(sep)[0] ?? '')
+    ),
+    ...AREA_DIRS.flatMap((dir) => walk(join(root, dir), skip)),
+  ]
   const problems = files
     .map((f) => relative(root, f))
     .filter((f) => f.endsWith('.ts') && !TEST_FILE.test(f) && !f.split(sep).includes('__tests__'))

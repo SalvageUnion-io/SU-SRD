@@ -22,7 +22,7 @@
 import { publicPath } from 'cantina-domain/entityKinds'
 import type { EntityRef } from 'cantina-domain/schemas/entity'
 import { useMemo } from 'react'
-import { NotFoundPanel } from '../shared/RouteFallbacks'
+import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
 import type { PublicSheetAnswer } from './readOnlySheetStore.model'
 import { makeReadOnlySheetStore, sheetDataFromPublic } from './readOnlySheetStore.model'
 import { Sheet } from './Sheet'

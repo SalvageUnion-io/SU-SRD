@@ -12,8 +12,8 @@
 
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { formatDateTime } from '../../lib/formatDate'
-import { Button, Callout, ModalShell, tokens } from '../index'
+import { Button, Callout, ModalShell, tokens } from '../components/index'
+import { formatDateTime } from '../lib/formatDate'
 import type { ChannelOwner, PlayBinding } from './channels.model'
 import { channelButtonLabel } from './channels.model'
 

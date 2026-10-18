@@ -128,7 +128,7 @@ export function useNpc(id: string | undefined): Npc | null {
 /**
  * Reactive list of ALL SoftLink records. Named `useSoftLinkList` (not
  * `useSoftLinks`) to avoid colliding with the domain-level
- * `components/wiring/useSoftLinks` hook, which filters these into
+ * `build/wiring/useSoftLinks` hook, which filters these into
  * incoming/outgoing for one entity.
  */
 export function useSoftLinkList(): SoftLink[] {

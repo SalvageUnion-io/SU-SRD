@@ -13,7 +13,7 @@ import { useQuery } from 'convex/react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { ProposalsList } from '../play/mediator/ProposalsList'
+import { ProposalsList } from '../../play/mediator/ProposalsList'
 import { HubSection } from './HubSection'
 
 export function ProposalsSent({ gameId }: { gameId: Id<'games'> }) {

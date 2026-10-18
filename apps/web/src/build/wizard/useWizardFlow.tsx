@@ -24,7 +24,7 @@ import type { StepGateResult } from '../../lib/rules/creation'
 import { clearWizardDraft } from '../../lib/wizard/wizardDraft'
 import { useEntityStore } from '../../stores/entityStore'
 import type { AssignableType, CreateInput } from '../../stores/types'
-import { toast } from '../index'
+import { toast } from '../../components/index'
 import { OffRulesEscape } from './OffRulesEscape'
 
 /**

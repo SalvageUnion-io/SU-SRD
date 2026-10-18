@@ -2,8 +2,8 @@ import type { CSSProperties } from 'react'
 import type { RefCrawler, RefMetaCrawlerTechLevel } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
-import { Pending, Stat, tokens } from '../index'
-import '../../styles/cantina/wizard.css'
+import { Pending, Stat, tokens } from '../../components/index'
+import '../../styles/build/wizard.css'
 import { fullWidthStyle } from './wizardStyles.model'
 
 const statRowStyle = {

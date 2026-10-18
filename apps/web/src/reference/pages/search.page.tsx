@@ -10,12 +10,12 @@
  * `window` access at build time.
  */
 
-import type { PageModule, PageResult } from '../../ssg/types'
-import { ChapterBand } from '../components/index'
-import { SITE_URL, SRD_CRUMB } from '../lib/constants'
-import { PAGE_MEASURE } from '../lib/pageMeasure'
-import { pageTitle } from '../lib/pageTitle'
-import { Island } from '../runtime/Island'
+import type { PageModule, PageResult } from '../../../ssg/types'
+import { ChapterBand } from '../../components/index'
+import { SITE_URL, SRD_CRUMB } from '../../lib/constants'
+import { PAGE_MEASURE } from '../../lib/pageMeasure'
+import { pageTitle } from '../../lib/pageTitle'
+import { Island } from '../../runtime/Island'
 
 const CANONICAL_URL = `${SITE_URL}/search/`
 

@@ -25,8 +25,8 @@ import {
   resolvePool,
 } from 'salvageunion-reference/rules'
 import { runWrite } from '../../lib/runWrite'
-import { EmptyUnitSlot } from '../shared/EmptyUnitSlot'
-import { UnitRow } from '../shared/UnitRow'
+import { EmptyUnitSlot } from '../../components/shared/EmptyUnitSlot'
+import { UnitRow } from '../../components/shared/UnitRow'
 import { AssignPicker } from '../wiring/AssignPicker'
 import { mechStamp } from './bandStamps.model'
 import { LinkedUnitLink } from './LinkedUnitLink'

@@ -15,9 +15,9 @@
 import { describe, expect, test } from 'bun:test'
 import { act, renderHook } from '@testing-library/react'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
-import { pilotFixture } from '../../__tests__/fixtures'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
-import { must } from '../../__tests__/must'
+import { pilotFixture } from '../../../components/__tests__/fixtures'
+import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
+import { must } from '../../../components/__tests__/must'
 import { usePilotSheetActions } from '../pilotSheetActions.model'
 import type { SheetStoreState } from '../sheetViewProps.model'
 

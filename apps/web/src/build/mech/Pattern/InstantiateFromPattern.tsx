@@ -20,7 +20,7 @@ import { useState } from 'react'
 import { useServerAction } from '../../../lib/connection/useServerAction'
 import { mechFromPattern } from '../../../lib/patterns/patterns'
 import { useEntityStore } from '../../../stores/entityStore'
-import { Button, ConfirmDialog, FieldError, Stack } from '../../index'
+import { Button, ConfirmDialog, FieldError, Stack } from '../../../components/index'
 
 type InstantiateFromPatternProps = {
   pattern: MechPattern

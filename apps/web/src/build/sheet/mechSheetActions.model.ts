@@ -28,7 +28,7 @@ import { cycleCondition, resolveModule, resolveSystem } from '../../lib/rules/me
 import { runWrite } from '../../lib/runWrite'
 import type { ChangeMeta, useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
-import { useSoftWarnings } from '../shared/useSoftWarnings'
+import { useSoftWarnings } from '../../components/shared/useSoftWarnings'
 import { changedFields, freshEntity } from './controlPrimitives'
 import { destroyedUndoToast } from './destroyedUndoToast.model'
 import type { SheetPatch, SheetStoreState } from './sheetViewProps.model'

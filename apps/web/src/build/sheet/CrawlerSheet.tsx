@@ -91,9 +91,9 @@ import {
   Stack,
   Stat,
   tokens,
-} from '../index'
-import { AppLink } from '../shared/AppLink'
-import { EntityPhoto } from '../shared/EntityPhoto'
+} from '../../components/index'
+import { AppLink } from '../../components/shared/AppLink'
+import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { CrawlerIdentityPanel } from './CrawlerIdentity'
 import type { CrawlerBayEntry } from './CrawlerSheetItems'
 import { CrawlerBayCard } from './CrawlerSheetItems'

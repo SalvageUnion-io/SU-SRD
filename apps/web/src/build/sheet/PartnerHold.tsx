@@ -24,8 +24,8 @@
 import type { CSSProperties } from 'react'
 import { reportCargo } from '../../lib/cargo/reportCargo'
 import type { UsePartnerCargoResult } from '../../lib/cargo/usePartnerCargo'
-import { Button, EmptyState, Slab, Stack, Stat, tokens } from '../index'
-import { CargoLotRow } from '../shared/CargoLotRow'
+import { Button, EmptyState, Slab, Stack, Stat, tokens } from '../../components/index'
+import { CargoLotRow } from '../../components/shared/CargoLotRow'
 
 type PartnerHoldProps = {
   cargo: UsePartnerCargoResult

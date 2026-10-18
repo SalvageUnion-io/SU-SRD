@@ -29,9 +29,9 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 
 import type { FunctionReference } from 'convex/server'
 import { getFunctionName } from 'convex/server'
-import type { QueryAnswers } from '../../__tests__/convexMock'
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
-import { crawlerFixture, pilotFixture } from '../../__tests__/fixtures'
+import type { QueryAnswers } from '../../../components/__tests__/convexMock'
+import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import { crawlerFixture, pilotFixture } from '../../../components/__tests__/fixtures'
 
 const serverWrites: { name: string; args: Record<string, unknown> }[] = []
 
@@ -52,7 +52,7 @@ const convexMocks = await installConvexMocks({
 
 const { Roster } = await import('../Roster')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
-const { hydrateStores } = await import('../../__tests__/hydrateStores')
+const { hydrateStores } = await import('../../../components/__tests__/hydrateStores')
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { usePatternStore } = await import('../../../stores/patternStore')
 const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')

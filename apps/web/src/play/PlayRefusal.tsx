@@ -8,8 +8,8 @@
  */
 
 import type { CSSProperties } from 'react'
-import { ChapterBand, PageShell, Pending, Text, tokens } from '../index'
-import { WayOutLink } from '../shared/WayOutLink'
+import { ChapterBand, PageShell, Pending, Text, tokens } from '../components/index'
+import { WayOutLink } from '../components/shared/WayOutLink'
 
 const BODY = { maxWidth: '36rem', textAlign: 'left' } satisfies CSSProperties
 

@@ -60,7 +60,7 @@ import {
   SlotGrid,
   Stat,
   tokens,
-} from '../index'
+} from '../../components/index'
 import type { StorageManifestSide } from './CargoLotItem'
 import { CargoLotItem } from './CargoLotItem'
 import { HoldAdder } from './HoldAdder'

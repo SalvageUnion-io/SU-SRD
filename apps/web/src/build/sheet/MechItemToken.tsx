@@ -25,7 +25,7 @@ import {
   repairPoolTl,
   repairScrapCost,
 } from '../../lib/rules/mechItems'
-import { Button, DialogActions, Entity, ModalShell, StatusBadge, tokens } from '../index'
+import { Button, DialogActions, Entity, ModalShell, StatusBadge, tokens } from '../../components/index'
 import { SheetItemLine } from './SheetItemLine'
 import { CardRemoveButton } from './SheetSection'
 

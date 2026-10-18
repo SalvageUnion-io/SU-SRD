@@ -12,7 +12,7 @@ import type { ReactNode } from 'react'
  * is no menu at all.
  */
 
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
+import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 
 let authed = true
 

@@ -23,7 +23,7 @@
 import { proposalTargets } from 'cantina-domain/games/proposals'
 import type { CSSProperties, RefObject } from 'react'
 import { useState } from 'react'
-import { Button, ModalShell, Slab, tokens } from '../../index'
+import { Button, ModalShell, Slab, tokens } from '../../components/index'
 import type { PlayBinding } from '../channels.model'
 import { PlayFeed } from '../PlayFeed'
 import { PlayTables } from '../PlayTables'

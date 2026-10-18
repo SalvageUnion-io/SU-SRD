@@ -88,7 +88,7 @@ import type { AssignableType } from '../../stores/types'
 import { ExportAllButton } from '../export/ExportAllButton'
 import { ImportButton } from '../export/ImportButton'
 import { NewGameControl } from '../games/NewGameControl'
-import type { HeaderMenuItem } from '../index'
+import type { HeaderMenuItem } from '../../components/index'
 import {
   buttonVariants,
   ChapterBand,
@@ -99,10 +99,10 @@ import {
   Segmented,
   SegmentedOption,
   toast,
-} from '../index'
-import { AppLink } from '../shared/AppLink'
-import { useConfirm } from '../shared/useConfirm'
-import { useGo } from '../shared/useGo'
+} from '../../components/index'
+import { AppLink } from '../../components/shared/AppLink'
+import { useConfirm } from '../../components/shared/useConfirm'
+import { useGo } from '../../components/shared/useGo'
 import { crawlerRailItems, mechRailItems, pilotRailItems, rowStats } from '../sheet/railStats.model'
 import type { MoveSubject } from './MoveToGameDialog'
 import { MoveToGameDialog } from './MoveToGameDialog'

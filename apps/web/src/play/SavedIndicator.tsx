@@ -9,8 +9,8 @@
  */
 
 import type { CSSProperties } from 'react'
-import { color, font, fontSize, tracking, weight } from '../../design/tokens'
-import { useConnection } from '../../lib/connection/connectionContext'
+import { color, font, fontSize, tracking, weight } from '../design/tokens'
+import { useConnection } from '../lib/connection/connectionContext'
 
 const BASE = {
   fontFamily: font.cond,

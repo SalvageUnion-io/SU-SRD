@@ -12,8 +12,8 @@
 
 import { useMemo } from 'react'
 import { toEntityModel } from 'salvageunion-reference'
-import { Row } from '../entity/forms/Row'
-import { Button } from '../index'
+import { Row } from '../components/entity/forms/Row'
+import { Button } from '../components/index'
 import { PlayResolveSteps } from './PlayResolveSteps'
 import type { ListEntry } from './playActions.model'
 import { NEED_TEXT } from './playActions.model'

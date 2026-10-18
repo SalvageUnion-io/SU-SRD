@@ -11,9 +11,9 @@
  * else whatever this says.
  */
 
-import type { Id } from '../../../convex/_generated/dataModel'
-import { useConnection } from '../../lib/connection/connectionContext'
-import { useEntityStore } from '../../stores/entityStore'
+import type { Id } from '../../convex/_generated/dataModel'
+import { useConnection } from '../lib/connection/connectionContext'
+import { useEntityStore } from '../stores/entityStore'
 import { boardMenu } from './boardMenu.model'
 import type { PlayTarget } from './play.model'
 import { playReadOnly } from './play.model'

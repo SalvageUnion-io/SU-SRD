@@ -17,7 +17,7 @@ import {
   resolveEquipment,
 } from '../../lib/rules/pilotInventory'
 import type { useEntityStore } from '../../stores/entityStore'
-import type { ChoiceSelections } from '../index'
+import type { ChoiceSelections } from '../../components/index'
 import {
   AdderBox,
   AdderField,
@@ -30,8 +30,8 @@ import {
   StatusBadge,
   tokens,
   useDisclosure,
-} from '../index'
-import { useEntityChoices } from '../shared/useEntityChoices'
+} from '../../components/index'
+import { useEntityChoices } from '../../components/shared/useEntityChoices'
 import { SheetItemLine } from './SheetItemLine'
 import { CardRemoveButton } from './SheetSection'
 import { UsedToggle } from './UsedToggle'

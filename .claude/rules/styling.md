@@ -17,7 +17,7 @@ What an editor needs:
   rules live in `styles/partials/`, one part per group, which `index.css`
   `@import`s in cascade order; tests read them joined
   (`styles/__tests__/packageStylesheet.ts`). Play's `.su-dash-*` and
-  `.su-play-*` rules are the Cantina's (`apps/web/src/styles/cantina/`); any other Cantina- or
+  `.su-play-*` rules are Play's (`apps/web/src/styles/play/`); any other app- or
   srd-only rule lives in that app's stylesheets, because srd loads
   `index.css` too.
 - **The written form**, one spelling each:
@@ -43,7 +43,7 @@ What an editor needs:
   rule (The Cantina's heading face, `print.css`'s `span` and `h1`–`h3` sizes) and
   drops out of a rule that matched the inline style (`print.css`'s
   `[style*='border']` ink): check the pages and the Cantina, print included. The Cantina hands a
-  class back with `revert-layer` (`styles/cantina/libHandback.css`, `styles/cantina/print.css`)
+  class back with `revert-layer` (`styles/build/libHandback.css`, `styles/build/print.css`)
   and names it in the border-ink rule.
 - **Class-string exports** (`buttonVariants`, `capsLabel`, the `FOCUS_*` /
   `DISABLED` / `SELECTION_RING*` vocabulary) are stylesheet-only, and their

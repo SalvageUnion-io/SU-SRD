@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import type { NpcDesignerView } from '../../components/npc/NpcDesignerPage'
-import { NpcDesignerPage } from '../../components/npc/NpcDesignerPage'
-import { NewEntityScreen } from '../../components/wizard/NewEntityScreen'
+import type { NpcDesignerView } from '../../build/npc/NpcDesignerPage'
+import { NpcDesignerPage } from '../../build/npc/NpcDesignerPage'
+import { NewEntityScreen } from '../../build/wizard/NewEntityScreen'
 import { pageTitle } from '../../lib/pageTitle'
 
 type NpcsNewSearch = {

@@ -27,7 +27,7 @@ import { resolveCrawlerType, resolveCrawlerTypeAbilities } from '../../lib/crawl
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import type { useEntityStore } from '../../stores/entityStore'
 import { CrawlerTypeEditModal } from '../crawler/CrawlerTypeEditModal'
-import { Entity, Field, Stat, tokens } from '../index'
+import { Entity, Field, Stat, tokens } from '../../components/index'
 import { CrawlerTypeCard } from './CrawlerTypeCard'
 import type { SheetPatch, SheetStoreState } from './sheetViewProps.model'
 

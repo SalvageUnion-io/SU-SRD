@@ -1,8 +1,8 @@
 import { Fragment } from 'react'
 import type { StaticEntitySummary } from 'salvageunion-reference'
+import { InlineRef, mentionRef, Slab } from '../components/index'
+import { MentionProse } from '../components/MentionProse'
 import { refText } from '../lib/rollTablePage'
-import { InlineRef, mentionRef, Slab } from './index'
-import { MentionProse } from './MentionProse'
 
 /**
  * StaticEntityContent — the SSR / no-JS entity fallback. Renders a plain,

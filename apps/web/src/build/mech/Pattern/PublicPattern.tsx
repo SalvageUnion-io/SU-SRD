@@ -61,8 +61,8 @@ import {
   tokens,
   USER_MADE_HATCH,
   UserMadeStamp,
-} from '../../index'
-import { EntityPhoto } from '../../shared/EntityPhoto'
+} from '../../../components/index'
+import { EntityPhoto } from '../../../components/shared/EntityPhoto'
 import { ShareStatusDialog } from '../../sharing/ShareStatusDialog'
 
 /** `publicSheet.pattern`'s answer, its body parsed. */

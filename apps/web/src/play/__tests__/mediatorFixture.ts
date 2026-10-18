@@ -5,7 +5,7 @@
  * Hotdog, an unclaimed pre-gen, who is no seat.
  */
 
-import type { Id } from '../../../../convex/_generated/dataModel'
+import type { Id } from '../../../convex/_generated/dataModel'
 import type { CrewVitals } from '../useGameFeed'
 import { calm, crewMech, crewPilot } from './crewRows'
 

@@ -31,7 +31,7 @@ describe('deploy-surfaces — decideSurfaces', () => {
    * recorded deploy sees both.
    */
   test('changes from several commits since the record are all deployed', () => {
-    const since = ['apps/web/src/routes/app.tsx', 'apps/web/src/pages/index.page.tsx']
+    const since = ['apps/web/src/routes/app.tsx', 'apps/web/src/reference/pages/index.page.tsx']
     expect(decideSurfaces(since, false)).toEqual({ ...NOTHING, web: true })
   })
 

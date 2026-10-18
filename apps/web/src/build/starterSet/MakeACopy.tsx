@@ -19,8 +19,8 @@ import { copyStarter } from '../../lib/starterSet/copyStarter'
 import type { StarterKind } from '../../lib/starterSet/starterTemplates'
 import { STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
 import { SignInControl } from '../account/SignInControl'
-import { Button, toast } from '../index'
-import type { Confirm } from '../shared/useConfirm'
+import { Button, toast } from '../../components/index'
+import type { Confirm } from '../../components/shared/useConfirm'
 
 type MakeACopyProps = {
   kind: StarterKind

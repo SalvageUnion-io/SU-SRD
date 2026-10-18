@@ -6,7 +6,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { tokens } from '../../index'
+import { tokens } from '../../components/index'
 
 const { color, font, fontSize } = tokens
 

@@ -18,13 +18,13 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
-import { pilotFixture } from '../../__tests__/fixtures'
-import { hydrateStores } from '../../__tests__/hydrateStores'
+import { pilotFixture } from '../../../components/__tests__/fixtures'
+import { hydrateStores } from '../../../components/__tests__/hydrateStores'
 import {
   makeEntityLookupMock,
   makeEntityStoreMock,
   makeSoftLinkStoreMock,
-} from '../../__tests__/mockEntityStore'
+} from '../../../components/__tests__/mockEntityStore'
 import { Sheet } from '../Sheet'
 
 beforeAll(hydrateStores)

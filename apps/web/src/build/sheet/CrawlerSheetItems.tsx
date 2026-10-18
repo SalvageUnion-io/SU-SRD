@@ -14,7 +14,7 @@ import { runWrite } from '../../lib/runWrite'
 import { unitRowModel } from '../../lib/units/unitModel'
 import type { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
-import type { CardFootMeta, ChoiceSelections, ReferenceEntityControl } from '../index'
+import type { CardFootMeta, ChoiceSelections, ReferenceEntityControl } from '../../components/index'
 import {
   DamagedEffectCallout,
   embeddedPeekAddress,
@@ -23,9 +23,9 @@ import {
   tokens,
   useDetailModal,
   useDisclosure,
-} from '../index'
+} from '../../components/index'
 import { LinkedCrewToken } from '../npc/LinkedCrewToken'
-import { useEntityChoices } from '../shared/useEntityChoices'
+import { useEntityChoices } from '../../components/shared/useEntityChoices'
 import { CrewLeadToken } from './CrewLeadToken'
 import { LinkedUnitLink } from './LinkedUnitLink'
 

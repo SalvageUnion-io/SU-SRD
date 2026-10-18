@@ -7,7 +7,7 @@
 
 import { describe, expect, mock, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { CrawlerBayCard } from '../CrawlerSheetItems'
 
 function makeEmptyStore() {

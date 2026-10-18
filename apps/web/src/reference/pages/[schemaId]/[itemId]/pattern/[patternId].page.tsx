@@ -9,26 +9,36 @@
 
 import type { EnhancedSchemaMetadata, RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { toEntityModel, truncate } from 'salvageunion-reference'
-import type { PageModule, PageResult, RouteContext, StructuredData } from '../../../../../ssg/types'
-import { EntityPageFrame } from '../../../../components/EntityPageFrame'
-import { EntityView } from '../../../../components/EntityView'
+import type {
+  PageModule,
+  PageResult,
+  RouteContext,
+  StructuredData,
+} from '../../../../../../ssg/types'
 import {
   assetSrcSetFor,
   heroImageSizes,
   isLegalStartingPatternOf,
   resolveEntityPageMeta,
-} from '../../../../components/index'
-import { patternBuildLinkFor } from '../../../../lib/buildLink'
-import { chapterForSchema } from '../../../../lib/chapters'
-import { componentEmbedFor } from '../../../../lib/componentEmbed'
-import { entityTitle, META_DESCRIPTION_MAX, SITE_URL, SRD_CRUMB } from '../../../../lib/constants'
-import { itemHref, patternHref, schemaHref } from '../../../../lib/entityHref'
-import { entityPageFoot } from '../../../../lib/entityPageFoot'
-import { getReferenceEntityData } from '../../../../lib/gameData'
-import { ogCardFor, ogMetaFor } from '../../../../lib/ogCard'
-import { pageTitle } from '../../../../lib/pageTitle'
-import { patternStaticSummary } from '../../../../lib/patternSummary'
-import { getPatternStaticPaths } from '../../../../lib/staticPaths'
+} from '../../../../../components/index'
+import { patternBuildLinkFor } from '../../../../../lib/buildLink'
+import { chapterForSchema } from '../../../../../lib/chapters'
+import { componentEmbedFor } from '../../../../../lib/componentEmbed'
+import {
+  entityTitle,
+  META_DESCRIPTION_MAX,
+  SITE_URL,
+  SRD_CRUMB,
+} from '../../../../../lib/constants'
+import { itemHref, patternHref, schemaHref } from '../../../../../lib/entityHref'
+import { entityPageFoot } from '../../../../../lib/entityPageFoot'
+import { getReferenceEntityData } from '../../../../../lib/gameData'
+import { ogCardFor, ogMetaFor } from '../../../../../lib/ogCard'
+import { pageTitle } from '../../../../../lib/pageTitle'
+import { patternStaticSummary } from '../../../../../lib/patternSummary'
+import { getPatternStaticPaths } from '../../../../../lib/staticPaths'
+import { EntityPageFrame } from '../../../../EntityPageFrame'
+import { EntityView } from '../../../../EntityView'
 
 type Params = { schemaId: string; itemId: string; patternId: string }
 

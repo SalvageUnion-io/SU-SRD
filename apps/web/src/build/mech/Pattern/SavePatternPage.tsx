@@ -33,7 +33,7 @@ import {
   slotsUsed,
 } from '../../../lib/patterns/patterns'
 import { usePatternStore } from '../../../stores/patternStore'
-import type { SlabCount } from '../../index'
+import type { SlabCount } from '../../../components/index'
 import {
   Button,
   ChapterBand,
@@ -50,10 +50,10 @@ import {
   Text,
   Textarea,
   tokens,
-} from '../../index'
-import { AppLink } from '../../shared/AppLink'
-import { NotFoundPanel } from '../../shared/RouteFallbacks'
-import { WritesBlockedNotice } from '../../shared/WritesBlockedNotice'
+} from '../../../components/index'
+import { AppLink } from '../../../components/shared/AppLink'
+import { NotFoundPanel } from '../../../components/shared/RouteFallbacks'
+import { WritesBlockedNotice } from '../../../components/shared/WritesBlockedNotice'
 
 const PAGE = {
   backgroundColor: tokens.color.wkBg,

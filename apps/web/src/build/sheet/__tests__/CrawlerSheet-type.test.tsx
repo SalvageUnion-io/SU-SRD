@@ -22,8 +22,8 @@ import type { RefCrawler } from 'salvageunion-reference'
 import { patchModelRows } from '../../../../test/patchModel'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
-import { FIXTURE_NOW } from '../../__tests__/fixtures'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
+import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { CrawlerIdentityPanel } from '../CrawlerIdentity'
 
 // ---------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { Button } from '../index'
+import { Button } from '../../components/index'
 import type { PilotRollField, RollTableDeps } from './rollTableHelpers.model'
 import { rollForPilotField, rollOnNamedTable } from './rollTableHelpers.model'
 

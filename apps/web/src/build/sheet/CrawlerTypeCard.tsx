@@ -10,10 +10,10 @@ import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { runWrite } from '../../lib/runWrite'
 import type { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
-import type { ChoiceSelections } from '../index'
-import { Content, tokens } from '../index'
+import type { ChoiceSelections } from '../../components/index'
+import { Content, tokens } from '../../components/index'
 import { LinkedCrewInset } from '../npc/LinkedCrewInset'
-import { useEntityChoices } from '../shared/useEntityChoices'
+import { useEntityChoices } from '../../components/shared/useEntityChoices'
 import { NpcInset } from './NpcInset'
 
 const TYPE_STACK = {

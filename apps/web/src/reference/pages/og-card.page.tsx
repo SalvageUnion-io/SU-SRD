@@ -26,9 +26,9 @@
  * this page gets the same bytes through the sanctioned seam.
  */
 
-import type { PageModule, PageResult } from '../../ssg/types'
-import { OG_HEIGHT, OG_WIDTH } from '../lib/ogCard'
-import { Island } from '../runtime/Island'
+import type { PageModule, PageResult } from '../../../ssg/types'
+import { OG_HEIGHT, OG_WIDTH } from '../../lib/ogCard'
+import { Island } from '../../runtime/Island'
 
 /**
  * The frame is exactly the card: 1200 × 630, at the page's top-left, so the

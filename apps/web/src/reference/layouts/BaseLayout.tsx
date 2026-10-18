@@ -12,18 +12,18 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
-import type { DocumentMeta, PageFoot } from '../../ssg/types'
-import { BreadcrumbTrail, ChapterBandTrail, Footer } from '../components/index'
-import { TopNavigation } from '../components/TopNavigation'
-import { color } from '../design/tokens'
-import { DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE, SITE_URL } from '../lib/constants'
-import { SITE_LINKS } from '../lib/docPages'
-import { metaTags, SITE_ICONS, THEME_COLOR } from '../lib/documentHead'
-import { escapeJsonForScript } from '../lib/escapeJsonForScript'
-import { PAGE_MEASURE } from '../lib/pageMeasure'
-import { pageTitle } from '../lib/pageTitle'
-import { SITE_MANIFEST } from '../pwa'
-import { Island } from '../runtime/Island'
+import type { DocumentMeta, PageFoot } from '../../../ssg/types'
+import { BreadcrumbTrail, ChapterBandTrail, Footer } from '../../components/index'
+import { color } from '../../design/tokens'
+import { DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE, SITE_URL } from '../../lib/constants'
+import { SITE_LINKS } from '../../lib/docPages'
+import { metaTags, SITE_ICONS, THEME_COLOR } from '../../lib/documentHead'
+import { escapeJsonForScript } from '../../lib/escapeJsonForScript'
+import { PAGE_MEASURE } from '../../lib/pageMeasure'
+import { pageTitle } from '../../lib/pageTitle'
+import { SITE_MANIFEST } from '../../pwa'
+import { Island } from '../../runtime/Island'
+import { TopNavigation } from '../TopNavigation'
 
 /**
  * Pages whose own search (the home band's, the 404's) stands in for the Union

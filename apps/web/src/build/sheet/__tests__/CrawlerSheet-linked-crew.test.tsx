@@ -11,9 +11,9 @@ import { describe, expect, mock, test } from 'bun:test'
 import { render, screen, within } from '@testing-library/react'
 import type { Crawler } from 'cantina-domain/schemas/crawler'
 import type { CrewAssignment } from '../../../lib/npcs/npcModel'
-import { expandCards } from '../../__tests__/expandCards'
-import { crawlerFixture, npcFixture, softLinkFixture } from '../../__tests__/fixtures'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { expandCards } from '../../../components/__tests__/expandCards'
+import { crawlerFixture, npcFixture, softLinkFixture } from '../../../components/__tests__/fixtures'
+import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { CrawlerSheet } from '../CrawlerSheet'
 
 const crawler: Crawler = crawlerFixture({

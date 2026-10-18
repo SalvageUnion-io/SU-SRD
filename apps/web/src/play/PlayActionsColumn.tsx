@@ -16,7 +16,7 @@
  * Every roll made here goes on Play's one roll log (`playRolls.model.ts`).
  */
 
-import { Slab } from '../index'
+import { Slab } from '../components/index'
 import { PlayActionsList, PlayActionsTools } from './PlayActionsList'
 import { PlayDowntimeColumn } from './PlayDowntimeColumn'
 import type { PlayColumnProps } from './situation.model'

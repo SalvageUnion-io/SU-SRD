@@ -5,7 +5,7 @@
  * is an open seat, not a card.
  */
 
-import type { Id } from '../../../../../convex/_generated/dataModel'
+import type { Id } from '../../../../convex/_generated/dataModel'
 import { calm, crewMech, crewPilot, sound } from '../../__tests__/crewRows'
 import type { BoardSources } from '../../boardMenu.model'
 import type { CrewVitals } from '../../useGameFeed'

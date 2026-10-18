@@ -15,8 +15,8 @@
 
 import { useMemo, useState } from 'react'
 import { resultForTable, SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
-import { Row } from '../../entity/forms/Row'
-import { Button, EmptyState, rollForTable, Slab, TitledBox } from '../../index'
+import { Row } from '../../components/entity/forms/Row'
+import { Button, EmptyState, rollForTable, Slab, TitledBox } from '../../components/index'
 import { reportingRoll } from '../playRolls.model'
 import type { NpcAction } from './npcActions.model'
 import { npcActions } from './npcActions.model'

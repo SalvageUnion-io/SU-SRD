@@ -13,8 +13,8 @@
  */
 
 import type { CSSProperties } from 'react'
-import type { CSSVarStyle } from '../index'
-import { Button, tokens, VitalGauge } from '../index'
+import type { CSSVarStyle } from '../components/index'
+import { Button, tokens, VitalGauge } from '../components/index'
 import { nudge } from './units.model'
 
 type VitalTone = 'pilot' | 'mech' | 'crawler' | 'adversary'

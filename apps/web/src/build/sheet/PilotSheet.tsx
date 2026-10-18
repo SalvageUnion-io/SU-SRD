@@ -72,9 +72,9 @@ import {
   TitledBox,
   tokens,
   VitalGauge,
-} from '../index'
-import { EntityPhoto } from '../shared/EntityPhoto'
-import { SoftWarningDialog } from '../shared/SoftWarningDialog'
+} from '../../components/index'
+import { EntityPhoto } from '../../components/shared/EntityPhoto'
+import { SoftWarningDialog } from '../../components/shared/SoftWarningDialog'
 import { ConditionsEditor } from './ConditionsEditor'
 import { PartnerCard } from './PartnerCard'
 import { PhotoBeside } from './PhotoBeside'

@@ -17,8 +17,8 @@ import { api } from '../../../../convex/_generated/api'
 import { useConnection } from '../../../lib/connection/connectionContext'
 import { asReferencePattern, patternChassis, patternHref } from '../../../lib/patterns/patterns'
 import { usePatternStore } from '../../../stores/patternStore'
-import { EmptyState, Entity, Pending, quotePatternName, Text, tokens } from '../../index'
-import { AppLink } from '../../shared/AppLink'
+import { EmptyState, Entity, Pending, quotePatternName, Text, tokens } from '../../../components/index'
+import { AppLink } from '../../../components/shared/AppLink'
 import { InstantiateFromPattern } from './InstantiateFromPattern'
 
 const LIST = {

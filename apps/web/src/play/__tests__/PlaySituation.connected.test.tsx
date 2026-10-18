@@ -4,9 +4,9 @@ import { PRESENCE_HEARTBEAT_MS } from 'cantina-domain/schemas/seat'
 import type { FunctionReference } from 'convex/server'
 import { getFunctionName } from 'convex/server'
 import { createElement, useSyncExternalStore } from 'react'
-import type { ConnectionMode } from '../../../lib/connection/connectionMode'
-import { installConvexMocks } from '../../__tests__/convexMock'
-import { mechFixture, pilotFixture, softLinkFixture } from '../../__tests__/fixtures'
+import { installConvexMocks } from '../../components/__tests__/convexMock'
+import { mechFixture, pilotFixture, softLinkFixture } from '../../components/__tests__/fixtures'
+import type { ConnectionMode } from '../../lib/connection/connectionMode'
 import type { Play } from '../situation.model'
 
 /**
@@ -239,17 +239,17 @@ function probe(column: string) {
 const convexMocks = await installConvexMocks({
   convexReact: { useQuery: useFakeQuery, useMutation: useFakeMutation },
   also: {
-    '../play/PlayUnitsColumn': () => ({ PlayUnitsColumn: probe('units') }),
-    '../play/PlayActionsColumn': () => ({ PlayActionsColumn: probe('actions') }),
-    '../play/PlaySideColumn': () => ({ PlaySideColumn: probe('side') }),
+    '../../play/PlayUnitsColumn': () => ({ PlayUnitsColumn: probe('units') }),
+    '../../play/PlayActionsColumn': () => ({ PlayActionsColumn: probe('actions') }),
+    '../../play/PlaySideColumn': () => ({ PlaySideColumn: probe('side') }),
   },
 })
 
 const { PlayCockpit } = await import('../PlayCockpit')
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
-const { hydrateStores } = await import('../../__tests__/hydrateStores')
-const { useEntityStore } = await import('../../../stores/entityStore')
-const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
+const { ConnectionContext } = await import('../../lib/connection/connectionContext')
+const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
+const { useEntityStore } = await import('../../stores/entityStore')
+const { setEntityBackendAuthState } = await import('../../stores/entityBackend')
 
 const LINKS = ['ps-l1', 'pg-l1']
 

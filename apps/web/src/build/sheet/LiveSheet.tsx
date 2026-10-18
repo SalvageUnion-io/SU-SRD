@@ -30,7 +30,7 @@
 import type { SheetKind } from 'cantina-domain/entityKinds'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { useEffect, useRef, useState } from 'react'
-import type { StatTone } from '../index'
+import type { StatTone } from '../../components/index'
 import {
   Badge,
   buttonVariants,
@@ -44,8 +44,8 @@ import {
   Stat,
   Tags,
   tokens,
-} from '../index'
-import { AppLink } from '../shared/AppLink'
+} from '../../components/index'
+import { AppLink } from '../../components/shared/AppLink'
 import type { BandStamp } from './bandStamps.model'
 import type { SheetBand } from './sheetViewProps.model'
 

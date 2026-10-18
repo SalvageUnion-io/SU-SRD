@@ -13,8 +13,8 @@ import type { CSSProperties } from 'react'
 import type { RefClass } from 'salvageunion-reference'
 import type { ClassPathConsequence } from '../../lib/rules/classPath'
 import { classPathConsequence, classPathGroups } from '../../lib/rules/classPath'
-import { Callout, Entity, RadioCardGroup, ReferenceEntityCard, Slab, Stack, tokens } from '../index'
-import '../../styles/cantina/wizard.css'
+import { Callout, Entity, RadioCardGroup, ReferenceEntityCard, Slab, Stack, tokens } from '../../components/index'
+import '../../styles/build/wizard.css'
 
 /** An unreachable (off-ring) class, demoted but still pickable. */
 const DIMMED = { opacity: 0.7 } satisfies CSSProperties

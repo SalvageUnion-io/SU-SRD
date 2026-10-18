@@ -16,9 +16,9 @@
  */
 
 import type { CSSProperties } from 'react'
-import { unitRowModel } from '../../../lib/units/unitModel'
-import { Row } from '../../entity/forms/Row'
-import { Button, Entity, Stat, tokens } from '../../index'
+import { Row } from '../../components/entity/forms/Row'
+import { Button, Entity, Stat, tokens } from '../../components/index'
+import { unitRowModel } from '../../lib/units/unitModel'
 import type { MediatorSeat } from './mediatorTable.model'
 
 const BODY = {

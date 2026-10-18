@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { FIXTURE_NOW, mechFixture, pilotFixture } from '../../__tests__/fixtures'
+import { FIXTURE_NOW, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
 import { connectionLine, gamePilots, playTitle, soloPilots } from '../play.model'
 
 describe('playTitle', () => {

@@ -5,7 +5,7 @@ import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
-import { Button, FeedLine, FeedList, tokens } from '../index'
+import { Button, FeedLine, FeedList, tokens } from '../../components/index'
 import { HubSection } from './HubSection'
 
 /**

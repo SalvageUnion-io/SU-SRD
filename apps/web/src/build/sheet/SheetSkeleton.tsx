@@ -10,7 +10,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { Ghost, tokens } from '../index'
+import { Ghost, tokens } from '../../components/index'
 
 // Responsive padding, the slab rhythm and the slab grid's columns are
 // `.su-sheet-skeleton-*` in `styles/sheet/chrome.css`; the rest is below.

@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { tokens } from '../index'
+import { tokens } from '../../components/index'
 
 /**
  * Shared app-bar chrome constants (design source clean-pilot.html `.appbar`).

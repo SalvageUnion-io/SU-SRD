@@ -20,8 +20,8 @@ import { ConvexError } from 'convex/values'
  * the screen back to its loading state.
  */
 
-import type { QueryAnswers } from '../../__tests__/convexMock'
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
+import type { QueryAnswers } from '../../../components/__tests__/convexMock'
+import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 
 let authed = true
 

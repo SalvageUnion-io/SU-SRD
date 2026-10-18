@@ -10,8 +10,8 @@
 import { describe, expect, mock, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
 import type { Crawler } from 'cantina-domain/schemas/crawler'
-import { FIXTURE_NOW } from '../../__tests__/fixtures'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
+import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { CrawlerSheet } from '../CrawlerSheet'
 
 const crawler: Crawler = {

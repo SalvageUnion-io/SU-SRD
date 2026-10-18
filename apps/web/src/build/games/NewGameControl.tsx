@@ -37,7 +37,7 @@ import {
   Stack,
   Text,
   tokens,
-} from '../index'
+} from '../../components/index'
 
 type TemplateId = FunctionArgs<typeof api.templates.createGame>['templateId']
 

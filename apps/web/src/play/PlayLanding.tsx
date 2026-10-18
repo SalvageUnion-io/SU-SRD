@@ -18,15 +18,14 @@
  * waits for the connection.
  */
 
-import '../../styles/cantina/play.css'
+import '../styles/play/play.css'
 import { isPresent } from 'cantina-domain/schemas/seat'
 import { useQuery } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
 import type { CSSProperties } from 'react'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
-import { useConnection } from '../../lib/connection/connectionContext'
-import { useHydrateEntities, useMechs, usePilots, useSoftLinkList } from '../../lib/entities'
+import { api } from '../../convex/_generated/api'
+import type { Id } from '../../convex/_generated/dataModel'
+import { Shelf } from '../build/shelves/Shelf'
 import {
   Badge,
   buttonVariants,
@@ -37,10 +36,11 @@ import {
   Pending,
   Text,
   tokens,
-} from '../index'
-import { AppLink } from '../shared/AppLink'
-import { UnitRow } from '../shared/UnitRow'
-import { Shelf } from '../shelves/Shelf'
+} from '../components/index'
+import { AppLink } from '../components/shared/AppLink'
+import { UnitRow } from '../components/shared/UnitRow'
+import { useConnection } from '../lib/connection/connectionContext'
+import { useHydrateEntities, useMechs, usePilots, useSoftLinkList } from '../lib/entities'
 import { PlayDiscordSection } from './PlayDiscordSection'
 import { PlayPending, PlayRefusal } from './PlayRefusal'
 import { gamePilots, soloPilots } from './play.model'

@@ -1,6 +1,6 @@
 /*
  * play/units.css — the Play Units column's unit boxes (play.md §4), a part of
- * `styles/cantina/play.css`, which both Play screens load through `PlayFrame`
+ * `styles/play/play.css`, which both Play screens load through `PlayFrame`
  * (the Mediator's screen draws the same boxes).
  *
  * Only what a style object cannot reach lives here: the reference box's dashed

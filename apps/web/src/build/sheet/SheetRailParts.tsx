@@ -8,9 +8,9 @@
  */
 
 import type { CSSProperties } from 'react'
-import { Badge, buttonVariants } from '../index'
-import { AppLink } from '../shared/AppLink'
-import { UnitRow } from '../shared/UnitRow'
+import { Badge, buttonVariants } from '../../components/index'
+import { AppLink } from '../../components/shared/AppLink'
+import { UnitRow } from '../../components/shared/UnitRow'
 import type { WithheldUnit } from './sheetViewProps.model'
 
 const LINK = { textDecoration: 'none' } satisfies CSSProperties

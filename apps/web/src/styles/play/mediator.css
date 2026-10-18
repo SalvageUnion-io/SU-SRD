@@ -1,6 +1,6 @@
 /*
  * play/mediator.css — the Mediator's Play screen (play.md §10): the table's
- * seats and the Opposition's boxes. A part of `styles/cantina/play.css`,
+ * seats and the Opposition's boxes. A part of `styles/play/play.css`,
  * which `PlayFrame` loads; never imported by a library component.
  *
  * Only what has a state lives here (a seat needing the Mediator, a seat away,

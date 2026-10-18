@@ -4,7 +4,7 @@
  * with nothing broken, each fixture keeping only its own crew.
  */
 
-import type { Id } from '../../../../convex/_generated/dataModel'
+import type { Id } from '../../../convex/_generated/dataModel'
 import type { CrewVitals } from '../useGameFeed'
 
 type Pilot = CrewVitals['pilots'][number]

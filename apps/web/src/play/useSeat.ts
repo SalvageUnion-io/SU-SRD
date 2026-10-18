@@ -28,14 +28,14 @@
 import type { RangeBand, SeatMount, SeatResolving } from 'cantina-domain/schemas/seat'
 import type { OptimisticLocalStore } from 'convex/browser'
 import { useMutation, useQuery } from 'convex/react'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
-import type { ConnectionState } from '../../lib/connection/connectionContext'
-import { useConnection } from '../../lib/connection/connectionContext'
-import { serverMessage } from '../../lib/connection/serverError'
-import { reportWriteFailure } from '../../lib/runWrite'
-import { WritesBlockedOffline } from '../../stores/entityBackend'
-import { toast } from '../index'
+import { api } from '../../convex/_generated/api'
+import type { Id } from '../../convex/_generated/dataModel'
+import { toast } from '../components/index'
+import type { ConnectionState } from '../lib/connection/connectionContext'
+import { useConnection } from '../lib/connection/connectionContext'
+import { serverMessage } from '../lib/connection/serverError'
+import { reportWriteFailure } from '../lib/runWrite'
+import { WritesBlockedOffline } from '../stores/entityBackend'
 
 /** What Play reads off a seat. */
 export type SeatView = {

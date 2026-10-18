@@ -1,6 +1,6 @@
 /*
  * The guided builders' stylesheet: the wizard shell and steps
- * (`components/wizard/`), the mech, crawler and pilot builders, and the
+ * (`build/wizard/`), the mech, crawler and pilot builders, and the
  * Guided/Blank chooser.
  *
  * Everything static is a style object over the UI library's `tokens`, in the

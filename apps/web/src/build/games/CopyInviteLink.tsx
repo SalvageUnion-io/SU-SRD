@@ -19,7 +19,7 @@ import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { inviteUrl } from '../../lib/games/inviteLink'
 import { appRoot } from '../../lib/site'
-import { Button, ConfirmDialog, toast } from '../index'
+import { Button, ConfirmDialog, toast } from '../../components/index'
 
 type CopyInviteLinkProps = {
   gameId: Id<'games'>

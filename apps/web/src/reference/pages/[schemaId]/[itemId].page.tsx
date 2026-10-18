@@ -11,27 +11,27 @@
 
 import type { EnhancedSchemaMetadata, RefEntity } from 'salvageunion-reference'
 import { truncate } from 'salvageunion-reference'
-import type { PageModule, PageResult, RouteContext, StructuredData } from '../../../ssg/types'
-import { EntityPageFrame } from '../../components/EntityPageFrame'
-import { EntityView } from '../../components/EntityView'
+import type { PageModule, PageResult, RouteContext, StructuredData } from '../../../../ssg/types'
 import {
   assetSrcSetFor,
   CHAPTER_BAND_COLOR,
   heroImageSizes,
   resolveEntityPageMeta,
-} from '../../components/index'
-import { ColumnsTablePage, RollTablePage } from '../../components/RollTablePage'
-import { buildLinkFor, guideExitsFor } from '../../lib/buildLink'
-import { bandFillFor, chapterForSchema } from '../../lib/chapters'
-import { componentEmbedFor } from '../../lib/componentEmbed'
-import { entityTitle, META_DESCRIPTION_MAX, SITE_URL, SRD_CRUMB } from '../../lib/constants'
-import { itemHref, schemaHref } from '../../lib/entityHref'
-import { entityPageFoot } from '../../lib/entityPageFoot'
-import { extractStaticEntitySummary, getReferenceEntityData } from '../../lib/gameData'
-import { ogCardFor, ogMetaFor } from '../../lib/ogCard'
-import { pageTitle } from '../../lib/pageTitle'
-import { columnsTablePageData, rollTablePageData } from '../../lib/rollTablePageData'
-import { getItemStaticPaths } from '../../lib/staticPaths'
+} from '../../../components/index'
+import { buildLinkFor, guideExitsFor } from '../../../lib/buildLink'
+import { bandFillFor, chapterForSchema } from '../../../lib/chapters'
+import { componentEmbedFor } from '../../../lib/componentEmbed'
+import { entityTitle, META_DESCRIPTION_MAX, SITE_URL, SRD_CRUMB } from '../../../lib/constants'
+import { itemHref, schemaHref } from '../../../lib/entityHref'
+import { entityPageFoot } from '../../../lib/entityPageFoot'
+import { extractStaticEntitySummary, getReferenceEntityData } from '../../../lib/gameData'
+import { ogCardFor, ogMetaFor } from '../../../lib/ogCard'
+import { pageTitle } from '../../../lib/pageTitle'
+import { columnsTablePageData, rollTablePageData } from '../../../lib/rollTablePageData'
+import { getItemStaticPaths } from '../../../lib/staticPaths'
+import { EntityPageFrame } from '../../EntityPageFrame'
+import { EntityView } from '../../EntityView'
+import { ColumnsTablePage, RollTablePage } from '../../RollTablePage'
 
 type Params = { schemaId: string; itemId: string }
 

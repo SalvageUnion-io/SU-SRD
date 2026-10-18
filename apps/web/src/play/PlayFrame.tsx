@@ -22,14 +22,14 @@
  *
  * The `.su-dash-*` stylesheet rides in with this module: the canvas's size
  * and ground are its rules, and the Play route's chunk is where it belongs.
- * Play's own bundle (`styles/cantina/play.css`: Units, Actions, side) comes
+ * Play's own bundle (`styles/play/play.css`: Units, Actions, side) comes
  * after it.
  */
 
-import '../../styles/cantina/dashboard.css'
-import '../../styles/cantina/play.css'
+import '../styles/play/dashboard.css'
+import '../styles/play/play.css'
 import type { CSSProperties, ReactNode } from 'react'
-import { tokens } from '../index'
+import { tokens } from '../components/index'
 import { PlayCanvas } from './PlayCanvas'
 
 /** The two side columns' widths: the Units (or the table's seats) and the side stack. */

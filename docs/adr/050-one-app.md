@@ -27,7 +27,7 @@ parts. Not two apps that happen to share a repo, and not separable.
 a page renders, never in how the app is built, served, installed or checked.
 
 1. **Two render modes, one source tree.** `src/` holds one component library
-   (`src/components`), one `lib/`, the static pages (`src/pages`, rendered by
+   (`src/components`), one `lib/`, the static pages (`src/reference/pages`, rendered by
    the in-house SSG in `ssg/`) and the Cantina's routes (`src/routes`, rendered
    in the browser at `/build/`). The pages stay static islands under the 20 KB
    JS budget, with no Convex on them: Biome bars `pages`, `endpoints`,

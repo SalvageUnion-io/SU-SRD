@@ -5,8 +5,8 @@
 
 import type { RefRollTable } from 'salvageunion-reference'
 import { NO_EFFECT, rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
-import type { TableDie } from '../index'
-import { dieForTable } from '../index'
+import type { TableDie } from '../../components/index'
+import { dieForTable } from '../../components/index'
 
 /** Roll IDs for pilot wizard identity fields. */
 export const PILOT_ROLL_TABLE_NAMES = {

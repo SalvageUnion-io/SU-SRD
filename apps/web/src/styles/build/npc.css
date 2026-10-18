@@ -1,7 +1,7 @@
 /*
  * The NPC designer's responsive rules (boards N1 and N2;
  * `docs/architecture/npc-builder.md` §5). Everything static is a style object
- * in `components/npc/npcStyles.model.ts`; these are the rules a style object cannot
+ * in `build/npc/npcStyles.model.ts`; these are the rules a style object cannot
  * hold because they change with the viewport or with state.
  */
 

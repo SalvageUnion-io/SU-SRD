@@ -13,11 +13,14 @@
 
 import { useQuery } from 'convex/react'
 import { useMemo } from 'react'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
-import { Callout, ModalShell, Pending } from '../index'
-import { makeReadOnlySheetStore, sheetDataFromListing } from '../sheet/readOnlySheetStore.model'
-import { Sheet } from '../sheet/Sheet'
+import { api } from '../../convex/_generated/api'
+import type { Id } from '../../convex/_generated/dataModel'
+import {
+  makeReadOnlySheetStore,
+  sheetDataFromListing,
+} from '../build/sheet/readOnlySheetStore.model'
+import { Sheet } from '../build/sheet/Sheet'
+import { Callout, ModalShell, Pending } from '../components/index'
 
 type PlayCrewSheetProps = {
   gameId: string

@@ -9,8 +9,8 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
-import type { SlabCount } from '../index'
-import { Slab, tokens } from '../index'
+import type { SlabCount } from '../../components/index'
+import { Slab, tokens } from '../../components/index'
 
 const { space } = tokens
 

@@ -15,8 +15,8 @@
  */
 
 import type { ReactNode } from 'react'
-import { Badge, buttonVariants, ChapterBand, Cluster, tokens } from '../index'
-import { AppLink } from '../shared/AppLink'
+import { Badge, buttonVariants, ChapterBand, Cluster, tokens } from '../../components/index'
+import { AppLink } from '../../components/shared/AppLink'
 import { GAME_MEASURE } from './hubStyles.model'
 
 export function GameBand({

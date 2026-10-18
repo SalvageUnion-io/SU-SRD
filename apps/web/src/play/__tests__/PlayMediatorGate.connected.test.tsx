@@ -11,12 +11,12 @@ import { createElement } from 'react'
  * Queries are answered by name (`convexMock.ts`). The screen is stubbed.
  */
 
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
+import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
 
 const convexMocks = await installConvexMocks({
   also: {
     // Relative to `convexMock.ts`, not this file.
-    '../play/PlayMediatorCockpit': () => ({
+    '../../play/PlayMediatorCockpit': () => ({
       PlayMediatorCockpit: ({ gameName }: { gameName: string }) =>
         createElement('p', null, `Mediating ${gameName}`),
     }),
@@ -24,7 +24,7 @@ const convexMocks = await installConvexMocks({
 })
 
 const { PlayMediatorGate } = await import('../PlayMediatorGate')
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
+const { ConnectionContext } = await import('../../lib/connection/connectionContext')
 
 afterAll(convexMocks.restore)
 

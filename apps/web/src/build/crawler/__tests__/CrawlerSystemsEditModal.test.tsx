@@ -13,8 +13,8 @@
 import { describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Crawler } from 'cantina-domain/schemas/crawler'
-import { crawlerFixture } from '../../__tests__/fixtures'
-import { pickInSearcher, searcherToken } from '../../__tests__/searcherPick'
+import { crawlerFixture } from '../../../components/__tests__/fixtures'
+import { pickInSearcher, searcherToken } from '../../../components/__tests__/searcherPick'
 import { CrawlerSystemsEditModal } from '../CrawlerSystemsEditModal'
 
 type Patch = Partial<Crawler> | ((current: Crawler) => Partial<Crawler>)

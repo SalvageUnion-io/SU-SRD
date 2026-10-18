@@ -11,7 +11,7 @@
  */
 import { describe, expect, it } from 'bun:test'
 import type { RouteContext } from '../../../ssg/types'
-import { redirectRules, redirectsEndpoint } from '../../endpoints/redirects'
+import { redirectRules, redirectsEndpoint } from '../../reference/endpoints/redirects'
 import { DOC_PAGES } from '../docPages'
 import { itemHref, patternHref, schemaHref } from '../entityHref'
 import { ogImagePath } from '../ogCard'

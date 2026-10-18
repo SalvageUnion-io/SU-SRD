@@ -10,8 +10,8 @@
 
 import type { ReactNode } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { BaseLayout } from '../src/layouts/BaseLayout'
 import { escapeJsonForScript } from '../src/lib/escapeJsonForScript'
+import { BaseLayout } from '../src/reference/layouts/BaseLayout'
 import type { CollectedIslandProps } from '../src/runtime/Island'
 import { beginIslandCollection, endIslandCollection } from '../src/runtime/Island'
 import type { BuiltAssets, DocumentMeta, DocumentShell, PageFoot } from './types'

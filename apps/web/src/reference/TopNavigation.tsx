@@ -20,14 +20,14 @@
  * client entry reveals both on one page load in a hundred.
  */
 
+import { cn, FOCUS_RING } from '../components/index'
+import { MobileNavIsland } from '../components/islands/MobileNavIsland'
+import { MobileSearchIsland } from '../components/islands/MobileSearchIsland'
+import { SearchIsland } from '../components/islands/SearchIsland'
+import { UnionBar } from '../components/unionBar/UnionBar'
 import { SIGN_IN_HREF } from '../lib/accountBar'
 import { WIKI_LINK_ATTRIBUTE } from '../lib/wikiLink'
 import { Island } from '../runtime/Island'
-import { cn, FOCUS_RING } from './index'
-import { MobileNavIsland } from './islands/MobileNavIsland'
-import { MobileSearchIsland } from './islands/MobileSearchIsland'
-import { SearchIsland } from './islands/SearchIsland'
-import { UnionBar } from './unionBar/UnionBar'
 
 /**
  * The quiet "WIKI" link to the `/greembeem` easter egg, served hidden: the

@@ -20,7 +20,7 @@ import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { assignmentsClearedByMove } from '../../lib/links/clearedByMove'
 import { useEntityStore } from '../../stores/entityStore'
 import type { AssignableType } from '../../stores/types'
-import type { Confirm } from '../shared/useConfirm'
+import type { Confirm } from '../../components/shared/useConfirm'
 
 export function requestMove(args: {
   entityType: AssignableType

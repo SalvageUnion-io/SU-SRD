@@ -11,7 +11,7 @@
  */
 
 import { useState } from 'react'
-import type { Id } from '../../../convex/_generated/dataModel'
+import type { Id } from '../../convex/_generated/dataModel'
 import type { PlayBinding } from './channels.model'
 import { playFeedEntries } from './feed.model'
 import { usePlayRollLog } from './playRolls.model'

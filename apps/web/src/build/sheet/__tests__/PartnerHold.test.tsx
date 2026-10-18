@@ -13,7 +13,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { CargoLot } from 'cantina-domain/schemas/cargoLot'
 import type { CargoTransferResult } from '../../../lib/cargo/cargoTransfer'
 import type { UsePartnerCargoResult } from '../../../lib/cargo/usePartnerCargo'
-import { Toaster, toast } from '../../index'
+import { Toaster, toast } from '../../../components/index'
 import { PartnerHold } from '../PartnerHold'
 
 const CRATE: CargoLot = {

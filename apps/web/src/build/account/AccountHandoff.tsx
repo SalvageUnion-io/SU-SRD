@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react'
 import { returnTo } from '../../lib/account/returnTo'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { captureException } from '../../lib/observability'
-import { Text } from '../index'
+import { Text } from '../../components/index'
 import { useSignOut } from './useSignOut'
 
 /**

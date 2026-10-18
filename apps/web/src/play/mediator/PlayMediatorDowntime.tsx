@@ -22,8 +22,6 @@ import {
 } from 'cantina-domain/rules/downtime'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { unitRowModel } from '../../../lib/units/unitModel'
-import { useEntityStore } from '../../../stores/entityStore'
 import {
   Badge,
   Button,
@@ -34,7 +32,9 @@ import {
   Stat,
   TitledBox,
   tokens,
-} from '../../index'
+} from '../../components/index'
+import { unitRowModel } from '../../lib/units/unitModel'
+import { useEntityStore } from '../../stores/entityStore'
 import { PlayDowntimeActionRow } from '../PlayDowntimeActionRow'
 import { PlayDowntimeTrack } from '../PlayDowntimeTrack'
 import { crawlerTl } from '../playDowntime.model'

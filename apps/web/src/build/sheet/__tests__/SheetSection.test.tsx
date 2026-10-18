@@ -11,7 +11,7 @@
 
 import { describe, expect, mock, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
-import { Slab } from '../../index'
+import { Slab } from '../../../components/index'
 import { SectionManageButton } from '../SheetSection'
 
 describe('HButton', () => {

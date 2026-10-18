@@ -12,7 +12,7 @@
 
 import type { SheetKind } from 'cantina-domain/entityKinds'
 import { unitRowModel } from '../../lib/units/unitModel'
-import { Entity } from '../index'
+import { Entity } from '../../components/index'
 
 type LinkedUnitLinkProps = {
   kind: SheetKind

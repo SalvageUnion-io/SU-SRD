@@ -2,8 +2,7 @@ import { Copy } from 'lucide-react'
 import { useState } from 'react'
 import type { RefObjectTable } from 'salvageunion-reference'
 import { plainTraitText, resultForColumnsTable, resultForTable } from 'salvageunion-reference'
-import { dieForTable, rollD20 } from '../../lib/rollTableDice'
-import type { RollTableType } from '../index'
+import type { RollTableType } from '../components/index'
 import {
   Button,
   digestColumnsTable,
@@ -12,7 +11,8 @@ import {
   toast,
   toastRoll,
   useParseTraitReferences,
-} from '../index'
+} from '../components/index'
+import { dieForTable, rollD20 } from '../lib/rollTableDice'
 
 /** A row's text, its trait references as Mentions. */
 function TraitText({ text }: { text: string }) {

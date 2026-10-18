@@ -8,7 +8,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { mechFixture } from '../../__tests__/fixtures'
+import { mechFixture } from '../../../components/__tests__/fixtures'
 import { mechRailItems } from '../railStats.model'
 
 describe('mechRailItems', () => {

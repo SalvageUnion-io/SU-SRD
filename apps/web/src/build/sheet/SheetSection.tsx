@@ -21,7 +21,7 @@
 
 import type { ComponentPropsWithoutRef, CSSProperties, ReactElement, ReactNode } from 'react'
 import { cloneElement, isValidElement } from 'react'
-import { Button, Glyph, ModalShell, PICKER_MODAL_WIDTH, tokens } from '../index'
+import { Button, Glyph, ModalShell, PICKER_MODAL_WIDTH, tokens } from '../../components/index'
 
 // ---------------------------------------------------------------------------
 // HButton — the container-header control button (design `.hbtn`, clean-edit.html

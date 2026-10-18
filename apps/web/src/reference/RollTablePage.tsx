@@ -12,11 +12,11 @@
  * a roll's result is a toast, as on every card.
  */
 
+import { ColumnsTableIsland } from '../components/islands/ColumnsTableIsland'
+import { RollTableIsland } from '../components/islands/RollTableIsland'
 import type { ColumnsTablePageData } from '../lib/columnsTablePage'
 import type { RollTablePageData } from '../lib/rollTablePage'
 import { Island } from '../runtime/Island'
-import { ColumnsTableIsland } from './islands/ColumnsTableIsland'
-import { RollTableIsland } from './islands/RollTableIsland'
 
 /**
  * A two-roll table's page: the column, then the entry (Callsign Table).

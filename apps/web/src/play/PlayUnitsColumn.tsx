@@ -19,7 +19,7 @@
  */
 
 import { useState } from 'react'
-import { EmptyState, Slab } from '../index'
+import { EmptyState, Slab } from '../components/index'
 import type { SheetTarget } from './PlaySheetOverlay'
 import { PlaySheetOverlay } from './PlaySheetOverlay'
 import { PlayCrawlerUnit, PlayHangarMech, PlayMechUnit, PlayPilotUnit } from './PlayUnits'

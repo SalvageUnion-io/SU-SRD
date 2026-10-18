@@ -2,7 +2,7 @@
  * play/actions.css — Play's Actions column (docs/architecture/play.md §5, §6):
  * the flattened list, a row's inline resolve, and the Downtime track and step.
  *
- * The Cantina's own stylesheet, a part of `styles/cantina/play.css`. Every row is a level-1 Row or
+ * The Cantina's own stylesheet, a part of `styles/play/play.css`. Every row is a level-1 Row or
  * TitledBox; these rules only lay them out and mark their state (not on
  * hand, open, locked): they never add a frame of their own (play.md §12).
  */

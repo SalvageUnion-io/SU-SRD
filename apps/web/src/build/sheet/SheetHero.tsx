@@ -9,7 +9,7 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
-import { SheetSectionCard } from '../index'
+import { SheetSectionCard } from '../../components/index'
 
 /** The grid's columns and gap step up with the sheet's width (`.su-sheet-hero`). */
 const GRID = { display: 'grid' } satisfies CSSProperties

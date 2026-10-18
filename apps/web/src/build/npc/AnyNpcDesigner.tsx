@@ -56,8 +56,8 @@ import {
   Textarea,
   tokens,
   useDetailModal,
-} from '../index'
-import { WritesBlockedNotice } from '../shared/WritesBlockedNotice'
+} from '../../components/index'
+import { WritesBlockedNotice } from '../../components/shared/WritesBlockedNotice'
 import { useWizardFlow } from '../wizard/useWizardFlow'
 import { NpcCard } from './NpcCard'
 import { CAPS, COLUMN, COLUMNS, HINT, LIST, NOTE, PENCIL, ROW } from './npcStyles.model'

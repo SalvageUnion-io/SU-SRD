@@ -12,9 +12,9 @@
  */
 
 import { useQuery } from 'convex/react'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
-import { useConnection } from '../../lib/connection/connectionContext'
+import { api } from '../../convex/_generated/api'
+import type { Id } from '../../convex/_generated/dataModel'
+import { useConnection } from '../lib/connection/connectionContext'
 import type { BoardSources } from './boardMenu.model'
 
 /** One Game's board sources; with no Game, nothing is read. */

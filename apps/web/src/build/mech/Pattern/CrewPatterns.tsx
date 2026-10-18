@@ -13,8 +13,8 @@ import type { CSSProperties } from 'react'
 import { api } from '../../../../convex/_generated/api'
 import { useConnection } from '../../../lib/connection/connectionContext'
 import { asReferencePattern, patternChassis, patternHref } from '../../../lib/patterns/patterns'
-import { Entity, quotePatternName, Slab, tokens } from '../../index'
-import { AppLink } from '../../shared/AppLink'
+import { Entity, quotePatternName, Slab, tokens } from '../../../components/index'
+import { AppLink } from '../../../components/shared/AppLink'
 
 const LIST = {
   display: 'grid',

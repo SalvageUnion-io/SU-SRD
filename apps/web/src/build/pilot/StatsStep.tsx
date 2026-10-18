@@ -4,7 +4,7 @@ import {
   PILOT_BASE_HP,
   PILOT_BASE_INVENTORY_SLOTS,
 } from 'salvageunion-reference/rules'
-import { Stat, tokens } from '../index'
+import { Stat, tokens } from '../../components/index'
 
 /** The three stat lozenges, wrapping on a narrow column. */
 const STAT_ROW = {

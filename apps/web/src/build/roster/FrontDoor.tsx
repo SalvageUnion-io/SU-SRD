@@ -23,7 +23,7 @@ import { PRODUCT } from 'cantina-domain/product'
 import type { CSSProperties } from 'react'
 import { SCRIPT_FONT } from '../../lib/scriptFont'
 import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
-import { ChapterBand, Slab, Stack, StartHere, tokens } from '../index'
+import { ChapterBand, Slab, Stack, StartHere, tokens } from '../../components/index'
 import { StarterSetGrid } from '../starterSet/StarterSetGrid'
 
 /** The width the band's notch and the content under it share. */

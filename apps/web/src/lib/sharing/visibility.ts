@@ -13,7 +13,7 @@
  *  - **A pattern** never moves into a Game, so its crew answer is its own
  *    choice of Game (`shelf.setPatternVisibility`).
  *
- * Pure: the control (`components/sharing/WhoCanSee.tsx`) draws these, and the
+ * Pure: the control (`build/sharing/WhoCanSee.tsx`) draws these, and the
  * connected settings (`ShareSettings.tsx`) decide which write each one makes.
  */
 import type { PublicKind } from 'cantina-domain/entityKinds'

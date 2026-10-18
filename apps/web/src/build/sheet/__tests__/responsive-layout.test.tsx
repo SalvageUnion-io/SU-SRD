@@ -25,15 +25,15 @@
 
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { act, render } from '@testing-library/react'
-import { installConvexMocks } from '../../__tests__/convexMock'
+import { installConvexMocks } from '../../../components/__tests__/convexMock'
 import {
   crawlerFixture,
   mechFixture,
   pilotFixture,
   softLinkFixture,
-} from '../../__tests__/fixtures'
-import { hydrateStores } from '../../__tests__/hydrateStores'
-import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../__tests__/mockEntityStore'
+} from '../../../components/__tests__/fixtures'
+import { hydrateStores } from '../../../components/__tests__/hydrateStores'
+import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../../components/__tests__/mockEntityStore'
 
 // Module scope, before the imports below — see `convexMock.ts`.
 const convexMocks = await installConvexMocks({ authReact: true })

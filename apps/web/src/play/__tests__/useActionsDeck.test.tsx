@@ -25,18 +25,18 @@ import {
   pilotMaxAP,
   resolveChassisRef,
 } from 'salvageunion-reference/rules'
-import { itemEconomy, resolveModule, resolveSystem } from '../../../lib/rules/mechItems'
+import { mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
+import { hydrateStores } from '../../components/__tests__/hydrateStores'
+import { makeEntityStoreMock } from '../../components/__tests__/mockEntityStore'
+import { EntityHrefProvider } from '../../components/index'
+import { itemEconomy, resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import {
   buildMechActions,
   buildPilotActions,
   hasCurrencyChoice,
   hasVariableHot,
   hotHeatFor,
-} from '../../../lib/rules/playActions'
-import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
-import { hydrateStores } from '../../__tests__/hydrateStores'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
-import { EntityHrefProvider } from '../../index'
+} from '../../lib/rules/playActions'
 import { PlayResolveSteps } from '../PlayResolveSteps'
 import type { PlayStore } from '../play.model'
 import type { ActionsDeckProps, ResolveModel } from '../useActionsDeck'

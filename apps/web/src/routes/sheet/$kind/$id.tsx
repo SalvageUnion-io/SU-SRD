@@ -19,10 +19,10 @@
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import type { EntityKind } from 'cantina-domain/entityKinds'
 import { isEntityKind } from 'cantina-domain/entityKinds'
-import { NpcSheetView } from '../../../components/npc/NpcSheetView'
+import { NpcSheetView } from '../../../build/npc/NpcSheetView'
+import { SheetSkeleton } from '../../../build/sheet/SheetSkeleton'
+import { SheetView } from '../../../build/sheet/SheetView'
 import { NotFoundPanel } from '../../../components/shared/RouteFallbacks'
-import { SheetSkeleton } from '../../../components/sheet/SheetSkeleton'
-import { SheetView } from '../../../components/sheet/SheetView'
 import { pageTitle } from '../../../lib/pageTitle'
 import { useEntityStore } from '../../../stores/entityStore'
 

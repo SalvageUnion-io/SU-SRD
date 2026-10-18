@@ -19,8 +19,8 @@
 import type { CSSProperties, ReactNode } from 'react'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { npcCurrentHP } from '../../lib/npcs/npcModel'
-import { Badge, tokens, UserMadeStamp } from '../index'
-import { AppLink } from '../shared/AppLink'
+import { Badge, tokens, UserMadeStamp } from '../../components/index'
+import { AppLink } from '../../components/shared/AppLink'
 import { NpcInset } from '../sheet/NpcInset'
 
 const STACK = {

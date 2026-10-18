@@ -1,15 +1,15 @@
 import { createRootRoute, HeadContent, Outlet, useRouterState } from '@tanstack/react-router'
 import { PRODUCT } from 'cantina-domain/product'
 import { useLayoutEffect } from 'react'
-import { AccountHintSync } from '../components/account/AccountHintSync'
-import { AccountReconciler } from '../components/account/AccountReconciler'
+import { AccountHintSync } from '../build/account/AccountHintSync'
+import { AccountReconciler } from '../build/account/AccountReconciler'
 import {
   HeaderActions,
   HeaderDrawerAccount,
   HeaderGames,
   HeaderMobileActions,
-} from '../components/account/HeaderAccount'
-import { TestAuthBridge } from '../components/account/TestAuthBridge'
+} from '../build/account/HeaderAccount'
+import { TestAuthBridge } from '../build/account/TestAuthBridge'
 import type { EntitySurfaceValue } from '../components/index'
 import { EntityHrefProvider, EntitySurfaceProvider, Toaster } from '../components/index'
 import { MobileSearchIsland } from '../components/islands/MobileSearchIsland'
@@ -28,7 +28,7 @@ import { BAR_HIDDEN_ATTRIBUTE, hidesUnionBar } from '../shell/unionSlots'
 // The tagline's script face, self-hosted like the Barlow faces in the shared base
 // stylesheet: fonts stay on-origin, so the CSP needs no external host.
 import '@fontsource/caveat/600.css'
-import '../styles/cantina.css'
+import '../styles/app.css'
 
 // The root boundary is the last resort — every other route gets its own via
 // the router's `defaultErrorComponent` (main.tsx). See RouteErrors.tsx.

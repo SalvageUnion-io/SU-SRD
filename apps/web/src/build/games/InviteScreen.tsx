@@ -7,8 +7,8 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import { invitePath } from '../../lib/games/inviteLink'
 import { SignInControl } from '../account/SignInControl'
 import { useShowContainer } from '../entityContainer/useShowContainer'
-import { Button, Card, ChapterBand, FieldError, PageShell, Text, TitledBox, tokens } from '../index'
-import { WayOutLink } from '../shared/WayOutLink'
+import { Button, Card, ChapterBand, FieldError, PageShell, Text, TitledBox, tokens } from '../../components/index'
+import { WayOutLink } from '../../components/shared/WayOutLink'
 
 /**
  * `/invite/$token` — a Game's invite URL. A Game is joined from its link,

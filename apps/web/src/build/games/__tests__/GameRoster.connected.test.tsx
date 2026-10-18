@@ -29,8 +29,8 @@ import { ConvexError } from 'convex/values'
  */
 
 import { getFunctionName } from 'convex/server'
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
-import { crawlerFixture, pilotFixture } from '../../__tests__/fixtures'
+import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import { crawlerFixture, pilotFixture } from '../../../components/__tests__/fixtures'
 
 /** Every mutation the surface ran, by `getFunctionName`, with its args. */
 const mutations: { name: string; args: unknown }[] = []
@@ -52,7 +52,7 @@ const convexMocks = await installConvexMocks({
 })
 
 const { GameRoster } = await import('../GameRoster')
-const { hydrateStores } = await import('../../__tests__/hydrateStores')
+const { hydrateStores } = await import('../../../components/__tests__/hydrateStores')
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
 

@@ -1,6 +1,6 @@
 /*
  * shelves.css — the stateful half of the Shelves page's band controls
- * (`components/shelves/Shelves.tsx`); geometry and type are
+ * (`build/shelves/Shelves.tsx`); geometry and type are
  * style objects there or the shared Button's. Only colour lives here, and every
  * colour below changes on hover or on press — so each keeps its RESTING value
  * here too, beside the state that overrides it. Loaded by `index.css`.

@@ -22,8 +22,8 @@ import { copyStarter } from '../../lib/starterSet/copyStarter'
 import type { StarterKind } from '../../lib/starterSet/starterTemplates'
 import { STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
 import { serializeContainer } from '../../stores/activeContainerStore'
-import { Select, toast, tokens } from '../index'
-import type { Confirm } from '../shared/useConfirm'
+import { Select, toast, tokens } from '../../components/index'
+import type { Confirm } from '../../components/shared/useConfirm'
 
 type CopyStarterSelectProps = {
   kind: StarterKind

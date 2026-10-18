@@ -28,20 +28,20 @@ import { afterAll, beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Mech } from 'cantina-domain/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
-import { installConvexMocks } from '../../__tests__/convexMock'
+import { installConvexMocks } from '../../../components/__tests__/convexMock'
 import {
   crawlerFixture,
   mechFixture,
   pilotFixture,
   softLinkFixture,
-} from '../../__tests__/fixtures'
-import { hydrateStores } from '../../__tests__/hydrateStores'
+} from '../../../components/__tests__/fixtures'
+import { hydrateStores } from '../../../components/__tests__/hydrateStores'
 import {
   makeEntityLookupMock,
   makeEntityStoreMock,
   makeSoftLinkStoreMock,
-} from '../../__tests__/mockEntityStore'
-import { must } from '../../__tests__/must'
+} from '../../../components/__tests__/mockEntityStore'
+import { must } from '../../../components/__tests__/must'
 
 // Module scope, before the import below — see `convexMock.ts`.
 const convexMocks = await installConvexMocks({ authReact: true })

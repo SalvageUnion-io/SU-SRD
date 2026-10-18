@@ -25,9 +25,9 @@ import {
   resolveGauge,
   resolvePool,
 } from 'salvageunion-reference/rules'
-import { crawlerTechLevelOf } from '../../lib/rules/downtimeEconomy'
-import { resolveModule, resolveSystem } from '../../lib/rules/mechItems'
-import { resolveEquipment } from '../../lib/rules/pilotInventory'
+import { crawlerTechLevelOf } from '../lib/rules/downtimeEconomy'
+import { resolveModule, resolveSystem } from '../lib/rules/mechItems'
+import { resolveEquipment } from '../lib/rules/pilotInventory'
 
 /** No crawler: no Med Bay to heal HP or injuries (AP still rests). */
 const NO_MED_BAY: MedBayStatus = {

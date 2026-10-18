@@ -18,9 +18,9 @@
 
 import { gamePath } from 'cantina-domain/entityKinds'
 import { useQuery } from 'convex/react'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
-import { useConnection } from '../../lib/connection/connectionContext'
+import { api } from '../../convex/_generated/api'
+import type { Id } from '../../convex/_generated/dataModel'
+import { useConnection } from '../lib/connection/connectionContext'
 import { PlayMediatorCockpit } from './PlayMediatorCockpit'
 import { PlayPending, PlayRefusal } from './PlayRefusal'
 

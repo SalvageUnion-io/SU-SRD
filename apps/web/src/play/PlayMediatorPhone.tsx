@@ -19,7 +19,7 @@
 
 import type { ReactNode, RefObject } from 'react'
 import { useEffect, useState } from 'react'
-import type { rollForTable } from '../index'
+import type { rollForTable } from '../components/index'
 import type { PlayBinding } from './channels.model'
 import { PlayGameStateSwitch } from './mediator/PlayGameStateSwitch'
 import { PlayMediatorDowntime } from './mediator/PlayMediatorDowntime'

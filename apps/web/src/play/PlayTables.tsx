@@ -14,7 +14,14 @@
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { CHAPTER_BAND_COLOR, Checkbox, SearchField, Toggle, ToggleGroup, tokens } from '../index'
+import {
+  CHAPTER_BAND_COLOR,
+  Checkbox,
+  SearchField,
+  Toggle,
+  ToggleGroup,
+  tokens,
+} from '../components/index'
 import type { PlayBinding } from './channels.model'
 import { postLabel } from './channels.model'
 import { PlayRollTable } from './PlayRollTable'

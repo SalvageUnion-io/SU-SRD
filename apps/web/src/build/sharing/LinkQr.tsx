@@ -13,7 +13,7 @@
 import QRCode from 'qrcode'
 import type { CSSProperties } from 'react'
 import { useEffect, useState } from 'react'
-import { tokens } from '../index'
+import { tokens } from '../../components/index'
 
 type LinkQrProps = {
   /** Absolute URL to encode. */

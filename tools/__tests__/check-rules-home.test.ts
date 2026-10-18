@@ -3,6 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import {
+  AREA_DIRS,
   COMPONENTS_DIR,
   CONVEX_DIR,
   convexClientImports,
@@ -71,12 +72,16 @@ describe('misplacedRules', () => {
       [`${COMPONENTS_DIR}/dashboard/__tests__/SlotRow.rules.test.tsx`]: '',
       [`${COMPONENTS_DIR}/dashboard/__tests__/fooRules.ts`]: '',
       [`${COMPONENTS_DIR}/dashboard/RulesPanel.tsx`]: '',
+      [`${AREA_DIRS[0]}/sheet/crawlerRules.ts`]: '',
+      [`${AREA_DIRS[1]}/usePlay.ts`]: '',
+      [`${AREA_DIRS[1]}/situation.model.ts`]: '',
     })
     expect(
       misplacedRules(root)
         .problems.map((p) => p.split(' is ')[0])
         .sort()
     ).toEqual([
+      `${AREA_DIRS[0]}/sheet/crawlerRules.ts`,
       `${COMPONENTS_DIR}/dashboard/dashboardRules.ts`,
       `${COMPONENTS_DIR}/dashboard/slotModels.ts`,
       `${COMPONENTS_DIR}/sheet/item.rules.ts`,

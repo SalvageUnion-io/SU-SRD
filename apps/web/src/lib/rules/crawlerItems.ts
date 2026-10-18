@@ -1,6 +1,6 @@
 /**
  * crawlerItems — the crawler sheet's non-component helpers (a rules home, not
- * `components/sheet/`). Pure lookups, constants and the bay-repair
+ * `build/sheet/`). Pure lookups, constants and the bay-repair
  * patch shared by CrawlerSheetItems and CrawlerSheet.
  */
 

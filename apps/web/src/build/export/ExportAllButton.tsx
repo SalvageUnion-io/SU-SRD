@@ -2,7 +2,7 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import { buildExportBundle } from '../../lib/export/buildExportBundle'
 import { downloadJson } from '../../lib/export/downloadJson'
 import { useEntityStore } from '../../stores/entityStore'
-import { Button, Message, Stack, toast } from '../index'
+import { Button, Message, Stack, toast } from '../../components/index'
 
 type ExportAllButtonProps = {
   /**

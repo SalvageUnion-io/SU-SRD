@@ -14,7 +14,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { npcCurrentHP } from '../../lib/npcs/npcModel'
 import { unitRowModel } from '../../lib/units/unitModel'
-import { Badge, tokens, UserMadeStamp } from '../index'
+import { Badge, tokens, UserMadeStamp } from '../../components/index'
 import { CrewLeadToken } from '../sheet/CrewLeadToken'
 
 const STACK = {

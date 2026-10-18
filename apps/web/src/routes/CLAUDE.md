@@ -8,7 +8,7 @@ before touching data** (it loads with the stores, `src/lib/entities/`, `src/lib/
 product component folders, `convex/`, `e2e/`).
 
 - Every read-only sheet (`/sheet/:kind/:id`, `/p/:kind/:appId`) is the live
-  `<Sheet readOnly>` over `src/components/sheet/readOnlySheetStore.model.ts`;
+  `<Sheet readOnly>` over `src/build/sheet/readOnlySheetStore.model.ts`;
   build no other.
 
 ## Stack
@@ -54,7 +54,7 @@ product component folders, `convex/`, `e2e/`).
 - Pure math: the `salvageunion-reference/rules` subpath, never the main barrel
   or a local re-export; `src/lib/rules/` is Cantina's app-local rules only. Every
   die is the UI library's `utils/dice.ts`.
-- Play actions go in Play (`components/play/`); the one sheet-local play
+- Play actions go in Play (`play/`); the one sheet-local play
   control is `CrawlerEconomyControl.tsx`.
 - Destructive condition changes stay player-driven via `StatusBadge` →
   `cycleItemCondition`.

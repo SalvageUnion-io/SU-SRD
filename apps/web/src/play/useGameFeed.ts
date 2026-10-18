@@ -15,9 +15,9 @@ import type { SeatResolving } from 'cantina-domain/schemas/seat'
 import { useQuery } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
 import { coreRollBandLabel, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
-import { useConnection } from '../../lib/connection/connectionContext'
+import { api } from '../../convex/_generated/api'
+import type { Id } from '../../convex/_generated/dataModel'
+import { useConnection } from '../lib/connection/connectionContext'
 import type { BoardSources } from './boardMenu.model'
 
 /** One roll on the Game's log (`changeLog.rolls`). */

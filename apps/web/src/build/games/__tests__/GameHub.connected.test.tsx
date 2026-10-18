@@ -26,9 +26,9 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import { getFunctionName } from 'convex/server'
 import type { ReactNode } from 'react'
 import { createElement } from 'react'
-import type { QueryAnswers } from '../../__tests__/convexMock'
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
-import { pilotFixture } from '../../__tests__/fixtures'
+import type { QueryAnswers } from '../../../components/__tests__/convexMock'
+import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import { pilotFixture } from '../../../components/__tests__/fixtures'
 
 const mutations: { name: string; args: unknown }[] = []
 /** Every `router.navigate(opts)` the hub made. */
@@ -59,7 +59,7 @@ const convexMocks = await installConvexMocks({
     }),
     // Relative to `convexMock.ts`, not this file. Whether the gate opens it,
     // and for which pilot, is all the launch tests need of the Cockpit.
-    '../play/PlayCockpit': () => ({
+    '../../play/PlayCockpit': () => ({
       PlayCockpit: ({ target }: { target: { pilotId: string } }) =>
         createElement('p', null, `Play for ${target.pilotId}`),
     }),
@@ -67,9 +67,9 @@ const convexMocks = await installConvexMocks({
 })
 
 const { GameHub } = await import('../GameHub')
-const { PlayGate } = await import('../../play/PlayGate')
+const { PlayGate } = await import('../../../play/PlayGate')
 const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
-const { hydrateStores } = await import('../../__tests__/hydrateStores')
+const { hydrateStores } = await import('../../../components/__tests__/hydrateStores')
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
 const { setActiveContainer } = await import('../../../stores/activeContainerStore')

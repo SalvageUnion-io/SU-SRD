@@ -21,8 +21,8 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import { readReference } from '../../lib/readReference'
 import type { BlankCreateKind } from '../../lib/wizard/blankCreate'
 import { createBlank } from '../../lib/wizard/blankCreate'
-import { Button, DialogActions, Field, FieldError, Input, ModalShell, Select } from '../index'
-import '../../styles/cantina/wizard.css'
+import { Button, DialogActions, Field, FieldError, Input, ModalShell, Select } from '../../components/index'
+import '../../styles/build/wizard.css'
 import { dialogBodyStyle, dialogNoteStyle } from './wizardStyles.model'
 
 const noteStyle = { ...dialogNoteStyle, margin: 0 } satisfies CSSProperties

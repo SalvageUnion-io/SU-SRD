@@ -7,7 +7,7 @@
 
 import type { RefRollTable } from 'salvageunion-reference'
 import { NO_EFFECT, rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
-import { rollD20 } from '../index'
+import { rollD20 } from '../../components/index'
 
 const CRAWLER_NAME_TABLE = 'Crawler Name'
 

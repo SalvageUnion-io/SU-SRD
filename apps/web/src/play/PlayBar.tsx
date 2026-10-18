@@ -15,8 +15,8 @@
 
 import { ChevronLeft } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import { Badge, buttonVariants, tokens } from '../index'
-import { AppLink } from '../shared/AppLink'
+import { Badge, buttonVariants, tokens } from '../components/index'
+import { AppLink } from '../components/shared/AppLink'
 import type { PlayReadOnly } from './play.model'
 import { liveLabel } from './play.model'
 

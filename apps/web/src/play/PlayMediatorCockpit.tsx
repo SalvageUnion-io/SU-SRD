@@ -26,8 +26,8 @@
  */
 
 import { useRef, useState } from 'react'
-import { useConnection } from '../../lib/connection/connectionContext'
-import type { rollForTable } from '../index'
+import type { rollForTable } from '../components/index'
+import { useConnection } from '../lib/connection/connectionContext'
 import { hereOf } from './mediator/mediatorTable.model'
 import { PlayGameStateSwitch } from './mediator/PlayGameStateSwitch'
 import { PlayMediatorBarActions } from './mediator/PlayMediatorBarActions'

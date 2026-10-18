@@ -15,7 +15,7 @@ import { APP_BASE } from '../../../lib/appBase'
 import type { ConnectionState } from '../../../lib/connection/connectionContext'
 import type { ShareKind } from '../../../lib/sharing/visibility'
 import { pageOrigin } from '../../../lib/site'
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
+import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 
 const mutations: unknown[] = []
 

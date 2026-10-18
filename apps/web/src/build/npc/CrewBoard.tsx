@@ -71,11 +71,11 @@ import {
   toast,
   tokens,
   useMediaQuery,
-} from '../index'
+} from '../../components/index'
 import { npcStats } from '../roster/rowStats.model'
-import { AppLink } from '../shared/AppLink'
-import { UnitRow } from '../shared/UnitRow'
-import { WritesBlockedNotice } from '../shared/WritesBlockedNotice'
+import { AppLink } from '../../components/shared/AppLink'
+import { UnitRow } from '../../components/shared/UnitRow'
+import { WritesBlockedNotice } from '../../components/shared/WritesBlockedNotice'
 import { RollTableButton } from '../wizard/RollTableButton'
 import { NpcCard } from './NpcCard'
 import { CAPS, COLUMN, COLUMNS, HINT, LIST, NOTE, PENCIL, ROW } from './npcStyles.model'

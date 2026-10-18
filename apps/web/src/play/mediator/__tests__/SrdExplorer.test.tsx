@@ -8,7 +8,7 @@
 
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, waitFor } from '@testing-library/react'
-import { buildCatalogSections, EntityHrefProvider } from '../../../index'
+import { buildCatalogSections, EntityHrefProvider } from '../../../components/index'
 import { SrdExplorer } from '../SrdExplorer'
 
 // Unmounting between tests is handled globally: the workspace's bunfig preloads

@@ -4,7 +4,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { mechFixture } from '../../__tests__/fixtures'
+import { mechFixture } from '../../components/__tests__/fixtures'
 import type { BoardSources, CrewLink, CrewRow } from '../boardMenu.model'
 import { boardable, boardMenu } from '../boardMenu.model'
 

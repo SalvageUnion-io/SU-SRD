@@ -13,7 +13,7 @@
  */
 import { afterAll, beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import { Toaster } from '../../index'
+import { Toaster } from '../../components/index'
 
 /** The table's one roll control: the instrument's Roll the Die button. */
 const ROLL_BUTTON = /^Roll (the die|twice) on /
@@ -31,12 +31,12 @@ function nextRoll(): number {
 
 // Capture before mocking: a module namespace is a live view, so the spread has
 // to happen while it still reads as the real module.
-const realDice = { ...(await import('../../../lib/rollTableDice')) }
+const realDice = { ...(await import('../../lib/rollTableDice')) }
 
 /** The table names the component asked a die for, in order. */
 const asked: string[] = []
 
-mock.module('../../../lib/rollTableDice', () => ({
+mock.module('../../lib/rollTableDice', () => ({
   ...realDice,
   rollD20: () => nextRoll(),
   dieForTable: async (tableName: string) => {
@@ -48,11 +48,11 @@ mock.module('../../../lib/rollTableDice', () => ({
 const { PlayRollTable } = await import('../PlayRollTable')
 
 afterAll(async () => {
-  mock.module('../../../lib/rollTableDice', () => realDice)
+  mock.module('../../lib/rollTableDice', () => realDice)
 
   // Prove the restore took: a leaked mock would surface as "roll queue
   // exhausted" thrown from some unrelated file.
-  const { rollD20 } = await import('../../../lib/rollTableDice')
+  const { rollD20 } = await import('../../lib/rollTableDice')
   const total = rollD20()
   if (!Number.isInteger(total) || total < 1 || total > 20) {
     throw new Error(`rollTableDice was not restored: rollD20() gave ${total}`)

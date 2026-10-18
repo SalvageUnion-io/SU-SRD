@@ -73,7 +73,7 @@ import {
   Stack,
   Stat,
   tokens,
-} from '../index'
+} from '../../components/index'
 import { freshEntity } from './controlPrimitives'
 import {
   INITIAL_UPKEEP_STATE,

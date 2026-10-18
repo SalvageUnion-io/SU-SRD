@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { Button, tokens } from '../index'
+import { Button, tokens } from '../../components/index'
 
 /** The used pip: a hollow chip in the control's current colour. */
 const PIP = {

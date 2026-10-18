@@ -1,9 +1,9 @@
 import type { RefAbility, RefClass } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationClass, legalCreationAbilities } from 'salvageunion-reference/rules'
-import { EmptyState, MasonryColumns, ReferenceEntityCard, Slab } from '../index'
+import { EmptyState, MasonryColumns, ReferenceEntityCard, Slab } from '../../components/index'
 import { selectableClasses } from './classOptions.model'
-import '../../styles/cantina/wizard.css'
+import '../../styles/build/wizard.css'
 import { fullWidthStyle } from './wizardStyles.model'
 
 type SURClassesAccessor = {

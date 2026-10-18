@@ -18,7 +18,7 @@ import {
   Stack,
   Text,
   tokens,
-} from '../index'
+} from '../../components/index'
 import { SignInControl } from './SignInControl'
 
 /**
@@ -26,10 +26,10 @@ import { SignInControl } from './SignInControl'
  *
  * `/account` redirects here (`routes/account.tsx`), so old links and the
  * Discord bot's still land. Your Games are listed in the masthead's Games menu
- * (`components/entityContainer/GamesMenu.tsx`), which is where a player picks what
+ * (`build/entityContainer/GamesMenu.tsx`), which is where a player picks what
  * the Roster shows.
  *
- * It wears the Hangar's clothes (`components/shelves/Shelves.tsx`): the ink
+ * It wears the Hangar's clothes (`build/shelves/Shelves.tsx`): the ink
  * band on the workshop ground, the 75rem column, and each concern a section
  * under a solid Slab stamp, one full-width row each.
  *

@@ -15,7 +15,7 @@ import { npcFixture } from '../../components/__tests__/fixtures'
 const convexMocks = await installConvexMocks()
 afterAll(() => convexMocks.restore())
 
-const { PublicSheetView } = await import('../../components/sheet/PublicSheetView')
+const { PublicSheetView } = await import('../../build/sheet/PublicSheetView')
 
 describe('the public sheet route', () => {
   test('a sheet that is not public says so', () => {

@@ -16,9 +16,9 @@
  */
 
 import { useMutation, useQuery } from 'convex/react'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
-import { useConnection } from '../../lib/connection/connectionContext'
+import { api } from '../../convex/_generated/api'
+import type { Id } from '../../convex/_generated/dataModel'
+import { useConnection } from '../lib/connection/connectionContext'
 import type { PlayTarget } from './play.model'
 import type { PlayDowntime } from './situation.model'
 import type { DowntimeView } from './useDowntime'

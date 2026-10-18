@@ -18,8 +18,8 @@
 import type { Container } from 'cantina-domain/container'
 import type { ChangeEvent, CSSProperties } from 'react'
 import { serializeContainer } from '../../stores/activeContainerStore'
-import type { HeaderMenuItem } from '../index'
-import { Button, EmptyState, HeaderMenu, Pending, Select, tokens } from '../index'
+import type { HeaderMenuItem } from '../../components/index'
+import { Button, EmptyState, HeaderMenu, Pending, Select, tokens } from '../../components/index'
 
 /** One container on offer: what it is called and, optionally, a quieter hint (a role). */
 export type ContainerChoice = { container: Container; label: string; hint?: string }

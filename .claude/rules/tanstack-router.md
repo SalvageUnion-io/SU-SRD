@@ -17,7 +17,7 @@ paths:
   only move a component into its own chunk when nothing else in the file is
   exported; a page body "exported for testing" keeps its whole component graph
   in the entry chunk every route downloads. Put a testable body in
-  `src/components/` (`src/components/sheet/PublicSheetView.tsx`) and import it
+  its area (`src/build/sheet/PublicSheetView.tsx`) and import it
   from both. `routes/__tests__/routeExports.test.ts` enforces it.
 - `validateSearch` parses search params into a typed shape, read with
   `Route.useSearch()` — not `useSearch({ strict: false })` plus a cast.

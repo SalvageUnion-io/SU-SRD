@@ -2,9 +2,9 @@ import type { CSSProperties } from 'react'
 import { useMemo } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
-import { EmptyState, Slab, Stat, tokens } from '../index'
-import { ActionTokens } from '../referenceEntity/card/NestedCards'
-import '../../styles/cantina/wizard.css'
+import { EmptyState, Slab, Stat, tokens } from '../../components/index'
+import { ActionTokens } from '../../components/referenceEntity/card/NestedCards'
+import '../../styles/build/wizard.css'
 import { fullWidthStyle } from '../wizard/wizardStyles.model'
 
 const STAT_ROW = {

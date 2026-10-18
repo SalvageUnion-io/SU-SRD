@@ -20,7 +20,7 @@ import { isWeaponSystem } from 'salvageunion-reference/rules'
 import { resetStores } from '../../../stores/__tests__/resetStores'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
-import { must } from '../../__tests__/must'
+import { must } from '../../../components/__tests__/must'
 import { CrawlerBuilder } from '../CrawlerBuilder'
 
 // Building and editing need an account (ADR-034 as amended), so these writes run signed in.

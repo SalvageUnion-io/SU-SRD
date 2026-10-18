@@ -21,7 +21,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import type { FunctionReference } from 'convex/server'
 import { getFunctionName } from 'convex/server'
 import { ConvexError } from 'convex/values'
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
+import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 
 const redeemResult: unknown = { kind: 'joined', gameId: 'g1' }
 let redeemError: Error | null = null

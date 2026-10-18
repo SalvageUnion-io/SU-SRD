@@ -15,7 +15,7 @@
 
 import type { CSSProperties, ReactNode } from 'react'
 import type { Visibility, VisibilityChoice } from '../../lib/sharing/visibility'
-import { Radio, tokens } from '../index'
+import { Radio, tokens } from '../../components/index'
 
 const FIELDSET = {
   border: 0,

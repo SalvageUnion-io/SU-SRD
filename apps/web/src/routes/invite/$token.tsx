@@ -1,5 +1,5 @@
 import { createFileRoute, useParams } from '@tanstack/react-router'
-import { InviteScreen } from '../../components/games/InviteScreen'
+import { InviteScreen } from '../../build/games/InviteScreen'
 import { pageTitle } from '../../lib/pageTitle'
 
 /**

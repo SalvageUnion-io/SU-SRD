@@ -21,9 +21,9 @@ import type { Mech } from 'cantina-domain/schemas/mech'
 import { WritesBlockedOffline } from '../../../stores/entityBackend'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
-import { expandCards } from '../../__tests__/expandCards'
-import { FIXTURE_NOW } from '../../__tests__/fixtures'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { expandCards } from '../../../components/__tests__/expandCards'
+import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
+import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { MechSheet } from '../MechSheet'
 
 // A real, choice-free system. ".50 Cal Machine Gun" is TL1 and renders with a

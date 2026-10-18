@@ -7,7 +7,7 @@
 
 import type { RefRollTable } from 'salvageunion-reference'
 import { NO_EFFECT, rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
-import { rollD20 } from '../index'
+import { rollD20 } from '../../components/index'
 
 /** Roll-table names for mech wizard flavor fields. */
 export const MECH_ROLL_TABLE_NAMES = {

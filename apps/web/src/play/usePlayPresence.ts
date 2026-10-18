@@ -9,9 +9,9 @@
 import { PRESENCE_HEARTBEAT_MS } from 'cantina-domain/schemas/seat'
 import { useMutation } from 'convex/react'
 import { useEffect } from 'react'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
-import { useConnection } from '../../lib/connection/connectionContext'
+import { api } from '../../convex/_generated/api'
+import type { Id } from '../../convex/_generated/dataModel'
+import { useConnection } from '../lib/connection/connectionContext'
 import type { PlayTarget } from './play.model'
 
 export function usePlayPresence(target: Pick<PlayTarget, 'gameId' | 'pilotId'>): void {

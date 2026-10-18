@@ -50,7 +50,7 @@ import {
   RadioCardGroup,
   Text,
   tokens,
-} from '../index'
+} from '../../components/index'
 import { OwnerSeal } from './OwnerSeal'
 
 const HINT = { textAlign: 'left' } satisfies CSSProperties

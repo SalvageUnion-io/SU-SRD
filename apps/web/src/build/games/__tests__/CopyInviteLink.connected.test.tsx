@@ -13,7 +13,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { getFunctionName } from 'convex/server'
 import { APP_BASE } from '../../../lib/appBase'
 import { pageOrigin } from '../../../lib/site'
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
+import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 
 let authed = true
 const mutations: { name: string; args: unknown }[] = []

@@ -10,7 +10,7 @@ import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
  */
 
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
+import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 
 // Module scope, before the imports below: `mock.module` only affects imports
 // that resolve after it runs.
@@ -21,7 +21,7 @@ const convexMocks = await installConvexMocks({
 })
 
 const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
-const { hydrateStores } = await import('../../__tests__/hydrateStores')
+const { hydrateStores } = await import('../../../components/__tests__/hydrateStores')
 const { resetStores } = await import('../../../stores/__tests__/resetStores')
 const { withSignedInBackend } = await import('../../../stores/__tests__/signedInBackend')
 const { useEntityStore } = await import('../../../stores/entityStore')

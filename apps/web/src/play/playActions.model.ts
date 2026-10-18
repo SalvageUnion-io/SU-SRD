@@ -16,8 +16,8 @@
 
 import type { RangeBand } from 'cantina-domain/schemas/seat'
 import type { RefMetaAction } from 'salvageunion-reference'
-import type { PlayAction } from '../../lib/rules/playActions'
-import { actionInRange, actionReachable } from '../../lib/rules/playActions'
+import type { PlayAction } from '../lib/rules/playActions'
+import { actionInRange, actionReachable } from '../lib/rules/playActions'
 import type { Situation } from './situation.model'
 
 /** An action's type, as the list sorts and filters it. */

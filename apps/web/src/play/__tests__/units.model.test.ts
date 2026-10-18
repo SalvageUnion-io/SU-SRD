@@ -5,7 +5,7 @@
 
 import { describe, expect, test } from 'bun:test'
 import { downtimeGuideSteps } from 'cantina-domain/rules/downtime'
-import { crawlerFixture, mechFixture } from '../../__tests__/fixtures'
+import { crawlerFixture, mechFixture } from '../../components/__tests__/fixtures'
 import type { BoardOption } from '../boardMenu.model'
 import {
   bayChips,

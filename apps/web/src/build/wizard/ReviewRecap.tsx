@@ -9,8 +9,8 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useMemo } from 'react'
 import type { RefMetaEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
-import type { EntityRowModel } from '../index'
-import { Entity, EntityStat, Slab, Stat, tokens } from '../index'
+import type { EntityRowModel } from '../../components/index'
+import { Entity, EntityStat, Slab, Stat, tokens } from '../../components/index'
 
 /** The recap: its facts, then its lists, down one column. */
 const RECAP = {

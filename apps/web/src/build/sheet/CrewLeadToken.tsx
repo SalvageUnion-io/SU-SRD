@@ -17,8 +17,8 @@
 import { useMemo } from 'react'
 import type { EntityInstance, RefMetaEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
-import type { EntityMode, EntityRowModel } from '../index'
-import { Entity } from '../index'
+import type { EntityMode, EntityRowModel } from '../../components/index'
+import { Entity } from '../../components/index'
 import type { NpcInsetProps } from './NpcInset'
 import { NpcLines } from './NpcInset'
 

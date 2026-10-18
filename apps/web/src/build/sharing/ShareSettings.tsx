@@ -34,7 +34,7 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import type { ShareKind, Visibility } from '../../lib/sharing/visibility'
 import { patternChoices, sheetChoices, sheetVisibility } from '../../lib/sharing/visibility'
 import { appUrl } from '../../lib/site'
-import { Button, Field, FieldError, Select, Stack, tokens } from '../index'
+import { Button, Field, FieldError, Select, Stack, tokens } from '../../components/index'
 import { LinkQr } from './LinkQr'
 import { WhoCanSee } from './WhoCanSee'
 

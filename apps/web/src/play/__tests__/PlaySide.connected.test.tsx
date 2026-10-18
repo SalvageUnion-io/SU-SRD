@@ -15,9 +15,9 @@ import type { PostRollResult } from 'cantina-domain/games/discord'
 import { PRESENCE_HEARTBEAT_MS, PRESENCE_STALE_MS } from 'cantina-domain/schemas/seat'
 import type { FunctionReference } from 'convex/server'
 import { getFunctionName } from 'convex/server'
-import type { ConnectionMode } from '../../../lib/connection/connectionMode'
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
-import { pilotFixture } from '../../__tests__/fixtures'
+import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
+import { pilotFixture } from '../../components/__tests__/fixtures'
+import type { ConnectionMode } from '../../lib/connection/connectionMode'
 import type { PlayTarget } from '../play.model'
 import type { Play } from '../situation.model'
 import { crewAt } from './crewFixture'
@@ -44,11 +44,11 @@ const convexMocks = await installConvexMocks({
 })
 
 const { PlaySideColumn } = await import('../PlaySideColumn')
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
+const { ConnectionContext } = await import('../../lib/connection/connectionContext')
 const { recordPlayRoll, recordPlayChange, clearPlayRolls, reportingRoll } = await import(
   '../playRolls.model'
 )
-const { hydrateStores } = await import('../../__tests__/hydrateStores')
+const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
 
 const GAME = 'side-g1'
 const BOUND = { channelId: 'c-1', channelName: 'salvage-run', boundAt: 1 }

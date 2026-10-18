@@ -21,9 +21,9 @@ import {
   mechFixture,
   pilotFixture,
   softLinkFixture,
-} from '../../__tests__/fixtures'
-import { hydrateStores } from '../../__tests__/hydrateStores'
-import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../__tests__/mockEntityStore'
+} from '../../../components/__tests__/fixtures'
+import { hydrateStores } from '../../../components/__tests__/hydrateStores'
+import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { Sheet } from '../Sheet'
 
 beforeAll(hydrateStores)

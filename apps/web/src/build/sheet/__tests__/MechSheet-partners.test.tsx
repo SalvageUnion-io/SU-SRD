@@ -20,9 +20,9 @@ import { describe, expect, mock, test } from 'bun:test'
 import { render, screen, within } from '@testing-library/react'
 import type { Mech } from 'cantina-domain/schemas/mech'
 import { mechPartnerSeeds, syncPartners } from '../../../lib/rules/partnerGrants'
-import { mechFixture } from '../../__tests__/fixtures'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
-import { must } from '../../__tests__/must'
+import { mechFixture } from '../../../components/__tests__/fixtures'
+import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
+import { must } from '../../../components/__tests__/must'
 import { MechSheet } from '../MechSheet'
 
 /** A mech built the way the wizard builds one, drones and all. */

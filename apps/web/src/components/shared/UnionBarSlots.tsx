@@ -25,7 +25,7 @@ import { SiteLink } from './AppLink'
  *
  * The slots stay content-agnostic, so this file knows nothing about accounts,
  * Convex or Games; `routes/__root.tsx` fills them
- * (`components/account/HeaderAccount.tsx`).
+ * (`build/account/HeaderAccount.tsx`).
  *
  * The phone drawer is the bar's one `UnionDrawer`, the reference pages' own,
  * with the Cantina's nav ahead of the site's pages and its account controls

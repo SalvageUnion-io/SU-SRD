@@ -18,11 +18,11 @@
  *
  * Controls keep their touch sizes: `.su-dash-phone`, the host's scope, holds
  * every control to 44×44 (ruleset §4.6). The layout's states are
- * `.su-play-phone*` (`styles/cantina/play/phone.css`).
+ * `.su-play-phone*` (`styles/play/phone.css`).
  */
 
 import type { CSSProperties, ReactNode } from 'react'
-import { Stat, Tab, TabList, TabPanel, Tabs, tokens } from '../index'
+import { Stat, Tab, TabList, TabPanel, Tabs, tokens } from '../components/index'
 import type { PhoneTab, PinnedUnit } from './playPhone.model'
 
 const ROOT = {

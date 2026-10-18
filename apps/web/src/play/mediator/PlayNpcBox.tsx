@@ -13,7 +13,15 @@
  */
 
 import type { CSSProperties } from 'react'
-import { Button, cn, HeaderMenu, Stat, TitledBox, tokens, useDetailModal } from '../../index'
+import {
+  Button,
+  cn,
+  HeaderMenu,
+  Stat,
+  TitledBox,
+  tokens,
+  useDetailModal,
+} from '../../components/index'
 import { PlayVital } from '../PlayVital'
 import { npcKind } from './npcActions.model'
 import type { TrayNpc } from './opposition.model'

@@ -10,7 +10,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { Button, Callout, tokens } from '../index'
+import { Button, Callout, tokens } from '../components/index'
 import { ResolveCost, ResolveSpend } from './PlayResolveCost'
 import type { ResolveModel } from './useActionsDeck'
 

@@ -7,8 +7,8 @@
  */
 
 import type { CSSProperties } from 'react'
-import { color, font, fontSize, space, weight } from '../../design/tokens'
-import { ActivationCost, Button, cn, Stat } from '../index'
+import { ActivationCost, Button, cn, Stat } from '../components/index'
+import { color, font, fontSize, space, weight } from '../design/tokens'
 import type { ResolveModel } from './useActionsDeck'
 
 const STEP = { minWidth: 0, paddingInline: space[8] } satisfies CSSProperties

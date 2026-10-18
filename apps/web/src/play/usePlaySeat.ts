@@ -4,7 +4,7 @@
  * reads, writes and optimistic updates as a Game's seat (`useSeatAt`).
  */
 
-import type { Id } from '../../../convex/_generated/dataModel'
+import type { Id } from '../../convex/_generated/dataModel'
 import type { PlayTarget } from './play.model'
 import type { SeatHandle } from './useSeat'
 import { useSeatAt } from './useSeat'

@@ -6,7 +6,7 @@
 
 import { fieldLabel } from 'cantina-domain/games/proposals'
 import type { FunctionReturnType } from 'convex/server'
-import type { api } from '../../../../convex/_generated/api'
+import type { api } from '../../../convex/_generated/api'
 
 export type SentProposal = FunctionReturnType<typeof api.proposals.sent>[number]
 

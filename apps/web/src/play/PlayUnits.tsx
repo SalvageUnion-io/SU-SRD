@@ -17,7 +17,7 @@
  * text. A hangar mech is a full-width Token on its own line, never a box.
  *
  * The dashed frame and the boxes' rows are `.su-play-unit*`, in
- * `styles/cantina/play/units.css`, which `PlayFrame` loads with Play's bundle.
+ * `styles/play/units.css`, which `PlayFrame` loads with Play's bundle.
  */
 
 import { DOWNTIME_UPKEEP_SCRAP } from 'cantina-domain/rules/downtime'
@@ -27,14 +27,6 @@ import type { Pilot } from 'cantina-domain/schemas/pilot'
 import type { RangeBand } from 'cantina-domain/schemas/seat'
 import { RANGE_BANDS } from 'cantina-domain/schemas/seat'
 import type { CSSProperties, ReactNode } from 'react'
-import { resolveClassName } from '../../lib/classRef'
-import { activatableEffects } from '../../lib/rules/activatableEffects'
-import { crawlerTechLevelOf } from '../../lib/rules/downtimeEconomy'
-import { runWrite } from '../../lib/runWrite'
-import { unitRowModel } from '../../lib/units/unitModel'
-import { useEntityStore } from '../../stores/entityStore'
-import { PLAY_TXN } from '../../stores/surfaceProvenance'
-import type { EntityForType } from '../../stores/types'
 import {
   Badge,
   Button,
@@ -49,7 +41,15 @@ import {
   Toggle,
   ToggleGroup,
   tokens,
-} from '../index'
+} from '../components/index'
+import { resolveClassName } from '../lib/classRef'
+import { activatableEffects } from '../lib/rules/activatableEffects'
+import { crawlerTechLevelOf } from '../lib/rules/downtimeEconomy'
+import { runWrite } from '../lib/runWrite'
+import { unitRowModel } from '../lib/units/unitModel'
+import { useEntityStore } from '../stores/entityStore'
+import { PLAY_TXN } from '../stores/surfaceProvenance'
+import type { EntityForType } from '../stores/types'
 import { PlayVital } from './PlayVital'
 import { hullGauge, injuryLines, mechStats, pilotVitals } from './unitStats.model'
 import type { MechRestore } from './units.model'

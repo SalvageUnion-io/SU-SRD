@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
-import { Button, Field, tokens } from '../index'
-import '../../styles/cantina/wizard.css'
+import { Button, Field, tokens } from '../../components/index'
+import '../../styles/build/wizard.css'
 import type { MechRollField, MechRollTableDeps } from './mechRollTables.model'
 import { rollForMechField } from './mechRollTables.model'
 import { stepColumnStyle } from './wizardStyles.model'

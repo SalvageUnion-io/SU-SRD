@@ -69,7 +69,7 @@ import {
   FieldError,
   ModalShell,
   RadioCardGroup,
-} from '../index'
+} from '../../components/index'
 import type { SoftLinkStore } from './useSoftLinks'
 
 type Kind = EntityRef['type']

@@ -27,6 +27,7 @@
 
 import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
+import { EntityCardStatic } from '../components/EntityCardStatic'
 import { cardNeedsHydration } from '../lib/cardNeedsHydration'
 import { itemHref } from '../lib/entityHref'
 import { extractStaticEntitySummary } from '../lib/gameData'
@@ -34,7 +35,6 @@ import { pageRefsFor } from '../lib/pageRefIndex'
 import { patternStaticSummary } from '../lib/patternSummary'
 import { getSchemaPreloadList } from '../lib/schemaPreloadDeps'
 import { Island } from '../runtime/Island'
-import { EntityCardStatic } from './EntityCardStatic'
 import { StaticEntityContent } from './StaticEntityContent'
 
 type EntityViewProps = {

@@ -14,7 +14,7 @@ import { getFunctionName } from 'convex/server'
 /**
  * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
  */
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
+import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 
 const mutations: { name: string; args: unknown }[] = []
 let mutationError: Error | null = null

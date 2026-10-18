@@ -30,8 +30,8 @@ import {
 } from '../../lib/wizard/crawlerFormState'
 import { withPreselection } from '../../lib/wizard/preselect'
 import { readWizardDraft, useWizardDraftSync, wizardDraftKey } from '../../lib/wizard/wizardDraft'
-import { slotPips } from '../atoms/pipRows'
-import { toast, tokens } from '../index'
+import { slotPips } from '../../components/atoms/pipRows'
+import { toast, tokens } from '../../components/index'
 import { CrawlerStatsStep } from '../wizard/CrawlerStatsStep'
 import { CrawlerTypeSelectStep } from '../wizard/CrawlerTypeStep'
 import type { StepRule } from '../wizard/RuleBrief'
@@ -42,7 +42,7 @@ import { WizShell, WizTracker } from '../wizard/WizShell'
 import { CrawlerCrewStep } from './CrawlerCrewStep'
 import { CrawlerIdentityStep } from './CrawlerIdentityStep'
 import { CrawlerReviewStep } from './CrawlerReviewStep'
-import '../../styles/cantina/wizard.css'
+import '../../styles/build/wizard.css'
 
 /** The RuleBrief's muted aside (the saved pilot/mech count). */
 const MUTED = { color: tokens.color.wkMuted } satisfies CSSProperties

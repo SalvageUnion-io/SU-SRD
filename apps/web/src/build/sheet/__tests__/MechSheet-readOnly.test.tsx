@@ -14,8 +14,8 @@ import { makeScrapLot } from 'cantina-domain/schemas/cargoLot'
 import type { Crawler } from 'cantina-domain/schemas/crawler'
 import type { Mech } from 'cantina-domain/schemas/mech'
 import type { useEntityStore } from '../../../stores/entityStore'
-import { FIXTURE_NOW } from '../../__tests__/fixtures'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
+import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { MechSheet } from '../MechSheet'
 
 const fakeChassis = {

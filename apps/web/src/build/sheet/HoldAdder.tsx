@@ -6,7 +6,7 @@ import type { CargoLot } from 'cantina-domain/schemas/cargoLot'
 import { makeScrapLot, makeUnitLot } from 'cantina-domain/schemas/cargoLot'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
-import { AdderBox, AdderField, Button, Input, Segmented, SegmentedOption, tokens } from '../index'
+import { AdderBox, AdderField, Button, Input, Segmented, SegmentedOption, tokens } from '../../components/index'
 
 /** A slot cost is a non-negative INTEGER (`CargoLotSchema.units` is `.int()`). */
 function coerceSlots(raw: string): number {

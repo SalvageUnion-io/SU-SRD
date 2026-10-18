@@ -25,8 +25,8 @@ import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
 import type { AssignableType } from '../../stores/types'
 import { ContainerPicker } from '../entityContainer/ContainerPicker'
 import { requestMove } from '../entityContainer/requestMove.model'
-import { ModalShell, toast, tokens } from '../index'
-import type { Confirm } from '../shared/useConfirm'
+import { ModalShell, toast, tokens } from '../../components/index'
+import type { Confirm } from '../../components/shared/useConfirm'
 
 /** What "out of a Game" is called in the Hangar, as on its chip. */
 const UNASSIGNED = 'Unassigned'

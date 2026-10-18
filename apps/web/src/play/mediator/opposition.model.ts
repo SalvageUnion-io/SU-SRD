@@ -16,9 +16,9 @@ import {
   nameToSlug,
   resolveFormerSlug,
 } from 'salvageunion-reference'
-import { asReferencePattern } from '../../../lib/patterns/patterns'
-import type { MoraleRoll } from '../../../lib/rules/opposition'
-import { isDown, trackOf } from '../../../lib/rules/opposition'
+import { asReferencePattern } from '../../lib/patterns/patterns'
+import type { MoraleRoll } from '../../lib/rules/opposition'
+import { isDown, trackOf } from '../../lib/rules/opposition'
 
 export type EncounterRefSchema = (typeof ENCOUNTER_REF_SCHEMAS)[number]
 

@@ -12,7 +12,7 @@
 
 import { Ellipsis } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import { Button, PopoverPanel } from '../index'
+import { Button, PopoverPanel } from '../../components/index'
 
 const ICON = { height: '18px', width: '18px' } satisfies CSSProperties
 

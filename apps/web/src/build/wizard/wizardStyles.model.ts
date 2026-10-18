@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { tokens } from '../index'
+import { tokens } from '../../components/index'
 
 /**
  * Style objects the wizard steps share. Rules a style object

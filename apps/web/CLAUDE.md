@@ -20,7 +20,7 @@ In-house SSG in `ssg/`, not Astro ([ADR-031](../../docs/ARCHITECTURE.md#decision
 
 ### Routes are registered, not discovered
 
-A route is a `src/pages/**/*.page.tsx` module exporting a `PageModule`:
+A route is a `src/reference/pages/**/*.page.tsx` module exporting a `PageModule`:
 
 ```ts
 export const aboutPage: PageModule = {
@@ -35,7 +35,7 @@ builds if it is imported and `register(…)`ed in
 [`ssg/routes.ts`](ssg/routes.ts). That file is the one place to read to know what
 the site emits. A finished document with no data behind it is not a route at
 all — `/greembeem` ships as `public/greembeem/index.html`, which Vite copies
-into `dist` like any public file. Non-HTML outputs are `src/endpoints/*.ts`
+into `dist` like any public file. Non-HTML outputs are `src/reference/endpoints/*.ts`
 wired through `ssg/endpoints.ts` — **endpoints are not routes.**
 
 ## Pages as the Workshop Manual sets them

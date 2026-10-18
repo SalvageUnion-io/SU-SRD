@@ -16,8 +16,8 @@
 
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { unitRowModel } from '../../lib/units/unitModel'
-import { EmptyState, Entity, Stat, tokens } from '../index'
+import { EmptyState, Entity, Stat, tokens } from '../components/index'
+import { unitRowModel } from '../lib/units/unitModel'
 import type { BoardSources } from './boardMenu.model'
 import type { CrewSeatLine } from './crew.model'
 import { crewLineLabel, crewSeatLines } from './crew.model'

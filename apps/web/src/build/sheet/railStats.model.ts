@@ -21,7 +21,7 @@ import {
   resolveGauge,
   resolvePool,
 } from 'salvageunion-reference/rules'
-import type { BadgeTone, StatState } from '../index'
+import type { BadgeTone, StatState } from '../../components/index'
 
 /**
  * One reading on a rail line — plain builders below, NOT components.

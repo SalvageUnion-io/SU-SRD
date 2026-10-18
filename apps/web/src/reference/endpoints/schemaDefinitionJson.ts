@@ -7,9 +7,9 @@
  * `ssg/DESIGN.md`'s URL -> file table.
  */
 
-import type { EndpointModule, StaticPath } from '../../ssg/types'
-import { getEntitySchemas } from '../lib/gameData'
-import { readReferenceFile } from '../lib/referenceFiles'
+import type { EndpointModule, StaticPath } from '../../../ssg/types'
+import { getEntitySchemas } from '../../lib/gameData'
+import { readReferenceFile } from '../../lib/referenceFiles'
 
 type Params = { schemaId: string }
 type Props = { schemaFile: string }

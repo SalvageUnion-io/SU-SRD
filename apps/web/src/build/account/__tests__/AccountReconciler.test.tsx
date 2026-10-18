@@ -14,8 +14,8 @@ import type { ReactElement } from 'react'
  * `convexMock.ts` for the capture/restore discipline.
  */
 
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
-import { pilotFixture } from '../../__tests__/fixtures'
+import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import { pilotFixture } from '../../../components/__tests__/fixtures'
 
 let authed = false
 const mutations: { name: string; args: Record<string, unknown> }[] = []

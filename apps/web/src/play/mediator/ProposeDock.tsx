@@ -31,7 +31,7 @@ import {
 } from 'cantina-domain/games/proposals'
 import type { CSSProperties, RefObject } from 'react'
 import { useId, useState } from 'react'
-import { Button, FeedList, Field, Input, Select, TitledBox, tokens } from '../../index'
+import { Button, FeedList, Field, Input, Select, TitledBox, tokens } from '../../components/index'
 import { MUTED, NUMBERS } from './mediatorStyles.model'
 import { ProposalRow } from './ProposalRow'
 import type { SentProposal } from './proposalLine.model'

@@ -9,7 +9,7 @@
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
-import { must } from '../../__tests__/must'
+import { must } from '../../../components/__tests__/must'
 import { CraftItemsStep } from '../CraftItemsStep'
 
 function tl1System(predicate: (s: { salvageValue: number; slotsRequired: number }) => boolean) {

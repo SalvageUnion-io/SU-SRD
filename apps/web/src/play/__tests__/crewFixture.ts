@@ -4,7 +4,7 @@
  * in Mule and away, and Bonesaw, the pilot the screen plays.
  */
 
-import type { Id } from '../../../../convex/_generated/dataModel'
+import type { Id } from '../../../convex/_generated/dataModel'
 import type { CrewVitals } from '../useGameFeed'
 import { calm, sound } from './crewRows'
 

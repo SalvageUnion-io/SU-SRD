@@ -1,8 +1,8 @@
 import type { CSSProperties, ReactNode } from 'react'
 import type { BookCite } from 'salvageunion-reference'
 import { formatCite } from 'salvageunion-reference'
-import { Box } from '../containers/Box'
-import { tokens } from '../index'
+import { Box } from '../../components/containers/Box'
+import { tokens } from '../../components/index'
 
 /** Per-step rule metadata carried by each wizard's step table. */
 export type StepRule = {

@@ -9,7 +9,7 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
-import { EmptyState, Slab, Text, tokens } from '../index'
+import { EmptyState, Slab, Text, tokens } from '../../components/index'
 
 const SECTION = {
   display: 'flex',

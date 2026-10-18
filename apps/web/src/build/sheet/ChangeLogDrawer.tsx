@@ -15,7 +15,7 @@ import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
-import type { BadgeTone } from '../index'
+import type { BadgeTone } from '../../components/index'
 import {
   Badge,
   EmptyState,
@@ -25,7 +25,7 @@ import {
   ModalShell,
   Pending,
   tokens,
-} from '../index'
+} from '../../components/index'
 
 type ChangeLogDrawerProps = {
   entityType: EntityRef['type']

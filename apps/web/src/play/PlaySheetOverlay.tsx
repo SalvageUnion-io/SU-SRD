@@ -15,8 +15,8 @@
 import type { SheetKind } from 'cantina-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { useEffect } from 'react'
-import { CloseButton, ModalShell, tokens } from '../index'
-import { SheetView } from '../sheet/SheetView'
+import { SheetView } from '../build/sheet/SheetView'
+import { CloseButton, ModalShell, tokens } from '../components/index'
 
 const FRAME = {
   background: 'var(--color-wk-bg)',

@@ -9,9 +9,9 @@
 
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { act, render, screen, within } from '@testing-library/react'
-import type { ConnectionMode } from '../../../lib/connection/connectionMode'
-import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
-import { pilotFixture } from '../../__tests__/fixtures'
+import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
+import { pilotFixture } from '../../components/__tests__/fixtures'
+import type { ConnectionMode } from '../../lib/connection/connectionMode'
 import { phoneViewport } from './phoneViewport'
 
 // Module scope, before the imports below — see `convexMock.ts`. The frame
@@ -38,10 +38,10 @@ const ANSWERS = {
 }
 setQueryAnswers(ANSWERS)
 
-const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
-const { useEntityStore } = await import('../../../stores/entityStore')
-const { hydrateStores } = await import('../../__tests__/hydrateStores')
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
+const { setEntityBackendAuthState } = await import('../../stores/entityBackend')
+const { useEntityStore } = await import('../../stores/entityStore')
+const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
+const { ConnectionContext } = await import('../../lib/connection/connectionContext')
 const { PlayCockpit } = await import('../PlayCockpit')
 
 beforeAll(async () => {

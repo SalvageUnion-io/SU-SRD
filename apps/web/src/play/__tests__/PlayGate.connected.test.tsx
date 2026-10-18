@@ -15,9 +15,13 @@ import { createElement } from 'react'
  * with which `PlayTarget`. Its own test is `PlayCockpit.test.tsx`.
  */
 
-import type { ConnectionMode } from '../../../lib/connection/connectionMode'
-import { installConvexMocks, queryCalls, setQueryAnswers } from '../../__tests__/convexMock'
-import { FIXTURE_NOW, mechFixture, pilotFixture } from '../../__tests__/fixtures'
+import {
+  installConvexMocks,
+  queryCalls,
+  setQueryAnswers,
+} from '../../components/__tests__/convexMock'
+import { FIXTURE_NOW, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
+import type { ConnectionMode } from '../../lib/connection/connectionMode'
 import type { PlayTarget } from '../play.model'
 
 // Module scope, before the imports below: `mock.module` only affects imports
@@ -26,7 +30,7 @@ const convexMocks = await installConvexMocks({
   router: true,
   also: {
     // Relative to `convexMock.ts`, not this file.
-    '../play/PlayCockpit': () => ({
+    '../../play/PlayCockpit': () => ({
       PlayCockpit: ({ target }: { target: PlayTarget }) =>
         createElement('p', null, `Cockpit for ${JSON.stringify(target)}`),
     }),
@@ -34,10 +38,10 @@ const convexMocks = await installConvexMocks({
 })
 
 const { PlayGate } = await import('../PlayGate')
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
-const { hydrateStores } = await import('../../__tests__/hydrateStores')
-const { useEntityStore } = await import('../../../stores/entityStore')
-const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
+const { ConnectionContext } = await import('../../lib/connection/connectionContext')
+const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
+const { useEntityStore } = await import('../../stores/entityStore')
+const { setEntityBackendAuthState } = await import('../../stores/entityBackend')
 
 const GAME_ID = 'g-play'
 const GAME = { _id: GAME_ID, name: 'Tenacity', mediator: false, organizer: false }

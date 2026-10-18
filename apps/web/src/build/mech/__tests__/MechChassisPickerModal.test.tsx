@@ -17,7 +17,7 @@
 import { describe, expect, it } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
-import { openInSearcher, pickInSearcher } from '../../__tests__/searcherPick'
+import { openInSearcher, pickInSearcher } from '../../../components/__tests__/searcherPick'
 import { MechChassisPickerModal } from '../MechChassisPickerModal'
 
 /** Two distinct real chassis — the current one and the one we swap to. */

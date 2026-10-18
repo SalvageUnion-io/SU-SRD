@@ -10,8 +10,8 @@
 import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { ConnectionState } from '../../../lib/connection/connectionContext'
-import { installConvexMocks, queryCalls, setQueryAnswers } from '../../__tests__/convexMock'
-import { crawlerFixture } from '../../__tests__/fixtures'
+import { installConvexMocks, queryCalls, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import { crawlerFixture } from '../../../components/__tests__/fixtures'
 
 // Module scope, before the imports below — see `convexMock.ts`.
 const convexMocks = await installConvexMocks()

@@ -230,7 +230,7 @@ const TOKEN_RULES: TokenRule[] = [
     // second "ground" on a quiet chip and a search row, which put the cool
     // palette back on a warm page. Every spelling counts: the custom property,
     // a utility-style class under any prefix, and the `color.wkBg2` token key.
-    // "Print" means the print stylesheet only (`apps/web/src/styles/cantina/print.css`,
+    // "Print" means the print stylesheet only (`apps/web/src/styles/build/print.css`,
     // all of it inside `@media print`), which whites the token out for paper;
     // theme.css / tokens.ts still DEFINE it and are exempt below like every
     // other definition rule.
@@ -323,7 +323,7 @@ const EXEMPTIONS: Exemption[] = [
       "EXTERNAL BRAND colour, not ours. #2e66c4 is Ko-fi's blue, darkened: the widget sets its label in white on this fill, and Ko-fi's own #72a4f2 measured 2.5:1 against it where WCAG AA wants 4.5:1 (#2e66c4 gives 5.5:1 at nearly the same hue). The widget is recognisable BECAUSE it is blue, so resolving it to a Salvage Union token would misrepresent someone else's mark. This is the standing rule for third-party marks: a colour we source from an external brand keeps the external hue, and anything sourced to OUR design uses the canonical set.",
   },
   {
-    file: 'apps/web/src/styles/cantina/print.css',
+    file: 'apps/web/src/styles/build/print.css',
     rules: ['raw-color', 'cool-ground'],
     reason:
       'PRINT MEDIA. Inside `@media print` the surface is physical paper and the ink is real ink, so #fff / #000 are the correct values rather than the screen palette — warm paper (#fbfaf7) printed as a fill wastes toner and reads grey. theme.css already carves out exactly this exception in its paper note ("the only remaining #ffffff is one scoped exception: the @media print sheet"); this is that exception, in the app that owns the sheet. cool-ground rides along because the print sheet whites `--color-wk-bg-2` out with the other themed grounds, so nothing that still reads it prints a tint.',
