@@ -532,21 +532,27 @@
   }
 }
 
-/* A NESTED table, folded (`CardRollTable nested`): a Token, at a Token's
-   height, filling the line its Table and Roll buttons leave it (N4), the
-   buttons beside it held to the pill's height (the 44px tap floor still
-   holds under a coarse pointer). */
-.su-roll-token.su-entity-token-line > .su-entity-token {
-  flex: 1 1 auto;
+/* A NESTED table, folded (`CardRollTable nested`): a Token filling its line
+   (N4), its Table and Roll buttons inside its strip after the name (C8), Mini
+   at the Token's height (C1a); a coarse pointer's 44px target is the Mini
+   rung's own hit area, so the strip never grows. */
+.su-roll-token__actions {
+  align-items: center;
+  display: flex;
+  flex: none;
+  gap: var(--space-4);
+  margin-left: auto;
+  padding-right: var(--space-2);
 }
 
-.su-roll-token > .su-roll__roll {
-  margin-left: 0;
+/* The toggle on the ink pill: a paper outline, as on the roll bar. */
+.su-roll-token .su-roll__toggle {
+  background-color: transparent;
+  border-color: var(--color-paper-70);
+  color: var(--color-paper);
 }
 
-@media (pointer: fine) {
-  .su-roll-token > .su-roll__control {
-    min-height: 0;
-    padding-block: 0;
-  }
+.su-roll-token .su-roll__toggle:hover:not(:disabled) {
+  background-color: var(--color-paper-15);
+  border-color: var(--color-paper);
 }

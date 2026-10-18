@@ -7,6 +7,11 @@
  *
  * The book's framed numeral beside its ink stamp. Two cells to a row on a
  * phone; from `sm`, as many 200px cells as fit (two beside the entity art).
+ * The cells fill the rows from the top down in the stat order, every row
+ * full but the last, whose cells centre under the others (owner's call,
+ * 2026-10-17). A grid cannot centre a short last row, so the column is a
+ * wrapping flex line whose cells take the width a grid column would: its
+ * container's width (`cqi`) shared among `--su-stat-cols` cells.
  * `row-reverse` draws the numeral first while the source reads label, value.
  * The stamp is sized to its label, not to the cell: the rest of the cell is
  * paper, so a column of stats reads as numerals with tags (the book's weight)
@@ -14,15 +19,21 @@
  * still shrink and wrap when the cell is narrower than the label.
  */
 .su-stat-column {
-  display: grid;
-  gap: var(--space-6) var(--space-8);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  --su-stat-cols: 2;
+  --su-stat-gap: var(--space-8);
+  container-type: inline-size;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6) var(--su-stat-gap);
+  justify-content: center;
   margin: 0;
 }
 
 .su-stat-column__cell {
   display: flex;
+  flex: 0 0 calc((100cqi - (var(--su-stat-cols) - 1) * var(--su-stat-gap)) / var(--su-stat-cols));
   min-height: 40px;
+  min-width: 0;
 }
 
 .su-stat-column__value {
@@ -57,10 +68,12 @@
   text-transform: uppercase;
 }
 
+/* From `sm`, as many 200px cells a row as fit, as `auto-fill` would: n
+   cells and their n - 1 gaps of 14px fit from n × 214px - 14px. */
 @media (min-width: 40rem) {
   .su-stat-column {
-    gap: var(--space-6) var(--space-14);
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    --su-stat-cols: 1;
+    --su-stat-gap: var(--space-14);
   }
 
   .su-stat-column__value {
@@ -73,15 +86,42 @@
   }
 }
 
+@container (min-width: 414px) {
+  @media (min-width: 40rem) {
+    .su-stat-column__cell {
+      --su-stat-cols: 2;
+    }
+  }
+}
+
+@container (min-width: 628px) {
+  @media (min-width: 40rem) {
+    .su-stat-column__cell {
+      --su-stat-cols: 3;
+    }
+  }
+}
+
+@container (min-width: 842px) {
+  @media (min-width: 40rem) {
+    .su-stat-column__cell {
+      --su-stat-cols: 4;
+    }
+  }
+}
+
 /* The compact column (`StatColumn compact`): the band's smaller cells, two a
    line at every width, for a narrow column beside other content (the Cantina mech
    sheet's hero, beside the player's fields). */
 .su-stat-column.su-stat-column--compact {
+  container-type: normal;
+  display: grid;
   gap: var(--space-4) var(--space-6);
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .su-stat-column--compact .su-stat-column__cell {
+  flex: none;
   min-height: 32px;
 }
 
@@ -94,6 +134,13 @@
   flex: 1 1 auto;
   font-size: var(--text-badge);
   padding: 0 var(--space-8);
+}
+
+/* A chassis page's stats (and its patterns', `CardPage`'s `__stats`): one
+   width, every stamp filling its cell, so the column reads as even blocks
+   rather than stamps sized to their labels (owner's call, 2026-10-17). */
+.su-entity-page__stats .su-stat-column__label {
+  flex: 1 1 auto;
 }
 
 /* The stats on a band (`ChapterBand asideAt="notch"`, srd's `EntityPageStamps`)
@@ -294,18 +341,4 @@
 
 .su-entity-page__wide:empty {
   display: none;
-}
-
-/* A stat group's first cell (`StatColumn`, `data-group-start`): in the grid it
-   opens a new row, so provenance, vitals and capacity each read as a line; on
-   the band's line of cells it is just the next chip, the same gap apart. */
-.su-stat-column__cell[data-group-start] {
-  grid-column-start: 1;
-}
-
-/* The compact column flows straight on, two a line, so a chassis's eight
-   stats fill four even lines rather than leaving holes where a group opens
-   (owner's call, 2026-10-14). The order is the stat order still. */
-.su-stat-column--compact .su-stat-column__cell[data-group-start] {
-  grid-column-start: auto;
 }
