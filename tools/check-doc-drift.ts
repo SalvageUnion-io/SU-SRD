@@ -957,7 +957,6 @@ const COLLAPSED_DOCS: Record<string, number> = {
   'docs/architecture/npc-builder.md': 2_000,
   'docs/architecture/play.md': 8_450,
   'docs/design-system/entity-display-language.md': 6_900,
-  'docs/design-system/hard-rules.md': 5_600,
   'docs/design-system/ruleset.md': 15_200,
   'docs/design-system/sources.md': 3_600,
   'docs/ops/cloud-environment.md': 3_800,
