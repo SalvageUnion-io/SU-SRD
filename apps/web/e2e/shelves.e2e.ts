@@ -1,9 +1,10 @@
 import type { Page } from '@playwright/test'
 import { buildPilot, gotoStable, waitForReady } from './_helpers'
+import { createGame } from './_table'
 import { expect, test } from './fixtures'
 
 /**
- * Shelves — everything you keep (board S1).
+ * The Hangar — everything you own (board S1, ADR-052 §1).
  *
  * Signed in (the default `test` from `fixtures.ts`), so each spec SKIPS with a
  * stated reason in a build with no test sign-in seam and runs for real in the
@@ -24,24 +25,22 @@ async function fromMenu(page: Page, name: string, row: string): Promise<void> {
   await page.getByRole('menuitem', { name: row }).click()
 }
 
-function showing(page: Page, option: 'Everything' | 'Unassigned') {
-  return page.getByRole('group', { name: 'Showing' }).getByRole('button', { name: option })
+/** The band's Showing select. */
+async function show(page: Page, option: string): Promise<void> {
+  await page.getByLabel('Showing').selectOption({ label: option })
 }
 
-test('move a unit into a Game and back: it never leaves the shelf', async ({ page }) => {
+test('move a unit into a Game and back: it never leaves the Hangar', async ({ page }) => {
   await buildPilot(page, 'Shelf Runner', 'Runner')
 
-  // A Game to move it into.
-  await openShelves(page)
-  await page.getByRole('button', { name: '+ New Game' }).click()
-  await page.getByLabel('New Game name').fill('Dustbowl Run')
-  await page.getByRole('button', { name: 'Create', exact: true }).click()
-  await page.waitForURL(/\/play\/games\//, { timeout: 20_000 })
+  // A Game to move it into, started on the Play hub.
+  const gameId = await createGame(page, 'Dustbowl Run')
 
   await openShelves(page)
   const pilots = page.getByRole('region', { name: 'Pilots' })
   await expect(pilots.getByText('Shelf Runner')).toBeVisible({ timeout: 15_000 })
-  await expect(pilots.getByText('Unassigned')).toBeVisible()
+  // In no Game: no Game chip, and never an "Unassigned" one.
+  await expect(pilots.getByText('Unassigned')).toHaveCount(0)
 
   // In: one pick, no confirm (nothing is linked to it).
   await fromMenu(page, 'Shelf Runner', 'Move to a Game…')
@@ -49,23 +48,29 @@ test('move a unit into a Game and back: it never leaves the shelf', async ({ pag
     .getByRole('list', { name: 'Where to' })
     .getByRole('button', { name: 'Dustbowl Run' })
     .click()
-  await expect(pilots.getByText('Dustbowl Run')).toBeVisible({ timeout: 15_000 })
+  // Its Game is a relation chip opening the Game's page in Play.
+  const chip = pilots.locator('[data-chip-class="relation"] a[data-tag]', {
+    hasText: 'Dustbowl Run',
+  })
+  await expect(chip).toBeVisible({ timeout: 15_000 })
+  await expect(chip).toHaveAttribute('href', new RegExp(`/play/games/${gameId}$`))
 
-  // Still on the shelf under Everything; under Unassigned it is not.
-  await showing(page, 'Unassigned').click()
+  // Still in the Hangar under Everything and under its Game; under Not in a Game it is not.
+  await show(page, 'Not in a Game')
   await expect(pilots.getByText('Shelf Runner')).toHaveCount(0)
-  await showing(page, 'Everything').click()
+  await show(page, 'Dustbowl Run')
+  await expect(pilots.getByText('Shelf Runner')).toBeVisible()
+  await show(page, 'Everything')
   await expect(pilots.getByText('Shelf Runner')).toBeVisible()
 
   // Out again: taking it off a table's roster always asks.
   await fromMenu(page, 'Shelf Runner', 'Move to a Game…')
   await page
     .getByRole('list', { name: 'Where to' })
-    .getByRole('button', { name: 'Unassigned' })
+    .getByRole('button', { name: 'Not in a Game' })
     .click()
   await page.getByRole('alertdialog').getByRole('button', { name: /^Move/ }).click()
-  await expect(pilots.getByText('Unassigned')).toBeVisible({ timeout: 15_000 })
-  await expect(pilots.getByText('Dustbowl Run')).toHaveCount(0)
+  await expect(pilots.getByText('Dustbowl Run')).toHaveCount(0, { timeout: 15_000 })
 })
 
 test('copy a pilot from the Starter Set onto the shelf', async ({ page }) => {

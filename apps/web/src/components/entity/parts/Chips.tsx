@@ -43,6 +43,7 @@ export function Chips({
   chips,
   size,
   linkable = false,
+  relationsLinkable = linkable,
   marks,
   state,
   uses,
@@ -57,6 +58,12 @@ export function Chips({
   size: Size
   /** Traits may link (not inside a link or a clickable card). */
   linkable?: boolean
+  /**
+   * Relations may link: as traits by default; also where the form raises its
+   * chips above a covering link (a Row's `data-covered`), so a unit's
+   * `GAME | Rust Run` opens the Game while the Row opens the unit (C11).
+   */
+  relationsLinkable?: boolean
   /** The host's marks, first (a note, User-made, "Suggested"): one node per chip. */
   marks?: ReactNode
   /** The state slot after the cost (C8): a live reading, a condition, a quantity. */
@@ -88,8 +95,8 @@ export function Chips({
   const { stats, action } = splitStatLine(chips.facts)
   const rank = stats.filter((stat) => stat.key === RANK_KEY)
   const measure = stats.filter((stat) => stat.key !== RANK_KEY)
-  const tags = (items: TagItem[] | undefined, key: string) =>
-    items?.length ? [<Tags key={key} tags={items} linkable={linkable} size={size} />] : []
+  const tags = (items: TagItem[] | undefined, key: string, links = linkable) =>
+    items?.length ? [<Tags key={key} tags={items} linkable={links} size={size} />] : []
   // The model's chips by class, each node with how many chips it draws.
   const own: Record<ChipClass, { nodes: ReactNode[]; count: number }> = {
     mark: { nodes: [], count: 0 },
@@ -111,7 +118,10 @@ export function Chips({
       count: chips.durations.length + action.length,
     },
     traits: { nodes: tags(chips.tags, 'traits'), count: chips.tags.length },
-    relation: { nodes: tags(chips.relations, 'relations'), count: chips.relations?.length ?? 0 },
+    relation: {
+      nodes: tags(chips.relations, 'relations', relationsLinkable),
+      count: chips.relations?.length ?? 0,
+    },
     cost: {
       nodes: chips.cost ? [<CostBox key="cost" cost={chips.cost} size={size} />] : [],
       count: chips.cost ? 1 : 0,

@@ -1,13 +1,13 @@
 /**
- * ShelfItem — one thing on a shelf (Shelves, board S1): the library Row a
+ * ShelfItem — one thing on a shelf (the Hangar, board S1): the library Row a
  * Game's roster draws the same units with (`UnitRow`), the whole Row opening
  * it. Its chips are the defining fact (never its kind, EDL E9) and one
  * reading, label-first (`CLASS | ENGINEER`, `HP | 8/10`), led by this item's
- * chips — the Game it
- * is in, the units linked to it, and for a pattern or NPC who can see it — as
- * label-only chips, the way a Game's Row leads with its owner chip
- * (never boxes under the card; owner's rule, 2026-10-14) — and its "⋯" menu,
- * an action chip, last on the name's line.
+ * own chips (for a pattern or NPC, who can see it) as label-only chips, the
+ * way a Game's Row leads with its owner chip (never boxes under the card;
+ * owner's rule, 2026-10-14); then its relations, the units linked to it and
+ * the Game it is in (`GAME | Rust Run`, opening that Game's page in Play,
+ * C11); and its "⋯" menu, an action chip, last on the name's line.
  *
  * The menu's rows are the caller's (`menu`): what an item may do depends on its
  * kind and on whether this session can write, and every verb that asks first
@@ -83,7 +83,6 @@ export function ShelfItem({
                   orientation="horizontal"
                   label={chip.label}
                   value={chip.value}
-                  hollow={chip.hollow}
                   size="compact"
                 />
               ))

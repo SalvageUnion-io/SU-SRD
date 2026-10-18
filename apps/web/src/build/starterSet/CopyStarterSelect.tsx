@@ -21,9 +21,9 @@ import { moveDestinations } from '../../lib/games/gameRoster'
 import { copyStarter } from '../../lib/starterSet/copyStarter'
 import type { StarterKind } from '../../lib/starterSet/starterTemplates'
 import { STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
-import { serializeContainer } from '../../stores/activeContainerStore'
 import { Select, toast, tokens } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
+import { serializeContainer } from '../entityContainer/ContainerPicker'
 
 type CopyStarterSelectProps = {
   kind: StarterKind

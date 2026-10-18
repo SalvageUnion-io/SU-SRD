@@ -172,6 +172,16 @@ export function Row({
       ]
     : undefined
 
+  // A Row with controls, or a link Row with host labels or a trailing chip that
+  // may be one (an owner seal that claims, a "⋯" menu), never nests them in its
+  // own control (a link's `<a>`, a radio): the surface is an empty cover laid
+  // over the frame, and the controls, the chips' own controls (and a toggle's
+  // check) are raised above it (`[data-covered]`). There a relation is a link
+  // of its own too, raised with them (C11).
+  const covered =
+    (!!slots.controls && mode.kind !== 'read') ||
+    ((!!slots.extraLabels || !!slots.trailing || !!slots.state) && mode.kind === 'link')
+
   const frame = (
     <div
       className="su-entity-row__frame"
@@ -193,6 +203,7 @@ export function Row({
                 chips={chips}
                 size="compact"
                 linkable={mode.kind === 'read'}
+                relationsLinkable={mode.kind === 'read' || covered}
                 lanes
                 marks={marks}
                 state={slots.state}
@@ -218,14 +229,6 @@ export function Row({
     </div>
   )
 
-  // A Row with controls, or a link Row with host labels or a trailing chip that
-  // may be one (an owner seal that claims, a "⋯" menu), never nests them in its
-  // own control (a link's `<a>`, a radio): the surface is an empty cover laid
-  // over the frame, and the controls, the chips' own controls (and a toggle's
-  // check) are raised above it (`[data-covered]`).
-  const covered =
-    (!!slots.controls && mode.kind !== 'read') ||
-    ((!!slots.extraLabels || !!slots.trailing || !!slots.state) && mode.kind === 'link')
   if (covered) {
     return (
       <div className="su-entity-row" data-covered="">

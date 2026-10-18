@@ -16,7 +16,7 @@
  * ## Connected only
  *
  * Games need the server of record: a Solo user has no Games, and a
- * Disconnected one cannot list theirs. Like `ContainerSwitcher`, the Convex
+ * Disconnected one cannot list theirs. The Convex
  * read lives in a child that is only mounted once the mode is Connected, so its
  * hook always has a provider.
  */

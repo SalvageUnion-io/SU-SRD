@@ -24,10 +24,10 @@
  *
  * ## Contract
  *
- * Every operation is best-effort and total: reads return `null` when anything
- * goes wrong, writes report whether they landed and never throw. Persistence
- * here is a convenience — the current container, a remembered choice
- * — so a failure must degrade the preference, never the app.
+ * Every operation is best-effort and total: no storage reads as `null`, and a
+ * caller wraps its own read or write in a `try`. Persistence here is a
+ * convenience — a remembered choice — so a failure must degrade the
+ * preference, never the app.
  */
 
 /**
@@ -49,36 +49,10 @@ export function localStore(): Storage | null {
   }
 }
 
-/** Read a key. `null` for absent, unavailable, or throwing storage. */
-export function readLocal(key: string): string | null {
-  const store = localStore()
-  if (store === null) return null
-  try {
-    return store.getItem(key)
-  } catch {
-    // Denied mid-session (e.g. a profile policy change): read as absent.
-    return null
-  }
-}
-
-/** Write a key. Returns whether it landed; never throws. */
-export function writeLocal(key: string, value: string): boolean {
-  const store = localStore()
-  if (store === null) return false
-  try {
-    store.setItem(key, value)
-    return true
-  } catch {
-    // Quota exceeded, or private mode refusing to persist.
-    return false
-  }
-}
-
 /**
- * Deliberately no `removeLocal` / `isLocalStorageAvailable`, nor the JSON
- * helpers: nothing needs them. The callers that would have (the snapshot
- * revoke ledger, the Dial's prefs store) went with snapshot publishing
- * (ADR-036) and the Dial, and the dead-code gate treats an export with
- * no consumer as dead. Add them here — same `localStore()` + `try` shape as above —
- * in the change that first needs them, not before.
+ * Deliberately no `readLocal` / `writeLocal` / `removeLocal`, nor the JSON
+ * helpers: nothing needs them. Their last caller, the remembered current
+ * container, was retired (ADR-052 §3), and the dead-code gate treats an export
+ * with no consumer as dead. Add them here — `localStore()` and a `try` round
+ * each call — in the change that first needs them, not before.
  */

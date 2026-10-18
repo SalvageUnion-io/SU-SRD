@@ -22,10 +22,6 @@ const convexMocks = await installConvexMocks({
 
 const { GamesDrawerList, GamesMenu } = await import('../GamesMenu')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
-const { SHELF } = await import('game-domain/container')
-const { setActiveContainer, getActiveContainer } = await import(
-  '../../../stores/activeContainerStore'
-)
 const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
 
 const GAMES = [
@@ -49,7 +45,6 @@ function setOnline(value: boolean): void {
 afterEach(() => {
   authed = true
   setOnline(true)
-  setActiveContainer(SHELF)
   convexMocks.navigations.length = 0
   // Process-global: a leaked signed-in state changes what later files exercise.
   setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
@@ -89,11 +84,9 @@ describe('GamesMenu', () => {
 
     const empty = within(await openGames()).getByRole('menuitem', { name: 'No Games yet' })
     expect(empty.getAttribute('aria-disabled')).toBe('true')
-    setActiveContainer(SHELF)
     await act(async () => {
       fireEvent.click(empty)
     })
-    expect(getActiveContainer()).toEqual(SHELF)
     expect(convexMocks.navigations).toEqual([])
   })
 

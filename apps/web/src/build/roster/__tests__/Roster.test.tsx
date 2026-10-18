@@ -213,22 +213,21 @@ describe('Roster — signed out, it is the front door (board 09)', () => {
 // ---------------------------------------------------------------------------
 
 describe('Hangar — the band', () => {
-  test('the notched title, the Showing toggle on Everything, Import and Export all', async () => {
+  test('the notched title, the Showing select on Everything, Import and Export all', async () => {
     await renderShelves()
 
     expect(screen.getByRole('heading', { level: 1, name: 'Hangar' })).toBeTruthy()
     expect(screen.queryByText(/Units in a Game stay on your shelf too\./)).toBeNull()
-    const showing = screen.getByRole('group', { name: 'Showing' })
-    expect(
-      within(showing)
-        .getAllByRole('button')
-        .map((b) => [b.textContent, b.getAttribute('aria-pressed')])
-    ).toEqual([
-      ['Everything', 'true'],
-      ['Unassigned', 'false'],
+    const showing = screen.getByLabelText('Showing') as HTMLSelectElement
+    expect(showing.value).toBe('everything')
+    expect([...showing.options].map((o) => o.textContent).slice(0, 2)).toEqual([
+      'Everything',
+      'Not in a Game',
     ])
     expect(screen.getByRole('button', { name: 'Import' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Export all' })).toBeTruthy()
+    // A Game is started on the Play hub, never in Build (ADR-052 §1).
+    expect(screen.queryByRole('button', { name: '+ New Game' })).toBeNull()
     // "My Stuff" is gone: the page is Shelves.
     expect(screen.queryByText(/My Stuff/)).toBeNull()
   })
@@ -325,7 +324,7 @@ describe('Hangar — one shelf per kind', () => {
 })
 
 describe('Hangar — items', () => {
-  test('an item is one line that opens its sheet, with a chip saying where it is', async () => {
+  test('an item is one line that opens its sheet; in no Game, its Game lane is empty', async () => {
     const id = await seedEntity('pilot', 'Nia Vale')
     await renderShelves()
 
@@ -334,14 +333,15 @@ describe('Hangar — items', () => {
       .getAllByRole('link')
       .find((a) => a.getAttribute('href') === `/sheet/pilot/${id}`)
     expect(link?.getAttribute('aria-label')).toContain('Nia Vale')
-    // The chip saying where it is sits in the Row's chip group, not under it.
     const line = link?.closest('.su-entity-row')
     expect(line?.textContent).toContain('Nia Vale')
     // What it is built as, never its kind (EDL E9: screen readers hear that).
     expect(line?.textContent).toContain('Engineer')
     expect(line?.textContent).not.toContain('Pilot ·')
     expect(line?.textContent).toContain('HP')
-    expect(line?.textContent).toContain('Unassigned')
+    // In no Game: no Game chip, and never an "Unassigned" one (C11).
+    expect(line?.querySelector('[data-chip-class="relation"] a[data-tag]')).toBeNull()
+    expect(line?.textContent).not.toContain('Unassigned')
   })
 
   test('linked units are each other’s relation chips, MECH | and PILOT | (C11)', async () => {

@@ -76,9 +76,6 @@ const { ConnectionContext } = await import('../../../lib/connection/connectionCo
 const { hydrateStores } = await import('../../../components/__tests__/hydrateStores')
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
-const { getActiveContainer, setActiveContainer } = await import(
-  '../../../stores/activeContainerStore'
-)
 const { CHAPTER_BAND_COLOR } = await import('../../../components/index')
 
 /** A colour as the DOM reads it back off an inline style. */
@@ -93,11 +90,9 @@ beforeAll(hydrateStores)
 beforeEach(() => {
   mutations.length = 0
   navigations.length = 0
-  setActiveContainer({ kind: 'game', gameId: 'g1' })
 })
 
 afterAll(() => {
-  setActiveContainer({ kind: 'shelf' })
   convexMocks.restore()
 })
 
@@ -147,7 +142,6 @@ const heading = (name: string) => screen.queryByRole('heading', { level: 2, name
 
 describe('a Manage page in Play (ADR-052 §5, §7)', () => {
   test('the Game’s name on Play’s band, and none of Build’s controls', async () => {
-    setActiveContainer({ kind: 'shelf' })
     await renderHub()
     const title = screen.getByRole('heading', { level: 1, name: 'Union Crawler #430' })
     const band = title.closest('.su-chapter-band') as HTMLElement
@@ -155,8 +149,6 @@ describe('a Manage page in Play (ADR-052 §5, §7)', () => {
     expect(screen.queryByLabelText('Games')).toBeNull()
     expect(screen.queryByRole('button', { name: /Import/ })).toBeNull()
     expect(screen.queryByRole('button', { name: /Export/ })).toBeNull()
-    // Opening a Game's page never makes it a container: a unit's Game is its own.
-    expect(getActiveContainer()).toEqual({ kind: 'shelf' })
   })
 
   test('the sections are Slabs (solid stamps), level 2 under the page’s h1', async () => {

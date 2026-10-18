@@ -92,9 +92,12 @@ describe('CrewSeats', () => {
     const [, , player] = seats()
     if (!player) throw new Error('missing seats')
     const hrefs = [...player.querySelectorAll('a')].map((a) => a.getAttribute('href'))
-    expect(hrefs).toEqual(['/sheet/pilot/ghost'])
+    // The Row opens the pilot; its mech chip opens the mech (C11), raised over
+    // the Row's cover beside it, never nested in its link.
+    expect(hrefs).toEqual(['/sheet/mech/iron-jaw', '/sheet/pilot/ghost'])
+    expect(player.querySelector('a a')).toBeNull()
     // The mech chip is a relation (a tag in the chip group), never a label
-    // beside the name, and the Row opens as one link: no link nests in it.
+    // beside the name.
     const chip = player.querySelector('[data-tag]')
     expect(chip?.textContent).toBe('MechIron Jaw')
   })

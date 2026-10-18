@@ -30,7 +30,7 @@
  */
 
 import type { ContainerFields } from 'game-domain/container'
-import { containerOf, moveTo, sameContainer } from 'game-domain/container'
+import { containerOf, moveTo, SHELF, sameContainer } from 'game-domain/container'
 import {
   CROSS_CONTAINER_REFUSAL,
   conflictingLinks,
@@ -47,7 +47,6 @@ import { staleWriteOf } from '../../convex/model/staleWrite'
 import { linksClearedByMove } from '../lib/links/clearedByMove'
 import { LinkRefused } from '../lib/links/linkRefused'
 import { captureException } from '../lib/observability'
-import { getActiveContainer } from './activeContainerStore'
 import {
   commitEntityWrite,
   commitSoftLink,
@@ -301,21 +300,19 @@ function withoutLinksTo(links: readonly SoftLink[], ids: ReadonlySet<string>): S
 }
 
 /**
- * Stamp a brand-new build with the current container so it belongs somewhere
+ * Stamp a brand-new build with its container so it belongs somewhere
  * (ADR-030 §2 — an entity is always in exactly one Game or on the Shelf).
  *
- * Applies to pilots/mechs/crawlers only; SoftLinks carry no container. An
- * input that already decided its own container is left untouched so it isn't
- * clobbered — and "already decided" includes an explicit `gameId: null`,
- * because null *is* the Shelf rather than an absence (see game-domain/src/container.ts).
- * Testing for `undefined` rather than nullishness is what keeps a deliberate
- * shelving from being overwritten by whatever container happens to be open.
+ * There is no current container (ADR-052 §3): a unit's Game comes from the
+ * unit, or from the wizard link that started it (`?game=<id>`), which puts it
+ * on the input. An input that names its container keeps it; any other lands
+ * in the Hangar. SoftLinks carry no container.
  */
-function withActiveContainer<T extends EntityType>(type: T, input: CreateInput<T>): CreateInput<T> {
+function withContainer<T extends EntityType>(type: T, input: CreateInput<T>): CreateInput<T> {
   if (type === 'softLink') return input
   const rec = input as { gameId?: string | null }
   if (rec.gameId !== undefined) return input
-  return { ...input, ...moveTo(getActiveContainer()) } as CreateInput<T>
+  return { ...input, ...moveTo(SHELF) } as CreateInput<T>
 }
 
 /**
@@ -460,7 +457,7 @@ export const useEntityStore = create<EntityState>((set, get, api) => ({
     // not appear here either. `commitWrite` throws on refusal and this deliberately does
     // not catch — the caller's write failed, and every caller already handles
     // that path for `WritesBlockedOffline`.
-    const record = prepareCreate(kindOf(type), withActiveContainer(type, input))
+    const record = prepareCreate(kindOf(type), withContainer(type, input))
     await commitWrite(type, record)
 
     set((state) => ({

@@ -1,16 +1,17 @@
 /**
- * What each item on the Shelves page says (board S1) — pure, so
- * the page only lays it out.
+ * What each item in the Hangar says (board S1) — pure, so the page only lays
+ * it out.
  *
- * Shelves is everything a player keeps, on their account: a unit in a Game
- * stays on their shelf too, so the page lists every pilot, mech and crawler
- * this browser holds for the account, wherever it is, and says where in a chip
- * under it. The "Showing" toggle narrows that to what is in no Game.
+ * The Hangar is everything a player owns, on their account (ADR-052 §1–2): a
+ * unit in a Game stays in their Hangar too, so the page lists every pilot,
+ * mech and crawler of theirs this browser holds, wherever it is, and names its
+ * Game in a relation chip. The "Showing" select narrows that to what is in no
+ * Game, or to one Game's.
  *
  * Each item is one line — the kind and its defining fact on a stamp, the name,
- * and one reading (`HP 8/10`) — with chips: the Game it is in, where it came
- * from, for a pattern who can see it, and the units linked to it as relations
- * (`PILOT | Bonesaw`).
+ * and one reading (`HP 8/10`) — with chips: for a pattern or NPC who can see
+ * it, then the units linked to it and its Game as relations
+ * (`PILOT | Bonesaw`, `GAME | The Long Haul`).
  */
 
 import type { ContainerFields } from 'game-domain/container'
@@ -22,23 +23,32 @@ import type { MechPattern } from 'game-domain/schemas/pattern'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SoftLink } from 'game-domain/schemas/softLink'
 import { resolveChassisRef, resolvePool } from 'salvageunion-reference/rules'
+import { playGamePath } from '../barLinks'
 import { resolveClassName } from '../classRef'
 import { resolveCrawlerType } from '../crawlerRefs'
 import type { PatternVisibility } from '../patterns/patterns'
 import { patternChassis, patternLoadout, slotsUsed } from '../patterns/patterns'
 import { readReference } from '../readReference'
 
-/** The Showing toggle: everything you keep, or only what is in no Game. */
-export type ShelfFilter = 'everything' | 'not-in-game'
-
-/** The Hangar band's "Showing" choices, in order. */
-export const SHELF_FILTERS: { value: ShelfFilter; label: string }[] = [
-  { value: 'everything', label: 'Everything' },
-  { value: 'not-in-game', label: 'Unassigned' },
-]
+/** The Showing select: everything you own, what is in no Game, or one Game's (`game:<id>`). */
+export type ShelfFilter = 'everything' | 'not-in-game' | `game:${string}`
 
 /** A Game the viewer is in, as `games.listMine` answers. */
 export type ShelfGame = { _id: string; name: string; mediator: boolean }
+
+/**
+ * The Hangar's "Showing" choices, in order: Everything, Not in a Game, then one
+ * entry per Game (ADR-052 §1). With no Game list to ask, the first two alone.
+ */
+export function shelfFilters(
+  games: readonly Pick<ShelfGame, '_id' | 'name'>[] | undefined
+): { value: ShelfFilter; label: string }[] {
+  return [
+    { value: 'everything', label: 'Everything' },
+    { value: 'not-in-game', label: 'Not in a Game' },
+    ...(games ?? []).map((g) => ({ value: `game:${g._id}` as const, label: g.name })),
+  ]
+}
 
 /** Who can read a pattern, and how often it has been built (`shelf.patternSharing`). */
 export type PatternSharing = {
@@ -48,34 +58,32 @@ export type PatternSharing = {
   builtCount: number
 }
 
-/** One chip under an item. */
-/**
- * One of an item's own chips: label-only (`Only me`), a split chip when it
- * has a value (`GAME | The Long Haul`), and hollow, an outline on the band,
- * for the absence of one (`Unassigned`).
- */
-export type ShelfChip = { key: string; label: string; value?: string; hollow?: boolean }
+/** One of an item's own chips: label-only (`Only me`), or split when it has a value. */
+export type ShelfChip = { key: string; label: string; value?: string }
 
 /**
- * A unit linked to the item, as its relation chip (`chips-and-actions.md`
- * C11): what it is (`Mech`), its name, and its sheet.
+ * A unit or Game linked to the item, as its relation chip
+ * (`chips-and-actions.md` C11): what it is (`Mech`, `Game`), its name, and
+ * where it opens (a unit's sheet, a Game's page in Play).
  */
 export type ShelfRelation = { key: string; label: string; value: string; href: string }
 
 /** One reading on an item's line: `HP 8/10`, `TL 1`. */
 export type ShelfReading = { label: string; value: string }
 
-/** Whether an item shows under the toggle. A unit in a Game shows under Everything. */
+/** Whether an item shows under the Showing select. A unit in a Game shows under Everything. */
 export function shownUnder(filter: ShelfFilter, entity: ContainerFields): boolean {
-  return filter === 'everything' || typeof entity.gameId !== 'string'
+  if (filter === 'everything') return true
+  if (filter === 'not-in-game') return typeof entity.gameId !== 'string'
+  return entity.gameId === filter.slice('game:'.length)
 }
 
 /**
- * Whether a cached crawler is one you keep. A crawler on the shelf is; one in
+ * Whether a cached crawler is one you keep. A crawler in your Hangar is; one in
  * a Game is the crew's, and this browser caches the crawler of every Game you
  * are in (`WiringSync`), so it is yours to keep only where you run the table.
  * With no Game list to ask (offline, or still loading), it is shown rather
- * than hidden: hiding a build is the one mistake a shelf must not make.
+ * than hidden: hiding a build is the one mistake a Hangar must not make.
  */
 export function crawlerIsKept(
   crawler: ContainerFields,
@@ -124,29 +132,22 @@ export function patternReading(
 }
 
 /**
- * Where the item is: `GAME | its name`, or a hollow "Unassigned" (owner,
- * 2026-10-15). A Game this viewer cannot name (offline, or one they have
- * left) is just "In a Game".
+ * The Game the item is in, as its relation chip: `GAME | its name`, opening
+ * the Game's page in Play (C11). In no Game, nothing: the lane stays empty
+ * (C6), never an "Unassigned" chip. A Game this viewer cannot name (offline,
+ * or one they have left) still links, as "A Game".
  */
-export function containerChip(
+export function gameRelation(
   entity: ContainerFields,
   games: readonly ShelfGame[] | undefined
-): ShelfChip {
-  if (typeof entity.gameId !== 'string') return { key: 'where', label: 'Unassigned', hollow: true }
-  const game = games?.find((g) => g._id === entity.gameId)
-  return game
-    ? { key: 'where', label: 'Game', value: game.name }
-    : { key: 'where', label: 'In a Game' }
+): ShelfRelation[] {
+  const gameId = entity.gameId
+  if (typeof gameId !== 'string') return []
+  const game = games?.find((g) => g._id === gameId)
+  return [{ key: 'game', label: 'Game', value: game?.name ?? 'A Game', href: playGamePath(gameId) }]
 }
 
 type Names = ReadonlyMap<string, string>
-
-export function pilotChips(args: {
-  pilot: Pilot
-  games: readonly ShelfGame[] | undefined
-}): ShelfChip[] {
-  return [containerChip(args.pilot, args.games)]
-}
 
 /** The mech a pilot is assigned to, as its relation: `MECH | Scrapper`. */
 export function pilotRelations(args: {
@@ -159,13 +160,6 @@ export function pilotRelations(args: {
   return link && name
     ? [{ key: 'mech', label: 'Mech', value: name, href: `/sheet/mech/${link.from.id}` }]
     : []
-}
-
-export function mechChips(args: {
-  mech: Mech
-  games: readonly ShelfGame[] | undefined
-}): ShelfChip[] {
-  return [containerChip(args.mech, args.games)]
 }
 
 /** The pilot a mech carries, as its relation: `PILOT | Bonesaw`. */
@@ -181,6 +175,7 @@ export function mechRelations(args: {
     : []
 }
 
+/** A crawler in a Game you mediate says so. */
 export function crawlerChips(args: {
   crawler: Crawler
   games: readonly ShelfGame[] | undefined
@@ -190,10 +185,7 @@ export function crawlerChips(args: {
     typeof crawler.gameId === 'string'
       ? args.games?.find((g) => g._id === crawler.gameId)
       : undefined
-  return [
-    containerChip(crawler, args.games),
-    ...(game?.mediator ? [{ key: 'role', label: 'You mediate' }] : []),
-  ]
+  return game?.mediator ? [{ key: 'role', label: 'You mediate' }] : []
 }
 
 /** Who can see a pattern. */
@@ -235,22 +227,16 @@ export function linkChip(sharedByLink: readonly string[] | undefined, id: string
 
 /**
  * Who can see an NPC: anyone with the link once its owner shares it so; else
- * nobody but you while it is on your shelf, and the table once it is moved into
- * a Game. A Game this viewer cannot name is just "a Game".
+ * nobody but you while it is in your Hangar. In a Game the table sees it, which
+ * its Game relation (`gameRelation`) already says, so no chip repeats it.
  */
-export function npcChips(args: {
-  npc: Pick<Npc, 'gameId'>
-  games: readonly ShelfGame[] | undefined
-  sharedByLink?: boolean
-}): ShelfChip[] {
-  const { npc } = args
+export function npcChips(args: { npc: Pick<Npc, 'gameId'>; sharedByLink?: boolean }): ShelfChip[] {
   if (args.sharedByLink) return [{ key: 'who', label: 'Shared by link' }]
-  if (typeof npc.gameId !== 'string') return [{ key: 'who', label: 'Only me' }]
-  const game = args.games?.find((g) => g._id === npc.gameId)
-  return [{ key: 'who', label: game ? `Shared with ${game.name}` : 'Shared with a Game' }]
+  if (typeof args.npc.gameId !== 'string') return [{ key: 'who', label: 'Only me' }]
+  return []
 }
 
-/** The personal tray's NPCs live on the shelf alone, so only the owner sees them. */
+/** The personal tray's NPCs live in the Hangar alone, so only the owner sees them. */
 export function encounterNpcChips(): ShelfChip[] {
   return [{ key: 'who', label: 'Only me' }]
 }

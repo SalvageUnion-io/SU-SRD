@@ -5,8 +5,8 @@
  * navigation) and what picking does; the picker only draws them, in the shape
  * its place calls for:
  *
- * - `select` — a faux-select (the sheet's "In:", the Game page's switcher): the
- *   shelf leads, the Games follow under "Games", then any actions.
+ * - `select` — a faux-select (the sheet's "In:"): the shelf leads, the Games
+ *   follow under "Games", then any actions.
  * - `menu` — a `HeaderMenu` dropdown (the masthead's Games).
  * - `list` — a column of full-width buttons (the Move dialog, the mobile drawer).
  *
@@ -17,9 +17,16 @@
 
 import type { Container } from 'game-domain/container'
 import type { ChangeEvent, CSSProperties } from 'react'
-import { serializeContainer } from '../../stores/activeContainerStore'
 import type { HeaderMenuItem } from '../../components/index'
 import { Button, EmptyState, HeaderMenu, Pending, Select, tokens } from '../../components/index'
+
+/**
+ * A container as one string, `shelf` or `game:<id>`: a select option's value
+ * and a list key. The pair (kind, id) is one decision, so it is one value.
+ */
+export function serializeContainer(container: Container): string {
+  return container.kind === 'game' ? `game:${container.gameId}` : 'shelf'
+}
 
 /** One container on offer: what it is called and, optionally, a quieter hint (a role). */
 export type ContainerChoice = { container: Container; label: string; hint?: string }
@@ -108,8 +115,7 @@ function PickerSelect({
   const all = choices ?? []
   const shelf = all.filter((c) => c.container.kind === 'shelf')
   const games = all.filter((c) => c.container.kind === 'game')
-  // Option values ARE the serialized container, the one encoding the store
-  // persists through; an action's value is its id.
+  // Option values ARE the serialized container; an action's value is its id.
   function handleChange(e: ChangeEvent<HTMLSelectElement>) {
     const raw = e.target.value
     const action = actions.find((a) => a.id === raw)

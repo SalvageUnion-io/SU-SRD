@@ -53,9 +53,6 @@ const navigations = convexMocks.navigations
 
 const { InviteScreen } = await import('../InviteScreen')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
-const { getActiveContainer, setActiveContainer } = await import(
-  '../../../stores/activeContainerStore'
-)
 
 function preview(over: Record<string, unknown> = {}) {
   return {
@@ -69,7 +66,6 @@ function preview(over: Record<string, unknown> = {}) {
 const THE_GAME = { to: '/play/games/$gameId', params: { gameId: 'g1' } }
 
 function renderJoin(value: unknown, joinOnArrival = false) {
-  setActiveContainer({ kind: 'shelf' })
   setQueryAnswers({ 'invites:preview': value })
   navigations.length = 0
   mutationCalls.length = 0
@@ -95,11 +91,10 @@ describe('a live invite', () => {
     expect(screen.getByText(/read each other/i)).toBeTruthy()
   })
 
-  test('accepting opens the Game’s page in Play, and picks no container', async () => {
+  test('accepting opens the Game’s page in Play', async () => {
     renderJoin(preview())
     fireEvent.click(screen.getByText('Join this Game'))
     await waitFor(() => expect(navigations).toEqual([THE_GAME]))
-    expect(getActiveContainer()).toEqual({ kind: 'shelf' })
   })
 
   test('back from "Sign in to join", it joins without asking again', async () => {
@@ -111,7 +106,7 @@ describe('a live invite', () => {
   test('arriving to join a dead link spends nothing', () => {
     renderJoin(null, true)
     expect(mutationCalls).toHaveLength(0)
-    expect(getActiveContainer()).toEqual({ kind: 'shelf' })
+    expect(navigations).toEqual([])
   })
 
   test('a refusal is surfaced in the server’s own words', async () => {
@@ -184,6 +179,5 @@ describe('a visitor who is not signed in', () => {
 })
 
 afterAll(() => {
-  setActiveContainer({ kind: 'shelf' })
   convexMocks.restore()
 })

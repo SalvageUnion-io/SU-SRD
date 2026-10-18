@@ -1,10 +1,10 @@
 /**
- * "Move to a Game…" from a shelf item's ⋯ menu (Shelves, board S1).
+ * "Move to a Game…" from a Hangar item's ⋯ menu (Shelves, board S1).
  *
  * A short dialog that lists only where the server would accept this build
  * (`moveDestinations`, the client mirror of ADR-037): a pilot or mech into any
  * Game you are in, or out of one; a crawler only into a Game you run, or back
- * out of it. Out of a Game reads "Unassigned", because in the Hangar a unit in
+ * out of it. Out of a Game reads "Not in a Game", because in the Hangar a unit in
  * a Game is still in your Hangar — the move only changes where it plays.
  *
  * Picking a destination closes the dialog and hands the move to `requestMove`,
@@ -28,8 +28,8 @@ import { requestMove } from '../entityContainer/requestMove.model'
 import { ModalShell, toast, tokens } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
 
-/** What "out of a Game" is called in the Hangar, as on its chip. */
-const UNASSIGNED = 'Unassigned'
+/** What "out of a Game" is called in the Hangar, as its Showing select names it. */
+const NOT_IN_A_GAME = 'Not in a Game'
 
 const BODY = {
   backgroundColor: tokens.color.paper,
@@ -110,7 +110,7 @@ export function MoveToGameDialog({ subject, onClose, games, confirm }: MoveToGam
             games === undefined
               ? undefined
               : destinations.map((d) =>
-                  d.container.kind === 'shelf' ? { ...d, label: UNASSIGNED } : d
+                  d.container.kind === 'shelf' ? { ...d, label: NOT_IN_A_GAME } : d
                 )
           }
           onPick={(choice) => pick(choice.container, choice.label)}

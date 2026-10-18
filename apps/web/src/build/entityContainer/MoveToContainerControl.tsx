@@ -52,8 +52,8 @@
  *
  * ## Solo renders nothing
  *
- * With no account there is only Shelves, so there is nowhere to move to —
- * see `ContainerSwitcher` for the same branch and the reasoning behind it.
+ * With no account there is only the Hangar, so there is nowhere to move to,
+ * and the Convex read would have no provider.
  */
 
 import type { Container, ContainerFields } from 'game-domain/container'

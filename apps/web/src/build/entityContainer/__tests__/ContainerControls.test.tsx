@@ -3,10 +3,10 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import type { ComponentProps, ReactNode } from 'react'
 
 /**
- * The Game / shelf controls (ADR-030 §2): the Game page's Games select, the
+ * The Game / shelf controls (ADR-030 §2): the
  * live-sheet move, and a shelf item's "Move to a Game…" (Shelves, board S1).
  *
- * What these pin: all three render nothing for somebody who is not signed in
+ * What these pin: both render nothing for somebody who is not signed in
  * (there is no second container to offer), all list the account's Games once
  * loaded, a move re-stamps `gameId` on the SAME entity rather than copying it,
  * a move OUT of a Game asks first (and does nothing until confirmed), a move
@@ -45,7 +45,6 @@ const convexMocks = await installConvexMocks({
   },
 })
 
-const { ContainerSwitcher } = await import('../ContainerSwitcher')
 const { MoveToContainerControl } = await import('../MoveToContainerControl')
 const { MoveToGameDialog } = await import('../../shelves/MoveToGameDialog')
 const { useConfirm } = await import('../../../components/shared/useConfirm')
@@ -80,49 +79,6 @@ afterEach(() => {
   setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
 })
 
-describe('ContainerSwitcher', () => {
-  test('renders nothing for somebody who is not signed in', () => {
-    authed = false
-    const { container } = wrap(
-      <ContainerSwitcher activeContainer={{ kind: 'shelf' }} onSelect={() => {}} />
-    )
-    expect(container.textContent).toBe('')
-  })
-
-  test('the Games select offers Hangar, every Game and "+ New Game", and reports a pick as a container', () => {
-    const picks: unknown[] = []
-    wrap(<ContainerSwitcher activeContainer={{ kind: 'shelf' }} onSelect={(c) => picks.push(c)} />)
-
-    const select = screen.getByLabelText('Games') as HTMLSelectElement
-    expect([...select.options].map((o) => o.textContent)).toEqual([
-      'Hangar',
-      'Union Crawler #430',
-      'The Long Haul',
-      '+ New Game',
-    ])
-
-    fireEvent.change(select, { target: { value: 'game:g2' } })
-    expect(picks).toEqual([{ kind: 'game', gameId: 'g2' }])
-  })
-
-  test('"+ New Game" opens the New Game dialog and picks no container', () => {
-    setQueryAnswers({ 'games:listMine': GAMES, 'templates:list': [] })
-    const picks: unknown[] = []
-    wrap(<ContainerSwitcher activeContainer={{ kind: 'shelf' }} onSelect={(c) => picks.push(c)} />)
-    const select = screen.getByLabelText('Games') as HTMLSelectElement
-    fireEvent.change(select, { target: { value: 'new-game' } })
-    expect(screen.getByRole('dialog', { name: 'New Game' })).toBeTruthy()
-    expect(picks).toEqual([])
-    expect(select.value).toBe('shelf')
-  })
-
-  test('while Games load, the current selection still has an option', () => {
-    setQueryAnswers({ 'games:listMine': undefined })
-    wrap(<ContainerSwitcher activeContainer={{ kind: 'shelf' }} onSelect={() => {}} />)
-    const select = screen.getByLabelText('Games') as HTMLSelectElement
-    expect(select.value).toBe('shelf')
-  })
-})
 
 type MoveProps = Omit<ComponentProps<typeof MoveToContainerControl>, 'confirm'>
 
@@ -463,9 +419,9 @@ describe('MoveToGameDialog — "Move to a Game…" in a Hangar item', () => {
     expect(choices()).toEqual(['Run by me', 'Not mine to run'])
   })
 
-  test('out of a Game, the shelf reads "Unassigned"', () => {
+  test('out of a Game, the shelf reads "Not in a Game"', () => {
     wrap(<DialogHarness subject={pilotIn('g1')} games={RUN_AND_NOT} />)
-    expect(choices()).toEqual(['Unassigned', 'Not mine to run'])
+    expect(choices()).toEqual(['Not in a Game', 'Not mine to run'])
   })
 
   test('a crawler only into a Game I run — and with none, it says so', () => {
@@ -538,7 +494,7 @@ describe('MoveToGameDialog — "Move to a Game…" in a Hangar item', () => {
     const pilot = await heldPilot('g1')
     wrap(<DialogHarness subject={{ type: 'pilot', id: 'p1', entity: pilot }} games={GAMES_RUN} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Unassigned' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Not in a Game' }))
 
     expect(screen.getByRole('alertdialog')).toBeTruthy()
     expect(gameIdOf()).toBe('g1')

@@ -54,7 +54,6 @@ import {
   crewDraftToCreateInput,
   crewDraftView,
 } from '../../lib/wizard/crewFormState'
-import { useActiveContainer } from '../../stores/activeContainerStore'
 import { useEntityStore } from '../../stores/entityStore'
 import {
   Badge,
@@ -117,7 +116,6 @@ export function CrewBoard({ crawlerId, slot: slotArg, madeBy, onSelect }: CrewBo
   const hydrated = useHydrateEntities(['crawler', 'npc', 'softLink'])
   const { mode, canWrite } = useConnection()
   const connected = mode === 'connected'
-  const activeContainer = useActiveContainer()
   const crawlers = useCrawlers()
   const games = useQuery(api.games.listMine, connected ? {} : 'skip')
 
@@ -129,7 +127,7 @@ export function CrewBoard({ crawlerId, slot: slotArg, madeBy, onSelect }: CrewBo
     )
   }
   const candidates = crawlers.filter(
-    (c) => (!connected || sameContainer(containerOf(c), activeContainer)) && mayWrite(c)
+    (c) => mayWrite(c)
   )
   const crawler =
     (crawlerId === undefined ? undefined : crawlers.find((c) => c.id === crawlerId)) ??

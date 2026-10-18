@@ -1,17 +1,18 @@
 /**
- * Shelves — everything you keep, on your account. The
- * page at `/` once you are signed in; signed out, `/` is the front door.
+ * Shelves — the Hangar: everything you own, on your account (ADR-052 §1–2).
+ * The page at `/` once you are signed in; signed out, `/` is the front door.
  *
- * "My Stuff" became Shelves: ADR-030 already called the personal container the
- * shelf, and now the page says so. A unit in a Game stays on your shelf too —
- * it is one record whichever table it plays at — so the page lists every pilot,
- * mech and crawler of yours this browser holds, wherever it is, and a chip
- * under each says where.
+ * A unit in a Game stays in your Hangar too — it is one record whichever table
+ * it plays at — so the page lists every pilot, mech and crawler of yours this
+ * browser holds, wherever it is, and a relation chip on each names its Game
+ * (`GAME | Rust Run`), opening that Game's page in Play. A Game is a detail
+ * here, never a place: unclaimed units and other players' units show only on
+ * the Game's page, and a Game is started or joined from the Play hub.
  *
  *  - **The band** (ink, paper flecks): the notched title and, right of it on
- *    the band's foot, "+ New Game" (the one way to start a table), **Import**,
- *    **Export all** and the **Showing** toggle (Everything | Unassigned); what
- *    does not fit beside the name wraps up over it (`asideAt="controls"`).
+ *    the band's foot, **Import**, **Export all** and the **Showing** select
+ *    (Everything, Not in a Game, then one entry per Game); what does not fit
+ *    beside the name wraps up over it (`asideAt="controls"`).
  *  - **Three rows of shelves**: Pilots, Mechs and Crawlers side by side; then
  *    NPCs and Patterns, which are user-made and so dashed (ruleset §3.9); then,
  *    folded, the Starter Set, read-only, as the front door shows it
@@ -68,17 +69,16 @@ import {
   crawlerReading,
   encounterNpcChips,
   encounterNpcReading,
+  gameRelation,
   linkChip,
-  mechChips,
   mechRelations,
   npcChips,
   npcReading,
   patternChips,
   patternReading,
-  pilotChips,
   pilotFact,
   pilotRelations,
-  SHELF_FILTERS,
+  shelfFilters,
   shownUnder,
 } from '../../lib/shelves/shelfItems'
 import { useEncounterStore } from '../../stores/encounterStore'
@@ -87,7 +87,6 @@ import { usePatternStore } from '../../stores/patternStore'
 import type { AssignableType } from '../../stores/types'
 import { ExportAllButton } from '../export/ExportAllButton'
 import { ImportButton } from '../export/ImportButton'
-import { NewGameControl } from '../games/NewGameControl'
 import type { HeaderMenuItem } from '../../components/index'
 import {
   buttonVariants,
@@ -96,8 +95,7 @@ import {
   HeaderMenu,
   PageShell,
   RosterSkeleton,
-  Segmented,
-  SegmentedOption,
+  Select,
   toast,
 } from '../../components/index'
 import { AppLink } from '../../components/shared/AppLink'
@@ -188,21 +186,30 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   const pilotNames = new Map(allPilots.map((p) => [p.id, p.name]))
   const mechNames = new Map(allMechs.map((m) => [m.id, m.name]))
 
-  const pilots = allPilots.filter((p) => shownUnder(filter, p))
-  const mechs = allMechs.filter((m) => shownUnder(filter, m))
-  // A Game's crawler is the crew's: on your shelf only where you run the table.
+  // The Showing select: a Game you have since left falls back to Everything.
+  const filters = shelfFilters(games)
+  const shown: ShelfFilter = filters.some((f) => f.value === filter) ? filter : 'everything'
+
+  const pilots = allPilots.filter((p) => shownUnder(shown, p))
+  const mechs = allMechs.filter((m) => shownUnder(shown, m))
+  // A Game's crawler is the crew's: in your Hangar only where you run the table.
   const keptCrawlers = allCrawlers.filter((c) => crawlerIsKept(c, games))
-  const crawlers = keptCrawlers.filter((c) => shownUnder(filter, c))
-  const npcs = allNpcs.filter((n) => shownUnder(filter, n))
-  // The personal tray is on the shelf alone: it is in no Game to filter by.
-  const tray = filter === 'everything' ? trayNpcs.filter((n) => typeof n.gameId !== 'string') : []
+  const crawlers = keptCrawlers.filter((c) => shownUnder(shown, c))
+  const npcs = allNpcs.filter((n) => shownUnder(shown, n))
+  // The personal tray is in the Hangar alone: it is in no Game to filter by.
+  const tray = shown === 'everything' ? trayNpcs.filter((n) => typeof n.gameId !== 'string') : []
 
   /**
-   * A filtered-out shelf says why: "Every pilot is in a Game." only when there
-   * are pilots at all, and "No pilots yet." when there are none to filter.
+   * A filtered-out shelf says why: "Every pilot is in a Game." or "No pilot of
+   * yours is in this Game." only when there are pilots at all, and "No pilots
+   * yet." when there are none to filter.
    */
-  const emptyText = (total: number, none: string, plural: string): string =>
-    filter === 'everything' || total === 0 ? none : `Every ${plural} is in a Game.`
+  const emptyText = (total: number, none: string, singular: string): string =>
+    shown === 'everything' || total === 0
+      ? none
+      : shown === 'not-in-game'
+        ? `Every ${singular} is in a Game.`
+        : `No ${singular} of yours is in this Game.`
 
   // -- the verbs ------------------------------------------------------------
 
@@ -381,20 +388,21 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
           asideAt="controls"
           aside={
             <>
-              <NewGameControl />
               {canWrite && <ImportButton onResult={setImportResult} />}
               <ExportAllButton />
-              <Segmented label="Showing" size="compact">
-                {SHELF_FILTERS.map((option) => (
-                  <SegmentedOption
-                    key={option.value}
-                    pressed={filter === option.value}
-                    onClick={() => setFilter(option.value)}
-                  >
+              <Select
+                chevron
+                aria-label="Showing"
+                value={shown}
+                onChange={(e) => setFilter(e.target.value as ShelfFilter)}
+                className="su-container-select"
+              >
+                {filters.map((option) => (
+                  <option key={option.value} value={option.value}>
                     {option.label}
-                  </SegmentedOption>
+                  </option>
                 ))}
-              </Segmented>
+              </Select>
             </>
           }
         >
@@ -422,8 +430,11 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   name={p.name}
                   reading={rowStats(pilotRailItems(p))[0]}
                   href={`/sheet/pilot/${p.id}`}
-                  chips={[...pilotChips({ pilot: p, games }), ...linkChip(sharedByLink, p.id)]}
-                  relations={pilotRelations({ pilot: p, softLinks, mechNames })}
+                  chips={linkChip(sharedByLink, p.id)}
+                  relations={[
+                    ...pilotRelations({ pilot: p, softLinks, mechNames }),
+                    ...gameRelation(p, games),
+                  ]}
                   menu={unitMenu('pilot', p, p)}
                 />
               ))}
@@ -444,8 +455,11 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   name={m.name}
                   reading={rowStats(mechRailItems(m))[0]}
                   href={`/sheet/mech/${m.id}`}
-                  chips={[...mechChips({ mech: m, games }), ...linkChip(sharedByLink, m.id)]}
-                  relations={mechRelations({ mech: m, softLinks, pilotNames })}
+                  chips={linkChip(sharedByLink, m.id)}
+                  relations={[
+                    ...mechRelations({ mech: m, softLinks, pilotNames }),
+                    ...gameRelation(m, games),
+                  ]}
                   menu={unitMenu('mech', m, m)}
                 />
               ))}
@@ -467,6 +481,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   reading={crawlerReading(c) ?? rowStats(crawlerRailItems(c))[0]}
                   href={`/sheet/crawler/${c.id}`}
                   chips={[...crawlerChips({ crawler: c, games }), ...linkChip(sharedByLink, c.id)]}
+                  relations={gameRelation(c, games)}
                   menu={unitMenu('crawler', c, c)}
                 />
               ))}
@@ -498,9 +513,9 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   userMade
                   chips={npcChips({
                     npc: n,
-                    games,
                     sharedByLink: sharedByLink?.includes(n.id) ?? false,
                   })}
+                  relations={gameRelation(n, games)}
                   menu={unitMenu('npc', n, n)}
                 />
               ))}

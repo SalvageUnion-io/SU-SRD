@@ -1,13 +1,13 @@
-import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import { afterAll, afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { ConvexError } from 'convex/values'
 
 /**
- * "+ New Game" — starting a Game, from the top of the hub.
+ * "+ New Game" — starting a Game, from the Play hub.
  *
  * What these pin: there is no game UI for somebody who is not signed in; a game
- * started by name or from a template is shown (on its own page, with a router —
- * `useShowContainer`) and the dialog gets out of the way; a refusal is shown in the words the server chose; and there
+ * started by name or from a template opens on its page in Play
+ * (`/play/games/$gameId`) and the dialog gets out of the way; a refusal is shown in the words the server chose; and there
  * is no code to type — a Game is joined from an invite link.
  *
  * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
@@ -37,18 +37,21 @@ const convexMocks = await installConvexMocks({
 const { NewGameControl } = await import('../NewGameControl')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
 const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
-const { getActiveContainer, setActiveContainer } = await import(
-  '../../../stores/activeContainerStore'
-)
 
 const TEMPLATES = [
   { id: 'starter-set', name: 'Reclamation of the Wastes', description: 'Six pre-gens.' },
 ]
 
+/** No router is mounted, so `useGo` falls back to `location.assign`, observed here. */
+let assigned: string[] = []
+const assignSpy = spyOn(window.location, 'assign').mockImplementation((to: string | URL) => {
+  assigned.push(String(to))
+})
+
 beforeEach(() => {
   authed = true
   mutations.length = 0
-  setActiveContainer({ kind: 'shelf' })
+  assigned = []
   mutationError = null
   results = {
     'games:create': 'g-new',
@@ -63,7 +66,7 @@ afterEach(() => {
 })
 
 afterAll(() => {
-  setActiveContainer({ kind: 'shelf' })
+  assignSpy.mockRestore()
   convexMocks.restore()
 })
 
@@ -122,7 +125,7 @@ describe('starting a game', () => {
     await press('Create')
 
     expect(mutations).toEqual([{ name: 'games:create', args: { name: 'Union Crawler #430' } }])
-    expect(getActiveContainer()).toEqual({ kind: 'game', gameId: 'g-new' })
+    expect(assigned).toEqual(['/play/games/g-new'])
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
@@ -133,7 +136,7 @@ describe('starting a game', () => {
     expect(mutations).toEqual([
       { name: 'templates:createGame', args: { templateId: 'starter-set' } },
     ])
-    expect(getActiveContainer()).toEqual({ kind: 'game', gameId: 'g-template' })
+    expect(assigned).toEqual(['/play/games/g-template'])
   })
 
   test('a refusal is shown in the server’s own words, and goes nowhere', async () => {
@@ -142,6 +145,6 @@ describe('starting a game', () => {
     await press('Start this Game')
 
     expect(screen.getByRole('alert').textContent).toBe('You have too many games')
-    expect(getActiveContainer()).toEqual({ kind: 'shelf' })
+    expect(assigned).toEqual([])
   })
 })

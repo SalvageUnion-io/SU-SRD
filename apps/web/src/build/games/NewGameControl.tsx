@@ -1,21 +1,20 @@
 /**
- * "+ New Game" — the way to start a Game (ADR-030): a button on Shelves' band,
- * and an entry in a Game page's Games select (`ContainerSwitcher`), which
- * opens the same dialog (`NewGameDialog`).
+ * "+ New Game" — the way to start a Game (ADR-030): a button on the Play hub
+ * (ADR-052 §4), never in Build.
  *
  * One dialog with two ways to start a table: by name, or from a template.
  * Joining somebody else's Game is not here: a Game is joined from an invite
  * link, never a typed code, so this dialog has no code door. The link opens `/invite/$token`, which does the joining.
  *
- * A new Game opens on its own page (`/games/$gameId`) as the dialog closes, so
- * the next thing on screen is the new table.
+ * A new Game opens on its own page in Play (`/play/games/$gameId`) as the
+ * dialog closes, so the next thing on screen is the new table.
  *
  * ## Connected only
  *
  * A Game is shared state on the server of record, which a signed-out visitor
- * has no account on and a Disconnected session cannot write. Like
- * `ContainerSwitcher`, the Convex hooks live in a child mounted only once the
- * mode is Connected, so the signed-out hub has no game UI at all.
+ * has no account on and a Disconnected session cannot write. The Convex hooks
+ * live in a child mounted only once the mode is Connected, so the signed-out
+ * hub has no game UI at all.
  */
 
 import { useMutation, useQuery } from 'convex/react'
@@ -25,7 +24,8 @@ import { useEffect, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
-import { useShowContainer } from '../entityContainer/useShowContainer'
+import { useGo } from '../../components/shared/useGo'
+import { playGamePath } from '../../lib/barLinks'
 import {
   Button,
   Field,
@@ -86,7 +86,7 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
   const templates = useQuery(api.templates.list, open ? {} : 'skip')
   const create = useMutation(api.games.create)
   const createFromTemplate = useMutation(api.templates.createGame)
-  const showContainer = useShowContainer()
+  const go = useGo()
 
   const [name, setName] = useState('')
   const start = useServerAction(
@@ -104,7 +104,7 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
 
   /** Open the new Game's own page; the dialog has done its job. */
   function enter(gameId: string) {
-    showContainer({ kind: 'game', gameId })
+    go(playGamePath(gameId))
     setName('')
     onOpenChange(false)
   }
@@ -179,22 +179,12 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
   )
 }
 
-/** The New Game dialog, opened by its host; nothing at all outside Connected mode. */
-export function NewGameDialog(props: NewGameDialogProps) {
-  const { mode } = useConnection()
-  if (mode !== 'connected') return null
-  return <ConnectedNewGameDialog {...props} />
-}
-
-/** On Shelves' ink band the band's `data-ground` makes it the on-ink ghost (chrome K1). */
 function ConnectedNewGameControl() {
   const [open, setOpen] = useState(false)
   return (
     <>
-      <Button
-        size="compact"
-        onClick={() => setOpen(true)}
-      >
+      {/* A make, so rust (ruleset §1.9). */}
+      <Button variant="primary" size="compact" onClick={() => setOpen(true)}>
         + New Game
       </Button>
       <ConnectedNewGameDialog open={open} onOpenChange={setOpen} />

@@ -185,19 +185,21 @@ async function downloadedJson(index = 0): Promise<Record<string, unknown>> {
 
 // --- tests -----------------------------------------------------------------
 
+async function show(value: string) {
+  await act(async () => {
+    fireEvent.change(screen.getByLabelText('Showing'), { target: { value } })
+  })
+}
+
 describe('Showing', () => {
-  test('Unassigned hides what is in one, and says why a Hangar is empty', async () => {
+  test('Not in a Game hides what is in one, and says why a Hangar is empty', async () => {
     await renderShelves()
     const pilots = screen.getByRole('region', { name: 'Pilots' })
     expect(within(pilots).getByText('Rook')).toBeTruthy()
     expect(screen.getByText(/Tray Grunt/)).toBeTruthy()
 
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Unassigned' }))
-    })
-    expect(screen.getByRole('button', { name: 'Unassigned' }).getAttribute('aria-pressed')).toBe(
-      'true'
-    )
+    await show('not-in-game')
+    expect((screen.getByLabelText('Showing') as HTMLSelectElement).value).toBe('not-in-game')
     expect(within(pilots).queryByText('Rook')).toBeNull()
     expect(within(pilots).getByText('Nia Vale')).toBeTruthy()
     // The personal tray is in no Game to filter by: it shows under Everything only.
@@ -207,10 +209,34 @@ describe('Showing', () => {
   test('a Hangar whose every unit is in a Game says so', async () => {
     await useEntityStore.getState().forget('pilot', 'p-nia')
     await renderShelves()
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Unassigned' }))
-    })
+    await show('not-in-game')
     expect(screen.getByText('Every pilot is in a Game.')).toBeTruthy()
+  })
+
+  test('a Game’s entry shows its units alone', async () => {
+    await renderShelves()
+    await show('game:g1')
+    const pilots = screen.getByRole('region', { name: 'Pilots' })
+    expect(within(pilots).getByText('Rook')).toBeTruthy()
+    expect(within(pilots).queryByText('Nia Vale')).toBeNull()
+  })
+
+  test('Disconnected, with no Games to name, it offers Everything and Not in a Game', async () => {
+    await renderShelves('disconnected')
+    const select = screen.getByLabelText('Showing') as HTMLSelectElement
+    expect([...select.options].map((o) => o.textContent)).toEqual(['Everything', 'Not in a Game'])
+  })
+})
+
+describe('a unit’s Game', () => {
+  test('is a GAME relation chip opening the Game’s page in Play; in no Game, none', async () => {
+    await renderShelves()
+    const pilots = screen.getByRole('region', { name: 'Pilots' })
+    const chips = [...pilots.querySelectorAll('[data-chip-class="relation"] a[data-tag]')]
+    expect(chips.map((c) => [c.textContent, c.getAttribute('href')])).toEqual([
+      ['GameTenacity', '/play/games/g1'],
+    ])
+    expect(within(pilots).queryByText('Unassigned')).toBeNull()
   })
 })
 
