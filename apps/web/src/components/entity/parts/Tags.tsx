@@ -27,11 +27,13 @@ export function Tag({
   /** The chip's size: `full` in a body, `compact` in a head band. */
   size?: Size
 }) {
-  const { hrefFor, openPage } = useEntitySurface()
+  const { hrefFor, openPage, linkAs } = useEntitySurface()
   const insidePeek = useInsidePeek()
   const peek = usePeekAttrs(tag.ref)
-  const ref = !insidePeek && linkable ? tag.ref : undefined
-  const href = ref ? hrefFor(ref) : undefined
+  const opens = !insidePeek && linkable
+  const ref = opens ? tag.ref : undefined
+  // A relation to a player unit has no entry: its sheet is its own href.
+  const href = opens && tag.href ? tag.href : ref ? hrefFor(ref) : undefined
   const open = ref && !href && openPage ? () => openPage(ref) : undefined
   const cell = (
     <Stat
@@ -48,10 +50,12 @@ export function Tag({
     ...(tag.modified ? { 'data-modified': '' } : {}),
   }
   if (href) {
+    // A root-relative path goes through the app's router link, as a link-mode form's does.
+    const Anchor = linkAs && href.startsWith('/') ? linkAs : 'a'
     return (
-      <a href={href} className={cn('su-chip-link su-hit-area', FOCUS_RING)} {...shared}>
+      <Anchor href={href} className={cn('su-chip-link su-hit-area', FOCUS_RING)} {...shared}>
         {cell}
-      </a>
+      </Anchor>
     )
   }
   if (open) {

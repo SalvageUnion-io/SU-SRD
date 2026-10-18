@@ -70,12 +70,14 @@ import {
   encounterNpcReading,
   linkChip,
   mechChips,
+  mechRelations,
   npcChips,
   npcReading,
   patternChips,
   patternReading,
   pilotChips,
   pilotFact,
+  pilotRelations,
   SHELF_FILTERS,
   shownUnder,
 } from '../../lib/shelves/shelfItems'
@@ -420,10 +422,8 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   name={p.name}
                   reading={rowStats(pilotRailItems(p))[0]}
                   href={`/sheet/pilot/${p.id}`}
-                  chips={[
-                    ...pilotChips({ pilot: p, games, softLinks, mechNames }),
-                    ...linkChip(sharedByLink, p.id),
-                  ]}
+                  chips={[...pilotChips({ pilot: p, games }), ...linkChip(sharedByLink, p.id)]}
+                  relations={pilotRelations({ pilot: p, softLinks, mechNames })}
                   menu={unitMenu('pilot', p, p)}
                 />
               ))}
@@ -444,10 +444,8 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   name={m.name}
                   reading={rowStats(mechRailItems(m))[0]}
                   href={`/sheet/mech/${m.id}`}
-                  chips={[
-                    ...mechChips({ mech: m, games, softLinks, pilotNames }),
-                    ...linkChip(sharedByLink, m.id),
-                  ]}
+                  chips={[...mechChips({ mech: m, games }), ...linkChip(sharedByLink, m.id)]}
+                  relations={mechRelations({ mech: m, softLinks, pilotNames })}
                   menu={unitMenu('mech', m, m)}
                 />
               ))}

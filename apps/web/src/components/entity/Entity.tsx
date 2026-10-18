@@ -12,7 +12,6 @@ import { Tile } from './forms/Tile'
 import type { TokenBody } from './forms/Token'
 import { Token } from './forms/Token'
 import type { TagItem } from './parts/tagItems'
-import { traitTags } from './parts/tagItems'
 import type { EntityMode, EntityOmit, EntityRowModel } from './types'
 
 type EntitySource =
@@ -62,11 +61,12 @@ export type EntityProps = EntitySource &
     /** Row only: the host's labels (an owner stamp), the first of its chips. */
     labels?: ReactNode
     /**
-     * Row only: linked chips after its traits — the entities a player unit is
-     * built on (`CLASS | Engineer`, `CHASSIS | Mule`), each a Tag that Peeks and
-     * opens its entity where the Row is not itself a link.
+     * Row only: what the unit is built on or linked to (`CLASS | Engineer`,
+     * `CHASSIS | Mule`, `PILOT | Bonesaw`), the relation chips after its traits
+     * (`chips-and-actions.md` C11). Each Peeks and opens its entity, or opens a
+     * unit's sheet, where the Row is not itself a link.
      */
-    links?: TagItem[]
+    relations?: TagItem[]
     /**
      * Token and Row: the host's chip, last in its chip group — a damaged thing's
      * condition `StatusBadge` on a surface that only reads it (a crawler bay), a
@@ -100,7 +100,7 @@ export function Entity(props: EntityProps) {
     missingArt,
     controls,
     labels,
-    links,
+    relations,
     trailing,
     body,
   } = props
@@ -123,12 +123,12 @@ export function Entity(props: EntityProps) {
           omit={omit}
           peek={peek}
           slots={
-            titleAs || controls || labels || links || trailing
+            titleAs || controls || labels || relations || trailing
               ? {
                   ...(titleAs ? { titleAs } : {}),
                   ...(controls ? { controls } : {}),
                   ...(labels ? { extraLabels: labels } : {}),
-                  ...(links ? { tags: [...traitTags(model.traits), ...links] } : {}),
+                  ...(relations ? { relations } : {}),
                   ...(trailing ? { trailing } : {}),
                 }
               : undefined

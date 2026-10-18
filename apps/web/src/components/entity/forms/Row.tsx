@@ -30,8 +30,10 @@ import type { EntityMode, EntityOmit, EntityRowModel } from '../types'
  */
 type RowSlots = {
   titleAs?: ElementType
-  /** The traits and the host's linked chips, in place of the model's traits. */
+  /** The traits, in place of the model's. */
   tags?: TagItem[]
+  /** What it is built on or linked to, after the traits (`chips-and-actions.md` C11). */
+  relations?: TagItem[]
   /**
    * The host's controls (Assign, Unassign, View), the head's trailing mode
    * slot (E7): at the band's right end, after the affordance. They never
@@ -79,7 +81,7 @@ const READ: EntityMode = { kind: 'read' }
 /**
  * ROW — the workhorse form (entity display language §3): every list of
  * entities. An art column (by schema and room, E10), a head (tier, name, the
- * chip group — stats, action type and facets, traits, cost (E17) — right of the name or
+ * chip group — stats, action type and facets, traits, relations, cost (E17) — right of the name or
  * under it, the mode's affordance) and, only when something is left to show,
  * a paper body: the lead while browsing (E11). A bodied
  * head with no chips keeps its tier on the band and sets its name on the paper
@@ -114,6 +116,7 @@ export function Row({
     ...(model.cost ? { cost: model.cost } : {}),
     facts: factCells(budgetFacts(model.facts, context ?? naturalContext(model.kind)), omit),
     tags: slots.tags ?? traitTags(model.traits),
+    ...(slots.relations ? { relations: slots.relations } : {}),
   }
   const leadText = lead ? model.lead : undefined
   const hasBody = !!leadText

@@ -6,8 +6,8 @@
  * The front door and the Starter Set page both list the same thirteen builds,
  * so both draw them with this one card (`starterShelves.model.ts` builds them).
  *
- * What a build is made from (`CLASS | Engineer`, `CHASSIS | Mule`) is a linked
- * chip: it Peeks and opens that entity. A chip may not sit inside the card's
+ * What a build is made from (`CLASS | Engineer`, `CHASSIS | Mule`) is a
+ * relation chip (`chips-and-actions.md` C11): it Peeks and opens that entity. A chip may not sit inside the card's
  * link (no nested interactive content), so the Row reads and the sheet's link
  * is laid over the whole card under the chips (`.su-starter-card__link`).
  */
@@ -22,7 +22,7 @@ type StarterCardProps = { kind: StarterKind; build: StarterBuild }
 export function StarterCard({ kind, build }: StarterCardProps) {
   return (
     <div className="su-starter-card">
-      <Entity form="row" model={build.model} lead omit={['kind']} links={build.links} />
+      <Entity form="row" model={build.model} lead omit={['kind']} relations={build.relations} />
       <AppLink
         href={`/starter/${kind}/${build.id}`}
         className={cn('su-starter-card__link', FOCUS_RING)}

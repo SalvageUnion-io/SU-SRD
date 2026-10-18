@@ -12,6 +12,31 @@ export type TagItem = {
   ref?: EntityRef
   /** Added or changed by a choice (the modified-stats language). */
   modified?: boolean
+  /**
+   * What a RELATION opens where it has no dataset entry (a player unit's
+   * sheet): a related pilot, mech or crawler (`chips-and-actions.md` C11).
+   */
+  href?: string
+}
+
+/**
+ * One RELATION chip (C11): what an entity is built on or linked to, label
+ * first, `CLASS | Engineer`, `PILOT | Bonesaw`. A book entity carries its ref
+ * (it Peeks and opens it), a player unit its sheet's `href` (it opens it).
+ */
+export function relation(
+  key: string,
+  label: string,
+  value: string,
+  target: { ref?: EntityRef; href?: string | undefined } = {}
+): TagItem {
+  return {
+    key,
+    name: label,
+    param: value,
+    ...(target.ref ? { ref: target.ref } : {}),
+    ...(target.href ? { href: target.href } : {}),
+  }
 }
 
 /** The model's traits as Tags. */

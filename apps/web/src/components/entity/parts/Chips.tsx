@@ -14,7 +14,8 @@ import { Tags } from './Tags'
  * (`STATS`, salvageunion-reference): the stats (`TL | 2`, `SLOTS | 1`,
  * `SP | 12`), the action type ("Turn Action") and the action's facts
  * (`RNG | L`, `DMG | 4 SP`), the traits (`[Hot | 2]`, linking to their entry
- * where `linkable`), each the horizontal `Stat` cell, then last the cost in
+ * where `linkable`), the relations (`PILOT | Bonesaw`, C11), each the
+ * horizontal `Stat` cell, then last the cost in
  * the book's pointy box (`CostBox`). Every chip sits the same gap from its
  * neighbours, groups included (owner, 2026-10-15). The group wraps; it never
  * clips a chip (E18).
@@ -66,6 +67,7 @@ export function Chips({
       ))}
       <Facts cells={action} size={size} />
       <Tags tags={chips.tags} linkable={linkable} size={size} />
+      {chips.relations && <Tags tags={chips.relations} linkable={linkable} size={size} />}
       {chips.cost && <CostBox cost={chips.cost} size={size} onInk={onInk} />}
       {trailing}
     </div>
