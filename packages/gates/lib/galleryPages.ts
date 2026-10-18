@@ -85,7 +85,7 @@ export const GALLERY_SECTIONS: readonly GallerySection[] = [
       srd(
         '/chassis/mazona/pattern/buzzard/',
         '“Buzzard”',
-        'A pattern page: its loadout as Rows under the stats.',
+        'A pattern page: its loadout as compact Cards under the chassis ability.',
         ['Pattern']
       ),
       srd(
