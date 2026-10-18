@@ -306,6 +306,7 @@ function BayBody({ bay }: { bay: BandBay }) {
               <li key={c.text}>
                 <Entity
                   form="token"
+                  context="play"
                   entity={c.entity}
                   instance={c.warn ? DAMAGED : undefined}
                   trailing={c.warn ? <StatusBadge status={DAMAGED.condition} /> : undefined}

@@ -38,6 +38,7 @@ function ListToken({ data }: { data: ReferenceCardEntity }) {
   return (
     <Entity
       form="token"
+      context="browse"
       entity={data as RefMetaEntity}
       mode={insidePeek ? { kind: 'read' } : href ? { kind: 'link', href } : { kind: 'link' }}
     />

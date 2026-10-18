@@ -1,12 +1,6 @@
 import type { ReactNode } from 'react'
 import { useContext } from 'react'
-import type {
-  EntityInstance,
-  RefEntity,
-  RefEnumSchemaName,
-  RefMetaEntity,
-  RefObjectAnyPattern,
-} from 'salvageunion-reference'
+import type { RefEntity, RefEnumSchemaName, RefMetaEntity } from 'salvageunion-reference'
 import {
   extractVisibleActions,
   foldedActionOf,
@@ -20,7 +14,6 @@ import {
   isTitanicAction,
   resolveActivationCurrency,
   resolveGrantedEntities,
-  toEntityModel,
 } from 'salvageunion-reference'
 import { fontSize, space } from '../../../design/tokens'
 import { useDisclosure } from '../../../lib/useDisclosure'
@@ -29,8 +22,6 @@ import { assetSrcSetFor } from '../../compositions/assetSrcSet'
 import type { CardExtent, CardSize } from '../../containers/displayMode'
 import { resolveCardDisplay } from '../../containers/displayMode'
 import type { StatItem } from '../../containers/statsBarTypes'
-import type { TokenSlots } from '../../entity/forms/Token'
-import { Token } from '../../entity/forms/Token'
 import { Chips } from '../../entity/parts/Chips'
 import type { ChipSet } from '../../entity/parts/chipSet'
 import { InsidePeekContext } from '../../entity/peekContext'
@@ -70,6 +61,7 @@ import {
   titleSizeRung,
 } from './entityCardTone'
 import { splitFacets } from './facetSplit'
+import { HeadToken } from './HeadToken'
 import { isLegalStartingPatternOf, LEGAL_STARTING_PATTERN } from './legalStartingPattern'
 import { CardLead, CardStack } from './NestedCards'
 import { PatternList } from './PatternListRow'
@@ -174,31 +166,6 @@ function PageSubLine({
 }
 
 const NO_CHIPS: ChipSet = { durations: [], facts: [], tags: [] }
-
-/**
- * The head extent as the entity form (the adapter): an entity drawn as its
- * head alone is a TOKEN (EDL N2), whatever its size, given the slots this
- * card resolved from its props. A Row or Card always has its body. A stamp
- * the card would wear (a book starting pattern's) leads the name, as a
- * unit's note does.
- */
-function HeadToken({
-  entity,
-  pattern,
-  instance,
-  note,
-  slots,
-}: {
-  entity: RefMetaEntity
-  pattern: RefObjectAnyPattern | undefined
-  instance: EntityInstance
-  note: string | undefined
-  slots: TokenSlots
-}) {
-  const model = toEntityModel(entity, undefined, { pattern })
-  const noted = note ? { ...model, kind: { ...model.kind, note } } : model
-  return <Token model={noted} instance={instance} slots={slots} />
-}
 
 function ReferenceEntityCardInner({
   data,
@@ -362,11 +329,11 @@ function ReferenceEntityCardInner({
     />
   )
 
-  // HEADER value cells — the short `[label | value]` form at every size.
+  // HEADER value cells — the short `[label | value]` form; compact, the budget (C3).
   const headerStats: StatItem[] = buildHeaderStats({
     entity,
     schemaName,
-    asCompact: true,
+    budget: compact && !insidePeek && !isCatalog,
     none: isAction,
     techLevel,
     techLevelDisplay,

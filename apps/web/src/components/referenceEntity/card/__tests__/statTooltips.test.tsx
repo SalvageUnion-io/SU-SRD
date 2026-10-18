@@ -90,7 +90,8 @@ describe('header stat cluster', () => {
     // horizontal cell, so every listing and nested card lost its glossary.
     const { container } = render(<ReferenceEntityCard data={mule()} size="compact" />)
     expect(bandLeaf(container, 'SP')?.closest(TRIGGER)).toBeTruthy()
-    expect(bandLeaf(container, 'EP')?.closest(TRIGGER)).toBeTruthy()
+    // The compact budget (C3): a chassis keeps TL and SP; EP is the full card's.
+    expect(bandLeaf(container, 'EP')).toBeFalsy()
   })
 
   test('a FULL card still explains its stats', () => {

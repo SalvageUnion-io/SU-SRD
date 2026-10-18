@@ -9,12 +9,6 @@ import type { HTMLAttributes } from 'react'
 import type { EntityModel } from 'salvageunion-reference'
 
 /**
- * The five forms, smallest to largest, and `tile` — the catalog's art-first
- * card (a listing's Catalog view). `<Entity>` draws `token`, `row` and `tile`.
- */
-export type EntityForm = 'mention' | 'token' | 'row' | 'tile' | 'card' | 'page'
-
-/**
  * Attributes a link surface takes from its host, for a list that owns the
  * semantics (a combobox's `role="option"`, its `id` and `aria-selected`).
  */

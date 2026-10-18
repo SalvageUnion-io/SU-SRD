@@ -437,7 +437,7 @@ function LoadoutList({
         {items.map((item, index) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: a loadout may carry the same part twice
           <li key={`${item.id}-${index}`}>
-            <Entity form="token" entity={item} />
+            <Entity form="token" context="loadout" entity={item} />
           </li>
         ))}
       </ul>

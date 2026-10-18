@@ -52,11 +52,11 @@ describe('trait rendering (E17: Tags with a parameter cell)', () => {
 })
 
 describe('stat label short forms', () => {
-  test('a compact card uses the abbreviations', () => {
+  test('a compact card uses the abbreviations, within its budget (C3)', () => {
     const text = textOf(<ReferenceEntityCard data={mule()} size="compact" />)
-    for (const label of ['TL', 'SP', 'EP', 'SV', 'SYS', 'MODS']) {
-      expect(text).toContain(label)
-    }
+    for (const label of ['TL', 'SP']) expect(text).toContain(label)
+    // A chassis's other measures are the full card's, the Page's and the Peek's.
+    for (const label of ['EP', 'SV', 'SYS', 'MODS']) expect(text).not.toContain(label)
   })
 
   test('a compact card never falls back to the half-form labels', () => {

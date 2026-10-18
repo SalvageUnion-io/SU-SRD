@@ -226,7 +226,7 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
             <div style={ROW}>
               <span style={CAPS}>Template</span>
               {template ? (
-                <Entity form="token" entity={template} />
+                <Entity form="token" context="browse" entity={template} />
               ) : (
                 <span style={HINT}>Started blank</span>
               )}
