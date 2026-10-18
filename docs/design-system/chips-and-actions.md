@@ -8,9 +8,9 @@ Status: agreed. Design: [Token & Chip Grammar](https://claude.ai/artifact/KgnbEv
 A strip is a Token, a Row or Card head, or a TitledBox, Slab or SheetSectionCard header.
 
 1. **Zones** — identity (tier or number, the name) · information (chips) · actions (controls).
-2. **Classes** — the chips, in one order: mark (note, User-made), rank (TL), measure (Slots, SP, HP, SV), economy (action type, RNG, DMG), traits, cost, state (a live reading, condition, quantity).
+2. **Classes** — the chips, in one order: mark (note, User-made), rank (TL), measure (Slots, SP, HP, SV), economy (action type, RNG, DMG), traits, relation (what it is built on or linked to: `CHASSIS | Mule`, `PILOT | Bonesaw`, `CRAWLER | #430`), cost, state (a live reading, condition, quantity).
    The cost sits at the seam: read, it is the last chip; live, the Dashboard's pennant (ruleset §1.4), the first action.
-3. **Budgets** — Mention: none. Token: rank, one context lane, cost, state. Row, Card, Page and Peek: every class. TitledBox and Slab: at most two summary chips, totals and caps of what they hold.
+3. **Budgets** — Mention: none. Token: rank, one context lane, cost, state; its relations are its Peek's. Row, Card, Page and Peek: every class. TitledBox and Slab: at most two summary chips, totals and caps of what they hold.
 4. **Contexts** — a Token's container names one: `loadout` (Slots; a unit's SP), `play` (action type, or `ACTIONS | n`), `inventory` (quantity above 1), `roster` (the lead vital, `HP | 10/10`), `browse` (none).
    The model maps a context to a fact per kind; no component branches on schema.
 
@@ -29,6 +29,7 @@ A strip is a Token, a Row or Card head, or a TitledBox, Slab or SheetSectionCard
   At most two visible controls, then ⋯; never hover-only, never inside the chip group.
 - **C9** A mode swaps what fills a slot (a read chip, a control, a seal), never its size.
 - **C10** A header's summary never repeats a child's fact or its parent's summary; Slab and TitledBox take it as one `SlabCount` list.
+- **C11** A related unit or entity is a relation chip, label first, its value Peeking and opening it: never a loose stamp ("Assigned: X") or a Token beside the strip.
 
 ## Built as
 

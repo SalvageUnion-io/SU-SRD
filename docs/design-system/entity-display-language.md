@@ -39,7 +39,7 @@ Each is checkable; breaking one needs an amendment here. Nesting (N1–N7, rules
 
 - **E1** Choose the form by the job and room, never the app.
 - **E2** Every list of entities is a list of Rows (grid, masonry and columns are layout). Except an SRD index: Tiles, each line filled to the margin; abilities add a Tree (first).
-- **E3** A Token at level 2 (E6) or where a Row will not fit: a long list, one a line (N4), a slot under 12rem, a pattern's loadout.
+- **E3** A Token at level 2 (E6) or where a Row will not fit: a long list, one a line (N4), a slot under 12rem.
   Only a Token is a head alone (N2); a Row or Card keeps its body.
 - **E4** An entity named in prose is a Mention: Peek on hover or long-press, the Page on click. Never a chip, Stat or raw markup.
 - **E5** The detail view is always a Page (form 5): no new-tab `window.open`.
@@ -64,7 +64,7 @@ Each is checkable; breaking one needs an amendment here. Nesting (N1–N7, rules
 
 ## Which form, where
 
-1. **SRD index** — Tiles (lead), link (E2). **SRD entity, pattern, table or guide page** — Page, read; children link. **A pattern** — the chassis ability on its page (E19), then Systems and Modules as Tokens (N4).
+1. **SRD index** — Tiles (lead), link (E2). **SRD entity, pattern, table or guide page** — Page, read; children link. **A pattern** — the chassis ability on its page (E19), then Systems and Modules at level 1, compact Cards, their actions Tokens (E6).
 2. **Search, everywhere** — Row (no lead), link; the bar's dropdown: Token, link. **Any prose** — Mention: Peek, then Page.
 3. **Cantina wizard or picker** — Row, Card for the focused pick; select. **Live sheet** — Row and Card.
 4. **Cantina dense slots** (inventory, bays, loadouts) — Token, link. **Deck** — Token. **Resolve** — Row / Card.
