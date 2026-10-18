@@ -33,7 +33,9 @@ placement table is [surfaces](../ARCHITECTURE.md#surfaces). Amended by
 
 Play composes a player's Pilot + Mech + Crawler into one live surface at
 `/play/$pilotId`, and the Mediator's at `/play/game/$gameId`
-(`src/play/`; [play.md](../architecture/play.md)).
+(`src/play/`; [play.md](../architecture/play.md)). A Game's page in Play
+(`/play/games/$gameId`, [ADR-052](052-build-assets-play-games.md) §5) manages
+the table and is no mode here: it writes no sheet.
 
 Classify both axes (mode and rule class) before building any rules feature.
 The Live Sheet is deliberately the least-enforced surface: wanting a hard block

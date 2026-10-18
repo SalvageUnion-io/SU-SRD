@@ -4,7 +4,8 @@ The governing decision for identity, ownership and sharing. Operations:
 [deployments](../ARCHITECTURE.md#deployments), [environment](../ARCHITECTURE.md#convex-env)
 and the `convex-ops` skill. Amended by [ADR-051](051-play-mode.md): a pilot on a
 Shelf has a seat too, seats carry presence, and a Game can bind a Discord
-channel (`channelBindings`).
+channel (`channelBindings`). Amended by [ADR-052](052-build-assets-play-games.md):
+Build's Hangar lists what a player owns; a Game's page and joining are Play's.
 
 ## 1. Identity and the storage modes
 
@@ -106,21 +107,23 @@ Enforced in `convex/model/permissions.ts` (`requireTableRunner`) and
 
 ## 6. Surfaces
 
-`/` is the Hangar (the Shelf): everything the player keeps, a unit in a Game
-listed with a chip naming it; Patterns, NPCs and the Starter Set are shelves of
-their own. `/games/:id` is a Game's page: its roster in the same ontology-toned
-columns of Rows (`UnitRow`), then the members', Mediator's and Organizer's
-sections. A shared roster adds an owner chip per row and an **UNCLAIMED** seal
-that opens the pick-up confirm. Every row opens its live sheet, editable or the
-read-only drill-in §5 permits (`/sheet/:kind/:id`). The Mediator's screen is
-Play's, `/play/game/:id` ([play.md](../architecture/play.md) §10).
+`/` is the Hangar (the Shelf): everything the player owns, in a Game or not, a
+unit's Game a relation chip and a Showing filter, never a place
+([ADR-052](052-build-assets-play-games.md)); Patterns, NPCs and the Starter Set
+are shelves of their own. A Game's page is Play's, `/play/games/:id`: its roster
+in the same ontology-toned columns of Rows (`UnitRow`), then the members',
+Mediator's and Organizer's sections. A shared roster adds an owner chip per row
+and an **UNCLAIMED** seal that opens the pick-up confirm. Every row opens its
+live sheet, editable or the read-only drill-in §5 permits (`/sheet/:kind/:id`).
+The Mediator's live screen is Play's Cockpit, `/play/game/:id`
+([play.md](../architecture/play.md) §10), which links to the Game's page.
 
 ## Invites
 
 One URL per Game, `/invite/:code`. Anyone signed in who opens it joins as a
-player: no expiry, limit, label or approval. The Organizer copies it
-(`invites.link`) and can reset it (`invites.reset`: a new code, nobody
-removed). Who mediates is chosen afterwards (`games.setMediator`). Signed out,
+player and lands on the Game's page in Play: no expiry, limit, label or
+approval. The Organizer copies it (`invites.link`) and can reset it
+(`invites.reset`: a new code, nobody removed). Who mediates is chosen afterwards (`games.setMediator`). Signed out,
 the page previews the Game and returns with `?join=1`. The live code is the
 Game's newest open standing invite row (`convex/model/invites.ts#currentInvite`).
 

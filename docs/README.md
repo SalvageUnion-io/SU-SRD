@@ -9,7 +9,7 @@ Intent → doc. Area links and "ADR-N" are entries in [ARCHITECTURE.md](ARCHITEC
 5. **Data flow or persistence** — [data flow](ARCHITECTURE.md#data-flow) to [stores](ARCHITECTURE.md#stores); ADR-030, ADR-034.
 6. **Where a rule is enforced, combat** — [surfaces](ARCHITECTURE.md#surfaces) to [combat](ARCHITECTURE.md#combat); ADR-021, ADR-007.
 7. **Play mode** — [play.md](architecture/play.md); ADR-051. Play state and the rules driver it kept: [dashboard.md](architecture/dashboard.md); ADR-038, ADR-045.
-8. **A Game's page** — [mediator-dashboard.md](architecture/mediator-dashboard.md) (M2); ADR-030, ADR-038.
+8. **A Game's page** — [mediator-dashboard.md](architecture/mediator-dashboard.md) (M2); ADR-030, ADR-038, ADR-052.
 9. **NPCs** — [npc-builder.md](architecture/npc-builder.md); ADR-044.
 10. **Sharing** — ADR-032, ADR-036.
 11. **Accounts, Games, Convex** — ADR-030; [deployments](ARCHITECTURE.md#deployments) to [conventions](ARCHITECTURE.md#convex-conventions); procedures: the [`convex-ops`](../.claude/skills/convex-ops/SKILL.md) skill.

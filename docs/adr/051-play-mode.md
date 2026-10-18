@@ -17,15 +17,18 @@ Built: the `dashboard-cockpit` milestone (tracker #1633); Play as built is
 - **Supersedes** [ADR-045](045-dashboard-phone-form.md)'s decisions 3, 4 and 5
   (§10's tabs replace them); decisions 1, 2, 6 and 7 stand.
 - **Amends** [ADR-030](030-accounts-games-server-of-record.md) (§4, §7, §8 below).
+- **Amended by** [ADR-052](052-build-assets-play-games.md): the landing is the
+  hub for Games (§1).
 
 ### 1. Play is a mode
 
-The site header offers Reference, Build and Play. Play lands on `/build/play`:
-the player's Games (play or mediate), their pilots to play solo, and each
-Game's Discord channel. Players know Play as **The Cantina**, the crawler's
-social hub, and Build as the **Training Bay**: the tabs keep the verbs, the
-names go on the pages and the bar's colour (Build pilot orange, Play the deep
-crawler pink). "The Cantina" names Play alone, never the whole app.
+The site header offers Reference, Build and Play. Play lands on `/build/play`,
+the hub for Games ([ADR-052](052-build-assets-play-games.md) §4): the player's
+Games (play or mediate) and New Game and Join, their pilots to play solo, and
+each Game's Discord channel; each Game's page is Play's too. Players know Play
+as **The Cantina**, the crawler's social hub, and Build as the **Training
+Bay**: the tabs keep the verbs, the names go on the pages and the bar's colour
+(Build pilot orange, Play the deep crawler pink). "The Cantina" names Play alone, never the whole app.
 
 ### 2. The Cockpit frame
 

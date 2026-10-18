@@ -1,8 +1,7 @@
 # Architecture
 
-What is true now: one entry each, a headline and at most two lines. Cite an Area by its anchor (`#ci`), never its number.
-The ADRs code cites by § keep their full text in [`docs/adr/`](adr/), linked from their entries; the rest of
-the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
+What is true now; cite an Area by its anchor (`#ci`).
+ADRs cited by § keep their full text in [`docs/adr/`](adr/).
 **Names:** one app, `apps/web` (ADR-050); areas `src/reference/`, `src/build/` (**Training Bay**), `src/play/` (**The Cantina**).
 
 ## Areas
@@ -118,8 +117,8 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
 
 ## Decisions
 
-ADRs are never renumbered: entry N is ADR-N. An entry that amends or supersedes another is named in that one.
-Retired (wholly superseded; text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR-016, ADR-017, ADR-018, ADR-019, ADR-020, ADR-023, ADR-024, ADR-025, ADR-027, ADR-035, ADR-039.
+ADRs are never renumbered: entry N is ADR-N.
+Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR-016, ADR-017, ADR-018, ADR-019, ADR-020, ADR-023, ADR-024, ADR-025, ADR-027, ADR-035, ADR-039.
 
 5. **ADR-005 Game-data ORM**
    Zod is the one source of types, JSON Schema and validation; data loads lazily through a trusted `preload()`.
@@ -155,7 +154,7 @@ Retired (wholly superseded; text in git): ADR-001, ADR-002, ADR-003, ADR-004, AD
     §4 amended by ADR-038.
 30. **ADR-030 Accounts, Games, and a server of record** · [full text](adr/030-accounts-games-server-of-record.md)
     Governing: Discord-only accounts; Convex of record; Games and Shelves; roles; cross-player writes by proposal. Amends ADR-022.
-    Amended by ADR-032, ADR-034, ADR-037, ADR-038 and ADR-051.
+    Amended by ADR-032, ADR-034, ADR-037, ADR-038, ADR-051 and ADR-052.
 31. **ADR-031 Reference pages build on an in-house Vite SSG**
     Registered routes, `renderToStaticMarkup`, React islands; contract `apps/web/ssg/DESIGN.md`. Amended by ADR-050.
 32. **ADR-032 Public, read-only sheets** · [full text](adr/032-public-read-only-sheets.md)
@@ -172,7 +171,7 @@ Retired (wholly superseded; text in git): ADR-001, ADR-002, ADR-003, ADR-004, AD
     One-hop links `mech-to-pilot`, `pilot-to-crawler`, `mech-to-crawler`; a new link replaces conflicts; one container.
     Amends ADR-030; amended by ADR-044. Code: `packages/game-domain/src/links/linkRules.ts`.
 38. **ADR-038 The Dashboard is a Game surface with shared play state** · [full text](adr/038-dashboard-game-surface.md)
-    Built; ADR-051 (Play) keeps its seat and fixed 1280×800 canvas, replacing Game-only and the slots. As built: [dashboard.md](architecture/dashboard.md).
+    Built; ADR-051 keeps its seat and 1280×800 canvas, replacing Game-only and the slots. As built: [dashboard.md](architecture/dashboard.md).
     Amends ADR-029 §4, ADR-030 §5–6 and ADR-034; amended by ADR-045, ADR-051.
 40. **ADR-040 The dataset is served verbatim with no release stream**
     `/schema/*` serves the files byte for byte; `$id` is the served URL; version `0.0.0`. Amends ADR-014; amended by ADR-043.
@@ -204,4 +203,7 @@ Retired (wholly superseded; text in git): ADR-001, ADR-002, ADR-003, ADR-004, AD
     Amends ADR-011, ADR-031, ADR-033 and ADR-048.
 51. **ADR-051 Play mode, a Cockpit** · [full text](adr/051-play-mode.md)
     Built: Play beside Reference and Build; Units | Actions | Crew, Tables, Feed; solo seats.
-    Supersedes ADR-038 §1 and its layout; amends ADR-030 and ADR-045. As built: [play.md](architecture/play.md).
+    Supersedes ADR-038 §1 and its layout; amends ADR-030, ADR-045; amended by ADR-052. As built: [play.md](architecture/play.md).
+52. **ADR-052 Build owns your assets, Play owns Games** · [full text](adr/052-build-assets-play-games.md)
+    Not built: Build lists all you own, a Game a chip; Play has the hub, Game pages, invites, Cockpits.
+    Amends ADR-030 §6, ADR-051 §1.
