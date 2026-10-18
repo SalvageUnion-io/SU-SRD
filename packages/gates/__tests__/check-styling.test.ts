@@ -237,9 +237,9 @@ describe('tokens rule set', () => {
   test('texture-placement: speckle is a finding on a forbidden surface or a paper ground', () => {
     const ref = "filter: 'url(#su-blot)', opacity: tokens.texture.blotOpacity"
     for (const file of [
-      'apps/web/src/components/play/PlayUnits.tsx',
-      'apps/web/src/styles/cantina/dashboard/instruments.css',
-      'apps/web/src/styles/cantina/play/units.css',
+      'apps/web/src/play/PlayUnits.tsx',
+      'apps/web/src/styles/play/dashboard/instruments.css',
+      'apps/web/src/styles/play/units.css',
       'apps/web/src/components/atoms/Button.tsx',
       'apps/web/src/components/atoms/KofiButton.tsx',
       'apps/web/src/components/atoms/buttonVariants.ts',
@@ -288,7 +288,7 @@ describe('tokens rule set', () => {
       '--color-wk-bg-2',
       'wkBg2',
     ])
-    expect(scan('apps/web/src/styles/cantina/print.css', text)['cool-ground']).toEqual([])
+    expect(scan('apps/web/src/styles/build/print.css', text)['cool-ground']).toEqual([])
   })
 })
 
@@ -307,13 +307,12 @@ const STYLING_BASE: Record<string, string> = {
   [ENTRY]:
     "@layer su-reset, su-base;\n@import './theme.css';\n@import './reset.css' layer(su-reset);\n@import './index.css' layer(su-base);\n",
   'apps/web/src/styles/base.css': "@import './entry.css';\n",
-  'apps/web/src/styles/cantina.css': "@import './styles/print.css';\n",
+  'apps/web/src/styles/app.css': "@import './styles/print.css';\n",
   'apps/web/src/styles/global.css': "@import './pages.css';\n",
-  'apps/web/src/styles/cantina/dashboard/canvas.css': '.su-dash-used { color: red }\n',
-  'apps/web/src/styles/cantina/dashboard/instruments.css': '',
-  'apps/web/src/styles/cantina/dashboard/phone.css': '',
-  'apps/web/src/components/play/Thing.tsx':
-    'export const T = () => <div className="su-dash-used" />\n',
+  'apps/web/src/styles/play/dashboard/canvas.css': '.su-dash-used { color: red }\n',
+  'apps/web/src/styles/play/dashboard/instruments.css': '',
+  'apps/web/src/styles/play/dashboard/phone.css': '',
+  'apps/web/src/play/Thing.tsx': 'export const T = () => <div className="su-dash-used" />\n',
 }
 
 describe('styling rule set', () => {
@@ -348,7 +347,7 @@ describe('styling rule set', () => {
           null,
           2
         ),
-        'packages/cantina-domain/package.json': JSON.stringify(
+        'packages/game-domain/package.json': JSON.stringify(
           { dependencies: { clsx: '2.1.1', 'tailwind-merge': '3.0.0' } },
           null,
           2
@@ -367,7 +366,7 @@ describe('styling rule set', () => {
     expect(found['no-tailwind']?.map((f) => `${f.file}:${f.line} ${f.detail}`)).toEqual([
       "package.json:3 devDependencies declares 'tailwindcss'",
       "apps/web/package.json:3 devDependencies declares '@tailwindcss/vite'",
-      "packages/cantina-domain/package.json:4 dependencies declares 'tailwind-merge'",
+      "packages/game-domain/package.json:4 dependencies declares 'tailwind-merge'",
       "tools/package.json:3 devDependencies declares '@tailwindcss/cli'",
       "apps/web/src/styles/global.css:2 Tailwind directive '@source'",
       "apps/web/src/styles/global.css:4 Tailwind directive '@apply'",
@@ -395,7 +394,7 @@ describe('styling rule set', () => {
     const found = stylingOwnership.scan(
       fixture({
         ...STYLING_BASE,
-        'apps/web/src/styles/cantina/dashboard/instruments.css': '.su-dash-dead { color: red }\n',
+        'apps/web/src/styles/play/dashboard/instruments.css': '.su-dash-dead { color: red }\n',
       })
     )
     expect(found['dash-class-contract']?.map((f) => f.detail)).toEqual([
@@ -498,7 +497,7 @@ describe('styling rule set', () => {
     const found = stylingOwnership.scan(
       fixture({
         ...STYLING_BASE,
-        'apps/web/src/styles/cantina.css': "@import './entry.css';\n",
+        'apps/web/src/styles/app.css': "@import './entry.css';\n",
       })
     )
     expect(found['package-stylesheet-import']?.map((f) => f.detail)).toEqual([
@@ -523,7 +522,7 @@ describe('styling rule set', () => {
 describe('class-prefix rule set', () => {
   test('a clean fixture has no findings', () => {
     const found = classPrefix.scan(
-      fixture({ 'apps/web/src/styles/cantina/a.css': '.su-a, .su-b:hover { color: red }\n' })
+      fixture({ 'apps/web/src/styles/build/a.css': '.su-a, .su-b:hover { color: red }\n' })
     )
     expect(found['class-prefix']).toEqual([])
   })
@@ -531,7 +530,7 @@ describe('class-prefix rule set', () => {
   test('a class without the su- prefix is found, nested ones included, in every stylesheet', () => {
     const found = classPrefix.scan(
       fixture({
-        'apps/web/src/styles/cantina/wizard.css':
+        'apps/web/src/styles/build/wizard.css':
           '/* .wiz-old in a comment is prose */\n.su-wiz-ok, .wiz-pill:hover { color: red }\n@media (min-width: 40rem) {\n  .su-wiz-ok .npc-step { color: red }\n}\n',
         'apps/web/src/styles/theme.css':
           ".sheet--pilot,\n.su-sheet--mech { --tone: red }\n@import 'x.css';\n",
@@ -539,8 +538,8 @@ describe('class-prefix rule set', () => {
       })
     )
     expect(found['class-prefix']?.map((f) => `${f.file}:${f.line} ${f.detail}`)).toEqual([
-      'apps/web/src/styles/cantina/wizard.css:2 .wiz-pill is not a .su-* class',
-      'apps/web/src/styles/cantina/wizard.css:4 .npc-step is not a .su-* class',
+      'apps/web/src/styles/build/wizard.css:2 .wiz-pill is not a .su-* class',
+      'apps/web/src/styles/build/wizard.css:4 .npc-step is not a .su-* class',
       'apps/web/src/styles/pages.css:1 .srd-page is not a .su-* class',
       'apps/web/src/styles/theme.css:1 .sheet--pilot is not a .su-* class',
     ])
@@ -551,15 +550,17 @@ describe('srd-css rule set', () => {
   const entry = { [SRD_CSS_ENTRY]: "import '../styles/global.css'\n" }
 
   test('passes when only the entry imports css', () => {
-    const found = srdCss.scan(fixture({ ...entry, 'apps/web/src/pages/a.page.tsx': 'export {}\n' }))
+    const found = srdCss.scan(
+      fixture({ ...entry, 'apps/web/src/reference/pages/a.page.tsx': 'export {}\n' })
+    )
     expect(found['srd-css-entry']).toEqual([])
   })
 
   test('a css import in an SSR module is found', () => {
     const found = srdCss.scan(
-      fixture({ ...entry, 'apps/web/src/pages/a.page.tsx': "import './a.css'\n" })
+      fixture({ ...entry, 'apps/web/src/reference/pages/a.page.tsx': "import './a.css'\n" })
     )
-    expect(found['srd-css-entry']?.[0]?.file).toBe('apps/web/src/pages/a.page.tsx')
+    expect(found['srd-css-entry']?.[0]?.file).toBe('apps/web/src/reference/pages/a.page.tsx')
   })
 
   test('an entry that imports nothing is a finding, not a pass', () => {
@@ -571,7 +572,7 @@ describe('srd-css rule set', () => {
     const found = srdCss.scan(
       fixture({
         ...entry,
-        'apps/web/src/pages/a.page.tsx': "import { A } from '../components/A'\n",
+        'apps/web/src/reference/pages/a.page.tsx': "import { A } from '../../components/A'\n",
         'apps/web/src/components/A.tsx': "import './a.css'\nimport { C } from './C'\n",
         'apps/web/src/components/C.tsx': "import './c.css'\n",
         'apps/web/src/components/A.test.tsx': "import './a.css'\n",

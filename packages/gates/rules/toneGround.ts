@@ -9,7 +9,7 @@
  *
  * ## Why it reads the dataset, not the source
  *
- * Every header ground — Row, Card and Page, SRD and the Cantina — is the entity
+ * Every header ground — Row, Card and Page, SRD and the app — is the entity
  * model's tone token (`entityTone`, `packages/salvageunion-reference/lib/view/
  * parts/fill.ts`), painted as `--color-<token>`. No source file spells a TL
  * ground out; the resolver builds it from data. So the rule asks the resolver,

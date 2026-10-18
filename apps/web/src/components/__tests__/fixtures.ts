@@ -7,11 +7,11 @@
  * through-`unknown` casts from partial literals.
  */
 
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { Npc } from 'cantina-domain/schemas/npc'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
-import type { CrewSlot, SoftLink } from 'cantina-domain/schemas/softLink'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Npc } from 'game-domain/schemas/npc'
+import type { Pilot } from 'game-domain/schemas/pilot'
+import type { CrewSlot, SoftLink } from 'game-domain/schemas/softLink'
 
 /**
  * The one frozen instant every test fixture is stamped with.

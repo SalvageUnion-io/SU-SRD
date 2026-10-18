@@ -13,8 +13,8 @@ prefixes, rust allowlist and entry; its messages say the fix.
 - **The pattern:** `apps/web/src/design/tokens.ts` (typed scale, kept equal to
   `theme.css` by a parity test) + `apps/web/src/styles/index.css`, the one
   stylesheet, `@import`ing `styles/partials/` in cascade order. Play's
-  `.su-dash-*` and `.su-play-*` rules live in `apps/web/src/styles/cantina/`; any
-  other Cantina- or page-only rule lives in that half's stylesheets.
+  `.su-dash-*` and `.su-play-*` rules live in `apps/web/src/styles/play/`; any
+  other app- or page-only rule lives in that half's stylesheets.
 - **One spelling each:** static → `const NAME = { … } satisfies CSSProperties`
   at module scope (never `const NAME: CSSProperties =`); varies by instance → an
   inline literal of only the varying values spreading the static one, or a
@@ -26,8 +26,8 @@ prefixes, rust allowlist and entry; its messages say the fix.
 - **Repeated on many elements per page → a class:** static HTML writes a style
   object out on every element. A class laid over another component's must come
   later in import order, and loses to an app's unlayered element rule (the
-  Cantina's heading face, `print.css`): check pages, the Cantina and print. The
-  Cantina hands a class back with `revert-layer` (`styles/cantina/libHandback.css`).
+  app's heading face, `print.css`): check pages, the app and print. The app
+  hands a class back with `revert-layer` (`styles/build/libHandback.css`).
 - Class-string exports (`buttonVariants`, `capsLabel`, `FOCUS_*`, …) are public
   API by their `.su-*` names. No speculative style object.
 - **The one entry**, `apps/web/src/styles/entry.css`: `@layer su-reset, su-base;`,

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { MechPatternSchema } from 'cantina-domain/schemas/pattern'
+import { MechPatternSchema } from 'game-domain/schemas/pattern'
 import { FIXTURE_NOW, mechFixture } from '../../../components/__tests__/fixtures'
 import {
   asReferencePattern,

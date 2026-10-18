@@ -10,9 +10,9 @@
  * single entry of a host's array.
  */
 
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { PartnerInstance } from 'cantina-domain/schemas/partner'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { PartnerInstance } from 'game-domain/schemas/partner'
+import type { Pilot } from 'game-domain/schemas/pilot'
 
 /** A partner together with the host that owns it. */
 export type PartnerWithHost =

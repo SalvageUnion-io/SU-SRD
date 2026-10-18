@@ -168,7 +168,7 @@
 }
 
 /* The compact column (`StatColumn compact`): the band's smaller cells, two a
-   line at every width, for a narrow column beside other content (the Cantina mech
+   line at every width, for a narrow column beside other content (the app mech
    sheet's hero, beside the player's fields). */
 .su-stat-column.su-stat-column--compact {
   container-type: normal;

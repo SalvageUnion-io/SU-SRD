@@ -4,7 +4,7 @@
  * check-test-layout — one test layout and one test script
  * (`bun run check test-layout`).
  *
- * There were once two layouts: The Cantina kept ~233 tests in `__tests__/` and ~41
+ * There were once two layouts: the app kept ~233 tests in `__tests__/` and ~41
  * beside its Convex harness, the reference package kept all ~56 beside their
  * subjects. There were also two `test` scripts:
  * `bun test` in seven workspaces, `bun test --parallel=4 --no-isolate` in

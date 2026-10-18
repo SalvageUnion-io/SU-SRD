@@ -47,7 +47,7 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  * the cluster follows the title, below the band on the page ground. The
  * notch stays on the band's foot either way.
  *
- * A page whose aside is its action buttons (the Cantina's Hangar and Game
+ * A page whose aside is its action buttons (the app's Hangar and Game
  * pages) passes `asideAt="controls"`: each control is its own item on the
  * title's line, right-aligned on the band's foot beside the name, and the
  * ones that do not fit there wrap onto lines ABOVE it, right-aligned, into
@@ -62,8 +62,9 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  * A band that leads the page (a `PageShell`'s first child) also colours the
  * Union bar above it: the bar takes its colour, foreground and grain
  * (`unionBarMatch.ts`), so the site header and the band are one colour. A
- * front page (the SRD's home, the Cantina's `/build`) sets `matchBar={false}`
- * and keeps the ink bar.
+ * front page (the SRD's home, Build's `/build`) sets `matchBar={false}`
+ * and keeps the bar it has. The app's bar never matches: it wears its area's
+ * colour on every route (`unionBarMatch.ts`).
  *
  * The page's breadcrumb trail (`ChapterBandTrail`, which a site's layout
  * provides) is the notch's kicker on a page band, at every width: a line of
@@ -72,19 +73,20 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  *
  * `corner` sits in the band's top-right corner, above the title row, at every
  * width: a page's own controls where they are not the entity's stamps (an
- * The Cantina sheet's Read | Edit, Share and "⋯", the Starter Set's "Make a copy").
+ * the app sheet's Read | Edit, Share and "⋯", the Starter Set's "Make a copy").
  *
  * ## Colour map
  *
  * `tone` is the book's colour map (ruleset, "The source"): `rules` is the
  * rules-blue band of Contents, Core Rules, Salvaging, Guides and Keywords;
  * `pilot`, `mech`, `crawler` and `denizen` are the four chapters. `ink` is the
- * dark band of a page that is the player's own (The Cantina's Shelves, board S1): it
- * wears paper flecks instead of ink speckle (ruleset §3.5). `cantina` is The
- * Cantina's own band, in Legendary pink. Content in `aside` and `eyebrow` is
- * ink on `rules`, `pilot`, `mech`, `crawler` and `cantina`; the `denizen` band
- * is navy and the `ink` band ink, and both carry paper text — the caller
- * dresses it. A page that wants paper text on the crawler pink passes `fill`
+ * dark band of a page that is the player's own (Build's Shelves, board S1): it
+ * wears paper flecks instead of ink speckle (ruleset §3.5). `build` and `play`
+ * are the app's two areas' own bands: the Training Bay's pilot orange and the
+ * Cantina's deep crawler pink. Content in `aside` and `eyebrow` is ink on
+ * `rules`, `pilot`, `mech`, `crawler` and `build`; the `denizen` band is navy,
+ * the `play` band deep pink and the `ink` band ink, and all three carry paper
+ * text — the caller dresses it. A page that wants paper text on the crawler pink passes `fill`
  * the deeper `crawlerBand`, which carries it (the book's crawler pink carries
  * neither ink nor paper at 4.5 : 1).
  *

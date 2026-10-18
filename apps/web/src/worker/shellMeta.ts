@@ -1,7 +1,7 @@
 /**
  * Per-route metadata for the SPA shell.
  *
- * The Cantina is client-rendered, and an unfurl bot runs no JavaScript, so a route's
+ * The app is client-rendered, and an unfurl bot runs no JavaScript, so a route's
  * runtime `<title>` never reaches Discord: every link unfurled as the app
  * itself. This rewrites the shell's head for the routes a player shares, so a
  * link looks like the page it opens.
@@ -13,7 +13,7 @@
  * exactly the kind that have broken production before, so the testable form
  * wins.
  *
- * The shell (`shell/shell.ts`) carries `<!-- cantina:meta:start -->` / `<!-- cantina:meta:end -->`
+ * The shell (`shell/shell.ts`) carries `<!-- app:meta:start -->` / `<!-- app:meta:end -->`
  * around its defaults, and this swaps that whole block. A precise delimiter
  * beats pattern-matching tags: the block is replaced wholesale, so a per-route
  * tag and a default tag can never both survive for a parser to choose between.

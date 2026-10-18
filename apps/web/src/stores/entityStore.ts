@@ -25,23 +25,23 @@
  * Assignments (ADR-037): creating a SoftLink goes through the assignment
  * model — it is refused across containers and REPLACES the links it conflicts
  * with in one write — and moving an entity drops the links the move leaves
- * straddling two containers. The rules are `cantina-domain/links/linkRules`, shared
+ * straddling two containers. The rules are `game-domain/links/linkRules`, shared
  * with the server, which enforces the same ones.
  */
 
-import type { ContainerFields } from 'cantina-domain/container'
-import { containerOf, moveTo, sameContainer } from 'cantina-domain/container'
+import type { ContainerFields } from 'game-domain/container'
+import { containerOf, moveTo, sameContainer } from 'game-domain/container'
 import {
   CROSS_CONTAINER_REFUSAL,
   conflictingLinks,
   endsMatchType,
   sameLink,
-} from 'cantina-domain/links/linkRules'
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { Npc } from 'cantina-domain/schemas/npc'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
-import type { SoftLink } from 'cantina-domain/schemas/softLink'
+} from 'game-domain/links/linkRules'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Npc } from 'game-domain/schemas/npc'
+import type { Pilot } from 'game-domain/schemas/pilot'
+import type { SoftLink } from 'game-domain/schemas/softLink'
 import { create } from 'zustand'
 import { staleWriteOf } from '../../convex/model/staleWrite'
 import { linksClearedByMove } from '../lib/links/clearedByMove'
@@ -307,7 +307,7 @@ function withoutLinksTo(links: readonly SoftLink[], ids: ReadonlySet<string>): S
  * Applies to pilots/mechs/crawlers only; SoftLinks carry no container. An
  * input that already decided its own container is left untouched so it isn't
  * clobbered — and "already decided" includes an explicit `gameId: null`,
- * because null *is* the Shelf rather than an absence (see cantina-domain/src/container.ts).
+ * because null *is* the Shelf rather than an absence (see game-domain/src/container.ts).
  * Testing for `undefined` rather than nullishness is what keeps a deliberate
  * shelving from being overwritten by whatever container happens to be open.
  */
@@ -641,7 +641,7 @@ export const useEntityStore = create<EntityState>((set, get, api) => ({
     // lands on the latest bays.
     const fresh = get().get('crawler', crawlerId)
     if (fresh === null) {
-      throw new Error(`[cantina-store] Cannot update bay: crawler id="${crawlerId}" not found`)
+      throw new Error(`[app-store] Cannot update bay: crawler id="${crawlerId}" not found`)
     }
     const bays = fresh.crawlerBays ?? []
     const targetIndex =
@@ -650,7 +650,7 @@ export const useEntityStore = create<EntityState>((set, get, api) => ({
         : bays.findIndex((b) => b.bayRef === bayRef)
     if (targetIndex === -1) {
       throw new Error(
-        `[cantina-store] Cannot update bay: bayRef="${bayRef}" not found on crawler "${crawlerId}"`
+        `[app-store] Cannot update bay: bayRef="${bayRef}" not found on crawler "${crawlerId}"`
       )
     }
     const next = bays.map((b, i) => (i === targetIndex ? { ...b, ...patch, bayRef } : b))

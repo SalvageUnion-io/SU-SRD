@@ -90,7 +90,7 @@ describe('route registry', () => {
 
   // Pages sit at the root (`/chassis/mule/`), so a schema id shares one
   // namespace with every other top-level path: a schema named `about`, a
-  // public directory named `chassis`, or a schema under the Cantina's `/build/` or
+  // public directory named `chassis`, or a schema under the app's `/build/` or
   // the JSON API's `/schema/` would shadow one or the other.
   it('gives no schema listing a first segment another route, a public file or a sibling app owns', () => {
     const listingPattern = '/[schemaId]'

@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
-import { BOT_PATH_PREFIX, BOT_RELAY_POST_ROLL_PATH } from 'cantina-domain/botWire'
+import { BOT_PATH_PREFIX, BOT_RELAY_POST_ROLL_PATH } from 'game-domain/botWire'
 import { api } from '../../../convex/_generated/api'
 import { NATIVE_FETCH_GLOBALS, NATIVE_OUTBOUND } from '../../env'
 import type { Ctx } from '../fixtures'
@@ -17,11 +17,11 @@ import { testConvexWithHttp } from '../harness'
  * it runs here, at the Convex layer, as end to end as that layer goes:
  *
  *  - the bot binds the Game's channel through its real HTTP door (`/bot/
- *    bindChannel`, bearer `CANTINA_BOT_SECRET`), as `/su bind` does;
+ *    bindChannel`, bearer `BOT_SECRET`), as `/su bind` does;
  *  - the player posts the roll Play sends (`channelBindings.postRoll`, the
  *    Core Mechanic's d20, the pilot naming the roller);
  *  - the bot Worker is a real local HTTP server (`Bun.serve`) at
- *    `CANTINA_BOT_URL`, so the request crosses a socket, path, bearer and
+ *    `BOT_URL`, so the request crosses a socket, path, bearer and
  *    body as the Worker reads them, and its answer comes back the same way.
  *
  * `channelBindings.test.ts` covers postRoll's every branch with `fetch`
@@ -41,7 +41,7 @@ let relay: ReturnType<typeof Bun.serve> | undefined
  * Env the deployment's `auth.ts` and `http.ts` read once loaded (the bot's
  * door sits on the real router, `testConvexWithHttp`), and the relay's.
  */
-const ENV_KEYS = ['SITE_URL', 'CONVEX_SITE_URL', 'CANTINA_BOT_URL', 'CANTINA_BOT_SECRET'] as const
+const ENV_KEYS = ['SITE_URL', 'CONVEX_SITE_URL', 'BOT_URL', 'BOT_SECRET'] as const
 const savedEnv: Partial<Record<(typeof ENV_KEYS)[number], string>> = {}
 
 // The happy-dom preload swaps in a browser's `fetch`, `URL`, `Headers`,
@@ -57,7 +57,7 @@ beforeAll(() => {
   }
   Object.assign(globalThis, NATIVE)
   for (const key of ENV_KEYS) savedEnv[key] = process.env[key]
-  process.env.SITE_URL = 'https://cantina.test'
+  process.env.SITE_URL = 'https://app.test'
   process.env.CONVEX_SITE_URL = 'https://deployment.convex.site'
   relay = Bun.serve({
     port: 0,
@@ -86,8 +86,8 @@ afterAll(() => {
 beforeEach(() => {
   received = []
   answer = () => Response.json({ ok: true, messageId: 'msg-1' })
-  process.env.CANTINA_BOT_URL = `http://127.0.0.1:${relay?.port}/`
-  process.env.CANTINA_BOT_SECRET = SECRET
+  process.env.BOT_URL = `http://127.0.0.1:${relay?.port}/`
+  process.env.BOT_SECRET = SECRET
 })
 
 /** A Game with a Discord-linked Organiser and a player who has a pilot in it. */
@@ -172,7 +172,7 @@ describe('a Play roll posts to the bound channel through the bot relay', () => {
     await bindThroughBotDoor(t, gameId)
     // Nothing listens on a port the OS just handed back.
     const closed = Bun.serve({ port: 0, hostname: '127.0.0.1', fetch: () => new Response() })
-    process.env.CANTINA_BOT_URL = `http://127.0.0.1:${closed.port}`
+    process.env.BOT_URL = `http://127.0.0.1:${closed.port}`
     await closed.stop(true)
 
     expect(

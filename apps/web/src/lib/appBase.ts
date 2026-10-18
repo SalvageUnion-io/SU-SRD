@@ -1,5 +1,5 @@
 /**
- * The Cantina's base on salvageunion.io (ADR-048): every path under
+ * The app's base on salvageunion.io (ADR-048): every path under
  * {@link APP_BASE} is the app's, everything else the reference pages'.
  *
  * The one home of the base. No imports: the service worker's options
@@ -8,11 +8,11 @@
  * ship to every page. The origins and absolute links are `site.ts`'s.
  */
 
-/** The path every Cantina URL starts with, without a trailing slash. */
+/** The path every app URL starts with, without a trailing slash. */
 export const APP_BASE = '/build'
 
 /**
- * A Cantina route as a path on the site: `appPath('/starter')` is
+ * An app route as a path on the site: `appPath('/starter')` is
  * `/build/starter`, `appPath('/')` the app's front door, `/build/`.
  */
 export function appPath(route: string): string {

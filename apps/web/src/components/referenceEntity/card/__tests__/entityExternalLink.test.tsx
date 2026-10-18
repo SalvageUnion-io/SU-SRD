@@ -1,12 +1,12 @@
 /**
- * Regression guard for the app-supplied entity cross-link (The Cantina's
+ * Regression guard for the app-supplied entity cross-link (The app's
  * "View in SRD"), which reaches the card through
  * `EntityExternalLinkProvider` and is read by `useEntityExternalLink`.
  *
  * WHY THIS EXISTS. This link silently disappeared once already, and nothing
  * caught it. The since-deleted legacy render core held the only
  * `useEntityExternalLink` call; when that file was removed in favour of
- * `ReferenceEntityCard`, the call went with it and was never reinstated. The Cantina
+ * `ReferenceEntityCard`, the call went with it and was never reinstated. The app
  * still wired the provider in `GameDataReady` and still shipped a tested
  * builder, so both ends of the feature looked healthy — only the middle was
  * gone. The call now lives in `ReferenceEntityCard` itself, which is what this

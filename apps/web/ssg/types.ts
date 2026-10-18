@@ -125,7 +125,7 @@ export type PageModule<Params = Record<string, string>, Props = unknown> = {
  * A non-HTML build output.
  *
  * Part of the SSG contract in `ssg/DESIGN.md`.
- * `src/endpoints/{itemJson,llmsTxt,schemaDefinitionJson,schemaJson,searchIndexJson}.ts`
+ * `src/reference/endpoints/{itemJson,llmsTxt,schemaDefinitionJson,schemaJson,searchIndexJson}.ts`
  * implement it.
  */
 export type EndpointModule<Params = Record<string, string>, Props = unknown> = {

@@ -1,10 +1,10 @@
 /**
  * crawlerItems — the crawler sheet's non-component helpers (a rules home, not
- * `components/sheet/`). Pure lookups, constants and the bay-repair
+ * `build/sheet/`). Pure lookups, constants and the bay-repair
  * patch shared by CrawlerSheetItems and CrawlerSheet.
  */
 
-import type { Crawler, ScrapPool } from 'cantina-domain/schemas/crawler'
+import type { Crawler, ScrapPool } from 'game-domain/schemas/crawler'
 import type { RefEntity } from 'salvageunion-reference'
 import { resolveSystemRef } from 'salvageunion-reference/rules'
 import { readReference } from '../readReference'

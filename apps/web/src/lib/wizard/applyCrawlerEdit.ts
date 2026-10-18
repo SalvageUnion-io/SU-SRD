@@ -19,7 +19,7 @@
  * touched here — only crew/type-owned fields.
  */
 
-import type { Crawler } from 'cantina-domain/schemas/crawler'
+import type { Crawler } from 'game-domain/schemas/crawler'
 import type { EntityState } from '../../stores/entityStore'
 import { WIZARD_TXN } from '../../stores/surfaceProvenance'
 import type { CrawlerWizardFormState } from './crawlerFormState'

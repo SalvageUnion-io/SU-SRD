@@ -119,24 +119,24 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: srd-dist
-  build-cantina:
+  build-app:
     needs: plan
-    if: contains(fromJSON(needs.plan.outputs.deploy), 'cantina')
+    if: contains(fromJSON(needs.plan.outputs.deploy), 'app')
     runs-on: ubuntu-latest
     steps:
       - run: bun run build
       - uses: actions/upload-artifact@v7
         with:
-          name: cantina-dist
+          name: app-dist
   push-convex:
-    needs: [plan, build-srd, build-cantina]
-    if: \${{ !cancelled() && !failure() && contains(fromJSON(needs.plan.outputs.deploy), 'cantina') }}
+    needs: [plan, build-srd, build-app]
+    if: \${{ !cancelled() && !failure() && contains(fromJSON(needs.plan.outputs.deploy), 'app') }}
     runs-on: ubuntu-latest
     steps:
       - name: Push
         run: bunx convex deploy --cmd "true"
   deploy:
-    needs: [plan, build-srd, og-srd, build-cantina, push-convex]
+    needs: [plan, build-srd, og-srd, build-app, push-convex]
     if: \${{ !cancelled() && !failure() && needs.plan.outputs.deploy != '[]' }}
     strategy:
       fail-fast: false
@@ -149,9 +149,9 @@ jobs:
         with:
           name: srd-dist
       - uses: actions/download-artifact@v8
-        if: matrix.app == 'cantina'
+        if: matrix.app == 'app'
         with:
-          name: cantina-dist
+          name: app-dist
       - run: bun run deploy
   smoke:
     needs: [plan, deploy]
@@ -446,7 +446,7 @@ describe('pinning', () => {
 const jobIf = (expr: string) => `    if: \${{ ${expr} }}`
 
 /** The matrix deploy job's header and `needs:`, as the fixture writes them. */
-const NEEDS = '  deploy:\n    needs: [plan, build-srd, og-srd, build-cantina, push-convex]'
+const NEEDS = '  deploy:\n    needs: [plan, build-srd, og-srd, build-app, push-convex]'
 
 describe('deploy-order', () => {
   test('passes when builds precede deploys, deploys precede smoke, smoke precedes record', () => {
@@ -456,11 +456,9 @@ describe('deploy-order', () => {
   test('a deploy job that does not wait for EVERY build fails', () => {
     const deploy = DEPLOY_TEXT.replace(NEEDS, '  deploy:\n    needs: [plan, build-srd, og-srd]')
     expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
-      expect.stringContaining('`deploy` does not need `build-cantina` — every build must finish'),
+      expect.stringContaining('`deploy` does not need `build-app` — every build must finish'),
       expect.stringContaining('`deploy` does not need `push-convex`'),
-      expect.stringContaining(
-        '`deploy` does not need `build-cantina` — it downloads `cantina-dist`'
-      ),
+      expect.stringContaining('`deploy` does not need `build-app` — it downloads `app-dist`'),
     ])
   })
 
@@ -532,7 +530,7 @@ describe('deploy-order', () => {
       '      - name: Push\n        run: bunx convex deploy --cmd "true"\n',
       '      - name: Push\n        uses: ./.github/actions/push\n'
     ).replace(
-      '      - run: bun run build\n      - uses: actions/upload-artifact@v7\n        with:\n          name: cantina-dist\n',
+      '      - run: bun run build\n      - uses: actions/upload-artifact@v7\n        with:\n          name: app-dist\n',
       '      - uses: ./.github/actions/build/\n'
     )
     const actions = [
@@ -543,21 +541,21 @@ describe('deploy-order', () => {
       yaml(
         '.github/actions/build/action.yml',
         'runs:\n  using: composite\n  steps:\n    - run: bun run build\n      shell: bash\n' +
-          '    - uses: actions/upload-artifact@v7\n      with:\n        name: cantina-dist\n'
+          '    - uses: actions/upload-artifact@v7\n      with:\n        name: app-dist\n'
       ),
     ]
     expect(checkDeployOrder(ctx({ deploy, extra: actions })).failures).toEqual([])
     // The action read through, not merely named: without it there is no push or build.
     expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
       expect.stringContaining('has no job that runs `convex deploy`'),
-      expect.stringContaining('downloads `cantina-dist`, which no job uploads'),
+      expect.stringContaining('downloads `app-dist`, which no job uploads'),
     ])
   })
 
   test('a Convex push that does not wait for EVERY build fails', () => {
     const deploy = DEPLOY_TEXT.replace(
-      '  push-convex:\n    needs: [plan, build-srd, build-cantina]',
-      '  push-convex:\n    needs: [plan, build-cantina]'
+      '  push-convex:\n    needs: [plan, build-srd, build-app]',
+      '  push-convex:\n    needs: [plan, build-app]'
     )
     expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
       expect.stringContaining('`push-convex` does not need `build-srd`'),
@@ -570,14 +568,14 @@ describe('deploy-order', () => {
       '      - run: bunx convex deploy --cmd "bun run build"\n'
     )
     expect(checkDeployOrder(ctx({ deploy })).failures).toContainEqual(
-      expect.stringContaining('`build-cantina` does not need `build-srd`')
+      expect.stringContaining('`build-app` does not need `build-srd`')
     )
   })
 
   test('a deploy job that can ship before the backend push fails', () => {
     const deploy = DEPLOY_TEXT.replace(
       NEEDS,
-      '  deploy:\n    needs: [plan, build-srd, og-srd, build-cantina]'
+      '  deploy:\n    needs: [plan, build-srd, og-srd, build-app]'
     )
     expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
       expect.stringContaining('`deploy` does not need `push-convex`'),
@@ -585,13 +583,13 @@ describe('deploy-order', () => {
   })
 
   test('a post-build pass is not a build: only the job shipping its output waits for it', () => {
-    expect(DEPLOY_TEXT).toContain('  push-convex:\n    needs: [plan, build-srd, build-cantina]\n')
+    expect(DEPLOY_TEXT).toContain('  push-convex:\n    needs: [plan, build-srd, build-app]\n')
     expect(checkDeployOrder(ctx({})).failures).toEqual([])
   })
 
   test('split deploy jobs: only the one shipping the post-build output waits for it', () => {
     const srdLeg = `  deploy-web:
-    needs: [plan, build-srd, og-srd, build-cantina, push-convex]
+    needs: [plan, build-srd, og-srd, build-app, push-convex]
     if: \${{ !cancelled() && !failure() && contains(fromJSON(needs.plan.outputs.deploy), 'srd') }}
     runs-on: ubuntu-latest
     steps:
@@ -602,7 +600,7 @@ describe('deploy-order', () => {
 `
     const split = DEPLOY_TEXT.replace(
       `${NEEDS}\n`,
-      `${srdLeg}  deploy:\n    needs: [plan, build-srd, build-cantina, push-convex]\n`
+      `${srdLeg}  deploy:\n    needs: [plan, build-srd, build-app, push-convex]\n`
     )
       .replace(
         "      - uses: actions/download-artifact@v8\n        if: matrix.app == 'srd'\n        with:\n          name: srd-dist\n",
@@ -612,11 +610,11 @@ describe('deploy-order', () => {
     expect(checkDeployOrder(ctx({ deploy: split })).failures).toEqual([])
 
     const early = split.replace(
-      '  deploy-web:\n    needs: [plan, build-srd, og-srd, build-cantina, push-convex]',
+      '  deploy-web:\n    needs: [plan, build-srd, og-srd, build-app, push-convex]',
       '  deploy-web:\n    needs: [plan, og-srd]'
     )
     expect(checkDeployOrder(ctx({ deploy: early })).failures).toContainEqual(
-      expect.stringContaining('`deploy-web` does not need `build-cantina`')
+      expect.stringContaining('`deploy-web` does not need `build-app`')
     )
     const unsmoked = split.replace(
       '    needs: [plan, deploy-web, deploy]',
@@ -630,7 +628,7 @@ describe('deploy-order', () => {
   test('a deploy that does not wait for the job uploading what it ships fails', () => {
     const deploy = DEPLOY_TEXT.replace(
       NEEDS,
-      '  deploy:\n    needs: [plan, build-srd, build-cantina, push-convex]'
+      '  deploy:\n    needs: [plan, build-srd, build-app, push-convex]'
     )
     expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
       expect.stringContaining('`deploy` does not need `og-srd` — it downloads `srd-dist`'),

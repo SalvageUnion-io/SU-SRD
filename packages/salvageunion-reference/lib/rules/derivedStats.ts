@@ -14,7 +14,7 @@
  *
  * All functions are pure — no side effects, no async, no React. Parameter
  * types are small structural shapes (not full persisted records) — a
- * consumer's Zod-inferred Pilot/Mech/Crawler types (e.g. The Cantina's
+ * consumer's Zod-inferred Pilot/Mech/Crawler types (e.g. The app's
  * `src/lib/schemas/`) satisfy them automatically.
  */
 
@@ -118,11 +118,11 @@ type PilotDerivationInput = {
   abilities?: string[]
   /**
    * The pilot's EFFECTIVE crawler Tech Level (1–6) — the source of the Stat
-   * Training bonus (see `pilotStatTrainingContributions`). In the Cantina this is
+   * Training bonus (see `pilotStatTrainingContributions`). In the app this is
    * `resolveEffectiveCrawlerLevel`: the linked crawler's tech level, else the
    * pilot's manual `crawlerLevel`. Absent = Tech 1 = no bonus.
    *
-   * Deliberately NOT named `crawlerLevel`, which is a field on the Cantina's persisted
+   * Deliberately NOT named `crawlerLevel`, which is a field on the app's persisted
    * Pilot: passing a pilot record straight through would then silently pick up
    * the manual fallback and ignore a linked crawler. Callers set this explicitly.
    */
@@ -233,9 +233,9 @@ export function pilotMaxAP(pilot: PilotDerivationInput): number {
  * `maxInventorySlotsModifier` + ability contributions (Beefcake +4), with the
  * same absolute `maxInventorySlotsOverride` pin HP and AP already honour.
  *
- * This lived in the Cantina sheet as a bare number with no provenance and no
+ * This lived in the app sheet as a bare number with no provenance and no
  * override path, which meant `maxInventorySlotsOverride` — a field that has been
- * in the Cantina's persisted Pilot schema all along — was read by nothing: a Free-Edit
+ * in the app's persisted Pilot schema all along — was read by nothing: a Free-Edit
  * pin wrote a value the gauge then ignored. Deriving it here, through the same
  * `breakdownOf` as every other maximum, is what makes the pin take effect and
  * gives the provenance panel a per-ability line instead of an anonymous total.

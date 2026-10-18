@@ -1,4 +1,4 @@
-// SRD catalog — the catalog categories and their tile colours, as the Cantina's
+// SRD catalog — the catalog categories and their tile colours, as the app's
 // SRD Explorer renders them. (srd's own index is its chapters,
 // `apps/web/src/lib/chapters.ts`.)
 
@@ -23,7 +23,7 @@ export { cn } from '../lib/cn'
 // @randsum/salvageunion, every other die through @randsum/roller.
 export type { TableDie } from '../lib/dice'
 export { dieForTable, rollD20, rollForTable } from '../lib/dice'
-// Prose with its `[[Trait]]` references drawn as Mentions (The Cantina's `PlayRollTable`).
+// Prose with its `[[Trait]]` references drawn as Mentions (The app's `PlayRollTable`).
 export { useParseTraitReferences } from '../lib/parseTraitReferences'
 // The one place a schema id becomes a human label ('crawler-bays' →
 // 'Crawler Bays'), so the combobox, the /search page and the catalog can't
@@ -37,7 +37,7 @@ export { useMediaQuery } from '../lib/useMediaQuery'
 export type { CSSVarStyle } from '../styles/cssVars'
 export { ActivationCost } from './atoms/ActivationCost'
 export type { BadgeTone } from './atoms/Badge'
-// Chrome primitives (The Cantina design handoff — design-spec §2)
+// Chrome primitives (The app design handoff — design-spec §2)
 // Badge — the unified stamp-chip family: the quiet keyword chip is
 // `surface="quiet"`, the status badge is StatusBadge (domain vocabulary), and a
 // pill is `Badge surface="outline"`/`"tone"`.
@@ -56,7 +56,7 @@ export { ChapterBandTrail } from './atoms/ChapterBandTrail'
 export { Checkbox } from './atoms/Checkbox'
 // CloseButton — the one ×: every dialog, drawer and sheet closes on it.
 export { CloseButton } from './atoms/CloseButton'
-// Conditions — the entity-condition chip row. Public because the Cantina's sheet
+// Conditions — the entity-condition chip row. Public because the app's sheet
 // editors (ConditionsEditor, NpcFactsEditor) compose it.
 export { Conditions } from './atoms/Conditions'
 export type { ChapterTone } from './atoms/chapterBandColor'
@@ -110,11 +110,11 @@ export { ToneStrip } from './atoms/ToneStrip'
 // USER_MADE_HATCH — the hatch a user-made page wears on its colour bands
 // (ruleset §3.9): ChapterBand's `userMade`, and the page's hatched foot.
 export { USER_MADE_HATCH } from './atoms/userMadeHatch'
-// Stat trackers (The Cantina design handoff — design-spec §2.7)
+// Stat trackers (The app design handoff — design-spec §2.7)
 export { VitalGauge } from './atoms/VitalGauge'
 export { buildCatalogSections } from './catalog/catalogSections'
 // AbilityTrack — an ability tree on its track (tier numerals, a Legendary
-// tree's "or"): the SRD's class page and abilities Tree, the Cantina's pilot sheet.
+// tree's "or"): the SRD's class page and abilities Tree, the app's pilot sheet.
 export { AbilityTrack } from './compositions/AbilityTrack'
 // AccountMenu — who is signed in, at the Union bar's end, on both tools.
 export { AccountMenu } from './compositions/AccountMenu'
@@ -154,13 +154,13 @@ export {
   ogReferenceAddressFits,
 } from './compositions/ogCardText'
 // The searcher picker's modal width — for a bare ModalShell wrapping an
-// EntitySearcher (The Cantina's SheetPickerModal applies it itself).
+// EntitySearcher (The app's SheetPickerModal applies it itself).
 export { PICKER_MODAL_WIDTH } from './compositions/pickerModalWidth'
 // RollTableInstrument — THE roll table (EDL E14): a card's, a guide step's and
-// the SRD roll-table page's bands and the Cantina's Play tables, banded in the
+// the SRD roll-table page's bands and the app's Play tables, banded in the
 // surface tone
 export { RollTableInstrument } from './compositions/RollTableInstrument'
-// StartHere — the one onboarding block, on the SRD's home and the Cantina's front door
+// StartHere — the one onboarding block, on the SRD's home and the app's front door
 export { StartHere } from './compositions/StartHere'
 export { StatusBadge } from './compositions/StatusBadge'
 export type { TreeTrack } from './compositions/treeTrack'
@@ -202,13 +202,13 @@ export { PageShell } from './containers/PageShell'
 // Pending — the one "Loading X…" line (role="status"), for data that resolves inside a screen
 export { Pending } from './containers/Pending'
 // PopoverPanel — a trigger and the small non-modal panel of controls it opens
-// (Base UI Popover); the Cantina's sheet "⋯" overflow
+// (Base UI Popover); the app's sheet "⋯" overflow
 export { PopoverPanel } from './containers/PopoverPanel'
 // RadioCardGroup — the radiogroup around an exactly-one picker's cards (Base UI
 // RadioGroup): one tab stop, arrow keys between the cards
 export { RadioCardGroup } from './containers/RadioCardGroup'
 // RecoveryPanel — the shared error-recovery card (title / message / primary
-// action) behind srd's island error boundary and cantina's root error component.
+// action) behind srd's island error boundary and the app's root error component.
 export { RecoveryPanel } from './containers/RecoveryPanel'
 export { RosterSkeleton } from './containers/RosterSkeleton'
 export { Sel } from './containers/Sel'
@@ -262,7 +262,7 @@ export { Content } from './referenceEntity/Content'
 // DamagedEffectCallout — a crawler bay's WHEN DAMAGED box, on the SRD card and the live sheet.
 export { DamagedEffectCallout } from './referenceEntity/card/DamagedEffectCallout'
 // The band line a Page carries right of its title (EDL E20): the SRD's entity
-// pages and the Cantina's detail dialog.
+// pages and the app's detail dialog.
 export { EntityPageStamps } from './referenceEntity/card/EntityPageStamps'
 // What an entity PAGE's chapter band and foot band say (`presentation="page"`)
 export type { EntityPageMeta } from './referenceEntity/card/entityPage'

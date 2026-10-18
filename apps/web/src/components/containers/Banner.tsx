@@ -5,7 +5,7 @@ type BannerSeverity = 'info' | 'warn'
 
 /**
  * A single advisory row. The shape is defined locally — Banner never depends on
- * The Cantina's rules types; consumers map their own warnings onto `{ severity, message }`.
+ * the app's rules types; consumers map their own warnings onto `{ severity, message }`.
  */
 export type BannerWarning = {
   severity: BannerSeverity
@@ -65,7 +65,7 @@ const SEVERITY_ICON: Record<BannerSeverity, string> = {
  * severity-toned pills (icon + message) — the rows are purely informational and
  * the surrounding flow proceeds regardless; this strip never blocks.
  *
- * Grounded on the Cantina's `SoftWarningBanner`, re-implemented on the shared atoms.
+ * Grounded on the app's `SoftWarningBanner`, re-implemented on the shared atoms.
  */
 export function Banner({ warnings }: BannerProps) {
   if (warnings.length === 0) return null

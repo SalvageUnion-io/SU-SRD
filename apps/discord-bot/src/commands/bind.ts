@@ -1,8 +1,8 @@
 import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
 import { MessageFlags } from 'discord-api-types/v10'
 import { boundContainer, unboundContainer } from '../bindingContainer'
-import { cantina, respondWithCantina } from './cantinaReply'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions'
+import { respondWithSite, site } from './siteReply'
 
 /**
  * `/su bind` and `/su unbind`: which channel Play's rolls post to.
@@ -15,8 +15,8 @@ import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from '
  * there. The server decides who may do what (`convex/model/channelBindings.ts`);
  * the bot only says what it decided.
  *
- * Both replies are ephemeral, like every Cantina reply that is about a person's
- * standing (`cantinaReply.ts`): a refusal names a role, and the confirmation
+ * Both replies are ephemeral, like every app reply that is about a person's
+ * standing (`siteReply.ts`): a refusal names a role, and the confirmation
  * is for whoever ran it.
  */
 
@@ -43,7 +43,7 @@ export const bindCommand = {
    * explain itself.
    */
   async autocomplete(interaction: CommandAutocompleteInteraction): Promise<void> {
-    const result = await cantina().gamesForAutocomplete(interaction.user.id)
+    const result = await site().gamesForAutocomplete(interaction.user.id)
     if (result.kind !== 'ok') {
       await interaction.respond([])
       return
@@ -64,7 +64,7 @@ export const bindCommand = {
       return
     }
     const game = interaction.options.getString('game')?.trim() || null
-    await respondWithCantina(interaction, {
+    await respondWithSite(interaction, {
       call: (client) =>
         client.bindChannel(interaction.user.id, channelId, game, interaction.channelName),
       render: (value) => boundContainer(value),
@@ -83,7 +83,7 @@ export const unbindCommand = {
       await interaction.reply({ content: NO_CHANNEL, flags: MessageFlags.Ephemeral })
       return
     }
-    await respondWithCantina(interaction, {
+    await respondWithSite(interaction, {
       call: (client) => client.unbindChannel(interaction.user.id, channelId),
       render: (value) => unboundContainer(value, channelId),
     })

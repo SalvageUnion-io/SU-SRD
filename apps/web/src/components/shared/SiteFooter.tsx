@@ -3,7 +3,7 @@ import { SITE_LINKS } from '../../lib/docPages'
 import { Footer, tokens } from '../index'
 
 /**
- * SiteFooter — the Cantina's page foot: the shared `Footer` both tools end on, here
+ * SiteFooter — the app's page foot: the shared `Footer` both tools end on, here
  * on the rules-blue band with the licence row and the doc pages both tools
  * share, which live on the SRD (`docPages.ts`).
  *

@@ -6,10 +6,10 @@ import { AccountMenu } from '../index'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 /**
- * The shared account menu in the SRD's Union bar, the one The Cantina's bar
+ * The shared account menu in the SRD's Union bar, the one the app's bar
  * shows. Mounted only while somebody is signed in (`lib/accountBar.ts`); the
  * name and avatar are the account hint's. Settings and Sign out are
- * The Cantina's: the SRD cannot touch the session.
+ * the app's: the SRD cannot touch the session.
  */
 function AccountIslandBody({ compact }: { compact: boolean }) {
   const hint = readAccountHint(browserStorage())

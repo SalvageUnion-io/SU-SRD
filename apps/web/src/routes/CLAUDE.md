@@ -1,7 +1,7 @@
-# cantina — The Cantina, the character builder
+# routes — the client app
 
 **Storage modes: read
-[`.claude/rules/cantina-data-access.md`](../../../../.claude/rules/cantina-data-access.md)
+[`.claude/rules/app-data-access.md`](../../../../.claude/rules/app-data-access.md)
 before touching data.**
 
 - TanStack Router file routes (`src/routes/`, generated `src/routeTree.gen.ts`);
@@ -9,7 +9,7 @@ before touching data.**
   `src/components`. Base `/build/` everywhere, dev too (`lib/appBase.ts`); e2e
   opens routes via `at()`; one spec: `bun run e2e <name>.e2e.ts`.
 - Every read-only sheet (`/sheet/:kind/:id`, `/p/:kind/:appId`) is the live
-  `<Sheet readOnly>` over `src/components/sheet/readOnlySheetStore.model.ts`;
+  `<Sheet readOnly>` over `src/build/sheet/readOnlySheetStore.model.ts`;
   build no other.
 - **PWA `registerType` stays `'prompt'`:** `autoUpdate` activates a new worker
   under a live page and breaks its chunk loads. Navigations are network-first
@@ -19,13 +19,13 @@ before touching data.**
 
 ## Data
 
-- **Zod schemas in `cantina-domain/schemas/*` are the source of truth**; every
+- **Zod schemas in `game-domain/schemas/*` are the source of truth**; every
   create, update and adopted server row parses strictly (`src/stores/records.ts`).
 - An entity lives in exactly one container, a **Game** or the owner's
-  **Shelf**: one nullable `gameId`, resolved through `cantina-domain/container`.
+  **Shelf**: one nullable `gameId`, resolved through `game-domain/container`.
   Filter with `containerOf` + `sameContainer`, only when `mode === 'connected'`.
 - Assignments: draw soft links only via `assignLink`; the rules are
-  `cantina-domain/links/linkRules`, shared with Convex.
+  `game-domain/links/linkRules`, shared with Convex.
 - **Never insert into an `appId`-addressed table** (`pilots`, `mechs`,
   `crawlers`, `npcs`, `mechPatterns`) without looking the app id up first:
   `by_app_id` is not unique, and the lookups resolve a duplicate to the oldest row.
@@ -39,7 +39,7 @@ before touching data.**
 - Pure math is `salvageunion-reference/rules` (never the main barrel or a local
   re-export); `src/lib/rules/` is app-local rules only; every die is
   `utils/dice.ts`.
-- Play actions go in Play (`components/play/`); the one sheet-local play control
+- Play actions go in `src/play/`; the one sheet-local play control
   is `CrawlerEconomyControl.tsx`. Condition changes stay player-driven via
   `StatusBadge` → `cycleItemCondition`. More: [play.md](../../../../docs/architecture/play.md).
 

@@ -175,7 +175,7 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'client-contract',
     guards:
-      'a Convex argument change that refuses calls an open Cantina tab still makes raises the build floor',
+      'a Convex argument change that refuses calls an open app tab still makes raises the build floor',
     fix: 'keep it compatible (optional argument, keep the old function) or raise BUILD_FLOOR in apps/web/convex/buildFloor.ts to `date +%s`; then `bun tools/check-client-contract.ts --write` records tools/baselines/convex-client-contract.json',
     cmd: ['bun', 'tools/check-client-contract.ts'],
     areas: ['code'],
@@ -184,8 +184,8 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'rules-home',
     guards:
-      'Convex imports nothing from apps/web/src/; no rules- or model-named module sits in apps/web/src/components/',
-    fix: 'move shared logic to cantina-domain or salvageunion-reference; move a rule to a lib/rules home, or name a one-component view-model `<name>.model.ts`',
+      'Convex imports nothing from apps/web/src/; no rules- or model-named module sits in a product folder (apps/web/src/components/, build/, play/)',
+    fix: 'move shared logic to game-domain or salvageunion-reference; move a rule to a lib/rules home, or name a one-component view-model `<name>.model.ts`',
     cmd: ['bun', 'tools/check-rules-home.ts'],
     areas: ['code'],
     profiles: ALL,

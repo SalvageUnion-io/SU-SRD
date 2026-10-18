@@ -33,7 +33,7 @@ type StatColumnProps = {
   label: string
   /**
    * The compact cells, two a line, for a narrow column beside other content
-   * (the Cantina mech sheet's hero). They flow on without a row break per group.
+   * (the app mech sheet's hero). They flow on without a row break per group.
    */
   compact?: boolean
   /** A cell's own style, by its index (a band's fill order, `EntityPageStamps`). */

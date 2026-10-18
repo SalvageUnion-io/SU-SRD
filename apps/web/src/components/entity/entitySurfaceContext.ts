@@ -17,16 +17,16 @@ import type { PageRefIndex } from './pageRefs'
  *
  * - `hrefFor(ref)`: the entity's page, where the app has one (the SRD's
  *   routes). A synthetic ref (built from embedded data) never links.
- * - `openPage(ref)`: The Cantina's Page opener (the detail dialog).
+ * - `openPage(ref)`: the app's Page opener (the detail dialog).
  * - `texture`: whether bands wear the speckle; a surface that stays flat turns
  *   it off once.
- * - `linkAs`: the app's router link for a root-relative path (The Cantina's
+ * - `linkAs`: the app's router link for a root-relative path (The app's
  *   `SiteLink`, since entity pages are site paths outside its base), so a
  *   link-mode form navigates client-side; an external href stays an `<a>`.
  * - `pageRefs`: the entities on each Workshop Manual page the prose cites, so a
  *   "p. 235" links to the page that covers it (`pageRefs.ts`). Absent, a
  *   reference stays text.
- * - `appliesRules`: the app applies the rules the data encodes (The Cantina, ADR-029
+ * - `appliesRules`: the app applies the rules the data encodes (The app, ADR-029
  *   §6), so a rules-bearing paragraph wears the AUTO stamp. Absent (the SRD,
  *   which applies nothing), the same paragraph is plain prose.
  */
@@ -96,7 +96,7 @@ export function useEntitySurface(): EntitySurfaceValue {
   const legacyTexture = useContext(CardTextureContext)
   return useMemo(
     () => ({
-      // An app's own detail view (The Cantina's) is not a route: only a surface that
+      // An app's own detail view (The app's) is not a route: only a surface that
       // links out (the SRD) turns the legacy href builder into links.
       hrefFor: own.hrefFor ?? (linksOut ? legacyHrefFor(entityHref, patternHref) : NO_HREF),
       ...(own.openPage ? { openPage: own.openPage } : {}),

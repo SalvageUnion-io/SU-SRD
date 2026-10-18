@@ -120,7 +120,7 @@ function meta(html: string, key: string): string | undefined {
 }
 
 describe('the shell carries its markers', () => {
-  it('wraps the sitewide defaults in cantina:meta', () => {
+  it('wraps the sitewide defaults in app:meta', () => {
     expect(SHELL.indexOf(META_START)).toBeGreaterThan(-1)
     expect(SHELL.indexOf(META_END)).toBeGreaterThan(SHELL.indexOf(META_START))
     // The theme-color is inside the block, so a preview can retone it.
@@ -211,7 +211,7 @@ describe('a Discordbot fetch of a private sheet', () => {
 })
 
 describe('a Discordbot fetch of an invite', () => {
-  it('unfurls the /invite/<token> link the Cantina and the bot hand out', async () => {
+  it('unfurls the /invite/<token> link the app and the bot hand out', async () => {
     const html = await unfurl('/invite/K7QR2XA')
     expect(meta(html, 'og:title')).toBe('Reclamation of the Wastes')
     expect(meta(html, 'og:description')).toBe("You're invited · Player seat · Mediated by alxjrvs.")
@@ -233,7 +233,9 @@ describe('a Discordbot fetch of an invite', () => {
   })
 
   it('keeps the sitewide defaults for a dead code', async () => {
-    expect(meta(await unfurl('/invite/DEADCODE'), 'og:title')).toBe('The Cantina · SalvageUnion.io')
+    expect(meta(await unfurl('/invite/DEADCODE'), 'og:title')).toBe(
+      'Training Bay · SalvageUnion.io'
+    )
   })
 })
 
@@ -252,7 +254,7 @@ describe('when Convex does not answer', () => {
       new Response('down', { status: 503 })) as unknown as typeof fetch
     const res = await worker.fetch(discordbot('/p/pilot/p-1'), env())
     expect(res.status).toBe(200)
-    expect(meta(await res.text(), 'og:title')).toBe('The Cantina · SalvageUnion.io')
+    expect(meta(await res.text(), 'og:title')).toBe('Training Bay · SalvageUnion.io')
   })
 })
 

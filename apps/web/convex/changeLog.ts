@@ -1,6 +1,6 @@
-import type { EntityTable } from 'cantina-domain/entityKinds'
-import { isEntityKind, TABLE_OF_KIND } from 'cantina-domain/entityKinds'
 import { v } from 'convex/values'
+import type { EntityTable } from 'game-domain/entityKinds'
+import { isEntityKind, TABLE_OF_KIND } from 'game-domain/entityKinds'
 import type { Id } from './_generated/dataModel'
 import { query } from './_generated/server'
 import { displayNameOf } from './account'

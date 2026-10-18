@@ -20,7 +20,7 @@
     "@randsum/roller": "catalog:",
     "@randsum/salvageunion": "catalog:",
     "discord-api-types": "0.38.53",
-    "cantina-domain": "workspace:*",
+    "game-domain": "workspace:*",
     "salvageunion-reference": "workspace:*"
   }
 }

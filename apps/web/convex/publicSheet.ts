@@ -1,8 +1,8 @@
 import { getAuthUserId } from '@convex-dev/auth/server'
-import type { EntityKind } from 'cantina-domain/entityKinds'
-import { TABLE_OF_KIND } from 'cantina-domain/entityKinds'
 import type { Infer } from 'convex/values'
 import { ConvexError, v } from 'convex/values'
+import type { EntityKind } from 'game-domain/entityKinds'
+import { TABLE_OF_KIND } from 'game-domain/entityKinds'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
@@ -357,7 +357,7 @@ export const setPublic = mutation({
     await assertMayPublish(ctx, table, row, userId, args.isPublic)
 
     // Parse before publishing, exactly as every other mutation parses before
-    // persisting (ADR-030): the Zod schemas in `cantina-domain/schemas/` are the
+    // persisting (ADR-030): the Zod schemas in `game-domain/schemas/` are the
     // source of truth and Convex stores bodies opaquely. A body that cannot be
     // parsed would hand the public route something it will refuse to
     // render, so this fails HERE — where the owner is standing and

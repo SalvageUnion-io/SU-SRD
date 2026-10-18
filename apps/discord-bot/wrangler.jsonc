@@ -19,9 +19,9 @@
   },
 
   // A deploy fails while one is unset; set with `wrangler secret put`.
-  // CANTINA_CONVEX_SITE_URL is the `.convex.site` origin.
+  // BACKEND_SITE_URL is the `.convex.site` origin.
   "secrets": {
-    "required": ["DISCORD_TOKEN", "CANTINA_CONVEX_SITE_URL", "CANTINA_BOT_SECRET"]
+    "required": ["DISCORD_TOKEN", "BACKEND_SITE_URL", "BOT_SECRET"]
   },
 
   // Per-command usage, one data point per interaction (src/worker/index.ts),

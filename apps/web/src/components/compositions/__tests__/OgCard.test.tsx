@@ -37,7 +37,7 @@ const SHEET: OgCardProps = {
     { label: 'Mech', value: 'Scrapper' },
   ],
   byline: "Rosa's pilot · Reclamation of the Wastes",
-  address: 'cantina.salvageunion.io/p/pilot/0a1b',
+  address: 'salvageunion.io/build/p/pilot/0a1b',
 }
 
 const PATTERN: OgCardProps = {
@@ -50,7 +50,7 @@ const PATTERN: OgCardProps = {
     { label: 'SYS', value: '12/12' },
   ],
   madeBy: 'alxjrvs',
-  address: 'cantina.salvageunion.io/p/pattern/0a1b',
+  address: 'salvageunion.io/build/p/pattern/0a1b',
 }
 
 const NPC: OgCardProps = {
@@ -64,7 +64,7 @@ const NPC: OgCardProps = {
   ],
   madeBy: 'alxjrvs',
   quoted: false,
-  address: 'cantina.salvageunion.io',
+  address: 'salvageunion.io/build',
 }
 
 const LONG = 'Sergeant Kessler of the Ninth Reclamation Wing, Retired'
@@ -79,12 +79,12 @@ const INVITE: OgCardProps = {
   tone: color.crawler,
   summary: 'Mediated by alxjrvs.',
   terms: 'Link expires 15 Oct · the Mediator lets you in',
-  address: 'cantina.salvageunion.io',
+  address: 'salvageunion.io/build',
 }
 
 const LONG_INVITE: OgCardProps = { ...INVITE, title: LONG } as OgCardProps
 
-const PRIVATE: OgCardProps = { kind: 'private', address: 'cantina.salvageunion.io' }
+const PRIVATE: OgCardProps = { kind: 'private', address: 'salvageunion.io/build' }
 
 function chassis(name: string): RefMetaEntity {
   const entity = SalvageUnionReference.Chassis.getByName(name)
@@ -224,8 +224,8 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['Mech', 'Scrapper'],
       ],
       lines: ["Pilot · Engineer · Rosa's pilot · Reclamation of the Wastes"],
-      wordmark: 'The Cantina',
-      address: 'cantina.salvageunion.io/p/pilot/0a1b',
+      wordmark: 'Training Bay',
+      address: 'salvageunion.io/build/p/pilot/0a1b',
     },
   ],
   [
@@ -241,8 +241,8 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['SYS', '12/12'],
       ],
       lines: ['Mech Pattern · Scrapper · Made by alxjrvs'],
-      wordmark: 'The Cantina',
-      address: 'cantina.salvageunion.io/p/pattern/0a1b',
+      wordmark: 'Training Bay',
+      address: 'salvageunion.io/build/p/pattern/0a1b',
     },
   ],
   [
@@ -258,8 +258,8 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['Actions', '2'],
       ],
       lines: ['NPC · From Veteran · Made by alxjrvs'],
-      wordmark: 'The Cantina',
-      address: 'cantina.salvageunion.io',
+      wordmark: 'Training Bay',
+      address: 'salvageunion.io/build',
     },
   ],
   [
@@ -276,7 +276,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
         "You're invited · Player seat · Link expires 15 Oct · the Mediator lets you in",
       ],
       wordmark: 'The Cantina',
-      address: 'cantina.salvageunion.io',
+      address: 'salvageunion.io/build',
     },
   ],
   [
@@ -292,8 +292,8 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['Actions', '2'],
       ],
       lines: ['NPC · From Veteran · Made by alxjrvs'],
-      wordmark: 'The Cantina',
-      address: 'cantina.salvageunion.io',
+      wordmark: 'Training Bay',
+      address: 'salvageunion.io/build',
     },
   ],
   [
@@ -309,8 +309,8 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['SYS', '12/12'],
       ],
       lines: ['Mech Pattern · Scrapper · Made by alxjrvs'],
-      wordmark: 'The Cantina',
-      address: 'cantina.salvageunion.io/p/pattern/0a1b',
+      wordmark: 'Training Bay',
+      address: 'salvageunion.io/build/p/pattern/0a1b',
     },
   ],
   [
@@ -327,7 +327,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
         "You're invited · Player seat · Link expires 15 Oct · the Mediator lets you in",
       ],
       wordmark: 'The Cantina',
-      address: 'cantina.salvageunion.io',
+      address: 'salvageunion.io/build',
     },
   ],
   [
@@ -340,8 +340,8 @@ const SEEN: [string, OgCardProps, Seen][] = [
       tone: color.inkDeep,
       cells: [],
       lines: ["Its owner hasn't shared this."],
-      wordmark: 'The Cantina',
-      address: 'cantina.salvageunion.io',
+      wordmark: 'Training Bay',
+      address: 'salvageunion.io/build',
     },
   ],
 ]
@@ -400,9 +400,9 @@ describe('OgCard', () => {
     expect(ogCardDescription(PRIVATE)).toBe("Its owner hasn't shared this.")
   })
 
-  test('the reference cards say salvageunion.io; the player cards say The Cantina', () => {
+  test('the reference cards say salvageunion.io; a built thing says the Training Bay', () => {
     expect(renderToStaticMarkup(<OgCard {...THING} />)).toContain('salvageunion.io')
-    expect(renderToStaticMarkup(<OgCard {...SHEET} />)).toContain('The Cantina')
+    expect(renderToStaticMarkup(<OgCard {...SHEET} />)).toContain('Training Bay')
   })
 
   test('theme-color is the band: the tone, resolved to a literal', () => {

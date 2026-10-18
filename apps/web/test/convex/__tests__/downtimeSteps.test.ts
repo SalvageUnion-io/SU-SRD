@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { downtimeGuideSteps } from 'cantina-domain/rules/downtime'
+import { downtimeGuideSteps } from 'game-domain/rules/downtime'
 import { api } from '../../../convex/_generated/api'
 import { makeUser } from '../fixtures'
 import { testConvex } from '../harness'

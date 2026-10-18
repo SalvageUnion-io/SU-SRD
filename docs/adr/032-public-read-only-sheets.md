@@ -38,8 +38,8 @@ can see it" control: Only me, My Game's crew, Anyone with the link.
   included); the toggle says so.
 - **The URL is not a secret**: `publicRead` is the control, and it can be withdrawn.
 - A public sheet is crawlable and names its canonical URL; a missing or private
-  one answers `x-robots-tag: noindex` (`worker/cantina.ts`); the sitemap never
+  one answers `x-robots-tag: noindex` (`worker/app.ts`); the sitemap never
   lists `/p/`.
 - Links unfurl: for a bot's request the Worker swaps the shell's
-  `cantina:meta` block for `publicSheet.preview` and renders its `OgCard`
+  `app:meta` block for `publicSheet.preview` and renders its `OgCard`
   (`apps/web/src/worker/linkPreview.ts`); a private sheet unfurls as the Private card.

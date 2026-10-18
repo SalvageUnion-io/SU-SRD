@@ -8,16 +8,13 @@
  * templates and the title format: never a store, the reference or Convex.
  */
 
-import type { SheetKind } from 'cantina-domain/entityKinds'
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
-import {
-  STARTER_CRAWLERS,
-  STARTER_MECHS,
-  STARTER_PILOTS,
-} from 'cantina-domain/starterSet/starterSet'
-import { pageTitle } from '../pageTitle'
+import type { SheetKind } from 'game-domain/entityKinds'
+import { PRODUCT } from 'game-domain/product'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
+import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS } from 'game-domain/starterSet/starterSet'
+import { areaTitle, pageTitle } from '../pageTitle'
 
 /** Who the Starter Set belongs to — the seal on every row and sheet. */
 export const STARTER_SET_PUBLISHER = 'Leyline Press'
@@ -65,6 +62,7 @@ function pageOf(kind: StarterKind, template: Pilot | Mech | Crawler): StarterPag
   const flavour = template.description?.trim()
   return {
     path: `/starter/${kind}/${template.id}`,
+    // No area in a build's title: its name and "Starter Set" fill the room a title has.
     title: pageTitle(`${template.name} · Starter Set ${label}`),
     description: flavour ? `${intro} ${flavour}` : intro,
   }
@@ -83,7 +81,7 @@ export function starterPages(): StarterPage[] {
 }
 
 /** The Starter Set roster's own title, and any build's page that names nothing. */
-export const STARTER_SET_TITLE = pageTitle('Starter Set')
+export const STARTER_SET_TITLE = areaTitle(PRODUCT.build, 'Starter Set')
 
 /** A build's tab title by its route params; the Starter Set's own for one it does not hold. */
 export function starterPageTitle(kind: string, id: string): string {

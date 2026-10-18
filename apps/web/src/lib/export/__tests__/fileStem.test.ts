@@ -13,6 +13,6 @@ describe('fileStem', () => {
 
 describe('exportFileName', () => {
   test("names the file for the product, the kind and the entity's stem", () => {
-    expect(exportFileName('pilot', 'Bone Saw')).toBe('cantina-pilot-bone-saw.json')
+    expect(exportFileName('pilot', 'Bone Saw')).toBe('salvageunion-pilot-bone-saw.json')
   })
 })

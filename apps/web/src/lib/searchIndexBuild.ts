@@ -1,7 +1,7 @@
 /**
  * Build-time compact search index generator (Node-only — imports gameData.ts,
  * which preloads the full ORM at module load; never import this from a
- * client island). Consumed by `src/endpoints/searchIndexJson.ts`, a static
+ * client island). Consumed by `src/reference/endpoints/searchIndexJson.ts`, a static
  * endpoint generated once at build time and fetched lazily by
  * `useSearchIndex.ts` on first search interaction.
  *

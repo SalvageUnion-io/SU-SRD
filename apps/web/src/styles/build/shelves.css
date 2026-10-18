@@ -1,0 +1,37 @@
+/*
+ * shelves.css — the stateful half of the Shelves page's band controls
+ * (`build/shelves/Shelves.tsx`); geometry and type are
+ * style objects there or the shared Button's. Only colour lives here, and every
+ * colour below changes on hover or on press — so each keeps its RESTING value
+ * here too, beside the state that overrides it. Loaded by `index.css`.
+ *
+ * The band is ink, so its controls are paper on ink: the on-ink ghost
+ * Button (Import, Export all, + New Game: `surface="ink"`). The Showing toggle
+ * is the shared `Segmented` on its ink ground.
+ */
+
+/* The import result: its own line on the band above the title, never a flex
+   item beside the button, so the button keeps its intrinsic width. */
+.su-shelves-band__status {
+  color: var(--color-paper);
+  flex: 1 1 100%;
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  margin: 0;
+}
+
+/* The band's controls sit right of the notched title on the band's foot, and
+   what does not fit there wraps up over it (owner's rule, 2026-10-17;
+   `.su-chapter-band[data-aside='controls']` in shell.css), so they need
+   nothing of their own here. */
+
+/* Under a coarse pointer every control on the page is at least 44px tall
+   (ruleset §4.6). The band's buttons are Compact, which theme.css lifts to
+   Full there; the menu rows (the Starter Set's entries are Tokens) are named
+   here. The action chips (a shelf's "+ New…", a Row's "⋯") reach 44px through
+   the Mini button's hit area (`pointer-motion.css`). */
+@media (pointer: coarse) {
+  .su-header-menu-item {
+    min-height: var(--size-full);
+  }
+}

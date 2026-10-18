@@ -1,0 +1,55 @@
+/*
+ * play/side.css — Play's right column and its Discord rows (play.md §7–§9):
+ * the Crew list's presence dot and "away", and the landing's channel rows.
+ *
+ * The app's own stylesheet: a part of
+ * `styles/play/play.css`, never imported by a library component. Only what has a state lives here (present / away,
+ * bound / unbound), and Play's dialog width (`ModalShell` takes its
+ * `maxWidth` as a class: an inline cap would lose to its own default);
+ * everything else on those surfaces is a style object.
+ */
+
+/* Play's dialogs (the channel, Tell the table, All proposals): narrower than ModalShell's 48rem. */
+.su-play-dialog {
+  max-width: 32rem;
+}
+
+/* A crewmate's presence: a filled dot while their seat beats, ink-30 once it stops. */
+.su-play-crew-dot {
+  background: var(--color-ink-30);
+  block-size: var(--space-10);
+  border-radius: 50%;
+  display: inline-block;
+  flex: none;
+  inline-size: var(--space-10);
+}
+
+.su-play-crew-dot[data-present] {
+  background: var(--color-status-ok);
+}
+
+/* "away", where the vital would sit: muted words, never a hue. */
+.su-play-crew-away {
+  color: var(--color-ink-75);
+  font-family: var(--font-body);
+  font-size: var(--text-note);
+  white-space: nowrap;
+}
+
+/* One Discord channel on the Play landing: solid when bound, dashed while it is not. */
+.su-play-discord-row {
+  align-items: center;
+  background: var(--color-paper);
+  border: var(--bw-entity-compact) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-12);
+  justify-content: space-between;
+  padding: var(--space-6) var(--space-12);
+}
+
+.su-play-discord-row[data-unbound] {
+  border-style: dashed;
+  color: var(--color-ink-75);
+}

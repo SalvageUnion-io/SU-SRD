@@ -1,13 +1,13 @@
 /*
  * The base stylesheet: the one both apps load, from one URL, so a visit that
- * crosses from srd to the Cantina (or back) downloads it once.
+ * crosses from srd to the app (or back) downloads it once.
  *
  * The Barlow faces, then the token set, the reset and the package stylesheet
  * in their load-bearing cascade order from the one shared entry (see its
  * header), the parts both surfaces draw (`shared.css`), then the few
  * page-wide rules every page shares. Each surface's own
  * stylesheet loads after it: the reference pages' `global.css`, the
- * Cantina's `cantina.css`.
+ * app's `app.css`.
  *
  * Built once, by `baseStylesheet.ts`, into `/assets/base-<hash>.css`.
  */
@@ -19,12 +19,12 @@
 @import '@fontsource/barlow-semi-condensed/600.css';
 @import '@fontsource/barlow-semi-condensed/700.css';
 @import './entry.css';
-/* What the reference pages and the Cantina both draw: the search, the 404. */
+/* What the reference pages and the app both draw: the search, the 404. */
 @import './shared.css';
 
 /*
  * Cross-document view transitions. Every link between two reference pages,
- * or between them and the Cantina (the Union bar's), is a real document load,
+ * or between them and the app (the Union bar's), is a real document load,
  * so this is the browser-native form and ships ZERO JavaScript. The bar keeps
  * a stable `view-transition-name` (`TopNavigation.tsx`, `shell/unionBar.ts`),
  * so it is matched across the swap rather than cross-faded with the page.
@@ -46,7 +46,7 @@ body {
 /*
  * The `data-print` vocabulary, one attribute with two values, and the chrome
  * no page prints. Each surface's print rules build on it: the reference
- * pages' in `global.css`, the Cantina's in `cantina/print.css`.
+ * pages' in `global.css`, the app's in `build/print.css`.
  *
  *   data-print="hide"  hide this on paper even though its element type is kept
  *   data-print="keep"  print this even though its element type is hidden

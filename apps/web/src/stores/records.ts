@@ -11,13 +11,13 @@
  * (ADR-002): every create, update and adopted server row parses strictly.
  */
 
-import { CrawlerSchema } from 'cantina-domain/schemas/crawler'
-import { EncounterNpcSchema } from 'cantina-domain/schemas/encounterNpc'
-import { MechSchema } from 'cantina-domain/schemas/mech'
-import { NpcSchema } from 'cantina-domain/schemas/npc'
-import { MechPatternSchema } from 'cantina-domain/schemas/pattern'
-import { PilotSchema } from 'cantina-domain/schemas/pilot'
-import { SoftLinkSchema } from 'cantina-domain/schemas/softLink'
+import { CrawlerSchema } from 'game-domain/schemas/crawler'
+import { EncounterNpcSchema } from 'game-domain/schemas/encounterNpc'
+import { MechSchema } from 'game-domain/schemas/mech'
+import { NpcSchema } from 'game-domain/schemas/npc'
+import { MechPatternSchema } from 'game-domain/schemas/pattern'
+import { PilotSchema } from 'game-domain/schemas/pilot'
+import { SoftLinkSchema } from 'game-domain/schemas/softLink'
 import type { z } from 'salvageunion-reference/zod'
 
 /** One kind of record: its schema, and whether it carries `updatedAt`. */
@@ -61,7 +61,7 @@ export function prepareUpdate<T>(
   patch: object
 ): T {
   if (existing === null) {
-    throw new Error(`[cantina-store] Cannot update: record id="${id}" not found in "${spec.name}"`)
+    throw new Error(`[app-store] Cannot update: record id="${id}" not found in "${spec.name}"`)
   }
   const candidate: Record<string, unknown> = { ...existing, ...patch, id }
   if (spec.hasUpdatedAt) candidate.updatedAt = new Date().toISOString()
@@ -76,7 +76,7 @@ export function parseServed<T extends { id: string }>(spec: RecordKind<T>, recor
   const strict = spec.schema.safeParse(record)
   if (!strict.success) {
     throw new Error(
-      `[cantina-store] Cannot hold record id="${record.id}" in "${spec.name}": it does not parse`
+      `[app-store] Cannot hold record id="${record.id}" in "${spec.name}": it does not parse`
     )
   }
   return strict.data

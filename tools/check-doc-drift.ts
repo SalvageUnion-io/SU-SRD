@@ -489,11 +489,11 @@ export function checkFixHints(root: string, hints: FixHint[] = REGISTRY_FIX_HINT
 
 /** Claims the repo has retired, each with what is true instead. */
 const RETIRED_CLAIMS: [RegExp, string][] = [
-  [/local-first/i, 'The Cantina is account-gated: persistence requires an account (ADR-034)'],
+  [/local-first/i, 'The app is account-gated: persistence requires an account (ADR-034)'],
   [/no auth\/backend|do not introduce a backend/i, 'Convex is the server of record (ADR-030)'],
   [
     /in-memory (?:backend|only)/i,
-    'signed out, the Cantina is read-only: see .claude/rules/cantina-data-access.md',
+    'signed out, the app is read-only: see .claude/rules/app-data-access.md',
   ],
   [/\bEntityDisplay\b|\bDisplayCard\b/, 'the card shells are ReferenceEntityCard and Card'],
   [/prettier/i, 'Biome is the only formatter'],
@@ -502,10 +502,10 @@ const RETIRED_CLAIMS: [RegExp, string][] = [
   [/\/ship\b/, 'there is no /ship skill'],
   [
     /anonymous (?:play|visitors?)[^.\n]*first-class|first-class for \*?building/i,
-    'signed out, the Cantina is read-only; building needs an account (ADR-034)',
+    'signed out, the app is read-only; building needs an account (ADR-034)',
   ],
   [/\bin[- ]memory (?:work|play)\b/i, 'signed out holds no work: it is read-only (#1117)'],
-  [/\bSolo (?:build|client)\b|isConvexConfigured/, 'every Cantina build has a Convex deployment'],
+  [/\bSolo (?:build|client)\b|isConvexConfigured/, 'every app build has a Convex deployment'],
   [/salvage-tolerant/i, 'cache reads are strict: an unreadable row is skipped and refilled'],
   [
     /`gh` (?:CLI )?is (?:usually )?absent|\(no `gh`/i,
@@ -955,8 +955,8 @@ const COLLAPSED_DOCS: Record<string, number> = {
   'docs/architecture/mediator-dashboard.md': 2_600,
   'docs/architecture/npc-builder.md': 2_000,
   'docs/architecture/play.md': 8_450,
-  'docs/design-system/entity-display-language.md': 6_700,
-  'docs/design-system/ruleset.md': 14_500,
+  'docs/design-system/entity-display-language.md': 6_900,
+  'docs/design-system/ruleset.md': 15_200,
   'docs/design-system/sources.md': 3_600,
   'docs/ops/cloud-environment.md': 3_800,
 }

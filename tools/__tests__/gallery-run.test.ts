@@ -29,7 +29,7 @@ type World = {
   broken: Set<string>
   /** The og:image every page names, or none. */
   ogImage?: string
-  /** The hrefs the Cantina's root lists after the seed. */
+  /** The hrefs the app's root lists after the seed. */
   links: string[]
   url: string
 }
@@ -40,7 +40,7 @@ type World = {
  */
 async function inPage(world: World, fn: Fn, arg?: unknown): Promise<unknown> {
   const g = globalThis as Record<string, unknown>
-  const saved = { document: g.document, og: g.__ogSetEntity, signIn: g.__cantinaTestSignIn }
+  const saved = { document: g.document, og: g.__ogSetEntity, signIn: g.__appTestSignIn }
   const meta: Record<string, string | undefined> = {
     'og:image': world.ogImage,
     'og:title': 'Title',
@@ -56,7 +56,7 @@ async function inPage(world: World, fn: Fn, arg?: unknown): Promise<unknown> {
     fonts: { ready: Promise.resolve() },
   }
   g.__ogSetEntity = (...entity: unknown[]) => world.calls.push(`og-entity ${entity.join(' ')}`)
-  g.__cantinaTestSignIn = async (email: string) => {
+  g.__appTestSignIn = async (email: string) => {
     world.calls.push(`sign-in ${email.replace(/\d+/, 'N')}`)
   }
   try {
@@ -64,7 +64,7 @@ async function inPage(world: World, fn: Fn, arg?: unknown): Promise<unknown> {
   } finally {
     g.document = saved.document
     g.__ogSetEntity = saved.og
-    g.__cantinaTestSignIn = saved.signIn
+    g.__appTestSignIn = saved.signIn
   }
 }
 
@@ -231,7 +231,7 @@ describe('gallery run', () => {
     expect(r.code).toBe(1)
     expect(r.manifest.failures).toContain(`seed: net::ERR at ${SITE}/build/`)
     expect(r.manifest.failures).toContain(':pilot: the seed made no such entity')
-    // The signed-out Cantina root fails too: it is the same broken URL.
+    // The signed-out app root fails too: it is the same broken URL.
     expect(r.manifest.failures).toContain(`/build/: net::ERR at ${SITE}/build/`)
   })
 

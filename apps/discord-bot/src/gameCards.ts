@@ -1,5 +1,5 @@
-import { gamePath, kindOf, publicPath, sheetPath } from 'cantina-domain/entityKinds'
-import { PRODUCT } from 'cantina-domain/product'
+import { gamePath, kindOf, publicPath, sheetPath } from 'game-domain/entityKinds'
+import { PRODUCT } from 'game-domain/product'
 import type { ItemCondition, RefEnumSchemaName } from 'salvageunion-reference'
 import {
   CONDITION_LABELS,
@@ -16,6 +16,8 @@ import {
 import { crawlerMaxSP, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import type { BodyKey } from './bodyRead'
 import { num, str, strArray } from './bodyRead'
+import type { CardField, ContainerData } from './container'
+import { entityCard } from './container'
 import type {
   DenialReason,
   EntityBody,
@@ -25,12 +27,10 @@ import type {
   PilotDerived,
   SheetResult,
   SheetTable,
-} from './cantina/types'
-import type { CardField, ContainerData } from './container'
-import { entityCard } from './container'
+} from './play/types'
 
 /**
- * Card builders for the Cantina commands (ADR-030).
+ * Card builders for the app commands (ADR-030).
  *
  * Pure `data → ContainerData` through `entityCard`, the same render layer
  * `lookupCard.ts` uses: every one of these is unit-testable without a Discord
@@ -66,9 +66,9 @@ const CRITICAL = DISCORD_ROLL_ACCENT.cascade
  * `/build` (ADR-048). Cards link back here by appending a route; it only
  * ever builds a URL, never a request. Old intheunionnow.com links 301 here.
  */
-export const CANTINA_ORIGIN = `${SRD_SITE_URL}/build`
+export const APP_ORIGIN = `${SRD_SITE_URL}/build`
 
-const FOOTER = PRODUCT.name
+const FOOTER = PRODUCT.wordmark
 
 /** The stats' full names, from the reference vocabulary (a gauge is Heat, not its capacity). */
 const HP = STAT_LABELS.hitPoints.label
@@ -182,10 +182,10 @@ function mechStats(body: EntityBody, derived: MechDerived | null) {
  * Both mirror real TanStack routes — `/games/$gameId` and `/sheet/$kind/$id`.
  * A link that 404s is worse than no link: it reads as the app having lost the
  * thing, rather than as the bot having guessed. `/games/$gameId` is the
- * Game's own page in the Cantina.
+ * Game's own page in the app.
  */
 export function gameUrl(gameId: string): string {
-  return `${CANTINA_ORIGIN}${gamePath(gameId)}`
+  return `${APP_ORIGIN}${gamePath(gameId)}`
 }
 
 /**
@@ -206,14 +206,14 @@ export function publicSheetUrl(
 ): string | null {
   if (publicRead !== true) return null
   if (appId === null || appId.length === 0) return null
-  return `${CANTINA_ORIGIN}${publicPath(kindOf(table), appId)}`
+  return `${APP_ORIGIN}${publicPath(kindOf(table), appId)}`
 }
 
 /**
  * The live sheet for any entity — yours, a crewmate's, the crawler — or null
  * when there is no id to address.
  *
- * Addressed by the Convex row id, which every reader can open: The Cantina's
+ * Addressed by the Convex row id, which every reader can open: the app's
  * `entities.locate` resolves a row id for anyone allowed to see the row, opens
  * it editable for its owner and read-only for everyone else, and puts the
  * client id back in the address bar. An unclaimed pre-gen has a row id too, so
@@ -221,7 +221,7 @@ export function publicSheetUrl(
  */
 export function sheetUrl(table: SheetTable, rowId: string | null | undefined): string | null {
   if (typeof rowId !== 'string' || rowId.length === 0) return null
-  return `${CANTINA_ORIGIN}${sheetPath(kindOf(table), rowId)}`
+  return `${APP_ORIGIN}${sheetPath(kindOf(table), rowId)}`
 }
 
 /**
@@ -242,12 +242,12 @@ export function denialMessage(reason: DenialReason, serverMessage?: string): str
       : 'That sheet could not be found, or it isn’t yours to read.'
   }
   return [
-    `**You don’t have an ${PRODUCT.name} account yet.**`,
+    `**You don’t have a ${PRODUCT.wordmark} account yet.**`,
     '',
     'Sign in with this same Discord account and the bot will recognise you here',
     'automatically — there’s nothing to copy across and no code to enter.',
     '',
-    `${CANTINA_ORIGIN}/account`,
+    `${APP_ORIGIN}/account`,
   ].join('\n')
 }
 
@@ -267,8 +267,8 @@ function gameLines(games: GameSummary[]): string {
 /** `/su me` — who the bot thinks you are, and what you are part of. */
 export function meCard(me: MeResult): ContainerData {
   return entityCard({
-    title: `${me.user.displayName} — ${PRODUCT.name}`,
-    url: `${CANTINA_ORIGIN}/account`,
+    title: `${me.user.displayName} — ${PRODUCT.wordmark}`,
+    url: `${APP_ORIGIN}/account`,
     accent: DISCORD_NEUTRAL_ACCENT,
     description: 'Linked at sign-in. Discord is the only way in, so this is always current.',
     fields: [
@@ -281,11 +281,11 @@ export function meCard(me: MeResult): ContainerData {
   })
 }
 
-/** `/su games` — every Game you belong to, linked to the Hangar: The Cantina has no `/games` page. */
+/** `/su games` — every Game you belong to, linked to the Hangar: the app has no `/games` page. */
 export function gamesCard(games: GameSummary[]): ContainerData {
   return entityCard({
     title: `Your Games (${games.length})`,
-    url: `${CANTINA_ORIGIN}/`,
+    url: `${APP_ORIGIN}/`,
     accent: DISCORD_NEUTRAL_ACCENT,
     description: gameLines(games),
     fields: [],

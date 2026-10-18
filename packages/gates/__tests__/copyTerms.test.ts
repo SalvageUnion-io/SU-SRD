@@ -66,7 +66,7 @@ describe('extractCopy', () => {
   test('skips book quotes, console lines and schema descriptions', () => {
     const src = [
       "const q = bookQuote({ source: 'Salvage Union Workshop Manual', page: 3 }, 'the mech moves')",
-      "console.error('[cantina] a mech failed')",
+      "console.error('[app] a mech failed')",
       "const s = z.string().describe('Mech module names')",
       "const keep = 'a real pilot sentence'",
     ].join('\n')
@@ -175,7 +175,7 @@ describe('lintCopy', () => {
       [
         ...at('OVERLOAD. Reactor Overload 20'),
         ...at('the mech is DESTROYED'),
-        ...at('JSON over CORS, for the Salvage Union TTRPG, in The Cantina'),
+        ...at('JSON over CORS, for the Salvage Union TTRPG, in the app'),
         ...at('-# NOTHING FOUND IN'),
         ...at('Tech 3, HP 4'),
       ],
@@ -188,22 +188,26 @@ describe('lintCopy', () => {
     ])
   })
 
-  test('bans every other casing of the product names, but not a log tag', () => {
-    const bans = productBans({ name: 'Good Name', shortName: 'Goodie' })
-    const r = lintCopy(at('Open good name or GOODIE, not Good Name, Goodie or [goodie]'), [], bans)
+  test('bans every other casing of the area names and a bare name, but not a log tag', () => {
+    const bans = productBans({ build: 'Good Bay', play: 'The Hall' })
+    const r = lintCopy(
+      at('Open good bay or HALL, not Good Bay, The Hall, Hall or [hall]'),
+      [],
+      bans
+    )
     expect(r['banned-variant']?.map((f) => f.detail.split(':')[0])).toEqual([
-      '"good name"',
-      '"GOODIE"',
+      '"good bay"',
+      '"HALL"',
     ])
   })
 })
 
 describe('the rule set', () => {
-  test('reads the product names from cantina-domain, not a copy of them', () => {
+  test('reads the area names from game-domain, not a copy of them', () => {
     const root = fixture({
-      [PRODUCT_FILE]: "export const PRODUCT = { name: 'Some Name', shortName: 'SN' } as const",
+      [PRODUCT_FILE]: "export const PRODUCT = { build: 'Some Bay', play: 'The Hall' } as const",
     })
-    expect(productNames(root)).toEqual({ name: 'Some Name', shortName: 'SN' })
+    expect(productNames(root)).toEqual({ build: 'Some Bay', play: 'The Hall' })
     expect(() => productNames(fixture({ [PRODUCT_FILE]: 'export {}' }))).toThrow(PRODUCT_FILE)
   })
 
@@ -211,7 +215,7 @@ describe('the rule set', () => {
     const root = fixture({
       [`${DATA_DIR}/keywords.json`]: JSON.stringify([{ name: 'mech' }]),
       [`${DATA_DIR}/chassis.json`]: JSON.stringify([{ text: 'The Mech '.repeat(MIN_USES) }]),
-      [PRODUCT_FILE]: "export const PRODUCT = { name: 'The Cantina', shortName: 'Cantina' }",
+      [PRODUCT_FILE]: "export const PRODUCT = { build: 'Training Bay', play: 'The Cantina' }",
       'apps/web/src/routes/A.tsx': 'export const A = () => <p>Build a mech in cantina</p>',
       'apps/web/src/routes/__tests__/A.test.tsx': 'export const B = () => <p>a mech</p>',
     })
@@ -220,7 +224,7 @@ describe('the rule set', () => {
     expect(r['banned-variant']).toHaveLength(1)
     expect(copyTerms.summary?.(root)).toBe(
       // product.ts is shipped copy too
-      '2 copy strings in 2 files, 1 terms from keywords.json'
+      '3 copy strings in 2 files, 1 terms from keywords.json'
     )
   })
 })

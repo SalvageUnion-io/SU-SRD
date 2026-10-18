@@ -48,7 +48,7 @@ const convexMocks = await installConvexMocks({
   authReact: true,
   convexReact: { useConvexAuth: () => ({ isAuthenticated: false, isLoading: false }) },
   also: {
-    '../wizard/NewEntityScreen': () => ({
+    '../../build/wizard/NewEntityScreen': () => ({
       NewEntityScreen: (p: Props) =>
         h(
           'div',
@@ -60,20 +60,20 @@ const convexMocks = await installConvexMocks({
           call('Created', () => (p.onCreated as (id: string) => void)('new-id'))
         ),
     }),
-    '../mech/MechWizard': () => ({
+    '../../build/mech/MechWizard': () => ({
       MechWizard: wizardStub(
         'Mech wizard',
         (p) =>
           `${named(p.preselectChassis)} / ${named((p.preselectPattern as { name?: string } | undefined)?.name)}`
       ),
     }),
-    '../pilot/PilotWizard': () => ({
+    '../../build/pilot/PilotWizard': () => ({
       PilotWizard: wizardStub('Pilot wizard', (p) => (p.preselectClassId ? 'a class' : 'none')),
     }),
-    '../crawler/CrawlerBuilder': () => ({
+    '../../build/crawler/CrawlerBuilder': () => ({
       CrawlerBuilder: wizardStub('Crawler builder', (p) => named(p.preselectType)),
     }),
-    '../npc/NpcDesignerPage': () => ({
+    '../../build/npc/NpcDesignerPage': () => ({
       NpcDesignerPage: (p: Props) =>
         h(
           'section',
@@ -95,13 +95,13 @@ const convexMocks = await installConvexMocks({
           call('Cancel design', p.onCancel as () => void)
         ),
     }),
-    '../sheet/SheetView': () => ({
+    '../../build/sheet/SheetView': () => ({
       SheetView: (p: Props) => h('p', null, `Live sheet: ${String(p.kind)} ${String(p.id)}`),
     }),
-    '../npc/NpcSheetView': () => ({
+    '../../build/npc/NpcSheetView': () => ({
       NpcSheetView: (p: Props) => h('p', null, `NPC sheet: ${String(p.id)}`),
     }),
-    '../mech/Pattern/SavePatternPage': () => ({
+    '../../build/mech/Pattern/SavePatternPage': () => ({
       SavePatternPage: (p: Props) =>
         h(
           'section',
@@ -116,10 +116,10 @@ const convexMocks = await installConvexMocks({
           call('Cancel save', p.onCancel as () => void)
         ),
     }),
-    '../play/PlayGate': () => ({
+    '../../play/PlayGate': () => ({
       PlayGate: (p: Props) => h('p', null, `Play gate for ${String(p.id)}`),
     }),
-    '../play/PlayMediatorGate': () => ({
+    '../../play/PlayMediatorGate': () => ({
       PlayMediatorGate: (p: Props) => h('p', null, `Mediate gate for ${String(p.gameId)}`),
     }),
   },

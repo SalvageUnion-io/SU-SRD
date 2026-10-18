@@ -108,7 +108,7 @@ describe('guideExitsFor', () => {
     expect(guideExitsFor('chassis', mule)).toBeNull()
   })
 
-  test("the Starter Set is the Cantina's /starter", () => {
+  test("the Starter Set is the app's /starter", () => {
     expect(STARTER_SET_HREF).toBe(`${appPath('/starter')}`)
   })
 })

@@ -16,7 +16,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import type { PartnerInstance } from 'cantina-domain/schemas/partner'
+import type { PartnerInstance } from 'game-domain/schemas/partner'
 import {
   isPartnerEquipment,
   mechPartnerSeeds,

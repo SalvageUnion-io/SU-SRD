@@ -12,7 +12,7 @@
  * on the pilot's seat in the Game (ADR-038), never on the entity.
  */
 
-import type { Mech } from 'cantina-domain/schemas/mech'
+import type { Mech } from 'game-domain/schemas/mech'
 import type { StatLabel } from 'salvageunion-reference'
 import { SalvageUnionReference, STAT_LABELS } from 'salvageunion-reference'
 import { resolveInstalledRef } from 'salvageunion-reference/rules'

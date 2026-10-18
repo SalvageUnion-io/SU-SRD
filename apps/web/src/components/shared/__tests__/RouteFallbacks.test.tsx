@@ -1,5 +1,5 @@
 /**
- * The Cantina's unmatched route draws the site's own 404 (`NotFound`): the
+ * The app's unmatched route draws the site's own 404 (`NotFound`): the
  * heading, the search, the guesses and the chapters the static `/404` shows,
  * plus the way back to the Hangar. Rendered with no router, so `AppLink` is a
  * plain anchor.

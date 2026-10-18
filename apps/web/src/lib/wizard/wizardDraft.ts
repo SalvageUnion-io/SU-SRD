@@ -14,10 +14,10 @@
  * draft — drafts are best-effort, never load-bearing.
  */
 
-import type { EntityKind } from 'cantina-domain/entityKinds'
+import type { EntityKind } from 'game-domain/entityKinds'
 import { useEffect, useMemo, useRef } from 'react'
 
-const PREFIX = 'cantina-wizard-draft'
+const PREFIX = 'app-wizard-draft'
 
 type WizardKind = EntityKind
 

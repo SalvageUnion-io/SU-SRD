@@ -1,11 +1,11 @@
 /**
- * The Cantina's base path on the Worker: `/build` (`APP_BASE`), `''` at the
- * root in a test. The rules in `cantina.ts`, `../lib/redirects.ts` and
+ * The app's base path on the Worker: `/build` (`APP_BASE`), `''` at the
+ * root in a test. The rules in `app.ts`, `../lib/redirects.ts` and
  * `linkPreview.ts` match on the path inside the app, and put the base back on
  * every URL they build.
  *
  * `pathInApp` takes it off (`/build/p/mech/x` → `/p/mech/x`). A path outside
- * the base is left whole: nothing the Cantina serves lives there, so the rules answer
+ * the base is left whole: nothing the app serves lives there, so the rules answer
  * it as the miss it is.
  */
 export function pathInApp(pathname: string, base: string): string {

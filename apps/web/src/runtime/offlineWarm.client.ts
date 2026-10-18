@@ -3,7 +3,7 @@
  *
  * ADR-034 decision 3: installing is what buys full offline, and an online
  * visitor never pre-downloads the site. `srd` is where that rule has teeth,
- * because unlike the Cantina it has a genuine corpus — 1,039 pre-rendered pages —
+ * because unlike the app it has a genuine corpus — 1,039 pre-rendered pages —
  * and `navigateFallback: null` means an unvisited one 404s offline. Correct for
  * somebody who came to read one page; wrong for somebody who installed the app.
  *

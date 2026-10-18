@@ -18,7 +18,7 @@ import { Speckle } from '../atoms/Speckle'
  * game" and the app's account controls. Crossing modes is a tab on the same
  * bar, never an off-site "Builder ↗" / "SRD ↗" link. The tab you are on is an
  * inverse stamp — a paper plate on the ink bar — and never rust (§3.1). Play
- * lives in the Cantina beside Build, so the Cantina's shell serves the bar
+ * lives in the app beside Build, so the app's shell serves the bar
  * with Build current and the app moves "here" to Play on Play's routes
  * (`UnionBarSlots`, by each tab's `data-tool`).
  *
@@ -29,7 +29,7 @@ import { Speckle } from '../atoms/Speckle'
  * (`--su-union-bar-control`, `styles/partials/shell.css`), the product
  * nav inline beside the switcher from `lg`, and the search entry at the same
  * place in the same shape (the one `SearchField` combobox). There are no
- * densities: the SRD's 64px bar and the Cantina's 48px one were two products.
+ * densities: the SRD's 64px bar and the app's 48px one were two products.
  *
  * ## Breadcrumbs
  *
@@ -52,10 +52,13 @@ import { Speckle } from '../atoms/Speckle'
  *
  * ## Colour
  *
- * The bar is ink, paper on it, until a page leads with a chapter band: then it
- * wears that band's colour, foreground and grain, so the site header and the
- * band read as one (`atoms/unionBarMatch.ts`). Its colours are the
- * `--su-bar-*` properties on `.su-union-bar`; the footer stays ink.
+ * The bar wears its mode (`data-mode`). In the reference it is ink, paper on
+ * it, until a page leads with a chapter band: then it wears that band's
+ * colour, foreground and grain, so the site header and the band read as one
+ * (`atoms/unionBarMatch.ts`). In the app it wears its area's colour on every
+ * route, whatever band leads: Build, the Training Bay, is pilot orange with
+ * ink; Play, the Cantina, the deep crawler pink with paper. Its colours are
+ * the `--su-bar-*` properties on `.su-union-bar`; the footer stays ink.
  */
 
 type AppBarProduct = 'reference' | 'build' | 'play'
@@ -72,7 +75,7 @@ type AppBarNavItem = {
 }
 
 /**
- * A nav entry the app renders itself — a control, not a link (The Cantina's Games
+ * A nav entry the app renders itself — a control, not a link (The app's Games
  * menu). It takes its place in the nav's order and the bar knows nothing of it.
  */
 export type AppBarNavSlot = {
@@ -87,14 +90,14 @@ type AppBarProps = {
   product: AppBarProduct
   /** Where "Reference" goes — the SRD's home. */
   referenceHref: string
-  /** Where "Build" goes — the Cantina's home. */
+  /** Where "Build" goes — the app's home. */
   buildHref: string
   /** Where "Play" goes — the Play landing. */
   playHref: string
   /** Link component for the brand + internal links. Defaults to a plain anchor. */
   LinkComponent?: ElementType
   /**
-   * The SU mark's URL. The app's own copy: The Cantina serves its files under
+   * The SU mark's URL. The app's own copy: the app serves its files under
    * `/build/` (ADR-048), so the root's is srd's on one origin and missing on
    * any other.
    */
@@ -110,7 +113,7 @@ type AppBarProps = {
   /** "Buy the game" outbound link. Omit to hide. */
   buyHref?: string
   /**
-   * Desktop controls at the right end of the bar — app-owned (The Cantina's account
+   * Desktop controls at the right end of the bar — app-owned (The app's account
    * menu). A slot rather than nav data because these are controls, not links.
    * Desktop only: the `mobile` slot carries whatever the app wants below `lg`.
    */
@@ -223,6 +226,10 @@ export function AppBar({
     <>
       <header
         className="su-union-bar"
+        // The mode's colour (`styles/partials/shell.css`): the reference's ink,
+        // Build's pilot orange, Play's deep crawler pink. The app's shell serves
+        // `build` and moves it to `play` on Play's routes (`UnionBarSlots`).
+        data-mode={product}
         style={viewTransitionName ? { ...BAR, viewTransitionName } : BAR}
       >
         {/* Both grains are served; the ground's shows (`.su-union-bar__grain`). */}

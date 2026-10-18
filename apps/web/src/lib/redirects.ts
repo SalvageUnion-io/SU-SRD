@@ -9,7 +9,7 @@
  *   serves itself: `FIXED_MOVES`, then each former slug's.
  * - The Worker's miss (`worker/index.ts`) for the old page grammar
  *   (`currentPathFor`): one pattern, not a rule per page.
- * - The Cantina's rules (`worker/cantina.ts`) for the paths under `/build` it
+ * - The app's rules (`worker/app.ts`) for the paths under `/build` it
  *   no longer has (`retiredDocPage`, `retiredTarget`): the Worker runs first
  *   there, so `_redirects` never sees them.
  *
@@ -86,11 +86,11 @@ export function legacyItemHref(schemaId: string, slug: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// The Cantina's retired paths, read inside its base
+// The app's retired paths, read inside its base
 // ---------------------------------------------------------------------------
 
 /**
- * The Cantina's own `/about` and `/changelog`, which the site's pages replaced:
+ * The app's own `/about` and `/changelog`, which the site's pages replaced:
  * a bookmark or an old link lands on the site's page, on this origin.
  */
 const RETIRED_DOC_PAGES: ReadonlyMap<string, string> = new Map([
@@ -99,7 +99,7 @@ const RETIRED_DOC_PAGES: ReadonlyMap<string, string> = new Map([
 ])
 
 /**
- * Where a retired Cantina doc page went. Takes a path inside the base, with or
+ * Where a retired app doc page went. Takes a path inside the base, with or
  * without its trailing slash; null for any other path.
  */
 export function retiredDocPage(path: string): string | null {

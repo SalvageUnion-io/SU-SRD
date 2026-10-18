@@ -22,7 +22,10 @@ Built: the `dashboard-cockpit` milestone (tracker #1633); Play as built is
 
 The site header offers Reference, Build and Play. Play lands on `/build/play`:
 the player's Games (play or mediate), their pilots to play solo, and each
-Game's Discord channel.
+Game's Discord channel. Players know Play as **The Cantina**, the crawler's
+social hub, and Build as the **Training Bay**: the tabs keep the verbs, the
+names go on the pages and the bar's colour (Build pilot orange, Play the deep
+crawler pink). "The Cantina" names Play alone, never the whole app.
 
 ### 2. The Cockpit frame
 

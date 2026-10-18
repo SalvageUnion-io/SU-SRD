@@ -69,7 +69,7 @@ export async function playDoor(page: Page, name: string | RegExp): Promise<strin
   await expect(door, `the Play landing offers "${name}"`).toBeVisible({ timeout: 30_000 })
   const href = await door.getAttribute('href')
   if (!href) throw new Error(`"${name}" on the Play landing has no href`)
-  // Root-relative under the Cantina's base: the route without it.
+  // Root-relative under the app's base: the route without it.
   return new URL(href, page.url()).pathname.replace(/^\/build/, '')
 }
 

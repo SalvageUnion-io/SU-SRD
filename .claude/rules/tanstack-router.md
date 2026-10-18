@@ -3,15 +3,15 @@ paths:
   - 'apps/web/src/routes/**'
 ---
 
-# TanStack Router (The Cantina)
+# TanStack Router (the client app)
 
 - **Directory routes only**, one segment per directory (`p/$kind/$appId.tsx`),
   never dot names. A trailing `_` un-nests a segment (`games_/$gameId.tsx` →
   URL `/games/$gameId`).
 - **`Route = createFileRoute('/path')({ … })` is the only export**, its
   component a local function: anything else exported keeps the page's graph in
-  the entry chunk. A body worth testing lives in `src/components/` and is
-  imported from both.
+  the entry chunk. A body worth testing lives in its area
+  (`src/build/sheet/PublicSheetView.tsx`) and is imported from both.
 - `validateSearch` + `Route.useSearch()`, never `useSearch({ strict: false })`
   plus a cast.
 - `beforeLoad` for guards and redirects, `loader` for load-time preparation

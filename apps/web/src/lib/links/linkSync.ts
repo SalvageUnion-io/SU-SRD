@@ -19,12 +19,12 @@
  * not this answer's to judge and is left alone.
  */
 
-import type { Container } from 'cantina-domain/container'
-import { containerOf } from 'cantina-domain/container'
-import type { EndContainer } from 'cantina-domain/links/linkRules'
-import { linkKey } from 'cantina-domain/links/linkRules'
-import type { EntityRef } from 'cantina-domain/schemas/entity'
-import type { CrewSlot, SoftLink } from 'cantina-domain/schemas/softLink'
+import type { Container } from 'game-domain/container'
+import { containerOf } from 'game-domain/container'
+import type { EndContainer } from 'game-domain/links/linkRules'
+import { linkKey } from 'game-domain/links/linkRules'
+import type { EntityRef } from 'game-domain/schemas/entity'
+import type { CrewSlot, SoftLink } from 'game-domain/schemas/softLink'
 
 /** A link row as `entities.listWiring` returns it. */
 export type ServedLink = {

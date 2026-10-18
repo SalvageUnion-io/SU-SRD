@@ -6,11 +6,11 @@ import { sheetCommand } from '../commands/sheet'
 import { fakeExecute } from './fakeInteraction'
 
 /**
- * **The reference bot must keep working when the Cantina does not.**
+ * **The reference bot must keep working when the app does not.**
  *
  * Roll and lookup are the thing people already use, and ADR-030's first
  * principle is that accounts must not gate or alter anything that worked
- * without them. So when the Cantina client cannot help — the deployment is down,
+ * without them. So when the app client cannot help — the deployment is down,
  * or (as in every test here) the client is unconfigured — rolling and looking
  * up are untouched, and every Game command says why it cannot help rather than
  * failing.
@@ -19,7 +19,7 @@ import { fakeExecute } from './fakeInteraction'
  * the unconfigured client, which makes no request at all.
  */
 
-describe('with The Cantina unavailable', () => {
+describe('with the app unavailable', () => {
   test('rolling is untouched — no defer, no edit, just the reply', async () => {
     const { interaction, replies, deferred, edits } = fakeExecute({
       subcommand: 'roll',
@@ -59,13 +59,13 @@ describe('with The Cantina unavailable', () => {
     await command.execute(interaction)
 
     // Registered but honest: the command exists, defers ephemerally, and says
-    // it cannot reach the Cantina — worded as an outage, never as a
+    // it cannot reach the app — worded as an outage, never as a
     // permissions problem, and posting nothing to the channel.
     expect(deferred.called).toBe(true)
     expect(deferred.ephemeral).toBe(true)
     expect(followUps).toHaveLength(0)
     expect(edits).toHaveLength(1)
-    expect(edits[0]?.content).toContain('The Cantina')
+    expect(edits[0]?.content).toContain('salvageunion.io')
   })
 
   test('/su sheet needs no channel: a DM asks the server like anywhere else', async () => {
@@ -75,6 +75,6 @@ describe('with The Cantina unavailable', () => {
     })
     await sheetCommand.execute(interaction)
     expect(deferred.called).toBe(true)
-    expect(edits[0]?.content).toContain('The Cantina')
+    expect(edits[0]?.content).toContain('salvageunion.io')
   })
 })

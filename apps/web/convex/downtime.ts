@@ -1,5 +1,5 @@
-import { downtimeGuideSteps, isUpkeepStep, UPKEEP_STEP_NAME } from 'cantina-domain/rules/downtime'
 import { v } from 'convex/values'
+import { downtimeGuideSteps, isUpkeepStep, UPKEEP_STEP_NAME } from 'game-domain/rules/downtime'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'

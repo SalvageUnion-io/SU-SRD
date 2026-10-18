@@ -1,4 +1,4 @@
-import { uploadedPhotoId } from 'cantina-domain/schemas/photo'
+import { uploadedPhotoId } from 'game-domain/schemas/photo'
 import type { Doc } from '../_generated/dataModel'
 import type { MutationCtx } from '../_generated/server'
 

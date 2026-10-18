@@ -1,6 +1,6 @@
 /**
  * What every document the app serves puts in its head, whichever renders it:
- * the SSG's `BaseLayout` for the reference pages, the Cantina's shell
+ * the SSG's `BaseLayout` for the reference pages, the app's shell
  * (`../shell/shell.ts`) for `/build`. One name, one set of icons, one
  * browser-chrome colour, one link-preview block (`metaTags`), which the
  * Worker also writes into the shell for a shared page (`worker/shellMeta.ts`).
@@ -31,7 +31,7 @@ export const SITE_ICONS = [
 ] as const
 
 /**
- * The same mark as the site's chrome draws it: the Union bar, the Cantina's
+ * The same mark as the site's chrome draws it: the Union bar, the app's
  * rails and link-preview cards. A `public/` file at the site's root.
  */
 export const MARK_SRC = '/logos/su-cargo-dark.svg'
@@ -116,5 +116,5 @@ export function renderTags(tags: readonly HeadTag[], indent = ''): string {
  * The markers around the shell's link-preview block, which the Worker swaps
  * for a shared page's (`worker/shellMeta.ts`).
  */
-export const META_START = '<!-- cantina:meta:start -->'
-export const META_END = '<!-- cantina:meta:end -->'
+export const META_START = '<!-- app:meta:start -->'
+export const META_END = '<!-- app:meta:end -->'

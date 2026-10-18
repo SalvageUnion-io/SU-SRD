@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { MechSchema } from 'cantina-domain/schemas/mech'
+import { MechSchema } from 'game-domain/schemas/mech'
 import { api } from '../../../convex/_generated/api'
 import { FIXTURE_NOW } from '../../../src/components/__tests__/fixtures'
 import type { Ctx } from '../fixtures'

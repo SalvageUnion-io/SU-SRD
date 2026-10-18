@@ -14,7 +14,7 @@
  * until the corresponding sheet editor exists.
  */
 
-import type { SheetKind } from 'cantina-domain/entityKinds'
+import type { SheetKind } from 'game-domain/entityKinds'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { useEntityStore } from '../../stores/entityStore'
 import {

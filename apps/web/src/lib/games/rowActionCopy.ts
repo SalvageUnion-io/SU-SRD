@@ -20,7 +20,7 @@
  * table, `default` for the two that only add — picking up and copying.
  */
 
-import type { EntityKind } from 'cantina-domain/entityKinds'
+import type { EntityKind } from 'game-domain/entityKinds'
 import { copyName } from '../copyEntity'
 import type { ClearedAssignment } from '../links/clearedByMove'
 

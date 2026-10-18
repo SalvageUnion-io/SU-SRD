@@ -4,11 +4,11 @@ import { at } from './_base'
 import { waitForReady } from './_helpers'
 
 /**
- * The Cantina e2e `test`, signed in by default.
+ * The app e2e `test`, signed in by default.
  *
  * ## Why every spec signs in
  *
- * A build lands in exactly one place: the account. Signed out, the Cantina is
+ * A build lands in exactly one place: the account. Signed out, the app is
  * read-only and refuses every write, so every spec that builds something is a
  * test of the signed-in path, run the way production runs.
  *
@@ -18,7 +18,7 @@ import { waitForReady } from './_helpers'
  * test-only `password` provider. Each test signs up a fresh account, because a
  * reused one would inherit the last run's roster and assert against it. Two
  * things must line up (see `signin-save.e2e.ts`'s header): `VITE_TEST_AUTH=true`
- * in the build, and `CANTINA_TEST_AUTH=true` on the deployment. `build-web`
+ * in the build, and `TEST_AUTH=true` on the deployment. `build-web`
  * in `.github/workflows/ci.yml` (every PR) and `e2e` in
  * `.github/workflows/e2e-nightly.yml` provide both against a throwaway
  * self-hosted Convex backend (`.github/actions/convex-backend`).
@@ -29,13 +29,13 @@ import { waitForReady } from './_helpers'
  * cannot sign in, so a signed-in spec SKIPS with the reason stated rather than failing — a spec that
  * went red in every ordinary run would be deleted the first time it annoyed
  * somebody. Once a run has deliberately provisioned the seam
- * (`CANTINA_E2E_EXPECT_AUTH_SEAM`), absence means the seam broke, and it THROWS
+ * (`E2E_EXPECT_AUTH_SEAM`), absence means the seam broke, and it THROWS
  * instead.
  *
  * A local `bun run e2e` always has the seam: Playwright boots (or reuses)
  * `bun run dev`, which sets `VITE_TEST_AUTH` on a local Convex deployment.
  * So it needs the one-time "Local backend" setup in `.claude/skills/convex-ops/SKILL.md`
- * (`CANTINA_TEST_AUTH`, the JWT keys, `SITE_URL`), and its signed-in specs FAIL
+ * (`TEST_AUTH`, the JWT keys, `SITE_URL`), and its signed-in specs FAIL
  * without it.
  *
  * ## Opting out
@@ -45,7 +45,7 @@ import { waitForReady } from './_helpers'
  */
 
 /**
- * The Cantina's per-test budget. The first navigation of a test pulls in
+ * The app's per-test budget. The first navigation of a test pulls in
  * salvageunion-reference (a large JSON dataset) and, against the dev server,
  * Vite's lazy compile of the dashboard and builder routes: 30-60 s on GHA
  * Ubuntu runners. 90 s leaves headroom without masking a real hang; against a
@@ -59,7 +59,7 @@ type AccountFixture = {
 }
 
 /** Kept in step with `testAuthSeam.model.ts` by `TestAuthBridge.test.tsx`. */
-const TEST_SIGN_IN_GLOBAL = '__cantinaTestSignIn'
+const TEST_SIGN_IN_GLOBAL = '__appTestSignIn'
 
 /** A fresh account per test — a reused one would inherit the last run's roster. */
 export function uniqueCredentials(): { email: string; password: string } {
@@ -101,17 +101,17 @@ export async function seamIsPresent(page: Page): Promise<boolean> {
  * difference matters.
  */
 export function requireSeam(present: boolean, testInfo: TestInfo): void {
-  if (!present && process.env.CANTINA_E2E_EXPECT_AUTH_SEAM) {
+  if (!present && process.env.E2E_EXPECT_AUTH_SEAM) {
     throw new Error(
-      'CANTINA_E2E_EXPECT_AUTH_SEAM is set, but no `__cantinaTestSignIn` seam is present. ' +
-        'The build was expected to expose it (VITE_TEST_AUTH + CANTINA_TEST_AUTH); ' +
+      'E2E_EXPECT_AUTH_SEAM is set, but no `__appTestSignIn` seam is present. ' +
+        'The build was expected to expose it (VITE_TEST_AUTH + TEST_AUTH); ' +
         'either the seam regressed or the build lost a variable.'
     )
   }
   testInfo.skip(
     !present,
     'Needs an account, and this build has no test sign-in seam (VITE_TEST_AUTH ' +
-      'and CANTINA_TEST_AUTH). See apps/web/e2e/fixtures.ts.'
+      'and TEST_AUTH). See apps/web/e2e/fixtures.ts.'
   )
 }
 

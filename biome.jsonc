@@ -374,8 +374,8 @@
       "includes": [
         "apps/web/**",
         "!apps/web/ssg/**",
-        "!apps/web/src/pages/**",
-        "!apps/web/src/endpoints/**",
+        "!apps/web/src/reference/pages/**",
+        "!apps/web/src/reference/endpoints/**",
         "!apps/web/src/runtime/**",
         "!apps/web/src/components/islands/**"
       ],
@@ -421,7 +421,7 @@
     },
     {
       // A static page: what the SSG renders and the islands it hydrates. It
-      // ships at most 20 KB of JS, so it never imports the Cantina's router,
+      // ships at most 20 KB of JS, so it never imports the app's router,
       // stores or shell, or Convex. A relative import does not say what it
       // reaches, so the rule names those folders; `reference-bundle-budget.e2e.ts` and
       // the Vite pass's chunk groups (`ssg/appGraph.ts`) catch what a shared
@@ -432,12 +432,10 @@
       // merging — see the note at the root declaration.
       "includes": [
         "apps/web/ssg/**",
-        "apps/web/src/pages/**",
-        "apps/web/src/endpoints/**",
-        "apps/web/src/layouts/**",
+        "apps/web/src/reference/**",
         "apps/web/src/runtime/**",
         "apps/web/src/components/islands/**",
-        "!apps/web/ssg/cantinaPlugins.ts"
+        "!apps/web/ssg/appPlugins.ts"
       ],
       "linter": {
         "rules": {
@@ -473,7 +471,7 @@
                       "**/shell/**",
                       "**/main"
                     ],
-                    "message": "A static page never imports Convex or the Cantina's routes, stores, shell or entry: they would ship on every page, past its 20 KB budget."
+                    "message": "A static page never imports Convex or the app's routes, stores, shell or entry: they would ship on every page, past its 20 KB budget."
                   }
                 ]
               }
@@ -572,7 +570,7 @@
                   },
                   {
                     "group": ["**/src/**"],
-                    "message": "Convex never imports the client (apps/web/src): shared logic lives in cantina-domain or salvageunion-reference (`check rules-home`)."
+                    "message": "Convex never imports the client (apps/web/src): shared logic lives in game-domain or salvageunion-reference (`check rules-home`)."
                   }
                 ]
               }

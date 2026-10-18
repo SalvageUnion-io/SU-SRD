@@ -1,15 +1,15 @@
 import { authTables } from '@convex-dev/auth/server'
-import { CHANGE_LOG_KINDS } from 'cantina-domain/schemas/changeLog'
-import { EntityRefSchema } from 'cantina-domain/schemas/entity'
-import { CrewSlotSchema, SoftLinkSchema } from 'cantina-domain/schemas/softLink'
 import { defineSchema, defineTable } from 'convex/server'
 import { v } from 'convex/values'
 import { zodToConvex } from 'convex-helpers/server/zod4'
+import { CHANGE_LOG_KINDS } from 'game-domain/schemas/changeLog'
+import { EntityRefSchema } from 'game-domain/schemas/entity'
+import { CrewSlotSchema, SoftLinkSchema } from 'game-domain/schemas/softLink'
 import { playTables } from './model/playTables'
 import { literalUnion } from './model/validators'
 
 /**
- * Convex schema for the Cantina accounts, Games, and entity ownership.
+ * Convex schema for the app accounts, Games, and entity ownership.
  *
  * This is the server of record introduced by ADR-030, which
  * supersedes ADR-001's "no backend, no auth". See docs/ARCHITECTURE.md#convex
@@ -25,7 +25,7 @@ import { literalUnion } from './model/validators'
  *
  * ## Why entity bodies are `v.any()`
  *
- * `Pilot`, `Mech`, and `Crawler` are large Zod schemas in `cantina-domain/schemas/`,
+ * `Pilot`, `Mech`, and `Crawler` are large Zod schemas in `game-domain/schemas/`,
  * and those schemas are the single source of truth — `schemas/*.schema.json` in
  * `salvageunion-reference` is already generated from Zod at build time.
  * Re-declaring every field as a Convex validator would fork that source of truth
@@ -46,7 +46,7 @@ import { literalUnion } from './model/validators'
  * as `string` meant every `row.state === 'proposed'` in `proposals.ts` compared
  * two arbitrary strings, so a typo read as "no rows match" rather than as a type
  * error. Each union below is that list, checked, and kept in step with its Zod
- * counterpart in `cantina-domain/schemas/`.
+ * counterpart in `game-domain/schemas/`.
  *
  * Where the Zod side is a schema, the validator is built from it with
  * `zodToConvex` (convex-helpers), and where it is only a list of names, from
@@ -64,7 +64,7 @@ import { literalUnion } from './model/validators'
  */
 
 /**
- * `EntityRefSchema.type` (cantina-domain/schemas/entity) — ADR-027.
+ * `EntityRefSchema.type` (game-domain/schemas/entity) — ADR-027.
  *
  * Exported so a mutation that takes an endpoint as an *argument* validates it
  * against this same union rather than a hand-copied one. `entities.upsertSoftLink`
@@ -72,11 +72,11 @@ import { literalUnion } from './model/validators'
  */
 export const entityRefType = zodToConvex(EntityRefSchema.shape.type)
 
-/** `EntityRefSchema` (cantina-domain/schemas/entity): a link end, by kind and app id. */
+/** `EntityRefSchema` (game-domain/schemas/entity): a link end, by kind and app id. */
 export const entityRef = v.object({ type: entityRefType, id: v.string() })
 
 /**
- * `SoftLinkSchema.type` (cantina-domain/schemas/softLink). Exported: see above.
+ * `SoftLinkSchema.type` (game-domain/schemas/softLink). Exported: see above.
  *
  * `mech-to-crawler` (ADR-037): a mech's crawler is its own link, not reached
  * through its pilot. Adding a literal is the backward-compatible direction —
@@ -85,7 +85,7 @@ export const entityRef = v.object({ type: entityRefType, id: v.string() })
 export const softLinkType = zodToConvex(SoftLinkSchema.shape.type)
 
 /**
- * `CrewSlotSchema` (cantina-domain/schemas/softLink) — ADR-044. The crew
+ * `CrewSlotSchema` (game-domain/schemas/softLink) — ADR-044. The crew
  * slot an `npc-to-crawler` link fills: a bay by its slug, or the crawler
  * type's NPC. Required on that type and refused on every other, which the
  * writers in `entities.ts` enforce (a validator cannot see the link's type).
@@ -111,7 +111,7 @@ export const changeLogEntityType = v.union(
 )
 
 /**
- * `CHANGE_LOG_KINDS` (cantina-domain/schemas/changeLog) — ADR-022. Exported so
+ * `CHANGE_LOG_KINDS` (game-domain/schemas/changeLog) — ADR-022. Exported so
  * `changeLog.appendChangeLog` takes its entries' `kind` against this union.
  */
 export const changeLogKind = literalUnion(CHANGE_LOG_KINDS)
@@ -427,7 +427,7 @@ export default defineSchema({
    *   - **cardinality** — a pilot crews ≤1 crawler and flies ≤1 mech; a mech
    *     flies ≤1 pilot and docks in ≤1 crawler; an NPC fills ≤1 crew slot and
    *     a slot holds ≤1 NPC. Drawing a link replaces the ones it conflicts
-   *     with (`conflictingLinks` in `cantina-domain/links/linkRules`).
+   *     with (`conflictingLinks` in `game-domain/links/linkRules`).
    *   - **one container** — both ends share a Game, or the same owner's shelf.
    *   - **`gameId` is that container** — it moves with its ends, and a move that
    *     would leave a link straddling two containers deletes it instead.

@@ -3,8 +3,8 @@ import type {
   BotDenialReason,
   ChannelBindingSummary,
   UnbindChannelResult,
-} from 'cantina-domain/botWire'
-import { mayBindChannel } from 'cantina-domain/games/discord'
+} from 'game-domain/botWire'
+import { mayBindChannel } from 'game-domain/games/discord'
 import type { Doc, Id } from '../_generated/dataModel'
 import type { MutationCtx, QueryCtx } from '../_generated/server'
 import { getMembership } from './permissions'

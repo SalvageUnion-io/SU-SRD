@@ -1,14 +1,14 @@
 import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
-import { PRODUCT } from 'cantina-domain/product'
+import { PRODUCT } from 'game-domain/product'
 import { gamesCard, meCard } from '../gameCards'
-import { respondWithCantina } from './cantinaReply'
 import type { CommandExecuteInteraction } from './interactions'
+import { respondWithSite } from './siteReply'
 
 /**
- * The two **personal** The Cantina subcommands: `/su me` and `/su games`.
+ * The two **personal** The app subcommands: `/su me` and `/su games`.
  *
  * Grouped in one module rather than two because they are one idea — "what
- * does the Cantina know about *me*" — and each is a handful of lines. The
+ * does the app know about *me*" — and each is a handful of lines. The
  * substantial commands (roll, lookup, sheet) keep their own files.
  *
  * Both are **ephemeral**: an account and a game list are personal, and neither
@@ -17,11 +17,11 @@ import type { CommandExecuteInteraction } from './interactions'
 
 export const meCommand = {
   subcommand(sub: SlashCommandSubcommandBuilder): SlashCommandSubcommandBuilder {
-    return sub.setName('me').setDescription(`Your ${PRODUCT.name} account and Games`)
+    return sub.setName('me').setDescription(`Your ${PRODUCT.wordmark} account and Games`)
   },
 
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
-    await respondWithCantina(interaction, {
+    await respondWithSite(interaction, {
       call: (client) => client.me(interaction.user.id),
       render: (value) => meCard(value),
     })
@@ -34,7 +34,7 @@ export const gamesCommand = {
   },
 
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
-    await respondWithCantina(interaction, {
+    await respondWithSite(interaction, {
       call: (client) => client.games(interaction.user.id),
       render: (value) => gamesCard(value.games),
     })

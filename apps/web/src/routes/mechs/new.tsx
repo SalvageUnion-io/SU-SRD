@@ -1,14 +1,15 @@
 import { createFileRoute, useLocation, useNavigate } from '@tanstack/react-router'
-import { useReturnToContainer } from '../../components/entityContainer/useShowContainer'
-import { MechWizard } from '../../components/mech/MechWizard'
-import { NewEntityScreen } from '../../components/wizard/NewEntityScreen'
-import { pageTitle } from '../../lib/pageTitle'
+import { PRODUCT } from 'game-domain/product'
+import { useReturnToContainer } from '../../build/entityContainer/useShowContainer'
+import { MechWizard } from '../../build/mech/MechWizard'
+import { NewEntityScreen } from '../../build/wizard/NewEntityScreen'
+import { areaTitle } from '../../lib/pageTitle'
 import type { CreateMode } from '../../lib/wizard/createMode'
 import { parseCreateMode } from '../../lib/wizard/createMode'
 import { parseSlugParam, preselectedChassis, preselectedPattern } from '../../lib/wizard/preselect'
 
 export const Route = createFileRoute('/mechs/new')({
-  head: () => ({ meta: [{ title: pageTitle('New Mech') }] }),
+  head: () => ({ meta: [{ title: areaTitle(PRODUCT.build, 'New Mech') }] }),
   // mode: absent → chooser · 'guided' → the wizard · 'blank' → blank dialog
   // chassis: a slug deep-linked from an SRD page's "Build With This" (`lib/wizard/preselect.ts`)
   // pattern: that chassis's pattern slug, from an SRD pattern page's "Build With This"

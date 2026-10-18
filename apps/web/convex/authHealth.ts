@@ -18,7 +18,7 @@ import { internalAction, internalQuery } from './_generated/server'
  * secret, a wrong `SITE_URL`.
  *
  * When that happens `check` throws. The deployment's log stream posts the
- * failure to the Cantina Worker (`src/worker/errorReports.ts`), which logs it for
+ * failure to the app Worker (`src/worker/errorReports.ts`), which logs it for
  * Workers Issues, whose automations alert the owners. The alert lives there;
  * this only has to throw.
  */

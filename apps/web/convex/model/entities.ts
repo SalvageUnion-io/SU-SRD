@@ -1,18 +1,18 @@
-import type { EntityTable, OwnableKind, OwnableTable } from 'cantina-domain/entityKinds'
-import { TABLE_OF_KIND } from 'cantina-domain/entityKinds'
-import type { LinkShape } from 'cantina-domain/links/linkRules'
-import { conflictingLinks, LINK_ENDS, sameLink } from 'cantina-domain/links/linkRules'
-import { CrawlerSchema } from 'cantina-domain/schemas/crawler'
-import { EncounterNpcSchema } from 'cantina-domain/schemas/encounterNpc'
-import { MechSchema } from 'cantina-domain/schemas/mech'
-import { NpcSchema } from 'cantina-domain/schemas/npc'
-import { MechPatternSchema } from 'cantina-domain/schemas/pattern'
-import { PilotSchema } from 'cantina-domain/schemas/pilot'
-import type { SoftLink } from 'cantina-domain/schemas/softLink'
 import type { Infer } from 'convex/values'
 import { ConvexError, v } from 'convex/values'
 import { customCtx, customMutation } from 'convex-helpers/server/customFunctions'
 import { Triggers } from 'convex-helpers/server/triggers'
+import type { EntityTable, OwnableKind, OwnableTable } from 'game-domain/entityKinds'
+import { TABLE_OF_KIND } from 'game-domain/entityKinds'
+import type { LinkShape } from 'game-domain/links/linkRules'
+import { conflictingLinks, LINK_ENDS, sameLink } from 'game-domain/links/linkRules'
+import { CrawlerSchema } from 'game-domain/schemas/crawler'
+import { EncounterNpcSchema } from 'game-domain/schemas/encounterNpc'
+import { MechSchema } from 'game-domain/schemas/mech'
+import { NpcSchema } from 'game-domain/schemas/npc'
+import { MechPatternSchema } from 'game-domain/schemas/pattern'
+import { PilotSchema } from 'game-domain/schemas/pilot'
+import type { SoftLink } from 'game-domain/schemas/softLink'
 import type { DataModel, Doc, Id } from '../_generated/dataModel'
 import type { MutationCtx, QueryCtx } from '../_generated/server'
 import {
@@ -32,7 +32,7 @@ import { PHOTO_TABLES, trackPhoto } from './photos'
  * ## The edge parse
  *
  * `schema.ts` stores entity bodies as `v.any()` so the Zod schemas in
- * `cantina-domain/schemas/` stay the single source of truth rather than being forked
+ * `game-domain/schemas/` stay the single source of truth rather than being forked
  * into a second, hand-maintained set of Convex validators. The price is stated
  * plainly in that file's header: **Convex cannot reject a malformed body on
  * write, so the mutation has to.** `parseBody` is where that is paid, and
@@ -190,7 +190,7 @@ export async function oldestByAppId(
     .collect()) as Doc<EntityTable>[]
   if (warn && matches.length > 1) {
     console.warn(
-      `[cantina] ${matches.length} ${table} rows share appId="${appId}" — resolving to the oldest; this roster needs de-duplicating`
+      `[app] ${matches.length} ${table} rows share appId="${appId}" — resolving to the oldest; this roster needs de-duplicating`
     )
   }
   return oldestOf(matches)
@@ -385,7 +385,7 @@ export function linkIdOf(row: ContainedRow): string | undefined {
  * that is about *where*, not *how many*.
  *
  * The same Game, or the same owner's shelf. The second clause is the one
- * `cantina-domain/container`'s `sameContainer` cannot express: every player's shelf has
+ * `game-domain/container`'s `sameContainer` cannot express: every player's shelf has
  * the same `null` game id, and a shelf is a solo container per person, not one
  * shared bucket. A shelf row with no owner is the invalid row (ADR-030 §2), so
  * it shares a container with nothing.
@@ -459,7 +459,7 @@ export async function linksTouching(
  * The cardinality invariant's single server-side writer: `upsertSoftLink`, the
  * claim, and the primary-crawler auto-assignment all draw through here, so
  * "a pilot crews one crawler" cannot hold on one path and not another. The
- * rule itself is `conflictingLinks` (`cantina-domain/links/linkRules`), shared with
+ * rule itself is `conflictingLinks` (`game-domain/links/linkRules`), shared with
  * the client.
  *
  * The caller has already decided the link is allowed — who may draw it, and

@@ -64,7 +64,7 @@ type SlabProps = {
    * The count's ink. 'muted' (default) is `wkMuted`, which clears AA on paper
    * and the workshop grounds only. 'inherit' prints it in the surrounding ink
    * (`currentcolor`), for a slab printed straight on a tinted ground: on
-   * The Cantina's wizard step card `wkMuted` measures 3.78 / 3.03 / 2.65:1 (pilot /
+   * the app's wizard step card `wkMuted` measures 3.78 / 3.03 / 2.65:1 (pilot /
    * mech / crawler), the card's own ink 10.13 / 8.12 / 7.11:1.
    */
   countInk?: 'muted' | 'inherit'
@@ -90,7 +90,7 @@ type SlabProps = {
   variant?: 'dashed' | 'solid'
   /**
    * Where a SOLID slab's count sits: at the rule's far end (`end`, the
-   * default) or beside its stamp (`label`) — the Cantina's Shelves (board S1), whose
+   * default) or beside its stamp (`label`) — the app's Shelves (board S1), whose
    * rule runs on to the shelf's "+ New…" button ("PILOTS 3 ┄┄┄ + NEW PILOT").
    * The dashed slab always counts beside its label.
    */

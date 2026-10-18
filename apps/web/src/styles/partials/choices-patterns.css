@@ -116,7 +116,7 @@
   }
 }
 
-/* A Token with controls on its line (`.su-entity-token-line`: The Cantina's installed
+/* A Token with controls on its line (`.su-entity-token-line`: the app's installed
    sheet items): a phone gives the Token its own line and the controls the one
    under it; from `sm` they share one, and the pill takes the line's height. */
 .su-entity-token-line {

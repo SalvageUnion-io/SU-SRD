@@ -161,14 +161,12 @@ describe('.claude/rules path globs', () => {
     expect(tracked.some((path) => matcher.match(path))).toBe(true)
   })
 
-  test('cantina-domain edits load the data-access and bot rules', () => {
+  test('game-domain edits load the data-access and bot rules', () => {
     const loading = (path: string) =>
       globs.filter(([, glob]) => new Bun.Glob(glob).match(path)).map(([rule]) => rule)
-    expect(loading('packages/cantina-domain/src/schemas/pilot.ts')).toContain(
-      'cantina-data-access.md'
-    )
-    expect(loading('packages/cantina-domain/src/botWire.ts')).toEqual(
-      expect.arrayContaining(['cantina-data-access.md', 'discord-bot.md'])
+    expect(loading('packages/game-domain/src/schemas/pilot.ts')).toContain('app-data-access.md')
+    expect(loading('packages/game-domain/src/botWire.ts')).toEqual(
+      expect.arrayContaining(['app-data-access.md', 'discord-bot.md'])
     )
   })
 })
@@ -235,7 +233,7 @@ describe('typecheck hooks against a stub workspace', () => {
     'apps/web',
     'apps/su-assets',
     'packages/gates',
-    'packages/cantina-domain',
+    'packages/game-domain',
     'packages/salvageunion-reference',
     'tools',
   ].map((path) => [path, path.split('/').at(-1)] as const)
@@ -311,7 +309,7 @@ describe('typecheck hooks against a stub workspace', () => {
   test.each([
     'apps/web/lib/x.ts',
     'apps/discord-bot/lib/x.ts',
-    'packages/cantina-domain/lib/x.ts',
+    'packages/game-domain/lib/x.ts',
     'tools/lib/x.ts',
   ])('an edit to %s runs the whole-repo typecheck once, silently', async (rel) => {
     const f = await fixture()

@@ -3,7 +3,7 @@ import { expect } from '@playwright/test'
 import { at, BASE } from './_base'
 
 /**
- * Shared helpers for the Cantina end-to-end tests.
+ * Shared helpers for the app end-to-end tests.
  *
  * Every pickable entity in a wizard or picker pane is a `ReferenceEntityCard`
  * with a whole-card click. Its interactive wrapper takes its role from

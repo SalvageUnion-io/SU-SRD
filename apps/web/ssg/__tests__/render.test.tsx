@@ -13,7 +13,7 @@
 
 import { describe, expect, it } from 'bun:test'
 import { SITE_URL } from '../../src/lib/constants'
-import { notFoundPage } from '../../src/pages/404.page'
+import { notFoundPage } from '../../src/reference/pages/404.page'
 import type { BuildAssets } from '../document'
 import { register, resolveRoutes, withTrailingSlash } from '../render'
 import type { PageModule, RouteContext } from '../types'

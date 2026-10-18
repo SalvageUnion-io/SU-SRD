@@ -1,10 +1,10 @@
 import { getAuthUserId } from '@convex-dev/auth/server'
-import type { PostRollRelayRequest, PostRollRelayResponse } from 'cantina-domain/botWire'
-import { BOT_RELAY_POST_ROLL_PATH, isPostableRoll } from 'cantina-domain/botWire'
-import type { PostRollResult } from 'cantina-domain/games/discord'
-import { mayBindChannel } from 'cantina-domain/games/discord'
 import type { Infer } from 'convex/values'
 import { v } from 'convex/values'
+import type { PostRollRelayRequest, PostRollRelayResponse } from 'game-domain/botWire'
+import { BOT_RELAY_POST_ROLL_PATH, isPostableRoll } from 'game-domain/botWire'
+import type { PostRollResult } from 'game-domain/games/discord'
+import { mayBindChannel } from 'game-domain/games/discord'
 import { internal } from './_generated/api'
 import type { Doc, Id } from './_generated/dataModel'
 import type { QueryCtx } from './_generated/server'
@@ -28,7 +28,7 @@ import { getMembership, NotAuthorized, requireMemberAs } from './model/permissio
  * ## How a roll reaches Discord
  *
  * `postRoll` does not call Discord itself. It asks the bot Worker
- * (`CANTINA_BOT_URL` + `BOT_RELAY_POST_ROLL_PATH`, bearer `CANTINA_BOT_SECRET`)
+ * (`BOT_URL` + `BOT_RELAY_POST_ROLL_PATH`, bearer `BOT_SECRET`)
  * to post it, because the Worker already holds both the bot token and the roll
  * card (`buildPostedRollMessage`): the message in the channel is exactly the
  * card `/su roll` posts, with its `Roll again` and `See table` buttons, and the
@@ -184,12 +184,12 @@ const RELAY_TIMEOUT_MS = 10_000
  * an unreachable Worker, a refusal from Discord.
  */
 export async function relayPostRoll(request: PostRollRelayRequest): Promise<PostRollRelayResponse> {
-  const botUrl = process.env.CANTINA_BOT_URL?.replace(/\/+$/, '')
-  const secret = process.env.CANTINA_BOT_SECRET
+  const botUrl = process.env.BOT_URL?.replace(/\/+$/, '')
+  const secret = process.env.BOT_SECRET
   if (!botUrl || !secret) {
     // Loud on purpose: a deployment with channels bound and no relay is a
     // configuration fault, and the Convex log is where an operator looks.
-    console.error('[channelBindings] CANTINA_BOT_URL and CANTINA_BOT_SECRET must both be set')
+    console.error('[channelBindings] BOT_URL and BOT_SECRET must both be set')
     return {
       ok: false,
       status: null,
@@ -226,7 +226,7 @@ export async function relayPostRoll(request: PostRollRelayRequest): Promise<Post
  * caller's personal channel in solo play (no `gameId`), as the bot's roll card.
  *
  * `post` is the screen's Post toggle, overridden per roll; `postsByDefault`
- * (`cantina-domain/games/discord`) is its default, private for the Mediator.
+ * (`game-domain/games/discord`) is its default, private for the Mediator.
  * `post: false` posts nothing and says so. `pilotId` (an app id) names the
  * roller on the card. Never silent: the result says what happened, for the
  * Feed to show, and a failure is logged.

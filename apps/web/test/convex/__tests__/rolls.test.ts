@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../../convex/_generated/api'
-import { rollLogEntry } from '../../../src/components/play/playRolls.model'
+import { rollLogEntry } from '../../../src/play/playRolls.model'
 import { addPilot, makeUser, seedTable } from '../fixtures'
 import { testConvex } from '../harness'
 

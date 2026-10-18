@@ -4,7 +4,7 @@ import { HeaderMenu } from '../containers/HeaderMenu'
 
 /**
  * AccountMenu — who is signed in, at the Union bar's end, the same on both
- * tools: The Cantina's bar and the SRD's.
+ * tools: the app's bar and the SRD's.
  *
  * The trigger shows the player's display name beside their Discord avatar on
  * a square chip (two initials when there is no avatar, or it will not load); it
@@ -13,9 +13,9 @@ import { HeaderMenu } from '../containers/HeaderMenu'
  * row, which has no room for a name.
  *
  * Presentational: each app hands in the identity and what the rows do. The
- * Cantina reads `api.account.me` and signs out in place; the SRD, which has no
+ * App reads `api.account.me` and signs out in place; the SRD, which has no
  * backend, reads the account hint (`src/lib/accountHint`) and sends
- * Settings and Sign out to The Cantina. With no name yet (a cold start offline)
+ * Settings and Sign out to the app. With no name yet (a cold start offline)
  * the trigger reads "Account" over a generic glyph rather than guessing.
  */
 

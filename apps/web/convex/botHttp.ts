@@ -1,5 +1,5 @@
-import type { BotOpName } from 'cantina-domain/botWire'
-import { BOT_OP_NAMES, BOT_PATH_PREFIX, bearerToken, secretsMatch } from 'cantina-domain/botWire'
+import type { BotOpName } from 'game-domain/botWire'
+import { BOT_OP_NAMES, BOT_PATH_PREFIX, bearerToken, secretsMatch } from 'game-domain/botWire'
 import { internal } from './_generated/api'
 import { httpAction } from './_generated/server'
 
@@ -27,7 +27,7 @@ import { httpAction } from './_generated/server'
  * Ed25519 signature, at which point the id is attested rather than asserted.
  * See `docs/ARCHITECTURE.md#bot-game-client`.
  *
- * `CANTINA_BOT_SECRET` unset disables the whole surface — a deployment that has
+ * `BOT_SECRET` unset disables the whole surface — a deployment that has
  * not opted in cannot be talked to by a bot, rather than being talked to by
  * anyone.
  */
@@ -60,7 +60,7 @@ function isMutationOp(op: BotOpName): op is keyof typeof MUTATIONS {
 
 /**
  * Every operation name, for tests and for the 404 body: the bot's own list
- * (`cantina-domain/botWire`), which `QUERIES` and `MUTATIONS` together must
+ * (`game-domain/botWire`), which `QUERIES` and `MUTATIONS` together must
  * cover exactly. Typed
  * `readonly string[]` so a path segment can be looked up in it.
  */
@@ -81,7 +81,7 @@ function json(body: unknown, status: number): Response {
 }
 
 export const botRoute = httpAction(async (ctx, request) => {
-  const expected = process.env.CANTINA_BOT_SECRET
+  const expected = process.env.BOT_SECRET
   // Unconfigured is 404, not 401: a deployment that has not opted in should be
   // indistinguishable from one where this route does not exist.
   if (expected === undefined || expected.length === 0) {

@@ -4,14 +4,14 @@ import type { ReactNode } from 'react'
 import { useEffect, useLayoutEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { appPath } from '../../lib/appBase'
-import { CANTINA_NAV, inAppRoute, isCurrent } from '../../lib/barLinks'
+import { BUILD_NAV, inAppRoute, isCurrent } from '../../lib/barLinks'
 import type { UnionSlot } from '../../shell/unionSlots'
 import { isPlayRoute, slotSelector, UNION_SLOTS } from '../../shell/unionSlots'
 import { UnionDrawer } from '../unionBar/UnionDrawer'
 import { SiteLink } from './AppLink'
 
 /**
- * UnionBarSlots — the Cantina's live half of the Union bar.
+ * UnionBarSlots — the app's live half of the Union bar.
  *
  * The bar itself is the shell's, rendered at build time (`shell/unionBar.ts`),
  * so it paints before the app boots. This fills its slots through portals: the
@@ -25,10 +25,10 @@ import { SiteLink } from './AppLink'
  *
  * The slots stay content-agnostic, so this file knows nothing about accounts,
  * Convex or Games; `routes/__root.tsx` fills them
- * (`components/account/HeaderAccount.tsx`).
+ * (`build/account/HeaderAccount.tsx`).
  *
  * The phone drawer is the bar's one `UnionDrawer`, the reference pages' own,
- * with the Cantina's nav ahead of the site's pages and its account controls
+ * with the app's nav ahead of the site's pages and its account controls
  * at the top. Its links are site paths, as the bar's are: `SiteLink` routes the
  * app's in place and loads the reference pages.
  */
@@ -101,10 +101,12 @@ export function UnionBarSlots({
     return () => bar.removeEventListener('click', onClick)
   }, [router])
 
-  // The mode tab you are in: Play on Play's routes, Build everywhere else in
-  // the app. The shell serves Build's.
+  // The mode you are in: Play on Play's routes, Build everywhere else in the
+  // app. The shell serves Build's. The tab is the inverse stamp, and the bar
+  // wears the mode's colour (`data-mode`, `styles/partials/shell.css`).
   useEffect(() => {
     const here = isPlayRoute(pathname) ? 'play' : 'build'
+    document.querySelector<HTMLElement>('.su-union-bar')?.setAttribute('data-mode', here)
     for (const tab of document.querySelectorAll<HTMLAnchorElement>(
       '.su-union-bar__tab[data-tool="build"], .su-union-bar__tab[data-tool="play"]'
     )) {
@@ -116,7 +118,7 @@ export function UnionBarSlots({
   // "You are here" on the nav, which the shell cannot know.
   useEffect(() => {
     for (const link of document.querySelectorAll<HTMLAnchorElement>('.su-union-bar__nav a')) {
-      const nav = CANTINA_NAV.find((item) => link.textContent === item.label)
+      const nav = BUILD_NAV.find((item) => link.textContent === item.label)
       if (!nav) continue
       if (isCurrent(nav.path, pathname)) link.setAttribute('aria-current', 'page')
       else link.removeAttribute('aria-current')
@@ -129,7 +131,7 @@ export function UnionBarSlots({
       {mobileActions}
       <UnionDrawer
         search={drawerSearch}
-        productNav={CANTINA_NAV.map((item) => ({
+        productNav={BUILD_NAV.map((item) => ({
           label: item.label,
           href: appPath(item.path),
           active: isCurrent(item.path, pathname),

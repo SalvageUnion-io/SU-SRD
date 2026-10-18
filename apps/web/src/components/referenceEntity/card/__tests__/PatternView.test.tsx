@@ -10,7 +10,7 @@
  * 3. The full pattern view reads chassis prose → pattern prose → systems →
  *    modules, so the pattern is framed by the chassis it belongs to.
  * 4. The chassis ability shows only on a PAGE — the chassis page and its
- *    pattern pages — and on the Cantina's builder pick cards (`showChassisAbility`),
+ *    pattern pages — and on the app's builder pick cards (`showChassisAbility`),
  *    never on any other card, a catalog tile or a nested card.
  */
 import { describe, expect, test } from 'bun:test'
@@ -131,7 +131,7 @@ describe('the chassis ability shows only on a page', () => {
     })
   }
 
-  // The Cantina's builder pick cards opt in: choosing a chassis or a pattern needs it.
+  // The app's builder pick cards opt in: choosing a chassis or a pattern needs it.
   const PICK_HIDE = { actions: true, choices: true, patterns: true } as const
 
   test("the builder's chassis pick card shows it once, under the picker's hide.actions", () => {
@@ -290,7 +290,7 @@ describe('pattern loadout tokens', () => {
   })
 
   test('on a surface with a Page opener, each name opens its Page', () => {
-    // The Cantina: no route, a detail dialog. The Mention follows the surface.
+    // The app: no route, a detail dialog. The Mention follows the surface.
     const { chassis, pattern } = thunderStorm()
     const opened: EntityRef[] = []
     render(

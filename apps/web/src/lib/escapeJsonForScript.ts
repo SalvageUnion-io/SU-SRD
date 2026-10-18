@@ -11,7 +11,7 @@
  * app code, but nothing under `src/` may import `ssg/` at runtime
  * (ssg/DESIGN.md, hard rule 2). Two callers:
  *   - `ssg/document.tsx`, for the per-page island-props payload
- *   - `src/layouts/BaseLayout.tsx`, for JSON-LD
+ *   - `src/reference/layouts/BaseLayout.tsx`, for JSON-LD
  *
  * The JSON-LD case is the reason this was extracted. Those blocks interpolate
  * entity-derived prose — `itemName`, the generated meta description, a source

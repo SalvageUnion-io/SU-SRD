@@ -2,7 +2,7 @@
  * Copy lint for game terms — the `copy` rule set of `tools/check-rule-sets.ts`.
  *
  * The book capitalises its game nouns: the Core Book writes "Mech" 968 times
- * and "mech" 15, "Pilot" 452 and "pilot" 16. An audit of the Cantina's copy found it
+ * and "mech" 15, "Pilot" 452 and "pilot" 16. An audit of the app's copy found it
  * lower case about half the time ("mech" 91, "Mech" 77), "TL" where the book
  * says "Tech N" or "Tech Level", "Heat Cap" in prose where the book says "Heat
  * Capacity", and the product named three ways. None of that fails typecheck,
@@ -34,8 +34,8 @@
  *     "Hit Points", and leaves the keywords the book also uses as plain English
  *     ("move", "damaged", "group").
  *   - `banned-variant` — a spelling the book or the product does not use:
- *     `BANNED`, plus any other casing of the product's names in
- *     `cantina-domain/src/product.ts` (read from that file, never retyped).
+ *     `BANNED`, plus any other casing of the app's area names in
+ *     `game-domain/src/product.ts` (read from that file, never retyped).
  *
  * Both are ratchets against `tools/baselines/rule-sets.json`: today's copy
  * is the baseline, a new finding fails, and a fixed one must be locked in.
@@ -56,7 +56,7 @@ const COPY_DIRS = [
   'apps/web/convex',
   'apps/web/src',
   'apps/discord-bot/src',
-  'packages/cantina-domain/src',
+  'packages/game-domain/src',
   'packages/salvageunion-reference/lib',
 ] as const
 
@@ -197,7 +197,7 @@ const NON_PROSE_KEYS = new Set(['id', 'name', 'source', 'slug', 'booklet'])
 /**
  * `term(s)`, any casing, words joined by any whitespace. A hyphen, a slash or
  * a dot joined to a word on either side is a slug, a class name or a host
- * (`su-mech-card`, `/schema/mech/`, `cantina.salvageunion.io`), not a word.
+ * (`su-mech-card`, `/schema/mech/`, `salvageunion.io/build`), not a word.
  */
 export function termPattern(term: string): RegExp {
   const body = term
@@ -306,23 +306,27 @@ export const BANNED: readonly Banned[] = [
   },
 ]
 
-export const PRODUCT_FILE = 'packages/cantina-domain/src/product.ts'
+export const PRODUCT_FILE = 'packages/game-domain/src/product.ts'
 
-/** `name` and `shortName` of `PRODUCT`, read from its source. */
-export function productNames(root: string): { name: string; shortName: string } {
+/** The app's two area names, `build` and `play` of `PRODUCT`, read from its source. */
+export function productNames(root: string): { build: string; play: string } {
   const source = readFileSync(join(root, PRODUCT_FILE), 'utf8')
-  const name = source.match(/\bname: '([^']+)'/)?.[1]
-  const shortName = source.match(/\bshortName: '([^']+)'/)?.[1]
-  if (!name || !shortName) throw new Error(`${PRODUCT_FILE}: cannot read PRODUCT.name/shortName`)
-  return { name, shortName }
+  const build = source.match(/\bbuild: '([^']+)'/)?.[1]
+  const play = source.match(/\bplay: '([^']+)'/)?.[1]
+  if (!build || !play) throw new Error(`${PRODUCT_FILE}: cannot read PRODUCT.build/play`)
+  return { build, play }
 }
 
 /**
- * Any other casing of the product's two names. A bracketed `[cantina]` is a log
- * tag, not the name.
+ * Any other casing of the area names, and of a name without its leading
+ * "The" ("Cantina"). A bracketed `[cantina]`, a log tag, is not the name.
  */
-export function productBans(product: { name: string; shortName: string }): Banned[] {
-  return [product.name, product.shortName].map((spelling) => ({
+export function productBans(product: { build: string; play: string }): Banned[] {
+  const spellings = [product.build, product.play].flatMap((name) => {
+    const bare = name.replace(/^The\s+/, '')
+    return bare === name ? [name] : [name, bare]
+  })
+  return spellings.map((spelling) => ({
     pattern: new RegExp(`(?<!\\[)${termPattern(spelling).source}(?!\\])`, 'gi'),
     say: spelling,
     why: `the product is spelled once, in ${PRODUCT_FILE} (import PRODUCT)`,

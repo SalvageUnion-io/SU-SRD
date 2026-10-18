@@ -65,7 +65,7 @@ a reasoned exemption:
 
 ### 6. Rules-bearing prose is marked inline
 
-In the Cantina, which applies the rules, a rules-bearing paragraph leads with a
+In the app, which applies the rules, a rules-bearing paragraph leads with a
 mini ink **AUTO** stamp whose title (and screen-reader text) says the app
 applies it; the SRD prints plain prose. The app opts in through the entity
 surface's `appliesRules`. Unmarked prose that states a number is a visible

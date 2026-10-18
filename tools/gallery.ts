@@ -2,15 +2,15 @@
 /**
  * gallery — the screenshot gallery: every page in `GALLERY_SECTIONS` at
  * desktop (1440×900) and phone (390×844), each page's link preview, and
- * the Cantina signed in, written as `index.html` beside its shots.
+ * the app signed in, written as `index.html` beside its shots.
  *
  *   bun run gallery --base <url> [--signed-in] [--out <dir>]
  *                   [--sha <sha>] [--pr <n>] [--linkable]
  *
- * `--base` is the site's origin; every page's path is on it, the Cantina's
+ * `--base` is the site's origin; every page's path is on it, the app's
  * under `/build` (`BUILDER_BASE`). `gallery.yml` (dispatched by hand) runs it
  * against a branch's own build, served on localhost (the one `dist`, its
- * Cantina built against a throwaway Convex backend with the test sign-in), and
+ * App built against a throwaway Convex backend with the test sign-in), and
  * `gallery-pages.yml` publishes the result to GitHub Pages.
  *
  * - A link preview is rendered the way `apps/web/scripts/og-screenshots.ts`
@@ -18,7 +18,7 @@
  *   PR's cards, not whatever production last generated. A page whose og:image
  *   is the site default fetches that file from the same build.
  * - `--signed-in` signs a fresh account up through the test seam
- *   (`__cantinaTestSignIn`, `apps/web/e2e/fixtures.ts`), copies Bonesaw, the
+ *   (`__appTestSignIn`, `apps/web/e2e/fixtures.ts`), copies Bonesaw, the
  *   Mazona and Tenacity from the Starter Set to its Shelves, starts a Game and
  *   moves Bonesaw in, then shoots the `signedIn` pages in that one browser
  *   context: the session's refresh token rotates on use, so a second context
@@ -128,7 +128,7 @@ type InPage = {
     fonts: { ready: Promise<unknown> }
   }
   __ogSetEntity?: (schema: string, item: string, pattern?: string) => void
-  __cantinaTestSignIn?: (email: string, password: string) => Promise<void>
+  __appTestSignIn?: (email: string, password: string) => Promise<void>
 }
 type SelectLike = { options: Iterable<{ textContent: string | null; value: string }> }
 
@@ -191,7 +191,7 @@ async function shootPage(page: Page, url: string, file: (view: string) => string
   }
 }
 
-/** The Cantina's root page on `base`, with its trailing slash. */
+/** The app's root page on `base`, with its trailing slash. */
 export function builderRoot(base: string): string {
   return `${base}${BUILDER_BASE}/`
 }
@@ -199,15 +199,11 @@ export function builderRoot(base: string): string {
 /** Signs a fresh test account up and gives it something to edit. */
 async function seed(page: Page, base: string): Promise<Partial<Seeded>> {
   await page.goto(builderRoot(base), { waitUntil: 'networkidle' })
-  await page.waitForFunction(
-    () => '__cantinaTestSignIn' in (globalThis as unknown as InPage),
-    null,
-    {
-      timeout: 30_000,
-    }
-  )
+  await page.waitForFunction(() => '__appTestSignIn' in (globalThis as unknown as InPage), null, {
+    timeout: 30_000,
+  })
   await page.evaluate(async (email) => {
-    await (globalThis as unknown as InPage).__cantinaTestSignIn?.(email, 'gallery-pass-1')
+    await (globalThis as unknown as InPage).__appTestSignIn?.(email, 'gallery-pass-1')
   }, `gallery-${Date.now()}@example.com`)
   await page.getByRole('button', { name: 'Games' }).first().waitFor({ timeout: 30_000 })
   for (const label of ['Copy Bonesaw to…', 'Copy Mazona to…', "Copy Crawler #430 'Tenacity' to…"]) {

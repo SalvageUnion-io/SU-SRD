@@ -7,8 +7,8 @@
  */
 
 import { DISCORD_NEUTRAL_ACCENT } from 'salvageunion-reference'
-import type { BindChannelResult, ChannelBindingSummary, UnbindChannelResult } from './cantina/types'
 import type { ContainerData } from './container'
+import type { BindChannelResult, ChannelBindingSummary, UnbindChannelResult } from './play/types'
 
 /** A channel as Discord renders a link to it. */
 function channelMention(channelId: string): string {

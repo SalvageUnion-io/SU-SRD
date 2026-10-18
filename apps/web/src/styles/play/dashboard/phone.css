@@ -1,0 +1,20 @@
+/*
+ * phone.css — Play's phone form's touch floor (ADR-045, play.md §11).
+ *
+ * Only what a style object cannot say lives here (ADR-046): rules over
+ * descendants. The layout's own rules are `play/phone.css`.
+ *
+ * `.su-dash-phone` scopes the phone form: the host `PlayCanvas` renders below
+ * its floor.
+ */
+
+/*
+ * The touch floor (ruleset §4.6, ADR-045 D14): every control in the phone form
+ * is at least 44×44, whichever component drew it. The canvas's own controls
+ * are sized for a scaled 1280×800 frame, and a phone is where those sizes stop
+ * being enough.
+ */
+.su-dash-phone :is(button, a[href], [role='button'], [role='tab'], summary) {
+  min-height: var(--size-full);
+  min-width: var(--size-full);
+}

@@ -1,6 +1,6 @@
 /**
  * The site's sitemap files as XML: the urlsets (`sitemap-0.xml`, the
- * reference pages', from `ssg/sitemap.ts`; `build/sitemap.xml`, the Cantina's
+ * reference pages', from `ssg/sitemap.ts`; `build/sitemap.xml`, the app's
  * public pages', from `worker/publicPages.ts`) and the index that lists them.
  *
  * The shape is fixed: no newlines, no indentation, no `<lastmod>` /

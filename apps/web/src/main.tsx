@@ -18,7 +18,7 @@ import { setEntityBackendAuthState } from './stores/entityBackend'
 
 const router = createRouter({
   routeTree,
-  // The Cantina at salvageunion.io/build (ADR-048, lib/appBase.ts). Routes and links stay root-relative; the router adds it.
+  // The app at salvageunion.io/build (ADR-048, lib/appBase.ts). Routes and links stay root-relative; the router adds it.
   basepath: APP_BASE,
   defaultNotFoundComponent: RouteNotFound,
   defaultPendingComponent: RoutePending,

@@ -1,6 +1,6 @@
 /**
  * The shared half of the two browser apps' error reporting (srd and the
- * Cantina, both in `apps/web`).
+ * App, both in `apps/web`).
  *
  * Cloudflare has no browser error tracking, so each app posts its errors to its
  * own Worker, at `ERROR_REPORT_PATH` under the app's base. The Worker
@@ -117,7 +117,7 @@ export const MAX_REPORTS_PER_PAGE = 20
  *   browsers. The `skipTransition()` call is the browser's own.
  * - **`Transition was aborted because of invalid state`**: the document was
  *   made ineligible mid-transition, by being hidden, or (`ViewTransition
- *   opt-in disabled`) by being a page that does not opt in, as the Cantina
+ *   opt-in disabled`) by being a page that does not opt in, as the app
  *   does not when the SRD's header links into it. An `InvalidStateError`, so
  *   only the message identifies it.
  *

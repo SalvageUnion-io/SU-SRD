@@ -14,12 +14,13 @@
  */
 
 import { createFileRoute } from '@tanstack/react-router'
-import { PlayGate } from '../../components/play/PlayGate'
-import { pageTitle } from '../../lib/pageTitle'
+import { PRODUCT } from 'game-domain/product'
+import { areaTitle } from '../../lib/pageTitle'
+import { PlayGate } from '../../play/PlayGate'
 import { useEntityStore } from '../../stores/entityStore'
 
 export const Route = createFileRoute('/play/$pilotId')({
-  head: () => ({ meta: [{ title: pageTitle('Play') }] }),
+  head: () => ({ meta: [{ title: areaTitle(PRODUCT.play, 'Play') }] }),
   loader: async () => {
     const store = useEntityStore.getState()
     await Promise.all([

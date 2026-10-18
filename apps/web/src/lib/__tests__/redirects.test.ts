@@ -11,7 +11,7 @@
  */
 import { describe, expect, it } from 'bun:test'
 import type { RouteContext } from '../../../ssg/types'
-import { redirectRules, redirectsEndpoint } from '../../endpoints/redirects'
+import { redirectRules, redirectsEndpoint } from '../../reference/endpoints/redirects'
 import { DOC_PAGES } from '../docPages'
 import { itemHref, patternHref, schemaHref } from '../entityHref'
 import { ogImagePath } from '../ogCard'
@@ -135,7 +135,7 @@ describe('currentPathFor', () => {
 })
 
 describe('retiredDocPage', () => {
-  it('sends the Cantina doc pages to the site pages, with or without a slash', () => {
+  it('sends the app doc pages to the site pages, with or without a slash', () => {
     for (const path of ['/about', '/about/', 'about']) {
       expect(retiredDocPage(path)).toBe(DOC_PAGES.about.href)
     }

@@ -16,7 +16,7 @@
  * Pure functions — no React, no store.
  */
 
-import type { GenericInventoryEntry, Pilot } from 'cantina-domain/schemas/pilot'
+import type { GenericInventoryEntry, Pilot } from 'game-domain/schemas/pilot'
 import type { RefEquipment } from 'salvageunion-reference'
 import { getInventorySlots, getTraits, SalvageUnionReference } from 'salvageunion-reference'
 import { pilotMaxInventorySlots } from 'salvageunion-reference/rules'

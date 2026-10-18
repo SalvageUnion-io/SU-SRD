@@ -1,5 +1,5 @@
-import { MediatorRollResultSchema } from 'cantina-domain/schemas/encounterNpc'
 import { ConvexError, v } from 'convex/values'
+import { MediatorRollResultSchema } from 'game-domain/schemas/encounterNpc'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
 import { query } from './_generated/server'

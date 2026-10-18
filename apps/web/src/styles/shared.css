@@ -1,5 +1,5 @@
 /*
- * The parts the reference pages and the Cantina both draw: the one search
+ * The parts the reference pages and the app both draw: the one search
  * (`islands/SearchIsland.tsx`, in the Union bar, the phone's search sheet and
  * the hero), the not-found content (`NotFound.tsx`) and the one page body it
  * sits in. `base.css` imports it, so both load it from the one URL.
@@ -11,7 +11,7 @@
  * and the 404 — at the one measure (`--page-measure`, `lib/pageMeasure.ts`),
  * centred, its side padding the gutter: 16px on a phone, 24px from `sm`. The
  * band's row and the foot's share the measure and the padding, so the notch,
- * the content and the citation start on one line. A Cantina screen's body
+ * the content and the citation start on one line. An app screen's body
  * under a measured band (`PageShell`'s `measure`) wears it too, setting its
  * own measure and block padding inline.
  */
@@ -49,7 +49,7 @@
 
 /*
  * The not-found content (`NotFound.tsx`, `islands/DidYouMeanIsland.tsx`),
- * on the static `/404` and the Cantina's unmatched route alike: the rules
+ * on the static `/404` and the app's unmatched route alike: the rules
  * band with the hero search, then the guesses and the five chapters on the
  * page ground. Ink on paper throughout; a chapter's colour is only its
  * swatch (ruleset §3.8).

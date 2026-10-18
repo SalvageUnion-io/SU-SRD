@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { containerOf } from 'cantina-domain/container'
+import { containerOf } from 'game-domain/container'
 import { FIXTURE_NOW } from '../../components/__tests__/fixtures'
 import { copyForShelf, copyName } from '../copyEntity'
 

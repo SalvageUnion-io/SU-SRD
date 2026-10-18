@@ -5,15 +5,26 @@ import { color } from '../../design/tokens'
  * band wears. `rules` is the rules-blue band of Contents, Core Rules,
  * Salvaging, Guides and Keywords; `pilot`, `mech`, `crawler` and `denizen`
  * are the four chapters. `ink` is no chapter of the book: it is the dark band
- * of a page that is the player's own rather than the book's — the Cantina's Shelves
+ * of a page that is the player's own rather than the book's — Build's Shelves
  * (board S1) — and it carries paper flecks and paper text (ruleset §3.5).
- * `cantina` is no chapter either: it is The Cantina's own band, the builder's
- * pages that are neither a chapter nor the player's shelves (its front door,
- * Play, Settings, sign-in, invites, the Starter Set), so they stop wearing
- * the SRD's rules-blue. It is the Legendary tier pink (the crawler chapter's
- * colour), and like the crawler band it carries ink text.
+ * `build` and `play` are no chapters either: they are the app's two areas'
+ * own bands, on their pages that are neither a chapter nor the player's
+ * shelves, so they stop wearing the SRD's rules-blue, and the Union bar wears
+ * the same colour on their routes (`styles/partials/shell.css`). `build`, the
+ * Training Bay's, is the pilot chapter's orange and carries ink text (its
+ * front door, Settings, sign-in, invites, the Starter Set); `play`, the
+ * Cantina's, is the deeper crawler pink, `crawlerBand`, which carries paper
+ * text (the book's crawler pink carries neither at 4.5:1).
  */
-export type ChapterTone = 'rules' | 'pilot' | 'mech' | 'crawler' | 'denizen' | 'ink' | 'cantina'
+export type ChapterTone =
+  | 'rules'
+  | 'pilot'
+  | 'mech'
+  | 'crawler'
+  | 'denizen'
+  | 'ink'
+  | 'build'
+  | 'play'
 
 /**
  * Each chapter's band colour — the head band (`ChapterBand`), the foot band
@@ -26,5 +37,6 @@ export const CHAPTER_BAND_COLOR: Record<ChapterTone, string> = {
   crawler: color.crawler,
   denizen: color.denizenBand,
   ink: color.ink,
-  cantina: color.crawler,
+  build: color.pilot,
+  play: color.crawlerBand,
 }

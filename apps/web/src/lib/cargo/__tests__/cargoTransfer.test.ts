@@ -6,8 +6,8 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import type { CargoLot } from 'cantina-domain/schemas/cargoLot'
-import { makeScrapLot } from 'cantina-domain/schemas/cargoLot'
+import type { CargoLot } from 'game-domain/schemas/cargoLot'
+import { makeScrapLot } from 'game-domain/schemas/cargoLot'
 import type { CargoBoundaryState } from '../cargoTransfer'
 import {
   addToScrapPool,

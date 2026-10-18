@@ -89,26 +89,26 @@ check https://salvageunion.io/nope-does-not-exist/ 404 "srd 404"
 check https://www.salvageunion.io/ 301 "srd www redirect"
 # srd's www attachment SERVES the site if the Redirect Rule is absent, quietly
 # standing up a second origin; only an explicit 301 assertion tells them apart.
-# cantina's is checked for the same reason.
-check https://www.intheunionnow.com/ 301 "cantina www redirect"
-# The Cantina lives at salvageunion.io/build (ADR-048), served by su-srd
-# (apps/web/src/worker/cantina.ts). intheunionnow.com, where it lived before,
+# the app's old host is checked for the same reason.
+check https://www.intheunionnow.com/ 301 "app www redirect"
+# The app lives at salvageunion.io/build (ADR-048), served by su-srd
+# (apps/web/src/worker/app.ts). intheunionnow.com, where it lived before,
 # 301s every page to the same path there: a zone Redirect Rule, not repo config
 # (ADR-033, "Configuration outside the repo"). su-srd then sends a retired
 # address on to where it lives now (apps/web/src/lib/redirects.ts).
-check https://salvageunion.io/build/ 200 "cantina shell"
-check_redirect https://salvageunion.io/build 301 https://salvageunion.io/build/ "cantina bare base to its directory"
-check_redirect https://intheunionnow.com/ 301 https://salvageunion.io/build/ "cantina old host 301s to salvageunion.io/build"
-check_redirect https://intheunionnow.com/p/pilot/smoke?x=1 301 "https://salvageunion.io/build/p/pilot/smoke?x=1" "cantina old link keeps its path and query"
-check_redirect https://intheunionnow.com/join/SMOKE 301 https://salvageunion.io/build/join/SMOKE "cantina old host keeps a retired path"
-check_redirect https://salvageunion.io/build/join/SMOKE 301 https://salvageunion.io/build/invite/SMOKE "cantina retired /join link 301s to /invite (D6)"
+check https://salvageunion.io/build/ 200 "app shell"
+check_redirect https://salvageunion.io/build 301 https://salvageunion.io/build/ "app bare base to its directory"
+check_redirect https://intheunionnow.com/ 301 https://salvageunion.io/build/ "app old host 301s to salvageunion.io/build"
+check_redirect https://intheunionnow.com/p/pilot/smoke?x=1 301 "https://salvageunion.io/build/p/pilot/smoke?x=1" "app old link keeps its path and query"
+check_redirect https://intheunionnow.com/join/SMOKE 301 https://salvageunion.io/build/join/SMOKE "app old host keeps a retired path"
+check_redirect https://salvageunion.io/build/join/SMOKE 301 https://salvageunion.io/build/invite/SMOKE "app retired /join link 301s to /invite (D6)"
 # Plain http must never be served. Always Use HTTPS is a zone toggle, not repo
 # config (ADR-033, "Configuration outside the repo"); without it every hostname
 # answers http with 200 and HSTS never reaches a first-time visitor.
 check http://salvageunion.io/ 301 "srd http redirect"
 check http://www.salvageunion.io/ 301 "srd www http redirect"
-check http://intheunionnow.com/ 301 "cantina http redirect"
-check http://www.intheunionnow.com/ 301 "cantina www http redirect"
+check http://intheunionnow.com/ 301 "app http redirect"
+check http://www.intheunionnow.com/ 301 "app www http redirect"
 # Not `/robots.txt`: with the zone's AI bot policies on, Cloudflare's managed
 # robots.txt answers that path over http itself (200) before the redirect.
 check http://assets.salvageunion.io/ 301 "artwork http redirect"
@@ -117,11 +117,11 @@ check http://assets.salvageunion.io/ 301 "artwork http redirect"
 # (tools/check-observability.ts pins the same in the repo's CSP sources).
 check_header https://salvageunion.io/ content-security-policy "srd CSP reaches the browser and admits error reports" "connect-src 'self'"
 check_header https://salvageunion.io/ strict-transport-security "srd HSTS reaches the browser"
-check_header https://salvageunion.io/build/ content-security-policy "cantina CSP reaches the browser and admits error reports" "connect-src 'self'"
-check_header https://salvageunion.io/build/ strict-transport-security "cantina HSTS reaches the browser"
+check_header https://salvageunion.io/build/ content-security-policy "app CSP reaches the browser and admits error reports" "connect-src 'self'"
+check_header https://salvageunion.io/build/ strict-transport-security "app HSTS reaches the browser"
 # One CSP for the whole app (apps/web/public/_headers): without Convex in it,
 # sign-in would never complete.
-check_header https://salvageunion.io/build/ content-security-policy "cantina CSP admits Convex" "wss://*.convex.cloud"
+check_header https://salvageunion.io/build/ content-security-policy "app CSP admits Convex" "wss://*.convex.cloud"
 # The endpoints that bring the browser's and Convex's errors into Workers Issues
 # are routed (apps/web/src/worker/errorReports.ts): they take POST only.
 check https://salvageunion.io/__errors 405 "error report endpoint is routed"
@@ -129,20 +129,20 @@ check https://salvageunion.io/__convex-logs 405 "Convex log stream endpoint is r
 # Where the Convex dashboard's webhook posted before the app was one, kept
 # until it is pointed at /__convex-logs.
 check https://salvageunion.io/build/__convex-logs 405 "retired Convex log stream endpoint is routed"
-# The Cantina is a single-page app, so only su-srd's Worker keeps a missing
+# The app is a single-page app, so only su-srd's Worker keeps a missing
 # chunk under /build from #759, where a missing hashed chunk answered `200 text/html` and the
 # `immutable` header pinned that HTML into the HTTP cache for a year. curl sends
 # no `Sec-Fetch-Mode: navigate`, so these two reach the Worker exactly as a
 # module import and an unfurl bot do.
-check https://salvageunion.io/build/assets/index-DEADBEEF.js 404 "cantina rotated chunk 404 (#759)"
-check https://salvageunion.io/build/p/pilot/smoke 200 "cantina client route without a navigation"
+check https://salvageunion.io/build/assets/index-DEADBEEF.js 404 "app rotated chunk 404 (#759)"
+check https://salvageunion.io/build/p/pilot/smoke 200 "app client route without a navigation"
 # `_headers` matches by path, not status, so its `/assets/*` rule would mark a
 # missing chunk's 404 `immutable` and a client that asks before a deploy
 # finishes would keep the 404 for a year. su-srd's Worker answers every such
 # miss with `no-store` instead, where `_headers` does not reach
 # (apps/web/src/worker/index.ts).
 check_header_lacks https://salvageunion.io/assets/index-DEADBEEF.js cache-control "srd rotated chunk 404 is not immutable" immutable
-check_header_lacks https://salvageunion.io/build/assets/index-DEADBEEF.js cache-control "cantina rotated chunk 404 is not immutable" immutable
+check_header_lacks https://salvageunion.io/build/assets/index-DEADBEEF.js cache-control "app rotated chunk 404 is not immutable" immutable
 # A derivative, not the master: entity cards ask for `-440`/`-880` first. It
 # reaches Cloudflare Images only once the baked `-440`/`-880` objects are gone
 # from su-lp-assets; while one is stored, the Worker serves that copy.
@@ -163,13 +163,13 @@ fi
 # One workers.dev check, deliberately: if the custom domains fail and this
 # passes, the Worker deployed fine and the routing layer is what broke.
 check https://su-srd.alxjrvs.workers.dev/ 200 "srd reachable on workers.dev"
-# su-srd, not a route ahead of it, serves the Cantina.
-check https://su-srd.alxjrvs.workers.dev/build/ 200 "cantina shell from su-srd on workers.dev"
+# su-srd, not a route ahead of it, serves the app.
+check https://su-srd.alxjrvs.workers.dev/build/ 200 "app shell from su-srd on workers.dev"
 
-# /health answers 200 only when both the Cantina secrets are set and Discord itself
-# accepted the bot token (it calls /users/@me); 503 when a Cantina secret is
+# /health answers 200 only when both the app secrets are set and Discord itself
+# accepted the bot token (it calls /users/@me); 503 when an app secret is
 # missing or the token is rejected or absent, 502 when Discord is unreachable.
 # Either is otherwise invisible until the first interaction.
-check https://su-discord-bot.alxjrvs.workers.dev/health 200 "bot token accepted and the Cantina configured"
+check https://su-discord-bot.alxjrvs.workers.dev/health 200 "bot token accepted and the app configured"
 
 exit "$fail"

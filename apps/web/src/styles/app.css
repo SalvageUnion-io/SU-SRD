@@ -1,0 +1,66 @@
+/*
+ * The app's own rules. The fonts, the token set, the reset, the package
+ * stylesheet and the page-wide rules are the base stylesheet every page shares
+ * (`apps/web/src/styles/base.css`), which the shell links before this one.
+ */
+/* The app's print rules, over the shared `data-print` vocabulary in
+   `base.css`. index.css declares no print rules of its own. */
+@import './build/print.css';
+/* The NPC designer's responsive rules (step strip, phone preview). */
+@import './build/npc.css';
+/* The Shelves band's paper-on-ink controls. */
+@import './build/shelves.css';
+/* The stateful halves of the app's other components. */
+@import './build/unitSlot.css';
+@import './build/routeStates.css';
+@import './build/screens.css';
+@import './build/controls.css';
+/* The live and public sheet. */
+@import './build/sheet.css';
+/* src/components classes handed back their own type over this file's heading
+   rule. */
+@import './build/libHandback.css';
+
+/* === Base layout === */
+html,
+body {
+  min-height: 100dvh;
+}
+
+/* The page column: the bar, the route, the foot, at least a screen tall, so
+   a short route's foot still sits on the window's bottom edge, as the SRD's
+   does (`BaseLayout.tsx`). The route's block takes the spare height; banners,
+   modals and the Peek keep their own size. */
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+#main-content {
+  flex: 1 0 auto;
+}
+
+/* The workshop ground across the whole window: each route's <main> is
+   width-capped and centred, so the body paints the rest. The face is the
+   package's (foundation.css). */
+body {
+  background-color: var(--color-wk-bg);
+}
+
+/*
+ * Every heading in the app wears the condensed caps face. Unlayered, so it beats
+ * a package class on a heading; `styles/libHandback.css` hands those classes
+ * their own type back.
+ */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-cond);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}

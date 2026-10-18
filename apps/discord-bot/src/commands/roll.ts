@@ -120,7 +120,7 @@ export function buildRollMessage(
   }
 
   // rollOnTable (salvageunion-reference, ADR-006) owns the flat-vs-columns
-  // branch and what counts as "no effect" — shared with the SRD and the Cantina.
+  // branch and what counts as "no effect" — shared with the SRD and the app.
   const outcome = rollOnTable(table.table, d20)
   if (!outcome.success) return { error: `Error rolling on table "${table.name}": ${outcome.error}` }
   if (outcome.kind === 'no-effect') {

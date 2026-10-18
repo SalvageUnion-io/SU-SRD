@@ -2,7 +2,7 @@
  * appGraph — which modules a pre-rendered page reaches, in the one Vite pass
  * that builds the whole site (`vite.config.ts`).
  *
- * The Cantina's named chunk groups gather the code every Cantina route loads
+ * The app's named chunk groups gather the code every app route loads
  * into a few long-cached chunks. A module a reference page also reaches must
  * never join one, or that page would download the whole group and its 20 KB
  * budget would be gone; `pageReaches` is the test the groups add. It is filled

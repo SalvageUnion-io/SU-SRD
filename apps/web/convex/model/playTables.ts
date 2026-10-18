@@ -1,9 +1,9 @@
-import type { Seat } from 'cantina-domain/schemas/seat'
-import { SeatSchema } from 'cantina-domain/schemas/seat'
 import { defineTable } from 'convex/server'
 import type { GenericId } from 'convex/values'
 import { v } from 'convex/values'
 import { zodToConvex } from 'convex-helpers/server/zod4'
+import type { Seat } from 'game-domain/schemas/seat'
+import { SeatSchema } from 'game-domain/schemas/seat'
 import { mirrors } from './validators'
 
 /**
@@ -15,7 +15,7 @@ import { mirrors } from './validators'
  */
 
 /**
- * `RANGE_BANDS` (cantina-domain/schemas/seat) — ADR-038. Exported so `seats.setRange`
+ * `RANGE_BANDS` (game-domain/schemas/seat) — ADR-038. Exported so `seats.setRange`
  * takes its argument against this same union.
  */
 export const seatRange = zodToConvex(SeatSchema.shape.range)
@@ -29,16 +29,16 @@ type SeatRow = {
       : Seat[K]
 }
 
-/** `SeatMount` (cantina-domain/schemas/seat). Exported for `seats.forGame`'s answer. */
+/** `SeatMount` (game-domain/schemas/seat). Exported for `seats.forGame`'s answer. */
 export const seatMount = zodToConvex(SeatSchema.shape.mount)
 
 /**
- * `SeatResolving` (cantina-domain/schemas/seat). Exported so `seats.setResolving`
+ * `SeatResolving` (game-domain/schemas/seat). Exported so `seats.setResolving`
  * takes its argument against this same validator.
  */
 export const seatResolving = zodToConvex(SeatSchema.shape.resolving.unwrap())
 
-/** `SoloDowntime` (cantina-domain/schemas/seat). Exported for the solo seat reads. */
+/** `SoloDowntime` (game-domain/schemas/seat). Exported for the solo seat reads. */
 export const soloDowntime = zodToConvex(SeatSchema.shape.downtime.unwrap())
 
 export const playTables = {
@@ -91,7 +91,7 @@ export const playTables = {
 
   /**
    * A pilot's seat: its play state at a Game (ADR-038 §2) or solo, on its
-   * owner's shelf. Mirrors `cantina-domain/schemas/seat` column for column,
+   * owner's shelf. Mirrors `game-domain/schemas/seat` column for column,
    * which says what each means (the Game and owner are Convex ids here). A
    * Game seat carries `gameId`, one per pilot, and every member reads it; a
    * solo seat carries `ownerId` instead (a template pre-gen's body id repeats

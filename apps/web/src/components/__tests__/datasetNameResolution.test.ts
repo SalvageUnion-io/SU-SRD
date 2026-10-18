@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { MECH_ROLL_TABLE_NAMES } from '../wizard/mechRollTables.model'
-import { PILOT_ROLL_TABLE_NAMES } from '../wizard/rollTableHelpers.model'
+import { MECH_ROLL_TABLE_NAMES } from '../../build/wizard/mechRollTables.model'
+import { PILOT_ROLL_TABLE_NAMES } from '../../build/wizard/rollTableHelpers.model'
 
 /**
  * Registries in this package bind code to a dataset entity's `name` — the most

@@ -10,13 +10,13 @@ import { Badge, buttonVariants, NavDrawer } from '../index'
 
 /**
  * UnionDrawer — the Union bar's one phone drawer, the same in both render
- * modes: the reference pages mount it as `MobileNavIsland`, the Cantina in its
+ * modes: the reference pages mount it as `MobileNavIsland`, the app in its
  * bar's `mobile` slot (`UnionBarSlots`).
  *
  * The wordmark home, the search, the book's chapter index with its counts
  * (`NAV_CATALOG`, frozen at build time: building it at runtime would pull the
  * reference ORM onto every page, which `reference-bundle-budget.e2e.ts` forbids), then the
- * site's pages and "Buy the game". The Cantina adds its own nav ahead of those
+ * site's pages and "Buy the game". The app adds its own nav ahead of those
  * (`productNav`) and its account controls (`extra`); without them the drawer
  * offers Sign in while nobody is signed in, from the account hint.
  */
@@ -70,11 +70,11 @@ function signInFromHint(): ((close: () => void) => ReactNode) | undefined {
 type UnionDrawerProps = {
   /** The search field at the drawer's head. */
   search?: ReactNode
-  /** The product's own nav (the Cantina's Hangar and Starter Set), ahead of the site's pages. */
+  /** The product's own nav (the app's Hangar and Starter Set), ahead of the site's pages. */
   productNav?: NavDrawerItem[]
   /** App-owned controls at the drawer's top, handed `close`; defaults to Sign in from the hint. */
   extra?: (close: () => void) => ReactNode
-  /** Link component for internal items; the Cantina routes its own in place. */
+  /** Link component for internal items; the app routes its own in place. */
   LinkComponent?: ElementType
 }
 

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-import { MechPatternSchema } from 'cantina-domain/schemas/pattern'
-import type { SoftLink } from 'cantina-domain/schemas/softLink'
+import { MechPatternSchema } from 'game-domain/schemas/pattern'
+import type { SoftLink } from 'game-domain/schemas/softLink'
 import {
   crawlerFixture,
   FIXTURE_NOW,

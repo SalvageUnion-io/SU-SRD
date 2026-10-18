@@ -1,6 +1,6 @@
 /** Unit tests for the crawler wizard form-state mappers. */
 import { describe, expect, it } from 'bun:test'
-import { CrawlerSchema } from 'cantina-domain/schemas/crawler'
+import { CrawlerSchema } from 'game-domain/schemas/crawler'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import {

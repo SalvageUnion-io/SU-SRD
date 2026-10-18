@@ -1,6 +1,7 @@
 import { createFileRoute, useParams } from '@tanstack/react-router'
-import { PublicSheetView } from '../../../components/sheet/PublicSheetView'
-import { pageTitle } from '../../../lib/pageTitle'
+import { PRODUCT } from 'game-domain/product'
+import { PublicSheetView } from '../../../build/sheet/PublicSheetView'
+import { areaTitle } from '../../../lib/pageTitle'
 
 /**
  * `/p/$kind/$appId` — one published sheet, readable with no account
@@ -18,12 +19,12 @@ import { pageTitle } from '../../../lib/pageTitle'
  * pattern its maker shared. `PublicSheetView` routes a pattern and
  * an NPC to their own pages.
  *
- * The page body is `PublicSheetView` (`components/sheet/PublicSheetView.tsx`).
+ * The page body is `PublicSheetView` (`build/sheet/PublicSheetView.tsx`).
  * This file exports only `Route` so `autoCodeSplitting` can keep the sheet
  * tree out of the entry chunk (see `routes/__tests__/routeExports.test.ts`).
  */
 export const Route = createFileRoute('/p/$kind/$appId')({
-  head: () => ({ meta: [{ title: pageTitle('Shared sheet') }] }),
+  head: () => ({ meta: [{ title: areaTitle(PRODUCT.build, 'Shared sheet') }] }),
   component: PublicSheetRoute,
 })
 

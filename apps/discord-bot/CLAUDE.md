@@ -1,6 +1,6 @@
 # Discord Bot
 
-`/su` rolls and lookups, and a Cantina Game client. An
+`/su` rolls and lookups, and a Game client of the app. An
 HTTP-interactions Cloudflare Worker (`src/worker/index.ts`): no gateway, no
 `start` script. Replies: [`.claude/rules/discord-bot.md`](../../.claude/rules/discord-bot.md).
 
@@ -8,7 +8,7 @@ HTTP-interactions Cloudflare Worker (`src/worker/index.ts`): no gateway, no
   workerd. Wire types and `Routes` come from `discord-api-types`, transport
   from `@discordjs/rest`, payloads are `src/commands/interactions.ts`'s.
 - Data from `salvageunion-reference` (its pure rules, preloaded at startup) and
-  `cantina-domain`; never `apps/web/src/components`.
+  `game-domain`; never `apps/web/src/components`.
 - Everything hangs off `/su` (`src/commands/su.ts`), one file per command in
   `src/commands/`. Shared code reads no configuration (the Worker's `env`
   installs the client per request; only `deploy-commands.ts` reads
@@ -20,14 +20,14 @@ bun run deploy-commands            # a test guild
 bun run deploy-commands:global     # production; a bot deploy runs it too. Credentials: op run
 ```
 
-## The Cantina client
+## The Game client (`src/play/`)
 
 It calls Convex's `/bot/*` routes with a bearer authenticating the **bot**,
 never the actor: each call carries a Discord id the server resolves to an
 account and membership ([bot as a Game client](../../docs/ARCHITECTURE.md#bot-game-client)).
 
-- Wire types come from `cantina-domain/botWire` (`import type`); never copy one.
-- **It degrades:** without `CANTINA_CONVEX_SITE_URL` and `CANTINA_BOT_SECRET`,
+- Wire types come from `game-domain/botWire` (`import type`); never copy one.
+- **It degrades:** without `BACKEND_SITE_URL` and `BOT_SECRET`,
   or with Convex down, every Game call answers `unavailable` (an outage),
   while `/su roll` and `/su lookup` work unchanged.
   `src/__tests__/degradedMode.test.ts` guards it.

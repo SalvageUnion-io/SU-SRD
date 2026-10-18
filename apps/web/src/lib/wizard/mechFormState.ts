@@ -11,8 +11,8 @@
  * the reference ORM (chassis stats) and so requires `chassis` preloaded.
  */
 
-import type { CargoLot } from 'cantina-domain/schemas/cargoLot'
-import type { Mech } from 'cantina-domain/schemas/mech'
+import type { CargoLot } from 'game-domain/schemas/cargoLot'
+import type { Mech } from 'game-domain/schemas/mech'
 import type { RefChassis } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, setSystemTime, test } from 'bun:test'
-import { downtimeGuideSteps, UPKEEP_STEP_NAME } from 'cantina-domain/rules/downtime'
-import { PRESENCE_WRITE_MIN_MS } from 'cantina-domain/schemas/seat'
+import { downtimeGuideSteps, UPKEEP_STEP_NAME } from 'game-domain/rules/downtime'
+import { PRESENCE_WRITE_MIN_MS } from 'game-domain/schemas/seat'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import type { Ctx, User } from '../fixtures'

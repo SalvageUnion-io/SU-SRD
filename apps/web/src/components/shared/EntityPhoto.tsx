@@ -13,8 +13,8 @@
  * there is no picture.
  */
 
-import type { Photo } from 'cantina-domain/schemas/photo'
-import { photoUrl } from 'cantina-domain/schemas/photo'
+import type { Photo } from 'game-domain/schemas/photo'
+import { photoUrl } from 'game-domain/schemas/photo'
 import type { CSSProperties } from 'react'
 import { useRef, useState } from 'react'
 import { api } from '../../../convex/_generated/api'

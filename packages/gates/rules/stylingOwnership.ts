@@ -36,7 +36,7 @@ const LIB_CSS = new Set(
 )
 const notLib = (rel: string) =>
   !LIB_CSS.has(rel) && !rel.startsWith('apps/web/src/styles/partials/')
-const DASHBOARD_DIR = 'apps/web/src/styles/cantina/dashboard'
+const DASHBOARD_DIR = 'apps/web/src/styles/play/dashboard'
 
 /** The file sets the rules share, gathered once per scan. Repo-relative paths. */
 type Corpus = {
@@ -233,7 +233,7 @@ function scanDeadAppCss(c: Corpus): Finding[] {
 
 // ── Rule 3: dash-class-contract ───────────────────────────────────────────────
 //
-// Play's canvas `.su-dash-*` classes (The Cantina's own stylesheets).
+// Play's canvas `.su-dash-*` classes (The app's own stylesheets).
 
 const DASHBOARD_CSS_FILES = ['canvas.css', 'instruments.css', 'phone.css'].map(
   (f) => `${DASHBOARD_DIR}/${f}`
@@ -312,7 +312,7 @@ const STYLESHEET_ENTRY = 'apps/web/src/styles/entry.css'
 /** The consumer (the base stylesheet, `apps/web/src/styles/baseStylesheet.ts`), then the apps' own, which must not import it again. */
 const ENTRY_CONSUMERS = [
   'apps/web/src/styles/base.css',
-  'apps/web/src/styles/cantina.css',
+  'apps/web/src/styles/app.css',
   'apps/web/src/styles/global.css',
 ] as const
 
@@ -545,7 +545,7 @@ const RULES: OwnershipRule[] = [
     id: 'dash-class-contract',
     mode: 'zero',
     rule: 'source-of-truth §the dashboard class contract is closed and bidirectional',
-    fix: 'used-but-undefined: define the `su-dash-*` class in apps/web/src/styles/cantina/dashboard/*.css (or fix the className typo in the .tsx). defined-but-unused: delete the dead rule, or reference it. Match the EXACT class name — su-dash-step and su-dash-step-num are different classes.',
+    fix: 'used-but-undefined: define the `su-dash-*` class in apps/web/src/styles/play/dashboard/*.css (or fix the className typo in the .tsx). defined-but-unused: delete the dead rule, or reference it. Match the EXACT class name — su-dash-step and su-dash-step-num are different classes.',
     scan: scanDashContract,
   },
   {
@@ -602,7 +602,7 @@ function preflight(root: string): void {
     'apps/discord-bot':
       'ships no stylesheet — it renders Discord Components V2 containers, not DOM.',
     'apps/su-assets': 'a Worker that serves image bytes and short error strings; no CSS, no DOM.',
-    'packages/cantina-domain':
+    'packages/game-domain':
       'schemas and rules shared with Convex and the bot; no components and no stylesheet.',
     'packages/salvageunion-reference': 'data and ORM; no components and no stylesheet.',
     'packages/gates': 'the gates themselves; no components and no stylesheet.',

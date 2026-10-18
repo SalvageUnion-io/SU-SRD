@@ -137,7 +137,7 @@ type ContentProps = {
    * True when the owning record carries structured data for the mechanical
    * change its text states (ADR-029).
    *
-   * When set, and the surface applies the rules (`appliesRules`: The Cantina), a
+   * When set, and the surface applies the rules (`appliesRules`: the app), a
    * paragraph that STATES a mechanical change leads with an ink AUTO stamp —
    * the reader can see which clause the app actually applies, adjacent to the
    * claim itself. Prose that states a change on a record with no data stays

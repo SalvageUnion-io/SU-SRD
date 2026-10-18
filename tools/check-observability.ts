@@ -13,7 +13,7 @@
  *
  *   1. the app's observability module posts to `ERROR_REPORT_PATH`,
  *   2. its init is CALLED from both entries: the static pages' islands and the
- *      Cantina's `main.tsx`,
+ *      app's `main.tsx`,
  *   3. its `public/_headers` CSP `connect-src` allows `'self'`, where it posts,
  *      and admits Cloudflare Web Analytics: `script-src` its beacon's origin,
  *      `connect-src` where the beacon posts page loads. The zone's automatic

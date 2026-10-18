@@ -10,7 +10,7 @@
 
 /*
  * The home page — the manual's Contents page (board 06, `index.page.tsx` and
- * `components/HomeContents.tsx`). At the one page measure: the index in columns and
+ * `reference/HomeContents.tsx`). At the one page measure: the index in columns and
  * the "Getting started" sidebar at its right; on a phone, the title, the
  * search, "Start here", then the index.
  */
@@ -51,8 +51,8 @@
 }
 
 /* The home band holds only the title and the search (owner, 2026-10-14) and
-   is as tall as the Cantina's front-door band: its title opens where the
-   Cantina's does under that band's eyebrow (the eyebrow's top padding, its
+   is as tall as the app's front-door band: its title opens where the
+   app's does under that band's eyebrow (the eyebrow's top padding, its
    caption line, then 12px). */
 @media (max-width: 39.99rem) {
   .su-home__band .su-chapter-band__row {
@@ -1153,7 +1153,7 @@ a.su-home__discord:hover {
   }
 }
 
-/* The changelog page's entries (`components/Changelog.tsx`). The bullets' spacing and marker colour
+/* The changelog page's entries (`reference/Changelog.tsx`). The bullets' spacing and marker colour
    are child and pseudo-element selectors. */
 .su-changelog__items > :not(:last-child) {
   margin-block-end: var(--space-4);

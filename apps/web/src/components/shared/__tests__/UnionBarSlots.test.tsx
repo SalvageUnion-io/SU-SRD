@@ -1,5 +1,5 @@
 /**
- * The Cantina's live half of the Union bar: the shell's bar (`shell/unionBar.ts`)
+ * The app's live half of the Union bar: the shell's bar (`shell/unionBar.ts`)
  * with its slots filled.
  */
 
@@ -85,6 +85,15 @@ describe('UnionBarSlots', () => {
     expect(current()).toEqual(['Play'])
   })
 
+  test('the bar wears the mode: Play’s on Play’s routes, Build’s everywhere else', () => {
+    const mode = () => document.querySelector('.su-union-bar')?.getAttribute('data-mode')
+    expect(mode()).toBe('build')
+    const { rerender } = render(<UnionBarSlots pathname="/play/" />)
+    expect(mode()).toBe('play')
+    rerender(<UnionBarSlots pathname="/" />)
+    expect(mode()).toBe('build')
+  })
+
   test('fills only the banner while the route draws no bar', () => {
     render(
       <UnionBarSlots
@@ -99,7 +108,7 @@ describe('UnionBarSlots', () => {
     expect(screen.queryByRole('button', { name: 'Open menu' })).toBeNull()
   })
 
-  test('the drawer: the reference pages’ own, the Cantina’s nav first, and the app’s extra', () => {
+  test('the drawer: the reference pages’ own, the app’s nav first, and the app’s extra', () => {
     render(
       <UnionBarSlots
         pathname="/"

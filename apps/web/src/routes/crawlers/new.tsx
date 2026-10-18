@@ -1,14 +1,15 @@
 import { createFileRoute, useLocation, useNavigate } from '@tanstack/react-router'
-import { CrawlerBuilder } from '../../components/crawler/CrawlerBuilder'
-import { useReturnToContainer } from '../../components/entityContainer/useShowContainer'
-import { NewEntityScreen } from '../../components/wizard/NewEntityScreen'
-import { pageTitle } from '../../lib/pageTitle'
+import { PRODUCT } from 'game-domain/product'
+import { CrawlerBuilder } from '../../build/crawler/CrawlerBuilder'
+import { useReturnToContainer } from '../../build/entityContainer/useShowContainer'
+import { NewEntityScreen } from '../../build/wizard/NewEntityScreen'
+import { areaTitle } from '../../lib/pageTitle'
 import type { CreateMode } from '../../lib/wizard/createMode'
 import { parseCreateMode } from '../../lib/wizard/createMode'
 import { parseSlugParam, preselectedCrawlerType } from '../../lib/wizard/preselect'
 
 export const Route = createFileRoute('/crawlers/new')({
-  head: () => ({ meta: [{ title: pageTitle('New Crawler') }] }),
+  head: () => ({ meta: [{ title: areaTitle(PRODUCT.build, 'New Crawler') }] }),
   // mode: absent → chooser · 'guided' → the wizard · 'blank' → blank dialog
   // type: a slug deep-linked from an SRD page's "Build with this" (`lib/wizard/preselect.ts`)
   validateSearch: (search: Record<string, unknown>): { mode: CreateMode; type?: string } => {

@@ -15,8 +15,8 @@
  * confirmation itself stays an explicit call at the UI layer.
  */
 
-import type { Crawler, ScrapPool } from 'cantina-domain/schemas/crawler'
-import type { Mech } from 'cantina-domain/schemas/mech'
+import type { Crawler, ScrapPool } from 'game-domain/schemas/crawler'
+import type { Mech } from 'game-domain/schemas/mech'
 import type { AreaSalvageResult, Roll } from 'salvageunion-reference/rules'
 import { performAreaSalvage } from 'salvageunion-reference/rules'
 import type { CraftableItem } from './crafting'

@@ -1,0 +1,14 @@
+/*
+ * dashboard.css — the canvas's stylesheet bundle (docs/architecture/play.md
+ * §2): the `.su-dash-root` scope and the fixed canvas, the instrument rules
+ * inside it, and the phone form's touch floor.
+ *
+ * The app's own stylesheet: the canvas is an app surface, so its rules
+ * live here rather than in src/components, whose stylesheets srd loads too.
+ * `PlayFrame` imports it, before Play's own bundle (`play.css`).
+ *
+ * phone.css (the phone form, ADR-045) keys off its own `.su-dash-phone` scope.
+ */
+@import './dashboard/canvas.css';
+@import './dashboard/instruments.css';
+@import './dashboard/phone.css';

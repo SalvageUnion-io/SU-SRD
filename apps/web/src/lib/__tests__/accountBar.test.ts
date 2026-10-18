@@ -4,7 +4,7 @@ import { markSignedIn } from '../accountState'
 import { appPath } from '../appBase'
 
 describe('accountBar', () => {
-  test('Sign in, Settings and Sign out are The Cantina’s', () => {
+  test('Sign in, Settings and Sign out are the app’s', () => {
     expect(SIGN_IN_HREF).toBe(`${appPath('/sign-in')}`)
     expect(SETTINGS_HREF).toBe(`${appPath('/settings')}`)
   })

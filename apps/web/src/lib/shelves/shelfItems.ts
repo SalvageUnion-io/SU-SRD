@@ -13,14 +13,14 @@
  * (`PILOT | Bonesaw`).
  */
 
-import type { ContainerFields } from 'cantina-domain/container'
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { EncounterNpc } from 'cantina-domain/schemas/encounterNpc'
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { Npc } from 'cantina-domain/schemas/npc'
-import type { MechPattern } from 'cantina-domain/schemas/pattern'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
-import type { SoftLink } from 'cantina-domain/schemas/softLink'
+import type { ContainerFields } from 'game-domain/container'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Npc } from 'game-domain/schemas/npc'
+import type { MechPattern } from 'game-domain/schemas/pattern'
+import type { Pilot } from 'game-domain/schemas/pilot'
+import type { SoftLink } from 'game-domain/schemas/softLink'
 import { resolveChassisRef, resolvePool } from 'salvageunion-reference/rules'
 import { resolveClassName } from '../classRef'
 import { resolveCrawlerType } from '../crawlerRefs'

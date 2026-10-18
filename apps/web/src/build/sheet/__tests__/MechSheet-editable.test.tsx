@@ -1,0 +1,241 @@
+/**
+ * MechSheet — per-item action economy.
+ *
+ * Stat editing moved to the hero trackers (Sheet.tsx); the body's edit
+ * surface is the per-card action economy:
+ *   - Use spends the primary action's EP cost (and ticks the uses counter).
+ *   - Damaged DISABLES Use and promotes Repair to primary, showing the
+ *     half-SV scrap cost.
+ *   - Repair flips the item to Intact; the crawler scrap-pool deduction is
+ *     optional and never blocks — both paths covered.
+ *   - Uses steppers persist per-item counters for systems AND modules.
+ *   - Chassis ability Use spends EP and is blocked while shut down.
+ *
+ * Real reference data: Smoke Machine (TL2, SV2, EP 2), AFF Coolant Foam
+ * (TL3, EP 1, Uses 5), Spectrum chassis (Data Scanner, EP 2).
+ *
+ * Conventions: toBeTruthy() not toBeInTheDocument(), dep-injected store.
+ */
+
+import { beforeAll, describe, expect, mock, test } from 'bun:test'
+import { act, fireEvent, render, screen } from '@testing-library/react'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { Mech } from 'game-domain/schemas/mech'
+import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
+import { hydrateStores } from '../../../components/__tests__/hydrateStores'
+import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
+import { must } from '../../../components/__tests__/must'
+import { MechSheet } from '../MechSheet'
+
+beforeAll(hydrateStores)
+
+const fakeChassis = {
+  name: 'Iron Mongrel',
+  structurePoints: 12,
+  energyPoints: 6,
+  heatCapacity: 8,
+  systemSlots: 3,
+  moduleSlots: 2,
+  cargoCapacity: 4,
+}
+
+function makeMech(overrides: Partial<Mech>): Mech {
+  return {
+    id: 'mech-economy-1',
+    schemaVersion: 1,
+    name: 'Economy Test Mech',
+    chassisRef: 'iron-mongrel',
+    systems: [],
+    modules: [],
+    cargoLots: [],
+    conditions: [],
+    currentEP: 5,
+    createdAt: FIXTURE_NOW,
+    updatedAt: FIXTURE_NOW,
+    ...overrides,
+  }
+}
+
+function makeCrawler(overrides: Partial<Crawler> = {}): Crawler {
+  return {
+    id: 'crawler-economy-1',
+    schemaVersion: 1,
+    name: 'Pool Crawler',
+    techLevel: 'tech-2',
+    systems: [],
+    cargoLots: [],
+    scrapPool: { tl2: 5 },
+    createdAt: FIXTURE_NOW,
+    updatedAt: FIXTURE_NOW,
+    ...overrides,
+  } as Crawler
+}
+
+type CapturedUpdate = {
+  type: string
+  id: string
+  patch: Record<string, unknown>
+}
+
+function makeStore(mech: Mech, captured: CapturedUpdate[], crawler?: Crawler) {
+  let currentMech = mech
+  return makeEntityStoreMock({
+    mechs: [mech],
+    crawlers: crawler ? [crawler] : [],
+    hydrated: { pilots: false, mechs: true, crawlers: true, npcs: true, softLinks: false },
+    hydrate: mock(async () => {}),
+    list: mock(() => [currentMech]),
+    get: mock((type: string, id: string) => {
+      if (type === 'mech' && id === currentMech.id) return currentMech
+      if (type === 'crawler' && crawler && id === crawler.id) return crawler
+      return null
+    }),
+    create: mock(async () => mech),
+    update: mock(async (type: string, id: string, patch: Record<string, unknown>) => {
+      captured.push({ type, id, patch })
+      if (type === 'mech') currentMech = { ...currentMech, ...patch }
+      return currentMech
+    }),
+    delete: mock(async () => {}),
+  })
+}
+
+function clickButton(name: RegExp) {
+  const btn = screen.getByRole('button', { name })
+  fireEvent.click(btn)
+}
+
+describe('MechSheet — no Use transaction on the Free-Edit sheet (ADR-021)', () => {
+  test('a system offers no Use button — using a system is a Play act', () => {
+    // Push / Heat Check / "use a system" are Guided-Play transactions that live
+    // in Play (see play/useActionsDeck), never on the Free-Edit Live Sheet.
+    const mech = makeMech({ systems: ['smoke-machine'], currentEP: 5 })
+    render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStore(mech, [])} />)
+
+    // The system card IS rendered (so the absent-Use assertion is meaningful)…
+    expect(screen.getAllByText(/Smoke Machine/i).length).toBeGreaterThan(0)
+    // …but it offers no Use button — activation is a Play act.
+    expect(screen.queryByRole('button', { name: /^use smoke machine$/i })).toBeNull()
+  })
+})
+
+describe('MechSheet — Damaged promotes Repair (S12)', () => {
+  test('Damaged: Repair primary with half-SV cost', () => {
+    const mech = makeMech({
+      systems: ['smoke-machine'],
+      systemConditions: { 'smoke-machine': 'damaged' },
+    })
+    render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStore(mech, [])} />)
+
+    // Smoke Machine SV 2 → half SV = 1 Scrap, shown on the button.
+    const repair = screen.getByRole('button', {
+      name: /^repair smoke machine$/i,
+    })
+    expect(repair.textContent).toMatch(/1 scrap/i)
+  })
+
+  test('Repair without deducting flips the item to Intact (never blocks)', async () => {
+    const captured: CapturedUpdate[] = []
+    const mech = makeMech({
+      systems: ['smoke-machine'],
+      systemConditions: { 'smoke-machine': 'damaged' },
+    })
+    // No crawler linked — the deduction option is disabled, repair is not.
+    render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStore(mech, captured)} />)
+
+    await act(async () => {
+      clickButton(/^repair smoke machine$/i)
+    })
+    const deduct = screen.getByRole('button', { name: /deduct scrap/i })
+    expect((deduct as HTMLButtonElement).disabled).toBe(true)
+    expect(deduct.getAttribute('title')).toMatch(/no crawler assigned/i)
+
+    await act(async () => {
+      clickButton(/repair smoke machine without deducting/i)
+    })
+
+    expect(captured.length).toBe(1)
+    expect(must(captured[0]).type).toBe('mech')
+    expect(must(captured[0]).patch).toEqual({
+      systemConditions: { 'smoke-machine': 'intact' },
+    })
+  })
+
+  test('Repair with deduction decrements the crawler TL pool bucket', async () => {
+    const captured: CapturedUpdate[] = []
+    const mech = makeMech({
+      systems: ['smoke-machine'],
+      systemConditions: { 'smoke-machine': 'damaged' },
+    })
+    const crawler = makeCrawler({ scrapPool: { tl2: 5 } })
+    render(
+      <MechSheet
+        mech={mech}
+        chassis={fakeChassis}
+        store={makeStore(mech, captured, crawler)}
+        crawler={crawler}
+      />
+    )
+
+    await act(async () => {
+      clickButton(/^repair smoke machine$/i)
+    })
+    await act(async () => {
+      clickButton(/repair smoke machine and deduct scrap/i)
+    })
+
+    expect(captured.length).toBe(2)
+    expect(must(captured[0]).patch).toEqual({
+      systemConditions: { 'smoke-machine': 'intact' },
+    })
+    expect(must(captured[1]).type).toBe('crawler')
+    expect(must(captured[1]).patch).toEqual({ scrapPool: { tl2: 4 } })
+  })
+})
+
+describe('MechSheet — per-item uses counters', () => {
+  test('the stepper decrements the per-item uses counter', async () => {
+    const captured: CapturedUpdate[] = []
+    const mech = makeMech({
+      systems: ['aff-coolant-foam'],
+      itemUses: { 'aff-coolant-foam': 3 },
+    })
+    render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStore(mech, captured)} />)
+
+    expect(document.querySelector('.su-sheet-item__uses')?.textContent).toBe('Uses3/5')
+    await act(async () => {
+      clickButton(/decrease aff coolant foam uses/i)
+    })
+
+    expect(must(captured[0]).patch).toEqual({ itemUses: { 'aff-coolant-foam': 2 } })
+  })
+
+  test('the stepper increments back up (downtime recharge by hand)', async () => {
+    const captured: CapturedUpdate[] = []
+    const mech = makeMech({
+      systems: ['aff-coolant-foam'],
+      itemUses: { 'aff-coolant-foam': 3 },
+    })
+    render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStore(mech, captured)} />)
+
+    await act(async () => {
+      clickButton(/increase aff coolant foam uses/i)
+    })
+
+    expect(must(captured[0]).patch).toEqual({ itemUses: { 'aff-coolant-foam': 4 } })
+  })
+})
+
+describe('MechSheet — chassis ability slab (no activation on the sheet, ADR-021)', () => {
+  test('the ability + its EP cost show, but there is no Use button', () => {
+    // Spectrum's Data Scanner costs 2 EP. Real chassis → real ability slab.
+    // Activating an ability is a Play transaction, not a Free-Edit act.
+    const mech = makeMech({ chassisRef: 'spectrum', currentEP: 5 })
+    render(<MechSheet mech={mech} store={makeStore(mech, [])} />)
+
+    // The ability card + EP-cost readout are present…
+    expect(screen.getByText(/Data Scanner/i)).toBeTruthy()
+    // …but the sheet offers no Use button to spend the EP.
+    expect(screen.queryByRole('button', { name: /^use data scanner$/i })).toBeNull()
+  })
+})

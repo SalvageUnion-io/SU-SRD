@@ -41,7 +41,7 @@ export const DISCORD_COMMANDS: readonly DiscordCommand[] = [
   },
   {
     "name": "me",
-    "description": "Your The Cantina account and Games",
+    "description": "Your salvageunion.io account and Games",
     "options": [],
     "needsAccount": true
   },

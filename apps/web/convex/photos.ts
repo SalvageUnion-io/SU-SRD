@@ -5,7 +5,7 @@ import { photoRow, sweepUnusedPhotos } from './model/photos'
 
 /**
  * Entity photos in Convex file storage — the `upload` kind of `PhotoSchema`
- * (`cantina-domain/schemas/photo`).
+ * (`game-domain/schemas/photo`).
  *
  * The client uploads in three steps: `generateUploadUrl`, a POST of the file to
  * that URL, then `claim`, which checks the file and returns the photo the

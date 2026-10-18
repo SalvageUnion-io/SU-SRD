@@ -8,7 +8,7 @@
  * wizards' do.
  */
 
-import type { Npc, NpcTemplateRef, NpcTrait } from 'cantina-domain/schemas/npc'
+import type { Npc, NpcTemplateRef, NpcTrait } from 'game-domain/schemas/npc'
 import type { RefNPC } from 'salvageunion-reference'
 import type { CreateInput } from '../../stores/types'
 import type { NpcStatFill } from '../npcs/npcModel'

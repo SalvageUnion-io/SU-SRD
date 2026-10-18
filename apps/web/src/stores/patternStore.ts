@@ -8,7 +8,7 @@
  * the slice's update() comes along for free should that change.
  */
 
-import type { MechPattern } from 'cantina-domain/schemas/pattern'
+import type { MechPattern } from 'game-domain/schemas/pattern'
 import { create } from 'zustand'
 import { commitPatternWrite } from './entityBackend'
 import type { HydratedCollectionActions, HydratedCollectionSlice } from './makeHydratedCollection'

@@ -1,8 +1,8 @@
 /**
  * Partner derivation — stat block resolution, tech level, and derived maxima.
  *
- * Lives in the Cantina rather than `salvageunion-reference/rules` (ADR-006) because
- * resolving a partner's tech level reads Cantina state: a pilot-granted partner
+ * Lives in the app rather than `salvageunion-reference/rules` (ADR-006) because
+ * resolving a partner's tech level reads app state: a pilot-granted partner
  * scales off the Union Crawler the pilot is soft-linked to, which is player
  * data, not game data. The pure arithmetic underneath (base + per-tech-level
  * bonus) is trivial and stays here with its one caller.
@@ -28,7 +28,7 @@
  * pinned by tests rather than left to the call sites.
  */
 
-import type { PartnerInstance } from 'cantina-domain/schemas/partner'
+import type { PartnerInstance } from 'game-domain/schemas/partner'
 import type { RefEntity } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { StatBreakdown } from 'salvageunion-reference/rules'

@@ -10,7 +10,7 @@
  * under its name (today only the Augmented A.I.'s "A.I. Personality").
  */
 
-import type { Npc } from 'cantina-domain/schemas/npc'
+import type { Npc } from 'game-domain/schemas/npc'
 import type { CreateInput } from '../../stores/types'
 import type { CrewSlotView, NpcView } from '../npcs/npcModel'
 

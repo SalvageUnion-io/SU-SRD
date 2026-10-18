@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
 import { boundContainer, unboundContainer } from '../bindingContainer'
-import type { CantinaClient } from '../cantina/client'
-import type { BindChannelResult, CantinaResult, GamesResult } from '../cantina/types'
 import { bindCommand, unbindCommand } from '../commands/bind'
-import { setCantinaClient } from '../commands/cantinaReply'
+import { setSiteClient } from '../commands/siteReply'
 import { suCommand } from '../commands/su'
+import type { SiteClient } from '../play/client'
+import type { BindChannelResult, GamesResult, SiteResult } from '../play/types'
 import { cardText } from './cardText'
 import { fakeAutocomplete, fakeExecute } from './fakeInteraction'
 
@@ -25,7 +25,7 @@ afterEach(() => {
 const unexpected = () => Promise.reject(new Error('not called in this test')) as never
 
 /** A client that fails loudly on anything a test did not mean to call. */
-function client(overrides: Partial<CantinaClient>): CantinaClient {
+function client(overrides: Partial<SiteClient>): SiteClient {
   return {
     me: unexpected,
     games: unexpected,
@@ -38,7 +38,7 @@ function client(overrides: Partial<CantinaClient>): CantinaClient {
   }
 }
 
-const BOUND_GAME: CantinaResult<BindChannelResult> = {
+const BOUND_GAME: SiteResult<BindChannelResult> = {
   kind: 'ok',
   value: {
     binding: {
@@ -51,7 +51,7 @@ const BOUND_GAME: CantinaResult<BindChannelResult> = {
   },
 }
 
-const BOUND_SOLO: CantinaResult<BindChannelResult> = {
+const BOUND_SOLO: SiteResult<BindChannelResult> = {
   kind: 'ok',
   value: {
     binding: { channelId: 'channel-1', channelName: null, gameId: null, gameName: null },
@@ -62,7 +62,7 @@ const BOUND_SOLO: CantinaResult<BindChannelResult> = {
 describe('/su bind', () => {
   test('binds the channel it ran in to the picked Game, privately', async () => {
     let asked: unknown[] = []
-    restore = setCantinaClient(
+    restore = setSiteClient(
       client({
         bindChannel: (...args) => {
           asked = args
@@ -86,7 +86,7 @@ describe('/su bind', () => {
 
   test('with no Game, binds the channel to the caller’s solo play', async () => {
     let asked: unknown[] = []
-    restore = setCantinaClient(
+    restore = setSiteClient(
       client({
         bindChannel: (...args) => {
           asked = args
@@ -102,7 +102,7 @@ describe('/su bind', () => {
 
   test('a blank Game option is solo too, never an empty id', async () => {
     let game: unknown = 'unset'
-    restore = setCantinaClient(
+    restore = setSiteClient(
       client({
         bindChannel: (_d, _c, g) => {
           game = g
@@ -117,7 +117,7 @@ describe('/su bind', () => {
 
   test('a player who does not run the Game is refused, privately, in the server’s words', async () => {
     const message = 'Only the Game’s Mediator or Organiser can bind a channel to it.'
-    restore = setCantinaClient(
+    restore = setSiteClient(
       client({
         bindChannel: () => Promise.resolve({ kind: 'denied', reason: 'forbidden', message }),
       })
@@ -133,7 +133,7 @@ describe('/su bind', () => {
   })
 
   test('somebody with no account is told how to get one', async () => {
-    restore = setCantinaClient(
+    restore = setSiteClient(
       client({
         bindChannel: () =>
           Promise.resolve({ kind: 'denied', reason: 'unlinked', message: 'No account.' }),
@@ -146,10 +146,10 @@ describe('/su bind', () => {
   })
 
   test('an outage reads as an outage', async () => {
-    restore = setCantinaClient(
+    restore = setSiteClient(
       client({
         bindChannel: () =>
-          Promise.resolve({ kind: 'unavailable', message: 'The Cantina could not be reached.' }),
+          Promise.resolve({ kind: 'unavailable', message: 'The app could not be reached.' }),
       })
     )
     const { interaction, edits } = fakeExecute({ subcommand: 'bind' })
@@ -158,7 +158,7 @@ describe('/su bind', () => {
   })
 
   test('with no channel to bind it asks for one and calls nothing', async () => {
-    restore = setCantinaClient(client({}))
+    restore = setSiteClient(client({}))
     const { interaction, replies } = fakeExecute({ subcommand: 'bind', channelId: null })
     await bindCommand.execute(interaction)
     expect(replies[0]?.flags).toBe(MessageFlags.Ephemeral)
@@ -166,7 +166,7 @@ describe('/su bind', () => {
   })
 
   test('autocomplete offers only the Games the caller runs or organises', async () => {
-    const games: CantinaResult<GamesResult> = {
+    const games: SiteResult<GamesResult> = {
       kind: 'ok',
       value: {
         games: [
@@ -176,7 +176,7 @@ describe('/su bind', () => {
         ],
       },
     }
-    restore = setCantinaClient(client({ gamesForAutocomplete: () => Promise.resolve(games) }))
+    restore = setSiteClient(client({ gamesForAutocomplete: () => Promise.resolve(games) }))
     const { interaction, responses } = fakeAutocomplete({ subcommand: 'bind', focused: 't' })
     await suCommand.autocomplete(interaction)
     expect(responses[0]).toEqual([
@@ -185,8 +185,8 @@ describe('/su bind', () => {
     ])
   })
 
-  test('autocomplete is empty when the Cantina cannot answer', async () => {
-    restore = setCantinaClient(
+  test('autocomplete is empty when the app cannot answer', async () => {
+    restore = setSiteClient(
       client({
         gamesForAutocomplete: () => Promise.resolve({ kind: 'unavailable', message: 'down' }),
       })
@@ -200,7 +200,7 @@ describe('/su bind', () => {
 describe('/su unbind', () => {
   test('releases the channel it ran in', async () => {
     let asked: unknown[] = []
-    restore = setCantinaClient(
+    restore = setSiteClient(
       client({
         unbindChannel: (...args) => {
           asked = args
@@ -230,7 +230,7 @@ describe('/su unbind', () => {
 
   test('somebody else’s binding is refused, privately', async () => {
     const message = 'Only the Game’s Mediator or Organiser can unbind its channel.'
-    restore = setCantinaClient(
+    restore = setSiteClient(
       client({
         unbindChannel: () => Promise.resolve({ kind: 'denied', reason: 'forbidden', message }),
       })

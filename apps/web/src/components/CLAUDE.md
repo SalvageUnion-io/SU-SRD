@@ -7,7 +7,7 @@ the public API and the only list of exports; its rules:
 - **Data-source agnostic:** atoms, containers, compositions, `entity/` and
   `referenceEntity/` import no stores or Convex; consumers inject behaviour
   through generic slot props (`afterExtraContent`, `titleOverride`, …). Only
-  product folders (`sheet/`, `games/`, …) wire data.
+  the areas and `shared/` wire data.
 - **Never rely on an import running code:** bundlers drop a module whose
   exports go unused.
 - **Design intent:** [the origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm)
@@ -24,7 +24,8 @@ Folder = group, and the groups are membership tests:
   compose a lower atom; domain knowledge makes a Composition).
 - **Containers** — content-agnostic wrappers and state shells.
 - **Compositions** — know Salvage Union entities, or assemble a product surface.
-- Other folders hold one product surface each (`sheet/`, `play/`, …).
+- Other folders hold one shared surface each (`shared/`, …); an
+  area's own surfaces live in it, and the library never imports an area.
 
 Name components for what they are: no `-Display` / `-View` / `-Renderer`
 suffixes or `Reference*` prefixes. **`ReferenceEntityCard` is the sanctioned

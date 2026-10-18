@@ -23,10 +23,10 @@ Id · title — where code cites it (`board NN`); "—" means no code cites it. 
 6. **08b** SRD roll table — `RollTablePage`, `RollTableView`, `RollTableIsland`, `rollTablePage`, `columnsTablePage`, `RollTableInstrument`.
 7. **E1** Card size × extent — `referenceEntity/card/` head, labels, pennant, facets, tone. **E2** Nesting — `NestedCards`, `bodyBlocks`.
 8. **E3** Five contexts — `StatusRail`, `peekPlate`. **E4** Embedded roll table — `CardRollTable`, `RollTableInstrument`.
-9. **09** The Cantina front door — `FrontDoor`, `Roster`, `shell/unionBar.ts`. **10** Pilot sheet, printed — the Cantina `components/sheet/`, `Field`.
-10. **D1–D5** Dashboard (retired; its successor is Play, `docs/wireframes/dashboard-cockpit/`): boarded, Crew tab, Downtime, phone Mech tab, phone resolve — the Cantina `components/play/`, `VitalGauge`, `pipRows`.
-11. **P1** Saving a pattern — `SavePatternPage`, `patterns`, `CardLabels`, `NpcSheet`, `Sheet`, the Cantina `mechs/patterns/new`, cantina-domain `pattern`, convex `shelf`. **P2** Shared pattern page — `PublicPattern`, convex `publicSheet`.
+9. **09** The app front door — `FrontDoor`, `Roster`, `shell/unionBar.ts`. **10** Pilot sheet, printed — the app `build/sheet/`, `Field`.
+10. **D1–D5** Dashboard (retired; its successor is Play, `docs/wireframes/dashboard-cockpit/`): boarded, Crew tab, Downtime, phone Mech tab, phone resolve — the app `play/`, `VitalGauge`, `pipRows`.
+11. **P1** Saving a pattern — `SavePatternPage`, `patterns`, `CardLabels`, `NpcSheet`, `Sheet`, the app `mechs/patterns/new`, game-domain `pattern`, convex `shelf`. **P2** Shared pattern page — `PublicPattern`, convex `publicSheet`.
 12. **N1** Generic NPC designer — `AnyNpcDesigner`. **N2** Crawler crew — `CrewBoard`, `crewFormState`.
-13. **M1** Mediator dashboard (retired) — the Cantina `components/play/mediator/`. **M2** Running a Game — the Cantina `components/games/`.
-14. **S1** Shelves — the Cantina `components/shelves/`, `ChapterBand`, `Slab`. **PV1** Link previews — `OgCard`, `ogCardText`, `previewSummary`.
+13. **M1** Mediator dashboard (retired) — the app `play/mediator/`. **M2** Running a Game — the app `build/games/`.
+14. **S1** Shelves — the app `build/shelves/`, `ChapterBand`, `Slab`. **PV1** Link previews — `OgCard`, `ogCardText`, `previewSummary`.
 15. **12** Roadmap —. Component boards EntityCard and OgCard —.

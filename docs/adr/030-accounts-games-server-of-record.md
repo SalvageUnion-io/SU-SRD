@@ -16,7 +16,7 @@ subscriptions (the live table is the point) and writes to Convex; nothing is
 kept on the device ([no device cache](../ARCHITECTURE.md#no-device-cache)).
 Signed out, nothing persists (ADR-034). The four modes (Solo, Connected,
 Disconnected, Outdated) are
-[`.claude/rules/cantina-data-access.md`](../../.claude/rules/cantina-data-access.md);
+[`.claude/rules/app-data-access.md`](../../.claude/rules/app-data-access.md);
 every surface must be legible in all of them.
 
 Offline writes are **blocked, not queued**: an outbox brings back the conflict
@@ -151,7 +151,7 @@ is a log entry; applying one commits it.
   longest-standing member and removes that account's owned entities; the Game
   and its communal crawler survive.
 - **Convex stores entity bodies opaquely**: every mutation Zod-parses
-  (`packages/cantina-domain/src/schemas/`) before persisting. Never mirror the
+  (`packages/game-domain/src/schemas/`) before persisting. Never mirror the
   fields into Convex validators.
 - A surface asks *whose entity is this* before asking what its mode enforces.
 - Not adopted: CRDTs or offline sync, turn enforcement across players, net-new

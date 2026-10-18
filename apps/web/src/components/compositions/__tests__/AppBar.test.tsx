@@ -21,7 +21,7 @@ describe('AppBar', () => {
       <AppBar
         product="reference"
         referenceHref="/"
-        buildHref="https://cantina.example/"
+        buildHref="https://app.example/"
         playHref="/play/"
       />
     )
@@ -36,7 +36,7 @@ describe('AppBar', () => {
       <AppBar
         product="reference"
         referenceHref="/"
-        buildHref="https://cantina.example/"
+        buildHref="https://app.example/"
         playHref="/play/"
       />
     )
@@ -44,8 +44,17 @@ describe('AppBar', () => {
     expect(tools.getByRole('link', { name: 'Reference' }).getAttribute('aria-current')).toBe('true')
     const build = tools.getByRole('link', { name: 'Build' })
     expect(build.getAttribute('aria-current')).toBeNull()
-    expect(build.getAttribute('href')).toBe('https://cantina.example/')
+    expect(build.getAttribute('href')).toBe('https://app.example/')
     expect(build.getAttribute('target')).toBeNull()
+  })
+
+  test('the bar carries its mode, which its colour keys on', () => {
+    for (const product of ['reference', 'build', 'play'] as const) {
+      const html = renderToStaticMarkup(
+        <AppBar product={product} referenceHref="/" buildHref="/build/" playHref="/build/play/" />
+      )
+      expect(html).toContain(`data-mode="${product}"`)
+    }
   })
 
   test('the switcher reads Reference | Build | Play', () => {

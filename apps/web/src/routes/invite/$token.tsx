@@ -1,13 +1,14 @@
 import { createFileRoute, useParams } from '@tanstack/react-router'
-import { InviteScreen } from '../../components/games/InviteScreen'
-import { pageTitle } from '../../lib/pageTitle'
+import { PRODUCT } from 'game-domain/product'
+import { InviteScreen } from '../../build/games/InviteScreen'
+import { areaTitle } from '../../lib/pageTitle'
 
 /**
  * `/invite/$token` — an invite link. `?join=1` marks the return from
  * "Sign in to join", so the page joins on arrival rather than asking again.
  */
 export const Route = createFileRoute('/invite/$token')({
-  head: () => ({ meta: [{ title: pageTitle('Join a Game') }] }),
+  head: () => ({ meta: [{ title: areaTitle(PRODUCT.build, 'Join a Game') }] }),
   validateSearch: (search: Record<string, unknown>): { join?: true } =>
     search.join === 1 || search.join === '1' || search.join === true ? { join: true } : {},
   component: InviteRoute,

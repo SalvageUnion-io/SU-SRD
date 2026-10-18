@@ -136,14 +136,14 @@ describe('observability', () => {
       new Error('[CONVEX M(entities:upsertByAppId)] [Request ID: abc] Server Error'),
       { source: 'commitWrite' },
       {
-        fingerprint: ['cantina-commit-write-failed', 'entities:upsertByAppId', 'defect'],
+        fingerprint: ['app-commit-write-failed', 'entities:upsertByAppId', 'defect'],
         tags: { convex_function: 'entities:upsertByAppId' },
       }
     )
 
     expect(posts[0]?.body).toMatchObject({
       context: { source: 'commitWrite' },
-      fingerprint: ['cantina-commit-write-failed', 'entities:upsertByAppId', 'defect'],
+      fingerprint: ['app-commit-write-failed', 'entities:upsertByAppId', 'defect'],
       tags: { convex_function: 'entities:upsertByAppId' },
     })
   })

@@ -38,7 +38,7 @@ describe('renderGallery', () => {
     expect(html).toContain(`shots/${pageSlug(first)}-desk.jpg`)
     expect(html).toContain('&lt;Contents&gt;')
     expect(html).toContain('1 not captured')
-    expect(html).not.toContain('id="cantina-edit"')
+    expect(html).not.toContain('id="app-edit"')
   })
 
   test('escapes markup', () => {
@@ -67,13 +67,13 @@ describe('renderGallery, page by page', () => {
     note: 'A "note"',
     chips: ['Art'],
   }
-  const cantinaIn: GalleryPage = {
+  const appIn: GalleryPage = {
     path: '/build/pilots/new',
     name: 'New',
     note: '',
     signedIn: true,
   }
-  const cantinaOut: GalleryPage = { path: '/build/starter', name: 'Starter', note: '' }
+  const appOut: GalleryPage = { path: '/build/starter', name: 'Starter', note: '' }
   const render = (pages: GalleryPage[], r: GalleryRun, og = new Map()) =>
     renderGallery(
       { sections: [section(pages)], shot: new Set(pages.map(pageSlug)), og, failures: [] },
@@ -81,7 +81,7 @@ describe('renderGallery, page by page', () => {
     )
 
   test('a linkable run links each signed-out page on the base, never a signed-in one', () => {
-    const html = render([srdPage, cantinaIn, cantinaOut], run())
+    const html = render([srdPage, appIn, appOut], run())
     expect(html).toContain('<a class="shot__frames" href="http://site/chassis/">')
     expect(html).toContain('href="http://site/build/starter"')
     expect(html).not.toContain('href="http://site/build/pilots/new"')
@@ -112,13 +112,13 @@ describe('renderGallery, page by page', () => {
 
   test('link previews: signed-out pages only, their og text, or the name and no image', () => {
     const og = new Map([
-      [pageSlug(cantinaOut), { title: 'The Cantina', description: 'Builder', image: true }],
+      [pageSlug(appOut), { title: 'The app', description: 'Builder', image: true }],
     ])
-    const html = render([srdPage, cantinaIn, cantinaOut], run(), og)
+    const html = render([srdPage, appIn, appOut], run(), og)
     expect(html).toContain('Link previews <small>2 pages</small>')
     expect(html).toContain('salvageunion.io/chassis/')
     expect(html).toContain('salvageunion.io/build/starter')
-    expect(html).toContain(`shots/${pageSlug(cantinaOut)}-og.png`)
+    expect(html).toContain(`shots/${pageSlug(appOut)}-og.png`)
     expect(html).toContain('<strong>Chassis</strong>')
     expect(html).toContain('No og:image')
     expect(html).toContain('<span>Builder</span>')

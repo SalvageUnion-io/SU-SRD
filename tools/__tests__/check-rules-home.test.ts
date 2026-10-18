@@ -3,6 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import {
+  AREA_DIRS,
   COMPONENTS_DIR,
   CONVEX_DIR,
   convexClientImports,
@@ -35,7 +36,7 @@ describe('relativeSpecifiers', () => {
       "export { b } from '../b'",
       "const c = await import('./c')",
       "import './d'",
-      "import { e } from 'cantina-domain/rules/e'",
+      "import { e } from 'game-domain/rules/e'",
     ].join('\n')
     expect(relativeSpecifiers(source)).toEqual(['./a', '../b', './c', './d'])
   })
@@ -45,7 +46,7 @@ describe('convexClientImports', () => {
   test('flags a Convex import of client src/, not of convex/ or a package', () => {
     const root = tree({
       [`${CONVEX_DIR}/games.ts`]:
-        "import { x } from '../src/lib/rules/crafting'\nimport { y } from './model/seats'\nimport { z } from 'cantina-domain/rules/downtime'",
+        "import { x } from '../src/lib/rules/crafting'\nimport { y } from './model/seats'\nimport { z } from 'game-domain/rules/downtime'",
       [`${CONVEX_DIR}/model/seats.ts`]: "export { w } from '../../src/components/a'",
       [`${CONVEX_DIR}/_generated/api.ts`]: "import '../../src/ignored'",
     })
@@ -71,12 +72,16 @@ describe('misplacedRules', () => {
       [`${COMPONENTS_DIR}/dashboard/__tests__/SlotRow.rules.test.tsx`]: '',
       [`${COMPONENTS_DIR}/dashboard/__tests__/fooRules.ts`]: '',
       [`${COMPONENTS_DIR}/dashboard/RulesPanel.tsx`]: '',
+      [`${AREA_DIRS[0]}/sheet/crawlerRules.ts`]: '',
+      [`${AREA_DIRS[1]}/usePlay.ts`]: '',
+      [`${AREA_DIRS[1]}/situation.model.ts`]: '',
     })
     expect(
       misplacedRules(root)
         .problems.map((p) => p.split(' is ')[0])
         .sort()
     ).toEqual([
+      `${AREA_DIRS[0]}/sheet/crawlerRules.ts`,
       `${COMPONENTS_DIR}/dashboard/dashboardRules.ts`,
       `${COMPONENTS_DIR}/dashboard/slotModels.ts`,
       `${COMPONENTS_DIR}/sheet/item.rules.ts`,

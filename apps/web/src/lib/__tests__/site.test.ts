@@ -5,7 +5,7 @@ import { appRoot, appUrl, originOf, pageOrigin } from '../site'
 
 const siteUrl = appUrl('/', originOf())
 
-/** The Cantina at salvageunion.io/build (ADR-048, `appBase.ts`). */
+/** The app at salvageunion.io/build (ADR-048, `appBase.ts`). */
 describe('the app base', () => {
   test('is salvageunion.io/build', () => {
     expect(siteUrl).toBe('https://salvageunion.io/build/')

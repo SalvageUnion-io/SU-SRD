@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-import { CROSS_CONTAINER_REFUSAL } from 'cantina-domain/links/linkRules'
 import { ConvexError } from 'convex/values'
+import { CROSS_CONTAINER_REFUSAL } from 'game-domain/links/linkRules'
 import { api } from '../../../convex/_generated/api'
 import {
   addCrawler,

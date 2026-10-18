@@ -1,11 +1,11 @@
 /**
  * The account hint: who is signed in, as the Union bar shows them, left in the
- * browser by The Cantina for the SRD to read.
+ * browser by the app for the SRD to read.
  *
  * The SRD has no backend and opens no Convex connection, yet its bar shows the
- * same account menu as The Cantina's. Both sites share one origin
- * (salvageunion.io, The Cantina at `/build`, ADR-048), so they share
- * `localStorage`: The Cantina writes the display name and avatar here whenever
+ * same account menu as the app's. Both sites share one origin
+ * (salvageunion.io, the app at `/build`, ADR-048), so they share
+ * `localStorage`: the app writes the display name and avatar here whenever
  * `api.account.me` answers, and clears them on sign-out. It is the one
  * account value kept on the device (the no-device-cache rule's exception): a
  * name and a picture URL, never a record.

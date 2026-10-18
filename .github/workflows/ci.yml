@@ -60,13 +60,13 @@ jobs:
               - 'ABOUT_JRVS.md'
               - 'LLM_STATEMENT.md'
               - 'SPECIAL_THANKS.md'
-            # The site (the reference pages and the Cantina), one workspace and
+            # The site (the reference pages and the app), one workspace and
             # one build: build-web and perf both key on it.
             web:
               - *shared
               - 'apps/web/**'
               # schemas, link rules and wire types Convex and the client share
-              - 'packages/cantina-domain/**'
+              - 'packages/game-domain/**'
               # the build jobs' Playwright configs and axe scan
               - 'packages/gates/**'
             # The two Worker-only apps, bundled together by bundle-workers.
@@ -74,8 +74,8 @@ jobs:
               - *shared
               - 'apps/discord-bot/**'
               - 'apps/su-assets/**'
-              # the bot's wire types (`cantina-domain/botWire`, `import type`)
-              - 'packages/cantina-domain/**'
+              # the bot's wire types (`game-domain/botWire`, `import type`)
+              - 'packages/game-domain/**'
               # the theme the bot's colours mirror (themeLockstep.test.ts)
               - 'apps/web/src/styles/theme.css'
             code:
@@ -162,9 +162,9 @@ jobs:
 
   # The build jobs need only `changes`: they take no artifact from the check
   # jobs, and `CI Success` already fails on any of them.
-  # The site's one build (`bun run build`: the reference pages, then the Cantina into
+  # The site's one build (`bun run build`: the reference pages, then the app into
   # `dist/build/`, ADR-050), then both apps' PR-blocking browser tiers against
-  # it. The Cantina is compiled against a Convex URL, as production's is. The
+  # it. The app is compiled against a Convex URL, as production's is. The
   # URL is a throwaway backend carrying this PR's own functions, not
   # production: a PR's client must run against the backend it ships with, and
   # a PR gate makes no production calls.
@@ -207,10 +207,10 @@ jobs:
         uses: ./.github/actions/playwright
 
       # The PR tier in one run: every spec but the performance budget (perf,
-      # below) and the Cantina's other signed-in specs (e2e-nightly.yml runs
+      # below) and the app's other signed-in specs (e2e-nightly.yml runs
       # the whole suite). A file filter is a pattern, so `smoke.e2e.ts` runs the
-      # reference pages' and the Cantina's smoke (`reference-smoke.e2e.ts`,
-      # `cantina-smoke.e2e.ts`), and likewise `bundle-budget`, `a11y` and
+      # reference pages' and the app's smoke (`reference-smoke.e2e.ts`,
+      # `app-smoke.e2e.ts`), and likewise `bundle-budget`, `a11y` and
       # `offline`; Play's are named whole, because `play-` alone would also
       # match `display-verification.e2e.ts`. Add a spec to this line; do NOT
       # add a step or a job.
@@ -220,12 +220,12 @@ jobs:
       # The build carries the seam, so the signed-in tests in these specs run
       # signed in (`play-*`, the Play lines of `sibling-heights.e2e.ts`,
       # `nesting-depth.e2e.ts`'s wizards and sheet), and
-      # CANTINA_E2E_EXPECT_AUTH_SEAM makes a lost seam fail the run rather than
+      # E2E_EXPECT_AUTH_SEAM makes a lost seam fail the run rather than
       # skip them (`e2e/fixtures.ts`).
       - name: Run the smoke, bundle-budget, JSON API, a11y, offline, sibling-height, chip-strip, nesting-depth and Play specs
         working-directory: apps/web
         env:
-          CANTINA_E2E_EXPECT_AUTH_SEAM: '1'
+          E2E_EXPECT_AUTH_SEAM: '1'
         run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts json-api.e2e.ts a11y.e2e.ts offline.e2e.ts sibling-heights.e2e.ts chip-strips.e2e.ts nesting-depth.e2e.ts play-turn.e2e.ts play-solo.e2e.ts play-mediator.e2e.ts
 
       - name: Upload Playwright reports on failure
@@ -265,7 +265,7 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      # The one build, as build-web makes it: the Cantina in it needs a backend.
+      # The one build, as build-web makes it: the app in it needs a backend.
       - name: Start a throwaway Convex backend and build the site against it
         uses: ./.github/actions/convex-backend
 

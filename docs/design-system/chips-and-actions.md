@@ -21,18 +21,19 @@ A strip is a Token, a Row or Card head, or a TitledBox, Slab or SheetSectionCard
 - **C1** Every strip is identity, then its chips, the actions inlined last (C8); nothing beside it.
 - **C1a** One Size per strip: its chips and controls share one height and one centre line, Mini in a Token, Compact on a head.
 - **C2** Chips keep the class order; a form drops classes, never reorders them.
-- **C3** Budgets are static: no chip is added, dropped or moved by width, content or hover. What a Token leaves out, its Peek shows.
+- **C2a** Every strip, the Page band included, is drawn by `Chips`; each chip names its class (`data-chip-class`).
+- **C3** Budgets are static: no chip is added, dropped, moved or clipped by width, content or hover; a strip never hides its overflow. What a Token leaves out, its Peek shows.
 - **C4** A Token's context lane is named by its container, from the closed list.
 - **C5** Only the name flexes: a Token's ends in "…", any other wraps. Chips and controls never shrink, clip or scale.
   A Token's chips are one row; a compact Card's or Row's may take two, never more.
 - **C6** In a list each chip class and action slot is a column every line shares; an absent value leaves its cell empty, and a lane never shrinks below its chip.
   Too narrow for every lane and a readable name (a container query), each line packs right and its empty cells collapse.
 - **C7** A live reading reserves its maximum's width, in tabular figures.
-- **C8** Actions are chips: inlined in the chip group after the cost, at its Size, in fixed slots: state · uses · ⋯ or ✕. Nothing sits beside a strip.
+- **C8** Actions are chips: inlined in the chip group after the cost, at its Size, in fixed slots: state · uses · ⋯ or ✕. Nothing sits beside a strip, and nothing expands under it: Details opens the Page.
   A state's follow-up (Repair) opens from the state slot; at most two visible, then ⋯; never hover-only.
 - **C9** A mode swaps what fills a slot (a read chip, a control, a seal), never its size.
 - **C10** A header's summary never repeats a child's fact or its parent's summary; Slab and TitledBox take it as one `SlabCount` list.
-- **C11** A related unit or entity is a relation chip, label first, its value Peeking and opening it: never a loose stamp ("Assigned: X") or a Token beside the strip.
+- **C11** A related unit or entity is a relation chip, label first, its value Peeking and opening it: never a loose stamp ("Assigned: X") or a Token beside the strip. Read and Edit show the same chip.
 
 ## Built as
 

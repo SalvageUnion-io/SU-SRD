@@ -18,7 +18,7 @@ Guidance for every coding agent here. Instructions only: history is in git.
 ## UI Development
 
 - Reuse `apps/web/src/components` (`ReferenceEntityCard` for every SRD entity, `Card` for everything else) before building one-off UI.
-- Get CSS right first time by reasoning about the rendering context (float does nothing in grid/flex). Verify a visual change yourself: `bun run shot </route|cantina:/route> --width phone|column|page` prints PNGs to read.
+- Get CSS right first time by reasoning about the rendering context (float does nothing in grid/flex). Verify a visual change yourself: `bun run shot </route|app:/route> --width phone|column|page` prints PNGs to read.
 - Entity lists are compact, header-only, clickable; nested entities render inside the parent's expanded view, never as separate grids. Ask if unsure how much detail to show.
 - Styling is tokens, style objects and one stylesheet ([`.claude/rules/styling.md`](.claude/rules/styling.md)); never a utility class.
 - A prop that must reach nested entity cards is passed explicitly (there is no shared display context); typecheck immediately.
@@ -29,7 +29,7 @@ After any cross-package change, run typecheck, tests and lint, and check every c
 
 ```bash
 bun install                        # postinstall builds the reference schemas and the git hooks
-bun run dev                        # the app (reference pages + the Cantina at /build) on a local Convex backend
+bun run dev                        # the app (reference pages + the client app at /build) on a local Convex backend
 bun run check:fast                 # the inner loop: every gate but the suite, the network and regeneration
 bun run check [<id> …]             # every gate (or just those); `--list` names each with its fix
 bun run test                       # full suite; one workspace: bun --filter <workspace> test

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from 'bun:test'
-import type { PostRollRelayResponse } from 'cantina-domain/botWire'
-import { BOT_RELAY_POST_ROLL_PATH } from 'cantina-domain/botWire'
 import { MessageFlags } from 'discord-api-types/v10'
+import type { PostRollRelayResponse } from 'game-domain/botWire'
+import { BOT_RELAY_POST_ROLL_PATH } from 'game-domain/botWire'
 import worker from '../index'
 
 /**
@@ -25,8 +25,8 @@ function env(overrides: Partial<Env> = {}): Env {
     DISCORD_PUBLIC_KEY: 'ab'.repeat(32),
     DISCORD_APPLICATION_ID: '111111111111111111',
     DISCORD_TOKEN: 'a-token',
-    CANTINA_CONVEX_SITE_URL: 'https://x.convex.site',
-    CANTINA_BOT_SECRET: 'a-secret',
+    BACKEND_SITE_URL: 'https://x.convex.site',
+    BOT_SECRET: 'a-secret',
     ...overrides,
   } as Env
 }
@@ -112,7 +112,7 @@ describe('the post-roll relay', () => {
   })
 
   test('is absent while the secret is unset', async () => {
-    const res = await worker.fetch(relayRequest(ROLL), env({ CANTINA_BOT_SECRET: '' }), ctx)
+    const res = await worker.fetch(relayRequest(ROLL), env({ BOT_SECRET: '' }), ctx)
     expect(res.status).toBe(404)
   })
 

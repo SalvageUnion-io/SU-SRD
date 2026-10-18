@@ -1,8 +1,7 @@
-import { TABLE_OF_KIND } from 'cantina-domain/entityKinds'
-import { PRODUCT } from 'cantina-domain/product'
-import type { EntityRef } from 'cantina-domain/schemas/entity'
-import type { SoftLink } from 'cantina-domain/schemas/softLink'
 import type { FunctionArgs } from 'convex/server'
+import { TABLE_OF_KIND } from 'game-domain/entityKinds'
+import type { EntityRef } from 'game-domain/schemas/entity'
+import type { SoftLink } from 'game-domain/schemas/softLink'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import type { ConnectionMode } from '../lib/connection/connectionMode'
@@ -30,7 +29,7 @@ import { knownVersion, noteVersion } from './serverVersions'
  * (`outdated`, `lib/connection/buildFloor.ts`). There is no fourth case.
  *
  * `signedOut` is read-only and holds nothing: there is no anonymous store at
- * all, and nothing syncs signed out. Signed out, the Cantina shows reference and nothing of a
+ * all, and nothing syncs signed out. Signed out, the app shows reference and nothing of a
  * player's own (ADR-034 decision 1, as amended). The durable path the tests
  * exercise is the signed-in one (`src/stores/__tests__/signedInBackend.ts`
  * for unit tests, the `TestAuthBridge` seam for e2e).
@@ -151,7 +150,7 @@ const BLOCKED_WRITE_COPY: Record<BlockedWriteReason, string> = {
   settling: 'Still signing in — that change was not saved. Try again in a moment.',
   offline: 'Not connected — your Games are read-only until the connection returns',
   signedOut: 'Sign in to build and edit — nothing is saved without an account.',
-  outdated: `${PRODUCT.name} has been updated — that change was not saved. Reloading onto the new version.`,
+  outdated: 'The app has been updated — that change was not saved. Reloading onto the new version.',
 }
 
 /**
@@ -495,7 +494,7 @@ export async function commitTransfer(
  * use; throws rather than silently degrading when the answer is "you cannot
  * write right now".
  *
- * `signedOut` is refused too: signed out, the Cantina is read-only
+ * `signedOut` is refused too: signed out, the app is read-only
  * ([ADR-034](../../../../docs/ARCHITECTURE.md#decisions) decision 1, as amended).
  */
 export function requireWritableBackend(): 'remote' {

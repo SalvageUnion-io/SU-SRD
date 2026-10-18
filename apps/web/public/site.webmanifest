@@ -2,7 +2,7 @@
   "id": "/",
   "name": "SalvageUnion.io",
   "short_name": "SalvageUnion.io",
-  "description": "The Salvage Union reference and character builder: every chassis, system, module and ability, and the Cantina to build and run Pilots, Mechs and Union Crawlers.",
+  "description": "The Salvage Union reference and character builder: every chassis, system, module and ability, and the app to build and run Pilots, Mechs and Union Crawlers.",
   "start_url": "/",
   "scope": "/",
   "icons": [

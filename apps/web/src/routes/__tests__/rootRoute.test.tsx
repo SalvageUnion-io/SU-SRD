@@ -81,7 +81,7 @@ describe('the root route', () => {
 
   test('the tab gets the default title', async () => {
     await mountAt('/')
-    expect(document.title).toBe(pageTitle('The Cantina'))
+    expect(document.title).toBe(pageTitle('Training Bay'))
   })
 
   test('a Play screen draws its own bar, so the Union bar and the foot step aside', async () => {

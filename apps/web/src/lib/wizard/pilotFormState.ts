@@ -10,7 +10,7 @@
  * All functions are pure — no store, no React.
  */
 
-import type { Pilot } from 'cantina-domain/schemas/pilot'
+import type { Pilot } from 'game-domain/schemas/pilot'
 import { pilotMaxAP, pilotMaxHP } from 'salvageunion-reference/rules'
 import { pilotPartnerSeeds, syncPartners } from '../rules/partnerGrants'
 

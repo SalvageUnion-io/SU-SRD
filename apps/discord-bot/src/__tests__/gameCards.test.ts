@@ -1,8 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { DISCORD_ROLL_ACCENT } from 'salvageunion-reference'
-import type { EntityBody, SheetResult } from '../cantina/types'
 import {
-  CANTINA_ORIGIN,
+  APP_ORIGIN,
   denialMessage,
   gamesCard,
   gameUrl,
@@ -10,10 +9,11 @@ import {
   sheetCard,
   sheetUrl,
 } from '../gameCards'
+import type { EntityBody, SheetResult } from '../play/types'
 import { cardText, cardUrl } from './cardText'
 
 /**
- * Card builders for the Cantina Game commands.
+ * Card builders for the app Game commands.
  *
  * These are pure `data → ContainerData`, so every one of them is exercised here
  * with no Discord client, no network and no mock. A pilot's and a mech's
@@ -22,7 +22,7 @@ import { cardText, cardUrl } from './cardText'
  * fresh pilot and a bare Mule.
  */
 
-const WEB = CANTINA_ORIGIN
+const WEB = APP_ORIGIN
 const CRITICAL = DISCORD_ROLL_ACCENT.cascade
 
 /** A fresh pilot as the server derives it: base HP 10 and AP 5, alive. */
@@ -105,7 +105,7 @@ describe('gauge', () => {
 describe('vital field names', () => {
   test('reads the CANONICAL schema spellings', () => {
     // The regression this guards is not hypothetical: `crew.vitals` shipped
-    // reading `currentHp` while packages/cantina-domain/src/schemas/pilot.ts defines
+    // reading `currentHp` while packages/game-domain/src/schemas/pilot.ts defines
     // `currentHP`, so every vital rendered as an em-dash indistinguishable
     // from an undamaged crew. The reads are typed against that schema
     // now; this pins that the canonical names reach the card.
@@ -238,7 +238,7 @@ describe('deep links', () => {
 
   test('every sheet links to the live sheet by its row id', () => {
     // /sheet/$kind/$id resolves a Convex row id for anyone allowed to see the
-    // row (The Cantina's entities.locate), so one shape serves the owner and the crew.
+    // row (The app's entities.locate), so one shape serves the owner and the crew.
     expect(sheetUrl('pilots', 'cx-p1')).toBe(`${WEB}/sheet/pilot/cx-p1`)
     expect(sheetUrl('mechs', 'cx-m1')).toBe(`${WEB}/sheet/mech/cx-m1`)
     expect(sheetUrl('crawlers', 'cx-c1')).toBe(`${WEB}/sheet/crawler/cx-c1`)
@@ -256,7 +256,7 @@ describe('gamesCard', () => {
     expect(cardText(gamesCard([]))).toContain('No Games yet')
   })
 
-  test('links to the Hangar, since the Cantina has no /games page', () => {
+  test('links to the Hangar, since the app has no /games page', () => {
     expect(cardUrl(gamesCard([]))).toBe(`${WEB}/`)
   })
 

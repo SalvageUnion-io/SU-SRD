@@ -1,7 +1,7 @@
 /**
  * "Download all" for somebody who is not signed in.
  *
- * Signed out, the Cantina is read-only (ADR-034 as amended): nothing can be built, so
+ * Signed out, the app is read-only (ADR-034 as amended): nothing can be built, so
  * an anonymous backup has nothing of the session's to carry. The stores hold
  * rows in memory only, and a session's end drops them (`forgetLoadedRows`),
  * so the last account's rows never reach a signed-out backup.

@@ -1,4 +1,4 @@
-# ADR-021: The Cantina Surface Taxonomy — Enforcement Modes & Rule Placement
+# ADR-021: The App Surface Taxonomy — Enforcement Modes & Rule Placement
 
 **A rule's enforcement is a function of the surface's mode, not of the rule
 alone.** The border between modes is the **lifecycle transaction**: a state
@@ -33,7 +33,7 @@ placement table is [surfaces](../ARCHITECTURE.md#surfaces). Amended by
 
 Play composes a player's Pilot + Mech + Crawler into one live surface at
 `/play/$pilotId`, and the Mediator's at `/play/game/$gameId`
-(`src/components/play/`; [play.md](../architecture/play.md)).
+(`src/play/`; [play.md](../architecture/play.md)).
 
 Classify both axes (mode and rule class) before building any rules feature.
 The Live Sheet is deliberately the least-enforced surface: wanting a hard block

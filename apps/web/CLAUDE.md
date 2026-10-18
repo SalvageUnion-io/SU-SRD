@@ -1,18 +1,19 @@
-# web — salvageunion.io and the Cantina
+# web — salvageunion.io and its app
 
 One app ([ADR-050](../../docs/adr/050-one-app.md)): the SRD's pre-rendered pages
 (the in-house SSG in `ssg/`; its contract is [`ssg/DESIGN.md`](ssg/DESIGN.md),
-**read it first**) and the Cantina, the client app at `/build`
+**read it first**) and the app at `/build`
 (guide: [`src/routes/CLAUDE.md`](src/routes/CLAUDE.md)). One Worker
-(`src/worker/index.ts`) runs for a miss and first for `/build/*`.
+(`src/worker/index.ts`) runs for a miss and first for `/build/*`. Areas in
+`src/`: `reference/`, `build/` (Training Bay), `play/` (The Cantina).
 
 ## Routes are registered, not discovered
 
-A page is a `src/pages/**/*.page.tsx` module exporting a `PageModule`
+A page is a `src/reference/pages/**/*.page.tsx` module exporting a `PageModule`
 (`pattern`, optional `getStaticPaths`, `page`); it builds only once
 `register(…)`ed in [`ssg/routes.ts`](ssg/routes.ts), the one list of what the
 site emits. A finished document with no data behind it is a `public/` file, not
-a route. Non-HTML outputs are `src/endpoints/*.ts` wired through
+a route. Non-HTML outputs are `src/reference/endpoints/*.ts` wired through
 `ssg/endpoints.ts`: **endpoints are not routes.**
 
 ## Pages
@@ -34,7 +35,7 @@ that `dist`, and `perf-budget.e2e.ts` (lower a budget when a page gets faster).
 
 ## Convex
 
-`convex/` is the Cantina's backend; tests in `test/` and `e2e/`; static pages
+`convex/` is the app's backend; tests in `test/` and `e2e/`; static pages
 never import them (Biome). The block below binds `convex/` only; `bunx`, not
 `npx`. Vendored Convex skills and how they meet this repo: [AGENTS.md](AGENTS.md).
 

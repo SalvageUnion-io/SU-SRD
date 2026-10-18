@@ -4,7 +4,7 @@ import type { launchBrowser } from 'gates/lib/chromium'
 import { CHECKOUT_HEADER, CHECKOUT_ROOT, portFor } from 'gates/ports'
 import type { Server } from '../shot'
 import {
-  CANTINA_BASE,
+  APP_BASE,
   ensureServer,
   fileName,
   isOwnServer,
@@ -48,8 +48,8 @@ describe('parseArgs', () => {
     [['/a', '--full']],
     // Neither app has a dark theme, so there is no flag to emulate one.
     [['/a', '--dark']],
-    [['cantina:starter']],
-    // A target is a route: a bare name is neither an srd nor a Cantina one.
+    [['app:starter']],
+    // A target is a route: a bare name is neither an srd nor an app one.
     [['atoms--button--primary']],
   ])('rejects %p with the usage line', (argv) => {
     expect(() => parseArgs(argv)).toThrow('usage: bun run shot')
@@ -64,14 +64,14 @@ describe('planShot', () => {
     })
   })
 
-  test('cantina:/route is a Cantina route under its base, on the same signed-out server', () => {
-    const { server, path } = planShot({ target: 'cantina:/starter' })
-    expect(path).toBe(`${CANTINA_BASE}/starter`)
+  test('app:/route is an app route under its base, on the same signed-out server', () => {
+    const { server, path } = planShot({ target: 'app:/starter' })
+    expect(path).toBe(`${APP_BASE}/starter`)
     expect(server).toEqual(planShot({ target: '/' }).server)
     expect(server.cmd).toEqual(['bun', 'ssg/dev.ts'])
     expect(server.cwd.endsWith('apps/web')).toBe(true)
     expect(server.env).toEqual({ VITE_CONVEX_URL: NO_BACKEND })
-    expect(planShot({ target: 'cantina:/' }).path).toBe(`${CANTINA_BASE}/`)
+    expect(planShot({ target: 'app:/' }).path).toBe(`${APP_BASE}/`)
   })
 })
 
@@ -84,7 +84,7 @@ test('only a server naming this checkout is reused', () => {
 test('fileName slugs the target and marks the width', () => {
   expect(fileName({ target: '/chassis/mule/', width: 'column' })).toBe('chassis-mule-column.png')
   expect(fileName({ target: '/', width: 'page' })).toBe('home-page.png')
-  expect(fileName({ target: 'cantina:/starter', width: 'page' })).toBe('cantina-starter-page.png')
+  expect(fileName({ target: 'app:/starter', width: 'page' })).toBe('app-starter-page.png')
 })
 
 describe('the dev server', () => {

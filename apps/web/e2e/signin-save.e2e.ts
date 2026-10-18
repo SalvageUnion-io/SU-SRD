@@ -8,7 +8,7 @@ test.use({ account: 'anonymous' })
 /**
  * Sign in → build → save (ADR-034 decision 1, as amended).
  *
- * Signed out, the Cantina is read-only: a visitor who opens a wizard is asked to sign
+ * Signed out, the app is read-only: a visitor who opens a wizard is asked to sign
  * in instead, so there is never unsaved anonymous work to hand off. This pins
  * both halves — the refusal, and that what is built after signing in is
  * durable — and it is the reason the test-only password provider exists.
@@ -20,7 +20,7 @@ test.use({ account: 'anonymous' })
  *
  * Two things have to line up:
  *
- *  - `CANTINA_TEST_AUTH=true` on the build's deployment, so the `password` provider exists,
+ *  - `TEST_AUTH=true` on the build's deployment, so the `password` provider exists,
  *  - `VITE_TEST_AUTH=true` in the build, so `TestAuthBridge` registers the seam.
  *
  * The PR-blocking CI suite builds with neither, so this skips there with
@@ -32,15 +32,15 @@ test.use({ account: 'anonymous' })
  * provides both against a throwaway self-hosted Convex backend — a
  * container destroyed with the runner, so it needs no credentials and never
  * puts a password provider on production. The same seam signs in every other
- * spec that builds something (`fixtures.ts`): signed out, the Cantina is read-only.
+ * spec that builds something (`fixtures.ts`): signed out, the app is read-only.
  *
- * That job sets `CANTINA_E2E_EXPECT_AUTH_SEAM`, which turns the skip into a throw.
+ * That job sets `E2E_EXPECT_AUTH_SEAM`, which turns the skip into a throw.
  *
  * Run it for real against the local backend (one-time setup: "Local backend"
  * in `.claude/skills/convex-ops/SKILL.md`; without it this fails locally). Playwright starts
  * `bun run dev`, or reuses a running one, which carries all three:
  *
- *   cd apps/web && bunx playwright test --project=cantina signin-save.e2e.ts
+ *   cd apps/web && bunx playwright test --project=desktop signin-save.e2e.ts
  */
 
 test('a signed-out visitor is asked to sign in, and what they build then is saved', async ({

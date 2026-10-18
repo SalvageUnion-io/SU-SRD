@@ -1,6 +1,6 @@
 /**
  * The relay: Convex asking the bot to post a Play roll into a bound channel
- * (`convex/channelBindings.ts#postRoll`, wire shapes in `cantina-domain/botWire`).
+ * (`convex/channelBindings.ts#postRoll`, wire shapes in `game-domain/botWire`).
  *
  * The Worker is the one place holding both the bot token and the roll card, so
  * Convex sends the roll and the bot renders it with `buildPostedRollMessage`:
@@ -8,7 +8,7 @@
  * `↻ Roll again` (only the roller's) and `See table` buttons. It is posted as
  * a NEW message with the bot token, since there is no interaction to answer.
  *
- * Authenticated with the bearer `CANTINA_BOT_SECRET`, the same value the bot
+ * Authenticated with the bearer `BOT_SECRET`, the same value the bot
  * presents to Convex's `/bot/*`, in the other direction. Unset, the relay is
  * a 404, as `/bot/*` is on a deployment that has not opted in.
  *
@@ -17,9 +17,9 @@
  */
 
 import { DiscordAPIError, HTTPError, RateLimitError } from '@discordjs/rest'
-import type { PostRollRelayRequest, PostRollRelayResponse } from 'cantina-domain/botWire'
-import { bearerToken, isPostableRoll, secretsMatch } from 'cantina-domain/botWire'
 import { Routes } from 'discord-api-types/v10'
+import type { PostRollRelayRequest, PostRollRelayResponse } from 'game-domain/botWire'
+import { bearerToken, isPostableRoll, secretsMatch } from 'game-domain/botWire'
 import { buildPostedRollMessage } from '../commands/roll'
 import { encodeRollResult } from '../customId'
 import { reportError } from '../reportError'
@@ -59,7 +59,7 @@ function discordFailure(status: number, code: number | string | null): string {
 
 /** Handle `POST BOT_RELAY_POST_ROLL_PATH`. */
 export async function handlePostRoll(request: Request, env: Env): Promise<Response> {
-  const expected = env.CANTINA_BOT_SECRET
+  const expected = env.BOT_SECRET
   if (!expected) return answer({ error: 'not found' }, 404)
   const presented = bearerToken(request.headers.get('Authorization'))
   if (presented === null || !secretsMatch(presented, expected)) {

@@ -4,10 +4,10 @@
  *
  * Pure apart from the reference lookups, and the die is injected, so tests
  * pick the roll. The Mediator's Opposition reads its rows through these
- * (`components/play/mediator/opposition.model.ts`).
+ * (`play/mediator/opposition.model.ts`).
  */
 
-import type { EncounterNpc } from 'cantina-domain/schemas/encounterNpc'
+import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
 import type { RefEntity } from 'salvageunion-reference'
 import { NO_EFFECT, rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
 

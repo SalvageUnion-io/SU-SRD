@@ -51,7 +51,7 @@ Granted, TL-scalable pilot equipment (Custom Sniper Rifle) resolves an
 **effective tech level** = `max(baseTL, scalingParent.techLevel ?? baseTL)`,
 driving its Modification-choice cap (`cardinality.max.scalesWith: techLevel`)
 and any `perTechLevel` value (`resolveDataValueForTechLevel`), shown with the
-§5 frame. The card takes `scalingParent` (the crawler level in the Cantina).
+§5 frame. The card takes `scalingParent` (the crawler level in the app).
 
 ### 7. Data rule: granted-only pilot equipment is TL1
 

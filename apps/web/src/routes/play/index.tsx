@@ -8,10 +8,11 @@
  */
 
 import { createFileRoute } from '@tanstack/react-router'
-import { PlayLanding } from '../../components/play/PlayLanding'
-import { pageTitle } from '../../lib/pageTitle'
+import { PRODUCT } from 'game-domain/product'
+import { areaTitle } from '../../lib/pageTitle'
+import { PlayLanding } from '../../play/PlayLanding'
 
 export const Route = createFileRoute('/play/')({
-  head: () => ({ meta: [{ title: pageTitle('Play') }] }),
+  head: () => ({ meta: [{ title: areaTitle(PRODUCT.play) }] }),
   component: PlayLanding,
 })

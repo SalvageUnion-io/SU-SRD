@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { PRODUCT } from 'game-domain/product'
+import { SavePatternPage } from '../../../build/mech/Pattern/SavePatternPage'
 import { toast } from '../../../components/index'
-import { SavePatternPage } from '../../../components/mech/Pattern/SavePatternPage'
-import { pageTitle } from '../../../lib/pageTitle'
+import { areaTitle } from '../../../lib/pageTitle'
 
 /**
  * `/mechs/patterns/new?from=<mechId>` — save a mech as a pattern (board
@@ -10,7 +11,7 @@ import { pageTitle } from '../../../lib/pageTitle'
  * Patterns shelf on Shelves.
  */
 export const Route = createFileRoute('/mechs/patterns/new')({
-  head: () => ({ meta: [{ title: pageTitle('Save as pattern') }] }),
+  head: () => ({ meta: [{ title: areaTitle(PRODUCT.build, 'Save as pattern') }] }),
   validateSearch: (search: Record<string, unknown>): { from: string } => ({
     from: typeof search.from === 'string' ? search.from : '',
   }),

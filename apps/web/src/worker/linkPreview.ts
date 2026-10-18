@@ -5,7 +5,7 @@
  * ## The words
  *
  * An unfurl bot (`Discordbot/2.0`) asks for `/p/:kind/:appId` or
- * `/invite/:token` (the link the Cantina and the bot hand out; an old
+ * `/invite/:token` (the link the app and the bot hand out; an old
  * `/join/:code` link 301s there first, `../lib/redirects.ts`) without
  * `Sec-Fetch-Mode: navigate`, so it reaches the Worker
  * rather than Static Assets' SPA fallback. `metaFor` asks Convex what a

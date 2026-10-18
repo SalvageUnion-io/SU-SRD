@@ -57,7 +57,7 @@ export type ReferenceEntityCardProps = {
   /**
    * BUILDER PICK — a chassis (or its pattern) card shows the chassis ability
    * as a page does, nested in the pick as a contentful Token (N3, E19: The
-   * Cantina's mech-builder pick cards, where choosing needs it). It shows
+   * app's mech-builder pick cards, where choosing needs it). It shows
    * even under `hide.actions`, which a picker
    * sets. Off everywhere else; nested cards never inherit it.
    */
@@ -157,7 +157,7 @@ export type ReferenceEntityCardProps = {
   /** Parent entity for choice-cap resolution (`cardinality.max.scalesWith`, e.g. techLevel) —
    * when a host (mech/pilot) supplies the scaling field instead of the entity.
    * Its `techLevel` also drives `perTechLevel` datavalue scaling (e.g. Custom
-   * Sniper Rifle damage) — the crawler level in the Cantina. */
+   * Sniper Rifle damage) — the crawler level in the app. */
   scalingParent?: Record<string, unknown>
   /** Extra content on the accent field after the body box, before the footer
    * (e.g. a crawler bay's crew inset). */
@@ -177,7 +177,7 @@ export type ReferenceEntityCardProps = {
    * its other producer is a pattern's Systems/Modules loadout
    * (`PatternLoadout`). A pattern card renders with the CHASSIS as its
    * `data`, so it inherits the chassis artwork and would otherwise satisfy an
-   * inferred gate — flipping every Cantina mech-wizard pattern card on an
+   * inferred gate — flipping every app mech-wizard pattern card on an
    * artwork-bearing chassis to a layout meant only for class pages. Only the
    * class consumers set this. */
   asideLead?: boolean

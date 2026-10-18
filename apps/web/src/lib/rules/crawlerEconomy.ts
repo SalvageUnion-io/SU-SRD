@@ -33,8 +33,8 @@
  * module never picks for the player.
  */
 
-import { DOWNTIME_UPKEEP_SCRAP } from 'cantina-domain/rules/downtime'
-import type { Crawler, ScrapPool } from 'cantina-domain/schemas/crawler'
+import { DOWNTIME_UPKEEP_SCRAP } from 'game-domain/rules/downtime'
+import type { Crawler, ScrapPool } from 'game-domain/schemas/crawler'
 import type { Roll, TechLevel } from 'salvageunion-reference/rules'
 import { tierUpgradeCost } from 'salvageunion-reference/rules'
 import { addToScrapPool, scrapPoolBucket } from '../cargo/cargoTransfer'

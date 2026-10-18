@@ -1,6 +1,6 @@
 /**
  * The Union bar's account controls on the SRD, which has no backend: who is
- * signed in comes from the account hint The Cantina leaves on this origin
+ * signed in comes from the account hint the app leaves on this origin
  * (`src/lib/accountHint`).
  *
  * The page is served signed out — one HTML for every reader, so no cache ever
@@ -12,13 +12,13 @@
 
 import { appPath } from './appBase'
 
-/** Where Sign in goes: The Cantina starts Discord's round trip (`/sign-in`). */
+/** Where Sign in goes: the app starts Discord's round trip (`/sign-in`). */
 export const SIGN_IN_HREF = appPath('/sign-in')
 
-/** The Cantina's settings page. */
+/** The app's settings page. */
 export const SETTINGS_HREF = appPath('/settings')
 
-/** The Cantina ends the session, then comes back to `page` (`/sign-out`). */
+/** The app ends the session, then comes back to `page` (`/sign-out`). */
 export function signOutHref(page: string): string {
   return `${appPath('/sign-out?to=')}${encodeURIComponent(page)}`
 }

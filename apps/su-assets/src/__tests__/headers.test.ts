@@ -5,7 +5,7 @@ import { BASE_SECURITY_HEADERS } from '../worker'
 
 /**
  * The one place the two sources of the base security headers are held together.
- * salvageunion.io (srd and the Cantina) sends them from the `/*` block of
+ * salvageunion.io (srd and the app) sends them from the `/*` block of
  * `apps/web/public/_headers`; this Worker builds its own responses and sends
  * `BASE_SECURITY_HEADERS`. A header changed in one and not the other fails here.
  */

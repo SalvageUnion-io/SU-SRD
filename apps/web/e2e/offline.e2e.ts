@@ -29,7 +29,7 @@ test('opened at /, the reference and the builder both open offline', async ({ pa
   try {
     await page.goto('/build/')
     await expect(page.locator('#root')).not.toBeEmpty()
-    await expect(page).toHaveTitle(/Cantina/i)
+    await expect(page).toHaveTitle(/Training Bay/i)
 
     await page.goto('/')
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()

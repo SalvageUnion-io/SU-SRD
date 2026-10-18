@@ -14,7 +14,7 @@
  * anyone with the link may read; a null answer becomes the plain private card.
  */
 
-import { PRODUCT } from 'cantina-domain/product'
+import { PRODUCT } from 'game-domain/product'
 import type { OgCardProps } from '../../components/index'
 import { color } from '../../design/tokens'
 
@@ -156,7 +156,7 @@ export function inviteCard(answer: InvitePreviewAnswer, address: string): Previe
     tone: color.crawler,
     summary: answer.mediatedBy
       ? `Mediated by ${answer.mediatedBy}.`
-      : `A Salvage Union Game on ${PRODUCT.name}.`,
+      : `A Salvage Union Game in ${PRODUCT.play}.`,
     address,
   }
 }
