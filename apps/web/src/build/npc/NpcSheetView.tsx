@@ -12,6 +12,7 @@
  * `entities.locate` tells them apart, as it does for every sheet.
  */
 
+import { gamePath } from 'game-domain/entityKinds'
 import { PRODUCT } from 'game-domain/product'
 import { useNavigate } from '@tanstack/react-router'
 import type { Npc } from 'game-domain/schemas/npc'
@@ -141,7 +142,7 @@ export function NpcSheetView({ id }: { id: string }) {
       madeBy={maker ?? 'a player'}
       readOnly
       crewing={crewingOf(gameLinks, id, gameCrawlerName)}
-      back={gameId === null ? undefined : { href: `/games/${gameId}`, label: 'The crew' }}
+      back={gameId === null ? undefined : { href: gamePath(gameId), label: 'The crew' }}
     />
   )
 }

@@ -257,8 +257,10 @@ describe('gamesCard', () => {
     expect(cardText(gamesCard([]))).toContain('No Games yet')
   })
 
-  test('links to the Hangar, since the app has no /games page', () => {
-    expect(cardUrl(gamesCard([]))).toBe(`${WEB}/`)
+  test('links to Play’s hub, where your Games are listed; each Game to its page in Play', () => {
+    expect(cardUrl(gamesCard([]))).toBe(`${WEB}/play/`)
+    const card = gamesCard([{ gameId: 'g1', name: 'Tenacity', mediator: false, organizer: false }])
+    expect(cardText(card)).toContain(`[Tenacity](${WEB}/play/games/g1)`)
   })
 
   test('roles read as base role plus modifier, never as three roles', () => {

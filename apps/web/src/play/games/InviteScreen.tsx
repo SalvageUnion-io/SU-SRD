@@ -1,9 +1,9 @@
+import { useNavigate } from '@tanstack/react-router'
 import { useMutation, useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { useEffect, useRef } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { SignInControl } from '../../build/account/SignInControl'
-import { useShowContainer } from '../../build/entityContainer/useShowContainer'
 import {
   Button,
   Card,
@@ -20,22 +20,24 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import { invitePath } from '../../lib/games/inviteLink'
 
 /**
- * `/invite/$token` — a Game's invite URL. A Game is joined from its link,
- * never a typed code, and joins you as a player.
+ * `/invite/$token` — a Game's invite URL, in Play (ADR-052 §4): Play's band
+ * and mode tab. A Game is joined from its link, never a typed code, and joins
+ * you as a player.
  *
  * Signed-out is the **expected** state here, not an edge case: the whole point
  * of a link is that you can hand it to someone who has no account yet. So the
  * page describes the invitation *before* asking for a sign-in, and a dead link
  * says so without ever prompting one — being asked to authenticate only to find
  * out the link expired is the worst version of this screen. (A dead link does
- * offer a plain sign-in beside "Back to Shelves", as a way on once it has
+ * offer a plain sign-in beside "Back to your Games", as a way on once it has
  * said the link is dead; it is never "Sign in to join".)
  *
  * Opening one signs you in if needed and joins that Game. "Sign in to join"
  * sends Discord's round trip back here with `?join=1`, and the page joins on
  * arrival: the press that started the sign-in was the decision, so asking for a
  * second press would only be asking twice. A visitor who arrives already signed
- * in presses Join once. Either way, joining opens the Game's own page.
+ * in presses Join once. Either way, joining opens the Game's own page in Play
+ * (`/play/games/$gameId`).
  *
  * The token lives in the URL rather than in `sessionStorage`, so it survives the
  * OAuth round trip and still works when pasted into a different browser.
@@ -64,13 +66,13 @@ const DEAD_HEADLINE = 'That invite link does not work.'
 const DEAD_ASK =
   'It may have been reset, or not copied whole. Ask whoever invited you for the current link.'
 
-const BACK = { href: '/', label: 'Back to Hangar' }
+const BACK = { href: '/play/', label: 'Back to your Games' }
 
 /**
- * A dead link's ways on: back to Shelves, as a button-shaped link with a
+ * A dead link's ways on: back to Play's hub, as a button-shaped link with a
  * full touch target and, signed out, a sign-in beside it. That sign-in is a way
  * on, not a prompt: the page has already said the link is dead, and signing in
- * lands on your shelves rather than pretending it could still join.
+ * lands on your Games rather than pretending it could still join.
  */
 function Back({ signIn = false }: { signIn?: boolean }) {
   return (
@@ -114,7 +116,7 @@ type InviteProps = {
 function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
   const preview = useQuery(api.invites.preview, { code: token })
   const redeem = useMutation(api.invites.redeem)
-  const showContainer = useShowContainer()
+  const navigate = useNavigate()
 
   const join = useServerAction(() => redeem({ code: token }), {
     failure: 'That invite could not be used. Try again.',
@@ -125,8 +127,8 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
   const accept = async () => {
     const result = await join.run()
     if (!result.ok) return
-    // Joined (or already in it): open the Game's own page.
-    showContainer({ kind: 'game', gameId: result.value.gameId })
+    // Joined (or already in it): open the Game's own page, in Play.
+    void navigate({ to: '/play/games/$gameId', params: { gameId: result.value.gameId } })
   }
 
   const live = preview != null
@@ -212,7 +214,7 @@ export function InviteScreen({ token, joinOnArrival = false }: InviteProps) {
 
   return (
     <PageShell>
-      <ChapterBand tone="build">Join a Game</ChapterBand>
+      <ChapterBand tone="play">Join a Game</ChapterBand>
       <div style={COLUMN}>{body()}</div>
     </PageShell>
   )

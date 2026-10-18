@@ -120,7 +120,7 @@ export function SheetView({ kind, id }: SheetViewProps) {
     })
   }, [canonical, id, kind, router])
 
-  // `/games/$gameId` is that Game's own page — a plain `/` is the shelf.
+  // `gamePath` is that Game's own page, in Play — a plain `/` is the shelf.
   const crew = gameId === null ? undefined : { href: gamePath(gameId), label: 'the crew' }
 
   // Yours: the local copy, editable — unless the server says otherwise. It

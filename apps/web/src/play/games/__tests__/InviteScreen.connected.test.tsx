@@ -2,7 +2,7 @@ import { afterAll, describe, expect, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 /**
- * `/invite/$token` — a Game's invite URL.
+ * `/invite/$token` — a Game's invite URL, in Play (ADR-052 §4).
  *
  * This is the one URL in the app a stranger can be handed, so the failure modes
  * worth defending are about people who are not signed in and links that are no
@@ -65,8 +65,8 @@ function preview(over: Record<string, unknown> = {}) {
   }
 }
 
-/** What joining shows: the Game (its own page, with a router — `useShowContainer`). */
-const THE_GAME = { kind: 'game' as const, gameId: 'g1' }
+/** What joining opens: the Game's own page, in Play. */
+const THE_GAME = { to: '/play/games/$gameId', params: { gameId: 'g1' } }
 
 function renderJoin(value: unknown, joinOnArrival = false) {
   setActiveContainer({ kind: 'shelf' })
@@ -95,15 +95,16 @@ describe('a live invite', () => {
     expect(screen.getByText(/read each other/i)).toBeTruthy()
   })
 
-  test('accepting shows the Game', async () => {
+  test('accepting opens the Game’s page in Play, and picks no container', async () => {
     renderJoin(preview())
     fireEvent.click(screen.getByText('Join this Game'))
-    await waitFor(() => expect(getActiveContainer()).toEqual(THE_GAME))
+    await waitFor(() => expect(navigations).toEqual([THE_GAME]))
+    expect(getActiveContainer()).toEqual({ kind: 'shelf' })
   })
 
   test('back from "Sign in to join", it joins without asking again', async () => {
     renderJoin(preview(), true)
-    await waitFor(() => expect(getActiveContainer()).toEqual(THE_GAME))
+    await waitFor(() => expect(navigations).toEqual([THE_GAME]))
     expect(mutationCalls).toEqual(['invites:redeem'])
   })
 
@@ -129,7 +130,9 @@ describe('a link that is no good', () => {
     // An old typed code from `/join/…` lands here too: say how joining works now.
     expect(screen.getByText(/there is no code to type/i)).toBeTruthy()
     expect(screen.queryByText('Join this Game')).toBeNull()
-    expect(screen.getByRole('link', { name: 'Back to Hangar' }).getAttribute('href')).toBe('/')
+    expect(screen.getByRole('link', { name: 'Back to your Games' }).getAttribute('href')).toBe(
+      '/play/'
+    )
   })
 
   test('still checking is not the same as invalid', () => {
@@ -172,7 +175,9 @@ describe('a visitor who is not signed in', () => {
     expect(screen.getByText(/does not work/i)).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Sign in to join' })).toBeNull()
     // Its ways on: back to your shelves, and — signed out — a plain sign-in.
-    expect(screen.getByRole('link', { name: 'Back to Hangar' }).getAttribute('href')).toBe('/')
+    expect(screen.getByRole('link', { name: 'Back to your Games' }).getAttribute('href')).toBe(
+      '/play/'
+    )
     expect(screen.getByRole('button', { name: 'Sign in with Discord' })).toBeTruthy()
     isAuthenticated = true
   })

@@ -212,6 +212,8 @@ describe('the bar’s rules', () => {
     expect(unionHere('/games/g1')).toEqual({ mode: 'play', nav: 'games' })
     // A solo Cockpit is Play's, under no nav item (and draws no bar).
     expect(unionHere('/play/p1')).toEqual({ mode: 'play', nav: null })
+    // An invite joins a Game: Play's, under no nav item (ADR-052 §4).
+    expect(unionHere('/invite/abc')).toEqual({ mode: 'play', nav: null })
   })
 
   test('a Game’s page keeps the bar, in Play: it is a Manage page, not a Cockpit', () => {

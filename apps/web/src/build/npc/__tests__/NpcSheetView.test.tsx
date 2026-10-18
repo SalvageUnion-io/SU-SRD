@@ -132,7 +132,7 @@ describe('a crewmate’s, in a Game you belong to', () => {
     expect(screen.queryByRole('button', { name: 'Delete Rook' })).toBeNull()
     expect(screen.getByText(/You are reading a crewmate’s NPC/)).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Bulwark' })).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'The crew' }).getAttribute('href')).toBe('/games/g1')
+    expect(screen.getByRole('link', { name: 'The crew' }).getAttribute('href')).toBe('/play/games/g1')
   })
 
   test('a maker who is no longer a member is "a player"', async () => {

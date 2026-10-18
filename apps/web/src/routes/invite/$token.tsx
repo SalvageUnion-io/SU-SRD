@@ -8,7 +8,7 @@ import { InviteScreen } from '../../play/games/InviteScreen'
  * "Sign in to join", so the page joins on arrival rather than asking again.
  */
 export const Route = createFileRoute('/invite/$token')({
-  head: () => ({ meta: [{ title: areaTitle(PRODUCT.build, 'Join a Game') }] }),
+  head: () => ({ meta: [{ title: areaTitle(PRODUCT.play, 'Join a Game') }] }),
   validateSearch: (search: Record<string, unknown>): { join?: true } =>
     search.join === 1 || search.join === '1' || search.join === true ? { join: true } : {},
   component: InviteRoute,

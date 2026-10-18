@@ -48,8 +48,12 @@ export function isCurrent(path: string, pathname: string): boolean {
   return pathname === route || pathname.startsWith(`${route}/`)
 }
 
-/** Whether a route is one of Play's: the hub or anything under it. */
-const isPlayRoute = (path: string): boolean => path === '/play' || path.startsWith('/play/')
+/**
+ * Whether a route is one of Play's: the hub or anything under it, and an
+ * invite link, which joins a Game (ADR-052 §4).
+ */
+const isPlayRoute = (path: string): boolean =>
+  path === '/play' || path.startsWith('/play/') || path.startsWith('/invite/')
 
 /**
  * Whether a route is a Game's: its page in Play, a Mediator's Cockpit, or the
@@ -60,8 +64,8 @@ const isGameRoute = (path: string): boolean =>
 
 /**
  * Where a route (a path inside the app) is in the bar: its mode, and the nav
- * item that is current, if any. Play is the hub and everything under it, and
- * every Game's route; everything else in the app is Build. Games ▾ is current
+ * item that is current, if any. Play is the hub and everything under it, an
+ * invite link, and every Game's route; everything else in the app is Build. Games ▾ is current
  * on the hub, which lists your Games, and on every Game route (ruleset §3.11).
  */
 export function unionHere(path: string): { mode: UnionMode; nav: UnionNavId | null } {
