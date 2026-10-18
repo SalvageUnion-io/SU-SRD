@@ -7,7 +7,7 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
 
 1. **The book is the visual source of truth** — paper pages, colour only in bands, ink banners, framed numbers. When a screen and the book disagree, open the book.
 2. **Chapter band** — a band in the section colour across a paper page, the title notched into it on a paper cut-out, in ink (never a white knockout). The foot band carries the entity's kind and its citation as text, never chips (`Workshop Manual · p.112`, then "Also in" each reprint), as on every card and Peek.
-3. **Ink stamp + framed numeral** — the stat column (`STRUCTURE POINTS | 14`), label 14px, horizontal, in the stat order (§2.6), full words on a Page (never "PTS." or "CAP."); smaller forms the short label (SP, TL).
+3. **Ink stamp + framed numeral** — the stat column (`STRUCTURE POINTS | 14`), label 14px, horizontal, in the stat order (§2.6), full words on a Page (never "PTS." or "CAP."); smaller forms the short label (SP, TL), a chip label only: prose says Tech Level (`bun run check copy`).
 4. **The ink banner** — tier numeral, title, cost pennant, "//" metadata on ink with a rounded tail; on screen, the card's ink header (§5).
 5. **"ROLL THE DIE:" and "//" lines** — an underlined ink stamp over banded d20 tables; italic trait lines split by "//" (`Turn Action // Range: Close`); on screen one chip group in the head (E17).
 6. **The book's colour map** — which chapter band a page wears:
@@ -20,10 +20,10 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
 ## The laws
 
 0. **§0 The one law: one kind × one context = one primitive** — geometry is constant; only materials, density and interactivity change. A new screen, size or theme reuses the primitive with props, never a sibling.
-1. **§1 The context laws** — every surface is one of five contexts; the context picks materials and interactivity, never the primitive. Automation: `auto` (applied + undo), `confirm` (player confirms + undo), `free` (unguarded, logged override).
-   1. **Reference — the book, verbatim** — paper, read-only, no play state: if the printed manual cannot show it, it cannot appear. The only rust is an inline link.
+1. **§1 The context laws** — every surface is one of six contexts; the context picks materials and interactivity, never the primitive. Automation: `auto` (applied + undo), `confirm` (player confirms + undo), `free` (unguarded, logged override).
+   1. **Reference — the book, verbatim** — paper, read-only, no play state: if the printed manual cannot show it, it cannot appear. The only rust is an inline link and the Page's Build With This (E20).
    2. **Live Sheet — the pencil** — `free`; print reads, pencil writes: the read state is typeset (empty fields and sections omitted; an empty state only where it can be filled), dashed fields and steppers only in edit. Overrides wear a dashed ring and are logged; rules show, never gate.
-   3. **Play — the instrument panel** — the only transactional surface: bookkeeping `auto`, destruction `confirm`; every unit mutation writes a Change Log row, every roll a Game log row. Flat: no texture.
+   3. **Play — the instrument panel** — the only transactional surface: bookkeeping `auto`, destruction `confirm`; every unit mutation writes a Change Log row, every roll a Game log row. The Cockpit (the player, solo and Mediator canvases and their overlays) is flat: no texture.
       Paper instruments on a dark ground: `--color-ink-deep` ground, `--color-band-cream` side columns, `--color-paper` for the centre column alone. On a phone: tabs under pinned vitals (ADR-051 §10).
    4. **Use opens the action** — in Play an on-hand action's Row carries Use, which resolves it in place (Activate, Roll, Push, Apply; ADR-051 §6); its cost stays a read pennant.
    5. **Listing — one entity, one click** — the Row (`<Entity form="row">`) is the one rendering for an entity in a list (listing, search, slot, deck) at level 1 (E6): art column, one-row head, chip group (E17).
@@ -34,13 +34,16 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
    7. **Page — the entity's own route** — on desktop the hero floats and the opening, stats, actions and nested cards flow around it, then run full width, flush with the column.
       The body starts under the band at any length (a short page is never centred); level-1 blocks sit one 12px gap apart.
    8. **Entity forms** — Mention, Token, Row, Card, Page, their modes and rules E1–E20: [entity-display-language.md](entity-display-language.md).
+   9. **Manage — the owner's desk** — a page that lists and runs a container: the Hangar, the Play hub, a Game's page, the invite screen. Paper ground under the area's band (Build ink, Play `play`), at level 0; its sections are Slabs, its items Rows that link.
+      A non-entity item (a Game, a seat, a proposal, a channel) is a Row too, its facts chips in class order (C2). No stepper or in-place edit (the Live Sheet's); acts are Buttons in a Row's chip group or under a Slab, destruction `confirm`.
+      Rust is a door that starts play or makes something (Play, Mediate, New Game); Open and filters are ink. Texture as any band (§3.5.1).
 2. **§2 The rendering matrix** — each role maps to one primitive per surface (Reference → Live Sheet → Play → Listing → Peek).
    1. **Vitals** — `VitalGauge`: sheet skin, Play's compact instrument, compact in the Peek; a `Stat` cell in listings. TP is a counter (no cap, no gauge).
    2. **Caps and slots** — `Stat`, the printed number; an override is a dashed, logged control.
    3. **Condition** — tri-state toggle (Destroyed greys the card), a static glyph in listings, absent from Reference.
    4. **Rolls** — `RollTableInstrument` under ROLL THE DIE:, the stamp the one roll button (no second Roll; a plain label in static HTML); the result is a readout plus a marked row (§3.4); Reference toasts it; Peek aside.
    5. **Cargo** — `SlotGrid` (dashed empty, solid filled); Reference shows the cap only.
-   6. **Stat order** — one everywhere; a form drops stats, never moves them: TL, Slots, SV · SP or HP, EP, Heat, Bio · SYS, MODS, Cargo; Upkeep, Upgrade · action type ("Turn Action"), RNG (Page `Close`, else `C`), DMG · traits A–Z, Uses last · cost, the book's pointy box (`2 EP`; §1.4). One even gap, groups too.
+   6. **Stat order** — one everywhere; a form drops stats, never moves them: TL, Slots, SV · SP or HP, EP, Heat, Bio · SYS, MODS, Cargo; Upkeep, Upgrade · action type ("Turn Action"), RNG (Page `Close`, else `C`), DMG · traits A–Z, Uses last · cost, the book's pointy box (`2 EP`; §1.4), the last read chip; action slots follow it (C8). One even gap, groups too.
    7. **Entity card** — the full card is THE canonical render; Listing is the Row, the Peek a compact Card (§1).
 3. **§3 Cross-cutting laws**
    1. **§3.1 Rust = action, only action** — `--color-rust` is painted only by `Button` / `buttonVariants` and `InlineRef`, and no token aliases it. A destructive action is rust too, behind `ConfirmDialog`: no state colour fills a button.
@@ -51,7 +54,7 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
    5. **§3.5 No gradient shading; closed colour set** — no colour outside §4; hard-stop patterns on §4 tokens are fine, smooth interpolation is not (half-fills and X's are `clip-path` + SVG).
       Each sanctioned pattern (Slab leader, tile ramps, user-made hatch) is in `EXEMPTIONS` (`packages/gates/rules/designTokens.ts`).
       1. **Texture: the light speckle** — ink speckle on colour bands and tone headers; paper flecks on dark and ink headers and unit stamps.
-         Never on paper, buttons, fields, Play or the Peek (`tokens/texture-placement`).
+         Never on paper, buttons, fields, Play's Cockpit or the Peek (`tokens/texture-placement`).
       2. **One shading exemption** — the `.su-pilot-panel` illustration on srd's `/about`. A one-off, not precedent.
    6. **§3.6 Copy is 1:1 with real SRD data** — everywhere.
    7. **§3.7 Stats render through Stat** — any `label | value` is a `Stat`, never hand-assembled `<span>SP {n}</span>`.
@@ -61,6 +64,7 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
       A full page adds a hard-stop hatched band, a dashed notch and a maker banner. One `userMade` flag (+ `madeBy`); canon-built units stay solid.
    10. **§3.10 No left-rail borders** — colour rides in top bands, stamps and gauges; nesting shows by containment.
    11. **§3.11 One union, two tools** — one Union bar; the switcher reads Reference | Build | Play; Build (the Training Bay) and Play (the Cantina) name their pages and colour the bar; no off-site arrows between the two.
+       Each mode has its own nav under the bar (Build: Hangar, Patterns, Starter Set; Play: Games ▾, Solo), the current tab and item marked in ink from first paint.
    12. **§3.12 Microcopy** — sentence case ("Make a copy"); game terms keep the book's casing ("End Downtime"), as do Game, Shelf and the roles ([glossary](../architecture/glossary.md)).
        Caps only through the stamp (`Badge shape="stamp"`) and `Button`, which sets every label in condensed caps. Verbs: Copy, Move, Delete, Break down; Scrap is the currency, never the verb (p.248). `bun run check copy` holds what it can.
 4. **§4 Foundations** — the token layer, one home: `apps/web/src/styles/theme.css`.
@@ -75,6 +79,10 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
       Every coarse-pointer target is 44px, menu items included; nothing floats over content.
    7. **§4.7 The Sizes and sibling height** — the three Sizes are heights: Full 44px, Compact 32px, Mini 18px (`--size-*`; touch lifts Compact to Full, Mini takes a 44px hit area).
       Controls on one line share one Size (`e2e/sibling-heights.e2e.ts`); chip values match labels, one gap apart, cost bottom-right (`e2e/chip-strips.e2e.ts`).
+   8. **§4.8 One ground signal** — a surface declares its ground once (`data-ground="paper" | "ink"` on its frame, as `data-grain` declares texture); components read it in CSS, never through a prop. Paper on ink is `--color-paper-NN` alone.
+   9. **§4.9 The breakpoint ladder** — widths 40, 48, 64 and 80rem (`breakpoint` in `tokens.ts`), written `(width >= …)`, for media and container queries and the JS that mirrors them. Play's phone floor (ADR-045 decision 1) is the one named exception.
+   10. **§4.10 Motion** — `--dur-fast` (120ms) for a state change, `--dur-base` (150ms) for a move, one easing `--ease`. A loop is only a loading mark, and only under `prefers-reduced-motion: no-preference`.
+   11. **§4.11 Lift and layers** — one lift, `--shadow-lift` in warm ink, for whatever floats (popup, Peek plate, toast, dialog); the focus ring is the other shadow. Above the page, z-index comes from `layer` (`--z-*`); 0–3 is local stacking.
 5. **§5 The irreducible set** — an ontology, not a roster (the barrel `apps/web/src/components/index.ts` is the roster): 11 atoms and one technique.
    1. **Stamp** — ink block, paper text: `Badge shape="stamp"`.
    2. **Frame** — `--bw-*` weights: `Box`, `TitledBox` (cut-out), `Card`, `Panel`.
@@ -86,7 +94,7 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
    8. **RollTable** — banded d20 map in the surface tone: `RollTableInstrument`.
    9. **Condition** — tri-state glyph: `StatusBadge`.
    10. **SlotGrid** — dashed addressable cargo cells: `SlotGrid`.
-   11. **Icons** — `currentColor` glyphs: `lucide-react` plus local glyphs. The technique is StampSeam (§7.2): `STAMP_SEAM`.
+   11. **Icons** — `currentColor` glyphs: `lucide-react` plus local glyphs, at the line's Size (Mini 12px, Compact 14px, Full 18px; `iconSize`), stroke 2. ⋯ is `Ellipsis`, close is `X`, back is `ChevronLeft` and the place's name ("Hangar"), never an arrow character. The technique is StampSeam (§7.2): `STAMP_SEAM`.
    - **The entity card: one anatomy, two header fills** — a flush header: the title, its labels right of it (classification pills, User-made; never above it, never riding the frame, never the kind bar a mech sheet's CHASSIS, E9), then its chip group (E17), body only if prose or children remain, foot. Tone header for things you have, ink banner for things you do (E12).
    - **Actions nest** — no Actions tray or stamp. On a Page, level 1: compact framed cards, ink banners, under an Actions slab. In a card or Peek, level 2: contentful Tokens (N3), never folded behind a "Show N actions" chip. A roll table sits inline under a ROLL THE DIE: bar (nested: a Token, E14).
    - **Nesting legibility** — nested entities stack in the parent's frame under their own titles, no tray or label naming their kind, one tone each. Three levels (N1, E6): the page box (Page, dialog, wizard step, Peek plate) → compact Rows or Cards (frames 3 → 2px) → Tokens; nothing titled at level 2 or deeper.
@@ -101,3 +109,11 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
 7. **§7 Two inviolable laws**
    1. **§7.1 The value-cell law** — a label+value cell is ink on paper, set apart by a 1px ink frame, never a fill (never cream, white or tinted). A lone-label badge is frameless.
    2. **§7.2 The StampSeam law** — a border-riding stamp centres on the line by its own height, never a fixed margin. It rides wells, callouts and Peek titles; never the Slab leader, a flush header band, or an entity's frame (its labels sit right of its title).
+8. **§8 Chrome roles** — one component per job, chosen by the job (R16).
+   1. **§8.1 Notices** — a toast reports an act just done, from the one `Toaster` per document; a `Banner` holds a lasting condition (offline is one notice, one wording); a `Message` states a consequence where it applies.
+      Copied is the copy control's own `Check` swap and a polite live region, never a toast. No notice wears a roll-tier colour (§3.4).
+   2. **§8.2 Loading** — `Pending` inside a screen, `Skeleton` for a shape known ahead, `RoutePending` for a route; one voice, "Loading <thing>…".
+   3. **§8.3 Dialog widths** — `ModalShell` is narrow (28rem: confirms, pickers), default (48rem) or page (72rem: the detail Page); no per-dialog width.
+   4. **§8.4 Empty and error states** — `EmptyState`: the stamp on a Page or sheet section, quiet in app chrome, inline in a framed list; "No <things> yet." A crash is `RecoveryPanel`, a missing record `NotFoundPanel`, a failed act `toast.error`; the one retry verb is "Try again".
+   5. **§8.5 One focus ring** — every focusable thing shows `--focus-ring-shadow` on `:focus-visible`, in ink (§3.1), Play included; no outline, underline, dashed or colour-only variant.
+   6. **§8.6 Tabs, Segmented, Toggle** — `Tabs` switch what a region shows, `Segmented` sets a value, `Toggle` is one on/off; a tab or segment label never ellipsizes (E18).
