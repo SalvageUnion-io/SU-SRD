@@ -19,6 +19,7 @@
  * tag and a default tag can never both survive for a parser to choose between.
  */
 
+import { unionHere } from '../lib/barLinks'
 import type { PreviewMeta } from '../lib/documentHead'
 import { escapeMarkup, META_END, META_START, metaTags, renderTags } from '../lib/documentHead'
 import { BAR_HIDDEN_ATTRIBUTE } from '../shell/unionSlots'
@@ -91,4 +92,36 @@ export function applyCanonical(shell: string, href: string): string {
  */
 export function hideUnionBar(shell: string): string {
   return shell.replace(/<html(?=[\s>])/, () => `<html ${BAR_HIDDEN_ATTRIBUTE}`)
+}
+
+/**
+ * An opening tag with an attribute set to `value` (in place, or added last),
+ * or without it when `value` is null.
+ */
+function withAttribute(tag: string, name: string, value: string | null): string {
+  const present = new RegExp(`\\s${name}="[^"]*"`)
+  if (value === null) return tag.replace(present, '')
+  const attribute = ` ${name}="${value}"`
+  return present.test(tag) ? tag.replace(present, attribute) : tag.replace(/>$/, `${attribute}>`)
+}
+
+/**
+ * Mark the shell's Union bar for the route it is served on (`unionHere`), so
+ * the right tab, nav and nav item paint first: the bar wears the route's mode
+ * (`data-mode`, which also shows that mode's nav), its tab is current, and
+ * so is the nav link of the page you are on. The app moves all three as it
+ * routes (`UnionBarSlots`). Only the bar's tags change: the header by its
+ * class, the tabs by `data-tool`, the links by `data-nav`; React escapes
+ * every attribute value, so no `>` sits inside a tag.
+ */
+export function markUnionRoute(shell: string, route: string): string {
+  const { mode, nav } = unionHere(route)
+  return shell.replace(/<(?:header|a)\s[^>]*>/g, (tag) => {
+    if (tag.includes('class="su-union-bar"')) return withAttribute(tag, 'data-mode', mode)
+    const tool = /\sdata-tool="([^"]*)"/.exec(tag)?.[1]
+    if (tool !== undefined) return withAttribute(tag, 'aria-current', tool === mode ? 'true' : null)
+    const link = /\sdata-nav="([^"]*)"/.exec(tag)?.[1]
+    if (link !== undefined) return withAttribute(tag, 'aria-current', link === nav ? 'page' : null)
+    return tag
+  })
 }

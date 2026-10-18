@@ -1,17 +1,14 @@
 /**
- * The masthead's Games menu — pick what the Roster shows (ADR-030 §2), on
- * `ContainerPicker`'s `menu` and `list` variants.
+ * Play's Games menu (ADR-052 §6), on `ContainerPicker`'s `menu` and `list`
+ * variants.
  *
  * Every Game the player is in, each with their role in it. Picking one opens
- * the Game's own page at `/games/$gameId`. Shelves is not listed: it has its
- * own nav link beside the menu. It is the same decision the Roster's own
- * "Showing" select (`ContainerSwitcher`) makes, offered from every route
- * rather than only from the Roster.
+ * the Game's page in Play (`playGamePath`). It is Play's nav's first entry;
+ * Build has none, since a Game is never a place inside Build (ADR-052 §1).
  *
  * Two renderings of one list, because the masthead has two shapes:
  *
- * - `GamesMenu` — a `HeaderMenu` dropdown in the desktop nav, after "Buy the
- *   game".
+ * - `GamesMenu` — a `HeaderMenu` dropdown in Play's desktop nav, before Solo.
  * - `GamesDrawerList` — a list of buttons inside the mobile nav drawer. The mobile
  *   header row has room for the avatar beside the hamburger and no more, so the
  *   list moves into the drawer, and picking a row closes it.
@@ -24,14 +21,16 @@
  * hook always has a provider.
  */
 
+import type { LinkProps } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
+import { playGamePath } from '../../lib/barLinks'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { Badge, tokens } from '../../components/index'
 import type { ContainerChoice } from './ContainerPicker'
 import { ContainerPicker } from './ContainerPicker'
-import { useShowContainer } from './useShowContainer'
 
 /**
  * The Games, as rows — `undefined` while the subscription is in flight.
@@ -49,9 +48,18 @@ function useGameEntries(): ContainerChoice[] | undefined {
   }))
 }
 
+/** Open a picked Game's page in Play. */
+function useOpenGame(): (choice: ContainerChoice) => void {
+  const navigate = useNavigate()
+  return ({ container }) => {
+    if (container.kind !== 'game') return
+    void navigate({ to: playGamePath(container.gameId) as LinkProps['to'] })
+  }
+}
+
 function ConnectedGamesMenu({ active }: { active: boolean }) {
   const games = useGameEntries()
-  const pick = useShowContainer()
+  const open = useOpenGame()
 
   return (
     <ContainerPicker
@@ -59,14 +67,14 @@ function ConnectedGamesMenu({ active }: { active: boolean }) {
       trigger="Games"
       active={active}
       choices={games}
-      onPick={(choice) => pick(choice.container)}
+      onPick={open}
       loading="Loading your Games…"
       empty="No Games yet"
     />
   )
 }
 
-/** `active`: the page is a Game's own (`/games/…`), so the menu is where you are. */
+/** `active`: the page is Play's hub or a Game's (`unionHere`), so the menu is where you are. */
 export function GamesMenu({ active = false }: { active?: boolean }) {
   const { mode } = useConnection()
   if (mode !== 'connected') return null
@@ -81,7 +89,7 @@ const LIST = {
 
 function ConnectedGamesDrawerList({ onPick }: { onPick: () => void }) {
   const games = useGameEntries()
-  const pick = useShowContainer()
+  const open = useOpenGame()
 
   return (
     <nav aria-label="Games" style={LIST}>
@@ -93,7 +101,7 @@ function ConnectedGamesDrawerList({ onPick }: { onPick: () => void }) {
         label="Your Games"
         choices={games}
         onPick={(choice) => {
-          pick(choice.container)
+          open(choice)
           onPick()
         }}
         loading="your Games"

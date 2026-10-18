@@ -29,6 +29,3 @@ export const hidesUnionBar = (path: string): boolean =>
   path.startsWith('/dashboard/') ||
   path.startsWith('/mediator/') ||
   path.startsWith('/og/')
-
-/** Whether a route is one of Play's: the landing or a Play screen. */
-export const isPlayRoute = (path: string): boolean => path === '/play' || path.startsWith('/play/')

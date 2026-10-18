@@ -18,6 +18,7 @@ import { SITE_MANIFEST } from '../src/pwa'
 import { renderShell } from '../src/shell/shell'
 import { buildBaseStylesheet, DEV_BASE_STYLESHEET } from '../src/styles/baseStylesheet'
 import { publicShells, sitemapXml } from '../src/worker/publicPages'
+import { markUnionRoute } from '../src/worker/shellMeta'
 
 const APP_ROOT = join(import.meta.dirname, '..')
 
@@ -87,7 +88,9 @@ export function appShell(): Plugin {
           const url = req.originalUrl ?? req.url ?? '/'
           if (!isAppNavigation(url, req.headers.accept ?? '')) return next()
           try {
-            const html = await server.transformIndexHtml(url, renderShell())
+            // Marked for its route, as the Worker serves it (`worker/app.ts`).
+            const route = routeInApp(url.split(/[?#]/)[0] ?? '') ?? '/'
+            const html = markUnionRoute(await server.transformIndexHtml(url, renderShell()), route)
             res.setHeader('Content-Type', 'text/html; charset=utf-8')
             res.end(html)
           } catch (error) {

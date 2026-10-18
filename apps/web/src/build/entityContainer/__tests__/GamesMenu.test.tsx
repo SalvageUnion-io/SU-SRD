@@ -6,10 +6,9 @@ import type { ReactNode } from 'react'
  * The masthead's Games menu (desktop) and its drawer list (mobile).
  *
  * What these pin: the list is every Game with the player's role in it, and
- * no "Shelves" row (Shelves has its own nav link), and picking a row does the two things the menu exists
- * for — it makes that container active AND takes the player to the Roster at
- * `/`, which shows it. Nothing here links to `/games`. Outside Connected there
- * is no menu at all.
+ * no Hangar row, and picking a row opens that Game's page in Play
+ * (`/play/games/$gameId`, ADR-052 §5). Outside Connected there is no menu at
+ * all.
  */
 
 import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
@@ -72,10 +71,7 @@ describe('GamesMenu', () => {
     expect(screen.queryAllByRole('separator')).toHaveLength(0)
   })
 
-  // No router is mounted here, so picking falls back to the store
-  // (`useShowContainer`); the address it would go to is pinned in
-  // `useShowContainer.test.tsx`.
-  test('picking a Game shows that Game', async () => {
+  test('picking a Game opens its page in Play', async () => {
     setQueryAnswers({ 'games:listMine': GAMES })
     wrap(<GamesMenu />)
 
@@ -83,7 +79,7 @@ describe('GamesMenu', () => {
     await act(async () => {
       fireEvent.click(within(menu).getByRole('menuitem', { name: /The Long Haul/ }))
     })
-    expect(getActiveContainer()).toEqual({ kind: 'game', gameId: 'g2' })
+    expect(convexMocks.navigations).toEqual([{ to: '/play/games/g2' }])
     expect(screen.queryByRole('menu')).toBeNull()
   })
 
@@ -98,6 +94,7 @@ describe('GamesMenu', () => {
       fireEvent.click(empty)
     })
     expect(getActiveContainer()).toEqual(SHELF)
+    expect(convexMocks.navigations).toEqual([])
   })
 
   test('renders nothing signed out, or signed in but offline', () => {
@@ -115,14 +112,14 @@ describe('GamesMenu', () => {
 })
 
 describe('GamesDrawerList', () => {
-  test('picking a row shows that container and closes the drawer', () => {
+  test('picking a row opens that Game’s page in Play and closes the drawer', () => {
     setQueryAnswers({ 'games:listMine': GAMES })
     let closed = 0
     wrap(<GamesDrawerList onPick={() => closed++} />)
 
     const list = screen.getByRole('navigation', { name: 'Games' })
     fireEvent.click(within(list).getByRole('button', { name: 'Union Crawler #430 · Mediator' }))
-    expect(getActiveContainer()).toEqual({ kind: 'game', gameId: 'g1' })
+    expect(convexMocks.navigations).toEqual([{ to: '/play/games/g1' }])
     expect(closed).toBe(1)
   })
 

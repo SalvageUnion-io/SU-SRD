@@ -2,6 +2,7 @@ import { describe, expect, it } from 'bun:test'
 import { NATIVE_FETCH_GLOBALS } from '../../../test/env'
 import { APP_BASE } from '../../lib/appBase'
 import { appUrl, originOf } from '../../lib/site'
+import { renderUnionBar } from '../../shell/unionBar'
 import type { Env } from '../index'
 import worker from '../index'
 
@@ -218,6 +219,46 @@ describe('a route that draws no Union bar', () => {
     const env = envWith({ [`${BASE}/dashboard/x.png`]: { body: 'png', type: 'image/png' } })
     const res = await worker.fetch(req('/dashboard/x.png'), env)
     expect(await res.text()).toBe('png')
+  })
+})
+
+/**
+ * One shell answers every route, rendered on Build's front door; the Worker
+ * marks its Union bar for the route it serves, so the mode, tab and nav item
+ * are right from the first paint and Play never flashes Build's.
+ */
+describe('the shell’s Union bar is marked for the route', () => {
+  const BAR_SHELL = `<!doctype html><html lang="en"><body>${renderUnionBar()}</body></html>`
+  const served = async (path: string) => {
+    const env = envWith({ [`${BASE}${path}`]: { body: BAR_SHELL, type: 'text/html' } })
+    const res = await worker.fetch(navigateTo(`https://salvageunion.io${BASE}${path}`), env)
+    const doc = new DOMParser().parseFromString(await res.text(), 'text/html')
+    return {
+      mode: doc.querySelector('.su-union-bar')?.getAttribute('data-mode'),
+      current: Array.from(doc.querySelectorAll('[aria-current]')).map((el) => el.textContent),
+      hidden: doc.documentElement.hasAttribute('data-union-bar-hidden'),
+    }
+  }
+
+  it('wears Play on Play’s hub, Play’s tab current', async () => {
+    expect(await served('/play/')).toEqual({ mode: 'play', current: ['Play'], hidden: false })
+  })
+
+  it('wears Build on Build’s pages, the page’s nav link current', async () => {
+    expect(await served('/mechs/patterns/')).toEqual({
+      mode: 'build',
+      current: ['Build', 'Patterns'],
+      hidden: false,
+    })
+    expect(await served('/')).toEqual({
+      mode: 'build',
+      current: ['Build', 'Hangar'],
+      hidden: false,
+    })
+  })
+
+  it('marks, and hides, a Cockpit’s', async () => {
+    expect(await served('/play/game/g1')).toEqual({ mode: 'play', current: ['Play'], hidden: true })
   })
 })
 

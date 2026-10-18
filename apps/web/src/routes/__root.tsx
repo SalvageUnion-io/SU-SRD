@@ -65,7 +65,7 @@ function RootHeader({ pathname, barHidden }: { pathname: string; barHidden: bool
       drawerSearch={<SearchIsland />}
       actions={<HeaderActions />}
       mobileActions={<HeaderMobileActions />}
-      drawerExtra={(close) => <HeaderDrawerAccount close={close} />}
+      drawerExtra={(close) => <HeaderDrawerAccount close={close} pathname={pathname} />}
     />
   )
 }

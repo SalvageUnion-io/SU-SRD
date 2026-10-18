@@ -67,11 +67,15 @@ describe('AppBar', () => {
     ).toEqual(['Reference', 'Build', 'Play'])
     expect(tools().getByRole('link', { name: 'Play' }).getAttribute('aria-current')).toBe('true')
     expect(tools().getByRole('link', { name: 'Build' }).getAttribute('aria-current')).toBeNull()
+    // Every tab is a site path, whichever is current.
+    expect(tools().getByRole('link', { name: 'Build' }).getAttribute('href')).toBe('/build/')
+    expect(tools().getByRole('link', { name: 'Play' }).getAttribute('href')).toBe('/build/play/')
   })
 
   test('no product nav means no second row', () => {
     render(<AppBar product="reference" referenceHref="/" buildHref="/" playHref="/play/" />)
-    expect(screen.queryByRole('navigation', { name: 'Main navigation' })).toBeNull()
+    expect(screen.queryByRole('navigation', { name: 'Build' })).toBeNull()
+    expect(screen.queryByRole('navigation', { name: 'Play' })).toBeNull()
   })
 
   test('one geometry for both tools: nav inline, no density', () => {
@@ -81,23 +85,37 @@ describe('AppBar', () => {
         referenceHref="https://salvageunion.io"
         buildHref="/"
         playHref="/play/"
-        navItems={[
-          { label: 'Hangar', href: '/', active: true },
-          { id: 'games', node: <button type="button">Games</button> },
-          { label: 'Starter Set', href: '/starter/' },
+        navs={[
+          {
+            mode: 'build',
+            label: 'Build',
+            items: [
+              { id: 'hangar', label: 'Hangar', href: '/', active: true },
+              { id: 'starter', label: 'Starter Set', href: '/starter/' },
+            ],
+          },
+          {
+            mode: 'play',
+            label: 'Play',
+            items: [
+              { id: 'games', node: <button type="button">Games</button> },
+              { id: 'solo', label: 'Solo', href: '/play/#solo' },
+            ],
+          },
         ]}
       />
     )
-    const nav = screen.getByRole('navigation', { name: 'Main navigation' })
+    const nav = screen.getByRole('navigation', { name: 'Build' })
     expect(nav.className).toContain('su-union-bar__nav')
-    expect(Array.from(nav.children).map((el) => el.textContent)).toEqual([
-      'Hangar',
-      'Games',
-      'Starter Set',
-    ])
-    expect(within(nav).getByRole('link', { name: 'Hangar' }).getAttribute('aria-current')).toBe(
-      'page'
-    )
+    expect(nav.getAttribute('data-mode')).toBe('build')
+    expect(Array.from(nav.children).map((el) => el.textContent)).toEqual(['Hangar', 'Starter Set'])
+    const hangar = within(nav).getByRole('link', { name: 'Hangar' })
+    expect(hangar.getAttribute('aria-current')).toBe('page')
+    expect(hangar.getAttribute('data-nav')).toBe('hangar')
+    // Each mode's nav is in the bar; the stylesheet shows the one the bar wears.
+    const play = screen.getByRole('navigation', { name: 'Play' })
+    expect(play.getAttribute('data-mode')).toBe('play')
+    expect(Array.from(play.children).map((el) => el.textContent)).toEqual(['Games', 'Solo'])
     const banner = screen.getByRole('banner')
     expect(banner.hasAttribute('data-density')).toBe(false)
     // The same lockup in both tools: the mark, never a wordmark.

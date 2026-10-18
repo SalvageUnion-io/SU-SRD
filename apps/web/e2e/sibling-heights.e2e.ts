@@ -61,6 +61,64 @@ test('siblings on one line share one height', async ({ page }) => {
 })
 
 /**
+ * The Union bar in each of the app's modes (ruleset §3.11, §4.7): Reference |
+ * Build | Play stays one switch at one Size, beside the mode's own nav, and
+ * every control on the bar shares the switch's height. The bar's tabs are
+ * links the page scan does not count as controls, so the bar is held whole
+ * here, and each route is checked to wear its mode and show its nav: Build's
+ * on the front door and Patterns, Play's on the hub.
+ */
+const BAR_ROUTES = [
+  { path: '/build/', mode: 'build', nav: ['Hangar', 'Patterns', 'Starter Set'] },
+  { path: '/build/mechs/patterns/', mode: 'build', nav: ['Hangar', 'Patterns', 'Starter Set'] },
+  { path: '/build/play/', mode: 'play', nav: ['Solo'] },
+] as const
+
+test('the Union bar holds one height in Build and in Play', async ({ page }) => {
+  const failures: string[] = []
+  for (const width of WIDTHS) {
+    await page.setViewportSize({ width, height: 900 })
+    for (const { path, mode, nav } of BAR_ROUTES) {
+      await page.goto(path, { waitUntil: 'networkidle' })
+      const bar = page.locator('.su-union-bar')
+      await expect(bar, `${path}: the bar wears its mode`).toHaveAttribute('data-mode', mode)
+      await expect(
+        bar.locator('.su-union-bar__tab[aria-current]'),
+        `${path}: its mode's tab is current`
+      ).toHaveAttribute('data-tool', mode)
+      // The mode's nav shows inline from `lg`; below it the drawer carries it.
+      if (width >= 1024) {
+        await expect(bar.locator('.su-union-bar__nav a').filter({ visible: true })).toHaveText([
+          ...nav,
+        ])
+      }
+      const heights = await bar.evaluate((header) =>
+        [
+          ...header.querySelectorAll(
+            '.su-union-bar__tab, .su-search-field, .su-btn, .su-union-bar__buy, .su-nav-drawer__trigger'
+          ),
+        ]
+          .filter((el) => el.getBoundingClientRect().height > 0)
+          .map((el) => {
+            const text = (el.getAttribute('aria-label') ?? el.textContent ?? '').trim().slice(0, 24)
+            return { height: Math.round(el.getBoundingClientRect().height), text }
+          })
+      )
+      expect(heights.length, `${path} at ${width}px: nothing measured`).toBeGreaterThan(3)
+      if (new Set(heights.map((c) => c.height)).size > 1) {
+        const controls = heights.map((c) => `${c.height}px "${c.text}"`).join(', ')
+        failures.push(`${path} at ${width}px, the Union bar: ${controls}`)
+      }
+      for (const m of await findSiblingMismatches(page, '.su-union-bar')) {
+        const controls = m.controls.map((c) => `${c.height}px ${c.what}`).join(', ')
+        failures.push(`${path} at ${width}px, ${m.line}: ${controls}`)
+      }
+    }
+  }
+  expect(failures, 'Union bar controls at different heights').toEqual([])
+})
+
+/**
  * Play's own lines: the Play bar, each unit box and each action row, open and
  * closed. On the canvas a unit box is scanned whole (its head and every body
  * row: the vitals, the pilot's class / TP / injuries beside Sheet ⤢, the

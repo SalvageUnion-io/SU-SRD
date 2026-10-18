@@ -18,9 +18,11 @@ import { Speckle } from '../atoms/Speckle'
  * game" and the app's account controls. Crossing modes is a tab on the same
  * bar, never an off-site "Builder ↗" / "SRD ↗" link. The tab you are on is an
  * inverse stamp — a paper plate on the ink bar — and never rust (§3.1). Play
- * lives in the app beside Build, so the app's shell serves the bar
- * with Build current and the app moves "here" to Play on Play's routes
- * (`UnionBarSlots`, by each tab's `data-tool`).
+ * lives in the app beside Build, so the app's bar carries both modes' navs,
+ * each `data-mode`, and shows the one its mode names: the shell's bar is
+ * marked for the route it is served on (`markUnionRoute`), and the app moves
+ * "here" as it routes (`UnionBarSlots`, by each tab's `data-tool` and each
+ * link's `data-nav`).
  *
  * ## One geometry
  *
@@ -66,6 +68,8 @@ type AppBarProduct = 'reference' | 'build' | 'play'
 type AppBarNavItem = {
   label: ReactNode
   href: string
+  /** Names the item for "here" (`data-nav`), which the app marks as it routes. */
+  id?: string
   /** Marks the link as the page you are on (`aria-current="page"`). */
   active?: boolean
   /** Opens in a new tab via a plain anchor (bypasses LinkComponent). */
@@ -85,6 +89,18 @@ export type AppBarNavSlot = {
 
 export type AppBarNavEntry = AppBarNavItem | AppBarNavSlot
 
+/**
+ * One mode's nav. The bar shows the nav of the mode it wears (`data-mode`,
+ * `styles/partials/shell.css`), so a bar that changes mode in place carries
+ * each mode's.
+ */
+export type AppBarNav = {
+  mode: AppBarProduct
+  /** Its landmark's name ("Build navigation"). */
+  label: string
+  items: AppBarNavEntry[]
+}
+
 type AppBarProps = {
   /** The tool this bar is mounted in: its switcher tab is the inverse stamp. */
   product: AppBarProduct
@@ -103,8 +119,8 @@ type AppBarProps = {
    */
   markSrc?: string
   viewTransitionName?: string
-  /** The product's own nav (desktop), inline beside the switcher. */
-  navItems?: AppBarNavEntry[]
+  /** The product's own nav (desktop), inline beside the switcher: one per mode it can wear. */
+  navs?: AppBarNav[]
   /**
    * Desktop search slot — the site's one `SearchField` combobox,
    * `su-union-bar__search-input` wide.
@@ -173,6 +189,7 @@ function NavLink({ item, className, LinkComponent }: NavLinkProps) {
     <Link
       href={item.href}
       className={cn(className, FOCUS_RING)}
+      data-nav={item.id}
       {...(item.external
         ? { target: '_blank', rel: 'noopener noreferrer' }
         : { 'aria-current': item.active ? ('page' as const) : undefined })}
@@ -191,7 +208,7 @@ export function AppBar({
   LinkComponent = 'a',
   markSrc = MARK_SRC,
   viewTransitionName,
-  navItems = [],
+  navs = [],
   search,
   buyHref,
   actions,
@@ -200,16 +217,16 @@ export function AppBar({
 }: AppBarProps) {
   const hasCrumbs = breadcrumbs !== undefined && breadcrumbs.length > 0
 
-  // The switcher: this mode's tab routes home; the others are same-tab
-  // anchors to the other modes — tabs on one bar, not off-site links.
+  // The switcher: same-tab anchors to each mode's home — tabs on one bar,
+  // not off-site links. Their hrefs are site paths, whichever is current.
   const tabs: { key: AppBarProduct; label: string; href: string }[] = [
     { key: 'reference', label: 'Reference', href: referenceHref },
     { key: 'build', label: 'Build', href: buildHref },
     { key: 'play', label: 'Play', href: playHref },
   ]
 
-  const navLinks = () =>
-    navItems.map((entry) =>
+  const navLinks = (items: AppBarNavEntry[]) =>
+    items.map((entry) =>
       isSlot(entry) ? (
         <Fragment key={entry.id}>{entry.node}</Fragment>
       ) : (
@@ -226,9 +243,9 @@ export function AppBar({
     <>
       <header
         className="su-union-bar"
-        // The mode's colour (`styles/partials/shell.css`): the reference's ink,
-        // Build's pilot orange, Play's deep crawler pink. The app's shell serves
-        // `build` and moves it to `play` on Play's routes (`UnionBarSlots`).
+        // The mode's colour and nav (`styles/partials/shell.css`): the
+        // reference's ink, Build's pilot orange, Play's deep crawler pink. The
+        // app's shell is marked for its route; the app moves it as it routes.
         data-mode={product}
         style={viewTransitionName ? { ...BAR, viewTransitionName } : BAR}
       >
@@ -253,28 +270,30 @@ export function AppBar({
           </LinkComponent>
 
           <nav aria-label="Salvage Union tools" style={SWITCH}>
-            {tabs.map((tab) => {
-              const here = tab.key === product
-              const Link = here ? LinkComponent : 'a'
-              return (
-                <Link
-                  key={tab.key}
-                  href={tab.href}
-                  className={cn('su-union-bar__tab', FOCUS_RING)}
-                  aria-current={here ? 'true' : undefined}
-                  data-tool={tab.key}
-                >
-                  {tab.label}
-                </Link>
-              )
-            })}
+            {tabs.map((tab) => (
+              <a
+                key={tab.key}
+                href={tab.href}
+                className={cn('su-union-bar__tab', FOCUS_RING)}
+                data-tool={tab.key}
+                // Last, where the shell's marking adds it (`markUnionRoute`).
+                aria-current={tab.key === product ? 'true' : undefined}
+              >
+                {tab.label}
+              </a>
+            ))}
           </nav>
 
-          {navItems.length > 0 && (
-            <nav aria-label="Main navigation" className="su-union-bar__nav">
-              {navLinks()}
+          {navs.map((nav) => (
+            <nav
+              key={nav.mode}
+              aria-label={nav.label}
+              className="su-union-bar__nav"
+              data-mode={nav.mode}
+            >
+              {navLinks(nav.items)}
             </nav>
-          )}
+          ))}
 
           {hasCrumbs && (
             <nav aria-label="Breadcrumb" className="su-crumbs su-crumbs--bar">

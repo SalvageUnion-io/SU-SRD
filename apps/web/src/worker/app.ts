@@ -27,8 +27,8 @@
  *      (`shellMeta.ts`). The front door asked for the same way gets the shell
  *      with its canonical.
  *   3. anything else → the binding's answer: the shell for a navigation to
- *      any client route (marked to hide the Union bar on the routes that draw
- *      none). The Starter Set, each of its builds and `/sitemap.xml` are files
+ *      any client route, its Union bar marked for the route's mode and nav
+ *      item (`markUnionRoute`), and hidden on the routes that draw none. The Starter Set, each of its builds and `/sitemap.xml` are files
  *      the build pre-renders (`publicPages.ts`).
  *
  * Rules 2 and 3 answer with the shell, and every client route but the public
@@ -54,7 +54,7 @@ import { pathInApp } from './basePath'
 import type { ImageCache, PreviewEnv, PreviewRoute } from './linkPreview'
 import { isOgImagePath, metaFor, ogImage, previewRouteOf } from './linkPreview'
 import { frontDoorShell } from './publicPages'
-import { applyMeta, hideUnionBar } from './shellMeta'
+import { applyMeta, hideUnionBar, markUnionRoute } from './shellMeta'
 
 /**
  * `wrangler.jsonc`'s `run_worker_first`. A positive list only: a negative
@@ -144,11 +144,20 @@ export async function serveApp(
   // The front door, asked for the same way: the shell with its canonical.
   if (crawled && path === '/') return robotsFor(path, await frontDoor(url, env, base))
 
-  // 3. Everything else: the asset server's answer, `_headers` and all. A
-  // route that draws no Union bar gets a shell that hides it from the start.
+  // 3. Everything else: the asset server's answer, `_headers` and all. The
+  // shell's Union bar is marked for the route, so its mode, tab and nav item
+  // are right from the start, and a route that draws no bar gets a shell that
+  // hides it from the start.
   const res = await env.ASSETS.fetch(request)
-  const bare = hidesUnionBar(path) && isShell(res)
-  return robotsFor(path, bare ? await rewritten(res, hideUnionBar) : res)
+  if (!isShell(res)) return robotsFor(path, res)
+  const bare = hidesUnionBar(path)
+  return robotsFor(
+    path,
+    await rewritten(res, (shell) => {
+      const marked = markUnionRoute(shell, path)
+      return bare ? hideUnionBar(marked) : marked
+    })
+  )
 }
 
 /**

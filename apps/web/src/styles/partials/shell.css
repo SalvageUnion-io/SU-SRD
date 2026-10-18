@@ -310,6 +310,14 @@
   }
 }
 
+/* The app's bar carries both modes' navs (`UnionBar`); it shows the one of
+   the mode it wears (`data-mode`), which the shell is served marked with
+   (`markUnionRoute`), so the right nav paints first. */
+.su-union-bar:not([data-mode='build']) .su-union-bar__nav[data-mode='build'],
+.su-union-bar:not([data-mode='play']) .su-union-bar__nav[data-mode='play'] {
+  display: none;
+}
+
 /* ══ Breadcrumbs (the Union bar's trail) ════════════════════════════════════
  *
  * One list, three placements: in the bar on desktop, in paper with the current

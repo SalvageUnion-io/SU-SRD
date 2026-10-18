@@ -1,3 +1,4 @@
+import { unionHere } from '../../lib/barLinks'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { GamesDrawerList, GamesMenu } from '../entityContainer/GamesMenu'
 import { AccountMenu } from './AccountMenu'
@@ -8,15 +9,16 @@ import { SignInControl } from './SignInControl'
  * `actions`, `mobileActions` and `drawerExtra`) — the account and the Games,
  * wired to Convex here so `src/components` stays persistence-agnostic.
  *
- * There is no sub-header: Games sits in the Union bar's nav (Shelves · Games ·
- * Starter Set), and the account is the menu at the bar's end:
+ * There is no sub-header: Games sits in Play's nav (Games · Solo; Build's,
+ * Hangar · Patterns · Starter Set, has none), and the account is the menu at
+ * the bar's end:
  *
  * | Where                      | Signed in (Connected)    | Signed in (offline) | Signed out           |
  * | -------------------------- | ------------------------ | ------------------- | -------------------- |
- * | desktop nav, after Shelves | Games ▾                  | —                   | —                    |
+ * | Play's desktop nav, first  | Games ▾                  | —                   | —                    |
  * | desktop, at the bar's end  | name + avatar ▾          | name + avatar ▾     | Sign in with Discord |
  * | mobile header row          | avatar                   | avatar              | —                    |
- * | mobile drawer, top         | Games list               | —                   | Sign in with Discord |
+ * | mobile drawer, top         | Games list (in Play)     | —                   | Sign in with Discord |
  *
  * Mobile is split because the row beside the hamburger has room for one
  * avatar-sized control and no more: a "Games ▾" trigger or a "Sign in with
@@ -25,9 +27,9 @@ import { SignInControl } from './SignInControl'
  * goes into the drawer.
  */
 
-/** Desktop nav: the Games menu (renders nothing unless Connected). */
+/** Play's desktop nav: the Games menu (renders nothing unless Connected), current on the hub and a Game's routes. */
 export function HeaderGames({ pathname = '' }: { pathname?: string }) {
-  return <GamesMenu active={pathname.startsWith('/games')} />
+  return <GamesMenu active={unionHere(pathname).nav === 'games'} />
 }
 
 /** Desktop, at the bar's end: the account menu (or sign-in). */
@@ -43,10 +45,21 @@ export function HeaderMobileActions() {
   return <AccountMenu compact />
 }
 
-/** Mobile drawer: the Games list when Connected, sign-in when signed out. */
-export function HeaderDrawerAccount({ close }: { close: () => void }) {
+/**
+ * Mobile drawer: in Play, the Games list when Connected (Play's nav, as the
+ * bar's); sign-in when signed out, in either mode.
+ */
+export function HeaderDrawerAccount({
+  close,
+  pathname = '',
+}: {
+  close: () => void
+  pathname?: string
+}) {
   const { mode } = useConnection()
-  if (mode === 'connected') return <GamesDrawerList onPick={close} />
+  if (mode === 'connected') {
+    return unionHere(pathname).mode === 'play' ? <GamesDrawerList onPick={close} /> : null
+  }
   // Offline: the avatar menu in the header row already offers Sign out, and
   // there is nothing to list.
   if (mode === 'disconnected') return null

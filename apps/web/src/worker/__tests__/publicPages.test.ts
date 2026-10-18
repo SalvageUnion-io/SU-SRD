@@ -6,6 +6,7 @@ import { renderShell } from '../../shell/shell'
 import type { Env } from '../index'
 import worker from '../index'
 import { publicShells, sitemapXml } from '../publicPages'
+import { markUnionRoute } from '../shellMeta'
 
 /**
  * The public pages (the front door, the Starter Set and each of its builds).
@@ -188,7 +189,8 @@ describe('a private or signed-in route gets no canonical', () => {
   for (const path of ['/sheet/pilot/xyz', '/games/g1', '/pilots/new', '/settings']) {
     it(`leaves ${path} as the shell, noindex`, async () => {
       const res = await worker.fetch(crawl(path), env())
-      expect(await res.text()).toBe(SHELL)
+      // The shell as every route gets it: its Union bar marked for the route.
+      expect(await res.text()).toBe(markUnionRoute(SHELL, path))
       expect(res.headers.get('x-robots-tag')).toBe('noindex')
     })
   }

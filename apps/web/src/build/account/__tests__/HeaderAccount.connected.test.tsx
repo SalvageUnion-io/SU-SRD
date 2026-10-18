@@ -150,12 +150,32 @@ describe('signed in and connected', () => {
     expect(trigger.textContent).not.toContain('Beefcake')
   })
 
-  test('mobile: the drawer lists the Games rather than offering sign-in', () => {
+  test('mobile: in Play the drawer lists the Games rather than offering sign-in', () => {
     setQueryAnswers(QUERIES)
-    wrap(<HeaderDrawerAccount close={() => {}} />)
+    wrap(<HeaderDrawerAccount close={() => {}} pathname="/play/" />)
 
     expect(screen.getByRole('navigation', { name: 'Games' })).toBeTruthy()
     expect(screen.queryByRole('button', { name: /sign in/i })).toBeNull()
+  })
+
+  test('mobile: in Build the drawer has no Games, which left Build', () => {
+    setQueryAnswers(QUERIES)
+    const { container } = wrap(<HeaderDrawerAccount close={() => {}} pathname="/" />)
+    expect(container.innerHTML).toBe('')
+  })
+
+  test('the nav Games control is current on the hub and a Game’s routes, nowhere else', () => {
+    setQueryAnswers(QUERIES)
+    const current = (pathname: string) => {
+      const { unmount } = wrap(<HeaderGames pathname={pathname} />)
+      const here = screen.getByRole('button', { name: 'Games' }).getAttribute('aria-current')
+      unmount()
+      return here
+    }
+    expect(current('/play/')).toBe('page')
+    expect(current('/play/games/g1')).toBe('page')
+    expect(current('/games/g1')).toBe('page')
+    expect(current('/')).toBeNull()
   })
 
   test('before the profile arrives it reads "Account" rather than guessing a name', () => {
