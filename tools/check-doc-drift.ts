@@ -940,10 +940,7 @@ export function checkTerseShape(root: string, docs: string[] = TERSE_DOCS): Chec
 const CLAUDE_MD_BUDGET = 8_000
 const RULE_BUDGET = 4_000
 
-/**
- * Files over budget when the budget landed, held at that size until they are
- * cut. Lower an entry when its file shrinks; delete it once under budget.
- */
+/** Files over budget when it landed, held there: lower an entry as it shrinks, delete it under budget. */
 const OVER_BUDGET: Record<string, number> = {}
 
 /** Context docs collapsed to terse lists, held near that size: raise one only on purpose, in the PR. */
@@ -955,6 +952,7 @@ const COLLAPSED_DOCS: Record<string, number> = {
   'docs/architecture/mediator-dashboard.md': 2_600,
   'docs/architecture/npc-builder.md': 2_000,
   'docs/architecture/play.md': 8_450,
+  'docs/design-system/chrome.md': 2_900,
   'docs/design-system/entity-display-language.md': 6_900,
   'docs/design-system/ruleset.md': 15_200,
   'docs/design-system/sources.md': 3_600,

@@ -1,6 +1,6 @@
 # The Hard Rules
 
-Each law of [ruleset.md](ruleset.md), [EDL](entity-display-language.md) and [chips-and-actions.md](chips-and-actions.md) that a machine can check, with the gate that holds it.
+Each law of [ruleset.md](ruleset.md), [EDL](entity-display-language.md), [chips-and-actions.md](chips-and-actions.md) and [chrome.md](chrome.md) that a machine can check, with the gate that holds it.
 Status: agreed. A rule is **held** (its gate fails the build), **partial** (a gate covers some surfaces) or **planned** (the gate is named, not built).
 The loop: define it here, land its gate with a baseline, burn the baseline to zero, then mark it held. Evidence: [Consistency Rulebook](https://claude.ai/artifact/4dbxMJqNv6Ti3Zwjh6jG1w).
 
@@ -48,7 +48,7 @@ The loop: define it here, land its gate with a baseline, burn the baseline to ze
   Gate: planned, raw `<input>`/`<textarea>` outside the atoms; `aria-label="Breadcrumb"` only in BreadcrumbTrail; `aria-current="step"` only in WizShell; banned copy variants.
 - **R18 Same content, same block** (E15, N5) — a rules block renders through one component in every context.
   Gate: planned, an `entity-nesting` rule: a named block's field is read by its renderer only.
-- **R19 One ground signal** (§4.8) — the surface sets `data-ground` once; no `onInk`, `ground` or ink `surface` prop; paper on ink is `--color-paper-NN`.
+- **R19 One ground signal** (K1) — the surface sets `data-ground` once; no `onInk`, `ground` or ink `surface` prop; paper on ink is `--color-paper-NN`.
   Gate: planned, a `styling` rule banning those props and `data-ground` outside frames; `tokens/paper-mix` (zero) for `color-mix` on paper.
 - **R30 No left-rail borders** (§3.10) — colour rides in bands, stamps and gauges.
   Gate: planned, `tokens/left-rail` (zero): `border-left` / `borderLeft` / `border-inline-start` with a width.
@@ -58,22 +58,22 @@ The loop: define it here, land its gate with a baseline, burn the baseline to ze
   Gate: planned, Biome `noRestrictedGlobals` on `window.open` in `apps/web/src`.
 - **R36 Stats render through `Stat`** (§3.7) — never `<span>SP {n}</span>`.
   Gate: planned, a ratchet on JSX text of a stat label followed by an expression outside `Stat`.
-- **R23 Icons take their Size** (§5.11) — 12, 14 or 18px from `iconSize`, stroke 2; ⋯ `Ellipsis`, close `X`, back `ChevronLeft` with the place's name.
+- **R23 Icons take their Size** (§5.11, K11) — 12, 14 or 18px from `iconSize`, stroke 2; ⋯ `Ellipsis`, close `X`, back `ChevronLeft` with the place's name.
   Gate: planned, a lint on lucide `size`/`strokeWidth` props outside `iconSize`; banned copy `←`, `‹`, `&larr;`, a text `⋯`.
 
 ## Chrome
 
-- **R20 A notice has one job** (§8.1) — toast for an act, Banner for a condition, Message for a consequence; one `Toaster`; one offline notice; Copied is the control's own swap; no roll-tier colour.
+- **R20 A notice has one job** (K5) — toast for an act, Banner for a condition, Message for a consequence; one `Toaster`; one offline notice; Copied is the control's own swap; no roll-tier colour.
   Gate: planned, one `<Toaster` in `apps/web/src`; offline copy in one component; the bot's tier tokens banned under `apps/web/src`.
-- **R22 One loading voice** (§8.2) — `Pending`, `Skeleton` or `RoutePending`, "Loading <thing>…".
+- **R22 One loading voice** (K6) — `Pending`, `Skeleton` or `RoutePending`, "Loading <thing>…".
   Gate: planned, banned loading copy variants; `@keyframes` and `su-pulse` only in the loading atoms.
-- **R24 Three dialog widths** (§8.3) — `ModalShell` narrow, default or page.
+- **R24 Three dialog widths** (K7) — `ModalShell` narrow, default or page.
   Gate: planned, `ModalShell` takes `width` from the three (the type system); a `styling` rule bans `max-width` on a dialog class.
-- **R27 One empty state, one error per job** (§8.4) — `EmptyState` by place, `RecoveryPanel`, `NotFoundPanel`, `toast.error`; "Try again".
+- **R27 One empty state, one error per job** (K8) — `EmptyState` by place, `RecoveryPanel`, `NotFoundPanel`, `toast.error`; "Try again".
   Gate: planned, banned copy ("Retry", "Failed to load", "No results found" off the searcher); a raw `role="alert"` only in the atoms.
-- **R28 One focus ring** (§8.5) — `--focus-ring-shadow` on `:focus-visible`, everywhere.
+- **R28 One focus ring** (K9) — `--focus-ring-shadow` on `:focus-visible`, everywhere.
   Gate: planned, `styling/focus-ring` (zero): a `:focus-visible` rule sets only the ring token.
-- **R29 Tabs, Segmented, Toggle by job** (§8.6) — and no ellipsized tab label.
+- **R29 Tabs, Segmented, Toggle by job** (K10) — and no ellipsized tab label.
   Gate: planned, `role="tablist"` only in `Tabs`, `aria-pressed` groups only in `Segmented`; e2e over R0: no tab or segment label overflows.
 
 ## Measures
@@ -92,9 +92,9 @@ The loop: define it here, land its gate with a baseline, burn the baseline to ze
   Gate: planned, e2e: open a Peek per kind and find none.
 - **R35 The form fits the place** (E2, E11, E19) — a list item is a Row, Tile or Token; a lead only on an SRD index; a chassis ability only on its pages, else a contentful Token.
   Gate: planned, e2e over R0.
-- **R21 One breakpoint ladder** (§4.9) — 40, 48, 64, 80rem, `width >=`, media, container and JS alike; Play's phone floor the named exception.
+- **R21 One breakpoint ladder** (K2) — 40, 48, 64, 80rem, `width >=`, media, container and JS alike; Play's phone floor the named exception.
   Gate: planned, `tokens/raw-breakpoint` (zero): a query width off the ladder, a `max-width` query or a px container query; JS reads `breakpoint`.
-- **R25 Motion is tokens** (§4.10) — `--dur-fast`, `--dur-base`, `--ease`; loops only for loading, under `no-preference`.
+- **R25 Motion is tokens** (K3) — `--dur-fast`, `--dur-base`, `--ease`; loops only for loading, under `no-preference`.
   Gate: planned, `tokens/raw-duration` and `raw-easing` (zero); a `@keyframes` loop outside a `no-preference` block fails.
-- **R26 One lift, one layer scale** (§4.4, §4.11) — `--shadow-lift`, 3px popups, z-index from `layer`.
+- **R26 One lift, one layer scale** (§4.4, K4) — `--shadow-lift`, 3px popups, z-index from `layer`.
   Gate: planned, `tokens/raw-shadow` (any `box-shadow` but the lift and the focus ring) and `raw-z-index` (a literal above 3), zero; popup radius under R13's `raw-radius`.

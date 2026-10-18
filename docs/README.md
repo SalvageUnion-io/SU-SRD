@@ -2,8 +2,8 @@
 
 Intent → doc. Area links and "ADR-N" are entries in [ARCHITECTURE.md](ARCHITECTURE.md).
 
-1. **UI component** — [ruleset.md](design-system/ruleset.md) (the laws), [hard-rules.md](design-system/hard-rules.md) (their gates); [display](ARCHITECTURE.md#display).
-2. **Drawing an entity (forms, modes, the model)** — [entity-display-language.md](design-system/entity-display-language.md); its chips and actions: [chips-and-actions.md](design-system/chips-and-actions.md).
+1. **UI component** — [ruleset.md](design-system/ruleset.md) and [chrome.md](design-system/chrome.md) (the laws), [hard-rules.md](design-system/hard-rules.md) (gates); [display](ARCHITECTURE.md#display).
+2. **Drawing an entity** — [entity-display-language.md](design-system/entity-display-language.md); chips and actions: [chips-and-actions.md](design-system/chips-and-actions.md).
 3. **Styling** — ADR-046; the working rules: [`.claude/rules/styling.md`](../.claude/rules/styling.md).
 4. **Design sources, the origin's boards** — [sources.md](design-system/sources.md).
 5. **Data flow or persistence** — [data flow](ARCHITECTURE.md#data-flow) to [stores](ARCHITECTURE.md#stores); ADR-030, ADR-034.
