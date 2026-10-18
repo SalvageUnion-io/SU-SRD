@@ -17,7 +17,7 @@ Status: agreed. Code: `apps/web/src/components/entity/`.
 2. **Token** — `name [chips] [actions]`, one row, name cut out, filling its line (one a line in a list); links and Peeks as a Mention.
    **Contentful** (N3): that head, then the entity's text, held in a border of its tone: nested actions, chassis abilities, a bay's crew lead.
 3. **Row** — every list: art column (≥ 18rem, where the schema has art), head (tier on the band, name, chips, mode slot; name on the paper cut-out, chips beside it), a paper body only for a lead or stamp.
-   In a `data-entity-grid` every Row is the same height and every head's name line reserves two lines.
+   In a `data-entity-grid` every Row is one height and each name line reserves two.
    **Tile** — the SRD index's Row: 3:4 art if any, name notched in the band, facts, lead; link only.
 4. **Card** — the whole entity in place: head (title, labels — pills, User-made — and chips), prose, actions and children as Tokens (E6), table as a roll bar, cite; comfortable (≥ 30rem) or compact.
 5. **Page** — the detail view: an SRD route, Cantina's detail dialog. From 64rem the hero floats left (42%, ≤ 32rem tall) and sections flow beside it.
@@ -39,7 +39,7 @@ Each is checkable; breaking one needs an amendment here. Nesting (N1–N7, rules
 
 - **E1** Choose the form by the job and room, never the app.
 - **E2** Every list of entities is a list of Rows (grid, masonry and columns are layout). Except an SRD index: Tiles, each line filled to the margin; abilities add a Tree (first).
-- **E3** A Token at level 2 (E6) or where a Row will not fit: a long list, one a line (N4), a slot under 12rem.
+- **E3** A Token at level 2 (E6) or where a Row will not fit: a long list, one a line (N4; a drone's parts two), a slot under 12rem.
   Only a Token is a head alone (N2); a Row or Card keeps its body.
 - **E4** An entity named in prose is a Mention: Peek on hover or long-press, the Page on click. Never a chip, Stat or raw markup.
 - **E5** The detail view is always a Page (form 5): no new-tab `window.open`.

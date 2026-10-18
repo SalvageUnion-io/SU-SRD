@@ -47,12 +47,11 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     No TanStack Query; reads: `src/lib/entities/`, `convex/react`. Shared state: a store; context: what varies by placement.
 14. **Sharing** <a id="sharing"></a>
     The one account-free share is the public sheet `/p/:kind/:appId`, opt-in via the `publicRead` column (ADR-032).
-    Snapshots are retired (ADR-036).
 15. **Convex deployments** <a id="deployments"></a>
     Production `exuberant-porpoise-183`; staging `perfect-donkey-72`, previews only.
     `bun run dev` runs a local deployment with test auth; setup, rotations and repairs are the `convex-ops` skill.
 16. **Convex environment** <a id="convex-env"></a>
-    Sign-in: `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`, `SITE_URL`, `JWT_PRIVATE_KEY`, `JWKS`; bot: `CANTINA_BOT_SECRET`, `CANTINA_BOT_URL` (the bot Worker's origin, for Play's posts).
+    Sign-in: `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`, `SITE_URL`, `JWT_PRIVATE_KEY`, `JWKS`; bot: `CANTINA_BOT_SECRET`, `CANTINA_BOT_URL` (Play's posts).
     `CANTINA_TEST_AUTH` never in production; `convex env list` prints values: pipe it through `cut -d= -f1`.
 17. **Convex conventions** <a id="convex-conventions"></a>
     Mutations use `mutation` / `internalMutation` from `convex/model/entities.ts` (its triggers keep `games.summary`).
@@ -119,129 +118,90 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
 
 ## Decisions
 
-ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or supersedes another is named in that one.
+ADRs are never renumbered: entry N is ADR-N. An entry that amends or supersedes another is named in that one.
+Retired (wholly superseded; text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR-016, ADR-017, ADR-018, ADR-019, ADR-020, ADR-023, ADR-024, ADR-025, ADR-027, ADR-035, ADR-039.
 
-1. **ADR-001 Local-first, no backend, no auth**
-   Superseded by ADR-030, whose remaining Solo guarantee ADR-034 withdrew.
-2. **ADR-002 IndexedDB via `idb`, Zod as the schema source**
-   Amended by ADR-034, then superseded by [no device cache](#no-device-cache); Zod stays the schema source.
-3. **ADR-003 Client state via Zustand**
-   Superseded by ADR-030 and ADR-034, except that stores answer from memory.
-4. **ADR-004 Snapshot sharing via Netlify Functions**
-   Superseded by ADR-036.
 5. **ADR-005 Game-data ORM**
-   Accepted, amended: Zod is the one source of types, JSON Schema and validation; data loads lazily through a trusted `preload()`.
-   Its output (`schemas/`, `lib/generated/`) is gitignored and rebuilt on install, typecheck, build and test: no `build:package` prerequisite.
+   Zod is the one source of types, JSON Schema and validation; data loads lazily through a trusted `preload()`.
+   Its output (`schemas/`, `lib/generated/`) is gitignored and rebuilt on install, typecheck, build and test.
 6. **ADR-006 Rules logic as pure functions in `salvageunion-reference/rules`**
-   Accepted: state in, result out, consumers persist. Randsum is the only dice source; the package binds no RNG.
+   State in, result out, consumers persist. Randsum is the only dice source; the package binds no RNG.
 7. **ADR-007 Automation boundary** · [full text](adr/007-automation-boundary.md)
-   Accepted: automate bookkeeping (heat, EP / AP, uses, SP damage); never change a condition or destroy without the player.
+   Automate bookkeeping (heat, EP / AP, uses, SP damage); never change a condition or destroy without the player.
 8. **ADR-008 Sequential client-side mutations**
-   Accepted: no atomic transaction or rollback; affordability is checked before an action runs.
+   No atomic transaction or rollback; affordability is checked before an action runs.
 9. **ADR-009 Item condition model**
-   Accepted: intact → damaged → destroyed, cycled by the player through `StatusBadge`; read-only sheets render a plain badge.
+   Intact → damaged → destroyed, cycled by the player through `StatusBadge`; read-only sheets render a plain badge.
 10. **ADR-010 Choices in the shared display**
-    Accepted: `ChoiceGroups` is uncontrolled in srd and controlled, persisted, in Cantina; `readOnly` renders static text.
-11. **ADR-011 component-lib ships TypeScript source**
-    Accepted: no build step; data-source agnostic, behaviour injected through slot props. Amended by ADR-050 (now `src/components`).
-12. **ADR-012 srd as an Astro static site**
-    Superseded by ADR-031, which keeps the static, no-backend, islands decision.
+    `ChoiceGroups` is uncontrolled on reference pages and controlled, persisted, in the Cantina; `readOnly` renders static text.
+11. **ADR-011 The UI library ships TypeScript source**
+    No build step; data-source agnostic, behaviour injected through slot props. Amended by ADR-050 (now `src/components`).
 13. **ADR-013 CSP-compliant Zod**
-    Accepted: every schema imports `z` from `packages/salvageunion-reference/lib/zod.ts` (`jitless: true`), never `zod`.
+    Every schema imports `z` from `packages/salvageunion-reference/lib/zod.ts` (`jitless: true`), never `zod`.
 14. **ADR-014 The dataset's public interface is the JSON API**
-    Accepted; npm publishing retired. Amended by ADR-040 (served verbatim) and ADR-043 (versioned API).
-15. **ADR-015 The Dashboard is a distinct actual-play surface**
-    Superseded by ADR-038.
-16. **ADR-016 Rotary Dial and instrument / reference split**
-    Merged into ADR-015; superseded by ADR-038 §3.
-17. **ADR-017 Reuse the SRD display; instruments are bespoke**
-    Merged into ADR-015; superseded by ADR-038 §7.
-18. **ADR-018 Flat-and-inset instrument aesthetic**
-    Merged into ADR-015; superseded by ADR-038 §8.
-19. **ADR-019 Dashboard play state is ephemeral**
-    Merged into ADR-015; superseded by ADR-038 §2.
-20. **ADR-020 Fixed 1280×800 scale-to-fit canvas**
-    Merged into ADR-015; superseded by ADR-038 §9.
+    No npm publishing. Amended by ADR-040 (served verbatim) and ADR-043 (versioned API).
 21. **ADR-021 Cantina surface taxonomy** · [full text](adr/021-cantina-surface-taxonomy.md)
-    Accepted, governing: a rule's enforcement depends on the surface's mode; the border is the lifecycle transaction.
-    Wins over any earlier ADR; the live matrix is [surfaces](#surfaces).
+    Governing: a rule's enforcement depends on the surface's mode; the border is the lifecycle transaction.
+    Wins over any earlier ADR; the live matrix is [surfaces](#surfaces). Amended by ADR-051.
 22. **ADR-022 Change Log and stat overrides**
-    Accepted, built: every write appends to a per-entity log; a cap override is an absolute pin, a zero-delta pin none.
+    Every write appends to a per-entity log; a cap override is an absolute pin, a zero-delta pin none.
     Amended by ADR-030 and ADR-034: the log is account data on Convex.
-23. **ADR-023 Drone equipment hosts a loadout**
-    Superseded by ADR-027, itself superseded by ADR-028.
-24. **ADR-024 Derived per-app release changelogs**
-    Superseded by ADR-041; amended by ADR-040.
-25. **ADR-025 Versioned releases for `salvageunion-reference`**
-    Superseded by ADR-040.
 26. **ADR-026 Entity card design rules** · [full text](adr/026-entity-card-design-rules.md)
-    Accepted: `ReferenceEntityCard` is the only entity renderer; app UI layers onto it, never replaces it.
-    Stats have Normal and Compact modes, no pips; a modified stat wears a heavier solid ink frame.
-27. **ADR-027 Partners are instances owned by a pilot or a mech**
-    Superseded by ADR-028, which keeps its model. Supersedes ADR-023.
+    `ReferenceEntityCard` is the only entity Card and Page; app UI layers onto it. Stats have no pips; a modified stat wears a heavier ink frame.
 28. **ADR-028 A partner renders in place**
-    Accepted: a partner is a `ReferenceEntityCard` on its host's sheet with instance state; no partner sheet or route.
-    Supersedes ADR-027.
+    A partner is a `ReferenceEntityCard` on its host's sheet with instance state; no partner sheet or route.
 29. **ADR-029 Unified contribution model and stat provenance** · [full text](adr/029-contribution-model.md)
-    Accepted, built (§4 amended by ADR-038): one source / op / target model (`packages/salvageunion-reference/lib/rules/contributions.ts`).
-    Derivations return parts, so provenance shows wherever a value does; duration effects are never persisted.
+    One source / op / target model; derivations return parts, so provenance shows wherever a value does; duration effects are never persisted.
+    §4 amended by ADR-038.
 30. **ADR-030 Accounts, Games, and a server of record** · [full text](adr/030-accounts-games-server-of-record.md)
-    Accepted, governing: Discord-only accounts; Convex of record; Games and Shelves; roles; cross-player writes by proposal.
-    Amends ADR-022; supersedes ADR-001. Amended by ADR-032, ADR-034, ADR-037, ADR-038 and ADR-051 (ADR-039's amendment retired with it).
-31. **ADR-031 srd builds on an in-house Vite SSG**
-    Accepted; supersedes ADR-012. Registered routes, `renderToStaticMarkup`, React islands; contract `apps/web/ssg/DESIGN.md`. Amended by ADR-050.
+    Governing: Discord-only accounts; Convex of record; Games and Shelves; roles; cross-player writes by proposal. Amends ADR-022.
+    Amended by ADR-032, ADR-034, ADR-037, ADR-038 and ADR-051.
+31. **ADR-031 Reference pages build on an in-house Vite SSG**
+    Registered routes, `renderToStaticMarkup`, React islands; contract `apps/web/ssg/DESIGN.md`. Amended by ADR-050.
 32. **ADR-032 Public, read-only sheets** · [full text](adr/032-public-read-only-sheets.md)
-    Accepted: opt-in `publicRead` per entity; the owner decides, the table runner for a crawler.
+    Opt-in `publicRead` per entity; the owner decides, the table runner for a Game's crawler.
     Amends ADR-030's visibility rule; amended by ADR-036.
 33. **ADR-033 Hosting on Cloudflare** · [full text](adr/033-hosting-on-cloudflare.md)
-    Accepted, delivered: Workers (Static Assets, R2) serve every site; Actions builds, `wrangler` deploys. Amended by ADR-047, ADR-048, ADR-050.
-34. **ADR-034 Persistence requires an account; the local store is a cache**
-    Accepted: signed out is read-only, every record is Convex-backed, the app is a PWA; the pre-account migration is gone.
-    Supersedes ADR-030's Solo guarantee; amends ADR-002 and ADR-022. [No device cache](#no-device-cache) followed.
-35. **ADR-035 No isolated local-only data**
-    Partly superseded by its 2026-10-08 amendment and by [no device cache](#no-device-cache): anonymous visitors get the `signedOut` backend; no legacy claim.
+    Workers (Static Assets, R2) serve everything; Actions builds, `wrangler` deploys. Amended by ADR-047, ADR-048, ADR-050.
+34. **ADR-034 Persistence requires an account**
+    Signed out is read-only, every record is Convex-backed, the app is a PWA; then [no device cache](#no-device-cache).
+    Amends ADR-022 and ADR-030.
 36. **ADR-036 Retire snapshot shares**
-    Accepted: the public sheet is the only account-free share; no `/api/snapshots`.
-    Supersedes ADR-004; amends ADR-032.
+    The public sheet is the only account-free share; no `/api/snapshots`. Amends ADR-032.
 37. **ADR-037 The assignment model**
-    Accepted: one-hop links `mech-to-pilot`, `pilot-to-crawler`, `mech-to-crawler`; a new link replaces conflicts; one container.
+    One-hop links `mech-to-pilot`, `pilot-to-crawler`, `mech-to-crawler`; a new link replaces conflicts; one container.
     Amends ADR-030; amended by ADR-044. Code: `packages/cantina-domain/src/links/linkRules.ts`.
 38. **ADR-038 The Dashboard is a Game surface with shared play state** · [full text](adr/038-dashboard-game-surface.md)
-    Built, partly superseded by ADR-051 (Play): the seat and the fixed 1280×800 canvas stand; Game-only and the slots went.
-    Supersedes ADR-015; amends ADR-029 §4, ADR-030 §5–6 and ADR-034; amended by ADR-045, ADR-051. As built: [dashboard.md](architecture/dashboard.md).
-39. **ADR-039 Addressed invites by Discord account**
-    Retired with `/su invite`: a Game joins only through its one invite URL (ADR-030), and an addressed row opens nothing.
-    Amended ADR-030's invite rules (`convex/model/invites.ts`).
+    Built; ADR-051 (Play) keeps its seat and fixed 1280×800 canvas, replacing Game-only and the slots. As built: [dashboard.md](architecture/dashboard.md).
+    Amends ADR-029 §4, ADR-030 §5–6 and ADR-034; amended by ADR-045, ADR-051.
 40. **ADR-040 The dataset is served verbatim with no release stream**
-    Accepted, built: `/schema/*` serves the files byte for byte; `$id` is the served URL; version `0.0.0`.
-    Supersedes ADR-025; amends ADR-014 and ADR-024; amended by ADR-043.
+    `/schema/*` serves the files byte for byte; `$id` is the served URL; version `0.0.0`. Amends ADR-014; amended by ADR-043.
 41. **ADR-041 The deployed commit is the release**
-    Accepted, built: no app versions; one changelog, `/changelog`: `main`'s first-parent history by scope.
-    Supersedes ADR-024.
+    No app versions; one changelog, `/changelog`: `main`'s first-parent history by scope.
 42. **ADR-042 Mid-tab updates**
-    Accepted, built: `convex/buildFloor.ts` is raised by hand only for a change that breaks an open tab.
+    `convex/buildFloor.ts` is raised by hand only for a change that breaks an open tab.
     The `client-contract` gate catches argument breaks; anything else is a soft update.
 43. **ADR-043 The dataset is a versioned public contract at `api.salvageunion.io`**
-    Accepted, not built: a static `/v1` tree emitted from the committed files; no query Worker.
+    Not built: a static `/v1` tree emitted from the committed files; no query Worker.
     Amends ADR-014, ADR-040; decision 1 superseded by ADR-047.
 44. **ADR-044 Built NPCs and the `npc-to-crawler` link**
-    Accepted, built: an `npcs` table like pilots; a slotted link authorised by the crawler's writer.
+    Built: an `npcs` table like pilots; a slotted link authorised by the crawler's writer.
     Amends ADR-037. As built: [npc-builder.md](architecture/npc-builder.md).
 45. **ADR-045 The Dashboard has a phone form** · [full text](adr/045-dashboard-phone-form.md)
-    Built, partly superseded by ADR-051: below a 0.62 canvas scale Play renders a phone form over the same seat and enforcement.
+    Built: below a 0.62 canvas scale Play renders a phone form over the same seat and enforcement.
     Amends ADR-038; amended by ADR-051.
 46. **ADR-046 Styling is tokens, style objects and one stylesheet**
-    Accepted, built: `theme.css` tokens, `tokens.ts` objects, `index.css` classes, also for styles repeated per page; `no-tailwind` bars Tailwind.
+    `theme.css` tokens, `tokens.ts` objects, `index.css` classes, also for styles repeated per page; `no-tailwind` bars Tailwind.
 47. **ADR-047 One salvageunion.io edge Worker**
-    Accepted, not built: `su-srd` serves `api.salvageunion.io` too, from one `dist/`; `assets.` stays apart.
+    Not built: `su-srd` serves `api.salvageunion.io` too, from one `dist/`; `assets.` stays apart.
     Supersedes ADR-043 decision 1; amends ADR-033.
 48. **ADR-048 Cantina at salvageunion.io/build**
-    Accepted, built: su-srd serves `/build`; the old host 301s by zone rule. Amends ADR-033; amended by ADR-050.
+    `su-srd` serves `/build`; the old host 301s by zone rule. Amends ADR-033; amended by ADR-050.
 49. **ADR-049 Workers Issues, not Sentry**
-    Accepted, built: no SDK; browsers and Convex report via the Workers; browser stacks minified.
+    No SDK; browsers and Convex report via the Workers; browser stacks minified.
 50. **ADR-050 One app** · [full text](adr/050-one-app.md)
-    Accepted, built: `apps/web` is one app, the pre-rendered reference and the client-rendered Cantina at `/build/`; one source tree, Vite pass, Worker, CSP, head, install and changelog.
+    `apps/web` is one app: the pre-rendered reference and the Cantina at `/build/`; one source tree, Vite pass, Worker, CSP, head, install and changelog.
     Amends ADR-011, ADR-031, ADR-033 and ADR-048.
 51. **ADR-051 Play mode, a Cockpit** · [full text](adr/051-play-mode.md)
-    Accepted, built: Play beside Reference and Build; Units | Actions | Crew, Tables, Feed; solo seats.
+    Built: Play beside Reference and Build; Units | Actions | Crew, Tables, Feed; solo seats.
     Supersedes ADR-038 §1 and its layout; amends ADR-030 and ADR-045. As built: [play.md](architecture/play.md).

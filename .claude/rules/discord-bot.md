@@ -6,76 +6,39 @@ paths:
 
 # Discord bot — changing a reply
 
-The architecture (HTTP-interactions Worker, Cantina Game client and how it
-degrades) is in [`apps/discord-bot/CLAUDE.md`](../../apps/discord-bot/CLAUDE.md);
-the roll surface's design is in the header of
-`src/rollContainer.ts`.
-This rule is the checklist for the work that keeps landing here: reshaping what
-a reply looks like.
-
 ## Every reply is a Components V2 container
 
-- Build a pure `ContainerData` and render it with `toContainer` in
-  `src/container.ts`. A reference entry is `discordEntryCard`, the SRD's
-  Component Embed too (add controls only); sheets and game cards
-  `entityCard()`;
-  anything else authors its blocks in a `*Container.ts` builder. Never an
-  `embeds:` payload — with `MessageFlags.IsComponentsV2` Discord rejects
-  `content` and `embeds` outright.
-- **Limits are enforced once, in `toContainer`** (`enforceContainerLimits`,
-  budgets in `V2_LIMIT`). They are server-side ceilings no installed package
-  checks, so do not add a second guard; a builder that must fit budgets
-  against `V2_LIMIT` by measuring what it renders.
-- Builders stay pure: data in, data out. Changing a sent message means
-  rebuilding it, not mutating it.
+- Build a pure `ContainerData` and render it with `toContainer`
+  (`src/container.ts`): a reference entry is `discordEntryCard` (the SRD's
+  Component Embed too), sheets and game cards `entityCard()`, anything else a
+  `*Container.ts` builder. Never `embeds:` or `content`: Components V2 rejects them.
+- Limits are enforced once, in `toContainer` (`V2_LIMIT`); add no second guard.
+- Builders are pure; changing a sent message means rebuilding it.
 
-## What Discord will and will not render
+## What Discord renders
 
-Learned from shipped replies:
+- `setAccentColor()` paints the left edge only; text has no colour and headings
+  are already bold, so punctuation is the only emphasis: `rollHeadline` owns
+  the die / outcome separator.
+- One shape per surface: every roll draws the same furniture.
+- No decorative glyphs; extend the functional ones (`↻` in
+  `src/commands/roll.ts`, `gauge()` in `src/gameCards.ts`).
 
-- `setAccentColor()` paints the container's **left edge only**. A
-  `TextDisplay` is always default text colour, so a glyph "tinted by the tier"
-  renders as a white bar. There is no in-text colour and a heading is already
-  bold, so **punctuation is the only emphasis left** — `rollHeadline` owns the
-  die / outcome separator; route through it rather than formatting a headline
-  inline.
-- Keep one shape per surface. A banner or row that appears only for some
-  results makes the message change shape with the roll; every roll draws the
-  same furniture.
-- No block glyphs for decoration. The one surviving glyph set is functional
-  (`↻` on Roll again in `src/commands/roll.ts`, `gauge()` in `src/gameCards.ts`);
-  extend those, do not start a second vocabulary.
+## Ephemerality and buttons
 
-## Ephemerality is a rule, not a default
+- Denials and errors are always ephemeral (`src/commands/cantinaReply.ts`).
+- `/su sheet` is always ephemeral, and shows Share only when the server reports
+  `publicRead: true`.
+- A private roll goes public only from the result encoded in its button, never
+  a re-roll; a roll is always a new message; only its roller re-rolls.
+- Posted buttons live forever: a retired action is rejected by `parseCustomId`
+  with "no longer supported"; never reuse a retired `su:<action>` name.
 
-- Denials and errors are **always** ephemeral (`src/commands/cantinaReply.ts`):
-  a public channel is the wrong place to say who lacks an account.
-- `/su sheet` is always ephemeral, even when the sheet is public (ADR-032), and
-  shows the Share field only when the server reports `publicRead: true`;
-  posting to the channel is the owner's act. `sheetVisibility.test.ts` holds it.
-- A private roll re-renders publicly only from the result encoded in its
-  button — never by re-rolling.
-- A roll is always a NEW message, never a redraw; only its roller re-rolls,
-  as private as the first roll (`encodeRollRequest`).
+## Colour and tests
 
-## Buttons are permanent
-
-Posted messages keep their buttons forever. Retiring an action means `parseCustomId` rejects it and the router answers "no longer
-supported" ephemerally — `retiredCheckButtons.test.ts` pins that. Never reuse a
-retired `su:<action>` name for something new.
-
-## Colour and the tests that guard a reply
-
-- Every accent (entry tones, the roll ramp, rust) is one integer mirror of
-  `apps/web/src/styles/theme.css`:
-  `packages/salvageunion-reference/lib/view/discordAccents.ts`, whose test fails
-  when a value diverges; change them together.
-- Handlers take the narrow types in `src/commands/interactions.ts` (add a member
-  only when a handler reads it); extend the shared fakes in
+- Accents mirror `apps/web/src/styles/theme.css` in
+  `packages/salvageunion-reference/lib/view/discordAccents.ts`; change them together.
+- Handlers take the narrow types in `src/commands/interactions.ts`; extend
   `src/__tests__/fakeInteraction.ts` rather than casting.
-
-Run `bun --filter discord-bot test`; `src/worker/__tests__/replay.test.ts` drives
-the Worker with signed, Discord-shaped payloads. There is no local loop against
-real Discord: the Interactions Endpoint URL is application-wide, so only the
-deployed Worker receives interactions, and a reply is first seen rendered once
-it ships. The tests prove structure, not rendering.
+- `bun --filter discord-bot test` (with the signed replay harness) proves
+  structure, not rendering: only the deployed Worker receives interactions.
