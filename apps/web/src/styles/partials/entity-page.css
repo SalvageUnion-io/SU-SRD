@@ -110,6 +110,22 @@
   }
 }
 
+@container (min-width: 1056px) {
+  @media (min-width: 40rem) {
+    .su-stat-column__cell {
+      --su-stat-cols: 5;
+    }
+  }
+}
+
+@container (min-width: 1270px) {
+  @media (min-width: 40rem) {
+    .su-stat-column__cell {
+      --su-stat-cols: 6;
+    }
+  }
+}
+
 /* The compact column (`StatColumn compact`): the band's smaller cells, two a
    line at every width, for a narrow column beside other content (the Cantina mech
    sheet's hero, beside the player's fields). */
