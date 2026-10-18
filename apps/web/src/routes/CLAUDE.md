@@ -37,8 +37,8 @@ before touching data.**
 ## Rules and play
 
 - Pure math is `salvageunion-reference/rules` (never the main barrel or a local
-  re-export); `src/lib/rules/` is app-local rules only; every die is
-  `utils/dice.ts`.
+  re-export); `src/lib/rules/` is app-local rules only; every die:
+  `src/lib/dice.ts`.
 - Play actions go in `src/play/`; the one sheet-local play control
   is `CrawlerEconomyControl.tsx`. Condition changes stay player-driven via
   `StatusBadge` → `cycleItemCondition`. More: [play.md](../../../../docs/architecture/play.md).
