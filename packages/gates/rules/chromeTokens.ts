@@ -208,8 +208,8 @@ type Source =
   | { kind: 'script'; rel: string; lines: string[]; text: string }
 
 type ChromeRule = Rule & {
-  css?: (decls: CssDecl[], blocks: CssBlock[]) => { line: number; detail: string }[]
-  script?: (text: string) => { offset: number; detail: string }[]
+  css?: (decls: CssDecl[], blocks: CssBlock[], rel: string) => { line: number; detail: string }[]
+  script?: (text: string, rel: string) => { offset: number; detail: string }[]
 }
 
 /** Every match of a global pattern in a script, as offsets. */
@@ -271,6 +271,77 @@ const leftRailScript = (text: string) =>
     return !(right && (right[1] ?? '').trim() === (m[1] ?? '').trim())
   })
 
+// ── Dashed (§3.9) ─────────────────────────────────────────────────────────────
+
+/**
+ * Where a stylesheet may draw dashed (ruleset §3.9): under one of these
+ * selectors, each one of the four things dashed means.
+ */
+const DASHED_SELECTORS: readonly [RegExp, string][] = [
+  [/\[data-user-made\]/, 'user-made: an entity frame, Token body or pill a player made'],
+  [/\.su-badge--dashed\b/, 'user-made: the User-made stamp'],
+  [/\.su-play-unit--reference\b/, 'a Play reference unit (ADR-051 §5)'],
+  [/\.su-field__write-cue\b/, 'an edit field: a writable value box'],
+  [/\.su-edit-cue:hover\b/, 'an edit field: the hover edit cue'],
+  [/\.su-btn--pencil\b/, 'an edit field: the pencil control on an editable line'],
+  [/\.su-play-discord-row\[data-unbound\]/, 'an empty slot: a channel not yet bound'],
+]
+
+/**
+ * Where a style object may draw dashed: the files that draw one of the four
+ * things dashed means, by file. A file here may draw dashed anywhere in it,
+ * so it names one job.
+ */
+const DASHED_FILES: readonly [string, string][] = [
+  // User-made (ruleset §3.9): what a player made, and the doors that make it.
+  ['apps/web/src/components/atoms/ChapterBand.tsx', 'user-made: the dashed notch'],
+  ['apps/web/src/components/referenceEntity/card/cardChrome.ts', 'user-made: the card frame'],
+  [
+    'apps/web/src/components/referenceEntity/card/EntityCardIdentityFooter.tsx',
+    'user-made: the foot rule',
+  ],
+  ['apps/web/src/components/referenceEntity/card/UserMadeStamp.tsx', 'user-made: the stamp'],
+  ['apps/web/src/components/compositions/OgCard.tsx', 'user-made: the share card'],
+  ['apps/web/src/build/mech/Pattern/PublicPattern.tsx', 'user-made: a pattern’s page'],
+  ['apps/web/src/build/mech/Pattern/SavePatternPage.tsx', 'user-made: saving a pattern'],
+  ['apps/web/src/build/npc/AnyNpcDesigner.tsx', 'user-made: the NPC designer'],
+  ['apps/web/src/build/npc/npcStyles.model.ts', 'user-made: the NPC builder'],
+  ['apps/web/src/build/mech/MechChassisStep.tsx', 'user-made: the Custom-build door'],
+  ['apps/web/src/components/atoms/ModeDoor.tsx', 'user-made: the blank-build door'],
+  // An edit field: Edit's controls are pencil (ruleset §1.2).
+  ['apps/web/src/components/atoms/Field.tsx', 'an edit field'],
+  ['apps/web/src/components/atoms/Conditions.tsx', 'an edit field: the + Add chip'],
+  ['apps/web/src/components/containers/AdderBox.tsx', 'an edit field: the + add intake'],
+  ['apps/web/src/components/referenceEntity/card/StatusRail.tsx', 'an edit field: the live rail'],
+  // An empty slot.
+  ['apps/web/src/components/atoms/SlotGrid.tsx', 'an empty slot: a cargo cell'],
+  ['apps/web/src/components/shared/EmptyUnitSlot.tsx', 'an empty slot: an unfilled unit'],
+  ['apps/web/src/components/containers/EmptyState.tsx', 'an empty slot: the empty state'],
+  ['apps/web/src/components/shared/EntityPhoto.tsx', 'an empty slot: no photo yet'],
+  ['apps/web/src/build/sheet/StorageManifest.tsx', 'an empty slot: an unlinked counterpart'],
+]
+
+const DASHED_PROP = /^(?:border|outline|column-rule|text-decoration)/
+
+const dashedCss = (decls: CssDecl[]) =>
+  decls
+    .filter((d) => DASHED_PROP.test(d.prop) && /\bdashed\b/.test(d.value))
+    .filter((d) => {
+      const selector = d.context[d.context.length - 1] ?? ''
+      // Focus is the ring's (chrome.md K9): never a dashed focus variant.
+      if (/:focus/.test(selector)) return true
+      return !d.context.some((header) => DASHED_SELECTORS.some(([re]) => re.test(header)))
+    })
+    .map((d) => ({ line: d.line, detail: `${d.context.at(-1)} { ${d.prop}: ${d.value} }` }))
+
+const dashedScript = (text: string, rel: string) =>
+  DASHED_FILES.some(([file]) => rel === file)
+    ? []
+    : matchesIn(
+        text,
+        /\b(?:border|outline|textDecoration|columnRule)\w*\s*:[^,}\n]*\bdashed\b|\bsurface\s*[=:]\s*\{?\s*['"]dashed['"]/g
+      )
+
 // ── The rules ─────────────────────────────────────────────────────────────────
 
 const CHROME_RULES: ChromeRule[] = [
@@ -282,13 +353,28 @@ const CHROME_RULES: ChromeRule[] = [
     css: leftRailCss,
     script: leftRailScript,
   },
+  {
+    id: 'dashed',
+    mode: 'zero',
+    rule: 'ruleset §3.9 — dashed means user-made, a Play reference unit, an edit field or an empty slot; a Slab is solid',
+    fix: 'Draw it solid. Dashed is only a thing a player made (`[data-user-made]`, the User-made stamp), a Play reference unit, an edit field or an empty slot: if this is one, add its selector to DASHED_SELECTORS (a stylesheet) or its file to DASHED_FILES (a style object) in packages/gates/rules/chromeTokens.ts, with which of the four it is. Focus is the ring, never dashed (chrome.md K9).',
+    css: dashedCss,
+    script: dashedScript,
+  },
 ]
 
 /**
  * Sanctioned cases. Each entry needs a reason — an exemption without a
  * justification is just a silent hole in the guardrail.
  */
-const EXEMPTIONS: Exemption[] = []
+const EXEMPTIONS: Exemption[] = [
+  {
+    file: 'apps/web/src/components/atoms/Slab.tsx',
+    rules: ['dashed'],
+    reason:
+      'R1 (#1682): `Slab variant="dashed"` is the dashed section head R1 removes ("a Slab is always solid"), with every call site, as its own change. The exemption goes with the variant.',
+  },
+]
 
 /**
  * Catastrophe floor for SCAN_DIRS, counted after tests and generated files
@@ -322,8 +408,8 @@ export function scanChromeSources(sources: ReadonlyMap<string, string>): Record<
       if (isExempt(EXEMPTIONS, rel, rule.id)) continue
       const hits =
         src.kind === 'css'
-          ? (rule.css?.(src.decls, src.blocks) ?? [])
-          : (rule.script?.(src.text) ?? []).map((h) => ({
+          ? (rule.css?.(src.decls, src.blocks, rel) ?? [])
+          : (rule.script?.(src.text, rel) ?? []).map((h) => ({
               line: lineAt(src.text, h.offset),
               detail: h.detail,
             }))

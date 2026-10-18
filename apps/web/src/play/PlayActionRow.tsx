@@ -3,7 +3,7 @@
  * Row (`form="row"`), its chips in the shared stat order with the cost last.
  * On hand it carries Use, which opens the resolve in place, in the Row's own
  * body (`PlayResolveSteps`), with Cancel in its head; not on hand it is
- * dashed and dimmed, and says what it needs ("needs Boarded").
+ * dimmed, and says what it needs ("needs Boarded").
  *
  * The Row is level 1 in the column; the resolve inside it is plain content
  * (the Nested Frames Audit, play.md §12). While open, the Row shows the

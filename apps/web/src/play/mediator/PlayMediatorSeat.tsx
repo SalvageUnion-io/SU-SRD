@@ -7,8 +7,8 @@
  *  - **Attention** — something needs the Mediator (`crewLines()`'s verdict):
  *    a ring in the bad hue around the seat, the flagged vital ▲ and critical,
  *    and the problem in words, so colour is never the only signal.
- *  - **Away** — their seat has stopped beating: the frame is dashed, and the
- *    line says where they were last seen.
+ *  - **Away** — their seat has stopped beating: the presence dot goes out, and
+ *    the line says where they were last seen.
  *  - **Downtime** — the line says whether they are done with the step.
  *
  * The Row is in select mode: a tap aims Propose at this pilot (see the

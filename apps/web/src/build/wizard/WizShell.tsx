@@ -260,12 +260,12 @@ const pillNavStyle = {
 /** Full width on a phone, its own width from sm (`.su-wiz-pill-cta`). */
 const ctaStyle = { borderRadius: tokens.radius.card } satisfies CSSProperties
 
-/** Locked: hollow, dashed, at full opacity though disabled. */
+/** Locked: hollow, at full opacity though disabled. */
 const ctaLockedStyle = {
   ...ctaStyle,
   backgroundColor: 'transparent',
   borderColor: tokens.color.paper60,
-  borderStyle: 'dashed',
+  borderStyle: 'solid',
   borderWidth: tokens.borderWidth.pill,
   boxShadow: 'none',
   color: tokens.color.paper60,
@@ -451,7 +451,7 @@ export function WizShell({
           onConfirm={onCancel}
         />
       </div>
-      {/* Locked CTA: hollow, dashed, dimmed weight —
+      {/* Locked CTA: hollow, dimmed weight —
           the blocking reason lives in the footerNote text. */}
       <Button
         variant="primary"

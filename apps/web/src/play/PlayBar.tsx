@@ -152,7 +152,7 @@ export function PlayBar({
         <Badge
           shape="stamp"
           size="compact"
-          surface="dashed"
+          surface="inverse"
           className={STAMP}
           style={LIVE}
           role="status"

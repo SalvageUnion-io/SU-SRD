@@ -58,11 +58,7 @@
   padding: 0;
 }
 
-/* Not on hand: dashed and dimmed, as a reference unit is (ADR-051 §5). */
-.su-play-act[data-away] .su-entity-row__frame {
-  border-style: dashed;
-}
-
+/* Not on hand: dimmed (dashed is a reference unit's alone: ruleset §3.9). */
 .su-play-act[data-away] .su-entity-row__main {
   opacity: 0.7;
 }

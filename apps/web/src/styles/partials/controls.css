@@ -332,10 +332,10 @@
   min-width: 0;
 }
 
-/* The entity whose Page is open: a dashed ink outline, so it never reads as
-   chosen. */
+/* The entity whose Page is open: a thin ink outline, set off its edge, so it
+   never reads as chosen (the chosen ring is 3px and flush). */
 .su-searcher__item[data-focused] {
-  outline: var(--bw-chrome) dashed var(--color-ink);
+  outline: var(--bw-chrome) solid var(--color-ink);
   outline-offset: 1px;
 }
 

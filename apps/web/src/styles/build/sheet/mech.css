@@ -86,10 +86,10 @@
 
 /* ---- MechSheet ---- */
 
-/* The vitals stack: a dashed deep-tone rule between each gauge. */
+/* The vitals stack: a deep-tone rule between each gauge. */
 .su-sheet-mech-vitals > * + * {
   border-color: color-mix(in srgb, var(--tone-deep) 40%, transparent);
-  border-style: dashed;
+  border-style: solid;
   border-top-width: var(--bw-hairline);
   margin-top: var(--space-14);
   padding-top: var(--space-14);

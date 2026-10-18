@@ -53,7 +53,7 @@ The loop: define it here, land its gate with a baseline, burn the baseline to ze
 - **R30 No left-rail borders** (§3.10) — colour rides in bands, stamps and gauges.
   Gate: held, `tokens/left-rail` (zero, `packages/gates/rules/chromeTokens.ts`): `border-left` / `borderLeft` / `border-inline-start` with a width, unless its rule draws the right edge at that width (a frame) or reaches it through a sibling combinator (a divider, `a + b`).
 - **R32 Dashed means user-made** (§3.9) — or a Play reference unit, an edit field, an empty slot.
-  Gate: planned, `tokens/dashed` (zero): `dashed` only under the user-made, reference-unit, field and SlotGrid selectors.
+  Gate: held, `tokens/dashed` (zero, `packages/gates/rules/chromeTokens.ts`): `dashed` only under the user-made, reference-unit, edit-field and empty-slot selectors (`DASHED_SELECTORS`) or files (`DASHED_FILES`), never under `:focus`; `Slab.tsx` is exempt until R1 removes its `variant`.
 - **R34 The detail view is a Page, never a new tab** (E5).
   Gate: held, the Biome plugin `noWindowOpen.grit` bans `window.open` in `apps/web/src` (`noRestrictedGlobals` bans a name, not a member); `useDetailModal.test.tsx` pins link mode.
 - **R36 Stats render through `Stat`** (§3.7) — never `<span>SP {n}</span>`.

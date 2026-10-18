@@ -45,7 +45,6 @@
 }
 
 .su-npc-step:disabled {
-  border-style: dashed;
   color: var(--color-ink-75);
   cursor: default;
 }

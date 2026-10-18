@@ -202,7 +202,7 @@ function PlayGameItem({
               </Badge>
             ))}
             {here > 0 && (
-              <Badge shape="stamp" size="compact" surface="dashed">
+              <Badge shape="stamp" size="compact">
                 {here} here
               </Badge>
             )}

@@ -35,11 +35,6 @@
   outline-offset: 2px;
 }
 
-/* Their seat has stopped beating: the frame is dashed, as a reference unit's. */
-.su-play-seat[data-away] .su-entity-row__frame {
-  border-style: dashed;
-}
-
 /* The Opposition: two boxes a row where the centre has the room. */
 .su-play-npcs {
   display: grid;

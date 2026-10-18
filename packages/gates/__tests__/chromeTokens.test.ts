@@ -116,6 +116,53 @@ describe('tokens/left-rail', () => {
   })
 })
 
+describe('tokens/dashed', () => {
+  test('dashed outside the four meanings fails, in CSS and a style object', () => {
+    const css = scan(
+      'apps/web/src/styles/x.css',
+      [
+        '.a { border-style: dashed; }',
+        '.b { outline: 2px dashed; }',
+        '.su-edit-cue:focus-within { outline-style: dashed; }',
+        '.c { border-style: solid; text-decoration: underline dotted; }',
+      ].join('\n')
+    )
+    expect(lines(css, 'dashed')).toEqual([1, 2, 3])
+    const tsx = scan(
+      'apps/web/src/X.tsx',
+      [
+        "const A = { borderStyle: 'dashed' }",
+        "const B = { borderTop: on ? '1px dashed red' : '1px solid red' }",
+        '<Badge shape="stamp" surface="dashed">x</Badge>',
+        "const C = { borderStyle: 'solid' } // a dashed rule",
+      ].join('\n')
+    )
+    expect(lines(tsx, 'dashed')).toEqual([1, 2, 3])
+  })
+
+  test('user-made, a reference unit, an edit field and an empty slot pass', () => {
+    const css = scan(
+      'apps/web/src/styles/x.css',
+      [
+        '.su-entity-row__frame[data-user-made] { border-style: dashed; }',
+        '.su-badge--dashed { border: 1px dashed; }',
+        '.su-play-unit--reference > .frame { border-style: dashed; }',
+        '.su-field__write-cue { border-style: dashed; }',
+        '.su-edit-cue:hover { outline-style: dashed; }',
+        '@media (hover: hover) { .su-btn--pencil { border-style: dashed; } }',
+      ].join('\n')
+    )
+    expect(css.dashed).toEqual([])
+    for (const file of [
+      'apps/web/src/components/atoms/SlotGrid.tsx',
+      'apps/web/src/components/atoms/Field.tsx',
+      'apps/web/src/components/referenceEntity/card/cardChrome.ts',
+    ]) {
+      expect(scan(file, "const A = { borderStyle: 'dashed' }").dashed).toEqual([])
+    }
+  })
+})
+
 describe('chromeTokens preflight and scan', () => {
   const { errors } = trapExit()
   const temps: string[] = []

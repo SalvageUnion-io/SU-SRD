@@ -40,10 +40,10 @@
   }
 }
 
-/* The Vitals rows: a dashed rule in the deep tone between each pair. */
+/* The Vitals rows: a rule in the deep tone between each pair. */
 .su-sheet-pilot-vitals > * + * {
   border-color: color-mix(in srgb, var(--tone-deep) 40%, transparent);
-  border-style: dashed;
+  border-style: solid;
   border-top-width: var(--bw-hairline);
   margin-top: var(--space-14);
   padding-top: var(--space-14);

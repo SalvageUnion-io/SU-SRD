@@ -9,8 +9,8 @@
  * band or a tone header alike); its state is the border. A link: a rust
  * border, rust text on hover (ruleset §3.1), and on keyboard focus the one
  * ring (`FOCUS_RING`, chrome K9). Inert: a
- * dashed border in the text's own colour, at half strength, and the help
- * cursor — it only summons a tooltip.
+ * dotted border in the text's own colour, at half strength, and the help
+ * cursor — it only summons a tooltip (dashed means user-made: ruleset §3.9).
  */
 .su-inline-ref {
   border-bottom: var(--bw-chrome) solid currentColor;
@@ -29,7 +29,7 @@
 
 .su-inline-ref--inert {
   border-bottom-color: color-mix(in srgb, currentColor 50%, transparent);
-  border-bottom-style: dashed;
+  border-bottom-style: dotted;
   cursor: help;
 }
 
