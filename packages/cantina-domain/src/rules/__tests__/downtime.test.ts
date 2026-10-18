@@ -19,6 +19,9 @@ import {
   CHASSIS_DAMAGED_CONDITION,
   downtimeMechPatch,
   downtimePilotPatch,
+  downtimeStepCount,
+  downtimeStepNames,
+  isUpkeepStep,
   mechBayStatus,
   medBayStatus,
   repairableItems,
@@ -120,6 +123,24 @@ function findHighTlSystemSlug(minTl: number): string {
 // ---------------------------------------------------------------------------
 // medBayStatus
 // ---------------------------------------------------------------------------
+
+describe('the Downtime guide', () => {
+  it('names its steps in order, from Tally Salvage to the next Salvage Run', () => {
+    const names = downtimeStepNames()
+    expect(names.length).toBe(downtimeStepCount())
+    expect(names[0]).toBe('Tally Salvage')
+    expect(names.at(-1)).toBe('Prepare for the next Salvage Run')
+  })
+
+  it('knows which step is Upkeep, and none while Downtime is not running', () => {
+    const upkeep = downtimeStepNames().indexOf('Upkeep & Upgrade')
+    expect(upkeep).toBeGreaterThan(-1)
+    expect(isUpkeepStep(upkeep)).toBe(true)
+    expect(isUpkeepStep(0)).toBe(false)
+    expect(isUpkeepStep(null)).toBe(false)
+    expect(isUpkeepStep(999)).toBe(false)
+  })
+})
 
 describe('medBayStatus', () => {
   it('no Med Bay installed → nothing heals', () => {
