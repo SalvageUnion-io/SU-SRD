@@ -693,6 +693,20 @@ describe('checkDecisions', () => {
     expect(failures).not.toContain('ADR-007')
   })
 
+  it('passes a gap named on the Retired line, and fails one listed both ways', () => {
+    const retired = 'Retired (superseded; text in git): ADR-002, ADR-003.\n\n'
+    const passing = fixture({
+      'docs/ARCHITECTURE.md': doc(retired + entry(1, 'Accepted.') + entry(4, 'Accepted.')),
+    })
+    expect(checkDecisions(passing, 4).failures).toEqual([])
+    const failing = fixture({
+      'docs/ARCHITECTURE.md': doc(retired + entry(1, 'Accepted.') + entry(2, 'Accepted.')),
+    })
+    expect(checkDecisions(failing, 3).failures).toEqual([
+      'docs/ARCHITECTURE.md lists ADR-002 as an entry and as retired. Keep one.',
+    ])
+  })
+
   it('fails an amendment the amended entry does not name', () => {
     const root = fixture({
       'docs/ARCHITECTURE.md': doc(
