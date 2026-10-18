@@ -9,13 +9,15 @@
  * portalled to the page rather than into the scaled canvas, so the sheet lays
  * out at the page's size. Base UI traps focus in it, closes it on Escape and
  * hands focus back to the button that opened it. The sheet names the tab
- * after its unit; the Play title comes back when the overlay closes.
+ * after its unit; the Play title comes back when the overlay closes. It is a
+ * Live Sheet, not Play, so it wears the sheet's texture back over Play's flat
+ * surface.
  */
 
 import type { SheetKind } from 'cantina-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { useEffect } from 'react'
-import { CloseButton, ModalShell, tokens } from '../index'
+import { CloseButton, EntitySurfaceProvider, ModalShell, tokens } from '../index'
 import { SheetView } from '../sheet/SheetView'
 
 const FRAME = {
@@ -50,6 +52,9 @@ const TITLE = {
 } satisfies CSSProperties
 
 const BODY = { flex: '1 1 0%', minHeight: 0, overflowY: 'auto' } satisfies CSSProperties
+
+/** The sheet's own materials over Play's flat surface (ruleset §3.5.1). */
+const TEXTURED = { texture: true } as const
 
 /** The unit an overlay shows: its kind, its id and its name for the title. */
 export type SheetTarget = { kind: SheetKind; id: string; name: string }
@@ -89,7 +94,9 @@ export function PlaySheetOverlay({
             <CloseButton label="Back to Play" onClick={onClose} />
           </div>
           <div style={BODY}>
-            <SheetView kind={sheet.kind} id={sheet.id} />
+            <EntitySurfaceProvider value={TEXTURED}>
+              <SheetView kind={sheet.kind} id={sheet.id} />
+            </EntitySurfaceProvider>
           </div>
         </div>
       ) : null}

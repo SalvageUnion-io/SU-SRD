@@ -23,7 +23,7 @@ import { liveLabel } from './play.model'
 const BAR = {
   alignItems: 'center',
   background: 'var(--color-band-cream)',
-  borderRadius: tokens.radius.panel,
+  borderRadius: tokens.radius.card,
   display: 'flex',
   gap: tokens.space[12],
   minWidth: 0,

@@ -65,7 +65,7 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
         </Button>
         {controls.push && (
           <Button
-            variant="danger"
+            variant="primary"
             size="compact"
             style={GROW}
             onClick={controls.push.onPush}
@@ -104,7 +104,7 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
       )}
       {view.pushLog && <p style={NOTE}>{view.pushLog}</p>}
       {view.meltdown && (
-        <Button variant="danger" size="compact" onClick={view.meltdown.onConfirm}>
+        <Button variant="primary" size="compact" onClick={view.meltdown.onConfirm}>
           Confirm Meltdown — Mark Mech destroyed
         </Button>
       )}
