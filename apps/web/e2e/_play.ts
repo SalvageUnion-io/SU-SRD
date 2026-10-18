@@ -145,8 +145,11 @@ export async function expectNoPageScroll(page: Page, state: string): Promise<voi
   expect(failures, 'Play scrolls the page').toEqual([])
 }
 
-/** axe-core from the local install, as `gates/a11y` loads it. */
-const AXE_PATH = createRequire(import.meta.url).resolve('axe-core/axe.min.js')
+/**
+ * axe-core from the local install, resolved from `gates`, which depends on it
+ * (`apps/web` does not, so a bare resolve only works where installs hoist).
+ */
+const AXE_PATH = createRequire(import.meta.resolve('gates/a11y')).resolve('axe-core/axe.min.js')
 
 /** The rule tags `gates/a11y` runs: WCAG 2.2 AA and best practice. */
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice']
