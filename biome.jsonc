@@ -95,6 +95,11 @@
         "!**/__tests__/**",
         "!**/apps/web/src/components/shared/RouteErrors.tsx"
       ]
+    },
+    {
+      // The detail view is a Page, never a new tab (hard rule R34).
+      "path": "./packages/gates/biome/noWindowOpen.grit",
+      "includes": ["**/apps/web/src/**"]
     }
   ],
   "files": {

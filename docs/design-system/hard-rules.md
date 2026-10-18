@@ -55,7 +55,7 @@ The loop: define it here, land its gate with a baseline, burn the baseline to ze
 - **R32 Dashed means user-made** (§3.9) — or a Play reference unit, an edit field, an empty slot.
   Gate: planned, `tokens/dashed` (zero): `dashed` only under the user-made, reference-unit, field and SlotGrid selectors.
 - **R34 The detail view is a Page, never a new tab** (E5).
-  Gate: planned, Biome `noRestrictedGlobals` on `window.open` in `apps/web/src`.
+  Gate: held, the Biome plugin `noWindowOpen.grit` bans `window.open` in `apps/web/src` (`noRestrictedGlobals` bans a name, not a member); `useDetailModal.test.tsx` pins link mode.
 - **R36 Stats render through `Stat`** (§3.7) — never `<span>SP {n}</span>`.
   Gate: planned, a ratchet on JSX text of a stat label followed by an expression outside `Stat`.
 - **R23 Icons take their Size** (§5.11, K11) — 12, 14 or 18px from `iconSize`, stroke 2; ⋯ `Ellipsis`, close `X`, back `ChevronLeft` with the place's name.

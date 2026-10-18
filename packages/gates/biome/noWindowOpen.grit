@@ -1,0 +1,16 @@
+// The detail view is a Page, never a new tab (hard rule R34, EDL E5): "View
+// details" navigates in this tab (`useDetailModal`'s link mode) or opens the
+// in-place Page dialog. A `window.open` throws the reader into a second tab
+// with no way back.
+//
+// A plugin, not `noRestrictedGlobals`: that rule bans a global by name, so it
+// could ban `window` or a bare `open`, never the one member `window.open`.
+language js(typescript, jsx)
+
+or {
+  `window.open`,
+  `globalThis.open`,
+  `self.open`
+} as $ref where {
+  register_diagnostic(span=$ref, message="Never open a new tab (hard rule R34): the detail view is a Page. Navigate in this tab (an InlineRef or Link to the entity's show page), or open the Page dialog through useDetailModal.", severity="error")
+}
