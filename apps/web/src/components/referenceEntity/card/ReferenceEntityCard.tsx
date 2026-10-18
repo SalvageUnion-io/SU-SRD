@@ -557,7 +557,7 @@ function ReferenceEntityCardInner({
     NestedCard: ReferenceEntityCardInner,
   }
   const resolved = resolveBodyProse(bodyInput)
-  const { chassisAbilityEntities, gridActions, titanicActions, patternList } = resolved
+  const { chassisAbilityEntities, gridActions, titanicActions, patternList, nestedHost } = resolved
   const {
     rollTableNode,
     guideStepsNode,
@@ -586,7 +586,7 @@ function ReferenceEntityCardInner({
         }
         body={bodyHasContent ? bodyContent : null}
         opening={patternSection}
-        loadout={<PatternLoadoutRows groups={pageLoadout} as={sectionAs} hostDown={isDown} />}
+        loadout={<PatternLoadoutRows groups={pageLoadout} as={sectionAs} host={nestedHost} />}
         bodyLabel={
           isPattern
             ? `${resolvedChassisName ?? entityName} ${isBioTitanPattern(pattern) ? 'Bio-Titan' : 'chassis'}`
