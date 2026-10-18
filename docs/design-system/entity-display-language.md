@@ -28,8 +28,8 @@ Status: agreed. Code: `apps/web/src/components/entity/`.
 
 1. **read** — no affordance; all forms (Peek, page bodies, reviews).
 2. **link** — the whole surface, no chevron; Mention, Token, Row.
-3. **select** — ink ring and "Selected" seal; Row, Card (pickers, wizards), at level 1 (N7).
-   An in-card entity choice (level 2) is a toggle Token: pressed, ring on its pill, unchosen dimmed, no seal.
+3. **select** — ink ring and "Selected" seal; Row, Card (pickers, wizards, the searcher), at level 1 (N7). One choice is a radio.
+   An in-card entity choice (level 2) is a toggle Token: pressed, ring on its pill, unchosen dimmed by the one `selectable` dim, no seal.
 
 Header-only is no mode: it is a Token (E3).
 
@@ -49,12 +49,12 @@ Each is checkable; breaking one needs an amendment here. Nesting (N1–N7, rules
 - **E8** A Listing never expands in place (ruleset §1.5).
 - **E9** Facts and traits are chips (horizontal Stats; traits link), sections Slabs. Citations are text on every foot (`Workshop Manual · p.112`). Only a Page's foot (and a mech sheet's CHASSIS chip) names the kind; stamps that say more stay.
 - **E10** Art appears by room, not by prop; no art, no art place, save a Tile in a catalog with art (a censor mark).
-- **E11** The lead appears only while browsing (SRD index, search page).
+- **E11** The lead appears only on an SRD index.
 - **E12** Fill follows kind: "have" entities wear their tone; "do" entities the ink banner as a Card or Page, and as a Row but for an ability.
   An ability's Row wears its tier, as its track and page band do: Core `pilot`, Advanced and Hybrid `tier-hybrid`, Legendary `crawler`.
 - **E13** Texture and user-made come from the surface and instance.
-- **E14** Tables are the Table instrument: a roll bar in a Card (nested: Token, Table, Roll the Die), the roll instrument on a Page or panel; its ROLL THE DIE stamp is the roll button.
-- **E15** No hand-built entity markup outside `entity/`.
+- **E14** Tables are the Table instrument: a roll bar in a Card (nested: Token, Table, Roll the Die), the roll instrument, open, on a Page, panel or resolve; its ROLL THE DIE stamp is the roll button, a result its marked row.
+- **E15** No hand-built entity markup outside `entity/`. A rules block (When Damaged, a chassis ability) has one renderer in every context.
 - **E16** A Peek is read-only and terminal.
 - **E17** No "//" line: all chips are one head group, one even gap, in the class order of [chips-and-actions.md](chips-and-actions.md) (C2), actions inlined last (C8). Right of the title, last line on its middle, more balanced above; under it on a narrow head. On ink each chip has a paper rule.
 - **E18** No form cuts a name (bar a Token's), stamp or chip to "…": it wraps or widens. A Token's head is one row filling its line (N4), of a static budget (C3); its name ends in "…".

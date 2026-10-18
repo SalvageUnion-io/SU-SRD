@@ -1,6 +1,7 @@
 # The Primitives Ruleset — Salvage Union Design System
 
 Canon for every primitive and surface: if a component contradicts a rule, the component is wrong. [The origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm) (board index: [sources.md](sources.md)) outranks this file, which is amended to match it.
+The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
 
 ## The source: the Workshop Manual
 
@@ -21,7 +22,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
 0. **§0 The one law: one kind × one context = one primitive** — geometry is constant; only materials, density and interactivity change. A new screen, size or theme reuses the primitive with props, never a sibling.
 1. **§1 The context laws** — every surface is one of five contexts; the context picks materials and interactivity, never the primitive. Automation: `auto` (applied + undo), `confirm` (player confirms + undo), `free` (unguarded, logged override).
    1. **Reference — the book, verbatim** — paper, read-only, no play state: if the printed manual cannot show it, it cannot appear. The only rust is an inline link.
-   2. **Live Sheet — the pencil** — `free`; print reads, pencil writes: the read state is typeset (empty fields omitted), dashed fields and steppers only in edit. Overrides wear a dashed ring and are logged; rules show, never gate.
+   2. **Live Sheet — the pencil** — `free`; print reads, pencil writes: the read state is typeset (empty fields and sections omitted; an empty state only where it can be filled), dashed fields and steppers only in edit. Overrides wear a dashed ring and are logged; rules show, never gate.
    3. **Play — the instrument panel** — the only transactional surface: bookkeeping `auto`, destruction `confirm`; every unit mutation writes a Change Log row, every roll a Game log row. Flat: no texture.
       Paper instruments on a dark ground: `--color-ink-deep` ground, `--color-band-cream` side columns, `--color-paper` for the centre column alone. On a phone: tabs under pinned vitals (ADR-051 §10).
    4. **Use opens the action** — in Play an on-hand action's Row carries Use, which resolves it in place (Activate, Roll, Push, Apply; ADR-051 §6); its cost stays a read pennant.
@@ -31,6 +32,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    6. **Peek — the glance** — the Card at compact density (`PeekCard`) on a lifted plate, opened from a `data-peek` Mention or Tag by one `PeekHost` per app.
       Terminal: no buttons, links, nested Peeks or steppers; level 1 on its plate, so its children are Tokens (chassis ability contentful, E19), Mentions inert.
    7. **Page — the entity's own route** — on desktop the hero floats and the opening, stats, actions and nested cards flow around it, then run full width, flush with the column.
+      The body starts under the band at any length (a short page is never centred); level-1 blocks sit one 12px gap apart.
    8. **Entity forms** — Mention, Token, Row, Card, Page, their modes and rules E1–E20: [entity-display-language.md](entity-display-language.md).
 2. **§2 The rendering matrix** — each role maps to one primitive per surface (Reference → Live Sheet → Play → Listing → Peek).
    1. **Vitals** — `VitalGauge`: sheet skin, Play's compact instrument, compact in the Peek; a `Stat` cell in listings. TP is a counter (no cap, no gauge).
@@ -41,7 +43,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    6. **Stat order** — one everywhere; a form drops stats, never moves them: TL, Slots, SV · SP or HP, EP, Heat, Bio · SYS, MODS, Cargo; Upkeep, Upgrade · action type ("Turn Action"), RNG (Page `Close`, else `C`), DMG · traits A–Z, Uses last · cost, the book's pointy box (`2 EP`; §1.4). One even gap, groups too.
    7. **Entity card** — the full card is THE canonical render; Listing is the Row, the Peek a compact Card (§1).
 3. **§3 Cross-cutting laws**
-   1. **§3.1 Rust = action, only action** — `--color-rust` is painted only by `Button` / `buttonVariants` (the cost pennant included) and `InlineRef`, and no token aliases it.
+   1. **§3.1 Rust = action, only action** — `--color-rust` is painted only by `Button` / `buttonVariants` and `InlineRef`, and no token aliases it. A destructive action is rust too, behind `ConfirmDialog`: no state colour fills a button.
       Focus and selection rings, "you are here" and chrome accents are ink. Enforced by `tokens/rust-allowlist`.
    2. **§3.2 Stamps label · slabs section · tags cite** — never trade jobs.
    3. **§3.3 State is a treatment, not a hue** — strike / X / redline ride on the ontology hue; `status-bad` is the one damaged / redline / over-cap colour.
@@ -55,7 +57,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    7. **§3.7 Stats render through Stat** — any `label | value` is a `Stat`, never hand-assembled `<span>SP {n}</span>`.
       Game data renders through the shared primitives, never one-off markup.
    8. **§3.8 Ink on colour** — ink text on pilot and mech fills; no text pair under 4.5 : 1. Paper text on crawler uses `--color-crawler-band`; Denizens navy carries paper; TL blue is never a text ground, bar systems and modules (book pp. 162, 188).
-   9. **§3.9 Canon is solid; homebrew is dashed** — a player-made thing that could pass for the book (pattern, NPC): dashed frame, dashed User-made stamp in the head's labels, foot rule and pills, credit "Made by [user]", at every size.
+   9. **§3.9 Canon is solid; homebrew is dashed** — a player-made thing that could pass for the book (pattern, NPC): dashed frame, dashed User-made stamp in the head's labels, foot rule and pills, credit "Made by [user]", at every size. Dashed means only this and a Play reference unit (ADR-051 §5): a Slab is always solid.
       A full page adds a hard-stop hatched band, a dashed notch and a maker banner. One `userMade` flag (+ `madeBy`); canon-built units stay solid.
    10. **§3.10 No left-rail borders** — colour rides in top bands, stamps and gauges; nesting shows by containment.
    11. **§3.11 One union, two tools** — one Union bar; the switcher reads Reference | Build | Play; Build (the Training Bay) and Play (the Cantina) name their pages and colour the bar; no off-site arrows between the two.
@@ -66,10 +68,11 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
       The ink ramp is warm ink at opacity, never a grey; rules blue is a band, never a ground. `contrast.test.ts` pins every pair.
    2. **§4.2 The tracking ladder** — tokens only: `--tracking-caps-tight` (0.04em) is the label default, `-snug` at the 11px floor, `--tracking-caps` chips, `-wide` header stamps, `--tracking-eyebrow` brand caption.
    3. **§4.3 The border map** — one meaning per weight: 3px `--bw-entity` full card, 2px `--bw-entity-compact` (Card below `full`, and the Row), 1.5px `--bw-chrome` controls, 1px `--bw-hairline` value-cell frames and table rules.
-   4. **§4.4 Radius and spacing** — 3px outer on cards and Btn, `calc(3px − frame)` inside, stamps square; rounder only for the ink-banner tail. Spacing is `{2, 4, 6, 8, 12}px`; 12px is the card gutter.
+   4. **§4.4 Radius and spacing** — entity frames (Card, Row, Tile, Token) and stamps are square; everything else that frames or floats (Btn, field, Box, dialog, popup, toast) is 3px, `calc(3px − frame)` inside; rounder only for the ink-banner tail.
+      Spacing inside a block is `{2, 4, 6, 8, 12}px`, 12px the card gutter; between blocks, 16 or 24px. No literal where a token exists.
    5. **§4.5 The pip-row split** — at most 6 per row, balanced and bottom-heavy (7 → 3/4, 13 → 4/4/5), for every pip surface. The redline pip sits at 70%.
    6. **§4.6 The floors: type and touch** — nothing under 11px at the size the reader sees (a 1200px link preview: 34px), wizards included; the stat column label is 14px.
-      Every coarse-pointer target is 44px; nothing floats over content.
+      Every coarse-pointer target is 44px, menu items included; nothing floats over content.
    7. **§4.7 The Sizes and sibling height** — the three Sizes are heights: Full 44px, Compact 32px, Mini 18px (`--size-*`; touch lifts Compact to Full, Mini takes a 44px hit area).
       Controls on one line share one Size (`e2e/sibling-heights.e2e.ts`); chip values match labels, one gap apart, cost bottom-right (`e2e/chip-strips.e2e.ts`).
 5. **§5 The irreducible set** — an ontology, not a roster (the barrel `apps/web/src/components/index.ts` is the roster): 11 atoms and one technique.
@@ -79,7 +82,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    4. **Well** — labelled value: `Stat`, the label-first chip (steppers when edited); no square box.
    5. **Gauge** — segmented current/max: `VitalGauge`.
    6. **Btn** — rust action, the only mutator: `Button` / `buttonVariants`.
-   7. **Slab** — section stamp + leader rule: `Slab`.
+   7. **Slab** — solid section stamp + leader rule: `Slab`, every section head.
    8. **RollTable** — banded d20 map in the surface tone: `RollTableInstrument`.
    9. **Condition** — tri-state glyph: `StatusBadge`.
    10. **SlotGrid** — dashed addressable cargo cells: `SlotGrid`.
