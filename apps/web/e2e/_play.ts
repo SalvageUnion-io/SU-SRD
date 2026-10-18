@@ -73,6 +73,23 @@ export async function playDoor(page: Page, name: string | RegExp): Promise<strin
   return new URL(href, page.url()).pathname.replace(/^\/build/, '')
 }
 
+/**
+ * A pilot's Play screen, `/play/<id>`, read off its Hangar Row's sheet link.
+ * For a pilot in a Game its player also mediates: that Game's Row on the Play
+ * hub has one door, Mediate (ADR-052 §4), so there is no "Play <pilot>" to
+ * follow.
+ */
+export async function pilotPlayPath(page: Page, name: string): Promise<string> {
+  await gotoStable(page, '/')
+  await waitForReady(page)
+  const row = page.getByRole('region', { name: 'Pilots' }).getByRole('link', { name, exact: true })
+  await expect(row, `the Hangar lists ${name}`).toBeVisible({ timeout: 30_000 })
+  const href = await row.first().getAttribute('href')
+  const id = href?.match(/\/sheet\/pilot\/([^/?#]+)/)?.[1]
+  if (!id) throw new Error(`${name}'s Hangar Row has no sheet link: ${href}`)
+  return `/play/${id}`
+}
+
 /** The Situation switch in the bar (canvas) or under the pinned vitals (phone). */
 export function situation(page: Page): Locator {
   return page.getByRole('group', { name: 'Situation' })

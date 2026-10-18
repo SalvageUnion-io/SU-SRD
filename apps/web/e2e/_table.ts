@@ -9,9 +9,9 @@ import { requireSeam, seamIsPresent, signInFresh } from './fixtures'
  * These are the steps the Play and signed-in a11y specs share (board M2).
  */
 
-/** "+ New Game" from Shelves, named; resolves to the new Game's id. */
+/** "+ New Game" from the Play hub, named; resolves to the new Game's id. */
 export async function createGame(page: Page, name: string): Promise<string> {
-  await gotoStable(page, '/')
+  await gotoStable(page, '/play/')
   await waitForReady(page)
   await page.getByRole('button', { name: '+ New Game' }).click()
   await page.getByLabel('New Game name').fill(name)
@@ -70,7 +70,7 @@ async function pickUp(page: Page, name: string): Promise<void> {
  * in it offers: that door moves to Play (ADR-051) while the stamp stays.
  */
 export async function setUpTable(page: Page): Promise<{ gameId: string; gameName: string }> {
-  await gotoStable(page, '/')
+  await gotoStable(page, '/play/')
   await waitForReady(page)
   await page.getByRole('button', { name: '+ New Game' }).click()
   await page.getByRole('dialog').getByRole('button', { name: 'Start this Game' }).first().click()

@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test'
 import { scanPages } from 'gates/a11y'
 import { at } from './_base'
-import { playDoor } from './_play'
+import { pilotPlayPath, playDoor } from './_play'
 import { setUpTable } from './_table'
 import { expect, test } from './fixtures'
 
@@ -45,7 +45,7 @@ test('no accessibility violations signed in', async ({ page, browser, baseURL },
   for (const kind of ['pilot', 'mech', 'crawler'] as const)
     sheets.push(await rosterSheet(page, kind))
 
-  const play = at(await playDoor(page, `Play Bonesaw in ${gameName}`))
+  const play = at(await pilotPlayPath(page, 'Bonesaw'))
   const mediate = at(await playDoor(page, `Mediate ${gameName}`))
 
   // The scan opens a context per device; each starts with this session.

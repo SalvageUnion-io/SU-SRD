@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import type { DesignDebt } from './_designRoutes'
 import { expectWithinBaseline, seedDesignAccount, walkDesignRoutes } from './_designRoutes'
-import { board, CANVAS, openPlay, PHONE, playDoor } from './_play'
+import { board, CANVAS, openPlay, PHONE, pilotPlayPath } from './_play'
 import { findSiblingMismatches } from './_siblingHeights'
 import { setUpTable } from './_table'
 import { test as signedIn } from './fixtures'
@@ -194,9 +194,9 @@ async function playMismatches(page: Page, state: string): Promise<string[]> {
 
 signedIn('Play: the bar, unit boxes and action rows share one height', async ({ page }) => {
   signedIn.setTimeout(8 * 60_000)
-  const { gameName } = await setUpTable(page)
+  await setUpTable(page)
   await page.setViewportSize({ width: CANVAS.width, height: CANVAS.height })
-  await openPlay(page, await playDoor(page, `Play Bonesaw in ${gameName}`))
+  await openPlay(page, await pilotPlayPath(page, 'Bonesaw'))
   const failures = await playMismatches(page, 'On foot')
 
   await board(page, 'Scrapper')

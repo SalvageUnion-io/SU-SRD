@@ -6,7 +6,7 @@ import {
   expectNoPageScroll,
   openPlay,
   PHONE,
-  playDoor,
+  pilotPlayPath,
   situation,
 } from './_play'
 import { setUpTable } from './_table'
@@ -91,8 +91,8 @@ function escapeRegExp(text: string): string {
 
 test('a boarded turn on the canvas: board, use, roll, apply', async ({ page }) => {
   test.setTimeout(8 * 60_000)
-  const { gameName } = await setUpTable(page)
-  const play = await playDoor(page, `Play Bonesaw in ${gameName}`)
+  await setUpTable(page)
+  const play = await pilotPlayPath(page, 'Bonesaw')
   await page.setViewportSize({ width: CANVAS.width, height: CANVAS.height })
   await openPlay(page, play, { dice: true })
 
@@ -118,8 +118,8 @@ test('a boarded turn on the canvas: board, use, roll, apply', async ({ page }) =
 
 test('a boarded turn on a 390 × 844 phone: the Act tab, then Tables', async ({ page }) => {
   test.setTimeout(6 * 60_000)
-  const { gameName } = await setUpTable(page)
-  const play = await playDoor(page, `Play Bonesaw in ${gameName}`)
+  await setUpTable(page)
+  const play = await pilotPlayPath(page, 'Bonesaw')
   // The account signs in at the desktop viewport, where its readiness signal
   // is on screen; the phone takes over once the table is set.
   await page.setViewportSize({ width: PHONE.width, height: PHONE.height })

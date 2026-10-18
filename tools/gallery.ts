@@ -221,14 +221,15 @@ async function seed(page: Page, base: string): Promise<Partial<Seeded>> {
       .first()
       .waitFor({ timeout: 20_000 })
   }
-  await page.goto(builderRoot(base), { waitUntil: 'networkidle' })
+  // A Game is started on the Play hub (ADR-052 §4), and opens on its page.
+  await page.goto(`${builderRoot(base)}play/`, { waitUntil: 'networkidle' })
   await page
     .getByRole('button', { name: /new game/i })
     .first()
     .click()
   await page.getByLabel('New Game name').fill('The Long Haul')
   await page.getByRole('button', { name: 'Create', exact: true }).click()
-  await page.waitForURL(/\/games\//, { timeout: 20_000 })
+  await page.waitForURL(/\/play\/games\//, { timeout: 20_000 })
   const game = new URL(page.url()).pathname
   await page.goto(builderRoot(base), { waitUntil: 'networkidle' })
   const links = await page.evaluate(() =>
