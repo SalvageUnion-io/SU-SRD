@@ -128,16 +128,13 @@
   padding-inline: var(--space-8);
 }
 
-/* One value size per band: a fact's or trait's value (`RNG | Long`,
-   `POP | 5,000–15,000`, `Explosive | 1`) takes the stat column's framed
-   numeral type, so a word and a number on one band read at one size. */
+/* One size per band (C1a): a fact's or trait's value (`RNG | Long`,
+   `POP | 5,000–15,000`, `Explosive | 1`) reads at its label's type size, as
+   the stat column's cells beside it do (owner's call, 2026-10-18). */
 .su-entity-stamps .su-stat-plate + .su-stat-plate {
-  font-family: var(--font-cond);
-  font-size: var(--text-readout);
   font-variant-numeric: tabular-nums;
-  font-weight: var(--font-weight-extrabold);
   justify-content: center;
-  min-width: 36px;
+  min-width: 28px;
 }
 
 /* An ability's cost on its band: the book's pointy box at the stamps'
