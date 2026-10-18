@@ -420,7 +420,7 @@
    `buttonVariants` dresses included. A mini button, a chip's +/- stepper, an interactive chip and a
    show page's band action (`.su-hit-area`, chip-sized on a phone) keep the size they are drawn at, so they are left off the floor here and
    reach it through the hit-area pseudo-element in partials/pointer-motion.css
-   instead, as the pennant button does. The floor lives only here, unlayered,
+   instead. The floor lives only here, unlayered,
    so it also outranks the apps' own (unlayered) stylesheets. */
 @media (pointer: coarse) {
   /* Compact controls sit on the touch floor, so a line of them (a chip beside a

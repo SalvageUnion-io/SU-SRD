@@ -125,6 +125,7 @@ export function PlayMediatorDowntime({
                 <li key={seat.pilotId}>
                   <Entity
                     form="token"
+                    context="roster"
                     model={unitRowModel({ kind: 'pilot', name: seat.name })}
                     trailing={
                       isDone ? (

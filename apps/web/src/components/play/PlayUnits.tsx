@@ -423,6 +423,7 @@ export function PlayHangarMech({
     <div className="su-play-unit__hangar">
       <Entity
         form="token"
+        context="play"
         model={unitRowModel({ kind: 'mech', name, note: chassis ?? undefined })}
         trailing={<span className="su-play-unit__where">{note ?? 'in hangar'}</span>}
       />

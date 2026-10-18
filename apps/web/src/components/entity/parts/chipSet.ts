@@ -3,8 +3,9 @@ import type { TagItem } from './tagItems'
 
 /**
  * Every chip an entity carries (E17), gathered once: ONE group, in the stat
- * order: the stats, the action type and the action's facts, the traits, each
- * a horizontal `Stat` cell, then the cost, the book's pointy box (`Chips`).
+ * order: the stats, the action type and the action's facts, the traits, the
+ * relations (`chips-and-actions.md` C11), each a horizontal `Stat` cell, then
+ * the cost, the book's pointy box (`Chips`).
  */
 export type ChipSet = {
   /** The action type as the book prints it ("Turn Action", "Reaction"). */
@@ -15,10 +16,18 @@ export type ChipSet = {
   facts: StatItem[]
   /** The traits, `[Hot | 2]`. */
   tags: TagItem[]
+  /** What it is built on or linked to, `CHASSIS | Mule`, `PILOT | Bonesaw` (C11). */
+  relations?: TagItem[]
 }
 
 export function chipCount(chips: ChipSet): number {
-  return chips.durations.length + (chips.cost ? 1 : 0) + chips.facts.length + chips.tags.length
+  return (
+    chips.durations.length +
+    (chips.cost ? 1 : 0) +
+    chips.facts.length +
+    chips.tags.length +
+    (chips.relations?.length ?? 0)
+  )
 }
 
 /** A cost as its chip: "2 EP" is `EP | 2`, "X AP" is `AP | X`; anything else a label alone. */

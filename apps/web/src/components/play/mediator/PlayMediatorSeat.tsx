@@ -136,6 +136,7 @@ function SeatMount({ seat }: { seat: MediatorSeat }) {
     <div className="su-play-unit__hangar">
       <Entity
         form="token"
+        context="play"
         model={unitRowModel({
           kind: 'mech',
           name: seat.mech.name,

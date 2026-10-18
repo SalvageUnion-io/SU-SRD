@@ -237,7 +237,7 @@ describe('LiveSheet — the chapter band (board 10)', () => {
 })
 
 describe('LiveSheet — the condensed bar’s linked units', () => {
-  test('each other unit is its named Token, linking to its sheet', () => {
+  test('each other unit is its relation chip, MECH | its name, linking to its sheet (C11)', () => {
     renderShell({
       segments: [
         { key: 'pilot', label: 'Pilot', name: 'Mara Vex', href: '/sheet/pilot/p', active: true },
@@ -247,11 +247,16 @@ describe('LiveSheet — the condensed bar’s linked units', () => {
     act(() => {
       must(observerCallbacks[0])([ioEntry(false)], observerStub)
     })
-    const link = bar().getByRole('link', { name: 'View Iron Jaw' })
+    const link = bar().getByRole('link', { name: /Iron Jaw/ })
     expect(link.getAttribute('href')).toContain('/sheet/mech/m')
-    expect(link.classList.contains('su-entity-token')).toBe(true)
+    expect(link.hasAttribute('data-tag')).toBe(true)
+    expect(link.textContent?.replace(/\s+/g, '')).toBe('MechIronJaw')
+    // A chip, not a Token beside the strip.
+    expect(
+      document.querySelector('section[aria-label="Sheet controls"] .su-entity-token')
+    ).toBeNull()
     // The sheet being read is not linked from its own bar.
-    expect(bar().queryByRole('link', { name: 'View Mara Vex' })).toBeNull()
+    expect(bar().queryByRole('link', { name: /Mara Vex/ })).toBeNull()
   })
 
   test('the condensed name wraps rather than cutting to "…" (E18)', () => {

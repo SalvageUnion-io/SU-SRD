@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
-import type { EntityInstance, Fact } from 'salvageunion-reference'
-import { splitStatLine } from 'salvageunion-reference'
+import type { ChipContext, EntityInstance, TokenChips } from 'salvageunion-reference'
+import { tokenChips } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
 import { Badge } from '../../atoms/Badge'
 import { Stat } from '../../atoms/Stat'
@@ -18,68 +18,35 @@ import { paintFor } from '../parts/paint'
 import { useInsidePeek, usePeekAttrs } from '../peekContext'
 import type { EntityMode, EntityOmit, EntityRowModel } from '../types'
 
-/** One Token chip, label first: `[TL | 2]`, `[ACTIONS | 3]`. */
-type TokenChip = { label: string; value?: string }
-
 /**
- * The facts a Token keeps, by their chip label (owner's set, 2026-10-14): Tech
- * Level, the slots it takes or has, its hit or structure points, a player
- * unit's live reading (`SP 7/9`) included, and its range as the book's code
- * (`RNG | C`). Everything else (SV, EP, DMG, and traits) is the Row's and the
- * Page's, but a chassis keeps its chip set (the model's `entityStats`) less
- * its SYS and MODS (owner, 2026-10-14): TL, SV, SP, EP. A contentful Token
- * stands for the card it replaces, so its head keeps every action facet (DMG
- * too) and the traits (N3).
+ * A Token's chips (`chips-and-actions.md`, C3 and C4): the model's
+ * `tokenChips` for the context its container names, drawn as Mini cells in
+ * the class order — the rank, the context lane (an action type as its
+ * stamps), and a contentful Token's economy, facets and traits (N3). The cost box and
+ * the host's state chip follow.
  */
-const TOKEN_FACTS: ReadonlySet<string> = new Set(['TL', 'Slots', 'SYS', 'MODS', 'SP', 'HP', 'RNG'])
-
-/** The chassis facts a Token drops: its slot capacities are the Row's and the Page's. */
-const CHASSIS_DROPPED: ReadonlySet<string> = new Set(['SYS', 'MODS'])
-
-/**
- * A Token's own chips, in the stat order (E17): the kept stats (TL first),
- * then its one action's type or, with two or more, how many it has
- * (`ACTIONS | 3`: the actions its Peek and Page list, its folded self-action
- * not among them, since that is the entity's own facts and cost), then the
- * action's kept facets (`RNG | C`; a contentful Token's are all of them,
- * `RNG | C`, `DMG | 2`) and a contentful Token's traits (`SHIELD`), as the
- * action card it stands for heads with (N3). The cost box
- * follows, drawn by the Token. An ability's tier is its numeral before the
- * name, never a chip.
- */
-function tokenChips(
-  model: EntityRowModel,
-  omit: readonly EntityOmit[],
-  contentful: boolean
-): TokenChip[] {
-  const chassis = model.ref.schemaName === 'chassis' && !model.ref.synthetic
-  const kept = (facts: readonly Fact[], all = false): TokenChip[] =>
-    facts
-      .filter(
-        (fact) => all || (chassis ? !CHASSIS_DROPPED.has(fact.short) : TOKEN_FACTS.has(fact.short))
-      )
-      .filter((fact) => !omit.includes(fact.key))
-      .map((fact) => ({ label: fact.short, value: fact.shortValue ?? fact.value }))
-  const { stats, action } = splitStatLine(model.facts)
-  const chips: TokenChip[] = kept(stats)
-  const actions = model.actions?.length ?? 0
-  // A folded self-action's type is the entity's own; one listed action beside
-  // it is still a count, or its type would read as the entity's.
-  if (actions > 1 || (actions === 1 && model.folded)) {
-    chips.push({ label: 'Actions', value: String(actions) })
-  } else {
-    for (const stamp of actionTypeStamps(model.actionType, model.mechActionType)) {
-      chips.push({ label: stamp })
+function TokenCells({ chips, onInk }: { chips: TokenChips; onInk: boolean }) {
+  const cells: { label: string; value?: string }[] = []
+  if (chips.rank) cells.push(chips.rank)
+  for (const lane of [chips.lane, chips.economy]) {
+    if (lane?.kind === 'cell') cells.push(lane.cell)
+    if (lane?.kind === 'actionType') {
+      for (const stamp of actionTypeStamps(lane.actionType, lane.mechActionType)) {
+        cells.push({ label: stamp })
+      }
     }
   }
-  chips.push(...kept(action, contentful))
-  if (contentful) {
-    for (const trait of model.traits) {
-      chips.push({ label: trait.name, ...(trait.param ? { value: trait.param } : {}) })
-    }
-  }
-  if (chips.length === 0 && model.kind.classKind) chips.push({ label: model.kind.classKind })
-  return chips
+  cells.push(...(chips.facets ?? []), ...(chips.traits ?? []))
+  return cells.map((cell) => (
+    <Stat
+      key={cell.label}
+      orientation="horizontal"
+      label={cell.label}
+      value={cell.value}
+      size="mini"
+      inverse={onInk}
+    />
+  ))
 }
 
 /** The adapter's resolved parts (`ReferenceEntityCard` `extent="head"`, any size: N2). */
@@ -136,8 +103,8 @@ function TokenText({ model, chassisName }: { model: EntityRowModel; chassisName?
 
 /**
  * TOKEN — the shortform (§3): `name [chips]`, one size, at level 2 (E6) or in
- * a slot under 12rem (E3). Its chips are a short set (`tokenChips`), then the
- * cost box, the same in every context; an ability's tier numeral sits before
+ * a slot under 12rem (E3). Its chips are the budget its container's context
+ * names (`tokenChips`, C3 and C4), then the cost box; an ability's tier numeral sits before
  * its name, as on its band. Its head is always one row (E18): the chips take
  * at most 65% of it, dropping whole from the end until they fit, and the name
  * takes the rest, ending in "…" when that is too little. Its kind is never
@@ -156,6 +123,7 @@ function TokenText({ model, chassisName }: { model: EntityRowModel; chassisName?
  */
 export function Token({
   model,
+  context,
   instance,
   mode = READ,
   omit = [],
@@ -163,6 +131,8 @@ export function Token({
   body,
 }: {
   model: EntityRowModel
+  /** Where it is drawn (C4): picks the one fact its context lane carries. */
+  context: ChipContext
   instance?: EntityInstance
   mode?: EntityMode
   /** Facts the context already states, by key (`tech-level`), left off its chips. */
@@ -180,8 +150,13 @@ export function Token({
   const paint = paintFor(model.tone, { down, texture: false })
   const userMade = !!(model.userMade || instance?.userMade)
   const title = instance?.title ?? model.title
-  const chips = tokenChips(model, omit, !!body)
-  const cost = slots.cost ?? model.cost
+  const chips = tokenChips(model, context, {
+    omit,
+    contentful: !!body,
+    ...(instance?.count !== undefined ? { count: instance.count } : {}),
+  })
+  const cost = slots.cost ?? chips.cost
+  const hasCells = !!(chips.rank || chips.lane || chips.economy || chips.facets || chips.traits)
   const pill = (
     <span
       data-user-made={userMade || undefined}
@@ -209,18 +184,9 @@ export function Token({
           <KindLabel kind={slots.kind ?? model.kind.type} />
         </span>
       </span>
-      {(chips.length > 0 || cost || slots.trailing) && (
+      {(hasCells || cost || slots.trailing) && (
         <span className="su-entity-token__chips">
-          {chips.map((chip) => (
-            <Stat
-              key={chip.label}
-              orientation="horizontal"
-              label={chip.label}
-              value={chip.value}
-              size="mini"
-              inverse={paint.ink}
-            />
-          ))}
+          <TokenCells chips={chips} onInk={paint.ink} />
           {cost && <CostBox cost={cost} size="mini" onInk={paint.ink} />}
           {slots.trailing}
         </span>

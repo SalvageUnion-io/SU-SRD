@@ -1,5 +1,6 @@
 import type { ElementType, ReactNode } from 'react'
-import type { EntityInstance } from 'salvageunion-reference'
+import type { ChipContext, EntityInstance } from 'salvageunion-reference'
+import { budgetFacts, naturalContext } from 'salvageunion-reference'
 import { Stat } from '../../atoms/Stat'
 import { CardLabels } from '../../referenceEntity/card/CardLabels'
 import { downOf } from '../../referenceEntity/card/cardChrome'
@@ -29,8 +30,10 @@ import type { EntityMode, EntityOmit, EntityRowModel } from '../types'
  */
 type RowSlots = {
   titleAs?: ElementType
-  /** The traits and the host's linked chips, in place of the model's traits. */
+  /** The traits, in place of the model's. */
   tags?: TagItem[]
+  /** What it is built on or linked to, after the traits (`chips-and-actions.md` C11). */
+  relations?: TagItem[]
   /**
    * The host's controls (Assign, Unassign, View), the head's trailing mode
    * slot (E7): at the band's right end, after the affordance. They never
@@ -54,6 +57,8 @@ type RowSlots = {
 
 export type RowProps = {
   model: EntityRowModel
+  /** Where it is drawn (C4): picks the one measure its head keeps; its kind's own by default. */
+  context?: ChipContext
   instance?: EntityInstance
   mode?: EntityMode
   /** The opening prose, in browse contexts only (E11). */
@@ -81,7 +86,7 @@ const READ: EntityMode = { kind: 'read' }
 /**
  * ROW — the workhorse form (entity display language §3): every list of
  * entities. An art column (by schema and room, E10), a head (tier, name, the
- * chip group — stats, action type and facets, traits, cost (E17) — right of the name or
+ * chip group — stats, action type and facets, traits, relations, cost (E17) — right of the name or
  * under it, the mode's affordance) and, only when something is left to show,
  * a paper body: the host's leading content and the lead while browsing
  * (E11). A bodied
@@ -92,6 +97,7 @@ const READ: EntityMode = { kind: 'read' }
  */
 export function Row({
   model,
+  context,
   instance,
   mode = READ,
   lead = false,
@@ -114,8 +120,9 @@ export function Row({
   const chips: ChipSet = {
     durations: actionTypeStamps(model.actionType, model.mechActionType),
     ...(model.cost ? { cost: model.cost } : {}),
-    facts: factCells(model.facts, omit),
+    facts: factCells(budgetFacts(model.facts, context ?? naturalContext(model.kind)), omit),
     tags: slots.tags ?? traitTags(model.traits),
+    ...(slots.relations ? { relations: slots.relations } : {}),
   }
   const leadText = lead ? model.lead : undefined
   const hasBody = !!slots.leading || !!leadText

@@ -248,10 +248,11 @@ export { EntityStat } from './entity/parts/EntityStat'
 // A page's own cut-out card (the changelog, a class's paths) heads with it.
 export { Head } from './entity/parts/Head'
 export { KindLabel } from './entity/parts/KindLabel'
+export { Tags } from './entity/parts/Tags'
 // One trait as a chip: an SRD page's band sets its entity's traits with it.
 export type { TagItem } from './entity/parts/tagItems'
 // The glossary entry a `[[Name]]` names: a trait, else a keyword.
-export { mentionRef } from './entity/parts/tagItems'
+export { mentionRef, relation } from './entity/parts/tagItems'
 export { embeddedPeekAddress } from './entity/peekContext'
 export type { EntityMode, EntityRowModel } from './entity/types'
 // MarkdownSection — a repo-root markdown file (one heading, paragraphs and

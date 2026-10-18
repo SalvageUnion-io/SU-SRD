@@ -97,13 +97,13 @@ export function RecapTokens({
           {entities?.map((entity, index) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: a build may pick the same entity twice
             <li key={`${entity.id}-${index}`}>
-              <Entity form="token" entity={entity} mode={{ kind: 'link' }} />
+              <Entity form="token" context="loadout" entity={entity} mode={{ kind: 'link' }} />
             </li>
           ))}
           {models?.map((model, index) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: two crew may share a name
             <li key={`${model.ref.id}-${index}`}>
-              <Entity form="token" model={model} />
+              <Entity form="token" context="roster" model={model} />
             </li>
           ))}
         </ul>

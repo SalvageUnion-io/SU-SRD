@@ -202,6 +202,16 @@ export {
 export { firstParagraphText } from './view/parts/lead'
 export { resolveTable } from './view/parts/table'
 export {
+  budgetFacts,
+  type ChipContext,
+  laneMeasure,
+  naturalContext,
+  type TokenChipCell,
+  type TokenChips,
+  type TokenLane,
+  tokenChips,
+} from './view/parts/tokenChips'
+export {
   type FacetCell,
   facetCells,
   formatActionType,

@@ -19,10 +19,10 @@
  */
 
 import type { CSSProperties } from 'react'
-import type { ShelfChip, ShelfReading } from '../../lib/shelves/shelfItems'
+import type { ShelfChip, ShelfReading, ShelfRelation } from '../../lib/shelves/shelfItems'
 import type { UnitKind } from '../../lib/units/unitModel'
 import type { HeaderMenuItem } from '../index'
-import { HeaderMenu, Stat } from '../index'
+import { HeaderMenu, relation, Stat } from '../index'
 import { UnitRow } from '../shared/UnitRow'
 
 const ITEM = { listStyle: 'none', minWidth: 0 } satisfies CSSProperties
@@ -44,6 +44,8 @@ type ShelfItemProps = {
   href?: string
   userMade?: boolean
   chips: ShelfChip[]
+  /** The units linked to it, as relation chips after its readings (C11). */
+  relations?: ShelfRelation[]
   /** The "⋯" menu's rows, grouped; empty renders no menu. */
   menu: HeaderMenuItem[][]
 }
@@ -56,6 +58,7 @@ export function ShelfItem({
   href,
   userMade,
   chips,
+  relations = [],
   menu,
 }: ShelfItemProps) {
   const hasMenu = menu.some((section) => section.length > 0)
@@ -71,6 +74,7 @@ export function ShelfItem({
         // A line with nowhere to open is not a link.
         mode={href === undefined ? { kind: 'read' } : { kind: 'link', href }}
         userMade={userMade}
+        relations={relations.map((r) => relation(r.key, r.label, r.value, { href: r.href }))}
         labels={
           chips.length > 0
             ? chips.map((chip) => (

@@ -28,6 +28,7 @@ export function LinkedUnitLink({ kind, name, href, stats }: LinkedUnitLinkProps)
   return (
     <Entity
       form="token"
+      context="roster"
       model={unitRowModel({ kind, name, readings: reading ? [reading] : [] })}
       mode={
         href === undefined

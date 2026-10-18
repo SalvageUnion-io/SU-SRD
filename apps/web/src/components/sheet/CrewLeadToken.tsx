@@ -81,6 +81,7 @@ export function CrewLeadToken(props: CrewLeadTokenProps) {
     <div role="group" aria-label={`${bayName} crew lead`}>
       <Entity
         form="token"
+        context="roster"
         model={model}
         instance={instance}
         mode={mode}

@@ -149,7 +149,7 @@ export function PilotAbilityItem({
         form === 'row' ? (
           <Entity form="row" entity={ability} mode={{ kind: 'link' }} omit={OMIT_KIND} lead peek />
         ) : (
-          <Entity form="token" entity={ability} mode={{ kind: 'link' }} />
+          <Entity form="token" context="play" entity={ability} mode={{ kind: 'link' }} />
         )
       }
       name={ability.name}
@@ -289,7 +289,13 @@ export function PilotEquipmentItem({
   // never ellipsized to make room for a control. A damaged item's pill greys,
   // as its card's header does; it Peeks the whole card.
   const pill = (
-    <Entity form="token" entity={equipment} instance={{ condition }} mode={{ kind: 'link' }} />
+    <Entity
+      form="token"
+      context="inventory"
+      entity={equipment}
+      instance={{ condition }}
+      mode={{ kind: 'link' }}
+    />
   )
   // Only an item with choices opens its card under the line: its choices are
   // written there. Everything else the Peek already shows.

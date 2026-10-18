@@ -105,7 +105,9 @@ export function CrawlerIdentityPanel({
   const tlValue = techLevel ?? '—'
   // Read names the type as its Token, which opens and Peeks it.
   const readType =
-    !canEdit && type ? <Entity form="token" entity={type} mode={{ kind: 'link' }} /> : null
+    !canEdit && type ? (
+      <Entity form="token" context="browse" entity={type} mode={{ kind: 'link' }} />
+    ) : null
 
   /** Persist the crawler name (required — never write empty). */
   function saveName(next: string) {

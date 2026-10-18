@@ -262,6 +262,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
                 <Entity
                   key={result.id}
                   form="token"
+                  context="browse"
                   model={model}
                   mode={{ kind: 'link', href: resultUrl(result), attrs: option }}
                 />
