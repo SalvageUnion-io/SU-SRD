@@ -144,7 +144,7 @@ const LABEL = {
 
 const RULE = {
   borderTopColor: color.ink50,
-  borderTopStyle: 'dashed',
+  borderTopStyle: 'solid',
   borderTopWidth: borderWidth.hairline,
   flex: '1 1 0%',
   height: 0,

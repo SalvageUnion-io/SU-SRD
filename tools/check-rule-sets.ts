@@ -2,11 +2,10 @@
 /**
  * Rule-set gates — `bun run check styling` and `bun run check copy`.
  *
- * One engine (`packages/gates/lib/ruleEngine.ts`), one runner, nine rule sets (two share the `tokens` id):
+ * One engine (`packages/gates/lib/ruleEngine.ts`), one runner, nine rule sets:
  *
- *   - `tokens`       — design-token laws (packages/gates/rules/designTokens.ts),
- *                      and the chrome-token laws, which share its id
- *                      (packages/gates/rules/chromeTokens.ts)
+ *   - `tokens`       — design-token laws (packages/gates/rules/designTokens.ts)
+ *   - `chrome-tokens` — rails, dashes, motion, breakpoints (packages/gates/rules/chromeTokens.ts)
  *   - `styling`      — src/components owns shared styling (packages/gates/rules/stylingOwnership.ts)
  *   - `srd-css`      — the site's single stylesheet entry (packages/gates/rules/srdCss.ts)
  *   - `tone-ground`  — no tech-level blue as a header ground (packages/gates/rules/toneGround.ts)
@@ -15,7 +14,7 @@
  *   - `chrome`       — chrome.md's laws: one ground signal, one focus ring (packages/gates/rules/chrome.ts)
  *   - `copy`         — game terms capitalised as the book does (packages/gates/rules/copyTerms.ts)
  *
- * The `styling` check runs the first seven (`--only=` their ids), the `copy`
+ * The `styling` check runs the first eight (`--only=` their ids), the `copy`
  * check the last; tools/check.ts registers both.
  *
  * Why these gates exist at all: none of what they catch fails typecheck, lint or

@@ -51,9 +51,9 @@ The loop: define it here, land its gate with a baseline, burn the baseline to ze
 - **R19 One ground signal** (K1) — the surface sets `data-ground` once; no `onInk`, `ground` or ink `surface` prop; paper on ink is `--color-paper-NN`.
   Gate: held, `chrome/ground-signal` (zero: those props, Stat's `inverse`, and `data-ground` outside the frames in `packages/gates/rules/chrome.ts`) and `chrome/paper-mix` (zero: a `color-mix` fading paper).
 - **R30 No left-rail borders** (§3.10) — colour rides in bands, stamps and gauges.
-  Gate: held, `tokens/left-rail` (zero, `packages/gates/rules/chromeTokens.ts`): `border-left` / `borderLeft` / `border-inline-start` with a width, unless its rule draws the right edge at that width (a frame) or reaches it through a sibling combinator (a divider, `a + b`).
+  Gate: held, `chrome-tokens/left-rail` (zero, `packages/gates/rules/chromeTokens.ts`): `border-left` / `borderLeft` / `border-inline-start` with a width, unless its rule draws the right edge at that width (a frame) or reaches it through a sibling combinator (a divider, `a + b`).
 - **R32 Dashed means user-made** (§3.9) — or a Play reference unit, an edit field, an empty slot.
-  Gate: held, `tokens/dashed` (zero, `packages/gates/rules/chromeTokens.ts`): `dashed` only under the user-made, reference-unit, edit-field and empty-slot selectors (`DASHED_SELECTORS`) or files (`DASHED_FILES`), never under `:focus`; `Slab.tsx` is exempt until R1 removes its `variant`.
+  Gate: held, `chrome-tokens/dashed` (zero, `packages/gates/rules/chromeTokens.ts`): `dashed` only under the user-made, reference-unit, edit-field and empty-slot selectors (`DASHED_SELECTORS`) or files (`DASHED_FILES`), never under `:focus`.
 - **R34 The detail view is a Page, never a new tab** (E5).
   Gate: held, the Biome plugin `noWindowOpen.grit` bans `window.open` in `apps/web/src` (`noRestrictedGlobals` bans a name, not a member); `useDetailModal.test.tsx` pins link mode.
 - **R36 Stats render through `Stat`** (§3.7) — never `<span>SP {n}</span>`.
@@ -93,8 +93,8 @@ The loop: define it here, land its gate with a baseline, burn the baseline to ze
 - **R35 The form fits the place** (E2, E11, E19) — a list item is a Row, Tile or Token; a lead only on an SRD index; a chassis ability only on its pages, else a contentful Token.
   Gate: planned, e2e over R0.
 - **R21 One breakpoint ladder** (K2) — 40, 48, 64, 80rem, `width >=`, media, container and JS alike; Play's phone floor the named exception.
-  Gate: held, `tokens/raw-breakpoint` (zero, `packages/gates/rules/chromeTokens.ts`): a query width off the ladder, a `max-width` (or `<`) query, any px query, or a script's literal width (it reads `breakpoint` / `widthAtLeast`); a complement is `not (width >= …)`. Two component fits stay off the ladder on a waived line each: the stat column's cell counts and a Row's art by room (E10).
+  Gate: held, `chrome-tokens/raw-breakpoint` (zero, `packages/gates/rules/chromeTokens.ts`): a query width off the ladder, a `max-width` (or `<`) query, any px query, or a script's literal width (it reads `breakpoint` / `widthAtLeast`); a complement is `not (width >= …)`. Two component fits stay off the ladder on a waived line each: the stat column's cell counts and a Row's art by room (E10).
 - **R25 Motion is tokens** (K3) — `--dur-fast`, `--dur-base`, `--ease`; loops only for loading, under `no-preference`.
-  Gate: held, `tokens/raw-duration` and `raw-easing` (zero, `packages/gates/rules/chromeTokens.ts`): a literal duration, an easing named at the call site or none named (the browser's default); `tokens/motion-loop` (zero): an `infinite` animation outside a `no-preference` block, or in a style object. A loading loop's period is `--dur-loop`.
+  Gate: held, `chrome-tokens/raw-duration` and `raw-easing` (zero, `packages/gates/rules/chromeTokens.ts`): a literal duration, an easing named at the call site or none named (the browser's default); `chrome-tokens/motion-loop` (zero): an `infinite` animation outside a `no-preference` block, or in a style object. A loading loop's period is `--dur-loop`.
 - **R26 One lift, one layer scale** (§4.4, K4) — `--shadow-lift`, 3px popups, z-index from `layer`.
   Gate: held, `tokens/raw-shadow` (any `box-shadow` that casts, a blur, but `--shadow-lift`; the focus ring is `--focus-ring-shadow`, and a spread-only ring or inset frame casts nothing) and `raw-z-index` (a literal above 3), zero; popup radius under R13's `raw-radius`.

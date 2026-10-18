@@ -363,12 +363,6 @@ const EXEMPTIONS: Exemption[] = [
     reason:
       'The token definitions, and the reduced-motion backstop: `0.01ms !important` on every element is the guarantee that a reduce user sees no motion, not a duration anything animates at.',
   },
-  {
-    file: 'apps/web/src/components/atoms/Slab.tsx',
-    rules: ['dashed'],
-    reason:
-      'R1 (#1682): `Slab variant="dashed"` is the dashed section head R1 removes ("a Slab is always solid"), with every call site, as its own change. The exemption goes with the variant.',
-  },
 ]
 
 /**
@@ -425,7 +419,7 @@ export function scanChromeSources(sources: ReadonlyMap<string, string>): Record<
 }
 
 export const chromeTokens: RuleSet = {
-  id: 'tokens',
+  id: 'chrome-tokens',
   label: 'chrome tokens',
   rules: CHROME_RULES,
   exemptionsLive: 'packages/gates/rules/chromeTokens.ts (or a `design-tokens-ignore` line comment)',

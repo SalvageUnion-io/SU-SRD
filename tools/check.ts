@@ -225,7 +225,7 @@ export const CHECKS: readonly CheckSpec[] = [
     cmd: [
       'bun',
       'tools/check-rule-sets.ts',
-      '--only=tokens,styling,srd-css,tone-ground,class-prefix,entity-nesting,chrome',
+      '--only=tokens,chrome-tokens,styling,srd-css,tone-ground,class-prefix,entity-nesting,chrome',
     ],
     profiles: ALL,
   },

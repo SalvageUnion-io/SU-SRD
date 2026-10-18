@@ -17,8 +17,8 @@ const scan = (rel: string, text: string) => scanChromeSources(new Map([[rel, tex
 const lines = (found: ReturnType<typeof scan>, id: string) => found[id]?.map((f) => f.line)
 
 describe('chrome tokens rule set', () => {
-  test('shares the tokens id, and every rule is zero', () => {
-    expect(chromeTokens.id).toBe('tokens')
+  test('every rule is zero', () => {
+    expect(chromeTokens.id).toBe('chrome-tokens')
     expect(chromeTokens.rules.filter((r) => r.mode !== 'zero').map((r) => r.id)).toEqual([])
     expect(ratchetCounts(chromeTokens, {})).toEqual({})
   })
@@ -56,7 +56,7 @@ describe('parseCss', () => {
   })
 })
 
-describe('tokens/left-rail', () => {
+describe('chrome-tokens/left-rail', () => {
   test('a left or inline-start border with a width fails, in CSS and a style object', () => {
     const css = scan(
       'apps/web/src/styles/x.css',
@@ -117,7 +117,7 @@ describe('tokens/left-rail', () => {
   })
 })
 
-describe('tokens/dashed', () => {
+describe('chrome-tokens/dashed', () => {
   test('dashed outside the four meanings fails, in CSS and a style object', () => {
     const css = scan(
       'apps/web/src/styles/x.css',
@@ -164,7 +164,7 @@ describe('tokens/dashed', () => {
   })
 })
 
-describe('motion: tokens/raw-duration, raw-easing, motion-loop', () => {
+describe('motion: chrome-tokens/raw-duration, raw-easing, motion-loop', () => {
   test('a literal duration fails; a token and zero pass', () => {
     const css = scan(
       'apps/web/src/styles/x.css',
@@ -237,7 +237,7 @@ describe('motion: tokens/raw-duration, raw-easing, motion-loop', () => {
   })
 })
 
-describe('tokens/raw-breakpoint', () => {
+describe('chrome-tokens/raw-breakpoint', () => {
   test('the gate’s ladder is design/tokens.ts’s `breakpoint`', () => {
     const tokens = readFileSync(
       join(import.meta.dir, '../../../apps/web/src/design/tokens.ts'),
