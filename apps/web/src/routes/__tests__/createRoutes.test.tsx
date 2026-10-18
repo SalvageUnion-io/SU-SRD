@@ -37,6 +37,8 @@ function wizardStub(name: string, preselect: (p: Props) => string) {
       'section',
       { 'aria-label': name },
       h('p', null, `${name} preselect: ${preselect(p)}`),
+      h('p', null, `${name} game: ${named(p.gameId)}`),
+      call(`${name}: cancel`, p.onCancel as () => void),
       call(`${name}: off rules`, p.onOffRules as () => void),
       call(`${name}: complete`, p.onComplete as () => void)
     )
@@ -55,6 +57,7 @@ const convexMocks = await installConvexMocks({
           null,
           h('p', null, `${String(p.kind)} screen, mode ${named(p.mode)}`),
           h('p', null, `return to ${named(p.returnTo)}`),
+          h('p', null, `blank lands in ${named(p.gameId)}`),
           p.wizard as ReactNode,
           call('Choose blank', () => (p.onModeChange as (m: string) => void)('blank')),
           call('Created', () => (p.onCreated as (id: string) => void)('new-id'))
@@ -118,6 +121,9 @@ const convexMocks = await installConvexMocks({
     }),
     '../../play/PlayGate': () => ({
       PlayGate: (p: Props) => h('p', null, `Play gate for ${String(p.id)}`),
+    }),
+    '../../play/games/GamePage': () => ({
+      GamePage: (p: Props) => h('p', null, `Game page for ${String(p.gameId)}`),
     }),
     '../../play/PlayMediatorGate': () => ({
       PlayMediatorGate: (p: Props) => h('p', null, `Mediate gate for ${String(p.gameId)}`),
@@ -313,6 +319,44 @@ describe('/play/$pilotId', () => {
   test("hands the pilot's id to the gate", async () => {
     await mountAt('/play/p1')
     expect(await screen.findByText('Play gate for p1')).toBeTruthy()
+  })
+})
+
+describe('/play/games/$gameId', () => {
+  test("hands the Game's id to its page", async () => {
+    await mountAt('/play/games/g1')
+    expect(await screen.findByText('Game page for g1')).toBeTruthy()
+  })
+})
+
+describe('a wizard started from a Game’s page (`?game=`, ADR-052 §3)', () => {
+  for (const [path, name] of [
+    ['/pilots/new', 'Pilot wizard'],
+    ['/mechs/new', 'Mech wizard'],
+    ['/crawlers/new', 'Crawler builder'],
+  ] as const) {
+    test(`${path}: the unit lands in that Game, and finishing returns to its page`, async () => {
+      const router = await mountAt(`${path}?mode=guided&game=g1`)
+      expect(await screen.findByText(`${name} game: g1`)).toBeTruthy()
+      expect(screen.getByText('blank lands in g1')).toBeTruthy()
+      await press(`${name}: complete`)
+      expect(at(router).pathname).toBe('/play/games/g1')
+    })
+  }
+
+  test('cancelling returns to the Game’s page; off rules and the mode keep the Game', async () => {
+    const router = await mountAt('/pilots/new?game=g1')
+    await press('Choose blank')
+    expect(at(router).search).toEqual({ game: 'g1', mode: 'blank' })
+    await press('Pilot wizard: off rules')
+    expect(at(router).search).toEqual({ game: 'g1', mode: 'blank' })
+    await press('Pilot wizard: cancel')
+    expect(at(router).pathname).toBe('/play/games/g1')
+  })
+
+  test('a game param that is not an id is dropped', async () => {
+    await mountAt('/pilots/new?mode=guided&game=not-an-id!')
+    expect(await screen.findByText('Pilot wizard game: none')).toBeTruthy()
   })
 })
 

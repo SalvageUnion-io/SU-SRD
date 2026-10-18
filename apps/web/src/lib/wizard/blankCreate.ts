@@ -14,6 +14,7 @@
  * until the corresponding sheet editor exists.
  */
 
+import { moveTo } from 'game-domain/container'
 import type { SheetKind } from 'game-domain/entityKinds'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { useEntityStore } from '../../stores/entityStore'
@@ -51,27 +52,57 @@ export type BlankCrawlerSeed = {
 type BlankSeed = BlankPilotSeed | BlankMechSeed | BlankCrawlerSeed
 
 /**
+ * Where the new unit lands: the Game a create started from a Game's page names
+ * (`?game=<id>`, ADR-052 §3); unset, the store decides.
+ */
+export type BlankWhere = { gameId?: string | undefined }
+
+/** A create input filed under `gameId`'s Game, or left to the store. */
+function inGame<I>(input: I, gameId: string | undefined): I {
+  return gameId === undefined ? input : { ...input, ...moveTo({ kind: 'game', gameId }) }
+}
+
+/**
  * Creates a blank entity of the given kind and returns its id.
  *
  * stores/records.ts (prepareCreate / parseServed) still strict-parses the record (Zod is the source of truth) —
  * but no creation-rule budget, tech-level filter, or scrap cost applies.
  */
-export async function createBlank(kind: 'pilot', seed: BlankPilotSeed): Promise<string>
-export async function createBlank(kind: 'mech', seed: BlankMechSeed): Promise<string>
-export async function createBlank(kind: 'crawler', seed: BlankCrawlerSeed): Promise<string>
-export async function createBlank(kind: BlankCreateKind, seed: BlankSeed): Promise<string> {
+export async function createBlank(
+  kind: 'pilot',
+  seed: BlankPilotSeed,
+  where?: BlankWhere
+): Promise<string>
+export async function createBlank(
+  kind: 'mech',
+  seed: BlankMechSeed,
+  where?: BlankWhere
+): Promise<string>
+export async function createBlank(
+  kind: 'crawler',
+  seed: BlankCrawlerSeed,
+  where?: BlankWhere
+): Promise<string>
+export async function createBlank(
+  kind: BlankCreateKind,
+  seed: BlankSeed,
+  where: BlankWhere = {}
+): Promise<string> {
   const store = useEntityStore.getState()
 
   if (kind === 'pilot') {
     const { name, callsign, classRef } = seed as BlankPilotSeed
     const created = await store.create(
       'pilot',
-      pilotFormToCreateInput({
-        ...EMPTY_PILOT_FORM_STATE,
-        name,
-        callsign,
-        classId: classRef ?? '',
-      })
+      inGame(
+        pilotFormToCreateInput({
+          ...EMPTY_PILOT_FORM_STATE,
+          name,
+          callsign,
+          classId: classRef ?? '',
+        }),
+        where.gameId
+      )
     )
     return created.id
   }
@@ -83,11 +114,14 @@ export async function createBlank(kind: BlankCreateKind, seed: BlankSeed): Promi
     // the current stats stay absent and the sheet derives 0-maxima safely.
     const created = await store.create(
       'mech',
-      mechFormToCreateInput({
-        ...EMPTY_MECH_FORM_STATE,
-        name,
-        chassisName: chassisRef ?? '',
-      })
+      inGame(
+        mechFormToCreateInput({
+          ...EMPTY_MECH_FORM_STATE,
+          name,
+          chassisName: chassisRef ?? '',
+        }),
+        where.gameId
+      )
     )
     return created.id
   }
@@ -102,17 +136,20 @@ export async function createBlank(kind: BlankCreateKind, seed: BlankSeed): Promi
   )?.structurePoints
   const created = await store.create(
     'crawler',
-    crawlerFormToCreateInput(
-      {
-        ...EMPTY_CRAWLER_FORM_STATE,
-        name,
-        techLevel: tl,
-        scrapPool: { ...EMPTY_SCRAP_POOL },
-      },
-      {
-        ...(maxSP !== undefined ? { maxSP } : {}),
-        crawlerBays: seedDefaultCrawlerBays(),
-      }
+    inGame(
+      crawlerFormToCreateInput(
+        {
+          ...EMPTY_CRAWLER_FORM_STATE,
+          name,
+          techLevel: tl,
+          scrapPool: { ...EMPTY_SCRAP_POOL },
+        },
+        {
+          ...(maxSP !== undefined ? { maxSP } : {}),
+          crawlerBays: seedDefaultCrawlerBays(),
+        }
+      ),
+      where.gameId
     )
   )
   return created.id

@@ -64,7 +64,9 @@ test('the Mediator runs the table from Play, and the player answers', async ({
     await waitForReady(player.page)
     await player.page.getByRole('button', { name: 'Join this Game' }).click()
     await player.page.waitForURL(/\/play\/games\/[^/]+$/, { timeout: 20_000 })
-    await buildPilot(player.page, 'Mira Voss', 'Sparks')
+    // Joining lands on the Game's page in Play; its Create Pilot builds into it.
+    const gameId = new URL(player.page.url()).pathname.split('/').pop()
+    await buildPilot(player.page, 'Mira Voss', 'Sparks', gameId)
 
     // --- Both screens, from the Play landing ---
     const playerPath = await playDoor(player.page, `Play Mira Voss in ${GAME}`)

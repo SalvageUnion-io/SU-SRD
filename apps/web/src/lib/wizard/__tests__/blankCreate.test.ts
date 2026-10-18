@@ -22,6 +22,18 @@ withSignedInBackend()
 beforeEach(resetStores)
 afterEach(resetStores)
 
+describe('createBlank — where it lands', () => {
+  test('started from a Game’s page, the unit lands in that Game (ADR-052 §3)', async () => {
+    const pilot = await createBlank('pilot', { name: 'Kestrel', callsign: 'K' }, { gameId: 'g1' })
+    const mech = await createBlank('mech', { name: 'Buzzard' }, { gameId: 'g1' })
+    const crawler = await createBlank('crawler', { name: 'Iron Mother' }, { gameId: 'g1' })
+    const store = useEntityStore.getState()
+    expect(store.get('pilot', pilot)?.gameId).toBe('g1')
+    expect(store.get('mech', mech)?.gameId).toBe('g1')
+    expect(store.get('crawler', crawler)?.gameId).toBe('g1')
+  })
+})
+
 describe('createBlank — pilot', () => {
   test('without a class pick: persists a schema-valid pilot with empty classRef', async () => {
     const id = await createBlank('pilot', { name: 'Rook Halden', callsign: 'Static' })

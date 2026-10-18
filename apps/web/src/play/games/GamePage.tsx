@@ -13,6 +13,7 @@
  * keeps the column a player picked.
  */
 
+import '../../styles/play/play.css'
 import { useState } from 'react'
 import type { SegmentKind } from '../../build/roster/RosterColumn'
 import { useConnection } from '../../lib/connection/connectionContext'

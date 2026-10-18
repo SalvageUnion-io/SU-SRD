@@ -20,11 +20,11 @@
  *
  * ## Creation goes through the wizards
  *
- * This renders only for the hub's ACTIVE container, so a create CTA is just a
- * link to the ordinary wizard: `entityStore.create` stamps whatever container
- * is current, which is this Game. Nothing about building a pilot changes
- * because the pilot is destined for a crew, and a second, thinner creation
- * path would drift from the real one immediately.
+ * A create CTA is a link to Build's ordinary wizard with this Game named
+ * (`/pilots/new?game=<id>`, ADR-052 §3): the new unit lands in this Game, and
+ * finishing or cancelling comes back here. Nothing about building a pilot
+ * changes because the pilot is destined for a crew, and a second, thinner
+ * creation path would drift from the real one immediately.
  *
  * ## What a row opens
  *
@@ -53,7 +53,7 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties, ReactNode } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import type { ColumnCreate, SegmentKind } from '../../build/roster/RosterColumn'
+import type { SegmentKind } from '../../build/roster/RosterColumn'
 import {
   RosterColumn,
   RosterGrid,
@@ -83,6 +83,8 @@ import {
   rosterSheetHref,
   tableCapabilities,
 } from '../../lib/games/gameRoster'
+import { newInGameHref } from '../../lib/wizard/fromGame'
+import { AddFromHangar } from './AddFromHangar'
 import { OwnerSeal } from './OwnerSeal'
 import { useRowActions } from './useRowActions'
 
@@ -99,25 +101,26 @@ type GameRosterProps = {
 const COLUMNS: ReadonlyArray<{
   kind: RosterKind
   title: string
-  create: ColumnCreate
+  /** The wizard, started for this Game (`?game=`): the unit lands here, and so does finishing. */
+  create: { path: '/pilots/new' | '/mechs/new' | '/crawlers/new'; label: string }
   empty: string
 }> = [
   {
     kind: 'pilot',
     title: 'Pilots',
-    create: { href: '/pilots/new', label: 'Create Pilot' },
+    create: { path: '/pilots/new', label: 'Create Pilot' },
     empty: 'No pilots in this Game yet.',
   },
   {
     kind: 'mech',
     title: 'Mechs',
-    create: { href: '/mechs/new', label: 'Create Mech' },
+    create: { path: '/mechs/new', label: 'Create Mech' },
     empty: 'No mechs in this Game yet.',
   },
   {
     kind: 'crawler',
     title: 'Crawlers',
-    create: { href: '/crawlers/new', label: 'Raise a Crawler' },
+    create: { path: '/crawlers/new', label: 'Raise a Crawler' },
     empty: 'No Union Crawler yet.',
   },
 ]
@@ -127,6 +130,9 @@ const HINT = { marginTop: tokens.space[16], textAlign: 'left' } satisfies CSSPro
 const ITEM = { listStyle: 'none', minWidth: 0 } satisfies CSSProperties
 
 const PATTERNS_LINK = { textDecoration: 'none' } satisfies CSSProperties
+
+/** "+ Add from your Hangar", under the columns: a block, 16px below them. */
+const ADD = { marginTop: tokens.space[16] } satisfies CSSProperties
 
 export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }: GameRosterProps) {
   // One confirm for every row verb; see `useRowActions`.
@@ -146,7 +152,7 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
 
   // Local copies decide what opens without a round trip, so the columns need
   // the local stores hydrated even though the listing itself is remote.
-  useHydrateEntities(['pilot', 'mech', 'crawler'])
+  useHydrateEntities(['pilot', 'mech', 'crawler', 'softLink'])
   const localPilots: Pilot[] = usePilots()
   const localMechs: Mech[] = useMechs()
   const localCrawlers: Crawler[] = useCrawlers()
@@ -317,7 +323,14 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
                   kind={column.kind}
                   title={column.title}
                   active={activeSegment === column.kind}
-                  create={mayCreate ? column.create : undefined}
+                  create={
+                    mayCreate
+                      ? {
+                          href: newInGameHref(column.create.path, gameId),
+                          label: column.create.label,
+                        }
+                      : undefined
+                  }
                   emptyMessage={
                     column.kind === 'crawler' && !caps.canRaiseCrawler
                       ? 'No Union Crawler yet — the Mediator raises one.'
@@ -341,6 +354,12 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
               )
             })}
           </RosterGrid>
+          {/* One of your units in, by the same move as Build's "Move to a Game…". */}
+          {caps.canAddCrew && (
+            <div style={ADD}>
+              <AddFromHangar gameId={gameId} gameName={gameName} confirm={confirm} />
+            </div>
+          )}
         </>
       )}
 

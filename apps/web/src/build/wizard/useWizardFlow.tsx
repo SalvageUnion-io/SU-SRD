@@ -17,6 +17,7 @@
  * each wizard spreads it and adds only its own kind, copy and trackers.
  */
 
+import { moveTo } from 'game-domain/container'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 import { useServerAction } from '../../lib/connection/useServerAction'
@@ -75,6 +76,11 @@ export type WizardFlowOptions<
   onCancel: () => void
   /** Leaves the guided flow for the blank Free-Edit path; offered on a locked step. */
   onOffRules?: () => void
+  /**
+   * The Game the new unit lands in: a wizard started from a Game's page
+   * (`?game=<id>`, ADR-052 §3). Unset, the store decides.
+   */
+  gameId?: string | undefined
 }
 
 /** The `WizShell` props every creation wizard passes the same way. */
@@ -122,6 +128,7 @@ export function useWizardFlow<
   onComplete,
   onCancel,
   onOffRules,
+  gameId,
 }: WizardFlowOptions<TStep, TForm, T>): WizardFlow<TStep> {
   const [step, setStep] = useState<TStep>(initialStep)
   // The form's own words for what it is missing; a failed write is `save.error`.
@@ -148,7 +155,9 @@ export function useWizardFlow<
         return null
       }
 
-      return useEntityStore.getState().create(entityType, rawInput)
+      return useEntityStore
+        .getState()
+        .create(entityType, gameId === undefined ? rawInput : inGame(rawInput, gameId))
     },
     { failure: failureMessage }
   )
@@ -203,4 +212,9 @@ export function useWizardFlow<
       busy: save.pending,
     },
   }
+}
+
+/** A create input filed under a Game: its container decided, so the store keeps it. */
+function inGame<I>(input: I, gameId: string): I {
+  return { ...input, ...moveTo({ kind: 'game', gameId }) }
 }

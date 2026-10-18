@@ -129,6 +129,8 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
     'mediator:amMediator': false,
     'proposals:sent': [],
+    // "Add from your Hangar" checks its moves against your Games.
+    'games:listMine': [],
     ...over,
   }
 }

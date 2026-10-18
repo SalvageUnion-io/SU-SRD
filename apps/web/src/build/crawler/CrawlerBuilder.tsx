@@ -84,6 +84,8 @@ type CrawlerBuilderProps = {
   onCancel: () => void
   /** Leaves the guided flow for the blank Free-Edit path (P3.3). */
   onOffRules?: () => void
+  /** The Game the new unit lands in (`?game=<id>`, ADR-052 §3); unset, the store decides. */
+  gameId?: string | undefined
   /** A crawler-type slug to start on (`?type=`), already checked by `preselectedCrawlerType`. */
   preselectType?: string
 }
@@ -112,6 +114,7 @@ export function CrawlerBuilder({
   onComplete,
   onCancel,
   onOffRules,
+  gameId,
   preselectType,
 }: CrawlerBuilderProps) {
   // Read straight from the ORM: this renders inside GameDataReady, whose
@@ -200,6 +203,7 @@ export function CrawlerBuilder({
     onComplete,
     onCancel,
     onOffRules,
+    gameId,
   })
 
   function updateForm(patch: Partial<CrawlerWizardFormState>) {

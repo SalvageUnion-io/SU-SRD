@@ -14,6 +14,11 @@
   max-width: 32rem;
 }
 
+/* A picker's narrow dialog (chrome K7): a Game page's "Add from your Hangar". */
+.su-play-dialog--narrow {
+  max-width: 28rem;
+}
+
 /* A crewmate's presence: a filled dot while their seat beats, ink-30 once it stops. */
 .su-play-crew-dot {
   background: var(--color-ink-30);

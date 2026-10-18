@@ -245,9 +245,9 @@ function isContainerPage(pathname: string): boolean {
 }
 
 /**
- * Drive a `/new` wizard to completion and return once the redirect to the
- * active container's page lands: `/` for Shelves, or `/play/games/<id>` when a Game
- * is active (`useReturnToContainer`), so a pilot built in a Game finishes too.
+ * Drive a `/new` wizard to completion and return once the redirect lands: `/`
+ * for the Hangar, or `/play/games/<id>` for a wizard started from a Game's page
+ * (`?game=`), so a pilot built in a Game finishes too.
  *
  * Deliberately step-AGNOSTIC. These wizards have been restructured repeatedly —
  * the pilot went from 6 steps to 9, the mech to 9, the crawler to 6, and a
@@ -274,9 +274,11 @@ async function runWizard(
    * structure-agnostic while making its OUTPUT deterministic, which is what
    * the downstream specs actually need.
    */
-  prefer: string[] = []
+  prefer: string[] = [],
+  /** Started from this Game's page (`?game=`): the unit lands there, and so does the walk. */
+  game?: string
 ): Promise<void> {
-  await gotoStable(page, `/${kind}/new?mode=guided`)
+  await gotoStable(page, `/${kind}/new?mode=guided${game ? `&game=${game}` : ''}`)
   await waitForReady(page)
 
   const MAX_STEPS = 16
@@ -358,11 +360,17 @@ async function runWizard(
 }
 
 /** Build a pilot. Steps: Stats → Class & Ability → Equipment → Callsign → Background → Motto → Keepsake → Appearance → Review. */
-export async function buildPilot(page: Page, name: string, callsign: string): Promise<void> {
+export async function buildPilot(
+  page: Page,
+  name: string,
+  callsign: string,
+  /** A Game's id: build it from that Game's page, into the Game (ADR-052 §3). */
+  game?: string
+): Promise<void> {
   // Engineer, so specs may assert the built pilot's class on the sheet. Without
   // a named pick the walk takes whatever option sits last in the DOM and the
   // class silently varies between runs.
-  await runWizard(page, 'pilots', { name, callsign }, /Create Pilot/i, ['Engineer'])
+  await runWizard(page, 'pilots', { name, callsign }, /Create Pilot/i, ['Engineer'], game)
 }
 
 /**

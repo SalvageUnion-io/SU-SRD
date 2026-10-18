@@ -28,7 +28,7 @@ const SEGMENTS: ReadonlyArray<{ kind: SegmentKind; label: string }> = [
 ]
 
 /** The column's create CTA. `onClick` runs before the wizard opens. */
-export type ColumnCreate = { href: string; label: string; onClick?: () => void }
+type ColumnCreate = { href: string; label: string; onClick?: () => void }
 
 /** The switch row; it hides from `md` up (`.su-segment-switch`, styles/controls.css). */
 const SWITCH = { marginTop: space[20] } satisfies CSSProperties

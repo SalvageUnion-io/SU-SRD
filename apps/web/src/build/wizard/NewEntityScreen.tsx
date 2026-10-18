@@ -38,6 +38,8 @@ type NewEntityScreenProps = {
    * (`?chassis=mule`) survives the Discord round trip. Unset, the site root.
    */
   returnTo?: string
+  /** The Game a Blank create lands in (`?game=<id>`, ADR-052 §3); unset, the store decides. */
+  gameId?: string | undefined
 }
 
 export function NewEntityScreen({
@@ -47,6 +49,7 @@ export function NewEntityScreen({
   onModeChange,
   onCreated,
   returnTo,
+  gameId,
 }: NewEntityScreenProps) {
   const connection = useConnection()
   if (connection.mode === 'solo') {
@@ -79,6 +82,7 @@ export function NewEntityScreen({
         open={mode === 'blank'}
         onClose={() => onModeChange(undefined)}
         onCreated={onCreated}
+        gameId={gameId}
       />
     </>
   )

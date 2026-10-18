@@ -91,6 +91,8 @@ type PilotWizardProps = {
   onCancel: () => void
   /** Leaves the guided flow for the blank Free-Edit path (P3.3). */
   onOffRules?: () => void
+  /** The Game the new unit lands in (`?game=<id>`, ADR-052 §3); unset, the store decides. */
+  gameId?: string | undefined
   /** A class id to start on (`?class=` slug, resolved by `preselectedClassId`). */
   preselectClassId?: string
   /**
@@ -123,6 +125,7 @@ export function PilotWizard({
   onComplete,
   onCancel,
   onOffRules,
+  gameId,
   preselectClassId,
   _rollDeps,
   _sur,
@@ -184,6 +187,7 @@ export function PilotWizard({
     onComplete,
     onCancel,
     onOffRules,
+    gameId,
   })
 
   function updateForm(patch: Partial<PilotWizardFormState>) {

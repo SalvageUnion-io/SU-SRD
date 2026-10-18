@@ -34,6 +34,8 @@ type BlankCreateDialogProps = {
   onClose: () => void
   /** Created — navigate to /sheet/{kind}/{id}. */
   onCreated: (id: string) => void
+  /** The Game the new unit lands in (`?game=<id>`, ADR-052 §3); unset, the store decides. */
+  gameId?: string | undefined
 }
 
 const KIND_LABEL: Record<BlankCreateKind, string> = {
@@ -80,7 +82,13 @@ function techLevelOptions(): RefOption[] {
   )
 }
 
-export function BlankCreateDialog({ kind, open, onClose, onCreated }: BlankCreateDialogProps) {
+export function BlankCreateDialog({
+  kind,
+  open,
+  onClose,
+  onCreated,
+  gameId,
+}: BlankCreateDialogProps) {
   const [name, setName] = useState('')
   const [callsign, setCallsign] = useState('')
   /** Optional class/chassis ref ('' = decide later on the sheet). */
@@ -99,19 +107,24 @@ export function BlankCreateDialog({ kind, open, onClose, onCreated }: BlankCreat
   const create = useServerAction(
     () => {
       if (kind === 'pilot') {
-        return createBlank('pilot', {
-          name: name.trim(),
-          callsign: callsign.trim(),
-          ...(refPick !== '' ? { classRef: refPick } : {}),
-        })
+        return createBlank(
+          'pilot',
+          {
+            name: name.trim(),
+            callsign: callsign.trim(),
+            ...(refPick !== '' ? { classRef: refPick } : {}),
+          },
+          { gameId }
+        )
       }
       if (kind === 'mech') {
-        return createBlank('mech', {
-          name: name.trim(),
-          ...(refPick !== '' ? { chassisRef: refPick } : {}),
-        })
+        return createBlank(
+          'mech',
+          { name: name.trim(), ...(refPick !== '' ? { chassisRef: refPick } : {}) },
+          { gameId }
+        )
       }
-      return createBlank('crawler', { name: name.trim(), techLevel })
+      return createBlank('crawler', { name: name.trim(), techLevel }, { gameId })
     },
     { failure: `The ${label.toLowerCase()} could not be created. Try again.` }
   )

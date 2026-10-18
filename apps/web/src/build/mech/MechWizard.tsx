@@ -77,6 +77,8 @@ type MechWizardProps = {
   onCancel: () => void
   /** Leaves the guided flow for the blank Free-Edit path (P3.3). */
   onOffRules?: () => void
+  /** The Game the new unit lands in (`?game=<id>`, ADR-052 §3); unset, the store decides. */
+  gameId?: string | undefined
   /** A chassis slug to start on (`?chassis=`), already checked by `preselectedChassis`. */
   preselectChassis?: string
   /** That chassis's pattern to prefill (`?pattern=`), already checked by `preselectedPattern`. */
@@ -110,6 +112,7 @@ export function MechWizard({
   onComplete,
   onCancel,
   onOffRules,
+  gameId,
   preselectChassis,
   preselectPattern,
 }: MechWizardProps) {
@@ -162,6 +165,7 @@ export function MechWizard({
     onComplete,
     onCancel,
     onOffRules,
+    gameId,
   })
 
   function updateForm(patch: Partial<MechWizardFormState>) {

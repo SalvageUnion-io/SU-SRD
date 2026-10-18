@@ -62,7 +62,7 @@ beforeAll(hydrateStores)
 
 afterAll(async () => {
   // Leave the shared stores as this file found them: empty.
-  for (const id of ['a-mine', 'a-crawler']) {
+  for (const id of ['a-mine', 'a-crawler', 'a-shelf', 'a-away']) {
     await useEntityStore.getState().forget(id === 'a-crawler' ? 'crawler' : 'pilot', id)
   }
 })
@@ -120,6 +120,12 @@ const CRAWLER = {
   body: { id: 'a-crawler', name: '#430 Tenacity', techLevel: '1' },
 }
 
+/** Your Games, as `games.listMine` answers: this one and another you play in. */
+const MY_GAMES = [
+  { _id: 'g1', name: 'Tenacity', tableRunner: false },
+  { _id: 'g2', name: 'Frostline', tableRunner: false },
+]
+
 function listing(over: Record<string, unknown> = {}) {
   return { pilots: [], mechs: [], crawlers: [], softLinks: [], ...over }
 }
@@ -134,6 +140,7 @@ async function renderAs(
     'account:me': me,
     'games:members': members,
     'entities:listForGame': rows,
+    'games:listMine': MY_GAMES,
   })
   // Async act: the roster flips its hydrated flag from a promise after mount.
   await act(async () => {
@@ -634,6 +641,87 @@ describe('remove from game', () => {
     await renderAs({ ...ME, _id: 'u-med' }, listing({ crawlers: [CRAWLER] }))
     const dialog = await press('#430 Tenacity', 'Remove from Game')
     expect(dialog.textContent).toContain('Everyone in Tenacity assigned to it is unassigned')
+  })
+})
+
+describe('units in from Build (ADR-052 §3, §5)', () => {
+  test('each Create opens Build’s wizard for this Game, so the unit lands here', async () => {
+    const mediator = { ...ME, _id: 'u-med', displayName: 'Mediator' }
+    await renderAs(mediator, listing())
+    const hrefOf = (name: string) => screen.getByRole('link', { name }).getAttribute('href')
+    expect(hrefOf('Create Pilot')).toBe('/pilots/new?game=g1')
+    expect(hrefOf('Create Mech')).toBe('/mechs/new?game=g1')
+    expect(hrefOf('Raise a Crawler')).toBe('/crawlers/new?game=g1')
+  })
+
+  /** Your Hangar: a pilot on the shelf, one in another Game, one already here. */
+  async function holdHangar(): Promise<void> {
+    setEntityBackendAuthState(SIGNED_IN)
+    const store = useEntityStore.getState()
+    await store.adopt('pilot', pilotFixture({ id: 'a-shelf', name: 'Kestrel', gameId: null }))
+    await store.adopt('pilot', pilotFixture({ id: 'a-away', name: 'Skiv', gameId: 'g2' }))
+    await store.adopt('pilot', pilotFixture({ id: 'a-mine', name: 'Roach-Boy', gameId: 'g1' }))
+  }
+  const gameIdOf = (id: string) => useEntityStore.getState().get('pilot', id)?.gameId
+
+  async function openPicker(): Promise<HTMLElement> {
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: '+ Add from your Hangar' }))
+    })
+    return screen.getByRole('dialog', { name: 'Add from your Hangar' })
+  }
+
+  test('the picker offers one of your units not in this Game, under its kind, with the Game it leaves', async () => {
+    await holdHangar()
+    await renderAs(ME, listing({ pilots: [MY_PILOT] }))
+    const dialog = await openPicker()
+
+    const group = within(dialog).getByRole('radiogroup')
+    const options = within(group).getAllByRole('radio')
+    // Earlier tests leave a copy on the shelf too: what matters is who is in and out.
+    const names = options.map((o) => o.getAttribute('aria-label') ?? o.textContent)
+    expect(names).toContain('Kestrel')
+    expect(names).toContain('Skiv')
+    expect(names).not.toContain('Roach-Boy')
+    expect(within(dialog).getByRole('heading', { name: 'Pilots' })).toBeTruthy()
+    // What the move touches is visible: Skiv would leave Frostline (C11).
+    const skiv = within(group).getByRole('radio', { name: 'Skiv' }).closest('.su-entity-row')
+    const tags = [...(skiv?.querySelectorAll('[data-tag]') ?? [])].map((t) => t.textContent)
+    expect(tags).toEqual(['GameFrostline'])
+    // Nothing picked, nothing to move.
+    const move = within(dialog).getByRole('button', { name: 'Move in' })
+    expect(move.hasAttribute('disabled')).toBe(true)
+  })
+
+  test('one pick moves that same unit in, with the Hangar’s move', async () => {
+    await holdHangar()
+    await renderAs(ME, listing({ pilots: [MY_PILOT] }))
+    const dialog = await openPicker()
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('radio', { name: 'Kestrel' }))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Move Kestrel in' }))
+    })
+    await settle(() => gameIdOf('a-shelf') === 'g1')
+    // A move, never a copy: the same id, its Game this one.
+    expect(gameIdOf('a-shelf')).toBe('g1')
+    expect(gameIdOf('a-away')).toBe('g2')
+  })
+
+  test('taking a unit out of another Game asks first', async () => {
+    await holdHangar()
+    await renderAs(ME, listing({ pilots: [MY_PILOT] }))
+    const dialog = await openPicker()
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('radio', { name: 'Skiv' }))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Move Skiv in' }))
+    })
+    const confirm = screen.getByRole('alertdialog')
+    expect(confirm.textContent).toContain('Frostline')
+    expect(gameIdOf('a-away')).toBe('g2')
   })
 })
 
