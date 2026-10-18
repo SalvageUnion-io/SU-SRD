@@ -95,6 +95,6 @@ The loop: define it here, land its gate with a baseline, burn the baseline to ze
 - **R21 One breakpoint ladder** (K2) — 40, 48, 64, 80rem, `width >=`, media, container and JS alike; Play's phone floor the named exception.
   Gate: planned, `tokens/raw-breakpoint` (zero): a query width off the ladder, a `max-width` query or a px container query; JS reads `breakpoint`.
 - **R25 Motion is tokens** (K3) — `--dur-fast`, `--dur-base`, `--ease`; loops only for loading, under `no-preference`.
-  Gate: planned, `tokens/raw-duration` and `raw-easing` (zero); a `@keyframes` loop outside a `no-preference` block fails.
+  Gate: held, `tokens/raw-duration` and `raw-easing` (zero, `packages/gates/rules/chromeTokens.ts`): a literal duration, an easing named at the call site or none named (the browser's default); `tokens/motion-loop` (zero): an `infinite` animation outside a `no-preference` block, or in a style object. A loading loop's period is `--dur-loop`.
 - **R26 One lift, one layer scale** (§4.4, K4) — `--shadow-lift`, 3px popups, z-index from `layer`.
   Gate: held, `tokens/raw-shadow` (any `box-shadow` that casts, a blur, but `--shadow-lift`; the focus ring is `--focus-ring-shadow`, and a spread-only ring or inset frame casts nothing) and `raw-z-index` (a literal above 3), zero; popup radius under R13's `raw-radius`.

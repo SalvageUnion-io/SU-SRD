@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 import type { OwnerChip } from '../../lib/ownership/ownerChip'
-import { Stat } from '../../components/index'
+import { Stat, tokens } from '../../components/index'
 
 /**
  * The pressable seal's bare button. Its cursor, lift and fade change on hover or
@@ -11,9 +11,9 @@ const CLAIM = {
   borderStyle: 'solid',
   borderWidth: 0,
   padding: 0,
-  transitionDuration: '200ms',
+  transitionDuration: tokens.duration.base,
   transitionProperty: 'transform, translate, scale, rotate',
-  transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+  transitionTimingFunction: tokens.ease,
 } satisfies CSSProperties
 
 /**

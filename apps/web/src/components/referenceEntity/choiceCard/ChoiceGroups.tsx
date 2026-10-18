@@ -5,6 +5,8 @@ import { isSchemaName, SalvageUnionReference } from 'salvageunion-reference'
 import {
   borderWidth,
   color,
+  duration,
+  ease,
   font,
   fontSize,
   radius,
@@ -148,8 +150,8 @@ const fieldLabelStyle = {
   position: 'absolute',
   left: space[8],
   transitionProperty: 'all',
-  transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
-  transitionDuration: '150ms',
+  transitionTimingFunction: ease,
+  transitionDuration: duration.base,
 } satisfies CSSProperties
 
 /** Off a Page, an option's Slab sits close over its text, as When Damaged's does. */
@@ -226,7 +228,7 @@ function ChoiceOption({
     opacity: disabled ? 0.3 : !readOnly && !chosen ? 0.45 : 1,
     padding: 0,
     textAlign: 'left',
-    transition: 'opacity 150ms',
+    transition: `opacity ${duration.fast} ${ease}`,
     width: '100%',
   } satisfies CSSProperties
   const frame = {

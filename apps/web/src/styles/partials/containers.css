@@ -270,7 +270,7 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .su-pulse {
-    animation: su-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    animation: su-pulse var(--dur-loop) var(--ease) infinite;
   }
 }
 
@@ -325,7 +325,7 @@
    the bar (`--su-bar-fg`, `shell.css`). */
 .su-header-menu-trigger {
   color: var(--su-bar-fg-70, var(--color-paper-70));
-  transition: color 120ms;
+  transition: color var(--dur-fast) var(--ease);
 }
 .su-header-menu-trigger:hover,
 .su-header-menu-trigger[data-popup-open],

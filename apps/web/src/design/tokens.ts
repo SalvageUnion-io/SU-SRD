@@ -83,6 +83,20 @@ export const shadow = {
 } as const
 
 /**
+ * Motion (chrome.md K3): `fast` for a state change (colour, opacity, a
+ * shadow), `base` for a move (transform, a slide, a float), `loop` the period
+ * of a loading loop (`--dur-*`).
+ */
+export const duration = {
+  fast: '120ms',
+  base: '150ms',
+  loop: '2s',
+} as const
+
+/** The one easing (`--ease`), for every transition and animation. */
+export const ease = 'cubic-bezier(0.4, 0, 0.2, 1)'
+
+/**
  * The type ladder.
  *
  * The first block is the SEMANTIC ladder (ruleset §4.2) — the one to reach for,

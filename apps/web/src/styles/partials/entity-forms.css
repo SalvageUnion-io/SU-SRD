@@ -893,7 +893,7 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
   mix-blend-mode: multiply;
   object-fit: contain;
   position: absolute;
-  transition: transform 160ms ease-out;
+  transition: transform var(--dur-base) var(--ease);
   width: calc(100% - 2 * var(--space-10));
 }
 

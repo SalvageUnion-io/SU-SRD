@@ -390,7 +390,7 @@
   max-width: 100%;
   mix-blend-mode: multiply;
   object-fit: contain;
-  transition: opacity 300ms;
+  transition: opacity var(--dur-fast) var(--ease);
 }
 
 /* Cropped to the line art (`heroArtCrop`): the artwork's canvas

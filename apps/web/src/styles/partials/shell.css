@@ -138,8 +138,8 @@
   text-decoration: none;
   text-transform: uppercase;
   transition:
-    color 120ms,
-    background-color 120ms;
+    color var(--dur-fast) var(--ease),
+    background-color var(--dur-fast) var(--ease);
 }
 
 .su-union-bar__tab:hover {
@@ -178,8 +178,8 @@
   text-decoration: none;
   text-transform: uppercase;
   transition:
-    color 120ms,
-    border-color 120ms;
+    color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
   color: var(--su-bar-fg-70);
 }
 
@@ -199,7 +199,7 @@
   font-family: var(--font-body);
   font-size: var(--text-caption);
   text-decoration: none;
-  transition: color 120ms;
+  transition: color var(--dur-fast) var(--ease);
 }
 
 .su-union-bar__quiet:hover,
@@ -242,7 +242,7 @@
   padding-inline: var(--space-14);
   text-decoration: none;
   text-transform: uppercase;
-  transition: border-color 120ms;
+  transition: border-color var(--dur-fast) var(--ease);
 }
 
 .su-union-bar__buy:hover,
@@ -351,7 +351,7 @@
 .su-crumbs__link {
   text-decoration: underline;
   text-underline-offset: 3px;
-  transition: color 120ms;
+  transition: color var(--dur-fast) var(--ease);
 }
 
 .su-crumbs__here {

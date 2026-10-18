@@ -59,9 +59,9 @@
   padding-block: 13px;
   padding-inline: 15px;
   text-decoration-line: none;
-  transition-duration: 120ms;
+  transition-duration: var(--dur-base);
   transition-property: box-shadow, transform;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-timing-function: var(--ease);
 }
 
 .su-catalog-tile:hover {

@@ -129,7 +129,7 @@
    A transition, not a keyframe: Base UI unmounts the panel when it ends, and
    the reduced-motion backstop below shortens it rather than removing it. */
 .su-drawer {
-  transition: transform 200ms ease-out;
+  transition: transform var(--dur-base) var(--ease);
 }
 .su-drawer[data-swipe-direction='right'] {
   transform: translateX(var(--drawer-swipe-movement-x, 0px));

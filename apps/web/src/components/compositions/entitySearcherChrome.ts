@@ -1,7 +1,7 @@
 /** Chrome `EntitySearcher`'s sub-header and its rail share. */
 
 import type { CSSProperties } from 'react'
-import { space } from '../../design/tokens'
+import { duration, ease, space } from '../../design/tokens'
 
 export function chevronStyle(open: boolean): CSSProperties {
   return {
@@ -9,7 +9,7 @@ export function chevronStyle(open: boolean): CSSProperties {
     height: space[16],
     flexShrink: 0,
     marginLeft: 'auto',
-    transition: 'transform 150ms',
+    transition: `transform ${duration.base} ${ease}`,
     transform: open ? 'rotate(0deg)' : 'rotate(-90deg)',
   }
 }

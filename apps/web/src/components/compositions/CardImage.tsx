@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import { useEffect, useRef, useState } from 'react'
+import { duration, ease } from '../../design/tokens'
 import { CARD_IMAGE_CONTAINER_WIDTH, cardImageSizes, heroImageSizes } from './cardImageSizes'
 import { heroArtCrop } from './heroArtCrop'
 
@@ -47,8 +48,8 @@ const IMG = {
   width: '100%',
   objectFit: 'contain',
   transitionProperty: 'opacity',
-  transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
-  transitionDuration: '300ms',
+  transitionTimingFunction: ease,
+  transitionDuration: duration.fast,
 } satisfies CSSProperties
 
 export function CardImage({ url, srcSet, alt, compact, aside, hero }: CardImageProps) {

@@ -163,6 +163,79 @@ describe('tokens/dashed', () => {
   })
 })
 
+describe('motion: tokens/raw-duration, raw-easing, motion-loop', () => {
+  test('a literal duration fails; a token and zero pass', () => {
+    const css = scan(
+      'apps/web/src/styles/x.css',
+      [
+        '.a { transition: color 120ms var(--ease); }',
+        '.b { transition-duration: .3s; transition-timing-function: var(--ease); }',
+        '.c { animation: spin 1.4s var(--ease) infinite; }',
+        '.d { transition: color var(--dur-fast) var(--ease); transition-delay: 0ms; }',
+      ].join('\n')
+    )
+    expect(lines(css, 'raw-duration')).toEqual([1, 2, 3])
+    const tsx = scan(
+      'apps/web/src/X.tsx',
+      "const A = { transitionDuration: '150ms' }\nconst B = { transitionDuration: duration.base }"
+    )
+    expect(lines(tsx, 'raw-duration')).toEqual([1])
+  })
+
+  test('an easing named at the call site, or none named, fails', () => {
+    const css = scan(
+      'apps/web/src/styles/x.css',
+      [
+        '.a { transition: transform var(--dur-base) ease-out; }',
+        '.b { transition: color var(--dur-fast); }',
+        '.c { transition-duration: var(--dur-fast); }',
+        '.d { transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }',
+        '.e { transition: none; }',
+        '.f { transition-duration: var(--dur-fast); transition-timing-function: var(--ease); }',
+        '.g { --ease: x; }',
+      ].join('\n')
+    )
+    expect(lines(css, 'raw-easing')).toEqual([1, 2, 3, 4])
+    const tsx = scan(
+      'apps/web/src/X.tsx',
+      [
+        "const A = { transitionTimingFunction: 'ease-in-out' }",
+        "const B = { transition: 'opacity 150ms' }",
+        'const C = { transitionDuration: duration.fast }',
+        'const D = { transitionDuration: duration.fast, transitionTimingFunction: ease }',
+        `const E = { transition: \`opacity ${'$'}{duration.fast} ${'$'}{ease}\` }`,
+        "const F = { transition: 'none' }",
+      ].join('\n')
+    )
+    expect(lines(tsx, 'raw-easing')).toEqual([1, 2, 3])
+  })
+
+  test('a loop runs only under no-preference, and never from a style object', () => {
+    const css = scan(
+      'apps/web/src/styles/x.css',
+      [
+        '.a { animation: spin var(--dur-loop) var(--ease) infinite; }',
+        '@media (prefers-reduced-motion: no-preference) {',
+        '  .b { animation: spin var(--dur-loop) var(--ease) infinite; }',
+        '}',
+        '.c { animation: once var(--dur-base) var(--ease); }',
+      ].join('\n')
+    )
+    expect(lines(css, 'motion-loop')).toEqual([1])
+    const tsx = scan('apps/web/src/X.tsx', "const A = { animation: 'spin 2s infinite' }")
+    expect(lines(tsx, 'motion-loop')).toEqual([1])
+  })
+
+  test('theme.css, the definitions and the reduced-motion backstop, is exempt', () => {
+    const css = scan(
+      'apps/web/src/styles/theme.css',
+      '* { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }'
+    )
+    expect(css['raw-duration']).toEqual([])
+    expect(css['raw-easing']).toEqual([])
+  })
+})
+
 describe('chromeTokens preflight and scan', () => {
   const { errors } = trapExit()
   const temps: string[] = []

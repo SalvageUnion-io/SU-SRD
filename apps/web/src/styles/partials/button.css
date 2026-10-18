@@ -35,9 +35,9 @@
   letter-spacing: var(--tracking-caps-snug);
   text-transform: uppercase;
   transition:
-    color 120ms,
-    background-color 120ms,
-    border-color 120ms;
+    color var(--dur-fast) var(--ease),
+    background-color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
   white-space: nowrap;
 }
 

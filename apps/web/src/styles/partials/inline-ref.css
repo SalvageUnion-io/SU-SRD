@@ -16,7 +16,7 @@
   border-bottom: var(--bw-chrome) solid currentColor;
   color: inherit;
   text-decoration: none;
-  transition: color 120ms;
+  transition: color var(--dur-fast) var(--ease);
 }
 
 .su-inline-ref--link {

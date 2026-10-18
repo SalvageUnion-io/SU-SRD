@@ -22,9 +22,9 @@
   text-decoration-line: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
-  transition-duration: 150ms;
+  transition-duration: var(--dur-fast);
   transition-property: opacity;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-timing-function: var(--ease);
 }
 @media (hover: hover) {
   .su-srd-entity-external-link:hover {

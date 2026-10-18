@@ -82,7 +82,10 @@ export function parseCss(text: string): { decls: CssDecl[]; blocks: CssBlock[] }
     const decl: CssDecl = {
       line: bufLine,
       prop: t.slice(0, colon).trim().toLowerCase(),
-      value: t.slice(colon + 1).trim(),
+      value: t
+        .slice(colon + 1)
+        .trim()
+        .replace(/\s+/g, ' '),
       context: context(),
       siblings: top.decls,
     }
@@ -342,6 +345,82 @@ const dashedScript = (text: string, rel: string) =>
         /\b(?:border|outline|textDecoration|columnRule)\w*\s*:[^,}\n]*\bdashed\b|\bsurface\s*[=:]\s*\{?\s*['"]dashed['"]/g
       )
 
+// ── Motion (K3) ───────────────────────────────────────────────────────────────
+
+/** A literal, non-zero duration: `120ms`, `.3s`, `1.4s` (not `0s`, not `--dur-fast`). */
+const RAW_DURATION = /(?<![\w.-])(?!0+(?:\.0+)?m?s\b)\d*\.?\d+m?s\b/
+/** An easing named at the call site, not `var(--ease)`. */
+const RAW_EASING =
+  /(?<![\w-])(?:ease(?:-in(?:-out)?|-out)?|linear|step-start|step-end)(?![\w-])|\b(?:cubic-bezier|steps|linear)\(/
+const DURATION_PROP = /^(?:transition|animation)(?:-duration|-delay)?$/
+const SHORTHAND_PROP = /^(?:transition|animation)$/
+const EASING_PROP = /^(?:transition|animation)(?:-timing-function)?$/
+
+const rawDurationCss = (decls: CssDecl[]) =>
+  decls
+    .filter((d) => DURATION_PROP.test(d.prop) && RAW_DURATION.test(d.value))
+    .map((d) => ({ line: d.line, detail: `${d.prop}: ${d.value}` }))
+
+const rawDurationScript = (text: string) =>
+  matchesIn(text, /\b(?:transition|animation)(?:Duration|Delay)?\s*:\s*[^\n]*/g, (m) =>
+    RAW_DURATION.test(m[0])
+  )
+
+/**
+ * An easing written at the call site, or none written at all: a shorthand
+ * that does not name `var(--ease)`, or a duration longhand whose block sets
+ * no timing function, runs on the browser's default `ease`.
+ */
+const rawEasingCss = (decls: CssDecl[]) =>
+  decls
+    .filter((d) => {
+      if (EASING_PROP.test(d.prop) && RAW_EASING.test(d.value)) return true
+      if (SHORTHAND_PROP.test(d.prop))
+        return !/^none$/.test(d.value) && !d.value.includes('var(--ease)')
+      if (/^(?:transition|animation)-duration$/.test(d.prop) && !/^0+m?s$/.test(d.value)) {
+        const kind = d.prop.split('-')[0]
+        return !d.siblings.some((s) => s.prop === `${kind}-timing-function`)
+      }
+      return false
+    })
+    .map((d) => ({ line: d.line, detail: `${d.prop}: ${d.value}` }))
+
+const rawEasingScript = (text: string) => [
+  ...matchesIn(text, /\b(?:transition|animation)(?:TimingFunction)?\s*:\s*[^\n]*/g, (m) => {
+    // Only what the strings say: the `ease` token is an identifier, and an
+    // interpolation (`${ease}`) is the token too.
+    const strings = (m[0].match(/(['"`])(?:(?!\1).)*\1/g) ?? []).map((s) =>
+      s.replace(/\$\{[^}]*\}/g, ' ')
+    )
+    if (strings.some((s) => RAW_EASING.test(s))) return true
+    // A shorthand string must name the easing token.
+    return (
+      /^(?:transition|animation)\s*:/.test(m[0]) &&
+      strings.length > 0 &&
+      !strings.every((s) => /^.none.$/.test(s)) &&
+      !/\$\{(?:\w+\.)?ease\}|var\(--ease\)/.test(m[0])
+    )
+  }),
+  ...matchesIn(text, /\b(?:transition|animation)Duration\s*:/g, (m) => {
+    const object = enclosingObject(text, m.index ?? 0)
+    return !/TimingFunction\s*:/.test(object)
+  }),
+]
+
+/** A loop: an animation that repeats for ever. */
+const LOOP = /\binfinite\b/
+const NO_PREFERENCE = /prefers-reduced-motion\s*:\s*no-preference/
+
+const motionLoopCss = (decls: CssDecl[]) =>
+  decls
+    .filter((d) => /^animation(?:-iteration-count)?$/.test(d.prop) && LOOP.test(d.value))
+    .filter((d) => !d.context.some((header) => NO_PREFERENCE.test(header)))
+    .map((d) => ({ line: d.line, detail: `${d.prop}: ${d.value}` }))
+
+/** A style object cannot sit under a media query, so a loop there always fails. */
+const motionLoopScript = (text: string) =>
+  matchesIn(text, /\banimation(?:IterationCount)?\s*:[^\n]*\binfinite\b/g)
+
 // ── The rules ─────────────────────────────────────────────────────────────────
 
 const CHROME_RULES: ChromeRule[] = [
@@ -361,6 +440,30 @@ const CHROME_RULES: ChromeRule[] = [
     css: dashedCss,
     script: dashedScript,
   },
+  {
+    id: 'raw-duration',
+    mode: 'zero',
+    rule: 'chrome.md K3 — motion is tokens: `--dur-fast` for a state change, `--dur-base` for a move',
+    fix: 'Use `var(--dur-fast)` (colour, opacity, a shadow) or `var(--dur-base)` (transform, a slide); a loading loop runs `var(--dur-loop)`. In a style object, `duration.fast` / `duration.base` from design/tokens.ts.',
+    css: rawDurationCss,
+    script: rawDurationScript,
+  },
+  {
+    id: 'raw-easing',
+    mode: 'zero',
+    rule: 'chrome.md K3 — one easing, `--ease`',
+    fix: 'Name `var(--ease)` in every transition and animation (a shorthand, or `*-timing-function` beside a duration longhand): never a keyword, a `cubic-bezier()`, or the browser default. In a style object, `ease` from design/tokens.ts.',
+    css: rawEasingCss,
+    script: rawEasingScript,
+  },
+  {
+    id: 'motion-loop',
+    mode: 'zero',
+    rule: 'chrome.md K3 — a loop is only a loading mark, and only under `prefers-reduced-motion: no-preference`',
+    fix: 'Put the looping `animation` in a stylesheet rule inside `@media (prefers-reduced-motion: no-preference) { … }`, never a style object; anything else runs once.',
+    css: motionLoopCss,
+    script: motionLoopScript,
+  },
 ]
 
 /**
@@ -368,6 +471,12 @@ const CHROME_RULES: ChromeRule[] = [
  * justification is just a silent hole in the guardrail.
  */
 const EXEMPTIONS: Exemption[] = [
+  {
+    file: 'apps/web/src/styles/theme.css',
+    rules: ['raw-duration', 'raw-easing'],
+    reason:
+      'The token definitions, and the reduced-motion backstop: `0.01ms !important` on every element is the guarantee that a reduce user sees no motion, not a duration anything animates at.',
+  },
   {
     file: 'apps/web/src/components/atoms/Slab.tsx',
     rules: ['dashed'],

@@ -158,9 +158,9 @@ const BAR = {
   position: 'absolute',
   rowGap: tokens.space[4],
   top: 0,
-  transitionDuration: '150ms',
+  transitionDuration: tokens.duration.fast,
   transitionProperty: 'opacity, visibility',
-  transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+  transitionTimingFunction: tokens.ease,
 } satisfies CSSProperties
 
 /** Scrolled past the sentinel: the bar fades in. */
@@ -180,9 +180,9 @@ const STRIP = {
   flexWrap: 'wrap',
   gap: tokens.space[8],
   minWidth: 0,
-  transitionDuration: '150ms',
+  transitionDuration: tokens.duration.base,
   transitionProperty: 'opacity, transform',
-  transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+  transitionTimingFunction: tokens.ease,
 } satisfies CSSProperties
 
 const STRIP_SHOWN = { ...STRIP, opacity: 1, translate: '0 0' } satisfies CSSProperties

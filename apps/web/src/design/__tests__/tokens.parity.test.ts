@@ -4,6 +4,8 @@ import { join } from 'node:path'
 import {
   borderWidth,
   color,
+  duration,
+  ease,
   font,
   fontSize,
   layer,
@@ -48,6 +50,7 @@ const CSS_PATH = join(import.meta.dir, '../../styles/theme.css')
 const GROUPS = {
   bw: borderWidth,
   color,
+  dur: duration,
   font,
   'font-weight': weight,
   radius,
@@ -59,6 +62,9 @@ const GROUPS = {
   tracking,
   z: layer,
 } as const satisfies Record<string, Record<string, string | number>>
+
+/** A token that is one value, not a group: its whole custom-property name. */
+const SINGLES = { ease } as const satisfies Record<string, string>
 
 /** Longest first, so `--font-weight-bold` is never read as font `weight-bold`. */
 const PREFIXES = (Object.keys(GROUPS) as (keyof typeof GROUPS)[]).sort(
@@ -89,7 +95,7 @@ function readDeclarations(): Map<string, string> {
   for (const m of css.matchAll(/--([a-z0-9-]+)\s*:\s*([^;]+);/g)) {
     const [, name, value] = m
     if (!name || !value || name.includes('--')) continue
-    if (!PREFIXES.some((p) => name.startsWith(`${p}-`))) continue
+    if (!PREFIXES.some((p) => name.startsWith(`${p}-`)) && !(name in SINGLES)) continue
     // A token's value is its base declaration; a later one is a media override
     // (`--size-compact` under a coarse pointer).
     if (out.has(name)) continue
@@ -117,6 +123,7 @@ for (const prefix of PREFIXES) {
     expected.set(`${prefix}-${kebab(key)}`, String(value))
   }
 }
+for (const [name, value] of Object.entries(SINGLES)) expected.set(name, value)
 
 describe('design token parity', () => {
   test('the guard actually parsed the stylesheet', () => {

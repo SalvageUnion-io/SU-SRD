@@ -48,7 +48,7 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .su-game-data-fallback__bar {
-    animation: game-data-loader-slide 1.4s ease-in-out infinite;
+    animation: game-data-loader-slide var(--dur-loop) var(--ease) infinite;
   }
 }
 

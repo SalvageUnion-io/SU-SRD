@@ -138,8 +138,8 @@ export type VitalGaugeProps = {
 const PIP_EDITABLE = {
   cursor: 'pointer',
   transitionProperty: 'transform, translate, scale, rotate',
-  transitionDuration: '120ms',
-  transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+  transitionDuration: 'var(--dur-base)',
+  transitionTimingFunction: 'var(--ease)',
 } satisfies CSSProperties
 
 // — full —
