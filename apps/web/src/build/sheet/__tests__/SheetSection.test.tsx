@@ -29,13 +29,13 @@ describe('HButton', () => {
 
 describe('section header (solid Slab)', () => {
   test('renders the stamp label and the trailing actions', () => {
-    render(<Slab variant="solid" label="Identity" actions={<button type="button">Edit</button>} />)
+    render(<Slab label="Identity" actions={<button type="button">Edit</button>} />)
     expect(screen.getByText('Identity')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Edit' })).toBeTruthy()
   })
 
   test('renders without an actions slot when none is given', () => {
-    render(<Slab variant="solid" label="Bio" />)
+    render(<Slab label="Bio" />)
     expect(screen.getByText('Bio')).toBeTruthy()
     expect(screen.queryByRole('button')).toBeNull()
   })

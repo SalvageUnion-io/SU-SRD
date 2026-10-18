@@ -99,7 +99,7 @@ export function FrontDoor() {
         <StartHere id="front-door-start" />
 
         <Stack as="section" gap={16} aria-labelledby="front-door-starter">
-          <Slab label="Starter Set" id="front-door-starter" as="h2" variant="solid" />
+          <Slab label="Starter Set" id="front-door-starter" as="h2" />
           <p style={CREDIT}>
             The pre-generated crew of <em>{STARTER_SET_ADVENTURE}</em>, by {STARTER_SET_PUBLISHER}.
             Open any sheet to read it; sign in to copy one.

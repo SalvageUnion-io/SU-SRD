@@ -80,7 +80,6 @@ export function PilotSheetAbilities({
             {classTrees.map((group) => (
               <Stack as="section" gap={16} key={group.tree} aria-label={`${group.tree} Tree`}>
                 <Slab
-                  variant="solid"
                   label={group.tree}
                   count={group.track === 'legendary' ? 'Choose 1' : 'Tree'}
                 />

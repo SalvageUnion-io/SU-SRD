@@ -152,7 +152,7 @@ export function NpcSheet({
 
       <Grid min="26rem" gap={32} style={COLUMNS}>
         <section style={COLUMN} aria-labelledby="npc-stat-block">
-          <Slab variant="solid" id="npc-stat-block" label="Stat block" />
+          <Slab id="npc-stat-block" label="Stat block" />
           <NpcCard npc={view} madeBy={madeBy} />
           <Text variant="hint">
             Actions and traits come from the reference, so their rules text is the book&rsquo;s.
@@ -160,7 +160,7 @@ export function NpcSheet({
         </section>
 
         <section style={COLUMN} aria-labelledby="npc-identity">
-          <Slab variant="solid" id="npc-identity" label="Identity" />
+          <Slab id="npc-identity" label="Identity" />
           {/* A portrait's width in the column; empty (and gone) with no picture. */}
           <div className="su-photo-beside-slot">
             <EntityPhoto

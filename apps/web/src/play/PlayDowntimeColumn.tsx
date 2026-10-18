@@ -30,7 +30,7 @@ export function PlayDowntimeColumn({ play, actions }: { play: Play; actions: Pla
 
   return (
     <>
-      <Slab variant="solid" as="h2" label={`Downtime · Step ${idx + 1} of ${count}`} />
+      <Slab as="h2" label={`Downtime · Step ${idx + 1} of ${count}`} />
       <PlayDowntimeTrack steps={steps} current={idx} onStep={setStep} canWrite={play.canWrite} />
       {step && (
         <PlayDowntimeStep

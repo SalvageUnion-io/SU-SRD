@@ -1,7 +1,7 @@
 /**
  * HubSection — one section of a Game's own page (board M2): the
- * solid section stamp of the refresh, a dashed rule to a count or a hint at
- * the far end ("CREW & SEATS ┄┄┄ SEATS | 5/6"), then its content.
+ * Slab, its leader running to a count or a hint at the far end
+ * ("CREW & SEATS ┄┄┄ SEATS | 5/6"), then its content.
  *
  * The page sets them in two columns (`HUB_COLUMNS`) that become one on a
  * phone without a media query: `min(100%, 26rem)` is what keeps a 390px
@@ -33,7 +33,7 @@ type HubSectionProps = {
 export function HubSection({ id, title, aside, children }: HubSectionProps) {
   return (
     <section aria-labelledby={id} style={SECTION}>
-      <Slab variant="solid" as="h2" id={id} label={title} count={aside} />
+      <Slab as="h2" id={id} label={title} count={aside} />
       {children}
     </section>
   )

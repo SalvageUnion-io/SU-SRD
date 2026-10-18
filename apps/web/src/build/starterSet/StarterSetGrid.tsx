@@ -35,7 +35,7 @@ export function StarterSetGrid() {
         >
           {/* Each kind's section stamp is a Slab, as on `/starter` (ruleset
               §3.2: slabs section). */}
-          <Slab as="h3" variant="solid" label={shelf.title} />
+          <Slab as="h3" label={shelf.title} />
           <ul style={CARDS}>
             {shelf.builds.map((build) => (
               <li key={build.id}>

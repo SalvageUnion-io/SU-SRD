@@ -48,7 +48,7 @@ const droneStyle = {
 
 /**
  * A pattern's LOADOUT — its Systems and Modules groups SIDE BY SIDE, each a
- * dashed Slab over one full-width Token a line (see `LoadoutToken`). Its
+ * Slab over one full-width Token a line (see `LoadoutToken`). Its
  * DRONES, when it fields any, run the full width under both (`PatternDrones`).
  *
  * One block, not one per group, because the two columns only line up if a
@@ -94,7 +94,7 @@ export function PatternLoadout({
           className={cn(index > 0 && 'su-pattern-loadout__column--ruled')}
           style={columnStyle}
         >
-          <Slab variant="dashed" label={group.label} as={sectionAs} />
+          <Slab label={group.label} as={sectionAs} />
           {/* A real LIST: the loadout is a countable set of installed parts, so
               a screen reader should announce "list, 6 items" rather than a run
               of anonymous links. Each Token runs the column's width, its TL
@@ -119,7 +119,7 @@ export function PatternLoadout({
 }
 
 /**
- * A pattern's DRONES, spanning both loadout columns: one dashed Slab over
+ * A pattern's DRONES, spanning both loadout columns: one Slab over
  * them, then each drone's Token under the name the pattern gives it ("Shield
  * Drone"), and right beneath it that drone's own Systems then Modules, two Tokens a line
  * with no Slab of their own (each Token wears its kind). They sit after the
@@ -138,7 +138,7 @@ function PatternDrones({
 }) {
   return (
     <div className="su-pattern-loadout__drones" style={columnStyle}>
-      <Slab variant="dashed" label="Drones" as={sectionAs} />
+      <Slab label="Drones" as={sectionAs} />
       <ul
         aria-label={`${owner ? `${owner} ` : ''}Drones installed`}
         className="su-entity-token-list"
@@ -248,7 +248,7 @@ export function PatternLoadoutRows({
     <div className="su-entity-page__loadout" style={LOADOUT_PAGE}>
       {groups.map((group) => (
         <Stack as="section" gap={16} key={group.label}>
-          <Slab variant="solid" as={sectionAs} label={group.label} />
+          <Slab as={sectionAs} label={group.label} />
           {group.entities.map((item, index) => (
             <NestedCard
               key={cardKey(item, index)}

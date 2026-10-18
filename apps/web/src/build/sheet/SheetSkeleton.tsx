@@ -102,7 +102,7 @@ const HERO_STAT = {
 function SkeletonSlab() {
   return (
     <div className="su-sheet-skeleton-slab">
-      {/* Slab header: label + dashed leader (src/components `Slab` shape) */}
+      {/* Slab header: stamp + leader rule (src/components `Slab` shape) */}
       <div style={SLAB_HEAD}>
         <Ghost style={{ ...GHOST_LABEL, width: '112px' }} />
         <Ghost style={SLAB_LEADER} />

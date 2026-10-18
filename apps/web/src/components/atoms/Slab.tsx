@@ -1,6 +1,6 @@
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { isValidElement } from 'react'
-import { borderWidth, color, font, fontSize, space, tracking, weight } from '../../design/tokens'
+import { borderWidth, color, font, fontSize, space, weight } from '../../design/tokens'
 import { POSTER_STAMP } from './posterStamp'
 import type { StatBorderState } from './Stat'
 import { Stat } from './Stat'
@@ -80,19 +80,9 @@ type SlabProps = {
   /** For a region that names itself by its slab (`aria-labelledby`). */
   id?: string
   /**
-   * 'dashed' (default, unchanged) — tone-deep colored text label + dashed
-   * leader rule, the original live-play control-panel shape. 'solid' — the
-   * section stamp of the brand refresh (boards 06–10): a solid ink stamp,
-   * paper text, then a dashed ink hairline running to its note at the far
-   * end ("CRAWLER TYPES ┄┄┄ Choose 1"). It replaced the centred rust
-   * `SectionHeader` and the roster's column headings.
-   */
-  variant?: 'dashed' | 'solid'
-  /**
-   * Where a SOLID slab's count sits: at the rule's far end (`end`, the
-   * default) or beside its stamp (`label`) — the app's Shelves (board S1), whose
-   * rule runs on to the shelf's "+ New…" button ("PILOTS 3 ┄┄┄ + NEW PILOT").
-   * The dashed slab always counts beside its label.
+   * Where the count sits: at the rule's far end (`end`, the default) or
+   * beside its stamp (`label`) — the app's Shelves (board S1), whose rule runs
+   * on to the shelf's "+ New…" button ("PILOTS 3 ┄┄┄ + NEW PILOT").
    */
   countAt?: 'end' | 'label'
 }
@@ -142,7 +132,7 @@ const COUNT_STAT = {
 /** Composed with `POSTER_STAMP`, which supplies face, caps, weight and tracking. */
 /* A label longer than its row wraps between its words rather than pushing the
    rule off the page; a word is never cut (`min-content`). */
-const SOLID_LABEL = {
+const LABEL = {
   flexShrink: 1,
   minWidth: 'min-content',
   fontSize: fontSize.sm,
@@ -152,33 +142,13 @@ const SOLID_LABEL = {
   paddingTop: space[2],
 } satisfies CSSProperties
 
-const DASHED_LABEL = {
-  color: 'var(--tone-deep, var(--color-ink))',
-  flexShrink: 1,
-  minWidth: 'min-content',
-  fontFamily: font.cond,
-  fontSize: fontSize.sm,
-  fontWeight: weight.bold,
-  letterSpacing: tracking.capsWide,
-  lineHeight: 'calc(1.25 / 0.875)',
-  textTransform: 'uppercase',
-} satisfies CSSProperties
-
-const SOLID_RULE = {
+const RULE = {
   borderTopColor: color.ink50,
   borderTopStyle: 'dashed',
   borderTopWidth: borderWidth.hairline,
   flex: '1 1 0%',
   height: 0,
   minWidth: space[12],
-} satisfies CSSProperties
-
-const DASHED_RULE = {
-  background:
-    'repeating-linear-gradient(90deg, var(--tone-deep, var(--color-ink)) 0 6px, transparent 6px 11px)',
-  flex: '1 1 0%',
-  height: space[2],
-  opacity: 0.4,
 } satisfies CSSProperties
 
 const ACTIONS = {
@@ -190,9 +160,11 @@ const ACTIONS = {
 
 /**
  * The section header (ruleset §5 atom 7, "section stamp + leader rule";
- * design-spec §2.10 `.slab`): an uppercase cond label with a leader rule.
- * Default ('dashed') keeps the original tone-deep text + dashed rule; 'solid'
- * is the ink section stamp with its count at the end of the rule.
+ * design-spec §2.10 `.slab`): the solid ink section stamp, paper text, then an
+ * ink hairline leader running to its count at the far end ("CRAWLER TYPES ┄┄┄
+ * Choose 1"). Every section head is this one Slab: it takes no variant, since
+ * a dashed head would read as user-made (ruleset §3.9, hard rule R1). It
+ * replaced the centred rust `SectionHeader` and the roster's column headings.
  */
 export function Slab({
   label,
@@ -203,11 +175,9 @@ export function Slab({
   className,
   style,
   id,
-  variant = 'dashed',
   countAt = 'end',
 }: SlabProps) {
-  const isSolid = variant === 'solid'
-  const countByLabel = !isSolid || countAt === 'label'
+  const countByLabel = countAt === 'label'
   const Label = as ?? 'span'
   const countInkStyle = countInk === 'inherit' ? COUNT_INHERIT : COUNT
   const chips = slabCounts(count)
@@ -234,23 +204,13 @@ export function Slab({
   )
   return (
     <div className={className} style={style ? { ...ROW, ...style } : ROW}>
-      {isSolid ? (
-        <Label id={id} className={POSTER_STAMP} style={SOLID_LABEL}>
-          {label}
-        </Label>
-      ) : (
-        <Label id={id} style={DASHED_LABEL}>
-          {label}
-        </Label>
-      )}
-      {/* The dashed slab counts beside its label; the solid one at the rule's
-          end unless `countAt="label"` brings it beside the stamp. */}
+      <Label id={id} className={POSTER_STAMP} style={LABEL}>
+        {label}
+      </Label>
+      {/* The count sits at the rule's end unless `countAt="label"` brings it
+          beside the stamp. */}
       {countByLabel && countNode}
-      {isSolid ? (
-        <span aria-hidden="true" style={SOLID_RULE} />
-      ) : (
-        <span aria-hidden="true" style={DASHED_RULE} />
-      )}
+      <span aria-hidden="true" style={RULE} />
       {!countByLabel && countNode}
       {/* A div, not a span: actions carry block-level content (the Ko-fi widget
           renders a div), and a div inside a span is invalid HTML. Both are flex

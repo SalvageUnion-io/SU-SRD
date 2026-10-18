@@ -49,7 +49,7 @@ export function PlayCrewSection({ target, side }: SectionProps) {
   if (target.gameId === null) return null
   return (
     <section aria-labelledby="play-crew" style={SECTION}>
-      <Slab variant="solid" as="h2" id="play-crew" label="Crew" />
+      <Slab as="h2" id="play-crew" label="Crew" />
       <PlayCrew
         gameId={target.gameId}
         selfPilotId={target.pilotId}
@@ -64,7 +64,7 @@ export function PlayCrewSection({ target, side }: SectionProps) {
 export function PlayTablesSection({ target, play, side }: SectionProps) {
   return (
     <section aria-labelledby="play-tables" style={SECTION}>
-      <Slab variant="solid" as="h2" id="play-tables" label="Tables" />
+      <Slab as="h2" id="play-tables" label="Tables" />
       <PlayTables
         downtime={play.situation === 'downtime'}
         solo={target.gameId === null}
@@ -80,7 +80,7 @@ export function PlayTablesSection({ target, play, side }: SectionProps) {
 export function PlayFeedSection({ play, side }: SectionProps) {
   return (
     <section aria-labelledby="play-feed" style={SECTION}>
-      <Slab variant="solid" as="h2" id="play-feed" label="Feed" />
+      <Slab as="h2" id="play-feed" label="Feed" />
       <PlayFeed
         entries={side.entries}
         posts={side.dispatch.posts}

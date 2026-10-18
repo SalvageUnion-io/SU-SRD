@@ -48,7 +48,7 @@ export function DamagedEffectCallout({
   }
   return (
     <div className="su-ec-block">
-      <Slab variant="solid" label="When Damaged" style={SLAB} />
+      <Slab label="When Damaged" style={SLAB} />
       <p style={EFFECT_CARD}>{effect}</p>
     </div>
   )

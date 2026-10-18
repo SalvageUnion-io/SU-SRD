@@ -412,7 +412,7 @@ function SchemaViewer({
           <div className="su-listing__groups">
             {groups.map((group, groupIndex) => (
               <section key={group.key} className="su-listing__group" aria-label={group.label}>
-                {group.label && <Slab variant="solid" label={group.label} />}
+                {group.label && <Slab label={group.label} />}
                 {view === 'catalog' ? (
                   <ul className="su-listing__tiles">
                     {group.items.map((item: RefEntity, index) => (
@@ -502,7 +502,7 @@ function ListingSkeleton({
       <div className="su-listing__groups">
         {groups.map((group) => (
           <section key={group.key} className="su-listing__group">
-            {group.label && <Slab variant="solid" label={group.label} />}
+            {group.label && <Slab label={group.label} />}
             {catalog ? (
               <ul className="su-listing__tiles">
                 {Array.from({ length: group.count }, (_, i) => (

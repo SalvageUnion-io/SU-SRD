@@ -192,7 +192,7 @@ export function ClassPathPicker({
       <Stack gap={12}>
         {consequence === undefined ? null : (
           <>
-            <Slab label={consequence.title} variant="solid" />
+            <Slab label={consequence.title} />
             <Ledger consequence={consequence} allClasses={allClasses} />
 
             {consequence.needsOrigin && (

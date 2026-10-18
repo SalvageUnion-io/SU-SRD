@@ -44,7 +44,7 @@ export function MarkdownSection({ markdown }: MarkdownSectionProps) {
     <section style={SECTION}>
       {heading && (
         // The heading sits on the section's own gap, not the slab's resting margin.
-        <Slab as="h2" variant="solid" label={heading} style={{ marginBottom: 0 }} />
+        <Slab as="h2" label={heading} style={{ marginBottom: 0 }} />
       )}
       {blocks.map((block) =>
         block.kind === 'list' ? (

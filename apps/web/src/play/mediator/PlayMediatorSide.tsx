@@ -58,7 +58,7 @@ type SectionProps = { mediator: PlayMediator; side: PlayMediatorSideState }
 export function PlayMediatorTablesSection({ mediator, side }: SectionProps) {
   return (
     <section aria-labelledby="mediate-tables" style={SECTION}>
-      <Slab variant="solid" as="h2" id="mediate-tables" label="Tables" />
+      <Slab as="h2" id="mediate-tables" label="Tables" />
       <PlayTables
         downtime={mediator.downtime.downtime.running}
         solo={false}
@@ -74,7 +74,7 @@ export function PlayMediatorTablesSection({ mediator, side }: SectionProps) {
 export function PlayMediatorFeedSection({ mediator, side }: SectionProps) {
   return (
     <section aria-labelledby="mediate-feed" style={SECTION}>
-      <Slab variant="solid" as="h2" id="mediate-feed" label="Feed" />
+      <Slab as="h2" id="mediate-feed" label="Feed" />
       <PlayFeed
         entries={side.entries}
         posts={side.dispatch.posts}

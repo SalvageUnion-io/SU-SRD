@@ -51,7 +51,6 @@ export function CraftItemsStep({
   return (
     <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
       <Slab
-        variant="solid"
         label={`Tech 1 ${noun}s`}
         count="Duplicates allowed"
         countInk="inherit"

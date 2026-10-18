@@ -73,7 +73,7 @@ type SectionProps = { id: string; title: string; children: ReactNode }
 function Section({ id, title, children }: SectionProps) {
   return (
     <section aria-labelledby={id} style={SECTION}>
-      <Slab variant="solid" as="h2" id={id} label={title} style={SLAB} />
+      <Slab as="h2" id={id} label={title} style={SLAB} />
       {children}
     </section>
   )

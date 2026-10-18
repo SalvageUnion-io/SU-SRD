@@ -141,7 +141,7 @@ export function CrewBoard({ crawlerId, slot: slotArg, madeBy, onSelect }: CrewBo
     return (
       <div style={{ ...COLUMNS, paddingTop: tokens.space[24] }}>
         <section style={COLUMN} aria-labelledby="crew-pick">
-          <Slab variant="solid" as="h2" id="crew-pick" label="Which crawler" />
+          <Slab as="h2" id="crew-pick" label="Which crawler" />
           {crawlerId !== undefined ? (
             <EmptyState
               variant="quiet"
@@ -270,7 +270,7 @@ function CrewSlots({
   return (
     <div style={{ ...COLUMNS, paddingTop: tokens.space[24] }}>
       <section style={COLUMN} aria-labelledby="crew-slots">
-        <Slab variant="solid" as="h2" id="crew-slots" label="Crew slots" />
+        <Slab as="h2" id="crew-slots" label="Crew slots" />
         <p style={HINT}>
           {typeName
             ? 'One slot for the crawler type’s NPC, then one per bay. '
@@ -452,7 +452,7 @@ function SlotPanel({
   const titleId = `crew-slot-${nameToSlug(slot.key)}`
 
   const heading = titled ? (
-    <Slab variant="solid" as="h2" id={titleId} label={slotTitle(slot)} />
+    <Slab as="h2" id={titleId} label={slotTitle(slot)} />
   ) : null
 
   if (assignment) {

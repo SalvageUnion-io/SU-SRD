@@ -90,7 +90,7 @@ export function CrawlerIdentityStep({
       />
 
       <section aria-labelledby={scrapId}>
-        <Slab variant="solid" label="Scrap Pool" id={scrapId} style={SCRAP_SLAB} />
+        <Slab label="Scrap Pool" id={scrapId} style={SCRAP_SLAB} />
         <p style={SCRAP_HINT}>
           The group&rsquo;s banked Scrap, bucketed by tech level — including whatever your Pilots
           didn&rsquo;t spend crafting their Mechs. Optional; leave at 0 for a fresh start.

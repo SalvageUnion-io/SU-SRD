@@ -51,7 +51,6 @@ export function Colophon({
         <section style={SUPPORT}>
           <Slab
             as="h2"
-            variant="solid"
             label="Support the Project"
             // The section's gap spaces it, so it drops its own bottom margin.
             style={SUPPORT_SLAB}

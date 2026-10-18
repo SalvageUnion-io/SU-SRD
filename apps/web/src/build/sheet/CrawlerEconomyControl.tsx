@@ -554,7 +554,6 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
           <>
             <div>
               <Slab
-                variant="solid"
                 label="Trade Scrap"
                 count="fixed equal-value rates · no bartering"
               />
@@ -636,7 +635,6 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
 
             <div>
               <Slab
-                variant="solid"
                 label="Source Wares"
                 count={`once per Downtime · wares are Tech ${tradingSourceTl(tl)}`}
               />

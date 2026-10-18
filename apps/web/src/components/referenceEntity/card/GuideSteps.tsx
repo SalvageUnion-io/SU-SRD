@@ -223,7 +223,6 @@ export function GuideSteps({
     return (
       <section key={group.key} className="su-guide__section">
         <Slab
-          variant="solid"
           label={group.section}
           as={sectionAs}
           id={anchors?.get(sectionKey(group))}
@@ -243,7 +242,7 @@ export function GuideSteps({
           slab; a wide screen sets them in the rail. Only one of the two is
           ever displayed. */}
       <nav className="su-guide__toc-block" aria-label="On this page">
-        <Slab variant="solid" label="On this page" />
+        <Slab label="On this page" />
         {contents}
       </nav>
       <div className="su-guide__flow">{body}</div>
@@ -341,7 +340,6 @@ function StepHead({
 }) {
   return (
     <Slab
-      variant="solid"
       as={as ?? 'div'}
       id={id}
       className="su-guide__head"

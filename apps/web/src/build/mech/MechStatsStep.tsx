@@ -86,7 +86,7 @@ export function MechStatsStep({ chassisName }: MechStatsStepProps) {
 
       {chassisAbilities.length > 0 && (
         <>
-          <Slab variant="solid" label="Chassis Ability" count={chassis.name} countInk="inherit" />
+          <Slab label="Chassis Ability" count={chassis.name} countInk="inherit" />
           <div style={ABILITIES}>
             <ActionTokens
               actions={chassisAbilities}

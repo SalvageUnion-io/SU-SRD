@@ -224,7 +224,7 @@ function page(): PageResult {
       <DocPage title="JSON API Reference" measure="64rem" gap={space[32]}>
         {/* Overview */}
         <section style={PROSE_12}>
-          <Slab as="h2" variant="solid" label="Overview" />
+          <Slab as="h2" label="Overview" />
           <p>
             All game data on salvageunion.io is available as machine-readable JSON. The API is
             static — every endpoint is a plain file served directly from the site. No authentication
@@ -250,7 +250,7 @@ function page(): PageResult {
 
         {/* Endpoints */}
         <Stack as="section" gap={24}>
-          <Slab as="h2" variant="solid" label="Endpoints" />
+          <Slab as="h2" label="Endpoints" />
 
           {/* Schema data array */}
           <Panel soft>
@@ -340,14 +340,14 @@ function page(): PageResult {
 
         {/* Usage example */}
         <Stack as="section" gap={12}>
-          <Slab as="h2" variant="solid" label="Usage Example" />
+          <Slab as="h2" label="Usage Example" />
           <p style={PROSE}>Fetch all chassis data in browser JavaScript:</p>
           <CodeSample roomy>{samples.fetch}</CodeSample>
         </Stack>
 
         {/* Available schemas */}
         <Stack as="section" gap={16}>
-          <Slab as="h2" variant="solid" label="Available Schemas" />
+          <Slab as="h2" label="Available Schemas" />
           <p style={PROSE}>
             The following schema IDs are available. Use them in the endpoint patterns above.
           </p>
@@ -392,7 +392,7 @@ function page(): PageResult {
 
         {/* CORS & headers */}
         <Stack as="section" gap={12}>
-          <Slab as="h2" variant="solid" label="CORS Policy" />
+          <Slab as="h2" label="CORS Policy" />
           <p style={PROSE}>
             All <code style={CODE}>/schema/</code> endpoints include the following response headers:
           </p>
@@ -402,7 +402,7 @@ function page(): PageResult {
 
         {/* Licensing note */}
         <section style={PROSE_12}>
-          <Slab as="h2" variant="solid" label="Licensing" />
+          <Slab as="h2" label="Licensing" />
           <p>
             Data returned by this API is published under the{' '}
             <InlineRef

@@ -278,7 +278,7 @@ export function StorageManifest({
         </InfoCutout>
       ) : (
         <section aria-labelledby={holdId} style={HOLD_OPEN}>
-          <Slab variant="solid" label="Crawler Hold" id={holdId} style={HOLD_SLAB} />
+          <Slab label="Crawler Hold" id={holdId} style={HOLD_SLAB} />
           {holdBody}
         </section>
       )}

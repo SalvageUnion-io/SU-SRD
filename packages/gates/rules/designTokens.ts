@@ -287,12 +287,6 @@ const EXEMPTIONS: Exemption[] = [
       "Not a web surface. The bot's embed accent is rust in lockstep with theme.css (`themeLockstep.test.ts`), and Discord renders it as a container edge, not a button or a link; the matches here are the doc comments that cite `--color-rust` as that lockstep's source. Discord's own palette rules are the bot's (ruleset §3.4), not this allowlist's.",
   },
   {
-    file: 'apps/web/src/components/atoms/Slab.tsx',
-    rules: ['gradient'],
-    reason:
-      'Named exemption: the Slab dashed leader (a repeating-linear-gradient) is a deliberate control-panel shape built on ink tokens, kept on purpose.',
-  },
-  {
     file: 'apps/web/src/components/atoms/userMadeHatch.ts',
     rules: ['gradient'],
     reason:

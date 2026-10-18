@@ -100,7 +100,7 @@ export function PlayMediatorDowntime({
 
   return (
     <>
-      <Slab variant="solid" as="h2" label={`Downtime · Step ${idx + 1} of ${count}`} />
+      <Slab as="h2" label={`Downtime · Step ${idx + 1} of ${count}`} />
       <PlayDowntimeTrack
         steps={steps}
         current={idx}

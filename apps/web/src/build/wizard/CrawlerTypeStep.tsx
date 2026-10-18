@@ -42,7 +42,7 @@ export function CrawlerTypeSelectStep({
 
   return (
     <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
-      <Slab variant="solid" label="Crawler Types" count="Choose 1" countInk="inherit" />
+      <Slab label="Crawler Types" count="Choose 1" countInk="inherit" />
       <MasonryColumns maxColumns={2} radio ariaLabel="Crawler type">
         {types.map((type) => {
           const slots = crawlerWeaponSlots(type.mutations)
@@ -69,7 +69,6 @@ export function CrawlerTypeSelectStep({
       {selected ? (
         <>
           <Slab
-            variant="solid"
             label="Your Crawler Type"
             count={selected.name}
             countInk="inherit"

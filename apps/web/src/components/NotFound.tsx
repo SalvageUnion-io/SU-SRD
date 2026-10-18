@@ -53,13 +53,7 @@ export function NotFound({ search, didYouMean, back }: NotFoundProps) {
         {back}
         {didYouMean}
         <nav className="su-not-found__chapters" aria-labelledby="not-found-chapters">
-          <Slab
-            variant="solid"
-            as="h2"
-            id="not-found-chapters"
-            label="Or open a chapter"
-            style={SLAB}
-          />
+          <Slab as="h2" id="not-found-chapters" label="Or open a chapter" style={SLAB} />
           <ul className="su-not-found__chapter-list">
             {CHAPTER_REFS.map((chapter) => (
               <li key={chapter.id}>

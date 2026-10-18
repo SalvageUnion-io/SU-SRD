@@ -31,7 +31,7 @@ The loop: define it here, land its gate with a baseline, burn the baseline to ze
 ## Primitives
 
 - **R1 One section head, the solid Slab** (§3.9, §5.7) — a dashed head reads as user-made.
-  Gate: planned, `Slab` takes no `variant` (the type system).
+  Gate: held, `Slab` takes no `variant` (the type system); `chrome.test.tsx` pins the solid stamp.
 - **R7 Play draws with the shared primitives** (§0, §6.3, E15) — heads, chips, stats, gauges and stamps as on the sheet; entity markup only in `entity/`.
   Gate: planned, a lint banning `su-entity-(row|token)__` and `entity/parts` imports outside `entity/`. Play: `PlayVital` over `VitalGauge` is the model; its resolve readout and step cells are hand-built.
 - **R8 One roll instrument** (§2.4, §3.4, E14) — `RollTableInstrument`, open on a Page, panel or resolve; its stamp the one roll control, a result its marked row, the same mark for every outcome.

@@ -319,7 +319,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
 
           {/* What is this? */}
           <section style={PROSE}>
-            <Slab as="h2" variant="solid" label="What is this?" />
+            <Slab as="h2" label="What is this?" />
             <p style={PARAGRAPH}>
               This is an unofficial, community-built System Reference Document (SRD) for{' '}
               <InlineRef

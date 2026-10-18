@@ -98,7 +98,6 @@ export function DidYouMeanIsland({ pathname }: DidYouMeanIslandProps = {}) {
     <IslandErrorBoundary>
       <section className="su-not-found__guesses" aria-labelledby="did-you-mean">
         <Slab
-          variant="solid"
           as="h2"
           id="did-you-mean"
           style={SLAB}

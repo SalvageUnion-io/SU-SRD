@@ -313,7 +313,7 @@ export function CrawlerSheet({
           a crawler stow arbitrary scrap by hand (Free Edit). The
           physical-scrap-cargo path lives in the Hold add-form's Scrap kind. */}
       <div>
-        <Slab variant="solid" label="Scrap Pool" style={POOL_SLAB} />
+        <Slab label="Scrap Pool" style={POOL_SLAB} />
         <div style={POOL_ROW}>
           {SCRAP_TLS.map((t) => (
             <Stat

@@ -221,7 +221,7 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
       </div>
       <div style={COLUMNS}>
         <section style={COLUMN} aria-labelledby="npc-step-title">
-          <Slab variant="solid" as="h2" id="npc-step-title" label={NPC_STEP_LABELS[step]} />
+          <Slab as="h2" id="npc-step-title" label={NPC_STEP_LABELS[step]} />
           {step !== 'template' && form.templateChosen && (
             <div style={ROW}>
               <span style={CAPS}>Template</span>

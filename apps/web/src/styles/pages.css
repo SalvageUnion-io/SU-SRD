@@ -869,7 +869,7 @@ a.su-home__discord:hover {
 
 /*
  * A class page's ability trees (`components/ClassAbilityTree.tsx`): the
- * training brief, then sections under dashed slabs — a Core class's Core trees
+ * training brief, then sections under Slabs — a Core class's Core trees
  * (stacked, beside its own path from 64rem) and its Hybrid Classes; a Hybrid Class's
  * own tree + Legendary tree (two across) and the Core trees it branches into.
  *

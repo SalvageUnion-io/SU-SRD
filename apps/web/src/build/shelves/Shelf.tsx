@@ -53,7 +53,6 @@ export function Shelf({ title, id, aside, action, note, empty, children, isEmpty
   return (
     <section aria-labelledby={id} style={SECTION}>
       <Slab
-        variant="solid"
         as="h2"
         id={id}
         label={title}

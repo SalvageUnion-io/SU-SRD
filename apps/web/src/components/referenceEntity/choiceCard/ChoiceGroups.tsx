@@ -196,7 +196,6 @@ function ChoiceOption({
     return (
       <div>
         <Slab
-          variant="solid"
           label={label}
           style={OPTION_SLAB}
           actions={chosen ? <SelectedSeal word="Chosen" /> : undefined}
@@ -339,7 +338,7 @@ function StampsealField({
   )
 }
 
-/** One choice group: a dashed Slab (name + optional n/max) over the option cards,
+/** One choice group: a Slab (name + optional n/max) over the option cards,
  *  or a single NEW-chrome input card for a free-text choice (Name / Motto / …). */
 function ChoiceOptionGroup({
   choice,

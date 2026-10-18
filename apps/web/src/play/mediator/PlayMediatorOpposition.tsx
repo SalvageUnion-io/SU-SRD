@@ -39,7 +39,6 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
   return (
     <>
       <Slab
-        variant="solid"
         as="h2"
         label="Opposition"
         actions={

@@ -45,7 +45,6 @@ export function StarterShelf() {
   return (
     <section aria-labelledby="shelf-starter" style={SECTION}>
       <Slab
-        variant="solid"
         as="h2"
         id="shelf-starter"
         label="Starter Set"

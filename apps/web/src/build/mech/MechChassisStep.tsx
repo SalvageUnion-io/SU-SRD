@@ -141,7 +141,7 @@ export function MechChassisStep({
 
   return (
     <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
-      <Slab variant="solid" label="Tech 1 Chassis" count="Choose 1" countInk="inherit" />
+      <Slab label="Tech 1 Chassis" count="Choose 1" countInk="inherit" />
       <MasonryColumns maxColumns={2} radio ariaLabel="Chassis">
         {chassisPool.map((chassis) => {
           const cost = chassis.salvageValue
@@ -175,7 +175,7 @@ export function MechChassisStep({
         <p style={HINT}>Pick a chassis to reveal its starting patterns.</p>
       ) : (
         <>
-          <Slab variant="solid" label="Start from a pattern?" count="Optional" countInk="inherit" />
+          <Slab label="Start from a pattern?" count="Optional" countInk="inherit" />
           <MasonryColumns maxColumns={2} radio ariaLabel="Starting pattern">
             {patternPool.map((pattern) => (
               <PatternSelCard

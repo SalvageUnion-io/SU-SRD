@@ -136,7 +136,7 @@ export function CatalogChoiceListing({
     <Stack gap={6}>
       {prompt && <p style={promptStyle}>{prompt}</p>}
       <div>
-        <Slab variant="solid" label={label} style={SLAB} />
+        <Slab label={label} style={SLAB} />
         {!insidePeek && (
           <Button size="compact" {...options.toggleProps}>
             {options.open ? 'Hide options' : 'Show options'}

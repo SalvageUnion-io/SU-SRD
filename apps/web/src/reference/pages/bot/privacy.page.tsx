@@ -34,7 +34,7 @@ function page(): PageResult {
           </p>
 
           <div>
-            <Slab as="h2" variant="solid" label="What we collect" />
+            <Slab as="h2" label="What we collect" />
             <p>
               Nothing persistent. The Bot is stateless. It responds to slash-command and button
               interactions in real time and keeps no record of them afterward.
@@ -56,7 +56,7 @@ function page(): PageResult {
           </div>
 
           <div>
-            <Slab as="h2" variant="solid" label="Error diagnostics" />
+            <Slab as="h2" label="Error diagnostics" />
             <p>
               To keep the Bot reliable, unexpected errors are logged by our hosting provider
               (Cloudflare). These logs can include technical details about the error and the
@@ -66,7 +66,7 @@ function page(): PageResult {
           </div>
 
           <div>
-            <Slab as="h2" variant="solid" label="Third parties" />
+            <Slab as="h2" label="Third parties" />
             <ul style={LIST}>
               <li>
                 <strong>Discord</strong> — your use of the Bot is also governed by Discord’s Privacy
@@ -79,7 +79,7 @@ function page(): PageResult {
           </div>
 
           <div>
-            <Slab as="h2" variant="solid" label="Data requests" />
+            <Slab as="h2" label="Data requests" />
             <p>
               Because we store no personal data, there is nothing to export or delete. For any
               privacy questions, contact{' '}

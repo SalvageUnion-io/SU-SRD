@@ -265,7 +265,6 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
       <Grid min="26rem" gap={32} style={COLUMNS}>
         <section style={COLUMN} aria-labelledby="pattern-saved">
           <Slab
-            variant="solid"
             id="pattern-saved"
             label="What gets saved"
             count={`from your ${mech.name}`}
@@ -284,7 +283,7 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
         </section>
 
         <section style={COLUMN} aria-labelledby="pattern-yours">
-          <Slab variant="solid" id="pattern-yours" label="Your pattern" />
+          <Slab id="pattern-yours" label="Your pattern" />
           <Field label="Pattern name" htmlFor="pattern-name">
             <Input
               id="pattern-name"
@@ -432,7 +431,7 @@ function LoadoutList({
   if (items.length === 0) return null
   return (
     <>
-      <Slab variant="solid" label={label} count={count} />
+      <Slab label={label} count={count} />
       <ul style={LIST} aria-label={label}>
         {items.map((item, index) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: a loadout may carry the same part twice

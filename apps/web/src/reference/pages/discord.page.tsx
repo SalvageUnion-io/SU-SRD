@@ -233,7 +233,7 @@ function page(): PageResult {
 
         {/* Commands: every /su subcommand, from the bot's own builder */}
         <Stack as="section" gap={24}>
-          <Slab as="h2" variant="solid" label="Commands" />
+          <Slab as="h2" label="Commands" />
 
           {reference.map((command) => (
             <Panel key={command.name} soft>
@@ -250,7 +250,7 @@ function page(): PageResult {
         </Stack>
 
         <section style={PROSE_12}>
-          <Slab as="h2" variant="solid" label="With your account" />
+          <Slab as="h2" label="With your account" />
           <p>
             These read your {PRODUCT.wordmark} account and its Games.{' '}
             <InlineRef href={appPath('/')} style={BOLD}>
@@ -272,7 +272,7 @@ function page(): PageResult {
 
         {/* Notes */}
         <section style={PROSE_12}>
-          <Slab as="h2" variant="solid" label="Good to know" />
+          <Slab as="h2" label="Good to know" />
           <ul style={LIST_8}>
             <li>
               Typing <code style={CODE}>/su</code> filters Discord&rsquo;s command picker to just

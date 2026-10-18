@@ -193,7 +193,7 @@ function SrdHome({
         <div style={SECTIONS}>
           {sections.map((section) => (
             <section key={section.label} style={SECTION}>
-              <Slab as="h2" variant="solid" label={section.label} />
+              <Slab as="h2" label={section.label} />
               <div style={TILE_GRID}>
                 {section.schemas.map((card) => (
                   <CatalogTile

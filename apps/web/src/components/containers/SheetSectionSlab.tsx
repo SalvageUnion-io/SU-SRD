@@ -103,7 +103,6 @@ export function SheetSectionSlab({
           their own line instead; the card container never had this problem
           because its header band is a separate `ml-auto` row. */}
       <Slab
-        variant="solid"
         label={title}
         count={count}
         className="su-sheet-slab-lead"

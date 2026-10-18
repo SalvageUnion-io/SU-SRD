@@ -419,7 +419,6 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
 
         <section aria-labelledby="pattern-loadout">
           <Slab
-            variant="solid"
             id="pattern-loadout"
             label="Loadout"
             count={

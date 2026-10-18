@@ -134,7 +134,6 @@ export function RosterColumn({
       <Slab
         as="h2"
         id={headingId}
-        variant="solid"
         label={title}
         style={HEAD}
         actions={

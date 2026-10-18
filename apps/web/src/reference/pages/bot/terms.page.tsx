@@ -33,7 +33,7 @@ function page(): PageResult {
           </p>
 
           <div>
-            <Slab as="h2" variant="solid" label="The service" />
+            <Slab as="h2" label="The service" />
             <p>
               The Bot provides dice-rolling and reference lookups for the Salvage Union tabletop
               roleplaying game via Discord slash commands (<code>/su</code>). It is provided free of
@@ -43,7 +43,7 @@ function page(): PageResult {
           </div>
 
           <div>
-            <Slab as="h2" variant="solid" label="Acceptable use" />
+            <Slab as="h2" label="Acceptable use" />
             <p>
               Don’t use the Bot to break Discord’s Terms of Service or Community Guidelines, to
               abuse or overload the service, or for any unlawful purpose.
@@ -51,7 +51,7 @@ function page(): PageResult {
           </div>
 
           <div>
-            <Slab as="h2" variant="solid" label="Intellectual property" />
+            <Slab as="h2" label="Intellectual property" />
             <p>
               Salvage Union is copyrighted by{' '}
               <InlineRef
@@ -72,7 +72,7 @@ function page(): PageResult {
           </div>
 
           <div>
-            <Slab as="h2" variant="solid" label="Liability" />
+            <Slab as="h2" label="Liability" />
             <p>
               To the maximum extent permitted by law, the operators of the Bot are not liable for
               any damages arising from its use or unavailability.
@@ -80,7 +80,7 @@ function page(): PageResult {
           </div>
 
           <div>
-            <Slab as="h2" variant="solid" label="Contact" />
+            <Slab as="h2" label="Contact" />
             <p>
               Questions about these terms:{' '}
               <InlineRef href="mailto:privacy@salvageunion.io" style={BOLD}>

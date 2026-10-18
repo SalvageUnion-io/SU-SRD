@@ -29,7 +29,6 @@ export function PlayActionsColumn({ play, ...deps }: PlayColumnProps & PlayActio
   return (
     <>
       <Slab
-        variant="solid"
         as="h2"
         label="Actions"
         className="su-play-act-head"

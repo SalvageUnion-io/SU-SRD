@@ -41,7 +41,7 @@ export function CrewPatterns() {
 
   return (
     <section aria-labelledby="crew-patterns">
-      <Slab variant="solid" id="crew-patterns" label="Shared by your crew" />
+      <Slab id="crew-patterns" label="Shared by your crew" />
       <ul style={LIST}>
         {rows.map(({ appId, pattern, chassis, madeBy, gameName }) => (
           <li key={appId}>

@@ -359,10 +359,9 @@ function ContentBlock({
     }
 
     case 'heading': {
-      // Section headings render as the canonical Slab separator — a level-1
-      // heading takes the solid poster-stamp shape, sub-levels the dashed rule.
-      const level = block.level || 3
-      return <Slab variant={level === 1 ? 'solid' : 'dashed'} label={stringValue} />
+      // Section headings render as the canonical Slab, the solid stamp at
+      // every level: a dashed head would read as user-made (ruleset §3.9).
+      return <Slab label={stringValue} />
     }
 
     case 'list-item': {

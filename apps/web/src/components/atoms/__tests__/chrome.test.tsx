@@ -13,6 +13,7 @@ import { Input, Textarea } from '../inputs'
 import { INPUT_FOCUS } from '../interaction'
 import { ModeDoor } from '../ModeDoor'
 import { Panel } from '../Panel'
+import { POSTER_STAMP } from '../posterStamp'
 import { Slab } from '../Slab'
 import { StepButton } from '../SmallButtons'
 
@@ -228,22 +229,27 @@ describe('EmptyState', () => {
 })
 
 describe('Slab', () => {
-  test('slab renders label, count and dashed leader', () => {
+  test('slab renders label and count', () => {
     render(<Slab label="Systems" count="2" />)
     expect(screen.getByText('Systems')).toBeTruthy()
     expect(screen.getByText('2')).toBeTruthy()
   })
 
+  test('every slab is the solid ink stamp (R1): a dashed head reads as user-made', () => {
+    render(<Slab label="Abilities" />)
+    expect(screen.getByText('Abilities').className).toContain(POSTER_STAMP)
+  })
+
   test('the count is muted, or takes the ground ink with countInk="inherit"', () => {
-    render(<Slab variant="solid" label="Classes" count="Choose 1" />)
+    render(<Slab label="Classes" count="Choose 1" />)
     expect(screen.getByText('Choose 1').style.color).toBe(color.wkMuted)
-    render(<Slab variant="solid" label="Types" count="Pick one" countInk="inherit" />)
+    render(<Slab label="Types" count="Pick one" countInk="inherit" />)
     expect(screen.getByText('Pick one').style.color).toBe('currentcolor')
   })
 
   test('a value count is a label-first Stat chip, not trailing text', () => {
     const { container } = render(
-      <Slab variant="solid" label="Systems" count={{ label: 'Slots', value: 3, max: 6 }} />
+      <Slab label="Systems" count={{ label: 'Slots', value: 3, max: 6 }} />
     )
     const chip = container.querySelector('.su-stat-cell')
     expect(chip).not.toBeNull()

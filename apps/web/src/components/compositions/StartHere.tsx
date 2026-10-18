@@ -100,7 +100,7 @@ function StepFace({ step, index }: { step: StartHereStep; index: number }) {
 export function StartHere({ id, hrefs = {} }: StartHereProps) {
   return (
     <section aria-labelledby={id} className="su-start-here" style={SECTION}>
-      <Slab label="Start here" id={id} as="h2" variant="solid" style={{ marginBottom: 0 }} />
+      <Slab label="Start here" id={id} as="h2" style={{ marginBottom: 0 }} />
       <ol className="su-start-here__steps" style={STEPS}>
         {START_HERE_STEPS.map((step, index) => {
           const href = hrefs[step.key]

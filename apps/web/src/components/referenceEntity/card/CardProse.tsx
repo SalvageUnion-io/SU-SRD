@@ -82,10 +82,7 @@ export function FoldedActionProse({
   return (
     <div className="su-ec-block" style={STACK}>
       {action.name && action.name !== entityName && (
-        <Slab
-          variant="solid"
-          label={stripHostParenthetical(action.displayName ?? action.name, entityName)}
-        />
+        <Slab label={stripHostParenthetical(action.displayName ?? action.name, entityName)} />
       )}
       <CardProse body={content} context={context} />
     </div>
@@ -129,7 +126,7 @@ export function PatternProse({
           card and read as a card-wide divider rather than a label on the
           pattern block below it. Shrink-to-fit collapses the rule to its
           `min-w-3` stub, leaving a tight name tab. */}
-      <Slab variant="solid" label={normalizePatternName(name)} className="su-ec-name-tab" />
+      <Slab label={normalizePatternName(name)} className="su-ec-name-tab" />
       <CardProse body={body} context={context} />
     </div>
   )

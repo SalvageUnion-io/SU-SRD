@@ -40,7 +40,7 @@ function TreeSection({
 }: AbilityTreeGroup & { track: TreeTrack; note?: string; form?: 'row' | 'token' }) {
   return (
     <section className="su-ability-tree__group">
-      <Slab variant="solid" as="h2" label={tree} count={note ?? noteFor(track)} />
+      <Slab as="h2" label={tree} count={note ?? noteFor(track)} />
       <AbilityTrack
         abilities={abilities}
         track={track}
@@ -134,7 +134,7 @@ function hybridTrees(plan: Extract<ClassPlan, { kind: 'hybrid' }>): RefText {
 
 /**
  * The class's training brief, from "Gaining Abilities" (Workshop Manual p.23)
- * and its own spread, as tier cards: a dashed slab citing the page with the
+ * and its own spread, as tier cards: a Slab citing the page with the
  * ability limit at its end, then one card per tier, its band in the tier's
  * book hue (the trees' tracks below wear the same), its name on the paper
  * cut-out and its TP cost in the book's pointy box, its body what opens it.
@@ -146,7 +146,6 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
     <aside className="su-class-brief" aria-label="Training">
       {/* The limit rides the slab's own row, centred on its label and rule. */}
       <Slab
-        variant="dashed"
         label="Training"
         count={`p.${GAINING_ABILITIES_PAGE}`}
         actions={
@@ -287,7 +286,7 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
       <div className="su-ability-tree">
         <ClassBrief plan={plan} />
         <section className="su-ability-tree__section">
-          <Slab variant="dashed" label="Abilities" />
+          <Slab label="Abilities" />
           <div className="su-class-path__trees" data-entity-fit="">
             <TreeSection {...path.advanced} track="hybrid" />
             {path.legendary && <TreeSection {...path.legendary} track="legendary" />}
@@ -306,7 +305,7 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
       <ClassBrief plan={plan} />
       {plan.coreTrees.length > 0 && (
         <section className="su-ability-tree__section">
-          <Slab variant="dashed" label="Core trees" />
+          <Slab label="Core trees" />
           <div className="su-ability-tree__row su-ability-tree__row--stack">
             {plan.coreTrees.map((group) => (
               <TreeSection key={group.tree} {...group} track="core" />
@@ -316,7 +315,7 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
       )}
       {plan.paths.length > 0 && (
         <section className="su-ability-tree__section">
-          <Slab variant="dashed" label="Advancement" />
+          <Slab label="Advancement" />
           <ul className="su-class-paths">
             {[...plan.paths]
               .sort((a, b) => Number(Boolean(a.hybrid)) - Number(Boolean(b.hybrid)))
@@ -343,7 +342,7 @@ function BranchTrees({ branches }: { branches: BranchTree[] }) {
   if (groups.length === 0) return null
   return (
     <section className="su-ability-tree__section">
-      <Slab variant="dashed" label="Required Trees" />
+      <Slab label="Required Trees" />
       <div className="su-ability-tree__row" data-entity-fit="">
         {groups.map(({ group, owner }) => (
           <TreeSection key={group.tree} {...group} track="core" note={owner?.name} />

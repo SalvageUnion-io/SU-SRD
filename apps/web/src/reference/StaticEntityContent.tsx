@@ -110,7 +110,7 @@ export function StaticEntityContent({ summary, parent }: StaticEntityContentProp
           under the h1 above. */}
       {summary.sections.map((section) => (
         <section key={section.name} className="su-static__section">
-          <Slab as="h2" variant="solid" label={section.name} />
+          <Slab as="h2" label={section.name} />
           {section.paragraphs.map((p) => (
             <p key={p}>
               <Prose text={p} />

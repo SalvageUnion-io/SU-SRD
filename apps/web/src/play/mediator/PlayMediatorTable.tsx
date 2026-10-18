@@ -41,7 +41,7 @@ export function PlayMediatorTable({ mediator, picked, onPick }: PlayMediatorTabl
 
   return (
     <>
-      <Slab variant="solid" as="h2" label="The table" />
+      <Slab as="h2" label="The table" />
       {mediator.crew === null ? (
         <EmptyState variant="inline" body="The table appears once the Game's roster arrives." />
       ) : seats.length === 0 ? (

@@ -47,7 +47,7 @@ export function PatternSection({
       )}
       {actions.length > 0 && (
         <>
-          <Slab variant="dashed" label="Pattern Actions" as={sectionAs} />
+          <Slab label="Pattern Actions" as={sectionAs} />
           {nestsTokens(host) ? (
             <ActionTokens
               actions={actions}
