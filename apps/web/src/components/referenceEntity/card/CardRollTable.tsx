@@ -56,8 +56,9 @@ function TraitText({ text }: { text: string }) {
  *
  * NESTED in another card (`nested`), the folded table is a TOKEN (owner's
  * call, 2026-10-14): the ink pill with its name on the cut-out, at a Token's
- * height, its Table and Roll buttons on the line beside it
- * (`.su-entity-token-line`). Table reveals the whole instrument in its place.
+ * height, its Table and Roll buttons inside its strip after the name, Mini
+ * (chips and actions C1a, C8): never beside it. Table reveals the whole
+ * instrument in its place.
  */
 export function CardRollTable({
   table,
@@ -86,7 +87,7 @@ export function CardRollTable({
    * flush in a card it is closed by the rule above its bar.
    */
   framed?: boolean
-  /** Inside another card: folded, the table is a Token with its buttons beside it. */
+  /** Inside another card: folded, the table is a Token with its buttons in its strip. */
   nested?: boolean
   /** The surface's tone (a CSS colour), whose band paints every other row. */
   tone?: string
@@ -142,43 +143,44 @@ export function CardRollTable({
     })
   }
 
-  const actions = (
+  const toggle = (inToken: boolean) => (
     <Button
-      size="compact"
-      className="su-roll__toggle su-roll__control"
+      size={inToken ? 'mini' : 'compact'}
+      className={inToken ? 'su-roll__toggle' : 'su-roll__toggle su-roll__control'}
       {...fold.toggleProps}
       aria-label={expanded ? `Hide the ${name} table` : `Show the ${name} table`}
       style={BAR_BUTTON}
     >
       {expanded ? 'Hide' : 'Table'}
       {expanded ? (
-        <ChevronUp aria-hidden="true" size={16} />
+        <ChevronUp aria-hidden="true" size={inToken ? 12 : 16} />
       ) : (
-        <ChevronDown aria-hidden="true" size={16} />
+        <ChevronDown aria-hidden="true" size={inToken ? 12 : 16} />
       )}
     </Button>
   )
 
   if (nested && !expanded) {
     return (
-      <div className="su-entity-token-line su-roll-token">
-        <span className="su-entity-token">
-          <span className="su-entity-token__pill" style={TOKEN_PILL}>
-            <span className="su-entity-token__notch">
-              <span className="su-entity-token__name">
-                {name}
-                <span className="su-sr-only"> (roll table)</span>
-              </span>
+      <div className="su-entity-token su-roll-token">
+        <div className="su-entity-token__pill" style={TOKEN_PILL}>
+          <span className="su-entity-token__notch">
+            <span className="su-entity-token__name">
+              {name}
+              <span className="su-sr-only"> (roll table)</span>
             </span>
           </span>
-        </span>
-        {actions}
-        <RollControl
-          name={name}
-          onRoll={disabled ? undefined : isColumns ? rollColumns : rollBands}
-        >
-          {isColumns ? 'Roll twice:' : 'Roll the Die:'}
-        </RollControl>
+          <span className="su-roll-token__actions">
+            {toggle(true)}
+            <RollControl
+              name={name}
+              size="mini"
+              onRoll={disabled ? undefined : isColumns ? rollColumns : rollBands}
+            >
+              {isColumns ? 'Roll twice:' : 'Roll the Die:'}
+            </RollControl>
+          </span>
+        </div>
       </div>
     )
   }
@@ -192,7 +194,7 @@ export function CardRollTable({
       frame={framed ? 'box' : 'rule'}
       stamp={isColumns ? 'Roll twice:' : undefined}
       onRoll={disabled ? undefined : isColumns ? rollColumns : rollBands}
-      actions={actions}
+      actions={toggle(false)}
       open={expanded}
       panelId={fold.panelId}
       table={

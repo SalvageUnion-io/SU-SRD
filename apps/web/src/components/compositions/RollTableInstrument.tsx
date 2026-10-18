@@ -285,18 +285,21 @@ export function RollControl({
   name,
   onRoll,
   children,
+  size = 'compact',
 }: {
   name: string
   onRoll?: () => void
   children: string
+  /** `mini` inside a Token's strip (C1a), at the Token's height. */
+  size?: 'compact' | 'mini'
 }) {
   const live = useLive()
   if (!onRoll || !live) return <span className="su-roll__stamp su-roll__roll">{children}</span>
   return (
     <Button
       variant="primary"
-      size="compact"
-      className="su-roll__roll su-roll__control"
+      size={size}
+      className={size === 'mini' ? 'su-roll__roll' : 'su-roll__roll su-roll__control'}
       onClick={onRoll}
       aria-label={rollLabel(children, name)}
     >
