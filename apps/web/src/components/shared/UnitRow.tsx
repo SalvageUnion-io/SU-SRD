@@ -16,7 +16,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { space } from '../../design/tokens'
 import type { UnitKind, UnitReading } from '../../lib/units/unitModel'
 import { unitRowModel } from '../../lib/units/unitModel'
-import type { EntityMode } from '../index'
+import type { EntityMode, TagItem } from '../index'
 import { Button, buttonVariants, Entity } from '../index'
 import { AppLink } from './AppLink'
 
@@ -34,6 +34,8 @@ type UnitRowProps = {
   userMade?: boolean
   /** Labels after the note (an owner seal, ★ Primary). */
   labels?: ReactNode
+  /** The units it is linked to, relation chips after its readings (`chips-and-actions.md` C11). */
+  relations?: TagItem[]
   /** The host's last chip, on the name's line: the unit's "⋯" menu. */
   trailing?: ReactNode
   /** The unit's sheet: a View control. Omit when there is nothing to open. */
@@ -53,6 +55,7 @@ export function UnitRow({
   readings,
   userMade = false,
   labels,
+  relations,
   trailing,
   href,
   onUnassign,
@@ -94,6 +97,7 @@ export function UnitRow({
       model={unitRowModel({ kind, name, note, userMade, readings: readings ?? [] })}
       mode={mode}
       labels={labels}
+      {...(relations && relations.length > 0 ? { relations } : {})}
       trailing={trailing}
       controls={all}
     />

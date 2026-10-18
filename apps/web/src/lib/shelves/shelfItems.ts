@@ -8,8 +8,9 @@
  * under it. The "Showing" toggle narrows that to what is in no Game.
  *
  * Each item is one line — the kind and its defining fact on a stamp, the name,
- * and one reading (`HP 8/10`) — with chips under it: the Game it is in, the
- * units linked to it, where it came from, and, for a pattern, who can see it.
+ * and one reading (`HP 8/10`) — with chips: the Game it is in, where it came
+ * from, for a pattern who can see it, and the units linked to it as relations
+ * (`PILOT | Bonesaw`).
  */
 
 import type { ContainerFields } from 'cantina-domain/container'
@@ -54,6 +55,12 @@ export type PatternSharing = {
  * for the absence of one (`Unassigned`).
  */
 export type ShelfChip = { key: string; label: string; value?: string; hollow?: boolean }
+
+/**
+ * A unit linked to the item, as its relation chip (`chips-and-actions.md`
+ * C11): what it is (`Mech`), its name, and its sheet.
+ */
+export type ShelfRelation = { key: string; label: string; value: string; href: string }
 
 /** One reading on an item's line: `HP 8/10`, `TL 1`. */
 export type ShelfReading = { label: string; value: string }
@@ -137,31 +144,41 @@ type Names = ReadonlyMap<string, string>
 export function pilotChips(args: {
   pilot: Pilot
   games: readonly ShelfGame[] | undefined
+}): ShelfChip[] {
+  return [containerChip(args.pilot, args.games)]
+}
+
+/** The mech a pilot is assigned to, as its relation: `MECH | Scrapper`. */
+export function pilotRelations(args: {
+  pilot: Pick<Pilot, 'id'>
   softLinks: readonly SoftLink[]
   mechNames: Names
-}): ShelfChip[] {
-  const { pilot } = args
-  const mech = args.softLinks.find((l) => l.type === 'mech-to-pilot' && l.to.id === pilot.id)
-  const mechName = mech && args.mechNames.get(mech.from.id)
-  return [
-    containerChip(pilot, args.games),
-    ...(mechName ? [{ key: 'linked', label: `Assigned: ${mechName}` }] : []),
-  ]
+}): ShelfRelation[] {
+  const link = args.softLinks.find((l) => l.type === 'mech-to-pilot' && l.to.id === args.pilot.id)
+  const name = link && args.mechNames.get(link.from.id)
+  return link && name
+    ? [{ key: 'mech', label: 'Mech', value: name, href: `/sheet/mech/${link.from.id}` }]
+    : []
 }
 
 export function mechChips(args: {
   mech: Mech
   games: readonly ShelfGame[] | undefined
+}): ShelfChip[] {
+  return [containerChip(args.mech, args.games)]
+}
+
+/** The pilot a mech carries, as its relation: `PILOT | Bonesaw`. */
+export function mechRelations(args: {
+  mech: Pick<Mech, 'id'>
   softLinks: readonly SoftLink[]
   pilotNames: Names
-}): ShelfChip[] {
-  const { mech } = args
-  const pilot = args.softLinks.find((l) => l.type === 'mech-to-pilot' && l.from.id === mech.id)
-  const pilotName = pilot && args.pilotNames.get(pilot.to.id)
-  return [
-    containerChip(mech, args.games),
-    ...(pilotName ? [{ key: 'linked', label: `Pilot: ${pilotName}` }] : []),
-  ]
+}): ShelfRelation[] {
+  const link = args.softLinks.find((l) => l.type === 'mech-to-pilot' && l.from.id === args.mech.id)
+  const name = link && args.pilotNames.get(link.to.id)
+  return link && name
+    ? [{ key: 'pilot', label: 'Pilot', value: name, href: `/sheet/pilot/${link.to.id}` }]
+    : []
 }
 
 export function crawlerChips(args: {
