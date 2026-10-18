@@ -20,6 +20,9 @@
  * lists — compact Rows, Cards, a unit's `TitledBox` — stays at level 1, and
  * anything inside one of those is a Token (level 2).
  *
+ * Play is flat (ruleset §1.3, §3.5.1): the frame turns the speckle off once
+ * for every entity form on the canvas and the phone form alike.
+ *
  * The `.su-dash-*` stylesheet rides in with this module: the canvas's size
  * and ground are its rules, and the Play route's chunk is where it belongs.
  * Play's own bundle (`styles/play/play.css`: Units, Actions, side) comes
@@ -29,7 +32,7 @@
 import '../styles/play/dashboard.css'
 import '../styles/play/play.css'
 import type { CSSProperties, ReactNode } from 'react'
-import { tokens } from '../components/index'
+import { EntitySurfaceProvider, tokens } from '../components/index'
 import { PlayCanvas } from './PlayCanvas'
 
 /** The two side columns' widths: the Units (or the table's seats) and the side stack. */
@@ -46,13 +49,16 @@ const FRAME = {
   width: '100%',
 } satisfies CSSProperties
 
+/** Play wears no texture (ruleset §3.5.1): set once, for every form inside. */
+const FLAT = { texture: false } as const
+
 const BAR = { gridArea: 'bar', minWidth: 0 } satisfies CSSProperties
 const FOOT = { gridArea: 'foot', minWidth: 0 } satisfies CSSProperties
 
 /** A column on the dark ground: the instrument cream, its own scroll. */
 const COLUMN = {
   background: 'var(--color-band-cream)',
-  borderRadius: tokens.radius.panel,
+  borderRadius: tokens.radius.card,
   display: 'flex',
   flexDirection: 'column',
   gap: tokens.space[12],
@@ -93,20 +99,22 @@ type PlayFrameProps = {
 
 export function PlayFrame({ bar, start, centre, end, foot, labels, phone }: PlayFrameProps) {
   return (
-    <PlayCanvas phone={phone}>
-      <div style={FRAME}>
-        <div style={BAR}>{bar}</div>
-        <section aria-label={labels[0]} style={AREA.start}>
-          {start}
-        </section>
-        <section aria-label={labels[1]} style={AREA.centre}>
-          {centre}
-        </section>
-        <section aria-label={labels[2]} style={AREA.end}>
-          {end}
-        </section>
-        <div style={FOOT}>{foot}</div>
-      </div>
-    </PlayCanvas>
+    <EntitySurfaceProvider value={FLAT}>
+      <PlayCanvas phone={phone}>
+        <div style={FRAME}>
+          <div style={BAR}>{bar}</div>
+          <section aria-label={labels[0]} style={AREA.start}>
+            {start}
+          </section>
+          <section aria-label={labels[1]} style={AREA.centre}>
+            {centre}
+          </section>
+          <section aria-label={labels[2]} style={AREA.end}>
+            {end}
+          </section>
+          <div style={FOOT}>{foot}</div>
+        </div>
+      </PlayCanvas>
+    </EntitySurfaceProvider>
   )
 }

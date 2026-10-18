@@ -43,7 +43,7 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
       <Button size="mini" onClick={play.setOnFoot} disabled={off}>
         Dismount
       </Button>
-      <Button size="mini" variant="danger" onClick={() => setEjecting(true)} disabled={off}>
+      <Button size="mini" variant="primary" onClick={() => setEjecting(true)} disabled={off}>
         Eject
       </Button>
     </span>

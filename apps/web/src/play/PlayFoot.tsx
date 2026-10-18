@@ -17,7 +17,7 @@ import { SavedIndicator } from './SavedIndicator'
 const FOOT = {
   alignItems: 'center',
   background: 'var(--color-band-cream)',
-  borderRadius: tokens.radius.panel,
+  borderRadius: tokens.radius.card,
   display: 'flex',
   gap: tokens.space[16],
   padding: `${tokens.space[4]} ${tokens.space[12]}`,

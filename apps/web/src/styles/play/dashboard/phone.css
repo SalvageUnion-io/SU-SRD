@@ -15,6 +15,6 @@
  * being enough.
  */
 .su-dash-phone :is(button, a[href], [role='button'], [role='tab'], summary) {
-  min-height: 44px;
-  min-width: 44px;
+  min-height: var(--size-full);
+  min-width: var(--size-full);
 }

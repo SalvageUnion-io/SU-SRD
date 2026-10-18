@@ -169,7 +169,7 @@ export function PlayReactorRow({ mech, store, rollFor, need, canWrite }: PlayRea
               {log.text}
             </p>
             {log.meltdown && (
-              <Button variant="danger" size="compact" onClick={confirmMeltdown}>
+              <Button variant="primary" size="compact" onClick={confirmMeltdown}>
                 Confirm Meltdown — Mark Mech destroyed
               </Button>
             )}

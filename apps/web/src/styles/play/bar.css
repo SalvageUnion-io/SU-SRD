@@ -19,5 +19,5 @@
 }
 
 .su-dash-phone .su-play-bar__stamp {
-  height: 44px;
+  height: var(--size-full);
 }
