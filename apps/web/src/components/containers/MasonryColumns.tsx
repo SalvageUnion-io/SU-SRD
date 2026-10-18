@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Children } from 'react'
+import { widthAtLeast } from '../../design/tokens'
 import { useMediaQuery } from '../../lib/useMediaQuery'
 import { RadioCardGroup } from './RadioCardGroup'
 
@@ -25,12 +26,12 @@ type MasonryColumnsProps = {
   ariaLabel?: string
 }
 
-// Column count is driven purely by viewport width via matchMedia, mirroring the
-// the md and xl breakpoints (1 column < 48rem, 2 from 48rem, 3 from 80rem).
+// Column count is driven purely by viewport width via matchMedia, on the
+// ladder's md and xl rungs (1 column < 48rem, 2 from 48rem, 3 from 80rem).
 // matchMedia listeners fire ONLY when a breakpoint is crossed, so resizing
 // within a breakpoint does zero JS work and triggers no redistribution.
-const MD = '(min-width: 48rem)'
-const XL = '(min-width: 80rem)'
+const MD = widthAtLeast('md')
+const XL = widthAtLeast('xl')
 
 function useColumnCount(): number {
   // The server snapshot (1 column: both queries answer false) is used for SSR

@@ -135,7 +135,7 @@ describe('Tile art', () => {
     expect(css).toMatch(/\.su-entity-tile__window\s*\{\s*display: contents;/)
     const phone = css.slice(css.indexOf('.su-entity-tile__window {'))
     expect(phone).toMatch(
-      /@media \(max-width: 40rem\)\s*\{\s*\.su-entity-tile__art\s*\{\s*aspect-ratio: 2 \/ 1;/
+      /@media not \(width >= 40rem\)\s*\{\s*\.su-entity-tile__art\s*\{\s*aspect-ratio: 2 \/ 1;/
     )
   })
 })

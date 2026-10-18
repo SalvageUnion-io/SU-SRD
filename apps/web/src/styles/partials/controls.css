@@ -184,7 +184,7 @@
 /* Narrow, the frame takes the whole screen, so opening a Token's Page (or
    filtering the list down) never resizes the picker under a thumb. Its cap is
    `.su-searcher-panel`; this only fills it. */
-@media (max-width: 63.99rem) {
+@media not (width >= 64rem) {
   .su-searcher-frame {
     height: calc(100dvh - 4rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   }
@@ -395,7 +395,7 @@
   width: min(100%, 22rem);
 }
 
-@media (min-width: 64rem) {
+@media (width >= 64rem) {
   .su-searcher:not(.su-searcher--browse) {
     height: min(68dvh, 44rem);
     display: grid;

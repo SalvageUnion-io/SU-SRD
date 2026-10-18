@@ -49,7 +49,7 @@
   cursor: default;
 }
 
-@media (max-width: 47.99rem) {
+@media not (width >= 48rem) {
   .su-npc-steps {
     display: none;
   }
@@ -72,7 +72,7 @@
   display: none;
 }
 
-@media (max-width: 47.99rem) {
+@media not (width >= 48rem) {
   .su-npc-preview {
     display: none;
   }

@@ -86,7 +86,7 @@ const UPLOADER: PhotoUploader = {
 const PHOTO_PLAYER_ERRORS = [PhotoRefused]
 
 /** The frame is at most this wide; `sizes` tells the browser so. */
-const SIZES = '(max-width: 30rem) 100vw, 16rem'
+const SIZES = `${tokens.widthAtLeast('sm')} 16rem, 100vw`
 
 export function EntityPhoto({ photo, fallback, name, onChange, frame }: EntityPhotoProps) {
   // A photo whose file is gone (deleted alongside its last holder while a copy

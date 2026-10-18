@@ -100,7 +100,7 @@
   padding-top: var(--space-12);
 }
 
-@media (min-width: 48rem) {
+@media (width >= 48rem) {
   /* The ladder stands on the left of the prose it illustrates. */
   .su-guide__ladder {
     align-items: flex-start;
@@ -137,7 +137,7 @@
   gap: var(--space-20);
 }
 
-@media (max-width: 40rem) {
+@media not (width >= 40rem) {
   .su-entity-page > .su-guide {
     font-size: 17px;
   }
@@ -325,7 +325,7 @@
  * then the steps) and sticks while they scroll by. It stands at the page's far
  * edge, under the band's stamps, as the column stands under its title.
  */
-@media (min-width: 64rem) {
+@media (width >= 64rem) {
   .su-entity-page--guide {
     align-items: start;
     column-gap: var(--space-40);
@@ -495,7 +495,7 @@
   text-transform: uppercase;
 }
 
-@media (max-width: 39.99rem) {
+@media not (width >= 40rem) {
   .su-pattern-rows:not(:target) .su-pattern-rows__item:nth-child(n + 3) {
     display: none;
   }
@@ -505,7 +505,7 @@
   }
 }
 
-@media (min-width: 40rem) {
+@media (width >= 40rem) {
   .su-pattern-rows__more {
     display: none;
   }

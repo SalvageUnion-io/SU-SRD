@@ -128,7 +128,7 @@
   gap: var(--space-12);
 }
 
-@container (min-width: 30rem) {
+@container (width >= 40rem) {
   .su-ec-art {
     margin-inline: 0;
   }

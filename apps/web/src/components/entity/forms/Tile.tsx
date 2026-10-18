@@ -1,5 +1,5 @@
 import { assetDerivativeUrl } from 'salvageunion-reference/assetDerivatives'
-import { space } from '../../../design/tokens'
+import { space, widthAtLeast } from '../../../design/tokens'
 import { cn } from '../../../lib/cn'
 import type { CSSVarStyle } from '../../../styles/cssVars'
 import { assetSrcSetFor } from '../../compositions/assetSrcSet'
@@ -50,7 +50,7 @@ const READ: TileMode = { kind: 'read' }
  * the art is cropped to its ink in a 2:1 band (`tileArtWindow`), where it
  * draws about half the viewport wide: 50vw is that slot too.
  */
-const SIZES = '(min-width: 75rem) 22rem, 50vw'
+const SIZES = `${widthAtLeast('xl')} 22rem, 50vw`
 
 /**
  * The art's measured ink box (`heroArtCrop`) as custom properties on the

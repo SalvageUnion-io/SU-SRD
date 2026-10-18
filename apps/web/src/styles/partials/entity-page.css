@@ -78,8 +78,11 @@
 }
 
 /* From `sm`, as many 200px cells a row as fit, as `auto-fill` would: n
-   cells and their n - 1 gaps of 14px fit from n × 214px - 14px. */
-@media (min-width: 40rem) {
+   cells and their n - 1 gaps of 14px fit from n × 214px - 14px. Those widths
+   are the cells' arithmetic, not breakpoints, so they stay off the ladder
+   (chrome.md K2) with a waiver on each line: on the ladder a page's 636px body
+   column would drop from three cells a row to two. */
+@media (width >= 40rem) {
   .su-stat-column {
     --su-stat-cols: 1;
     --su-stat-gap: var(--space-14);
@@ -95,16 +98,18 @@
   }
 }
 
-@container (min-width: 414px) {
-  @media (min-width: 40rem) {
+@container (width >= 414px) {
+  /* design-tokens-ignore: n cells fit (n × 214px − 14px) */
+  @media (width >= 40rem) {
     .su-stat-column__cell {
       --su-stat-cols: 2;
     }
   }
 }
 
-@container (min-width: 628px) {
-  @media (min-width: 40rem) {
+@container (width >= 628px) {
+  /* design-tokens-ignore: n cells fit (n × 214px − 14px) */
+  @media (width >= 40rem) {
     .su-stat-column__cell {
       --su-stat-cols: 3;
     }
@@ -119,8 +124,9 @@
   }
 }
 
-@container (min-width: 842px) {
-  @media (min-width: 40rem) {
+@container (width >= 842px) {
+  /* design-tokens-ignore: n cells fit (n × 214px − 14px) */
+  @media (width >= 40rem) {
     .su-stat-column__cell {
       --su-stat-cols: 4;
     }
@@ -135,8 +141,9 @@
   }
 }
 
-@container (min-width: 1056px) {
-  @media (min-width: 40rem) {
+@container (width >= 1056px) {
+  /* design-tokens-ignore: n cells fit (n × 214px − 14px) */
+  @media (width >= 40rem) {
     .su-stat-column__cell {
       --su-stat-cols: 5;
     }
@@ -151,8 +158,9 @@
   }
 }
 
-@container (min-width: 1270px) {
-  @media (min-width: 40rem) {
+@container (width >= 1270px) {
+  /* design-tokens-ignore: n cells fit (n × 214px − 14px) */
+  @media (width >= 40rem) {
     .su-stat-column__cell {
       --su-stat-cols: 6;
     }
@@ -275,7 +283,7 @@
 }
 
 /* A phone reads at 17px (SrdMobile). */
-@media (max-width: 40rem) {
+@media not (width >= 40rem) {
   .su-entity-page__opening,
   .su-entity-page__prose {
     font-size: 17px;
@@ -318,7 +326,7 @@
   max-width: 52rem;
 }
 
-@media (min-width: 64rem) {
+@media (width >= 64rem) {
   .su-entity-page__main--art {
     align-items: flex-start;
     flex-direction: row;
@@ -349,7 +357,7 @@
  * running under it. Wide blocks — the roll table, a class's ability tree,
  * the pattern rows, `after` — start below the art (`clear`), never squeezed.
  */
-@media (min-width: 64rem) {
+@media (width >= 64rem) {
   .su-entity-page--flow {
     display: flow-root;
   }

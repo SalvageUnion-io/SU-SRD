@@ -34,7 +34,7 @@
   min-width: 0;
 }
 
-@container (width >= 30rem) {
+@container (width >= 40rem) {
   .su-photo-beside-row {
     flex-direction: row;
   }

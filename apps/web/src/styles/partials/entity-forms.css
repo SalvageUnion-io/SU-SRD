@@ -634,7 +634,7 @@
    measures the fit and marks the heading `data-chips="beside"`; with no
    script (or before it runs) they drop. The strip is painted the band's full
    width by a clipped shadow, since the heading sits inset. */
-@media (max-width: 40rem) {
+@media not (width >= 40rem) {
   /* Beside, the name keeps its one line: `useChipsFit` measured the room it
      leaves for the chips, on as many lines as they need (at most three). */
   .su-entity-row__heading--cut[data-chips='beside'] > .su-entity-row__name {
@@ -783,13 +783,14 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
   width: calc(100% - 2 * var(--space-4));
 }
 
-@container (min-width: 18rem) {
+@container (width >= 18rem) {
+  /* design-tokens-ignore: E10, the art column appears by the Row's own room (18rem), a component's fit, not a page breakpoint */
   .su-entity-row__art {
     display: flex;
   }
 }
 
-@media (max-width: 40rem) {
+@media not (width >= 40rem) {
   .su-entity-row__art {
     min-height: var(--su-head-art-min-phone, 4.25rem);
     width: var(--su-head-art-width-phone, 3.5rem);
@@ -815,7 +816,7 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
    name they took the whole line and squeezed the name and its chips to
    nothing. Under 40rem the controls take their own line on the band, above
    the name, and the name keeps the band's foot. */
-@container (max-width: 40rem) {
+@container not (width >= 40rem) {
   .su-entity-row__line:has(> .su-entity-row__controls) {
     flex-wrap: wrap;
     row-gap: var(--space-6);
@@ -925,7 +926,7 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
    margin falls outside it and no line is cut off. Art with no measured box
    draws whole in the band; a censor mark fills it. The band, chips and lead
    are unchanged. */
-@media (max-width: 40rem) {
+@media not (width >= 40rem) {
   .su-entity-tile__art {
     aspect-ratio: 2 / 1;
     container-type: inline-size;

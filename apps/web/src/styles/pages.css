@@ -28,7 +28,7 @@
    page ground the notch is cut from. The aside spans the row's padding so the
    ground runs edge to edge, and the row drops its gap so the notch sits flush
    on the band's foot. */
-@media (max-width: 63.99rem) {
+@media not (width >= 64rem) {
   .su-home__band .su-chapter-band__row {
     align-items: flex-start;
     flex-direction: column;
@@ -43,7 +43,7 @@
   }
 }
 
-@media (min-width: 40rem) and (max-width: 63.99rem) {
+@media (width >= 40rem) and (not (width >= 64rem)) {
   .su-home__band .su-chapter-band__aside {
     margin-inline: calc(-1 * var(--space-24));
     padding-inline: var(--space-24);
@@ -54,19 +54,19 @@
    is as tall as the app's front-door band: its title opens where the
    app's does under that band's eyebrow (the eyebrow's top padding, its
    caption line, then 12px). */
-@media (max-width: 39.99rem) {
+@media not (width >= 40rem) {
   .su-home__band .su-chapter-band__row {
     padding-top: calc(var(--space-48) + var(--space-8));
   }
 }
 
-@media (min-width: 40rem) {
+@media (width >= 40rem) {
   .su-home__band .su-chapter-band__row {
     padding-top: var(--space-64);
   }
 }
 
-@media (min-width: 64rem) {
+@media (width >= 64rem) {
   .su-home__band .su-chapter-band__title {
     flex: none;
   }
@@ -108,7 +108,7 @@
 }
 
 /* A desktop pins the aside to a 20rem sidebar at the right of the index. */
-@media (min-width: 64rem) {
+@media (width >= 64rem) {
   .su-home__body {
     align-items: start;
     column-gap: var(--space-28);
@@ -188,7 +188,7 @@
 /* The touch floor (ruleset §4.6), as theme.css's coarse-pointer rule. A phone
    width takes it too: the pointer query alone flips during a full-page
    capture, so the page was laid out at 44px rows and painted at 36px. */
-@media (pointer: coarse), (max-width: 40rem) {
+@media (pointer: coarse), not (width >= 40rem) {
   .su-contents__row {
     min-height: var(--size-full);
   }
@@ -367,7 +367,7 @@ a.su-home__discord:hover {
   margin: 0;
 }
 
-@media (min-width: 64rem) {
+@media (width >= 64rem) {
   .su-roll-page {
     gap: var(--space-12);
   }
@@ -474,7 +474,7 @@ a.su-home__discord:hover {
   min-width: min(100%, var(--srd-listing-min));
 }
 
-@media (max-width: 40rem) {
+@media not (width >= 40rem) {
   .su-listing__cards[data-entity-fit] > * {
     flex-basis: 100%;
   }
@@ -557,7 +557,7 @@ a.su-home__discord:hover {
 /* On a phone a tile's art is a 2:1 band (`.su-entity-tile__art`,
    the UI library's `entity-forms.css`), not 3:4: 310px a tile at 390px, so
    the reserve and the skeleton's art box take that shape. */
-@media (max-width: 40rem) {
+@media not (width >= 40rem) {
   .su-listing__tiles > li:nth-child(n + 5) {
     contain-intrinsic-size: auto calc(19.375rem + 8px);
   }
@@ -586,7 +586,7 @@ a.su-home__discord:hover {
   padding: var(--space-4);
 }
 
-@media (max-width: 40rem) {
+@media not (width >= 40rem) {
   .su-listing[data-view='tree'] .su-listing__group:nth-child(n + 3) {
     contain-intrinsic-size: auto calc(25rem + 8px);
   }
@@ -820,7 +820,7 @@ a.su-home__discord:hover {
 }
 
 /* Phone: search takes the row, then Filters and Catalog | Tree; the facets open beneath. */
-@media (max-width: 40rem) {
+@media not (width >= 40rem) {
   .su-rail .su-rail__search {
     flex-basis: 100%;
     max-width: none;
@@ -906,7 +906,7 @@ a.su-home__discord:hover {
   min-width: min(100%, 16rem);
 }
 
-@media (max-width: 40rem) {
+@media not (width >= 40rem) {
   .su-ability-tree__row > *,
   .su-class-path__trees > * {
     flex-basis: 100%;
@@ -986,7 +986,7 @@ a.su-home__discord:hover {
   text-transform: uppercase;
 }
 
-@media (min-width: 64rem) {
+@media (width >= 64rem) {
   .su-entity-page--flow:has(.su-class-brief) > .su-entity-page__wide {
     clear: none;
   }
@@ -1090,7 +1090,8 @@ a.su-home__discord:hover {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
 }
 
-/* Side by side (two 16rem columns and their gap fit), the trees share rows:
+/* Side by side (from `sm`, where two 16rem columns and their gap fit), the
+   trees share rows:
    each tree is its slab and three tiers on the trees' own grid, so a
    Legendary tree's two picks and its "or" line up with the three tiers beside
    it and every tree ends on one line. */
@@ -1098,7 +1099,7 @@ a.su-home__discord:hover {
   container-type: inline-size;
 }
 
-@container (min-width: 33.5rem) {
+@container (width >= 40rem) {
   .su-class-path__trees > .su-ability-tree__group {
     display: grid;
     grid-row: span 4;
@@ -1152,7 +1153,7 @@ a.su-home__discord:hover {
   display: none;
 }
 
-@media (min-width: 40rem) {
+@media (width >= 40rem) {
   .su-api__wide-cell {
     display: table-cell;
   }
@@ -1174,7 +1175,7 @@ a.su-home__discord:hover {
   grid-template-columns: none;
 }
 
-@media (min-width: 48rem) {
+@media (width >= 48rem) {
   .su-colophon {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

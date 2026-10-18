@@ -75,7 +75,7 @@
  * spare height goes above the cite band and the licence is one scroll away.
  * The column is positioned (`BaseLayout`); on a long page it sits where it
  * always did. Wider screens keep both rows at the foot of the screen. */
-@media (max-width: 39.99rem) {
+@media not (width >= 40rem) {
   .su-footer__cite + .su-footer__licence {
     inset-inline: 0;
     position: absolute;
@@ -115,7 +115,7 @@
 /* Thumb first (ruleset §4.6): 44px targets under a coarse pointer, and at
  * phone width whatever the pointer, so a phone-sized window never draws the
  * footer's links at 32px. */
-@media (pointer: coarse), (max-width: 40rem) {
+@media (pointer: coarse), not (width >= 40rem) {
   .su-footer__link {
     justify-content: center;
     min-height: var(--size-full);

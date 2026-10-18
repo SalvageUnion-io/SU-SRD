@@ -74,7 +74,7 @@
   background-color: var(--color-ink-85);
 }
 
-@media (min-width: 40rem) {
+@media (width >= 40rem) {
   .su-wiz-chooser-body {
     padding: var(--space-40) var(--space-32);
   }
@@ -116,12 +116,12 @@
   pointer-events: none;
 }
 
-/* The step labels show from 721px. */
+/* The step labels show from `md`. */
 .su-wiz-rail-label {
   display: none;
 }
 
-@media (min-width: 721px) {
+@media (width >= 48rem) {
   .su-wiz-rail-label {
     display: block;
   }
@@ -157,7 +157,7 @@
   width: 100%;
 }
 
-@media (min-width: 40rem) {
+@media (width >= 40rem) {
   .su-wiz-pill {
     align-items: center;
     flex-direction: row;
@@ -183,7 +183,7 @@
   }
 }
 
-@media (min-width: 64rem) {
+@media (width >= 64rem) {
   .su-wiz-body {
     flex-direction: row;
   }
@@ -234,7 +234,7 @@
   grid-template-columns: repeat(1, minmax(0, 1fr));
 }
 
-@media (min-width: 40rem) {
+@media (width >= 40rem) {
   .su-wiz-crew-fields {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -245,7 +245,7 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-@media (min-width: 48rem) {
+@media (width >= 48rem) {
   .su-wiz-scrap-grid {
     grid-template-columns: repeat(6, minmax(0, 1fr));
   }
@@ -256,7 +256,7 @@
   grid-template-columns: repeat(1, minmax(0, 1fr));
 }
 
-@media (min-width: 64rem) {
+@media (width >= 64rem) {
   .su-wiz-review-grid {
     grid-template-columns: 1.1fr 1fr;
   }
@@ -280,7 +280,7 @@
   grid-template-columns: none;
 }
 
-@media (min-width: 40rem) {
+@media (width >= 40rem) {
   .su-wiz-class-path {
     grid-template-columns: minmax(0, 320px) 1fr;
   }

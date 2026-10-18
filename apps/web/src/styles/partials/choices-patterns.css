@@ -11,7 +11,7 @@
   columns: 1;
 }
 
-@media (min-width: 40rem) {
+@media (width >= 40rem) {
   .su-choice-options--split {
     columns: 2;
   }
@@ -62,7 +62,7 @@
   grid-column: 1 / -1;
 }
 
-@media (min-width: 40rem) {
+@media (width >= 40rem) {
   .su-pattern-loadout {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -101,7 +101,7 @@
   row-gap: var(--space-4);
 }
 
-@media (min-width: 40rem) {
+@media (width >= 40rem) {
   .su-entity-token-list--two-up {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -134,7 +134,7 @@
   align-self: stretch;
 }
 
-@media (min-width: 40rem) {
+@media (width >= 40rem) {
   .su-entity-token-line > .su-entity-token {
     flex-basis: 12rem;
   }

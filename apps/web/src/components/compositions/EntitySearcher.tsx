@@ -48,7 +48,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { EntitySchemaName } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
+import { color, font, fontSize, space, tracking, weight, widthAtLeast } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { useDisclosure } from '../../lib/useDisclosure'
 import { useMediaQuery } from '../../lib/useMediaQuery'
@@ -409,7 +409,7 @@ export function EntitySearcher({
  * width: the rail a column or a bar, the Tech level chips inline or folded,
  * and whether an opened Token takes the picker over.
  */
-const WIDE_QUERY = '(min-width: 64rem)'
+const WIDE_QUERY = widthAtLeast('lg')
 
 // Static properties only — every property that changes with the breakpoint
 // lives in the `.su-searcher*` classes (the split rule).

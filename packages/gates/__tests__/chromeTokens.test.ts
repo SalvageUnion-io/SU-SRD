@@ -1,9 +1,10 @@
 import { afterAll, describe, expect, test } from 'bun:test'
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { ratchetCounts } from '../lib/ruleEngine'
-import { chromeTokens, enclosingObject, parseCss, scanChromeSources } from '../rules/chromeTokens'
+import { enclosingObject, parseCss } from '../lib/styleSource'
+import { BREAKPOINT_LADDER, chromeTokens, scanChromeSources } from '../rules/chromeTokens'
 import { Exited, trapExit } from './trapExit'
 
 /**
@@ -233,6 +234,66 @@ describe('motion: tokens/raw-duration, raw-easing, motion-loop', () => {
     )
     expect(css['raw-duration']).toEqual([])
     expect(css['raw-easing']).toEqual([])
+  })
+})
+
+describe('tokens/raw-breakpoint', () => {
+  test('the gate’s ladder is design/tokens.ts’s `breakpoint`', () => {
+    const tokens = readFileSync(
+      join(import.meta.dir, '../../../apps/web/src/design/tokens.ts'),
+      'utf8'
+    )
+    const block = tokens.match(/export const breakpoint = \{([^}]*)\}/)?.[1] ?? ''
+    expect([...block.matchAll(/'([\d.]+rem)'/g)].map((m) => m[1])).toEqual([...BREAKPOINT_LADDER])
+  })
+
+  test('a query off the ladder, a max query or a px container query fails', () => {
+    const css = scan(
+      'apps/web/src/styles/x.css',
+      [
+        '@media (min-width: 40rem) { .a { color: red; } }',
+        '@media (max-width: 39.99rem) { .a { color: red; } }',
+        '@media (width >= 42rem) { .a { color: red; } }',
+        '@container (width >= 414px) { .a { color: red; } }',
+        '@media (width < 40rem) { .a { color: red; } }',
+        '@media (40rem <= width) { .a { color: red; } }',
+      ].join('\n')
+    )
+    expect(lines(css, 'raw-breakpoint')).toEqual([1, 2, 3, 4, 5, 6])
+  })
+
+  test('a rung, its complement, and queries that are not about width pass', () => {
+    const css = scan(
+      'apps/web/src/styles/x.css',
+      [
+        '@media (width >= 40rem) { .a { color: red; } }',
+        '@media not (width >= 64rem) { .a { color: red; } }',
+        '@media (width >= 40rem) and (not (width >= 64rem)) { .a { color: red; } }',
+        '@container card (width >= 80rem) { .a { color: red; } }',
+        '@media (pointer: coarse), not (width >= 48rem) { .a { color: red; } }',
+        '@media print { .a { max-width: 30rem; } }',
+        '@container (width >= 18rem) {',
+        '  /* design-tokens-ignore: a component’s own fit */',
+        '  .a { color: red; }',
+        '}',
+      ].join('\n')
+    )
+    expect(css['raw-breakpoint']).toEqual([])
+  })
+
+  test('a script reads its rung from `breakpoint`', () => {
+    const tsx = scan(
+      'apps/web/src/X.tsx',
+      [
+        "const A = '(min-width: 48rem)'",
+        "const B = '(width >= 64rem)'",
+        "const C = '(max-width: 30rem) 100vw, 16rem'",
+        "const D = widthAtLeast('md')",
+        `const E = \`(width >= ${'$'}{breakpoint.lg}) 560px, 100vw\``,
+        "const F = '(display-mode: standalone)'",
+      ].join('\n')
+    )
+    expect(lines(tsx, 'raw-breakpoint')).toEqual([1, 2, 3])
   })
 })
 

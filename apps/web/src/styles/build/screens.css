@@ -44,7 +44,7 @@ html[data-union-bar-hidden] .su-union-bar {
   text-align: left;
 }
 
-@media (min-width: 40rem) {
+@media (width >= 40rem) {
   .su-front-door__quote {
     text-align: right;
   }

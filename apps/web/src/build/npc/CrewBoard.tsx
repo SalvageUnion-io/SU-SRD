@@ -84,7 +84,7 @@ import { CAPS, COLUMN, COLUMNS, HINT, LIST, NOTE, PENCIL, ROW } from './npcStyle
  * The breakpoint the NPC designer's two columns start at (`styles/npc.css`).
  * Below it the crew slot form opens in a full-height modal (§5).
  */
-const WIDE_QUERY = '(min-width: 48rem)'
+const WIDE_QUERY = tokens.widthAtLeast('md')
 
 /** The Game rule, said where an assignment would be made (D7). */
 const GAME_RULE =

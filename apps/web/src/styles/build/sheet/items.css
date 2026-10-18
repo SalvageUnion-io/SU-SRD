@@ -7,7 +7,7 @@
   --sheet-ctl-h: var(--size-full);
 }
 
-@media (min-width: 40rem) {
+@media (width >= 40rem) {
   .su-sheet-item {
     --sheet-ctl-h: var(--size-compact);
   }
@@ -73,7 +73,7 @@
   gap: var(--space-12);
 }
 
-@media (min-width: 40rem) {
+@media (width >= 40rem) {
   .su-sheet-items {
     gap: var(--space-6);
   }

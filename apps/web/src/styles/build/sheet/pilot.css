@@ -93,12 +93,12 @@
 
 /* — NpcInset — */
 
-/* The id lines split in two from the bay card's `md` (container query). */
+/* The id lines split in two once the bay card is `sm` wide (container query). */
 .su-sheet-npc-lines {
   grid-template-columns: repeat(1, minmax(0, 1fr));
 }
 
-@container (width >= 28rem) {
+@container (width >= 40rem) {
   .su-sheet-npc-lines {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

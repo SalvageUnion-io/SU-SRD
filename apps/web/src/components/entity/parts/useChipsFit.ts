@@ -1,8 +1,9 @@
 import type { RefObject } from 'react'
 import { useEffect } from 'react'
+import { widthAtLeast } from '../../../design/tokens'
 
 /** The width under which the chips may drop (`entity-forms.css`). */
-const PHONE = '(max-width: 40rem)'
+const PHONE = `not ${widthAtLeast('sm')}`
 
 /**
  * The most lines the chips may take beside the name: a compact head

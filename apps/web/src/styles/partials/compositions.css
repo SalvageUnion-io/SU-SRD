@@ -22,7 +22,7 @@
   display: flex;
 }
 
-@container (min-width: 48rem) {
+@container (width >= 48rem) {
   .su-start-here__steps {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }

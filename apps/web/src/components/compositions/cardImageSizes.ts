@@ -1,3 +1,5 @@
+import { widthAtLeast } from '../../design/tokens'
+
 /**
  * The rendered width of the entity-illustration slot, and the `sizes` that
  * describes it.
@@ -31,7 +33,7 @@ export const CARD_IMAGE_CONTAINER_WIDTH = { normal: '220px', compact: '180px' } 
  */
 export function cardImageSizes(compact?: boolean): string {
   const width = compact ? CARD_IMAGE_CONTAINER_WIDTH.compact : CARD_IMAGE_CONTAINER_WIDTH.normal
-  return `(max-width: ${width}) 100vw, ${width}`
+  return `(width >= ${width}) ${width}, 100vw`
 }
 
 /**
@@ -40,5 +42,5 @@ export function cardImageSizes(compact?: boolean): string {
  * width of the column under it. srd's item pages preload with it.
  */
 export function heroImageSizes(): string {
-  return '(min-width: 64rem) 560px, 100vw'
+  return `${widthAtLeast('lg')} 560px, 100vw`
 }

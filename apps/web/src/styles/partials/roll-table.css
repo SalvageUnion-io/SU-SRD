@@ -352,7 +352,7 @@
   font-weight: var(--font-weight-semibold);
 }
 
-@media (min-width: 64rem) {
+@media (width >= 64rem) {
   /*
    * A long or wordy page table (`split`) sets its halves side by side: the
    * first with its ranges on the left edge, the rest with theirs on the right,
