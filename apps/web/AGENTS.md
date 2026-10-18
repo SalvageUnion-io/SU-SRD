@@ -8,15 +8,28 @@ rewrites everything between its markers: amend it here, never inside it.
   work elsewhere in the Cantina does not need it.
 - **This repo uses `bunx`; `npx` is denied.** Run every `npx convex …` the
   block or a vendored skill names as `bunx convex …`.
-- **The vendored skills are the full upstream set** (`get-convex/agent-skills`,
-  all of `skills-lock.json`), in `.claude/skills/` only; there is no
-  `.agents/`. Update them with `bunx skills@latest add get-convex/agent-skills
-  --all --yes --copy` in a scratch directory, then copy its `.claude/skills/`
-  and `skills-lock.json` here; never edit a vendored `SKILL.md` (the lock
-  hashes it). Repo notes go below. Deployments and repairs go through
+- **The vendored skills are a subset** of `get-convex/agent-skills`: the
+  folders in `.claude/skills/`, one per `skills-lock.json` entry; there is no
+  `.agents/`. Skills for things this app does not use (billing, AI agents,
+  domains, components, Sentinel, scaffolding, the transcript upload) are left
+  out; vendor another only when the owner asks.
+- **Updating them:** never `convex ai-files install` (it installs the full
+  set). In a scratch directory run `bunx skills@latest add
+  get-convex/agent-skills --all --yes --copy`, then copy here only the
+  `.claude/skills/` folders and `skills-lock.json` entries already listed, and
+  check that the two still match. Never edit a vendored `SKILL.md` (the lock
+  hashes it); repo notes go below. Deployments and repairs go through
   [convex-ops](../../.claude/skills/convex-ops/SKILL.md).
 
 ### Where a vendored skill meets this repo
+
+- **Hand-offs to skills left out:** a kept skill that defers to `convex-expert`
+  writes the code itself under `convex/_generated/ai/guidelines.md`; one that
+  defers to `convex-advisor` hands perf to `convex-optimize` or `convex-cost`.
+- **Authz** (`convex-authz`, `convex-verify`): the guards are
+  `convex/model/permissions.ts` (`requireUser`, `requireMember`,
+  `requireMediator`, …) on `@convex-dev/auth`; harden with those, never a new
+  `requireIdentity`/`requireOwner`.
 
 - **Tests** (`convex-test`, `convex-verify`, `convex-self-heal`): `convex-test`
   runs under `bun test`, not Vitest. Build it with `testConvex()` from
@@ -33,17 +46,14 @@ rewrites everything between its markers: amend it here, never inside it.
   component is a dependency change.
 - **Docs** (`convex-docs`): the pinned version is the root `catalog:` entry;
   context7 serves its docs.
-- **Errors** (`convex-sentinel`, `convex-monitor`, `convex-insights`): Convex
+- **Errors** (`convex-monitor`, `convex-insights`, `convex-self-heal`): Convex
   errors already reach Workers Issues through the log stream (convex-ops section
   on error reporting); do not add Sentinel.
-- **Adding things** (`convex-add`, `convex-auth`, `convex-agent`,
-  `convex-billing`, `convex-crons`, `convex-domains`, `convex-suggest`,
-  `convex-quickstart`, `convex-create-component`): auth is already
-  `@convex-dev/auth` (`convex/auth.ts`), crons live in `convex/crons.ts`, and
-  nothing is added unless the owner asked for it (root `CLAUDE.md`). A new
-  package follows the root dependency rules: `bun add`, never npm or pnpm.
-- **`convex-improve-convex-plugin`** sends the session transcript to Convex: run
-  it only when the owner asks in so many words.
+- **Adding things** (`convex-add`, `convex-auth`, `convex-crons`): auth is
+  already `@convex-dev/auth` (`convex/auth.ts`), crons live in
+  `convex/crons.ts`, and nothing is added unless the owner asked for it (root
+  `CLAUDE.md`). A new package follows the root dependency rules: `bun add`,
+  never npm or pnpm.
 
 <!-- convex-ai-start -->
 
