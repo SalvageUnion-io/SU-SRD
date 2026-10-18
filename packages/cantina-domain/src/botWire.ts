@@ -253,3 +253,44 @@ export type PostRollRelayRequest = {
 export type PostRollRelayResponse =
   | { ok: true; messageId: string }
   | { ok: false; status: number | null; message: string }
+
+/**
+ * Whether a roll is one the card can replay: a named table and one die (two on
+ * a columns table), each a whole number on the d20. Convex checks it before it
+ * relays (`channelBindings.postRoll`) and the relay again on receipt.
+ */
+export function isPostableRoll(tableName: string, rolls: readonly unknown[]): boolean {
+  return (
+    tableName.trim().length > 0 &&
+    rolls.length >= 1 &&
+    rolls.length <= 2 &&
+    rolls.every((n) => typeof n === 'number' && Number.isInteger(n) && n >= 1 && n <= 20)
+  )
+}
+
+/**
+ * Compare two secrets without leaking their common prefix through timing:
+ * `CANTINA_BOT_SECRET` as Convex's `/bot/*` and the bot's relay each check it.
+ *
+ * Length is compared first and short-circuits, which does leak the secret's
+ * length — that is accepted: a length oracle does not meaningfully narrow a
+ * random secret, whereas a byte-by-byte early exit would.
+ */
+export function secretsMatch(presented: string, expected: string): boolean {
+  if (presented.length !== expected.length) return false
+  let diff = 0
+  for (let i = 0; i < presented.length; i += 1) {
+    diff |= presented.charCodeAt(i) ^ expected.charCodeAt(i)
+  }
+  return diff === 0
+}
+
+/**
+ * Pull the bearer token out of an Authorization header.
+ * Returns null for a missing, malformed, or non-bearer header.
+ */
+export function bearerToken(header: string | null): string | null {
+  if (header === null) return null
+  const match = /^Bearer (.+)$/.exec(header.trim())
+  return match?.[1] ?? null
+}

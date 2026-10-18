@@ -124,14 +124,13 @@ phone form (boards D4 and D5).
 - No-scroll remains a landscape-desktop contract (ADR-038 §9). The phone form
   scrolls inside a unit tab.
 - Browser zoom reaches the phone form, and sooner than the CSS viewport
-  alone would (decision 7), which closes
-  [dashboard.md](../architecture/dashboard.md) §10.3.
+  alone would (decision 7): `isPhoneForm` in `playCanvas.model.ts`
+  ([play.md](../architecture/play.md) §11).
 - The px type scale still ignores the browser's default font size; only
   page zoom moves the floor.
 - A desktop window under about 496px tall gets the phone form instead of a
   squashed canvas.
-- Both forms must render every view-model field. A test renders a
-  `MajorModel` through both (`phoneForm.test.tsx`).
+- Both forms must render every view-model field.
 - The masthead's ⌘K search is not on the Dashboard; its own search is the
   SRD panel (the canvas's SRD tab, the phone's search key).
 - Undo stays unbuilt in both forms (see [combat loop](../ARCHITECTURE.md#combat)). A

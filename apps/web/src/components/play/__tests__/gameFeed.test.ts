@@ -129,9 +129,6 @@ describe('crewLines', () => {
         pilotId: 'rook',
         name: 'Rook',
         self: true,
-        href: '/sheet/pilot/rook',
-        where: 'On foot',
-        vitals: 'HP 10/10 · AP 5/5',
         hp: '10/10',
         ap: '5/5',
         unit: 'On foot · Kettle parked',
@@ -148,9 +145,6 @@ describe('crewLines', () => {
         pilotId: 'vex',
         name: 'Vex',
         self: false,
-        href: '/sheet/pilot/vex',
-        where: 'In Magpie',
-        vitals: 'HP 3/10 · AP 5/5',
         hp: '3/10',
         ap: '5/5',
         unit: 'In Magpie · SP 12/12',
@@ -166,9 +160,6 @@ describe('crewLines', () => {
         pilotId: 'wren',
         name: 'Wren',
         self: false,
-        href: '/sheet/pilot/wren',
-        where: 'On foot',
-        vitals: 'HP 10/10 · AP 5/5',
         hp: '10/10',
         ap: '5/5',
         unit: 'On foot',
@@ -200,7 +191,7 @@ describe('crewLines', () => {
         },
       ],
     }
-    expect(crewLines(blind, [], 'rook')[0]?.vitals).toBe('HP 7 · AP —')
+    expect(crewLines(blind, [], 'rook')[0]).toMatchObject({ hp: '7', ap: '—' })
   })
 
   test('a parked mech that draws the outline says why', () => {
@@ -297,16 +288,17 @@ describe('crewLines', () => {
     expect(boarded).toMatchObject({
       pilotId: 'pregen-pilot',
       self: true,
-      href: '/sheet/pilot/pregen-pilot',
-      where: 'In Starter',
-      vitals: 'HP 6/10 · AP 5/5',
+      hp: '6/10',
+      ap: '5/5',
+      unit: 'In Starter · SP 9/12',
       mech: 'Starter · SP 9/12 · Heat 1/4',
       resolving: 'Pre-gen is resolving Crush',
     })
     expect(onFoot).toMatchObject({
       pilotId: 'pregen-walker',
-      where: 'On foot',
-      vitals: 'HP 10/10 · AP 5/5',
+      hp: '10/10',
+      ap: '5/5',
+      unit: 'On foot · Spare parked',
       mech: 'Spare parked',
       mechAttention: false,
     })

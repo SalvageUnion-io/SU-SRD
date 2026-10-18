@@ -91,8 +91,8 @@ export type ReferenceEntityCardProps = {
   kicker?: string
   /**
    * The light speckle on the header (ruleset §3.5) — on by default. `false`
-   * turns it off for this card and every card nested in it: Play and
-   * tooltips stay flat.
+   * turns it off for this card and every card nested in it: a peek and the
+   * Mediator's SRD explorer stay flat.
    */
   texture?: boolean
   /** The SUMMONING (parent) entity's display name — threaded so a nested

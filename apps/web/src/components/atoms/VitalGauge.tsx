@@ -16,7 +16,6 @@ import { capsLabel } from './capsLabel'
 import { FOCUS_RING } from './interaction'
 import { pipClickValue, segmentLit, statBlockRowStarts, trackSegmentState } from './pipRows'
 import { POSTER_STAMP } from './posterStamp'
-import { Stat } from './Stat'
 import type { ProvenanceLine } from './StatProvenance'
 import { StatProvenance } from './StatProvenance'
 import {
@@ -43,12 +42,6 @@ export type VitalGaugeProps = {
   label: string
   /** Optional muted sub-label after the stamp (e.g. mech-frame 'Structure'). */
   subLabel?: string
-  /**
-   * The track's cap, read beside the stamp as a `Cap | N` Stat chip (ruleset
-   * §3.7: a cap is a `label | value`, so it is a Stat, never bare text). The
-   * `full` rung only; a Heat track passes it (board D4).
-   */
-  cap?: number
   /** Current value. */
   value: number
   /** Track maximum (segment count). */
@@ -255,7 +248,6 @@ const CAPTION_OVERRIDE = {
 export function VitalGauge({
   label,
   subLabel,
-  cap,
   value,
   max,
   onChange,
@@ -463,8 +455,8 @@ export function VitalGauge({
     )
     /*
      * Guided Play teaches as it enforces (ADR-021), so the compact instrument
-     * carries provenance too: this branch must not return before the
-     * override/provenance chrome, or Play drops both props.
+     * carries provenance too when its host passes it: this branch must not
+     * return before the override/provenance chrome, or it drops both props.
      *
      * The trigger is held to the WCAG 2.5.8 24×24px target: as a bare glyph it
      * measured about 10×8px, and stacked gauges sit too close for the spacing
@@ -570,9 +562,6 @@ export function VitalGauge({
             >
               {subLabel}
             </span>
-          )}
-          {cap !== undefined && (
-            <Stat orientation="horizontal" label="Cap" value={cap} size="mini" />
           )}
         </span>
         {/* The numeral sizes below are off-ladder ON PURPOSE, not un-burnt debt:

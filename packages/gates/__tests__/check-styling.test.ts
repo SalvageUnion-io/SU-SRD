@@ -309,9 +309,9 @@ const STYLING_BASE: Record<string, string> = {
   'apps/web/src/styles/base.css': "@import './entry.css';\n",
   'apps/web/src/styles/cantina.css': "@import './styles/print.css';\n",
   'apps/web/src/styles/global.css': "@import './pages.css';\n",
-  'apps/web/src/styles/cantina/dashboard/DashboardCanvas.css': '.su-dash-used { color: red }\n',
+  'apps/web/src/styles/cantina/dashboard/canvas.css': '.su-dash-used { color: red }\n',
   'apps/web/src/styles/cantina/dashboard/instruments.css': '',
-  'apps/web/src/styles/cantina/dashboard/DashboardPhone.css': '',
+  'apps/web/src/styles/cantina/dashboard/phone.css': '',
   'apps/web/src/components/play/Thing.tsx':
     'export const T = () => <div className="su-dash-used" />\n',
 }

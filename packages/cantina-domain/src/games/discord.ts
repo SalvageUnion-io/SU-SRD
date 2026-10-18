@@ -35,7 +35,8 @@ export function postsByDefault(member: Pick<RoleFlags, 'mediator'> | null): bool
  *   - `unbound`: no channel is bound to this Game (or to this person's solo
  *     play), so nothing was posted. Not an error: binding is optional.
  *   - `failed`: a channel is bound and the post did not land. `message` is
- *     fit to show the roller; the binding records it too (`lastPost`).
+ *     fit to show the roller; the failure is also logged
+ *     (`channelBindings.postRoll`).
  */
 export type PostRollResult =
   | { kind: 'posted'; channelId: string; messageId: string }

@@ -112,7 +112,7 @@ export function downtimeStepNames(): string[] {
 
 /**
  * Whether the Downtime step at `stepIndex` is the Upkeep step, read from the
- * Crawler Downtime guide (the same steps `DowntimeWizard` renders). False when
+ * Crawler Downtime guide (the steps Play's Downtime renders). False when
  * Downtime is not running.
  */
 export function isUpkeepStep(stepIndex: number | null): boolean {

@@ -235,7 +235,7 @@ function scanDeadAppCss(c: Corpus): Finding[] {
 //
 // Play's canvas `.su-dash-*` classes (The Cantina's own stylesheets).
 
-const DASHBOARD_CSS_FILES = ['DashboardCanvas.css', 'instruments.css', 'DashboardPhone.css'].map(
+const DASHBOARD_CSS_FILES = ['canvas.css', 'instruments.css', 'phone.css'].map(
   (f) => `${DASHBOARD_DIR}/${f}`
 )
 
@@ -257,7 +257,7 @@ function scanDashContract(c: Corpus): Finding[] {
 
   // USED: exact `su-dash-*` tokens appearing in any .tsx/.ts (incl. tests)
   // repo-wide. Exact-token extraction (not prefix matching) is
-  // load-bearing: `su-dash-display` and `su-dash-display-light` are DIFFERENT
+  // load-bearing: `su-dash-step` and `su-dash-step-num` are DIFFERENT
   // classes, and a prefix match would let one usage falsely "cover" the other.
   //
   // Two precision guards keep this to genuine className references:
@@ -545,7 +545,7 @@ const RULES: OwnershipRule[] = [
     id: 'dash-class-contract',
     mode: 'zero',
     rule: 'source-of-truth §the dashboard class contract is closed and bidirectional',
-    fix: 'used-but-undefined: define the `su-dash-*` class in apps/web/src/styles/cantina/dashboard/*.css (or fix the className typo in the .tsx). defined-but-unused: delete the dead rule, or reference it. Match the EXACT class name — su-dash-display and su-dash-display-light are different classes.',
+    fix: 'used-but-undefined: define the `su-dash-*` class in apps/web/src/styles/cantina/dashboard/*.css (or fix the className typo in the .tsx). defined-but-unused: delete the dead rule, or reference it. Match the EXACT class name — su-dash-step and su-dash-step-num are different classes.',
     scan: scanDashContract,
   },
   {

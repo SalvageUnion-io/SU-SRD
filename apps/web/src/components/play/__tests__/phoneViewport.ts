@@ -4,12 +4,28 @@
  * draws its `phone` form (`isPhoneForm`). happy-dom lays nothing out, so the
  * host's own `clientWidth` (0 there) is stubbed with the window's.
  *
+ * Every reading can be set instead: `hostWidth` reads the host's (and the
+ * document's) `clientWidth` live, for a test whose width moves with the form.
+ *
  * Returns the restore; call it in a `finally` or an `afterEach`.
  */
 
 const WINDOW_PROPS = ['devicePixelRatio', 'innerHeight', 'innerWidth', 'outerWidth'] as const
 
-export function phoneViewport(width = 390, height = 844): () => void {
+export function phoneViewport({
+  width = 390,
+  height = 844,
+  hostWidth = () => width,
+  devicePixelRatio = 1,
+  outerWidth = width,
+}: {
+  /** The window's `innerWidth`. */
+  width?: number
+  height?: number
+  hostWidth?: () => number
+  devicePixelRatio?: number
+  outerWidth?: number
+} = {}): () => void {
   const proto = Object.getPrototypeOf(document.documentElement) as object
   const owner = [proto, HTMLElement.prototype, Element.prototype].find((p) =>
     Object.getOwnPropertyDescriptor(p, 'clientWidth')
@@ -23,14 +39,14 @@ export function phoneViewport(width = 390, height = 844): () => void {
     configurable: true,
     get(this: Element) {
       if (this === document.documentElement || this.classList.contains('su-dash-root')) {
-        return width
+        return hostWidth()
       }
       return clientWidth.get?.call(this)
     },
   })
-  set('devicePixelRatio', 1)
+  set('devicePixelRatio', devicePixelRatio)
   set('innerWidth', width)
-  set('outerWidth', width)
+  set('outerWidth', outerWidth)
   set('innerHeight', height)
 
   return () => {

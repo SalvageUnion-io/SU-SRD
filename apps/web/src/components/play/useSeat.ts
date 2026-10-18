@@ -30,6 +30,7 @@ import type { OptimisticLocalStore } from 'convex/browser'
 import { useMutation, useQuery } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
+import type { ConnectionState } from '../../lib/connection/connectionContext'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { serverMessage } from '../../lib/connection/serverError'
 import { reportWriteFailure } from '../../lib/runWrite'
@@ -133,6 +134,16 @@ export function reportRefusedWrite(err: unknown): void {
   reportWriteFailure(err)
 }
 
+/** Say why a Game write (a seat's, Downtime's) cannot go now: outdated, settling or offline. */
+export function reportBlockedWrite({
+  mode,
+  outdated,
+}: Pick<ConnectionState, 'mode' | 'outdated'>): void {
+  reportWriteFailure(
+    new WritesBlockedOffline(outdated ? 'outdated' : mode === 'connecting' ? 'settling' : 'offline')
+  )
+}
+
 /** Which seat `useSeatAt` reads and writes. */
 export type SeatAddress = {
   /** The Game whose seat it is; null for none (or, with `solo`, the solo seat). */
@@ -207,11 +218,7 @@ export function useSeatAt({ gameId, pilotId, solo }: SeatAddress): SeatHandle {
   ) {
     if (pilotId === null || (gameId === null && !soloSeat)) return
     if (!connectionWrites) {
-      reportWriteFailure(
-        new WritesBlockedOffline(
-          outdated ? 'outdated' : mode === 'connecting' ? 'settling' : 'offline'
-        )
-      )
+      reportBlockedWrite({ mode, outdated })
       return
     }
     write({ gameId, pilotId }).catch(reportRefusedWrite)

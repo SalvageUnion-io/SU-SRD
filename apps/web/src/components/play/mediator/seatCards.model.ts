@@ -26,7 +26,7 @@ export type SeatCard = CrewLine & {
 
 type Member = { userId: string; joinedAt: number }
 
-/** What draws the outline, in words, or null for "Fine" (as `CrewTab` reads it). */
+/** What draws the outline, in words, or null for "Fine" (as Play's Crew reads it, `crew.model`). */
 function problemsOf(line: CrewLine): string[] {
   if (line.problems.length > 0) return line.problems
   if (line.mechAttention && line.mech) return [line.mech]

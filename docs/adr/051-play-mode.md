@@ -20,9 +20,9 @@ Discord channel again (§8).
 
 In detail, from [ADR-038](038-dashboard-game-surface.md):
 
-- **Superseded:** §1, Game-only (Play also runs solo, §4); §3, the Major and
+- **Superseded:** §1, Game-only (Play also runs solo, §4); §3's Major and
   Minor slots (the units stand in one column, live or reference, §2 and §5);
-  §4, the tabbed display (one Actions list, §6, beside Crew, Tables and Feed,
+  §4's tabbed display (one Actions list, §6, beside Crew, Tables and Feed,
   §2); §5's layout sentence (Downtime no longer moves the crawler into Major
   or swaps the deck for the step guide); §6's route (Play replaces
   `/dashboard/$pilotId` and `/mediator/$gameId`).
@@ -31,7 +31,9 @@ In detail, from [ADR-038](038-dashboard-game-surface.md):
 - **Kept:** §2, the seat as the home of play state (mount, range band,
   activated effects, the action being resolved, ejected), keyed on the pilot,
   written only by someone who may write the pilot and read by the crew, the
-  Mediator proposing; §5's rules (a Game's crawler is the Mediator's, boarding
+  Mediator proposing; §3's boarding menu (every mech assigned to the pilot's
+  crawler); §4's crew data (the server derives the crew's numbers and status,
+  nothing stored); §5's rules (a Game's crawler is the Mediator's, boarding
   never assigns); §6, one store and one rules engine behind the sheets and
   Play, and [ADR-007](007-automation-boundary.md)'s boundary; §7, the SRD
   display reused through typed `controls`; §8's materials (flat, hue is
@@ -160,7 +162,7 @@ E18), with their gates; Play adds only where its own frames sit in them:
 ## Consequences
 
 - `/build/dashboard/$pilotId` and `/build/mediator/$gameId` redirect into
-  Play once it covers them, and their slot, frame and tab components go.
+  Play; their slot, frame and tab components are gone.
 - The seat schema changes (optional `gameId`, solo Downtime, `lastSeenAt`), and
   the bot gains a write path to Discord channels.
 - Downtime has one surface for players and Mediators instead of the wizard and

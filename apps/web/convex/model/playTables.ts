@@ -82,7 +82,8 @@ export const playTables = {
      * Each step a pilot has applied or skipped this Downtime
      * (`downtime.claimStep`), so a step's Apply runs once per pilot: Undo,
      * the Mediator's Back and a reload never offer it again. Per pilot, not
-     * per member (a member may run two). Cleared only by a fresh Downtime;
+     * per member (a member may run two). Cleared when a Downtime ends or a
+     * fresh one begins, never by a step change or Undo;
      * absent on a row written before it existed, which reads as none.
      */
     claimed: v.optional(v.array(v.object({ pilotId: v.string(), stepIndex: v.number() }))),

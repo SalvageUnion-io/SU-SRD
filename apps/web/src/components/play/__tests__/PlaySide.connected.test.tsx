@@ -74,7 +74,7 @@ function answers(over: Record<string, unknown> = {}) {
         ts: NOW - 30_000,
         description: 'Mags · Core Mechanic · 20 · Nailed it',
         actorName: 'Mags',
-        source: 'dashboard',
+        source: 'play',
       },
     ],
     'proposals:alerts': [],

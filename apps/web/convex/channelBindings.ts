@@ -1,6 +1,6 @@
 import { getAuthUserId } from '@convex-dev/auth/server'
 import type { PostRollRelayRequest, PostRollRelayResponse } from 'cantina-domain/botWire'
-import { BOT_RELAY_POST_ROLL_PATH } from 'cantina-domain/botWire'
+import { BOT_RELAY_POST_ROLL_PATH, isPostableRoll } from 'cantina-domain/botWire'
 import type { PostRollResult } from 'cantina-domain/games/discord'
 import { mayBindChannel } from 'cantina-domain/games/discord'
 import type { Infer } from 'convex/values'
@@ -178,11 +178,6 @@ export const postTarget = internalQuery({
 /** How long a post may take before it is reported as failed. */
 const RELAY_TIMEOUT_MS = 10_000
 
-/** A die the roll card can replay: a whole number on the d20. */
-function isDie(value: number): boolean {
-  return Number.isInteger(value) && value >= 1 && value <= 20
-}
-
 /**
  * Ask the bot Worker to post one roll card. Every way it can go wrong comes
  * back as `{ ok: false, message }`, worded for the roller: an unset variable,
@@ -256,16 +251,15 @@ export const postRoll = action({
     if (target === null) return { kind: 'unbound' }
 
     const { tableName, rolls } = args.roll
-    const relayed: PostRollRelayResponse =
-      tableName.trim().length === 0 || rolls.length < 1 || rolls.length > 2 || !rolls.every(isDie)
-        ? { ok: false, status: null, message: 'That roll cannot be posted.' }
-        : await relayPostRoll({
-            channelId: target.channelId,
-            tableName,
-            rolls,
-            roller: target.roller,
-            ...(target.ownerDiscordId === null ? {} : { ownerDiscordId: target.ownerDiscordId }),
-          })
+    const relayed: PostRollRelayResponse = !isPostableRoll(tableName, rolls)
+      ? { ok: false, status: null, message: 'That roll cannot be posted.' }
+      : await relayPostRoll({
+          channelId: target.channelId,
+          tableName,
+          rolls,
+          roller: target.roller,
+          ...(target.ownerDiscordId === null ? {} : { ownerDiscordId: target.ownerDiscordId }),
+        })
 
     if (!relayed.ok) {
       // In the Convex log too, so a channel that keeps failing is visible to an

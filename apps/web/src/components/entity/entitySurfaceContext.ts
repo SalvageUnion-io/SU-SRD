@@ -18,7 +18,8 @@ import type { PageRefIndex } from './pageRefs'
  * - `hrefFor(ref)`: the entity's page, where the app has one (the SRD's
  *   routes). A synthetic ref (built from embedded data) never links.
  * - `openPage(ref)`: The Cantina's Page opener (the detail dialog).
- * - `texture`: whether bands wear the speckle; Play turns it off once.
+ * - `texture`: whether bands wear the speckle; a surface that stays flat turns
+ *   it off once.
  * - `linkAs`: the app's router link for a root-relative path (The Cantina's
  *   `SiteLink`, since entity pages are site paths outside its base), so a
  *   link-mode form navigates client-side; an external href stays an `<a>`.

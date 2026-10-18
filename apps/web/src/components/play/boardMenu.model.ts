@@ -1,15 +1,16 @@
 /**
- * What the Board control offers (ADR-038 §3, §5).
+ * The mechs Play offers to board in a Game (`PlayMountRow`, the Units' Board;
+ * ADR-038 §3's boarding menu and §5, kept by ADR-051).
  *
- * The main half boards the pilot's assigned mech (`mech-to-pilot`). The ▾ half
- * lists every mech assigned to the pilot's crawler (`mech-to-crawler`), the
- * pilot's own first; with no crawler it lists only the viewer's own mechs in
- * the Game. Each entry is in one state:
+ * It lists the pilot's assigned mech (`mech-to-pilot`) and every mech assigned
+ * to the pilot's crawler (`mech-to-crawler`), the pilot's own first; with no
+ * crawler it lists only the viewer's own mechs in the Game. Each entry is in
+ * one state:
  *
  *   - **yours:** boards;
  *   - **spare** (unclaimed): "Claim and board", behind a confirm. It claims
  *     through `ownership.claim`, then boards. It draws no `mech-to-pilot` link
- *     (ADR-038 §5), so the main half still names the assigned mech afterwards;
+ *     (ADR-038 §5), so the assigned mech stays the assigned one afterwards;
  *   - **others** (another player's), **destroyed**, **aboard** (another seat is
  *     boarded in it): listed, disabled, with the reason.
  *
@@ -46,15 +47,12 @@ export type BoardSources = {
   } | null
   /**
    * `seats.forGame`: every pilot's mount in the Game, and what they are
-   * resolving (the Crew tab reads that; this menu does not).
+   * resolving (Play's Crew reads that; this menu does not).
    */
   seats: readonly { pilotId: string; mount: SeatMount; resolving?: SeatResolving | null }[]
   /** The signed-in viewer (`account.me`), or null before it arrives. */
   viewerId: string | null
 }
-
-/** Nothing read yet: the menu falls back to the assigned mech alone. */
-export const NO_BOARD_SOURCES: BoardSources = { listing: null, seats: [], viewerId: null }
 
 type BoardState = 'yours' | 'spare' | 'others' | 'destroyed' | 'aboard'
 
@@ -67,13 +65,6 @@ export type BoardOption = {
   state: BoardState
   /** Why it can't be boarded, or that it is a spare; null for your own. */
   note: string | null
-}
-
-export type BoardMenu = {
-  /** The main half: the pilot's assigned mech, or null when it has none. */
-  main: BoardOption | null
-  /** The ▾ half, the pilot's own mech first. */
-  options: BoardOption[]
 }
 
 /** Whether choosing this option does anything: your own boards, a spare is claimed first. */
@@ -121,7 +112,7 @@ export function boardMenu(args: {
   /** The pilot's assigned mech (`mech-to-pilot`) from the local store, if any. */
   assigned: Mech | null
   sources: BoardSources
-}): BoardMenu {
+}): BoardOption[] {
   const { pilotId, assigned, sources } = args
   const { listing, viewerId } = sources
 
@@ -153,9 +144,7 @@ export function boardMenu(args: {
   })
 
   if (listing === null || viewerId === null) {
-    if (assigned === null) return { main: null, options: [] }
-    const main = local(assigned)
-    return { main, options: [main] }
+    return assigned === null ? [] : [local(assigned)]
   }
 
   const crawlerId =
@@ -191,9 +180,6 @@ export function boardMenu(args: {
   }
   const options = ranked.sort((a, b) => a.rank - b.rank).map((r) => r.option)
 
-  if (assigned === null) return { main: null, options }
-  const listedMain = options.find((o) => o.mechId === assigned.id)
-  if (listedMain !== undefined) return { main: listedMain, options }
-  const main = local(assigned)
-  return { main, options: [main, ...options] }
+  if (assigned === null || options.some((o) => o.mechId === assigned.id)) return options
+  return [local(assigned), ...options]
 }

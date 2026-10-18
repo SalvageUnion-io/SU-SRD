@@ -10,7 +10,7 @@
  * band-cream, 5.73:1 on paper), never an ink alpha (contrast.test.ts).
  *
  * The layout shell lives beside this file: `.su-dash-root`/`.su-dash-canvas`
- * (DashboardCanvas.css).
+ * (canvas.css).
  */
 
 /* A scrolling body: the SRD Explorer's panes. */

@@ -18,7 +18,6 @@ import type { Mech } from 'cantina-domain/schemas/mech'
 import { useState } from 'react'
 import {
   canPush,
-  describePushOutcome,
   mechMaxHeat,
   mechMaxSP,
   resolveChassisRef,
@@ -28,7 +27,7 @@ import {
 import {
   describeHeatCheck,
   heatCheckOncePatch,
-  pushPatch,
+  mechPush,
   shutdownTogglePatch,
   VENT_PATCH,
 } from '../../lib/rules/playActions'
@@ -68,17 +67,9 @@ export function PlayReactorRow({ mech, store, rollFor, need, canWrite }: PlayRea
       plainD20s: 1,
       outcome: () => said,
     })
-    const m = fresh()
-    const mcap = mechMaxHeat(m, chassis)
-    const mheat = resolveGauge(m.currentHeat, mcap)
-    if (!canPush(mheat, mcap)) return
-    const { patch, effect, nextHeat, meltdown } = pushPatch({
-      heat: mheat,
-      heatCap: mcap,
-      currentSP: resolvePoolStart(m.currentSP, mechMaxSP(m, chassis)),
-      roll,
-    })
-    const text = describePushOutcome(nextHeat, effect)
+    const pushed = mechPush(fresh(), roll)
+    if (pushed === null) return
+    const { patch, text, meltdown } = pushed
     said = text
     runWrite(
       () => store.update('mech', mech.id, patch, PLAY_TXN),

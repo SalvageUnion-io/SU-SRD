@@ -91,7 +91,7 @@ describe('EntityCardHeader — two fills', () => {
     expect(rule('.su-ec-band__numeral')).toContain('opacity: 0.75')
   })
 
-  test('no grain when the card asks for none (Play, a tooltip)', () => {
+  test('no grain when the card asks for none (a peek, the SRD explorer)', () => {
     render(
       <EntityCardHeader
         title="Salvaging Drill"

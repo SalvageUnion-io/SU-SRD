@@ -50,7 +50,7 @@ const RESOLVING = {
 
 type PlayCrewProps = {
   gameId: string
-  /** The pilot this screen plays: left out of the list. '' lists everyone (the Mediator). */
+  /** The pilot this screen plays: left out of the list. */
   selfPilotId: string
   /** `crew.vitals`; null until it arrives. */
   crew: CrewVitals | null

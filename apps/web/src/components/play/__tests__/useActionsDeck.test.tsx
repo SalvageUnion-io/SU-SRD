@@ -15,7 +15,6 @@
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Mech } from 'cantina-domain/schemas/mech'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
 import type { SeatResolving } from 'cantina-domain/schemas/seat'
 import { useState } from 'react'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
@@ -42,22 +41,10 @@ import { PlayResolveSteps } from '../PlayResolveSteps'
 import type { PlayStore } from '../play.model'
 import type { ActionsDeckProps, ResolveModel } from '../useActionsDeck'
 import { useActionsDeck } from '../useActionsDeck'
+import type { StoreCall as Call } from './stubStore'
+import { stubStore } from './stubStore'
 
 beforeAll(hydrateStores)
-
-type Call = { type: string; id: string; patch: Record<string, unknown> }
-
-function stubStore(entity: Mech | Pilot): { store: PlayStore; calls: Call[] } {
-  const calls: Call[] = []
-  const store: PlayStore = makeEntityStoreMock({
-    get: (_type, id) => (id === entity.id ? entity : null),
-    update: async (type, id, patch) => {
-      calls.push({ type, id, patch })
-      return entity
-    },
-  }).getState()
-  return { store, calls }
-}
 
 let costedSystemId = ''
 /** A system with a variable-Hot ('X') action → drives the Hot(X) stepper test. */
@@ -170,16 +157,14 @@ function ActionsDeck({
           </button>
           <PlayResolveSteps view={view} canWrite />
         </>
-      ) : (
+      ) : view.kind === 'orphan' ? (
         <p>
           {view.text}
-          {view.onClear && (
-            <button type="button" onClick={view.onClear}>
-              Clear
-            </button>
-          )}
+          <button type="button" onClick={view.onClear}>
+            Clear
+          </button>
         </p>
-      )}
+      ) : null}
     </>
   )
 }
@@ -594,7 +579,7 @@ describe('the resolve on the seat', () => {
     expect(written[2]?.roll?.roll).toBeGreaterThanOrEqual(1)
     expect(written[2]).toMatchObject({ ref: key, activated: true, applied: false })
     expect(written[3]).toBeNull()
-    expect(screen.getByText('Choose an action to resolve it here.')).toBeTruthy()
+    expect(screen.queryByText('Cancel')).toBeNull()
   })
 
   test('a reload mid-resolve keeps the roll: the seat reopens the action on it', () => {

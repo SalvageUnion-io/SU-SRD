@@ -19,13 +19,12 @@ import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { mechMaxHeat, pilotMaxAP, resolveChassisRef } from 'salvageunion-reference/rules'
 import { itemEconomy, resolveModule, resolveSystem } from '../../../lib/rules/mechItems'
 import { buildMechActions, hasCurrencyChoice, VENT_PATCH } from '../../../lib/rules/playActions'
-import type { ChangeMeta } from '../../../stores/entityStore'
 import { PLAY_TXN } from '../../../stores/surfaceProvenance'
 import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
-import type { PlayStore } from '../play.model'
 import type { PlayRoll } from '../playRolls.model'
+import type { Write } from './playActionsHarness'
+import { stubStore } from './stubStore'
 
 const convexMocks = await installConvexMocks()
 setQueryAnswers({ 'account:me': null })
@@ -33,9 +32,6 @@ setQueryAnswers({ 'account:me': null })
 const { hydrateStores } = await import('../../__tests__/hydrateStores')
 const { Harness } = await import('./playActionsHarness')
 const { onPlayRoll } = await import('../playRolls.model')
-
-type Write = { name: string; args?: unknown }
-type Call = { type: string; id: string; patch: Record<string, unknown>; meta?: ChangeMeta }
 
 let costedSystem = ''
 let epApModule: { id: string; actionName: string } | null = null
@@ -112,18 +108,6 @@ function makePilot(overrides: Partial<Pilot> = {}): Pilot {
   })
 }
 
-function stubStore(...entities: (Mech | Pilot)[]): { store: PlayStore; calls: Call[] } {
-  const calls: Call[] = []
-  const store: PlayStore = makeEntityStoreMock({
-    get: (_type, id) => entities.find((e) => e.id === id) ?? null,
-    update: async (type, id, patch, meta) => {
-      calls.push({ type, id, patch, meta })
-      return entities.find((e) => e.id === id) ?? null
-    },
-  }).getState()
-  return { store, calls }
-}
-
 async function click(element: Element) {
   await act(async () => {
     fireEvent.click(element)
@@ -147,7 +131,7 @@ function renderBoarded(
 ) {
   const mech = opts.mech ?? makeMech()
   const pilot = makePilot()
-  const { store, calls } = stubStore(mech, pilot)
+  const { store, calls, metas } = stubStore(mech, pilot)
   const writes = opts.writes ?? []
   render(
     <Harness
@@ -159,7 +143,7 @@ function renderBoarded(
       initialResolving={opts.initialResolving ?? null}
     />
   )
-  return { calls, writes, mech, pilot }
+  return { calls, metas, writes, mech, pilot }
 }
 
 describe('the list', () => {
@@ -274,14 +258,14 @@ describe('Use: the resolve, in the Row', () => {
   })
 
   test('Activate writes the EP spend through the store', async () => {
-    const { calls } = renderBoarded()
+    const { calls, metas } = renderBoarded()
     await click(use(primary().name))
     await click(screen.getByRole('button', { name: /^Activate/ }))
     expect(calls).toHaveLength(1)
     expect(calls[0]?.type).toBe('mech')
     expect(calls[0]?.patch.currentEP).toBe(Math.max(0, 6 - primary().epCost))
     // Play's own Change Log tag.
-    expect(calls[0]?.meta).toEqual(PLAY_TXN)
+    expect(metas[0]).toEqual(PLAY_TXN)
     expect(screen.getByRole('button', { name: 'Activated ✓' })).toBeTruthy()
   })
 

@@ -137,7 +137,7 @@ describe('the Feed (play.md §8)', () => {
     ts,
     description,
     actorName: 'Someone',
-    source: 'dashboard',
+    source: 'play',
   })
   const alert: AlertLine = { _id: 'a1', message: 'Storm incoming', ts: 250 }
 

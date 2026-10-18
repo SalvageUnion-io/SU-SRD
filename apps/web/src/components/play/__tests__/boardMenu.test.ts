@@ -1,12 +1,12 @@
 /**
- * What the Board control offers (ADR-038 §3, §5): one test per disabled reason, the order, and the edge
- * states (no assigned mech, assigned mech destroyed, no crawler).
+ * The mechs Play offers to board (ADR-038 §3's boarding menu, §5): one test per disabled reason, the
+ * order, and the edge states (no assigned mech, assigned mech destroyed, no crawler).
  */
 
 import { describe, expect, test } from 'bun:test'
 import { mechFixture } from '../../__tests__/fixtures'
 import type { BoardSources, CrewLink, CrewRow } from '../boardMenu.model'
-import { boardable, boardMenu, NO_BOARD_SOURCES } from '../boardMenu.model'
+import { boardable, boardMenu } from '../boardMenu.model'
 
 const ME = 'user-me'
 const VEX_OWNER = 'user-vex'
@@ -26,6 +26,9 @@ const crew = [link('pilot-to-crawler', 'rook', 'hen'), link('pilot-to-crawler', 
 const onHen = (...ids: string[]) => ids.map((id) => link('mech-to-crawler', id, 'hen'))
 
 const assigned = mechFixture({ id: 'thresher', name: 'thresher' })
+
+/** Nothing read yet: the menu falls back to the assigned mech alone. */
+const NO_BOARD_SOURCES: BoardSources = { listing: null, seats: [], viewerId: null }
 
 function sources(
   mechs: CrewRow[],
@@ -47,7 +50,7 @@ function menuFor(mechs: CrewRow[], extra: Parameters<typeof sources>[1] = {}, me
 }
 
 function option(menu: ReturnType<typeof boardMenu>, mechId: string) {
-  const found = menu.options.find((o) => o.mechId === mechId)
+  const found = menu.find((o) => o.mechId === mechId)
   if (found === undefined) throw new Error(`${mechId} is not listed`)
   return found
 }
@@ -101,14 +104,14 @@ describe('what is listed, and in what order', () => {
       row('mine-too', ME),
       row('thresher', ME),
     ])
-    expect(menu.options.map((o) => o.mechId)).toEqual(['thresher', 'mine-too', 'hauler', 'spare'])
+    expect(menu.map((o) => o.mechId)).toEqual(['thresher', 'mine-too', 'hauler', 'spare'])
   })
 
   test('a mech on another crawler is not listed', () => {
     const menu = menuFor([row('thresher', ME), row('elsewhere', ME)], {
       links: [...crew, ...onHen('thresher'), link('mech-to-crawler', 'elsewhere', 'other')],
     })
-    expect(menu.options.map((o) => o.mechId)).toEqual(['thresher'])
+    expect(menu.map((o) => o.mechId)).toEqual(['thresher'])
   })
 
   test('with no crawler, only your own mechs are listed', () => {
@@ -116,42 +119,41 @@ describe('what is listed, and in what order', () => {
       [row('thresher', ME), row('mine-too', ME), row('hauler', VEX_OWNER), row('spare', null)],
       { links: [] }
     )
-    expect(menu.options.map((o) => o.mechId)).toEqual(['thresher', 'mine-too'])
+    expect(menu.map((o) => o.mechId)).toEqual(['thresher', 'mine-too'])
   })
 })
 
-describe('the main half', () => {
-  test('boards the assigned mech', () => {
-    expect(menuFor([row('thresher', ME)]).main).toMatchObject({
+describe('the assigned mech', () => {
+  test('is listed first', () => {
+    expect(menuFor([row('thresher', ME)])[0]).toMatchObject({
       mechId: 'thresher',
       state: 'yours',
     })
   })
 
-  test('no assigned mech: no main half, and ▾ still lists the crawler’s mechs', () => {
+  test('no assigned mech: the crawler’s mechs are still listed', () => {
     const menu = boardMenu({
       pilotId: 'rook',
       assigned: null,
       sources: sources([row('spare', null), row('mine', ME)]),
     })
-    expect(menu.main).toBeNull()
-    expect(menu.options.map((o) => o.mechId)).toEqual(['mine', 'spare'])
+    expect(menu.map((o) => o.mechId)).toEqual(['mine', 'spare'])
   })
 
-  test('assigned mech destroyed: the main half carries the reason, and ▾ still offers spares', () => {
+  test('assigned mech destroyed: it carries the reason, and spares are still offered', () => {
     const menu = menuFor([row('thresher', ME, { destroyed: true }), row('spare', null)])
-    expect(menu.main).toMatchObject({ state: 'destroyed', note: 'Destroyed' })
+    expect(option(menu, 'thresher')).toMatchObject({ state: 'destroyed', note: 'Destroyed' })
     expect(boardable(option(menu, 'spare'))).toBe(true)
   })
 
   test('before the Game answers, the assigned mech alone, from the local store', () => {
     const menu = boardMenu({ pilotId: 'rook', assigned, sources: NO_BOARD_SOURCES })
-    expect(menu.main).toMatchObject({ mechId: 'thresher', state: 'yours', serverId: null })
-    expect(menu.options).toHaveLength(1)
+    expect(menu).toHaveLength(1)
+    expect(menu[0]).toMatchObject({ mechId: 'thresher', state: 'yours', serverId: null })
 
     const wreck = { ...assigned, destroyed: true }
     expect(
-      boardMenu({ pilotId: 'rook', assigned: wreck, sources: NO_BOARD_SOURCES }).main
+      boardMenu({ pilotId: 'rook', assigned: wreck, sources: NO_BOARD_SOURCES })[0]
     ).toMatchObject({ state: 'destroyed' })
   })
 })

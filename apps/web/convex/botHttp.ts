@@ -1,5 +1,5 @@
 import type { BotOpName } from 'cantina-domain/botWire'
-import { BOT_OP_NAMES, BOT_PATH_PREFIX } from 'cantina-domain/botWire'
+import { BOT_OP_NAMES, BOT_PATH_PREFIX, bearerToken, secretsMatch } from 'cantina-domain/botWire'
 import { internal } from './_generated/api'
 import { httpAction } from './_generated/server'
 
@@ -60,36 +60,11 @@ function isMutationOp(op: BotOpName): op is keyof typeof MUTATIONS {
 
 /**
  * Every operation name, for tests and for the 404 body: the bot's own list
- * (`cantina-domain/botWire`), which `QUERIES` must cover exactly. Typed
+ * (`cantina-domain/botWire`), which `QUERIES` and `MUTATIONS` together must
+ * cover exactly. Typed
  * `readonly string[]` so a path segment can be looked up in it.
  */
 export const BOT_OPS: readonly string[] = BOT_OP_NAMES
-
-/**
- * Compare two secrets without leaking their common prefix through timing.
- *
- * Length is compared first and short-circuits, which does leak the secret's
- * length — that is accepted: a length oracle does not meaningfully narrow a
- * random secret, whereas a byte-by-byte early exit would.
- */
-export function secretsMatch(presented: string, expected: string): boolean {
-  if (presented.length !== expected.length) return false
-  let diff = 0
-  for (let i = 0; i < presented.length; i += 1) {
-    diff |= presented.charCodeAt(i) ^ expected.charCodeAt(i)
-  }
-  return diff === 0
-}
-
-/**
- * Pull the bearer token out of an Authorization header.
- * Returns null for a missing, malformed, or non-bearer header.
- */
-export function bearerToken(header: string | null): string | null {
-  if (header === null) return null
-  const match = /^Bearer (.+)$/.exec(header.trim())
-  return match?.[1] ?? null
-}
 
 /** The op named by a `/bot/<op>` path, or null when the path names none. */
 export function opFromPath(pathname: string): BotOpName | null {

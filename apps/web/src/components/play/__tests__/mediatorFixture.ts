@@ -7,59 +7,10 @@
 
 import type { Id } from '../../../../convex/_generated/dataModel'
 import type { CrewVitals } from '../useGameFeed'
+import { calm, crewMech, crewPilot } from './crewRows'
 
-const calm = { dead: false, injured: false, ejected: false }
-const sound = {
-  destroyed: false,
-  shutdown: false,
-  overheating: false,
-  destroyedSystems: [],
-  destroyedModules: [],
-}
-
-type Pilot = CrewVitals['pilots'][number]
-type Mech = CrewVitals['mechs'][number]
-
-function pilot(id: string, name: string, owner: string | null, over: Partial<Pilot>): Pilot {
-  return {
-    _id: `row-${id}` as Id<'pilots'>,
-    appId: id,
-    linkId: id,
-    ownerId: owner as Id<'users'> | null,
-    ownerName: owner,
-    name,
-    currentHP: 10,
-    currentAP: 5,
-    maxHP: 10,
-    maxAP: 5,
-    boarded: false,
-    mechId: null,
-    status: calm,
-    attention: false,
-    lastSeenAt: null,
-    ...over,
-  }
-}
-
-function mech(id: string, name: string, owner: string, over: Partial<Mech> = {}): Mech {
-  return {
-    _id: `row-${id}` as Id<'mechs'>,
-    appId: id,
-    linkId: id,
-    ownerId: owner as Id<'users'>,
-    ownerName: owner,
-    name,
-    currentSP: 20,
-    currentEP: 6,
-    currentHeat: 0,
-    maxSP: 20,
-    maxEP: 6,
-    maxHeat: 10,
-    status: sound,
-    attention: false,
-    ...over,
-  }
-}
+const pilot = crewPilot
+const mech = crewMech
 
 /** The table at `now`: three beat a moment ago, Wren an hour ago. */
 export function mediatorCrewAt(now: number): CrewVitals {

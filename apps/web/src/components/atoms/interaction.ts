@@ -47,20 +47,6 @@ export const INPUT_FOCUS = 'su-input-focus'
  */
 export const FOCUS_WITHIN = 'su-focus-within'
 
-/**
- * The ON-TONE rung: an ink ring with a paper offset, for a focusable surface
- * whose own background is an arbitrary ENTITY TONE rather than paper — a
- * clickable entity card can be pale pilot or near-black `tl-6`, and the old
- * 25%-alpha rust ring simply disappeared against the dark end of that ramp.
- * Since the canonical ring went ink it draws the same ring.
- *
- * This is a real exception, not drift, so it is named instead of inlined: the
- * ring is the accessibility affordance, and a rung that vanishes on a legal
- * background is not one. Reach for it ONLY when the background is caller-supplied
- * tone; everything sitting on paper uses `FOCUS_RING`.
- */
-export const FOCUS_RING_ON_TONE = 'su-focus-ring-on-tone'
-
 /** The canonical disabled treatment (opacity + no pointer events). */
 export const DISABLED = 'su-disabled'
 

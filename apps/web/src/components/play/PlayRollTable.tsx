@@ -3,7 +3,7 @@ import { useState } from 'react'
 import type { RefObjectTable } from 'salvageunion-reference'
 import { plainTraitText, resultForColumnsTable, resultForTable } from 'salvageunion-reference'
 import { dieForTable, rollD20 } from '../../lib/rollTableDice'
-import type { RollTableTitleSelect, RollTableType } from '../index'
+import type { RollTableType } from '../index'
 import {
   Button,
   digestColumnsTable,
@@ -25,7 +25,7 @@ type Landed =
   | { kind: 'columns'; column: string; entry: string; text: string }
 
 /**
- * Play's roll table (the Tables column, a Downtime step): the shared
+ * Play's roll table (the Tables column): the shared
  * `RollTableInstrument` (EDL E14), as every card and SRD page draws it, banded
  * in the surface's `tone`. This file is only the host: the dice, the toast, the
  * Game log hand-off and the Copy of the last result.
@@ -37,24 +37,21 @@ type Landed =
  *   (Callsign) rolls two plain d20s: the column, then the entry.
  * - Every roll is a toast (`toastRoll`) and is handed to `onRollResult`, which
  *   Play records on its roll log (ruleset §1.3).
- * - `titleSelect` makes the bar's title the trigger of the host's table picker.
  */
 export function PlayRollTable({
   table,
   name,
   size = 'full',
   tone,
-  titleSelect,
   onRollResult,
 }: {
   table: RollTableType
   /** The table's name: the bar's title, the toast's, and its die. */
   name: string
-  /** `full` reads a table on its own; `mini` sits in a Downtime step. */
+  /** `full` reads a table on its own; `mini` is the Tables column's. */
   size?: 'full' | 'mini'
   /** The surface's tone (a CSS colour), whose band paints every other row. */
   tone?: string
-  titleSelect?: RollTableTitleSelect
   /**
    * Called with the outcome's text, its roll key and the dice (one d20, or the
    * column's and the entry's for a COLUMNS table) on every roll.
@@ -112,7 +109,6 @@ export function PlayRollTable({
     <RollTableInstrument
       name={name}
       title={name}
-      titleSelect={titleSelect}
       size={size}
       tone={tone}
       stamp={isColumns ? 'Roll twice:' : undefined}

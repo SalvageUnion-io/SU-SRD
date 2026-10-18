@@ -16,7 +16,7 @@ Why: [ADR-030, 034, 035](../../docs/ARCHITECTURE.md#decisions).
 
 | Mode | When | Source of truth |
 | --- | --- | --- |
-| **Solo** | not signed in, in **every** build | nothing: **read-only** — writes refused (`signedOut`); no Dashboard |
+| **Solo** | not signed in, in **every** build | nothing: **read-only** — writes refused (`signedOut`); no Play |
 | **Connected** | signed in, online | Convex; the stores hold its rows in memory |
 | **Disconnected** | signed in, offline | read-only: what is on screen stays; not a write queue |
 | **Outdated** | bundle below `build.floor` | read-only until it reloads |

@@ -178,45 +178,6 @@
   text-transform: uppercase;
 }
 
-.su-roll__title-select {
-  align-items: center;
-  background-color: transparent;
-  border: var(--bw-hairline) solid var(--color-paper-70);
-  border-radius: var(--radius-badge);
-  color: inherit;
-  cursor: pointer;
-  display: inline-flex;
-  font: inherit;
-  gap: var(--space-6);
-  letter-spacing: inherit;
-  max-width: 100%;
-  min-height: 2rem;
-  padding: var(--space-2) var(--space-8);
-  text-align: left;
-  /* A button resets `text-transform`; the title is caps. */
-  text-transform: inherit;
-}
-
-.su-roll__title-select:hover {
-  background-color: var(--color-paper-15);
-  border-color: var(--color-paper);
-}
-
-@media (pointer: coarse) {
-  .su-roll__title-select {
-    min-height: 44px;
-  }
-}
-
-.su-roll__title-chevron {
-  flex: none;
-  transition: rotate 150ms ease;
-}
-
-.su-roll__title-chevron[data-open] {
-  rotate: 180deg;
-}
-
 .su-roll__hint {
   color: var(--color-paper-85);
   flex: 1 1 8rem;

@@ -313,9 +313,9 @@ describe('crew.vitals keys a template pre-gen by its link id', () => {
     const own = lines[0]
     expect(own?.pilotId).toBe(pilotId)
     expect(own?.self).toBe(true)
-    expect(own?.href).toBe(`/sheet/pilot/${pilotId}`)
-    expect(own?.where).toBe(`In ${mech?.name}`)
-    expect(own?.vitals).toMatch(/^HP \d+\/\d+ · AP \d+\/\d+$/)
+    expect(own?.unit).toMatch(new RegExp(`^In ${mech?.name} · SP \\d+/\\d+$`))
+    expect(own?.hp).toMatch(/^\d+\/\d+$/)
+    expect(own?.ap).toMatch(/^\d+\/\d+$/)
     expect(own?.mech).toMatch(/ · SP \d+\/\d+ · Heat \d+\/\d+$/)
   })
 })

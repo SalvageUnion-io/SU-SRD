@@ -115,8 +115,7 @@ const RETIRED_COLUMNS = [
 /**
  * One-off repair, run once on production after the release deploys: clears the
  * retired columns from every invite and empties `joinRequests` and
- * `inviteRedemptions`, so a later schema change can drop them.
- * `channelBindings` is live again (`/su bind`), so it is left alone. Reports what it
+ * `inviteRedemptions`, so a later schema change can drop them. Reports what it
  * would change unless passed `{ apply: true }`. Deleted with that schema change.
  * The addressed-invite fields (`target`, `declinedAt`, `delivery`,
  * `sourceInteractionId`) stay until the last addressed invite has expired.

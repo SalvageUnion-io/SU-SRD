@@ -314,12 +314,6 @@ describe('/play/$pilotId', () => {
     await mountAt('/play/p1')
     expect(await screen.findByText('Play gate for p1')).toBeTruthy()
   })
-
-  test('the retired /dashboard/$pilotId lands there, keeping the id', async () => {
-    const router = await mountAt('/dashboard/p1')
-    expect(await screen.findByText('Play gate for p1')).toBeTruthy()
-    expect(at(router).pathname).toBe('/play/p1')
-  })
 })
 
 describe('/play/game/$gameId', () => {

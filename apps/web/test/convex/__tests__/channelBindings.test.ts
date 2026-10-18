@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { api, internal } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import type { Ctx, User } from '../fixtures'
-import { addPilot, makeUser } from '../fixtures'
+import { addPilot, makeUser, seedTable } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
@@ -15,16 +15,6 @@ import { testConvex } from '../harness'
  * over a channel. `postRoll` reaches Discord through the bot Worker's relay,
  * which is `fetch` here.
  */
-
-/** A Game whose Organiser (`organizer`, who runs it while it has no Mediator) and player both have Discord. */
-async function seedDiscordTable(t: Ctx) {
-  const organizer = await makeUser(t, 'Organizer', 'd-org')
-  const player = await makeUser(t, 'Player', 'd-player')
-  const gameId = await organizer.as.mutation(api.games.create, { name: 'Tenacity' })
-  const code = await organizer.as.mutation(api.invites.link, { gameId })
-  await player.as.mutation(api.invites.redeem, { code })
-  return { organizer, player, gameId }
-}
 
 async function bind(
   t: Ctx,
@@ -53,7 +43,7 @@ async function bindings(t: Ctx) {
 describe('/su bind', () => {
   test('the Organiser binds a channel to the Game', async () => {
     const t = testConvex()
-    const { gameId } = await seedDiscordTable(t)
+    const { gameId } = await seedTable(t, { discord: true })
     expect(await bind(t, 'd-org', 'chan-1', gameId)).toEqual({
       ok: true,
       binding: { channelId: 'chan-1', channelName: null, gameId, gameName: 'Tenacity' },
@@ -64,7 +54,7 @@ describe('/su bind', () => {
 
   test('the Mediator binds a channel to the Game', async () => {
     const t = testConvex()
-    const { organizer, player, gameId } = await seedDiscordTable(t)
+    const { organizer, player, gameId } = await seedTable(t, { discord: true })
     await organizer.as.mutation(api.games.setMediator, {
       gameId,
       userId: player.userId,
@@ -75,7 +65,7 @@ describe('/su bind', () => {
 
   test('a player who neither mediates nor organises is refused', async () => {
     const t = testConvex()
-    const { gameId } = await seedDiscordTable(t)
+    const { gameId } = await seedTable(t, { discord: true })
     expect(await bind(t, 'd-player', 'chan-1', gameId)).toMatchObject({
       ok: false,
       reason: 'forbidden',
@@ -85,7 +75,7 @@ describe('/su bind', () => {
 
   test('a Game the caller is not in is not-found, whatever its id', async () => {
     const t = testConvex()
-    const { gameId } = await seedDiscordTable(t)
+    const { gameId } = await seedTable(t, { discord: true })
     await makeUser(t, 'Stranger', 'd-stranger')
     expect(await bind(t, 'd-stranger', 'chan-1', gameId)).toMatchObject({
       ok: false,
@@ -99,7 +89,7 @@ describe('/su bind', () => {
 
   test('a Game name typed by hand finds the caller’s Game', async () => {
     const t = testConvex()
-    const { gameId } = await seedDiscordTable(t)
+    const { gameId } = await seedTable(t, { discord: true })
     expect(await bind(t, 'd-org', 'chan-1', 'tenacity')).toMatchObject({
       ok: true,
       binding: { gameId },
@@ -113,7 +103,7 @@ describe('/su bind', () => {
 
   test('with no Game, anyone binds their own solo play', async () => {
     const t = testConvex()
-    await seedDiscordTable(t)
+    await seedTable(t, { discord: true })
     expect(await bind(t, 'd-player', 'chan-solo')).toEqual({
       ok: true,
       binding: { channelId: 'chan-solo', channelName: null, gameId: null, gameName: null },
@@ -124,7 +114,7 @@ describe('/su bind', () => {
 
   test('binding again moves the binding: one channel per Game, one per person', async () => {
     const t = testConvex()
-    const { gameId } = await seedDiscordTable(t)
+    const { gameId } = await seedTable(t, { discord: true })
     await bind(t, 'd-org', 'chan-1', gameId)
     expect(await bind(t, 'd-org', 'chan-2', gameId)).toMatchObject({
       ok: true,
@@ -140,7 +130,7 @@ describe('/su bind', () => {
 
   test('binding a channel to what it already holds changes nothing', async () => {
     const t = testConvex()
-    const { gameId } = await seedDiscordTable(t)
+    const { gameId } = await seedTable(t, { discord: true })
     await bind(t, 'd-org', 'chan-1', gameId)
     expect(await bind(t, 'd-org', 'chan-1', gameId)).toMatchObject({
       ok: true,
@@ -151,7 +141,7 @@ describe('/su bind', () => {
 
   test('the channel’s name is kept, without its #, and a rebind after a rename updates it', async () => {
     const t = testConvex()
-    const { organizer, gameId } = await seedDiscordTable(t)
+    const { organizer, gameId } = await seedTable(t, { discord: true })
     expect(await bind(t, 'd-org', 'chan-1', gameId, ' #salvage-run ')).toMatchObject({
       ok: true,
       binding: { channelId: 'chan-1', channelName: 'salvage-run' },
@@ -175,7 +165,7 @@ describe('/su bind', () => {
 
   test('a solo binding keeps its name too; a blank one is none', async () => {
     const t = testConvex()
-    const { player } = await seedDiscordTable(t)
+    const { player } = await seedTable(t, { discord: true })
     await bind(t, 'd-player', 'solo-1', undefined, '   ')
     expect((await player.as.query(api.channelBindings.current, {}))?.channelName).toBeNull()
     await bind(t, 'd-player', 'solo-2', undefined, 'my-salvage')
@@ -187,7 +177,7 @@ describe('/su bind', () => {
 
   test('a channel somebody else holds cannot be taken over', async () => {
     const t = testConvex()
-    const { gameId } = await seedDiscordTable(t)
+    const { gameId } = await seedTable(t, { discord: true })
     await bind(t, 'd-org', 'chan-1', gameId)
     // The player binding their solo play into the Game's channel.
     expect(await bind(t, 'd-player', 'chan-1')).toMatchObject({
@@ -208,7 +198,7 @@ describe('/su bind', () => {
 
   test('whoever could unbind a channel may rebind it to something else', async () => {
     const t = testConvex()
-    const { gameId } = await seedDiscordTable(t)
+    const { gameId } = await seedTable(t, { discord: true })
     await bind(t, 'd-org', 'chan-1', gameId)
     expect(await bind(t, 'd-org', 'chan-1')).toMatchObject({ ok: true })
     expect(await bindings(t)).toEqual([{ channelId: 'chan-1', gameId: null }])
@@ -218,7 +208,7 @@ describe('/su bind', () => {
 describe('/su unbind', () => {
   test('the Organiser unbinds the Game’s channel; a player cannot', async () => {
     const t = testConvex()
-    const { gameId } = await seedDiscordTable(t)
+    const { gameId } = await seedTable(t, { discord: true })
     await bind(t, 'd-org', 'chan-1', gameId)
     expect(await unbind(t, 'd-player', 'chan-1')).toMatchObject({
       ok: false,
@@ -233,7 +223,7 @@ describe('/su unbind', () => {
 
   test('only its owner unbinds a solo channel', async () => {
     const t = testConvex()
-    await seedDiscordTable(t)
+    await seedTable(t, { discord: true })
     await bind(t, 'd-player', 'solo-1')
     expect(await unbind(t, 'd-org', 'solo-1')).toMatchObject({ ok: false, reason: 'forbidden' })
     expect(await unbind(t, 'd-player', 'solo-1')).toMatchObject({ ok: true })
@@ -241,7 +231,7 @@ describe('/su unbind', () => {
 
   test('a channel with nothing bound is already unbound', async () => {
     const t = testConvex()
-    await seedDiscordTable(t)
+    await seedTable(t, { discord: true })
     expect(await unbind(t, 'd-player', 'chan-x')).toEqual({ ok: true, unbound: null })
   })
 })
@@ -249,7 +239,7 @@ describe('/su unbind', () => {
 describe('reading the bindings', () => {
   test('mine: each of my Games with its channel, and my solo channel', async () => {
     const t = testConvex()
-    const { player, gameId } = await seedDiscordTable(t)
+    const { player, gameId } = await seedTable(t, { discord: true })
     await bind(t, 'd-org', 'chan-1', gameId)
     await bind(t, 'd-player', 'solo-1')
 
@@ -267,7 +257,7 @@ describe('reading the bindings', () => {
 
   test('current: the Game’s channel for a member, mine when solo, null for a stranger', async () => {
     const t = testConvex()
-    const { organizer, gameId } = await seedDiscordTable(t)
+    const { organizer, gameId } = await seedTable(t, { discord: true })
     const stranger = await makeUser(t, 'Stranger')
     await bind(t, 'd-org', 'chan-1', gameId)
 
@@ -325,7 +315,7 @@ describe('postRoll', () => {
 
   test('posts a Game roll to its channel through the relay', async () => {
     const t = testConvex()
-    const { organizer, player, gameId } = await seedDiscordTable(t)
+    const { organizer, player, gameId } = await seedTable(t, { discord: true })
     await addPilot(player, 'p1', gameId)
     await bind(t, 'd-org', '1234', gameId)
     stubRelay(() => Response.json({ ok: true, messageId: 'msg-1' }))
@@ -352,7 +342,7 @@ describe('postRoll', () => {
 
   test('a failed post is returned with its reason, never silent', async () => {
     const t = testConvex()
-    const { player, gameId } = await seedDiscordTable(t)
+    const { player, gameId } = await seedTable(t, { discord: true })
     await bind(t, 'd-org', '1234', gameId)
     const message = 'The bot cannot post in the bound channel.'
     stubRelay(() => Response.json({ ok: false, status: 403, message }))
@@ -366,7 +356,7 @@ describe('postRoll', () => {
 
   test('an unreachable bot is a failure with a reason', async () => {
     const t = testConvex()
-    const { player, gameId } = await seedDiscordTable(t)
+    const { player, gameId } = await seedTable(t, { discord: true })
     await bind(t, 'd-org', '1234', gameId)
     stubRelay(() => {
       throw new Error('ECONNREFUSED')
@@ -379,7 +369,7 @@ describe('postRoll', () => {
 
   test('an unconfigured deployment fails loudly rather than skipping', async () => {
     const t = testConvex()
-    const { player, gameId } = await seedDiscordTable(t)
+    const { player, gameId } = await seedTable(t, { discord: true })
     await bind(t, 'd-org', '1234', gameId)
     delete process.env.CANTINA_BOT_URL
     stubRelay(() => Response.json({ ok: true, messageId: 'x' }))
@@ -390,7 +380,7 @@ describe('postRoll', () => {
 
   test('nothing bound posts nothing', async () => {
     const t = testConvex()
-    const { player, gameId } = await seedDiscordTable(t)
+    const { player, gameId } = await seedTable(t, { discord: true })
     stubRelay(() => Response.json({ ok: true, messageId: 'x' }))
     expect(await postAs(player, { gameId })).toEqual({ kind: 'unbound' })
     expect(await postAs(player, {})).toEqual({ kind: 'unbound' })
@@ -399,7 +389,7 @@ describe('postRoll', () => {
 
   test('unbinding stops posting', async () => {
     const t = testConvex()
-    const { player, gameId } = await seedDiscordTable(t)
+    const { player, gameId } = await seedTable(t, { discord: true })
     await bind(t, 'd-org', '1234', gameId)
     await unbind(t, 'd-org', '1234')
     stubRelay(() => Response.json({ ok: true, messageId: 'x' }))
@@ -409,7 +399,7 @@ describe('postRoll', () => {
 
   test('post: false posts nothing, bound or not', async () => {
     const t = testConvex()
-    const { organizer, gameId } = await seedDiscordTable(t)
+    const { organizer, gameId } = await seedTable(t, { discord: true })
     await bind(t, 'd-org', '1234', gameId)
     stubRelay(() => Response.json({ ok: true, messageId: 'x' }))
     expect(await postAs(organizer, { gameId, post: false })).toEqual({ kind: 'skipped' })
@@ -418,7 +408,7 @@ describe('postRoll', () => {
 
   test('solo rolls post to the roller’s own channel', async () => {
     const t = testConvex()
-    const { player } = await seedDiscordTable(t)
+    const { player } = await seedTable(t, { discord: true })
     await addPilot(player, 'p-solo', null)
     await bind(t, 'd-player', '5678')
     stubRelay(() => Response.json({ ok: true, messageId: 'msg-2' }))
@@ -431,7 +421,7 @@ describe('postRoll', () => {
 
   test('a Game the roller is not in is refused', async () => {
     const t = testConvex()
-    const { gameId } = await seedDiscordTable(t)
+    const { gameId } = await seedTable(t, { discord: true })
     const stranger = await makeUser(t, 'Stranger')
     await bind(t, 'd-org', '1234', gameId)
     stubRelay(() => Response.json({ ok: true, messageId: 'x' }))
@@ -441,7 +431,7 @@ describe('postRoll', () => {
 
   test('a roll the card cannot replay is refused before anything is sent', async () => {
     const t = testConvex()
-    const { player, gameId } = await seedDiscordTable(t)
+    const { player, gameId } = await seedTable(t, { discord: true })
     await bind(t, 'd-org', '1234', gameId)
     stubRelay(() => Response.json({ ok: true, messageId: 'x' }))
     const result = await player.as.action(api.channelBindings.postRoll, {
@@ -457,7 +447,7 @@ describe('postRoll', () => {
 describe('deleting an account', () => {
   test('takes its solo channel with it, and leaves the Game’s', async () => {
     const t = testConvex()
-    const { player, gameId } = await seedDiscordTable(t)
+    const { player, gameId } = await seedTable(t, { discord: true })
     await bind(t, 'd-org', 'chan-1', gameId)
     await bind(t, 'd-player', 'solo-1')
     await player.as.mutation(api.account.deleteAccount, {})

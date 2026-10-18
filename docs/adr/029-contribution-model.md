@@ -125,12 +125,13 @@ Live Sheet, Dashboard, partner cards, Frozen
   keyboard and on touch, and is not acceptable.
 - **Frozen** shows the breakdown and never the revert — a public sheet has
   no editing affordance ([ADR-010](../ARCHITECTURE.md#decisions)).
-- **The Dashboard carries it.** `DashboardGauge` takes `provenance` and
-  `breakdown`: the "teach as they enforce" affordance
+- **Play is meant to carry it**: the "teach as they enforce" affordance
   [ADR-021](021-cantina-surface-taxonomy.md) requires of Guided Play.
+  `VitalGauge`'s compact rung takes `provenance` and `breakdown`, but Play's
+  vitals (`PlayVital`) do not pass them yet.
 - **An override appends; it never replaces.** See the ADR-022 amendment.
 
-### 4. Duration-bound effects are Dashboard-applied, and never persisted on the entity
+### 4. Duration-bound effects are Play-applied, and never persisted on the entity
 
 Some contributions are temporary: Squeeze It In (+4 Cargo, 12 hours, stacks with
 itself), Hull Magnetiser (Cargo += the mech's System Slot Value, 1 hour,
@@ -139,7 +140,7 @@ toggleable).
 These are **in scope as `duration: activated` contributions**, with two hard
 constraints:
 
-- They are **applied only by the Dashboard** (Guided Play). No other mode may
+- They are **applied only by Play** (Guided Play). No other mode may
   switch one on — activating an effect is a lifecycle transaction.
 - They resolve against the **pilot's seat on the Game**, never the persisted
   entity ([ADR-038](038-dashboard-game-surface.md) §2). Time does not enter the

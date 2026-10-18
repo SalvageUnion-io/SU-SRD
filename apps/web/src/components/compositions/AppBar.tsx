@@ -89,8 +89,8 @@ type AppBarProps = {
   referenceHref: string
   /** Where "Build" goes — the Cantina's home. */
   buildHref: string
-  /** Where "Play" goes — the Play landing. Omit to draw no Play tab. */
-  playHref?: string
+  /** Where "Play" goes — the Play landing. */
+  playHref: string
   /** Link component for the brand + internal links. Defaults to a plain anchor. */
   LinkComponent?: ElementType
   /**
@@ -202,7 +202,7 @@ export function AppBar({
   const tabs: { key: AppBarProduct; label: string; href: string }[] = [
     { key: 'reference', label: 'Reference', href: referenceHref },
     { key: 'build', label: 'Build', href: buildHref },
-    ...(playHref === undefined ? [] : [{ key: 'play' as const, label: 'Play', href: playHref }]),
+    { key: 'play', label: 'Play', href: playHref },
   ]
 
   const navLinks = () =>

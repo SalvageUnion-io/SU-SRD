@@ -35,10 +35,8 @@ import {
   CORE_ROLL_BANDS,
   canPush,
   coreRollBandLabel,
-  describePushOutcome,
   mechMaxEP,
   mechMaxHeat,
-  mechMaxSP,
   performCoreRoll,
   pilotMaxAP,
   resolveChassisRef,
@@ -57,23 +55,23 @@ import {
   hasCurrencyChoice,
   hasVariableHot,
   isDestructiveOutcome,
+  mechPush,
   pilotActivationPatch,
-  pushPatch,
 } from '../../lib/rules/playActions'
 import { runWrite } from '../../lib/runWrite'
 import { useEntityStore } from '../../stores/entityStore'
 import { PLAY_TXN } from '../../stores/surfaceProvenance'
-import type { ReferenceCardEntity } from '../index'
 import { rollForTable } from '../index'
 import type { PlayStore } from './play.model'
 import type { MountState } from './useSeat'
 
 export type ResolveModel =
+  | { kind: 'idle' }
   | {
-      kind: 'idle'
+      /** The seat names an action the deck no longer has: say so, and let it go. */
+      kind: 'orphan'
       text: string
-      /** Offered when the seat names an action the deck no longer has. */
-      onClear?: () => void
+      onClear: () => void
     }
   | {
       kind: 'resolve'
@@ -85,7 +83,6 @@ export type ResolveModel =
       cost: { amount: number; heat: number; uses: number }
       /** What this activation spends: the mech's EP or the pilot's AP. */
       currency: 'EP' | 'AP'
-      entity: ReferenceCardEntity
       /** EP-vs-AP cost radio for `activationCurrency === 'EP or AP'` actions. */
       currencyChoice?: {
         epCost: number
@@ -104,7 +101,6 @@ export type ResolveModel =
         onInc: () => void
       }
       controls: {
-        activateLabel: string
         activateDisabled: boolean
         activateTitle?: string
         onActivate: () => void
@@ -135,7 +131,7 @@ export type ResolveModel =
         bandRange: string
         bandLabel: string
         bandSummary: string
-        /** A Cascade Failure: Apply hands it to the Major, never writes it. */
+        /** A Cascade Failure: Apply hands it to the Row's Callout, never writes it. */
         destructive: boolean
       } | null
       pushLog?: string | null
@@ -267,8 +263,8 @@ export function useActionsDeck({
       // An unrecorded live stat means UNSPENT, not empty — a pilot who has never
       // spent AP is at full AP. Defaulting to 0 here banked the spend against an
       // empty pool and wrote AP 0 on the first activation. The stored value stays
-      // authoritative when present (same rule as the Mech Major's damage write):
-      // never clamp it here, since an unresolved ref makes the max 0.
+      // authoritative when present: never clamp it here, since an unresolved ref
+      // makes the max 0.
       const patch = pilotActivationPatch({
         apCost: economy.epCost,
         currentAP: resolvePoolStart(
@@ -332,30 +328,14 @@ export function useActionsDeck({
     // The Heat Check's own d20 is plain; an overload rolls on Reactor Overload.
     const heatRoll = await rollFor('Reactor Overload', { plainD20s: 1 })
     const coreRoll = await rollFor('Core Mechanic')
-    const chassis = resolveChassisRef(mech.chassisRef)
-    const fresh = s.get('mech', mech.id) ?? mech
-    const cap = mechMaxHeat(fresh, chassis)
     // Core Book p.234: no Push that would take Heat past the cap. The control
     // is disabled for it; this holds the line against a stale render too.
-    if (!canPush(resolveGauge(fresh.currentHeat, cap), cap)) return
-    const {
-      patch,
-      effect,
-      nextHeat,
-      meltdown: meltedDown,
-    } = pushPatch({
-      heat: resolveGauge(fresh.currentHeat, cap),
-      heatCap: cap,
-      // Unrecorded SP means undamaged. At 0 an Overheat wrote the mech straight
-      // to SP 0 — one hit from destroyed — without it ever having taken damage.
-      currentSP: resolvePoolStart(fresh.currentSP, mechMaxSP(fresh, chassis)),
-      roll: heatRoll,
-    })
-    runWrite(() => s.update('mech', mech.id, patch, meta))
+    const pushed = mechPush(s.get('mech', mech.id) ?? mech, heatRoll)
+    if (pushed === null) return
+    runWrite(() => s.update('mech', mech.id, pushed.patch, meta))
     const result = performCoreRoll(coreRoll)
-    const log = describePushOutcome(nextHeat, effect)
-    setPushLog(log)
-    setMeltdown(meltedDown)
+    setPushLog(pushed.text)
+    setMeltdown(pushed.meltdown)
     setApplyRouted(false)
     step(current, { roll: result, applied: false })
   }
@@ -371,13 +351,13 @@ export function useActionsDeck({
 
   const resolve = ((): ResolveModel => {
     if (resolving === null) {
-      return { kind: 'idle', text: 'Choose an action to resolve it here.' }
+      return { kind: 'idle' }
     }
     if (selected === null) {
       // The seat names an action this deck no longer has: a system was
       // removed, or the deck changed under a reload. Say so, and let it go.
       return {
-        kind: 'idle',
+        kind: 'orphan',
         text: `${resolving.name} is no longer in this deck.`,
         onClear: close,
       }
@@ -412,7 +392,7 @@ export function useActionsDeck({
     // the Push readout, and with it this.
     const pushed = pushLog !== null
     // Core Book pp.233–234: a Push adds 2 Heat, and a mech never exceeds its
-    // Heat Cap, so it is refused where that would — as the Reactor bay refuses it.
+    // Heat Cap, so it is refused where that would — as `PlayReactorRow` refuses it.
     const pushLocked = !canPush(heatCtx.currentHeat, heatCtx.heatCap)
 
     return {
@@ -424,7 +404,6 @@ export function useActionsDeck({
         uses: eco.maxUses,
       },
       currency: effCurrency,
-      entity: selected.action,
       currencyChoice: currencyChoice
         ? {
             epCost: eco.epCost,
@@ -445,7 +424,6 @@ export function useActionsDeck({
           }
         : undefined,
       controls: {
-        activateLabel: activated ? 'Activated' : 'Activate',
         activateDisabled,
         activateTitle: apUnavailable
           ? 'No pilot to spend AP'

@@ -90,10 +90,8 @@ export function PlayAwayGroup({
 /** The seat names an action this list no longer has: say so, and let it go. */
 export function PlayOrphanResolve({ actions }: { actions: PlayActions }) {
   const { resolve, resolvingKey } = actions
-  if (resolve.kind === 'idle') {
-    if (!resolve.onClear) return null
-    return <OrphanNote text={resolve.text} onClear={resolve.onClear} />
-  }
+  if (resolve.kind === 'idle') return null
+  if (resolve.kind === 'orphan') return <OrphanNote text={resolve.text} onClear={resolve.onClear} />
   // Resolving an action this Situation does not put on hand (Downtime began
   // mid-roll): its Row cannot open, so say so here, and let it go.
   const entry = actions.entries.find((e) => e.key === resolvingKey)

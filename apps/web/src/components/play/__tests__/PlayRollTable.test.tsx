@@ -240,26 +240,6 @@ describe('rolling a standard table', () => {
   })
 })
 
-describe('the title-as-picker trigger', () => {
-  test('names the current table, reports its open state, and calls back', () => {
-    const opened: number[] = []
-    render(
-      <PlayRollTable
-        table={RANGE_TABLE}
-        name="Core Mechanic"
-        titleSelect={{ onOpen: () => opened.push(1) }}
-      />
-    )
-
-    const trigger = screen.getByLabelText('Choose a roll table (current: Core Mechanic)')
-    expect(trigger.getAttribute('aria-haspopup')).toBe('dialog')
-    expect(trigger.getAttribute('aria-expanded')).toBe('false')
-
-    fireEvent.click(trigger)
-    expect(opened).toHaveLength(1)
-  })
-})
-
 describe('the columns variant', () => {
   test('two rolls pick the column and the entry, and exactly that cell is marked', async () => {
     // 9 lands in the 9-12 column; 3 picks entry 3 within it.

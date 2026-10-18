@@ -12,10 +12,11 @@
  * looking at). On top of those it lists every live vital.
  */
 
-import { resolveGauge, resolvePool } from 'salvageunion-reference/rules'
+import { resolveGauge } from 'salvageunion-reference/rules'
 import type { BoardSources } from '../boardMenu.model'
 import { crewSeatLines } from '../crew.model'
 import type { CrewVitals } from '../useGameFeed'
+import { crewPool } from '../useGameFeed'
 import { tableSeats } from './seatCards.model'
 
 /** One vital chip on a seat: `HP | 7/10`, or a word (`▲ Ejected`) with no value. */
@@ -57,12 +58,6 @@ type Member = { userId: string; joinedAt: number }
 type CrewPilot = CrewVitals['pilots'][number]
 type CrewMech = CrewVitals['mechs'][number]
 
-/** "7/10": the current value held to its maximum. */
-function pool(current: number | null, max: number | null): string {
-  if (max === null) return current === null ? '—' : String(current)
-  return `${resolvePool(current ?? undefined, max)}/${max}`
-}
-
 /** Heat: a gauge that starts empty. */
 function gauge(current: number | null, max: number | null): string {
   if (max === null) return current === null ? '0' : String(current)
@@ -76,13 +71,13 @@ function seatVitals(
   flagged: { label: string; attention: boolean }
 ): SeatVital[] {
   const vitals: SeatVital[] = [
-    { label: 'HP', value: pool(pilot.currentHP, pilot.maxHP), attention: false },
-    { label: 'AP', value: pool(pilot.currentAP, pilot.maxAP), attention: false },
+    { label: 'HP', value: crewPool(pilot.currentHP, pilot.maxHP), attention: false },
+    { label: 'AP', value: crewPool(pilot.currentAP, pilot.maxAP), attention: false },
   ]
   if (pilot.boarded && mech !== undefined) {
     vitals.push(
-      { label: 'SP', value: pool(mech.currentSP, mech.maxSP), attention: false },
-      { label: 'EP', value: pool(mech.currentEP, mech.maxEP), attention: false },
+      { label: 'SP', value: crewPool(mech.currentSP, mech.maxSP), attention: false },
+      { label: 'EP', value: crewPool(mech.currentEP, mech.maxEP), attention: false },
       { label: 'Heat', value: gauge(mech.currentHeat, mech.maxHeat), attention: false }
     )
   }

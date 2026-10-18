@@ -42,7 +42,7 @@ export function usePlaySituation(target: PlayTarget): Play {
   const mechs =
     target.gameId === null
       ? soloMechOptions(target.pilotId, store.list('mech'), store.softLinks)
-      : boardMenu({ pilotId: target.pilotId, assigned, sources }).options
+      : boardMenu({ pilotId: target.pilotId, assigned, sources })
 
   const canChangeDowntime = target.gameId === null || target.mediator
 

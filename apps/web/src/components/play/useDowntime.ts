@@ -21,9 +21,7 @@ import { useMutation, useQuery } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { reportWriteFailure } from '../../lib/runWrite'
-import { WritesBlockedOffline } from '../../stores/entityBackend'
-import { reportRefusedWrite } from './useSeat'
+import { reportBlockedWrite, reportRefusedWrite } from './useSeat'
 
 /** A member of the Game, as a ready pip names them. */
 type DowntimeMember = { userId: string; displayName: string }
@@ -110,11 +108,7 @@ export function useGameDowntime(gameId: Id<'games'> | null): DowntimeHandle {
   function writableGame(): Id<'games'> | null {
     if (gameId === null) return null
     if (!canWrite) {
-      reportWriteFailure(
-        new WritesBlockedOffline(
-          outdated ? 'outdated' : mode === 'connecting' ? 'settling' : 'offline'
-        )
-      )
+      reportBlockedWrite({ mode, outdated })
       return null
     }
     return gameId

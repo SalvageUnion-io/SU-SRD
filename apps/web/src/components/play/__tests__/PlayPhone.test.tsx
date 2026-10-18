@@ -23,10 +23,9 @@ import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { resolveSystem } from '../../../lib/rules/mechItems'
 import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 import { mechFixture, pilotFixture } from '../../__tests__/fixtures'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
-import type { PlayStore } from '../play.model'
 import type { Situation } from '../situation.model'
 import { mechStats } from '../unitStats.model'
+import { stubStore } from './stubStore'
 
 // Module scope, before the imports below — see `convexMock.ts`. The side's
 // reads (`usePlaySide`) and the Units' (`usePlayUnits`): nothing bound, no
@@ -87,13 +86,6 @@ function makeMech(): Mech {
   })
 }
 
-function stubStore(...entities: (Mech | Pilot)[]): PlayStore {
-  return makeEntityStoreMock({
-    get: (_type, id) => entities.find((e) => e.id === id) ?? null,
-    update: async (_type, id) => entities.find((e) => e.id === id) ?? null,
-  }).getState()
-}
-
 function Phone({
   situation,
   solo = false,
@@ -119,7 +111,7 @@ function Phone({
         target={play.target}
         play={play}
         bar={<header>bar</header>}
-        actions={{ store: stubStore(pilot, mech), rollFor: rollFourteen }}
+        actions={{ store: stubStore(pilot, mech).store, rollFor: rollFourteen }}
       />
     </EntityHrefProvider>
   )

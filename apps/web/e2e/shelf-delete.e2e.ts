@@ -5,7 +5,6 @@ import { expect, test } from './fixtures'
  * Shelves delete flow: create a pilot, confirm the delete dialog, verify
  * the pilot disappears. Catches regressions in the Roster's delete confirm
  * (src/components `ConfirmDialog`) and the shelf item's ⋯ menu Delete wiring.
- * (Named for Shelves, not the retired Dashboard, which it never opened.)
  *
  * The shared builder (`buildPilot`) walks whatever steps the pilot wizard has
  * and returns once the redirect back to Shelves ("/") has landed.

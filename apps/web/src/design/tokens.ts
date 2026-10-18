@@ -181,14 +181,12 @@ export const radius = {
  *   hairline  1px    plain rules
  *   chrome    1.5px  buttons, inputs, panels, rows, pips
  *   pill      2px    pills / status badges / dividers
- *   rail      2.5px  rail cards & Hold frames
  *   entity    3px    entity cards + hero header
  */
 export const borderWidth = {
   hairline: '1px',
   chrome: '1.5px',
   pill: '2px',
-  rail: '2.5px',
   /** The entity card's frame one size down: 3 → 2 → 1.5px (ruleset §4.3). */
   entityCompact: '2px',
   entity: '3px',

@@ -44,8 +44,8 @@ import { shelfRowOf, writablePilot } from './seats'
  * is applied (`claimStep`, kept in `claimed`), as a solo Downtime's
  * `soloMarkStepDone`. `completedBy` cannot do it: it is per member, it clears
  * on every move, and a player may untick it. `claimed` clears only when a
- * fresh Downtime begins, so Undo, the Mediator's Back and a reload never let
- * a step apply twice.
+ * Downtime ends or a fresh one begins, never on a step change or Undo, so
+ * Undo, the Mediator's Back and a reload never let a step apply twice.
  */
 
 /**
@@ -160,8 +160,7 @@ export const advance = mutation({
       throw new NotAuthorized('Downtime is not running')
     }
 
-    // Clamp at the last step; the solo wizard clamps client-side, and the two
-    // surfaces must agree.
+    // Clamp at the last step (`clampStep`, shared with the solo Downtime below).
     const next = clampStep(row.stepIndex + 1)
     if (next === row.stepIndex) return
 
@@ -239,8 +238,8 @@ export const markStepDone = mutation({
  * it (`writablePilot`), and only the step the table is on.
  *
  * Returns false when the pilot already claimed this step this Downtime, so
- * the caller applies nothing a second time; nothing but a fresh Downtime
- * (`begin`) clears a claim (see the module header).
+ * the caller applies nothing a second time; only ending a Downtime (`end`)
+ * or beginning a fresh one (`begin`) clears a claim (see the module header).
  */
 export const claimStep = mutation({
   args: { gameId: v.id('games'), pilotId: v.string(), stepIndex: v.number() },

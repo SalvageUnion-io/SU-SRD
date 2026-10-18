@@ -26,8 +26,8 @@ The operational reference is [Convex deployments](../ARCHITECTURE.md#deployments
 a unit in a Game stays listed, with a chip naming its Game; Patterns, NPCs and
 the read-only Starter Set are shelves of their own. `/games/:id` is a Game's
 page: its roster, then the members', Mediator's and Organizer's sections.
-`/mediator/:id` is the Mediator Dashboard
-([mediator-dashboard.md](../architecture/mediator-dashboard.md)). "On your
+`/play/game/:id` is Play's Mediator screen
+([play.md](../architecture/play.md) §10). "On your
 shelf" in the page's sense means *yours*, not `gameId === null`; the container
 model is unchanged.
 
@@ -37,7 +37,9 @@ sheet is the one exception to its visibility rules. §5a by
 [ADR-037](../ARCHITECTURE.md#decisions) — a Game takes a player's crew before
 it has a crawler. §5 and §6 by [ADR-038](038-dashboard-game-surface.md) — only
 the table runner edits a Game's crawler, and crew status reaches the Game-only
-Dashboard as a Crew tab.
+Dashboard as a Crew tab. By [ADR-051](051-play-mode.md) — a pilot on a Shelf
+has a seat too, seats carry presence, and a Game can bind a Discord channel
+again (`channelBindings`).
 
 ## Context
 
@@ -250,7 +252,7 @@ otherwise the read-only drill-in §5 permits, `/sheet/:kind/:id`.
 §3's "invites" is one URL per Game, `/invite/:code`. Anyone signed in who
 opens it joins as a player; it has no expiry, use limit, label, seat choice or
 approval step. The Organizer copies it (`invites.link`, "Copy invite link" on
-the Game page and the Dashboard's Crew tab) and can reset it
+the Game page) and can reset it
 (`invites.reset`), which mints a new code: the old one stops working, and
 nobody already seated is removed. Who mediates is chosen afterwards among the
 members (`games.setMediator`). Signed out, the page previews the Game and

@@ -19,13 +19,11 @@ import { useMutation, useQuery } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { reportWriteFailure } from '../../lib/runWrite'
-import { WritesBlockedOffline } from '../../stores/entityBackend'
 import type { PlayTarget } from './play.model'
 import type { PlayDowntime } from './situation.model'
 import type { DowntimeView } from './useDowntime'
 import { NOT_RUNNING, useGameDowntime } from './useDowntime'
-import { reportRefusedWrite } from './useSeat'
+import { reportBlockedWrite, reportRefusedWrite } from './useSeat'
 
 export function usePlayDowntime(
   target: Pick<PlayTarget, 'gameId' | 'pilotId' | 'mediator'>
@@ -82,11 +80,7 @@ export function usePlayDowntime(
   /** Whether a write may go now; when not, it says why. */
   function writable(): boolean {
     if (canWrite) return true
-    reportWriteFailure(
-      new WritesBlockedOffline(
-        outdated ? 'outdated' : mode === 'connecting' ? 'settling' : 'offline'
-      )
-    )
+    reportBlockedWrite({ mode, outdated })
     return false
   }
 

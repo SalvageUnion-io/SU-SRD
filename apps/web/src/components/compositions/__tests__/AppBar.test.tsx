@@ -17,7 +17,14 @@ const CRUMBS = [
 
 describe('AppBar', () => {
   test('one lockup: the mark alone names the home link, with no wordmark', () => {
-    render(<AppBar product="reference" referenceHref="/" buildHref="https://cantina.example/" />)
+    render(
+      <AppBar
+        product="reference"
+        referenceHref="/"
+        buildHref="https://cantina.example/"
+        playHref="/play/"
+      />
+    )
     const home = screen.getByRole('link', { name: 'Salvage Union' })
     expect(home.getAttribute('href')).toBe('/')
     expect(home.textContent).toBe('')
@@ -25,7 +32,14 @@ describe('AppBar', () => {
   })
 
   test('the switcher: the product you are in is the current tab; the other is same-tab', () => {
-    render(<AppBar product="reference" referenceHref="/" buildHref="https://cantina.example/" />)
+    render(
+      <AppBar
+        product="reference"
+        referenceHref="/"
+        buildHref="https://cantina.example/"
+        playHref="/play/"
+      />
+    )
     const tools = within(screen.getByRole('navigation', { name: 'Salvage Union tools' }))
     expect(tools.getByRole('link', { name: 'Reference' }).getAttribute('aria-current')).toBe('true')
     const build = tools.getByRole('link', { name: 'Build' })
@@ -34,10 +48,8 @@ describe('AppBar', () => {
     expect(build.getAttribute('target')).toBeNull()
   })
 
-  test('the switcher reads Reference | Build | Play, Play only where it is given a home', () => {
-    const { rerender } = render(
-      <AppBar product="play" referenceHref="/" buildHref="/build/" playHref="/build/play/" />
-    )
+  test('the switcher reads Reference | Build | Play', () => {
+    render(<AppBar product="play" referenceHref="/" buildHref="/build/" playHref="/build/play/" />)
     const tools = () => within(screen.getByRole('navigation', { name: 'Salvage Union tools' }))
     expect(
       tools()
@@ -46,12 +58,10 @@ describe('AppBar', () => {
     ).toEqual(['Reference', 'Build', 'Play'])
     expect(tools().getByRole('link', { name: 'Play' }).getAttribute('aria-current')).toBe('true')
     expect(tools().getByRole('link', { name: 'Build' }).getAttribute('aria-current')).toBeNull()
-    rerender(<AppBar product="reference" referenceHref="/" buildHref="/build/" />)
-    expect(tools().queryByRole('link', { name: 'Play' })).toBeNull()
   })
 
   test('no product nav means no second row', () => {
-    render(<AppBar product="reference" referenceHref="/" buildHref="/" />)
+    render(<AppBar product="reference" referenceHref="/" buildHref="/" playHref="/play/" />)
     expect(screen.queryByRole('navigation', { name: 'Main navigation' })).toBeNull()
   })
 
@@ -61,6 +71,7 @@ describe('AppBar', () => {
         product="build"
         referenceHref="https://salvageunion.io"
         buildHref="/"
+        playHref="/play/"
         navItems={[
           { label: 'Hangar', href: '/', active: true },
           { id: 'games', node: <button type="button">Games</button> },
@@ -91,6 +102,7 @@ describe('AppBar', () => {
         product="reference"
         referenceHref="/"
         buildHref="/"
+        playHref="/play/"
         buyHref="https://leyline.press/collections/salvage-union"
       />
     )
@@ -102,7 +114,13 @@ describe('AppBar', () => {
 
   test('breadcrumbs: in the bar and on the phone row, the current page bold, JSON-LD left to the page head', () => {
     const html = renderToStaticMarkup(
-      <AppBar product="reference" referenceHref="/" buildHref="/" breadcrumbs={CRUMBS} />
+      <AppBar
+        product="reference"
+        referenceHref="/"
+        buildHref="/"
+        playHref="/play/"
+        breadcrumbs={CRUMBS}
+      />
     )
     const doc = new DOMParser().parseFromString(html, 'text/html')
     const trails = doc.querySelectorAll('nav[aria-label="Breadcrumb"]')
@@ -124,7 +142,7 @@ describe('AppBar', () => {
   })
 
   test('paper flecks lie behind the bar, hidden from assistive tech', () => {
-    render(<AppBar product="reference" referenceHref="/" buildHref="/" />)
+    render(<AppBar product="reference" referenceHref="/" buildHref="/" playHref="/play/" />)
     const svgs = screen.getByRole('banner').querySelectorAll('svg')
     expect(svgs.length).toBeGreaterThan(0)
     for (const svg of svgs) expect(svg.getAttribute('aria-hidden')).toBe('true')

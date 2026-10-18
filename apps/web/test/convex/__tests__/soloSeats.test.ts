@@ -11,6 +11,7 @@ import {
   mechBody,
   moveOwnable,
   pilotBody,
+  seatRows,
   seedTable,
 } from '../fixtures'
 import { testConvex } from '../harness'
@@ -30,10 +31,6 @@ const crush = { ref: 'system:crush', name: 'Crush', activated: false, applied: f
 
 /** The Upkeep & Upgrade step's index in the guide. */
 const UPKEEP_STEP = downtimeGuideSteps().findIndex((step) => step.name === UPKEEP_STEP_NAME)
-
-async function seatRows(t: Ctx) {
-  return await t.run(async (ctx) => await ctx.db.query('seats').collect())
-}
 
 /** A player with pilot `p1` and mech `m1` on their shelf. */
 async function soloPlayer(t: Ctx) {

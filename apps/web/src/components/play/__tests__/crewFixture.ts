@@ -6,15 +6,8 @@
 
 import type { Id } from '../../../../convex/_generated/dataModel'
 import type { CrewVitals } from '../useGameFeed'
+import { calm, sound } from './crewRows'
 
-const calm = { dead: false, injured: false, ejected: false }
-const sound = {
-  destroyed: false,
-  shutdown: false,
-  overheating: false,
-  destroyedSystems: [],
-  destroyedModules: [],
-}
 const pilot = {
   ownerId: null,
   ownerName: null,

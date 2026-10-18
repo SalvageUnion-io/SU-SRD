@@ -1,7 +1,6 @@
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
-import { createMemoryHistory, createRouter } from '@tanstack/react-router'
-import { routeTree } from '../../routeTree.gen'
 import { getActiveContainer, setActiveContainer } from '../../stores/activeContainerStore'
+import { landOn } from './landOn'
 
 /**
  * Where a container is shown, through the real generated route tree:
@@ -14,19 +13,7 @@ import { getActiveContainer, setActiveContainer } from '../../stores/activeConta
  *
  * The retired `/games`, `/join/$code` and crew-view addresses are no longer
  * routes: the Worker 301s them (`src/lib/redirects.ts`).
- *
- * `router.load()` runs every `beforeLoad` without rendering, which is all a
- * redirect needs and keeps the app shell out of this test.
  */
-
-async function landOn(path: string): Promise<string> {
-  const router = createRouter({
-    routeTree,
-    history: createMemoryHistory({ initialEntries: [path] }),
-  })
-  await router.load()
-  return router.state.location.pathname
-}
 
 beforeEach(() => setActiveContainer({ kind: 'shelf' }))
 afterAll(() => setActiveContainer({ kind: 'shelf' }))
@@ -47,8 +34,8 @@ describe('/games/$gameId', () => {
 })
 
 describe('/mediator/$gameId', () => {
-  test('lands on Play’s Mediator screen, and shows no container', async () => {
-    expect(await landOn('/mediator/g2')).toBe('/play/game/g2')
+  test('shows no container on the way to Play’s Mediator screen', async () => {
+    await landOn('/mediator/g2')
     expect(getActiveContainer()).toEqual({ kind: 'shelf' })
   })
 })

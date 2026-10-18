@@ -114,13 +114,5 @@ export function pageZoom({ devicePixelRatio, outerWidth, viewportWidth }: ZoomRe
  * hand over to the phone form, whose type does grow with zoom.
  */
 export function isPhoneForm(width: number, height: number, zoom = 1): boolean {
-  return belowFloor(width, height, MIN_SCALE, zoom)
-}
-
-/**
- * Whether the canvas, fitted to a `width` × `height` host, draws below
- * `floor` × `zoom`: the one test behind `isPhoneForm`.
- */
-function belowFloor(width: number, height: number, floor: number, zoom = 1): boolean {
-  return Math.min(width / CANVAS_W, height / CANVAS_H) < floor * Math.max(1, zoom)
+  return Math.min(width / CANVAS_W, height / CANVAS_H) < MIN_SCALE * Math.max(1, zoom)
 }

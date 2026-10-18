@@ -29,7 +29,6 @@
  *      its own CPU time. Read `cpuTime` from `wrangler tail` instead.
  */
 
-import type { ResponseLike } from '@discordjs/rest'
 import { DiscordAPIError, HTTPError, RateLimitError, REST } from '@discordjs/rest'
 import { BOT_RELAY_POST_ROLL_PATH } from 'cantina-domain/botWire'
 import type { APIInteraction, APIUser } from 'discord-api-types/v10'
@@ -48,6 +47,7 @@ import {
   ResponseSink,
   webhookRoutes,
 } from './adapter'
+import { oneShotRest } from './oneShotRest'
 import { handlePostRoll } from './relay'
 import { isValidDiscordRequest, SIGNATURE_HEADER, TIMESTAMP_HEADER } from './verify'
 
@@ -212,16 +212,8 @@ async function health(env: Env): Promise<Response> {
   let discordStatus: number | null = null
 
   // One attempt, no waiting out a rate limit: a probe reports what Discord
-  // answered now. The global `fetch` is what the web build uses on workerd;
-  // spelled out so Bun (which resolves the undici build) goes through it too.
-  // The cast is only Node's and the web's `ReadableStream` typings disagreeing.
-  const rest = new REST({
-    version: '10',
-    retries: 0,
-    rejectOnRateLimit: () => true,
-    makeRequest: async (url, init) =>
-      (await fetch(url, init as RequestInit)) as unknown as ResponseLike,
-  }).setToken(env.DISCORD_TOKEN)
+  // answered now.
+  const rest = oneShotRest(env.DISCORD_TOKEN)
 
   try {
     const me = (await rest.get(Routes.user())) as Partial<APIUser>

@@ -52,7 +52,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     Production `exuberant-porpoise-183`; staging `perfect-donkey-72`, previews only.
     `bun run dev` runs a local deployment with test auth; setup, rotations and repairs are the `convex-ops` skill.
 16. **Convex environment** <a id="convex-env"></a>
-    Sign-in: `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`, `SITE_URL`, `JWT_PRIVATE_KEY`, `JWKS`; bot: `CANTINA_BOT_SECRET`.
+    Sign-in: `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`, `SITE_URL`, `JWT_PRIVATE_KEY`, `JWKS`; bot: `CANTINA_BOT_SECRET`, `CANTINA_BOT_URL` (the bot Worker's origin, for Play's posts).
     `CANTINA_TEST_AUTH` never in production; `convex env list` prints values: pipe it through `cut -d= -f1`.
 17. **Convex conventions** <a id="convex-conventions"></a>
     Mutations use `mutation` / `internalMutation` from `convex/model/entities.ts` (its triggers keep `games.summary`).

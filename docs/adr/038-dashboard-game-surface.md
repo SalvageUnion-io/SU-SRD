@@ -4,8 +4,7 @@ The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 38, which
 
 ## Status
 
-**Accepted; built.** Every decision below is in code; the Dashboard as built
-is [dashboard.md](../architecture/dashboard.md).
+**Accepted; built, partly superseded by [ADR-051](051-play-mode.md)** (below).
 
 **Amended by [ADR-045](045-dashboard-phone-form.md):** §3, §4 and §9 —
 the phone form. Below the canvas's floor the slots become unit tabs, the
@@ -15,8 +14,9 @@ display's other tabs go behind a menu, and the rotate notice is retired.
 Dashboard and the Mediator Dashboard ([play.md](../architecture/play.md)).
 ADR-051 supersedes §1 (Game-only), §3 (the Major and Minor slots), §4 (the
 tabbed display), §5's layout sentence and §6's route, and amends §2 (solo
-seats, solo Downtime, presence). §2's seat, §5's crawler and boarding rules,
-§6 to §8 and §9's fixed scaled canvas stand.
+seats, solo Downtime, presence). §2's seat, §3's boarding menu, §4's
+server-derived crew numbers and status, §5's crawler and boarding rules, §6 to
+§8 and §9's fixed scaled canvas stand.
 
 §1's deferred Mediator Dashboard was built
 ([mediator-dashboard.md](../architecture/mediator-dashboard.md)) in ADR-021's
@@ -219,8 +219,8 @@ replaced the rotate-to-landscape notice.
 ## Consequences
 
 - **Fewer people can use the Dashboard.** Anonymous visitors, shelf play and
-  Games without a Mediator have none, as
-  [dashboard.md](../architecture/dashboard.md) §1 says.
+  Games without a Mediator have none. (Superseded by ADR-051 §4: Play runs
+  solo.)
 - **There is server surface.** A `seats` table and its functions. Seats are
   cleaned up when a Game, pilot or account is deleted and when a pilot or mech
   leaves the Game. Every toggle is a mutation, so the client uses optimistic

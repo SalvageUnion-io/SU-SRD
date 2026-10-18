@@ -38,14 +38,22 @@ export async function makeUser(t: Ctx, name: string, discordId?: string) {
   return { userId, as: t.withIdentity({ subject: userId }) }
 }
 
-/** A Game run by `organizer` (table runner while it has no Mediator), joined by `player`. */
-export async function seedTable(t: Ctx) {
-  const organizer = await makeUser(t, 'Organizer')
-  const player = await makeUser(t, 'Player')
+/**
+ * A Game run by `organizer` (table runner while it has no Mediator), joined by
+ * `player`. `discord` links both to Discord (`d-org`, `d-player`).
+ */
+export async function seedTable(t: Ctx, { discord = false }: { discord?: boolean } = {}) {
+  const organizer = await makeUser(t, 'Organizer', discord ? 'd-org' : undefined)
+  const player = await makeUser(t, 'Player', discord ? 'd-player' : undefined)
   const gameId = await organizer.as.mutation(api.games.create, { name: 'Tenacity' })
   const code = await organizer.as.mutation(api.invites.link, { gameId })
   await player.as.mutation(api.invites.redeem, { code })
   return { organizer, player, gameId }
+}
+
+/** Every `seats` row. */
+export async function seatRows(t: Ctx) {
+  return await t.run(async (ctx) => await ctx.db.query('seats').collect())
 }
 
 /** Any field, including ones a stored body carries that the schema type omits (`gameId`). */

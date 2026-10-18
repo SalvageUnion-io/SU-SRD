@@ -13,6 +13,7 @@ import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
 import { PlayCanvas } from '../PlayCanvas'
 import { isPhoneForm, layoutWidth, pageZoom } from '../playCanvas.model'
+import { phoneViewport } from './phoneViewport'
 
 describe('isPhoneForm — both axes (D1)', () => {
   test('a desktop window keeps the canvas', () => {
@@ -132,30 +133,15 @@ describe("the phone form's scrollbar does not flip the form back (ADR-045 §7)",
       if (reads > 40) throw new Error('Play flipped between its forms')
       return VIEWPORT - (phoneShowing() ? SCROLLBAR : 0)
     }
-    const proto = Object.getPrototypeOf(document.documentElement) as object
-    const owner = [proto, HTMLElement.prototype, Element.prototype].find((p) =>
-      Object.getOwnPropertyDescriptor(p, 'clientWidth')
-    ) as object
-    const clientWidth = Object.getOwnPropertyDescriptor(owner, 'clientWidth') as PropertyDescriptor
-    const windowProps = ['devicePixelRatio', 'innerHeight', 'innerWidth', 'outerWidth'] as const
-    const saved = windowProps.map((k) => [k, Object.getOwnPropertyDescriptor(window, k)] as const)
-    const set = (k: string, value: number) =>
-      Object.defineProperty(window, k, { configurable: true, value, writable: true })
-    Object.defineProperty(owner, 'clientWidth', {
-      configurable: true,
-      get(this: Element) {
-        if (this === document.documentElement || this.classList.contains('su-dash-root')) {
-          return width()
-        }
-        return clientWidth.get?.call(this)
-      },
+    const restore = phoneViewport({
+      // innerWidth counts the scrollbar, so it holds in both forms.
+      width: VIEWPORT,
+      // 640 / 800 = 0.8: under 0.62 × 1.5, over 0.62 alone.
+      height: 640,
+      hostWidth: width,
+      devicePixelRatio: 1.5,
+      outerWidth: OUTER,
     })
-    set('devicePixelRatio', 1.5)
-    set('outerWidth', OUTER)
-    // innerWidth counts the scrollbar, so it holds in both forms.
-    set('innerWidth', VIEWPORT)
-    // 640 / 800 = 0.8: under 0.62 × 1.5, over 0.62 alone.
-    set('innerHeight', 640)
     try {
       const formChanges: string[] = []
       const Form = ({ name }: { name: string }) => {
@@ -174,11 +160,7 @@ describe("the phone form's scrollbar does not flip the form back (ADR-045 §7)",
       expect(formChanges.at(-1)).toBe('phone')
       view.unmount()
     } finally {
-      Object.defineProperty(owner, 'clientWidth', clientWidth)
-      for (const [k, d] of saved) {
-        if (d) Object.defineProperty(window, k, d)
-        else delete (window as unknown as Record<string, unknown>)[k]
-      }
+      restore()
     }
   })
 })

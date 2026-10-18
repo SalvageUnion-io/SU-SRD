@@ -12,23 +12,10 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { createMemoryHistory, createRouter } from '@tanstack/react-router'
-import { routeTree } from '../../routeTree.gen'
 import { Route as PlayPilot } from '../play/$pilotId'
 import { Route as PlayGame } from '../play/game/$gameId'
 import { Route as PlayLanding } from '../play/index'
-
-async function land(path: string) {
-  const router = createRouter({
-    routeTree,
-    history: createMemoryHistory({ initialEntries: [path] }),
-  })
-  await router.load()
-  return {
-    pathname: router.state.location.pathname,
-    leaf: router.state.matches.at(-1)?.routeId,
-  }
-}
+import { land } from './landOn'
 
 describe('the Play routes', () => {
   test('each has a page title', async () => {

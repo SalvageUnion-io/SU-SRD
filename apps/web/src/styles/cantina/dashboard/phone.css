@@ -1,5 +1,5 @@
 /*
- * DashboardPhone — Play's phone form's touch floor (ADR-045, play.md §11).
+ * phone.css — Play's phone form's touch floor (ADR-045, play.md §11).
  *
  * Only what a style object cannot say lives here (ADR-046): rules over
  * descendants. The layout's own rules are `play/phone.css`.

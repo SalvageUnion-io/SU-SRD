@@ -19,13 +19,11 @@ import { gotoStable, waitForReady } from './_helpers'
  * 1280 × 800, `playCanvas.model.ts`, just above where the phone form takes
  * over), and a phone, which gets the phone form (play.md §11).
  */
-export const PLAY_VIEWPORTS = [
+const PLAY_VIEWPORTS = [
   { name: 'canvas', form: 'canvas', width: 1280, height: 800 },
   { name: 'scale floor', form: 'canvas', width: 794, height: 497 },
   { name: 'phone', form: 'phone', width: 390, height: 844 },
 ] as const
-
-export type PlayViewport = (typeof PLAY_VIEWPORTS)[number]
 
 /** The design size: the canvas at scale 1, where a measured px is a drawn px. */
 export const CANVAS = PLAY_VIEWPORTS[0]
@@ -33,7 +31,7 @@ export const CANVAS = PLAY_VIEWPORTS[0]
 export const PHONE = PLAY_VIEWPORTS[2]
 
 /** Every `Math.random()` draw is 13/20, so every d20 Randsum rolls is 14: a Success. */
-export function seedDice(): void {
+function seedDice(): void {
   Math.random = () => 13 / 20
 }
 

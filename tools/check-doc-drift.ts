@@ -947,10 +947,7 @@ const RULE_BUDGET = 4_000
  */
 const OVER_BUDGET: Record<string, number> = {}
 
-/**
- * Context docs collapsed to terse lists, each held near its collapsed size so
- * prose cannot creep back. Raise one only on purpose, saying why in the PR.
- */
+/** Context docs collapsed to terse lists, held near that size: raise one only on purpose, in the PR. */
 const COLLAPSED_DOCS: Record<string, number> = {
   'apps/web/ssg/DESIGN.md': 5_400,
   'docs/ARCHITECTURE.md': 21_200,
@@ -958,6 +955,7 @@ const COLLAPSED_DOCS: Record<string, number> = {
   'docs/architecture/dashboard.md': 1_750,
   'docs/architecture/mediator-dashboard.md': 2_600,
   'docs/architecture/npc-builder.md': 2_000,
+  'docs/architecture/play.md': 8_450,
   'docs/design-system/entity-display-language.md': 6_700,
   'docs/design-system/ruleset.md': 14_500,
   'docs/design-system/sources.md': 3_600,

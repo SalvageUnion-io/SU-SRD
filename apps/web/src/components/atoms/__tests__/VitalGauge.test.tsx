@@ -318,13 +318,6 @@ describe('VitalGauge — danger', () => {
     expect(toneSegs.length).toBe(7)
   })
 
-  test('the cap reads as a Cap | N Stat chip beside the stamp', () => {
-    render(<VitalGauge label="Heat" value={0} max={8} cap={8} readOnly />)
-    const track = screen.getByRole('img', { name: 'Heat 0 of 8' })
-    const cap = Array.from(track.querySelectorAll('span')).find((s) => s.textContent === 'Cap8')
-    expect(cap).toBeDefined()
-  })
-
   test('unlit segments past the danger index carry the status-bad outline', () => {
     render(<VitalGauge label="Heat" value={0} max={8} danger={5} readOnly />)
     const track = screen.getByRole('img', { name: 'Heat 0 of 8' })

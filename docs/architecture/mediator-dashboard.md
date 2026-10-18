@@ -1,4 +1,4 @@
-# Mediator Dashboard
+# Mediating and the Game Page
 
 Superseded by [play.md](play.md) §10 (ADR-051): the Mediator's surface (M1) is Play's Mediator screen, and `/mediator/$gameId` redirects to `/play/game/$gameId`. The decisions Play kept, and the Game page's sections (M2, `apps/web/src/components/games/`), stand below.
 
@@ -20,4 +20,4 @@ Governing ADRs: 030 §3–§6, 038 and 021 in [ARCHITECTURE.md](../ARCHITECTURE.
   - **Q13 The Game** — Who mediates, with Hand over (Appoint when nobody does), who organises, and Delete; Archive is the owner's call.
   - **Q14 Tell the table** — One word to every player at once (`proposals.broadcast`), from the Mediator's Play bar.
 - **§4 Server additions** — `changeLog.reason`, Mediator-only `proposals.sent` (indexed) and `mediator.updateNpc` (clamped, parsed).
-- **§5 Tests** — Propose → apply → Applied from Play (`apps/web/e2e/play-mediator.e2e.ts`); server in `apps/web/test/convex/__tests__/mediatorDashboard.test.ts`.
+- **§5 Tests** — Propose → apply → Applied from Play (`apps/web/e2e/play-mediator.e2e.ts`); server in `apps/web/test/convex/__tests__/mediatorProposals.test.ts`.

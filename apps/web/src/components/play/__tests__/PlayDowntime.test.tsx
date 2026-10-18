@@ -12,7 +12,6 @@ import { downtimeStepNames } from 'cantina-domain/rules/downtime'
 import type { Crawler } from 'cantina-domain/schemas/crawler'
 import type { Mech } from 'cantina-domain/schemas/mech'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
-import type { ChangeMeta } from '../../../stores/entityStore'
 import { PLAY_TXN } from '../../../stores/surfaceProvenance'
 import { installConvexMocks, setQueryAnswers } from '../../__tests__/convexMock'
 import {
@@ -21,10 +20,9 @@ import {
   pilotFixture,
   softLinkFixture,
 } from '../../__tests__/fixtures'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
-import type { PlayStore } from '../play.model'
 import type { PlayRoll } from '../playRolls.model'
 import type { Write } from './playActionsHarness'
+import { stubStore } from './stubStore'
 
 const convexMocks = await installConvexMocks()
 setQueryAnswers({ 'account:me': { _id: 'u-me', displayName: 'Me', avatarUrl: null, email: null } })
@@ -49,8 +47,6 @@ afterAll(async () => {
   await useEntityStore.getState().forget('softLink', LINK)
   convexMocks.restore()
 })
-
-type Call = { type: string; id: string; patch: Record<string, unknown> }
 
 function units() {
   const pilot: Pilot = pilotFixture({
@@ -80,24 +76,6 @@ function units() {
     upgradePool: 0,
   })
   return { pilot, mech, crawler }
-}
-
-function stubStore(...entities: (Pilot | Mech | Crawler)[]): {
-  store: PlayStore
-  calls: Call[]
-  metas: ChangeMeta[]
-} {
-  const calls: Call[] = []
-  const metas: ChangeMeta[] = []
-  const store: PlayStore = makeEntityStoreMock({
-    get: (_type, id) => entities.find((e) => e.id === id) ?? null,
-    update: async (type, id, patch, meta) => {
-      calls.push({ type, id, patch })
-      if (meta) metas.push(meta)
-      return entities.find((e) => e.id === id) ?? null
-    },
-  }).getState()
-  return { store, calls, metas }
 }
 
 async function click(element: Element) {

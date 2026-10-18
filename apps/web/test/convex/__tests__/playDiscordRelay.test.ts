@@ -3,7 +3,7 @@ import { BOT_PATH_PREFIX, BOT_RELAY_POST_ROLL_PATH } from 'cantina-domain/botWir
 import { api } from '../../../convex/_generated/api'
 import { NATIVE_FETCH_GLOBALS, NATIVE_OUTBOUND } from '../../env'
 import type { Ctx } from '../fixtures'
-import { addPilot, makeUser } from '../fixtures'
+import { addPilot, seedTable } from '../fixtures'
 import { testConvexWithHttp } from '../harness'
 
 /**
@@ -91,14 +91,10 @@ beforeEach(() => {
 })
 
 /** A Game with a Discord-linked Organiser and a player who has a pilot in it. */
-async function seedTable(t: Ctx) {
-  const organizer = await makeUser(t, 'Organizer', 'd-org')
-  const player = await makeUser(t, 'Player', 'd-player')
-  const gameId = await organizer.as.mutation(api.games.create, { name: 'Salvage Run' })
-  const code = await organizer.as.mutation(api.invites.link, { gameId })
-  await player.as.mutation(api.invites.redeem, { code })
-  await addPilot(player, 'sparks', gameId)
-  return { organizer, player, gameId }
+async function seedPilotTable(t: Ctx) {
+  const table = await seedTable(t, { discord: true })
+  await addPilot(table.player, 'sparks', table.gameId)
+  return table
 }
 
 /** `/su bind` as the bot sends it: through the `/bot/*` door, with the bot's bearer. */
@@ -120,7 +116,7 @@ async function bindThroughBotDoor(t: Ctx, gameId: string) {
 describe('a Play roll posts to the bound channel through the bot relay', () => {
   test('bound by the bot, posted over HTTP, Posted on the way back', async () => {
     const t = testConvexWithHttp()
-    const { player, gameId } = await seedTable(t)
+    const { player, gameId } = await seedPilotTable(t)
     await bindThroughBotDoor(t, gameId)
     expect(await player.as.query(api.channelBindings.current, { gameId })).toMatchObject({
       channelId: '4242',
@@ -152,7 +148,7 @@ describe('a Play roll posts to the bound channel through the bot relay', () => {
 
   test('the Worker refusing the credentials comes back as Not posted, with why', async () => {
     const t = testConvexWithHttp()
-    const { player, gameId } = await seedTable(t)
+    const { player, gameId } = await seedPilotTable(t)
     await bindThroughBotDoor(t, gameId)
     answer = () => Response.json({ error: 'unauthorized' }, { status: 401 })
 
@@ -172,7 +168,7 @@ describe('a Play roll posts to the bound channel through the bot relay', () => {
 
   test('a Worker that is down is Not posted, never silent', async () => {
     const t = testConvexWithHttp()
-    const { player, gameId } = await seedTable(t)
+    const { player, gameId } = await seedPilotTable(t)
     await bindThroughBotDoor(t, gameId)
     // Nothing listens on a port the OS just handed back.
     const closed = Bun.serve({ port: 0, hostname: '127.0.0.1', fetch: () => new Response() })

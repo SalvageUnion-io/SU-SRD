@@ -270,7 +270,7 @@ export function resolveCardInteraction({
  * behind.
  *
  * - ABILITY flavor — the short description. An ability is an ink banner now
- *   (tier numeral, title, cost pennant), so the card prints it as the body's
+ *   (tier numeral, title, cost chip), so the card prints it as the body's
  *   lead rather than on the band.
  * - TITANIC: the intro paragraph becomes the hint; the REMAINING content
  *   blocks (the options list) render in the body.

@@ -2,7 +2,7 @@
  * playActions — Play's thin, PURE driver over the existing rules engine
  * (docs/architecture/dashboard.md §5). Nothing here touches React or the store: every function takes the
  * live numbers (+ an injectable `Roll`) and returns the `Partial<Mech>` /
- * `Partial<Pilot>` write-through patch the caller (`useActionsDeck`, the slots)
+ * `Partial<Pilot>` write-through patch the caller (`useActionsDeck`, `PlayReactorRow`)
  * hands to `storeState.update(...)`. This keeps the button/action handlers trivially testable
  * (assert the patch) and keeps the ADR-006 pure-math boundary intact — the math
  * lives in `lib/rules/*`, this only assembles patches and readouts.
@@ -22,11 +22,17 @@ import { resultForTable, SalvageUnionReference } from 'salvageunion-reference'
 import type { CoreRollBand, HeatCheckEffect, Roll } from 'salvageunion-reference/rules'
 import {
   canActivateAction,
+  canPush,
   clampHeat,
   describeOverloadOutcome,
+  describePushOutcome,
+  mechMaxHeat,
+  mechMaxSP,
   performHeatCheck,
   performPush,
   resolveChassisRef,
+  resolveGauge,
+  resolvePoolStart,
 } from 'salvageunion-reference/rules'
 import { heatCheckPatch } from './heatCheck'
 import type { MechItemEconomy } from './mechItems'
@@ -70,6 +76,31 @@ export function pushPatch(args: { heat: number; heatCap: number; currentSP: numb
   return { patch, effect, nextHeat, meltdown }
 }
 
+/**
+ * A Push on `mech` as it stands (the caller reads it fresh from the store): the
+ * patch, what it came to and whether it melted down, or null where +2 Heat
+ * would pass the Heat Cap (Core Book p.234). The resolve's Push
+ * (`useActionsDeck`) and `PlayReactorRow`'s both run it.
+ */
+export function mechPush(
+  mech: Mech,
+  roll: Roll
+): { patch: Partial<Mech>; text: string; meltdown: boolean } | null {
+  const chassis = resolveChassisRef(mech.chassisRef)
+  const heatCap = mechMaxHeat(mech, chassis)
+  const heat = resolveGauge(mech.currentHeat, heatCap)
+  if (!canPush(heat, heatCap)) return null
+  const { patch, effect, nextHeat, meltdown } = pushPatch({
+    heat,
+    heatCap,
+    // Unrecorded SP means undamaged. At 0 an Overheat wrote the mech straight
+    // to SP 0 — one hit from destroyed — without it ever having taken damage.
+    currentSP: resolvePoolStart(mech.currentSP, mechMaxSP(mech, chassis)),
+    roll,
+  })
+  return { patch, text: describePushOutcome(nextHeat, effect), meltdown }
+}
+
 /** A standalone Heat Check at current Heat (no +2). Meltdown is player-confirmed. */
 export function heatCheckOncePatch(args: { heat: number; currentSP: number; roll: Roll }): {
   patch: Partial<Mech>
@@ -83,7 +114,7 @@ export function heatCheckOncePatch(args: { heat: number; currentSP: number; roll
 
 /**
  * Emergency Vent: dump Heat to 0 and become Vulnerable (dashboard.md §5.1 — Vent and
- * Shutdown are distinct Reactor-bay controls: Vent sets Heat→0 + `vulnerable`,
+ * Shutdown are distinct controls on `PlayReactorRow`: Vent sets Heat→0 + `vulnerable`,
  * Shutdown toggles the flag). NB the tabletop rule folds a full shutdown into
  * venting; Play keeps them separate — hit Shutdown too for
  * the strict-SRD sequence.
@@ -391,8 +422,9 @@ export function activationHeatGate(args: {
 /**
  * Classify a rolled outcome for the Apply step (ADR-007). A Cascade Failure is
  * the destructive band — its severe consequence must NEVER be auto-written; the
- * caller routes it to the Mech Major slot's player-confirmed controls (Push /
- * Take Damage / Critical). Every other band is non-destructive and auto-commits.
+ * resolve hands it to the player in its Row's Callout (`PlayResolveSteps`), who
+ * takes the damage on the unit's gauge. Every other band is non-destructive and
+ * auto-commits.
  */
 export function isDestructiveOutcome(band: CoreRollBand): boolean {
   return band === 'cascade'

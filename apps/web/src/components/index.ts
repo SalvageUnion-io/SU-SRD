@@ -158,8 +158,7 @@ export {
 export { PICKER_MODAL_WIDTH } from './compositions/pickerModalWidth'
 // RollTableInstrument — THE roll table (EDL E14): a card's, a guide step's and
 // the SRD roll-table page's bands and the Cantina's Play tables, banded in the
-// surface tone; `titleSelect` makes its title a table picker's trigger
-export type { RollTableTitleSelect } from './compositions/RollTableInstrument'
+// surface tone
 export { RollTableInstrument } from './compositions/RollTableInstrument'
 // StartHere — the one onboarding block, on the SRD's home and the Cantina's front door
 export { StartHere } from './compositions/StartHere'
@@ -273,7 +272,6 @@ export { resolveEntityPageMeta } from './referenceEntity/card/entityPage'
 export { isLegalStartingPatternOf } from './referenceEntity/card/legalStartingPattern'
 // Entity display system
 export { ReferenceEntityCard } from './referenceEntity/card/ReferenceEntityCard'
-export type { ReferenceCardEntity } from './referenceEntity/card/referenceEntityCardTypes'
 // UserMadeStamp — the dashed User-made stamp (ruleset §3.9). The card wears it
 // in its head's labels; a full user-made page leads its title with it.
 export { UserMadeStamp } from './referenceEntity/card/UserMadeStamp'

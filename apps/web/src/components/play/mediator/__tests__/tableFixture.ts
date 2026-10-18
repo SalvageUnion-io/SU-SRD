@@ -6,60 +6,17 @@
  */
 
 import type { Id } from '../../../../../convex/_generated/dataModel'
+import { calm, crewMech, crewPilot, sound } from '../../__tests__/crewRows'
 import type { BoardSources } from '../../boardMenu.model'
 import type { CrewVitals } from '../../useGameFeed'
 
-const calm = { dead: false, injured: false, ejected: false }
-const sound = {
-  destroyed: false,
-  shutdown: false,
-  overheating: false,
-  destroyedSystems: [],
-  destroyedModules: [],
-}
-
-type Pilot = CrewVitals['pilots'][number]
 type Mech = CrewVitals['mechs'][number]
 
-function pilot(id: string, name: string, owner: string | null, over: Partial<Pilot> = {}): Pilot {
-  return {
-    _id: `row-${id}` as Id<'pilots'>,
-    appId: id,
-    linkId: id,
-    ownerId: owner as Id<'users'> | null,
-    ownerName: owner,
-    name,
-    currentHP: 10,
-    currentAP: 5,
-    maxHP: 10,
-    maxAP: 5,
-    boarded: false,
-    mechId: null,
-    status: calm,
-    attention: false,
-    lastSeenAt: null,
-    ...over,
-  }
-}
+const pilot = crewPilot
 
+/** A mech at SP 9/9, Heat 0/8, unless `over` says otherwise. */
 function mech(id: string, name: string, owner: string | null, over: Partial<Mech> = {}): Mech {
-  return {
-    _id: `row-${id}` as Id<'mechs'>,
-    appId: id,
-    linkId: id,
-    ownerId: owner as Id<'users'> | null,
-    ownerName: owner,
-    name,
-    currentSP: 9,
-    currentEP: 6,
-    currentHeat: 0,
-    maxSP: 9,
-    maxEP: 6,
-    maxHeat: 8,
-    status: sound,
-    attention: false,
-    ...over,
-  }
+  return crewMech(id, name, owner, { currentSP: 9, maxSP: 9, maxHeat: 8, ...over })
 }
 
 export const TABLE_CREW: CrewVitals = {

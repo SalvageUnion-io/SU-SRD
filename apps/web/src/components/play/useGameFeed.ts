@@ -1,9 +1,8 @@
 /**
  * useGameFeed — what Play reads about the rest of the table (play.md §7,
- * §8): the Game's rolls and the
- * Mediator's alerts for the Log tab, the proposal count for the bottom strip,
- * the Game's name for the rail, and the crew's vitals, maxima and status
- * (`crew.vitals`, derived on the server, ADR-038 §4) for the Crew tab.
+ * §8): the Game's rolls, the Mediator's alerts and the proposals awaiting this
+ * player for the Feed, and the crew's vitals, maxima and status
+ * (`crew.vitals`, derived on the server, ADR-038 §4) for Crew.
  *
  * Every read is a Convex subscription, so a crewmate's roll, or the resolve
  * they are part-way through ("Rook is resolving Crush", ADR-038 §2), arrives
@@ -41,25 +40,19 @@ export type PendingProposal = FunctionReturnType<typeof api.proposals.pending>[n
 /** The crew as the server derives it (`crew.vitals`). */
 export type CrewVitals = FunctionReturnType<typeof api.crew.vitals>
 
-/** One crewmate, as the Crew tab reads it. */
+/** One crewmate, as Play's Crew reads it. */
 export type CrewLine = {
   pilotId: string
   name: string
   /** The pilot this screen plays. */
   self: boolean
-  /** Their live sheet: read-only, and live, when it is a crewmate's. */
-  href: string
-  /** "On foot", or "In <mech>". */
-  where: string
-  /** "HP 4/17 · AP 5/7". */
-  vitals: string
-  /** "4/17" — the Crew tab's HP column (board D2). */
+  /** "4/17": their HP. */
   hp: string
-  /** "5/7" — the Crew tab's AP column. */
+  /** "5/7": their AP. */
   ap: string
   /**
-   * Where they are and in what, as the Crew tab's Mech column reads it: "In
-   * Spectrum · SP 6/9", "On foot · Scrapper parked", or "On foot".
+   * Where they are and in what: "In Spectrum · SP 6/9", "On foot · Scrapper
+   * parked", or "On foot".
    */
   unit: string
   /**
@@ -84,28 +77,20 @@ export type CrewLine = {
 }
 
 export type GameFeed = {
-  /** The Game's name, or null before it arrives. */
-  gameName: string | null
-  /** The Game's own page, where the proposal inbox is answered. */
-  gameHref: string | null
-  /** The Game, for "Copy invite link" on the Crew tab: null outside one or for anyone but its Organizer. */
-  inviteGameId: Id<'games'> | null
   /** Newest first; null while the first answer is on its way. */
   rolls: RollLine[] | null
   /** Newest first. */
   alerts: AlertLine[]
-  /** Proposals waiting for this player's answer. */
-  inbox: number
-  /** Those proposals themselves, newest first: Play's Feed answers them inline (play.md §8). */
+  /** Proposals waiting for this player's answer, newest first: Play's Feed answers them inline (play.md §8). */
   proposals: PendingProposal[]
   /** Every crewmate's vitals and derived status; null until it arrives. */
   crew: CrewVitals | null
 }
 
-/** How many rolls the Log tab shows. */
+/** How many rolls the Feed shows. */
 const LOG_ROLLS = 30
 
-/** How many alerts the Log tab shows; the strip shows the newest. */
+/** How many alerts the Feed shows. */
 const LOG_ALERTS = 10
 
 export function useGameFeed(pilot: Pilot | null): GameFeed {
@@ -115,19 +100,14 @@ export function useGameFeed(pilot: Pilot | null): GameFeed {
   const signedIn = mode === 'connected' || mode === 'disconnected'
   const inGame = signedIn && gameId !== null
 
-  const game = useQuery(api.games.get, inGame ? { gameId } : 'skip')
   const rolls = useQuery(api.changeLog.rolls, inGame ? { gameId, limit: LOG_ROLLS } : 'skip')
   const alerts = useQuery(api.proposals.alerts, inGame ? { gameId, limit: LOG_ALERTS } : 'skip')
   const pending = useQuery(api.proposals.pending, inGame ? { gameId } : 'skip')
   const crew = useQuery(api.crew.vitals, inGame ? { gameId } : 'skip')
 
   return {
-    gameName: game?.name ?? null,
-    gameHref: gameId === null ? null : `/games/${gameId}`,
-    inviteGameId: game?.organizer ? gameId : null,
     rolls: rolls ?? null,
     alerts: alerts ?? [],
-    inbox: pending?.length ?? 0,
     proposals: pending ?? [],
     crew: crew ?? null,
   }
@@ -145,7 +125,7 @@ export function describeResolve(pilotName: string, resolving: SeatResolving): st
 }
 
 /** "12/16", or the stored value alone while the maximum is unknown. */
-function pool(current: number | null, max: number | null, gauge = false): string {
+export function crewPool(current: number | null, max: number | null, gauge = false): string {
   if (max === null) return current === null ? '—' : String(current)
   const stored = current ?? undefined
   const value = gauge ? resolveGauge(stored, max) : resolvePool(stored, max)
@@ -211,34 +191,31 @@ export function crewLines(
     let mechLine: string | null = null
     if (mech !== undefined) {
       mechLine = p.boarded
-        ? `${mech.name} · SP ${pool(mech.currentSP, mech.maxSP)} · Heat ${pool(mech.currentHeat, mech.maxHeat, true)}`
+        ? `${mech.name} · SP ${crewPool(mech.currentSP, mech.maxSP)} · Heat ${crewPool(mech.currentHeat, mech.maxHeat, true)}`
         : [`${mech.name} parked`, ...parkedProblems(mech.status)].join(', ')
     }
     const resolving = resolvingOf.get(id) ?? null
-    const hp = pool(p.currentHP, p.maxHP)
-    const ap = pool(p.currentAP, p.maxAP)
+    const hp = crewPool(p.currentHP, p.maxHP)
+    const ap = crewPool(p.currentAP, p.maxAP)
     const unit =
       mech === undefined
         ? p.boarded
           ? 'In a mech'
           : 'On foot'
         : p.boarded
-          ? `In ${mech.name} · SP ${pool(mech.currentSP, mech.maxSP)}`
+          ? `In ${mech.name} · SP ${crewPool(mech.currentSP, mech.maxSP)}`
           : `On foot · ${mech.name} parked`
     lines.push({
       pilotId: id,
       name: p.name,
       self: id === pilotId,
-      href: `/sheet/pilot/${id}`,
-      where: p.boarded ? `In ${mech?.name ?? 'a mech'}` : 'On foot',
-      vitals: `HP ${hp} · AP ${ap}`,
       hp,
       ap,
       unit,
       unitMech:
         mech === undefined
           ? null
-          : { name: mech.name, sp: pool(mech.currentSP, mech.maxSP), boarded: p.boarded },
+          : { name: mech.name, sp: crewPool(mech.currentSP, mech.maxSP), boarded: p.boarded },
       mech: mechLine,
       mechAttention: !p.boarded && (mech?.attention ?? false),
       problems: [

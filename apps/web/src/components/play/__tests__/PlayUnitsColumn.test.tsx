@@ -21,10 +21,10 @@ import {
   pilotFixture,
   softLinkFixture,
 } from '../../__tests__/fixtures'
-import { fakeSeat } from '../__tests__/seatFixture'
 import type { BoardOption } from '../boardMenu.model'
 import type { Play, Situation } from '../situation.model'
 import { RESTORE_STEP_NAME } from '../units.model'
+import { fakeSeat } from './seatFixture'
 
 // Module scope, before the imports below — see `convexMock.ts`.
 const convexMocks = await installConvexMocks()

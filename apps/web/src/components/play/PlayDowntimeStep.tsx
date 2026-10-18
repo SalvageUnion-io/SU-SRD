@@ -20,7 +20,7 @@
  * Upkeep is spent once per Downtime: the claim (`spendUpkeep`) answers false
  * when it is already paid, and the Scrap is drawn only when it answers true.
  * Restore never confirms: its patches only heal, repair and recharge, and
- * refuse a Destroyed mech (the DowntimeWizard's reasoning, unchanged).
+ * refuse a Destroyed mech: nothing destructive, so nothing to confirm (ADR-007).
  *
  * The two Downtime wireframes swap these labels: player-downtime.png (a Game)
  * draws "You run it", and player-solo-downtime.png "Mediator advances · 2 of

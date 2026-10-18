@@ -1,4 +1,4 @@
-# Dashboard
+# Play State and Rules
 
 Superseded by [play.md](play.md) (ADR-051): the Dashboard is retired, and `/dashboard/$pilotId` redirects to Play. What stands below is the play state and the rules driver Play kept; layout, launch and the phone form are play.md's.
 

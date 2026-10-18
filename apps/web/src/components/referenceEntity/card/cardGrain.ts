@@ -11,8 +11,8 @@
  * and the image has no intrinsic size, so it fills whatever band it is the
  * background of. Grain, not shading — nothing interpolates between colours.
  *
- * Never on paper, buttons, fields, Play or tooltips: the card turns it
- * off there (`texture={false}`), and `tokens/texture-placement` keeps the token
+ * Never on paper, buttons, fields, a peek or the Mediator's SRD explorer: the
+ * card turns it off there (`texture={false}`), and `tokens/texture-placement` keeps the token
  * references out of those files.
  *
  * Every header band on a listing wears one, so the image is a stylesheet class

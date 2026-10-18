@@ -7,10 +7,8 @@
  * live here rather than in src/components, whose stylesheets srd loads too.
  * `PlayFrame` imports it, before Play's own bundle (`play.css`).
  *
- * The order below is load-bearing: DashboardCanvas.css, then instruments.css.
- * DashboardPhone.css (the phone form, ADR-045) comes last and keys off its own
- * `.su-dash-phone` scope.
+ * phone.css (the phone form, ADR-045) keys off its own `.su-dash-phone` scope.
  */
-@import './dashboard/DashboardCanvas.css';
+@import './dashboard/canvas.css';
 @import './dashboard/instruments.css';
-@import './dashboard/DashboardPhone.css';
+@import './dashboard/phone.css';

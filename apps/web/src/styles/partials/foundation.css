@@ -188,20 +188,6 @@ body {
 }
 
 /**
- * The ON-TONE rung: an ink ring with a paper offset, for a focusable surface
- * whose own background is a caller-supplied ENTITY TONE. It draws the same
- * ring as the canonical one above; it stays a named rung because
- * callers on a tone say so, and a tone that ever needs a different ring has a
- * place to get it.
- */
-.su-focus-ring-on-tone:focus-visible {
-  outline: 3px solid transparent;
-  box-shadow:
-    0 0 0 2px var(--color-paper),
-    0 0 0 4px var(--color-ink);
-}
-
-/**
  * The search-shell rung: the bordered shell is the thing that should look
  * focused, but the <input> inside is what actually takes focus. Ring-only —
  * there is no outline on the shell to suppress, and pretending otherwise would

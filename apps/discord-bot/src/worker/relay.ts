@@ -16,23 +16,14 @@
  * it in the Feed: posting is never allowed to fail silently.
  */
 
-import type { ResponseLike } from '@discordjs/rest'
-import { DiscordAPIError, HTTPError, RateLimitError, REST } from '@discordjs/rest'
+import { DiscordAPIError, HTTPError, RateLimitError } from '@discordjs/rest'
 import type { PostRollRelayRequest, PostRollRelayResponse } from 'cantina-domain/botWire'
+import { bearerToken, isPostableRoll, secretsMatch } from 'cantina-domain/botWire'
 import { Routes } from 'discord-api-types/v10'
 import { buildPostedRollMessage } from '../commands/roll'
 import { encodeRollResult } from '../customId'
 import { reportError } from '../reportError'
-
-/** Compare two secrets without an early exit (`secretsMatch` in `convex/botHttp.ts`). */
-function secretsMatch(presented: string, expected: string): boolean {
-  if (presented.length !== expected.length) return false
-  let diff = 0
-  for (let i = 0; i < presented.length; i += 1) {
-    diff |= presented.charCodeAt(i) ^ expected.charCodeAt(i)
-  }
-  return diff === 0
-}
+import { oneShotRest } from './oneShotRest'
 
 function answer(body: PostRollRelayResponse | { error: string }, status: number): Response {
   return Response.json(body, { status })
@@ -45,11 +36,8 @@ function parseRequest(body: unknown): PostRollRelayRequest | null {
   const { channelId, tableName, rolls, roller, ownerDiscordId } = raw
   if (typeof channelId !== 'string' || !/^\d{1,25}$/.test(channelId)) return null
   // `|` separates the parts of a roll result (`encodeRollResult`).
-  if (typeof tableName !== 'string' || tableName.length === 0 || tableName.includes('|')) {
-    return null
-  }
-  if (!Array.isArray(rolls) || rolls.length < 1 || rolls.length > 2) return null
-  if (!rolls.every((n) => Number.isInteger(n) && n >= 1 && n <= 20)) return null
+  if (typeof tableName !== 'string' || tableName.includes('|')) return null
+  if (!Array.isArray(rolls) || !isPostableRoll(tableName, rolls)) return null
   return {
     channelId,
     tableName,
@@ -73,8 +61,8 @@ function discordFailure(status: number, code: number | string | null): string {
 export async function handlePostRoll(request: Request, env: Env): Promise<Response> {
   const expected = env.CANTINA_BOT_SECRET
   if (!expected) return answer({ error: 'not found' }, 404)
-  const match = /^Bearer (.+)$/.exec((request.headers.get('Authorization') ?? '').trim())
-  if (!match?.[1] || !secretsMatch(match[1], expected)) {
+  const presented = bearerToken(request.headers.get('Authorization'))
+  if (presented === null || !secretsMatch(presented, expected)) {
     return answer({ error: 'unauthorized' }, 401)
   }
 
@@ -94,14 +82,7 @@ export async function handlePostRoll(request: Request, env: Env): Promise<Respon
   const { data: _data, ephemeral: _ephemeral, ...payload } = message
 
   // One attempt: the roller is waiting on the Feed, and a retry belongs to them.
-  // The global `fetch` spelled out as in `/health`, so Bun's tests go through it.
-  const rest = new REST({
-    version: '10',
-    retries: 0,
-    rejectOnRateLimit: () => true,
-    makeRequest: async (url, init) =>
-      (await fetch(url, init as RequestInit)) as unknown as ResponseLike,
-  }).setToken(env.DISCORD_TOKEN)
+  const rest = oneShotRest(env.DISCORD_TOKEN)
 
   try {
     const posted = (await rest.post(Routes.channelMessages(parsed.channelId), {

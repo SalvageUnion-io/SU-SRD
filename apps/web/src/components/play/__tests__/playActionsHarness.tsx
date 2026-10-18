@@ -7,7 +7,7 @@
 
 import type { Mech } from 'cantina-domain/schemas/mech'
 import type { Pilot } from 'cantina-domain/schemas/pilot'
-import type { RangeBand, SeatResolving } from 'cantina-domain/schemas/seat'
+import type { SeatResolving } from 'cantina-domain/schemas/seat'
 import { useState } from 'react'
 import type { rollForTable } from '../../index'
 import { EntityHrefProvider } from '../../index'
@@ -22,7 +22,7 @@ export type Write = { name: string; args?: unknown }
 
 type Member = { userId: string; displayName: string }
 
-export type HarnessProps = {
+type HarnessProps = {
   pilot: Pilot
   mech?: Mech | null
   situation: Situation
@@ -30,14 +30,11 @@ export type HarnessProps = {
   rollFor?: typeof rollForTable
   gameId?: string | null
   mediator?: boolean
-  mechs?: BoardOption[]
   initialResolving?: SeatResolving | null
   /** The seat's boarded mech, when it is not `mech` (one the store cannot find). */
   boardedMechId?: string
-  range?: RangeBand
   downtime?: {
     stepIndex: number
-    upkeepSpent?: boolean
     members?: Member[]
     done?: Member[]
     /** The steps the server already records claimed for this pilot (as after a reload). */
@@ -46,9 +43,10 @@ export type HarnessProps = {
   spendUpkeep?: () => Promise<boolean>
   canWrite?: boolean
   writes: Write[]
-  /** The viewer, as `account.me` answers in a Game. */
-  me?: string
 }
+
+/** The viewer, as `account.me` answers in a Game. */
+const ME = 'u-me'
 
 /** Every die shows 14: a Core Mechanic Success. */
 export const rollFourteen: typeof rollForTable = async () => () => 14
@@ -60,15 +58,12 @@ export function useHarnessPlay({
   situation: initialSituation,
   gameId = null,
   mediator = false,
-  mechs,
   initialResolving = null,
   boardedMechId: boardedOverride,
-  range = 'Close',
   downtime,
   spendUpkeep = async () => true,
   canWrite = true,
   writes,
-  me = 'u-me',
 }: Omit<HarnessProps, 'store' | 'rollFor'>): Play {
   const [resolving, setResolving] = useState<SeatResolving | null>(initialResolving)
   const [situation, setSituation] = useState<Situation>(initialSituation)
@@ -80,9 +75,9 @@ export function useHarnessPlay({
   }
   const boardedMechId =
     situation !== 'boarded' ? null : (boardedOverride ?? (mech ? mech.id : null))
-  const options: BoardOption[] =
-    mechs ??
-    (mech ? [{ mechId: mech.id, serverId: null, name: mech.name, state: 'yours', note: null }] : [])
+  const options: BoardOption[] = mech
+    ? [{ mechId: mech.id, serverId: null, name: mech.name, state: 'yours', note: null }]
+    : []
   const solo = gameId === null
   const members = downtime?.members ?? []
 
@@ -110,7 +105,7 @@ export function useHarnessPlay({
         ...DEFAULT_SEAT,
         mount:
           boardedMechId === null ? { kind: 'foot' } : { kind: 'boarded', mechId: boardedMechId },
-        range,
+        range: 'Close',
         resolving,
       },
       board: (mechId) => record('seat.board', mechId),
@@ -133,7 +128,7 @@ export function useHarnessPlay({
         running: situation === 'downtime',
         stepIndex: situation === 'downtime' ? stepIndex : null,
         completedBy: done,
-        upkeepSpent: downtime?.upkeepSpent ?? false,
+        upkeepSpent: false,
         members,
       },
       locked: !solo && !mediator,
@@ -154,8 +149,8 @@ export function useHarnessPlay({
         ? null
         : (isDone) => {
             record('downtime.markDone', isDone)
-            const self = members.find((m) => m.userId === me) ?? { userId: me, displayName: 'Me' }
-            setDone((d) => (isDone ? [...d, self] : d.filter((m) => m.userId !== me)))
+            const self = members.find((m) => m.userId === ME) ?? { userId: ME, displayName: 'Me' }
+            setDone((d) => (isDone ? [...d, self] : d.filter((m) => m.userId !== ME)))
           },
       doneSteps,
       markStepDone: async (i) => {

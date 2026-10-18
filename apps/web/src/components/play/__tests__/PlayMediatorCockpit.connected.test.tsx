@@ -153,7 +153,7 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
         ts: NOW - 20_000,
         description: 'Mags · Core Mechanic · 20 · Nailed it',
         actorName: 'Mags',
-        source: 'dashboard',
+        source: 'play',
       },
     ],
     'channelBindings:current': { channelId: 'c-1', boundAt: 1 },
@@ -434,19 +434,19 @@ describe('Downtime', () => {
 })
 
 describe('every Mediator capability is reachable here', () => {
-  test('rail: the way back to the Game page is ⋯ › Game page', async () => {
+  test('the way back to the Game page is ⋯ › Game page', async () => {
     await renderCockpit()
     await click(named('More'))
     expect(screen.getByRole('menuitem', { name: /Game page/ })).toBeTruthy()
   })
 
-  test('rail: the seats needing attention are the seats’ ▲ and rings', async () => {
+  test('the seats needing attention are the seats’ ▲ and rings', async () => {
     await renderCockpit()
     const flagged = document.querySelectorAll('.su-play-seat[data-attention]')
     expect(flagged).toHaveLength(1)
   })
 
-  test('rail: Saved is the foot’s, beside the Opposition reminder', async () => {
+  test('Saved is the foot’s, beside the Opposition reminder', async () => {
     await renderCockpit()
     const foot = within(screen.getByRole('contentinfo'))
     expect(foot.getByText('Players see the Opposition only through what you post')).toBeTruthy()
@@ -491,27 +491,27 @@ describe('every Mediator capability is reachable here', () => {
     expect(screen.getByRole('menuitem', { name: 'Reference card' })).toBeTruthy()
   })
 
-  test('Proposals tab: every proposal sent is Propose’s All proposals', async () => {
+  test('every proposal sent is Propose’s All proposals', async () => {
     await renderCockpit()
     await click(named('All proposals'))
     const dialog = within(screen.getByRole('dialog', { name: 'Proposals you sent' }))
     expect(dialog.getByText(/^Rook · HP → 6/)).toBeTruthy()
   })
 
-  test('Tables tab: the roll tables are the Tables section, private by default', async () => {
+  test('the roll tables are the Tables section, private by default', async () => {
     await renderCockpit()
     const post = screen.getByLabelText('Post rolls to the Game’s channel') as HTMLInputElement
     expect(post.checked).toBe(false)
     expect(screen.getByRole('group', { name: 'Pinned tables' })).toBeTruthy()
   })
 
-  test('SRD tab: the reference is ⋯ › Reference', async () => {
+  test('the reference is ⋯ › Reference', async () => {
     await renderCockpit()
     await click(named('More'))
     expect(screen.getByRole('menuitem', { name: 'Reference' })).toBeTruthy()
   })
 
-  test('Log tab: the Game’s rolls and the alerts sent are the Feed', async () => {
+  test('the Game’s rolls and the alerts sent are the Feed', async () => {
     await renderCockpit()
     const lines = feedLines()
     expect(lines.some((l) => l.includes('Mags · Core Mechanic · 20 · Nailed it'))).toBe(true)

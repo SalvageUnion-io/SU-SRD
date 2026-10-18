@@ -23,12 +23,12 @@ afterEach(() => {
   // mounts none, so the four toasts it raises reached no subscriber and were
   // never dismissed — they simply waited.
   //
-  // `SlotRow.writesBlocked.test.tsx` mounts a `<Toaster/>` and asserts on
-  // the offline refusal copy, which is byte-identical to the one raised here.
-  // It inherited this file's stale copy, found two matching elements, and —
-  // because `findByText` retries a multiple-match throw rather than surfacing it
-  // — spent the full 1000 ms `waitFor` budget and reported as a timeout. Same
-  // module-global hazard as `mock.module`, different module.
+  // Any file that mounts a `<Toaster/>` and asserts on the offline refusal
+  // copy, which is byte-identical to the one raised here, inherits this file's
+  // stale copy, finds two matching elements, and — because `findByText` retries
+  // a multiple-match throw rather than surfacing it — spends the full 1000 ms
+  // `waitFor` budget and reports a timeout. Same module-global hazard as
+  // `mock.module`, different module.
   toast.dismiss()
 })
 

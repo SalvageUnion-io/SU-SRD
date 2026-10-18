@@ -8,8 +8,9 @@ The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 21, which
 game rules. **Where it conflicts with any prior ADR, this ADR wins** (scope and
 the specific overrides are listed under [Supersession](#supersession--precedence)).
 
-Built: Guided Creation on the Wizard's create path, the Dashboard and
-ADR-022's Change Log. The living, authoritative placement table is
+Built: Guided Creation on the Wizard's create path, Play and ADR-022's
+Change Log. **Amended by [ADR-051](051-play-mode.md):** Play replaced the
+Dashboard and the Mediator Dashboard as Guided Play's and Adjudicate's surface. The living, authoritative placement table is
 [rules and the Cantina surfaces](../ARCHITECTURE.md#surfaces) — keep
 placements in sync **there**, not by re-editing the summary below. This ADR
 records _why_ the taxonomy exists; the arch doc records _what goes where_.
@@ -56,9 +57,9 @@ procedure.
 | ------------------- | -------------------------------------------- | -------------------------------------------------------------------- |
 | **Guided Creation** | Wizard                                       | Enforce creation rules; a how-to guide for making a legal entity.    |
 | **Free Edit**       | Live Sheet                                   | No lifecycle enforcement. Edit end-state directly; override caps.    |
-| **Guided Play**     | **Dashboard** (Pilot + Mech + Crawler, live) | Enforce play; interactive rules-layers that teach as they enforce.   |
+| **Guided Play**     | **Play** (Pilot + Mech + Crawler, live)      | Enforce play; interactive rules-layers that teach as they enforce.   |
 | **Frozen**          | Public sheet (`/p/`), a crewmate's sheet     | Read-only, live (snapshots retired by ADR-036).                      |
-| **Adjudicate**      | Mediator Dashboard (`/mediator/$gameId`)     | Mediator tooling; surfaces rules, enforces nothing on player sheets. |
+| **Adjudicate**      | Play's Mediator screen (`/play/game/$gameId`) | Mediator tooling; surfaces rules, enforces nothing on player sheets. |
 
 **Rule placement** (summary in
 [rules and the Cantina surfaces](../ARCHITECTURE.md#surfaces)):
@@ -66,7 +67,7 @@ procedure.
 - **Lifecycle transactions** (use a system → EP/Heat/uses, Push, Scrap/TP costs,
   Downtime, craft, salvage, repair, upgrade, advancement) — **enforced +
   interactive in the guided modes; bypassed in Free Edit** (edit the end-state, no
-  cost). Using a system is a **Dashboard** act, never a Live-Sheet one; the Live
+  cost). Using a system is a **Play** act, never a Live-Sheet one; the Live
   Sheet may still hand-edit a remaining-uses _count_ (free state).
 - **Structural coherence** (refs resolve, type/containment) — **hard in every
   mode**, Free Edit included. House-ruled objects allowed; incoherent ones not.
@@ -76,7 +77,7 @@ procedure.
   **overridable in Free Edit** with a callout and a retained baseline (ADR-022).
 - **Free state** (HP/SP/Heat/EP/AP/Scrap, conditions, uses) — **freely editable in
   Free Edit**; moved only via enforced actions in Guided Play. (Applying
-  Mediator-declared damage splits: the SP→HP overflow rule runs as a Dashboard
+  Mediator-declared damage splits: the SP→HP overflow rule runs as a Play
   transaction; raw-setting SP/HP is a Free-Edit edit.)
 - **Procedural adjudication** — surfaced, never enforced (unchanged); the
   Adjudicate mode tools it GM-side, player surfaces only apply the outcomes.
@@ -85,10 +86,11 @@ procedure.
 enforcement stance) _and_ a rule class (→ what the stance does); the matrix cell is
 the behavior.
 
-**The Dashboard is a separate, multi-entity surface — built.** It composes a
+**Play is a separate, multi-entity surface — built.** It composes a
 player's Pilot + Mech + Crawler into one live play surface (distinct from the
-single-entity Live Sheet), at `/dashboard/$pilotId`
-(`src/components/dashboard/`). Detail in the architecture doc.
+single-entity Live Sheet), at `/play/$pilotId` and the Mediator's
+`/play/game/$gameId` (`src/components/play/`). Detail in
+[play.md](../architecture/play.md).
 
 ## Supersession / precedence
 
