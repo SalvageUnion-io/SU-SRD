@@ -452,3 +452,163 @@ export async function assignCrawlerOnPilotSheet(page: Page, crawlerName: string)
     page.getByRole('link', { name: new RegExp(`View ${crawlerName}`, 'i') })
   ).toBeVisible({ timeout: 10_000 })
 }
+
+// ---------------------------------------------------------------------------
+// designRoutes: every context the layout gates see (hard rule R0).
+// ---------------------------------------------------------------------------
+
+/** The contexts of ruleset §1, the Listing and the Peek apart from the Page. */
+export type DesignContext =
+  | 'reference'
+  | 'listing'
+  | 'peek'
+  | 'sheet'
+  | 'wizard'
+  | 'manage'
+  | 'play'
+
+/**
+ * Every route family a layout gate must see, with its context. A family is one
+ * page shape: a new shape is a family here and an entry in `designRoutes`, or
+ * `designRoutes.test.ts` fails.
+ */
+export const DESIGN_FAMILIES = {
+  'reference-page': 'reference',
+  'reference-index': 'reference',
+  listing: 'listing',
+  peek: 'peek',
+  'sheet-pilot-read': 'sheet',
+  'sheet-pilot-edit': 'sheet',
+  'sheet-mech-read': 'sheet',
+  'sheet-mech-edit': 'sheet',
+  'sheet-crawler-read': 'sheet',
+  'sheet-crawler-edit': 'sheet',
+  'sheet-npc-read': 'sheet',
+  'sheet-npc-edit': 'sheet',
+  'wizard-pilot': 'wizard',
+  'wizard-mech': 'wizard',
+  'wizard-crawler': 'wizard',
+  hangar: 'manage',
+  'play-hub': 'manage',
+  'game-page': 'manage',
+  invite: 'manage',
+  'play-player': 'play',
+  'play-solo': 'play',
+  'play-mediator': 'play',
+} as const satisfies Record<string, DesignContext>
+
+export type DesignFamily = keyof typeof DESIGN_FAMILIES
+
+/**
+ * The two widths every family is held at. `page` is a desktop window, and for
+ * Play its canvas at the design size (`_play.ts`'s `CANVAS`, 1280 × 800), where
+ * a measured px is a drawn px. `phone` is a phone, and for Play its phone form,
+ * every tab of it.
+ */
+export type DesignWidth = 'phone' | 'page'
+
+export const DESIGN_VIEWPORTS: Record<DesignWidth, { width: number; height: number }> = {
+  page: { width: 1440, height: 900 },
+  phone: { width: 390, height: 844 },
+}
+
+/**
+ * The families held at one width only, and why. Every other family has an
+ * entry at both (`designRoutes.test.ts`).
+ */
+export const ONE_WIDTH: Partial<Record<DesignFamily, { width: DesignWidth; why: string }>> = {
+  peek: {
+    width: 'page',
+    why: "a Peek opens from the Union bar's search, which a phone folds into its menu",
+  },
+}
+
+/** The paths the seed makes (`seedDesignAccount`, `_designRoutes.ts`), named in a route as `:key`. */
+export const DESIGN_SEED_KEYS = [
+  'pilot',
+  'mech',
+  'crawler',
+  'npc',
+  'game',
+  'invite',
+  'playPlayer',
+  'playSolo',
+  'playMediator',
+] as const
+
+export type DesignSeedKey = (typeof DESIGN_SEED_KEYS)[number]
+
+export type DesignRoute = {
+  family: DesignFamily
+  /**
+   * What the browser opens: an SRD path as it is (`/chassis/mazona/`), an app
+   * route through `at()`, or `:key`, a path the seed made (`:pilot`).
+   */
+  path: string
+  widths: readonly DesignWidth[]
+  /**
+   * The Live Sheet's Edit: `true` presses its Read | Edit once it is up;
+   * `in-place` is a sheet with no Read | Edit that edits where it reads (the
+   * NPC's, until R11 gives it the shared shell), scanned as it opens.
+   */
+  edit?: true | 'in-place'
+  /** Open this Peek from the Union bar's search, and scan with it open. */
+  peek?: { schema: string; name: string }
+}
+
+/**
+ * A Game's own page, the one place to repoint it: `/games/$gameId` today, under
+ * Play (`/play/games/$gameId`) later in this release.
+ */
+export function gamePageRoute(gameId: string): string {
+  return `/games/${gameId}`
+}
+
+const BOTH: readonly DesignWidth[] = ['page', 'phone']
+
+/**
+ * The one route list the layout gates run over (hard rule R0:
+ * `chip-strips.e2e.ts`, `nesting-depth.e2e.ts`, `sibling-heights.e2e.ts`):
+ * Reference, Listing, Peek, each Live Sheet in Read and Edit, the three
+ * wizards, Manage and Play, at phone and page widths, signed in. The account
+ * is seeded as `tools/gallery.ts --signed-in` seeds it (`seedDesignAccount`).
+ */
+export const designRoutes: readonly DesignRoute[] = [
+  // Reference: an SRD Page and an index.
+  { family: 'reference-page', path: '/chassis/mazona/', widths: BOTH },
+  { family: 'reference-index', path: '/systems/', widths: BOTH },
+  // Listing: the search's Rows.
+  { family: 'listing', path: '/search?q=drill', widths: BOTH },
+  // Peek: a chassis, from the bar's search over an index.
+  {
+    family: 'peek',
+    path: '/chassis/',
+    widths: ['page'],
+    peek: { schema: 'chassis', name: 'Big Brother' },
+  },
+  // Live Sheet, Read and Edit, each kind.
+  { family: 'sheet-pilot-read', path: ':pilot', widths: BOTH },
+  { family: 'sheet-pilot-edit', path: ':pilot', widths: BOTH, edit: true },
+  { family: 'sheet-mech-read', path: ':mech', widths: BOTH },
+  { family: 'sheet-mech-edit', path: ':mech', widths: BOTH, edit: true },
+  { family: 'sheet-crawler-read', path: ':crawler', widths: BOTH },
+  { family: 'sheet-crawler-edit', path: ':crawler', widths: BOTH, edit: true },
+  { family: 'sheet-npc-read', path: ':npc', widths: BOTH },
+  { family: 'sheet-npc-edit', path: ':npc', widths: BOTH, edit: 'in-place' },
+  // The wizards: the Guided or Blank chooser, then the guided wizard's first step.
+  { family: 'wizard-pilot', path: at('/pilots/new'), widths: BOTH },
+  { family: 'wizard-pilot', path: at('/pilots/new?mode=guided'), widths: BOTH },
+  { family: 'wizard-mech', path: at('/mechs/new'), widths: BOTH },
+  { family: 'wizard-mech', path: at('/mechs/new?mode=guided'), widths: BOTH },
+  { family: 'wizard-crawler', path: at('/crawlers/new'), widths: BOTH },
+  { family: 'wizard-crawler', path: at('/crawlers/new?mode=guided'), widths: BOTH },
+  // Manage: the Hangar, the Play hub, a Game's page, the invite screen.
+  { family: 'hangar', path: at('/'), widths: BOTH },
+  { family: 'play-hub', path: at('/play/'), widths: BOTH },
+  { family: 'game-page', path: ':game', widths: BOTH },
+  { family: 'invite', path: ':invite', widths: BOTH },
+  // Play: a player in a Game, solo, the Mediator; on a phone, every tab.
+  { family: 'play-player', path: ':playPlayer', widths: BOTH },
+  { family: 'play-solo', path: ':playSolo', widths: BOTH },
+  { family: 'play-mediator', path: ':playMediator', widths: BOTH },
+]

@@ -1,5 +1,7 @@
 import type { Page } from '@playwright/test'
 import { at } from './_base'
+import type { DesignDebt } from './_designRoutes'
+import { expectWithinBaseline, seedDesignAccount, walkDesignRoutes } from './_designRoutes'
 import { editSheet, fillIdentity, openSheetFor, waitForReady } from './_helpers'
 import { describeFindings, findNestingFindings } from './_nestingDepth'
 import { expect, test } from './fixtures'
@@ -216,5 +218,29 @@ test.describe('signed in', () => {
     failures.push(...(await scan(page, "the Armament Bay's picker")))
     await page.keyboard.press('Escape')
     expect(failures, 'entities nested past the three levels').toEqual([])
+  })
+
+  /**
+   * Every context (hard rule R0): each of `designRoutes` (`_helpers.ts`),
+   * seeded, at page and phone widths, Play's phone form tab by tab, under
+   * N1–N7.
+   *
+   * `BASELINE` is the debt this pass found when it landed, by route family and
+   * rule, each to be fixed and deleted here. A finding off it fails; an entry
+   * nothing matches is noted on the report as paid off.
+   */
+  const BASELINE: readonly DesignDebt[] = []
+
+  test('every context nests three levels deep at most', async ({ page }) => {
+    test.setTimeout(20 * 60_000)
+    const seed = await seedDesignAccount(page)
+    const findings = await walkDesignRoutes(page, seed, async ({ where }) => {
+      const lines = new Map<string, string>()
+      for (const f of await findNestingFindings(page)) {
+        lines.set(`${where}: ${f.rule} ${f.chain}: ${f.detail}`, f.rule)
+      }
+      return [...lines].map(([line, rule]) => ({ rule, line }))
+    })
+    expectWithinBaseline('nesting-depth', findings, BASELINE)
   })
 })

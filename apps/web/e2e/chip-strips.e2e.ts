@@ -1,5 +1,8 @@
 import { expect, test } from '@playwright/test'
 import { findChipStripFaults } from './_chipStrips'
+import type { DesignDebt } from './_designRoutes'
+import { expectWithinBaseline, seedDesignAccount, walkDesignRoutes } from './_designRoutes'
+import { test as signedIn } from './fixtures'
 
 /**
  * The chip-strip law (ruleset §4.7) on the page shapes that carry chips: a
@@ -45,4 +48,49 @@ test('every chip strip is one size, one gap, its cost in the corner', async ({ p
     }
   }
   expect(failures, 'chip strips off the §4.7 law').toEqual([])
+})
+
+/**
+ * Every context (hard rule R0): each of `designRoutes` (`_helpers.ts`),
+ * signed in and seeded, at page and phone widths, Play's phone form tab by
+ * tab. A fault's rule is its kind: `size`, `gap`, `flush` or `cost`.
+ *
+ * `BASELINE` is the debt this pass found when it landed, by route family and
+ * rule, each to be fixed and deleted here. A fault off it fails; an entry
+ * nothing matches is noted on the report as paid off.
+ */
+const BASELINE: readonly DesignDebt[] = [
+  // The Hangar: a shelf item's chip strip wraps to a second line that ends
+  // short of the first and starts elsewhere, at page and phone widths; its
+  // first chip is the container ("Game The Long Haul", "Unassigned").
+  {
+    family: 'hangar',
+    rule: 'flush',
+    match: 'flush: Game',
+    why: "a shelf item's strip in a Game wraps with its lines on no common edge",
+  },
+  {
+    family: 'hangar',
+    rule: 'flush',
+    match: 'flush: Unassigned',
+    why: "a shelf item's strip on the shelf wraps with its lines on no common edge",
+  },
+  {
+    family: 'sheet-crawler-edit',
+    rule: 'flush',
+    match: 'flush: Wasteland Explorer',
+    why: "the crawler's type strip wraps in Edit with its lines on no common edge",
+  },
+]
+
+signedIn('every context: every chip strip is one size, one gap', async ({ page }) => {
+  signedIn.setTimeout(20 * 60_000)
+  const seed = await seedDesignAccount(page)
+  const findings = await walkDesignRoutes(page, seed, async ({ where }) =>
+    (await findChipStripFaults(page)).map((fault) => ({
+      rule: fault.slice(0, fault.indexOf(':')),
+      line: `${where}, ${fault}`,
+    }))
+  )
+  expectWithinBaseline('chip-strips', findings, BASELINE)
 })

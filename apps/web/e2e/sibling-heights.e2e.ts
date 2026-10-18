@@ -1,5 +1,7 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
+import type { DesignDebt } from './_designRoutes'
+import { expectWithinBaseline, seedDesignAccount, walkDesignRoutes } from './_designRoutes'
 import { board, CANVAS, openPlay, PHONE, playDoor } from './_play'
 import { findSiblingMismatches } from './_siblingHeights'
 import { setUpTable } from './_table'
@@ -63,7 +65,8 @@ test('siblings on one line share one height', async ({ page }) => {
  * closed. On the canvas a unit box is scanned whole (its head and every body
  * row: the vitals, the pilot's class / TP / injuries beside Sheet ⤢, the
  * mech's range); on a phone only its head, since the touch floor lifts every
- * button there to 44px beside chips that keep their drawn Size. Play needs an account,
+ * button there to 44px beside chips that keep their drawn Size (the `every context`
+ * pass below scans each phone tab whole, against its baseline). Play needs an account,
  * so this signs in, sets up the Starter Set table (`setUpTable`) and opens
  * Bonesaw's screen, on foot, then Boarded with an action open, at the
  * canvas's design size (scale 1, so a measured px is a drawn px) and as a
@@ -148,4 +151,87 @@ signedIn('Play: the bar, unit boxes and action rows share one height', async ({ 
   failures.push(...(await playMismatches(page, 'Boarded, an action open')))
 
   expect(failures, 'Play controls on one line at different heights').toEqual([])
+})
+
+/**
+ * Every context (hard rule R0): the whole page of each of `designRoutes`
+ * (`_helpers.ts`), signed in and seeded, at page and phone widths, and on
+ * Play's phone form every tab scanned whole (unit boxes, Crew, Tables), not
+ * only the unit heads.
+ *
+ * `BASELINE` is the debt this pass found when it landed, by route family and
+ * rule: each a line whose controls differ today, to be given one Size and
+ * deleted here. A finding off it fails; an entry nothing matches is noted on
+ * the report as paid off.
+ */
+const BASELINE: readonly DesignDebt[] = [
+  // Live Sheet, Edit: a stat's max override (17px) beside its provenance
+  // trigger (14px), on every gauge.
+  ...(['sheet-pilot-edit', 'sheet-mech-edit', 'sheet-crawler-edit'] as const).map((family) => ({
+    family,
+    rule: 'sibling',
+    match: 'button "Override ',
+    why: "the max override and the provenance trigger take the gauge's one Size",
+  })),
+  // Live Sheet, Edit, on a phone: a section's Manage (44px, the touch floor)
+  // beside its Collapse (32px).
+  ...(['sheet-pilot-edit', 'sheet-mech-edit'] as const).map((family) => ({
+    family,
+    rule: 'sibling',
+    match: 'button.su-btn.su-focus-ring "Collapse ',
+    why: "a section head's Collapse takes its Manage's touch Size",
+  })),
+  {
+    family: 'sheet-crawler-edit',
+    rule: 'sibling',
+    match: 'div.su-sheet-crawler-identity-row',
+    why: "the TL chip (20px) beside the type picker (44px) in the crawler's identity row",
+  },
+  // The wizards: Cancel (32px) beside Next (44px) in the step pill, and the
+  // crawler's off-rules link (17px) with them.
+  ...(['wizard-pilot', 'wizard-mech', 'wizard-crawler'] as const).map((family) => ({
+    family,
+    rule: 'sibling',
+    match: 'div.su-wiz-pill',
+    why: "the step pill's Cancel and off-rules link take Next's Size",
+  })),
+  {
+    family: 'wizard-crawler',
+    rule: 'sibling',
+    match: 'div.su-masonry',
+    why: 'the crawler-type cards, side by side in a masonry, at their own heights',
+  },
+  // Manage.
+  {
+    family: 'play-hub',
+    rule: 'sibling',
+    match: 'a.su-btn.su-focus-ring "Play ',
+    why: "a solo pilot's Play (19px) beside its No Mech stamp (18px) in the Row's line",
+  },
+  {
+    family: 'game-page',
+    rule: 'sibling',
+    match: 'span.su-caps.su-caps--w-bold "You mediate"',
+    why: "the band's YOU MEDIATE stamp (20px) beside its 32px Buttons",
+  },
+  // Play: the Mediator's Propose form, its caps labels (21px) inline with
+  // their 44px fields, on the canvas and the phone's Propose tab.
+  {
+    family: 'play-mediator',
+    rule: 'sibling',
+    match: 'span.su-caps.su-caps--w-bold "Field"',
+    why: "Propose's labels sit above their fields, or take the fields' Size",
+  },
+]
+
+signedIn('every context: siblings on one line share one height', async ({ page }) => {
+  signedIn.setTimeout(20 * 60_000)
+  const seed = await seedDesignAccount(page)
+  const findings = await walkDesignRoutes(page, seed, async ({ where }) =>
+    (await findSiblingMismatches(page)).map((m) => ({
+      rule: 'sibling',
+      line: `${where}, ${m.line}: ${m.controls.map((c) => `${c.height}px ${c.what}`).join(', ')}`,
+    }))
+  )
+  expectWithinBaseline('sibling-heights', findings, BASELINE)
 })
