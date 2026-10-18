@@ -346,11 +346,18 @@
 }
 
 /* In a cut-out head its chips are the group's own items, so they fill it
-   from the bottom-right up with it: the first line at the band's foot,
-   right-aligned, the rest rising above. A flex box of their own would wrap
-   them from the top-left. */
+   from the bottom-right up with it: the first line on the name strut, at
+   the band's foot, right-aligned, the rest rising above. A flex box of
+   their own would wrap them from the top-left, or onto a line above the
+   strut. On the strut's line the cost edge is centred like its neighbours,
+   its own height, never stretched to the strut's. */
 .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips {
   display: contents;
+}
+
+.su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips > .su-cost,
+.su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips > .su-cost-edge {
+  align-self: center;
 }
 
 .su-entity-row__chip-group .su-ec-labels__stamps > .su-badge-stamp,
