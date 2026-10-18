@@ -54,7 +54,7 @@ const STATUS = {
 } satisfies CSSProperties
 
 const TRACK = {
-  backgroundColor: `color-mix(in oklab, ${color.paper} 20%, transparent)`,
+  backgroundColor: color.paper15,
   borderRadius: radius.full,
   height: space[4],
   overflow: 'hidden',

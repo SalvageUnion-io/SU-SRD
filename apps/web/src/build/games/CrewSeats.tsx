@@ -51,7 +51,7 @@ const PLAIN = {
 
 function stamp(text: string) {
   return (
-    <Badge shape="stamp" size="mini" surface="on-ink">
+    <Badge shape="stamp" size="mini">
       {text}
     </Badge>
   )

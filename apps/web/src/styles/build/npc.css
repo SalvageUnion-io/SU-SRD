@@ -95,7 +95,7 @@
 /* An action or trait row's header is an ink band: its name reads paper, as the
    board draws it (N1, step 3). Set on the band's own children so a button
    ancestor's ink text cannot bleed through. */
-.su-npc-pick [data-fill='ink'] > * {
+.su-npc-pick [data-ground='ink'] > * {
   color: var(--color-paper);
 }
 

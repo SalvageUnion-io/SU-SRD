@@ -323,7 +323,6 @@ function ReferenceEntityCardInner({
       axisMarkers={axisMarkers}
       legalStartingPattern={isLegalStartingPatternCard}
       userMade={userMade}
-      onInk={fill === 'ink'}
     />
   )
 
@@ -434,7 +433,7 @@ function ReferenceEntityCardInner({
       titleSize={titleSize}
       titleColor={onBand === 'ink' ? 'var(--color-ink)' : 'var(--color-paper)'}
       numeral={numeral}
-      chips={<Chips chips={chips} size="compact" onInk={fill === 'ink'} leading={suggestedNode} />}
+      chips={<Chips chips={chips} size="compact" leading={suggestedNode} />}
       labels={labels}
       size={size}
       grain={grain}

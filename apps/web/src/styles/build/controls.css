@@ -13,6 +13,7 @@
  *   - wiring/AssignPicker.tsx — the dialog's width cap (`ModalShell` takes a
  *     class) and the candidate list's stacking.
  *   - shared/CargoLotRow.tsx — a lot row's hairline, dropped on the last row.
+ *   - export/ImportButton.tsx — the summary line's colour, set by the ground.
  *
  * Every rule keeps its RESTING value beside the state or breakpoint that
  * changes it (the per-property split rule).
@@ -109,4 +110,19 @@ select.su-container-select {
 
 .su-cargo-lot:last-child {
   border-bottom-width: 0;
+}
+
+/* ── ImportButton ── */
+
+/* The inline summary line: muted ink, or paper on an ink band (the band's
+   `data-ground`, chrome K1). */
+.su-import-summary {
+  color: var(--color-wk-muted);
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  line-height: calc(1 / 0.75);
+}
+
+[data-ground='ink'] .su-import-summary {
+  color: var(--color-paper);
 }

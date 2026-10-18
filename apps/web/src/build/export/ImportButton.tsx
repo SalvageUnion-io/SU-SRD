@@ -12,26 +12,13 @@
  * if the user needs to retry after a partial failure.
  */
 
-import type { CSSProperties } from 'react'
 import { useRef, useState } from 'react'
-import { color, font, fontSize } from '../../design/tokens'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import type { MergeSummary } from '../../lib/export/mergeImport'
 import { mergeImport } from '../../lib/export/mergeImport'
 import { ImportRefused, parseImportBundle } from '../../lib/export/parseImportBundle'
 import { useEntityStore } from '../../stores/entityStore'
 import { Button, FieldError, Stack, toast } from '../../components/index'
-
-/** The inline summary line. */
-const SUMMARY = {
-  color: color.wkMuted,
-  fontFamily: font.body,
-  fontSize: fontSize.xs,
-  lineHeight: 'calc(1 / 0.75)',
-} satisfies CSSProperties
-
-/** The same line on the ink band (Shelves): paper, not muted ink. */
-const SUMMARY_ON_INK = { ...SUMMARY, color: color.paper } satisfies CSSProperties
 
 /** The line an import leaves behind: what came in, and what was skipped. */
 function summaryText(summary: MergeSummary): string {
@@ -42,12 +29,12 @@ function summaryText(summary: MergeSummary): string {
 
 const IMPORT_PLAYER_ERRORS = [ImportRefused]
 
+/**
+ * On an ink band (Shelves, the Roster, board S1) the band's `data-ground`
+ * makes the button the on-ink ghost and the result line paper, in CSS
+ * (chrome K1); the line is `.su-import-summary` for that reason.
+ */
 type ImportButtonProps = {
-  /**
-   * The ground it sits on: `ink` on an ink band (Shelves, the Roster, board
-   * S1), where the button is the on-ink ghost and its result line reads in paper.
-   */
-  ground?: 'paper' | 'ink'
   /**
    * Where the result goes. Given, the button reports its result line (or null
    * to clear it) to the caller and renders none of its own, so the caller can
@@ -56,8 +43,7 @@ type ImportButtonProps = {
   onResult?: (message: string | null) => void
 }
 
-export function ImportButton({ ground = 'paper', onResult }: ImportButtonProps = {}) {
-  const onInk = ground === 'ink'
+export function ImportButton({ onResult }: ImportButtonProps = {}) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
   const [summary, setSummary] = useState<MergeSummary | null>(null)
@@ -110,8 +96,6 @@ export function ImportButton({ ground = 'paper', onResult }: ImportButtonProps =
   return (
     <Stack gap={4}>
       <Button
-        variant={onInk ? 'ghost' : 'default'}
-        surface={ground}
         size="compact"
         disabled={busy}
         onClick={handleClick}
@@ -130,7 +114,7 @@ export function ImportButton({ ground = 'paper', onResult }: ImportButtonProps =
       />
       {!onResult && <FieldError>{error}</FieldError>}
       {!onResult && summary && !error && (
-        <p style={onInk ? SUMMARY_ON_INK : SUMMARY}>{summaryText(summary)}</p>
+        <p className="su-import-summary">{summaryText(summary)}</p>
       )}
     </Stack>
   )

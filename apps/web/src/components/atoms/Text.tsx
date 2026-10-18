@@ -3,7 +3,7 @@
  *
  * It deliberately has no stamp/label variant. The square ink label is
  * `Badge shape="stamp"` and nothing else (ruleset §0: one kind × one context =
- * one primitive), with `surface="on-ink"` / `"inverse"` for the dark grounds.
+ * one primitive), on its `solid`, `inverse` or `dashed` plate.
  * Badge is label-only (uppercase, condensed, `w-fit`, `leading-none`) and is
  * the wrong shape for wrapping prose — which is why Text exists.
  */

@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { color, font, fontSize, space } from '../../design/tokens'
+import { font, fontSize, space } from '../../design/tokens'
+import { cn } from '../../lib/cn'
 
 /** What the line reports: a failure, the one tone a caller has needed. */
 type MessageTone = 'bad'
@@ -12,11 +13,6 @@ type MessageProps = {
   children?: ReactNode
   /** What the line reports, announced as an alert. */
   tone: MessageTone
-  /**
-   * The ground it prints on. 'ink' prints in paper (an on-ink band, such as
-   * the Shelves band), where none of the tone inks holds contrast.
-   */
-  ground?: 'paper' | 'ink'
   /** Call-site spacing: the margin above the line, a step of the space scale. */
   spaceAbove?: SpaceStep
   /** Call-site classes (spacing only). Never restyle colour or type here. */
@@ -31,8 +27,13 @@ const LINE = {
   fontSize: fontSize.caption,
 } satisfies CSSProperties
 
-/** Each tone's ink at caption size: `statusBad` clears AA as text on paper. */
-const TONE_INK: Record<MessageTone, string> = { bad: color.statusBad }
+/**
+ * Each tone's ink at caption size, a class (`.su-message--*`) because the
+ * ground recolours it: `statusBad` clears AA as text on paper, and on an ink
+ * ground (the frame's `data-ground`, chrome K1), where none of the tone inks
+ * holds contrast, the line prints in paper.
+ */
+const TONE_CLASS: Record<MessageTone, string> = { bad: 'su-message--bad' }
 
 /**
  * Message — the one single-line feedback message: a failure. One body line at
@@ -41,14 +42,7 @@ const TONE_INK: Record<MessageTone, string> = { bad: color.statusBad }
  * A block-level `<span>`, not a `<p>`, so it is valid inside phrasing content.
  * `FieldError` is this line's `bad` tone under the validation name.
  */
-export function Message({
-  children,
-  tone,
-  ground = 'paper',
-  spaceAbove,
-  className,
-  id,
-}: MessageProps) {
+export function Message({ children, tone, spaceAbove, className, id }: MessageProps) {
   // An empty live region still announces on some screen readers.
   if (children === null || children === undefined || children === false || children === '') {
     return null
@@ -57,12 +51,8 @@ export function Message({
     <span
       id={id}
       role="alert"
-      className={className}
-      style={{
-        ...LINE,
-        color: ground === 'ink' ? color.paper : TONE_INK[tone],
-        ...(spaceAbove === undefined ? null : { marginTop: space[spaceAbove] }),
-      }}
+      className={cn(TONE_CLASS[tone], className)}
+      style={spaceAbove === undefined ? LINE : { ...LINE, marginTop: space[spaceAbove] }}
     >
       {children}
     </span>

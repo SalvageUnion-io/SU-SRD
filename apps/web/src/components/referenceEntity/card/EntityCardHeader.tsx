@@ -90,6 +90,9 @@ export function EntityCardHeader({
   return (
     <div
       data-fill={fill}
+      // The band is the frame: the ink banner declares its ground once, and
+      // its stamps, chips and cost read it in CSS (chrome K1).
+      data-ground={fill === 'ink' ? 'ink' : undefined}
       data-grain={grain}
       className={cn('su-ec-band', ruled && 'su-ec-band--ruled', grainClass(grain))}
       style={{

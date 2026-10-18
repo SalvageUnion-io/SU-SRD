@@ -383,7 +383,7 @@ function SlotRow({
         }}
         labels={
           assignment ? undefined : (
-            <Badge shape="stamp" size="mini" surface="on-ink">
+            <Badge shape="stamp" size="mini">
               {designing ? 'Designing now' : 'Book’s crew line'}
             </Badge>
           )

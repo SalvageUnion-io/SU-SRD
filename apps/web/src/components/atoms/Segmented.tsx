@@ -5,7 +5,8 @@ import { DISABLED, FOCUS_RING } from './interaction'
 /**
  * Segmented — two or more `aria-pressed` options joined in one ink-ruled
  * frame, the pressed one the inverse plate: ink with paper text on paper, paper
- * with ink text on the ink band (a state, never rust: ruleset §3.1).
+ * with ink text on an ink ground (a state, never rust: ruleset §3.1). The
+ * ground is the frame's `data-ground` (chrome K1), read in CSS: no prop.
  *
  * One control, one look, in both apps: a sheet's Read | Edit, Shelves'
  * Everything | Unassigned, a Game's Pilots | Mechs | Crawlers on a phone, a
@@ -22,7 +23,6 @@ import { DISABLED, FOCUS_RING } from './interaction'
 export function Segmented({
   label,
   children,
-  ground = 'paper',
   size = 'full',
   fill = false,
   className,
@@ -32,8 +32,6 @@ export function Segmented({
   label: string
   /** `SegmentedOption`s, and anything that leads them (the rail's TL stamp). */
   children: ReactNode
-  /** `ink` on the ink band (Shelves), whose controls are paper. */
-  ground?: 'paper' | 'ink'
   /** The Size (`styles/sizing.ts`) of the line it sits on. */
   size?: 'full' | 'compact'
   /** The options share the row's width (a phone's segment switch). */
@@ -45,7 +43,6 @@ export function Segmented({
   return (
     <fieldset
       className={className ? `su-seg ${className}` : 'su-seg'}
-      data-ground={ground}
       data-size={size}
       data-fill={fill || undefined}
       style={style}

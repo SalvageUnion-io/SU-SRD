@@ -118,6 +118,9 @@ export function Head({
     <div
       className={cn('su-entity-row__head', grainClass(paint.grain))}
       data-fill={paint.ink ? 'ink' : 'tone'}
+      // The band is the frame: an ink band (a thing you do) declares its
+      // ground once, and its stamps, chips and cost read it in CSS (chrome K1).
+      data-ground={paint.ink ? 'ink' : undefined}
       data-grain={paint.grain}
       data-notch={cut || undefined}
       style={{ backgroundColor: paint.background, color: paint.color }}

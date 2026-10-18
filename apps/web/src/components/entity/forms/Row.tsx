@@ -147,7 +147,6 @@ export function Row({
         axisMarkers={[]}
         legalStartingPattern={false}
         userMade={userMade}
-        onInk={paint.ink}
       />
     ) : null
   // Beside chips, or with the host's, the labels are chips: the first items
@@ -191,7 +190,6 @@ export function Row({
               <Chips
                 chips={chips}
                 size="compact"
-                onInk={paint.ink}
                 linkable={mode.kind === 'read'}
                 leading={leading}
                 trailing={slots.trailing}

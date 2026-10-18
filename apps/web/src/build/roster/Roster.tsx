@@ -64,8 +64,8 @@ function GamePage({ gameId }: { gameId: string | null }) {
 
   const controls = (
     <>
-      <ImportButton ground="ink" />
-      <ExportAllButton ground="ink" />
+      <ImportButton />
+      <ExportAllButton />
       {/* Where else to go: the select lists Shelves and every Game, and ends
           with "+ New Game". It renders nothing outside Connected. */}
       <ContainerSwitcher activeContainer={activeContainer} onSelect={showContainer} />

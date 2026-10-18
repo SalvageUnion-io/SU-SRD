@@ -153,7 +153,7 @@ function PatternLinkRow({
   const paint = paintFor(model.tone, { down: host.hostDown, texture: surface.texture })
   // The book's starting builds wear their stamp on the row, as on the card.
   const labels = isLegalStartingPatternOf(pattern) ? (
-    <CardLabels seal={undefined} axisMarkers={[]} legalStartingPattern onInk={paint.ink} />
+    <CardLabels seal={undefined} axisMarkers={[]} legalStartingPattern />
   ) : undefined
   // The name on the paper cut-out (Head's `notch`): the body below is paper.
   const head = <Head title={`“${name}”`} notch paint={paint} labels={labels} />

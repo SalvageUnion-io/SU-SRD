@@ -27,15 +27,18 @@
      a chapter band, whose rule (`atoms/unionBarMatch.ts`) sets these to the
      band's colour, foreground and grain, and drops the rule (transparent,
      so the bar keeps its height and the band runs up under it). `--su-bar-on-fg` is the text on a plate of the
-     foreground (the current tab). */
+     foreground (the current tab). The faded steps are the foreground's own
+     alpha tokens, never a `color-mix` of it: paper on ink is
+     `--color-paper-NN` alone (chrome K1); a bar whose foreground is ink sets
+     them to the `--color-ink-NN` steps. */
   --su-bar-bg: var(--color-ink-deep);
   --su-bar-fg: var(--color-paper);
   --su-bar-on-fg: var(--color-ink);
-  --su-bar-fg-85: color-mix(in srgb, var(--su-bar-fg) 85%, transparent);
-  --su-bar-fg-70: color-mix(in srgb, var(--su-bar-fg) 70%, transparent);
-  --su-bar-fg-60: color-mix(in srgb, var(--su-bar-fg) 60%, transparent);
-  --su-bar-fg-30: color-mix(in srgb, var(--su-bar-fg) 30%, transparent);
-  --su-bar-fg-15: color-mix(in srgb, var(--su-bar-fg) 15%, transparent);
+  --su-bar-fg-85: var(--color-paper-85);
+  --su-bar-fg-70: var(--color-paper-70);
+  --su-bar-fg-60: var(--color-paper-60);
+  --su-bar-fg-30: var(--color-paper-30);
+  --su-bar-fg-15: var(--color-paper-15);
   --su-bar-grain-paper: contents;
   --su-bar-grain-ink: none;
   --su-bar-rule: var(--color-ink);
@@ -56,6 +59,9 @@
   --su-bar-on-fg: var(--color-paper);
   --su-bar-fg-85: var(--su-bar-fg);
   --su-bar-fg-70: var(--su-bar-fg);
+  --su-bar-fg-60: var(--color-ink-60);
+  --su-bar-fg-30: var(--color-ink-30);
+  --su-bar-fg-15: var(--color-ink-15);
   --su-bar-grain-paper: none;
   --su-bar-grain-ink: contents;
 }

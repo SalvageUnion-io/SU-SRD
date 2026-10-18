@@ -5,9 +5,9 @@
  * colour below changes on hover or on press — so each keeps its RESTING value
  * here too, beside the state that overrides it. Loaded by `index.css`.
  *
- * The band is ink, so its controls are paper on ink: the on-ink ghost
- * Button (Import, Export all, + New Game: `surface="ink"`). The Showing toggle
- * is the shared `Segmented` on its ink ground.
+ * The band is ink (its `data-ground`, chrome K1), so its controls are paper
+ * on ink: the on-ink ghost Button (Import, Export all, + New Game) and the
+ * shared `Segmented`, each reading the band's ground in CSS.
  */
 
 /* The import result: its own line on the band above the title, never a flex

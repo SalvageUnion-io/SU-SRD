@@ -264,7 +264,7 @@ const ctaStyle = { borderRadius: tokens.radius.card } satisfies CSSProperties
 const ctaLockedStyle = {
   ...ctaStyle,
   backgroundColor: 'transparent',
-  borderColor: 'color-mix(in oklab, var(--color-paper) 55%, transparent)',
+  borderColor: tokens.color.paper60,
   borderStyle: 'dashed',
   borderWidth: tokens.borderWidth.pill,
   boxShadow: 'none',
@@ -408,9 +408,9 @@ export function WizShell({
   const isLast = active >= steps.length - 1
   const ctaLabel = isLast ? submitLabel : `Next · ${steps[active + 1]} →`
   // The ink action pill: trackers + gate note + escape + nav buttons + CTA.
-  // Its own dark ground keeps the ghost buttons legible.
+  // It declares its ink ground (chrome K1), so its ghost buttons read paper.
   const actionPill = (
-    <div className="su-wiz-pill" style={pillStyle}>
+    <div className="su-wiz-pill" data-ground="ink" style={pillStyle}>
       {trackers && (
         <div className="su-wiz-pill-start" style={pillTrackersStyle}>
           {trackers}
@@ -429,14 +429,13 @@ export function WizShell({
       {/* Ghost nav row on phones; dissolves into the pill row ≥ sm. */}
       <div className="su-wiz-pill-nav" style={pillNavStyle}>
         {onBack && (
-          <Button variant="ghost" surface="ink" onClick={onBack} disabled={busy}>
+          <Button variant="ghost" onClick={onBack} disabled={busy}>
             Back
           </Button>
         )}
         <Button
           variant="ghost"
           onClick={() => (confirmCancel ? setConfirmingCancel(true) : onCancel())}
-          surface="ink"
           disabled={busy}
         >
           Cancel

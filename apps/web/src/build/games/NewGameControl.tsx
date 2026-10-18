@@ -75,11 +75,6 @@ const GROW = { flex: '1 1 12rem', minWidth: 0 } satisfies CSSProperties
 
 const HINT = { textAlign: 'left' } satisfies CSSProperties
 
-type NewGameControlProps = {
-  /** The ground it sits on: `ink` on Shelves' band, where it is the on-ink ghost. */
-  ground?: 'paper' | 'ink'
-}
-
 type NewGameDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -191,13 +186,12 @@ export function NewGameDialog(props: NewGameDialogProps) {
   return <ConnectedNewGameDialog {...props} />
 }
 
-function ConnectedNewGameControl({ ground = 'paper' }: NewGameControlProps) {
+/** On Shelves' ink band the band's `data-ground` makes it the on-ink ghost (chrome K1). */
+function ConnectedNewGameControl() {
   const [open, setOpen] = useState(false)
   return (
     <>
       <Button
-        variant={ground === 'ink' ? 'ghost' : 'default'}
-        surface={ground}
         size="compact"
         onClick={() => setOpen(true)}
       >
@@ -209,8 +203,8 @@ function ConnectedNewGameControl({ ground = 'paper' }: NewGameControlProps) {
 }
 
 /** "+ New Game" and its dialog; nothing at all outside Connected mode. */
-export function NewGameControl(props: NewGameControlProps) {
+export function NewGameControl() {
   const { mode } = useConnection()
   if (mode !== 'connected') return null
-  return <ConnectedNewGameControl {...props} />
+  return <ConnectedNewGameControl />
 }

@@ -114,19 +114,31 @@
 }
 
 /* The pointy cost box (`ActivationCost`): ink on every band, in the chips'
-   condensed caps face, whatever face its row inherits. */
+   condensed caps face, whatever face its row inherits. Its block padding is
+   the bordered chips' plus their 1px rule's worth. */
 .su-cost {
   align-self: stretch;
   background-color: var(--color-ink);
   color: var(--color-paper);
   font-family: var(--font-cond);
   letter-spacing: var(--tracking-caps-tight);
+  padding-block: calc(var(--space-2) + 1px);
 }
 
-/* On an ink band the box sits in a paper box of the same cut, 1px larger all
-   round, so its edge clears the band as a chip's paper rule does. The point's
+/* The box always sits in its edge, which draws nothing on paper. On an ink
+   ground (the frame's `data-ground`, chrome K1) the edge is a paper box of the
+   same cut, 1px larger all round, so it clears the band as a chip's paper rule
+   does, and the box gives the 1px back off its block padding. The point's
    depth matches `ActivationCost`'s TIP plus the 1px. */
 .su-cost-edge {
+  display: contents;
+}
+
+[data-ground='ink'] .su-cost {
+  padding-block: var(--space-2);
+}
+
+[data-ground='ink'] .su-cost-edge {
   align-self: stretch;
   background-color: var(--color-paper);
   clip-path: polygon(
@@ -141,7 +153,7 @@
   padding: 1px var(--space-2) 1px 1px;
 }
 
-.su-badge--on-ink {
+.su-badge--stamp-solid {
   background-color: var(--color-ink);
   color: var(--color-paper);
 }
@@ -243,7 +255,8 @@
 }
 
 /* `atoms/SmallButtons.tsx` (`StepButton`), the one +/− stepper: a frameless
- * plate set by the ground it sits on, hovering a step lighter, and a 44px tap
+ * ink plate, a paper one on an ink ground (the frame's `data-ground`, chrome
+ * K1), hovering a step lighter, and a 44px tap
  * floor below `sm` that relaxes at `sm`. A `cell` button takes its height from
  * the cell beside it and its width from the caller, so it has no width floor. */
 .su-step-btn {
@@ -253,21 +266,21 @@
   min-width: var(--size-full);
 }
 
-.su-step-btn--on-paper {
+.su-step-btn {
   background-color: var(--color-ink);
   color: var(--color-paper);
 }
 
-.su-step-btn--on-paper:hover {
+.su-step-btn:hover {
   background-color: var(--color-ink-2);
 }
 
-.su-step-btn--on-ink {
+[data-ground='ink'] .su-step-btn {
   background-color: var(--color-paper);
   color: var(--color-ink);
 }
 
-.su-step-btn--on-ink:hover {
+[data-ground='ink'] .su-step-btn:hover {
   background-color: var(--color-wk-bg);
 }
 

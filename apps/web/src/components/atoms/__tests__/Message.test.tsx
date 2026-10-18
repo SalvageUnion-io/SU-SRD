@@ -4,20 +4,12 @@ import { FieldError } from '../FieldError'
 import { Message } from '../Message'
 
 describe('Message', () => {
-  test('bad is an alert in the danger ink', () => {
+  test('bad is an alert in the danger ink, a class the ground recolours (chrome K1)', () => {
     render(<Message tone="bad">It failed.</Message>)
     const line = screen.getByRole('alert')
     expect(line.textContent).toBe('It failed.')
-    expect(line.style.color).toBe('rgb(176, 67, 43)')
-  })
-
-  test('on the ink ground it prints in paper', () => {
-    render(
-      <Message tone="bad" ground="ink">
-        It failed.
-      </Message>
-    )
-    expect(screen.getByRole('alert').style.color).not.toBe('rgb(176, 67, 43)')
+    expect(line.className).toBe('su-message--bad')
+    expect(line.style.color).toBe('')
   })
 
   test('spaceAbove sets the margin from the space scale', () => {
@@ -39,7 +31,7 @@ describe('FieldError', () => {
   test('is the bad Message', () => {
     render(<FieldError spaceAbove={8}>Required.</FieldError>)
     const line = screen.getByRole('alert')
-    expect(line.style.color).toBe('rgb(176, 67, 43)')
+    expect(line.className).toBe('su-message--bad')
     expect(line.style.marginTop).toBe('8px')
   })
 })

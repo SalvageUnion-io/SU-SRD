@@ -334,7 +334,14 @@
   .su-entity-row__heading--cut > .su-chips,
   .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
   .su-entity-tile__band > .su-entity-tile__chips
-) > :is(.su-cost, .su-cost-edge) {
+) > .su-cost-edge,
+:is(
+    .su-entity-row__heading--cut > .su-chips,
+    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
+    .su-entity-tile__band > .su-entity-tile__chips
+  )
+  > .su-cost-edge
+  > .su-cost {
   align-self: center;
 }
 
@@ -579,17 +586,25 @@
   line-height: 1;
 }
 
-/* On the ink banner a chip's plate is paper (`.su-chips--on-ink`). */
-.su-entity-row__head[data-fill='ink']
+/* On an ink ground (the band's `data-ground`, chrome K1) a label stamp takes
+   the paper plate, so it still reads (`CardLabels`). */
+[data-ground='ink'] .su-ec-labels__stamps > .su-badge--stamp-solid {
+  background-color: var(--color-paper);
+  box-shadow: inset 0 0 0 1px var(--color-ink);
+  color: var(--color-ink);
+}
+
+/* On the ink banner a chip's plate is paper. */
+.su-entity-row__head[data-ground='ink']
   .su-entity-row__chip-group
   .su-ec-labels__stamps
   > .su-badge-stamp,
-.su-entity-row__head[data-fill='ink']
+.su-entity-row__head[data-ground='ink']
   .su-entity-row__heading
   > .su-chips
   .su-ec-labels__stamps
   > .su-badge-stamp,
-.su-entity-row__head[data-fill='ink']
+.su-entity-row__head[data-ground='ink']
   .su-entity-row__heading
   > .su-chips
   > .su-badge-stamp:not(.su-badge--dashed) {
@@ -604,9 +619,11 @@
   margin-left: auto;
 }
 
-/* On the ink banner a chip is the same plate as on a tone band; each cell
-   keeps a paper rule, or its ink label cell would vanish into the band. */
-.su-chips--on-ink .su-stat-cell {
+/* On an ink ground (the frame's `data-ground`, chrome K1: the ink banner, an
+   ink Token, an ink band's controls) a chip is the same plate as on a tone
+   band; each cell keeps a paper rule, or its ink label cell would vanish
+   into the band. */
+[data-ground='ink'] .su-stat-cell {
   border-color: var(--color-paper);
 }
 
@@ -650,21 +667,21 @@
   /* The tier and affordance stay on the band, by the name, and
      paint over the strip (its clip makes it a stacking context). */
   /* On the paper strip an ink band's chips drop their paper rule. */
-  .su-entity-row__heading--cut:not([data-chips='beside']) .su-chips--on-ink .su-stat-cell {
+  [data-ground='ink'] .su-entity-row__heading--cut:not([data-chips='beside']) .su-stat-cell {
     border-color: var(--color-ink);
   }
 
-  .su-entity-row__head[data-fill='ink']
+  .su-entity-row__head[data-ground='ink']
     .su-entity-row__heading--cut:not([data-chips='beside'])
     .su-entity-row__chip-group
     .su-ec-labels__stamps
     > .su-badge-stamp,
-  .su-entity-row__head[data-fill='ink']
+  .su-entity-row__head[data-ground='ink']
     .su-entity-row__heading--cut:not([data-chips='beside'])
     > .su-chips
     .su-ec-labels__stamps
     > .su-badge-stamp,
-  .su-entity-row__head[data-fill='ink']
+  .su-entity-row__head[data-ground='ink']
     .su-entity-row__heading--cut:not([data-chips='beside'])
     > .su-chips
     > .su-badge-stamp:not(.su-badge--dashed) {
@@ -1088,8 +1105,9 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   flex: none;
 }
 
-/* On an ink pill (a thing you do) the note stamp keeps a paper edge. */
-.su-entity-token__kind--on-ink {
+/* On an ink pill (a thing you do: the pill's `data-ground`, chrome K1) the
+   note stamp keeps a paper edge. */
+[data-ground='ink'] .su-entity-token__kind {
   box-shadow: inset 0 0 0 var(--bw-hairline) var(--color-paper);
 }
 

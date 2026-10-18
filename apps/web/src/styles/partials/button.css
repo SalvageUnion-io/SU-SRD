@@ -171,18 +171,20 @@
 }
 
 /*
- * INK × ghost — the on-ink ghost: a paper outline with paper text on an ink
- * band or plate (Shelves' and the Roster's band, a wizard's ink pill), a
- * faint paper wash under the pointer. Two classes, like the instrument
- * ghost, so it beats plain `.su-btn--ghost` without relying on source order.
+ * The on-ink ghost: on an ink ground (the frame's `data-ground='ink'`, chrome
+ * K1: Shelves' and the Roster's band, a wizard's ink pill) the outlined
+ * button, `default` or `ghost`, is a paper outline with paper text, a faint
+ * paper wash under the pointer. The ground is the frame's, read here, never a
+ * Button prop; the attribute adds the specificity that beats the plain
+ * variants without relying on source order.
  */
-.su-btn--on-ink.su-btn--ghost {
+[data-ground='ink'] :is(.su-btn--default, .su-btn--ghost) {
   background-color: transparent;
   border-color: var(--color-paper);
   color: var(--color-paper);
 }
 
-.su-btn--on-ink.su-btn--ghost:hover:not(:disabled) {
+[data-ground='ink'] :is(.su-btn--default, .su-btn--ghost):hover:not(:disabled) {
   background-color: var(--color-paper-15);
 }
 

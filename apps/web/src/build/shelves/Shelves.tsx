@@ -381,10 +381,10 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
           asideAt="controls"
           aside={
             <>
-              <NewGameControl ground="ink" />
-              {canWrite && <ImportButton ground="ink" onResult={setImportResult} />}
-              <ExportAllButton ground="ink" />
-              <Segmented label="Showing" ground="ink" size="compact">
+              <NewGameControl />
+              {canWrite && <ImportButton onResult={setImportResult} />}
+              <ExportAllButton />
+              <Segmented label="Showing" size="compact">
                 {SHELF_FILTERS.map((option) => (
                   <SegmentedOption
                     key={option.value}

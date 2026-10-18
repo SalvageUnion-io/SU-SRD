@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import type { Finding, RuleSet } from '../lib/ruleEngine'
 import { evaluate, formatFailures, increases, listFiles, ratchetCounts } from '../lib/ruleEngine'
+import { chromeLaws } from '../rules/chrome'
 import { classPrefix } from '../rules/classPrefix'
 import { designTokens, fontSizePx, scanTokenSources } from '../rules/designTokens'
 import { SRD_CSS_ENTRY, srdCss } from '../rules/srdCss'
@@ -647,6 +648,71 @@ describe('styling rule set', () => {
     expect(found['package-stylesheet-import']?.map((f) => f.detail)).toEqual([
       `does not import the shared stylesheet entry (${ENTRY})`,
       'imports the package stylesheet or the reset itself — a second entry beside the shared one',
+    ])
+  })
+})
+
+describe('chrome rule set', () => {
+  test('a clean fixture has no findings', () => {
+    const found = chromeLaws.scan(fixture(STYLING_BASE))
+    for (const rule of chromeLaws.rules) expect(found[rule.id]).toEqual([])
+  })
+
+  test('ground-signal: every ground prop, and data-ground off a frame, is found (R19)', () => {
+    const found = chromeLaws.scan(
+      fixture({
+        ...STYLING_BASE,
+        'apps/web/src/components/A.tsx': [
+          '<Chips chips={c} onInk={paint.ink} />',
+          '<Segmented label="Showing" ground="ink" />',
+          "  ground?: 'paper' | 'ink'",
+          '<Button variant="ghost" surface="ink" />',
+          "const SURFACE: StampSurface = 'on-ink'",
+          '<Stat label="SP" inverse={true} />',
+          '<div data-ground="ink" />',
+          '<div data-grain={g} className="background" />',
+          "const ground = band ? 'ink' : 'paper'",
+          '// an `onInk` prop is banned; so is ground="ink"',
+          '',
+        ].join('\n'),
+        'apps/web/src/components/entity/parts/Head.tsx': '<div data-ground="ink" />\n',
+        'apps/web/src/components/__tests__/A.test.tsx': '<Chips onInk />\n',
+      })
+    )
+    expect(found['ground-signal']?.map((f) => `${f.file}:${f.line}`)).toEqual([
+      'apps/web/src/components/A.tsx:1',
+      'apps/web/src/components/A.tsx:2',
+      'apps/web/src/components/A.tsx:3',
+      'apps/web/src/components/A.tsx:4',
+      'apps/web/src/components/A.tsx:5',
+      'apps/web/src/components/A.tsx:6',
+      'apps/web/src/components/A.tsx:7',
+    ])
+  })
+
+  test('paper-mix: paper faded by color-mix is found in CSS and style objects; tokens and tints are not', () => {
+    const found = chromeLaws.scan(
+      fixture({
+        ...STYLING_BASE,
+        'apps/web/src/styles/partials/x.css': [
+          '.a { color: color-mix(in oklab, var(--color-paper) 60%, transparent); }',
+          '.b { color: var(--color-paper-60); }',
+          '.c { background: color-mix(in srgb, var(--color-pilot) 25%, var(--color-paper)); }',
+          '.d { border-color: color-mix(in oklab, currentcolor 40%, transparent); }',
+          '',
+        ].join('\n'),
+        'apps/web/src/components/A.tsx': [
+          `const T = { backgroundColor: \`color-mix(in oklab, $\{color.paper} 20%, transparent)\` }`,
+          "const U = { borderColor: 'color-mix(in oklab, transparent, var(--color-paper) 55%)' }",
+          'const V = { backgroundColor: color.paper15 }',
+          '',
+        ].join('\n'),
+      })
+    )
+    expect(found['paper-mix']?.map((f) => `${f.file}:${f.line}`)).toEqual([
+      'apps/web/src/components/A.tsx:1',
+      'apps/web/src/components/A.tsx:2',
+      'apps/web/src/styles/partials/x.css:1',
     ])
   })
 })

@@ -31,7 +31,7 @@ export function WithheldUnitRow({ unit, label }: { unit: WithheldUnit; label: st
         note={label}
         labels={
           unit.name === undefined ? undefined : (
-            <Badge shape="stamp" size="mini" surface="on-ink">
+            <Badge shape="stamp" size="mini">
               Can’t be shown
             </Badge>
           )

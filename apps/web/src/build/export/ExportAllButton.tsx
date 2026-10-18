@@ -4,15 +4,12 @@ import { downloadJson } from '../../lib/export/downloadJson'
 import { useEntityStore } from '../../stores/entityStore'
 import { Button, Message, Stack, toast } from '../../components/index'
 
-type ExportAllButtonProps = {
-  /**
-   * The ground it sits on: `ink` on an ink band (Shelves, the Roster, board
-   * S1), where the button is the on-ink ghost and its failure line reads in paper.
-   */
-  ground?: 'paper' | 'ink'
-}
-
-export function ExportAllButton({ ground = 'paper' }: ExportAllButtonProps = {}) {
+/**
+ * "Export all" and its failure line. On an ink band (Shelves, the Roster,
+ * board S1) the band's `data-ground` makes the button the on-ink ghost and the
+ * line paper, in CSS (chrome K1).
+ */
+export function ExportAllButton() {
   const exportAll = useServerAction(
     async () => {
       const bundle = await buildExportBundle(useEntityStore.getState())
@@ -32,17 +29,13 @@ export function ExportAllButton({ ground = 'paper' }: ExportAllButtonProps = {})
   return (
     <Stack gap={4}>
       <Button
-        variant={ground === 'ink' ? 'ghost' : 'default'}
-        surface={ground}
         size="compact"
         disabled={busy}
         onClick={() => void handleExportAll()}
       >
         {busy ? 'Exporting…' : 'Export all'}
       </Button>
-      <Message tone="bad" ground={ground}>
-        {error}
-      </Message>
+      <Message tone="bad">{error}</Message>
     </Stack>
   )
 }

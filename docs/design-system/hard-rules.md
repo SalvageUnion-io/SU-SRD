@@ -44,12 +44,12 @@ The loop: define it here, land its gate with a baseline, burn the baseline to ze
   Gate: planned, a per-kind e2e over the four sheets.
 - **R15 One select mode** (EDL Modes) — ring and seal at level 1, ring only at level 2, one dim, one choice a radio.
   Gate: planned, a Card seal unit test; no `opacity` literal in pickers.
-- **R16 One component per chrome role** (§0, §3.12) — WizShell, `Input` and `Field`'s one label, BreadcrumbTrail, `Pending`, one offline notice, `Button surface="ink"`; one verb per act (Move, Delete), Reference never SRD.
+- **R16 One component per chrome role** (§0, §3.12) — WizShell, `Input` and `Field`'s one label, BreadcrumbTrail, `Pending`, one offline notice, the outlined `Button` (on an ink ground, its paper outline by R19); one verb per act (Move, Delete), Reference never SRD.
   Gate: planned, raw `<input>`/`<textarea>` outside the atoms; `aria-label="Breadcrumb"` only in BreadcrumbTrail; `aria-current="step"` only in WizShell; banned copy variants.
 - **R18 Same content, same block** (E15, N5) — a rules block renders through one component in every context.
   Gate: planned, an `entity-nesting` rule: a named block's field is read by its renderer only.
 - **R19 One ground signal** (K1) — the surface sets `data-ground` once; no `onInk`, `ground` or ink `surface` prop; paper on ink is `--color-paper-NN`.
-  Gate: planned, a `styling` rule banning those props and `data-ground` outside frames; `tokens/paper-mix` (zero) for `color-mix` on paper.
+  Gate: held, `chrome/ground-signal` (zero: those props, Stat's `inverse`, and `data-ground` outside the frames in `packages/gates/rules/chrome.ts`) and `chrome/paper-mix` (zero: a `color-mix` fading paper).
 - **R30 No left-rail borders** (§3.10) — colour rides in bands, stamps and gauges.
   Gate: planned, `tokens/left-rail` (zero): `border-left` / `borderLeft` / `border-inline-start` with a width.
 - **R32 Dashed means user-made** (§3.9) — or a Play reference unit, an edit field, an empty slot.

@@ -32,7 +32,7 @@ describe('Field / Input', () => {
     )
     expect(screen.getByLabelText(/Name/)).toBeTruthy()
     // The required mark rides inside the ink Stamp (white on ink), not a rust glyph.
-    expect(screen.getByText('*').closest('.su-badge--on-ink')).not.toBeNull()
+    expect(screen.getByText('*').closest('.su-badge--stamp-solid')).not.toBeNull()
   })
 
   test('input carries the focus ring classes', () => {
@@ -201,7 +201,7 @@ describe('EmptyState', () => {
     const { container } = render(<EmptyState headline="No pilots yet" />)
     expect((container.firstElementChild as HTMLElement | null)?.style.borderStyle).toBe('dashed')
     const stamp = screen.getByText('No pilots yet')
-    expect(stamp.className).toContain('su-badge--on-ink')
+    expect(stamp.className).toContain('su-badge--stamp-solid')
   })
 
   test('quiet variant renders the centered faint dashed placeholder with message and CTA', () => {
@@ -326,10 +326,10 @@ describe('StepButton / Button xs', () => {
 })
 
 describe('Stamp', () => {
-  test('on-ink is the default surface; text is condensed uppercase', () => {
+  test('solid is the default surface; text is condensed uppercase', () => {
     render(<Badge shape="stamp">Mule</Badge>)
     const stamp = screen.getByText('Mule')
-    expect(stamp.className).toContain('su-badge--on-ink')
+    expect(stamp.className).toContain('su-badge--stamp-solid')
     // One assertion, on the recipe's own output for the rungs a stamp uses,
     // where there were two on utility spellings (`uppercase`, then
     // `tracking-caps-tight`). Both were describing the same fact — that a stamp

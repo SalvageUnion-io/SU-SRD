@@ -2,7 +2,7 @@
 /**
  * Rule-set gates — `bun run check styling` and `bun run check copy`.
  *
- * One engine (`packages/gates/lib/ruleEngine.ts`), one runner, seven rule sets:
+ * One engine (`packages/gates/lib/ruleEngine.ts`), one runner, eight rule sets:
  *
  *   - `tokens`       — design-token laws (packages/gates/rules/designTokens.ts)
  *   - `styling`      — src/components owns shared styling (packages/gates/rules/stylingOwnership.ts)
@@ -10,9 +10,10 @@
  *   - `tone-ground`  — no tech-level blue as a header ground (packages/gates/rules/toneGround.ts)
  *   - `class-prefix` — every package and app class is `su-*` (packages/gates/rules/classPrefix.ts)
  *   - `entity-nesting` — entities nest three levels deep, no titled box inside one (packages/gates/rules/entityNesting.ts)
+ *   - `chrome`       — chrome.md's laws: one ground signal (packages/gates/rules/chrome.ts)
  *   - `copy`         — game terms capitalised as the book does (packages/gates/rules/copyTerms.ts)
  *
- * The `styling` check runs the first six (`--only=` their ids), the `copy`
+ * The `styling` check runs the first seven (`--only=` their ids), the `copy`
  * check the last; tools/check.ts registers both.
  *
  * Why these gates exist at all: none of what they catch fails typecheck, lint or
@@ -49,6 +50,7 @@ import {
   ratchetCounts,
   readBaseline,
 } from 'gates/lib/ruleEngine'
+import { chromeLaws } from 'gates/rules/chrome'
 import { classPrefix } from 'gates/rules/classPrefix'
 import { copyTerms } from 'gates/rules/copyTerms'
 import { designTokens } from 'gates/rules/designTokens'
@@ -68,6 +70,7 @@ const RULE_SETS: readonly RuleSet[] = [
   toneGround,
   classPrefix,
   entityNesting,
+  chromeLaws,
   copyTerms,
 ]
 

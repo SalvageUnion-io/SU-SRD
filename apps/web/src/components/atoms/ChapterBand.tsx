@@ -331,6 +331,9 @@ export function ChapterBand({
       data-measured={measure ? '' : undefined}
       data-aside={aside && asideAt !== 'end' ? asideAt : undefined}
       data-action={action ? '' : undefined}
+      // The band is the frame: one that prints paper is an ink ground, and the
+      // controls in its aside and eyebrow read it in CSS (chrome K1).
+      data-ground={foregroundOn(band, 'ink') === 'paper' ? 'ink' : 'paper'}
       {...(bleed ? { [BAND_KEY_ATTRIBUTE]: key } : {})}
       style={{
         ...ROOT,

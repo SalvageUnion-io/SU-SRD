@@ -157,7 +157,7 @@
    paper (the danger rust, an ink sheet head) its ink turns paper. Doubled
    with `.su-btn` to out-rank the quiet variant's resting and hover ink. */
 .su-btn.su-close-button[data-on-paper] {
-  color: color-mix(in oklab, var(--color-paper) 60%, transparent);
+  color: var(--color-paper-60);
 }
 
 .su-btn.su-close-button[data-on-paper]:hover:not(:disabled) {

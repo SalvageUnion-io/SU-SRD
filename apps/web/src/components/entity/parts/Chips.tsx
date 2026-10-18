@@ -21,14 +21,14 @@ import { Tags } from './Tags'
  * clips a chip (E18).
  *
  * One look on every band: an action's chips on the ink banner are the same
- * plates, size and cost box as an entity's on its tone band. There
- * (`onInk`) `.su-chips--on-ink` only keeps a paper rule round each cell, and
- * the cost box its paper edge, so the ink halves do not sink into the ink.
+ * plates, size and cost box as an entity's on its tone band. There (the
+ * frame's `data-ground="ink"`, chrome K1, read in CSS) each cell only keeps a
+ * paper rule, and the cost box its paper edge, so the ink halves do not sink
+ * into the ink.
  */
 export function Chips({
   chips,
   size,
-  onInk = false,
   linkable = false,
   leading,
   trailing,
@@ -37,7 +37,6 @@ export function Chips({
 }: {
   chips: ChipSet
   size: Size
-  onInk?: boolean
   /** Traits may link (not inside a link or a clickable card). */
   linkable?: boolean
   /** A stamp the context leads with ("Suggested"). */
@@ -53,12 +52,7 @@ export function Chips({
   return (
     <div
       data-chip-group=""
-      className={cn(
-        'su-chips',
-        onInk && 'su-chips--on-ink',
-        align === 'end' && 'su-chips--end',
-        className
-      )}
+      className={cn('su-chips', align === 'end' && 'su-chips--end', className)}
     >
       {leading}
       <Facts cells={stats} size={size} />
@@ -68,7 +62,7 @@ export function Chips({
       <Facts cells={action} size={size} />
       <Tags tags={chips.tags} linkable={linkable} size={size} />
       {chips.relations && <Tags tags={chips.relations} linkable={linkable} size={size} />}
-      {chips.cost && <CostBox cost={chips.cost} size={size} onInk={onInk} />}
+      {chips.cost && <CostBox cost={chips.cost} size={size} />}
       {trailing}
     </div>
   )
@@ -76,18 +70,10 @@ export function Chips({
 
 /**
  * A read cost ("2 EP") as the book prints it, the one chip that leads with its value: the ink pointy box
- * (`ActivationCost`), with a paper edge on an ink band. Every form's read cost is this box,
+ * (`ActivationCost`), with a paper edge on an ink ground. Every form's read cost is this box,
  * last among its chips.
  */
-export function CostBox({
-  cost,
-  size,
-  onInk = false,
-}: {
-  cost: string
-  size: Size
-  onInk?: boolean
-}) {
+export function CostBox({ cost, size }: { cost: string; size: Size }) {
   const cell = costCell(cost)
   return (
     <ActivationCost
@@ -95,7 +81,6 @@ export function CostBox({
       currency={cell.value ? cell.label : ''}
       compact={size !== 'full'}
       mini={size === 'mini'}
-      onInk={onInk}
     />
   )
 }

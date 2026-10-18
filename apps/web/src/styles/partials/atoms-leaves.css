@@ -187,3 +187,15 @@
   border-style: dotted;
   cursor: help;
 }
+
+/* ── Message ── */
+/* components/atoms/Message.tsx — a failure line in the tone's ink, which
+ * clears AA as text on paper; on an ink ground (the frame's `data-ground`,
+ * chrome K1), where no tone ink holds contrast, it prints in paper. */
+.su-message--bad {
+  color: var(--color-status-bad);
+}
+
+[data-ground='ink'] .su-message--bad {
+  color: var(--color-paper);
+}

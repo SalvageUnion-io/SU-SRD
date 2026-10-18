@@ -17,8 +17,11 @@ type BadgeSurface = 'solid' | 'ghost' | 'outline' | 'tone' | 'quiet'
  * uses these names, so a size means the same thing wherever it is read.
  */
 type StampSize = Size
-/** Stamp plate (`shape="stamp"`). */
-export type StampSurface = 'on-ink' | 'inverse' | 'dashed'
+/**
+ * Stamp plate (`shape="stamp"`): the plate it IS, never the ground it sits on.
+ * The ground is the frame's `data-ground` (chrome K1), read in CSS.
+ */
+type StampSurface = 'solid' | 'inverse' | 'dashed'
 
 /*
  * Every chip and stamp property lives in a `.su-badge*` class (`styles/index.css`),
@@ -73,7 +76,7 @@ const STAMP_SIZE: Record<StampSize, string> = {
 
 /** Stamp plate fills — the square label/header shape. */
 const STAMP_SURFACE: Record<StampSurface, string> = {
-  'on-ink': 'su-badge--on-ink',
+  solid: 'su-badge--stamp-solid',
   inverse: 'su-badge--inverse',
   dashed: 'su-badge--dashed',
 }
@@ -137,8 +140,8 @@ type BadgeStampProps = {
   /** Text scale on the FULL / COMPACT / MINI ladder, or the 13px `caption`. `compact` is the default. */
   size?: StampSize
   /**
-   * The plate the stamp sits on:
-   * - `on-ink` (default) — ink block, white text: the canonical label/header.
+   * The stamp's plate:
+   * - `solid` (default) — ink block, paper text: the canonical label/header.
    * - `inverse` — paper block, ink text, inset ink ring.
    * - `dashed` — paper block, ink text, a dashed ink edge: the User-made
    *   stamp (ruleset §3.9, homebrew is dashed).
@@ -178,7 +181,7 @@ export function Badge(props: BadgeProps) {
     const {
       children,
       size = DEFAULT_SIZE,
-      surface = 'on-ink',
+      surface = 'solid',
       seam = false,
       as: Tag = 'span',
       className,

@@ -34,6 +34,19 @@ export const BAND_KEY_ATTRIBUTE = 'data-band'
 /** The opposite of a foreground: the text on a plate of it (the current tab). */
 const ON: Record<Foreground, Foreground> = { ink: 'paper', paper: 'ink' }
 
+/**
+ * The bar's faded steps for a foreground, as its alpha tokens: the bar's own
+ * defaults are paper's (`--color-paper-NN`, chrome K1), so only an ink
+ * foreground sets them (ink has no 70 step: 75).
+ */
+const STEPS: Record<Foreground, string> = {
+  ink:
+    '--su-bar-fg-85:var(--color-ink-85);--su-bar-fg-70:var(--color-ink-75);' +
+    '--su-bar-fg-60:var(--color-ink-60);--su-bar-fg-30:var(--color-ink-30);' +
+    '--su-bar-fg-15:var(--color-ink-15);',
+  paper: '',
+}
+
 export function unionBarMatchCss(
   key: string,
   band: string,
@@ -47,6 +60,7 @@ export function unionBarMatchCss(
     `--su-bar-bg:${band};` +
     `--su-bar-fg:var(--color-${foreground});` +
     `--su-bar-on-fg:var(--color-${ON[foreground]});` +
+    STEPS[foreground] +
     // No rule between the bar and the band: they are one colour.
     '--su-bar-rule:transparent;' +
     `--su-bar-grain-paper:${shown('paper')};` +

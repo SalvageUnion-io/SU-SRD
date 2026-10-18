@@ -212,11 +212,12 @@ describe('card band contrast', () => {
 
   // E17: the chips sit on the band. A chip's two cells are ink and paper
   // plates, text on each the other (4.5:1 by construction); on the ink banner
-  // its ink cell has no edge of its own, so `.su-chips--on-ink` keeps a paper
-  // rule round every cell, and that rule owes 3:1 against the band (WCAG 1.4.11).
+  // its ink cell has no edge of its own, so on an ink ground (the frame's
+  // `data-ground`, chrome K1) every cell keeps a paper rule, and that rule owes
+  // 3:1 against the band (WCAG 1.4.11).
   test('a chip on the ink banner keeps a paper rule that clears 3:1 against it', () => {
     const css = readPackageStylesheet().replace(/\/\*[\s\S]*?\*\//g, '')
-    const rule = css.match(/\.su-chips--on-ink \.su-stat-cell\s*\{([^}]*)\}/)?.[1] ?? ''
+    const rule = css.match(/\[data-ground='ink'\] \.su-stat-cell\s*\{([^}]*)\}/)?.[1] ?? ''
     expect(rule).toContain('border-color: var(--color-paper)')
     expect(contrastRatio(INK, PAPER)).toBeGreaterThanOrEqual(TEXT_CONTRAST)
     for (const name of ['ink banner', 'ink banner damaged']) {

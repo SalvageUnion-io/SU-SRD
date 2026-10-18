@@ -24,8 +24,9 @@ const LEAD = 'su-ec-labels__lead'
  * classification pills (`[Class | Hybrid]`, `[Chassis | Mule]`); the Legal
  * Starting Pattern stamp; and on a user-made card the dashed User-made stamp
  * after them. Never the entity's kind: no form stamps that (E9), the title
- * says it to screen readers (`KindLabel`). On the ink banner the stamps take
- * the `inverse` plate so they still read.
+ * says it to screen readers (`KindLabel`). On an ink ground (the band's
+ * `data-ground`, chrome K1) the stamps take the paper plate, in CSS, so they
+ * still read.
  */
 export function CardLabels({
   seal,
@@ -33,7 +34,6 @@ export function CardLabels({
   axisMarkers,
   legalStartingPattern,
   userMade = false,
-  onInk = false,
 }: {
   /** A parent-provided seal (GRANTS, CHASSIS ABILITY). */
   seal: { label: string; tone: string } | undefined
@@ -43,10 +43,7 @@ export function CardLabels({
   legalStartingPattern: boolean
   /** USER-MADE (ruleset §3.9): a dashed User-made stamp after the others. */
   userMade?: boolean
-  /** The band is the ink banner (a thing you do). */
-  onInk?: boolean
 }) {
-  const surface = onInk ? 'inverse' : 'on-ink'
   if (!seal && !note && axisMarkers.length === 0 && !legalStartingPattern && !userMade) return null
   return (
     <div className="su-ec-labels">
@@ -56,7 +53,6 @@ export function CardLabels({
           <Badge
             shape="stamp"
             size="mini"
-            surface={surface}
             className={LEAD}
             style={seal.tone === 'var(--color-ink)' ? undefined : { backgroundColor: seal.tone }}
           >
@@ -64,7 +60,7 @@ export function CardLabels({
           </Badge>
         )}
         {note && (
-          <Badge shape="stamp" size="mini" surface={surface} className={LEAD}>
+          <Badge shape="stamp" size="mini" className={LEAD}>
             {note}
           </Badge>
         )}
@@ -85,7 +81,6 @@ export function CardLabels({
           <Badge
             shape="stamp"
             size="mini"
-            surface={surface}
             className="su-ec-labels__truncate"
             title={LEGAL_STARTING_PATTERN_NOTE}
           >

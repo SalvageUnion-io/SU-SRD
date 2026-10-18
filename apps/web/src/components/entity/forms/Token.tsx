@@ -25,7 +25,7 @@ import type { EntityMode, EntityOmit, EntityRowModel } from '../types'
  * stamps), and a contentful Token's economy, facets and traits (N3). The cost box and
  * the host's state chip follow.
  */
-function TokenCells({ chips, onInk }: { chips: TokenChips; onInk: boolean }) {
+function TokenCells({ chips }: { chips: TokenChips }) {
   const cells: { label: string; value?: string }[] = []
   if (chips.rank) cells.push(chips.rank)
   for (const lane of [chips.lane, chips.economy]) {
@@ -44,7 +44,6 @@ function TokenCells({ chips, onInk }: { chips: TokenChips; onInk: boolean }) {
       label={cell.label}
       value={cell.value}
       size="mini"
-      inverse={onInk}
     />
   ))
 }
@@ -159,6 +158,9 @@ export function Token({
   const hasCells = !!(chips.rank || chips.lane || chips.economy || chips.facets || chips.traits)
   const pill = (
     <span
+      // The pill is the frame: on an ink pill (a thing you do) its cells,
+      // stamp and cost box read the ground in CSS (chrome K1).
+      data-ground={paint.ink ? 'ink' : undefined}
       data-user-made={userMade || undefined}
       title={userMade ? USER_MADE_TITLE : undefined}
       className="su-entity-token__pill"
@@ -167,11 +169,7 @@ export function Token({
       {/* Read by assistive tech only: the dashes are the pill's only visual user-made cue. */}
       {userMade && <span className="su-sr-only">User-made </span>}
       {model.kind.note && (
-        <Badge
-          shape="stamp"
-          size="mini"
-          className={cn('su-entity-token__kind', paint.ink && 'su-entity-token__kind--on-ink')}
-        >
+        <Badge shape="stamp" size="mini" className="su-entity-token__kind">
           {model.kind.note}
         </Badge>
       )}
@@ -186,8 +184,8 @@ export function Token({
       </span>
       {(hasCells || cost || slots.trailing) && (
         <span className="su-entity-token__chips">
-          <TokenCells chips={chips} onInk={paint.ink} />
-          {cost && <CostBox cost={cost} size="mini" onInk={paint.ink} />}
+          <TokenCells chips={chips} />
+          {cost && <CostBox cost={cost} size="mini" />}
           {slots.trailing}
         </span>
       )}

@@ -11,7 +11,6 @@ export type StatItem = {
   bottomLabel?: string
   // Visual
   hoverText?: string
-  inverse?: boolean
   /** State overlay — drives the Stat cell's border colour only (see StatBorderState). */
   state?: StatBorderState
   flash?: boolean

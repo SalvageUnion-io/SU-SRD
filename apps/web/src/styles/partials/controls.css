@@ -447,9 +447,9 @@
 /* ══ Segmented (`atoms/Segmented.tsx`) ════════════════════════════════════════
  *
  * Options joined in one ink-ruled frame, the pressed one the inverse plate (a
- * state, never rust: ruleset §3.1). Paper by default; on the ink band
- * (`data-ground='ink'`) the frame and text are paper and the pressed plate is
- * paper with ink text. Its framed height is its Size's (`--size-*`): Full by
+ * state, never rust: ruleset §3.1). Paper by default; on an ink ground (the
+ * frame's `data-ground='ink'`, chrome K1) the frame and text are paper and the
+ * pressed plate is paper with ink text. Its framed height is its Size's (`--size-*`): Full by
  * default, Compact (`data-size='compact'`) beside a page's head actions and a
  * sheet's buttons and fields.
  */
@@ -509,21 +509,21 @@
   flex: 1 1 0;
 }
 
-.su-seg[data-ground='ink'] {
+[data-ground='ink'] .su-seg {
   background-color: transparent;
   border-color: var(--color-paper);
 }
-.su-seg[data-ground='ink'] > .su-seg__option {
+[data-ground='ink'] .su-seg > .su-seg__option {
   color: var(--color-paper);
 }
-.su-seg[data-ground='ink'] > .su-seg__option + .su-seg__option {
+[data-ground='ink'] .su-seg > .su-seg__option + .su-seg__option {
   border-left-color: var(--color-paper-15);
 }
-.su-seg[data-ground='ink'] > .su-seg__option:hover {
+[data-ground='ink'] .su-seg > .su-seg__option:hover {
   background-color: var(--color-paper-15);
 }
-.su-seg[data-ground='ink'] > .su-seg__option[aria-pressed='true'],
-.su-seg[data-ground='ink'] > .su-seg__option[aria-pressed='true']:hover {
+[data-ground='ink'] .su-seg > .su-seg__option[aria-pressed='true'],
+[data-ground='ink'] .su-seg > .su-seg__option[aria-pressed='true']:hover {
   background-color: var(--color-paper);
   color: var(--color-ink);
 }

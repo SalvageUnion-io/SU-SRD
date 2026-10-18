@@ -2,7 +2,6 @@ import type { CSSProperties, ReactElement } from 'react'
 import { color, fontSize, space, weight } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import type { Size } from '../../styles/sizing'
-import type { StampSurface } from './Badge'
 import { Badge } from './Badge'
 import type { EntityStatus } from './entityStatus'
 import { StepButton } from './SmallButtons'
@@ -65,6 +64,9 @@ const PLATE_SIZE: Record<Size, string> = {
 const STATE_RING_CLASS = 'su-stat--modified'
 
 /** The inherited `text-xs` / `text-sm` rungs carry their paired line-height. */
+/** The muted `/max` after a plate's value. */
+const MAX_SUFFIX = { color: color.wkMuted, fontWeight: weight.normal } satisfies CSSProperties
+
 const LINE_HEIGHT_XS = 'calc(1 / 0.75)'
 const LINE_HEIGHT_SM = 'calc(1.25 / 0.875)'
 
@@ -95,8 +97,7 @@ type HorizontalValueProps = {
    * are one `label | value` cell in two materials, so the fix was this rung —
    * ruleset §3.7, every `label | value` renders through `Stat`.
    *
-   * `plain` is a text finish: `state` and `inverse` both style the plate and
-   * are inert on it.
+   * `plain` is a text finish: `state` styles the plate and is inert on it.
    */
   surface?: 'plate' | 'plain'
   /** Optional max — renders the value as `value /max` (muted /max suffix on
@@ -112,7 +113,6 @@ type HorizontalValueProps = {
    * could be combined into a rung that doesn't exist; a single `size` cannot.
    */
   size?: Size
-  inverse?: boolean
   /** inline-flex (default) vs flex. */
   inline?: boolean
   /**
@@ -178,7 +178,6 @@ function HorizontalValue({
   bottomLabel,
   surface = 'plate',
   size = 'full',
-  inverse = false,
   inline = true,
   hollow = false,
   state = 'default',
@@ -191,9 +190,6 @@ function HorizontalValue({
   wrap = false,
   className,
 }: HorizontalValueProps) {
-  const mainSurface: StampSurface = inverse ? 'inverse' : 'on-ink'
-  const valueSurface: StampSurface = inverse ? 'on-ink' : 'inverse'
-
   // The hover explanation rides the OUTERMOST node of whichever anatomy we
   // return, so it works on the bare cell, the running-text finish and the
   // cell+stepper cluster alike. `Tooltip` is already inert inside a hovercard
@@ -247,7 +243,9 @@ function HorizontalValue({
       <Badge
         shape="stamp"
         size="mini"
-        surface={mainSurface}
+        // One plate pair on every ground: on an ink ground (the frame's
+        // `data-ground`, chrome K1) the cell keeps a paper rule, in CSS.
+        surface="solid"
         // Stretched to the FULL cell height (over the stamp's inline-block) so
         // the label's ink covers the whole cell, its text centred even when
         // the row stretches it; a two-line label (`bottomLabel`) stacks. The
@@ -273,7 +271,7 @@ function HorizontalValue({
         <Badge
           shape="stamp"
           size="mini"
-          surface={valueSurface}
+          surface="inverse"
           className={cn(
             'su-stat-plate',
             PLATE_SIZE[size],
@@ -284,13 +282,7 @@ function HorizontalValue({
           )}
         >
           {value}
-          {max !== undefined && (
-            <span
-              style={{ color: inverse ? color.paper70 : color.wkMuted, fontWeight: weight.normal }}
-            >
-              /{max}
-            </span>
-          )}
+          {max !== undefined && <span style={MAX_SUFFIX}>/{max}</span>}
         </Badge>
       )}
     </span>
@@ -307,8 +299,7 @@ function HorizontalValue({
   const atMax = max !== undefined && numericValue >= max
   // Buttons sit SIDE BY SIDE after the value cell and stretch to its height, so
   // the stepper adds no vertical height to the row: the shared `StepButton` at
-  // its `cell` fit, its plate set by the ground the Stat is printed on.
-  const stepGround = inverse ? 'ink' : 'paper'
+  // its `cell` fit, its plate set in CSS by the ground the Stat is printed on.
   const stepStyle = {
     fontSize: size === 'compact' ? fontSize.xs : fontSize.sm,
     lineHeight: size === 'compact' ? LINE_HEIGHT_XS : LINE_HEIGHT_SM,
@@ -322,7 +313,6 @@ function HorizontalValue({
     >
       {cell}
       <StepButton
-        ground={stepGround}
         fit="cell"
         aria-label={`Decrease ${stepName}`}
         onClick={() => onChange?.(Math.max(min, numericValue - step))}
@@ -332,7 +322,6 @@ function HorizontalValue({
         −
       </StepButton>
       <StepButton
-        ground={stepGround}
         fit="cell"
         aria-label={`Increase ${stepName}`}
         onClick={() =>

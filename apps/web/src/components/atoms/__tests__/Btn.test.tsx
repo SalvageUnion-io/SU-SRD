@@ -1,5 +1,6 @@
 import { describe, expect, mock, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { readPackageStylesheet } from '../../../styles/__tests__/packageStylesheet'
 import { Button } from '../Button'
 import { buttonVariants } from '../buttonVariants'
 import { DISABLED } from '../interaction'
@@ -53,15 +54,15 @@ describe('Button', () => {
     expect(screen.getByRole('button').className).toContain(variantClass('ghost'))
   })
 
-  test('an ink-surface ghost is the on-ink ghost, recoloured by the compound rule', () => {
-    render(
-      <Button variant="ghost" surface="ink">
-        Import
-      </Button>
+  test('on an ink ground the outlined button is the on-ink ghost, in CSS, never a prop', () => {
+    render(<Button variant="ghost">Import</Button>)
+    // The button carries no ground of its own (chrome K1)…
+    expect(screen.getByRole('button').className).not.toContain('ink')
+    // …the frame's `data-ground` recolours both outlined variants.
+    const css = readPackageStylesheet().replace(/\s+/g, ' ')
+    expect(css).toContain(
+      "[data-ground='ink'] :is(.su-btn--default, .su-btn--ghost) { background-color: transparent;"
     )
-    const cls = screen.getByRole('button').className.split(' ')
-    expect(cls).toContain('su-btn--ghost')
-    expect(cls).toContain('su-btn--on-ink')
   })
 
   test('there is no danger variant: no state colour fills a button (R9)', () => {
