@@ -5,7 +5,7 @@ import { getReferenceEntityName, resolveTable } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
 import type { CardSize } from '../../containers/displayMode'
 import { Entity } from '../../entity/Entity'
-import { InsidePeekContext } from '../../entity/peekContext'
+import { InsidePeekContext, tablePeekAddress } from '../../entity/peekContext'
 import type { EntityMode } from '../../entity/types'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { EntityDetailDialog } from '../EntityDetailDialog'
@@ -468,6 +468,7 @@ export function ActionTokens({
                 size={size}
                 disabled={!!hostDown}
                 nested
+                peekAt={tablePeekAddress(action)}
               />
             )}
           </li>

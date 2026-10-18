@@ -36,6 +36,15 @@
   min-width: 0;
 }
 
+/* In a page's body column (`CardPage`'s `__stats`), a last row of ONE cell
+   takes the whole row rather than centring alone (owner's call,
+   2026-10-18); a longer last row centres. Each column count is a step
+   (`--su-stat-cols`), so each names its own lone last cell. A band's cells
+   are chips (`.su-entity-stamps`): none of them grows. */
+.su-entity-page__stats .su-stat-column__cell:last-child:nth-child(2n + 1) {
+  flex-grow: 1;
+}
+
 .su-stat-column__value {
   align-items: center;
   background-color: var(--color-paper);
@@ -99,6 +108,14 @@
     .su-stat-column__cell {
       --su-stat-cols: 3;
     }
+
+    .su-entity-page__stats .su-stat-column__cell:last-child:nth-child(2n + 1) {
+      flex-grow: 0;
+    }
+
+    .su-entity-page__stats .su-stat-column__cell:last-child:nth-child(3n + 1) {
+      flex-grow: 1;
+    }
   }
 }
 
@@ -106,6 +123,14 @@
   @media (min-width: 40rem) {
     .su-stat-column__cell {
       --su-stat-cols: 4;
+    }
+
+    .su-entity-page__stats .su-stat-column__cell:last-child:nth-child(2n + 1) {
+      flex-grow: 0;
+    }
+
+    .su-entity-page__stats .su-stat-column__cell:last-child:nth-child(4n + 1) {
+      flex-grow: 1;
     }
   }
 }
@@ -115,6 +140,14 @@
     .su-stat-column__cell {
       --su-stat-cols: 5;
     }
+
+    .su-entity-page__stats .su-stat-column__cell:last-child:nth-child(2n + 1) {
+      flex-grow: 0;
+    }
+
+    .su-entity-page__stats .su-stat-column__cell:last-child:nth-child(5n + 1) {
+      flex-grow: 1;
+    }
   }
 }
 
@@ -122,6 +155,14 @@
   @media (min-width: 40rem) {
     .su-stat-column__cell {
       --su-stat-cols: 6;
+    }
+
+    .su-entity-page__stats .su-stat-column__cell:last-child:nth-child(2n + 1) {
+      flex-grow: 0;
+    }
+
+    .su-entity-page__stats .su-stat-column__cell:last-child:nth-child(6n + 1) {
+      flex-grow: 1;
     }
   }
 }
@@ -160,17 +201,18 @@
 }
 
 /* The stats on a band (`ChapterBand asideAt="notch"`, srd's `EntityPageStamps`)
-   are the column's compact cells: a smaller framed numeral and label. They
-   flow inline with the band's other chips (`.su-entity-stamps > dl`), one
-   balanced chip line, the same gap apart, no line or gap of their own per
-   group (owner, 2026-10-15). */
+   are the column's compact cells, the value at its label's type size (C1a:
+   one size per strip, owner's call 2026-10-18), chips of the band's line
+   (`.su-entity-stamps > dl`), the same gap apart. */
 .su-chapter-band[data-aside='notch'] .su-stat-column__cell {
   min-height: var(--size-compact);
 }
 
 .su-chapter-band[data-aside='notch'] .su-stat-column__value {
-  font-size: var(--text-readout);
-  width: 36px;
+  font-size: var(--text-badge);
+  min-width: 28px;
+  padding-inline: var(--space-6);
+  width: auto;
 }
 
 .su-chapter-band[data-aside='notch'] .su-stat-column__label {

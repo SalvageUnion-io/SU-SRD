@@ -263,10 +263,11 @@ describe('ChoiceGroups — table choice (A.I. Personality)', () => {
     expect(screen.queryByRole('textbox')).toBeNull()
   })
 
-  test('expands the table rows via the Show toggle', () => {
-    render(<ChoiceGroups choices={[tableChoice]} readOnly />)
+  test('the table is a roll Token: its rows are its Peek, never opened in place', () => {
+    const { container } = render(<ChoiceGroups choices={[tableChoice]} readOnly />)
     expect(screen.queryAllByRole('listitem').length).toBe(0)
-    fireEvent.click(screen.getByRole('button', { name: /Show the A.I. Personality Table table/i }))
-    expect(screen.getAllByRole('listitem').length).toBeGreaterThan(0)
+    expect(screen.queryByRole('button', { name: /Show the .* table/i })).toBeNull()
+    const trigger = container.querySelector('.su-roll-token [data-peek]')
+    expect(trigger?.getAttribute('data-peek')).toMatch(/^roll-tables:.+\/table$/)
   })
 })

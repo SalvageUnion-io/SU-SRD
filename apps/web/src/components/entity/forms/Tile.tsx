@@ -135,8 +135,6 @@ export function Tile({
     ...facts.map((cell) => <Facts key={cell.key} cells={[cell]} size="compact" />),
     ...(model.cost ? [<CostBox key="cost" cost={model.cost} size="compact" />] : []),
   ]
-  // Gear's chips keep to two lines, the first the longer half; the name gives way.
-  const half = gear && chips.length > 2 ? Math.ceil(chips.length / 2) : 0
 
   return (
     <LinkSurface
@@ -178,18 +176,9 @@ export function Tile({
             </span>
           </span>
           {hasChips && (
-            <span
-              className={cn('su-entity-tile__chips', half > 0 && 'su-entity-tile__chips--lines')}
-            >
-              {half > 0 ? (
-                <>
-                  <span className="su-entity-tile__line">{chips.slice(0, half)}</span>
-                  <span className="su-entity-tile__line">{chips.slice(half)}</span>
-                </>
-              ) : (
-                chips
-              )}
-            </span>
+            // Its chips fill from the band's bottom-right corner up, on one
+            // line wherever they fit (`.su-entity-tile__chips`, ruleset §4.7).
+            <span className="su-entity-tile__chips">{chips}</span>
           )}
         </div>
         {leadText && (

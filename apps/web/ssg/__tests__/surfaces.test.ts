@@ -285,7 +285,9 @@ describe('a roll table rolls on its own page (board 08b)', () => {
 describe('static HTML prints the roll stamp as a label, not a button', () => {
   it.each(['/roll-tables/core-mechanic', '/roll-tables/callsign-table'])('%s', (route) => {
     const html = page(route)
-    expect(html).toMatch(/class="su-roll__stamp su-roll__roll">Roll (the Die|twice):</)
+    expect(html).toMatch(
+      /class="su-roll__stamp su-roll__roll"( data-roll-pending="")?>Roll (the Die|twice):</
+    )
     expect(html).not.toMatch(/<button[^>]*su-roll__roll/)
   })
 })
@@ -295,7 +297,9 @@ describe('a columns table rolls on its own page too', () => {
 
   it('is the same instrument, banded in the page band’s tone', () => {
     expect(h1s(html)).toEqual(['Callsign Table (Roll Table)'])
-    expect(html).toContain('class="su-roll__stamp su-roll__roll">Roll twice:<')
+    expect(html).toMatch(
+      /class="su-roll__stamp su-roll__roll"( data-roll-pending="")?>Roll twice:</
+    )
     expect(html).toContain(RULES_ROLL_BAND)
     expect(html).not.toContain('--su-roll-band:var(--color-band-cream)')
   })

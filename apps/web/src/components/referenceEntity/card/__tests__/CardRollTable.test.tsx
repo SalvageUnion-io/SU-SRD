@@ -84,7 +84,7 @@ describe('CardRollTable', () => {
     expect(bands?.classList.contains('su-roll__bands')).toBe(true)
   })
 
-  test('nested and folded it is a Token, its buttons inside its strip; Table reveals the instrument', () => {
+  test('nested it is a Token: Roll the Die in its strip, its name Peeking the rows', () => {
     render(
       <CardRollTable
         table={coreMechanic()}
@@ -93,23 +93,21 @@ describe('CardRollTable', () => {
         framed
         nested
         disabled={false}
+        peekAt="roll-tables:core-mechanic/table"
       />
     )
     const token = document.querySelector('.su-roll-token')
     expect(token?.querySelector('.su-entity-token__name')?.textContent).toContain('Core Mechanic')
     expect(document.querySelector('.su-roll')).toBeNull()
+    // Its one control, in the pill after the name at the Token's rung (C1a, C8).
     const roll = screen.getByRole('button', { name: 'Roll the die on Core Mechanic' })
-    const toggle = screen.getByRole('button', { name: 'Show the Core Mechanic table' })
-    // In the pill, after the name, at the Token's rung (C1a, C8): never beside it.
-    const pill = token?.querySelector('.su-entity-token__pill')
-    for (const button of [toggle, roll]) {
-      expect(pill?.contains(button)).toBe(true)
-      expect(button.classList.contains('su-btn--mini')).toBe(true)
-    }
-    fireEvent.click(screen.getByRole('button', { name: 'Show the Core Mechanic table' }))
-    expect(document.querySelector('.su-roll-token')).toBeNull()
-    expect(document.querySelectorAll('.su-roll li')).toHaveLength(5)
-    expect(screen.getByRole('button', { name: 'Hide the Core Mechanic table' })).toBeTruthy()
+    expect(token?.querySelector('.su-entity-token__pill')?.contains(roll)).toBe(true)
+    expect(roll.classList.contains('su-btn--mini')).toBe(true)
+    expect(screen.queryByRole('button', { name: /^Show the .* table$/ })).toBeNull()
+    // The rows are its name's Peek, focusable so a keyboard opens it too.
+    const trigger = token?.querySelector('[data-peek]')
+    expect(trigger?.getAttribute('data-peek')).toBe('roll-tables:core-mechanic/table')
+    expect(trigger?.getAttribute('tabindex')).toBe('0')
   })
 
   test('a damaged host reads the table but cannot roll it', () => {

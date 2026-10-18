@@ -9,10 +9,11 @@ import { EntityCardStatic } from '../components/EntityCardStatic'
  * hydrates, and anchors are how the SRD's card reaches nested entities in link
  * mode. Everything here, by contrast, is inert without a listener — a rendered
  * `<button>` with no handler is a defect under the ruleset's "rust means
- * action" rule, not a cosmetic wart.
+ * action" rule, not a cosmetic wart. A roll table's Roll renders as its stamp
+ * until the script runs (`RollControl`), marked `data-roll-pending`.
  */
 const NEEDS_A_LISTENER =
-  /<button\b|<input\b|<select\b|<textarea\b|role="button"|aria-expanded=|aria-haspopup=/
+  /<button\b|<input\b|<select\b|<textarea\b|role="button"|aria-expanded=|aria-haspopup=|data-roll-pending/
 
 /**
  * Does this entity's card contain anything that needs JS to work?

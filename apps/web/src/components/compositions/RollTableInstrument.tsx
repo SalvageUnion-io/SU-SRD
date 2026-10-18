@@ -294,7 +294,15 @@ export function RollControl({
   size?: 'compact' | 'mini'
 }) {
   const live = useLive()
-  if (!onRoll || !live) return <span className="su-roll__stamp su-roll__roll">{children}</span>
+  if (!onRoll || !live) {
+    // A Roll waiting on the script says so (`data-roll-pending`), so a page
+    // whose only control it is still ships its island (`cardNeedsHydration`).
+    return (
+      <span className="su-roll__stamp su-roll__roll" data-roll-pending={onRoll ? '' : undefined}>
+        {children}
+      </span>
+    )
+  }
   return (
     <Button
       variant="primary"

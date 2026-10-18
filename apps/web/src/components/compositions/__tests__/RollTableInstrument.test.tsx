@@ -65,7 +65,10 @@ describe('RollTableInstrument — the roll', () => {
 
   test('server markup prints the stamp, never a dead button, even with onRoll', () => {
     const html = renderToStaticMarkup(instrument(() => {}))
-    expect(html).toContain('<span class="su-roll__stamp su-roll__roll">Roll the Die:</span>')
+    // Marked as waiting on the script, so its page still ships an island.
+    expect(html).toContain(
+      '<span class="su-roll__stamp su-roll__roll" data-roll-pending="">Roll the Die:</span>'
+    )
     expect(html).not.toContain('<button')
   })
 })

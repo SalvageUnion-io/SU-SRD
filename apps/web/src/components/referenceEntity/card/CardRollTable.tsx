@@ -7,11 +7,13 @@ import { dieForTable, rollD20 } from '../../../lib/dice'
 import { useParseTraitReferences } from '../../../lib/parseTraitReferences'
 import { useDisclosure } from '../../../lib/useDisclosure'
 import { Button } from '../../atoms/Button'
+import { FOCUS_RING } from '../../atoms/interaction'
 import { digestColumnsTable, digestRollTable } from '../../compositions/digestRollTable'
 import { RollControl, RollTableInstrument } from '../../compositions/RollTableInstrument'
 import { rollRangeLabel } from '../../compositions/rollTableBands'
 import type { CardSize } from '../../containers/displayMode'
 import { toastRoll } from '../../containers/toastRoll'
+import { usePeekAttrs } from '../../entity/peekContext'
 
 /** A roll on this table: the die and the row it landed on. */
 export type CardRoll = { roll: number; key: string }
@@ -54,11 +56,11 @@ function TraitText({ text }: { text: string }) {
  * bar: its Roll twice button rolls both dice, the toast names the column, and
  * the grid marks the column's head and the entry's cell.
  *
- * NESTED in another card (`nested`), the folded table is a TOKEN (owner's
- * call, 2026-10-14): the ink pill with its name on the cut-out, at a Token's
- * height, its Table and Roll buttons inside its strip after the name, Mini
- * (chips and actions C1a, C8): never beside it. Table reveals the whole
- * instrument in its place.
+ * NESTED in another card (`nested`), the table is a TOKEN (owner's calls,
+ * 2026-10-14 and 2026-10-18): the ink pill with its name on the cut-out, at a
+ * Token's height, its Roll the Die button inside its strip after the name,
+ * Mini (chips and actions C1a, C8). It has no Table toggle: its name Peeks
+ * the table (`peekAt`, `PeekTable`), so the rows never open in the card.
  */
 export function CardRollTable({
   table,
@@ -71,6 +73,7 @@ export function CardRollTable({
   nested = false,
   tone,
   onRollResult,
+  peekAt,
 }: {
   table: RefObjectTable
   /** The table's name, for the bar. */
@@ -87,13 +90,16 @@ export function CardRollTable({
    * flush in a card it is closed by the rule above its bar.
    */
   framed?: boolean
-  /** Inside another card: folded, the table is a Token with its buttons in its strip. */
+  /** Inside another card: the table is a Token, its Roll in its strip, its rows its Peek's. */
   nested?: boolean
   /** The surface's tone (a CSS colour), whose band paints every other row. */
   tone?: string
   /** Called with the outcome's text (and its range key) on every roll. */
   onRollResult?: (text: string, key: string) => void
+  /** Nested: the table's Peek address (`tablePeekAddress`); none, and its name only reads. */
+  peekAt?: string
 }) {
+  const peek = usePeekAttrs(undefined, peekAt)
   const fold = useDisclosure(defaultOpen)
   const expanded = fold.open
   const isColumns = table.type === 'columns'
@@ -143,35 +149,41 @@ export function CardRollTable({
     })
   }
 
-  const toggle = (inToken: boolean) => (
+  const toggle = (
     <Button
-      size={inToken ? 'mini' : 'compact'}
-      className={inToken ? 'su-roll__toggle' : 'su-roll__toggle su-roll__control'}
+      size="compact"
+      className="su-roll__toggle su-roll__control"
       {...fold.toggleProps}
       aria-label={expanded ? `Hide the ${name} table` : `Show the ${name} table`}
       style={BAR_BUTTON}
     >
       {expanded ? 'Hide' : 'Table'}
       {expanded ? (
-        <ChevronUp aria-hidden="true" size={inToken ? 12 : 16} />
+        <ChevronUp aria-hidden="true" size={16} />
       ) : (
-        <ChevronDown aria-hidden="true" size={inToken ? 12 : 16} />
+        <ChevronDown aria-hidden="true" size={16} />
       )}
     </Button>
   )
 
-  if (nested && !expanded) {
+  if (nested) {
+    const peeks = Object.keys(peek).length > 0
     return (
       <div className="su-entity-token su-roll-token">
         <div className="su-entity-token__pill" style={TOKEN_PILL}>
-          <span className="su-entity-token__notch">
+          {/* The name tab is the Peek's trigger, focusable so a keyboard
+              opens it too; the Roll beside it is its own control. */}
+          <span
+            className={peeks ? `su-entity-token__notch ${FOCUS_RING}` : 'su-entity-token__notch'}
+            tabIndex={peeks ? 0 : undefined}
+            {...peek}
+          >
             <span className="su-entity-token__name">
               {name}
               <span className="su-sr-only"> (roll table)</span>
             </span>
           </span>
           <span className="su-roll-token__actions">
-            {toggle(true)}
             <RollControl
               name={name}
               size="mini"
@@ -194,7 +206,7 @@ export function CardRollTable({
       frame={framed ? 'box' : 'rule'}
       stamp={isColumns ? 'Roll twice:' : undefined}
       onRoll={disabled ? undefined : isColumns ? rollColumns : rollBands}
-      actions={toggle(false)}
+      actions={toggle}
       open={expanded}
       panelId={fold.panelId}
       table={

@@ -1,10 +1,11 @@
 import { PreviewCard } from '@base-ui/react/preview-card'
 import type { CSSProperties, ReactNode } from 'react'
 import { Component, useEffect, useState } from 'react'
-import type { EntitySchemaName, RefEntity } from 'salvageunion-reference'
+import type { EntitySchemaName, RefEntity, RefObjectTable } from 'salvageunion-reference'
 import {
   EntitySchemaNames,
   nestedEntityGroups,
+  resolveTable,
   SalvageUnionReference,
 } from 'salvageunion-reference'
 import { layer } from '../../design/tokens'
@@ -12,6 +13,7 @@ import { Skeleton } from '../containers/Skeleton'
 import type { Down } from '../referenceEntity/card/cardChrome'
 import type { PeekLoader } from './Peek'
 import { PeekCard } from './PeekCard'
+import { PeekTable } from './PeekTable'
 import { PEEK_POPUP_ATTRIBUTE } from './peekController'
 import { PEEK_PLATE } from './peekPlate'
 
@@ -23,19 +25,33 @@ function isEntitySchema(name: string): name is EntitySchemaName {
   return names.has(name)
 }
 
+/** What a Peek shows: an entity's card, or the roll table a record carries. */
+type PeekSubject =
+  | { kind: 'entity'; entity: RefEntity }
+  | { kind: 'table'; name: string; table: RefObjectTable }
+
 /**
- * The entity an address names, once its schema is loaded. `<hostId>/npc` (an
+ * What an address names, once its schema is loaded. `<hostId>/npc` (an
  * `embeddedPeekAddress`) is the crew NPC embedded in that record, synthesized
- * exactly as its host card nests it.
+ * exactly as its host card nests it; `<hostId>/table` is the record's roll
+ * table (a folded roll Token Peeks it, `CardRollTable`).
  */
-function entityAt(schemaName: string, id: string): RefEntity | undefined {
+function subjectAt(schemaName: string, id: string): PeekSubject | undefined {
   if (!isEntitySchema(schemaName) || !SalvageUnionReference.isLoaded(schemaName)) return undefined
   const [hostId, part] = id.split('/')
   const host = SalvageUnionReference.get(schemaName, hostId ?? id) as RefEntity | undefined
-  if (!part || !host) return host
-  return part === 'npc'
-    ? nestedEntityGroups(host).find((group) => group.label === 'NPCs')?.entities[0]
-    : undefined
+  if (!host) return undefined
+  if (!part) return { kind: 'entity', entity: host }
+  if (part === 'table') {
+    const table = resolveTable(host)
+    const named = 'tableName' in host && typeof host.tableName === 'string' ? host.tableName : null
+    return table ? { kind: 'table', name: named ?? host.name, table } : undefined
+  }
+  const npc =
+    part === 'npc'
+      ? nestedEntityGroups(host).find((group) => group.label === 'NPCs')?.entities[0]
+      : undefined
+  return npc ? { kind: 'entity', entity: npc as RefEntity } : undefined
 }
 
 /** A card that cannot render (a schema it reads did not load) closes its Peek. */
@@ -93,10 +109,10 @@ export function PeekPopup({
     }
   }, [load, schemaName, onDismiss])
 
-  const entity = loaded ? entityAt(schemaName, entityId) : undefined
+  const subject = loaded ? subjectAt(schemaName, entityId) : undefined
   useEffect(() => {
-    if (loaded && !entity) onDismiss()
-  }, [loaded, entity, onDismiss])
+    if (loaded && !subject) onDismiss()
+  }, [loaded, subject, onDismiss])
 
   return (
     <PreviewCard.Root
@@ -126,9 +142,13 @@ export function PeekPopup({
               width: '500px',
             }}
           >
-            {entity ? (
+            {subject ? (
               <PeekBoundary onError={onDismiss}>
-                <PeekCard entity={entity} down={down} />
+                {subject.kind === 'table' ? (
+                  <PeekTable name={subject.name} table={subject.table} />
+                ) : (
+                  <PeekCard entity={subject.entity} down={down} />
+                )}
               </PeekBoundary>
             ) : (
               <Skeleton />

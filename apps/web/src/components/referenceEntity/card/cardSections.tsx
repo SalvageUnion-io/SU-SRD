@@ -11,7 +11,7 @@ import { resolveTable } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
 import { CardImage } from '../../compositions/CardImage'
 import type { CardSize } from '../../containers/displayMode'
-import { embeddedPeekAddress } from '../../entity/peekContext'
+import { embeddedPeekAddress, tablePeekAddress } from '../../entity/peekContext'
 import { resolveBodyLayout } from './bodyBlocks'
 import { CardProse, FoldedActionProse, PatternProse } from './CardProse'
 import { CardRollTable } from './CardRollTable'
@@ -107,6 +107,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
         disabled={!!isDown}
         framed={!onPage}
         nested={!onPage}
+        peekAt={onPage ? undefined : tablePeekAddress(tableSource)}
         tone={tone.bgColor}
       />
     ) : null

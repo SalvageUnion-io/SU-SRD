@@ -222,11 +222,11 @@ jobs:
       # `nesting-depth.e2e.ts`'s wizards and sheet), and
       # CANTINA_E2E_EXPECT_AUTH_SEAM makes a lost seam fail the run rather than
       # skip them (`e2e/fixtures.ts`).
-      - name: Run the smoke, bundle-budget, JSON API, a11y, offline, sibling-height, nesting-depth and Play specs
+      - name: Run the smoke, bundle-budget, JSON API, a11y, offline, sibling-height, chip-strip, nesting-depth and Play specs
         working-directory: apps/web
         env:
           CANTINA_E2E_EXPECT_AUTH_SEAM: '1'
-        run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts json-api.e2e.ts a11y.e2e.ts offline.e2e.ts sibling-heights.e2e.ts nesting-depth.e2e.ts play-turn.e2e.ts play-solo.e2e.ts play-mediator.e2e.ts
+        run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts json-api.e2e.ts a11y.e2e.ts offline.e2e.ts sibling-heights.e2e.ts chip-strips.e2e.ts nesting-depth.e2e.ts play-turn.e2e.ts play-solo.e2e.ts play-mediator.e2e.ts
 
       - name: Upload Playwright reports on failure
         if: failure()

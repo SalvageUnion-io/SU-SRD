@@ -78,9 +78,10 @@ describe('the detail dialog is the Page', () => {
     // With art the page flows round it from 64rem (`.su-entity-page--flow`).
     expect(page.classList.contains('su-entity-page--flow')).toBe(true)
     expect(page.querySelector('.su-entity-page__art')).toBeTruthy()
-    // A chassis's stats are its body's, not the band's (E20).
+    // A chassis's stats are its body's, but for its Tech Level, the band's (E20).
     const stamps = dialog.querySelector<HTMLElement>('.su-entity-stamps')
-    expect(stamps?.querySelector('.su-stat-column__cell')).toBeNull()
+    const bandStats = [...(stamps?.querySelectorAll('.su-stat-column__cell dt') ?? [])]
+    expect(bandStats.map((dt) => dt.textContent)).toEqual(['Tech Level'])
   })
 
   test("its foot cites the book in the card footer's plain text, the kind beside it", () => {
