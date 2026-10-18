@@ -7,7 +7,6 @@
  * fetch — only the rendered entries ship.
  */
 
-import { PRODUCT } from 'game-domain/product'
 import type { PageModule, PageResult } from '../../../ssg/types'
 import { InlineRef } from '../../components/index'
 import { space } from '../../design/tokens'
@@ -19,7 +18,7 @@ import { Changelog } from '../Changelog'
 import { DocPage } from '../DocPage'
 
 const TITLE = pageTitle('Changelog')
-const DESCRIPTION = `Changes to the salvageunion.io reference site and ${PRODUCT.name} over time.`
+const DESCRIPTION = `Changes to the salvageunion.io reference site and its app over time.`
 
 function page(): PageResult {
   const entries = readChangelog()
@@ -41,8 +40,8 @@ function page(): PageResult {
     children: (
       <DocPage title="Changelog" measure="48rem" gap={space[32]}>
         <p style={PROSE}>
-          Features, fixes and speed-ups to the SRD site and {PRODUCT.name}, newest first. For full
-          commit history see the{' '}
+          Features, fixes and speed-ups to the SRD site and its app, newest first. For full commit
+          history see the{' '}
           <InlineRef
             href="https://github.com/SalvageUnion-io/SU-SRD/commits/main"
             target="_blank"

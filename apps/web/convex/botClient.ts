@@ -58,7 +58,7 @@ import { getMembership } from './model/permissions'
  * than a silent drift between two hand-kept copies.
  */
 const DENIAL_MESSAGE: Record<BotDenialReason, string> = {
-  unlinked: `No ${PRODUCT.name} account is signed in with this Discord account.`,
+  unlinked: `No ${PRODUCT.wordmark} account is signed in with this Discord account.`,
   'not-found': 'That could not be found.',
   forbidden: 'You cannot do that here.',
 }

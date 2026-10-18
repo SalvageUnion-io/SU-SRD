@@ -18,6 +18,7 @@
  * waits for the connection.
  */
 
+import { PRODUCT } from 'game-domain/product'
 import '../styles/play/play.css'
 import { useQuery } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
@@ -114,7 +115,7 @@ function PlayLandingView({ games, connected = false }: PlayLandingViewProps) {
 
   return (
     <PageShell>
-      <ChapterBand tone="cantina">Play</ChapterBand>
+      <ChapterBand tone="play">{PRODUCT.play}</ChapterBand>
       <div style={SECTIONS}>
         <Shelf
           title="Your Games"

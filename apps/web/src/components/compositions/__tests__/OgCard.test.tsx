@@ -224,7 +224,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['Mech', 'Scrapper'],
       ],
       lines: ["Pilot · Engineer · Rosa's pilot · Reclamation of the Wastes"],
-      wordmark: 'The Cantina',
+      wordmark: 'Training Bay',
       address: 'salvageunion.io/build/p/pilot/0a1b',
     },
   ],
@@ -241,7 +241,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['SYS', '12/12'],
       ],
       lines: ['Mech Pattern · Scrapper · Made by alxjrvs'],
-      wordmark: 'The Cantina',
+      wordmark: 'Training Bay',
       address: 'salvageunion.io/build/p/pattern/0a1b',
     },
   ],
@@ -258,7 +258,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['Actions', '2'],
       ],
       lines: ['NPC · From Veteran · Made by alxjrvs'],
-      wordmark: 'The Cantina',
+      wordmark: 'Training Bay',
       address: 'salvageunion.io/build',
     },
   ],
@@ -292,7 +292,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['Actions', '2'],
       ],
       lines: ['NPC · From Veteran · Made by alxjrvs'],
-      wordmark: 'The Cantina',
+      wordmark: 'Training Bay',
       address: 'salvageunion.io/build',
     },
   ],
@@ -309,7 +309,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['SYS', '12/12'],
       ],
       lines: ['Mech Pattern · Scrapper · Made by alxjrvs'],
-      wordmark: 'The Cantina',
+      wordmark: 'Training Bay',
       address: 'salvageunion.io/build/p/pattern/0a1b',
     },
   ],
@@ -340,7 +340,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
       tone: color.inkDeep,
       cells: [],
       lines: ["Its owner hasn't shared this."],
-      wordmark: 'The Cantina',
+      wordmark: 'Training Bay',
       address: 'salvageunion.io/build',
     },
   ],
@@ -400,9 +400,9 @@ describe('OgCard', () => {
     expect(ogCardDescription(PRIVATE)).toBe("Its owner hasn't shared this.")
   })
 
-  test('the reference cards say salvageunion.io; the player cards say The Cantina', () => {
+  test('the reference cards say salvageunion.io; a built thing says the Training Bay', () => {
     expect(renderToStaticMarkup(<OgCard {...THING} />)).toContain('salvageunion.io')
-    expect(renderToStaticMarkup(<OgCard {...SHEET} />)).toContain('The Cantina')
+    expect(renderToStaticMarkup(<OgCard {...SHEET} />)).toContain('Training Bay')
   })
 
   test('theme-color is the band: the tone, resolved to a literal', () => {

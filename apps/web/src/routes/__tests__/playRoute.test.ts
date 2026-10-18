@@ -20,13 +20,13 @@ import { land } from './landOn'
 describe('the Play routes', () => {
   test('each has a page title', async () => {
     expect((await PlayLanding.options.head?.({} as never))?.meta).toEqual([
-      { title: 'Play · SalvageUnion.io' },
+      { title: 'The Cantina · SalvageUnion.io' },
     ])
     expect((await PlayPilot.options.head?.({} as never))?.meta).toEqual([
-      { title: 'Play · SalvageUnion.io' },
+      { title: 'Play · The Cantina · SalvageUnion.io' },
     ])
     expect((await PlayGame.options.head?.({} as never))?.meta).toEqual([
-      { title: 'Mediate · SalvageUnion.io' },
+      { title: 'Mediate · The Cantina · SalvageUnion.io' },
     ])
   })
 

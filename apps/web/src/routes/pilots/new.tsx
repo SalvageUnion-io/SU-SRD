@@ -1,14 +1,15 @@
 import { createFileRoute, useLocation, useNavigate } from '@tanstack/react-router'
+import { PRODUCT } from 'game-domain/product'
 import { useReturnToContainer } from '../../build/entityContainer/useShowContainer'
 import { PilotWizard } from '../../build/pilot/PilotWizard'
 import { NewEntityScreen } from '../../build/wizard/NewEntityScreen'
-import { pageTitle } from '../../lib/pageTitle'
+import { areaTitle } from '../../lib/pageTitle'
 import type { CreateMode } from '../../lib/wizard/createMode'
 import { parseCreateMode } from '../../lib/wizard/createMode'
 import { parseSlugParam, preselectedClassId } from '../../lib/wizard/preselect'
 
 export const Route = createFileRoute('/pilots/new')({
-  head: () => ({ meta: [{ title: pageTitle('New Pilot') }] }),
+  head: () => ({ meta: [{ title: areaTitle(PRODUCT.build, 'New Pilot') }] }),
   // mode: absent → chooser · 'guided' → the wizard · 'blank' → blank dialog
   // class: a slug deep-linked from an SRD page's "Build with this" (`lib/wizard/preselect.ts`)
   validateSearch: (search: Record<string, unknown>): { mode: CreateMode; class?: string } => {

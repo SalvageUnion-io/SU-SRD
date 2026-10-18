@@ -7,6 +7,7 @@
  * or the Game has not answered yet.
  */
 
+import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties } from 'react'
 import { ChapterBand, PageShell, Pending, Text, tokens } from '../components/index'
 import { WayOutLink } from '../components/shared/WayOutLink'
@@ -18,7 +19,7 @@ const PENDING = { padding: tokens.space[24] } satisfies CSSProperties
 const REASON = { fontSize: tokens.fontSize.title, margin: 0 } satisfies CSSProperties
 
 type PlayRefusalProps = {
-  /** The page's name, the band's title: "Play" unless a screen says otherwise. */
+  /** The page's name, the band's title: Play's, the Cantina, unless a screen says otherwise. */
   page?: string
   /** What is missing, as the heading under the band. */
   title: string
@@ -26,10 +27,10 @@ type PlayRefusalProps = {
   link: { href: string; label: string }
 }
 
-export function PlayRefusal({ page = 'Play', title, body, link }: PlayRefusalProps) {
+export function PlayRefusal({ page = PRODUCT.play, title, body, link }: PlayRefusalProps) {
   return (
     <PageShell>
-      <ChapterBand tone="cantina">{page}</ChapterBand>
+      <ChapterBand tone="play">{page}</ChapterBand>
       <Text as="h2" style={REASON}>
         {title}
       </Text>

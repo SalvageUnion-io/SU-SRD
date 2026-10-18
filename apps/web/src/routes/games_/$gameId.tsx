@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { PRODUCT } from 'game-domain/product'
 import { Roster } from '../../build/roster/Roster'
-import { pageTitle } from '../../lib/pageTitle'
+import { areaTitle } from '../../lib/pageTitle'
 import { setActiveContainer } from '../../stores/activeContainerStore'
 
 /**
@@ -21,7 +22,7 @@ import { setActiveContainer } from '../../stores/activeContainerStore'
  * cannot change what the hub shows.
  */
 export const Route = createFileRoute('/games_/$gameId')({
-  head: () => ({ meta: [{ title: pageTitle('Game') }] }),
+  head: () => ({ meta: [{ title: areaTitle(PRODUCT.build, 'Game') }] }),
   beforeLoad: ({ params, preload }) => {
     if (!preload) setActiveContainer({ kind: 'game', gameId: params.gameId })
   },

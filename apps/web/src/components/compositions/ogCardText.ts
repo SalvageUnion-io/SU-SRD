@@ -361,7 +361,7 @@ const STACK_GAIN = 0.75
 /**
  * The reference foot's room for the address, in px: the card less its gutters,
  * the mark, the `PRODUCT.wordmark` and the gap, measured in the real
- * face. The Cantina's shorter wordmark leaves it more.
+ * face. The app's area names are shorter and leave it more.
  */
 const REFERENCE_ADDRESS_ROOM = 672
 /** The foot's address size: the 34px source floor. */

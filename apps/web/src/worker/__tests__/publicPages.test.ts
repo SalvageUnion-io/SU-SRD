@@ -129,7 +129,7 @@ describe('a Starter Set build’s pre-rendered shell', () => {
 describe('the Starter Set’s pre-rendered shell, and the front door', () => {
   it('gives the Starter Set its own title and canonical', () => {
     const html = shellFor('/starter')
-    expect(title(html)).toBe('Starter Set · SalvageUnion.io')
+    expect(title(html)).toBe('Starter Set · Training Bay · SalvageUnion.io')
     expect(meta(html, 'description')).toContain('Reclamation of the Wastes')
     expect(canonical(html)).toEqual([`${PROD}${BASE}/starter`])
   })
@@ -146,7 +146,7 @@ describe('the Starter Set’s pre-rendered shell, and the front door', () => {
   it("keeps the front door's defaults and adds its canonical, inside the meta block", async () => {
     const res = await worker.fetch(crawl('/'), env())
     const html = await res.text()
-    expect(title(html)).toBe('The Cantina · SalvageUnion.io')
+    expect(title(html)).toBe('Training Bay · SalvageUnion.io')
     expect(meta(html, 'og:image')).toBe(`${PROD}/og-image.png`)
     expect(canonical(html)).toEqual([`${PROD}${BASE}/`])
     expect(html.indexOf('rel="canonical"')).toBeLessThan(html.indexOf('<!-- app:meta:end -->'))

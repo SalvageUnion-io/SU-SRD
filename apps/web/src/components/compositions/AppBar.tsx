@@ -52,10 +52,13 @@ import { Speckle } from '../atoms/Speckle'
  *
  * ## Colour
  *
- * The bar is ink, paper on it, until a page leads with a chapter band: then it
- * wears that band's colour, foreground and grain, so the site header and the
- * band read as one (`atoms/unionBarMatch.ts`). Its colours are the
- * `--su-bar-*` properties on `.su-union-bar`; the footer stays ink.
+ * The bar wears its mode (`data-mode`). In the reference it is ink, paper on
+ * it, until a page leads with a chapter band: then it wears that band's
+ * colour, foreground and grain, so the site header and the band read as one
+ * (`atoms/unionBarMatch.ts`). In the app it wears its area's colour on every
+ * route, whatever band leads: Build, the Training Bay, is pilot orange with
+ * ink; Play, the Cantina, the deep crawler pink with paper. Its colours are
+ * the `--su-bar-*` properties on `.su-union-bar`; the footer stays ink.
  */
 
 type AppBarProduct = 'reference' | 'build' | 'play'
@@ -223,6 +226,10 @@ export function AppBar({
     <>
       <header
         className="su-union-bar"
+        // The mode's colour (`styles/partials/shell.css`): the reference's ink,
+        // Build's pilot orange, Play's deep crawler pink. The app's shell serves
+        // `build` and moves it to `play` on Play's routes (`UnionBarSlots`).
+        data-mode={product}
         style={viewTransitionName ? { ...BAR, viewTransitionName } : BAR}
       >
         {/* Both grains are served; the ground's shows (`.su-union-bar__grain`). */}

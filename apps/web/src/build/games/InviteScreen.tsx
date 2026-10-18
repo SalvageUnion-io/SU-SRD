@@ -203,7 +203,7 @@ export function InviteScreen({ token, joinOnArrival = false }: InviteProps) {
 
   return (
     <PageShell>
-      <ChapterBand tone="cantina">Join a Game</ChapterBand>
+      <ChapterBand tone="build">Join a Game</ChapterBand>
       <div style={COLUMN}>{body()}</div>
     </PageShell>
   )

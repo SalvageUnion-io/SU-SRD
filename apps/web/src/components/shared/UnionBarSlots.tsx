@@ -101,10 +101,12 @@ export function UnionBarSlots({
     return () => bar.removeEventListener('click', onClick)
   }, [router])
 
-  // The mode tab you are in: Play on Play's routes, Build everywhere else in
-  // the app. The shell serves Build's.
+  // The mode you are in: Play on Play's routes, Build everywhere else in the
+  // app. The shell serves Build's. The tab is the inverse stamp, and the bar
+  // wears the mode's colour (`data-mode`, `styles/partials/shell.css`).
   useEffect(() => {
     const here = isPlayRoute(pathname) ? 'play' : 'build'
+    document.querySelector<HTMLElement>('.su-union-bar')?.setAttribute('data-mode', here)
     for (const tab of document.querySelectorAll<HTMLAnchorElement>(
       '.su-union-bar__tab[data-tool="build"], .su-union-bar__tab[data-tool="play"]'
     )) {

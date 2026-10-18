@@ -12,6 +12,7 @@
  * `entities.locate` tells them apart, as it does for every sheet.
  */
 
+import { PRODUCT } from 'game-domain/product'
 import { useNavigate } from '@tanstack/react-router'
 import type { Npc } from 'game-domain/schemas/npc'
 import { NpcSchema } from 'game-domain/schemas/npc'
@@ -23,7 +24,7 @@ import { useConnection } from '../../lib/connection/connectionContext'
 import { useNpc, useSoftLinkList } from '../../lib/entities'
 import { softLinkFromServer } from '../../lib/links/linkSync'
 import { crewLinkOf } from '../../lib/npcs/npcModel'
-import { pageTitle } from '../../lib/pageTitle'
+import { areaTitle } from '../../lib/pageTitle'
 import { useEntityStore } from '../../stores/entityStore'
 import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
 import { useConfirm } from '../../components/shared/useConfirm'
@@ -63,7 +64,7 @@ export function NpcSheetView({ id }: { id: string }) {
 
   const name = held?.name ?? null
   useEffect(() => {
-    document.title = pageTitle(name || 'NPC')
+    document.title = areaTitle(PRODUCT.build, name || 'NPC')
   }, [name])
 
   /** A crewmate's NPC, parsed from the Game's listing; null when it is not there. */

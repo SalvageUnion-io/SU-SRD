@@ -1,14 +1,15 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties } from 'react'
 import { CrewPatterns } from '../../../build/mech/Pattern/CrewPatterns'
 import { PatternList } from '../../../build/mech/Pattern/PatternList'
 import { ChapterBand, PageShell } from '../../../components/index'
 import { color, font, fontSize } from '../../../design/tokens'
 import { PAGE_MEASURE } from '../../../lib/pageMeasure'
-import { pageTitle } from '../../../lib/pageTitle'
+import { areaTitle } from '../../../lib/pageTitle'
 
 export const Route = createFileRoute('/mechs/patterns/')({
-  head: () => ({ meta: [{ title: pageTitle('Mech Patterns') }] }),
+  head: () => ({ meta: [{ title: areaTitle(PRODUCT.build, 'Mech Patterns') }] }),
   component: MechPatternsPage,
 })
 

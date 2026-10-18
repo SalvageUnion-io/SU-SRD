@@ -1,4 +1,3 @@
-import { PRODUCT } from 'game-domain/product'
 import { useMutation, useQuery } from 'convex/react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
@@ -196,7 +195,7 @@ function SettingsBody() {
   return (
     <EmptyState
       variant="quiet"
-      body={`You are not signed in. Signed out, ${PRODUCT.name} is read-only: building anything needs an account.`}
+      body={`You are not signed in. Signed out, the app is read-only: building anything needs an account.`}
       action={<SignInControl />}
     />
   )

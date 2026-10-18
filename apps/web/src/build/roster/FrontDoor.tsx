@@ -1,10 +1,11 @@
 /**
- * FrontDoor — the Cantina's home for a visitor who is not signed in (board 09).
+ * FrontDoor — Build's home for a visitor who is not signed in (board 09).
  *
- * Signed out, the Cantina is read-only (ADR-034 as amended): there is nothing of the
+ * Signed out, the app is read-only (ADR-034 as amended): there is nothing of the
  * visitor's to list, so `/` is the front door instead —
  *
- *  - the **product-name chapter band** (`PRODUCT.name`) in the cantina tone,
+ *  - **Build's name** on its chapter band (`PRODUCT.build`, the Training Bay)
+ *    in Build's pilot-orange tone,
  *    under `PRODUCT.descriptor`, with the legacy tagline quoted beside the
  *    name (under it on a phone). No intro band under it (owner, 2026-10-14):
  *    signing in is the header's, and the Starter Set is the header's tab and
@@ -52,7 +53,7 @@ const KICKER = {
 } satisfies CSSProperties
 
 /** The legacy tagline, quoted in a hand. Its colour and alignment are `screens.css`'s
- *  (`.su-front-door__quote`): paper on the band, the deep crawler pink under it. */
+ *  (`.su-front-door__quote`): ink, set right on the band and left under it. */
 const QUOTE = {
   fontFamily: SCRIPT_FONT,
   fontSize: tokens.fontSize.hero,
@@ -79,7 +80,7 @@ export function FrontDoor() {
   return (
     <main style={PAGE}>
       <ChapterBand
-        tone="cantina"
+        tone="build"
         matchBar={false}
         measure={MEASURE}
         eyebrow={<span style={KICKER}>{PRODUCT.descriptor}</span>}
@@ -91,7 +92,7 @@ export function FrontDoor() {
           </figure>
         }
       >
-        {PRODUCT.name}
+        {PRODUCT.build}
       </ChapterBand>
 
       <div className="su-page-body" style={{ ...COLUMN, paddingBlock: tokens.space[32] }}>

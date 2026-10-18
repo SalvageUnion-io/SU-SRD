@@ -250,11 +250,11 @@ function page(): PageResult {
         </Stack>
 
         <section style={PROSE_12}>
-          <Slab as="h2" variant="solid" label={`With ${PRODUCT.name}`} />
+          <Slab as="h2" variant="solid" label="With your account" />
           <p>
-            These read your {PRODUCT.name} account and its Games. Sign in to{' '}
+            These read your {PRODUCT.wordmark} account and its Games.{' '}
             <InlineRef href={appPath('/')} style={BOLD}>
-              {PRODUCT.name}
+              Sign in
             </InlineRef>{' '}
             with the same Discord account and the bot knows you; until then each one says how.
           </p>
@@ -288,17 +288,21 @@ function page(): PageResult {
             </li>
           </ul>
           <p style={ASIDE}>
-            <strong>Running a campaign?</strong> Pair the bot with{' '}
+            <strong>Running a campaign?</strong> Pair the bot with the app: the{' '}
             <InlineRef href={appPath('/')} style={BOLD}>
-              {PRODUCT.name}
+              {PRODUCT.build}
             </InlineRef>
             {/*
-                Signed out, The Cantina is read-only; building needs an account
+                Signed out, the app is read-only; building needs an account
                 (ADR-034). Never reword this to claim building or keeping work
                 without one.
               */}
-            , the character builder &amp; Game manager: read the Starter Set with no account, and
-            sign in with Discord to build. Sheets can be shared into Discord as live public links.
+            , the character builder, and{' '}
+            <InlineRef href={appPath('/play/')} style={BOLD}>
+              {PRODUCT.play}
+            </InlineRef>
+            , the Game table: read the Starter Set with no account, and sign in with Discord to
+            build. Sheets can be shared into Discord as live public links.
           </p>
         </section>
 

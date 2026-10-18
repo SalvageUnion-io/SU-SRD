@@ -276,11 +276,12 @@ function Chips({
 }
 
 function UnionFoot({
-  reference,
+  name,
   address,
   markSrc,
 }: {
-  reference: boolean
+  /** The wordmark: the site's on a reference card, the area's on one of the app's. */
+  name: string
   address: string
   markSrc: string
 }) {
@@ -289,7 +290,7 @@ function UnionFoot({
       <Speckle grain="paper" />
       <div style={LOCKUP}>
         <img src={markSrc} alt="" width={56} height={56} />
-        <span style={WORDMARK}>{reference ? PRODUCT.wordmark : PRODUCT.name}</span>
+        <span style={WORDMARK}>{name}</span>
       </div>
       <span style={ADDRESS}>{address}</span>
     </div>
@@ -368,7 +369,13 @@ export function OgCard({ markSrc = MARK_SRC, ...props }: OgCardProps & { markSrc
           {foot.byline && <p style={FOOT_BYLINE}>{foot.byline}</p>}
         </div>
       )}
-      <UnionFoot reference={reference} address={props.address} markSrc={markSrc} />
+      <UnionFoot
+        // An invite leads to a Game, which is Play's; every other app card is
+        // something built (a shared sheet or pattern), which is Build's.
+        name={reference ? PRODUCT.wordmark : props.kind === 'invite' ? PRODUCT.play : PRODUCT.build}
+        address={props.address}
+        markSrc={markSrc}
+      />
     </article>
   )
 }

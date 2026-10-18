@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { SHELF } from 'game-domain/container'
 import { PRODUCT } from 'game-domain/product'
 import { Roster } from '../build/roster/Roster'
-import { pageTitle } from '../lib/pageTitle'
+import { areaTitle } from '../lib/pageTitle'
 import { setActiveContainer } from '../stores/activeContainerStore'
 
 /**
@@ -16,7 +16,7 @@ import { setActiveContainer } from '../stores/activeContainerStore'
  * page you are still on shows.
  */
 export const Route = createFileRoute('/')({
-  head: () => ({ meta: [{ title: pageTitle(PRODUCT.name) }] }),
+  head: () => ({ meta: [{ title: areaTitle(PRODUCT.build, 'Hangar') }] }),
   beforeLoad: ({ preload }) => {
     if (!preload) setActiveContainer(SHELF)
   },

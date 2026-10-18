@@ -17,7 +17,7 @@ import { respondWithSite } from './siteReply'
 
 export const meCommand = {
   subcommand(sub: SlashCommandSubcommandBuilder): SlashCommandSubcommandBuilder {
-    return sub.setName('me').setDescription(`Your ${PRODUCT.name} account and Games`)
+    return sub.setName('me').setDescription(`Your ${PRODUCT.wordmark} account and Games`)
   },
 
   async execute(interaction: CommandExecuteInteraction): Promise<void> {

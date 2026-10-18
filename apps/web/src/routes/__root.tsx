@@ -23,7 +23,7 @@ import { RootErrorComponent } from '../components/shared/RouteErrors'
 import { SiteFooter } from '../components/shared/SiteFooter'
 import { UnionBarSlots } from '../components/shared/UnionBarSlots'
 import { entityHref } from '../lib/entityHref'
-import { pageTitle } from '../lib/pageTitle'
+import { areaTitle } from '../lib/pageTitle'
 import { BAR_HIDDEN_ATTRIBUTE, hidesUnionBar } from '../shell/unionSlots'
 // The tagline's script face, self-hosted like the Barlow faces in the shared base
 // stylesheet: fonts stay on-origin, so the CSP needs no external host.
@@ -43,7 +43,7 @@ const ENTITY_SURFACE: Partial<EntitySurfaceValue> = { linkAs: AppLink, appliesRu
 
 export const Route = createRootRoute({
   // The default tab title, the front door's; a page with its own sets it in its route's `head`.
-  head: () => ({ meta: [{ title: pageTitle(PRODUCT.name) }] }),
+  head: () => ({ meta: [{ title: areaTitle(PRODUCT.build) }] }),
   component: RootComponent,
   errorComponent: RootErrorComponent,
 })

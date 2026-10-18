@@ -19,11 +19,12 @@
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import type { EntityKind } from 'game-domain/entityKinds'
 import { isEntityKind } from 'game-domain/entityKinds'
+import { PRODUCT } from 'game-domain/product'
 import { NpcSheetView } from '../../../build/npc/NpcSheetView'
 import { SheetSkeleton } from '../../../build/sheet/SheetSkeleton'
 import { SheetView } from '../../../build/sheet/SheetView'
 import { NotFoundPanel } from '../../../components/shared/RouteFallbacks'
-import { pageTitle } from '../../../lib/pageTitle'
+import { areaTitle } from '../../../lib/pageTitle'
 import { useEntityStore } from '../../../stores/entityStore'
 
 /**
@@ -72,7 +73,7 @@ export const Route = createFileRoute('/sheet/$kind/$id')({
   },
   // The generic title. The entity's own name comes from the store in
   // `SheetView`, so the tab follows a rename: a loader reads no player entity.
-  head: () => ({ meta: [{ title: pageTitle('Sheet') }] }),
+  head: () => ({ meta: [{ title: areaTitle(PRODUCT.build, 'Sheet') }] }),
   component: SheetPage,
   pendingComponent: SheetSkeleton,
   notFoundComponent: SheetKindNotFound,

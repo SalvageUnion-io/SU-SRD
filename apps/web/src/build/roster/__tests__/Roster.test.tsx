@@ -155,7 +155,7 @@ describe('Roster — signed out, it is the front door (board 09)', () => {
       render(<Roster />)
     })
 
-    expect(screen.getByRole('heading', { level: 1, name: 'The Cantina' })).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 1, name: 'Training Bay' })).toBeTruthy()
     // The intro band is gone (owner, 2026-10-14): signing in is the header's.
     expect(screen.queryByRole('region', { name: 'Welcome' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Sign in to build' })).toBeNull()

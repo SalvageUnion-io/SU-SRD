@@ -18,8 +18,12 @@ describe('starterPageTitle', () => {
   })
 
   test("falls back to the Starter Set's own title for a build it does not hold", () => {
-    expect(starterPageTitle('pilot', 'starter-pilot-nobody')).toBe('Starter Set · SalvageUnion.io')
-    expect(starterPageTitle('npc', 'starter-pilot-bonesaw')).toBe('Starter Set · SalvageUnion.io')
+    expect(starterPageTitle('pilot', 'starter-pilot-nobody')).toBe(
+      'Starter Set · Training Bay · SalvageUnion.io'
+    )
+    expect(starterPageTitle('npc', 'starter-pilot-bonesaw')).toBe(
+      'Starter Set · Training Bay · SalvageUnion.io'
+    )
   })
 
   test('gives every build a title of its own', () => {

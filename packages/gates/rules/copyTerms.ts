@@ -34,7 +34,7 @@
  *     "Hit Points", and leaves the keywords the book also uses as plain English
  *     ("move", "damaged", "group").
  *   - `banned-variant` — a spelling the book or the product does not use:
- *     `BANNED`, plus any other casing of the product's names in
+ *     `BANNED`, plus any other casing of the app's area names in
  *     `game-domain/src/product.ts` (read from that file, never retyped).
  *
  * Both are ratchets against `tools/baselines/rule-sets.json`: today's copy
@@ -308,21 +308,25 @@ export const BANNED: readonly Banned[] = [
 
 export const PRODUCT_FILE = 'packages/game-domain/src/product.ts'
 
-/** `name` and `shortName` of `PRODUCT`, read from its source. */
-export function productNames(root: string): { name: string; shortName: string } {
+/** The app's two area names, `build` and `play` of `PRODUCT`, read from its source. */
+export function productNames(root: string): { build: string; play: string } {
   const source = readFileSync(join(root, PRODUCT_FILE), 'utf8')
-  const name = source.match(/\bname: '([^']+)'/)?.[1]
-  const shortName = source.match(/\bshortName: '([^']+)'/)?.[1]
-  if (!name || !shortName) throw new Error(`${PRODUCT_FILE}: cannot read PRODUCT.name/shortName`)
-  return { name, shortName }
+  const build = source.match(/\bbuild: '([^']+)'/)?.[1]
+  const play = source.match(/\bplay: '([^']+)'/)?.[1]
+  if (!build || !play) throw new Error(`${PRODUCT_FILE}: cannot read PRODUCT.build/play`)
+  return { build, play }
 }
 
 /**
- * Any other casing of the product's two names. A bracketed `[app]` is a log
- * tag, not the name.
+ * Any other casing of the area names, and of a name without its leading
+ * "The" ("Cantina"). A bracketed `[cantina]` is a log tag, not the name.
  */
-export function productBans(product: { name: string; shortName: string }): Banned[] {
-  return [product.name, product.shortName].map((spelling) => ({
+export function productBans(product: { build: string; play: string }): Banned[] {
+  const spellings = [product.build, product.play].flatMap((name) => {
+    const bare = name.replace(/^The\s+/, '')
+    return bare === name ? [name] : [name, bare]
+  })
+  return spellings.map((spelling) => ({
     pattern: new RegExp(`(?<!\\[)${termPattern(spelling).source}(?!\\])`, 'gi'),
     say: spelling,
     why: `the product is spelled once, in ${PRODUCT_FILE} (import PRODUCT)`,

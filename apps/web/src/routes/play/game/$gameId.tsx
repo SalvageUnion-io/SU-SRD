@@ -9,11 +9,12 @@
  */
 
 import { createFileRoute } from '@tanstack/react-router'
-import { pageTitle } from '../../../lib/pageTitle'
+import { PRODUCT } from 'game-domain/product'
+import { areaTitle } from '../../../lib/pageTitle'
 import { PlayMediatorGate } from '../../../play/PlayMediatorGate'
 
 export const Route = createFileRoute('/play/game/$gameId')({
-  head: () => ({ meta: [{ title: pageTitle('Mediate') }] }),
+  head: () => ({ meta: [{ title: areaTitle(PRODUCT.play, 'Mediate') }] }),
   component: PlayMediatorPage,
 })
 

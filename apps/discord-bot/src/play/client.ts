@@ -97,11 +97,11 @@ export function interpret<T>(status: number, body: unknown): SiteResult<T> {
     // not something to word as a permissions denial.
     return {
       kind: 'unavailable',
-      message: `${PRODUCT.name} rejected this bot’s credentials.`,
+      message: `${PRODUCT.wordmark} rejected this bot’s credentials.`,
     }
   }
   if (status !== 200) {
-    return { kind: 'unavailable', message: `${PRODUCT.name} could not be reached.` }
+    return { kind: 'unavailable', message: `${PRODUCT.wordmark} could not be reached.` }
   }
   if ((body as { ok?: unknown } | null)?.ok === true) {
     return { kind: 'ok', value: body as T }
@@ -113,12 +113,12 @@ export function interpret<T>(status: number, body: unknown): SiteResult<T> {
       message: body.message ?? 'That is not available to you.',
     }
   }
-  return { kind: 'unavailable', message: `${PRODUCT.name} returned an unexpected response.` }
+  return { kind: 'unavailable', message: `${PRODUCT.wordmark} returned an unexpected response.` }
 }
 
 const UNCONFIGURED: SiteResult<never> = {
   kind: 'unavailable',
-  message: `${PRODUCT.name} is not configured for this bot.`,
+  message: `${PRODUCT.wordmark} is not configured for this bot.`,
 }
 
 /**
@@ -155,7 +155,7 @@ export function createSiteClient(config: Partial<SiteClientConfig>): SiteClient 
     } catch {
       // Timeout or network failure: the bot's Degraded mode, by design. It is
       // worded to the user as an outage, and the Cantina's own monitoring owns it.
-      return { kind: 'unavailable', message: `${PRODUCT.name} could not be reached.` }
+      return { kind: 'unavailable', message: `${PRODUCT.wordmark} could not be reached.` }
     }
   }
 

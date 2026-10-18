@@ -1,5 +1,5 @@
 /**
- * The Cantina's shell: the one HTML document every `/build/*` navigation gets,
+ * The app's shell: the one HTML document every `/build/*` navigation gets,
  * rendered at build time rather than kept as a hand-written `index.html`.
  *
  * Vite takes it as the app's HTML entry (`appShell` in
@@ -31,23 +31,23 @@ import {
   SITE_ICONS,
   THEME_COLOR,
 } from '../lib/documentHead'
-import { pageTitle } from '../lib/pageTitle'
+import { areaTitle } from '../lib/pageTitle'
 import { appUrl, originOf } from '../lib/site'
 import { renderUnionBar } from './unionBar'
 
-/** The product's name (`PRODUCT.name`; `lib/__tests__/productName.test.ts` holds them equal). */
-const PRODUCT_NAME = 'The Cantina'
+/** Build's name (`PRODUCT.build`; `lib/__tests__/productName.test.ts` holds them equal). */
+const BUILD_NAME = 'Training Bay'
+/** Play's name (`PRODUCT.play`; held equal by the same test). */
+const PLAY_NAME = 'The Cantina'
 
-/** The front door's title, which every route starts from. */
-const SHELL_TITLE = pageTitle(PRODUCT_NAME)
+/** Build's title, which every route starts from: the shell opens on Build's front door. */
+const SHELL_TITLE = areaTitle(BUILD_NAME)
 
-/** The Cantina's meta description: the site's character manager. */
-const SHELL_DESCRIPTION =
-  "The Cantina, SalvageUnion.io's character manager: build and run Salvage Union Pilots, Mechs and Union Crawlers, with character sheets, rosters and shareable live sheets."
+/** The app's meta description: the site's character manager, by its two areas. */
+const SHELL_DESCRIPTION = `SalvageUnion.io's character manager: build Salvage Union Pilots, Mechs and Union Crawlers in the ${BUILD_NAME} and play them in ${PLAY_NAME}, with character sheets, rosters and shareable live sheets.`
 
 /** The link preview's description: the meta description without its last clause. */
-const PREVIEW_DESCRIPTION =
-  "The Cantina, SalvageUnion.io's character manager: build and run Salvage Union Pilots, Mechs and Union Crawlers."
+const PREVIEW_DESCRIPTION = `SalvageUnion.io's character manager: build Salvage Union Pilots, Mechs and Union Crawlers in the ${BUILD_NAME} and play them in ${PLAY_NAME}.`
 
 /** The app's front door on production's origin; a Preview's build names its own (`shellOrigin`). */
 const siteUrl = appUrl('/', originOf())

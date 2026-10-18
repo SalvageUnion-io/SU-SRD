@@ -32,6 +32,7 @@
  * `Route` (`routes/__tests__/routeExports.test.ts`).
  */
 
+import { PRODUCT } from 'game-domain/product'
 import { useRouter } from '@tanstack/react-router'
 import { containerOf } from 'game-domain/container'
 import type { SheetKind } from 'game-domain/entityKinds'
@@ -41,7 +42,7 @@ import { useEffect, useMemo } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { pageTitle } from '../../lib/pageTitle'
+import { areaTitle } from '../../lib/pageTitle'
 import { useEntityStore } from '../../stores/entityStore'
 import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
 import type { EntityLookup } from './composition.model'
@@ -65,7 +66,7 @@ type SheetViewProps = { kind: SheetKind; id: string }
 function useSheetTabTitle(kind: SheetKind, id: string) {
   const name = useEntityStore((s) => s.get(kind, id)?.name ?? null)
   useEffect(() => {
-    document.title = pageTitle(name || 'Sheet')
+    document.title = areaTitle(PRODUCT.build, name || 'Sheet')
   }, [name])
 }
 

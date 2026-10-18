@@ -47,7 +47,7 @@ const llmStatementMd = readFileSync(repoRootFile('LLM_STATEMENT.md'), 'utf8')
 const specialThanksMd = readFileSync(repoRootFile('SPECIAL_THANKS.md'), 'utf8')
 
 const TITLE = pageTitle('About')
-const DESCRIPTION = `About salvageunion.io, an open-source System Reference Document for the Salvage Union TTRPG by Leyline Press, and ${PRODUCT.name}, its character builder.`
+const DESCRIPTION = `About salvageunion.io, an open-source System Reference Document for the Salvage Union TTRPG by Leyline Press, and its app: the ${PRODUCT.build}, where you build characters, and ${PRODUCT.play}, where you play them.`
 
 const imageAltText = 'Map of The Eldridge Coast, created using Shmeppy.com'
 
@@ -343,13 +343,18 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
               the Salvage Union OGL.
             </p>
             <p style={PARAGRAPH}>
+              Its app is the character builder and game manager: build pilots, mechs, and crawlers
+              in the{' '}
               <InlineRef href={appPath('/')} style={BOLD}>
-                {PRODUCT.name}
-              </InlineRef>{' '}
-              is its character builder and game manager: build pilots, mechs, and crawlers, then run
-              them at the table with live sheets you can share. Reading needs no account: the
-              Starter Set and any sheet shared by link open signed out. Sign in with Discord to
-              build, and everything you make saves to your account.
+                {PRODUCT.build}
+              </InlineRef>
+              , then run them at the table in{' '}
+              <InlineRef href={appPath('/play/')} style={BOLD}>
+                {PRODUCT.play}
+              </InlineRef>
+              , with live sheets you can share. Reading needs no account: the Starter Set and any
+              sheet shared by link open signed out. Sign in with Discord to build, and everything
+              you make saves to your account.
             </p>
             <p style={PARAGRAPH}>Both are open source and contributions are welcome.</p>
             <p>

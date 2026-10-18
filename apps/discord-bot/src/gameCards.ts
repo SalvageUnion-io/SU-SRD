@@ -68,7 +68,7 @@ const CRITICAL = DISCORD_ROLL_ACCENT.cascade
  */
 export const APP_ORIGIN = `${SRD_SITE_URL}/build`
 
-const FOOTER = PRODUCT.name
+const FOOTER = PRODUCT.wordmark
 
 /** The stats' full names, from the reference vocabulary (a gauge is Heat, not its capacity). */
 const HP = STAT_LABELS.hitPoints.label
@@ -242,7 +242,7 @@ export function denialMessage(reason: DenialReason, serverMessage?: string): str
       : 'That sheet could not be found, or it isn’t yours to read.'
   }
   return [
-    `**You don’t have an ${PRODUCT.name} account yet.**`,
+    `**You don’t have a ${PRODUCT.wordmark} account yet.**`,
     '',
     'Sign in with this same Discord account and the bot will recognise you here',
     'automatically — there’s nothing to copy across and no code to enter.',
@@ -267,7 +267,7 @@ function gameLines(games: GameSummary[]): string {
 /** `/su me` — who the bot thinks you are, and what you are part of. */
 export function meCard(me: MeResult): ContainerData {
   return entityCard({
-    title: `${me.user.displayName} — ${PRODUCT.name}`,
+    title: `${me.user.displayName} — ${PRODUCT.wordmark}`,
     url: `${APP_ORIGIN}/account`,
     accent: DISCORD_NEUTRAL_ACCENT,
     description: 'Linked at sign-in. Discord is the only way in, so this is always current.',

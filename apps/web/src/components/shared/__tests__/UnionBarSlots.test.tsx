@@ -85,6 +85,15 @@ describe('UnionBarSlots', () => {
     expect(current()).toEqual(['Play'])
   })
 
+  test('the bar wears the mode: Play’s on Play’s routes, Build’s everywhere else', () => {
+    const mode = () => document.querySelector('.su-union-bar')?.getAttribute('data-mode')
+    expect(mode()).toBe('build')
+    const { rerender } = render(<UnionBarSlots pathname="/play/" />)
+    expect(mode()).toBe('play')
+    rerender(<UnionBarSlots pathname="/" />)
+    expect(mode()).toBe('build')
+  })
+
   test('fills only the banner while the route draws no bar', () => {
     render(
       <UnionBarSlots

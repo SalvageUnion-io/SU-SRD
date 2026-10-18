@@ -39,7 +39,7 @@ type SignInToBuildProps = {
 export function SignInToBuild({ title, redirectTo }: SignInToBuildProps) {
   return (
     <section aria-label={title}>
-      <ChapterBand tone="cantina" measure={MEASURE}>
+      <ChapterBand tone="build" measure={MEASURE}>
         {title}
       </ChapterBand>
       <div style={COLUMN}>

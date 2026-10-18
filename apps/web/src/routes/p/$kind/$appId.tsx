@@ -1,6 +1,7 @@
 import { createFileRoute, useParams } from '@tanstack/react-router'
+import { PRODUCT } from 'game-domain/product'
 import { PublicSheetView } from '../../../build/sheet/PublicSheetView'
-import { pageTitle } from '../../../lib/pageTitle'
+import { areaTitle } from '../../../lib/pageTitle'
 
 /**
  * `/p/$kind/$appId` — one published sheet, readable with no account
@@ -23,7 +24,7 @@ import { pageTitle } from '../../../lib/pageTitle'
  * tree out of the entry chunk (see `routes/__tests__/routeExports.test.ts`).
  */
 export const Route = createFileRoute('/p/$kind/$appId')({
-  head: () => ({ meta: [{ title: pageTitle('Shared sheet') }] }),
+  head: () => ({ meta: [{ title: areaTitle(PRODUCT.build, 'Shared sheet') }] }),
   component: PublicSheetRoute,
 })
 

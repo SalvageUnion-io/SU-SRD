@@ -59,7 +59,7 @@ export function StarterSetRoster({ headingLevel = 'h2' }: StarterSetRosterProps)
 
   return (
     <>
-      {headingLevel === 'h1' && <ChapterBand tone="cantina">Starter Set</ChapterBand>}
+      {headingLevel === 'h1' && <ChapterBand tone="build">Starter Set</ChapterBand>}
       <section aria-label="Starter Set">
         <div style={headingLevel === 'h1' ? HEADER : SUB_HEADER}>
           {headingLevel === 'h2' && <PageHeading>Starter Set</PageHeading>}

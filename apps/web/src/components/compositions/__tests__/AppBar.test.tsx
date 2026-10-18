@@ -48,6 +48,15 @@ describe('AppBar', () => {
     expect(build.getAttribute('target')).toBeNull()
   })
 
+  test('the bar carries its mode, which its colour keys on', () => {
+    for (const product of ['reference', 'build', 'play'] as const) {
+      const html = renderToStaticMarkup(
+        <AppBar product={product} referenceHref="/" buildHref="/build/" playHref="/build/play/" />
+      )
+      expect(html).toContain(`data-mode="${product}"`)
+    }
+  })
+
   test('the switcher reads Reference | Build | Play', () => {
     render(<AppBar product="play" referenceHref="/" buildHref="/build/" playHref="/build/play/" />)
     const tools = () => within(screen.getByRole('navigation', { name: 'Salvage Union tools' }))

@@ -23,7 +23,7 @@
 .su-union-bar {
   /* The Compact Size (`--size-compact`): 44px under a coarse pointer. */
   --su-union-bar-control: var(--size-compact);
-  /* Its colours: ink, paper on it, ruled off in ink, until a page leads with
+  /* Its colours: ink, paper on it, ruled off in ink; in the reference, until a page leads with
      a chapter band, whose rule (`atoms/unionBarMatch.ts`) sets these to the
      band's colour, foreground and grain, and drops the rule (transparent,
      so the bar keeps its height and the band runs up under it). `--su-bar-on-fg` is the text on a plate of the
@@ -42,6 +42,32 @@
   background-color: var(--su-bar-bg);
   border-bottom-color: var(--su-bar-rule);
   color: var(--su-bar-fg);
+}
+
+/* The app's two areas wear their own colour on every route (`data-mode`,
+   `AppBar`), and no band recolours them: Build, the Training Bay, is the
+   pilot tone with ink; Play, the Cantina, the deeper crawler pink that
+   carries paper (the book's crawler pink carries neither at 4.5:1). Text on
+   a colour is the full foreground, never the faded steps: ink on pilot orange
+   reads 6.4:1, paper on the deep pink 4.6:1, and neither survives fading. */
+.su-union-bar[data-mode='build'] {
+  --su-bar-bg: var(--color-pilot);
+  --su-bar-fg: var(--color-ink);
+  --su-bar-on-fg: var(--color-paper);
+  --su-bar-fg-85: var(--su-bar-fg);
+  --su-bar-fg-70: var(--su-bar-fg);
+  --su-bar-grain-paper: none;
+  --su-bar-grain-ink: contents;
+}
+
+.su-union-bar[data-mode='play'] {
+  --su-bar-bg: var(--color-crawler-band);
+  --su-bar-fg: var(--color-paper);
+  --su-bar-on-fg: var(--color-ink);
+  --su-bar-fg-85: var(--su-bar-fg);
+  --su-bar-fg-70: var(--su-bar-fg);
+  --su-bar-grain-paper: none;
+  --su-bar-grain-ink: contents;
 }
 
 /* The bar serves both grains (`AppBar`); its ground's shows. */
