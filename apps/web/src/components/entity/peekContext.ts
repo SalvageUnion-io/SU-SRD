@@ -44,12 +44,29 @@ export type PeekAttrs = {
 }
 
 /**
- * The address of a record EMBEDDED in another (a crawler bay's crew NPC): its
- * host's address and the part, `crawler-bays:<id>/npc`. It has no dataset row
- * of its own, so the Peek resolves it through its host (`PeekPopup`).
+ * The address of a record EMBEDDED in another: its host's address and the
+ * part, `crawler-bays:<id>/npc` (a bay's crew NPC) or `systems:<id>/table`
+ * (the roll table it carries). It has no dataset row of its own, so the Peek
+ * resolves it through its host (`PeekPopup`).
  */
-export function embeddedPeekAddress(schemaName: string, hostId: string, part: 'npc'): string {
+export function embeddedPeekAddress(
+  schemaName: string,
+  hostId: string,
+  part: 'npc' | 'table'
+): string {
   return `${schemaName}:${hostId}/${part}`
+}
+
+/**
+ * The Peek address of the roll table a record carries (`<schema>:<id>/table`),
+ * or none for a record with no dataset row to resolve it through.
+ */
+export function tablePeekAddress(source: unknown): string | undefined {
+  if (source === null || typeof source !== 'object') return undefined
+  const { schemaName, id } = source as { schemaName?: unknown; id?: unknown }
+  return typeof schemaName === 'string' && typeof id === 'string'
+    ? embeddedPeekAddress(schemaName, id, 'table')
+    : undefined
 }
 
 /**

@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import type { StatGroup } from 'salvageunion-reference'
 
 /**
@@ -35,17 +36,24 @@ type StatColumnProps = {
    * (the Cantina mech sheet's hero). They flow on without a row break per group.
    */
   compact?: boolean
+  /** A cell's own style, by its index (a band's fill order, `EntityPageStamps`). */
+  cellStyle?: (index: number) => CSSProperties
 }
 
-export function StatColumn({ stats, label, compact = false }: StatColumnProps) {
+export function StatColumn({ stats, label, compact = false, cellStyle }: StatColumnProps) {
   if (stats.length === 0) return null
   return (
     <dl
       className={compact ? 'su-stat-column su-stat-column--compact' : 'su-stat-column'}
       aria-label={label}
     >
-      {stats.map((stat) => (
-        <div key={stat.key} className="su-stat-column__cell" title={stat.hoverText}>
+      {stats.map((stat, index) => (
+        <div
+          key={stat.key}
+          className="su-stat-column__cell"
+          title={stat.hoverText}
+          style={cellStyle?.(index)}
+        >
           <dt className="su-stat-column__label">{stat.label}</dt>
           <dd className="su-stat-column__value">{stat.value}</dd>
         </div>

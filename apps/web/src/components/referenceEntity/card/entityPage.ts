@@ -67,10 +67,17 @@ function isOwnStat(key: string): boolean {
   return key === 'tech-level' || key.startsWith('ref-stat-')
 }
 
-/** A chassis (its patterns' pages too) keeps its stats in the page body. */
+/**
+ * A chassis (its patterns' pages too) keeps its stats in the page body, but
+ * for its Tech Level, which rides the band beside the title as every other
+ * page's does (owner's call, 2026-10-18).
+ */
 function statsInBody(entity: RefMetaEntity): boolean {
   return 'schemaName' in entity && entity.schemaName === 'chassis'
 }
+
+/** The book stat a chassis page keeps in its band, out of its body. */
+const BAND_STAT = 'tech-level'
 
 function bookStatsOf(model: EntityModel): BookStat[] {
   return model.bookStats.map((fact) => ({
@@ -82,9 +89,11 @@ function bookStatsOf(model: EntityModel): BookStat[] {
   }))
 }
 
-/** The stats that lead a page's body, inline: a chassis's; nothing else's. */
+/** The stats that lead a page's body, inline: a chassis's, less its Tech Level; nothing else's. */
 export function pageBodyStats(entity: RefMetaEntity): BookStat[] {
-  return statsInBody(entity) ? bookStatsOf(toEntityModel(entity)) : []
+  return statsInBody(entity)
+    ? bookStatsOf(toEntityModel(entity)).filter((stat) => stat.key !== BAND_STAT)
+    : []
 }
 
 /** What an entity's page says around its body, read off its entity model. */
@@ -97,7 +106,9 @@ export function resolveEntityPageMeta(
   return {
     typeLabel: model.kind.stamp,
     techLevel: model.techLevel != null ? String(model.techLevel) : undefined,
-    stats: statsInBody(entity) ? [] : bookStatsOf(model),
+    stats: statsInBody(entity)
+      ? bookStatsOf(model).filter((stat) => stat.key === BAND_STAT)
+      : bookStatsOf(model),
     numeral: model.tier,
     actionTypes: actionTypeStamps(model.actionType, model.mechActionType),
     facts: factCells(

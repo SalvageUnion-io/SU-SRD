@@ -10,12 +10,13 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { RefEntity } from 'salvageunion-reference'
 import { extractVisibleActions, resolveTable, SalvageUnionReference } from 'salvageunion-reference'
 import { malformed } from 'salvageunion-reference/testing'
+import { PeekTable } from '../../../entity/PeekTable'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 /** The stamp is the roll: "Roll the die on <table>". */
 const ROLL_BUTTON = /^Roll the die on /
 
-/** Every table starts hidden: open it to read its rows. */
+/** On a Page every table starts hidden: open it to read its rows (a card's Peeks them). */
 const openTable = () => fireEvent.click(screen.getByRole('button', { name: /^Show the .* table$/ }))
 
 const find = <T extends { name?: string }>(items: readonly T[], name: string): T => {
@@ -27,7 +28,7 @@ const find = <T extends { name?: string }>(items: readonly T[], name: string): T
 describe('roll tables reach the card by reference, not just inline', () => {
   test("an ability whose self-action names a table renders that table's rows", () => {
     const ability = find(SalvageUnionReference.Abilities.all(), 'System and Software Hacker')
-    render(<ReferenceEntityCard data={ability} />)
+    render(<ReferenceEntityCard data={ability} presentation="page" />)
 
     expect(screen.getByLabelText(ROLL_BUTTON)).toBeTruthy()
     openTable()
@@ -36,11 +37,31 @@ describe('roll tables reach the card by reference, not just inline', () => {
 
   test('a system whose self-action names a table renders it', () => {
     const system = find(SalvageUnionReference.Systems.all(), 'Mechapult')
-    render(<ReferenceEntityCard data={system} />)
+    render(<ReferenceEntityCard data={system} presentation="page" />)
 
     expect(screen.getByLabelText(ROLL_BUTTON)).toBeTruthy()
     openTable()
     expect(screen.getByText(/The Mechapult explodes and is destroyed\./)).toBeTruthy()
+  })
+
+  test("in a card the table is a roll Token whose name Peeks the table's rows", () => {
+    const system = find(SalvageUnionReference.Systems.all(), 'Mechapult')
+    const { container } = render(<ReferenceEntityCard data={system} />)
+
+    // No Table toggle: the Roll is the Token's one control, its rows its Peek's.
+    expect(screen.getByLabelText(ROLL_BUTTON)).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /^Show the .* table$/ })).toBeNull()
+    const trigger = container.querySelector('.su-roll-token [data-peek]')
+    expect(trigger?.getAttribute('data-peek')).toMatch(/\/table$/)
+    cleanup()
+
+    // The Peek draws the table it resolves, read-only.
+    const selfAction = (extractVisibleActions(system) ?? []).find((a) => a.name === system.name)
+    const table = resolveTable(system) ?? resolveTable(selfAction)
+    if (!table) throw new Error('Mechapult table missing')
+    render(<PeekTable name="Mechapult" table={table} />)
+    expect(screen.getByText(/The Mechapult explodes and is destroyed\./)).toBeTruthy()
+    expect(screen.queryAllByRole('button')).toHaveLength(0)
   })
 
   test('an action entity that names a table renders it on its own card', () => {
@@ -53,7 +74,7 @@ describe('roll tables reach the card by reference, not just inline', () => {
 
   test('an inline `table` still renders (roll-tables entity itself)', () => {
     const rollTable = find(SalvageUnionReference.RollTables.all(), 'Trading Bay')
-    render(<ReferenceEntityCard data={rollTable} />)
+    render(<ReferenceEntityCard data={rollTable} presentation="page" />)
 
     expect(screen.getByLabelText(ROLL_BUTTON)).toBeTruthy()
     openTable()

@@ -208,9 +208,9 @@ jobs:
       # install: opened at `/`, the reference and the builder both open offline.
       # `nesting-depth.e2e.ts` runs signed out here; its signed-in wizards and
       # sheet skip, and run nightly.
-      - name: Run the smoke, bundle-budget, JSON API, a11y, offline, sibling-height and nesting-depth specs
+      - name: Run the smoke, bundle-budget, JSON API, a11y, offline, sibling-height, chip-strip and nesting-depth specs
         working-directory: apps/web
-        run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts json-api.e2e.ts a11y.e2e.ts offline.e2e.ts sibling-heights.e2e.ts nesting-depth.e2e.ts
+        run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts json-api.e2e.ts a11y.e2e.ts offline.e2e.ts sibling-heights.e2e.ts chip-strips.e2e.ts nesting-depth.e2e.ts
 
       - name: Upload Playwright reports on failure
         if: failure()

@@ -48,11 +48,11 @@ const BOOK_EIGHT = [
 ]
 
 describe('resolveEntityPageMeta — what the page’s bands say', () => {
-  test('a chassis’s stats read the manual’s eight, in the stat order, in the body', () => {
-    expect(resolveEntityPageMeta(gopher()).stats).toEqual([])
+  test('a chassis’s stats read the manual’s eight, in the stat order: its TL on the band, the rest in the body', () => {
+    expect(resolveEntityPageMeta(gopher()).stats.map((s) => s.label)).toEqual(['Tech Level'])
     const stats = pageBodyStats(gopher())
-    expect(stats.map((s) => s.label)).toEqual(BOOK_EIGHT)
-    expect(stats[2]?.value).toBe(String(gopher().structurePoints))
+    expect(stats.map((s) => s.label)).toEqual(BOOK_EIGHT.slice(1))
+    expect(stats[1]?.value).toBe(String(gopher().structurePoints))
   })
 
   test('stats drop what the entity does not carry, and the TL when it has none', () => {
@@ -144,12 +144,12 @@ describe('the card as a page', () => {
     expect(container.querySelector('.su-entity-page__art img')).not.toBeNull()
   })
 
-  test('a chassis’s stats lead the body, inline, in the book’s words, in the stat order', () => {
+  test('a chassis’s stats lead the body, inline, in the book’s words, in the stat order, less its TL', () => {
     const { container } = render(<ReferenceEntityCard data={gopher()} presentation="page" />)
     const column = container.querySelector('.su-entity-page__side > .su-entity-page__stats dl')
     expect(column?.getAttribute('aria-label')).toBe('Gopher stats')
     const labels = [...(column?.querySelectorAll('dt') ?? [])].map((dt) => dt.textContent)
-    expect(labels).toEqual(BOOK_EIGHT)
+    expect(labels).toEqual(BOOK_EIGHT.slice(1))
   })
 
   test('the chassis ability is a framed card atop the right column, with no "Chassis Ability" stamp', () => {

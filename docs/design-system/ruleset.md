@@ -62,7 +62,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    12. **§3.12 Microcopy** — sentence case ("Make a copy"); game terms keep the book's casing ("End Downtime"), as do Game, Shelf and the roles ([glossary](../architecture/glossary.md)).
        Caps only through the stamp (`Badge shape="stamp"`) and `Button`, which sets every label in condensed caps. Verbs: Copy, Move, Delete, Break down; Scrap is the currency, never the verb (p.248). `bun run check copy` holds what it can.
 4. **§4 Foundations** — the token layer, one home: `apps/web/src/styles/theme.css`.
-   1. **§4.1 Colour roles** — values in `theme.css` alone, one spelling each. `--color-paper` is the one light surface (pure white retired), `--color-wk-bg` the page ground (the cool `-2` is off-palette on screen: tokens rule `cool-ground`), `--color-band-cream` the one cream.
+   1. **§4.1 Colour roles** — values in `theme.css` alone, one spelling each. `--color-paper` is the one light surface, `--color-wk-bg` the page ground (the cool `-2` is off-palette on screen: tokens rule `cool-ground`), `--color-band-cream` the one cream.
       The ink ramp is warm ink at opacity, never a grey; rules blue is a band, never a ground. `contrast.test.ts` pins every pair.
    2. **§4.2 The tracking ladder** — tokens only: `--tracking-caps-tight` (0.04em) is the label default, `-snug` at the 11px floor, `--tracking-caps` chips, `-wide` header stamps, `--tracking-eyebrow` brand caption.
    3. **§4.3 The border map** — one meaning per weight: 3px `--bw-entity` full card, 2px `--bw-entity-compact` (Card below `full`, and the Row), 1.5px `--bw-chrome` controls, 1px `--bw-hairline` value-cell frames and table rules.
@@ -71,7 +71,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    6. **§4.6 The floors: type and touch** — nothing under 11px at the size the reader sees (a 1200px link preview: 34px), wizards included; the stat column label is 14px.
       Every coarse-pointer target is 44px; nothing floats over content.
    7. **§4.7 The Sizes and sibling height** — the three Sizes are heights: Full 44px, Compact 32px, Mini 18px (`--size-*`; touch lifts Compact to Full, Mini takes a 44px hit area).
-      Controls on one line share one Size: never a height of their own. `e2e/sibling-heights.e2e.ts` holds it.
+      Controls on one line share one Size (`e2e/sibling-heights.e2e.ts`); chip values match labels, one gap apart, cost bottom-right (`e2e/chip-strips.e2e.ts`).
 5. **§5 The irreducible set** — an ontology, not a roster (the barrel `apps/web/src/components/index.ts` is the roster): 11 atoms and one technique.
    1. **Stamp** — ink block, paper text: `Badge shape="stamp"`.
    2. **Frame** — `--bw-*` weights: `Box`, `TitledBox` (cut-out), `Card`, `Panel`.

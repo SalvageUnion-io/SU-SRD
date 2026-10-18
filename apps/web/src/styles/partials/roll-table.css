@@ -532,10 +532,10 @@
   }
 }
 
-/* A NESTED table, folded (`CardRollTable nested`): a Token filling its line
-   (N4), its Table and Roll buttons inside its strip after the name (C8), Mini
-   at the Token's height (C1a); a coarse pointer's 44px target is the Mini
-   rung's own hit area, so the strip never grows. */
+/* A NESTED table (`CardRollTable nested`): a Token filling its line (N4),
+   its Roll button inside its strip after the name (C8), Mini at the Token's
+   height (C1a); a coarse pointer's 44px target is the Mini rung's own hit
+   area, so the strip never grows. Its rows are its name's Peek. */
 .su-roll-token__actions {
   align-items: center;
   display: flex;
@@ -543,18 +543,6 @@
   gap: var(--space-4);
   margin-left: auto;
   padding-right: var(--space-2);
-}
-
-/* The toggle on the ink pill: a paper outline, as on the roll bar. */
-.su-roll-token .su-roll__toggle {
-  background-color: transparent;
-  border-color: var(--color-paper-70);
-  color: var(--color-paper);
-}
-
-.su-roll-token .su-roll__toggle:hover:not(:disabled) {
-  background-color: var(--color-paper-15);
-  border-color: var(--color-paper);
 }
 
 /* A damaged host's stamp in place of Roll: the Token's Mini type, with a

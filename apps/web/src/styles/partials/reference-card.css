@@ -69,38 +69,46 @@
  * After the badges, stats and tags they resize (`atoms-badges.css`,
  * `atoms.css`): at one class each, source order decides.
  */
-/* An entity Page's band line (`EntityPageStamps`: an SRD entity page, the Cantina's
-   detail dialog). Under the title on a phone it wraps down; beside it from
-   `sm` it sits on the title's baseline,
-   every stamp and stat's foot on it, flush right. The chips are inline boxes
-   in a balanced block rather than flex items, so when they take two rows
-   (or more) the rows come out even instead of one long and one short.
-   Each chip's 4px margin, cancelled at the edges, is the 8px gap. */
+/* An entity Page's band line (`EntityPageStamps`: an SRD entity page, the
+   Cantina's detail dialog), 8px between chips. Under the title on a phone it
+   wraps down in the stat order. Beside the title from `sm` it FILLS FROM ITS
+   BOTTOM-RIGHT CORNER UP (owner's call, 2026-10-18): the last chip, the
+   cost, takes the corner, the ones before it fill the line leftward, and the
+   earlier chips rise in lines above it, the top line the short one, flush
+   right. Each chip's `order` is its place from the end (`--su-fill`), so the
+   lines read top to bottom in the stat order while the source keeps it. */
 .su-entity-stamps {
-  margin: calc(-1 * var(--space-4));
-  text-wrap: balance;
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
 }
 
-.su-entity-stamps > *,
-.su-entity-stamps > dl > * {
-  display: inline-flex;
-  margin: var(--space-4);
-  /* The row's balance and alignment are for the chips, not the words in them. */
-  text-align: start;
-  text-wrap: wrap;
-  vertical-align: bottom;
-}
-
-/* The stat column (`StatColumn`, a `dl`): its cells break across rows like
-   the other chips. */
+/* The stat column (`StatColumn`, a `dl`): its cells are chips of the line. */
 .su-entity-stamps > dl {
-  display: inline;
-  margin: 0;
+  display: contents;
+}
+
+.su-entity-stamps__item,
+.su-entity-stamps > dl > * {
+  display: flex;
+  flex: 0 1 auto;
+  min-width: 0;
 }
 
 @media (min-width: 40rem) {
   .su-entity-stamps {
-    text-align: end;
+    flex-direction: row-reverse;
+    flex-wrap: wrap-reverse;
+  }
+
+  .su-chapter-band[data-aside='notch'] .su-chapter-band__aside > .su-entity-stamps {
+    justify-content: flex-start;
+  }
+
+  .su-entity-stamps__item,
+  .su-entity-stamps > dl > * {
+    order: var(--su-fill);
   }
 }
 
@@ -128,16 +136,13 @@
   padding-inline: var(--space-8);
 }
 
-/* One value size per band: a fact's or trait's value (`RNG | Long`,
-   `POP | 5,000–15,000`, `Explosive | 1`) takes the stat column's framed
-   numeral type, so a word and a number on one band read at one size. */
+/* One size per band (C1a): a fact's or trait's value (`RNG | Long`,
+   `POP | 5,000–15,000`, `Explosive | 1`) reads at its label's type size, as
+   the stat column's cells beside it do (owner's call, 2026-10-18). */
 .su-entity-stamps .su-stat-plate + .su-stat-plate {
-  font-family: var(--font-cond);
-  font-size: var(--text-readout);
   font-variant-numeric: tabular-nums;
-  font-weight: var(--font-weight-extrabold);
   justify-content: center;
-  min-width: 36px;
+  min-width: 28px;
 }
 
 /* An ability's cost on its band: the book's pointy box at the stamps'

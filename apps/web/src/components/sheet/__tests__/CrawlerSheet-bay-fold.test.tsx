@@ -51,7 +51,7 @@ describe('a crawler bay on the sheet', () => {
     expect(screen.getByText(TL_3_4)).toBeTruthy()
     expect(screen.queryByText(TL_5_6)).toBeNull()
     expect(screen.queryByText('Pilot Training Points (TP)')).toBeNull()
-    expect(screen.getByRole('button', { name: 'Show the Trading Bay table' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Roll the die on Trading Bay' })).toBeTruthy()
     expect(screen.queryByText('Trading Scrap')).toBeNull()
   })
 

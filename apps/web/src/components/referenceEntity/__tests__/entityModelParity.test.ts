@@ -102,8 +102,12 @@ function pageMetaOf(model: EntityModel) {
     // The kind: the title's screen-reader text and the foot band's chip.
     typeLabel: model.kind.stamp,
     techLevel: model.techLevel != null ? String(model.techLevel) : undefined,
-    // The band's stats: every book stat but a chassis's, which lead its body.
-    stats: (model.ref.schemaName === 'chassis' ? [] : model.bookStats).map((fact) => ({
+    // The band's stats: every book stat but a chassis's, which lead its body
+    // (all but its Tech Level, which rides the band).
+    stats: (model.ref.schemaName === 'chassis'
+      ? model.bookStats.filter((fact) => fact.key === 'tech-level')
+      : model.bookStats
+    ).map((fact) => ({
       key: fact.key,
       label: fact.label,
       value: fact.value,

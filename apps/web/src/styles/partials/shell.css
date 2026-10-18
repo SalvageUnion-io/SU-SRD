@@ -636,15 +636,15 @@
     min-width: 0;
   }
 
-  /* The aside starts at 40% and grows into the room the name leaves (to
-     60%), so its chips run one balanced line beside a name that keeps its
-     one line while both fit; past that, the two give way in proportion. */
+  /* The aside takes all the room the name leaves, never under 40%, so a
+     busy cluster fills the line beside the name before it rises above it
+     (owner's call, 2026-10-18). */
   .su-chapter-band[data-aside='notch'] .su-chapter-band__aside {
     align-items: flex-end;
     background-color: transparent;
-    flex: 1 1 40%;
+    flex: 1 1 0;
     margin-inline: auto 0;
-    max-width: 60%;
+    min-width: 40%;
     /* Its last line (Compact chips and buttons) centred on the middle of the
        notch's capitals: the notch's baseline sits 0.076em above the band's
        foot (Barlow Semi Condensed's descent less the half-leading of its 0.92
