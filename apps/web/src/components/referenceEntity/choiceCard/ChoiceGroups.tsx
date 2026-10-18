@@ -11,7 +11,7 @@ import { FOCUS_RING, INPUT_FOCUS } from '../../atoms/interaction'
 import { Slab } from '../../atoms/Slab'
 import { SelectedSeal } from '../../entity/modes/select'
 import { SELECTED_RING } from '../../entity/modes/selectedRing'
-import { InsidePeekContext } from '../../entity/peekContext'
+import { InsidePeekContext, tablePeekAddress } from '../../entity/peekContext'
 import { CardRollTable } from '../card/CardRollTable'
 import { CardTopRail } from '../card/CardTopRail'
 import { onTone, textBand } from '../referenceEntityHelpers'
@@ -413,6 +413,7 @@ function ChoiceOptionGroup({
             size={compact ? 'mini' : 'compact'}
             framed
             nested
+            peekAt={tablePeekAddress(tableEntity)}
             disabled={false}
             onRollResult={readOnly ? undefined : (text) => onFreeTextChange(text)}
           />
