@@ -44,8 +44,9 @@ import type { PlayActions } from '../usePlayActions'
 import { doneOf, seatDone } from './mediatorTable.model'
 import type { PlayMediator } from './usePlayMediator'
 
+/** Full ink: it sits on the pilot Token's hue, where ink75 falls below 4.5:1. */
 const STATE = {
-  color: tokens.color.ink75,
+  color: tokens.color.ink,
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.note,
   whiteSpace: 'nowrap',

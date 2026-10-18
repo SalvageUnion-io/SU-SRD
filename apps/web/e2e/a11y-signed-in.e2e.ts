@@ -19,8 +19,9 @@ import { expect, test } from './fixtures'
  * scan them live (`axeViolations`): `play-turn.e2e.ts`, `play-solo.e2e.ts`
  * and `play-mediator.e2e.ts`.
  *
- * Like every signed-in spec it SKIPS in a build with no test sign-in seam, so
- * the PR tier never runs it; the nightly `e2e` job does.
+ * Like every signed-in spec it SKIPS in a build with no test sign-in seam. The
+ * PR tier's build carries the seam but does not list this spec; the nightly
+ * `e2e` job runs it.
  */
 
 // A violation that fires only sometimes must not pass on a retry.

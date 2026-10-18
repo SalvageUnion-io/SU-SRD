@@ -42,10 +42,10 @@ import { portFor } from 'gates/ports'
  * tests 90 s, and the a11y and perf specs set theirs.
  *
  * Signed out, the Cantina is read-only, so every spec that builds something
- * signs in through `e2e/fixtures.ts`. The PR bundle (ci.yml's `build-web`) has
- * a Convex URL but no `VITE_TEST_AUTH`, so it SKIPS those specs, by design;
- * the nightly `e2e` job provisions a throwaway Convex backend and runs them
- * for real. Locally, `bun run dev` always carries the seam on a local Convex
+ * signs in through `e2e/fixtures.ts`. Both CI builds that run them, ci.yml's
+ * `build-web` (the PR tier, its listed specs) and the nightly `e2e` job (the
+ * whole suite), carry the seam against a throwaway Convex backend; a build
+ * without it SKIPS those specs. Locally, `bun run dev` always carries the seam on a local Convex
  * deployment, so those specs need the one-time "Local backend" setup in
  * .claude/skills/convex-ops/SKILL.md and FAIL without it.
  */

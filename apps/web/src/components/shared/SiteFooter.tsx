@@ -7,11 +7,12 @@ import { Footer, tokens } from '../index'
  * on the rules-blue band with the licence row and the doc pages both tools
  * share, which live on the SRD (`docPages.ts`).
  *
- * It ends every page, signed in or out, at every width. It sits in
- * normal flow after the route, so nothing pinned can cover it: the bars that
- * stay in view (the sheet's control bar, the wizard's next/back) are `sticky`
- * inside their own screen and release before it, and Play fills the
- * viewport, so the page scrolls on to it.
+ * It ends every page that draws the Union bar, signed in or out, at every
+ * width. It sits in normal flow after the route, so nothing pinned can cover
+ * it: the bars that stay in view (the sheet's control bar, the wizard's
+ * next/back) are `sticky` inside their own screen and release before it. A
+ * Play screen draws neither the bar nor this foot (`hidesUnionBar`): it fills
+ * the viewport, and the page never scrolls.
  */
 
 /** Room between the page and its foot band, as the old hairline foot had. */

@@ -18,14 +18,15 @@ import { waitForReady } from './_helpers'
  * test-only `password` provider. Each test signs up a fresh account, because a
  * reused one would inherit the last run's roster and assert against it. Two
  * things must line up (see `signin-save.e2e.ts`'s header): `VITE_TEST_AUTH=true`
- * in the build, and `CANTINA_TEST_AUTH=true` on the deployment. `e2e` in
- * `.github/workflows/e2e-nightly.yml` provides both against a throwaway
- * self-hosted Convex backend.
+ * in the build, and `CANTINA_TEST_AUTH=true` on the deployment. `build-web`
+ * in `.github/workflows/ci.yml` (every PR) and `e2e` in
+ * `.github/workflows/e2e-nightly.yml` provide both against a throwaway
+ * self-hosted Convex backend (`.github/actions/convex-backend`).
  *
  * ## When the seam is absent
  *
- * A build without it (the PR-blocking smoke tier) cannot sign in, so a
- * signed-in spec SKIPS with the reason stated rather than failing — a spec that
+ * A build without it (a production build, or one made without `test-auth`)
+ * cannot sign in, so a signed-in spec SKIPS with the reason stated rather than failing — a spec that
  * went red in every ordinary run would be deleted the first time it annoyed
  * somebody. Once a run has deliberately provisioned the seam
  * (`CANTINA_E2E_EXPECT_AUTH_SEAM`), absence means the seam broke, and it THROWS

@@ -387,8 +387,9 @@ export async function buildCrawler(page: Page, name: string): Promise<void> {
 /**
  * Open the live sheet for the named entity from Shelves (board S1).
  *
- * Each item on a shelf is one line, a link to its sheet whose text carries the
- * entity's name. Match the link by its `/sheet/` href and that text, not by
+ * Each item on a shelf is one line, a link to its sheet named for the entity
+ * (its text, or its `aria-label` when it is a cover). Match the link by its
+ * `/sheet/` href and that name, not by
  * the row around it: an item's chips name the units linked to it ("Linked:
  * Stomper"), so the first row mentioning a name may be somebody else's. The
  * href is the contract this helper depends on, and it survives a copy change
@@ -398,7 +399,12 @@ export async function buildCrawler(page: Page, name: string): Promise<void> {
 export async function openSheetFor(page: Page, name: string): Promise<void> {
   await gotoStable(page, '/')
   await waitForReady(page)
-  const line = page.locator('a[href*="/sheet/"]', { hasText: name }).first()
+  // A shelf item with a menu draws its link as a cover over the Row, named by
+  // its `aria-label` and holding no text; one without a menu wraps its text.
+  const line = page
+    .locator(`a[href*="/sheet/"][aria-label="${name}"]`)
+    .or(page.locator('a[href*="/sheet/"]', { hasText: name }))
+    .first()
   await expect(line, `shelf item for "${name}" should render`).toBeVisible({
     timeout: 15_000,
   })

@@ -6,6 +6,7 @@
  * (both Play screens) and `PlayLanding.tsx`, never by a library component.
  * It loads after `dashboard.css`, whose canvas the frame lays on.
  */
+@import './play/bar.css';
 @import './play/units.css';
 @import './play/actions.css';
 @import './play/side.css';

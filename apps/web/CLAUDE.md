@@ -60,7 +60,8 @@ wired through `ssg/endpoints.ts` — **endpoints are not routes.**
 
 There is no output snapshot. CI's `build-web` job builds the app once, then runs
 `bun --filter web check:examples` (`ssg/checkPageExamples.ts`), then the Playwright
-smoke, bundle-budget, JSON API and axe-core specs against that `dist`.
+smoke, bundle-budget, JSON API, axe-core and (signed in) Play specs against
+that `dist`.
 CI's `perf` runs `perf-budget.e2e.ts` (LCP, TBT, CLS, phone throttling);
 lower a budget when a page gets faster.
 `ssg/__tests__/routes.test.ts` asserts every registered route emits a page.

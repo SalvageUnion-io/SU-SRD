@@ -90,7 +90,8 @@ export function PlayTables({ downtime, solo, post, onPostChange, binding }: Play
         type="search"
         placeholder="Roll a table…"
         aria-label="Roll a table"
-        aria-controls={findId}
+        // It controls the found list only while there is one to point at.
+        aria-controls={found.length > 0 ? findId : undefined}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onKeyDown={(e) => {

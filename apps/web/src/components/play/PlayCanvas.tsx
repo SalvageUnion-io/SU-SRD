@@ -19,6 +19,10 @@
  * It owns the `.su-dash-root` scope (`styles/cantina/dashboard/`) that every
  * Play surface inherits, and paints the dark ground the columns sit on. It
  * imports no stylesheet: `PlayFrame` loads Play's.
+ *
+ * Its host, in either form, is the page's one `<main>` landmark: no Play
+ * route wraps one (`__root.tsx` leaves it to each route), and everything on a
+ * Play screen, the Play bar included, is the screen's content.
  */
 
 import type { CSSProperties, ReactNode } from 'react'
@@ -55,7 +59,7 @@ type PlayCanvasProps = {
 }
 
 export function PlayCanvas({ children, phone }: PlayCanvasProps) {
-  const hostRef = useRef<HTMLDivElement>(null)
+  const hostRef = useRef<HTMLElement>(null)
   const [scale, setScale] = useState(1)
   const [phoneForm, setPhoneForm] = useState(false)
   // Explicit viewport-anchored height: the host fills from its top offset down
@@ -107,25 +111,25 @@ export function PlayCanvas({ children, phone }: PlayCanvasProps) {
 
   if (phoneForm) {
     return (
-      <div
+      <main
         ref={hostRef}
         className="su-dash-root su-dash-phone"
         style={{ ...PHONE_HOST, height: hostH }}
       >
         {phone}
-      </div>
+      </main>
     )
   }
 
   return (
     // Centred, so a downscaled canvas letterboxes evenly above and below.
-    <div ref={hostRef} className="su-dash-root" style={{ ...HOST, height: hostH }}>
+    <main ref={hostRef} className="su-dash-root" style={{ ...HOST, height: hostH }}>
       <div
         className="su-dash-canvas"
         style={{ flexShrink: 0, transform: `scale(${scale})`, transformOrigin: 'center center' }}
       >
         {children}
       </div>
-    </div>
+    </main>
   )
 }

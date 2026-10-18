@@ -127,8 +127,10 @@ function RootComponent() {
                 <Outlet />
               </GameDataReady>
             </div>
-            {/* The shared page foot, on every route. */}
-            <SiteFooter />
+            {/* The shared page foot, on every route that draws the Union
+                bar: a Play screen fills the viewport and the page never
+                scrolls (play.md), so it has no foot, as it has no masthead. */}
+            {barHidden ? null : <SiteFooter />}
           </EntityPageHost>
           <Toaster />
         </EntitySurfaceProvider>

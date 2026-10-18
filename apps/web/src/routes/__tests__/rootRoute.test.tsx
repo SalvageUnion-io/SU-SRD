@@ -84,14 +84,14 @@ describe('the root route', () => {
     expect(document.title).toBe(pageTitle('The Cantina'))
   })
 
-  test('a Play screen draws its own bar, so the Union bar steps aside', async () => {
+  test('a Play screen draws its own bar, so the Union bar and the foot step aside', async () => {
     await mountAt('/play/p1')
     expect(screen.getByText('The Play screen')).toBeTruthy()
     expect(barHidden()).toBe(true)
     expect(searchSlot()?.childElementCount).toBe(0)
-    // The rest of the chrome stays.
+    // The skip target stays; the foot goes, so the page never scrolls (play.md).
     expect(document.getElementById('main-content')).toBeTruthy()
-    expect(screen.getByRole('contentinfo')).toBeTruthy()
+    expect(screen.queryByRole('contentinfo')).toBeNull()
   })
 
   test('a link preview is the card alone: no bar, skip target or footer', async () => {

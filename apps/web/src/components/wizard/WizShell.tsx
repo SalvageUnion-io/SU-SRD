@@ -499,8 +499,9 @@ export function WizShell({
           </nav>
         </aside>
 
-        {/* (b) flex-1 main pane — always owns the step heading */}
-        <main className="su-wiz-main" style={mainStyle}>
+        {/* (b) flex-1 main pane — always owns the step heading. A plain
+            block: the route wraps the wizard in the page's one <main>. */}
+        <div className="su-wiz-main" style={mainStyle}>
           {/* The step (N6): its number stamp and h1 over an untitled frame,
               with no band, so the entities in it are the titled things. */}
           {/* The sticky footer overlaps content when pinned, so the frame
@@ -532,7 +533,7 @@ export function WizShell({
               full-width primary CTA on EVERY step — Back/Cancel share a row
               above it. */}
           <footer style={footerPillStyle}>{actionPill}</footer>
-        </main>
+        </div>
       </div>
     </div>
   )

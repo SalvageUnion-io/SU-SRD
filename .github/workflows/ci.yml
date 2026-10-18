@@ -164,11 +164,18 @@ jobs:
   # jobs, and `CI Success` already fails on any of them.
   # The site's one build (`bun run build`: the reference pages, then the Cantina into
   # `dist/build/`, ADR-050), then both apps' PR-blocking browser tiers against
-  # it. The Cantina is compiled against a Convex URL, the variant production
-  # ships, so the specs and the scans see the signed-out read-only UI players
-  # get. The URL is a throwaway backend carrying this PR's own functions, not
+  # it. The Cantina is compiled against a Convex URL, as production's is. The
+  # URL is a throwaway backend carrying this PR's own functions, not
   # production: a PR's client must run against the backend it ships with, and
   # a PR gate makes no production calls.
+  #
+  # The build carries the test sign-in seam (`test-auth`), so Play's signed-in
+  # flows gate merges (#1632). That ships nothing: deploy-cloudflare.yml builds
+  # its own artifact against production ("ARTIFACTS ARE BUILT HERE, NOT TAKEN
+  # FROM CI"), never this `dist`, and the seam's server half lives only on this
+  # backend, which dies with the runner. The seam renders nothing, so the
+  # signed-out scans see the UI players get; the bundle budgets carry its few
+  # hundred bytes inside their ~20% headroom.
   build-web:
     needs: [changes]
     if: needs.changes.outputs.web == 'true'
@@ -186,6 +193,8 @@ jobs:
       # `build` does not typecheck: static-checks typechecks every workspace.
       - name: Start a throwaway Convex backend and build the site against it
         uses: ./.github/actions/convex-backend
+        with:
+          test-auth: 'true'
 
       - name: Check printed examples against the built site
         run: bun --filter web check:examples
@@ -198,19 +207,26 @@ jobs:
         uses: ./.github/actions/playwright
 
       # The PR tier in one run: every spec but the performance budget (perf,
-      # below) and the Cantina's signed-in specs (e2e-nightly.yml: they need
-      # the test seam). A file filter is a pattern, so `smoke.e2e.ts` runs the
+      # below) and the Cantina's other signed-in specs (e2e-nightly.yml runs
+      # the whole suite). A file filter is a pattern, so `smoke.e2e.ts` runs the
       # reference pages' and the Cantina's smoke (`reference-smoke.e2e.ts`,
       # `cantina-smoke.e2e.ts`), and likewise `bundle-budget`, `a11y` and
-      # `offline`. Add a spec to this line; do NOT add a step or a job.
+      # `offline`; Play's are named whole, because `play-` alone would also
+      # match `display-verification.e2e.ts`. Add a spec to this line; do NOT
+      # add a step or a job.
       # The a11y specs are WCAG 2.2 AA on the pages each lists, at desktop and
       # as a phone: they block on any violation. `offline.e2e.ts` proves the one
       # install: opened at `/`, the reference and the builder both open offline.
-      # `nesting-depth.e2e.ts` runs signed out here; its signed-in wizards and
-      # sheet skip, and run nightly.
-      - name: Run the smoke, bundle-budget, JSON API, a11y, offline, sibling-height and nesting-depth specs
+      # The build carries the seam, so the signed-in tests in these specs run
+      # signed in (`play-*`, the Play lines of `sibling-heights.e2e.ts`,
+      # `nesting-depth.e2e.ts`'s wizards and sheet), and
+      # CANTINA_E2E_EXPECT_AUTH_SEAM makes a lost seam fail the run rather than
+      # skip them (`e2e/fixtures.ts`).
+      - name: Run the smoke, bundle-budget, JSON API, a11y, offline, sibling-height, nesting-depth and Play specs
         working-directory: apps/web
-        run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts json-api.e2e.ts a11y.e2e.ts offline.e2e.ts sibling-heights.e2e.ts nesting-depth.e2e.ts
+        env:
+          CANTINA_E2E_EXPECT_AUTH_SEAM: '1'
+        run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts json-api.e2e.ts a11y.e2e.ts offline.e2e.ts sibling-heights.e2e.ts nesting-depth.e2e.ts play-turn.e2e.ts play-solo.e2e.ts play-mediator.e2e.ts
 
       - name: Upload Playwright reports on failure
         if: failure()

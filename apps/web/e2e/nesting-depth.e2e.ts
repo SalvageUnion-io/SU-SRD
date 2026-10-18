@@ -13,10 +13,11 @@ import { expect, test } from './fixtures'
  *
  * There is no allowlist: every finding fails.
  *
- * Signed out (the PR tier): sibling-heights' pages, the pages the nesting
- * audit measured, every Starter Set sheet, and a Peek of a chassis, a
- * Bio-Titan and an equipment item. Signed in (nightly, `fixtures.ts`): every
- * step of the three wizards, and a built crawler's sheet in Read and Edit.
+ * Signed out: sibling-heights' pages, the pages the nesting audit measured,
+ * every Starter Set sheet, and a Peek of a chassis, a Bio-Titan and an
+ * equipment item. Signed in (`fixtures.ts`; the PR tier's build carries the
+ * seam): every step of the three wizards, and a built crawler's sheet in Read
+ * and Edit.
  */
 const PAGES = [
   '/',

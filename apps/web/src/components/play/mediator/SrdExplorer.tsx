@@ -143,7 +143,7 @@ function SrdHome({
           {...inputProps}
           aria-label="Search the SRD"
           aria-expanded={open}
-          aria-controls={listboxId}
+          aria-controls={open ? listboxId : undefined}
         />
         <div className="su-sr-only" aria-live="polite">
           {announcement}

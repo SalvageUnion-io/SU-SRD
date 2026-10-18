@@ -74,7 +74,8 @@ test('siblings on one line share one height', async ({ page }) => {
  * the scan would pass having measured nothing: a renamed class fails here
  * instead of turning the gate off.
  *
- * Skips without the test sign-in seam (`fixtures.ts`): it runs nightly.
+ * Skips without the test sign-in seam (`fixtures.ts`); ci.yml's `build-web`
+ * carries it, so this runs on every PR.
  */
 const BAR = '.su-dash-root header'
 const UNITS = '.su-play-unit'
@@ -101,6 +102,21 @@ async function playMismatches(page: Page, state: string): Promise<string[]> {
       for (const selector of lines) {
         const seen = await page.locator(selector).filter({ visible: true }).count()
         expect(seen, `Play, ${state}, at ${where}: nothing matches ${selector}`).toBeGreaterThan(0)
+      }
+      // The bar's stamps sit a label's width from the switch, past the scan's
+      // neighbour gap, so the bar is held to one height whole: every stamp
+      // and control on it.
+      const bar = await page.locator(BAR).evaluate((header) =>
+        [...header.querySelectorAll(':scope > .su-badge-stamp, :scope > .su-btn, .su-seg')]
+          .filter((el) => el.getBoundingClientRect().height > 0)
+          .map((el) => {
+            const text = (el.getAttribute('aria-label') ?? el.textContent ?? '').trim().slice(0, 24)
+            return { height: Math.round(el.getBoundingClientRect().height), text }
+          })
+      )
+      if (new Set(bar.map((c) => c.height)).size > 1) {
+        const controls = bar.map((c) => `${c.height}px "${c.text}"`).join(', ')
+        failures.push(`Play, ${state}, at ${where}, the bar: ${controls}`)
       }
       // The phone's other tab is hidden, so its lines measure nothing there.
       const scanned = viewport === PHONE ? [BAR, UNIT_HEADS, ACTIONS] : lines

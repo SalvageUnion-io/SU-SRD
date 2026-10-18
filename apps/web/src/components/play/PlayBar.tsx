@@ -6,10 +6,11 @@
  * Boarded / Downtime, the `situation` slot), and at the end the Discord
  * channel button and ⋯ (the `channel` and `menu` slots).
  *
- * Presentational: what goes in the slots is the screen's. Every control on
- * the line is one Size, Compact (ruleset §4.7), the bar's own height
- * included. The stamps (role, LIVE, read-only) are labels at the Compact
- * rung, centred on that line, not controls of their own height.
+ * Presentational: what goes in the slots is the screen's. Everything on the
+ * line is one Size, Compact (ruleset §4.7), the bar's own height included:
+ * the stamps (role, LIVE, read-only) keep the Compact rung's type and take
+ * the line's height (`play/bar.css`), their text centred, so they stand as
+ * tall as the buttons beside them.
  */
 
 import { ChevronLeft } from 'lucide-react'
@@ -62,8 +63,13 @@ const TITLE = {
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
 
-/** The LIVE stamp: the ink plate, never rust (ruleset §3.1). */
+/**
+ * A bar stamp (role, LIVE, read-only): the ink plate, never rust (ruleset
+ * §3.1). Its height is the line's (`.su-play-bar__stamp`, `play/bar.css`).
+ */
 const LIVE = { flexShrink: 0, whiteSpace: 'nowrap' } satisfies CSSProperties
+
+const STAMP = 'su-play-bar__stamp'
 
 const SLOT = {
   alignItems: 'center',
@@ -137,7 +143,7 @@ export function PlayBar({
       </AppLink>
       <h1 style={TITLE}>{title}</h1>
       {stamp && (
-        <Badge shape="stamp" size="compact" style={LIVE}>
+        <Badge shape="stamp" size="compact" className={STAMP} style={LIVE}>
           {stamp}
         </Badge>
       )}
@@ -147,6 +153,7 @@ export function PlayBar({
           shape="stamp"
           size="compact"
           surface="dashed"
+          className={STAMP}
           style={LIVE}
           role="status"
           title={readOnly.says}
@@ -155,7 +162,7 @@ export function PlayBar({
         </Badge>
       ) : (
         live && (
-          <Badge shape="stamp" size="compact" style={LIVE}>
+          <Badge shape="stamp" size="compact" className={STAMP} style={LIVE}>
             {liveLabel(here, of)}
           </Badge>
         )

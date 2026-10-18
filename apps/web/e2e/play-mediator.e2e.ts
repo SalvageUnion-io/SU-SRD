@@ -34,8 +34,9 @@ import { expect, test } from './fixtures'
  * viewport (the page never scrolls) and scanned with axe in each state: the
  * Mediator's Scene and Downtime, the player's On foot and Downtime in a Game.
  *
- * Two accounts, so it SKIPS without the test sign-in seam and runs for real in
- * the nightly `e2e` job (`fixtures.ts`).
+ * Two accounts, so it SKIPS without the test sign-in seam (`fixtures.ts`); it
+ * runs for real in ci.yml's `build-web`, on every PR, and in the nightly `e2e`
+ * job.
  */
 
 const GAME = 'The Rust Belt Run'

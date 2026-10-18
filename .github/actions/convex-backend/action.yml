@@ -12,7 +12,8 @@ description: Start a self-hosted Convex backend, push the Cantina's functions to
 # `test-auth: 'true'` builds the variant with the test sign-in seam: it sets
 # both halves the seam needs to line up, `CANTINA_TEST_AUTH` on the deployment
 # and `VITE_TEST_AUTH` in the build. Left off, the build is the signed-out
-# production variant.
+# production variant. `build-web` and the nightly `e2e` set it; neither `dist`
+# ever deploys (deploy-cloudflare.yml builds its own against production).
 #
 # The backend writes its log to `$RUNNER_TEMP/convex-backend.log`; a job reads
 # it on failure with `cat "$RUNNER_TEMP/convex-backend.log"`.

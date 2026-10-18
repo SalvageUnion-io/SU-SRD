@@ -33,7 +33,8 @@ import { expect, test } from './fixtures'
  * (`seedDice`, and why it waits for the socket: `openPlay`).
  *
  * Skips without the test sign-in seam, like every signed-in spec
- * (`fixtures.ts`); the nightly `e2e` job runs it for real.
+ * (`fixtures.ts`); ci.yml's `build-web` carries the seam and runs it on every
+ * PR, and the nightly `e2e` job again.
  */
 
 /** Board, Use, Activate, Roll, Apply; resolves to the action's name. */
@@ -41,12 +42,17 @@ async function boardedTurn(page: Page): Promise<string> {
   await board(page, 'Scrapper')
   await expect(page.getByText('On hand · In Scrapper')).toBeVisible({ timeout: 15_000 })
 
-  // The first action on hand that can run as it stands.
+  // The first action on hand that can run as it stands, pinned by its key:
+  // once used, its Use button becomes Cancel, and a locator filtered on Use
+  // would slide on to the next row.
   const onHand = page.getByRole('list', { name: 'On hand' })
-  const row = onHand
+  const key = await onHand
     .locator('li.su-play-act:not([data-locked])')
     .filter({ has: page.getByRole('button', { name: /^Use / }) })
     .first()
+    .getAttribute('data-action-key')
+  expect(key, 'an action on hand to use').toBeTruthy()
+  const row = onHand.locator(`li.su-play-act[data-action-key="${key}"]`)
   const use = row.getByRole('button', { name: /^Use / })
   const name = ((await use.getAttribute('aria-label')) ?? '').replace(/^Use /, '')
   expect(name, 'an action on hand to use').not.toBe('')

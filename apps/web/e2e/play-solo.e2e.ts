@@ -12,7 +12,8 @@ import { expect, test } from './fixtures'
  * nothing at the canvas or the phone.
  *
  * Skips without the test sign-in seam, like every signed-in spec
- * (`fixtures.ts`); the nightly `e2e` job runs it for real.
+ * (`fixtures.ts`); ci.yml's `build-web` carries the seam and runs it on every
+ * PR, and the nightly `e2e` job again.
  */
 
 test('solo: On foot, Boarded and Downtime fit and pass axe', async ({ page }) => {
