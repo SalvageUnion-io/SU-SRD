@@ -11,7 +11,8 @@ import type { Page } from '@playwright/test'
  *   a Row inside it 2.
  * - **N3** an entity inside a Token: a Token nests nothing (E6).
  * - **N4** a Token narrower than its line, by more than a pixel: one Token a
- *   line, filling it.
+ *   line, filling it. In a two-up list (a pattern drone's parts) each column
+ *   is a line.
  * - **N5** a TitledBox (a `Box` with a head) inside an entity's frame.
  * - **N6** a TitledBox inside a wizard step around the step's entities.
  * - **N7** a Token in select mode (a radio, a checkbox, a pressed toggle):
@@ -60,6 +61,8 @@ export type NestingSelectors = {
   choiceToggle: string
   /** A wizard step's region (`WizShell`). */
   step: string
+  /** A two-up Token list (EDL E3): each of its columns is a line. */
+  twoUp: string
   /** How many px narrower than its line a Token may be. */
   tolerance: number
 }
@@ -75,6 +78,7 @@ export const NESTING_SELECTORS: NestingSelectors = {
   tokenName: '.su-entity-token__name',
   choiceToggle: '[data-choice-toggle]',
   step: '.su-wiz-main',
+  twoUp: '.su-entity-token-list--two-up',
   tolerance: 1,
 }
 
@@ -196,6 +200,14 @@ export function scanNesting(a: NestingSelectors): NestingFinding[] {
       const p = layoutParent(el)
       if (!p) return undefined
       const ps = getComputedStyle(p)
+      // A two-up list's line is its column: the item must fill its track.
+      if (p.matches(a.twoUp)) {
+        const track = px(ps.gridTemplateColumns.split(' ')[0] ?? '')
+        const width = outerWidth(el)
+        return track - width > a.tolerance
+          ? `${Math.round(t.getBoundingClientRect().width)}px on a ${Math.round(track)}px column`
+          : undefined
+      }
       const room = p.clientWidth - px(ps.paddingLeft) - px(ps.paddingRight)
       const box = el.getBoundingClientRect()
       const others = layoutKids(p).filter((k) => k !== el && visible(k) && inFlow(k))
