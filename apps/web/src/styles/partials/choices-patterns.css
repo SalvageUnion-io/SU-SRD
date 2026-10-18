@@ -60,6 +60,11 @@
   grid-template-columns: repeat(1, minmax(0, 1fr));
 }
 
+/* A pattern's drones run under both loadout columns. */
+.su-pattern-loadout__drones {
+  grid-column: 1 / -1;
+}
+
 @media (min-width: 40rem) {
   .su-pattern-loadout {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -87,6 +92,22 @@
 .su-entity-token-list > li {
   display: flex;
   min-width: 0;
+}
+
+/* Two Tokens a line (`--two-up`: a pattern drone's systems and modules under
+   its Token), in reading order; one a line on a phone, where two would each
+   be too narrow to hold a system name. */
+.su-entity-token-list--two-up {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  column-gap: var(--space-6);
+  row-gap: var(--space-4);
+}
+
+@media (min-width: 40rem) {
+  .su-entity-token-list--two-up {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (pointer: coarse) {
