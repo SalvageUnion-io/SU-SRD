@@ -3,7 +3,7 @@ import type { CSSProperties, ElementType, ReactNode } from 'react'
 import type { RefEntity, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 import { foregroundOn } from '../../design/contrast'
-import { borderWidth, color, layer, space } from '../../design/tokens'
+import { borderWidth, color, layer, shadow, space } from '../../design/tokens'
 import { ChapterBand } from '../atoms/ChapterBand'
 import { CloseButton } from '../atoms/CloseButton'
 import type { ChapterTone } from '../atoms/chapterBandColor'
@@ -38,19 +38,12 @@ type EntityDetailDialogProps = {
 }
 
 /**
- * The large lift shadow's tint: neutral black at 10%. There is
- * no shadow token ladder to move it onto, and a warm-ink substitute would
- * re-tone the stamp's shadow, so it stays one literal, exempted on its line.
- */
-const shadowTint = 'rgb(0 0 0 / 0.1)' // design-tokens-ignore: the large lift shadow's tint, neutral black
-
-/**
  * The close stamp's placement and paper edge. Its ink fill and hover are
  * Button's `ink` variant.
  *
- * The shadow is inline on purpose: the `shadow-lg` utility it replaced sat in
- * a layer above `.su-focus-ring:focus-visible`, so the stamp always wore this
- * shadow — and an inline value keeps exactly that.
+ * The lift (`shadow.lift`, chrome K4) is inline on purpose: the `shadow-lg`
+ * utility it replaced sat in a layer above `.su-focus-ring:focus-visible`, so
+ * the stamp always wore its shadow — and an inline value keeps exactly that.
  */
 const closeStyle = {
   position: 'absolute',
@@ -60,7 +53,7 @@ const closeStyle = {
   borderWidth: borderWidth.pill,
   borderColor: color.paper,
   color: color.paper,
-  boxShadow: `0 10px 15px -3px ${shadowTint}, 0 4px 6px -4px ${shadowTint}`,
+  boxShadow: shadow.lift,
 } satisfies CSSProperties
 
 /**

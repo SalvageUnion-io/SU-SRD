@@ -383,6 +383,45 @@ describe('tokens rule set', () => {
       "marginLeft: '34px'",
     ])
   })
+
+  test('raw-shadow: a cast shadow fails, split over lines included; the lift, the ring and frames pass', () => {
+    const text = [
+      `const a = { boxShadow: \`0 14px 28px -14px ${interp('color.ink50')}\` }`,
+      "const b = { boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }",
+      'box-shadow: 0 5px 18px var(--color-ink-20);',
+      '.x {',
+      '  box-shadow:',
+      '    0 0 0 1px var(--color-ink),',
+      '    0 10px 15px -3px var(--color-ink-20);',
+      '}',
+      'box-shadow: var(--shadow-lift);',
+      'const c = { boxShadow: shadow.lift }',
+      'box-shadow: var(--focus-ring-shadow);',
+      'box-shadow: 0 0 0 3px var(--color-ink);',
+      'box-shadow: inset 0 -2px 0 var(--color-paper);',
+      `const d = { boxShadow: \`0 2px 0 ${interp('color.ink')}, ${interp('shadow.lift')}\` }`,
+      '.y {',
+      '  box-shadow:',
+      '    0 0 0 3px var(--ground),',
+      '    0 0 0 6px var(--color-ink);',
+      '}',
+    ].join('\n')
+    expect(lines('raw-shadow', text)).toEqual([1, 2, 3, 5])
+  })
+
+  test('raw-z-index: a literal above 3 fails; a layer and local stacking pass', () => {
+    const text = [
+      'z-index: 10;',
+      'const a = { zIndex: 30 }',
+      "const b = { zIndex: '40' }",
+      'z-index: var(--z-sticky);',
+      'const c = { zIndex: layer.menu }',
+      'z-index: 3;',
+      'z-index: -1;',
+      'const d = { position: "absolute", zIndex: 1, top: 0 }',
+    ].join('\n')
+    expect(lines('raw-z-index', text)).toEqual([1, 2, 3])
+  })
 })
 
 describe('fontSizePx', () => {

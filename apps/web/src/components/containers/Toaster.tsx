@@ -12,6 +12,8 @@ export function Toaster() {
           background: 'var(--color-ink)',
           border: 'var(--bw-hairline) solid var(--color-ink-2)',
           borderRadius: 'var(--radius-card)',
+          // The one lift (chrome K4), over Sonner's neutral default.
+          boxShadow: 'var(--shadow-lift)',
           color: 'var(--color-paper)',
           fontFamily: "var(--font-body, 'Barlow', system-ui, sans-serif)",
           fontSize: '0.8125rem',

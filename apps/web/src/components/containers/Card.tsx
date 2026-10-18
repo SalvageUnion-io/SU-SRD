@@ -63,7 +63,8 @@ type CardProps = {
 /** The label stamp riding the top border. */
 const CALLOUT_ROW = {
   position: 'absolute',
-  zIndex: 30,
+  // Local stacking (0–3, chrome K4): over the frame it rides and any seam stamp.
+  zIndex: 3,
   marginLeft: space[12],
   display: 'flex',
   alignItems: 'center',

@@ -31,6 +31,14 @@
 
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import {
+  castsShadow,
+  declaration,
+  declaredValue,
+  keepLengthLiteral,
+  logicalLine,
+  outsideTokens,
+} from '../lib/cssDeclarations'
 import type { Exemption, Finding, Rule, RuleSet } from '../lib/ruleEngine'
 import { isExempt, listFiles } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
@@ -67,6 +75,12 @@ type TokenRule = Rule & {
    * the file's path and the rest of the line.
    */
   keep?: (match: string, line: string, file: string) => boolean
+  /**
+   * Read a declaration whose value starts on the next line (Biome puts each
+   * layer of a multi-layer `box-shadow` on its own) as one line, joined up to
+   * its `;`. The finding is reported on the declaration's first line.
+   */
+  joinValue?: boolean
 }
 
 /**
@@ -110,56 +124,8 @@ const TEXTURE_FORBIDDEN: readonly RegExp[] = [
 const PAPER_GROUND =
   /(?<![\w-])bg-paper(?![\w-])|background(?:-color|Color)?\s*:\s*(?:var\(--color-paper\)|color\.paper\b)/
 
-/**
- * A declaration's value with every `var(…)` (fallback included) and every
- * `${…}` interpolation taken out, so what is left is the part a token did not
- * write. Nested parentheses inside a `var()` fallback are removed innermost
- * first.
- */
-function outsideTokens(value: string): string {
-  let out = value.replace(/\$\{[^}]*\}/g, ' ')
-  let prev: string
-  do {
-    prev = out
-    out = out.replace(/var\([^()]*\)/g, ' ')
-  } while (out !== prev)
-  return out
-}
-
-/** A non-zero length literal (`3px`, `0.5rem`, `-0.025em`), not part of a name. */
-const LENGTH_LITERAL = /(?<![\w.#-])-?(?:\d+\.?\d*|\.\d+)(?:px|rem|em)(?![\w-])/g
-
-/** The non-zero length literals a value spells outside its tokens. */
-function lengthLiterals(value: string): string[] {
-  return (outsideTokens(value).match(LENGTH_LITERAL) ?? []).filter(
-    (lit) => Number.parseFloat(lit) !== 0
-  )
-}
-
-/**
- * The value of a CSS declaration (`prop: value`) or a style-object entry
- * (`prop: 'value'`, a template literal included) as a rule pattern matched it.
- */
-function declaredValue(match: string): string {
-  return match.slice(match.indexOf(':') + 1)
-}
-
-/** Keep a declaration that spells a length outside its tokens. */
-const keepLengthLiteral = (match: string) => lengthLiterals(declaredValue(match)).length > 0
-
-/**
- * A declaration of one of `js` (camelCase, in a style object, its value a
- * quoted string or template literal) or `css` (kebab-case, in a stylesheet).
- * The JS arm is tried first and stops at its closing quote; the CSS arm takes
- * an unquoted value and stops at `;`, `{`, `}` or the next `, name:` of a
- * style object, so one entry never swallows its neighbours.
- */
-function declaration(css: string, js: string): RegExp {
-  return new RegExp(
-    `(?<![\\w-])(?:${js})\\s*:\\s*(?:'[^'\\n]*'|"[^"\\n]*"|\`[^\`\\n]*\`)|(?<![\\w-])(?:${css})\\s*:\\s*(?!['"\`])(?:(?!,\\s*[\\w-]+\\s*:)[^;{}\\n])+`,
-    'g'
-  )
-}
+/** Local stacking (chrome K4): a literal z-index up to this is a page's own. */
+const LOCAL_Z_MAX = 3
 
 /** The three Size heights (ruleset §4.7), the values `--size-*` owns, in px or rem. */
 const SIZE_LITERAL = /(?<![\w.#-])(?:(?:18|32|44)px|(?:1\.125|2|2\.75)rem)(?![\w-])/
@@ -356,6 +322,33 @@ const TOKEN_RULES: TokenRule[] = [
     keep: keepLengthLiteral,
   },
   {
+    id: 'raw-shadow',
+    mode: 'zero',
+    rule: 'chrome K4 / ruleset §4.4 — one lift, in warm ink, for whatever floats (R26)',
+    // Four hand-rolled lifts (two of them neutral black) were four depths of
+    // "floating". The focus ring is `--focus-ring-shadow`, a custom property,
+    // so it never reaches this pattern; rings and inset frames cast nothing
+    // (`castsShadow`). A multi-layer value Biome splits over lines is read
+    // whole (`joinValue`).
+    fix: 'Use the lift: `shadow.lift` in a style object, `var(--shadow-lift)` in a stylesheet — for a popup, Peek plate, toast, dialog or sticky bar. Focus is `var(--focus-ring-shadow)`. A ring or frame is a spread-only (`0 0 0 Npx`) or inset box-shadow, which casts nothing.',
+    pattern: declaration('box-shadow', 'boxShadow'),
+    keep: (match) => castsShadow(declaredValue(match)),
+    joinValue: true,
+  },
+  {
+    id: 'raw-z-index',
+    mode: 'zero',
+    rule: 'chrome K4 — above the page, z-index comes from `layer` (R26)',
+    // 0–3 is a component's own stacking (a stamp over the frame it rides);
+    // anything above competes with the page's layers and belongs to one.
+    fix: 'Above the page, use a layer: `layer.<name>` / `var(--z-<name>)` — sticky (40), popover (45), overlay (50), menu (60), skip (100). Within a component, stack with 0–3.',
+    pattern: declaration('z-index|zIndex', 'zIndex'),
+    keep: (match) =>
+      (outsideTokens(declaredValue(match)).match(/-?\d+/g) ?? []).some(
+        (n) => Number(n) > LOCAL_Z_MAX
+      ),
+  },
+  {
     id: 'raw-spacing',
     mode: 'ratchet',
     rule: 'ruleset §4.4 — spacing on the scale: {2, 4, 6, 8, 12}px inside a block, 16 or 24px between (R13)',
@@ -438,9 +431,9 @@ const EXEMPTIONS: Exemption[] = [
   },
   {
     file: 'apps/web/src/styles/global.css',
-    rules: ['gradient', 'raw-color', 'raw-border-width'],
+    rules: ['gradient', 'raw-color', 'raw-border-width', 'raw-shadow'],
     reason:
-      'Ruleset §3.5 THE one-off: the .su-pilot-panel distressed-metal effect on srd /about is a CSS illustration, ruled a sanctioned one-off. It is the single place smooth shading is allowed, and it is allowed because it is a picture of a rusted plate rather than a UI surface. Not precedent — no second one-off without an explicit ruling. raw-color rides along because it is the SAME illustration: the rust blooms, the steel plate, the rivet heads and the engraved lettering are one picture, and a picture needs more shades than a UI palette has — the rivets alone spend nine greys on lit/worn/green/flush/hole. Tokenising them would add a dozen tokens nothing else could ever reuse. raw-border-width rides along for the same picture: the plate bevel is four light-catch and underside edges of 1 and 2px, drawn as borders, not frame weights. CAVEAT, since a file-level exemption is blunter than the rationale: it also swallows three literals outside the illustration block — the .catalog-item hover box-shadow and .catalog-item__name text-shadow (real shadow debt on an authored surface, still owed a token) and one #fff in the print block. Line-scoping the exemption was considered and rejected as too brittle to survive edits to this file; they are recorded here instead of silently absorbed.',
+      'Ruleset §3.5 THE one-off: the .su-pilot-panel distressed-metal effect on srd /about is a CSS illustration, ruled a sanctioned one-off. It is the single place smooth shading is allowed, and it is allowed because it is a picture of a rusted plate rather than a UI surface. Not precedent — no second one-off without an explicit ruling. raw-color rides along because it is the SAME illustration: the rust blooms, the steel plate, the rivet heads and the engraved lettering are one picture, and a picture needs more shades than a UI palette has — the rivets alone spend nine greys on lit/worn/green/flush/hole. Tokenising them would add a dozen tokens nothing else could ever reuse. raw-border-width rides along for the same picture: the plate bevel is four light-catch and underside edges of 1 and 2px, drawn as borders, not frame weights, and raw-shadow for its rivets, whose inset bevels are the lighting of the picture, not a lift. CAVEAT, since a file-level exemption is blunter than the rationale: it also swallows three literals outside the illustration block — the .catalog-item hover box-shadow and .catalog-item__name text-shadow (real shadow debt on an authored surface, still owed a token) and one #fff in the print block. Line-scoping the exemption was considered and rejected as too brittle to survive edits to this file; they are recorded here instead of silently absorbed.',
   },
   {
     file: 'apps/web/src/components/referenceEntity/card/cardChrome.ts',
@@ -492,7 +485,8 @@ export function scanTokenSources(sources: ReadonlyMap<string, string>): Record<s
     for (const rule of TOKEN_RULES) {
       if (isExempt(EXEMPTIONS, rel, rule.id)) continue
       if (rule.skip?.some((s) => rel.includes(s))) continue
-      lines.forEach((line, i) => {
+      lines.forEach((raw, i) => {
+        const line = rule.joinValue ? logicalLine(lines, i) : raw
         // A line may opt out with a cited reason.
         if (line.includes('design-tokens-ignore')) return
         for (const match of line.match(rule.pattern) ?? []) {

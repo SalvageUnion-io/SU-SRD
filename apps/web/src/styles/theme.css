@@ -341,6 +341,14 @@
   --z-menu: 60;
   --z-skip: 100;
 
+  /* The one lift (chrome K4): what floats over the page — a popup, a Peek
+     plate, a toast, a dialog's stamp, the sticky sheet bar — casts this, warm
+     ink at opacity, never a neutral black. The focus ring
+     (`--focus-ring-shadow`) is the only other shadow; a ring or an inset frame
+     drawn with a spread-only box-shadow is a line, not a shadow. Literal ink
+     here so `shadow.lift` in tokens.ts can mirror it (`--color-ink-50`). */
+  --shadow-lift: 0 14px 28px -14px rgb(40 32 25 / 0.5);
+
   /* The spacing rhythm, keyed by its own pixel value (`space[8]` in tokens.ts). */
   --space-0: 0px;
   --space-2: 2px;

@@ -132,7 +132,7 @@ const LIGHTBOX_CLOSE = {
   position: 'absolute',
   right: space[8],
   top: space[8],
-  zIndex: 10,
+  zIndex: 2,
 } satisfies CSSProperties
 
 const LIGHTBOX_BODY = {

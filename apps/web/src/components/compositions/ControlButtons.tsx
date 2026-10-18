@@ -154,7 +154,7 @@ function ControlButton({
   // That distorts the geometry. This button renders inside `CardControlRail`,
   // an ABSOLUTE row centred on a card's top frame line, so a 44px box grows the
   // rail with it, hanging down into the header band over the TL/SV stat cells
-  // the rail is z-30 above, a 44px square beside a 22px status badge in a row
+  // the rail stacks above, a 44px square beside a 22px status badge in a row
   // whose whole premise is that every cell is the same stamp height.
   //
   // Measure this with touch emulation, not just a narrow viewport — the two

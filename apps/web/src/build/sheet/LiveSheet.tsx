@@ -148,7 +148,7 @@ const BAR = {
   alignItems: 'center',
   background: 'var(--color-wk-bg)',
   borderBottom: `${tokens.borderWidth.pill} solid ${tokens.color.ink}`,
-  boxShadow: '0 2px 0 var(--color-ink), 0 14px 20px -18px var(--color-ink-50)',
+  boxShadow: `0 2px 0 ${tokens.color.ink}, ${tokens.shadow.lift}`,
   columnGap: tokens.space[16],
   display: 'flex',
   flexWrap: 'wrap',
@@ -305,9 +305,9 @@ export function LiveSheet({
           seamed (rule + drop shadow), with the condensed name + vitals —
           without moving anything under it.
 
-          `z-40`, above the entity cards' control rails (`z-30`): those rails
-          ride their card's top edge and were sliding OVER the sticky bar as
-          they scrolled under it.
+          `layer.sticky`, above the entity cards' control rails (a local z 3):
+          those rails ride their card's top edge and were sliding OVER the
+          sticky bar as they scrolled under it.
 
           Its ground is the page's own workshop ground, not a tone wash: a 10%
           mech or pilot tone over paper made a pale blue-grey or pink bar that

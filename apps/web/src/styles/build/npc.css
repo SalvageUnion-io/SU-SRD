@@ -88,7 +88,7 @@
     bottom: 0;
     padding-block: var(--space-8);
     position: sticky;
-    z-index: 10;
+    z-index: var(--z-sticky);
   }
 }
 

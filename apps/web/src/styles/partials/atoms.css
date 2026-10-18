@@ -61,7 +61,8 @@
   position: absolute;
   top: 0;
   translate: 0 -50%;
-  z-index: 10;
+  /* Local stacking (0–3): over the frame it rides, under a card's rail (3). */
+  z-index: 2;
 }
 
 /* `Eyebrow` (`atoms/Eyebrow.tsx`), after `capsLabel`: the small caps label's

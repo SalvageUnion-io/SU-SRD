@@ -19,7 +19,8 @@ const RAIL = {
   position: 'absolute',
   right: space[8],
   top: 0,
-  zIndex: 30,
+  // Local stacking (0–3, chrome K4): over the header band and any seam stamp.
+  zIndex: 3,
   display: 'flex',
   maxWidth: 'calc(100% - 1rem)',
   translate: '0 -50%',

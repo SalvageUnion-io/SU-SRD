@@ -75,6 +75,14 @@ export const layer = {
 } as const
 
 /**
+ * The one lift (`--shadow-lift`, chrome K4): what floats over the page casts
+ * it, in warm ink (`ink50`). The focus ring is the only other shadow.
+ */
+export const shadow = {
+  lift: '0 14px 28px -14px rgb(40 32 25 / 0.5)',
+} as const
+
+/**
  * The type ladder.
  *
  * The first block is the SEMANTIC ladder (ruleset §4.2) — the one to reach for,

@@ -97,4 +97,4 @@ The loop: define it here, land its gate with a baseline, burn the baseline to ze
 - **R25 Motion is tokens** (K3) — `--dur-fast`, `--dur-base`, `--ease`; loops only for loading, under `no-preference`.
   Gate: planned, `tokens/raw-duration` and `raw-easing` (zero); a `@keyframes` loop outside a `no-preference` block fails.
 - **R26 One lift, one layer scale** (§4.4, K4) — `--shadow-lift`, 3px popups, z-index from `layer`.
-  Gate: planned, `tokens/raw-shadow` (any `box-shadow` but the lift and the focus ring) and `raw-z-index` (a literal above 3), zero; popup radius under R13's `raw-radius`.
+  Gate: held, `tokens/raw-shadow` (any `box-shadow` that casts, a blur, but `--shadow-lift`; the focus ring is `--focus-ring-shadow`, and a spread-only ring or inset frame casts nothing) and `raw-z-index` (a literal above 3), zero; popup radius under R13's `raw-radius`.
