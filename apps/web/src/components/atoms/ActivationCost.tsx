@@ -15,7 +15,8 @@ type ActivationCostProps = {
 const TIP = '0.5em'
 
 // The book's pointy cost box ("2AP"): one shape, cut by `clip-path`, so the
-// tip always spans the box. It stretches to its row's height and carries the
+// tip always spans the box. It stretches to its row's height (`.su-cost`'s
+// `align-self`, a class because a Card head centres it instead) and carries the
 // bordered chips' block padding plus their 1px rule's worth, so beside them it
 // is as tall as they are, never shorter. Its colours are `.su-cost`'s. On an
 // ink band it sits in `.su-cost-edge`, a paper box of the same cut 1px larger
@@ -23,7 +24,6 @@ const TIP = '0.5em'
 // is exactly as tall as a bare one.
 const BOX = {
   alignItems: 'center',
-  alignSelf: 'stretch',
   clipPath: `polygon(0 0, calc(100% - ${TIP}) 0, 100% 50%, calc(100% - ${TIP}) 100%, 0 100%)`,
   display: 'inline-flex',
   flex: 'none',
