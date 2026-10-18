@@ -9,7 +9,7 @@ import { Text } from '../../components/index'
 import { useSignOut } from './useSignOut'
 
 /**
- * The two doors the SRD's Union bar opens into The Cantina. The SRD has no
+ * The two doors the SRD's Union bar opens into the app. The SRD has no
  * backend, so its Sign in and its account menu's Sign out cannot touch the
  * session themselves: they link here, and these act once the session is known.
  *

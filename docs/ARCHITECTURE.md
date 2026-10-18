@@ -3,7 +3,7 @@
 What is true now: one entry each, a headline and at most two lines. Cite an Area by its anchor (`#ci`), never its number.
 The ADRs code cites by § keep their full text in [`docs/adr/`](adr/), linked from their entries; the rest of
 the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
-**Names:** one app, `apps/web` (ADR-050): reference pages (old: srd), the Cantina.
+**Names:** one app, `apps/web` (ADR-050), in areas Reference, Build (the **Training Bay**) and Play (**The Cantina**): `src/reference/`, `src/build/`, `src/play/`, over the shared `src/components/`.
 
 ## Areas
 
@@ -17,7 +17,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
    Call `preload()` before any accessor; a module-scope ORM call fails Biome (`noModuleScopeReferenceCall.grit`).
    Tests preload `salvageunion-reference/tools/testPreload.ts` from each `bunfig.toml`, never `preload('all')` per file.
 4. **UI library** <a id="ui-library"></a>
-   `apps/web/src/components/index.ts` barrel; tokens in `apps/web/src/styles/theme.css`, mirrored by `apps/web/src/design/tokens.ts`. Only product folders (`sheet/`, …) wire stores or Convex.
+   `apps/web/src/components/index.ts` barrel; tokens in `apps/web/src/styles/theme.css`, mirrored by `apps/web/src/design/tokens.ts`. Only area folders (`build/sheet/`, `play/`) and `shared/` wire stores or Convex; the library imports no area.
    Unused exports: [knip](#dead-code).
 5. **Stylesheet wiring** <a id="stylesheets"></a>
    One entry, `apps/web/src/styles/entry.css` (tokens, `layer(su-reset)`, `layer(su-base)`), imported by both render modes.
@@ -32,10 +32,10 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
    A Worker answering HTTP interactions (no gateway, no `discord.js`); conventions in [its CLAUDE.md](../apps/discord-bot/CLAUDE.md).
    Imports `game-domain` (botWire, schemas) as types only; changing them is cross-package. Lookup = embed: `discordEntryCard`.
 9. **game-domain** <a id="game-domain"></a>
-   Zod schemas, roles, link/crew/downtime rules and bot wire types for Cantina, Convex and the bot; import by subpath.
+   Zod schemas, roles, link/crew/downtime rules and bot wire types for the app, Convex and the bot; import by subpath.
    Rules: pure → reference `lib/rules`; shared → here; client → `src/lib/rules`; `check rules-home` bars Convex→`src/`.
 10. **Data flow and connection modes** <a id="data-flow"></a>
-    Records store slug refs, resolved at render; Cantina preloads once in `GameDataReady.tsx`.
+    Records store slug refs, resolved at render; the app preloads once in `GameDataReady.tsx`.
     `resolveConnectionMode()`: Solo (signed out, read-only), Connected (Convex), Disconnected (on-screen rows, writes blocked).
 11. **Convex, the server of record** <a id="convex"></a>
     `apps/web/convex/`: opaque bodies (`v.any()`), Zod-parsed per mutation; an entity is [in a Game or on a Shelf](architecture/glossary.md).
@@ -79,7 +79,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     One site name (`pageTitle`), one WebSite JSON-LD (`WEBSITE`), one sitemap; heads: `BaseLayout.tsx`; shared sheets: ADR-032; `/llms.txt` exact; SW: `src/pwa.ts`.
     No-JS fallback: `StaticEntityContent`, replaced by islands mounted with `createRoot`; an `<Island hydrate>` whose server markup is its own first render adopts it with `hydrateRoot`.
 25. **Accessibility** <a id="a11y"></a>
-    Biome's a11y rules plus axe (WCAG 2.2 AA) specs over `PAGES`, Cantina signed in.
+    Biome's a11y rules plus axe (WCAG 2.2 AA) specs over `PAGES`, app signed in.
     Contrast is held by `apps/web/src/design/__tests__/contrast.test.ts`; coarse-pointer touch targets are 44px.
 26. **CI** <a id="ci"></a>
     `ci.yml` runs on every `pull_request` (no branch filter), path-filtered; `CI Success` must need every job.
@@ -91,7 +91,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     `deploy-cloudflare.yml` on `main` push: plan → build → `push-convex` → deploy → smoke → record (tag `deployed/cloudflare`).
     `tools/deploy-surfaces.ts` picks what ships and fails safe to everything; a dispatched `sha` rolls back. srd's OG images build at deploy; the bot leg registers its slash commands.
 29. **Preview deploys** <a id="previews"></a>
-    A PR into `main` labelled `preview` gets a su-srd Preview `pr-<n>` (Cantina on staging Convex) per push, linked in a comment, deleted on close.
+    A PR into `main` labelled `preview` gets a su-srd Preview `pr-<n>` (app on staging Convex) per push, linked in a comment, deleted on close.
     The label is the approval (no Environment reviewer); staging's schema and `SITE_URL` follow the last PR shipped.
 30. **Dependencies** <a id="dependencies"></a>
     Dependabot updates Actions only; Bun deps by hand, pinned exactly, with a 3-day `bunfig.toml` cooldown.
@@ -141,7 +141,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
 9. **ADR-009 Item condition model**
    Accepted: intact → damaged → destroyed, cycled by the player through `StatusBadge`; read-only sheets render a plain badge.
 10. **ADR-010 Choices in the shared display**
-    Accepted: `ChoiceGroups` is uncontrolled in srd and controlled, persisted, in Cantina; `readOnly` renders static text.
+    Accepted: `ChoiceGroups` is uncontrolled in srd and controlled, persisted, in the app; `readOnly` renders static text.
 11. **ADR-011 component-lib ships TypeScript source**
     Accepted: no build step; data-source agnostic, behaviour injected through slot props. Amended by ADR-050 (now `src/components`).
 12. **ADR-012 srd as an Astro static site**
@@ -162,7 +162,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Merged into ADR-015; superseded by ADR-038 §2.
 20. **ADR-020 Fixed 1280×800 scale-to-fit canvas**
     Merged into ADR-015; superseded by ADR-038 §9.
-21. **ADR-021 Cantina surface taxonomy** · [full text](adr/021-cantina-surface-taxonomy.md)
+21. **ADR-021 App surface taxonomy** · [full text](adr/021-cantina-surface-taxonomy.md)
     Accepted, governing: a rule's enforcement depends on the surface's mode; the border is the lifecycle transaction.
     Wins over any earlier ADR; the live matrix is [surfaces](#surfaces).
 22. **ADR-022 Change Log and stat overrides**
@@ -235,12 +235,12 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
 47. **ADR-047 One salvageunion.io edge Worker**
     Accepted, not built: `su-srd` serves `api.salvageunion.io` too, from one `dist/`; `assets.` stays apart.
     Supersedes ADR-043 decision 1; amends ADR-033.
-48. **ADR-048 Cantina at salvageunion.io/build**
+48. **ADR-048 app at salvageunion.io/build**
     Accepted, built: su-srd serves `/build`; the old host 301s by zone rule. Amends ADR-033; amended by ADR-050.
 49. **ADR-049 Workers Issues, not Sentry**
     Accepted, built: no SDK; browsers and Convex report via the Workers; browser stacks minified.
 50. **ADR-050 One app** · [full text](adr/050-one-app.md)
-    Accepted, built: `apps/web` is one app, the pre-rendered reference and the client-rendered Cantina at `/build/`; one source tree, Vite pass, Worker, CSP, head, install and changelog.
+    Accepted, built: `apps/web` is one app, the pre-rendered reference and the client-rendered app at `/build/`; one source tree, Vite pass, Worker, CSP, head, install and changelog.
     Amends ADR-011, ADR-031, ADR-033 and ADR-048.
 51. **ADR-051 Play mode, a Cockpit** · [full text](adr/051-play-mode.md)
     Accepted, built: Play beside Reference and Build; Units | Actions | Crew, Tables, Feed; solo seats.

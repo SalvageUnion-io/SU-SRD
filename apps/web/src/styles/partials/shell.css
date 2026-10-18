@@ -214,7 +214,7 @@
 }
 
 /* "Buy the game ↗" — an outline on the ink bar, never a rust fill (§3.1).
-   The SRD's "Sign in" link wears it too, as The Cantina's Sign in button is
+   The SRD's "Sign in" link wears it too, as the app's Sign in button is
    dressed to (`.su-sign-in-control--dark`). */
 .su-union-bar__buy,
 .su-union-bar__sign-in {
@@ -241,7 +241,7 @@
   border-color: var(--su-bar-fg);
 }
 
-/* A bar with a product nav (The Cantina's) has no room for "Buy the game" until
+/* A bar with a product nav (The app's) has no room for "Buy the game" until
    80rem: from `lg` to there it would push the row past the viewport. Below
    `lg` the drawer carries it. */
 .su-union-bar__nav ~ .su-union-bar__end .su-union-bar__buy {
@@ -277,7 +277,7 @@
 }
 
 /* A narrow phone (under 400px) has to fit the mark, the switcher and a
-   three-control cluster (The Cantina signed in: search, avatar, menu, each on the
+   three-control cluster (The app signed in: search, avatar, menu, each on the
    44px coarse floor) in one row. The default spacing ran the hamburger off a
    375px screen; this tightening, with the tabs' above, keeps it inside a
    360px phone without dropping a control. */
@@ -554,7 +554,7 @@
   }
 }
 
-/* A page-wide band with no `measure` (a Cantina sheet, the Starter Set, a
+/* A page-wide band with no `measure` (an app sheet, the Starter Set, a
    builder) sets its notch, corner and eyebrow on the page's own gutter, so the
    title's cut-out lines up with the column of content under it, as a measured
    band's does on the SRD. `.su-page-gutters` is a page that pads its own body
@@ -568,7 +568,7 @@
   padding-inline: var(--su-page-gutter-inline);
 }
 
-/* The corner's controls (a Cantina sheet's Read | Edit, "Make a copy", Share,
+/* The corner's controls (an app sheet's Read | Edit, "Make a copy", Share,
    "⋯") sit a row under the Union bar's buttons, so they are those buttons: the
    bar's control height (the Compact Size, 44px under a coarse pointer), its
    caps type, and its right edge, the bar row's own padding
@@ -686,7 +686,7 @@
     padding: 0 0 calc(var(--text-chapter) * 0.428 - var(--size-compact) / 2);
   }
 
-  /* A quote (The Cantina's front door) is not a line of chips: its foot sits on the
+  /* A quote (The app's front door) is not a line of chips: its foot sits on the
      notch's baseline. */
   .su-chapter-band[data-aside='notch'] .su-chapter-band__aside:has(> figure) {
     padding-bottom: calc(var(--text-chapter) * 0.076);

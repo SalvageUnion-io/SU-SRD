@@ -34,7 +34,7 @@ type QuietEmptyStateProps = {
    * The message's ink. The quiet frame has no ground of its own, so 'muted'
    * (default, `wkMuted`) holds AA only on paper and the workshop grounds.
    * 'inherit' prints it in the surrounding ink (`currentcolor`), for a quiet
-   * state on a tinted ground such as the Cantina's wizard step card, where `wkMuted`
+   * state on a tinted ground such as the app's wizard step card, where `wkMuted`
    * measures 3.78:1 on pilot.
    */
   bodyInk?: 'muted' | 'inherit'

@@ -1,6 +1,6 @@
 /**
  * The site's one search: the reference pages hydrate it as an island (the
- * Union bar's field, the home and 404 hero), and the Cantina renders the same
+ * Union bar's field, the home and 404 hero), and the app renders the same
  * component in its bar. One engine, the build-time compact index
  * (`/search-index.json`, `searchCompactIndex`); one panel, hung under the
  * field; Cmd/Ctrl+K focuses it. Every result is a reference page, followed
@@ -226,7 +226,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
         load()
         setDismissedResults(null)
       }}
-      // The bar's width is the Union bar's (The Cantina's trigger shares it), a class
+      // The bar's width is the Union bar's (The app's trigger shares it), a class
       // so the mobile sheet can widen it.
       className={hero ? undefined : 'su-union-bar__search-input'}
       containerClassName={hero ? 'su-hero-search__field' : undefined}

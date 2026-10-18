@@ -34,7 +34,7 @@ export function EquipmentStep({
 }: EquipmentStepProps) {
   const surEquipment = _sur?.Equipment ?? SalvageUnionReference.Equipment
 
-  // The injectable accessor is `unknown`-typed for test seams (cantina's
+  // The injectable accessor is `unknown`-typed for test seams (the app's
   // PilotWizard passes the same shape), so the ONE cast lives here at the
   // seam: the production accessor really returns `RefEquipment[]`, and a
   // properly-typed item then flows into the card with no further forcing.

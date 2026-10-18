@@ -5,6 +5,7 @@
  * byte for byte. **Do not reflow it.**
  */
 
+import { PRODUCT } from 'game-domain/product'
 import { getEntitySlug } from 'salvageunion-reference'
 import type { EndpointModule } from '../../../ssg/types'
 import { apiSampleChassis } from '../../lib/apiSample'
@@ -27,7 +28,7 @@ function body(): string {
 
 > An open-source, searchable rules reference and character manager for the Salvage Union tabletop RPG by Leyline Press.
 
-SalvageUnion.io is a community-built site for Salvage Union, a post-apocalyptic mech TTRPG. Its System Reference Document (SRD) provides stats, descriptions, abilities, and rules for game text and mechanics released under the Salvage Union Open Game Licence. Its character manager, The Cantina, builds and keeps Pilot, Mech and Crawler sheets.
+SalvageUnion.io is a community-built site for Salvage Union, a post-apocalyptic mech TTRPG. Its System Reference Document (SRD) provides stats, descriptions, abilities, and rules for game text and mechanics released under the Salvage Union Open Game Licence. Its app builds and keeps Pilot, Mech and Crawler sheets in the ${PRODUCT.build} and runs them at the table in ${PRODUCT.play}.
 
 ## Content Categories
 
@@ -72,7 +73,7 @@ Full API documentation: ${SITE_URL}/api/
 
 ## Character Manager
 
-The Cantina builds Pilot, Mech and Crawler sheets from the same game data: ${SITE_URL}/build/
+The app builds Pilot, Mech and Crawler sheets from the same game data: ${SITE_URL}/build/
 The Starter Set's pre-generated crew, free to read: ${SITE_URL}/build/starter
 Shared sheets are public pages at ${SITE_URL}/build/p/{kind}/{id}
 

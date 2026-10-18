@@ -2,15 +2,15 @@
 /**
  * gallery — the screenshot gallery: every page in `GALLERY_SECTIONS` at
  * desktop (1440×900) and phone (390×844), each page's link preview, and
- * the Cantina signed in, written as `index.html` beside its shots.
+ * the app signed in, written as `index.html` beside its shots.
  *
  *   bun run gallery --base <url> [--signed-in] [--out <dir>]
  *                   [--sha <sha>] [--pr <n>] [--linkable]
  *
- * `--base` is the site's origin; every page's path is on it, the Cantina's
+ * `--base` is the site's origin; every page's path is on it, the app's
  * under `/build` (`BUILDER_BASE`). `gallery.yml` (dispatched by hand) runs it
  * against a branch's own build, served on localhost (the one `dist`, its
- * Cantina built against a throwaway Convex backend with the test sign-in), and
+ * App built against a throwaway Convex backend with the test sign-in), and
  * `gallery-pages.yml` publishes the result to GitHub Pages.
  *
  * - A link preview is rendered the way `apps/web/scripts/og-screenshots.ts`
@@ -191,7 +191,7 @@ async function shootPage(page: Page, url: string, file: (view: string) => string
   }
 }
 
-/** The Cantina's root page on `base`, with its trailing slash. */
+/** The app's root page on `base`, with its trailing slash. */
 export function builderRoot(base: string): string {
   return `${base}${BUILDER_BASE}/`
 }

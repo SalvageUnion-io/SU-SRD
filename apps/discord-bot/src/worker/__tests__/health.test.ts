@@ -6,14 +6,14 @@ import worker from '../index'
  *
  * It exists because a deploy cannot answer the question it answers: the Worker
  * can bundle, deploy and verify signatures while still being useless, because a
- * bad bot token or a missing Cantina secret is invisible until Discord sends the
+ * bad bot token or a missing app secret is invisible until Discord sends the
  * first interaction.
  *
  * These tests pin the three properties that make it worth having:
  *
  *   1. it reports the TRUTH about the token, by asking Discord rather than by
  *      checking that a variable is non-empty,
- *   2. it fails while the Cantina pair is incomplete, so the post-deploy smoke
+ *   2. it fails while the app pair is incomplete, so the post-deploy smoke
  *      catches a missing secret, and
  *   3. it leaks nothing — on failure it says a status code and no more. The bot
  *      username is deliberately included because it is public (visible in every
@@ -139,12 +139,12 @@ describe('/health', () => {
   })
 
   test.each([
-    ['neither Cantina value', { BACKEND_SITE_URL: '', BOT_SECRET: '' }],
+    ['neither app value', { BACKEND_SITE_URL: '', BOT_SECRET: '' }],
     ['no BOT_SECRET', { BOT_SECRET: '' }],
     ['no BACKEND_SITE_URL', { BACKEND_SITE_URL: '' }],
   ])('503s with %s, without calling Discord', async (_label, overrides) => {
     // Either alone is as broken as neither: every Game command would answer
-    // that Cantina cannot be reached. The post-deploy smoke reads this
+    // that the app cannot be reached. The post-deploy smoke reads this
     // status, so a deploy missing a secret fails there.
     let called = false
     stubFetch(async () => {

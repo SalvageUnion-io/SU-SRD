@@ -1,6 +1,6 @@
 # App glossary
 
-One noun and one verb per concept, in everything a player reads in the Cantina and the bot: labels, dialogs, server refusals.
+One noun and one verb per concept, in everything a player reads in the app and the bot: labels, dialogs, server refusals.
 Code identifiers may differ (`organizer`, `softLinks`, a null `gameId`); copy follows this page. The model is ADR-030 in [ARCHITECTURE.md](../ARCHITECTURE.md).
 
 1. **Game** — the shared container a table plays in: always capital G ("Start a Game", "Not in a Game", "Your Games").
@@ -15,3 +15,7 @@ Code identifiers may differ (`organizer`, `softLinks`, a null `gameId`); copy fo
 7. **Board** — a pilot taking a mech's seat in Play (ADR-051 §3); "aboard" belongs to this, not to assignment.
    "Dock" is only the Mech Bay's function action.
 8. **Player**, **Mediator**, **Organiser** — the roles, capitalised; Organiser in British spelling. "Table runner" in docs is the Mediator, or the Organiser while a Game has none.
+9. **Training Bay** and **The Cantina** — the names of Build and Play, the app's two areas (`PRODUCT.build`, `PRODUCT.play` in `game-domain/product`), each a bay of the Union Crawler.
+   They name pages ("Hangar · Training Bay", the Play hub's band); the header's tabs stay Reference | Build | Play. The whole app is "the app" (the account: a salvageunion.io account), never "the Cantina".
+   Both are also SRD crawler bays, with Pilot Bay: the reference pages and search keep them as bays.
+   Code still says `cantina` only for the bay (`BAY.cantina`), the old commit scopes, ADR-021's file name and issue ids like CANTINA-CONVEX-9; everything else is `app`, `build` or `play`.

@@ -163,11 +163,11 @@ async function dispatch(
  *
  * Answers the question a deploy cannot answer by itself. The Worker can be
  * deployed, bundle correctly, verify signatures and still be useless, because
- * what it needs at runtime — a working bot token and the Cantina pair — is set out
+ * what it needs at runtime — a working bot token and the app pair — is set out
  * of band and is invisible until Discord sends the first interaction.
  *
- * So this refuses (503) while the Cantina pair is incomplete, and asks Discord
- * directly: `GET /users/@me` with the token. A 200 means the Cantina pair is set
+ * So this refuses (503) while the app pair is incomplete, and asks Discord
+ * directly: `GET /users/@me` with the token. A 200 means the app pair is set
  * and the token is live, and names the bot it belongs to.
  *
  * Deliberately says nothing sensitive. On failure it reports Discord's status
@@ -185,7 +185,7 @@ async function health(env: Env): Promise<Response> {
     publicKey: Boolean(env.DISCORD_PUBLIC_KEY),
     token: Boolean(env.DISCORD_TOKEN),
     // Either alone is as broken as neither: every Game command would answer
-    // that Cantina cannot be reached.
+    // that the app cannot be reached.
     site: Boolean(env.BACKEND_SITE_URL) && Boolean(env.BOT_SECRET),
   }
 

@@ -1,5 +1,5 @@
 name: Push Convex
-description: Push the Cantina's Convex functions once the deploy key is confirmed to name the URL the site was built against
+description: Push the app's Convex functions once the deploy key is confirmed to name the URL the site was built against
 
 # The backend push of deploy-cloudflare.yml (`push-convex`, production) and
 # deploy-preview.yml (`ship`, the staging backend). The caller checks out and

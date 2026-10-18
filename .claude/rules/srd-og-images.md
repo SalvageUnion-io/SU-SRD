@@ -27,7 +27,7 @@ pages agree on it. `apps/web/scripts/og-screenshots.ts` screenshots it at
   `themeColor`); `<title>` and the meta description still serve search.
 - Run it with `bun --filter web og:generate` (chromium via `og:install-browser`).
   It is **opt-in** — a plain `bun run build` never renders images, so CI stays fast.
-- The _default_ og:image, the Cantina's too (bar sheets and invites), is
+- The _default_ og:image, the app's too (bar sheets and invites), is
   `public/og-image.png`: `BrandCard` at `/og-card?brand`.
 - The build always emits the default og:image; the script then rewrites the meta
   only for pages whose PNG actually landed. Generation being skipped, capped by

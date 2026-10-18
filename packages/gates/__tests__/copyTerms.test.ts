@@ -175,7 +175,7 @@ describe('lintCopy', () => {
       [
         ...at('OVERLOAD. Reactor Overload 20'),
         ...at('the mech is DESTROYED'),
-        ...at('JSON over CORS, for the Salvage Union TTRPG, in The Cantina'),
+        ...at('JSON over CORS, for the Salvage Union TTRPG, in the app'),
         ...at('-# NOTHING FOUND IN'),
         ...at('Tech 3, HP 4'),
       ],

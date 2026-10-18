@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from 'bun:test'
 import { createSiteClient, interpret } from '../play/client'
 
 /**
- * The bot's Cantina client.
+ * The bot's app client.
  *
  * Two things are worth pinning here and neither needs a network: that an
  * unconfigured client degrades to `unavailable` without making a request, and

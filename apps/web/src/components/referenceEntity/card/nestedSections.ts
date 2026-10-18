@@ -69,7 +69,7 @@ export function resolveNestedSections({
   // Chassis abilities are name refs into the ACTIONS schema (resolved by
   // `getChassisAbilities`), NOT the pilot-abilities schema. They show ONLY on a
   // page: the chassis page and its pattern pages (a pattern's `entity` IS its
-  // chassis) — and on the Cantina's builder pick cards (`showChassisAbility`); never on
+  // chassis) — and on the app's builder pick cards (`showChassisAbility`); never on
   // any other card, a modal, a peek, a nested card or a pattern row.
   const chassisAbilityEntities =
     canExpand && (onPage || showChassisAbility) ? (getChassisAbilities(entity) ?? []) : []

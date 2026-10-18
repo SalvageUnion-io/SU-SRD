@@ -29,7 +29,7 @@ type World = {
   broken: Set<string>
   /** The og:image every page names, or none. */
   ogImage?: string
-  /** The hrefs the Cantina's root lists after the seed. */
+  /** The hrefs the app's root lists after the seed. */
   links: string[]
   url: string
 }
@@ -231,7 +231,7 @@ describe('gallery run', () => {
     expect(r.code).toBe(1)
     expect(r.manifest.failures).toContain(`seed: net::ERR at ${SITE}/build/`)
     expect(r.manifest.failures).toContain(':pilot: the seed made no such entity')
-    // The signed-out Cantina root fails too: it is the same broken URL.
+    // The signed-out app root fails too: it is the same broken URL.
     expect(r.manifest.failures).toContain(`/build/: net::ERR at ${SITE}/build/`)
   })
 

@@ -1,5 +1,5 @@
 /**
- * `/changelog` — the app's history, the reference pages and the Cantina in one
+ * `/changelog` — the app's history, the reference pages and the app in one
  * stream (ADR-041, ADR-050).
  *
  * Rendered at BUILD time from `main`'s history: `readChangelog` keeps the

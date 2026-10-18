@@ -60,7 +60,7 @@ jobs:
               - 'ABOUT_JRVS.md'
               - 'LLM_STATEMENT.md'
               - 'SPECIAL_THANKS.md'
-            # The site (the reference pages and the Cantina), one workspace and
+            # The site (the reference pages and the app), one workspace and
             # one build: build-web and perf both key on it.
             web:
               - *shared
@@ -162,9 +162,9 @@ jobs:
 
   # The build jobs need only `changes`: they take no artifact from the check
   # jobs, and `CI Success` already fails on any of them.
-  # The site's one build (`bun run build`: the reference pages, then the Cantina into
+  # The site's one build (`bun run build`: the reference pages, then the app into
   # `dist/build/`, ADR-050), then both apps' PR-blocking browser tiers against
-  # it. The Cantina is compiled against a Convex URL, as production's is. The
+  # it. The app is compiled against a Convex URL, as production's is. The
   # URL is a throwaway backend carrying this PR's own functions, not
   # production: a PR's client must run against the backend it ships with, and
   # a PR gate makes no production calls.
@@ -207,9 +207,9 @@ jobs:
         uses: ./.github/actions/playwright
 
       # The PR tier in one run: every spec but the performance budget (perf,
-      # below) and the Cantina's other signed-in specs (e2e-nightly.yml runs
+      # below) and the app's other signed-in specs (e2e-nightly.yml runs
       # the whole suite). A file filter is a pattern, so `smoke.e2e.ts` runs the
-      # reference pages' and the Cantina's smoke (`reference-smoke.e2e.ts`,
+      # reference pages' and the app's smoke (`reference-smoke.e2e.ts`,
       # `app-smoke.e2e.ts`), and likewise `bundle-budget`, `a11y` and
       # `offline`; Play's are named whole, because `play-` alone would also
       # match `display-verification.e2e.ts`. Add a spec to this line; do NOT
@@ -265,7 +265,7 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      # The one build, as build-web makes it: the Cantina in it needs a backend.
+      # The one build, as build-web makes it: the app in it needs a backend.
       - name: Start a throwaway Convex backend and build the site against it
         uses: ./.github/actions/convex-backend
 

@@ -51,8 +51,8 @@
 }
 
 /* The home band holds only the title and the search (owner, 2026-10-14) and
-   is as tall as the Cantina's front-door band: its title opens where the
-   Cantina's does under that band's eyebrow (the eyebrow's top padding, its
+   is as tall as the app's front-door band: its title opens where the
+   app's does under that band's eyebrow (the eyebrow's top padding, its
    caption line, then 12px). */
 @media (max-width: 39.99rem) {
   .su-home__band .su-chapter-band__row {

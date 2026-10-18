@@ -8,12 +8,12 @@ import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from '
 import { respondWithSite, site } from './siteReply'
 
 /**
- * `/su sheet` — the one Cantina command (ADR-030).
+ * `/su sheet` — the one app command (ADR-030).
  *
  * The picker offers what is **yours**: every pilot, mech and crawler you own,
  * and the crawler of each Game you are in. Anything else — a crewmate's
  * sheet, a stranger's published one — is reached by pasting its link, the
- * `/sheet/…` or `/p/…` address the Cantina shows. The server decides what the caller
+ * `/sheet/…` or `/p/…` address the app shows. The server decides what the caller
  * may read (theirs, a Game they belong to, or published), so the link is an
  * address, never a permission.
  *
@@ -22,7 +22,7 @@ import { respondWithSite, site } from './siteReply'
  * sheet on any surface, so there is deliberately no `/su damage` here.
  */
 
-/** A Cantina sheet address: `/sheet/<kind>/<rowId>` or the public `/p/<kind>/<appId>`. */
+/** An app sheet address: `/sheet/<kind>/<rowId>` or the public `/p/<kind>/<appId>`. */
 const SHEET_LINK = /\/(?:sheet|p)\/(pilot|mech|crawler)\/([^/?#\s>]+)/
 
 /**

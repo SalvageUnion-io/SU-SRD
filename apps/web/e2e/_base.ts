@@ -1,6 +1,6 @@
 import { APP_BASE } from '../src/lib/appBase'
 
-/** The Cantina's base, `/build` (ADR-048): every page the specs open lives under it. */
+/** The app's base, `/build` (ADR-048): every page the specs open lives under it. */
 export const BASE = APP_BASE
 
 /**

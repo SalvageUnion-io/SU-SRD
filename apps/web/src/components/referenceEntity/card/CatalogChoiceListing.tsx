@@ -44,7 +44,7 @@ const chooseButtonStyle = {
  *   "Show options" button that lists the qualifying entities, each a Token
  *   (`EntityTokenList`). No disclosure
  *   triangle: a chevron belongs only to Tokens, rows, the roll-table toggle
- *   and the Cantina's folds. Inside a Peek, which is terminal (E16), the Slab
+ *   and the app's folds. Inside a Peek, which is terminal (E16), the Slab
  *   stands alone: no button.
  *
  * The collection is resolved LAZILY — only when the picker or the listing is

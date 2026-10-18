@@ -39,7 +39,7 @@ const DEPLOY_RECORD = 'deployed/cloudflare'
 /**
  * The surfaces, each one Worker app and named by its directory under `apps/`
  * (the deploy job's matrix entry): a change under `apps/<app>/` ships that
- * surface alone. `web` is the whole site, the reference and the Cantina under
+ * surface alone. `web` is the whole site, the reference and the app under
  * `/build`, as one Worker.
  */
 export const SURFACES = WORKERS.map(({ app }) => app)
@@ -51,7 +51,7 @@ type Surface = (typeof SURFACES)[number]
  * An entry ending in `/` or `*` is a prefix; any other is one exact path.
  *
  * The three root prose files are rendered INTO the about page and bundled
- * `?raw` into the Cantina (ci.yml's `shared` filter carries them for the same
+ * `?raw` into the app (ci.yml's `shared` filter carries them for the same
  * reason), so an edit to one changes what those surfaces serve even though
  * nothing under `apps/` moved. Of `.github/`, only this deploy's own workflow
  * and the actions its jobs run can change what ships. Every entry but

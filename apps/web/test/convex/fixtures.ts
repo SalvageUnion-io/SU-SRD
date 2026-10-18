@@ -9,7 +9,7 @@ import type { testConvex } from './harness'
  * mutations the client store calls, so every row carries the `appId` the links
  * address it by (ADR-037).
  *
- * The bodies are the Cantina's entity fixtures (`src/components/__tests__/fixtures.ts`,
+ * The bodies are the app's entity fixtures (`src/components/__tests__/fixtures.ts`,
  * stamped with its `FIXTURE_NOW`) with the ids and names these suites assert
  * on, so a suite never keeps its own copy of a sheet that drifts from the
  * schema while the shared one is held to it.

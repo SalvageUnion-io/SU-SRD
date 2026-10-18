@@ -14,7 +14,7 @@ import type {
 } from './types'
 
 /**
- * The bot's client for the Cantina Convex deployment (ADR-030).
+ * The bot's client for the app Convex deployment (ADR-030).
  *
  * Deliberately built on `fetch` and nothing else. The `convex` package would
  * buy a websocket and reactive subscriptions, which the bot needs exactly once
@@ -28,7 +28,7 @@ import type {
  * timing out, rejecting the credential, or not configured at all — every call
  * answers `unavailable`, distinct from `denied`, so an outage never reads as a
  * permissions problem. Roll and lookup never wait on it: they behave the same
- * whether or not the Cantina answers, because the reference bot is the
+ * whether or not the app answers, because the reference bot is the
  * thing people already use.
  */
 
@@ -154,7 +154,7 @@ export function createSiteClient(config: Partial<SiteClientConfig>): SiteClient 
       return interpret<T>(response.status, json)
     } catch {
       // Timeout or network failure: the bot's Degraded mode, by design. It is
-      // worded to the user as an outage, and the Cantina's own monitoring owns it.
+      // worded to the user as an outage, and the app's own monitoring owns it.
       return { kind: 'unavailable', message: `${PRODUCT.wordmark} could not be reached.` }
     }
   }

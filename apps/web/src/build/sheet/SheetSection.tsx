@@ -157,7 +157,7 @@ type SheetPickerModalProps = {
 /**
  * The single shared picker modal every collection '+ Add' (and single-select
  * swap) opens — never hand-roll per-sheet dialogs. Multi-select pickers write
- * through on toggle (The Cantina auto-saves; there is no Save button).
+ * through on toggle (The app auto-saves; there is no Save button).
  *
  * There is deliberately **no `footer` prop.** It existed for the master/detail
  * single-select pickers' confirm buttons, and became a trap once they migrated

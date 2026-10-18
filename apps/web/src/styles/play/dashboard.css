@@ -3,7 +3,7 @@
  * §2): the `.su-dash-root` scope and the fixed canvas, the instrument rules
  * inside it, and the phone form's touch floor.
  *
- * The Cantina's own stylesheet: the canvas is a Cantina surface, so its rules
+ * The app's own stylesheet: the canvas is an app surface, so its rules
  * live here rather than in src/components, whose stylesheets srd loads too.
  * `PlayFrame` imports it, before Play's own bundle (`play.css`).
  *

@@ -2,7 +2,7 @@ name: Screenshot gallery
 
 # Screenshots of the PR's own build — every page in
 # packages/gates/lib/galleryPages.ts at desktop and phone, each page's link
-# preview, and the Cantina signed in — uploaded as the `gallery-<n>` artifact.
+# preview, and the app signed in — uploaded as the `gallery-<n>` artifact.
 # `gallery-pages.yml` publishes the artifact to GitHub Pages at
 # /<owner>.github.io/<repo>/<n>/ once this run completes.
 #
@@ -14,7 +14,7 @@ name: Screenshot gallery
 #   gh workflow run gallery.yml --ref main
 #
 # READ-ONLY on purpose: this runs the branch's code, so it holds no write token
-# and no secret. The Cantina is built against a THROWAWAY self-hosted Convex backend
+# and no secret. The app is built against a THROWAWAY self-hosted Convex backend
 # with the test sign-in (the same setup as e2e-nightly.yml's `e2e`), so
 # the gallery can sign a fresh account up and edit characters without touching
 # the staging or production backend. Publishing, which needs `pages: write`,
@@ -76,7 +76,7 @@ jobs:
 
       # One server, as in production: the workspace's Worker (`bun run
       # preview`, wrangler on 4321) serves the reference pages and answers
-      # `/build` with the Cantina, as CI's e2e does. Its link previews read
+      # `/build` with the app, as CI's e2e does. Its link previews read
       # the throwaway backend, not production's.
       - name: Serve the app
         env:

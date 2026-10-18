@@ -288,7 +288,7 @@ function bodyOf(body: unknown): Record<string, unknown> {
  * store that throws on write and caches nothing locally (`SheetView`).
  *
  * The distinction is the whole point. What was never safe was handing a
- * non-owner the Cantina's *editable* sheet — an editing surface backed by local
+ * non-owner the app's *editable* sheet — an editing surface backed by local
  * storage, whose writes the server then refuses, so it would silently stop
  * saving. A read-only rendering has no such failure mode, so reading needs no
  * capability flag here: membership in the Game is the only gate, and the

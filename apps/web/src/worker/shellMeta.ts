@@ -1,7 +1,7 @@
 /**
  * Per-route metadata for the SPA shell.
  *
- * The Cantina is client-rendered, and an unfurl bot runs no JavaScript, so a route's
+ * The app is client-rendered, and an unfurl bot runs no JavaScript, so a route's
  * runtime `<title>` never reaches Discord: every link unfurled as the app
  * itself. This rewrites the shell's head for the routes a player shares, so a
  * link looks like the page it opens.

@@ -13,7 +13,7 @@
  *
  * **If these tests are ever deleted or weakened, delete the provider too.** The
  * provider and this file are one change; keeping one without the other is
- * exactly the ungated second door the Cantina refuses to ship.
+ * exactly the ungated second door the app refuses to ship.
  */
 
 import { describe, expect, test } from 'bun:test'

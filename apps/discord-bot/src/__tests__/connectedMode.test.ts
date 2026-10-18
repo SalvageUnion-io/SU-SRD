@@ -10,7 +10,7 @@ import type { ReplyArg } from './fakeInteraction'
 import { fakeAutocomplete, fakeExecute } from './fakeInteraction'
 
 /**
- * The Game commands with a Cantina deployment configured.
+ * The Game commands with an app deployment configured.
  *
  * Everything here goes through the named test seam in `siteReply.ts` rather
  * than through environment variables or `mock.module` — see that function's
@@ -132,7 +132,7 @@ describe('an ephemeral command', () => {
   })
 
   test('reports an outage as an outage, not as a permissions problem', async () => {
-    connect({ kind: 'unavailable', message: 'The Cantina could not be reached.' })
+    connect({ kind: 'unavailable', message: 'The app could not be reached.' })
     const { interaction, edits, followUps } = fakeExecute({ subcommand: 'me' })
     await meCommand.execute(interaction)
     expect(followUps).toHaveLength(0)

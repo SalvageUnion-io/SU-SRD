@@ -8,7 +8,7 @@ import type { SiteResult } from '../play/types'
 import type { CommandExecuteInteraction } from './interactions'
 
 /**
- * The shared spine of every Cantina Game command (ADR-030).
+ * The shared spine of every app Game command (ADR-030).
  *
  * Three things are identical across all of them and are therefore in one place
  * rather than six:
@@ -26,7 +26,7 @@ import type { CommandExecuteInteraction } from './interactions'
  */
 
 /**
- * The bot's Cantina client. Unconfigured until the Worker installs one from its
+ * The bot's app client. Unconfigured until the Worker installs one from its
  * `env` — configuration does not exist on workerd until `fetch` is called — and
  * an unconfigured client answers every call `unavailable`.
  */
@@ -71,7 +71,7 @@ async function explainFailure(
 }
 
 /**
- * Run one Cantina call and render it, or explain precisely why it could not run.
+ * Run one app call and render it, or explain precisely why it could not run.
  *
  * `render` is only ever reached on success, so a command handler contains no
  * failure branches of its own — which is the point. Every command that forgets

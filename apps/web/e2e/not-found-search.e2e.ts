@@ -5,7 +5,7 @@ import { expect, test } from './fixtures'
 test.use({ account: 'anonymous' })
 
 /**
- * The site's one search and one 404, inside the Cantina: the Union bar's
+ * The site's one search and one 404, inside the app: the Union bar's
  * search is the reference pages' own (the compact index, a result opening the
  * reference page in the same tab), and an unknown route draws the site's 404
  * with its search and "did you mean", plus the way back to the Hangar.
@@ -19,7 +19,7 @@ test('an unknown route shows the site 404 and leads back to the Hangar', async (
 
   await main.getByRole('link', { name: /Back to Hangar/ }).click()
   await expect(page).toHaveURL(at('/'))
-  await expect(page.getByRole('heading', { level: 1, name: /^The Cantina$/i })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: /^Training Bay$/i })).toBeVisible()
 })
 
 test('the bar search opens a reference page in the same tab', async ({ page, context }) => {

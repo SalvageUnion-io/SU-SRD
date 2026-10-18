@@ -43,7 +43,7 @@ screen.
 
 ## Context
 
-The Cantina's live sheet fuses two moments with opposite interaction grammars: editing
+The app's live sheet fuses two moments with opposite interaction grammars: editing
 a character (inline edit and scroll) and running it at the table (one screen,
 no scroll, every action a button). Forcing both into one surface produced
 clutter, so the Dashboard was built as a surface of its own.

@@ -175,7 +175,7 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'client-contract',
     guards:
-      'a Convex argument change that refuses calls an open Cantina tab still makes raises the build floor',
+      'a Convex argument change that refuses calls an open app tab still makes raises the build floor',
     fix: 'keep it compatible (optional argument, keep the old function) or raise BUILD_FLOOR in apps/web/convex/buildFloor.ts to `date +%s`; then `bun tools/check-client-contract.ts --write` records tools/baselines/convex-client-contract.json',
     cmd: ['bun', 'tools/check-client-contract.ts'],
     areas: ['code'],

@@ -35,7 +35,7 @@
   --radius-panel: 6px;
 
   /* The one page measure (`lib/pageMeasure.ts`): the reference pages' band
-     row, body and foot, and the Cantina pages that share their column. */
+     row, body and foot, and the app pages that share their column. */
   --page-measure: 75rem;
 
   /* Semantic type scale (ruleset §4.2 — the ONE font-size ladder). Shared by
@@ -145,7 +145,7 @@
   --color-roll-success: rgb(111, 138, 74); /* #6f8a4a */
   --color-roll-nailed: rgb(75, 134, 160); /* #4b86a0 */
 
-  /* === the Cantina design-handoff tokens (design-spec §1.1) === */
+  /* === the app design-handoff tokens (design-spec §1.1) === */
   /* Ink / paper / action */
   --color-ink: rgb(40, 32, 25); /* #282019 */
   --color-ink-2: rgb(70, 61, 49); /* #463d31 secondary ink */

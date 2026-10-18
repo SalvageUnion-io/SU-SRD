@@ -18,7 +18,7 @@ import { Speckle } from '../atoms/Speckle'
  * game" and the app's account controls. Crossing modes is a tab on the same
  * bar, never an off-site "Builder ↗" / "SRD ↗" link. The tab you are on is an
  * inverse stamp — a paper plate on the ink bar — and never rust (§3.1). Play
- * lives in the Cantina beside Build, so the Cantina's shell serves the bar
+ * lives in the app beside Build, so the app's shell serves the bar
  * with Build current and the app moves "here" to Play on Play's routes
  * (`UnionBarSlots`, by each tab's `data-tool`).
  *
@@ -29,7 +29,7 @@ import { Speckle } from '../atoms/Speckle'
  * (`--su-union-bar-control`, `styles/partials/shell.css`), the product
  * nav inline beside the switcher from `lg`, and the search entry at the same
  * place in the same shape (the one `SearchField` combobox). There are no
- * densities: the SRD's 64px bar and the Cantina's 48px one were two products.
+ * densities: the SRD's 64px bar and the app's 48px one were two products.
  *
  * ## Breadcrumbs
  *
@@ -75,7 +75,7 @@ type AppBarNavItem = {
 }
 
 /**
- * A nav entry the app renders itself — a control, not a link (The Cantina's Games
+ * A nav entry the app renders itself — a control, not a link (The app's Games
  * menu). It takes its place in the nav's order and the bar knows nothing of it.
  */
 export type AppBarNavSlot = {
@@ -90,14 +90,14 @@ type AppBarProps = {
   product: AppBarProduct
   /** Where "Reference" goes — the SRD's home. */
   referenceHref: string
-  /** Where "Build" goes — the Cantina's home. */
+  /** Where "Build" goes — the app's home. */
   buildHref: string
   /** Where "Play" goes — the Play landing. */
   playHref: string
   /** Link component for the brand + internal links. Defaults to a plain anchor. */
   LinkComponent?: ElementType
   /**
-   * The SU mark's URL. The app's own copy: The Cantina serves its files under
+   * The SU mark's URL. The app's own copy: the app serves its files under
    * `/build/` (ADR-048), so the root's is srd's on one origin and missing on
    * any other.
    */
@@ -113,7 +113,7 @@ type AppBarProps = {
   /** "Buy the game" outbound link. Omit to hide. */
   buyHref?: string
   /**
-   * Desktop controls at the right end of the bar — app-owned (The Cantina's account
+   * Desktop controls at the right end of the bar — app-owned (The app's account
    * menu). A slot rather than nav data because these are controls, not links.
    * Desktop only: the `mobile` slot carries whatever the app wants below `lg`.
    */

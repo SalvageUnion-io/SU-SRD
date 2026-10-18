@@ -1,6 +1,6 @@
 /* biome-ignore-all lint/complexity/noImportantStyles: print stylesheet — every override must beat package rules and inline styles at print time, and the pip re-assertions must beat this file's own universal `*` !important reset */
 /**
- * print.css — the Cantina's @media print rules, over the shared `data-print`
+ * print.css — the app's @media print rules, over the shared `data-print`
  * vocabulary and chrome rule in `base.css`.
  *
  * Do not add a print block to `index.css`: a second `@media print` block can

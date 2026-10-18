@@ -8,7 +8,7 @@ Accepted
 
 ## Context
 
-When the Cantina applies combat results to a mech sheet, a recurring question is which
+When the app applies combat results to a mech sheet, a recurring question is which
 events the app should apply automatically and which require explicit player
 action. An inconsistent boundary (auto-applying some destructive outcomes but not
 others) produces a confusing experience and surprises players with destroyed gear

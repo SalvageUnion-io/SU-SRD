@@ -4,7 +4,7 @@ name: Deploy preview (Cloudflare)
 # `preview` label: one su-srd Preview, as production is one su-srd Worker.
 #
 #   site     https://pr-<n>-su-srd.alxjrvs.workers.dev
-#   Cantina  https://pr-<n>-su-srd.alxjrvs.workers.dev/build, against the
+#   App  https://pr-<n>-su-srd.alxjrvs.workers.dev/build, against the
 #            staging Convex deployment perfect-donkey-72
 #
 # Adding the label builds and ships the PR; each later push to it ships again;
@@ -27,7 +27,7 @@ name: Deploy preview (Cloudflare)
 # can deploy any Worker on the account (ADR-033 §Credentials). Only `ship` and
 # `teardown` name the Environment, and `ship` only after every build is green.
 #
-# ONE STAGING BACKEND. Every Preview's Cantina talks to perfect-donkey-72, and each
+# ONE STAGING BACKEND. Every Preview's app talks to perfect-donkey-72, and each
 # run pushes its PR's Convex functions and schema there and points its
 # SITE_URL (the sign-in callback) at its own Preview: the last PR shipped wins
 # both, so two labelled PRs with different schemas, or a sign-in on an older
@@ -101,7 +101,7 @@ jobs:
           site-origin: ${{ env.PREVIEW_ORIGIN }}
           retention-days: '1'
 
-  # Push the staging backend, then ship su-srd, with the Cantina in its
+  # Push the staging backend, then ship su-srd, with the app in its
   # `dist/build/`, as a Preview, only after the build is green.
   ship:
     needs: [build-web]
@@ -215,7 +215,7 @@ jobs:
             echo "### \`$PREVIEW_NAME\` now serves \`$SHA\`"
             echo
             echo "- site: $PREVIEW_URL"
-            echo "- Cantina: $PREVIEW_URL/build (Convex \`$STAGING_CONVEX_DEPLOYMENT\`)"
+            echo "- the app: $PREVIEW_URL/build (Convex \`$STAGING_CONVEX_DEPLOYMENT\`)"
           } >> "$GITHUB_STEP_SUMMARY"
 
   # One comment per PR carrying the URLs, edited in place on every ship. Its own
@@ -237,7 +237,7 @@ jobs:
         run: |
           set -euo pipefail
           marker='<!-- deploy-preview -->'
-          body=$(printf '%s\n**Preview** of %s\n\n- site: %s\n- Cantina: %s/build (staging Convex, shared by every Preview)\n' \
+          body=$(printf '%s\n**Preview** of %s\n\n- site: %s\n- the app: %s/build (staging Convex, shared by every Preview)\n' \
             "$marker" "${SHA:0:12}" "$PREVIEW_URL" "$PREVIEW_URL")
           id=$(gh api "repos/$REPO/issues/$PR/comments" --paginate \
             --jq "[.[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$marker\")))][0].id // empty")

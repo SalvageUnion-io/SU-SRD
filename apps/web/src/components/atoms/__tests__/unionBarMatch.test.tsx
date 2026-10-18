@@ -55,7 +55,7 @@ describe('ChapterBand and the Union bar', () => {
   test('a front page band keeps the ink bar', () => {
     const html = renderToStaticMarkup(
       <ChapterBand tone="build" matchBar={false}>
-        The Cantina
+        Training Bay
       </ChapterBand>
     )
     expect(html).not.toContain('<style>')

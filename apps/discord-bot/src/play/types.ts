@@ -1,5 +1,5 @@
 /**
- * The wire shapes the Cantina Convex deployment returns to the bot.
+ * The wire shapes the app Convex deployment returns to the bot.
  *
  * These are **imported**, not copied: the single declaration is
  * `packages/game-domain/src/botWire.ts`, which `convex/botClient.ts` annotates
@@ -38,12 +38,12 @@ export type { SheetTable } from 'game-domain/entityKinds'
 export type DenialReason = BotDenialReason
 
 /**
- * The result of any Cantina call, as three cases the commands must all handle.
+ * The result of any app call, as three cases the commands must all handle.
  *
  * Bot-side only — the wire carries `ok`/`reason`, and `client.ts` interprets
  * it into this. `unavailable` is separate from `denied` on purpose: it is the
  * bot's **Degraded** mode (ADR-030's three storage modes, applied to the bot).
- * "The Cantina is down" and "you are not in this game" want different words, and
+ * "The app is down" and "you are not in this game" want different words, and
  * collapsing them would have every outage read as a permissions problem.
  */
 export type SiteResult<T> =

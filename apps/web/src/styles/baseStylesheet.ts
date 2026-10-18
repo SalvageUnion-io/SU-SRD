@@ -2,11 +2,11 @@
  * baseStylesheet — the one stylesheet both apps link: the Barlow faces and the
  * src/components entry (`./base.css`), at `/assets/base-<hash>.css`.
  *
- * srd and the Cantina once bundled the fonts and the package stylesheet into
+ * srd and the app once bundled the fonts and the package stylesheet into
  * their own CSS, under their own bases: a visit crossing from one to the other
  * downloaded the same ~115 KB twice, from two URLs. It is built once here, with
  * no config either app could change, and the one Vite pass (`vite.config.ts`)
- * emits it (`emitBaseStylesheet`) and links it from the Cantina's shell
+ * emits it (`emitBaseStylesheet`) and links it from the app's shell
  * (`baseStylesheetLink`, `ssg/appPlugins.ts`); srd's pages link it from
  * the manifest (`ssg/build.ts`).
  *

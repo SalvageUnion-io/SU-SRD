@@ -50,7 +50,7 @@ export const BOT_OP_NAMES = [
 export type BotOpName = (typeof BOT_OP_NAMES)[number]
 
 /**
- * Why the bot could not act, when it could not: no Cantina account carries this
+ * Why the bot could not act, when it could not: no app account carries this
  * Discord id (`unlinked`), the sheet or Game asked for is absent or not the
  * caller's to read (`not-found`, one answer for both so neither discloses), or
  * the caller is known but may not do this (`forbidden`: binding a channel to a

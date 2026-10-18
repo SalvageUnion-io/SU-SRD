@@ -1,7 +1,7 @@
 /**
  * Tests for srdEntityExternalLink.
  *
- * The builder is the Cantina's app-wide EntityExternalLinkProvider value: full entity
+ * The builder is the app's app-wide EntityExternalLinkProvider value: full entity
  * cards + detail modals render its node in their foot band. It must produce a
  * same-tab "View in SRD" link for real catalog entities and nothing for entities whose
  * schema has no srd page.

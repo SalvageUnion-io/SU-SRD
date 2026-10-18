@@ -47,7 +47,7 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  * the cluster follows the title, below the band on the page ground. The
  * notch stays on the band's foot either way.
  *
- * A page whose aside is its action buttons (the Cantina's Hangar and Game
+ * A page whose aside is its action buttons (the app's Hangar and Game
  * pages) passes `asideAt="controls"`: each control is its own item on the
  * title's line, right-aligned on the band's foot beside the name, and the
  * ones that do not fit there wrap onto lines ABOVE it, right-aligned, into
@@ -73,7 +73,7 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  *
  * `corner` sits in the band's top-right corner, above the title row, at every
  * width: a page's own controls where they are not the entity's stamps (an
- * The Cantina sheet's Read | Edit, Share and "⋯", the Starter Set's "Make a copy").
+ * the app sheet's Read | Edit, Share and "⋯", the Starter Set's "Make a copy").
  *
  * ## Colour map
  *

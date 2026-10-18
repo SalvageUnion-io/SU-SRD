@@ -10,12 +10,12 @@ written, with the cutover's context and hazards:
 `git show bc9f08ce:docs/ARCHITECTURE.md`. Current identifiers (Workers,
 buckets, zones) are in [Cloudflare](../ARCHITECTURE.md#cloudflare).
 
-**Amended by ADR-048:** The Cantina is served at `salvageunion.io/build` by
+**Amended by ADR-048:** The app is served at `salvageunion.io/build` by
 `su-srd` itself (`run_worker_first` on `/build`), and there is no `su-cantina`
 Worker; `intheunionnow.com` is a zone Redirect Rule to the same page there. **ADR-047** (one edge Worker for `api.`) is
 accepted, not built.
 
-**Amended by ADR-050:** one workspace, `apps/web`, builds the reference pages and the Cantina into one
+**Amended by ADR-050:** one workspace, `apps/web`, builds the reference pages and the app into one
 `dist/` that `su-srd` ships in one deploy leg ([full text](050-one-app.md)).
 
 **Amended — srd answers misses.** `src/worker/index.ts` runs for every miss and

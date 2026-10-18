@@ -112,7 +112,7 @@ describe('renderGallery, page by page', () => {
 
   test('link previews: signed-out pages only, their og text, or the name and no image', () => {
     const og = new Map([
-      [pageSlug(appOut), { title: 'The Cantina', description: 'Builder', image: true }],
+      [pageSlug(appOut), { title: 'The app', description: 'Builder', image: true }],
     ])
     const html = render([srdPage, appIn, appOut], run(), og)
     expect(html).toContain('Link previews <small>2 pages</small>')

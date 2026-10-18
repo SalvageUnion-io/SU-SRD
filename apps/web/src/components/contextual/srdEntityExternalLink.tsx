@@ -3,7 +3,7 @@ import type { EntityExternalLinkBuilder } from '../index'
 import { SRDLink } from '../index'
 
 /**
- * The Cantina's app-wide "View in SRD" cross-link builder.
+ * The app's app-wide "View in SRD" cross-link builder.
  *
  * Supplied through the UI library's `EntityExternalLinkProvider` (wired in
  * `GameDataReady`), so every FULL — non-compact, non-listing — entity card,

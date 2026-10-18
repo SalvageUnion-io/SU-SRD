@@ -1,6 +1,6 @@
 /*
  * unitSlot.css — the stateful/responsive half of the
- * The Cantina components listed below; their static styling is style objects over
+ * app components listed below; their static styling is style objects over
  * src/components tokens. Loaded by `index.css`.
  *
  *   - `EmptyUnitSlot` (components/shared/EmptyUnitSlot.tsx): the dashed

@@ -42,7 +42,7 @@ export function Roster() {
 
   // Signed out there is nothing of theirs to list and nothing may be built:
   // every build lives in an account (ADR-034 as amended). The front door says
-  // what the Cantina is, offers the sign-in, and opens the Starter Set, which reading
+  // what the app is, offers the sign-in, and opens the Starter Set, which reading
   // needs no account for.
   if (mode === 'solo') return <FrontDoor />
 

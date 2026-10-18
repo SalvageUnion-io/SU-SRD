@@ -1,11 +1,11 @@
 /**
- * The one Vite config: srd and the Cantina, built in one pass into one `dist/`
+ * The one Vite config: srd and the app, built in one pass into one `dist/`
  * (ADR-050), and served by the one dev server (`ssg/dev.ts`).
  *
  * - **srd** is three client entries (`src/runtime/`) the SSG links into every
  *   page it pre-renders: `ssg/build.ts` runs this build, reads its manifest,
  *   then renders the pages under Bun. There is no server build.
- * - **The Cantina** is one HTML entry, its shell, rendered rather than read
+ * - **The app** is one HTML entry, its shell, rendered rather than read
  *   (`ssg/appPlugins.ts`) and emitted as `build/index.html`. Its chunks
  *   share `assets/` with srd's; its router and service worker live under
  *   `/build/` (`APP_BASE` in `src/lib/appBase.ts`, ADR-048).
@@ -49,12 +49,12 @@ const SRD_INPUT = {
   assets: join(HERE, 'src/runtime/assets.entry.ts'),
 }
 
-/** The Cantina's entry, by input key (`APP_CHUNK` in ssg/build.ts). */
+/** The app's entry, by input key (`APP_CHUNK` in ssg/build.ts). */
 const APP_CHUNK = 'app'
 
 const graph = appGraph({ pageEntries: Object.values(SRD_INPUT) })
 
-/** A Cantina chunk group: never a module an srd page reaches (`ssg/appGraph.ts`). */
+/** An app chunk group: never a module an srd page reaches (`ssg/appGraph.ts`). */
 const notOnPages =
   (pattern: RegExp) =>
   (id: string): boolean =>
@@ -137,7 +137,7 @@ export default defineConfig({
         // React, ReactDOM and the scheduler change only on a dependency bump:
         // one long-cached chunk both apps share.
         //
-        // The rest are the Cantina's, for the code every route loads. Left to
+        // The rest are the app's, for the code every route loads. Left to
         // itself, Rolldown folded its initial graph into ONE ~600 KB chunk
         // that every deploy re-hashed; split by how often each part changes,
         // third-party code and Zod stay cached and download in parallel.
@@ -150,9 +150,9 @@ export default defineConfig({
         // its JSON is dynamically imported per schema, and one chunk would
         // ship the full ~1.4 MB corpus to every page.
         codeSplitting: {
-          // A group does not pull in what its modules import: the Cantina's
+          // A group does not pull in what its modules import: the app's
           // groups import srd's shared modules, which must stay where srd's
-          // pages load them. srd's modules import nothing of the Cantina's,
+          // pages load them. srd's modules import nothing of the app's,
           // so nothing they reach is in a group and no chunk cycles back.
           includeDependenciesRecursively: false,
           groups: [
@@ -178,7 +178,7 @@ export default defineConfig({
               tags: ['$initial'],
               priority: 20,
             },
-            // The Cantina's own code every route loads, as one chunk, not a
+            // The app's own code every route loads, as one chunk, not a
             // dozen sub-kilobyte ones. `main.tsx` stays the entry chunk itself,
             // whose URL is the build's name (`entryChunk` in main.tsx).
             {

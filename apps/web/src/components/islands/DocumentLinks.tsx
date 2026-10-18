@@ -13,7 +13,7 @@ const SURFACE = { linkAs: DocumentAnchor } satisfies Partial<EntitySurfaceValue>
 
 /**
  * The entity links below it are reference pages, which live outside any
- * router: on a static page and in the Cantina alike (where the surface's
+ * router: on a static page and in the app alike (where the surface's
  * router link would put a root-relative path under `/build/`), each one is a
  * plain `<a href>` that opens the page in the same tab.
  */

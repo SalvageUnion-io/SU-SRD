@@ -1,17 +1,17 @@
 /**
  * The pages the screenshot gallery shoots (`tools/gallery.ts`): the screens worth a
  * reviewer's look, grouped the way the gallery prints them. Every path is on
- * the one site, the Cantina's under `BUILDER_BASE`; `signedIn` pages are
+ * the one site, the app's under `BUILDER_BASE`; `signedIn` pages are
  * reached through a seeded test account (`tools/gallery.ts` copies three
  * Starter Set characters to its Shelves), and their `path` may name a seeded
  * entity by kind (`:pilot`, `:mech`, `:crawler`, `:game`), resolved once the
  * seed has run.
  */
 
-/** Where the Cantina is served on the site (ADR-048). */
+/** Where the app is served on the site (ADR-048). */
 export const BUILDER_BASE = '/build'
 
-/** True for a path the Cantina serves (under `BUILDER_BASE`). */
+/** True for a path the app serves (under `BUILDER_BASE`). */
 export const isBuilderPath = (path: string): boolean =>
   path === BUILDER_BASE || path.startsWith(`${BUILDER_BASE}/`)
 
@@ -38,7 +38,7 @@ export type GallerySection = {
 const srd = (path: string, name: string, note: string, chips: readonly string[] = []) =>
   ({ path, name, note, chips }) satisfies GalleryPage
 
-/** A Cantina page: its route under `BUILDER_BASE`, or a seeded `:kind`. */
+/** An app page: its route under `BUILDER_BASE`, or a seeded `:kind`. */
 const app = (
   route: string,
   name: string,
@@ -132,7 +132,7 @@ export const GALLERY_SECTIONS: readonly GallerySection[] = [
   },
   {
     id: 'app',
-    title: 'The Cantina, signed out',
+    title: 'The app, signed out',
     tone: 'var(--rust)',
     intro:
       "The character builder as a visitor sees it: the front door and the Starter Set's ready-made characters, read-only.",
@@ -145,7 +145,7 @@ export const GALLERY_SECTIONS: readonly GallerySection[] = [
   },
   {
     id: 'app-edit',
-    title: 'The Cantina, signed in',
+    title: 'The app, signed in',
     tone: 'var(--pilot)',
     intro:
       'A fresh test account with Bonesaw, the Mazona and Tenacity copied from the Starter Set, Bonesaw moved into a Game.',

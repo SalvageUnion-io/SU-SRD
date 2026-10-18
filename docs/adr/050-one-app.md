@@ -12,7 +12,7 @@ library is a folder, not a package), [ADR-031](../ARCHITECTURE.md#decisions)
 
 ## Context
 
-The SRD (`apps/srd`), the Cantina (`apps/cantina`) and their shared components
+The SRD (`apps/srd`), the app (`apps/cantina`) and their shared components
 (`packages/component-lib`) were three workspaces, two Workers, two output folders,
 two headers and two install prompts for what readers meet as one site at
 `salvageunion.io`. Every cross-cutting change (a header control, a token, the
@@ -23,20 +23,20 @@ parts. Not two apps that happen to share a repo, and not separable.
 
 ## Decision
 
-`apps/web` is one app. Its reference pages and the Cantina differ only in how
+`apps/web` is one app. Its reference pages and the app differ only in how
 a page renders, never in how the app is built, served, installed or checked.
 
 1. **Two render modes, one source tree.** `src/` holds one component library
    (`src/components`), one `lib/`, the static pages (`src/reference/pages`, rendered by
-   the in-house SSG in `ssg/`) and the Cantina's routes (`src/routes`, rendered
+   the in-house SSG in `ssg/`) and the app's routes (`src/routes`, rendered
    in the browser at `/build/`). The pages stay static islands under the 20 KB
    JS budget, with no Convex on them: Biome bars `pages`, `endpoints`,
    `layouts`, `runtime` and the islands from importing the router, Convex, the
    stores or the shell.
 2. **One build.** One Vite pass (`vite.config.ts`) builds everything into one
    `dist/` and renders the pages inside the pass (`ssg/prerender.ts`). The
-   Cantina's shell is `dist/build/index.html`; their chunks share
-   `dist/assets/`, and no Cantina chunk group takes a module a page reaches
+   app's shell is `dist/build/index.html`; their chunks share
+   `dist/assets/`, and no app chunk group takes a module a page reaches
    (`ssg/appGraph.ts`). One `bun run dev` serves it all from one server on the
    same config.
 3. **One document head.** Every page, the shell included, carries the same

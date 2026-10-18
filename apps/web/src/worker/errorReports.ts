@@ -22,7 +22,7 @@
  *   groups it like a Worker's own. The stacks stay minified: Cloudflare maps
  *   only a Worker's own code.
  * - **Convex.** A Convex log stream (a webhook, configured in the Convex
- *   dashboard) posts the deployment's logs to the Cantina Worker
+ *   dashboard) posts the deployment's logs to the app Worker
  *   ({@link handleConvexLogStream}), which logs each failed function and each
  *   `console.error` as an `Error`.
  */

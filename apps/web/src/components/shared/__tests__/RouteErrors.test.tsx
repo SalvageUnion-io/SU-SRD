@@ -65,7 +65,7 @@ describe('a crash in one route leaves the app standing', () => {
     const rootRoute = createRootRoute({
       component: () => (
         <>
-          <header>Cantina header</header>
+          <header>app header</header>
           <Outlet />
         </>
       ),
@@ -91,7 +91,7 @@ describe('a crash in one route leaves the app standing', () => {
     mount({ fail: true })
 
     expect(await screen.findByText('This page hit an error')).toBeTruthy()
-    expect(screen.getByText('Cantina header')).toBeTruthy()
+    expect(screen.getByText('app header')).toBeTruthy()
     // Not the root's full-page panel.
     expect(screen.queryByText('Something went wrong')).toBeNull()
   })

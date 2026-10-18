@@ -8,7 +8,7 @@ paths:
 
 ## Layout
 
-Every test lives in a `__tests__/` beside its subject; Cantina's Convex suites in
+Every test lives in a `__tests__/` beside its subject; the app's Convex suites in
 `apps/web/test/convex/__tests__/` (Convex deploys any helper inside `convex/`).
 `check test-layout` enforces it and one `test` script per workspace. Preloads
 live in workspace bunfigs, not the root's.
@@ -16,11 +16,11 @@ live in workspace bunfigs, not the root's.
 ## Component Testing
 
 - Test user interactions, query by role/label, `waitFor` async updates
-- React's "not wrapped in act(...)" and "a style property during rerender" warnings fail the test (`apps/web/test/testing-library.ts`): settle async work inside `await act(async () => …)`, and in Cantina load the real stores first with `hydrateStores` (`src/components/__tests__/hydrateStores.ts`)
+- React's "not wrapped in act(...)" and "a style property during rerender" warnings fail the test (`apps/web/test/testing-library.ts`): settle async work inside `await act(async () => …)`, and in app load the real stores first with `hydrateStores` (`src/components/__tests__/hydrateStores.ts`)
 
 ## Mocking
 
-- The Cantina stores are in memory: reset with `resetStores()`, seed with `adopt` (`src/stores/__tests__/`)
+- The app stores are in memory: reset with `resetStores()`, seed with `adopt` (`src/stores/__tests__/`)
 - Use `mock()` from `bun:test` for module/function mocking
 
 ### `mock.module` is process-global — restore what you replace

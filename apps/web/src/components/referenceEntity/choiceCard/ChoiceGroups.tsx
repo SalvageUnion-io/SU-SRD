@@ -38,7 +38,7 @@ import {
  * (the choices are readable; they just aren't choosable).
  *
  * One selection state machinery (controlled / ephemeral, id-keyed, cap
- * resolution) serves Cantina persistence and the SRD ephemeral case alike.
+ * resolution) serves app persistence and the SRD ephemeral case alike.
  */
 
 type ChoiceGroupsProps = {

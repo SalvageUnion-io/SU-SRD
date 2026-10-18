@@ -92,7 +92,7 @@ export function srdEntityPath(schemaName: string, slug: string): string {
  *
  * Keep this the only place either shape is spelled. Directory-style output
  * redirects an un-slashed form rather than 404ing, so a second spelling would
- * cost a hop on every bot and the Cantina deep link and split the canonical URL in
+ * cost a hop on every bot and the app deep link and split the canonical URL in
  * two, without ever failing.
  *
  * @param schemaName - The entity's schema id (e.g. `'chassis'`)

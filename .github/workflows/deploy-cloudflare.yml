@@ -20,7 +20,7 @@ name: Deploy (Cloudflare)
 #   plan       provenance, the deploy set and every credential guard. Holds no
 #              artifact; fails before anything is built. Each Worker's bundle
 #              was already proved by its CI build job on the merged PR.
-#   build-web  the site's one build (the reference pages, then the Cantina
+#   build-web  the site's one build (the reference pages, then the app
 #              into `dist/build/`, ADR-050), against the production Convex
 #              URL (.github/actions/build-site). It uploads the exact `dist`
 #              it produced and pushes nothing anywhere. It also renders the
@@ -41,7 +41,7 @@ name: Deploy (Cloudflare)
 # chose.
 #
 # ARTIFACTS ARE BUILT HERE, NOT TAKEN FROM CI. CI's build has no release
-# SHA or OG images, and its Cantina targets a throwaway Convex
+# SHA or OG images, and its app targets a throwaway Convex
 # backend, not `PRODUCTION_CONVEX_URL`; and CI path-filters per PR while this deploys
 # per last recorded deploy, so a surface can need shipping on a commit where CI
 # skipped its build.
@@ -96,7 +96,7 @@ permissions:
   contents: read
 
 env:
-  # The production Convex deployment's client URL, which the Cantina is compiled
+  # The production Convex deployment's client URL, which the app is compiled
   # against. Public — it is in every shipped bundle — and documented in
   # docs/ARCHITECTURE.md#identifiers. It is a constant rather than whatever
   # `convex deploy --cmd` hands the build, because that command PUSHES the
@@ -105,7 +105,7 @@ env:
   # deploy key resolves to before it pushes, so a moved deployment fails the
   # run before anything ships instead of shipping a client aimed elsewhere.
   PRODUCTION_CONVEX_URL: https://exuberant-porpoise-183.convex.cloud
-  # Where the Cantina is served (ADR-048): `SITE` in apps/web/src/lib/site.ts, with
+  # Where the app is served (ADR-048): `SITE` in apps/web/src/lib/site.ts, with
   # no trailing slash, as Convex Auth's SITE_URL wants it (the routing test
   # holds them equal). `push-convex` sets it on the production backend.
   APP_URL: https://salvageunion.io/build
@@ -259,7 +259,7 @@ jobs:
   # at deploy time, as CI's bundle-workers does.
 
   # The site — the static reference pages, with their OG images rendered into
-  # the same `dist`, and the Cantina in its `dist/build/`, built against the
+  # the same `dist`, and the app in its `dist/build/`, built against the
   # production Convex URL.
   build-web:
     needs: plan
@@ -303,7 +303,7 @@ jobs:
   #
   # Order is the whole point. The backend must never be BEHIND the served
   # client, so it is pushed before
-  # the deploy's site leg, which ships the Cantina, can run. And it must not be pushed by a run that ends up
+  # the deploy's site leg, which ships the app, can run. And it must not be pushed by a run that ends up
   # shipping nothing, so it waits for the build — a build failure stops the
   # push exactly as it stops every deploy. Between this job and
   # the site leg the backend leads the served client for a minute or two,
@@ -338,10 +338,10 @@ jobs:
           expected-url: ${{ env.PRODUCTION_CONVEX_URL }}
 
       # Convex Auth sends a signed-in player back to SITE_URL, which must be
-      # where the Cantina is served, base included (`/build`, ADR-048). Set on
+      # where the app is served, base included (`/build`, ADR-048). Set on
       # every deploy, not by hand, so the repo says where it points;
       # idempotent. Not a secret.
-      - name: Point the backend's SITE_URL at the Cantina
+      - name: Point the backend's SITE_URL at the app
         working-directory: apps/web
         env:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
@@ -400,7 +400,7 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      # The Cantina under `/build` in it was compiled against the backend
+      # The app under `/build` in it was compiled against the backend
       # `push-convex` pushed.
       - name: Download the site artifact
         if: matrix.app == 'web'
@@ -437,7 +437,7 @@ jobs:
   # ===========================================================================
   #
   # Deliberately includes the rotated-chunk 404: su-srd's Worker (for the SRD,
-  # and for the Cantina under `/build`) stops a missing hashed chunk
+  # and for the app under `/build`) stops a missing hashed chunk
   # answering `200 text/html`, which the `immutable` header would pin into the
   # HTTP cache for a year.
   # The list lives in tools/smoke-production.sh so e2e-nightly.yml can run

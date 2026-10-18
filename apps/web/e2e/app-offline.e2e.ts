@@ -5,7 +5,7 @@ import { serviceWorkerReady } from './_serviceWorker'
 import { expect, test } from './fixtures'
 
 /**
- * Offline — the one spec that proves the Cantina is actually a PWA rather than merely
+ * Offline — the one spec that proves the app is actually a PWA rather than merely
  * configured as one, and that pins what offline means for a player's data.
  *
  * ADR-034 decision 3 says an installed app works offline. The app ships a
@@ -58,7 +58,7 @@ import { expect, test } from './fixtures'
 /**
  * Get the page to a state where a service worker is actually serving it.
  *
- * **A first load is never controlled, and that is by design.** The Cantina runs
+ * **A first load is never controlled, and that is by design.** The app runs
  * `registerType: 'prompt'`, which deliberately does not set `clientsClaim` — a
  * worker that claimed the open page would run `cleanupOutdatedCaches()` under
  * it and delete the precache it was still resolving chunks against. That is the
@@ -133,7 +133,7 @@ test.describe('signed out: the shell', () => {
     // The shell renders from cache. This is the whole promise: an installed app
     // opens with no network.
     await expect(page).toHaveTitle(/SalvageUnion\.io/)
-    await expect(page.getByRole('heading', { level: 1, name: /^The Cantina$/i })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: /^Training Bay$/i })).toBeVisible()
 
     await context.setOffline(false)
   })
@@ -156,9 +156,9 @@ test.describe('signed out: the shell', () => {
 
     await context.setOffline(true)
 
-    // The Cantina is a SPA, so every route is the same document. That is exactly why
+    // The app is a SPA, so every route is the same document. That is exactly why
     // this is worth asserting rather than assuming: it is what distinguishes
-    // The Cantina's offline story from `srd`'s, where an unvisited page genuinely 404s
+    // the app's offline story from `srd`'s, where an unvisited page genuinely 404s
     // offline because each one is its own HTML file (ADR-034 decision 3).
     // A REAL route this test has not visited: the SPA shell must serve it from
     // cache and route it. (A route that does not exist would assert only that

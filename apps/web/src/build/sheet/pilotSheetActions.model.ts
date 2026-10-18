@@ -168,7 +168,7 @@ export function usePilotSheetActions({
   }
 
   // Collection add/remove (unified edit language archetype B) — always
-  // available, writes through on toggle (The Cantina auto-saves; no Save button).
+  // available, writes through on toggle (The app auto-saves; no Save button).
   // Reads the FRESHEST record so rapid toggles in the picker grid don't race
   // the async store write.
   // Advisory only (soft warnings), never rule-GATED: the cap, tree order and

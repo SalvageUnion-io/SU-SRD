@@ -4,11 +4,11 @@ import { at } from './_base'
 import { waitForReady } from './_helpers'
 
 /**
- * The Cantina e2e `test`, signed in by default.
+ * The app e2e `test`, signed in by default.
  *
  * ## Why every spec signs in
  *
- * A build lands in exactly one place: the account. Signed out, the Cantina is
+ * A build lands in exactly one place: the account. Signed out, the app is
  * read-only and refuses every write, so every spec that builds something is a
  * test of the signed-in path, run the way production runs.
  *
@@ -45,7 +45,7 @@ import { waitForReady } from './_helpers'
  */
 
 /**
- * The Cantina's per-test budget. The first navigation of a test pulls in
+ * The app's per-test budget. The first navigation of a test pulls in
  * salvageunion-reference (a large JSON dataset) and, against the dev server,
  * Vite's lazy compile of the dashboard and builder routes: 30-60 s on GHA
  * Ubuntu runners. 90 s leaves headroom without masking a real hang; against a

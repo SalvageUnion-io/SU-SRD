@@ -1,7 +1,8 @@
-# web — salvageunion.io and the Cantina
+# web — salvageunion.io and its app
 
 One app ([ADR-050](../../docs/ARCHITECTURE.md#decisions)): the SRD's pre-rendered pages
-and the Cantina, the client app at `/build`.
+and the client app at `/build`. `src/` groups by area: `reference/`, `build/` (the Training
+Bay), `play/` (The Cantina), over the shared `components/`.
 
 In-house SSG in `ssg/`, not Astro ([ADR-031](../../docs/ARCHITECTURE.md#decisions)); the contract is
 [`ssg/DESIGN.md`](ssg/DESIGN.md) — **read it first.**
@@ -73,7 +74,7 @@ lower a budget when a page gets faster.
 - Entity pages carry a Discord Component Embed (`src/lib/componentEmbed.ts`).
 - A `feat|fix|perf(web):` PR title reaches `/changelog`; the older `srd`, `cantina` and `itun` scopes still read.
 
-## The Cantina
+## The client app
 
 Guide: [`src/routes/CLAUDE.md`](src/routes/CLAUDE.md); Convex in `convex/`, tests in
 `test/` and `e2e/`; static pages never import them (Biome). The block below

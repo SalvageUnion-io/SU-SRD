@@ -91,7 +91,7 @@ check https://www.salvageunion.io/ 301 "srd www redirect"
 # standing up a second origin; only an explicit 301 assertion tells them apart.
 # the app's old host is checked for the same reason.
 check https://www.intheunionnow.com/ 301 "app www redirect"
-# The Cantina lives at salvageunion.io/build (ADR-048), served by su-srd
+# The app lives at salvageunion.io/build (ADR-048), served by su-srd
 # (apps/web/src/worker/app.ts). intheunionnow.com, where it lived before,
 # 301s every page to the same path there: a zone Redirect Rule, not repo config
 # (ADR-033, "Configuration outside the repo"). su-srd then sends a retired
@@ -129,7 +129,7 @@ check https://salvageunion.io/__convex-logs 405 "Convex log stream endpoint is r
 # Where the Convex dashboard's webhook posted before the app was one, kept
 # until it is pointed at /__convex-logs.
 check https://salvageunion.io/build/__convex-logs 405 "retired Convex log stream endpoint is routed"
-# The Cantina is a single-page app, so only su-srd's Worker keeps a missing
+# The app is a single-page app, so only su-srd's Worker keeps a missing
 # chunk under /build from #759, where a missing hashed chunk answered `200 text/html` and the
 # `immutable` header pinned that HTML into the HTTP cache for a year. curl sends
 # no `Sec-Fetch-Mode: navigate`, so these two reach the Worker exactly as a
@@ -163,13 +163,13 @@ fi
 # One workers.dev check, deliberately: if the custom domains fail and this
 # passes, the Worker deployed fine and the routing layer is what broke.
 check https://su-srd.alxjrvs.workers.dev/ 200 "srd reachable on workers.dev"
-# su-srd, not a route ahead of it, serves the Cantina.
+# su-srd, not a route ahead of it, serves the app.
 check https://su-srd.alxjrvs.workers.dev/build/ 200 "app shell from su-srd on workers.dev"
 
-# /health answers 200 only when both the Cantina secrets are set and Discord itself
-# accepted the bot token (it calls /users/@me); 503 when a Cantina secret is
+# /health answers 200 only when both the app secrets are set and Discord itself
+# accepted the bot token (it calls /users/@me); 503 when an app secret is
 # missing or the token is rejected or absent, 502 when Discord is unreachable.
 # Either is otherwise invisible until the first interaction.
-check https://su-discord-bot.alxjrvs.workers.dev/health 200 "bot token accepted and the Cantina configured"
+check https://su-discord-bot.alxjrvs.workers.dev/health 200 "bot token accepted and the app configured"
 
 exit "$fail"

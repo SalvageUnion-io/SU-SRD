@@ -1,8 +1,8 @@
 /*
  * libHandback.css — src/components classes handed back their own values over
- * The Cantina's element rules. Loaded by `index.css`.
+ * the app's element rules. Loaded by `index.css`.
  *
- * The Cantina's stylesheets are unlayered and the UI library's classes sit in the
+ * The app's stylesheets are unlayered and the UI library's classes sit in the
  * `su-base` layer, so an app rule on an element (index.css's `h1`…`h6` face)
  * beats a class on that element whatever the specificity. `revert-layer` in a
  * class rule here outranks the element rule and hands the property back to

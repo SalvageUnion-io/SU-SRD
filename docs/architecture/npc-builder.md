@@ -1,6 +1,6 @@
 # NPC Builder
 
-A built NPC is the Cantina's fourth entity, designed by anyone and able to crew a crawler's slots. Decisions: ADR-044 in [ARCHITECTURE.md](../ARCHITECTURE.md).
+A built NPC is the app's fourth entity, designed by anyone and able to crew a crawler's slots. Decisions: ADR-044 in [ARCHITECTURE.md](../ARCHITECTURE.md).
 
 1. **§1 Record** — `packages/game-domain/src/schemas/npc.ts`: the `npcs` stat block plus a crew member's identity; actions are slugs, traits the package's refs, never copies.
    Owned and synced like a pilot, never an `encounterNpcs` row; `apps/web/src/lib/npcs/npcModel.ts` reads it against the reference.

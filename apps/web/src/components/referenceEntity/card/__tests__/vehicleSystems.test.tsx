@@ -4,7 +4,7 @@
  * Locomotion System) or the vehicle's own action (the Power Loader's Rigging
  * Arm, the Tombstone Trackbox's Shanty Home). Each keeps its own rules text,
  * and the vehicle has no ACTIONS slab. One rendering, so the SRD's page and
- * The Cantina's detail dialog draw it alike.
+ * the app's detail dialog draw it alike.
  */
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'

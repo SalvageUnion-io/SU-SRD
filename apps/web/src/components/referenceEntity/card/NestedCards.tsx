@@ -252,7 +252,7 @@ function NestedTokens({ items, host }: { items: NestedTokenItem[]; host: NestedC
  * A LEVEL-2 child as a Token that opens the entity instead of expanding in
  * place: the detail page where the app links out (srd, an
  * `EntityDetailLinkProvider` and an href), else the detail dialog's Page (The
- * Cantina). It Peeks its whole card; a synthesised entity (no dataset row)
+ * App). It Peeks its whole card; a synthesised entity (no dataset row)
  * has no Peek, only its Page.
  */
 function NestedToken({

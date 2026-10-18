@@ -36,7 +36,7 @@ import {
  * the kind in caps and the cite on the band's colour (E9), then the Union
  * bar's ink row with the mark and the address. Because it is assembled from the page's own parts
  * rather than drawn a second time, the preview cannot drift from the page; the
- * SRD screenshots it at build, the Cantina on request.
+ * SRD screenshots it at build, the app on request.
  *
  * ## Six cards
  *
@@ -298,7 +298,7 @@ function UnionFoot({
 }
 
 /**
- * `markSrc` is the SU mark's URL, the app's own copy (The Cantina serves its files
+ * `markSrc` is the SU mark's URL, the app's own copy (The app serves its files
  * under `/build/`, ADR-048); the root's by default.
  */
 export function OgCard({ markSrc = MARK_SRC, ...props }: OgCardProps & { markSrc?: string }) {

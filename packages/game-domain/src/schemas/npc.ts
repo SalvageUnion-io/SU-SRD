@@ -13,7 +13,7 @@ import { photoFields } from './photo'
  * from a crawler crew member's live state (`CrawlerNpcStateSchema`) and the
  * book's crew choices: name, position, description, keepsake, motto, facts.
  *
- * Everything that comes from the book is a reference, never a copy (The Cantina's
+ * Everything that comes from the book is a reference, never a copy (The app's
  * "refs, never copies"): an action is its slug, a trait is the package's
  * `Trait` (`{ type, amount? }`, `type` the `traits.json` name, as `npcs.json`
  * stores it), and nothing re-derives from `templateRef`. The prose the player

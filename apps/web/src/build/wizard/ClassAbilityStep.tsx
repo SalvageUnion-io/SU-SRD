@@ -47,7 +47,7 @@ export function ClassAbilityStep({
   const legalClasses = base.filter((c) => isLegalCreationClass(c.coreTrees))
   const selectedClass = base.find((c) => c.id === classId)
 
-  // The injectable accessor is `unknown`-typed for test seams (cantina's
+  // The injectable accessor is `unknown`-typed for test seams (the app's
   // PilotWizard passes the same shape), so the ONE cast lives here at the
   // seam: the production accessor really returns `RefAbility[]`, and a
   // properly-typed ability then flows into the card with no further forcing.

@@ -1,6 +1,6 @@
 /**
  * Where things live on salvageunion.io: the reference pages at the site's
- * root, the Cantina under its base (`appBase.ts`, ADR-048), all on one origin.
+ * root, the app under its base (`appBase.ts`, ADR-048), all on one origin.
  *
  * The one home of the origin. The build reads the origin it is served from
  * once (`SITE_URL`, `constants.ts`); a page reads its own (`pageOrigin`); the
@@ -26,7 +26,7 @@ export function pageOrigin(origin = globalThis.location?.origin): string {
 }
 
 /**
- * An absolute link to a Cantina route, for a link that leaves the page: copied
+ * An absolute link to an app route, for a link that leaves the page: copied
  * to a clipboard, drawn as a QR code, printed on a card. On the page's own
  * origin, so a link copied from a Preview opens that Preview.
  */

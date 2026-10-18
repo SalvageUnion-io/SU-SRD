@@ -233,7 +233,7 @@ function scanDeadAppCss(c: Corpus): Finding[] {
 
 // ── Rule 3: dash-class-contract ───────────────────────────────────────────────
 //
-// Play's canvas `.su-dash-*` classes (The Cantina's own stylesheets).
+// Play's canvas `.su-dash-*` classes (The app's own stylesheets).
 
 const DASHBOARD_CSS_FILES = ['canvas.css', 'instruments.css', 'phone.css'].map(
   (f) => `${DASHBOARD_DIR}/${f}`

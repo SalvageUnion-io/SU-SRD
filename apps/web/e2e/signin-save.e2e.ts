@@ -8,7 +8,7 @@ test.use({ account: 'anonymous' })
 /**
  * Sign in → build → save (ADR-034 decision 1, as amended).
  *
- * Signed out, the Cantina is read-only: a visitor who opens a wizard is asked to sign
+ * Signed out, the app is read-only: a visitor who opens a wizard is asked to sign
  * in instead, so there is never unsaved anonymous work to hand off. This pins
  * both halves — the refusal, and that what is built after signing in is
  * durable — and it is the reason the test-only password provider exists.
@@ -32,7 +32,7 @@ test.use({ account: 'anonymous' })
  * provides both against a throwaway self-hosted Convex backend — a
  * container destroyed with the runner, so it needs no credentials and never
  * puts a password provider on production. The same seam signs in every other
- * spec that builds something (`fixtures.ts`): signed out, the Cantina is read-only.
+ * spec that builds something (`fixtures.ts`): signed out, the app is read-only.
  *
  * That job sets `E2E_EXPECT_AUTH_SEAM`, which turns the skip into a throw.
  *

@@ -22,7 +22,7 @@
  * crawler-visible host, so alerting on unknown keys, traversal attempts and
  * unsupported extensions would turn Workers Issues into a scanner log. What
  * IS reported is the store failing to answer at all — the failure mode that
- * silently breaks entity artwork in both srd and cantina at once.
+ * silently breaks entity artwork in both srd and the app at once.
  */
 
 import {
@@ -57,7 +57,7 @@ const CONTENT_TYPES: Record<string, string> = {
 }
 
 /**
- * The security headers srd and cantina send from `public/_headers` (`/*`), which
+ * The security headers srd and the app send from `public/_headers` (`/*`), which
  * Static Assets applies there and nothing applies here: this Worker builds every
  * response itself. `headers.test.ts` holds the two in agreement.
  */
@@ -74,7 +74,7 @@ export const BASE_SECURITY_HEADERS: Readonly<Record<string, string>> = {
  * Headers every response carries.
  *
  * `Access-Control-Allow-Origin: *` is required, not decorative: this host is
- * addressed cross-origin from salvageunion.io (the SRD, and the Cantina under /build).
+ * addressed cross-origin from salvageunion.io (the SRD, and the app under /build).
  *
  * `default-src 'none'; sandbox` because the extension allowlist admits `svg`,
  * and SVG is script-capable: fetched by direct navigation it executes in this

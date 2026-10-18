@@ -15,7 +15,7 @@ const SUBCOMMAND = 1
 const SUBCOMMAND_GROUP = 2
 
 /**
- * The subcommands that answer with no Cantina account: the reference
+ * The subcommands that answer with no app account: the reference
  * tools. Everything else reads or writes a Game, so a new subcommand is listed
  * as needing an account until it is named here.
  */
@@ -28,7 +28,7 @@ export type CommandListEntry = {
   name: string
   description: string
   options: CommandOption[]
-  /** Whether it answers without a Cantina account. */
+  /** Whether it answers without an app account. */
   needsAccount: boolean
 }
 

@@ -149,7 +149,7 @@ describe('/su bind', () => {
     restore = setSiteClient(
       client({
         bindChannel: () =>
-          Promise.resolve({ kind: 'unavailable', message: 'The Cantina could not be reached.' }),
+          Promise.resolve({ kind: 'unavailable', message: 'The app could not be reached.' }),
       })
     )
     const { interaction, edits } = fakeExecute({ subcommand: 'bind' })
@@ -185,7 +185,7 @@ describe('/su bind', () => {
     ])
   })
 
-  test('autocomplete is empty when the Cantina cannot answer', async () => {
+  test('autocomplete is empty when the app cannot answer', async () => {
     restore = setSiteClient(
       client({
         gamesForAutocomplete: () => Promise.resolve({ kind: 'unavailable', message: 'down' }),

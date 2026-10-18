@@ -69,7 +69,7 @@ export const SITE_MANIFEST = '/site.webmanifest'
 
 /**
  * The one service worker: where it is served and what it controls, the whole
- * origin. `vite.config.ts` builds it here, so the Cantina's
+ * origin. `vite.config.ts` builds it here, so the app's
  * `virtual:pwa-register` registers it here, and the reference pages'
  * `registerSiteWorker` (`lib/sw/siteWorker.ts`) does the same.
  */

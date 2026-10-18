@@ -91,7 +91,7 @@ export type TechScaling = {
    * EFFECTIVE tech level — the value that scales this entity: the Modification
    * choice cap (`cardinality.max.scalesWith: techLevel`) AND any `perTechLevel` datavalue
    * (e.g. Custom Sniper Rifle damage). The host `scalingParent.techLevel`
-   * (controlled from without — the crawler level in the Cantina) wins over the
+   * (controlled from without — the crawler level in the app) wins over the
    * entity's own base TL. Floors at the base TL — a granted item is never below
    * its own tech level.
    */

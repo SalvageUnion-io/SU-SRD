@@ -1,5 +1,5 @@
 /**
- * The Cantina under `/build`, as the one Worker (`index.ts`) answers it.
+ * The app under `/build`, as the one Worker (`index.ts`) answers it.
  *
  * `wrangler.jsonc`'s `run_worker_first` sends `/build` and everything under it
  * to the Worker before Static Assets looks (`RUN_WORKER_FIRST`, which the
@@ -70,7 +70,7 @@ export type AppEnv = PreviewEnv & {
   ASSETS: Assets
 }
 
-/** Whether a path is the Cantina's: `/build` itself or anything under it. */
+/** Whether a path is the app's: `/build` itself or anything under it. */
 export function isBuildPath(pathname: string): boolean {
   return routeInApp(pathname) !== null
 }
@@ -118,7 +118,7 @@ export async function serveApp(
   // base back.
   const path = pathInApp(url.pathname, base)
 
-  // D. A doc page the Cantina no longer has: the SRD's on this origin.
+  // D. A doc page the app no longer has: the SRD's on this origin.
   const docPage = retiredDocPage(path)
   if (docPage !== null) return Response.redirect(new URL(docPage, url).href, 301)
 

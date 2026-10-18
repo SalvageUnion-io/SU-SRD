@@ -9,12 +9,12 @@ const SLAB = { marginBottom: 0 } satisfies CSSProperties
 type NotFoundProps = {
   /**
    * The hero search in the band: the `SearchIsland` island over its server
-   * markup on the static page, the same component rendered live in the Cantina.
+   * markup on the static page, the same component rendered live in the app.
    */
   search: ReactNode
   /** The "did you mean" (`DidYouMeanIsland`), the same way. */
   didYouMean: ReactNode
-  /** An exit back into the app it was opened from (the Cantina's Hangar). */
+  /** An exit back into the app it was opened from (the app's Hangar). */
   back?: ReactNode
 }
 
@@ -26,9 +26,9 @@ type NotFoundProps = {
  * its top band, as on the home index, never a text ground (ruleset §3.8) or a
  * left rail (§3.10).
  *
- * The static `/404` page and the Cantina's unmatched route both draw it; the
+ * The static `/404` page and the app's unmatched route both draw it; the
  * host supplies the search and the guesses, since a page hydrates islands and
- * the Cantina renders them.
+ * the app renders them.
  */
 export function NotFound({ search, didYouMean, back }: NotFoundProps) {
   return (

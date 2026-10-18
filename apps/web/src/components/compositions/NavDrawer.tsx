@@ -21,7 +21,7 @@ import { TRANSITION_COLORS } from '../atoms/transition'
  * (rendered as the shared ghost `buttonVariants` buttons; the page you are on is
  * the inverse ink plate, never rust — ruleset §3.1), optional `categories` + `search` slot for the
  * SRD's richer drawer, and an optional `extra` slot for app-owned controls
- * (The Cantina's Games list and sign-in). Router-agnostic: internal items render
+ * (The app's Games list and sign-in). Router-agnostic: internal items render
  * through the injected `LinkComponent` (defaults to a plain anchor), external
  * ones as `<a target=_blank>`. Every item closes the drawer on tap.
  *
@@ -69,12 +69,12 @@ type NavDrawerProps = {
   /** Optional search slot (SRD combobox), rendered under the brand row. */
   search?: ReactNode
   /**
-   * Optional app-owned controls above the nav links (The Cantina's Games list and
+   * Optional app-owned controls above the nav links (The app's Games list and
    * sign-in), ruled off from them. Handed `close` so a control can dismiss the
    * drawer when it is used.
    */
   extra?: (close: () => void) => ReactNode
-  /** Link component for internal items. Defaults to a plain anchor; the Cantina passes SiteLink. */
+  /** Link component for internal items. Defaults to a plain anchor; the app passes SiteLink. */
   LinkComponent?: ElementType
 }
 

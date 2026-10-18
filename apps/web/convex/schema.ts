@@ -9,7 +9,7 @@ import { playTables } from './model/playTables'
 import { literalUnion } from './model/validators'
 
 /**
- * Convex schema for the Cantina accounts, Games, and entity ownership.
+ * Convex schema for the app accounts, Games, and entity ownership.
  *
  * This is the server of record introduced by ADR-030, which
  * supersedes ADR-001's "no backend, no auth". See docs/ARCHITECTURE.md#convex

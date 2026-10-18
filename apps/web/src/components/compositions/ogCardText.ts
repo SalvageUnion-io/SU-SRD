@@ -40,7 +40,7 @@ type OgCardBase = {
   /** The notched title: the thing's name. */
   title: string
   /**
-   * The address the foot prints. The Cantina prints host and path; the SRD prints the
+   * The address the foot prints. The app prints host and path; the SRD prints the
    * bare path (`/chassis/scrapper`), since its wordmark already names the host
    * (see `ogReferenceAddressFits`).
    */
@@ -104,7 +104,7 @@ export type OgCardProps =
 
 export type OgCardKind = OgCardProps['kind']
 
-/** The kinds the SRD renders; every other kind is the Cantina's. */
+/** The kinds the SRD renders; every other kind is the app's. */
 export const REFERENCE_KINDS: ReadonlySet<OgCardKind> = new Set(['thing', 'do'])
 
 /**

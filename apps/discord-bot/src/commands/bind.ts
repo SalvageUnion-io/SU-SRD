@@ -15,7 +15,7 @@ import { respondWithSite, site } from './siteReply'
  * there. The server decides who may do what (`convex/model/channelBindings.ts`);
  * the bot only says what it decided.
  *
- * Both replies are ephemeral, like every Cantina reply that is about a person's
+ * Both replies are ephemeral, like every app reply that is about a person's
  * standing (`siteReply.ts`): a refusal names a role, and the confirmation
  * is for whoever ran it.
  */

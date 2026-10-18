@@ -1,11 +1,11 @@
-# cantina — The Cantina, the character builder
+# routes — the client app
 
 React app for building and running Salvage Union pilots, mechs, and crawlers.
 
 **Storage modes — read
 [`.claude/rules/app-data-access.md`](../../../../.claude/rules/app-data-access.md)
 before touching data** (it loads with the stores, `src/lib/entities/`, `src/lib/connection/`,
-product component folders, `convex/`, `e2e/`).
+`build/`, `play/`, `convex/`, `e2e/`).
 
 - Every read-only sheet (`/sheet/:kind/:id`, `/p/:kind/:appId`) is the live
   `<Sheet readOnly>` over `src/build/sheet/readOnlySheetStore.model.ts`;
@@ -52,7 +52,7 @@ product component folders, `convex/`, `e2e/`).
 ## Combat / rules
 
 - Pure math: the `salvageunion-reference/rules` subpath, never the main barrel
-  or a local re-export; `src/lib/rules/` is Cantina's app-local rules only. Every
+  or a local re-export; `src/lib/rules/` is app-local rules only. Every
   die is the UI library's `utils/dice.ts`.
 - Play actions go in Play (`play/`); the one sheet-local play
   control is `CrawlerEconomyControl.tsx`.
@@ -63,7 +63,7 @@ product component folders, `convex/`, `e2e/`).
 
 ## Conventions
 
-- Choices stay persistence-agnostic in the shared library — Cantina owns the
+- Choices stay persistence-agnostic in the shared library — the app owns the
   selections ([ADR-010](../../../../docs/ARCHITECTURE.md#decisions)).
 - No error SDK in `convex/`; verify reporting by probe, see
   [convex-ops](../../../../.claude/skills/convex-ops/SKILL.md).

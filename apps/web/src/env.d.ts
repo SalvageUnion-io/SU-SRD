@@ -3,7 +3,7 @@
 
 interface ImportMetaEnv {
   /**
-   * The Convex deployment's client URL, which only the Cantina reads. Every
+   * The Convex deployment's client URL, which only the app reads. Every
    * build carries one: `vite.config.ts` refuses to start without it
    * (`bun run dev` writes it into `.env.local`; CI and the deploy pass it in
    * the environment).
@@ -18,7 +18,7 @@ interface ImportMetaEnv {
   /**
    * A Worker Preview's own origin (`https://pr-<n>-su-srd.<account>.workers.dev`),
    * set by `deploy-preview.yml`; the dev server's, by `ssg/dev.ts`. Unset →
-   * production's. See `SITE_URL`. The Cantina's shell link-preview tags, its
+   * production's. See `SITE_URL`. The app's shell link-preview tags, its
    * pre-rendered public pages and its sitemap name it too
    * (`vite.config.ts`); links need none.
    */

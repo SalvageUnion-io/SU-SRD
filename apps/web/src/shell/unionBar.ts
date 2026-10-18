@@ -1,5 +1,5 @@
 /**
- * The Union bar as the Cantina's shell serves it: the one `UnionBar`
+ * The Union bar as the app's shell serves it: the one `UnionBar`
  * (`components/unionBar/UnionBar.tsx`) on its **Build** side, rendered once
  * at build time, so the bar is in the document before any JavaScript runs, as
  * the reference pages' is.

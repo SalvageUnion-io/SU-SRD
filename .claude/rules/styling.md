@@ -40,9 +40,9 @@ What an editor needs:
   instance stays inline. A class laid over another component's classes (a
   Badge stamp) must come after them in the import order: at one class each,
   source order decides. A class also loses to an app's unlayered element
-  rule (The Cantina's heading face, `print.css`'s `span` and `h1`–`h3` sizes) and
+  rule (The app's heading face, `print.css`'s `span` and `h1`–`h3` sizes) and
   drops out of a rule that matched the inline style (`print.css`'s
-  `[style*='border']` ink): check the pages and the Cantina, print included. The Cantina hands a
+  `[style*='border']` ink): check the pages and the app, print included. The app hands a
   class back with `revert-layer` (`styles/build/libHandback.css`, `styles/build/print.css`)
   and names it in the border-ink rule.
 - **Class-string exports** (`buttonVariants`, `capsLabel`, the `FOCUS_*` /

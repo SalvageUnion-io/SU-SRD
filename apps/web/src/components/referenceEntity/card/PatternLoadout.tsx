@@ -116,7 +116,7 @@ export function PatternLoadout({
  * whose whole job is showing it.
  *
  * Where it goes is the host's route (`useEntityHref`), else the SURFACE's (the
- * SRD's route, the Cantina's Page opener). Its accessible name is the entity's alone,
+ * SRD's route, the app's Page opener). Its accessible name is the entity's alone,
  * never the TL glued onto it. Under a host that is down it greys, as the
  * host's band does.
  */

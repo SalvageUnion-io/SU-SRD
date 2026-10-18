@@ -5,10 +5,10 @@ import type { CommandExecuteInteraction } from './interactions'
 import { respondWithSite } from './siteReply'
 
 /**
- * The two **personal** The Cantina subcommands: `/su me` and `/su games`.
+ * The two **personal** The app subcommands: `/su me` and `/su games`.
  *
  * Grouped in one module rather than two because they are one idea — "what
- * does the Cantina know about *me*" — and each is a handful of lines. The
+ * does the app know about *me*" — and each is a handful of lines. The
  * substantial commands (roll, lookup, sheet) keep their own files.
  *
  * Both are **ephemeral**: an account and a game list are personal, and neither

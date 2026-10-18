@@ -1,5 +1,5 @@
 /**
- * The Cantina's entity kinds, the Convex table each lives in, and the app
+ * The app's entity kinds, the Convex table each lives in, and the app
  * addresses that name them.
  *
  * Routes and bodies speak the singular kind (`pilot`); Convex tables speak the
@@ -58,7 +58,7 @@ export function isEntityKind(value: string): value is EntityKind {
 }
 
 /**
- * The live sheet's address under the Cantina's base, by row id or app id:
+ * The live sheet's address under the app's base, by row id or app id:
  * `/sheet/<kind>/<id>`.
  */
 export function sheetPath(kind: EntityKind, id: string): string {

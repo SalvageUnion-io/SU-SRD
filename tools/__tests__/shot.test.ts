@@ -49,7 +49,7 @@ describe('parseArgs', () => {
     // Neither app has a dark theme, so there is no flag to emulate one.
     [['/a', '--dark']],
     [['app:starter']],
-    // A target is a route: a bare name is neither an srd nor a Cantina one.
+    // A target is a route: a bare name is neither an srd nor an app one.
     [['atoms--button--primary']],
   ])('rejects %p with the usage line', (argv) => {
     expect(() => parseArgs(argv)).toThrow('usage: bun run shot')
@@ -64,7 +64,7 @@ describe('planShot', () => {
     })
   })
 
-  test('app:/route is a Cantina route under its base, on the same signed-out server', () => {
+  test('app:/route is an app route under its base, on the same signed-out server', () => {
     const { server, path } = planShot({ target: 'app:/starter' })
     expect(path).toBe(`${APP_BASE}/starter`)
     expect(server).toEqual(planShot({ target: '/' }).server)

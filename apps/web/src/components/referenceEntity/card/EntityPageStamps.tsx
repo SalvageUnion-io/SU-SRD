@@ -11,7 +11,7 @@ import { LEGAL_STARTING_PATTERN, LEGAL_STARTING_PATTERN_NOTE } from './legalStar
 
 /**
  * EntityPageStamps — what an entity Page's chapter band carries right of its
- * title (boards 07, 08; EDL E20) — an SRD route's and the Cantina's detail dialog's
+ * title (boards 07, 08; EDL E20) — an SRD route's and the app's detail dialog's
  * alike — as one line that wraps: `lead` (a pattern's
  * parent link), the Legal Starting Pattern stamp, then every chip the entity
  * carries (E17; the page body holds none, owner's call 2026-10-14), in the

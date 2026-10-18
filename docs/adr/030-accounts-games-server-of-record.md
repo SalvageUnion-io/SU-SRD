@@ -43,7 +43,7 @@ again (`channelBindings`).
 
 ## Context
 
-[ADR-001](../ARCHITECTURE.md#decisions) made the Cantina local-first with no
+[ADR-001](../ARCHITECTURE.md#decisions) made the app local-first with no
 accounts and no application backend, and it closes with an explicit instruction:
 do not reintroduce auth, server-side user storage, or realtime sync without a new
 ADR superseding it. This is that ADR.
@@ -76,7 +76,7 @@ over:
 
 ### 1. Identity and the storage modes
 
-The Cantina gains **accounts, authenticated by Discord OAuth and nothing else**. Discord
+The app gains **accounts, authenticated by Discord OAuth and nothing else**. Discord
 is the only provider because the audience already lives there and the project
 already ships a bot, which this makes a first-class authenticated client rather
 than something needing its own credential story.

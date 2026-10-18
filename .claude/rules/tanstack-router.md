@@ -3,7 +3,7 @@ paths:
   - 'apps/web/src/routes/**'
 ---
 
-# TanStack Router (The Cantina)
+# TanStack Router (the client app)
 
 - **Directory routes only**: one path segment per directory
   (`p/$kind/$appId.tsx`, `starter/index.tsx`), never flat dot names

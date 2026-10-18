@@ -88,7 +88,7 @@ const TYPE_FLOOR_PX = 11
  * `PAPER_GROUND`).
  */
 const TEXTURE_FORBIDDEN: readonly RegExp[] = [
-  // Play: The Cantina's cockpit, and its canvas and Play stylesheets.
+  // Play: the app's cockpit, and its canvas and Play stylesheets.
   /\/src\/play\//,
   /\/styles\/play\//,
   /\/(?:dashboard|play)\.css$/,

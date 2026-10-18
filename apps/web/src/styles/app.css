@@ -1,16 +1,16 @@
 /*
- * The Cantina's own rules. The fonts, the token set, the reset, the package
+ * The app's own rules. The fonts, the token set, the reset, the package
  * stylesheet and the page-wide rules are the base stylesheet every page shares
  * (`apps/web/src/styles/base.css`), which the shell links before this one.
  */
-/* The Cantina's print rules, over the shared `data-print` vocabulary in
+/* The app's print rules, over the shared `data-print` vocabulary in
    `base.css`. index.css declares no print rules of its own. */
 @import './build/print.css';
 /* The NPC designer's responsive rules (step strip, phone preview). */
 @import './build/npc.css';
 /* The Shelves band's paper-on-ink controls. */
 @import './build/shelves.css';
-/* The stateful halves of the Cantina's other components. */
+/* The stateful halves of the app's other components. */
 @import './build/unitSlot.css';
 @import './build/routeStates.css';
 @import './build/screens.css';
@@ -49,7 +49,7 @@ body {
 }
 
 /*
- * Every heading in the Cantina wears the condensed caps face. Unlayered, so it beats
+ * Every heading in the app wears the condensed caps face. Unlayered, so it beats
  * a package class on a heading; `styles/libHandback.css` hands those classes
  * their own type back.
  */

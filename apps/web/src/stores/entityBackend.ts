@@ -29,7 +29,7 @@ import { knownVersion, noteVersion } from './serverVersions'
  * (`outdated`, `lib/connection/buildFloor.ts`). There is no fourth case.
  *
  * `signedOut` is read-only and holds nothing: there is no anonymous store at
- * all, and nothing syncs signed out. Signed out, the Cantina shows reference and nothing of a
+ * all, and nothing syncs signed out. Signed out, the app shows reference and nothing of a
  * player's own (ADR-034 decision 1, as amended). The durable path the tests
  * exercise is the signed-in one (`src/stores/__tests__/signedInBackend.ts`
  * for unit tests, the `TestAuthBridge` seam for e2e).
@@ -494,7 +494,7 @@ export async function commitTransfer(
  * use; throws rather than silently degrading when the answer is "you cannot
  * write right now".
  *
- * `signedOut` is refused too: signed out, the Cantina is read-only
+ * `signedOut` is refused too: signed out, the app is read-only
  * ([ADR-034](../../../../docs/ARCHITECTURE.md#decisions) decision 1, as amended).
  */
 export function requireWritableBackend(): 'remote' {

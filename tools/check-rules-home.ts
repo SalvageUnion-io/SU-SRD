@@ -3,8 +3,8 @@
  * check-rules-home — domain rules live in a rules home, never in a component
  * folder or the client app (`bun run check rules-home`).
  *
- * The Cantina's rules once lived in four places: the reference
- * package's `lib/rules`, the Cantina's `src/lib/rules`, `*Rules.ts` files beside the
+ * The app's rules once lived in four places: the reference
+ * package's `lib/rules`, the app's `src/lib/rules`, `*Rules.ts` files beside the
  * components, and `convex/model`, with Convex importing client `src/` to reach
  * shared logic. Convex bundles what it imports, so a client import drags React-
  * side code into the backend, and a component folder is where nobody looks for

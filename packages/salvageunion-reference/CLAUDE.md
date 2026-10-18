@@ -71,7 +71,7 @@ would return it unchanged. Two consequences:
 - **Never import `lib/generated/zodSchemaMap.generated.ts` or `lib/zod.ts`
   from the runtime graph, statically or dynamically.** Either puts Zod and
   every entity schema back in both client bundles (srd then ships Zod again;
-  cantina keeps a Zod chunk regardless for its own `src/lib/schemas`, but regains
+  the app keeps a Zod chunk regardless for its own `src/lib/schemas`, but regains
   every entity schema), and `lib/__tests__/loadPathBundle.test.ts` fails. Tools and tests
   may import them directly.
 

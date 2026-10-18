@@ -5,7 +5,7 @@
  * They are intentionally defined here as plain structural types (not imported
  * from any app's Zod schemas) so this module has no dependency on any
  * consumer app — ADR-006 (pure rules logic lives in this package). A
- * consumer's Zod-inferred types (e.g. The Cantina's `src/lib/schemas/`) satisfy
+ * consumer's Zod-inferred types (e.g. The app's `src/lib/schemas/`) satisfy
  * these structural shapes automatically (TypeScript's structural type system
  * ensures compatibility at call sites); this module never imports them back.
  */
@@ -215,9 +215,9 @@ export type EditSnapshot<T> = {
 // Heat Check / Reactor Overload structural types (moved with heatCheck.ts's
 // pure functions; see ./heatCheck.ts). These are "small outcome/result
 // record shapes, not full persisted records" (ADR-006) — a consumer's
-// Zod-inferred equivalents (e.g. The Cantina's HeatCheckResultSchema /
+// Zod-inferred equivalents (e.g. The app's HeatCheckResultSchema /
 // ReactorOverloadOutcomeSchema in game-domain's src/schemas/mech.ts) satisfy them
-// structurally. The union literals are kept byte-identical to the Cantina's Zod
+// structurally. The union literals are kept byte-identical to the app's Zod
 // enums so a drift fails typecheck rather than silently diverging.
 // ---------------------------------------------------------------------------
 

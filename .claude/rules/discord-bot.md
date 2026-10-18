@@ -6,7 +6,7 @@ paths:
 
 # Discord bot — changing a reply
 
-The architecture (HTTP-interactions Worker, Cantina Game client and how it
+The architecture (HTTP-interactions Worker, app Game client and how it
 degrades) is in [`apps/discord-bot/CLAUDE.md`](../../apps/discord-bot/CLAUDE.md);
 the roll surface's design is in the header of
 `src/rollContainer.ts`.

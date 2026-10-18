@@ -135,7 +135,7 @@ describe('currentPathFor', () => {
 })
 
 describe('retiredDocPage', () => {
-  it('sends the Cantina doc pages to the site pages, with or without a slash', () => {
+  it('sends the app doc pages to the site pages, with or without a slash', () => {
     for (const path of ['/about', '/about/', 'about']) {
       expect(retiredDocPage(path)).toBe(DOC_PAGES.about.href)
     }

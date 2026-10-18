@@ -318,7 +318,7 @@ describe('SearchIsland', () => {
   })
 
   test('inside a host that routes entity links, every result stays a same-tab page link', async () => {
-    // The Cantina's surface hands link-mode forms its router link, which would
+    // The app's surface hands link-mode forms its router link, which would
     // put a reference page under its own base.
     function RouterLink({
       children,

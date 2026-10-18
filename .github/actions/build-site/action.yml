@@ -17,7 +17,7 @@ description: Build the site against a Convex URL, render its OG images into apps
 # byte, so it must not silently drop a dotfile the build emitted.
 inputs:
   convex-url:
-    description: The Convex client URL the Cantina is compiled against (VITE_CONVEX_URL)
+    description: The Convex client URL the app is compiled against (VITE_CONVEX_URL)
     required: true
   commit-ref:
     description: The commit stamped into the build (VITE_COMMIT_REF)

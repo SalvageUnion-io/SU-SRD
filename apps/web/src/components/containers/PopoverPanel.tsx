@@ -11,8 +11,8 @@ import { POPUP_SURFACE } from '../atoms/popupSurface'
  * trigger gains `aria-expanded` / `aria-controls`; the panel is a
  * `role="dialog"` named by `label`.
  *
- * For a panel of arbitrary controls (The Cantina's sheet "⋯" overflow), a stat's
- * provenance ledger (`StatProvenance`) and the Cantina's reference search. A list of
+ * For a panel of arbitrary controls (The app's sheet "⋯" overflow), a stat's
+ * provenance ledger (`StatProvenance`) and the app's reference search. A list of
  * commands is a `HeaderMenu` (menu semantics, arrow keys).
  */
 

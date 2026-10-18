@@ -6,7 +6,7 @@ import type { Env } from '../index'
 import worker from '../index'
 
 /**
- * The Cantina at salvageunion.io/build (ADR-048), which the one Worker runs
+ * The app at salvageunion.io/build (ADR-048), which the one Worker runs
  * first for every request under the base: it reads each answer through an
  * asset binding that answers a miss with the shell (see `../app.ts`).
  *
@@ -279,7 +279,7 @@ describe('only the public client routes are indexable', () => {
 })
 
 /**
- * The Cantina keeps no About or Changelog of its own: both tools share the SRD's, so
+ * The app keeps no About or Changelog of its own: both tools share the SRD's, so
  * the old addresses, under the base or on the old host, 301 straight there.
  */
 describe('the doc pages 301 to the SRD', () => {

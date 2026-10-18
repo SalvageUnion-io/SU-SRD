@@ -21,7 +21,7 @@ cells to prose is a heavier solid ink mark (see the amendment in
 [ADR-026](026-entity-card-design-rules.md)), not rust and not dashed; the rules-bearing prose span
 carries a solid ink rail.
 
-**Amended (owner's call, 2026-10-14):** the rail is gone. In the Cantina, which applies
+**Amended (owner's call, 2026-10-14):** the rail is gone. In the app, which applies
 the rules, a rules-bearing paragraph leads with a mini ink AUTO stamp whose
 title (and screen-reader text) says the app applies the rule; the SRD, which
 applies nothing, prints the same paragraph as plain prose. The app opts in
@@ -93,7 +93,7 @@ exercise; a schema in which abilities are second-class is the bug.
 
 **Do not fork the resolver.** `resolveChoiceView.ts` already applies
 trait/damage/range correctly, including upgrading a duplicate trait's magnitude
-(Explosive 1 → 2), and is already shared by srd and the Cantina. This ADR widens where
+(Explosive 1 → 2), and is already shared by srd and the app. This ADR widens where
 effects may be **declared**; how they are **applied** is left alone.
 
 **"Never infer a number from prose" survives.** The existing instruction on

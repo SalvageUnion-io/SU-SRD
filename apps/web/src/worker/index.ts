@@ -1,7 +1,7 @@
 /**
  * salvageunion.io on Workers Static Assets (ADR-033): the one Worker for the
  * whole app. Every reference page is pre-rendered, so this script answers only
- * the requests no file matches, and everything under `/build`, the Cantina's
+ * the requests no file matches, and everything under `/build`, the app's
  * (`./app.ts`).
  *
  * ## What reaches this script, and what does not
@@ -14,7 +14,7 @@
  *   E. `POST /__errors` → a browser error report, and `POST /__convex-logs` →
  *      Convex's log stream, both logged for Workers Issues
  *      (`errorReports.ts`).
- *   B. `/build` and below → the Cantina (`./app.ts`); a file it does not
+ *   B. `/build` and below → the app (`./app.ts`); a file it does not
  *      have falls through to the rules below.
  *   1. `/assets/*` (or `/build/assets/*`) → a bare **404**.
  *   2. a page path from before the move out of `/schema/…/item/` → a **301**
@@ -93,7 +93,7 @@ export default {
       return handleConvexLogStream(request, env.CONVEX_LOG_STREAM_SECRET)
     }
 
-    // B. The Cantina, under its base.
+    // B. The app, under its base.
     if (isBuildPath(url.pathname)) {
       const res = await serveApp(request, env)
       if (res !== null) return res

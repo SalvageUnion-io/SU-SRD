@@ -1,5 +1,5 @@
 /**
- * The Cantina's live half of the Union bar: the shell's bar (`shell/unionBar.ts`)
+ * The app's live half of the Union bar: the shell's bar (`shell/unionBar.ts`)
  * with its slots filled.
  */
 
@@ -108,7 +108,7 @@ describe('UnionBarSlots', () => {
     expect(screen.queryByRole('button', { name: 'Open menu' })).toBeNull()
   })
 
-  test('the drawer: the reference pages’ own, the Cantina’s nav first, and the app’s extra', () => {
+  test('the drawer: the reference pages’ own, the app’s nav first, and the app’s extra', () => {
     render(
       <UnionBarSlots
         pathname="/"

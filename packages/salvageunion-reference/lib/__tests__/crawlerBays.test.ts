@@ -6,7 +6,7 @@ import { bayKind } from '../view/parts/kind'
  * The `expansion` data tag distinguishes base crawler facilities (pre-installed
  * on every Union Crawler — Core Book "Union Crawler Bays", p.221) from
  * expansion "upgrade"/found bays acquired during play (built for a resource
- * cost or found as a scenario facility). The Cantina's crawler wizard seeds only the
+ * cost or found as a scenario facility). The app's crawler wizard seeds only the
  * base bays, so this tag must stay accurate.
  */
 describe('CrawlerBays expansion tag', () => {

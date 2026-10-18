@@ -306,7 +306,7 @@ export const locate = query({
  * ## Why it exists
  *
  * It is the way down outside a Game (`listForGame` is scoped to one): without
- * it a signed-in player opening the Cantina on a second device would see an **empty
+ * it a signed-in player opening the app on a second device would see an **empty
  * roster**. A cache is something that can be *filled*, and this is what fills
  * it ([ADR-034](../../../docs/ARCHITECTURE.md#decisions) decision 2).
  *

@@ -11,7 +11,7 @@ import { UnionDrawer } from '../unionBar/UnionDrawer'
 import { SiteLink } from './AppLink'
 
 /**
- * UnionBarSlots — the Cantina's live half of the Union bar.
+ * UnionBarSlots — the app's live half of the Union bar.
  *
  * The bar itself is the shell's, rendered at build time (`shell/unionBar.ts`),
  * so it paints before the app boots. This fills its slots through portals: the
@@ -28,7 +28,7 @@ import { SiteLink } from './AppLink'
  * (`build/account/HeaderAccount.tsx`).
  *
  * The phone drawer is the bar's one `UnionDrawer`, the reference pages' own,
- * with the Cantina's nav ahead of the site's pages and its account controls
+ * with the app's nav ahead of the site's pages and its account controls
  * at the top. Its links are site paths, as the bar's are: `SiteLink` routes the
  * app's in place and loads the reference pages.
  */

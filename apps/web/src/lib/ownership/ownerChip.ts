@@ -7,7 +7,7 @@
  *
  * That choice is deliberate and worth stating: `src/components` is shared with
  * `apps/web`, which has no accounts and never will. Teaching the card about
- * users would push an Cantina-only concept into a package whose contract is to
+ * users would push an app-only concept into a package whose contract is to
  * stay backend-agnostic. Passing a `badge` in from the app keeps the knowledge
  * where it belongs, and `badge` renders at every card extent — full, head, and
  * catalog — so a dense listing row and an expanded card show the same chip.

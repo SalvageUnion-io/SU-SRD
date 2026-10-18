@@ -2,7 +2,7 @@
  * play/side.css — Play's right column and its Discord rows (play.md §7–§9):
  * the Crew list's presence dot and "away", and the landing's channel rows.
  *
- * The Cantina's own stylesheet: a part of
+ * The app's own stylesheet: a part of
  * `styles/play/play.css`, never imported by a library component. Only what has a state lives here (present / away,
  * bound / unbound), and Play's dialog width (`ModalShell` takes its
  * `maxWidth` as a class: an inline cap would lose to its own default);

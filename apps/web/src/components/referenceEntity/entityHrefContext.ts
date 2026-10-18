@@ -5,7 +5,7 @@ import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 /**
  * Builds a navigable href (show-page link) for an entity. The shape is the
  * consuming app's concern — srd supplies its `/<schema>/<slug>/` route,
- * The Cantina its own — so the shared library stays route-agnostic.
+ * the app its own — so the shared library stays route-agnostic.
  */
 export type EntityHrefBuilder = (entity: RefEntity) => string | undefined
 
@@ -30,7 +30,7 @@ const EntityDetailLinkContext = createContext<boolean>(false)
 /**
  * Opt nested "View details" controls into opening the entity's show page, in
  * this tab (via the provided href builder) instead of the in-place modal.
- * srd — a navigable reference site — sets this; the Cantina leaves it default
+ * srd — a navigable reference site — sets this; the app leaves it default
  * `false` so its detail view stays an in-app modal rather than linking out.
  */
 export const EntityDetailLinkProvider = EntityDetailLinkContext.Provider
@@ -41,7 +41,7 @@ export function useEntityDetailLink(): boolean {
 }
 
 /**
- * Builds an external cross-link node for an entity (e.g. The Cantina's
+ * Builds an external cross-link node for an entity (e.g. The app's
  * "View in SRD" deep link out to srd). Full — non-compact,
  * non-listing — entity cards render it in their foot band, which includes the
  * `useDetailModal` detail view (its content renders full). Return `undefined`
@@ -68,7 +68,7 @@ export function useEntityExternalLink(entity: RefEntity | undefined): ReactNode 
  * address one. This builder takes both halves of a pattern's identity.
  *
  * A chassis card's pattern rows become real links when it is provided. Apps
- * whose patterns have no page (The Cantina) provide nothing, and the rows stay inert
+ * whose patterns have no page (The app) provide nothing, and the rows stay inert
  * rather than navigating somewhere that doesn't exist.
  */
 export type PatternHrefBuilder = (

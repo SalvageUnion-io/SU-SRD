@@ -5,7 +5,7 @@
  * Several committed files are machine output: the static-accessor block in
  * the reference package's `lib/index.ts` (`bun run build:package`; its
  * `schemas/` and `lib/generated/` are gitignored build output, not checked
- * here), the Cantina's `src/routeTree.gen.ts`,
+ * here), the app's `src/routeTree.gen.ts`,
  * and the `worker-configuration.d.ts` that `wrangler types` writes for each of
  * the three Workers (`Env` from wrangler.jsonc, so a binding added there without
  * the types fails here). Each is regenerated here and then compared with what

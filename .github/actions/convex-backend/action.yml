@@ -1,11 +1,11 @@
 name: Throwaway Convex backend
-description: Start a self-hosted Convex backend, push the Cantina's functions to it and build the site against it
+description: Start a self-hosted Convex backend, push the app's functions to it and build the site against it
 
 # The backend a CI job builds the site against when it must not touch production:
 # ci.yml's `build-web` (the PR browser gate) and `perf`, e2e-nightly.yml's
 # `e2e` (the signed-in suite) and gallery.yml's `shoot`. The build is
-# the one `bun run build` (the reference pages, then the Cantina into `dist/build/`), which
-# needs a Convex URL for the Cantina. The backend dies with
+# the one `bun run build` (the reference pages, then the app into `dist/build/`), which
+# needs a Convex URL for the app. The backend dies with
 # the runner, holds no data and needs no credentials, so a job using it
 # requests no secrets.
 #
@@ -19,7 +19,7 @@ description: Start a self-hosted Convex backend, push the Cantina's functions to
 # it on failure with `cat "$RUNNER_TEMP/convex-backend.log"`.
 inputs:
   test-auth:
-    description: "'true' to provision the test sign-in on the backend and build the Cantina with its seam"
+    description: "'true' to provision the test sign-in on the backend and build the app with its seam"
     required: false
     default: 'false'
 outputs:
@@ -136,7 +136,7 @@ runs:
         # `convex/auth.ts` gates the password provider on the exact string
         # 'true'; anything else leaves the provider absent and the seam gone.
         bunx convex env set TEST_AUTH true
-        # SITE_URL is the FRONTEND's address, base included (The Cantina is served
+        # SITE_URL is the FRONTEND's address, base included (The app is served
         # under /build, ADR-048), not the Convex site URL. Nothing prompts
         # for it, and omitting it fails as an opaque 500.
         bunx convex env set SITE_URL http://localhost:4321/build

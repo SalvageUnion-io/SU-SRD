@@ -1,6 +1,6 @@
 # Discord Bot
 
-The Discord bot: `/su` rolls and lookups, and a Cantina Game client. A consumer of
+The Discord bot: `/su` rolls and lookups, and a Game client of the app. A consumer of
 `salvageunion-reference` — it reuses the same pure rules/data logic the apps do
 ([ADR-006](../../docs/ARCHITECTURE.md#decisions)) and preloads the dataset
 at startup ([ADR-005](../../docs/ARCHITECTURE.md#decisions)).
@@ -39,9 +39,9 @@ bun run deploy-commands            # a test guild
 bun run deploy-commands:global     # production; a bot deploy runs it too. Credentials: op run
 ```
 
-## The Cantina
+## The app's Games
 
-The bot is also an authenticated Cantina Game client. It reaches Convex through a
+The bot is also an authenticated Game client of the app. It reaches Convex through a
 `/bot/*` HTTP route with a bearer credential that authenticates the **bot**,
 never the **actor** — every call carries a Discord id that the server resolves
 against a linked account and a real membership. See
@@ -71,7 +71,7 @@ becomes a proposal or it does not exist. It writes only `channelBindings`
 **Crew maxima and status come from the server** (`SheetResult.vitals`, the
 `crew.vitals` derivation); absent, a vital shows its current value alone.
 
-**The Cantina commands:** `/su me`, `games`, `sheet`, `bind`, `unbind`. `sheet` takes your own entity
+**The account commands:** `/su me`, `games`, `sheet`, `bind`, `unbind`. `sheet` takes your own entity
 or any sheet link; `botClient.sheet` decides what you may read.
 
 **`/su sheet`** maps the live sheet one-to-one onto an entity card. The mapping,
@@ -82,7 +82,7 @@ and `abilityFields` in `gameCards.ts`.
 wins), reference cards wear their entry's tone (`discordAccent`), and rust is
 only for system replies (errors).
 
-**One link shape.** `sheetUrl` builds `/sheet/<kind>/<rowId>`; Cantina's
+**One link shape.** `sheetUrl` builds `/sheet/<kind>/<rowId>`; the app's
 `entities.locate` opens it editable for its owner, read-only otherwise.
 
 ## Conventions
@@ -90,6 +90,6 @@ only for system replies (errors).
 - Everything hangs off the single `/su` top-level command (`src/commands/su.ts`)
 - Commands live in `src/commands/`, generally one file per command; the two
   small personal ones share `account.ts`
-- Shared code reads no configuration. The Worker's `env` installs Cantina
+- Shared code reads no configuration. The Worker's `env` installs app
   client per request; `deploy-commands.ts` alone reads `process.env`
 - Errors in shared code go straight to `reportError` (`src/reportError.ts`)

@@ -1,7 +1,7 @@
 /**
  * SignInToBuild — what a signed-out visitor sees where building would be.
  *
- * Signed out, the Cantina is read-only
+ * Signed out, the app is read-only
  * ([ADR-034](../../../../../docs/ARCHITECTURE.md#decisions) decision 1, as
  * amended): every pilot, mech and crawler lives in an account, so there is
  * nothing to build into without one. The Roster and the three `/…/new` routes

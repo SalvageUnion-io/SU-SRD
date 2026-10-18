@@ -1,23 +1,23 @@
-# ADR-021: The Cantina Surface Taxonomy — Enforcement Modes & Rule Placement
+# ADR-021: the app Surface Taxonomy — Enforcement Modes & Rule Placement
 
 The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 21, which summarises it.
 
 ## Status
 
-**Accepted — governing ADR.** This is the top-level decision for how the Cantina treats
+**Accepted — governing ADR.** This is the top-level decision for how the app treats
 game rules. **Where it conflicts with any prior ADR, this ADR wins** (scope and
 the specific overrides are listed under [Supersession](#supersession--precedence)).
 
 Built: Guided Creation on the Wizard's create path, Play and ADR-022's
 Change Log. **Amended by [ADR-051](051-play-mode.md):** Play replaced the
 Dashboard and the Mediator Dashboard as Guided Play's and Adjudicate's surface. The living, authoritative placement table is
-[rules and the Cantina surfaces](../ARCHITECTURE.md#surfaces) — keep
+[rules and the app surfaces](../ARCHITECTURE.md#surfaces) — keep
 placements in sync **there**, not by re-editing the summary below. This ADR
 records _why_ the taxonomy exists; the arch doc records _what goes where_.
 
 ## Context
 
-The Cantina grew a set of distinct surfaces — a roster, build wizards, the live sheet, an
+The app grew a set of distinct surfaces — a roster, build wizards, the live sheet, an
 encounter tray, snapshot publish/view. Our rules docs described "the app" as one
 actor that enforces "economic" rules and defers "procedural" ones. The code never
 matched that flatness: the _same_ constraint is a gentle advisory while you build
@@ -46,7 +46,7 @@ exactly backwards for the Live Sheet.
 
 ## Decision
 
-**The Cantina surfaces are classified by enforcement _mode_, and a rule's enforcement is
+**The app surfaces are classified by enforcement _mode_, and a rule's enforcement is
 a function of the mode, not of the rule alone.** The border between modes is the
 **lifecycle transaction** — a state change the rules gate behind a cost or
 procedure.
@@ -62,7 +62,7 @@ procedure.
 | **Adjudicate**      | Play's Mediator screen (`/play/game/$gameId`) | Mediator tooling; surfaces rules, enforces nothing on player sheets. |
 
 **Rule placement** (summary in
-[rules and the Cantina surfaces](../ARCHITECTURE.md#surfaces)):
+[rules and the app surfaces](../ARCHITECTURE.md#surfaces)):
 
 - **Lifecycle transactions** (use a system → EP/Heat/uses, Push, Scrap/TP costs,
   Downtime, craft, salvage, repair, upgrade, advancement) — **enforced +
@@ -95,7 +95,7 @@ single-entity Live Sheet), at `/play/$pilotId` and the Mediator's
 ## Supersession / precedence
 
 This ADR is the top of the stack for **rules enforcement and surface behavior**:
-The Cantina has no app-wide enforcement stance; enforcement is per-mode.
+The app has no app-wide enforcement stance; enforcement is per-mode.
 
 Prior ADRs on **orthogonal concerns remain in force on their own subjects**:
 [ADR-005](../ARCHITECTURE.md#decisions)/[ADR-006](../ARCHITECTURE.md#decisions)

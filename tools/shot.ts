@@ -10,11 +10,11 @@
  * once hand-rolled a Playwright script for its screenshots). This is that
  * script, once.
  *
- * - A target starting with `/` is a path on the site. `app:/route` is a Cantina
+ * - A target starting with `/` is a path on the site. `app:/route` is an app
  *   route (under its `/build` base, so `app:/starter` is `/build/starter`).
  *   One dev server answers both: a running `bun run dev`, or else the dev server
  *   alone (`ssg/dev.ts`, no `convex dev`) booted signed out with no backend:
- *   `VITE_CONVEX_URL` points at a closed local port, so the Cantina's pages that
+ *   `VITE_CONVEX_URL` points at a closed local port, so the app's pages that
  *   need no account (the front door, the Starter Set, a sign-in prompt) render,
  *   and anything that waits on Convex shows its loading or offline state.
  * - The server listens on this checkout's port (`packages/gates/lib/ports.ts`:
@@ -56,10 +56,10 @@ export type Server = {
   cwd: string
   env?: Readonly<Record<string, string>>
 }
-/** The prefix that makes a target a Cantina route. */
+/** The prefix that makes a target an app route. */
 const APP_PREFIX = 'app:'
 
-/** The Cantina's base path (`APP_BASE` in `apps/web/src/lib/appBase.ts`, ADR-048). */
+/** The app's base path (`APP_BASE` in `apps/web/src/lib/appBase.ts`, ADR-048). */
 export const APP_BASE = '/build'
 
 /**
@@ -109,7 +109,7 @@ export function parseArgs(argv: readonly string[]): ShotArgs {
   }
   if (!target) throw new Error(USAGE)
   if (target.startsWith(APP_PREFIX) && !target.startsWith(`${APP_PREFIX}/`))
-    throw new Error(`a Cantina target is app:/route, not "${target}"\n${USAGE}`)
+    throw new Error(`an app target is app:/route, not "${target}"\n${USAGE}`)
   if (!target.startsWith('/') && !target.startsWith(APP_PREFIX))
     throw new Error(`a target is /route or app:/route, not "${target}"\n${USAGE}`)
   return { target, width, out }

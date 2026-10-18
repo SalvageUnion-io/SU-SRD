@@ -129,7 +129,7 @@ async function startSignIn(t: ReturnType<typeof testConvexWithHttp>) {
   }
 }
 
-/** The `code` the callback hands back to the Cantina, or null when it refused. */
+/** The `code` the callback hands back to the app, or null when it refused. */
 function verificationCode(callback: Response): string | null {
   expect(callback.status).toBe(302)
   const location = new URL(callback.headers.get('Location') ?? '')

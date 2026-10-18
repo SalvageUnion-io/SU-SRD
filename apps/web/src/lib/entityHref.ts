@@ -13,7 +13,7 @@ import type { EntityHrefBuilder } from '../components/index'
  *
  * The grammar itself — which segments in which order — lives in
  * `salvageunion-reference/lib/assets.ts` (`srdSchemaPath` / `srdEntityPath`),
- * because the Discord bot and the Cantina link into this site and must build the same
+ * because the Discord bot and the app link into this site and must build the same
  * paths. This module adds the one thing that is genuinely srd's own: the
  * trailing slash its directory-style output wants.
  *
@@ -56,9 +56,9 @@ export function hasPage(schemaName: string): boolean {
 
 /**
  * An entity's page, as a `src/components` href builder: the reference pages
- * and the Cantina supply it through `EntityHrefProvider`, so nested "View
+ * and the app supply it through `EntityHrefProvider`, so nested "View
  * Details" links resolve to it (the shared library stays route-agnostic).
- * Root-relative on both: the Cantina renders these as plain anchors, never
+ * Root-relative on both: the app renders these as plain anchors, never
  * through its router.
  *
  * Only a dataset record of a schema with pages has one. A record with no `id`

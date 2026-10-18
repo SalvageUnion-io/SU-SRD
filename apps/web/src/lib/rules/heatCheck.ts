@@ -1,7 +1,7 @@
 /**
  * Heat Check / Reactor Overload — the app-local half. The pure math lives in
  * `salvageunion-reference/rules` (ADR-006); `heatCheckPatch` stays here: it
- * assembles a `Partial<Mech>` write-through patch using the Cantina's own Zod-derived
+ * assembles a `Partial<Mech>` write-through patch using the app's own Zod-derived
  * `Mech` type (ADR-007: the app, not the rules package, decides what crosses
  * into durable state).
  */

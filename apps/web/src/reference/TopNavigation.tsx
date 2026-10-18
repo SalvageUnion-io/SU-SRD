@@ -12,7 +12,7 @@
  * runs none. They take **no props**: `MobileNavIsland` computing its own
  * catalog is what removes 17.3 MB of duplicated props from the build.
  *
- * The account controls are The Cantina's, through the account hint
+ * The account controls are the app's, through the account hint
  * (`lib/accountBar.ts`): Sign in is served on every page, and the account menu
  * islands (`when="signed-in"`; on a phone the avatar alone) mount in its place
  * only while somebody is signed in.
@@ -50,7 +50,7 @@ function WikiLink() {
 /**
  * Sign in, served on every page and hidden while somebody is signed in
  * (`lib/accountBar.ts`), when the account menu's island takes its place.
- * Dressed as "Buy the game" beside it, as The Cantina's is.
+ * Dressed as "Buy the game" beside it, as the app's is.
  */
 function SignInLink() {
   return (

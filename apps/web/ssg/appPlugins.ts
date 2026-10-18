@@ -1,10 +1,10 @@
 /**
  * appPlugins — what the one Vite config (`vite.config.ts`) adds for the
- * Cantina: its shell as an HTML entry at `build/index.html`, the base
+ * App: its shell as an HTML entry at `build/index.html`, the base
  * stylesheet and the site's manifest linked from it, its public pages and
  * sitemap, and the refusal to build without a Convex URL.
  *
- * Every `transformIndexHtml` here acts on the Cantina's shell alone (it carries
+ * Every `transformIndexHtml` here acts on the app's shell alone (it carries
  * the `app:meta` markers): the dev server runs the same hooks over srd's
  * pages, which link their own stylesheets and manifest.
  */
@@ -27,7 +27,7 @@ const APP_ROOT = join(import.meta.dirname, '..')
  */
 export const APP_ENTRY = join(APP_ROOT, APP_BASE.slice(1), 'index.html')
 
-/** Whether a document is the Cantina's shell (`shell.ts`'s `app:meta` block). */
+/** Whether a document is the app's shell (`shell.ts`'s `app:meta` block). */
 const isShell = (html: string): boolean => html.includes('app:meta')
 
 /** A `transformIndexHtml` that leaves srd's pages alone. */
@@ -59,14 +59,14 @@ export function requireConvexUrl(): Plugin {
   }
 }
 
-/** Whether a dev request is a navigation into the Cantina. */
+/** Whether a dev request is a navigation into the app. */
 function isAppNavigation(url: string, accept: string): boolean {
   const path = url.split('?')[0] ?? ''
   return routeInApp(path) !== null && !/\.[a-z0-9]+$/i.test(path) && accept.includes('text/html')
 }
 
 /**
- * The shell (`src/shell/shell.ts`) is the Cantina's HTML entry: the
+ * The shell (`src/shell/shell.ts`) is the app's HTML entry: the
  * build loads it as `APP_ENTRY` and emits `build/index.html` from it; the
  * dev server answers every navigation under `/build` with it, once Vite's own
  * middlewares (modules, `public/`) have passed the request on.
@@ -102,7 +102,7 @@ export function appShell(): Plugin {
 /**
  * The base stylesheet both apps link (`src/styles/baseStylesheet.ts`): the
  * fonts and the UI library's stylesheet, at `/assets/base-<hash>.css`, ahead
- * of the Cantina's own CSS. `emitBaseStylesheet` writes the files into this
+ * of the app's own CSS. `emitBaseStylesheet` writes the files into this
  * same build. The dev server links the source.
  */
 export function baseStylesheetLink(): Plugin {
@@ -125,7 +125,7 @@ export function baseStylesheetLink(): Plugin {
 
 /**
  * The site's one web manifest (`src/pwa.ts`), linked from the shell as srd's
- * pages link it: one install for both apps, opening on the Cantina.
+ * pages link it: one install for both apps, opening on the app.
  */
 export function siteManifest(): Plugin {
   return {

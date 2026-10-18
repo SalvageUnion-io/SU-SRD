@@ -137,7 +137,7 @@ no account to open, is always current, and requires no publishing step.
   be withdrawn.
 - **A public sheet is crawlable; a missing or private one is not.** The one
   site's `robots.txt` does not block `/build/p/`, and its sitemap index lists only
-  the Cantina's front door and the Starter Set, never `/p/`. A public sheet names
+  the app's front door and the Starter Set, never `/p/`. A public sheet names
   its own canonical URL; a sheet that is missing or private answers
   `x-robots-tag: noindex`, so a dead link never becomes a page search lists
   (`worker/app.ts`).

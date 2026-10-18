@@ -8,7 +8,7 @@ The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 45, which
 [ADR-038](038-dashboard-game-surface.md) §3, §4 and §9. It adds no mode to [ADR-021](021-cantina-surface-taxonomy.md).
 The phone form is Guided Play, with the same enforcement, seat and Change Log
 as the canvas, so the taxonomy and the
-[rules and the Cantina surfaces](../ARCHITECTURE.md#surfaces) matrix do not change.
+[rules and the app surfaces](../ARCHITECTURE.md#surfaces) matrix do not change.
 
 **Partly superseded by [ADR-051](051-play-mode.md):** Play's four phone tabs
 replace decisions 3 (unit tabs), 4 (the resolve screen) and 5 (the bar's

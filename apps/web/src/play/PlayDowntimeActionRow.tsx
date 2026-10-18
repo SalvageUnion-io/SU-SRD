@@ -22,7 +22,7 @@ import { PlaySheetOverlay } from './PlaySheetOverlay'
 import type { DowntimeActionId } from './playActions.model'
 import type { PlayActions } from './usePlayActions'
 
-/** The table a Cantina rumour is rolled on. */
+/** The table an app rumour is rolled on. */
 const RUMOUR_TABLE = 'Rumour'
 
 type PlayDowntimeActionRowProps = {

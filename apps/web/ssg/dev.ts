@@ -1,5 +1,5 @@
 /**
- * dev — the development server: srd's pages, and the Cantina at `/build`.
+ * dev — the development server: srd's pages, and the app at `/build`.
  *
  * ## The one rule
  *
@@ -273,7 +273,7 @@ async function main(): Promise<void> {
   // Created first so Vite attaches its HMR socket to it.
   const server = createHttpServer()
   // The same config `vite build` reads (ADR-050). Its shell plugin answers the
-  // Cantina's navigations (`/build/**`) with the shell, as production does;
+  // app's navigations (`/build/**`) with the shell, as production does;
   // every other document comes from the route registry below.
   const vite = await createViteServer({
     configFile: viteConfigFile,
@@ -287,7 +287,7 @@ async function main(): Promise<void> {
   })
 
   // Vite's own middlewares get every request first (public/, /src/**, /@vite/**,
-  // /@fs/**, the Cantina's shell); whatever they leave unclaimed falls through
+  // /@fs/**, the app's shell); whatever they leave unclaimed falls through
   // to the renderer.
   //
   // The renderer is deliberately NOT pushed onto `vite.middlewares` with
@@ -324,7 +324,7 @@ async function main(): Promise<void> {
 
   server.listen(PORT, () => {
     // biome-ignore lint/suspicious/noConsole: build-time CLI — progress output is the interface
-    console.log(`[dev] srd on http://localhost:${PORT}, the Cantina on /build/`)
+    console.log(`[dev] srd on http://localhost:${PORT}, the app on /build/`)
   })
 
   const shutdown = () => {

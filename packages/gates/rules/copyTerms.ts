@@ -2,7 +2,7 @@
  * Copy lint for game terms — the `copy` rule set of `tools/check-rule-sets.ts`.
  *
  * The book capitalises its game nouns: the Core Book writes "Mech" 968 times
- * and "mech" 15, "Pilot" 452 and "pilot" 16. An audit of the Cantina's copy found it
+ * and "mech" 15, "Pilot" 452 and "pilot" 16. An audit of the app's copy found it
  * lower case about half the time ("mech" 91, "Mech" 77), "TL" where the book
  * says "Tech N" or "Tech Level", "Heat Cap" in prose where the book says "Heat
  * Capacity", and the product named three ways. None of that fails typecheck,
@@ -319,7 +319,7 @@ export function productNames(root: string): { build: string; play: string } {
 
 /**
  * Any other casing of the area names, and of a name without its leading
- * "The" ("Cantina"). A bracketed `[cantina]` is a log tag, not the name.
+ * "The" ("Cantina"). A bracketed `[cantina]`, a log tag, is not the name.
  */
 export function productBans(product: { build: string; play: string }): Banned[] {
   const spellings = [product.build, product.play].flatMap((name) => {

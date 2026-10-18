@@ -55,7 +55,7 @@ export function ContentsChapter({ id, title, tone, rows, total }: ContentsChapte
 /**
  * The path in for a new player: the shared "Start here" block both tools show
  * (`StartHere`), each step opening its creation guide in the book. The SRD
- * adds no foot of its own: the Union bar's Build tab is the way into the Cantina.
+ * adds no foot of its own: the Union bar's Build tab is the way into the app.
  */
 export function HomeStartHere({
   guideHrefs,

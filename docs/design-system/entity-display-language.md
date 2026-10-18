@@ -1,6 +1,6 @@
 # Entity Display Language
 
-The law for **how an entity is drawn**, SRD and Cantina alike; [ruleset.md](ruleset.md) governs primitives, tokens and contexts (amend one first if they disagree).
+The law for **how an entity is drawn**, SRD and app alike; [ruleset.md](ruleset.md) governs primitives, tokens and contexts (amend one first if they disagree).
 Status: agreed. Code: `apps/web/src/components/entity/`.
 
 ## Pipeline
@@ -20,7 +20,7 @@ Status: agreed. Code: `apps/web/src/components/entity/`.
    In a `data-entity-grid` every Row is the same height and every head's name line reserves two lines.
    **Tile** — the SRD index's Row: 3:4 art if any, name notched in the band, facts, lead; link only.
 4. **Card** — the whole entity in place: head (title, labels — pills, User-made — and chips), prose, actions and children as Tokens (E6), table as a roll bar, cite; comfortable (≥ 30rem) or compact.
-5. **Page** — the detail view: an SRD route, Cantina's detail dialog. From 64rem the hero floats left (42%, ≤ 32rem tall) and sections flow beside it.
+5. **Page** — the detail view: an SRD route, the app's detail dialog. From 64rem the hero floats left (42%, ≤ 32rem tall) and sections flow beside it.
    Ability trees and pattern rows clear the art; a stack spans the column, 52rem with no art; a phone stacks the art above.
 6. **Peek** — a compact Card, read-only, level 1 on its plate: children as Tokens (E6). A Mention or trait chip carries only `data-peek`; one `PeekHost` per app opens it, lazily.
 
@@ -60,12 +60,12 @@ Each is checkable; breaking one needs an amendment here. Nesting (N1–N7, rules
 - **E18** No form cuts a name (bar a Token's), stamp or chip to "…": it wraps or widens. A Token's head is one row filling its line (N4), of a static budget (C3); its name ends in "…".
 - **E19** A chassis ability shows only on its chassis and pattern pages (level 1), mech hero and Discord card;
   nested (mech-wizard picks and stats step, Peek) it is a contentful Token (N3).
-- **E20** Above a show page's title: only the trail, on its plate (Cantina sheet: `corner`); stamps, chips, controls cluster as E17 (`asideAt="notch"`), Build With This last (phone: chip-sized, centred right of title); a chassis's stats lead its body.
+- **E20** Above a show page's title: only the trail, on its plate (app sheet: `corner`); stamps, chips, controls cluster as E17 (`asideAt="notch"`), Build With This last (phone: chip-sized, centred right of title); a chassis's stats lead its body.
 
 ## Which form, where
 
 1. **SRD index** — Tiles (lead), link (E2). **SRD entity, pattern, table or guide page** — Page, read; children link. **A pattern** — the chassis ability on its page (E19), then Systems and Modules at level 1, compact Cards, their actions Tokens (E6).
 2. **Search, everywhere** — Row (no lead), link; the bar's dropdown: Token, link. **Any prose** — Mention: Peek, then Page.
-3. **Cantina wizard or picker** — Row, Card for the focused pick; select. **Live sheet** — Row and Card.
-4. **Cantina dense slots** (inventory, bays, loadouts) — Token, link. **Deck** — Token. **Resolve** — Row / Card.
-5. **Cantina "open" anywhere** — the detail dialog's Page. **Mediator opposition tray** — Row. **OG cards, the bot** — fed by the model.
+3. **app wizard or picker** — Row, Card for the focused pick; select. **Live sheet** — Row and Card.
+4. **app dense slots** (inventory, bays, loadouts) — Token, link. **Deck** — Token. **Resolve** — Row / Card.
+5. **app "open" anywhere** — the detail dialog's Page. **Mediator opposition tray** — Row. **OG cards, the bot** — fed by the model.

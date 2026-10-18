@@ -124,7 +124,7 @@ export function useMechSheetActions({
   }
 
   // Collection add/remove (unified edit language archetype B) — always
-  // available, writes through immediately (The Cantina auto-saves; no Save button).
+  // available, writes through immediately (The app auto-saves; no Save button).
   // Reads the FRESHEST record so rapid picker clicks don't race the async
   // store write. Duplicates are rules-legal; capacity stays soft.
   // Hand-editing the loadout never clears patternName — the pattern name IS

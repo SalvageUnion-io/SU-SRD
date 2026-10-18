@@ -11,9 +11,9 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
 5. **"ROLL THE DIE:" and "//" lines** — an underlined ink stamp over banded d20 tables; italic trait lines split by "//" (`Turn Action // Range: Close`); on screen one chip group in the head (E17).
 6. **The book's colour map** — which chapter band a page wears:
    - **Rules · Salvaging**, rules blue `--color-wk-line`: Home, Core Rules, Salvaging, Guides, Keywords.
-   - **Pilot Bay**, `--color-pilot`: Classes, Abilities, Equipment, Cantina pilots. **Mech Workshop**, `--color-mech`: Chassis, Systems, Modules, Cantina mechs.
-   - **Union Crawler**, `--color-crawler`: Crawlers, Bays, Crawler TLs, Cantina crawlers. **Denizens**, `--color-denizen-band`: Bio-Titans, Creatures, NPCs, Squads (cards: adversary brown).
-   - Off-book: Shelves ink, paper flecks (§3.5); Cantina pages `cantina` (crawler pink); Home's Discord button `--color-discord`.
+   - **Pilot Bay**, `--color-pilot`: Classes, Abilities, Equipment, app pilots. **Mech Workshop**, `--color-mech`: Chassis, Systems, Modules, app mechs.
+   - **Union Crawler**, `--color-crawler`: Crawlers, Bays, Crawler TLs, app crawlers. **Denizens**, `--color-denizen-band`: Bio-Titans, Creatures, NPCs, Squads (cards: adversary brown).
+   - Off-book: Shelves ink, paper flecks (§3.5); `build`/`play` bands; Home's Discord button `--color-discord`.
 7. **Deliberate departures** — generated, placed texture (§3.5); the ability-tree track stays a diagram (§3.10); ability Rows wear their tier (E12); rounding only where the book rounds (§4.4).
 
 ## The laws
@@ -58,7 +58,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    9. **§3.9 Canon is solid; homebrew is dashed** — a player-made thing that could pass for the book (pattern, NPC): dashed frame, dashed User-made stamp in the head's labels, foot rule and pills, credit "Made by [user]", at every size.
       A full page adds a hard-stop hatched band, a dashed notch and a maker banner. One `userMade` flag (+ `madeBy`); canon-built units stay solid.
    10. **§3.10 No left-rail borders** — colour rides in top bands, stamps and gauges; nesting shows by containment.
-   11. **§3.11 One union, two tools** — one Union bar; the switcher reads Reference | Build | Play; the builder is The Cantina, named on its front door; no off-site arrows between the two.
+   11. **§3.11 One union, two tools** — one Union bar; the switcher reads Reference | Build | Play; Build (the Training Bay) and Play (the Cantina) name their pages and colour the bar; no off-site arrows between the two.
    12. **§3.12 Microcopy** — sentence case ("Make a copy"); game terms keep the book's casing ("End Downtime"), as do Game, Shelf and the roles ([glossary](../architecture/glossary.md)).
        Caps only through the stamp (`Badge shape="stamp"`) and `Button`, which sets every label in condensed caps. Verbs: Copy, Move, Delete, Break down; Scrap is the currency, never the verb (p.248). `bun run check copy` holds what it can.
 4. **§4 Foundations** — the token layer, one home: `apps/web/src/styles/theme.css`.

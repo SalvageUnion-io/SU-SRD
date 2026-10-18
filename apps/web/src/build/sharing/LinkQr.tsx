@@ -5,7 +5,7 @@
  * any DPI. The tile is forced white with an encoder quiet zone — QR readers
  * need dark-on-light regardless of app theme.
  *
- * Lives in the Cantina, not src/components: The Cantina is its only renderer, and keeping it
+ * Lives in the app, not src/components: the app is its only renderer, and keeping it
  * in the library meant the library's manifest declared `qrcode` for one app's
  * sake. Covered by `__tests__/ShareStatusDialog.connected.test.tsx`.
  */

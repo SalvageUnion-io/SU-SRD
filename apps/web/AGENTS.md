@@ -5,7 +5,7 @@ rewrites everything between its markers: amend it here, never inside it.
 
 - **Its guidelines mandate is scoped to `convex/**`.** Read
   `convex/_generated/ai/guidelines.md` before editing a file under `convex/`;
-  work elsewhere in the Cantina does not need it.
+  work elsewhere in the app does not need it.
 - **This repo uses `bunx`; `npx` is denied.** Run every `npx convex …` the
   block or a vendored skill names as `bunx convex …`.
 - **The vendored skills are the full upstream set** (`get-convex/agent-skills`,

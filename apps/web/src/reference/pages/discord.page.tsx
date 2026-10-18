@@ -5,7 +5,7 @@
  * registered `/su` builder (`apps/discord-bot/src/commandList.ts`), so every
  * subcommand is here under the name and description Discord shows. The
  * reference tools each get a panel with worked examples (`commandDetail`); the
- * The Cantina commands are listed under the account they need.
+ * app commands are listed under the account they need.
  */
 
 import { PRODUCT } from 'game-domain/product'

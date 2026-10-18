@@ -68,7 +68,7 @@ type Manifest = Record<string, ManifestChunk>
  */
 const NON_LINKED_ENTRIES = ['styles.entry.ts', 'assets.entry.ts']
 
-/** The Cantina's entry, its shell: its own document, never linked from srd's. */
+/** The app's entry, its shell: its own document, never linked from srd's. */
 const APP_ENTRY = 'build/index.html'
 
 /**

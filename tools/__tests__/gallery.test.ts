@@ -185,7 +185,7 @@ describe('parseGalleryArgs, defaults and values', () => {
 })
 
 describe('signedOutTargets', () => {
-  test('every signed-out page, each on the one base, the Cantina under /build', () => {
+  test('every signed-out page, each on the one base, the app under /build', () => {
     const targets = signedOutTargets('http://site')
     expect(targets.length).toBe(ALL_PAGES.filter((p) => !p.signedIn).length)
     for (const t of targets) {
@@ -247,7 +247,7 @@ describe('ogSource', () => {
       kind: 'file',
       url: 'http://site/og/default.png',
     })
-    // A Cantina path shaped like an entity page is not one: its image is fetched.
+    // An app path shaped like an entity page is not one: its image is fetched.
     expect(
       ogSource(page('/build/chassis/x/'), 'http://site', 'https://salvageunion.io/build/og/x.png')
     ).toEqual({ kind: 'file', url: 'http://site/build/og/x.png' })
@@ -259,7 +259,7 @@ describe('ogSource', () => {
 })
 
 describe('builderRoot', () => {
-  test("opens the Cantina's root on the base, with its trailing slash", () => {
+  test("opens the app's root on the base, with its trailing slash", () => {
     expect(builderRoot('http://localhost:4321')).toBe('http://localhost:4321/build/')
   })
 })

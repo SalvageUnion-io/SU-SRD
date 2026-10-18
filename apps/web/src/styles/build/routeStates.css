@@ -1,6 +1,6 @@
 /*
  * routeStates.css — the stateful/responsive half of the
- * The Cantina components listed below; their static styling is style objects over
+ * app components listed below; their static styling is style objects over
  * src/components tokens. Loaded by `index.css`.
  *
  * - components/shared/RouteFallbacks.tsx — `.su-not-found-panel`: the 404 card's

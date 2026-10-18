@@ -211,7 +211,7 @@ describe('a Discordbot fetch of a private sheet', () => {
 })
 
 describe('a Discordbot fetch of an invite', () => {
-  it('unfurls the /invite/<token> link the Cantina and the bot hand out', async () => {
+  it('unfurls the /invite/<token> link the app and the bot hand out', async () => {
     const html = await unfurl('/invite/K7QR2XA')
     expect(meta(html, 'og:title')).toBe('Reclamation of the Wastes')
     expect(meta(html, 'og:description')).toBe("You're invited · Player seat · Mediated by alxjrvs.")

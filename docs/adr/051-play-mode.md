@@ -14,6 +14,12 @@ Mediator) and its layout (Major and Minor slots, the display's tabs), and
 play state stands: the seat, the fixed scaled canvas, the rules driver and the
 ADR-007 boundary.
 
+**Named** (#1667, 2026-10-18): players know Play as **The Cantina**, the
+crawler's social hub, and Build as the **Training Bay**; the header's tabs keep
+the verbs Reference | Build | Play, and the names go on the pages and the bar's
+colour (Build pilot orange, Play the deep crawler pink). "The Cantina" no
+longer names the whole app.
+
 **Amends** [ADR-030](030-accounts-games-server-of-record.md): a pilot on a
 Shelf has a seat too (§4), seats carry presence (§7), and a Game can bind a
 Discord channel again (§8).
@@ -72,7 +78,7 @@ on 2026-10-17.
 
 ### 1. Play is a mode
 
-The site header offers Reference (the SRD), Build (the Cantina) and Play. Play
+The site header offers Reference (the SRD), Build (the app) and Play. Play
 lands on `/build/play`: the player's Games (play or mediate), their pilots to
 play solo, and each Game's Discord channel.
 

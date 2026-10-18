@@ -20,7 +20,7 @@
  * pointer-events:none. Reducing this below "strip + fade + aria gating" needs
  * explicit design sign-off (risk R4).
  *
- * Stats are store-backed (the real Cantina replacement for the prototype's
+ * Stats are store-backed (the real app replacement for the prototype's
  * single useState): the caller derives `strip` values from the same entity
  * record its hero trackers edit, so hero and strip stay in lockstep by
  * construction. `syncStats` overlays derived values (e.g. mech Cargo = hold

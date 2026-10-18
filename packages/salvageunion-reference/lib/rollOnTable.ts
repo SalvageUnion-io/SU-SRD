@@ -2,7 +2,7 @@
  * rollOnTable — the one shared orchestration for rolling on any Salvage Union
  * roll table (ADR-006 pure rules logic).
  *
- * The Discord bot's /roll command, the SRD and the Cantina's roll buttons need the
+ * The Discord bot's /roll command, the SRD and the app's roll buttons need the
  * same dance: detect the table shape (isColumnsTable), roll one or two d20s,
  * unpack resultForTable / resultForColumnsTable, and tell a roll that lands on
  * no row ("No effect") apart from a broken table. This helper owns that

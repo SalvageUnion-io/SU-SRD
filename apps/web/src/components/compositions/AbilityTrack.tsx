@@ -11,7 +11,7 @@ import type { TreeTrack } from './treeTrack'
  * before a Token's name; a pick-one tree has none, and an "or" stamp on the
  * stem between each pick, in a gap one Ability tall. The caller draws each
  * Ability — the SRD a Row that links to its page (inside a class page's path
- * card, level 2, a contentful Token: N1, N3), the Cantina's pilot sheet a Row
+ * card, level 2, a contentful Token: N1, N3), the app's pilot sheet a Row
  * with the sheet's controls under it. The class page, the abilities listing
  * and the pilot sheet draw the same track.
  */

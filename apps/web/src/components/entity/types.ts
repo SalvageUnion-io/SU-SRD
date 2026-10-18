@@ -22,7 +22,7 @@ export type EntityLinkAttrs = Omit<HTMLAttributes<HTMLElement>, 'children' | 'cl
  * - `link`: the whole surface opens the entity, with no chevron. It
  *   resolves through the surface (`hrefFor`, then `openPage`); `href` or
  *   `onOpen` overrides it for a target the surface cannot name (a search
- *   result's page, the Cantina's detail modal).
+ *   result's page, the app's detail modal).
  * - `select`: the whole surface toggles; an ink ring and a "Selected" seal.
  */
 export type EntityMode =

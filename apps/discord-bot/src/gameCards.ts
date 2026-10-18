@@ -30,7 +30,7 @@ import type {
 } from './play/types'
 
 /**
- * Card builders for the Cantina commands (ADR-030).
+ * Card builders for the app commands (ADR-030).
  *
  * Pure `data → ContainerData` through `entityCard`, the same render layer
  * `lookupCard.ts` uses: every one of these is unit-testable without a Discord
@@ -182,7 +182,7 @@ function mechStats(body: EntityBody, derived: MechDerived | null) {
  * Both mirror real TanStack routes — `/games/$gameId` and `/sheet/$kind/$id`.
  * A link that 404s is worse than no link: it reads as the app having lost the
  * thing, rather than as the bot having guessed. `/games/$gameId` is the
- * Game's own page in the Cantina.
+ * Game's own page in the app.
  */
 export function gameUrl(gameId: string): string {
   return `${APP_ORIGIN}${gamePath(gameId)}`
@@ -213,7 +213,7 @@ export function publicSheetUrl(
  * The live sheet for any entity — yours, a crewmate's, the crawler — or null
  * when there is no id to address.
  *
- * Addressed by the Convex row id, which every reader can open: The Cantina's
+ * Addressed by the Convex row id, which every reader can open: the app's
  * `entities.locate` resolves a row id for anyone allowed to see the row, opens
  * it editable for its owner and read-only for everyone else, and puts the
  * client id back in the address bar. An unclaimed pre-gen has a row id too, so
@@ -281,7 +281,7 @@ export function meCard(me: MeResult): ContainerData {
   })
 }
 
-/** `/su games` — every Game you belong to, linked to the Hangar: The Cantina has no `/games` page. */
+/** `/su games` — every Game you belong to, linked to the Hangar: the app has no `/games` page. */
 export function gamesCard(games: GameSummary[]): ContainerData {
   return entityCard({
     title: `Your Games (${games.length})`,

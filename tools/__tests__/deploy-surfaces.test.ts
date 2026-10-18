@@ -26,7 +26,7 @@ describe('deploy-surfaces — decideSurfaces', () => {
   })
 
   /**
-   * The skipped-deploy case. Commit A touched cantina, commit B touched srd, and A's
+   * The skipped-deploy case. Commit A touched the app, commit B touched srd, and A's
    * deploy never ran. Diffing HEAD^..HEAD at B saw only srd; diffing from the
    * recorded deploy sees both.
    */
@@ -48,8 +48,8 @@ describe('deploy-surfaces — decideSurfaces', () => {
     })
   })
 
-  // The Cantina is part of the one site.
-  test('a Cantina change ships web', () => {
+  // The app is part of the one site.
+  test('an app change ships web', () => {
     expect(decideSurfaces(['apps/web/src/routes/app.tsx'], false)).toEqual({
       ...NOTHING,
       web: true,
@@ -65,7 +65,7 @@ describe('deploy-surfaces — decideSurfaces', () => {
     'tsconfig.json',
     '.github/workflows/deploy-cloudflare.yml',
     '.github/actions/setup-bun/action.yml',
-    // rendered into srd's about page and the Cantina's bundle, outside `apps/`
+    // rendered into srd's about page and the app's bundle, outside `apps/`
     'SPECIAL_THANKS.md',
     'ABOUT_JRVS.md',
     'LLM_STATEMENT.md',
@@ -102,7 +102,7 @@ describe('deploy-surfaces — decideSurfaces', () => {
 
 describe('deploy-surfaces — planDeploy', () => {
   /**
-   * The out-of-order case. A (cantina) and B (su-assets) land on main in that
+   * The out-of-order case. A (the app) and B (su-assets) land on main in that
    * order. B deploys and records first; A's deploy is then re-run. Diffing
    * B->A would ship su-assets at A, reverting B in production.
    */

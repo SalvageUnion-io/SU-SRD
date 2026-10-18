@@ -12,7 +12,7 @@ paths:
   - 'packages/game-domain/**'
 ---
 
-# Cantina data access — modes, stores, Convex
+# App data access — modes, stores, Convex
 
 Why: [ADR-030, 034, 035](../../docs/ARCHITECTURE.md#decisions).
 

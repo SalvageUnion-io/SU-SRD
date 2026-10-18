@@ -13,7 +13,7 @@
 [![Biome](https://img.shields.io/badge/lint%20%26%20format-Biome-60a5fa?logo=biome&logoColor=fff)](https://biomejs.dev)
 
 [![SRD](https://img.shields.io/badge/SRD-salvageunion.io-1f2a44)](https://salvageunion.io)
-[![The Cantina](https://img.shields.io/badge/The%20Cantina-salvageunion.io%2Fbuild-1f2a44)](https://salvageunion.io/build)
+[![Build and Play](https://img.shields.io/badge/Build%20%26%20Play-salvageunion.io%2Fbuild-1f2a44)](https://salvageunion.io/build)
 [![JSON API](https://img.shields.io/badge/API-salvageunion.io%2Fapi-1f2a44)](https://salvageunion.io/api/)
 [![Discord](https://img.shields.io/badge/Discord-join-5865f2?logo=discord&logoColor=fff)](https://discord.gg/kMwD2bWgtC)
 [![Licence: Salvage Union OGL 1.0b](https://img.shields.io/badge/licence-Salvage%20Union%20OGL%201.0b-8a8a8a)](https://leyline.press/pages/salvage-union-open-game-licence-1-0b)
@@ -23,18 +23,18 @@ A Bun monorepo of tools for **Salvage Union**, the tabletop RPG by
 
 | Workspace | What it is |
 | --- | --- |
-| [`apps/web`](apps/web) | The app at [salvageunion.io](https://salvageunion.io): the SRD's pre-rendered reference pages (an in-house Vite SSG with React islands, and a public [JSON API](https://salvageunion.io/api/)), and The Cantina, the character builder and game manager at [salvageunion.io/build](https://salvageunion.io/build) (React, TanStack Router, Convex in `convex/`). One source tree, one component library (`src/components/`), one build. |
-| [`apps/discord-bot`](apps/discord-bot) | The Discord bot: roll on tables, look up entities, play in a Cantina Game. |
+| [`apps/web`](apps/web) | The app at [salvageunion.io](https://salvageunion.io): the SRD's pre-rendered reference pages (an in-house Vite SSG with React islands, and a public [JSON API](https://salvageunion.io/api/)), and the app, the character builder and game manager at [salvageunion.io/build](https://salvageunion.io/build) (React, TanStack Router, Convex in `convex/`). One source tree, one component library (`src/components/`), one build. |
+| [`apps/discord-bot`](apps/discord-bot) | The Discord bot: roll on tables, look up entities, play in an app Game. |
 | [`apps/su-assets`](apps/su-assets) | The Worker serving licensed entity artwork from R2. |
 | [`packages/salvageunion-reference`](packages/salvageunion-reference) | The schema-validated game dataset and its TypeScript ORM. |
-| [`packages/game-domain`](packages/game-domain) | The schemas and rules The Cantina, its Convex backend and the bot share. |
+| [`packages/game-domain`](packages/game-domain) | The schemas and rules the app, its Convex backend and the bot share. |
 | [`packages/gates`](packages/gates) | The library behind the repo's gates, run from [`tools/`](tools). |
 
 ## Getting started
 
 ```bash
 bun install        # Bun at the version package.json pins; also installs the git hooks
-bun run dev        # the SRD, and the Cantina at /build on a local Convex backend
+bun run dev        # the SRD, and the app at /build on a local Convex backend
 bun run check      # every gate, ending in a pass/fail table
 ```
 

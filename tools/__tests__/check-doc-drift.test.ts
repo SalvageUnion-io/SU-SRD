@@ -385,7 +385,7 @@ describe('checkRetiredClaims', () => {
   it('passes a doc that states the current design', () => {
     const root = fixture({
       'CLAUDE.md':
-        'Signed out, the Cantina is read-only. Use `bun run test`.\n' +
+        'Signed out, the app is read-only. Use `bun run test`.\n' +
         'The bot is a first-class authenticated client.\n',
     })
     expect(checkRetiredClaims(root).failures).toEqual([])
@@ -635,7 +635,7 @@ describe('checkAreaCitations', () => {
 
 describe('headingSlug', () => {
   it('matches the anchors GitHub renders', () => {
-    expect(headingSlug('Combat loop (Cantina)')).toBe('combat-loop-cantina')
+    expect(headingSlug('Combat loop (Play)')).toBe('combat-loop-play')
     expect(headingSlug("CI: reusing the PR's run")).toBe('ci-reusing-the-prs-run')
     expect(headingSlug('A — B')).toBe('a--b')
     expect(headingSlug('Rotating `JWT_PRIVATE_KEY` / `JWKS`')).toBe(

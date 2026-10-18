@@ -77,7 +77,7 @@ function mountsFit(mounts: readonly MountSlotUsage[]): boolean {
 
 const chassisList = SalvageUnionReference.Chassis.all()
 
-// Hidden patterns too: they are records, and the Cantina can still hold a mech built
+// Hidden patterns too: they are records, and the app can still hold a mech built
 // from one before it was hidden.
 const patterns = chassisList.flatMap((chassis) =>
   chassis.patterns.map((pattern) => ({ chassis, pattern }))

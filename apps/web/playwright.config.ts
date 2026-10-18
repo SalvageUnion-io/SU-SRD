@@ -25,7 +25,7 @@ import { portFor } from 'gates/ports'
  *   but they never hide it.
  * - The page's CSP is bypassed (`bypassCSP`). The specs test behaviour and
  *   accessibility, not the policy, and two things they need sit outside the
- *   production CSP: the Cantina's throwaway Convex backend on `127.0.0.1`, and
+ *   production CSP: the app's throwaway Convex backend on `127.0.0.1`, and
  *   the axe script the a11y spec injects. `tools/smoke-production.sh` asserts
  *   the CSP that reaches the browser in production.
  * - Service workers are blocked: activating one mid-navigation can abort
@@ -38,10 +38,10 @@ import { portFor } from 'gates/ports'
  * One budget for every test: a reference page's islands download the
  * salvageunion-reference data chunks on first intent, so a cold navigation can
  * take a while; 60 s leaves headroom without masking a real hang. A slower spec
- * sets its own: the Cantina's `test` (`e2e/fixtures.ts`) gives each of its
+ * sets its own: the app's `test` (`e2e/fixtures.ts`) gives each of its
  * tests 90 s, and the a11y and perf specs set theirs.
  *
- * Signed out, the Cantina is read-only, so every spec that builds something
+ * Signed out, the app is read-only, so every spec that builds something
  * signs in through `e2e/fixtures.ts`. Both CI builds that run them, ci.yml's
  * `build-web` (the PR tier, its listed specs) and the nightly `e2e` job (the
  * whole suite), carry the seam against a throwaway Convex backend; a build

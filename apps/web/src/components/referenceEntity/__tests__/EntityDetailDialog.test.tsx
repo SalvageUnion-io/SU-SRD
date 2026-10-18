@@ -1,5 +1,5 @@
 /**
- * The Cantina's detail dialog IS the Page (EDL Form 5, E5): the chapter band with the
+ * The app's detail dialog IS the Page (EDL Form 5, E5): the chapter band with the
  * title notched in and the chips clustered beside it (E20), the card at
  * `presentation="page"` as its body (a chassis's stats leading it, the art its
  * hero), and the foot's citation in the card footer's plain text. Never a

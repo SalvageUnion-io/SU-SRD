@@ -8,7 +8,7 @@ import { OG_CARD_HEIGHT, OG_CARD_WIDTH, OG_GUTTER, OG_NOTCH_INSET } from './ogCa
 /**
  * BrandCard — the site's own link preview: the picture a link unfurls with
  * when the page it opens has no card of its own (the SRD's home, chapter and
- * rules pages; every Cantina route but a shared sheet or invite, which carry
+ * rules pages; every app route but a shared sheet or invite, which carry
  * their own).
  *
  * It is the Discord bot's profile banner (`apps/discord-bot/brand/banner.png`)

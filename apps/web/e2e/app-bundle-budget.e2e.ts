@@ -9,7 +9,7 @@ import { expect, test } from './fixtures'
 test.use({ account: 'anonymous' })
 
 /**
- * Bundle-size budget suite — the Cantina's counterpart to
+ * Bundle-size budget suite — the app's counterpart to
  * `reference-bundle-budget.e2e.ts`, and the regression guard for the
  * route-level code splitting turned on in `vite.config.ts`
  * (`TanStackRouterVite({ autoCodeSplitting: true })`).
@@ -17,7 +17,7 @@ test.use({ account: 'anonymous' })
  * ## What this measures, and why it differs from srd's suite
  *
  * srd's budget proves that per-route *data* preload lists keep large schema
- * chunks off pages that don't need them. The Cantina cannot make that claim and
+ * chunks off pages that don't need them. The app cannot make that claim and
  * deliberately doesn't try: `GameDataReady` calls
  * `SalvageUnionReference.preload('all')` on every route by design (see the
  * long rationale in `src/components/shared/GameDataReady.tsx` — the entity
@@ -58,7 +58,7 @@ test.use({ account: 'anonymous' })
  * tree into the entry; `vite.config.ts` gained named `codeSplitting` groups
  * (react, vendor, zod, reference, ui) for the initial graph; and
  * the reference package's trusted load path dropped Zod's entity schemas and
- * locales from cantina's client. App JS per route fell by roughly: roster
+ * locales from the app's client. App JS per route fell by roughly: roster
  * −202 KB, pilot wizard −199 KB, dashboard −199 KB, live sheet −44 KB.
  *
  * ## Current baseline: the Convex-backed build
@@ -89,7 +89,7 @@ test.use({ account: 'anonymous' })
  * it.
  */
 
-/** `path` under the Cantina's base, ready, with its JS totalled. */
+/** `path` under the app's base, ready, with its JS totalled. */
 async function captureRouteJs(page: Page, path: string): Promise<JsTotals> {
   return await captureJsTotals(page, async () => {
     await page.goto(at(path))

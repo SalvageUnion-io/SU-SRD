@@ -13,7 +13,7 @@ import type { EntityBody, SheetResult } from '../play/types'
 import { cardText, cardUrl } from './cardText'
 
 /**
- * Card builders for the Cantina Game commands.
+ * Card builders for the app Game commands.
  *
  * These are pure `data → ContainerData`, so every one of them is exercised here
  * with no Discord client, no network and no mock. A pilot's and a mech's
@@ -238,7 +238,7 @@ describe('deep links', () => {
 
   test('every sheet links to the live sheet by its row id', () => {
     // /sheet/$kind/$id resolves a Convex row id for anyone allowed to see the
-    // row (The Cantina's entities.locate), so one shape serves the owner and the crew.
+    // row (The app's entities.locate), so one shape serves the owner and the crew.
     expect(sheetUrl('pilots', 'cx-p1')).toBe(`${WEB}/sheet/pilot/cx-p1`)
     expect(sheetUrl('mechs', 'cx-m1')).toBe(`${WEB}/sheet/mech/cx-m1`)
     expect(sheetUrl('crawlers', 'cx-c1')).toBe(`${WEB}/sheet/crawler/cx-c1`)
@@ -256,7 +256,7 @@ describe('gamesCard', () => {
     expect(cardText(gamesCard([]))).toContain('No Games yet')
   })
 
-  test('links to the Hangar, since the Cantina has no /games page', () => {
+  test('links to the Hangar, since the app has no /games page', () => {
     expect(cardUrl(gamesCard([]))).toBe(`${WEB}/`)
   })
 
