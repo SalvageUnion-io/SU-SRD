@@ -40,12 +40,13 @@ import {
   EntityExternalLinkProvider,
   EntityStat,
   KindLabel,
+  relation,
   Stat,
+  Tags,
   tokens,
 } from '../index'
 import { AppLink } from '../shared/AppLink'
 import type { BandStamp } from './bandStamps.model'
-import { LinkedUnitLink } from './LinkedUnitLink'
 import type { SheetBand } from './sheetViewProps.model'
 
 type SheetVariant = SheetKind
@@ -60,7 +61,7 @@ const KIND_LABEL: Record<SheetVariant, string> = {
 export type LiveSheetSegment = {
   key: SheetVariant
   label: string
-  /** The unit's own name: its Token in the condensed bar. */
+  /** The unit's own name: its relation chip in the condensed bar. */
   name: string
   href: string
   /** The segment matching the sheet being viewed — rust fill, no nav. */
@@ -355,28 +356,28 @@ export function LiveSheet({
             )}
           </div>
 
-          {/* One Token PER LINKED UNIT, on the right beside the sheet actions —
-            a hop straight to that pilot / mech / crawler, named and in its own
-            tone, not a jump link to a section at the foot of the page. They
-            ride the condensed state with the name and vitals: at rest the
+          {/* Each LINKED UNIT as its relation chip (`chips-and-actions.md`
+            C11), `PILOT | Bonesaw`, on the right beside the sheet actions: a
+            hop straight to that pilot / mech / crawler, not a jump link to a
+            section at the foot of the page. They ride the condensed state with
+            the name and vitals, at the strip's chip size (C1a): at rest the
             linked units are on screen in their own section, so the bar has
             nothing to add.
 
             `segments` already carries the wired set (it drives the mobile
             switcher below); the active one is this sheet, so it is skipped. */}
           <div style={BAR_END}>
-            {condensed &&
-              segments
-                ?.filter((segment) => !segment.active)
-                .map((segment) => (
-                  <LinkedUnitLink
-                    key={segment.key}
-                    kind={segment.key}
-                    name={segment.name}
-                    href={segment.href}
-                    stats={[]}
-                  />
-                ))}
+            {condensed && segments && (
+              <Tags
+                tags={segments
+                  .filter((segment) => !segment.active)
+                  .map((segment) =>
+                    relation(segment.key, segment.label, segment.name, { href: segment.href })
+                  )}
+                linkable
+                size="compact"
+              />
+            )}
           </div>
         </section>
       </div>

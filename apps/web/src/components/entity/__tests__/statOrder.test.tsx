@@ -111,7 +111,15 @@ describe('one stat order on every surface', () => {
       for (const entity of fixtures(schemaName)) {
         const name = toEntityModel(entity).title
         for (const form of ['row', 'tile', 'token'] as const) {
-          const { container, unmount } = render(<Entity form={form} entity={entity} />)
+          const { container, unmount } = render(
+            form === 'token' ? (
+              <Entity form="token" context="loadout" entity={entity} />
+            ) : form === 'row' ? (
+              <Entity form="row" entity={entity} />
+            ) : (
+              <Entity form="tile" entity={entity} />
+            )
+          )
           expectInOrder(entity, `${name} ${form}`, domLabels(container))
           unmount()
         }
@@ -158,7 +166,8 @@ describe('one stat order on every surface', () => {
     const sequence = Array.from(group?.children ?? []).map(
       (child) => child.querySelector('.su-stat-plate--label')?.textContent ?? '?'
     )
-    expect(sequence).toEqual(['TL', 'SV', 'SP', 'EP', 'SYS', 'MODS'])
+    // A Row keeps the compact budget (C3): TL, then the measure its kind's loadout weighs.
+    expect(sequence).toEqual(['TL', 'SP'])
   })
 
   test('the cost, the pointy box, comes last in every chip group that has one', () => {
@@ -166,7 +175,13 @@ describe('one stat order on every surface', () => {
     for (const schemaName of ['systems', 'modules', 'abilities'] as const) {
       for (const entity of fixtures(schemaName)) {
         for (const form of ['row', 'token'] as const) {
-          const { container, unmount } = render(<Entity form={form} entity={entity} />)
+          const { container, unmount } = render(
+            form === 'token' ? (
+              <Entity form="token" context="loadout" entity={entity} />
+            ) : (
+              <Entity form={form} entity={entity} />
+            )
+          )
           const group = container.querySelector('[data-chip-group]')
           const cost = group?.querySelector('.su-cost')
           if (group && cost) {

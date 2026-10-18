@@ -193,7 +193,13 @@ export function MechItemToken({
     <>
       <SheetItemLine
         token={
-          <Entity form="token" entity={entity} instance={{ condition }} mode={{ kind: 'link' }} />
+          <Entity
+            form="token"
+            context="loadout"
+            entity={entity}
+            instance={{ condition }}
+            mode={{ kind: 'link' }}
+          />
         }
         name={entity.name}
         condition={condition}

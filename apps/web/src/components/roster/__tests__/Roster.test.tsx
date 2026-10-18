@@ -344,7 +344,7 @@ describe('Hangar — items', () => {
     expect(line?.textContent).toContain('Unassigned')
   })
 
-  test('linked units are named in each other’s chips', async () => {
+  test('linked units are each other’s relation chips, MECH | and PILOT | (C11)', async () => {
     const store = useEntityStore.getState()
     await Promise.all([store.hydrate('pilot'), store.hydrate('mech'), store.hydrate('softLink')])
     const pilot = await store.create('pilot', { ...basePilotInput, name: 'Mara Vex' })
@@ -357,8 +357,11 @@ describe('Hangar — items', () => {
 
     await renderShelves()
 
-    expect(screen.getByText('Assigned: Iron Fist')).toBeTruthy()
-    expect(screen.getByText('Pilot: Mara Vex')).toBeTruthy()
+    const chipText = (chip: Element) => (chip.textContent ?? '').trim()
+    const relations = Array.from(document.querySelectorAll('[data-tag]')).map(chipText)
+    expect(relations).toContain('MechIron Fist')
+    expect(relations).toContain('PilotMara Vex')
+    expect(screen.queryByText(/^Assigned: /)).toBeNull()
   })
 
   test('the ⋯ menu offers Open, Move, Make a copy, Save as pattern (mechs), Export and Delete', async () => {

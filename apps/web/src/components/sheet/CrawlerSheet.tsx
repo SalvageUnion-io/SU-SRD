@@ -289,7 +289,7 @@ export function CrawlerSheet({
           return (
             <li key={slug}>
               {system ? (
-                <Entity form="token" entity={system} mode={{ kind: 'link' }} />
+                <Entity form="token" context="loadout" entity={system} mode={{ kind: 'link' }} />
               ) : (
                 <div style={UNKNOWN_WEAPON}>
                   <span style={TRUNCATE}>{slug}</span>

@@ -1,9 +1,10 @@
 /**
- * A Token carries a short chip set after its name, in the stat order (E17):
- * TL, its slots, HP or SP, then its one action's type or how many it lists
- * (`ACTIONS | 3`, its folded self-action not counted), its range's code
- * (`RNG | C`), then the cost box, the same in every context. A chassis drops
- * its SYS and MODS. An ability's tier numeral leads its name instead of a chip.
+ * A Token carries the chip budget its container's context names
+ * (`chips-and-actions.md`, C3 and C4): its rank (TL), the one fact the
+ * context carries (a loadout's Slots or SP, play's action type or
+ * `ACTIONS | 3`, a roster's vital), then the cost box. An ability's tier
+ * numeral leads its name instead of a chip. The model's `tokenChips` is pinned
+ * in salvageunion-reference; this file pins the drawing.
  *
  * It fills its line (N4). With a `body` it is contentful (N3): the same
  * one-row head, then the entity's text and the host's content, held by a border in its tone;
@@ -11,7 +12,7 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
-import type { RefMetaEntity } from 'salvageunion-reference'
+import type { ChipContext, RefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { readPackageStylesheet } from '../../../styles/__tests__/packageStylesheet'
 import { Entity } from '../Entity'
@@ -25,8 +26,8 @@ const get = (schema: string, name: string) => {
 }
 
 /** Each chip's text, and the cost box's, in order. */
-const chipsOf = (schema: string, name: string) => {
-  const { container } = render(<Entity form="token" entity={get(schema, name)} />)
+const chipsOf = (schema: string, name: string, context: ChipContext = 'loadout') => {
+  const { container } = render(<Entity form="token" context={context} entity={get(schema, name)} />)
   const chips = container.querySelector('.su-entity-token__pill > .su-entity-token__chips')
   return Array.from(chips?.children ?? []).map((chip) =>
     (chip.textContent ?? '').replace(/\s+/g, ' ').trim()
@@ -34,54 +35,73 @@ const chipsOf = (schema: string, name: string) => {
 }
 
 describe('Token chips', () => {
-  test('a system with several actions counts those it lists after its stats, label first (E17)', () => {
-    expect(chipsOf('systems', 'Fabrication Arm')).toEqual(['TL3', 'Slots3', 'Actions3'])
-    const { container } = render(<Entity form="token" entity={get('systems', 'Fabrication Arm')} />)
-    const count = container.querySelector('.su-entity-token__chips > :last-child')
-    expect(count?.firstElementChild?.textContent).toBe('Actions')
-  })
-
-  test('TL leads, then the stats, the action type, its range, and the cost box last (E17)', () => {
+  test('in a loadout: TL, then what it takes, label first, then the cost box last', () => {
     expect(chipsOf('systems', 'Electro-Magnetic Shield Projector')).toEqual([
       'TL3',
       'Slots2',
-      'Reaction',
-      'RNGC',
       '2 EP',
     ])
+    expect(chipsOf('systems', 'Red Laser')).toEqual(['TL1', 'Slots3'])
+    const { container } = render(
+      <Entity form="token" context="loadout" entity={get('systems', 'Red Laser')} />
+    )
+    const slots = container.querySelector('.su-entity-token__chips > :last-child')
+    expect(slots?.firstElementChild?.textContent).toBe('Slots')
+  })
+
+  test('in play: the action type, or how many actions it lists', () => {
+    expect(chipsOf('systems', 'Electro-Magnetic Shield Projector', 'play')).toEqual([
+      'TL3',
+      'Reaction',
+      '2 EP',
+    ])
+    expect(chipsOf('systems', 'Fabrication Arm', 'play')).toEqual(['TL3', 'Actions3'])
+    expect(chipsOf('npcs', 'Saboteur', 'play')).toEqual(['Actions8'])
+  })
+
+  test('in a roster: the lead vital; browsing: the rank alone', () => {
+    expect(chipsOf('npcs', 'Saboteur', 'roster')).toEqual(['HP6'])
+    expect(chipsOf('systems', 'Red Laser', 'browse')).toEqual(['TL1'])
+  })
+
+  test('the range, damage and traits never reach a header-only Token', () => {
+    for (const context of ['loadout', 'play', 'inventory', 'roster', 'browse'] as const) {
+      expect(chipsOf('systems', 'Red Laser', context).some((chip) => chip.startsWith('RNG'))).toBe(
+        false
+      )
+    }
   })
 
   test('an ability sets its tier numeral before its name, never a tree chip', () => {
-    const { container } = render(<Entity form="token" entity={get('abilities', 'Jury Rig')} />)
+    const { container } = render(
+      <Entity form="token" context="play" entity={get('abilities', 'Jury Rig')} />
+    )
     const pill = container.querySelector('.su-entity-token__pill')
     const tier = pill?.querySelector('.su-entity-token__tier')
     expect(tier?.textContent).toBe('1')
     expect(tier?.nextElementSibling?.className).toBe('su-entity-token__notch')
-    expect(chipsOf('abilities', 'Jury Rig').some((chip) => chip.startsWith('Forging'))).toBe(false)
+    expect(
+      chipsOf('abilities', 'Jury Rig', 'play').some((chip) => chip.startsWith('Forging'))
+    ).toBe(false)
     // A Legendary has no numeral, as on its band.
-    const legendary = render(<Entity form="token" entity={get('abilities', 'Tip Top Shape')} />)
-    expect(legendary.container.querySelector('.su-entity-token__tier')).toBeNull()
-    expect(chipsOf('abilities', 'Tip Top Shape').some((chip) => chip.startsWith('Legendary'))).toBe(
-      false
+    const legendary = render(
+      <Entity form="token" context="play" entity={get('abilities', 'Tip Top Shape')} />
     )
+    expect(legendary.container.querySelector('.su-entity-token__tier')).toBeNull()
+    expect(
+      chipsOf('abilities', 'Tip Top Shape', 'play').some((chip) => chip.startsWith('Legendary'))
+    ).toBe(false)
   })
 
-  test("a range is the book's code", () => {
-    expect(chipsOf('systems', 'Red Laser')).toEqual(['TL1', 'Slots3', 'Turn Action', 'RNGC'])
-  })
-
-  test("a chassis shows TL, SV, SP, EP: its SYS and MODS are the Row's", () => {
-    expect(chipsOf('chassis', 'Mule')).toEqual(['TL1', 'SV7', 'SP12', 'EP4'])
-  })
-
-  test('an NPC shows its HP and its action count', () => {
-    expect(chipsOf('npcs', 'Saboteur')).toEqual(['HP6', 'Actions8'])
+  test('a chassis in a loadout shows TL and its SP', () => {
+    expect(chipsOf('chassis', 'Mule')).toEqual(['TL1', 'SP12'])
   })
 
   test("a host's trailing chip comes last, after the cost box", () => {
     const { container } = render(
       <Entity
         form="token"
+        context="loadout"
         entity={get('systems', 'Electro-Magnetic Shield Projector')}
         trailing={<span>Damaged</span>}
       />
@@ -94,17 +114,22 @@ describe('Token chips', () => {
   test("the Dashboard's pennant carries the cost: no cost box repeats it", () => {
     const model = toEntityModel(get('systems', 'Electro-Magnetic Shield Projector'))
     const { container } = render(
-      <Token model={model} slots={{ pennant: <button type="button">2 EP</button> }} />
+      <Token
+        model={model}
+        context="play"
+        slots={{ pennant: <button type="button">2 EP</button> }}
+      />
     )
     const chips = container.querySelector('.su-entity-token__pill > .su-entity-token__chips')
     const texts = Array.from(chips?.children ?? []).map((chip) => chip.textContent)
-    expect(texts).toEqual(['TL3', 'Slots2', 'Reaction', 'RNGC'])
+    expect(texts).toEqual(['TL3', 'Reaction'])
   })
 
   test('a trailing chip alone still draws the chip group', () => {
     const { container } = render(
       <Entity
         form="token"
+        context="browse"
         entity={get('crawler-bays', 'Mech Bay')}
         trailing={<span>Damaged</span>}
       />
@@ -136,6 +161,7 @@ describe('a down Token', () => {
     render(
       <Entity
         form="token"
+        context="loadout"
         entity={get('systems', 'Red Laser')}
         instance={condition ? { condition } : undefined}
       />
@@ -181,7 +207,9 @@ describe('the contentful Token (N3)', () => {
   const shield = () => get('actions', 'Electro-Magnetic Shield Projector')
 
   test('header-only is its head alone, as before: the surface holds the pill and nothing else', () => {
-    const { container } = render(<Entity form="token" entity={get('systems', 'Red Laser')} />)
+    const { container } = render(
+      <Entity form="token" context="loadout" entity={get('systems', 'Red Laser')} />
+    )
     const token = container.firstElementChild
     expect(token?.className).toBe('su-entity-token')
     expect(token?.hasAttribute('data-contentful')).toBe(false)
@@ -192,7 +220,9 @@ describe('the contentful Token (N3)', () => {
   })
 
   test("a body draws the one-row head, then the entity's text under it, outside the pill", () => {
-    const { container } = render(<Entity form="token" entity={shield()} body={{}} />)
+    const { container } = render(
+      <Entity form="token" context="loadout" entity={shield()} body={{}} />
+    )
     const token = container.querySelector('.su-entity-token[data-contentful]')
     const [head, body] = Array.from(token?.children ?? [])
     expect(head?.className).toContain('su-entity-token__head')
@@ -205,7 +235,9 @@ describe('the contentful Token (N3)', () => {
   })
 
   test("the body is held by a border in the pill's own tone, hung from the pill", () => {
-    const { container } = render(<Entity form="token" entity={shield()} body={{}} />)
+    const { container } = render(
+      <Entity form="token" context="loadout" entity={shield()} body={{}} />
+    )
     const pill = container.querySelector<HTMLElement>('.su-entity-token__pill')
     const body = container.querySelector<HTMLElement>('.su-entity-token__body')
     expect(pill?.style.backgroundColor).not.toBe('')
@@ -217,24 +249,25 @@ describe('the contentful Token (N3)', () => {
     expect(css).toMatch(/\.su-entity-token\[data-contentful\] \{[^}]*gap: 0;/)
   })
 
-  test('its head chips run in the stat order: action type, range, traits, then the cost box', () => {
-    const { container } = render(<Entity form="token" entity={shield()} body={{}} />)
+  test('its head chips run in the class order: action type, range, traits, then the cost box', () => {
+    const { container } = render(<Entity form="token" context="play" entity={shield()} body={{}} />)
     const chips = container.querySelector('.su-entity-token__head .su-entity-token__chips')
     expect(
       Array.from(chips?.children ?? []).map((chip) =>
         (chip.textContent ?? '').replace(/\s+/g, ' ').trim()
       )
     ).toEqual(['Reaction', 'RNGC', 'Shield', '2 EP'])
-    // Header-only keeps its short set: the traits are the Row's.
-    expect(chipsOf('actions', 'Electro-Magnetic Shield Projector')).toEqual([
+    // Header-only keeps its budget: the range and traits are the Row's.
+    expect(chipsOf('actions', 'Electro-Magnetic Shield Projector', 'play')).toEqual([
       'Reaction',
-      'RNGC',
       '2 EP',
     ])
   })
 
   test('the head stays one row (E18): its name keeps the ellipsis and the chips their budget', () => {
-    const { container } = render(<Entity form="token" entity={shield()} body={{}} />)
+    const { container } = render(
+      <Entity form="token" context="loadout" entity={shield()} body={{}} />
+    )
     const pill = container.querySelector('.su-entity-token__head > .su-entity-token__pill')
     expect(pill?.querySelector('.su-entity-token__notch > .su-entity-token__name')).not.toBeNull()
     expect(pill?.querySelector(':scope > .su-entity-token__chips')).not.toBeNull()
@@ -247,7 +280,7 @@ describe('the contentful Token (N3)', () => {
 
   test('an entity with no prose of its own reads its lead (an ability its description)', () => {
     const { container } = render(
-      <Entity form="token" entity={get('abilities', 'Jury Rig')} body={{}} />
+      <Entity form="token" context="loadout" entity={get('abilities', 'Jury Rig')} body={{}} />
     )
     expect(container.querySelector('.su-entity-token__body')?.textContent).toBe(
       'Craft improvised equipment from everyday items.'
@@ -256,13 +289,19 @@ describe('the contentful Token (N3)', () => {
 
   test("the host's content follows the text; without the text it is the whole body", () => {
     const withText = render(
-      <Entity form="token" entity={shield()} body={{ children: <p>Keepsake: a brass key</p> }} />
+      <Entity
+        form="token"
+        context="loadout"
+        entity={shield()}
+        body={{ children: <p>Keepsake: a brass key</p> }}
+      />
     ).container.querySelector('.su-entity-token__body')
     expect(withText?.lastElementChild?.textContent).toBe('Keepsake: a brass key')
     expect(withText?.textContent).toContain('electro-magnetic field')
     const alone = render(
       <Entity
         form="token"
+        context="loadout"
         entity={shield()}
         body={{ text: false, children: <p>Keepsake: a brass key</p> }}
       />
@@ -274,6 +313,7 @@ describe('the contentful Token (N3)', () => {
     const { container } = render(
       <Entity
         form="token"
+        context="loadout"
         entity={get('systems', 'Red Laser')}
         mode={{ kind: 'link', href: '/systems/red-laser/' }}
         body={{ children: <button type="button">Edit</button> }}
@@ -291,6 +331,7 @@ describe('the contentful Token (N3)', () => {
       <InsidePeekContext.Provider value={true}>
         <Entity
           form="token"
+          context="loadout"
           entity={get('systems', 'Red Laser')}
           mode={{ kind: 'link', href: '/systems/red-laser/' }}
           body={{}}

@@ -49,6 +49,7 @@ export function AbilityTrack({
         form === 'token' ? (
           <Entity
             form="token"
+            context="play"
             entity={ability}
             mode={{ kind: 'link', href: abilityHref(ability) }}
             omit={OMIT_KIND}

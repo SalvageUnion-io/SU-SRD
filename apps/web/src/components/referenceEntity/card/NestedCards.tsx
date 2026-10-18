@@ -146,6 +146,7 @@ function PeekTokens({ entities }: { entities: ReferenceCardEntity[] }) {
         <Entity
           key={cardKey(nested, index)}
           form="token"
+          context="loadout"
           entity={nested as RefMetaEntity}
           mode={{ kind: 'read' }}
         />
@@ -175,7 +176,7 @@ export function EmbeddedNpcTokens({
       <ul className="su-entity-token-list">
         {entities.map((npc, index) => (
           <li key={cardKey(npc, index)}>
-            <Entity form="token" entity={npc as RefMetaEntity} peekAt={peekAt} />
+            <Entity form="token" context="roster" entity={npc as RefMetaEntity} peekAt={peekAt} />
           </li>
         ))}
       </ul>
@@ -281,7 +282,13 @@ function NestedToken({
       }
   return (
     <>
-      <Entity form="token" entity={data as RefMetaEntity} instance={instance} mode={mode} />
+      <Entity
+        form="token"
+        context="loadout"
+        entity={data as RefMetaEntity}
+        instance={instance}
+        mode={mode}
+      />
       {mode.onOpen && (
         // The Page (EDL Form 5): the dialog's band and foot, the card its body.
         <EntityDetailDialog
@@ -449,6 +456,7 @@ export function ActionTokens({
           <li key={cardKey(action, index)} style={ACTION_ITEM}>
             <Entity
               form="token"
+              context="play"
               entity={action as RefMetaEntity}
               instance={{ title, ...(condition ? { condition } : {}) }}
               body={{ chassisName }}

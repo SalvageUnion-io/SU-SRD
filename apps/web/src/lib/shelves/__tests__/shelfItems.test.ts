@@ -15,10 +15,12 @@ import {
   crawlerReading,
   linkChip,
   mechChips,
+  mechRelations,
   npcChips,
   patternChips,
   patternReading,
   pilotChips,
+  pilotRelations,
   shownUnder,
 } from '../shelfItems'
 
@@ -87,32 +89,28 @@ describe('where it is', () => {
 })
 
 describe('a unit’s chips', () => {
-  test('a pilot names its Game and its mech, never where it came from', () => {
+  test('a pilot names its Game, never where it came from; its mech is a relation', () => {
     const pilot = pilotFixture({ id: 'p1', gameId: 'g1', seedRef: 'starter-pilot-bonesaw' })
+    expect(chipLabels(pilotChips({ pilot, games: GAMES }))).toEqual([
+      'Game | Reclamation of the Wastes',
+    ])
     expect(
-      chipLabels(
-        pilotChips({
-          pilot,
-          games: GAMES,
-          softLinks: [LINK],
-          mechNames: new Map([['m1', 'Scrapper']]),
-        })
-      )
-    ).toEqual(['Game | Reclamation of the Wastes', 'Assigned: Scrapper'])
+      pilotRelations({ pilot, softLinks: [LINK], mechNames: new Map([['m1', 'Scrapper']]) })
+    ).toEqual([{ key: 'mech', label: 'Mech', value: 'Scrapper', href: '/sheet/mech/m1' }])
   })
 
-  test('a mech names its pilot, never the pattern it was built from', () => {
+  test('a mech names where it is, never the pattern it was built from; its pilot is a relation', () => {
     const mech = mechFixture({ id: 'm1', gameId: null, sourcePattern: 'pat-tow-rig' })
+    expect(chipLabels(mechChips({ mech, games: GAMES }))).toEqual(['Unassigned'])
     expect(
-      chipLabels(
-        mechChips({
-          mech,
-          games: GAMES,
-          softLinks: [LINK],
-          pilotNames: new Map([['p1', 'Bonesaw']]),
-        })
-      )
-    ).toEqual(['Unassigned', 'Pilot: Bonesaw'])
+      mechRelations({ mech, softLinks: [LINK], pilotNames: new Map([['p1', 'Bonesaw']]) })
+    ).toEqual([{ key: 'pilot', label: 'Pilot', value: 'Bonesaw', href: '/sheet/pilot/p1' }])
+  })
+
+  test('an unlinked unit, or one whose partner cannot be named, has no relation', () => {
+    const mech = mechFixture({ id: 'm1' })
+    expect(mechRelations({ mech, softLinks: [], pilotNames: new Map() })).toEqual([])
+    expect(mechRelations({ mech, softLinks: [LINK], pilotNames: new Map() })).toEqual([])
   })
 
   test('a crawler in a Game you mediate says so; in one you only play, it does not', () => {

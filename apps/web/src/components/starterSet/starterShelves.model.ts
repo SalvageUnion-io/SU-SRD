@@ -22,13 +22,14 @@ import type { StarterKind } from '../../lib/starterSet/starterTemplates'
 import type { UnitReading } from '../../lib/units/unitModel'
 import { unitRowModel } from '../../lib/units/unitModel'
 import type { EntityRowModel, TagItem } from '../index'
+import { relation } from '../index'
 import { crawlerStats, mechChassisStats, pilotStats } from '../roster/rowStats.model'
 
 /**
  * One build: its Row model, and the entity it is built on (a pilot's class, a
  * mech's chassis) as a linked chip that Peeks and opens it.
  */
-export type StarterBuild = { id: string; name: string; model: EntityRowModel; links: TagItem[] }
+export type StarterBuild = { id: string; name: string; model: EntityRowModel; relations: TagItem[] }
 
 export type StarterShelf = { kind: StarterKind; title: string; builds: StarterBuild[] }
 
@@ -61,11 +62,11 @@ function readings(stats: UnitReading[] | undefined) {
 }
 
 /**
- * The entity a build is made from as one linked chip, `CLASS | Engineer`:
- * a Tag carrying its ref, so it Peeks and opens the entity (EDL E4). None when
- * it cannot be read.
+ * The entity a build is made from as its relation chip, `CLASS | Engineer`
+ * (`chips-and-actions.md` C11): it carries its ref, so it Peeks and opens the
+ * entity. None when it cannot be read.
  */
-function sourceLink(
+function sourceRelation(
   label: string,
   source: string,
   entity: () => RefMetaEntity | null | undefined
@@ -74,7 +75,7 @@ function sourceLink(
     const found = entity()
     if (!found) return []
     const { ref, title } = toEntityModel(found)
-    return [{ key: `${source}-${ref.id}`, name: label, param: title, ref }]
+    return [relation(`${source}-${ref.id}`, label, title, { ref })]
   }, [])
 }
 
@@ -100,7 +101,7 @@ export function starterShelves(): StarterShelf[] {
           art: photoArt(p.photo) ?? artOf('class', () => findClass(p.classRef)),
           lead: p.motto || undefined,
         }),
-        links: sourceLink('Class', 'class', () => findClass(p.classRef)),
+        relations: sourceRelation('Class', 'class', () => findClass(p.classRef)),
       })),
     },
     {
@@ -115,7 +116,7 @@ export function starterShelves(): StarterShelf[] {
           readings: readings(mechChassisStats(m.chassisRef)),
           art: artOf('chassis', () => resolveChassisRef(m.chassisRef)),
         }),
-        links: sourceLink('Chassis', 'chassis', () => resolveChassisRef(m.chassisRef)),
+        relations: sourceRelation('Chassis', 'chassis', () => resolveChassisRef(m.chassisRef)),
       })),
     },
     {
@@ -132,7 +133,7 @@ export function starterShelves(): StarterShelf[] {
             photoArt(c.photo) ??
             artOf('crawler', () => (c.type ? resolveCrawlerType(c.type) : null)),
         }),
-        links: [],
+        relations: [],
       })),
     },
   ]
