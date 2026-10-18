@@ -119,9 +119,9 @@ export function PatternLoadout({
 }
 
 /**
- * A pattern's DRONES, spanning both loadout columns: a dashed Slab over each
- * drone's Token, under the name the pattern gives it ("Shield Drone"), and
- * right beneath it that drone's own Systems then Modules, two Tokens a line
+ * A pattern's DRONES, spanning both loadout columns: one dashed Slab over
+ * them, then each drone's Token under the name the pattern gives it ("Shield
+ * Drone"), and right beneath it that drone's own Systems then Modules, two Tokens a line
  * with no Slab of their own (each Token wears its kind). They sit after the
  * drone's Token, never inside it: a Token nests nothing (E6).
  */
