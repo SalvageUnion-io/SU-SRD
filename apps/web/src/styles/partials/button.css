@@ -78,16 +78,6 @@
   border-color: var(--color-rust-hi); /* design-tokens-ignore: Button's rust (ruleset §3.1) */
 }
 
-.su-btn--danger {
-  background-color: var(--color-status-bad);
-  border-color: var(--color-status-bad);
-  color: var(--color-paper);
-}
-
-.su-btn--danger:hover:not(:disabled) {
-  opacity: 0.9;
-}
-
 /* Filled ink: the close stamp on a lifted plate (the detail dialog, the /about
    lightbox) and every other ink-plate control. Paper text; the fill lifts to
    the second ink step under the pointer. */
@@ -134,17 +124,15 @@
 }
 
 /*
- * The DRAINED disabled treatment, for the FILLED variants only.
+ * The DRAINED disabled treatment, for the filled rust variant.
  *
  * The shared 40% fade (`.su-disabled`) is right for an outline button and wrong
- * for a solid fill: rust at 40% is a pastel salmon and red at 40% is pink, and
- * both read as an enabled variant nobody recognises rather than as an off
- * control. A disabled control should look DRAINED, not tinted, so the fill is
- * emptied to a flat ink wash. `opacity: 1` cancels the shared fade, exactly as
- * `disabled:opacity-100` did.
+ * for a solid fill: rust at 40% is a pastel salmon, which reads as an enabled
+ * variant nobody recognises rather than as an off control. A disabled control
+ * should look DRAINED, not tinted, so the fill is emptied to a flat ink wash.
+ * `opacity: 1` cancels the shared fade, exactly as `disabled:opacity-100` did.
  */
-.su-btn--primary:disabled,
-.su-btn--danger:disabled {
+.su-btn--primary:disabled {
   background-color: var(--color-ink-8);
   border-color: var(--color-ink-30);
   color: var(--color-ink-50);

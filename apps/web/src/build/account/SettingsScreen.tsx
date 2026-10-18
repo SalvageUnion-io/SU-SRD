@@ -147,7 +147,7 @@ function SignedInAccount() {
           {confirming ? (
             <>
               <Button
-                variant="danger"
+                variant="primary"
                 className={ACTION}
                 disabled={erase.pending}
                 onClick={() => void erase.run({})}
@@ -167,7 +167,7 @@ function SignedInAccount() {
               </Button>
             </>
           ) : (
-            <Button variant="danger" className={ACTION} onClick={() => setConfirming(true)}>
+            <Button variant="primary" className={ACTION} onClick={() => setConfirming(true)}>
               Delete my account
             </Button>
           )}

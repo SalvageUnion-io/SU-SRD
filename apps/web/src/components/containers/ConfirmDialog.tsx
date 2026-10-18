@@ -12,7 +12,7 @@ import { ModalShell } from './ModalShell'
  * cannot take back.
  *
  * Every confirm is built from the same three parts — a `ModalShell`, a muted
- * paragraph, a ghost Cancel beside a coloured confirm — and the parts that are
+ * paragraph, a ghost Cancel beside the rust confirm — and the parts that are
  * easy to get wrong are decided here, once: whether the buttons lock while the
  * work runs, whether a failure keeps the dialog open, where focus starts, and
  * whether a screen reader is told it is being asked something.
@@ -57,9 +57,10 @@ type ConfirmDialogProps = {
   pendingLabel?: string
   cancelLabel?: string
   /**
-   * `danger` for destructive confirms — rust header, danger button, focus on
-   * Cancel. `default` for constructive ones — pilot-blue header, primary
-   * button, focus on the confirm.
+   * `danger` for destructive confirms — the danger header, focus on Cancel.
+   * `default` for constructive ones — pilot-blue header, focus on the
+   * confirm. The confirm button is rust either way: no state colour fills a
+   * button (ruleset §3.1, hard rule R9).
    */
   tone?: 'danger' | 'default'
   /** The action. A returned promise holds the dialog in its pending state. */
@@ -175,7 +176,7 @@ export function ConfirmDialog({
           </Button>
           <Button
             ref={confirmRef}
-            variant={danger ? 'danger' : 'primary'}
+            variant="primary"
             size="compact"
             disabled={pending}
             onClick={() => void handleConfirm()}

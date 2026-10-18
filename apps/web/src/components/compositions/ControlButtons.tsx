@@ -25,20 +25,16 @@ import { StatusBadge } from './StatusBadge'
 /**
  * Per-variant segment colours: `bg`/`text` fill the primary segment, and
  * `inverseBg`/`inverseText` the secondary `segmentText` segment (like the
- * ValueDisplay value). `danger` fills with `--color-status-bad` — the
- * sanctioned destructive/state red, NOT the adversary ontology hue.
+ * ValueDisplay value). `danger` fills ink like `primary`: no state colour
+ * fills a button (ruleset §3.1, hard rule R9), and rust is Button's alone. A
+ * card draws its destructive controls as rust Buttons in its `StatusRail`.
  */
 const VARIANT: Record<
   ReferenceEntityControlVariant,
   { bg: string; text: string; inverseBg: string; inverseText: string }
 > = {
   primary: { bg: color.ink, text: color.paper, inverseBg: color.paper, inverseText: color.ink },
-  danger: {
-    bg: color.statusBad,
-    text: color.paper,
-    inverseBg: color.paper,
-    inverseText: color.ink,
-  },
+  danger: { bg: color.ink, text: color.paper, inverseBg: color.paper, inverseText: color.ink },
   ghost: { bg: color.paper, text: color.ink, inverseBg: color.ink, inverseText: color.paper },
 }
 
@@ -165,16 +161,16 @@ function ControlButton({
   // disagree here, and a fine-pointer run alone will tell you a coarse-pointer
   // change worked when it did nothing.
   //
-  // A `danger` icon (the ✕ remove) is Button's RED `danger` — filled, not
+  // A `danger` icon (the ✕ remove) is Button's rust `primary` — filled, not
   // outlined — because it is the one control in the rail that destroys
   // something, and as neutral paper chrome it read like the fold chevron
-  // beside it.
+  // beside it. Rust, never a state colour (ruleset §3.1, hard rule R9).
   const Icon = control.icon
   const isIconOnly = !!Icon && !control.label && !control.segmentText
   if (Icon && isIconOnly) {
     return (
       <Button
-        variant={variant === 'danger' ? 'danger' : 'default'}
+        variant={variant === 'danger' ? 'primary' : 'default'}
         size="mini"
         className={control.className}
         title={control.title ?? control.ariaLabel}

@@ -210,7 +210,7 @@ export function MechItemToken({
           condition === 'damaged' && (
             <Button
               size="compact"
-              variant="danger"
+              variant="primary"
               className="su-sheet-item__repair"
               aria-label={`Repair ${entity.name}`}
               onClick={() => setConfirmingRepair(true)}

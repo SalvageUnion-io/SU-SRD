@@ -121,7 +121,7 @@ export function CardRemoveButton({ name, onRemove }: CardRemoveButtonProps) {
   return (
     <Button
       size="mini"
-      variant="danger"
+      variant="primary"
       aria-label={`Remove ${name}`}
       onClick={onRemove}
       className="su-sheet-remove"

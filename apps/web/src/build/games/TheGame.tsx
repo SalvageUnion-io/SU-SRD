@@ -128,7 +128,7 @@ export function TheGame({
       </dl>
       {organizer && (
         <div style={ACTIONS}>
-          <Button variant="danger" size="compact" disabled={!canWrite} onClick={onDelete}>
+          <Button variant="primary" size="compact" disabled={!canWrite} onClick={onDelete}>
             Delete this Game
           </Button>
         </div>

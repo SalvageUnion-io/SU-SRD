@@ -32,10 +32,9 @@ describe('ControlButtons', () => {
     expect(segment.style.color).toBe(color.paper)
   })
 
-  test('applies danger variant colours', () => {
+  test('a danger segment fills ink, never a state colour (R9)', () => {
     render(<ControlButtons controls={[makeControl({ variant: 'danger' })]} />)
-    // The sanctioned destructive/state red — NOT the adversary ontology hue.
-    expect(screen.getByText('Test').style.backgroundColor).toBe(color.statusBad)
+    expect(screen.getByText('Test').style.backgroundColor).toBe(color.ink)
   })
 
   test('applies ghost variant colours', () => {
@@ -191,7 +190,8 @@ describe('ControlButtons', () => {
     // Remove is the one control in the rail that DESTROYS something; in
     // paper-and-ink it read like the fold chevron beside it.
     const button = screen.getByLabelText('Remove Charge')
-    expect(button.classList.contains('su-btn--danger')).toBe(true)
+    // Rust, the action colour, never a state colour (R9).
+    expect(button.classList.contains('su-btn--primary')).toBe(true)
     // Not the paper button, which would paint it paper-and-ink.
     expect(button.classList.contains('su-btn--default')).toBe(false)
   })

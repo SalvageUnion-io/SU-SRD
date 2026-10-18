@@ -345,7 +345,7 @@ function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFo
           )}
           {!done && shortfall > 0 && (
             <Button
-              variant="danger"
+              variant="primary"
               size="compact"
               onClick={() => {
                 void handleDeterioration()

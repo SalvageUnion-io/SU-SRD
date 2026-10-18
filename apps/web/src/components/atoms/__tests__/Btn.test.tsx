@@ -10,7 +10,7 @@ import { DISABLED } from '../interaction'
  * tests about "which variant did Button pick" — which is what they are for —
  * and survives a rename of every one of them.
  */
-const variantClass = (variant: 'default' | 'primary' | 'ghost' | 'danger') =>
+const variantClass = (variant: 'default' | 'primary' | 'ghost') =>
   buttonVariants({ variant })
     .split(' ')
     .find((c) => c.startsWith('su-btn--')) as string
@@ -64,12 +64,10 @@ describe('Button', () => {
     expect(cls).toContain('su-btn--on-ink')
   })
 
-  test('danger variant uses the status-bad fill', () => {
-    render(<Button variant="danger">Delete</Button>)
-    // status-bad, not a bespoke `danger` red: --color-danger was the third red
-    // in a set that should have had one, and is retired. status-bad is the
-    // sanctioned state token (ruleset §3.3).
-    expect(screen.getByRole('button').className).toContain(variantClass('danger'))
+  test('there is no danger variant: no state colour fills a button (R9)', () => {
+    // @ts-expect-error a destructive act is rust (`primary`) behind ConfirmDialog
+    const cls = buttonVariants({ variant: 'danger' })
+    expect(cls).not.toContain('su-btn--danger')
   })
 
   test('compact and full rungs adjust padding/type scale', () => {
