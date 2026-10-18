@@ -10,8 +10,10 @@ A strip is a Token, a Row or Card head, or a TitledBox, Slab or SheetSectionCard
 1. **Zones** — identity (tier or number, the name) · information (chips, the actions last among them).
 2. **Classes** — the chips, in one order: mark (note, User-made), rank (TL), measure (Slots, SP, HP, SV), economy (action type, RNG, DMG), traits, relation (what it is built on or linked to: `CHASSIS | Mule`, `PILOT | Bonesaw`, `CRAWLER | #430`), cost, state (a live reading, condition, quantity).
    The cost sits at the seam: read, it is the last chip; live, the Dashboard's pennant (ruleset §1.4), the first action.
-3. **Budgets** — Mention: none. Token: rank, one context lane, cost, state; its relations are its Peek's. Row, Card, Page and Peek: every class. TitledBox and Slab: at most two summary chips, totals and caps of what they hold.
-4. **Contexts** — a Token's container names one: `loadout` (Slots; a unit's SP), `play` (action type, or `ACTIONS | n`), `inventory` (quantity above 1), `roster` (the lead vital, `HP | 10/10`), `browse` (none).
+3. **Budgets** — Mention: none. Token: rank, one context lane, cost, state; its relations are its Peek's.
+   Compact Card or Row (and a contentful Token): rank, the context lane, the economy (action type, facets), traits, relations, cost, state; other measures are the full card's.
+   Full Card, Page and Peek: every class. TitledBox and Slab: at most two summary chips, totals and caps of what they hold.
+4. **Contexts** — a Token's or compact head's container names one (else its kind's own: gear `loadout`, a thing you do `play`, an actor `roster`): `loadout` (Slots; a unit's SP), `play` (action type, or `ACTIONS | n`), `inventory` (quantity above 1), `roster` (the lead vital, `HP | 10/10`), `browse` (none).
    The model maps a context to a fact per kind; no component branches on schema.
 
 ## Rules
@@ -22,6 +24,7 @@ A strip is a Token, a Row or Card head, or a TitledBox, Slab or SheetSectionCard
 - **C3** Budgets are static: no chip is added, dropped or moved by width, content or hover. What a Token leaves out, its Peek shows.
 - **C4** A Token's context lane is named by its container, from the closed list.
 - **C5** Only the name flexes: a Token's ends in "…", any other wraps. Chips and controls never shrink, clip or scale.
+  A Token's chips are one row; a compact Card's or Row's may take two, never more.
 - **C6** In a list each chip class and action slot is a column every line shares; an absent value leaves its cell empty, and a lane never shrinks below its chip.
   Too narrow for every lane and a readable name (a container query), each line packs right and its empty cells collapse.
 - **C7** A live reading reserves its maximum's width, in tabular figures.
