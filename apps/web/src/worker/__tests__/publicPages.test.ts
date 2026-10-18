@@ -120,7 +120,7 @@ describe('a Starter Set build’s pre-rendered shell', () => {
   it('is the shell with only its meta block and title changed', () => {
     const strip = (html: string) =>
       html
-        .replace(/<!-- cantina:meta:start -->[\s\S]*<!-- cantina:meta:end -->/, '')
+        .replace(/<!-- app:meta:start -->[\s\S]*<!-- app:meta:end -->/, '')
         .replace(/<title>[^<]*<\/title>/, '')
     expect(strip(shellFor(path))).toBe(strip(SHELL))
   })
@@ -149,7 +149,7 @@ describe('the Starter Set’s pre-rendered shell, and the front door', () => {
     expect(title(html)).toBe('The Cantina · SalvageUnion.io')
     expect(meta(html, 'og:image')).toBe(`${PROD}/og-image.png`)
     expect(canonical(html)).toEqual([`${PROD}${BASE}/`])
-    expect(html.indexOf('rel="canonical"')).toBeLessThan(html.indexOf('<!-- cantina:meta:end -->'))
+    expect(html.indexOf('rel="canonical"')).toBeLessThan(html.indexOf('<!-- app:meta:end -->'))
     expect(html.replace(/<link rel="canonical"[^>]*>\n\s*/, '')).toBe(SHELL)
     // Indexable, and the shell's own headers kept.
     expect(res.headers.get('x-robots-tag')).toBeNull()

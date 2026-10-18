@@ -435,7 +435,7 @@
         "apps/web/src/reference/**",
         "apps/web/src/runtime/**",
         "apps/web/src/components/islands/**",
-        "!apps/web/ssg/cantinaPlugins.ts"
+        "!apps/web/ssg/appPlugins.ts"
       ],
       "linter": {
         "rules": {

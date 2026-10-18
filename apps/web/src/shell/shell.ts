@@ -2,8 +2,8 @@
  * The Cantina's shell: the one HTML document every `/build/*` navigation gets,
  * rendered at build time rather than kept as a hand-written `index.html`.
  *
- * Vite takes it as the app's HTML entry (`cantinaShell` in
- * `ssg/cantinaPlugins.ts`): the build injects the hashed entry, its CSS and
+ * Vite takes it as the app's HTML entry (`appShell` in
+ * `ssg/appPlugins.ts`): the build injects the hashed entry, its CSS and
  * modulepreloads and writes `dist/build/index.html`, which the Worker
  * serves and the service worker precaches; the dev server answers navigations
  * with it. Plain `createElement`, no JSX and only relative imports, because the
@@ -12,13 +12,13 @@
  * - The app is client-rendered and a crawler runs no JavaScript, so anything a
  *   route sets at runtime is invisible to an unfurl. For the routes a player
  *   shares (`/p/:kind/:appId`, `/invite/:token`, the retired `/join/:code`) the
- *   Worker swaps the block between the `cantina:meta` markers for that thing's
+ *   Worker swaps the block between the `app:meta` markers for that thing's
  *   link preview (`worker/shellMeta.ts`); keep the markers around it.
  * - No `<link rel="canonical">` on purpose. A fixed canonical in a SPA shell
  *   claims every client route is the homepage. The Worker adds each public
  *   page's own (`worker/publicPages.ts`) for a crawler's request.
  * - The base stylesheet (the Barlow faces and the package stylesheet, shared
- *   with srd) is linked after the title by the `cantina-base-stylesheet` plugin,
+ *   with srd) is linked after the title by the `app-base-stylesheet` plugin,
  *   which alone knows its built URL.
  */
 import { createElement, Fragment } from 'react'

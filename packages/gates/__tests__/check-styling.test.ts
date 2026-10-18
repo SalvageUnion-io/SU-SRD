@@ -572,7 +572,7 @@ describe('srd-css rule set', () => {
     const found = srdCss.scan(
       fixture({
         ...entry,
-        'apps/web/src/reference/pages/a.page.tsx': "import { A } from '../components/A'\n",
+        'apps/web/src/reference/pages/a.page.tsx': "import { A } from '../../components/A'\n",
         'apps/web/src/components/A.tsx': "import './a.css'\nimport { C } from './C'\n",
         'apps/web/src/components/C.tsx': "import './c.css'\n",
         'apps/web/src/components/A.test.tsx': "import './a.css'\n",

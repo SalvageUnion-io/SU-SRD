@@ -132,7 +132,7 @@ function SignedInAccount() {
           <Button
             className={ACTION}
             disabled={exported === undefined}
-            onClick={() => exported && download('cantina-account-export.json', exported)}
+            onClick={() => exported && download('salvageunion-account-export.json', exported)}
           >
             Download my data
           </Button>

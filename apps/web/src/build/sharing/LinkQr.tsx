@@ -44,7 +44,7 @@ export function LinkQr({ url }: LinkQrProps) {
       })
       .catch((err: unknown) => {
         // Encoding a URL cannot realistically fail; degrade to no tile.
-        console.error('[cantina] QR generation failed.', err)
+        console.error('[app] QR generation failed.', err)
       })
     return () => {
       cancelled = true

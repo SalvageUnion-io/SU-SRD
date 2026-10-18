@@ -61,7 +61,7 @@ export function prepareUpdate<T>(
   patch: object
 ): T {
   if (existing === null) {
-    throw new Error(`[cantina-store] Cannot update: record id="${id}" not found in "${spec.name}"`)
+    throw new Error(`[app-store] Cannot update: record id="${id}" not found in "${spec.name}"`)
   }
   const candidate: Record<string, unknown> = { ...existing, ...patch, id }
   if (spec.hasUpdatedAt) candidate.updatedAt = new Date().toISOString()
@@ -76,7 +76,7 @@ export function parseServed<T extends { id: string }>(spec: RecordKind<T>, recor
   const strict = spec.schema.safeParse(record)
   if (!strict.success) {
     throw new Error(
-      `[cantina-store] Cannot hold record id="${record.id}" in "${spec.name}": it does not parse`
+      `[app-store] Cannot hold record id="${record.id}" in "${spec.name}": it does not parse`
     )
   }
   return strict.data

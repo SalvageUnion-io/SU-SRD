@@ -303,7 +303,7 @@ describe('PilotWizard — draft restore clamps to the 1/2 budgets', () => {
     const a3 = nameToSlug('Mass Field Maintenance')
     const item = firstTech1Equipment()
     sessionStorage.setItem(
-      'cantina-wizard-draft:pilot:new',
+      'app-wizard-draft:pilot:new',
       JSON.stringify({
         name: 'Legacy',
         classId,
@@ -344,7 +344,7 @@ describe('PilotWizard — session drafts', () => {
     await act(async () => {
       unmount()
     })
-    expect(sessionStorage.getItem('cantina-wizard-draft:pilot:new')).not.toBeNull()
+    expect(sessionStorage.getItem('app-wizard-draft:pilot:new')).not.toBeNull()
 
     const onCancel = mock(() => {})
     render(<PilotWizard onComplete={() => {}} onCancel={onCancel} />)
@@ -361,7 +361,7 @@ describe('PilotWizard — session drafts', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Discard' }))
     })
     expect(onCancel).toHaveBeenCalledTimes(1)
-    expect(sessionStorage.getItem('cantina-wizard-draft:pilot:new')).toBeNull()
+    expect(sessionStorage.getItem('app-wizard-draft:pilot:new')).toBeNull()
   })
 })
 

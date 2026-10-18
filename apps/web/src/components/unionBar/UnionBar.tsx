@@ -1,6 +1,6 @@
 import type { AnchorHTMLAttributes, ReactNode } from 'react'
 import { appPath } from '../../lib/appBase'
-import { CANTINA_NAV } from '../../lib/barLinks'
+import { BUILD_NAV } from '../../lib/barLinks'
 import { BUY_HREF } from '../../lib/docPages'
 import { MARK_SRC } from '../../lib/documentHead'
 import type { BreadcrumbItem } from '../atoms/BreadcrumbTrail'
@@ -40,8 +40,8 @@ function BaseLink({ href = '/', ...rest }: AnchorHTMLAttributes<HTMLAnchorElemen
 }
 
 /** The Cantina's nav: Hangar · Games · Starter Set, Games the app's control. */
-function cantinaNav(games: ReactNode): AppBarNavEntry[] {
-  const [hangar, starter] = CANTINA_NAV
+function buildNav(games: ReactNode): AppBarNavEntry[] {
+  const [hangar, starter] = BUILD_NAV
   return [
     { label: hangar.label, href: hangar.path },
     { id: 'games', node: games },
@@ -67,7 +67,7 @@ export function UnionBar({ product, games, search, actions, mobile, breadcrumbs 
       // Cross-document view transitions match the bar on this name, so it
       // holds still between a reference page and the Cantina.
       viewTransitionName="nav"
-      navItems={build ? cantinaNav(games) : []}
+      navItems={build ? buildNav(games) : []}
       search={search}
       buyHref={BUY_HREF}
       actions={actions}

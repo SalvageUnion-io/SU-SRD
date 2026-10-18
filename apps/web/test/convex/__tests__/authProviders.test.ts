@@ -24,7 +24,7 @@ function idsOf(providers: ReturnType<typeof providersFor>): string[] {
   return providers.map((p) => (p as { id?: string }).id ?? '<unnamed>')
 }
 
-describe('a deployment without CANTINA_TEST_AUTH has exactly one door', () => {
+describe('a deployment without TEST_AUTH has exactly one door', () => {
   test('production exposes Discord and nothing else', () => {
     const ids = idsOf(providersFor(false))
 
@@ -82,16 +82,16 @@ describe('a test deployment gets the extra provider', () => {
 describe('the flag is exact-match, not truthy', () => {
   test("only the string 'true' enables it", () => {
     // `providersFor` takes a boolean, so this pins the *reading* of the env var
-    // rather than the branch: `CANTINA_TEST_AUTH === 'true'` and nothing looser.
-    // A truthy check would turn `CANTINA_TEST_AUTH=false` — a plausible thing for
+    // rather than the branch: `TEST_AUTH === 'true'` and nothing looser.
+    // A truthy check would turn `TEST_AUTH=false` — a plausible thing for
     // somebody to set while trying to disable it — into an enabled bypass.
     const source = Bun.file(new URL('../../../convex/auth.ts', import.meta.url).pathname)
     const text = source.text()
     return text.then((t) => {
-      expect(t).toContain("process.env.CANTINA_TEST_AUTH === 'true'")
+      expect(t).toContain("process.env.TEST_AUTH === 'true'")
       // Neither a bare truthiness check nor a not-equals inversion.
-      expect(t).not.toContain('process.env.CANTINA_TEST_AUTH !==')
-      expect(t).not.toMatch(/if\s*\(\s*process\.env\.CANTINA_TEST_AUTH\s*\)/)
+      expect(t).not.toContain('process.env.TEST_AUTH !==')
+      expect(t).not.toMatch(/if\s*\(\s*process\.env\.TEST_AUTH\s*\)/)
     })
   })
 })

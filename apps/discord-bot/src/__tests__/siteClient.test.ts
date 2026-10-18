@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from 'bun:test'
-import { createCantinaClient, interpret } from '../play/client'
+import { createSiteClient, interpret } from '../play/client'
 
 /**
  * The bot's Cantina client.
@@ -25,7 +25,7 @@ describe('an unconfigured client', () => {
       return Promise.reject(new Error('no request expected'))
     }) as unknown as typeof fetch
     try {
-      const client = createCantinaClient(config)
+      const client = createSiteClient(config)
       const result = await client.me('d1')
       expect(result.kind).toBe('unavailable')
       expect((await client.sheet('d1', 'pilots', 'p1')).kind).toBe('unavailable')
@@ -116,7 +116,7 @@ const CONFIG = { siteUrl: 'https://x.convex.site', botSecret: 'shh' }
 describe('the transport', () => {
   test('posts to /bot/<op> with the bearer credential and a JSON body', async () => {
     const calls = stubFetch(() => jsonResponse({ ok: true, games: [] }))
-    const client = createCantinaClient(CONFIG)
+    const client = createSiteClient(CONFIG)
     const result = await client.games('discord-1')
 
     expect(result.kind).toBe('ok')
@@ -129,48 +129,47 @@ describe('the transport', () => {
 
   test('strips a trailing slash rather than emitting a double one', async () => {
     const calls = stubFetch(() => jsonResponse({ ok: true }))
-    await createCantinaClient({ ...CONFIG, siteUrl: 'https://x.convex.site///' }).me('d1')
+    await createSiteClient({ ...CONFIG, siteUrl: 'https://x.convex.site///' }).me('d1')
     expect(calls[0]?.url).toBe('https://x.convex.site/bot/me')
   })
 
   test.each([
-    ['me', (c: ReturnType<typeof createCantinaClient>) => c.me('d1'), { discordId: 'd1' }],
-    ['games', (c: ReturnType<typeof createCantinaClient>) => c.games('d1'), { discordId: 'd1' }],
+    ['me', (c: ReturnType<typeof createSiteClient>) => c.me('d1'), { discordId: 'd1' }],
+    ['games', (c: ReturnType<typeof createSiteClient>) => c.games('d1'), { discordId: 'd1' }],
     [
       'mine',
-      (c: ReturnType<typeof createCantinaClient>) => c.mineForAutocomplete('d1'),
+      (c: ReturnType<typeof createSiteClient>) => c.mineForAutocomplete('d1'),
       { discordId: 'd1' },
     ],
     [
       'sheet',
-      (c: ReturnType<typeof createCantinaClient>) => c.sheet('d1', 'pilots', 'p1'),
+      (c: ReturnType<typeof createSiteClient>) => c.sheet('d1', 'pilots', 'p1'),
       { discordId: 'd1', table: 'pilots', entityId: 'p1' },
     ],
     [
       'games',
-      (c: ReturnType<typeof createCantinaClient>) => c.gamesForAutocomplete('d1'),
+      (c: ReturnType<typeof createSiteClient>) => c.gamesForAutocomplete('d1'),
       { discordId: 'd1' },
     ],
     [
       'bindChannel',
-      (c: ReturnType<typeof createCantinaClient>) => c.bindChannel('d1', 'ch1', 'g1'),
+      (c: ReturnType<typeof createSiteClient>) => c.bindChannel('d1', 'ch1', 'g1'),
       { discordId: 'd1', channelId: 'ch1', game: 'g1' },
     ],
     [
       'bindChannel',
-      (c: ReturnType<typeof createCantinaClient>) =>
-        c.bindChannel('d1', 'ch1', 'g1', 'salvage-run'),
+      (c: ReturnType<typeof createSiteClient>) => c.bindChannel('d1', 'ch1', 'g1', 'salvage-run'),
       { discordId: 'd1', channelId: 'ch1', channelName: 'salvage-run', game: 'g1' },
     ],
     [
       'bindChannel',
       // Solo play: no `game` key at all, which the server's `v.optional` takes.
-      (c: ReturnType<typeof createCantinaClient>) => c.bindChannel('d1', 'ch1', null),
+      (c: ReturnType<typeof createSiteClient>) => c.bindChannel('d1', 'ch1', null),
       { discordId: 'd1', channelId: 'ch1' },
     ],
     [
       'unbindChannel',
-      (c: ReturnType<typeof createCantinaClient>) => c.unbindChannel('d1', 'ch1'),
+      (c: ReturnType<typeof createSiteClient>) => c.unbindChannel('d1', 'ch1'),
       { discordId: 'd1', channelId: 'ch1' },
     ],
   ])('%s sends the arguments the server declares', async (op, call, expected) => {
@@ -178,7 +177,7 @@ describe('the transport', () => {
     // validated by Convex's own arg validators at the far end, so a renamed
     // field would fail at runtime rather than at build.
     const calls = stubFetch(() => jsonResponse({ ok: true }))
-    const client = createCantinaClient(CONFIG)
+    const client = createSiteClient(CONFIG)
     if (!client) throw new Error('expected a client')
     await call(client)
 
@@ -190,7 +189,7 @@ describe('the transport', () => {
     stubFetch(() => {
       throw new Error('ECONNREFUSED')
     })
-    const result = await createCantinaClient(CONFIG).me('d1')
+    const result = await createSiteClient(CONFIG).me('d1')
     expect(result.kind).toBe('unavailable')
   })
 
@@ -198,13 +197,13 @@ describe('the transport', () => {
     // A proxy or an error page in front of the deployment returns HTML; that
     // must not escape as a SyntaxError from inside a slash command.
     stubFetch(() => new Response('<html>502</html>', { status: 200 }))
-    const result = await createCantinaClient(CONFIG).me('d1')
+    const result = await createSiteClient(CONFIG).me('d1')
     expect(result.kind).toBe('unavailable')
   })
 
   test('a 401 reports a credential problem', async () => {
     stubFetch(() => jsonResponse({ error: 'unauthorized' }, 401))
-    const result = await createCantinaClient(CONFIG).me('d1')
+    const result = await createSiteClient(CONFIG).me('d1')
     expect(result).toMatchObject({ kind: 'unavailable' })
     expect((result as { message: string }).message).toContain('credentials')
   })

@@ -46,7 +46,7 @@ export function reportWriteFailure(err: unknown): void {
     toast(err.message)
     return
   }
-  console.error('[cantina] write failed', err)
+  console.error('[app] write failed', err)
   toast('That change could not be saved.')
 }
 

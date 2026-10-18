@@ -15,15 +15,15 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
-import { setCantinaClient } from '../commands/cantinaReply'
 import { commands } from '../commands/index'
-import { CANTINA_ORIGIN, publicSheetUrl, sheetCard } from '../gameCards'
-import type { CantinaClient } from '../play/client'
+import { setSiteClient } from '../commands/siteReply'
+import { APP_ORIGIN, publicSheetUrl, sheetCard } from '../gameCards'
+import type { SiteClient } from '../play/client'
 import type { EntityBody, SheetResult } from '../play/types'
 import { blockStarting, cardText, cardTexts } from './cardText'
 import { fakeExecute } from './fakeInteraction'
 
-const WEB = CANTINA_ORIGIN
+const WEB = APP_ORIGIN
 
 function sheetResult(overrides: Partial<SheetResult> = {}): SheetResult {
   return {
@@ -93,9 +93,9 @@ describe('the Share field', () => {
 
 describe('/su sheet visibility', () => {
   test('replies ephemerally and posts nothing to the channel', async () => {
-    const restore = setCantinaClient({
+    const restore = setSiteClient({
       sheet: async () => ({ kind: 'ok', value: sheetResult({ publicRead: false }) }),
-    } as unknown as CantinaClient)
+    } as unknown as SiteClient)
 
     try {
       const { interaction, edits, followUps, deferred } = fakeExecute({
@@ -131,9 +131,9 @@ describe('/su sheet visibility', () => {
     // Having a public URL does not make the reply public. The owner chose to
     // publish a page; they did not choose to have it posted to this channel by
     // whoever ran the command.
-    const restore = setCantinaClient({
+    const restore = setSiteClient({
       sheet: async () => ({ kind: 'ok', value: sheetResult({ publicRead: true }) }),
-    } as unknown as CantinaClient)
+    } as unknown as SiteClient)
 
     try {
       const { interaction, followUps, deferred } = fakeExecute({

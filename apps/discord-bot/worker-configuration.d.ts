@@ -5,8 +5,8 @@ interface __BaseEnv_Env {
 	DISCORD_APPLICATION_ID: string;
 	DISCORD_PUBLIC_KEY: string;
 	DISCORD_TOKEN: string;
-	CANTINA_CONVEX_SITE_URL: string;
-	CANTINA_BOT_SECRET: string;
+	BACKEND_SITE_URL: string;
+	BOT_SECRET: string;
 }
 declare namespace Cloudflare {
 	interface GlobalProps {

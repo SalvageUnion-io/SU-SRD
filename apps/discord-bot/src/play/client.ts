@@ -3,13 +3,13 @@ import { BOT_PATH_PREFIX } from 'game-domain/botWire'
 import { PRODUCT } from 'game-domain/product'
 import type {
   BindChannelResult,
-  CantinaResult,
   DenialReason,
   GamesResult,
   MeResult,
   MineResult,
   SheetResult,
   SheetTable,
+  SiteResult,
   UnbindChannelResult,
 } from './types'
 
@@ -45,15 +45,15 @@ const REQUEST_TIMEOUT_MS = 8_000
  */
 const AUTOCOMPLETE_TIMEOUT_MS = 2_000
 
-export type CantinaClient = {
-  me(discordId: string): Promise<CantinaResult<MeResult>>
-  games(discordId: string): Promise<CantinaResult<GamesResult>>
+export type SiteClient = {
+  me(discordId: string): Promise<SiteResult<MeResult>>
+  games(discordId: string): Promise<SiteResult<GamesResult>>
   /** What `/su sheet` autocompletes to, under the 3s autocomplete deadline. */
-  mineForAutocomplete(discordId: string): Promise<CantinaResult<MineResult>>
+  mineForAutocomplete(discordId: string): Promise<SiteResult<MineResult>>
   /** One sheet by row id or app id: yours, a crewmate's, or a published one. */
-  sheet(discordId: string, table: SheetTable, entityId: string): Promise<CantinaResult<SheetResult>>
+  sheet(discordId: string, table: SheetTable, entityId: string): Promise<SiteResult<SheetResult>>
   /** What `/su bind` autocompletes to (your Games), under the 3s autocomplete deadline. */
-  gamesForAutocomplete(discordId: string): Promise<CantinaResult<GamesResult>>
+  gamesForAutocomplete(discordId: string): Promise<SiteResult<GamesResult>>
   /**
    * `/su bind`: bind `channelId` (named `channelName`, kept so Play can show
    * it) to a Game (`game`: its id, or a name typed by hand) or, with `game`
@@ -64,12 +64,12 @@ export type CantinaClient = {
     channelId: string,
     game: string | null,
     channelName?: string | null
-  ): Promise<CantinaResult<BindChannelResult>>
+  ): Promise<SiteResult<BindChannelResult>>
   /** `/su unbind`: release whatever `channelId` is bound to. */
-  unbindChannel(discordId: string, channelId: string): Promise<CantinaResult<UnbindChannelResult>>
+  unbindChannel(discordId: string, channelId: string): Promise<SiteResult<UnbindChannelResult>>
 }
 
-export type CantinaClientConfig = {
+export type SiteClientConfig = {
   /** The deployment's HTTP-actions origin, e.g. `https://x.convex.site`. */
   siteUrl: string
   /** The bearer credential. See `convex/botHttp.ts` for what it authorizes. */
@@ -90,7 +90,7 @@ function isDenial(value: unknown): value is { reason: DenialReason; message?: st
  * it is where a malformed or unexpected body has to be handled rather than
  * assumed away.
  */
-export function interpret<T>(status: number, body: unknown): CantinaResult<T> {
+export function interpret<T>(status: number, body: unknown): SiteResult<T> {
   if (status === 401 || status === 404) {
     // The bot presenting a bad credential, or hitting a deployment with the
     // route disabled, is a *configuration* fault — not the user's fault, and
@@ -116,7 +116,7 @@ export function interpret<T>(status: number, body: unknown): CantinaResult<T> {
   return { kind: 'unavailable', message: `${PRODUCT.name} returned an unexpected response.` }
 }
 
-const UNCONFIGURED: CantinaResult<never> = {
+const UNCONFIGURED: SiteResult<never> = {
   kind: 'unavailable',
   message: `${PRODUCT.name} is not configured for this bot.`,
 }
@@ -127,7 +127,7 @@ const UNCONFIGURED: CantinaResult<never> = {
  * path an outage takes. `/health` fails while that is so, so a deploy cannot
  * sit in this state unnoticed.
  */
-export function createCantinaClient(config: Partial<CantinaClientConfig>): CantinaClient {
+export function createSiteClient(config: Partial<SiteClientConfig>): SiteClient {
   const { siteUrl, botSecret } = config
   const origin = siteUrl?.replace(/\/+$/, '') ?? ''
 
@@ -135,7 +135,7 @@ export function createCantinaClient(config: Partial<CantinaClientConfig>): Canti
     op: BotOpName,
     payload: Record<string, unknown>,
     forAutocomplete = false
-  ): Promise<CantinaResult<T>> {
+  ): Promise<SiteResult<T>> {
     if (!origin || !botSecret) return UNCONFIGURED
     try {
       const response = await fetch(`${origin}${BOT_PATH_PREFIX}${op}`, {

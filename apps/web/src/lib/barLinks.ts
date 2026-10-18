@@ -6,7 +6,7 @@ import { routeInApp } from './appBase'
 import { pageOrigin } from './site'
 
 /** The Cantina's own nav, as routes inside the app; the bar shows them under the base. */
-export const CANTINA_NAV = [
+export const BUILD_NAV = [
   { label: 'Hangar', path: '/' },
   { label: 'Starter Set', path: '/starter/' },
 ] as const

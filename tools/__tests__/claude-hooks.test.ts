@@ -164,9 +164,9 @@ describe('.claude/rules path globs', () => {
   test('game-domain edits load the data-access and bot rules', () => {
     const loading = (path: string) =>
       globs.filter(([, glob]) => new Bun.Glob(glob).match(path)).map(([rule]) => rule)
-    expect(loading('packages/game-domain/src/schemas/pilot.ts')).toContain('cantina-data-access.md')
+    expect(loading('packages/game-domain/src/schemas/pilot.ts')).toContain('app-data-access.md')
     expect(loading('packages/game-domain/src/botWire.ts')).toEqual(
-      expect.arrayContaining(['cantina-data-access.md', 'discord-bot.md'])
+      expect.arrayContaining(['app-data-access.md', 'discord-bot.md'])
     )
   })
 })

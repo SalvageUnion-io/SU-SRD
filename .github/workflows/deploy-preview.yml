@@ -70,7 +70,7 @@ env:
 
 jobs:
   # The site's one build, against the staging URL as a constant, as
-  # production builds against CANTINA_CONVEX_URL: `ship` checks the deploy key
+  # production builds against PRODUCTION_CONVEX_URL: `ship` checks the deploy key
   # resolves to it before it pushes anything.
   build-web:
     # A labelled PR from this repository, on the push or the label that asks
@@ -142,16 +142,16 @@ jobs:
             exit 1
           fi
 
-      # Previews are public. With CANTINA_TEST_AUTH on, anyone could sign up a
+      # Previews are public. With TEST_AUTH on, anyone could sign up a
       # password account against it (convex/auth.ts); production never has it.
       - name: Refuse a staging backend with the test sign-in on
         working-directory: apps/web
         env:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
         run: |
-          if [ "$(bunx convex env get CANTINA_TEST_AUTH | tr -d '[:space:]')" = "true" ]; then
-            echo "FATAL: CANTINA_TEST_AUTH=true on $STAGING_CONVEX_DEPLOYMENT, which the preview serves publicly." >&2
-            echo "Unset it: bunx convex env remove CANTINA_TEST_AUTH --deployment $STAGING_CONVEX_DEPLOYMENT" >&2
+          if [ "$(bunx convex env get TEST_AUTH | tr -d '[:space:]')" = "true" ]; then
+            echo "FATAL: TEST_AUTH=true on $STAGING_CONVEX_DEPLOYMENT, which the preview serves publicly." >&2
+            echo "Unset it: bunx convex env remove TEST_AUTH --deployment $STAGING_CONVEX_DEPLOYMENT" >&2
             exit 1
           fi
 

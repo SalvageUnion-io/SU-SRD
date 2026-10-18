@@ -52,7 +52,7 @@ await useEntityStore.getState().update('pilots', id, { hp: next }) // server-fir
 - **A container written twice is written together** — the row's `gameId`
   column and the body's `gameId`; where they disagree, the column wins.
 - **e2e durability specs need an account** (`e2e/fixtures.ts`): without
-  `VITE_TEST_AUTH` and `CANTINA_TEST_AUTH` they SKIP (nightly runs them).
+  `VITE_TEST_AUTH` and `TEST_AUTH` they SKIP (nightly runs them).
 
 ## Accounts / Games / ownership — Convex hooks
 

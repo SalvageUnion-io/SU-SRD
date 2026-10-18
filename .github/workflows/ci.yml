@@ -210,7 +210,7 @@ jobs:
       # below) and the Cantina's other signed-in specs (e2e-nightly.yml runs
       # the whole suite). A file filter is a pattern, so `smoke.e2e.ts` runs the
       # reference pages' and the Cantina's smoke (`reference-smoke.e2e.ts`,
-      # `cantina-smoke.e2e.ts`), and likewise `bundle-budget`, `a11y` and
+      # `app-smoke.e2e.ts`), and likewise `bundle-budget`, `a11y` and
       # `offline`; Play's are named whole, because `play-` alone would also
       # match `display-verification.e2e.ts`. Add a spec to this line; do NOT
       # add a step or a job.
@@ -220,12 +220,12 @@ jobs:
       # The build carries the seam, so the signed-in tests in these specs run
       # signed in (`play-*`, the Play lines of `sibling-heights.e2e.ts`,
       # `nesting-depth.e2e.ts`'s wizards and sheet), and
-      # CANTINA_E2E_EXPECT_AUTH_SEAM makes a lost seam fail the run rather than
+      # E2E_EXPECT_AUTH_SEAM makes a lost seam fail the run rather than
       # skip them (`e2e/fixtures.ts`).
       - name: Run the smoke, bundle-budget, JSON API, a11y, offline, sibling-height, chip-strip, nesting-depth and Play specs
         working-directory: apps/web
         env:
-          CANTINA_E2E_EXPECT_AUTH_SEAM: '1'
+          E2E_EXPECT_AUTH_SEAM: '1'
         run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts json-api.e2e.ts a11y.e2e.ts offline.e2e.ts sibling-heights.e2e.ts chip-strips.e2e.ts nesting-depth.e2e.ts play-turn.e2e.ts play-solo.e2e.ts play-mediator.e2e.ts
 
       - name: Upload Playwright reports on failure

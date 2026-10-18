@@ -3,7 +3,7 @@
 React app for building and running Salvage Union pilots, mechs, and crawlers.
 
 **Storage modes — read
-[`.claude/rules/cantina-data-access.md`](../../../../.claude/rules/cantina-data-access.md)
+[`.claude/rules/app-data-access.md`](../../../../.claude/rules/app-data-access.md)
 before touching data** (it loads with the stores, `src/lib/entities/`, `src/lib/connection/`,
 product component folders, `convex/`, `e2e/`).
 
@@ -17,7 +17,7 @@ product component folders, `convex/`, `e2e/`).
 - **TanStack Router** — file-based routes in `src/routes/`, generated to
   `src/routeTree.gen.ts`.
 - **Zustand** stores (`src/stores/`), in memory (what may persist:
-  `cantina-data-access.md`).
+  `app-data-access.md`).
 - **Base UI** primitives from `src/components` (`atoms/`, `containers/`) —
   there is no app-local primitives folder. Styling is the `src/components`
   tokens and stylesheet (ADR-046).

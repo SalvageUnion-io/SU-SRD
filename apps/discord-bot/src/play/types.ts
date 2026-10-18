@@ -46,7 +46,7 @@ export type DenialReason = BotDenialReason
  * "The Cantina is down" and "you are not in this game" want different words, and
  * collapsing them would have every outage read as a permissions problem.
  */
-export type CantinaResult<T> =
+export type SiteResult<T> =
   | { kind: 'ok'; value: T }
   | { kind: 'denied'; reason: DenialReason; message: string }
   | { kind: 'unavailable'; message: string }

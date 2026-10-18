@@ -2,9 +2,9 @@ import { MessageFlags } from 'discord-api-types/v10'
 import type { ContainerData } from '../container'
 import { v2Reply } from '../container'
 import { denialMessage } from '../gameCards'
-import type { CantinaClient } from '../play/client'
-import { createCantinaClient } from '../play/client'
-import type { CantinaResult } from '../play/types'
+import type { SiteClient } from '../play/client'
+import { createSiteClient } from '../play/client'
+import type { SiteResult } from '../play/types'
 import type { CommandExecuteInteraction } from './interactions'
 
 /**
@@ -30,10 +30,10 @@ import type { CommandExecuteInteraction } from './interactions'
  * `env` — configuration does not exist on workerd until `fetch` is called — and
  * an unconfigured client answers every call `unavailable`.
  */
-let client: CantinaClient = createCantinaClient({})
+let client: SiteClient = createSiteClient({})
 
 /** The current client. */
-export function cantina(): CantinaClient {
+export function site(): SiteClient {
   return client
 }
 
@@ -46,7 +46,7 @@ export function cantina(): CantinaClient {
  * `mock.module` is process-global in Bun, so faking it for one file would hand
  * that fake to every file that ran afterwards.
  */
-export function setCantinaClient(next: CantinaClient): () => void {
+export function setSiteClient(next: SiteClient): () => void {
   const previous = client
   client = next
   return () => {
@@ -62,7 +62,7 @@ export function setCantinaClient(next: CantinaClient): () => void {
  */
 async function explainFailure(
   interaction: CommandExecuteInteraction,
-  result: Exclude<CantinaResult<unknown>, { kind: 'ok' }>
+  result: Exclude<SiteResult<unknown>, { kind: 'ok' }>
 ): Promise<void> {
   await interaction.editReply({
     content:
@@ -89,17 +89,17 @@ async function explainFailure(
  * follow-up costs one extra ephemeral line ("Posted to the channel.") and buys
  * the invariant outright.
  */
-export async function respondWithCantina<T>(
+export async function respondWithSite<T>(
   interaction: CommandExecuteInteraction,
   options: {
     visibility?: 'public' | 'ephemeral'
-    call: (client: CantinaClient) => Promise<CantinaResult<T>>
+    call: (client: SiteClient) => Promise<SiteResult<T>>
     render: (value: T) => ContainerData
   }
 ): Promise<void> {
   await interaction.deferReply({ flags: MessageFlags.Ephemeral })
 
-  const result = await options.call(cantina())
+  const result = await options.call(site())
   if (result.kind !== 'ok') return explainFailure(interaction, result)
 
   const ephemeral = options.visibility !== 'public'

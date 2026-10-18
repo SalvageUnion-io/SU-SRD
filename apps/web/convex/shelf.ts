@@ -41,7 +41,7 @@ export const upsertMechPattern = mutation({
     const parsed = PARSERS.mechPatterns.parse(args.body)
     const patternId = bodyAppId(args.body)
     if (patternId === undefined) {
-      throw new Error('[cantina] a mech pattern must carry a string id in its body')
+      throw new Error('[app] a mech pattern must carry a string id in its body')
     }
 
     const existing = await findOwnedByAppId(ctx, 'mechPatterns', userId, patternId)
@@ -249,7 +249,7 @@ export const upsertEncounterNpc = mutation({
     const parsed = PARSERS.encounterNpcs.parse(args.body)
     const npcId = bodyAppId(args.body)
     if (npcId === undefined) {
-      throw new Error('[cantina] an encounter NPC must carry a string id in its body')
+      throw new Error('[app] an encounter NPC must carry a string id in its body')
     }
 
     const existing = await findOwnedByAppId(ctx, 'encounterNpcs', userId, npcId)

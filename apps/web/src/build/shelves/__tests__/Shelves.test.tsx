@@ -259,7 +259,7 @@ describe('a unit’s ⋯ menu', () => {
     await renderShelves()
     await choose(await openMenu('Nia Vale'), 'Export')
     await settle(() => downloads.length > 0)
-    expect(downloads[0]?.filename).toBe('cantina-pilot-nia-vale.json')
+    expect(downloads[0]?.filename).toBe('salvageunion-pilot-nia-vale.json')
     expect(await screen.findByText('Exported Nia Vale.')).toBeTruthy()
   })
 
@@ -331,7 +331,7 @@ describe('Patterns', () => {
   test('Export downloads the pattern', async () => {
     await renderShelves()
     await choose(await openMenu('Brawler'), 'Export')
-    expect(downloads[0]?.filename).toBe('cantina-pattern-brawler.json')
+    expect(downloads[0]?.filename).toBe('salvageunion-pattern-brawler.json')
     expect(JSON.stringify(await downloadedJson())).toContain('Brawler')
     expect(await screen.findByText('Exported Brawler.')).toBeTruthy()
   })

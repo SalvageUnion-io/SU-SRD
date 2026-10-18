@@ -44,7 +44,7 @@ jobs:
     # fresh account through the `TestAuthBridge` seam; the specs about what a
     # signed-out visitor sees opt out with `account: 'anonymous'`.
     #
-    # Why a throwaway backend: enabling `CANTINA_TEST_AUTH` on production would put
+    # Why a throwaway backend: enabling `TEST_AUTH` on production would put
     # a password auth provider on the live app. A container destroyed with the
     # runner cannot do that and needs no credentials, which is why this job
     # requests no secrets at all.
@@ -79,7 +79,7 @@ jobs:
       - name: Set up Playwright
         uses: ./.github/actions/playwright
 
-      # CANTINA_E2E_EXPECT_AUTH_SEAM is what keeps this honest. Without it a spec
+      # E2E_EXPECT_AUTH_SEAM is what keeps this honest. Without it a spec
       # that needs an account SKIPS when the seam is missing (the right call in
       # an ordinary build); with it, a missing seam THROWS — so a regression in
       # the seam or a lost build variable fails the run instead of turning the
@@ -87,7 +87,7 @@ jobs:
       - name: Run E2E tests
         working-directory: apps/web
         env:
-          CANTINA_E2E_EXPECT_AUTH_SEAM: '1'
+          E2E_EXPECT_AUTH_SEAM: '1'
         run: bunx playwright test --grep-invert perf-budget
 
       - name: Backend logs on failure

@@ -53,10 +53,10 @@ against a linked account and a real membership. See
   annotates its handlers with. Never copy a shape into the bot; add it there.
   That module imports only the leaf `entityKinds`, so the bot's type-check never
   pulls in Convex's generated model.
-- `src/commands/cantinaReply.ts` — the shared defer / result-kind / ephemerality
-  spine, and the one client (`cantina()`, installed per request from `env`)
+- `src/commands/siteReply.ts` — the shared defer / result-kind / ephemerality
+  spine, and the one client (`site()`, installed per request from `env`)
 
-**One client that degrades.** `CANTINA_CONVEX_SITE_URL` and `CANTINA_BOT_SECRET` are
+**One client that degrades.** `BACKEND_SITE_URL` and `BOT_SECRET` are
 both needed (`/health` answers 503 while either is missing). When the deployment is down, unreachable or
 unconfigured, every call is `unavailable` and the Game commands say so as an
 outage rather than a permissions problem, while `/su roll` and `/su lookup`

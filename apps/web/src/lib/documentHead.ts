@@ -116,5 +116,5 @@ export function renderTags(tags: readonly HeadTag[], indent = ''): string {
  * The markers around the shell's link-preview block, which the Worker swaps
  * for a shared page's (`worker/shellMeta.ts`).
  */
-export const META_START = '<!-- cantina:meta:start -->'
-export const META_END = '<!-- cantina:meta:end -->'
+export const META_START = '<!-- app:meta:start -->'
+export const META_END = '<!-- app:meta:end -->'

@@ -120,7 +120,7 @@ function meta(html: string, key: string): string | undefined {
 }
 
 describe('the shell carries its markers', () => {
-  it('wraps the sitewide defaults in cantina:meta', () => {
+  it('wraps the sitewide defaults in app:meta', () => {
     expect(SHELL.indexOf(META_START)).toBeGreaterThan(-1)
     expect(SHELL.indexOf(META_END)).toBeGreaterThan(SHELL.indexOf(META_START))
     // The theme-color is inside the block, so a preview can retone it.

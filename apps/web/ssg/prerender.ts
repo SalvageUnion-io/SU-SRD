@@ -1,7 +1,7 @@
 /**
  * prerender — the SSG's render pass: every page, endpoint and sitemap, into the
  * `dist/` the Vite pass just bundled. It runs inside that pass, as the first
- * `closeBundle` step (`prerender` in `ssg/cantinaPlugins.ts`), so the service
+ * `closeBundle` step (`prerender` in `ssg/appPlugins.ts`), so the service
  * worker generated after it sees a complete site.
  *
  *   1. read `dist/.vite/manifest.json` -> entry JS + CSS urls, and the emitted
@@ -69,7 +69,7 @@ type Manifest = Record<string, ManifestChunk>
 const NON_LINKED_ENTRIES = ['styles.entry.ts', 'assets.entry.ts']
 
 /** The Cantina's entry, its shell: its own document, never linked from srd's. */
-const CANTINA_ENTRY = 'build/index.html'
+const APP_ENTRY = 'build/index.html'
 
 /**
  * Manifest keys under this prefix are static assets a page may point at, keyed
@@ -99,7 +99,7 @@ async function readAssets(): Promise<BuildAssets> {
       built[key] = `/${chunk.file}`
       continue
     }
-    if (!chunk.isEntry || key === CANTINA_ENTRY) continue
+    if (!chunk.isEntry || key === APP_ENTRY) continue
     for (const css of chunk.css ?? []) {
       const href = `/${css}`
       if (!styles.includes(href)) styles.push(href)

@@ -32,7 +32,7 @@ export function ExportEntityButton({ type, id, name }: ExportEntityButtonProps) 
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .slice(0, 40)
-      downloadJson(`cantina-${type}-${safeName}.json`, bundle)
+      downloadJson(`salvageunion-${type}-${safeName}.json`, bundle)
     },
     { failure: `${name} could not be exported. Try again.` }
   )

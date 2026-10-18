@@ -35,9 +35,9 @@ import { InteractionResponseType, InteractionType, Routes } from 'discord-api-ty
 import { BOT_RELAY_POST_ROLL_PATH } from 'game-domain/botWire'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { handleButtonInteraction } from '../buttons'
-import { setCantinaClient } from '../commands/cantinaReply'
 import { commands } from '../commands/index'
-import { createCantinaClient } from '../play/client'
+import { setSiteClient } from '../commands/siteReply'
+import { createSiteClient } from '../play/client'
 import { reportError } from '../reportError'
 import {
   interactionName,
@@ -186,7 +186,7 @@ async function health(env: Env): Promise<Response> {
     token: Boolean(env.DISCORD_TOKEN),
     // Either alone is as broken as neither: every Game command would answer
     // that Cantina cannot be reached.
-    cantina: Boolean(env.CANTINA_CONVEX_SITE_URL) && Boolean(env.CANTINA_BOT_SECRET),
+    site: Boolean(env.BACKEND_SITE_URL) && Boolean(env.BOT_SECRET),
   }
 
   if (!configured.token) {
@@ -196,11 +196,11 @@ async function health(env: Env): Promise<Response> {
     )
   }
 
-  if (!configured.cantina) {
+  if (!configured.site) {
     return Response.json(
       {
         ok: false,
-        reason: 'CANTINA_CONVEX_SITE_URL and CANTINA_BOT_SECRET must both be set',
+        reason: 'BACKEND_SITE_URL and BOT_SECRET must both be set',
         configured,
       },
       { status: 503 }
@@ -285,10 +285,10 @@ export default {
 
     // Configuration arrives as `env`, so the client can only be built once a
     // request exists. Cheap: a client is two strings and a closure.
-    setCantinaClient(
-      createCantinaClient({
-        siteUrl: env.CANTINA_CONVEX_SITE_URL,
-        botSecret: env.CANTINA_BOT_SECRET,
+    setSiteClient(
+      createSiteClient({
+        siteUrl: env.BACKEND_SITE_URL,
+        botSecret: env.BOT_SECRET,
       })
     )
 

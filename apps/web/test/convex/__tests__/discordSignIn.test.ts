@@ -20,7 +20,7 @@ import { api } from '../../../convex/_generated/api'
 import { NATIVE_FETCH_GLOBALS } from '../../env'
 import { testConvexWithHttp } from '../harness'
 
-const SITE_URL = 'https://cantina.test'
+const SITE_URL = 'https://app.test'
 const CONVEX_SITE_URL = 'https://deployment.convex.site'
 const DISCORD_ISSUER = 'https://discord.com'
 const DISCORD_USER_ID = '80351110224678912'

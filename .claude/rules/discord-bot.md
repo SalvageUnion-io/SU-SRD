@@ -48,7 +48,7 @@ Learned from shipped replies:
 
 ## Ephemerality is a rule, not a default
 
-- Denials and errors are **always** ephemeral (`src/commands/cantinaReply.ts`):
+- Denials and errors are **always** ephemeral (`src/commands/siteReply.ts`):
   a public channel is the wrong place to say who lacks an account.
 - `/su sheet` is always ephemeral, even when the sheet is public (ADR-032), and
   shows the Share field only when the server reports `publicRead: true`;

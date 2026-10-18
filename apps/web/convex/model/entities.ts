@@ -190,7 +190,7 @@ export async function oldestByAppId(
     .collect()) as Doc<EntityTable>[]
   if (warn && matches.length > 1) {
     console.warn(
-      `[cantina] ${matches.length} ${table} rows share appId="${appId}" — resolving to the oldest; this roster needs de-duplicating`
+      `[app] ${matches.length} ${table} rows share appId="${appId}" — resolving to the oldest; this roster needs de-duplicating`
     )
   }
   return oldestOf(matches)

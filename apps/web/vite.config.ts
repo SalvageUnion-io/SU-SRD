@@ -6,7 +6,7 @@
  *   page it pre-renders: `ssg/build.ts` runs this build, reads its manifest,
  *   then renders the pages under Bun. There is no server build.
  * - **The Cantina** is one HTML entry, its shell, rendered rather than read
- *   (`ssg/cantinaPlugins.ts`) and emitted as `build/index.html`. Its chunks
+ *   (`ssg/appPlugins.ts`) and emitted as `build/index.html`. Its chunks
  *   share `assets/` with srd's; its router and service worker live under
  *   `/build/` (`APP_BASE` in `src/lib/appBase.ts`, ADR-048).
  *
@@ -26,15 +26,15 @@ import { SITE_WORKER, WORKBOX_OPTIONS } from './src/pwa'
 import { emitBaseStylesheet } from './src/styles/baseStylesheet'
 import { appGraph } from './ssg/appGraph'
 import {
+  APP_ENTRY,
+  appShell,
   baseStylesheetLink,
-  CANTINA_ENTRY,
-  cantinaShell,
   prerender,
   publicPages,
   requireConvexUrl,
   shellOrigin,
   siteManifest,
-} from './ssg/cantinaPlugins'
+} from './ssg/appPlugins'
 
 const HERE = import.meta.dirname
 const OUT_DIR = join(HERE, 'dist')
@@ -49,8 +49,8 @@ const SRD_INPUT = {
   assets: join(HERE, 'src/runtime/assets.entry.ts'),
 }
 
-/** The Cantina's entry, by input key (`CANTINA_CHUNK` in ssg/build.ts). */
-const CANTINA_CHUNK = 'cantina'
+/** The Cantina's entry, by input key (`APP_CHUNK` in ssg/build.ts). */
+const APP_CHUNK = 'app'
 
 const graph = appGraph({ pageEntries: Object.values(SRD_INPUT) })
 
@@ -67,7 +67,7 @@ export default defineConfig({
   publicDir: join(HERE, 'public'),
   plugins: [
     requireConvexUrl(),
-    cantinaShell(),
+    appShell(),
     baseStylesheetLink(),
     siteManifest(),
     shellOrigin(),
@@ -132,7 +132,7 @@ export default defineConfig({
     // How `ssg/build.ts` learns srd's hashed entry names; it deletes the file.
     manifest: true,
     rolldownOptions: {
-      input: { ...SRD_INPUT, [CANTINA_CHUNK]: CANTINA_ENTRY },
+      input: { ...SRD_INPUT, [APP_CHUNK]: APP_ENTRY },
       output: {
         // React, ReactDOM and the scheduler change only on a dependency bump:
         // one long-cached chunk both apps share.

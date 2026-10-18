@@ -23,7 +23,7 @@ import { SHELF } from 'game-domain/container'
 import { create } from 'zustand'
 import { readLocal, writeLocal } from '../lib/safeLocalStorage'
 
-const STORAGE_KEY = 'cantina.activeContainer'
+const STORAGE_KEY = 'app.activeContainer'
 
 /** `shelf` | `game:<id>` — see the note on persistence above. */
 export function serializeContainer(container: Container): string {

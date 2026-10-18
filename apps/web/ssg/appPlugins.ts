@@ -1,11 +1,11 @@
 /**
- * cantinaPlugins — what the one Vite config (`vite.config.ts`) adds for the
+ * appPlugins — what the one Vite config (`vite.config.ts`) adds for the
  * Cantina: its shell as an HTML entry at `build/index.html`, the base
  * stylesheet and the site's manifest linked from it, its public pages and
  * sitemap, and the refusal to build without a Convex URL.
  *
  * Every `transformIndexHtml` here acts on the Cantina's shell alone (it carries
- * the `cantina:meta` markers): the dev server runs the same hooks over srd's
+ * the `app:meta` markers): the dev server runs the same hooks over srd's
  * pages, which link their own stylesheets and manifest.
  */
 
@@ -25,10 +25,10 @@ const APP_ROOT = join(import.meta.dirname, '..')
  * The shell's module id: Vite's HTML entry, rendered rather than read from
  * disk. Its path under the root is its output path, `build/index.html`.
  */
-export const CANTINA_ENTRY = join(APP_ROOT, APP_BASE.slice(1), 'index.html')
+export const APP_ENTRY = join(APP_ROOT, APP_BASE.slice(1), 'index.html')
 
-/** Whether a document is the Cantina's shell (`shell.ts`'s `cantina:meta` block). */
-const isShell = (html: string): boolean => html.includes('cantina:meta')
+/** Whether a document is the Cantina's shell (`shell.ts`'s `app:meta` block). */
+const isShell = (html: string): boolean => html.includes('app:meta')
 
 /** A `transformIndexHtml` that leaves srd's pages alone. */
 function onShell(order: 'pre' | 'post', handler: (html: string) => string) {
@@ -47,7 +47,7 @@ function onShell(order: 'pre' | 'post', handler: (html: string) => string) {
  */
 export function requireConvexUrl(): Plugin {
   return {
-    name: 'cantina-require-convex-url',
+    name: 'app-require-convex-url',
     configResolved({ env }) {
       if (env.VITE_CONVEX_URL) return
       throw new Error(
@@ -60,32 +60,32 @@ export function requireConvexUrl(): Plugin {
 }
 
 /** Whether a dev request is a navigation into the Cantina. */
-function isCantinaNavigation(url: string, accept: string): boolean {
+function isAppNavigation(url: string, accept: string): boolean {
   const path = url.split('?')[0] ?? ''
   return routeInApp(path) !== null && !/\.[a-z0-9]+$/i.test(path) && accept.includes('text/html')
 }
 
 /**
  * The shell (`src/shell/shell.ts`) is the Cantina's HTML entry: the
- * build loads it as `CANTINA_ENTRY` and emits `build/index.html` from it; the
+ * build loads it as `APP_ENTRY` and emits `build/index.html` from it; the
  * dev server answers every navigation under `/build` with it, once Vite's own
  * middlewares (modules, `public/`) have passed the request on.
  */
-export function cantinaShell(): Plugin {
+export function appShell(): Plugin {
   return {
-    name: 'cantina-shell',
+    name: 'app-shell',
     enforce: 'pre',
     resolveId(id) {
-      return id === CANTINA_ENTRY ? CANTINA_ENTRY : undefined
+      return id === APP_ENTRY ? APP_ENTRY : undefined
     },
     load(id) {
-      return id === CANTINA_ENTRY ? renderShell() : undefined
+      return id === APP_ENTRY ? renderShell() : undefined
     },
     configureServer(server) {
       return () => {
         server.middlewares.use(async (req, res, next) => {
           const url = req.originalUrl ?? req.url ?? '/'
-          if (!isCantinaNavigation(url, req.headers.accept ?? '')) return next()
+          if (!isAppNavigation(url, req.headers.accept ?? '')) return next()
           try {
             const html = await server.transformIndexHtml(url, renderShell())
             res.setHeader('Content-Type', 'text/html; charset=utf-8')
@@ -109,7 +109,7 @@ export function baseStylesheetLink(): Plugin {
   let href = DEV_BASE_STYLESHEET
   let build = false
   return {
-    name: 'cantina-base-stylesheet',
+    name: 'app-base-stylesheet',
     configResolved({ command }) {
       build = command === 'build'
     },
@@ -129,7 +129,7 @@ export function baseStylesheetLink(): Plugin {
  */
 export function siteManifest(): Plugin {
   return {
-    name: 'cantina-site-manifest',
+    name: 'app-site-manifest',
     transformIndexHtml: onShell('post', (html) =>
       html.replace('</title>', `</title><link rel="manifest" href="${SITE_MANIFEST}">`)
     ),
@@ -146,7 +146,7 @@ export function siteManifest(): Plugin {
 export function shellOrigin(): Plugin {
   let origin = originOf()
   return {
-    name: 'cantina-shell-origin',
+    name: 'app-shell-origin',
     apply: 'build',
     configResolved({ env }) {
       origin = originOf(env.VITE_SITE_ORIGIN)
@@ -166,7 +166,7 @@ export function shellOrigin(): Plugin {
 export function publicPages(): Plugin {
   let origin = originOf()
   return {
-    name: 'cantina-public-pages',
+    name: 'app-public-pages',
     apply: 'build',
     configResolved({ env }) {
       origin = originOf(env.VITE_SITE_ORIGIN)

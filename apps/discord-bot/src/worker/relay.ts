@@ -8,7 +8,7 @@
  * `↻ Roll again` (only the roller's) and `See table` buttons. It is posted as
  * a NEW message with the bot token, since there is no interaction to answer.
  *
- * Authenticated with the bearer `CANTINA_BOT_SECRET`, the same value the bot
+ * Authenticated with the bearer `BOT_SECRET`, the same value the bot
  * presents to Convex's `/bot/*`, in the other direction. Unset, the relay is
  * a 404, as `/bot/*` is on a deployment that has not opted in.
  *
@@ -59,7 +59,7 @@ function discordFailure(status: number, code: number | string | null): string {
 
 /** Handle `POST BOT_RELAY_POST_ROLL_PATH`. */
 export async function handlePostRoll(request: Request, env: Env): Promise<Response> {
-  const expected = env.CANTINA_BOT_SECRET
+  const expected = env.BOT_SECRET
   if (!expected) return answer({ error: 'not found' }, 404)
   const presented = bearerToken(request.headers.get('Authorization'))
   if (presented === null || !secretsMatch(presented, expected)) {

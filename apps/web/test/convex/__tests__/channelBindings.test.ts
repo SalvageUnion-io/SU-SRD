@@ -272,7 +272,7 @@ describe('reading the bindings', () => {
 describe('postRoll', () => {
   const ROLL = { tableName: 'Core Mechanic', rolls: [14] }
   const realFetch = globalThis.fetch
-  const savedEnv = { url: process.env.CANTINA_BOT_URL, secret: process.env.CANTINA_BOT_SECRET }
+  const savedEnv = { url: process.env.BOT_URL, secret: process.env.BOT_SECRET }
   let calls: Array<{ url: string; auth: string | null; body: Record<string, unknown> }> = []
 
   /** The bot Worker's relay, answering every post with `respond`. */
@@ -289,16 +289,16 @@ describe('postRoll', () => {
 
   beforeEach(() => {
     calls = []
-    process.env.CANTINA_BOT_URL = 'https://bot.example/'
-    process.env.CANTINA_BOT_SECRET = 'shh'
+    process.env.BOT_URL = 'https://bot.example/'
+    process.env.BOT_SECRET = 'shh'
   })
 
   afterEach(() => {
     globalThis.fetch = realFetch
-    process.env.CANTINA_BOT_URL = savedEnv.url
-    process.env.CANTINA_BOT_SECRET = savedEnv.secret
-    if (savedEnv.url === undefined) delete process.env.CANTINA_BOT_URL
-    if (savedEnv.secret === undefined) delete process.env.CANTINA_BOT_SECRET
+    process.env.BOT_URL = savedEnv.url
+    process.env.BOT_SECRET = savedEnv.secret
+    if (savedEnv.url === undefined) delete process.env.BOT_URL
+    if (savedEnv.secret === undefined) delete process.env.BOT_SECRET
   })
 
   async function postAs(
@@ -371,7 +371,7 @@ describe('postRoll', () => {
     const t = testConvex()
     const { player, gameId } = await seedTable(t, { discord: true })
     await bind(t, 'd-org', '1234', gameId)
-    delete process.env.CANTINA_BOT_URL
+    delete process.env.BOT_URL
     stubRelay(() => Response.json({ ok: true, messageId: 'x' }))
 
     expect(await postAs(player, { gameId })).toMatchObject({ kind: 'failed' })

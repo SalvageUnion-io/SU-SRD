@@ -66,7 +66,7 @@ describe('extractCopy', () => {
   test('skips book quotes, console lines and schema descriptions', () => {
     const src = [
       "const q = bookQuote({ source: 'Salvage Union Workshop Manual', page: 3 }, 'the mech moves')",
-      "console.error('[cantina] a mech failed')",
+      "console.error('[app] a mech failed')",
       "const s = z.string().describe('Mech module names')",
       "const keep = 'a real pilot sentence'",
     ].join('\n')

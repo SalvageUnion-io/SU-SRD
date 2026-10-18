@@ -508,7 +508,7 @@ const RETIRED_CLAIMS: [RegExp, string][] = [
   [/no auth\/backend|do not introduce a backend/i, 'Convex is the server of record (ADR-030)'],
   [
     /in-memory (?:backend|only)/i,
-    'signed out, the Cantina is read-only: see .claude/rules/cantina-data-access.md',
+    'signed out, the Cantina is read-only: see .claude/rules/app-data-access.md',
   ],
   [/\bEntityDisplay\b|\bDisplayCard\b/, 'the card shells are ReferenceEntityCard and Card'],
   [/prettier/i, 'Biome is the only formatter'],

@@ -3,15 +3,15 @@
  * shot — a headless screenshot of one of the site's pages, for an agent that has
  * no browser preview.
  *
- *   bun run shot </route|cantina:/route> [--width phone|column|page] [--out <dir>]
+ *   bun run shot </route|app:/route> [--width phone|column|page] [--out <dir>]
  *
  * `.claude/launch.json`'s previews exist only in the Desktop app, so a cloud
  * agent restyling a component could not see what it changed (a design audit
  * once hand-rolled a Playwright script for its screenshots). This is that
  * script, once.
  *
- * - A target starting with `/` is a path on the site. `cantina:/route` is a Cantina
- *   route (under its `/build` base, so `cantina:/starter` is `/build/starter`).
+ * - A target starting with `/` is a path on the site. `app:/route` is a Cantina
+ *   route (under its `/build` base, so `app:/starter` is `/build/starter`).
  *   One dev server answers both: a running `bun run dev`, or else the dev server
  *   alone (`ssg/dev.ts`, no `convex dev`) booted signed out with no backend:
  *   `VITE_CONVEX_URL` points at a closed local port, so the Cantina's pages that
@@ -57,10 +57,10 @@ export type Server = {
   env?: Readonly<Record<string, string>>
 }
 /** The prefix that makes a target a Cantina route. */
-const CANTINA_PREFIX = 'cantina:'
+const APP_PREFIX = 'app:'
 
 /** The Cantina's base path (`APP_BASE` in `apps/web/src/lib/appBase.ts`, ADR-048). */
-export const CANTINA_BASE = '/build'
+export const APP_BASE = '/build'
 
 /**
  * Where the signed-out boot's Convex client points: a closed port on this
@@ -81,8 +81,7 @@ const DEV: Server = {
   env: { VITE_CONVEX_URL: NO_BACKEND },
 }
 
-const USAGE =
-  'usage: bun run shot </route|cantina:/route> [--width phone|column|page] [--out <dir>]'
+const USAGE = 'usage: bun run shot </route|app:/route> [--width phone|column|page] [--out <dir>]'
 
 const isWidth = (value: string): value is Width => Object.hasOwn(WIDTHS, value)
 
@@ -109,10 +108,10 @@ export function parseArgs(argv: readonly string[]): ShotArgs {
     else throw new Error(`one target only, got "${target}" and "${arg}"\n${USAGE}`)
   }
   if (!target) throw new Error(USAGE)
-  if (target.startsWith(CANTINA_PREFIX) && !target.startsWith(`${CANTINA_PREFIX}/`))
-    throw new Error(`a Cantina target is cantina:/route, not "${target}"\n${USAGE}`)
-  if (!target.startsWith('/') && !target.startsWith(CANTINA_PREFIX))
-    throw new Error(`a target is /route or cantina:/route, not "${target}"\n${USAGE}`)
+  if (target.startsWith(APP_PREFIX) && !target.startsWith(`${APP_PREFIX}/`))
+    throw new Error(`a Cantina target is app:/route, not "${target}"\n${USAGE}`)
+  if (!target.startsWith('/') && !target.startsWith(APP_PREFIX))
+    throw new Error(`a target is /route or app:/route, not "${target}"\n${USAGE}`)
   return { target, width, out }
 }
 
@@ -121,8 +120,8 @@ export function planShot({ target }: Pick<ShotArgs, 'target'>): {
   server: Server
   path: string
 } {
-  if (target.startsWith(CANTINA_PREFIX))
-    return { server: DEV, path: CANTINA_BASE + target.slice(CANTINA_PREFIX.length) }
+  if (target.startsWith(APP_PREFIX))
+    return { server: DEV, path: APP_BASE + target.slice(APP_PREFIX.length) }
   return { server: DEV, path: target }
 }
 

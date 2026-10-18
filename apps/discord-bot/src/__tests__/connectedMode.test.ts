@@ -1,18 +1,18 @@
 import { afterEach, describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
 import { gamesCommand, meCommand } from '../commands/account'
-import { setCantinaClient } from '../commands/cantinaReply'
 import { parseSheetTarget, sheetCommand } from '../commands/sheet'
+import { setSiteClient } from '../commands/siteReply'
 import { suCommand } from '../commands/su'
-import type { CantinaClient } from '../play/client'
-import type { CantinaResult } from '../play/types'
+import type { SiteClient } from '../play/client'
+import type { SiteResult } from '../play/types'
 import type { ReplyArg } from './fakeInteraction'
 import { fakeAutocomplete, fakeExecute } from './fakeInteraction'
 
 /**
  * The Game commands with a Cantina deployment configured.
  *
- * Everything here goes through the named test seam in `cantinaReply.ts` rather
+ * Everything here goes through the named test seam in `siteReply.ts` rather
  * than through environment variables or `mock.module` — see that function's
  * comment for why neither works. `afterEach` restores the unconfigured client,
  * which is what every other test file expects to see.
@@ -25,7 +25,7 @@ afterEach(() => {
 })
 
 /** A client whose every method returns the same canned result. */
-function clientReturning(result: CantinaResult<unknown>): CantinaClient {
+function clientReturning(result: SiteResult<unknown>): SiteClient {
   const answer = () => Promise.resolve(result) as never
   return {
     me: answer,
@@ -38,8 +38,8 @@ function clientReturning(result: CantinaResult<unknown>): CantinaClient {
   }
 }
 
-function connect(result: CantinaResult<unknown>): void {
-  restore = setCantinaClient(clientReturning(result))
+function connect(result: SiteResult<unknown>): void {
+  restore = setSiteClient(clientReturning(result))
 }
 
 /**
@@ -143,7 +143,7 @@ describe('an ephemeral command', () => {
 describe('/su sheet', () => {
   test('opens a picked entity, privately', async () => {
     let asked: unknown[] = []
-    restore = setCantinaClient({
+    restore = setSiteClient({
       ...clientReturning(OK_SHEET),
       sheet: (...args) => {
         asked = args
@@ -162,7 +162,7 @@ describe('/su sheet', () => {
 
   test('opens a pasted link to somebody else’s sheet', async () => {
     let asked: unknown[] = []
-    restore = setCantinaClient({
+    restore = setSiteClient({
       ...clientReturning(OK_SHEET),
       sheet: (...args) => {
         asked = args

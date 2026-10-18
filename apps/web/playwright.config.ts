@@ -8,7 +8,7 @@ import { portFor } from 'gates/ports'
  *   auto-discovers `.spec.ts` and `.test.ts` — never tries to execute them.
  *   `_`-prefixed modules and `fixtures.ts` are shared helpers. A file filter is
  *   a pattern, so `smoke.e2e.ts` runs `reference-smoke.e2e.ts` and
- *   `cantina-smoke.e2e.ts` both.
+ *   `app-smoke.e2e.ts` both.
  * - CI serves the BUILT app with `bun run preview`: `wrangler dev` over
  *   `wrangler.jsonc` (one Worker serves the whole site), so the specs run
  *   against the Worker and the `not_found_handling` mode production serves, in

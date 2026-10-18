@@ -10,7 +10,7 @@ description: Start a self-hosted Convex backend, push the Cantina's functions to
 # requests no secrets.
 #
 # `test-auth: 'true'` builds the variant with the test sign-in seam: it sets
-# both halves the seam needs to line up, `CANTINA_TEST_AUTH` on the deployment
+# both halves the seam needs to line up, `TEST_AUTH` on the deployment
 # and `VITE_TEST_AUTH` in the build. Left off, the build is the signed-out
 # production variant. `build-web` and the nightly `e2e` set it; neither `dist`
 # ever deploys (deploy-cloudflare.yml builds its own against production).
@@ -135,7 +135,7 @@ runs:
         rm -f jwt.key jwks.json
         # `convex/auth.ts` gates the password provider on the exact string
         # 'true'; anything else leaves the provider absent and the seam gone.
-        bunx convex env set CANTINA_TEST_AUTH true
+        bunx convex env set TEST_AUTH true
         # SITE_URL is the FRONTEND's address, base included (The Cantina is served
         # under /build, ADR-048), not the Convex site URL. Nothing prompts
         # for it, and omitting it fails as an opaque 500.

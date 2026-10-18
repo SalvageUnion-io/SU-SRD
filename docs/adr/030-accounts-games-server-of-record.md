@@ -88,7 +88,7 @@ alerts and a live table are the point — not an add-on.
 
 This produces **four modes** — Solo, Connected, Disconnected, Outdated — and
 every surface must be legible in all of them; the table is
-[`.claude/rules/cantina-data-access.md`](../../.claude/rules/cantina-data-access.md). A **NOT CONNECTED** banner and
+[`.claude/rules/app-data-access.md`](../../.claude/rules/app-data-access.md). A **NOT CONNECTED** banner and
 read-only state are the honest cost of choosing a server of record, and only a
 signed-in user offline ever pays it.
 

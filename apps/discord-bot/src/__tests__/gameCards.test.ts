@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { DISCORD_ROLL_ACCENT } from 'salvageunion-reference'
 import {
-  CANTINA_ORIGIN,
+  APP_ORIGIN,
   denialMessage,
   gamesCard,
   gameUrl,
@@ -22,7 +22,7 @@ import { cardText, cardUrl } from './cardText'
  * fresh pilot and a bare Mule.
  */
 
-const WEB = CANTINA_ORIGIN
+const WEB = APP_ORIGIN
 const CRITICAL = DISCORD_ROLL_ACCENT.cascade
 
 /** A fresh pilot as the server derives it: base HP 10 and AP 5, alive. */

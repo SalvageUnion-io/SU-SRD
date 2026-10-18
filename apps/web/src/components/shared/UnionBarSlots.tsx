@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import { useEffect, useLayoutEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { appPath } from '../../lib/appBase'
-import { CANTINA_NAV, inAppRoute, isCurrent } from '../../lib/barLinks'
+import { BUILD_NAV, inAppRoute, isCurrent } from '../../lib/barLinks'
 import type { UnionSlot } from '../../shell/unionSlots'
 import { isPlayRoute, slotSelector, UNION_SLOTS } from '../../shell/unionSlots'
 import { UnionDrawer } from '../unionBar/UnionDrawer'
@@ -116,7 +116,7 @@ export function UnionBarSlots({
   // "You are here" on the nav, which the shell cannot know.
   useEffect(() => {
     for (const link of document.querySelectorAll<HTMLAnchorElement>('.su-union-bar__nav a')) {
-      const nav = CANTINA_NAV.find((item) => link.textContent === item.label)
+      const nav = BUILD_NAV.find((item) => link.textContent === item.label)
       if (!nav) continue
       if (isCurrent(nav.path, pathname)) link.setAttribute('aria-current', 'page')
       else link.removeAttribute('aria-current')
@@ -129,7 +129,7 @@ export function UnionBarSlots({
       {mobileActions}
       <UnionDrawer
         search={drawerSearch}
-        productNav={CANTINA_NAV.map((item) => ({
+        productNav={BUILD_NAV.map((item) => ({
           label: item.label,
           href: appPath(item.path),
           active: isCurrent(item.path, pathname),

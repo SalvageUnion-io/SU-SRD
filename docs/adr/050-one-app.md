@@ -44,7 +44,7 @@ a page renders, never in how the app is built, served, installed or checked.
    bar (`AppBar`).
 4. **One edge.** One Worker module (`src/worker/index.ts`) answers the
    reference's misses and, through `run_worker_first`, everything under `/build`
-   (`src/worker/cantina.ts`). One CSP (`public/_headers`), admitting Convex.
+   (`src/worker/app.ts`). One CSP (`public/_headers`), admitting Convex.
    One error endpoint (`/__errors`), one Convex log-stream path
    (`/__convex-logs`), one 404, one sitemap index.
 5. **One install.** One `site.webmanifest` (id, scope and start URL `/`, named

@@ -17,7 +17,7 @@
 import type { EntityKind } from 'game-domain/entityKinds'
 import { useEffect, useMemo, useRef } from 'react'
 
-const PREFIX = 'cantina-wizard-draft'
+const PREFIX = 'app-wizard-draft'
 
 type WizardKind = EntityKind
 

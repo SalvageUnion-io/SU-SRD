@@ -26,7 +26,7 @@ paths:
   for `SalvageUnionReference.preload([...])`: every route renders inside
   `GameDataReady`, whose `preload('all')` is already the gate, so a per-route
   list is pure repetition. Neither reads player entities: those come from the
-  stores in the component (see `cantina-data-access.md`).
+  stores in the component (see `app-data-access.md`).
 - Crash handling is global. Reporting happens once, in the `createRoot` hooks
   `main.tsx` installs (`reactRootErrorHandlers` in `src/lib/observability.ts`),
   which React calls for every error any boundary catches. The error components

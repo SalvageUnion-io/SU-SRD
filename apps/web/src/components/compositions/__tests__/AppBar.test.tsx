@@ -21,7 +21,7 @@ describe('AppBar', () => {
       <AppBar
         product="reference"
         referenceHref="/"
-        buildHref="https://cantina.example/"
+        buildHref="https://app.example/"
         playHref="/play/"
       />
     )
@@ -36,7 +36,7 @@ describe('AppBar', () => {
       <AppBar
         product="reference"
         referenceHref="/"
-        buildHref="https://cantina.example/"
+        buildHref="https://app.example/"
         playHref="/play/"
       />
     )
@@ -44,7 +44,7 @@ describe('AppBar', () => {
     expect(tools.getByRole('link', { name: 'Reference' }).getAttribute('aria-current')).toBe('true')
     const build = tools.getByRole('link', { name: 'Build' })
     expect(build.getAttribute('aria-current')).toBeNull()
-    expect(build.getAttribute('href')).toBe('https://cantina.example/')
+    expect(build.getAttribute('href')).toBe('https://app.example/')
     expect(build.getAttribute('target')).toBeNull()
   })
 

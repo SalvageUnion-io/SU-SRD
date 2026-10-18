@@ -641,7 +641,7 @@ export const useEntityStore = create<EntityState>((set, get, api) => ({
     // lands on the latest bays.
     const fresh = get().get('crawler', crawlerId)
     if (fresh === null) {
-      throw new Error(`[cantina-store] Cannot update bay: crawler id="${crawlerId}" not found`)
+      throw new Error(`[app-store] Cannot update bay: crawler id="${crawlerId}" not found`)
     }
     const bays = fresh.crawlerBays ?? []
     const targetIndex =
@@ -650,7 +650,7 @@ export const useEntityStore = create<EntityState>((set, get, api) => ({
         : bays.findIndex((b) => b.bayRef === bayRef)
     if (targetIndex === -1) {
       throw new Error(
-        `[cantina-store] Cannot update bay: bayRef="${bayRef}" not found on crawler "${crawlerId}"`
+        `[app-store] Cannot update bay: bayRef="${bayRef}" not found on crawler "${crawlerId}"`
       )
     }
     const next = bays.map((b, i) => (i === targetIndex ? { ...b, ...patch, bayRef } : b))

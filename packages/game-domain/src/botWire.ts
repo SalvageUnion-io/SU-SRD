@@ -229,7 +229,7 @@ export type UnbindChannelResult = { unbound: ChannelBindingSummary | null }
  *
  * The Worker holds the bot token and the roll card (`buildPostedRollMessage`),
  * so the posted message is exactly the card `/su roll` posts, buttons and all.
- * Authenticated with the same `CANTINA_BOT_SECRET` as `/bot/*`, in the other
+ * Authenticated with the same `BOT_SECRET` as `/bot/*`, in the other
  * direction.
  */
 export const BOT_RELAY_POST_ROLL_PATH = '/relay/post-roll'
@@ -270,7 +270,7 @@ export function isPostableRoll(tableName: string, rolls: readonly unknown[]): bo
 
 /**
  * Compare two secrets without leaking their common prefix through timing:
- * `CANTINA_BOT_SECRET` as Convex's `/bot/*` and the bot's relay each check it.
+ * `BOT_SECRET` as Convex's `/bot/*` and the bot's relay each check it.
  *
  * Length is compared first and short-circuits, which does leak the secret's
  * length — that is accepted: a length oracle does not meaningfully narrow a

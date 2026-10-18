@@ -33,7 +33,7 @@ the corpus size, not just the finding count.
 | Script | Run by | Purpose | Baseline |
 | --- | --- | --- | --- |
 | `run-coverage.ts` | `test:coverage`: CI's `coverage` job and `bun run check`'s `test` (pre-push runs no tests) | Every workspace's suite (`tools/` included) under `bun test --coverage`, concurrently, each workspace's output printed whole under its name. Fails a workspace whose line coverage of its own files is under its floor. | `FLOORS` in the script. Add tests; lower a floor only on purpose, saying so in the PR. Raise one to lock in a gain. |
-| `gates/lib/a11yScan.ts` | `reference-a11y.e2e.ts`, `cantina-a11y.e2e.ts` per PR; the Cantina's `a11y-signed-in.e2e.ts` nightly | WCAG 2.2 AA axe scan of each spec's pages, desktop and Pixel 7; any violation fails | — |
+| `gates/lib/a11yScan.ts` | `reference-a11y.e2e.ts`, `app-a11y.e2e.ts` per PR; the Cantina's `a11y-signed-in.e2e.ts` nightly | WCAG 2.2 AA axe scan of each spec's pages, desktop and Pixel 7; any violation fails | — |
 | `gates/lib/webVitals.ts` | `e2e/perf-budget.e2e.ts`, CI's `perf` job, per PR | LCP, TBT and CLS computed the way Lighthouse does from a page's own observers, the median of three throttled loads; any page over its budget fails | `PAGES` in the spec. Lower a budget to lock in a gain; raise one only on purpose, saying so in the PR. |
 | `deploy-surfaces.ts` | `.github/workflows/deploy-cloudflare.yml` | Diffs HEAD against the last successful deploy tag and decides which Workers (`WORKERS` in `check-workers.ts`) ship; a change under `SHARED_PATHS` ships them all, and `workflows` holds ci.yml's `shared` filter to that list. Fails safe: when unsure it deploys everything. | — |
 | `release.ts` | `.github/workflows/release.yml`, a push to `main` that changes the root `package.json` (`--dry-run` by hand); `--check-bump` is CI's `version-bump` job | When the root `package.json` version has no `v<version>` tag yet, publishes that release on the merge commit, its notes the merged PR's **What changed** section word for word, `Closes #N` lines dropped. An unbumped merge finds the tag and does nothing. | — |
@@ -51,7 +51,7 @@ the corpus size, not just the finding count.
 | `export-lp-assets.ts` | `assets:export` | Backs up the `su-lp-assets` R2 bucket locally and proves the copy byte-exact — the only backup path for the licensed artwork. Needs R2 credentials. |
 | `upload-lp-assets.ts` | `assets:upload` | The artwork ingest path into `su-lp-assets`. Needs R2 credentials. |
 | `art-crop.ts` | `assets:crop` | Measures each artwork's ink box from its `-440` derivative and writes `apps/web/src/components`'s `heroArtCrop.data.ts`, which the entity page's hero crops to. Re-run after adding or replacing art; unmeasured art renders whole. |
-| `shot.ts` | `shot` | A full-page PNG of a `/route` or a signed-out Cantina `cantina:/route` (no backend) at a `WIDTHS` width, scrolled so lazy art loads; paper only (no dark theme). Reuses only its own checkout's server, else starts one; prints each `.shots/` path. |
+| `shot.ts` | `shot` | A full-page PNG of a `/route` or a signed-out Cantina `app:/route` (no backend) at a `WIDTHS` width, scrolled so lazy art loads; paper only (no dark theme). Reuses only its own checkout's server, else starts one; prints each `.shots/` path. |
 
 `packages/gates` holds the shared library (`lib/`: rule engine, scan floors,
 workspace graph, lcov merge, prose fidelity, R2, per-checkout ports, the

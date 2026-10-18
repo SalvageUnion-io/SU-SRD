@@ -45,8 +45,8 @@ function envWith(overrides: Partial<Env> = {}): Env {
     DISCORD_PUBLIC_KEY: 'ab'.repeat(32),
     DISCORD_APPLICATION_ID: '111111111111111111',
     DISCORD_TOKEN: 'a-token',
-    CANTINA_CONVEX_SITE_URL: 'https://x.convex.site',
-    CANTINA_BOT_SECRET: 'a-secret',
+    BACKEND_SITE_URL: 'https://x.convex.site',
+    BOT_SECRET: 'a-secret',
     ...overrides,
   } as Env
 }
@@ -139,9 +139,9 @@ describe('/health', () => {
   })
 
   test.each([
-    ['neither Cantina value', { CANTINA_CONVEX_SITE_URL: '', CANTINA_BOT_SECRET: '' }],
-    ['no CANTINA_BOT_SECRET', { CANTINA_BOT_SECRET: '' }],
-    ['no CANTINA_CONVEX_SITE_URL', { CANTINA_CONVEX_SITE_URL: '' }],
+    ['neither Cantina value', { BACKEND_SITE_URL: '', BOT_SECRET: '' }],
+    ['no BOT_SECRET', { BOT_SECRET: '' }],
+    ['no BACKEND_SITE_URL', { BACKEND_SITE_URL: '' }],
   ])('503s with %s, without calling Discord', async (_label, overrides) => {
     // Either alone is as broken as neither: every Game command would answer
     // that Cantina cannot be reached. The post-deploy smoke reads this
@@ -161,8 +161,8 @@ describe('/health', () => {
 
     expect(res.status).toBe(503)
     expect(body.ok).toBe(false)
-    expect(body.reason).toContain('CANTINA_CONVEX_SITE_URL and CANTINA_BOT_SECRET')
-    expect(body.configured.cantina).toBe(false)
+    expect(body.reason).toContain('BACKEND_SITE_URL and BOT_SECRET')
+    expect(body.configured.site).toBe(false)
     expect(called).toBe(false)
   })
 

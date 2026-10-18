@@ -140,9 +140,9 @@ no account to open, is always current, and requires no publishing step.
   the Cantina's front door and the Starter Set, never `/p/`. A public sheet names
   its own canonical URL; a sheet that is missing or private answers
   `x-robots-tag: noindex`, so a dead link never becomes a page search lists
-  (`worker/cantina.ts`).
+  (`worker/app.ts`).
 - **The link unfurls.** For a bot's request the Worker swaps the shell's
-  `cantina:meta` block for the thing's preview
+  `app:meta` block for the thing's preview
   (`apps/web/src/worker/linkPreview.ts`, from `publicSheet.preview`, public
   reads only) and renders its `OgCard` through Browser Rendering, cached by
   version. A private sheet unfurls as the Private card.

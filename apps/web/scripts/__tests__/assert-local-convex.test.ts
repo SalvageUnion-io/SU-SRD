@@ -9,7 +9,7 @@ describe('cloudDeploymentRefusal', () => {
 
   test('allows local and anonymous deployments', () => {
     expect(cloudDeploymentRefusal('local:local-alex_jarvis-susrd')).toBeNull()
-    expect(cloudDeploymentRefusal('anonymous:anonymous-cantina')).toBeNull()
+    expect(cloudDeploymentRefusal('anonymous:anonymous-app')).toBeNull()
   })
 
   test('refuses a cloud dev deployment, ignoring the trailing comment', () => {

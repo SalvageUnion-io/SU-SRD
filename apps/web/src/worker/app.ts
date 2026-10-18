@@ -23,7 +23,7 @@
  *      (`index.ts`), never the shell.
  *   2. a shared thing's route (`/p/:kind/:appId`, `/invite/:token`) asked for
  *      without `Sec-Fetch-Mode: navigate` (a crawler, an unfurl bot) → the
- *      shell with its `cantina:meta` block swapped for that thing's preview
+ *      shell with its `app:meta` block swapped for that thing's preview
  *      (`shellMeta.ts`). The front door asked for the same way gets the shell
  *      with its canonical.
  *   3. anything else → the binding's answer: the shell for a navigation to
@@ -65,7 +65,7 @@ export const RUN_WORKER_FIRST = [APP_BASE, `${APP_BASE}/*`]
 
 type Assets = { fetch(request: Request): Promise<Response> }
 
-export type CantinaEnv = PreviewEnv & {
+export type AppEnv = PreviewEnv & {
   /** The site's static assets, `not_found_handling: none`. */
   ASSETS: Assets
 }
@@ -102,9 +102,9 @@ function defaultCache(): ImageCache | undefined {
  * A request under the base (`isBuildPath`); `null` for a missing file, which
  * the site answers as any other miss.
  */
-export async function serveCantina(
+export async function serveApp(
   request: Request,
-  siteEnv: CantinaEnv,
+  siteEnv: AppEnv,
   base = APP_BASE
 ): Promise<Response | null> {
   const url = new URL(request.url)
@@ -188,7 +188,7 @@ function isNavigation(request: Request): boolean {
  * that cached the shell under a chunk's URL revalidates against the shell's
  * ETag — so the binding is asked again without the validators.
  */
-async function fileOrMiss(request: Request, env: CantinaEnv): Promise<Response | null> {
+async function fileOrMiss(request: Request, env: AppEnv): Promise<Response | null> {
   const res = await env.ASSETS.fetch(request)
   if (res.status !== 304) return isShell(res) ? null : res
   return isShell(await env.ASSETS.fetch(withoutValidators(request))) ? null : res
@@ -205,11 +205,11 @@ function withoutValidators(request: Request): Request {
   return new Request(request.url, { method: request.method, headers })
 }
 
-/** Rule 2. The shell, its `cantina:meta` block swapped for the route's preview. */
+/** Rule 2. The shell, its `app:meta` block swapped for the route's preview. */
 async function sharedShell(
   route: PreviewRoute,
   url: URL,
-  env: CantinaEnv,
+  env: AppEnv,
   base: string
 ): Promise<Response> {
   const shell = await shellOf(url, env, base)
@@ -224,14 +224,14 @@ async function sharedShell(
  * Rule 2, for the front door: the shell with its canonical. The other public
  * pages are pre-rendered (`publicPages.ts`).
  */
-async function frontDoor(url: URL, env: CantinaEnv, base: string): Promise<Response> {
+async function frontDoor(url: URL, env: AppEnv, base: string): Promise<Response> {
   const shell = await shellOf(url, env, base)
   if (!shell.ok) return shell
   return rewritten(shell, (html) => frontDoorShell(html, url.origin, base))
 }
 
 /** The shell, read as the base's directory rather than `index.html`. */
-function shellOf(url: URL, env: CantinaEnv, base: string): Promise<Response> {
+function shellOf(url: URL, env: AppEnv, base: string): Promise<Response> {
   return env.ASSETS.fetch(new Request(new URL(`${base}/`, url), { method: 'GET' }))
 }
 

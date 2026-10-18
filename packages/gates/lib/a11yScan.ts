@@ -1,6 +1,6 @@
 /**
  * The WCAG 2.2 AA scan the web app runs as Playwright specs
- * (`e2e/reference-a11y.e2e.ts`, `e2e/cantina-a11y.e2e.ts`, the Cantina's signed-in
+ * (`e2e/reference-a11y.e2e.ts`, `e2e/app-a11y.e2e.ts`, the Cantina's signed-in
  * `e2e/a11y-signed-in.e2e.ts`): axe-core
  * over the spec's page list, at a 1280×900 desktop and again as a Pixel 7. Any violation, on any
  * page or device, fails the spec.

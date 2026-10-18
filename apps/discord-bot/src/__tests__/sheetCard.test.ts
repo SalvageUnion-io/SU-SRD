@@ -7,11 +7,11 @@
  * `armour-plating`.
  */
 import { describe, expect, test } from 'bun:test'
-import { CANTINA_ORIGIN, sheetCard } from '../gameCards'
+import { APP_ORIGIN, sheetCard } from '../gameCards'
 import type { EntityBody, SheetResult, SheetTable } from '../play/types'
 import { blockStarting, cardHeading, cardText, cardTexts, cardUrl } from './cardText'
 
-const WEB = CANTINA_ORIGIN
+const WEB = APP_ORIGIN
 
 function sheet(table: SheetTable, body: EntityBody, overrides: Partial<SheetResult> = {}) {
   return sheetCard({

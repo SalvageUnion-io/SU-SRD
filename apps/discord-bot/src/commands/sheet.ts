@@ -4,8 +4,8 @@ import type { SheetKind } from 'game-domain/entityKinds'
 import { TABLE_OF_KIND } from 'game-domain/entityKinds'
 import { bodyName, sheetCard } from '../gameCards'
 import type { SheetTable } from '../play/types'
-import { cantina, respondWithCantina } from './cantinaReply'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions'
+import { respondWithSite, site } from './siteReply'
 
 /**
  * `/su sheet` — the one Cantina command (ADR-030).
@@ -77,7 +77,7 @@ export const sheetCommand = {
    * matches nothing, and Discord sends the typed text as the value.
    */
   async autocomplete(interaction: CommandAutocompleteInteraction): Promise<void> {
-    const result = await cantina().mineForAutocomplete(interaction.user.id)
+    const result = await site().mineForAutocomplete(interaction.user.id)
     if (result.kind !== 'ok') {
       await interaction.respond([])
       return
@@ -126,7 +126,7 @@ export const sheetCommand = {
     // and `sheetVisibility.test.ts` holds it, because "someone adds
     // visibility: 'public' to make sharing easier" is exactly the plausible
     // future change that would break it silently.
-    await respondWithCantina(interaction, {
+    await respondWithSite(interaction, {
       call: (client) => client.sheet(interaction.user.id, target.table, target.entityId),
       render: (value) => sheetCard(value),
     })

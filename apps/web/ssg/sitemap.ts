@@ -72,13 +72,13 @@ function sitemapUrls(routes: readonly string[]): string[] {
 }
 
 /** The Cantina's urlset, served by its Worker. */
-const CANTINA_SITEMAP_URL = `${SITE_URL}${appPath('/sitemap.xml')}`
+const APP_SITEMAP_URL = `${SITE_URL}${appPath('/sitemap.xml')}`
 
 /** The `sitemap-index.xml` body. */
 function renderSitemapIndex(fileNames: readonly string[]): string {
   return sitemapIndexXml([
     ...fileNames.map((name) => new URL(`/${name}`, SITE_URL).href),
-    CANTINA_SITEMAP_URL,
+    APP_SITEMAP_URL,
   ])
 }
 

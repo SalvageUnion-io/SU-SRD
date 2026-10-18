@@ -16,7 +16,7 @@ import {
   useActiveContainerStore,
 } from '../activeContainerStore'
 
-const STORAGE_KEY = 'cantina.activeContainer'
+const STORAGE_KEY = 'app.activeContainer'
 
 beforeEach(() => {
   localStorage.clear()

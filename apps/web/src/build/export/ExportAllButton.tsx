@@ -17,7 +17,7 @@ export function ExportAllButton({ ground = 'paper' }: ExportAllButtonProps = {})
     async () => {
       const bundle = await buildExportBundle(useEntityStore.getState())
       const date = new Date().toISOString().slice(0, 10)
-      downloadJson(`cantina-backup-${date}.json`, bundle)
+      downloadJson(`salvageunion-backup-${date}.json`, bundle)
     },
     { failure: 'The backup could not be downloaded. Try again.' }
   )

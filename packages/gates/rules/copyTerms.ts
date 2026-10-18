@@ -197,7 +197,7 @@ const NON_PROSE_KEYS = new Set(['id', 'name', 'source', 'slug', 'booklet'])
 /**
  * `term(s)`, any casing, words joined by any whitespace. A hyphen, a slash or
  * a dot joined to a word on either side is a slug, a class name or a host
- * (`su-mech-card`, `/schema/mech/`, `cantina.salvageunion.io`), not a word.
+ * (`su-mech-card`, `/schema/mech/`, `salvageunion.io/build`), not a word.
  */
 export function termPattern(term: string): RegExp {
   const body = term
@@ -318,7 +318,7 @@ export function productNames(root: string): { name: string; shortName: string } 
 }
 
 /**
- * Any other casing of the product's two names. A bracketed `[cantina]` is a log
+ * Any other casing of the product's two names. A bracketed `[app]` is a log
  * tag, not the name.
  */
 export function productBans(product: { name: string; shortName: string }): Banned[] {

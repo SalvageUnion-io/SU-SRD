@@ -26,7 +26,7 @@
  * and the nightly e2e build set it; no committed env file does, and
  * `__tests__/TestAuthBridge.test.tsx` asserts the default is off.
  *
- * It is also useless without its server half: `CANTINA_TEST_AUTH` must be set on
+ * It is also useless without its server half: `TEST_AUTH` must be set on
  * the deployment for the `password` provider to exist at all. Both flags have to
  * be wrong at once for this to be reachable, and each is asserted separately.
  */

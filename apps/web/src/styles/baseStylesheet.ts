@@ -7,7 +7,7 @@
  * downloaded the same ~115 KB twice, from two URLs. It is built once here, with
  * no config either app could change, and the one Vite pass (`vite.config.ts`)
  * emits it (`emitBaseStylesheet`) and links it from the Cantina's shell
- * (`baseStylesheetLink`, `ssg/cantinaPlugins.ts`); srd's pages link it from
+ * (`baseStylesheetLink`, `ssg/appPlugins.ts`); srd's pages link it from
  * the manifest (`ssg/build.ts`).
  *
  * In dev there is nothing to build: both apps link `/src/styles/base.css`,

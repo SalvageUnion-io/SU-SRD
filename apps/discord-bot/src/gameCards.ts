@@ -66,7 +66,7 @@ const CRITICAL = DISCORD_ROLL_ACCENT.cascade
  * `/build` (ADR-048). Cards link back here by appending a route; it only
  * ever builds a URL, never a request. Old intheunionnow.com links 301 here.
  */
-export const CANTINA_ORIGIN = `${SRD_SITE_URL}/build`
+export const APP_ORIGIN = `${SRD_SITE_URL}/build`
 
 const FOOTER = PRODUCT.name
 
@@ -185,7 +185,7 @@ function mechStats(body: EntityBody, derived: MechDerived | null) {
  * Game's own page in the Cantina.
  */
 export function gameUrl(gameId: string): string {
-  return `${CANTINA_ORIGIN}${gamePath(gameId)}`
+  return `${APP_ORIGIN}${gamePath(gameId)}`
 }
 
 /**
@@ -206,7 +206,7 @@ export function publicSheetUrl(
 ): string | null {
   if (publicRead !== true) return null
   if (appId === null || appId.length === 0) return null
-  return `${CANTINA_ORIGIN}${publicPath(kindOf(table), appId)}`
+  return `${APP_ORIGIN}${publicPath(kindOf(table), appId)}`
 }
 
 /**
@@ -221,7 +221,7 @@ export function publicSheetUrl(
  */
 export function sheetUrl(table: SheetTable, rowId: string | null | undefined): string | null {
   if (typeof rowId !== 'string' || rowId.length === 0) return null
-  return `${CANTINA_ORIGIN}${sheetPath(kindOf(table), rowId)}`
+  return `${APP_ORIGIN}${sheetPath(kindOf(table), rowId)}`
 }
 
 /**
@@ -247,7 +247,7 @@ export function denialMessage(reason: DenialReason, serverMessage?: string): str
     'Sign in with this same Discord account and the bot will recognise you here',
     'automatically — there’s nothing to copy across and no code to enter.',
     '',
-    `${CANTINA_ORIGIN}/account`,
+    `${APP_ORIGIN}/account`,
   ].join('\n')
 }
 
@@ -268,7 +268,7 @@ function gameLines(games: GameSummary[]): string {
 export function meCard(me: MeResult): ContainerData {
   return entityCard({
     title: `${me.user.displayName} — ${PRODUCT.name}`,
-    url: `${CANTINA_ORIGIN}/account`,
+    url: `${APP_ORIGIN}/account`,
     accent: DISCORD_NEUTRAL_ACCENT,
     description: 'Linked at sign-in. Discord is the only way in, so this is always current.',
     fields: [
@@ -285,7 +285,7 @@ export function meCard(me: MeResult): ContainerData {
 export function gamesCard(games: GameSummary[]): ContainerData {
   return entityCard({
     title: `Your Games (${games.length})`,
-    url: `${CANTINA_ORIGIN}/`,
+    url: `${APP_ORIGIN}/`,
     accent: DISCORD_NEUTRAL_ACCENT,
     description: gameLines(games),
     fields: [],

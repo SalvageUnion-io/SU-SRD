@@ -28,7 +28,7 @@ import { getMembership, NotAuthorized, requireMemberAs } from './model/permissio
  * ## How a roll reaches Discord
  *
  * `postRoll` does not call Discord itself. It asks the bot Worker
- * (`CANTINA_BOT_URL` + `BOT_RELAY_POST_ROLL_PATH`, bearer `CANTINA_BOT_SECRET`)
+ * (`BOT_URL` + `BOT_RELAY_POST_ROLL_PATH`, bearer `BOT_SECRET`)
  * to post it, because the Worker already holds both the bot token and the roll
  * card (`buildPostedRollMessage`): the message in the channel is exactly the
  * card `/su roll` posts, with its `Roll again` and `See table` buttons, and the
@@ -184,12 +184,12 @@ const RELAY_TIMEOUT_MS = 10_000
  * an unreachable Worker, a refusal from Discord.
  */
 export async function relayPostRoll(request: PostRollRelayRequest): Promise<PostRollRelayResponse> {
-  const botUrl = process.env.CANTINA_BOT_URL?.replace(/\/+$/, '')
-  const secret = process.env.CANTINA_BOT_SECRET
+  const botUrl = process.env.BOT_URL?.replace(/\/+$/, '')
+  const secret = process.env.BOT_SECRET
   if (!botUrl || !secret) {
     // Loud on purpose: a deployment with channels bound and no relay is a
     // configuration fault, and the Convex log is where an operator looks.
-    console.error('[channelBindings] CANTINA_BOT_URL and CANTINA_BOT_SECRET must both be set')
+    console.error('[channelBindings] BOT_URL and BOT_SECRET must both be set')
     return {
       ok: false,
       status: null,

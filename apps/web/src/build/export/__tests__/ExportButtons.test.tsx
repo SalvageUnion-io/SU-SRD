@@ -69,7 +69,7 @@ describe('ExportAllButton', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Export all' }))
 
     await waitFor(() => expect(downloads).toHaveLength(1))
-    expect(downloads[0]?.filename).toMatch(/^cantina-backup-\d{4}-\d{2}-\d{2}\.json$/)
+    expect(downloads[0]?.filename).toMatch(/^salvageunion-backup-\d{4}-\d{2}-\d{2}\.json$/)
     expect((await downloaded()).entities.pilots.map((p) => p.name)).toEqual(['Rook'])
   })
 
@@ -111,7 +111,7 @@ describe('ExportEntityButton', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Export' }))
 
     await waitFor(() => expect(downloads).toHaveLength(1))
-    expect(downloads[0]?.filename).toBe('cantina-pilot-rook-the-kid-o-hara.json')
+    expect(downloads[0]?.filename).toBe('salvageunion-pilot-rook-the-kid-o-hara.json')
     expect((await downloaded()).entities.pilots.map((p) => p.id)).toEqual(['p1'])
   })
 })

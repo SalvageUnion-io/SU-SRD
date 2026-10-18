@@ -41,7 +41,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     `apps/web/convex/`: opaque bodies (`v.any()`), Zod-parsed per mutation; an entity is [in a Game or on a Shelf](architecture/glossary.md).
     Every store commits through a `commit*` in `src/stores/`; `containerParity.test.ts` asserts each has a table.
 12. **No device cache** <a id="no-device-cache"></a>
-    No IndexedDB: an offline reload boots the SW shell, signed out and empty. The PWA stays installable; `e2e/cantina-offline.e2e.ts` pins both.
+    No IndexedDB: an offline reload boots the SW shell, signed out and empty. The PWA stays installable; `e2e/app-offline.e2e.ts` pins both.
 13. **Zustand stores** <a id="stores"></a>
     `src/stores/` hold rows in memory, filled by `ShelfSync`; `update()` validates, awaits Convex, then logs; a refused write changes nothing.
     No TanStack Query; reads: `src/lib/entities/`, `convex/react`. Shared state: a store; context: what varies by placement.
@@ -52,8 +52,8 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     Production `exuberant-porpoise-183`; staging `perfect-donkey-72`, previews only.
     `bun run dev` runs a local deployment with test auth; setup, rotations and repairs are the `convex-ops` skill.
 16. **Convex environment** <a id="convex-env"></a>
-    Sign-in: `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`, `SITE_URL`, `JWT_PRIVATE_KEY`, `JWKS`; bot: `CANTINA_BOT_SECRET`, `CANTINA_BOT_URL` (the bot Worker's origin, for Play's posts).
-    `CANTINA_TEST_AUTH` never in production; `convex env list` prints values: pipe it through `cut -d= -f1`.
+    Sign-in: `AUTH_DISCORD_ID`, `AUTH_DISCORD_SECRET`, `SITE_URL`, `JWT_PRIVATE_KEY`, `JWKS`; bot: `BOT_SECRET`, `BOT_URL` (the bot Worker's origin, for Play's posts).
+    `TEST_AUTH` never in production; `convex env list` prints values: pipe it through `cut -d= -f1`.
 17. **Convex conventions** <a id="convex-conventions"></a>
     Mutations use `mutation` / `internalMutation` from `convex/model/entities.ts` (its triggers keep `games.summary`).
     Tell refusals from defects with `src/lib/connection/serverError.ts`; a one-off repair runs once from the dashboard, then is deleted.
@@ -73,7 +73,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     Entity forms (Mention, Token, Row, Tile, Peek; [EDL](design-system/entity-display-language.md)) come from `toEntityModel`; Card and Page are `ReferenceEntityCard`.
     `Card` is the generic container, never merged with it; app UI goes through `controls` and slot props, never schema props.
 23. **Discord bot as a Game client** <a id="bot-game-client"></a>
-    Game commands call `POST /bot/<op>` (`convex/botHttp.ts`) with `CANTINA_BOT_SECRET`.
+    Game commands call `POST /bot/<op>` (`convex/botHttp.ts`) with `BOT_SECRET`.
     Writes only channel bindings; Convex unreachable: every Game command answers `unavailable`. Each interaction logs its command.
 24. **SEO** <a id="seo"></a>
     One site name (`pageTitle`), one WebSite JSON-LD (`WEBSITE`), one sitemap; heads: `BaseLayout.tsx`; shared sheets: ADR-032; `/llms.txt` exact; SW: `src/pwa.ts`.

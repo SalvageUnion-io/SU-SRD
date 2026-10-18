@@ -95,7 +95,7 @@ test('export the shelf, and import it back', async ({ page }) => {
   const download = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Export all' }).click()
   const backup = await download
-  expect(backup.suggestedFilename()).toMatch(/^cantina-backup-\d{4}-\d{2}-\d{2}\.json$/)
+  expect(backup.suggestedFilename()).toMatch(/^salvageunion-backup-\d{4}-\d{2}-\d{2}\.json$/)
   const file = await backup.path()
 
   // Lose it…

@@ -5,7 +5,7 @@
  * each says is known without asking Convex.
  *
  * So the build pre-renders them (`publicShells`, from `vite.config.ts`):
- * the Starter Set and each build get a copy of the shell whose `cantina:meta`
+ * the Starter Set and each build get a copy of the shell whose `app:meta`
  * block carries the page's own title, description, canonical and `og:*`,
  * written beside it as `starter.html` and `starter/<kind>/<id>.html`, which the
  * asset server answers for `/starter` and `/starter/<kind>/<id>`. The build also

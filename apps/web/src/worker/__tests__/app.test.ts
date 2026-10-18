@@ -8,7 +8,7 @@ import worker from '../index'
 /**
  * The Cantina at salvageunion.io/build (ADR-048), which the one Worker runs
  * first for every request under the base: it reads each answer through an
- * asset binding that answers a miss with the shell (see `../cantina.ts`).
+ * asset binding that answers a miss with the shell (see `../app.ts`).
  *
  * The rule that has already broken production: `/assets/*` on a miss must be
  * **404**, never the SPA shell. Answering 200 with HTML let the `immutable`
@@ -359,8 +359,8 @@ describe('the deploy', () => {
     const workflow = await Bun.file(
       new URL('../../../../../.github/workflows/deploy-cloudflare.yml', import.meta.url)
     ).text()
-    const siteUrlEnv = workflow.match(/^\s*CANTINA_SITE_URL:\s*(\S+)\s*$/m)?.[1]
+    const siteUrlEnv = workflow.match(/^\s*APP_URL:\s*(\S+)\s*$/m)?.[1]
     expect(siteUrlEnv).toBe(appUrl('', originOf()))
-    expect(workflow).toContain('bunx convex env set SITE_URL "$CANTINA_SITE_URL"')
+    expect(workflow).toContain('bunx convex env set SITE_URL "$APP_URL"')
   })
 })

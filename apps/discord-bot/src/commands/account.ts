@@ -1,8 +1,8 @@
 import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
 import { PRODUCT } from 'game-domain/product'
 import { gamesCard, meCard } from '../gameCards'
-import { respondWithCantina } from './cantinaReply'
 import type { CommandExecuteInteraction } from './interactions'
+import { respondWithSite } from './siteReply'
 
 /**
  * The two **personal** The Cantina subcommands: `/su me` and `/su games`.
@@ -21,7 +21,7 @@ export const meCommand = {
   },
 
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
-    await respondWithCantina(interaction, {
+    await respondWithSite(interaction, {
       call: (client) => client.me(interaction.user.id),
       render: (value) => meCard(value),
     })
@@ -34,7 +34,7 @@ export const gamesCommand = {
   },
 
   async execute(interaction: CommandExecuteInteraction): Promise<void> {
-    await respondWithCantina(interaction, {
+    await respondWithSite(interaction, {
       call: (client) => client.games(interaction.user.id),
       render: (value) => gamesCard(value.games),
     })

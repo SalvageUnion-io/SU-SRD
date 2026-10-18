@@ -84,9 +84,7 @@ describe('deploy-surfaces — decideSurfaces', () => {
 
   test('a directory that merely shares a prefix does not match', () => {
     // `apps/web-legacy/` must not be read as `apps/web/`.
-    expect(decideSurfaces(['apps/web-legacy/x.ts', 'apps/cantina-docs/y.md'], false)).toEqual(
-      NOTHING
-    )
+    expect(decideSurfaces(['apps/web-legacy/x.ts', 'apps/app-docs/y.md'], false)).toEqual(NOTHING)
   })
 
   test('a root file that only starts like a shared one is not shared', () => {

@@ -42,7 +42,7 @@ name: Deploy (Cloudflare)
 #
 # ARTIFACTS ARE BUILT HERE, NOT TAKEN FROM CI. CI's build has no release
 # SHA or OG images, and its Cantina targets a throwaway Convex
-# backend, not `CANTINA_CONVEX_URL`; and CI path-filters per PR while this deploys
+# backend, not `PRODUCTION_CONVEX_URL`; and CI path-filters per PR while this deploys
 # per last recorded deploy, so a surface can need shipping on a commit where CI
 # skipped its build.
 #
@@ -104,11 +104,11 @@ env:
   # `push-convex`). `push-convex` asserts it equals the canonical URL the
   # deploy key resolves to before it pushes, so a moved deployment fails the
   # run before anything ships instead of shipping a client aimed elsewhere.
-  CANTINA_CONVEX_URL: https://exuberant-porpoise-183.convex.cloud
+  PRODUCTION_CONVEX_URL: https://exuberant-porpoise-183.convex.cloud
   # Where the Cantina is served (ADR-048): `SITE` in apps/web/src/lib/site.ts, with
   # no trailing slash, as Convex Auth's SITE_URL wants it (the routing test
   # holds them equal). `push-convex` sets it on the production backend.
-  CANTINA_SITE_URL: https://salvageunion.io/build
+  APP_URL: https://salvageunion.io/build
 
 jobs:
   # ===========================================================================
@@ -293,7 +293,7 @@ jobs:
       - name: Build the site, render its OG images and upload it
         uses: ./.github/actions/build-site
         with:
-          convex-url: ${{ env.CANTINA_CONVEX_URL }}
+          convex-url: ${{ env.PRODUCTION_CONVEX_URL }}
           commit-ref: ${{ needs.plan.outputs.sha }}
           retention-days: '7'
 
@@ -335,7 +335,7 @@ jobs:
         uses: ./.github/actions/convex-push
         with:
           deploy-key: ${{ secrets.CONVEX_DEPLOY_KEY }}
-          expected-url: ${{ env.CANTINA_CONVEX_URL }}
+          expected-url: ${{ env.PRODUCTION_CONVEX_URL }}
 
       # Convex Auth sends a signed-in player back to SITE_URL, which must be
       # where the Cantina is served, base included (`/build`, ADR-048). Set on
@@ -345,7 +345,7 @@ jobs:
         working-directory: apps/web
         env:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
-        run: bunx convex env set SITE_URL "$CANTINA_SITE_URL"
+        run: bunx convex env set SITE_URL "$APP_URL"
 
   # ===========================================================================
   # The deploy — one leg per surface in the deploy set, in parallel, after

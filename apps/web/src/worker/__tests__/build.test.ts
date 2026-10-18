@@ -2,12 +2,12 @@ import { describe, expect, it } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { APP_BASE } from '../../lib/appBase'
-import { RUN_WORKER_FIRST, spaAssets } from '../cantina'
+import { RUN_WORKER_FIRST, spaAssets } from '../app'
 import type { Env } from '../index'
 import worker from '../index'
 
 /**
- * The Cantina under `/build`, served by the one Worker (`../cantina.ts`): the
+ * The Cantina under `/build`, served by the one Worker (`../app.ts`): the
  * site's binding is `not_found_handling: none`, so its rules read a binding
  * that answers a miss under the base with the shell, as SPA mode would. Every
  * answer keeps the site's `_headers`, its one CSP included.
@@ -81,7 +81,7 @@ describe('wrangler.jsonc agrees with the Worker', () => {
 
   it('reads link previews from the Convex deployment the Cantina is built against', () => {
     const built = workflow('deploy-cloudflare.yml').match(
-      /^\s*CANTINA_CONVEX_URL:\s*(\S+)\s*$/m
+      /^\s*PRODUCTION_CONVEX_URL:\s*(\S+)\s*$/m
     )?.[1]
     expect(built).toBeString()
     expect(config.vars.CONVEX_URL).toBe(built as string)

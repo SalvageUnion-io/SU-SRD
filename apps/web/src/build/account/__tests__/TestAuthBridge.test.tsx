@@ -6,7 +6,7 @@
  * "cannot" has to be an assertion rather than a comment — comments do not fail.
  *
  * Two independent flags have to be wrong at once for the seam to be reachable:
- * `VITE_TEST_AUTH` in the build (this file) and `CANTINA_TEST_AUTH` on the
+ * `VITE_TEST_AUTH` in the build (this file) and `TEST_AUTH` on the
  * deployment (`test/convex/__tests__/authProviders.test.ts`). Each is pinned separately so
  * neither can drift into the other's blind spot.
  */
@@ -43,7 +43,7 @@ describe('the global name is shared, not retyped', () => {
     // would surface as "seam not present" and silently SKIP the test rather
     // than fail it. Pinning the string here is what stops a rename turning the
     // hand-off spec into a permanent no-op.
-    expect(TEST_SIGN_IN_GLOBAL).toBe('__cantinaTestSignIn')
+    expect(TEST_SIGN_IN_GLOBAL).toBe('__appTestSignIn')
 
     // `fixtures.ts` is what signs in every durable e2e spec, and it carries
     // its own copy of the name because Playwright code cannot import app source.

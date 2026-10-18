@@ -13,7 +13,7 @@
  * exactly the kind that have broken production before, so the testable form
  * wins.
  *
- * The shell (`shell/shell.ts`) carries `<!-- cantina:meta:start -->` / `<!-- cantina:meta:end -->`
+ * The shell (`shell/shell.ts`) carries `<!-- app:meta:start -->` / `<!-- app:meta:end -->`
  * around its defaults, and this swaps that whole block. A precise delimiter
  * beats pattern-matching tags: the block is replaced wholesale, so a per-route
  * tag and a default tag can never both survive for a parser to choose between.
