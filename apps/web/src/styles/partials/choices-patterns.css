@@ -17,13 +17,10 @@
   }
 }
 
-/* The free-text field's border colour: ink at 20%, full ink while focused. */
+/* The free-text field's border colour: ink at 20%. Focused, it wears the one
+   ring (`INPUT_FOCUS`, chrome K9), not a darker border. */
 .su-stampseal-field__input {
   border-color: var(--color-ink-20);
-}
-
-.su-stampseal-field__input:focus {
-  border-color: var(--color-ink);
 }
 
 /* The field's floating stamp label. It rides the field's top border; while

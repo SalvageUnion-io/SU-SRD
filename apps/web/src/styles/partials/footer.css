@@ -55,8 +55,9 @@
   text-underline-offset: 3px;
 }
 
-.su-footer__link:hover,
-.su-footer__link:focus-visible {
+/* Keyboard focus is the one ring (`FOCUS_RING`, chrome K9), not the hover's
+   heavier rule. */
+.su-footer__link:hover {
   text-decoration-thickness: 2px;
 }
 

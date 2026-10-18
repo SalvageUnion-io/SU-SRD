@@ -72,7 +72,7 @@ The loop: define it here, land its gate with a baseline, burn the baseline to ze
 - **R27 One empty state, one error per job** (K8) — `EmptyState` by place, `RecoveryPanel`, `NotFoundPanel`, `toast.error`; "Try again".
   Gate: planned, banned copy ("Retry", "Failed to load", "No results found" off the searcher); a raw `role="alert"` only in the atoms.
 - **R28 One focus ring** (K9) — `--focus-ring-shadow` on `:focus-visible`, everywhere.
-  Gate: planned, `styling/focus-ring` (zero): a `:focus-visible` rule sets only the ring token.
+  Gate: held, `chrome/focus-ring` (zero): a rule on a focused subject (`:focus-visible`, `:focus-within`, a `:has()` of one) sets only `--focus-ring-shadow` and the forced-colors transparent outline; a `:focus` rule paints no indicator of its own. `focusRing.contrast.test.ts` holds the ring at 3:1 on every ground, Play's included.
 - **R29 Tabs, Segmented, Toggle by job** (K10) — and no ellipsized tab label.
   Gate: planned, `role="tablist"` only in `Tabs`, `aria-pressed` groups only in `Segmented`; e2e over R0: no tab or segment label overflows.
 

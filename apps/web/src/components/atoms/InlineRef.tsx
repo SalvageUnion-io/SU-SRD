@@ -1,5 +1,6 @@
 import type { AnchorHTMLAttributes, HTMLAttributes, ReactNode } from 'react'
 import { cn } from '../../lib/cn'
+import { FOCUS_RING } from './interaction'
 
 type InlineRefProps = {
   children: ReactNode
@@ -48,7 +49,7 @@ export function InlineRef({ children, href, onOpen, title, className, ...rest }:
       <a
         href={href}
         title={title}
-        className={cn('su-inline-ref su-inline-ref--link', className)}
+        className={cn('su-inline-ref su-inline-ref--link', FOCUS_RING, className)}
         {...rest}
       >
         {children}
@@ -65,7 +66,11 @@ export function InlineRef({ children, href, onOpen, title, className, ...rest }:
       <button
         type="button"
         title={title}
-        className={cn('su-inline-ref su-inline-ref--link su-inline-ref--button', className)}
+        className={cn(
+          'su-inline-ref su-inline-ref--link su-inline-ref--button',
+          FOCUS_RING,
+          className
+        )}
         {...shared}
         onClick={(event) => {
           // A reference inside a clickable card opens ITS entity, not the card's.

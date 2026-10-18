@@ -16,6 +16,7 @@ import {
   Button,
   Callout,
   EmptyState,
+  FOCUS_RING,
   SearchField,
   Segmented,
   SegmentedOption,
@@ -70,7 +71,7 @@ export function PlayAwayGroup({
         label={
           <button
             type="button"
-            className="su-play-act-toggle"
+            className={`su-play-act-toggle ${FOCUS_RING}`}
             aria-expanded={open}
             aria-controls={id}
             onClick={() => setOpen(!open)}

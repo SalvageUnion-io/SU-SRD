@@ -89,14 +89,14 @@
 }
 
 /* `EDIT_CUE_HOVER_CLASS` (`atoms/editLanguage.ts`): the dashed edit outline
- * in the sheet's deep tone, on hover or keyboard focus. */
+ * in the sheet's deep tone, on hover. Keyboard focus is the control's own
+ * ring (chrome K9), never a dashed one. */
 .su-edit-cue {
   outline-color: var(--tone-deep, var(--color-ink));
   outline-offset: 2px;
 }
 
-.su-edit-cue:hover,
-.su-edit-cue:focus-within {
+.su-edit-cue:hover {
   outline-style: dashed;
   outline-width: 2px;
 }

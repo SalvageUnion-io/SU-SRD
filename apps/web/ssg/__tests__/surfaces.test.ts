@@ -225,7 +225,7 @@ describe('a pattern page names and links its base chassis', () => {
     const fallback = page('/chassis/jackhammer/pattern/auger')
     expect(fallback).toContain('data-static-fallback')
     expect(fallback).toMatch(
-      /<a href="\/chassis\/jackhammer\/" class="su-inline-ref su-inline-ref--link">Jackhammer<\/a>/
+      /<a href="\/chassis\/jackhammer\/" class="su-inline-ref su-inline-ref--link su-focus-ring">Jackhammer<\/a>/
     )
   })
 

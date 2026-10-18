@@ -7,7 +7,8 @@
  *
  * The word keeps its prose's type and colour (so it reads on paper, an ink
  * band or a tone header alike); its state is the border. A link: a rust
- * border, and rust text on hover or keyboard focus (ruleset §3.1). Inert: a
+ * border, rust text on hover (ruleset §3.1), and on keyboard focus the one
+ * ring (`FOCUS_RING`, chrome K9). Inert: a
  * dashed border in the text's own colour, at half strength, and the help
  * cursor — it only summons a tooltip.
  */
@@ -22,8 +23,7 @@
   border-bottom-color: var(--color-rust); /* design-tokens-ignore: InlineRef §3.1 */
 }
 
-.su-inline-ref--link:hover,
-.su-inline-ref--link:focus-visible {
+.su-inline-ref--link:hover {
   color: var(--color-rust); /* design-tokens-ignore: InlineRef §3.1 */
 }
 

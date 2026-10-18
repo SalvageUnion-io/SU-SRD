@@ -63,7 +63,7 @@ describe('rendered pages', () => {
   it('draws a rules-text trait as a Mention linked to its page, with its Peek', () => {
     const html = renderRoute('/roll-tables/mechapult')
     expect(renderedBody(html)).toMatch(
-      /<a href="\/traits\/burn\/" class="su-inline-ref su-inline-ref--link" data-peek="traits:[^"]+">Burn \(X\)<\/a>/
+      /<a href="\/traits\/burn\/" class="su-inline-ref su-inline-ref--link su-focus-ring" data-peek="traits:[^"]+">Burn \(X\)<\/a>/
     )
     expect(findRawMarkup(html)).toBeUndefined()
   })

@@ -111,7 +111,7 @@
 }
 
 .su-search-field__input:focus {
-  outline-style: none;
+  outline: 3px solid transparent;
 }
 
 /* ── Toaster ── */

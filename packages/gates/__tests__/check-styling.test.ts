@@ -715,6 +715,39 @@ describe('chrome rule set', () => {
       'apps/web/src/styles/partials/x.css:1',
     ])
   })
+
+  test('focus-ring: every variant beside the one ring is found; the ring, a moved skip link and a sibling are not (R28)', () => {
+    const found = chromeLaws.scan(
+      fixture({
+        ...STYLING_BASE,
+        'apps/web/src/styles/partials/focus.css': [
+          '.a:focus-visible { outline: 2px solid var(--color-ink); outline-offset: -4px; }',
+          '.b:hover,',
+          '.b:focus-visible { color: var(--color-rust); }',
+          '.c:focus-within { outline-style: dashed; }',
+          '.d:focus { border-color: var(--color-ink); }',
+          '.bar .su-btn:focus-visible { outline-color: var(--color-paper); }',
+          '.ring:focus-visible { outline: 3px solid transparent; box-shadow: var(--focus-ring-shadow); }',
+          '.frame:has(> .link:focus-visible) { box-shadow: var(--focus-ring-shadow); }',
+          '.skip:focus { left: 8px; outline: 3px solid transparent; box-shadow: var(--focus-ring-shadow); }',
+          '.field:focus ~ .label { top: 0; color: var(--color-ink); }',
+          '@media (pointer: coarse) {',
+          '  .e:focus-visible { text-decoration-thickness: 2px; }',
+          '}',
+          '',
+        ].join('\n'),
+      })
+    )
+    expect(found['focus-ring']?.map((f) => `${f.line} ${f.detail}`)).toEqual([
+      '1 .a:focus-visible { outline: 2px solid var(--color-ink) }',
+      '1 .a:focus-visible { outline-offset: -4px }',
+      '2 .b:hover, .b:focus-visible { color: var(--color-rust) }',
+      '4 .c:focus-within { outline-style: dashed }',
+      '5 .d:focus { border-color: var(--color-ink) }',
+      '6 .bar .su-btn:focus-visible { outline-color: var(--color-paper) }',
+      '12 .e:focus-visible { text-decoration-thickness: 2px }',
+    ])
+  })
 })
 
 describe('class-prefix rule set', () => {

@@ -2,6 +2,7 @@ import type { ElementType } from 'react'
 import { color } from '../../design/tokens'
 import { ChapterFoot } from '../atoms/ChapterFoot'
 import type { ChapterTone } from '../atoms/chapterBandColor'
+import { FOCUS_RING } from '../atoms/interaction'
 
 /**
  * Footer — where every page of both tools ends, as the Workshop Manual's pages
@@ -111,7 +112,7 @@ function End({
         <ul className="su-footer__links">
           {links.map((link) => (
             <li key={link.href}>
-              <LinkComponent href={link.href} className="su-footer__link">
+              <LinkComponent href={link.href} className={`su-footer__link ${FOCUS_RING}`}>
                 {link.label}
               </LinkComponent>
             </li>

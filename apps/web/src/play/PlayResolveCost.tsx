@@ -7,7 +7,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { ActivationCost, Button, cn, Stat } from '../components/index'
+import { ActivationCost, Button, cn, FOCUS_RING, Stat } from '../components/index'
 import { color, font, fontSize, space, weight } from '../design/tokens'
 import type { ResolveModel } from './useActionsDeck'
 
@@ -76,6 +76,7 @@ export function ResolveCost({
           <label className="su-dash-deck-radio">
             <input
               type="radio"
+              className={FOCUS_RING}
               name="su-dash-deck-currency"
               checked={currencyChoice.currency === 'EP'}
               disabled={currencyChoice.activated}
@@ -86,6 +87,7 @@ export function ResolveCost({
           <label className="su-dash-deck-radio">
             <input
               type="radio"
+              className={FOCUS_RING}
               name="su-dash-deck-currency"
               checked={currencyChoice.currency === 'AP'}
               disabled={currencyChoice.activated || !currencyChoice.pilotAvailable}

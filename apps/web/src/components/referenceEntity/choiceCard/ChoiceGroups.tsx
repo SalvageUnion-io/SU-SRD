@@ -123,8 +123,8 @@ const optionCellStyle = {
 
 /**
  * The free-text field's static geometry. Its border COLOUR lives on
- * `.su-stampseal-field__input` (it darkens on `:focus`), so only the width and
- * style are set here.
+ * `.su-stampseal-field__input`, so only the width and style are set here.
+ * Focused, it wears the one ring (`INPUT_FOCUS`).
  */
 const fieldStyle = {
   width: '100%',

@@ -8,6 +8,7 @@
  */
 
 import type { RefObjectGuideStep } from 'salvageunion-reference'
+import { FOCUS_RING } from '../components/index'
 
 type PlayDowntimeTrackProps = {
   steps: readonly RefObjectGuideStep[]
@@ -30,7 +31,7 @@ export function PlayDowntimeTrack({ steps, current, onStep, canWrite }: PlayDown
             {onStep ? (
               <button
                 type="button"
-                className="su-play-dt-track__step"
+                className={`su-play-dt-track__step ${FOCUS_RING}`}
                 aria-label={label}
                 aria-current={i === current ? 'step' : undefined}
                 disabled={!canWrite}

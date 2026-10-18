@@ -39,11 +39,14 @@ function parseRgb(value: string): [number, number, number] {
 /**
  * Grounds the focus ring is laid on somewhere in the two apps. `ink` is the one
  * that matters most: solid rust measures 2.97:1 against it, so a single-ring
- * "just make it solid" fix passes on paper and fails here.
+ * "just make it solid" fix passes on paper and fails here. Play's controls sit
+ * on its columns' `bandCream` and its centre's paper, on the `inkDeep`
+ * workbench: one ring on every one (chrome K9), no colour switched by ground.
  */
 const GROUNDS = {
   paper: parseRgb(color.paper),
   wkBg: parseRgb(color.wkBg),
+  bandCream: parseRgb(color.bandCream),
   ink: parseRgb(color.ink),
   inkDeep: parseRgb(color.inkDeep),
 } as const

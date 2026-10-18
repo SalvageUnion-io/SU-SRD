@@ -14,7 +14,7 @@
 import { gamePath } from 'game-domain/entityKinds'
 import { downtimeStepCount } from 'game-domain/rules/downtime'
 import { useState } from 'react'
-import { EmptyState, Slab } from '../../components/index'
+import { EmptyState, FOCUS_RING, Slab } from '../../components/index'
 import { AppLink } from '../../components/shared/AppLink'
 import { PlayCrewSheet } from '../PlayCrewSheet'
 import type { SheetTarget } from '../PlaySheetOverlay'
@@ -74,7 +74,9 @@ export function PlayMediatorTable({ mediator, picked, onPick }: PlayMediatorTabl
       {crawler === null ? (
         <>
           <EmptyState variant="inline" body="This Game has no Union Crawler yet." />
-          <AppLink href={gamePath(mediator.gameId)}>Raise one from the Game page</AppLink>
+          <AppLink href={gamePath(mediator.gameId)} className={FOCUS_RING}>
+            Raise one from the Game page
+          </AppLink>
         </>
       ) : (
         <PlayCrawlerUnit

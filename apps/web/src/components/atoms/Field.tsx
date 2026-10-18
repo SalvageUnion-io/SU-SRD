@@ -15,7 +15,7 @@ import { cn } from '../../lib/cn'
 import { Badge } from './Badge'
 import { EDIT_CUE_HOVER_CLASS } from './editLanguage'
 import { InlineEditField } from './InlineEditField'
-import { INPUT_FOCUS } from './interaction'
+import { FOCUS_RING, INPUT_FOCUS } from './interaction'
 import { STAMP_SEAM } from './stampSeam'
 
 type FieldCommon = {
@@ -302,7 +302,7 @@ export function Field(props: FieldProps) {
           // by both apps' print CSS, so the opt-in belongs on the markup.
           // A read-only Field is typeset, with no button to hide.
           data-print="keep"
-          className={cn('su-field__picker', EDIT_CUE_HOVER_CLASS)}
+          className={cn('su-field__picker', EDIT_CUE_HOVER_CLASS, FOCUS_RING)}
           style={PICKER_BOX}
         >
           {valueSpan}

@@ -102,10 +102,6 @@
   color: var(--color-ink);
 }
 
-.su-roll__bar .su-btn:focus-visible {
-  outline-color: var(--color-paper);
-}
-
 /* The bar's buttons share one height: the Roll and a card's Table / Hide
    toggle, at the 44px tap floor on a coarse pointer (§4.6). */
 .su-roll__control {

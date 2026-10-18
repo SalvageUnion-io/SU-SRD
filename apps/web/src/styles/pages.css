@@ -1040,9 +1040,14 @@ a.su-home__discord:hover {
   text-decoration: none;
 }
 
+/* The one focus ring (chrome K9), on the whole path: the head is the link,
+   and the path's rounded clip would cut a ring drawn round the head alone. */
 .su-class-path__link:focus-visible {
-  outline: var(--bw-chrome) solid var(--color-ink);
-  outline-offset: calc(-1 * var(--space-4));
+  outline: 3px solid transparent;
+}
+
+.su-class-path:has(> .su-class-path__link:focus-visible) {
+  box-shadow: var(--focus-ring-shadow);
 }
 
 .su-class-path__body {

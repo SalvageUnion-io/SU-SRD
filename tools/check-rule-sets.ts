@@ -10,7 +10,7 @@
  *   - `tone-ground`  — no tech-level blue as a header ground (packages/gates/rules/toneGround.ts)
  *   - `class-prefix` — every package and app class is `su-*` (packages/gates/rules/classPrefix.ts)
  *   - `entity-nesting` — entities nest three levels deep, no titled box inside one (packages/gates/rules/entityNesting.ts)
- *   - `chrome`       — chrome.md's laws: one ground signal (packages/gates/rules/chrome.ts)
+ *   - `chrome`       — chrome.md's laws: one ground signal, one focus ring (packages/gates/rules/chrome.ts)
  *   - `copy`         — game terms capitalised as the book does (packages/gates/rules/copyTerms.ts)
  *
  * The `styling` check runs the first seven (`--only=` their ids), the `copy`

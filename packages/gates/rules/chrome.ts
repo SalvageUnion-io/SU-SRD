@@ -19,7 +19,21 @@
  * - `paper-mix`: paper on ink is `--color-paper-NN` alone, never a
  *   `color-mix()` fading paper into transparent (a second, unlisted palette).
  *
- * Both are `zero`. Comments are stripped, so prose may name what it bans.
+ * ## One focus ring (hard rule R28, chrome K9)
+ *
+ * Every focusable thing shows `--focus-ring-shadow` on `:focus-visible`, in
+ * ink, Play included. Six variants grew beside it (an offset outline, a
+ * colour change, an underline, a dashed outline, a darker border, a paper
+ * outline), each a keyboard user had to learn again.
+ *
+ * - `focus-ring`: a rule whose subject is focused (`:focus-visible`,
+ *   `:focus-within`, or `:has()` of one) sets only the ring: `box-shadow:
+ *   var(--focus-ring-shadow)` and the forced-colors `outline: 3px solid
+ *   transparent`. A plain `:focus` rule may move or size its element (the skip
+ *   link, a search field's width) but paints no indicator of its own. A
+ *   focused element's sibling (`:focus ~ label`) is not its indicator.
+ *
+ * All three are `zero`. Comments are stripped, so prose may name what it bans.
  */
 
 import { readFileSync } from 'node:fs'
@@ -105,6 +119,67 @@ function scanPaperMix(root: string): Finding[] {
   return out
 }
 
+/** The two declarations a focus rule may make. */
+const RING = new Set(['box-shadow: var(--focus-ring-shadow)', 'outline: 3px solid transparent'])
+/** What paints an indicator: a plain `:focus` rule may set none of these but the ring. */
+const INDICATOR =
+  /^(?:color|background|border|outline|text-decoration|text-underline|box-shadow|fill|stroke)/
+
+/** Split at depth-0 occurrences of `sep` (a comma, or a combinator), never inside `()` or `[]`. */
+function splitTop(text: string, sep: RegExp): string[] {
+  const parts: string[] = []
+  let depth = 0
+  let start = 0
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i] ?? ''
+    if (ch === '(' || ch === '[') depth++
+    else if (ch === ')' || ch === ']') depth--
+    else if (depth === 0 && sep.test(ch)) {
+      parts.push(text.slice(start, i))
+      start = i + 1
+    }
+  }
+  parts.push(text.slice(start))
+  return parts.map((p) => p.trim()).filter(Boolean)
+}
+
+/** The focus state a selector's subject (its last compound) is in, if any. */
+function subjectFocus(selector: string): 'visible' | 'focus' | null {
+  const subject = splitTop(selector, /[\s>+~]/).at(-1) ?? ''
+  if (/:focus-(?:visible|within)\b/.test(subject)) return 'visible'
+  if (/:focus\b(?!-)/.test(subject)) return 'focus'
+  return null
+}
+
+function scanFocusRing(root: string): Finding[] {
+  const out: Finding[] = []
+  for (const rel of listFiles(root, [SRC], ['.css'])) {
+    const css = stripComments(readFileSync(join(root, rel), 'utf8'))
+    for (const m of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      const selectorText = (m[1] ?? '').trim()
+      if (selectorText.startsWith('@')) continue
+      const states = splitTop(selectorText, /,/).map(subjectFocus)
+      if (!states.some(Boolean)) continue
+      const strict = states.includes('visible')
+      // The selector's own line, past the whitespace the match starts with.
+      const lead = (m[1] ?? '').length - (m[1] ?? '').trimStart().length
+      const line = css.slice(0, (m.index ?? 0) + lead).split('\n').length
+      for (const raw of (m[2] ?? '').split(';')) {
+        const decl = raw.trim().replace(/\s+/g, ' ')
+        if (!decl || RING.has(decl)) continue
+        if (strict || INDICATOR.test(decl)) {
+          out.push({
+            file: rel,
+            line,
+            detail: `${selectorText.replace(/\s+/g, ' ')} { ${decl} }`,
+          })
+        }
+      }
+    }
+  }
+  return out
+}
+
 type ChromeRule = Rule & { scan: (root: string) => Finding[] }
 
 const RULES: ChromeRule[] = [
@@ -121,6 +196,13 @@ const RULES: ChromeRule[] = [
     rule: 'hard rule R19 (chrome K1) — paper on ink is `--color-paper-NN` alone, never a `color-mix()` of paper',
     fix: 'Use the paper step: `var(--color-paper-85|70|60|30|15)` in CSS, `color.paper85|70|60|30|15` in a style object.',
     scan: scanPaperMix,
+  },
+  {
+    id: 'focus-ring',
+    mode: 'zero',
+    rule: 'hard rule R28 (chrome K9) — one focus ring: a focused rule sets only `--focus-ring-shadow` (and the forced-colors transparent outline)',
+    fix: 'Give the element `FOCUS_RING` (`su-focus-ring`), or make the rule `outline: 3px solid transparent; box-shadow: var(--focus-ring-shadow)` and nothing else; move a hover colour, underline or border to a `:hover` rule of its own. A clipped element draws the ring on its frame with `:has(… :focus-visible)`.',
+    scan: scanFocusRing,
   },
 ]
 
