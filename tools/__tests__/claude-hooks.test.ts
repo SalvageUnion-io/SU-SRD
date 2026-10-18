@@ -6,13 +6,15 @@ import { GENERATED_PATHS } from '../check-generated'
 
 /**
  * The agent guards in `.claude/`: the typecheck hooks, the `session-status.sh`
- * SessionStart report, and the `deny` rules in `.claude/settings.json` that
- * keep agents off generated files and other package managers.
+ * SessionStart report, the `guard-generated.sh` PreToolUse hook that keeps
+ * agents off generated files, and the `deny` rules in `.claude/settings.json`
+ * that keep them off other package managers.
  *
- * The deny rules are native permission rules, enforced by Claude Code before a
- * tool runs, so there is no script to drive. What can drift is the list: a new
- * generated path that no `Edit(...)` rule covers is silently editable. These
- * tests match each representative path against the rules' globs.
+ * Generated files are guarded by a hook, not `Edit(...)` deny rules: Claude
+ * Code applies Edit deny rules to the Bash sandbox too, which blocked the
+ * generators themselves. What can drift is the hook's list: a new generated
+ * path it does not cover is silently editable. These tests drive the hook
+ * with each representative path.
  */
 
 const ROOT = join(import.meta.dir, '..', '..')
@@ -35,11 +37,14 @@ const settings: { permissions: { allow: string[]; ask: string[]; deny: string[] 
   await Bun.file(join(ROOT, '.claude', 'settings.json')).json()
 const { allow, ask, deny } = settings.permissions
 
-/** The globs inside the `Edit(...)` deny rules. */
-const editGlobs = deny.flatMap((rule) => /^Edit\((.+)\)$/.exec(rule)?.[1] ?? [])
-const editDenied = (path: string) => editGlobs.some((glob) => new Bun.Glob(glob).match(path))
+/** A hook blocks with exit 2. */
+const BLOCK = 2
 
-describe('settings.json deny rules', () => {
+/** Whether `guard-generated.sh` blocks an edit to `path`. */
+const editDenied = async (path: string) =>
+  (await runHook('guard-generated.sh', { tool_input: { file_path: path } })) === BLOCK
+
+describe('guard-generated.sh', () => {
   test.each([
     ['a generated JSON schema', 'packages/salvageunion-reference/schemas/chassis.schema.json'],
     ['the same, absolute', `${ROOT}/packages/salvageunion-reference/schemas/abilities.schema.json`],
@@ -50,8 +55,8 @@ describe('settings.json deny rules', () => {
     ['the lockfile', 'bun.lock'],
     ['the schema catalog', 'packages/salvageunion-reference/schemas/index.json'],
     ['a build-info file', 'apps/web/tsconfig.tsbuildinfo'],
-  ])('deny editing %s', (_label, path) => {
-    expect(editDenied(path)).toBe(true)
+  ])('blocks editing %s', async (_label, path) => {
+    expect(await editDenied(path)).toBe(true)
   })
 
   test.each([
@@ -62,13 +67,40 @@ describe('settings.json deny rules', () => {
     ['an app component', 'apps/web/src/components/Foo.tsx'],
     ['a tool', 'tools/check-path-filters.ts'],
     ['a doc', 'docs/README.md'],
-  ])('allow editing %s', (_label, path) => {
-    expect(editDenied(path)).toBe(false)
+  ])('allows editing %s', async (_label, path) => {
+    expect(await editDenied(path)).toBe(false)
+  })
+
+  test('blocks a notebook edit by its notebook_path', async () => {
+    const code = await runHook('guard-generated.sh', {
+      tool_input: { notebook_path: 'apps/web/dist/report.ipynb' },
+    })
+    expect(code).toBe(BLOCK)
+  })
+
+  test('an empty payload is allowed rather than erroring', async () => {
+    expect(await runHook('guard-generated.sh', { tool_input: {} })).toBe(ALLOW)
+  })
+
+  test('is registered before every editing tool runs', () => {
+    const hooks = (
+      settings as unknown as {
+        hooks: { PreToolUse: { matcher: string; hooks: { command: string }[] }[] }
+      }
+    ).hooks.PreToolUse
+    const entry = hooks.find((e) => e.hooks.some((h) => h.command.endsWith('/guard-generated.sh')))
+    expect(entry?.matcher.split('|').sort()).toEqual(['Edit', 'MultiEdit', 'NotebookEdit', 'Write'])
+  })
+
+  // An `Edit(...)` deny rule also becomes a Bash sandbox write deny, so the
+  // generators that write these paths would fail with EPERM again.
+  test('no Edit deny rule shadows the hook in the sandbox', () => {
+    expect(deny.filter((rule) => rule.startsWith('Edit('))).toEqual([])
   })
 
   // Parity with `bun run check generated`. The Record is typed over the
   // GENERATED_PATHS union, so a new entry there fails typecheck until it is
-  // mapped here — and then this test fails until a deny rule covers it.
+  // mapped here — and then this test fails until the hook covers it.
   const REPRESENTATIVE: Record<
     (typeof GENERATED_PATHS)[number],
     { file: string; denied: boolean }
@@ -96,10 +128,12 @@ describe('settings.json deny rules', () => {
     },
   }
 
-  test.each([...GENERATED_PATHS])('mirrors GENERATED_PATHS entry %s', (path) => {
-    expect(editDenied(REPRESENTATIVE[path].file)).toBe(REPRESENTATIVE[path].denied)
+  test.each([...GENERATED_PATHS])('mirrors GENERATED_PATHS entry %s', async (path) => {
+    expect(await editDenied(REPRESENTATIVE[path].file)).toBe(REPRESENTATIVE[path].denied)
   })
+})
 
+describe('settings.json deny rules', () => {
   test.each(['npm', 'yarn', 'pnpm'])('denies %s, directly and behind bunx', (pm) => {
     expect(deny).toContain(`Bash(${pm} *)`)
     expect(deny).toContain(`Bash(bunx ${pm}*)`)
