@@ -247,9 +247,8 @@ function ReferenceEntityCardInner({
 }: ReferenceEntityCardProps) {
   // Section bands are h2s (nested titles h3s) only when this card IS the page
   // (`sectionHeadingLevel`), whatever `titleAs` says: a page's title is its h1,
-  // in the chapter band. A card the page carries takes only its chips' size.
+  // in the chapter band.
   const onPage = presentation === 'page' && depthProp === 0
-  const chipSize = presentation === 'page' && !onPage ? 'full' : 'compact'
   const sectionAs = sectionHeadingLevel(onPage ? 'h1' : titleAs)
 
   // `SalvageUnionReference.*.all()` entities carry a runtime `schemaName` the
@@ -479,7 +478,7 @@ function ReferenceEntityCardInner({
       titleSize={titleSize}
       titleColor={onBand === 'ink' ? 'var(--color-ink)' : 'var(--color-paper)'}
       numeral={numeral}
-      chips={<Chips chips={chips} size={chipSize} onInk={fill === 'ink'} leading={suggestedNode} />}
+      chips={<Chips chips={chips} size="compact" onInk={fill === 'ink'} leading={suggestedNode} />}
       pennant={pennantNode}
       labels={labels}
       size={size}
@@ -557,7 +556,7 @@ function ReferenceEntityCardInner({
     NestedCard: ReferenceEntityCardInner,
   }
   const resolved = resolveBodyProse(bodyInput)
-  const { chassisAbilityEntities, gridActions, titanicActions, patternList } = resolved
+  const { chassisAbilityEntities, gridActions, titanicActions, patternList, nestedHost } = resolved
   const {
     rollTableNode,
     guideStepsNode,
@@ -586,7 +585,7 @@ function ReferenceEntityCardInner({
         }
         body={bodyHasContent ? bodyContent : null}
         opening={patternSection}
-        loadout={<PatternLoadoutRows groups={pageLoadout} as={sectionAs} hostDown={isDown} />}
+        loadout={<PatternLoadoutRows groups={pageLoadout} as={sectionAs} host={nestedHost} />}
         bodyLabel={
           isPattern
             ? `${resolvedChassisName ?? entityName} ${isBioTitanPattern(pattern) ? 'Bio-Titan' : 'chassis'}`

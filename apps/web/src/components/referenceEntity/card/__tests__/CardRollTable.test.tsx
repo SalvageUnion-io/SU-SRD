@@ -84,7 +84,7 @@ describe('CardRollTable', () => {
     expect(bands?.classList.contains('su-roll__bands')).toBe(true)
   })
 
-  test('nested and folded it is a Token, its buttons beside it; Table reveals the instrument', () => {
+  test('nested and folded it is a Token, its buttons inside its strip; Table reveals the instrument', () => {
     render(
       <CardRollTable
         table={coreMechanic()}
@@ -95,10 +95,17 @@ describe('CardRollTable', () => {
         disabled={false}
       />
     )
-    const line = document.querySelector('.su-roll-token')
-    expect(line?.querySelector('.su-entity-token__name')?.textContent).toContain('Core Mechanic')
+    const token = document.querySelector('.su-roll-token')
+    expect(token?.querySelector('.su-entity-token__name')?.textContent).toContain('Core Mechanic')
     expect(document.querySelector('.su-roll')).toBeNull()
-    expect(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' })).toBeTruthy()
+    const roll = screen.getByRole('button', { name: 'Roll the die on Core Mechanic' })
+    const toggle = screen.getByRole('button', { name: 'Show the Core Mechanic table' })
+    // In the pill, after the name, at the Token's rung (C1a, C8): never beside it.
+    const pill = token?.querySelector('.su-entity-token__pill')
+    for (const button of [toggle, roll]) {
+      expect(pill?.contains(button)).toBe(true)
+      expect(button.classList.contains('su-btn--mini')).toBe(true)
+    }
     fireEvent.click(screen.getByRole('button', { name: 'Show the Core Mechanic table' }))
     expect(document.querySelector('.su-roll-token')).toBeNull()
     expect(document.querySelectorAll('.su-roll li')).toHaveLength(5)

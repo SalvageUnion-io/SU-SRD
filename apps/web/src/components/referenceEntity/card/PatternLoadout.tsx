@@ -8,7 +8,9 @@ import { Stack } from '../../index'
 import { useEntityHref } from '../entityHrefContext'
 import type { Down } from './cardChrome'
 import { conditionOf } from './cardChrome'
-import { cardKey } from './cardHelpers'
+import { cardKey, nestedTitleLevel } from './cardHelpers'
+import { nestedChildSize } from './entityCardTone'
+import type { NestedCardHost } from './NestedCards'
 import type { ReferenceCardEntity } from './referenceEntityCardTypes'
 import type { NestedGroup } from './resolveNestedEntities'
 
@@ -98,9 +100,9 @@ export function PatternLoadout({
 }
 
 /**
- * `LoadoutToken` — one installed system/module in a pattern's loadout: a
- * TOKEN (`[kind] name [TL | n]`) running the list's full width, one part a
- * line (entity display language, "Which form, where"). The part's tone reads
+ * `LoadoutToken` — one installed system/module in a pattern CARD's loadout:
+ * a TOKEN (`[kind] name [TL | n]`), the card's children being level 2 (N1),
+ * running the list's full width, one part a line (N4). The part's tone reads
  * at a glance; the Token opens its Page and Peeks its whole card; one row,
  * its name ending in "…" where it runs out of room (E18).
  *
@@ -138,32 +140,44 @@ const LOADOUT_PAGE = {
 
 /**
  * A pattern PAGE's loadout, under its chassis ability: each group (Systems,
- * Modules) a solid Slab over one full-width Token a line, as on the pattern's
- * card (`LoadoutToken`): each opens its page and Peeks its whole card.
+ * Modules) a solid Slab over its parts at LEVEL 1 (N1, EDL "Which form,
+ * where"): each the compact Card a Page's other children are, its own
+ * actions nested in it as level-2 Tokens. Multiples repeat, as on the card's
+ * loadout (`LoadoutToken`).
  */
 export function PatternLoadoutRows({
   groups,
   as: sectionAs,
-  hostDown,
+  host,
 }: {
   groups: NestedGroup[]
   /** The groups' heading element on a page (`sectionHeadingLevel`). */
   as: ElementType | undefined
-  hostDown: Down
+  /** The pattern Page, level 0: its parts are the level-1 cards it nests. */
+  host: NestedCardHost
 }) {
   if (groups.length === 0) return null
+  const { NestedCard } = host
   return (
     <div className="su-entity-page__loadout" style={LOADOUT_PAGE}>
       {groups.map((group) => (
-        <Stack as="section" gap={8} key={group.label}>
+        <Stack as="section" gap={16} key={group.label}>
           <Slab variant="solid" as={sectionAs} label={group.label} />
-          <ul aria-label={`${group.label} installed`} className="su-entity-token-list">
-            {group.entities.map((item, index) => (
-              <li key={cardKey(item, index)}>
-                <LoadoutToken data={item} hostDown={hostDown} />
-              </li>
-            ))}
-          </ul>
+          {group.entities.map((item, index) => (
+            <NestedCard
+              key={cardKey(item, index)}
+              data={item}
+              size={nestedChildSize(host.size)}
+              depth={host.depth + 1}
+              hostDown={host.isDown}
+              readable={host.readableProse}
+              // A heading under its group's Slab.
+              titleAs={nestedTitleLevel(host.onPage)}
+              hostName={host.entityName}
+              chassisName={host.chassisName}
+              shownProse={host.shownProse}
+            />
+          ))}
         </Stack>
       ))}
     </div>
