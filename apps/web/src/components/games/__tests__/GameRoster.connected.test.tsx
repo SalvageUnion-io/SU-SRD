@@ -206,12 +206,11 @@ describe('what a row offers', () => {
     expect(view.getAttribute('href')).toBe('/sheet/pilot/a-free')
   })
 
-  test('no row launches the Dashboard: that is the hub’s Launch Dashboard', async () => {
+  test('no row opens Play: that is the hub’s Play', async () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT, THEIR_PILOT], mechs: [MY_MECH] }))
-    // Even your own pilot, in a Game with a Mediator (ADR-038 §1).
+    // Even your own pilot.
     expect(screen.queryByRole('button', { name: 'Play' })).toBeNull()
-    expect(screen.queryByRole('button', { name: /dashboard/i })).toBeNull()
-    expect(screen.queryByRole('link', { name: /dashboard/i })).toBeNull()
+    expect(screen.queryByRole('link', { name: /^(Play|Mediate)$/ })).toBeNull()
   })
 
   test('what you own can be handed back to the crew', async () => {

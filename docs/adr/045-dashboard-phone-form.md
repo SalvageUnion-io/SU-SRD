@@ -10,6 +10,11 @@ The phone form is Guided Play, with the same enforcement, seat and Change Log
 as the canvas, so the taxonomy and the
 [rules and the Cantina surfaces](../ARCHITECTURE.md#surfaces) matrix do not change.
 
+**Partly superseded by [ADR-051](051-play-mode.md):** Play's four phone tabs
+replace decisions 3 (unit tabs), 4 (the resolve screen) and 5 (the bar's
+menu). Decisions 1 (two forms, one surface), 2 (same enforcement), 6 (its
+own bar) and 7 (browser zoom raises the floor) stand.
+
 ## Context
 
 ADR-038 §9 made the Dashboard a fixed 1280×800 canvas. A host whose width

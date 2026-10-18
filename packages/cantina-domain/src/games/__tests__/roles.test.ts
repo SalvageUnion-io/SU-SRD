@@ -11,8 +11,7 @@ describe('whether the game has a Mediator', () => {
   })
 
   test('an Organizer is not a Mediator', () => {
-    // The Dashboard needs a real Mediator (ADR-038 §1); the Organizer's
-    // table-runner fallback does not count.
+    // The Organizer's table-runner fallback does not make one.
     expect(hasMediator([ORGANIZER, PLAYER])).toBe(false)
   })
 

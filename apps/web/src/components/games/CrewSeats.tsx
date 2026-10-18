@@ -6,7 +6,7 @@
  * assigned mech as a `MECH | name` chip, the seat's role (PLAYER or OPEN) and
  * the pilot's `HP | current/max` (`crew.vitals`).
  * The Mediator's seat carries no role chip: the page's band already says who
- * mediates. (The Mediator Dashboard shows where they **are**.) A member with
+ * mediates. (Play's Mediator screen shows where they **are**.) A member with
  * no pilot is a plain line. An open seat is an unclaimed pilot. The
  * `SEATS | n/m` chip counts claimed pilots out of all of them; the schema has
  * no seat capacity, so none is invented.
@@ -18,9 +18,9 @@
 import type { CSSProperties } from 'react'
 import { color, font, fontSize, space } from '../../design/tokens'
 import { Badge, Stat } from '../index'
-import type { CrawlerReading } from '../mediator/crawlerReading.model'
-import { crawlerVitals } from '../mediator/crawlerReading.model'
 import { UnitRow } from '../shared/UnitRow'
+import type { CrawlerReading } from './crawlerReading.model'
+import { crawlerVitals } from './crawlerReading.model'
 import { HubSection } from './HubSection'
 import type { SeatRow } from './seatRows.model'
 

@@ -5,12 +5,12 @@
  * `buildCatalogCategories` stays dependency-injected so it can be unit-tested
  * without the ORM; this is the one place those dependencies are bound, so
  * every surface that shows the catalog — srd's landing page, its top nav, and
- * the Dashboard's SRD Explorer — renders the *same* sections from the *same*
+ * Play's SRD Explorer — renders the *same* sections from the *same*
  * source instead of each hand-listing schemas.
  *
  * Preload hazard: this reads the ORM, so call it only after
  * `SalvageUnionReference.preload('all')` has resolved (srd's build-time
- * `gameData` import, the Dashboard's readiness gate) — never at module scope.
+ * `gameData` import, the SRD Explorer's readiness gate) — never at module scope.
  */
 
 import {

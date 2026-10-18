@@ -40,7 +40,7 @@ import { entityCard } from './container'
  *
  * A pilot's and a mech's maxima and status are the SERVER's: `/su sheet`
  * carries them as `SheetResult.vitals`, the same derivation `crew.vitals`
- * serves the Dashboard's Crew tab (ADR-038 §4), so the bot never disagrees
+ * serves Play's Crew (ADR-038 §4), so the bot never disagrees
  * with the app about a crewmate. A deployment older than that field sends
  * none, and the vitals then show their current values alone. The crawler is
  * not crew and the server derives nothing for it, so its max SP is still
@@ -233,24 +233,22 @@ export function sheetUrl(table: SheetTable, rowId: string | null | undefined): s
  * itself. A command that silently does nothing is the worst of the options.
  */
 export function denialMessage(reason: DenialReason, serverMessage?: string): string {
-  // For `not-found` the SERVER knows the specifics and this module does not,
-  // so its message wins when it sends one. `unlinked` keeps its own wording:
-  // the bot adds a sign-in link the server cannot.
-  if (reason === 'not-found' && serverMessage) return serverMessage
-
-  switch (reason) {
-    case 'unlinked':
-      return [
-        `**You don’t have an ${PRODUCT.name} account yet.**`,
-        '',
-        'Sign in with this same Discord account and the bot will recognise you here',
-        'automatically — there’s nothing to copy across and no code to enter.',
-        '',
-        `${CANTINA_ORIGIN}/account`,
-      ].join('\n')
-    case 'not-found':
-      return 'That sheet could not be found, or it isn’t yours to read.'
+  // `not-found` and `forbidden`: the SERVER knows the specifics, so its message wins when
+  // it sends one. `unlinked` keeps its own wording, with a sign-in link the server cannot add.
+  if (reason !== 'unlinked') {
+    if (serverMessage) return serverMessage
+    return reason === 'forbidden'
+      ? 'You can’t do that here.'
+      : 'That sheet could not be found, or it isn’t yours to read.'
   }
+  return [
+    `**You don’t have an ${PRODUCT.name} account yet.**`,
+    '',
+    'Sign in with this same Discord account and the bot will recognise you here',
+    'automatically — there’s nothing to copy across and no code to enter.',
+    '',
+    `${CANTINA_ORIGIN}/account`,
+  ].join('\n')
 }
 
 function roleLabel(game: { mediator: boolean; organizer: boolean }): string {

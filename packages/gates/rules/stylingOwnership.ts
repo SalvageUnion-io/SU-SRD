@@ -10,7 +10,7 @@
  *
  * Why a build step and not a review habit: like the design-token drift, none of
  * these violations fail typecheck. A stray app `@theme` block compiles. Dead CSS
- * compiles. A Dashboard `su-dash-*` class referenced but never defined renders
+ * compiles. A canvas `su-dash-*` class referenced but never defined renders
  * unstyled — no error, just a wrong-looking element.
  *
  * The analyses here are structural (cross-file reference graphs, brace-context
@@ -233,14 +233,11 @@ function scanDeadAppCss(c: Corpus): Finding[] {
 
 // ── Rule 3: dash-class-contract ───────────────────────────────────────────────
 //
-// The Dashboard's `.su-dash-*` classes (The Cantina's own stylesheets).
+// Play's canvas `.su-dash-*` classes (The Cantina's own stylesheets).
 
-const DASHBOARD_CSS_FILES = [
-  'DashboardCanvas.css',
-  'DashboardGrid.css',
-  'instruments.css',
-  'DashboardPhone.css',
-].map((f) => `${DASHBOARD_DIR}/${f}`)
+const DASHBOARD_CSS_FILES = ['DashboardCanvas.css', 'instruments.css', 'DashboardPhone.css'].map(
+  (f) => `${DASHBOARD_DIR}/${f}`
+)
 
 function scanDashContract(c: Corpus): Finding[] {
   const out: Finding[] = []

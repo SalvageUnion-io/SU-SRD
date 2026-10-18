@@ -24,7 +24,7 @@ describe('/su command', () => {
     // appears or vanishes depending on deployment configuration is harder to
     // explain than one that answers "The Cantina is not configured for
     // this bot" (or that it is unavailable).
-    expect(subs).toEqual(['games', 'lookup', 'me', 'roll', 'sheet'])
+    expect(subs).toEqual(['bind', 'games', 'lookup', 'me', 'roll', 'sheet', 'unbind'])
 
     // Discord caps a command at 25 options, and subcommands + groups both
     // count against it. Worth pinning: overflowing fails at deploy time, in a

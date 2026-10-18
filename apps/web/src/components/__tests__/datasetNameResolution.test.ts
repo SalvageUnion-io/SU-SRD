@@ -1,6 +1,5 @@
 import { describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { TABLE_CATEGORY_LABEL, TABLE_CATEGORY_ORDER } from '../dashboard/tableCategories.model'
 import { MECH_ROLL_TABLE_NAMES } from '../wizard/mechRollTables.model'
 import { PILOT_ROLL_TABLE_NAMES } from '../wizard/rollTableHelpers.model'
 
@@ -44,14 +43,6 @@ describe('hard-coded dataset names resolve', () => {
         `MECH_ROLL_TABLE_NAMES.${field} = "${name}" resolves no roll table — the ` +
           "mech wizard's Roll button for this field would render dead"
       ).toBeDefined()
-    }
-  })
-
-  test('every table category has a label', () => {
-    // Not a dataset lookup, but the same class of silent gap: a category in the
-    // order list with no label renders an unnamed section.
-    for (const category of TABLE_CATEGORY_ORDER) {
-      expect(TABLE_CATEGORY_LABEL[category], `no label for category "${category}"`).toBeTruthy()
     }
   })
 })

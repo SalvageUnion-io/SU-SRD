@@ -10,7 +10,7 @@ import type { Mech } from '../schemas/mech'
  * silently resolves 3+X to a flat 3.
  *
  * This exists because that mistake was made three times in one change: the
- * Dashboard band and the condensed strip each built a context with no tech
+ * cockpit's band and the condensed strip each built a context with no tech
  * level, so they under-counted against the body sheet without failing. The
  * context is optional at the derivation boundary — which is what lets a missing
  * piece degrade quietly — so it is assembled in exactly one place instead.

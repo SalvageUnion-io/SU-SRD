@@ -52,7 +52,7 @@ type UseCargoOptions = {
    * Change Log provenance for the writes this hook commits (ADR-022).
    *
    * Defaults to the Live Sheet's manual tag because that is where cargo is
-   * moved by hand; a Dashboard-side caller should pass `DASHBOARD_TXN` so the
+   * moved by hand; a caller in Play should pass `PLAY_TXN` so the
    * log distinguishes an enforced transaction from someone dragging a lot.
    */
   meta?: ChangeMeta

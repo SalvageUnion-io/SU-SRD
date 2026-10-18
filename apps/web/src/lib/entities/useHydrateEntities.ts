@@ -1,6 +1,6 @@
 /**
  * useHydrateEntities — the shared "hydrate everything on mount, then flip a
- * flag" pattern, extracted from Dashboard.
+ * flag" pattern.
  *
  * Hydrates the given entity types once on mount and returns false until ALL
  * of them have resolved — the exact Promise.all + local-state behavior the

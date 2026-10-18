@@ -63,8 +63,8 @@ export type OwnedTable = OwnableTable | 'npcs'
  *
  * Deliberately a *partial* of the local `EncounterNpcSchema` rather than the
  * whole thing. That schema describes a tracked instance in the local store —
- * reference slug, HP track, conditions, timestamps. The Mediator Dashboard's
- * Opposition tab sends a whole instance, but rows written before it
+ * reference slug, HP track, conditions, timestamps. The Mediator's
+ * Opposition sends a whole instance, but rows written before it
  * carry only a name, and `mediator.updateNpc` re-parses them on every change:
  * demanding the full record would strand those rows.
  *

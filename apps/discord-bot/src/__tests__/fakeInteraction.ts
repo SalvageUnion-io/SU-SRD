@@ -55,6 +55,10 @@ export type FakeExecuteOptions = {
   displayName?: string
   /** The message a context-menu command was used on; none by default. */
   targetMessage?: { content: string; author?: string } | null
+  /** The channel the command ran in; `channel-1` by default. */
+  channelId?: string | null
+  /** That channel's name; `salvage-run` by default. */
+  channelName?: string | null
 }
 
 export function fakeExecute(options: FakeExecuteOptions = {}): FakeExecute {
@@ -83,6 +87,8 @@ export function fakeExecute(options: FakeExecuteOptions = {}): FakeExecute {
       getBoolean: (name: string) => booleans[name] ?? null,
     },
     user: { id: options.userId ?? 'discord-tester', displayName: options.displayName },
+    channelId: options.channelId === undefined ? 'channel-1' : options.channelId,
+    channelName: options.channelName === undefined ? 'salvage-run' : options.channelName,
     targetMessage: options.targetMessage ?? null,
     reply: (arg: ReplyArg) => {
       replies.push(arg)

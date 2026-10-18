@@ -20,9 +20,7 @@ import type { CardOuterProps } from './CardOuter'
 import type { DomainTone } from './entityCardTone'
 
 /** The book's pennant: a box with a pointed tail. Hard edges, no tail rounding.
- *  The card's cost pennant (`.su-pennant` in `styles/index.css`, which restates
- *  it: `__tests__/stylesheetParity.test.ts` holds the two equal) and the link
- *  preview's (`OgCard`) both cut it. */
+ *  The link preview's cost pennant (`OgCard`) cuts it. */
 export const PENNANT_SHAPE = 'polygon(0 0, 82% 0, 100% 50%, 82% 100%, 0 100%)'
 
 /** What the User-made stamp and pill say when hovered (ruleset §3.9). */

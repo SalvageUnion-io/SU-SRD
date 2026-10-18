@@ -1,5 +1,5 @@
 /**
- * Tests for playActions — the Dashboard's pure patch builders. Each function is
+ * Tests for playActions — Play's pure patch builders. Each function is
  * driven with an injected deterministic `Roll` and asserted on the exact
  * `Partial<Mech>` / `Partial<Pilot>` it produces, so the button/action
  * handlers can't drift from the rules engine (ADR-006/ADR-007).
@@ -20,23 +20,15 @@ import {
   buildMechActions,
   buildPilotActions,
   coreMechanicRowText,
-  critDamagePatch,
-  critInjuryPatch,
-  describeCritInjury,
   economyForActivation,
-  groupBySource,
   hasCurrencyChoice,
   hasVariableHot,
   heatCheckOncePatch,
   hotHeatFor,
   isDestructiveOutcome,
-  mechDamagePatch,
   pilotActivationPatch,
-  pilotDamagePatch,
   pushPatch,
-  reachSummary,
   shutdownTogglePatch,
-  tabMatchesAction,
   VENT_PATCH,
 } from '../playActions'
 
@@ -84,7 +76,7 @@ describe('reactor patches', () => {
       roll: seqRoll([1, 1]),
     })
     expect(meltdown).toBe(true)
-    // The destructive flag must NOT auto-apply — the Dashboard gates it (ADR-007).
+    // The destructive flag must NOT auto-apply — Play gates it (ADR-007).
     expect(patch.destroyed).toBeUndefined()
   })
 
@@ -106,60 +98,6 @@ describe('reactor patches', () => {
     expect(shutdownTogglePatch(false)).toEqual({ shutdown: true })
     expect(shutdownTogglePatch(true)).toEqual({ shutdown: false })
     expect(shutdownTogglePatch(undefined)).toEqual({ shutdown: true })
-  })
-})
-
-describe('damage patches', () => {
-  test('mechDamagePatch: SP reduced, no critical above 0', () => {
-    const { patch, effect } = mechDamagePatch({ currentSP: 10, amount: 3, vulnerable: false })
-    expect(patch.currentSP).toBe(7)
-    expect(effect.criticalDue).toBe(false)
-  })
-
-  test('mechDamagePatch: reaching 0 SP flags criticalDue', () => {
-    const { patch, effect } = mechDamagePatch({ currentSP: 2, amount: 5, vulnerable: false })
-    expect(patch.currentSP).toBe(0)
-    expect(effect.criticalDue).toBe(true)
-  })
-
-  test('critDamagePatch: miraculous survival auto-sets 1 SP, never Destroyed', () => {
-    const { patch, effect } = critDamagePatch(seqRoll([20]))
-    expect(patch.currentSP).toBe(1)
-    expect(effect.destroyed).toBe(false)
-    expect(patch.destroyed).toBeUndefined()
-  })
-
-  test('critDamagePatch: catastrophic flags destroyed but never auto-writes it', () => {
-    const { patch, effect } = critDamagePatch(seqRoll([1]))
-    expect(effect.destroyed).toBe(true)
-    expect(patch.destroyed).toBeUndefined() // player-confirmed (ADR-007)
-    expect(patch.currentSP).toBeUndefined()
-  })
-
-  test('pilotDamagePatch: HP reduced, 0 HP flags criticalDue', () => {
-    expect(pilotDamagePatch({ currentHP: 5, amount: 2, vulnerable: false }).patch.currentHP).toBe(3)
-    const zero = pilotDamagePatch({ currentHP: 3, amount: 5, vulnerable: false })
-    expect(zero.patch.currentHP).toBe(0)
-    expect(zero.effect.criticalDue).toBe(true)
-  })
-
-  test('critInjuryPatch: miraculous auto-sets 1 HP; fatal writes nothing', () => {
-    expect(critInjuryPatch(seqRoll([20])).patch.currentHP).toBe(1)
-    const fatal = critInjuryPatch(seqRoll([1]))
-    expect(fatal.effect.fatal).toBe(true)
-    expect(fatal.patch.currentHP).toBeUndefined()
-  })
-
-  test('describeCritInjury reads each band of the Critical Injury table', () => {
-    // 1 fatal · 2–5 major · 6–10 minor · 11–19 unconscious · 20 miraculous.
-    const read = (roll: number) => describeCritInjury(critInjuryPatch(seqRoll([roll])).effect)
-    expect(read(1)).toBe('Critical Injury 1: Fatal Injury — the pilot dies (confirm on the sheet).')
-    expect(read(3)).toBe('Critical Injury 3: Major Injury — −2 max HP until healed + Unconscious.')
-    expect(read(8)).toBe('Critical Injury 8: Minor Injury — −1 max HP until healed + Unconscious.')
-    expect(read(15)).toBe(
-      'Critical Injury 15: Unconscious — stable at 0 HP until they regain ≥1 HP.'
-    )
-    expect(read(20)).toBe('Critical Injury 20: Miraculous Survival — 1 HP, conscious.')
   })
 })
 
@@ -292,7 +230,7 @@ describe('buildPilotActions', () => {
   })
 })
 
-describe('deck filtering / grouping / range', () => {
+describe('range', () => {
   function mkAction(over: Partial<PlayAction['action']>): PlayAction {
     return {
       key: `k:${over.name ?? over.id ?? Math.random()}`,
@@ -307,16 +245,6 @@ describe('deck filtering / grouping / range', () => {
       condition: 'intact',
     }
   }
-
-  test('tabMatchesAction: All admits all; React maps to Reaction', () => {
-    const turn = mkAction({ actionType: 'Turn' })
-    const react = mkAction({ actionType: 'Reaction' })
-    expect(tabMatchesAction('All', turn.action)).toBe(true)
-    expect(tabMatchesAction('Turn', turn.action)).toBe(true)
-    expect(tabMatchesAction('Turn', react.action)).toBe(false)
-    expect(tabMatchesAction('React', react.action)).toBe(true)
-    expect(tabMatchesAction('React', turn.action)).toBe(false)
-  })
 
   test('actionInRange: no declared range = always in range; else exact band', () => {
     const utility = mkAction({})
@@ -338,24 +266,6 @@ describe('deck filtering / grouping / range', () => {
     hot.economy = { epCost: 0, heat: 5, maxUses: 0 }
     expect(actionReachable(hot, 'Close', 8, 10)).toBe(false) // 8 + 5 > 10
     expect(actionReachable(hot, 'Close', 3, 10)).toBe(true) // 3 + 5 <= 10
-  })
-
-  test('reachSummary counts reachable vs total', () => {
-    const a = mkAction({ range: ['Close'] })
-    const b = mkAction({ range: ['Far'] })
-    const summary = reachSummary([a, b], 'Close', 0, 10)
-    expect(summary).toEqual({ inReach: 1, total: 2 })
-  })
-
-  // The deck renders one flat grid; `groupBySource` survives only to build the
-  // source filter chips (one per owning item), never a heading above the cards.
-  test('groupBySource buckets the flat deck by owning item', () => {
-    const s1 = { ...mkAction({ actionType: 'Turn' }), ownerName: 'Gun' }
-    const s2 = { ...mkAction({ actionType: 'Free' }), ownerName: 'Gun' }
-    const s3 = { ...mkAction({ actionType: 'Turn' }), ownerName: 'Shield' }
-    const bySource = groupBySource([s1, s2, s3])
-    expect(bySource.map((g) => g.label)).toEqual(['Gun', 'Shield'])
-    expect(bySource[0]?.items).toHaveLength(2)
   })
 })
 

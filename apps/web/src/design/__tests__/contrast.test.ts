@@ -437,10 +437,10 @@ describe('resolveColorOver', () => {
  * Muted text over the known light grounds.
  *
  * The ink alpha rungs are translucent, so `resolveColor` refuses them and the
- * guard above never saw them: the Dashboard printed `ink-50` text in twenty
- * rules at 3.04–3.14:1. Composited over each ground a page paints — card
- * paper, the workshop grounds, and the band-cream of the Dashboard's
- * instrument chassis — the rung that reads muted is measured, not assumed.
+ * guard above never saw them: `ink-50` text on band-cream composites to
+ * 3.04–3.14:1. Composited over each ground a page paints — card
+ * paper, the workshop grounds, and the band-cream of Play's
+ * columns — the rung that reads muted is measured, not assumed.
  */
 describe('muted text, composited over the known grounds', () => {
   const GROUNDS = {

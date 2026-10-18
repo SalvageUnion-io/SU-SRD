@@ -1,0 +1,43 @@
+/**
+ * The Tables section's pinned tables (play.md §8), pure: the roll tables the
+ * Situation needs to hand, by their names in the reference data. A fight, on
+ * foot or Boarded, pins the combat tables; Downtime pins the Core Mechanic,
+ * Critical Injury (a pilot heals between Scenes) and the Rumour table. Every
+ * other table is a "Roll a table…" search away (`findTables`).
+ */
+
+/** The combat tables, On foot or Boarded. */
+const COMBAT_TABLES = [
+  'Core Mechanic',
+  'Critical Damage',
+  'Reactor Overload',
+  'Critical Injury',
+] as const
+
+/** Downtime's tables. */
+const DOWNTIME_TABLES = ['Core Mechanic', 'Critical Injury', 'Rumour'] as const
+
+/** The tables pinned for this Situation. */
+export function pinnedTables(downtime: boolean): readonly string[] {
+  return downtime ? DOWNTIME_TABLES : COMBAT_TABLES
+}
+
+/** How many tables a search lists at once. */
+const FIND_LIMIT = 6
+
+/**
+ * The tables whose name holds `query` (case-insensitive), names that start
+ * with it first, then A–Z, at most `FIND_LIMIT`. An empty query finds none:
+ * the pinned buttons are what shows then.
+ */
+export function findTables(names: readonly string[], query: string): string[] {
+  const q = query.trim().toLowerCase()
+  if (q.length === 0) return []
+  return names
+    .filter((name) => name.toLowerCase().includes(q))
+    .sort((a, b) => {
+      const starts = Number(b.toLowerCase().startsWith(q)) - Number(a.toLowerCase().startsWith(q))
+      return starts !== 0 ? starts : a.localeCompare(b)
+    })
+    .slice(0, FIND_LIMIT)
+}

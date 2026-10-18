@@ -6,8 +6,7 @@ import { requireSeam, seamIsPresent, signInFresh } from './fixtures'
 /**
  * Running a table needs two people: the Organizer (the spec's own `page`,
  * signed in by `fixtures.ts`) and a second account in a context of its own.
- * These are the steps the Mediator, Dashboard and signed-in a11y specs share
- * (board M2).
+ * These are the steps the Play and signed-in a11y specs share (board M2).
  */
 
 /** "+ New Game" from Shelves, named; resolves to the new Game's id. */
@@ -64,34 +63,26 @@ async function pickUp(page: Page, name: string): Promise<void> {
 
 /**
  * Start a Starter Set Game, mediate it, take Bonesaw and his Scrapper. Leaves
- * the page on the Game's own page, with its Launch Dashboard chip showing.
+ * the page on the Game's own page; resolves to the Game's id and name, which
+ * the Play landing's doors are named by ("Play Bonesaw in <name>").
+ *
+ * The Mediator is waited for by the band's YOU MEDIATE stamp, not by the way
+ * in it offers: that door moves to Play (ADR-051) while the stamp stays.
  */
-export async function setUpTable(page: Page): Promise<void> {
+export async function setUpTable(page: Page): Promise<{ gameId: string; gameName: string }> {
   await gotoStable(page, '/')
   await waitForReady(page)
   await page.getByRole('button', { name: '+ New Game' }).click()
   await page.getByRole('dialog').getByRole('button', { name: 'Start this Game' }).first().click()
+  await page.waitForURL(/\/games\/[^/]+$/, { timeout: 20_000 })
   // The Organizer appoints the Mediator, here themselves (TheGame's Appoint).
   await page.getByRole('button', { name: 'Appoint' }).click()
   await page.getByRole('alertdialog').getByRole('button', { name: 'Appoint' }).click()
-  // The Mediator's Launch Dashboard: a link to the Mediator dashboard.
-  await expect(page.getByRole('link', { name: 'Launch Dashboard' })).toBeVisible({
-    timeout: 20_000,
-  })
+  await expect(page.getByText('You mediate')).toBeVisible({ timeout: 20_000 })
   await pickUp(page, 'Bonesaw')
   await pickUp(page, 'Scrapper')
-}
-
-/**
- * The player Dashboard route for a pilot on the Game's roster, read off its
- * Row's sheet link. The Mediator who runs `setUpTable` also plays Bonesaw, and
- * their Launch Dashboard opens the Mediator dashboard, so the specs open the
- * player Dashboard by its route.
- */
-export async function pilotDashboard(page: Page, name: string): Promise<string> {
-  const link = page.locator(`a[href*="/sheet/pilot/"][aria-label="${name}"]`).first()
-  await expect(link, `the roster links ${name}'s sheet`).toBeAttached({ timeout: 20_000 })
-  const id = (await link.getAttribute('href'))?.split('/').pop()
-  if (!id) throw new Error(`${name}'s roster link has no id`)
-  return `/dashboard/${id}`
+  const gameId = new URL(page.url()).pathname.split('/').pop() ?? ''
+  const gameName = (await page.getByRole('heading', { level: 1 }).first().innerText()).trim()
+  if (!gameId || !gameName) throw new Error(`No Game id or name on ${page.url()}`)
+  return { gameId, gameName }
 }

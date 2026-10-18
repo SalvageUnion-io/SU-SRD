@@ -24,7 +24,7 @@ test.use({ account: 'anonymous' })
  * display layer resolves traits/actions/keywords inline, so per-route
  * preload lists reintroduce the "Schema 'traits' not loaded" footgun). The
  * whole reference corpus therefore loads on every route, and is the same
- * ~1.4 MB floor under all four budgets below.
+ * ~1.4 MB floor under every budget below.
  *
  * What IS route-dependent is the *app* code, and that is what
  * `autoCodeSplitting` moves: each route's component now ships as its own
@@ -69,8 +69,16 @@ test.use({ account: 'anonymous' })
  *   route      measured      ceiling
  *   roster     2,033,583 B   2,440,000 B
  *   wizard     1,991,671 B   2,390,000 B
- *   dashboard  2,067,880 B   2,480,000 B
  *   sheet      2,161,232 B   2,590,000 B
+ *
+ * ## Play (ADR-051), 2026-10-17
+ *
+ * Play replaced the Dashboard and the Mediator dashboard; `/dashboard/:id`
+ * redirects there, so the Dashboard's budget went with it. Both Play routes
+ * were measured at ~2.43 MB (`/play/:pilotId` 2,429,094 B, `/play/game/:gameId`
+ * 2,431,749 B) on a local production build, beside a roster of 2,178,292 B on
+ * the same build, and their ceilings sit ~20% above that: 2,920,000 B. Re-take
+ * them from a CI run's `[bundle-budget]` lines when the table is next re-based.
  *
  * Bringing the route-export split's ~200 KB back (roster → ~2.23 MB) still
  * fits under 20%, so this does not catch that revert on its own —
@@ -161,15 +169,23 @@ test.describe('bundle-size budget', () => {
     expect(totals.bytes).toBeLessThan(CEILING)
   })
 
-  test('the dashboard stays under budget', async ({ page }) => {
+  test('Play stays under budget', async ({ page }) => {
     // Same unknown-id probe as the sheet test. This run is signed out, so
-    // DashboardGate renders its "Sign in to play" shell, but only after the
-    // route chunk has loaded, and that chunk imports the whole Dashboard
-    // (instruments, slot row, display) statically. The byte count is the route's
-    // true cost.
-    const CEILING = 2_480_000
-    const totals = await captureRouteJs(page, '/dashboard/budget-probe')
-    report('/dashboard/:pilotId', totals, CEILING)
+    // PlayGate renders its "Sign in to play" shell, but only after the route
+    // chunk has loaded, and that chunk imports the whole Cockpit (`PlayGate`
+    // imports `PlayCockpit` statically). The byte count is the route's true
+    // cost.
+    const CEILING = 2_920_000
+    const totals = await captureRouteJs(page, '/play/budget-probe')
+    report('/play/:pilotId', totals, CEILING)
+    expect(totals.bytes).toBeLessThan(CEILING)
+  })
+
+  test('the Mediator’s Play stays under budget', async ({ page }) => {
+    // The same probe through `PlayMediatorGate`'s "Sign in to run your Game".
+    const CEILING = 2_920_000
+    const totals = await captureRouteJs(page, '/play/game/budget-probe')
+    report('/play/game/:gameId', totals, CEILING)
     expect(totals.bytes).toBeLessThan(CEILING)
   })
 })

@@ -1,4 +1,5 @@
 import type {
+  BindChannelResult,
   BotDenialReason,
   BotFailure,
   BotSuccess,
@@ -7,6 +8,7 @@ import type {
   MeResult,
   MineResult,
   SheetResult,
+  UnbindChannelResult,
 } from 'cantina-domain/botWire'
 import { PRODUCT } from 'cantina-domain/product'
 import { v } from 'convex/values'
@@ -16,7 +18,8 @@ import { displayNameOf } from './account'
 import type { SheetRow } from './crew'
 import { sheetVitals } from './crew'
 import { gamesForUser, userByDiscordId } from './model/bot'
-import { oldestByAppId, primaryCrawlerOf } from './model/entities'
+import { bindChannelAs, resolveCallerGame, unbindChannelAs } from './model/channelBindings'
+import { internalMutation, oldestByAppId, primaryCrawlerOf } from './model/entities'
 import { getMembership } from './model/permissions'
 
 /**
@@ -43,8 +46,8 @@ import { getMembership } from './model/permissions'
  * request, typed by a person, a few times a session.
  *
  * A pilot's or mech's derived maxima and status ride beside the body
- * (`SheetResult.vitals`): the derivation `crew.vitals` serves the Dashboard's
- * Crew tab (`sheetVitals` in `crew.ts`), so the bot shows the server's numbers
+ * (`SheetResult.vitals`): the derivation `crew.vitals` serves Play's
+ * Crew (`sheetVitals` in `crew.ts`), so the bot shows the server's numbers
  * rather than working out its own (ADR-038 §4).
  */
 
@@ -57,6 +60,7 @@ import { getMembership } from './model/permissions'
 const DENIAL_MESSAGE: Record<BotDenialReason, string> = {
   unlinked: `No ${PRODUCT.name} account is signed in with this Discord account.`,
   'not-found': 'That could not be found.',
+  forbidden: 'You cannot do that here.',
 }
 
 function fail(reason: BotDenialReason, message?: string): BotFailure {
@@ -215,5 +219,50 @@ export const sheet = internalQuery({
       // `normalizeId` / `oldestByAppId` read `doc` from `args.table`.
       vitals: await sheetVitals(ctx, { table: args.table, row: doc } as SheetRow),
     }
+  },
+})
+
+/**
+ * `/su bind`: bind the channel it ran in (`channelId`, kept with its name,
+ * `channelName`) to one of the caller's Games (`game`, the autocomplete's
+ * Game id or a typed name), or with no `game` to the caller's solo play. One of the bot's two writes, with `unbindChannel`: a
+ * binding is the bot's own apparatus, never anybody's sheet, so ADR-030 §4
+ * stands. Who may bind what is `model/channelBindings.ts`.
+ */
+export const bindChannel = internalMutation({
+  args: {
+    discordId: v.string(),
+    channelId: v.string(),
+    channelName: v.optional(v.string()),
+    game: v.optional(v.string()),
+  },
+  handler: async (ctx, args): Promise<BotFailure | BotSuccess<BindChannelResult>> => {
+    const user = await userByDiscordId(ctx, args.discordId)
+    if (user === null) return fail('unlinked')
+    const channelId = args.channelId.trim()
+    if (channelId.length === 0) return fail('not-found', 'That channel could not be found.')
+
+    let gameId: Id<'games'> | null = null
+    if (args.game !== undefined && args.game.trim().length > 0) {
+      gameId = await resolveCallerGame(ctx, user._id, args.game)
+      if (gameId === null) {
+        return fail('not-found', 'That Game could not be found, or you are not in it.')
+      }
+    }
+    return await bindChannelAs(ctx, user._id, {
+      channelId,
+      gameId,
+      channelName: args.channelName ?? null,
+    })
+  },
+})
+
+/** `/su unbind`: release the channel it ran in, so rolls stop posting there. */
+export const unbindChannel = internalMutation({
+  args: { discordId: v.string(), channelId: v.string() },
+  handler: async (ctx, args): Promise<BotFailure | BotSuccess<UnbindChannelResult>> => {
+    const user = await userByDiscordId(ctx, args.discordId)
+    if (user === null) return fail('unlinked')
+    return await unbindChannelAs(ctx, user._id, args.channelId.trim())
   },
 })

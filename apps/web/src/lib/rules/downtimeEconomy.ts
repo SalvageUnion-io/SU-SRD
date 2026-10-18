@@ -7,7 +7,7 @@
  * trivially testable and the ADR-006 pure-math boundary holds — `lib/rules/*`
  * owns the maths, this only assembles patches.
  *
- * This module is the Dashboard's seam onto the `crafting`, `salvage` and
+ * This module is Play's seam onto the `crafting`, `salvage` and
  * `scrapMech` rules, not new rules.
  *
  * ADR-007 boundary: nothing here decides to destroy anything. `scrapMechPatch`

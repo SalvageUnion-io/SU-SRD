@@ -6,14 +6,14 @@
  * draws it (docs/architecture/mediator-dashboard.md Q10–Q13):
  *
  *  0. **The band** (`GameBand`): the page's controls (`Roster`'s), the
- *     Game's name on the crawler's pink, and one **Launch Dashboard** chip:
- *     the Mediator's (after a YOU MEDIATE stamp) opens the Mediator dashboard
- *     (`/mediator/$gameId`); a player's (`LaunchDashboard`) opens the player
- *     Dashboard.
+ *     Game's name on the crawler's pink, and one way into Play: the
+ *     Mediator's **Mediate** (after a YOU MEDIATE stamp) opens Play's Mediator
+ *     screen (`/play/game/$gameId`); a player's **Play** (`LaunchPlay`) asks
+ *     which pilot and opens Play for it.
  *  2. **The roster** (`GameRoster`): the three columns, yours first.
  *  3. Two columns of sections. **Every member:** Crew & seats and the
  *     proposals awaiting their answer. **The Mediator:** Proposals you sent.
- *     Downtime runs on the Dashboards, not here. **The Organizer:** the
+ *     Downtime runs in Play, not here. **The Organizer:** the
  *     Invite link (copy and reset) and The Game's Hand over, which the
  *     server refuses anyone else (`requireOrganizer`).
  *
@@ -34,16 +34,16 @@ import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { useShowContainer } from '../entityContainer/useShowContainer'
 import { Button, Card, Grid, PageShell, Pending, Skeleton, Stack, Text, tokens } from '../index'
-import { readCrawler } from '../mediator/crawlerReading.model'
 import type { SegmentKind } from '../roster/RosterColumn'
 import { CopyInviteLink, ResetInviteLink } from './CopyInviteLink'
 import { CrewSeats } from './CrewSeats'
+import { readCrawler } from './crawlerReading.model'
 import { DeleteGameDialog } from './DeleteGameDialog'
 import { GameBand } from './GameBand'
 import { GameRoster } from './GameRoster'
 import { HubSection } from './HubSection'
 import { GAME_BODY, GAME_MEASURE, HUB_COLUMN, HUB_COLUMN_MIN, HUB_COLUMNS } from './hubStyles.model'
-import { LaunchDashboard } from './LaunchDashboard'
+import { LaunchPlay } from './LaunchPlay'
 import { ProposalInbox } from './ProposalInbox'
 import { ProposalsSent } from './ProposalsSent'
 import { seatRows } from './seatRows.model'
@@ -184,7 +184,7 @@ export function GameHub({ gameId, controls, activeSegment, onSegmentChange }: Ga
           name={game ? game.name : 'Game'}
           mediator={game?.mediator}
           controls={controls}
-          actions={game && !game.mediator ? <LaunchDashboard gameId={gameId} /> : undefined}
+          actions={game && !game.mediator ? <LaunchPlay gameId={gameId} /> : undefined}
         />
       }
       bodyStyle={GAME_BODY}

@@ -16,7 +16,7 @@ import {
 import { cn } from '../../lib/cn'
 import { buttonVariants } from '../atoms/buttonVariants'
 import { Eyebrow } from '../atoms/Eyebrow'
-import { FOCUS_RING } from '../atoms/interaction'
+import { DISABLED, FOCUS_RING } from '../atoms/interaction'
 import { POPUP_SURFACE } from '../atoms/popupSurface'
 
 /**
@@ -90,11 +90,22 @@ type HeaderMenuProps = {
    * "⋯" action chip (a listed unit's menu, its Row's last chip); it shows the
    * glyph, so pass `label` to name it, and `trigger` is not drawn. `button` —
    * the shared Button as an action chip, for a menu that is a section's action
-   * (a shelf's "+ From a mech").
+   * (a shelf's "+ From a mech"). `segment` — one option of a `Segmented`
+   * control whose choice is a menu (Play's "Boarded · <mech> ▾"), pressed when
+   * `pressed`.
    */
-  variant?: 'masthead' | 'overflow' | 'button'
+  variant?: 'masthead' | 'overflow' | 'button' | 'segment'
   /** Extra classes for the trigger of the `button` variant. */
   className?: string
+  /**
+   * The `button` variant's Size: `mini` (default), an action chip; `compact`
+   * where it sits on a line of Compact controls (Play's bar, ruleset §4.7).
+   */
+  size?: 'mini' | 'compact'
+  /** The `segment` trigger's `aria-pressed`: its option is the chosen one. */
+  pressed?: boolean
+  /** The trigger opens nothing (a `segment` with nothing to choose). */
+  disabled?: boolean
 }
 
 const TRIGGER = {
@@ -174,16 +185,22 @@ export function HeaderMenu({
   active = false,
   variant = 'masthead',
   className,
+  size = 'mini',
+  pressed,
+  disabled,
 }: HeaderMenuProps) {
   const filled = sections.filter((section) => section.length > 0)
   const overflow = variant === 'overflow'
-  // The button variant is the shared Button's own classes, focus ring included.
+  // The button variant is the shared Button's own classes, focus ring included;
+  // the segment variant is `SegmentedOption`'s.
   const triggerClass =
     variant === 'button'
-      ? `${buttonVariants({ size: 'mini' })}${className ? ` ${className}` : ''}`
-      : overflow
-        ? OVERFLOW_TRIGGER_CLASS
-        : `su-header-menu-trigger ${FOCUS_RING}`
+      ? `${buttonVariants({ size })}${className ? ` ${className}` : ''}`
+      : variant === 'segment'
+        ? cn('su-seg__option', FOCUS_RING, DISABLED)
+        : overflow
+          ? OVERFLOW_TRIGGER_CLASS
+          : `su-header-menu-trigger ${FOCUS_RING}`
   const triggerStyle = variant === 'masthead' ? TRIGGER : undefined
 
   return (
@@ -193,6 +210,8 @@ export function HeaderMenu({
         style={triggerStyle}
         aria-label={label}
         aria-current={active ? 'page' : undefined}
+        aria-pressed={variant === 'segment' ? pressed === true : undefined}
+        disabled={disabled}
       >
         {overflow ? (
           <Ellipsis size={14} aria-hidden="true" />

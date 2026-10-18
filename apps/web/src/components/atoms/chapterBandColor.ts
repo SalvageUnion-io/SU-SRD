@@ -9,7 +9,7 @@ import { color } from '../../design/tokens'
  * (board S1) — and it carries paper flecks and paper text (ruleset §3.5).
  * `cantina` is no chapter either: it is The Cantina's own band, the builder's
  * pages that are neither a chapter nor the player's shelves (its front door,
- * Dashboard, Settings, sign-in, invites, the Starter Set), so they stop wearing
+ * Play, Settings, sign-in, invites, the Starter Set), so they stop wearing
  * the SRD's rules-blue. It is the Legendary tier pink (the crawler chapter's
  * colour), and like the crawler band it carries ink text.
  */

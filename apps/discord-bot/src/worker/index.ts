@@ -31,6 +31,7 @@
 
 import type { ResponseLike } from '@discordjs/rest'
 import { DiscordAPIError, HTTPError, RateLimitError, REST } from '@discordjs/rest'
+import { BOT_RELAY_POST_ROLL_PATH } from 'cantina-domain/botWire'
 import type { APIInteraction, APIUser } from 'discord-api-types/v10'
 import { InteractionResponseType, InteractionType, Routes } from 'discord-api-types/v10'
 import { SalvageUnionReference } from 'salvageunion-reference'
@@ -47,6 +48,7 @@ import {
   ResponseSink,
   webhookRoutes,
 } from './adapter'
+import { handlePostRoll } from './relay'
 import { isValidDiscordRequest, SIGNATURE_HEADER, TIMESTAMP_HEADER } from './verify'
 
 /**
@@ -263,6 +265,12 @@ export default {
 
     if (request.method !== 'POST') {
       return new Response('Method not allowed', { status: 405 })
+    }
+
+    // Convex posting a Play roll to a bound channel: bearer-authenticated, not
+    // Discord-signed, so it is routed before signature verification.
+    if (new URL(request.url).pathname === BOT_RELAY_POST_ROLL_PATH) {
+      return handlePostRoll(request, env)
     }
 
     // The RAW body, verified before it is parsed. Re-serialising a parsed body

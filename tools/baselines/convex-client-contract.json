@@ -265,6 +265,69 @@
         }
       }
     },
+    "channelBindings:current": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": true
+        }
+      }
+    },
+    "channelBindings:mine": {
+      "type": "object",
+      "value": {}
+    },
+    "channelBindings:postRoll": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": true
+        },
+        "pilotId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": true
+        },
+        "roll": {
+          "fieldType": {
+            "type": "object",
+            "value": {
+              "tableName": {
+                "fieldType": {
+                  "type": "string"
+                },
+                "optional": false
+              },
+              "rolls": {
+                "fieldType": {
+                  "type": "array",
+                  "value": {
+                    "type": "number"
+                  }
+                },
+                "optional": false
+              }
+            }
+          },
+          "optional": false
+        },
+        "post": {
+          "fieldType": {
+            "type": "boolean"
+          },
+          "optional": false
+        }
+      }
+    },
     "crew:vitals": {
       "type": "object",
       "value": {
@@ -301,6 +364,30 @@
         }
       }
     },
+    "downtime:claimStep": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "pilotId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "stepIndex": {
+          "fieldType": {
+            "type": "number"
+          },
+          "optional": false
+        }
+      }
+    },
     "downtime:end": {
       "type": "object",
       "value": {
@@ -326,6 +413,113 @@
         "done": {
           "fieldType": {
             "type": "boolean"
+          },
+          "optional": false
+        }
+      }
+    },
+    "downtime:setStep": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "stepIndex": {
+          "fieldType": {
+            "type": "number"
+          },
+          "optional": false
+        }
+      }
+    },
+    "downtime:soloAdvance": {
+      "type": "object",
+      "value": {
+        "pilotId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "downtime:soloBegin": {
+      "type": "object",
+      "value": {
+        "pilotId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "downtime:soloEnd": {
+      "type": "object",
+      "value": {
+        "pilotId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "downtime:soloMarkStepDone": {
+      "type": "object",
+      "value": {
+        "pilotId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "stepIndex": {
+          "fieldType": {
+            "type": "number"
+          },
+          "optional": false
+        }
+      }
+    },
+    "downtime:soloSetStep": {
+      "type": "object",
+      "value": {
+        "pilotId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "stepIndex": {
+          "fieldType": {
+            "type": "number"
+          },
+          "optional": false
+        }
+      }
+    },
+    "downtime:soloSpendUpkeep": {
+      "type": "object",
+      "value": {
+        "pilotId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "downtime:soloState": {
+      "type": "object",
+      "value": {
+        "pilotId": {
+          "fieldType": {
+            "type": "string"
           },
           "optional": false
         }
@@ -1874,8 +2068,16 @@
       "value": {
         "gameId": {
           "fieldType": {
-            "type": "id",
-            "tableName": "games"
+            "type": "union",
+            "value": [
+              {
+                "type": "id",
+                "tableName": "games"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "optional": false
         },
@@ -1898,8 +2100,16 @@
       "value": {
         "gameId": {
           "fieldType": {
-            "type": "id",
-            "tableName": "games"
+            "type": "union",
+            "value": [
+              {
+                "type": "id",
+                "tableName": "games"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "optional": false
         },
@@ -1916,8 +2126,16 @@
       "value": {
         "gameId": {
           "fieldType": {
-            "type": "id",
-            "tableName": "games"
+            "type": "union",
+            "value": [
+              {
+                "type": "id",
+                "tableName": "games"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "optional": false
         },
@@ -1934,8 +2152,16 @@
       "value": {
         "gameId": {
           "fieldType": {
-            "type": "id",
-            "tableName": "games"
+            "type": "union",
+            "value": [
+              {
+                "type": "id",
+                "tableName": "games"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "optional": false
         },
@@ -1959,13 +2185,59 @@
         }
       }
     },
-    "seats:setRange": {
+    "seats:heartbeat": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "id",
+                "tableName": "games"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "optional": false
+        },
+        "pilotId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
+    "seats:presence": {
       "type": "object",
       "value": {
         "gameId": {
           "fieldType": {
             "type": "id",
             "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "seats:setRange": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "union",
+            "value": [
+              {
+                "type": "id",
+                "tableName": "games"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "optional": false
         },
@@ -2006,8 +2278,16 @@
       "value": {
         "gameId": {
           "fieldType": {
-            "type": "id",
-            "tableName": "games"
+            "type": "union",
+            "value": [
+              {
+                "type": "id",
+                "tableName": "games"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "optional": false
         },
@@ -2093,13 +2373,32 @@
         }
       }
     },
+    "seats:solo": {
+      "type": "object",
+      "value": {
+        "pilotId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    },
     "seats:toggleEffect": {
       "type": "object",
       "value": {
         "gameId": {
           "fieldType": {
-            "type": "id",
-            "tableName": "games"
+            "type": "union",
+            "value": [
+              {
+                "type": "id",
+                "tableName": "games"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "optional": false
         },

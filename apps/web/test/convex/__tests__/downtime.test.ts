@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import type { Ctx } from '../fixtures'
-import { makeUser } from '../fixtures'
+import { addPilot, makeUser } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
@@ -67,6 +67,49 @@ describe('the phase is table-wide and Mediator-driven', () => {
   })
 })
 
+describe('the Mediator may put the table back a step (setStep)', () => {
+  test('back and forward, held to the guide, clearing who is done', async () => {
+    const t = testConvex()
+    const { gm, a, gameId } = await seedTable(t)
+    await gm.as.mutation(api.downtime.begin, { gameId })
+    await gm.as.mutation(api.downtime.advance, { gameId })
+    await gm.as.mutation(api.downtime.advance, { gameId })
+    await a.as.mutation(api.downtime.markStepDone, { gameId, done: true })
+
+    await gm.as.mutation(api.downtime.setStep, { gameId, stepIndex: 1 })
+    const back = await a.as.query(api.downtime.state, { gameId })
+    expect(back.stepIndex).toBe(1)
+    expect(back.completedBy).toHaveLength(0)
+
+    await gm.as.mutation(api.downtime.setStep, { gameId, stepIndex: -4 })
+    expect((await a.as.query(api.downtime.state, { gameId })).stepIndex).toBe(0)
+  })
+
+  test('going back to Upkeep & Upgrade does not make it payable again', async () => {
+    const t = testConvex()
+    const { gm, gameId } = await seedTable(t)
+    await gm.as.mutation(api.downtime.begin, { gameId })
+    await gm.as.mutation(api.downtime.advance, { gameId })
+    expect(await gm.as.mutation(api.downtime.spendUpkeep, { gameId })).toBe(true)
+    await gm.as.mutation(api.downtime.advance, { gameId })
+
+    await gm.as.mutation(api.downtime.setStep, { gameId, stepIndex: 1 })
+    expect(await gm.as.mutation(api.downtime.spendUpkeep, { gameId })).toBe(false)
+  })
+
+  test('a player cannot, and nobody can before it runs', async () => {
+    const t = testConvex()
+    const { gm, a, gameId } = await seedTable(t)
+    await expect(gm.as.mutation(api.downtime.setStep, { gameId, stepIndex: 1 })).rejects.toThrow(
+      /not running/i
+    )
+    await gm.as.mutation(api.downtime.begin, { gameId })
+    await expect(a.as.mutation(api.downtime.setStep, { gameId, stepIndex: 1 })).rejects.toThrow(
+      /mediator/i
+    )
+  })
+})
+
 describe('completion is per step, not cumulative', () => {
   test('marking done shows up for the whole table', async () => {
     const t = testConvex()
@@ -128,7 +171,7 @@ describe('crawler upkeep is spent once, not per member', () => {
     await toUpkeepStep(gm, gameId)
 
     expect(await gm.as.mutation(api.downtime.spendUpkeep, { gameId })).toBe(true)
-    // A second press, or the hub open beside the Dashboard, is not a second
+    // A second press, or the hub open beside Play, is not a second
     // charge: paying per press is the double-charging per-player Downtime had.
     expect(await gm.as.mutation(api.downtime.spendUpkeep, { gameId })).toBe(false)
   })
@@ -185,6 +228,66 @@ describe('crawler upkeep is spent once, not per member', () => {
     await toUpkeepStep(gm, gameId)
     // Upkeep is per Downtime, so the next one is payable again.
     expect(await gm.as.mutation(api.downtime.spendUpkeep, { gameId })).toBe(true)
+  })
+})
+
+describe('a step applies once per pilot (claimStep)', () => {
+  async function claimTable(t: Ctx) {
+    const table = await seedTable(t)
+    await addPilot(table.a, 'pa', table.gameId)
+    await addPilot(table.a, 'pa2', table.gameId)
+    await table.gm.as.mutation(api.downtime.begin, { gameId: table.gameId })
+    return table
+  }
+
+  test('the second claim answers false: not after an un-mark, not after the Mediator’s Back', async () => {
+    const t = testConvex()
+    const { gm, a, gameId } = await claimTable(t)
+    const claim = { gameId, pilotId: 'pa', stepIndex: 0 }
+
+    expect(await a.as.mutation(api.downtime.claimStep, claim)).toBe(true)
+    await a.as.mutation(api.downtime.markStepDone, { gameId, done: true })
+    await a.as.mutation(api.downtime.markStepDone, { gameId, done: false })
+    expect(await a.as.mutation(api.downtime.claimStep, claim)).toBe(false)
+
+    await gm.as.mutation(api.downtime.advance, { gameId })
+    await gm.as.mutation(api.downtime.setStep, { gameId, stepIndex: 0 })
+    expect(await a.as.mutation(api.downtime.claimStep, claim)).toBe(false)
+    expect((await a.as.query(api.downtime.state, { gameId })).claimed).toEqual([
+      { pilotId: 'pa', stepIndex: 0 },
+    ])
+  })
+
+  test('per pilot, not per member: a member’s second pilot claims its own', async () => {
+    const t = testConvex()
+    const { a, gameId } = await claimTable(t)
+    expect(
+      await a.as.mutation(api.downtime.claimStep, { gameId, pilotId: 'pa', stepIndex: 0 })
+    ).toBe(true)
+    expect(
+      await a.as.mutation(api.downtime.claimStep, { gameId, pilotId: 'pa2', stepIndex: 0 })
+    ).toBe(true)
+  })
+
+  test('a fresh Downtime clears the claims', async () => {
+    const t = testConvex()
+    const { gm, a, gameId } = await claimTable(t)
+    const claim = { gameId, pilotId: 'pa', stepIndex: 0 }
+    await a.as.mutation(api.downtime.claimStep, claim)
+    await gm.as.mutation(api.downtime.end, { gameId })
+    await gm.as.mutation(api.downtime.begin, { gameId })
+    expect(await a.as.mutation(api.downtime.claimStep, claim)).toBe(true)
+  })
+
+  test('only the current step, and only by whoever may write the pilot', async () => {
+    const t = testConvex()
+    const { b, a, gameId } = await claimTable(t)
+    await expect(
+      a.as.mutation(api.downtime.claimStep, { gameId, pilotId: 'pa', stepIndex: 1 })
+    ).rejects.toThrow(/not the step/i)
+    await expect(
+      b.as.mutation(api.downtime.claimStep, { gameId, pilotId: 'pa', stepIndex: 0 })
+    ).rejects.toThrow()
   })
 })
 

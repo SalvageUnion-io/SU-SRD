@@ -15,7 +15,6 @@ import type { RefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { readPackageStylesheet } from '../../../styles/__tests__/packageStylesheet'
 import { Entity } from '../Entity'
-import { Token } from '../forms/Token'
 import { InsidePeekContext } from '../peekContext'
 
 const get = (schema: string, name: string) => {
@@ -89,16 +88,6 @@ describe('Token chips', () => {
     const chips = container.querySelector('.su-entity-token__pill > .su-entity-token__chips')
     expect(chips?.children[chips.children.length - 2]?.textContent).toBe('2 EP')
     expect(chips?.lastElementChild?.textContent).toBe('Damaged')
-  })
-
-  test("the Dashboard's pennant carries the cost: no cost box repeats it", () => {
-    const model = toEntityModel(get('systems', 'Electro-Magnetic Shield Projector'))
-    const { container } = render(
-      <Token model={model} slots={{ pennant: <button type="button">2 EP</button> }} />
-    )
-    const chips = container.querySelector('.su-entity-token__pill > .su-entity-token__chips')
-    const texts = Array.from(chips?.children ?? []).map((chip) => chip.textContent)
-    expect(texts).toEqual(['TL3', 'Slots2', 'Reaction', 'RNGC'])
   })
 
   test('a trailing chip alone still draws the chip group', () => {

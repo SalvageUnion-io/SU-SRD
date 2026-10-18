@@ -1,7 +1,7 @@
 /**
- * A live sheet launches nothing. The Dashboard is Game-only (ADR-038 §1) and
- * opens from one place, the Game hub's Launch Dashboard, so no sheet — shelf or
- * Game, pilot or mech — offers a way in, or a hint pointing at one.
+ * A live sheet launches nothing. Play opens from Play's landing and the Game
+ * hub, so no sheet — shelf or Game, pilot or mech — offers a way in, or a hint
+ * pointing at one.
  *
  * Rendered without a RouterProvider — AppLink degrades to plain anchors.
  */
@@ -15,13 +15,14 @@ import { Sheet } from '../Sheet'
 
 beforeAll(hydrateStores)
 
-/** No button or link into the Dashboard, and no "Play in a Game" signpost. */
+/** No button or link into Play, and no "Play in a Game" signpost. */
 function expectNoLauncher(): void {
   expect(screen.queryByRole('button', { name: /dashboard|^play\b/i })).toBeNull()
   expect(screen.queryByRole('link', { name: /dashboard|^play\b/i })).toBeNull()
   expect(screen.queryByText(/play in a game/i)).toBeNull()
   for (const link of screen.queryAllByRole('link')) {
     expect(link.getAttribute('href') ?? '').not.toContain('/dashboard')
+    expect(link.getAttribute('href') ?? '').not.toContain('/play/')
   }
 }
 
@@ -49,7 +50,7 @@ const cases = [
   },
 ] as const
 
-describe('Live Sheet — no Dashboard launcher', () => {
+describe('Live Sheet — no Play launcher', () => {
   for (const { label, kind, entity } of cases) {
     test(`${label}'s editable sheet has none`, () => {
       render(

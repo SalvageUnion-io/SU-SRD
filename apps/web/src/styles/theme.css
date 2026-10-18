@@ -174,7 +174,7 @@
   /* Paper — the ONE light surface (ruleset §4.1). NOT pure white and NOT cream:
      a near-white warm paper, used universally (surfaces, value cells, and text
      on ink). The one #ffffff is the @media print sheet (physical paper).
-     The Dashboard cockpit is warm paper too (ruleset §1). */
+     Play's canvas is warm paper too (ruleset §1). */
   --color-paper: rgb(251, 250, 247); /* #fbfaf7 */
   /* Paper-opacity ramp — the mirror of the ink ramp above, for the surfaces
      where paper is the FOREGROUND (text and hairlines printed onto a tone or a
@@ -363,7 +363,7 @@
   /* The light speckle's overlay opacities (ruleset §3.5 "Texture", board
      05c): ink blot and ink speck on a colour band, paper flecks on an ink
      ground. The SVG filters they modulate (`su-blot`, `su-speck`, `su-fleck`)
-     are `speckle` in tokens.ts. Never on paper, buttons, fields, the Dashboard
+     are `speckle` in tokens.ts. Never on paper, buttons, fields, Play
      or tooltips — `bun run check styling` (tokens/texture-placement). */
   --texture-blot-opacity: 0.4;
   --texture-speck-opacity: 0.35;
@@ -420,7 +420,7 @@
    `buttonVariants` dresses included. A mini button, a chip's +/- stepper, an interactive chip and a
    show page's band action (`.su-hit-area`, chip-sized on a phone) keep the size they are drawn at, so they are left off the floor here and
    reach it through the hit-area pseudo-element in partials/pointer-motion.css
-   instead, as the Dashboard pennant does. The floor lives only here, unlayered,
+   instead, as the pennant button does. The floor lives only here, unlayered,
    so it also outranks the apps' own (unlayered) stylesheets. */
 @media (pointer: coarse) {
   /* Compact controls sit on the touch floor, so a line of them (a chip beside a

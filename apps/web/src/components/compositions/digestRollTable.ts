@@ -17,7 +17,7 @@ export type RollTableType =
 
 /**
  * A banded d20 table as rows, highest range first — the order the book prints.
- * Shared by the Dashboard's table (`DashboardRollTable`) and the entity card's embedded table (`CardRollTable`).
+ * Shared by Play's table (`PlayRollTable`) and the entity card's embedded table (`CardRollTable`).
  */
 export function digestRollTable(table: RollTableType): DigestedRollTable[] {
   if (!table) return []

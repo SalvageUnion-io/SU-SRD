@@ -131,9 +131,9 @@ const OVERLOAD_BOOKKEEPING: Record<ReactorOverloadOutcome, string> = {
 
 /**
  * The Heat Check outcome sentence — everything after the `… — ` in a Heat Check
- * readout. The Dashboard's `describeHeatCheck` and this module's
+ * readout. Play's `describeHeatCheck` and this module's
  * `describePushOutcome` differ only in the head they prefix, so the tail lives
- * here and the FAB, the sheet body and the Dashboard band can never drift
+ * here and the FAB, the sheet body and Play's Reactor row can never drift
  * apart.
  *
  * An overload prints the rolled row of the Reactor Overload table (Core Book

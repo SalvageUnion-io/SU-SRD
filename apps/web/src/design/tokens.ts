@@ -373,7 +373,7 @@ export const color = {
  * Grain, not shading: nothing interpolates between colours. Where it goes is
  * a law with a guard behind it (`tokens/texture-placement`): ink speckle on
  * colour bands and tone headers, paper flecks on ink grounds — never on
- * paper, buttons, fields, the Dashboard or tooltips.
+ * paper, buttons, fields, Play or tooltips.
  */
 export const texture = {
   blotOpacity: '0.4',

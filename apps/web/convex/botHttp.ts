@@ -32,13 +32,31 @@ import { httpAction } from './_generated/server'
  * anyone.
  */
 
-/** Operations the bot may invoke, mapped to their internal function. */
+/** The read operations the bot may invoke, mapped to their internal query. */
 const QUERIES = {
   me: internal.botClient.me,
   games: internal.botClient.games,
   sheet: internal.botClient.sheet,
   mine: internal.botClient.mine,
-} as const satisfies Record<BotOpName, unknown>
+} as const
+
+/** The write operations (`/su bind`, `/su unbind`), mapped to their internal mutation. */
+const MUTATIONS = {
+  bindChannel: internal.botClient.bindChannel,
+  unbindChannel: internal.botClient.unbindChannel,
+} as const
+
+/**
+ * Whether an op writes, and so runs as a mutation rather than a query. Every
+ * other op indexes `QUERIES`, so an op added to `BOT_OP_NAMES` with no function
+ * in either map fails to compile where `botRoute` looks it up.
+ *
+ * Not exported, like the maps: an exported value typed by `internal` makes the
+ * generated `api` type reference itself through this module.
+ */
+function isMutationOp(op: BotOpName): op is keyof typeof MUTATIONS {
+  return op in MUTATIONS
+}
 
 /**
  * Every operation name, for tests and for the 404 body: the bot's own list
@@ -110,11 +128,14 @@ export const botRoute = httpAction(async (ctx, request) => {
     return json({ error: 'malformed body' }, 400)
   }
 
-  // `runQuery` validates the args against each function's own validators, so a
-  // malformed payload fails there rather than needing a second copy of every
-  // argument shape here.
+  // `runQuery` / `runMutation` validate the args against each function's own
+  // validators, so a malformed payload fails there rather than needing a second
+  // copy of every argument shape here.
   try {
-    return json(await ctx.runQuery(QUERIES[op], args as never), 200)
+    const result = isMutationOp(op)
+      ? await ctx.runMutation(MUTATIONS[op], args as never)
+      : await ctx.runQuery(QUERIES[op], args as never)
+    return json(result, 200)
   } catch (error) {
     // The message is passed through deliberately, and it is safe to: this
     // route is already behind the bot credential, so the only reader is the

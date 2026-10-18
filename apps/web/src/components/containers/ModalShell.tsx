@@ -41,7 +41,7 @@ type ModalShellProps = {
    */
   tone?: 'action' | 'danger'
   /**
-   * A max-width class on the popup (e.g. `max-w-lg`). Omitted, the popup is
+   * A max-width class on the popup (e.g. `su-wiz-modal-md`). Omitted, the popup is
    * 48rem wide at most, or 28rem for an `alertdialog` — the narrow width every
    * confirm in the apps had already chosen by hand.
    */
@@ -62,17 +62,16 @@ type ModalShellProps = {
    * Portal into this element instead of the document body. The scrim and the
    * popup then cover the container rather than the viewport (it must be a
    * positioned box), and focus is trapped without locking page scroll —
-   * the Dashboard's overlays, which open over one region of a scaled canvas
-   * and need its `.su-dash-root` styling.
+   * a picker over a sheet that is itself an overlay (a sheet over Play),
+   * which must stay inside it.
    */
   container?: RefObject<HTMLElement | null>
   /** Element to focus when the dialog closes (defaults to base-ui's: the
    *  trigger, or whatever held focus before it opened). */
   finalFocus?: RefObject<HTMLElement | null>
   /**
-   * Fill the whole viewport, edge to edge, and scroll inside it: the
-   * Dashboard's phone menu and its panels (ADR-045), which are screens rather
-   * than boxes over one. Ignores `maxWidth` and `align`; pair it with `bare`,
+   * Fill the whole viewport, edge to edge, and scroll inside it: a sheet over
+   * Play (`PlaySheetOverlay`), a screen rather than a box over one. Ignores `maxWidth` and `align`; pair it with `bare`,
    * so the child draws its own header and close control.
    */
   fullscreen?: boolean
@@ -161,7 +160,7 @@ export function ModalShell({
   } satisfies CSSProperties
 
   // An Escape something inside the dialog already handled (an inline edit
-  // cancelling, the Dashboard Major's own Take Damage prompt closing) is not a
+  // cancelling, a nested prompt closing) is not a
   // dismissal of the dialog around it.
   const onRootOpenChange = (
     next: boolean,

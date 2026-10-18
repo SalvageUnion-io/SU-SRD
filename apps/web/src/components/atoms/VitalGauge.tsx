@@ -36,7 +36,7 @@ import {
  * The two fields of a `StatBreakdown` the gauge reads: the override flag and
  * the derived value it reverts to. Pass the breakdown itself.
  */
-export type VitalGaugeBreakdown = Pick<StatBreakdown, 'overridden' | 'derived'>
+type VitalGaugeBreakdown = Pick<StatBreakdown, 'overridden' | 'derived'>
 
 export type VitalGaugeProps = {
   /** Stamp label, e.g. 'HP', 'SP', 'Heat'. */
@@ -46,7 +46,7 @@ export type VitalGaugeProps = {
   /**
    * The track's cap, read beside the stamp as a `Cap | N` Stat chip (ruleset
    * §3.7: a cap is a `label | value`, so it is a Stat, never bare text). The
-   * `full` rung only; the Dashboard's Heat track passes it (board D4).
+   * `full` rung only; a Heat track passes it (board D4).
    */
   cap?: number
   /** Current value. */
@@ -107,20 +107,13 @@ export type VitalGaugeProps = {
    *
    *   `full` (default) — the multi-row poster gauge: big numeral + caption. A
    *          gauge is a destination readout, so its resting rung is `full`.
-   *   `compact` — the instrument layout (the dashboard cue): label · the pips ·
+   *   `compact` — the instrument layout (Play's cue): label · the pips ·
    *          value/max on one line, no big numeral, no caption. Its pips take
    *          the §4.5 row split, each a sixth of the bay wide.
    */
   size?: Extract<Size, 'full' | 'compact'>
-  /**
-   * Surface skin (RenderingMatrix `skin sheet|instrument`): `sheet` (default,
-   * light paper ground — ink label + numeral) or `instrument` (a dark ground —
-   * light label + numeral, recessed empty segments). Only the text/empty-segment
-   * treatment changes; filled segments always use the `--tone` accent.
-   */
-  surface?: 'sheet' | 'instrument'
   /** Extra inline style on the root — chiefly to pin the `--tone` / `--tone-deep`
-   * vars for a one-off tone (the dashboard instruments pass their tone here). */
+   * vars for a one-off tone (Play's vitals pass their tone here). */
   style?: CSSProperties
   className?: string
 }
@@ -273,11 +266,9 @@ export function VitalGauge({
   readOnly,
   danger,
   size = 'full',
-  surface = 'sheet',
   style,
   className,
 }: VitalGaugeProps) {
-  const onDark = surface === 'instrument'
   const editable = !readOnly && onChange !== undefined
   const editableMax = !readOnly && onMaxChange !== undefined
   // Read, never inferred — see `breakdown`.
@@ -392,19 +383,17 @@ export function VitalGauge({
     </div>
   )
 
-  // Empty-segment fill differs by surface: recessed outline on a dark instrument
-  // ground, paper on the light sheet.
-  const emptyFill = (
-    onDark
-      ? { borderColor: color.paper30, backgroundColor: 'transparent' }
-      : { borderColor: color.ink50, backgroundColor: color.paper }
-  ) satisfies CSSProperties
+  // An empty segment is paper, outlined.
+  const emptyFill = {
+    borderColor: color.ink50,
+    backgroundColor: color.paper,
+  } satisfies CSSProperties
   // An unlit pip past the redline keeps the empty ground and takes the
   // status-bad outline (boards D1, D4): the redline reads before the value
-  // reaches it — on the sheet and the Dashboard alike, since both draw this gauge.
+  // reaches it — on the sheet and in Play alike, since both draw this gauge.
   const redlineFill = {
     borderColor: color.statusBad,
-    backgroundColor: onDark ? 'transparent' : color.paper,
+    backgroundColor: color.paper,
   } satisfies CSSProperties
   const segFill = (state: ReturnType<typeof trackSegmentState>): CSSProperties =>
     state === 'off'
@@ -415,7 +404,7 @@ export function VitalGauge({
           ? { borderColor: color.statusBad, backgroundColor: color.statusBad }
           : { borderColor: 'var(--tone-deep)', backgroundColor: 'var(--tone)' }
 
-  // COMPACT — the instrument bar (dashboard cue): label and value/max on one row,
+  // COMPACT — the instrument bar (Play's cue): label and value/max on one row,
   // the §4.5 pip rows beneath. No big numeral or caption.
   if (size === 'compact') {
     const compactRows = (
@@ -449,14 +438,14 @@ export function VitalGauge({
         <div style={C_HEAD}>
           <span
             className={capsLabel({ size: 'badge', tracking: 'caps' })}
-            style={{ ...C_LABEL, color: onDark ? color.paper : color.ink }}
+            style={{ ...C_LABEL, color: color.ink }}
           >
             {label}
           </span>
           <span
             style={{
               ...C_VALUE,
-              color: isOver ? color.statusBad : onDark ? color.paper : color.ink,
+              color: isOver ? color.statusBad : color.ink,
             }}
           >
             {shown}/{max}
@@ -475,7 +464,7 @@ export function VitalGauge({
     /*
      * Guided Play teaches as it enforces (ADR-021), so the compact instrument
      * carries provenance too: this branch must not return before the
-     * override/provenance chrome, or the Dashboard drops both props.
+     * override/provenance chrome, or Play drops both props.
      *
      * The trigger is held to the WCAG 2.5.8 24×24px target: as a bare glyph it
      * measured about 10×8px, and stacked gauges sit too close for the spacing
@@ -487,11 +476,7 @@ export function VitalGauge({
         lines={provenance}
         total={max}
         overridden={isOverridden}
-        className={
-          onDark
-            ? 'su-vital-gauge__prov-compact su-vital-gauge__prov-compact--on-dark'
-            : 'su-vital-gauge__prov-compact'
-        }
+        className="su-vital-gauge__prov-compact"
       >
         {isOverridden ? '*' : 'ⓘ'}
       </StatProvenance>

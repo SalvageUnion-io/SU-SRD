@@ -11,8 +11,8 @@ import { setActiveContainer } from '../../stores/activeContainerStore'
  * The page is the hub showing that Game. Loading the route makes it the active
  * container, which is also where anything built from here goes
  * (`entityStore`'s create). The Discord bot's game links (`gameUrl`), the
- * read-only sheet's way back to "the crew" (`SheetView`) and the Dashboard's
- * Game link all land here.
+ * read-only sheet's way back to "the crew" (`SheetView`) and Play's Game
+ * link all land here.
  *
  * Membership is not checked here — `games.get` answers a Game you are not in
  * with an explanation and a way back to Shelves.

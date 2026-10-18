@@ -4,7 +4,7 @@
  * `entityStore.update` / `.transfer` accept a `ChangeMeta`, but for a long
  * stretch nothing passed one: `kind: 'transaction'` and every `source` value
  * existed only in a doc comment on the store, so **every** entry persisted as
- * `manual` / `unknown` — a Dashboard Push was indistinguishable from someone
+ * `manual` / `unknown` — a Push in Play was indistinguishable from someone
  * typing in a box, and the drawer's transaction badge could never render.
  *
  * These constants exist so the tag is declared once per surface rather than
@@ -14,8 +14,8 @@
  * without anything failing. Pick by the surface's enforcement mode (ADR-021),
  * not by what the patch happens to touch:
  *
- * - **Guided Play** (Dashboard) and **Guided Creation** (Wizard) run enforced
- *   lifecycle transactions → `transaction`.
+ * - **Guided Play** (Play) and **Guided Creation**
+ *   (Wizard) run enforced lifecycle transactions → `transaction`.
  * - **Free Edit** (Live Sheet) edits state directly → `manual`, or `override`
  *   when pinning a quantitative cap.
  *
@@ -26,8 +26,12 @@
  */
 import type { ChangeMeta } from './entityStore'
 
-/** Guided Play — an enforced lifecycle transaction (use a system, Push, damage). */
-export const DASHBOARD_TXN: ChangeMeta = { kind: 'transaction', source: 'dashboard' }
+/**
+ * Guided Play (ADR-051): an enforced lifecycle transaction (a vital's − / +,
+ * use a system, Push, Vent, apply a Downtime step, a roll on the Game's log).
+ * Rows the retired Dashboard wrote carry `source: 'dashboard'`.
+ */
+export const PLAY_TXN: ChangeMeta = { kind: 'transaction', source: 'play' }
 
 /** Guided Creation — an enforced creation-time transaction. */
 export const WIZARD_TXN: ChangeMeta = { kind: 'transaction', source: 'wizard' }
@@ -47,7 +51,7 @@ export const LIVE_SHEET_OVERRIDE: ChangeMeta = { kind: 'override', source: 'live
  * Log read as if the player had typed the numbers in — "who dropped our SP by
  * 5" answered with "somebody hand-edited it", when the honest answer was
  * "failed Upkeep, rolled 14". `source` still says `live-sheet` so the drawer can
- * tell it apart from a Dashboard transaction.
+ * tell it apart from a Play transaction.
  */
 export const LIVE_SHEET_TXN: ChangeMeta = { kind: 'transaction', source: 'live-sheet' }
 

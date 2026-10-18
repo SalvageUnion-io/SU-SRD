@@ -1,7 +1,6 @@
 /*
- * The package stylesheet, part 21 of 21: repeated card chrome (last: its
- * pennant restates a button and a caps label). `../index.css` imports the
- * parts in cascade order.
+ * The package stylesheet, part 21 of 21: repeated card chrome. `../index.css`
+ * imports the parts in cascade order.
  */
 
 /* ══ Repeated card chrome ═══════════════════════════════════════════════════
@@ -10,8 +9,7 @@
  * than style objects (ADR-046, repeated elements): inline, each copy of them
  * was written into every element of every static page. What varies by card
  * (a band's fill and padding, a title's size and colour, a frame's weight)
- * stays inline. Last in the file: the pennant restates a button's and a caps
- * label's type, and at one class each only source order lets it.
+ * stays inline.
  */
 
 /* The light speckle (ruleset §3.5, board 05c). `atoms/Speckle.tsx`: one SVG
@@ -131,52 +129,4 @@
  * and wraps from the left. */
 .su-ec-band__heading > .su-chips {
   flex: 0 1 auto;
-}
-
-/* The end column: the Dashboard's pennant button, centred on the whole band
- * so it is never left alone on a line. */
-.su-ec-band__end {
-  align-items: center;
-  column-gap: var(--space-8);
-  display: flex;
-  flex: none;
-}
-
-/* The cost pennant (`card/CardPennant.tsx`), ruleset §5, board E1: a box with
- * a pointed tail (`PENNANT_SHAPE`, held equal by
- * `__tests__/stylesheetParity.test.ts`). `--read` is the paper pennant on the
- * ink; `--button` lays the cut over the rust `buttonVariants` plate, whose
- * radius and border it drops. */
-.su-pennant {
-  clip-path: polygon(0 0, 82% 0, 100% 50%, 82% 100%, 0 100%);
-  font-family: var(--font-cond);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-caps-tight);
-  line-height: 1.2;
-  padding: var(--space-2) var(--space-14) var(--space-2) var(--space-6);
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.su-pennant--full {
-  font-size: var(--text-caption);
-}
-
-.su-pennant--compact {
-  font-size: var(--text-xs);
-}
-
-.su-pennant--mini {
-  font-size: var(--text-badge);
-}
-
-.su-pennant--read {
-  background-color: var(--color-paper);
-  color: var(--color-ink);
-  flex: none;
-}
-
-.su-pennant--button {
-  border-radius: 0;
-  border-width: 0;
 }

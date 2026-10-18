@@ -9,8 +9,8 @@
 
 import { describe, expect, test } from 'bun:test'
 import { render, screen, within } from '@testing-library/react'
-import type { CrawlerReading } from '../../mediator/crawlerReading.model'
 import { CrewSeats } from '../CrewSeats'
+import type { CrawlerReading } from '../crawlerReading.model'
 import type { SeatRow } from '../seatRows.model'
 
 const CRAWLER: CrawlerReading = {
@@ -19,9 +19,6 @@ const CRAWLER: CrawlerReading = {
   sp: 14,
   maxSP: 20,
   techLevel: 2,
-  bays: 9,
-  baysIntact: 9,
-  scrapAtTl: 3,
 }
 
 const ROWS: SeatRow[] = [
@@ -85,9 +82,7 @@ describe('CrewSeats', () => {
   })
 
   test('the crawler Row carries its name and label-first TL and SP chips, never a bay count', () => {
-    const { container } = render(
-      <CrewSeats crawler={{ ...CRAWLER, baysIntact: 8 }} rows={[]} claimed={0} total={1} />
-    )
+    const { container } = render(<CrewSeats crawler={CRAWLER} rows={[]} claimed={0} total={1} />)
     expect(screen.getByText('Tenacity')).toBeTruthy()
     expect(cellsOf(container)).toEqual(['TL2', 'SP14/20'])
     expect(screen.getByText('Seats').closest('.su-stat-cell')?.textContent).toBe('Seats0/1')

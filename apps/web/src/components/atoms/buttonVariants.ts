@@ -28,7 +28,7 @@ import { DISABLED, FOCUS_RING } from './interaction'
  * ## The axes
  *
  * The `surface` axis picks the WORLD the button lives on: `paper` (default —
- * the light app chrome), `instrument` (the dashboard HUD scope, `.su-dash-root`)
+ * the light app chrome), `instrument` (Play's canvas scope, `.su-dash-root`)
  * or `ink` (an ink band or plate).
  * The instrument surface swaps in the condensed-caps HUD typography and the
  * recessed treatment — one standard Button for both worlds. Colour deltas ride on `compoundVariants` (surface × variant);
@@ -61,7 +61,7 @@ const VARIANT = {
 const SURFACE = {
   // Light app chrome — the paper/ink/rust world (the default).
   paper: '',
-  // Dashboard HUD — condensed-caps typography; the ghost recolour (the one
+  // Play's canvas — condensed-caps typography; the ghost recolour (the one
   // variant the HUD uses) is the compound selector
   // `.su-btn--instrument.su-btn--ghost` in index.css, whose two-class
   // specificity beats plain `.su-btn--ghost` without relying on source order.

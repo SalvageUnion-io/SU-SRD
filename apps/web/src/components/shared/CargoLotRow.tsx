@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { Stat, tokens } from '../index'
 
-/** What a lot row reads off a lot: a cargo lot, or the Dashboard's view of one. */
+/** What a lot row reads off a lot: a cargo lot, or a view of one. */
 type LotFacts = {
   name: string
   units: number
@@ -48,7 +48,7 @@ const ACTIONS = {
 
 /**
  * CargoLotRow — one cargo lot, drawn the one way wherever a hold lists it (the
- * mech and crawler Holds, a partner's hold, the Dashboard's Storage overlay):
+ * mech and crawler Holds, a partner's hold):
  * the lot's name as plain text, then its facts as label-first chips —
  * `UNITS | 3`, `TL | 2` where the lot has a Tech Level, and `QTY | 6` for a
  * bulk lot whose count is not its units — then the host's buttons. A lot is

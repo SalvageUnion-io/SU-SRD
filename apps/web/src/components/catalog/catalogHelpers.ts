@@ -21,7 +21,7 @@ type CatalogCard = {
    * What the tile stands for. A `schema` tile opens a whole schema's listing;
    * an `entity` tile (the flat categories — guides) opens one entity outright.
    * srd encodes the same distinction in `href`; surfaces that drill in-place
-   * rather than navigate (the Dashboard's SRD Explorer) need it as data.
+   * rather than navigate (Play's SRD Explorer) need it as data.
    */
   kind: 'schema' | 'entity'
   /** The schema this tile belongs to — its own id for `schema`, the owning schema for `entity`. */

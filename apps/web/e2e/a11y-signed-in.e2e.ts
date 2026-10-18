@@ -1,7 +1,8 @@
 import type { Page } from '@playwright/test'
 import { scanPages } from 'gates/a11y'
 import { at } from './_base'
-import { pilotDashboard, setUpTable } from './_table'
+import { playDoor } from './_play'
+import { setUpTable } from './_table'
 import { expect, test } from './fixtures'
 
 /**
@@ -9,10 +10,14 @@ import { expect, test } from './fixtures'
  * Pixel 7 (`packages/gates/lib/a11yScan.ts`). Fails on any violation.
  *
  * `a11y.e2e.ts` scans signed out, where the Cantina is read-only: Shelves, the
- * wizards, the live sheets, the Game, the Mediator Dashboard and the
- * Dashboard never render there. This spec signs in through the fixtures
- * account (`fixtures.ts`), sets up the Starter Set table the Dashboard spec
- * plays (`setUpTable`), and scans each of those pages with that session.
+ * wizards, the live sheets, the Game and Play never render there. This spec
+ * signs in through the fixtures account (`fixtures.ts`), sets up the Starter
+ * Set table the Play specs play (`setUpTable`), and scans each of those pages
+ * with that session: the Play landing, Bonesaw's Play screen and the
+ * Mediator's, as they open (On foot, Scene). Play's other states (Boarded,
+ * Downtime, solo) are the server's, not a URL's, so the specs that reach them
+ * scan them live (`axeViolations`): `play-turn.e2e.ts`, `play-solo.e2e.ts`
+ * and `play-mediator.e2e.ts`.
  *
  * Like every signed-in spec it SKIPS in a build with no test sign-in seam, so
  * the PR tier never runs it; the nightly `e2e` job does.
@@ -32,16 +37,15 @@ async function rosterSheet(page: Page, kind: 'pilot' | 'mech' | 'crawler'): Prom
 
 test('no accessibility violations signed in', async ({ page, browser, baseURL }, testInfo) => {
   test.setTimeout(15 * 60_000)
-  await setUpTable(page)
+  const { gameName } = await setUpTable(page)
 
   const game = new URL(page.url()).pathname
-  const gameId = game.split('/').pop()
-  if (!gameId) throw new Error(`No Game id in ${page.url()}`)
   const sheets: string[] = []
   for (const kind of ['pilot', 'mech', 'crawler'] as const)
     sheets.push(await rosterSheet(page, kind))
 
-  const dashboard = at(await pilotDashboard(page, 'Bonesaw'))
+  const play = at(await playDoor(page, `Play Bonesaw in ${gameName}`))
+  const mediate = at(await playDoor(page, `Mediate ${gameName}`))
 
   // The scan opens a context per device; each starts with this session.
   const storageState = await page.context().storageState({ indexedDB: true })
@@ -57,8 +61,10 @@ test('no accessibility violations signed in', async ({ page, browser, baseURL },
       at('/crawlers/new?mode=guided'),
       at('/npcs/new'),
       game,
-      at(`/mediator/${gameId}`),
-      dashboard,
+      // Play: the landing, the player's screen and the Mediator's.
+      at('/play/'),
+      play,
+      mediate,
       ...sheets,
     ],
     // The reference-data gate's loading screen has no <main>.

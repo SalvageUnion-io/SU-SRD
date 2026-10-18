@@ -1,7 +1,6 @@
 /*
- * The package stylesheet, part 2 of 21: Button: its variants and size ladder,
- * and the cost pennant as the action button. `../index.css` imports the parts
- * in cascade order.
+ * The package stylesheet, part 2 of 21: Button: its variants and size ladder.
+ * `../index.css` imports the parts in cascade order.
  */
 
 /* ══ Button ═════════════════════════════════════════════════════════════════
@@ -167,7 +166,7 @@
 
 /*
  * INSTRUMENT × ghost — an ink hairline on the cream instrument chassis, going to
- * a paper fill on hover. The one variant the dashboard HUD uses.
+ * a paper fill on hover. The one variant Play's canvas uses.
  *
  * A compound selector gives it the 2-class specificity it needs to beat plain
  * `.su-btn--ghost` above without depending on source order.
@@ -263,39 +262,4 @@
    sheet bar's back and "⋯", and a shelf item's "⋯". */
 .su-btn--icon-only.su-page-action {
   width: var(--size-compact);
-}
-
-/* ══ The entity card's cost pennant as the action button ════════════════════
- *
- * In the Dashboard the pennant on an action's ink banner IS the action button
- * (ruleset §1, board E3): the same size, shape and place as the read pennant,
- * filled rust. The rust pennant is a `buttonVariants` span (the allowlist's
- * painter, §3.1); this button is its INVISIBLE hit area — 44px under every
- * pointer (§4.6) — pulled back by negative margins so the band keeps the
- * pennant's own size. A clip-path on the button itself would clip the hit
- * area too, which is why the shape lives on the span. `CardPennant.tsx`.
- */
-.su-ec-pennant-btn {
-  align-items: center;
-  background-color: transparent;
-  border: 0;
-  cursor: pointer;
-  display: inline-flex;
-  flex: none;
-  justify-content: center;
-  margin: calc(-1 * var(--space-12)) calc(-1 * var(--space-8));
-  min-height: 44px;
-  min-width: 44px;
-  padding: 0 var(--space-8);
-}
-
-/* Spent or locked: the pennant drains to the read pennant's paper, its text
-   faded — state, not a second hue. */
-.su-ec-pennant-btn:disabled {
-  cursor: default;
-}
-
-.su-ec-pennant-btn:disabled > .su-btn--primary {
-  background-color: var(--color-paper);
-  color: var(--color-ink-50);
 }

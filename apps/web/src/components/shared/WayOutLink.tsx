@@ -7,7 +7,7 @@ const WAY_OUT = { minHeight: '44px', textDecoration: 'none' } satisfies CSSPrope
 
 /**
  * The way off a page that cannot do what was asked (a dead invite link, a
- * Dashboard with no Game to run): a link drawn as a `Button`, so it reads as
+ * Play screen with no pilot to run): a link drawn as a `Button`, so it reads as
  * the page's one way on and has a full touch target. Plain body text was easy
  * to miss and hard to hit.
  */

@@ -94,6 +94,10 @@ that one value on stdin.
 ```bash
 # Convex: enables /bot/*. Unset, no bot can talk to the deployment at all.
 op read 'op://<vault>/<item>/credential' | bunx convex env set --prod CANTINA_BOT_SECRET
+# Convex: where Play's rolls are posted from (the bot Worker's origin, which
+# serves /relay/post-roll). Not a secret. Unset, every postRoll to a bound
+# channel answers `failed` and logs it; nothing posts.
+bunx convex env set --prod CANTINA_BOT_URL https://su-discord-bot.<subdomain>.workers.dev
 
 # The bot Worker: both required; its /health answers 503 until they are set.
 cd apps/discord-bot
@@ -103,6 +107,11 @@ op read 'op://<vault>/<item>/credential' | bunx wrangler secret put CANTINA_BOT_
 
 `CANTINA_CONVEX_SITE_URL` is the HTTP-actions origin (`.convex.site`), not the
 client URL (`.convex.cloud`) and not the web origin.
+
+The secret works in both directions: the bot presents it to Convex's `/bot/*`,
+and Convex presents it to the Worker's `/relay/post-roll` when a roll posts to
+a channel bound with `/su bind`. The Worker posts with its own `DISCORD_TOKEN`,
+so Convex holds no Discord token. A post that fails says why in Play's Feed.
 
 ## 3. Verify sign-in without signing in
 

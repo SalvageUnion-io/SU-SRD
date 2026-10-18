@@ -8,11 +8,10 @@
  * `crawlerBand`, since its controls are paper (the book's crawler pink carries
  * neither ink nor paper at 4.5 : 1).
  *
- * Every member gets one **Launch Dashboard** chip button. The Mediator's
- * carries a **YOU MEDIATE** stamp before it and opens the Mediator dashboard
- * (`/mediator/$gameId`, docs/architecture/mediator-dashboard.md Q10); a
- * player's is the hub's `actions`, which asks which pilot to play
- * (`LaunchDashboard`).
+ * Every member gets one way into Play (wireframe play-entry). The Mediator's
+ * is a **Mediate** chip after a **YOU MEDIATE** stamp, opening Play's Mediator
+ * screen (`/play/game/$gameId`, play.md §10); a player's is the hub's
+ * `actions`, a **Play** chip that asks which pilot to play (`LaunchPlay`).
  */
 
 import type { ReactNode } from 'react'
@@ -32,9 +31,9 @@ export function GameBand({
   name: string
   /** The viewer mediates this Game (`games.get`'s membership flag). */
   mediator?: boolean
-  /** The page's controls (`Roster`'s), after the Launch Dashboard: a fragment, one item each. */
+  /** The page's controls (`Roster`'s), after the way into Play: a fragment, one item each. */
   controls?: ReactNode
-  /** A player's chip button, right of the name (`LaunchDashboard`); the Mediator's is the link above. */
+  /** A player's chip button, right of the name (`LaunchPlay`); the Mediator's is the link above. */
   actions?: ReactNode
 }) {
   const mediates = mediator && gameId !== null
@@ -55,10 +54,10 @@ export function GameBand({
                   You mediate
                 </Badge>
                 <AppLink
-                  href={`/mediator/${gameId}`}
+                  href={`/play/game/${gameId}`}
                   className={buttonVariants({ variant: 'primary', size: 'compact' })}
                 >
-                  Launch Dashboard
+                  Mediate
                 </AppLink>
               </Cluster>
             )}

@@ -10,8 +10,7 @@ type CardHeadProps = ComponentProps<typeof EntityCardHeader> & {
 /**
  * A framed card's head: its flush header band (`EntityCardHeader`), or, CUT
  * OUT, the Row's head (`entity/parts/Head`) in the card's own fill, foreground
- * and grain: the tier and name, the labels, the chip group (E17) and the
- * pennant button. The name always sits on the paper cut-out; unlike a Row's,
+ * and grain: the tier and name, the labels and the chip group (E17). The name always sits on the paper cut-out; unlike a Row's,
  * its chips (a crew NPC's HP) stay on the band right of it and wrap there.
  */
 export function CardHead({ cutOut, ...band }: CardHeadProps) {
@@ -30,7 +29,6 @@ export function CardHead({ cutOut, ...band }: CardHeadProps) {
       }}
       tier={band.numeral}
       chips={band.chips}
-      pennant={band.pennant}
       labels={band.labels}
       notch
       chipsBeside

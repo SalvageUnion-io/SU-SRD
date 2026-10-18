@@ -29,7 +29,7 @@
   }
 }
 
-/* The Dashboard and the link-preview surface draw no Union bar
+/* A Play screen and the link-preview surface draw no Union bar
    (`hidesUnionBar`); the shell's is in the document, so it is hidden. */
 html[data-union-bar-hidden] .su-union-bar {
   display: none;

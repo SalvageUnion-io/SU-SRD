@@ -20,7 +20,7 @@ type ButtonProps = ComponentPropsWithRef<'button'> &
  * optional leading `glyph` (e.g. '⚄ Roll') renders
  * aria-hidden before the label. Disabled = opacity .4, pointer-events none.
  *
- * `surface="instrument"` re-skins the same button for the dark dashboard HUD
+ * `surface="instrument"` re-skins the same button for Play's dark canvas
  * (condensed caps; a `ghost` recolour, the one variant the HUD uses) — one
  * Button for both the paper app chrome and the instrument scope.
  * `surface="ink"` with `variant="ghost"` is the on-ink ghost: a paper outline

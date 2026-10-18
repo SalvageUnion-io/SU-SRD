@@ -20,13 +20,13 @@ import { linkIdOf } from './model/entities'
 import { requireMember, requireUser } from './model/permissions'
 import { loadReferenceData } from './model/referenceData'
 import { seatsInGame } from './model/seats'
-import { mirrors } from './schema'
+import { mirrors } from './model/validators'
 
 /**
  * Crew visibility inside a Game (ADR-030 §5), and the crew's derived
  * status (ADR-038 §4).
  *
- * Every member sees every crewmate's **vitals** live: the Dashboard's Crew tab,
+ * Every member sees every crewmate's **vitals** live: Play's Crew,
  * the Game hub's crew strip and the Mediator's proposal form all read this
  * query. Drill-in is the live sheet (`/sheet/$kind/$id`), read-only for a
  * crewmate's. What stays hidden is the Mediator's prepared opposition — that
@@ -44,7 +44,7 @@ import { mirrors } from './schema'
  * Convex loads the reference data the rules need itself
  * (`model/referenceData.ts`). The derivation is `crewDeriver` below, which
  * the Discord bot's `/su sheet` reads too (`sheetVitals`, `botClient.sheet`),
- * so the bot, the Crew tab and the Dashboard agree on a crewmate's numbers.
+ * so the bot, the Game hub and Play agree on a crewmate's numbers.
  *
  * ## Why vitals are a separate, narrow query
  *
@@ -172,7 +172,7 @@ export function crewDeriver({ pilots, crawlers, links, seats }: CrewRecords) {
     }
     const mech = parsed.data
     const id = linkIdOf(row) ?? null
-    // The pilot aboard it, else the pilot assigned to it, as the Dashboard
+    // The pilot aboard it, else the pilot assigned to it, as Play
     // reads its own mech: their abilities, and the effects their seat has on.
     const pilotId = id === null ? undefined : (boarderOf.get(id) ?? pilotOfMech.get(id))
     const piloting = pilotId === undefined ? undefined : parsedPilots.get(pilotId)
@@ -266,6 +266,7 @@ export const vitals = query({
         currentAP: nullableNumber,
         boarded: v.boolean(),
         mechId: nullableString,
+        lastSeenAt: nullableNumber,
         ...pilotDerived.fields,
       })
     ),
@@ -358,6 +359,8 @@ export const vitals = query({
           boarded: boarded !== null,
           /** The mech they are aboard, else the one assigned to them (`mech-to-pilot`). */
           mechId: boarded ?? (id === null ? null : (mechOfPilot.get(id) ?? null)),
+          /** Their seat's last presence heartbeat (`seats.heartbeat`, `isPresent`), or null. */
+          lastSeenAt: seat?.lastSeenAt ?? null,
           ...derivePilot(p),
         }
       }),

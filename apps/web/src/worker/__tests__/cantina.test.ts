@@ -203,9 +203,9 @@ describe('a navigation gets the shell', () => {
   }
 })
 
-/** The Dashboard and the link-preview surface draw no Union bar, from the first paint. */
+/** A Play screen, the addresses that redirect into one and the link-preview surface draw no Union bar, from the first paint. */
 describe('a route that draws no Union bar', () => {
-  for (const path of ['/dashboard/abc', '/og/pilot/abc']) {
+  for (const path of ['/play/abc', '/dashboard/abc', '/mediator/g1', '/og/pilot/abc']) {
     it(`gets a shell marked to hide it for ${path}`, async () => {
       const res = await worker.fetch(navigateTo(`https://salvageunion.io${BASE}${path}`), envWith())
       expect(res.status).toBe(200)

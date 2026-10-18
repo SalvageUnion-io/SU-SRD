@@ -241,7 +241,7 @@ export function groupColumn(rows: readonly RosterRow[]): RosterColumnGroups {
 /**
  * The id a route addresses a row by: the app id every link uses; a template
  * pre-gen has none and goes by its body id, and a row with neither by its row
- * id. The sheet route and the Dashboard's both take it.
+ * id. The sheet route and Play's both take it.
  */
 function rosterEntityId(row: RosterRow): string {
   const bodyId = typeof row.body.id === 'string' && row.body.id.length > 0 ? row.body.id : null

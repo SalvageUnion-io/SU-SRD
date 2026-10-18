@@ -8,7 +8,7 @@ import { fireEvent, render, screen, within } from '@testing-library/react'
 import { inAppRoute, isCurrent } from '../../../lib/barLinks'
 import { pageOrigin } from '../../../lib/site'
 import { renderUnionBar } from '../../../shell/unionBar'
-import { hidesUnionBar, slotSelector } from '../../../shell/unionSlots'
+import { hidesUnionBar, isPlayRoute, slotSelector } from '../../../shell/unionSlots'
 import { UnionBarSlots } from '../UnionBarSlots'
 
 /** The SRD: the page's own origin, or production's where the test has none. */
@@ -70,10 +70,25 @@ describe('UnionBarSlots', () => {
     expect(nav.getByRole('link', { name: 'Starter Set' }).getAttribute('aria-current')).toBeNull()
   })
 
+  test('marks the mode you are in: Play on Play’s routes, Build everywhere else', () => {
+    const tools = () => within(screen.getByRole('navigation', { name: 'Salvage Union tools' }))
+    const current = () =>
+      tools()
+        .getAllByRole('link')
+        .filter((tab) => tab.getAttribute('aria-current') === 'true')
+        .map((tab) => tab.textContent)
+    const { rerender } = render(<UnionBarSlots pathname="/play/" />)
+    expect(current()).toEqual(['Play'])
+    rerender(<UnionBarSlots pathname="/starter/" />)
+    expect(current()).toEqual(['Build'])
+    rerender(<UnionBarSlots pathname="/play" />)
+    expect(current()).toEqual(['Play'])
+  })
+
   test('fills only the banner while the route draws no bar', () => {
     render(
       <UnionBarSlots
-        pathname="/dashboard/x"
+        pathname="/play/x"
         barHidden
         banner={button('Offline')}
         search={button('Search')}
@@ -120,10 +135,21 @@ describe('UnionBarSlots', () => {
 })
 
 describe('the bar’s rules', () => {
-  test('the Dashboard and the link-preview surface draw no bar', () => {
+  test('a Play screen, the addresses that redirect into one and the link-preview surface draw no bar', () => {
+    expect(hidesUnionBar('/play/abc')).toBe(true)
+    expect(hidesUnionBar('/play/game/g1')).toBe(true)
     expect(hidesUnionBar('/dashboard/abc')).toBe(true)
+    expect(hidesUnionBar('/mediator/g1')).toBe(true)
     expect(hidesUnionBar('/og/pilot/abc')).toBe(true)
     expect(hidesUnionBar('/sheet/pilot/abc')).toBe(false)
+  })
+
+  test('the Play landing keeps the bar: its Play tab is how you got there', () => {
+    expect(hidesUnionBar('/play/')).toBe(false)
+    expect(hidesUnionBar('/play')).toBe(false)
+    expect(isPlayRoute('/play')).toBe(true)
+    expect(isPlayRoute('/play/abc')).toBe(true)
+    expect(isPlayRoute('/players')).toBe(false)
   })
 
   test('Hangar is here only at the root; Starter Set on every page under it', () => {

@@ -22,9 +22,9 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
 1. **§1 The context laws** — every surface is one of five contexts; the context picks materials and interactivity, never the primitive. Automation: `auto` (applied + undo), `confirm` (player confirms + undo), `free` (unguarded, logged override).
    1. **Reference — the book, verbatim** — paper, read-only, no play state: if the printed manual cannot show it, it cannot appear. The only rust is an inline link.
    2. **Live Sheet — the pencil** — `free`; print reads, pencil writes: the read state is typeset (empty fields omitted), dashed fields and steppers only in edit. Overrides wear a dashed ring and are logged; rules show, never gate.
-   3. **Dashboard — the instrument panel** — the only transactional surface: bookkeeping `auto`, destruction `confirm`; every unit mutation writes a Change Log row, every roll a Game log row. Flat: no texture.
-      Paper instruments on a dark ground: `--color-ink-deep` ground, `--color-band-cream` for every card, `--color-paper` for the display region alone. On a phone: bar, tab body, resolve screen (ADR-045).
-   4. **The cost pennant is the action** — on the Dashboard, tapping the pennant resolves the action: read-pennant size, filled rust, 44px hit area, no separate deck button.
+   3. **Play — the instrument panel** — the only transactional surface: bookkeeping `auto`, destruction `confirm`; every unit mutation writes a Change Log row, every roll a Game log row. Flat: no texture.
+      Paper instruments on a dark ground: `--color-ink-deep` ground, `--color-band-cream` side columns, `--color-paper` for the centre column alone. On a phone: tabs under pinned vitals (ADR-051 §10).
+   4. **Use opens the action** — in Play an on-hand action's Row carries Use, which resolves it in place (Activate, Roll, Push, Apply; ADR-051 §6); its cost stays a read pennant.
    5. **Listing — one entity, one click** — the Row (`<Entity form="row">`) is the one rendering for an entity in a list (listing, search, slot, deck) at level 1 (E6): art column, one-row head, chip group (E17).
       Context changes props, never the anatomy; nothing edits or expands in place. An entity without art has no art place (a catalog with art: a censor mark).
       An SRD index draws Tiles (`form="tile"`, EDL E2).
@@ -32,8 +32,8 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
       Terminal: no buttons, links, nested Peeks or steppers; level 1 on its plate, so its children are Tokens (chassis ability contentful, E19), Mentions inert.
    7. **Page — the entity's own route** — on desktop the hero floats and the opening, stats, actions and nested cards flow around it, then run full width, flush with the column.
    8. **Entity forms** — Mention, Token, Row, Card, Page, their modes and rules E1–E20: [entity-display-language.md](entity-display-language.md).
-2. **§2 The rendering matrix** — each role maps to one primitive per surface (Reference → Live Sheet → Dashboard → Listing → Peek).
-   1. **Vitals** — `VitalGauge`: sheet skin, Dashboard instrument, compact in the Peek; a `Stat` cell in listings. TP is a counter (no cap, no gauge).
+2. **§2 The rendering matrix** — each role maps to one primitive per surface (Reference → Live Sheet → Play → Listing → Peek).
+   1. **Vitals** — `VitalGauge`: sheet skin, Play's compact instrument, compact in the Peek; a `Stat` cell in listings. TP is a counter (no cap, no gauge).
    2. **Caps and slots** — `Stat`, the printed number; an override is a dashed, logged control.
    3. **Condition** — tri-state toggle (Destroyed greys the card), a static glyph in listings, absent from Reference.
    4. **Rolls** — `RollTableInstrument` under ROLL THE DIE:, the stamp the one roll button (no second Roll; a plain label in static HTML); the result is a readout plus a marked row (§3.4); Reference toasts it; Peek aside.
@@ -49,7 +49,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    5. **§3.5 No gradient shading; closed colour set** — no colour outside §4; hard-stop patterns on §4 tokens are fine, smooth interpolation is not (half-fills and X's are `clip-path` + SVG).
       Each sanctioned pattern (Slab leader, tile ramps, user-made hatch) is in `EXEMPTIONS` (`packages/gates/rules/designTokens.ts`).
       1. **Texture: the light speckle** — ink speckle on colour bands and tone headers; paper flecks on dark and ink headers and unit stamps.
-         Never on paper, buttons, fields, the Dashboard or the Peek (`tokens/texture-placement`).
+         Never on paper, buttons, fields, Play or the Peek (`tokens/texture-placement`).
       2. **One shading exemption** — the `.su-pilot-panel` illustration on srd's `/about`. A one-off, not precedent.
    6. **§3.6 Copy is 1:1 with real SRD data** — everywhere.
    7. **§3.7 Stats render through Stat** — any `label | value` is a `Stat`, never hand-assembled `<span>SP {n}</span>`.
@@ -58,7 +58,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
    9. **§3.9 Canon is solid; homebrew is dashed** — a player-made thing that could pass for the book (pattern, NPC): dashed frame, dashed User-made stamp in the head's labels, foot rule and pills, credit "Made by [user]", at every size.
       A full page adds a hard-stop hatched band, a dashed notch and a maker banner. One `userMade` flag (+ `madeBy`); canon-built units stay solid.
    10. **§3.10 No left-rail borders** — colour rides in top bands, stamps and gauges; nesting shows by containment.
-   11. **§3.11 One union, two tools** — one Union bar; the switcher reads Reference | Build; the builder is The Cantina, named on its front door; no off-site arrows between the two.
+   11. **§3.11 One union, two tools** — one Union bar; the switcher reads Reference | Build | Play; the builder is The Cantina, named on its front door; no off-site arrows between the two.
    12. **§3.12 Microcopy** — sentence case ("Make a copy"); game terms keep the book's casing ("End Downtime"), as do Game, Shelf and the roles ([glossary](../architecture/glossary.md)).
        Caps only through the stamp (`Badge shape="stamp"`) and `Button`, which sets every label in condensed caps. Verbs: Copy, Move, Delete, Break down; Scrap is the currency, never the verb (p.248). `bun run check copy` holds what it can.
 4. **§4 Foundations** — the token layer, one home: `apps/web/src/styles/theme.css`.
@@ -93,7 +93,7 @@ Canon for every primitive and surface: if a component contradicts a rule, the co
 6. **§6 The merge map** — merge any primitive that does not serve a different reader intent.
    1. **Badge** — folds ValueDisplay, Tag, Pill, Chip, cost pennant, Range, Action-type, TL and the StatusBadge shell.
    2. **Stat** — folds StatControl, inputs, InlineEditField and StatBlock pips: read vs edit is a state.
-   3. **Gauge** — folds VitalGauge, DashboardGauge and pip tracks: a darker room is a skin.
+   3. **Gauge** — folds VitalGauge, Play's vitals and pip tracks: a darker room is a skin.
    4. **Must not merge** — Btn (do vs read), SlotGrid (places, not quantity), the condition glyph, RollTable, and band ≠ rider.
 7. **§7 Two inviolable laws**
    1. **§7.1 The value-cell law** — a label+value cell is ink on paper, set apart by a 1px ink frame, never a fill (never cream, white or tinted). A lone-label badge is frameless.

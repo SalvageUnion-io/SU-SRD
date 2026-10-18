@@ -1,17 +1,16 @@
 /*
- * dashboard.css — the Dashboard ("Pit HUD") stylesheet bundle: the `.su-dash-root`
- * token scope, the instrument surfaces and the four-region grid.
+ * dashboard.css — the canvas's stylesheet bundle (docs/architecture/play.md
+ * §2): the `.su-dash-root` scope and the fixed canvas, the instrument rules
+ * inside it, and the phone form's touch floor.
  *
- * The Cantina's own stylesheet: the Dashboard is a Cantina surface, so its rules live
- * here rather than in src/components, whose stylesheets srd loads too. It is
- * imported by `components/dashboard/Dashboard.tsx` and `mediator/MediatorDashboard.tsx`,
- * never by an instrument component.
+ * The Cantina's own stylesheet: the canvas is a Cantina surface, so its rules
+ * live here rather than in src/components, whose stylesheets srd loads too.
+ * `PlayFrame` imports it, before Play's own bundle (`play.css`).
  *
- * The order below is load-bearing: DashboardCanvas.css, then instruments.css,
- * then DashboardGrid.css. DashboardPhone.css (the phone form, ADR-045) comes
- * last and keys off its own `.su-dash-phone` scope.
+ * The order below is load-bearing: DashboardCanvas.css, then instruments.css.
+ * DashboardPhone.css (the phone form, ADR-045) comes last and keys off its own
+ * `.su-dash-phone` scope.
  */
 @import './dashboard/DashboardCanvas.css';
 @import './dashboard/instruments.css';
-@import './dashboard/DashboardGrid.css';
 @import './dashboard/DashboardPhone.css';

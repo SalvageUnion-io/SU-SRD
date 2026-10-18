@@ -1,0 +1,13 @@
+/*
+ * play.css — Play's stylesheet bundle (docs/architecture/play.md): one part
+ * per column, as `dashboard.css` bundles the canvas's.
+ *
+ * The Cantina's own stylesheet: imported by `components/play/PlayFrame.tsx`
+ * (both Play screens) and `PlayLanding.tsx`, never by a library component.
+ * It loads after `dashboard.css`, whose canvas the frame lays on.
+ */
+@import './play/units.css';
+@import './play/actions.css';
+@import './play/side.css';
+@import './play/mediator.css';
+@import './play/phone.css';

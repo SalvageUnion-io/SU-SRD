@@ -43,7 +43,7 @@ export function MechIdentityPanel({ mech, patch, after }: MechIdentityPanelProps
    * Persist the pattern name (required — never write empty). Name and pattern
    * name are the same field per the redesign, so both stored fields are kept
    * in lockstep: `name` stays the canonical identity every other surface
-   * (dashboard, rails, back links) reads.
+   * (Play, rails, back links) reads.
    */
   function savePatternName(next: string) {
     const trimmed = next.trim()

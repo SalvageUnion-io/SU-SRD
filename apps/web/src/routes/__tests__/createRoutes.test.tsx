@@ -4,7 +4,8 @@
  * link's chassis, pattern, class or crawler type — dropped when it names
  * nothing legal), where each callback navigates, the NPC designer's view and
  * crew in the URL, and `/sheet/$kind/$id` choosing its page or saying the kind
- * is not a sheet. Also `/mechs/patterns/new` and `/dashboard/$pilotId`.
+ * is not a sheet. Also `/mechs/patterns/new`, Play's two screens and the
+ * retired `/dashboard/$pilotId`, which lands on Play.
  *
  * The screens themselves have their own suites, so each is replaced here by a
  * stub that shows what the route handed it and offers the route's callbacks as
@@ -115,8 +116,11 @@ const convexMocks = await installConvexMocks({
           call('Cancel save', p.onCancel as () => void)
         ),
     }),
-    '../dashboard/DashboardGate': () => ({
-      DashboardGate: (p: Props) => h('p', null, `Dashboard gate for ${String(p.id)}`),
+    '../play/PlayGate': () => ({
+      PlayGate: (p: Props) => h('p', null, `Play gate for ${String(p.id)}`),
+    }),
+    '../play/PlayMediatorGate': () => ({
+      PlayMediatorGate: (p: Props) => h('p', null, `Mediate gate for ${String(p.gameId)}`),
     }),
   },
 })
@@ -305,9 +309,22 @@ describe('/mechs/patterns/new', () => {
   })
 })
 
-describe('/dashboard/$pilotId', () => {
+describe('/play/$pilotId', () => {
   test("hands the pilot's id to the gate", async () => {
-    await mountAt('/dashboard/p1')
-    expect(await screen.findByText('Dashboard gate for p1')).toBeTruthy()
+    await mountAt('/play/p1')
+    expect(await screen.findByText('Play gate for p1')).toBeTruthy()
+  })
+
+  test('the retired /dashboard/$pilotId lands there, keeping the id', async () => {
+    const router = await mountAt('/dashboard/p1')
+    expect(await screen.findByText('Play gate for p1')).toBeTruthy()
+    expect(at(router).pathname).toBe('/play/p1')
+  })
+})
+
+describe('/play/game/$gameId', () => {
+  test("hands the Game's id to the Mediator's gate", async () => {
+    await mountAt('/play/game/g1')
+    expect(await screen.findByText('Mediate gate for g1')).toBeTruthy()
   })
 })

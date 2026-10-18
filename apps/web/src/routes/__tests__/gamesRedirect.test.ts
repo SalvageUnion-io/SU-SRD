@@ -9,8 +9,8 @@ import { getActiveContainer, setActiveContainer } from '../../stores/activeConta
  *  - `/` is Shelves, so it shows the shelf whatever was showing before;
  *  - `/games/$gameId` is a Game's own page, and stays put — the Discord bot's
  *    game links and the read-only sheet's way back to "the crew" land on it;
- *  - `/mediator/$gameId` is the Mediator Dashboard again, and stays
- *    put without picking the Game: it is not a container's page;
+ *  - `/mediator/$gameId` lands on Play's Mediator screen without picking the
+ *    Game: it is not a container's page (its redirect: `retiredRoutes.test.ts`);
  *
  * The retired `/games`, `/join/$code` and crew-view addresses are no longer
  * routes: the Worker 301s them (`src/lib/redirects.ts`).
@@ -47,8 +47,8 @@ describe('/games/$gameId', () => {
 })
 
 describe('/mediator/$gameId', () => {
-  test('is the Mediator Dashboard: it no longer redirects, and shows no container', async () => {
-    expect(await landOn('/mediator/g2')).toBe('/mediator/g2')
+  test('lands on Play’s Mediator screen, and shows no container', async () => {
+    expect(await landOn('/mediator/g2')).toBe('/play/game/g2')
     expect(getActiveContainer()).toEqual({ kind: 'shelf' })
   })
 })

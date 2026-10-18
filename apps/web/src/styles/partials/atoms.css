@@ -218,14 +218,6 @@
   color: var(--color-ink);
 }
 
-.su-stat-provenance__trigger.su-vital-gauge__prov-compact--on-dark {
-  color: var(--color-paper-60);
-}
-
-.su-stat-provenance__trigger.su-vital-gauge__prov-compact--on-dark:hover {
-  color: var(--color-paper);
-}
-
 /* The overridden-max `*`, superscript in the deep tone. */
 .su-stat-provenance__trigger.su-vital-gauge__prov-mark {
   border-bottom-width: 0;

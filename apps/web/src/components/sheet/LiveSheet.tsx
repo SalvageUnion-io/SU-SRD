@@ -469,7 +469,7 @@ export function LiveSheet({
               hatch repeated dozens of times. Overriding the context to
               `undefined` for the sheet BODY turns it off for the whole subtree
               (including card detail modals, which are descendants) while the
-              roster, Dashboard and wizards keep it. */}
+              roster, Play and wizards keep it. */}
           <EntityExternalLinkProvider value={undefined}>{renderBody()}</EntityExternalLinkProvider>
         </div>
       </div>

@@ -4,7 +4,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { AppBar } from '../AppBar'
 
 /**
- * The Union bar (brand refresh P2a, board 05): one lockup, the Reference | Build switcher
+ * The Union bar (brand refresh P2a, board 05): one lockup, the Reference | Build | Play switcher
  * with "here" as the inverse stamp, breadcrumbs in the bar on desktop and on
  * their own row on a phone, and the paper flecks behind it all.
  */
@@ -32,6 +32,22 @@ describe('AppBar', () => {
     expect(build.getAttribute('aria-current')).toBeNull()
     expect(build.getAttribute('href')).toBe('https://cantina.example/')
     expect(build.getAttribute('target')).toBeNull()
+  })
+
+  test('the switcher reads Reference | Build | Play, Play only where it is given a home', () => {
+    const { rerender } = render(
+      <AppBar product="play" referenceHref="/" buildHref="/build/" playHref="/build/play/" />
+    )
+    const tools = () => within(screen.getByRole('navigation', { name: 'Salvage Union tools' }))
+    expect(
+      tools()
+        .getAllByRole('link')
+        .map((tab) => tab.textContent)
+    ).toEqual(['Reference', 'Build', 'Play'])
+    expect(tools().getByRole('link', { name: 'Play' }).getAttribute('aria-current')).toBe('true')
+    expect(tools().getByRole('link', { name: 'Build' }).getAttribute('aria-current')).toBeNull()
+    rerender(<AppBar product="reference" referenceHref="/" buildHref="/build/" />)
+    expect(tools().queryByRole('link', { name: 'Play' })).toBeNull()
   })
 
   test('no product nav means no second row', () => {

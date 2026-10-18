@@ -1,7 +1,7 @@
 /**
  * useSearchCombobox — the shared logic layer behind the search comboboxes:
  * the site's one search (`SearchIsland`, in the Union bar of both the
- * reference pages and the Cantina) and the Dashboard's SRD explorer.
+ * reference pages and the Cantina) and Play's SRD Explorer.
  *
  * It owns the 150 ms debounce, category+entity result blending (3 schema
  * slots inside a 10-row budget), ArrowUp/Down/Enter selection and the

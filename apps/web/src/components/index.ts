@@ -1,5 +1,5 @@
 // SRD catalog — the catalog categories and their tile colours, as the Cantina's
-// Dashboard SRD Explorer renders them. (srd's own index is its chapters,
+// SRD Explorer renders them. (srd's own index is its chapters,
 // `apps/web/src/lib/chapters.ts`.)
 
 /**
@@ -23,7 +23,7 @@ export { cn } from '../lib/cn'
 // @randsum/salvageunion, every other die through @randsum/roller.
 export type { TableDie } from '../lib/dice'
 export { dieForTable, rollD20, rollForTable } from '../lib/dice'
-// Prose with its `[[Trait]]` references drawn as Mentions (The Cantina's `DashboardRollTable`).
+// Prose with its `[[Trait]]` references drawn as Mentions (The Cantina's `PlayRollTable`).
 export { useParseTraitReferences } from '../lib/parseTraitReferences'
 // The one place a schema id becomes a human label ('crawler-bays' →
 // 'Crawler Bays'), so the combobox, the /search page and the catalog can't
@@ -59,7 +59,6 @@ export { CloseButton } from './atoms/CloseButton'
 // Conditions — the entity-condition chip row. Public because the Cantina's sheet
 // editors (ConditionsEditor, NpcFactsEditor) compose it.
 export { Conditions } from './atoms/Conditions'
-export { CountStepper } from './atoms/CountStepper'
 export type { ChapterTone } from './atoms/chapterBandColor'
 export { CHAPTER_BAND_COLOR } from './atoms/chapterBandColor'
 export { Eyebrow } from './atoms/Eyebrow'
@@ -112,7 +111,6 @@ export { ToneStrip } from './atoms/ToneStrip'
 // (ruleset §3.9): ChapterBand's `userMade`, and the page's hatched foot.
 export { USER_MADE_HATCH } from './atoms/userMadeHatch'
 // Stat trackers (The Cantina design handoff — design-spec §2.7)
-export type { VitalGaugeBreakdown } from './atoms/VitalGauge'
 export { VitalGauge } from './atoms/VitalGauge'
 export { buildCatalogSections } from './catalog/catalogSections'
 // AbilityTrack — an ability tree on its track (tier numerals, a Legendary
@@ -129,9 +127,6 @@ export { AppBar } from './compositions/AppBar'
 export { assetSrcSetFor } from './compositions/assetSrcSet'
 // BrandCard — the site's own 1200 × 630 link preview, the Discord banner's face.
 export { BrandCard } from './compositions/BrandCard'
-// ControlButtons — the control strip Card's rail renders; public because
-// The Cantina's Dashboard display panel lays out entity controls with it directly.
-export { ControlButtons } from './compositions/ControlButtons'
 export { heroImageSizes } from './compositions/cardImageSizes'
 // digestRollTable — a banded d20 table as rows, highest first (the book's order);
 // digestColumnsTable — a two-roll columns table (Callsign) as its columns
@@ -162,7 +157,7 @@ export {
 // EntitySearcher (The Cantina's SheetPickerModal applies it itself).
 export { PICKER_MODAL_WIDTH } from './compositions/pickerModalWidth'
 // RollTableInstrument — THE roll table (EDL E14): a card's, a guide step's and
-// the SRD roll-table page's bands and the Cantina's Dashboard tables, banded in the
+// the SRD roll-table page's bands and the Cantina's Play tables, banded in the
 // surface tone; `titleSelect` makes its title a table picker's trigger
 export type { RollTableTitleSelect } from './compositions/RollTableInstrument'
 export { RollTableInstrument } from './compositions/RollTableInstrument'

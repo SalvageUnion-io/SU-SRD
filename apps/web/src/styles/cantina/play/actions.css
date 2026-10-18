@@ -1,0 +1,246 @@
+/*
+ * play/actions.css — Play's Actions column (docs/architecture/play.md §5, §6):
+ * the flattened list, a row's inline resolve, and the Downtime track and step.
+ *
+ * The Cantina's own stylesheet, a part of `styles/cantina/play.css`. Every row is a level-1 Row or
+ * TitledBox; these rules only lay them out and mark their state (not on
+ * hand, open, locked): they never add a frame of their own (play.md §12).
+ */
+
+/*
+ * The "Actions" Slab carries the type filter and Find on its heading line
+ * (wireframe pin 5). Where the column is too narrow for one line the tools
+ * wrap under the heading, held to the column's width, and then onto two
+ * lines themselves, so neither is ever pushed out of reach. The Slab's row
+ * and its trailing box keep their own inline layout; these only add what
+ * the Slab leaves unset (wrap, a width cap, the push to the end).
+ */
+.su-play-act-head {
+  flex-wrap: wrap;
+  row-gap: var(--space-8);
+}
+
+.su-play-act-head > div:last-child {
+  margin-left: auto;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.su-play-act-tools {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  justify-content: flex-end;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* A fieldset is min-content wide by default: let it give way, and scroll its
+   options sideways, before it ever outgrows the column. */
+.su-play-act-tools .su-seg {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.su-play-act-find {
+  flex: 1 1 160px;
+  max-width: 240px;
+}
+
+.su-play-act-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Not on hand: dashed and dimmed, as a reference unit is (ADR-051 §5). */
+.su-play-act[data-away] .su-entity-row__frame {
+  border-style: dashed;
+}
+
+.su-play-act[data-away] .su-entity-row__main {
+  opacity: 0.7;
+}
+
+/* Open: the action being resolved wears the full card's weight. */
+.su-play-act[data-open] .su-entity-row__frame {
+  border-width: var(--bw-entity);
+}
+
+/* Locked (out of range, over the Heat Capacity): dimmed, still usable. */
+.su-play-act[data-locked] .su-entity-row__main {
+  opacity: 0.8;
+}
+
+.su-play-act__need,
+.su-play-act__state {
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  white-space: nowrap;
+}
+
+.su-play-act__buttons {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  justify-content: flex-end;
+}
+
+/* The collapsed group's toggle, set as the Slab's own label. */
+.su-play-act-toggle {
+  align-items: center;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  gap: var(--space-4);
+  letter-spacing: inherit;
+  padding: 0;
+  text-transform: inherit;
+}
+
+/* A row's inline resolve: plain content in the Row's body. */
+.su-play-resolve {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.su-play-resolve__steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+.su-play-resolve__note {
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  margin: 0;
+}
+
+.su-play-resolve__roll {
+  align-items: center;
+  display: flex;
+  gap: var(--space-12);
+}
+
+.su-play-resolve__d20 {
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-size: var(--text-display);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  min-width: 40px;
+  text-align: center;
+}
+
+.su-play-resolve__band {
+  color: var(--color-ink);
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  gap: var(--space-2);
+}
+
+/* The Downtime track: ten numbered steps, the one the table is on in ink. */
+.su-play-dt-track {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-play-dt-track__step {
+  align-items: center;
+  background: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  border-radius: var(--radius-card);
+  box-sizing: border-box;
+  color: var(--color-ink);
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-note);
+  font-weight: var(--font-weight-bold);
+  height: var(--size-compact);
+  justify-content: center;
+  width: 100%;
+}
+
+button.su-play-dt-track__step {
+  cursor: pointer;
+}
+
+button.su-play-dt-track__step:disabled {
+  cursor: default;
+}
+
+.su-play-dt-track [data-state='past'] .su-play-dt-track__step {
+  background: var(--color-ink-15);
+  color: var(--color-ink-75);
+}
+
+.su-play-dt-track [data-state='now'] .su-play-dt-track__step {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+
+/* The step's lines: plain content inside its box, a hairline between them. */
+.su-play-dt-lines {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-play-dt-line {
+  align-items: center;
+  border-top: var(--bw-hairline) solid var(--color-ink-20);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  padding-block: var(--space-6);
+}
+
+.su-play-dt-line:first-child {
+  border-top: none;
+}
+
+.su-play-dt-line[data-unticked] {
+  opacity: 0.6;
+}
+
+.su-play-dt-line__label {
+  align-items: center;
+  display: inline-flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-note);
+  gap: var(--space-8);
+  text-transform: uppercase;
+}
+
+.su-play-dt-line__chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+}
+
+.su-play-dt-controls {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  justify-content: flex-end;
+}

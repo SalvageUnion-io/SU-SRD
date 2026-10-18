@@ -17,8 +17,8 @@
  *
  * ## Why it lives in `lib/` rather than under one feature folder
  *
- * The Live Sheet is not the only surface writing this way: the Dashboard applies play actions
- * as write-through patches (ADR-021), the encounter tray edits NPCs, and
+ * The Live Sheet is not the only surface writing this way: Play applies play actions
+ * as write-through patches (ADR-021), the Mediator's Opposition edits NPCs, and
  * `useEntityChoices` persists selections. All of them can be refused for
  * exactly the same reason, so the handler is app-level rather than sheet-level.
  *

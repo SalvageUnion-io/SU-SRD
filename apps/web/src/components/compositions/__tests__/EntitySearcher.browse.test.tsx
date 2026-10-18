@@ -1,6 +1,6 @@
 /**
  * EntitySearcher — browse mode: a reference browser, not a picker (the
- * Dashboard's SRD Explorer). Its own file, like the other modes, so the
+ * Play's SRD Explorer). Its own file, like the other modes, so the
  * parallel runner can spread the pool renders over its workers.
  */
 

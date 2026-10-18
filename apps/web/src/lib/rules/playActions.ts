@@ -1,5 +1,5 @@
 /**
- * playActions — the Dashboard's thin, PURE driver over the existing rules engine
+ * playActions — Play's thin, PURE driver over the existing rules engine
  * (docs/architecture/dashboard.md §5). Nothing here touches React or the store: every function takes the
  * live numbers (+ an injectable `Roll`) and returns the `Partial<Mech>` /
  * `Partial<Pilot>` write-through patch the caller (`useActionsDeck`, the slots)
@@ -7,12 +7,10 @@
  * (assert the patch) and keeps the ADR-006 pure-math boundary intact — the math
  * lives in `lib/rules/*`, this only assembles patches and readouts.
  *
- * ADR-007 boundary: non-destructive bookkeeping (Heat/EP/uses/SP/HP deltas,
- * Vent, Shutdown toggle) is assembled into an auto-apply patch; the destructive
- * Critical Damage / Critical Injury *rolls* are separate functions the caller
- * only invokes behind an explicit player confirm, and their destructive
- * consequences (mech Destroyed, accepted injury, pilot death) are NEVER folded
- * into the returned patch — they stay explicit player calls at the UI layer.
+ * ADR-007 boundary: non-destructive bookkeeping (Heat/EP/uses/SP deltas,
+ * Vent, Shutdown toggle) is assembled into an auto-apply patch; a destructive
+ * consequence (a Meltdown's mech Destroyed) is NEVER folded into the returned
+ * patch — it stays an explicit player call at the UI layer.
  */
 
 import type { ItemCondition } from 'cantina-domain/schemas/itemCondition'
@@ -21,23 +19,11 @@ import type { Pilot } from 'cantina-domain/schemas/pilot'
 import type { RangeBand } from 'cantina-domain/schemas/seat'
 import type { RefAbility, RefEquipment, RefMetaAction, RefMetaEntity } from 'salvageunion-reference'
 import { resultForTable, SalvageUnionReference } from 'salvageunion-reference'
-import type {
-  CoreRollBand,
-  CriticalDamageEffect,
-  CriticalInjuryEffect,
-  HeatCheckEffect,
-  MechDamageEffect,
-  PilotDamageEffect,
-  Roll,
-} from 'salvageunion-reference/rules'
+import type { CoreRollBand, HeatCheckEffect, Roll } from 'salvageunion-reference/rules'
 import {
-  applyMechDamage,
-  applyPilotDamage,
   canActivateAction,
   clampHeat,
   describeOverloadOutcome,
-  performCriticalDamage,
-  performCriticalInjury,
   performHeatCheck,
   performPush,
   resolveChassisRef,
@@ -54,7 +40,7 @@ import { resolveEquipment } from './pilotInventory'
 /**
  * Strip the destructive `destroyed` flag out of a shared `heatCheckPatch`
  * result. In the sheet, `heatCheckPatch` auto-sets `destroyed` on a Meltdown
- * (overload roll = 1); the Dashboard holds a STRICTER ADR-007 line — a Meltdown's
+ * (overload roll = 1); Play holds a STRICTER ADR-007 line — a Meltdown's
  * mech-destruction is a player-confirmed step (like Critical Damage), never
  * silent bookkeeping. All the non-destructive fields (Heat, shutdown,
  * vulnerable, SP) still auto-apply; `meltdown` tells the caller to offer the
@@ -99,7 +85,7 @@ export function heatCheckOncePatch(args: { heat: number; currentSP: number; roll
  * Emergency Vent: dump Heat to 0 and become Vulnerable (dashboard.md §5.1 — Vent and
  * Shutdown are distinct Reactor-bay controls: Vent sets Heat→0 + `vulnerable`,
  * Shutdown toggles the flag). NB the tabletop rule folds a full shutdown into
- * venting; the Dashboard keeps them separate — hit Shutdown too for
+ * venting; Play keeps them separate — hit Shutdown too for
  * the strict-SRD sequence.
  */
 export const VENT_PATCH: Partial<Mech> = {
@@ -116,92 +102,12 @@ export function shutdownTogglePatch(shutdown: boolean | undefined): Partial<Mech
  * One-line readout for a resolved Heat Check. The outcome sentence ladder is
  * `describeOverloadOutcome` in the rules package (shared with the Push readout,
  * which prefixes the same tail with its `+2 Heat → N.` head) — only the head is
- * the Dashboard's own.
+ * Play's own.
  */
 export function describeHeatCheck(effect: HeatCheckEffect): string {
   const r = effect.result
   const head = `Heat Check ${r.heatCheckRoll} vs Heat ${r.heatAtCheck}`
   return `${head} — ${describeOverloadOutcome(r)}`
-}
-
-// ---------------------------------------------------------------------------
-// Damage → Critical (dashboard.md §5.3)
-// ---------------------------------------------------------------------------
-
-/**
- * Self-declared SP damage to the boarded mech (SP-listed, 1:1). Auto-applies
- * the clamped SP; `criticalDue` tells the caller to offer the (player-confirmed)
- * Critical Damage roll when this hit left the mech at 0 SP.
- */
-export function mechDamagePatch(args: { currentSP: number; amount: number; vulnerable: boolean }): {
-  patch: Partial<Mech>
-  effect: MechDamageEffect
-} {
-  const effect = applyMechDamage({ ...args, kind: 'sp' })
-  return { patch: { currentSP: effect.nextSP }, effect }
-}
-
-/**
- * The Critical Damage roll (player-confirmed step). Only the non-destructive
- * `nextSP` override (Miraculous Survival → 1 SP) crosses into the patch;
- * `destroyed` / `chassisDamaged` / `requiresPlayerChoice` stay explicit player
- * calls (ADR-007) and are surfaced as advisory text by the caller.
- */
-export function critDamagePatch(roll: Roll): {
-  patch: Partial<Mech>
-  effect: CriticalDamageEffect
-} {
-  const effect = performCriticalDamage({ roll })
-  const patch: Partial<Mech> = {}
-  if (effect.nextSP !== null) patch.currentSP = effect.nextSP
-  return { patch, effect }
-}
-
-/** Self-declared HP damage to the on-foot pilot (HP-listed, 1:1). */
-export function pilotDamagePatch(args: {
-  currentHP: number
-  amount: number
-  vulnerable: boolean
-}): { patch: Partial<Pilot>; effect: PilotDamageEffect } {
-  const effect = applyPilotDamage({ ...args, kind: 'hp' })
-  return { patch: { currentHP: effect.nextHP }, effect }
-}
-
-/**
- * The Critical Injury roll (player-confirmed step). Only the non-destructive
- * `nextHP` override crosses into the patch; the max-HP-reducing injury,
- * Unconscious condition, and death stay explicit player calls (ADR-007).
- */
-export function critInjuryPatch(roll: Roll): {
-  patch: Partial<Pilot>
-  effect: CriticalInjuryEffect
-} {
-  const effect = performCriticalInjury({ roll })
-  const patch: Partial<Pilot> = {}
-  if (effect.nextHP !== null) patch.currentHP = effect.nextHP
-  return { patch, effect }
-}
-
-export function describeCritDamage(effect: CriticalDamageEffect): string {
-  const map: Record<CriticalDamageEffect['result']['outcome'], string> = {
-    catastrophic: 'Catastrophic — mech destroyed (confirm below).',
-    'system-destruction': 'System Destruction — chassis Damaged; mark a System on the sheet.',
-    'module-destruction': 'Module Destruction — chassis Damaged; mark a Module on the sheet.',
-    'core-damage': 'Core Damage — chassis Damaged & inoperable; pilot to 0 HP unless they escape.',
-    'miraculous-survival': 'Miraculous Survival — mech Intact at 1 SP.',
-  }
-  return `Critical Damage ${effect.result.roll}: ${map[effect.result.outcome]}`
-}
-
-export function describeCritInjury(effect: CriticalInjuryEffect): string {
-  const map: Record<CriticalInjuryEffect['result']['outcome'], string> = {
-    fatal: 'Fatal Injury — the pilot dies (confirm on the sheet).',
-    'major-injury': 'Major Injury — −2 max HP until healed + Unconscious.',
-    'minor-injury': 'Minor Injury — −1 max HP until healed + Unconscious.',
-    unconscious: 'Unconscious — stable at 0 HP until they regain ≥1 HP.',
-    'miraculous-survival': 'Miraculous Survival — 1 HP, conscious.',
-  }
-  return `Critical Injury ${effect.result.roll}: ${map[effect.result.outcome]}`
 }
 
 // ---------------------------------------------------------------------------
@@ -215,7 +121,7 @@ export type PlayActionStamp = 'CHS' | 'SYS' | 'MOD' | 'ABL' | 'EQP'
 export type PlayActionCurrency = 'EP' | 'AP'
 
 /**
- * A single activatable action. The Dashboard deck lists EVERY action of a
+ * A single activatable action. Play's Actions list shows EVERY action of a
  * multi-action system/module/ability as its own card (not just the primary),
  * so `economy` is PER ACTION (not the item-wide `itemEconomy`). For pilot
  * (on-foot) actions the `economy.epCost` holds the AP cost and `currency` is
@@ -240,20 +146,6 @@ export type PlayAction = {
   /** Live condition of the owning item ('intact' for chassis/pilot abilities). */
   condition: ItemCondition
 }
-
-/** A named bucket of actions (grouped by source owner). */
-export type PlayActionGroup = { label: string; items: PlayAction[] }
-
-/** The timing-filter tabs (one per actionType; 'React' maps to 'Reaction'). */
-export type TimingTab = 'All' | 'Turn' | 'Short' | 'Long' | 'Free' | 'React'
-export const TIMING_TABS: readonly TimingTab[] = [
-  'All',
-  'Turn',
-  'Short',
-  'Long',
-  'Free',
-  'React',
-] as const
 
 function traitAmount(trait: { amount?: unknown }): number {
   return typeof trait.amount === 'number' ? trait.amount : 0
@@ -283,9 +175,8 @@ function deckActions(entity: RefMetaEntity): RefMetaAction[] {
 /**
  * The boarded mech's activatable actions, flat — every action of the chassis,
  * each installed System, and each installed Module surfaces as its own
- * `PlayAction`. Filtering is a UI concern (see `groupBySource` — which now only
- * feeds the source filter chips — and `TIMING_TABS`), kept out of this pure
- * builder.
+ * `PlayAction`. Filtering is a UI concern (Play's Actions list,
+ * `playActions.model.ts`), kept out of this pure builder.
  */
 export function buildMechActions(mech: Mech): PlayAction[] {
   const out: PlayAction[] = []
@@ -395,15 +286,8 @@ export function buildPilotActions(pilot: Pilot): PlayAction[] {
 }
 
 // ---------------------------------------------------------------------------
-// Deck filtering / grouping / range (pure — the UI reads these)
+// Range (pure — the UI reads these)
 // ---------------------------------------------------------------------------
-
-/** Whether a timing tab admits this action (`All` admits everything). */
-export function tabMatchesAction(tab: TimingTab, action: RefMetaAction): boolean {
-  if (tab === 'All') return true
-  const want = tab === 'React' ? 'Reaction' : tab
-  return action.actionType === want
-}
 
 /**
  * Whether an action's declared range covers the given band. Actions with NO
@@ -431,37 +315,6 @@ export function actionReachable(
   return canActivateAction(currentHeat, pa.economy.heat, heatCap)
 }
 
-/** Count reachable vs total for the reach readout ("7 / 12 in reach"). */
-export function reachSummary(
-  actions: PlayAction[],
-  band: RangeBand,
-  currentHeat: number,
-  heatCap: number
-): { inReach: number; total: number } {
-  let inReach = 0
-  for (const pa of actions) {
-    if (actionReachable(pa, band, currentHeat, heatCap)) inReach += 1
-  }
-  return { inReach, total: actions.length }
-}
-
-/** Group actions by their source owner (chassis / each item / ability), in order. */
-export function groupBySource(actions: PlayAction[]): PlayActionGroup[] {
-  const groups: PlayActionGroup[] = []
-  const index = new Map<string, PlayActionGroup>()
-  for (const a of actions) {
-    const key = `${a.stamp}:${a.ownerName}`
-    let g = index.get(key)
-    if (!g) {
-      g = { label: a.ownerName, items: [] }
-      index.set(key, g)
-      groups.push(g)
-    }
-    g.items.push(a)
-  }
-  return groups
-}
-
 // ---------------------------------------------------------------------------
 // Resolve flow — cost choice, variable Hot, Apply outcome (dashboard.md §5.2)
 // ---------------------------------------------------------------------------
@@ -469,7 +322,7 @@ export function groupBySource(actions: PlayAction[]): PlayActionGroup[] {
 /**
  * Whether the action offers a genuine EP-vs-AP currency choice (§4.2). The
  * `activationCurrency` enum is descriptive text no rules helper consumes; a real
- * choice ('EP or AP') is authored in the Dashboard resolve flow as a radio pair.
+ * choice ('EP or AP') is authored in Play's resolve as a radio pair.
  */
 export function hasCurrencyChoice(action: RefMetaAction): boolean {
   return action.activationCurrency === 'EP or AP'
@@ -566,7 +419,7 @@ export function pilotActivationPatch(args: { apCost: number; currentAP: number }
  * The write-through patch for one activation — spend EP, add Hot Heat (clamped
  * to cap), tick the Uses counter down. Applied by `useActionsDeck`; the Uses
  * map is the `itemUses` shape the sheet's hand edit (`setItemUses` in
- * `mechSheetActions.model.ts`) writes, so the Dashboard and the sheet can't drift.
+ * `mechSheetActions.model.ts`) writes, so Play and the sheet can't drift.
  */
 export function activationPatch(args: {
   slug: string

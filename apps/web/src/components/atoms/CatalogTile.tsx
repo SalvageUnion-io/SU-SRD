@@ -6,7 +6,7 @@ import type { CSSVarStyle } from '../../styles/cssVars'
 import { FOCUS_RING } from './interaction'
 
 /**
- * CatalogTile — the catalog tile the Dashboard's SRD Explorer drills through.
+ * CatalogTile — the catalog tile Play's SRD Explorer drills through.
  * The caller resolves the colours and name and passes them in; this owns the
  * tile markup.
  *
@@ -27,7 +27,7 @@ import { FOCUS_RING } from './interaction'
 type CatalogTileProps = {
   /**
    * Drill in place — the tile is a `<button>`. The SRD Explorer shows the
-   * catalog inside a panel, where a link would take the player off the Dashboard.
+   * catalog inside a panel, where a link would take the player out of Play.
    */
   onActivate: () => void
   name: string

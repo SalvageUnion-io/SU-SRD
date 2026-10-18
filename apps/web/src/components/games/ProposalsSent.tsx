@@ -13,7 +13,7 @@ import { useQuery } from 'convex/react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { ProposalsList } from '../mediator/ProposalsList'
+import { ProposalsList } from '../play/mediator/ProposalsList'
 import { HubSection } from './HubSection'
 
 export function ProposalsSent({ gameId }: { gameId: Id<'games'> }) {
@@ -26,7 +26,7 @@ export function ProposalsSent({ gameId }: { gameId: Id<'games'> }) {
         limit={limit}
         now={Date.now()}
         onMore={() => setLimit((n) => n + PROPOSALS_PAGE)}
-        empty="Nothing sent yet. Propose a change from the Mediator dashboard."
+        empty="Nothing sent yet. Propose a change from Mediate, in Play."
       />
     </HubSection>
   )

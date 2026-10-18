@@ -11,10 +11,17 @@ is [dashboard.md](../architecture/dashboard.md).
 the phone form. Below the canvas's floor the slots become unit tabs, the
 display's other tabs go behind a menu, and the rotate notice is retired.
 
-§1's deferred Mediator Dashboard is built
-([mediator-dashboard.md](../architecture/mediator-dashboard.md)): a
-separate surface at `/mediator/$gameId` in ADR-021's Adjudicate mode. It
-reuses §9's canvas and §7's instruments and writes nothing a player owns.
+**Partly superseded by [ADR-051](051-play-mode.md):** Play replaces the
+Dashboard and the Mediator Dashboard ([play.md](../architecture/play.md)).
+ADR-051 supersedes §1 (Game-only), §3 (the Major and Minor slots), §4 (the
+tabbed display), §5's layout sentence and §6's route, and amends §2 (solo
+seats, solo Downtime, presence). §2's seat, §5's crawler and boarding rules,
+§6 to §8 and §9's fixed scaled canvas stand.
+
+§1's deferred Mediator Dashboard was built
+([mediator-dashboard.md](../architecture/mediator-dashboard.md)) in ADR-021's
+Adjudicate mode, and is now Play's Mediator screen (`/play/game/$gameId`). It
+reuses §9's canvas and writes nothing a player owns.
 
 This is the one Dashboard decision record. **It supersedes [ADR-015](../ARCHITECTURE.md#decisions)**
 and the five sub-decisions merged into it (ADRs 016–020): §6 to §9 restate the

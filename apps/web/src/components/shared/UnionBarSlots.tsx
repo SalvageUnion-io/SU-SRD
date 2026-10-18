@@ -6,7 +6,7 @@ import { createPortal } from 'react-dom'
 import { appPath } from '../../lib/appBase'
 import { CANTINA_NAV, inAppRoute, isCurrent } from '../../lib/barLinks'
 import type { UnionSlot } from '../../shell/unionSlots'
-import { slotSelector, UNION_SLOTS } from '../../shell/unionSlots'
+import { isPlayRoute, slotSelector, UNION_SLOTS } from '../../shell/unionSlots'
 import { UnionDrawer } from '../unionBar/UnionDrawer'
 import { SiteLink } from './AppLink'
 
@@ -19,7 +19,9 @@ import { SiteLink } from './AppLink'
  * the phone's search, avatar and drawer. Portals keep the app's context, so
  * what goes in a slot reads the connection and the router as if the bar were
  * part of the tree. It also routes a click on one of the bar's own links in
- * place, and marks the nav link of the page you are on.
+ * place, and marks the nav link of the page you are on, and the mode tab:
+ * the shell serves Build as the current tab, and on Play's routes the Play
+ * tab is.
  *
  * The slots stay content-agnostic, so this file knows nothing about accounts,
  * Convex or Games; `routes/__root.tsx` fills them
@@ -98,6 +100,18 @@ export function UnionBarSlots({
     bar.addEventListener('click', onClick)
     return () => bar.removeEventListener('click', onClick)
   }, [router])
+
+  // The mode tab you are in: Play on Play's routes, Build everywhere else in
+  // the app. The shell serves Build's.
+  useEffect(() => {
+    const here = isPlayRoute(pathname) ? 'play' : 'build'
+    for (const tab of document.querySelectorAll<HTMLAnchorElement>(
+      '.su-union-bar__tab[data-tool="build"], .su-union-bar__tab[data-tool="play"]'
+    )) {
+      if (tab.dataset.tool === here) tab.setAttribute('aria-current', 'true')
+      else tab.removeAttribute('aria-current')
+    }
+  }, [pathname])
 
   // "You are here" on the nav, which the shell cannot know.
   useEffect(() => {

@@ -106,7 +106,7 @@ describe('starter-set template', () => {
     await u.as.mutation(api.ownership.claim, { table: 'pilots', entityId: seeded._id })
     const mine = await u.as.query(api.entities.listMine, {})
     // The template's body says `gameId: null`; the row is in the Game, and the
-    // Dashboard opens only a pilot whose local copy says so.
+    // Play opens only a pilot whose local copy says so.
     expect(mine.pilots.map((p) => (p.body as { gameId: unknown }).gameId)).toEqual([gameId])
   })
 

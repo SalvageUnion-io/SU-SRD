@@ -8,17 +8,17 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
  *  - every member gets Crew & seats, their answer queue and The
  *    Game; only the Organizer gets the admin (the invite link, Hand over,
  *    ending the game) — the server refuses the rest
- *  - only the Mediator's Launch Dashboard opens the Mediator Dashboard, and
- *    only they get Proposals you sent; the instruments themselves live on that dashboard
+ *  - only the Mediator's Mediate opens Play's Mediator screen, and only they
+ *    get Proposals you sent; the instruments themselves live in Play
  *  - `games.get` answering `null` reads as an explanation with a way back to
  *    Shelves, and still loading is not the same as not a member
  *
- * And a player's way into the Dashboard (ADR-038 §1): Launch Dashboard in the
- * band, always there, launching only while the Game has a Mediator, asking
- * only which pilot — yours pre-selected when you have one —
- * and offering only pilots this browser holds, since those are all the gate
- * can open. That last is checked end to end: each offered pilot is handed to
- * the real `DashboardGate`, with the Dashboard itself stubbed.
+ * And a player's way into Play: Play in the band, always there, with or
+ * without a Mediator (ADR-051 §4), asking only which pilot — yours
+ * pre-selected when you have one — and offering only pilots this browser
+ * holds, since those are all the gate can open. That last is checked end to
+ * end: each offered pilot is handed to the real `PlayGate`, with the Cockpit
+ * itself stubbed.
  *
  * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
  */
@@ -42,7 +42,7 @@ const convexMocks = await installConvexMocks({
       mutations.push({ name: getFunctionName(ref as never), args })
     },
   },
-  // A router that records where Launch Dashboard goes. `useRouter` answers, so
+  // A router that records where Play goes. `useRouter` answers, so
   // `AppLink` renders this `Link`: a plain anchor carrying its props.
   also: {
     '@tanstack/react-router': () => ({
@@ -58,16 +58,16 @@ const convexMocks = await installConvexMocks({
       }),
     }),
     // Relative to `convexMock.ts`, not this file. Whether the gate opens it,
-    // and for which pilot, is all the launch tests need of the Dashboard.
-    '../dashboard/Dashboard': () => ({
-      Dashboard: ({ pilotId }: { pilotId: string }) =>
-        createElement('p', null, `Dashboard for ${pilotId}`),
+    // and for which pilot, is all the launch tests need of the Cockpit.
+    '../play/PlayCockpit': () => ({
+      PlayCockpit: ({ target }: { target: { pilotId: string } }) =>
+        createElement('p', null, `Play for ${target.pilotId}`),
     }),
   },
 })
 
 const { GameHub } = await import('../GameHub')
-const { DashboardGate } = await import('../../dashboard/DashboardGate')
+const { PlayGate } = await import('../../play/PlayGate')
 const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
 const { hydrateStores } = await import('../../__tests__/hydrateStores')
 const { useEntityStore } = await import('../../../stores/entityStore')
@@ -140,7 +140,7 @@ describe('the sections under the roster (board M2)', () => {
     for (const name of ['Crew & seats', 'Awaiting your answer', 'The Game']) {
       expect(heading(name)).toBeTruthy()
     }
-    // Downtime runs on the Dashboards, not on the Game page.
+    // Downtime runs in Play, not on the Game page.
     expect(heading('Downtime')).toBeNull()
     // Below the lists: the roster's columns come first in the document.
     const pilots = screen.getByRole('heading', { level: 2, name: 'Pilots' })
@@ -277,12 +277,12 @@ describe('the Mediator on the Game page', () => {
   test('a player, or an Organizer who does not mediate, gets no Mediator door', async () => {
     await renderHub({ 'games:get': { ...GAME, organizer: true } })
     expect(screen.queryByText('You mediate')).toBeNull()
-    // Their Launch Dashboard is the player's button, not a link to /mediator.
-    expect(screen.queryByRole('link', { name: 'Launch Dashboard' })).toBeNull()
+    // Their way in is the player's Play button, not the Mediator's link.
+    expect(screen.queryByRole('link', { name: 'Mediate' })).toBeNull()
     expect(heading('Proposals you sent')).toBeNull()
   })
 
-  test('the Mediator gets the band’s door to the dashboard and the proposals they sent', async () => {
+  test('the Mediator gets the band’s door to Play and the proposals they sent', async () => {
     await renderHub({
       'games:get': { ...GAME, mediator: true },
       'proposals:sent': [
@@ -303,13 +303,11 @@ describe('the Mediator on the Game page', () => {
     })
 
     expect(screen.getByText('You mediate')).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'Launch Dashboard' }).getAttribute('href')).toBe(
-      '/mediator/g1'
-    )
+    expect(screen.getByRole('link', { name: 'Mediate' }).getAttribute('href')).toBe('/play/game/g1')
     expect(heading('Proposals you sent')).toBeTruthy()
     expect(screen.getByText('Judge · HP → 4 · “Ejection burn”')).toBeTruthy()
     expect(screen.getByText('Pending')).toBeTruthy()
-    // The instruments live on the Mediator Dashboard now, not on this page.
+    // The instruments live in Play, not on this page.
     expect(screen.queryByRole('button', { name: 'Propose' })).toBeNull()
   })
 })
@@ -333,7 +331,7 @@ describe('a game the viewer is not in', () => {
   })
 })
 
-describe('Launch Dashboard', () => {
+describe('Play from the Game page', () => {
   /** A Game whose Mediator is Beefcake; the viewer, Ash, plays. */
   const MEDIATED = [
     { userId: 'u1', displayName: 'Ash', mediator: false, organizer: false },
@@ -392,11 +390,11 @@ describe('Launch Dashboard', () => {
     for (const [id] of HELD) await store.forget('pilot', id)
   })
 
-  const launcher = () => screen.queryByRole('button', { name: 'Launch Dashboard' })
+  const launcher = () => screen.queryByRole('button', { name: 'Play' })
 
   async function openPicker(): Promise<HTMLElement> {
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Launch Dashboard' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Play' }))
     })
     return screen.getByRole('dialog')
   }
@@ -407,7 +405,7 @@ describe('Launch Dashboard', () => {
       .queryAllByRole('radio')
       .map((r) => r.textContent)
 
-  /** The body of `/dashboard/<id>`, signed in and connected. */
+  /** The body of `/play/<id>`, signed in and connected. */
   async function openGate(id: string): Promise<void> {
     const connected = {
       mode: 'connected' as const,
@@ -418,7 +416,7 @@ describe('Launch Dashboard', () => {
     await act(async () => {
       render(
         <ConnectionContext.Provider value={connected}>
-          <DashboardGate id={id} />
+          <PlayGate id={id} />
         </ConnectionContext.Provider>
       )
     })
@@ -435,34 +433,33 @@ describe('Launch Dashboard', () => {
     ).toBeTruthy()
   })
 
-  test('the Mediator’s is one Launch Dashboard too, opening the Mediator dashboard', async () => {
+  test('the Mediator’s is one Mediate link instead, opening Play’s Mediator screen', async () => {
     await renderHub({
       'games:get': { ...GAME, mediator: true, organizer: true },
       'games:members': ASH_MEDIATES,
       'mediator:amMediator': true,
     })
     expect(launcher()).toBeNull()
-    const links = screen.getAllByRole('link', { name: 'Launch Dashboard' })
-    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/mediator/g1'])
+    const links = screen.getAllByRole('link', { name: 'Mediate' })
+    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/play/game/g1'])
   })
 
-  test('a Game with no Mediator still offers it; the dialog says why nothing launches', async () => {
-    await renderHub()
+  test('a Game with no Mediator plays too', async () => {
+    await renderHub({ 'entities:listForGame': listing(PILOTS) })
     const dialog = await openPicker()
-    expect(within(dialog).getByText(/once this Game has a Mediator/)).toBeTruthy()
-    expect(offered(dialog)).toEqual([])
-    expect(within(dialog).getByRole('button', { name: 'Launch' }).hasAttribute('disabled')).toBe(
-      true
-    )
+    expect(offered(dialog)).toEqual(['Vex Arlo (Pilot)YouSelected', 'Mira (Pilot)You'])
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Play' }))
+    })
+    expect(navigations).toEqual([{ to: '/play/$pilotId', params: { pilotId: 'hub-mine' } }])
   })
 
   test('nothing shows while the crew is still loading', async () => {
     await renderHub({ 'games:members': undefined })
     expect(launcher()).toBeNull()
-    expect(screen.queryByText(/opens once this Game has a Mediator/)).toBeNull()
   })
 
-  test('asks only for the pilot, yours first, with your first one chosen; Launch opens it', async () => {
+  test('asks only for the pilot, yours first, with your first one chosen; Play opens it', async () => {
     await renderHub({ 'games:members': MEDIATED, 'entities:listForGame': listing(PILOTS) })
     const dialog = await openPicker()
 
@@ -474,9 +471,9 @@ describe('Launch Dashboard', () => {
     expect(radios.map((r) => r.getAttribute('aria-checked') === 'true')).toEqual([true, false])
 
     await act(async () => {
-      fireEvent.click(within(dialog).getByRole('button', { name: 'Launch' }))
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Play' }))
     })
-    expect(navigations).toEqual([{ to: '/dashboard/$pilotId', params: { pilotId: 'hub-mine' } }])
+    expect(navigations).toEqual([{ to: '/play/$pilotId', params: { pilotId: 'hub-mine' } }])
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
@@ -509,7 +506,7 @@ describe('Launch Dashboard', () => {
     expect(offered(dialog)).toHaveLength(1)
     const radio = within(dialog).getByRole('radio', { name: /Pre-gen/ })
     expect(radio.getAttribute('aria-checked')).toBe('false')
-    const launch = within(dialog).getByRole('button', { name: 'Launch' })
+    const launch = within(dialog).getByRole('button', { name: 'Play' })
     expect(launch.hasAttribute('disabled')).toBe(true)
 
     fireEvent.click(radio)
@@ -517,7 +514,7 @@ describe('Launch Dashboard', () => {
     await act(async () => {
       fireEvent.click(launch)
     })
-    expect(navigations).toEqual([{ to: '/dashboard/$pilotId', params: { pilotId: 'hub-pregen' } }])
+    expect(navigations).toEqual([{ to: '/play/$pilotId', params: { pilotId: 'hub-pregen' } }])
   })
 
   test('a viewer who holds none of the Game’s pilots is told so, and offered nothing', async () => {
@@ -531,12 +528,10 @@ describe('Launch Dashboard', () => {
     expect(
       within(dialog).getByText(/None of this Game's pilots is saved in this browser/)
     ).toBeTruthy()
-    expect(within(dialog).getByRole('button', { name: 'Launch' }).hasAttribute('disabled')).toBe(
-      true
-    )
+    expect(within(dialog).getByRole('button', { name: 'Play' }).hasAttribute('disabled')).toBe(true)
   })
 
-  test('every pilot it offers opens the Dashboard at the gate, not "Pilot not found"', async () => {
+  test('every pilot it offers opens Play at the gate, not "Pilot not found"', async () => {
     await renderHub({
       'games:members': MEDIATED,
       'entities:listForGame': listing([...PILOTS, PREGEN]),
@@ -548,7 +543,7 @@ describe('Launch Dashboard', () => {
       fireEvent.click(within(dialog).getAllByRole('radio')[i] as HTMLElement)
       navigations.length = 0
       await act(async () => {
-        fireEvent.click(within(dialog).getByRole('button', { name: 'Launch' }))
+        fireEvent.click(within(dialog).getByRole('button', { name: 'Play' }))
       })
       ids.push((navigations[0] as { params: { pilotId: string } }).params.pilotId)
       dialog = await openPicker()
@@ -557,7 +552,7 @@ describe('Launch Dashboard', () => {
 
     for (const id of ids) {
       await openGate(id)
-      expect(screen.getByText(`Dashboard for ${id}`)).toBeTruthy()
+      expect(screen.getByText(`Play for ${id}`)).toBeTruthy()
     }
     expect(screen.queryByRole('heading', { name: 'Pilot not found' })).toBeNull()
 

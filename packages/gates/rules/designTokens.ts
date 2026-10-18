@@ -83,14 +83,15 @@ const TYPE_FLOOR_PX = 11
 
 /**
  * Where the light speckle may never sit (ruleset §3.5 "Texture"): buttons,
- * fields, the Dashboard and tooltips, by the files that draw them. Paper, the
+ * fields, Play and tooltips, by the files that draw them. Paper, the
  * fifth surface, is not a file — it is caught on the line instead (see
  * `PAPER_GROUND`).
  */
 const TEXTURE_FORBIDDEN: readonly RegExp[] = [
-  // The Dashboard: The Cantina's cockpit and its stylesheets.
-  /\/dashboard\//,
-  /\/Dashboard\w*\.(?:tsx?|css)$/,
+  // Play: The Cantina's cockpit, and its canvas and Play stylesheets.
+  /\/components\/play\//,
+  /\/styles\/cantina\/(?:dashboard|play)\//,
+  /\/(?:dashboard|play)\.css$/,
   // Buttons: Button, its recipe, and every *Button component.
   /Button\w*\.tsx?$/,
   /\/buttonVariants\.ts$/,
@@ -205,16 +206,16 @@ const TOKEN_RULES: TokenRule[] = [
   {
     id: 'texture-placement',
     mode: 'zero',
-    rule: 'ruleset §3.5 — the speckle sits on bands and ink, never on paper, buttons, fields, the Dashboard or tooltips',
+    rule: 'ruleset §3.5 — the speckle sits on bands and ink, never on paper, buttons, fields, Play or tooltips',
     // The light speckle (board 05c) is ink grain on a colour band and paper
     // flecks on an ink ground. On a button it reads as dirt on the one thing
     // that must read clean; on a field it fights the text being typed; on a
-    // tooltip it is noise at glance size; the Dashboard is an instrument; and
+    // tooltip it is noise at glance size; Play is an instrument panel; and
     // on paper there is no band for it to belong to. A texture reference —
     // a filter id, a `--texture-*` property or the `texture` / `speckle`
     // tokens — is a finding in a file that draws one of those surfaces, or on
     // a line that also paints a paper ground.
-    fix: 'Put the speckle on the colour band or ink ground behind the content (a chapter band, a tone header, an ink banner, the Union bar), never on paper, a button, a field, the Dashboard or a tooltip.',
+    fix: 'Put the speckle on the colour band or ink ground behind the content (a chapter band, a tone header, an ink banner, the Union bar), never on paper, a button, a field, Play or a tooltip.',
     pattern:
       /\bsu-(?:blot|speck|fleck)\b|--texture-[a-z-]+|\b(?:texture|speckle)\.(?:blotOpacity|speckOpacity|fleckOpacity|filters|grains)\b|\btokens\.(?:texture|speckle)\b/g,
     keep: (_match, line, file) =>
@@ -259,7 +260,7 @@ const EXEMPTIONS: Exemption[] = [
     file: 'apps/web/src/components/atoms/Button.tsx',
     rules: ['rust-allowlist'],
     reason:
-      'THE rust allowlist (ruleset §3.1): rust means "do something", and Button is the thing that does. Every action, the Dashboard cost-pennant button included, is painted here or by buttonVariants.',
+      'THE rust allowlist (ruleset §3.1): rust means "do something", and Button is the thing that does. Every action, in Play too, is painted here or by buttonVariants.',
   },
   {
     file: 'apps/web/src/components/atoms/buttonVariants.ts',
@@ -301,7 +302,7 @@ const EXEMPTIONS: Exemption[] = [
     file: 'apps/web/src/components/catalog/catalogColors.ts',
     rules: ['gradient'],
     reason:
-      "All three gradients are HARD-STOP patterns, which the gradient rule's own fix text allows ('hard colour stops if you mean a pattern') — the tech-level ramp repeats each --color-tl-N twice at exact boundaries, and the ability-tier / class gradients do the same. No shading, and every stop is a token. A catalog tile stands in for a whole SPREAD of entities (six tech levels, three ability tiers, core→hybrid classes) rather than one hue, which is what the banding says. Not new code: this file lived in apps/web, which the guard does not scan, and only became visible when it moved into the shared library to be shared with the Dashboard's SRD Explorer.",
+      "All three gradients are HARD-STOP patterns, which the gradient rule's own fix text allows ('hard colour stops if you mean a pattern') — the tech-level ramp repeats each --color-tl-N twice at exact boundaries, and the ability-tier / class gradients do the same. No shading, and every stop is a token. A catalog tile stands in for a whole SPREAD of entities (six tech levels, three ability tiers, core→hybrid classes) rather than one hue, which is what the banding says. Not new code: this file lived in apps/web, which the guard does not scan, and only became visible when it moved into the shared library to be shared with Play's SRD Explorer.",
   },
   {
     file: 'apps/web/src/components/atoms/CatalogTile.tsx',

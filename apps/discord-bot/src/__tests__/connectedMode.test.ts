@@ -32,6 +32,9 @@ function clientReturning(result: CantinaResult<unknown>): CantinaClient {
     games: answer,
     mineForAutocomplete: answer,
     sheet: answer,
+    gamesForAutocomplete: answer,
+    bindChannel: answer,
+    unbindChannel: answer,
   }
 }
 

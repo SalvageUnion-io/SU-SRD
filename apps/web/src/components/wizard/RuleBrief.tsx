@@ -37,7 +37,7 @@ const citeStyle = {
 } satisfies CSSProperties
 
 /**
- * RuleBrief — the rule a wizard step (or a blocked Dashboard action) answers
+ * RuleBrief — the rule a wizard step (or a blocked Play action) answers
  * to: an untitled `Box` inside the step's own untitled frame, the rule text on
  * its paper and its citation under it. The step's title names the section; the
  * box carries no title of its own (owner's call, 2026-10-17), only the

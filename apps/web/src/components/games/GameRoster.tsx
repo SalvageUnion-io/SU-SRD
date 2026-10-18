@@ -35,8 +35,7 @@
  * editable when the row is yours to edit — your own pilots and mechs, and the
  * crawler when you run the table (ADR-038 §5) — and read-only and live
  * otherwise; `entities.locate` decides and `SheetView` renders it. No row
- * launches the Dashboard: that is the Game band's Launch Dashboard chip
- * (`LaunchDashboard`, ADR-038 §1).
+ * opens Play: that is the Game band's Play chip (`LaunchPlay`).
  *
  * ## Every verb that changes who has a build asks first
  *

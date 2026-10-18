@@ -1,0 +1,33 @@
+/*
+ * play/phone.css — Play's phone form (play.md §11, `PlayPhone`): tabs under
+ * the pinned vitals, below the canvas's floor.
+ *
+ * Only what a style object cannot say lives here (ADR-046): rules over the
+ * column components the tabs reuse, which are laid out for a 1280×800 canvas.
+ * The touch floor is `.su-dash-phone`'s (the host's scope,
+ * `dashboard/DashboardPhone.css`): every control at least 44×44.
+ */
+
+/* The tab row's labels never shrink past reading: the row is the thumb's. */
+.su-play-phone [role='tablist'] > [role='tab'] {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/*
+ * The Situation switch shares the screen's width (`Segmented`'s `fill`), but
+ * by what each option says, not in equal thirds: "Downtime 🔒" needs more of
+ * the row than "Board".
+ */
+.su-play-phone .su-seg[data-fill] > .su-seg__option {
+  flex: 1 1 auto;
+  padding: 0 var(--space-8);
+}
+
+/*
+ * The Downtime track: ten steps at the touch floor do not fit one phone row
+ * (10 × 44px), so they take two rows of five.
+ */
+.su-play-phone .su-play-dt-track {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}

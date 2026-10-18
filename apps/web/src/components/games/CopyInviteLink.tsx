@@ -1,6 +1,6 @@
 /**
- * The Game's invite URL, the Organizer's: "Copy invite link" (the Game page
- * and the Dashboard's Crew tab, board D2) and "Reset link" (the Game page).
+ * The Game's invite URL, the Organizer's, on the Game page: "Copy invite
+ * link" and "Reset link".
  *
  * Copying hands out the Game's one URL (`invites.link`); pressing it again
  * copies the same one. Resetting mints a new URL (`invites.reset`), and the

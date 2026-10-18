@@ -8,12 +8,12 @@
  * lifecycle transactions on the guided modes, so this control is an exception —
  * a **sanctioned** one, recorded in the "Sanctioned Live-Sheet transactions"
  * table in `docs/ARCHITECTURE.md#live-sheet`, the authoritative placement doc.
- * The short version: the crawler has no Dashboard presence, the whole economy
+ * The short version: Play runs no crawler economy, the whole economy
  * hangs off the crawler hero's lozenges, nothing here blocks (every gate is a
  * disabled button plus a visible advisory), and `scrapPool` stays hand-editable
  * on the same sheet, so this is a convenience rather than the only door. If the
- * crawler ever gets a Dashboard presence, these three dialogs move there and
- * retag `DASHBOARD_TXN`.
+ * Play ever takes the crawler's economy, these three dialogs move there and
+ * retag `PLAY_TXN`.
  *
  * Its writes are therefore `LIVE_SHEET_TXN`, not `LIVE_SHEET_MANUAL`: a rolled
  * Deterioration is not somebody typing in a box.

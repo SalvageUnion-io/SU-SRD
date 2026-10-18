@@ -106,15 +106,15 @@ function clickButton(name: RegExp) {
 }
 
 describe('MechSheet — no Use transaction on the Free-Edit sheet (ADR-021)', () => {
-  test('a system offers no Use button — using a system is a Dashboard act', () => {
+  test('a system offers no Use button — using a system is a Play act', () => {
     // Push / Heat Check / "use a system" are Guided-Play transactions that live
-    // on the Dashboard (see dashboard/useActionsDeck), never on the Free-Edit Live Sheet.
+    // in Play (see play/useActionsDeck), never on the Free-Edit Live Sheet.
     const mech = makeMech({ systems: ['smoke-machine'], currentEP: 5 })
     render(<MechSheet mech={mech} chassis={fakeChassis} store={makeStore(mech, [])} />)
 
     // The system card IS rendered (so the absent-Use assertion is meaningful)…
     expect(screen.getAllByText(/Smoke Machine/i).length).toBeGreaterThan(0)
-    // …but it offers no Use button — activation is a Dashboard act.
+    // …but it offers no Use button — activation is a Play act.
     expect(screen.queryByRole('button', { name: /^use smoke machine$/i })).toBeNull()
   })
 })
@@ -229,7 +229,7 @@ describe('MechSheet — per-item uses counters', () => {
 describe('MechSheet — chassis ability slab (no activation on the sheet, ADR-021)', () => {
   test('the ability + its EP cost show, but there is no Use button', () => {
     // Spectrum's Data Scanner costs 2 EP. Real chassis → real ability slab.
-    // Activating an ability is a Dashboard transaction, not a Free-Edit act.
+    // Activating an ability is a Play transaction, not a Free-Edit act.
     const mech = makeMech({ chassisRef: 'spectrum', currentEP: 5 })
     render(<MechSheet mech={mech} store={makeStore(mech, [])} />)
 

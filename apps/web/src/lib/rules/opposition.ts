@@ -3,8 +3,8 @@
  * the Morale roll (Core Book p.268).
  *
  * Pure apart from the reference lookups, and the die is injected, so tests
- * pick the roll. The Mediator Dashboard's tray reads its rows through these
- * (`components/mediator/opposition.model.ts`).
+ * pick the roll. The Mediator's Opposition reads its rows through these
+ * (`components/play/mediator/opposition.model.ts`).
  */
 
 import type { EncounterNpc } from 'cantina-domain/schemas/encounterNpc'

@@ -27,8 +27,6 @@ type EntityCardHeaderProps = {
   numeral?: string
   /** The entity's chip group (`Chips`): right of the title where it fits, else under it. */
   chips?: ReactNode
-  /** The Dashboard's pennant button, at the right. */
-  pennant?: ReactNode
   /**
    * The labels (`CardLabels`): the seal, the classification pills, the
    * User-made stamp. On the title's line, right after the title.
@@ -49,8 +47,8 @@ const PAD: Record<CardSize, string> = {
 }
 
 /*
- * The band's frame, the title's caps face, the heading (the name group and
- * the chips), and the end column are `.su-ec-band*` classes
+ * The band's frame, the title's caps face and the heading (the name group
+ * and the chips) are `.su-ec-band*` classes
  * (`styles/partials/card-chrome.css`), not style objects: every card and
  * listing row repeats them (ADR-046, repeated elements). What varies by card
  * stays inline: the band's fill and padding, the title's size and colour.
@@ -70,9 +68,7 @@ const PAD: Record<CardSize, string> = {
  * name keeps its natural one-line width (it grows, never shrinks, to share a
  * line), so the chips sit right of it where they fit and drop whole onto a
  * line of their own under it where they do not. The title wraps only when it
- * alone is wider than the band, and is never cut (E18). The pennant button
- * is the END column, centred on the whole band, so it is never left alone
- * on a line.
+ * alone is wider than the band, and is never cut (E18).
  */
 export function EntityCardHeader({
   title,
@@ -84,7 +80,6 @@ export function EntityCardHeader({
   titleAs,
   numeral,
   chips,
-  pennant,
   labels,
   size,
   grain,
@@ -117,7 +112,6 @@ export function EntityCardHeader({
         </div>
         {chips}
       </div>
-      {pennant && <div className="su-ec-band__end">{pennant}</div>}
     </div>
   )
 }

@@ -58,11 +58,11 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     Mutations use `mutation` / `internalMutation` from `convex/model/entities.ts` (its triggers keep `games.summary`).
     Tell refusals from defects with `src/lib/connection/serverError.ts`; a one-off repair runs once from the dashboard, then is deleted.
 18. **Surfaces and enforcement (ADR-021)** <a id="surfaces"></a>
-    Guided Creation (Wizard), Free Edit (Live Sheet), Guided Play (Dashboard), Frozen (`/p/`), Adjudicate (Mediator Dashboard).
+    Guided Creation (Wizard), Free Edit (Live Sheet), Guided Play and Adjudicate (Play), Frozen (`/p/`).
     Lifecycle transactions are enforced in guided modes and bypassed in Free Edit; caps are overridable with a callout.
 19. **Live-Sheet transactions** <a id="live-sheet"></a>
     A closed list: crawler Upkeep / Upgrade / Trade, bay Repair, item repair and uses; advisory, never blocking.
-    Any new transaction goes on the Dashboard.
+    Any new transaction goes in Play.
 20. **Change Log** <a id="change-log"></a>
     Every write appends a `transaction` / `override` / `manual` row to Convex `changeLog` at `entityStore.update`.
     Read in `ChangeLogDrawer`; destruction waits for the player (ADR-007).
@@ -73,8 +73,8 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
     Entity forms (Mention, Token, Row, Tile, Peek; [EDL](design-system/entity-display-language.md)) come from `toEntityModel`; Card and Page are `ReferenceEntityCard`.
     `Card` is the generic container, never merged with it; app UI goes through `controls` and slot props, never schema props.
 23. **Discord bot as a Game client** <a id="bot-game-client"></a>
-    `/su me`, `games` and `sheet` call `POST /bot/<op>` (`convex/botHttp.ts`) with `CANTINA_BOT_SECRET`.
-    Read-only; Convex unreachable means every Game command answers `unavailable`. Each interaction logs its command.
+    Game commands call `POST /bot/<op>` (`convex/botHttp.ts`) with `CANTINA_BOT_SECRET`.
+    Writes only channel bindings; Convex unreachable: every Game command answers `unavailable`. Each interaction logs its command.
 24. **SEO** <a id="seo"></a>
     One site name (`pageTitle`), one WebSite JSON-LD (`WEBSITE`), one sitemap; heads: `BaseLayout.tsx`; shared sheets: ADR-032; `/llms.txt` exact; SW: `src/pwa.ts`.
     No-JS fallback: `StaticEntityContent`, replaced by islands mounted with `createRoot`; an `<Island hydrate>` whose server markup is its own first render adopts it with `hydrateRoot`.
@@ -151,15 +151,15 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
 14. **ADR-014 The dataset's public interface is the JSON API**
     Accepted; npm publishing retired. Amended by ADR-040 (served verbatim) and ADR-043 (versioned API).
 15. **ADR-015 The Dashboard is a distinct actual-play surface**
-    Superseded by ADR-038, which restates what stands (separate surface, SRD display reuse, flat-and-inset, fixed canvas).
+    Superseded by ADR-038.
 16. **ADR-016 Rotary Dial and instrument / reference split**
-    Merged into ADR-015; superseded by ADR-038 (Major and Minor slots replace the Dial).
+    Merged into ADR-015; superseded by ADR-038 §3.
 17. **ADR-017 Reuse the SRD display; instruments are bespoke**
     Merged into ADR-015; superseded by ADR-038 §7.
 18. **ADR-018 Flat-and-inset instrument aesthetic**
     Merged into ADR-015; superseded by ADR-038 §8.
 19. **ADR-019 Dashboard play state is ephemeral**
-    Merged into ADR-015; superseded by ADR-038 (play state is a seat saved on the Game).
+    Merged into ADR-015; superseded by ADR-038 §2.
 20. **ADR-020 Fixed 1280×800 scale-to-fit canvas**
     Merged into ADR-015; superseded by ADR-038 §9.
 21. **ADR-021 Cantina surface taxonomy** · [full text](adr/021-cantina-surface-taxonomy.md)
@@ -207,7 +207,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Accepted: one-hop links `mech-to-pilot`, `pilot-to-crawler`, `mech-to-crawler`; a new link replaces conflicts; one container.
     Amends ADR-030; amended by ADR-044. Code: `packages/cantina-domain/src/links/linkRules.ts`.
 38. **ADR-038 The Dashboard is a Game surface with shared play state** · [full text](adr/038-dashboard-game-surface.md)
-    Accepted, built: Game-only with a Mediator; a seat on the Game; Major / Minor slots; fixed 1280×800 canvas.
+    Built, partly superseded by ADR-051 (Play): the seat and the fixed 1280×800 canvas stand; Game-only and the slots went.
     Supersedes ADR-015; amends ADR-029 §4, ADR-030 §5–6 and ADR-034; amended by ADR-045, ADR-051. As built: [dashboard.md](architecture/dashboard.md).
 39. **ADR-039 Addressed invites by Discord account**
     Retired with `/su invite`: a Game joins only through its one invite URL (ADR-030), and an addressed row opens nothing.
@@ -228,7 +228,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Accepted, built: an `npcs` table like pilots; a slotted link authorised by the crawler's writer.
     Amends ADR-037. As built: [npc-builder.md](architecture/npc-builder.md).
 45. **ADR-045 The Dashboard has a phone form** · [full text](adr/045-dashboard-phone-form.md)
-    Accepted, built: below a 0.62 canvas scale the Dashboard renders a phone form over the same seat, models and enforcement.
+    Built, partly superseded by ADR-051: below a 0.62 canvas scale Play renders a phone form over the same seat and enforcement.
     Amends ADR-038; amended by ADR-051.
 46. **ADR-046 Styling is tokens, style objects and one stylesheet**
     Accepted, built: `theme.css` tokens, `tokens.ts` objects, `index.css` classes, also for styles repeated per page; `no-tailwind` bars Tailwind.
@@ -243,5 +243,5 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Accepted, built: `apps/web` is one app, the pre-rendered reference and the client-rendered Cantina at `/build/`; one source tree, Vite pass, Worker, CSP, head, install and changelog.
     Amends ADR-011, ADR-031, ADR-033 and ADR-048.
 51. **ADR-051 Play mode, a Cockpit** · [full text](adr/051-play-mode.md)
-    Accepted, not built: Play beside Reference and Build; Units | Actions | Crew, Tables, Feed; solo seats.
-    Supersedes ADR-038 §1 and its layout; amends ADR-030 and ADR-045. Design: [play.md](architecture/play.md).
+    Accepted, built: Play beside Reference and Build; Units | Actions | Crew, Tables, Feed; solo seats.
+    Supersedes ADR-038 §1 and its layout; amends ADR-030 and ADR-045. As built: [play.md](architecture/play.md).

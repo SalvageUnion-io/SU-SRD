@@ -17,7 +17,7 @@ import { DISABLED, FOCUS_RING } from './interaction'
  * Controlled only: the caller owns which tab is open, so it decides whether
  * that is component state, a URL or anything else. Compose it as
  * `Tabs` › `TabList` › `Tab`…, then one `TabPanel` per tab. A panel renders
- * only while its tab is open.
+ * only while its tab is open, unless it is `keepMounted`.
  *
  * Styling follows the per-property split (ADR-046): static geometry and type as style
  * objects, every colour (each of which changes on hover, focus or selection)
@@ -96,7 +96,7 @@ export function Tab({
   value: string
   children: ReactNode
   /**
-   * Geometry over the default (the Dashboard's phone unit tabs fill a third of
+   * Geometry over the default (Play's phone tabs fill a quarter of
    * the row each). Never a colour: those change on hover and selection, so
    * they stay in `.su-tab`.
    */
@@ -111,7 +111,7 @@ export function Tab({
 
 /**
  * A Tab that switches nothing in a panel: an `aria-pressed` toggle in a row of
- * them (a deck's timing filter, the Dashboard's reference picker, a phone
+ * them (a list's type filter, a reference picker, a phone
  * deck's filter key). It is the Tab's look, one implementation, so a toggle row
  * and a tab row never drift apart; pressed is the Tab's selected plate, ink
  * with paper text (a state, never rust: ruleset §3.1).
@@ -147,7 +147,7 @@ const TOGGLE_GROUP = { border: 0, margin: 0, minInlineSize: 0, padding: 0 } sati
 
 /**
  * A row of `Toggle`s that answer one question (a deck's timing filter, its
- * engagement range, the Dashboard's reference picker): Segmented's shell, a
+ * engagement range, a reference picker): Segmented's shell, a
  * `fieldset` named by a visually hidden `legend`, so a screen reader hears the
  * group's name before its options — without Segmented's joined frame, since
  * each Toggle wears the Tab's own plate.
@@ -178,13 +178,20 @@ export function TabPanel({
   value,
   children,
   style,
+  keepMounted = false,
 }: {
   value: string
   children: ReactNode
   style?: CSSProperties
+  /**
+   * Keep the panel mounted, `hidden`, while its tab is closed, so what it
+   * holds (a half-typed Find, an open filter, a dialog's state) survives a
+   * switch: Play's phone tabs (ADR-051 §10).
+   */
+  keepMounted?: boolean
 }) {
   return (
-    <BaseTabs.Panel value={value} style={style}>
+    <BaseTabs.Panel value={value} style={style} keepMounted={keepMounted}>
       {children}
     </BaseTabs.Panel>
   )

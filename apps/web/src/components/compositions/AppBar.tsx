@@ -13,11 +13,14 @@ import { Speckle } from '../atoms/Speckle'
  * "One union, two tools"; origin board 05). Both render modes draw it through
  * one preset, `unionBar/UnionBar.tsx`.
  *
- * One lockup (the SU mark alone, no wordmark), then the **Reference | Build**
- * product switcher, then the product's own nav, the search slot, "Buy the
- * game" and the app's account controls. Crossing products is a tab on the same
+ * One lockup (the SU mark alone, no wordmark), then the **Reference | Build |
+ * Play** mode switcher, then the product's own nav, the search slot, "Buy the
+ * game" and the app's account controls. Crossing modes is a tab on the same
  * bar, never an off-site "Builder ↗" / "SRD ↗" link. The tab you are on is an
- * inverse stamp — a paper plate on the ink bar — and never rust (§3.1).
+ * inverse stamp — a paper plate on the ink bar — and never rust (§3.1). Play
+ * lives in the Cantina beside Build, so the Cantina's shell serves the bar
+ * with Build current and the app moves "here" to Play on Play's routes
+ * (`UnionBarSlots`, by each tab's `data-tool`).
  *
  * ## One geometry
  *
@@ -55,7 +58,7 @@ import { Speckle } from '../atoms/Speckle'
  * `--su-bar-*` properties on `.su-union-bar`; the footer stays ink.
  */
 
-type AppBarProduct = 'reference' | 'build'
+type AppBarProduct = 'reference' | 'build' | 'play'
 
 type AppBarNavItem = {
   label: ReactNode
@@ -86,6 +89,8 @@ type AppBarProps = {
   referenceHref: string
   /** Where "Build" goes — the Cantina's home. */
   buildHref: string
+  /** Where "Play" goes — the Play landing. Omit to draw no Play tab. */
+  playHref?: string
   /** Link component for the brand + internal links. Defaults to a plain anchor. */
   LinkComponent?: ElementType
   /**
@@ -179,6 +184,7 @@ export function AppBar({
   product,
   referenceHref,
   buildHref,
+  playHref,
   LinkComponent = 'a',
   markSrc = MARK_SRC,
   viewTransitionName,
@@ -191,11 +197,12 @@ export function AppBar({
 }: AppBarProps) {
   const hasCrumbs = breadcrumbs !== undefined && breadcrumbs.length > 0
 
-  // The switcher: this product's tab routes home; the other is a same-tab
-  // anchor to the other tool — a tab on one bar, not an off-site link.
+  // The switcher: this mode's tab routes home; the others are same-tab
+  // anchors to the other modes — tabs on one bar, not off-site links.
   const tabs: { key: AppBarProduct; label: string; href: string }[] = [
     { key: 'reference', label: 'Reference', href: referenceHref },
     { key: 'build', label: 'Build', href: buildHref },
+    ...(playHref === undefined ? [] : [{ key: 'play' as const, label: 'Play', href: playHref }]),
   ]
 
   const navLinks = () =>
@@ -248,6 +255,7 @@ export function AppBar({
                   href={tab.href}
                   className={cn('su-union-bar__tab', FOCUS_RING)}
                   aria-current={here ? 'true' : undefined}
+                  data-tool={tab.key}
                 >
                   {tab.label}
                 </Link>

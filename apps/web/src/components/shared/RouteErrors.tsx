@@ -6,7 +6,7 @@
  *   itself (a rejected game-data preload behind the root gate), so the only
  *   honest recovery is a reload.
  * - **`RouteErrorComponent`** is the router's `defaultErrorComponent`, so every
- *   other route gets its own boundary. A throw inside the Dashboard, a sheet or
+ *   other route gets its own boundary. A throw inside Play, a sheet or
  *   a Game replaces only that route's content, leaves the header in place to
  *   navigate away with, and offers a retry, rather than blanking the app.
  *

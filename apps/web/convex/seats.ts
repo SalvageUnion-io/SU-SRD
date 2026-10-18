@@ -1,17 +1,19 @@
+import { PRESENCE_WRITE_MIN_MS } from 'cantina-domain/schemas/seat'
 import { v } from 'convex/values'
 import type { Doc, Id } from './_generated/dataModel'
-import type { MutationCtx } from './_generated/server'
+import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
-import { linkIdOf, mutation, resolveLinkEnd, rowsInGame } from './model/entities'
+import { linkIdOf, mutation, oldestByAppId, resolveLinkEnd, rowsInGame } from './model/entities'
 import { assertMayWrite } from './model/ownableWrites'
 import { NotAuthorized, requireMember, requireUser } from './model/permissions'
-import type { SeatState } from './model/seats'
-import { defaultSeat, readSeat, seatsInGame } from './model/seats'
-import { seatMount, seatRange, seatResolving } from './schema'
+import { seatMount, seatRange, seatResolving, soloDowntime } from './model/playTables'
+import type { SeatPlace, SeatState } from './model/seats'
+import { defaultSeat, readSeat, remount, seatsAt, seatsInGame, writeSeat } from './model/seats'
 
 /**
- * Seats: each pilot's play state in a Game, shared with the crew and saved on
- * the Game ([ADR-038](../../../docs/adr/038-dashboard-game-surface.md) §2).
+ * Seats: each pilot's play state, at a Game (shared with the crew and saved on
+ * the Game, [ADR-038](../../../docs/adr/038-dashboard-game-surface.md) §2) or
+ * solo, on its owner's shelf (Play's solo screen).
  *
  * A seat says whether its pilot is on foot or boarded (and in which mech), the
  * range band they declared, which activated effects are switched on, and the
@@ -21,35 +23,106 @@ import { seatMount, seatRange, seatResolving } from './schema'
  * runs two. Mount never becomes a field on a pilot or mech: a seat is its own
  * row that points at both by app id.
  *
- * - **Every member reads every seat** (`forGame`). A seat holds nothing a
- *   crewmate isn't entitled to see.
+ * Every write takes `gameId`: the Game whose seat it is, or null for the
+ * pilot's solo seat. The same mutations serve both; only who may write, and
+ * where the mech must be, differ (below).
+ *
+ * - **Every member reads every Game seat** (`forGame`). A seat holds nothing a
+ *   crewmate isn't entitled to see. **Only the owner reads a solo seat** (`solo`).
  * - **Only someone who may write the pilot writes its seat**, through
  *   `assertMayWrite`. The Mediator does not; they propose, as everywhere else
- *   (ADR-030 §4).
+ *   (ADR-030 §4). A solo seat's pilot must be on the caller's own shelf.
  * - **Boarding also needs write access to the mech**, because playing a mech
- *   writes its Heat, EP and SP. Boarding never assigns: the pilot's
- *   `mech-to-pilot` link is untouched.
+ *   writes its Heat, EP and SP, and the mech must be where the seat is.
+ *   Boarding never assigns: the pilot's `mech-to-pilot` link is untouched.
  * - **Rows are created lazily**, on the first write, like `downtime`'s row. A
  *   pilot without one reads as on foot, at Close, with nothing switched on.
  * - **A change of mount ends a resolve.** The deck it came from is gone, so
  *   board, dismount and eject clear `resolving` whenever the mount moves.
+ * - **Presence is a heartbeat** (`heartbeat`), throttled on the server, that
+ *   never counts as a change of play state.
  *
  * Cleanup lives with the paths that would orphan a seat (`model/seats.ts`).
  */
 
-/**
- * A pilot in this Game whose seat the caller may write, or a refusal.
+/*
+ * ## Who may read and write which seat
  *
- * Membership is checked first, so a non-member learns nothing about what the
- * Game holds. The pilot is addressed the way a link end is (`resolveLinkEnd`),
- * which also finds a template-seeded pilot by the id in its body.
+ * Exported for `downtime.ts`'s solo Downtime as well. Here rather than in
+ * `model/seats.ts` because it needs `assertMayWrite`, and `ownableWrites`
+ * already imports the seat cleanup from there.
+ *
+ * - **A Game seat** (`gameId` given) is written by whoever may write its pilot
+ *   (`assertMayWrite`), after membership: a non-member learns nothing.
+ * - **A solo seat** (`gameId` null) is its pilot's owner's alone: the pilot must
+ *   be on the caller's own shelf. A pilot in a Game has its seat there.
  */
-async function writablePilot(
+
+/**
+ * One of `ownerId`'s rows on their shelf, addressed by the id links use
+ * (`linkIdOf`), or null.
+ *
+ * By app id first; then among the owner's own shelf rows, which is where a
+ * claimed template pre-gen moved to the shelf is (it has no app id, and its
+ * body id repeats in every account that claimed one, so an app id lookup
+ * across accounts would answer with somebody else's).
+ */
+export async function shelfRowOf(
+  ctx: QueryCtx | MutationCtx,
+  ownerId: Id<'users'>,
+  table: 'pilots' | 'mechs',
+  id: string
+): Promise<Doc<'pilots'> | Doc<'mechs'> | null> {
+  const stamped = (await oldestByAppId(ctx, table, id)) as Doc<'pilots'> | Doc<'mechs'> | null
+  if (stamped !== null && stamped.ownerId === ownerId && stamped.gameId === null) return stamped
+  const shelf = (await ctx.db
+    .query(table)
+    .withIndex('by_owner_game', (q) => q.eq('ownerId', ownerId).eq('gameId', null))
+    .collect()) as Array<Doc<'pilots'> | Doc<'mechs'>>
+  return shelf.find((row) => linkIdOf(row) === id) ?? null
+}
+
+/**
+ * Refuse a solo write to a pilot or mech that is not on the caller's shelf,
+ * saying why: another player's (in `assertMayWrite`'s words), one of theirs in
+ * a Game, or nothing of theirs at all.
+ */
+async function refuseOffShelf(
   ctx: MutationCtx,
-  gameId: Id<'games'>,
+  userId: Id<'users'>,
+  type: 'pilot' | 'mech',
+  id: string
+): Promise<never> {
+  const row = await resolveLinkEnd(ctx, { type, id }, null)
+  if (row !== null && row.ownerId !== userId) {
+    assertMayWrite(row as Doc<'pilots'> | Doc<'mechs'>, userId)
+  }
+  if (row !== null && row.gameId !== null) {
+    throw new NotAuthorized(`That ${type} is in a Game: it plays there`)
+  }
+  throw new NotAuthorized(`That ${type} is not on your shelf`)
+}
+
+/**
+ * A pilot whose seat the caller may write, and where that seat sits; or a
+ * refusal. `gameId` null addresses the pilot's solo seat.
+ *
+ * In a Game, membership is checked first, so a non-member learns nothing about
+ * what the Game holds, and the pilot is addressed the way a link end is
+ * (`resolveLinkEnd`), which also finds a template-seeded pilot by its body id.
+ */
+export async function writablePilot(
+  ctx: MutationCtx,
+  gameId: Id<'games'> | null,
   pilotId: string
-): Promise<{ userId: Id<'users'>; pilot: Doc<'pilots'> }> {
+): Promise<{ userId: Id<'users'>; pilot: Doc<'pilots'>; place: SeatPlace }> {
   const userId = await requireUser(ctx)
+  if (gameId === null) {
+    const pilot = await shelfRowOf(ctx, userId, 'pilots', pilotId)
+    if (pilot === null) return await refuseOffShelf(ctx, userId, 'pilot', pilotId)
+    return { userId, pilot: pilot as Doc<'pilots'>, place: { ownerId: userId } }
+  }
+
   await requireMember(ctx, gameId)
   const row = await resolveLinkEnd(ctx, { type: 'pilot', id: pilotId }, gameId)
   if (row === null || row.gameId !== gameId) {
@@ -58,42 +131,80 @@ async function writablePilot(
   // A `pilot` end only ever resolves to a row of the `pilots` table.
   const pilot = row as Doc<'pilots'>
   assertMayWrite(pilot, userId)
-  return { userId, pilot }
+  return { userId, pilot, place: { gameId } }
 }
 
-/** Write part of a seat, creating its row on first use. */
-async function writeSeat(
+/**
+ * The mech a seat at `place` may board, and the id seats name it by; or a
+ * refusal.
+ *
+ * Boarding needs write access to the mech, because playing a mech writes its
+ * Heat, EP and SP; it must be where the seat is (the Game, or the caller's
+ * shelf), not destroyed, and nobody else at that place may be aboard it.
+ * Boarding never assigns: the pilot's `mech-to-pilot` link is untouched.
+ */
+async function boardableMech(
   ctx: MutationCtx,
-  gameId: Id<'games'>,
+  userId: Id<'users'>,
+  place: SeatPlace,
   pilotId: string,
-  change: (seat: SeatState) => Partial<SeatState>
-): Promise<void> {
-  const existing = await readSeat(ctx, gameId, pilotId)
-  const updatedAt = Date.now()
-  if (existing !== null) {
-    await ctx.db.patch(existing._id, { ...change(existing), updatedAt })
-    return
+  mechId: string
+): Promise<string> {
+  let mech: Doc<'mechs'>
+  if ('gameId' in place) {
+    const row = await resolveLinkEnd(ctx, { type: 'mech', id: mechId }, place.gameId)
+    if (row === null || row.gameId !== place.gameId) {
+      throw new NotAuthorized('That mech is not in this Game')
+    }
+    // A `mech` end only ever resolves to a row of the `mechs` table.
+    mech = row as Doc<'mechs'>
+    assertMayWrite(mech, userId)
+  } else {
+    const row = await shelfRowOf(ctx, userId, 'mechs', mechId)
+    if (row === null) return await refuseOffShelf(ctx, userId, 'mech', mechId)
+    mech = row as Doc<'mechs'>
   }
-  const seat = defaultSeat()
-  await ctx.db.insert('seats', { gameId, pilotId, ...seat, ...change(seat), updatedAt })
+  if ((mech.body as { destroyed?: unknown }).destroyed === true) {
+    throw new NotAuthorized('That mech is destroyed')
+  }
+
+  const id = linkIdOf(mech) ?? mechId
+  for (const seat of await seatsAt(ctx, place)) {
+    if (seat.pilotId === pilotId) continue
+    if (seat.mount.kind === 'boarded' && seat.mount.mechId === id) {
+      throw new NotAuthorized('Another pilot is already aboard that mech')
+    }
+  }
+  return id
 }
 
-const SEAT_ARGS = { gameId: v.id('games'), pilotId: v.string() }
-
-/** Move to `mount`, dropping the resolve in progress if the mount changed. */
-function remount(seat: SeatState, mount: SeatState['mount']): Partial<SeatState> {
-  const same =
-    seat.mount.kind === mount.kind &&
-    (mount.kind === 'foot' || (seat.mount.kind === 'boarded' && seat.mount.mechId === mount.mechId))
-  return same ? { mount } : { mount, resolving: undefined }
-}
+/** Which seat a write addresses: a Game's, or (`gameId` null) the pilot's solo seat. */
+const SEAT_ARGS = { gameId: v.union(v.id('games'), v.null()), pilotId: v.string() }
 
 /** One pilot's seat as `forGame` returns it: `null`, not absent, for "none yet". */
 type SeatRead = Omit<SeatState, 'resolving' | 'ejected'> & {
   pilotId: string
   resolving: NonNullable<SeatState['resolving']> | null
+  lastSeenAt: number | null
   updatedAt: number | null
 }
+
+/**
+ * Presence at a Game, for the Play landing's "N here": the last heartbeat of
+ * each seat that has one (`isPresent` reads them against the clock). Only the
+ * seats, never the pilots: the landing lists every Game of mine, so it must
+ * not read each Game's sheets to count heads. A seat left by a pilot that
+ * moved out no longer beats, so it drops out within `PRESENCE_STALE_MS`.
+ */
+export const presence = query({
+  args: { gameId: v.id('games') },
+  returns: v.array(v.number()),
+  handler: async (ctx, args) => {
+    await requireMember(ctx, args.gameId)
+    const rows = await seatsInGame(ctx, args.gameId)
+    return rows.flatMap((row) => (row.lastSeenAt === undefined ? [] : [row.lastSeenAt]))
+  },
+})
 
 /**
  * Every pilot's seat in the Game, one entry per pilot in it.
@@ -101,6 +212,7 @@ type SeatRead = Omit<SeatState, 'resolving' | 'ejected'> & {
  * A pilot with no row yet gets the default seat, so every caller sees the same
  * answer for "never sat down" without inventing it. Rows for pilots no longer
  * in the Game are not returned; the cleanup paths delete them anyway.
+ * `lastSeenAt` is the seat owner's last heartbeat (`isPresent` reads it).
  */
 export const forGame = query({
   args: { gameId: v.id('games') },
@@ -111,6 +223,7 @@ export const forGame = query({
       range: seatRange,
       activeEffects: v.array(v.string()),
       resolving: v.union(seatResolving, v.null()),
+      lastSeenAt: v.union(v.number(), v.null()),
       updatedAt: v.union(v.number(), v.null()),
     })
   ),
@@ -129,13 +242,14 @@ export const forGame = query({
       const row = byPilot.get(pilotId)
       seats.push(
         row === undefined
-          ? { pilotId, ...defaultSeat(), resolving: null, updatedAt: null }
+          ? { pilotId, ...defaultSeat(), resolving: null, lastSeenAt: null, updatedAt: null }
           : {
               pilotId,
               mount: row.mount,
               range: row.range,
               activeEffects: row.activeEffects,
               resolving: row.resolving ?? null,
+              lastSeenAt: row.lastSeenAt ?? null,
               updatedAt: row.updatedAt,
             }
       )
@@ -144,38 +258,88 @@ export const forGame = query({
   },
 })
 
+/** A solo seat as `solo` returns it. */
+type SoloSeatRead = SeatRead & {
+  ejected: boolean
+  downtime: NonNullable<Doc<'seats'>['downtime']> | null
+}
+
+/**
+ * One pilot's solo seat, for its owner: the default seat when it has no row
+ * yet, and null when the pilot is not on the caller's shelf (somebody else's,
+ * in a Game, or gone), so a screen whose pilot just moved into a Game reads
+ * "not solo" rather than an error.
+ *
+ * `downtime` is the solo Downtime, null while none runs (`downtime.solo*`).
+ *
+ * A seat whose row is boarded in a mech that is not on the caller's shelf
+ * reads as on foot: the mech moved into a Game ahead of its pilot (it waits
+ * there for `handOffSoloSeat`), or is gone. The solo screen never plays a mech
+ * off its shelf, which a Game seat may be boarding at the same time.
+ */
+export const solo = query({
+  args: { pilotId: v.string() },
+  returns: v.union(
+    v.object({
+      pilotId: v.string(),
+      mount: seatMount,
+      range: seatRange,
+      activeEffects: v.array(v.string()),
+      resolving: v.union(seatResolving, v.null()),
+      ejected: v.boolean(),
+      downtime: v.union(soloDowntime, v.null()),
+      lastSeenAt: v.union(v.number(), v.null()),
+      updatedAt: v.union(v.number(), v.null()),
+    }),
+    v.null()
+  ),
+  handler: async (ctx, args): Promise<SoloSeatRead | null> => {
+    const userId = await requireUser(ctx)
+    if ((await shelfRowOf(ctx, userId, 'pilots', args.pilotId)) === null) return null
+    const row = await readSeat(ctx, { ownerId: userId }, args.pilotId)
+    if (row === null) {
+      return {
+        pilotId: args.pilotId,
+        ...defaultSeat(),
+        resolving: null,
+        ejected: false,
+        downtime: null,
+        lastSeenAt: null,
+        updatedAt: null,
+      }
+    }
+    const offShelf =
+      row.mount.kind === 'boarded' &&
+      (await shelfRowOf(ctx, userId, 'mechs', row.mount.mechId)) === null
+    return {
+      pilotId: args.pilotId,
+      mount: offShelf ? { kind: 'foot' as const } : row.mount,
+      range: row.range,
+      activeEffects: row.activeEffects,
+      // A resolve belongs to the mount it began on.
+      resolving: offShelf ? null : (row.resolving ?? null),
+      ejected: row.ejected === true,
+      downtime: row.downtime ?? null,
+      lastSeenAt: row.lastSeenAt ?? null,
+      updatedAt: row.updatedAt,
+    }
+  },
+})
+
 /**
  * Board a mech.
  *
  * Refused unless the caller may write both the pilot and the mech, the mech is
- * in this Game and not destroyed, and no other seat is boarded in it. Boarding
- * a mech the pilot is already in is a no-op that still succeeds.
+ * where the seat is (in this Game, or on the caller's shelf for a solo seat)
+ * and not destroyed, and no other seat there is boarded in it. Boarding a mech
+ * the pilot is already in is a no-op that still succeeds.
  */
 export const board = mutation({
   args: { ...SEAT_ARGS, mechId: v.string() },
   handler: async (ctx, args): Promise<void> => {
-    const { userId } = await writablePilot(ctx, args.gameId, args.pilotId)
-
-    const row = await resolveLinkEnd(ctx, { type: 'mech', id: args.mechId }, args.gameId)
-    if (row === null || row.gameId !== args.gameId) {
-      throw new NotAuthorized('That mech is not in this Game')
-    }
-    // A `mech` end only ever resolves to a row of the `mechs` table.
-    const mech = row as Doc<'mechs'>
-    assertMayWrite(mech, userId)
-    if ((mech.body as { destroyed?: unknown }).destroyed === true) {
-      throw new NotAuthorized('That mech is destroyed')
-    }
-
-    const mechId = linkIdOf(mech) ?? args.mechId
-    for (const seat of await seatsInGame(ctx, args.gameId)) {
-      if (seat.pilotId === args.pilotId) continue
-      if (seat.mount.kind === 'boarded' && seat.mount.mechId === mechId) {
-        throw new NotAuthorized('Another pilot is already aboard that mech')
-      }
-    }
-
-    await writeSeat(ctx, args.gameId, args.pilotId, (seat) => ({
+    const { userId, place } = await writablePilot(ctx, args.gameId, args.pilotId)
+    const mechId = await boardableMech(ctx, userId, place, args.pilotId, args.mechId)
+    await writeSeat(ctx, place, args.pilotId, (seat) => ({
       ...remount(seat, { kind: 'boarded', mechId }),
       ejected: undefined,
     }))
@@ -186,8 +350,8 @@ export const board = mutation({
 export const dismount = mutation({
   args: SEAT_ARGS,
   handler: async (ctx, args): Promise<void> => {
-    await writablePilot(ctx, args.gameId, args.pilotId)
-    await writeSeat(ctx, args.gameId, args.pilotId, (seat) => ({
+    const { place } = await writablePilot(ctx, args.gameId, args.pilotId)
+    await writeSeat(ctx, place, args.pilotId, (seat) => ({
       ...remount(seat, { kind: 'foot' }),
       ejected: undefined,
     }))
@@ -200,13 +364,13 @@ export const dismount = mutation({
  * pilot next boards or dismounts.
  *
  * Its own function because it is its own act at the table: the player confirms
- * it on the Dashboard (ADR-007), and nothing ever ejects a pilot for them.
+ * it in Play (ADR-007), and nothing ever ejects a pilot for them.
  */
 export const eject = mutation({
   args: SEAT_ARGS,
   handler: async (ctx, args): Promise<void> => {
-    await writablePilot(ctx, args.gameId, args.pilotId)
-    await writeSeat(ctx, args.gameId, args.pilotId, (seat) => ({
+    const { place } = await writablePilot(ctx, args.gameId, args.pilotId)
+    await writeSeat(ctx, place, args.pilotId, (seat) => ({
       ...remount(seat, { kind: 'foot' }),
       ejected: true,
     }))
@@ -217,8 +381,8 @@ export const eject = mutation({
 export const setRange = mutation({
   args: { ...SEAT_ARGS, range: seatRange },
   handler: async (ctx, args): Promise<void> => {
-    await writablePilot(ctx, args.gameId, args.pilotId)
-    await writeSeat(ctx, args.gameId, args.pilotId, () => ({ range: args.range }))
+    const { place } = await writablePilot(ctx, args.gameId, args.pilotId)
+    await writeSeat(ctx, place, args.pilotId, () => ({ range: args.range }))
   },
 })
 
@@ -229,8 +393,8 @@ export const setRange = mutation({
 export const toggleEffect = mutation({
   args: { ...SEAT_ARGS, ref: v.string() },
   handler: async (ctx, args): Promise<void> => {
-    await writablePilot(ctx, args.gameId, args.pilotId)
-    await writeSeat(ctx, args.gameId, args.pilotId, (seat) => ({
+    const { place } = await writablePilot(ctx, args.gameId, args.pilotId)
+    await writeSeat(ctx, place, args.pilotId, (seat) => ({
       activeEffects: seat.activeEffects.includes(args.ref)
         ? seat.activeEffects.filter((ref) => ref !== args.ref)
         : [...seat.activeEffects, args.ref],
@@ -250,8 +414,8 @@ export const toggleEffect = mutation({
 export const setResolving = mutation({
   args: { ...SEAT_ARGS, resolving: seatResolving },
   handler: async (ctx, args): Promise<void> => {
-    await writablePilot(ctx, args.gameId, args.pilotId)
-    await writeSeat(ctx, args.gameId, args.pilotId, () => ({ resolving: args.resolving }))
+    const { place } = await writablePilot(ctx, args.gameId, args.pilotId)
+    await writeSeat(ctx, place, args.pilotId, () => ({ resolving: args.resolving }))
   },
 })
 
@@ -259,7 +423,40 @@ export const setResolving = mutation({
 export const clearResolving = mutation({
   args: SEAT_ARGS,
   handler: async (ctx, args): Promise<void> => {
-    await writablePilot(ctx, args.gameId, args.pilotId)
-    await writeSeat(ctx, args.gameId, args.pilotId, () => ({ resolving: undefined }))
+    const { place } = await writablePilot(ctx, args.gameId, args.pilotId)
+    await writeSeat(ctx, place, args.pilotId, () => ({ resolving: undefined }))
+  },
+})
+
+/**
+ * Presence: the screen showing this seat is open. Whoever may write the seat
+ * beats for it, every `PRESENCE_HEARTBEAT_MS` (cantina-domain/schemas/seat).
+ *
+ * Cheap, and safe to call as often as a timer likes: a beat within
+ * `PRESENCE_WRITE_MIN_MS` of the last one writes nothing, so a second tab
+ * costs no write and wakes no subscriber. It stamps `lastSeenAt` only, never
+ * `updatedAt`: being there is not a change of play state. A seat with no row
+ * gets one, at the default seat.
+ */
+export const heartbeat = mutation({
+  args: SEAT_ARGS,
+  handler: async (ctx, args): Promise<void> => {
+    const { place } = await writablePilot(ctx, args.gameId, args.pilotId)
+    const now = Date.now()
+    const existing = await readSeat(ctx, place, args.pilotId)
+    if (existing === null) {
+      await ctx.db.insert('seats', {
+        ...place,
+        pilotId: args.pilotId,
+        ...defaultSeat(),
+        lastSeenAt: now,
+        updatedAt: now,
+      })
+      return
+    }
+    if (existing.lastSeenAt !== undefined && now - existing.lastSeenAt < PRESENCE_WRITE_MIN_MS) {
+      return
+    }
+    await ctx.db.patch(existing._id, { lastSeenAt: now })
   },
 })

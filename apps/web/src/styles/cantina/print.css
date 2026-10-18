@@ -105,7 +105,6 @@
   .su-entity-row__tier,
   .su-entity-token__pill,
   .su-entity-token__kind,
-  .su-pennant,
   .su-eyebrow {
     font-size: revert-layer;
     margin-bottom: revert-layer;
@@ -196,7 +195,6 @@
   .su-entity-token__pill,
   .su-entity-token__kind,
   .su-stat-cell,
-  .su-pennant--button,
   .su-ec-band--ruled {
     border-color: #000 !important;
   }
@@ -232,9 +230,9 @@
 
   /* -------------------------------------------------------------------------
    * Links — print the URL after the text (informational)
-   * Exclude nav links (already hidden) and the dashboard link.
+   * Exclude nav links (already hidden).
    * ------------------------------------------------------------------------- */
-  a[href]:not([href^='#']):not([aria-label='Back to dashboard'])::after {
+  a[href]:not([href^='#'])::after {
     content: ' (' attr(href) ')';
     font-size: 9pt;
     color: #444 !important;

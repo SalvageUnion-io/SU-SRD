@@ -1,25 +1,16 @@
 /**
- * Mediator Dashboard route — /mediator/:gameId
- * (docs/architecture/mediator-dashboard.md).
+ * The retired Mediator Dashboard route — /mediator/:gameId
  *
- * The address was kept for exactly this surface: it redirected to the Game
- * page while the Mediator's instruments lived there, and it is the Mediator's
- * own screen again. Who may open it, in each storage mode, is `MediatorGate`'s
- * question, asked live in the component, not here: loaders never read player
- * entities (`.claude/rules/tanstack-router.md`), and a Mediator who hands the
- * table over must fall back at once.
+ * Play replaced the Mediator Dashboard: the address now redirects to the
+ * Game's Play screen (`/play/game/:gameId`), keeping its id, so a bookmark or
+ * an old link lands where the Mediator runs the table now. Who may open it is
+ * `PlayMediatorGate`'s question, asked live there.
  */
 
-import { createFileRoute } from '@tanstack/react-router'
-import { MediatorGate } from '../../components/mediator/MediatorGate'
-import { pageTitle } from '../../lib/pageTitle'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/mediator/$gameId')({
-  head: () => ({ meta: [{ title: pageTitle('Mediator') }] }),
-  component: MediatorPage,
+  beforeLoad: ({ params }) => {
+    throw redirect({ to: '/play/game/$gameId', params: { gameId: params.gameId }, replace: true })
+  },
 })
-
-function MediatorPage() {
-  const { gameId } = Route.useParams()
-  return <MediatorGate gameId={gameId} />
-}

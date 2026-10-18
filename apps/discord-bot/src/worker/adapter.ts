@@ -184,6 +184,8 @@ function displayNameOf(raw: RawActor): string | undefined {
 /** The fields of a raw interaction that say who sent it, and where. */
 type RawActor = {
   channel_id?: string | null
+  /** The partial channel Discord sends beside (and, in newer payloads, instead of) `channel_id`. */
+  channel?: { id?: string; name?: string | null } | null
   member?: {
     nick?: string | null
     user?: { id: string; global_name?: string | null; username?: string }
@@ -301,6 +303,8 @@ export function makeExecuteInteraction(ctx: AdapterContext): CommandExecuteInter
       getBoolean: (name: string) => booleanOption(values, name),
     },
     ...actorOf(raw),
+    channelId: raw.channel_id ?? raw.channel?.id ?? null,
+    channelName: raw.channel?.name ?? null,
     targetMessage: targetMessageOf(raw.data),
     ...replyMembers(ctx),
   } as CommandExecuteInteraction

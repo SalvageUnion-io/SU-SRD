@@ -336,7 +336,7 @@ describe('VitalGauge — danger', () => {
   })
 })
 
-// The compact (Dashboard) gauge takes the §4.5 row split like every other pip
+// The compact (Play) gauge takes the §4.5 row split like every other pip
 // surface: at most six a row, balanced, bottom-heavy — never a fixed five.
 describe('VitalGauge — compact pip rows', () => {
   test.each([

@@ -61,5 +61,22 @@ export const DISCORD_COMMANDS: readonly DiscordCommand[] = [
       }
     ],
     "needsAccount": true
+  },
+  {
+    "name": "bind",
+    "description": "Post Play’s rolls to this channel: a Game’s, or yours when solo",
+    "options": [
+      {
+        "name": "game",
+        "required": false
+      }
+    ],
+    "needsAccount": true
+  },
+  {
+    "name": "unbind",
+    "description": "Stop posting Play’s rolls to this channel",
+    "options": [],
+    "needsAccount": true
   }
 ]

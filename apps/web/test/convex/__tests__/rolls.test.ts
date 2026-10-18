@@ -1,12 +1,12 @@
 import { describe, expect, test } from 'bun:test'
 import { api } from '../../../convex/_generated/api'
-import { rollLogEntry } from '../../../src/components/dashboard/dashboardRolls.model'
+import { rollLogEntry } from '../../../src/components/play/playRolls.model'
 import { addPilot, makeUser, seedTable } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
- * Rolls on the Game's log (ADR-038 §2): the Dashboard writes them through
- * `appendChangeLog`, in the row shape `rollLogEntry` builds, and the Log tab
+ * Rolls on the Game's log (ADR-038 §2): Play writes them through
+ * `appendChangeLog`, in the row shape `rollLogEntry` builds, and every Feed
  * reads them back through `changeLog.rolls`, beside the Discord bot's.
  */
 
@@ -15,7 +15,7 @@ const crush = {
   result: { kind: 'core' as const, roll: 14, outcome: 'success' },
 }
 
-describe('a Dashboard roll round-trips through the log', () => {
+describe('a Play roll round-trips through the log', () => {
   test('appended as a member, read back by a crewmate, newest first', async () => {
     const t = testConvex()
     const { organizer, player, gameId } = await seedTable(t)
@@ -28,8 +28,8 @@ describe('a Dashboard roll round-trips through the log', () => {
         rollLogEntry(
           gameId,
           {
-            description: 'Scrapper · Heat Check 7 vs Heat 3: no overload',
-            result: { kind: 'heat-check', roll: 7, outcome: 'passed' },
+            description: 'Scrapper · Reactor Overload: 7',
+            result: { kind: 'table', roll: 7, outcome: 'No overload' },
           },
           200
         ),
@@ -38,10 +38,10 @@ describe('a Dashboard roll round-trips through the log', () => {
 
     const rolls = await organizer.as.query(api.changeLog.rolls, { gameId })
     expect(rolls.map((r) => r.description)).toEqual([
-      'Scrapper · Heat Check 7 vs Heat 3: no overload',
+      'Scrapper · Reactor Overload: 7',
       'Rook · Crush: 14, Success',
     ])
-    expect(rolls[1]).toMatchObject({ ts: 100, source: 'dashboard', actorName: 'Player' })
+    expect(rolls[1]).toMatchObject({ ts: 100, source: 'play', actorName: 'Player' })
 
     // The row is the bot's shape: a Game row, not anybody's sheet.
     const row = await t.run(async (ctx) => await ctx.db.query('changeLog').first())

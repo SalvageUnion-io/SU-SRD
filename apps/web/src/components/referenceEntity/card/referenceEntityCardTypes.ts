@@ -91,7 +91,7 @@ export type ReferenceEntityCardProps = {
   kicker?: string
   /**
    * The light speckle on the header (ruleset §3.5) — on by default. `false`
-   * turns it off for this card and every card nested in it: the Dashboard and
+   * turns it off for this card and every card nested in it: Play and
    * tooltips stay flat.
    */
   texture?: boolean
@@ -202,7 +202,7 @@ export type ReferenceEntityCardHideConfig = {
   patterns?: boolean
   /**
    * Suppress the entity's (or its folded action's) roll table. Needed where the
-   * whole card is itself a control — the Dashboard's Actions deck wraps each
+   * whole card is itself a control — a list that wraps each
    * tile in a `role="button"` — since even the hidden table carries its own
    * Show/Roll buttons, which may not nest inside a button and whose clicks would
    * bubble into the card's own handler.

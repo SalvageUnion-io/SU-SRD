@@ -63,14 +63,15 @@ outage rather than a permissions problem, while `/su roll` and `/su lookup`
 behave exactly the same. `src/__tests__/degradedMode.test.ts` is the guard;
 **do not let it regress** — the reference bot is what people use.
 
-**The bot only reads.** No character editing, and no `/su damage` — a Mediator
+**The bot only reads sheets.** No character editing, and no `/su damage` — a Mediator
 writing another player's sheet is forbidden on every surface (ADR-030 §4); it
-becomes a proposal or it does not exist.
+becomes a proposal or it does not exist. It writes only `channelBindings`
+(`src/commands/bind.ts`); Convex posts Play rolls back through `src/worker/relay.ts`.
 
 **Crew maxima and status come from the server** (`SheetResult.vitals`, the
 `crew.vitals` derivation); absent, a vital shows its current value alone.
 
-**The Cantina commands:** `/su me`, `games`, `sheet`. `sheet` takes your own entity
+**The Cantina commands:** `/su me`, `games`, `sheet`, `bind`, `unbind`. `sheet` takes your own entity
 or any sheet link; `botClient.sheet` decides what you may read.
 
 **`/su sheet`** maps the live sheet one-to-one onto an entity card. The mapping,

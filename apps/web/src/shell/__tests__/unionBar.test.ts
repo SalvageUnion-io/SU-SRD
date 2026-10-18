@@ -18,7 +18,7 @@ describe('the shell’s Union bar', () => {
     expect(header?.getAttribute('style')).toContain('view-transition-name:nav')
   })
 
-  test('links its lockup and the Build tab home under the base, Reference to the root', () => {
+  test('links its lockup and the Build tab home under the base, Reference to the root, Play to its landing', () => {
     const doc = bar()
     expect(doc.querySelector('.su-union-bar__brand')?.getAttribute('href')).toBe('/build/')
     // Vite puts the base in front of it.
@@ -29,7 +29,9 @@ describe('the shell’s Union bar', () => {
     expect(tabs.map((tab) => [tab.textContent, tab.getAttribute('href')])).toEqual([
       ['Reference', '/'],
       ['Build', '/build/'],
+      ['Play', '/build/play/'],
     ])
+    expect(tabs.map((tab) => tab.getAttribute('data-tool'))).toEqual(['reference', 'build', 'play'])
     expect(tabs[1]?.getAttribute('aria-current')).toBe('true')
   })
 

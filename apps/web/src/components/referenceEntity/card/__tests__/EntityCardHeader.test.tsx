@@ -6,7 +6,7 @@
  * `.su-ec-band*` classes (ADR-046, repeated elements), so those are read off
  * the element's classes and the stylesheet rule they name:
  * - a TONE header carries the title, then the chip group; an INK header adds
- *   the tier numeral before the title and the pennant button at the end;
+ *   the tier numeral before the title;
  * - the chips sit right of the title or under it by the band's own width:
  *   the name never shrinks to share its line, so the chips wrap whole;
  * - the kind is never stamped: the title carries it for screen readers;
@@ -67,7 +67,7 @@ describe('EntityCardHeader — two fills', () => {
     expect(heading?.lastElementChild?.textContent).toBe('SLOTS 3')
   })
 
-  test('an ink header: the numeral leads, dimmed, and the pennant button ends the band', () => {
+  test('an ink header: the numeral leads, dimmed', () => {
     render(
       <EntityCardHeader
         title="Jury Rig"
@@ -76,7 +76,6 @@ describe('EntityCardHeader — two fills', () => {
         titleSize="26px"
         titleColor="var(--color-paper)"
         numeral="1"
-        pennant={<button type="button">2 AP</button>}
         size="full"
         grain="paper"
       />
@@ -90,15 +89,9 @@ describe('EntityCardHeader — two fills', () => {
     expect(numeral.classList).toContain('su-ec-band__title')
     expect(numeral.classList).toContain('su-ec-band__numeral')
     expect(rule('.su-ec-band__numeral')).toContain('opacity: 0.75')
-    // The pennant button ends the band in its own column, never alone on a
-    // wrapped line.
-    const end = header.lastElementChild as HTMLElement
-    expect(end.classList).toContain('su-ec-band__end')
-    expect(end.textContent).toBe('2 AP')
-    expect(rule('.su-ec-band__end')).toContain('flex: none')
   })
 
-  test('no grain when the card asks for none (the Dashboard, a tooltip)', () => {
+  test('no grain when the card asks for none (Play, a tooltip)', () => {
     render(
       <EntityCardHeader
         title="Salvaging Drill"

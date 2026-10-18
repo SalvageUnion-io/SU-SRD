@@ -114,9 +114,9 @@ const RETIRED_COLUMNS = [
 
 /**
  * One-off repair, run once on production after the release deploys: clears the
- * retired columns from every invite and empties `joinRequests`,
- * `inviteRedemptions` and `channelBindings`, so a later schema change can drop
- * them. Reports what it
+ * retired columns from every invite and empties `joinRequests` and
+ * `inviteRedemptions`, so a later schema change can drop them.
+ * `channelBindings` is live again (`/su bind`), so it is left alone. Reports what it
  * would change unless passed `{ apply: true }`. Deleted with that schema change.
  * The addressed-invite fields (`target`, `declinedAt`, `delivery`,
  * `sourceInteractionId`) stay until the last addressed invite has expired.
@@ -132,7 +132,6 @@ export const dropRetired = internalMutation({
     invites: number
     joinRequests: number
     inviteRedemptions: number
-    channelBindings: number
   }> => {
     const apply = args.apply === true
     let invites = 0
@@ -149,17 +148,14 @@ export const dropRetired = internalMutation({
     }
     const joinRequests = await ctx.db.query('joinRequests').collect()
     const inviteRedemptions = await ctx.db.query('inviteRedemptions').collect()
-    const channelBindings = await ctx.db.query('channelBindings').collect()
     if (apply) {
       for (const row of joinRequests) await ctx.db.delete(row._id)
       for (const row of inviteRedemptions) await ctx.db.delete(row._id)
-      for (const row of channelBindings) await ctx.db.delete(row._id)
     }
     return {
       invites,
       joinRequests: joinRequests.length,
       inviteRedemptions: inviteRedemptions.length,
-      channelBindings: channelBindings.length,
     }
   },
 })

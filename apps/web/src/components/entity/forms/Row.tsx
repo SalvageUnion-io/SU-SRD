@@ -45,6 +45,11 @@ type RowSlots = {
    * Raised above a link or select surface, as the controls are.
    */
   trailing?: ReactNode
+  /**
+   * The host's content leading the body (Play's resolve steps, a seat's
+   * mount and vitals): plain content and chips, never an entity (N1).
+   */
+  leading?: ReactNode
 }
 
 export type RowProps = {
@@ -78,7 +83,8 @@ const READ: EntityMode = { kind: 'read' }
  * entities. An art column (by schema and room, E10), a head (tier, name, the
  * chip group — stats, action type and facets, traits, cost (E17) — right of the name or
  * under it, the mode's affordance) and, only when something is left to show,
- * a paper body: the lead while browsing (E11). A bodied
+ * a paper body: the host's leading content and the lead while browsing
+ * (E11). A bodied
  * head with no chips keeps its tier on the band and sets its name on the paper
  * cut-out notched into the band's foot, as a Tile's. Fill follows kind (E12):
  * a "have" entity's tone, an ability's tier tone (Core orange, Advanced
@@ -112,7 +118,7 @@ export function Row({
     tags: slots.tags ?? traitTags(model.traits),
   }
   const leadText = lead ? model.lead : undefined
-  const hasBody = !!leadText
+  const hasBody = !!slots.leading || !!leadText
   const affordance =
     mode.kind === 'select' && mode.role === 'toggle' ? (
       // A toggle's control is a real checkbox; the seal still marks the pick.
@@ -195,6 +201,7 @@ export function Row({
         />
         {hasBody && (
           <div className="su-entity-row__body" style={down ? { opacity: 0.6 } : undefined}>
+            {slots.leading}
             {leadText && <Lead text={leadText} />}
           </div>
         )}

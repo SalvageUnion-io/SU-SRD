@@ -237,8 +237,9 @@ describe('tokens rule set', () => {
   test('texture-placement: speckle is a finding on a forbidden surface or a paper ground', () => {
     const ref = "filter: 'url(#su-blot)', opacity: tokens.texture.blotOpacity"
     for (const file of [
-      'apps/web/src/components/dashboard/MajorFrame.tsx',
+      'apps/web/src/components/play/PlayUnits.tsx',
       'apps/web/src/styles/cantina/dashboard/instruments.css',
+      'apps/web/src/styles/cantina/play/units.css',
       'apps/web/src/components/atoms/Button.tsx',
       'apps/web/src/components/atoms/KofiButton.tsx',
       'apps/web/src/components/atoms/buttonVariants.ts',
@@ -309,10 +310,9 @@ const STYLING_BASE: Record<string, string> = {
   'apps/web/src/styles/cantina.css': "@import './styles/print.css';\n",
   'apps/web/src/styles/global.css': "@import './pages.css';\n",
   'apps/web/src/styles/cantina/dashboard/DashboardCanvas.css': '.su-dash-used { color: red }\n',
-  'apps/web/src/styles/cantina/dashboard/DashboardGrid.css': '',
   'apps/web/src/styles/cantina/dashboard/instruments.css': '',
   'apps/web/src/styles/cantina/dashboard/DashboardPhone.css': '',
-  'apps/web/src/components/dashboard/Thing.tsx':
+  'apps/web/src/components/play/Thing.tsx':
     'export const T = () => <div className="su-dash-used" />\n',
 }
 
@@ -395,7 +395,7 @@ describe('styling rule set', () => {
     const found = stylingOwnership.scan(
       fixture({
         ...STYLING_BASE,
-        'apps/web/src/styles/cantina/dashboard/DashboardGrid.css': '.su-dash-dead { color: red }\n',
+        'apps/web/src/styles/cantina/dashboard/instruments.css': '.su-dash-dead { color: red }\n',
       })
     )
     expect(found['dash-class-contract']?.map((f) => f.detail)).toEqual([

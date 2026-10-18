@@ -144,8 +144,8 @@ describe('rows carry ownership as a state, never a blank', () => {
       members: ALL,
       localIds: new Set(['bonesaw']),
     })
-    // `LaunchDashboard` lists only rows with a local copy, so without this a
-    // Starter Set table could never launch the Dashboard.
+    // `LaunchPlay` lists only rows with a local copy, so without this a
+    // Starter Set table could never open Play.
     expect(row?.localId).toBe('bonesaw')
   })
 

@@ -21,8 +21,8 @@ import { pilotingContext } from './pilotingContext'
  * (ADR-038 §4).
  *
  * The server serves these to the whole crew (`crew.vitals`, read by the Crew
- * tab), and the Dashboard's own slots read the same maxima (`slots.model.ts`),
- * so the ▲ on the Crew tab, a crewmate's row and the player's own Minor agree.
+ * list), and Play's own unit boxes read the same maxima (`unitStats.model.ts`),
+ * so the ▲ on the Crew list, a crewmate's row and the player's own box agree.
  * `test/convex/__tests__/crewStatus.test.ts` holds the two sides to it on shared
  * fixtures.
  *

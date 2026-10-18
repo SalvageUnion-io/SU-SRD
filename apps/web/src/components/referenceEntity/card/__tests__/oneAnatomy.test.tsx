@@ -10,10 +10,9 @@
  *   opens the entity (N1), and a child hides prose its parent already prints;
  * - below depth 1 actions fold behind a chip;
  * - the user-made flag dashes the frame, the footer rule and the pill;
- * - `texture={false}` flattens the card and every card inside it;
- * - a `pennant` control turns the cost pennant into the action button.
+ * - `texture={false}` flattens the card and every card inside it.
  */
-import { describe, expect, mock, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { InsidePeekContext } from '../../../entity/peekContext'
@@ -47,8 +46,7 @@ describe('have vs do', () => {
     expect(screen.queryByText('Ability · Forging Tree')).toBeNull()
     expect(container.querySelector('.su-sr-only')?.textContent).toBe(' (Ability, Forging Tree)')
     expect(screen.getByText('1')).toBeTruthy()
-    // A read cost is the book's pointy box, last in the chip group: no pennant.
-    expect(container.querySelector('.su-pennant')).toBeNull()
+    // A read cost is the book's pointy box, last in the chip group.
     expect(container.querySelector('[data-chip-group]')?.textContent).toMatch(/2 AP$/)
   })
 
@@ -251,19 +249,5 @@ describe('contexts', () => {
     expect(container.querySelectorAll('[data-grain]').length).toBe(0)
     const textured = render(<ReferenceEntityCard data={sestra()} presentation="page" />)
     expect(textured.container.querySelectorAll('[data-grain]').length).toBeGreaterThan(2)
-  })
-
-  test('a pennant control makes the cost pennant the action button', () => {
-    const onActivate = mock(() => {})
-    render(
-      <ReferenceEntityCard
-        data={auger()}
-        controls={[{ key: 'activate', pennant: true, label: 'Activate', onClick: onActivate }]}
-      />
-    )
-    const button = screen.getByRole('button', { name: 'Activate Auger, spend 1 EP' })
-    expect(button.textContent).toBe('1 EP')
-    fireEvent.click(button)
-    expect(onActivate).toHaveBeenCalledTimes(1)
   })
 })

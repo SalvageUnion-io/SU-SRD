@@ -34,7 +34,7 @@ Callers inject their renderers through **generic slot props** (`afterExtraConten
 - **Containers** — content-agnostic wrappers / state shells that would make sense with entirely different content inside.
 - **Compositions** — know about Salvage Union entities, or assemble atoms into a product surface.
 
-Folders outside the three groups hold one product surface each (`sheet/`, `dashboard/`, `wizard/`, …).
+Folders outside the three groups hold one product surface each (`sheet/`, `play/`, `wizard/`, …).
 
 - **Name components for what they are** — no `-Display` / `-View` / `-Renderer` suffixes or redundant `Reference*` prefixes (`Stat`, never `StatDisplay`). **`ReferenceEntityCard` is a sanctioned exception — do not re-flag it:** `Reference*` marks the card over a `RefEntity`, distinct from the content-agnostic `Card` (see [`.claude/rules/display-system.md`](../../../../.claude/rules/display-system.md)). An exception's prefix must carry information the bare name loses; record any new one here.
 - **Nothing lives only in a test.** A module whose only importers are tests ships in no app: delete it.

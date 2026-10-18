@@ -9,9 +9,8 @@ import { Footer, tokens } from '../index'
  *
  * It ends every page, signed in or out, at every width. It sits in
  * normal flow after the route, so nothing pinned can cover it: the bars that
- * stay in view (the sheet's control bar, the wizard's next/back, the phone
- * Dashboard's menu and resolve bar) are `sticky` inside their own screen and
- * release before it, and the canvas Dashboard and the Mediator fill the
+ * stay in view (the sheet's control bar, the wizard's next/back) are `sticky`
+ * inside their own screen and release before it, and Play fills the
  * viewport, so the page scrolls on to it.
  */
 

@@ -15,8 +15,8 @@
 export type RoleFlags = { mediator: boolean; organizer: boolean }
 
 /**
- * Whether anybody in this roster mediates. The Dashboard opens only when one
- * does (ADR-038 §1); an Organizer standing in as table runner does not count.
+ * Whether anybody in this roster mediates. An Organizer standing in as table
+ * runner does not count.
  */
 export function hasMediator(members: readonly Pick<RoleFlags, 'mediator'>[]): boolean {
   return members.some((m) => m.mediator)

@@ -12,6 +12,6 @@ Code identifiers may differ (`organizer`, `softLinks`, a null `gameId`); copy fo
 5. **Make a copy** — a new, separate record (ADR-030 §2); the one label for copying wherever it is offered.
    The Starter Set's "Copy to…" only picks where the copy lands.
 6. **Pick up** and **Offer to the crew** — the roster's verbs for taking an unclaimed build in a Game and handing yours back.
-7. **Board** — a pilot taking a mech's seat on the Dashboard (ADR-038); "aboard" belongs to this, not to assignment.
+7. **Board** — a pilot taking a mech's seat in Play (ADR-051 §3); "aboard" belongs to this, not to assignment.
    "Dock" is only the Mech Bay's function action.
 8. **Player**, **Mediator**, **Organiser** — the roles, capitalised; Organiser in British spelling. "Table runner" in docs is the Mediator, or the Organiser while a Game has none.

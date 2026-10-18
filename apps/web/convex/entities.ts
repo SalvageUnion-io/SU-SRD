@@ -379,7 +379,7 @@ export const listMine = query({
     // A template pre-gen (no `appId`) was seeded with the template's own body,
     // which says `gameId: null`, while the row sits in its Game. The column is
     // where it is, so a claimed pre-gen comes down in its Game: cached as on the
-    // shelf, the Dashboard refused it and its next write moved it out.
+    // shelf, Play refused it and its next write moved it out.
     const versioned = (r: ContainedRow) => ({
       appId: r.appId ?? null,
       updatedAt: r.updatedAt,

@@ -238,20 +238,27 @@
   width: 14rem;
 }
 
+/* Below `sm` the switcher's three tabs (Reference | Build | Play) set at the
+   11px type floor (ruleset §4.6), tight-tracked and closer-padded: at the
+   desktop's 13px wide caps the third tab cost the row about 58px, past a
+   400px phone. Their height stays the bar's one control height. */
+@media (max-width: 39.99rem) {
+  .su-union-bar__tab {
+    font-size: var(--text-badge);
+    letter-spacing: var(--tracking-caps-tight);
+    padding-inline: var(--space-6);
+  }
+}
+
 /* A narrow phone (under 400px) has to fit the mark, the switcher and a
    three-control cluster (The Cantina signed in: search, avatar, menu, each on the
-   44px coarse floor) in one row. The default spacing needs 405px for that,
-   so the hamburger ran off a 375px screen; this tightening gets it to about
-   354px, inside a 360px phone, without dropping a control. */
+   44px coarse floor) in one row. The default spacing ran the hamburger off a
+   375px screen; this tightening, with the tabs' above, keeps it inside a
+   360px phone without dropping a control. */
 @media (max-width: 24.99rem) {
   .su-union-bar__row {
     gap: var(--space-8);
     padding-inline: var(--space-12);
-  }
-
-  .su-union-bar__tab {
-    letter-spacing: var(--tracking-caps-snug);
-    padding-inline: var(--space-8);
   }
 
   .su-union-bar__mobile {

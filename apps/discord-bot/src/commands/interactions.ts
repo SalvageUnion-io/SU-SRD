@@ -54,6 +54,16 @@ export type CommandExecuteInteraction = {
   }
   user: { id: string; displayName?: string }
   /**
+   * The channel the command ran in (`/su bind` binds it), or null when Discord
+   * sent none.
+   */
+  channelId: string | null
+  /**
+   * That channel's name (`salvage-run`), which `/su bind` keeps beside its id
+   * so Play can show it; null when Discord sent no channel object (a DM).
+   */
+  channelName: string | null
+  /**
    * The message a message context-menu command was used on, or null for a
    * slash command.
    */

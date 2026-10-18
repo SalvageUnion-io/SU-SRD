@@ -20,6 +20,8 @@
 import type { BotDenialReason } from 'cantina-domain/botWire'
 
 export type {
+  BindChannelResult,
+  ChannelBindingSummary,
   EntityBody,
   GameSummary,
   GamesResult,
@@ -28,6 +30,7 @@ export type {
   MineResult,
   PilotDerived,
   SheetResult,
+  UnbindChannelResult,
 } from 'cantina-domain/botWire'
 export type { SheetTable } from 'cantina-domain/entityKinds'
 

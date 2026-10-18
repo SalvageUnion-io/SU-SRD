@@ -7,7 +7,7 @@
  * component's remaining job is the condensed top-bar strip and composing the
  * assigned-pilot/home-crawler rail content handed to `MechSheet` as
  * `linkedUnits`. Push / Heat Check are Guided-Play transactions that live on
- * the Dashboard, not the Free-Edit Live Sheet (ADR-021).
+ * Play, not the Free-Edit Live Sheet (ADR-021).
  */
 
 import { containerOf } from 'cantina-domain/container'

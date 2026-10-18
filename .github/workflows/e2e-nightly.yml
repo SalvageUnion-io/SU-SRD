@@ -50,8 +50,12 @@ jobs:
     # requests no secrets at all.
     #
     # `a11y-signed-in.e2e.ts` runs here too: the axe scan of the pages only an
-    # account reaches (Shelves, the wizards, the sheets, the Game, the Mediator
-    # Dashboard and the Dashboard), which the PR tier's signed-out scan cannot.
+    # account reaches (Shelves, the wizards, the sheets, the Game, and Play's
+    # landing, player and Mediator screens), which the PR tier's signed-out
+    # scan cannot. So do Play's flows and layout gates (`play-*.e2e.ts`
+    # and `sibling-heights.e2e.ts`'s Play lines), which need an account: the
+    # PR tier runs their signed-out halves (the Play bundle budget, the
+    # signed-out Play pages' axe scan and sibling heights).
     #
     # One job, one backend, one build: the sign-in hand-off spec
     # (`signin-save.e2e.ts`) and the specs that depend on its seam cannot

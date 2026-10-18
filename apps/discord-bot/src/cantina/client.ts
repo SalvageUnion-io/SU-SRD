@@ -1,7 +1,8 @@
-import type { BotOpName } from 'cantina-domain/botWire'
+import type { BindChannelArgs, BotOpName } from 'cantina-domain/botWire'
 import { BOT_PATH_PREFIX } from 'cantina-domain/botWire'
 import { PRODUCT } from 'cantina-domain/product'
 import type {
+  BindChannelResult,
   CantinaResult,
   DenialReason,
   GamesResult,
@@ -9,6 +10,7 @@ import type {
   MineResult,
   SheetResult,
   SheetTable,
+  UnbindChannelResult,
 } from './types'
 
 /**
@@ -50,6 +52,21 @@ export type CantinaClient = {
   mineForAutocomplete(discordId: string): Promise<CantinaResult<MineResult>>
   /** One sheet by row id or app id: yours, a crewmate's, or a published one. */
   sheet(discordId: string, table: SheetTable, entityId: string): Promise<CantinaResult<SheetResult>>
+  /** What `/su bind` autocompletes to (your Games), under the 3s autocomplete deadline. */
+  gamesForAutocomplete(discordId: string): Promise<CantinaResult<GamesResult>>
+  /**
+   * `/su bind`: bind `channelId` (named `channelName`, kept so Play can show
+   * it) to a Game (`game`: its id, or a name typed by hand) or, with `game`
+   * null, to the caller's solo play.
+   */
+  bindChannel(
+    discordId: string,
+    channelId: string,
+    game: string | null,
+    channelName?: string | null
+  ): Promise<CantinaResult<BindChannelResult>>
+  /** `/su unbind`: release whatever `channelId` is bound to. */
+  unbindChannel(discordId: string, channelId: string): Promise<CantinaResult<UnbindChannelResult>>
 }
 
 export type CantinaClientConfig = {
@@ -59,7 +76,7 @@ export type CantinaClientConfig = {
   botSecret: string
 }
 
-const DENIAL_REASONS: readonly string[] = ['unlinked', 'not-found']
+const DENIAL_REASONS: readonly string[] = ['unlinked', 'not-found', 'forbidden']
 
 function isDenial(value: unknown): value is { reason: DenialReason; message?: string } {
   const reason = (value as { reason?: unknown } | null)?.reason
@@ -147,5 +164,16 @@ export function createCantinaClient(config: Partial<CantinaClientConfig>): Canti
     games: (discordId) => call('games', { discordId }),
     mineForAutocomplete: (discordId) => call('mine', { discordId }, true),
     sheet: (discordId, table, entityId) => call('sheet', { discordId, table, entityId }),
+    gamesForAutocomplete: (discordId) => call('games', { discordId }, true),
+    bindChannel: (discordId, channelId, game, channelName) => {
+      const args: BindChannelArgs = {
+        discordId,
+        channelId,
+        ...(channelName ? { channelName } : {}),
+        ...(game === null ? {} : { game }),
+      }
+      return call('bindChannel', args)
+    },
+    unbindChannel: (discordId, channelId) => call('unbindChannel', { discordId, channelId }),
   }
 }

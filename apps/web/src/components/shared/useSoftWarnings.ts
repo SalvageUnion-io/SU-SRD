@@ -4,7 +4,7 @@
  *
  * Wired into the Live Sheet's BUILD edits (PilotSheet ability add/remove and
  * class change, MechSheet system removal). Play-state writes (HP/AP/EP/heat,
- * the Dashboard bands) deliberately bypass it — those are transient combat
+ * Play's vitals) deliberately bypass it — those are transient combat
  * state, not the build the rules evaluate.
  *
  * Design notes:

@@ -2,7 +2,6 @@ import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { readPackageStylesheet } from '../../../../styles/__tests__/packageStylesheet'
-import { PENNANT_SHAPE } from '../cardChrome'
 import { grainClass, grainSvg } from '../cardGrain'
 
 /**
@@ -10,8 +9,7 @@ import { grainClass, grainSvg } from '../cardGrain'
  * equal (a stylesheet cannot import a constant or call a function):
  *
  * - the grain image: `grainSvg` builds it from the `speckle` tokens, and
- *   `styles/grain/<grain>.svg` holds it for the `.su-grain--*` classes;
- * - the pennant's cut: `PENNANT_SHAPE`, which `.su-pennant` restates.
+ *   `styles/grain/<grain>.svg` holds it for the `.su-grain--*` classes.
  */
 const STYLES = join(import.meta.dir, '../../../../styles')
 const css = readPackageStylesheet()
@@ -33,12 +31,5 @@ describe('card grain', () => {
 
   test('no grain, no class', () => {
     expect(grainClass(undefined)).toBeUndefined()
-  })
-})
-
-describe('cost pennant', () => {
-  test('.su-pennant cuts PENNANT_SHAPE', () => {
-    const rule = css.match(/\.su-pennant\s*\{([^}]*)\}/)?.[1] ?? ''
-    expect(rule).toContain(`clip-path: ${PENNANT_SHAPE};`)
   })
 })

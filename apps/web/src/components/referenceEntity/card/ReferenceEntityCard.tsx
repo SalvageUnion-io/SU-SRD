@@ -42,7 +42,6 @@ import { CardHead } from './CardHead'
 import { CardLabels } from './CardLabels'
 import { CardOuter } from './CardOuter'
 import { CardPage } from './CardPage'
-import { CardPennant } from './CardPennant'
 import { CardTopRail } from './CardTopRail'
 import type { CardBodyInput } from './cardBodyProse'
 import { resolveBodyProse } from './cardBodyProse'
@@ -97,8 +96,7 @@ import { stripHostParenthetical } from './stripHostParenthetical'
  * - TONE, for things you HAVE: the entity's tone, ink speckle, the title in
  *   ink or paper by contrast.
  * - INK, for things you DO (abilities, actions): the book's ink banner — the
- *   tier numeral at the left, paper flecks. The cost is a chip; only the
- *   Dashboard's pennant button sits at the right.
+ *   tier numeral at the left, paper flecks. The cost is a chip.
  *
  * The frame and the footer are ink on paper on every card; the
  * tone lives in the header alone. An entity's own roll table sits inline as a
@@ -114,7 +112,7 @@ import { stripHostParenthetical } from './stripHostParenthetical'
  * (`CardLabels`), the header (`EntityCardHeader`), the chip group
  * (`Chips`, E17), the Token form (`src/entity/`), the prose bands
  * (`CardProse`), the body interleave, choices (`ChoiceRegion`), the roll table
- * (`CardRollTable`), the pennant button (`CardPennant`), the trays, inline
+ * (`CardRollTable`), the trays, inline
  * actions and depth rows (`NestedCards`). The pure cell/stat builders are in
  * `cardCells.ts`, the chrome rules in `cardChrome.ts`.
  *
@@ -270,7 +268,7 @@ function ReferenceEntityCardInner({
   }
 
   const isAction = schemaName === 'actions'
-  // A FRAMED action (the Dashboard's deck and resolve panel) is never the
+  // A FRAMED action (one a list or a resolve draws) is never the
   // dominant solo card: a large one renders medium, at depth ≥ 1.
   const size: CardSize = isAction && sizeProp === 'full' ? 'compact' : sizeProp
   const depth = isAction ? Math.max(depthProp, 1) : depthProp
@@ -375,20 +373,12 @@ function ReferenceEntityCardInner({
   })
   const effectiveHeaderStats: StatItem[] = statsOverride ?? headerStats
 
-  // COST PENNANT — the action's own cost, or its folded self-action's. In the
-  // Dashboard a `pennant` control makes it the action button.
+  // COST — the action's own cost, or its folded self-action's, as a chip.
   const costSource = action ?? foldedActionFields
   const costLabel =
     costSource?.activationCost != null
       ? formatCost(costSource.activationCost, resolveActivationCurrency(costSource.actionSource))
       : undefined
-  // Read, the cost is a chip; the Dashboard's `pennant` control is the button.
-  const pennantControl = controls?.find((c) => c.pennant)
-  const pennantNode: ReactNode = pennantControl ? (
-    <CardPennant cost={costLabel} size={size} control={pennantControl} subject={entityName} />
-  ) : undefined
-  // The rail carries every other control; the pennant control is the pennant.
-  const railControls = pennantControl ? controls?.filter((c) => !c.pennant) : controls
 
   const isHead = extent === 'head'
   // WRITE LAYER — whole-card affordances (see `resolveCardInteraction`). A
@@ -424,8 +414,7 @@ function ReferenceEntityCardInner({
           frameStyle,
           down: isDown,
           kind,
-          pennant: isAction ? pennantNode : undefined,
-          cost: isAction && !pennantControl ? costLabel : undefined,
+          cost: isAction ? costLabel : undefined,
         }}
       />
     )
@@ -460,7 +449,7 @@ function ReferenceEntityCardInner({
   const facets = splitFacets(cells)
   const chips: ChipSet = {
     durations: facets.stamps,
-    ...(costLabel && !pennantControl ? { cost: costLabel } : {}),
+    ...(costLabel ? { cost: costLabel } : {}),
     facts: [...effectiveHeaderStats, ...facets.facts],
     tags: facets.tags,
   }
@@ -480,7 +469,6 @@ function ReferenceEntityCardInner({
       titleColor={onBand === 'ink' ? 'var(--color-ink)' : 'var(--color-paper)'}
       numeral={numeral}
       chips={<Chips chips={chips} size={chipSize} onInk={fill === 'ink'} leading={suggestedNode} />}
-      pennant={pennantNode}
       labels={labels}
       size={size}
       grain={grain}
@@ -493,9 +481,9 @@ function ReferenceEntityCardInner({
   const rendersFooter = !isCatalog && depth === 0
   // LIVE SHEET (board E3): the condition and the destructive Remove live in a
   // dashed body rail, not on the seam as green and red tabs.
-  const removers = (railControls ?? []).filter((c) => c.variant === 'danger')
+  const removers = (controls ?? []).filter((c) => c.variant === 'danger')
   const seamControls =
-    removers.length > 0 ? railControls?.filter((c) => !removers.includes(c)) : railControls
+    removers.length > 0 ? controls?.filter((c) => !removers.includes(c)) : controls
   // A read card (no handler) prints only a condition worth reporting: Intact
   // is the default, so it draws nothing rather than a stamp on every card.
   const shownStatus = onStatusClick || status !== 'intact' ? status : undefined
@@ -755,7 +743,7 @@ export function ReferenceEntityCard({
       {...rest}
     />
   )
-  // `texture={false}` (the Dashboard, a tooltip) holds for every nested card.
+  // `texture={false}` (Play, a tooltip) holds for every nested card.
   return texture === undefined ? (
     card
   ) : (

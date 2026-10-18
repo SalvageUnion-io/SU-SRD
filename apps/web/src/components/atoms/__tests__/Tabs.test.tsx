@@ -1,5 +1,5 @@
 /**
- * Tabs — the tabs keyboard model the Dashboard's display relies on:
+ * Tabs — the tabs keyboard model Play's phone tabs rely on:
  * arrows and Home/End move and select, and every tab
  * names the panel it controls.
  */
@@ -114,11 +114,7 @@ describe('Toggle', () => {
 describe('ToggleGroup', () => {
   it('is a frameless fieldset named by its hidden legend', () => {
     render(
-      <ToggleGroup
-        label="Filter actions by timing"
-        className="su-dash-deck-tabs"
-        style={{ gap: 4 }}
-      >
+      <ToggleGroup label="Filter actions by timing" className="su-test-group" style={{ gap: 4 }}>
         <Toggle pressed onClick={() => {}}>
           All
         </Toggle>
@@ -126,7 +122,7 @@ describe('ToggleGroup', () => {
     )
     const group = screen.getByRole('group', { name: 'Filter actions by timing' })
     expect(group.tagName).toBe('FIELDSET')
-    expect(group.className).toBe('su-dash-deck-tabs')
+    expect(group.className).toBe('su-test-group')
     expect(group.style.borderWidth === '0' || group.style.border.startsWith('0')).toBe(true)
     expect(group.style.gap).toBe('4px')
     expect(group.querySelector('legend')?.className).toBe('su-sr-only')

@@ -77,7 +77,7 @@ test.describe('chassis cards show stats from the SRD', () => {
   })
 })
 
-test.describe('dashboard surfaces created entities with their identity', () => {
+test.describe('Shelves surface created entities with their identity', () => {
   test('newly built pilot shows up in the roster with their name', async ({ page }) => {
     // Drive the wizard through the shared builder rather than a fixed number
     // of Next clicks — that count was wrong the moment a step was inserted.

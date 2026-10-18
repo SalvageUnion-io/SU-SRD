@@ -2,8 +2,8 @@ import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 
 /**
- * The Game's invite URL: "Copy invite link" (the Game page and the
- * Dashboard's Crew tab) and "Reset link" (the Game page).
+ * The Game's invite URL, on the Game page: "Copy invite link" and "Reset
+ * link".
  *
  * What these pin: copying asks the server for the Game's link (`invites.link`)
  * and puts the whole URL on the clipboard; resetting asks `invites.reset`; and

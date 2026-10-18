@@ -54,8 +54,8 @@ product component folders, `convex/`, `e2e/`).
 - Pure math: the `salvageunion-reference/rules` subpath, never the main barrel
   or a local re-export; `src/lib/rules/` is Cantina's app-local rules only. Every
   die is the UI library's `utils/dice.ts`.
-- Play actions go on the Dashboard; the one sheet-local play control is
-  `CrawlerEconomyControl.tsx`.
+- Play actions go in Play (`components/play/`); the one sheet-local play
+  control is `CrawlerEconomyControl.tsx`.
 - Destructive condition changes stay player-driven via `StatusBadge` →
   `cycleItemCondition`.
 - Full picture: [dashboard §5](../../../../docs/architecture/dashboard.md),

@@ -325,7 +325,7 @@ describe('dropRetired', () => {
       })
     })
 
-    const counts = { invites: 1, joinRequests: 1, inviteRedemptions: 1, channelBindings: 1 }
+    const counts = { invites: 1, joinRequests: 1, inviteRedemptions: 1 }
     expect(await t.mutation(internal.invites.dropRetired, {})).toEqual(counts)
     expect(await t.mutation(internal.invites.dropRetired, {})).toEqual(counts)
 
@@ -334,8 +334,10 @@ describe('dropRetired', () => {
       invites: 0,
       joinRequests: 0,
       inviteRedemptions: 0,
-      channelBindings: 0,
     })
+    // A channel binding is live again (`/su bind`): the repair leaves it alone.
+    const bindings = await t.run(async (ctx) => ctx.db.query('channelBindings').collect())
+    expect(bindings.map((row) => row.channelId)).toEqual(['chan-1'])
     const legacy = await t.run(async (ctx) =>
       ctx.db
         .query('invites')

@@ -50,6 +50,12 @@ describe('interpret', () => {
       reason: 'unlinked',
       message: 'nope',
     })
+    // `/su bind`'s refusal is a denial too, never an outage.
+    expect(interpret(200, { ok: false, reason: 'forbidden', message: 'not yours' })).toEqual({
+      kind: 'denied',
+      reason: 'forbidden',
+      message: 'not yours',
+    })
   })
 
   test('a bad credential is an outage, not a permissions problem', () => {
@@ -139,6 +145,33 @@ describe('the transport', () => {
       'sheet',
       (c: ReturnType<typeof createCantinaClient>) => c.sheet('d1', 'pilots', 'p1'),
       { discordId: 'd1', table: 'pilots', entityId: 'p1' },
+    ],
+    [
+      'games',
+      (c: ReturnType<typeof createCantinaClient>) => c.gamesForAutocomplete('d1'),
+      { discordId: 'd1' },
+    ],
+    [
+      'bindChannel',
+      (c: ReturnType<typeof createCantinaClient>) => c.bindChannel('d1', 'ch1', 'g1'),
+      { discordId: 'd1', channelId: 'ch1', game: 'g1' },
+    ],
+    [
+      'bindChannel',
+      (c: ReturnType<typeof createCantinaClient>) =>
+        c.bindChannel('d1', 'ch1', 'g1', 'salvage-run'),
+      { discordId: 'd1', channelId: 'ch1', channelName: 'salvage-run', game: 'g1' },
+    ],
+    [
+      'bindChannel',
+      // Solo play: no `game` key at all, which the server's `v.optional` takes.
+      (c: ReturnType<typeof createCantinaClient>) => c.bindChannel('d1', 'ch1', null),
+      { discordId: 'd1', channelId: 'ch1' },
+    ],
+    [
+      'unbindChannel',
+      (c: ReturnType<typeof createCantinaClient>) => c.unbindChannel('d1', 'ch1'),
+      { discordId: 'd1', channelId: 'ch1' },
     ],
   ])('%s sends the arguments the server declares', async (op, call, expected) => {
     // Guards the one genuinely untyped seam in the system: these payloads are

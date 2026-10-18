@@ -7,7 +7,7 @@ import { makeUser, mechBody } from '../fixtures'
 import { testConvex } from '../harness'
 
 /**
- * The three server additions the Mediator Dashboard brings
+ * The three server additions the Mediator's surface brought
  * (docs/architecture/mediator-dashboard.md §4): a proposal's reason, the
  * Mediator's `proposals.sent`, and `mediator.updateNpc`.
  *

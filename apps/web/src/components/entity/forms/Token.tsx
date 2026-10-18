@@ -90,8 +90,6 @@ export type TokenSlots = {
   frameStyle?: CSSProperties
   /** The kind, for screen readers (`KindLabel`). */
   kind?: string
-  /** The Dashboard's pennant button. It carries the cost, so the Token draws no cost chip beside it. */
-  pennant?: ReactNode
   /** A read cost ("1 EP"), as its chip. */
   cost?: string
   down?: Down
@@ -183,8 +181,7 @@ export function Token({
   const userMade = !!(model.userMade || instance?.userMade)
   const title = instance?.title ?? model.title
   const chips = tokenChips(model, omit, !!body)
-  // The pennant reads the cost ("1 EP"): a chip beside it would repeat it.
-  const cost = slots.pennant ? undefined : (slots.cost ?? model.cost)
+  const cost = slots.cost ?? model.cost
   const pill = (
     <span
       data-user-made={userMade || undefined}
@@ -212,7 +209,6 @@ export function Token({
           <KindLabel kind={slots.kind ?? model.kind.type} />
         </span>
       </span>
-      {slots.pennant}
       {(chips.length > 0 || cost || slots.trailing) && (
         <span className="su-entity-token__chips">
           {chips.map((chip) => (

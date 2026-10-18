@@ -42,7 +42,15 @@ const CONTROL = [
 const MAX_GAP = 48
 
 /** Runs in the page; returns plain data. */
-function scan({ control, maxGap }: { control: string; maxGap: number }): SiblingMismatch[] {
+function scan({
+  control,
+  maxGap,
+  within,
+}: {
+  control: string
+  maxGap: number
+  within: string | null
+}): SiblingMismatch[] {
   type Box = { el: Element; x: number; y: number; w: number; h: number }
   const visible = (el: Element) => {
     const r = el.getBoundingClientRect()
@@ -50,7 +58,9 @@ function scan({ control, maxGap }: { control: string; maxGap: number }): Sibling
     const s = getComputedStyle(el)
     return s.visibility !== 'hidden' && s.display !== 'none' && Number(s.opacity) > 0.05
   }
-  const all = [...document.querySelectorAll(control)].filter(visible)
+  const all = [...document.querySelectorAll(control)]
+    .filter(visible)
+    .filter((el) => within === null || el.closest(within) !== null)
   const set = new Set(all)
   const controls = all.filter((el) => {
     for (let p = el.parentElement; p; p = p.parentElement) if (set.has(p)) return false
@@ -114,6 +124,11 @@ function scan({ control, maxGap }: { control: string; maxGap: number }): Sibling
   return found
 }
 
-export function findSiblingMismatches(page: Page): Promise<SiblingMismatch[]> {
-  return page.evaluate(scan, { control: CONTROL, maxGap: MAX_GAP })
+/**
+ * Every mismatched line on the page, or, with `within` (a selector), only the
+ * lines of controls inside what it matches: a surface's own lines, where the
+ * rest of the page is another spec's.
+ */
+export function findSiblingMismatches(page: Page, within?: string): Promise<SiblingMismatch[]> {
+  return page.evaluate(scan, { control: CONTROL, maxGap: MAX_GAP, within: within ?? null })
 }

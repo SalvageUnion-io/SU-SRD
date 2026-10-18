@@ -11,7 +11,8 @@ import { AppBar } from '../index'
  * UnionBar — the one Union bar both render modes draw (ruleset §3.11): the
  * reference pages (`TopNavigation`, its live parts islands) and the Cantina's
  * shell (`shell/unionBar.ts`, its live parts portals filling slots). Everything
- * that makes it the same bar is here: the switcher's targets, the mark, "Buy
+ * that makes it the same bar is here: the switcher's targets (Reference,
+ * Build, Play; Play is the Cantina's, under its base), the mark, "Buy
  * the game", the view-transition name and the Cantina's nav. The render mode
  * hands in only what it makes live: the search, the account controls and the
  * phone cluster (`UnionDrawer` with its triggers).
@@ -58,6 +59,9 @@ export function UnionBar({ product, games, search, actions, mobile, breadcrumbs 
       // `BaseLink`, so they are written as routes.
       referenceHref="/"
       buildHref={build ? '/' : appPath('/')}
+      // Never the current tab as served (the Cantina's shell is Build's), so
+      // always a plain anchor, written as the site path.
+      playHref={appPath('/play/')}
       LinkComponent={build ? BaseLink : 'a'}
       markSrc={MARK_SRC}
       // Cross-document view transitions match the bar on this name, so it

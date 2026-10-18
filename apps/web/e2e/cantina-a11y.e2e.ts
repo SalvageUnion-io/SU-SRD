@@ -25,6 +25,12 @@ const PAGES = [
   '/starter/pilot/starter-pilot-bonesaw',
   '/starter/mech/starter-mech-scrapper',
   '/starter/crawler/starter-crawler-tenacity',
+  // Play as a signed-out visitor meets it: the landing, and each Play
+  // screen's sign-in refusal (`PlayGate`, `PlayMediatorGate`). The signed-in
+  // states are `play-*.e2e.ts`'s, nightly.
+  '/play/',
+  '/play/a11y-probe',
+  '/play/game/a11y-probe',
 ]
 
 // A violation that fires only sometimes must not pass on a retry.

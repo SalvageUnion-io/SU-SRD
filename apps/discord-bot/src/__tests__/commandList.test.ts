@@ -11,7 +11,15 @@ const COMMITTED = join(import.meta.dir, '../../../web/src/generated/discordComma
 
 describe('the /su command list', () => {
   test('lists every leaf subcommand in registration order', () => {
-    expect(commandList().map((c) => c.name)).toEqual(['roll', 'lookup', 'me', 'games', 'sheet'])
+    expect(commandList().map((c) => c.name)).toEqual([
+      'roll',
+      'lookup',
+      'me',
+      'games',
+      'sheet',
+      'bind',
+      'unbind',
+    ])
   })
 
   test('only the reference tools answer without an account', () => {

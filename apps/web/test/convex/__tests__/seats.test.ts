@@ -52,6 +52,7 @@ describe('reading seats', () => {
       range: 'Close',
       activeEffects: [],
       resolving: null,
+      lastSeenAt: null,
       updatedAt: null,
     })
     // Reading creates nothing; rows are created on the first write.

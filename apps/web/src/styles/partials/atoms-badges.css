@@ -286,13 +286,7 @@
 }
 
 /* `atoms/CountStepper.tsx`: the pill's step buttons square off inside its
- * frame (after `.su-step-btn`), and the instrument cluster's narrow `Button`s
- * (after `.su-btn--compact`, whose padding they replace). */
+ * frame (after `.su-step-btn`). */
 .su-count-stepper__step {
   border-radius: 0;
-}
-
-.su-count-stepper__btn {
-  min-width: 0;
-  padding-inline: var(--space-8);
 }

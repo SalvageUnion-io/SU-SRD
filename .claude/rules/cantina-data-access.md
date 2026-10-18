@@ -4,7 +4,7 @@ paths:
   - 'apps/web/src/lib/entities/**'
   - 'apps/web/src/lib/connection/**'
   - 'apps/web/src/lib/export/**'
-  - 'apps/web/src/components/{account,entityContainer,crawler,dashboard,export,games,mech,mediator,npc,roster,shared,sharing,sheet,shelves,starterSet,wiring,wizard}/**'
+  - 'apps/web/src/components/{account,entityContainer,crawler,export,games,mech,npc,play,roster,shared,sharing,sheet,shelves,starterSet,wiring,wizard}/**'
   - 'apps/web/convex/**'
   - 'apps/web/e2e/**'
   - 'packages/cantina-domain/**'

@@ -136,7 +136,7 @@ export type EntityState = {
    * Merges patch, commits it, updates in-memory state, then appends a
    * Change Log entry per changed field (provenance, ADR-022). `meta` tags those
    * entries and is **required**: pick the constant for your surface from
-   * `surfaceProvenance.ts` (`LIVE_SHEET_MANUAL`, `DASHBOARD_TXN`, …) rather than
+   * `surfaceProvenance.ts` (`LIVE_SHEET_MANUAL`, `PLAY_TXN`, …) rather than
    * writing the object inline. A default would defeat the point of declaring
    * provenance once per surface: an untagged call site would log as a hand edit
    * and nothing would say so.

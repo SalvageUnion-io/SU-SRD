@@ -1,7 +1,7 @@
 /**
  * EntitySearcher — the one shared "add an entity" body for every live-sheet
  * and standalone picker modal (pilot equipment/abilities, mech systems/modules,
- * crawler weapons, chassis/NPC pickers) and the Dashboard's SRD Explorer.
+ * crawler weapons, chassis/NPC pickers) and Play's SRD Explorer.
  *
  * BROWSE, READ, KEEP. The pool is a list of Tokens, so a long collection
  * scans at a glance; a chosen Token wears the selection ring with its chosen
@@ -83,7 +83,7 @@ type EntitySearcherProps = {
    * than appending), so a single-select picker differs only in semantics, not
    * in wiring.
    * `browse`: nothing is chosen — a reference browser, not a picker (the
-   * Dashboard's SRD Explorer). No rail, no Status facet; a Token's
+   * Play's SRD Explorer). No rail, no Status facet; a Token's
    * click emits `onOpen`.
    */
   mode?: 'toggle' | 'count' | 'single' | 'browse'
