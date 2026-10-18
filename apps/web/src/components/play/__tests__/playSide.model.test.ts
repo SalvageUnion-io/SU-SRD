@@ -175,6 +175,24 @@ describe('the Feed (play.md §8)', () => {
     expect(entries.map((e) => e.key)).toEqual(['m1', 'roll-r8'])
   })
 
+  test('a roll of mine this screen no longer holds still reads "You"', () => {
+    const earlier = roll({ id: 'm0', at: 300 })
+    const entries = playFeedEntries({
+      rolls: [
+        crewRoll('r9', 300, playRollDescription('Bonesaw', earlier)),
+        crewRoll('r8', 200, 'Mags · Core Mechanic · 14 · Success'),
+      ],
+      alerts: [],
+      proposals: [],
+      mine: [],
+      rollerName: 'Bonesaw',
+    })
+    expect(entries.map((e) => e.text)).toEqual([
+      'You · Core Mechanic · 14 · Success',
+      'Mags · Core Mechanic · 14 · Success',
+    ])
+  })
+
   test('solo: only my own', () => {
     const entries = playFeedEntries({
       rolls: null,

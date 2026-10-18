@@ -86,11 +86,21 @@ export function playFeedEntries({
       text: `Mediator proposes ${proposalChange(p)}`,
       reason: p.reason,
     }))
+  // A roll of mine this screen no longer holds (made before a reload, or on
+  // another screen) still reads as mine.
+  const myPrefix = `${rollerName} · `
   const rest: FeedEntry[] = [
     ...(rolls ?? [])
       .filter((r) => !echoes.has(`${r.ts}|${r.description}`))
       .map(
-        (r): FeedEntry => ({ kind: 'roll', key: `roll-${r._id}`, ts: r.ts, text: r.description })
+        (r): FeedEntry => ({
+          kind: 'roll',
+          key: `roll-${r._id}`,
+          ts: r.ts,
+          text: r.description.startsWith(myPrefix)
+            ? `You · ${r.description.slice(myPrefix.length)}`
+            : r.description,
+        })
       ),
     ...alerts.map(
       (a): FeedEntry => ({
