@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { splitStatLine } from 'salvageunion-reference'
 import { ActivationCost } from '../../atoms/ActivationCost'
 import { Badge } from '../../atoms/Badge'
@@ -37,17 +37,29 @@ type EntityPageStampsProps = {
   lead?: ReactNode
 }
 
-function bandFact(fact: StatItem) {
+/**
+ * A chip's place counted from the END of the cluster (the cost is 0), the
+ * band's fill order (`--su-fill`, `.su-entity-stamps`): from `sm` the cluster
+ * fills from its bottom-right corner up, so its last chip, the cost, takes
+ * the corner and the earlier ones rise above. Only the order drawn changes;
+ * the source, and so a screen reader and the tab order, keep the stat order.
+ */
+function fillAt(place: number): CSSProperties {
+  return { '--su-fill': place } as CSSProperties
+}
+
+function bandFact(fact: StatItem, place: number) {
   return (
-    <Stat
-      key={fact.key}
-      orientation="horizontal"
-      label={fact.label}
-      value={fact.value}
-      size="full"
-      hoverText={fact.hoverText}
-      wrap
-    />
+    <span key={fact.key} className="su-entity-stamps__item" style={fillAt(place)}>
+      <Stat
+        orientation="horizontal"
+        label={fact.label}
+        value={fact.value}
+        size="full"
+        hoverText={fact.hoverText}
+        wrap
+      />
+    </span>
   )
 }
 
@@ -58,33 +70,61 @@ export function EntityPageStamps({
   lead,
 }: EntityPageStampsProps) {
   const { stats: leadFacts, action: actionFacts } = splitStatLine(meta.facts)
+  // Each chip's place from the end, in the stat order (`fillAt`).
+  const parts = [
+    lead ? 1 : 0,
+    legalStartingPattern ? 1 : 0,
+    meta.stats.length,
+    leadFacts.length,
+    meta.actionTypes.length,
+    actionFacts.length,
+    meta.tags.length,
+    meta.cost ? 1 : 0,
+  ]
+  const count = parts.reduce((sum, n) => sum + n, 0)
+  const startOf = (part: number) => parts.slice(0, part).reduce((sum, n) => sum + n, 0)
+  const placeOf = (part: number, index = 0) => count - 1 - startOf(part) - index
   return (
-    // Its wrap, gap and alignment are `.su-entity-stamps`': balanced rows.
+    // Its fill, gap and alignment are `.su-entity-stamps`'.
     <div className="su-entity-stamps">
-      {lead}
-      {legalStartingPattern && (
-        <Badge
-          shape="stamp"
-          size="compact"
-          className="su-entity-stamp"
-          title={LEGAL_STARTING_PATTERN_NOTE}
-        >
-          {LEGAL_STARTING_PATTERN}
-        </Badge>
+      {lead && (
+        <span className="su-entity-stamps__item" style={fillAt(placeOf(0))}>
+          {lead}
+        </span>
       )}
-      <StatColumn stats={meta.stats} label={name ? `${name} stats` : 'Stats'} />
-      {leadFacts.map(bandFact)}
-      {meta.actionTypes.map((actionType) => (
-        <Badge key={actionType} shape="stamp" size="compact" className="su-entity-stamp">
-          {actionType}
-        </Badge>
+      {legalStartingPattern && (
+        <span className="su-entity-stamps__item" style={fillAt(placeOf(1))}>
+          <Badge
+            shape="stamp"
+            size="compact"
+            className="su-entity-stamp"
+            title={LEGAL_STARTING_PATTERN_NOTE}
+          >
+            {LEGAL_STARTING_PATTERN}
+          </Badge>
+        </span>
+      )}
+      <StatColumn
+        stats={meta.stats}
+        label={name ? `${name} stats` : 'Stats'}
+        cellStyle={(index) => fillAt(placeOf(2, index))}
+      />
+      {leadFacts.map((fact, index) => bandFact(fact, placeOf(3, index)))}
+      {meta.actionTypes.map((actionType, index) => (
+        <span key={actionType} className="su-entity-stamps__item" style={fillAt(placeOf(4, index))}>
+          <Badge shape="stamp" size="compact" className="su-entity-stamp">
+            {actionType}
+          </Badge>
+        </span>
       ))}
-      {actionFacts.map(bandFact)}
-      {meta.tags.map((tag) => (
-        <Tag key={tag.key} tag={tag} size="full" linkable />
+      {actionFacts.map((fact, index) => bandFact(fact, placeOf(5, index)))}
+      {meta.tags.map((tag, index) => (
+        <span key={tag.key} className="su-entity-stamps__item" style={fillAt(placeOf(6, index))}>
+          <Tag tag={tag} size="full" linkable />
+        </span>
       ))}
       {meta.cost && (
-        <span className="su-entity-cost">
+        <span className="su-entity-stamps__item su-entity-cost" style={fillAt(0)}>
           <ActivationCost cost={meta.cost.value} currency={meta.cost.currency} />
         </span>
       )}

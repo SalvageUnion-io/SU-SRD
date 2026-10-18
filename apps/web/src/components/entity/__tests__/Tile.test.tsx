@@ -141,32 +141,35 @@ describe('Tile art', () => {
 })
 
 describe('Tile chips for systems and modules', () => {
-  const lines = (schema: string, name: string) => {
+  const chips = (schema: string, name: string) => {
     const entity = need(SalvageUnionReference.getByNameIn(schema as never, name), name)
     const { container } = render(<Entity form="tile" entity={entity as never} />)
-    return Array.from(chipsOf(container).querySelectorAll('.su-entity-tile__line')).map((line) =>
-      Array.from(line.children).map((chip) => (chip.textContent ?? '').replace(/\s+/g, ' ').trim())
+    return Array.from(chipsOf(container).children).map((chip) =>
+      (chip.textContent ?? '').replace(/\s+/g, ' ').trim()
     )
   }
 
-  test("a system's chips keep to two lines, without SV, its range as the book's code", () => {
-    expect(lines('systems', 'Red Laser')).toEqual([
-      ['TL1', 'Slots3'],
-      ['RNGC', 'DMG3 SP'],
-    ])
+  test("a system's chips are one strip in the stat order, without SV, its range as the book's code", () => {
+    // One flat strip that fills from the band's bottom-right corner up (§4.7),
+    // on one line wherever it fits: never split into fixed lines.
+    expect(chips('systems', 'Red Laser')).toEqual(['TL1', 'Slots3', 'RNGC', 'DMG3 SP'])
   })
 
-  test("a module's salvage value stays off its tile; its cost ends the second line", () => {
-    const [first = [], second = []] = lines('modules', 'Laser Guidance')
-    expect([...first, ...second].some((chip) => chip.startsWith('SV'))).toBe(false)
-    expect(second.at(-1)).toBe('3 EP')
+  test("a module's salvage value stays off its tile; its cost is its last chip", () => {
+    const strip = chips('modules', 'Laser Guidance')
+    expect(strip.some((chip) => chip.startsWith('SV'))).toBe(false)
+    expect(strip.at(-1)).toBe('3 EP')
   })
 
-  test('two chips or fewer stay on one line', () => {
-    expect(lines('systems', 'Cargo Pod')).toEqual([])
-  })
-
-  test('other tiles keep their chips as they are', () => {
+  test('no tile splits its chips into lines', () => {
+    for (const [schema, name] of [
+      ['systems', 'Cargo Pod'],
+      ['systems', 'Red Laser'],
+    ] as const) {
+      const entity = need(SalvageUnionReference.getByNameIn(schema as never, name), name)
+      const { container } = render(<Entity form="tile" entity={entity as never} />)
+      expect(chipsOf(container).querySelector('.su-entity-tile__line')).toBeNull()
+    }
     const { container } = render(<Entity form="tile" entity={mule()} />)
     expect(chipsOf(container).querySelector('.su-entity-tile__line')).toBeNull()
   })
