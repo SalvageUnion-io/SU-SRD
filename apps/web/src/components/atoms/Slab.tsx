@@ -203,7 +203,7 @@ export function Slab({
     )
   )
   return (
-    <div className={className} style={style ? { ...ROW, ...style } : ROW}>
+    <div className={className} style={style ? { ...ROW, ...style } : ROW} data-slab="">
       <Label id={id} className={POSTER_STAMP} style={LABEL}>
         {label}
       </Label>

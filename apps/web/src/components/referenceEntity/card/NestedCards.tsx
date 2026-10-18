@@ -86,7 +86,7 @@ const STACK_MARGIN: Record<CardSize, string> = {
 const stack = (size: CardSize, flush: boolean): CSSProperties => ({
   display: 'flex',
   flexDirection: 'column',
-  gap: flush ? space[24] : space[14],
+  gap: flush ? space[12] : space[14],
   ...(flush ? {} : { margin: STACK_MARGIN[size] }),
 })
 

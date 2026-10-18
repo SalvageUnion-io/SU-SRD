@@ -4,7 +4,7 @@ import { cn } from '../../../lib/cn'
 import { Slab } from '../../atoms/Slab'
 import { StatColumn } from '../../atoms/StatColumn'
 import type { Down } from './cardChrome'
-import { cardKey, nestedTitleLevel } from './cardHelpers'
+import { cardKey, nestedTitleLevel, PAGE_SLAB } from './cardHelpers'
 import { pageBodyStats } from './entityPage'
 import { PatternLinkRows } from './PatternListRow'
 import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
@@ -130,7 +130,7 @@ export function CardPage({
             {opening && <div className="su-entity-page__opening">{opening}</div>}
             {(subLine || body) && (
               <div className="su-entity-page__prose">
-                {bodyLabel && <Slab as={sectionAs} label={bodyLabel} />}
+                {bodyLabel && <Slab as={sectionAs} label={bodyLabel} style={PAGE_SLAB} />}
                 {subLine}
                 {body}
               </div>
@@ -152,7 +152,7 @@ export function CardPage({
       {table && <div className="su-entity-page__table">{table}</div>}
       {otherActions.length > 0 && (
         <section className="su-entity-page__section">
-          <Slab as={sectionAs} label="Actions" />
+          <Slab as={sectionAs} label="Actions" style={PAGE_SLAB} />
           {otherActions.map((data, index) =>
             actionCard(data, index, nestedTitleLevel(!!sectionAs))
           )}

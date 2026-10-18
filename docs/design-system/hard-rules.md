@@ -85,7 +85,7 @@ The loop: define it here, land its gate with a baseline, burn the baseline to ze
 - **R14 Caps through the stamp, Button and `capsLabel`** (§3.12, §4.2) — 11px caps are snug.
   Gate: planned, a ratchet on hand-set `uppercase`; a zero rule pairing `fontSize.badge` with `capsSnug`.
 - **R17 A Page has one rhythm** (§1.7, §7.1) — the body starts under the band; 12px between level-1 blocks; the stat column's 1px frame and 14px label.
-  Gate: planned, e2e on a short and a long Page.
+  Gate: held, `page-rhythm.e2e.ts` (`_pageRhythm.ts`) on short and long SRD Pages and the app's detail Page at page and phone widths: the first block within 24px of the band, each block (a level-1 frame, Token list, Slab, the art, stats, opening, prose and table) 12px under the nearest above it, every stat value framed 1px, every stat label 14px. Planned: the class and guide pages (their own layouts), and level-1 cards from `entity/` (`PatternLinkRow`, the class page's `PathCard`).
 - **R31 Value cells and seams** (§7.1, §7.2) — a value cell is paper with a 1px ink frame; a border-riding stamp centres on its line.
   Gate: planned, e2e over R0: every `Stat` cell's background and border, every seam stamp's centre within 1px of its border.
 - **R33 A Peek is terminal** (§1.6, E16) — no button, link, input or nested Peek on its plate.

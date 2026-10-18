@@ -12,6 +12,7 @@ import { paintFor } from '../../entity/parts/paint'
 import { usePatternHref } from '../entityHrefContext'
 import { CardLabels } from './CardLabels'
 import type { Down } from './cardChrome'
+import { PAGE_SLAB } from './cardHelpers'
 import { isLegalStartingPatternOf } from './legalStartingPattern'
 import { PatternLoadout } from './PatternLoadout'
 import { PatternUniques } from './PatternUniques'
@@ -232,7 +233,7 @@ export function PatternLinkRows({
   const count = patterns.length
   return (
     <section id="patterns" className="su-pattern-rows">
-      <Slab as={sectionAs} label="Patterns" />
+      <Slab as={sectionAs} label="Patterns" style={PAGE_SLAB} />
       <ul className="su-pattern-rows__list">
         {patterns.map((pat) => (
           <PatternLinkRow

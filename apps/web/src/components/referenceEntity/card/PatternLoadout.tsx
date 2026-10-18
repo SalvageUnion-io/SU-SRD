@@ -8,7 +8,7 @@ import { Stack } from '../../index'
 import { useEntityHref } from '../entityHrefContext'
 import type { Down } from './cardChrome'
 import { conditionOf } from './cardChrome'
-import { cardKey, nestedTitleLevel } from './cardHelpers'
+import { cardKey, nestedTitleLevel, PAGE_SLAB } from './cardHelpers'
 import { nestedChildSize } from './entityCardTone'
 import type { NestedCardHost } from './NestedCards'
 import type { ReferenceCardEntity } from './referenceEntityCardTypes'
@@ -220,7 +220,7 @@ function LoadoutToken({
 const LOADOUT_PAGE = {
   display: 'flex',
   flexDirection: 'column',
-  gap: space[16],
+  gap: space[12],
 } satisfies CSSProperties
 
 /**
@@ -246,8 +246,8 @@ export function PatternLoadoutRows({
   return (
     <div className="su-entity-page__loadout" style={LOADOUT_PAGE}>
       {groups.map((group) => (
-        <Stack as="section" gap={16} key={group.label}>
-          <Slab as={sectionAs} label={group.label} />
+        <Stack as="section" gap={12} key={group.label}>
+          <Slab as={sectionAs} label={group.label} style={PAGE_SLAB} />
           {group.entities.map((item, index) => (
             <NestedCard
               key={cardKey(item, index)}

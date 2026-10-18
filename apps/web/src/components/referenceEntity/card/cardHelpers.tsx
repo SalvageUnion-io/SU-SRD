@@ -7,9 +7,16 @@
  * from the card would make every section a circular dependency.
  */
 
+import type { CSSProperties } from 'react'
 import type { RefObjectChoice, RefObjectContentBlock } from 'salvageunion-reference'
 import { getChoiceSourceKind } from '../choiceCard/choiceSelectionHelpers'
 import type { CardTitleTag, ReferenceCardEntity } from './referenceEntityCardTypes'
+
+/**
+ * A Slab on a Page heads the block under it across the page's one 12px gap
+ * (ruleset §1.7, hard rule R17), so it drops its own bottom margin.
+ */
+export const PAGE_SLAB = { marginBottom: 0 } satisfies CSSProperties
 
 /** Beyond this nesting depth a card renders header-only (no body expansion) —
  * bounds runaway recursion (deep chassis → systems → actions, or grant cycles). */
