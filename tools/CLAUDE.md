@@ -1,62 +1,27 @@
-# tools/ — the repo's gates and one-off scripts
+# tools/ — the repo's gates and scripts
 
-Every file here is a CLI entry point run directly by Bun (`bun tools/<name>.ts`);
-they reach other workspaces (`gates` in `packages/gates`, `salvageunion-reference`)
-only by package name, each declared `workspace:*`, never by relative path.
-`tools` and `gates` are workspaces, so `bun run test` and `bun run typecheck` reach them. Most are
-**gates**, and every gate is registered in ONE place: the `CHECKS` list in
-[`check.ts`](check.ts). `bun run check`, `bun run check:fast`, lefthook's
-pre-push and CI's `static-checks` job all run that registry with a different
-profile, so a gate cannot be in one path and missing from another. Each
-script's header docstring carries the full reasoning.
+Each file is a CLI run by Bun (`bun tools/<name>.ts`) whose header docstring
+says what runs it and why; read that, not a roster. They reach `gates`
+(`packages/gates`) and `salvageunion-reference` by package name, never a
+relative path.
 
-```bash
-bun run check                 # every gate, in parallel, ending in a pass/fail table
-bun run check:fast            # the inner loop: no suite, no network, no regeneration
-bun run check styling data    # just these; `bun run check --list` prints every id, what it guards and its fix
-```
+**Every gate is registered once**, in the `CHECKS` list in
+[`check.ts`](check.ts): `bun run check`, `check:fast`, pre-push and CI's
+`static-checks` all run it with a different profile.
 
-**Adding a gate:** first prefer what already fails the build: the typecheck, a
-Biome rule, a package `exports` map, the isolated linker. A new gate script
-cites, in its header, the incident it prevents. Register it in `CHECKS` (id,
-command, `guards`, `fix`, profiles, CI areas); do not add a step to `ci.yml` or
-a command to `lefthook.yml`, since both read the registry.
+**Adding a gate:** first prefer what already fails the build (typecheck, a
+Biome rule, a package `exports` map). A new gate's header cites the incident it
+prevents; register it in `CHECKS` (id, command, `guards`, `fix`, profiles, CI
+areas), never as a step in `ci.yml` or `lefthook.yml`.
 
-**Before editing a checker:** its tests live in `tools/__tests__/` (run with
-`bun --filter tools test`), the library's in `packages/gates/__tests__/`. A gate that scans a tree must prove it scanned one —
-use `packages/gates/lib/scanFloor.ts` (collapsed corpus) and
-`packages/gates/lib/workspaceCoverage.ts` (a workspace missing from the list), and print
-the corpus size, not just the finding count.
+**Editing a checker:** tests are in `tools/__tests__/` (`bun --filter tools
+test`) and `packages/gates/__tests__/`. A gate that scans a tree proves it
+scanned one (`packages/gates/lib/scanFloor.ts`,
+`packages/gates/lib/workspaceCoverage.ts`) and prints the corpus size.
 
-## CI-only, nightly and deploy scripts
+**Ratchets:** coverage `FLOORS` (`run-coverage.ts`), page budgets (`PAGES` in
+`e2e/perf-budget.e2e.ts`) and `baselines/` move only toward stricter; loosening
+one is on purpose, said in the PR.
 
-| Script | Run by | Purpose | Baseline |
-| --- | --- | --- | --- |
-| `run-coverage.ts` | `test:coverage`: CI's `coverage` job and `bun run check`'s `test` (pre-push runs no tests) | Every workspace's suite (`tools/` included) under `bun test --coverage`, concurrently, each workspace's output printed whole under its name. Fails a workspace whose line coverage of its own files is under its floor. | `FLOORS` in the script. Add tests; lower a floor only on purpose, saying so in the PR. Raise one to lock in a gain. |
-| `gates/lib/a11yScan.ts` | `reference-a11y.e2e.ts`, `cantina-a11y.e2e.ts` per PR; the Cantina's `a11y-signed-in.e2e.ts` nightly | WCAG 2.2 AA axe scan of each spec's pages, desktop and Pixel 7; any violation fails | — |
-| `gates/lib/webVitals.ts` | `e2e/perf-budget.e2e.ts`, CI's `perf` job, per PR | LCP, TBT and CLS computed the way Lighthouse does from a page's own observers, the median of three throttled loads; any page over its budget fails | `PAGES` in the spec. Lower a budget to lock in a gain; raise one only on purpose, saying so in the PR. |
-| `deploy-surfaces.ts` | `.github/workflows/deploy-cloudflare.yml` | Diffs HEAD against the last successful deploy tag and decides which Workers (`WORKERS` in `check-workers.ts`) ship; a change under `SHARED_PATHS` ships them all, and `workflows` holds ci.yml's `shared` filter to that list. Fails safe: when unsure it deploys everything. | — |
-| `release.ts` | `.github/workflows/release.yml`, a push to `main` that changes the root `package.json` (`--dry-run` by hand); `--check-bump` is CI's `version-bump` job | When the root `package.json` version has no `v<version>` tag yet, publishes that release on the merge commit, its notes the merged PR's **What changed** section word for word, `Closes #N` lines dropped. An unbumped merge finds the tag and does nothing. | — |
-| `environments.ts` | `e2e-nightly.yml` (`environments`); `--apply` by hand | The GitHub Environments declared once (branches, secret names, required reviewers) and compared against the live settings: no branch policy, a missing or repository-level secret, an undeclared Environment. `--apply` sets Environments and branch policies, never secrets. Its static half is `workflows`' `secrets-env`. | — |
-| `gallery.ts`, `gallery-pages.ts` | `gallery.yml` (by hand: a PR's branch, or main for the tour), then `gallery-pages.yml` | `gallery --base <origin>` shoots `gates/lib/galleryPages.ts` (desktop, phone, OG, the Cantina signed in) on the one site. `gallery-pages` builds Pages from open PRs' `gallery-<n>`, main's `preview-tour` at `/tour/`. | — |
-| `smoke-production.sh` | `deploy-cloudflare.yml` (`smoke` job) and `e2e-nightly.yml` (`production-smoke`) | Curls every production surface: status codes, www and http→https redirects, CSP/HSTS reaching the browser, the rotated-chunk 404 (and that it is not `immutable`), artwork robots.txt, bot token health. | — |
-
-## Local-only and by hand
-
-| Script | Run as | Purpose |
-| --- | --- | --- |
-| `extract-rules.ts` | `rules:extract` | Rules PDFs in `rules/` to `rules/extracted/*.txt` with page markers, plus a content-stream-order layer in `rules/extracted/raw/` for the fidelity check. The PDFs are gitignored here (source of record: the private `su-rules` repo, extract committed); no-ops without them. |
-| `check-rules-fidelity.ts` | `rules:fidelity` | Every prose string against the books: verbatim, an allowlisted deviation (`lib/proseDeviations.ts` in the package), authored, or unverified drift. `--update` rewrites the lock the `rules-fidelity` gate reads; other flags: its docstring. Needs the extract: `findExtractDir` in `extract-rules.ts` says where it looks. |
-| `rules-find.ts` | `rules:find <term>` | `Book p.N: …snippet…` per hit in the extract, wraps joined; the 2.0a books unless `--all`. Flags: its docstring. |
-| `export-lp-assets.ts` | `assets:export` | Backs up the `su-lp-assets` R2 bucket locally and proves the copy byte-exact — the only backup path for the licensed artwork. Needs R2 credentials. |
-| `upload-lp-assets.ts` | `assets:upload` | The artwork ingest path into `su-lp-assets`. Needs R2 credentials. |
-| `art-crop.ts` | `assets:crop` | Measures each artwork's ink box from its `-440` derivative and writes `apps/web/src/components`'s `heroArtCrop.data.ts`, which the entity page's hero crops to. Re-run after adding or replacing art; unmeasured art renders whole. |
-| `shot.ts` | `shot` | A full-page PNG of a `/route` or a signed-out Cantina `cantina:/route` (no backend) at a `WIDTHS` width, scrolled so lazy art loads; paper only (no dark theme). Reuses only its own checkout's server, else starts one; prints each `.shots/` path. |
-
-`packages/gates` holds the shared library (`lib/`: rule engine, scan floors,
-workspace graph, lcov merge, prose fidelity, R2, per-checkout ports, the
-one Chromium launcher `chromium.ts` with its `SHOT_CHROME_PATH` override), the
-styling and copy rule sets (`rules/`, run by `check-rule-sets.ts` as the
-`styling` and `copy` checks) and the GritQL plugins (`biome/`); each file's
-docstring carries its why. Baselines live in `baselines/` (`rule-sets.json`
-holds only the ratcheted copy rules; every styling rule is zero).
+`packages/gates` holds the shared library (`lib/`), the styling and copy rule
+sets (`rules/`, run by `check-rule-sets.ts`) and the GritQL plugins (`biome/`).

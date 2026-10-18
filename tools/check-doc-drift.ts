@@ -3,47 +3,32 @@
  * Doc drift — `bun run check doc-drift`. Eleven checks, each asking whether
  * what a doc, or a comment, tells a reader is still true:
  *
- *   paths    every backticked repo path in a live-instruction doc or a
- *            Claude hook's text exists, unless the words beside it mark it as
- *            history or a proposal.
+ *   paths    every backticked repo path in a live-instruction doc or a Claude
+ *            hook exists, unless the words beside it mark it history or a proposal.
  *   scripts  every `bun run <script>`, `bun --filter <ws> <script>` and
- *            `bun run check <id>` in that same text, or in a Claude hook,
- *            names a real script or check id.
- *   fixes    every repo path and bun command in a `tools/check.ts` fix hint
- *            (printed under a failed gate) exists.
- *   claims   no agent doc (the docs above, the hooks and `.env.example`;
- *            the ADR entries excepted, which record what was retired) repeats
- *            a claim the repo has retired (`RETIRED_CLAIMS`).
- *   decisions every ADR is entry N of the numbered list under `## Decisions`
- *            in docs/ARCHITECTURE.md (`N. **ADR-NNN Title**`), none missing or
- *            repeated, and an entry that amends,
- *            supersedes or reverses another is named in that other entry.
- *            An ADR whose full text is kept (the ones code cites by §) is
- *            one `docs/adr/NNN-slug.md` opening on `# ADR-NNN: Title`, linked
- *            from entry N's headline. It has no front-matter: the status is
- *            recorded once, in entry N.
- *   shape    a terse doc (`TERSE_DOCS`) is numbered entries under `## `
- *            sections: a bold headline, then at most two lines.
+ *            `bun run check <id>` there, or in a hook, is real.
+ *   fixes    every path and bun command in a `tools/check.ts` fix hint exists.
+ *   claims   no agent doc (the ADR entries excepted) repeats a claim the repo
+ *            has retired (`RETIRED_CLAIMS`).
+ *   decisions every ADR is entry N under `## Decisions` in docs/ARCHITECTURE.md
+ *            (`N. **ADR-NNN Title**`) or named on its one `Retired …:` line,
+ *            none missing or repeated; an entry that amends, supersedes or
+ *            reverses another is named in that one. A kept full text (the ADRs
+ *            code cites by §) is `docs/adr/NNN-slug.md`, opening on
+ *            `# ADR-NNN: Title`, no front-matter, linked from entry N.
+ *   shape    a terse doc (`TERSE_DOCS`) is numbered entries: a bold headline,
+ *            then at most two lines.
  *   links    every relative markdown link in a tracked `.md` file resolves,
- *            and its `#fragment`, into a `.md` file or the same file, names a
- *            heading or an `<a id>` anchor there.
- *   areas    every entry under `## Areas` in docs/ARCHITECTURE.md carries one
- *            `<a id="slug"></a>` anchor, and every tracked file cites an Area
- *            by that slug: no bare "Areas N" (the numbers shift whenever an
- *            Area is inserted), and every `ARCHITECTURE.md#fragment` names an
- *            anchor there other than the whole-section `#areas`.
- *   size     root and per-directory CLAUDE.md files stay under 8,000
- *            characters and `.claude/rules/*.md` under 4,000. A CLAUDE.md
- *            counts the files it imports by an `@path` line (the root's
- *            `@AGENTS.md`), since they load with it.
- *            They load into every agent session in scope, so growth costs
- *            every session. A collapsed doc (`COLLAPSED_DOCS`) holds its own
- *            budget: terse is the point.
- *   load     each named session profile (`SESSION_PROFILES`: srd,
- *            cantina+ui, bot) totals what it loads (the root
- *            CLAUDE.md and its imports, each CLAUDE.md under its directories,
- *            every rule whose `paths:` match a file there, and the docs its
- *            text says to read first), held to a ratchet (`SESSION_CEILINGS`).
+ *            its `#fragment` to a heading or `<a id>` anchor.
+ *   areas    every `## Areas` entry carries one `<a id="slug"></a>`, and every
+ *            tracked file cites an Area by that slug, never by number.
+ *   size     CLAUDE.md files (with their `@path` imports) stay under 8,000
+ *            characters and `.claude/rules/*.md` under 4,000: they load into
+ *            every session in scope. `COLLAPSED_DOCS` hold their own budgets.
+ *   load     each session profile (`SESSION_PROFILES`) totals what it loads
+ *            (root CLAUDE.md and imports, each CLAUDE.md under its directories,
+ *            every matching rule, the docs it must read), held to a ratchet
+ *            (`SESSION_CEILINGS`).
  *   history  no comment in tracked code under apps/, packages/ or tools/
  *            narrates history (`gates/lib/commentHistory`'s phrases, at zero).
  */
@@ -784,6 +769,17 @@ const ADR_FLOOR = 45
 
 const adrId = (n: number): string => `ADR-${String(n).padStart(3, '0')}`
 
+/**
+ * The ADRs named on the `Retired …:` line under `## Decisions`: wholly
+ * superseded, so they keep their number but no entry (their text is in git).
+ */
+function retiredAdrs(source: string): Set<number> {
+  const at = source.search(DECISIONS_HEADING)
+  const section = at === -1 ? '' : source.slice(at).split(/\n## /)[0]
+  const line = section?.match(/^Retired\b[^:\n]*:(.*)$/m)?.[1] ?? ''
+  return new Set([...line.matchAll(/ADR-(\d{3})\b/g)].map((m) => Number(m[1])))
+}
+
 /** "Amends ADR-022", "Supersedes ADR-004", "reverses ADR-019": one ADR acting on another. */
 const ACTS_ON = /\b(amends|supersedes|reverses|replaces)\b[\s*_]*\[?ADR-(\d{3})\b/gi
 
@@ -875,13 +871,16 @@ export function checkDecisions(root: string, floor: number = ADR_FLOOR): CheckRe
     }
     count.set(entry.adr, (count.get(entry.adr) ?? 0) + 1)
   }
-  const highest = Math.max(floor, ...count.keys())
+  const retired = retiredAdrs(source)
+  const highest = Math.max(floor, ...count.keys(), ...retired)
   for (let n = 1; n <= highest; n++) {
     const seen = count.get(n) ?? 0
-    if (seen === 0)
+    if (seen === 0 && !retired.has(n))
       failures.push(
-        `${DECISIONS_DOC} has no ${adrId(n)} entry. ADRs are never deleted or renumbered: restore it.`
+        `${DECISIONS_DOC} has no ${adrId(n)} entry. ADRs are never renumbered: restore it, or name it on the \`Retired …:\` line if it is wholly superseded.`
       )
+    if (seen > 0 && retired.has(n))
+      failures.push(`${DECISIONS_DOC} lists ${adrId(n)} as an entry and as retired. Keep one.`)
     if (seen > 1)
       failures.push(
         `${DECISIONS_DOC} lists ${adrId(n)} ${seen} times. Give the new decision the next number.`
@@ -891,7 +890,7 @@ export function checkDecisions(root: string, floor: number = ADR_FLOOR): CheckRe
   const files = adrFileFailures(root, source)
   failures.push(...files.failures)
   return {
-    ok: `${count.size} ADRs, ${adrId(1)} to ${adrId(highest)}, once each under ## Decisions in ${DECISIONS_DOC}, every amendment named in the entry it amends; ${files.count} full-text ADR files, each linked from its entry`,
+    ok: `${count.size} live and ${retired.size} retired ADRs, ${adrId(1)} to ${adrId(highest)}, once each under ## Decisions in ${DECISIONS_DOC}, every amendment named in the entry it amends; ${files.count} full-text ADR files, each linked from its entry`,
     failures,
   }
 }
@@ -953,7 +952,7 @@ const OVER_BUDGET: Record<string, number> = {}
  */
 const COLLAPSED_DOCS: Record<string, number> = {
   'apps/web/ssg/DESIGN.md': 5_400,
-  'docs/ARCHITECTURE.md': 21_200,
+  'docs/ARCHITECTURE.md': 18_200,
   'docs/README.md': 2_600,
   'docs/architecture/dashboard.md': 3_000,
   'docs/architecture/mediator-dashboard.md': 4_500,
@@ -1023,8 +1022,8 @@ const SESSION_PROFILES: Record<string, SessionProfile> = {
  * so); raise one only on purpose, saying why in the commit.
  */
 const SESSION_CEILINGS: Record<string, number> = {
-  web: 61_924,
-  bot: 22_634,
+  web: 41_680,
+  bot: 11_463,
 }
 
 // ─── runner ─────────────────────────────────────────────────────────────────

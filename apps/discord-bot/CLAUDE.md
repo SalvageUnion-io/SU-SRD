@@ -1,94 +1,39 @@
 # Discord Bot
 
-The Discord bot: `/su` rolls and lookups, and a Cantina Game client. A consumer of
-`salvageunion-reference` — it reuses the same pure rules/data logic the apps do
-([ADR-006](../../docs/ARCHITECTURE.md#decisions)) and preloads the dataset
-at startup ([ADR-005](../../docs/ARCHITECTURE.md#decisions)).
+`/su` rolls and lookups, and a read-only Cantina Game client. An
+HTTP-interactions Cloudflare Worker (`src/worker/index.ts`): no gateway, no
+`start` script. Replies: [`.claude/rules/discord-bot.md`](../../.claude/rules/discord-bot.md).
 
-## Stack
-
-- **Runtime:** a Cloudflare Worker (workerd); Bun runs the tooling and tests
-- **Library:** `@discordjs/builders` (commands + Components V2),
-  `@discordjs/rest`, `discord-api-types`.
-- **Data:** `salvageunion-reference` workspace package; the product's names
-  and wire types from `cantina-domain` (`cantina-domain/product`). It never
-  imports `apps/web/src/components`.
-
-## Runtime
-
-The bot is an **HTTP-interactions Cloudflare Worker** (`src/worker/index.ts`,
-deployed by `wrangler.jsonc`). There is no Node gateway and no `start` script;
-`worker:bundle` is a `wrangler` dry-run bundle. The Worker reports to
-Workers Issues through `reportError` (`src/reportError.ts`). Wire types and `Routes` come from
-`discord-api-types`; the Worker and `deploy-commands.ts` talk to Discord through
-`@discordjs/rest`; reply payloads are the local `ReplyPayload` /
-`EditReplyPayload` in `src/commands/interactions.ts`. Never add `discord.js`
-(the gateway client nothing here needs), even for a type: its value import
-cannot run on workerd.
-
-## Structure
-
-`src/container.ts` is the one Components V2 seam (see `.claude/rules/discord-bot.md`);
-`src/termFinder.ts` + `src/commands/lookUpMessage.ts` are the "Look up in Salvage Union" message context menu.
-
-## Commands
+- **Never add `discord.js`**, even for a type: its value import cannot run on
+  workerd. Wire types and `Routes` come from `discord-api-types`, transport
+  from `@discordjs/rest`, payloads are `src/commands/interactions.ts`'s.
+- Data from `salvageunion-reference` (its pure rules, preloaded at startup) and
+  `cantina-domain`; never `apps/web/src/components`.
+- Everything hangs off `/su` (`src/commands/su.ts`), one file per command in
+  `src/commands/`. Shared code reads no configuration (the Worker's `env`
+  installs the client per request; only `deploy-commands.ts` reads
+  `process.env`); errors go to `reportError` (`src/reportError.ts`).
 
 ```bash
-bun --filter discord-bot test      # the loop: unit tests plus the signed replay harness
+bun --filter discord-bot test      # unit tests plus the signed replay harness
 bun run deploy-commands            # a test guild
 bun run deploy-commands:global     # production; a bot deploy runs it too. Credentials: op run
 ```
 
-## The Cantina
+## The Cantina client
 
-The bot is also an authenticated Cantina Game client. It reaches Convex through a
-`/bot/*` HTTP route with a bearer credential that authenticates the **bot**,
-never the **actor** — every call carries a Discord id that the server resolves
-against a linked account and a real membership. See
-[the bot as a Game client](../../docs/ARCHITECTURE.md#bot-game-client).
+It calls Convex's `/bot/*` routes with a bearer that authenticates the **bot**,
+never the actor: every call carries a Discord id the server resolves to a
+linked account and membership ([bot as a Game client](../../docs/ARCHITECTURE.md#bot-game-client)).
 
-- `src/cantina/` — the client (`fetch`, no `convex` dependency) and the wire types,
-  which are **imported** (`import type`) from `cantina-domain/botWire`
-  (`packages/cantina-domain/src/botWire.ts`) — the same declaration `botClient.ts`
-  annotates its handlers with. Never copy a shape into the bot; add it there.
-  That module imports only the leaf `entityKinds`, so the bot's type-check never
-  pulls in Convex's generated model.
-- `src/commands/cantinaReply.ts` — the shared defer / result-kind / ephemerality
-  spine, and the one client (`cantina()`, installed per request from `env`)
-
-**One client that degrades.** `CANTINA_CONVEX_SITE_URL` and `CANTINA_BOT_SECRET` are
-both needed (`/health` answers 503 while either is missing). When the deployment is down, unreachable or
-unconfigured, every call is `unavailable` and the Game commands say so as an
-outage rather than a permissions problem, while `/su roll` and `/su lookup`
-behave exactly the same. `src/__tests__/degradedMode.test.ts` is the guard;
-**do not let it regress** — the reference bot is what people use.
-
-**The bot only reads.** No character editing, and no `/su damage` — a Mediator
-writing another player's sheet is forbidden on every surface (ADR-030 §4); it
-becomes a proposal or it does not exist.
-
-**Crew maxima and status come from the server** (`SheetResult.vitals`, the
-`crew.vitals` derivation); absent, a vital shows its current value alone.
-
-**The Cantina commands:** `/su me`, `games`, `sheet`. `sheet` takes your own entity
-or any sheet link; `botClient.sheet` decides what you may read.
-
-**`/su sheet`** maps the live sheet one-to-one onto an entity card. The mapping,
-slug resolution and ability grouping are documented on `sheetCard`, `refLink`
-and `abilityFields` in `gameCards.ts`.
-
-**Accent colour:** sheets wear `SHEET_ACCENT` (see its comment; `CRITICAL`
-wins), reference cards wear their entry's tone (`discordAccent`), and rust is
-only for system replies (errors).
-
-**One link shape.** `sheetUrl` builds `/sheet/<kind>/<rowId>`; Cantina's
-`entities.locate` opens it editable for its owner, read-only otherwise.
-
-## Conventions
-
-- Everything hangs off the single `/su` top-level command (`src/commands/su.ts`)
-- Commands live in `src/commands/`, generally one file per command; the two
-  small personal ones share `account.ts`
-- Shared code reads no configuration. The Worker's `env` installs Cantina
-  client per request; `deploy-commands.ts` alone reads `process.env`
-- Errors in shared code go straight to `reportError` (`src/reportError.ts`)
+- Wire types are imported (`import type`) from `cantina-domain/botWire`; never
+  copy a shape into the bot.
+- **It degrades:** without `CANTINA_CONVEX_SITE_URL` and `CANTINA_BOT_SECRET`,
+  or with Convex down, every Game call is `unavailable` and says so as an
+  outage, while `/su roll` and `/su lookup` work unchanged.
+  `src/__tests__/degradedMode.test.ts` guards it.
+- **It only reads:** no character editing, no `/su damage` (a Mediator never
+  writes another player's sheet, ADR-030 §4).
+- Crew maxima and status come from the server (`SheetResult.vitals`).
+- Sheets wear `SHEET_ACCENT`, reference cards their entry's tone, rust only
+  system replies. `sheetUrl` builds the one link shape, `/sheet/<kind>/<rowId>`.

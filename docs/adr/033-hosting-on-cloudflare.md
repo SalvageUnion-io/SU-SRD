@@ -1,167 +1,79 @@
-# ADR-033: Hosting Moves to Cloudflare
+# ADR-033: Hosting on Cloudflare
 
-The full record behind [Decisions](../ARCHITECTURE.md#decisions) entry 33, which summarises it.
-
-## Status
-
-**Accepted and delivered.** Every production hostname is served by a
-Cloudflare Worker; Netlify and Render serve none. The decision as first
-written, with the cutover's context and hazards:
-`git show bc9f08ce:docs/ARCHITECTURE.md`. Current identifiers (Workers,
-buckets, zones) are in [Cloudflare](../ARCHITECTURE.md#cloudflare).
-
-**Amended by ADR-048:** The Cantina is served at `salvageunion.io/build` by
-`su-srd` itself (`run_worker_first` on `/build`), and there is no `su-cantina`
-Worker; `intheunionnow.com` is a zone Redirect Rule to the same page there. **ADR-047** (one edge Worker for `api.`) is
-accepted, not built.
-
-**Amended by ADR-050:** one workspace, `apps/web`, builds the reference pages and the Cantina into one
-`dist/` that `su-srd` ships in one deploy leg ([full text](050-one-app.md)).
-
-**Amended — srd answers misses.** `src/worker/index.ts` runs for every miss and
-answers it with `no-store` (see Configuration outside the repo). §Credentials
-carries the `production` and `preview` Environments.
-
-Re-affirms [ADR-031](../ARCHITECTURE.md#decisions) and
-[ADR-030](030-accounts-games-server-of-record.md) without changing either.
-`srd` remains a statically pre-rendered no-backend site; Convex remains the
-server of record for identity, ownership and sharing. **Only the host changed.**
-
-## Context
-
-Hosting was split three ways: Netlify served `srd`, `cantina` and `su-assets`,
-Render ran the Discord bot as a gateway worker, and Convex ran the accounts
-backend. Cost was not the reason to move (Render's $7/mo worker was the only
-line item). Consolidating onto one platform was, together with ending a class
-of Discord gateway failure. The bot's data layer fit Workers Free, measured
-rather than assumed: 549.6 KiB compressed and a 141 ms startup.
+Current Workers, buckets and zones: [Cloudflare](../ARCHITECTURE.md#cloudflare).
+The one app's single `su-srd` Worker: [ADR-050](050-one-app.md).
 
 ## Decision
 
-**1. Hosting is Cloudflare.** `srd` and `cantina` are Workers Static Assets,
-`su-assets` is a Worker over R2, and the Discord bot is a Worker answering HTTP
-interactions.
+**1. Hosting is Cloudflare.** The app is Workers Static Assets, `su-assets` a
+Worker over R2, the Discord bot a Worker answering HTTP interactions.
 
-**2. The cutover** — done; its plan is in the commit cited under Status.
+**4. Builds run in GitHub Actions; deploys use `wrangler`.** Not Workers
+Builds: the build provisions Chromium for OG images, and one build path keeps
+one place for path filters and the gates in front of every deploy.
 
-**3. Snapshot storage** — retired with snapshots ([ADR-036](../ARCHITECTURE.md#decisions)).
+**5. Convex stays, and nothing here may foreclose moving it.** The
+Worker↔Convex boundary stays plain HTTP with a bearer token.
 
-**4. Builds run in GitHub Actions; deploys use `wrangler`.** Workers Builds is
-not adopted: `srd`'s build provisions Chromium to render per-entity OG images,
-and one build path keeps one place for path filtering and the CI gates in front
-of every deploy.
-
-**5. Convex stays, and nothing here may foreclose moving it.** Replacing Convex
-with D1 is a separate decision needing its own ADR.
-So the Worker↔Convex boundary stays plain HTTP with a bearer token.
-
-**6. Everything runs on the existing `alxjrvs@gmail.com` account.** A dedicated
-account was declined. Cloudflare isolates by account, not project, so this
-project shares one Workers plan (Workers Paid since 2026-10-14; Free capped the
-account at 100k requests/day and 10 ms CPU) and the
-`alxjrvs.workers.dev` subdomain with RANDSUM's two Workers, `randsum-rdn` and
-`randsum-site`; preview URLs are `<alias>-<worker>.alxjrvs.workers.dev`, and renaming
-the subdomain would move RANDSUM's Workers.
+**6. Everything runs on the existing `alxjrvs@gmail.com` account**, shared with
+RANDSUM's Workers (`randsum-rdn`, `randsum-site`) on one Workers Paid plan and
+the `alxjrvs.workers.dev` subdomain (renaming it moves RANDSUM's Workers).
+Preview URLs are `<alias>-<worker>.alxjrvs.workers.dev`.
 
 **7. A failed gate halts the deploy.** No gate is worked around, relaxed, or
-retried with different parameters to obtain a pass. The cutover had no rollback; treating
-a red gate as an obstacle converts a caught problem into an unrecoverable one.
-This rule exists to be cited.
+retried with different parameters to obtain a pass.
 
 ## Consequences
 
-- **The Discord bot displays as permanently offline** in every server:
-  presence needs a gateway session, which an HTTP-interactions app never has.
-  It works when invoked. Liveness is the bot's `/health`, which
-  `tools/smoke-production.sh` checks after every deploy and nightly, so a
-  revoked token surfaces up to a day later.
-- **The bot's endpoint is application-level**, so a change reaches every server
-  at once, with no canary. Its pre-deploy gate is a signed replay harness, not
-  a staged rollout.
-- **Module scope on Workers forbids timers, async I/O and randomness.**
-  `new REST()` throws at startup, and so would any module-scope observability
-  initialisation.
-- **Zod's `jitless` configuration is load-bearing for the runtime**, not only
-  for CSP: workerd bans `new Function`. Do not revert
-  `packages/salvageunion-reference/lib/zod.ts` as an optimisation.
+- **The bot shows as permanently offline** (presence needs a gateway); its
+  liveness is `/health`, checked by `tools/smoke-production.sh` after every
+  deploy and nightly. Its endpoint is application-wide: no canary, so the
+  signed replay harness is the pre-deploy gate.
+- **Workers module scope forbids timers, async I/O and randomness** (`new
+  REST()` throws there; so would module-scope observability).
+- **Zod's `jitless` is load-bearing for the runtime** (workerd bans `new
+  Function`): never revert `packages/salvageunion-reference/lib/zod.ts`.
 
 ## Credentials
 
-Only GitHub Actions holds deploy credentials (decision 4), so CI holds a token
-that can deploy production. The bar it is held to:
-
-- A Cloudflare API token scoped to *Workers Scripts: Edit* and, for R2,
-  **narrowed to the named buckets** rather than account-wide. Cloudflare scopes
-  R2 per bucket but not Workers per script, so the Workers half can edit any
-  Worker on the account (§6). Narrow the half that can be narrowed, and do not
-  describe the other half as contained.
-- Stored as a secret of the `production` GitHub Environment, restricted to
-  `main`, with no reviewers. Never at repository
-  level, in a `wrangler.jsonc`, or in a `.env` git can see. The same
-  Environment holds `DISCORD_TOKEN`, with which a bot deploy registers the
-  slash commands (#1513); `plan` refuses a bot deploy without it.
-- [Worker Previews](../ARCHITECTURE.md#previews) run from any PR branch, so
-  the `preview` Environment admits every branch and holds a copy of the token
-  (it cannot be narrowed to the previews). It has no required reviewer: the
-  workflow ships only a same-repository PR into `main` carrying the `preview`
-  label, and adding the label is the gate (see Accepted risks).
-- Every deploy follows a merge, and the `main` ruleset merges only a branch
-  that is up to date with `main` and passed `CI Success`, so a red gate cannot
-  deploy. A green gate suffices: production deploys need no environment
-  approval.
+- The Cloudflare API token is scoped to *Workers Scripts: Edit* and R2
+  **narrowed to the named buckets**. Workers cannot be scoped per script, so it
+  can edit any Worker on the account: do not describe it as contained.
+- It is a secret of the `production` Environment (restricted to `main`, no
+  reviewers), never repository-level, in a `wrangler.jsonc` or a tracked
+  `.env`. That Environment also holds `DISCORD_TOKEN`; `plan` refuses a bot
+  deploy without it.
+- The `preview` Environment admits every branch and holds a copy of the token,
+  with no reviewer: the `preview` label on a same-repository PR is the gate.
+- Every deploy follows a merge of an up-to-date branch that passed `CI Success`.
 
 ## Accepted risks
 
-- **No automatic rollback.** Recovery is a dispatched deploy of a known-good `sha` ([deploy](../ARCHITECTURE.md#deploy)).
-- **The CI token reaches the whole personal account**, RANDSUM's two Workers
-  included. With an agent PAT carrying `workflow` scope and no required human
-  review, "merge a PR" reaches production with no human in it, and not only
-  this project's. Revisit if RANDSUM's deployments become something this
-  repository must not be able to touch; adding anything else to the account
-  widens it.
-- **A labelled preview hands its branch the token.** The `preview`
-  Environment has no reviewer (owner's call, 2026-10-13), so a PR carrying the
-  `preview` label runs its branch's code, this workflow included, holding a
-  credential that reaches production. Only someone with triage access can
-  label, fork PRs never ship, and later pushes to a labelled PR ship too.
+- **No automatic rollback:** recovery is a dispatched deploy of a known-good
+  `sha` ([deploy](../ARCHITECTURE.md#deploy)).
+- **The CI token reaches the whole account**, RANDSUM's Workers included; with
+  an agent PAT and no required human review, merging reaches production.
+- **A labelled preview hands its branch the token**; only triage access can
+  label, forks never ship, later pushes to a labelled PR ship too.
 
 ## Configuration outside the repo
 
-These are configured in the Cloudflare dashboard and are invisible to
-`grep`: Images Transformations (enabled per zone), **Always Use HTTPS** (SSL/TLS
-→ Edge Certificates, on both zones), and one **Redirect Rule** per zone sending
-`www` to the apex. Also on both zones since 2026-10-14: **Minimum TLS 1.2**,
-**Tiered Cache** (Smart topology), and **Block AI bots**. So is **Web Analytics**
-(automatic setup, salvageunion.io): the edge injects its beacon into every HTML
-page, Worker static assets included, so neither app's source carries one, and
-each `_headers` CSP allows its two origins. Adding the beacon by hand as well
-loads it twice.
-
-A missing chunk's 404 is NOT among them: each app's Worker answers every miss
-with `no-store`, where `_headers`' `/assets/*` `immutable` rule does not reach,
-and `tools/smoke-production.sh` asserts it on both sites. A Response Header
-Transform Rule doing the same, if one exists on either zone, is redundant.
-
-Always Use HTTPS answers every plain-http request on either zone, `www` and
-`assets.` included, with a 301 to its https twin. Without it plaintext reaches
-the Workers and is served as-is: HSTS protects only a browser that has already
-seen an https response, and the Redirect Rule matches `www` over https only.
-`tools/smoke-production.sh` asserts the 301 on all five hostnames.
+Invisible to `grep`, set in the Cloudflare dashboard: Images Transformations,
+**Always Use HTTPS** (both zones; HSTS alone protects only returning
+browsers), **Minimum TLS 1.2**, **Tiered Cache** (Smart), **Block AI bots**,
+and **Web Analytics** (the edge injects its beacon into every HTML page; each
+`_headers` CSP allows its two origins; never add the beacon by hand). A missing
+chunk's 404 is the Worker's `no-store`, not a dashboard rule.
+`tools/smoke-production.sh` asserts the https 301s and the 404.
 
 | Zone                | When host equals        | Then                                          |
 | ------------------- | ----------------------- | --------------------------------------------- |
 | `salvageunion.io`   | `www.salvageunion.io`   | 301 → `https://salvageunion.io` + path, query |
 | `intheunionnow.com` | `www.intheunionnow.com` | 301 → `https://intheunionnow.com` + path, query |
-| `intheunionnow.com` | `intheunionnow.com`     | 301 → `https://salvageunion.io/build` + path, query (ADR-048) |
+| `intheunionnow.com` | `intheunionnow.com`     | 301 → `https://salvageunion.io/build` + path, query |
 
-So `www.intheunionnow.com` takes two hops. No Worker answers that zone: its
-apex rule is the whole of the old host.
-
-`_redirects` cannot do this: Cloudflare lists domain-level redirects as
-unsupported and ignores malformed rules silently. Built from the dashboard's
-"Redirect from WWW to root" template, two settings matter: tick **Preserve query
-string** (off by default; srd has `/search?q=…`), and when it offers to create a
-proxied `www` record, **decline** — wrangler's custom-domain attach creates that
-record and fails with 409 Conflict if one already exists. `www` stays attached
-as a Worker custom domain so that a missing rule serves the site, with correct
-canonicals, rather than an error.
+`_redirects` cannot do this (domain-level redirects are ignored silently).
+Building one from the "Redirect from WWW to root" template: tick **Preserve
+query string**, and **decline** its proxied `www` record (wrangler's
+custom-domain attach creates it and 409s on a duplicate). `www` stays a Worker
+custom domain, so a missing rule serves the site rather than an error.
