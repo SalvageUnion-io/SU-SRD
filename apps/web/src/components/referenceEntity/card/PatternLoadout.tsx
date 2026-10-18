@@ -1,5 +1,6 @@
 import type { CSSProperties, ElementType } from 'react'
 import type { RefEntity, RefMetaEntity } from 'salvageunion-reference'
+import { getReferenceEntityName } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
 import { cn } from '../../../lib/cn'
 import { Slab } from '../../atoms/Slab'
@@ -12,7 +13,7 @@ import { cardKey, nestedTitleLevel } from './cardHelpers'
 import { nestedChildSize } from './entityCardTone'
 import type { NestedCardHost } from './NestedCards'
 import type { ReferenceCardEntity } from './referenceEntityCardTypes'
-import type { NestedGroup } from './resolveNestedEntities'
+import type { DroneLoadout, NestedGroup } from './resolveNestedEntities'
 
 /** The loadout grid's static half; its column count is `.su-pattern-loadout`. */
 const gridStyle = {
@@ -34,9 +35,21 @@ const columnStyle = {
   gap: space[6],
 } satisfies CSSProperties
 
+/** One drone a block apart from the next: its parts end before the next one's Token. */
+const dronesStyle = { gap: space[12] } satisfies CSSProperties
+
+/** A drone's Token and, under it, its parts. */
+const droneStyle = {
+  display: 'flex',
+  minWidth: 0,
+  flexDirection: 'column',
+  gap: space[4],
+} satisfies CSSProperties
+
 /**
  * A pattern's LOADOUT — its Systems and Modules groups SIDE BY SIDE, each a
- * dashed Slab over one full-width Token a line (see `LoadoutToken`).
+ * dashed Slab over one full-width Token a line (see `LoadoutToken`). Its
+ * DRONES, when it fields any, run the full width under both (`PatternDrones`).
  *
  * One block, not one per group, because the two columns only line up if a
  * single grid owns both: a pattern installs far more systems than modules
@@ -50,11 +63,14 @@ const columnStyle = {
  */
 export function PatternLoadout({
   groups,
+  drones = [],
   sectionAs,
   hostDown,
   owner,
 }: {
   groups: NestedGroup[]
+  /** The drones the pattern fields, each with its own systems and modules. */
+  drones?: DroneLoadout[]
   sectionAs: ElementType | undefined
   hostDown: Down
   /**
@@ -95,6 +111,61 @@ export function PatternLoadout({
           </ul>
         </div>
       ))}
+      {drones.length > 0 && (
+        <PatternDrones drones={drones} sectionAs={sectionAs} hostDown={hostDown} owner={owner} />
+      )}
+    </div>
+  )
+}
+
+/**
+ * A pattern's DRONES, spanning both loadout columns: a dashed Slab over each
+ * drone's Token, under the name the pattern gives it ("Shield Drone"), and
+ * right beneath it that drone's own Systems then Modules, two Tokens a line
+ * with no Slab of their own (each Token wears its kind). They sit after the
+ * drone's Token, never inside it: a Token nests nothing (E6).
+ */
+function PatternDrones({
+  drones,
+  sectionAs,
+  hostDown,
+  owner,
+}: {
+  drones: DroneLoadout[]
+  sectionAs: ElementType | undefined
+  hostDown: Down
+  owner?: string
+}) {
+  return (
+    <div className="su-pattern-loadout__drones" style={columnStyle}>
+      <Slab variant="dashed" label="Drones" as={sectionAs} />
+      <ul
+        aria-label={`${owner ? `${owner} ` : ''}Drones installed`}
+        className="su-entity-token-list"
+        style={dronesStyle}
+      >
+        {drones.map((info, index) => {
+          const parts = [...info.systems, ...info.modules]
+          const name = info.instanceName ?? getReferenceEntityName(info.drone) ?? 'Drone'
+          return (
+            <li key={cardKey(info.drone, index)} style={droneStyle}>
+              <LoadoutToken data={info.drone} title={info.instanceName} hostDown={hostDown} />
+              {parts.length > 0 && (
+                <ul
+                  aria-label={`${name} loadout`}
+                  className="su-entity-token-list su-entity-token-list--two-up"
+                >
+                  {parts.map((part, partIndex) => (
+                    <li key={cardKey(part, partIndex)}>
+                      <LoadoutToken data={part} hostDown={hostDown} />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          )
+        })}
+      </ul>
     </div>
   )
 }
@@ -120,15 +191,29 @@ export function PatternLoadout({
  * never the TL glued onto it. Under a host that is down it greys, as the
  * host's band does.
  */
-function LoadoutToken({ data, hostDown }: { data: ReferenceCardEntity; hostDown?: Down }) {
+function LoadoutToken({
+  data,
+  title,
+  hostDown,
+}: {
+  data: ReferenceCardEntity
+  /** The name the pattern gives this part, over its stat block's ("Shield Drone"). */
+  title?: string
+  hostDown?: Down
+}) {
   const href = useEntityHref(data as RefEntity)
+  const condition = hostDown ? conditionOf(hostDown) : undefined
+  const instance = {
+    ...(title ? { title } : {}),
+    ...(condition ? { condition } : {}),
+  }
   return (
     <Entity
       form="token"
       context="loadout"
       entity={data as RefMetaEntity}
       mode={href ? { kind: 'link', href } : { kind: 'link' }}
-      {...(hostDown ? { instance: { condition: conditionOf(hostDown) } } : {})}
+      {...(title || condition ? { instance } : {})}
     />
   )
 }
