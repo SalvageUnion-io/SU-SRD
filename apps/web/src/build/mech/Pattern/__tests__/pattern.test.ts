@@ -12,7 +12,7 @@
  */
 
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
-import { MechPatternSchema } from 'cantina-domain/schemas/pattern'
+import { MechPatternSchema } from 'game-domain/schemas/pattern'
 import { mechFromPattern } from '../../../../lib/patterns/patterns'
 import type { MonotonicClock } from '../../../../stores/__tests__/monotonicClock'
 import { installMonotonicClock } from '../../../../stores/__tests__/monotonicClock'

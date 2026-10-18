@@ -23,8 +23,8 @@
  * than half-built.
  */
 
-import type { CargoLot } from 'cantina-domain/schemas/cargoLot'
-import type { Crawler } from 'cantina-domain/schemas/crawler'
+import type { CargoLot } from 'game-domain/schemas/cargoLot'
+import type { Crawler } from 'game-domain/schemas/crawler'
 import type { ChangeMeta } from '../../stores/entityStore'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'

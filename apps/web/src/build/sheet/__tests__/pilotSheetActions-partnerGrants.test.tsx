@@ -14,7 +14,7 @@
 
 import { describe, expect, test } from 'bun:test'
 import { act, renderHook } from '@testing-library/react'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
+import type { Pilot } from 'game-domain/schemas/pilot'
 import { pilotFixture } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { must } from '../../../components/__tests__/must'

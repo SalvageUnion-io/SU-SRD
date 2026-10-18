@@ -14,7 +14,7 @@
  * to read: the result is plain content under its head (play.md §12).
  */
 
-import type { Mech } from 'cantina-domain/schemas/mech'
+import type { Mech } from 'game-domain/schemas/mech'
 import { useState } from 'react'
 import {
   canPush,

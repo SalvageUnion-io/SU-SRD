@@ -12,13 +12,13 @@
  * the sheet need no account; "Make a copy" (signed in) is the way to play one.
  */
 
-import type { EntityRef } from 'cantina-domain/schemas/entity'
+import type { EntityRef } from 'game-domain/schemas/entity'
 import {
   STARTER_CRAWLERS,
   STARTER_MECHS,
   STARTER_PILOTS,
   STARTER_SOFT_LINKS,
-} from 'cantina-domain/starterSet/starterSet'
+} from 'game-domain/starterSet/starterSet'
 import { isStarterKind, starterTemplate } from '../../lib/starterSet/starterTemplates'
 import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
 import { useConfirm } from '../../components/shared/useConfirm'

@@ -10,7 +10,7 @@
  * guards the change.
  */
 
-import type { Crawler } from 'cantina-domain/schemas/crawler'
+import type { Crawler } from 'game-domain/schemas/crawler'
 import type { CSSProperties } from 'react'
 import { useEffect, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'

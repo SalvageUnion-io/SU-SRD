@@ -8,7 +8,7 @@
  * written inline across a component's JSX would drift from them silently. Kept
  * here they can be tested side by side with the mutations they mirror, which is
  * exactly what `__tests__/gameRoster.test.ts` does. Who runs the table is not
- * mirrored at all: both ends call `cantina-domain/games/roles`.
+ * mirrored at all: both ends call `game-domain/games/roles`.
  *
  * **None of this is a boundary.** The server refuses what it refuses whatever
  * this file says; hiding a control the caller cannot use is a courtesy that
@@ -16,11 +16,11 @@
  * the server is right and this file is the bug.
  */
 
-import type { Container } from 'cantina-domain/container'
-import { sameContainer } from 'cantina-domain/container'
-import type { SheetKind } from 'cantina-domain/entityKinds'
-import { sheetPath } from 'cantina-domain/entityKinds'
-import { hasMediator, runsTable } from 'cantina-domain/games/roles'
+import type { Container } from 'game-domain/container'
+import { sameContainer } from 'game-domain/container'
+import type { SheetKind } from 'game-domain/entityKinds'
+import { sheetPath } from 'game-domain/entityKinds'
+import { hasMediator, runsTable } from 'game-domain/games/roles'
 import type { OwnerChip } from '../ownership/ownerChip'
 import { ownerChipFor } from '../ownership/ownerChip'
 
@@ -120,7 +120,7 @@ export type TableCapabilities = {
 }
 
 /**
- * The viewer's standing in this Game: `runsTable` from `cantina-domain/games/roles`,
+ * The viewer's standing in this Game: `runsTable` from `game-domain/games/roles`,
  * the predicate the server's `isTableRunner` uses, read off this roster. The
  * Organizer fallback is computed from the roster rather than assumed, so
  * appointing a Mediator withdraws it here at the same moment it does on the

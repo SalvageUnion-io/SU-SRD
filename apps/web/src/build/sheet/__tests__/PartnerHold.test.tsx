@@ -10,7 +10,7 @@
 
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
-import type { CargoLot } from 'cantina-domain/schemas/cargoLot'
+import type { CargoLot } from 'game-domain/schemas/cargoLot'
 import type { CargoTransferResult } from '../../../lib/cargo/cargoTransfer'
 import type { UsePartnerCargoResult } from '../../../lib/cargo/usePartnerCargo'
 import { Toaster, toast } from '../../../components/index'

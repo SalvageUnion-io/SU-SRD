@@ -8,15 +8,11 @@
  * templates and the title format: never a store, the reference or Convex.
  */
 
-import type { SheetKind } from 'cantina-domain/entityKinds'
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
-import {
-  STARTER_CRAWLERS,
-  STARTER_MECHS,
-  STARTER_PILOTS,
-} from 'cantina-domain/starterSet/starterSet'
+import type { SheetKind } from 'game-domain/entityKinds'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
+import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS } from 'game-domain/starterSet/starterSet'
 import { pageTitle } from '../pageTitle'
 
 /** Who the Starter Set belongs to — the seal on every row and sheet. */

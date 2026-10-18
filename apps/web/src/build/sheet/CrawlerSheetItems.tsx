@@ -4,7 +4,7 @@
  * Presentational + callback-driven — CrawlerSheet owns all persistence.
  */
 
-import type { Crawler } from 'cantina-domain/schemas/crawler'
+import type { Crawler } from 'game-domain/schemas/crawler'
 import type { CSSProperties, ReactNode } from 'react'
 import type { RefEntity, RefMetaEntity } from 'salvageunion-reference'
 import { findNpcChoiceByName, resolveCrawlerBay } from '../../lib/crawlerRefs'

@@ -13,10 +13,10 @@
  * only because the branch wasn't a component).
  */
 
-import { containerOf } from 'cantina-domain/container'
-import { resolveEffectiveCrawlerLevel } from 'cantina-domain/crawlerLevel'
-import { pilotingContext } from 'cantina-domain/rules/pilotingContext'
-import type { Crawler } from 'cantina-domain/schemas/crawler'
+import { containerOf } from 'game-domain/container'
+import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
+import { pilotingContext } from 'game-domain/rules/pilotingContext'
+import type { Crawler } from 'game-domain/schemas/crawler'
 import { useState } from 'react'
 import {
   crawlerMaxSPParts,

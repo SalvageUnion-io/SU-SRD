@@ -24,11 +24,11 @@
  * mount) decides what an activation spends and whether it touches Heat.
  */
 
-import { resolveEffectiveCrawlerLevel } from 'cantina-domain/crawlerLevel'
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
-import type { SeatResolving } from 'cantina-domain/schemas/seat'
+import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
+import type { SeatResolving } from 'game-domain/schemas/seat'
 import { useState } from 'react'
 import type { CoreRollResult } from 'salvageunion-reference/rules'
 import {

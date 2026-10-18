@@ -12,9 +12,9 @@
 
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
-import type { SeatResolving } from 'cantina-domain/schemas/seat'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
+import type { SeatResolving } from 'game-domain/schemas/seat'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { mechMaxHeat, pilotMaxAP, resolveChassisRef } from 'salvageunion-reference/rules'
 import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'

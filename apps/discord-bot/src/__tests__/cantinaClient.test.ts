@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from 'bun:test'
-import { createCantinaClient, interpret } from '../cantina/client'
+import { createCantinaClient, interpret } from '../play/client'
 
 /**
  * The bot's Cantina client.

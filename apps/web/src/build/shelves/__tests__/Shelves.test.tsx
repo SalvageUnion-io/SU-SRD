@@ -12,8 +12,8 @@
 
 import { afterAll, afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
-import type { EncounterNpc } from 'cantina-domain/schemas/encounterNpc'
-import type { MechPattern } from 'cantina-domain/schemas/pattern'
+import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
+import type { MechPattern } from 'game-domain/schemas/pattern'
 import type { ConnectionState } from '../../../lib/connection/connectionContext'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'

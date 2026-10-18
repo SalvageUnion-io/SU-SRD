@@ -25,7 +25,7 @@ const { hydrateStores } = await import('../../../components/__tests__/hydrateSto
 const { resetStores } = await import('../../../stores/__tests__/resetStores')
 const { withSignedInBackend } = await import('../../../stores/__tests__/signedInBackend')
 const { useEntityStore } = await import('../../../stores/entityStore')
-const { STARTER_PILOTS } = await import('cantina-domain/starterSet/starterSet')
+const { STARTER_PILOTS } = await import('game-domain/starterSet/starterSet')
 const { StarterSheetView } = await import('../StarterSheetView')
 const { StarterSetRoster } = await import('../StarterSetRoster')
 

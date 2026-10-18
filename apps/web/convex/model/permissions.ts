@@ -1,6 +1,6 @@
 import { getAuthUserId } from '@convex-dev/auth/server'
-import { hasMediator, runsTable } from 'cantina-domain/games/roles'
 import { ConvexError } from 'convex/values'
+import { hasMediator, runsTable } from 'game-domain/games/roles'
 import type { Doc, Id } from '../_generated/dataModel'
 import type { MutationCtx, QueryCtx } from '../_generated/server'
 
@@ -25,7 +25,7 @@ import type { MutationCtx, QueryCtx } from '../_generated/server'
  * and it is a considered one.
  *
  * The role predicates themselves are pure and shared with the client
- * (`cantina-domain/games/roles`), so the Game surface hides exactly what this
+ * (`game-domain/games/roles`), so the Game surface hides exactly what this
  * module refuses. This module reads the roster and throws; the answer is
  * theirs.
  */

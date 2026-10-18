@@ -24,9 +24,9 @@
 
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
-import type { SoftLink } from 'cantina-domain/schemas/softLink'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { Pilot } from 'game-domain/schemas/pilot'
+import type { SoftLink } from 'game-domain/schemas/softLink'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { expandCards } from '../../../components/__tests__/expandCards'
 import { crawlerFixture, FIXTURE_NOW, pilotFixture } from '../../../components/__tests__/fixtures'

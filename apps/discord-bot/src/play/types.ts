@@ -2,7 +2,7 @@
  * The wire shapes the Cantina Convex deployment returns to the bot.
  *
  * These are **imported**, not copied: the single declaration is
- * `packages/cantina-domain/src/botWire.ts`, which `convex/botClient.ts` annotates
+ * `packages/game-domain/src/botWire.ts`, which `convex/botClient.ts` annotates
  * every handler with. Change a `botClient` return shape and both sides fail to
  * compile until that file agrees. Importing cannot drag React into the Worker:
  * `import type` is erased at bundle time, and `botWire.ts` imports nothing at
@@ -17,7 +17,7 @@
  * Server-side coverage of these shapes: `apps/web/test/convex/__tests__/bot.test.ts`.
  */
 
-import type { BotDenialReason } from 'cantina-domain/botWire'
+import type { BotDenialReason } from 'game-domain/botWire'
 
 export type {
   BindChannelResult,
@@ -31,8 +31,8 @@ export type {
   PilotDerived,
   SheetResult,
   UnbindChannelResult,
-} from 'cantina-domain/botWire'
-export type { SheetTable } from 'cantina-domain/entityKinds'
+} from 'game-domain/botWire'
+export type { SheetTable } from 'game-domain/entityKinds'
 
 /** Why a call could not be satisfied. */
 export type DenialReason = BotDenialReason

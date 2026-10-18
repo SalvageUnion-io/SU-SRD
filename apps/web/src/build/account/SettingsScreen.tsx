@@ -1,4 +1,4 @@
-import { PRODUCT } from 'cantina-domain/product'
+import { PRODUCT } from 'game-domain/product'
 import { useMutation, useQuery } from 'convex/react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'

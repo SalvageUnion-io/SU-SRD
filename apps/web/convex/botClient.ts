@@ -1,3 +1,4 @@
+import { v } from 'convex/values'
 import type {
   BindChannelResult,
   BotDenialReason,
@@ -9,9 +10,8 @@ import type {
   MineResult,
   SheetResult,
   UnbindChannelResult,
-} from 'cantina-domain/botWire'
-import { PRODUCT } from 'cantina-domain/product'
-import { v } from 'convex/values'
+} from 'game-domain/botWire'
+import { PRODUCT } from 'game-domain/product'
 import type { Id } from './_generated/dataModel'
 import { internalQuery } from './_generated/server'
 import { displayNameOf } from './account'
@@ -52,7 +52,7 @@ import { getMembership } from './model/permissions'
  */
 
 /*
- * Every success payload below is annotated with its `cantina-domain/botWire` type.
+ * Every success payload below is annotated with its `game-domain/botWire` type.
  * That module is also what the Discord bot imports (`import type`), so a change
  * to a return shape here is a compile error on both sides of the wire rather
  * than a silent drift between two hand-kept copies.

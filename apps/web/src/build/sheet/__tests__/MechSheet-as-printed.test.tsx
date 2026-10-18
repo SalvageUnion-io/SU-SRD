@@ -9,7 +9,7 @@
 
 import { describe, expect, mock, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import type { Mech } from 'cantina-domain/schemas/mech'
+import type { Mech } from 'game-domain/schemas/mech'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { must } from '../../../components/__tests__/must'

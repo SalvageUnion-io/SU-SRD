@@ -12,7 +12,7 @@
  */
 
 import { useRouter } from '@tanstack/react-router'
-import { gamePath } from 'cantina-domain/entityKinds'
+import { gamePath } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { Button, HeaderMenu, ModalShell } from '../../components/index'

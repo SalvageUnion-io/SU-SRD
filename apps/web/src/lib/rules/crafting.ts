@@ -16,9 +16,9 @@
  * `quote.pool` and deposits `craftedLot(item)` into the crawler hold.
  */
 
-import type { CargoLot } from 'cantina-domain/schemas/cargoLot'
-import { makeUnitLot } from 'cantina-domain/schemas/cargoLot'
-import type { ScrapPool } from 'cantina-domain/schemas/crawler'
+import type { CargoLot } from 'game-domain/schemas/cargoLot'
+import { makeUnitLot } from 'game-domain/schemas/cargoLot'
+import type { ScrapPool } from 'game-domain/schemas/crawler'
 import type { TechLevel } from 'salvageunion-reference/rules'
 import { scrapCostFor } from 'salvageunion-reference/rules'
 import type { PoolDraw } from './crawlerEconomy'

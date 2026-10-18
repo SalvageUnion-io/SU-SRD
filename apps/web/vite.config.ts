@@ -184,7 +184,7 @@ export default defineConfig({
             {
               name: 'app',
               test: notOnPages(
-                /[\\/]apps[\\/]web[\\/](src[\\/](?!main\.tsx$)|convex[\\/])|[\\/]packages[\\/]cantina-domain[\\/]/
+                /[\\/]apps[\\/]web[\\/](src[\\/](?!main\.tsx$)|convex[\\/])|[\\/]packages[\\/]game-domain[\\/]/
               ),
               tags: ['$initial'],
               priority: 10,

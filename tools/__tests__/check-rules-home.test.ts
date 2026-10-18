@@ -36,7 +36,7 @@ describe('relativeSpecifiers', () => {
       "export { b } from '../b'",
       "const c = await import('./c')",
       "import './d'",
-      "import { e } from 'cantina-domain/rules/e'",
+      "import { e } from 'game-domain/rules/e'",
     ].join('\n')
     expect(relativeSpecifiers(source)).toEqual(['./a', '../b', './c', './d'])
   })
@@ -46,7 +46,7 @@ describe('convexClientImports', () => {
   test('flags a Convex import of client src/, not of convex/ or a package', () => {
     const root = tree({
       [`${CONVEX_DIR}/games.ts`]:
-        "import { x } from '../src/lib/rules/crafting'\nimport { y } from './model/seats'\nimport { z } from 'cantina-domain/rules/downtime'",
+        "import { x } from '../src/lib/rules/crafting'\nimport { y } from './model/seats'\nimport { z } from 'game-domain/rules/downtime'",
       [`${CONVEX_DIR}/model/seats.ts`]: "export { w } from '../../src/components/a'",
       [`${CONVEX_DIR}/_generated/api.ts`]: "import '../../src/ignored'",
     })

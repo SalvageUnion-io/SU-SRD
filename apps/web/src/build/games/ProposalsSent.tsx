@@ -8,7 +8,7 @@
  * of what they asked, and the players' answers.
  */
 
-import { PROPOSALS_PAGE } from 'cantina-domain/games/proposals'
+import { PROPOSALS_PAGE } from 'game-domain/games/proposals'
 import { useQuery } from 'convex/react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'

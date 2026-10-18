@@ -20,7 +20,7 @@
 
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-import type { SoftLink } from 'cantina-domain/schemas/softLink'
+import type { SoftLink } from 'game-domain/schemas/softLink'
 import { useEntityStore } from '../../../stores/entityStore'
 import {
   crawlerFixture,

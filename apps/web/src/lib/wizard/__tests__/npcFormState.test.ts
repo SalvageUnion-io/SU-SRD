@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { NpcSchema } from 'cantina-domain/schemas/npc'
+import { NpcSchema } from 'game-domain/schemas/npc'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { crawlerFixture } from '../../../components/__tests__/fixtures'
 import { crewSlotsOf } from '../../npcs/npcModel'

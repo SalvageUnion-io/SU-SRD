@@ -16,7 +16,7 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react'
-import { PilotSchema } from 'cantina-domain/schemas/pilot'
+import { PilotSchema } from 'game-domain/schemas/pilot'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { ConnectionState } from '../../../lib/connection/connectionContext'

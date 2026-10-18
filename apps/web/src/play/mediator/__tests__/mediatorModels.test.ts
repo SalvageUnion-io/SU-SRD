@@ -12,7 +12,7 @@ import {
   fieldLabel,
   normalizeReason,
   proposalTargets,
-} from 'cantina-domain/games/proposals'
+} from 'game-domain/games/proposals'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { instanceName, newTrayNpc, readSavedPattern, readTrayNpc } from '../opposition.model'
 import type { SentProposal } from '../proposalLine.model'

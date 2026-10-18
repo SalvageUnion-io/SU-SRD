@@ -12,7 +12,7 @@
  * after its unit; the Play title comes back when the overlay closes.
  */
 
-import type { SheetKind } from 'cantina-domain/entityKinds'
+import type { SheetKind } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { useEffect } from 'react'
 import { SheetView } from '../build/sheet/SheetView'

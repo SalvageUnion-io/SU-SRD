@@ -17,8 +17,8 @@
 
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
 import { mechFixture, pilotFixture } from '../../components/__tests__/fixtures'

@@ -7,11 +7,11 @@
  * runs it wins over the mount. Pure: no React and no I/O.
  */
 
-import { containerOf } from 'cantina-domain/container'
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
-import type { SeatMount } from 'cantina-domain/schemas/seat'
-import type { SoftLink } from 'cantina-domain/schemas/softLink'
+import { containerOf } from 'game-domain/container'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
+import type { SeatMount } from 'game-domain/schemas/seat'
+import type { SoftLink } from 'game-domain/schemas/softLink'
 import type { BoardOption } from './boardMenu.model'
 import type { PlayReadOnly, PlayTarget } from './play.model'
 import type { DowntimeView } from './useDowntime'

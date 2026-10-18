@@ -7,7 +7,7 @@
  * says by how much it is short.
  */
 
-import type { Crawler } from 'cantina-domain/schemas/crawler'
+import type { Crawler } from 'game-domain/schemas/crawler'
 import { payUpkeep, upkeepShortfall } from '../lib/rules/crawlerEconomy'
 import { runWrite } from '../lib/runWrite'
 import { PLAY_TXN } from '../stores/surfaceProvenance'

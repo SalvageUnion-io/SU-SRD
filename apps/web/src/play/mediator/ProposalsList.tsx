@@ -8,7 +8,7 @@
  * twenty when **Show more** is pressed.
  */
 
-import { PROPOSALS_PAGE } from 'cantina-domain/games/proposals'
+import { PROPOSALS_PAGE } from 'game-domain/games/proposals'
 import type { CSSProperties } from 'react'
 import { Button, EmptyState, FeedList, tokens } from '../../components/index'
 import { MUTED } from './mediatorStyles.model'

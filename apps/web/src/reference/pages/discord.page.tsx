@@ -8,7 +8,7 @@
  * The Cantina commands are listed under the account they need.
  */
 
-import { PRODUCT } from 'cantina-domain/product'
+import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties, ReactNode } from 'react'
 import type { PageModule, PageResult } from '../../../ssg/types'
 import { buttonVariants, InlineRef, Panel, Slab, Stack } from '../../components/index'

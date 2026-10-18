@@ -19,9 +19,9 @@
  */
 
 import '../styles/play/play.css'
-import { isPresent } from 'cantina-domain/schemas/seat'
 import { useQuery } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
+import { isPresent } from 'game-domain/schemas/seat'
 import type { CSSProperties } from 'react'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'

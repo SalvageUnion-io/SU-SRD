@@ -21,11 +21,11 @@
  * full-height modal (§5).
  */
 
-import { containerOf, sameContainer } from 'cantina-domain/container'
-import { slotKey } from 'cantina-domain/links/linkRules'
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { Npc } from 'cantina-domain/schemas/npc'
-import { NpcSchema } from 'cantina-domain/schemas/npc'
+import { containerOf, sameContainer } from 'game-domain/container'
+import { slotKey } from 'game-domain/links/linkRules'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { Npc } from 'game-domain/schemas/npc'
+import { NpcSchema } from 'game-domain/schemas/npc'
 import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { useMemo, useState } from 'react'

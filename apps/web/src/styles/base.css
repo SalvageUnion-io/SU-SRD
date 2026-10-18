@@ -46,7 +46,7 @@ body {
 /*
  * The `data-print` vocabulary, one attribute with two values, and the chrome
  * no page prints. Each surface's print rules build on it: the reference
- * pages' in `global.css`, the Cantina's in `cantina/print.css`.
+ * pages' in `global.css`, the app's in `build/print.css`.
  *
  *   data-print="hide"  hide this on paper even though its element type is kept
  *   data-print="keep"  print this even though its element type is hidden

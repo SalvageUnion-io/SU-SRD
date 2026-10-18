@@ -22,8 +22,8 @@
  * (`ShareStatusDialog`).
  */
 
-import type { Npc } from 'cantina-domain/schemas/npc'
-import type { CrewSlot } from 'cantina-domain/schemas/softLink'
+import type { Npc } from 'game-domain/schemas/npc'
+import type { CrewSlot } from 'game-domain/schemas/softLink'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { NpcView } from '../../lib/npcs/npcModel'

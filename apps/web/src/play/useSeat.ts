@@ -25,9 +25,9 @@
  * (ADR-030 §1).
  */
 
-import type { RangeBand, SeatMount, SeatResolving } from 'cantina-domain/schemas/seat'
 import type { OptimisticLocalStore } from 'convex/browser'
 import { useMutation, useQuery } from 'convex/react'
+import type { RangeBand, SeatMount, SeatResolving } from 'game-domain/schemas/seat'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { toast } from '../components/index'

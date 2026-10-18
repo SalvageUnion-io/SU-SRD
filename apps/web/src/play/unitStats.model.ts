@@ -2,14 +2,14 @@
  * unitStats.model — each unit's numbers with their derived maxima, as the
  * Units column, the phone's pinned row and the crew read them (play.md §4).
  * No React and no store, so every place that shows a vital reads the same
- * maximum the server serves the crew (`cantina-domain/rules/crewStatus`).
+ * maximum the server serves the crew (`game-domain/rules/crewStatus`).
  */
 
-import { mechMaxima, pilotMaxima } from 'cantina-domain/rules/crewStatus'
-import { totalLotUnits } from 'cantina-domain/schemas/cargoLot'
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
+import { mechMaxima, pilotMaxima } from 'game-domain/rules/crewStatus'
+import { totalLotUnits } from 'game-domain/schemas/cargoLot'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
 import type { RefCrawlerBay } from 'salvageunion-reference'
 import {
   crawlerMaxSPParts,

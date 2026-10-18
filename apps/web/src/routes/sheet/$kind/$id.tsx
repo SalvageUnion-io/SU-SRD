@@ -17,8 +17,8 @@
  */
 
 import { createFileRoute, notFound } from '@tanstack/react-router'
-import type { EntityKind } from 'cantina-domain/entityKinds'
-import { isEntityKind } from 'cantina-domain/entityKinds'
+import type { EntityKind } from 'game-domain/entityKinds'
+import { isEntityKind } from 'game-domain/entityKinds'
 import { NpcSheetView } from '../../../build/npc/NpcSheetView'
 import { SheetSkeleton } from '../../../build/sheet/SheetSkeleton'
 import { SheetView } from '../../../build/sheet/SheetView'

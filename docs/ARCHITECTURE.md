@@ -8,7 +8,7 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
 ## Areas
 
 1. **Packages** <a id="packages"></a>
-   `salvageunion-reference` → every app; `cantina-domain` → `apps/web` / bot / `convex/`; `gates` → `tools/`, app e2e.
+   `salvageunion-reference` → every app; `game-domain` → `apps/web` / bot / `convex/`; `gates` → `tools/`, app e2e.
    Packages never import an app (`noRestrictedImports`); deps use `workspace:*`.
 2. **salvageunion-reference** <a id="reference"></a>
    Private, no build, no version. Zod in `lib/schemas/` generates JSON Schema and `Ref*` types, gitignored and rebuilt on install, typecheck, build and test (its `ref-generate` bin).
@@ -30,8 +30,8 @@ the pre-collapse text is `git show 62d5afa:docs/ARCHITECTURE.md`.
    Each schema's `$id` is the URL it is served at; `api.salvageunion.io/v1` is decided, not built (ADR-043, ADR-047).
 8. **discord-bot** <a id="discord-bot"></a>
    A Worker answering HTTP interactions (no gateway, no `discord.js`); conventions in [its CLAUDE.md](../apps/discord-bot/CLAUDE.md).
-   Imports `cantina-domain` (botWire, schemas) as types only; changing them is cross-package. Lookup = embed: `discordEntryCard`.
-9. **cantina-domain** <a id="cantina-domain"></a>
+   Imports `game-domain` (botWire, schemas) as types only; changing them is cross-package. Lookup = embed: `discordEntryCard`.
+9. **game-domain** <a id="game-domain"></a>
    Zod schemas, roles, link/crew/downtime rules and bot wire types for Cantina, Convex and the bot; import by subpath.
    Rules: pure → reference `lib/rules`; shared → here; client → `src/lib/rules`; `check rules-home` bars Convex→`src/`.
 10. **Data flow and connection modes** <a id="data-flow"></a>
@@ -205,7 +205,7 @@ ADRs are never deleted or renumbered: entry N is ADR-N. An entry that amends or 
     Supersedes ADR-004; amends ADR-032.
 37. **ADR-037 The assignment model**
     Accepted: one-hop links `mech-to-pilot`, `pilot-to-crawler`, `mech-to-crawler`; a new link replaces conflicts; one container.
-    Amends ADR-030; amended by ADR-044. Code: `packages/cantina-domain/src/links/linkRules.ts`.
+    Amends ADR-030; amended by ADR-044. Code: `packages/game-domain/src/links/linkRules.ts`.
 38. **ADR-038 The Dashboard is a Game surface with shared play state** · [full text](adr/038-dashboard-game-surface.md)
     Built, partly superseded by ADR-051 (Play): the seat and the fixed 1280×800 canvas stand; Game-only and the slots went.
     Supersedes ADR-015; amends ADR-029 §4, ADR-030 §5–6 and ADR-034; amended by ADR-045, ADR-051. As built: [dashboard.md](architecture/dashboard.md).

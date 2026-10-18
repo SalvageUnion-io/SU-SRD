@@ -11,8 +11,8 @@
  * one.
  */
 
-import { gamePath } from 'cantina-domain/entityKinds'
-import { downtimeStepCount } from 'cantina-domain/rules/downtime'
+import { gamePath } from 'game-domain/entityKinds'
+import { downtimeStepCount } from 'game-domain/rules/downtime'
 import { useState } from 'react'
 import { EmptyState, Slab } from '../../components/index'
 import { AppLink } from '../../components/shared/AppLink'

@@ -7,7 +7,7 @@
  * (`play/mediator/opposition.model.ts`).
  */
 
-import type { EncounterNpc } from 'cantina-domain/schemas/encounterNpc'
+import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
 import type { RefEntity } from 'salvageunion-reference'
 import { NO_EFFECT, rollOnTable, SalvageUnionReference } from 'salvageunion-reference'
 

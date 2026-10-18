@@ -14,8 +14,8 @@
  * still `row.can` (`lib/games/gameRoster.ts`); this only does it.
  */
 
-import { moveTo, SHELF } from 'cantina-domain/container'
-import type { OwnableTable } from 'cantina-domain/entityKinds'
+import { moveTo, SHELF } from 'game-domain/container'
+import type { OwnableTable } from 'game-domain/entityKinds'
 import { useMutation } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'

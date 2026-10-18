@@ -11,7 +11,7 @@
 
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
+import type { Pilot } from 'game-domain/schemas/pilot'
 import type { ConnectionState } from '../../../lib/connection/connectionContext'
 import { ConnectionContext } from '../../../lib/connection/connectionContext'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'

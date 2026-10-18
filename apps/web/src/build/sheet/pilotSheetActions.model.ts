@@ -27,8 +27,8 @@
  * between renders) do not stomp each other.
  */
 
-import type { ItemCondition } from 'cantina-domain/schemas/itemCondition'
-import type { GenericInventoryEntry, Pilot } from 'cantina-domain/schemas/pilot'
+import type { ItemCondition } from 'game-domain/schemas/itemCondition'
+import type { GenericInventoryEntry, Pilot } from 'game-domain/schemas/pilot'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SoftWarning } from 'salvageunion-reference/rules'

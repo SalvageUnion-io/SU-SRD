@@ -1,5 +1,5 @@
 import { createRootRoute, HeadContent, Outlet, useRouterState } from '@tanstack/react-router'
-import { PRODUCT } from 'cantina-domain/product'
+import { PRODUCT } from 'game-domain/product'
 import { useLayoutEffect } from 'react'
 import { AccountHintSync } from '../build/account/AccountHintSync'
 import { AccountReconciler } from '../build/account/AccountReconciler'

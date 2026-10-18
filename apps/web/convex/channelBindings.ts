@@ -1,10 +1,10 @@
 import { getAuthUserId } from '@convex-dev/auth/server'
-import type { PostRollRelayRequest, PostRollRelayResponse } from 'cantina-domain/botWire'
-import { BOT_RELAY_POST_ROLL_PATH, isPostableRoll } from 'cantina-domain/botWire'
-import type { PostRollResult } from 'cantina-domain/games/discord'
-import { mayBindChannel } from 'cantina-domain/games/discord'
 import type { Infer } from 'convex/values'
 import { v } from 'convex/values'
+import type { PostRollRelayRequest, PostRollRelayResponse } from 'game-domain/botWire'
+import { BOT_RELAY_POST_ROLL_PATH, isPostableRoll } from 'game-domain/botWire'
+import type { PostRollResult } from 'game-domain/games/discord'
+import { mayBindChannel } from 'game-domain/games/discord'
 import { internal } from './_generated/api'
 import type { Doc, Id } from './_generated/dataModel'
 import type { QueryCtx } from './_generated/server'
@@ -226,7 +226,7 @@ export async function relayPostRoll(request: PostRollRelayRequest): Promise<Post
  * caller's personal channel in solo play (no `gameId`), as the bot's roll card.
  *
  * `post` is the screen's Post toggle, overridden per roll; `postsByDefault`
- * (`cantina-domain/games/discord`) is its default, private for the Mediator.
+ * (`game-domain/games/discord`) is its default, private for the Mediator.
  * `post: false` posts nothing and says so. `pilotId` (an app id) names the
  * roller on the card. Never silent: the result says what happened, for the
  * Feed to show, and a failure is logged.

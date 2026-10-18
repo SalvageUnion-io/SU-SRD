@@ -3,7 +3,7 @@
  * crew, for the identity panel to lay out (split from CrawlerSheetItems.tsx).
  */
 
-import type { Crawler } from 'cantina-domain/schemas/crawler'
+import type { Crawler } from 'game-domain/schemas/crawler'
 import type { ComponentProps, CSSProperties, ReactNode } from 'react'
 import { findNpcChoiceByName, resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'

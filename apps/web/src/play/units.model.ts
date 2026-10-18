@@ -15,9 +15,9 @@ import {
   downtimeGuideSteps,
   downtimeMechPatch,
   mechBayStatus,
-} from 'cantina-domain/rules/downtime'
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { Mech } from 'cantina-domain/schemas/mech'
+} from 'game-domain/rules/downtime'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { Mech } from 'game-domain/schemas/mech'
 import { crawlerTechLevelOf } from '../lib/rules/downtimeEconomy'
 import type { BoardOption } from './boardMenu.model'
 import type { Situation } from './situation.model'

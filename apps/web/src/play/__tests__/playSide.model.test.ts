@@ -5,7 +5,7 @@
  */
 
 import { afterEach, describe, expect, test } from 'bun:test'
-import { PRESENCE_STALE_MS } from 'cantina-domain/schemas/seat'
+import { PRESENCE_STALE_MS } from 'game-domain/schemas/seat'
 import { channelButtonLabel, channelRows, channelTag, postLabel } from '../channels.model'
 import { crewLineLabel, crewSeatLines, hereCount } from '../crew.model'
 import { mineText, playFeedEntries } from '../feed.model'

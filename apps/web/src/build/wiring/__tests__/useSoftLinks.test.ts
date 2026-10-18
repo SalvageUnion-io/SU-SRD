@@ -14,8 +14,8 @@
 
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, renderHook } from '@testing-library/react'
-import { resolveLinkType } from 'cantina-domain/links/linkRules'
-import type { SoftLink } from 'cantina-domain/schemas/softLink'
+import { resolveLinkType } from 'game-domain/links/linkRules'
+import type { SoftLink } from 'game-domain/schemas/softLink'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
 import { must } from '../../../components/__tests__/must'

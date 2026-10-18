@@ -1,4 +1,4 @@
-import { PilotSchema } from 'cantina-domain/schemas/pilot'
+import { PilotSchema } from 'game-domain/schemas/pilot'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { RefAbility, RefClass, RefEquipment } from 'salvageunion-reference'
 import { bookQuote, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'

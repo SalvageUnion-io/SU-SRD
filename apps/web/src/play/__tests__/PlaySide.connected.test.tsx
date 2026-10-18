@@ -11,10 +11,10 @@
 
 import { afterAll, afterEach, beforeAll, describe, expect, jest, mock, test } from 'bun:test'
 import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react'
-import type { PostRollResult } from 'cantina-domain/games/discord'
-import { PRESENCE_HEARTBEAT_MS, PRESENCE_STALE_MS } from 'cantina-domain/schemas/seat'
 import type { FunctionReference } from 'convex/server'
 import { getFunctionName } from 'convex/server'
+import type { PostRollResult } from 'game-domain/games/discord'
+import { PRESENCE_HEARTBEAT_MS, PRESENCE_STALE_MS } from 'game-domain/schemas/seat'
 import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
 import { pilotFixture } from '../../components/__tests__/fixtures'
 import type { ConnectionMode } from '../../lib/connection/connectionMode'

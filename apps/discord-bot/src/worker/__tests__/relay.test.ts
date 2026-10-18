@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from 'bun:test'
-import type { PostRollRelayResponse } from 'cantina-domain/botWire'
-import { BOT_RELAY_POST_ROLL_PATH } from 'cantina-domain/botWire'
 import { MessageFlags } from 'discord-api-types/v10'
+import type { PostRollRelayResponse } from 'game-domain/botWire'
+import { BOT_RELAY_POST_ROLL_PATH } from 'game-domain/botWire'
 import worker from '../index'
 
 /**

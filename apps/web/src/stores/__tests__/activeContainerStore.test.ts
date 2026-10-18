@@ -7,7 +7,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { SHELF } from 'cantina-domain/container'
+import { SHELF } from 'game-domain/container'
 import {
   getActiveContainer,
   parseContainer,

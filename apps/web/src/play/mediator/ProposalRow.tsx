@@ -9,7 +9,7 @@
  * (ruleset §3.3): a Superseded row is struck through, and every state is its word.
  */
 
-import { PROPOSAL_STATE_WORD } from 'cantina-domain/games/proposals'
+import { PROPOSAL_STATE_WORD } from 'game-domain/games/proposals'
 import { Eyebrow, FeedLine, FeedTime } from '../../components/index'
 import type { SentProposal } from './proposalLine.model'
 import { proposalLine } from './proposalLine.model'

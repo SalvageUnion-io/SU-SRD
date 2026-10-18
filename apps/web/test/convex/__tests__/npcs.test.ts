@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-import type { CrewSlot } from 'cantina-domain/schemas/softLink'
 import { ConvexError } from 'convex/values'
+import type { CrewSlot } from 'game-domain/schemas/softLink'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { crawlerFixture, npcFixture } from '../../../src/components/__tests__/fixtures'

@@ -1,4 +1,4 @@
-import type { OwnableKind } from 'cantina-domain/entityKinds'
+import type { OwnableKind } from 'game-domain/entityKinds'
 import type { Doc, Id } from '../_generated/dataModel'
 import type { MutationCtx, QueryCtx } from '../_generated/server'
 import type { ContainedRow } from './entities'

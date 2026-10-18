@@ -7,7 +7,7 @@
  * ask the server.
  */
 
-import { MechPatternSchema } from 'cantina-domain/schemas/pattern'
+import { MechPatternSchema } from 'game-domain/schemas/pattern'
 import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../../convex/_generated/api'

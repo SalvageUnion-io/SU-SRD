@@ -19,7 +19,7 @@
  * card strips them to avoid double-rendering.
  */
 
-import type { Crawler } from 'cantina-domain/schemas/crawler'
+import type { Crawler } from 'game-domain/schemas/crawler'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'

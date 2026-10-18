@@ -216,7 +216,7 @@ export type EditSnapshot<T> = {
 // pure functions; see ./heatCheck.ts). These are "small outcome/result
 // record shapes, not full persisted records" (ADR-006) — a consumer's
 // Zod-inferred equivalents (e.g. The Cantina's HeatCheckResultSchema /
-// ReactorOverloadOutcomeSchema in cantina-domain's src/schemas/mech.ts) satisfy them
+// ReactorOverloadOutcomeSchema in game-domain's src/schemas/mech.ts) satisfy them
 // structurally. The union literals are kept byte-identical to the Cantina's Zod
 // enums so a drift fails typecheck rather than silently diverging.
 // ---------------------------------------------------------------------------

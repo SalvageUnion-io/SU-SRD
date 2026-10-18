@@ -11,7 +11,7 @@ at startup ([ADR-005](../../docs/ARCHITECTURE.md#decisions)).
 - **Library:** `@discordjs/builders` (commands + Components V2),
   `@discordjs/rest`, `discord-api-types`.
 - **Data:** `salvageunion-reference` workspace package; the product's names
-  and wire types from `cantina-domain` (`cantina-domain/product`). It never
+  and wire types from `game-domain` (`game-domain/product`). It never
   imports `apps/web/src/components`.
 
 ## Runtime
@@ -47,9 +47,9 @@ never the **actor** — every call carries a Discord id that the server resolves
 against a linked account and a real membership. See
 [the bot as a Game client](../../docs/ARCHITECTURE.md#bot-game-client).
 
-- `src/cantina/` — the client (`fetch`, no `convex` dependency) and the wire types,
-  which are **imported** (`import type`) from `cantina-domain/botWire`
-  (`packages/cantina-domain/src/botWire.ts`) — the same declaration `botClient.ts`
+- `src/play/` — the client (`fetch`, no `convex` dependency) and the wire types,
+  which are **imported** (`import type`) from `game-domain/botWire`
+  (`packages/game-domain/src/botWire.ts`) — the same declaration `botClient.ts`
   annotates its handlers with. Never copy a shape into the bot; add it there.
   That module imports only the leaf `entityKinds`, so the bot's type-check never
   pulls in Convex's generated model.

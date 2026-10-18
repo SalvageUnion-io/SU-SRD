@@ -13,9 +13,9 @@
  */
 
 import { useNavigate } from '@tanstack/react-router'
-import type { Npc } from 'cantina-domain/schemas/npc'
-import { NpcSchema } from 'cantina-domain/schemas/npc'
-import type { SoftLink } from 'cantina-domain/schemas/softLink'
+import type { Npc } from 'game-domain/schemas/npc'
+import { NpcSchema } from 'game-domain/schemas/npc'
+import type { SoftLink } from 'game-domain/schemas/softLink'
 import { useQuery } from 'convex/react'
 import { useEffect, useMemo } from 'react'
 import { api } from '../../../convex/_generated/api'

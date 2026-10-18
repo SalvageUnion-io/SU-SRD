@@ -3,7 +3,7 @@
  * (docs/architecture/mediator-dashboard.md Q11).
  */
 
-import { CrawlerSchema } from 'cantina-domain/schemas/crawler'
+import { CrawlerSchema } from 'game-domain/schemas/crawler'
 import { crawlerMaxSP, parseCrawlerTechLevel, resolvePool } from 'salvageunion-reference/rules'
 
 /** What the card shows of a crawler. */

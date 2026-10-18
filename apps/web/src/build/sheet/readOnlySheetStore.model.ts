@@ -37,12 +37,12 @@
  * leaves no trace.
  */
 
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { EntityRef } from 'cantina-domain/schemas/entity'
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { Npc } from 'cantina-domain/schemas/npc'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
-import type { SoftLink } from 'cantina-domain/schemas/softLink'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { EntityRef } from 'game-domain/schemas/entity'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Npc } from 'game-domain/schemas/npc'
+import type { Pilot } from 'game-domain/schemas/pilot'
+import type { SoftLink } from 'game-domain/schemas/softLink'
 import { create } from 'zustand'
 import type { ServerCrawler, ServerOwnable } from '../../lib/games/gameRoster'
 import type { ServedLink } from '../../lib/links/linkSync'

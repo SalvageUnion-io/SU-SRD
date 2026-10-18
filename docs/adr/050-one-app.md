@@ -76,4 +76,4 @@ a page renders, never in how the app is built, served, installed or checked.
   still reads them, in the one stream.
 - Not changed: the URLs under `/build/` and the reference's, the Worker's name
   (`su-srd`, a Cloudflare step), the package names `salvageunion-reference`
-  and `cantina-domain`, which the bot shares, and the game data.
+  and `game-domain`, which the bot shares, and the game data.

@@ -9,8 +9,8 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import { DOWNTIME_UPKEEP_SCRAP } from 'cantina-domain/rules/downtime'
-import type { ScrapPool } from 'cantina-domain/schemas/crawler'
+import { DOWNTIME_UPKEEP_SCRAP } from 'game-domain/rules/downtime'
+import type { ScrapPool } from 'game-domain/schemas/crawler'
 import { resultForTable, SalvageUnionReference } from 'salvageunion-reference'
 import type { Roll } from 'salvageunion-reference/rules'
 import {

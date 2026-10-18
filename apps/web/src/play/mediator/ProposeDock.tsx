@@ -20,15 +20,15 @@
  * the write.
  */
 
-import type { OwnableKind } from 'cantina-domain/entityKinds'
-import type { ProposalField, ProposalTarget } from 'cantina-domain/games/proposals'
+import type { OwnableKind } from 'game-domain/entityKinds'
+import type { ProposalField, ProposalTarget } from 'game-domain/games/proposals'
 import {
   clampProposalValue,
   fieldLabel,
   PROPOSAL_FIELDS,
   PROPOSAL_REASON_MAX,
   PROPOSAL_STATE_WORD,
-} from 'cantina-domain/games/proposals'
+} from 'game-domain/games/proposals'
 import type { CSSProperties, RefObject } from 'react'
 import { useId, useState } from 'react'
 import { Button, FeedList, Field, Input, Select, TitledBox, tokens } from '../../components/index'

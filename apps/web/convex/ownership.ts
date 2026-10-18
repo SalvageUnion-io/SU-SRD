@@ -1,5 +1,5 @@
-import type { OwnableTable } from 'cantina-domain/entityKinds'
 import { v } from 'convex/values'
+import type { OwnableTable } from 'game-domain/entityKinds'
 import type { Id } from './_generated/dataModel'
 import type { MutationCtx } from './_generated/server'
 import { loadOwnable, logIdOf, mutation } from './model/entities'

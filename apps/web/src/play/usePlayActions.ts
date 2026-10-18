@@ -13,10 +13,10 @@
  * Game's log and, with Post on, Discord, once.
  */
 
-import { resolveEffectiveCrawlerLevel } from 'cantina-domain/crawlerLevel'
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
+import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
 import { useRef, useState } from 'react'
 import { resolveSheetComposition } from '../build/sheet/composition.model'
 import { rollForTable } from '../components/index'

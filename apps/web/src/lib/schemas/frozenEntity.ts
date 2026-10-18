@@ -13,14 +13,14 @@
  * every caller is an adapter around it.
  */
 
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import { CrawlerSchema } from 'cantina-domain/schemas/crawler'
-import type { Mech } from 'cantina-domain/schemas/mech'
-import { MechSchema } from 'cantina-domain/schemas/mech'
-import type { Npc } from 'cantina-domain/schemas/npc'
-import { NpcSchema } from 'cantina-domain/schemas/npc'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
-import { PilotSchema } from 'cantina-domain/schemas/pilot'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import { CrawlerSchema } from 'game-domain/schemas/crawler'
+import type { Mech } from 'game-domain/schemas/mech'
+import { MechSchema } from 'game-domain/schemas/mech'
+import type { Npc } from 'game-domain/schemas/npc'
+import { NpcSchema } from 'game-domain/schemas/npc'
+import type { Pilot } from 'game-domain/schemas/pilot'
+import { PilotSchema } from 'game-domain/schemas/pilot'
 import { isRecord } from '../isRecord'
 
 /** A parsed frozen entity, or the reason it could not be parsed. */

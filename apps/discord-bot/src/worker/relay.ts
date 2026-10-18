@@ -1,6 +1,6 @@
 /**
  * The relay: Convex asking the bot to post a Play roll into a bound channel
- * (`convex/channelBindings.ts#postRoll`, wire shapes in `cantina-domain/botWire`).
+ * (`convex/channelBindings.ts#postRoll`, wire shapes in `game-domain/botWire`).
  *
  * The Worker is the one place holding both the bot token and the roll card, so
  * Convex sends the roll and the bot renders it with `buildPostedRollMessage`:
@@ -17,9 +17,9 @@
  */
 
 import { DiscordAPIError, HTTPError, RateLimitError } from '@discordjs/rest'
-import type { PostRollRelayRequest, PostRollRelayResponse } from 'cantina-domain/botWire'
-import { bearerToken, isPostableRoll, secretsMatch } from 'cantina-domain/botWire'
 import { Routes } from 'discord-api-types/v10'
+import type { PostRollRelayRequest, PostRollRelayResponse } from 'game-domain/botWire'
+import { bearerToken, isPostableRoll, secretsMatch } from 'game-domain/botWire'
 import { buildPostedRollMessage } from '../commands/roll'
 import { encodeRollResult } from '../customId'
 import { reportError } from '../reportError'

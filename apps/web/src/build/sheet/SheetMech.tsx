@@ -10,11 +10,11 @@
  * Play, not the Free-Edit Live Sheet (ADR-021).
  */
 
-import { containerOf } from 'cantina-domain/container'
-import { resolveEffectiveCrawlerLevel } from 'cantina-domain/crawlerLevel'
-import { pilotingContext } from 'cantina-domain/rules/pilotingContext'
-import { totalLotUnits } from 'cantina-domain/schemas/cargoLot'
-import type { Mech } from 'cantina-domain/schemas/mech'
+import { containerOf } from 'game-domain/container'
+import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
+import { pilotingContext } from 'game-domain/rules/pilotingContext'
+import { totalLotUnits } from 'game-domain/schemas/cargoLot'
+import type { Mech } from 'game-domain/schemas/mech'
 import {
   mechMaxCargo,
   mechMaxEP,

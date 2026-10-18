@@ -6,13 +6,13 @@
  * or chassis cells, and a pilot's motto as the lead.
  */
 
-import type { Photo } from 'cantina-domain/schemas/photo'
-import { photoUrl } from 'cantina-domain/schemas/photo'
+import type { Photo } from 'game-domain/schemas/photo'
+import { photoUrl } from 'game-domain/schemas/photo'
 import {
   STARTER_CRAWLERS,
   STARTER_MECHS,
   STARTER_PILOTS,
-} from 'cantina-domain/starterSet/starterSet'
+} from 'game-domain/starterSet/starterSet'
 import type { RefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'

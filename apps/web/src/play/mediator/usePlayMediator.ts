@@ -18,9 +18,9 @@
  * the roll's own Post says so.
  */
 
-import { PROPOSALS_PAGE } from 'cantina-domain/games/proposals'
-import type { Crawler } from 'cantina-domain/schemas/crawler'
 import { useMutation, useQuery } from 'convex/react'
+import { PROPOSALS_PAGE } from 'game-domain/games/proposals'
+import type { Crawler } from 'game-domain/schemas/crawler'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'

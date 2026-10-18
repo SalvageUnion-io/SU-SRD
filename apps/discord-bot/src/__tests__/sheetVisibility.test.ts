@@ -15,11 +15,11 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
-import type { CantinaClient } from '../cantina/client'
-import type { EntityBody, SheetResult } from '../cantina/types'
 import { setCantinaClient } from '../commands/cantinaReply'
 import { commands } from '../commands/index'
 import { CANTINA_ORIGIN, publicSheetUrl, sheetCard } from '../gameCards'
+import type { CantinaClient } from '../play/client'
+import type { EntityBody, SheetResult } from '../play/types'
 import { blockStarting, cardText, cardTexts } from './cardText'
 import { fakeExecute } from './fakeInteraction'
 

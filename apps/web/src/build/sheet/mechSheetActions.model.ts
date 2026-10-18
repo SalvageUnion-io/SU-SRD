@@ -18,9 +18,9 @@
  * render-time prop, so rapid sequential edits do not stomp each other.
  */
 
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { ItemCondition } from 'cantina-domain/schemas/itemCondition'
-import type { Mech } from 'cantina-domain/schemas/mech'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { ItemCondition } from 'game-domain/schemas/itemCondition'
+import type { Mech } from 'game-domain/schemas/mech'
 import { useState } from 'react'
 import type { SoftWarning } from 'salvageunion-reference/rules'
 import { addToScrapPool } from '../../lib/cargo/cargoTransfer'

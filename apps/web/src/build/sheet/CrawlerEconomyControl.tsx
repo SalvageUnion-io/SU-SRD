@@ -32,8 +32,8 @@
  * `crawlerEconomyDialogState.model.ts`.
  */
 
-import { DOWNTIME_UPKEEP_SCRAP } from 'cantina-domain/rules/downtime'
-import type { Crawler } from 'cantina-domain/schemas/crawler'
+import { DOWNTIME_UPKEEP_SCRAP } from 'game-domain/rules/downtime'
+import type { Crawler } from 'game-domain/schemas/crawler'
 import type { CSSProperties } from 'react'
 import { useReducer, useState } from 'react'
 import { plainTraitText, resultForTable, SalvageUnionReference } from 'salvageunion-reference'

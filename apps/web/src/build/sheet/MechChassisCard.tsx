@@ -13,7 +13,7 @@
  * the hero (owner's call, 2026-10-14).
  */
 
-import type { Mech } from 'cantina-domain/schemas/mech'
+import type { Mech } from 'game-domain/schemas/mech'
 import type { ComponentProps, CSSProperties } from 'react'
 import { useMemo, useState } from 'react'
 import { toEntityModel } from 'salvageunion-reference'

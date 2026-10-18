@@ -14,8 +14,8 @@
  * (`apps/web/src/routes/CLAUDE.md`).
  */
 
-import type { Container, ContainerFields } from 'cantina-domain/container'
-import { containerOf, moveTo, sameContainer } from 'cantina-domain/container'
+import type { Container, ContainerFields } from 'game-domain/container'
+import { containerOf, moveTo, sameContainer } from 'game-domain/container'
 import type { CSSProperties } from 'react'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import type { MoveTargetGame } from '../../lib/games/gameRoster'

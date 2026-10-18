@@ -12,8 +12,8 @@
  * opposite.
  */
 
-import type { ContainerFields } from 'cantina-domain/container'
-import { containerOf } from 'cantina-domain/container'
+import type { ContainerFields } from 'game-domain/container'
+import { containerOf } from 'game-domain/container'
 
 /**
  * May this pilot, mech or crawler be pruned, given `listMine` did not return it?

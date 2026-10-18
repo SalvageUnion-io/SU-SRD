@@ -5,7 +5,7 @@
  * Uses buildEntityExport + downloadJson from lib/export.
  */
 
-import type { SheetKind } from 'cantina-domain/entityKinds'
+import type { SheetKind } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { buildEntityExport } from '../../lib/export/buildExportBundle'

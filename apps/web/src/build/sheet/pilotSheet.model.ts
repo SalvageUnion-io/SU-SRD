@@ -12,9 +12,9 @@
  * record bugs that were already paid for once.
  */
 
-import { resolveEffectiveCrawlerLevel } from 'cantina-domain/crawlerLevel'
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { GenericInventoryEntry, Pilot } from 'cantina-domain/schemas/pilot'
+import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { GenericInventoryEntry, Pilot } from 'game-domain/schemas/pilot'
 import { useMemo } from 'react'
 import type { RefAbility } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'

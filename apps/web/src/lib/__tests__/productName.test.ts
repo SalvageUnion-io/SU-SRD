@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { PRODUCT } from 'cantina-domain/product'
+import { PRODUCT } from 'game-domain/product'
 import { renderShell } from '../../shell/shell'
 import { pageTitle } from '../pageTitle'
 

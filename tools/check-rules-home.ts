@@ -11,13 +11,13 @@
  * a rule. This gate fails when either comes back:
  *
  *   1. a file under `apps/web/convex/` (not `_generated/`) imports a module
- *      that resolves into the client, `apps/web/src/`. Shared logic goes to `cantina-domain`
+ *      that resolves into the client, `apps/web/src/`. Shared logic goes to `game-domain`
  *      or `salvageunion-reference`;
  *   2. a non-test `.ts` file in a product surface's folder (under
  *      `apps/web/src/components/`, not the design system's, or in the Build
  *      and Play areas, `apps/web/src/build/` and `apps/web/src/play/`) is neither a
  *      hook (`useSeat.ts`) nor a view-model (`<name>.model.ts`). A rule goes
- *      to a rules home (the reference's `lib/rules`, `cantina-domain/src/rules`,
+ *      to a rules home (the reference's `lib/rules`, `game-domain/src/rules`,
  *      the client's `src/lib/rules`); a view-model for one component stays beside
  *      it as `<name>.model.ts`, so a plain `dashboardRules.ts` or
  *      `pilotInventory.ts` has nowhere to hide in a component folder.

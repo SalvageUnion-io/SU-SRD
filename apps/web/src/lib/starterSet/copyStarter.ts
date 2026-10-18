@@ -23,8 +23,8 @@
  * "COPY OF" anything.
  */
 
-import type { Container } from 'cantina-domain/container'
-import { moveTo } from 'cantina-domain/container'
+import type { Container } from 'game-domain/container'
+import { moveTo } from 'game-domain/container'
 import { useEntityStore } from '../../stores/entityStore'
 import type { StarterKind } from './starterTemplates'
 import { starterTemplate } from './starterTemplates'

@@ -6,7 +6,7 @@
  * exports breaks React Fast Refresh.
  */
 
-import type { PartnerInstance } from 'cantina-domain/schemas/partner'
+import type { PartnerInstance } from 'game-domain/schemas/partner'
 import { resolvePartnerStatBlock } from '../../lib/rules/partnerStats'
 
 /** Display name: the instance's own, else the stat block's, else the raw ref. */

@@ -17,7 +17,7 @@
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-import type { SoftLink } from 'cantina-domain/schemas/softLink'
+import type { SoftLink } from 'game-domain/schemas/softLink'
 import type { ReactElement } from 'react'
 import { ConnectionContext, SOLO_STATE } from '../../../lib/connection/connectionContext'
 import { resetStores } from '../../../stores/__tests__/resetStores'

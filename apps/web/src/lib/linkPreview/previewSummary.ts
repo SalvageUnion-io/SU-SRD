@@ -14,7 +14,7 @@
  * anyone with the link may read; a null answer becomes the plain private card.
  */
 
-import { PRODUCT } from 'cantina-domain/product'
+import { PRODUCT } from 'game-domain/product'
 import type { OgCardProps } from '../../components/index'
 import { color } from '../../design/tokens'
 

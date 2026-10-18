@@ -24,12 +24,12 @@
  * SoftLink list (orphaned links resolve to null entities and are skipped).
  */
 
-import type { SheetKind } from 'cantina-domain/entityKinds'
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { EntityRef } from 'cantina-domain/schemas/entity'
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
-import type { SoftLink } from 'cantina-domain/schemas/softLink'
+import type { SheetKind } from 'game-domain/entityKinds'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { EntityRef } from 'game-domain/schemas/entity'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
+import type { SoftLink } from 'game-domain/schemas/softLink'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { crewAssignmentsOf } from '../../lib/npcs/npcModel'
 import type { EntityForType } from '../../stores/types'

@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { SHELF } from 'cantina-domain/container'
-import { PRODUCT } from 'cantina-domain/product'
+import { SHELF } from 'game-domain/container'
+import { PRODUCT } from 'game-domain/product'
 import { Roster } from '../build/roster/Roster'
 import { pageTitle } from '../lib/pageTitle'
 import { setActiveContainer } from '../stores/activeContainerStore'

@@ -45,7 +45,7 @@
  * the Storage Bay needs no docked mech. Only the two BOUNDARY moves are gated.
  */
 
-import { totalLotUnits } from 'cantina-domain/schemas/cargoLot'
+import { totalLotUnits } from 'game-domain/schemas/cargoLot'
 import type { CSSProperties } from 'react'
 import { useId } from 'react'
 import { reportCargo as report } from '../../lib/cargo/reportCargo'

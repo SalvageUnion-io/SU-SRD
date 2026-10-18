@@ -15,7 +15,7 @@
  * stamping the mech.
  */
 
-import type { MechPattern } from 'cantina-domain/schemas/pattern'
+import type { MechPattern } from 'game-domain/schemas/pattern'
 import { useState } from 'react'
 import { useServerAction } from '../../../lib/connection/useServerAction'
 import { mechFromPattern } from '../../../lib/patterns/patterns'

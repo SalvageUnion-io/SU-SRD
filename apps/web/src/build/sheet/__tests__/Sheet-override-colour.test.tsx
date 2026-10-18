@@ -28,8 +28,8 @@ import {
   waitFor,
   within,
 } from '@testing-library/react'
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { Pilot } from 'game-domain/schemas/pilot'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { resetStores } from '../../../stores/__tests__/resetStores'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'

@@ -57,7 +57,7 @@ describe('deploy-surfaces — decideSurfaces', () => {
   })
 
   test.each([
-    'packages/cantina-domain/src/product.ts',
+    'packages/game-domain/src/product.ts',
     'packages/salvageunion-reference/package.json',
     'package.json',
     'bun.lock',

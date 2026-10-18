@@ -16,9 +16,9 @@
  * tabs hold the canvas's own column components.
  */
 
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
 import type { Situation } from './situation.model'
 import type { UnitGauge } from './unitStats.model'
 import { mechStats, pilotVitals } from './unitStats.model'

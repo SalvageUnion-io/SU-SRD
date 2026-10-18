@@ -56,8 +56,8 @@
  * see `ContainerSwitcher` for the same branch and the reasoning behind it.
  */
 
-import type { Container, ContainerFields } from 'cantina-domain/container'
-import { containerOf, moveTo } from 'cantina-domain/container'
+import type { Container, ContainerFields } from 'game-domain/container'
+import { containerOf, moveTo } from 'game-domain/container'
 import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'

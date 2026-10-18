@@ -26,7 +26,7 @@
       "entry": ["tools/**/*.ts"],
       "project": ["lib/**/*.ts", "tools/**/*.ts"]
     },
-    "packages/cantina-domain": {
+    "packages/game-domain": {
       // No `entry`: knip derives the subpaths from the manifest's `exports`
       // wildcard; listing them again is reported as a redundant pattern.
       "project": ["src/**/*.ts"]

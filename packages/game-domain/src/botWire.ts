@@ -4,7 +4,7 @@
  * ONE declaration, two readers. `botClient.ts` annotates every handler's
  * success payload with these types, so changing what a handler returns without
  * changing this file fails to compile here; and the bot imports them with
- * `import type` (`apps/discord-bot/src/cantina/types.ts`), so the same change is a
+ * `import type` (`apps/discord-bot/src/play/types.ts`), so the same change is a
  * compile error there too. A hand-copied shape would let a `botClient` change
  * compile cleanly on both sides and drift silently.
  *
@@ -142,10 +142,10 @@ export type SheetResult = {
   vitals?: SheetVitals | null
 }
 
-/** A pilot's derived status (`PilotStatus` in `cantina-domain/rules/crewStatus`). */
+/** A pilot's derived status (`PilotStatus` in `game-domain/rules/crewStatus`). */
 type PilotCrewStatus = { dead: boolean; injured: boolean; ejected: boolean }
 
-/** A mech's derived status (`MechStatus` in `cantina-domain/rules/crewStatus`). */
+/** A mech's derived status (`MechStatus` in `game-domain/rules/crewStatus`). */
 type MechCrewStatus = {
   destroyed: boolean
   shutdown: boolean

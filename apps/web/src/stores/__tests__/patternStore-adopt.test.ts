@@ -17,7 +17,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import type { MechPattern } from 'cantina-domain/schemas/pattern'
+import type { MechPattern } from 'game-domain/schemas/pattern'
 import { FIXTURE_NOW } from '../../components/__tests__/fixtures'
 import { usePatternStore } from '../patternStore'
 import { resetStores } from './resetStores'

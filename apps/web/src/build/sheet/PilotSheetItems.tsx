@@ -5,8 +5,8 @@
  * owns all persistence.
  */
 
-import type { ItemCondition } from 'cantina-domain/schemas/itemCondition'
-import type { GenericInventoryEntry } from 'cantina-domain/schemas/pilot'
+import type { ItemCondition } from 'game-domain/schemas/itemCondition'
+import type { GenericInventoryEntry } from 'game-domain/schemas/pilot'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { RefAbility } from 'salvageunion-reference'

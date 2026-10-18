@@ -66,7 +66,7 @@ jobs:
               - *shared
               - 'apps/web/**'
               # schemas, link rules and wire types Convex and the client share
-              - 'packages/cantina-domain/**'
+              - 'packages/game-domain/**'
               # the build jobs' Playwright configs and axe scan
               - 'packages/gates/**'
             # The two Worker-only apps, bundled together by bundle-workers.
@@ -74,8 +74,8 @@ jobs:
               - *shared
               - 'apps/discord-bot/**'
               - 'apps/su-assets/**'
-              # the bot's wire types (`cantina-domain/botWire`, `import type`)
-              - 'packages/cantina-domain/**'
+              # the bot's wire types (`game-domain/botWire`, `import type`)
+              - 'packages/game-domain/**'
               # the theme the bot's colours mirror (themeLockstep.test.ts)
               - 'apps/web/src/styles/theme.css'
             code:

@@ -5,10 +5,10 @@
  * props, not on unrelated store writes.
  */
 
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { EntityRef } from 'cantina-domain/schemas/entity'
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { EntityRef } from 'game-domain/schemas/entity'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
 import type { ReactNode } from 'react'
 import type { EntityState, useEntityStore } from '../../stores/entityStore'
 import type { EntityLookup, SheetComposition } from './composition.model'

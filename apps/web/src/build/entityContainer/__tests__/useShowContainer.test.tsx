@@ -8,7 +8,7 @@ import {
   RouterProvider,
 } from '@tanstack/react-router'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import type { Container } from 'cantina-domain/container'
+import type { Container } from 'game-domain/container'
 import { getActiveContainer, setActiveContainer } from '../../../stores/activeContainerStore'
 import { useShowContainer } from '../useShowContainer'
 

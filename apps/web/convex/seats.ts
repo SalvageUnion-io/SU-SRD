@@ -1,5 +1,5 @@
-import { PRESENCE_WRITE_MIN_MS } from 'cantina-domain/schemas/seat'
 import { v } from 'convex/values'
+import { PRESENCE_WRITE_MIN_MS } from 'game-domain/schemas/seat'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
@@ -430,7 +430,7 @@ export const clearResolving = mutation({
 
 /**
  * Presence: the screen showing this seat is open. Whoever may write the seat
- * beats for it, every `PRESENCE_HEARTBEAT_MS` (cantina-domain/schemas/seat).
+ * beats for it, every `PRESENCE_HEARTBEAT_MS` (game-domain/schemas/seat).
  *
  * Cheap, and safe to call as often as a timer likes: a beat within
  * `PRESENCE_WRITE_MIN_MS` of the last one writes nothing, so a second tab

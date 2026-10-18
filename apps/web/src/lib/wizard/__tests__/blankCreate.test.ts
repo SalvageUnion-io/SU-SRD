@@ -7,9 +7,9 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { CrawlerSchema } from 'cantina-domain/schemas/crawler'
-import { MechSchema } from 'cantina-domain/schemas/mech'
-import { PilotSchema } from 'cantina-domain/schemas/pilot'
+import { CrawlerSchema } from 'game-domain/schemas/crawler'
+import { MechSchema } from 'game-domain/schemas/mech'
+import { PilotSchema } from 'game-domain/schemas/pilot'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { resetStores } from '../../../stores/__tests__/resetStores'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'

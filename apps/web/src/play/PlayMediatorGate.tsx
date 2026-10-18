@@ -16,8 +16,8 @@
  * refuses every write a non-Mediator might try (`requireMediator`).
  */
 
-import { gamePath } from 'cantina-domain/entityKinds'
 import { useQuery } from 'convex/react'
+import { gamePath } from 'game-domain/entityKinds'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { useConnection } from '../lib/connection/connectionContext'

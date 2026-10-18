@@ -4,7 +4,7 @@
  * patch shared by CrawlerSheetItems and CrawlerSheet.
  */
 
-import type { Crawler, ScrapPool } from 'cantina-domain/schemas/crawler'
+import type { Crawler, ScrapPool } from 'game-domain/schemas/crawler'
 import type { RefEntity } from 'salvageunion-reference'
 import { resolveSystemRef } from 'salvageunion-reference/rules'
 import { readReference } from '../readReference'

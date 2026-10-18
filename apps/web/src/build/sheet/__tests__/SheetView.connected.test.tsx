@@ -23,7 +23,7 @@ import { createElement } from 'react'
  * `entities:listForGame` and `games:get`.
  */
 
-import { makeUnitLot } from 'cantina-domain/schemas/cargoLot'
+import { makeUnitLot } from 'game-domain/schemas/cargoLot'
 import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import { crawlerFixture, FIXTURE_NOW, mechFixture, pilotFixture } from '../../../components/__tests__/fixtures'
 

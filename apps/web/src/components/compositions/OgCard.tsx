@@ -1,4 +1,4 @@
-import { PRODUCT } from 'cantina-domain/product'
+import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties } from 'react'
 import { foregroundOn } from '../../design/contrast'
 import { borderWidth, color, font, space, tracking, weight } from '../../design/tokens'

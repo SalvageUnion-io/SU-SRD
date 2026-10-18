@@ -4,11 +4,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import {
-  STARTER_CRAWLERS,
-  STARTER_MECHS,
-  STARTER_PILOTS,
-} from 'cantina-domain/starterSet/starterSet'
+import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS } from 'game-domain/starterSet/starterSet'
 import { starterPage, starterPages, starterPageTitle } from '../starterTemplates'
 
 describe('starterPageTitle', () => {

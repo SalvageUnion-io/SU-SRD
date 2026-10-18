@@ -11,9 +11,9 @@
  * carries is never live.
  */
 
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { Mech } from 'cantina-domain/schemas/mech'
 import { useQuery } from 'convex/react'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { Mech } from 'game-domain/schemas/mech'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'

@@ -6,7 +6,7 @@
  * and the sheet makes room for a photo only while it is being edited.
  */
 
-import type { NpcTemplateRef } from 'cantina-domain/schemas/npc'
+import type { NpcTemplateRef } from 'game-domain/schemas/npc'
 import type { RefMetaEntity } from 'salvageunion-reference'
 import { findEntityBySlug, getAssetUrl } from 'salvageunion-reference'
 import { resolveChassisRef, resolveCrawlerRef } from 'salvageunion-reference/rules'

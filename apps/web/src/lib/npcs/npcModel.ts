@@ -16,10 +16,10 @@
  * copied into the record (D5): the description is what the player wrote.
  */
 
-import { slotKey } from 'cantina-domain/links/linkRules'
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { Npc, NpcTemplateRef, NpcTrait } from 'cantina-domain/schemas/npc'
-import type { CrewSlot, SoftLink } from 'cantina-domain/schemas/softLink'
+import { slotKey } from 'game-domain/links/linkRules'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { Npc, NpcTemplateRef, NpcTrait } from 'game-domain/schemas/npc'
+import type { CrewSlot, SoftLink } from 'game-domain/schemas/softLink'
 import type { RefNPC, RefObjectChoice } from 'salvageunion-reference'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { resolvePool } from 'salvageunion-reference/rules'

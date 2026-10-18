@@ -8,8 +8,8 @@
  * the test survives data edits.
  */
 import { describe, expect, it } from 'bun:test'
-import { makeScrapLot, makeUnitLot } from 'cantina-domain/schemas/cargoLot'
-import type { ScrapPool } from 'cantina-domain/schemas/crawler'
+import { makeScrapLot, makeUnitLot } from 'game-domain/schemas/cargoLot'
+import type { ScrapPool } from 'game-domain/schemas/crawler'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { ScrapMechComponent } from '../scrapMech'
 import {

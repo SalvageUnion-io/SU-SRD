@@ -9,11 +9,11 @@
  * here as it happens.
  */
 
-import { containerOf } from 'cantina-domain/container'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
-import type { SeatResolving } from 'cantina-domain/schemas/seat'
 import { useQuery } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
+import { containerOf } from 'game-domain/container'
+import type { Pilot } from 'game-domain/schemas/pilot'
+import type { SeatResolving } from 'game-domain/schemas/seat'
 import { coreRollBandLabel, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'

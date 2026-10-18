@@ -32,8 +32,8 @@
  * a box of their own (play.md §12).
  */
 
-import { downtimeMechPatch, downtimePilotPatch } from 'cantina-domain/rules/downtime'
 import { useQuery } from 'convex/react'
+import { downtimeMechPatch, downtimePilotPatch } from 'game-domain/rules/downtime'
 import { useId, useState } from 'react'
 import type { RefObjectGuideStep } from 'salvageunion-reference'
 import { api } from '../../convex/_generated/api'

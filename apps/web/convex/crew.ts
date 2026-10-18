@@ -1,5 +1,6 @@
-import type { MechDerived, PilotDerived, SheetVitals } from 'cantina-domain/botWire'
-import type { MechStatus, PilotStatus } from 'cantina-domain/rules/crewStatus'
+import { v } from 'convex/values'
+import type { MechDerived, PilotDerived, SheetVitals } from 'game-domain/botWire'
+import type { MechStatus, PilotStatus } from 'game-domain/rules/crewStatus'
 import {
   mechMaxima,
   mechNeedsAttention,
@@ -7,11 +8,10 @@ import {
   pilotMaxima,
   pilotNeedsAttention,
   pilotStatus,
-} from 'cantina-domain/rules/crewStatus'
-import { MechSchema } from 'cantina-domain/schemas/mech'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
-import { PilotSchema } from 'cantina-domain/schemas/pilot'
-import { v } from 'convex/values'
+} from 'game-domain/rules/crewStatus'
+import { MechSchema } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
+import { PilotSchema } from 'game-domain/schemas/pilot'
 import type { Doc } from './_generated/dataModel'
 import type { QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
@@ -37,7 +37,7 @@ import { mirrors } from './model/validators'
  *
  * Max HP, AP, SP, EP and Heat, and each crewmate's status (dead, injured,
  * ejected; destroyed, shut down, overheating, destroyed systems and modules),
- * are computed here with the rules the client uses (`cantina-domain/rules/crewStatus`
+ * are computed here with the rules the client uses (`game-domain/rules/crewStatus`
  * over `salvageunion-reference/rules`), from the stored records and the seats.
  * One answer for the whole table: the Crew tab's ▲ and red outlines read it,
  * so every client agrees on who needs looking at. Nothing derived is stored.
@@ -60,12 +60,12 @@ import { mirrors } from './model/validators'
 const nullableNumber = v.union(v.number(), v.null())
 const nullableString = v.union(v.string(), v.null())
 
-/** `PilotStatus` (cantina-domain/rules/crewStatus). */
+/** `PilotStatus` (game-domain/rules/crewStatus). */
 const pilotStatusValidator = mirrors<PilotStatus>()(
   v.object({ dead: v.boolean(), injured: v.boolean(), ejected: v.boolean() })
 )
 
-/** `MechStatus` (cantina-domain/rules/crewStatus). */
+/** `MechStatus` (game-domain/rules/crewStatus). */
 const mechStatusValidator = mirrors<MechStatus>()(
   v.object({
     destroyed: v.boolean(),

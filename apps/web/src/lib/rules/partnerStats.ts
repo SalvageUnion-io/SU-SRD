@@ -28,7 +28,7 @@
  * pinned by tests rather than left to the call sites.
  */
 
-import type { PartnerInstance } from 'cantina-domain/schemas/partner'
+import type { PartnerInstance } from 'game-domain/schemas/partner'
 import type { RefEntity } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { StatBreakdown } from 'salvageunion-reference/rules'

@@ -13,7 +13,7 @@
  * (ruleset §4.6).
  */
 
-import { SHELF } from 'cantina-domain/container'
+import { SHELF } from 'game-domain/container'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { copyStarter } from '../../lib/starterSet/copyStarter'
 import type { StarterKind } from '../../lib/starterSet/starterTemplates'

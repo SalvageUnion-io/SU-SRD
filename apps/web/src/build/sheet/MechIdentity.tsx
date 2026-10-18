@@ -16,7 +16,7 @@
  * // deliberately omitted rather than rendered dead.
  */
 
-import type { Mech } from 'cantina-domain/schemas/mech'
+import type { Mech } from 'game-domain/schemas/mech'
 import type { CSSProperties, ReactNode } from 'react'
 import { Field, tokens } from '../../components/index'
 import type { SheetPatch } from './sheetViewProps.model'

@@ -8,7 +8,7 @@
  * immediately via the sheet's `patch({ systems })`.
  */
 
-import type { Crawler } from 'cantina-domain/schemas/crawler'
+import type { Crawler } from 'game-domain/schemas/crawler'
 import { useMemo } from 'react'
 import type { RefSystem } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'

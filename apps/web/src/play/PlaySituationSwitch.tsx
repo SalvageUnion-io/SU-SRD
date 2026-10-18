@@ -17,7 +17,7 @@
  * each press does is `Play`'s (`usePlaySituation`); this only draws it.
  */
 
-import { downtimeStepCount } from 'cantina-domain/rules/downtime'
+import { downtimeStepCount } from 'game-domain/rules/downtime'
 import { ChevronDown, Lock } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'

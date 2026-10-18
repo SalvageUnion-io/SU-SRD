@@ -19,8 +19,8 @@
  * why before pressing, not after.
  */
 
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { SeatMount, SeatResolving } from 'cantina-domain/schemas/seat'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { SeatMount, SeatResolving } from 'game-domain/schemas/seat'
 
 /** A pilot or mech row as `entities.listForGame` returns it. */
 export type CrewRow = {

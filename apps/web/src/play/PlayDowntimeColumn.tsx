@@ -11,7 +11,7 @@
  * so the step box and every row stay level 1 (play.md §12).
  */
 
-import { downtimeGuideSteps } from 'cantina-domain/rules/downtime'
+import { downtimeGuideSteps } from 'game-domain/rules/downtime'
 import { Slab } from '../components/index'
 import { PlayAwayGroup, PlayEntryList, PlayOrphanResolve } from './PlayActionsList'
 import { PlayDowntimeStep } from './PlayDowntimeStep'

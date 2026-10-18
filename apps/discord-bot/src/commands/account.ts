@@ -1,5 +1,5 @@
 import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
-import { PRODUCT } from 'cantina-domain/product'
+import { PRODUCT } from 'game-domain/product'
 import { gamesCard, meCard } from '../gameCards'
 import { respondWithCantina } from './cantinaReply'
 import type { CommandExecuteInteraction } from './interactions'

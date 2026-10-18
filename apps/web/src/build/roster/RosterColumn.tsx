@@ -12,7 +12,7 @@
  * switching between Games.
  */
 
-import type { SheetKind } from 'cantina-domain/entityKinds'
+import type { SheetKind } from 'game-domain/entityKinds'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { color, space } from '../../design/tokens'

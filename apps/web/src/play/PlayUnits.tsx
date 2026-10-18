@@ -20,12 +20,12 @@
  * `styles/play/units.css`, which `PlayFrame` loads with Play's bundle.
  */
 
-import { DOWNTIME_UPKEEP_SCRAP } from 'cantina-domain/rules/downtime'
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
-import type { RangeBand } from 'cantina-domain/schemas/seat'
-import { RANGE_BANDS } from 'cantina-domain/schemas/seat'
+import { DOWNTIME_UPKEEP_SCRAP } from 'game-domain/rules/downtime'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
+import type { RangeBand } from 'game-domain/schemas/seat'
+import { RANGE_BANDS } from 'game-domain/schemas/seat'
 import type { CSSProperties, ReactNode } from 'react'
 import {
   Badge,

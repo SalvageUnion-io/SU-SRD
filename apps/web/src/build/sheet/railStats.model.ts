@@ -6,10 +6,10 @@
  * which breaks React Fast Refresh (and needed a suppression per function).
  */
 
-import type { pilotingContext } from 'cantina-domain/rules/pilotingContext'
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
+import type { pilotingContext } from 'game-domain/rules/pilotingContext'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
 import { CONDITION_LABELS, STAT_LABELS } from 'salvageunion-reference'
 import {
   crawlerMaxSP,

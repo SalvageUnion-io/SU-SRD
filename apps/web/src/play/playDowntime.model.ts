@@ -1,22 +1,22 @@
 /**
  * The Downtime step box's plan (play.md §6): what the current step will apply,
- * line by line, read from the pure patches in `cantina-domain/rules/downtime`
+ * line by line, read from the pure patches in `game-domain/rules/downtime`
  * (`downtimeMechPatch`, `downtimePilotPatch`) and the Upkeep rule. Each line
  * names the Downtime step keys it governs, so unticking it leaves them out
  * (ADR-007: every step skippable). Pure: no React, no store.
  */
 
-import type { DowntimeStepKey, DowntimeSteps, MedBayStatus } from 'cantina-domain/rules/downtime'
+import type { DowntimeStepKey, DowntimeSteps, MedBayStatus } from 'game-domain/rules/downtime'
 import {
   DOWNTIME_UPKEEP_SCRAP,
   downtimeMechPatch,
   downtimePilotPatch,
   mechBayStatus,
   medBayStatus,
-} from 'cantina-domain/rules/downtime'
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
+} from 'game-domain/rules/downtime'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
 import {
   mechMaxEP,
   mechMaxSP,

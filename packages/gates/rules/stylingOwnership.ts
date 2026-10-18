@@ -602,7 +602,7 @@ function preflight(root: string): void {
     'apps/discord-bot':
       'ships no stylesheet — it renders Discord Components V2 containers, not DOM.',
     'apps/su-assets': 'a Worker that serves image bytes and short error strings; no CSS, no DOM.',
-    'packages/cantina-domain':
+    'packages/game-domain':
       'schemas and rules shared with Convex and the bot; no components and no stylesheet.',
     'packages/salvageunion-reference': 'data and ORM; no components and no stylesheet.',
     'packages/gates': 'the gates themselves; no components and no stylesheet.',

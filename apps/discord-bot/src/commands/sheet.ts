@@ -1,9 +1,9 @@
 import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
-import type { SheetKind } from 'cantina-domain/entityKinds'
-import { TABLE_OF_KIND } from 'cantina-domain/entityKinds'
 import { MessageFlags } from 'discord-api-types/v10'
-import type { SheetTable } from '../cantina/types'
+import type { SheetKind } from 'game-domain/entityKinds'
+import { TABLE_OF_KIND } from 'game-domain/entityKinds'
 import { bodyName, sheetCard } from '../gameCards'
+import type { SheetTable } from '../play/types'
 import { cantina, respondWithCantina } from './cantinaReply'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions'
 

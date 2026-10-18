@@ -23,7 +23,7 @@
  * them.
  */
 
-import { publicPath } from 'cantina-domain/entityKinds'
+import { publicPath } from 'game-domain/entityKinds'
 import { useMutation, useQuery } from 'convex/react'
 import { Check, Copy } from 'lucide-react'
 import type { CSSProperties } from 'react'

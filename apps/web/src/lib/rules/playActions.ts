@@ -13,10 +13,10 @@
  * patch — it stays an explicit player call at the UI layer.
  */
 
-import type { ItemCondition } from 'cantina-domain/schemas/itemCondition'
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
-import type { RangeBand } from 'cantina-domain/schemas/seat'
+import type { ItemCondition } from 'game-domain/schemas/itemCondition'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
+import type { RangeBand } from 'game-domain/schemas/seat'
 import type { RefAbility, RefEquipment, RefMetaAction, RefMetaEntity } from 'salvageunion-reference'
 import { resultForTable, SalvageUnionReference } from 'salvageunion-reference'
 import type { CoreRollBand, HeatCheckEffect, Roll } from 'salvageunion-reference/rules'

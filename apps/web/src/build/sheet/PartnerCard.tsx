@@ -28,9 +28,9 @@
  * Superseded the partner live sheet; see ADR-028.
  */
 
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { ItemCondition } from 'cantina-domain/schemas/itemCondition'
-import type { PartnerInstance } from 'cantina-domain/schemas/partner'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { ItemCondition } from 'game-domain/schemas/itemCondition'
+import type { PartnerInstance } from 'game-domain/schemas/partner'
 import type { CSSProperties } from 'react'
 import { resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import { usePartnerCargo } from '../../lib/cargo/usePartnerCargo'

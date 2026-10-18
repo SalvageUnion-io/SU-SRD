@@ -15,8 +15,8 @@
  * endpoint that no longer resolves.
  */
 
-import type { EntityRef } from 'cantina-domain/schemas/entity'
-import type { SoftLink } from 'cantina-domain/schemas/softLink'
+import type { EntityRef } from 'game-domain/schemas/entity'
+import type { SoftLink } from 'game-domain/schemas/softLink'
 import { useSoftLinkList } from '../../lib/entities'
 import { assignLink } from '../../lib/links/assignLink'
 import { useEntityStore } from '../../stores/entityStore'

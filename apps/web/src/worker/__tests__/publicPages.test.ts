@@ -1,9 +1,5 @@
 import { afterEach, describe, expect, it } from 'bun:test'
-import {
-  STARTER_CRAWLERS,
-  STARTER_MECHS,
-  STARTER_PILOTS,
-} from 'cantina-domain/starterSet/starterSet'
+import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS } from 'game-domain/starterSet/starterSet'
 import { NATIVE_FETCH_GLOBALS } from '../../../test/env'
 import { color } from '../../design/tokens'
 import { renderShell } from '../../shell/shell'

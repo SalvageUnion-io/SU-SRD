@@ -5,9 +5,9 @@
  * rendered with an injected store and dice, as `useActionsDeck`'s tests do.
  */
 
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
-import type { SeatResolving } from 'cantina-domain/schemas/seat'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
+import type { SeatResolving } from 'game-domain/schemas/seat'
 import { useState } from 'react'
 import type { rollForTable } from '../../components/index'
 import { EntityHrefProvider } from '../../components/index'

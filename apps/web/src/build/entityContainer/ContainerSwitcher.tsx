@@ -17,8 +17,8 @@
  * only once the mode is Connected, so no query runs signed out.
  */
 
-import type { Container } from 'cantina-domain/container'
-import { SHELF } from 'cantina-domain/container'
+import type { Container } from 'game-domain/container'
+import { SHELF } from 'game-domain/container'
 import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'

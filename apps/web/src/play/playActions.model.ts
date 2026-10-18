@@ -14,7 +14,7 @@
  * Nothing is unreachable: an action not on hand is still listed, with why.
  */
 
-import type { RangeBand } from 'cantina-domain/schemas/seat'
+import type { RangeBand } from 'game-domain/schemas/seat'
 import type { RefMetaAction } from 'salvageunion-reference'
 import type { PlayAction } from '../lib/rules/playActions'
 import { actionInRange, actionReachable } from '../lib/rules/playActions'

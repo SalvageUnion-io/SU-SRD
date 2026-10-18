@@ -1,5 +1,5 @@
-import type { BotOpName } from 'cantina-domain/botWire'
-import { BOT_OP_NAMES, BOT_PATH_PREFIX, bearerToken, secretsMatch } from 'cantina-domain/botWire'
+import type { BotOpName } from 'game-domain/botWire'
+import { BOT_OP_NAMES, BOT_PATH_PREFIX, bearerToken, secretsMatch } from 'game-domain/botWire'
 import { internal } from './_generated/api'
 import { httpAction } from './_generated/server'
 
@@ -60,7 +60,7 @@ function isMutationOp(op: BotOpName): op is keyof typeof MUTATIONS {
 
 /**
  * Every operation name, for tests and for the 404 body: the bot's own list
- * (`cantina-domain/botWire`), which `QUERIES` and `MUTATIONS` together must
+ * (`game-domain/botWire`), which `QUERIES` and `MUTATIONS` together must
  * cover exactly. Typed
  * `readonly string[]` so a path segment can be looked up in it.
  */

@@ -1,10 +1,10 @@
 import { MessageFlags } from 'discord-api-types/v10'
-import type { CantinaClient } from '../cantina/client'
-import { createCantinaClient } from '../cantina/client'
-import type { CantinaResult } from '../cantina/types'
 import type { ContainerData } from '../container'
 import { v2Reply } from '../container'
 import { denialMessage } from '../gameCards'
+import type { CantinaClient } from '../play/client'
+import { createCantinaClient } from '../play/client'
+import type { CantinaResult } from '../play/types'
 import type { CommandExecuteInteraction } from './interactions'
 
 /**

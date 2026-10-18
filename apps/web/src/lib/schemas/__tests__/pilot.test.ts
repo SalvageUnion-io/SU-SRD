@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { PilotSchema } from 'cantina-domain/schemas/pilot'
+import { PilotSchema } from 'game-domain/schemas/pilot'
 import {
   PILOT_CREATION_ABILITY_PICKS,
   PILOT_CREATION_EQUIPMENT_PICKS,

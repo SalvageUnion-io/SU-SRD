@@ -18,8 +18,8 @@
  * value survives reloads and navigation.
  */
 
-import type { Container } from 'cantina-domain/container'
-import { SHELF } from 'cantina-domain/container'
+import type { Container } from 'game-domain/container'
+import { SHELF } from 'game-domain/container'
 import { create } from 'zustand'
 import { readLocal, writeLocal } from '../lib/safeLocalStorage'
 

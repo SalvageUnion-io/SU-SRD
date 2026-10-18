@@ -13,7 +13,7 @@
  * exception is `seedDefaultCrawlerBays`, which reads the SRD bay catalog.
  */
 
-import type { Crawler, CrawlerNpcState, ScrapPool } from 'cantina-domain/schemas/crawler'
+import type { Crawler, CrawlerNpcState, ScrapPool } from 'game-domain/schemas/crawler'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { ChoiceSelections } from '../../components/index'
 import type { ResolvedNpc } from '../crawlerRefs'

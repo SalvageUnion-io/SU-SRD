@@ -1,4 +1,4 @@
-import type { SheetKind } from 'cantina-domain/entityKinds'
+import type { SheetKind } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { space } from '../../design/tokens'
 import { cn } from '../../lib/cn'

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-import { MechSchema } from 'cantina-domain/schemas/mech'
-import { PilotSchema } from 'cantina-domain/schemas/pilot'
+import { MechSchema } from 'game-domain/schemas/mech'
+import { PilotSchema } from 'game-domain/schemas/pilot'
 import { api } from '../../../convex/_generated/api'
 import { makeUser, mechBody, pilotBody, seedTable } from '../fixtures'
 import { testConvex } from '../harness'

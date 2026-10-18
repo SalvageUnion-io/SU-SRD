@@ -6,8 +6,8 @@
  * Pure apart from the reference lookups.
  */
 
-import type { EncounterNpc } from 'cantina-domain/schemas/encounterNpc'
-import { ENCOUNTER_REF_SCHEMAS } from 'cantina-domain/schemas/encounterNpc'
+import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
+import { ENCOUNTER_REF_SCHEMAS } from 'game-domain/schemas/encounterNpc'
 import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import {
   findEntityBySlug,

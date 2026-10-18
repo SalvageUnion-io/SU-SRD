@@ -1,5 +1,5 @@
 import { useRouter } from '@tanstack/react-router'
-import type { Container } from 'cantina-domain/container'
+import type { Container } from 'game-domain/container'
 import { getActiveContainer, setActiveContainer } from '../../stores/activeContainerStore'
 
 /**

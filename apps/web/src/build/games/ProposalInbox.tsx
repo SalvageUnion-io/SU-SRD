@@ -1,4 +1,4 @@
-import { fieldLabel } from 'cantina-domain/games/proposals'
+import { fieldLabel } from 'game-domain/games/proposals'
 import { useMutation, useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'

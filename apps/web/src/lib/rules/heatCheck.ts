@@ -6,7 +6,7 @@
  * into durable state).
  */
 
-import type { Mech } from 'cantina-domain/schemas/mech'
+import type { Mech } from 'game-domain/schemas/mech'
 import type { HeatCheckEffect } from 'salvageunion-reference/rules'
 
 /**

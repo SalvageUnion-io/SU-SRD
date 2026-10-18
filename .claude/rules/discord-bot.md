@@ -1,7 +1,7 @@
 ---
 paths:
   - 'apps/discord-bot/**'
-  - 'packages/cantina-domain/src/botWire.ts'
+  - 'packages/game-domain/src/botWire.ts'
 ---
 
 # Discord bot — changing a reply

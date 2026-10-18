@@ -185,7 +185,7 @@ export const CHECKS: readonly CheckSpec[] = [
     id: 'rules-home',
     guards:
       'Convex imports nothing from apps/web/src/; no rules- or model-named module sits in apps/web/src/components/',
-    fix: 'move shared logic to cantina-domain or salvageunion-reference; move a rule to a lib/rules home, or name a one-component view-model `<name>.model.ts`',
+    fix: 'move shared logic to game-domain or salvageunion-reference; move a rule to a lib/rules home, or name a one-component view-model `<name>.model.ts`',
     cmd: ['bun', 'tools/check-rules-home.ts'],
     areas: ['code'],
     profiles: ALL,

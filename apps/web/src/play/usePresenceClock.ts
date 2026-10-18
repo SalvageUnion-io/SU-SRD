@@ -4,7 +4,7 @@
  * "away" without anything else changing on screen (play.md §7).
  */
 
-import { PRESENCE_HEARTBEAT_MS } from 'cantina-domain/schemas/seat'
+import { PRESENCE_HEARTBEAT_MS } from 'game-domain/schemas/seat'
 import { useEffect, useState } from 'react'
 
 export function usePresenceClock(): number {

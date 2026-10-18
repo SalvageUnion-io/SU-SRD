@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
-import type { CantinaClient } from '../cantina/client'
-import type { CantinaResult } from '../cantina/types'
 import { gamesCommand, meCommand } from '../commands/account'
 import { setCantinaClient } from '../commands/cantinaReply'
 import { parseSheetTarget, sheetCommand } from '../commands/sheet'
 import { suCommand } from '../commands/su'
+import type { CantinaClient } from '../play/client'
+import type { CantinaResult } from '../play/types'
 import type { ReplyArg } from './fakeInteraction'
 import { fakeAutocomplete, fakeExecute } from './fakeInteraction'
 

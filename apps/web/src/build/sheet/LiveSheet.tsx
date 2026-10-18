@@ -27,7 +27,7 @@
  * usage) onto matching strip keys.
  */
 
-import type { SheetKind } from 'cantina-domain/entityKinds'
+import type { SheetKind } from 'game-domain/entityKinds'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import type { StatTone } from '../../components/index'

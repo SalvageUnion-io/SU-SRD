@@ -2,8 +2,8 @@
  * HoldAdder — a Hold container's own intake form (`StorageManifest`).
  */
 
-import type { CargoLot } from 'cantina-domain/schemas/cargoLot'
-import { makeScrapLot, makeUnitLot } from 'cantina-domain/schemas/cargoLot'
+import type { CargoLot } from 'game-domain/schemas/cargoLot'
+import { makeScrapLot, makeUnitLot } from 'game-domain/schemas/cargoLot'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import { AdderBox, AdderField, Button, Input, Segmented, SegmentedOption, tokens } from '../../components/index'

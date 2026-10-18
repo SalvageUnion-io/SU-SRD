@@ -9,8 +9,8 @@
  * This is read-only — the log is never mutated from the UI.
  */
 
-import type { ChangeLogKind } from 'cantina-domain/schemas/changeLog'
-import type { EntityRef } from 'cantina-domain/schemas/entity'
+import type { ChangeLogKind } from 'game-domain/schemas/changeLog'
+import type { EntityRef } from 'game-domain/schemas/entity'
 import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'

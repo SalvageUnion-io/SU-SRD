@@ -7,7 +7,7 @@
  * fetch — only the rendered entries ship.
  */
 
-import { PRODUCT } from 'cantina-domain/product'
+import { PRODUCT } from 'game-domain/product'
 import type { PageModule, PageResult } from '../../../ssg/types'
 import { InlineRef } from '../../components/index'
 import { space } from '../../design/tokens'

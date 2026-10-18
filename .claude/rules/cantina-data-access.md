@@ -9,7 +9,7 @@ paths:
   - 'apps/web/src/components/shared/**'
   - 'apps/web/convex/**'
   - 'apps/web/e2e/**'
-  - 'packages/cantina-domain/**'
+  - 'packages/game-domain/**'
 ---
 
 # Cantina data access — modes, stores, Convex

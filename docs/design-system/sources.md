@@ -25,7 +25,7 @@ Id · title — where code cites it (`board NN`); "—" means no code cites it. 
 8. **E3** Five contexts — `StatusRail`, `peekPlate`. **E4** Embedded roll table — `CardRollTable`, `RollTableInstrument`.
 9. **09** The Cantina front door — `FrontDoor`, `Roster`, `shell/unionBar.ts`. **10** Pilot sheet, printed — the Cantina `build/sheet/`, `Field`.
 10. **D1–D5** Dashboard (retired; its successor is Play, `docs/wireframes/dashboard-cockpit/`): boarded, Crew tab, Downtime, phone Mech tab, phone resolve — the Cantina `play/`, `VitalGauge`, `pipRows`.
-11. **P1** Saving a pattern — `SavePatternPage`, `patterns`, `CardLabels`, `NpcSheet`, `Sheet`, the Cantina `mechs/patterns/new`, cantina-domain `pattern`, convex `shelf`. **P2** Shared pattern page — `PublicPattern`, convex `publicSheet`.
+11. **P1** Saving a pattern — `SavePatternPage`, `patterns`, `CardLabels`, `NpcSheet`, `Sheet`, the Cantina `mechs/patterns/new`, game-domain `pattern`, convex `shelf`. **P2** Shared pattern page — `PublicPattern`, convex `publicSheet`.
 12. **N1** Generic NPC designer — `AnyNpcDesigner`. **N2** Crawler crew — `CrewBoard`, `crewFormState`.
 13. **M1** Mediator dashboard (retired) — the Cantina `play/mediator/`. **M2** Running a Game — the Cantina `build/games/`.
 14. **S1** Shelves — the Cantina `build/shelves/`, `ChapterBand`, `Slab`. **PV1** Link previews — `OgCard`, `ogCardText`, `previewSummary`.

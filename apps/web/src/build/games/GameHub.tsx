@@ -25,7 +25,7 @@
  * active container is a Game, so every hook below has a provider.
  */
 
-import { SHELF } from 'cantina-domain/container'
+import { SHELF } from 'game-domain/container'
 import { useQuery } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
 import type { CSSProperties, ReactNode } from 'react'

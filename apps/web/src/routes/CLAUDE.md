@@ -33,21 +33,21 @@ product component folders, `convex/`, `e2e/`).
 
 ## Persistence and state (read before touching data)
 
-- **Zod schemas (`packages/cantina-domain/src/schemas/`, imported as
-  `cantina-domain/schemas/*`) are the source of truth** for entity shape;
+- **Zod schemas (`packages/game-domain/src/schemas/`, imported as
+  `game-domain/schemas/*`) are the source of truth** for entity shape;
   every create, update and adopted server row parses strictly
   (`src/stores/records.ts`); `ShelfSync` reports a row that does not parse and
   carries on.
 - **There are no workspaces.** An entity lives in exactly one **container** — a
   shared **Game** or the owner's **Shelf** — encoded as one
-  nullable `gameId` and resolved through `cantina-domain/container`. Filter with `containerOf` +
+  nullable `gameId` and resolved through `game-domain/container`. Filter with `containerOf` +
   `sameContainer`, and only when `mode === 'connected'`: signed out there is
   nothing to show, and Disconnected has no live Game list to filter against, so
   it shows what it holds whole. `Roster` shows Shelves at `/` (all you
   keep, Games too) and a Game at `/games/$gameId`.
 - **Assignments** ([ADR-037](../../../../docs/ARCHITECTURE.md#decisions)):
   draw soft links only via `assignLink`; the rules are
-  `cantina-domain/links/linkRules`, shared with Convex.
+  `game-domain/links/linkRules`, shared with Convex.
 
 ## Combat / rules
 

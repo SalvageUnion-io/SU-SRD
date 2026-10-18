@@ -11,8 +11,8 @@
  * rolled is plain content under its head (play.md §12).
  */
 
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { Pilot } from 'game-domain/schemas/pilot'
 import { useState } from 'react'
 import { resultForTable, SalvageUnionReference } from 'salvageunion-reference'
 import { Button, Stat, TitledBox } from '../components/index'

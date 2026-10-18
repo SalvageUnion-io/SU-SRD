@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-import { pilotMaxima } from 'cantina-domain/rules/crewStatus'
-import { PilotSchema } from 'cantina-domain/schemas/pilot'
+import { pilotMaxima } from 'game-domain/rules/crewStatus'
+import { PilotSchema } from 'game-domain/schemas/pilot'
 import { api, internal } from '../../../convex/_generated/api'
 import type { Ctx } from '../fixtures'
 import { makeUser, pilotBody } from '../fixtures'

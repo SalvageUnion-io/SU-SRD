@@ -27,7 +27,7 @@
  * affordance renders regardless).
  */
 
-import type { Pilot } from 'cantina-domain/schemas/pilot'
+import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { resolveClassName } from '../../lib/classRef'

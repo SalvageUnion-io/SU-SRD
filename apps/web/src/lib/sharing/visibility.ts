@@ -16,7 +16,7 @@
  * Pure: the control (`build/sharing/WhoCanSee.tsx`) draws these, and the
  * connected settings (`ShareSettings.tsx`) decide which write each one makes.
  */
-import type { PublicKind } from 'cantina-domain/entityKinds'
+import type { PublicKind } from 'game-domain/entityKinds'
 import type { PatternVisibility } from '../patterns/patterns'
 
 /** The kinds of player thing a player can share. */

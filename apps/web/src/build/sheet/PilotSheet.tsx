@@ -49,7 +49,7 @@
  * every edit affordance (published snapshots).
  */
 
-import type { Pilot } from 'cantina-domain/schemas/pilot'
+import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import type { RefAbility } from 'salvageunion-reference'

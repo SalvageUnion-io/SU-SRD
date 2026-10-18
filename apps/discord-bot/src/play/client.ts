@@ -1,6 +1,6 @@
-import type { BindChannelArgs, BotOpName } from 'cantina-domain/botWire'
-import { BOT_PATH_PREFIX } from 'cantina-domain/botWire'
-import { PRODUCT } from 'cantina-domain/product'
+import type { BindChannelArgs, BotOpName } from 'game-domain/botWire'
+import { BOT_PATH_PREFIX } from 'game-domain/botWire'
+import { PRODUCT } from 'game-domain/product'
 import type {
   BindChannelResult,
   CantinaResult,

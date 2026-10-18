@@ -1,5 +1,5 @@
-import { gamePath, kindOf, publicPath, sheetPath } from 'cantina-domain/entityKinds'
-import { PRODUCT } from 'cantina-domain/product'
+import { gamePath, kindOf, publicPath, sheetPath } from 'game-domain/entityKinds'
+import { PRODUCT } from 'game-domain/product'
 import type { ItemCondition, RefEnumSchemaName } from 'salvageunion-reference'
 import {
   CONDITION_LABELS,
@@ -16,6 +16,8 @@ import {
 import { crawlerMaxSP, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import type { BodyKey } from './bodyRead'
 import { num, str, strArray } from './bodyRead'
+import type { CardField, ContainerData } from './container'
+import { entityCard } from './container'
 import type {
   DenialReason,
   EntityBody,
@@ -25,9 +27,7 @@ import type {
   PilotDerived,
   SheetResult,
   SheetTable,
-} from './cantina/types'
-import type { CardField, ContainerData } from './container'
-import { entityCard } from './container'
+} from './play/types'
 
 /**
  * Card builders for the Cantina commands (ADR-030).

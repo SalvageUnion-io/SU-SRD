@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
 import { boundContainer, unboundContainer } from '../bindingContainer'
-import type { CantinaClient } from '../cantina/client'
-import type { BindChannelResult, CantinaResult, GamesResult } from '../cantina/types'
 import { bindCommand, unbindCommand } from '../commands/bind'
 import { setCantinaClient } from '../commands/cantinaReply'
 import { suCommand } from '../commands/su'
+import type { CantinaClient } from '../play/client'
+import type { BindChannelResult, CantinaResult, GamesResult } from '../play/types'
 import { cardText } from './cardText'
 import { fakeAutocomplete, fakeExecute } from './fakeInteraction'
 

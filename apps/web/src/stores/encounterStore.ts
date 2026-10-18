@@ -8,9 +8,9 @@
  * `containerOf`; `listForContainer(null)` returns everything.
  */
 
-import type { Container } from 'cantina-domain/container'
-import { containerOf, sameContainer } from 'cantina-domain/container'
-import type { EncounterNpc } from 'cantina-domain/schemas/encounterNpc'
+import type { Container } from 'game-domain/container'
+import { containerOf, sameContainer } from 'game-domain/container'
+import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
 import { create } from 'zustand'
 import { commitNpcWrite } from './entityBackend'
 import type { HydratedCollectionActions, HydratedCollectionSlice } from './makeHydratedCollection'

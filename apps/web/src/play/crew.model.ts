@@ -9,7 +9,7 @@
  * same crewmates; this only picks which number says it.
  */
 
-import { isPresent } from 'cantina-domain/schemas/seat'
+import { isPresent } from 'game-domain/schemas/seat'
 import { resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import type { BoardSources } from './boardMenu.model'
 import type { CrewLine, CrewVitals } from './useGameFeed'

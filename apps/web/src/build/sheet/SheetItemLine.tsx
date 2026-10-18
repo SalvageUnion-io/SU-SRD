@@ -19,7 +19,7 @@
  * share one control.
  */
 
-import type { ItemCondition } from 'cantina-domain/schemas/itemCondition'
+import type { ItemCondition } from 'game-domain/schemas/itemCondition'
 import { X } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Badge, Button, Stat, StatusBadge } from '../../components/index'

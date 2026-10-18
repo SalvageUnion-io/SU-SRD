@@ -15,7 +15,7 @@
  * ("+ New Game").
  */
 
-import type { Container } from 'cantina-domain/container'
+import type { Container } from 'game-domain/container'
 import type { ChangeEvent, CSSProperties } from 'react'
 import { serializeContainer } from '../../stores/activeContainerStore'
 import type { HeaderMenuItem } from '../../components/index'

@@ -37,7 +37,7 @@
  * NPCs are not yours to keep and do not belong here.
  */
 
-import type { MechPattern } from 'cantina-domain/schemas/pattern'
+import type { MechPattern } from 'game-domain/schemas/pattern'
 import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'

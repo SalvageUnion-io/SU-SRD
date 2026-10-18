@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
-import { BOT_PATH_PREFIX, BOT_RELAY_POST_ROLL_PATH } from 'cantina-domain/botWire'
+import { BOT_PATH_PREFIX, BOT_RELAY_POST_ROLL_PATH } from 'game-domain/botWire'
 import { api } from '../../../convex/_generated/api'
 import { NATIVE_FETCH_GLOBALS, NATIVE_OUTBOUND } from '../../env'
 import type { Ctx } from '../fixtures'

@@ -8,8 +8,8 @@
  * own the writes.
  */
 
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { MechPattern } from 'cantina-domain/schemas/pattern'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { MechPattern } from 'game-domain/schemas/pattern'
 import type { RefChassis, RefEntity, RefObjectPattern } from 'salvageunion-reference'
 import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
 import type { CreateInput } from '../../stores/types'

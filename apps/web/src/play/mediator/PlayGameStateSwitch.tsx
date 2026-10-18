@@ -13,7 +13,7 @@
  * Every option is off while writes cannot go.
  */
 
-import { downtimeStepCount, UPKEEP_STEP_NAME } from 'cantina-domain/rules/downtime'
+import { downtimeStepCount, UPKEEP_STEP_NAME } from 'game-domain/rules/downtime'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { ConfirmDialog, Segmented, SegmentedOption, tokens } from '../../components/index'

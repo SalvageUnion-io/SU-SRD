@@ -14,8 +14,8 @@
  * error state.
  */
 
-import type { Container } from 'cantina-domain/container'
-import { sameContainer } from 'cantina-domain/container'
+import type { Container } from 'game-domain/container'
+import { sameContainer } from 'game-domain/container'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { assignmentsClearedByMove } from '../../lib/links/clearedByMove'
 import { useEntityStore } from '../../stores/entityStore'

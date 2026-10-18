@@ -332,7 +332,7 @@ retired snapshots.
 - **Anonymous use still works**, but nothing it builds persists without an
   account ([ADR-034](../ARCHITECTURE.md#decisions)).
 - **Convex cannot validate entity bodies.** The Zod schemas in
-  `packages/cantina-domain/src/schemas/` stay the source of truth and Convex stores bodies
+  `packages/game-domain/src/schemas/` stay the source of truth and Convex stores bodies
   opaquely, so **every mutation must Zod-parse before persisting**. The
   alternative — mirroring every field into Convex validators — forks the source of
   truth into a second copy that rots.

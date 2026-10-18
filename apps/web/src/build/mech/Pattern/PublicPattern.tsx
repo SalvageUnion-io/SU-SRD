@@ -17,8 +17,8 @@
  */
 
 import { useNavigate } from '@tanstack/react-router'
-import type { MechPattern } from 'cantina-domain/schemas/pattern'
-import type { Photo } from 'cantina-domain/schemas/photo'
+import type { MechPattern } from 'game-domain/schemas/pattern'
+import type { Photo } from 'game-domain/schemas/photo'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import {

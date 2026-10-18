@@ -29,8 +29,8 @@
  */
 
 import { useNavigate } from '@tanstack/react-router'
-import { containerOf } from 'cantina-domain/container'
 import { useQuery } from 'convex/react'
+import { containerOf } from 'game-domain/container'
 import { useEffect } from 'react'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'

@@ -570,7 +570,7 @@
                   },
                   {
                     "group": ["**/src/**"],
-                    "message": "Convex never imports the client (apps/web/src): shared logic lives in cantina-domain or salvageunion-reference (`check rules-home`)."
+                    "message": "Convex never imports the client (apps/web/src): shared logic lives in game-domain or salvageunion-reference (`check rules-home`)."
                   }
                 ]
               }

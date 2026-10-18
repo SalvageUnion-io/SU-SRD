@@ -14,8 +14,8 @@
  * so unknown data never crashes the sheet.
  */
 
-import type { ScrapPool } from 'cantina-domain/schemas/crawler'
-import type { ItemCondition } from 'cantina-domain/schemas/itemCondition'
+import type { ScrapPool } from 'game-domain/schemas/crawler'
+import type { ItemCondition } from 'game-domain/schemas/itemCondition'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { MechItem } from '../../lib/rules/mechItems'

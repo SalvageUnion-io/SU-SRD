@@ -1,4 +1,4 @@
-import { CrawlerSchema } from 'cantina-domain/schemas/crawler'
+import { CrawlerSchema } from 'game-domain/schemas/crawler'
 import type { CSSProperties } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type {

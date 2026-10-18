@@ -6,7 +6,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { SHELF } from 'cantina-domain/container'
+import { SHELF } from 'game-domain/container'
 import { FIXTURE_NOW } from '../../components/__tests__/fixtures'
 import type { EncounterNpcCreateInput } from '../encounterStore'
 import { useEncounterStore } from '../encounterStore'

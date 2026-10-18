@@ -5,7 +5,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import type { MechStatus } from 'cantina-domain/rules/crewStatus'
+import type { MechStatus } from 'game-domain/rules/crewStatus'
 import type { Id } from '../../../convex/_generated/dataModel'
 import type { BoardSources } from '../boardMenu.model'
 import { rollLogEntry } from '../playRolls.model'

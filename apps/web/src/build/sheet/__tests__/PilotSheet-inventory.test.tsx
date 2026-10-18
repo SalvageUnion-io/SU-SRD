@@ -12,7 +12,7 @@
 
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import type { GenericInventoryEntry, Pilot } from 'cantina-domain/schemas/pilot'
+import type { GenericInventoryEntry, Pilot } from 'game-domain/schemas/pilot'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { expandCards } from '../../../components/__tests__/expandCards'

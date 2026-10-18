@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from 'bun:test'
-import { downtimeGuideSteps } from 'cantina-domain/rules/downtime'
+import { downtimeGuideSteps } from 'game-domain/rules/downtime'
 import { nameToSlug, resetAllForTesting, SalvageUnionReference } from 'salvageunion-reference'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'

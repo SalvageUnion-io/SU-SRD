@@ -12,7 +12,7 @@
  * dropped: the screen's copy carries its Discord post state.
  */
 
-import { fieldLabel } from 'cantina-domain/games/proposals'
+import { fieldLabel } from 'game-domain/games/proposals'
 import type { PlayRoll } from './playRolls.model'
 import { isDiceRoll, playRollDescription } from './playRolls.model'
 import type { AlertLine, PendingProposal, RollLine } from './useGameFeed'

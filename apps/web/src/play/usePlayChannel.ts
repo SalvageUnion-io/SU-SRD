@@ -17,9 +17,9 @@
  * Mediator's stay private; solo posts to my own channel.
  */
 
-import type { PostRollResult } from 'cantina-domain/games/discord'
-import { postsByDefault } from 'cantina-domain/games/discord'
 import { useAction, useQuery } from 'convex/react'
+import type { PostRollResult } from 'game-domain/games/discord'
+import { postsByDefault } from 'game-domain/games/discord'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'

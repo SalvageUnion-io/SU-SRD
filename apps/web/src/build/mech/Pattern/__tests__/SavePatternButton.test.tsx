@@ -9,7 +9,7 @@
 
 import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import type { CargoLot } from 'cantina-domain/schemas/cargoLot'
+import type { CargoLot } from 'game-domain/schemas/cargoLot'
 import { withSignedInBackend } from '../../../../stores/__tests__/signedInBackend'
 import { installConvexMocks } from '../../../../components/__tests__/convexMock'
 

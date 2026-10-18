@@ -40,13 +40,13 @@
  * and replaced by generic copy rather than its raw message.
  */
 
-import type { Container, ContainerFields } from 'cantina-domain/container'
-import { containerOf, sameContainer } from 'cantina-domain/container'
-import { linkTypeFor } from 'cantina-domain/links/linkRules'
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { EntityRef } from 'cantina-domain/schemas/entity'
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
+import type { Container, ContainerFields } from 'game-domain/container'
+import { containerOf, sameContainer } from 'game-domain/container'
+import { linkTypeFor } from 'game-domain/links/linkRules'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { EntityRef } from 'game-domain/schemas/entity'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { parseCrawlerTechLevel, resolveChassisRef } from 'salvageunion-reference/rules'

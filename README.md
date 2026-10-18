@@ -27,7 +27,7 @@ A Bun monorepo of tools for **Salvage Union**, the tabletop RPG by
 | [`apps/discord-bot`](apps/discord-bot) | The Discord bot: roll on tables, look up entities, play in a Cantina Game. |
 | [`apps/su-assets`](apps/su-assets) | The Worker serving licensed entity artwork from R2. |
 | [`packages/salvageunion-reference`](packages/salvageunion-reference) | The schema-validated game dataset and its TypeScript ORM. |
-| [`packages/cantina-domain`](packages/cantina-domain) | The schemas and rules The Cantina, its Convex backend and the bot share. |
+| [`packages/game-domain`](packages/game-domain) | The schemas and rules The Cantina, its Convex backend and the bot share. |
 | [`packages/gates`](packages/gates) | The library behind the repo's gates, run from [`tools/`](tools). |
 
 ## Getting started

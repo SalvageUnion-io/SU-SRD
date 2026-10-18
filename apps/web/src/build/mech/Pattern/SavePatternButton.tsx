@@ -13,7 +13,7 @@
  * toast so the user can retry without losing the dialog state.
  */
 
-import type { CargoLot } from 'cantina-domain/schemas/cargoLot'
+import type { CargoLot } from 'game-domain/schemas/cargoLot'
 import { useState } from 'react'
 import { useServerAction } from '../../../lib/connection/useServerAction'
 import { usePatternStore } from '../../../stores/patternStore'

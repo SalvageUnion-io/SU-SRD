@@ -1,6 +1,5 @@
 import { describe, expect, test } from 'bun:test'
 import { DISCORD_ROLL_ACCENT } from 'salvageunion-reference'
-import type { EntityBody, SheetResult } from '../cantina/types'
 import {
   CANTINA_ORIGIN,
   denialMessage,
@@ -10,6 +9,7 @@ import {
   sheetCard,
   sheetUrl,
 } from '../gameCards'
+import type { EntityBody, SheetResult } from '../play/types'
 import { cardText, cardUrl } from './cardText'
 
 /**
@@ -105,7 +105,7 @@ describe('gauge', () => {
 describe('vital field names', () => {
   test('reads the CANONICAL schema spellings', () => {
     // The regression this guards is not hypothetical: `crew.vitals` shipped
-    // reading `currentHp` while packages/cantina-domain/src/schemas/pilot.ts defines
+    // reading `currentHp` while packages/game-domain/src/schemas/pilot.ts defines
     // `currentHP`, so every vital rendered as an em-dash indistinguishable
     // from an undamaged crew. The reads are typed against that schema
     // now; this pins that the canonical names reach the card.

@@ -11,12 +11,12 @@
  * itself uses (microsoft/TypeScript#30581).
  */
 
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { EntityRef } from 'cantina-domain/schemas/entity'
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { Npc } from 'cantina-domain/schemas/npc'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
-import type { SoftLink } from 'cantina-domain/schemas/softLink'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { EntityRef } from 'game-domain/schemas/entity'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Npc } from 'game-domain/schemas/npc'
+import type { Pilot } from 'game-domain/schemas/pilot'
+import type { SoftLink } from 'game-domain/schemas/softLink'
 import { create } from 'zustand'
 import type { EntityLookup } from '../../build/sheet/composition.model'
 import type { SoftLinkStore } from '../../build/wiring/useSoftLinks'

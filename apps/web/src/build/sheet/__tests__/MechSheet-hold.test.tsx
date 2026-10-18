@@ -14,9 +14,9 @@
 
 import { describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
-import { makeScrapLot, makeUnitLot } from 'cantina-domain/schemas/cargoLot'
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { Mech } from 'cantina-domain/schemas/mech'
+import { makeScrapLot, makeUnitLot } from 'game-domain/schemas/cargoLot'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { Mech } from 'game-domain/schemas/mech'
 import { color } from '../../../design/tokens'
 import { crawlerFixture, mechFixture } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'

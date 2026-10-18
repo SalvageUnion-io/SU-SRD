@@ -20,10 +20,10 @@
  * on confirm, deposits the buckets and deletes the mech.
  */
 
-import type { CargoLot } from 'cantina-domain/schemas/cargoLot'
-import type { ScrapPool } from 'cantina-domain/schemas/crawler'
-import type { ItemCondition } from 'cantina-domain/schemas/itemCondition'
-import type { Mech } from 'cantina-domain/schemas/mech'
+import type { CargoLot } from 'game-domain/schemas/cargoLot'
+import type { ScrapPool } from 'game-domain/schemas/crawler'
+import type { ItemCondition } from 'game-domain/schemas/itemCondition'
+import type { Mech } from 'game-domain/schemas/mech'
 import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
 import { addToScrapPool } from '../cargo/cargoTransfer'
 import { readReference } from '../readReference'

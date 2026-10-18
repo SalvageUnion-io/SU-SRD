@@ -23,7 +23,7 @@ const convexMocks = await installConvexMocks({
 
 const { GamesDrawerList, GamesMenu } = await import('../GamesMenu')
 const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
-const { SHELF } = await import('cantina-domain/container')
+const { SHELF } = await import('game-domain/container')
 const { setActiveContainer, getActiveContainer } = await import(
   '../../../stores/activeContainerStore'
 )

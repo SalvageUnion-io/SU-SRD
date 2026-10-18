@@ -16,12 +16,12 @@
  * live — and hands the views resolved data via props.
  */
 
-import type { SheetKind } from 'cantina-domain/entityKinds'
-import { sheetPath } from 'cantina-domain/entityKinds'
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { EntityRef } from 'cantina-domain/schemas/entity'
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
+import type { SheetKind } from 'game-domain/entityKinds'
+import { sheetPath } from 'game-domain/entityKinds'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { EntityRef } from 'game-domain/schemas/entity'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { useConnection } from '../../lib/connection/connectionContext'

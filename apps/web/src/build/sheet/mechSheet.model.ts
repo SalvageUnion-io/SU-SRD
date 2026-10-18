@@ -11,9 +11,9 @@
  * for everything the card renders.
  */
 
-import { pilotingContext } from 'cantina-domain/rules/pilotingContext'
-import type { Crawler } from 'cantina-domain/schemas/crawler'
-import type { Mech } from 'cantina-domain/schemas/mech'
+import { pilotingContext } from 'game-domain/rules/pilotingContext'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { Mech } from 'game-domain/schemas/mech'
 import type { StatGroup } from 'salvageunion-reference'
 import { parseContentBlockString, SalvageUnionReference, STAT_LABELS } from 'salvageunion-reference'
 import {

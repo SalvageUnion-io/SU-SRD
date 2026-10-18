@@ -35,7 +35,7 @@
  *     ("move", "damaged", "group").
  *   - `banned-variant` — a spelling the book or the product does not use:
  *     `BANNED`, plus any other casing of the product's names in
- *     `cantina-domain/src/product.ts` (read from that file, never retyped).
+ *     `game-domain/src/product.ts` (read from that file, never retyped).
  *
  * Both are ratchets against `tools/baselines/rule-sets.json`: today's copy
  * is the baseline, a new finding fails, and a fixed one must be locked in.
@@ -56,7 +56,7 @@ const COPY_DIRS = [
   'apps/web/convex',
   'apps/web/src',
   'apps/discord-bot/src',
-  'packages/cantina-domain/src',
+  'packages/game-domain/src',
   'packages/salvageunion-reference/lib',
 ] as const
 
@@ -306,7 +306,7 @@ export const BANNED: readonly Banned[] = [
   },
 ]
 
-export const PRODUCT_FILE = 'packages/cantina-domain/src/product.ts'
+export const PRODUCT_FILE = 'packages/game-domain/src/product.ts'
 
 /** `name` and `shortName` of `PRODUCT`, read from its source. */
 export function productNames(root: string): { name: string; shortName: string } {

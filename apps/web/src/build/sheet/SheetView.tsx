@@ -33,9 +33,9 @@
  */
 
 import { useRouter } from '@tanstack/react-router'
-import { containerOf } from 'cantina-domain/container'
-import type { SheetKind } from 'cantina-domain/entityKinds'
-import { gamePath } from 'cantina-domain/entityKinds'
+import { containerOf } from 'game-domain/container'
+import type { SheetKind } from 'game-domain/entityKinds'
+import { gamePath } from 'game-domain/entityKinds'
 import { useQuery } from 'convex/react'
 import { useEffect, useMemo } from 'react'
 import { api } from '../../../convex/_generated/api'

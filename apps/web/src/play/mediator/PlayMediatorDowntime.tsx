@@ -19,7 +19,7 @@ import {
   downtimeGuideSteps,
   isUpkeepStep,
   UPKEEP_STEP_NAME,
-} from 'cantina-domain/rules/downtime'
+} from 'game-domain/rules/downtime'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import {

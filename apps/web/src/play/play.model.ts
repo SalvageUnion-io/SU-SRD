@@ -7,10 +7,10 @@
  * (`/play/game/$gameId`), and the landing that leads to both (`/play/`).
  */
 
-import { containerOf } from 'cantina-domain/container'
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
-import type { SoftLink } from 'cantina-domain/schemas/softLink'
+import { containerOf } from 'game-domain/container'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
+import type { SoftLink } from 'game-domain/schemas/softLink'
 import type { ConnectionMode } from '../lib/connection/connectionMode'
 import type { EntityState } from '../stores/entityStore'
 

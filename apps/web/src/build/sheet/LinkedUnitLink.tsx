@@ -10,7 +10,7 @@
  * doing, so the Token carries nothing else.
  */
 
-import type { SheetKind } from 'cantina-domain/entityKinds'
+import type { SheetKind } from 'game-domain/entityKinds'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { Entity } from '../../components/index'
 

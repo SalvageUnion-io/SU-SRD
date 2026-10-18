@@ -15,7 +15,7 @@
  * The step machine and create are `useWizardFlow`'s; drafts go through `wizardDraft.ts`.
  */
 
-import { NpcSchema } from 'cantina-domain/schemas/npc'
+import { NpcSchema } from 'game-domain/schemas/npc'
 import type { CSSProperties, ReactNode } from 'react'
 import { useId, useMemo, useState } from 'react'
 import type { RefEntity, RefNPC } from 'salvageunion-reference'

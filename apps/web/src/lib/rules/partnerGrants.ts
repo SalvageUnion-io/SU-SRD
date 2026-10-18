@@ -2,7 +2,7 @@
  * partnerGrants — where a partner comes from, and when it goes away.
  *
  * A partner has no independent existence: it is granted, and it "cannot outlive
- * the thing that grants it" (see `cantina-domain/schemas/partner`). This module is what
+ * the thing that grants it" (see `game-domain/schemas/partner`). This module is what
  * CREATES a `PartnerInstance`, on both grant paths:
  *
  *   - Building a Little Sestra fields its Sestra Drone, and a Big Brother on
@@ -41,7 +41,7 @@
  * a pilot, whose partners are kitted out in play.
  */
 
-import type { PartnerInstance } from 'cantina-domain/schemas/partner'
+import type { PartnerInstance } from 'game-domain/schemas/partner'
 import { nameToSlug, normalizePatternName, SalvageUnionReference } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 

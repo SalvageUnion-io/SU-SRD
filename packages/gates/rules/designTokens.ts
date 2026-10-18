@@ -46,7 +46,7 @@ const SCAN_DIRS = [
   // the bot still fails.
   'apps/discord-bot/src',
   'apps/su-assets/src',
-  'packages/cantina-domain/src',
+  'packages/game-domain/src',
 ]
 
 // greembeem (a MediaWiki-palette novelty page) ships as a static file under

@@ -6,8 +6,8 @@
  * play state and the next beat tries again.
  */
 
-import { PRESENCE_HEARTBEAT_MS } from 'cantina-domain/schemas/seat'
 import { useMutation } from 'convex/react'
+import { PRESENCE_HEARTBEAT_MS } from 'game-domain/schemas/seat'
 import { useEffect } from 'react'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'

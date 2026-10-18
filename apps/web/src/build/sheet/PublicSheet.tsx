@@ -19,8 +19,8 @@
  * republishes, your crewmate's.
  */
 
-import { publicPath } from 'cantina-domain/entityKinds'
-import type { EntityRef } from 'cantina-domain/schemas/entity'
+import { publicPath } from 'game-domain/entityKinds'
+import type { EntityRef } from 'game-domain/schemas/entity'
 import { useMemo } from 'react'
 import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
 import type { PublicSheetAnswer } from './readOnlySheetStore.model'

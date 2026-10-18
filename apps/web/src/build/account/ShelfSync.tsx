@@ -62,9 +62,9 @@
  * the rules above. There is no tab-to-tab channel.
  */
 
-import { containerOf } from 'cantina-domain/container'
-import type { EncounterNpc } from 'cantina-domain/schemas/encounterNpc'
-import type { MechPattern } from 'cantina-domain/schemas/pattern'
+import { containerOf } from 'game-domain/container'
+import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
+import type { MechPattern } from 'game-domain/schemas/pattern'
 import { useQuery } from 'convex/react'
 import { useEffect, useRef } from 'react'
 import { api } from '../../../convex/_generated/api'

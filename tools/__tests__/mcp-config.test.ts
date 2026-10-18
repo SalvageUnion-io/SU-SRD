@@ -5,7 +5,7 @@ import { join } from 'node:path'
  * `.mcp.json` starts the Convex MCP server with `bunx convex@<pin>`, so it runs
  * the CLI version the Cantina pins whether or not `node_modules` is installed. Nothing
  * bumps that pin automatically; this test fails if it and the root catalog's
- * (which the Cantina and `cantina-domain` name as `catalog:`) ever differ, or if a write tool or a production flag creeps back in.
+ * (which the Cantina and `game-domain` name as `catalog:`) ever differ, or if a write tool or a production flag creeps back in.
  */
 
 const ROOT = join(import.meta.dir, '..', '..')

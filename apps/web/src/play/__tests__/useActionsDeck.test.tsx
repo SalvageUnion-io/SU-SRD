@@ -14,8 +14,8 @@
 
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import type { Mech } from 'cantina-domain/schemas/mech'
-import type { SeatResolving } from 'cantina-domain/schemas/seat'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { SeatResolving } from 'game-domain/schemas/seat'
 import { useState } from 'react'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import {

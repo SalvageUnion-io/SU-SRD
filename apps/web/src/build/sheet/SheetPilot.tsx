@@ -8,10 +8,10 @@
  * content and handing it to `PilotSheet` as `linkedUnits`.
  */
 
-import { containerOf } from 'cantina-domain/container'
-import { resolveEffectiveCrawlerLevel } from 'cantina-domain/crawlerLevel'
-import { pilotingContext } from 'cantina-domain/rules/pilotingContext'
-import type { Pilot } from 'cantina-domain/schemas/pilot'
+import { containerOf } from 'game-domain/container'
+import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
+import { pilotingContext } from 'game-domain/rules/pilotingContext'
+import type { Pilot } from 'game-domain/schemas/pilot'
 import { pilotMaxAP, pilotMaxHP, resolvePool } from 'salvageunion-reference/rules'
 import { runWrite } from '../../lib/runWrite'
 import { Stat } from '../../components/index'

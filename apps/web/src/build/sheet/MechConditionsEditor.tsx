@@ -9,7 +9,7 @@
  * `conditions[]`. The two storage forms can never disagree on screen.
  */
 
-import type { Mech } from 'cantina-domain/schemas/mech'
+import type { Mech } from 'game-domain/schemas/mech'
 import { unifiedMechConditions } from 'salvageunion-reference/rules'
 import { mechConditionsPatch } from '../../lib/rules/mechItems'
 import { useEntityStore } from '../../stores/entityStore'

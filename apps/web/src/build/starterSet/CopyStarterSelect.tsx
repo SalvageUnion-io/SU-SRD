@@ -12,7 +12,7 @@
  * in: a copy is a write, and building needs an account (ADR-034 as amended).
  */
 
-import { SHELF } from 'cantina-domain/container'
+import { SHELF } from 'game-domain/container'
 import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'

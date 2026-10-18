@@ -20,7 +20,7 @@
  * level-1 box.
  */
 
-import { proposalTargets } from 'cantina-domain/games/proposals'
+import { proposalTargets } from 'game-domain/games/proposals'
 import type { CSSProperties, RefObject } from 'react'
 import { useState } from 'react'
 import { Button, ModalShell, Slab, tokens } from '../../components/index'

@@ -4,8 +4,8 @@
  * before (ADR-030 §4, as amended), so a row names only the value it asks for.
  */
 
-import { fieldLabel } from 'cantina-domain/games/proposals'
 import type { FunctionReturnType } from 'convex/server'
+import { fieldLabel } from 'game-domain/games/proposals'
 import type { api } from '../../../convex/_generated/api'
 
 export type SentProposal = FunctionReturnType<typeof api.proposals.sent>[number]

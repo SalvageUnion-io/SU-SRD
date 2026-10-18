@@ -17,7 +17,7 @@
 
 import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
-import type { Crawler } from 'cantina-domain/schemas/crawler'
+import type { Crawler } from 'game-domain/schemas/crawler'
 import type { RefCrawler } from 'salvageunion-reference'
 import { patchModelRows } from '../../../../test/patchModel'
 import type { useEntityStore } from '../../../stores/entityStore'
@@ -227,7 +227,7 @@ describe('CrawlerIdentityPanel — type + ability cards', () => {
 
 describe('CrawlerSchema — type/typeNpc legacy tolerance', () => {
   test('a legacy crawler (no type/typeNpc) still validates', async () => {
-    const { CrawlerSchema } = await import('cantina-domain/schemas/crawler')
+    const { CrawlerSchema } = await import('game-domain/schemas/crawler')
     const legacy = makeCrawler({ techLevel: 'tech-3' })
     const result = CrawlerSchema.safeParse(legacy)
     expect(result.success).toBe(true)
@@ -238,7 +238,7 @@ describe('CrawlerSchema — type/typeNpc legacy tolerance', () => {
   })
 
   test('round-trips type + typeNpc when present', async () => {
-    const { CrawlerSchema } = await import('cantina-domain/schemas/crawler')
+    const { CrawlerSchema } = await import('game-domain/schemas/crawler')
     const typed = makeCrawler({
       type: BATTLE_REF,
       typeNpc: { npcName: 'Vex', npcCurrentHP: 8, condition: 'intact' },

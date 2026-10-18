@@ -1,10 +1,10 @@
-import { CrawlerSchema } from 'cantina-domain/schemas/crawler'
-import { EncounterNpcSchema } from 'cantina-domain/schemas/encounterNpc'
-import { MechSchema } from 'cantina-domain/schemas/mech'
-import { NpcSchema } from 'cantina-domain/schemas/npc'
-import { MechPatternSchema } from 'cantina-domain/schemas/pattern'
-import { PilotSchema } from 'cantina-domain/schemas/pilot'
-import { SoftLinkSchema } from 'cantina-domain/schemas/softLink'
+import { CrawlerSchema } from 'game-domain/schemas/crawler'
+import { EncounterNpcSchema } from 'game-domain/schemas/encounterNpc'
+import { MechSchema } from 'game-domain/schemas/mech'
+import { NpcSchema } from 'game-domain/schemas/npc'
+import { MechPatternSchema } from 'game-domain/schemas/pattern'
+import { PilotSchema } from 'game-domain/schemas/pilot'
+import { SoftLinkSchema } from 'game-domain/schemas/softLink'
 import { z } from 'salvageunion-reference/zod'
 
 /**
