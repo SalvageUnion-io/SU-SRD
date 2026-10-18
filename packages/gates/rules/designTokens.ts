@@ -16,14 +16,17 @@
  * cites the section so a failure tells you which law you broke, not just which
  * regex you tripped.
  *
- * ## Every rule is zero
+ * ## Every rule is zero, bar one ratchet
  *
- * Every rule here is `zero`: any finding fails, and none has a baseline entry.
+ * Every rule here but `raw-spacing` is `zero`: any finding fails, and none has
+ * a baseline entry. `raw-spacing` (R13) is a ratchet in
+ * `tools/baselines/rule-sets.json`, burned to zero before 4.0.0: what it still
+ * counts is off §4.4's scale, so each fix is a layout move to review.
  * `rust-allowlist` (§3.1), `type-floor` (§4.6) and `texture-placement` (§3.5)
  * hold the Workshop Manual canon the ruleset ratifies. The Discord bot's
  * hex-integer accents are exempt from `raw-color` below (Discord's API takes
- * integers, not CSS). Making a rule stricter means fixing or exempting what
- * it newly finds in the same commit; there is no baseline to raise.
+ * integers, not CSS). Making a zero rule stricter means fixing or exempting
+ * what it newly finds in the same commit; there is no baseline to raise.
  */
 
 import { readFileSync } from 'node:fs'
@@ -106,6 +109,60 @@ const TEXTURE_FORBIDDEN: readonly RegExp[] = [
 /** A paper GROUND on the same line — the speckle never sits on paper. */
 const PAPER_GROUND =
   /(?<![\w-])bg-paper(?![\w-])|background(?:-color|Color)?\s*:\s*(?:var\(--color-paper\)|color\.paper\b)/
+
+/**
+ * A declaration's value with every `var(…)` (fallback included) and every
+ * `${…}` interpolation taken out, so what is left is the part a token did not
+ * write. Nested parentheses inside a `var()` fallback are removed innermost
+ * first.
+ */
+function outsideTokens(value: string): string {
+  let out = value.replace(/\$\{[^}]*\}/g, ' ')
+  let prev: string
+  do {
+    prev = out
+    out = out.replace(/var\([^()]*\)/g, ' ')
+  } while (out !== prev)
+  return out
+}
+
+/** A non-zero length literal (`3px`, `0.5rem`, `-0.025em`), not part of a name. */
+const LENGTH_LITERAL = /(?<![\w.#-])-?(?:\d+\.?\d*|\.\d+)(?:px|rem|em)(?![\w-])/g
+
+/** The non-zero length literals a value spells outside its tokens. */
+function lengthLiterals(value: string): string[] {
+  return (outsideTokens(value).match(LENGTH_LITERAL) ?? []).filter(
+    (lit) => Number.parseFloat(lit) !== 0
+  )
+}
+
+/**
+ * The value of a CSS declaration (`prop: value`) or a style-object entry
+ * (`prop: 'value'`, a template literal included) as a rule pattern matched it.
+ */
+function declaredValue(match: string): string {
+  return match.slice(match.indexOf(':') + 1)
+}
+
+/** Keep a declaration that spells a length outside its tokens. */
+const keepLengthLiteral = (match: string) => lengthLiterals(declaredValue(match)).length > 0
+
+/**
+ * A declaration of one of `js` (camelCase, in a style object, its value a
+ * quoted string or template literal) or `css` (kebab-case, in a stylesheet).
+ * The JS arm is tried first and stops at its closing quote; the CSS arm takes
+ * an unquoted value and stops at `;`, `{`, `}` or the next `, name:` of a
+ * style object, so one entry never swallows its neighbours.
+ */
+function declaration(css: string, js: string): RegExp {
+  return new RegExp(
+    `(?<![\\w-])(?:${js})\\s*:\\s*(?:'[^'\\n]*'|"[^"\\n]*"|\`[^\`\\n]*\`)|(?<![\\w-])(?:${css})\\s*:\\s*(?!['"\`])(?:(?!,\\s*[\\w-]+\\s*:)[^;{}\\n])+`,
+    'g'
+  )
+}
+
+/** The three Size heights (ruleset §4.7), the values `--size-*` owns, in px or rem. */
+const SIZE_LITERAL = /(?<![\w.#-])(?:(?:18|32|44)px|(?:1\.125|2|2\.75)rem)(?![\w-])/
 
 const TOKEN_RULES: TokenRule[] = [
   {
@@ -237,6 +294,81 @@ const TOKEN_RULES: TokenRule[] = [
     fix: 'Use the workshop ground: `color.wkBg` / `var(--color-wk-bg)` for the step off paper, or `color.paper` / `var(--color-paper)` for the surface itself.',
     pattern: /--color-wk-bg-2(?![\w-])|(?<![\w-])[a-z]+(?:-[trblxy])?-wk-bg-2(?![\w-])|\bwkBg2\b/g,
   },
+  {
+    id: 'raw-tracking',
+    mode: 'zero',
+    rule: 'ruleset §4.2 — the tracking ladder is tokens only (R13)',
+    // Letter-spacing is a five-rung ladder; a literal `0.1em` is a sixth rung
+    // nobody chose. `0`, `normal` and the CSS-wide keywords are not tracking.
+    fix: 'Use a rung of the ladder: `tracking.<rung>` in a style object, `var(--tracking-<rung>)` in a stylesheet — `capsTight` (0.04em) the label default, `capsSnug` (0.06em) at the 11px floor, `caps` (0.08em) chips, `capsWide` (0.12em) header stamps, `eyebrow` (0.22em) the brand caption. Body text takes no tracking (`normal`).',
+    pattern: declaration('letter-spacing', 'letterSpacing'),
+    keep: keepLengthLiteral,
+  },
+  {
+    id: 'size-literal',
+    mode: 'zero',
+    rule: 'ruleset §4.7 — a control height is a Size token (R13)',
+    // 44, 32 and 18px (2.75, 2 and 1.125rem) are the Full, Compact and Mini
+    // Sizes. Spelled as a literal, a height stops following the Size: under a
+    // coarse pointer `--size-compact` lifts to 44px, and a literal 32px stays
+    // behind.
+    fix: 'Use the Size: `size.full` / `var(--size-full)` (44px, the touch floor), `size.compact` / `var(--size-compact)` (32px), `size.mini` / `var(--size-mini)` (18px). An icon takes `iconSize`, not a height.',
+    // Heights, and `min-width` (the touch floor's other half); a plain width
+    // is a column or a box, not a Size.
+    pattern: declaration(
+      '(?:min-|max-)?(?:height|block-size)|min-width',
+      '(?:min|max)?(?:[hH]eight|[bB]lockSize)|minWidth'
+    ),
+    keep: (match) => SIZE_LITERAL.test(outsideTokens(declaredValue(match))),
+  },
+  {
+    id: 'ink-mix',
+    mode: 'zero',
+    rule: 'ruleset §4.1 — the ink ramp is warm ink at opacity, one rung per shade (R13)',
+    // A `color-mix()` of ink is a shade the ramp does not list: a second
+    // spelling of `--color-ink-NN`, or an opaque grey, which §4.1 rules out.
+    fix: 'Use a rung of the ink ramp: `color.ink<NN>` / `var(--color-ink-<NN>)` (85, 75, 60, 55, 50, 40, 35, 30, 20, 15, 10, 8, 5). It is translucent over whatever ground it sits on; a shade with no rung takes the nearest one.',
+    pattern:
+      /color-mix\(\s*in\s+[a-z]+\s*,\s*(?:var\(--color-ink(?:-[a-z0-9]+)?\)|\$\{(?:tokens\.)?color\.ink\w*\})/g,
+  },
+  {
+    id: 'raw-border-width',
+    mode: 'zero',
+    rule: 'ruleset §4.3 — the border map, one meaning per weight (R13)',
+    // Outlines are not on the map: the forced-colours fallback is a
+    // transparent outline, and focus is R28's ring.
+    fix: 'Use the weight for the role: `borderWidth.entity` / `var(--bw-entity)` (3px, a full card), `entityCompact` / `--bw-entity-compact` (2px, a Card below full, a Row), `pill` / `--bw-pill` (2px), `chrome` / `--bw-chrome` (1.5px, controls), `hairline` / `--bw-hairline` (1px, value-cell frames and table rules).',
+    pattern: declaration(
+      'border(?:-(?:top|right|bottom|left|block|inline)(?:-(?:start|end))?)?(?:-width)?',
+      'border(?:Top|Right|Bottom|Left|Block|Inline)?(?:Start|End)?(?:Width)?'
+    ),
+    keep: keepLengthLiteral,
+  },
+  {
+    id: 'raw-radius',
+    mode: 'zero',
+    rule: 'ruleset §4.4 — square entity frames, 3px for everything that frames or floats (R13)',
+    fix: 'Use `radius.card` / `var(--radius-card)` (3px: a button, field, Box, dialog, popup, toast), `calc(var(--radius-card) - <frame>)` inside a frame, `radius.none` for an entity frame or stamp, `radius.full` for a pill or circle; `pip` and `badge` for those two.',
+    pattern: declaration(
+      'border(?:-(?:top|bottom|start|end)-(?:left|right|start|end))?-radius',
+      'border(?:Top|Bottom|Start|End)?(?:Left|Right|Start|End)?Radius'
+    ),
+    keep: keepLengthLiteral,
+  },
+  {
+    id: 'raw-spacing',
+    mode: 'ratchet',
+    rule: 'ruleset §4.4 — spacing on the scale: {2, 4, 6, 8, 12}px inside a block, 16 or 24px between (R13)',
+    // A ratchet, burned to zero before 4.0.0. What is left is off the scale
+    // (3px, 7px, 9px, 22px, 30px…), so each one is a layout move to review,
+    // not a find-and-replace.
+    fix: 'Use the scale: `space[N]` / `var(--space-N)` — 2, 4, 6, 8 or 12 inside a block (12 the card gutter), 16 or 24 between blocks. An off-scale literal moves to the nearest rung; check the page with `bun run shot`.',
+    pattern: declaration(
+      '(?:padding|margin)(?:-(?:top|right|bottom|left|block|inline)(?:-(?:start|end))?)?|(?:row-|column-)?gap',
+      '(?:padding|margin)(?:Top|Right|Bottom|Left|Block|Inline)?(?:Start|End)?|(?:row|column)?[gG]ap'
+    ),
+    keep: keepLengthLiteral,
+  },
 ]
 
 /**
@@ -306,9 +438,15 @@ const EXEMPTIONS: Exemption[] = [
   },
   {
     file: 'apps/web/src/styles/global.css',
-    rules: ['gradient', 'raw-color'],
+    rules: ['gradient', 'raw-color', 'raw-border-width'],
     reason:
-      'Ruleset §3.5 THE one-off: the .su-pilot-panel distressed-metal effect on srd /about is a CSS illustration, ruled a sanctioned one-off. It is the single place smooth shading is allowed, and it is allowed because it is a picture of a rusted plate rather than a UI surface. Not precedent — no second one-off without an explicit ruling. raw-color rides along because it is the SAME illustration: the rust blooms, the steel plate, the rivet heads and the engraved lettering are one picture, and a picture needs more shades than a UI palette has — the rivets alone spend nine greys on lit/worn/green/flush/hole. Tokenising them would add a dozen tokens nothing else could ever reuse. CAVEAT, since a file-level exemption is blunter than the rationale: it also swallows three literals outside the illustration block — the .catalog-item hover box-shadow and .catalog-item__name text-shadow (real shadow debt on an authored surface, still owed a token) and one #fff in the print block. Line-scoping the exemption was considered and rejected as too brittle to survive edits to this file; they are recorded here instead of silently absorbed.',
+      'Ruleset §3.5 THE one-off: the .su-pilot-panel distressed-metal effect on srd /about is a CSS illustration, ruled a sanctioned one-off. It is the single place smooth shading is allowed, and it is allowed because it is a picture of a rusted plate rather than a UI surface. Not precedent — no second one-off without an explicit ruling. raw-color rides along because it is the SAME illustration: the rust blooms, the steel plate, the rivet heads and the engraved lettering are one picture, and a picture needs more shades than a UI palette has — the rivets alone spend nine greys on lit/worn/green/flush/hole. Tokenising them would add a dozen tokens nothing else could ever reuse. raw-border-width rides along for the same picture: the plate bevel is four light-catch and underside edges of 1 and 2px, drawn as borders, not frame weights. CAVEAT, since a file-level exemption is blunter than the rationale: it also swallows three literals outside the illustration block — the .catalog-item hover box-shadow and .catalog-item__name text-shadow (real shadow debt on an authored surface, still owed a token) and one #fff in the print block. Line-scoping the exemption was considered and rejected as too brittle to survive edits to this file; they are recorded here instead of silently absorbed.',
+  },
+  {
+    file: 'apps/web/src/components/referenceEntity/card/cardChrome.ts',
+    rules: ['ink-mix'],
+    reason:
+      "A down entity's band (owner, 2026-10-14): a damaged band dulls toward a grey and a destroyed one goes flat grey, ink mixed into PAPER, not over transparent. A band carries text, so it must be opaque: `foregroundOn` and `contrast.test.ts` read these `color-mix(in srgb, …)` values to hold its contrast, which a translucent rung over an unknown ground would not let them do. Not a shade of ink at opacity, so not the ramp's to spell.",
   },
   {
     file: 'apps/web/src/components/atoms/KofiButton.tsx',
@@ -318,9 +456,9 @@ const EXEMPTIONS: Exemption[] = [
   },
   {
     file: 'apps/web/src/styles/build/print.css',
-    rules: ['raw-color', 'cool-ground'],
+    rules: ['raw-color', 'cool-ground', 'raw-border-width'],
     reason:
-      'PRINT MEDIA. Inside `@media print` the surface is physical paper and the ink is real ink, so #fff / #000 are the correct values rather than the screen palette — warm paper (#fbfaf7) printed as a fill wastes toner and reads grey. theme.css already carves out exactly this exception in its paper note ("the only remaining #ffffff is one scoped exception: the @media print sheet"); this is that exception, in the app that owns the sheet. cool-ground rides along because the print sheet whites `--color-wk-bg-2` out with the other themed grounds, so nothing that still reads it prints a tint.',
+      'PRINT MEDIA. Inside `@media print` the surface is physical paper and the ink is real ink, so #fff / #000 are the correct values rather than the screen palette — warm paper (#fbfaf7) printed as a fill wastes toner and reads grey. theme.css already carves out exactly this exception in its paper note ("the only remaining #ffffff is one scoped exception: the @media print sheet"); this is that exception, in the app that owns the sheet. cool-ground rides along because the print sheet whites `--color-wk-bg-2` out with the other themed grounds, so nothing that still reads it prints a tint. raw-border-width rides along for the same paper: a printed frame is a 1px rule of real ink, not a screen border weight.',
   },
 ]
 

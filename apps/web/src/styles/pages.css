@@ -190,7 +190,7 @@
    capture, so the page was laid out at 44px rows and painted at 36px. */
 @media (pointer: coarse), (max-width: 40rem) {
   .su-contents__row {
-    min-height: 44px;
+    min-height: var(--size-full);
   }
 }
 
@@ -255,7 +255,7 @@ a.su-home__discord:hover {
   color: var(--color-ink);
   display: inline-flex;
   font-family: var(--font-cond);
-  min-height: 44px;
+  min-height: var(--size-full);
   text-underline-offset: 3px;
 }
 
@@ -507,7 +507,7 @@ a.su-home__discord:hover {
   font-family: var(--font-cond);
   font-size: var(--text-readout);
   font-weight: var(--font-weight-bold);
-  min-height: 44px;
+  min-height: var(--size-full);
   overflow: hidden;
   padding: 0 var(--space-12);
   text-decoration: none;
@@ -550,8 +550,8 @@ a.su-home__discord:hover {
 .su-listing__tiles > li:nth-child(n + 5) {
   content-visibility: auto;
   contain-intrinsic-size: auto calc(36rem + 8px);
-  margin: -4px;
-  padding: 4px;
+  margin: calc(-1 * var(--space-4));
+  padding: var(--space-4);
 }
 
 /* On a phone a tile's art is a 2:1 band (`.su-entity-tile__art`,
@@ -582,8 +582,8 @@ a.su-home__discord:hover {
 .su-listing[data-view='tree'] .su-listing__group:nth-child(n + 3) {
   content-visibility: auto;
   contain-intrinsic-size: auto calc(18.5rem + 8px);
-  margin: -4px;
-  padding: 4px;
+  margin: calc(-1 * var(--space-4));
+  padding: var(--space-4);
 }
 
 @media (max-width: 40rem) {
@@ -654,7 +654,7 @@ a.su-home__discord:hover {
 .su-rail .su-rail__search {
   flex: 1 1 16rem;
   max-width: 22rem;
-  min-height: 44px;
+  min-height: var(--size-full);
 }
 
 .su-rail form.su-rail__search {
@@ -664,7 +664,7 @@ a.su-home__discord:hover {
 /* The search page's field fills its form, at the rail's 44px. */
 .su-rail__search > .su-rail__field {
   flex: 1 1 auto;
-  min-height: 44px;
+  min-height: var(--size-full);
 }
 
 /* The field's clear button, in ink like the rest of the rail (the browser's
@@ -702,7 +702,7 @@ a.su-home__discord:hover {
   font-weight: var(--font-weight-bold);
   gap: var(--space-8);
   letter-spacing: var(--tracking-caps-tight);
-  min-height: 44px;
+  min-height: var(--size-full);
   padding: 0 var(--space-14);
   text-transform: uppercase;
 }
@@ -725,7 +725,7 @@ a.su-home__discord:hover {
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps-tight);
   max-width: 16rem;
-  min-height: 44px;
+  min-height: var(--size-full);
   text-transform: uppercase;
   width: auto;
 }
@@ -797,7 +797,7 @@ a.su-home__discord:hover {
   font-weight: var(--font-weight-bold);
   gap: var(--space-6);
   letter-spacing: var(--tracking-caps-tight);
-  min-height: 32px;
+  min-height: var(--size-compact);
   padding: 0 var(--space-6) 0 var(--space-10);
   text-transform: uppercase;
 }
@@ -813,7 +813,7 @@ a.su-home__discord:hover {
   cursor: pointer;
   font: inherit;
   font-weight: var(--font-weight-semibold);
-  min-height: 32px;
+  min-height: var(--size-compact);
   padding: 0 var(--space-2);
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -1128,7 +1128,7 @@ a.su-home__discord:hover {
 /* `/about`: the map lightbox (a native `<dialog>`) — its scrim, its close
    button's ground, its credit link's underline. */
 .su-about-lightbox::backdrop {
-  background-color: color-mix(in oklab, var(--color-ink) 70%, transparent);
+  background-color: var(--color-ink-75);
 }
 
 @media (hover: hover) {

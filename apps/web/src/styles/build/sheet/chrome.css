@@ -5,7 +5,7 @@
    its deep-tone outline fills on hover. */
 .su-sheet-hbtn {
   display: inline-flex;
-  min-height: 2.75rem;
+  min-height: var(--size-full);
   border-color: var(--tone-deep, var(--color-ink));
   background-color: var(--color-paper);
   color: var(--tone-deep, var(--color-ink));
@@ -13,7 +13,7 @@
 
 @media (min-width: 40rem) {
   .su-sheet-hbtn {
-    min-height: 2rem;
+    min-height: var(--size-compact);
   }
 }
 
@@ -26,7 +26,7 @@
 
 /* CardRemoveButton: the same tap floor over the 24px design height. */
 .su-sheet-remove {
-  min-height: 2.75rem;
+  min-height: var(--size-full);
 }
 
 @media (min-width: 40rem) {

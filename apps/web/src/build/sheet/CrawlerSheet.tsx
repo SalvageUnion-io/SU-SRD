@@ -120,7 +120,7 @@ const UNKNOWN_WEAPON = {
   alignItems: 'center',
   justifyContent: 'space-between',
   gap: tokens.space[8],
-  borderRadius: '0.25rem',
+  borderRadius: tokens.radius.card,
   border: `${tokens.borderWidth.hairline} solid ${tokens.color.ink}`,
   padding: `${tokens.space[4]} ${tokens.space[8]}`,
   fontSize: tokens.fontSize.sm,

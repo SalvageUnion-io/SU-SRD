@@ -2,7 +2,16 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useCallback, useContext, useState } from 'react'
 import type { RefEntity, RefObjectChoice } from 'salvageunion-reference'
 import { isSchemaName, SalvageUnionReference } from 'salvageunion-reference'
-import { color, font, fontSize, space, tracking, weight } from '../../../design/tokens'
+import {
+  borderWidth,
+  color,
+  font,
+  fontSize,
+  radius,
+  space,
+  tracking,
+  weight,
+} from '../../../design/tokens'
 import { cn } from '../../../lib/cn'
 import { useParseTraitReferences } from '../../../lib/parseTraitReferences'
 import type { CSSVarStyle } from '../../../styles/cssVars'
@@ -119,8 +128,8 @@ const optionCellStyle = {
  */
 const fieldStyle = {
   width: '100%',
-  borderRadius: '0.25rem',
-  borderWidth: '1px',
+  borderRadius: radius.card,
+  borderWidth: borderWidth.hairline,
   borderStyle: 'solid',
   backgroundColor: color.paper,
   padding: `${space[14]} ${space[8]} ${space[4]}`,

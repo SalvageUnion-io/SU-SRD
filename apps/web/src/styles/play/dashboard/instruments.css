@@ -17,7 +17,7 @@
 .su-dash-display-scroll {
   height: 100%;
   overflow-y: auto;
-  padding: 12px;
+  padding: var(--space-12);
 }
 
 /* ---- The resolve's Hot(X) stepper ---- */
@@ -25,7 +25,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: var(--space-10);
 }
 .su-dash-step-num {
   font-family: var(--font-cond);
@@ -33,7 +33,7 @@
   font-variant-numeric: tabular-nums;
   /* The display step: a numeral read at a glance, not a label. */
   font-size: var(--text-display);
-  min-width: 44px;
+  min-width: var(--size-full);
   text-align: center;
   color: var(--color-ink);
 }
@@ -42,9 +42,9 @@
 .su-dash-deck-cost-choice {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-12);
   margin: 0;
-  padding: 8px 10px;
+  padding: var(--space-8) var(--space-10);
   border: var(--bw-chrome) solid var(--color-ink-20);
   border-radius: var(--radius-card);
 }
@@ -60,7 +60,7 @@
 .su-dash-deck-radio {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-6);
   font-family: var(--font-body);
   font-size: var(--text-caption);
   color: var(--color-ink);
@@ -69,7 +69,7 @@
 .su-dash-deck-hotx {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-12);
 }
 .su-dash-deck-hotx-lab {
   font-family: var(--font-cond);

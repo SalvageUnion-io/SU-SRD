@@ -109,12 +109,12 @@
 /* The bar's buttons share one height: the Roll and a card's Table / Hide
    toggle, at the 44px tap floor on a coarse pointer (§4.6). */
 .su-roll__control {
-  min-height: 2rem;
+  min-height: var(--size-compact);
 }
 
 @media (pointer: coarse) {
   .su-roll__control {
-    min-height: 44px;
+    min-height: var(--size-full);
   }
 }
 

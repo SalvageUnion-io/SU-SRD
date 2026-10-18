@@ -121,7 +121,7 @@
   position: fixed;
   inset: 0;
   z-index: var(--z-overlay);
-  background-color: color-mix(in srgb, var(--color-ink-deep) 80%, transparent);
+  background-color: var(--color-ink-85);
 }
 
 /* A Base UI Drawer's panel slides in from the edge it is swiped away to
@@ -243,7 +243,7 @@
 }
 
 .su-searcher__rail-entry[data-removable] .su-entity-token__pill {
-  padding-inline-end: calc(var(--su-searcher-line) + 2px);
+  padding-inline-end: calc(var(--su-searcher-line) + var(--space-2));
 }
 
 .su-btn.su-searcher__remove {
@@ -258,7 +258,7 @@
 }
 
 .su-searcher__toolbar {
-  padding: 10px 16px;
+  padding: var(--space-10) var(--space-16);
   border-bottom: var(--bw-hairline) solid var(--color-ink-20);
 }
 
@@ -307,7 +307,7 @@
 .su-searcher__list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-6);
 }
 
 .su-searcher--browse .su-searcher__list {
@@ -322,9 +322,9 @@
   display: flex;
   flex-wrap: nowrap;
   align-items: stretch;
-  gap: 6px;
+  gap: var(--space-6);
   min-width: 0;
-  padding: 2px;
+  padding: var(--space-2);
 }
 
 .su-searcher__item.su-entity-token-line > .su-entity-token {
@@ -354,8 +354,8 @@
   flex: none;
   display: inline-flex;
   align-items: center;
-  margin: -2px -2px -2px 0;
-  padding: 0 8px;
+  margin: calc(-1 * var(--space-2)) calc(-1 * var(--space-2)) calc(-1 * var(--space-2)) 0;
+  padding: 0 var(--space-8);
   background-color: var(--color-ink);
   color: var(--color-paper);
   font: 700 var(--text-badge) / 1 var(--font-cond);
@@ -486,7 +486,7 @@
   white-space: nowrap;
 }
 .su-seg__option + .su-seg__option {
-  border-left: 1px solid var(--color-ink-30);
+  border-left: var(--bw-hairline) solid var(--color-ink-30);
 }
 .su-seg__option[data-numeral] {
   font-size: var(--text-base);

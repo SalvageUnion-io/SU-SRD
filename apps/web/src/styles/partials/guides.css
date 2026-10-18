@@ -490,7 +490,7 @@
   justify-content: center;
   letter-spacing: var(--tracking-caps-tight);
   margin-top: var(--space-12);
-  min-height: 44px;
+  min-height: var(--size-full);
   text-decoration: none;
   text-transform: uppercase;
 }

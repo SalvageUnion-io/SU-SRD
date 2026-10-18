@@ -6,6 +6,7 @@ import {
   font,
   fontSize,
   radius,
+  size,
   space,
   tracking,
   weight,
@@ -152,7 +153,7 @@ const PICKER_BOX = {
   // typed ones beside it do.
   fontSize: fontSize.readout,
   lineHeight: 1.5,
-  minHeight: '2.75rem',
+  minHeight: size.full,
   paddingInline: space[12],
   textAlign: 'left',
   width: '100%',

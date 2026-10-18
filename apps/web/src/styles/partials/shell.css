@@ -961,7 +961,7 @@
   font-size: var(--text-base);
   gap: var(--space-12);
   justify-content: space-between;
-  min-height: 44px;
+  min-height: var(--size-full);
   text-decoration: none;
 }
 

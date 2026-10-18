@@ -179,7 +179,7 @@
 
 .su-stat-column--compact .su-stat-column__cell {
   flex: none;
-  min-height: 32px;
+  min-height: 32px; /* design-tokens-ignore: a read-out, not a control; `--size-compact` lifts to 44px on touch */
 }
 
 .su-stat-column--compact .su-stat-column__value {

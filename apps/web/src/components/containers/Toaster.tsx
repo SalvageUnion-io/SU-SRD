@@ -10,7 +10,8 @@ export function Toaster() {
       toastOptions={{
         style: {
           background: 'var(--color-ink)',
-          border: '1px solid var(--color-ink-2)',
+          border: 'var(--bw-hairline) solid var(--color-ink-2)',
+          borderRadius: 'var(--radius-card)',
           color: 'var(--color-paper)',
           fontFamily: "var(--font-body, 'Barlow', system-ui, sans-serif)",
           fontSize: '0.8125rem',

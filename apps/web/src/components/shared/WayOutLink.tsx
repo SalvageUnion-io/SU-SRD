@@ -1,9 +1,9 @@
 import type { CSSProperties } from 'react'
-import { buttonVariants } from '../index'
+import { buttonVariants, tokens } from '../index'
 import { AppLink } from './AppLink'
 
 /** The 44px touch floor (ruleset §4.6), and no underline on a button-shaped link. */
-const WAY_OUT = { minHeight: '44px', textDecoration: 'none' } satisfies CSSProperties
+const WAY_OUT = { minHeight: tokens.size.full, textDecoration: 'none' } satisfies CSSProperties
 
 /**
  * The way off a page that cannot do what was asked (a dead invite link, a

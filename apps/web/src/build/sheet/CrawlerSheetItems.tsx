@@ -71,7 +71,7 @@ const WHEN_DAMAGED = /\b(?:is|becomes|are|become)\s+damaged\b/i
 
 /** The placeholder for a bay ref the catalog does not know. */
 const UNKNOWN_BAY = {
-  borderRadius: '0.25rem',
+  borderRadius: tokens.radius.card,
   border: `${tokens.borderWidth.hairline} solid ${tokens.color.ink}`,
   padding: `${tokens.space[4]} ${tokens.space[8]}`,
   fontSize: tokens.fontSize.sm,

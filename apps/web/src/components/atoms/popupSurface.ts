@@ -7,7 +7,7 @@ import { borderWidth, color, layer, radius, space } from '../../design/tokens'
  * - `paper` — a paper panel on a 2px ink frame, lifted by an ink-tinted
  *   shadow: `PopoverPanel`'s default chrome, `HeaderMenu`'s popup, the search
  *   dropdown (`SearchIsland`) and the phone's search sheet (`MobileSearchDialog`).
- * - `ink` — paper on ink, rounded, with the medium lift shadow: the two hover
+ * - `ink` — paper on ink, with the medium lift shadow: the two hover
  *   surfaces (`Tooltip`, `StatProvenance`, through `INK_POPUP`).
  *
  * Surface only: background, frame, radius, shadow and text colour. Each
@@ -18,7 +18,7 @@ export const POPUP_SURFACE = {
   paper: {
     backgroundColor: color.paper,
     borderColor: color.ink,
-    borderRadius: radius.panel,
+    borderRadius: radius.card,
     borderStyle: 'solid',
     borderWidth: borderWidth.pill,
     boxShadow: `0 14px 28px -14px ${color.ink50}`,
@@ -26,7 +26,7 @@ export const POPUP_SURFACE = {
   },
   ink: {
     backgroundColor: color.ink,
-    borderRadius: '0.375rem',
+    borderRadius: radius.card,
     boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)', // design-tokens-ignore: the medium lift shadow, neutral black
     color: color.paper,
   },

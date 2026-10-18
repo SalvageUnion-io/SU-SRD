@@ -1,6 +1,13 @@
 import type { CSSProperties } from 'react'
 import { CONDITION_LABELS } from 'salvageunion-reference'
-import { font, fontSize, space, tracking, weight } from '../../../design/tokens'
+import {
+  size as controlSize,
+  font,
+  fontSize,
+  space,
+  tracking,
+  weight,
+} from '../../../design/tokens'
 import { Button } from '../../atoms/Button'
 import type { EntityStatus } from '../../atoms/entityStatus'
 import type { CardSize } from '../../containers/displayMode'
@@ -27,7 +34,7 @@ const segment = (active: boolean, live: boolean): CSSProperties => ({
   letterSpacing: tracking.capsTight,
   lineHeight: 1,
   // Only the live control owes the 44px touch floor; a read-out has no pointer.
-  minHeight: live ? 'calc(44px - 2 * var(--bw-chrome))' : '28px',
+  minHeight: live ? `calc(${controlSize.full} - 2 * var(--bw-chrome))` : '28px',
   padding: `0 ${space[8]}`,
   textTransform: 'uppercase',
   whiteSpace: 'nowrap',
@@ -158,7 +165,7 @@ export function StatusRail({
             letterSpacing: tracking.capsSnug,
             marginLeft: 'auto',
             // The 44px floor under every pointer, level with the tri-state (E3).
-            minHeight: '44px',
+            minHeight: controlSize.full,
             textTransform: 'uppercase',
           }}
         >

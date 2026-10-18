@@ -81,7 +81,7 @@ The loop: define it here, land its gate with a baseline, burn the baseline to ze
 - **R12 One Size per line; 44px on touch; 11px at render** (§4.6, §4.7, C1a) — menu items included; no fixed row height under its controls; no text under 11px as drawn.
   Gate: partial, `sibling-heights.e2e.ts` (Starter Set sheets, Play); planned, over R0, `[role=menuitem]` in the touch floor, and a computed font-size sweep. Play's 0.62 canvas threshold is ADR-045 decision 1.
 - **R13 Tokens only** (§4.1–§4.4, §4.7) — no literal tracking, control height, ink `color-mix`, border width or radius; spacing on §4.4's scale.
-  Gate: planned, `tokens/raw-tracking`, `size-literal`, `ink-mix`, `raw-border-width`, `raw-radius` (zero); `raw-spacing` (ratchet).
+  Gate: partial, `tokens/raw-tracking`, `size-literal`, `ink-mix`, `raw-border-width`, `raw-radius` held (zero); `raw-spacing` a ratchet at 54 (`tools/baselines/rule-sets.json`), every one off §4.4's scale, so a layout move; held when it reaches zero, before 4.0.0.
 - **R14 Caps through the stamp, Button and `capsLabel`** (§3.12, §4.2) — 11px caps are snug.
   Gate: planned, a ratchet on hand-set `uppercase`; a zero rule pairing `fontSize.badge` with `capsSnug`.
 - **R17 A Page has one rhythm** (§1.7, §7.1) — the body starts under the band; 12px between level-1 blocks; the stat column's 1px frame and 14px label.

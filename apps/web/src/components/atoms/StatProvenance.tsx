@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { color, fontSize, space, weight } from '../../design/tokens'
+import { borderWidth, color, fontSize, space, weight } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { PopoverPanel } from '../containers/PopoverPanel'
 import { capsLabel } from './capsLabel'
@@ -74,7 +74,7 @@ const ROW = {
 
 /** The rule over a subtotal: `mt-1.5 border-t border-paper-30 pt-1.5`. */
 const RULED = {
-  borderTop: `1px solid ${color.paper30}`,
+  borderTop: `${borderWidth.hairline} solid ${color.paper30}`,
   marginTop: space[6],
   paddingTop: space[6],
 } satisfies CSSProperties

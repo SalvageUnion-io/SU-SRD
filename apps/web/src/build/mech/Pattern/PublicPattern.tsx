@@ -188,7 +188,7 @@ const STATS_NOTE = {
 const ACTION_BUTTON = {
   fontFamily: tokens.font.cond,
   letterSpacing: tokens.tracking.capsSnug,
-  minHeight: '2.75rem',
+  minHeight: tokens.size.full,
   textTransform: 'uppercase',
 } satisfies CSSProperties
 

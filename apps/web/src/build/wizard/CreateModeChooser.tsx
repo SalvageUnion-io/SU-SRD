@@ -60,7 +60,7 @@ const patternLinkStyle = {
   fontFamily: tokens.font.cond,
   fontSize: tokens.fontSize.badge,
   fontWeight: tokens.weight.bold,
-  letterSpacing: '0.1em',
+  letterSpacing: tokens.tracking.capsSnug,
   lineHeight: 1.625,
   marginInline: 'auto',
   marginTop: tokens.space[24],

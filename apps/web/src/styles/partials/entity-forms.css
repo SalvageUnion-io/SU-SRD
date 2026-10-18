@@ -1123,7 +1123,7 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   display: flex;
   flex: 0 0 auto;
   flex-wrap: wrap;
-  gap: 1.5rem var(--space-4);
+  gap: var(--space-24) var(--space-4);
   justify-content: flex-end;
   max-height: calc(var(--text-badge) + 2 * var(--space-2) + 2 * var(--bw-hairline));
   max-width: clamp(50%, 100% - 9rem, 65%);

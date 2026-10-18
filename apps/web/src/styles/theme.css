@@ -436,7 +436,7 @@
   .su-btn:not(.su-btn--mini, .su-hit-area),
   .su-union-bar__tab,
   .su-union-bar__brand {
-    min-height: 44px;
-    min-width: 44px;
+    min-height: var(--size-full);
+    min-width: var(--size-full);
   }
 }

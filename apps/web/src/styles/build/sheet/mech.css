@@ -90,9 +90,9 @@
 .su-sheet-mech-vitals > * + * {
   border-color: color-mix(in srgb, var(--tone-deep) 40%, transparent);
   border-style: dashed;
-  border-top-width: 1px;
-  margin-top: 14px;
-  padding-top: 14px;
+  border-top-width: var(--bw-hairline);
+  margin-top: var(--space-14);
+  padding-top: var(--space-14);
 }
 
 /* The hero's fields card is image | text | stats + ability: the player's

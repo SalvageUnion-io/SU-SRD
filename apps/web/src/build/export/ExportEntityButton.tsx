@@ -11,10 +11,10 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import { buildEntityExport } from '../../lib/export/buildExportBundle'
 import { downloadJson } from '../../lib/export/downloadJson'
 import { useEntityStore } from '../../stores/entityStore'
-import { Button, FieldError, Stack, toast } from '../../components/index'
+import { Button, FieldError, Stack, toast, tokens } from '../../components/index'
 
 /** The 44px touch target. */
-const BUTTON = { minHeight: '2.75rem' } satisfies CSSProperties
+const BUTTON = { minHeight: tokens.size.full } satisfies CSSProperties
 
 type ExportEntityButtonProps = {
   type: SheetKind

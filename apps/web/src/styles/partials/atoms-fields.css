@@ -19,8 +19,8 @@
   font-family: var(--font-body);
   font-size: var(--text-base);
   line-height: 1.5;
-  padding-block: 10px;
-  padding-inline: 12px;
+  padding-block: var(--space-10);
+  padding-inline: var(--space-12);
   width: 100%;
 }
 
@@ -57,7 +57,7 @@ input.su-text-input--compact {
 .su-select--chevron {
   appearance: none;
   cursor: pointer;
-  padding-right: 32px;
+  padding-right: var(--space-32);
 }
 
 /* `atoms/InlineEditField.tsx`. The readout's alignment and colour stay in a
@@ -85,7 +85,7 @@ input.su-text-input--compact {
   border-style: solid;
   border-width: var(--bw-chrome);
   display: flex;
-  min-height: 2.75rem;
+  min-height: var(--size-full);
   width: 100%;
 }
 
@@ -118,7 +118,7 @@ input.su-text-input--compact {
 .su-field__fill > span {
   align-items: flex-start;
   height: 100%;
-  padding-block: 10px;
+  padding-block: var(--space-10);
 }
 
 /* `prominent`: the readout one rung up (`text-xl`). */
@@ -132,7 +132,7 @@ input.su-text-input--compact {
 .su-choice {
   background-color: var(--color-paper);
   border-width: var(--bw-chrome);
-  padding: 8px;
+  padding: var(--space-8);
 }
 
 .su-choice:hover {
@@ -140,6 +140,6 @@ input.su-text-input--compact {
 }
 
 .su-choice--stacked:has(:checked) {
-  border-width: 2px;
-  padding: calc(0.5rem - 0.5px);
+  border-width: var(--bw-entity-compact);
+  padding: calc(var(--space-8) - (var(--bw-entity-compact) - var(--bw-chrome)));
 }

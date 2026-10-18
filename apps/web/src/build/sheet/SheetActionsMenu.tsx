@@ -11,10 +11,8 @@
  */
 
 import { Ellipsis } from 'lucide-react'
-import type { CSSProperties, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { Button, PopoverPanel } from '../../components/index'
-
-const ICON = { height: '18px', width: '18px' } satisfies CSSProperties
 
 type SheetActionsMenuProps = {
   /** The actions — buttons and controls, not menu items. */
@@ -32,7 +30,7 @@ export function SheetActionsMenu({ children }: SheetActionsMenuProps) {
         // The icon rung at the page-top control height (`.su-page-action`),
         // which the library squares to it.
         <Button size="iconOnly" aria-label="More actions" className="su-page-action">
-          <Ellipsis style={ICON} aria-hidden="true" />
+          <Ellipsis size={18} aria-hidden="true" />
         </Button>
       }
     >

@@ -4,7 +4,7 @@
  * Sheet renders without horizontal overflow at 320px viewport width.
  * The top-bar Share control and InlineEditField display state have ≥44px touch targets
  *       (verified via the coarse-pointer floor every `.su-btn` gets, the Share control
- *       included, and the inline `min-height: 2.75rem` on InlineEditField's display state).
+ *       included, and the inline `min-height` (`size.full`, 44px) on InlineEditField's display state).
  *
  * Design choices:
  * - 320px overflow check: happy-dom does not implement a full layout engine, so
@@ -172,7 +172,7 @@ describe('Mobile responsive — 44px touch targets', () => {
     )
     // Display state renders a span with role=button
     const displayEl = screen.getByRole('button')
-    expect((displayEl as HTMLElement).style.minHeight).toBe('2.75rem')
+    expect((displayEl as HTMLElement).style.minHeight).toBe('44px')
   })
 
   test('InlineEditField readOnly display state also carries a 44px min-height', () => {
@@ -182,7 +182,7 @@ describe('Mobile responsive — 44px touch targets', () => {
     // readOnly renders no button role — get via container querySelector
     const span = container.querySelector('span')
     expect(span).toBeTruthy()
-    expect((span as HTMLElement).style.minHeight).toBe('2.75rem')
+    expect((span as HTMLElement).style.minHeight).toBe('44px')
   })
 
   test('the top-bar Share control carries the 44px touch-target floor', () => {
@@ -202,7 +202,7 @@ describe('Mobile responsive — 44px touch targets', () => {
     // …and a touch screen lifts every `.su-btn` to the 44px floor.
     const css = readFileSync(new URL(import.meta.resolve('../../../styles/theme.css')), 'utf8')
     expect(css).toMatch(
-      /@media \(pointer: coarse\) \{[\s\S]*?\.su-btn:not\(\.su-btn--mini, \.su-hit-area\)[^}]*min-height: 44px;/
+      /@media \(pointer: coarse\) \{[\s\S]*?\.su-btn:not\(\.su-btn--mini, \.su-hit-area\)[^}]*min-height: var\(--size-full\);/
     )
   })
 })

@@ -35,7 +35,7 @@ const BRAND_FRAME = {
 // wordmark keeps an explicit size over the rung, inline over its class.
 const BRAND_STAMP = {
   fontSize: fontSize.xl,
-  letterSpacing: '-0.025em',
+  letterSpacing: 'normal',
   lineHeight: 'calc(1.75 / 1.25)',
   paddingBlock: space[2],
   paddingInline: space[4],

@@ -11,7 +11,16 @@ import type { CSSProperties } from 'react'
 import { getEntitySlug } from 'salvageunion-reference'
 import type { PageModule, PageResult } from '../../../ssg/types'
 import { InlineRef, Panel, Slab, Stack } from '../../components/index'
-import { color, font, fontSize, radius, space, weight } from '../../design/tokens'
+import {
+  borderWidth,
+  color,
+  font,
+  fontSize,
+  radius,
+  space,
+  tracking,
+  weight,
+} from '../../design/tokens'
 import { apiSampleChassis } from '../../lib/apiSample'
 import { SITE_URL, WEBSITE } from '../../lib/constants'
 import {
@@ -49,7 +58,7 @@ const METHOD = {
   fontFamily: font.cond,
   fontSize: fontSize.sm,
   fontWeight: weight.bold,
-  letterSpacing: '0.025em',
+  letterSpacing: tracking.capsTight,
   lineHeight: 'calc(1.25 / 0.875)',
   textTransform: 'uppercase',
 } satisfies CSSProperties
@@ -74,14 +83,14 @@ const TABLE_HEAD = {
   backgroundColor: color.ink,
   borderColor: color.wkFaint,
   borderStyle: 'solid',
-  borderWidth: '0 0 2px',
+  borderWidth: `0 0 ${borderWidth.pill}`,
   color: color.paper,
 } satisfies CSSProperties
 
 const TABLE_ROW = {
   borderColor: color.wkFaint,
   borderStyle: 'solid',
-  borderWidth: '0 0 1px',
+  borderWidth: `0 0 ${borderWidth.hairline}`,
 } satisfies CSSProperties
 
 const TD = { paddingBlock: space[8], paddingInline: space[16] } satisfies CSSProperties
@@ -91,7 +100,7 @@ const TH = {
   fontFamily: font.cond,
   fontSize: fontSize.xs,
   fontWeight: weight.bold,
-  letterSpacing: '0.025em',
+  letterSpacing: tracking.capsTight,
   lineHeight: 'calc(1 / 0.75)',
   textAlign: 'left',
   textTransform: 'uppercase',

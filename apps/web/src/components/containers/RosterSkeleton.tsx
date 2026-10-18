@@ -22,7 +22,7 @@ const COLUMN_HEAD = {
 const COLUMN_TITLE = {
   height: space[20],
   width: '96px',
-  backgroundColor: `color-mix(in oklab, ${color.ink} 25%, transparent)`,
+  backgroundColor: color.ink20,
 } satisfies CSSProperties
 
 const COLUMN_ACTION = {

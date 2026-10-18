@@ -69,7 +69,7 @@ const trackerStyle = {
   gap: tokens.space[8],
   letterSpacing: tokens.tracking.caps,
   lineHeight: 1,
-  padding: `0.375rem ${tokens.space[12]}`,
+  padding: `${tokens.space[6]} ${tokens.space[12]}`,
   textTransform: 'uppercase',
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
@@ -123,9 +123,9 @@ const railTabActiveStyle = {
   boxShadow: '0 0 0 4px var(--tone)',
   color: tokens.color.paper,
   fontSize: tokens.fontSize['2xl'],
-  height: '2.75rem',
+  height: tokens.size.full,
   lineHeight: 1,
-  width: '2.75rem',
+  width: tokens.size.full,
 } satisfies CSSProperties satisfies CSSProperties
 
 const railTabDoneStyle = {
@@ -266,7 +266,7 @@ const ctaLockedStyle = {
   backgroundColor: 'transparent',
   borderColor: 'color-mix(in oklab, var(--color-paper) 55%, transparent)',
   borderStyle: 'dashed',
-  borderWidth: '2px',
+  borderWidth: tokens.borderWidth.pill,
   boxShadow: 'none',
   color: tokens.color.paper60,
   fontWeight: tokens.weight.normal,
@@ -285,8 +285,9 @@ const bodyStyle = { display: 'flex', flex: '1 1 0%' } satisfies CSSProperties
 /** Shown from lg (`.su-wiz-rail-pipe`). */
 const pipeStyle = {
   backgroundColor: tokens.color.ink,
-  borderTopLeftRadius: '0.75rem',
-  borderTopRightRadius: '0.75rem',
+  // The pipe is a drawn shape, not a frame (ruleset §4.4's 3px is for frames).
+  borderTopLeftRadius: '0.75rem', // design-tokens-ignore: the rail pipe's drawn end
+  borderTopRightRadius: '0.75rem', // design-tokens-ignore: the rail pipe's drawn end
   bottom: tokens.space[48],
   left: tokens.space[4],
   position: 'absolute',
@@ -297,8 +298,8 @@ const pipeStyle = {
 /** Shown from lg (`.su-wiz-rail-stub`). */
 const pipeStubStyle = {
   backgroundColor: tokens.color.ink,
-  borderBottomLeftRadius: '0.5rem',
-  borderBottomRightRadius: '0.5rem',
+  borderBottomLeftRadius: '0.5rem', // design-tokens-ignore: the rail pipe's drawn end
+  borderBottomRightRadius: '0.5rem', // design-tokens-ignore: the rail pipe's drawn end
   bottom: tokens.space[12],
   height: '2.25rem',
   justifyContent: 'center',
@@ -307,10 +308,11 @@ const pipeStubStyle = {
   width: tokens.space[28],
 } satisfies CSSProperties satisfies CSSProperties
 
+/** A CSS triangle: its borders are the arrowhead's geometry, not a frame weight. */
 const arrowheadStyle = {
-  borderLeft: '9px solid transparent',
-  borderRight: '9px solid transparent',
-  borderTop: `14px solid ${tokens.color.paper}`,
+  borderLeft: '9px solid transparent', // design-tokens-ignore: triangle geometry
+  borderRight: '9px solid transparent', // design-tokens-ignore: triangle geometry
+  borderTop: `14px solid ${tokens.color.paper}`, // design-tokens-ignore: triangle geometry
   height: 0,
   marginTop: tokens.space[10],
   width: 0,

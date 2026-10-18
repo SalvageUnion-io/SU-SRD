@@ -45,8 +45,8 @@
   border-color: color-mix(in srgb, var(--tone-deep) 40%, transparent);
   border-style: dashed;
   border-top-width: var(--bw-hairline);
-  margin-top: 14px;
-  padding-top: 14px;
+  margin-top: var(--space-14);
+  padding-top: var(--space-14);
 }
 
 /* `SheetSectionSlab`'s body takes a class only. */
@@ -62,7 +62,7 @@
   font-family: var(--font-body);
   font-size: var(--text-sm);
   line-height: calc(1.25 / 0.875);
-  padding: 10px var(--space-12);
+  padding: var(--space-10) var(--space-12);
 }
 
 /* `Panel` takes a class only: an inventory row (unresolved slug, generic entry). */
@@ -70,7 +70,7 @@
   align-items: center;
   display: flex;
   gap: var(--space-12);
-  padding: 10px var(--space-12);
+  padding: var(--space-10) var(--space-12);
 }
 
 /* A rail slot's wrapper and `Field` take a class only: fill the remaining row/column. */

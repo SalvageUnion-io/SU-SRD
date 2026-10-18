@@ -16,7 +16,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { color, font, fontSize, space } from '../../design/tokens'
+import { color, font, fontSize, size, space } from '../../design/tokens'
 import { Badge, Stat } from '../../components/index'
 import { UnitRow } from '../../components/shared/UnitRow'
 import type { CrawlerReading } from './crawlerReading.model'
@@ -46,7 +46,7 @@ const PLAIN = {
   display: 'flex',
   flexWrap: 'wrap',
   gap: `${space[4]} ${space[8]}`,
-  minHeight: '2.75rem',
+  minHeight: size.full,
 } satisfies CSSProperties
 
 function stamp(text: string) {

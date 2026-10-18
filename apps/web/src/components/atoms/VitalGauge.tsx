@@ -228,7 +228,7 @@ const PIP = {
   borderStyle: 'solid',
   padding: space[0],
 } satisfies CSSProperties
-const PIP_DENSE = { height: '18px', borderRadius: radius.badge } satisfies CSSProperties
+const PIP_DENSE = { height: 'var(--size-mini)', borderRadius: radius.badge } satisfies CSSProperties
 const PIP_ROOMY = { height: '22px', borderRadius: radius.card } satisfies CSSProperties
 const CAPTION = {
   marginTop: space[6],

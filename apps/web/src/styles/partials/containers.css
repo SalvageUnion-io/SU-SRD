@@ -34,7 +34,7 @@
   align-items: center;
   gap: var(--space-8);
   overflow: visible;
-  min-height: 44px;
+  min-height: var(--size-full);
   padding: var(--space-8) var(--space-12);
 }
 
@@ -259,7 +259,7 @@
    asked for reduced motion. */
 .su-ghost {
   border-radius: var(--radius-badge);
-  background-color: color-mix(in oklab, var(--color-ink) 10%, transparent);
+  background-color: var(--color-ink-10);
 }
 
 @keyframes su-pulse {

@@ -50,7 +50,7 @@
   align-items: center;
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
+  gap: var(--space-2);
   position: relative;
 }
 
@@ -61,7 +61,7 @@
   font-family: var(--font-cond);
   font-size: var(--text-badge);
   font-weight: var(--font-weight-bold);
-  letter-spacing: 0.06em;
+  letter-spacing: var(--tracking-caps-snug);
   line-height: 1.1;
   padding-left: 0.06em;
   position: relative;
@@ -93,11 +93,11 @@
   font-family: var(--font-cond);
   font-size: var(--text-badge);
   font-weight: var(--font-weight-extrabold);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--tracking-caps);
   line-height: 1;
   outline: var(--bw-hairline) solid var(--color-status-bad);
   outline-offset: 2px;
-  padding: 0.25rem 0.25rem 0.25rem 0.33rem;
+  padding: var(--space-4) var(--space-4) var(--space-4) 0.33rem;
   text-transform: uppercase;
   transform: rotate(-8deg);
 }

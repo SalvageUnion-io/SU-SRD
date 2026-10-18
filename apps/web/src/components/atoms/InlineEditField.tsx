@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 import { useRef, useState } from 'react'
-import { font, radius, space, weight } from '../../design/tokens'
+import { font, radius, size, space, weight } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { FieldError } from './FieldError'
 import { Input, Textarea } from './inputs'
@@ -49,11 +49,11 @@ const READOUT = {
   display: 'inline-flex',
   fontFamily: font.body,
   fontWeight: weight.medium,
-  minHeight: '2.75rem',
+  minHeight: size.full,
 } satisfies CSSProperties
 
 /** The wrapper of the plain (inline) shape: the same 44px minimum. */
-const PLAIN_WRAP = { display: 'inline-flex', minHeight: '2.75rem' } satisfies CSSProperties
+const PLAIN_WRAP = { display: 'inline-flex', minHeight: size.full } satisfies CSSProperties
 
 const SINGLE_LINE_EDITOR = {
   display: 'flex',

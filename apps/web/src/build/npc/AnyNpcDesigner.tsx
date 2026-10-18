@@ -78,8 +78,8 @@ const CHECK_HIT = {
   display: 'flex',
   flexShrink: 0,
   justifyContent: 'center',
-  minHeight: '2.75rem',
-  minWidth: '2.75rem',
+  minHeight: tokens.size.full,
+  minWidth: tokens.size.full,
 } satisfies CSSProperties
 
 const PICK_ROW = {
@@ -107,7 +107,7 @@ const BLANK_TILE = {
   display: 'flex',
   flexDirection: 'column',
   gap: tokens.space[4],
-  minHeight: '2.75rem',
+  minHeight: tokens.size.full,
   padding: tokens.space[12],
   textAlign: 'left',
   width: '100%',
@@ -124,7 +124,7 @@ const RESULT_BUTTON = {
   fontSize: tokens.fontSize.caption,
   gap: tokens.space[8],
   justifyContent: 'space-between',
-  minHeight: '2.75rem',
+  minHeight: tokens.size.full,
   padding: `0 ${tokens.space[12]}`,
   textAlign: 'left',
   width: '100%',

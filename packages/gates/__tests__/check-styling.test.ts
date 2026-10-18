@@ -110,9 +110,11 @@ describe('ruleEngine.listFiles', () => {
 describe('tokens rule set', () => {
   const scan = (rel: string, text: string) => scanTokenSources(new Map([[rel, text]]))
 
-  test('every rule is zero, so the set keeps no baseline', () => {
-    expect(designTokens.rules.filter((r) => r.mode !== 'zero').map((r) => r.id)).toEqual([])
-    expect(ratchetCounts(designTokens, {})).toEqual({})
+  test('every rule is zero but the raw-spacing ratchet', () => {
+    expect(designTokens.rules.filter((r) => r.mode !== 'zero').map((r) => r.id)).toEqual([
+      'raw-spacing',
+    ])
+    expect(ratchetCounts(designTokens, {})).toEqual({ 'raw-spacing': 0 })
   })
 
   test('raw colour literals are found; issue refs and HTML entities are not', () => {
@@ -289,6 +291,97 @@ describe('tokens rule set', () => {
       'wkBg2',
     ])
     expect(scan('apps/web/src/styles/build/print.css', text)['cool-ground']).toEqual([])
+  })
+
+  const details = (rule: string, rel: string, text: string) =>
+    scan(rel, text)[rule]?.map((f) => f.detail) ?? []
+  const lines = (rule: string, text: string) =>
+    scan('apps/web/src/x.tsx', text)[rule]?.map((f) => f.line) ?? []
+  /** A template literal's `${expr}`, spelled so the fixture stays a plain string. */
+  const interp = (expr: string) => ['$', '{', expr, '}'].join('')
+
+  test('raw-tracking: a literal letter-spacing fails; a rung, 0 and keywords pass', () => {
+    const css = [
+      'letter-spacing: 0.1em;',
+      'letter-spacing: var(--tracking-caps);',
+      'letter-spacing: 0;',
+      'letter-spacing: normal;',
+    ].join('\n')
+    expect(details('raw-tracking', 'apps/web/src/styles/x.css', css)).toEqual([
+      'letter-spacing: 0.1em',
+    ])
+    const ts = "const a = { letterSpacing: '-0.025em' }\nconst b = { letterSpacing: tracking.caps }"
+    expect(details('raw-tracking', 'apps/web/src/x.tsx', ts)).toEqual(["letterSpacing: '-0.025em'"])
+  })
+
+  test('size-literal: a 44/32/18px height or touch floor fails; a Size and other heights pass', () => {
+    const css = [
+      'min-height: 44px;',
+      'height: max(100%, 2.75rem);',
+      'min-width: 44px;',
+      'min-height: var(--size-full);',
+      'height: 22px;',
+      'width: 44px;', // a plain width is a box, not a Size
+      'max-width: 32rem;',
+    ].join('\n')
+    expect(lines('size-literal', css)).toEqual([1, 2, 3])
+    const ts = "const A = { height: '18px', minHeight: size.full, width: '18px' }"
+    expect(details('size-literal', 'apps/web/src/x.tsx', ts)).toEqual(["height: '18px'"])
+  })
+
+  test('ink-mix: a color-mix of ink fails; the ramp and other mixes pass', () => {
+    const text = [
+      'background: color-mix(in oklab, var(--color-ink) 70%, transparent);',
+      'border-color: color-mix(in srgb, var(--color-ink-deep) 80%, transparent);',
+      `const s = \`color-mix(in oklab, ${interp('color.ink')} 25%, transparent)\``,
+      'background: var(--color-ink-75);',
+      'color: color-mix(in oklab, var(--color-paper) 60%, transparent);',
+    ].join('\n')
+    expect(lines('ink-mix', text)).toEqual([1, 2, 3])
+  })
+
+  test('raw-border-width: a literal border weight fails; a token and 0 pass', () => {
+    const text = [
+      'border: 2px solid var(--color-ink);',
+      'border-top-width: 1px;',
+      "const a = { borderWidth: '0 0 2px' }",
+      `const b = { borderTop: \`1px solid ${interp('color.paper30')}\` }`,
+      'border: var(--bw-chrome) solid var(--color-ink);',
+      'border: 0;',
+      'border-radius: 4px;', // a radius, not a weight
+      `const c = { borderWidth: \`0 0 ${interp('borderWidth.pill')}\` }`,
+    ].join('\n')
+    expect(lines('raw-border-width', text)).toEqual([1, 2, 3, 4])
+  })
+
+  test('raw-radius: a literal radius fails; a token, calc on a token, 0 and percentages pass', () => {
+    const text = [
+      'border-radius: 0.25rem;',
+      "const a = { borderRadius: '0.375rem' }",
+      "const b = { borderTopLeftRadius: '6px' }",
+      'border-radius: var(--radius-card);',
+      'border-radius: calc(var(--radius-card) - var(--bw-chrome));',
+      'border-radius: 0;',
+      'border-radius: 50%;',
+    ].join('\n')
+    expect(lines('raw-radius', text)).toEqual([1, 2, 3])
+  })
+
+  test('raw-spacing: a length outside the scale tokens is counted; tokens and unitless options are not', () => {
+    const text = [
+      'padding: 3px var(--space-6);',
+      'gap: 0.75rem;',
+      "const a = { marginLeft: '34px', padding: space[8] }",
+      'padding: var(--space-8) var(--space-12);',
+      'margin: calc(-1 * var(--space-4));',
+      'margin: 0;',
+      'QRCode.toString(url, { margin: 1 })', // a library option, unitless
+    ].join('\n')
+    expect(details('raw-spacing', 'apps/web/src/x.tsx', text)).toEqual([
+      'padding: 3px var(--space-6)',
+      'gap: 0.75rem',
+      "marginLeft: '34px'",
+    ])
   })
 })
 

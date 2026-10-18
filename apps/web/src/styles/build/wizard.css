@@ -210,7 +210,7 @@
   }
 
   .su-wiz-rail-step {
-    margin-block: 6px;
+    margin-block: var(--space-6);
   }
 
   .su-wiz-rail-tab--active {

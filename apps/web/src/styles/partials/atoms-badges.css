@@ -43,14 +43,14 @@
 
 .su-badge--outline {
   background-color: var(--color-paper);
-  border: 2px solid var(--color-ink);
+  border: var(--bw-pill) solid var(--color-ink);
   color: var(--color-ink);
   letter-spacing: var(--tracking-caps);
   padding-inline: 9px;
 }
 
 .su-badge--tone {
-  border: 2px solid;
+  border: var(--bw-pill) solid;
   letter-spacing: var(--tracking-caps);
   padding-inline: 9px;
 }
@@ -138,7 +138,7 @@
   );
   display: inline-flex;
   flex: none;
-  padding: 1px 2px 1px 1px;
+  padding: 1px var(--space-2) 1px 1px;
 }
 
 .su-badge--on-ink {
@@ -249,8 +249,8 @@
 .su-step-btn {
   /* Frameless by design: the `button` reset above sets `border: none`. */
   border-radius: var(--radius-card);
-  min-height: 44px;
-  min-width: 44px;
+  min-height: var(--size-full);
+  min-width: var(--size-full);
 }
 
 .su-step-btn--on-paper {

@@ -38,11 +38,11 @@
   [data-peek].su-entity-token__head::after,
   .su-crumbs__link::after {
     content: '';
-    height: max(100%, 44px);
+    height: max(100%, var(--size-full));
     left: 50%;
     position: absolute;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: max(100%, 44px);
+    width: max(100%, var(--size-full));
   }
 }

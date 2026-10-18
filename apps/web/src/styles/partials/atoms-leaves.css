@@ -84,9 +84,9 @@
   align-items: center;
   background-color: var(--color-paper);
   border-color: var(--color-ink);
-  border-radius: 0.25rem;
+  border-radius: var(--radius-card);
   border-style: solid;
-  border-width: 1px;
+  border-width: var(--bw-hairline);
   color: var(--color-wk-muted);
   display: flex;
   font-family: var(--font-body);
@@ -182,7 +182,7 @@
 /* components/atoms/StatProvenance.tsx — the trigger's dotted underline; callers
  * restyle it (`border-0`, `border-b-0`, `cursor`) through `className`. */
 .su-stat-provenance__trigger {
-  border-bottom-width: 1px;
+  border-bottom-width: var(--bw-hairline);
   border-color: color-mix(in oklab, currentcolor 40%, transparent);
   border-style: dotted;
   cursor: help;

@@ -41,7 +41,7 @@ const FALLBACK = {
 } satisfies CSSProperties
 
 /** The SU mark; its size steps up from `sm` (routeStates.css). */
-const MARK = { borderRadius: '0.375rem' } satisfies CSSProperties
+const MARK = { borderRadius: radius.panel } satisfies CSSProperties
 
 const STATUS = {
   color: color.paper,

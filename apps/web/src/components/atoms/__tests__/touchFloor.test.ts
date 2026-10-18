@@ -29,9 +29,12 @@ function coarseBlock(file: string, text: string): string {
   throw new Error(`unclosed @media (pointer: coarse) in ${file}`)
 }
 
+/** The 44px floor, as the Full Size (`--size-full`) spells it. */
+const FLOOR = 'var\\(--size-full\\)'
+
 /** The selector list of the rule that sets the 44px floor. */
 function floorSelectors(block: string): string[] {
-  const rule = block.match(/([^{}]+)\{[^{}]*min-height:\s*44px/)
+  const rule = block.match(new RegExp(`([^{}]+)\\{[^{}]*min-height:\\s*${FLOOR}`))
   expect(rule).not.toBeNull()
   return (rule?.[1] ?? '')
     .split(/,(?![^(]*\))/)
@@ -44,7 +47,7 @@ describe('the coarse-pointer touch floor', () => {
   const index = coarseBlock('index.css', readPackageStylesheet())
 
   test('the floor is set once, in theme.css', () => {
-    expect(index).not.toMatch(/min-height:\s*44px/)
+    expect(index).not.toMatch(new RegExp(`min-height:\\s*(?:44px|${FLOOR})`))
   })
 
   test('every .su-btn size is on the floor, the mini rung and hit-area buttons excepted', () => {
@@ -62,12 +65,14 @@ describe('the coarse-pointer touch floor', () => {
     for (const selector of floorSelectors(theme).filter((s) => /^(button|\[role)/.test(s))) {
       expect(selector).toMatch(/:not\(\.su-btn--mini, \.su-hit-area[,)]/)
     }
-    expect(index).toMatch(/\.su-btn--mini::after,\s*\.su-hit-area::after,[^{]*\{[^}]*44px/)
+    expect(index).toMatch(
+      new RegExp(`\\.su-btn--mini::after,\\s*\\.su-hit-area::after,[^{]*\\{[^}]*${FLOOR}`)
+    )
   })
 
   test('breadcrumb links reach 44px through the hit area', () => {
     // The phone's trail row is plain 17px text links; the pseudo-element
     // gives each crumb the floor without stretching the row.
-    expect(index).toMatch(/\.su-crumbs__link::after\s*\{[^}]*44px/)
+    expect(index).toMatch(new RegExp(`\\.su-crumbs__link::after\\s*\\{[^}]*${FLOOR}`))
   })
 })

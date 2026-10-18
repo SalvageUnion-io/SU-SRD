@@ -57,7 +57,7 @@ const closeStyle = {
   top: `-${space[8]}`,
   right: `-${space[8]}`,
   zIndex: layer.menu,
-  borderWidth: '2px',
+  borderWidth: borderWidth.pill,
   borderColor: color.paper,
   color: color.paper,
   boxShadow: `0 10px 15px -3px ${shadowTint}, 0 4px 6px -4px ${shadowTint}`,

@@ -22,7 +22,8 @@
  * carries its full reasoning.
  *
  * A rule is `zero` (any finding fails) or a `ratchet` counted against
- * `tools/baselines/rule-sets.json`. Today only the two `copy` rules ratchet.
+ * `tools/baselines/rule-sets.json`. Today the two `copy` rules and
+ * `tokens/raw-spacing` ratchet.
  * A ratchet fails when its count RISES, and also when it FALLS without the
  * baseline falling with it — an unrecorded improvement is slack that the next
  * regression spends without anyone seeing. A baseline only falls:

@@ -33,12 +33,12 @@
 /* One column on a phone, three from `md` up. */
 .su-roster-grid {
   grid-template-columns: repeat(1, minmax(0, 1fr));
-  margin-top: 20px;
+  margin-top: var(--space-20);
 }
 @media (width >= 48rem) {
   .su-roster-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    margin-top: 24px;
+    margin-top: var(--space-24);
   }
 }
 
@@ -96,7 +96,7 @@ select.su-container-select {
 
 /* The candidate Rows (select mode, one radio group), 8px apart. */
 :where(.su-assign-picker__candidates > :not(:last-child)) {
-  margin-block-end: 8px;
+  margin-block-end: var(--space-8);
   margin-block-start: 0;
 }
 

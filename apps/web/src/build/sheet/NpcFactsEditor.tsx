@@ -27,7 +27,7 @@ const WELL = {
   alignItems: 'center',
   backgroundColor: tokens.color.paper,
   border: `${tokens.borderWidth.chrome} solid ${tokens.color.ink}`,
-  borderRadius: '0.25rem',
+  borderRadius: tokens.radius.card,
   display: 'flex',
   flexWrap: 'wrap',
   gap: tokens.space[6],
