@@ -229,6 +229,25 @@ describe('the card as a page', () => {
     expect(screen.getByRole('heading', { name: 'Patterns', level: 2 })).toBeTruthy()
   })
 
+  test('a pattern row lists each drone under its own name, its systems then modules under it, two-up and unheaded', () => {
+    const chassis = need(SalvageUnionReference.Chassis.getByName('Big Brother'), 'big brother')
+    render(<ReferenceEntityCard data={chassis} presentation="page" />)
+    const drones = screen.getByRole('list', { name: 'DronTek Drones installed' })
+    const shield = screen.getByRole('list', { name: 'Shield Drone loadout' })
+    // Right under the drone's Token, in the drone's own item.
+    expect(shield.parentElement?.parentElement).toBe(drones)
+    expect(shield.parentElement?.textContent).toContain('Shield Drone')
+    expect(shield.classList.contains('su-entity-token-list--two-up')).toBe(true)
+    expect([...shield.querySelectorAll(':scope > li')].map((li) => li.textContent ?? '')).toEqual([
+      expect.stringContaining('Refractive Shield Projector'),
+      expect.stringContaining('Electro-Magnetic Shield Projector'),
+      expect.stringContaining('Energy Cell'),
+    ])
+    // No Systems / Modules Slab of its own: the item is the Token, then its parts.
+    expect(shield.parentElement?.children).toHaveLength(2)
+    expect(shield.parentElement?.textContent).not.toMatch(/Systems|Modules/)
+  })
+
   test('an entity with no art reads as one column', () => {
     const { container } = render(<ReferenceEntityCard data={juryRig()} presentation="page" />)
     expect(container.querySelector('.su-entity-page')).not.toBeNull()

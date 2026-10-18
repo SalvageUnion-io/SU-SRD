@@ -16,7 +16,7 @@ import { isLegalStartingPatternOf } from './legalStartingPattern'
 import { PatternLoadout } from './PatternLoadout'
 import { PatternUniques } from './PatternUniques'
 import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
-import { resolvePatternGroups } from './resolveNestedEntities'
+import { resolvePatternDrones, resolvePatternGroups } from './resolveNestedEntities'
 
 /** The anchor around a pattern's Token fills its line, as the Token does (N4). */
 const LINK = { display: 'block', flex: '1 1 auto', minWidth: 0 } satisfies CSSProperties
@@ -144,7 +144,12 @@ function PatternLinkRow({
   )
   const name = normalizePatternName(pattern.name)
   const description = firstParagraphText(pattern.content)
-  const loadout = useMemo(() => resolvePatternGroups(pattern), [pattern])
+  // Its drones leave the groups: each carries its own loadout, listed under it.
+  const loadout = useMemo(
+    () => resolvePatternGroups(pattern).filter((group) => group.label !== 'Drones'),
+    [pattern]
+  )
+  const drones = useMemo(() => resolvePatternDrones(pattern), [pattern])
   const paint = paintFor(model.tone, { down: host.hostDown, texture: surface.texture })
   // The book's starting builds wear their stamp on the row, as on the card.
   const labels = isLegalStartingPatternOf(pattern) ? (
@@ -173,9 +178,10 @@ function PatternLinkRow({
             <Lead text={description} />
           </div>
         )}
-        {loadout.length > 0 && (
+        {(loadout.length > 0 || drones.length > 0) && (
           <PatternLoadout
             groups={loadout}
+            drones={drones}
             sectionAs={undefined}
             hostDown={host.hostDown}
             owner={name}
