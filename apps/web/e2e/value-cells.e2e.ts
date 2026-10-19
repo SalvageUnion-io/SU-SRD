@@ -16,6 +16,13 @@ import { expect, test } from './fixtures'
  */
 const BASELINE: readonly DesignDebt[] = []
 
+/**
+ * Where a seam stamp lives outside R0's routes: since a field's label is the
+ * Eyebrow over its control (R16), the one border-riding stamp is a guide
+ * step's "Note" (`GuideSteps`), so its Page is scanned too, at both widths.
+ */
+const SEAM_PAGES = ['/guides/crawler-downtime/']
+
 test.describe.configure({ retries: 0 })
 
 test('every context: value cells are paper in a 1px ink frame; seam stamps centre on their line', async ({
@@ -33,6 +40,22 @@ test('every context: value cells are paper in a 1px ink frame; seam stamps centr
       line: `${where}, ${fault}`,
     }))
   })
+  for (const path of SEAM_PAGES) {
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 900 })
+      await page.goto(path, { waitUntil: 'networkidle' })
+      const { faults, cells, seams } = await findValueCellFaults(page)
+      read.cells += cells
+      read.seams += seams
+      for (const fault of faults) {
+        findings.push({
+          family: 'reference-page',
+          rule: fault.slice(0, fault.indexOf(':')),
+          line: `${path} at ${width}px, ${fault}`,
+        })
+      }
+    }
+  }
   test.info().annotations.push({
     type: 'read',
     description: `${read.cells} value cells, ${read.seams} seam stamps`,

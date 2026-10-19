@@ -106,7 +106,8 @@ function scan(tolerance: number): { faults: string[]; cells: number; seams: numb
   for (const stamp of document.querySelectorAll('.su-stamp-seam')) {
     if (!visible(stamp)) continue
     seams++
-    const box = stamp.parentElement
+    // The box it rides: its containing block (`.su-stamp-seam` is absolute).
+    const box = (stamp as HTMLElement).offsetParent ?? stamp.parentElement
     if (!box) continue
     const borderTop = (el: Element) => Number.parseFloat(getComputedStyle(el).borderTopWidth) || 0
     let frame: Element | null = borderTop(box) > 0 ? box : null

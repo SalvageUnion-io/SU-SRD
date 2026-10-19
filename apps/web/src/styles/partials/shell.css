@@ -660,6 +660,23 @@
   justify-content: flex-start;
 }
 
+/* Under the band on a phone the aside sits on the page ground, so an ink
+   band's chips and outlined controls there are the paper ground's again
+   (chrome K1, hard rule R31): an ink rule and an ink outline, never the
+   band's paper rule on paper. */
+@media not (width >= 40rem) {
+  .su-chapter-band[data-ground='ink'][data-aside='notch'] .su-chapter-band__aside .su-stat-cell {
+    border-color: var(--color-ink);
+  }
+
+  .su-chapter-band[data-ground='ink'][data-aside='notch']
+    .su-chapter-band__aside
+    :is(.su-btn--default, .su-btn--ghost) {
+    border-color: var(--color-ink);
+    color: var(--color-ink);
+  }
+}
+
 @media (width >= 40rem) {
   .su-chapter-band[data-aside='notch'] .su-chapter-band__row {
     align-items: flex-end;
