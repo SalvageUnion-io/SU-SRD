@@ -123,13 +123,16 @@ export function PlayTables({ downtime, solo, post, onPostChange, binding }: Play
         />
       )}
       <div style={POST}>
+        {/* Named by the words beside it, never a hand-rolled <label> (R16). */}
         <Checkbox
           id={postId}
           checked={post && binding != null}
           disabled={binding == null}
           onChange={(e) => onPostChange(e.target.checked)}
+          aria-labelledby={`${postId}-label`}
+          hitArea
         />
-        <label htmlFor={postId}>{postLabel(solo, binding)}</label>
+        <span id={`${postId}-label`}>{postLabel(solo, binding)}</span>
       </div>
       {binding === null && (
         <p style={HINT}>

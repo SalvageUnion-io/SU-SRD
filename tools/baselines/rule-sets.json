@@ -2,10 +2,6 @@
   "tokens": {
     "raw-spacing": 54
   },
-  "chrome": {
-    "raw-label": 2,
-    "step-current": 2
-  },
   "copy": {
     "lowercase-term": 214,
     "banned-variant": 3

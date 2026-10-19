@@ -11,7 +11,7 @@
  *
  * Each of my rolls says what became of its Discord post (§9): Posting…,
  * Posted, a Post button for one the toggle kept private (the per-roll
- * override), or Not posted with the reason and Retry. Never silent.
+ * override), or Not posted with the reason and Try again. Never silent.
  *
  * Feed lines are level 1 (play.md §12): plain text and buttons inside, no
  * frame inside a frame.
@@ -45,7 +45,7 @@ type PlayFeedProps = {
   entries: readonly FeedEntry[]
   /** My rolls' Discord posts, by roll id (`usePlayRollDispatch`). */
   posts: ReadonlyMap<string, PlayPostState>
-  /** Post one roll now: Post on a private one, Retry on a failed one. */
+  /** Post one roll now: Post on a private one, Try again on a failed one. */
   postNow: (roll: PlayRoll) => void
   /** Writes may go: Accept, Decline and Post are offered only then. */
   canWrite: boolean
@@ -154,7 +154,7 @@ function PostState({
     )
   }
   if (post.kind === 'posted') return <span style={STATE}>Posted</span>
-  const label = post.kind === 'skipped' ? 'Post' : 'Retry'
+  const label = post.kind === 'skipped' ? 'Post' : 'Try again'
   return (
     <Button
       variant="default"

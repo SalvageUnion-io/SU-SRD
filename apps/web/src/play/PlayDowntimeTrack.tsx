@@ -33,7 +33,7 @@ export function PlayDowntimeTrack({ steps, current, onStep, canWrite }: PlayDown
                 type="button"
                 className={`su-play-dt-track__step ${FOCUS_RING}`}
                 aria-label={label}
-                aria-current={i === current ? 'step' : undefined}
+                aria-current={i === current ? 'true' : undefined}
                 disabled={!canWrite}
                 onClick={() => {
                   if (i !== current) onStep(i)
@@ -46,7 +46,7 @@ export function PlayDowntimeTrack({ steps, current, onStep, canWrite }: PlayDown
                 className="su-play-dt-track__step"
                 role="img"
                 aria-label={label}
-                aria-current={i === current ? 'step' : undefined}
+                aria-current={i === current ? 'true' : undefined}
               >
                 {i + 1}
               </span>

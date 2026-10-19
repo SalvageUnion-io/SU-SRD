@@ -119,7 +119,7 @@ describe('a solo Downtime, end to end', () => {
     expect(track.getAllByRole('button')).toHaveLength(STEPS.length)
     expect(
       track.getByRole('button', { name: `Step 1: ${STEPS[0]}` }).getAttribute('aria-current')
-    ).toBe('step')
+    ).toBe('true')
     expect(heading()).toBe(`Downtime · Step 1 of ${STEPS.length}`)
 
     // Tally Salvage applies nothing: the guide's text, and Next step. Solo

@@ -378,7 +378,7 @@ describe('Downtime', () => {
     await renderCockpit(downtimeAt(2))
     const track = within(screen.getByRole('list', { name: 'Downtime steps' }))
     expect(track.getByRole('button', { name: /^Step 3:/ }).getAttribute('aria-current')).toBe(
-      'step'
+      'true'
     )
     expect(screen.getByText('2 of 4 done')).toBeTruthy()
     const who = within(screen.getByRole('list', { name: 'Who is done' }))

@@ -73,7 +73,7 @@ type DispatchArgs = {
 export type PlayRollDispatch = {
   /** Each roll's post, by roll id; absent for a change, or before it is sent. */
   posts: ReadonlyMap<string, PlayPostState>
-  /** Post this roll now, whatever the toggle said: the per-roll override, and Retry. */
+  /** Post this roll now, whatever the toggle said: the per-roll override, and Try again. */
   postNow: (roll: PlayRoll) => void
 }
 

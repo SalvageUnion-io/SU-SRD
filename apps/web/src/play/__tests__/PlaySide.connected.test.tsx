@@ -337,7 +337,7 @@ describe('Discord (play.md §9)', () => {
     expect(postRoll).not.toHaveBeenCalled()
   })
 
-  test('a failed post is shown on the Feed, never silent, with Retry', async () => {
+  test('a failed post is shown on the Feed, never silent, with Try again', async () => {
     answers()
     postResult = async () => ({
       kind: 'failed',
@@ -353,7 +353,7 @@ describe('Discord (play.md §9)', () => {
     )
     postResult = async () => ({ kind: 'posted', channelId: 'c-1', messageId: 'm-2' })
     await act(async () => {
-      feed().getByRole('button', { name: 'Retry Core Mechanic to Discord' }).click()
+      feed().getByRole('button', { name: 'Try again Core Mechanic to Discord' }).click()
     })
     expect(postRoll).toHaveBeenCalledTimes(2)
     await waitFor(() => expect(feed().getByText('Posted')).toBeTruthy())

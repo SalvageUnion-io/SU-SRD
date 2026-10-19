@@ -270,10 +270,18 @@ function PlanLineItem({
     // An unticked line wears select mode's one dim (hard rule R15).
     <li className={cn('su-play-dt-line', line.skippable && !ticked && SELECT_DIM)}>
       {line.skippable ? (
-        <label className="su-play-dt-line__label" htmlFor={id}>
-          <Checkbox id={id} checked={ticked} onChange={onToggle} disabled={disabled} />
-          <strong>{line.title}</strong>
-        </label>
+        // The check is named by the title beside it, never a hand-rolled <label> (R16).
+        <span className="su-play-dt-line__label">
+          <Checkbox
+            id={id}
+            checked={ticked}
+            onChange={onToggle}
+            disabled={disabled}
+            aria-labelledby={`${id}-title`}
+            hitArea
+          />
+          <strong id={`${id}-title`}>{line.title}</strong>
+        </span>
       ) : (
         <strong className="su-play-dt-line__label">{line.title}</strong>
       )}

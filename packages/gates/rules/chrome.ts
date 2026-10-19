@@ -67,15 +67,12 @@
  * - `raw-field`: a JSX `<input>` or `<textarea>` only in an atom
  *   (`components/atoms/`); a hidden file picker (`type="file"`) is no field.
  * - `raw-label`: a JSX `<label>` only in an atom (`Field`, `Eyebrow`,
- *   `Checkbox`'s hit area, `Radio`'s row). A ratchet: Play's Downtime step and
- *   tables still hand-roll theirs (hard rule R7's).
+ *   `Checkbox`'s hit area, `Radio`'s row).
  * - `breadcrumb-nav`: `aria-label="Breadcrumb"` only in `BreadcrumbTrail`,
  *   which owns its nav.
- * - `step-current`: `aria-current="step"` only in `WizShell`. A ratchet: Play's
- *   Downtime track is a third stepper (hard rule R7's).
+ * - `step-current`: `aria-current="step"` only in `WizShell`.
  *
- * All but R16's two ratchets are `zero`. Comments are stripped, so prose may
- * name what it bans.
+ * Every rule is `zero`. Comments are stripped, so prose may name what it bans.
  */
 
 import { readFileSync } from 'node:fs'
@@ -423,7 +420,7 @@ const RULES: ChromeRule[] = [
   },
   {
     id: 'raw-label',
-    mode: 'ratchet',
+    mode: 'zero',
     rule: "hard rule R16 (chrome Roles) — a field's label is `Field`'s one treatment, never a hand-rolled <label>",
     fix: 'Wrap the control in `Field label="…" htmlFor={id}`; a lone check takes `Checkbox hitArea` for its 44px square.',
     scan: (root) => scanOutside(root, RAW_LABEL, ATOMS),
@@ -437,7 +434,7 @@ const RULES: ChromeRule[] = [
   },
   {
     id: 'step-current',
-    mode: 'ratchet',
+    mode: 'zero',
     rule: 'hard rule R16 (chrome Roles) — a stepper is `WizShell`, the one `aria-current="step"`',
     fix: "Draw the steps with `WizShell` (its `band={false}` under a page's own band), driven by `useWizardFlow`'s `shell`.",
     scan: (root) => scanOutside(root, STEP_CURRENT, ROLE_HOMES.step),
