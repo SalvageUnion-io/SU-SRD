@@ -95,4 +95,38 @@ describe('ModalShell', () => {
     // sr-only Description that would restate it is not rendered.
     expect(screen.getAllByText('Delete Mira Cole?')).toHaveLength(2)
   })
+
+  // Chrome K7 / hard rule R24: three widths, and no other.
+  for (const [width, cap] of [
+    ['narrow', '28rem'],
+    ['default', '48rem'],
+    ['page', '72rem'],
+  ] as const) {
+    test(`width="${width}" caps the popup at ${cap}`, () => {
+      render(
+        <ModalShell open={true} onOpenChange={() => {}} title="Width" width={width}>
+          <p>Content</p>
+        </ModalShell>
+      )
+      expect(screen.getByRole('dialog').style.maxWidth).toBe(cap)
+    })
+  }
+
+  test('with no width, the popup is the default 48rem, an alertdialog too', () => {
+    render(
+      <ModalShell open={true} onOpenChange={() => {}} title="Confirm?" role="alertdialog">
+        <p>Content</p>
+      </ModalShell>
+    )
+    expect(screen.getByRole('alertdialog').style.maxWidth).toBe('48rem')
+  })
+
+  test('the popup takes no width class', () => {
+    render(
+      <ModalShell open={true} onOpenChange={() => {}} title="Width">
+        <p>Content</p>
+      </ModalShell>
+    )
+    expect(screen.getByRole('dialog').className).toBe('')
+  })
 })

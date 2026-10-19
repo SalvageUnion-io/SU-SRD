@@ -95,7 +95,7 @@ export function ShareStatusDialog({
       title="Share status"
       subtitle={name}
       description={`Choose who can see ${name}.`}
-      maxWidth="su-sheet-share-dialog"
+      width="default"
     >
       {/*
         Sections, not Panels. ModalShell already frames this in a Card, and a

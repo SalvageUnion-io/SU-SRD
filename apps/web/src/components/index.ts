@@ -155,7 +155,6 @@ export {
 } from './compositions/ogCardText'
 // The searcher picker's modal width — for a bare ModalShell wrapping an
 // EntitySearcher (The app's SheetPickerModal applies it itself).
-export { PICKER_MODAL_WIDTH } from './compositions/pickerModalWidth'
 // RollTableInstrument — THE roll table (EDL E14): a card's, a guide step's and
 // the SRD roll-table page's bands and the app's Play tables, banded in the
 // surface tone

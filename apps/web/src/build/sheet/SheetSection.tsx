@@ -21,7 +21,7 @@
 
 import type { ComponentPropsWithoutRef, CSSProperties, ReactElement, ReactNode } from 'react'
 import { cloneElement, isValidElement } from 'react'
-import { Button, Glyph, ModalShell, PICKER_MODAL_WIDTH, tokens } from '../../components/index'
+import { Button, Glyph, ModalShell, tokens } from '../../components/index'
 
 // ---------------------------------------------------------------------------
 // HButton — the container-header control button (design `.hbtn`, clean-edit.html
@@ -191,7 +191,7 @@ export function SheetPickerModal({
           if (!next) onClose()
         }}
         title={title}
-        maxWidth={PICKER_MODAL_WIDTH}
+        width="page"
         bare
       >
         {searcher}
@@ -206,8 +206,7 @@ export function SheetPickerModal({
         if (!next) onClose()
       }}
       title={title}
-      // 80% of the viewport for a framed picker body.
-      maxWidth="su-sheet-picker-framed"
+      width="default"
     >
       <div style={PICKER_BODY}>{children}</div>
     </ModalShell>

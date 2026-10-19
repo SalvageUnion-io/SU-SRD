@@ -45,12 +45,6 @@
   min-width: 0;
 }
 
-/* ── CrawlerEconomyControl: the dialogs' width cap (`ModalShell` takes it as a
-      class). ── */
-.su-sheet-crawler-dialog {
-  max-width: 28rem;
-}
-
 /* ── StorageManifest: the Hold beside its counterpart from md up. ── */
 .su-sheet-crawler-manifest {
   grid-template-columns: repeat(1, minmax(0, 1fr));

@@ -25,7 +25,6 @@ import {
   ConfirmDialog,
   EntitySearcher,
   ModalShell,
-  PICKER_MODAL_WIDTH,
   toast,
   tokens,
 } from '../../components/index'
@@ -101,7 +100,7 @@ export function CrawlerTypeEditModal({
           if (!next) onClose()
         }}
         title="Change Crawler Type"
-        maxWidth={PICKER_MODAL_WIDTH}
+        width="page"
         bare
       >
         <EntitySearcher

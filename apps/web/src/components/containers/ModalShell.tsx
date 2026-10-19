@@ -41,11 +41,13 @@ type ModalShellProps = {
    */
   tone?: 'action' | 'danger'
   /**
-   * A max-width class on the popup (e.g. `su-wiz-modal-md`). Omitted, the popup is
-   * 48rem wide at most, or 28rem for an `alertdialog` — the narrow width every
-   * confirm in the apps had already chosen by hand.
+   * One of the three dialog widths (chrome K7, hard rule R24), and nothing
+   * else: `'narrow'` (28rem) for a confirm, a short prompt or a picker of one
+   * thing; `'default'` (48rem) for the rest; `'page'` (72rem) for the detail
+   * Page and the searcher that shows one. There is no class or style escape:
+   * a per-dialog width is the drift this replaced.
    */
-  maxWidth?: string
+  width?: DialogWidth
   align?: 'center' | 'top'
   /** Element to focus when the dialog opens (defaults to base-ui's first
    *  tabbable — the header close button). Pass a ref for input-first dialogs
@@ -71,12 +73,16 @@ type ModalShellProps = {
   finalFocus?: RefObject<HTMLElement | null>
   /**
    * Fill the whole viewport, edge to edge, and scroll inside it: a sheet over
-   * Play (`PlaySheetOverlay`), a screen rather than a box over one. Ignores `maxWidth` and `align`; pair it with `bare`,
+   * Play (`PlaySheetOverlay`), a screen rather than a box over one. Ignores `width` and `align`; pair it with `bare`,
    * so the child draws its own header and close control.
    */
   fullscreen?: boolean
   children?: ReactNode
 }
+
+/** The three dialog widths (chrome K7). */
+const DIALOG_WIDTH = { narrow: '28rem', default: '48rem', page: '72rem' } as const
+type DialogWidth = keyof typeof DIALOG_WIDTH
 
 /** A contained modal fills its container: the scrim behind, the popup over it. */
 const CONTAINED_BACKDROP = { position: 'absolute' } satisfies CSSProperties
@@ -133,7 +139,7 @@ export function ModalShell({
   ownTitle = false,
   role = 'dialog',
   tone,
-  maxWidth,
+  width = 'default',
   align = 'center',
   initialFocus,
   bare = false,
@@ -154,8 +160,7 @@ export function ModalShell({
   const popupStyle = {
     ...POPUP,
     ...(bare ? { overflow: 'hidden' } : { overflowY: 'auto' }),
-    // A caller's `maxWidth` class sets the cap; inline, the default would beat it.
-    ...(maxWidth ? {} : { maxWidth: role === 'alertdialog' ? '28rem' : '48rem' }),
+    maxWidth: DIALOG_WIDTH[width],
     margin: align === 'center' ? 'auto' : `${space[32]} auto auto`,
   } satisfies CSSProperties
 
@@ -179,7 +184,6 @@ export function ModalShell({
       <Dialog.Popup
         initialFocus={initialFocus}
         finalFocus={finalFocus}
-        className={container || fullscreen ? undefined : maxWidth}
         style={container ? CONTAINED_POPUP : fullscreen ? FULLSCREEN_POPUP : popupStyle}
       >
         {!ownTitle && <Dialog.Title className="su-sr-only">{title}</Dialog.Title>}

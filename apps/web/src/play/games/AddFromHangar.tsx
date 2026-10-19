@@ -140,7 +140,7 @@ export function AddFromHangar({ gameId, gameName, confirm }: AddFromHangarProps)
         onOpenChange={setOpen}
         title="Add from your Hangar"
         description={`Choose one of your units to move into ${here}.`}
-        maxWidth="su-play-dialog--narrow"
+        width="narrow"
       >
         <div style={BODY}>
           {choices === null ? (

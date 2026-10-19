@@ -16,7 +16,7 @@
 
 import { useEffect, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
-import { Button, ConfirmDialog, EntitySearcher, ModalShell, PICKER_MODAL_WIDTH } from '../../components/index'
+import { Button, ConfirmDialog, EntitySearcher, ModalShell } from '../../components/index'
 import '../../styles/build/wizard.css'
 
 type MechChassisPickerModalProps = {
@@ -72,7 +72,7 @@ export function MechChassisPickerModal({
         open={open && !confirming}
         onOpenChange={onOpenChange}
         title="Change Chassis"
-        maxWidth={PICKER_MODAL_WIDTH}
+        width="page"
         bare
       >
         <EntitySearcher

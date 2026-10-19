@@ -45,12 +45,6 @@
   color: var(--color-paper);
 }
 
-/* — ModalShell widths. `maxWidth` takes a class (a style object there would
-   be overridden by the popup's own inline default). — */
-.su-wiz-modal-md {
-  max-width: 28rem;
-}
-
 /* — CreateModeChooser — */
 
 /* The doors' column. */

@@ -4,20 +4,8 @@
  *
  * The app's own stylesheet: a part of
  * `styles/play/play.css`, never imported by a library component. Only what has a state lives here (present / away,
- * bound / unbound), and Play's dialog width (`ModalShell` takes its
- * `maxWidth` as a class: an inline cap would lose to its own default);
- * everything else on those surfaces is a style object.
+ * bound / unbound); everything else on those surfaces is a style object.
  */
-
-/* Play's dialogs (the channel, Tell the table, All proposals): narrower than ModalShell's 48rem. */
-.su-play-dialog {
-  max-width: 32rem;
-}
-
-/* A picker's narrow dialog (chrome K7): a Game page's "Add from your Hangar". */
-.su-play-dialog--narrow {
-  max-width: 28rem;
-}
 
 /* A crewmate's presence: a filled dot while their seat beats, ink-30 once it stops. */
 .su-play-crew-dot {

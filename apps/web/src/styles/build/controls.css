@@ -90,11 +90,6 @@ select.su-container-select {
 
 /* ── AssignPicker ── */
 
-/* The dialog's width cap: `ModalShell`'s `maxWidth` is a class. */
-.su-assign-picker__dialog {
-  max-width: 28rem;
-}
-
 /* The candidate Rows (select mode, one radio group), 8px apart. */
 :where(.su-assign-picker__candidates > :not(:last-child)) {
   margin-block-end: var(--space-8);

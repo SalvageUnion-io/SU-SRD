@@ -150,7 +150,7 @@ export function MechItemToken({
           if (!next) setConfirmingRepair(false)
         }}
         title={`Repair ${entity.name}`}
-        maxWidth="su-sheet-mech-repair-modal"
+        width="narrow"
       >
         <div style={CONFIRM}>
           <p style={{ ...BODY_SM, margin: 0 }}>

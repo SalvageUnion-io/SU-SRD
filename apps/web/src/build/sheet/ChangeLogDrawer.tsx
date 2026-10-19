@@ -145,7 +145,7 @@ export function ChangeLogDrawer({
       title="Change Log"
       subtitle={entityName}
       tone="danger"
-      maxWidth="su-sheet-changelog-dialog"
+      width="default"
       description={`Change history for ${entityName}`}
     >
       <div className="su-sheet-changelog-body" style={BODY}>

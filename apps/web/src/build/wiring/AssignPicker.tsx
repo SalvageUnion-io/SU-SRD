@@ -350,7 +350,7 @@ export function AssignPicker({
           if (!next) closeDialog()
         }}
         title={copy.title}
-        maxWidth="su-assign-picker__dialog"
+        width="narrow"
       >
         <div style={BODY}>
           {candidates.length === 0 ? (

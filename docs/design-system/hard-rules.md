@@ -69,7 +69,7 @@ The loop: define it here, land its gate with a baseline, burn the baseline to ze
 - **R22 One loading voice** (K6) — `Pending`, `Skeleton` or `RoutePending`, "Loading <thing>…".
   Gate: planned, banned loading copy variants; `@keyframes` and `su-pulse` only in the loading atoms.
 - **R24 Three dialog widths** (K7) — `ModalShell` narrow, default or page.
-  Gate: planned, `ModalShell` takes `width` from the three (the type system); a `styling` rule bans `max-width` on a dialog class.
+  Gate: held. `ModalShell`'s `width` takes `'narrow' | 'default' | 'page'` (28, 48, 72rem) and no class (the type system; `ModalShell.test.tsx` pins the three); `chrome/dialog-width` (zero, `packages/gates/rules/chrome.ts`): no stylesheet rule on a dialog, modal or popup class or `[role=dialog]` sets `max-width`. Narrow: confirms, short prompts, one-thing pickers; page: the detail Page and the searcher pickers that show one.
 - **R27 One empty state, one error per job** (K8) — `EmptyState` by place, `RecoveryPanel`, `NotFoundPanel`, `toast.error`; "Try again".
   Gate: planned, banned copy ("Retry", "Failed to load", "No results found" off the searcher); a raw `role="alert"` only in the atoms.
 - **R28 One focus ring** (K9) — `--focus-ring-shadow` on `:focus-visible`, everywhere.

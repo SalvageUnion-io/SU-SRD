@@ -152,6 +152,7 @@ export function ConfirmDialog({
   return (
     <ModalShell
       role="alertdialog"
+      width="narrow"
       open={open}
       onOpenChange={handleOpenChange}
       title={title}

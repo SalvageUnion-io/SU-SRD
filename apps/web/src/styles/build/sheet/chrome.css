@@ -42,16 +42,7 @@
   }
 }
 
-/* SheetPickerModal's framed layout: ModalShell takes its cap as a class. */
-.su-sheet-picker-framed {
-  max-width: 80vw;
-}
-
 /* ShareStatusDialog + ShareSettings (components/sharing). */
-.su-sheet-share-dialog {
-  max-width: 36rem;
-}
-
 .su-sheet-share-body {
   padding: var(--space-16);
 }
@@ -69,10 +60,6 @@
 }
 
 /* ChangeLogDrawer. */
-.su-sheet-changelog-dialog {
-  max-width: 42rem;
-}
-
 .su-sheet-changelog-body {
   padding: var(--space-16);
 }

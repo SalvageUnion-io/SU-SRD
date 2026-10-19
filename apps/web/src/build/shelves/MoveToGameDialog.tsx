@@ -100,6 +100,7 @@ export function MoveToGameDialog({ subject, onClose, games, confirm }: MoveToGam
         if (!open) onClose()
       }}
       title={subject ? `Move ${subject.entity.name}` : 'Move'}
+      width="narrow"
     >
       <div style={BODY}>
         <ContainerPicker

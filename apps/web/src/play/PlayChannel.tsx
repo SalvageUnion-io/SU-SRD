@@ -47,7 +47,7 @@ export function PlayChannelDialog({ open, onClose, owner, binding }: PlayChannel
         if (!next) onClose()
       }}
       title={binding === null ? 'Connect a Discord channel' : 'Discord channel'}
-      maxWidth="su-play-dialog"
+      width="default"
     >
       <div style={BODY}>
         {binding === null ? (

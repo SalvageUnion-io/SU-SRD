@@ -62,7 +62,7 @@ export function SoftWarningDialog({
       title="Check this edit?"
       subtitle={subtitle}
       description="Advisory rule warnings for this edit. Saving is always allowed."
-      maxWidth="su-soft-warning-dialog"
+      width="narrow"
     >
       <div style={BODY}>
         <p style={LEDE}>

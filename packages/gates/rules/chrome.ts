@@ -33,7 +33,17 @@
  *   link, a search field's width) but paints no indicator of its own. A
  *   focused element's sibling (`:focus ~ label`) is not its indicator.
  *
- * All three are `zero`. Comments are stripped, so prose may name what it bans.
+ * ## Three dialog widths (hard rule R24, chrome K7)
+ *
+ * `ModalShell` is narrow (28rem), default (48rem) or page (72rem), chosen by
+ * its `width` prop, which takes only those three (the type system holds
+ * that). Before, it took a class for its cap, and 25 dialogs grew ten widths.
+ *
+ * - `dialog-width`: no stylesheet rule whose subject is a dialog (a class
+ *   naming a `dialog`, `modal` or `popup`, or `[role=dialog]`) sets a
+ *   `max-width` / `max-inline-size`.
+ *
+ * All four are `zero`. Comments are stripped, so prose may name what it bans.
  */
 
 import { readFileSync } from 'node:fs'
@@ -180,6 +190,38 @@ function scanFocusRing(root: string): Finding[] {
   return out
 }
 
+/**
+ * A selector's subject that is a dialog: a dialog, modal or popup class (a
+ * modifier included, never one of its parts, `__body`), or the role.
+ */
+const DIALOG_SUBJECT =
+  /\.su-[\w-]*?(?:dialog|modal|popup)(?:--[\w-]+)?(?![\w-])|\[role=['"]?(?:alert)?dialog['"]?\]/
+const WIDTH_CAP = /^(?:max-width|max-inline-size)\s*:/
+
+function scanDialogWidth(root: string): Finding[] {
+  const out: Finding[] = []
+  for (const rel of listFiles(root, [SRC], ['.css'])) {
+    const css = stripComments(readFileSync(join(root, rel), 'utf8'))
+    for (const m of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      const selectorText = (m[1] ?? '').trim()
+      if (selectorText.startsWith('@')) continue
+      const dialog = splitTop(selectorText, /,/).some((sel) =>
+        DIALOG_SUBJECT.test(splitTop(sel, /[\s>+~]/).at(-1) ?? '')
+      )
+      if (!dialog) continue
+      const lead = (m[1] ?? '').length - (m[1] ?? '').trimStart().length
+      const line = css.slice(0, (m.index ?? 0) + lead).split('\n').length
+      for (const raw of (m[2] ?? '').split(';')) {
+        const decl = raw.trim().replace(/\s+/g, ' ')
+        if (WIDTH_CAP.test(decl)) {
+          out.push({ file: rel, line, detail: `${selectorText.replace(/\s+/g, ' ')} { ${decl} }` })
+        }
+      }
+    }
+  }
+  return out
+}
+
 type ChromeRule = Rule & { scan: (root: string) => Finding[] }
 
 const RULES: ChromeRule[] = [
@@ -203,6 +245,13 @@ const RULES: ChromeRule[] = [
     rule: 'hard rule R28 (chrome K9) — one focus ring: a focused rule sets only `--focus-ring-shadow` (and the forced-colors transparent outline)',
     fix: 'Give the element `FOCUS_RING` (`su-focus-ring`), or make the rule `outline: 3px solid transparent; box-shadow: var(--focus-ring-shadow)` and nothing else; move a hover colour, underline or border to a `:hover` rule of its own. A clipped element draws the ring on its frame with `:has(… :focus-visible)`.',
     scan: scanFocusRing,
+  },
+  {
+    id: 'dialog-width',
+    mode: 'zero',
+    rule: "hard rule R24 (chrome K7) — a dialog is narrow, default or page, from `ModalShell`'s `width`; no stylesheet caps a dialog",
+    fix: 'Delete the cap and pass `ModalShell` `width="narrow"` (a confirm, a short prompt, a picker of one thing), `"default"` (the rest) or `"page"` (the detail Page, or a searcher that shows one).',
+    scan: scanDialogWidth,
   },
 ]
 

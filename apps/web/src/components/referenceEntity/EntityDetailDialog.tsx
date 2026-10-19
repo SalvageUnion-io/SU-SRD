@@ -190,29 +190,31 @@ export function EntityDetailDialog({
   children,
 }: EntityDetailDialogProps) {
   return (
-    // Bare: the Page owns its frame and its close stamp. `.su-entity-dialog`
-    // caps it at 72rem and holds the 12px gutters the stamp straddles into.
+    // Bare: the Page owns its frame and its close stamp, at the page width
+    // (72rem); `.su-entity-dialog` holds the 12px gutters the stamp straddles into.
     <ModalShell
       open={open}
       onOpenChange={onOpenChange}
       title={title}
       description="Entity display details"
       ownTitle
-      maxWidth="su-entity-dialog"
+      width="page"
       bare
     >
       {/* Overflow lives on the page so the close button (a sibling) isn't
           clipped by it. The SRD black-stamp square button is
           kitty-cornered, straddling the page's top-right corner. */}
-      <div style={{ position: 'relative' }}>
-        {/* The SRD black stamp: CloseButton's ink stamp, with a paper edge
-            so it reads off the band it straddles. */}
-        <Dialog.Close render={<CloseButton look="stamp" style={closeStyle} />} />
-        <article style={pageStyle}>
-          <EntityDetailPage entity={entity} pattern={pattern} title={title}>
-            {children}
-          </EntityDetailPage>
-        </article>
+      <div className="su-entity-dialog">
+        <div style={{ position: 'relative' }}>
+          {/* The SRD black stamp: CloseButton's ink stamp, with a paper edge
+              so it reads off the band it straddles. */}
+          <Dialog.Close render={<CloseButton look="stamp" style={closeStyle} />} />
+          <article style={pageStyle}>
+            <EntityDetailPage entity={entity} pattern={pattern} title={title}>
+              {children}
+            </EntityDetailPage>
+          </article>
+        </div>
       </div>
     </ModalShell>
   )

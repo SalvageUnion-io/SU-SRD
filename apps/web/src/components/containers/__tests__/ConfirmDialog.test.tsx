@@ -85,6 +85,11 @@ describe('ConfirmDialog — what it announces', () => {
     )
   })
 
+  test('is the narrow dialog (chrome K7)', () => {
+    render(<Harness onConfirm={() => {}} />)
+    expect(screen.getByRole('alertdialog').style.maxWidth).toBe('28rem')
+  })
+
   test('a danger confirm starts on Cancel, so a stray Enter cancels', async () => {
     render(<Harness onConfirm={() => {}} tone="danger" />)
     await settleFocus()

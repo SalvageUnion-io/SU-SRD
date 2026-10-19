@@ -20,7 +20,7 @@ import {
 } from 'salvageunion-reference/rules'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { craftableAtTl } from '../../lib/rules/crafting'
-import { EntitySearcher, ModalShell, PICKER_MODAL_WIDTH } from '../../components/index'
+import { EntitySearcher, ModalShell } from '../../components/index'
 
 type CrawlerSystemsEditModalProps = {
   open: boolean
@@ -65,7 +65,7 @@ export function CrawlerSystemsEditModal({
         if (!next) onClose()
       }}
       title="Edit Weapons Systems"
-      maxWidth={PICKER_MODAL_WIDTH}
+      width="page"
       bare
     >
       <EntitySearcher

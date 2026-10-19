@@ -148,6 +148,7 @@ export function LaunchPlay({ gameId }: { gameId: string }) {
         onOpenChange={setOpen}
         title="Play"
         description="Choose the pilot to play."
+        width="narrow"
       >
         <div style={BODY}>
           {listing === undefined ? (

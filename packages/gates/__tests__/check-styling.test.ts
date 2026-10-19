@@ -748,6 +748,33 @@ describe('chrome rule set', () => {
       '12 .e:focus-visible { text-decoration-thickness: 2px }',
     ])
   })
+
+  test('dialog-width: a cap on a dialog, modal or popup is found; its parts and other caps are not (R24)', () => {
+    const found = chromeLaws.scan(
+      fixture({
+        ...STYLING_BASE,
+        'apps/web/src/styles/build/dialogs.css': [
+          '.su-share-dialog { max-width: 36rem; }',
+          '.su-x, .su-repair-modal { padding: 4px; max-width: 24rem; }',
+          '@media (width >= 40rem) {',
+          '  .su-play-popup--narrow { max-inline-size: 28rem; }',
+          '}',
+          "[role='dialog'] { max-width: 80vw; }",
+          '.su-share-dialog__body { max-width: 30rem; }',
+          '.su-share-dialog .su-qr { max-width: 12rem; }',
+          '.su-card { max-width: 40rem; }',
+          '.su-entity-dialog { padding: var(--space-12); }',
+          '',
+        ].join('\n'),
+      })
+    )
+    expect(found['dialog-width']?.map((f) => `${f.line} ${f.detail}`)).toEqual([
+      '1 .su-share-dialog { max-width: 36rem }',
+      '2 .su-x, .su-repair-modal { max-width: 24rem }',
+      '4 .su-play-popup--narrow { max-inline-size: 28rem }',
+      "6 [role='dialog'] { max-width: 80vw }",
+    ])
+  })
 })
 
 describe('class-prefix rule set', () => {

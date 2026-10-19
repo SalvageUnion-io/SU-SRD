@@ -59,12 +59,7 @@ export function PlayMediatorBarActions({ mediator }: { mediator: PlayMediator })
           ],
         ]}
       />
-      <ModalShell
-        open={telling}
-        onOpenChange={setTelling}
-        title="Tell the table"
-        maxWidth="su-play-dialog"
-      >
+      <ModalShell open={telling} onOpenChange={setTelling} title="Tell the table" width="default">
         <TellTheTable
           alerts={mediator.alerts}
           now={mediator.now}

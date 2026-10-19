@@ -124,7 +124,7 @@ export function PlayMediatorProposeSection({
         open={allOpen}
         onOpenChange={setAllOpen}
         title="Proposals you sent"
-        maxWidth="su-play-dialog"
+        width="default"
       >
         <ProposalsList
           proposals={mediator.sent}

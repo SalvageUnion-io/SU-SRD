@@ -83,9 +83,6 @@ import {
   upkeepReducer,
 } from './crawlerEconomyDialogState.model'
 
-/** The dialogs' width cap: `ModalShell` takes it as a class. */
-const DIALOG_WIDTH = 'su-sheet-crawler-dialog'
-
 const BODY = {
   display: 'flex',
   flexDirection: 'column',
@@ -299,7 +296,7 @@ function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFo
       }}
       title="Pay Upkeep"
       subtitle={`${DOWNTIME_UPKEEP_SCRAP}× Tech ${tl} Scrap per Downtime`}
-      maxWidth={DIALOG_WIDTH}
+      width="narrow"
     >
       <div style={BODY}>
         <p style={MUTED}>
@@ -415,7 +412,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
         if (!next) onClose()
       }}
       title="Upgrade Crawler"
-      maxWidth={DIALOG_WIDTH}
+      width="narrow"
     >
       <div style={BODY}>
         {quote ? (
@@ -539,7 +536,7 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
       }}
       title="Trading Bay"
       subtitle={`Scrap exchange & Downtime sourcing · Tech ${tl} crawler`}
-      maxWidth={DIALOG_WIDTH}
+      width="narrow"
     >
       <div style={BODY}>
         {!gate.present && <EmptyState variant="quiet" body="This crawler has no Trading Bay." />}

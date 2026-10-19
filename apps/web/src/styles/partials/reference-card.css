@@ -155,10 +155,9 @@
  * The app's detail view is the Page (EDL Form 5): its body sits under the band
  * at the SRD page body's gutters (`.su-page-body`), which change at `sm`.
  */
-/* The popup (`ModalShell`'s `maxWidth` class): 72rem at most, with 12px
- * gutters the close stamp straddles into, since a bare popup clips. */
+/* The dialog's frame inside the bare popup (`ModalShell`, `width="page"`):
+ * 12px gutters the close stamp straddles into, since a bare popup clips. */
 .su-entity-dialog {
-  max-width: 72rem;
   padding: var(--space-12);
 }
 

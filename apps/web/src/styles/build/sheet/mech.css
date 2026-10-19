@@ -156,11 +156,6 @@
   }
 }
 
-/* The repair confirm's width cap (`ModalShell`'s `maxWidth` is a class). */
-.su-sheet-mech-repair-modal {
-  max-width: 24rem;
-}
-
 /* Systems and Modules: stacked, side by side once the sheet is wide enough
    (each a list of Tokens, `.su-entity-token-list`). */
 .su-sheet-mech-loadout {

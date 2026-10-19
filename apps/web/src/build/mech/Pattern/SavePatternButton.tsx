@@ -93,7 +93,7 @@ export function SavePatternButton({
           if (!next) handleCancel()
         }}
         title="Save as pattern"
-        maxWidth="su-wiz-modal-md"
+        width="narrow"
       >
         <div style={dialogBodyStyle}>
           <Field label="Pattern name" htmlFor="pattern-name-input">

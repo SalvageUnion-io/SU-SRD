@@ -429,15 +429,6 @@
   }
 }
 
-/*
- * The searcher picker modal's width — a value for `ModalShell`'s `maxWidth`,
- * exported as `PICKER_MODAL_WIDTH` (`compositions/pickerModalWidth.ts`): room
- * for the Token list and the sidebar either side of a readable Page.
- */
-.su-picker-modal {
-  max-width: 78rem;
-}
-
 /* ══ Segmented (`atoms/Segmented.tsx`) ════════════════════════════════════════
  *
  * Options joined in one ink-ruled frame, the pressed one the inverse plate (a
