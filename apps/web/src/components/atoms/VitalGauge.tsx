@@ -20,7 +20,6 @@ import type { ProvenanceLine } from './StatProvenance'
 import { StatProvenance } from './StatProvenance'
 import {
   C_HEAD,
-  C_IMAGE,
   C_LABEL,
   C_PIP,
   C_READOUT,
@@ -88,6 +87,7 @@ export type VitalGaugeProps = {
    * click-to-edit override affordance, so one click would have to mean two
    * things. When the stat is overridden the existing `*` marker becomes the
    * trigger — it already signals "there is something here to explain".
+   * The `full` rung's alone: Play's compact vitals are numbers only (ADR-029 §3).
    */
   provenance?: ProvenanceLine[]
   /** Non-interactive read-out (role="img"); over-capacity segments read red. */
@@ -453,39 +453,8 @@ export function VitalGauge({
         {editable ? slider(C_ROWS, compactRows) : <div style={C_ROWS}>{compactRows}</div>}
       </div>
     )
-    /*
-     * Guided Play teaches as it enforces (ADR-021), so the compact instrument
-     * carries provenance too when its host passes it: this branch must not
-     * return before the override/provenance chrome, or it drops both props.
-     *
-     * The trigger is held to the WCAG 2.5.8 24×24px target: as a bare glyph it
-     * measured about 10×8px, and stacked gauges sit too close for the spacing
-     * exception.
-     */
-    const trigger = provenance && (
-      <StatProvenance
-        statLabel={`Max ${label}`}
-        lines={provenance}
-        total={max}
-        overridden={isOverridden}
-        className="su-vital-gauge__prov-compact"
-      >
-        {isOverridden ? '*' : 'ⓘ'}
-      </StatProvenance>
-    )
-    // A read-only gauge is an image, and an image may not contain a control
-    // (axe `nested-interactive`): with a provenance trigger the image wraps
-    // the readout alone and the trigger sits beside it.
-    if (!editable && trigger) {
-      return (
-        <div className={className} style={{ ...C_SHELL, ...style }}>
-          <div role="img" aria-label={summary} style={C_IMAGE}>
-            {readout}
-          </div>
-          {trigger}
-        </div>
-      )
-    }
+    // Play's vitals are numbers only (ADR-029 §3): provenance and the max
+    // override live on the sheet, so the compact rung draws neither.
     return (
       // biome-ignore lint/a11y/useAriaPropsSupportedByRole: role is dynamically group|img — both support aria-label — but biome can't resolve the ternary
       <div
@@ -495,7 +464,6 @@ export function VitalGauge({
         style={{ ...C_SHELL, ...style }}
       >
         {readout}
-        {trigger}
       </div>
     )
   }

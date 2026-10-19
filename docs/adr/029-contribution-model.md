@@ -37,9 +37,9 @@ are thin `.total` wrappers.
 
 Any surface rendering a derived value can render its breakdown, opened on
 **hover, focus and tap**. Frozen sheets show it without the revert. Play
-carries it as Guided Play's "teach as they enforce" affordance: `VitalGauge`'s
-compact rung takes `provenance` and `breakdown`, though Play's vitals
-(`PlayVital`) do not pass them yet. An override appends; it never replaces.
+leaves it to the sheet: Play's vitals (`PlayVital`) are numbers and − / +, and
+Sheet ⤢ is where a Play unit's provenance and overrides live, so `VitalGauge`'s
+compact rung draws neither (#1669). An override appends; it never replaces.
 
 ### 4. Duration-bound effects are Play-applied, and never persisted on the entity
 

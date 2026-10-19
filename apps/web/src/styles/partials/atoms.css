@@ -199,27 +199,9 @@
   color: var(--color-ink);
 }
 
-/* The provenance triggers. `StatProvenance` takes no `style`, so every
- * property is a class; each is compounded with the trigger's own class so it
- * outranks `.su-stat-provenance__trigger`'s dotted underline. */
-.su-stat-provenance__trigger.su-vital-gauge__prov-compact {
-  align-items: center;
-  border-width: 0;
-  color: var(--color-wk-muted);
-  display: inline-flex;
-  flex-shrink: 0;
-  font-size: var(--text-badge);
-  justify-content: center;
-  line-height: 1;
-  min-height: 24px;
-  min-width: 24px;
-}
-
-.su-stat-provenance__trigger.su-vital-gauge__prov-compact:hover {
-  color: var(--color-ink);
-}
-
-/* The overridden-max `*`, superscript in the deep tone. */
+/* The overridden-max `*`, superscript in the deep tone. `StatProvenance`
+ * takes no `style`, so every property is a class, compounded with the
+ * trigger's own so it outranks `.su-stat-provenance__trigger`'s underline. */
 .su-stat-provenance__trigger.su-vital-gauge__prov-mark {
   border-bottom-width: 0;
   color: var(--tone-deep);

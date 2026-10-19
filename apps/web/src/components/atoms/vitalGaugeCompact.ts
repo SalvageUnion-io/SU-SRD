@@ -55,4 +55,3 @@ export const C_SHELL = {
   alignItems: 'center',
   gap: space[8],
 } satisfies CSSProperties
-export const C_IMAGE = { display: 'flex', minWidth: 0, flex: 1 } satisfies CSSProperties
