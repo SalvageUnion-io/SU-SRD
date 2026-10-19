@@ -1,4 +1,7 @@
-import { describe, expect, test } from 'bun:test'
+import { afterAll, describe, expect, test } from 'bun:test'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { ratchetCounts } from '../lib/ruleEngine'
 import { scanSelectCss, scanSelectSources, selectMode } from '../rules/selectMode'
 
@@ -98,5 +101,39 @@ describe('select-mode/level-2-seal', () => {
     ]) {
       expect(lines(scan(rel, '<SelectedSeal />'), 'level-2-seal')).toEqual([])
     }
+  })
+})
+
+describe('select-mode scan', () => {
+  const temps: string[] = []
+  afterAll(() => {
+    for (const t of temps) rmSync(t, { recursive: true, force: true })
+  })
+  const tree = (files: Record<string, string>) => {
+    const root = mkdtempSync(join(tmpdir(), 'select-mode-'))
+    temps.push(root)
+    for (const [rel, text] of Object.entries(files)) {
+      mkdirSync(join(root, rel, '..'), { recursive: true })
+      writeFileSync(join(root, rel), text)
+    }
+    return root
+  }
+
+  test("reads the app's scripts and stylesheets, and counts its pickers", () => {
+    const root = tree({
+      'apps/web/src/build/Step.tsx': '<Checkbox />\nconst A = { opacity: 0.5 }\n',
+      'apps/web/src/build/Plain.tsx': 'const B = { opacity: 0.5 }\n',
+      'apps/web/src/build/__tests__/Step.tsx': '<Checkbox />\nconst A = { opacity: 0.5 }\n',
+      'apps/web/src/styles/pick.css':
+        '.a[data-selected] { opacity: 0.4; }\n.b:checked { opacity: 1; }\n',
+      'apps/web/src/build/Seal.tsx': '<SelectedSeal />\n',
+    })
+    const found = selectMode.scan(root)
+    expect(found['picker-opacity']?.map((f) => [f.file, f.line])).toEqual([
+      ['apps/web/src/build/Step.tsx', 2],
+      ['apps/web/src/styles/pick.css', 1],
+    ])
+    expect(found['level-2-seal']?.map((f) => f.file)).toEqual(['apps/web/src/build/Seal.tsx'])
+    expect(selectMode.summary?.(root)).toBe('1 picker file(s) scanned')
   })
 })

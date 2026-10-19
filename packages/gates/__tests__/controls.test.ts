@@ -1,6 +1,15 @@
-import { describe, expect, test } from 'bun:test'
+import { afterAll, describe, expect, test } from 'bun:test'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { parseSync } from 'oxc-parser'
-import { iconSizeFindings, lucideNames, ONE_ON_OFF, switchingFindings } from '../rules/controls'
+import {
+  controlLaws,
+  iconSizeFindings,
+  lucideNames,
+  ONE_ON_OFF,
+  switchingFindings,
+} from '../rules/controls'
 import { glyphFindings } from '../rules/copyTerms'
 
 /**
@@ -73,6 +82,15 @@ describe('copy glyph', () => {
     ].join('\n')
     expect(lines(glyphFindings('a.tsx', source))).toEqual([1, 2, 3, 4, 5])
   })
+  test('imports, console and bookQuote calls are no copy; a template chunk is', () => {
+    const source = [
+      "import { back } from './←'",
+      "console.warn('← old')",
+      "export const quote = bookQuote('← the book')",
+      'export const tip = `‹ back`',
+    ].join('\n')
+    expect(lines(glyphFindings('a.tsx', source))).toEqual([4])
+  })
 })
 
 describe('tab-role and pressed', () => {
@@ -101,5 +119,58 @@ describe('tab-role and pressed', () => {
       expect(switchingFindings(file, source).pressed).toEqual([])
       expect(why).toMatch(/\(R\d+\)$/)
     }
+  })
+})
+
+describe('controls scan', () => {
+  const temps: string[] = []
+  afterAll(() => {
+    for (const t of temps) rmSync(t, { recursive: true, force: true })
+  })
+  /** A tree holding `files` (path from the repo root → text). */
+  const tree = (files: Record<string, string>) => {
+    const root = mkdtempSync(join(tmpdir(), 'controls-'))
+    temps.push(root)
+    for (const [rel, text] of Object.entries(files)) {
+      mkdirSync(join(root, rel, '..'), { recursive: true })
+      writeFileSync(join(root, rel), text)
+    }
+    return root
+  }
+  const glyph = "import { X } from 'lucide-react'\nexport const A = () => <X size={14} />\n"
+  const pressed = 'export const B = ({ on }) => <button aria-pressed={on} />\n'
+
+  test('reads the app source a glyph is drawn in, and skips tests', () => {
+    const root = tree({
+      'apps/web/src/a/Close.tsx': glyph,
+      'apps/web/src/a/Plain.tsx': 'export const P = () => <b size={14} />\n',
+      'apps/web/src/a/__tests__/Close.tsx': glyph,
+      'apps/web/src/a/Close.test.tsx': glyph,
+    })
+    expect(controlLaws.scan(root)['icon-size']?.map((f) => [f.file, f.line])).toEqual([
+      ['apps/web/src/a/Close.tsx', 2],
+    ])
+  })
+
+  test('a switching role outside its home is found across the tree, tests aside', () => {
+    const root = tree({
+      'apps/web/src/a/Row.tsx': `export const T = () => <div role="tablist" />\n${pressed}`,
+      'apps/web/src/a/Row.test.tsx': pressed,
+    })
+    const found = controlLaws.scan(root)
+    expect(found['tab-role']?.map((f) => [f.file, f.line])).toEqual([['apps/web/src/a/Row.tsx', 1]])
+    expect(
+      found.pressed?.filter((f) => f.file === 'apps/web/src/a/Row.tsx').map((f) => f.line)
+    ).toEqual([2])
+  })
+
+  test('a ONE_ON_OFF entry whose file sets no aria-pressed, or is gone, is stale', () => {
+    const [kept, emptied] = Object.keys(ONE_ON_OFF) as [string, string]
+    const root = tree({ [kept]: pressed, [emptied]: 'export const C = () => <button />\n' })
+    const stale = controlLaws
+      .scan(root)
+      .pressed?.filter((f) => f.detail.startsWith('a stale ONE_ON_OFF entry'))
+      .map((f) => f.file)
+    expect(stale).toEqual(Object.keys(ONE_ON_OFF).filter((file) => file !== kept))
   })
 })

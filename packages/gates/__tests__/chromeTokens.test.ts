@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { ratchetCounts } from '../lib/ruleEngine'
-import { enclosingObject, parseCss } from '../lib/styleSource'
+import { blankScriptComments, enclosingObject, parseCss } from '../lib/styleSource'
 import {
   ALERT_ATOMS,
   BREAKPOINT_LADDER,
@@ -60,6 +60,26 @@ describe('parseCss', () => {
     const text = 'const A = { x: 1, y: { z: 2 } }\nconst B = { w: 3 }'
     expect(enclosingObject(text, text.indexOf('x'))).toBe('{ x: 1, y: { z: 2 } }')
     expect(enclosingObject(text, text.indexOf('w'))).toBe('{ w: 3 }')
+    expect(enclosingObject(text, text.indexOf('y:') + 11)).toBe('{ x: 1, y: { z: 2 } }')
+  })
+
+  test('blankScriptComments blanks comments in place and keeps strings whole', () => {
+    const text = [
+      "const a = '// no' // gone",
+      'const b = 1 /* gone',
+      'still gone */ + 2',
+      'const c = `/* kept */`',
+      '/* never closed',
+    ].join('\n')
+    const out = blankScriptComments(text)
+    expect(out.length).toBe(text.length)
+    expect(out.split('\n')).toEqual([
+      "const a = '// no'        ",
+      'const b = 1        ',
+      '              + 2',
+      'const c = `/* kept */`',
+      '               ',
+    ])
   })
 })
 
