@@ -54,7 +54,9 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
           Board
         </Button>
       ) : (
-        <Button size="mini" variant="ink" onClick={() => choose(main)} disabled={off}>
+        // The outlined Button: on the row's ink band it reads paper (R19), where
+        // an ink fill would vanish into the band.
+        <Button size="mini" onClick={() => choose(main)} disabled={off}>
           {main.state === 'spare' ? `Claim and board ${main.name}` : `Board ${main.name}`}
         </Button>
       )}
