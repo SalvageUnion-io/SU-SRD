@@ -74,13 +74,18 @@ const TAB_LIST = {
   gap: 0,
 } satisfies CSSProperties
 
+/**
+ * A tab: a quarter of the row, its label whole (EDL E18, hard rule R29). A
+ * label too long for its quarter widens its tab (no `minWidth: 0`) or wraps
+ * between its words, never "…".
+ */
 const TAB = {
   border: 0,
   borderRadius: 0,
   flex: '1 1 0%',
   minHeight: '52px',
-  minWidth: 0,
   padding: `0 ${tokens.space[4]}`,
+  whiteSpace: 'normal',
 } satisfies CSSProperties
 
 type PlayPhoneProps<Value extends string> = {

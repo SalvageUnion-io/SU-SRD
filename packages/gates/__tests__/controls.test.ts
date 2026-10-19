@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { parseSync } from 'oxc-parser'
-import { iconSizeFindings, lucideNames } from '../rules/controls'
+import { iconSizeFindings, lucideNames, ONE_ON_OFF, switchingFindings } from '../rules/controls'
 import { glyphFindings } from '../rules/copyTerms'
 
 /**
@@ -72,5 +72,34 @@ describe('copy glyph', () => {
       'export const E = () => <a>Advance ›</a>',
     ].join('\n')
     expect(lines(glyphFindings('a.tsx', source))).toEqual([1, 2, 3, 4, 5])
+  })
+})
+
+describe('tab-role and pressed', () => {
+  const source = [
+    'export const A = () => <div role="tablist"><b role="tab" /></div>',
+    "export const B = () => <div role={'tab'} />",
+    'export const C = () => <div role="group" />',
+    'export const D = ({ on }) => <button aria-pressed={on} />',
+    "export const props = { 'aria-pressed': true }",
+    '// a comment naming role="tablist" and aria-pressed',
+  ].join('\n')
+
+  test('a tab role outside Tabs and aria-pressed outside Segmented and Toggle are findings', () => {
+    const found = switchingFindings('apps/web/src/x/Row.tsx', source)
+    expect(lines(found['tab-role'])).toEqual([1, 1, 2])
+    expect(lines(found.pressed)).toEqual([4, 5])
+  })
+
+  test('each role is at home in its own atom, and ONE_ON_OFF names its owner', () => {
+    const tabs = switchingFindings('apps/web/src/components/atoms/Tabs.tsx', source)
+    expect(tabs['tab-role']).toEqual([])
+    expect(switchingFindings('apps/web/src/components/atoms/Toggle.tsx', source).pressed).toEqual(
+      []
+    )
+    for (const [file, why] of Object.entries(ONE_ON_OFF)) {
+      expect(switchingFindings(file, source).pressed).toEqual([])
+      expect(why).toMatch(/\(R\d+\)$/)
+    }
   })
 })

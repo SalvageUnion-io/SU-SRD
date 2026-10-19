@@ -102,9 +102,10 @@ export type { StatState, StatTone } from './atoms/Stat'
 export { Stat } from './atoms/Stat'
 export { StatColumn } from './atoms/StatColumn'
 export type { ProvenanceLine } from './atoms/StatProvenance'
-export { Tab, TabList, TabPanel, Tabs, Toggle, ToggleGroup } from './atoms/Tabs'
+export { Tab, TabList, TabPanel, Tabs } from './atoms/Tabs'
 // Base typography
 export { Text } from './atoms/Text'
+export { Toggle } from './atoms/Toggle'
 // ToneStrip — the 8px colour band that opens a section from above (§3.10).
 export { ToneStrip } from './atoms/ToneStrip'
 export { useCopied } from './atoms/useCopied'

@@ -38,8 +38,6 @@ import {
   Slab,
   Stat,
   TitledBox,
-  Toggle,
-  ToggleGroup,
   tokens,
 } from '../components/index'
 import { resolveClassName } from '../lib/classRef'
@@ -290,11 +288,11 @@ export function PlayMechUnit({
       {effects.length > 0 ? (
         <>
           <Slab as="h4" label="Effects" />
-          <ToggleGroup label={`Effects of ${mech.name}`} style={CHIPS}>
+          <Segmented label={`Effects of ${mech.name}`} size="compact" wrap>
             {effects.map((e) => {
               const on = activeEffects.includes(e.ref)
               return (
-                <Toggle
+                <SegmentedOption
                   key={e.ref}
                   pressed={on}
                   disabled={!live || onToggleEffect === undefined}
@@ -302,10 +300,10 @@ export function PlayMechUnit({
                   onClick={() => onToggleEffect?.(e.ref)}
                 >
                   {e.name}
-                </Toggle>
+                </SegmentedOption>
               )
             })}
-          </ToggleGroup>
+          </Segmented>
         </>
       ) : null}
       {place === 'boarded' ? (

@@ -18,8 +18,8 @@ import {
   CHAPTER_BAND_COLOR,
   Checkbox,
   SearchField,
-  Toggle,
-  ToggleGroup,
+  Segmented,
+  SegmentedOption,
   tokens,
 } from '../components/index'
 import type { PlayBinding } from './channels.model'
@@ -33,17 +33,6 @@ const STACK = {
   flexDirection: 'column',
   gap: tokens.space[8],
   minWidth: 0,
-} satisfies CSSProperties
-
-const PINS = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[4] } satisfies CSSProperties
-
-const FOUND = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[2],
-  listStyle: 'none',
-  margin: 0,
-  padding: 0,
 } satisfies CSSProperties
 
 const POST = {
@@ -106,23 +95,21 @@ export function PlayTables({ downtime, solo, post, onPostChange, binding }: Play
         }}
       />
       {found.length > 0 && (
-        <ul id={findId} style={FOUND} aria-label="Tables found">
+        <Segmented id={findId} label="Tables found" size="compact" wrap>
           {found.map((name) => (
-            <li key={name}>
-              <Toggle pressed={open === name} onClick={() => pick(name)}>
-                {name}
-              </Toggle>
-            </li>
+            <SegmentedOption key={name} pressed={open === name} onClick={() => pick(name)}>
+              {name}
+            </SegmentedOption>
           ))}
-        </ul>
+        </Segmented>
       )}
-      <ToggleGroup label="Pinned tables" style={PINS}>
+      <Segmented label="Pinned tables" size="compact" wrap>
         {pinnedTables(downtime).map((name) => (
-          <Toggle key={name} pressed={open === name} onClick={() => pick(name)}>
+          <SegmentedOption key={name} pressed={open === name} onClick={() => pick(name)}>
             {name}
-          </Toggle>
+          </SegmentedOption>
         ))}
-      </ToggleGroup>
+      </Segmented>
       {table && (
         <PlayRollTable
           key={table.name}

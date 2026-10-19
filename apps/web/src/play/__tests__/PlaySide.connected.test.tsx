@@ -441,7 +441,7 @@ describe('the Tables (play.md §8)', () => {
       setter?.call(find, 'rumour')
       find.dispatchEvent(new Event('input', { bubbles: true }))
     })
-    const found = within(screen.getByRole('list', { name: 'Tables found' }))
+    const found = within(screen.getByRole('group', { name: 'Tables found' }))
     expect(found.getAllByRole('button').map((b) => b.textContent)).toContain('Rumour')
   })
 })

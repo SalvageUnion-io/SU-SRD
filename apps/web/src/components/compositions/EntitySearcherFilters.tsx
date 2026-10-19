@@ -7,28 +7,42 @@
 
 import { ChevronDown } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import { iconSize, space } from '../../design/tokens'
+import { borderWidth, iconSize, space } from '../../design/tokens'
 import type { Disclosure } from '../../lib/useDisclosure'
 import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
+import { Segmented, SegmentedOption } from '../atoms/Segmented'
 import { FilterRow } from '../containers/FilterRow'
 import { chevronStyle } from './entitySearcherChrome'
 import type { FacetRowConfig } from './entitySearcherTypes'
 
+/** A tech level's colour key, before its label: an ink-ruled square. */
+const SWATCH = {
+  border: `${borderWidth.hairline} solid currentColor`,
+  display: 'inline-block',
+  height: space[12],
+  marginRight: space[6],
+  verticalAlign: '-1px',
+  width: space[12],
+} satisfies CSSProperties
+
+/**
+ * A facet row sets a value, the set of what shows (chrome K10, hard rule
+ * R29): a `Segmented` of its options, wrapping when it has many.
+ */
 function FacetChips({ row }: { row: FacetRowConfig }) {
-  return row.chips.map(({ key, label, active, onClick, swatchStyle }) => (
-    <Badge
-      key={key}
-      shape="chip"
-      as="button"
-      aria-pressed={active}
-      surface={active ? 'solid' : 'ghost'}
-      swatch={swatchStyle}
-      onClick={onClick}
-    >
-      {label}
-    </Badge>
-  ))
+  return (
+    <Segmented label={`Filter by ${row.label}`} size="compact" wrap>
+      {row.chips.map(({ key, label, active, onClick, swatchStyle }) => (
+        <SegmentedOption key={key} pressed={active} onClick={onClick}>
+          {swatchStyle != null && (
+            <i aria-hidden="true" style={{ ...SWATCH, background: swatchStyle }} />
+          )}
+          {label}
+        </SegmentedOption>
+      ))}
+    </Segmented>
+  )
 }
 
 /**
@@ -55,8 +69,7 @@ export function SearcherToolbar({
       <div style={TOOL_ROW_STYLE}>
         <div style={SEARCH_SLOT_STYLE}>{search}</div>
         {inline && (
-          // biome-ignore lint/a11y/useSemanticElements: a fieldset+legend carries min-content sizing quirks in this chip row; role="group" + aria-label conveys the same semantics
-          <div role="group" aria-label={`Filter by ${inline.label}`} style={INLINE_CHIPS_STYLE}>
+          <div style={INLINE_CHIPS_STYLE}>
             <FacetChips row={inline} />
           </div>
         )}

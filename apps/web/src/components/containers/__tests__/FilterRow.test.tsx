@@ -23,13 +23,13 @@ describe('FilterRow', () => {
     expect(screen.getByText('Expansion')).toBeTruthy()
   })
 
-  test('exposes group semantics named after the label', () => {
+  test('names no group of its own: the Segmented inside it is the group (hard rule R29)', () => {
     render(
       <FilterRow label="TL">
         <span>child</span>
       </FilterRow>
     )
-    expect(screen.getByRole('group', { name: 'Filter by TL' })).toBeTruthy()
+    expect(screen.queryByRole('group')).toBeNull()
   })
 
   test('label is the Eyebrow caps label', () => {

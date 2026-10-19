@@ -19,6 +19,7 @@ import {
   HeaderMenu,
   Stat,
   TitledBox,
+  Toggle,
   tokens,
   useDetailModal,
 } from '../../components/index'
@@ -83,15 +84,14 @@ export function PlayNpcBox({
         chips={<Stat label={npc.down ? `${npcKind(npc)} · down` : npcKind(npc)} size="mini" />}
         controls={
           <span style={CONTROLS}>
-            <Button
-              variant={chosen ? 'ink' : 'ghost'}
+            <Toggle
               size="mini"
-              aria-pressed={chosen}
+              pressed={chosen}
               aria-label={`${npc.name}’s actions`}
               onClick={onChoose}
             >
               Actions
-            </Button>
+            </Toggle>
             <HeaderMenu
               variant="overflow"
               label={`More for ${npc.name}`}

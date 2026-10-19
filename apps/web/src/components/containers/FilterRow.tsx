@@ -12,8 +12,8 @@ type FilterRowProps = {
  */
 export function FilterRow({ label, children }: FilterRowProps) {
   return (
-    // biome-ignore lint/a11y/useSemanticElements: a fieldset+legend carries min-content sizing quirks in this chip row; role="group" + aria-label conveys the same semantics
-    <div className="su-filter-row" role="group" aria-label={`Filter by ${label}`}>
+    // The row's options are a `Segmented`, which names the group itself.
+    <div className="su-filter-row">
       {/* The label sits on paper (the EntitySearcher's Filters panel), in ink. */}
       <Eyebrow tone="ink" className="su-filter-row-label">
         {label}

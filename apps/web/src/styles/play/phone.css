@@ -8,12 +8,6 @@
  * `dashboard/phone.css`): every control at least 44×44.
  */
 
-/* The tab row's labels never shrink past reading: the row is the thumb's. */
-.su-play-phone [role='tablist'] > [role='tab'] {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 /*
  * The Situation switch shares the screen's width (`Segmented`'s `fill`), but
  * by what each option says, not in equal thirds: "Downtime 🔒" needs more of

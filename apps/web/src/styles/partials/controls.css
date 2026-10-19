@@ -21,8 +21,7 @@
   border-color: var(--color-ink-50);
 }
 
-.su-tab[data-active],
-.su-tab[aria-pressed='true'] {
+.su-tab[data-active] {
   background-color: var(--color-ink);
   border-color: var(--color-ink);
   color: var(--color-paper);
@@ -494,6 +493,13 @@
 
 .su-seg[data-fill] {
   display: flex;
+}
+
+/* A row of many options (a filter's chips, Play's effects) wraps onto more
+   lines inside its frame rather than scrolling them out of sight (EDL E18). */
+.su-seg[data-wrap] {
+  flex-wrap: wrap;
+  overflow-x: visible;
 }
 .su-seg[data-fill] > .su-seg__option {
   flex: 1 1 0;

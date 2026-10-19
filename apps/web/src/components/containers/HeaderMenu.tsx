@@ -17,8 +17,9 @@ import {
 import { cn } from '../../lib/cn'
 import { buttonVariants } from '../atoms/buttonVariants'
 import { Eyebrow } from '../atoms/Eyebrow'
-import { DISABLED, FOCUS_RING } from '../atoms/interaction'
+import { FOCUS_RING } from '../atoms/interaction'
 import { POPUP_SURFACE } from '../atoms/popupSurface'
+import { SegmentedOption } from '../atoms/Segmented'
 
 /**
  * HeaderMenu — a dropdown menu for the masthead's action slot (`AppBar`'s
@@ -105,7 +106,7 @@ type HeaderMenuProps = {
    * ruleset §4.7). Its glyphs take the same Size (`iconSize`, hard rule R23).
    */
   size?: 'mini' | 'compact'
-  /** The `segment` trigger's `aria-pressed`: its option is the chosen one. */
+  /** The `segment` trigger is pressed (its `SegmentedOption`'s): its option is the chosen one. */
   pressed?: boolean
   /** The trigger opens nothing (a `segment` with nothing to choose). */
   disabled?: boolean
@@ -193,12 +194,13 @@ export function HeaderMenu({
   const filled = sections.filter((section) => section.length > 0)
   const overflow = variant === 'overflow'
   // The button variant is the shared Button's own classes, focus ring included;
-  // the segment variant is `SegmentedOption`'s.
+  // the segment variant IS a `SegmentedOption` (its `render`), so `aria-pressed`
+  // stays Segmented's (hard rule R29).
   const triggerClass =
     variant === 'button'
       ? `${buttonVariants({ size })}${className ? ` ${className}` : ''}`
       : variant === 'segment'
-        ? cn('su-seg__option', FOCUS_RING, DISABLED)
+        ? undefined
         : overflow
           ? overflowTriggerClass(size)
           : `su-header-menu-trigger ${FOCUS_RING}`
@@ -211,8 +213,16 @@ export function HeaderMenu({
         style={triggerStyle}
         aria-label={label}
         aria-current={active ? 'page' : undefined}
-        aria-pressed={variant === 'segment' ? pressed === true : undefined}
         disabled={disabled}
+        render={
+          variant === 'segment'
+            ? ({ className: _className, children, ...props }) => (
+                <SegmentedOption {...props} pressed={pressed === true}>
+                  {children}
+                </SegmentedOption>
+              )
+            : undefined
+        }
       >
         {overflow ? (
           <Ellipsis size={iconSize[size]} aria-hidden="true" />

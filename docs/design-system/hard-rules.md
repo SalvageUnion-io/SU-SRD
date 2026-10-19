@@ -75,7 +75,8 @@ The loop: define it here, land its gate with a baseline, burn the baseline to ze
 - **R28 One focus ring** (K9) — `--focus-ring-shadow` on `:focus-visible`, everywhere.
   Gate: held, `chrome/focus-ring` (zero): a rule on a focused subject (`:focus-visible`, `:focus-within`, a `:has()` of one) sets only `--focus-ring-shadow` and the forced-colors transparent outline; a `:focus` rule paints no indicator of its own. `focusRing.contrast.test.ts` holds the ring at 3:1 on every ground, Play's included.
 - **R29 Tabs, Segmented, Toggle by job** (K10) — and no ellipsized tab label.
-  Gate: planned, `role="tablist"` only in `Tabs`, `aria-pressed` groups only in `Segmented`; e2e over R0: no tab or segment label overflows.
+  Gate: held. `controls/tab-role` and `controls/pressed` (zero, `packages/gates/rules/controls.ts`): `role="tablist"`/`"tab"` only in `Tabs`, `aria-pressed` only in `Segmented` and `Toggle`, bar `ONE_ON_OFF` (a single control another rule owns: the sheet's Mark used, R11; a picker card's select, R15). `tab-labels.e2e.ts` over R0: every shown `Tab`, `SegmentedOption` and Union bar tab holds its whole label (no clip, no "…") inside its row and the viewport; no baseline.
+  By job: Tabs, NpcDesignerPage and Play's phone (labels widen or wrap, never "…"); Segmented, every value (the searcher's facets, Play's effects and tables, `wrap` for many; Situation's Boarded menu is a `SegmentedOption` through HeaderMenu's `render`); Toggle, one on/off (an NPC's Actions, Shut down); the Union bar's Reference | Build | Play is navigation, links with `aria-current`.
 
 ## Measures
 

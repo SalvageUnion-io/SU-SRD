@@ -4,14 +4,19 @@ import { DISABLED, FOCUS_RING } from './interaction'
 
 /**
  * Segmented — two or more `aria-pressed` options joined in one ink-ruled
+ * frame, the one control that sets a value (chrome K10, hard rule R29): one
+ * of them, or a set of them (a filter's chips, a Mech's effects). A row that
+ * switches what a region shows is `Tabs`; one on/off is a `Toggle`. Its
  * frame, the pressed one the inverse plate: ink with paper text on paper, paper
  * with ink text on an ink ground (a state, never rust: ruleset §3.1). The
  * ground is the frame's `data-ground` (chrome K1), read in CSS: no prop.
  *
  * One control, one look, in both apps: a sheet's Read | Edit, Shelves'
  * Everything | Unassigned, a Game's Pilots | Mechs | Crawlers on a phone, a
- * hold's Cargo | Scrap, and the SRD rail's View, Tech Level and Type. Before it
- * each was built on its own, five ways.
+ * hold's Cargo | Scrap, the SRD rail's View, Tech Level and Type, a picker's
+ * filters and Play's effects and tables. Before it each was built on its own,
+ * five ways. No option's label is cut to "…" (EDL E18): a long row wraps
+ * (`wrap`) or scrolls, never ellipsizes.
  *
  * A `fieldset` named by a visually hidden `legend`, so a screen reader hears
  * the group's name before its options. Every colour changes on hover or press,
@@ -25,6 +30,8 @@ export function Segmented({
   children,
   size = 'full',
   fill = false,
+  wrap = false,
+  id,
   className,
   style,
 }: {
@@ -36,6 +43,10 @@ export function Segmented({
   size?: 'full' | 'compact'
   /** The options share the row's width (a phone's segment switch). */
   fill?: boolean
+  /** The options wrap onto more lines, for a row of many (a filter's chips). */
+  wrap?: boolean
+  /** For a control that points at the group (`aria-controls`). */
+  id?: string
   className?: string
   /** Geometry over the default; never a colour. */
   style?: CSSProperties
@@ -45,6 +56,8 @@ export function Segmented({
       className={className ? `su-seg ${className}` : 'su-seg'}
       data-size={size}
       data-fill={fill || undefined}
+      data-wrap={wrap || undefined}
+      id={id}
       style={style}
     >
       <legend className="su-sr-only">{label}</legend>

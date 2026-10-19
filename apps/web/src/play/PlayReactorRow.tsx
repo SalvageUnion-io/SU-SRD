@@ -24,7 +24,7 @@ import {
   resolveGauge,
   resolvePoolStart,
 } from 'salvageunion-reference/rules'
-import { Button, TitledBox } from '../components/index'
+import { Button, TitledBox, Toggle } from '../components/index'
 import {
   describeHeatCheck,
   heatCheckOncePatch,
@@ -154,9 +154,9 @@ export function PlayReactorRow({ mech, store, rollFor, need, canWrite }: PlayRea
       <Button size="mini" onClick={doVent} disabled={off}>
         Vent
       </Button>
-      <Button size="mini" onClick={doShutdown} disabled={off} aria-pressed={now.shutdown === true}>
+      <Toggle size="mini" onClick={doShutdown} disabled={off} pressed={now.shutdown === true}>
         {now.shutdown === true ? 'Restart' : 'Shut down'}
-      </Button>
+      </Toggle>
     </span>
   )
 

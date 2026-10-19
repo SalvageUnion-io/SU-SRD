@@ -19,9 +19,26 @@
  * `zero`. A glyph handed on as a component (`icon: ChevronDown`) is checked
  * where it is drawn only when that file imports it; the drawing component
  * passes `iconSize` itself.
+ *
+ * ## Tabs, Segmented, Toggle by job (hard rule R29, chrome K10)
+ *
+ * `Tabs` switch what a region shows, `Segmented` sets a value, `Toggle` is one
+ * on/off. Six controls overlapped before this: Tabs, a Tab-look `Toggle` in a
+ * `ToggleGroup`, Segmented, HeaderMenu's own `aria-pressed` segment, the
+ * searcher's `aria-pressed` Badge pills and hand-made pressed buttons, so a
+ * reader met the same job drawn three ways.
+ *
+ * - `tab-role`: `role="tablist"` or `role="tab"` only in `Tabs` (Base UI's).
+ * - `pressed`: `aria-pressed` only in `Segmented` (the options of a value) and
+ *   `Toggle` (one on/off), bar `ONE_ON_OFF`: each a single control's pressed
+ *   state that another rule owns (a picker card's select is R15's).
+ *
+ * Both `zero`, read from the AST, so a comment may name what it bans. The
+ * Union bar's Reference | Build | Play is navigation (links, `aria-current`),
+ * neither.
  */
 
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { parseSync } from 'oxc-parser'
 import type { Finding, Rule, RuleSet } from '../lib/ruleEngine'
@@ -148,6 +165,94 @@ function scanIconSize(root: string): Finding[] {
   return out
 }
 
+/** The one home of each switching role. */
+const TABS_HOME = 'apps/web/src/components/atoms/Tabs.tsx'
+const PRESSED_HOMES = new Set([
+  'apps/web/src/components/atoms/Segmented.tsx',
+  'apps/web/src/components/atoms/Toggle.tsx',
+])
+
+/**
+ * A single control's own pressed state, each with the rule that owns it: not
+ * a group of options, so not Segmented's, and drawn in another look than
+ * `Toggle`'s for a reason written here. Delete an entry when its owner lands:
+ * an entry whose file sets no `aria-pressed` any more is itself a finding.
+ */
+export const ONE_ON_OFF: Record<string, string> = {
+  'apps/web/src/build/sheet/UsedToggle.tsx':
+    "Mark used: a pencil one on/off (dashed means editable), the sheet's (R11)",
+  'apps/web/src/components/containers/Sel.tsx': "a selectable card's select state (R15)",
+  'apps/web/src/components/referenceEntity/card/cardChrome.ts':
+    "a reference card's select toggle (R15)",
+  'apps/web/src/components/referenceEntity/choiceCard/ChoiceGroups.tsx':
+    "a choice card's chosen state (R15)",
+}
+
+/** Every JSX attribute or object key `name` in one file, with its value's source. */
+function attributes(source: string, program: unknown, name: string) {
+  const out: { line: number; value: string }[] = []
+  for (const n of nodes(program)) {
+    const isAttr = n.type === 'JSXAttribute' && isNode(n.name) && n.name.name === name
+    const isKey =
+      n.type === 'Property' &&
+      isNode(n.key) &&
+      (n.key.value === name || (n.key.type === 'Identifier' && n.key.name === name))
+    if (!isAttr && !isKey) continue
+    const value = n.value as Node | null
+    out.push({
+      line: lineOf(source, n.start ?? 0),
+      value: value ? source.slice(value.start ?? 0, value.end ?? 0) : '',
+    })
+  }
+  return out
+}
+
+type SwitchingFindings = { 'tab-role': Finding[]; pressed: Finding[] }
+
+const TAB_ROLE = /^\{?\s*["'`]tab(?:list)?["'`]\s*\}?$/
+
+/** `role="tablist"` / `role="tab"` outside Tabs, and `aria-pressed` outside its homes. Pure. */
+export function switchingFindings(file: string, source: string): SwitchingFindings {
+  const found: SwitchingFindings = { 'tab-role': [], pressed: [] }
+  if (!/role|aria-pressed/.test(source)) return found
+  const program = parseSync(file, source).program
+  if (file !== TABS_HOME) {
+    for (const { line, value } of attributes(source, program, 'role')) {
+      if (TAB_ROLE.test(value)) {
+        found['tab-role'].push({ file, line, detail: `role=${value}: a tab row is Tabs` })
+      }
+    }
+  }
+  if (!PRESSED_HOMES.has(file) && !(file in ONE_ON_OFF)) {
+    for (const { line, value } of attributes(source, program, 'aria-pressed')) {
+      found.pressed.push({ file, line, detail: `aria-pressed=${value}` })
+    }
+  }
+  return found
+}
+
+function scanSwitching(root: string): SwitchingFindings {
+  const out: SwitchingFindings = { 'tab-role': [], pressed: [] }
+  for (const rel of listFiles(root, [SRC], ['.ts', '.tsx'])) {
+    if (isTest(rel)) continue
+    const found = switchingFindings(rel, readFileSync(join(root, rel), 'utf8'))
+    out['tab-role'].push(...found['tab-role'])
+    out.pressed.push(...found.pressed)
+  }
+  for (const file of Object.keys(ONE_ON_OFF)) {
+    const path = join(root, file)
+    const source = existsSync(path) ? readFileSync(path, 'utf8') : ''
+    if (attributes(source, parseSync(file, source).program, 'aria-pressed').length === 0) {
+      out.pressed.push({
+        file,
+        line: 1,
+        detail: 'a stale ONE_ON_OFF entry: it sets no aria-pressed',
+      })
+    }
+  }
+  return out
+}
+
 type ControlRule = Rule & { scan: (root: string) => Finding[] }
 
 const RULES: ControlRule[] = [
@@ -158,13 +263,27 @@ const RULES: ControlRule[] = [
     fix: 'Pass `size={iconSize.mini|compact|full}` (`tokens.iconSize` through the components index), the Size of the line the glyph sits on, and drop `strokeWidth`, `width`, `height` and any style-object width.',
     scan: scanIconSize,
   },
+  {
+    id: 'tab-role',
+    mode: 'zero',
+    rule: 'hard rule R29 (chrome K10) — a row of tabs switches what a region shows, and is `Tabs`: `role="tablist"` and `role="tab"` live only in Tabs.tsx',
+    fix: 'Compose `Tabs` › `TabList` › `Tab`, one `TabPanel` per tab. If the row sets a value rather than switching a region, it is a `Segmented`.',
+    scan: (root) => scanSwitching(root)['tab-role'],
+  },
+  {
+    id: 'pressed',
+    mode: 'zero',
+    rule: 'hard rule R29 (chrome K10) — `aria-pressed` lives only in `Segmented` (options that set a value) and `Toggle` (one on/off)',
+    fix: 'A row of options is `Segmented` › `SegmentedOption` (`wrap` for many); one on/off is `Toggle`. A single control another rule owns goes in ONE_ON_OFF (packages/gates/rules/controls.ts) with that rule named.',
+    scan: (root) => scanSwitching(root).pressed,
+  },
 ]
 
 export const controlLaws: RuleSet = {
   id: 'controls',
   label: 'control laws',
   rules: RULES,
-  exemptionsLive: 'packages/gates/rules/controls.ts',
+  exemptionsLive: 'packages/gates/rules/controls.ts (ONE_ON_OFF)',
   preflight(root) {
     // A catastrophe floor far below today's ~30 files that draw a lucide glyph.
     const drawing = listFiles(root, [SRC], ['.tsx']).filter((rel) =>
