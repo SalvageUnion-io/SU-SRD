@@ -245,31 +245,6 @@
   justify-content: flex-end;
 }
 
-/* An action in a chip group (C8: a Row's Use, a "⋯", a host's group of
-   them) at the strip's Size is a Mini button DRAWN exactly a chip's height
-   (C1a: one height, one centre line) in a 24px target (WCAG 2.2, 2.5.8), as
-   a linked chip is (`.su-chip-link`): a transparent border round it takes the
-   difference, its fill is clipped to the 18px plate inside, and an outlined
-   button's 1px frame is an outline drawn on that plate's edge. Its hit area
-   grows under a coarse pointer, never its box. */
-.su-chips > .su-chip-lane > .su-btn.su-btn--mini,
-.su-chips > .su-chip-lane > * > .su-btn.su-btn--mini {
-  --su-mini-inset: calc((var(--space-24) - var(--size-mini)) / 2);
-
-  background-clip: padding-box;
-  border-color: transparent;
-  border-width: var(--su-mini-inset);
-  box-sizing: border-box;
-  height: var(--space-24);
-  min-height: 0;
-}
-
-.su-chips > .su-chip-lane > :is(.su-btn--default, .su-btn--ghost).su-btn.su-btn--mini,
-.su-chips > .su-chip-lane > * > :is(.su-btn--default, .su-btn--ghost).su-btn.su-btn--mini {
-  outline: var(--bw-hairline) solid currentcolor;
-  outline-offset: calc(-1 * (var(--su-mini-inset) + var(--bw-hairline)));
-}
-
 /* A head with chips (`Head`'s `chips`): the name and the chip group share a
    wrapping heading, as a card's band does (`.su-ec-band__heading`): the name
    keeps its one-line width and grows, the chips sit right of it while they
@@ -1526,4 +1501,30 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   .su-entity-token-line > .su-entity-token {
     flex-basis: 12rem;
   }
+}
+
+/* An action in a chip group (C8: a Row's Use, a "⋯", a host's group of
+   them) at the strip's Size is a Mini button DRAWN exactly a chip's height
+   (C1a: one height, one centre line) in a 24px target (WCAG 2.2, 2.5.8), as
+   a linked chip is (`.su-chip-link`): a transparent border round it takes the
+   difference, its fill is clipped to the 18px plate inside, and an outlined
+   button's 1px frame is an outline drawn on that plate's edge. Its hit area
+   grows under a coarse pointer, never its box. Last in the file, so it beats
+   the grounds' border colours above (an ink band's, the strip under a name). */
+.su-chips > .su-chip-lane > .su-btn.su-btn--mini,
+.su-chips > .su-chip-lane > * > .su-btn.su-btn--mini {
+  --su-mini-inset: calc((var(--space-24) - var(--size-mini)) / 2);
+
+  background-clip: padding-box;
+  border-color: transparent;
+  border-width: var(--su-mini-inset);
+  box-sizing: border-box;
+  height: var(--space-24);
+  min-height: 0;
+}
+
+.su-chips > .su-chip-lane > :is(.su-btn--default, .su-btn--ghost).su-btn.su-btn--mini,
+.su-chips > .su-chip-lane > * > :is(.su-btn--default, .su-btn--ghost).su-btn.su-btn--mini {
+  outline: var(--bw-hairline) solid currentcolor;
+  outline-offset: calc(-1 * (var(--su-mini-inset) + var(--bw-hairline)));
 }
