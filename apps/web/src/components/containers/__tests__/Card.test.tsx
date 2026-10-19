@@ -62,6 +62,24 @@ describe('Card', () => {
     expect(screen.getByText('CHASSIS')).toBeTruthy()
   })
 
+  for (const size of [undefined, 'compact'] as const) {
+    test(`a ${size ?? 'non-compact'} callout rides the seam, never a margin (§7.2, R31)`, () => {
+      render(
+        <Card
+          headerBgColor="var(--color-mech)"
+          headerContent={<span>Header</span>}
+          label="CHASSIS"
+          size={size}
+        >
+          <p>Body</p>
+        </Card>
+      )
+      const row = screen.getByText('CHASSIS').closest('.su-stamp-seam') as HTMLElement
+      expect(row).toBeTruthy()
+      expect(row.style.marginTop).toBe('')
+    })
+  }
+
   test('non-compact card WITH a callout top-aligns the header row and pads it', () => {
     render(
       <Card headerBgColor="var(--color-mech)" headerContent={<span>Header</span>} label="CHASSIS">

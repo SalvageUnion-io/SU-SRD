@@ -4,6 +4,7 @@ import { color, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { Badge } from '../atoms/Badge'
 import { capsLabel } from '../atoms/capsLabel'
+import { STAMP_SEAM } from '../atoms/stampSeam'
 import { accentDeepColor, textBand } from '../referenceEntity/referenceEntityHelpers'
 import type { CardExtent, CardSize } from './displayMode'
 import { displayBooleans, resolveCardDisplay } from './displayMode'
@@ -61,9 +62,11 @@ type CardProps = {
   subHeader?: ReactNode
 }
 
-/** The label stamp riding the top border. */
+/**
+ * The label stamp riding the top border (`STAMP_SEAM`, §7.2), at every
+ * density: centred on the frame's line by its own height, never a margin.
+ */
 const CALLOUT_ROW = {
-  position: 'absolute',
   // Local stacking (0–3, chrome K4): over the frame it rides and any seam stamp.
   zIndex: 3,
   marginLeft: space[12],
@@ -176,10 +179,10 @@ export function Card({
     >
       {hasCallout && (
         <div
-          style={{
-            ...CALLOUT_ROW,
-            ...(isCompact ? { top: 0, translate: '0 -50%' } : { marginTop: `-${space[8]}` }),
-          }}
+          className={STAMP_SEAM}
+          // The seam's `top: 0` is the padding edge; half the frame up is its
+          // centre line, which the stamp straddles (R31).
+          style={{ ...CALLOUT_ROW, top: `calc(${borderWidth} / -2)` }}
         >
           {/* The seam stamp is ALWAYS the small (compact) size so it reads as a
               tag riding the border, subordinate to the header — never card
