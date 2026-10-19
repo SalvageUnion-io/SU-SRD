@@ -147,7 +147,7 @@ type LiveSheetProps = {
   quoted?: boolean
 }
 
-/** Sticky bar height — the IntersectionObserver top inset (design: 58/66px). */
+/** Sticky bar height (design: 58/66px). */
 const BAR_HEIGHT_PX = 58
 
 const ROOT = { background: 'var(--color-wk-bg)', minHeight: '100vh' } satisfies CSSProperties
@@ -264,7 +264,7 @@ const OUT_NOTE = {
 } satisfies CSSProperties
 
 /**
- * True once `target` has scrolled behind the sticky bar. Plain threshold
+ * True once `target` has scrolled out of the viewport's top. Plain threshold
  * observer per S11; environments without IntersectionObserver (happy-dom,
  * very old browsers) simply never condense.
  */
@@ -279,7 +279,12 @@ function useCondensed(target: RefObject<HTMLElement | null>): boolean {
         const entry = entries[entries.length - 1]
         if (entry) setCondensed(!entry.isIntersecting)
       },
-      { rootMargin: `-${BAR_HEIGHT_PX}px 0px 0px 0px`, threshold: 0 }
+      // No top inset: the sentinel sits under the Union bar, which is not
+      // sticky, so at rest it is the bar's height from the viewport's top. An
+      // inset of the sheet bar's own height (58px) took a 56px Union bar's
+      // sentinel for scrolled away, and condensed the bar over the band's
+      // corner at rest.
+      { rootMargin: '0px', threshold: 0 }
     )
     observer.observe(el)
     return () => observer.disconnect()
