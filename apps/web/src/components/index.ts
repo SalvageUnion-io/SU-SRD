@@ -266,8 +266,6 @@ export type { EntityMode, EntityRowModel } from './entity/types'
 export { InlineMarkdown } from './markdownSection/InlineMarkdown'
 export { MarkdownSection } from './markdownSection/MarkdownSection'
 export { Content } from './referenceEntity/Content'
-// DamagedEffectCallout — a crawler bay's WHEN DAMAGED box, on the SRD card and the live sheet.
-export { DamagedEffectCallout } from './referenceEntity/card/DamagedEffectCallout'
 // The band line a Page carries right of its title (EDL E20): the SRD's entity
 // pages and the app's detail dialog.
 export { EntityPageStamps } from './referenceEntity/card/EntityPageStamps'
@@ -283,6 +281,9 @@ export { ReferenceEntityCard } from './referenceEntity/card/ReferenceEntityCard'
 // UserMadeStamp — the dashed User-made stamp (ruleset §3.9). The card wears it
 // in its head's labels; a full user-made page leads its title with it.
 export { UserMadeStamp } from './referenceEntity/card/UserMadeStamp'
+// WhenDamaged — a crawler bay's WHEN DAMAGED block, one renderer on the Page, the card and the live sheet (R18).
+export { WhenDamaged } from './referenceEntity/card/WhenDamaged'
+export { damagedEffectOf } from './referenceEntity/card/whenDamaged.model'
 // Interactive choice cards (granted-equipment choices)
 export type { ChoiceSelections } from './referenceEntity/choiceCard/choiceSelectionHelpers'
 export type {

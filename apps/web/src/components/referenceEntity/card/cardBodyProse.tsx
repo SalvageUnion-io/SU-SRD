@@ -42,6 +42,7 @@ import type {
   ReferenceEntityCardProps,
 } from './referenceEntityCardTypes'
 import { resolveGuideLead } from './resolveGuideLead'
+import { damagedEffectOf } from './whenDamaged.model'
 
 /** What the inner card resolved above its head-form return, as the body needs it. */
 export type CardBodyInput = Pick<
@@ -142,11 +143,8 @@ export function resolveBodyProse(input: CardBodyInput) {
       ? entity.content
       : undefined
   // The crawler-bay damaged-effect string also appears as the last content
-  // paragraph; it renders in the "WHEN DAMAGED" callout instead.
-  const damagedEffect =
-    'damagedEffect' in entity && typeof entity.damagedEffect === 'string'
-      ? entity.damagedEffect
-      : undefined
+  // paragraph; it renders in its WHEN DAMAGED block instead (`WhenDamaged`).
+  const damagedEffect = damagedEffectOf(entity)
   // A granted entity's SHORT-FORM lead sentence is already shown by the
   // containing ability.
   const isGrantContext = parentSeal?.label === 'Grants'

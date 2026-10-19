@@ -26,6 +26,7 @@
  *     (`NestedCards.tsx`: `InlineActions`, `NestedCardList`, `DroneCards`)
  *     draws a nested Card only for a Page's children (level 1); below it, a
  *     Token.
+ *   - **R18** (`named-block`, `namedBlocks.ts`) — a named block's field is its model's.
  *
  * ## Level 1 is spelled `onPage`
  *
@@ -69,6 +70,7 @@ import type { Exemption, Finding, Rule, RuleSet } from '../lib/ruleEngine'
 import { isExempt, listFiles } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
 import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
+import { NAMED_BLOCKS, scanNamedBlocks } from './namedBlocks'
 
 const SRC = 'apps/web/src'
 const COMPONENTS = `${SRC}/components`
@@ -516,7 +518,7 @@ function scanNestedCardLevel(c: Corpus, known: TitledComponents): Finding[] {
 
 // ── rule table ──────────────────────────────────────────────────────────────
 
-type NestingRule = Rule & { scan: (c: Corpus, known: TitledComponents) => Finding[] }
+type NestingRule = Rule & { scan: (c: Corpus, k: TitledComponents, root: string) => Finding[] }
 
 const RULES: NestingRule[] = [
   {
@@ -540,6 +542,13 @@ const RULES: NestingRule[] = [
     fix: 'Follow N3: below level 1 a nested action or entity is a (contentful) Token. Return the Tokens first (`if (nestsTokens(host)) return …`) and draw the NestedCard only after, for a Page.',
     scan: scanNestedCardLevel,
   },
+  {
+    id: 'named-block',
+    mode: 'zero',
+    rule: "hard rule R18 (EDL E15): a named rules block (When Damaged) renders through one component; only it reads the block's field",
+    fix: "Follow R18: draw the block through its renderer (`WhenDamaged`), and where the text is needed for anything else (a prose filter), ask the renderer's module for it (`damagedEffectOf`) instead of reading the field.",
+    scan: (_c, _known, root) => scanNamedBlocks(root, EXEMPTIONS),
+  },
 ]
 
 // ── preconditions ───────────────────────────────────────────────────────────
@@ -554,6 +563,9 @@ function preflight(root: string): void {
   // those rules scanning nothing.
   assertScanFloor('entity-nesting (the card adapter)', files.includes(ADAPTER) ? 1 : 0, 1)
   assertScanFloor('entity-nesting (the nested groups)', files.includes(NESTED_GROUPS) ? 1 : 0, 1)
+  // Each named block's renderer: a rename would leave its field unguarded.
+  const models = listFiles(root, [SRC], ['.ts'])
+  for (const { reader } of NAMED_BLOCKS) assertScanFloor(reader, models.includes(reader) ? 1 : 0, 1)
   // Entity components exist in one workspace; every other one says why not
   // (packages/gates/lib/workspaceCoverage.ts).
   assertCoversWorkspaces('entity nesting', [SRC], {
@@ -577,7 +589,7 @@ export const entityNesting: RuleSet = {
     const c = corpus(root)
     const known = titledComponents(c)
     const out: Record<string, Finding[]> = {}
-    for (const rule of RULES) out[rule.id] = rule.scan(c, known)
+    for (const rule of RULES) out[rule.id] = rule.scan(c, known, root)
     return out
   },
   summary: (root) => {

@@ -16,12 +16,12 @@ import { resolveBodyLayout } from './bodyBlocks'
 import { CardProse, FoldedActionProse, PatternProse } from './CardProse'
 import { CardRollTable } from './CardRollTable'
 import type { BodyProse, CardBodyInput } from './cardBodyProse'
-import { DamagedEffectCallout } from './DamagedEffectCallout'
 import { GuideSteps } from './GuideSteps'
 import { LEGAL_STARTING_PATTERN_NOTE } from './legalStartingPattern'
 import { DroneCards, EmbeddedNpcTokens, InlineActions, NestedCardGroup } from './NestedCards'
 import { PatternSection } from './PatternSection'
 import { resolveGuideSteps } from './resolveGuideSteps'
+import { WhenDamaged } from './WhenDamaged'
 
 /** The body box's padding by size (board E1): tight on top under a "//" line. */
 const BODY_PAD: Record<CardSize, { ruled: string; open: string }> = {
@@ -219,7 +219,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
           />
         )}
       {!hide?.damagedEffect && damagedEffect && (
-        <DamagedEffectCallout effect={damagedEffect} onPage={onPage} />
+        <WhenDamaged effect={damagedEffect} onPage={onPage} />
       )}
       {/* On a page the steps stand as a page section (`CardPage`'s `guide`). */}
       {!onPage && guideStepsNode}

@@ -269,6 +269,36 @@ describe('nested-card-level (N3)', () => {
   })
 })
 
+describe('named-block (R18)', () => {
+  const RENDERER = `${CARD}/whenDamaged.model.ts`
+  const renderer = 'export const damagedEffectOf = (e) => e.damagedEffect\n'
+
+  test("a module other than the block's renderer reading its field fails", () => {
+    expect(
+      found('named-block', {
+        [RENDERER]: renderer,
+        [`${CARD}/cardBodyProse.tsx`]:
+          "const a = 'damagedEffect' in entity ? entity.damagedEffect : undefined\n",
+        'apps/web/src/build/sheet/Bay.ts': 'export const t = (bay as any)?.damagedEffect\n',
+      })
+    ).toEqual([
+      "apps/web/src/build/sheet/Bay.ts:1 reads `damagedEffect` off an entity outside its block's model (whenDamaged.model.ts)",
+      `${CARD}/cardBodyProse.tsx:1 reads \`damagedEffect\` off an entity outside its block's model (whenDamaged.model.ts)`,
+    ])
+  })
+
+  test('the renderer, a hide flag, a key, a comment and a test pass', () => {
+    expect(
+      found('named-block', {
+        [RENDERER]: renderer,
+        [`${CARD}/cardSections.tsx`]:
+          'const show = !hide?.damagedEffect && !!damagedEffectOf(entity)\nconst HIDE = { damagedEffect: true }\n// reads entity.damagedEffect\n',
+        [`${CARD}/__tests__/a.test.ts`]: 'expect(bay.damagedEffect).toBe(1)\n',
+      })
+    ).toEqual([])
+  })
+})
+
 describe('the corpus', () => {
   test('tests are not components; the summary counts both trees', () => {
     const root = fixture({

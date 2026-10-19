@@ -1,13 +1,17 @@
 import { Fragment } from 'react'
 import type { StaticEntitySummary } from 'salvageunion-reference'
-import { InlineRef, mentionRef, Slab } from '../components/index'
+import { formatProvenance } from 'salvageunion-reference'
+import { InlineRef, mentionRef, RollTableInstrument, Slab, Stat } from '../components/index'
 import { MentionProse } from '../components/MentionProse'
 import { refText } from '../lib/rollTablePage'
 
 /**
- * StaticEntityContent — the SSR / no-JS entity fallback. Renders a plain,
+ * StaticEntityContent — the SSR / no-JS entity fallback. Renders a
  * crawler-friendly summary of an entity (name, description, stats, content,
- * traits, source). On the static site the island supplies the real display:
+ * traits, cite) through the blocks every other context draws (hard rule R18):
+ * each stat a `Stat` (`STRUCTURE POINTS | 14`), a roll table the
+ * `RollTableInstrument` with its plain ROLL THE DIE: stamp, the cite the foot's
+ * text (`Workshop Manual · p.112`). On the static site the island supplies the real display:
  * every reader sees this `data-static-fallback` block until the card can draw,
  * and `ReferenceEntityIsland` removes it in the same commit that puts the card
  * on screen, so the two never double up and nothing blank or skeletal stands
@@ -32,6 +36,8 @@ type StaticEntityContentProps = {
 }
 
 export function StaticEntityContent({ summary, parent }: StaticEntityContentProps) {
+  // The foot's cite, as every card and Page prints it.
+  const cite = formatProvenance(summary.source, undefined, summary.page)
   return (
     <div data-static-fallback className="su-static">
       {/* No heading of its own: the page's chapter band is its <h1>, for
@@ -50,14 +56,11 @@ export function StaticEntityContent({ summary, parent }: StaticEntityContentProp
       )}
 
       {summary.stats.length > 0 && (
-        <dl className="su-static__stats">
+        <div className="su-static__stats">
           {summary.stats.map(({ label, value }) => (
-            <Fragment key={label}>
-              <dt className="su-static__label">{label}</dt>
-              <dd>{value}</dd>
-            </Fragment>
+            <Stat key={label} orientation="horizontal" label={label} value={value} />
           ))}
-        </dl>
+        </div>
       )}
 
       {summary.contentParagraphs.map((p) => (
@@ -67,41 +70,24 @@ export function StaticEntityContent({ summary, parent }: StaticEntityContentProp
       ))}
 
       {/*
-        A roll table's rows, as a REAL table.
-
-        Drawn in the static HTML, so a crawler, reader mode, or an LLM following
-        `llms.txt` sees the outcomes without JavaScript; island props alone would
-        draw nothing.
-
-        `<th scope="row">` on the roll, not a `<td>`: the roll IS the row's
-        header, which is what lets a screen reader announce "11-19" with each
-        outcome instead of reading a wall of anonymous cells. The `<caption>`
-        names the table for the same reason — it is skipped visually but it is
-        what a rotor listing reads.
+        A roll table's rows, as the roll instrument draws them everywhere (E14),
+        open, with the plain ROLL THE DIE: stamp (no roll in static HTML). Drawn
+        in the static HTML, so a crawler, reader mode, or an LLM following
+        `llms.txt` sees the outcomes without JavaScript.
       */}
       {summary.table.length > 0 && (
-        <div className="su-static__table-wrap">
-          <table className="su-static__table">
-            <caption className="su-sr-only">{`${summary.name} roll table`}</caption>
-            <thead>
-              <tr>
-                <th scope="col">Roll</th>
-                <th scope="col">Outcome</th>
-              </tr>
-            </thead>
-            <tbody>
-              {summary.table.map((row) => (
-                <tr key={row.key}>
-                  <th scope="row">{row.key}</th>
-                  <td>
-                    {row.label && <strong>{row.label}: </strong>}
-                    <Prose text={row.value} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <RollTableInstrument
+          name={`${summary.name} roll table`}
+          size="full"
+          table={{
+            kind: 'bands',
+            rows: summary.table.map((row) => ({
+              key: row.key,
+              label: row.label ?? null,
+              value: <Prose text={row.value} />,
+            })),
+          }}
+        />
       )}
 
       {/* Named sections (a guide's steps; a pattern's base chassis) — most of a
@@ -131,12 +117,7 @@ export function StaticEntityContent({ summary, parent }: StaticEntityContentProp
         </p>
       )}
 
-      {summary.source && (
-        <p className="su-static__source">
-          Source: {summary.source}
-          {summary.page ? `, p. ${summary.page}` : ''}
-        </p>
-      )}
+      {cite && <p className="su-static__source">{cite}</p>}
     </div>
   )
 }

@@ -279,35 +279,29 @@
   max-width: var(--su-guide-prose);
 }
 
-/* The aside (`GuideAside`): a tip or a worked example, framed on paper in
- * chrome-weight ink, as the srd's other asides are — a frame,
- * never a left rail (ruleset §3.10). */
-.su-guide__aside {
-  background-color: var(--color-paper);
-  border: var(--bw-chrome) solid var(--color-ink);
-  border-radius: var(--radius-card);
-  color: var(--color-ink);
-  padding: var(--space-12) var(--space-16);
-}
-
-.su-guide__aside > p {
+/* The aside (`GuideAside`): the unlabelled `Callout`, whose frame and paper
+ * body are the Box's; its paragraph sets the guide's reading measure. */
+.su-guide__aside p {
   margin: 0;
   text-wrap: pretty;
 }
 
 /* A stamped aside (a hint with a `label`, "Note"): the stamp rides the frame's
- * top border (`.su-stamp-seam`), inset from its corner, with room above for it. */
+ * top border (`.su-stamp-seam`), inset from its corner, with room for it. */
 .su-guide__aside--stamped {
   margin-top: var(--space-8);
-  padding-top: var(--space-16);
   position: relative;
+}
+
+.su-guide__aside--stamped .su-box__body {
+  padding-top: var(--space-16);
 }
 
 .su-guide__aside-stamp {
   left: var(--space-12);
 }
 
-.su-guide__aside--flavor > p {
+.su-guide__aside--flavor p {
   font-style: italic;
 }
 

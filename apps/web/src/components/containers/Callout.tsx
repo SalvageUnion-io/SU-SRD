@@ -35,6 +35,10 @@ type CalloutProps = {
   /** Body content — a paper panel under the header. */
   children?: ReactNode
   className?: string
+  /** A role on the root (`note`: a note in a page's `main`, never an `<aside>` landmark). */
+  role?: string
+  /** Its body takes its context's type (a guide's reading size), not the note size. */
+  prose?: boolean
 }
 
 /** The paper body: the box pads it. */
@@ -54,21 +58,33 @@ const NOTE_BODY = {
  * one it is the bare `Box`, framed in the accent. The accent is a closed `tone` set,
  * never a raw CSS colour, so a callout cannot drift off the colour system.
  */
-export function Callout({ label, tone = 'ink', children, className }: CalloutProps) {
+export function Callout({
+  label,
+  tone = 'ink',
+  children,
+  className,
+  role,
+  prose = false,
+}: CalloutProps) {
   if (label) {
     return (
       <TitledBox
         title={label}
         tone={CALLOUT_BAND[tone]}
         className={className}
-        bodyStyle={NOTE_BODY}
+        bodyStyle={prose ? undefined : NOTE_BODY}
       >
         {children}
       </TitledBox>
     )
   }
   return (
-    <Box frameColor={CALLOUT_ACCENT[tone]} className={className} bodyStyle={NOTE_BODY}>
+    <Box
+      frameColor={CALLOUT_ACCENT[tone]}
+      className={className}
+      role={role}
+      bodyStyle={prose ? undefined : NOTE_BODY}
+    >
       {children}
     </Box>
   )

@@ -9,13 +9,14 @@ import type { CSSProperties, ReactNode } from 'react'
 import type { RefEntity, RefMetaEntity } from 'salvageunion-reference'
 import type { CardFootMeta, ChoiceSelections, ReferenceEntityControl } from '../../components/index'
 import {
-  DamagedEffectCallout,
+  damagedEffectOf,
   embeddedPeekAddress,
   foldControl,
   ReferenceEntityCard,
   tokens,
   useDetailModal,
   useDisclosure,
+  WhenDamaged,
 } from '../../components/index'
 import { useEntityChoices } from '../../components/shared/useEntityChoices'
 import { findNpcChoiceByName, resolveCrawlerBay } from '../../lib/crawlerRefs'
@@ -357,10 +358,7 @@ export function CrawlerBayCard({
   // "when damaged" clause (see WHEN_DAMAGED): its section says it once.
   const { normal: bayRules } = splitBayContent(bay.content)
   const normal = folded ? foldedBayContent(bayRules, crawlerTl) : bayRules
-  const damagedText =
-    typeof (bay as { damagedEffect?: unknown }).damagedEffect === 'string'
-      ? (bay as { damagedEffect: string }).damagedEffect
-      : ''
+  const damagedText = damagedEffectOf(bay) ?? ''
   const cardData = { ...bay, npc: undefined, content: normal } as unknown as RefEntity
 
   return (
@@ -393,7 +391,7 @@ export function CrawlerBayCard({
               {/* The damaged clause, as the SRD card draws it: the card itself
                   is greyed by its `damaged` status, and this is the one thing
                   the reader needs off it while it is in that state. */}
-              <DamagedEffectCallout effect={damagedText} />
+              <WhenDamaged effect={damagedText} />
               {crew}
             </div>
           ) : contents ? (

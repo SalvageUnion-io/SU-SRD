@@ -276,8 +276,8 @@ a.su-home__discord:hover {
 }
 
 /*
- * The SEO / no-JS entity fallback (`StaticEntityContent`): plain reading
- * prose, a label/value stat list, a real roll table and named sections. Its
+ * The SEO / no-JS entity fallback (`StaticEntityContent`): reading prose,
+ * `Stat` chips, the roll instrument and named sections (R18). Its
  * references are src/components `InlineRef`s.
  */
 .su-static {
@@ -298,37 +298,9 @@ a.su-home__discord:hover {
 }
 
 .su-static__stats {
-  display: grid;
-  gap: var(--space-4) var(--space-16);
-  grid-template-columns: auto 1fr;
-}
-
-.su-static__table-wrap {
-  overflow-x: auto;
-}
-
-.su-static__table {
-  border-collapse: collapse;
-  text-align: left;
-  width: 100%;
-}
-
-.su-static__table th,
-.su-static__table td {
-  border-bottom: var(--bw-hairline) solid var(--color-ink-20);
-  padding: var(--space-4) var(--space-8);
-  vertical-align: top;
-}
-
-.su-static__table thead th {
-  border-bottom: var(--bw-chrome) solid var(--color-ink);
-  font-family: var(--font-cond);
-  text-transform: uppercase;
-}
-
-.su-static__table tbody th {
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
 }
 
 .su-static__section {

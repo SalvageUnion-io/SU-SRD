@@ -291,17 +291,17 @@ describe('the card as a page', () => {
     expect(screen.queryByRole('heading', { name: `${npc} (NPC)` })).toBeNull()
   })
 
-  test('"When damaged" is a titled box: the label on its cut-out, the effect below', () => {
+  test('"When damaged" is the one block (R18): its Slab over the effect, as in a card', () => {
     const bay = need(SalvageUnionReference.CrawlerBays.getByName('Cantina'), 'cantina')
     const { container } = render(<ReferenceEntityCard data={bay} presentation="page" />)
-    const notch = need(
-      Array.from(container.querySelectorAll('.su-box .su-entity-row__notch')).find(
+    const slab = need(
+      Array.from(container.querySelectorAll('[data-slab]')).find(
         (n) => n.textContent === 'When Damaged'
       ),
-      'callout'
+      'slab'
     )
-    const box = need(notch.closest('.su-box') ?? undefined, 'box')
-    expect(box.querySelector('.su-box__body')?.textContent).toContain(bay.damagedEffect ?? '')
+    expect(slab.closest('.su-box')).toBeNull()
+    expect(slab.nextElementSibling?.textContent).toContain(bay.damagedEffect ?? '')
   })
 
   test('the chassis ability and its seal stay spans: no band holds them', () => {

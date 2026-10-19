@@ -5,6 +5,7 @@ import { cn } from '../../../lib/cn'
 import { useParseTraitReferences } from '../../../lib/parseTraitReferences'
 import { Badge } from '../../atoms/Badge'
 import { Slab } from '../../atoms/Slab'
+import { Callout } from '../../containers/Callout'
 import { InsidePeekContext } from '../../entity/peekContext'
 import type { CardProseContext } from './CardProse'
 import { CardProse } from './CardProse'
@@ -22,18 +23,19 @@ function GuideNote({ text }: { text: string }) {
 }
 
 /**
- * A step's aside — a tip or a worked example — as a framed callout: a full
- * chrome-weight ink frame on paper, never a left rail (ruleset §3.10), as the
- * srd's other asides are. With a `label` ("Note") it is a stamped callout:
- * the stamp rides the frame's top border (StampSeam, §7.2). Only the guide's
- * own Page stamps it: anywhere else (a Peek) the steps sit inside the guide's
- * frame, where a note is an unlabelled callout (N5). A `note` role, not an
- * `<aside>`: a complementary landmark may not sit inside the page's `main`.
+ * A step's aside — a tip or a worked example — is the note every rules block
+ * draws (hard rule R18): the unlabelled `Callout`, its ink frame on paper,
+ * never a left rail (ruleset §3.10), at the guide's reading size. With a
+ * `label` ("Note") its stamp rides the frame's top border (StampSeam, §7.2),
+ * never a titled head (N5). Only the guide's own Page stamps it. A `note`
+ * role, not an `<aside>`: a complementary landmark may not sit inside the
+ * page's `main`.
  */
 function GuideAside({ text, flavor, label }: { text: string; flavor: boolean; label?: string }) {
   return (
-    <div
+    <Callout
       role="note"
+      prose
       className={cn(
         'su-guide__aside',
         flavor && 'su-guide__aside--flavor',
@@ -46,7 +48,7 @@ function GuideAside({ text, flavor, label }: { text: string; flavor: boolean; la
         </Badge>
       )}
       <p>{useParseTraitReferences(text)}</p>
-    </div>
+    </Callout>
   )
 }
 
