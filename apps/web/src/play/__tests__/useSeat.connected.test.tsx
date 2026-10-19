@@ -242,7 +242,7 @@ describe('useSeat writes', () => {
       seat.board('seat-own')
     })
     expect(sent).toEqual([])
-    expect(await screen.findByText(/read-only until the connection returns/i)).toBeTruthy()
+    expect(await screen.findByText(/that change was not saved/i)).toBeTruthy()
   })
 
   test("a refused write shows the server's reason", async () => {

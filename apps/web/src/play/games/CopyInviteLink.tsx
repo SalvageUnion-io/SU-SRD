@@ -15,7 +15,14 @@ import { Link2 } from 'lucide-react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { Button, ConfirmDialog, toast } from '../../components/index'
+import {
+  Button,
+  ConfirmDialog,
+  CopiedIcon,
+  CopiedStatus,
+  toast,
+  useCopied,
+} from '../../components/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { inviteUrl } from '../../lib/games/inviteLink'
@@ -54,21 +61,28 @@ function ConnectedCopyInviteLink({
     { failure: 'The invite link could not be copied. Try again.', toastId: 'invite-link-copy' }
   )
 
+  // Copied is the control's own Check swap and a polite status, never a toast
+  // (chrome K5); a failure still toasts, from `useServerAction`.
+  const { copied, flash } = useCopied()
+
   async function copy(): Promise<void> {
     const result = await copyLink.run()
-    if (result.ok) toast.success('Invite link copied', { id: 'invite-link-copy', duration: 2000 })
+    if (result.ok) flash()
   }
 
   return (
-    <Button
-      variant="default"
-      size="compact"
-      disabled={copyLink.pending}
-      onClick={() => void copy()}
-    >
-      <Link2 aria-hidden="true" size={16} />
-      Copy invite link
-    </Button>
+    <>
+      <Button
+        variant="default"
+        size="compact"
+        disabled={copyLink.pending}
+        onClick={() => void copy()}
+      >
+        <CopiedIcon copied={copied} size={16} icon={<Link2 aria-hidden="true" size={16} />} />
+        Copy invite link
+      </Button>
+      <CopiedStatus copied={copied} />
+    </>
   )
 }
 

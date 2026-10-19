@@ -11,7 +11,7 @@ import {
 } from '../build/account/HeaderAccount'
 import { TestAuthBridge } from '../build/account/TestAuthBridge'
 import type { EntitySurfaceValue } from '../components/index'
-import { EntityHrefProvider, EntitySurfaceProvider, Toaster } from '../components/index'
+import { EntityHrefProvider, EntitySurfaceProvider, ToasterMount } from '../components/index'
 import { MobileSearchIsland } from '../components/islands/MobileSearchIsland'
 import { SearchIsland } from '../components/islands/SearchIsland'
 import { AppConvexProvider } from '../components/shared/AppConvexProvider'
@@ -132,7 +132,7 @@ function RootComponent() {
                 scrolls (play.md), so it has no foot, as it has no masthead. */}
             {barHidden ? null : <SiteFooter />}
           </EntityPageHost>
-          <Toaster />
+          <ToasterMount />
         </EntitySurfaceProvider>
       </EntityHrefProvider>
     </AppConvexProvider>

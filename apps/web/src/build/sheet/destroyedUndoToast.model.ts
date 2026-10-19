@@ -4,7 +4,7 @@
  * through immediately (the player stays in control per ADR-007) but a toast
  * offers a one-click Undo that restores the previous condition.
  *
- * The Toaster is already mounted app-wide in routes/__root.tsx.
+ * The document's one toaster is mounted app-wide (`ToasterMount` in routes/__root.tsx).
  */
 
 import { toast } from '../../components/index'

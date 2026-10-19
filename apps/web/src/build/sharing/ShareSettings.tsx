@@ -25,7 +25,7 @@
 
 import { publicPath } from 'game-domain/entityKinds'
 import { useMutation, useQuery } from 'convex/react'
-import { Check, Copy } from 'lucide-react'
+import { Copy } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
@@ -34,7 +34,17 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import type { ShareKind, Visibility } from '../../lib/sharing/visibility'
 import { patternChoices, sheetChoices, sheetVisibility } from '../../lib/sharing/visibility'
 import { appUrl } from '../../lib/site'
-import { Button, Field, FieldError, Select, Stack, tokens } from '../../components/index'
+import {
+  Button,
+  CopiedIcon,
+  CopiedStatus,
+  Field,
+  FieldError,
+  Select,
+  Stack,
+  tokens,
+  useCopied,
+} from '../../components/index'
 import { LinkQr } from './LinkQr'
 import { WhoCanSee } from './WhoCanSee'
 
@@ -192,15 +202,14 @@ function ShareLink({
   url: string
   clipboardWriter?: (text: string) => Promise<void>
 }) {
-  const [copied, setCopied] = useState(false)
+  const { copied, flash } = useCopied()
   const [error, setError] = useState<string | null>(null)
 
   async function copy(): Promise<void> {
     try {
       await clipboardWriter(url)
       setError(null)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      flash()
     } catch {
       setError('Could not copy. Select the link and copy it manually.')
     }
@@ -216,8 +225,9 @@ function ShareLink({
           aria-label="Copy public link"
           style={NO_SHRINK}
         >
-          {copied ? <Check aria-hidden="true" size={14} /> : <Copy aria-hidden="true" size={14} />}
+          <CopiedIcon copied={copied} size={14} icon={<Copy aria-hidden="true" size={14} />} />
         </Button>
+        <CopiedStatus copied={copied} />
       </div>
       {/*
         Passing a phone across a table is the actual use, so the QR needs no

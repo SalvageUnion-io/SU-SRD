@@ -16,8 +16,15 @@ import { Banner, tokens } from '../index'
  * until the connection returns.
  *
  * It is the shared `Banner` at its warn severity: the status-warn treatment
- * with ink text. Its own strip set roll-failure text on cream, which
+ * with ink text. Its own strip once set the warn ember as text on cream, which
  * measured 2.97 : 1, under the 4.5 : 1 body text needs.
+ *
+ * ## The one offline notice (chrome K5, hard rule R20)
+ *
+ * This is the only place the app words being offline. The in-place lozenge
+ * (`WritesBlockedNotice`) says what it costs here, "Read-only for now"; a
+ * refused write's toast says what happened to that change. Neither restates
+ * the condition, and `chrome/offline-copy` fails a second wording.
  */
 
 const STRIP = {

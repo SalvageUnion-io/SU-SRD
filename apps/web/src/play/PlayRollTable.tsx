@@ -5,11 +5,13 @@ import { plainTraitText, resultForColumnsTable, resultForTable } from 'salvageun
 import type { RollTableType } from '../components/index'
 import {
   Button,
+  CopiedIcon,
+  CopiedStatus,
   digestColumnsTable,
   digestRollTable,
   RollTableInstrument,
-  toast,
   toastRoll,
+  useCopied,
   useParseTraitReferences,
 } from '../components/index'
 import { dieForTable, rollD20 } from '../lib/rollTableDice'
@@ -99,10 +101,11 @@ export function PlayRollTable({
     })
   }
 
+  // Copied is the control's own Check swap and a polite status, never a toast
+  // (chrome K5).
+  const { copied, flash } = useCopied()
   const copy = (text: string) => {
-    void navigator.clipboard
-      .writeText(text)
-      .then(() => toast.success('Copied', { id: 'clipboard-copy', duration: 1500 }))
+    void navigator.clipboard.writeText(text).then(flash)
   }
 
   return (
@@ -115,15 +118,18 @@ export function PlayRollTable({
       onRoll={isColumns ? rollColumns : rollBands}
       actions={
         landed ? (
-          <Button
-            size="compact"
-            className="su-roll__toggle su-roll__control"
-            onClick={() => copy(landed.text)}
-            aria-label="Copy result to clipboard"
-          >
-            Copy
-            <Copy aria-hidden="true" size={14} />
-          </Button>
+          <>
+            <Button
+              size="compact"
+              className="su-roll__toggle su-roll__control"
+              onClick={() => copy(landed.text)}
+              aria-label="Copy result to clipboard"
+            >
+              Copy
+              <CopiedIcon copied={copied} size={14} icon={<Copy aria-hidden="true" size={14} />} />
+            </Button>
+            <CopiedStatus copied={copied} />
+          </>
         ) : undefined
       }
       table={

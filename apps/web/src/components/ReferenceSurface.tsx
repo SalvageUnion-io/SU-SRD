@@ -7,7 +7,7 @@ import { EntitySurfaceProvider } from './index'
  * The SRD's card surface: a Reference context (ruleset §1) whose "p. N"
  * references link where `pageRefs` (`lib/pageRefIndex.ts`) resolves them. Its
  * roll tables raise their results as toasts, as every roll does (`toastRoll`,
- * into `ReferenceEntityIsland`'s `<Toaster />`).
+ * into the page's one toaster, `ToasterMount`).
  */
 export function ReferenceSurface({
   pageRefs,

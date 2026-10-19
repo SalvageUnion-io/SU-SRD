@@ -50,7 +50,7 @@ export function connectionLine(mode: ConnectionMode, solo: boolean): string {
     case 'connecting':
       return 'Connecting…'
     case 'disconnected':
-      return 'Not connected · waiting to reconnect'
+      return 'Disconnected · waiting to reconnect'
     case 'solo':
       return 'Signed out'
   }

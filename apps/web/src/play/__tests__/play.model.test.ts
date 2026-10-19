@@ -18,7 +18,7 @@ describe('connectionLine', () => {
     expect(connectionLine('connected', false)).toBe('Connected · changes reach the table live')
     expect(connectionLine('connected', true)).toBe('Solo · nothing is shared')
     expect(connectionLine('connecting', true)).toBe('Connecting…')
-    expect(connectionLine('disconnected', false)).toBe('Not connected · waiting to reconnect')
+    expect(connectionLine('disconnected', false)).toBe('Disconnected · waiting to reconnect')
     expect(connectionLine('solo', true)).toBe('Signed out')
   })
 })

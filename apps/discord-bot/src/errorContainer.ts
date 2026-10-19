@@ -8,7 +8,7 @@
  *
  * ## Errors are rust, never cascade red
  *
- * `--color-roll-cascade` means *you rolled a 1 and the fiction went wrong*.
+ * `DISCORD_ROLL_ACCENT.cascade` means *you rolled a 1 and the fiction went wrong*.
  * Reusing it for *you typed it wrong* conflates a game event with an input
  * event, and this repo holds colour to one meaning. Rust is the bot's neutral
  * system tone; a typo is a system event.

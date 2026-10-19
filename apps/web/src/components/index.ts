@@ -59,6 +59,8 @@ export { CloseButton } from './atoms/CloseButton'
 // Conditions — the entity-condition chip row. Public because the app's sheet
 // editors (ConditionsEditor, NpcFactsEditor) compose it.
 export { Conditions } from './atoms/Conditions'
+// Copied — a copy control's own Check swap and polite status (chrome K5).
+export { CopiedIcon, CopiedStatus } from './atoms/Copied'
 export type { ChapterTone } from './atoms/chapterBandColor'
 export { CHAPTER_BAND_COLOR } from './atoms/chapterBandColor'
 export { Eyebrow } from './atoms/Eyebrow'
@@ -107,6 +109,7 @@ export { Tab, TabList, TabPanel, Tabs, Toggle, ToggleGroup } from './atoms/Tabs'
 export { Text } from './atoms/Text'
 // ToneStrip — the 8px colour band that opens a section from above (§3.10).
 export { ToneStrip } from './atoms/ToneStrip'
+export { useCopied } from './atoms/useCopied'
 // USER_MADE_HATCH — the hatch a user-made page wears on its colour bands
 // (ruleset §3.9): ChapterBand's `userMade`, and the page's hatched foot.
 export { USER_MADE_HATCH } from './atoms/userMadeHatch'
@@ -222,7 +225,7 @@ export type { StatItem } from './containers/statsBarTypes'
 // are its named variants.
 export { TitledBox } from './containers/TitledBox'
 // UI primitives
-export { Toaster, toast } from './containers/Toaster'
+export { Toaster, ToasterMount, toast } from './containers/Toaster'
 export type { AnnouncedRoll } from './containers/toastRoll'
 export { toastRoll } from './containers/toastRoll'
 // THE ENTITY DISPLAY LANGUAGE (docs/design-system/entity-display-language.md):

@@ -43,7 +43,20 @@
  *   naming a `dialog`, `modal` or `popup`, or `[role=dialog]`) sets a
  *   `max-width` / `max-inline-size`.
  *
- * All four are `zero`. Comments are stripped, so prose may name what it bans.
+ * ## A notice has one job (hard rule R20, chrome K5)
+ *
+ * A toast reports an act, from the one toaster per document; a `Banner` holds
+ * a lasting condition, and offline is one notice in one wording; no notice
+ * wears a roll-tier colour (ruleset §3.4).
+ *
+ * - `one-toaster`: exactly one `<Toaster` element in the app's source, the
+ *   one `ToasterMount` draws (tests may render their own).
+ * - `offline-copy`: the offline wording ("not connected", "read-only until
+ *   the connection returns") only in `NotConnectedBanner`.
+ * - `roll-tier`: no roll-tier token (`rollFailure`, `--color-roll-*`, …)
+ *   anywhere in the app: the tiers are the Discord bot's (`DISCORD_ROLL_ACCENT`).
+ *
+ * All seven are `zero`. Comments are stripped, so prose may name what it bans.
  */
 
 import { readFileSync } from 'node:fs'
@@ -222,6 +235,59 @@ function scanDialogWidth(root: string): Finding[] {
   return out
 }
 
+/** Each line of the app's source (comments blanked) that `pattern` matches. */
+function scanLines(
+  root: string,
+  exts: string[],
+  pattern: RegExp,
+  skip: (rel: string) => boolean
+): Finding[] {
+  const out: Finding[] = []
+  for (const rel of listFiles(root, [SRC], exts)) {
+    if (skip(rel)) continue
+    stripComments(readFileSync(join(root, rel), 'utf8'))
+      .split('\n')
+      .forEach((text, i) => {
+        if (pattern.test(text)) out.push({ file: rel, line: i + 1, detail: text.trim() })
+      })
+  }
+  return out
+}
+
+/** The one place the toaster is drawn. */
+const TOASTER_HOME = 'apps/web/src/components/containers/Toaster.tsx'
+
+function scanOneToaster(root: string): Finding[] {
+  const found = scanLines(root, ['.tsx'], /<Toaster\b/, isTest)
+  if (found.length === 1 && found[0]?.file === TOASTER_HOME) return []
+  if (found.length === 0) {
+    return [
+      { file: TOASTER_HOME, line: 1, detail: 'no `<Toaster` element: toasts have nowhere to show' },
+    ]
+  }
+  return found.filter((f) => f.file !== TOASTER_HOME || found.length > 1)
+}
+
+/** The one offline notice. */
+const OFFLINE_HOME = 'apps/web/src/components/shared/NotConnectedBanner.tsx'
+const OFFLINE_COPY = /\bnot connected\b|read-only until the connection returns/i
+
+function scanOfflineCopy(root: string): Finding[] {
+  return scanLines(
+    root,
+    ['.ts', '.tsx'],
+    OFFLINE_COPY,
+    (rel) => isTest(rel) || rel === OFFLINE_HOME
+  )
+}
+
+/** The Discord bot's roll tiers, by either spelling. */
+const ROLL_TIER = /\broll(?:Cascade|Failure|Tough|Success|Nailed)\b|--color-roll-/
+
+function scanRollTier(root: string): Finding[] {
+  return scanLines(root, ['.ts', '.tsx', '.css'], ROLL_TIER, () => false)
+}
+
 type ChromeRule = Rule & { scan: (root: string) => Finding[] }
 
 const RULES: ChromeRule[] = [
@@ -252,6 +318,27 @@ const RULES: ChromeRule[] = [
     rule: "hard rule R24 (chrome K7) — a dialog is narrow, default or page, from `ModalShell`'s `width`; no stylesheet caps a dialog",
     fix: 'Delete the cap and pass `ModalShell` `width="narrow"` (a confirm, a short prompt, a picker of one thing), `"default"` (the rest) or `"page"` (the detail Page, or a searcher that shows one).',
     scan: scanDialogWidth,
+  },
+  {
+    id: 'one-toaster',
+    mode: 'zero',
+    rule: 'hard rule R20 (chrome K5) — one toaster per document: the one `<Toaster` is the one `ToasterMount` draws',
+    fix: "Render `<ToasterMount />` where a surface needs toasts (the app root, an SRD island that toasts); it shares the document's one toaster. Never render `<Toaster` outside components/containers/Toaster.tsx.",
+    scan: scanOneToaster,
+  },
+  {
+    id: 'offline-copy',
+    mode: 'zero',
+    rule: 'hard rule R20 (chrome K5) — offline is one notice in one wording, `NotConnectedBanner`',
+    fix: 'Say the consequence here ("Read-only for now", "That change was not saved") and leave the condition to `NotConnectedBanner`, which is up whenever the app is offline.',
+    scan: scanOfflineCopy,
+  },
+  {
+    id: 'roll-tier',
+    mode: 'zero',
+    rule: "hard rule R20 (ruleset §3.4, chrome K5) — the roll tiers are the Discord bot's; no web surface or notice wears one",
+    fix: 'A state is `statusOk` / `statusWarn` / `statusBad` (`--color-status-*`); a roll result is the readout and the row mark, the same for every outcome; a notice is in ink. The bot reads `DISCORD_ROLL_ACCENT`.',
+    scan: scanRollTier,
   },
 ]
 

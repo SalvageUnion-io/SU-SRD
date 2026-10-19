@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { ColumnsRoll, ColumnsTablePageData } from '../../lib/columnsTablePage'
 import { columnsAnnouncement } from '../../lib/columnsTablePage'
 import { ColumnsTableView } from '../ColumnsTableView'
-import { rollD20, Toaster, toastRoll } from '../index'
+import { rollD20, ToasterMount, toastRoll } from '../index'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 type ColumnsTableIslandProps = {
@@ -16,7 +16,7 @@ type ColumnsTableIslandProps = {
 /**
  * A two-roll `columns` table's page, live (Callsign Table): Roll rolls the
  * column's d20, then the entry's, marks the cell and raises the result as a
- * toast (`toastRoll`) in its own `<Toaster />`. Its props are the page's table,
+ * toast (`toastRoll`) in the page's one toaster (`ToasterMount`). Its props are the page's table,
  * digested at build time, so the island reads no game data.
  */
 export function ColumnsTableIsland({ data, tone, d20 = rollD20 }: ColumnsTableIslandProps) {
@@ -32,7 +32,7 @@ export function ColumnsTableIsland({ data, tone, d20 = rollD20 }: ColumnsTableIs
   return (
     <IslandErrorBoundary>
       <ColumnsTableView data={data} tone={tone} roll={roll} onRoll={onRoll} />
-      <Toaster />
+      <ToasterMount />
     </IslandErrorBoundary>
   )
 }

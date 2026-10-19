@@ -65,7 +65,7 @@ The loop: define it here, land its gate with a baseline, burn the baseline to ze
 ## Chrome
 
 - **R20 A notice has one job** (K5) — toast for an act, Banner for a condition, Message for a consequence; one `Toaster`; one offline notice; Copied is the control's own swap; no roll-tier colour.
-  Gate: planned, one `<Toaster` in `apps/web/src`; offline copy in one component; the bot's tier tokens banned under `apps/web/src`.
+  Gate: held, in the `chrome` rule set (zero, `packages/gates/rules/chrome.ts`): `one-toaster`, one `<Toaster` in `apps/web/src` outside tests, the one `ToasterMount` draws (the app root and each SRD island that toasts share it, one per document; `ToasterMount.test.tsx`); `offline-copy`, the offline wording only in `NotConnectedBanner` (the lozenge says "Read-only for now", a refused write's toast "That change was not saved"); `roll-tier`, no roll-tier token under `apps/web/src`, the tiers defined in the bot's `DISCORD_ROLL_ACCENT` and the web's state ramp `--color-status-*`. Copied is `useCopied` with `CopiedIcon` and `CopiedStatus` (Share link, Play's roll Copy, Copy invite link).
 - **R22 One loading voice** (K6) — `Pending`, `Skeleton` or `RoutePending`, "Loading <thing>…".
   Gate: planned, banned loading copy variants; `@keyframes` and `su-pulse` only in the loading atoms.
 - **R24 Three dialog widths** (K7) — `ModalShell` narrow, default or page.

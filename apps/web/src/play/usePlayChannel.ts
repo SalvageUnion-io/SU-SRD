@@ -103,7 +103,7 @@ export function usePlayRollDispatch({
         settle(roll.id, {
           kind: 'failed',
           channelId: null,
-          message: 'Not posted: Play is read-only until the connection returns.',
+          message: 'Not posted: Play is read-only for now.',
         })
         return
       }

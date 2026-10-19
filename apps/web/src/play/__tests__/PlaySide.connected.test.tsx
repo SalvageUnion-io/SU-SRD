@@ -460,7 +460,7 @@ describe('read-only (play.md §7)', () => {
     await roll([14])
     expect(postRoll).not.toHaveBeenCalled()
     expect(feed().getByRole('alert').textContent).toBe(
-      'Not posted to Discord: Not posted: Play is read-only until the connection returns.'
+      'Not posted to Discord: Not posted: Play is read-only for now.'
     )
   })
 })

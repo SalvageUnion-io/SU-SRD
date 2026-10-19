@@ -148,7 +148,9 @@ export type BlockedWriteReason = 'offline' | 'settling' | 'signedOut' | 'outdate
 
 const BLOCKED_WRITE_COPY: Record<BlockedWriteReason, string> = {
   settling: 'Still signing in — that change was not saved. Try again in a moment.',
-  offline: 'Not connected — your Games are read-only until the connection returns',
+  // The act, not the condition: the one offline notice (`NotConnectedBanner`,
+  // chrome K5) says why, and is up whenever this is thrown.
+  offline: 'That change was not saved: your Games are read-only for now.',
   signedOut: 'Sign in to build and edit — nothing is saved without an account.',
   outdated: 'The app has been updated — that change was not saved. Reloading onto the new version.',
 }

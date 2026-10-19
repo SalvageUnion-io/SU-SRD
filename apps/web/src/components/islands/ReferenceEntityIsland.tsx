@@ -4,7 +4,7 @@ import type { SchemaList } from '../../lib/useGameData'
 import { EntityCardStatic } from '../EntityCardStatic'
 import { GameDataGate } from '../GameDataGate'
 import type { PageRefIndex } from '../index'
-import { Toaster } from '../index'
+import { ToasterMount } from '../index'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 type ReferenceEntityIslandProps = {
@@ -51,8 +51,9 @@ export function ReferenceEntityIsland({
         <Suspense fallback={null}>
           <DropStaticFallback />
           <EntityCardStatic item={item} pattern={pattern} pageRefs={pageRefs} />
-          {/* Where a roll on the card's tables lands (`toastRoll`). */}
-          <Toaster />
+          {/* Where a roll on the card's tables lands (`toastRoll`): the
+              page's one toaster. */}
+          <ToasterMount />
         </Suspense>
       </GameDataGate>
     </IslandErrorBoundary>

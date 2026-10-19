@@ -234,7 +234,7 @@ export const borderWidth = {
 /**
  * The base colour values. Not exported directly — `color` below re-exports
  * these alongside the semantic aliases that point at them, so an alias stays an
- * alias (retone `rollSuccess` and `statusOk` follows) instead of being a second
+ * alias (retone `pilot` and `sheetPilot` follows) instead of being a second
  * literal of the same number. That aliasing is why the shadow `su-*` family had
  * to be deleted from theme.css, and it is preserved here rather than flattened.
  */
@@ -276,12 +276,12 @@ const base = {
    *  2026-10-14). Its #5865f2 carries paper under 4.5:1. */
   discord: 'rgb(71, 82, 196)',
 
-  // — Roll result tiers: the canonical warm state ramp, shared with the bot —
-  rollCascade: 'rgb(176, 67, 43)',
-  rollFailure: 'rgb(192, 122, 47)',
-  rollTough: 'rgb(193, 154, 62)',
-  rollSuccess: 'rgb(111, 138, 74)',
-  rollNailed: 'rgb(75, 134, 160)',
+  // — Status (Intact / Damaged / Destroyed): the warm state ramp. The Discord
+  //   bot's roll tiers share three of these values (`DISCORD_ROLL_ACCENT`);
+  //   the tiers themselves are the bot's alone, never the web's (ruleset §3.4) —
+  statusOk: 'rgb(111, 138, 74)',
+  statusWarn: 'rgb(192, 122, 47)',
+  statusBad: 'rgb(176, 67, 43)',
 
   // — Ink / paper / action —
   ink: 'rgb(40, 32, 25)',
@@ -383,11 +383,6 @@ const base = {
  */
 export const color = {
   ...base,
-
-  // — Status (Intact / Damaged / Destroyed): aliases of the roll tiers —
-  statusOk: base.rollSuccess,
-  statusWarn: base.rollFailure,
-  statusBad: base.rollCascade,
 
   // — Sheet tones (Header C live sheets): base + deep pairs —
   sheetPilot: base.pilot,

@@ -135,15 +135,13 @@
      carries it at 6:1 (design/__tests__/contrast.test.ts). */
   --color-discord: rgb(71, 82, 196); /* #4752c4 */
 
-  /* Roll result tiers — canonical warm state palette (canonical primitive
-     language §3): warm, so damaged/destroyed state (via the --color-status-* aliases below) and the Discord bot's roll
-     outcomes share ONE warm ramp. Web surfaces never colour roll outcomes —
-     tier colour is a bot-only affordance. */
-  --color-roll-cascade: rgb(176, 67, 43); /* #b0432b */
-  --color-roll-failure: rgb(192, 122, 47); /* #c07a2f */
-  --color-roll-tough: rgb(193, 154, 62); /* #c19a3e */
-  --color-roll-success: rgb(111, 138, 74); /* #6f8a4a */
-  --color-roll-nailed: rgb(75, 134, 160); /* #4b86a0 */
+  /* Status (Intact / Damaged / Destroyed) — the warm state ramp. The Discord
+     bot's roll tiers share three of these values (`DISCORD_ROLL_ACCENT`, in
+     salvageunion-reference); the tiers are the bot's alone: the web never
+     colours a roll outcome or a notice by tier (ruleset §3.4, chrome K5). */
+  --color-status-ok: rgb(111, 138, 74); /* #6f8a4a */
+  --color-status-warn: rgb(192, 122, 47); /* #c07a2f */
+  --color-status-bad: rgb(176, 67, 43); /* #b0432b */
 
   /* === the app design-handoff tokens (design-spec §1.1) === */
   /* Ink / paper / action */
@@ -228,11 +226,6 @@
   /* Attention fills that are neither an ontology hue nor a status overlay. */
   --color-caution: rgb(215, 195, 125); /* #d7c37d */
   --color-caution-25: rgb(215 195 125 / 0.25); /* Banner's caution wash */
-
-  /* Status (Intact / Damaged / Destroyed) — aliases of the roll tiers */
-  --color-status-ok: var(--color-roll-success);
-  --color-status-warn: var(--color-roll-failure);
-  --color-status-bad: var(--color-roll-cascade);
 
   /* Cargo (storage) accent pair */
   --color-cargo: rgb(156, 122, 62); /* #9c7a3e */

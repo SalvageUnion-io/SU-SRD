@@ -11,7 +11,7 @@
  *   - `tone-ground`  — no tech-level blue as a header ground (packages/gates/rules/toneGround.ts)
  *   - `class-prefix` — every package and app class is `su-*` (packages/gates/rules/classPrefix.ts)
  *   - `entity-nesting` — entities nest three levels deep, no titled box inside one (packages/gates/rules/entityNesting.ts)
- *   - `chrome`       — chrome.md's laws: one ground signal, one focus ring, three dialog widths (packages/gates/rules/chrome.ts)
+ *   - `chrome`       — chrome.md's laws: one ground signal, one focus ring, three dialog widths, one job per notice (packages/gates/rules/chrome.ts)
  *   - `select-mode`  — hard rule R15: one select dim, no level-2 seal (packages/gates/rules/selectMode.ts)
  *   - `copy`         — game terms capitalised as the book does (packages/gates/rules/copyTerms.ts)
  *
