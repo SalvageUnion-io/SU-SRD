@@ -256,8 +256,11 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: RefClas
       paint={tierPaint('core')}
       chips={
         // The kind and whose it is are marks; what it opens from, its relation (C2).
+        // The paths are one list of Rows (Row frames, one width): its lines
+        // share every class's lane (C6, R2).
         <Chips
           size="compact"
+          lanes
           chips={{ durations: [], facts: [], tags: [] }}
           marks={[
             <Stat key="kind" orientation="horizontal" label={kind} size="compact" />,
