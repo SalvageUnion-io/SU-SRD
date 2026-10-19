@@ -195,8 +195,9 @@ export function Badge(props: BadgeProps) {
         ref={ref}
         className={cn(
           // Size comes from `STAMP_SIZE[size]`, so the recipe supplies only the
-          // caps role (font-cond / uppercase / bold / caps-tight).
-          capsLabel(),
+          // caps role (font-cond / uppercase / bold / caps-tight); a Mini stamp
+          // is 11px, so its caps are snug (ruleset §4.2).
+          capsLabel({ tracking: size === 'mini' ? 'snug' : undefined }),
           // No line-height of its own: the `leading-none` this once carried
           // sat before the rung's `text-*` size, which the old class merge let
           // win, so the line-height has always been the rung's.
