@@ -6,10 +6,10 @@
 
 import type { CargoLot } from 'game-domain/schemas/cargoLot'
 import { Button } from '../../components/index'
-import { CargoLotRow } from '../../components/shared/CargoLotRow'
 import { loadableQty } from '../../lib/cargo/cargoTransfer'
 import { reportCargo as report } from '../../lib/cargo/reportCargo'
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
+import { CargoLotLine } from './CargoLotLine'
 
 export type StorageManifestSide = 'mech' | 'crawler'
 
@@ -70,7 +70,7 @@ type CargoLotItemProps = {
 
 /**
  * CargoLotItem — one lot, on either side of the mech ⇄ crawler boundary: the
- * one lot row (`CargoLotRow`) with this side's buttons.
+ * one lot line (`CargoLotLine`) with this side's buttons in its chip group.
  *   - `side === 'mech'`    → 'Stow' to the crawler's Storage Bay, and 'Unload'.
  *   - `side === 'crawler'` → the cap-checked 'Load' onto the docked mech, and
  *     'Unstow'.
@@ -85,38 +85,39 @@ export function CargoLotItem({ lot, side, cargo, linked, readOnly, onRemove }: C
   }
 
   return (
-    <CargoLotRow lot={lot}>
-      {!readOnly && (
-        <>
-          <Button
-            variant="ghost"
-            size="compact"
-            disabled={disabledReason !== null}
-            title={disabledReason ?? undefined}
-            aria-label={`${side === 'mech' ? 'Stow' : 'Load'} ${lot.name}`}
-            onClick={handleMove}
-            className="su-sheet-crawler-move"
-          >
-            {label}
-          </Button>
-          {onRemove && (
+    <CargoLotLine
+      lot={lot}
+      actions={
+        readOnly ? undefined : (
+          <>
             <Button
-              variant="ghost"
-              size="compact"
-              aria-label={`${side === 'mech' ? 'Unload' : 'Unstow'} ${lot.name}`}
-              title={
-                side === 'mech'
-                  ? `Unload "${lot.name}" from the mech hold`
-                  : `Unstow "${lot.name}" from the Storage Bay`
-              }
-              onClick={onRemove}
-              className="su-sheet-crawler-remove"
+              variant="pencil"
+              size="mini"
+              disabled={disabledReason !== null}
+              title={disabledReason ?? undefined}
+              aria-label={`${side === 'mech' ? 'Stow' : 'Load'} ${lot.name}`}
+              onClick={handleMove}
             >
-              {side === 'mech' ? 'Unload' : 'Unstow'}
+              {label}
             </Button>
-          )}
-        </>
-      )}
-    </CargoLotRow>
+            {onRemove && (
+              <Button
+                variant="pencil"
+                size="mini"
+                aria-label={`${side === 'mech' ? 'Unload' : 'Unstow'} ${lot.name}`}
+                title={
+                  side === 'mech'
+                    ? `Unload "${lot.name}" from the mech hold`
+                    : `Unstow "${lot.name}" from the Storage Bay`
+                }
+                onClick={onRemove}
+              >
+                {side === 'mech' ? 'Unload' : 'Unstow'}
+              </Button>
+            )}
+          </>
+        )
+      }
+    />
   )
 }

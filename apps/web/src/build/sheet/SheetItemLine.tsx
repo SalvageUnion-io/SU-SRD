@@ -16,9 +16,10 @@
  * A mech's Systems and Modules (`MechItemToken`), a pilot's equipment
  * (`PilotEquipmentItem`), a pilot's abilities (`PilotAbilityItem`, which has
  * no condition: its Read stamp is "Used") and an item the reference does not
- * know (`UnknownItemLine`) all draw it, so the sheets share one control. The
- * token is an `<Entity>` element: its `state`, `uses` and `controls` are
- * filled here.
+ * know (`UnknownItemLine`), a pilot's generic entry (`GenericEntryLine`) and a
+ * cargo lot (`CargoLotLine`) all draw it, so the sheets share one control. The
+ * token is an `<Entity>` element: its `state` (after any it brings, a
+ * quantity), `uses` and `controls` are filled here.
  */
 
 import type { ItemCondition } from 'game-domain/schemas/itemCondition'
@@ -68,12 +69,15 @@ export function SheetItemLine({
   )
   // Read: the Token alone while intact; a damaged or destroyed one names its
   // condition in its state slot, as does any `stamp`.
+  // The token's own state (a carried entry's quantity) leads the slot.
+  const own = token.props.state
   if (readOnly) {
     const damaged = condition !== undefined && condition !== 'intact'
     if (!damaged && !stamp) return token
     return cloneElement(token, {
       state: (
         <>
+          {own}
           {damaged && (
             <span className="su-sheet-item__condition">
               <StatusBadge status={condition} />
@@ -87,13 +91,19 @@ export function SheetItemLine({
 
   const hasUses = uses !== undefined && uses.max > 0
   const item = cloneElement(token, {
-    state: condition ? (
-      <span className="su-sheet-item__condition">
-        <StatusBadge status={condition} subject={name} onClick={onConditionCycle} />
-      </span>
-    ) : (
-      stampChip || undefined
-    ),
+    state:
+      condition || stampChip || own ? (
+        <>
+          {own}
+          {condition ? (
+            <span className="su-sheet-item__condition">
+              <StatusBadge status={condition} subject={name} onClick={onConditionCycle} />
+            </span>
+          ) : (
+            stampChip
+          )}
+        </>
+      ) : undefined,
     ...(hasUses
       ? {
           uses: (
@@ -137,7 +147,7 @@ export function SheetItemLine({
  * item, unknown item, inventory entry and mounted weapon removes through it,
  * Edit only.
  */
-export function SheetRemoveButton({ name, onRemove }: { name: string; onRemove: () => void }) {
+function SheetRemoveButton({ name, onRemove }: { name: string; onRemove: () => void }) {
   return (
     <Button
       variant="pencil"

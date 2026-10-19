@@ -9,22 +9,9 @@
 
 import type { ItemCondition } from 'game-domain/schemas/itemCondition'
 import type { EntitySchemaName } from 'salvageunion-reference'
-import type { EntityRowModel } from '../../components/index'
 import { Entity } from '../../components/index'
 import { SheetItemLine } from './SheetItemLine'
-
-/** The Token's model: the slug as its name, ink, stamped "Unknown"; it links nowhere. */
-function unknownItemModel(slug: string, schemaName: EntitySchemaName): EntityRowModel {
-  return {
-    ref: { schemaName, id: `unknown/${schemaName}/${slug}`, slug, name: slug, synthetic: true },
-    title: slug,
-    kind: { stamp: 'Unknown', type: 'Unknown', domain: 'gear', nature: 'have', note: 'Unknown' },
-    tone: 'ink',
-    facts: [],
-    traits: [],
-    art: { kind: 'none' },
-  }
-}
+import { syntheticItemModel } from './syntheticItem.model'
 
 type UnknownItemLineProps = {
   slug: string
@@ -52,7 +39,14 @@ export function UnknownItemLine({
         <Entity
           form="token"
           context="loadout"
-          model={unknownItemModel(slug, schemaName)}
+          // The slug as its name, stamped "Unknown"; it links nowhere.
+          model={syntheticItemModel({
+            name: slug,
+            id: slug,
+            schemaName,
+            kind: 'Unknown',
+            note: 'Unknown',
+          })}
           mode={{ kind: 'read' }}
         />
       }

@@ -75,7 +75,8 @@ async function sheetPath(page: Page, kind: string, name?: string): Promise<strin
 /**
  * Seed the signed-in account as `tools/gallery.ts --signed-in` does: Bonesaw,
  * the Mazona and Tenacity copied from the Starter Set to the Hangar, a Game
- * started and Bonesaw moved in. Then what the other contexts need: Driftwood
+ * started and Bonesaw moved in. Then what the other contexts need: carried
+ * things the reference does not hold (`seedCarried`), Driftwood
  * on the shelf to play solo, the Organizer appointed Mediator, an invite link,
  * and an NPC from the Veteran. Resolves to every path a route names by `:key`.
  */
@@ -90,6 +91,7 @@ export async function seedDesignAccount(page: Page): Promise<DesignSeed> {
   const pilot = await sheetPath(page, 'pilot', IN_GAME)
   const mech = await sheetPath(page, 'mech')
   const crawler = await sheetPath(page, 'crawler')
+  await seedCarried(page, { pilot, mech, crawler })
 
   // The Game, its Mediator (the Organizer) and its invite link.
   const gameId = await createGame(page, GAME)
@@ -140,6 +142,41 @@ export async function seedDesignAccount(page: Page): Promise<DesignSeed> {
     playPlayer,
     playSolo,
     playMediator,
+  }
+}
+
+/**
+ * The carried things the reference does not hold, so a sheet's lists show
+ * them (hard rule R35: a sheet list's item is a Token or Row): a generic entry
+ * in Bonesaw's inventory, a lot in the Mazona's hold and one in Tenacity's
+ * Storage Bay, each through its sheet's own intake in Edit.
+ */
+async function seedCarried(
+  page: Page,
+  sheets: { pilot: string; mech: string; crawler: string }
+): Promise<void> {
+  const carried = (name: string) =>
+    page.locator('.su-sheet-live-body .su-entity-token__name').filter({ hasText: name }).first()
+  await page.goto(sheets.pilot, { waitUntil: 'networkidle' })
+  await waitForReady(page)
+  await edit(page)
+  await page.getByRole('button', { name: 'Add Scrap (3 slots)' }).click()
+  await expect(carried('Scrap'), 'the generic entry is a Token').toBeVisible({ timeout: 20_000 })
+  for (const [path, into, lot] of [
+    [sheets.mech, 'Load cargo into the mech hold', 'Salvaged Plating'],
+    [sheets.crawler, 'Stow cargo into the Storage Bay', 'Sealed Crate'],
+  ] as const) {
+    await page.goto(path, { waitUntil: 'networkidle' })
+    await waitForReady(page)
+    await edit(page)
+    const adder = page.getByRole('button', { name: into })
+    await adder.scrollIntoViewIfNeeded()
+    await adder
+      .locator('xpath=ancestor::*[.//input[@aria-label="New cargo name"]][1]')
+      .getByLabel('New cargo name')
+      .fill(lot)
+    await adder.click()
+    await expect(carried(lot), `${lot} is a Token in its hold`).toBeVisible({ timeout: 20_000 })
   }
 }
 

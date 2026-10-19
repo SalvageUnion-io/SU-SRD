@@ -39,24 +39,3 @@
     grid-template-columns: minmax(0, 1fr) 250px;
   }
 }
-
-/* The move button (a tile's '← Load', a chit's 'Stow →'): a cargo-pale wash
-   under the pointer, over the Button variant's own resting ground. */
-@media (hover: hover) {
-  .su-sheet-crawler-move:hover {
-    background-color: var(--color-cargo-pale);
-  }
-}
-
-/* The remove button (a tile's 'Unstow', a chit's 'Unload'): status-bad text,
-   inverting to paper on a status-bad fill under the pointer. */
-.su-sheet-crawler-remove {
-  color: var(--color-status-bad);
-}
-
-@media (hover: hover) {
-  .su-sheet-crawler-remove:hover {
-    background-color: var(--color-status-bad);
-    color: var(--color-paper);
-  }
-}

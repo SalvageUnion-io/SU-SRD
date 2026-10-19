@@ -11,6 +11,9 @@ import { NESTING_SELECTORS } from './_nestingDepth'
  * - **E2** a list item that holds an entity draws it as something other than
  *   a Row, a Tile or a Token: a Card, a hand-built headed frame, or a bare
  *   link to a unit's sheet. The entity is the item's outermost entity markup.
+ *   On a Live Sheet every item of its lists is a Token or a Row, entity or not
+ *   (ruleset §6.6): a carried thing the reference does not hold (a generic
+ *   entry, a cargo lot) is a Token from a synthetic model, never a panel.
  * - **E11** a lead (`Lead`, `.su-entity-lead`) off an SRD index.
  * - **E19** a chassis ability drawn anywhere but on its chassis or pattern
  *   Page at level 1, or the mech sheet's hero, unless as a contentful Token.
@@ -26,6 +29,8 @@ export type FormFinding = {
 export type FormSelectors = {
   /** A list item: an `li`, an ARIA list item or option. */
   item: string
+  /** An item of a Live Sheet's lists: its `li`s and its item lines' children (a line's sr-only live region is none). */
+  sheetItem: string
   /** A Row (not a TitledBox, which shares its class), a Tile, a Token. */
   row: string
   tile: string
@@ -49,6 +54,11 @@ export type FormSelectors = {
 
 export const FORM_SELECTORS: FormSelectors = {
   item: 'li, [role="listitem"], [role="option"]',
+  sheetItem: [
+    '.su-sheet-live-body li',
+    '.su-sheet-live-body .su-sheet-items > :not(li, ul, .su-sr-only)',
+    '.su-sheet-live-body .su-sheet-pills > *',
+  ].join(', '),
   row: '.su-entity-row:not(.su-box)',
   tile: '.su-entity-tile',
   token: '.su-entity-token',
@@ -123,6 +133,18 @@ export function scanForms({
           : 'a bare unit link'
       found.push({ rule: 'E2', detail: `${what} (${nameOf(el)}) in a list item` })
     }
+  }
+
+  // E2, on a Live Sheet: every item of its lists is a Token or a Row.
+  const line = [a.row, a.token].join(', ')
+  for (const item of document.querySelectorAll(a.sheetItem)) {
+    if (!visible(item)) continue
+    if (item.matches(line) || item.closest(line)) continue
+    if ([...item.querySelectorAll(line)].some(visible)) continue
+    found.push({
+      rule: 'E2',
+      detail: `a sheet list item (${nameOf(item)}) that is no Token or Row`,
+    })
   }
 
   // E11: a lead only on an SRD index (never on a Peek's plate over one).

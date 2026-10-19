@@ -8,7 +8,7 @@
  * and 3 slots, so a third side there would have cost far more than it
  * returned. The transfer semantics
  * are not duplicated — both go through the same `cargoTransfer` reducer — and
- * nor is the lot: every lot is the one `CargoLotRow`.
+ * nor is the lot: every lot is the one `CargoLotLine`.
  *
  * Vocabulary matches the mech hold, because a partner "uses the same rules as
  * Mechs": Load in, Unload out, Stow across to the Storage Bay. The Bay keeps
@@ -23,9 +23,9 @@
 
 import type { CSSProperties } from 'react'
 import { Button, EmptyState, Slab, Stack, Stat, tokens } from '../../components/index'
-import { CargoLotRow } from '../../components/shared/CargoLotRow'
 import { reportCargo } from '../../lib/cargo/reportCargo'
 import type { UsePartnerCargoResult } from '../../lib/cargo/usePartnerCargo'
+import { CargoLotLine } from './CargoLotLine'
 
 type PartnerHoldProps = {
   cargo: UsePartnerCargoResult
@@ -44,7 +44,8 @@ const LOCKED_NOTE = {
   marginBottom: tokens.space[4],
 } satisfies CSSProperties
 
-const LOT_LIST = { listStyleType: 'none' } satisfies CSSProperties
+/** One lot line a row, as a sheet's item list (`.su-entity-token-list`). */
+const LOT_LIST = 'su-entity-token-list'
 
 export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerHoldProps) {
   const { state, usage, crawlerLocked } = cargo
@@ -64,30 +65,34 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
         {state.carrierLots.length === 0 ? (
           <EmptyState variant="quiet" body="Nothing carried." />
         ) : (
-          <ul style={LOT_LIST}>
+          <ul className={LOT_LIST}>
             {state.carrierLots.map((lot) => (
-              <CargoLotRow key={lot.id} lot={lot}>
-                {editable && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="compact"
-                      disabled={stowBlocked !== null}
-                      title={stowBlocked ?? undefined}
-                      onClick={() => reportCargo(cargo.stow(lot.id))}
-                    >
-                      Stow
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="compact"
-                      onClick={() => reportCargo(cargo.removeLot(lot.id))}
-                    >
-                      Unload
-                    </Button>
-                  </>
-                )}
-              </CargoLotRow>
+              <CargoLotLine
+                key={lot.id}
+                lot={lot}
+                actions={
+                  editable ? (
+                    <>
+                      <Button
+                        variant="pencil"
+                        size="mini"
+                        disabled={stowBlocked !== null}
+                        title={stowBlocked ?? undefined}
+                        onClick={() => reportCargo(cargo.stow(lot.id))}
+                      >
+                        Stow
+                      </Button>
+                      <Button
+                        variant="pencil"
+                        size="mini"
+                        onClick={() => reportCargo(cargo.removeLot(lot.id))}
+                      >
+                        Unload
+                      </Button>
+                    </>
+                  ) : undefined
+                }
+              />
             ))}
           </ul>
         )}
@@ -102,21 +107,25 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
           {state.depotLots.length === 0 ? (
             <EmptyState variant="quiet" body="The Storage Bay is empty." />
           ) : (
-            <ul style={LOT_LIST}>
+            <ul className={LOT_LIST}>
               {state.depotLots.map((lot) => (
-                <CargoLotRow key={lot.id} lot={lot}>
-                  {editable && (
-                    <Button
-                      variant="ghost"
-                      size="compact"
-                      disabled={loadBlocked !== null}
-                      title={loadBlocked ?? undefined}
-                      onClick={() => reportCargo(cargo.load(lot.id))}
-                    >
-                      Load
-                    </Button>
-                  )}
-                </CargoLotRow>
+                <CargoLotLine
+                  key={lot.id}
+                  lot={lot}
+                  actions={
+                    editable ? (
+                      <Button
+                        variant="pencil"
+                        size="mini"
+                        disabled={loadBlocked !== null}
+                        title={loadBlocked ?? undefined}
+                        onClick={() => reportCargo(cargo.load(lot.id))}
+                      >
+                        Load
+                      </Button>
+                    ) : undefined
+                  }
+                />
               ))}
             </ul>
           )}

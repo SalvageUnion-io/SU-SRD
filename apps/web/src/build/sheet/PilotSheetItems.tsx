@@ -18,10 +18,8 @@ import {
   Entity,
   HeaderMenu,
   Input,
-  Panel,
   ReferenceEntityCard,
   Stat,
-  tokens,
 } from '../../components/index'
 import { EntityDetailDialog } from '../../components/referenceEntity/EntityDetailDialog'
 import { useEntityChoices } from '../../components/shared/useEntityChoices'
@@ -32,42 +30,9 @@ import {
   resolveEquipment,
 } from '../../lib/rules/pilotInventory'
 import type { useEntityStore } from '../../stores/entityStore'
-import { SheetItemLine, SheetRemoveButton } from './SheetItemLine'
+import { SheetItemLine } from './SheetItemLine'
+import { syntheticItemModel } from './syntheticItem.model'
 import { UnknownItemLine } from './UnknownItemLine'
-
-const ROW_TEXT = {
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.sm,
-  lineHeight: 'calc(1.25 / 0.875)',
-} satisfies CSSProperties
-
-const TRUNCATE = {
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-} satisfies CSSProperties
-
-const ENTRY_TEXT = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
-
-const ENTRY_NAME = {
-  ...ROW_TEXT,
-  ...TRUNCATE,
-  color: tokens.color.ink,
-  fontWeight: tokens.weight.medium,
-} satisfies CSSProperties
-
-const ENTRY_QTY = {
-  color: tokens.color.wkMuted,
-  marginLeft: tokens.space[4],
-} satisfies CSSProperties
-
-const ENTRY_NOTE = {
-  ...TRUNCATE,
-  color: tokens.color.wkMuted,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.xs,
-  lineHeight: 'calc(1 / 0.75)',
-} satisfies CSSProperties
 
 /** The adder's inputs, a rung smaller than the `Input` skin. */
 const NAME_INPUT = { flex: '1 1 0%', width: '9rem' } satisfies CSSProperties
@@ -346,25 +311,47 @@ export function PilotEquipmentItem({
 // Inventory — generic entries (Scrap at slotCost 3, etc.)
 // ---------------------------------------------------------------------------
 
-type GenericEntryCardProps = {
+type GenericEntryLineProps = {
   entry: GenericInventoryEntry
+  readOnly: boolean
   onRemove?: () => void
 }
 
-export function GenericEntryCard({ entry, onRemove }: GenericEntryCardProps) {
+/**
+ * A generic entry, the carried thing the reference does not hold (ruleset
+ * §6.6): a Token from its synthetic model on the sheet's item line, its note
+ * the stamp before its name, `SLOTS | n` in the loadout lane, a quantity above
+ * one its state (`× | 4`), and in Edit the one remove control in its chip group.
+ */
+export function GenericEntryLine({ entry, readOnly, onRemove }: GenericEntryLineProps) {
   const qty = entry.qty ?? 1
+  const model = syntheticItemModel({
+    name: entry.name,
+    id: entry.id,
+    schemaName: 'equipment',
+    kind: 'Item',
+    facts: [{ label: 'Slots', value: genericEntrySlots(entry) }],
+    ...(entry.note ? { note: entry.note } : {}),
+  })
   return (
-    <Panel className="su-sheet-pilot-panel-row">
-      <div style={ENTRY_TEXT}>
-        <div style={ENTRY_NAME}>
-          {entry.name}
-          {qty > 1 && <span style={ENTRY_QTY}>×{qty}</span>}
-        </div>
-        {entry.note && <div style={ENTRY_NOTE}>{entry.note}</div>}
-      </div>
-      <Stat orientation="horizontal" label="Slots" value={genericEntrySlots(entry)} />
-      {onRemove && <SheetRemoveButton name={entry.name} onRemove={onRemove} />}
-    </Panel>
+    <SheetItemLine
+      token={
+        <Entity
+          form="token"
+          context="loadout"
+          model={model}
+          mode={{ kind: 'read' }}
+          state={
+            qty > 1 ? (
+              <Stat orientation="horizontal" label="×" value={qty} size="mini" />
+            ) : undefined
+          }
+        />
+      }
+      name={entry.name}
+      readOnly={readOnly}
+      onRemove={readOnly ? undefined : onRemove}
+    />
   )
 }
 

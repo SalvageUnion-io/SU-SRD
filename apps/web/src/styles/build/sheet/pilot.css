@@ -2,14 +2,6 @@
 
 /* — PilotSheet — */
 
-/* `Panel` takes a class only: an inventory row (a generic entry). */
-.su-sheet-pilot-panel-row {
-  align-items: center;
-  display: flex;
-  gap: var(--space-12);
-  padding: var(--space-10) var(--space-12);
-}
-
 /* A rail slot's wrapper and `Field` take a class only: fill the remaining row/column. */
 .su-sheet-pilot-fill {
   flex: 1 1 0%;

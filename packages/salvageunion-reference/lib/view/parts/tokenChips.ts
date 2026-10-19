@@ -5,7 +5,8 @@ import { splitStatLine } from './facts'
  * Where a Token is drawn, named by its container (`chips-and-actions.md`, C4):
  * the context picks the one fact its lane carries.
  *
- * - `loadout` — what it takes: its Slots (a system, module or bay), a unit's SP.
+ * - `loadout` — what it takes: its Slots (a system, module or bay), a unit's SP,
+ *   a cargo lot's Units.
  * - `play` — what it does: its action type, or how many actions it has.
  * - `inventory` — how many are carried, when more than one.
  * - `roster` — a unit's lead vital, as its live reading (`HP | 10/10`).
@@ -44,8 +45,8 @@ export type TokenChipSource = Pick<EntityModel, 'facts'> &
     >
   >
 
-/** What a thing takes in a loadout, first present wins (by the chip's short label). */
-const TAKES = ['Slots', 'SP', 'HP'] as const
+/** What a thing takes in a loadout, first present wins (by the chip's short label): a cargo lot's Units last. */
+const TAKES = ['Slots', 'SP', 'HP', 'Units'] as const
 
 /** A unit's lead vital, first present wins. */
 const VITALS = ['SP', 'HP'] as const

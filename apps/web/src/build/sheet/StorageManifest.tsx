@@ -101,8 +101,6 @@ const MUTED_TEXT = { ...SMALL_TEXT, color: tokens.color.wkMuted } satisfies CSSP
 
 const OVER_TEXT = { ...SMALL_TEXT, color: tokens.color.statusBad } satisfies CSSProperties
 
-const LOT_LIST = { margin: 0, listStyle: 'none' } satisfies CSSProperties
-
 /**
  * The hold's padding by its frame. In the Info Cutout the flush body has none
  * of its own: the strip's top is the 12px gutter every other card's body opens
@@ -220,7 +218,7 @@ export function StorageManifest({
       {lots.length === 0 ? (
         <EmptyState variant="quiet" body="Hold empty." />
       ) : (
-        <ul style={{ ...LOT_LIST, padding: pad.list }}>
+        <ul className="su-entity-token-list" style={{ padding: pad.list }}>
           {lots.map((lot) => (
             <CargoLotItem
               key={lot.id}

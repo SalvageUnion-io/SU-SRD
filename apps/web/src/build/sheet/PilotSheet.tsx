@@ -76,7 +76,7 @@ import { PartnerCard } from './PartnerCard'
 import { PhotoBeside } from './PhotoBeside'
 import { PilotIdentityPanel } from './PilotIdentity'
 import { PilotSheetAbilities } from './PilotSheetAbilities'
-import { GenericEntryAdder, GenericEntryCard, PilotEquipmentItem } from './PilotSheetItems'
+import { GenericEntryAdder, GenericEntryLine, PilotEquipmentItem } from './PilotSheetItems'
 import { usePilotSheetModel } from './pilotSheet.model'
 import { usePilotSheetActions } from './pilotSheetActions.model'
 import { SheetHero } from './SheetHero'
@@ -381,7 +381,7 @@ export function PilotSheet({
                 />
               ))}
               {model.genericInventory.map((entry) => (
-                <GenericEntryCard key={entry.id} entry={entry} />
+                <GenericEntryLine key={entry.id} entry={entry} readOnly />
               ))}
             </div>
           ) : (
@@ -415,9 +415,10 @@ export function PilotSheet({
                 />
               ))}
               {model.genericInventory.map((entry, index) => (
-                <GenericEntryCard
+                <GenericEntryLine
                   key={entry.id}
                   entry={entry}
+                  readOnly={false}
                   onRemove={
                     readOnly
                       ? undefined

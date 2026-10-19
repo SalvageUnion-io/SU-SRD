@@ -1,8 +1,9 @@
 /**
  * One lot in The Hold, on either side of the mech ⇄ crawler boundary.
  *
- *  - Both sides draw the one lot row (`CargoLotRow`): the name, then
- *    `UNITS | n` and `TL | n` where the lot has one.
+ *  - Both sides draw the one lot line (`CargoLotLine`): a Token, its name,
+ *    then `TL | n` where the lot has one and `UNITS | n`, a bulk lot's other
+ *    count as its quantity (`× | n`), the moves in its chip group (R6, R35).
  *  - The crawler's Storage Bay: a cap-checked **Load** that partial-fills a
  *    bulk lot to the mech's free slots and refuses what does not fit with the
  *    reason, and **Unstow**.
@@ -139,7 +140,7 @@ describe("the crawler's Storage Bay", () => {
     const { cargo, moves } = cargoWith({ free: 10 })
     const tile = await renderLot({ lot: scrap, side: 'crawler', cargo })
     expect(tile.getByText('T2 Scrap')).toBeTruthy()
-    expect(chips()).toEqual(['Units 6', 'TL 2'])
+    expect(chips()).toEqual(['TL 2', 'Units 6'])
     const load = tile.getByRole('button', { name: 'Load T2 Scrap' })
     expect(load.textContent).toBe('Load')
     expect((load as HTMLButtonElement).disabled).toBe(false)
@@ -169,9 +170,28 @@ describe("the crawler's Storage Bay", () => {
     expect(load.textContent).toBe('Load')
   })
 
+  test('a lot is a Token; a bulk count that is not its units is its quantity, the moves in its chip group', async () => {
+    const fuel: CargoLot = {
+      id: 'lot-fuel',
+      kind: 'bulk',
+      name: 'Fuel Cells',
+      cat: 'POWER',
+      qty: 6,
+      units: 2,
+      code: 'FUE',
+    }
+    const tile = await renderLot({ lot: fuel, side: 'crawler' })
+    const item = screen.getByRole('listitem')
+    const token = item.querySelector('.su-entity-token')
+    expect(token).not.toBeNull()
+    expect(chips()).toEqual(['Units 2', '× 6'])
+    // R6: the move sits inside the Token's own strip, never beside it.
+    expect(token?.contains(tile.getByRole('button', { name: 'Load Fuel Cells' }))).toBe(true)
+  })
+
   test('a unit scrap lot reads its Tech Level', async () => {
     await renderLot({ lot: relic, side: 'crawler' })
-    expect(chips()).toEqual(['Units 1', 'TL 3'])
+    expect(chips()).toEqual(['TL 3', 'Units 1'])
   })
 
   test('with no mech docked, Load is closed and says why', async () => {
@@ -219,7 +239,7 @@ describe("the mech hold's lot", () => {
     const { cargo, moves } = cargoWith()
     const chit = await renderLot({ lot: scrap, side: 'mech', cargo })
     expect(chit.getByText('T2 Scrap')).toBeTruthy()
-    expect(chips()).toEqual(['Units 6', 'TL 2'])
+    expect(chips()).toEqual(['TL 2', 'Units 6'])
     const stow = chit.getByRole('button', { name: 'Stow T2 Scrap' })
     expect(stow.textContent).toBe('Stow')
     await click(stow)
