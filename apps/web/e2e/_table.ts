@@ -26,12 +26,15 @@ export async function createGame(page: Page, name: string): Promise<string> {
 
 /**
  * Copy the Game's invite link from its page ("Copy invite link", the
- * Organizer's) and read its token off the clipboard.
+ * Organiser's) and read its token off the clipboard.
  */
 export async function makeInviteLink(page: Page) {
   await page.context().grantPermissions(['clipboard-read', 'clipboard-write'])
   await page.getByRole('button', { name: 'Copy invite link' }).click()
-  await expect(page.getByText('Invite link copied')).toBeVisible({ timeout: 15_000 })
+  // The copy control's own swap and its polite status (chrome.md K5), never a toast.
+  await expect(page.getByRole('status').filter({ hasText: /^Copied$/ })).toBeAttached({
+    timeout: 15_000,
+  })
   const url = (await page.evaluate(() => navigator.clipboard.readText())).trim()
   const token = /\/invite\/([^/\s]+)$/.exec(url)?.[1]
   if (!token) throw new Error(`No invite token in "${url}"`)
