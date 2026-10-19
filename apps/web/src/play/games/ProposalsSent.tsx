@@ -1,6 +1,6 @@
 /**
  * ProposalsSent — "Proposals you sent" on a Game's own page, the Mediator's
- * (board M2; docs/architecture/mediator-dashboard.md Q8): every Mediator
+ * (board M2; docs/architecture/play.md §15): every Mediator
  * proposal in the Game with its state, newest first, twenty at a time. A
  * Mediator handed the table inherits what is still pending.
  *

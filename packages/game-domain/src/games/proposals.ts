@@ -1,6 +1,6 @@
 /**
  * Proposals, as both ends of propose-and-confirm read them (ADR-030 §4,
- * docs/architecture/mediator-dashboard.md Q8).
+ * docs/architecture/play.md §15).
  *
  * Shared by the server (`convex/proposals.ts` reads the reason cap) and the
  * Mediator's surfaces (the propose dock, the Proposals tab, the Game page's

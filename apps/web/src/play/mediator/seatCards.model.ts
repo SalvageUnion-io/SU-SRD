@@ -1,5 +1,5 @@
 /**
- * The Mediator's seats (docs/architecture/mediator-dashboard.md Q5): one per
+ * The Mediator's seats (docs/architecture/play.md §10): one per
  * claimed pilot in the Game, built from `crewLines()` verbatim so the Mediator
  * and the players' Crew give one answer (ADR-038 §4).
  *

@@ -1,5 +1,5 @@
 /**
- * Tell the table (mediator-dashboard.md Q14): a word to every player at once.
+ * Tell the table (play.md §15): a word to every player at once.
  * Send trims what was typed and clears the box once sent; a refusal keeps the
  * message to send again; Enter sends; offline nothing sends; under the form,
  * the five newest alerts with how long ago each went.

@@ -8,7 +8,7 @@ import { testConvex } from '../harness'
 
 /**
  * The three server additions the Mediator's surface brought
- * (docs/architecture/mediator-dashboard.md §4): a proposal's reason, the
+ * (docs/architecture/play.md §15): a proposal's reason, the
  * Mediator's `proposals.sent`, and `mediator.updateNpc`.
  *
  * None of them adds an authority. A reason rides a proposal the Mediator could

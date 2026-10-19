@@ -90,7 +90,7 @@ describe('reactor patches', () => {
     expect(melt.patch.destroyed).toBeUndefined()
   })
 
-  test('VENT_PATCH dumps Heat to 0 + Vulnerable, no auto-shutdown (Vent ≠ Shutdown, dashboard.md §5.1)', () => {
+  test('VENT_PATCH dumps Heat to 0 + Vulnerable, no auto-shutdown (Vent ≠ Shutdown, play.md §14.1)', () => {
     expect(VENT_PATCH).toEqual({ currentHeat: 0, vulnerable: true })
   })
 

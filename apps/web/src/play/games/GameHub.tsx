@@ -5,7 +5,7 @@
  * `play` band, level 0, Slab sections, Rows that link. It lists a Game the
  * way the Hangar lists your things and puts everything you can do about the
  * table below the lists, as board M2 draws it
- * (docs/architecture/mediator-dashboard.md Q10–Q13):
+ * (docs/architecture/play.md §16):
  *
  *  0. **The band** (`GameBand`): the Game's name on Play's band, and one way
  *     into the Cockpit: the Mediator's **Mediate** (after a YOU MEDIATE stamp)

@@ -1,6 +1,6 @@
 /**
  * TellTheTable — a word to every player at once, from the Mediator's Play bar
- * (docs/architecture/mediator-dashboard.md Q14): `proposals.broadcast`, which
+ * (docs/architecture/play.md §15): `proposals.broadcast`, which
  * every player reads on their Feed. Under the form, the last five alerts sent.
  *
  * Presentational: the Mediator's screen sends, and says why when the server

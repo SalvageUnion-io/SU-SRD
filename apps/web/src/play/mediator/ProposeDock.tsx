@@ -1,7 +1,7 @@
 /**
  * ProposeDock — "Propose a change" (the player decides), the Mediator's
- * Propose section in Play (play.md §10; docs/architecture/mediator-dashboard.md
- * Q8 for the fields).
+ * Propose section in Play (docs/architecture/play.md §10, §15 for the
+ * fields).
  *
  * Target, Field, To, an optional Reason (at most 140 characters), a live
  * preview ("SP 6 → 4 · "Rifle Squad volley""), **Propose**, and the three

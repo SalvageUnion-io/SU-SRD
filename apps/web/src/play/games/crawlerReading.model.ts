@@ -1,6 +1,6 @@
 /**
  * A Game's crawler as the Game page's Crew & seats card reads it
- * (docs/architecture/mediator-dashboard.md Q11).
+ * (docs/architecture/play.md §16).
  */
 
 import { CrawlerSchema } from 'game-domain/schemas/crawler'

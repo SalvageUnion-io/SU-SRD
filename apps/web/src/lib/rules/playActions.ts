@@ -1,6 +1,6 @@
 /**
  * playActions — Play's thin, PURE driver over the existing rules engine
- * (docs/architecture/dashboard.md §5). Nothing here touches React or the store: every function takes the
+ * (docs/architecture/play.md §14). Nothing here touches React or the store: every function takes the
  * live numbers (+ an injectable `Roll`) and returns the `Partial<Mech>` /
  * `Partial<Pilot>` write-through patch the caller (`useActionsDeck`, `PlayReactorRow`)
  * hands to `storeState.update(...)`. This keeps the button/action handlers trivially testable
@@ -40,7 +40,7 @@ import { resolveModule, resolveSystem } from './mechItems'
 import { resolveEquipment } from './pilotInventory'
 
 // ---------------------------------------------------------------------------
-// Reactor — Push / Heat Check / Vent / Shutdown (dashboard.md §5.1)
+// Reactor — Push / Heat Check / Vent / Shutdown (play.md §14.1)
 // ---------------------------------------------------------------------------
 
 /**
@@ -125,7 +125,7 @@ export function heatCheckOncePatch(args: { heat: number; currentSP: number; roll
 }
 
 /**
- * Emergency Vent: dump Heat to 0 and become Vulnerable (dashboard.md §5.1 — Vent and
+ * Emergency Vent: dump Heat to 0 and become Vulnerable (play.md §14.1 — Vent and
  * Shutdown are distinct controls on `PlayReactorRow`: Vent sets Heat→0 + `vulnerable`,
  * Shutdown toggles the flag). NB the tabletop rule folds a full shutdown into
  * venting; Play keeps them separate — hit Shutdown too for
@@ -154,7 +154,7 @@ export function describeHeatCheck(effect: HeatCheckEffect): string {
 }
 
 // ---------------------------------------------------------------------------
-// Action activation (dashboard.md §5.2)
+// Action activation (play.md §14.2)
 // ---------------------------------------------------------------------------
 
 export type PlayActionKind = 'chassis' | 'system' | 'module' | 'ability' | 'equipment'
@@ -359,7 +359,7 @@ export function actionReachable(
 }
 
 // ---------------------------------------------------------------------------
-// Resolve flow — cost choice, variable Hot, Apply outcome (dashboard.md §5.2)
+// Resolve flow — cost choice, variable Hot, Apply outcome (play.md §14.2)
 // ---------------------------------------------------------------------------
 
 /**

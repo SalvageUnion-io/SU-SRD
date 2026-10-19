@@ -1,6 +1,6 @@
 /**
  * CrewSeats — "Crew & seats" on a Game's own page (board M2;
- * docs/architecture/mediator-dashboard.md Q11): the crawler as a Row, then
+ * docs/architecture/play.md §16): the crawler as a Row, then
  * one entry per member's pilot, then the open seats, drawn as every crew list
  * draws them: the pilot's Row, opening its sheet (a Manage Row links, ruleset
  * §1.9), with who holds the seat right of the name, the seat's role (PLAYER or

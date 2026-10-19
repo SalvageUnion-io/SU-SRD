@@ -1,6 +1,6 @@
 /**
  * TheGame — "The Game" on a Game's own page (board M2;
- * docs/architecture/mediator-dashboard.md Q13): who mediates, who organises,
+ * docs/architecture/play.md §16): who mediates, who organises,
  * and, for the Organizer, **Hand over** and **Delete this game**.
  *
  * Appointing the Mediator is the Organizer's (`games.setMediator`,

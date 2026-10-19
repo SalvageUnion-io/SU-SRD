@@ -1,8 +1,8 @@
 /**
  * The Mediator's pure halves in Play
- * (docs/architecture/mediator-dashboard.md): the seat cards (Q5), the
- * proposal targets and values (Q8), how a sent proposal reads, and the
- * Opposition's instances (Q9). The Morale roll and what an NPC tracks
+ * (docs/architecture/play.md): the seat cards (§10), the proposal targets
+ * and values (§15), how a sent proposal reads, and the Opposition's
+ * instances (§15). The Morale roll and what an NPC tracks
  * are rules: `src/lib/rules/opposition.ts`.
  */
 

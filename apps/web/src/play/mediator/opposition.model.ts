@@ -1,5 +1,5 @@
 /**
- * The Opposition's view-model (docs/architecture/mediator-dashboard.md Q9):
+ * The Opposition's view-model (docs/architecture/play.md §15):
  * what an NPC row reads as, and how a reference entity becomes an instance. The rules it reads — what an NPC tracks, when it is down, the
  * Morale roll — live in `src/lib/rules/opposition.ts`.
  *

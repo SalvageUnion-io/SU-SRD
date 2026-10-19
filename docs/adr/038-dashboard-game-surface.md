@@ -16,7 +16,7 @@ It opens only for a pilot in a Game with a Mediator (a solo player can mediate
 their own Game), launched from the Game hub. Shelf pilots, anonymous sessions
 and Mediator-less Games use the live sheet, Downtime included. A disconnected
 session keeps an open Dashboard read-only. The Mediator's own surface is
-separate ([mediator-dashboard.md](../architecture/mediator-dashboard.md)).
+separate (Play's Mediator screen: [play.md](../architecture/play.md) §10).
 
 ### 2. Play state is a seat, saved on the Game
 

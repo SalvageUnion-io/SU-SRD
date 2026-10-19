@@ -1,6 +1,6 @@
 /**
  * ProposalsList — every Mediator proposal in the Game, newest first, twenty at
- * a time (docs/architecture/mediator-dashboard.md Q8): Play's All proposals
+ * a time (docs/architecture/play.md §15): Play's All proposals
  * and the Game page's "Proposals you sent" (board M2). Each row is a `ProposalRow`: target, field, the value asked for, the
  * reason, when, and the state in words.
  *

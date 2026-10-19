@@ -1,6 +1,6 @@
 /**
  * The rows of "Crew & seats" on a Game's own page (board M2;
- * docs/architecture/mediator-dashboard.md Q11), from `entities.listForGame`
+ * docs/architecture/play.md §16), from `entities.listForGame`
  * and `games.members`. Pure, so the order and the open seats are testable.
  */
 
