@@ -105,7 +105,6 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
         name={tableName}
         size={size}
         disabled={!!isDown}
-        framed={!onPage}
         nested={!onPage}
         peekAt={onPage ? undefined : tablePeekAddress(tableSource)}
         tone={tone.bgColor}

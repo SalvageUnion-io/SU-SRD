@@ -195,7 +195,6 @@ export function GuideSteps({
                 name={table.name}
                 size={compact ? 'compact' : 'full'}
                 disabled={!!isDown}
-                framed
                 tone={tableTone}
               />
             </div>

@@ -360,7 +360,6 @@ function ChoiceOptionGroup({
             table={table}
             name={`${tableName} Table`}
             size={compact ? 'mini' : 'compact'}
-            framed
             nested
             peekAt={tablePeekAddress(tableEntity)}
             disabled={false}

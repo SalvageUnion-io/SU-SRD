@@ -1,20 +1,14 @@
-import { ChevronDown, ChevronUp } from 'lucide-react'
-import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { RefObjectTable } from 'salvageunion-reference'
 import { plainTraitText, resultForColumnsTable, resultForTable } from 'salvageunion-reference'
-import { iconSize } from '../../../design/tokens'
 import { dieForTable, rollD20 } from '../../../lib/dice'
 import { useParseTraitReferences } from '../../../lib/parseTraitReferences'
-import { useDisclosure } from '../../../lib/useDisclosure'
-import { Button } from '../../atoms/Button'
-import { FOCUS_RING } from '../../atoms/interaction'
 import { digestColumnsTable, digestRollTable } from '../../compositions/digestRollTable'
-import { RollControl, RollTableInstrument } from '../../compositions/RollTableInstrument'
+import { RollTableInstrument } from '../../compositions/RollTableInstrument'
 import { rollRangeLabel } from '../../compositions/rollTableBands'
 import type { CardSize } from '../../containers/displayMode'
 import { toastRoll } from '../../containers/toastRoll'
-import { usePeekAttrs } from '../../entity/peekContext'
+import { RollToken } from '../../entity/forms/RollToken'
 
 /** A roll on this table: the die and the row it landed on. */
 export type CardRoll = { roll: number; key: string }
@@ -22,55 +16,39 @@ export type CardRoll = { roll: number; key: string }
 /** A pair of rolls on a columns table: where they landed, and the entry's die. */
 type ColumnsRoll = { column: string; entry: string; roll: number; value: string }
 
-/** The Table toggle: the Roll button's type and height (`.su-roll__control`). */
-const BAR_BUTTON = { flex: 'none' } satisfies CSSProperties
-
-/** The folded nested table's pill: ink, a thing you do, as an action's Token. */
-const TOKEN_PILL = {
-  backgroundColor: 'var(--color-ink)',
-  color: 'var(--color-paper)',
-} satisfies CSSProperties
-
 /** A row's text, its trait references as Mentions. */
 function TraitText({ text }: { text: string }) {
   return <>{useParseTraitReferences(text)}</>
 }
 
 /**
- * An entity's own ROLL TABLE, inline in its card like an action (board E4):
- * the shared `RollTableInstrument`, with the card's controls in its bar.
- *
- * Shown or hidden, rolled or not, ONE bar holds the same place: the table's
- * name, the Table / Hide toggle and, at the far right, the Roll the Die button
- * (press it again to reroll). Rolling never needs the table open, so every
- * table starts hidden, on the server as in the browser.
+ * An entity's own ROLL TABLE (EDL E14, R8): the shared `RollTableInstrument`,
+ * OPEN on its Page or guide step, flush under the rule above its bar, its
+ * bands showing without a click, on the server as in the browser. Its ROLL
+ * THE DIE stamp is the one roll control (press it again to reroll).
  *
  * The result is a TOAST (`toastRoll`), as every roll's is: the number, the
- * range it lands on, the outcome and its text, open or not. An open table also
- * marks the matching row, the instrument's mark: the same whatever the
- * outcome, so the web never colours a roll by how it went (ruleset §3.4).
+ * range it lands on, the outcome and its text. The table also marks the
+ * matching row, the instrument's mark: the same whatever the outcome, so the
+ * web never colours a roll by how it went (ruleset §3.4).
  *
  * The rows are banded in the SURFACE TONE (`tone`: a guide's own colour, for
  * the tables in its steps), cream on a surface with none.
  *
  * A COLUMNS table (Callsign, a d20 × d20) is the same instrument and the same
- * bar: its Roll twice button rolls both dice, the toast names the column, and
+ * bar: its Roll twice stamp rolls both dice, the toast names the column, and
  * the grid marks the column's head and the entry's cell.
  *
- * NESTED in another card (`nested`), the table is a TOKEN (owner's calls,
- * 2026-10-14 and 2026-10-18): the ink pill with its name on the cut-out, at a
- * Token's height, its Roll the Die button inside its strip after the name,
- * Mini (chips and actions C1a, C8). It has no Table toggle: its name Peeks
- * the table (`peekAt`, `PeekTable`), so the rows never open in the card.
+ * NESTED in another card (`nested`), the table is a Token (`RollToken`, the
+ * Token form's own): its name Peeks the table (`peekAt`, `PeekTable`), its
+ * roll in its strip, so the rows never open in the card.
  */
 export function CardRollTable({
   table,
   name,
   size,
   disabled,
-  defaultOpen = false,
   defaultRoll,
-  framed = false,
   nested = false,
   tone,
   onRollResult,
@@ -82,15 +60,8 @@ export function CardRollTable({
   size: CardSize
   /** A damaged host: the table reads, but there is no Roll. */
   disabled: boolean
-  /** Start open. Every table starts hidden otherwise. */
-  defaultOpen?: boolean
   /** Start rolled at this die (a restored roll). */
   defaultRoll?: number
-  /**
-   * Inside a padded body (a guide's step) the table wears its own ink frame;
-   * flush in a card it is closed by the rule above its bar.
-   */
-  framed?: boolean
   /** Inside another card: the table is a Token, its Roll in its strip, its rows its Peek's. */
   nested?: boolean
   /** The surface's tone (a CSS colour), whose band paints every other row. */
@@ -100,9 +71,6 @@ export function CardRollTable({
   /** Nested: the table's Peek address (`tablePeekAddress`); none, and its name only reads. */
   peekAt?: string
 }) {
-  const peek = usePeekAttrs(undefined, peekAt)
-  const fold = useDisclosure(defaultOpen)
-  const expanded = fold.open
   const isColumns = table.type === 'columns'
   const [rolled, setRolled] = useState<CardRoll | null>(() =>
     defaultRoll != null && !isColumns
@@ -150,51 +118,17 @@ export function CardRollTable({
     })
   }
 
-  const toggle = (
-    <Button
-      size="compact"
-      className="su-roll__toggle su-roll__control"
-      {...fold.toggleProps}
-      aria-label={expanded ? `Hide the ${name} table` : `Show the ${name} table`}
-      style={BAR_BUTTON}
-    >
-      {expanded ? 'Hide' : 'Table'}
-      {expanded ? (
-        <ChevronUp aria-hidden="true" size={iconSize.compact} />
-      ) : (
-        <ChevronDown aria-hidden="true" size={iconSize.compact} />
-      )}
-    </Button>
-  )
+  const stamp = isColumns ? 'Roll twice:' : 'Roll the Die:'
+  const onRoll = disabled ? undefined : isColumns ? rollColumns : rollBands
 
   if (nested) {
-    const peeks = Object.keys(peek).length > 0
     return (
-      <div className="su-entity-token su-roll-token">
-        <div className="su-entity-token__pill" style={TOKEN_PILL}>
-          {/* The name tab is the Peek's trigger, focusable so a keyboard
-              opens it too; the Roll beside it is its own control. */}
-          <span
-            className={peeks ? `su-entity-token__notch ${FOCUS_RING}` : 'su-entity-token__notch'}
-            tabIndex={peeks ? 0 : undefined}
-            {...peek}
-          >
-            <span className="su-entity-token__name">
-              {name}
-              <span className="su-sr-only"> (roll table)</span>
-            </span>
-          </span>
-          <span className="su-roll-token__actions">
-            <RollControl
-              name={name}
-              size="mini"
-              onRoll={disabled ? undefined : isColumns ? rollColumns : rollBands}
-            >
-              {isColumns ? 'Roll twice:' : 'Roll the Die:'}
-            </RollControl>
-          </span>
-        </div>
-      </div>
+      <RollToken
+        name={name}
+        stamp={stamp}
+        {...(onRoll ? { onRoll } : {})}
+        {...(peekAt ? { peekAt } : {})}
+      />
     )
   }
 
@@ -204,12 +138,9 @@ export function CardRollTable({
       title={name}
       size={size}
       tone={tone}
-      frame={framed ? 'box' : 'rule'}
-      stamp={isColumns ? 'Roll twice:' : undefined}
-      onRoll={disabled ? undefined : isColumns ? rollColumns : rollBands}
-      actions={toggle}
-      open={expanded}
-      panelId={fold.panelId}
+      frame="rule"
+      stamp={stamp}
+      onRoll={onRoll}
       table={
         isColumns
           ? {

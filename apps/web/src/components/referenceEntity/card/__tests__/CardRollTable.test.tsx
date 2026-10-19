@@ -23,7 +23,8 @@ const coreMechanic = () => {
 }
 
 describe('CardRollTable', () => {
-  test('hidden by default: the bar alone — the name, the Table toggle and the Roll the Die button', () => {
+  // R8: open on its Page, its stamp the one roll control, no toggle.
+  test('open: the bar (the name and the Roll the Die stamp) over its bands, no toggle', () => {
     render(
       <CardRollTable table={coreMechanic()} name="Core Mechanic" size="compact" disabled={false} />
     )
@@ -31,9 +32,9 @@ describe('CardRollTable', () => {
       'Roll the Die'
     )
     expect(screen.getByText('Core Mechanic')).toBeTruthy()
-    const toggle = screen.getByRole('button', { name: 'Show the Core Mechanic table' })
-    expect(toggle.getAttribute('aria-expanded')).toBe('false')
-    expect(screen.queryByRole('listitem')).toBeNull()
+    expect(screen.getAllByRole('button')).toHaveLength(1)
+    expect(screen.getAllByRole('listitem')).toHaveLength(5)
+    expect(document.querySelector('.su-roll')?.getAttribute('data-frame')).toBe('rule')
   })
 
   test('rolled and open: the matching row is marked, the same for every outcome', () => {
@@ -42,7 +43,6 @@ describe('CardRollTable', () => {
         table={coreMechanic()}
         name="Core Mechanic"
         size="compact"
-        defaultOpen
         disabled={false}
         defaultRoll={14}
       />
@@ -54,43 +54,12 @@ describe('CardRollTable', () => {
     expect(marked[0]?.textContent).toContain('Rolled 14')
   })
 
-  test('rolling never needs the table open, and the toggle opens it', async () => {
-    render(
-      <>
-        <CardRollTable
-          table={coreMechanic()}
-          name="Core Mechanic"
-          size="compact"
-          disabled={false}
-        />
-        <Toaster />
-      </>
-    )
-    fireEvent.click(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' }))
-    // The dice load on the first roll (`dieForTable`), so the toast is awaited.
-    expect(await screen.findByText(/^Core Mechanic: rolled \d+ \(/)).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: 'Show the Core Mechanic table' }))
-    // The toast is a list item too: count the table's own rows.
-    expect(document.querySelectorAll('.su-roll li')).toHaveLength(5)
-  })
-
-  test('open, the Table toggle names the bands it controls', () => {
-    render(
-      <CardRollTable table={coreMechanic()} name="Core Mechanic" size="compact" disabled={false} />
-    )
-    const toggle = screen.getByRole('button', { name: 'Show the Core Mechanic table' })
-    fireEvent.click(toggle)
-    const bands = document.getElementById(toggle.getAttribute('aria-controls') ?? '')
-    expect(bands?.classList.contains('su-roll__bands')).toBe(true)
-  })
-
   test('nested it is a Token: Roll the Die in its strip, its name Peeking the rows', () => {
     render(
       <CardRollTable
         table={coreMechanic()}
         name="Core Mechanic"
         size="compact"
-        framed
         nested
         disabled={false}
         peekAt="roll-tables:core-mechanic/table"
@@ -111,15 +80,7 @@ describe('CardRollTable', () => {
   })
 
   test('a damaged host reads the table but cannot roll it', () => {
-    render(
-      <CardRollTable
-        table={coreMechanic()}
-        name="Core Mechanic"
-        size="compact"
-        defaultOpen
-        disabled
-      />
-    )
+    render(<CardRollTable table={coreMechanic()} name="Core Mechanic" size="compact" disabled />)
     expect(screen.queryByRole('button', { name: /^Roll/ })).toBeNull()
     expect(screen.getAllByRole('listitem').length).toBe(5)
   })
@@ -127,13 +88,7 @@ describe('CardRollTable', () => {
   test('a roll raises its result as a toast: the die, the band, the outcome and its text', async () => {
     render(
       <>
-        <CardRollTable
-          table={coreMechanic()}
-          name="Core Mechanic"
-          size="full"
-          defaultOpen
-          disabled={false}
-        />
+        <CardRollTable table={coreMechanic()} name="Core Mechanic" size="full" disabled={false} />
         <Toaster />
       </>
     )
@@ -150,13 +105,7 @@ describe('CardRollTable', () => {
 
   test('the rows are banded d20: paper, then the band (cream with no tone), in turn', () => {
     render(
-      <CardRollTable
-        table={coreMechanic()}
-        name="Core Mechanic"
-        size="compact"
-        defaultOpen
-        disabled={false}
-      />
+      <CardRollTable table={coreMechanic()} name="Core Mechanic" size="compact" disabled={false} />
     )
     const fills = screen.getAllByRole('listitem').map((row) => row.style.backgroundColor)
     expect(fills).toEqual([
@@ -176,7 +125,6 @@ describe('CardRollTable', () => {
         table={coreMechanic()}
         name="Core Mechanic"
         size="compact"
-        defaultOpen
         disabled={false}
         tone="var(--color-pilot)"
       />
@@ -197,7 +145,6 @@ describe('CardRollTable', () => {
           table={callsigns()}
           name="Callsign Table"
           size="full"
-          defaultOpen
           disabled={false}
           tone="var(--color-pilot)"
         />
