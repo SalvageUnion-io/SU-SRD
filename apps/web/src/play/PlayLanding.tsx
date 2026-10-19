@@ -1,6 +1,6 @@
 /**
  * PlayLanding — the Play hub (`/play/`, ADR-052 §4): one tap from here into
- * any Game, its page or its dashboard, and any solo pilot. A Manage page
+ * any Game, its page or its Play screen, and any solo pilot. A Manage page
  * (ruleset §1.9): paper under the `play` band, Slab sections, Rows that link.
  *
  *  - **+ New Game** (`NewGameControl`, from a name or a template) and **Join**

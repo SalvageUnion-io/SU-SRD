@@ -345,13 +345,6 @@ const base = {
   /** THE single action colour. */
   rust: 'rgb(168, 82, 34)',
   rustHi: 'rgb(138, 64, 25)',
-  /** A 25% rust wash, for non-indicator use.
-   *
-   *  **It is not a focus ring**: it measures 1.42:1 against paper where WCAG
-   *  2.4.11 / 1.4.11 require 3:1. Focus is the offset ring in
-   *  `--focus-ring-shadow`; see the rationale above `.su-focus-ring` in
-   *  `styles/index.css`. */
-  rust25: 'rgb(168 82 34 / 0.25)',
   /** The one sanctioned cream — RollTable banding, and nowhere else. */
   bandCream: 'rgb(243, 237, 226)',
 

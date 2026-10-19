@@ -192,9 +192,6 @@
      banding — and nowhere else. */
   --color-band-cream: rgb(243, 237, 226); /* #f3ede2 */
   --color-rust-hi: rgb(138, 64, 25); /* #8a4019 primary hover */
-  /* A 25% rust wash. NOT the focus ring: as a ring it measured 1.42:1 against
-     the required 3:1 (see `.su-focus-ring` in index.css). */
-  --color-rust-25: rgb(168 82 34 / 0.25);
   /* One red for state: destructive/error surfaces resolve to
      `--color-status-bad` (ruleset §3.3). `--color-adversary` is an ONTOLOGY hue
      (creature/faction/NPC headers) and never does state's job. */

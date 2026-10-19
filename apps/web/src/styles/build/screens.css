@@ -17,15 +17,15 @@
    variant's ink-wash hover never shows through. */
 .su-sign-in-control--dark {
   background-color: transparent;
-  border-color: var(--su-bar-fg-60, var(--color-paper-60));
-  color: var(--su-bar-fg, var(--color-paper));
+  border-color: var(--su-bar-fg-60);
+  color: var(--su-bar-fg);
   font-size: var(--text-caption);
   padding-inline: var(--space-14);
 }
 @media (hover: hover) {
   .su-sign-in-control--dark:hover {
     background-color: transparent;
-    border-color: var(--su-bar-fg, var(--color-paper));
+    border-color: var(--su-bar-fg);
   }
 }
 

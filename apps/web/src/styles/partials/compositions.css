@@ -66,7 +66,7 @@
 /* NavDrawer (`compositions/NavDrawer.tsx`). The trigger's padding and ink are a
    class because the Union bar's phone cluster resizes it (`shell.css`). */
 .su-nav-drawer__trigger {
-  color: var(--su-bar-fg, var(--color-paper));
+  color: var(--su-bar-fg);
   padding: var(--space-8);
 }
 
