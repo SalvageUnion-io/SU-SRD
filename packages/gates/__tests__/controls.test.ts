@@ -195,7 +195,10 @@ describe('controls scan', () => {
   })
 
   test('a ONE_ON_OFF entry whose file sets no aria-pressed, or is gone, is stale', () => {
-    const [kept, emptied] = Object.keys(ONE_ON_OFF) as [string, string]
+    // The kept entry is a component (its JSX `aria-pressed`), the emptied one any other.
+    const files = Object.keys(ONE_ON_OFF)
+    const kept = files.find((file) => file.endsWith('.tsx')) as string
+    const emptied = files.find((file) => file !== kept) as string
     const root = tree({ [kept]: pressed, [emptied]: 'export const C = () => <button />\n' })
     const stale = controlLaws
       .scan(root)

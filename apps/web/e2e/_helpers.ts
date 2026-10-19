@@ -10,7 +10,7 @@ import { at, BASE } from './_base'
  * `selectionRole`: an exclusive "choose exactly one" pane (class, chassis,
  * crawler type, pattern) renders `role="radio"` + `aria-checked`, while a
  * multi-pick pane (abilities, equipment, systems) renders `role="button"` +
- * `aria-pressed`. `Sel`-wrapped cells are plain `<div role="button">`.
+ * `aria-pressed`.
  *
  * So a pick target is "a radio OR a button" — matching only one of the two
  * silently misses whole steps, which is exactly how these specs rotted while

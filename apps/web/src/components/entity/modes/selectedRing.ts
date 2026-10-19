@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 
 /**
- * SELECT's ring: the 3px ink ring just outside the frame (SELECTION_RING). The
+ * SELECT's ring: the 3px ink ring just outside the frame, non-layout-shifting. The
  * one spelling of it as a style object — the Row, the entity card, a choice
  * card and the searcher's installed count card all spread it.
  */

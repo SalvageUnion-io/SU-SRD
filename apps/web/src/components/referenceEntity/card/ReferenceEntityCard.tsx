@@ -25,7 +25,8 @@ import type { StatItem } from '../../containers/statsBarTypes'
 import type { ChipSet } from '../../entity'
 import { Chips } from '../../entity'
 import { EntitySurfaceProvider } from '../../entity/EntitySurface'
-import { useEntityExternalLink } from '../../entity/entitySurfaceContext'
+import { useEntityExternalLink, useEntitySurface } from '../../entity/entitySurfaceContext'
+import { SelectedSeal } from '../../entity/modes/select'
 import { InsidePeekContext } from '../../entity/peekContext'
 import { foldControl } from '../foldControl'
 import { quotePatternName } from '../pattern/quotePatternName'
@@ -35,7 +36,6 @@ import { CardHead } from './CardHead'
 import { CardLabels } from './CardLabels'
 import { CardOuter } from './CardOuter'
 import { CardPage } from './CardPage'
-import { CardTopRail } from './CardTopRail'
 import type { CardBodyInput } from './cardBodyProse'
 import { resolveBodyProse } from './cardBodyProse'
 import { buildHeaderStats, resolveSubHeaderCells, resolveTechScaling } from './cardCells'
@@ -51,7 +51,7 @@ import {
 import type { CardGrain } from './cardGrain'
 import { chassisTokenName, MAX_DEPTH, sectionHeadingLevel } from './cardHelpers'
 import { resolveCardSections } from './cardSections'
-import { CardTextureContext } from './cardTexture'
+import { cardStripSlots } from './cardStrip'
 import { EntityCardIdentityFooter } from './EntityCardIdentityFooter'
 import type { AxisMarker } from './entityCardTone'
 import {
@@ -75,7 +75,6 @@ import type {
   ReferenceEntityCardHideConfig,
   ReferenceEntityCardProps,
 } from './referenceEntityCardTypes'
-import { StatusRail } from './StatusRail'
 import { stripHostParenthetical } from './stripHostParenthetical'
 
 /**
@@ -189,7 +188,6 @@ function ReferenceEntityCardInner({
   droneLoadout,
   hide: hideProp,
   status,
-  onStatusClick,
   disabled,
   selected,
   selectionSeal,
@@ -225,8 +223,9 @@ function ReferenceEntityCardInner({
   // Hooks run above every early return below.
   const externalLinkNode = useEntityExternalLink(data as RefEntity)
   const insidePeek = useContext(InsidePeekContext)
-  const textureFromHost = useContext(CardTextureContext)
-  const textured = texture ?? textureFromHost
+  // Texture comes from the surface (E13); a card's own `texture` wins.
+  const surface = useEntitySurface()
+  const textured = texture ?? surface.texture
   const schemaName = (
     'schemaName' in entity && typeof entity.schemaName === 'string' ? entity.schemaName : undefined
   ) as RefEnumSchemaName | 'actions' | undefined
@@ -350,7 +349,7 @@ function ReferenceEntityCardInner({
 
   const isHead = extent === 'head'
   // WRITE LAYER — whole-card affordances (see `resolveCardInteraction`). A
-  // Token draws no rail, so a head's controls reach it only as a card click:
+  // Token draws no controls, so a head's controls reach it only as a card click:
   // each stands hidden, and the Token itself takes the click's role, name and
   // state (a folded card's disclosure).
   const { outer, frameStyle } = resolveCardInteraction({
@@ -425,6 +424,14 @@ function ReferenceEntityCardInner({
   // A page's chips ride its band (`resolveEntityPageMeta`); its body keeps "Suggested".
   const hasSubLine = onPage && !!suggestedNode
 
+  // The head's chip group carries the condition and every control, in its
+  // state and last slots (C8, hard rule R6), and the select seal on the
+  // band's right (EDL Modes, R15): nothing rides the frame or sits under it.
+  const slots = cardStripSlots({ controls, status, subject: entityName })
+  // A selected Card always wears the seal, "Selected" unless the caller names
+  // its own word. A Token (level 2) is ring only.
+  const seal = selected ? <SelectedSeal word={selectionSeal} /> : undefined
+
   // Every card wears the cut-out head; a Page has its chapter band.
   const header = (
     <CardHead
@@ -437,7 +444,18 @@ function ReferenceEntityCardInner({
       titleSize={titleSize}
       titleColor={onBand === 'ink' ? 'var(--color-ink)' : 'var(--color-paper)'}
       numeral={numeral}
-      chips={<Chips chips={chips} size="compact" marks={suggestedNode} nodes={tree} lanes />}
+      chips={
+        <Chips
+          chips={chips}
+          size="compact"
+          marks={suggestedNode}
+          nodes={tree}
+          state={slots.state.length > 0 ? slots.state : undefined}
+          lanes
+        />
+      }
+      controls={slots.controls.length > 0 ? slots.controls : undefined}
+      affordance={seal}
       labels={labels}
       size={size}
       grain={grain}
@@ -448,27 +466,6 @@ function ReferenceEntityCardInner({
   // A CATALOG tile carries NO footer: it is artwork + description, and
   // provenance belongs on the entity's own page, which the tile links to.
   const rendersFooter = !isCatalog && depth === 0
-  // LIVE SHEET (board E3): the condition and the destructive Remove live in a
-  // dashed body rail, not on the seam as green and red tabs.
-  const removers = (controls ?? []).filter((c) => c.variant === 'danger')
-  const seamControls =
-    removers.length > 0 ? controls?.filter((c) => !removers.includes(c)) : controls
-  // A read card (no handler) prints only a condition worth reporting: Intact
-  // is the default, so it draws nothing rather than a stamp on every card.
-  const shownStatus = onStatusClick || status !== 'intact' ? status : undefined
-  const statusRail =
-    shownStatus || removers.length > 0 ? (
-      <StatusRail
-        status={shownStatus}
-        onStatusClick={onStatusClick}
-        removers={removers}
-        subject={entityName}
-        size={size}
-      />
-    ) : null
-  const topRightRail = (
-    <CardTopRail controls={seamControls} selected={selected} selectionSeal={selectionSeal} />
-  )
 
   // BODY — the prose, the inline actions, the table, the guide, the pattern
   // section and the nested groups (`cardBodyProse.tsx`, `cardSections.tsx`).
@@ -572,9 +569,7 @@ function ReferenceEntityCardInner({
 
   return (
     <CardOuter {...outer}>
-      {topRightRail}
-      {/* The frame lives on this INNER clip, so the rail escapes it; paper,
-        radius and clip are `.su-ec-frame` (ADR-046), weight and dash ours. */}
+      {/* Paper, radius and clip are `.su-ec-frame` (ADR-046), weight and dash ours. */}
       <div className="su-ec-frame" style={frameStyle}>
         {header}
         {/* SLOT: subtitleExtra — an extra line under the header (absent ⇒ nothing). */}
@@ -622,7 +617,6 @@ function ReferenceEntityCardInner({
             {expand}
           </div>
         )}
-        {statusRail}
         {/* FOOTER — none on a catalog tile; a Peek's wears the header band. */}
         {rendersFooter ? (
           // USER-MADE (ruleset §3.9): the credit is the maker, never a page.
@@ -660,7 +654,7 @@ export type ReferenceEntityCardWrapperProps = Omit<
    * The affordance is ONE `controls` entry (`foldControl`): open, a chevron
    * with `aria-expanded` and `aria-controls` (the card wrapper's id,
    * `resolveCardInteraction`); folded, the Token itself is the disclosure
-   * button, since a Token draws no rail.
+   * button, since a Token draws no controls.
    */
   collapsible?: boolean
 }

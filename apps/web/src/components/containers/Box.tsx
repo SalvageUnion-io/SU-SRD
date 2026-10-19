@@ -2,6 +2,12 @@ import type { CSSProperties, ReactNode } from 'react'
 import { cn } from '../../lib/cn'
 import { RowFrame } from '../entity/forms/RowFrame'
 import { ROW_ROOT } from '../entity/forms/rowRoot'
+import { SelectSurface } from '../entity/modes/select'
+import { SELECTED_RING } from '../entity/modes/selectedRing'
+import type { EntityMode } from '../entity/types'
+
+/** A level-1 pick that is no entity: the Row's select mode on its frame. */
+type BoxSelect = Extract<EntityMode, { kind: 'select' }>
 
 export type BoxProps = {
   /** The band over the body: `TitledBox`'s cut-out head. Omitted, the box is its frame and body. */
@@ -38,6 +44,13 @@ export type BoxProps = {
   shrink?: boolean
   /** Dimmed by its host: a Play row not on hand (the Row's `dim`). */
   dim?: boolean
+  /**
+   * Select mode (EDL Modes), for a level-1 pick that is no entity (a wizard's
+   * Custom build, an NPC's Start blank): the whole box is the surface, a radio
+   * or a toggle, and selected it wears the Row's ink ring. `TitledBox` seals
+   * its head.
+   */
+  select?: BoxSelect
   children?: ReactNode
 }
 
@@ -68,9 +81,50 @@ export function Box({
   fill = false,
   shrink = false,
   dim = false,
+  select,
   children,
 }: BoxProps) {
   const hasBody = children !== null && children !== undefined && children !== false
+  const frame = (
+    <RowFrame
+      art={art}
+      bodyless={!hasBody}
+      reference={reference}
+      shrink={fill || shrink}
+      dim={dim}
+      style={
+        frameColor || select?.selected
+          ? {
+              ...(frameColor ? { borderColor: frameColor } : {}),
+              ...(select?.selected && SELECTED_RING),
+            }
+          : undefined
+      }
+    >
+      {head}
+      {hasBody && (
+        <div
+          className={cn('su-box__body', bodyClassName)}
+          data-flush={body === 'flush' || undefined}
+          data-fill={fill || undefined}
+          style={bodyStyle}
+        >
+          {children}
+        </div>
+      )}
+    </RowFrame>
+  )
+  if (select) {
+    return (
+      <SelectSurface
+        mode={select}
+        label={select.label ?? label ?? ''}
+        className={cn(ROW_ROOT, 'su-box', className)}
+      >
+        {frame}
+      </SelectSurface>
+    )
+  }
   return (
     <Root
       aria-label={Root === 'section' ? label : undefined}
@@ -78,26 +132,7 @@ export function Box({
       className={cn(ROW_ROOT, 'su-box', className)}
       data-fill={fill || undefined}
     >
-      <RowFrame
-        art={art}
-        bodyless={!hasBody}
-        reference={reference}
-        shrink={fill || shrink}
-        dim={dim}
-        style={frameColor ? { borderColor: frameColor } : undefined}
-      >
-        {head}
-        {hasBody && (
-          <div
-            className={cn('su-box__body', bodyClassName)}
-            data-flush={body === 'flush' || undefined}
-            data-fill={fill || undefined}
-            style={bodyStyle}
-          >
-            {children}
-          </div>
-        )}
-      </RowFrame>
+      {frame}
     </Root>
   )
 }

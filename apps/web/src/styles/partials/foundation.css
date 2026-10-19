@@ -211,21 +211,6 @@ body {
   pointer-events: none;
 }
 
-/*
- * The SELECTION rings — a box-shadow rather than a border, so a selected card
- * does not nudge its neighbours (design-spec §2.8).
- *
- * Unlike the focus rings these are NOT stateful: selection is application
- * state, not a CSS pseudo-class, so the class is applied conditionally from
- * TypeScript and the rule itself is unconditional. They live here because they
- * are class-string exports (the class-string exemption in
- * `.claude/rules/styling.md`), not because a style object could not hold them.
- */
-.su-selection-ring {
-  /* Ink, not rust: a selection is state, not an action (ruleset §3.1). */
-  box-shadow: 0 0 0 3px var(--color-ink);
-}
-
 /* ══ Layout primitives (`containers/Stack.tsx`, `Cluster.tsx`, `Grid.tsx`) ══
  *
  * Classes rather than style objects because a page wears dozens of them and

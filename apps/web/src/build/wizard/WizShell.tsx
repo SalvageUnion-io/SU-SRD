@@ -44,7 +44,7 @@ type WizShellProps = {
   onStepClick?: (index: number) => void
   /** Step heading — the page's h1 over the step's content, read as 'Step n of N · {title}'. */
   title: string
-  /** Main pane content (detail card, Sel grid, form, review). */
+  /** Main pane content (detail card, pick grid, form, review). */
   children: ReactNode
   /**
    * Black tracker tabs hosted in the action pill — live budget/count chrome.

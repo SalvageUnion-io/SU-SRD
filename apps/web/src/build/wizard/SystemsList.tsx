@@ -29,7 +29,7 @@ type SystemsListProps = {
 
 /**
  * Step 3 · Arm the Armament Bay (Union Crawler p.213) — the weapons-system
- * Sel grid, every option rendered as the SRD entity card inside a SelCard
+ * pick grid, every option rendered as the SRD entity card in select mode
  * (the universal entity-card rule). The parent owns the weapons + TL filter
  * (guided create: Tech 1 only); selection is HARD-capped at `maxSelectable`
  * — the type's mutations-derived Armament-Bay allowance — and an at-cap card

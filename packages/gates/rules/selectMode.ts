@@ -11,7 +11,7 @@
  * was sealed, and pickers dimmed at 0.7, 0.45, 0.3 and 0.5-and-drained.
  *
  * - `picker-opacity`: a picker file (one that draws a select: `selectionRole`,
- *   a `select` mode, a radio card or group, `Sel`, a checkbox or radio) sets
+ *   a `select` mode, a radio card or group, a checkbox or radio) sets
  *   no `opacity` of its own, in a style object or a utility class; nor does a
  *   stylesheet rule keyed on a pick's state (`[data-selected]`, `[aria-pressed]`,
  *   `:checked`, an unticked or unchosen mark). Its dim is `SELECT_DIM`.
@@ -36,7 +36,6 @@ const PICKER_MARKS: readonly RegExp[] = [
   /\bselectionRole[=:]/,
   /kind:\s*'select'/,
   /<RadioCard(?:Group)?\b/,
-  /<Sel\b/,
   /<SelectSurface\b/,
   /<Checkbox\b/,
   /<Radio\b/,
@@ -52,7 +51,6 @@ const SELECT_PARTS = new Set([
   'apps/web/src/components/entity/modes/select.tsx',
   // Its 0.6 is a down unit's condition, not a pick's state.
   'apps/web/src/components/entity/forms/Row.tsx',
-  'apps/web/src/components/containers/Sel.tsx',
   'apps/web/src/components/containers/RadioCardGroup.tsx',
   'apps/web/src/components/atoms/Checkbox.tsx',
   'apps/web/src/components/atoms/Radio.tsx',
@@ -65,8 +63,11 @@ const SELECT_PARTS = new Set([
 const SEAL_HOSTS: Record<string, string> = {
   'apps/web/src/components/entity/modes/select.tsx': 'the seal itself',
   'apps/web/src/components/entity/forms/Row.tsx': 'a Row (level 1)',
-  'apps/web/src/components/referenceEntity/card/CardTopRail.tsx': "a Card's rail (level 1)",
-  'apps/web/src/components/containers/Sel.tsx': 'a level-1 pick that is no entity',
+  'apps/web/src/components/referenceEntity/card/ReferenceEntityCard.tsx': "a Card's head (level 1)",
+  'apps/web/src/components/containers/TitledBox.tsx':
+    "a level-1 pick that is no entity: select mode on the Row's frame",
+  'apps/web/src/components/referenceEntity/choiceCard/ChoiceGroups.tsx':
+    'a choice option on its Page (level 1)',
   'apps/web/src/components/compositions/EntitySearcher.tsx': "the searcher's list (level 1)",
 }
 
@@ -149,7 +150,7 @@ const RULES: Rule[] = [
     id: 'level-2-seal',
     mode: 'zero',
     rule: 'hard rule R15 (EDL Modes, N7) — the "Selected" seal is a level-1 Row\'s or Card\'s; a level-2 choice is ringed, never sealed',
-    fix: "At level 2 pass `selected` to the Token (the ring alone). At level 1 select through a Row's `select` mode, a Card's `selected` or `Sel`, which seal it; a new level-1 form joins SEAL_HOSTS in packages/gates/rules/selectMode.ts.",
+    fix: "At level 2 pass `selected` to the Token (the ring alone). At level 1 select through a Row's `select` mode, a Card's `selected` or a TitledBox's `select`, which seal it; a new level-1 form joins SEAL_HOSTS in packages/gates/rules/selectMode.ts.",
   },
 ]
 

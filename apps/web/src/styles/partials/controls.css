@@ -312,7 +312,7 @@
   outline-offset: 1px;
 }
 
-/* A chosen entity: select mode's ring (`.su-selection-ring`, ink — a state,
+/* A chosen entity: select mode's ring (`SELECTED_RING`, ink — a state,
    never rust: ruleset §3.1) and, at the line's end, its `SelectedSeal`
    (hard rule R15). */
 .su-searcher__item[data-selected] {

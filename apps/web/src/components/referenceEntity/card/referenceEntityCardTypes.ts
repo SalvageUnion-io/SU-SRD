@@ -117,18 +117,17 @@ export type ReferenceEntityCardProps = {
   // ─── WRITE LAYER (all additive — absent ⇒ read-only is byte-identical) ───
   /** Render guards that SUBTRACT already-rendered sections. */
   hide?: ReferenceEntityCardHideConfig
-  /** Intact/Damaged/Destroyed chip in the header stat axis beside the title.
-   * A damaged/destroyed status also greys the whole tone (header band flat
-   * grey; sub-header + footer + frame the darker grey shade). */
+  /** The condition: damaged or destroyed greys the whole tone (header band
+   * flat grey; sub-header + footer + frame the darker grey shade) and reads
+   * as the `StatusBadge` in the head's state slot (C8). A control with
+   * `status` is the one that steps it. */
   status?: EntityStatus
-  /** Cycle handler (Intact → Damaged → Destroyed) — makes the chip a button. */
-  onStatusClick?: () => void
   /** Whole-card opacity-50 (an unavailable/inactive item). */
   disabled?: boolean
-  /** Draw the canonical ink selection border (SELECTION_RING) — non-layout-shifting. */
+  /** Draw select mode's ink ring (`SELECTED_RING`) — non-layout-shifting. */
   selected?: boolean
-  /** The word on the ink seal a `selected` Card wears on its top-right frame
-   * (hard rule R15): "Selected" by default. A Token (`extent="head"`) is
+  /** The word on the ink seal a `selected` Card wears on its head band's
+   * right (hard rule R15): "Selected" by default. A Token (`extent="head"`) is
    * ring only, never sealed. */
   selectionSeal?: string
   /** A rust "Suggested" stamp leading the sub-header — a recommended pick. */

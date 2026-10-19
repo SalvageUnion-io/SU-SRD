@@ -41,7 +41,6 @@ describe('select-mode/picker-opacity', () => {
     for (const mark of [
       "mode={{ kind: 'select' }}",
       '<RadioCardGroup label="x">',
-      '<Sel selected>',
       '<Checkbox checked />',
       '<Radio label="x" />',
       '<input type="radio" />',
@@ -64,7 +63,7 @@ describe('select-mode/picker-opacity', () => {
     expect(lines(scan(PICKER, ok), 'picker-opacity')).toEqual([])
     expect(
       lines(
-        scan('apps/web/src/build/__tests__/x.test.tsx', '<Sel />\n{ opacity: 0.5 }'),
+        scan('apps/web/src/build/__tests__/x.test.tsx', '<RadioCardGroup />\n{ opacity: 0.5 }'),
         'picker-opacity'
       )
     ).toEqual([])
@@ -92,11 +91,12 @@ describe('select-mode/level-2-seal', () => {
     expect(lines(found, 'level-2-seal')).toEqual([1])
   })
 
-  test('the Row, the Card rail, Sel and the searcher may seal', () => {
+  test("the Row, the Card's head, a select TitledBox, a Page's option and the searcher may seal", () => {
     for (const rel of [
       'apps/web/src/components/entity/forms/Row.tsx',
-      'apps/web/src/components/referenceEntity/card/CardTopRail.tsx',
-      'apps/web/src/components/containers/Sel.tsx',
+      'apps/web/src/components/referenceEntity/card/ReferenceEntityCard.tsx',
+      'apps/web/src/components/containers/TitledBox.tsx',
+      'apps/web/src/components/referenceEntity/choiceCard/ChoiceGroups.tsx',
       'apps/web/src/components/compositions/EntitySearcher.tsx',
     ]) {
       expect(lines(scan(rel, '<SelectedSeal />'), 'level-2-seal')).toEqual([])

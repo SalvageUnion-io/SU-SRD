@@ -2,6 +2,7 @@ import type { ElementType, ReactNode } from 'react'
 import type { Paint } from '../entity'
 import { Head, paintFor } from '../entity'
 import { useEntitySurface } from '../entity/entitySurfaceContext'
+import { SelectedSeal } from '../entity/modes/select'
 import type { BoxProps } from './Box'
 import { Box } from './Box'
 
@@ -32,7 +33,8 @@ type TitledBoxProps = Omit<BoxProps, 'head' | 'frameColor'> & {
  *
  * Every titled container that is not an entity wears it: dialogs
  * (`ModalShell`), a sheet's panels (a mech's Chassis and Hold), wizard briefs,
- * notices. Entities draw through their own forms (`Row`,
+ * notices, and a level-1 pick that is no entity (`select`: a wizard's Custom
+ * build), ringed and sealed as a selected Row. Entities draw through their own forms (`Row`,
  * `ReferenceEntityCard`), which share the same `Head`.
  *
  * Where it may not go (ruleset §5, N5 and N6): inside an entity's Card or
@@ -51,6 +53,7 @@ export function TitledBox({
   chips,
   controls,
   label,
+  select,
   ...box
 }: TitledBoxProps) {
   const surface = useEntitySurface()
@@ -59,6 +62,7 @@ export function TitledBox({
     <Box
       {...box}
       label={label ?? title}
+      {...(select ? { select } : {})}
       head={
         <Head
           title={title}
@@ -69,6 +73,8 @@ export function TitledBox({
           paint={paint}
           chips={chips}
           controls={controls}
+          // Select mode's seal, on the band's right as a selected Row's (R15).
+          affordance={select?.selected ? <SelectedSeal word={select.seal} /> : undefined}
           notch
           chipsBeside
         />

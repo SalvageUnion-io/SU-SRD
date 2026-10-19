@@ -2,7 +2,7 @@
  * The card's CHROME rules — how a card is coloured, framed and interacted
  * with, and what its header hint says, as opposed to the content it carries.
  * Split out of `ReferenceEntityCard.tsx`; every function here is
- * pure. The nodes they feed are `CardTopRail` and the header.
+ * pure. The nodes they feed are the card's outer wrapper and its header.
  */
 
 import type { CSSProperties } from 'react'
@@ -208,7 +208,7 @@ export function resolveCardInteraction({
   // instead of its full text content. Navigation/add cards leave both unset and
   // stay a plain role=button.
   const label = cardClickLabel ? { 'aria-label': cardClickLabel } : {}
-  // A DISCLOSURE control on the card's rail (the fold chevron) controls the
+  // A DISCLOSURE control in the card's head (the fold chevron) controls the
   // whole card, so the wrapper takes the id its `aria-controls` names.
   const id = controls?.find((c) => c.ariaExpanded !== undefined)?.ariaControls
   const idAttr = id ? { id } : {}
@@ -243,8 +243,8 @@ export function resolveCardInteraction({
                   ...(selectionRole && selected !== undefined ? { 'aria-pressed': selected } : {}),
                 },
         }
-  // Selection state — the canonical SELECTION_RING (atoms/interaction.ts), the
-  // same 3px ink ring the wizard Sel/PickCard draw. A non-layout-shifting
+  // Selection state — select mode's ring (`SELECTED_RING`), the same 3px ink
+  // ring a selected Row and a select-mode Box draw. A non-layout-shifting
   // box-shadow that reads as a border, sitting just outside the frame.
   // The frame is INK on every card (the tone lives in the header band alone),
   // and dashed on a user-made one. Longhands, so a caller overriding one side

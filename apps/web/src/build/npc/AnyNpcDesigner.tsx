@@ -32,9 +32,9 @@ import {
   ModalShell,
   RadioCardGroup,
   SearchField,
-  Sel,
   Select,
   Textarea,
+  TitledBox,
   tokens,
 } from '../../components/index'
 import { WritesBlockedNotice } from '../../components/shared/WritesBlockedNotice'
@@ -87,23 +87,6 @@ const STAT_GRID = {
   gap: tokens.space[12],
   gridTemplateColumns: 'repeat(auto-fit, minmax(9rem, 1fr))',
 } satisfies CSSProperties
-
-/** "Start blank": an empty slot (dashed, ruleset §3.9) until it is the pick. */
-const BLANK_TILE = {
-  alignItems: 'flex-start',
-  background: tokens.color.paper,
-  borderColor: tokens.color.ink,
-  borderStyle: 'dashed',
-  borderWidth: tokens.borderWidth.chrome,
-  color: tokens.color.ink,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[4],
-  minHeight: tokens.size.full,
-  padding: tokens.space[12],
-} satisfies CSSProperties
-
-const BLANK_TILE_CHOSEN = { ...BLANK_TILE, borderStyle: 'solid' } satisfies CSSProperties
 
 /** A match: the outlined `Button` (R16), the row's width, its kind at the far end. */
 const RESULT_BUTTON = { justifyContent: 'space-between', width: '100%' } satisfies CSSProperties
@@ -336,14 +319,19 @@ function TemplateStep({
       <RadioCardGroup label="Template">
         <ul style={LIST} aria-label="Templates">
           <li>
-            <Sel selected={blankChosen} onToggle={onBlank} ariaLabel="Start blank" radio>
-              <div style={blankChosen ? BLANK_TILE_CHOSEN : BLANK_TILE}>
-                <span className={CAPS_LABEL} style={CAPS}>
-                  Start blank
-                </span>
-                <span style={HINT}>No template. Set the stats and pick the actions yourself.</span>
-              </div>
-            </Sel>
+            {/* No entity, so no Row: the Row's frame in select mode. */}
+            <TitledBox
+              title="Start blank"
+              select={{
+                kind: 'select',
+                role: 'radio',
+                selected: blankChosen,
+                onSelect: onBlank,
+                label: 'Start blank',
+              }}
+            >
+              <span style={HINT}>No template. Set the stats and pick the actions yourself.</span>
+            </TitledBox>
           </li>
           {shown.map((npc) => (
             <li key={npc.id}>

@@ -3,7 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { buttonVariants } from '../../atoms/buttonVariants'
 import { DISABLED } from '../../atoms/interaction'
 import type { ReferenceEntityControl } from '../../referenceEntity/referenceEntityControlTypes'
-import { ControlButtons } from '../ControlButtons'
+import { controlChips } from '../ControlButtons'
 
 function makeControl(overrides: Partial<ReferenceEntityControl> = {}): ReferenceEntityControl {
   return {
@@ -21,19 +21,19 @@ const variantClass = (variant: 'default' | 'primary' | 'ink') =>
     .split(' ')
     .find((c) => c.startsWith('su-btn--')) as string
 
-describe('ControlButtons', () => {
+describe('controlChips', () => {
   test('renders a button for each control', () => {
     const controls = [
       makeControl({ key: 'a', ariaLabel: 'Action A', label: 'A' }),
       makeControl({ key: 'b', ariaLabel: 'Action B', label: 'B' }),
     ]
-    render(<ControlButtons controls={controls} />)
+    render(<>{controlChips(controls)}</>)
     expect(screen.getByLabelText('Action A')).toBeTruthy()
     expect(screen.getByLabelText('Action B')).toBeTruthy()
   })
 
   test('a worded control is the Mini Button, ink by default', () => {
-    render(<ControlButtons controls={[makeControl()]} />)
+    render(<>{controlChips([makeControl()])}</>)
     const button = screen.getByRole('button', { name: 'Test action' })
     expect(button.className).toContain('su-btn--mini')
     expect(button.className).toContain(variantClass('ink'))
@@ -41,20 +41,22 @@ describe('ControlButtons', () => {
   })
 
   test('a danger worded control fills ink, never a state colour (R9)', () => {
-    render(<ControlButtons controls={[makeControl({ variant: 'danger' })]} />)
+    render(<>{controlChips([makeControl({ variant: 'danger' })])}</>)
     expect(screen.getByRole('button').className).toContain(variantClass('ink'))
   })
 
   test('a ghost worded control is the paper button', () => {
-    render(<ControlButtons controls={[makeControl({ variant: 'ghost' })]} />)
+    render(<>{controlChips([makeControl({ variant: 'ghost' })])}</>)
     expect(screen.getByRole('button').className).toContain(variantClass('default'))
   })
 
   test('a link control is a Mini Button href', () => {
     render(
-      <ControlButtons
-        controls={[{ key: 'go', label: 'Open', ariaLabel: 'Open the chassis', href: '/chassis/' }]}
-      />
+      <>
+        {controlChips([
+          { key: 'go', label: 'Open', ariaLabel: 'Open the chassis', href: '/chassis/' },
+        ])}
+      </>
     )
     const link = screen.getByRole('link', { name: 'Open the chassis' })
     expect(link.getAttribute('href')).toBe('/chassis/')
@@ -70,7 +72,7 @@ describe('ControlButtons', () => {
       // biome-ignore lint/a11y/noStaticElementInteractions: bare div is the propagation probe this test needs
       // biome-ignore lint/a11y/useKeyWithClickEvents: click-only probe — keyboard interaction is not under test
       <div onClick={() => (parentClicked = true)}>
-        <ControlButtons controls={[makeControl({ onClick: handleClick })]} />
+        <>{controlChips([makeControl({ onClick: handleClick })])}</>
       </div>
     )
     fireEvent.click(screen.getByRole('button'))
@@ -79,30 +81,30 @@ describe('ControlButtons', () => {
   })
 
   test('renders label text', () => {
-    render(<ControlButtons controls={[makeControl({ label: 'Use' })]} />)
+    render(<>{controlChips([makeControl({ label: 'Use' })])}</>)
     expect(screen.getByText('Use')).toBeTruthy()
   })
 
   test('falls back to ariaLabel when no label is set', () => {
-    render(<ControlButtons controls={[makeControl({ label: undefined })]} />)
+    render(<>{controlChips([makeControl({ label: undefined })])}</>)
     expect(screen.getByText('Test action')).toBeTruthy()
   })
 
   test('applies custom className from control', () => {
-    render(<ControlButtons controls={[makeControl({ className: 'my-custom' })]} />)
+    render(<>{controlChips([makeControl({ className: 'my-custom' })])}</>)
     const button = screen.getByRole('button')
     expect(button.className).toContain('my-custom')
   })
 
-  // Every control renders at the seam stamp's Mini Size: the rail sits beside
-  // that stamp, so a row that mixed heights would read as unrelated chips.
+  // Every control renders at the Mini Size, a chip's height in the head's chip
+  // group: a strip that mixed heights would read as unrelated chips.
   test('renders at the stamp rung', () => {
-    render(<ControlButtons controls={[makeControl()]} />)
+    render(<>{controlChips([makeControl()])}</>)
     expect(screen.getByRole('button').className).toContain('su-btn--mini')
   })
 
   test('empty controls array renders nothing', () => {
-    const { container } = render(<ControlButtons controls={[]} />)
+    const { container } = render(<>{controlChips([])}</>)
     expect(container.innerHTML).toBe('')
   })
 
@@ -111,18 +113,18 @@ describe('ControlButtons', () => {
       makeControl({ key: 'visible', ariaLabel: 'Visible', label: 'Visible' }),
       makeControl({ key: 'hidden', ariaLabel: 'Hidden', label: 'Hidden', hidden: true }),
     ]
-    render(<ControlButtons controls={controls} />)
+    render(<>{controlChips(controls)}</>)
     expect(screen.getByLabelText('Visible')).toBeTruthy()
     expect(screen.queryByLabelText('Hidden')).toBeNull()
   })
 
   test('all-hidden controls renders nothing', () => {
-    const { container } = render(<ControlButtons controls={[makeControl({ hidden: true })]} />)
+    const { container } = render(<>{controlChips([makeControl({ hidden: true })])}</>)
     expect(container.innerHTML).toBe('')
   })
 
   test("a disabled control wears Button's one disabled treatment", () => {
-    render(<ControlButtons controls={[makeControl({ disabled: true })]} />)
+    render(<>{controlChips([makeControl({ disabled: true })])}</>)
     const button = screen.getByRole('button')
     expect(button.hasAttribute('disabled')).toBe(true)
     expect(button.className).toContain(DISABLED)
@@ -130,7 +132,7 @@ describe('ControlButtons', () => {
 
   test('disabled control does not fire onClick', () => {
     const handleClick = mock(() => {})
-    render(<ControlButtons controls={[makeControl({ onClick: handleClick, disabled: true })]} />)
+    render(<>{controlChips([makeControl({ onClick: handleClick, disabled: true })])}</>)
     fireEvent.click(screen.getByRole('button'))
     expect(handleClick).toHaveBeenCalledTimes(0)
   })
@@ -143,11 +145,11 @@ describe('ControlButtons', () => {
 
   test('icon + no label renders an icon-only square button', () => {
     render(
-      <ControlButtons
-        controls={[
+      <>
+        {controlChips([
           makeControl({ label: undefined, ariaLabel: 'Remove Charge', icon: RemoveGlyph }),
-        ]}
-      />
+        ])}
+      </>
     )
     const button = screen.getByLabelText('Remove Charge')
     // The accessible name comes from ariaLabel, not visible text.
@@ -169,18 +171,18 @@ describe('ControlButtons', () => {
 
   test('a danger icon control is a RED stamp, not neutral chrome', () => {
     render(
-      <ControlButtons
-        controls={[
+      <>
+        {controlChips([
           makeControl({
             label: undefined,
             ariaLabel: 'Remove Charge',
             icon: RemoveGlyph,
             variant: 'danger',
           }),
-        ]}
-      />
+        ])}
+      </>
     )
-    // Remove is the one control in the rail that DESTROYS something; in
+    // Remove is the one control in the strip that DESTROYS something; in
     // paper-and-ink it read like the fold chevron beside it.
     const button = screen.getByLabelText('Remove Charge')
     // Rust, the action colour, never a state colour (R9).
@@ -191,18 +193,17 @@ describe('ControlButtons', () => {
 
   test('icon-only control carries no width-keyed tap floor of its own', () => {
     render(
-      <ControlButtons
-        controls={[makeControl({ label: undefined, ariaLabel: 'Remove', icon: RemoveGlyph })]}
-      />
+      <>
+        {controlChips([makeControl({ label: undefined, ariaLabel: 'Remove', icon: RemoveGlyph })])}
+      </>
     )
     const button = screen.getByLabelText('Remove')
     // The touch floor is `theme.css`'s `@media (pointer: coarse)` rule, which
     // applies to every button and cannot be overridden from here anyway (it is
     // unlayered, so it beats `@layer utilities`). A `min-h-11 sm:min-h-0` on
     // this element was therefore redundant wherever there IS a touch pointer,
-    // and active harm wherever there is not: it grew `CardControlRail` — an
-    // absolute row centred on the card's top frame line — from 22px to 44px,
-    // pushing it down over the header's TL/SV stats at narrow desktop widths.
+    // and active harm wherever there is not: it grew the strip's Mini plate
+    // from a chip's height to 44px on a fine pointer.
     expect(button.className).not.toContain('min-h-11')
     expect(button.className).not.toContain('min-w-11')
   })
@@ -210,16 +211,16 @@ describe('ControlButtons', () => {
   test('icon-only control fires onClick', () => {
     const handleClick = mock(() => {})
     render(
-      <ControlButtons
-        controls={[
+      <>
+        {controlChips([
           makeControl({
             label: undefined,
             ariaLabel: 'Remove',
             icon: RemoveGlyph,
             onClick: handleClick,
           }),
-        ]}
-      />
+        ])}
+      </>
     )
     fireEvent.click(screen.getByLabelText('Remove'))
     expect(handleClick).toHaveBeenCalledTimes(1)
@@ -227,9 +228,7 @@ describe('ControlButtons', () => {
 
   test('icon WITH a label keeps the worded button', () => {
     render(
-      <ControlButtons
-        controls={[makeControl({ label: 'Buy', ariaLabel: 'Buy', icon: RemoveGlyph })]}
-      />
+      <>{controlChips([makeControl({ label: 'Buy', ariaLabel: 'Buy', icon: RemoveGlyph })])}</>
     )
     // Label present → not the icon-only path; the text still renders.
     expect(screen.getByText('Buy')).toBeTruthy()

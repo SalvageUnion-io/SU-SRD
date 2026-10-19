@@ -1,5 +1,5 @@
-import { describe, expect, test } from 'bun:test'
-import { render, screen } from '@testing-library/react'
+import { describe, expect, mock, test } from 'bun:test'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { TitledBox } from '../TitledBox'
 
 describe('TitledBox', () => {
@@ -53,5 +53,35 @@ describe('TitledBox', () => {
     expect(root?.getAttribute('role')).toBe('alert')
     expect(root?.classList.contains('extra')).toBe(true)
     expect(container.querySelector('.su-box__body')?.hasAttribute('data-flush')).toBe(true)
+  })
+
+  test('select mode: the box is the radio, selected it wears the ring and the seal (R15)', () => {
+    const onSelect = mock(() => {})
+    const pick = (selected: boolean) => (
+      <TitledBox
+        title="Start blank"
+        select={{ kind: 'select', role: 'radio', selected, onSelect, label: 'Start blank' }}
+      >
+        No template.
+      </TitledBox>
+    )
+    const { container, rerender } = render(pick(false))
+    const radio = screen.getByRole('radio', { name: 'Start blank' })
+    expect(radio.getAttribute('aria-checked')).toBe('false')
+    expect(radio.classList.contains('su-box')).toBe(true)
+    expect(screen.queryByText('Selected')).toBeNull()
+    fireEvent.click(radio)
+    expect(onSelect).toHaveBeenCalled()
+
+    rerender(pick(true))
+    expect(screen.getByRole('radio', { name: 'Start blank' }).getAttribute('aria-checked')).toBe(
+      'true'
+    )
+    // The seal on the band's right, the ring on the solid frame.
+    const head = container.querySelector('.su-entity-row__head')
+    expect(head?.textContent).toContain('Selected')
+    const frame = container.querySelector<HTMLElement>('.su-entity-row__frame')
+    expect(frame?.style.boxShadow).toContain('3px')
+    expect(frame?.hasAttribute('data-user-made')).toBe(false)
   })
 })

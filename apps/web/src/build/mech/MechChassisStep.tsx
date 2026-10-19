@@ -12,10 +12,15 @@ import {
   legalStartingPatterns,
   MECH_CREATION_SCRAP_CAP,
 } from 'salvageunion-reference/rules'
-import { MasonryColumns, ReferenceEntityCard, Sel, Slab, tokens } from '../../components/index'
+import {
+  MasonryColumns,
+  ReferenceEntityCard,
+  Slab,
+  TitledBox,
+  tokens,
+} from '../../components/index'
 import { chassisFitsCreationBudget } from '../../lib/rules/creation'
 import '../../styles/build/wizard.css'
-import { capsLabel } from '../../components/atoms/capsLabel'
 import { fullWidthStyle, textSmStyle } from '../wizard/wizardStyles.model'
 
 const HINT = {
@@ -24,28 +29,11 @@ const HINT = {
   fontFamily: tokens.font.body,
 } satisfies CSSProperties
 
-/** The Custom-build door: a dashed, user-made-looking pick card. */
-const CUSTOM_CARD = {
-  backgroundColor: tokens.color.paper,
-  borderColor: tokens.color.ink55,
-  borderRadius: tokens.radius.card,
-  borderStyle: 'dashed',
-  borderWidth: tokens.borderWidth.pill,
-  padding: tokens.space[16],
-} satisfies CSSProperties
-
-const CUSTOM_TITLE = {
-  ...textSmStyle,
-  color: tokens.color.ink,
-  margin: 0,
-} satisfies CSSProperties
-const CUSTOM_TITLE_CAPS = capsLabel({ tracking: 'caps' })
-
 const CUSTOM_BODY = {
-  color: tokens.color.wkMuted,
+  color: tokens.color.ink,
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.caption,
-  margin: `${tokens.space[4]} 0 0`,
+  margin: 0,
 } satisfies CSSProperties
 
 /** A canonical chassis pattern as stored on the reference chassis record. */
@@ -184,16 +172,22 @@ export function MechChassisStep({
                 onToggle={() => onSelectPattern(pattern)}
               />
             ))}
-            <Sel selected={isCustom} onToggle={onSelectCustom} ariaLabel="Custom build" radio>
-              <div style={CUSTOM_CARD}>
-                <p className={CUSTOM_TITLE_CAPS} style={CUSTOM_TITLE}>
-                  Custom build
-                </p>
-                <p style={CUSTOM_BODY}>
-                  No prefill — craft your Systems and Modules by hand in the next steps.
-                </p>
-              </div>
-            </Sel>
+            {/* No entity, so no Card: the Row's frame in select mode, solid, since a
+                custom build is not user-made (ruleset §3.9). */}
+            <TitledBox
+              title="Custom build"
+              select={{
+                kind: 'select',
+                role: 'radio',
+                selected: isCustom,
+                onSelect: onSelectCustom,
+                label: 'Custom build',
+              }}
+            >
+              <p style={CUSTOM_BODY}>
+                No prefill — craft your Systems and Modules by hand in the next steps.
+              </p>
+            </TitledBox>
           </MasonryColumns>
         </>
       )}

@@ -160,7 +160,7 @@ type CrawlerBayCardProps = {
  * CrawlerBayCard — one installed bay as a compact cb entity card: status
  * badge (Intact ↔ Damaged toggle), its crew lead's contentful Token
  * (`CrewLeadToken`, N3) in the expand slot,
- * function/Repair foot actions, and the bay's SRD choices (e.g. the Armament
+ * function and Repair in its head (C8), and the bay's SRD choices (e.g. the Armament
  * Bay weapon pick). The bay's full rules open in a detail modal from the
  * function action.
  *
@@ -316,9 +316,20 @@ export function CrawlerBayCard({
   // card already, so naming them again only repeated it.
   const footMeta: CardFootMeta[] = damaged ? [{ label: 'Repair', value: `5·T${crawlerTl}` }] : []
 
-  // Damaged disables the function action and promotes Repair. Both ride the
-  // standard controls overlay — no footer.
+  // The condition steps from the head's state slot (C8); a bay is Intact or
+  // Damaged, never Destroyed. Damaged disables the function action and
+  // promotes Repair; both are the head's last slot, with the fold.
+  const conditionControl: ReferenceEntityControl = {
+    key: 'condition',
+    status: {
+      value: condition,
+      onClick: toggleCondition,
+      subject: bay.name,
+      next: damaged ? 'intact' : 'damaged',
+    },
+  }
   const controls: ReferenceEntityControl[] = [
+    conditionControl,
     {
       key: 'function',
       label: functionLabel,
@@ -375,11 +386,10 @@ export function CrawlerBayCard({
               ? HIDE_DAMAGED
               : HIDE_INTACT
         }
-        // Read draws no controls (board 10): no condition tri-state for an
+        // Read draws no controls (board 10): no condition to step for an
         // intact bay, no function or Repair. A damaged bay keeps its status,
-        // which greys the card — that is the fact to read.
-        status={readOnly && condition === 'intact' ? undefined : condition}
-        onStatusClick={readOnly ? undefined : toggleCondition}
+        // which greys the card and reads in its head — the fact to read.
+        status={condition}
         selections={selections}
         onSelectionChange={readOnly ? undefined : setSelections}
         controls={readOnly ? [fold] : [...controls, fold]}

@@ -11,10 +11,10 @@ import { Field } from '../../atoms/Field'
 import { Input, Textarea } from '../../atoms/inputs'
 import { FOCUS_RING } from '../../atoms/interaction'
 import { SlabSection } from '../../containers/SlabSection'
+import { SelectedSeal } from '../../entity/modes/select'
 import { SELECT_DIM, SELECTED_RING } from '../../entity/modes/selectedRing'
 import { InsidePeekContext, tablePeekAddress } from '../../entity/peekContext'
 import { CardRollTable } from '../card/CardRollTable'
-import { CardTopRail } from '../card/CardTopRail'
 import { onTone, textBand } from '../referenceEntityHelpers'
 import type { ChoiceCardOption, ChoiceSelections } from './choiceSelectionHelpers'
 import {
@@ -38,7 +38,7 @@ const NAME_CAPS = capsLabel()
  * drawn by where it sits (`ChoiceOption`): on its entity's Page a headed
  * option card, elsewhere untitled (N1). The selection layer is the card's own
  * write-layer idiom: dim-until-chosen (editable), the canonical
- * `SELECTION_RING` when chosen. Read-only shows every option full and static
+ * `SELECTED_RING` when chosen, and on its Page the "Chosen" seal on its head. Read-only shows every option full and static
  * (the choices are readable; they just aren't choosable).
  *
  * One selection state machinery (controlled / ephemeral, id-keyed, cap
@@ -207,9 +207,13 @@ function ChoiceOption({
   const head = onPage
     ? {
         ...name,
+        alignItems: 'center',
         backgroundColor: band ?? 'var(--color-ink)',
         borderBottom: description ? 'var(--bw-chrome) solid var(--color-ink)' : undefined,
         color: band ? onBand : color.paper,
+        display: 'flex',
+        gap: space[8],
+        justifyContent: 'space-between',
       }
     : {
         ...name,
@@ -233,15 +237,14 @@ function ChoiceOption({
       className={cn(FOCUS_RING, !readOnly && !chosen && SELECT_DIM)}
       style={button}
     >
-      <div style={{ position: 'relative' }}>
-        {onPage && <CardTopRail controls={undefined} selected={chosen} selectionSeal="Chosen" />}
-        {/* `data-option-*`: the frame and titled head the nesting gate counts (N1). */}
-        <div data-option-frame="" style={frame}>
-          <div data-option-head={onPage || undefined} className={NAME_CAPS} style={head}>
-            {label}
-          </div>
-          {description && <div style={body}>{parsedDescription}</div>}
+      {/* `data-option-*`: the frame and titled head the nesting gate counts (N1). */}
+      <div data-option-frame="" style={frame}>
+        <div data-option-head={onPage || undefined} className={NAME_CAPS} style={head}>
+          {label}
+          {/* Level 1 on its Page: select mode's seal on the head's right (R15). */}
+          {onPage && chosen && <SelectedSeal word="Chosen" />}
         </div>
+        {description && <div style={body}>{parsedDescription}</div>}
       </div>
     </button>
   )

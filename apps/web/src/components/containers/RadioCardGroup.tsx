@@ -4,7 +4,7 @@ import type { CSSProperties, Dispatch, ReactNode, SetStateAction } from 'react'
 import { createContext, useContext, useId, useLayoutEffect, useMemo, useState } from 'react'
 
 /**
- * Exactly-one pickers whose options are CARDS — an entity card, a `Sel` ring —
+ * Exactly-one pickers whose options are CARDS — an entity card, a select-mode Row or Box —
  * on Base UI's RadioGroup, which gives them the radio pattern: one tab stop
  * (the checked card), arrow keys moving between cards and checking the one
  * they land on, Space checking the focused one.

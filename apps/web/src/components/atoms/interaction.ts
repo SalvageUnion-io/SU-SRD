@@ -2,8 +2,8 @@ import type { KeyboardEvent } from 'react'
 
 /**
  * Shared interaction primitives for the chrome atoms — one source of truth for
- * the focus ring, disabled treatment, selection ring, and keyboard activation
- * that Button / StepButton / Sel would otherwise each re-inline.
+ * the focus ring, disabled treatment and keyboard activation
+ * that Button / StepButton would otherwise each re-inline.
  *
  * ## These are `.su-*` class NAMES
  *
@@ -49,10 +49,6 @@ export const FOCUS_WITHIN = 'su-focus-within'
 
 /** The canonical disabled treatment (opacity + no pointer events). */
 export const DISABLED = 'su-disabled'
-
-/** Non-layout-shifting 3px ink selection ring (design-spec §2.8). Ink, not
- * rust: a selection is state, not an action (ruleset §3.1). */
-export const SELECTION_RING = 'su-selection-ring'
 
 /**
  * Enter/Space → activate, matching native button semantics on a `div` wrapper

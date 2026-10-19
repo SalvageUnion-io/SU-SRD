@@ -123,7 +123,7 @@ const fakePilotWithConditions: Pilot = {
 
 describe('MechSheet — system status badge (#240)', () => {
   // Item condition now cycles via the card status badge:
-  // aria label is `Status: <Label> — click to change`.
+  // aria label is `<subject> status: <Label>. Activate to mark <Next>`.
   test('clicking a system status badge calls store.update with systemConditions patch', async () => {
     const updateSpy = mock(async () => fakeMech)
     const mech: Mech = { ...fakeMech, modules: [] } // one badge only
@@ -210,7 +210,7 @@ describe('MechSheet — module status badge (#240)', () => {
 
 describe('PilotSheet — equipment condition toggle (#240)', () => {
   // Equipment condition now cycles via the card status badge:
-  // aria label is `Status: <Label> — click to change`.
+  // aria label is `<subject> status: <Label>. Activate to mark <Next>`.
   test('clicking an equipment status badge calls store.update with equipmentConditions patch', async () => {
     const updateSpy = mock(async () => fakePilot)
     render(<PilotSheet pilot={fakePilot} store={makePilotStubStore(fakePilot, updateSpy)} />)

@@ -134,15 +134,12 @@ const DASHED_FILES: readonly [string, string][] = [
   ['apps/web/src/components/compositions/OgCard.tsx', 'user-made: the share card'],
   ['apps/web/src/build/mech/Pattern/PublicPattern.tsx', 'user-made: a pattern’s page'],
   ['apps/web/src/build/mech/Pattern/SavePatternPage.tsx', 'user-made: saving a pattern'],
-  ['apps/web/src/build/npc/AnyNpcDesigner.tsx', 'user-made: the NPC designer'],
   ['apps/web/src/build/npc/npcStyles.model.ts', 'user-made: the NPC builder'],
-  ['apps/web/src/build/mech/MechChassisStep.tsx', 'user-made: the Custom-build door'],
   ['apps/web/src/components/atoms/ModeDoor.tsx', 'user-made: the blank-build door'],
   // An edit field: Edit's controls are pencil (ruleset §1.2).
   ['apps/web/src/components/atoms/Field.tsx', 'an edit field'],
   ['apps/web/src/components/atoms/Conditions.tsx', 'an edit field: the + Add chip'],
   ['apps/web/src/components/containers/AdderBox.tsx', 'an edit field: the + add intake'],
-  ['apps/web/src/components/referenceEntity/card/StatusRail.tsx', 'an edit field: the live rail'],
   // An empty slot.
   ['apps/web/src/components/atoms/SlotGrid.tsx', 'an empty slot: a cargo cell'],
   ['apps/web/src/components/containers/EmptyState.tsx', 'an empty slot: the empty state'],

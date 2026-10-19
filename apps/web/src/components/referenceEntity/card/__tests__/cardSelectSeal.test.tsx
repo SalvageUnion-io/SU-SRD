@@ -32,8 +32,9 @@ describe('a selected Card (level 1)', () => {
         cardClickLabel="Hauler"
       />
     )
+    // On the head band's right, as a selected Row's: never riding the frame (§7.2).
     const seal = screen.getByText('Selected')
-    expect(seal.closest('[data-card-rail]')).not.toBeNull()
+    expect(seal.closest('.su-entity-row__head')).not.toBeNull()
     expect(container.querySelector<HTMLElement>('.su-ec-frame')?.style.boxShadow).toBe(RING)
     expect(screen.getByRole('radio', { name: 'Hauler' }).getAttribute('aria-checked')).toBe('true')
   })

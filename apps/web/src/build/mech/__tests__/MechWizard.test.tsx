@@ -72,7 +72,7 @@ function moduleByName(name: string) {
 // Interaction helpers (WizShell skeleton)
 // ---------------------------------------------------------------------------
 
-/** Chassis / pattern picks are radio Sel rings named by the entity. */
+/** Chassis / pattern picks are radios named by the entity. */
 async function pickRadio(name: string): Promise<void> {
   await act(async () => {
     fireEvent.click(screen.getByRole('radio', { name }))

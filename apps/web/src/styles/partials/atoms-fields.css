@@ -1,9 +1,9 @@
 /*
  * The package stylesheet, part 12 of 21: Field (its edit state too), the
- * inputs, Sel and Radio. `../index.css` imports the parts in cascade order.
+ * inputs and Radio. `../index.css` imports the parts in cascade order.
  */
 
-/* ── Field, inputs, Sel, Radio ── */
+/* ── Field, inputs, Radio ── */
 /* `atoms/inputs.tsx` + `atoms/Field.tsx`: the `Input` / `Textarea` / `Select`
  * skin. ALL of it is a class, geometry included: the three are public and
  * callers restyle them by className (`px-2 py-1.5 text-xs`, `w-auto

@@ -59,7 +59,7 @@ async function pickType(name: string): Promise<void> {
   })
 }
 
-/** Weapon cards are Sel wrappers — div[role="button"] with aria-label. */
+/** Weapon cards are toggle picks — div[role="button"] with aria-label. */
 function getPickByName(name: string): HTMLElement {
   const candidates = screen.getAllByRole('button')
   const exact = candidates.find((b) => b.getAttribute('aria-label') === name)

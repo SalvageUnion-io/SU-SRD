@@ -1,7 +1,6 @@
 import { describe, expect, mock, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { color } from '../../../design/tokens'
-import { StatusBadge } from '../../compositions/StatusBadge'
 import { EmptyState } from '../../containers/EmptyState'
 import { Badge } from '../Badge'
 import { Button } from '../Button'
@@ -16,6 +15,7 @@ import { POSTER_STAMP } from '../posterStamp'
 import { Slab } from '../Slab'
 // biome-ignore lint/style/noRestrictedImports: the atom's own test; its hosts are Stat and VitalGauge (R12)
 import { StepButton } from '../SmallButtons'
+import { StatusBadge } from '../StatusBadge'
 
 function rootEl(container: Element): HTMLElement {
   const el = container.firstElementChild

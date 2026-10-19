@@ -248,7 +248,7 @@ describe('CrawlerSheet — bay function/Repair actions', () => {
 
     // Mech Bay (intact, index 1) → Damaged.
     const intactBadge = screen.getByRole('button', {
-      name: 'Mech Bay status: Intact — click to change',
+      name: 'Mech Bay status: Intact. Activate to mark Damaged',
     })
     await act(async () => {
       fireEvent.click(intactBadge)
@@ -263,7 +263,7 @@ describe('CrawlerSheet — bay function/Repair actions', () => {
 
     // Command Bay (damaged, index 0) → back to Intact, not Destroyed.
     const damagedBadge = screen.getByRole('button', {
-      name: 'Command Bay status: Damaged — click to change',
+      name: 'Command Bay status: Damaged. Activate to mark Intact',
     })
     await act(async () => {
       fireEvent.click(damagedBadge)

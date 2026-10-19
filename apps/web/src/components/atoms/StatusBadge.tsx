@@ -1,9 +1,9 @@
 import type { CSSProperties } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { CONDITION_LABELS } from 'salvageunion-reference'
-import type { BadgeTone } from '../atoms/Badge'
-import { Badge } from '../atoms/Badge'
-import type { EntityStatus } from '../atoms/entityStatus'
+import type { BadgeTone } from './Badge'
+import { Badge } from './Badge'
+import type { EntityStatus } from './entityStatus'
 
 /** The domain vocabulary maps onto the shared badge tones — one rendering. */
 const STATUS_TONES: Record<EntityStatus, BadgeTone> = {
@@ -31,16 +31,24 @@ type StatusBadgeProps = {
    * names. Without it the label opens with the generic "Status: <Label>".
    */
   subject?: string
+  /**
+   * The state activation leads to, where the handler walks a shorter cycle
+   * than the three (a crawler bay: Intact ↔ Damaged). Defaults to the next of
+   * Intact → Damaged → Destroyed.
+   */
+  next?: EntityStatus
 }
 
 /**
- * Entity status badge (ruleset §5: a composition = Badge(tone) with the entity
- * condition vocabulary). Renders the one canonical badge; clickable when a cycle
- * handler is provided. The clickable badge names the state activation leads to,
- * and announces the new state in a polite live region once the write lands —
- * the handler may be async, so the announcement waits for the `status` prop.
+ * CONDITION — the one rendering of an entity's condition (ruleset §2.3, §5.9:
+ * an atom, Badge(tone) in the condition vocabulary): in a strip it is the chip
+ * group's state slot (`chips-and-actions.md` C8), a card's, a Row's or a sheet
+ * item's alike. Clickable when a cycle handler is provided: it names the state
+ * activation leads to, and announces the new state in a polite live region once
+ * the write lands — the handler may be async, so the announcement waits for the
+ * `status` prop.
  */
-export function StatusBadge({ status, onClick, subject }: StatusBadgeProps) {
+export function StatusBadge({ status, onClick, subject, next }: StatusBadgeProps) {
   const label = CONDITION_LABELS[status]
   const tone = STATUS_TONES[status]
   const current = subject ? `${subject} status: ${label}` : `Status: ${label}`
@@ -68,7 +76,7 @@ export function StatusBadge({ status, onClick, subject }: StatusBadgeProps) {
             awaitingWrite.current = true
             onClick()
           }}
-          aria-label={`${current}. Activate to mark ${CONDITION_LABELS[NEXT_STATUS[status]]}`}
+          aria-label={`${current}. Activate to mark ${CONDITION_LABELS[next ?? NEXT_STATUS[status]]}`}
           style={CYCLE_BUTTON}
         >
           {badge}

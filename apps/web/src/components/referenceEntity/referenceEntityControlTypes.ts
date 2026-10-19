@@ -8,11 +8,12 @@ export type ReferenceEntityControl = {
   // --- Typed item variants -------------------------------------------------
   // When one of these is set the control renders that item via the matching
   // primitive instead of an action button. They let `controls` carry every
-  // card affordance (quantity steppers, status pills, nav), so no action ever
-  // renders in the footer. Precedence: stepper → badge → status → link → button.
+  // card affordance (quantity steppers, status pills, nav), each in the head's
+  // chip group (C8): a stepper or status in its state slot, the rest its last
+  // slot. Precedence: stepper → badge → status → link → button.
   /**
-   * A count's stepper: the rail draws it as `Stat` in edit mode (`[QTY | 1] − +`,
-   * the one stepper, ruleset §6.2), never through `ControlButtons`.
+   * A count's stepper: the head's state slot draws it as `Stat` in edit mode
+   * (`[QTY | 1] − +`, the one stepper, ruleset §6.2), never as a button.
    */
   stepper?: {
     /** The cell's label ("Qty", "Uses"). */
@@ -35,6 +36,8 @@ export type ReferenceEntityControl = {
     onClick?: () => void
     /** Entity name for the accessible label ("<subject> status: <Label>"). */
     subject?: string
+    /** The state activation leads to, for a shorter cycle (a bay: Intact ↔ Damaged). */
+    next?: EntityStatus
   }
   /** Renders a navigation link (`Button href`, Mini); uses `label` as its text. */
   href?: string
@@ -47,7 +50,7 @@ export type ReferenceEntityControl = {
   /** A DISCLOSURE button's state (`aria-expanded`) — a folded card's chevron. */
   ariaExpanded?: boolean
   /** The id of the element the disclosure shows or hides (`aria-controls`).
-   * On a card's rail the card wrapper itself takes this id: the fold chevron
+   * On a card the card wrapper itself takes this id: the fold chevron
    * controls the whole card (`resolveCardInteraction`). */
   ariaControls?: string
   /** Tooltip text (the `title` attribute). Defaults to `ariaLabel` when unset —
