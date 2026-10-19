@@ -62,10 +62,11 @@ export type EntityProps = EntitySource &
     /** Row only: the host's labels (an owner stamp), the first of its chips. */
     labels?: ReactNode
     /**
-     * Row only: what the unit is built on or linked to (`CLASS | Engineer`,
+     * Row and Token: what the unit is built on or linked to (`CLASS | Engineer`,
      * `CHASSIS | Mule`, `PILOT | Bonesaw`), the relation chips after its traits
      * (`chips-and-actions.md` C11). Each Peeks and opens its entity, or opens a
-     * unit's sheet; a link Row with them is covered, its link under them.
+     * unit's sheet; a link Row with them is covered, its link under them, and
+     * a Token with a linked one is its name's link.
      */
     relations?: TagItem[]
     /**
@@ -85,6 +86,8 @@ export type EntityProps = EntitySource &
      * the host's content (`TokenBody`); without it the Token is its head alone.
      */
     body?: TokenBody
+    /** Token only: its host's one dim (`SELECT_DIM`), an unchosen toggle or a Play action not on hand. */
+    dim?: boolean
   }
 
 /**
@@ -112,6 +115,7 @@ export function Entity(props: EntityProps) {
     trailing,
     uses,
     body,
+    dim,
   } = props
   const { entity, pattern } = props
   const ownModel = props.model
@@ -154,10 +158,11 @@ export function Entity(props: EntityProps) {
           mode={mode}
           omit={omit}
           slots={
-            state || trailing || peekAt || uses !== undefined || controls !== undefined
+            state || trailing || peekAt || relations || uses !== undefined || controls !== undefined
               ? {
                   ...(state || trailing ? { state: state ?? trailing } : {}),
                   ...(peekAt ? { peekAt } : {}),
+                  ...(relations ? { relations } : {}),
                   // A Token's controls are its chip group's last slots (C8).
                   ...(uses !== undefined ? { uses } : {}),
                   ...(controls !== undefined ? { menu: controls } : {}),
@@ -165,6 +170,7 @@ export function Entity(props: EntityProps) {
               : undefined
           }
           body={body}
+          dim={dim}
         />
       )
     case 'tile':

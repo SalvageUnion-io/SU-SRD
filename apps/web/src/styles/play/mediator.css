@@ -7,19 +7,18 @@
  * the chosen NPC) and the repeated lists; everything else is a style object.
  */
 
-/* The table's seats, and the Opposition: lists without bullets or indent. */
-.su-play-seats,
+/* The Opposition: a list without bullets or indent. */
 .su-play-npcs {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-.su-play-seats {
-  display: flex;
-  flex-direction: column;
+/* The table's seats, a Token list (`.su-entity-token-list`) whose Tokens hold
+   bodies: a wider gap, and room for the attention ring and the selection
+   ring, which sit outside each seat's Token. */
+.su-entity-token-list.su-play-seats {
   gap: var(--space-10);
-  /* Room for the attention ring, which sits outside the seat's Row. */
   padding: var(--space-4);
 }
 

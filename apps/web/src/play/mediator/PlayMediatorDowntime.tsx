@@ -5,7 +5,9 @@
  * step as one box (level 1) with each seat as a full-width Token saying
  * whether they are done (level 2), and its way through (`DowntimeStepNav`:
  * Back, End Downtime and Next); then **Upkeep** and **Gather Cantina
- * Rumours** as rows.
+ * Rumours**, a list of Tokens one a line (ruleset §1.3: Play's lists are
+ * Tokens), Pay in Upkeep's chip group and what it came to its contentful
+ * body.
  *
  * Next stops at the
  * last step, and ending before it asks first, because ending and beginning
@@ -38,11 +40,14 @@ import { DowntimeStepNav } from '../DowntimeStepNav'
 import { PlayDowntimeActionRow } from '../PlayDowntimeActionRow'
 import { PlayDowntimeTrack } from '../PlayDowntimeTrack'
 import { crawlerTl } from '../playDowntime.model'
+import { playLineModel } from '../playLine.model'
 import { reportingRoll } from '../playRolls.model'
 import { payDowntimeUpkeep } from '../playUpkeep.model'
 import type { PlayActions } from '../usePlayActions'
 import { doneOf, seatDone } from './mediatorTable.model'
 import type { PlayMediator } from './usePlayMediator'
+
+const UPKEEP = playLineModel({ name: 'Upkeep', key: 'upkeep' })
 
 type PlayMediatorDowntimeProps = {
   mediator: PlayMediator
@@ -143,22 +148,23 @@ export function PlayMediatorDowntime({
           </div>
         </TitledBox>
       )}
-      <ul className="su-play-act-list" aria-label="Downtime for the table">
+      <ul className="su-entity-token-list" aria-label="Downtime for the table" data-play-list="">
         <li className="su-play-act" data-action-key="upkeep">
-          <TitledBox
-            title="Upkeep"
-            as="div"
-            chips={
+          <Entity
+            form="token"
+            context="play"
+            model={UPKEEP}
+            state={
               <Stat
                 orientation="horizontal"
-                size="compact"
+                size="mini"
                 label={`${DOWNTIME_UPKEEP_SCRAP} Scrap`}
                 value={unit === null ? undefined : `T${crawlerTl(unit)}`}
               />
             }
             controls={
               upkeepSpent ? (
-                <span className="su-play-act__state">Paid</span>
+                <Stat orientation="horizontal" size="mini" label="Paid" />
               ) : (
                 <Button
                   size="mini"
@@ -170,13 +176,19 @@ export function PlayMediatorDowntime({
                 </Button>
               )
             }
-          >
-            {upkeepNote && (
-              <p className="su-play-resolve__note" aria-live="polite">
-                {upkeepNote}
-              </p>
-            )}
-          </TitledBox>
+            {...(upkeepNote
+              ? {
+                  body: {
+                    text: false,
+                    children: (
+                      <p className="su-play-resolve__note" aria-live="polite">
+                        {upkeepNote}
+                      </p>
+                    ),
+                  },
+                }
+              : {})}
+          />
         </li>
         <PlayDowntimeActionRow
           id="rumours"

@@ -49,11 +49,6 @@
   border-style: dashed;
 }
 
-/* A host's dim (`Row`'s `dim`): Play's action not on hand, or locked. */
-.su-entity-row__main[data-dim] {
-  opacity: 0.7;
-}
-
 /* A Row that is its head alone (`data-bodyless`: a base class, a roll table,
    with no facts and no lead to show) is its head's height wherever it stands:
    stretched by a grid or a flex line beside bodied Rows, its frame keeps the
@@ -1419,10 +1414,13 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   }
 }
 
-/* A TOKEN LIST (`.su-entity-token-list`: a pattern's Systems and Modules):
-   one Token a line, each running the list's full width, its name taking the
-   room and its fact at the right edge, where the facts scan down the list.
-   Under a coarse pointer each line is a 44px target (ruleset §4.6). */
+/* A TOKEN LIST (`.su-entity-token-list`: a pattern's Systems and Modules,
+   Play's lists): one Token a line, each running the list's full width, its
+   name taking the room and its fact at the right edge, where the facts scan
+   down the list. Under a coarse pointer, and in Play's phone form (its touch
+   floor, `.su-dash-phone`, ADR-045), each line is a 44px target (ruleset
+   §4.6, R12): the pill is the whole line's height, so a Token whose surface
+   is a control never sits short inside the floor's taller box. */
 .su-entity-token-list {
   display: flex;
   flex-direction: column;
@@ -1457,6 +1455,10 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   .su-entity-token-list .su-entity-token__pill {
     min-height: var(--size-full);
   }
+}
+
+.su-dash-phone .su-entity-token-list .su-entity-token__pill {
+  min-height: var(--size-full);
 }
 
 /* A Token with controls on its line (`.su-entity-token-line`: the app's installed

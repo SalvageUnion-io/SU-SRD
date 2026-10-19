@@ -1,9 +1,14 @@
 /**
  * PlayTables — the Tables section of the Cockpit's right column (play.md §8):
- * "Roll a table…" to find any roll table, the tables the Situation needs
- * pinned as toggles (`pinnedTables`), the open table drawn by the shared roll
- * instrument (`PlayRollTable`, `RollTableInstrument` underneath), and
- * the screen's one Post toggle (§9).
+ * "Roll a table…" to find any roll table, the tables found and the tables the
+ * Situation needs pinned (`pinnedTables`), each a list of roll table Tokens
+ * one a line (ruleset §1.3: Play's lists are Tokens), the open table drawn by
+ * the shared roll instrument (`PlayRollTable`, `RollTableInstrument`
+ * underneath), and the screen's one Post toggle (§9).
+ *
+ * Choosing a table's Token opens it (R8: the instrument, open, its stamp the
+ * one roll); the open one is the pressed toggle Token (EDL Modes), the rest
+ * dimmed beside it, and choosing it again closes it.
  *
  * Every roll goes through `recordPlayRoll`, so it lands on the Feed, the
  * Game's log and, when the toggle says so, the bound Discord channel.
@@ -14,14 +19,8 @@
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import {
-  CHAPTER_BAND_COLOR,
-  Checkbox,
-  SearchField,
-  Segmented,
-  SegmentedOption,
-  tokens,
-} from '../components/index'
+import { RollToken } from '../components/entity/forms/RollToken'
+import { CHAPTER_BAND_COLOR, Checkbox, SearchField, tokens } from '../components/index'
 import type { PlayBinding } from './channels.model'
 import { postLabel } from './channels.model'
 import { PlayRollTable } from './PlayRollTable'
@@ -95,21 +94,9 @@ export function PlayTables({ downtime, solo, post, onPostChange, binding }: Play
         }}
       />
       {found.length > 0 && (
-        <Segmented id={findId} label="Tables found" size="compact" wrap>
-          {found.map((name) => (
-            <SegmentedOption key={name} pressed={open === name} onClick={() => pick(name)}>
-              {name}
-            </SegmentedOption>
-          ))}
-        </Segmented>
+        <TableTokens id={findId} label="Tables found" names={found} open={open} onPick={pick} />
       )}
-      <Segmented label="Pinned tables" size="compact" wrap>
-        {pinnedTables(downtime).map((name) => (
-          <SegmentedOption key={name} pressed={open === name} onClick={() => pick(name)}>
-            {name}
-          </SegmentedOption>
-        ))}
-      </Segmented>
+      <TableTokens label="Pinned tables" names={pinnedTables(downtime)} open={open} onPick={pick} />
       {table && (
         <PlayRollTable
           key={table.name}
@@ -140,5 +127,43 @@ export function PlayTables({ downtime, solo, post, onPostChange, binding }: Play
         </p>
       )}
     </div>
+  )
+}
+
+/** A list of tables, one roll table Token a line, the open one pressed. */
+function TableTokens({
+  id,
+  label,
+  names,
+  open,
+  onPick,
+}: {
+  id?: string
+  label: string
+  names: readonly string[]
+  /** The open table's name, if one is. */
+  open: string | null
+  onPick: (name: string) => void
+}) {
+  return (
+    <ul
+      id={id}
+      className="su-entity-token-list su-play-tables"
+      aria-label={label}
+      data-play-list=""
+    >
+      {names.map((name) => (
+        <li key={name} data-choice-toggle="">
+          <RollToken
+            name={name}
+            toggle={{
+              pressed: open === name,
+              onToggle: () => onPick(name),
+              dim: open !== null && open !== name,
+            }}
+          />
+        </li>
+      ))}
+    </ul>
   )
 }

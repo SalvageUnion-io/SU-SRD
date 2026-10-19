@@ -15,8 +15,10 @@
  * (`rollFor`, `playRolls.model.ts`: the Feed, the Game's log, Discord); a Vent
  * or a Shut down is an applied change on the Feed (`recordPlayChange`).
  *
- * Level 1 in the column, a titled row; the table and the result are plain
- * content under its head (play.md §12). Not on hand, it is its head alone.
+ * A Token one a line in the list (ruleset §1.3; `playLineModel`, the Reactor
+ * being no reference entity), its controls in its chip group (R6); the table
+ * and the result are its contentful body, plain content (N3, play.md §12).
+ * Not on hand, it is its head alone, the need its chip.
  */
 
 import type { Mech } from 'game-domain/schemas/mech'
@@ -29,7 +31,7 @@ import {
   resolveGauge,
   resolvePoolStart,
 } from 'salvageunion-reference/rules'
-import { Button, TitledBox, Toggle } from '../components/index'
+import { Button, Entity, Toggle } from '../components/index'
 import {
   describeHeatCheck,
   heatCheckOncePatch,
@@ -39,8 +41,10 @@ import {
 } from '../lib/rules/playActions'
 import { runWrite } from '../lib/runWrite'
 import { PLAY_TXN } from '../stores/surfaceProvenance'
+import { NeedChip } from './PlayActionRow'
 import { PlayRollInstrument } from './PlayRollInstrument'
 import type { PlayStore } from './play.model'
+import { playLineModel } from './playLine.model'
 import { recordPlayChange } from './playRolls.model'
 import type { PlayActions } from './usePlayActions'
 
@@ -49,6 +53,8 @@ type ReactorLog = { text: string; meltdown: boolean; overloadRoll?: number }
 
 /** The table a Heat Check overloads on. */
 const REACTOR_OVERLOAD = 'Reactor Overload'
+
+const MODEL = playLineModel({ name: 'Reactor', key: 'reactor' })
 
 type PlayReactorRowProps = {
   mech: Mech
@@ -152,10 +158,8 @@ export function PlayReactorRow({ mech, store, rollFor, need, canWrite }: PlayRea
     setPushing(!pushing)
   }
 
-  const controls = away ? (
-    <span className="su-play-act__need">{need}</span>
-  ) : (
-    <span className="su-play-act__buttons">
+  const controls = away ? undefined : (
+    <>
       <Toggle
         size="mini"
         onClick={togglePush}
@@ -171,33 +175,45 @@ export function PlayReactorRow({ mech, store, rollFor, need, canWrite }: PlayRea
       <Toggle size="mini" onClick={doShutdown} disabled={off} pressed={now.shutdown === true}>
         {now.shutdown === true ? 'Restart' : 'Shut down'}
       </Toggle>
-    </span>
+    </>
   )
 
   return (
     <li className="su-play-act" data-away={away || undefined} data-action-key="reactor">
-      <TitledBox title="Reactor" controls={controls} as="div" dim={away}>
-        {away ? null : (
-          <div className="su-play-resolve">
-            <PlayRollInstrument
-              table={REACTOR_OVERLOAD}
-              roll={log?.overloadRoll ?? null}
-              stamp={pushing ? 'Push:' : 'Heat Check:'}
-              onRoll={off ? undefined : () => void (pushing ? doPush() : doHeatCheck())}
-            />
-            {log ? (
-              <p className="su-play-resolve__note" aria-live="polite">
-                {log.text}
-              </p>
-            ) : null}
-            {log?.meltdown && (
-              <Button variant="primary" size="compact" onClick={confirmMeltdown}>
-                Confirm Meltdown — Mark Mech destroyed
-              </Button>
-            )}
-          </div>
-        )}
-      </TitledBox>
+      <Entity
+        form="token"
+        context="play"
+        model={MODEL}
+        dim={away}
+        {...(away ? { state: <NeedChip need={need} /> } : { controls })}
+        {...(away
+          ? {}
+          : {
+              body: {
+                text: false,
+                children: (
+                  <div className="su-play-resolve">
+                    <PlayRollInstrument
+                      table={REACTOR_OVERLOAD}
+                      roll={log?.overloadRoll ?? null}
+                      stamp={pushing ? 'Push:' : 'Heat Check:'}
+                      onRoll={off ? undefined : () => void (pushing ? doPush() : doHeatCheck())}
+                    />
+                    {log ? (
+                      <p className="su-play-resolve__note" aria-live="polite">
+                        {log.text}
+                      </p>
+                    ) : null}
+                    {log?.meltdown && (
+                      <Button variant="primary" size="compact" onClick={confirmMeltdown}>
+                        Confirm Meltdown — Mark Mech destroyed
+                      </Button>
+                    )}
+                  </div>
+                ),
+              },
+            })}
+      />
     </li>
   )
 }

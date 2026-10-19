@@ -77,8 +77,6 @@ export type RowProps = {
   omit?: readonly EntityOmit[]
   /** Hover, focus or a long press Peeks the Row (a pattern's loadout). Off in listings. */
   peek?: boolean
-  /** Dimmed by its host: a Play action not on hand, or locked (the one dim). */
-  dim?: boolean
   slots?: RowSlots
 }
 
@@ -113,7 +111,6 @@ export function Row({
   lead = false,
   omit = [],
   peek = false,
-  dim = false,
   slots = {},
 }: RowProps) {
   const surface = useEntitySurface()
@@ -201,7 +198,6 @@ export function Row({
       art={omit.includes('art') ? undefined : <Art art={model.art} />}
       userMade={userMade}
       bodyless={!hasBody}
-      dim={dim}
       style={selected ? SELECTED_RING : undefined}
     >
       <Head

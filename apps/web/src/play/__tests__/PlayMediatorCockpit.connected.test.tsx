@@ -272,20 +272,21 @@ describe('the table', () => {
     expect(bonesaw.getByText('Bonesaw is resolving 120mm Cannon: activated')).toBeTruthy()
     const rook = items[2] as HTMLElement
     expect(rook.dataset.attention).toBe('true')
-    expect(within(rook).getByText('▲ HP')).toBeTruthy()
+    // The ▲ vital is a chip on the seat's Token, and again among every vital in its body.
+    expect(within(rook).getAllByText('▲ HP')).toHaveLength(2)
     expect(within(rook).getByText('Injured')).toBeTruthy()
   })
 
   test('a seat that stopped beating is away, and says where it was last seen', async () => {
     await renderCockpit()
-    const wren = screen.getByRole('radio', { name: /^Wren, away/ }).closest('li') as HTMLElement
+    const wren = screen.getByRole('button', { name: /^Wren, away/ }).closest('li') as HTMLElement
     expect(wren.dataset.away).toBe('true')
     expect(within(wren).getByText('Last seen Boarded · Mule')).toBeTruthy()
   })
 
   test('tapping a seat aims Propose at that pilot and focuses To; the proposal sends', async () => {
     await renderCockpit()
-    await click(screen.getByRole('radio', { name: /^Rook, here/ }))
+    await click(screen.getByRole('button', { name: /^Rook, here/ }))
     const dock = region('Propose')
     expect((dock.getByLabelText('Target') as HTMLSelectElement).value).toBe('row-rook')
     expect(document.activeElement).toBe(dock.getByLabelText('To'))
@@ -512,7 +513,7 @@ describe('every Mediator capability is reachable here', () => {
     await renderCockpit()
     const post = screen.getByLabelText('Post rolls to the Game’s channel') as HTMLInputElement
     expect(post.checked).toBe(false)
-    expect(screen.getByRole('group', { name: 'Pinned tables' })).toBeTruthy()
+    expect(screen.getByRole('list', { name: 'Pinned tables' })).toBeTruthy()
   })
 
   test('the reference is ⋯ › Reference', async () => {
@@ -580,7 +581,7 @@ describe('on a phone (play.md §11)', () => {
 
   test('tapping a seat opens Propose, aimed at that pilot, with focus in To', async () => {
     await renderCockpit()
-    await click(screen.getByRole('radio', { name: /^Rook, here/ }))
+    await click(screen.getByRole('button', { name: /^Rook, here/ }))
     expect(phoneTab('Propose').getAttribute('aria-selected')).toBe('true')
     const dock = within(openPanel().getByRole('region', { name: 'Propose' }))
     expect((dock.getByLabelText('Target') as HTMLSelectElement).value).toBe('row-rook')

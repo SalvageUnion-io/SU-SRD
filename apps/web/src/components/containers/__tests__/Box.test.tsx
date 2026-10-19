@@ -41,9 +41,9 @@ describe('Box', () => {
   })
 
   // R7: a host says what it needs through these, never by reaching into the frame.
-  test('marks a reference frame, a dim and a fill on its own elements', () => {
+  test('marks a reference frame and a fill on its own elements', () => {
     const { container } = render(
-      <Box reference dim fill>
+      <Box reference fill>
         Body
       </Box>
     )
@@ -51,14 +51,11 @@ describe('Box', () => {
     expect(container.querySelector('.su-entity-row__frame')?.hasAttribute('data-reference')).toBe(
       true
     )
-    expect(container.querySelector('.su-entity-row__main')?.hasAttribute('data-dim')).toBe(true)
     // A fill shrinks the frame and scrolls the body: the Row frame's own `shrink`.
     expect(container.querySelector('.su-entity-row__frame')?.hasAttribute('data-shrink')).toBe(true)
     expect(container.querySelector('.su-box__body')?.hasAttribute('data-fill')).toBe(true)
     const plain = render(<Box>Body</Box>).container
-    expect(
-      plain.querySelector('[data-fill], [data-reference], [data-dim], [data-shrink]')
-    ).toBeNull()
+    expect(plain.querySelector('[data-fill], [data-reference], [data-shrink]')).toBeNull()
   })
 
   test('shrinks its frame with a capped root, its body left as it is', () => {

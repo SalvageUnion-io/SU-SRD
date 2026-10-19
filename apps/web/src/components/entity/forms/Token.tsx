@@ -6,6 +6,7 @@ import { cn } from '../../../lib/cn'
 import { Badge } from '../../atoms/Badge'
 import { Button } from '../../atoms/Button'
 import { capsLabel } from '../../atoms/capsLabel'
+import { FOCUS_RING } from '../../atoms/interaction'
 import { Stat } from '../../atoms/Stat'
 import { Content } from '../../referenceEntity/Content'
 import type { CardOuterProps } from '../../referenceEntity/card/CardOuter'
@@ -14,11 +15,14 @@ import type { Down } from '../../referenceEntity/card/cardChrome'
 import { downOf, USER_MADE_TITLE } from '../../referenceEntity/card/cardChrome'
 import { LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
+import { SELECT_DIM, SELECTED_RING } from '../modes/selectedRing'
+import { toggleAttrs } from '../modes/toggle'
 import { Chips } from '../parts/Chips'
 import { watchMore } from '../parts/chipFit'
 import { chipCount } from '../parts/chipSet'
 import { KindLabel } from '../parts/KindLabel'
 import { paintFor } from '../parts/paint'
+import type { TagItem } from '../parts/tagItems'
 import { tokenChipSet } from '../parts/tokenChipSet'
 import type { PeekAttrs } from '../peekContext'
 import { PEEK_ATTRIBUTE, useInsidePeek, usePeekAttrs } from '../peekContext'
@@ -37,6 +41,11 @@ export type TokenSlots = {
   kind?: string
   /** A read cost ("1 EP"), as its chip. */
   cost?: string
+  /**
+   * What it is linked to, as relation chips before the cost (C11): a crewmate's
+   * `MECH | Scrapper`. Where its host names it (Play's Crew, R5), never a stamp.
+   */
+  relations?: TagItem[]
   down?: Down
   /** The host's state chip, after the cost box (C8): a damaged thing's condition, a reading. */
   state?: ReactNode
@@ -104,6 +113,33 @@ function MoreChip({ title, peek }: { title: string; peek: PeekAttrs }) {
   )
 }
 
+type ToggleMode = Extract<EntityMode, { kind: 'select' }>
+
+/** The toggle Token's surface (`toggleAttrs`): where the link would stand, pressed while chosen. */
+function ToggleSurface({
+  mode,
+  label,
+  peek,
+  className,
+  children,
+}: {
+  mode: ToggleMode
+  label: string
+  peek: PeekAttrs
+  className: string
+  children: ReactNode
+}) {
+  return (
+    <div
+      className={cn(className, FOCUS_RING)}
+      {...toggleAttrs({ pressed: mode.selected, onToggle: mode.onSelect, label })}
+      {...peek}
+    >
+      {children}
+    </div>
+  )
+}
+
 /*
  * The pill, its note stamp and its name are `.su-entity-token__*` classes
  * (`styles/index.css`), not style objects: a page lists tokens by the dozen,
@@ -131,6 +167,12 @@ function MoreChip({ title, peek }: { title: string; peek: PeekAttrs }) {
  * ability track is the look). Only the head is the link and the Peek trigger,
  * so the body's own Mentions and fields never nest in it; inside a Peek the
  * head is read-only too (E16).
+ *
+ * In select mode it is the TOGGLE Token (EDL Modes, `role: 'toggle'`): its
+ * surface (or, with controls, its name) is pressed while chosen, the ring on
+ * its pill, never a seal; a radio or checkbox select stays a Row's (N7).
+ * `dim` is its host's one dim (`SELECT_DIM`): an unchosen toggle beside a
+ * chosen one, a Play action not on hand.
  */
 export function Token({
   model,
@@ -140,6 +182,7 @@ export function Token({
   omit = [],
   slots = {},
   body,
+  dim = false,
 }: {
   model: EntityRowModel
   /** Where it is drawn (C4): picks the one fact its context lane carries. */
@@ -151,6 +194,8 @@ export function Token({
   slots?: TokenSlots
   /** N3: the text and the host's content under the head; without it the Token is its head alone. */
   body?: TokenBody
+  /** Its host's one dim (`SELECT_DIM`): unchosen beside a chosen toggle, not on hand. */
+  dim?: boolean
 }) {
   const contentfulRef = useRef<HTMLDivElement>(null)
   // Every commit: the chips may have changed (C5's fit starts from them all).
@@ -161,6 +206,7 @@ export function Token({
   const insidePeek = useInsidePeek()
   // A contentful Token in a Peek reads (E16): its head opens nothing.
   const headMode = body && insidePeek ? READ : mode
+  const toggle = headMode.kind === 'select' && headMode.role === 'toggle' ? headMode : null
   const target = useLinkTarget(headMode, model.ref)
   const down = slots.down ?? downOf(instance?.condition)
   const peek = usePeekAttrs(model.ref, slots.peekAt, down)
@@ -173,7 +219,9 @@ export function Token({
     ...(instance?.count !== undefined ? { count: instance.count } : {}),
   })
   const cost = slots.cost ?? chips.cost
-  const { set, quantity } = tokenChipSet(chips, cost)
+  const own = tokenChipSet(chips, cost)
+  const quantity = own.quantity
+  const set = slots.relations?.length ? { ...own.set, relations: slots.relations } : own.set
   const state = [
     quantity && (
       <Stat
@@ -186,13 +234,38 @@ export function Token({
     ),
     slots.state,
   ]
-  const acts = slots.uses !== undefined || slots.menu !== undefined
+  // A relation that Peeks or opens is a control of its own: the name is then
+  // the link, so it never nests in one (C11).
+  const linkedRelation = !!slots.relations?.some((r) => r.ref || r.href)
+  const acts = slots.uses !== undefined || slots.menu !== undefined || linkedRelation
   const hasChips = chipCount(set) > 0 || !!quantity || !!slots.state || acts
   // C5: a contentful Token's chips past two lines end in +MORE, which opens
   // its Peek; with no Peek (inside one, E16) every chip wraps. Its slot is the
   // end of the menu lane: after a sheet item's own controls (C8), the last.
   const more = !!body && hasChips && !!peek['data-peek']
   const moreSlot = more ? <span className="su-chip-more-slot" aria-hidden="true" hidden /> : null
+  /** The name, or the whole surface: a toggle, a link, or plain. */
+  const surface = (className: string, children: ReactNode, surfacePeek: PeekAttrs) =>
+    toggle ? (
+      <ToggleSurface
+        mode={toggle}
+        label={toggle.label ?? title}
+        peek={surfacePeek}
+        className={className}
+      >
+        {children}
+      </ToggleSurface>
+    ) : (
+      <LinkSurface
+        target={target}
+        label={title}
+        attrs={headMode.kind === 'link' ? headMode.attrs : undefined}
+        peek={surfacePeek}
+        className={className}
+      >
+        {children}
+      </LinkSurface>
+    )
   const pill = (
     <span
       // The pill is the frame: on an ink pill (a thing you do) its cells,
@@ -203,7 +276,13 @@ export function Token({
       className={PILL}
       // Print hands the pill its own type back and inks its frame (`print.css`).
       data-handback=""
-      style={{ backgroundColor: paint.background, color: paint.color, ...slots.frameStyle }}
+      style={{
+        backgroundColor: paint.background,
+        color: paint.color,
+        ...slots.frameStyle,
+        // A chosen toggle wears select's ring on its pill, never a seal (R15).
+        ...(toggle?.selected ? SELECTED_RING : {}),
+      }}
     >
       {/* Read by assistive tech only: the dashes are the pill's only visual user-made cue. */}
       {userMade && <span className="su-sr-only">User-made </span>}
@@ -219,16 +298,14 @@ export function Token({
         {acts ? (
           // The name is the link and the Peek trigger (C8, R6): the controls
           // sit beside it in the chip group, never inside a link.
-          <LinkSurface
-            target={target}
-            label={title}
-            attrs={headMode.kind === 'link' ? headMode.attrs : undefined}
-            peek={peek}
-            className="su-entity-token__name su-entity-token__link"
-          >
-            {title}
-            <KindLabel kind={slots.kind ?? model.kind.type} />
-          </LinkSurface>
+          surface(
+            'su-entity-token__name su-entity-token__link',
+            <>
+              {title}
+              <KindLabel kind={slots.kind ?? model.kind.type} />
+            </>,
+            peek
+          )
         ) : (
           <span className="su-entity-token__name">
             {title}
@@ -258,17 +335,18 @@ export function Token({
       )}
     </span>
   )
+  const dimClass = dim ? SELECT_DIM : undefined
   // Header-only, the surface is the Token; contentful, it is the head. A head
-  // that acts (a link, or a Peek's long press) takes the coarse pointer's
-  // 44px hit area, as the header-only Token does (ruleset §4.6).
-  const headActs = (!slots.outer && !!target.href) || PEEK_ATTRIBUTE in peek
+  // that acts (a link, a toggle, or a Peek's long press) takes the coarse
+  // pointer's 44px hit area, as the header-only Token does (ruleset §4.6).
+  const headActs = (!slots.outer && (!!target.href || !!toggle)) || PEEK_ATTRIBUTE in peek
   const surfaceClass = body
-    ? cn('su-entity-token__head', headActs && 'su-hit-area')
-    : 'su-entity-token'
+    ? cn('su-entity-token__head', headActs && !acts && 'su-hit-area')
+    : cn('su-entity-token', dimClass)
   // A Token with controls: a plain frame, its name the link (above).
   if (acts && !slots.outer && !body) {
     return (
-      <div className="su-entity-token" data-acts="">
+      <div className={cn('su-entity-token', dimClass)} data-acts="">
         {pill}
       </div>
     )
@@ -280,23 +358,17 @@ export function Token({
       {pill}
     </CardOuter>
   ) : acts ? (
-    <div className="su-entity-token__head" data-acts="">
+    // Contentful with controls: the name inside is the link and the Peek
+    // trigger, so the head is a plain frame around the pill.
+    <div className={surfaceClass} data-acts="">
       {pill}
     </div>
   ) : (
-    <LinkSurface
-      target={target}
-      label={title}
-      attrs={headMode.kind === 'link' ? headMode.attrs : undefined}
-      peek={peek}
-      className={surfaceClass}
-    >
-      {pill}
-    </LinkSurface>
+    surface(surfaceClass, pill, peek)
   )
   if (!body) return head
   return (
-    <div ref={contentfulRef} className="su-entity-token" data-contentful="">
+    <div ref={contentfulRef} className={cn('su-entity-token', dimClass)} data-contentful="">
       {head}
       {more && <MoreChip title={title} peek={peek} />}
       {/* Bordered in the pill's own tone, so the Token contains its content. */}

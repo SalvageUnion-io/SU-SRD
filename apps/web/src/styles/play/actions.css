@@ -1,10 +1,11 @@
 /*
  * play/actions.css — Play's Actions column (docs/architecture/play.md §5, §6):
- * the flattened list, a row's inline resolve, and the Downtime track and step.
+ * the flattened list, a line's inline resolve, and the Downtime track and step.
  *
- * The app's own stylesheet, a part of `styles/play/play.css`. Every row is a level-1 Row or
- * TitledBox; these rules only lay them out and mark their state (not on
- * hand, open, locked): they never add a frame of their own (play.md §12).
+ * The app's own stylesheet, a part of `styles/play/play.css`. Every line is a
+ * Token (ruleset §1.3); these rules only lay the list out: the Token draws its
+ * own state (dimmed not on hand or locked, its resolve its contentful body),
+ * and nothing here adds a frame of its own (play.md §12).
  */
 
 /*
@@ -49,15 +50,6 @@
   max-width: 240px;
 }
 
-.su-play-act-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
 .su-play-act__need,
 .su-play-act__state {
   font-family: var(--font-body);
@@ -65,14 +57,7 @@
   white-space: nowrap;
 }
 
-.su-play-act__buttons {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: var(--space-6);
-  justify-content: flex-end;
-}
-
-/* A row's inline resolve: plain content in the Row's body. */
+/* A line's inline resolve: plain content in its Token's contentful body. */
 .su-play-resolve {
   display: flex;
   flex-direction: column;

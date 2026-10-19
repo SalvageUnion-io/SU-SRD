@@ -1,7 +1,7 @@
 /**
  * PlayMediatorTable — the Mediator's left column (play.md §10, wireframe pin
  * 2): "The table", a Slab, with one seat per player directly under it
- * (`PlayMediatorSeat`, level 1), then the Game's crawler as the Units
+ * (`PlayMediatorSeat`, a Token one a line), then the Game's crawler as the Units
  * column's own crawler box (`PlayCrawlerUnit`), live for the Mediator, who
  * runs it (ADR-038 §5).
  *
@@ -50,12 +50,13 @@ export function PlayMediatorTable({ mediator, picked, onPick }: PlayMediatorTabl
           body="No one has a seat yet. A player takes one by claiming a Pilot in this Game."
         />
       ) : (
-        <ul className="su-play-seats" aria-label="Seats">
+        <ul className="su-entity-token-list su-play-seats" aria-label="Seats" data-play-list="">
           {seats.map((seat) => (
             <PlayMediatorSeat
               key={seat.pilotId}
               seat={seat}
               picked={picked === seat.rowId}
+              dim={picked !== null && picked !== seat.rowId}
               onPick={() => onPick(seat)}
               onOpenSheet={() => setCrewSheet(seat)}
               stepLine={

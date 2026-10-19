@@ -1,5 +1,5 @@
 /**
- * The resolve's two cost readouts (play.md §5), drawn inside an action Row by
+ * The resolve's two cost readouts (play.md §5), drawn inside an action Token by
  * `PlayResolveSteps`: what activating spends (`ResolveSpend`), and what it
  * asks before it is paid (`ResolveCost`: EP or AP, and X for a variable Hot).
  * Presentational: `useActionsDeck` builds the `ResolveModel` and owns every

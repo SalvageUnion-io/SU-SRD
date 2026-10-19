@@ -1,32 +1,29 @@
 /**
  * PlayMediatorSeat — one seat at the Mediator's table (play.md §10, wireframe
- * pin 2): the pilot's Row, level 1 in the column, with a presence dot in its
- * head, the mech as a relation chip (C11), and in its body (level 2, plain content) the mount in words,
- * every live vital as a chip, and what they are doing now.
+ * pin 2): the pilot's Token, one a line (ruleset §1.3: Play's lists are
+ * Tokens), its chips what the table needs at a glance: the mech as a relation
+ * chip (C11, R5), whether they are here ("Here", or "Away" once their seat
+ * stops beating) and the vital needing the Mediator (▲, critical). Its body
+ * (N3, plain content, no entity) is the mount in words, every live vital as a
+ * chip, and what they are doing now.
  *
  *  - **Attention** — something needs the Mediator (`crewLines()`'s verdict):
  *    a ring in the bad hue around the seat, the flagged vital ▲ and critical,
  *    and the problem in words, so colour is never the only signal.
- *  - **Away** — their seat has stopped beating: the presence dot goes out, and
- *    the line says where they were last seen.
+ *  - **Away** — their seat has stopped beating: the line says where they
+ *    were last seen.
  *  - **Downtime** — the line says whether they are done with the step.
  *
- * The Row is in select mode: a tap aims Propose at this pilot (see the
- * problem, propose the fix). Sheet ⤢ opens their sheet read-only over Play.
+ * The Token is a toggle (EDL Modes): pressed, its name aims Propose at this
+ * pilot (see the problem, propose the fix), the ring on its pill and the other
+ * seats dimmed beside it. Sheet ⤢, its chip group's last slot, opens their
+ * sheet read-only over Play.
  */
 
 import type { CSSProperties } from 'react'
-import { Row } from '../../components/entity/forms/Row'
-import { Button, relation, Stat, tokens } from '../../components/index'
+import { Button, Entity, relation, Stat, tokens } from '../../components/index'
 import { unitRowModel } from '../../lib/units/unitModel'
 import type { MediatorSeat } from './mediatorTable.model'
-
-const BODY = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[6],
-  minWidth: 0,
-} satisfies CSSProperties
 
 const CHIPS = {
   alignItems: 'center',
@@ -57,6 +54,8 @@ type PlayMediatorSeatProps = {
   onOpenSheet: () => void
   /** While Downtime runs: this seat's step line ("Step 3 · done ✓"). */
   stepLine: string | null
+  /** Propose is aimed at another seat: this one wears the one dim. */
+  dim: boolean
 }
 
 export function PlayMediatorSeat({
@@ -65,51 +64,60 @@ export function PlayMediatorSeat({
   onPick,
   onOpenSheet,
   stepLine,
+  dim,
 }: PlayMediatorSeatProps) {
   const away = !seat.present
+  const flagged = seat.vitals.find((v) => v.attention)
   return (
     <li
       className="su-play-seat"
       data-attention={seat.attention || undefined}
       data-away={away || undefined}
+      data-choice-toggle=""
     >
-      <Row
+      <Entity
+        form="token"
+        context="roster"
         model={unitRowModel({ kind: 'pilot', name: seat.name })}
-        omit={['art']}
         mode={{
           kind: 'select',
-          role: 'radio',
+          role: 'toggle',
           selected: picked,
           onSelect: onPick,
-          seal: 'Target',
           label: `${seat.label}. Aim Propose here`,
         }}
-        slots={{
-          // The mech they are aboard or have parked is a relation chip (C11), never a Token under the Row (R5).
-          ...(seat.mech === null ? {} : { relations: [relation('mech', 'Mech', seat.mech.name)] }),
-          extraLabels: (
-            <span
-              className="su-play-crew-dot"
-              data-present={seat.present || undefined}
-              role="img"
-              aria-label={seat.present ? 'Here' : 'Away'}
-            />
-          ),
-          controls: (
-            // The chip group's last slot, at the strip's Size (C1a, R6). On
-            // the seat's own radio, its hit area keeps the 24px floor a
-            // target on a target needs (WCAG 2.5.8; `entity-forms.css`).
-            <Button
-              variant="ghost"
-              size="mini"
-              aria-label={`Open ${seat.name}’s sheet`}
-              onClick={onOpenSheet}
-            >
-              Sheet ⤢
-            </Button>
-          ),
-          leading: (
-            <div style={BODY}>
+        dim={dim}
+        // The mech they are aboard or have parked is a relation chip (C11), never a Token under it (R5).
+        {...(seat.mech === null ? {} : { relations: [relation('mech', 'Mech', seat.mech.name)] })}
+        state={
+          <>
+            <Stat orientation="horizontal" size="mini" label={away ? 'Away' : 'Here'} />
+            {flagged ? (
+              <Stat
+                orientation="horizontal"
+                size="mini"
+                state="critical"
+                label={`▲ ${flagged.label}`}
+                value={flagged.value ?? undefined}
+              />
+            ) : null}
+          </>
+        }
+        controls={
+          // The chip group's last slot, at the strip's Size (C1a, R6).
+          <Button
+            variant="ghost"
+            size="mini"
+            aria-label={`Open ${seat.name}’s sheet`}
+            onClick={onOpenSheet}
+          >
+            Sheet ⤢
+          </Button>
+        }
+        body={{
+          text: false,
+          children: (
+            <>
               <SeatMount seat={seat} />
               <div style={CHIPS}>
                 {seat.vitals.map((v) => (
@@ -124,7 +132,7 @@ export function PlayMediatorSeat({
                 ))}
               </div>
               <SeatLine seat={seat} stepLine={stepLine} />
-            </div>
+            </>
           ),
         }}
       />

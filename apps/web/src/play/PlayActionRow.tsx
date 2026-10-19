@@ -1,19 +1,19 @@
 /**
  * PlayActionRow — one action in the Actions list (play.md §5): the action's
- * Row (`form="row"`), its chips in the shared stat order with the cost last.
- * On hand it carries Use, which opens the resolve in place, in the Row's own
- * body (`PlayResolveSteps`), with Cancel in its head; not on hand it is
- * dimmed, and says what it needs ("needs Boarded").
+ * Token, one a line (ruleset §1.3: Play's lists are Tokens), its chips in the
+ * shared stat order with the cost last. On hand it carries Use, after the cost
+ * in its chip group (C8, ruleset §1.4), which opens the resolve in place as
+ * the Token's contentful body (N3: the action's own text, then
+ * `PlayResolveSteps`), with Cancel in Use's slot; not on hand it is dimmed,
+ * and says what it needs as a chip ("needs Boarded").
  *
- * The Row is level 1 in the column; the resolve inside it is plain content
- * (the Nested Frames Audit, play.md §12). While open, the Row shows the
- * action's own text, the one thing the deck's full card added.
+ * A Token nests nothing (E6): the resolve inside it, its roll instrument (R8)
+ * and its steps, is plain content, never an entity of its own (play.md §12).
  */
 
 import { useMemo } from 'react'
 import { toEntityModel } from 'salvageunion-reference'
-import { Row } from '../components/entity/forms/Row'
-import { Button } from '../components/index'
+import { Button, Entity, Stat } from '../components/index'
 import { PlayResolveSteps } from './PlayResolveSteps'
 import type { ListEntry } from './playActions.model'
 import { NEED_TEXT } from './playActions.model'
@@ -31,13 +31,16 @@ type PlayActionRowProps = {
   locked: string | null
 }
 
+/** Why a line is not on hand ("needs Boarded"), as its state chip (C8). */
+export function NeedChip({ need }: { need: string }) {
+  return <Stat orientation="horizontal" size="mini" label={need} />
+}
+
 export function PlayActionRow({ entry, resolve, onUse, canWrite, locked }: PlayActionRowProps) {
   const model = useMemo(() => toEntityModel(entry.action.action), [entry.action.action])
   const open = resolve !== null
   const away = entry.need !== null
-  const controls = away ? (
-    <span className="su-play-act__need">{NEED_TEXT[entry.need ?? 'boarded']}</span>
-  ) : open ? (
+  const controls = away ? undefined : open ? (
     <Button size="mini" onClick={resolve.onBack} aria-label={`Cancel ${entry.name}`}>
       Cancel
     </Button>
@@ -60,16 +63,17 @@ export function PlayActionRow({ entry, resolve, onUse, canWrite, locked }: PlayA
       data-locked={(!away && locked !== null) || undefined}
       data-action-key={entry.key}
     >
-      <Row
+      <Entity
+        form="token"
+        context="play"
         model={model}
         instance={entry.action.condition === 'destroyed' ? { condition: 'destroyed' } : undefined}
-        lead={open}
-        omit={['art']}
         dim={away || locked !== null}
-        slots={{
-          controls,
-          ...(open ? { leading: <PlayResolveSteps view={resolve} canWrite={canWrite} /> } : {}),
-        }}
+        {...(away ? { state: <NeedChip need={NEED_TEXT[entry.need ?? 'boarded']} /> } : {})}
+        {...(controls ? { controls } : {})}
+        {...(open
+          ? { body: { children: <PlayResolveSteps view={resolve} canWrite={canWrite} /> } }
+          : {})}
       />
     </li>
   )

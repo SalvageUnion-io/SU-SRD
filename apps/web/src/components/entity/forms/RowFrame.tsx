@@ -15,8 +15,6 @@ export type RowFrameProps = {
    * whose body scrolls in what is left.
    */
   shrink?: boolean
-  /** Dimmed by its host: a Play row not on hand, or locked (the one dim). */
-  dim?: boolean
   /** Inline style on the frame: the select ring, a host's frame colour. */
   style?: CSSProperties | undefined
   /** The head, then the body. */
@@ -35,7 +33,6 @@ export function RowFrame({
   reference = false,
   bodyless = false,
   shrink = false,
-  dim = false,
   style,
   children,
 }: RowFrameProps) {
@@ -51,9 +48,7 @@ export function RowFrame({
       style={style}
     >
       {art}
-      <div className="su-entity-row__main" data-dim={dim || undefined}>
-        {children}
-      </div>
+      <div className="su-entity-row__main">{children}</div>
     </div>
   )
 }

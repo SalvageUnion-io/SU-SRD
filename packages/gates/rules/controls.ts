@@ -183,6 +183,8 @@ export const ONE_ON_OFF: Record<string, string> = {
     "a reference card's select toggle (R15)",
   'apps/web/src/components/referenceEntity/choiceCard/ChoiceGroups.tsx':
     "a choice card's chosen state (R15)",
+  'apps/web/src/components/entity/modes/toggle.ts':
+    "the toggle Token's chosen state, Play's seats and Tables (R15)",
 }
 
 /** Every JSX attribute or object key `name` in one file, with its value's source. */

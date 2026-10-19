@@ -1,12 +1,14 @@
 /**
  * PlayNpcActions — the chosen NPC's actions under the Opposition (play.md
  * §10, wireframe pin 4), flattened like a player's list (`npcActions`, sorted
- * by action type): each a level-1 Row in the Actions column's own list
- * (`.su-play-act-list`), its chips in the shared stat order, cost last, with
- * Use, then the Morale check.
+ * by action type): each a Token one a line in the Actions column's own list
+ * (ruleset §1.3, Play's lists are Tokens), its chips in
+ * the shared stat order, cost last, with Use after it (C8), then the Morale
+ * check.
  *
  * Every roll here is a table's (`PlayRollInstrument`, R8): Use opens the
- * action's resolve in its Row, the NPC Action table, whose stamp is the roll
+ * action's resolve as its Token's contentful body (N3, plain content), the
+ * NPC Action table, whose stamp is the roll
  * and whose marked row is what it came to (ruleset §1.4, as a player's
  * action resolves). Every roll goes on Play's roll log (`reportingRoll`),
  * which keeps the Mediator's rolls off the Game's log and posts one only when
@@ -17,9 +19,9 @@
 
 import { useMemo, useState } from 'react'
 import { resultForTable, SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
-import { Row } from '../../components/entity/forms/Row'
-import { Button, EmptyState, rollForTable, Slab, TitledBox } from '../../components/index'
+import { Button, EmptyState, Entity, rollForTable, Slab } from '../../components/index'
 import { PlayRollInstrument } from '../PlayRollInstrument'
+import { playLineModel } from '../playLine.model'
 import { reportingRoll } from '../playRolls.model'
 import type { NpcAction } from './npcActions.model'
 import { npcActions } from './npcActions.model'
@@ -30,6 +32,8 @@ const NPC_ACTION = 'NPC Action'
 
 /** The table an NPC's Morale check reads. */
 const MORALE = 'Morale'
+
+const MORALE_CHECK = playLineModel({ name: 'Morale check', key: 'morale' })
 
 /** The row a die lands on, by its label ("Success"). */
 function npcActionOutcome(die: number): string {
@@ -53,7 +57,7 @@ export function PlayNpcActions({
   rollFor = rollForTable,
 }: PlayNpcActionsProps) {
   const actions = useMemo(() => npcActions(npc), [npc])
-  // The action resolving in its Row: one at a time, as a player's.
+  // The action resolving in its Token: one at a time, as a player's.
   const [open, setOpen] = useState<string | null>(null)
   const live = canWrite && !npc.down
   return (
@@ -62,7 +66,7 @@ export function PlayNpcActions({
       {actions.length === 0 ? (
         <EmptyState variant="inline" body="The reference gives it no actions." />
       ) : null}
-      <ul className="su-play-act-list" aria-label={`${npc.name}’s actions`}>
+      <ul className="su-entity-token-list" aria-label={`${npc.name}’s actions`} data-play-list="">
         {actions.map((entry) => (
           <NpcActionRow
             key={entry.key}
@@ -75,13 +79,21 @@ export function PlayNpcActions({
           />
         ))}
         <li className="su-play-act" data-action-key="morale">
-          <TitledBox title="Morale check" as="div">
-            <PlayRollInstrument
-              table={MORALE}
-              roll={npc.lastRoll?.roll ?? null}
-              onRoll={live ? onMorale : undefined}
-            />
-          </TitledBox>
+          <Entity
+            form="token"
+            context="play"
+            model={MORALE_CHECK}
+            body={{
+              text: false,
+              children: (
+                <PlayRollInstrument
+                  table={MORALE}
+                  roll={npc.lastRoll?.roll ?? null}
+                  onRoll={live ? onMorale : undefined}
+                />
+              ),
+            }}
+          />
         </li>
       </ul>
     </>
@@ -118,11 +130,12 @@ function NpcActionRow({
 
   return (
     <li className="su-play-act" data-open={open || undefined} data-action-key={entry.key}>
-      <Row
+      <Entity
+        form="token"
+        context="play"
         model={model}
-        omit={['art']}
-        slots={{
-          controls: open ? (
+        controls={
+          open ? (
             <Button
               size="mini"
               aria-label={`Cancel ${entry.name} for ${npc.name}`}
@@ -142,10 +155,12 @@ function NpcActionRow({
             >
               Use
             </Button>
-          ),
-          ...(open
-            ? {
-                leading: (
+          )
+        }
+        {...(open
+          ? {
+              body: {
+                children: (
                   <div className="su-play-resolve">
                     <PlayRollInstrument
                       table={NPC_ACTION}
@@ -159,9 +174,9 @@ function NpcActionRow({
                     ) : null}
                   </div>
                 ),
-              }
-            : {}),
-        }}
+              },
+            }
+          : {})}
       />
     </li>
   )

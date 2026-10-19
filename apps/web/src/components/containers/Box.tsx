@@ -42,8 +42,6 @@ export type BoxProps = {
    * frame gives way, and the body manages what is left (`fill` implies it).
    */
   shrink?: boolean
-  /** Dimmed by its host: a Play row not on hand (the Row's `dim`). */
-  dim?: boolean
   /**
    * Select mode (EDL Modes), for a level-1 pick that is no entity (a wizard's
    * Custom build, an NPC's Start blank): the whole box is the surface, a radio
@@ -80,7 +78,6 @@ export function Box({
   reference = false,
   fill = false,
   shrink = false,
-  dim = false,
   select,
   children,
 }: BoxProps) {
@@ -91,7 +88,6 @@ export function Box({
       bodyless={!hasBody}
       reference={reference}
       shrink={fill || shrink}
-      dim={dim}
       style={
         frameColor || select?.selected
           ? {

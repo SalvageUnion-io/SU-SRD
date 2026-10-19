@@ -51,6 +51,8 @@ const SELECT_PARTS = new Set([
   'apps/web/src/components/entity/modes/select.tsx',
   // Its 0.6 is a down unit's condition, not a pick's state.
   'apps/web/src/components/entity/forms/Row.tsx',
+  // The toggle Token's select (EDL Modes); its body's 0.6 is a down unit's condition.
+  'apps/web/src/components/entity/forms/Token.tsx',
   'apps/web/src/components/containers/RadioCardGroup.tsx',
   'apps/web/src/components/atoms/Checkbox.tsx',
   'apps/web/src/components/atoms/Radio.tsx',

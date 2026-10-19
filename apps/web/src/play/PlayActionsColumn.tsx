@@ -5,13 +5,14 @@
  * action of the pilot and the mech, the Reactor and Mount, sorted by action
  * type (Turn, Short, Long, Reaction, Free, Downtime), with a type filter and
  * Find on the "Actions" heading line (wireframe pin 5); what is on hand first, what is not collapsed below with its reason.
- * Use opens the action's Row in place: Activate, Roll, Push?, Apply, on the
- * seat's `resolving`.
+ * Every line is a Token (ruleset §1.3); Use opens the action in place as its
+ * Token's contentful body: Activate, Roll, Push?, Apply, on the seat's
+ * `resolving`.
  *
  * In Downtime it becomes the Downtime track and the current step
  * (`PlayDowntimeColumn`), the Downtime actions under it.
  *
- * Its headings are Slabs, never a `TitledBox`, so each row is level 1 and
+ * Its headings are Slabs, never a `TitledBox`, so each line is level 1 and
  * what sits inside one is plain content (the Nested Frames Audit, play.md §12).
  * Every roll made here goes on Play's one roll log (`playRolls.model.ts`).
  */

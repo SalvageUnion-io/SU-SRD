@@ -183,8 +183,14 @@ describe('the Crew (play.md §7)', () => {
       'Wren, away, Boarded · Mule, SP 26, fine. Open their sheet',
     ])
     expect(crew.getByText('▲ HP')).toBeTruthy()
+    // Presence is a chip on each crewmate's Token (ruleset §1.3): two here, one away.
+    expect(crew.getAllByText('Here')).toHaveLength(2)
     expect(crew.getByText('Away')).toBeTruthy()
-    expect(document.querySelectorAll('.su-play-crew-dot[data-present]')).toHaveLength(2)
+    // Each line is a Token, never a listing Row.
+    expect(document.querySelectorAll('[data-play-list] .su-entity-row')).toHaveLength(0)
+    expect(crew.getAllByRole('listitem').every((li) => li.querySelector('.su-entity-token'))).toBe(
+      true
+    )
   })
 
   test('a crewmate’s board, damage and leaving show live', async () => {
@@ -416,14 +422,18 @@ describe('the Tables (play.md §8)', () => {
   test('a pinned table opens and its roll lands on the Feed and in Discord', async () => {
     answers()
     await renderSide()
-    const pins = within(screen.getByRole('group', { name: 'Pinned tables' }))
-    expect(pins.getAllByRole('button').map((b) => b.textContent)).toEqual([
+    // A list of roll table Tokens, one a line; the open one is the pressed toggle.
+    const pins = within(screen.getByRole('list', { name: 'Pinned tables' }))
+    expect(pins.getAllByRole('button').map((b) => b.getAttribute('aria-label'))).toEqual([
       'Core Mechanic',
       'Critical Damage',
       'Reactor Overload',
       'Critical Injury',
     ])
-    await act(async () => pins.getByRole('button', { name: 'Critical Damage' }).click())
+    const damage = pins.getByRole('button', { name: 'Critical Damage' })
+    expect(damage.getAttribute('aria-pressed')).toBe('false')
+    await act(async () => damage.click())
+    expect(damage.getAttribute('aria-pressed')).toBe('true')
     const rollButton = await screen.findByRole('button', {
       name: /Roll the die on Critical Damage/,
     })
@@ -441,8 +451,10 @@ describe('the Tables (play.md §8)', () => {
       setter?.call(find, 'rumour')
       find.dispatchEvent(new Event('input', { bubbles: true }))
     })
-    const found = within(screen.getByRole('group', { name: 'Tables found' }))
-    expect(found.getAllByRole('button').map((b) => b.textContent)).toContain('Rumour')
+    const found = within(screen.getByRole('list', { name: 'Tables found' }))
+    expect(found.getAllByRole('button').map((b) => b.getAttribute('aria-label'))).toContain(
+      'Rumour'
+    )
   })
 })
 

@@ -5,14 +5,20 @@
  * `Play` (`board`, `claimAndBoard`, `setOnFoot`, `seat.eject`).
  *
  * ADR-007: Eject is behind a confirm, and so is claiming an unclaimed spare.
- * Level 1 in the column, a titled row whose controls sit in its head.
+ * A Token one a line in the list (ruleset §1.3; `playLineModel`, Mount being
+ * no reference entity), its controls in its chip group (R6); not on hand, the
+ * need is its chip.
  */
 
 import { useState } from 'react'
-import { Button, ConfirmDialog, HeaderMenu, TitledBox } from '../components/index'
+import { Button, ConfirmDialog, Entity, HeaderMenu } from '../components/index'
 import type { BoardOption } from './boardMenu.model'
 import { boardable } from './boardMenu.model'
+import { NeedChip } from './PlayActionRow'
+import { playLineModel } from './playLine.model'
 import type { Play } from './situation.model'
+
+const MODEL = playLineModel({ name: 'Mount', key: 'mount' })
 
 type PlayMountRowProps = {
   play: Play
@@ -36,26 +42,24 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
 
   const main = play.mechs.find(boardable)
 
-  const controls = away ? (
-    <span className="su-play-act__need">{need}</span>
-  ) : boarded ? (
-    <span className="su-play-act__buttons">
+  const controls = away ? undefined : boarded ? (
+    <>
       <Button size="mini" onClick={play.setOnFoot} disabled={off}>
         Dismount
       </Button>
       <Button size="mini" variant="primary" onClick={() => setEjecting(true)} disabled={off}>
         Eject
       </Button>
-    </span>
+    </>
   ) : (
-    <span className="su-play-act__buttons">
+    <>
       {main === undefined ? (
         <Button size="mini" disabled title="No Mech to board">
           Board
         </Button>
       ) : (
-        // The outlined Button: on the row's ink band it reads paper (R19), where
-        // an ink fill would vanish into the band.
+        // The outlined Button: on the Token's ink pill it reads paper (R19),
+        // where an ink fill would vanish into the pill.
         <Button size="mini" onClick={() => choose(main)} disabled={off}>
           {main.state === 'spare' ? `Claim and board ${main.name}` : `Board ${main.name}`}
         </Button>
@@ -76,18 +80,19 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
           ]}
         />
       )}
-    </span>
+    </>
   )
 
   return (
     <li className="su-play-act" data-away={away || undefined} data-action-key="mount">
-      <TitledBox
-        title="Mount"
-        as="div"
-        // Which mech is the Situation switch's to say ("Boarded · Buzzard"):
-        // the row carries only its controls (wireframe pin 5).
-        controls={controls}
+      <Entity
+        form="token"
+        context="play"
+        model={MODEL}
         dim={away}
+        // Which mech is the Situation switch's to say ("Boarded · Buzzard"):
+        // the line carries only its controls (wireframe pin 5).
+        {...(away ? { state: <NeedChip need={need} /> } : { controls })}
       />
       <ConfirmDialog
         open={ejecting}
