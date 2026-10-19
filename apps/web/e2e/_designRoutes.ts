@@ -17,7 +17,7 @@ import {
   gamePageRoute,
 } from './_designTable'
 import { gotoStable, waitForReady } from './_helpers'
-import { CANVAS, PHONE, pilotPlayPath, playDoor } from './_play'
+import { CANVAS, MID, PHONE, pilotPlayPath, playDoor } from './_play'
 import { createGame, makeInviteLink } from './_table'
 
 /**
@@ -151,10 +151,18 @@ export function resolveDesignPath(path: string, seed: DesignSeed): string {
   return resolved
 }
 
+/**
+ * A width a walk holds a route at: one of its own (`DesignWidth`), or `mid`,
+ * a mid-size window (`_play.ts`'s `MID`, 1024 × 700) under Play's design
+ * size, which no family is held at but a gate may walk on top
+ * (`sibling-heights.e2e.ts`'s type floor over Play, R12).
+ */
+export type DesignWalkWidth = DesignWidth | 'mid'
+
 /** One view a gate scans: a route at a width, in one state. */
 export type DesignView = {
   family: DesignFamily
-  width: DesignWidth
+  width: DesignWalkWidth
   /** `<path> at <width>[, <state>]`, the prefix of every finding the view has. */
   where: string
 }
@@ -216,20 +224,23 @@ async function open(page: Page, route: DesignRoute, path: string): Promise<void>
 }
 
 /** The viewport a route is held at: Play's `page` is its canvas at the design size. */
-function viewportFor(route: DesignRoute, width: DesignWidth) {
+function viewportFor(route: DesignRoute, width: DesignWalkWidth) {
+  if (width === 'mid') return MID
   if (DESIGN_FAMILIES[route.family] !== 'play') return DESIGN_VIEWPORTS[width]
   return width === 'page' ? CANVAS : PHONE
 }
 
 /**
  * Every view of `routes` (all of `designRoutes` by default) through `scan`: each
- * route at each of its widths, and on Play's phone form each tab in turn.
+ * route at each of its widths (or at `widths`, when given, in their place),
+ * and wherever Play draws its phone form each tab in turn.
  */
 export async function walkDesignRoutes(
   page: Page,
   seed: DesignSeed,
   scan: DesignScan,
-  routes: readonly DesignRoute[] = designRoutes
+  routes: readonly DesignRoute[] = designRoutes,
+  { widths }: { widths?: readonly DesignWalkWidth[] } = {}
 ): Promise<DesignFinding[]> {
   const found: DesignFinding[] = []
   const take = async (view: DesignView) => {
@@ -237,7 +248,7 @@ export async function walkDesignRoutes(
   }
   for (const route of routes) {
     const path = resolveDesignPath(route.path, seed)
-    for (const width of route.widths) {
+    for (const width of widths ?? route.widths) {
       const { width: w, height } = viewportFor(route, width)
       await page.setViewportSize({ width: w, height })
       await open(page, route, path)
@@ -246,9 +257,13 @@ export async function walkDesignRoutes(
         .join(', ')
       const where = `${route.family} ${route.path} at ${width}${state ? `, ${state}` : ''}`
       const tabs = page.locator('.su-dash-phone [role="tab"]')
-      const phonePlay = DESIGN_FAMILIES[route.family] === 'play' && width === 'phone'
-      if (phonePlay) {
+      const play = DESIGN_FAMILIES[route.family] === 'play'
+      if (play && width === 'phone') {
         await expect(tabs.first(), `${where}: Play draws its phone form`).toBeVisible()
+      }
+      const phonePlay = play && (await page.locator('.su-dash-phone').count()) > 0
+      if (phonePlay) {
+        await expect(tabs.first(), `${where}: the phone form shows its tabs`).toBeVisible()
         for (const name of await tabs.allTextContents()) {
           await tabs.filter({ hasText: name }).first().click()
           await settle(page)

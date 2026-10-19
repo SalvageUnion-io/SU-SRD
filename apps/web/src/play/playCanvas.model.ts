@@ -9,10 +9,22 @@ export const CANVAS_W = 1280
 export const CANVAS_H = 800
 
 /**
- * The canvas's legibility floor: below this scale its 9px labels and 44px
- * targets shrink past reading and touching (ADR-045 §1).
+ * The canvas's smallest text, in CSS px at a scale of 1: its stamps, chip
+ * labels and Mini buttons sit on the type floor (`fontSize.badge`, ruleset
+ * §4.6), and nothing on it is smaller (`tokens/type-floor` holds the source).
  */
-const MIN_SCALE = 0.62
+const SMALLEST_TEXT = 11
+
+/** The type floor as drawn (ruleset §4.6, hard rule R12). */
+const TYPE_FLOOR = 11
+
+/**
+ * The canvas's floor: the smallest scale that keeps its smallest text on the
+ * type floor as drawn (ADR-045 decision 1). Its smallest text is the floor
+ * itself, so this is 1: the canvas never draws below its design size, and any
+ * host smaller than 1280 × 800 on either axis gets the phone form.
+ */
+const MIN_SCALE = TYPE_FLOOR / SMALLEST_TEXT
 
 /**
  * The zoom steps a reading must land on to count (ADR-045 §7): Chromium's
@@ -103,15 +115,15 @@ export function pageZoom({ devicePixelRatio, outerWidth, viewportWidth }: ZoomRe
 
 /**
  * Whether a host of `width` × `height` CSS px gets the phone form: it would
- * draw the canvas below `MIN_SCALE` on EITHER axis. Both axes, because the
- * issue's complaint (44px targets drawn at about 27px) is just as true of a
- * landscape phone, which the old width-only guard let through at about 0.49.
+ * draw the canvas below `MIN_SCALE` on EITHER axis, so its 11px text would
+ * draw under 11px. Both axes: a window short of 800px squeezes the canvas as
+ * surely as a narrow one, and a landscape phone is both.
  *
  * `zoom` (from `pageZoom`) raises the floor with it (ADR-045 §7). A
  * scale-to-fit canvas cancels browser zoom: an 11px label paints at the same
  * device px at 100%, 150% and 175%. So zoom is the reader asking for more
- * than the canvas can give, and at 150% the canvas must reach 0.62 × 1.5 or
- * hand over to the phone form, whose type does grow with zoom.
+ * than the canvas can give, and at 150% the canvas must reach 1.5 × its
+ * design size or hand over to the phone form, whose type does grow with zoom.
  */
 export function isPhoneForm(width: number, height: number, zoom = 1): boolean {
   return Math.min(width / CANVAS_W, height / CANVAS_H) < MIN_SCALE * Math.max(1, zoom)

@@ -87,9 +87,11 @@ switch in the Play bar.
 
 ### 10. Phones get tabs, not a second layout
 
-Below the canvas's floor, Play is four tabs (Act, Units, Tables, Crew; the
-Mediator's Table, Opposition, Tables, Propose) under pinned live vitals and the
-Situation switch. Only the open tab's list scrolls.
+Below the canvas's floor, its 1280 × 800 design size on either axis (the
+canvas never scales down, so no text draws under 11px: ADR-045 decision 1 as
+tracker #1700 decision 6 amends it), Play is four tabs (Act, Units, Tables,
+Crew; the Mediator's Table, Opposition, Tables, Propose) under pinned live
+vitals and the Situation switch. Only the open tab's list scrolls.
 
 ### 11. Play follows the nesting rules
 

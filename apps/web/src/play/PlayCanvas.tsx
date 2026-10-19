@@ -7,12 +7,13 @@
  * fixed 800px layout box and leave dead space below), then the canvas grows
  * uniformly to fill whichever axis binds first.
  *
- * **Below the floor on either axis it renders the phone form instead**
- * (`phone`, ADR-045; play.md §11): a portrait phone, a landscape phone (whose
- * height would draw the canvas near 0.49), a window under about 496px tall,
- * or browser zoom. Fitting the canvas would cancel zoom, so the floor rises
- * with it (`pageZoom`, ADR-045 §7) and a zoomed reader reaches the phone form,
- * whose type grows, sooner. The phone form fits the screen too: its host is
+ * **Below its design size on either axis it renders the phone form instead**
+ * (`phone`, ADR-045 decision 1; play.md §11): the canvas
+ * never scales down, because its smallest text is already the 11px floor
+ * (`isPhoneForm`). So a phone, a tablet, a mid-size window or one under 800px
+ * tall gets the phone form, and so does browser zoom: fitting the canvas
+ * would cancel zoom, so the floor rises with it (`pageZoom`, ADR-045 §7) and
+ * a zoomed reader reaches the phone form, whose type grows, sooner. The phone form fits the screen too: its host is
  * exactly the height below its top, and `phone` scrolls inside itself (only
  * the open tab's list scrolls, ADR-051 §10).
  *
@@ -89,7 +90,8 @@ export function PlayCanvas({ children, phone }: PlayCanvasProps) {
       })
       setPhoneForm(isPhoneForm(w, availH, zoom))
       // Uniform scale that fits whichever axis binds first (never clipping),
-      // capped so it can fill space without ballooning on giant panels.
+      // capped so it can fill space without ballooning on giant panels. The
+      // canvas only draws at 1 or more: below that the phone form is up.
       setScale(Math.min(MAX_SCALE, Math.min(rawW, rawH)))
     }
     compute()

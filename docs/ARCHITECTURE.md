@@ -187,7 +187,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Built: an `npcs` table like pilots; a slotted link authorised by the crawler's writer.
     Amends ADR-037. As built: [npc-builder.md](architecture/npc-builder.md).
 45. **ADR-045 The Dashboard has a phone form** · [full text](adr/045-dashboard-phone-form.md)
-    Built: below a 0.62 canvas scale Play renders a phone form; same seat and enforcement.
+    Built: under its 1280×800 canvas Play renders a phone form; same seat and enforcement.
     Amends ADR-038; ADR-051 replaces decisions 3–5.
 46. **ADR-046 Styling is tokens, style objects and one stylesheet**
     `theme.css` tokens, `tokens.ts` objects, `index.css` classes, also for styles repeated per page; `no-tailwind` bars Tailwind.

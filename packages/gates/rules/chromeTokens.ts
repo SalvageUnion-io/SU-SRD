@@ -478,7 +478,7 @@ const EXEMPTIONS: Exemption[] = [
     file: 'apps/web/src/play/playCanvas.model.ts',
     rules: ['raw-breakpoint'],
     reason:
-      "Play's phone floor (ADR-045 decision 1), the one named exception to the ladder (chrome.md K2): the canvas gives way to the phone form by its scale on both axes, not by a rung.",
+      "Play's phone floor (ADR-045 decision 1), the one named exception to the ladder (chrome.md K2): the canvas gives way to the phone form below its 1280 × 800 design size on either axis, not by a rung.",
   },
   {
     file: 'apps/web/src/styles/theme.css',

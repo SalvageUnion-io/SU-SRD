@@ -8,8 +8,8 @@ import { expect, test } from './fixtures'
  * Situation — On foot, Boarded, and a Downtime the player runs themselves.
  *
  * In every state the page never scrolls at the Play viewports (the canvas at
- * 1280 × 800 and at its scale floor, the phone at 390 × 844), and axe finds
- * nothing at the canvas or the phone.
+ * 1280 × 800, the phone form in a 1024 × 700 window and on a 390 × 844
+ * phone), and axe finds nothing at the canvas or the phone.
  *
  * Skips without the test sign-in seam, like every signed-in spec
  * (`fixtures.ts`); ci.yml's `build-web` carries the seam and runs it on every

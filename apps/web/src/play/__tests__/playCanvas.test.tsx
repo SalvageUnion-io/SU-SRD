@@ -1,7 +1,9 @@
 /**
  * The canvas's two forms (ADR-045, play.md §11).
  *
- *  - The switch reads both axes: a landscape phone gets the phone form too.
+ *  - The canvas never draws below its design size: its smallest text is the
+ *    11px floor (ADR-045 decision 1), so any host under 1280 × 800 on either
+ *    axis gets the phone form, a landscape phone and a short window too.
  *  - Browser zoom raises the floor, so a zoomed reader reaches it sooner,
  *    and the phone form's own scrollbar never reads as less zoom.
  *
@@ -15,33 +17,42 @@ import { PlayCanvas } from '../PlayCanvas'
 import { isPhoneForm, layoutWidth, pageZoom } from '../playCanvas.model'
 import { phoneViewport } from './phoneViewport'
 
-describe('isPhoneForm — both axes (D1)', () => {
-  test('a desktop window keeps the canvas', () => {
+describe('isPhoneForm — the canvas never draws its 11px text smaller (ADR-045 §1)', () => {
+  test('a desktop window at or over the design size keeps the canvas', () => {
+    expect(isPhoneForm(1280, 800)).toBe(false)
     expect(isPhoneForm(1440, 860)).toBe(false)
+  })
+  test('one px under the design size on either axis gets the phone form', () => {
+    expect(isPhoneForm(1279, 900)).toBe(true)
+    expect(isPhoneForm(1440, 799)).toBe(true)
+  })
+  test('a mid-size window and a tablet get it: the canvas would draw at 0.8 and 0.64', () => {
+    expect(isPhoneForm(1024, 700)).toBe(true)
+    expect(isPhoneForm(820, 1180)).toBe(true)
   })
   test('a portrait phone gets the phone form', () => {
     expect(isPhoneForm(375, 812)).toBe(true)
     expect(isPhoneForm(390, 844)).toBe(true)
   })
-  test('a landscape phone gets it too: its height would draw the canvas near 0.49', () => {
+  test('a landscape phone gets it too', () => {
     expect(isPhoneForm(852, 393)).toBe(true)
-  })
-  test('a short desktop window gets it below about 496px', () => {
-    expect(isPhoneForm(1440, 480)).toBe(true)
-    expect(isPhoneForm(1440, 500)).toBe(false)
   })
 })
 
 describe('browser zoom raises the floor (ADR-045 §7)', () => {
-  // A 1920×1080 desktop with ~970px of viewport, at 100%, 125% and 150%:
+  // A 2560×1440 desktop with ~1300px of viewport, at 100%, 125% and 150%:
   // zoom shrinks the CSS viewport, and the floor rises with the zoom.
   test('100% and 125% keep the canvas; 150% gets the phone form', () => {
-    expect(isPhoneForm(1920, 970, 1)).toBe(false)
-    expect(isPhoneForm(1920 / 1.25, 970 / 1.25, 1.25)).toBe(false)
-    expect(isPhoneForm(1920 / 1.5, 970 / 1.5, 1.5)).toBe(true)
+    expect(isPhoneForm(2560, 1300, 1)).toBe(false)
+    expect(isPhoneForm(2560 / 1.25, 1300 / 1.25, 1.25)).toBe(false)
+    expect(isPhoneForm(2560 / 1.5, 1300 / 1.5, 1.5)).toBe(true)
   })
-  test('without the zoom, the same 150% viewport would keep the scaled-down canvas', () => {
-    expect(isPhoneForm(1920 / 1.5, 970 / 1.5)).toBe(false)
+  test('without the zoom, the same 150% viewport would keep the canvas', () => {
+    expect(isPhoneForm(2560 / 1.5, 1300 / 1.5)).toBe(false)
+  })
+  test('on a 1920×1080 desktop, 125% already gets it', () => {
+    expect(isPhoneForm(1920, 970, 1)).toBe(false)
+    expect(isPhoneForm(1920 / 1.25, 970 / 1.25, 1.25)).toBe(true)
   })
   test('zooming out never lowers the floor', () => {
     expect(isPhoneForm(852, 393, 0.5)).toBe(true)
@@ -72,10 +83,11 @@ describe('pageZoom — the zoom, snapped to a step and normalised against the di
     // A ~210px one lands on 1.15 and leaves 1.739, near 1.75 but not a quarter step.
     expect(pageZoom({ devicePixelRatio: 2, outerWidth: 1512, viewportWidth: 1300 })).toBe(1)
   })
-  test("so a 13-inch MacBook Air's sidebar leaves the canvas standing", () => {
+  test("so a 13-inch MacBook Air's sidebar raises no floor", () => {
+    // 1470 / 1270 lands near the 1.15 step, but leaves a 1.739 density: no zoom.
     const zoom = pageZoom({ devicePixelRatio: 2, outerWidth: 1470, viewportWidth: 1270 })
     expect(zoom).toBe(1)
-    expect(isPhoneForm(1270, 730, zoom)).toBe(false)
+    expect(isPhoneForm(1280, 800, zoom)).toBe(false)
   })
   test('docked devtools on a Retina screen are not zoom', () => {
     // 600px of devtools on the same 1512px window reads 1.66: no step.
@@ -84,9 +96,10 @@ describe('pageZoom — the zoom, snapped to a step and normalised against the di
   test('vertical tabs on a 125% Windows display are not zoom', () => {
     expect(pageZoom({ devicePixelRatio: 1.25, outerWidth: 1536, viewportWidth: 1280 })).toBe(1)
   })
-  test('so a side panel leaves a 0.87 canvas standing', () => {
-    const zoom = pageZoom({ devicePixelRatio: 2, outerWidth: 1512, viewportWidth: 1112 })
-    expect(isPhoneForm(1112, 0.87 * 800, zoom)).toBe(false)
+  test('so a side panel beside a design-size canvas leaves it standing', () => {
+    const zoom = pageZoom({ devicePixelRatio: 2, outerWidth: 1712, viewportWidth: 1312 })
+    expect(zoom).toBe(1)
+    expect(isPhoneForm(1312, 820, zoom)).toBe(false)
   })
   test('real zoom through a Windows frame and scrollbar still snaps to its step', () => {
     // A 125% display at 150% zoom: 1536px window plus a 16px frame, a 17px scrollbar.
@@ -102,12 +115,12 @@ describe('pageZoom — the zoom, snapped to a step and normalised against the di
 })
 
 describe("the phone form's scrollbar does not flip the form back (ADR-045 §7)", () => {
-  // A 1x display at 150% zoom with collapsed vertical tabs (40px): the
-  // viewport is (1920 − 40) / 1.5 = 1253 CSS px, a 1.532 reading, near the
+  // A 1x 2560px display at 150% zoom with a 61px strip of vertical tabs: the
+  // viewport is (2560 − 61) / 1.5 = 1666 CSS px, a 1.537 reading, near the
   // top of the 1.5 step's slack (1.545). The phone form scrolls, and its
-  // 17px scrollbar takes 11 CSS px off `clientWidth`: 1920 / 1242 = 1.546.
-  const OUTER = 1920
-  const VIEWPORT = 1253
+  // 17px scrollbar takes 11 CSS px off `clientWidth`: 2560 / 1655 = 1.547.
+  const OUTER = 2560
+  const VIEWPORT = 1666
   const SCROLLBAR = 11
 
   test('clientWidth alone would read the zoom off the step once the scrollbar shows', () => {
@@ -136,8 +149,8 @@ describe("the phone form's scrollbar does not flip the form back (ADR-045 §7)",
     const restore = phoneViewport({
       // innerWidth counts the scrollbar, so it holds in both forms.
       width: VIEWPORT,
-      // 640 / 800 = 0.8: under 0.62 × 1.5, over 0.62 alone.
-      height: 640,
+      // 1000 / 800 = 1.25 (and 1655 / 1280 = 1.29): under 1.5, over 1 alone.
+      height: 1000,
       hostWidth: width,
       devicePixelRatio: 1.5,
       outerWidth: OUTER,

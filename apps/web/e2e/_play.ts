@@ -14,19 +14,22 @@ import { gotoStable, waitForReady } from './_helpers'
  */
 
 /**
- * The viewports a Play screen must fit without the page scrolling:
- * the canvas at its design size, the canvas at its scale floor (0.62 of
- * 1280 × 800, `playCanvas.model.ts`, just above where the phone form takes
- * over), and a phone, which gets the phone form (play.md §11).
+ * The viewports a Play screen must fit without the page scrolling: the
+ * canvas at its design size, which is also its floor (`playCanvas.model.ts`:
+ * its smallest text is 11px, so it never scales down, ADR-045 decision 1), a
+ * mid-size window just under it, and a phone. The last two get the phone
+ * form (play.md §11).
  */
 const PLAY_VIEWPORTS = [
   { name: 'canvas', form: 'canvas', width: 1280, height: 800 },
-  { name: 'scale floor', form: 'canvas', width: 794, height: 497 },
+  { name: 'mid-size window', form: 'phone', width: 1024, height: 700 },
   { name: 'phone', form: 'phone', width: 390, height: 844 },
 ] as const
 
 /** The design size: the canvas at scale 1, where a measured px is a drawn px. */
 export const CANVAS = PLAY_VIEWPORTS[0]
+/** A mid-size window, under the design size: the canvas would draw at 0.8, so the phone form is up. */
+export const MID = PLAY_VIEWPORTS[1]
 /** The phone. */
 export const PHONE = PLAY_VIEWPORTS[2]
 
@@ -129,7 +132,7 @@ async function formOf(page: Page): Promise<'canvas' | 'phone'> {
 
 /**
  * The page neither scrolls nor overflows, at every Play viewport, and each
- * viewport draws the form it should: the canvas down to its floor, the phone
+ * viewport draws the form it should: the canvas at its design size, the phone
  * form below it. Leaves the viewport at the design size.
  */
 export async function expectNoPageScroll(page: Page, state: string): Promise<void> {

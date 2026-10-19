@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test'
 import { at } from './_base'
 import { expectWithinBaseline, seedDesignAccount, walkDesignRoutes } from './_designRoutes'
 import type { DesignDebt } from './_designTable'
+import { DESIGN_FAMILIES, designRoutes } from './_designTable'
 import { waitForReady } from './_helpers'
 import { board, CANVAS, openPlay, PHONE, pilotPlayPath } from './_play'
 import { findSiblingMismatches } from './_siblingHeights'
@@ -225,7 +226,10 @@ signedIn('Play: the bar, unit boxes and action rows share one height', async ({ 
  *
  * - `sibling`: no line whose controls differ in height (§4.7).
  * - `type-floor`: no text drawn under 11px (§4.6, `_typeFloor.ts`), its
- *   computed size times every scale above it.
+ *   computed size times every scale above it. Play is swept again in a
+ *   mid-size window (`MID`, 1024 × 700), under its canvas's design size,
+ *   where a canvas scaled to fit would draw its 11px text at 8.8px: there
+ *   the phone form is up (ADR-045 decision 1), and every tab is scanned.
  *
  * Then, under a coarse pointer (a touch phone), every menu item a seeded page
  * opens is on the 44px floor (§4.6): the Hangar's ⋯ and the Play bar's.
@@ -237,16 +241,20 @@ const BASELINE: readonly DesignDebt[] = []
 signedIn('every context: siblings on one line share one height', async ({ page, browser }) => {
   signedIn.setTimeout(20 * 60_000)
   const seed = await seedDesignAccount(page)
-  const findings = await walkDesignRoutes(page, seed, async ({ where }) => [
-    ...(await findSiblingMismatches(page)).map((m) => ({
-      rule: 'sibling',
-      line: `${where}, ${m.line}: ${m.controls.map((c) => `${c.height}px ${c.what}`).join(', ')}`,
-    })),
-    ...(await findTypeFloorFaults(page)).map((fault) => ({
+  const typeFloor = async ({ where }: { where: string }) =>
+    (await findTypeFloorFaults(page)).map((fault) => ({
       rule: 'type-floor',
       line: `${where}: ${fault}`,
+    }))
+  const findings = await walkDesignRoutes(page, seed, async (view) => [
+    ...(await findSiblingMismatches(page)).map((m) => ({
+      rule: 'sibling',
+      line: `${view.where}, ${m.line}: ${m.controls.map((c) => `${c.height}px ${c.what}`).join(', ')}`,
     })),
+    ...(await typeFloor(view)),
   ])
+  const play = designRoutes.filter((r) => DESIGN_FAMILIES[r.family] === 'play')
+  findings.push(...(await walkDesignRoutes(page, seed, typeFloor, play, { widths: ['mid'] })))
   expectWithinBaseline('sibling-heights', findings, BASELINE)
 
   // A coarse pointer: the seeded session in a touch phone's context.
