@@ -240,9 +240,6 @@ describe('tokens rule set', () => {
   test('texture-placement: speckle is a finding on a forbidden surface or a paper ground', () => {
     const ref = "filter: 'url(#su-blot)', opacity: tokens.texture.blotOpacity"
     for (const file of [
-      'apps/web/src/play/PlayUnits.tsx',
-      'apps/web/src/styles/play/dashboard/instruments.css',
-      'apps/web/src/styles/play/units.css',
       'apps/web/src/components/atoms/Button.tsx',
       'apps/web/src/components/atoms/KofiButton.tsx',
       'apps/web/src/components/atoms/buttonVariants.ts',
@@ -250,9 +247,16 @@ describe('tokens rule set', () => {
       'apps/web/src/components/atoms/inputs.tsx',
       'apps/web/src/components/atoms/SearchField.tsx',
       'apps/web/src/components/atoms/Tooltip.tsx',
-      'apps/web/src/components/entity/PeekCard.tsx',
     ]) {
       expect(scan(file, ref)['texture-placement']?.length, file).toBe(2)
+    }
+    // R10 (2026-10-19): Play's and the Peek's brand-colour bands wear it too.
+    for (const file of [
+      'apps/web/src/play/PlayUnits.tsx',
+      'apps/web/src/styles/play/units.css',
+      'apps/web/src/components/entity/PeekCard.tsx',
+    ]) {
+      expect(scan(file, ref)['texture-placement'] ?? [], file).toEqual([])
     }
     const onPaper = scan(
       'apps/web/src/components/atoms/BandTitle.tsx',

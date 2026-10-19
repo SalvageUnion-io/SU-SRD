@@ -708,7 +708,7 @@ export function ReferenceEntityCard({
       {...rest}
     />
   )
-  // `texture={false}` (a peek, the Mediator's SRD explorer) holds for every nested card.
+  // `texture={false}` holds for every nested card.
   return texture === undefined ? (
     card
   ) : (

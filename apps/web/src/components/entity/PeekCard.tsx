@@ -54,8 +54,8 @@ const PEEK_HIDE = { patterns: true }
 
 /**
  * The PEEK's card (E16): the entity read-only and terminal. It is
- * `ReferenceEntityCard` small, at full extent, flat (no
- * speckle, ruleset §3.5), inside `InsidePeekContext`, which makes everything
+ * `ReferenceEntityCard` small, at full extent, its band speckled as every
+ * brand-colour ground's is (ruleset §3.5.1, R10), inside `InsidePeekContext`, which makes everything
  * in it act on nothing: no links (Mentions and Tags go inert), no roll-table
  * controls, and no Peek inside it. The card is level 1 on its plate (N1, E6),
  * so everything nested in it is a Token: children, drones, actions (contentful,
@@ -74,7 +74,7 @@ export function PeekCard({ entity, down = false }: { entity: RefEntity; down?: D
         data={entity}
         size="mini"
         extent="full"
-        texture={false}
+        texture
         chassisName={peekChassisName(entity)}
         hostDown={down}
         hide={PEEK_HIDE}

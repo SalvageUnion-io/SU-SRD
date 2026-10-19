@@ -7,16 +7,21 @@ import { expect, test } from './fixtures'
 
 /**
  * Hard rule R10, "A surface sets its texture once" (ruleset §1.3, §3.5.1; EDL
- * E13), on the rendered page over every context (R0's `designRoutes`):
+ * E13), on the rendered page over every context (R0's `designRoutes`): the
+ * speckle is universal on brand-colour grounds, the Cockpit and the Peek
+ * included, and never on paper, cream, Play's ink-deep ground, a button or a
+ * field.
  *
- * - `flat`: the Cockpit is flat. Nothing on a Play canvas or phone form
- *   (`.su-dash-root`: the player's, solo and the Mediator's), nor on an
- *   overlay it lays over itself (a Peek, a menu, a dialog: the Mediator's
- *   Reference), wears the speckle (`[data-grain]`). `PlayFrame` turns it off
- *   once for all of them; the overlays inherit it through the portal.
- * - `band`: only the Cockpit is flat. Manage (the Hangar, the Play hub, a
- *   Game's page, the invite screen) is paper under its area's band, and the
- *   band keeps its speckle (`ChapterBand`'s `.su-grain-layer`).
+ * - `speckled`: every entity band (a Row's, a TitledBox's or a unit box's
+ *   head, a card's band) on a Play canvas or phone form (`.su-dash-root`:
+ *   the player's, solo and the Mediator's), or on an overlay it lays over
+ *   itself (a Peek, a menu, a dialog: the Mediator's Reference), that is a
+ *   brand-colour ground carries its `[data-grain]`, as on the sheet.
+ * - `clean`: no `[data-grain]` there sits on paper, cream or ink-deep, or on
+ *   or inside a button or a field.
+ * - `band`: Manage (the Hangar, the Play hub, a Game's page, the invite
+ *   screen) is paper under its area's band, and the band keeps its speckle
+ *   (`ChapterBand`'s `.su-grain-layer`).
  *
  * The overlays are opened on the canvas only (`page` width): a phone opens a
  * Peek by a long press, and its tabs are the walk's.
@@ -28,18 +33,57 @@ const COCKPIT = '.su-dash-root'
 /** What the Cockpit lays over itself, portalled out of it. */
 const OVERLAY = '[data-peek-popup], [role="dialog"], [role="alertdialog"], [role="menu"]'
 
-/** Every `[data-grain]` in the Cockpit or an overlay over it, named by its text. */
-async function grainedIn(page: Page): Promise<string[]> {
+/** An entity band: a Row's or TitledBox's head, a card's band. */
+const BAND = '.su-entity-row__head, .su-ec-band'
+
+/**
+ * The texture faults in the Cockpit and the overlays over it, one line each:
+ * a brand-colour band with no speckle (`speckled`), and speckle on a ground
+ * that never wears it (`clean`).
+ */
+async function grainFaults(page: Page): Promise<{ rule: string; line: string }[]> {
   return await page.evaluate(
-    ({ cockpit, overlay }) =>
-      [...document.querySelectorAll('[data-grain]')]
-        .filter((el) => el.closest(cockpit) || el.closest(overlay))
-        .map((el) => {
-          const where = el.closest(overlay) ? 'overlay' : 'canvas'
-          const text = (el.textContent ?? '').replace(/\s+/g, ' ').trim().slice(0, 40)
-          return `${where} [data-grain="${el.getAttribute('data-grain')}"] "${text}"`
-        }),
-    { cockpit: COCKPIT, overlay: OVERLAY }
+    ({ cockpit, overlay, band }) => {
+      // The grounds that never wear it, as the browser computes them.
+      const probe = document.createElement('span')
+      document.body.append(probe)
+      const resolve = (token: string) => {
+        probe.style.backgroundColor = `var(${token})`
+        return getComputedStyle(probe).backgroundColor
+      }
+      const clean = new Set(
+        ['--color-paper', '--color-band-cream', '--color-ink-deep'].map(resolve)
+      )
+      probe.remove()
+      const transparent = (bg: string) => bg === 'transparent' || /rgba\(.*,\s*0\)$/.test(bg)
+      const inScope = (el: Element) => el.closest(cockpit) || el.closest(overlay)
+      const name = (el: Element) => {
+        const where = el.closest(overlay) ? 'overlay' : 'canvas'
+        const text = (el.textContent ?? '').replace(/\s+/g, ' ').trim().slice(0, 40)
+        return `${where} "${text}"`
+      }
+      const out: { rule: string; line: string }[] = []
+      for (const el of document.querySelectorAll(band)) {
+        if (!inScope(el)) continue
+        const bg = getComputedStyle(el).backgroundColor
+        if (transparent(bg) || clean.has(bg)) continue
+        if (!el.hasAttribute('data-grain'))
+          out.push({ rule: 'speckled', line: `${name(el)}: a ${bg} band with no speckle` })
+      }
+      for (const el of document.querySelectorAll('[data-grain]')) {
+        if (!inScope(el)) continue
+        const bg = getComputedStyle(el).backgroundColor
+        if (clean.has(bg))
+          out.push({ rule: 'clean', line: `${name(el)}: speckle on a ${bg} ground` })
+        if (
+          el.closest('button, input, textarea, select') ||
+          el.querySelector('input, textarea, select')
+        )
+          out.push({ rule: 'clean', line: `${name(el)}: speckle on a button or a field` })
+      }
+      return out
+    },
+    { cockpit: COCKPIT, overlay: OVERLAY, band: BAND }
   )
 }
 
@@ -54,15 +98,17 @@ async function rest(page: Page): Promise<void> {
  * first trigger, and the Mediator's More menu and its Reference. Each is
  * closed again, so the walk goes on from the screen it found.
  */
-async function overlays(page: Page): Promise<{ what: string; grained: string[] }[]> {
-  const read: { what: string; grained: string[] }[] = []
+async function overlays(
+  page: Page
+): Promise<{ what: string; faults: { rule: string; line: string }[] }[]> {
+  const read: { what: string; faults: { rule: string; line: string }[] }[] = []
   const trigger = page.locator(`${COCKPIT} [data-peek]`).first()
   if (await trigger.isVisible().catch(() => false)) {
     const address = await trigger.getAttribute('data-peek')
     await trigger.hover()
     const popup = page.locator('[data-peek-popup]')
     await expect(popup.locator('.su-entity-row__head, .su-roll').first()).toBeVisible()
-    read.push({ what: `the ${address} Peek`, grained: await grainedIn(page) })
+    read.push({ what: `the ${address} Peek`, faults: await grainFaults(page) })
     await page.mouse.move(0, 0)
     await page.keyboard.press('Escape')
     await expect(popup).toHaveCount(0)
@@ -72,7 +118,7 @@ async function overlays(page: Page): Promise<{ what: string; grained: string[] }
     await more.click()
     const menu = page.getByRole('menu')
     await expect(menu).toBeVisible()
-    read.push({ what: 'the More menu', grained: await grainedIn(page) })
+    read.push({ what: 'the More menu', faults: await grainFaults(page) })
     const reference = menu.getByRole('menuitem', { name: 'Reference' })
     if (await reference.isVisible().catch(() => false)) {
       await reference.click()
@@ -80,12 +126,12 @@ async function overlays(page: Page): Promise<{ what: string; grained: string[] }
       await expect(dialog).toBeVisible()
       await dialog.getByRole('combobox', { name: 'Search the Reference' }).fill('drill')
       await rest(page)
-      read.push({ what: "the Reference's results", grained: await grainedIn(page) })
+      read.push({ what: "the Reference's results", faults: await grainFaults(page) })
       const result = dialog.getByRole('option').first()
       if (await result.isVisible().catch(() => false)) {
         await result.click()
         await rest(page)
-        read.push({ what: "the Reference's entity", grained: await grainedIn(page) })
+        read.push({ what: "the Reference's entity", faults: await grainFaults(page) })
       }
       await page.keyboard.press('Escape')
       await expect(dialog).toHaveCount(0)
@@ -116,7 +162,9 @@ const ROUTES = designRoutes.filter((r) => ['play', 'manage'].includes(DESIGN_FAM
 
 test.describe.configure({ retries: 0 })
 
-test('every context: the Cockpit is flat, and only the Cockpit', async ({ page }) => {
+test('every context: brand-colour grounds wear the speckle, the Cockpit and the Peek too', async ({
+  page,
+}) => {
   test.setTimeout(20 * 60_000)
   const seed = await seedDesignAccount(page)
   const playFamilies = new Set<DesignFamily>()
@@ -130,12 +178,13 @@ test('every context: the Cockpit is flat, and only the Cockpit', async ({ page }
       if (context === 'play') {
         playFamilies.add(family)
         await expect(page.locator(COCKPIT).first(), `${where}: the Cockpit is up`).toBeVisible()
-        for (const g of await grainedIn(page)) found.push({ rule: 'flat', line: `${where}: ${g}` })
+        for (const f of await grainFaults(page))
+          found.push({ rule: f.rule, line: `${where}: ${f.line}` })
         if (width === 'page' && !where.includes(' tab')) {
-          for (const { what, grained } of await overlays(page)) {
+          for (const { what, faults } of await overlays(page)) {
             read.push(`${where}: ${what}`)
-            for (const g of grained) {
-              found.push({ rule: 'flat', line: `${where}, ${what}: ${g}` })
+            for (const f of faults) {
+              found.push({ rule: f.rule, line: `${where}, ${what}: ${f.line}` })
             }
           }
         }

@@ -20,8 +20,9 @@
  * lists — compact Rows, Cards, a unit's `TitledBox` — stays at level 1, and
  * anything inside one of those is a Token (level 2).
  *
- * Play is flat (ruleset §1.3, §3.5.1): the frame turns the speckle off once
- * for every entity form on the canvas and the phone form alike.
+ * The Cockpit's ground is flat, its brand-colour bands speckled as the
+ * sheet's (ruleset §1.3, §3.5.1; R10): the frame sets the texture once for
+ * every entity form on the canvas and the phone form alike.
  *
  * The `.su-dash-*` stylesheet rides in with this module: the canvas's size
  * and ground are its rules, and the Play route's chunk is where it belongs.
@@ -49,8 +50,13 @@ const FRAME = {
   width: '100%',
 } satisfies CSSProperties
 
-/** Play wears no texture (ruleset §3.5.1): set once, for every form inside. */
-const FLAT = { texture: false } as const
+/**
+ * Play's brand-colour grounds wear the speckle as the sheet's do (ruleset
+ * §3.5.1, R10): set once, for every form inside. The ink-deep ground, the
+ * cream and paper columns, buttons and fields stay clean, since only a band
+ * (a head, a unit box's band) carries it.
+ */
+const SPECKLED = { texture: true } as const
 
 const BAR = { gridArea: 'bar', minWidth: 0 } satisfies CSSProperties
 const FOOT = { gridArea: 'foot', minWidth: 0 } satisfies CSSProperties
@@ -99,7 +105,7 @@ type PlayFrameProps = {
 
 export function PlayFrame({ bar, start, centre, end, foot, labels, phone }: PlayFrameProps) {
   return (
-    <EntitySurfaceProvider value={FLAT}>
+    <EntitySurfaceProvider value={SPECKLED}>
       <PlayCanvas phone={phone}>
         <div style={FRAME}>
           <div style={BAR}>{bar}</div>

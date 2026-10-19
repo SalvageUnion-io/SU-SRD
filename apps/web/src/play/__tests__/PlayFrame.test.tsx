@@ -1,6 +1,6 @@
 /**
- * Play is flat (ruleset §1.3, §3.5.1; hard rule R10): the frame turns the
- * speckle off once, for every entity form on the canvas and in the phone form,
+ * Play's brand-colour bands wear the speckle (ruleset §3.5.1; hard rule R10): the frame sets the
+ * texture once, on, for every entity form on the canvas and in the phone form,
  * while the rest of the surface (links, the Page opener) carries through.
  *
  * Uses toBeTruthy() not toBeInTheDocument() (jest-dom's matchers are not on
@@ -37,11 +37,11 @@ const frame = (phone = <SurfaceProbe id="phone" />) => (
   />
 )
 
-describe('PlayFrame — Play wears no texture (R10)', () => {
-  test('every column reads a flat surface', () => {
+describe('PlayFrame — Play sets its texture once, speckled (R10)', () => {
+  test('every column reads a speckled surface', () => {
     const { getByTestId } = render(frame())
     for (const id of ['bar', 'start', 'centre', 'end']) {
-      expect(getByTestId(id).dataset.texture).toBe('false')
+      expect(getByTestId(id).dataset.texture).toBe('true')
     }
   })
 
@@ -50,7 +50,7 @@ describe('PlayFrame — Play wears no texture (R10)', () => {
     const { getByTestId } = render(
       <EntitySurfaceProvider value={{ hrefFor }}>{frame()}</EntitySurfaceProvider>
     )
-    expect(getByTestId('centre').dataset.texture).toBe('false')
+    expect(getByTestId('centre').dataset.texture).toBe('true')
     expect(getByTestId('centre').textContent).toBe('/systems/x/')
   })
 })

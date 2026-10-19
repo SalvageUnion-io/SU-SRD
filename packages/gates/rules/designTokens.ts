@@ -105,19 +105,18 @@ const TYPE_FLOOR_PX = 11
  * `PAPER_GROUND`).
  */
 const TEXTURE_FORBIDDEN: readonly RegExp[] = [
-  // Play: the app's cockpit, and its canvas and Play stylesheets.
-  /\/src\/play\//,
-  /\/styles\/play\//,
-  /\/(?:dashboard|play)\.css$/,
+  // Play and the Peek are NOT here (R10, decided 2026-10-19): their
+  // brand-colour bands wear the speckle as the sheet's do; Play's ink-deep
+  // ground, its cream and paper columns are paper-like grounds the
+  // `PAPER_GROUND` line check and the e2e (`texture.e2e.ts`) hold clean.
   // Buttons: Button, its recipe, and every *Button component.
   /Button\w*\.tsx?$/,
   /\/buttonVariants\.ts$/,
   // Fields: the input primitives.
   /\/(?:atoms|containers)\/(?:Field|FieldError|InlineEditField|inputs|Sel|Radio|RadioCardGroup|CountStepper)\.tsx$/,
   /\/SearchField\.tsx$/,
-  // Tooltips: the tooltip primitive, and the Peek (the entity's compact card).
+  // Tooltips: the tooltip primitive.
   /Tooltip\w*\.tsx$/,
-  /\/entity\/Peek\w*\.tsx$/,
 ]
 
 /** A paper GROUND on the same line — the speckle never sits on paper. */
@@ -229,16 +228,16 @@ const TOKEN_RULES: TokenRule[] = [
   {
     id: 'texture-placement',
     mode: 'zero',
-    rule: 'ruleset §3.5 — the speckle sits on bands and ink, never on paper, buttons, fields, Play or tooltips',
+    rule: 'ruleset §3.5.1 — the speckle sits on every brand-colour band and ink header, Play and the Peek included, never on paper, buttons, fields or tooltips',
     // The light speckle (board 05c) is ink grain on a colour band and paper
-    // flecks on an ink ground. On a button it reads as dirt on the one thing
-    // that must read clean; on a field it fights the text being typed; on a
-    // tooltip it is noise at glance size; Play is an instrument panel; and
-    // on paper there is no band for it to belong to. A texture reference —
+    // flecks on an ink ground, in every context (R10). On a button it reads
+    // as dirt on the one thing that must read clean; on a field it fights the
+    // text being typed; on a tooltip it is noise at glance size; and on paper
+    // there is no band for it to belong to. A texture reference —
     // a filter id, a `--texture-*` property or the `texture` / `speckle`
     // tokens — is a finding in a file that draws one of those surfaces, or on
     // a line that also paints a paper ground.
-    fix: 'Put the speckle on the colour band or ink ground behind the content (a chapter band, a tone header, an ink banner, the Union bar), never on paper, a button, a field, Play or a tooltip.',
+    fix: 'Put the speckle on the colour band or ink ground behind the content (a chapter band, a tone header, an ink banner, the Union bar, a Play unit box’s band), never on paper, cream, Play’s ink-deep ground, a button, a field or a tooltip.',
     pattern:
       /\bsu-(?:blot|speck|fleck)\b|--texture-[a-z-]+|\b(?:texture|speckle)\.(?:blotOpacity|speckOpacity|fleckOpacity|filters|grains)\b|\btokens\.(?:texture|speckle)\b/g,
     keep: (_match, line, file) =>
