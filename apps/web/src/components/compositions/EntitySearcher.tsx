@@ -58,10 +58,10 @@ import { capsLabel } from '../atoms/capsLabel'
 import { SearchField } from '../atoms/SearchField'
 import { EmptyState } from '../containers/EmptyState'
 import { TitledBox } from '../containers/TitledBox'
+import { paintFor } from '../entity'
 import { Entity } from '../entity/Entity'
 import { useEntitySurface } from '../entity/entitySurfaceContext'
 import { SelectedSeal } from '../entity/modes/select'
-import { paintFor } from '../entity/parts/paint'
 import type { EntityLinkAttrs } from '../entity/types'
 import type { ReferenceEntityCardHideConfig } from '../referenceEntity/card/referenceEntityCardTypes'
 import { SearcherToolbar } from './EntitySearcherFilters'
@@ -370,6 +370,7 @@ export function EntitySearcher({
       title={title ?? ''}
       paint={paint}
       className={cn('su-modal-panel su-searcher-panel', !browse && 'su-searcher-frame')}
+      shrink
       body="flush"
       bodyStyle={BODY_STYLE}
       controls={

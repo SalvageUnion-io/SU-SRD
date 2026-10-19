@@ -8,9 +8,8 @@ import { itemHref } from '../lib/entityHref'
 import type { RefText } from '../lib/rollTablePage'
 import { AbilityTrack } from './AbilityTrack'
 import { capsLabel } from './atoms/capsLabel'
-import { Chips } from './entity/parts/Chips'
 import type { TreeTrack } from './index'
-import { Head, Slab, Stat, TitledBox } from './index'
+import { Chips, Head, Slab, Stat, TitledBox } from './index'
 import { MentionProse } from './MentionProse'
 
 const TREES_LABEL = cn('su-class-brief__trees-label', capsLabel({ tracking: 'snug' }))

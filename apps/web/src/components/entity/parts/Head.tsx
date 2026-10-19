@@ -99,13 +99,19 @@ export function Head({
   const headingRef = useRef<HTMLDivElement>(null)
   useChipsFit(headingRef, cut && !!chips)
   const tierNode = tier && (
-    <span className={cn('su-entity-row__tier', NAME_CAPS, tierChip && 'su-entity-row__tier--chip')}>
+    <span
+      className={cn('su-entity-row__tier', NAME_CAPS, tierChip && 'su-entity-row__tier--chip')}
+      data-handback=""
+    >
       {tier}
     </span>
   )
   const titleNode = (
     <TitleTag
       className={cn('su-entity-row__title', NAME_CAPS)}
+      // The app's heading face and print sizes hand the title its own back
+      // (`styles/build/libHandback.css`, `print.css`).
+      data-handback=""
       title={title}
       // On the notch's paper the name is ink (the class's), whatever the band.
       style={cut ? undefined : { color: paint.color }}

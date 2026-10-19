@@ -17,11 +17,8 @@
 import type { EntityModel, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 import type { StatItem } from '../../containers/statsBarTypes'
-import { actionTypeStamps } from '../../entity/parts/actionStamps'
-import { costCell } from '../../entity/parts/chipSet'
-import { factCells } from '../../entity/parts/factCells'
-import type { TagItem } from '../../entity/parts/tagItems'
-import { traitTags } from '../../entity/parts/tagItems'
+import type { TagItem } from '../../entity'
+import { actionTypeStamps, costCell, factCells, traitTags } from '../../entity'
 import type { BookStat } from '../referenceEntityStatsConfig'
 
 export type EntityPageMeta = {

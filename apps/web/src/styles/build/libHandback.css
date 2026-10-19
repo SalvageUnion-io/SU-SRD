@@ -8,12 +8,14 @@
  * class rule here outranks the element rule and hands the property back to
  * the class.
  *
- * The titles a caller can render as a heading (`titleAs`): the Row's title and
- * the card header's. Their print sizes are handed back in `print.css`. The
+ * The titles a caller can render as a heading (`titleAs`): an entity form's
+ * (`Head`'s), which names itself by `data-handback` (the entity forms' markup
+ * is `components/entity/`'s own, hard rule R7), and the card header's. Their
+ * print sizes are handed back in `print.css`. The
  * ChapterBand's notched title is always a heading, set as on the SRD. An
  * `Eyebrow` a caller renders as `h2`/`h3` keeps its own snug tracking.
  */
-.su-entity-row__title,
+[data-handback],
 .su-ec-band__title,
 .su-chapter-band__title,
 .su-eyebrow {

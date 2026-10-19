@@ -19,8 +19,7 @@
  * it (`interaction.ts`), so a page nobody touches loads no React.
  */
 
-import { watchStaticMore } from '../components/entity/parts/chipFit'
-import { joinStaticLanes } from '../components/entity/parts/chipLanes'
+import { joinStaticLanes, watchStaticMore } from '../components/entity/staticRuntime'
 import { readAccountHint } from '../lib/accountHint'
 import { browserStorage, markSignedIn } from '../lib/accountState'
 import { initBrowserObservability, installChunkRecovery } from '../lib/observability'

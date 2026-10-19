@@ -1,5 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { cn } from '../../lib/cn'
+import { RowFrame } from '../entity/forms/RowFrame'
+import { ROW_ROOT } from '../entity/forms/rowRoot'
 
 export type BoxProps = {
   /** The band over the body: `TitledBox`'s cut-out head. Omitted, the box is its frame and body. */
@@ -29,6 +31,11 @@ export type BoxProps = {
   reference?: boolean
   /** Fill the parent's height, the body scrolling in what is left under the head. */
   fill?: boolean
+  /**
+   * Shrink with a root whose height is capped (a dialog's `max-height`): the
+   * frame gives way, and the body manages what is left (`fill` implies it).
+   */
+  shrink?: boolean
   /** Dimmed by its host: a Play row not on hand (the Row's `dim`). */
   dim?: boolean
   children?: ReactNode
@@ -36,7 +43,9 @@ export type BoxProps = {
 
 /**
  * BOX — the house container: the Row's square 2px frame around a paper body
- * (ruleset §4.3), with an optional head band and art column. Its named
+ * (ruleset §4.3), with an optional head band and art column. It stands in the
+ * Row's own frame (`RowFrame`), so it draws no entity markup of its own (EDL
+ * E15, hard rule R7). Its named
  * variants: `TitledBox` (the cut-out head: dialogs, briefs, notices), and on
  * that `Inset`, `InfoCutout`, a labelled `Callout`, `RecoveryPanel`; an
  * unlabelled `Callout` is the bare box in its accent. A box with nothing
@@ -57,6 +66,7 @@ export function Box({
   bodyClassName,
   reference = false,
   fill = false,
+  shrink = false,
   dim = false,
   children,
 }: BoxProps) {
@@ -65,29 +75,29 @@ export function Box({
     <Root
       aria-label={Root === 'section' ? label : undefined}
       role={role}
-      className={cn('su-entity-row su-box', className)}
+      className={cn(ROW_ROOT, 'su-box', className)}
       data-fill={fill || undefined}
     >
-      <div
-        className="su-entity-row__frame"
-        data-bodyless={hasBody ? undefined : true}
-        data-reference={reference || undefined}
+      <RowFrame
+        art={art}
+        bodyless={!hasBody}
+        reference={reference}
+        shrink={fill || shrink}
+        dim={dim}
         style={frameColor ? { borderColor: frameColor } : undefined}
       >
-        {art}
-        <div className="su-entity-row__main" data-dim={dim || undefined}>
-          {head}
-          {hasBody && (
-            <div
-              className={cn('su-box__body', bodyClassName)}
-              data-flush={body === 'flush' || undefined}
-              style={bodyStyle}
-            >
-              {children}
-            </div>
-          )}
-        </div>
-      </div>
+        {head}
+        {hasBody && (
+          <div
+            className={cn('su-box__body', bodyClassName)}
+            data-flush={body === 'flush' || undefined}
+            data-fill={fill || undefined}
+            style={bodyStyle}
+          >
+            {children}
+          </div>
+        )}
+      </RowFrame>
     </Root>
   )
 }

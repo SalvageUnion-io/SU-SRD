@@ -22,6 +22,8 @@ import type { TagItem } from '../parts/tagItems'
 import { traitTags } from '../parts/tagItems'
 import { usePeekAttrs } from '../peekContext'
 import type { EntityMode, EntityOmit, EntityRowModel } from '../types'
+import { RowBody, RowFrame } from './RowFrame'
+import { ROW_ROOT } from './rowRoot'
 
 /**
  * What a host resolves for the Row (`<Entity form="row">`'s title element,
@@ -84,7 +86,8 @@ const READ: EntityMode = { kind: 'read' }
 
 /*
  * The frame (ink on paper, dashed when player-made: ruleset §3.9) and the body
- * are `.su-entity-row__frame` / `__body` classes (`styles/index.css`): every
+ * are `RowFrame` and `RowBody`, whose `.su-entity-row__frame` / `__body`
+ * classes are `partials/entity-forms.css`'s: every
  * row of a listing repeats them, so they are stylesheet rules, not style
  * objects (ADR-046, repeated elements). The selection ring and a down row's
  * dimming stay inline.
@@ -191,59 +194,57 @@ export function Row({
     ((!!slots.extraLabels || !!slots.trailing || !!slots.state) && mode.kind === 'link')
 
   const frame = (
-    <div
-      className="su-entity-row__frame"
-      data-user-made={userMade || undefined}
-      data-bodyless={!hasBody || undefined}
+    <RowFrame
+      art={omit.includes('art') ? undefined : <Art art={model.art} />}
+      userMade={userMade}
+      bodyless={!hasBody}
+      dim={dim}
       style={selected ? SELECTED_RING : undefined}
     >
-      {!omit.includes('art') && <Art art={model.art} />}
-      <div className="su-entity-row__main" data-dim={dim || undefined}>
-        <Head
-          title={title}
-          kind={omit.includes('kind') ? undefined : model.kind.stamp}
-          titleAs={slots.titleAs}
-          paint={paint}
-          tier={omit.includes('tier') ? undefined : model.tier}
-          chips={
-            chipCount(chips) > 0 ||
-            labelsAsChips ||
-            slots.trailing ||
-            slots.state ||
-            slots.controls ? (
-              <Chips
-                chips={chips}
-                size="compact"
-                linkable={mode.kind === 'read'}
-                relationsLinkable={mode.kind === 'read' || covered}
-                lanes
-                marks={marks}
-                state={slots.state}
-                menu={slots.trailing}
-              />
-            ) : undefined
-          }
-          affordance={affordance}
-          controls={slots.controls}
-          labels={labelsAsChips ? undefined : ownLabels}
-          // Every Row wears the cut-out, bodied or not, its chips on the band
-          // beside the name (owner's call, 2026-10-13).
-          notch
-          chipsBeside
-        />
-        {hasBody && (
-          <div className="su-entity-row__body" style={down ? { opacity: 0.6 } : undefined}>
-            {slots.leading}
-            {leadText && <Lead text={leadText} />}
-          </div>
-        )}
-      </div>
-    </div>
+      <Head
+        title={title}
+        kind={omit.includes('kind') ? undefined : model.kind.stamp}
+        titleAs={slots.titleAs}
+        paint={paint}
+        tier={omit.includes('tier') ? undefined : model.tier}
+        chips={
+          chipCount(chips) > 0 ||
+          labelsAsChips ||
+          slots.trailing ||
+          slots.state ||
+          slots.controls ? (
+            <Chips
+              chips={chips}
+              size="compact"
+              linkable={mode.kind === 'read'}
+              relationsLinkable={mode.kind === 'read' || covered}
+              lanes
+              marks={marks}
+              state={slots.state}
+              menu={slots.trailing}
+            />
+          ) : undefined
+        }
+        affordance={affordance}
+        controls={slots.controls}
+        labels={labelsAsChips ? undefined : ownLabels}
+        // Every Row wears the cut-out, bodied or not, its chips on the band
+        // beside the name (owner's call, 2026-10-13).
+        notch
+        chipsBeside
+      />
+      {hasBody && (
+        <RowBody style={down ? { opacity: 0.6 } : undefined}>
+          {slots.leading}
+          {leadText && <Lead text={leadText} />}
+        </RowBody>
+      )}
+    </RowFrame>
   )
 
   if (covered) {
     return (
-      <div className="su-entity-row" data-covered="">
+      <div className={ROW_ROOT} data-covered="">
         {frame}
         {mode.kind === 'select' ? (
           <SelectSurface mode={mode} label={mode.label ?? title} className="su-entity-row__cover">
@@ -265,7 +266,7 @@ export function Row({
   }
   if (mode.kind === 'select') {
     return (
-      <SelectSurface mode={mode} label={mode.label ?? title} className="su-entity-row">
+      <SelectSurface mode={mode} label={mode.label ?? title} className={ROW_ROOT}>
         {frame}
       </SelectSurface>
     )
@@ -276,7 +277,7 @@ export function Row({
       label={title}
       attrs={mode.kind === 'link' ? mode.attrs : undefined}
       peek={peekAttrs}
-      className="su-entity-row"
+      className={ROW_ROOT}
     >
       {frame}
     </LinkSurface>

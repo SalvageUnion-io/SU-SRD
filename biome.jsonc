@@ -425,6 +425,50 @@
       }
     },
     {
+      // R7 (docs/design-system/hard-rules.md): entity markup lives only in
+      // `components/entity/`. The app takes a form (`Row`, `RowFrame`,
+      // `Entity`) or a shared part from the entity module's face
+      // (`components/entity/index.ts`, or the components barrel), never an
+      // entity part (`Head`, `Chips`, `paint`) by its path. Its stylesheets'
+      // half is the `styling` rule set's `entity-markup`. Restates the root
+      // rule's options in full: Biome overrides REPLACE a rule's options, so
+      // it comes before the static-page and display-layer overrides below,
+      // which restate this pattern for their own files.
+      "includes": ["apps/web/src/**", "!apps/web/src/components/entity/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses).",
+                  "react": {
+                    "importNames": ["forwardRef"],
+                    "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
+                  }
+                },
+                "patterns": [
+                  {
+                    "group": ["@/*"],
+                    "message": "Use relative imports instead of @/ path aliases."
+                  },
+                  {
+                    "group": ["salvageunion-reference/lib/**"],
+                    "message": "Import from 'salvageunion-reference' or a declared subpath export — never a path inside the package."
+                  },
+                  {
+                    "group": ["**/entity/parts", "**/entity/parts/**"],
+                    "message": "R7: entity markup lives only in components/entity/. Take an entity form (`Row`, `RowFrame`, `Entity`) or a shared part from the entity module's face ('components/entity', or the components barrel); a file under entity/parts is the forms' own."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
       // A static page: what the SSG renders and the islands it hydrates. It
       // ships at most 20 KB of JS, so it never imports the app's router,
       // stores or shell, or Convex. A relative import does not say what it
@@ -477,6 +521,10 @@
                       "**/main"
                     ],
                     "message": "A static page never imports Convex or the app's routes, stores, shell or entry: they would ship on every page, past its 20 KB budget."
+                  },
+                  {
+                    "group": ["**/entity/parts", "**/entity/parts/**"],
+                    "message": "R7: entity markup lives only in components/entity/. Take an entity form (`Row`, `RowFrame`, `Entity`) or a shared part from the entity module's face ('components/entity', or the components barrel); a file under entity/parts is the forms' own."
                   }
                 ]
               }
@@ -524,6 +572,10 @@
                   {
                     "group": ["**/convex/**", "**/stores/**"],
                     "message": "The display layer takes its data as props; a product folder wires the stores and Convex."
+                  },
+                  {
+                    "group": ["**/entity/parts", "**/entity/parts/**"],
+                    "message": "R7: entity markup lives only in components/entity/. Take an entity form (`Row`, `RowFrame`, `Entity`) or a shared part from the entity module's face ('components/entity', or the components barrel); a file under entity/parts is the forms' own."
                   }
                 ]
               }
@@ -576,47 +628,6 @@
                   {
                     "group": ["**/src/**"],
                     "message": "Convex never imports the client (apps/web/src): shared logic lives in game-domain or salvageunion-reference (`check rules-home`)."
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      // R7 (docs/design-system/hard-rules.md): Play draws with the shared
-      // primitives, so entity markup lives only in `components/entity/`.
-      // Play takes a form (`Row`, `Entity`) or the public barrel, never an
-      // entity part (`Head`, `Chips`, `paint`) by its path. Its stylesheets'
-      // half is the `styling` rule set's `entity-markup`. Restates the root
-      // rule's options in full: Biome overrides REPLACE a rule's options.
-      "includes": ["apps/web/src/play/**"],
-      "linter": {
-        "rules": {
-          "style": {
-            "noRestrictedImports": {
-              "level": "error",
-              "options": {
-                "paths": {
-                  "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses).",
-                  "react": {
-                    "importNames": ["forwardRef"],
-                    "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
-                  }
-                },
-                "patterns": [
-                  {
-                    "group": ["@/*"],
-                    "message": "Use relative imports instead of @/ path aliases."
-                  },
-                  {
-                    "group": ["salvageunion-reference/lib/**"],
-                    "message": "Import from 'salvageunion-reference' or a declared subpath export — never a path inside the package."
-                  },
-                  {
-                    "group": ["**/entity/parts", "**/entity/parts/**"],
-                    "message": "R7: Play draws with the shared primitives. Take an entity form (`Row`, `Entity`) or the components barrel; an entity part is `components/entity/`'s own."
                   }
                 ]
               }

@@ -4,8 +4,8 @@ import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { color, fontSize, layer, space } from '../../design/tokens'
 import { CloseButton } from '../atoms/CloseButton'
 import { capsLabel } from '../atoms/capsLabel'
+import { paintFor } from '../entity'
 import { useEntitySurface } from '../entity/entitySurfaceContext'
-import { paintFor } from '../entity/parts/paint'
 import { TitledBox } from './TitledBox'
 
 type ModalShellProps = {

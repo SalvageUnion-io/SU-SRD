@@ -466,7 +466,7 @@ describe('styling rule set', () => {
     }
   })
 
-  test('entity-markup: Play code and stylesheets that reach into an entity form are found (R7)', () => {
+  test('entity-markup: code and stylesheets outside entity/ that reach into an entity form are found (R7)', () => {
     const found = stylingOwnership.scan(
       fixture({
         ...STYLING_BASE,
@@ -481,11 +481,21 @@ describe('styling rule set', () => {
         'apps/web/src/play/__tests__/Pill.test.tsx': "q('.su-entity-token__name')\n",
         'apps/web/src/components/entity/forms/Row.tsx':
           '<div className="su-entity-row__frame" />\n',
+        'apps/web/src/components/containers/Frame.tsx':
+          'export const F = () => <div className="su-entity-row__main" />\n',
+        'apps/web/src/styles/partials/entity-forms.css': '.su-entity-row__frame { flex: 1 }\n',
+        'apps/web/src/styles/partials/controls.css':
+          '.su-picker > .su-entity-row__frame { min-height: 0 }\n',
+        'apps/web/src/styles/build/print.css':
+          '@media print {\n  .su-entity-token__pill { font-size: revert-layer }\n}\n',
       })
     )
-    expect(found['entity-markup']?.map((f) => `${f.file}:${f.line}`)).toEqual([
-      'apps/web/src/styles/play/actions.css:1',
+    expect(found['entity-markup']?.map((f) => `${f.file}:${f.line}`).sort()).toEqual([
+      'apps/web/src/components/containers/Frame.tsx:1',
       'apps/web/src/play/Pill.tsx:1',
+      'apps/web/src/styles/build/print.css:2',
+      'apps/web/src/styles/partials/controls.css:1',
+      'apps/web/src/styles/play/actions.css:1',
     ])
   })
 

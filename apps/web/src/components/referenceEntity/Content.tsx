@@ -9,9 +9,8 @@ import { Badge } from '../atoms/Badge'
 import { Slab } from '../atoms/Slab'
 import { Stat } from '../atoms/Stat'
 import { Text } from '../atoms/Text'
+import { PeekCell, Tag } from '../entity'
 import { useAppliesRules } from '../entity/entitySurfaceContext'
-import { PeekCell } from '../entity/parts/PeekCell'
-import { Tag } from '../entity/parts/Tags'
 
 /**
  * The reading size a `Content` run is set in.

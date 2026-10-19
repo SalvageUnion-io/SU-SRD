@@ -86,19 +86,14 @@
 }
 
 /* A box that fills its panel (`fill`: the Mediator's propose dock): the box
-   and its frame shrink to the panel, and the body scrolls in what is left
-   under the head. */
+   fills the panel, its frame shrinks to it (the Row frame's `shrink`,
+   `entity-forms.css`), and the body scrolls in what is left under the head. */
 .su-box[data-fill] {
   height: 100%;
   min-height: 0;
 }
 
-.su-box[data-fill] > .su-entity-row__frame,
-.su-box[data-fill] > .su-entity-row__frame > .su-entity-row__main {
-  min-height: 0;
-}
-
-.su-box[data-fill] > .su-entity-row__frame > .su-entity-row__main > .su-box__body {
+.su-box__body[data-fill] {
   min-height: 0;
   overflow-y: auto;
 }

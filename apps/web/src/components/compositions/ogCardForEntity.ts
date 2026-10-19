@@ -16,7 +16,7 @@ import {
   splitStatLine,
   toEntityModel,
 } from 'salvageunion-reference'
-import { actionTypeStamps } from '../entity/parts/actionStamps'
+import { actionTypeStamps } from '../entity'
 import { isDoEntity, resolveDomainTone } from '../referenceEntity/card/entityCardTone'
 import { formatProvenance, resolveFooterProvenance } from '../referenceEntity/card/provenance'
 import type { OgCardProps, OgCardStat } from './ogCardText'

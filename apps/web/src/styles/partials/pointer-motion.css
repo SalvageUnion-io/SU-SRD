@@ -13,7 +13,8 @@
  * hit area instead. So does a breadcrumb link: the phone's trail row is a line
  * of 17px text, and a 44px box per crumb would stretch it into a toolbar. So
  * does a Token that acts (a link, or a Peek's long press) wherever it sits: a
- * Mini pill (ruleset §4.7), its contentful head's included. This
+ * Mini pill (ruleset §4.7); a contentful Token's head that acts carries
+ * `.su-hit-area` (`Token.tsx`). This
  * half lives here, in the layer, so a call site that positions the control
  * (`absolute`) still wins over the `relative` the pseudo-element needs.
  */
@@ -22,9 +23,7 @@
   .su-hit-area,
   .su-stat-step,
   a.su-entity-token,
-  a.su-entity-token__head,
   [data-peek].su-entity-token,
-  [data-peek].su-entity-token__head,
   .su-crumbs__link {
     position: relative;
   }
@@ -33,9 +32,7 @@
   .su-hit-area::after,
   .su-stat-step::after,
   a.su-entity-token::after,
-  a.su-entity-token__head::after,
   [data-peek].su-entity-token::after,
-  [data-peek].su-entity-token__head::after,
   .su-crumbs__link::after {
     content: '';
     height: max(100%, var(--size-full));

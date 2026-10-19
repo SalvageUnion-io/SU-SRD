@@ -52,7 +52,18 @@ describe('Box', () => {
       true
     )
     expect(container.querySelector('.su-entity-row__main')?.hasAttribute('data-dim')).toBe(true)
+    // A fill shrinks the frame and scrolls the body: the Row frame's own `shrink`.
+    expect(container.querySelector('.su-entity-row__frame')?.hasAttribute('data-shrink')).toBe(true)
+    expect(container.querySelector('.su-box__body')?.hasAttribute('data-fill')).toBe(true)
     const plain = render(<Box>Body</Box>).container
-    expect(plain.querySelector('[data-fill], [data-reference], [data-dim]')).toBeNull()
+    expect(
+      plain.querySelector('[data-fill], [data-reference], [data-dim], [data-shrink]')
+    ).toBeNull()
+  })
+
+  test('shrinks its frame with a capped root, its body left as it is', () => {
+    const { container } = render(<Box shrink>Body</Box>)
+    expect(container.querySelector('.su-entity-row__frame')?.hasAttribute('data-shrink')).toBe(true)
+    expect(container.querySelector('[data-fill]')).toBeNull()
   })
 })

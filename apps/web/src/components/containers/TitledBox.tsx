@@ -1,8 +1,7 @@
 import type { ElementType, ReactNode } from 'react'
+import type { Paint } from '../entity'
+import { Head, paintFor } from '../entity'
 import { useEntitySurface } from '../entity/entitySurfaceContext'
-import { Head } from '../entity/parts/Head'
-import type { Paint } from '../entity/parts/paint'
-import { paintFor } from '../entity/parts/paint'
 import type { BoxProps } from './Box'
 import { Box } from './Box'
 

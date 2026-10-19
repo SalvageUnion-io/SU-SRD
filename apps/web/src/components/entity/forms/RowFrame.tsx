@@ -1,0 +1,77 @@
+import type { CSSProperties, ReactNode } from 'react'
+
+export type RowFrameProps = {
+  /** The art column, left of the head and body (`Art`; a `Box`'s `art`). */
+  art?: ReactNode
+  /** Player-made: the frame dashed (ruleset §3.9). */
+  userMade?: boolean
+  /** A Play reference unit (ADR-051 §5): the frame dashed, read-only. */
+  reference?: boolean
+  /** Nothing under the head: the frame keeps the head's height. */
+  bodyless?: boolean
+  /**
+   * The frame and its main column may shrink below their content's height:
+   * a host whose height is capped (a dialog's) or set (a panel it fills),
+   * whose body scrolls in what is left.
+   */
+  shrink?: boolean
+  /** Dimmed by its host: a Play row not on hand, or locked (the one dim). */
+  dim?: boolean
+  /** Inline style on the frame: the select ring, a host's frame colour. */
+  style?: CSSProperties | undefined
+  /** The head, then the body. */
+  children: ReactNode
+}
+
+/**
+ * ROW FRAME — the Row's square 2px frame on paper (ruleset §4.3) and its main
+ * column: the one place that markup is drawn. `Row` stands in it, and so does
+ * the house container (`Box`, and on it `TitledBox`, `Inset` and the dialogs),
+ * which is why a dialog's head and a listing's Row are one geometry (§0).
+ */
+export function RowFrame({
+  art,
+  userMade = false,
+  reference = false,
+  bodyless = false,
+  shrink = false,
+  dim = false,
+  style,
+  children,
+}: RowFrameProps) {
+  return (
+    <div
+      className="su-entity-row__frame"
+      // Print inks the frame (`styles/build/print.css`).
+      data-handback=""
+      data-user-made={userMade || undefined}
+      data-reference={reference || undefined}
+      data-bodyless={bodyless || undefined}
+      data-shrink={shrink || undefined}
+      style={style}
+    >
+      {art}
+      <div className="su-entity-row__main" data-dim={dim || undefined}>
+        {children}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * The Row's paper body under its head: a lead, a host's leading content, or
+ * what a live sheet's `Inset` tracks (keepsake, motto, detail).
+ */
+export function RowBody({
+  style,
+  children,
+}: {
+  style?: CSSProperties | undefined
+  children: ReactNode
+}) {
+  return (
+    <div className="su-entity-row__body" style={style}>
+      {children}
+    </div>
+  )
+}

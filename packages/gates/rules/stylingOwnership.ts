@@ -24,7 +24,7 @@ import type { Exemption, Finding, Rule, RuleSet } from '../lib/ruleEngine'
 import { isExempt, listFiles } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
 import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
-import { scanEntityMarkup, stripCssComments, stripTsComments } from './entityMarkup'
+import { scanEntityMarkupIn, stripCssComments, stripTsComments } from './entityMarkup'
 
 // ── file gathering ─────────────────────────────────────────────────────────
 
@@ -558,9 +558,9 @@ const RULES: OwnershipRule[] = [
   {
     id: 'entity-markup',
     mode: 'zero',
-    rule: 'hard-rules R7 §Play draws with the shared primitives: entity markup lives only in components/entity/ (EDL E15)',
-    fix: "Draw the entity through its form and say what Play needs with the form's props (`Box`'s `reference` or `fill`, `Row`'s `dim`); never select or draw a `su-entity-row__*` / `su-entity-token__*` element from Play's code or stylesheets.",
-    scan: (c) => scanEntityMarkup([...c.appCss, ...c.appSource], c.read),
+    rule: 'hard-rules R7 §Entity markup lives only in entity/: components/entity/ draws it and entity-forms.css styles it (EDL E15)',
+    fix: "Draw the entity through its form (`Row`, `RowFrame`, `RowBody`, `Entity`) and say what the host needs with the form's props (`Box`'s `reference`, `fill` or `shrink`, `Row`'s `dim`); a rule about a form's own parts goes in `styles/partials/entity-forms.css`, and a cascade handback names a part by `[data-handback]`. Never select or draw a `su-entity-row__*` / `su-entity-token__*` element anywhere else in apps/web/src.",
+    scan: (c) => scanEntityMarkupIn(c.root, c.appSource, c.read),
   },
 ]
 

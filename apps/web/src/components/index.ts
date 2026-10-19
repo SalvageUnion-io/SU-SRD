@@ -228,6 +228,20 @@ export { TitledBox } from './containers/TitledBox'
 export { Toaster, ToasterMount, toast } from './containers/Toaster'
 export type { AnnouncedRoll } from './containers/toastRoll'
 export { toastRoll } from './containers/toastRoll'
+// THE ENTITY MODULE'S FACE (`entity/index.ts`, R7): the forms' shared parts,
+// never taken by their paths.
+// - `Chips`: every chip strip, in the class order (C2a), a host's own strip
+//   (a Play unit box's relation chips, C11) included.
+// - `EntityStat`: a fact whose value is an entity (`CLASS | Engineer`); the
+//   chip opens and Peeks it.
+// - `Head`: a Row's band, cut out (`notch`), the name on a paper tab and the
+//   chips right of it; a page's own cut-out card (the changelog, a class's
+//   paths) heads with it.
+// - `TagItem`, `Tags`, `relation`, `traitTags`: one trait or relation as a
+//   chip (an SRD page's band sets its entity's traits with them).
+// - `mentionRef`: the glossary entry a `[[Name]]` names, a trait or a keyword.
+export type { TagItem } from './entity'
+export { Chips, EntityStat, Head, KindLabel, mentionRef, relation, Tags, traitTags } from './entity'
 // THE ENTITY DISPLAY LANGUAGE (docs/design-system/entity-display-language.md):
 // `<Entity form mode>` draws a game entity from its model; the surface supplies
 // how refs resolve, texture and the user-made treatment once.
@@ -245,20 +259,6 @@ export type { PeekLoader } from './entity/Peek'
 export { PeekHost } from './entity/Peek'
 export type { PageRefCandidate, PageRefIndex } from './entity/pageRefs'
 export { findPageRefs } from './entity/pageRefs'
-// Every chip strip, in the class order (C2a): a host's own strip (a Play
-// unit box's relation chips, C11) takes it here, never by its path (R7).
-export { Chips } from './entity/parts/Chips'
-// A fact whose value is an entity (`CLASS | Engineer`): the chip opens and Peeks it.
-export { EntityStat } from './entity/parts/EntityStat'
-// A Row's band, cut out (`notch`): the name on a paper tab, chips right of it.
-// A page's own cut-out card (the changelog, a class's paths) heads with it.
-export { Head } from './entity/parts/Head'
-export { KindLabel } from './entity/parts/KindLabel'
-export { Tags } from './entity/parts/Tags'
-// One trait as a chip: an SRD page's band sets its entity's traits with it.
-export type { TagItem } from './entity/parts/tagItems'
-// The glossary entry a `[[Name]]` names: a trait, else a keyword.
-export { mentionRef, relation, traitTags } from './entity/parts/tagItems'
 export { embeddedPeekAddress } from './entity/peekContext'
 export type { EntityMode, EntityRowModel } from './entity/types'
 // MarkdownSection — a repo-root markdown file (one heading, paragraphs and

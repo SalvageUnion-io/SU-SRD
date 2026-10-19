@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { Chips } from '../entity/parts/Chips'
-import type { ChipSet } from '../entity/parts/chipSet'
+import type { ChipSet } from '../entity'
+import { Chips } from '../entity'
+import { RowBody } from '../entity/forms/RowFrame'
 import { TitledBox } from './TitledBox'
 
 const NO_CHIPS: ChipSet = { durations: [], facts: [], tags: [] }
@@ -26,8 +27,9 @@ type InsetProps = {
  * the same entity nested in a Card (`NpcInset`'s crew lead, a crawler bay's
  * NPC): the cut-out head in the entity's tone, the name on the paper tab and
  * its chips on the band right of it, over a paper body. It is the Row's frame
- * and `Head`, so a sheet's crew lead and the SRD's matching NPC read the same
- * (entity display language E15: no hand-built entity markup).
+ * and `Head` (through `TitledBox`) over the Row's own body (`RowBody`), so a
+ * sheet's crew lead and the SRD's matching NPC read the same (entity display
+ * language E15, hard rule R7: no hand-built entity markup).
  *
  * A `TitledBox` in the entity's tone. The body holds what the sheet tracks (keepsake, motto, detail, facts), which
  * no reference model carries; that is why this is not a `Row` over a model.
@@ -56,11 +58,7 @@ export function Inset({
       }
       body="flush"
     >
-      {hasBody && (
-        <div className="su-entity-row__body" style={bodyStyle}>
-          {children}
-        </div>
-      )}
+      {hasBody && <RowBody style={bodyStyle}>{children}</RowBody>}
     </TitledBox>
   )
 }

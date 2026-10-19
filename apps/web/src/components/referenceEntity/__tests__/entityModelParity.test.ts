@@ -39,8 +39,7 @@ import {
   resolveTable,
   toEntityModel,
 } from 'salvageunion-reference'
-import { actionTypeStamps } from '../../entity/parts/actionStamps'
-import { costCell } from '../../entity/parts/chipSet'
+import { actionTypeStamps, costCell } from '../../entity'
 import { buildHeaderStats, resolveSubHeaderCells, resolveTechScaling } from '../card/cardCells'
 import { resolveHeaderFill, resolveHeaderHint } from '../card/cardChrome'
 import { resolveCatalogLeadBlocks } from '../card/catalogLead'

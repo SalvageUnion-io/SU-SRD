@@ -21,7 +21,7 @@ import { KindLabel } from '../parts/KindLabel'
 import { paintFor } from '../parts/paint'
 import { tokenChipSet } from '../parts/tokenChipSet'
 import type { PeekAttrs } from '../peekContext'
-import { useInsidePeek, usePeekAttrs } from '../peekContext'
+import { PEEK_ATTRIBUTE, useInsidePeek, usePeekAttrs } from '../peekContext'
 import type { EntityMode, EntityOmit, EntityRowModel } from '../types'
 
 /** The pill sets its name and chips in the caps recipe. */
@@ -200,12 +200,14 @@ export function Token({
       data-user-made={userMade || undefined}
       title={userMade ? USER_MADE_TITLE : undefined}
       className={PILL}
+      // Print hands the pill its own type back and inks its frame (`print.css`).
+      data-handback=""
       style={{ backgroundColor: paint.background, color: paint.color, ...slots.frameStyle }}
     >
       {/* Read by assistive tech only: the dashes are the pill's only visual user-made cue. */}
       {userMade && <span className="su-sr-only">User-made </span>}
       {model.kind.note && (
-        <Badge shape="stamp" size="mini" className="su-entity-token__kind">
+        <Badge shape="stamp" size="mini" className="su-entity-token__kind" data-handback="">
           {model.kind.note}
         </Badge>
       )}
@@ -250,8 +252,13 @@ export function Token({
       )}
     </span>
   )
-  // Header-only, the surface is the Token; contentful, it is the head.
-  const surfaceClass = body ? 'su-entity-token__head' : 'su-entity-token'
+  // Header-only, the surface is the Token; contentful, it is the head. A head
+  // that acts (a link, or a Peek's long press) takes the coarse pointer's
+  // 44px hit area, as the header-only Token does (ruleset §4.6).
+  const headActs = (!slots.outer && !!target.href) || PEEK_ATTRIBUTE in peek
+  const surfaceClass = body
+    ? cn('su-entity-token__head', headActs && 'su-hit-area')
+    : 'su-entity-token'
   // A Token with controls: a plain frame, its name the link (above).
   if (acts && !slots.outer && !body) {
     return (

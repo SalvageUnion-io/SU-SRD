@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { Head } from '../../entity/parts/Head'
+import { Head } from '../../entity'
 import { EntityCardHeader } from './EntityCardHeader'
 
 type CardHeadProps = ComponentProps<typeof EntityCardHeader> & {

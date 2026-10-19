@@ -1,10 +1,10 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { useMemo } from 'react'
 import { parseTraitReferences as parseTraitRefs } from 'salvageunion-reference'
+import { mentionRef } from '../components/entity'
 import { useEntitySurface } from '../components/entity/entitySurfaceContext'
 import { Mention } from '../components/entity/forms/Mention'
 import { findPageRefs, resolvePageRef } from '../components/entity/pageRefs'
-import { mentionRef } from '../components/entity/parts/tagItems'
 import { useInsidePeek } from '../components/entity/peekContext'
 import { space } from '../design/tokens'
 

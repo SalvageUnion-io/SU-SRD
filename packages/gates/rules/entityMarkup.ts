@@ -4,6 +4,7 @@
  */
 
 import type { Finding } from '../lib/ruleEngine'
+import { listFiles } from '../lib/ruleEngine'
 
 /** Strip /* … *\/ comments so regexes never match commented-out CSS. */
 export function stripCssComments(css: string): string {
@@ -21,32 +22,44 @@ export function stripTsComments(src: string): string {
   return stripCssComments(src).replace(/(^|\s)\/\/[^\n]*/g, '$1')
 }
 
-/** Play's own code and stylesheets: R7's surface. */
-const PLAY_DIRS = ['apps/web/src/play/', 'apps/web/src/styles/play/'] as const
+/** The app: R7's surface, every file of it but the entity forms' own. */
+const APP_DIR = 'apps/web/src/'
+
+/**
+ * Where entity markup is drawn and styled: the forms' code and their one
+ * stylesheet (`index.css` imports it into the package layer).
+ */
+const ENTITY_HOMES = [
+  'apps/web/src/components/entity/',
+  'apps/web/src/styles/partials/entity-forms.css',
+] as const
 
 /** An entity form's inner class: its markup, which only `components/entity/` draws. */
 const ENTITY_PART_CLASS = /\bsu-entity-(?:row|token)__[\w-]+/g
 
 /**
- * R7 (hard-rules.md): Play draws with the shared primitives, so entity markup
- * lives only in `components/entity/` (EDL E15). A Play stylesheet that
- * restyles a Row's frame or main, or Play code that draws a Token's pill by
- * its class, is a second entity form; the form's own props (`Box`'s
- * `reference` and `fill`, `Row`'s `dim`) say what Play needs instead. The
- * imports' half is Biome's `noRestrictedImports` over `apps/web/src/play/**`.
+ * R7 (hard-rules.md): entity markup lives only in `components/entity/` (EDL
+ * E15), and its styling only in `entity-forms.css`. Anywhere else in the app
+ * (Play, Build, the library's other containers and stylesheets) a rule that
+ * restyles a Row's frame or main, or code that draws a Token's pill by its
+ * class, is a second entity form; the form's own props say what a host needs
+ * instead (`Box`'s `reference`, `fill` and `shrink`, `Row`'s `dim`, the
+ * pill's `--su-token-end`), and a cascade handback names a part by its
+ * `data-handback`. The imports' half is Biome's `noRestrictedImports` over
+ * `apps/web/src/**` outside `components/entity/`.
  *
  * `files` are repo-relative (the app's CSS and source); `read` reads one.
  */
-export function scanEntityMarkup(
-  files: readonly string[],
-  read: (rel: string) => string
-): Finding[] {
+function scanEntityMarkup(files: readonly string[], read: (rel: string) => string): Finding[] {
   const out: Finding[] = []
   // A test reads the DOM it is handed; it draws nothing.
-  const play = files.filter(
-    (rel) => PLAY_DIRS.some((dir) => rel.startsWith(dir)) && !/__tests__\/|\.test\.tsx?$/.test(rel)
+  const outside = files.filter(
+    (rel) =>
+      rel.startsWith(APP_DIR) &&
+      !ENTITY_HOMES.some((home) => rel.startsWith(home)) &&
+      !/__tests__\/|\.test\.tsx?$/.test(rel)
   )
-  for (const rel of play) {
+  for (const rel of outside) {
     const text = rel.endsWith('.css') ? stripCssComments(read(rel)) : stripTsComments(read(rel))
     text.split('\n').forEach((line, i) => {
       for (const m of line.matchAll(ENTITY_PART_CLASS)) {
@@ -55,4 +68,13 @@ export function scanEntityMarkup(
     })
   }
   return out
+}
+
+/** `scanEntityMarkup` over every stylesheet under `apps/web/src` (the library's included) and `source`. */
+export function scanEntityMarkupIn(
+  root: string,
+  source: readonly string[],
+  read: (rel: string) => string
+): Finding[] {
+  return scanEntityMarkup([...listFiles(root, [APP_DIR], ['.css']), ...source], read)
 }

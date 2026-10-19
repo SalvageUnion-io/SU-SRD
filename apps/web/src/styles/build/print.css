@@ -99,12 +99,11 @@
    * the element rules above would beat them; `revert-layer` hands each
    * property back to the class. A part whose type is an inline style needs
    * nothing here, since an inline style already beats these rules; a title's weight is handed back for
-   * screen and paper alike in `libHandback.css`. */
+   * screen and paper alike in `libHandback.css`. An entity form's parts name
+   * themselves by `data-handback` (their markup is `components/entity/`'s,
+   * hard rule R7). */
   .su-stat-plate,
-  .su-entity-row__title,
-  .su-entity-row__tier,
-  .su-entity-token__pill,
-  .su-entity-token__kind,
+  [data-handback],
   .su-eyebrow {
     font-size: revert-layer;
     margin-bottom: revert-layer;
@@ -186,14 +185,11 @@
    * Border adjustments for ink-friendliness
    * ------------------------------------------------------------------------- */
   /* An inline border is matched by its style attribute: a stylesheet
-   * `!important` still beats a plain inline declaration. The `.su-*` parts
-   * named here draw their border in a src/components class, so they are named
-   * outright. */
+   * `!important` still beats a plain inline declaration. The parts named here
+   * draw their border in a src/components class, so they are named outright:
+   * an entity form's by `data-handback`. */
   [style*='border'],
-  .su-entity-row__frame,
-  .su-entity-row__body,
-  .su-entity-token__pill,
-  .su-entity-token__kind,
+  [data-handback],
   .su-stat-cell,
   .su-ec-band--ruled {
     border-color: #000 !important;

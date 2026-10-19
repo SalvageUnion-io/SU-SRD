@@ -1,7 +1,6 @@
 import type { EntityRef } from 'salvageunion-reference'
 import { Badge } from '../../atoms/Badge'
-import { Chips } from '../../entity/parts/Chips'
-import { EntityStat } from '../../entity/parts/EntityStat'
+import { Chips, EntityStat } from '../../entity'
 import type { EntityPageMeta } from './entityPage'
 import { LEGAL_STARTING_PATTERN, LEGAL_STARTING_PATTERN_NOTE } from './legalStartingPattern'
 

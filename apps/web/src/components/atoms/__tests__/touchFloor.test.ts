@@ -16,17 +16,33 @@ import { readPackageStylesheet } from '../../../styles/__tests__/packageStyleshe
 
 const STYLES = join(import.meta.dir, '../../../styles')
 
-function coarseBlock(file: string, text: string): string {
+/**
+ * The first `@media (pointer: coarse)` block in `text`, or with `holding`, the
+ * first that holds it (the package's hit-area half, `pointer-motion.css`, after
+ * the entity forms' own coarse rules).
+ */
+function coarseBlock(file: string, text: string, holding?: string): string {
   const css = text.replace(/\/\*[\s\S]*?\*\//g, '')
-  const start = css.indexOf('@media (pointer: coarse)')
+  let start = css.indexOf('@media (pointer: coarse)')
   expect(start).toBeGreaterThan(-1)
-  // The block runs to the brace that closes the @media rule.
-  let depth = 0
-  for (let i = css.indexOf('{', start); i < css.length; i++) {
-    if (css[i] === '{') depth++
-    if (css[i] === '}' && --depth === 0) return css.slice(start, i + 1)
+  while (start > -1) {
+    // The block runs to the brace that closes the @media rule.
+    let depth = 0
+    let block: string | undefined
+    for (let i = css.indexOf('{', start); i < css.length; i++) {
+      if (css[i] === '{') depth++
+      if (css[i] === '}' && --depth === 0) {
+        block = css.slice(start, i + 1)
+        break
+      }
+    }
+    if (block === undefined) break
+    if (holding === undefined || block.includes(holding)) return block
+    start = css.indexOf('@media (pointer: coarse)', start + block.length)
   }
-  throw new Error(`unclosed @media (pointer: coarse) in ${file}`)
+  throw new Error(
+    `no closed @media (pointer: coarse) block${holding ? ` holding ${holding}` : ''} in ${file}`
+  )
 }
 
 /** The 44px floor, as the Full Size (`--size-full`) spells it. */
@@ -44,7 +60,7 @@ function floorSelectors(block: string): string[] {
 
 describe('the coarse-pointer touch floor', () => {
   const theme = coarseBlock('theme.css', readFileSync(join(STYLES, 'theme.css'), 'utf8'))
-  const index = coarseBlock('index.css', readPackageStylesheet())
+  const index = coarseBlock('index.css', readPackageStylesheet(), '.su-hit-area::after')
 
   test('the floor is set once, in theme.css', () => {
     expect(index).not.toMatch(new RegExp(`min-height:\\s*(?:44px|${FLOOR})`))

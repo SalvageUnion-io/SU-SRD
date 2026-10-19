@@ -200,7 +200,7 @@
 
 /* The frame never exceeds the DYNAMIC viewport (less the bare popup's 2rem
    margins and any safe-area inset), and the frame and its main column shrink
-   with it, so the body always gets the room left under the head and scrolls
+   with it (the box's `shrink`), so the body always gets the room left under the head and scrolls
    in it. `dvh`, not `vh`: on a phone `100vh` is the toolbar-hidden height. */
 .su-searcher-panel {
   max-height: calc(
@@ -209,11 +209,6 @@
     env(safe-area-inset-top, 0px) -
     env(safe-area-inset-bottom, 0px)
   );
-}
-
-.su-searcher-panel > .su-entity-row__frame,
-.su-searcher-panel > .su-entity-row__frame > .su-entity-row__main {
-  min-height: 0;
 }
 
 .su-searcher__toolbar .su-searcher__search,
@@ -236,13 +231,14 @@
 }
 
 /* The sidebar's ✕ sits inside its Token, at the far right: laid over the
-   pill (a button cannot nest in the Token's link), which leaves it room. */
+   pill (a button cannot nest in the Token's link), which leaves it room
+   (the pill's `--su-token-end`). */
 .su-searcher__rail-entry {
   position: relative;
 }
 
-.su-searcher__rail-entry[data-removable] .su-entity-token__pill {
-  padding-inline-end: calc(var(--su-searcher-line) + var(--space-2));
+.su-searcher__rail-entry[data-removable] {
+  --su-token-end: calc(var(--su-searcher-line) + var(--space-2));
 }
 
 .su-btn.su-searcher__remove {

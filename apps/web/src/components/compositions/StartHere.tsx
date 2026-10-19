@@ -5,9 +5,7 @@ import { cn } from '../../lib/cn'
 import { FOCUS_RING } from '../atoms/interaction'
 import { Slab } from '../atoms/Slab'
 import { Stat } from '../atoms/Stat'
-import { Lead } from '../entity/parts/Lead'
-import { paintFor } from '../entity/parts/paint'
-import { TILE_NAME, TILE_NAME_CAPS } from '../entity/parts/tileName'
+import { Lead, paintFor, TILE_NAME, TILE_NAME_CAPS } from '../entity'
 import { grainClass } from '../referenceEntity/card/cardGrain'
 
 /**
