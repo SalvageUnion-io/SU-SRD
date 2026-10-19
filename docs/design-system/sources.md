@@ -22,7 +22,7 @@ Id · title — where code cites it (`board NN`); "—" means no code cites it. 
 5. **07** SRD entity page — `EntityPageFrame`, `EntityPageStamps`, `CardPage`, `entityPage`, `CardImage`, `StatColumn`, `Footer`. **08** Entity, phone — `NavDrawer`, `EntityCardStatic`, `index.css`.
 6. **08b** SRD roll table — `RollTablePage`, `RollTableView`, `RollTableIsland`, `rollTablePage`, `columnsTablePage`, `RollTableInstrument`.
 7. **E1** Card size × extent — `referenceEntity/card/` head, labels, pennant, facets, tone. **E2** Nesting — `NestedCards`, `bodyBlocks`.
-8. **E3** Five contexts — `StatusRail`, `peekPlate`. **E4** Embedded roll table — `CardRollTable`, `RollTableInstrument`.
+8. **E3** Five contexts — `StatusBadge`, `peekPlate`. **E4** Embedded roll table — `CardRollTable`, `RollTableInstrument`.
 9. **09** The app front door — `FrontDoor`, `Roster`, `shell/unionBar.ts`. **10** Pilot sheet, printed — the app `build/sheet/`, `Field`.
 10. **D1–D5** Dashboard (retired; its successor is Play, `docs/wireframes/dashboard-cockpit/`): boarded, Crew tab, Downtime, phone Mech tab, phone resolve — the app `play/`, `VitalGauge`, `pipRows`.
 11. **P1** Saving a pattern — `SavePatternPage`, `patterns`, `CardLabels`, `NpcSheet`, `Sheet`, the app `mechs/patterns/new`, game-domain `pattern`, convex `shelf`. **P2** Shared pattern page — `PublicPattern`, convex `publicSheet`.

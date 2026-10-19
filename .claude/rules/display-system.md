@@ -14,8 +14,7 @@ State rules here, never prop tables or rosters: read props off the component.
   (`referenceEntity/card/`) is the Card and Page for game data; every other
   frame is `Box` (`containers/`): titled, `TitledBox`; a note, `Callout`. Never
   add entity-card features to `Box` or route the entity card through it; share
-  the vocabulary (`displayMode`, the controls contract, `CardControlRail`), not
-  the DOM.
+  the vocabulary (`displayMode`, the controls contract, `Head`), not the DOM.
 - **Size is two axes** (`containers/displayMode.ts`): `size` (`full | compact |
   mini`, how big) × `extent` (`full | head | catalog`, how much).
 - **Form by [EDL](../../docs/design-system/entity-display-language.md) E1–E5,
@@ -26,8 +25,8 @@ State rules here, never prop tables or rosters: read props off the component.
   (`afterExtraContent`, …) and `hide`; prefer
   data-shape checks (`'coreTrees' in data`) over schema names.
 - **Controls** go through `ReferenceEntityCard`'s `controls` (`navigateControl`
-  is the one preset); `cardClick: true` makes the card clickable, `hidden: true`
-  keeps it off the rail, `status` draws in `StatusRail`.
+  is the one preset), in its head's chip group (C8); `cardClick: true` makes the
+  card clickable, `hidden: true` keeps it out, `status` draws as `StatusBadge`.
 - **Every `label | value` is a `Stat`** (ruleset §3.7; most broken):
   never a hand-built `<span>`. A surface that seems to need its own is missing a
   `Stat` rung, usually `size="full"`.
