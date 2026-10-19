@@ -47,7 +47,7 @@ Each is checkable; breaking one needs an amendment here. Nesting (N1–N7, rules
   Nothing titled at level 2 or deeper; a Token nests nothing (deeper is its link or Peek).
 - **E7** Modes fill slots; they never change anatomy.
 - **E8** A Listing never expands in place (ruleset §1.5).
-- **E9** Facts and traits are chips (horizontal Stats; traits link), sections Slabs. Citations are text on every foot (`Workshop Manual · p.112`). Only a Page's foot (and a mech sheet's CHASSIS chip) names the kind; stamps that say more stay.
+- **E9** Facts and traits are chips (horizontal Stats; traits link), sections Slabs. Citations are text on every foot, one line (ruleset Source 2); no foot names the kind (a mech sheet's CHASSIS chip does); stamps that say more stay.
 - **E10** Art appears by room, not by prop; no art, no art place, save a Tile in a catalog with art (a censor mark).
 - **E11** The lead appears only on an SRD index.
 - **E12** Fill follows kind: "have" entities wear their tone; "do" entities the ink banner as a Card or Page, and as a Row but for an ability.

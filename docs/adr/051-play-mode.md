@@ -27,8 +27,8 @@ the hub for Games ([ADR-052](052-build-assets-play-games.md) §4): the player's
 Games (play or mediate) and New Game and Join, their pilots to play solo, and
 each Game's Discord channel; each Game's page is Play's too. Players know Play
 as **The Cantina**, the crawler's social hub, and Build as the **Training
-Bay**: the tabs keep the verbs, the names go on the pages and the bar's colour
-(Build pilot orange, Play the deep crawler pink). "The Cantina" names Play alone, never the whole app.
+Bay**: the tabs keep the verbs, the names go on the pages, and the bar wears the page's
+band, or, with none, its area's (Build pilot orange, Play the deep crawler pink). "The Cantina" names Play alone, never the whole app.
 
 ### 2. The Cockpit frame
 

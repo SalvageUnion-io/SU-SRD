@@ -6,7 +6,7 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
 ## The source: the Workshop Manual
 
 1. **The book is the visual source of truth** — paper pages, colour only in bands, ink banners, framed numbers. When a screen and the book disagree, open the book.
-2. **Chapter band** — a band in the section colour across a paper page, the title notched in on a paper cut-out, in ink. The foot band is text, never chips: kind and citation (`Workshop Manual · p.112`, then "Also in" each reprint).
+2. **Chapter band** — a band in the section colour across a paper page, the title notched in on a paper cut-out, in ink. The foot band, in the band's colour, is text, never chips: the citations on one line, Workshop Manual first, `//` between (`Workshop Manual · p.65 // Starter Set · p.37`); no kind. A Page's is its one footer, the app's links with it; a card's or Peek's stands alone.
 3. **Ink stamp + framed numeral** — the stat column (`STRUCTURE POINTS | 14`), label 14px, horizontal, in the stat order (§2.6), full words on a Page (never "PTS." or "CAP."); smaller forms the short label (SP, TL), TL a label only (prose: Tech Level).
 4. **The ink banner** — tier numeral, title, cost pennant, "//" metadata on ink with a rounded tail; on screen, the card's ink header (§5).
 5. **"ROLL THE DIE:" and "//" lines** — an underlined ink stamp over banded d20 tables; italic trait lines split by "//" (`Turn Action // Range: Close`); on screen one chip group in the head (E17).
@@ -62,7 +62,7 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
    9. **§3.9 Canon is solid; homebrew is dashed** — a player-made thing that could pass for the book (pattern, NPC): dashed frame, dashed User-made stamp in the head's labels, foot rule and pills, credit "Made by [user]", at every size. Dashed means only this, a Play reference unit (ADR-051 §5), an edit field and an empty slot: a Slab is always solid.
       A full page adds a hard-stop hatched band, a dashed notch and a maker banner. One `userMade` flag (+ `madeBy`); canon-built units stay solid.
    10. **§3.10 No left-rail borders** — colour rides in top bands, stamps and gauges; nesting shows by containment.
-   11. **§3.11 One union, two tools** — one Union bar; the switcher reads Reference | Build | Play; Build (the Training Bay) and Play (the Cantina) name their pages and colour the bar; no off-site arrows between the two.
+   11. **§3.11 One union, two tools** — one Union bar; the switcher reads Reference | Build | Play; Build (the Training Bay) and Play (the Cantina) name their pages; the bar wears the leading band's colour in every mode, front pages too (no band: the area's); no off-site arrows between the two.
        Each mode has its nav (Build: Hangar, Patterns, Starter Set; Play: Games ▾, Solo), the current one in ink from first paint.
    12. **§3.12 Microcopy** — sentence case ("Make a copy"); game terms keep the book's casing ("End Downtime"), as do Game, Shelf and the roles ([glossary](../architecture/glossary.md)).
        Caps only through the stamp (`Badge shape="stamp"`) and `Button`, which sets every label in condensed caps. Verbs: Copy, Move, Delete, Break down; Scrap is the currency, never the verb (p.248).
