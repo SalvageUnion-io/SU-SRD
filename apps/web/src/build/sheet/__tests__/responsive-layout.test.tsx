@@ -89,12 +89,11 @@ describe('Sheet responsive layout — wired composition (LiveSheet shell)', () =
     expect(container.querySelector('[data-variant="mech"]')).toBeTruthy()
   })
 
-  test('Sheet crawler body is a single-column region flow with Storage as a full-width bottom band', () => {
-    // Workshop-Manual crawler sheet: a single-column region stack (Identity →
-    // Bays → Weapons → Assigned Units → Storage Bay), NOT the old 2-col macro
-    // grid that stood Storage up as a full-height right column. The old
-    // `54fr`-split grid is gone; the crawler section flows in one column and
-    // the Storage Bay renders as its own section at the bottom.
+  test('Sheet crawler body is the shared columns, its Storage Bay the sidebar', () => {
+    // Every sheet's columns (`SheetColumns`, ruleset §1.2): the opening, then
+    // the main column (Bays → Assigned Units), and what the crawler carries,
+    // its Storage Bay, in the permanent right sidebar. The old `54fr`-split
+    // macro grid stays gone.
     const { container } = render(
       <Sheet
         kind="crawler"
@@ -103,16 +102,16 @@ describe('Sheet responsive layout — wired composition (LiveSheet shell)', () =
         softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
-    // The old right-column macro grid is removed.
     expect(container.querySelector('[class*="54fr"]')).toBeNull()
-    // The crawler body's region flow is a single column (a `Stack`).
-    const flow = container.querySelector('section[aria-label$="crawler sheet"] > div')
-    expect(flow?.classList.contains('su-stack')).toBe(true)
-    // The storage band is present. Asserted on its CONTENT rather than the
-    // words "Storage Bay": storage now renders inside the Storage Bay's own bay
-    // card when that bay is installed, and as a standalone band when it is not
-    // (this fixture has no bays). The scrap pool is in the band either way.
-    expect(container.textContent).toContain('Scrap Pool')
+    const columns = container.querySelector('section[aria-label$="crawler sheet"] > div')
+    expect(columns?.classList.contains('su-sheet-columns')).toBe(true)
+    // The storage is in the sidebar, asserted on its CONTENT rather than the
+    // words "Storage Bay": it renders inside the Storage Bay's own bay card
+    // when that bay is installed, and under its own Slab when it is not (this
+    // fixture has no bays). The scrap pool is there either way.
+    const aside = container.querySelector('[data-sheet-aside]')
+    expect(aside?.getAttribute('aria-label')).toBe(`What ${fakeCrawler.name} carries`)
+    expect(aside?.textContent).toContain('Scrap Pool')
   })
 })
 

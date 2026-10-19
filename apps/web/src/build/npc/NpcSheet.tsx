@@ -51,6 +51,7 @@ import { LiveSheet } from '../sheet/LiveSheet'
 import { NpcLines } from '../sheet/NpcInset'
 import { PhotoBeside } from '../sheet/PhotoBeside'
 import { SheetActionsMenu } from '../sheet/SheetActionsMenu'
+import { SheetColumns } from '../sheet/SheetColumns'
 import { SheetHero } from '../sheet/SheetHero'
 import { SheetModeToggle } from '../sheet/SheetModeToggle'
 import { SheetVitalGauge } from '../sheet/SheetVitalGauge'
@@ -204,90 +205,99 @@ export function NpcSheet({
                 {readOnlyNote}
               </p>
             )}
-            <SheetHero
-              name={npc.name}
-              fields={
-                <PhotoBeside
-                  photo={
-                    <EntityPhoto
-                      photo={npc.photo}
-                      fallback={npcTemplateArt(npc.templateRef)}
-                      name={npc.name}
-                      onChange={
-                        editable
-                          ? (photo) =>
-                              useEntityStore
-                                .getState()
-                                .update('npc', npc.id, { photo }, LIVE_SHEET_MANUAL)
-                          : undefined
-                      }
-                    />
-                  }
-                >
-                  <div style={FIELDS}>
-                    <NpcLines
-                      bayName={npc.name}
-                      title={npc.position}
-                      role={npc.position ?? ''}
-                      name={npc.name}
-                      hp={hp}
-                      maxHp={npc.hitPoints}
-                      keepsake={npc.keepsake ?? ''}
-                      motto={npc.motto ?? ''}
-                      detail={npc.description ?? ''}
-                      facts={npc.facts ?? []}
-                      // The name is the band's; in Edit it is also a field here.
-                      identity
-                      {...(editable
-                        ? {
-                            onNameChange: (next: string) => {
-                              if (next.trim()) patch({ name: next.trim() })
-                            },
-                            onKeepsakeChange: (next: string) =>
-                              patch({ keepsake: next.trim() || undefined }),
-                            onMottoChange: (next: string) =>
-                              patch({ motto: next.trim() || undefined }),
-                            onDetailChange: (next: string) =>
-                              patch({ description: next.trim() || undefined }),
-                            onFactsChange: (next: string[]) => patch({ facts: next }),
+            {/* The columns every sheet shares (`SheetColumns`): an NPC carries
+                nothing (its schema holds no equipment or cargo), so it has no
+                sidebar and its main column takes the width. */}
+            <SheetColumns
+              asideLabel={`What ${npc.name} carries`}
+              hero={
+                <SheetHero
+                  name={npc.name}
+                  fields={
+                    <PhotoBeside
+                      photo={
+                        <EntityPhoto
+                          photo={npc.photo}
+                          fallback={npcTemplateArt(npc.templateRef)}
+                          name={npc.name}
+                          onChange={
+                            editable
+                              ? (photo) =>
+                                  useEntityStore
+                                    .getState()
+                                    .update('npc', npc.id, { photo }, LIVE_SHEET_MANUAL)
+                              : undefined
                           }
-                        : {})}
-                    />
-                    {traits.length > 0 && <Tags tags={traits} linkable />}
-                    {crewing && (
-                      <p style={NOTE}>
-                        Crews {slotPhrase(crewing.slot)} on{' '}
-                        <AppLink href={`/sheet/crawler/${crewing.crawlerId}`}>
-                          {crewing.crawlerName}
-                        </AppLink>
-                        . Whoever runs that crawler assigns and unassigns its crew.
-                      </p>
-                    )}
-                  </div>
-                </PhotoBeside>
-              }
-              vitals={
-                npc.hitPoints > 0 ? (
-                  <SheetVitalGauge
-                    vital="hp"
-                    value={hp}
-                    max={npc.hitPoints}
-                    onChange={editable ? (next) => patch({ currentHP: next }) : undefined}
-                    readOnly={!editable}
-                  />
-                ) : undefined
-              }
-            />
-            {npcActions.length > 0 && (
-              <SlabSection fold="open" title="Actions" count={npcActions.length}>
-                <ActionTokens
-                  actions={npcActions}
-                  size="compact"
-                  hostName={npc.name}
-                  chassisName={undefined}
+                        />
+                      }
+                    >
+                      <div style={FIELDS}>
+                        <NpcLines
+                          bayName={npc.name}
+                          title={npc.position}
+                          role={npc.position ?? ''}
+                          name={npc.name}
+                          hp={hp}
+                          maxHp={npc.hitPoints}
+                          keepsake={npc.keepsake ?? ''}
+                          motto={npc.motto ?? ''}
+                          detail={npc.description ?? ''}
+                          facts={npc.facts ?? []}
+                          // The name is the band's; in Edit it is also a field here.
+                          identity
+                          {...(editable
+                            ? {
+                                onNameChange: (next: string) => {
+                                  if (next.trim()) patch({ name: next.trim() })
+                                },
+                                onKeepsakeChange: (next: string) =>
+                                  patch({ keepsake: next.trim() || undefined }),
+                                onMottoChange: (next: string) =>
+                                  patch({ motto: next.trim() || undefined }),
+                                onDetailChange: (next: string) =>
+                                  patch({ description: next.trim() || undefined }),
+                                onFactsChange: (next: string[]) => patch({ facts: next }),
+                              }
+                            : {})}
+                        />
+                        {traits.length > 0 && <Tags tags={traits} linkable />}
+                        {crewing && (
+                          <p style={NOTE}>
+                            Crews {slotPhrase(crewing.slot)} on{' '}
+                            <AppLink href={`/sheet/crawler/${crewing.crawlerId}`}>
+                              {crewing.crawlerName}
+                            </AppLink>
+                            . Whoever runs that crawler assigns and unassigns its crew.
+                          </p>
+                        )}
+                      </div>
+                    </PhotoBeside>
+                  }
+                  vitals={
+                    npc.hitPoints > 0 ? (
+                      <SheetVitalGauge
+                        vital="hp"
+                        value={hp}
+                        max={npc.hitPoints}
+                        onChange={editable ? (next) => patch({ currentHP: next }) : undefined}
+                        readOnly={!editable}
+                      />
+                    ) : undefined
+                  }
                 />
-              </SlabSection>
-            )}
+              }
+            >
+              {npcActions.length > 0 && (
+                <SlabSection fold="open" title="Actions" count={npcActions.length}>
+                  <ActionTokens
+                    actions={npcActions}
+                    size="compact"
+                    hostName={npc.name}
+                    chassisName={undefined}
+                  />
+                </SlabSection>
+              )}
+            </SheetColumns>
           </section>
         )}
       />

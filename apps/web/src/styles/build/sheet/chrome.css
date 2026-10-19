@@ -25,6 +25,57 @@
   }
 }
 
+/* SheetColumns (`SheetColumns.tsx`, every kind): the opening, the permanent
+   right sidebar of what the unit carries, and the main column. On a phone one
+   column, the sidebar straight under the opening; from the 64rem rung (K2) the
+   opening keeps the sheet's width and the sidebar is a column beside the main
+   column under it, never folded. Each region is its own inline-size
+   container, so what is inside it queries its own width. */
+.su-sheet-columns {
+  display: grid;
+  gap: var(--space-24);
+  grid-template-areas: 'hero' 'aside' 'main';
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.su-sheet-columns__hero,
+.su-sheet-columns__main,
+.su-sheet-aside {
+  container-type: inline-size;
+  min-width: 0;
+}
+
+.su-sheet-columns__hero {
+  grid-area: hero;
+}
+
+.su-sheet-columns__main,
+.su-sheet-aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+.su-sheet-columns__main {
+  grid-area: main;
+}
+
+.su-sheet-columns__main:empty {
+  display: none;
+}
+
+.su-sheet-aside {
+  grid-area: aside;
+}
+
+@media (width >= 64rem) {
+  .su-sheet-columns:has(> .su-sheet-aside):has(> .su-sheet-columns__main:not(:empty)) {
+    align-items: start;
+    grid-template-areas: 'hero hero' 'main aside';
+    grid-template-columns: minmax(0, 1fr) 22rem;
+  }
+}
+
 /* ShareStatusDialog + ShareSettings (components/sharing). */
 .su-sheet-share-body {
   padding: var(--space-16);

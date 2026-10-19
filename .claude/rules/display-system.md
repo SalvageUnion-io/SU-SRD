@@ -21,13 +21,14 @@ State rules here, never prop tables or rosters: read props off the component.
 - **Form by [EDL](../../docs/design-system/entity-display-language.md) E1–E5,
   E15:** Row `<Entity form="row">`, Token `form="token"`, `<Mention>`, whole
   entity `ReferenceEntityCard` (`presentation="page"` for a Page); never
-  hand-assembled markup. A titled container is `TitledBox`; untitled, `Box`.
-- **Customise by slot, never by schema:** the caller computes overrides and
-  passes generic slot props (`afterExtraContent`, …) and `hide`; prefer
+  hand-assembled markup.
+- **Customise by slot, never by schema:** pass generic slot props
+  (`afterExtraContent`, …) and `hide`; prefer
   data-shape checks (`'coreTrees' in data`) over schema names.
 - **Controls** go through `ReferenceEntityCard`'s `controls` (`navigateControl`
   is the one preset); `cardClick: true` makes the card clickable, `hidden: true`
   keeps it off the rail, `status` draws in `StatusRail`.
-- **Every `label | value` is a `Stat`** (ruleset §3.7, the most-broken rule):
+- **Every `label | value` is a `Stat`** (ruleset §3.7; most broken):
   never a hand-built `<span>`. A surface that seems to need its own is missing a
   `Stat` rung, usually `size="full"`.
+- **Sheets:** the sidebar holds what is carried.

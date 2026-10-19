@@ -374,6 +374,27 @@ describe("a contentful Token's +MORE (C5)", () => {
     expect(slot?.getAttribute('aria-hidden')).toBe('true')
   })
 
+  test("with controls (a sheet item in Edit), its head is a frame, its name the link, +MORE's room after the controls", () => {
+    const { container } = render(
+      <Entity
+        form="token"
+        context="play"
+        entity={meld()}
+        mode={{ kind: 'link', href: '/abilities/meld-form/' }}
+        body={{}}
+        controls={<button type="button">Remove</button>}
+      />
+    )
+    const head = container.querySelector('.su-entity-token__head')
+    expect(head?.tagName).toBe('DIV')
+    expect(head?.querySelector('a.su-entity-token__link')?.textContent).toContain('Meld Form')
+    expect(head?.querySelector('a button')).toBeNull()
+    const menu = container.querySelector('.su-entity-token__chips > [data-chip-class="menu"]')
+    expect([...(menu?.children ?? [])].map((chip) => chip.tagName)).toEqual(['BUTTON', 'SPAN'])
+    expect(menu?.lastElementChild?.matches('.su-chip-more-slot')).toBe(true)
+    expect(container.querySelector('.su-entity-token__more')).not.toBeNull()
+  })
+
   test('a header-only Token has none, nor a contentful one inside a Peek (E16)', () => {
     const headOnly = render(<Entity form="token" context="play" entity={meld()} />)
     expect(headOnly.container.querySelector('.su-entity-token__more')).toBeNull()

@@ -190,8 +190,9 @@ export function Token({
   const hasChips = chipCount(set) > 0 || !!quantity || !!slots.state || acts
   // C5: a contentful Token's chips past two lines end in +MORE, which opens
   // its Peek; with no Peek (inside one, E16) every chip wraps. Its slot is the
-  // menu lane, so a Token that carries its own menu keeps every chip.
-  const more = !!body && hasChips && !!peek['data-peek'] && slots.menu === undefined
+  // end of the menu lane: after a sheet item's own controls (C8), the last.
+  const more = !!body && hasChips && !!peek['data-peek']
+  const moreSlot = more ? <span className="su-chip-more-slot" aria-hidden="true" hidden /> : null
   const pill = (
     <span
       // The pill is the frame: on an ink pill (a thing you do) its cells,
@@ -244,8 +245,14 @@ export function Token({
           state={state}
           uses={slots.uses}
           menu={
-            slots.menu ??
-            (more ? <span className="su-chip-more-slot" aria-hidden="true" hidden /> : undefined)
+            slots.menu !== undefined && moreSlot ? (
+              <>
+                {slots.menu}
+                {moreSlot}
+              </>
+            ) : (
+              (slots.menu ?? moreSlot ?? undefined)
+            )
           }
         />
       )}
@@ -266,10 +273,16 @@ export function Token({
       </div>
     )
   }
+  // A contentful Token with controls (a sheet item in Edit): its head is a
+  // plain frame too, its name the link, so no control sits inside a link.
   const head = slots.outer ? (
     <CardOuter {...slots.outer} className={cn(slots.outer.className, surfaceClass)} peek={peek}>
       {pill}
     </CardOuter>
+  ) : acts ? (
+    <div className="su-entity-token__head" data-acts="">
+      {pill}
+    </div>
   ) : (
     <LinkSurface
       target={target}

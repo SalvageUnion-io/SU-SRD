@@ -15,9 +15,11 @@
  *       side by side from 48rem, one Token a line): different collections
  *       with different '+ Add' pickers/slot budgets, so folding them into one
  *       list is not trivial.
- *   The Hold (`StorageManifest side='mech'`) reads BEFORE Systems & Modules —
- *       cargo is reached for mid-session and was buried under two long loadout
- *       lists at the printed sheet's bottom-of-page-2 placement.
+ *   The Hold (`StorageManifest side='mech'`), what the mech carries, is the
+ *       permanent right sidebar (`SheetColumns`, ruleset §1.2): beside the
+ *       sheet from the 64rem rung, straight under the opening on a phone —
+ *       cargo is reached for mid-session, and the printed sheet's
+ *       bottom-of-page-2 placement buried it under two long loadout lists.
  *   Assigned Units closes the sheet.
  *
  * Section containers follow the card-vs-slab rule (see `SlabSection`):
@@ -51,16 +53,12 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
-import { pinFor, unifiedMechConditions } from 'salvageunion-reference/rules'
 import type { SlabCount } from '../../components/index'
 import {
-  Conditions,
   EmptyState,
   EntitySearcher,
-  Eyebrow,
   Field,
   FieldError,
-  heatDangerFrom,
   SlabSection,
   Stack,
   tokens,
@@ -74,19 +72,19 @@ import { runWrite } from '../../lib/runWrite'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { MechChassisCard } from './MechChassisCard'
-import { MechConditionsEditor } from './MechConditionsEditor'
 import { MechHeroChassis } from './MechHeroChassis'
 import { MechIdentityPanel, MechProseFields } from './MechIdentity'
 import { MechItemToken } from './MechItemToken'
+import { MechVitals } from './MechVitals'
 import type { ChassisLike } from './mechSheet.model'
 import { useMechSheetModel } from './mechSheet.model'
 import type { ItemKind } from './mechSheetActions.model'
 import { useMechSheetActions } from './mechSheetActions.model'
 import { PartnerCard } from './PartnerCard'
 import { PhotoBeside } from './PhotoBeside'
+import { SheetColumns } from './SheetColumns'
 import { SheetHero } from './SheetHero'
 import { SectionManageButton, SheetPickerModal } from './SheetSection'
-import { SheetVitalGauge } from './SheetVitalGauge'
 import { StorageManifest } from './StorageManifest'
 
 /** The sheet column: an inline-size container (the poster regions query it). */
@@ -106,13 +104,6 @@ const FIELDS = {
 } satisfies CSSProperties
 
 const CHASSIS = { marginTop: 'auto', paddingTop: tokens.space[24] } satisfies CSSProperties
-
-const CONDITIONS = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[8],
-  width: '100%',
-} satisfies CSSProperties
 
 /** The book's pattern behind an over-slot loadout (`computeMechCapacity`'s `asPrinted`). */
 type AsPrinted = { pattern: string; cite: string } | undefined
@@ -211,15 +202,13 @@ export function MechSheet({
     pilotAbilities,
   })
   const actions = useMechSheetActions({ mech, store, storeState, crawler })
-  // The conditions Read prints: the same merged list the Edit chips write.
-  const readConditions = readOnly ? unifiedMechConditions(mech) : []
   // Read leaves an empty section out (ruleset §1.2): an empty state only where
   // Edit can fill it.
   const showHold = !readOnly || model.cargo.usage.used > 0
   const showSystems = !readOnly || mech.systems.length > 0
   const showModules = !readOnly || mech.modules.length > 0
 
-  const { chassis, cargo, capacity, spParts, epParts, heatParts, maxSP, maxEP, heatCap } = model
+  const { chassis, cargo, capacity, maxEP } = model
 
   function renderItems(kind: ItemKind, slugs: string[]) {
     const conditions = (kind === 'system' ? mech.systemConditions : mech.moduleConditions) ?? {}
@@ -291,226 +280,177 @@ export function MechSheet({
 
       {/* ===== Identity Band (Workshop-Manual mech sheet top region) =====
           Photo + the player's fields ∥ SP/EP/Heat + Conditions vitals rail. */}
-      <SheetHero
-        name={mech.name}
-        fields={
-          <>
-            <PhotoBeside
-              photo={
-                <EntityPhoto
-                  photo={mech.photo}
-                  // The chassis art until the player changes it.
-                  fallback={chassisArt(mech.chassisRef)}
-                  name={mech.name}
-                  onChange={
-                    readOnly
-                      ? undefined
-                      : (photo) =>
-                          useEntityStore
-                            .getState()
-                            .update('mech', mech.id, { photo }, LIVE_SHEET_MANUAL)
+      <SheetColumns
+        asideLabel={`What ${mech.name} carries`}
+        hero={
+          <SheetHero
+            name={mech.name}
+            fields={
+              <>
+                <PhotoBeside
+                  photo={
+                    <EntityPhoto
+                      photo={mech.photo}
+                      // The chassis art until the player changes it.
+                      fallback={chassisArt(mech.chassisRef)}
+                      name={mech.name}
+                      onChange={
+                        readOnly
+                          ? undefined
+                          : (photo) =>
+                              useEntityStore
+                                .getState()
+                                .update('mech', mech.id, { photo }, LIVE_SHEET_MANUAL)
+                      }
+                    />
                   }
-                />
-              }
-            >
-              <div className="su-sheet-mech-hero-split">
-                <div style={FIELDS}>
-                  <MechIdentityPanel
-                    mech={mech}
-                    patch={readOnly ? undefined : actions.patchMech}
-                    after={
-                      <Field
-                        label="Quirk"
-                        value={mech.quirk ?? ''}
-                        onSave={readOnly ? undefined : actions.saveQuirk}
-                        placeholder="No quirk recorded."
+                >
+                  <div className="su-sheet-mech-hero-split">
+                    <div style={FIELDS}>
+                      <MechIdentityPanel
+                        mech={mech}
+                        patch={readOnly ? undefined : actions.patchMech}
+                        after={
+                          <Field
+                            label="Quirk"
+                            value={mech.quirk ?? ''}
+                            onSave={readOnly ? undefined : actions.saveQuirk}
+                            placeholder="No quirk recorded."
+                          />
+                        }
                       />
-                    }
-                  />
 
-                  <MechProseFields
+                      <MechProseFields
+                        mech={mech}
+                        saveAppearance={readOnly ? undefined : actions.saveAppearance}
+                        saveDescription={readOnly ? undefined : actions.saveDescription}
+                      />
+                    </div>
+                    <MechHeroChassis
+                      stats={model.chassisStats}
+                      abilities={model.chassisAbilities}
+                    />
+                  </div>
+                </PhotoBeside>
+                <div style={CHASSIS}>
+                  <MechChassisCard
                     mech={mech}
-                    saveAppearance={readOnly ? undefined : actions.saveAppearance}
-                    saveDescription={readOnly ? undefined : actions.saveDescription}
+                    entity={model.chassisEntity}
+                    chassisName={model.chassisName}
+                    patch={readOnly ? undefined : actions.patchMech}
                   />
                 </div>
-                <MechHeroChassis stats={model.chassisStats} abilities={model.chassisAbilities} />
-              </div>
-            </PhotoBeside>
-            <div style={CHASSIS}>
-              <MechChassisCard
+              </>
+            }
+            vitals={
+              <MechVitals
                 mech={mech}
-                entity={model.chassisEntity}
-                chassisName={model.chassisName}
-                patch={readOnly ? undefined : actions.patchMech}
+                model={model}
+                actions={actions}
+                readOnly={readOnly}
+                store={store}
               />
-            </div>
-          </>
-        }
-        vitals={
-          <>
-            <SheetVitalGauge
-              vital="sp"
-              value={model.currentSP}
-              max={maxSP}
-              onChange={readOnly ? undefined : (v) => actions.patchMech({ currentSP: v })}
-              onMaxChange={
-                readOnly
-                  ? undefined
-                  : (next) => actions.overrideMechMax({ maxSpOverride: pinFor(next, spParts) })
-              }
-              breakdown={readOnly ? undefined : spParts}
-              provenance={readOnly ? undefined : model.spLines}
-              onRevertOverride={
-                readOnly ? undefined : () => actions.overrideMechMax({ maxSpOverride: undefined })
-              }
-              readOnly={readOnly}
-            />
-            <SheetVitalGauge
-              vital="ep"
-              value={model.currentEP}
-              max={maxEP}
-              onChange={readOnly ? undefined : (v) => actions.patchMech({ currentEP: v })}
-              onMaxChange={
-                readOnly
-                  ? undefined
-                  : (next) => actions.overrideMechMax({ maxEpOverride: pinFor(next, epParts) })
-              }
-              breakdown={readOnly ? undefined : epParts}
-              provenance={readOnly ? undefined : model.epLines}
-              onRevertOverride={
-                readOnly ? undefined : () => actions.overrideMechMax({ maxEpOverride: undefined })
-              }
-              readOnly={readOnly}
-            />
-            <SheetVitalGauge
-              vital="heat"
-              value={model.currentHeat}
-              max={heatCap}
-              danger={heatCap > 0 ? heatDangerFrom(heatCap) : undefined}
-              onChange={readOnly ? undefined : (v) => actions.patchMech({ currentHeat: v })}
-              onMaxChange={
-                readOnly
-                  ? undefined
-                  : (next) => actions.overrideMechMax({ maxHeatOverride: pinFor(next, heatParts) })
-              }
-              breakdown={readOnly ? undefined : heatParts}
-              provenance={readOnly ? undefined : model.heatLines}
-              onRevertOverride={
-                readOnly ? undefined : () => actions.overrideMechMax({ maxHeatOverride: undefined })
-              }
-              readOnly={readOnly}
-            />
-            {/* Read leaves an empty field out and draws no control: Conditions
-                prints as chips only when there is one to read. */}
-            {(!readOnly || readConditions.length > 0) && (
-              <div style={CONDITIONS}>
-                <Eyebrow tone="toneDeep">Conditions</Eyebrow>
-                {readOnly ? (
-                  <Conditions conditions={readConditions} />
-                ) : (
-                  <MechConditionsEditor mech={mech} store={store} />
-                )}
-              </div>
-            )}
-          </>
-        }
-      />
-
-      {/* ===== The Hold — ABOVE Systems & Modules =====
-          Cargo is the thing a crew reaches for mid-session, and the printed
-          sheet's bottom-of-page-2 placement buried it under two long loadout
-          lists. It reads before them here. */}
-      {showHold && (
-        <SlabSection
-          fold="open"
-          title="The Hold"
-          count={{
-            label: 'Slots',
-            value: cargo.usage.used,
-            max: cargo.usage.cap,
-            ...(cargo.usage.used > cargo.usage.cap ? { state: 'critical' } : {}),
-          }}
-        >
-          <StorageManifest
-            side="mech"
-            cargo={cargo}
-            mechName={mech.name}
-            crawlerName={crawler?.name ?? null}
-            counterpartHref={crawlerHref}
-            readOnly={readOnly}
+            }
           />
-        </SlabSection>
-      )}
-
-      {/* ===== R3: Systems & Modules, side by side once there is room. ===== */}
-      {(showSystems || showModules) && (
-        <div className="su-sheet-mech-loadout">
-          {showSystems && (
+        }
+        // ===== The Hold, the sidebar (ruleset §1.2) =====
+        // What the mech carries: its cargo, beside the sheet from the 64rem
+        // rung and straight under the opening on a phone, so it is the next
+        // thing a crew reaches for mid-session.
+        aside={
+          showHold ? (
             <SlabSection
-              fold="open"
-              title="Systems"
-              count={slotCount(
-                capacity.systemSlotsUsed,
-                capacity.systemSlotsMax,
-                capacity.asPrinted
-              )}
-              actions={
-                readOnly ? undefined : (
-                  <SectionManageButton label="systems" onClick={() => setPicker('system')} />
-                )
-              }
+              title="The Hold"
+              count={{
+                label: 'Slots',
+                value: cargo.usage.used,
+                max: cargo.usage.cap,
+                ...(cargo.usage.used > cargo.usage.cap ? { state: 'critical' } : {}),
+              }}
             >
-              {renderItems('system', mech.systems)}
+              <StorageManifest
+                side="mech"
+                cargo={cargo}
+                mechName={mech.name}
+                crawlerName={crawler?.name ?? null}
+                counterpartHref={crawlerHref}
+                readOnly={readOnly}
+              />
             </SlabSection>
-          )}
+          ) : undefined
+        }
+      >
+        {/* ===== R3: Systems & Modules, side by side once there is room. ===== */}
+        {(showSystems || showModules) && (
+          <div className="su-sheet-mech-loadout">
+            {showSystems && (
+              <SlabSection
+                fold="open"
+                title="Systems"
+                count={slotCount(
+                  capacity.systemSlotsUsed,
+                  capacity.systemSlotsMax,
+                  capacity.asPrinted
+                )}
+                actions={
+                  readOnly ? undefined : (
+                    <SectionManageButton label="systems" onClick={() => setPicker('system')} />
+                  )
+                }
+              >
+                {renderItems('system', mech.systems)}
+              </SlabSection>
+            )}
 
-          {showModules && (
-            <SlabSection
-              fold="open"
-              title="Modules"
-              count={slotCount(
-                capacity.moduleSlotsUsed,
-                capacity.moduleSlotsMax,
-                capacity.asPrinted
-              )}
-              actions={
-                readOnly ? undefined : (
-                  <SectionManageButton label="modules" onClick={() => setPicker('module')} />
-                )
-              }
-            >
-              {renderItems('module', mech.modules)}
-            </SlabSection>
-          )}
-        </div>
-      )}
+            {showModules && (
+              <SlabSection
+                fold="open"
+                title="Modules"
+                count={slotCount(
+                  capacity.moduleSlotsUsed,
+                  capacity.moduleSlotsMax,
+                  capacity.asPrinted
+                )}
+                actions={
+                  readOnly ? undefined : (
+                    <SectionManageButton label="modules" onClick={() => setPicker('module')} />
+                  )
+                }
+              >
+                {renderItems('module', mech.modules)}
+              </SlabSection>
+            )}
+          </div>
+        )}
 
-      {/* ===== Partners — drones this mech's CHASSIS ABILITY fields (Little
+        {/* ===== Partners — drones this mech's CHASSIS ABILITY fields (Little
           Sestra's Sestra Drone, Big Brother's four). Its own region rather than
           a Assigned Units row: a partner is not a linked roster entity, it is part
           of this mech's own kit — and it renders full width because it carries a
           nested loadout and a hold. No crawler tech level is threaded: a
           mech-granted drone is fixed by its stat block and never tracks the
           Union Crawler, unlike a pilot's ability-granted partners. ===== */}
-      {(mech.partners ?? []).length > 0 && (
-        <SlabSection fold="open" title="Partners">
-          <Stack gap={12}>
-            {(mech.partners ?? []).map((partner) => (
-              <PartnerCard
-                key={partner.id}
-                found={{ partner, hostKind: 'mech', host: mech }}
-                fielded={(mech.partners ?? []).filter((p) => p.hostRef === partner.hostRef).length}
-                readOnly={readOnly}
-                store={store}
-              />
-            ))}
-          </Stack>
-        </SlabSection>
-      )}
+        {(mech.partners ?? []).length > 0 && (
+          <SlabSection fold="open" title="Partners">
+            <Stack gap={12}>
+              {(mech.partners ?? []).map((partner) => (
+                <PartnerCard
+                  key={partner.id}
+                  found={{ partner, hostKind: 'mech', host: mech }}
+                  fielded={
+                    (mech.partners ?? []).filter((p) => p.hostRef === partner.hostRef).length
+                  }
+                  readOnly={readOnly}
+                  store={store}
+                />
+              ))}
+            </Stack>
+          </SlabSection>
+        )}
 
-      {/* ===== Assigned Units — the last region (`AssignedUnits`, built by SheetMech) ===== */}
-      {linkedUnits}
+        {/* ===== Assigned Units — the last region (`AssignedUnits`, built by SheetMech) ===== */}
+        {linkedUnits}
+      </SheetColumns>
 
       {/* The ONE shared picker modal — Systems & Modules '+ Add' both open it
           (the wizard's install grid writes through on click; no Save button). */}

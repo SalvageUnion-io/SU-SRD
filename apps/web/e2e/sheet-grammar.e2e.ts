@@ -11,7 +11,12 @@ import { test } from './fixtures'
  * widths, each held to `_sheetGrammar.ts`: `LiveSheet`'s band with its
  * corner actions and Read | Edit, a `SheetHero` opening whose vitals are
  * `SheetVitalGauge`s in full words, a typeset Read (no field, stepper or
- * empty section), and in Edit the one remove control.
+ * empty section), in Edit the one remove control, and the permanent right
+ * sidebar of what the unit carries (ruleset §1.2): beside the sheet at page
+ * width, under the opening on a phone, never folded. The seed carries
+ * something on the pilot (equipment and a Scrap entry), the mech (a lot in
+ * its hold) and the crawler (a lot in its Storage Bay); an NPC carries
+ * nothing, so its sheet has no sidebar.
  *
  * No baseline: every finding fails.
  */
@@ -29,7 +34,7 @@ for (const kind of KINDS) {
       seed,
       async ({ where }) => {
         const edit = where.includes(', Edit')
-        return (await findSheetGrammar(page, { edit })).map((f) => ({
+        return (await findSheetGrammar(page, { edit, carries: kind !== 'npc' })).map((f) => ({
           rule: f.rule,
           line: `${where}: ${f.detail}`,
         }))

@@ -17,6 +17,14 @@ import type { Page } from '@playwright/test'
  *   empty section's "nothing here" line.
  * - `remove` — in Edit every remove control in the body is the one
  *   `SheetRemoveButton` (a photo's own control aside).
+ * - `aside` — what the unit carries is the permanent right sidebar
+ *   (`SheetColumns`, ruleset §1.2): a sheet that carries something has one
+ *   (`[data-sheet-aside]`), every carried list (`[data-sheet-carried]`) and
+ *   hold (`[data-storage-side]`) is in it, nothing in it folds, and it is
+ *   under the opening: from the 64rem rung a column beside the main column
+ *   (its top the main column's, its left past the main column's right), else
+ *   stacked straight under the opening and over the main column. A sheet that
+ *   carries nothing (an NPC) has none.
  */
 
 /** Each vital's full words, by its `data-vital` key (`SHEET_VITALS`' labels). */
@@ -44,6 +52,8 @@ export type SheetGrammarFinding = { rule: string; detail: string }
 /** What the scan is handed: the view's state and the words it holds a sheet to. */
 export type SheetGrammarArgs = {
   edit: boolean
+  /** The seeded unit carries something (every kind but the NPC): its sheet has a sidebar. */
+  carries: boolean
   words: Record<string, string>
   emptyLines: readonly string[]
 }
@@ -54,6 +64,7 @@ export type SheetGrammarArgs = {
  */
 export function scanSheetGrammar({
   edit,
+  carries,
   words,
   emptyLines,
 }: SheetGrammarArgs): SheetGrammarFinding[] {
@@ -102,6 +113,46 @@ export function scanSheetGrammar({
     }
   }
 
+  // The sidebar: what the unit carries, beside the sheet or under its opening.
+  const aside = body.querySelector<HTMLElement>('[data-sheet-aside]')
+  if (carries && !aside) found.push({ rule: 'aside', detail: `${kind}: no sidebar` })
+  if (!carries && aside) {
+    found.push({ rule: 'aside', detail: `${kind}: a sidebar on a sheet that carries nothing` })
+  }
+  for (const held of body.querySelectorAll('[data-sheet-carried], [data-storage-side]')) {
+    if (!held.closest('[data-sheet-aside]')) {
+      const name = held.getAttribute('aria-label') ?? held.getAttribute('data-storage-side')
+      found.push({ rule: 'aside', detail: `${kind}: carried things outside the sidebar (${name})` })
+    }
+  }
+  if (aside) {
+    if (aside.querySelector('.su-slab-section__head--fold')) {
+      found.push({ rule: 'aside', detail: `${kind}: a section in the sidebar folds` })
+    }
+    const opening = body.querySelector('.su-sheet-columns__hero')?.getBoundingClientRect()
+    const main = body.querySelector('.su-sheet-columns__main')
+    const mainBox = main && main.childElementCount > 0 ? main.getBoundingClientRect() : null
+    const side = aside.getBoundingClientRect()
+    if (side.width === 0 || side.height === 0) {
+      found.push({ rule: 'aside', detail: `${kind}: the sidebar is collapsed` })
+    } else if (!opening) {
+      found.push({ rule: 'aside', detail: `${kind}: no opening over the sidebar` })
+    } else if (side.top < opening.bottom - 1) {
+      found.push({ rule: 'aside', detail: `${kind}: the sidebar is not under the opening` })
+    } else if (window.matchMedia('(width >= 64rem)').matches && mainBox) {
+      // Page width: a column beside the main column, from its top.
+      if (Math.abs(side.top - mainBox.top) > 1 || side.left < mainBox.right - 1) {
+        found.push({ rule: 'aside', detail: `${kind}: the sidebar is not beside the sheet` })
+      }
+    } else if (
+      Math.abs(side.left - opening.left) > 1 ||
+      (mainBox && mainBox.top < side.bottom - 1)
+    ) {
+      // A phone: stacked straight under the opening, over the main column.
+      found.push({ rule: 'aside', detail: `${kind}: the sidebar is not stacked under the opening` })
+    }
+  }
+
   if (!edit) {
     const fields = body.querySelectorAll(
       'input:not([type="hidden"]), textarea, select, [role="slider"], [contenteditable="true"]'
@@ -139,7 +190,7 @@ export function scanSheetGrammar({
 
 export async function findSheetGrammar(
   page: Page,
-  state: { edit: boolean }
+  state: { edit: boolean; carries: boolean }
 ): Promise<SheetGrammarFinding[]> {
   // The sheet loads its record after the route settles: wait for its opening.
   await page
@@ -149,6 +200,7 @@ export async function findSheetGrammar(
     .catch(() => {})
   return page.evaluate(scanSheetGrammar, {
     edit: state.edit,
+    carries: state.carries,
     words: SHEET_VITAL_WORDS,
     emptyLines: EMPTY_LINES,
   })

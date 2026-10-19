@@ -29,12 +29,13 @@
   }
 }
 
-/* ── StorageManifest: the Hold beside its counterpart from md up. ── */
+/* ── StorageManifest: the Hold beside its counterpart where its column is md
+   wide (a container query: in the sheet's sidebar, it stacks). ── */
 .su-sheet-crawler-manifest {
   grid-template-columns: repeat(1, minmax(0, 1fr));
 }
 
-@media (width >= 48rem) {
+@container (width >= 48rem) {
   .su-sheet-crawler-manifest--split {
     grid-template-columns: minmax(0, 1fr) 250px;
   }

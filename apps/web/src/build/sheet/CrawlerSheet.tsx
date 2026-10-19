@@ -4,18 +4,16 @@
  *
  * The body OWNS the identity band now (Workshop-Manual crawler sheet):
  * This body renders `SheetHero` as its first region.
- * Following the printed sheet (`Editable_..._Crawler_Sheets.pdf`), the sheet is
- * a single-column region stack, inside the same `@container` shape
- * PilotSheet/MechSheet use:
+ * Following the printed sheet (`Editable_..._Crawler_Sheets.pdf`), the regions
+ * stack in the columns every sheet shares (`SheetColumns`, ruleset §1.2):
  *
  *   Identity Band: edge wordmark ∥ Name/Type/Ability/Description fields ∥ the
  *     Economy rail (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade readouts, built
- *     by SheetCrawler and passed as `economy`) → Bays (3-column masonry)
- *     → Armament Bay Weapons (3-column) → Assigned Units (bare section, no card
- *     frame) → Storage Bay.
- *   Storage Bay is the FULL-WIDTH band at the very BOTTOM (printed sheet p.2 —
- *     Storage Bay spans the whole width beneath the bays), NOT a full-height
- *     right column.
+ *     by SheetCrawler and passed as `economy`) → Bays (2-column masonry, the
+ *     Armament Bay's weapons inside their bay) → Assigned Units.
+ *   The Storage Bay, what the crawler carries, is the permanent right
+ *     sidebar: beside the sheet from the 64rem rung, under the opening on a
+ *     phone.
  *
  * Economy (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade lozenges) is built by
  * `SheetCrawler` (it owns the economy-dialog state + `patch`) and handed
@@ -39,8 +37,8 @@
  * card.
  *
  * Storage Bay (The Hold) — the unlimited StorageManifest (side='crawler'),
- * in the full-height right rail; Load is cap-checked against the docked
- * mech. Keeps the Stow/Load transfer feature.
+ * in the sidebar; Load is cap-checked against the docked mech. Keeps the
+ * Stow/Load transfer feature.
  *
  * Dropped (the poster redesign — no poster counterpart; tracking issues filed for
  * re-homing as an off-sheet action surface):
@@ -97,6 +95,7 @@ import type { CrawlerBayEntry } from './CrawlerSheetItems'
 import { CrawlerBayCard } from './CrawlerSheetItems'
 import { EntityGridRow } from './EntityGrid'
 import { PhotoBeside } from './PhotoBeside'
+import { SheetColumns } from './SheetColumns'
 import { SheetHero } from './SheetHero'
 import { StorageManifest } from './StorageManifest'
 import { UnknownItemLine } from './UnknownItemLine'
@@ -113,8 +112,6 @@ const ROOT = {
 } satisfies CSSProperties
 
 const POOL_ROW = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
-
-const STORAGE_BAY = { marginTop: tokens.space[24], minWidth: 0 } satisfies CSSProperties
 
 type CrawlerSheetProps = {
   crawler: Crawler
@@ -363,6 +360,11 @@ export function CrawlerSheet({
     )
   }
 
+  /** The Storage Bay(s), by their place in the bay list: the sidebar's. */
+  const storageBays = bays.flatMap((entry, i) =>
+    bayKind(entry) === 'storage' ? [{ entry, i }] : []
+  )
+
   return (
     <section
       aria-label={`${crawler.name} crawler sheet`}
@@ -372,117 +374,104 @@ export function CrawlerSheet({
       className="su-sheet-section"
       style={ROOT}
     >
-      {/* ===== Single-column region flow (Workshop-Manual crawler sheet):
-          Identity → Bays → Armament Weapons → Assigned Units → Storage Bay.
-          Storage is the FULL-WIDTH band at the very bottom (printed
-          `Editable_..._Crawler_Sheets.pdf` p.2), not a full-height right
-          column. ===== */}
-      <Stack gap={24} style={SHRINK}>
-        {/* ===== Identity Band (Workshop-Manual crawler sheet top region) =====
-            Edge wordmark ∥ Name/Type/Ability/Description fields ∥ the Economy
-            rail (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade readouts), in one
-            toned frame — no name pseudoheader stamp. */}
-        <SheetHero
-          name={crawler.name}
-          fields={
-            <PhotoBeside
-              photo={
-                <EntityPhoto
-                  photo={crawler.photo}
-                  fallback={crawlerTypeArt(crawler.type)}
-                  name={crawler.name}
-                  onChange={
-                    readOnly
-                      ? undefined
-                      : (photo) =>
-                          storeState.update('crawler', crawler.id, { photo }, LIVE_SHEET_MANUAL)
-                  }
-                />
-              }
-            >
-              <Stack gap={16} style={SHRINK}>
-                <CrawlerIdentityPanel
-                  crawler={crawler}
-                  store={store}
-                  storeState={storeState}
-                  patch={readOnly ? undefined : patchCrawler}
-                  readOnly={readOnly}
-                  typeCrew={assignmentFor(crew, { kind: 'type' })}
-                />
-              </Stack>
-            </PhotoBeside>
-          }
-          vitals={economy}
-        />
-
-        {/* ----- Content region (Bays, Weapons) ----- */}
-        <Stack gap={24} style={SHRINK}>
-          {/* Bays — ONE unified grid, all bays together (no crew/functional
-              split). // TODO(redesign): render homebrew/custom bays in a
-              separate "Custom Bays" group underneath once the data
-              distinguishes them. */}
-          {bays.length > 0 && (
-            <SlabSection
-              fold="open"
-              title="Bays"
-              count={{ label: 'Intact', value: intactBays, max: bays.length }}
-              actions={
-                crewHref === undefined ? undefined : (
-                  <Button
-                    href={crewHref}
-                    size="compact"
-                    aria-label={`Crew ${crawler.name}: design and assign crawler crew`}
-                  >
-                    Crew…
-                  </Button>
-                )
-              }
-            >
-              {/* The Storage Bay is pulled OUT of the masonry and rendered
-                  full-width below it: it holds the scrap pool and the whole
-                  crawler hold, which no single column can carry. */}
-              <MasonryColumns maxColumns={3}>
-                {bays.map((entry, i) =>
-                  bayKind(entry) === 'storage' ? null : (
-                    // biome-ignore lint/suspicious/noArrayIndexKey: a crawler may install the same bay type more than once, so bayRef alone is not unique; bays are addressed positionally throughout the sheet
-                    <EntityGridRow key={`${entry.bayRef}-${i}`}>
-                      {renderBay(entry, i)}
-                    </EntityGridRow>
-                  )
-                )}
-              </MasonryColumns>
-
+      {/* ===== The Workshop-Manual crawler sheet's regions, in the columns
+          every sheet shares (`SheetColumns`): Identity → Bays (Armament
+          weapons inside their bay) → Assigned Units, and the Storage Bay, what
+          the crawler carries, in the sidebar (ruleset §1.2). ===== */}
+      <SheetColumns
+        asideLabel={`What ${crawler.name} carries`}
+        hero={
+          // ===== Identity Band (Workshop-Manual crawler sheet top region) =====
+          // Edge wordmark ∥ Name/Type/Ability/Description fields ∥ the Economy
+          // rail (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade readouts), in one
+          // toned frame — no name pseudoheader stamp.
+          <SheetHero
+            name={crawler.name}
+            fields={
+              <PhotoBeside
+                photo={
+                  <EntityPhoto
+                    photo={crawler.photo}
+                    fallback={crawlerTypeArt(crawler.type)}
+                    name={crawler.name}
+                    onChange={
+                      readOnly
+                        ? undefined
+                        : (photo) =>
+                            storeState.update('crawler', crawler.id, { photo }, LIVE_SHEET_MANUAL)
+                    }
+                  />
+                }
+              >
+                <Stack gap={16} style={SHRINK}>
+                  <CrawlerIdentityPanel
+                    crawler={crawler}
+                    store={store}
+                    storeState={storeState}
+                    patch={readOnly ? undefined : patchCrawler}
+                    readOnly={readOnly}
+                    typeCrew={assignmentFor(crew, { kind: 'type' })}
+                  />
+                </Stack>
+              </PhotoBeside>
+            }
+            vitals={economy}
+          />
+        }
+        // ----- The Storage Bay, the sidebar: the crawler's own BAY, its
+        // card (the hold IS a bay, Core Book p.213), holding the scrap pool
+        // and the crawler hold. With no Storage Bay installed both still have
+        // to go somewhere: they are crawler-level data (the pool is what bay
+        // REPAIRS spend), so hiding them with the bay would strand them; they
+        // render under a Storage Bay Slab instead. -----
+        aside={
+          storageBays.length > 0 ? (
+            storageBays.map(({ entry, i }) => (
+              <div key={`storage-${i}`} style={SHRINK}>
+                {renderBay(entry, i)}
+              </div>
+            ))
+          ) : storageContents ? (
+            <SlabSection title="Storage Bay">{storageContents}</SlabSection>
+          ) : undefined
+        }
+      >
+        {/* Bays — ONE unified grid, every bay but the Storage Bay, which is
+            the sidebar's (no crew/functional split). // TODO(redesign): render
+            homebrew/custom bays in a separate "Custom Bays" group underneath
+            once the data distinguishes them. */}
+        {bays.length > storageBays.length && (
+          <SlabSection
+            fold="open"
+            title="Bays"
+            count={{ label: 'Intact', value: intactBays, max: bays.length }}
+            actions={
+              crewHref === undefined ? undefined : (
+                <Button
+                  href={crewHref}
+                  size="compact"
+                  aria-label={`Crew ${crawler.name}: design and assign crawler crew`}
+                >
+                  Crew…
+                </Button>
+              )
+            }
+          >
+            {/* Two columns at most: the sidebar takes the third. */}
+            <MasonryColumns maxColumns={2}>
               {bays.map((entry, i) =>
-                bayKind(entry) === 'storage' ? (
-                  // biome-ignore lint/suspicious/noArrayIndexKey: positional, as above
-                  <div key={`storage-${i}`} style={STORAGE_BAY}>
-                    {renderBay(entry, i)}
-                  </div>
-                ) : null
+                bayKind(entry) === 'storage' ? null : (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: a crawler may install the same bay type more than once, so bayRef alone is not unique; bays are addressed positionally throughout the sheet
+                  <EntityGridRow key={`${entry.bayRef}-${i}`}>{renderBay(entry, i)}</EntityGridRow>
+                )
               )}
-            </SlabSection>
-          )}
-        </Stack>
-
-        {/* No Storage Bay installed — the scrap pool and hold still have to go
-            somewhere: both are crawler-level data (the pool is what bay REPAIRS
-            spend), so hiding them with the bay would strand them. They render
-            as their own full-width band instead. Lives OUTSIDE the Bays section
-            because a crawler with no bays at all has no Bays section either. */}
-        {!bays.some((entry) => bayKind(entry) === 'storage') && storageContents && (
-          <SlabSection fold="open" title="Storage Bay">
-            {storageContents}
+            </MasonryColumns>
           </SlabSection>
         )}
 
         {/* Assigned Units — the last region (`AssignedUnits`, built by SheetCrawler). */}
         {linkedUnits}
-
-        {/* ----- Storage Bay — the crawler's own BAY, rendered as a
-            full-width box rather than a plain section: the hold IS a bay (Core
-            Book p.213), so it wears the same frame its siblings above do
-            instead of reading as loose furniture at the foot of the sheet. ----- */}
-      </Stack>
+      </SheetColumns>
 
       {/* The weapons picker — the existing master-detail modal, mounted
           lazily so its reference preload only runs once '+ Add' opens it. */}

@@ -172,9 +172,9 @@ type PilotEquipmentItemProps = {
 }
 
 /**
- * One inventory item: the shortform pill in both states. Edit adds a row under
- * it — the condition tri-state, uses with Use / Restock, Details (the full card,
- * with its choices) and Remove.
+ * One inventory item: its contentful Token in both states. Edit puts the
+ * condition tri-state, uses, Details (the full card, with its choices) and
+ * Remove in its chip group.
  *
  * Extracted from the map body so it can legally call the useEntityChoices hook.
  */
@@ -236,10 +236,11 @@ export function PilotEquipmentItem({
   // and hold — because the grant and the granted thing are one entry to the
   // player (ADR-028). PilotSheet filters those slugs out before mapping here.
 
-  // The shortform pill — the item named, typed and tech-levelled on one line
-  // (board 10). It is the item in BOTH states: the name always wins, and is
-  // never ellipsized to make room for a control. A damaged item's pill greys,
-  // as its card's header does; it Peeks the whole card.
+  // A CONTENTFUL Token (N3; owner's call, 2026-10-19), in the sheet's
+  // sidebar: its head, the item named, typed and tech-levelled on one line,
+  // then the item's text under it. It is the item in BOTH states. A damaged
+  // item's pill greys, as its card's header does; its head Peeks the whole
+  // card, and past two chip lines its chips end in +MORE, which opens it (C5).
   const pill = (
     <Entity
       form="token"
@@ -247,15 +248,15 @@ export function PilotEquipmentItem({
       entity={equipment}
       instance={{ condition }}
       mode={{ kind: 'link' }}
+      body={{}}
     />
   )
   // Only an item with choices opens its card under the line: its choices are
   // written there. Everything else the Peek already shows.
   const hasChoices = Array.isArray(equipment.choices) && equipment.choices.length > 0
 
-  // Read: the pill alone (the inventory wraps its pills on a line). Edit: the
-  // same line as a mech's Systems and Modules (`SheetItemLine`), Details
-  // where there are choices to make.
+  // Read: the Token alone. Edit: the same item line as a mech's Systems and
+  // Modules (`SheetItemLine`), Details where there are choices to make.
   if (readOnly) return pill
 
   return (
