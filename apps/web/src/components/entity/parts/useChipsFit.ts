@@ -29,6 +29,9 @@ function oneLineWidth(el: HTMLElement): number {
 /** The groups a chip sits in, read through to their chips: a strip, its labels, a class lane. */
 const GROUPS = ['su-chips', 'su-entity-row__labels', 'su-chip-lane']
 
+/** Base UI's own nodes a popup's trigger gains while it is open. */
+const NOT_CHIPS = ['data-base-ui-focus-guard', 'data-base-ui-portal']
+
 /**
  * The chips, in order: the chip group's own children, a nested `.su-chips`,
  * labels group or class lane (`Chips`) read through to its chips.
@@ -38,6 +41,8 @@ function chipItems(chips: HTMLElement): Element[] {
   const take = (parent: Element) => {
     for (const child of parent.children) {
       if (GROUPS.some((group) => child.classList.contains(group))) take(child)
+      // An open menu's focus guards and portal sit beside its "⋯": no chips.
+      else if (NOT_CHIPS.some((attr) => child.hasAttribute(attr))) continue
       else items.push(child)
     }
   }
@@ -91,12 +96,20 @@ export function useChipsFit(ref: RefObject<HTMLElement | null>, enabled: boolean
     const heading = ref.current
     if (!enabled || !heading || typeof ResizeObserver === 'undefined') return
     const phone = window.matchMedia?.(PHONE)
+    // What the last answer was measured at: the heading's width and its chips'.
+    // Dropping the chips under the name (or raising them) changes the head's
+    // height alone, which fires the observer again; measured at the same
+    // widths, the answer stands, so a head never flips back and forth.
+    let measuredAt = ''
     const measure = () => {
       const name = heading.firstElementChild
       const chips = heading.lastElementChild
       if (!(name instanceof HTMLElement) || !(chips instanceof HTMLElement) || name === chips) {
         return
       }
+      const at = `${heading.clientWidth}:${phone?.matches}:${chipWidths(chips).join(',')}`
+      if (at === measuredAt) return
+      measuredAt = at
       if (!phone?.matches && heading.dataset.chips !== 'under') {
         const inside = heading.scrollWidth <= heading.clientWidth + 0.5
         if (inside && laidOutLines(chips) <= MAX_CHIP_LINES) return
