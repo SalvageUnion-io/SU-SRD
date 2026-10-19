@@ -74,6 +74,26 @@ describe('the Crew (play.md §7)', () => {
     expect(mags?.vital).toEqual({ label: 'Heat', value: '9', attention: true })
   })
 
+  test('a crewmate whose mech is shut down is flagged by it; otherwise by its SP', () => {
+    const flagged = (status: Record<string, boolean>) => {
+      const crew = crewAt(NOW)
+      const atlas = crew.mechs[0]
+      if (atlas === undefined) throw new Error('fixture')
+      crew.mechs[0] = {
+        ...atlas,
+        status: { ...(atlas.status ?? ({} as never)), ...status },
+        attention: true,
+      }
+      return crewSeatLines(crew, [], 'bonesaw', NOW)[0]?.vital
+    }
+    expect(flagged({ shutdown: true })).toEqual({
+      label: 'Shut down',
+      value: null,
+      attention: true,
+    })
+    expect(flagged({})).toEqual({ label: 'SP', value: '22', attention: true })
+  })
+
   test('the line’s words for a screen reader say all of it', () => {
     expect(lines.map(crewLineLabel)).toEqual([
       'Mags, here, Boarded · Atlas, SP 22, fine',
@@ -110,6 +130,17 @@ describe('read-only, said in one place (play.md §7)', () => {
     expect(playReadOnly({ mode: 'connecting', canWrite: false })?.says).toBe(
       'Read-only while the connection settles.'
     )
+  })
+
+  test('signed out, or a server not taking changes, each say so', () => {
+    expect(playReadOnly({ mode: 'solo', canWrite: false })).toEqual({
+      stamp: 'Read-only · signed out',
+      says: 'Read-only: sign in to play.',
+    })
+    expect(playReadOnly({ mode: 'connected', canWrite: false })).toEqual({
+      stamp: 'Read-only',
+      says: 'Read-only: the server is not taking changes right now.',
+    })
   })
 })
 

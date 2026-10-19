@@ -4,8 +4,15 @@
  * exception to C3). `moreFit` is the arithmetic; `fitMore` reads a strip
  * laid out by a stand-in for the browser's flex wrap.
  */
-import { describe, expect, test } from 'bun:test'
-import { chipLines, fitMore, MORE_LINES, moreFit, watchMore } from '../parts/chipFit'
+import { afterEach, describe, expect, test } from 'bun:test'
+import {
+  chipLines,
+  fitMore,
+  MORE_LINES,
+  moreFit,
+  watchMore,
+  watchStaticMore,
+} from '../parts/chipFit'
 
 describe('chipLines', () => {
   test('packs whole chips onto lines with the 4px gap', () => {
@@ -43,14 +50,22 @@ describe('moreFit', () => {
     // and the short last chip, which would fit, is not pulled forward.
     expect(moreFit([80, 80, 80, 10], 30, 84)).toBe(1)
   })
+
+  test('when not one chip fits beside +MORE, none is shown', () => {
+    expect(moreFit([80, 80, 80], 90, 84)).toBe(0)
+  })
 })
 
 /**
  * A contentful Token as `Token` draws it: the head, its strip of lanes (the
  * slot in the last), and +MORE beside the head. `layout` stands in for the
- * browser: the drawn chips wrap left to right in `room`, 18px a line.
+ * browser: the drawn chips wrap left to right in `room`, 18px a line; the
+ * strip measures `measured` wide (`room` unless a test says otherwise).
  */
-function token(widths: number[], { room, more = 30 }: { room: number; more?: number }) {
+function token(
+  widths: number[],
+  { room, more = 30, measured = room }: { room: number; more?: number; measured?: number }
+) {
   const el = document.createElement('div')
   el.className = 'su-entity-token'
   el.setAttribute('data-contentful', '')
@@ -66,7 +81,7 @@ function token(widths: number[], { room, more = 30 }: { room: number; more?: num
   const strip = el.querySelector('.su-entity-token__chips') as HTMLElement
   const moreEl = el.querySelector('.su-entity-token__more') as HTMLElement
   const slot = el.querySelector('.su-chip-more-slot') as HTMLElement
-  Object.defineProperty(strip, 'clientWidth', { get: () => room })
+  Object.defineProperty(strip, 'clientWidth', { get: () => measured })
   const drawn = (chip: HTMLElement) =>
     !chip.hidden && !chip.hasAttribute('data-chip-over') && (chip !== slot || !slot.hidden)
   const rect = (left: number, top: number, width: number) =>
@@ -101,7 +116,7 @@ function token(widths: number[], { room, more = 30 }: { room: number; more?: num
     [...strip.querySelectorAll<HTMLElement>('[data-w]')].filter((c) =>
       c.hasAttribute('data-chip-over')
     ).length
-  return { el, moreEl, slot, over }
+  return { el, strip, moreEl, slot, over }
 }
 
 describe('fitMore', () => {
@@ -146,5 +161,102 @@ describe('fitMore', () => {
       '<a class="su-entity-token__head"><span class="su-entity-token__chips"></span></a>'
     expect(() => fitMore(el)).not.toThrow()
     expect(watchMore(el)()).toBeUndefined()
+  })
+})
+
+describe('fitMore settling', () => {
+  test('a strip that lays out narrower than it measured drops chips until two lines hold', () => {
+    // It measures 130px (three chips a line) but lays out at 84px (two).
+    const t = token([40, 40, 40, 40, 40, 40], { room: 84, measured: 130 })
+    fitMore(t.el)
+    expect(t.over()).toBe(3)
+    expect(t.moreEl.style.getPropertyValue('--su-more-y')).toBe('22px')
+    t.el.remove()
+  })
+})
+
+describe('watchMore', () => {
+  const realObserver = globalThis.ResizeObserver
+  const realFonts = Object.getOwnPropertyDescriptor(document, 'fonts')
+  afterEach(() => {
+    globalThis.ResizeObserver = realObserver
+    if (realFonts) Object.defineProperty(document, 'fonts', realFonts)
+    else Reflect.deleteProperty(document, 'fonts')
+    document.body.innerHTML = ''
+  })
+
+  /** A ResizeObserver whose callbacks the test fires. */
+  function fakeObserver() {
+    const fired: (() => void)[] = []
+    let disconnected = 0
+    globalThis.ResizeObserver = class {
+      constructor(callback: ResizeObserverCallback) {
+        fired.push(() => callback([], this as unknown as ResizeObserver))
+      }
+      observe() {}
+      unobserve() {}
+      disconnect() {
+        disconnected += 1
+      }
+    } as unknown as typeof ResizeObserver
+    return { resize: () => fired.at(-1)?.(), disconnected: () => disconnected }
+  }
+
+  test('refits when the head changes width, and on every font load, until stopped', async () => {
+    const loads: (() => void)[] = []
+    Object.defineProperty(document, 'fonts', {
+      configurable: true,
+      value: {
+        ready: Promise.resolve(),
+        addEventListener: (_: string, refit: () => void) => loads.push(refit),
+      },
+    })
+    const observer = fakeObserver()
+    let headWidth = 84
+    const t = token([40, 40, 40, 40, 40, 40], { room: 84 })
+    const head = t.el.firstElementChild as HTMLElement
+    head.getBoundingClientRect = () => ({ width: headWidth }) as DOMRect
+    const stop = watchMore(t.el)
+    expect(t.over()).toBe(3)
+
+    // A font load refits every watched Token from every chip drawn.
+    for (const chip of t.strip.querySelectorAll('[data-w]')) chip.removeAttribute('data-chip-over')
+    for (const refit of loads) refit()
+    expect(t.over()).toBe(3)
+
+    // A height change alone (the fit's own) is no refit; a width change is.
+    for (const chip of t.strip.querySelectorAll('[data-w]')) chip.removeAttribute('data-chip-over')
+    observer.resize()
+    expect(t.over()).toBe(0)
+    headWidth = 300
+    observer.resize()
+    expect(t.over()).toBe(3)
+
+    stop()
+    expect(observer.disconnected()).toBe(1)
+  })
+
+  test('a Token taken off the page stops its own watch', () => {
+    const observer = fakeObserver()
+    const t = token([40, 40, 40, 40, 40, 40], { room: 84 })
+    watchMore(t.el)
+    t.el.remove()
+    observer.resize()
+    expect(observer.disconnected()).toBe(1)
+  })
+
+  test('with no ResizeObserver it fits once', () => {
+    Reflect.deleteProperty(globalThis, 'ResizeObserver')
+    const t = token([40, 40, 40, 40, 40, 40], { room: 84 })
+    const stop = watchMore(t.el)
+    expect(t.over()).toBe(3)
+    expect(() => stop()).not.toThrow()
+  })
+
+  test("a static page's contentful Tokens each fit", () => {
+    fakeObserver()
+    const t = token([40, 40, 40, 40, 40, 40], { room: 84 })
+    watchStaticMore(document.body)
+    expect(t.over()).toBe(3)
   })
 })

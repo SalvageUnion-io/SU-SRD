@@ -115,6 +115,22 @@ describe('npcActions', () => {
     expect(hauler.some((a) => a.source === '.50 Cal Machine Gun')).toBe(true)
   })
 
+  test('a saved pattern’s items read by name, whether a name or an installed item', () => {
+    const mule = findEntityBySlug('chassis', 'mule')
+    if (mule === null) throw new Error('no Mule')
+    const bare = npcActions({ id: 'm1', entity: mule, pattern: null })
+    const saved = {
+      name: 'Red Leader',
+      systems: [{ name: '.50 Cal Machine Gun' }, 7, { slot: 1 }],
+      modules: 'none',
+    } as unknown as Parameters<typeof npcActions>[0]['pattern']
+    const actions = npcActions({ id: 'm1', entity: mule, pattern: saved })
+    expect(actions.filter((a) => a.source === '.50 Cal Machine Gun').length).toBe(
+      actions.length - bare.length
+    )
+    expect(actions.length).toBeGreaterThan(bare.length)
+  })
+
   test('a row whose reference no longer resolves has none', () => {
     expect(npcActions({ id: 'x', entity: null, pattern: null })).toEqual([])
   })
@@ -123,6 +139,10 @@ describe('npcActions', () => {
     expect(npcKind({ refSchema: 'npcs' })).toBe('NPC')
     expect(npcKind({ refSchema: 'chassis' })).toBe('Mech')
     expect(npcKind({ refSchema: 'bio-titans' })).toBe('Bio-Titan')
+    expect(npcKind({ refSchema: 'squads' })).toBe('Squad')
+    expect(npcKind({ refSchema: 'creatures' })).toBe('Creature')
+    expect(npcKind({ refSchema: 'vehicles' })).toBe('Vehicle')
+    expect(npcKind({ refSchema: 'meld' })).toBe('Meld')
     expect(npcKind({ refSchema: null })).toBe('NPC')
   })
 })

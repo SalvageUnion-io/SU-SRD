@@ -11,7 +11,7 @@
  */
 
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SeatResolving } from 'game-domain/schemas/seat'
@@ -442,6 +442,9 @@ describe('Use: the resolve, in the Row', () => {
 })
 
 describe('the Reactor and Mount rows', () => {
+  /** A chassis with a Heat Capacity: the fixture's unknown chassis has none, so it never Pushes. */
+  const REACTOR_CHASSIS = 'mule'
+
   test('Vent writes the Vent patch; a Heat Check is reported', async () => {
     const heard: PlayRoll[] = []
     const stop = onPlayRoll((roll) => heard.push(roll))
@@ -455,6 +458,64 @@ describe('the Reactor and Mount rows', () => {
     } finally {
       stop()
     }
+  })
+
+  test('Push pressed makes the stamp a Push: +2 Heat, then the Heat Check, on the log', async () => {
+    const heard: PlayRoll[] = []
+    const stop = onPlayRoll((roll) => heard.push(roll))
+    try {
+      const { calls } = renderBoarded({ mech: makeMech({ chassisRef: REACTOR_CHASSIS }) })
+      await click(screen.getByRole('button', { name: 'Push' }))
+      await click(screen.getByRole('button', { name: 'Push on Reactor Overload' }))
+      expect(heard.at(-1)).toMatchObject({ tableName: 'Reactor Overload', label: 'Push' })
+      expect(calls.at(-1)?.patch.currentHeat).toBe(2)
+      // One Push: the stamp is the Heat Check again.
+      expect(screen.getByRole('button', { name: 'Heat check on Reactor Overload' })).toBeTruthy()
+    } finally {
+      stop()
+    }
+  })
+
+  test('a Push past the Heat Capacity is refused before the roll, and says why', async () => {
+    const mech = makeMech({ chassisRef: REACTOR_CHASSIS })
+    const cap = mechMaxHeat(mech, resolveChassisRef(mech.chassisRef))
+    const { calls } = renderBoarded({ mech: { ...mech, currentHeat: cap - 1 } })
+    await click(screen.getByRole('button', { name: 'Push' }))
+    expect(screen.getByText(new RegExp(`^No Push at Heat ${cap - 1}/${cap}`))).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Push on Reactor Overload' })).toBeNull()
+    expect(calls).toHaveLength(0)
+  })
+
+  test('Shut down and Restart toggle the reactor flag', async () => {
+    const { calls } = renderBoarded()
+    await click(screen.getByRole('button', { name: 'Shut down' }))
+    expect(calls.at(-1)?.patch).toEqual({ shutdown: true })
+    cleanup()
+    const down = renderBoarded({ mech: makeMech({ shutdown: true }) })
+    await click(screen.getByRole('button', { name: 'Restart' }))
+    expect(down.calls.at(-1)?.patch).toEqual({ shutdown: false })
+  })
+
+  test('a Meltdown destroys the mech only on its own confirm (ADR-007)', async () => {
+    const mech = makeMech({ chassisRef: REACTOR_CHASSIS, currentHeat: 6 })
+    const pilot = makePilot()
+    const { store, calls } = stubStore(mech, pilot)
+    // Every die a 1: the check overloads, and the overload is a Meltdown.
+    render(
+      <Harness
+        pilot={pilot}
+        mech={mech}
+        situation="boarded"
+        store={store}
+        writes={[]}
+        rollFor={async () => () => 1}
+      />
+    )
+    await click(screen.getByRole('button', { name: 'Heat check on Reactor Overload' }))
+    expect(calls.some((c) => c.patch.destroyed === true)).toBe(false)
+    await click(screen.getByRole('button', { name: /^Confirm Meltdown/ }))
+    expect(calls.at(-1)?.patch).toEqual({ destroyed: true })
+    expect(screen.queryByRole('button', { name: /^Confirm Meltdown/ })).toBeNull()
   })
 
   test('Boarded: Dismount climbs out; Eject waits for its confirm', async () => {
