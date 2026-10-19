@@ -81,7 +81,7 @@ export function PlayNpcBox({
         tone="adversary"
         className="su-play-unit"
         reference={npc.down}
-        chips={<Stat label={npc.down ? `${npcKind(npc)} · down` : npcKind(npc)} size="mini" />}
+        chips={<Stat label={npc.down ? `${npcKind(npc)} · down` : npcKind(npc)} size="compact" />}
         controls={
           <span style={CONTROLS}>
             <Toggle

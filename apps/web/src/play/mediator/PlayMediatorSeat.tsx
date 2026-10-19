@@ -96,11 +96,12 @@ export function PlayMediatorSeat({
             />
           ),
           controls: (
-            // Compact, not Mini: it sits on the seat's own radio, and a
-            // target on a target needs the 24px floor itself (WCAG 2.5.8).
+            // The chip group's last slot, at the strip's Size (C1a, R6). On
+            // the seat's own radio, its hit area keeps the 24px floor a
+            // target on a target needs (WCAG 2.5.8; `entity-forms.css`).
             <Button
               variant="ghost"
-              size="compact"
+              size="mini"
               aria-label={`Open ${seat.name}’s sheet`}
               onClick={onOpenSheet}
             >

@@ -35,10 +35,11 @@ type RowSlots = {
   /** What it is built on or linked to, after the traits (`chips-and-actions.md` C11). */
   relations?: TagItem[]
   /**
-   * The host's controls (Assign, Unassign, View), the head's trailing mode
-   * slot (E7): at the band's right end, after the affordance. They never
-   * nest inside the surface's own control: a link or select Row that has
-   * them lays its surface over the frame and raises them above it.
+   * The host's controls (Use, Assign, Unassign, View): the chip group's last
+   * slot, after the cost and the state, ahead of a "⋯" (C8, hard rule R6);
+   * never beside the strip. They never nest inside the surface's own control:
+   * a link or select Row that has them lays its surface over the frame and
+   * raises them above it.
    */
   controls?: ReactNode
   /** The host's labels (an owner stamp): the first chips, before the model's own labels. */
@@ -163,7 +164,11 @@ export function Row({
   // label-only chip too (the dashed frame already says pencil, not print).
   const labelsAsChips =
     (!!ownLabels || !!slots.extraLabels) &&
-    (chipCount(chips) > 0 || !!slots.extraLabels || !!slots.trailing || !!slots.state)
+    (chipCount(chips) > 0 ||
+      !!slots.extraLabels ||
+      !!slots.trailing ||
+      !!slots.state ||
+      !!slots.controls)
   // The marks lane (C2): the host's, then the note, then User-made.
   const marks = labelsAsChips
     ? [
@@ -201,7 +206,11 @@ export function Row({
           paint={paint}
           tier={omit.includes('tier') ? undefined : model.tier}
           chips={
-            chipCount(chips) > 0 || labelsAsChips || slots.trailing || slots.state ? (
+            chipCount(chips) > 0 ||
+            labelsAsChips ||
+            slots.trailing ||
+            slots.state ||
+            slots.controls ? (
               <Chips
                 chips={chips}
                 size="compact"

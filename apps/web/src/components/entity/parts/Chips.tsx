@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Children, useLayoutEffect, useRef } from 'react'
+import { Children, cloneElement, Fragment, isValidElement, useLayoutEffect, useRef } from 'react'
 import { splitStatLine } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
 import type { CSSVarStyle } from '../../../styles/cssVars'
@@ -138,9 +138,9 @@ export function Chips({
     menu: menu ?? nodes?.menu,
   }
   const lanes = CHIP_CLASSES.map((cls) => {
-    // A host's node is one chip (a Fragment of several counts once: only the
-    // lanes before it read the count, and the mark lane leads them all).
-    const extra = Children.toArray(host[cls])
+    // A host's node is one chip; a Fragment is its children, each a chip, so
+    // the lanes before it count what it draws (a Row's View and Unassign).
+    const extra = chipNodes(host[cls])
     return { cls, nodes: [...own[cls].nodes, ...extra], count: own[cls].count + extra.length }
   })
   if (lanes.every((lane) => lane.nodes.length === 0)) return null
@@ -165,6 +165,18 @@ export function Chips({
       )}
     </Tag>
   )
+}
+
+/**
+ * A host's nodes as its chips: arrays and Fragments opened, each child one
+ * chip, its key prefixed with its Fragment's so two Fragments never collide.
+ */
+function chipNodes(node: ReactNode, prefix = ''): ReactNode[] {
+  return Children.toArray(node).flatMap((child) => {
+    if (!isValidElement<{ children?: ReactNode }>(child)) return [child]
+    if (child.type === Fragment) return chipNodes(child.props.children, `${prefix}${child.key}/`)
+    return [prefix ? cloneElement(child, { key: `${prefix}${child.key}` }) : child]
+  })
 }
 
 /** How many chips follow a lane: where its own chips count from, from the strip's end. */

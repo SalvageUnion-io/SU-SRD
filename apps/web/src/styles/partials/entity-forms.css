@@ -243,6 +243,17 @@
   justify-content: flex-end;
 }
 
+/* An action in a chip group (C8: a Row's Use, a "⋯", a host's group of
+   them) at the strip's Size is a Mini button drawn exactly a chip's height
+   (C1a: one height, one centre line), its border inside it; its hit area
+   grows under a coarse pointer, never its box. */
+.su-chips > .su-chip-lane > .su-btn--mini,
+.su-chips > .su-chip-lane > * > .su-btn--mini {
+  box-sizing: border-box;
+  height: var(--size-mini);
+  min-height: 0;
+}
+
 /* A head with chips (`Head`'s `chips`): the name and the chip group share a
    wrapping heading, as a card's band does (`.su-ec-band__heading`): the name
    keeps its one-line width and grows, the chips sit right of it while they
@@ -550,6 +561,28 @@
   border-color: var(--color-ink);
 }
 
+/* On the paper strip an ink band's words and outlined controls (a Row's Use,
+   "needs Boarded") are the paper ground's again: ink text on an ink outline,
+   never the band's paper on paper. */
+[data-ground='ink']
+  .su-entity-row__heading--cut[data-chips='under']
+  > :is(.su-chips, .su-entity-row__chip-group) {
+  color: var(--color-ink);
+}
+
+[data-ground='ink']
+  .su-entity-row__heading--cut[data-chips='under']
+  :is(.su-btn--default, .su-btn--ghost) {
+  border-color: var(--color-ink);
+  color: var(--color-ink);
+}
+
+[data-ground='ink']
+  .su-entity-row__heading--cut[data-chips='under']
+  :is(.su-btn--default, .su-btn--ghost):hover:not(:disabled) {
+  background-color: var(--color-ink-8);
+}
+
 .su-entity-row__head[data-ground='ink']
   .su-entity-row__heading--cut[data-chips='under']
   .su-entity-row__chip-group
@@ -753,53 +786,37 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
   }
 }
 
-/* The host's controls (`Head`'s `controls`, Assign / Unassign / View): the
-   band's right end, after the affordance, centred on it; they wrap among
-   themselves, never cut. */
-.su-entity-row__controls {
-  align-items: center;
-  align-self: center;
-  display: flex;
-  flex: 0 1 auto;
-  flex-wrap: wrap;
-  gap: var(--space-6);
-  justify-content: flex-end;
-  margin-left: auto;
-  min-width: min-content;
-}
-
-/* A narrow Row with controls (a Game's roster column, ~25rem): beside the
-   name they took the whole line and squeezed the name and its chips to
-   nothing. Under 40rem the controls take their own line on the band, above
-   the name, and the name keeps the band's foot. */
-@container not (width >= 40rem) {
-  .su-entity-row__line:has(> .su-entity-row__controls) {
-    flex-wrap: wrap;
-    row-gap: var(--space-6);
-  }
-
-  .su-entity-row__line > .su-entity-row__controls {
-    flex-basis: 100%;
-    order: -1;
-  }
-}
-
 /* A link or select Row with controls (`data-covered`): the surface is an
    empty cover over the whole Row, so the controls never nest inside its
-   `<a>` or radio, and they, any button among the chips (an owner seal that
-   claims, a "⋯" menu) and a toggle's check sit raised above it. */
+   `<a>` or radio, and every button among the chips (the host's controls in
+   the last slot, an owner seal that claims, a "⋯" menu) and a toggle's check
+   sit raised above it. */
 .su-entity-row__cover {
   border-radius: var(--radius-card);
   inset: 0;
   position: absolute;
 }
 
-.su-entity-row[data-covered] .su-entity-row__controls,
 .su-entity-row[data-covered] .su-entity-row__labels,
 .su-entity-row[data-covered] .su-chips :is(a, button),
 .su-entity-row[data-covered] .su-entity-row__line > input {
   position: relative;
   z-index: 1;
+}
+
+/* A Mini button on a covered Row is a target on a target: its hit area
+   keeps WCAG 2.2's 24px floor (2.5.8) around the chip-high box. A coarse
+   pointer's 44px area (`pointer-motion.css`) replaces it there. */
+@media not (pointer: coarse) {
+  .su-entity-row[data-covered] .su-chips .su-btn--mini:not(.su-dash-phone *)::after {
+    content: '';
+    height: max(100%, var(--space-24));
+    left: 50%;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: max(100%, var(--space-24));
+  }
 }
 
 /* Dropped under the name, the chip strip's clip makes it a stacking context

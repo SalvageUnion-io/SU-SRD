@@ -182,18 +182,6 @@
   color: var(--color-paper);
 }
 
-/* ModalShell's cut-out head holds one control, the ×: it stays on the band
-   beside the title at every width, never on a line of its own above it as a
-   narrow Row's controls go (`.su-entity-row__controls`). */
-.su-modal-panel .su-entity-row__line:has(> .su-entity-row__controls) {
-  flex-wrap: nowrap;
-}
-
-.su-modal-panel .su-entity-row__line > .su-entity-row__controls.su-entity-row__controls {
-  flex-basis: auto;
-  order: 0;
-}
-
 /* SheetSectionCard (`components/containers/SheetSectionCard.tsx`): its body block,
    which merges the caller's `bodyClassName` (the sheets' grid gaps). */
 .su-sheet-section-stack {

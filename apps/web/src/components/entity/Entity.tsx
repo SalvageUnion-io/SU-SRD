@@ -54,8 +54,9 @@ export type EntityProps = EntitySource &
     /** Row only: the title's element — a heading where the Row is a page's entry (default `span`). */
     titleAs?: ElementType
     /**
-     * Row only: the host's controls (Assign, Unassign, View), the head's
-     * trailing mode slot (E7). They never nest in a link or select surface.
+     * Row only: the host's controls (Use, Assign, Unassign, View), the chip
+     * group's last slot after the cost, ahead of a "⋯" (C8, hard rule R6).
+     * They never nest in a link or select surface.
      */
     controls?: ReactNode
     /** Row only: the host's labels (an owner stamp), the first of its chips. */

@@ -103,7 +103,7 @@ function Relations({ items }: { items: readonly TagItem[] }) {
   return (
     <Chips
       chips={{ durations: [], facts: [], tags: [], relations: [...items] }}
-      size="mini"
+      size="compact"
       linkable
     />
   )
@@ -165,7 +165,7 @@ export function PlayPilotUnit({
       tone="pilot"
       className="su-play-unit"
       reference={!live}
-      chips={<Stat label="Pilot" size="mini" />}
+      chips={<Stat label="Pilot" size="compact" />}
       controls={stamp(live ? 'Live' : 'Read only')}
     >
       {hp ? (
@@ -407,12 +407,12 @@ export function PlayCrawlerUnit({
       tone="crawler"
       className="su-play-unit"
       reference={!solid}
-      chips={<Stat label="Crawler" size="mini" />}
+      chips={<Stat label="Crawler" size="compact" />}
       controls={
         downtime ? (
           stamp('Downtime')
         ) : tl === undefined ? undefined : (
-          <Stat label="TL" value={tl} size="mini" />
+          <Stat label="TL" value={tl} size="compact" />
         )
       }
     >

@@ -17,7 +17,7 @@ describe('TitledBox', () => {
     expect(body?.hasAttribute('data-flush')).toBe(false)
   })
 
-  test('paints its tone, and carries chips and controls on the band', () => {
+  test('paints its tone, and carries chips and controls in one chip group on the band', () => {
     const { container } = render(
       <TitledBox
         title="Hold"
@@ -31,7 +31,9 @@ describe('TitledBox', () => {
     const head = container.querySelector<HTMLElement>('.su-entity-row__head')
     expect(head?.style.backgroundColor).toBe('var(--color-mech)')
     expect(head?.textContent).toContain('SLOTS | 3')
-    expect(head?.querySelector('.su-entity-row__controls button')).not.toBeNull()
+    // The controls are the chip group's last slot (C8, R6), after its chips.
+    const close = head?.querySelector('[data-chip-group] [data-chip-class="menu"] button')
+    expect(close?.textContent).toBe('Close')
   })
 
   test('closes on its head with no body, and is a named section on request', () => {

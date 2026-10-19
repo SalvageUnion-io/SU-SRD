@@ -45,8 +45,10 @@ const CHIP = [
   '.su-chip-link',
   '.su-cost-edge',
   '.su-cost',
-  // An action chip in the group (C8): a Row's "⋯".
+  // An action chip in the group (C8): a Row's "⋯", and whatever fills its
+  // last slot (a Row's Use, a host's controls; hard rule R6).
   '.su-header-menu-trigger--overflow',
+  '[data-chip-class="menu"] > *',
 ].join(',')
 
 /** An entity's frame: the box no chip of its strips may leave. */

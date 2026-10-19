@@ -1,6 +1,6 @@
 /**
- * A Row's controls (`controls`, the head's trailing mode slot, E7): a host's
- * Assign / Unassign / View sit on the band's right end. They never nest in
+ * A Row's controls (`controls`): a host's Use, Assign, Unassign or View are
+ * the chip group's last slot, after the cost and before a "⋯" (C8, R6). They never nest in
  * the Row's own control: a link or select Row lays its surface over the frame
  * as an empty cover and raises the controls above it. A host's labels sit
  * right of the title, after the model's own; its trailing chip (a "⋯" menu)
@@ -28,12 +28,15 @@ const unassign = () => (
 )
 
 describe('Row controls', () => {
-  test('read: the controls sit in the head, after the chips', () => {
+  test('read: the controls are the last slot of the chip group, after the chips', () => {
     render(<Entity form="row" model={MODEL} controls={unassign()} />)
     const button = screen.getByRole('button', { name: 'Unassign' })
-    const slot = button.closest('.su-entity-row__controls')
-    expect(slot).not.toBeNull()
-    expect(slot?.closest('.su-entity-row__head')).not.toBeNull()
+    // In the group, never beside it (C8, hard rule R6): the menu lane, last.
+    const lane = button.closest('[data-chip-class]')
+    expect(lane?.getAttribute('data-chip-class')).toBe('menu')
+    expect(button.closest('[data-chip-group]')?.lastElementChild).toBe(lane)
+    expect(lane?.closest('.su-entity-row__head')).not.toBeNull()
+    expect(button.closest('[data-chip-group]')?.textContent).toContain('HP8/10')
     // A read Row has no surface of its own to cover it.
     expect(document.querySelector('.su-entity-row__cover')).toBeNull()
   })
@@ -94,6 +97,23 @@ describe('Row controls', () => {
     const lane = more.closest('[data-chip-class]')
     expect(lane?.getAttribute('data-chip-class')).toBe('menu')
     expect(more.closest('.su-chips')?.lastElementChild).toBe(lane)
+  })
+
+  test('controls and a trailing chip share the last slot, the "⋯" last', () => {
+    render(
+      <Entity
+        form="row"
+        model={MODEL}
+        controls={unassign()}
+        trailing={<button type="button">More for Ace</button>}
+      />
+    )
+    const lane = screen.getByRole('button', { name: 'Unassign' }).closest('[data-chip-class]')
+    expect(lane?.getAttribute('data-chip-class')).toBe('menu')
+    expect([...(lane?.children ?? [])].map((el) => el.textContent)).toEqual([
+      'Unassign',
+      'More for Ace',
+    ])
   })
 
   test('a trailing chip alone still draws the chip group', () => {

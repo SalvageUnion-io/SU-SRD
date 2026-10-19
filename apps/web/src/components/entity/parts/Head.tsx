@@ -1,5 +1,5 @@
 import type { ElementType, ReactNode } from 'react'
-import { isValidElement, useRef } from 'react'
+import { cloneElement, isValidElement, useRef } from 'react'
 import { cn } from '../../../lib/cn'
 import { grainClass } from '../../referenceEntity/card/cardGrain'
 import { Chips } from './Chips'
@@ -41,7 +41,11 @@ export type HeadProps = {
   chips?: ReactNode
   /** The mode's affordance: the "Selected" seal, a toggle's check. */
   affordance?: ReactNode
-  /** The host's controls, the trailing slot after the affordance. */
+  /**
+   * The host's actions (Use, Roll, Sheet ⤢, Assign, a dialog's ✕): inlined in
+   * the chip group after the cost, its last slot (`chips-and-actions.md` C8),
+   * before any "⋯" the strip already ends with. Never beside the strip.
+   */
   controls?: ReactNode
   /** The labels (`CardLabels`): on the name's line, right after the name. */
   labels?: ReactNode
@@ -65,7 +69,8 @@ export type HeadProps = {
  * HEAD — a Row's band: the tier (on the band), the name (it wraps, never
  * clipped; with `notch`, on the paper cut-out at the band's foot) with its labels to its
  * right, the chip group (right of the name while it fits, under it when it
- * does not: the band's own width decides) and the mode's affordance, in
+ * does not: the band's own width decides), the host's controls its last
+ * slot, so nothing sits beside the strip (C8, R6), and the mode's affordance, in
  * that order; the affordance stays on the band's right, centred on it, never
  * alone on a line. The band wears the
  * paint (`paintFor`): the tone or ink, grey when down.
@@ -85,7 +90,7 @@ export function Head({
   notch = false,
   chipsBeside = false,
 }: HeadProps) {
-  const chips = asStrip(chipsProp)
+  const chips = asStrip(chipsProp, controls)
   const cut = notch && (!chips || chipsBeside)
   const headingRef = useRef<HTMLDivElement>(null)
   useChipsFit(headingRef, cut && !!chips)
@@ -152,7 +157,6 @@ export function Head({
           name
         )}
         {affordance}
-        {controls && <div className="su-entity-row__controls">{controls}</div>}
       </div>
     </div>
   )
@@ -160,13 +164,30 @@ export function Head({
 
 const NO_CHIPS: ChipSet = { durations: [], facts: [], tags: [] }
 
+type ChipsProps = Parameters<typeof Chips>[0]
+
+const none = (node: ReactNode) => node === undefined || node === null || node === false
+
 /**
  * A head's chips as one `Chips` strip (C2a): a strip passes through; any
  * other chip a host hands the head (a label-only `Stat`, a stamp) is drawn by
- * `Chips` as its marks, so every head strip names its classes.
+ * `Chips` as its marks, so every head strip names its classes. The host's
+ * controls are the strip's last slot (C8, hard rule R6): the menu lane, ahead
+ * of a "⋯" already there, so nothing sits beside the strip.
  */
-function asStrip(chips: ReactNode): ReactNode {
-  if (chips === undefined || chips === null || chips === false) return undefined
-  if (isValidElement(chips) && chips.type === Chips) return chips
-  return <Chips chips={NO_CHIPS} size="compact" marks={chips} />
+function asStrip(chips: ReactNode, controls: ReactNode): ReactNode {
+  if (none(chips) && none(controls)) return undefined
+  if (isValidElement<ChipsProps>(chips) && chips.type === Chips) {
+    if (none(controls)) return chips
+    const menu = chips.props.menu
+    return cloneElement(chips, { menu: none(menu) ? controls : [controls, menu] })
+  }
+  return (
+    <Chips
+      chips={NO_CHIPS}
+      size="compact"
+      marks={none(chips) ? undefined : chips}
+      menu={none(controls) ? undefined : controls}
+    />
+  )
 }
