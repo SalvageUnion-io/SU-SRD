@@ -7,7 +7,7 @@ import { ChapterBandTrail } from '../ChapterBandTrail'
 
 /**
  * ChapterBand (brand refresh P2a): the page title notched into a band in the chapter's
- * colour, in ink — it replaced PageHeading's ink-stamp page heading.
+ * colour, in ink, the page's one h1.
  */
 describe('ChapterBand', () => {
   test('is the page h1 by default, in ink on the page ground — never a knockout', () => {

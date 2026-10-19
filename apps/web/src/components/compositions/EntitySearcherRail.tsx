@@ -14,10 +14,9 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { borderWidth, color, font, fontSize, iconSize, radius, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { useDisclosure } from '../../lib/useDisclosure'
-import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
 import { FOCUS_RING } from '../atoms/interaction'
-import { PageHeading } from '../atoms/PageHeading'
+import { Slab } from '../atoms/Slab'
 import { Entity } from '../entity/Entity'
 import { BudgetChips } from './EntitySearcherBudget'
 import { chevronStyle } from './entitySearcherChrome'
@@ -137,7 +136,7 @@ export function SelectionRail({
   const list = useDisclosure()
   const expanded = wide || list.open
   const headingId = useId()
-  const headingRef = useRef<HTMLHeadingElement>(null)
+  const headingRef = useRef<HTMLElement>(null)
   const toggleRef = useRef<HTMLButtonElement>(null)
   const removeRefs = useRef<Array<HTMLButtonElement | null>>([])
   const pendingFocus = useRef<{ position: number; length: number } | null>(null)
@@ -164,18 +163,14 @@ export function SelectionRail({
     else onToggle?.(entry.ref)
   }
 
-  // Explicit spaces between the parts: an accessible name is built from text,
-  // and without them it would read "Equipped3".
-  const title = (
+  // The Slab's count, at its rule's end: how many are chosen, and for whom.
+  const count = (
     <>
-      <span>{chosenLabel}</span> <Badge shape="chip">{entries.length}</Badge>
+      {entries.length}
       {name && (
         <>
-          {' '}
-          <span style={NAME_STYLE}>
-            <span aria-hidden="true">· </span>
-            {name}
-          </span>
+          <span aria-hidden="true"> · </span>
+          {name}
         </>
       )}
     </>
@@ -237,16 +232,15 @@ export function SelectionRail({
     return (
       <section aria-labelledby={headingId} className="su-searcher__rail" style={RAIL_STYLE}>
         <div style={HEAD_STYLE}>
-          <PageHeading
-            variant="section"
+          <Slab
             as="h2"
             id={headingId}
             ref={headingRef}
             tabIndex={-1}
-            className={FOCUS_RING}
-          >
-            <span style={TITLE_STYLE}>{title}</span>
-          </PageHeading>
+            label={chosenLabel}
+            count={count}
+            flush
+          />
           {budgetNode}
         </div>
         {listNode}
@@ -260,22 +254,28 @@ export function SelectionRail({
       {listNode}
       <div className="su-searcher__bar" style={BAR_STYLE}>
         <div style={BAR_HEADING_STYLE}>
-          <PageHeading variant="section" as="h2" id={headingId}>
-            <button
-              ref={toggleRef}
-              type="button"
-              {...list.toggleProps}
-              className={cn('su-searcher__bar-toggle', FOCUS_RING)}
-              style={TOGGLE_STYLE}
-            >
-              {title}
-              <ChevronDown
-                aria-hidden="true"
-                size={iconSize.compact}
-                style={chevronStyle(list.open)}
-              />
-            </button>
-          </PageHeading>
+          <Slab
+            as="h2"
+            id={headingId}
+            count={count}
+            flush
+            label={
+              <button
+                ref={toggleRef}
+                type="button"
+                {...list.toggleProps}
+                className={cn('su-searcher__bar-toggle', FOCUS_RING)}
+                style={TOGGLE_STYLE}
+              >
+                {chosenLabel}
+                <ChevronDown
+                  aria-hidden="true"
+                  size={iconSize.compact}
+                  style={chevronStyle(list.open)}
+                />
+              </button>
+            }
+          />
         </div>
         {budgetNode}
         {actions && <div style={BAR_ACTIONS_STYLE}>{actions}</div>}
@@ -293,13 +293,6 @@ const HEAD_STYLE = {
   gap: space[8],
   padding: `${space[12]} ${space[16]}`,
   borderBottom: `${borderWidth.hairline} solid ${color.ink20}`,
-} satisfies CSSProperties
-
-const TITLE_STYLE = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: space[8],
-  minWidth: 0,
 } satisfies CSSProperties
 
 /** Narrow: the disclosure, the at-a-glance budgets and the actions, on one
@@ -320,10 +313,13 @@ const BAR_ACTIONS_STYLE = {
   marginLeft: 'auto',
 } satisfies CSSProperties
 
-/** A bare button wearing its heading's type — `inherit` across the board,
+/** A bare button wearing its Slab stamp's type — `inherit` across the board,
  * because a button's UA style resets font, tracking and case. */
 const TOGGLE_STYLE = {
-  ...TITLE_STYLE,
+  display: 'flex',
+  alignItems: 'center',
+  gap: space[8],
+  minWidth: 0,
   maxWidth: '100%',
   margin: space[0],
   padding: space[0],
@@ -336,14 +332,6 @@ const TOGGLE_STYLE = {
   textTransform: 'inherit',
   textAlign: 'left',
   cursor: 'pointer',
-} satisfies CSSProperties
-
-const NAME_STYLE = {
-  minWidth: 0,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-  color: color.ink75,
 } satisfies CSSProperties
 
 const BUDGET_ROW_STYLE = {

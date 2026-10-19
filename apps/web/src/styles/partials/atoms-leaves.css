@@ -3,7 +3,7 @@
  * Text. `../index.css` imports the parts in cascade order.
  */
 
-/* ── Conditions, ModeDoor, Panel, Slab, PageHeading ── */
+/* ── Conditions, ModeDoor, Panel, Slab ── */
 /* Conditions.tsx — the remove glyph brightens on hover. */
 .su-condition-chip__remove {
   opacity: 0.8;
@@ -29,19 +29,6 @@
 .su-mode-door:focus-visible {
   outline: 3px solid transparent;
   box-shadow: var(--focus-ring-shadow);
-}
-
-/* PageHeading.tsx — each rung's size, leading and tracking, which callers
-   retune through `className` (`leading-tight`, `tracking-caps-tight`). */
-.su-page-heading--subheading {
-  font-size: var(--text-lg);
-  line-height: calc(1.75 / 1.125);
-}
-
-.su-page-heading--section {
-  font-size: var(--text-sm);
-  letter-spacing: var(--tracking-caps);
-  line-height: calc(1.25 / 0.875);
 }
 
 /* ── ActivationCost, KofiButton, SearchField, SlotGrid ── */

@@ -19,9 +19,8 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  * on a cut-out of the page ground, **in ink**. Never a white knockout: paper on
  * pilot orange is 2.4 : 1.
  *
- * It replaced `PageHeading`'s ink-stamp page heading. The band is the page's
- * one `h1`; the quieter rungs below it stay `PageHeading`'s (`subheading`,
- * `section`) and the section dividers are `Slab`.
+ * The band is the page's one `h1`; every section head below it is a `Slab`
+ * (hard rule R1).
  *
  * ## Layout
  *

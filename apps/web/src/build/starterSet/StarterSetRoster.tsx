@@ -16,7 +16,7 @@
 
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { ChapterBand, PageHeading, Text, tokens } from '../../components/index'
+import { ChapterBand, Slab, Text, tokens } from '../../components/index'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
@@ -55,7 +55,7 @@ export function StarterSetRoster({ headingLevel = 'h2' }: StarterSetRosterProps)
       {headingLevel === 'h1' && <ChapterBand tone="build">Starter Set</ChapterBand>}
       <section aria-label="Starter Set">
         <div style={headingLevel === 'h1' ? HEADER : SUB_HEADER}>
-          {headingLevel === 'h2' && <PageHeading>Starter Set</PageHeading>}
+          {headingLevel === 'h2' && <Slab as="h2" label="Starter Set" flush />}
           <Text variant="body">
             The pre-generated crew of {STARTER_SET_ADVENTURE}, owned by {STARTER_SET_PUBLISHER}.
             Read-only reference: open any sheet to read it.{' '}

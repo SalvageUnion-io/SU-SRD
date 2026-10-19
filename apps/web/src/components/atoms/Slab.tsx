@@ -1,8 +1,10 @@
-import type { CSSProperties, ElementType, ReactNode } from 'react'
+import type { CSSProperties, ElementType, ReactNode, Ref } from 'react'
 import { isValidElement } from 'react'
 import { borderWidth, color, font, fontSize, space, weight } from '../../design/tokens'
+import { cn } from '../../lib/cn'
 import type { ChipSet } from '../entity'
 import { Chips } from '../entity'
+import { FOCUS_RING } from './interaction'
 import { POSTER_STAMP } from './posterStamp'
 import type { SlabCount } from './slabSummary'
 import { slabSummary, summaryFacts } from './slabSummary'
@@ -71,6 +73,15 @@ type SlabProps = {
   flush?: boolean
   /** For a region that names itself by its slab (`aria-labelledby`). */
   id?: string
+  /** The label's element, for a host that moves focus to its heading. */
+  ref?: Ref<HTMLElement>
+  /**
+   * `-1` makes the label a programmatic focus target, wearing the focus ring:
+   * where focus lands when the thing it was on disappears (EntitySearcher's
+   * selection rail, after its last entry is removed). Never `0`: a heading is
+   * not a tab stop.
+   */
+  tabIndex?: -1
   /**
    * Where the count sits: at the rule's far end (`end`, the default) or
    * beside its stamp (`label`) — the app's Shelves (board S1), whose rule runs
@@ -167,6 +178,8 @@ export function Slab({
   className,
   flush = false,
   id,
+  ref,
+  tabIndex,
   countAt = 'end',
 }: SlabProps) {
   const countByLabel = countAt === 'label'
@@ -195,7 +208,13 @@ export function Slab({
   )
   return (
     <div className={className} style={flush ? ROW_FLUSH : ROW} data-slab="">
-      <Label id={id} className={POSTER_STAMP} style={LABEL}>
+      <Label
+        id={id}
+        ref={ref}
+        tabIndex={tabIndex}
+        className={cn(POSTER_STAMP, tabIndex !== undefined && FOCUS_RING)}
+        style={LABEL}
+      >
         {label}
       </Label>
       {/* The count sits at the rule's end unless `countAt="label"` brings it

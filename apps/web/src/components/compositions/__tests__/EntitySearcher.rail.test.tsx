@@ -56,7 +56,8 @@ describe('EntitySearcher — a phone (390×844)', () => {
       )
       const region = rail()
       const toggle = within(region).getByRole('button', { expanded: false })
-      expect(toggle.textContent).toContain('1')
+      // The count is the heading Slab's, at its rule's end.
+      expect(within(region).getByText('1')).toBeTruthy()
       const list = document.getElementById(toggle.getAttribute('aria-controls') ?? '')
       expect(list?.hidden).toBe(true)
       expect(within(region).getByText('Inventory slots')).toBeTruthy()

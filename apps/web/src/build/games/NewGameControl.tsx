@@ -29,9 +29,8 @@ import {
   FieldError,
   Input,
   ModalShell,
-  PageHeading,
   Pending,
-  Stack,
+  SlabSection,
   Text,
   tokens,
 } from '../../components/index'
@@ -49,17 +48,11 @@ const BODY = {
   padding: tokens.space[20],
 } satisfies CSSProperties
 
-const SECTION = {
+/** A section's body: what it holds, one gap apart. */
+const STACK = {
   display: 'flex',
   flexDirection: 'column',
-  gap: tokens.space[10],
-} satisfies CSSProperties
-
-/** The template door sits under a hairline rule. */
-const RULED = {
-  ...SECTION,
-  borderTop: `${tokens.borderWidth.hairline} solid ${tokens.color.ink15}`,
-  paddingTop: tokens.space[20],
+  gap: tokens.space[12],
 } satisfies CSSProperties
 
 /** A field and its button on one line, wrapping on a phone. */
@@ -68,7 +61,6 @@ const ROW = {
   display: 'flex',
   flexWrap: 'wrap',
   gap: tokens.space[12],
-  paddingTop: tokens.space[8],
 } satisfies CSSProperties
 
 const GROW = { flex: '1 1 12rem', minWidth: 0 } satisfies CSSProperties
@@ -117,10 +109,7 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
   return (
     <ModalShell open={open} onOpenChange={onOpenChange} title="New Game">
       <div style={BODY}>
-        <Stack as="section" gap={10} aria-labelledby="new-game-start">
-          <PageHeading variant="section" as="h3" id="new-game-start">
-            Start a Game
-          </PageHeading>
+        <SlabSection as="h3" id="new-game-start" title="Start a Game">
           <div style={ROW}>
             <div style={GROW}>
               <Field label="Name">
@@ -141,16 +130,12 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
               Create
             </Button>
           </div>
-        </Stack>
+        </SlabSection>
 
-        <section aria-labelledby="new-game-template" style={RULED}>
-          <PageHeading variant="section" as="h3" id="new-game-template">
-            From a template
-          </PageHeading>
+        <SlabSection as="h3" id="new-game-template" title="From a template" bodyStyle={STACK}>
           {templates === undefined && <Pending label="templates" />}
           {templates?.map((t) => (
-            <Stack gap={10} key={t.id}>
-              <PageHeading as="h4">{t.name}</PageHeading>
+            <SlabSection as="h4" title={t.name} key={t.id} bodyStyle={STACK}>
               <Text variant="hint" style={HINT}>
                 {t.description}
               </Text>
@@ -165,9 +150,9 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
                   Start this Game
                 </Button>
               </div>
-            </Stack>
+            </SlabSection>
           ))}
-        </section>
+        </SlabSection>
 
         <Text variant="hint" style={HINT}>
           Joining a friend’s Game? Open the invite link they sent you.
