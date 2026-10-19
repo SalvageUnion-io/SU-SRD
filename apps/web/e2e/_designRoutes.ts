@@ -10,7 +10,7 @@ import {
   gotoStable,
   waitForReady,
 } from './_helpers'
-import { CANVAS, PHONE, playDoor } from './_play'
+import { CANVAS, PHONE, pilotPlayPath, playDoor } from './_play'
 import { createGame, makeInviteLink } from './_table'
 
 /**
@@ -116,7 +116,9 @@ export async function seedDesignAccount(page: Page): Promise<DesignSeed> {
   const npc = new URL(page.url()).pathname
 
   // Play's doors, read off the Play hub as a player reaches them.
-  const playPlayer = at(await playDoor(page, `Play ${IN_GAME} in ${GAME}`))
+  // The Organizer mediates the Game, so its Row's one door is Mediate: the
+  // player's screen is the pilot's own, from its Hangar Row.
+  const playPlayer = at(await pilotPlayPath(page, IN_GAME))
   const playSolo = at(await playDoor(page, `Play ${SOLO} solo`))
   const playMediator = at(await playDoor(page, `Mediate ${GAME}`))
 

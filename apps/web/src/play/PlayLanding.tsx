@@ -68,6 +68,12 @@ const ITEM = { listStyle: 'none', minWidth: 0 } satisfies CSSProperties
 
 const LINK = { textDecoration: 'none' } satisfies CSSProperties
 
+/**
+ * A Game's door, a Mini chip among its Row's chips: held to the Mini height so
+ * its text's line box never draws it taller than they are (ruleset §4.7).
+ */
+const DOOR = { ...LINK, height: tokens.size.mini } satisfies CSSProperties
+
 /** The sections side by side where there is room, stacked on a phone. */
 const SECTIONS = { alignItems: 'start' } satisfies CSSProperties
 
@@ -284,8 +290,8 @@ function PlayGameItem({
             <AppLink
               href={door.href}
               aria-label={door.ariaLabel}
-              className={buttonVariants({ variant: 'primary', size: 'compact' })}
-              style={LINK}
+              className={buttonVariants({ variant: 'primary', size: 'mini' })}
+              style={DOOR}
             >
               {door.label}
             </AppLink>
