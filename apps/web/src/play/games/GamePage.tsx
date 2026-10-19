@@ -16,8 +16,9 @@
 import '../../styles/play/play.css'
 import { useState } from 'react'
 import type { SegmentKind } from '../../build/roster/RosterColumn'
+import { RoutePending } from '../../components/shared/RouteFallbacks'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { PlayPending, PlayRefusal } from '../PlayRefusal'
+import { PlayRefusal } from '../PlayRefusal'
 import { GameHub } from './GameHub'
 
 export function GamePage({ gameId }: { gameId: string }) {
@@ -32,7 +33,7 @@ export function GamePage({ gameId }: { gameId: string }) {
       />
     )
   }
-  if (mode === 'connecting') return <PlayPending label="your session" />
+  if (mode === 'connecting') return <RoutePending label="your session" />
   if (mode === 'disconnected') {
     return (
       <PlayRefusal

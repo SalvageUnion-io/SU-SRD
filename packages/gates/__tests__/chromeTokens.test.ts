@@ -4,7 +4,12 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { ratchetCounts } from '../lib/ruleEngine'
 import { enclosingObject, parseCss } from '../lib/styleSource'
-import { BREAKPOINT_LADDER, chromeTokens, scanChromeSources } from '../rules/chromeTokens'
+import {
+  BREAKPOINT_LADDER,
+  chromeTokens,
+  LOADING_ATOMS,
+  scanChromeSources,
+} from '../rules/chromeTokens'
 import { Exited, trapExit } from './trapExit'
 
 /**
@@ -225,6 +230,33 @@ describe('motion: chrome-tokens/raw-duration, raw-easing, motion-loop', () => {
     expect(lines(css, 'motion-loop')).toEqual([1])
     const tsx = scan('apps/web/src/X.tsx', "const A = { animation: 'spin 2s infinite' }")
     expect(lines(tsx, 'motion-loop')).toEqual([1])
+  })
+
+  test('loading-mark: @keyframes and su-pulse only in the loading atoms', () => {
+    const css = scan(
+      'apps/web/src/styles/x.css',
+      [
+        '@keyframes slide { to { transform: none; } }',
+        '.a.su-pulse { opacity: 1; }',
+        '/* su-pulse, @keyframes */',
+        '.b { opacity: 1; }',
+      ].join('\n')
+    )
+    expect(lines(css, 'loading-mark')).toEqual([1, 2])
+    const tsx = scan(
+      'apps/web/src/X.tsx',
+      '<div className="su-pulse" />\n// su-pulse\nconst A = `@keyframes x {}`'
+    )
+    expect(lines(tsx, 'loading-mark')).toEqual([1, 3])
+    for (const atom of LOADING_ATOMS) {
+      const found = scan(
+        atom,
+        atom.endsWith('.css')
+          ? '@keyframes su-pulse { 50% { opacity: 0.5; } }'
+          : '<div className="su-pulse" />'
+      )
+      expect(found['loading-mark']).toEqual([])
+    }
   })
 
   test('theme.css, the definitions and the reduced-motion backstop, is exempt', () => {

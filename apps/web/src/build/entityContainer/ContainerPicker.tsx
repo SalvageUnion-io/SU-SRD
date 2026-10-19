@@ -18,7 +18,15 @@
 import type { Container } from 'game-domain/container'
 import type { ChangeEvent, CSSProperties } from 'react'
 import type { HeaderMenuItem } from '../../components/index'
-import { Button, EmptyState, HeaderMenu, Pending, Select, tokens } from '../../components/index'
+import {
+  Button,
+  EmptyState,
+  HeaderMenu,
+  loadingCopy,
+  Pending,
+  Select,
+  tokens,
+} from '../../components/index'
 
 /**
  * A container as one string, `shelf` or `game:<id>`: a select option's value
@@ -64,7 +72,7 @@ type MenuVariantProps = CommonProps & {
   trigger: string
   /** The page is one of the choices, so the menu is where you are. */
   active?: boolean
-  /** The inert row while the choices load ("Loading your Games…"). */
+  /** What is loading, for the inert row while the choices load (`loadingCopy`: "your Games"). */
   loading: string
   /** The inert row when there are none. */
   empty: string
@@ -173,7 +181,7 @@ function PickerMenu({
   // states stay inside the menu a screen reader is walking.
   const rows: HeaderMenuItem[] =
     choices === undefined
-      ? [{ id: 'loading', label: loading }]
+      ? [{ id: 'loading', label: loadingCopy(loading) }]
       : choices.length === 0
         ? [{ id: 'none', label: empty }]
         : choices.map((c) => ({

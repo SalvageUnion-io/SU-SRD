@@ -13,7 +13,7 @@
 import QRCode from 'qrcode'
 import type { CSSProperties } from 'react'
 import { useEffect, useState } from 'react'
-import { tokens } from '../../components/index'
+import { SkeletonFrame, tokens } from '../../components/index'
 
 type LinkQrProps = {
   /** Absolute URL to encode. */
@@ -52,7 +52,7 @@ export function LinkQr({ url }: LinkQrProps) {
   }, [url])
 
   if (svg === null) {
-    return <div aria-hidden="true" className="su-pulse" style={TILE} />
+    return <SkeletonFrame label="the QR code" style={TILE} />
   }
 
   return (

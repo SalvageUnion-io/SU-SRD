@@ -194,11 +194,12 @@ export { Grid } from './containers/Grid'
 export type { HeaderMenuItem } from './containers/HeaderMenu'
 export { HeaderMenu } from './containers/HeaderMenu'
 export { Inset } from './containers/Inset'
+// Pending — the one "Loading X…" line (role="status"), for data that resolves inside a screen
+export { loadingCopy } from './containers/loadingCopy'
 export { MasonryColumns } from './containers/MasonryColumns'
 export { ModalShell } from './containers/ModalShell'
 // PageShell — the full-bleed <main> landmark for a top-level app screen
 export { PageShell } from './containers/PageShell'
-// Pending — the one "Loading X…" line (role="status"), for data that resolves inside a screen
 export { Pending } from './containers/Pending'
 // PopoverPanel — a trigger and the small non-modal panel of controls it opens
 // (Base UI Popover); the app's sheet "⋯" overflow
@@ -213,7 +214,7 @@ export { RosterSkeleton } from './containers/RosterSkeleton'
 export { Sel } from './containers/Sel'
 export { SheetSectionCard } from './containers/SheetSectionCard'
 export { SheetSectionSlab } from './containers/SheetSectionSlab'
-export { Skeleton } from './containers/Skeleton'
+export { Skeleton, SkeletonFrame } from './containers/Skeleton'
 export { Stack } from './containers/Stack'
 /** The `statsOverride` element type — public because the prop that takes it is. */
 export type { StatItem } from './containers/statsBarTypes'

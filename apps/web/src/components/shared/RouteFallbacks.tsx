@@ -15,8 +15,8 @@
  */
 
 import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from 'react'
-import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
-import { buttonVariants, TitledBox } from '../index'
+import { color, font, fontSize, space } from '../../design/tokens'
+import { buttonVariants, Pending, TitledBox } from '../index'
 import { DidYouMeanIsland } from '../islands/DidYouMeanIsland'
 import { SearchIsland } from '../islands/SearchIsland'
 import { NotFound } from '../NotFound'
@@ -48,17 +48,6 @@ const BACK_LINK = { textDecorationLine: 'none' } satisfies CSSProperties
 
 /** The 404's exit, at the head of its column (a flex column that would stretch it). */
 const HANGAR_LINK = { ...BACK_LINK, alignSelf: 'flex-start' } satisfies CSSProperties
-
-/** The pending line; it breathes with the shared skeleton pulse (`su-pulse`). */
-const PENDING = {
-  color: color.wkMuted,
-  fontFamily: font.cond,
-  fontSize: fontSize.sm,
-  fontWeight: weight.bold,
-  letterSpacing: tracking.caps,
-  lineHeight: '1.25rem',
-  textTransform: 'uppercase',
-} satisfies CSSProperties
 
 /** Full-viewport centering shell every standalone panel screen sits in. */
 export function FullPageShell({ children, ...rest }: ComponentPropsWithoutRef<'main'>) {
@@ -134,13 +123,16 @@ export function RouteNotFound() {
   )
 }
 
-/** Minimal pending state for any route loader (defaultPendingComponent). */
-export function RoutePending() {
+/**
+ * A route's wait (chrome.md K6): `Pending`'s line, centred in the page shell.
+ * The router's default pending component (no subject: "Loading the page…"),
+ * and the app's wait on the reference data (`GameDataReady`) and on a Play
+ * gate's session or Game.
+ */
+export function RoutePending({ label = 'the page' }: { label?: string }) {
   return (
-    <FullPageShell aria-busy="true" aria-live="polite">
-      <p className="su-pulse" style={PENDING}>
-        Loading…
-      </p>
+    <FullPageShell aria-busy="true">
+      <Pending label={label} />
     </FullPageShell>
   )
 }

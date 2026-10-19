@@ -77,6 +77,6 @@ describe('RoutePending', () => {
     render(<RoutePending />)
     const main = screen.getByRole('main')
     expect(main.getAttribute('aria-busy')).toBe('true')
-    expect(within(main).getByText('Loading…')).toBeTruthy()
+    expect(within(main).getByText('Loading the page…')).toBeTruthy()
   })
 })

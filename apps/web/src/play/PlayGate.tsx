@@ -34,10 +34,11 @@ import { containerOf } from 'game-domain/container'
 import { useEffect } from 'react'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
+import { RoutePending } from '../components/shared/RouteFallbacks'
 import { useConnection } from '../lib/connection/connectionContext'
 import { useEntityStore } from '../stores/entityStore'
 import { PlayCockpit } from './PlayCockpit'
-import { PlayPending, PlayRefusal } from './PlayRefusal'
+import { PlayRefusal } from './PlayRefusal'
 
 const TO_PLAY = { href: '/play/', label: '← Back to Play' }
 
@@ -54,7 +55,7 @@ export function PlayGate({ id }: { id: string }) {
       />
     )
   }
-  if (mode === 'connecting') return <PlayPending label="your session" />
+  if (mode === 'connecting') return <RoutePending label="your session" />
   return <SignedInPlayGate id={id} offline={mode === 'disconnected'} />
 }
 
@@ -109,7 +110,7 @@ function SignedInPlayGate({ id, offline }: { id: string; offline: boolean }) {
   if (game === undefined && offline) {
     return <PlayCockpit target={{ pilotId: pilot.id, gameId, gameName: null, mediator: false }} />
   }
-  if (game === undefined) return <PlayPending label="the Game" />
+  if (game === undefined) return <RoutePending label="the Game" />
 
   if (game === null) {
     return (

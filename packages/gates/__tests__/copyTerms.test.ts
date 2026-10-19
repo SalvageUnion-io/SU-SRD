@@ -9,6 +9,7 @@ import {
   copyTerms,
   DATA_DIR,
   extractCopy,
+  LOADING_ATOM,
   lintCopy,
   MIN_USES,
   PRODUCT_FILE,
@@ -149,6 +150,26 @@ describe('lintCopy', () => {
       '"Heat Cap"',
     ])
     expect(lintCopy(at('Tech 3 and Heat Capacity'), [], BANNED)['banned-variant']).toEqual([])
+  })
+
+  test('one loading voice: a loading line is spelled only in the loading atom', () => {
+    const r = lintCopy(
+      [
+        ...at('Loading game data'),
+        ...at('Please wait while we fetch it'),
+        ...at('Fetching your Games'),
+      ],
+      [],
+      BANNED
+    )
+    expect(r['banned-variant']?.map((f) => f.detail.split(':')[0])).toEqual([
+      '"Loading"',
+      '"Please wait"',
+      '"Fetching"',
+    ])
+    const atom = [{ file: LOADING_ATOM, line: 1, text: 'Loading the crew now' }]
+    expect(lintCopy(atom, [], BANNED)['banned-variant']).toEqual([])
+    expect(lintCopy(at('the page is loading slowly'), [], BANNED)['banned-variant']).toEqual([])
   })
 
   test('bans Scrap as a verb, never the currency', () => {

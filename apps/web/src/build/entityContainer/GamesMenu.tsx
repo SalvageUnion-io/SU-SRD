@@ -68,7 +68,7 @@ function ConnectedGamesMenu({ active }: { active: boolean }) {
       active={active}
       choices={games}
       onPick={open}
-      loading="Loading your Games…"
+      loading="your Games"
       empty="No Games yet"
     />
   )

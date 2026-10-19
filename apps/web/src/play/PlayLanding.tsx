@@ -48,6 +48,7 @@ import {
   tokens,
 } from '../components/index'
 import { AppLink } from '../components/shared/AppLink'
+import { RoutePending } from '../components/shared/RouteFallbacks'
 import { UnitRow } from '../components/shared/UnitRow'
 import { useGo } from '../components/shared/useGo'
 import { playGamePath } from '../lib/barLinks'
@@ -55,7 +56,7 @@ import { useConnection } from '../lib/connection/connectionContext'
 import { useHydrateEntities, useMechs, usePilots, useSoftLinkList } from '../lib/entities'
 import { invitePath, inviteTokenFrom } from '../lib/games/inviteLink'
 import { PlayDiscordSection } from './PlayDiscordSection'
-import { PlayPending, PlayRefusal } from './PlayRefusal'
+import { PlayRefusal } from './PlayRefusal'
 import { gamePilots, soloPilots } from './play.model'
 import { gameChips, gameDoor, gameRowModel } from './playHub.model'
 import { usePresenceClock } from './usePresenceClock'
@@ -116,7 +117,7 @@ export function PlayLanding() {
       />
     )
   }
-  if (mode === 'connecting') return <PlayPending label="your session" />
+  if (mode === 'connecting') return <RoutePending label="your session" />
   if (mode === 'connected') return <ConnectedPlayLanding />
   return <PlayLandingView games={undefined} />
 }

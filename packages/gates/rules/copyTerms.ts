@@ -273,7 +273,12 @@ export type Banned = {
   why: string
   /** A string that is wholly this (a bare label) is allowed. */
   allowWhole?: RegExp
+  /** The one file that owns these words (a state's atom): the spelling is allowed there. */
+  allowIn?: string
 }
+
+/** The loading atom: the one place "Loading <thing>…" is spelled (chrome.md K6). */
+export const LOADING_ATOM = 'apps/web/src/components/containers/loadingCopy.ts'
 
 /** Spellings the book does not use, each with what it says instead and where. */
 export const BANNED: readonly Banned[] = [
@@ -324,6 +329,20 @@ export const BANNED: readonly Banned[] = [
     // A string with no lower case is a label set in caps on purpose (the
     // Discord bot's `-# FOUND IN` subtext, where a stamp cannot reach).
     allowWhole: /^[^a-z]*$/,
+  },
+  // ── One loading voice (chrome.md K6, hard rule R22) ──
+  {
+    // A loading line spelled at the call site: "Loading game data", the caps
+    // "LOADING…" or a "Loading..." with three dots. `loadingCopy` assembles it.
+    pattern: /(?<![\w-])Loading(?![\w-])/g,
+    say: 'loadingCopy',
+    why: 'one loading voice, "Loading <thing>…": render `Pending` / `Skeleton` / `RoutePending` with a `label`, or call `loadingCopy(label)` (chrome.md K6)',
+    allowIn: LOADING_ATOM,
+  },
+  {
+    pattern: /(?<![\w-])(?:[Pp]lease wait|[Hh]ang tight|[Ff]etching|[Hh]ydrating)(?![\w-])/g,
+    say: 'loadingCopy',
+    why: 'a wait says "Loading <thing>…" (`loadingCopy`), never another verb (chrome.md K6)',
   },
 ]
 
@@ -399,7 +418,7 @@ export function lintCopy(
       }
     }
     for (const ban of bans) {
-      if (ban.allowWhole?.test(c.text)) continue
+      if (ban.allowWhole?.test(c.text) || ban.allowIn === c.file) continue
       for (const m of c.text.matchAll(ban.pattern)) {
         if (m[0] === ban.say) continue
         banned.push({ file: c.file, line: c.line, detail: `"${m[0]}": say ${ban.say}; ${ban.why}` })

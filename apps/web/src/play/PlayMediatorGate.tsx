@@ -20,9 +20,10 @@ import { useQuery } from 'convex/react'
 import { gamePath } from 'game-domain/entityKinds'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
+import { RoutePending } from '../components/shared/RouteFallbacks'
 import { useConnection } from '../lib/connection/connectionContext'
 import { PlayMediatorCockpit } from './PlayMediatorCockpit'
-import { PlayPending, PlayRefusal } from './PlayRefusal'
+import { PlayRefusal } from './PlayRefusal'
 
 export function PlayMediatorGate({ gameId }: { gameId: string }) {
   const { mode } = useConnection()
@@ -36,7 +37,7 @@ export function PlayMediatorGate({ gameId }: { gameId: string }) {
       />
     )
   }
-  if (mode === 'connecting') return <PlayPending label="your session" />
+  if (mode === 'connecting') return <RoutePending label="your session" />
   return <SignedInPlayMediatorGate gameId={gameId} />
 }
 
@@ -47,7 +48,7 @@ function SignedInPlayMediatorGate({ gameId }: { gameId: string }) {
   const mediates = useQuery(api.mediator.amMediator, game ? { gameId: id } : 'skip')
 
   if (game === undefined || (game !== null && mediates === undefined)) {
-    return <PlayPending label="the Game" />
+    return <RoutePending label="the Game" />
   }
   if (game === null || mediates !== true) {
     return (

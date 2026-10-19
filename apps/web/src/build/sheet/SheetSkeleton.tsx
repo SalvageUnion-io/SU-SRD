@@ -1,6 +1,6 @@
 /**
- * SheetSkeleton — shimmer placeholder for /sheet/:kind/:id while the route
- * loader hydrates the entity store.
+ * SheetSkeleton — a `SkeletonFrame` composed as /sheet/:kind/:id while the
+ * route loader hydrates the entity store.
  *
  * Mirrors the LiveSheet shell (sticky top bar → hero band → body slabs) so
  * the swap to the real sheet doesn't shift the page: same min-h-[58px] bar,
@@ -10,7 +10,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { Ghost, tokens } from '../../components/index'
+import { Ghost, SkeletonFrame, tokens } from '../../components/index'
 
 // Responsive padding, the slab rhythm and the slab grid's columns are
 // `.su-sheet-skeleton-*` in `styles/sheet/chrome.css`; the rest is below.
@@ -116,7 +116,7 @@ function SkeletonSlab() {
 
 export function SheetSkeleton() {
   return (
-    <div role="status" aria-label="Loading sheet" className="su-pulse" style={ROOT}>
+    <SkeletonFrame label="the sheet" style={ROOT}>
       {/* Sticky-bar placeholder (LiveSheet top bar footprint) */}
       <div className="su-sheet-skeleton-bar" style={BAR}>
         <Ghost style={{ ...GHOST_LABEL, width: '96px' }} />
@@ -145,6 +145,6 @@ export function SheetSkeleton() {
         <SkeletonSlab />
         <SkeletonSlab />
       </div>
-    </div>
+    </SkeletonFrame>
   )
 }

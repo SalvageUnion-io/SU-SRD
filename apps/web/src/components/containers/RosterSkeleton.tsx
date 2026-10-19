@@ -1,6 +1,6 @@
 /**
- * RosterSkeleton — shimmer placeholder for the Pilots/Mechs/Crawlers grid
- * while entityStore hydration is in flight.
+ * RosterSkeleton — a `SkeletonFrame` composed as the Pilots/Mechs/Crawlers
+ * grid while entityStore hydration is in flight.
  *
  * Mirrors the hydrated layout (the same grid shell, `.su-roster-skeleton`, and
  * the shared Row ghost, `GhostRow`) so the swap to real content doesn't shift the
@@ -10,7 +10,7 @@
 import type { CSSProperties } from 'react'
 import { borderWidth, color, radius, space } from '../../design/tokens'
 import { Ghost } from '../atoms/Ghost'
-import { GhostRow } from './Skeleton'
+import { GhostRow, SkeletonFrame } from './Skeleton'
 
 const COLUMN_HEAD = {
   marginBottom: space[12],
@@ -63,18 +63,18 @@ function SkeletonColumn({ hiddenOnMobile = false }: { hiddenOnMobile?: boolean }
 }
 
 type RosterSkeletonProps = {
-  /** What is loading, for the status's name: "Loading {label}". */
+  /** What is loading, for the status's name: "Loading <label>…". */
   label?: string
 }
 
 export function RosterSkeleton({ label = 'saved builds' }: RosterSkeletonProps) {
   return (
-    <div role="status" aria-label={`Loading ${label}`} className="su-pulse">
+    <SkeletonFrame label={label}>
       <div className="su-roster-skeleton">
         <SkeletonColumn />
         <SkeletonColumn hiddenOnMobile />
         <SkeletonColumn hiddenOnMobile />
       </div>
-    </div>
+    </SkeletonFrame>
   )
 }

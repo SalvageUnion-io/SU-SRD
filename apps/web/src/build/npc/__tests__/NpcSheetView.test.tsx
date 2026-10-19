@@ -166,7 +166,7 @@ describe('a crewmate’s, in a Game you belong to', () => {
       'games:members': undefined,
     })
     await renderView('n-theirs')
-    expect(screen.getByRole('status', { name: 'Loading sheet' })).toBeTruthy()
+    expect(screen.getByRole('status', { name: 'Loading the sheet…' })).toBeTruthy()
   })
 })
 
@@ -181,13 +181,13 @@ describe('neither', () => {
   test('still locating: a skeleton', async () => {
     setQueryAnswers({ 'account:me': undefined, 'entities:locate': undefined })
     await renderView('n-missing')
-    expect(screen.getByRole('status', { name: 'Loading sheet' })).toBeTruthy()
+    expect(screen.getByRole('status', { name: 'Loading the sheet…' })).toBeTruthy()
   })
 
   test('yours on the server but not here yet: a skeleton while it arrives', async () => {
     setQueryAnswers({ 'account:me': null, 'entities:locate': { gameId: null, mayEdit: true } })
     await renderView('n-missing')
-    expect(screen.getByRole('status', { name: 'Loading sheet' })).toBeTruthy()
+    expect(screen.getByRole('status', { name: 'Loading the sheet…' })).toBeTruthy()
   })
 
   test('offline and not held: loading it needs a connection', async () => {
@@ -198,6 +198,6 @@ describe('neither', () => {
 
   test('still connecting: a skeleton', async () => {
     await renderView('n-missing', 'connecting')
-    expect(screen.getByRole('status', { name: 'Loading sheet' })).toBeTruthy()
+    expect(screen.getByRole('status', { name: 'Loading the sheet…' })).toBeTruthy()
   })
 })

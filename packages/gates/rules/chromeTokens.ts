@@ -248,6 +248,32 @@ const motionLoopCss = (decls: CssDecl[]) =>
 const motionLoopScript = (text: string) =>
   matchesIn(text, /\banimation(?:IterationCount)?\s*:[^\n]*\binfinite\b/g)
 
+/**
+ * The loading atoms (chrome.md K6): the one pulse, `@keyframes su-pulse` and
+ * `.su-pulse`, is defined in the stylesheet and worn by `SkeletonFrame`, which
+ * every skeleton (`Skeleton`, `RosterSkeleton`, `SheetSkeleton`, a QR tile's)
+ * is drawn in.
+ */
+export const LOADING_ATOMS: readonly string[] = [
+  'apps/web/src/styles/partials/containers.css',
+  'apps/web/src/components/containers/Skeleton.tsx',
+]
+
+const KEYFRAMES = /@keyframes\b/
+const PULSE = /(?<![\w-])su-pulse(?![\w-])/
+
+const loadingMarkCss = (_decls: CssDecl[], blocks: CssBlock[], rel: string) =>
+  LOADING_ATOMS.includes(rel)
+    ? []
+    : blocks
+        .filter((b) => KEYFRAMES.test(b.header) || PULSE.test(b.header))
+        .map((b) => ({ line: b.line, detail: b.header }))
+
+const loadingMarkScript = (text: string, rel: string) =>
+  LOADING_ATOMS.includes(rel)
+    ? []
+    : matchesIn(text, new RegExp(`${KEYFRAMES.source}|${PULSE.source}`, 'g'))
+
 // ── Breakpoints (K2) ──────────────────────────────────────────────────────────
 
 /** The ladder, `breakpoint` in apps/web/src/design/tokens.ts (a test holds them equal). */
@@ -335,6 +361,14 @@ const CHROME_RULES: ChromeRule[] = [
     fix: 'Put the looping `animation` in a stylesheet rule inside `@media (prefers-reduced-motion: no-preference) { … }`, never a style object; anything else runs once.',
     css: motionLoopCss,
     script: motionLoopScript,
+  },
+  {
+    id: 'loading-mark',
+    mode: 'zero',
+    rule: 'chrome.md K6 — one loading voice: `@keyframes` and the `su-pulse` loop only in the loading atoms',
+    fix: 'Wait with `Pending` (inside a screen), `Skeleton` (a shape known ahead; compose ghosts inside `SkeletonFrame`) or `RoutePending` (a route), never a loop, logo or bar of its own. The pulse is defined only in LOADING_ATOMS (packages/gates/rules/chromeTokens.ts).',
+    css: loadingMarkCss,
+    script: loadingMarkScript,
   },
   {
     id: 'raw-breakpoint',

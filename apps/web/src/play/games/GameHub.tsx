@@ -133,7 +133,7 @@ function GameSections({ game }: { game: Game }) {
       <Grid min={HUB_COLUMN_MIN} gap={24} style={HUB_COLUMNS}>
         <div style={HUB_COLUMN}>
           {seats === null ? (
-            <Skeleton shape="rows" label="Loading the crew" />
+            <Skeleton shape="rows" label="the crew" />
           ) : (
             <CrewSeats
               crawler={crawler}

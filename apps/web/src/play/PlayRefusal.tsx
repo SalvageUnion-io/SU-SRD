@@ -1,20 +1,17 @@
 /**
  * PlayRefusal — the shell a play screen renders when it cannot open: the
  * page's name on the band, what is missing as the heading under it, and the
- * one way on. Play's gates (`PlayGate`, `PlayMediatorGate`) answer with it.
- *
- * Its pending twin is `PlayPending`: the line a gate shows while the session
- * or the Game has not answered yet.
+ * one way on. Play's gates (`PlayGate`, `PlayMediatorGate`) answer with it;
+ * while the session or the Game has not answered yet, they wait on
+ * `RoutePending`.
  */
 
 import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties } from 'react'
-import { ChapterBand, PageShell, Pending, Text, tokens } from '../components/index'
+import { ChapterBand, PageShell, Text, tokens } from '../components/index'
 import { WayOutLink } from '../components/shared/WayOutLink'
 
 const BODY = { maxWidth: '36rem', textAlign: 'left' } satisfies CSSProperties
-
-const PENDING = { padding: tokens.space[24] } satisfies CSSProperties
 
 const REASON = { fontSize: tokens.fontSize.title, margin: 0 } satisfies CSSProperties
 
@@ -41,14 +38,5 @@ export function PlayRefusal({ page = PRODUCT.play, title, body, link }: PlayRefu
         <WayOutLink href={link.href} label={link.label} />
       </div>
     </PageShell>
-  )
-}
-
-/** A gate waiting on an answer: "Loading <label>…". */
-export function PlayPending({ label }: { label: string }) {
-  return (
-    <div style={PENDING}>
-      <Pending label={label} />
-    </div>
   )
 }

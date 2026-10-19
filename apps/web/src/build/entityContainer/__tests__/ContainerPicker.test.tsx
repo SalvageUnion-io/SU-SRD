@@ -49,7 +49,7 @@ describe('ContainerPicker', () => {
         trigger="Games"
         choices={undefined}
         onPick={(c) => picks.push(c)}
-        loading="Loading your Games…"
+        loading="your Games"
         empty="No Games yet"
       />
     )
@@ -65,7 +65,7 @@ describe('ContainerPicker', () => {
         trigger="Games"
         choices={CHOICES}
         onPick={(c) => picks.push(c)}
-        loading="Loading your Games…"
+        loading="your Games"
         empty="No Games yet"
       />
     )

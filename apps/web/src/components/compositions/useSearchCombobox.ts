@@ -18,6 +18,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { RefEntity, RefEnumSchemaName, SearchResult } from 'salvageunion-reference'
 import { getEntitySchemas, search } from 'salvageunion-reference'
 import { schemaPluralLabel } from '../../lib/schemaLabels'
+import { loadingCopy } from '../containers/loadingCopy'
 
 export type SearchComboboxResult =
   | {
@@ -199,7 +200,7 @@ export function useSearchCombobox({
     ? null
     : !ready
       ? query.trim()
-        ? 'Loading game data'
+        ? loadingCopy('reference data')
         : null
       : results.length > 0
         ? `${results.length} result${results.length === 1 ? '' : 's'} found`
