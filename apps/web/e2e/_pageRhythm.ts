@@ -19,7 +19,8 @@ import { NESTING_SELECTORS } from './_nestingDepth'
  * holds (a Card, a Row, a Box: a pattern row, a class's path), a Token list or
  * lone Token no frame holds, a Slab no frame holds, and the page's own parts:
  * the art, the stat column, a pattern's opening, the table, a Legendary
- * track's "or" and a Hybrid Class's trees line, and the prose's text, its
+ * track's "or", a Hybrid Class's trees line, a guide step's table and a
+ * phone's "On this page" list, and the prose's text, its
  * run of paragraphs one block. A block inside another block is the outer one's.
  */
 export type RhythmFinding = {
@@ -41,7 +42,7 @@ export type RhythmSelectors = {
   slab: string
   /** The page parts that are blocks in their own right. */
   parts: string
-  /** The prose column: its text children run as one block. */
+  /** The prose column (a Page's, a guide step's body): its text children run as one block. */
   prose: string
   statValue: string
   statLabel: string
@@ -63,8 +64,8 @@ export const RHYTHM_SELECTORS: RhythmSelectors = {
   tokenList: '.su-entity-token-list',
   slab: '[data-slab]',
   parts:
-    '.su-entity-page__art, .su-entity-page__stats, .su-entity-page__opening, .su-entity-page__table, .su-ability-track__or, .su-class-brief__trees',
-  prose: '.su-entity-page__prose',
+    '.su-entity-page__art, .su-entity-page__stats, .su-entity-page__opening, .su-entity-page__table, .su-ability-track__or, .su-class-brief__trees, .su-guide__table, .su-guide__toc-block .su-guide__toc',
+  prose: '.su-entity-page__prose, .su-guide__body, .su-guide__ladder-prose',
   statValue: '.su-entity-page__stats .su-stat-column__value',
   statLabel: '.su-entity-page__stats .su-stat-column__label',
   start: 24,

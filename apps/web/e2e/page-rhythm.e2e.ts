@@ -11,7 +11,7 @@ import { expect, test } from './fixtures'
  * heading one sits one 12px gap from the next, and the stat column's value
  * cells wear a 1px frame and its labels 14px type.
  *
- * Short and long SRD Pages, a class page, and the app's Page (the detail dialog) opened from
+ * Short and long SRD Pages, a class page, a guide, and the app's Page (the detail dialog) opened from
  * a Starter Set sheet, each at R0's page and phone widths (`DESIGN_VIEWPORTS`).
  * There is no allowlist: every finding fails.
  */
@@ -25,8 +25,10 @@ const PAGES = {
     '/bio-titans/tyrant/',
     '/drones/pest-drone/',
   ],
-  // A class page lays its trees and paths out on its own (`ClassAbilityTree`).
+  // A class page lays its trees and paths out on its own (`ClassAbilityTree`),
+  // a guide its steps and their contents (`GuideSteps`).
   class: ['/classes/hacker/'],
+  guide: ['/guides/create-a-pilot/'],
 }
 
 /** The app's Page: a sheet's Token opens its entity's Page in the detail dialog. */

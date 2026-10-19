@@ -12,6 +12,7 @@ import type { CardProseContext } from './CardProse'
 import { CardProse } from './CardProse'
 import { CardRollTable } from './CardRollTable'
 import type { Down } from './cardChrome'
+import { PAGE_SLAB } from './cardHelpers'
 import { EntityTokenList } from './EntityTokenList'
 import { watchGuideContents } from './guideContents'
 import { chunkGuideStepProse } from './guideStepProse'
@@ -232,6 +233,8 @@ export function GuideSteps({
           as={sectionAs}
           id={anchors?.get(sectionKey(group))}
           className="su-guide__section-head"
+          // On its Page the section's gap spaces it (R17), not the slab's margin.
+          style={page ? PAGE_SLAB : undefined}
         />
         {list}
       </section>
@@ -247,7 +250,7 @@ export function GuideSteps({
           slab; a wide screen sets them in the rail. Only one of the two is
           ever displayed. */}
       <nav className="su-guide__toc-block" aria-label="On this page">
-        <Slab label="On this page" />
+        <Slab label="On this page" style={PAGE_SLAB} />
         {contents}
       </nav>
       <div className="su-guide__flow">{body}</div>
