@@ -971,13 +971,6 @@ a.su-home__discord:hover {
   gap: var(--space-20);
 }
 
-.su-class-path {
-  background: var(--color-paper);
-  border: var(--bw-entity-compact) solid var(--color-ink);
-  border-radius: var(--radius-card);
-  overflow: hidden;
-}
-
 /* A Hybrid Class's head opens its page: the whole cut-out head is the link. */
 .su-class-path__link {
   color: var(--color-ink);
@@ -986,17 +979,17 @@ a.su-home__discord:hover {
 }
 
 /* The one focus ring (chrome K9), on the whole path: the head is the link,
-   and the path's rounded clip would cut a ring drawn round the head alone. */
+   and the frame's clip would cut a ring drawn round the head alone. */
 .su-class-path__link:focus-visible {
   outline: 3px solid transparent;
 }
 
-.su-class-path:has(> .su-class-path__link:focus-visible) {
+.su-class-path:has(.su-class-path__link:focus-visible) {
   box-shadow: var(--focus-ring-shadow);
 }
 
 .su-class-path__body {
-  padding: var(--space-14);
+  padding: var(--space-12);
 }
 
 /* The requirement as ONE chip: its cells (REQ | tree, then OR | tree for each
@@ -1064,7 +1057,7 @@ a.su-home__discord:hover {
   color: var(--color-ink-2);
   font-size: var(--text-caption);
   margin: 0;
-  padding: var(--space-8) var(--space-14);
+  padding: var(--space-8) var(--space-12);
   text-align: right;
 }
 

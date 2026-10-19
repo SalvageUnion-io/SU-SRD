@@ -8,6 +8,7 @@ import { itemHref } from '../lib/entityHref'
 import type { RefText } from '../lib/rollTablePage'
 import { AbilityTrack } from './AbilityTrack'
 import { capsLabel } from './atoms/capsLabel'
+import { Box } from './containers/Box'
 import type { TreeTrack } from './index'
 import { Chips, Head, Slab, Stat, TitledBox } from './index'
 import { MentionProse } from './MentionProse'
@@ -273,22 +274,31 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: RefClas
   )
   return (
     <li className="su-class-path" data-kind={kind.toLowerCase()}>
-      {hybrid ? (
-        <a className="su-class-path__link" href={classHref(hybrid)}>
-          {head}
-        </a>
-      ) : (
-        head
-      )}
-      <div className="su-class-path__body">
-        {note && <p className="su-class-path__note">{note}</p>}
-        <div className="su-class-path__trees" data-entity-fit="">
-          <TreeSection {...path.advanced} track={hybrid ? 'hybrid' : 'advanced'} form="token" />
-          {path.legendary && <TreeSection {...path.legendary} track="legendary" form="token" />}
+      {/* The Row's frame (`Box`, standing in `RowFrame`) under the Row's
+          `Head`: drawn through the forms (EDL E15), never a frame of its own.
+          Flush, so the foot's rule spans the frame. */}
+      <Box
+        body="flush"
+        head={
+          hybrid ? (
+            <a className="su-class-path__link" href={classHref(hybrid)}>
+              {head}
+            </a>
+          ) : (
+            head
+          )
+        }
+      >
+        <div className="su-class-path__body">
+          {note && <p className="su-class-path__note">{note}</p>}
+          <div className="su-class-path__trees" data-entity-fit="">
+            <TreeSection {...path.advanced} track={hybrid ? 'hybrid' : 'advanced'} form="token" />
+            {path.legendary && <TreeSection {...path.legendary} track="legendary" form="token" />}
+          </div>
         </div>
-      </div>
-      {/* Cited as every card's footer cites: text, never chips (EDL E9). */}
-      <p className="su-class-path__foot">Workshop Manual · p.{(hybrid ?? classEntity).page}</p>
+        {/* Cited as every card's footer cites: text, never chips (EDL E9). */}
+        <p className="su-class-path__foot">Workshop Manual · p.{(hybrid ?? classEntity).page}</p>
+      </Box>
     </li>
   )
 }

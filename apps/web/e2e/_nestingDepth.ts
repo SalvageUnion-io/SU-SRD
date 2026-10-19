@@ -44,7 +44,7 @@ export type NestingSelectors = {
   head: string
   /**
    * The frame a head names, nearest first: a Row's or Box's, a Card's, a
-   * Tile's, a class page's path card, a choice option's.
+   * Tile's, a choice option's.
    */
   frame: string
   /** The title inside a head. */
@@ -69,8 +69,7 @@ export type NestingSelectors = {
 
 export const NESTING_SELECTORS: NestingSelectors = {
   head: '.su-entity-row__head, .su-entity-tile__band, [data-option-head]',
-  frame:
-    '.su-entity-row__frame, .su-ec-frame, .su-entity-tile__frame, .su-class-path, [data-option-frame]',
+  frame: '.su-entity-row__frame, .su-ec-frame, .su-entity-tile__frame, [data-option-frame]',
   title: '.su-entity-row__title, .su-entity-tile__name',
   box: 'su-box',
   chrome: '.su-modal-panel',

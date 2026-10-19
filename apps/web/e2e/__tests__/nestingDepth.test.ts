@@ -116,12 +116,12 @@ describe('N1: three levels', () => {
     expect(scan(box(card('Mule', 'Chassis', token('Cargo Pod', 'System'))))).toEqual([])
   })
 
-  test("a class page's path card is a level-1 frame: its track's Rows are level 2", () => {
-    const html = `<ul><li class="su-class-path">${head('Legendary Engineer')}<div class="su-class-path__body">${row('Jury Rig', 'Ability')}</div></li></ul>`
+  test("a class page's path card is a level-1 Box: its track's Rows are level 2", () => {
+    const html = `<ul><li class="su-class-path">${box(row('Jury Rig', 'Ability'), 'Legendary Engineer')}</li></ul>`
     expect(scan(html)).toEqual([
       {
         rule: 'N1',
-        chain: 'Legendary Engineer > Jury Rig (Ability)',
+        chain: 'Legendary Engineer (TitledBox) > Jury Rig (Ability)',
         detail: 'a headed frame at level 2',
       },
     ])
@@ -133,7 +133,7 @@ describe('N1: three levels', () => {
       'Ability',
       '<div class="su-entity-token__body"><p>Fix it.</p></div>'
     )
-    const html = `<ul><li class="su-class-path">${head('Legendary Engineer')}<div class="su-class-path__body">${track}</div></li></ul>`
+    const html = `<ul><li class="su-class-path">${box(track, 'Legendary Engineer')}</li></ul>`
     expect(scan(html)).toEqual([])
   })
 
