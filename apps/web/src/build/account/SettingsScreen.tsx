@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from 'convex/react'
 import type { CSSProperties, ReactNode } from 'react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
@@ -8,6 +8,7 @@ import {
   Button,
   ChapterBand,
   Cluster,
+  ConfirmDialog,
   EmptyState,
   FieldError,
   Input,
@@ -91,6 +92,10 @@ function SignedInAccount() {
 
   const [name, setName] = useState<string | null>(null)
   const [confirming, setConfirming] = useState(false)
+  // The words a failed deletion was given (`useServerAction`), for the dialog,
+  // which holds the failure on itself (ruleset §3.1: destruction behind
+  // `ConfirmDialog`).
+  const eraseFailure = useRef('')
 
   if (me === undefined) return <Pending label="your account" />
   if (me === null) return <EmptyState variant="quiet" body="No account is held for this sign-in." />
@@ -144,35 +149,30 @@ function SignedInAccount() {
           organise passes to its longest-standing member. This cannot be undone.
         </Text>
         <Cluster gap={8}>
-          {confirming ? (
-            <>
-              <Button
-                variant="primary"
-                className={ACTION}
-                disabled={erase.pending}
-                onClick={() => void erase.run({})}
-              >
-                {erase.pending ? 'Deleting…' : 'Permanently delete'}
-              </Button>
-              <Button
-                variant="ghost"
-                className={ACTION}
-                disabled={erase.pending}
-                onClick={() => {
-                  erase.clearError()
-                  setConfirming(false)
-                }}
-              >
-                Cancel
-              </Button>
-            </>
-          ) : (
-            <Button variant="primary" className={ACTION} onClick={() => setConfirming(true)}>
-              Delete my account
-            </Button>
-          )}
+          <Button variant="primary" className={ACTION} onClick={() => setConfirming(true)}>
+            Delete my account
+          </Button>
         </Cluster>
-        <FieldError>{erase.error}</FieldError>
+        <ConfirmDialog
+          open={confirming}
+          onOpenChange={(open) => {
+            if (!open) erase.clearError()
+            setConfirming(open)
+          }}
+          title="Delete your account?"
+          tone="danger"
+          body="Everything you own is deleted for good. The Games you are in carry on without you. This cannot be undone."
+          confirmLabel="Permanently delete"
+          pendingLabel="Deleting…"
+          onConfirm={async () => {
+            const result = await erase.run({})
+            if (!result.ok) {
+              eraseFailure.current = result.error
+              throw new Error('The account was not deleted')
+            }
+          }}
+          describeError={() => eraseFailure.current}
+        />
       </Section>
     </Stack>
   )

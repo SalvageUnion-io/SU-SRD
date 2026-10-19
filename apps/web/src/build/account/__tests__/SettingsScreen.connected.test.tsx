@@ -1,5 +1,5 @@
 import { afterAll, afterEach, describe, expect, test } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { FunctionReference } from 'convex/server'
 import { getFunctionName } from 'convex/server'
 import { ConvexError } from 'convex/values'
@@ -31,9 +31,13 @@ let authed = true
  */
 let failures: Record<string, unknown> = {}
 
+/** How many deletions reached the server this test. */
+let deletions = 0
+
 function useMutationMock(ref: unknown) {
   const name = getFunctionName(ref as FunctionReference<'mutation'>)
   return async () => {
+    if (name === 'account:deleteAccount') deletions++
     if (name in failures) throw failures[name]
     return null
   }
@@ -75,6 +79,7 @@ function setOnline(value: boolean): void {
 afterEach(() => {
   authed = true
   failures = {}
+  deletions = 0
   setOnline(true)
 })
 
@@ -173,15 +178,27 @@ describe('taking your data, and taking it away', () => {
     expect(screen.getByText('Download my data').closest('button')?.disabled).toBe(false)
   })
 
-  test('deletion takes two deliberate clicks, and says what survives', () => {
+  test('deletion takes two deliberate clicks, the second behind a ConfirmDialog', () => {
     withQueries(profileQueries(ME))
     wrap()
 
-    // The first click only arms it; nothing irreversible is one click away.
+    // The first click only asks; nothing irreversible is one click away.
     expect(screen.queryByText('Permanently delete')).toBeNull()
     fireEvent.click(screen.getByText('Delete my account'))
-    expect(screen.getByText('Permanently delete')).toBeTruthy()
-    expect(screen.getByText('Cancel')).toBeTruthy()
+    const dialog = screen.getByRole('alertdialog', { name: 'Delete your account?' })
+    expect(within(dialog).getByText(/cannot be undone/i)).toBeTruthy()
+    expect(within(dialog).getByText('Permanently delete')).toBeTruthy()
+    expect(within(dialog).getByText('Cancel')).toBeTruthy()
+  })
+
+  test('Cancel closes the dialog and deletes nothing', () => {
+    withQueries(profileQueries(ME))
+    wrap()
+
+    fireEvent.click(screen.getByText('Delete my account'))
+    fireEvent.click(screen.getByText('Cancel'))
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(deletions).toBe(0)
   })
 
   test('it warns that the shared game outlives the account', () => {
@@ -200,14 +217,26 @@ async function press(label: string): Promise<void> {
 }
 
 describe('a write the server does not take says so', () => {
-  test("a refused deletion says the server's words", async () => {
+  test("a refused deletion says the server's words, on the dialog", async () => {
     failures = { 'account:deleteAccount': new ConvexError('You still organise a Game.') }
     withQueries(profileQueries(ME))
     wrap()
 
     fireEvent.click(screen.getByText('Delete my account'))
     await press('Permanently delete')
-    expect(screen.getByText('You still organise a Game.')).toBeTruthy()
+    // The dialog stays open with the reason, so the reader sees nothing happened.
+    const dialog = screen.getByRole('alertdialog')
+    expect(within(dialog).getByText('You still organise a Game.')).toBeTruthy()
+  })
+
+  test('a deletion that lands closes the dialog', async () => {
+    withQueries(profileQueries(ME))
+    wrap()
+
+    fireEvent.click(screen.getByText('Delete my account'))
+    await press('Permanently delete')
+    expect(deletions).toBe(1)
+    expect(screen.queryByRole('alertdialog')).toBeNull()
   })
 
   test('a failed deletion says so in words, never its raw text', async () => {
