@@ -25,7 +25,7 @@ The loop: define it here, land its gate with a baseline, burn the baseline to ze
 - **R4 Every strip is `Chips`, in class order** (C2, C2a, C10) — the Page band, Tiles and unit Rows included; budgets from the form, never a schema set; a header's summary repeats no child's fact; a foot band is text, never chips.
   Gate: held. `Chips` draws every strip (a Token's, a Row's, Card's or `Head`'s, the Page band, a Tile's, a Slab's summary), each chip in its class's lane (`data-chip-class`); `_chipStrips.ts` fails a chip in no lane (`unclassed`), a strip that goes back in the class order (`order`), a read chip after the cost (`cost`) and a chip in a `[data-foot-band]` (`foot`), over the SRD pages with no allowlist and over R0 with no baseline. `UnitRow.test.tsx` pins `unitRowModel`'s budget (a roster keeps the rank and the lead vital); `slabSummary.test.tsx` pins C10 and the two-chip summary. A Tile's budget is a compact head's in its kind's context (`budgetFacts`), no schema set.
 - **R5 A linked unit is a relation chip** (C11) — the same in Read and Edit; no role stamp, no Token under a Row.
-  Gate: planned, banned copy "Assigned Mech" / "Assigned Pilot"; e2e: no entity directly under another Row's head.
+  Gate: planned, banned copy "Assigned Mech" / "Assigned Pilot"; e2e: no entity directly under another Row's head. Play: done (a mech box's chassis, a crewmate's and a seat's mech).
 - **R6 Nothing beside or under a strip** (C8, E8) — state, uses and actions sit in the chip group; Details opens the Page.
   Gate: planned, e2e over R0: every control in an entity list item is inside its chip group. Play: Head's `controls` slot draws after the chip group.
 
@@ -34,9 +34,9 @@ The loop: define it here, land its gate with a baseline, burn the baseline to ze
 - **R1 One section head, the solid Slab** (§3.9, §5.7) — a dashed head reads as user-made.
   Gate: held, `Slab` takes no `variant` (the type system); `chrome.test.tsx` pins the solid stamp.
 - **R7 Play draws with the shared primitives** (§0, §6.3, E15) — heads, chips, stats, gauges and stamps as on the sheet; entity markup only in `entity/`.
-  Gate: planned, a lint banning `su-entity-(row|token)__` and `entity/parts` imports outside `entity/`. Play: `PlayVital` over `VitalGauge` is the model; its resolve readout and step cells are hand-built.
+  Gate: held in Play. The `styling` set's `entity-markup` (zero) fails a `su-entity-(row|token)__` class in `apps/web/src/play/` or `styles/play/`; Biome's `noRestrictedImports` bans an `entity/parts` import under `apps/web/src/play/`. Play says what it needs through the forms' props (`Box`'s `reference`, `fill`, `dim`; `Row`'s `dim`), draws vitals with `PlayVital` (the pinned ones too), Hot(X) with `Stat` in Edit, and links as relation chips (C11). Outside Play, `Box`, `Inset` and a few referenceEntity heads still draw Row markup.
 - **R8 One roll instrument** (§2.4, §3.4, E14) — `RollTableInstrument`, open on a Page, panel or resolve; its stamp the one roll control, a result its marked row, the same mark for every outcome.
-  Gate: planned, e2e: a Page with a table shows its bands without a click. Play: `PlayRollTable` is the model; resolve, Push, Heat, Morale and NPC rolls are not yet.
+  Gate: held. `roll-instrument.e2e.ts` (on every PR): an entity's, a guide's and a roll table's Page show their bands without a click and no toggle, and two outcomes' marked rows have identical computed styles. Every Play roll is `PlayRollInstrument` (resolve and Push, Heat Check, rumour, NPC action, Morale) or `PlayRollTable`; nested in a card a table is `RollToken`.
 - **R9 No state colour fills a button** (§3.1, §3.3) — destructive is rust behind `ConfirmDialog`.
   Gate: held, `buttonVariants` has no `danger` (the type system; `Btn.test.tsx` pins it); `ConfirmDialog`'s danger tone remains, its confirm rust.
 - **R10 A surface sets its texture once** (§3.5.1, E13) — every brand-colour ground carries the speckle in every context, the Cockpit and the Peek included; paper, cream, Play's ink-deep ground, buttons and fields never do.
