@@ -121,7 +121,7 @@ test.describe('bundle-size budget', () => {
     })
 
     // Served as a plain field; it becomes the combobox when reached for.
-    const name = /search the srd/i
+    const name = /search the reference/i
     const search = page
       .getByRole('combobox', { name })
       .or(page.getByRole('searchbox', { name }))
