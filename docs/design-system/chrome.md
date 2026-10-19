@@ -17,7 +17,7 @@ One component per job, chosen by the job (R16).
 - **K5 Notices** — a toast reports an act just done, from the one `Toaster` per document; a `Banner` holds a lasting condition (offline is one notice, one wording); a `Message` states a consequence where it applies.
   Copied is the copy control's own `Check` swap and a polite live region, never a toast. No notice wears a roll-tier colour (ruleset §3.4).
 - **K6 Loading** — `Pending` inside a screen, `Skeleton` for a shape known ahead, `RoutePending` for a route; one voice, "Loading <thing>…".
-- **K7 Dialog widths** — `ModalShell` is narrow (28rem: confirms, pickers), default (48rem) or page (72rem: the detail Page); no per-dialog width.
+- **K7 Dialog widths** — `ModalShell` is narrow (28rem: confirms, short pickers), default (48rem) or page (72rem: the detail Page, the searcher); no per-dialog width.
 - **K8 Empty and error states** — `EmptyState`: the stamp on a Page or sheet section, quiet in app chrome, inline in a framed list; "No <things> yet."
   A crash is `RecoveryPanel`, a missing record `NotFoundPanel`, a failed act `toast.error`; the one retry verb is "Try again".
 - **K9 One focus ring** — every focusable thing shows `--focus-ring-shadow` on `:focus-visible`, in ink (ruleset §3.1), Play included; no outline, underline, dashed or colour-only variant.
