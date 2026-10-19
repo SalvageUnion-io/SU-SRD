@@ -460,6 +460,11 @@
                   {
                     "group": ["**/entity/parts", "**/entity/parts/**"],
                     "message": "R7: entity markup lives only in components/entity/. Take an entity form (`Row`, `RowFrame`, `Entity`) or a shared part from the entity module's face ('components/entity', or the components barrel); a file under entity/parts is the forms' own."
+                  },
+                  {
+                    "group": ["**"],
+                    "importNamePattern": "RadioCardGroup",
+                    "message": "R24 (ruleset §6.6): a pick dialog is `PickDialog`, the one radio group of Rows; `RadioCardGroup` is its own and the wizards' (the override after the display layer's names them)."
                   }
                 ]
               }
@@ -525,6 +530,11 @@
                   {
                     "group": ["**/entity/parts", "**/entity/parts/**"],
                     "message": "R7: entity markup lives only in components/entity/. Take an entity form (`Row`, `RowFrame`, `Entity`) or a shared part from the entity module's face ('components/entity', or the components barrel); a file under entity/parts is the forms' own."
+                  },
+                  {
+                    "group": ["**"],
+                    "importNamePattern": "RadioCardGroup",
+                    "message": "R24 (ruleset §6.6): a pick dialog is `PickDialog`, the one radio group of Rows; `RadioCardGroup` is its own and the wizards' (the override after the display layer's names them)."
                   }
                 ]
               }
@@ -543,6 +553,106 @@
         "!**/__tests__/**",
         "!**/*.test.ts",
         "!**/*.test.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses).",
+                  "react": {
+                    "importNames": ["forwardRef"],
+                    "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
+                  },
+                  "convex/react": "The display layer takes its data as props; a product folder wires Convex.",
+                  "convex/browser": "The display layer takes its data as props; a product folder wires Convex.",
+                  "zustand": "The display layer takes its data as props; a product folder wires the stores."
+                },
+                "patterns": [
+                  {
+                    "group": ["@/*"],
+                    "message": "Use relative imports instead of @/ path aliases."
+                  },
+                  {
+                    "group": ["salvageunion-reference/lib/**"],
+                    "message": "Import from 'salvageunion-reference' or a declared subpath export — never a path inside the package."
+                  },
+                  {
+                    "group": ["**/convex/**", "**/stores/**"],
+                    "message": "The display layer takes its data as props; a product folder wires the stores and Convex."
+                  },
+                  {
+                    "group": ["**/entity/parts", "**/entity/parts/**"],
+                    "message": "R7: entity markup lives only in components/entity/. Take an entity form (`Row`, `RowFrame`, `Entity`) or a shared part from the entity module's face ('components/entity', or the components barrel); a file under entity/parts is the forms' own."
+                  },
+                  {
+                    "group": ["**"],
+                    "importNamePattern": "RadioCardGroup",
+                    "message": "R24 (ruleset §6.6): a pick dialog is `PickDialog`, the one radio group of Rows; `RadioCardGroup` is its own and the wizards' (the override after the display layer's names them)."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      // R24 (hard-rules.md, ruleset §6.6): the files that may take
+      // `RadioCardGroup`, which the three overrides above refuse everywhere
+      // else in apps/web/src. A pick dialog is `PickDialog`; the wizards keep
+      // their own steps' radio groups (a class, a crawler type, an NPC's
+      // template) and `MasonryColumns`' `radio` grid; the barrel exports it, and
+      // its own test drives it.
+      // Each restates the options of the override it stands in for, without
+      // the ban: Biome overrides REPLACE a rule's options.
+      "includes": [
+        "apps/web/src/build/wizard/CrawlerTypeStep.tsx",
+        "apps/web/src/build/pilot/ClassPathPicker.tsx",
+        "apps/web/src/build/npc/AnyNpcDesigner.tsx",
+        "apps/web/src/components/index.ts",
+        "apps/web/src/components/containers/__tests__/RadioCardGroup.test.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses).",
+                  "react": {
+                    "importNames": ["forwardRef"],
+                    "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
+                  }
+                },
+                "patterns": [
+                  {
+                    "group": ["@/*"],
+                    "message": "Use relative imports instead of @/ path aliases."
+                  },
+                  {
+                    "group": ["salvageunion-reference/lib/**"],
+                    "message": "Import from 'salvageunion-reference' or a declared subpath export — never a path inside the package."
+                  },
+                  {
+                    "group": ["**/entity/parts", "**/entity/parts/**"],
+                    "message": "R7: entity markup lives only in components/entity/. Take an entity form (`Row`, `RowFrame`, `Entity`) or a shared part from the entity module's face ('components/entity', or the components barrel); a file under entity/parts is the forms' own."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      // R24's display-layer half: `PickDialog` and the wizards' grid.
+      "includes": [
+        "apps/web/src/components/compositions/PickDialog.tsx",
+        "apps/web/src/components/containers/MasonryColumns.tsx"
       ],
       "linter": {
         "rules": {

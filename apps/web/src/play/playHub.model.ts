@@ -5,28 +5,11 @@
  * state; its one door is the way into play, Mediate or Play <pilot>.
  */
 
-import { nameToSlug } from 'salvageunion-reference'
-import type { EntityRowModel } from '../components/index'
-
 /** A label-first chip on a Game's Row: `Mediator`, `3 here`, `DOWNTIME | Step 4`. */
 export type HubChip = { key: string; label: string; value?: string }
 
 /** A Game's one door, rust: where it goes and what it is called. */
 export type GameDoor = { label: string; href: string; ariaLabel: string }
-
-/** A Game as a Row draws it: its name on the crawler's tone, as its band wears it. */
-export function gameRowModel(name: string): EntityRowModel {
-  const slug = nameToSlug(name)
-  return {
-    ref: { schemaName: 'crawlers', id: `game/${slug}`, slug, name, synthetic: true },
-    title: name,
-    kind: { stamp: 'Game', type: 'Game', domain: 'crawler', nature: 'have' },
-    tone: 'crawler',
-    facts: [],
-    traits: [],
-    art: { kind: 'none' },
-  }
-}
 
 /**
  * A Game's chips, in order: your role in it, how many are here now (only when

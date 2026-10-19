@@ -52,11 +52,12 @@ import { UnitRow } from '../components/shared/UnitRow'
 import { useGo } from '../components/shared/useGo'
 import { useConnection } from '../lib/connection/connectionContext'
 import { useHydrateEntities, useMechs, usePilots, useSoftLinkList } from '../lib/entities'
+import { gameRowModel } from '../lib/games/containerRow.model'
 import { invitePath, inviteTokenFrom } from '../lib/games/inviteLink'
 import { PlayDiscordSection } from './PlayDiscordSection'
 import { PlayRefusal } from './PlayRefusal'
 import { gamePilots, soloPilots } from './play.model'
-import { gameChips, gameDoor, gameRowModel } from './playHub.model'
+import { gameChips, gameDoor } from './playHub.model'
 import { usePresenceClock } from './usePresenceClock'
 
 type GameSummary = FunctionReturnType<typeof api.games.listMine>[number]

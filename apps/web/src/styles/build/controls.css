@@ -88,14 +88,6 @@ select.su-container-select {
   opacity: 50%;
 }
 
-/* ── AssignPicker ── */
-
-/* The candidate Rows (select mode, one radio group), 8px apart. */
-:where(.su-assign-picker__candidates > :not(:last-child)) {
-  margin-block-end: var(--space-8);
-  margin-block-start: 0;
-}
-
 /* ── CargoLotRow ── */
 
 /* A lot row's rule, dropped on the last row (a sibling selector, so a class). */

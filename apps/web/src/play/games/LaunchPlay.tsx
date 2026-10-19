@@ -9,8 +9,8 @@
  *
  * ## One choice: the pilot
  *
- * The dialog lists the Game's pilots — each its Row in select mode (EDL
- * "Modes"), who holds it right of the name — in the roster's own order: yours first
+ * The dialog (`PickDialog`) lists the Game's pilots — each its Row in select
+ * mode (EDL "Modes"), who holds it right of the name — in the roster's own order: yours first
  * (`groupColumn`), then the crew's — and pre-selects the first one you own. A
  * viewer who owns none of those listed gets no pre-selection and picks one.
  * Nothing else is asked: the mech and the crawler follow from the pilot's own
@@ -24,8 +24,8 @@
  * Offering a crewmate's pilot, or a pre-gen this browser never made, would send
  * every such choice to the gate's "Pilot not found". Those stay on the roster,
  * where their read-only sheets open. A viewer who holds none of the Game's
- * pilots — a Mediator who plays nobody, say — gets a line saying so instead of
- * a choice.
+ * pilots — a Mediator who plays nobody, say — gets the dialog's empty state
+ * saying so instead of a choice.
  *
  * Connected only: `GameHub` mounts it, and `Roster` mounts the hub only when
  * the mode is Connected, so every hook below has a provider.
@@ -33,57 +33,15 @@
 
 import { useRouter } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
-import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import {
-  Button,
-  DialogActions,
-  Entity,
-  ModalShell,
-  Pending,
-  RadioCardGroup,
-  Text,
-  tokens,
-} from '../../components/index'
+import { Button, PickDialog } from '../../components/index'
 import { useHydrateEntities, usePilots } from '../../lib/entities'
 import type { RosterRow } from '../../lib/games/gameRoster'
 import { groupColumn, ownableRows } from '../../lib/games/gameRoster'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { OwnerSeal } from './OwnerSeal'
-
-const HINT = { textAlign: 'left' } satisfies CSSProperties
-
-const BODY = {
-  backgroundColor: tokens.color.paper,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[16],
-  padding: tokens.space[20],
-} satisfies CSSProperties
-
-const FIELDSET = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[8],
-  minWidth: 0,
-} satisfies CSSProperties
-
-const LEGEND = {
-  color: tokens.color.wkMuted,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.sm,
-  margin: 0,
-  marginBottom: tokens.space[8],
-} satisfies CSSProperties
-
-/** The pilots, each its Row in select mode, 8px apart. */
-const CHOICES = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[8],
-} satisfies CSSProperties
 
 /** The pilot a viewer is offered first: their own, in the roster's order. */
 function preselect(pilots: readonly RosterRow[]): string | null {
@@ -143,39 +101,24 @@ export function LaunchPlay({ gameId }: { gameId: string }) {
       <Button variant="primary" size="compact" onClick={openPicker}>
         Play
       </Button>
-      <ModalShell
+      <PickDialog
         open={open}
         onOpenChange={setOpen}
         title="Play"
         description="Choose the pilot to play."
-        width="narrow"
-      >
-        <div style={BODY}>
-          {listing === undefined ? (
-            <Pending label="pilots" />
-          ) : pilots.length === 0 ? (
-            <Text variant="hint" style={HINT}>
-              None of this Game's pilots is saved in this browser. Create or claim one from the
-              roster, then play.
-            </Text>
-          ) : (
-            <div style={FIELDSET}>
-              <p style={LEGEND}>Which pilot are you playing?</p>
-              <RadioCardGroup label="Which pilot are you playing?" style={CHOICES}>
-                {pilots.map((row) => (
-                  <Entity
-                    key={row.serverId}
-                    form="row"
-                    model={unitRowModel({ kind: 'pilot', name: row.name })}
-                    mode={{
-                      kind: 'select',
-                      role: 'radio',
-                      selected: row.serverId === selected,
-                      onSelect: () => setPicked(row.serverId),
-                      label: row.name,
-                    }}
-                    /* Who holds it, right of the name (ruleset §7.2), as the roster says it. */
-                    labels={
+        loading="pilots"
+        groups={
+          listing === undefined
+            ? undefined
+            : [
+                {
+                  key: 'pilots',
+                  choices: pilots.map((row) => ({
+                    id: row.serverId,
+                    label: row.name,
+                    model: unitRowModel({ kind: 'pilot', name: row.name }),
+                    // Who holds it, right of the name (ruleset §7.2), as the roster says it.
+                    labels:
                       row.owner === null ? undefined : (
                         <OwnerSeal
                           owner={row.owner}
@@ -183,23 +126,17 @@ export function LaunchPlay({ gameId }: { gameId: string }) {
                           disabled
                           onClaim={() => undefined}
                         />
-                      )
-                    }
-                  />
-                ))}
-              </RadioCardGroup>
-            </div>
-          )}
-          <DialogActions>
-            <Button variant="ghost" size="compact" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="primary" size="compact" disabled={chosen === null} onClick={launch}>
-              Play
-            </Button>
-          </DialogActions>
-        </div>
-      </ModalShell>
+                      ),
+                  })),
+                },
+              ]
+        }
+        empty="None of this Game's pilots is saved in this browser. Create or claim one from the roster, then play."
+        selected={selected}
+        onSelect={setPicked}
+        confirmLabel="Play"
+        confirm={chosen === null ? undefined : launch}
+      />
     </>
   )
 }

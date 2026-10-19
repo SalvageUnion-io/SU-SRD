@@ -4,9 +4,9 @@
  * move into this Game, then the same move Build's "Move to a Game…" makes
  * (`requestMove`), one unit per add.
  *
- * The dialog is narrow (chrome K7): radio Rows (EDL select mode) grouped under
- * Pilots, Mechs and Crawlers Slabs, in one radio group, so exactly one is
- * picked. Each Row shows its relation chips — the Game it would leave, the unit
+ * The dialog is the one pick dialog (`PickDialog`, chrome K7): radio Rows (EDL
+ * select mode) grouped under Pilots, Mechs and Crawlers Slabs, in one radio
+ * group, so exactly one is picked. Each Row shows its relation chips — the Game it would leave, the unit
  * it is assigned to — so what the move touches is visible before it runs
  * (`hangarChoices`). Moving out of another Game, or clearing an assignment,
  * asks first: that is `requestMove`'s, on the page's confirm, which outlives
@@ -18,23 +18,10 @@
 import { useQuery } from 'convex/react'
 import type { Container } from 'game-domain/container'
 import { moveTo } from 'game-domain/container'
-import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { requestMove } from '../../build/entityContainer/requestMove.model'
-import {
-  Button,
-  DialogActions,
-  Entity,
-  ModalShell,
-  Pending,
-  RadioCardGroup,
-  relation,
-  Slab,
-  Text,
-  toast,
-  tokens,
-} from '../../components/index'
+import { Button, PickDialog, relation, toast } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { useCrawlers, useMechs, usePilots, useSoftLinkList } from '../../lib/entities'
@@ -43,30 +30,6 @@ import { useEntityStore } from '../../stores/entityStore'
 import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
 import type { HangarChoice } from './addFromHangar.model'
 import { HANGAR_GROUPS, hangarChoices } from './addFromHangar.model'
-
-const BODY = {
-  backgroundColor: tokens.color.paper,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[16],
-  padding: tokens.space[20],
-} satisfies CSSProperties
-
-/** The three groups, one radio group: 16px between them. */
-const GROUPS = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[16],
-} satisfies CSSProperties
-
-/** One group: its Slab, then its Rows 8px apart. */
-const GROUP = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[8],
-} satisfies CSSProperties
-
-const HINT = { textAlign: 'left' } satisfies CSSProperties
 
 type AddFromHangarProps = {
   gameId: string
@@ -135,65 +98,34 @@ export function AddFromHangar({ gameId, gameName, confirm }: AddFromHangarProps)
           + Move in from your Hangar
         </Button>
       </div>
-      <ModalShell
+      <PickDialog
         open={open}
         onOpenChange={setOpen}
         title="Move in from your Hangar"
         description={`Choose one of your units to move into ${here}.`}
-        width="narrow"
-      >
-        <div style={BODY}>
-          {choices === null ? (
-            <Pending label="your Hangar" />
-          ) : all.length === 0 ? (
-            <Text variant="hint" style={HINT}>
-              Nothing in your Hangar can move into {here}. Create a unit for it from the roster.
-            </Text>
-          ) : (
-            <RadioCardGroup label={`Move into ${here}`} style={GROUPS}>
-              {HANGAR_GROUPS.filter((g) => choices[g.kind].length > 0).map((group) => (
-                <section key={group.kind} style={GROUP} aria-label={group.title}>
-                  <Slab as="h3" label={group.title} />
-                  {choices[group.kind].map((choice) => (
-                    <Entity
-                      key={key(choice)}
-                      form="row"
-                      model={unitRowModel({ kind: choice.kind, name: choice.name })}
-                      mode={{
-                        kind: 'select',
-                        role: 'radio',
-                        selected: key(choice) === picked,
-                        onSelect: () => setPicked(key(choice)),
-                        label: choice.name,
-                      }}
-                      {...(choice.relations.length > 0
-                        ? {
-                            relations: choice.relations.map((r) =>
-                              relation(r.key, r.label, r.value, { href: r.href })
-                            ),
-                          }
-                        : {})}
-                    />
-                  ))}
-                </section>
-              ))}
-            </RadioCardGroup>
-          )}
-          <DialogActions>
-            <Button variant="ghost" size="compact" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              size="compact"
-              disabled={chosen === null}
-              onClick={() => chosen && add(chosen)}
-            >
-              {chosen === null ? 'Move in' : `Move ${chosen.name} in`}
-            </Button>
-          </DialogActions>
-        </div>
-      </ModalShell>
+        loading="your Hangar"
+        groups={
+          choices === null
+            ? undefined
+            : HANGAR_GROUPS.map((group) => ({
+                key: group.kind,
+                title: group.title,
+                choices: choices[group.kind].map((choice) => ({
+                  id: key(choice),
+                  label: choice.name,
+                  model: unitRowModel({ kind: choice.kind, name: choice.name }),
+                  relations: choice.relations.map((r) =>
+                    relation(r.key, r.label, r.value, { href: r.href })
+                  ),
+                })),
+              }))
+        }
+        empty={`Nothing in your Hangar can move into ${here}. Create a unit for it from the roster.`}
+        selected={picked}
+        onSelect={setPicked}
+        confirmLabel={chosen === null ? 'Move in' : `Move ${chosen.name} in`}
+        confirm={chosen ? () => add(chosen) : undefined}
+      />
     </>
   )
 }

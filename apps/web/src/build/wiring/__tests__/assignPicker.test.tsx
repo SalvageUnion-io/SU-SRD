@@ -385,7 +385,7 @@ describe('AssignPicker — the link points the way the schema says', () => {
     })
   }
 
-  test('confirming nothing asks rather than writing', async () => {
+  test('confirm stays off until a candidate is picked', async () => {
     const store = makeStore({ crawlers: [crawler('c1', 'Iron Tortoise')] })
     inMode(
       SOLO_STATE,
@@ -397,9 +397,13 @@ describe('AssignPicker — the link points the way the schema says', () => {
       />
     )
     open(/assign crawler to pilot/i)
+    const button = () =>
+      screen.getByRole('button', { name: /confirm crawler assignment/i }) as HTMLButtonElement
+    expect(button().disabled).toBe(true)
     await confirm(/confirm crawler assignment/i)
     expect(store.create).not.toHaveBeenCalled()
-    expect(screen.getByText('Please select a crawler.')).toBeTruthy()
+    fireEvent.click(screen.getByRole('radio'))
+    expect(button().disabled).toBe(false)
   })
 
   test('cancel closes without writing', async () => {

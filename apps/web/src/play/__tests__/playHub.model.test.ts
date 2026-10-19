@@ -1,19 +1,9 @@
 import { describe, expect, test } from 'bun:test'
-import { gameChips, gameDoor, gameRowModel } from '../playHub.model'
+import { gameChips, gameDoor } from '../playHub.model'
 
 /** The Play hub's Your Games: a Game's Row, its chips and its one door (ADR-052 §4). */
 
 const GAME = { _id: 'g1', name: 'The Rust Belt Run', mediator: false }
-
-describe('a Game’s Row', () => {
-  test('is titled by the Game, in the crawler’s tone, and links nowhere by itself', () => {
-    const model = gameRowModel('The Rust Belt Run')
-    expect(model.title).toBe('The Rust Belt Run')
-    expect(model.tone).toBe('crawler')
-    expect(model.ref.synthetic).toBe(true)
-    expect(model.facts).toEqual([])
-  })
-})
 
 describe('its chips', () => {
   test('your role, how many are here, and the Downtime step', () => {

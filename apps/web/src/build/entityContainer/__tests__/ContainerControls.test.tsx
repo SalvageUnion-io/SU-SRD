@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { ComponentProps, ReactNode } from 'react'
 
 /**
@@ -407,11 +407,11 @@ describe('MoveToGameDialog — "Move to a Game…" in a Hangar item', () => {
     { _id: 'g1', name: 'Run by me', tableRunner: true },
     { _id: 'g2', name: 'Not mine to run', tableRunner: false },
   ]
+  // Each destination is a Row (ruleset §1.9), the whole Row the pick.
   const choices = () =>
-    Array.from(
-      screen.getByRole('list', { name: 'Where to' }).querySelectorAll('button'),
-      (b) => b.textContent
-    )
+    within(screen.getByRole('list', { name: 'Where to' }))
+      .getAllByRole('button')
+      .map((row) => row.getAttribute('aria-label'))
   const pilotIn = (gameId: string | null) => ({
     type: 'pilot' as const,
     id: 'p1',

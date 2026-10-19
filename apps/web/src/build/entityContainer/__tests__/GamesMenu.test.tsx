@@ -111,7 +111,10 @@ describe('GamesDrawerList', () => {
     wrap(<GamesDrawerList onPick={() => closed++} />)
 
     const list = screen.getByRole('navigation', { name: 'Games' })
-    fireEvent.click(within(list).getByRole('button', { name: 'Union Crawler #430 · Mediator' }))
+    // Each Game is its Row (ruleset §1.9), its role a chip on it.
+    const game = within(list).getByRole('button', { name: 'Union Crawler #430' })
+    expect(within(list).getByText('Mediator')).toBeTruthy()
+    fireEvent.click(game)
     expect(convexMocks.navigations).toEqual([{ to: '/play/games/g1' }])
     expect(closed).toBe(1)
   })

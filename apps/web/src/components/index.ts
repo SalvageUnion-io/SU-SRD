@@ -155,6 +155,8 @@ export {
   ogCardTitle,
   ogReferenceAddressFits,
 } from './compositions/ogCardText'
+// PickDialog — the one pick dialog (ruleset §6.6): Rows in select mode, one radio group.
+export { PickDialog } from './compositions/PickDialog'
 // The searcher picker's modal width — for a bare ModalShell wrapping an
 // EntitySearcher (The app's SheetPickerModal applies it itself).
 // RollTableInstrument — THE roll table (EDL E14): a card's, a guide step's and

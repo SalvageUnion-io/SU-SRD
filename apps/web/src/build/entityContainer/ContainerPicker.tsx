@@ -8,7 +8,8 @@
  * - `select` — a faux-select (the sheet's "In:"): the shelf leads, the Games
  *   follow under "Games", then any actions.
  * - `menu` — a `HeaderMenu` dropdown (the masthead's Games).
- * - `list` — a column of full-width buttons (the Move dialog, the mobile drawer).
+ * - `list` — a column of Rows (ruleset §1.9: a Game is a Row), the whole Row
+ *   the pick (the Move dialog, the mobile drawer); an action is a button.
  *
  * Every variant writes a choice the same way: its label, then its hint after a
  * middle dot (a role). `actions` are entries that act rather than pick
@@ -21,12 +22,15 @@ import type { HeaderMenuItem } from '../../components/index'
 import {
   Button,
   EmptyState,
+  Entity,
   HeaderMenu,
   loadingCopy,
   Pending,
   Select,
+  Stat,
   tokens,
 } from '../../components/index'
+import { gameRowModel, hangarRowModel } from '../../lib/games/containerRow.model'
 import { serializeContainer } from './containerKey.model'
 
 /** One container on offer: what it is called and, optionally, a quieter hint (a role). */
@@ -83,13 +87,8 @@ type ListVariantProps = CommonProps & {
 
 type ContainerPickerProps = SelectVariantProps | MenuVariantProps | ListVariantProps
 
-/** A Game's name is the player's and can be long: the row's label wraps. */
-const LIST_ROW = {
-  display: 'block',
-  textAlign: 'center',
-  whiteSpace: 'normal',
-  width: '100%',
-} satisfies CSSProperties
+/** An action's button spans the list, as the Rows above it do. */
+const LIST_ACTION = { width: '100%' } satisfies CSSProperties
 
 const LIST = {
   display: 'flex',
@@ -99,8 +98,6 @@ const LIST = {
   margin: 0,
   padding: 0,
 } satisfies CSSProperties
-
-const HINT = { color: tokens.color.wkMuted } satisfies CSSProperties
 
 function PickerSelect({
   choices,
@@ -196,15 +193,19 @@ function PickerList({ choices, onPick, actions = [], label, loading, empty }: Li
     <ul aria-label={label} style={LIST}>
       {choices.map((c) => (
         <li key={serializeContainer(c.container)}>
-          <Button variant="ghost" style={LIST_ROW} onClick={() => onPick(c)}>
-            {c.label}
-            {c.hint && <span style={HINT}> · {c.hint}</span>}
-          </Button>
+          <Entity
+            form="row"
+            model={c.container.kind === 'game' ? gameRowModel(c.label) : hangarRowModel(c.label)}
+            mode={{ kind: 'link', onOpen: () => onPick(c) }}
+            labels={
+              c.hint ? <Stat orientation="horizontal" label={c.hint} size="compact" /> : undefined
+            }
+          />
         </li>
       ))}
       {actions.map((a) => (
         <li key={a.id}>
-          <Button variant="ghost" style={LIST_ROW} onClick={a.onSelect}>
+          <Button variant="ghost" style={LIST_ACTION} onClick={a.onSelect}>
             {a.label}
           </Button>
         </li>

@@ -2,10 +2,11 @@
  * AssignPicker — the one assignment picker for every slot on a sheet's Linked
  * Units rail (ADR-037).
  *
- * A button that opens a list of candidates — each the unit's Row in select
- * mode (EDL "Modes": ink ring and the "Selected" seal), one radio group —
- * then draws the link on confirm. It replaces three near-identical dialogs (`AssignPilotToMech`,
- * `AssignCrawlerToPilot`, `AssignPilotToCrawler`) that differed only in which
+ * A button that opens the one pick dialog (`PickDialog`) of candidates — each
+ * the unit's Row in select mode (EDL "Modes": ink ring and the "Selected"
+ * seal), one radio group — then draws the link on confirm. It replaces three
+ * near-identical dialogs (`AssignPilotToMech`, `AssignCrawlerToPilot`,
+ * `AssignPilotToCrawler`) that differed only in which
  * kinds they listed and which way round the link pointed — and none of which
  * looked at where anything lived, so a pilot in one Game was offered every
  * crawler in every other Game, and the server refused the pick.
@@ -47,19 +48,9 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { EntityRef } from 'game-domain/schemas/entity'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
-import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { parseCrawlerTechLevel, resolveChassisRef } from 'salvageunion-reference/rules'
-import {
-  Button,
-  DialogActions,
-  EmptyState,
-  Entity,
-  FieldError,
-  ModalShell,
-  RadioCardGroup,
-} from '../../components/index'
-import { color, font, fontSize, space } from '../../design/tokens'
+import { Button, PickDialog } from '../../components/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { useCrawlers, useMechs, usePilots } from '../../lib/entities'
@@ -73,21 +64,6 @@ import { useEntityStore } from '../../stores/entityStore'
 import type { SoftLinkStore } from './useSoftLinks'
 
 type Kind = EntityRef['type']
-
-const BODY = {
-  backgroundColor: color.paper,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: space[16],
-  padding: space[20],
-} satisfies CSSProperties
-
-const NOTE = {
-  color: color.wkMuted,
-  fontFamily: font.body,
-  fontSize: fontSize.xs,
-  lineHeight: 'calc(1 / 0.75)',
-} satisfies CSSProperties
 
 /** The store surface the picker reads and writes — injectable in tests. */
 export type AssignPickerStore = SoftLinkStore & {
@@ -181,11 +157,12 @@ const SLOT_COPY: Partial<Record<Slot, SlotCopy>> = {
   },
 }
 
-const NOUN: Record<Kind, { one: string; many: string }> = {
-  pilot: { one: 'pilot', many: 'pilots' },
-  mech: { one: 'mech', many: 'mechs' },
-  crawler: { one: 'crawler', many: 'crawlers' },
-  npc: { one: 'NPC', many: 'NPCs' },
+/** What the empty list calls the kind it found none of. */
+const MANY: Record<Kind, string> = {
+  pilot: 'pilots',
+  mech: 'mechs',
+  crawler: 'crawlers',
+  npc: 'NPCs',
 }
 
 /** A candidate's Row: its name, what it is built as, and its readings as chips. */
@@ -223,7 +200,7 @@ const crawlerCandidate = (c: Crawler): Candidate => {
  * nothing left once the slot's occupants are excluded.
  */
 function emptyCopy(kind: Kind, scope: Container | null, anyAtAll: boolean): string {
-  const { many } = NOUN[kind]
+  const many = MANY[kind]
   if (scope === null) {
     return anyAtAll ? `No other ${many} to pick.` : `No ${many} yet — create one first.`
   }
@@ -312,14 +289,10 @@ export function AssignPicker({
     setError(null)
   }
 
-  async function handleConfirm() {
-    if (!selectedId) {
-      setError(`Please select a ${NOUN[pick].one}.`)
-      return
-    }
+  async function handleConfirm(pickedId: string) {
     // The schema fixes the direction: whichever end the link type starts from.
     const self = { type: subject.type, id: subject.id }
-    const picked = { type: pick, id: selectedId }
+    const picked = { type: pick, id: pickedId }
     const [from, to] =
       linkTypeFor(self.type, picked.type) !== null ? [self, picked] : [picked, self]
     setPending(true)
@@ -344,61 +317,32 @@ export function AssignPicker({
         {label}
       </Button>
 
-      <ModalShell
+      <PickDialog
         open={open}
         onOpenChange={(next) => {
           if (!next) closeDialog()
         }}
         title={copy.title}
-        width="narrow"
-      >
-        <div style={BODY}>
-          {candidates.length === 0 ? (
-            <EmptyState variant="quiet" body={emptyCopy(pick, scope, inScope > 0)} />
-          ) : (
-            <RadioCardGroup label={copy.title} className="su-assign-picker__candidates">
-              {candidates.map((c) => (
-                <Entity
-                  key={c.id}
-                  form="row"
-                  model={unitRowModel({
-                    kind: pick,
-                    name: c.name,
-                    note: c.note,
-                    readings: c.readings,
-                  })}
-                  mode={{
-                    kind: 'select',
-                    role: 'radio',
-                    selected: selectedId === c.id,
-                    onSelect: () => setSelectedId(c.id),
-                    label: c.name,
-                  }}
-                />
-              ))}
-            </RadioCardGroup>
-          )}
-
-          <p style={NOTE}>{copy.note}</p>
-
-          {error && <FieldError>{error}</FieldError>}
-
-          <DialogActions>
-            <Button variant="ghost" size="compact" onClick={closeDialog} disabled={pending}>
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              size="compact"
-              onClick={() => void handleConfirm()}
-              disabled={pending || candidates.length === 0}
-              aria-label={copy.confirmAria}
-            >
-              {pending ? copy.pending : copy.confirm}
-            </Button>
-          </DialogActions>
-        </div>
-      </ModalShell>
+        groups={[
+          {
+            key: pick,
+            choices: candidates.map((c) => ({
+              id: c.id,
+              label: c.name,
+              model: unitRowModel({ kind: pick, name: c.name, note: c.note, readings: c.readings }),
+            })),
+          },
+        ]}
+        empty={emptyCopy(pick, scope, inScope > 0)}
+        selected={selectedId || null}
+        onSelect={setSelectedId}
+        note={copy.note}
+        error={error}
+        confirmLabel={pending ? copy.pending : copy.confirm}
+        confirmAria={copy.confirmAria}
+        confirm={selectedId ? () => void handleConfirm(selectedId) : undefined}
+        pending={pending}
+      />
     </>
   )
 }
