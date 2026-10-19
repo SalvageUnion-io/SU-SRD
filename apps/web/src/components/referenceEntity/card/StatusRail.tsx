@@ -73,7 +73,13 @@ function StatusTriState({
         // Dashed: the live sheet's controls are pencil, not print (E3). A
         // read-out is print: solid, so it cannot pass for the control.
         border: 'var(--bw-chrome) dashed var(--color-ink)',
+        // The frame owns the 44px floor, border and all: a 1.5px chrome
+        // border draws as 1px on a 1x screen, so a floor set only on the
+        // segments (44px less two borders) came out a pixel short of the
+        // Buttons beside it.
+        boxSizing: 'border-box',
         display: 'inline-flex',
+        minHeight: controlSize.full,
       }}
     >
       {STATES.map((s) => (
@@ -96,7 +102,13 @@ function StatusTriState({
         onClick()
       }}
       aria-label={`${subject} status: ${label} — click to change`}
-      style={{ background: 'none', border: 0, cursor: 'pointer', padding: 0 }}
+      style={{
+        background: 'none',
+        border: 0,
+        cursor: 'pointer',
+        display: 'inline-flex',
+        padding: 0,
+      }}
     >
       {group}
     </button>

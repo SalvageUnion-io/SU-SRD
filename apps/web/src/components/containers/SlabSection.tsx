@@ -141,7 +141,11 @@ export function SlabSection({
         countAt={countAt}
         countInk={countInk}
         flush
-        className={cn('su-slab-section__head', fold && 'su-slab-section__head--fold')}
+        className={cn(
+          'su-slab-section__head',
+          fold && 'su-slab-section__head--fold',
+          (actions || fold) && 'su-slab-section__head--controls'
+        )}
         actions={
           actions || foldControl ? (
             <>

@@ -239,9 +239,10 @@
   flex-wrap: wrap;
 }
 
-/* With a fold its count chip is the head's Size, Compact, the height of the
-   chevron and the controls beside it, so the head is one line of one height. */
-.su-slab-section__head--fold .su-stat-cell {
+/* With controls (a fold, actions) its count chip is the head's Size, Compact,
+   the height of the chevron and the Buttons beside it, so the head is one line
+   of one height, in a sidebar's narrow column as on a wide one. */
+.su-slab-section__head--controls .su-stat-cell {
   min-height: var(--size-compact);
 }
 
