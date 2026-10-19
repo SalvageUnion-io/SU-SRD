@@ -61,7 +61,7 @@ Mediator. Sheets open as an overlay; Build stays where loadouts are edited.
 Every action from pilot, mech and crawler is one list of Tokens (owner, 2026-10-19), sorted and
 filtered by action type. What the Situation allows is On hand; the rest is a
 collapsed Not on hand group naming what each needs. Boarded keeps the pilot's
-own abilities and equipment on hand. An action resolves inline in its Row
+own abilities and equipment on hand. An action resolves inline in its Token
 (Activate, Roll, Push, Apply) on the seat's `resolving`.
 
 ### 7. Crew and presence
@@ -105,7 +105,7 @@ language's E3, E6 and E18) and their gates. Its own frames place as follows:
 2. **Column headings are plain titles or Slabs** (stamp and leader rule), not
    TitledBoxes, so what a column holds stays at level 1.
 3. **A section inside an entity box is a Slab over plain content** (N5): a
-   step's "Will apply" list, the resolve steps inside an action Row.
+   step's "Will apply" list, the resolve steps inside an action's Token.
 
 ## Consequences
 

@@ -10,7 +10,7 @@ A strip is a Token, a Row or Card head, or a TitledBox, Slab or SheetSectionCard
 1. **Zones** — identity (tier or number, the name) · information (chips, the actions last among them).
 2. **Classes** — the read chips, in one order: mark (note, User-made), rank (TL), measure (in the stat order, ruleset §2.6: Slots, SV, SP or HP), economy (action type, RNG, DMG), traits, relation (what it is built on or linked to: `CHASSIS | Mule`, `PILOT | Bonesaw`, `CRAWLER | #430`, `GAME | Rust Run`), cost.
    Then the slots (C8): state (a live reading, condition, quantity), uses, ⋯ or ✕.
-   The cost sits at the seam: the last read chip, read or live; in Play the action is the Row's Use (ruleset §1.4).
+   The cost sits at the seam: the last read chip, read or live; in Play the action is the Token's Use (ruleset §1.4).
 3. **Budgets** — Mention: none. Token: rank, one context lane, cost, state; its relations are its Peek's.
    Compact Card or Row (and a contentful Token): rank, the context lane, the economy (action type, facets), traits, relations, cost, state; other measures are the full card's.
    Full Card, Page and Peek: every class (in a Peek, relation and action chips are inert, ruleset §1.6). TitledBox and Slab: at most two summary chips, totals and caps of what they hold.

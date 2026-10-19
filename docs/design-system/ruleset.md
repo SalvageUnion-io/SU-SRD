@@ -25,7 +25,7 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
    2. **Live Sheet — the pencil** — `free`; a permanent right sidebar holds what the unit carries (equipment, storage, cargo); print reads, pencil writes: Read is typeset (empty fields and sections omitted, an empty state only where it can be filled); dashed fields and steppers are Edit's. Overrides wear a dashed ring and are logged; rules show, never gate.
    3. **Play — the instrument panel** — its lists are Tokens (actions, crew, tables); the only transactional surface: bookkeeping `auto`, destruction `confirm`; every unit mutation writes a Change Log row, every roll a Game log row.
       Paper instruments on a dark ground: `--color-ink-deep` ground, `--color-band-cream` side columns, `--color-paper` for the centre column alone. On a phone: tabs under pinned vitals (ADR-051 §10).
-   4. **Use opens the action** — in Play an on-hand action's Row carries Use, which resolves it in place (Activate, Roll, Push, Apply; ADR-051 §6); its cost stays a read pennant.
+   4. **Use opens the action** — in Play an on-hand action's Token carries Use after its cost, which resolves it in place as the Token's contentful body (Activate, Roll, Push, Apply; ADR-051 §6); its cost stays a read pennant.
    5. **Listing — one entity, one click** — the Row (`<Entity form="row">`) is the one rendering for an entity in a list (listing, search, slot, deck) at level 1 (E6): art column, one-row head, chip group (E17).
       Nothing edits or expands in place; art by room (EDL E10).
       An SRD index draws Tiles (`form="tile"`, EDL E2).
