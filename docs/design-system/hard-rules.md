@@ -87,7 +87,7 @@ The loop: define it here, land its gate with a baseline, burn the baseline to ze
 - **R17 A Page has one rhythm** (§1.7, §7.1) — the body starts under the band; 12px between level-1 blocks; the stat column's 1px frame and 14px label.
   Gate: held, `page-rhythm.e2e.ts` (`_pageRhythm.ts`) on short and long SRD Pages and the app's detail Page at page and phone widths: the first block within 24px of the band, each block (a level-1 frame, Token list, Slab, the art, stats, opening, prose and table) 12px under the nearest above it, every stat value framed 1px, every stat label 14px. Planned: the class and guide pages (their own layouts), and level-1 cards from `entity/` (`PatternLinkRow`, the class page's `PathCard`).
 - **R31 Value cells and seams** (§7.1, §7.2) — a value cell is paper with a 1px ink frame; a border-riding stamp centres on its line.
-  Gate: planned, e2e over R0: every `Stat` cell's background and border, every seam stamp's centre within 1px of its border.
+  Gate: held. `value-cells.e2e.ts` (`_valueCells.ts`) over R0: every `Stat` value plate is paper (or transparent on paper), its cell framed 1px solid on every side in ink (a paper rule on an ink ground, the state colour under `good`, `caution`, `critical`); every `STAMP_SEAM` stamp centres within 1px of its frame's top border line. It reads 1,371 value cells and 8 seam stamps and fails if it reads none. No baseline.
 - **R33 A Peek is terminal** (§1.6, E16) — no button, link, input or nested Peek on its plate.
   Gate: planned, e2e: open a Peek per kind and find none.
 - **R35 The form fits the place** (E2, E11, E19) — a list item is a Row, Tile or Token; a lead only on an SRD index; a chassis ability only on its pages, else a contentful Token.
