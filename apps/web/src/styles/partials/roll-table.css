@@ -227,8 +227,9 @@
 }
 
 /* The rolled row is set in ink, its range cell and pennant on paper. The
-   pennant is pinned to the row's top right corner, out of the flow, so the
-   rolled row keeps exactly its unrolled height. */
+   pennant is pinned to the row's right edge, centred on its height (owner's
+   call, 2026-10-19), out of the flow, so the rolled row keeps exactly its
+   unrolled height. */
 .su-roll__row[data-rolled] {
   color: var(--color-paper);
 }
@@ -248,7 +249,8 @@
   padding: var(--space-2) var(--space-6) var(--space-2) var(--space-12);
   position: absolute;
   right: 0;
-  top: 0;
+  top: 50%;
+  transform: translateY(-50%);
   white-space: nowrap;
 }
 

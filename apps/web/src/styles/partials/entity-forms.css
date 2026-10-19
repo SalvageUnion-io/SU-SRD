@@ -1348,9 +1348,9 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
    value leaves its cell empty; the strip packs the lanes right on one line
    (the name gives way), a lane the gap from the next only where it has width.
    Short of room the lanes draw no box and each line packs right: a Row below
-   40rem (a container query on the Row), a Token on a phone (its chips are one
-   row of a small budget, every chip whole). Last in the file, after
-   the fill order it overrides. */
+   40rem (a container query on the Row). A Token never holds lanes: its chips
+   pack as far right as they go (owner's call, 2026-10-19). Last in the file,
+   after the fill order it overrides. */
 .su-chips[data-lanes] > [data-chip-class='mark'] {
   --su-lane-w: var(--su-lane-mark);
 }
@@ -1416,43 +1416,6 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
      pull would set the last lane's chip (the cost) past the strip's edge. */
   [data-chip-lanes='column'] .su-entity-row__heading--cut > .su-chips[data-lanes]::after {
     margin-left: 0;
-  }
-}
-
-@media (width >= 40rem) {
-  [data-chip-lanes='column'] .su-entity-token .su-chips[data-lanes] {
-    flex-direction: row;
-    flex-wrap: nowrap;
-    gap: 0;
-    justify-content: flex-end;
-  }
-
-  [data-chip-lanes='column'] .su-entity-token .su-chips[data-lanes] > .su-chip-lane {
-    align-items: center;
-    display: inline-flex;
-    flex: none;
-    gap: var(--space-4);
-    margin-inline-start: min(var(--space-4), var(--su-lane-w));
-    min-width: var(--su-lane-w);
-  }
-
-  [data-chip-lanes='column'] .su-entity-token .su-chips[data-lanes] > .su-chip-lane > * {
-    order: 0;
-  }
-
-  /* A contentful Token's compact budget wraps beside its name, chip by chip,
-     bottom-heavy (above), with no lane boxes (R3): one line of lanes would
-     leave its pill. */
-  [data-chip-lanes='column'] .su-entity-token[data-contentful] .su-chips[data-lanes] {
-    flex-wrap: wrap-reverse;
-    gap: var(--space-4);
-  }
-
-  [data-chip-lanes='column']
-    .su-entity-token[data-contentful]
-    .su-chips[data-lanes]
-    > .su-chip-lane {
-    display: contents;
   }
 }
 

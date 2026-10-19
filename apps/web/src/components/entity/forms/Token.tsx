@@ -247,7 +247,6 @@ export function Token({
             slots.menu ??
             (more ? <span className="su-chip-more-slot" aria-hidden="true" hidden /> : undefined)
           }
-          lanes
         />
       )}
     </span>

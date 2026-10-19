@@ -25,11 +25,12 @@ function scan({ packAt }: { packAt: number }): string[] {
     const r = el.getBoundingClientRect()
     return r.width >= 4 && r.height >= 4
   }
-  // Each line's strip: the outermost `Chips` in a Row's or Token's head.
+  // Each line's strip: the outermost `Chips` in a Row's head. A Token holds
+  // no lanes: its chips pack as far right as they go (C6, owner 2026-10-19).
   const strips = [...document.querySelectorAll('[data-chip-group]')].filter(
     (strip) =>
       !strip.parentElement?.closest('[data-chip-group]') &&
-      strip.closest('.su-entity-row__head, .su-entity-token__pill') &&
+      strip.closest('.su-entity-row__head') &&
       visible(strip)
   )
   const lists = new Map<Element, { line: Element; strip: Element }[]>()
@@ -56,9 +57,8 @@ function scan({ packAt }: { packAt: number }): string[] {
     const byEdges = new Map<string, { line: Element; strip: Element }[]>()
     for (const entry of lines) {
       const r = entry.line.getBoundingClientRect()
-      // A Row packs below `packAt` (a container query), a Token on a phone.
-      const room = entry.line.matches('.su-entity-token') ? window.innerWidth : r.width
-      if (room < packAt) continue
+      // A Row packs below `packAt` (a container query).
+      if (r.width < packAt) continue
       const key = `${Math.round(r.left)}:${Math.round(r.right)}`
       byEdges.set(key, [...(byEdges.get(key) ?? []), entry])
     }

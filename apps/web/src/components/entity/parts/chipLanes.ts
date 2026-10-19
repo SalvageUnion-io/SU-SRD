@@ -3,7 +3,7 @@ import { CHIP_CLASSES } from './chipSet'
 /**
  * THE LANES OF A LIST (`chips-and-actions.md` C6, hard rule R2): in a list,
  * every chip class is a column every line shares. A LIST is the lines that
- * share a parent, each a Row or Token (with the wrappers it sits in alone:
+ * share a parent, each a Row (with the wrappers it sits in alone:
  * its `li`, a grid cell); `e2e/_chipLanes.ts` reads lists the same way.
  *
  * Each line's strip (`Chips` with `lanes`) joins its list here. A list whose
@@ -20,8 +20,8 @@ import { CHIP_CLASSES } from './chipSet'
  * resize across the breakpoint).
  */
 
-/** What a line is: a Row or a Token. */
-const LINE = '.su-entity-row, .su-entity-token'
+/** What a line is: a Row. A Token holds no lanes (C6): its chips pack right. */
+const LINE = '.su-entity-row'
 
 /**
  * A Card's frame. A Card is no line, so a strip whose nearest frame is a

@@ -27,7 +27,7 @@ A strip is a Token, a Row or Card head, or a TitledBox, Slab or SheetSectionCard
 - **C4** A Token's context lane is named by its container, from the closed list.
 - **C5** Only the name flexes: a Token's ends in "…", any other wraps. Chips and controls never shrink, clip or scale.
   A Token's chips are one row; a compact Card's or Row's may take two, never more. A contentful Token's may take two; past that its second line ends in a +MORE chip (no count) that opens its Peek.
-- **C6** In a list each chip class and action slot is a column every line shares; an absent value leaves its cell empty, and a lane never shrinks below its chip.
+- **C6** In a list of Rows each chip class and action slot is a column every line shares (a Token's chips pack right, no lanes); an absent value leaves its cell empty, and a lane never shrinks below its chip.
   Too narrow for every lane and a readable name (a container query), each line packs right and its empty cells collapse.
 - **C7** A live reading reserves its maximum's width, in tabular figures.
 - **C8** Actions are chips: inlined in the chip group after the cost, at its Size, in fixed slots: state · uses · ⋯ or ✕. Nothing sits beside a strip, and nothing expands under it: Details opens the Page.
