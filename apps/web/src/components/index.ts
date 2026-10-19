@@ -94,7 +94,6 @@ export type { SlabCount } from './atoms/Slab'
 export { Slab } from './atoms/Slab'
 // Cargo / inventory — dashed addressable slot cells (ruleset §5, atom 10)
 export { SlotGrid } from './atoms/SlotGrid'
-export { SRDLink } from './atoms/SRDLink'
 export type { StatState } from './atoms/Stat'
 export { Stat } from './atoms/Stat'
 export { StatColumn } from './atoms/StatColumn'

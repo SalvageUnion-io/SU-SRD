@@ -1,8 +1,6 @@
 /**
- * Callout's two shapes: labelled, it is a `TitledBox` (the cut-out head in the
- * accent's band, the label on the paper tab); label-less, the bare `Box`
- * whose frame takes the tone's accent. The tone axis is a closed
- * token set, pinned here as tone→token.
+ * Callout is the unlabelled note: the bare `Box` whose frame takes the tone's
+ * accent. The tone axis is a closed token set, pinned here as tone→token.
  */
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
@@ -18,19 +16,7 @@ function root(container: HTMLElement): HTMLElement {
 }
 
 describe('Callout', () => {
-  test('a label puts it on the cut-out head, in the band of its tone', () => {
-    const { container } = render(
-      <Callout label="Reminder" tone="mech">
-        The Mech cannot move.
-      </Callout>
-    )
-    const head = container.querySelector<HTMLElement>('.su-entity-row__head[data-notch]')
-    expect(head?.querySelector('.su-entity-row__notch')?.textContent).toBe('Reminder')
-    expect(head?.style.backgroundColor).toBe(MECH_ACCENT)
-    expect(container.querySelector('.su-box__body')?.textContent).toBe('The Mech cannot move.')
-  })
-
-  test('each label-less tone maps to its token accent; ink is the default', () => {
+  test('each tone maps to its token accent; ink is the default', () => {
     const cases: [React.ComponentProps<typeof Callout>['tone'], string][] = [
       ['pilot', 'var(--color-sheet-pilot)'],
       ['crawler', 'var(--color-sheet-crawler)'],
@@ -46,16 +32,9 @@ describe('Callout', () => {
     expect(root(container).style.borderColor).toBe('var(--color-ink)')
   })
 
-  test('a label-less callout paints no band — just a framed paper panel', () => {
+  test('it paints no band — just a framed paper panel', () => {
     const { container } = render(<Callout tone="mech">Pick one of the following.</Callout>)
     expect(screen.getByText('Pick one of the following.')).toBeTruthy()
     expect(container.querySelector('.su-entity-row__head')).toBeNull()
-  })
-
-  test('no children means it closes on its head', () => {
-    const { container } = render(<Callout label="Reminder" tone="mech" />)
-    expect(screen.getByText('Reminder')).toBeTruthy()
-    expect(container.querySelector('[data-bodyless]')).not.toBeNull()
-    expect(container.querySelector('.su-box__body')).toBeNull()
   })
 })
