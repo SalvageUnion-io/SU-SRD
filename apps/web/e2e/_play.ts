@@ -180,6 +180,12 @@ export async function axeViolations(page: Page, state: string): Promise<string[]
   for (const viewport of [CANVAS, PHONE]) {
     await page.setViewportSize({ width: viewport.width, height: viewport.height })
     await expect.poll(() => formOf(page), { timeout: 10_000 }).toBe(viewport.form)
+    // The form change re-lays its heads (a strip drops under a name), and a
+    // control's colour eases to its new ground (`--dur-fast`): axe reads the
+    // page at rest, not mid-transition.
+    await page.evaluate(() =>
+      Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined)))
+    )
     if ((await page.evaluate(() => 'axe' in window)) === false) {
       await page.addScriptTag({ path: AXE_PATH })
     }
