@@ -15,20 +15,7 @@ import { test } from './fixtures'
  * rule, each to be fixed and deleted here. A finding off it fails; an entry
  * nothing matches is noted on the report as paid off.
  */
-const BASELINE: readonly DesignDebt[] = [
-  {
-    family: 'reference-page',
-    rule: 'E2',
-    match: 'a hand-built frame (“',
-    why: "a chassis Page's pattern rows (`PatternLinkRow`, `card/PatternListRow.tsx`) are hand-built frames, not a Row from `entity/` (R17's level-1 cards too)",
-  },
-  {
-    family: 'reference-page',
-    rule: 'E11',
-    match: 'a lead in “',
-    why: "a chassis Page's pattern rows (`PatternLinkRow`) draw the pattern's description as a `Lead`, off an SRD index",
-  },
-]
+const BASELINE: readonly DesignDebt[] = []
 
 test('every context draws the form its place takes', async ({ page }) => {
   test.setTimeout(20 * 60_000)

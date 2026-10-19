@@ -32,7 +32,7 @@ export type FormSelectors = {
   token: string
   /** A Card (`ReferenceEntityCard`). */
   card: string
-  /** A headed frame built outside `entity/` (a pattern row, a class path, a choice option). */
+  /** A headed frame built outside `entity/` (a class path, a choice option). */
   handFrame: string
   /** A link to a unit's Live Sheet. */
   unitLink: string
@@ -53,7 +53,7 @@ export const FORM_SELECTORS: FormSelectors = {
   tile: '.su-entity-tile',
   token: '.su-entity-token',
   card: '.su-ec-outer',
-  handFrame: '.su-pattern-rows__item, .su-class-path, [data-option-frame]',
+  handFrame: '.su-class-path, [data-option-frame]',
   unitLink: 'a[href*="/sheet/"]',
   head: NESTING_SELECTORS.head,
   frame: NESTING_SELECTORS.frame,

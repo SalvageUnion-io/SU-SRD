@@ -431,28 +431,19 @@
   padding: 0;
 }
 
-.su-pattern-rows__item {
-  background-color: var(--color-paper);
-  border: var(--bw-entity-compact) solid var(--color-ink);
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  overflow: hidden;
-}
-
 .su-pattern-rows__head {
   color: inherit;
   display: block;
   text-decoration: none;
 }
 
-/* No rule under the head: its name's cut-out tab opens into this paper. */
-.su-pattern-rows__body {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  gap: var(--space-10);
-  padding: var(--space-8) var(--space-10) var(--space-10);
+/* The pattern's opening paragraph, at the head of the box's body. */
+.su-pattern-rows__prose {
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  margin: 0;
+  max-width: 72ch;
 }
 
 /* What the pattern changes (`PatternUniques`): its loadout Tokens, or the
@@ -478,7 +469,7 @@
 }
 
 @media not (width >= 40rem) {
-  .su-pattern-rows:not(:target) .su-pattern-rows__item:nth-child(n + 3) {
+  .su-pattern-rows:not(:target) .su-pattern-rows__list > li:nth-child(n + 3) {
     display: none;
   }
 

@@ -6,7 +6,8 @@ import { cn } from '../../../lib/cn'
 import { capsLabel } from '../../atoms/capsLabel'
 import { FOCUS_RING } from '../../atoms/interaction'
 import { Slab } from '../../atoms/Slab'
-import { Head, Lead, paintFor } from '../../entity'
+import { Box } from '../../containers/Box'
+import { Head, paintFor } from '../../entity'
 import { useEntitySurface } from '../../entity/entitySurfaceContext'
 import { usePatternHref } from '../entityHrefContext'
 import { CardLabels } from './CardLabels'
@@ -116,10 +117,11 @@ export function PatternList({
 }
 
 /**
- * PAGE view — one pattern as a CARD in the Row's language (entity display
- * language, Row): the host's tone in the head with the pattern's quoted name
- * as the link, then a paper body with the pattern's opening paragraph
- * clamped as a lead, and under it what the pattern changes: its loadout,
+ * PAGE view — one pattern at level 1, through the forms (EDL E15, hard rule
+ * R7): the Row's frame (`Box`, which stands in `RowFrame`) under the Row's
+ * `Head` in the host's tone, the pattern's quoted name on its cut-out as the
+ * link, then the paper body: the pattern's opening paragraph as prose (a lead
+ * is an index's, E11), and under it what the pattern changes: its loadout,
  * Systems beside Modules, one full-width Token a line with its TL at the
  * column's edge (`PatternLoadout`), or the actions a Bio-Titan pattern adds
  * (`PatternUniques`). The HEAD is the link to the pattern's page; the body
@@ -158,26 +160,23 @@ function PatternLinkRow({
   // The name on the paper cut-out (Head's `notch`): the body below is paper.
   const head = <Head title={`“${name}”`} notch paint={paint} labels={labels} />
   return (
-    <li className="su-pattern-rows__item">
-      {href ? (
-        <a
-          href={href}
-          aria-label={`${name} — ${chassisName} pattern`}
-          className={cn('su-pattern-rows__head', FOCUS_RING)}
-        >
-          {head}
-        </a>
-      ) : (
-        head
-      )}
-      <div className="su-pattern-rows__body">
-        {/* Wrapped: the lead's 100% basis is for a Row's wrapping body, and in
-            this column it would stretch the clamp's box past its three lines. */}
-        {description && (
-          <div>
-            <Lead text={description} />
-          </div>
-        )}
+    <li>
+      <Box
+        head={
+          href ? (
+            <a
+              href={href}
+              aria-label={`${name} — ${chassisName} pattern`}
+              className={cn('su-pattern-rows__head', FOCUS_RING)}
+            >
+              {head}
+            </a>
+          ) : (
+            head
+          )
+        }
+      >
+        {description && <p className="su-pattern-rows__prose">{description}</p>}
         {(loadout.length > 0 || drones.length > 0) && (
           <PatternLoadout
             groups={loadout}
@@ -194,7 +193,7 @@ function PatternLinkRow({
           hostName={chassisName}
           chassisName={host.chassisName}
         />
-      </div>
+      </Box>
     </li>
   )
 }
