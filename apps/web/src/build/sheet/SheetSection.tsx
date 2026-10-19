@@ -26,8 +26,8 @@ import { Button, Glyph, ModalShell, tokens } from '../../components/index'
 // ---------------------------------------------------------------------------
 // HButton — the container-header control button (design `.hbtn`, clean-edit.html
 // :384-411). 2px border, radius 3, paper fill, 10.5px cond bold caps: a
-// deep-tone outline with a circled-plus that fills on hover. The 44px
-// coarse-pointer floor collapses to the 32px design height at `sm`.
+// deep-tone outline with a circled-plus that fills on hover. Compact at every
+// width, a coarse pointer lifting it to the 44px floor.
 //
 // Everything with a hover, breakpoint or print variant — display, min-height
 // and the colours — is `.su-sheet-hbtn` in `styles/sheet/chrome.css`; the rest

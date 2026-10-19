@@ -11,6 +11,13 @@
   }
 }
 
+/* Edit's TL chip shares its line with the type picker, a Full field: it is
+   drawn that Size's height (one Size per line, §4.7). */
+.su-sheet-crawler-identity-row > .su-stat-cell {
+  box-sizing: border-box;
+  height: var(--size-full);
+}
+
 /* ── CrawlerSheetItems: the type's ability ∥ crew, two-up in a wide sheet. ── */
 .su-sheet-crawler-type-grid {
   grid-template-columns: repeat(1, minmax(0, 1fr));

@@ -371,8 +371,9 @@
    glyph, 1px of padding and the 1px rule each side make 18px, as the plate's
    16px and its rule do (`.su-stat-cell`). Under a coarse pointer the `mini`
    rung's hit area makes it 44px to touch without drawing it bigger. While its
-   menu is open it takes the inverse plate. */
-.su-header-menu-trigger--overflow {
+   menu is open it takes the inverse plate. At `size="compact"` (a bar's "⋯",
+   Play's) it keeps the Compact rung's height beside the bar's buttons (§4.7). */
+.su-header-menu-trigger--overflow.su-btn--mini {
   line-height: 1;
   min-height: 0;
   padding: 1px var(--space-6); /* design-tokens-ignore: a fit, the 14px glyph and 1px each side make the mini 18px */

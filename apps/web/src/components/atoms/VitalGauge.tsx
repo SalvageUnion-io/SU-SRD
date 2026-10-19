@@ -216,7 +216,6 @@ const REVERT = {
   cursor: 'pointer',
   verticalAlign: 'middle',
   fontSize: fontSize.caption,
-  lineHeight: 1,
 } satisfies CSSProperties
 const PIP = {
   minHeight: 0,
@@ -570,6 +569,7 @@ export function VitalGauge({
               type="button"
               onClick={beginEditMax}
               aria-label={`Override ${label} max (currently ${max})`}
+              className="su-vital-gauge__mini su-hit-area"
               style={{ ...MAX_BUTTON, color: isOverridden ? 'var(--tone-deep)' : color.ink75 }}
             >
               {max}
@@ -598,7 +598,7 @@ export function VitalGauge({
               statLabel={`Max ${label}`}
               lines={provenance}
               total={max}
-              className="su-vital-gauge__prov-info"
+              className="su-vital-gauge__prov-info su-vital-gauge__mini su-hit-area"
             >
               ⓘ
             </StatProvenance>
@@ -609,7 +609,7 @@ export function VitalGauge({
               onClick={onRevertOverride}
               aria-label={`Revert ${label} max to derived ${overriddenFrom}`}
               title={`Revert to derived (${overriddenFrom})`}
-              className="su-vital-gauge__revert"
+              className="su-vital-gauge__revert su-vital-gauge__mini su-hit-area"
               style={REVERT}
             >
               ↺

@@ -12,10 +12,21 @@
  * (`LaunchPlay`).
  */
 
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { Badge, buttonVariants, ChapterBand, Cluster } from '../../components/index'
 import { AppLink } from '../../components/shared/AppLink'
 import { GAME_MEASURE } from './hubStyles.model'
+
+/**
+ * The stamp shares its line with the Compact Mediate (§4.7): it is drawn that
+ * Size's height, its words centred, and lifts with it on touch.
+ */
+const STAMP_AT_COMPACT = {
+  alignItems: 'center',
+  boxSizing: 'border-box',
+  display: 'inline-flex',
+  height: 'var(--size-compact)',
+} satisfies CSSProperties
 
 export function GameBand({
   gameId,
@@ -44,7 +55,7 @@ export function GameBand({
             {mediates && (
               // The stamp and its link wrap as one piece, centred on each other.
               <Cluster gap={8}>
-                <Badge shape="stamp" size="compact">
+                <Badge shape="stamp" size="compact" style={STAMP_AT_COMPACT}>
                   You mediate
                 </Badge>
                 <AppLink

@@ -28,7 +28,7 @@
 
 import { ChevronDown } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import { color, duration, ease, iconSize, space } from '../../design/tokens'
+import { color, duration, ease, iconSize } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { useDisclosure } from '../../lib/useDisclosure'
 import { Button } from '../atoms/Button'
@@ -56,15 +56,10 @@ type SheetSectionSlabProps = {
   children: ReactNode
 }
 
-/** 32px, the one documented override on the `iconOnly` rung: this chevron
- *  shares the slab's actions rail with the sheet's Manage buttons and the
- *  item controls under it, which all run at 32px, so it matches THEM rather
- *  than the rung's 36px (owner's call, 2026-10-14: one control height). */
-const FOLD_BUTTON = {
-  width: space[32],
-  height: space[32],
-  borderColor: color.ink35,
-} satisfies CSSProperties
+/** The `iconOnly` rung's own Compact square: this chevron shares the slab's
+ *  actions rail with the sheet's Manage buttons, Compact too, so a coarse
+ *  pointer lifts them together (one Size per line, §4.7). */
+const FOLD_BUTTON = { borderColor: color.ink35 } satisfies CSSProperties
 
 const CHEVRON = {
   transitionProperty: 'transform, translate, scale, rotate',

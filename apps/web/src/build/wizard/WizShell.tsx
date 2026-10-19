@@ -440,15 +440,17 @@ export function WizShell({
           {escapeAction}
         </div>
       )}
-      {/* Ghost nav row on phones; dissolves into the pill row ≥ sm. */}
+      {/* Ghost nav row on phones; dissolves into the pill row ≥ sm. Back and
+          Cancel take the CTA's Full Size: one Size per line (§4.7). */}
       <div className="su-wiz-pill-nav" style={pillNavStyle}>
         {onBack && (
-          <Button variant="ghost" onClick={onBack} disabled={busy}>
+          <Button variant="ghost" size="full" onClick={onBack} disabled={busy}>
             Back
           </Button>
         )}
         <Button
           variant="ghost"
+          size="full"
           onClick={() => (confirmCancel ? setConfirmingCancel(true) : onCancel())}
           disabled={busy}
         >

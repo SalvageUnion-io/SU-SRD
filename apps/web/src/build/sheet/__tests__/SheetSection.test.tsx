@@ -19,9 +19,9 @@ describe('HButton', () => {
     render(<SectionManageButton label="Abilities" onClick={() => {}} />)
     const btn = screen.getByRole('button', { name: 'Manage abilities' })
     expect(btn.getAttribute('type')).toBe('button')
-    // The 44px coarse-pointer floor collapsing to the 32px design height at
-    // sm, the deep-tone outline filling on hover, and the print hide, are
-    // `.su-sheet-hbtn` (styles/sheet/chrome.css).
+    // The Compact height (a coarse pointer lifts it to 44px), the deep-tone
+    // outline filling on hover, and the print hide, are `.su-sheet-hbtn`
+    // (styles/sheet/chrome.css).
     expect(btn.className).toContain('su-sheet-hbtn')
     expect(btn.style.borderWidth).toBe('2px')
   })

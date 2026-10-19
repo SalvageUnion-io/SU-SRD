@@ -9,11 +9,19 @@
 import type { CSSProperties } from 'react'
 import '../../styles/build/wizard.css'
 import { capsLabel } from '../../components/atoms/capsLabel'
+import { tokens } from '../../components/index'
 import { cn } from '../../lib/cn'
 
-/** Static half; the colour, which brightens on hover, is `.su-wiz-off-rules`. */
+/**
+ * Static half; the colour, which brightens on hover, is `.su-wiz-off-rules`.
+ * It sits on the pill's line beside Cancel and the CTA, so it takes their Full
+ * Size (§4.7): a 44px box, its words centred in it.
+ */
 const escapeStyle = {
+  alignItems: 'center',
   cursor: 'pointer',
+  display: 'inline-flex',
+  minHeight: tokens.size.full,
   textDecorationLine: 'underline',
   textDecorationStyle: 'dotted',
   textUnderlineOffset: '2px',

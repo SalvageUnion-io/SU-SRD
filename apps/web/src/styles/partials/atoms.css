@@ -211,6 +211,17 @@
   vertical-align: super;
 }
 
+/* The max's controls (the override, the ⓘ, the revert) share the numeral's
+ * line, so they share one Size (§4.7): each a Mini box, its glyph centred,
+ * its 44px touch target the hit area's (`.su-hit-area`), never a taller box. */
+.su-vital-gauge__mini {
+  align-items: center;
+  box-sizing: border-box;
+  display: inline-flex;
+  height: var(--size-mini);
+  justify-content: center;
+}
+
 /* The ⓘ beside an un-overridden max. */
 .su-stat-provenance__trigger.su-vital-gauge__prov-info {
   border-bottom-width: 0;

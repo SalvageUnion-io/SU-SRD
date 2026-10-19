@@ -437,7 +437,7 @@
 }
 
 /* Mobile-first touch targets (ruleset §4.6: every target is at least 44px
-   under a coarse pointer). Every `.su-btn` size is on the floor, the anchors
+   under a coarse pointer, a menu's items included). Every `.su-btn` size is on the floor, the anchors
    `buttonVariants` dresses included. A mini button, a chip's +/- stepper, an interactive chip and a
    show page's band action (`.su-hit-area`, chip-sized on a phone) keep the size they are drawn at, so they are left off the floor here and
    reach it through the hit-area pseudo-element in partials/pointer-motion.css
@@ -452,6 +452,7 @@
 
   button:not(.su-btn--mini, .su-hit-area, .su-stat-step),
   [role='button']:not(.su-btn--mini, .su-hit-area, .su-stat-step),
+  [role='menuitem']:not(.su-btn--mini, .su-hit-area),
   input,
   select,
   textarea,

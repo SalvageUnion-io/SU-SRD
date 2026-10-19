@@ -1,11 +1,17 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
+import { at } from './_base'
 import type { DesignDebt } from './_designRoutes'
 import { expectWithinBaseline, seedDesignAccount, walkDesignRoutes } from './_designRoutes'
+import { waitForReady } from './_helpers'
 import { board, CANVAS, openPlay, PHONE, pilotPlayPath } from './_play'
 import { findSiblingMismatches } from './_siblingHeights'
 import { setUpTable } from './_table'
+import { findTypeFloorFaults } from './_typeFloor'
 import { test as signedIn } from './fixtures'
+
+/** A touch phone (`pointer: coarse`): a Pixel 7's viewport with touch on. */
+const PHONE_TOUCH = { viewport: { width: 412, height: 839 }, hasTouch: true, isMobile: true }
 
 /**
  * The sibling-height law (ruleset §4.7) on one of each page shape, at desktop
@@ -212,84 +218,65 @@ signedIn('Play: the bar, unit boxes and action rows share one height', async ({ 
 })
 
 /**
- * Every context (hard rule R0): the whole page of each of `designRoutes`
+ * Every context (hard rule R0, R12): the whole page of each of `designRoutes`
  * (`_helpers.ts`), signed in and seeded, at page and phone widths, and on
  * Play's phone form every tab scanned whole (unit boxes, Crew, Tables), not
- * only the unit heads.
+ * only the unit heads. Each view is held to two rules:
  *
- * `BASELINE` is the debt this pass found when it landed, by route family and
- * rule: each a line whose controls differ today, to be given one Size and
- * deleted here. A finding off it fails; an entry nothing matches is noted on
- * the report as paid off.
+ * - `sibling`: no line whose controls differ in height (§4.7).
+ * - `type-floor`: no text drawn under 11px (§4.6, `_typeFloor.ts`), its
+ *   computed size times every scale above it.
+ *
+ * Then, under a coarse pointer (a touch phone), every menu item a seeded page
+ * opens is on the 44px floor (§4.6): the Hangar's ⋯ and the Play bar's.
+ *
+ * No baseline: a finding fails.
  */
-const BASELINE: readonly DesignDebt[] = [
-  // Live Sheet, Edit: a stat's max override (17px) beside its provenance
-  // trigger (14px), on every gauge.
-  ...(['sheet-pilot-edit', 'sheet-mech-edit', 'sheet-crawler-edit'] as const).map((family) => ({
-    family,
-    rule: 'sibling',
-    match: 'button "Override ',
-    why: "the max override and the provenance trigger take the gauge's one Size",
-  })),
-  // Live Sheet, Edit, on a phone: a section's Manage (44px, the touch floor)
-  // beside its Collapse (32px).
-  ...(['sheet-pilot-edit', 'sheet-mech-edit'] as const).map((family) => ({
-    family,
-    rule: 'sibling',
-    match: 'button.su-btn.su-focus-ring "Collapse ',
-    why: "a section head's Collapse takes its Manage's touch Size",
-  })),
-  {
-    family: 'sheet-crawler-edit',
-    rule: 'sibling',
-    match: 'div.su-sheet-crawler-identity-row',
-    why: "the TL chip (20px) beside the type picker (44px) in the crawler's identity row",
-  },
-  // The wizards: Cancel (32px) beside Next (44px) in the step pill, and the
-  // crawler's off-rules link (17px) with them.
-  ...(['wizard-pilot', 'wizard-mech', 'wizard-crawler'] as const).map((family) => ({
-    family,
-    rule: 'sibling',
-    match: 'div.su-wiz-pill',
-    why: "the step pill's Cancel and off-rules link take Next's Size",
-  })),
-  {
-    family: 'wizard-crawler',
-    rule: 'sibling',
-    match: 'div.su-masonry',
-    why: 'the crawler-type cards, side by side in a masonry, at their own heights',
-  },
-  // Manage.
-  {
-    family: 'play-hub',
-    rule: 'sibling',
-    match: 'a.su-btn.su-focus-ring "Play ',
-    why: "a solo pilot's Play (19px) beside its No Mech stamp (18px) in the Row's line",
-  },
-  {
-    family: 'game-page',
-    rule: 'sibling',
-    match: 'span.su-caps.su-caps--w-bold "You mediate"',
-    why: "the band's YOU MEDIATE stamp (20px) beside its 32px Buttons",
-  },
-  // Play: the Mediator's Propose form, its caps labels (21px) inline with
-  // their 44px fields, on the canvas and the phone's Propose tab.
-  {
-    family: 'play-mediator',
-    rule: 'sibling',
-    match: 'span.su-caps.su-caps--w-bold "Field"',
-    why: "Propose's labels sit above their fields, or take the fields' Size",
-  },
-]
+const BASELINE: readonly DesignDebt[] = []
 
-signedIn('every context: siblings on one line share one height', async ({ page }) => {
+signedIn('every context: siblings on one line share one height', async ({ page, browser }) => {
   signedIn.setTimeout(20 * 60_000)
   const seed = await seedDesignAccount(page)
-  const findings = await walkDesignRoutes(page, seed, async ({ where }) =>
-    (await findSiblingMismatches(page)).map((m) => ({
+  const findings = await walkDesignRoutes(page, seed, async ({ where }) => [
+    ...(await findSiblingMismatches(page)).map((m) => ({
       rule: 'sibling',
       line: `${where}, ${m.line}: ${m.controls.map((c) => `${c.height}px ${c.what}`).join(', ')}`,
-    }))
-  )
+    })),
+    ...(await findTypeFloorFaults(page)).map((fault) => ({
+      rule: 'type-floor',
+      line: `${where}: ${fault}`,
+    })),
+  ])
   expectWithinBaseline('sibling-heights', findings, BASELINE)
+
+  // A coarse pointer: the seeded session in a touch phone's context.
+  const touch = await browser.newContext({
+    storageState: await page.context().storageState({ indexedDB: true }),
+    ...PHONE_TOUCH,
+  })
+  const phone = await touch.newPage()
+  const short: string[] = []
+  const menus = [
+    { path: at('/'), trigger: /^More for / },
+    { path: seed.playMediator, trigger: /^More$/ },
+  ]
+  for (const { path, trigger } of menus) {
+    await phone.goto(path)
+    await waitForReady(phone)
+    expect(
+      await phone.evaluate(() => matchMedia('(pointer: coarse)').matches),
+      'the touch context reports a coarse pointer'
+    ).toBe(true)
+    await phone.getByRole('button', { name: trigger }).filter({ visible: true }).first().click()
+    const items = phone.getByRole('menuitem')
+    await expect(items.first(), `${path}: its menu opens`).toBeVisible()
+    for (const item of await items.all()) {
+      const box = await item.boundingBox()
+      const height = Math.round(box?.height ?? 0)
+      if (height < 44) short.push(`${path}: ${height}px menu item "${await item.textContent()}"`)
+    }
+    await phone.keyboard.press('Escape')
+  }
+  await touch.close()
+  expect(short, 'menu items under 44px on a coarse pointer').toEqual([])
 })

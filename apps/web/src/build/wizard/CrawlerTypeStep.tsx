@@ -2,11 +2,26 @@ import type { CSSProperties } from 'react'
 import type { RefCrawler } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
 import { crawlerMaxSpBonus, crawlerWeaponSlots } from 'salvageunion-reference/rules'
-import { Callout, EmptyState, MasonryColumns, ReferenceEntityCard, Slab, tokens } from '../../components/index'
+import {
+  Callout,
+  EmptyState,
+  Grid,
+  RadioCardGroup,
+  ReferenceEntityCard,
+  Slab,
+  tokens,
+} from '../../components/index'
 import '../../styles/build/wizard.css'
 import { fullWidthStyle, stepColumnStyle } from './wizardStyles.model'
 
 const bonusStyle = { display: 'block', fontFamily: tokens.font.body } satisfies CSSProperties
+
+/**
+ * The types stand in a grid, not a masonry: a row of two radio cards shares one
+ * height (§4.7), as a masonry's independent columns cannot. Two columns at most,
+ * one below 20rem each.
+ */
+const TYPE_COLUMN = 'max(20rem, calc(50% - var(--space-8)))'
 
 type CrawlerTypeSelectStepProps = {
   types: RefCrawler[]
@@ -43,7 +58,8 @@ export function CrawlerTypeSelectStep({
   return (
     <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
       <Slab label="Crawler Types" count="Choose 1" countInk="inherit" />
-      <MasonryColumns maxColumns={2} radio ariaLabel="Crawler type">
+      <RadioCardGroup label="Crawler type">
+        <Grid min={TYPE_COLUMN} gap={16}>
         {types.map((type) => {
           const slots = crawlerWeaponSlots(type.mutations)
           const spBonus = crawlerMaxSpBonus(type.mutations)
@@ -64,7 +80,8 @@ export function CrawlerTypeSelectStep({
             />
           )
         })}
-      </MasonryColumns>
+        </Grid>
+      </RadioCardGroup>
 
       {selected ? (
         <>
