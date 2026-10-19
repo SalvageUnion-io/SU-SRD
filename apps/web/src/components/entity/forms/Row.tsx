@@ -44,8 +44,12 @@ type RowSlots = {
   /** The host's labels (an owner stamp): the first chips, before the model's own labels. */
   extraLabels?: ReactNode
   /**
-   * The host's last chip (a "⋯" menu): after the cost, on the name's line.
-   * Raised above a link or select surface, as the controls are.
+   * The host's state chip (C8): a live reading, a condition, after the cost.
+   */
+  state?: ReactNode
+  /**
+   * The host's last chip (a "⋯" menu): after the cost and the state, on the
+   * name's line. Raised above a link or select surface, as the controls are.
    */
   trailing?: ReactNode
   /**
@@ -156,19 +160,17 @@ export function Row({
   // label-only chip too (the dashed frame already says pencil, not print).
   const labelsAsChips =
     (!!ownLabels || !!slots.extraLabels) &&
-    (chipCount(chips) > 0 || !!slots.extraLabels || !!slots.trailing)
-  const ownChips = (
-    <>
-      {note && <Stat orientation="horizontal" label={note} size="compact" />}
-      {userMade && <Stat orientation="horizontal" label="User-made" size="compact" />}
-    </>
-  )
-  const leading = labelsAsChips ? (
-    <>
-      {slots.extraLabels}
-      {ownChips}
-    </>
-  ) : undefined
+    (chipCount(chips) > 0 || !!slots.extraLabels || !!slots.trailing || !!slots.state)
+  // The marks lane (C2): the host's, then the note, then User-made.
+  const marks = labelsAsChips
+    ? [
+        slots.extraLabels,
+        note && <Stat key="note" orientation="horizontal" label={note} size="compact" />,
+        userMade && (
+          <Stat key="user-made" orientation="horizontal" label="User-made" size="compact" />
+        ),
+      ]
+    : undefined
 
   const frame = (
     <div
@@ -186,13 +188,14 @@ export function Row({
           paint={paint}
           tier={omit.includes('tier') ? undefined : model.tier}
           chips={
-            chipCount(chips) > 0 || labelsAsChips || slots.trailing ? (
+            chipCount(chips) > 0 || labelsAsChips || slots.trailing || slots.state ? (
               <Chips
                 chips={chips}
                 size="compact"
                 linkable={mode.kind === 'read'}
-                leading={leading}
-                trailing={slots.trailing}
+                marks={marks}
+                state={slots.state}
+                menu={slots.trailing}
               />
             ) : undefined
           }
@@ -221,7 +224,7 @@ export function Row({
   // check) are raised above it (`[data-covered]`).
   const covered =
     (!!slots.controls && mode.kind !== 'read') ||
-    ((!!slots.extraLabels || !!slots.trailing) && mode.kind === 'link')
+    ((!!slots.extraLabels || !!slots.trailing || !!slots.state) && mode.kind === 'link')
   if (covered) {
     return (
       <div className="su-entity-row" data-covered="">

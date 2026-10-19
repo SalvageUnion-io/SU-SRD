@@ -6,8 +6,9 @@ import { resolveClassPlan } from '../lib/classPaths'
 import { itemHref } from '../lib/entityHref'
 import type { RefText } from '../lib/rollTablePage'
 import { AbilityTrack } from './AbilityTrack'
+import { Chips } from './entity/parts/Chips'
 import type { TreeTrack } from './index'
-import { ActivationCost, Head, Slab, Stat, TitledBox } from './index'
+import { Head, Slab, Stat, TitledBox } from './index'
 import { MentionProse } from './MentionProse'
 
 type ClassAbilityTreeProps = {
@@ -165,9 +166,10 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
               paint={tierPaint(card.tier)}
               chips={
                 card.cost && (
-                  <div className="su-chips">
-                    <ActivationCost cost={card.cost} currency="TP" compact />
-                  </div>
+                  <Chips
+                    size="compact"
+                    chips={{ durations: [], facts: [], tags: [], cost: `${card.cost} TP` }}
+                  />
                 )
               }
             >
@@ -196,27 +198,25 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
  * lone-label chip as the path's kind beside it. Its chips are the head's own
  * chips, one line with the kind under the head's chip rules (E17).
  */
-function PathRequirement({ path, classEntity }: { path: ClassPath; classEntity: RefClass }) {
+function PathRequirement({ path }: { path: ClassPath }) {
   const own = !path.hybrid || !path.via
   const trees = own
     ? path.requirement
     : [path.via, ...path.requirement.filter((tree) => tree !== path.via)]
   return (
-    <>
-      <span className="su-class-path__req-chip">
-        {trees.map((tree, index) => (
-          <Stat
-            key={tree}
-            orientation="horizontal"
-            label={index === 0 ? 'REQ' : 'or'}
-            value={tree}
-            size="compact"
-            className="su-class-path__req-cell"
-          />
-        ))}
-      </span>
-      {own && <Stat orientation="horizontal" label={`${classEntity.name} only`} size="compact" />}
-    </>
+    // One chip (`su-chip-link`): its cells butt into one rounded cell.
+    <span className="su-chip-link su-class-path__req-chip">
+      {trees.map((tree, index) => (
+        <Stat
+          key={tree}
+          orientation="horizontal"
+          label={index === 0 ? 'REQ' : 'or'}
+          value={tree}
+          size="compact"
+          className="su-class-path__req-cell"
+        />
+      ))}
+    </span>
   )
 }
 
@@ -245,10 +245,25 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: RefClas
       title={name}
       paint={tierPaint('core')}
       chips={
-        <div className="su-chips">
-          <PathRequirement path={path} classEntity={classEntity} />
-          <Stat orientation="horizontal" label={kind} size="compact" />
-        </div>
+        // The kind and whose it is are marks; what it opens from, its relation (C2).
+        <Chips
+          size="compact"
+          chips={{ durations: [], facts: [], tags: [] }}
+          marks={[
+            <Stat key="kind" orientation="horizontal" label={kind} size="compact" />,
+            ...(path.hybrid && path.via
+              ? []
+              : [
+                  <Stat
+                    key="only"
+                    orientation="horizontal"
+                    label={`${classEntity.name} only`}
+                    size="compact"
+                  />,
+                ]),
+          ]}
+          nodes={{ relation: <PathRequirement path={path} /> }}
+        />
       }
       notch
       chipsBeside

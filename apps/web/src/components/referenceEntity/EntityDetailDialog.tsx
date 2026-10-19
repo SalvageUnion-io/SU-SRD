@@ -9,7 +9,6 @@ import { CloseButton } from '../atoms/CloseButton'
 import type { ChapterTone } from '../atoms/chapterBandColor'
 import { CHAPTER_BAND_COLOR } from '../atoms/chapterBandColor'
 import { ModalShell } from '../containers/ModalShell'
-import { EntityStat } from '../entity/parts/EntityStat'
 import { KindLabel } from '../entity/parts/KindLabel'
 import { EntityCardIdentityFooter } from './card/EntityCardIdentityFooter'
 import { EntityPageStamps } from './card/EntityPageStamps'
@@ -141,9 +140,8 @@ export function EntityDetailPage({
         aside={
           <EntityPageStamps
             meta={meta}
-            name={title}
             legalStartingPattern={isLegalStartingPatternOf(pattern)}
-            lead={parent && <EntityStat label={parent.label} entityRef={parent.ref} />}
+            parent={parent}
           />
         }
         asideAt="notch"

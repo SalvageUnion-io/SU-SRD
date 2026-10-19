@@ -89,8 +89,11 @@ describe('Row controls', () => {
     expect(link.className).toContain('su-entity-row__cover')
     const more = screen.getByRole('button', { name: 'More for Ace' })
     expect(more.closest('a')).toBeNull()
-    // The last chip, after the model's own (`HP | 8/10`), on the name's line.
-    expect(more.closest('.su-chips')?.lastElementChild).toBe(more)
+    // The last chip, after the model's own (`HP | 8/10`), on the name's line:
+    // the menu lane, the strip's last (C8).
+    const lane = more.closest('[data-chip-class]')
+    expect(lane?.getAttribute('data-chip-class')).toBe('menu')
+    expect(more.closest('.su-chips')?.lastElementChild).toBe(lane)
   })
 
   test('a trailing chip alone still draws the chip group', () => {
@@ -134,7 +137,8 @@ describe('Row controls', () => {
   test('labels: a host label is the first chip, before the model own', () => {
     render(<Entity form="row" model={{ ...MODEL, userMade: true }} labels={<span>Yours</span>} />)
     const chips = screen.getByText('Yours').closest('[data-chip-group]')
-    expect(chips?.firstElementChild?.textContent).toBe('Yours')
+    expect(chips?.firstElementChild?.firstElementChild?.textContent).toBe('Yours')
+    expect(chips?.firstElementChild?.getAttribute('data-chip-class')).toBe('mark')
     expect(chips?.textContent).toContain('User-made')
     expect(chips?.textContent).toContain('HP8/10')
     expect(chips?.textContent?.indexOf('Yours')).toBeLessThan(

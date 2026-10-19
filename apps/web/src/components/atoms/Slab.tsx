@@ -1,28 +1,15 @@
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { isValidElement } from 'react'
 import { borderWidth, color, font, fontSize, space, weight } from '../../design/tokens'
+import { Chips } from '../entity/parts/Chips'
+import type { ChipSet } from '../entity/parts/chipSet'
 import { POSTER_STAMP } from './posterStamp'
-import type { StatBorderState } from './Stat'
-import { Stat } from './Stat'
+import type { SlabCount } from './slabSummary'
+import { slabSummary, summaryFacts } from './slabSummary'
 
-/**
- * A slab's count when it is a VALUE (`SLOTS | 3/6`, `INTACT | 10/10`): a
- * label-first horizontal `Stat` chip (ruleset §3.7, EDL E9), never trailing
- * text ("3/6 slots"). A word ("Choose 1", "Tree") stays a `ReactNode`.
- */
-export type SlabCount = {
-  /** The chip's label: what is counted ('Slots', 'Intact'). */
-  label: string
-  /** The reading; with `max` it reads `value/max`. */
-  value: number | string
-  max?: number
-  /** The chip's border state: `critical` when the reading is over its cap. */
-  state?: StatBorderState
-  /** A muted word after the chip ("as printed"). */
-  note?: ReactNode
-  /** The chip's hover text (where an "as printed" count is printed). */
-  title?: string
-}
+export type { SlabCount } from './slabSummary'
+
+const NO_CHIPS: ChipSet = { durations: [], facts: [], tags: [] }
 
 /** A `SlabCount`, not a node: an object with a label and a value. */
 function isSlabCount(count: unknown): count is SlabCount {
@@ -180,22 +167,21 @@ export function Slab({
   const countByLabel = countAt === 'label'
   const Label = as ?? 'span'
   const countInkStyle = countInk === 'inherit' ? COUNT_INHERIT : COUNT
-  const chips = slabCounts(count)
+  const counts = slabCounts(count)
+  // The summary (C10): at most two counts, drawn by `Chips` as measures; a
+  // count's note ("as printed") follows the strip as muted text.
+  const chips = counts && slabSummary(counts)
+  const titles = chips?.flatMap((chip) => (chip.title ? [chip.title] : [])) ?? []
   const countNode = chips ? (
-    <span style={COUNT_STAT}>
-      {chips.map((chip) => (
-        <span key={chip.label} style={COUNT_STAT} title={chip.title}>
-          <Stat
-            orientation="horizontal"
-            size="compact"
-            label={chip.label}
-            value={chip.value}
-            max={chip.max}
-            state={chip.state}
-          />
-          {chip.note != null && <span style={countInkStyle}>{chip.note}</span>}
-        </span>
-      ))}
+    <span style={COUNT_STAT} title={titles.length ? titles.join('; ') : undefined}>
+      <Chips as="span" size="compact" chips={{ ...NO_CHIPS, facts: summaryFacts(chips) }} />
+      {chips.map((chip) =>
+        chip.note != null ? (
+          <span key={chip.label} style={countInkStyle}>
+            {chip.note}
+          </span>
+        ) : null
+      )}
     </span>
   ) : (
     count != null && (

@@ -144,8 +144,8 @@ describe('Tile chips for systems and modules', () => {
   const chips = (schema: string, name: string) => {
     const entity = need(SalvageUnionReference.getByNameIn(schema as never, name), name)
     const { container } = render(<Entity form="tile" entity={entity as never} />)
-    return Array.from(chipsOf(container).children).map((chip) =>
-      (chip.textContent ?? '').replace(/\s+/g, ' ').trim()
+    return Array.from(chipsOf(container).querySelectorAll(':scope > .su-chip-lane > *')).map(
+      (chip) => (chip.textContent ?? '').replace(/\s+/g, ' ').trim()
     )
   }
 

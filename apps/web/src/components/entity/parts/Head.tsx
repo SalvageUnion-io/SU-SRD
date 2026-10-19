@@ -1,7 +1,9 @@
 import type { ElementType, ReactNode } from 'react'
-import { useRef } from 'react'
+import { isValidElement, useRef } from 'react'
 import { cn } from '../../../lib/cn'
 import { grainClass } from '../../referenceEntity/card/cardGrain'
+import { Chips } from './Chips'
+import type { ChipSet } from './chipSet'
 import { KindLabel } from './KindLabel'
 import type { Paint } from './paint'
 import { PAPER_NAME } from './paint'
@@ -32,7 +34,10 @@ export type HeadProps = {
    * against the cut-out (`1 | FILL OUT YOUR STATS`), as a guide step's slab.
    */
   tierChip?: boolean
-  /** The entity's chip group (`Chips`, E17): right of the name, or under it. */
+  /**
+   * The entity's chip group (`Chips`, E17): right of the name, or under it.
+   * Anything else a host passes is drawn by `Chips` as its marks (C2a).
+   */
   chips?: ReactNode
   /** The mode's affordance: the "Selected" seal, a toggle's check. */
   affordance?: ReactNode
@@ -73,13 +78,14 @@ export function Head({
   paint,
   tier,
   tierChip = false,
-  chips,
+  chips: chipsProp,
   affordance,
   controls,
   labels,
   notch = false,
   chipsBeside = false,
 }: HeadProps) {
+  const chips = asStrip(chipsProp)
   const cut = notch && (!chips || chipsBeside)
   const headingRef = useRef<HTMLDivElement>(null)
   useChipsFit(headingRef, cut && !!chips)
@@ -150,4 +156,17 @@ export function Head({
       </div>
     </div>
   )
+}
+
+const NO_CHIPS: ChipSet = { durations: [], facts: [], tags: [] }
+
+/**
+ * A head's chips as one `Chips` strip (C2a): a strip passes through; any
+ * other chip a host hands the head (a label-only `Stat`, a stamp) is drawn by
+ * `Chips` as its marks, so every head strip names its classes.
+ */
+function asStrip(chips: ReactNode): ReactNode {
+  if (chips === undefined || chips === null || chips === false) return undefined
+  if (isValidElement(chips) && chips.type === Chips) return chips
+  return <Chips chips={NO_CHIPS} size="compact" marks={chips} />
 }

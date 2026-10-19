@@ -155,7 +155,7 @@ function PageSubLine({
       <Chips
         chips={NO_CHIPS}
         size="full"
-        leading={children}
+        marks={children}
         align="end"
         className="su-entity-page__tags"
       />
@@ -433,7 +433,7 @@ function ReferenceEntityCardInner({
       titleSize={titleSize}
       titleColor={onBand === 'ink' ? 'var(--color-ink)' : 'var(--color-paper)'}
       numeral={numeral}
-      chips={<Chips chips={chips} size="compact" leading={suggestedNode} />}
+      chips={<Chips chips={chips} size="compact" marks={suggestedNode} />}
       labels={labels}
       size={size}
       grain={grain}

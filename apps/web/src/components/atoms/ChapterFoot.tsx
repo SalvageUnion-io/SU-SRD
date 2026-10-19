@@ -79,6 +79,8 @@ export function ChapterFoot({
   return (
     <div
       className="su-chapter-foot"
+      // A foot band is text, never chips (hard rule R4): `chip-strips.e2e.ts` reads it.
+      data-foot-band=""
       style={{
         ...ROOT,
         backgroundColor: band.background,

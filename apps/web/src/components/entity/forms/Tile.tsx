@@ -1,3 +1,4 @@
+import { budgetFacts, naturalContext } from 'salvageunion-reference'
 import { assetDerivativeUrl } from 'salvageunion-reference/assetDerivatives'
 import { space, widthAtLeast } from '../../../design/tokens'
 import { cn } from '../../../lib/cn'
@@ -9,9 +10,8 @@ import { useEntitySurface } from '../entitySurfaceContext'
 import { LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
 import { CensorMark } from '../parts/CensorMark'
-import { CostBox } from '../parts/Chips'
+import { Chips } from '../parts/Chips'
 import { censorMark } from '../parts/censor'
-import { Facts } from '../parts/Facts'
 import { factCells } from '../parts/factCells'
 import { Lead } from '../parts/Lead'
 import { paintFor } from '../parts/paint'
@@ -74,13 +74,8 @@ function tileArtWindow(url: string): CSSVarStyle | undefined {
   }
 }
 
-/**
- * Systems and modules: their catalog chips keep to two lines (owner,
- * 2026-10-14) and leave out the salvage values, which their Rows and Pages
- * carry.
- */
-const GEAR: ReadonlySet<string> = new Set(['systems', 'modules'])
-const GEAR_HIDDEN: ReadonlySet<string> = new Set(['SV', 'Bio'])
+/** The key prefix of an entity's measures (`entityStats`): the stats a budget keeps one of. */
+const MEASURE_KEY = 'ref-stat-'
 
 /**
  * TILE — the catalog form: the artwork is the hero. The art at 3:4 on paper
@@ -89,8 +84,8 @@ const GEAR_HIDDEN: ReadonlySet<string> = new Set(['SV', 'Bio'])
  * art place, so its tile opens on the band. Then the tone band with the name notched
  * into its foot on a cut-out of the paper below, in ink — the Workshop
  * Manual's chapter band at a tile's scale — with the facts and the cost as
- * chips (`EP | 2`, `SLOTS | 1`) beside the name on the band (a system's or
- * module's on at most two lines, the name giving way); then, while
+ * chips (`EP | 2`, `SLOTS | 1`), a compact head's budget, beside the name on
+ * the band (the name giving way); then, while
  * browsing, the lead clamped to three lines.
  * Layout is `index.css`'s `.su-entity-tile*`.
  */
@@ -105,9 +100,14 @@ export function Tile({
   const surface = useEntitySurface()
   const target = useLinkTarget(mode, model.ref)
   const paint = paintFor(model.tone, { down: false, texture: surface.texture })
-  const gear = GEAR.has(model.ref.schemaName)
-  const facts = factCells(model.facts, omit).filter(
-    (cell) => !(gear && GEAR_HIDDEN.has(cell.label))
+  // A Tile's budget is a compact head's (C3), in its kind's own context (C4):
+  // of its measures (its `ref-stat-*` stats) it keeps the one that context
+  // names, beside its rank, its other facts (a hybrid's REQ, a crawler's POP),
+  // its action's facets and its cost.
+  const kept = budgetFacts(model.facts, naturalContext(model.kind))
+  const facts = factCells(
+    model.facts.filter((fact) => kept.includes(fact) || !fact.key.startsWith(MEASURE_KEY)),
+    omit
   )
   const { art } = model
   const artWindow = art.kind === 'image' ? tileArtWindow(art.url) : undefined
@@ -131,10 +131,6 @@ export function Tile({
       />
     ) : null
   const hasChips = Boolean(model.cost) || facts.length > 0
-  const chips = [
-    ...facts.map((cell) => <Facts key={cell.key} cells={[cell]} size="compact" />),
-    ...(model.cost ? [<CostBox key="cost" cost={model.cost} size="compact" />] : []),
-  ]
 
   return (
     <LinkSurface
@@ -178,7 +174,17 @@ export function Tile({
           {hasChips && (
             // Its chips fill from the band's bottom-right corner up, on one
             // line wherever they fit (`.su-entity-tile__chips`, ruleset §4.7).
-            <span className="su-entity-tile__chips">{chips}</span>
+            <Chips
+              as="span"
+              className="su-entity-tile__chips"
+              size="compact"
+              chips={{
+                durations: [],
+                facts,
+                tags: [],
+                ...(model.cost ? { cost: model.cost } : {}),
+              }}
+            />
           )}
         </div>
         {leadText && (

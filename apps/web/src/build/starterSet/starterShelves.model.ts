@@ -58,7 +58,11 @@ const SOURCE_LABELS: ReadonlySet<string> = new Set(['Class', 'Chassis'])
 function readings(stats: UnitReading[] | undefined) {
   return (stats ?? [])
     .filter((s) => !SOURCE_LABELS.has(String(s.label)))
-    .map((s) => ({ label: String(s.label), value: String(s.value) }))
+    .map((s) => ({
+      label: String(s.label),
+      value: String(s.value),
+      ...(s.chip ? { chip: s.chip } : {}),
+    }))
 }
 
 /**

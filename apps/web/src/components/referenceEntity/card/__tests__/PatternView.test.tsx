@@ -322,7 +322,9 @@ describe('pattern loadout tokens', () => {
       // Its chips follow the name, inside the pill, in E17's order: the
       // action type (when it has one) first, then TL, then Slots.
       const cells = Array.from(
-        pill?.querySelectorAll(':scope > .su-entity-token__chips > .su-stat-cell') ?? []
+        pill?.querySelectorAll(
+          ':scope > .su-entity-token__chips > .su-chip-lane > .su-stat-cell'
+        ) ?? []
       ).map((cell) => cell.textContent ?? '')
       const tl = cells.findIndex((text) => /^TL\s*\d+$/.test(text))
       expect(tl).toBeGreaterThanOrEqual(0)

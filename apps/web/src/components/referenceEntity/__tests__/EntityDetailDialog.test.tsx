@@ -78,10 +78,15 @@ describe('the detail dialog is the Page', () => {
     // With art the page flows round it from 64rem (`.su-entity-page--flow`).
     expect(page.classList.contains('su-entity-page--flow')).toBe(true)
     expect(page.querySelector('.su-entity-page__art')).toBeTruthy()
-    // A chassis's stats are its body's, but for its Tech Level, the band's (E20).
+    // A chassis's stats are its body's, but for its Tech Level, the band's (E20):
+    // its rank chip, the only stat on the band's `Chips` strip.
     const stamps = dialog.querySelector<HTMLElement>('.su-entity-stamps')
-    const bandStats = [...(stamps?.querySelectorAll('.su-stat-column__cell dt') ?? [])]
-    expect(bandStats.map((dt) => dt.textContent)).toEqual(['Tech Level'])
+    const bandStats = [
+      ...(stamps?.querySelectorAll(
+        ':is([data-chip-class="rank"], [data-chip-class="measure"]) .su-stat-plate--label'
+      ) ?? []),
+    ]
+    expect(bandStats.map((label) => label.textContent)).toEqual(['Tech Level'])
   })
 
   test("its foot cites the book in the card footer's plain text, the kind beside it", () => {
@@ -133,8 +138,8 @@ describe('the detail dialog is the Page', () => {
     const stamps = screen.getByRole('dialog').querySelector<HTMLElement>('.su-entity-stamps')
     if (!stamps) throw new Error('no band stamps')
     const chip = within(stamps).getByRole('button', { name: 'Pattern of: Mule' })
-    // It leads the cluster, as on the SRD's pattern page.
-    expect(stamps.firstElementChild?.contains(chip)).toBe(true)
+    // It is the band's relation chip (C2), as on the SRD's pattern page.
+    expect(chip.closest('[data-chip-class]')?.getAttribute('data-chip-class')).toBe('relation')
     fireEvent.click(chip)
     expect(opener).toHaveBeenCalledTimes(1)
     const ref = opener.mock.calls[0]?.[0]

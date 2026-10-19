@@ -37,9 +37,13 @@ export function readCrawler(row: { appId: string | null; body: unknown }): Crawl
  * crew seats read only these: a crawler never lists its count of bays (owner's
  * call, 2026-10-14).
  */
-export function crawlerVitals(crawler: CrawlerReading): { label: string; value: string }[] {
+export function crawlerVitals(
+  crawler: CrawlerReading
+): { label: string; value: string; chip: 'rank' | 'measure' }[] {
   return [
-    ...(crawler.techLevel === null ? [] : [{ label: 'TL', value: String(crawler.techLevel) }]),
-    { label: 'SP', value: `${crawler.sp}/${crawler.maxSP}` },
+    ...(crawler.techLevel === null
+      ? []
+      : [{ label: 'TL', value: String(crawler.techLevel), chip: 'rank' as const }]),
+    { label: 'SP', value: `${crawler.sp}/${crawler.maxSP}`, chip: 'measure' as const },
   ]
 }

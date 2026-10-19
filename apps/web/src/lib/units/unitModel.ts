@@ -13,8 +13,33 @@ import type { EntityRowModel } from '../../components/index'
 
 export type UnitKind = 'pilot' | 'mech' | 'crawler' | 'pattern' | 'npc'
 
-/** One reading a unit shows, label first: `SP | 9/9`, `TL | 2`. */
-export type UnitReading = { label: string | number; value: string | number }
+/**
+ * A reading's chip class (`chips-and-actions.md` C2): its rank (`TL | 2`), a
+ * measure (`SP | 9/9`, its lead vital), what it is built on or linked to
+ * (`CHASSIS | Mule`, a relation), a mark that says what it is (`ROLE | Doc`,
+ * `CALLSIGN | Ghost`), or its state after the cost (`CONDITION | Intact`).
+ */
+export type UnitChip = 'mark' | 'rank' | 'measure' | 'relation' | 'state'
+
+/**
+ * One reading a unit shows, label first: `SP | 9/9`, `TL | 2`. Its `chip`
+ * names its class; unnamed, `TL` is the rank, a number or `n/m` reading a
+ * measure, and a name a relation (`unitChipOf`).
+ */
+export type UnitReading = { label: string | number; value: string | number; chip?: UnitChip }
+
+/** A reading's class: its own, else read off it (`UnitReading`). */
+export function unitChipOf(reading: UnitReading): UnitChip {
+  if (reading.chip) return reading.chip
+  if (String(reading.label) === 'TL') return 'rank'
+  return /^\d+(\/\d+)?(\s.*)?$/.test(String(reading.value)) ? 'measure' : 'relation'
+}
+
+/** The readings a unit's model carries as facts: its rank and measures. */
+const isStat = (reading: UnitReading) => {
+  const chip = unitChipOf(reading)
+  return chip === 'rank' || chip === 'measure'
+}
 
 /** The reference schema each kind is built on, the tone it wears and its domain. */
 const KIND: Record<
@@ -47,7 +72,7 @@ export function unitRowModel({
   /** What it is built as, stamped where its kind is not: "Engineer", "Mule". */
   note?: string | undefined
   name: string
-  /** Its readings (`SP 9/9`), as Stat cells. */
+  /** Its readings (`SP 9/9`): its rank and measures become its facts (`isStat`). */
   readings?: readonly UnitReading[]
   /** A pattern or an NPC: dashed, its name quoted (ruleset §3.9). */
   userMade?: boolean
@@ -63,9 +88,20 @@ export function unitRowModel({
     title: userMade ? `“${name}”` : name,
     kind: { stamp: label, type: label, domain, nature: 'have', ...(note ? { note } : {}) },
     tone,
-    facts: readings.map((r) => {
+    // The rank and the measures, grouped so a head's budget (C3) keeps the
+    // rank and its context's one measure (`budgetFacts`): a roster's lead
+    // vital, never every reading. Relations, marks and state are the host's
+    // chips (`UnitRow`).
+    facts: readings.filter(isStat).map((r) => {
       const label = String(r.label)
-      return { key: label, label, short: label, value: String(r.value) }
+      const rank = unitChipOf(r) === 'rank'
+      return {
+        key: rank ? 'tech-level' : label,
+        label,
+        short: label,
+        value: String(r.value),
+        group: rank ? ('provenance' as const) : ('vitals' as const),
+      }
     }),
     traits: [],
     art,

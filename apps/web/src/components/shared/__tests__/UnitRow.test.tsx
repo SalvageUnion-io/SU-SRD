@@ -6,6 +6,7 @@
  */
 import { describe, expect, mock, test } from 'bun:test'
 import { fireEvent, render, screen, within } from '@testing-library/react'
+import { unitRowModel } from '../../../lib/units/unitModel'
 import { EmptyUnitSlot } from '../EmptyUnitSlot'
 import { UnitRow } from '../UnitRow'
 
@@ -15,6 +16,82 @@ const rowOf = (name: string) => {
   return row
 }
 
+/** A unit Row's chips as [class, text] pairs, in the order drawn (`Chips`' lanes). */
+const lanesOf = (name: string) =>
+  [...rowOf(name).querySelectorAll('[data-chip-class]')].flatMap((lane) =>
+    [...lane.querySelectorAll('.su-stat-cell')].map((cell) => [
+      lane.getAttribute('data-chip-class'),
+      cell.textContent,
+    ])
+  )
+
+describe('unitRowModel budget (C3): a unit Row keeps its rank and its lead vital', () => {
+  test('a mech keeps SP of SP, EP and Heat', () => {
+    render(
+      <UnitRow
+        kind="mech"
+        name="Iron Fist"
+        readings={[
+          { label: 'TL', value: 2, chip: 'rank' },
+          { label: 'SP', value: '9/13' },
+          { label: 'EP', value: '6/11' },
+          { label: 'Heat', value: '4/12' },
+        ]}
+      />
+    )
+    expect(lanesOf('Iron Fist')).toEqual([
+      ['rank', 'TL2'],
+      ['measure', 'SP9/13'],
+    ])
+  })
+
+  test('a pilot keeps HP of HP and AP; a crawler SP of SP and Bays', () => {
+    render(
+      <>
+        <UnitRow
+          kind="pilot"
+          name="Ace"
+          readings={[
+            { label: 'HP', value: '7/10' },
+            { label: 'AP', value: '4/6' },
+          ]}
+        />
+        <UnitRow
+          kind="crawler"
+          name="Tenacity"
+          readings={[
+            { label: 'TL', value: 3 },
+            { label: 'SP', value: '20/25' },
+            { label: 'Bays', value: '4/5 Intact' },
+          ]}
+        />
+      </>
+    )
+    expect(lanesOf('Ace')).toEqual([['measure', 'HP7/10']])
+    expect(lanesOf('Tenacity')).toEqual([
+      ['rank', 'TL3'],
+      ['measure', 'SP20/25'],
+    ])
+  })
+
+  test('the model carries only the rank and the measures, grouped for the budget', () => {
+    const model = unitRowModel({
+      kind: 'mech',
+      name: 'Iron Fist',
+      readings: [
+        { label: 'Chassis', value: 'Mule', chip: 'relation' },
+        { label: 'TL', value: 1 },
+        { label: 'SP', value: '9/13' },
+        { label: 'Role', value: 'Lead', chip: 'mark' },
+      ],
+    })
+    expect(model.facts.map((f) => [f.key, f.group])).toEqual([
+      ['tech-level', 'provenance'],
+      ['SP', 'vitals'],
+    ])
+  })
+})
+
 describe('UnitRow', () => {
   test('the library Row: the name on the paper cut-out, the frame the Row’s', () => {
     render(<UnitRow kind="mech" name="Iron Fist" />)
@@ -23,21 +100,44 @@ describe('UnitRow', () => {
     expect(row.querySelector('.su-entity-row__frame')).not.toBeNull()
   })
 
-  test('readings are label-first chips', () => {
+  test('readings are label-first chips, each in its class lane', () => {
     render(
       <UnitRow
-        kind="crawler"
-        name="Tenacity"
+        kind="mech"
+        name="Iron Fist"
         readings={[
-          { label: 'TL', value: 3 },
-          { label: 'Bays', value: '4/5' },
+          { label: 'Chassis', value: 'Mule', chip: 'relation' },
+          { label: 'TL', value: 1, chip: 'rank' },
+          { label: 'SP', value: '9/13' },
+          { label: 'Condition', value: 'Intact', chip: 'state' },
         ]}
       />
     )
-    const row = rowOf('Tenacity')
-    const cells = [...row.querySelectorAll('.su-stat-cell')].map((c) => c.textContent)
-    expect(cells).toContain('TL3')
-    expect(cells).toContain('Bays4/5')
+    expect(lanesOf('Iron Fist')).toEqual([
+      ['rank', 'TL1'],
+      ['measure', 'SP9/13'],
+      ['relation', 'ChassisMule'],
+      ['state', 'ConditionIntact'],
+    ])
+  })
+
+  test('a reading with no class: TL ranks, a number measures, a name relates', () => {
+    render(
+      <UnitRow
+        kind="pilot"
+        name="Ace"
+        readings={[
+          { label: 'Class', value: 'Hacker' },
+          { label: 'TL', value: 2 },
+          { label: 'HP', value: '7/10' },
+        ]}
+      />
+    )
+    expect(lanesOf('Ace')).toEqual([
+      ['rank', 'TL2'],
+      ['measure', 'HP7/10'],
+      ['relation', 'ClassHacker'],
+    ])
   })
 
   test('the note and the host labels sit right of the title, in the head', () => {

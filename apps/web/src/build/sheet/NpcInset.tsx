@@ -277,12 +277,13 @@ export function NpcInset(props: NpcInsetProps) {
         // The ROLE leads the chips (a label-only cell, as an action type is),
         // then HP — this crew member's one live number — as its chip, with
         // the steppers while the sheet writes it.
-        chips={
-          <>
-            {title && (name || onNameChange) && (
-              <Stat orientation="horizontal" label={title} size="compact" />
-            )}
-            {maxHp > 0 && (
+        marks={
+          title && (name || onNameChange) ? (
+            <Stat orientation="horizontal" label={title} size="compact" />
+          ) : undefined
+        }
+        state={
+          maxHp > 0 ? (
               <Stat
                 orientation="horizontal"
                 label="HP"
@@ -292,8 +293,7 @@ export function NpcInset(props: NpcInsetProps) {
                 mode={onHpChange ? 'edit' : 'read'}
                 onChange={onHpChange}
               />
-            )}
-          </>
+          ) : undefined
         }
         bodyStyle={BODY}
       >

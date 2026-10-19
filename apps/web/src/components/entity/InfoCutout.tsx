@@ -45,12 +45,7 @@ export function InfoCutout({
   const paint = paintFor(fill, { texture: surface.texture })
   const chips =
     (facts && facts.length > 0) || aside ? (
-      <>
-        {aside}
-        {facts && facts.length > 0 && (
-          <Chips chips={{ durations: [], facts, tags: [] }} size="compact" />
-        )}
-      </>
+      <Chips chips={{ durations: [], facts: facts ?? [], tags: [] }} size="compact" marks={aside} />
     ) : undefined
   return (
     <TitledBox

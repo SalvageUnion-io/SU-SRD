@@ -28,7 +28,7 @@ const get = (schema: string, name: string) => {
 const chipsOf = (schema: string, name: string, context: ChipContext = 'loadout') => {
   const { container } = render(<Entity form="token" context={context} entity={get(schema, name)} />)
   const chips = container.querySelector('.su-entity-token__pill > .su-entity-token__chips')
-  return Array.from(chips?.children ?? []).map((chip) =>
+  return Array.from(chips?.querySelectorAll(':scope > .su-chip-lane > *') ?? []).map((chip) =>
     (chip.textContent ?? '').replace(/\s+/g, ' ').trim()
   )
 }
@@ -44,7 +44,9 @@ describe('Token chips', () => {
     const { container } = render(
       <Entity form="token" context="loadout" entity={get('systems', 'Red Laser')} />
     )
-    const slots = container.querySelector('.su-entity-token__chips > :last-child')
+    const slots = container.querySelector(
+      '.su-entity-token__chips > [data-chip-class="measure"] > :last-child'
+    )
     expect(slots?.firstElementChild?.textContent).toBe('Slots')
   })
 
@@ -238,7 +240,7 @@ describe('the contentful Token (N3)', () => {
     const { container } = render(<Entity form="token" context="play" entity={shield()} body={{}} />)
     const chips = container.querySelector('.su-entity-token__head .su-entity-token__chips')
     expect(
-      Array.from(chips?.children ?? []).map((chip) =>
+      Array.from(chips?.querySelectorAll(':scope > .su-chip-lane > *') ?? []).map((chip) =>
         (chip.textContent ?? '').replace(/\s+/g, ' ').trim()
       )
     ).toEqual(['Reaction', 'RNGC', 'Shield', '2 EP'])

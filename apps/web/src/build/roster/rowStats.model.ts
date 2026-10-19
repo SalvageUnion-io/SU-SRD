@@ -27,8 +27,10 @@ export function mechChassisStats(chassisRef: string): UnitReading[] | undefined 
     null
   )
 
-  const stats: UnitReading[] = [{ label: 'Chassis', value: resolved?.name ?? chassisRef }]
-  if (resolved?.techLevel != null) stats.push({ label: 'TL', value: resolved.techLevel })
+  const stats: UnitReading[] = [
+    { label: 'Chassis', value: resolved?.name ?? chassisRef, chip: 'relation' },
+  ]
+  if (resolved?.techLevel != null) stats.push({ label: 'TL', value: resolved.techLevel, chip: 'rank' })
   return stats
 }
 
@@ -38,7 +40,7 @@ export function mechChassisStats(chassisRef: string): UnitReading[] | undefined 
  */
 export function crawlerStats(techLevel: string): UnitReading[] {
   const tl = techLevel.replace(/[^0-9]/g, '')
-  return tl ? [{ label: 'TL', value: tl }] : []
+  return tl ? [{ label: 'TL', value: tl, chip: 'rank' }] : []
 }
 
 /**
@@ -61,15 +63,15 @@ export function npcStats(npc: {
   damageType: 'HP' | 'SP'
 }): UnitReading[] {
   const stats: UnitReading[] = []
-  if (npc.position?.trim()) stats.push({ label: 'Role', value: npc.position.trim() })
-  stats.push({ label: npc.damageType, value: npc.hitPoints })
+  if (npc.position?.trim()) stats.push({ label: 'Role', value: npc.position.trim(), chip: 'mark' })
+  stats.push({ label: npc.damageType, value: npc.hitPoints, chip: 'measure' })
   return stats
 }
 
 export function pilotStats(classRef: string, callsign?: string): UnitReading[] | undefined {
   const stats: UnitReading[] = []
   const className = resolveClassName(classRef)
-  if (className) stats.push({ label: 'Class', value: className })
-  if (callsign) stats.push({ label: 'Callsign', value: callsign })
+  if (className) stats.push({ label: 'Class', value: className, chip: 'relation' })
+  if (callsign) stats.push({ label: 'Callsign', value: callsign, chip: 'mark' })
   return stats.length > 0 ? stats : undefined
 }

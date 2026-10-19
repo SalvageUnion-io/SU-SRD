@@ -277,7 +277,11 @@ export function SheetCrawler({
                   ...rowStats(
                     mechRailItems(dockedMech, pilotingContext(dockedMech, dockedPilot?.abilities))
                   ),
-                  { label: 'Condition', value: mechStatusPill(dockedMech).label },
+                  {
+                    label: 'Condition',
+                    value: mechStatusPill(dockedMech).label,
+                    chip: 'state' as const,
+                  },
                 ]}
                 href={hrefFor('mech', dockedMech.id)}
                 onUnassign={unassignFrom('mech-to-crawler', dockedMech.id)}

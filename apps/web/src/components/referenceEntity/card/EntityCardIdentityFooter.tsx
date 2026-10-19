@@ -109,6 +109,8 @@ export function EntityCardIdentityFooter({
 
   return (
     <div
+      // A foot band is text, never chips (hard rule R4): `chip-strips.e2e.ts` reads it.
+      data-foot-band=""
       style={{
         borderTopColor: 'var(--color-ink)',
         borderTopStyle: dashed ? 'dashed' : 'solid',

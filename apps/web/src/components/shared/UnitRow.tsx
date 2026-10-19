@@ -15,9 +15,9 @@ import { Unlink } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { space } from '../../design/tokens'
 import type { UnitKind, UnitReading } from '../../lib/units/unitModel'
-import { unitRowModel } from '../../lib/units/unitModel'
+import { unitChipOf, unitRowModel } from '../../lib/units/unitModel'
 import type { EntityMode, TagItem } from '../index'
-import { Button, buttonVariants, Entity } from '../index'
+import { Button, buttonVariants, Entity, relation, Stat } from '../index'
 import { AppLink } from './AppLink'
 
 const VIEW_LINK = { textDecorationLine: 'none' } satisfies CSSProperties
@@ -91,13 +91,36 @@ export function UnitRow({
         )}
       </>
     ) : undefined
+  // Each reading in its class's lane (C2): the rank and measures are the
+  // model's facts, kept to its budget (a roster's lead vital, C3); a relation,
+  // a mark and a state are the Row's own chips.
+  const byChip = (chip: string) => (readings ?? []).filter((r) => unitChipOf(r) === chip)
+  const cell = (r: UnitReading) => (
+    <Stat
+      key={String(r.label)}
+      orientation="horizontal"
+      label={r.label}
+      value={r.value}
+      size="compact"
+    />
+  )
+  const allRelations = [
+    ...byChip('relation').map((r) =>
+      relation(`reading-${r.label}`, String(r.label), String(r.value))
+    ),
+    ...(relations ?? []),
+  ]
+  const marks = byChip('mark')
+  const state = byChip('state')
   return (
     <Entity
       form="row"
+      context="roster"
       model={unitRowModel({ kind, name, note, userMade, readings: readings ?? [] })}
       mode={mode}
-      labels={labels}
-      {...(relations && relations.length > 0 ? { relations } : {})}
+      labels={marks.length > 0 ? [...(labels ? [labels] : []), ...marks.map(cell)] : labels}
+      {...(allRelations.length > 0 ? { relations: allRelations } : {})}
+      {...(state.length > 0 ? { state: state.map(cell) } : {})}
       trailing={trailing}
       controls={all}
     />

@@ -1,5 +1,9 @@
 import type { CSSProperties, ReactNode } from 'react'
+import { Chips } from '../entity/parts/Chips'
+import type { ChipSet } from '../entity/parts/chipSet'
 import { TitledBox } from './TitledBox'
+
+const NO_CHIPS: ChipSet = { durations: [], facts: [], tags: [] }
 
 type InsetProps = {
   /** The name on the cut-out; it also names the head. */
@@ -8,8 +12,10 @@ type InsetProps = {
   titleContent?: ReactNode
   /** The band's tone token (`--color-<tone>`): an NPC's `adversary`. */
   tone: string
-  /** The chips (horizontal `Stat` cells, E17), one group on the band right of the name. */
-  chips?: ReactNode
+  /** The chips that say what it is (a crew role), first on the band right of the name (E17). */
+  marks?: ReactNode
+  /** Its live reading (a crew member's `HP | 4/4`, with steppers in Edit), after them (C8). */
+  state?: ReactNode
   /** Inline style on the paper body (e.g. a grid of id lines). */
   bodyStyle?: CSSProperties
   children?: ReactNode
@@ -26,7 +32,15 @@ type InsetProps = {
  * A `TitledBox` in the entity's tone. The body holds what the sheet tracks (keepsake, motto, detail, facts), which
  * no reference model carries; that is why this is not a `Row` over a model.
  */
-export function Inset({ title, titleContent, tone, chips, bodyStyle, children }: InsetProps) {
+export function Inset({
+  title,
+  titleContent,
+  tone,
+  marks,
+  state,
+  bodyStyle,
+  children,
+}: InsetProps) {
   // An inset with nothing to say below its head is just the head (`TitledBox`): no
   // empty paper strip under it (a read-state crew lead with every field blank).
   const hasBody = children !== null && children !== undefined && children !== false
@@ -36,10 +50,8 @@ export function Inset({ title, titleContent, tone, chips, bodyStyle, children }:
       titleContent={titleContent}
       tone={tone}
       chips={
-        chips ? (
-          <div data-chip-group="" className="su-chips">
-            {chips}
-          </div>
+        marks || state ? (
+          <Chips chips={NO_CHIPS} size="compact" marks={marks} state={state} />
         ) : undefined
       }
       body="flush"

@@ -22,7 +22,7 @@ The loop: define it here, land its gate with a baseline, burn the baseline to ze
 - **R3 A chip is never clipped or dropped** (C3, C5) — only the name flexes.
   Gate: planned, `_chipStrips.ts` fails a chip outside its strip's visible box.
 - **R4 Every strip is `Chips`, in class order** (C2, C2a, C10) — the Page band, Tiles and unit Rows included; budgets from the form, never a schema set; a header's summary repeats no child's fact; a foot band is text, never chips.
-  Gate: planned, `data-chip-class` order check in `chip-strips.e2e.ts`; a `unitRowModel` budget unit test; a `SlabCount` unit test; no chip in a foot band.
+  Gate: held. `Chips` draws every strip (a Token's, a Row's, Card's or `Head`'s, the Page band, a Tile's, a Slab's summary), each chip in its class's lane (`data-chip-class`); `_chipStrips.ts` fails a chip in no lane (`unclassed`), a strip that goes back in the class order (`order`), a read chip after the cost (`cost`) and a chip in a `[data-foot-band]` (`foot`), over the SRD pages with no allowlist and over R0 with no baseline. `UnitRow.test.tsx` pins `unitRowModel`'s budget (a roster keeps the rank and the lead vital); `slabSummary.test.tsx` pins C10 and the two-chip summary. A Tile's budget is a compact head's in its kind's context (`budgetFacts`), no schema set.
 - **R5 A linked unit is a relation chip** (C11) — the same in Read and Edit; no role stamp, no Token under a Row.
   Gate: planned, banned copy "Assigned Mech" / "Assigned Pilot"; e2e: no entity directly under another Row's head.
 - **R6 Nothing beside or under a strip** (C8, E8) — state, uses and actions sit in the chip group; Details opens the Page.

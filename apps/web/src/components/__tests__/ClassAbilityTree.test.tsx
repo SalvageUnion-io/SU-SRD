@@ -135,9 +135,12 @@ describe('ClassAbilityTree advancement paths', () => {
       // The shared cut-out head (`Head`): the name on the tab, the chips right of it.
       const head = path.querySelector('.su-entity-row__head[data-notch]')
       expect(head?.querySelector('.su-entity-row__notch')?.textContent).not.toBe('')
-      // Every chip (requirement, kind) is a direct chip of the head's one group.
+      // Every chip (requirement, kind) is a chip of the head's one group, the
+      // requirement its relation (C2).
       expect(
-        head?.querySelector('.su-entity-row__heading--cut > .su-chips > .su-class-path__req-chip')
+        head?.querySelector(
+          '.su-entity-row__heading--cut > .su-chips > [data-chip-class="relation"] > .su-class-path__req-chip'
+        )
       ).not.toBeNull()
       expect(head?.querySelector('.su-class-path__note')).toBeNull()
       expect(path.querySelector('.su-class-path__body')?.firstElementChild?.className).toBe(
@@ -153,12 +156,13 @@ describe('ClassAbilityTree advancement paths', () => {
     render(<ClassAbilityTree classEntity={classNamed('Hacker')} />)
     const own = document.querySelector('.su-class-path[data-kind="legendary"]')
     const group = own?.querySelector('.su-entity-row__heading--cut > .su-chips')
-    const chips = [...(group?.children ?? [])]
-    // One chip line: the requirement, "Hacker only", then the kind, as siblings.
+    const chips = [...(group?.querySelectorAll(':scope > .su-chip-lane > *') ?? [])]
+    // One chip line in the class order: the kind and "Hacker only" (marks),
+    // then the requirement (its relation), as siblings.
     expect(chips.map((chip) => chip.textContent)).toEqual([
-      'REQHacking',
-      'Hacker only',
       'Legendary',
+      'Hacker only',
+      'REQHacking',
     ])
   })
 
@@ -168,9 +172,9 @@ describe('ClassAbilityTree advancement paths', () => {
     expect(hybrids.length).toBeGreaterThan(0)
     for (const hybrid of hybrids) {
       const chips = hybrid.querySelector('.su-entity-row__heading--cut > .su-chips')
-      // The requirement chip, then the kind: no owning-class chip.
-      expect(chips?.childElementCount).toBe(2)
-      const req = chips?.querySelector(':scope > .su-class-path__req-chip')
+      // The kind, then the requirement chip: no owning-class chip.
+      expect(chips?.querySelectorAll(':scope > .su-chip-lane > *').length).toBe(2)
+      const req = chips?.querySelector(':scope > .su-chip-lane > .su-class-path__req-chip')
       const labels = [...(req?.querySelectorAll('.su-stat-plate--label') ?? [])].map(
         (label) => label.textContent
       )

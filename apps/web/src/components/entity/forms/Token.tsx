@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
-import type { ChipContext, EntityInstance, TokenChips } from 'salvageunion-reference'
+import type { ChipContext, EntityInstance } from 'salvageunion-reference'
 import { tokenChips } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
 import { Badge } from '../../atoms/Badge'
@@ -11,42 +11,13 @@ import type { Down } from '../../referenceEntity/card/cardChrome'
 import { downOf, USER_MADE_TITLE } from '../../referenceEntity/card/cardChrome'
 import { LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
-import { actionTypeStamps } from '../parts/actionStamps'
-import { CostBox } from '../parts/Chips'
+import { Chips } from '../parts/Chips'
+import { chipCount } from '../parts/chipSet'
 import { KindLabel } from '../parts/KindLabel'
 import { paintFor } from '../parts/paint'
+import { tokenChipSet } from '../parts/tokenChipSet'
 import { useInsidePeek, usePeekAttrs } from '../peekContext'
 import type { EntityMode, EntityOmit, EntityRowModel } from '../types'
-
-/**
- * A Token's chips (`chips-and-actions.md`, C3 and C4): the model's
- * `tokenChips` for the context its container names, drawn as Mini cells in
- * the class order — the rank, the context lane (an action type as its
- * stamps), and a contentful Token's economy, facets and traits (N3). The cost box and
- * the host's state chip follow.
- */
-function TokenCells({ chips }: { chips: TokenChips }) {
-  const cells: { label: string; value?: string }[] = []
-  if (chips.rank) cells.push(chips.rank)
-  for (const lane of [chips.lane, chips.economy]) {
-    if (lane?.kind === 'cell') cells.push(lane.cell)
-    if (lane?.kind === 'actionType') {
-      for (const stamp of actionTypeStamps(lane.actionType, lane.mechActionType)) {
-        cells.push({ label: stamp })
-      }
-    }
-  }
-  cells.push(...(chips.facets ?? []), ...(chips.traits ?? []))
-  return cells.map((cell) => (
-    <Stat
-      key={cell.label}
-      orientation="horizontal"
-      label={cell.label}
-      value={cell.value}
-      size="mini"
-    />
-  ))
-}
 
 /** The adapter's resolved parts (`ReferenceEntityCard` `extent="head"`, any size: N2). */
 export type TokenSlots = {
@@ -59,8 +30,8 @@ export type TokenSlots = {
   /** A read cost ("1 EP"), as its chip. */
   cost?: string
   down?: Down
-  /** The host's chip, last in the chip group after the cost box (a damaged thing's condition). */
-  trailing?: ReactNode
+  /** The host's state chip, after the cost box (C8): a damaged thing's condition, a reading. */
+  state?: ReactNode
 }
 
 /**
@@ -155,7 +126,20 @@ export function Token({
     ...(instance?.count !== undefined ? { count: instance.count } : {}),
   })
   const cost = slots.cost ?? chips.cost
-  const hasCells = !!(chips.rank || chips.lane || chips.economy || chips.facets || chips.traits)
+  const { set, quantity } = tokenChipSet(chips, cost)
+  const state = [
+    quantity && (
+      <Stat
+        key="quantity"
+        orientation="horizontal"
+        label={quantity.label}
+        value={quantity.value}
+        size="mini"
+      />
+    ),
+    slots.state,
+  ]
+  const hasChips = chipCount(set) > 0 || !!quantity || !!slots.state
   const pill = (
     <span
       // The pill is the frame: on an ink pill (a thing you do) its cells,
@@ -182,12 +166,8 @@ export function Token({
           <KindLabel kind={slots.kind ?? model.kind.type} />
         </span>
       </span>
-      {(hasCells || cost || slots.trailing) && (
-        <span className="su-entity-token__chips">
-          <TokenCells chips={chips} />
-          {cost && <CostBox cost={cost} size="mini" />}
-          {slots.trailing}
-        </span>
+      {hasChips && (
+        <Chips as="span" className="su-entity-token__chips" chips={set} size="mini" state={state} />
       )}
     </span>
   )

@@ -1,14 +1,7 @@
 import type { ReactNode } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
 import type { ChapterTone, EntityPageMeta } from '../components/index'
-import {
-  buttonVariants,
-  ChapterBand,
-  cn,
-  EntityPageStamps,
-  EntityStat,
-  KindLabel,
-} from '../components/index'
+import { buttonVariants, ChapterBand, cn, EntityPageStamps, KindLabel } from '../components/index'
 import type { BuildLink, GuideExits } from '../lib/buildLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
 
@@ -28,16 +21,6 @@ import { PAGE_MEASURE } from '../lib/pageMeasure'
  * `meta` comes from `resolveEntityPageMeta`, the same helpers the card's own
  * labels, header and footer read.
  */
-
-/**
- * The band's link back to what this entity is built on, leading the cluster
- * beside the title: the label-first chip every fact is (`PATTERN OF | Mule`,
- * EDL E9), the app's sheet band's `CHASSIS | Mazona` chip — it opens the parent's
- * page and Peeks it.
- */
-function ParentLink({ label, entityRef, href }: EntityParent) {
-  return <EntityStat label={label} entityRef={entityRef} href={href} />
-}
 
 /** What an entity is built on: the relation, the parent and its page. */
 type EntityParent = { label: string; entityRef: EntityRef; href: string }
@@ -109,9 +92,8 @@ export function EntityPageFrame({
         aside={
           <EntityPageStamps
             meta={meta}
-            name={typeof title === 'string' ? title : undefined}
             legalStartingPattern={legalStartingPattern}
-            lead={parent && <ParentLink {...parent} />}
+            parent={parent && { label: parent.label, ref: parent.entityRef, href: parent.href }}
           />
         }
         asideAt="notch"

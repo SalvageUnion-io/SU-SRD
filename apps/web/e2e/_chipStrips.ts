@@ -1,4 +1,8 @@
 import type { Page } from '@playwright/test'
+import { CHIP_CLASSES } from '../src/components/entity/parts/chipSet'
+
+/** The read chips, mark through the cost: no read chip follows the cost (C2). */
+const READ_CHIP_CLASSES = CHIP_CLASSES.slice(0, CHIP_CLASSES.indexOf('cost') + 1)
 
 /**
  * The chip-strip law (ruleset §4.7) as the rendered page draws it. A STRIP is
@@ -11,8 +15,14 @@ import type { Page } from '@playwright/test'
  * - **gap** a strip whose neighbouring chips on a line are not one gap apart
  *   (a stretched chip, a hole).
  * - **flush** a strip whose lines share neither a right edge nor a left one.
- * - **cost** a cost that is not the strip's last chip, on its lowest line
- *   and rightmost there.
+ * - **cost** a cost that is not the strip's last read chip, or, last of all,
+ *   not on its lowest line and rightmost there.
+ * - **unclassed** a chip in no class lane: the strip is not drawn by `Chips`
+ *   (`chips-and-actions.md` C2a, hard rule R4).
+ * - **order** a chip whose class comes before the one ahead of it: the strip
+ *   goes back in the class order (C2: mark, rank, measure, economy, traits,
+ *   relation, cost; then state, uses, menu), so a read chip follows the cost.
+ * - **foot** a chip in a foot band (`[data-foot-band]`): a foot is text.
  */
 const STRIP = [
   '.su-entity-stamps',
@@ -31,7 +41,17 @@ const CHIP = [
 ].join(',')
 
 /** Runs in the page; returns plain data. */
-function scan({ strip, chip }: { strip: string; chip: string }): string[] {
+function scan({
+  strip,
+  chip,
+  classes,
+  read,
+}: {
+  strip: string
+  chip: string
+  classes: readonly string[]
+  read: readonly string[]
+}): string[] {
   type Box = { el: Element; x: number; y: number; w: number; h: number }
   const visible = (el: Element) => {
     const r = el.getBoundingClientRect()
@@ -41,6 +61,13 @@ function scan({ strip, chip }: { strip: string; chip: string }): string[] {
   }
   const describe = (el: Element) => (el.textContent ?? '').trim().replace(/\s+/g, ' ').slice(0, 40)
   const faults: string[] = []
+  // FOOT: a foot band carries no chip.
+  for (const foot of document.querySelectorAll('[data-foot-band]')) {
+    const inside = [...foot.querySelectorAll(chip)].filter(visible)
+    if (inside.length > 0) {
+      faults.push(`foot: "${describe(inside[0] as Element)}" is a chip in a foot band`)
+    }
+  }
   const roots = [...document.querySelectorAll(strip)].filter(
     // A strip inside another is the outer one's (a band's Tag in its cluster).
     (root) => !root.parentElement?.closest(strip)
@@ -56,6 +83,30 @@ function scan({ strip, chip }: { strip: string; chip: string }): string[] {
     })
     if (chips.length === 0) continue
     const where = `${describe(chips[0] as Element)}…`
+
+    // UNCLASSED and ORDER: each chip in its class's lane, the lanes in the
+    // class order, in the source (what a screen reader reads).
+    const classOf = (el: Element) => {
+      const lane = el.closest('[data-chip-class]')
+      return lane && root.contains(lane) ? (lane.getAttribute('data-chip-class') ?? '') : ''
+    }
+    let ahead = -1
+    let aheadName = ''
+    for (const el of chips) {
+      const cls = classOf(el)
+      const at = classes.indexOf(cls)
+      if (at < 0) {
+        faults.push(`unclassed: ${where} "${describe(el)}" is in no class lane`)
+        continue
+      }
+      if (at < ahead) {
+        faults.push(`order: ${where} "${describe(el)}" (${cls}) follows a ${aheadName} chip`)
+      }
+      if (at >= ahead) {
+        ahead = at
+        aheadName = cls
+      }
+    }
 
     // SIZE: a two-plate chip's label and value at one type size.
     for (const el of chips) {
@@ -99,14 +150,18 @@ function scan({ strip, chip }: { strip: string; chip: string }): string[] {
       }
     }
 
-    // COST: last in the source, on the lowest line, rightmost there.
+    // COST: the last read chip in the source (C2: the slots, a state, uses,
+    // the menu, may follow it, C8); last of all, on the lowest line,
+    // rightmost there.
     const cost = chips.find((el) => el.matches('.su-cost, .su-cost-edge'))
     if (cost) {
+      const readChips = chips.filter((el) => read.includes(classOf(el)) || classOf(el) === '')
       const last = chips[chips.length - 1]
       const lowest = lines[lines.length - 1] as Box[]
       const corner = (lowest[lowest.length - 1] as Box).el
-      if (last !== cost) faults.push(`cost: ${where} "${describe(cost)}" is not the last chip`)
-      else if (corner !== cost) {
+      if (readChips[readChips.length - 1] !== cost) {
+        faults.push(`cost: ${where} "${describe(cost)}" is not the last read chip`)
+      } else if (last === cost && corner !== cost) {
         faults.push(`cost: ${where} "${describe(cost)}" is not at the bottom-right`)
       }
     }
@@ -116,5 +171,10 @@ function scan({ strip, chip }: { strip: string; chip: string }): string[] {
 
 /** Every chip-strip fault on the page as it stands. */
 export async function findChipStripFaults(page: Page): Promise<string[]> {
-  return page.evaluate(scan, { strip: STRIP, chip: CHIP })
+  return page.evaluate(scan, {
+    strip: STRIP,
+    chip: CHIP,
+    classes: CHIP_CLASSES,
+    read: READ_CHIP_CLASSES,
+  })
 }

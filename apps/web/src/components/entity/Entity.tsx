@@ -68,9 +68,13 @@ export type EntityProps = EntitySource &
      */
     relations?: TagItem[]
     /**
-     * Token and Row: the host's chip, last in its chip group — a damaged thing's
-     * condition `StatusBadge` on a surface that only reads it (a crawler bay), a
-     * listed unit's "⋯" menu.
+     * Token and Row: the host's state chip after the cost (C8) — a live reading,
+     * a damaged thing's condition on a surface that only reads it (a crawler bay).
+     */
+    state?: ReactNode
+    /**
+     * Row: the host's last chip, a listed unit's "⋯" menu. Token: its state chip,
+     * as `state` (a Token carries no menu).
      */
     trailing?: ReactNode
     /**
@@ -101,6 +105,7 @@ export function Entity(props: EntityProps) {
     controls,
     labels,
     relations,
+    state,
     trailing,
     body,
   } = props
@@ -123,13 +128,14 @@ export function Entity(props: EntityProps) {
           omit={omit}
           peek={peek}
           slots={
-            titleAs || controls || labels || relations || trailing
+            titleAs || controls || labels || relations || trailing || state
               ? {
                   ...(titleAs ? { titleAs } : {}),
                   ...(controls ? { controls } : {}),
                   ...(labels ? { extraLabels: labels } : {}),
                   ...(relations ? { relations } : {}),
                   ...(trailing ? { trailing } : {}),
+                  ...(state ? { state } : {}),
                 }
               : undefined
           }
@@ -144,8 +150,11 @@ export function Entity(props: EntityProps) {
           mode={mode}
           omit={omit}
           slots={
-            trailing || peekAt
-              ? { ...(trailing ? { trailing } : {}), ...(peekAt ? { peekAt } : {}) }
+            state || trailing || peekAt
+              ? {
+                  ...(state || trailing ? { state: state ?? trailing } : {}),
+                  ...(peekAt ? { peekAt } : {}),
+                }
               : undefined
           }
           body={body}

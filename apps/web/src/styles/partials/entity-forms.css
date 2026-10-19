@@ -328,237 +328,110 @@
   width: 0;
 }
 
-/* On the strut's line the cost is centred like its neighbours, its own
-   height, never stretched to the strut's. */
-:is(
-  .su-entity-row__heading--cut > .su-chips,
-  .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
-  .su-entity-tile__band > .su-entity-tile__chips
-) > .su-cost-edge,
-:is(
-    .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
-    .su-entity-tile__band > .su-entity-tile__chips
-  )
-  > .su-cost-edge
-  > .su-cost {
-  align-self: center;
+/* A CHIP LANE (`Chips`): one class's chips, `data-chip-class` (C2a). In a
+   strip it draws no box, so its chips are the strip's flex items. Its
+   `--su-lane-end` counts the chips after it, so each chip knows its place
+   from the strip's end (`--su-fill`, the cost's 1): a strip that fills from
+   its bottom-right corner (`row-reverse`, `wrap-reverse`) orders by it, so its
+   lines still read top to bottom in the class order while the source keeps it. */
+.su-chip-lane {
+  display: contents;
 }
 
-:is(
-    .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
-    .su-entity-tile__band > .su-entity-tile__chips
-  )
-  > :nth-last-child(1) {
-  order: 1;
+.su-chip-lane > :nth-last-child(1) {
+  --su-fill: calc(var(--su-lane-end, 0) + 1);
 }
 
-:is(
-    .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
-    .su-entity-tile__band > .su-entity-tile__chips
-  )
-  > :nth-last-child(2) {
-  order: 2;
+.su-chip-lane > :nth-last-child(2) {
+  --su-fill: calc(var(--su-lane-end, 0) + 2);
 }
 
-:is(
-    .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
-    .su-entity-tile__band > .su-entity-tile__chips
-  )
-  > :nth-last-child(3) {
-  order: 3;
+.su-chip-lane > :nth-last-child(3) {
+  --su-fill: calc(var(--su-lane-end, 0) + 3);
 }
 
-:is(
-    .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
-    .su-entity-tile__band > .su-entity-tile__chips
-  )
-  > :nth-last-child(4) {
-  order: 4;
+.su-chip-lane > :nth-last-child(4) {
+  --su-fill: calc(var(--su-lane-end, 0) + 4);
 }
 
-:is(
-    .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
-    .su-entity-tile__band > .su-entity-tile__chips
-  )
-  > :nth-last-child(5) {
-  order: 5;
+.su-chip-lane > :nth-last-child(5) {
+  --su-fill: calc(var(--su-lane-end, 0) + 5);
 }
 
-:is(
-    .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
-    .su-entity-tile__band > .su-entity-tile__chips
-  )
-  > :nth-last-child(6) {
-  order: 6;
+.su-chip-lane > :nth-last-child(6) {
+  --su-fill: calc(var(--su-lane-end, 0) + 6);
 }
 
-:is(
-    .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
-    .su-entity-tile__band > .su-entity-tile__chips
-  )
-  > :nth-last-child(7) {
-  order: 7;
+.su-chip-lane > :nth-last-child(7) {
+  --su-fill: calc(var(--su-lane-end, 0) + 7);
 }
 
-:is(
-    .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
-    .su-entity-tile__band > .su-entity-tile__chips
-  )
-  > :nth-last-child(8) {
-  order: 8;
+.su-chip-lane > :nth-last-child(8) {
+  --su-fill: calc(var(--su-lane-end, 0) + 8);
 }
 
-:is(
-    .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
-    .su-entity-tile__band > .su-entity-tile__chips
-  )
-  > :nth-last-child(9) {
-  order: 9;
+.su-chip-lane > :nth-last-child(9) {
+  --su-fill: calc(var(--su-lane-end, 0) + 9);
 }
 
-:is(
-    .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
-    .su-entity-tile__band > .su-entity-tile__chips
-  )
-  > :nth-last-child(10) {
-  order: 10;
+.su-chip-lane > :nth-last-child(10) {
+  --su-fill: calc(var(--su-lane-end, 0) + 10);
 }
 
-:is(
-    .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
-    .su-entity-tile__band > .su-entity-tile__chips
-  )
-  > :nth-last-child(11) {
-  order: 11;
+.su-chip-lane > :nth-last-child(11) {
+  --su-fill: calc(var(--su-lane-end, 0) + 11);
 }
 
-:is(
-    .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
-    .su-entity-tile__band > .su-entity-tile__chips
-  )
-  > :nth-last-child(12) {
-  order: 12;
+.su-chip-lane > :nth-last-child(12) {
+  --su-fill: calc(var(--su-lane-end, 0) + 12);
 }
 
-:is(
-    .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
-    .su-entity-tile__band > .su-entity-tile__chips
-  )
-  > :nth-last-child(13) {
-  order: 13;
+.su-chip-lane > :nth-last-child(13) {
+  --su-fill: calc(var(--su-lane-end, 0) + 13);
 }
 
-:is(
-    .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
-    .su-entity-tile__band > .su-entity-tile__chips
-  )
-  > :nth-last-child(14) {
-  order: 14;
+.su-chip-lane > :nth-last-child(14) {
+  --su-fill: calc(var(--su-lane-end, 0) + 14);
 }
 
-:is(
-    .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
-    .su-entity-tile__band > .su-entity-tile__chips
-  )
-  > :nth-last-child(15) {
-  order: 15;
+.su-chip-lane > :nth-last-child(15) {
+  --su-fill: calc(var(--su-lane-end, 0) + 15);
 }
 
-:is(
-    .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
-    .su-entity-tile__band > .su-entity-tile__chips
-  )
-  > :nth-last-child(16) {
-  order: 16;
+.su-chip-lane > :nth-last-child(16) {
+  --su-fill: calc(var(--su-lane-end, 0) + 16);
 }
 
-:is(
-    .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
-    .su-entity-tile__band > .su-entity-tile__chips
-  )
-  > :nth-last-child(17) {
-  order: 17;
+.su-chip-lane > :nth-last-child(17) {
+  --su-fill: calc(var(--su-lane-end, 0) + 17);
 }
 
-:is(
-    .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
-    .su-entity-tile__band > .su-entity-tile__chips
-  )
-  > :nth-last-child(18) {
-  order: 18;
+.su-chip-lane > :nth-last-child(18) {
+  --su-fill: calc(var(--su-lane-end, 0) + 18);
 }
 
-:is(
-    .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
-    .su-entity-tile__band > .su-entity-tile__chips
-  )
-  > :nth-last-child(19) {
-  order: 19;
+.su-chip-lane > :nth-last-child(19) {
+  --su-fill: calc(var(--su-lane-end, 0) + 19);
 }
 
-:is(
-    .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
-    .su-entity-tile__band > .su-entity-tile__chips
-  )
-  > :nth-last-child(20) {
-  order: 20;
+.su-chip-lane > :nth-last-child(20) {
+  --su-fill: calc(var(--su-lane-end, 0) + 20);
 }
 
-:is(
-    .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
-    .su-entity-tile__band > .su-entity-tile__chips
-  )
-  > :nth-last-child(21) {
-  order: 21;
+.su-chip-lane > :nth-last-child(21) {
+  --su-fill: calc(var(--su-lane-end, 0) + 21);
 }
 
-:is(
-    .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
-    .su-entity-tile__band > .su-entity-tile__chips
-  )
-  > :nth-last-child(22) {
-  order: 22;
+.su-chip-lane > :nth-last-child(22) {
+  --su-fill: calc(var(--su-lane-end, 0) + 22);
 }
 
-:is(
-    .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
-    .su-entity-tile__band > .su-entity-tile__chips
-  )
-  > :nth-last-child(23) {
-  order: 23;
+.su-chip-lane > :nth-last-child(23) {
+  --su-fill: calc(var(--su-lane-end, 0) + 23);
 }
 
-:is(
-    .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
-    .su-entity-tile__band > .su-entity-tile__chips
-  )
-  > :nth-last-child(24) {
-  order: 24;
+.su-chip-lane > :nth-last-child(24) {
+  --su-fill: calc(var(--su-lane-end, 0) + 24);
 }
 
 /* A label among the chips (a Row's labels lead its chip group; a Card's
@@ -576,7 +449,7 @@
 
 .su-entity-row__chip-group .su-ec-labels__stamps > .su-badge-stamp,
 .su-entity-row__heading > .su-chips .su-ec-labels__stamps > .su-badge-stamp,
-.su-entity-row__heading > .su-chips > .su-badge-stamp:not(.su-badge--dashed) {
+.su-entity-row__heading > .su-chips > .su-chip-lane > .su-badge-stamp:not(.su-badge--dashed) {
   background-color: var(--color-ink);
   border: var(--bw-hairline) solid var(--color-ink);
   box-shadow: none;
@@ -1246,9 +1119,36 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 
 /* A bottom-right fill's chips (`.su-entity-row__heading--cut > .su-chips`,
    `.su-entity-tile__chips`): flex items the gap apart, no margin of their
-   own. Last in the file, after the grid's `> *` rules it outranks. */
-.su-entity-row__heading--cut > .su-chips > *,
-.su-entity-tile__band > .su-entity-tile__chips > * {
+   own, each at its place from the strip's end (`--su-fill`). Last in the
+   file, after the grid's `> *` rules it outranks. */
+:is(
+    .su-entity-row__heading--cut > .su-chips,
+    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
+    .su-entity-tile__band > .su-entity-tile__chips
+  )
+  > .su-chip-lane
+  > * {
   display: inline-flex;
   margin: 0;
+  order: var(--su-fill);
+}
+
+/* On the strut's line the cost is centred like its neighbours, its own
+   height, never stretched to the strut's. */
+:is(
+    .su-entity-row__heading--cut > .su-chips,
+    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
+    .su-entity-tile__band > .su-entity-tile__chips
+  )
+  > .su-chip-lane
+  > .su-cost-edge,
+:is(
+    .su-entity-row__heading--cut > .su-chips,
+    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
+    .su-entity-tile__band > .su-entity-tile__chips
+  )
+  > .su-chip-lane
+  > .su-cost-edge
+  > .su-cost {
+  align-self: center;
 }

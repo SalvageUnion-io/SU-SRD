@@ -28,17 +28,22 @@ function oneLineWidth(el: HTMLElement): number {
   return measured
 }
 
+/** The groups a chip sits in, read through to their chips: a strip, its labels, a class lane. */
+const GROUPS = ['su-chips', 'su-entity-row__labels', 'su-chip-lane']
+
 /**
  * Each chip's width, in order: the chip group's own children, a nested
- * `.su-chips` or labels group read through to its chips.
+ * `.su-chips`, labels group or class lane (`Chips`) read through to its chips.
  */
 function chipWidths(chips: HTMLElement): number[] {
   const items: Element[] = []
-  for (const child of chips.children) {
-    if (child.classList.contains('su-chips') || child.classList.contains('su-entity-row__labels'))
-      items.push(...child.children)
-    else items.push(child)
+  const take = (parent: Element) => {
+    for (const child of parent.children) {
+      if (GROUPS.some((group) => child.classList.contains(group))) take(child)
+      else items.push(child)
+    }
   }
+  take(chips)
   return items.map((item) => item.getBoundingClientRect().width).filter((width) => width > 0)
 }
 

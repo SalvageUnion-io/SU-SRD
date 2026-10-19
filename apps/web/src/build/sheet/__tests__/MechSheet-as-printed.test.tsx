@@ -57,13 +57,16 @@ describe('MechSheet — patterns printed over their slots', () => {
     const systems = must(slabChip('Systems'))
     expect(systems.textContent).toBe('Slots14/13')
     expect(systems.classList.contains('su-stat-cell--critical')).toBe(false)
-    const noted = must(systems.parentElement)
+    // The summary strip (`Chips`) and its note, one count.
+    const noted = must(systems.closest('[data-chip-group]')?.parentElement)
     expect(noted.textContent).toBe('Slots14/13as printed')
     expect(noted.getAttribute('title')).toBe(
       'Manic Miner, Salvage Union Starter Set, Parts Catalogue p.11'
     )
     // Its modules fit, so they carry no note.
-    expect(must(slabChip('Modules')).parentElement?.textContent).toBe('Slots2/2')
+    expect(
+      must(slabChip('Modules')).closest('[data-chip-group]')?.parentElement?.textContent
+    ).toBe('Slots2/2')
   })
 
   test('a loadout past the printed one is a plain over-slot count', () => {
