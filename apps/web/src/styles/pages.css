@@ -673,37 +673,6 @@ a.su-home__discord:hover {
   letter-spacing: var(--tracking-caps-tight);
 }
 
-.su-rail__token {
-  align-items: center;
-  background-color: var(--color-paper);
-  border: var(--bw-chrome) solid var(--color-ink);
-  border-radius: var(--radius-card);
-  color: var(--color-ink);
-  cursor: pointer;
-  display: inline-flex;
-  font-size: var(--text-caption);
-  gap: var(--space-6);
-  min-height: var(--size-compact);
-  padding: 0 var(--space-6) 0 var(--space-10);
-}
-
-.su-rail__token:hover {
-  background-color: var(--color-band-cream);
-}
-
-.su-rail__clear {
-  background: none;
-  border: 0;
-  color: var(--color-ink);
-  cursor: pointer;
-  font: inherit;
-  font-weight: var(--font-weight-semibold);
-  min-height: var(--size-compact);
-  padding: 0 var(--space-2);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
 /* Phone: search takes the row, then Filters and Catalog | Tree; the facets open beneath. */
 @media not (width >= 40rem) {
   .su-rail .su-rail__search {

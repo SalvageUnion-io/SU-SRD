@@ -92,7 +92,7 @@
  *   (`BUTTON_RECIPE_HOMES`: `Button`, `Toggle`, `HeaderMenu`'s trigger).
  * - `raw-button` (a ratchet, burning to zero): a JSX `<button>` only in an
  *   atom. The ones left draw a look no Button Size has yet (a tag, a step
- *   pill, a rail token, the condition glyph); each goes when its atom does.
+ *   pill, the condition glyph); each goes when its atom does.
  *
  * ## One section, the SlabSection (hard rule R1, ruleset §6.4)
  *

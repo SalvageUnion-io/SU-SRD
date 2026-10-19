@@ -9,7 +9,6 @@ import {
   getTechLevel,
   getTree,
 } from 'salvageunion-reference'
-import { cn } from '../../lib/cn'
 import { itemHref, srdHrefFor } from '../../lib/entityHref'
 import type { GroupBy, ListingShape, TechLevel } from '../../lib/listingGroups'
 import {
@@ -30,7 +29,6 @@ import type { ListingView } from '../../lib/listingView'
 import { TREE_LISTINGS, useListingView } from '../../lib/listingView'
 import type { SchemaList } from '../../lib/useGameData'
 import { preloadGameData } from '../../lib/useGameData'
-import { capsLabel } from '../atoms/capsLabel'
 import { GameDataGate } from '../GameDataGate'
 import {
   Button,
@@ -47,9 +45,6 @@ import { EntityListingRow } from './EntityListingRow'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 import type { RailActions } from './ListingRail'
 import { ListingRail, shortSource, tlButtonLabel } from './ListingRail'
-
-/** An active filter's token: a caps label on its frame. */
-const RAIL_TOKEN = cn('su-rail__token su-focus-ring', capsLabel())
 
 /** The schemas whose entity IS a tech level: its name already says the level. */
 const TECH_LEVEL_SCHEMAS: ReadonlySet<string> = new Set(['tech-levels', 'crawler-tech-levels'])
@@ -393,9 +388,9 @@ function SchemaViewer({
                   onRemove={() => setNameFilter('')}
                 />
               )}
-              <button type="button" className="su-rail__clear su-focus-ring" onClick={clearFilters}>
+              <Button variant="ghost" size="compact" onClick={clearFilters}>
                 Clear all
-              </button>
+              </Button>
             </output>
           )
         }
@@ -533,7 +528,7 @@ function ListingSkeleton({
   )
 }
 
-/** One active filter, as a token that removes it. */
+/** One active filter, as a Compact Button that removes it (its ✕ the line's Size). */
 function FilterToken({
   label,
   name,
@@ -544,9 +539,9 @@ function FilterToken({
   onRemove: () => void
 }) {
   return (
-    <button type="button" className={RAIL_TOKEN} aria-label={`Remove ${name}`} onClick={onRemove}>
+    <Button size="compact" aria-label={`Remove ${name}`} onClick={onRemove}>
       {label}
-      <X aria-hidden="true" size={tokens.iconSize.mini} />
-    </button>
+      <X aria-hidden="true" size={tokens.iconSize.compact} />
+    </Button>
   )
 }
