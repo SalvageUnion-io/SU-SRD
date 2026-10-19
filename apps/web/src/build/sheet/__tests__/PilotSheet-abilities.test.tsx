@@ -200,8 +200,63 @@ describe('PilotSheet — abilities readOnly (Slice D)', () => {
   })
 })
 
+/** Open the folded Generic Abilities section (`expandCards` may have); returns it. */
+async function openGeneric(): Promise<HTMLElement> {
+  const fold = screen.getByRole('button', { name: /^(Expand|Collapse) Generic Abilities$/ })
+  if (fold.getAttribute('aria-expanded') !== 'true') {
+    await act(async () => {
+      fireEvent.click(fold)
+    })
+  }
+  const section = fold.closest('section')
+  if (!section) throw new Error('no Generic Abilities section')
+  return section
+}
+
+/** A section's fold, by its title: open or not, and whether its body shows. */
+const foldOf = (title: string) => {
+  const button = screen.getByRole('button', { name: new RegExp(`^(Collapse|Expand) ${title}$`) })
+  const section = button.closest('section')
+  const body = section?.querySelector<HTMLElement>(':scope > .su-slab-section__body')
+  return {
+    section,
+    open: button.getAttribute('aria-expanded') === 'true',
+    shown: body !== null && body !== undefined && !body.hidden,
+    masonry: body?.querySelector(':scope > .su-masonry') ?? null,
+  }
+}
+
+describe('PilotSheet — the abilities are two folding masonry grids', () => {
+  for (const readOnly of [false, true]) {
+    test(`tree abilities on top and open, Generic abilities under them and folded (${readOnly ? 'Read' : 'Edit'})`, () => {
+      const pilot = makePilot({ abilities: ['mech-acquisition', 'tip-top-shape'] })
+      render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} readOnly={readOnly} />)
+
+      const trees = foldOf('Abilities')
+      const generic = foldOf('Generic Abilities')
+      // Two sections, in this order.
+      expect(trees.section).toBeTruthy()
+      expect(generic.section).toBeTruthy()
+      expect(
+        (trees.section as HTMLElement).compareDocumentPosition(generic.section as HTMLElement) &
+          Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBeTruthy()
+      // Their default folds: the trees open, the Generic tree shut.
+      expect(trees.open).toBe(true)
+      expect(trees.shown).toBe(true)
+      expect(generic.open).toBe(false)
+      expect(generic.shown).toBe(false)
+      // Each body is a masonry grid of the ability components.
+      expect(
+        trees.masonry?.querySelector('section[aria-label="Mechanical Knowledge Tree"]')
+      ).toBeTruthy()
+      expect(generic.masonry?.querySelector('.su-entity-token')).toBeTruthy()
+    })
+  }
+})
+
 describe('PilotSheet — the Generic tree is intrinsic', () => {
-  test('a pilot with no stored abilities still shows the Generic Tokens', () => {
+  test('a pilot with no stored abilities still shows the Generic Tokens', async () => {
     const pilot = makePilot({ abilities: [] })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
     expandCards()
@@ -209,7 +264,7 @@ describe('PilotSheet — the Generic tree is intrinsic', () => {
     // Never stored, never picked: every pilot carries the whole tree (board 10
     // prints Bonesaw's Generic cards beside his one stored ability), in its own
     // section under the trees the pilot chose, which say none are learned.
-    const generic = screen.getByRole('list', { name: 'Generic Abilities' })
+    const generic = await openGeneric()
     const names = Array.from(generic.querySelectorAll('.su-entity-token__name')).map(
       (n) => n.textContent ?? ''
     )
@@ -221,10 +276,11 @@ describe('PilotSheet — the Generic tree is intrinsic', () => {
     expect(screen.getByRole('button', { name: 'More for Repair' })).toBeTruthy()
   })
 
-  test('a stored ability prints beside the Generic tree, not instead of it', () => {
+  test('a stored ability prints beside the Generic tree, not instead of it', async () => {
     const pilot = makePilot()
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
     expandCards()
+    await openGeneric()
     expect(screen.getByRole('button', { name: 'More for Repair' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'More for Talk Shop' })).toBeTruthy()
   })
@@ -269,9 +325,16 @@ describe('PilotSheet — the trees the pilot trained in, on their tracks', () =>
     })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
 
-    const trees = Array.from(document.querySelectorAll('section[aria-label$=" Tree"]')).map(
-      (section) => section.getAttribute('aria-label')
+    // Read row by row across the masonry's columns: the grid deals its trees
+    // round-robin, so its reading order is the trees' order.
+    const columns = Array.from(document.querySelectorAll('.su-masonry-column'))
+    const rows = Math.max(...columns.map((column) => column.children.length))
+    const trees = Array.from({ length: rows }, (_, row) =>
+      columns.map((column) => column.children[row])
     )
+      .flat()
+      .filter((cell) => cell?.matches('section[aria-label$=" Tree"]'))
+      .map((section) => section?.getAttribute('aria-label'))
     expect(trees).toEqual([
       'Mechanical Knowledge Tree',
       'Mech-Tech Tree',

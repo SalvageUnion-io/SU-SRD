@@ -6,8 +6,9 @@
  *   - the opening, `SheetHero`: the Identity card (the portrait, else the
  *     class's art, beside fields typeset in Read) beside the Vitals card
  *     (HP/AP gauges named from the one vitals map, TP and Conditions);
- *   - Abilities — each tree the pilot trained in, its taken Abilities as Rows
- *     on the SRD's track — then the Generic tree as Tokens; each with Spend AP
+ *   - Abilities, two folding masonry grids (`PilotSheetAbilities`): each
+ *     tree the pilot trained in, its taken Abilities as Rows on the SRD's
+ *     track, open; then the Generic tree as Tokens, folded; each with Spend AP
  *     (fixed costs only) and a used/recharge toggle on its line in Edit;
  *   - ability-granted Partners, then Assigned Units, the last region;
  *   - and in the permanent right sidebar (`SheetColumns`, ruleset §1.2),
