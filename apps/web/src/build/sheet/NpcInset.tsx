@@ -83,6 +83,8 @@ export type NpcInsetProps = {
   onMottoChange?: (next: string) => void
   onDetailChange?: (next: string) => void
   onFactsChange?: (next: string[]) => void
+  /** The host's controls, the head's last slot (C8, hard rule R6): a linked crew's Open. */
+  controls?: ReactNode
 }
 
 /**
@@ -298,6 +300,7 @@ export function NpcInset(props: NpcInsetProps) {
             />
           ) : undefined
         }
+        controls={props.controls}
         bodyStyle={BODY}
       >
         <NpcLines {...props} />

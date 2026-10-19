@@ -107,11 +107,9 @@ describe('the template step', () => {
     expect(screen.getByLabelText(/Hit points/)).toHaveProperty('value', '9')
     await click('Next · Actions & traits →')
     expect(
-      screen.getByRole('checkbox', { name: 'Carry Green Laser Rifle (Veteran)' })
-    ).toHaveProperty('checked', true)
+      screen.getByRole('button', { name: 'Carry Green Laser Rifle (Veteran)' }).getAttribute('aria-pressed')).toBe('true')
     expect(
-      screen.getByRole('checkbox', { name: 'Carry Portable Comms Unit (NPC)' })
-    ).toHaveProperty('checked', true)
+      screen.getByRole('button', { name: 'Carry Portable Comms Unit (NPC)' }).getAttribute('aria-pressed')).toBe('true')
   })
 })
 
@@ -127,7 +125,7 @@ describe('adding a trait', () => {
       })
     })
     await click(/^Add Vulnerable/)
-    expect(screen.getByRole('checkbox', { name: 'Carry Vulnerable' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Carry Vulnerable' })).toBeTruthy()
   })
 })
 
@@ -185,7 +183,7 @@ describe('saving', () => {
     await click('Next · Stats →')
     await click('Next · Actions & traits →')
     await act(async () => {
-      fireEvent.click(screen.getByRole('checkbox', { name: 'Carry Portable Comms Unit (NPC)' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Carry Portable Comms Unit (NPC)' }))
     })
     await click('Next · Identity →')
     expect(screen.getByRole('button', { name: 'Next · Review →' })).toHaveProperty('disabled', true)

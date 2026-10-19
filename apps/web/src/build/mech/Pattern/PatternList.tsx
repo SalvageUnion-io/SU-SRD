@@ -2,7 +2,8 @@
  * PatternList — lists all saved MechPatterns via the patternStore.
  *
  * Each pattern is a user-made Row (`<Entity form="row">` (dashed, stamped,
- * credited: ruleset §3.9) linking to its page, with a build button beneath.
+ * credited: ruleset §3.9) linking to its page, its "Build With This" the
+ * Row's last chip (C8, hard rule R6).
  *
  * Data fetching: subscribes to usePatternStore — patterns get
  * the same lazy hydration as every other collection.
@@ -18,7 +19,6 @@ import { useConnection } from '../../../lib/connection/connectionContext'
 import { asReferencePattern, patternChassis, patternHref } from '../../../lib/patterns/patterns'
 import { usePatternStore } from '../../../stores/patternStore'
 import { EmptyState, Entity, Pending, quotePatternName, Text, tokens } from '../../../components/index'
-import { AppLink } from '../../../components/shared/AppLink'
 import { InstantiateFromPattern } from './InstantiateFromPattern'
 
 const LIST = {
@@ -35,8 +35,6 @@ const ROW = {
   flexDirection: 'column',
   gap: tokens.space[8],
 } satisfies CSSProperties
-
-const LINK = { color: 'inherit', display: 'block', textDecoration: 'none' } satisfies CSSProperties
 
 type PatternListProps = {
   /** Called with the new mech id when a pattern is instantiated. */
@@ -78,26 +76,33 @@ export function PatternList({ onInstantiated }: PatternListProps) {
         return (
           <li key={pattern.id} style={ROW} data-testid="pattern-list-item">
             {chassis ? (
-              // The row is its page: where the maker sees it as others will, and shares it.
-              <AppLink
-                href={patternHref(pattern.id)}
-                style={LINK}
-                aria-label={`View pattern ${pattern.name}`}
-              >
+              <>
+                {/* The row is its page: where the maker sees it as others
+                    will, and shares it. Build With This is its last chip. */}
                 <Entity
                   form="row"
                   entity={chassis}
                   pattern={asReferencePattern(pattern)}
                   instance={{ title: quotePatternName(pattern.name), userMade: true }}
+                  mode={{
+                    kind: 'link',
+                    href: patternHref(pattern.id),
+                    attrs: { 'aria-label': `View pattern ${pattern.name}` },
+                  }}
                   lead
+                  controls={
+                    <InstantiateFromPattern pattern={pattern} onSuccess={handleInstantiated} />
+                  }
                 />
                 {/* A header-only row has no footer, so the credit sits beneath it. */}
                 <Text variant="hint">Made by {madeBy}</Text>
-              </AppLink>
+              </>
             ) : (
-              <Text variant="hint">{pattern.name}: its chassis is not in the reference.</Text>
+              <>
+                <Text variant="hint">{pattern.name}: its chassis is not in the reference.</Text>
+                <InstantiateFromPattern pattern={pattern} onSuccess={handleInstantiated} />
+              </>
             )}
-            <InstantiateFromPattern pattern={pattern} onSuccess={handleInstantiated} />
           </li>
         )
       })}

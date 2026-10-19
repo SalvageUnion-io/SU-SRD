@@ -356,104 +356,107 @@
    `--su-lane-end` counts the chips after it, so each chip knows its place
    from the strip's end (`--su-fill`, the cost's 1): a strip that fills from
    its bottom-right corner (`row-reverse`, `wrap-reverse`) orders by it, so its
-   lines still read top to bottom in the class order while the source keeps it. */
+   lines still read top to bottom in the class order while the source keeps it.
+   The count skips what an open menu adds beside its trigger (Base UI's focus
+   guards and portal owner, both empty), so opening a chip's menu never moves
+   the chip (C3). */
 .su-chip-lane {
   display: contents;
 }
 
-.su-chip-lane > :nth-last-child(1) {
+.su-chip-lane > :nth-last-child(1 of :not([data-base-ui-focus-guard], [aria-owns])) {
   --su-fill: calc(var(--su-lane-end, 0) + 1);
 }
 
-.su-chip-lane > :nth-last-child(2) {
+.su-chip-lane > :nth-last-child(2 of :not([data-base-ui-focus-guard], [aria-owns])) {
   --su-fill: calc(var(--su-lane-end, 0) + 2);
 }
 
-.su-chip-lane > :nth-last-child(3) {
+.su-chip-lane > :nth-last-child(3 of :not([data-base-ui-focus-guard], [aria-owns])) {
   --su-fill: calc(var(--su-lane-end, 0) + 3);
 }
 
-.su-chip-lane > :nth-last-child(4) {
+.su-chip-lane > :nth-last-child(4 of :not([data-base-ui-focus-guard], [aria-owns])) {
   --su-fill: calc(var(--su-lane-end, 0) + 4);
 }
 
-.su-chip-lane > :nth-last-child(5) {
+.su-chip-lane > :nth-last-child(5 of :not([data-base-ui-focus-guard], [aria-owns])) {
   --su-fill: calc(var(--su-lane-end, 0) + 5);
 }
 
-.su-chip-lane > :nth-last-child(6) {
+.su-chip-lane > :nth-last-child(6 of :not([data-base-ui-focus-guard], [aria-owns])) {
   --su-fill: calc(var(--su-lane-end, 0) + 6);
 }
 
-.su-chip-lane > :nth-last-child(7) {
+.su-chip-lane > :nth-last-child(7 of :not([data-base-ui-focus-guard], [aria-owns])) {
   --su-fill: calc(var(--su-lane-end, 0) + 7);
 }
 
-.su-chip-lane > :nth-last-child(8) {
+.su-chip-lane > :nth-last-child(8 of :not([data-base-ui-focus-guard], [aria-owns])) {
   --su-fill: calc(var(--su-lane-end, 0) + 8);
 }
 
-.su-chip-lane > :nth-last-child(9) {
+.su-chip-lane > :nth-last-child(9 of :not([data-base-ui-focus-guard], [aria-owns])) {
   --su-fill: calc(var(--su-lane-end, 0) + 9);
 }
 
-.su-chip-lane > :nth-last-child(10) {
+.su-chip-lane > :nth-last-child(10 of :not([data-base-ui-focus-guard], [aria-owns])) {
   --su-fill: calc(var(--su-lane-end, 0) + 10);
 }
 
-.su-chip-lane > :nth-last-child(11) {
+.su-chip-lane > :nth-last-child(11 of :not([data-base-ui-focus-guard], [aria-owns])) {
   --su-fill: calc(var(--su-lane-end, 0) + 11);
 }
 
-.su-chip-lane > :nth-last-child(12) {
+.su-chip-lane > :nth-last-child(12 of :not([data-base-ui-focus-guard], [aria-owns])) {
   --su-fill: calc(var(--su-lane-end, 0) + 12);
 }
 
-.su-chip-lane > :nth-last-child(13) {
+.su-chip-lane > :nth-last-child(13 of :not([data-base-ui-focus-guard], [aria-owns])) {
   --su-fill: calc(var(--su-lane-end, 0) + 13);
 }
 
-.su-chip-lane > :nth-last-child(14) {
+.su-chip-lane > :nth-last-child(14 of :not([data-base-ui-focus-guard], [aria-owns])) {
   --su-fill: calc(var(--su-lane-end, 0) + 14);
 }
 
-.su-chip-lane > :nth-last-child(15) {
+.su-chip-lane > :nth-last-child(15 of :not([data-base-ui-focus-guard], [aria-owns])) {
   --su-fill: calc(var(--su-lane-end, 0) + 15);
 }
 
-.su-chip-lane > :nth-last-child(16) {
+.su-chip-lane > :nth-last-child(16 of :not([data-base-ui-focus-guard], [aria-owns])) {
   --su-fill: calc(var(--su-lane-end, 0) + 16);
 }
 
-.su-chip-lane > :nth-last-child(17) {
+.su-chip-lane > :nth-last-child(17 of :not([data-base-ui-focus-guard], [aria-owns])) {
   --su-fill: calc(var(--su-lane-end, 0) + 17);
 }
 
-.su-chip-lane > :nth-last-child(18) {
+.su-chip-lane > :nth-last-child(18 of :not([data-base-ui-focus-guard], [aria-owns])) {
   --su-fill: calc(var(--su-lane-end, 0) + 18);
 }
 
-.su-chip-lane > :nth-last-child(19) {
+.su-chip-lane > :nth-last-child(19 of :not([data-base-ui-focus-guard], [aria-owns])) {
   --su-fill: calc(var(--su-lane-end, 0) + 19);
 }
 
-.su-chip-lane > :nth-last-child(20) {
+.su-chip-lane > :nth-last-child(20 of :not([data-base-ui-focus-guard], [aria-owns])) {
   --su-fill: calc(var(--su-lane-end, 0) + 20);
 }
 
-.su-chip-lane > :nth-last-child(21) {
+.su-chip-lane > :nth-last-child(21 of :not([data-base-ui-focus-guard], [aria-owns])) {
   --su-fill: calc(var(--su-lane-end, 0) + 21);
 }
 
-.su-chip-lane > :nth-last-child(22) {
+.su-chip-lane > :nth-last-child(22 of :not([data-base-ui-focus-guard], [aria-owns])) {
   --su-fill: calc(var(--su-lane-end, 0) + 22);
 }
 
-.su-chip-lane > :nth-last-child(23) {
+.su-chip-lane > :nth-last-child(23 of :not([data-base-ui-focus-guard], [aria-owns])) {
   --su-fill: calc(var(--su-lane-end, 0) + 23);
 }
 
-.su-chip-lane > :nth-last-child(24) {
+.su-chip-lane > :nth-last-child(24 of :not([data-base-ui-focus-guard], [aria-owns])) {
   --su-fill: calc(var(--su-lane-end, 0) + 24);
 }
 
@@ -1082,8 +1085,7 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
    dashed when player-made, its name on the cut-out (below), the Token's full
    width. Always one row (E18): short of room the name ends in "…", and the
    chips keep their whole width (below), held at its right end by the
-   cut-out's margin. A host that lays a control over the pill's right end
-   (the searcher rail's ✕) leaves it room through `--su-token-end`. */
+   cut-out's margin. */
 .su-entity-token__pill {
   align-items: stretch;
   align-self: flex-start;
@@ -1099,7 +1101,7 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   line-height: 1.2;
   max-width: 100%;
   overflow: hidden;
-  padding: var(--space-2) var(--su-token-end, var(--space-6)) 0 var(--space-4);
+  padding: var(--space-2) var(--space-6) 0 var(--space-4);
   position: relative;
   white-space: nowrap;
 }

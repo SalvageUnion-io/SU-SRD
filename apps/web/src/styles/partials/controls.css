@@ -230,28 +230,6 @@
   height: var(--su-searcher-line);
 }
 
-/* The sidebar's ✕ sits inside its Token, at the far right: laid over the
-   pill (a button cannot nest in the Token's link), which leaves it room
-   (the pill's `--su-token-end`). */
-.su-searcher__rail-entry {
-  position: relative;
-}
-
-.su-searcher__rail-entry[data-removable] {
-  --su-token-end: calc(var(--su-searcher-line) + var(--space-2));
-}
-
-.su-btn.su-searcher__remove {
-  position: absolute;
-  top: 50%;
-  right: 4px;
-  transform: translateY(-50%);
-  width: 19px;
-  height: 19px;
-  padding: 0;
-  justify-content: center;
-}
-
 .su-searcher__toolbar {
   padding: var(--space-10) var(--space-16);
   border-bottom: var(--bw-hairline) solid var(--color-ink-20);

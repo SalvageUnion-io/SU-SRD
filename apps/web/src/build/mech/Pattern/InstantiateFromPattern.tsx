@@ -13,6 +13,9 @@
  * `legalStarting` data tag (the flag is never computed — project data
  * convention), so the confirm dialog names the freeform nature before
  * stamping the mech.
+ *
+ * Drawn as a Mini action chip in the pattern Row's last slot (C8, hard rule
+ * R6); a failure is the act's toast, never a line under the Row.
  */
 
 import type { MechPattern } from 'game-domain/schemas/pattern'
@@ -20,7 +23,7 @@ import { useState } from 'react'
 import { useServerAction } from '../../../lib/connection/useServerAction'
 import { mechFromPattern } from '../../../lib/patterns/patterns'
 import { useEntityStore } from '../../../stores/entityStore'
-import { Button, ConfirmDialog, FieldError, Stack } from '../../../components/index'
+import { Button, ConfirmDialog } from '../../../components/index'
 
 type InstantiateFromPatternProps = {
   pattern: MechPattern
@@ -32,9 +35,12 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
   const [confirming, setConfirming] = useState(false)
   const build = useServerAction(
     () => useEntityStore.getState().create('mech', mechFromPattern(pattern)),
-    { failure: 'The mech could not be built from this pattern. Try again.' }
+    {
+      failure: 'The mech could not be built from this pattern. Try again.',
+      toastId: `build-from-pattern-${pattern.id}`,
+    }
   )
-  const { pending: isInstantiating, error } = build
+  const { pending: isInstantiating } = build
 
   async function handleInstantiate() {
     const result = await build.run()
@@ -42,10 +48,10 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
   }
 
   return (
-    <Stack gap={4}>
+    <>
       <Button
         type="button"
-        size="compact"
+        size="mini"
         onClick={() => setConfirming(true)}
         disabled={isInstantiating}
         // "Build With This", as every build action reads (owner's call,
@@ -62,7 +68,6 @@ export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPa
         confirmLabel="Build"
         onConfirm={() => void handleInstantiate()}
       />
-      {error && <FieldError>{error}</FieldError>}
-    </Stack>
+    </>
   )
 }

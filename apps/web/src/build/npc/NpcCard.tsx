@@ -35,9 +35,11 @@ type NpcCardProps = {
   size?: CardProps['size']
   /** Overrides the derived kicker ("Crawler crew · Med Bay" for a slot draft). */
   kicker?: string
+  /** The host's controls, the card's control slot (C8, hard rule R6): Open, Unassign. */
+  controls?: CardProps['controls']
 }
 
-export function NpcCard({ npc, madeBy, size = 'full', kicker }: NpcCardProps) {
+export function NpcCard({ npc, madeBy, size = 'full', kicker, controls }: NpcCardProps) {
   const line = npcIdentityLine(npc)
   return (
     <EntityExternalLinkProvider value={undefined}>
@@ -48,6 +50,7 @@ export function NpcCard({ npc, madeBy, size = 'full', kicker }: NpcCardProps) {
         madeBy={madeBy}
         kicker={kicker ?? npcKicker(npc)}
         subtitleExtra={line ? <p style={IDENTITY_LINE}>{line}</p> : undefined}
+        {...(controls ? { controls } : {})}
       />
     </EntityExternalLinkProvider>
   )

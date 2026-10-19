@@ -32,8 +32,8 @@ test('design an NPC from a template, crew a bay with it, and give the bay back',
   await expect(page.getByLabel(/Hit points/)).toHaveValue('9')
   await page.getByRole('button', { name: 'Next · Actions & traits →' }).click()
   await expect(
-    page.getByRole('checkbox', { name: 'Carry Green Laser Rifle (Veteran)' })
-  ).toBeChecked()
+    page.getByRole('button', { name: 'Carry Green Laser Rifle (Veteran)' })
+  ).toHaveAttribute('aria-pressed', 'true')
   await page.getByRole('button', { name: 'Next · Identity →' }).click()
   await page.getByLabel(/^Name/).fill('Sergeant Kessler')
   await page.getByRole('button', { name: 'Next · Review →' }).click()

@@ -1,6 +1,7 @@
 /**
- * "Copy to…" on a Starter Set row or sheet: the player picks where the copy
- * goes — Shelves, or one of their Games — and confirms.
+ * "Copy to…" on a Starter Set Row: a Mini action chip in the Row's last slot
+ * (C8, hard rule R6) that opens a menu (`HeaderMenu`) of where the copy may
+ * go — the Hangar, or one of the player's Games — and confirms.
  *
  * The destinations are the ones a build of that kind may be **moved** to
  * (`moveDestinations`, which mirrors the server's ADR-037 rules): a pilot or
@@ -14,18 +15,17 @@
 
 import { SHELF } from 'game-domain/container'
 import { useQuery } from 'convex/react'
-import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { moveDestinations } from '../../lib/games/gameRoster'
 import { copyStarter } from '../../lib/starterSet/copyStarter'
 import type { StarterKind } from '../../lib/starterSet/starterTemplates'
 import { STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
-import { Select, toast, tokens } from '../../components/index'
+import { HeaderMenu, toast } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
 import { serializeContainer } from '../entityContainer/ContainerPicker'
 
-type CopyStarterSelectProps = {
+type CopyStarterMenuProps = {
   kind: StarterKind
   templateId: string
   name: string
@@ -33,26 +33,13 @@ type CopyStarterSelectProps = {
   confirm: Confirm
 }
 
-/** The placeholder's value: "no destination chosen". Never a real container. */
-const NONE = ''
+type Destination = ReturnType<typeof moveDestinations>[number]
 
-// Matches MoveToGameSelect: the row's controls are `mini`, so the select takes
-// their height and type rather than the 44px form-field default.
-const SELECT = {
-  fontSize: tokens.fontSize.xs,
-  minHeight: 0,
-  padding: `${tokens.space[4]} ${tokens.space[8]}`,
-  width: 'auto',
-} satisfies CSSProperties
-
-function ConnectedCopyStarterSelect({ kind, templateId, name, confirm }: CopyStarterSelectProps) {
+function ConnectedCopyStarterMenu({ kind, templateId, name, confirm }: CopyStarterMenuProps) {
   const games = useQuery(api.games.listMine)
   const destinations = moveDestinations({ kind, current: SHELF, games: games ?? [] })
 
-  function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const target = destinations.find((d) => serializeContainer(d.container) === e.target.value)
-    if (target === undefined) return
-    // Read now: the event is long gone by the time the confirm is answered.
+  function copyTo(target: Destination) {
     const to = target.container
     confirm({
       title: `Copy ${name} to ${target.label}?`,
@@ -72,27 +59,24 @@ function ConnectedCopyStarterSelect({ kind, templateId, name, confirm }: CopySta
   }
 
   return (
-    <Select
-      chevron
-      value={NONE}
-      onChange={handleChange}
-      aria-label={`Copy ${name} to…`}
-      style={SELECT}
-    >
-      <option value={NONE} disabled>
-        Copy to…
-      </option>
-      {destinations.map((d) => (
-        <option key={serializeContainer(d.container)} value={serializeContainer(d.container)}>
-          {d.label}
-        </option>
-      ))}
-    </Select>
+    <HeaderMenu
+      variant="button"
+      size="mini"
+      trigger="Copy to…"
+      label={`Copy ${name} to…`}
+      sections={[
+        destinations.map((d) => ({
+          id: serializeContainer(d.container),
+          label: d.label,
+          onSelect: () => copyTo(d),
+        })),
+      ]}
+    />
   )
 }
 
-export function CopyStarterSelect(props: CopyStarterSelectProps) {
+export function CopyStarterMenu(props: CopyStarterMenuProps) {
   const { mode } = useConnection()
   if (mode !== 'connected') return null
-  return <ConnectedCopyStarterSelect {...props} />
+  return <ConnectedCopyStarterMenu {...props} />
 }

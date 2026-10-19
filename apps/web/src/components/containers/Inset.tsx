@@ -17,6 +17,8 @@ type InsetProps = {
   marks?: ReactNode
   /** Its live reading (a crew member's `HP | 4/4`, with steppers in Edit), after them (C8). */
   state?: ReactNode
+  /** The host's controls, the chip group's last slot (C8, hard rule R6): a linked crew's Open. */
+  controls?: ReactNode
   /** Inline style on the paper body (e.g. a grid of id lines). */
   bodyStyle?: CSSProperties
   children?: ReactNode
@@ -40,6 +42,7 @@ export function Inset({
   tone,
   marks,
   state,
+  controls,
   bodyStyle,
   children,
 }: InsetProps) {
@@ -56,6 +59,7 @@ export function Inset({
           <Chips chips={NO_CHIPS} size="compact" marks={marks} state={state} />
         ) : undefined
       }
+      controls={controls}
       body="flush"
     >
       {hasBody && <RowBody style={bodyStyle}>{children}</RowBody>}

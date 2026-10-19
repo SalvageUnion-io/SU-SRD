@@ -95,19 +95,36 @@ describe('Copy to… on the Starter Set page', () => {
     )
   }
 
-  test('offers Hangar and every Game the player is in', () => {
+  async function openCopyTo(name: string): Promise<HTMLElement> {
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: `Copy ${name} to…` }))
+    })
+    return screen.getByRole('menu')
+  }
+
+  test('“Copy to…” is a chip in the Row’s chip group, outside the sheet’s link', () => {
     renderPage()
-    const options = within(screen.getByLabelText('Copy Bonesaw to…'))
-      .getAllByRole('option')
+    const trigger = screen.getByRole('button', { name: 'Copy Bonesaw to…' })
+    expect(trigger.closest('[data-chip-group]')).not.toBeNull()
+    const sheet = screen.getByRole('link', { name: 'Read Bonesaw' })
+    expect(sheet.contains(trigger)).toBe(false)
+  })
+
+  test('offers Hangar and every Game the player is in', async () => {
+    renderPage()
+    const menu = await openCopyTo('Bonesaw')
+    const options = within(menu)
+      .getAllByRole('menuitem')
       .map((o) => o.textContent)
-    expect(options).toEqual(['Copy to…', 'Hangar', 'The Long Haul'])
+    expect(options).toEqual(['Hangar', 'The Long Haul'])
   })
 
   test('asks first, then makes Bonesaw a build of the player’s own in the chosen Game', async () => {
     renderPage()
 
+    const menu = await openCopyTo('Bonesaw')
     await act(async () => {
-      fireEvent.change(screen.getByLabelText('Copy Bonesaw to…'), { target: { value: 'game:g1' } })
+      fireEvent.click(within(menu).getByRole('menuitem', { name: 'The Long Haul' }))
     })
     const dialog = screen.getByRole('alertdialog')
     expect(dialog.textContent).toContain('Copy Bonesaw to The Long Haul?')

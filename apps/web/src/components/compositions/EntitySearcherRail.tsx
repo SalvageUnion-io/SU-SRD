@@ -184,44 +184,43 @@ export function SelectionRail({
   const listNode = (
     <div id={list.panelId} hidden={!expanded} className="su-searcher__rail-list" style={LIST_STYLE}>
       {entries.map((entry, position) => (
-        // The ✕ rides inside the Token's right end, laid over it (a button
-        // cannot nest in the Token's own); the Tech level is the list's to say.
+        // The ✕ is the Token's last chip (C8, hard rule R6): a Token with
+        // controls is a `div` whose name is the link, so no button nests in
+        // it. The Tech level is the list's to say.
         <div
           key={`${entry.ref}#${entry.copy}`}
           data-testid="rail-entry"
-          className="su-searcher__rail-entry"
-          data-removable={removable || undefined}
+          className="su-entity-token-line"
           style={ENTRY_STYLE}
         >
-          <div className="su-entity-token-line" style={ENTRY_TOKEN_STYLE}>
-            <Entity
-              form="token"
-              context="loadout"
-              entity={entry.entity}
-              omit={RAIL_OMIT}
-              mode={{ kind: 'link', onOpen: () => onFocus(entry.ref) }}
-            />
-          </div>
-          {removable && (
-            <Button
-              ref={(el) => {
-                removeRefs.current[position] = el
-              }}
-              size="mini"
-              className="su-searcher__remove"
-              onClick={() => remove(entry, position)}
-              // Duplicates are legal in count mode, so each copy's button
-              // names its copy — three identical "Remove Ion Cannon" buttons
-              // are indistinguishable to a screen-reader user.
-              aria-label={
-                entry.total > 1
-                  ? `Remove ${entry.entity.name}, copy ${entry.copy} of ${entry.total}`
-                  : `Remove ${entry.entity.name}`
-              }
-            >
-              <X aria-hidden="true" size={iconSize.mini} />
-            </Button>
-          )}
+          <Entity
+            form="token"
+            context="loadout"
+            entity={entry.entity}
+            omit={RAIL_OMIT}
+            mode={{ kind: 'link', onOpen: () => onFocus(entry.ref) }}
+            controls={
+              removable ? (
+                <Button
+                  ref={(el) => {
+                    removeRefs.current[position] = el
+                  }}
+                  size="mini"
+                  onClick={() => remove(entry, position)}
+                  // Duplicates are legal in count mode, so each copy's button
+                  // names its copy — three identical "Remove Ion Cannon" buttons
+                  // are indistinguishable to a screen-reader user.
+                  aria-label={
+                    entry.total > 1
+                      ? `Remove ${entry.entity.name}, copy ${entry.copy} of ${entry.total}`
+                      : `Remove ${entry.entity.name}`
+                  }
+                >
+                  <X aria-hidden="true" size={iconSize.mini} />
+                </Button>
+              ) : undefined
+            }
+          />
         </div>
       ))}
       {entries.length === 0 && <p style={EMPTY_STYLE}>Nothing {chosen} yet.</p>}
@@ -358,7 +357,6 @@ const LIST_STYLE = { padding: `${space[12]} ${space[16]}` } satisfies CSSPropert
 const ENTRY_STYLE = { marginBottom: space[6] } satisfies CSSProperties
 /** The sidebar's Tokens leave their Tech level to the list. */
 const RAIL_OMIT = ['tech-level'] as const
-const ENTRY_TOKEN_STYLE = { flex: '1 1 auto', minWidth: 0 } satisfies CSSProperties
 
 const EMPTY_STYLE = {
   margin: space[0],

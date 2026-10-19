@@ -65,7 +65,7 @@ export type EntityProps = EntitySource &
      * Row only: what the unit is built on or linked to (`CLASS | Engineer`,
      * `CHASSIS | Mule`, `PILOT | Bonesaw`), the relation chips after its traits
      * (`chips-and-actions.md` C11). Each Peeks and opens its entity, or opens a
-     * unit's sheet, where the Row is not itself a link.
+     * unit's sheet; a link Row with them is covered, its link under them.
      */
     relations?: TagItem[]
     /**

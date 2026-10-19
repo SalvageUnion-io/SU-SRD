@@ -45,7 +45,6 @@ import {
   slotParam,
 } from '../../lib/npcs/npcModel'
 import { npcNameGate } from '../../lib/rules/creation'
-import { runWrite } from '../../lib/runWrite'
 import type { UnitReading } from '../../lib/units/unitModel'
 import { unitRowModel } from '../../lib/units/unitModel'
 import type { CrewDraft } from '../../lib/wizard/crewFormState'
@@ -72,7 +71,7 @@ import {
   useMediaQuery,
 } from '../../components/index'
 import { npcStats } from '../roster/rowStats.model'
-import { AppLink } from '../../components/shared/AppLink'
+import { assignedCrewControls, unassignCrew } from './assignedCrewControls.model'
 import { UnitRow } from '../../components/shared/UnitRow'
 import { WritesBlockedNotice } from '../../components/shared/WritesBlockedNotice'
 import { RollTableButton } from '../wizard/RollTableButton'
@@ -456,40 +455,34 @@ function SlotPanel({
   if (assignment) {
     const npc = assignment.npc
     const name = npc?.name ?? 'the assigned NPC'
+    const unassign = () => unassignCrew(assignment.link.id, slot.name, onDone)
+    const unassignLabel = `Unassign ${name} from ${slot.name}`
     return (
       <>
         {heading}
         {npc ? (
-          <>
-            <NpcCard npc={npc} madeBy={makerOf(npc)} size="compact" />
-            <AppLink href={`/sheet/npc/${npc.id}`}>Open {npc.name}</AppLink>
-          </>
+          <NpcCard
+            npc={npc}
+            madeBy={makerOf(npc)}
+            size="compact"
+            controls={assignedCrewControls(
+              npc,
+              allowed ? { label: unassignLabel, onClick: unassign } : undefined
+            )}
+          />
         ) : (
           <p style={HINT}>
             The NPC assigned here cannot be shown. It may have been deleted or moved.
           </p>
         )}
-        {allowed ? (
+        {!allowed ? (
+          <WritesBlockedNotice />
+        ) : npc ? null : (
           <div style={ROW}>
-            <Button
-              variant="default"
-              onClick={() =>
-                // No confirm: it is reversible bookkeeping, and the inline crew
-                // and the NPC both survive (D8, ADR-007).
-                runWrite(
-                  () => useEntityStore.getState().delete('softLink', assignment.link.id),
-                  () => {
-                    toast.success(`${slot.name} is back to the book’s crew line.`)
-                    onDone()
-                  }
-                )
-              }
-            >
-              {`Unassign ${name} from ${slot.name}`}
+            <Button variant="default" onClick={unassign}>
+              {unassignLabel}
             </Button>
           </div>
-        ) : (
-          <WritesBlockedNotice />
         )}
         <p style={HINT}>Unassigning keeps both the NPC and the book’s crew line.</p>
       </>

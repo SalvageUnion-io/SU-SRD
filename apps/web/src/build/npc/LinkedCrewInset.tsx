@@ -12,14 +12,14 @@
  * blank slot.
  *
  * This is the level-1 form (the crawler type's panel): the `NpcInset`, with
- * the stamp and an "Open" link. Inside a bay card no titled box nests (N5):
+ * the stamp, its "Open" the head's last chip. Inside a bay card no titled box nests (N5):
  * there it is `LinkedCrewToken`.
  */
 
 import type { CSSProperties, ReactNode } from 'react'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { npcCurrentHP } from '../../lib/npcs/npcModel'
-import { Badge, tokens, UserMadeStamp } from '../../components/index'
+import { Badge, buttonVariants, tokens, UserMadeStamp } from '../../components/index'
 import { AppLink } from '../../components/shared/AppLink'
 import { NpcInset } from '../sheet/NpcInset'
 
@@ -38,12 +38,7 @@ const HEAD = {
   justifyContent: 'space-between',
 } satisfies CSSProperties
 
-const LINK = {
-  color: tokens.color.ink,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.caption,
-  fontWeight: tokens.weight.bold,
-} satisfies CSSProperties
+const LINK = { textDecoration: 'none' } satisfies CSSProperties
 
 type LinkedCrewInsetProps = {
   /** The bay's (or type's) name — labels the inset for assistive tech. */
@@ -67,9 +62,6 @@ export function LinkedCrewInset({ slotName, assignment, fallback }: LinkedCrewIn
     <div style={STACK}>
       <div style={HEAD}>
         <UserMadeStamp label="User-made crew" />
-        <AppLink href={`/sheet/npc/${npc.id}`} style={LINK}>
-          Open {npc.name}
-        </AppLink>
       </div>
       <NpcInset
         bayName={slotName}
@@ -81,6 +73,17 @@ export function LinkedCrewInset({ slotName, assignment, fallback }: LinkedCrewIn
         motto={npc.motto ?? ''}
         detail={npc.description ?? ''}
         facts={npc.facts ?? []}
+        // Open is the head's last chip (C8, hard rule R6), never a line over it.
+        controls={
+          <AppLink
+            href={`/sheet/npc/${npc.id}`}
+            aria-label={`Open ${npc.name}`}
+            className={buttonVariants({ size: 'mini' })}
+            style={LINK}
+          >
+            Open
+          </AppLink>
+        }
       />
     </div>
   )

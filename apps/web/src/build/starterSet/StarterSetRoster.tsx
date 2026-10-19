@@ -22,7 +22,7 @@ import { ChapterBand, PageHeading, Text, tokens } from '../../components/index'
 import type { SegmentKind } from '../roster/RosterColumn'
 import { RosterColumn, RosterGrid, RosterList, SegmentSwitch } from '../roster/RosterColumn'
 import { useConfirm } from '../../components/shared/useConfirm'
-import { CopyStarterSelect } from './CopyStarterSelect'
+import { CopyStarterMenu } from './CopyStarterMenu'
 import { StarterCard } from './StarterCard'
 import { starterShelves } from './starterShelves.model'
 
@@ -37,14 +37,7 @@ const HEADER = {
 // masthead.
 const SUB_HEADER = { ...HEADER, marginTop: tokens.space[32] } satisfies CSSProperties
 
-// The card, then (signed in) its "Copy to…" under it: a control may not sit
-// inside the card's link.
-const ROW = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[6],
-  listStyle: 'none',
-} satisfies CSSProperties
+const ROW = { listStyle: 'none' } satisfies CSSProperties
 
 type StarterSetRosterProps = {
   /** `h1` on its own page; `h2` under the signed-out Roster's sign-in panel. */
@@ -86,12 +79,20 @@ export function StarterSetRoster({ headingLevel = 'h2' }: StarterSetRosterProps)
               <RosterList>
                 {builds.map((build) => (
                   <li key={build.id} style={ROW}>
-                    <StarterCard kind={kind} build={build} />
-                    <CopyStarterSelect
+                    {/* Signed in, "Copy to…" is the Row's last chip (C8, hard rule R6). */}
+                    <StarterCard
                       kind={kind}
-                      templateId={build.id}
-                      name={build.name}
-                      confirm={confirm}
+                      build={build}
+                      controls={
+                        mode === "connected" ? (
+                          <CopyStarterMenu
+                            kind={kind}
+                            templateId={build.id}
+                            name={build.name}
+                            confirm={confirm}
+                          />
+                        ) : undefined
+                      }
                     />
                   </li>
                 ))}

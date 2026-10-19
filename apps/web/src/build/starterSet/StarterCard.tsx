@@ -7,28 +7,39 @@
  * so both draw them with this one card (`starterShelves.model.ts` builds them).
  *
  * What a build is made from (`CLASS | Engineer`, `CHASSIS | Mule`) is a
- * relation chip (`chips-and-actions.md` C11): it Peeks and opens that entity. A chip may not sit inside the card's
- * link (no nested interactive content), so the Row reads and the sheet's link
- * is laid over the whole card under the chips (`.su-starter-card__link`).
+ * relation chip (`chips-and-actions.md` C11): it Peeks and opens that entity.
+ * The host's controls (signed in, "Copy to…") are the chip group's last slot
+ * (C8, hard rule R6). Neither may sit inside the sheet's link (no nested
+ * interactive content), so the Row is a covered link Row: the link is an empty
+ * cover over the whole card and the chips are raised above it.
  */
 
+import type { ReactNode } from 'react'
 import type { StarterKind } from '../../lib/starterSet/starterTemplates'
-import { cn, Entity, FOCUS_RING } from '../../components/index'
-import { AppLink } from '../../components/shared/AppLink'
+import { Entity } from '../../components/index'
 import type { StarterBuild } from './starterShelves.model'
 
-type StarterCardProps = { kind: StarterKind; build: StarterBuild }
+type StarterCardProps = {
+  kind: StarterKind
+  build: StarterBuild
+  /** The host's controls, the chip group's last slot ("Copy to…"). */
+  controls?: ReactNode
+}
 
-export function StarterCard({ kind, build }: StarterCardProps) {
+export function StarterCard({ kind, build, controls }: StarterCardProps) {
   return (
-    <div className="su-starter-card">
-      <Entity form="row" model={build.model} lead omit={['kind']} relations={build.relations} />
-      <AppLink
-        href={`/starter/${kind}/${build.id}`}
-        className={cn('su-starter-card__link', FOCUS_RING)}
-      >
-        <span className="su-sr-only">Read {build.name}</span>
-      </AppLink>
-    </div>
+    <Entity
+      form="row"
+      model={build.model}
+      mode={{
+        kind: 'link',
+        href: `/starter/${kind}/${build.id}`,
+        attrs: { 'aria-label': `Read ${build.name}` },
+      }}
+      lead
+      omit={['kind']}
+      relations={build.relations}
+      controls={controls}
+    />
   )
 }

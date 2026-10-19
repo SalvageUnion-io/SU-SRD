@@ -13,7 +13,8 @@
  * derived maximum, clamped here; `proposals.apply` still parses it on the
  * server. Tapping a seat card picks its pilot and moves focus to To.
  *
- * A `TitledBox` filling its panel and scrolling its own body there (`fill`).
+ * A `TitledBox` filling its panel and scrolling its own body there (`fill`);
+ * its head's last slot holds the host's controls (All proposals, hard rule R6).
  *
  * Presentational: the Mediator's screen owns the target (a seat sets it) and
  * the write.
@@ -28,7 +29,7 @@ import {
   PROPOSAL_REASON_MAX,
   PROPOSAL_STATE_WORD,
 } from 'game-domain/games/proposals'
-import type { CSSProperties, RefObject } from 'react'
+import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { useId, useState } from 'react'
 import { Button, FeedList, Field, Input, Select, TitledBox, tokens } from '../../components/index'
 import { MUTED, NUMBERS } from './mediatorStyles.model'
@@ -70,6 +71,7 @@ export function ProposeDock({
   canWrite,
   onPropose,
   toRef,
+  controls,
 }: {
   targets: readonly ProposalTarget[]
   targetId: string | null
@@ -82,6 +84,8 @@ export function ProposeDock({
   onPropose: (args: ProposeArgs) => Promise<void>
   /** The To field, which picking a seat card focuses. */
   toRef: RefObject<HTMLInputElement | null>
+  /** The head's controls, its chip group's last slot (C8): All proposals. */
+  controls?: ReactNode
 }) {
   const id = useId()
   const target = targets.find((t) => t.id === targetId) ?? null
@@ -130,7 +134,7 @@ export function ProposeDock({
   }
 
   return (
-    <TitledBox as="section" title="Propose a change" titleAs="h2" fill>
+    <TitledBox as="section" title="Propose a change" titleAs="h2" fill controls={controls}>
       <p style={MUTED}>The player decides.</p>
       <div style={ROW}>
         <Field label="Target" htmlFor={`${id}-target`}>

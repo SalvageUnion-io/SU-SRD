@@ -50,8 +50,6 @@ const SECTION = {
 /** The dock sits at the column's foot, as the wireframe draws it. */
 const DOCK = { ...SECTION, marginTop: 'auto' } satisfies CSSProperties
 
-const ALL = { alignSelf: 'flex-end' } satisfies CSSProperties
-
 type SectionProps = { mediator: PlayMediator; side: PlayMediatorSideState }
 
 /** Tables, pinned for the Game's state, and the Post toggle. */
@@ -116,10 +114,13 @@ export function PlayMediatorProposeSection({
         canWrite={mediator.canWrite}
         onPropose={mediator.propose}
         toRef={toRef}
+        // The dock's last chip (C8, hard rule R6), never a line under it.
+        controls={
+          <Button size="mini" onClick={() => setAllOpen(true)}>
+            All proposals
+          </Button>
+        }
       />
-      <Button variant="ghost" size="mini" style={ALL} onClick={() => setAllOpen(true)}>
-        All proposals
-      </Button>
       <ModalShell
         open={allOpen}
         onOpenChange={setAllOpen}

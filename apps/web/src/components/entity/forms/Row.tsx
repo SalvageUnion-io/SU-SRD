@@ -188,10 +188,13 @@ export function Row({
   // own control (a link's `<a>`, a radio): the surface is an empty cover laid
   // over the frame, and the controls, the chips' own controls (and a toggle's
   // check) are raised above it (`[data-covered]`). There a relation is a link
-  // of its own too, raised with them (C11).
+  // of its own too, raised with them (C11), so a link Row with relations is
+  // covered too: its relations Peek and open outside the link (a Starter Set
+  // card's `CLASS | Engineer`).
   const covered =
     (!!slots.controls && mode.kind !== 'read') ||
-    ((!!slots.extraLabels || !!slots.trailing || !!slots.state) && mode.kind === 'link')
+    ((!!slots.extraLabels || !!slots.trailing || !!slots.state || !!slots.relations?.length) &&
+      mode.kind === 'link')
 
   const frame = (
     <RowFrame

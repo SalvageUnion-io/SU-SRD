@@ -2,7 +2,8 @@
  * A Row's RELATIONS (`chips-and-actions.md` C11): what it is built on or
  * linked to, label first (`CLASS | Engineer`, `PILOT | Bonesaw`), in the one
  * chip group after the traits and before the cost. A book entity Peeks and
- * opens; a player unit opens its sheet; inside a link-mode Row neither links.
+ * opens; a player unit opens its sheet; a link-mode Row with relations is
+ * covered, so they link outside its link.
  */
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
@@ -86,7 +87,7 @@ describe('Row relations', () => {
     expect(routed).toEqual(['/sheet/pilot/p1'])
   })
 
-  test('inside a link-mode Row it is text: no link nests in the link', () => {
+  test('a link-mode Row is covered: the relation links, outside the Row’s link', () => {
     const { container } = render(
       <Entity
         form="row"
@@ -95,6 +96,10 @@ describe('Row relations', () => {
         relations={[relation('pilot', 'Pilot', 'Bonesaw', { href: '/sheet/pilot/p1' })]}
       />
     )
-    expect(container.querySelector('[data-tag]')?.tagName).toBe('SPAN')
+    const chip = container.querySelector('a[data-tag]')
+    expect(chip?.getAttribute('href')).toBe('/sheet/pilot/p1')
+    const cover = container.querySelector('.su-entity-row__cover')
+    expect(cover?.getAttribute('href')).toBe('/sheet/mech/m1')
+    expect(cover?.contains(chip ?? null)).toBe(false)
   })
 })

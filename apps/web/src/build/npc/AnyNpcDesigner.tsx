@@ -17,12 +17,12 @@
  */
 
 import { NpcSchema } from 'game-domain/schemas/npc'
-import type { CSSProperties, ReactNode } from 'react'
-import { useId, useMemo, useState } from 'react'
-import type { RefEntity, RefNPC } from 'salvageunion-reference'
+import type { CSSProperties } from 'react'
+import { useMemo, useState } from 'react'
+import type { RefNPC } from 'salvageunion-reference'
 import { displayTitle, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { useConnection } from '../../lib/connection/connectionContext'
-import { npcActionName, npcActionSlug, resolveNpcAction } from '../../lib/npcs/npcModel'
+import { npcActionSlug } from '../../lib/npcs/npcModel'
 import { readReference } from '../../lib/readReference'
 import { npcCreationStepGate } from '../../lib/rules/creation'
 import type { NpcFormState, NpcStepId } from '../../lib/wizard/npcFormState'
@@ -43,7 +43,6 @@ import {
 import { readWizardDraft, useWizardDraftSync, wizardDraftKey } from '../../lib/wizard/wizardDraft'
 import {
   Button,
-  Checkbox,
   ConfirmDialog,
   EmptyState,
   Entity,
@@ -57,12 +56,12 @@ import {
   Select,
   Textarea,
   tokens,
-  useDetailModal,
 } from '../../components/index'
 import { WritesBlockedNotice } from '../../components/shared/WritesBlockedNotice'
 import { useWizardFlow } from '../wizard/useWizardFlow'
 import { WizShell } from '../wizard/WizShell'
 import { NpcCard } from './NpcCard'
+import { ActionPick, TraitPick } from './NpcPickRows'
 import { CAPS, CAPS_LABEL, COLUMN, HINT, LIST, NOTE, PENCIL, ROW } from './npcStyles.model'
 
 const STEP_INTRO: Record<NpcStepId, string> = {
@@ -82,14 +81,6 @@ const STEP_COLUMNS = {
   gap: tokens.space[32],
   gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 24rem), 1fr))',
 } satisfies CSSProperties
-
-const PICK_ROW = {
-  alignItems: 'center',
-  display: 'flex',
-  gap: tokens.space[8],
-} satisfies CSSProperties
-
-const GROW = { flex: 1, minWidth: 0 } satisfies CSSProperties
 
 const STAT_GRID = {
   display: 'grid',
@@ -212,14 +203,30 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
             {step !== 'template' && form.templateChosen && (
               <div style={ROW}>
                 <span className={CAPS_LABEL} style={CAPS}>Template</span>
+                {/* Change is the template Token's last chip (C8, hard rule R6). */}
                 {template ? (
-                  <Entity form="token" context="browse" entity={template} />
+                  <Entity
+                    form="token"
+                    context="browse"
+                    entity={template}
+                    controls={
+                      <Button
+                        size="mini"
+                        aria-label="Change the template"
+                        onClick={() => shell.onStepClick(0)}
+                      >
+                        Change
+                      </Button>
+                    }
+                  />
                 ) : (
-                  <span style={HINT}>Started blank</span>
+                  <>
+                    <span style={HINT}>Started blank</span>
+                    <Button variant="ghost" size="compact" onClick={() => shell.onStepClick(0)}>
+                      Change
+                    </Button>
+                  </>
                 )}
-                <Button variant="ghost" size="compact" onClick={() => shell.onStepClick(0)}>
-                  Change
-                </Button>
               </div>
             )}
             <p style={HINT}>{STEP_INTRO[step]}</p>
@@ -447,109 +454,8 @@ function ActionsStep({
   )
 }
 
-/** One checkbox beside a header-only card; the card opens the full rules (D6). */
-function PickRow({
-  label,
-  carried,
-  onToggle,
-  children,
-}: {
-  label: string
-  carried: boolean
-  onToggle: (carried: boolean) => void
-  children: ReactNode
-}) {
-  const id = useId()
-  return (
-    <li className="su-npc-pick" style={PICK_ROW}>
-      <Checkbox
-        id={id}
-        hitArea
-        checked={carried}
-        aria-label={label}
-        onChange={(e) => onToggle(e.target.checked)}
-      />
-      <div style={GROW}>{children}</div>
-    </li>
-  )
-}
-
-function ActionPick({
-  slug,
-  carried,
-  onToggle,
-}: {
-  slug: string
-  carried: boolean
-  onToggle: (carried: boolean) => void
-}) {
-  const action = resolveNpcAction(slug)
-  // An action is a meta entity, which the detail modal's card renders as it
-  // renders any other; the hook is typed to the plain union only.
-  const detail = useDetailModal((action ?? undefined) as RefEntity | undefined)
-  const name = action?.name ?? npcActionName(slug)
-  return (
-    <PickRow label={`Carry ${name}`} carried={carried} onToggle={onToggle}>
-      {action ? (
-        <Entity
-          form="row"
-          entity={action}
-          mode={{
-            kind: 'link',
-            onOpen: () => detail.control.onClick?.(),
-            attrs: { 'aria-label': `Open ${name}` },
-          }}
-        />
-      ) : (
-        <span style={HINT}>{name}</span>
-      )}
-      {detail.modal}
-    </PickRow>
-  )
-}
-
 /** A list of one kind: its Rows drop the kind stamp. */
 const OMIT_KIND = ['kind'] as const
-
-function TraitPick({
-  type,
-  amount,
-  carried,
-  onToggle,
-}: {
-  type: string
-  amount: number | string | undefined
-  carried: boolean
-  onToggle: (carried: boolean) => void
-}) {
-  const trait = readReference(
-    'AnyNpcDesigner.trait',
-    () => SalvageUnionReference.Traits.getByName(type) ?? null,
-    null
-  )
-  const detail = useDetailModal(trait ?? undefined)
-  const name = displayTitle(type)
-  const label = amount === undefined ? name : `${name} (${amount})`
-  return (
-    <PickRow label={`Carry ${label}`} carried={carried} onToggle={onToggle}>
-      {trait ? (
-        <Entity
-          form="row"
-          entity={trait}
-          instance={{ title: label }}
-          mode={{
-            kind: 'link',
-            onOpen: () => detail.control.onClick?.(),
-            attrs: { 'aria-label': `Open ${label}` },
-          }}
-        />
-      ) : (
-        <span style={HINT}>{label}</span>
-      )}
-      {detail.modal}
-    </PickRow>
-  )
-}
 
 /** The search that adds an action or a trait from the reference (D6). */
 function ReferenceAdder({
