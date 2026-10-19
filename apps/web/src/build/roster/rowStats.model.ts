@@ -30,7 +30,8 @@ export function mechChassisStats(chassisRef: string): UnitReading[] | undefined 
   const stats: UnitReading[] = [
     { label: 'Chassis', value: resolved?.name ?? chassisRef, chip: 'relation' },
   ]
-  if (resolved?.techLevel != null) stats.push({ label: 'TL', value: resolved.techLevel, chip: 'rank' })
+  if (resolved?.techLevel != null)
+    stats.push({ label: 'TL', value: resolved.techLevel, chip: 'rank' })
   return stats
 }
 

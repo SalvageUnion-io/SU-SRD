@@ -17,7 +17,10 @@ import { render } from '@testing-library/react'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { crawlerFixture, mechFixture, pilotFixture } from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
-import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../../components/__tests__/mockEntityStore'
+import {
+  makeEntityLookupMock,
+  makeSoftLinkStoreMock,
+} from '../../../components/__tests__/mockEntityStore'
 import { Sheet } from '../Sheet'
 
 beforeAll(hydrateStores)

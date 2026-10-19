@@ -17,10 +17,10 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
-import type { CrewAssignment } from '../../lib/npcs/npcModel'
-import { npcCurrentHP } from '../../lib/npcs/npcModel'
 import { Badge, buttonVariants, tokens, UserMadeStamp } from '../../components/index'
 import { AppLink } from '../../components/shared/AppLink'
+import type { CrewAssignment } from '../../lib/npcs/npcModel'
+import { npcCurrentHP } from '../../lib/npcs/npcModel'
 import { NpcInset } from '../sheet/NpcInset'
 
 const STACK = {

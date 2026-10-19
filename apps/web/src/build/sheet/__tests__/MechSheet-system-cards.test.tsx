@@ -18,12 +18,12 @@
 import { describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Mech } from 'game-domain/schemas/mech'
-import { WritesBlockedOffline } from '../../../stores/entityBackend'
-import type { useEntityStore } from '../../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { expandCards } from '../../../components/__tests__/expandCards'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
+import { WritesBlockedOffline } from '../../../stores/entityBackend'
+import type { useEntityStore } from '../../../stores/entityStore'
+import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { MechSheet } from '../MechSheet'
 
 // A real, choice-free system. ".50 Cal Machine Gun" is TL1 and renders with a

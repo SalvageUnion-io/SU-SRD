@@ -11,10 +11,10 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
+import { Badge, tokens, UserMadeStamp } from '../../components/index'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { npcCurrentHP } from '../../lib/npcs/npcModel'
 import { unitRowModel } from '../../lib/units/unitModel'
-import { Badge, tokens, UserMadeStamp } from '../../components/index'
 import { CrewLeadToken } from '../sheet/CrewLeadToken'
 
 const STACK = {

@@ -10,11 +10,11 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Mech } from 'game-domain/schemas/mech'
-import type { useEntityStore } from '../../../stores/entityStore'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { must } from '../../../components/__tests__/must'
 import { Toaster, toast } from '../../../components/index'
+import type { useEntityStore } from '../../../stores/entityStore'
 import { MechSheet } from '../MechSheet'
 
 // A mounting Toaster replays every toast still active, including ones other

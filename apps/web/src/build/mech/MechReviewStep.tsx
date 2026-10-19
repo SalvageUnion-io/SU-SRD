@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
-import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import { EmptyState, FieldError, Panel, ReferenceEntityCard, tokens } from '../../components/index'
+import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import '../../styles/build/wizard.css'
 import { readReference } from '../../lib/readReference'
 import { Recap, RecapEntity, RecapStat, RecapTokens } from '../wizard/ReviewRecap'

@@ -19,9 +19,9 @@ import {
   STARTER_PILOTS,
   STARTER_SOFT_LINKS,
 } from 'game-domain/starterSet/starterSet'
-import { isStarterKind, starterTemplate } from '../../lib/starterSet/starterTemplates'
 import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
 import { useConfirm } from '../../components/shared/useConfirm'
+import { isStarterKind, starterTemplate } from '../../lib/starterSet/starterTemplates'
 import { makeReadOnlySheetStore } from '../sheet/readOnlySheetStore.model'
 import { Sheet } from '../sheet/Sheet'
 import { MakeACopy } from './MakeACopy'

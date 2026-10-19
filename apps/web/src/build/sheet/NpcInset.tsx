@@ -20,9 +20,9 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
+import { capsLabel } from '../../components/atoms/capsLabel'
 import { InlineEditField, Inset, Stat, tokens } from '../../components/index'
 import { NpcFactsEditor } from './NpcFactsEditor'
-import { capsLabel } from '../../components/atoms/capsLabel'
 
 const ROW = {
   alignItems: 'baseline',
@@ -114,7 +114,13 @@ function NpcRow({
 }) {
   return (
     <div className={className} style={ROW}>
-      {srLabel ? <dt className="su-sr-only">{label}</dt> : <dt className={ROW_LABEL_CAPS} style={ROW_LABEL}>{label}</dt>}
+      {srLabel ? (
+        <dt className="su-sr-only">{label}</dt>
+      ) : (
+        <dt className={ROW_LABEL_CAPS} style={ROW_LABEL}>
+          {label}
+        </dt>
+      )}
       <dd
         style={{
           ...ROW_VALUE,

@@ -17,11 +17,11 @@ import { beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { expandCards } from '../../../components/__tests__/expandCards'
 import { pilotFixture } from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
+import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { PilotSheet } from '../PilotSheet'
 
 beforeAll(hydrateStores)

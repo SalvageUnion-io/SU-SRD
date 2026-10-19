@@ -56,18 +56,18 @@
  * and the Convex read would have no provider.
  */
 
+import { useQuery } from 'convex/react'
 import type { Container, ContainerFields } from 'game-domain/container'
 import { containerOf, moveTo } from 'game-domain/container'
-import { useQuery } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
+import { Field, FieldError } from '../../components/index'
+import type { Confirm } from '../../components/shared/useConfirm'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { moveDestinations } from '../../lib/games/gameRoster'
 import { useEntityStore } from '../../stores/entityStore'
 import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
 import type { AssignableType } from '../../stores/types'
-import { Field, FieldError } from '../../components/index'
-import type { Confirm } from '../../components/shared/useConfirm'
 import { ContainerPicker } from './ContainerPicker'
 import { requestMove } from './requestMove.model'
 

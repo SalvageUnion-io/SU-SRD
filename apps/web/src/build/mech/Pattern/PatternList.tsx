@@ -15,10 +15,17 @@
 import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../../convex/_generated/api'
+import {
+  EmptyState,
+  Entity,
+  Pending,
+  quotePatternName,
+  Text,
+  tokens,
+} from '../../../components/index'
 import { useConnection } from '../../../lib/connection/connectionContext'
 import { asReferencePattern, patternChassis, patternHref } from '../../../lib/patterns/patterns'
 import { usePatternStore } from '../../../stores/patternStore'
-import { EmptyState, Entity, Pending, quotePatternName, Text, tokens } from '../../../components/index'
 import { InstantiateFromPattern } from './InstantiateFromPattern'
 
 const LIST = {

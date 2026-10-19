@@ -21,17 +21,35 @@
  * full-height modal (§5).
  */
 
+import { useQuery } from 'convex/react'
 import { containerOf, sameContainer } from 'game-domain/container'
 import { slotKey } from 'game-domain/links/linkRules'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Npc } from 'game-domain/schemas/npc'
 import { NpcSchema } from 'game-domain/schemas/npc'
-import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { useMemo, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
+import {
+  Badge,
+  Button,
+  EmptyState,
+  Entity,
+  Field,
+  FieldError,
+  Input,
+  ModalShell,
+  Select,
+  Slab,
+  Textarea,
+  toast,
+  tokens,
+  useMediaQuery,
+} from '../../components/index'
+import { UnitRow } from '../../components/shared/UnitRow'
+import { WritesBlockedNotice } from '../../components/shared/WritesBlockedNotice'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { useCrawlers, useHydrateEntities, useNpcs, useSoftLinkList } from '../../lib/entities'
@@ -54,27 +72,9 @@ import {
   crewDraftView,
 } from '../../lib/wizard/crewFormState'
 import { useEntityStore } from '../../stores/entityStore'
-import {
-  Badge,
-  Button,
-  EmptyState,
-  Entity,
-  Field,
-  FieldError,
-  Input,
-  ModalShell,
-  Select,
-  Slab,
-  Textarea,
-  toast,
-  tokens,
-  useMediaQuery,
-} from '../../components/index'
 import { npcStats } from '../roster/rowStats.model'
-import { assignedCrewControls, unassignCrew } from './assignedCrewControls.model'
-import { UnitRow } from '../../components/shared/UnitRow'
-import { WritesBlockedNotice } from '../../components/shared/WritesBlockedNotice'
 import { RollTableButton } from '../wizard/RollTableButton'
+import { assignedCrewControls, unassignCrew } from './assignedCrewControls.model'
 import { NpcCard } from './NpcCard'
 import { CAPS, CAPS_LABEL, COLUMN, COLUMNS, HINT, LIST, NOTE, PENCIL, ROW } from './npcStyles.model'
 
@@ -125,9 +125,7 @@ export function CrewBoard({ crawlerId, slot: slotArg, madeBy, onSelect }: CrewBo
       where.kind === 'shelf' || games?.find((g) => g._id === where.gameId)?.tableRunner === true
     )
   }
-  const candidates = crawlers.filter(
-    (c) => mayWrite(c)
-  )
+  const candidates = crawlers.filter((c) => mayWrite(c))
   const crawler =
     (crawlerId === undefined ? undefined : crawlers.find((c) => c.id === crawlerId)) ??
     (crawlerId === undefined && candidates.length === 1 ? candidates[0] : undefined)
@@ -448,9 +446,7 @@ function SlotPanel({
   const [announcement, setAnnouncement] = useState('')
   const titleId = `crew-slot-${nameToSlug(slot.key)}`
 
-  const heading = titled ? (
-    <Slab as="h2" id={titleId} label={slotTitle(slot)} />
-  ) : null
+  const heading = titled ? <Slab as="h2" id={titleId} label={slotTitle(slot)} /> : null
 
   if (assignment) {
     const npc = assignment.npc
@@ -538,8 +534,8 @@ function SlotPanel({
     <>
       {heading}
       <p style={HINT}>
-        The slot fixes the template: position {slot.position}, {slot.hitPoints} Hit Points. You fill in what
-        the book asks for.
+        The slot fixes the template: position {slot.position}, {slot.hitPoints} Hit Points. You fill
+        in what the book asks for.
       </p>
       {slot.choices.map((choice) => {
         const id = `crew-${nameToSlug(slot.key)}-${nameToSlug(choice.name)}`
@@ -612,7 +608,9 @@ function SlotPanel({
 
       {allowed && candidates.length > 0 && (
         <>
-          <p className={CAPS_LABEL} style={CAPS}>Or assign an NPC already here</p>
+          <p className={CAPS_LABEL} style={CAPS}>
+            Or assign an NPC already here
+          </p>
           <ul style={LIST} aria-label={`NPCs that can crew the ${slot.name}`}>
             {candidates.map((npc) => (
               <li key={npc.id}>

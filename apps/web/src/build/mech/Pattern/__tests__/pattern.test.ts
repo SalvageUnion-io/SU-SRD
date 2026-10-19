@@ -13,6 +13,8 @@
 
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import { MechPatternSchema } from 'game-domain/schemas/pattern'
+import { FIXTURE_NOW } from '../../../../components/__tests__/fixtures'
+import { must } from '../../../../components/__tests__/must'
 import { mechFromPattern } from '../../../../lib/patterns/patterns'
 import type { MonotonicClock } from '../../../../stores/__tests__/monotonicClock'
 import { installMonotonicClock } from '../../../../stores/__tests__/monotonicClock'
@@ -20,8 +22,6 @@ import { resetStores } from '../../../../stores/__tests__/resetStores'
 import { withSignedInBackend } from '../../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../../stores/entityStore'
 import { usePatternStore } from '../../../../stores/patternStore'
-import { FIXTURE_NOW } from '../../../../components/__tests__/fixtures'
-import { must } from '../../../../components/__tests__/must'
 
 // Saving a pattern needs an account (ADR-034 as amended), so these writes run signed in.
 withSignedInBackend()

@@ -22,10 +22,10 @@
  */
 
 import type { CSSProperties } from 'react'
-import { reportCargo } from '../../lib/cargo/reportCargo'
-import type { UsePartnerCargoResult } from '../../lib/cargo/usePartnerCargo'
 import { Button, EmptyState, Slab, Stack, Stat, tokens } from '../../components/index'
 import { CargoLotRow } from '../../components/shared/CargoLotRow'
+import { reportCargo } from '../../lib/cargo/reportCargo'
+import type { UsePartnerCargoResult } from '../../lib/cargo/usePartnerCargo'
 
 type PartnerHoldProps = {
   cargo: UsePartnerCargoResult

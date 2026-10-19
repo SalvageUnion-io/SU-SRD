@@ -16,9 +16,9 @@
 
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import type { ConnectionState } from '../../../lib/connection/connectionContext'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 
 // Signed in: building needs an account (ADR-034 as amended), so the roster a
 // player builds into is a Connected one. Module scope, before the imports

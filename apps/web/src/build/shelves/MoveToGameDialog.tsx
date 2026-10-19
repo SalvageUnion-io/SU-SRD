@@ -17,6 +17,8 @@
 import type { Container, ContainerFields } from 'game-domain/container'
 import { containerOf, moveTo, sameContainer } from 'game-domain/container'
 import type { CSSProperties } from 'react'
+import { ModalShell, toast, tokens } from '../../components/index'
+import type { Confirm } from '../../components/shared/useConfirm'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import type { MoveTargetGame } from '../../lib/games/gameRoster'
 import { moveDestinations } from '../../lib/games/gameRoster'
@@ -25,8 +27,6 @@ import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
 import type { AssignableType } from '../../stores/types'
 import { ContainerPicker } from '../entityContainer/ContainerPicker'
 import { requestMove } from '../entityContainer/requestMove.model'
-import { ModalShell, toast, tokens } from '../../components/index'
-import type { Confirm } from '../../components/shared/useConfirm'
 
 /** What "out of a Game" is called in the Hangar, as its Showing select names it. */
 const NOT_IN_A_GAME = 'Not in a Game'

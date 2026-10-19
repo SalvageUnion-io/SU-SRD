@@ -13,17 +13,17 @@
  * in: a copy is a write, and building needs an account (ADR-034 as amended).
  */
 
-import { SHELF } from 'game-domain/container'
 import { useQuery } from 'convex/react'
+import { SHELF } from 'game-domain/container'
 import { api } from '../../../convex/_generated/api'
+import { HeaderMenu, toast } from '../../components/index'
+import type { Confirm } from '../../components/shared/useConfirm'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { moveDestinations } from '../../lib/games/gameRoster'
 import { copyStarter } from '../../lib/starterSet/copyStarter'
 import type { StarterKind } from '../../lib/starterSet/starterTemplates'
 import { STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
-import { HeaderMenu, toast } from '../../components/index'
-import type { Confirm } from '../../components/shared/useConfirm'
-import { serializeContainer } from '../entityContainer/ContainerPicker'
+import { serializeContainer } from '../entityContainer/containerKey.model'
 
 type CopyStarterMenuProps = {
   kind: StarterKind

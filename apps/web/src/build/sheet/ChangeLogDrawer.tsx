@@ -9,12 +9,11 @@
  * This is read-only — the log is never mutated from the UI.
  */
 
+import { useQuery } from 'convex/react'
 import type { ChangeLogKind } from 'game-domain/schemas/changeLog'
 import type { EntityRef } from 'game-domain/schemas/entity'
-import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
-import { useConnection } from '../../lib/connection/connectionContext'
 import type { BadgeTone } from '../../components/index'
 import {
   Badge,
@@ -26,6 +25,7 @@ import {
   Pending,
   tokens,
 } from '../../components/index'
+import { useConnection } from '../../lib/connection/connectionContext'
 
 type ChangeLogDrawerProps = {
   entityType: EntityRef['type']

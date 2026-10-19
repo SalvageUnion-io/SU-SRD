@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import { useId } from 'react'
-import type { CrawlerWizardFormState, ScrapPoolForm } from '../../lib/wizard/crawlerFormState'
 import { Button, Field, Input, Slab, tokens } from '../../components/index'
+import type { CrawlerWizardFormState, ScrapPoolForm } from '../../lib/wizard/crawlerFormState'
 import type { CrawlerRollTableDeps } from './crawlerRollTables.model'
 import { rollCrawlerName } from './crawlerRollTables.model'
 import '../../styles/build/wizard.css'

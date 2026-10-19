@@ -13,8 +13,8 @@
 
 import { afterAll, describe, expect, test } from 'bun:test'
 import { act, render, screen } from '@testing-library/react'
-import type { ConnectionState } from '../../../lib/connection/connectionContext'
 import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import type { ConnectionState } from '../../../lib/connection/connectionContext'
 
 // Module scope, before the imports below — see `convexMock.ts`. The signed-out
 // branch mounts `SignInControl`, whose auth hook needs the auth module.

@@ -23,17 +23,13 @@
  * them.
  */
 
-import { publicPath } from 'game-domain/entityKinds'
 import { useMutation, useQuery } from 'convex/react'
+import { publicPath } from 'game-domain/entityKinds'
 import { Copy } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { useServerAction } from '../../lib/connection/useServerAction'
-import type { ShareKind, Visibility } from '../../lib/sharing/visibility'
-import { patternChoices, sheetChoices, sheetVisibility } from '../../lib/sharing/visibility'
-import { appUrl } from '../../lib/site'
 import {
   Button,
   CopiedIcon,
@@ -45,6 +41,10 @@ import {
   tokens,
   useCopied,
 } from '../../components/index'
+import { useServerAction } from '../../lib/connection/useServerAction'
+import type { ShareKind, Visibility } from '../../lib/sharing/visibility'
+import { patternChoices, sheetChoices, sheetVisibility } from '../../lib/sharing/visibility'
+import { appUrl } from '../../lib/site'
 import { LinkQr } from './LinkQr'
 import { WhoCanSee } from './WhoCanSee'
 
@@ -232,7 +232,11 @@ function ShareLink({
           aria-label="Copy public link"
           style={NO_SHRINK}
         >
-          <CopiedIcon copied={copied} size="compact" icon={<Copy aria-hidden="true" size={tokens.iconSize.compact} />} />
+          <CopiedIcon
+            copied={copied}
+            size="compact"
+            icon={<Copy aria-hidden="true" size={tokens.iconSize.compact} />}
+          />
         </Button>
         <CopiedStatus copied={copied} />
       </div>

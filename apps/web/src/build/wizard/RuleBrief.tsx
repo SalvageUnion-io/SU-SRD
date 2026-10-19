@@ -1,9 +1,9 @@
 import type { CSSProperties, ReactNode } from 'react'
 import type { BookCite } from 'salvageunion-reference'
 import { formatCite } from 'salvageunion-reference'
+import { capsLabel } from '../../components/atoms/capsLabel'
 import { Box } from '../../components/containers/Box'
 import { tokens } from '../../components/index'
-import { capsLabel } from '../../components/atoms/capsLabel'
 
 /** Per-step rule metadata carried by each wizard's step table. */
 export type StepRule = {
@@ -44,7 +44,11 @@ export function RuleBrief({ rule, cite, className }: RuleBriefProps) {
   return (
     <Box as="section" label="The rule" className={className}>
       <p style={ruleStyle}>{rule}</p>
-      {cite && <p className={citeCaps} style={citeStyle}>{formatCite(cite)}</p>}
+      {cite && (
+        <p className={citeCaps} style={citeStyle}>
+          {formatCite(cite)}
+        </p>
+      )}
     </Box>
   )
 }

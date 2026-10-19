@@ -22,8 +22,8 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
-import { Button, Stat, tokens } from '../../components/index'
 import { capsLabel } from '../../components/atoms/capsLabel'
+import { Button, Stat, tokens } from '../../components/index'
 
 export type EconLozItem = {
   /** Stat label, e.g. 'Upkeep'. */
@@ -136,7 +136,11 @@ function EconLoz({ item }: { item: EconLozItem }) {
     <div style={LOZ}>
       {/* A label-first chip, as every stat reads; `full` is the reading rung. */}
       <Stat orientation="horizontal" label={item.label} value={item.value} max={item.max} />
-      {item.caption && <span className={CAPTION_CAPS} style={CAPTION}>{item.caption}</span>}
+      {item.caption && (
+        <span className={CAPTION_CAPS} style={CAPTION}>
+          {item.caption}
+        </span>
+      )}
     </div>
   )
 }

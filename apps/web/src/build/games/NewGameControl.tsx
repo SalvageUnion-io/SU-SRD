@@ -19,13 +19,10 @@
 
 import { useMutation, useQuery } from 'convex/react'
 import type { FunctionArgs } from 'convex/server'
+import { gamePath } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { useEffect, useState } from 'react'
-import { gamePath } from 'game-domain/entityKinds'
 import { api } from '../../../convex/_generated/api'
-import { useConnection } from '../../lib/connection/connectionContext'
-import { useServerAction } from '../../lib/connection/useServerAction'
-import { useGo } from '../../components/shared/useGo'
 import {
   Button,
   Field,
@@ -38,6 +35,9 @@ import {
   Text,
   tokens,
 } from '../../components/index'
+import { useGo } from '../../components/shared/useGo'
+import { useConnection } from '../../lib/connection/connectionContext'
+import { useServerAction } from '../../lib/connection/useServerAction'
 
 type TemplateId = FunctionArgs<typeof api.templates.createGame>['templateId']
 

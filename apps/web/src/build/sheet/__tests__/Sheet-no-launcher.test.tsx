@@ -10,7 +10,10 @@ import { beforeAll, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { mechFixture, pilotFixture } from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
-import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../../components/__tests__/mockEntityStore'
+import {
+  makeEntityLookupMock,
+  makeSoftLinkStoreMock,
+} from '../../../components/__tests__/mockEntityStore'
 import { Sheet } from '../Sheet'
 
 beforeAll(hydrateStores)

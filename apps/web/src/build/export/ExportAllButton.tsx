@@ -1,8 +1,8 @@
+import { Button, Message, Stack, toast } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { buildExportBundle } from '../../lib/export/buildExportBundle'
 import { downloadJson } from '../../lib/export/downloadJson'
 import { useEntityStore } from '../../stores/entityStore'
-import { Button, Message, Stack, toast } from '../../components/index'
 
 /**
  * "Export all" and its failure line. On an ink band (Shelves, the Roster,
@@ -28,11 +28,7 @@ export function ExportAllButton() {
 
   return (
     <Stack gap={4}>
-      <Button
-        size="compact"
-        disabled={busy}
-        onClick={() => void handleExportAll()}
-      >
+      <Button size="compact" disabled={busy} onClick={() => void handleExportAll()}>
         {busy ? 'Exporting…' : 'Export all'}
       </Button>
       <Message tone="bad">{error}</Message>

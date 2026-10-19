@@ -15,8 +15,8 @@
 import { describe, expect, it, mock } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
-import type { CrewNpcForm } from '../../../lib/wizard/crawlerFormState'
 import { must } from '../../../components/__tests__/must'
+import type { CrewNpcForm } from '../../../lib/wizard/crawlerFormState'
 import { CrawlerCrewStep } from '../CrawlerCrewStep'
 
 function crewedBays() {

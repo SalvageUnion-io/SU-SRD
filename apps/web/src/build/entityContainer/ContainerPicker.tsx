@@ -27,14 +27,7 @@ import {
   Select,
   tokens,
 } from '../../components/index'
-
-/**
- * A container as one string, `shelf` or `game:<id>`: a select option's value
- * and a list key. The pair (kind, id) is one decision, so it is one value.
- */
-export function serializeContainer(container: Container): string {
-  return container.kind === 'game' ? `game:${container.gameId}` : 'shelf'
-}
+import { serializeContainer } from './containerKey.model'
 
 /** One container on offer: what it is called and, optionally, a quieter hint (a role). */
 export type ContainerChoice = { container: Container; label: string; hint?: string }

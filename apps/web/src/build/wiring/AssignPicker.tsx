@@ -50,6 +50,15 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { parseCrawlerTechLevel, resolveChassisRef } from 'salvageunion-reference/rules'
+import {
+  Button,
+  DialogActions,
+  EmptyState,
+  Entity,
+  FieldError,
+  ModalShell,
+  RadioCardGroup,
+} from '../../components/index'
 import { color, font, fontSize, space } from '../../design/tokens'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { failureMessage } from '../../lib/connection/useServerAction'
@@ -61,15 +70,6 @@ import type { UnitReading } from '../../lib/units/unitModel'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { WritesBlockedOffline } from '../../stores/entityBackend'
 import { useEntityStore } from '../../stores/entityStore'
-import {
-  Button,
-  DialogActions,
-  EmptyState,
-  Entity,
-  FieldError,
-  ModalShell,
-  RadioCardGroup,
-} from '../../components/index'
 import type { SoftLinkStore } from './useSoftLinks'
 
 type Kind = EntityRef['type']

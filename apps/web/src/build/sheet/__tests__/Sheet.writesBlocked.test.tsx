@@ -12,11 +12,14 @@
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import type { Pilot } from 'game-domain/schemas/pilot'
-import type { ConnectionState } from '../../../lib/connection/connectionContext'
-import { ConnectionContext } from '../../../lib/connection/connectionContext'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
-import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../../components/__tests__/mockEntityStore'
+import {
+  makeEntityLookupMock,
+  makeSoftLinkStoreMock,
+} from '../../../components/__tests__/mockEntityStore'
+import type { ConnectionState } from '../../../lib/connection/connectionContext'
+import { ConnectionContext } from '../../../lib/connection/connectionContext'
 import { Sheet } from '../Sheet'
 
 beforeAll(hydrateStores)

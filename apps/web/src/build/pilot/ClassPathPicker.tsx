@@ -11,9 +11,17 @@
 
 import type { CSSProperties } from 'react'
 import type { RefClass } from 'salvageunion-reference'
+import {
+  Callout,
+  Entity,
+  RadioCardGroup,
+  ReferenceEntityCard,
+  Slab,
+  Stack,
+  tokens,
+} from '../../components/index'
 import type { ClassPathConsequence } from '../../lib/rules/classPath'
 import { classPathConsequence, classPathGroups } from '../../lib/rules/classPath'
-import { Callout, Entity, RadioCardGroup, ReferenceEntityCard, Slab, Stack, tokens } from '../../components/index'
 import '../../styles/build/wizard.css'
 import { capsLabel } from '../../components/atoms/capsLabel'
 
@@ -90,7 +98,11 @@ function OptionCard({
         cardClickLabel={note === undefined ? cls.name : `${cls.name}, ${note}`}
         onCardClick={onSelect}
       />
-      {note !== undefined && <p className={OPTION_NOTE_CAPS} style={OPTION_NOTE}>{note}</p>}
+      {note !== undefined && (
+        <p className={OPTION_NOTE_CAPS} style={OPTION_NOTE}>
+          {note}
+        </p>
+      )}
     </div>
   )
 }

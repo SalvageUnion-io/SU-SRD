@@ -9,7 +9,11 @@
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import { installConvexMocks, queryCalls, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import {
+  installConvexMocks,
+  queryCalls,
+  setQueryAnswers,
+} from '../../../components/__tests__/convexMock'
 
 const convexMocks = await installConvexMocks({
   convexClient: { mutation: async () => ({ updatedAt: 1 }) },

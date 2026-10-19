@@ -60,36 +60,32 @@ export function CrawlerTypeSelectStep({
       <Slab label="Crawler Types" count="Choose 1" countInk="inherit" />
       <RadioCardGroup label="Crawler type">
         <Grid min={TYPE_COLUMN} gap={16}>
-        {types.map((type) => {
-          const slots = crawlerWeaponSlots(type.mutations)
-          const spBonus = crawlerMaxSpBonus(type.mutations)
-          return (
-            <ReferenceEntityCard
-              key={type.id}
-              data={type}
-              size="compact"
-              selected={getEntitySlug(type) === selectedType}
-              selectionRole="radio"
-              cardClickLabel={type.name}
-              onCardClick={() => onSelect(getEntitySlug(type))}
-              hide={{ actions: true, choices: true }}
-              footMeta={[
-                { label: 'Weapon slots', value: String(slots) },
-                ...(spBonus > 0 ? [{ label: 'Max SP', value: `+${spBonus}` }] : []),
-              ]}
-            />
-          )
-        })}
+          {types.map((type) => {
+            const slots = crawlerWeaponSlots(type.mutations)
+            const spBonus = crawlerMaxSpBonus(type.mutations)
+            return (
+              <ReferenceEntityCard
+                key={type.id}
+                data={type}
+                size="compact"
+                selected={getEntitySlug(type) === selectedType}
+                selectionRole="radio"
+                cardClickLabel={type.name}
+                onCardClick={() => onSelect(getEntitySlug(type))}
+                hide={{ actions: true, choices: true }}
+                footMeta={[
+                  { label: 'Weapon slots', value: String(slots) },
+                  ...(spBonus > 0 ? [{ label: 'Max SP', value: `+${spBonus}` }] : []),
+                ]}
+              />
+            )
+          })}
         </Grid>
       </RadioCardGroup>
 
       {selected ? (
         <>
-          <Slab
-            label="Your Crawler Type"
-            count={selected.name}
-            countInk="inherit"
-          />
+          <Slab label="Your Crawler Type" count={selected.name} countInk="inherit" />
           <div className="su-wiz-stack su-wiz-stack--12" style={stepColumnStyle}>
             <ReferenceEntityCard data={selected} />
             {isAugmented && (

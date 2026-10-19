@@ -13,12 +13,12 @@
  */
 
 import { useRef, useState } from 'react'
+import { Button, FieldError, Stack, toast } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import type { MergeSummary } from '../../lib/export/mergeImport'
 import { mergeImport } from '../../lib/export/mergeImport'
 import { ImportRefused, parseImportBundle } from '../../lib/export/parseImportBundle'
 import { useEntityStore } from '../../stores/entityStore'
-import { Button, FieldError, Stack, toast } from '../../components/index'
 
 /** The line an import leaves behind: what came in, and what was skipped. */
 function summaryText(summary: MergeSummary): string {
@@ -95,11 +95,7 @@ export function ImportButton({ onResult }: ImportButtonProps = {}) {
 
   return (
     <Stack gap={4}>
-      <Button
-        size="compact"
-        disabled={busy}
-        onClick={handleClick}
-      >
+      <Button size="compact" disabled={busy} onClick={handleClick}>
         {busy ? 'Importing…' : 'Import'}
       </Button>
       {/* Hidden file input */}

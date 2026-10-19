@@ -62,10 +62,10 @@
  * the rules above. There is no tab-to-tab channel.
  */
 
+import { useQuery } from 'convex/react'
 import { containerOf } from 'game-domain/container'
 import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
 import type { MechPattern } from 'game-domain/schemas/pattern'
-import { useQuery } from 'convex/react'
 import { useEffect, useRef } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { ServedRow } from '../../lib/links/linkSync'

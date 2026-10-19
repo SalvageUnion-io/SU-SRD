@@ -38,11 +38,25 @@
  * NPCs are not yours to keep and do not belong here.
  */
 
-import type { MechPattern } from 'game-domain/schemas/pattern'
 import { useQuery } from 'convex/react'
+import type { MechPattern } from 'game-domain/schemas/pattern'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
+import type { HeaderMenuItem } from '../../components/index'
+import {
+  buttonVariants,
+  ChapterBand,
+  Grid,
+  HeaderMenu,
+  PageShell,
+  RosterSkeleton,
+  Select,
+  toast,
+} from '../../components/index'
+import { AppLink } from '../../components/shared/AppLink'
+import { useConfirm } from '../../components/shared/useConfirm'
+import { useGo } from '../../components/shared/useGo'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { copyForShelf, copyName } from '../../lib/copyEntity'
@@ -87,20 +101,6 @@ import { usePatternStore } from '../../stores/patternStore'
 import type { AssignableType } from '../../stores/types'
 import { ExportAllButton } from '../export/ExportAllButton'
 import { ImportButton } from '../export/ImportButton'
-import type { HeaderMenuItem } from '../../components/index'
-import {
-  buttonVariants,
-  ChapterBand,
-  Grid,
-  HeaderMenu,
-  PageShell,
-  RosterSkeleton,
-  Select,
-  toast,
-} from '../../components/index'
-import { AppLink } from '../../components/shared/AppLink'
-import { useConfirm } from '../../components/shared/useConfirm'
-import { useGo } from '../../components/shared/useGo'
 import { crawlerRailItems, mechRailItems, pilotRailItems, rowStats } from '../sheet/railStats.model'
 import type { MoveSubject } from './MoveToGameDialog'
 import { MoveToGameDialog } from './MoveToGameDialog'

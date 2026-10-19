@@ -21,6 +21,23 @@ import type { CSSProperties } from 'react'
 import { useMemo, useState } from 'react'
 import type { RefNPC } from 'salvageunion-reference'
 import { displayTitle, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
+import {
+  Button,
+  ConfirmDialog,
+  EmptyState,
+  Entity,
+  Field,
+  FieldError,
+  Input,
+  ModalShell,
+  RadioCardGroup,
+  SearchField,
+  Sel,
+  Select,
+  Textarea,
+  tokens,
+} from '../../components/index'
+import { WritesBlockedNotice } from '../../components/shared/WritesBlockedNotice'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { npcActionSlug } from '../../lib/npcs/npcModel'
 import { readReference } from '../../lib/readReference'
@@ -41,23 +58,6 @@ import {
   toggleNpcTrait,
 } from '../../lib/wizard/npcFormState'
 import { readWizardDraft, useWizardDraftSync, wizardDraftKey } from '../../lib/wizard/wizardDraft'
-import {
-  Button,
-  ConfirmDialog,
-  EmptyState,
-  Entity,
-  Field,
-  FieldError,
-  Input,
-  ModalShell,
-  RadioCardGroup,
-  SearchField,
-  Sel,
-  Select,
-  Textarea,
-  tokens,
-} from '../../components/index'
-import { WritesBlockedNotice } from '../../components/shared/WritesBlockedNotice'
 import { useWizardFlow } from '../wizard/useWizardFlow'
 import { WizShell } from '../wizard/WizShell'
 import { NpcCard } from './NpcCard'
@@ -202,7 +202,9 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
           <section style={COLUMN} aria-label={NPC_STEP_LABELS[step]}>
             {step !== 'template' && form.templateChosen && (
               <div style={ROW}>
-                <span className={CAPS_LABEL} style={CAPS}>Template</span>
+                <span className={CAPS_LABEL} style={CAPS}>
+                  Template
+                </span>
                 {/* Change is the template Token's last chip (C8, hard rule R6). */}
                 {template ? (
                   <Entity
@@ -254,7 +256,9 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
           </section>
 
           <section className="su-npc-preview" aria-label="Live preview">
-            <p className={CAPS_LABEL} style={CAPS}>Live preview · how it will look in your Hangar and in a Game</p>
+            <p className={CAPS_LABEL} style={CAPS}>
+              Live preview · how it will look in your Hangar and in a Game
+            </p>
             {preview}
             <p style={NOTE}>
               <strong>Yours, not the book&rsquo;s.</strong> A designed NPC keeps its
@@ -334,7 +338,9 @@ function TemplateStep({
           <li>
             <Sel selected={blankChosen} onToggle={onBlank} ariaLabel="Start blank" radio>
               <div style={blankChosen ? BLANK_TILE_CHOSEN : BLANK_TILE}>
-                <span className={CAPS_LABEL} style={CAPS}>Start blank</span>
+                <span className={CAPS_LABEL} style={CAPS}>
+                  Start blank
+                </span>
                 <span style={HINT}>No template. Set the stats and pick the actions yourself.</span>
               </div>
             </Sel>

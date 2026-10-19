@@ -24,11 +24,11 @@
 import type { LinkProps } from '@tanstack/react-router'
 import { useNavigate } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
-import type { CSSProperties } from 'react'
 import { gamePath } from 'game-domain/entityKinds'
+import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { Badge, tokens } from '../../components/index'
+import { useConnection } from '../../lib/connection/connectionContext'
 import type { ContainerChoice } from './ContainerPicker'
 import { ContainerPicker } from './ContainerPicker'
 

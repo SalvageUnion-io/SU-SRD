@@ -120,7 +120,6 @@
       "!.claude",
       "!**/node_modules",
       "!**/dist",
-      "!**/build",
       // `wrangler dev` writes its bundled Worker — plus the miniflare error
       // middleware it injects — into `.wrangler/tmp/`: generated JS nobody
       // wrote. Biome does NOT read `.gitignore` (there is no `vcs` block in

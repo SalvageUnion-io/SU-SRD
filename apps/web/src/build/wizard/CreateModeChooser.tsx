@@ -12,9 +12,9 @@
  */
 
 import type { CSSProperties } from 'react'
-import type { BlankCreateKind } from '../../lib/wizard/blankCreate'
 import { ChapterBand, ModeDoor, tokens } from '../../components/index'
 import { AppLink } from '../../components/shared/AppLink'
+import type { BlankCreateKind } from '../../lib/wizard/blankCreate'
 import { WizardGameChip } from './WizardGameChip'
 import '../../styles/build/wizard.css'
 import { capsLabel } from '../../components/atoms/capsLabel'

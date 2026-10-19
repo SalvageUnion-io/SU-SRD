@@ -20,10 +20,10 @@
 
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import { useState } from 'react'
+import { Button, ConfirmDialog } from '../../../components/index'
 import { useServerAction } from '../../../lib/connection/useServerAction'
 import { mechFromPattern } from '../../../lib/patterns/patterns'
 import { useEntityStore } from '../../../stores/entityStore'
-import { Button, ConfirmDialog } from '../../../components/index'
 
 type InstantiateFromPatternProps = {
   pattern: MechPattern

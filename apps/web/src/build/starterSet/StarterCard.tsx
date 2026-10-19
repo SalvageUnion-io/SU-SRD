@@ -15,8 +15,8 @@
  */
 
 import type { ReactNode } from 'react'
-import type { StarterKind } from '../../lib/starterSet/starterTemplates'
 import { Entity } from '../../components/index'
+import type { StarterKind } from '../../lib/starterSet/starterTemplates'
 import type { StarterBuild } from './starterShelves.model'
 
 type StarterCardProps = {

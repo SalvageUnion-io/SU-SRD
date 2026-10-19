@@ -16,12 +16,12 @@
 
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
+import { ChapterBand, PageHeading, Text, tokens } from '../../components/index'
+import { useConfirm } from '../../components/shared/useConfirm'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
-import { ChapterBand, PageHeading, Text, tokens } from '../../components/index'
 import type { SegmentKind } from '../roster/RosterColumn'
 import { RosterColumn, RosterGrid, RosterList, SegmentSwitch } from '../roster/RosterColumn'
-import { useConfirm } from '../../components/shared/useConfirm'
 import { CopyStarterMenu } from './CopyStarterMenu'
 import { StarterCard } from './StarterCard'
 import { starterShelves } from './starterShelves.model'
@@ -84,7 +84,7 @@ export function StarterSetRoster({ headingLevel = 'h2' }: StarterSetRosterProps)
                       kind={kind}
                       build={build}
                       controls={
-                        mode === "connected" ? (
+                        mode === 'connected' ? (
                           <CopyStarterMenu
                             kind={kind}
                             templateId={build.id}

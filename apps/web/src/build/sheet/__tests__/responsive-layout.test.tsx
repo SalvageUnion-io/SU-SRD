@@ -33,7 +33,10 @@ import {
   softLinkFixture,
 } from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
-import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../../components/__tests__/mockEntityStore'
+import {
+  makeEntityLookupMock,
+  makeSoftLinkStoreMock,
+} from '../../../components/__tests__/mockEntityStore'
 
 // Module scope, before the imports below — see `convexMock.ts`.
 const convexMocks = await installConvexMocks({ authReact: true })

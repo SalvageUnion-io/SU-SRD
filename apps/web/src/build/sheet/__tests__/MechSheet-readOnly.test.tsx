@@ -13,9 +13,9 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { makeScrapLot } from 'game-domain/schemas/cargoLot'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
-import type { useEntityStore } from '../../../stores/entityStore'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
+import type { useEntityStore } from '../../../stores/entityStore'
 import { MechSheet } from '../MechSheet'
 
 const fakeChassis = {

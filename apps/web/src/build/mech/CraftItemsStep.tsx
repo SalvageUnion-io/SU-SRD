@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationModule, isLegalCreationSystem } from 'salvageunion-reference/rules'
-import { maxAddableCopies } from '../../lib/rules/creation'
 import { EmptyState, MasonryColumns, ReferenceEntityCard, Slab } from '../../components/index'
+import { maxAddableCopies } from '../../lib/rules/creation'
 import '../../styles/build/wizard.css'
 import { fullWidthStyle } from '../wizard/wizardStyles.model'
 
@@ -50,11 +50,7 @@ export function CraftItemsStep({
 
   return (
     <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
-      <Slab
-        label={`Tech 1 ${noun}s`}
-        count="Duplicates allowed"
-        countInk="inherit"
-      />
+      <Slab label={`Tech 1 ${noun}s`} count="Duplicates allowed" countInk="inherit" />
       <MasonryColumns maxColumns={2}>
         {items.map((item) => {
           const name = item.name ?? item.id

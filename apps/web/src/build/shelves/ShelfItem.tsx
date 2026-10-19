@@ -19,11 +19,11 @@
  */
 
 import type { CSSProperties } from 'react'
-import type { ShelfChip, ShelfReading, ShelfRelation } from '../../lib/shelves/shelfItems'
-import type { UnitKind } from '../../lib/units/unitModel'
 import type { HeaderMenuItem } from '../../components/index'
 import { HeaderMenu, relation, Stat } from '../../components/index'
 import { UnitRow } from '../../components/shared/UnitRow'
+import type { ShelfChip, ShelfReading, ShelfRelation } from '../../lib/shelves/shelfItems'
+import type { UnitKind } from '../../lib/units/unitModel'
 
 const ITEM = { listStyle: 'none', minWidth: 0 } satisfies CSSProperties
 

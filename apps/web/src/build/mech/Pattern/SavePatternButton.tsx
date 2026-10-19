@@ -15,9 +15,17 @@
 
 import type { CargoLot } from 'game-domain/schemas/cargoLot'
 import { useState } from 'react'
+import {
+  Button,
+  DialogActions,
+  Field,
+  FieldError,
+  Input,
+  ModalShell,
+  toast,
+} from '../../../components/index'
 import { useServerAction } from '../../../lib/connection/useServerAction'
 import { usePatternStore } from '../../../stores/patternStore'
-import { Button, DialogActions, Field, FieldError, Input, ModalShell, toast } from '../../../components/index'
 import '../../../styles/build/wizard.css'
 import { dialogBodyStyle } from '../../wizard/wizardStyles.model'
 

@@ -2,6 +2,8 @@ import { MechSchema } from 'game-domain/schemas/mech'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { bookQuote, nameToSlug } from 'salvageunion-reference'
 import { computeMechCapacity, MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
+import { slotPips } from '../../components/atoms/pipRows'
+import { toast } from '../../components/index'
 import type { MechWizardStepId } from '../../lib/rules/creation'
 import {
   clampMechCreationDraft,
@@ -16,8 +18,6 @@ import {
 } from '../../lib/wizard/mechFormState'
 import { withMechPreselection } from '../../lib/wizard/preselect'
 import { readWizardDraft, useWizardDraftSync, wizardDraftKey } from '../../lib/wizard/wizardDraft'
-import { slotPips } from '../../components/atoms/pipRows'
-import { toast } from '../../components/index'
 import '../../styles/build/wizard.css'
 import { GainScrapStep } from '../wizard/GainScrapStep'
 import { MechFlavorStep } from '../wizard/MechFlavorStep'

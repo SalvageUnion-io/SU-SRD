@@ -14,6 +14,8 @@ import {
   isWeaponSystem,
   resolveSystemRef,
 } from 'salvageunion-reference/rules'
+import { slotPips } from '../../components/atoms/pipRows'
+import { toast, tokens } from '../../components/index'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { useMechs, usePilots } from '../../lib/entities'
 import type { CrawlerWizardStepId } from '../../lib/rules/creation'
@@ -30,8 +32,6 @@ import {
 } from '../../lib/wizard/crawlerFormState'
 import { withPreselection } from '../../lib/wizard/preselect'
 import { readWizardDraft, useWizardDraftSync, wizardDraftKey } from '../../lib/wizard/wizardDraft'
-import { slotPips } from '../../components/atoms/pipRows'
-import { toast, tokens } from '../../components/index'
 import { CrawlerStatsStep } from '../wizard/CrawlerStatsStep'
 import { CrawlerTypeSelectStep } from '../wizard/CrawlerTypeStep'
 import type { StepRule } from '../wizard/RuleBrief'

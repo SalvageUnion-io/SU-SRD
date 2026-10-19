@@ -21,18 +21,7 @@ import type { RefEntity } from 'salvageunion-reference'
 import { STAT_LABELS } from 'salvageunion-reference'
 import { api } from '../../../../convex/_generated/api'
 import type { Id } from '../../../../convex/_generated/dataModel'
-import { useConnection } from '../../../lib/connection/connectionContext'
-import { useServerAction } from '../../../lib/connection/useServerAction'
-import { useHydrateEntities, useMech } from '../../../lib/entities'
-import type { PatternVisibility } from '../../../lib/patterns/patterns'
-import {
-  asReferencePattern,
-  patternChassis,
-  patternFromMech,
-  patternLoadout,
-  slotsUsed,
-} from '../../../lib/patterns/patterns'
-import { usePatternStore } from '../../../stores/patternStore'
+import { capsLabel } from '../../../components/atoms/capsLabel'
 import type { SlabCount } from '../../../components/index'
 import {
   BreadcrumbTrail,
@@ -56,7 +45,18 @@ import {
 import { AppLink } from '../../../components/shared/AppLink'
 import { NotFoundPanel } from '../../../components/shared/RouteFallbacks'
 import { WritesBlockedNotice } from '../../../components/shared/WritesBlockedNotice'
-import { capsLabel } from '../../../components/atoms/capsLabel'
+import { useConnection } from '../../../lib/connection/connectionContext'
+import { useServerAction } from '../../../lib/connection/useServerAction'
+import { useHydrateEntities, useMech } from '../../../lib/entities'
+import type { PatternVisibility } from '../../../lib/patterns/patterns'
+import {
+  asReferencePattern,
+  patternChassis,
+  patternFromMech,
+  patternLoadout,
+  slotsUsed,
+} from '../../../lib/patterns/patterns'
+import { usePatternStore } from '../../../stores/patternStore'
 
 const PAGE = {
   backgroundColor: tokens.color.wkBg,
@@ -250,11 +250,7 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
 
       <Grid min="26rem" gap={32} style={COLUMNS}>
         <section style={COLUMN} aria-labelledby="pattern-saved">
-          <Slab
-            id="pattern-saved"
-            label="What gets saved"
-            count={`from your ${mech.name}`}
-          />
+          <Slab id="pattern-saved" label="What gets saved" count={`from your ${mech.name}`} />
           <Text variant="body">
             A pattern keeps the chassis and its loadout. Damage, Heat and cargo stay on the mech; a
             new mech built from the pattern starts fresh.
@@ -290,7 +286,9 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
           </Field>
 
           <fieldset style={FIELDSET}>
-            <legend className={LEGEND_CAPS} style={LEGEND}>Who can see it</legend>
+            <legend className={LEGEND_CAPS} style={LEGEND}>
+              Who can see it
+            </legend>
             <Radio
               stacked
               name="pattern-visibility"
@@ -340,7 +338,9 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
             )}
           </fieldset>
 
-          <span className={LEGEND_CAPS} style={LEGEND}>How it will look to others</span>
+          <span className={LEGEND_CAPS} style={LEGEND}>
+            How it will look to others
+          </span>
           {chassis && (
             <ReferenceEntityCard
               data={chassis}

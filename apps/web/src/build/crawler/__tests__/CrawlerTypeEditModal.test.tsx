@@ -14,11 +14,11 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Crawler } from 'game-domain/schemas/crawler'
-import { WIZARD_TXN } from '../../../stores/surfaceProvenance'
 import { crawlerFixture } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { openInSearcher, pickInSearcher } from '../../../components/__tests__/searcherPick'
 import { Toaster, toast } from '../../../components/index'
+import { WIZARD_TXN } from '../../../stores/surfaceProvenance'
 import { CrawlerTypeEditModal } from '../CrawlerTypeEditModal'
 
 const CRAWLER = crawlerFixture({

@@ -22,7 +22,12 @@ import type { ComponentProps, ReactNode } from 'react'
 import type { FunctionReference } from 'convex/server'
 import { getFunctionName } from 'convex/server'
 import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
-import { crawlerFixture, FIXTURE_NOW, mechFixture, pilotFixture } from '../../../components/__tests__/fixtures'
+import {
+  crawlerFixture,
+  FIXTURE_NOW,
+  mechFixture,
+  pilotFixture,
+} from '../../../components/__tests__/fixtures'
 
 let authed = true
 const serverWrites: { name: string; args: Record<string, unknown> }[] = []
@@ -78,7 +83,6 @@ afterEach(() => {
   // Process-global: a leaked signed-in state changes what later files exercise.
   setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
 })
-
 
 type MoveProps = Omit<ComponentProps<typeof MoveToContainerControl>, 'confirm'>
 

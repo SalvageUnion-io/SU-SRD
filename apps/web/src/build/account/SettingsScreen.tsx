@@ -2,8 +2,6 @@ import { useMutation, useQuery } from 'convex/react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useRef, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
-import { useConnection } from '../../lib/connection/connectionContext'
-import { useServerAction } from '../../lib/connection/useServerAction'
 import {
   Button,
   ChapterBand,
@@ -19,6 +17,8 @@ import {
   Text,
   tokens,
 } from '../../components/index'
+import { useConnection } from '../../lib/connection/connectionContext'
+import { useServerAction } from '../../lib/connection/useServerAction'
 import { SignInControl } from './SignInControl'
 
 /**

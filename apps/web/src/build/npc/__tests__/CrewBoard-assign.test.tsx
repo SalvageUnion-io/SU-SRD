@@ -11,10 +11,10 @@ import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:tes
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { ConvexError } from 'convex/values'
 import { useState } from 'react'
-import type { ConnectionState } from '../../../lib/connection/connectionContext'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import { crawlerFixture, npcFixture, softLinkFixture } from '../../../components/__tests__/fixtures'
+import type { ConnectionState } from '../../../lib/connection/connectionContext'
+import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 
 /** How the stub server answers a link write this test. */
 let linkWrite: 'ok' | 'defect' | 'refused' = 'ok'

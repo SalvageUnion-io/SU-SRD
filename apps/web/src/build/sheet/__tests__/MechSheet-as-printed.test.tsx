@@ -64,9 +64,9 @@ describe('MechSheet — patterns printed over their slots', () => {
       'Manic Miner, Salvage Union Starter Set, Parts Catalogue p.11'
     )
     // Its modules fit, so they carry no note.
-    expect(
-      must(slabChip('Modules')).closest('[data-chip-group]')?.parentElement?.textContent
-    ).toBe('Slots2/2')
+    expect(must(slabChip('Modules')).closest('[data-chip-group]')?.parentElement?.textContent).toBe(
+      'Slots2/2'
+    )
   })
 
   test('a loadout past the printed one is a plain over-slot count', () => {

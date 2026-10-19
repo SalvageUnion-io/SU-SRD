@@ -12,11 +12,11 @@ import {
   legalStartingPatterns,
   MECH_CREATION_SCRAP_CAP,
 } from 'salvageunion-reference/rules'
-import { chassisFitsCreationBudget } from '../../lib/rules/creation'
 import { MasonryColumns, ReferenceEntityCard, Sel, Slab, tokens } from '../../components/index'
+import { chassisFitsCreationBudget } from '../../lib/rules/creation'
 import '../../styles/build/wizard.css'
-import { fullWidthStyle, textSmStyle } from '../wizard/wizardStyles.model'
 import { capsLabel } from '../../components/atoms/capsLabel'
+import { fullWidthStyle, textSmStyle } from '../wizard/wizardStyles.model'
 
 const HINT = {
   ...textSmStyle,
@@ -184,14 +184,11 @@ export function MechChassisStep({
                 onToggle={() => onSelectPattern(pattern)}
               />
             ))}
-            <Sel
-              selected={isCustom}
-              onToggle={onSelectCustom}
-              ariaLabel="Custom build"
-              radio
-            >
+            <Sel selected={isCustom} onToggle={onSelectCustom} ariaLabel="Custom build" radio>
               <div style={CUSTOM_CARD}>
-                <p className={CUSTOM_TITLE_CAPS} style={CUSTOM_TITLE}>Custom build</p>
+                <p className={CUSTOM_TITLE_CAPS} style={CUSTOM_TITLE}>
+                  Custom build
+                </p>
                 <p style={CUSTOM_BODY}>
                   No prefill — craft your Systems and Modules by hand in the next steps.
                 </p>

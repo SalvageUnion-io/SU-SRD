@@ -14,9 +14,9 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
-import type { Visibility, VisibilityChoice } from '../../lib/sharing/visibility'
-import { Radio, tokens } from '../../components/index'
 import { capsLabel } from '../../components/atoms/capsLabel'
+import { Radio, tokens } from '../../components/index'
+import type { Visibility, VisibilityChoice } from '../../lib/sharing/visibility'
 
 const FIELDSET = {
   border: 0,
@@ -50,7 +50,9 @@ type WhoCanSeeProps = {
 export function WhoCanSee({ name, choices, value, onChange, disabled, children }: WhoCanSeeProps) {
   return (
     <fieldset style={FIELDSET} disabled={disabled || value === null}>
-      <legend className={LEGEND_CAPS} style={LEGEND}>Who can see it</legend>
+      <legend className={LEGEND_CAPS} style={LEGEND}>
+        Who can see it
+      </legend>
       {choices.map((choice) => (
         <Radio
           key={choice.value}

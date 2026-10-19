@@ -39,6 +39,22 @@ import { useReducer, useState } from 'react'
 import { plainTraitText, resultForTable, SalvageUnionReference } from 'salvageunion-reference'
 import type { Roll } from 'salvageunion-reference/rules'
 import { crawlerMaxSP, parseCrawlerTechLevel, resolvePool } from 'salvageunion-reference/rules'
+import { capsLabel } from '../../components/atoms/capsLabel'
+import {
+  Button,
+  Cluster,
+  DialogActions,
+  EmptyState,
+  Eyebrow,
+  FieldError,
+  ModalShell,
+  rollForTable,
+  Select,
+  Slab,
+  Stack,
+  Stat,
+  tokens,
+} from '../../components/index'
 import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { resolveCrawlerBay } from '../../lib/crawlerRefs'
 import type { DeteriorationEffect } from '../../lib/rules/crawlerEconomy'
@@ -59,21 +75,6 @@ import {
 } from '../../lib/rules/crawlerEconomy'
 import type { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_TXN } from '../../stores/surfaceProvenance'
-import {
-  Button,
-  Cluster,
-  DialogActions,
-  EmptyState,
-  Eyebrow,
-  FieldError,
-  ModalShell,
-  rollForTable,
-  Select,
-  Slab,
-  Stack,
-  Stat,
-  tokens,
-} from '../../components/index'
 import { freshEntity } from './controlPrimitives'
 import {
   INITIAL_UPKEEP_STATE,
@@ -82,7 +83,6 @@ import {
   tradeStep,
   upkeepReducer,
 } from './crawlerEconomyDialogState.model'
-import { capsLabel } from '../../components/atoms/capsLabel'
 
 const BODY = {
   display: 'flex',
@@ -428,7 +428,9 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
               </FieldError>
             )}
             <Cluster gap={8}>
-              <span className={CONTRIBUTE_LABEL_CAPS} style={CONTRIBUTE_LABEL}>Contribute scrap (Tech {tl}+)</span>
+              <span className={CONTRIBUTE_LABEL_CAPS} style={CONTRIBUTE_LABEL}>
+                Contribute scrap (Tech {tl}+)
+              </span>
               <Stat
                 orientation="horizontal"
                 size="compact"
@@ -548,10 +550,7 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
         {gate.operational && (
           <>
             <div>
-              <Slab
-                label="Trade Scrap"
-                count="fixed equal-value rates · no bartering"
-              />
+              <Slab label="Trade Scrap" count="fixed equal-value rates · no bartering" />
               <div style={PICKERS}>
                 <Eyebrow as="label" tone="ink" htmlFor="trade-from-tl" style={PICKER_LABEL}>
                   From

@@ -20,12 +20,12 @@
 import { moveTo } from 'game-domain/container'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
+import { toast } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import type { StepGateResult } from '../../lib/rules/creation'
 import { clearWizardDraft } from '../../lib/wizard/wizardDraft'
 import { useEntityStore } from '../../stores/entityStore'
 import type { AssignableType, CreateInput } from '../../stores/types'
-import { toast } from '../../components/index'
 import { OffRulesEscape } from './OffRulesEscape'
 
 /**

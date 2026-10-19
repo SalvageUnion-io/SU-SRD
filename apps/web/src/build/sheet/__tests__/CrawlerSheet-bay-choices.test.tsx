@@ -28,10 +28,10 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { RefCrawlerBay } from 'salvageunion-reference'
 import { patchModelRows } from '../../../../test/patchModel'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { expandCards } from '../../../components/__tests__/expandCards'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
+import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { CrawlerSheet } from '../CrawlerSheet'
 
 // ---------------------------------------------------------------------------

@@ -36,7 +36,12 @@ type OffRulesEscapeProps = {
 
 export function OffRulesEscape({ onEscape }: OffRulesEscapeProps) {
   return (
-    <button type="button" onClick={onEscape} className={cn('su-wiz-off-rules', escapeCaps)} style={escapeStyle}>
+    <button
+      type="button"
+      onClick={onEscape}
+      className={cn('su-wiz-off-rules', escapeCaps)}
+      style={escapeStyle}
+    >
       Off-rules build? Build it on the Live Sheet →
     </button>
   )

@@ -2,10 +2,10 @@ import { useAuthActions } from '@convex-dev/auth/react'
 import { useNavigate } from '@tanstack/react-router'
 import type { CSSProperties } from 'react'
 import { useEffect, useRef } from 'react'
+import { Text } from '../../components/index'
 import { returnTo } from '../../lib/account/returnTo'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { captureException } from '../../lib/observability'
-import { Text } from '../../components/index'
 import { useSignOut } from './useSignOut'
 
 /**

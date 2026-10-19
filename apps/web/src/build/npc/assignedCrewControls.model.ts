@@ -4,11 +4,11 @@
  * controls, never a line under it.
  */
 
+import type { ReferenceEntityControl } from '../../components/index'
+import { toast } from '../../components/index'
 import { appPath } from '../../lib/appBase'
 import { runWrite } from '../../lib/runWrite'
 import { useEntityStore } from '../../stores/entityStore'
-import type { ReferenceEntityControl } from '../../components/index'
-import { toast } from '../../components/index'
 
 /**
  * Take the link off a crew slot. No confirm: it is reversible bookkeeping, and

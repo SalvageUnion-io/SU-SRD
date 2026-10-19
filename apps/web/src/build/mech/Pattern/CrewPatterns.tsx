@@ -7,14 +7,14 @@
  * ask the server.
  */
 
-import { MechPatternSchema } from 'game-domain/schemas/pattern'
 import { useQuery } from 'convex/react'
+import { MechPatternSchema } from 'game-domain/schemas/pattern'
 import type { CSSProperties } from 'react'
 import { api } from '../../../../convex/_generated/api'
-import { useConnection } from '../../../lib/connection/connectionContext'
-import { asReferencePattern, patternChassis, patternHref } from '../../../lib/patterns/patterns'
 import { Entity, quotePatternName, Slab, tokens } from '../../../components/index'
 import { AppLink } from '../../../components/shared/AppLink'
+import { useConnection } from '../../../lib/connection/connectionContext'
+import { asReferencePattern, patternChassis, patternHref } from '../../../lib/patterns/patterns'
 
 const LIST = {
   display: 'grid',

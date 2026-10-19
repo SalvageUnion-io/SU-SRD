@@ -35,7 +35,10 @@ import {
   softLinkFixture,
 } from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
-import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../../components/__tests__/mockEntityStore'
+import {
+  makeEntityLookupMock,
+  makeSoftLinkStoreMock,
+} from '../../../components/__tests__/mockEntityStore'
 import { InlineEditField } from '../../../components/index'
 import { Sheet } from '../Sheet'
 

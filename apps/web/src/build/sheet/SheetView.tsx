@@ -32,19 +32,19 @@
  * `Route` (`routes/__tests__/routeExports.test.ts`).
  */
 
-import { PRODUCT } from 'game-domain/product'
 import { useRouter } from '@tanstack/react-router'
+import { useQuery } from 'convex/react'
 import { containerOf } from 'game-domain/container'
 import type { SheetKind } from 'game-domain/entityKinds'
 import { gamePath } from 'game-domain/entityKinds'
-import { useQuery } from 'convex/react'
+import { PRODUCT } from 'game-domain/product'
 import { useEffect, useMemo } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
+import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { areaTitle } from '../../lib/pageTitle'
 import { useEntityStore } from '../../stores/entityStore'
-import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
 import type { EntityLookup } from './composition.model'
 import type { GameListing } from './readOnlySheetStore.model'
 import { makeReadOnlySheetStore, sheetDataFromListing } from './readOnlySheetStore.model'

@@ -11,11 +11,11 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
  * recorded through the `useMutation` override.
  */
 
+import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import { APP_BASE } from '../../../lib/appBase'
 import type { ConnectionState } from '../../../lib/connection/connectionContext'
 import type { ShareKind } from '../../../lib/sharing/visibility'
 import { pageOrigin } from '../../../lib/site'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 
 const mutations: unknown[] = []
 

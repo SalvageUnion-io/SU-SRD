@@ -22,11 +22,11 @@
 
 import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties } from 'react'
+import { capsLabel } from '../../components/atoms/capsLabel'
+import { ChapterBand, Slab, Stack, StartHere, tokens } from '../../components/index'
 import { SCRIPT_FONT } from '../../lib/scriptFont'
 import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
-import { ChapterBand, Slab, Stack, StartHere, tokens } from '../../components/index'
 import { StarterSetGrid } from '../starterSet/StarterSetGrid'
-import { capsLabel } from '../../components/atoms/capsLabel'
 
 /** The width the band's notch and the content under it share. */
 const MEASURE = '75rem'
@@ -82,7 +82,9 @@ export function FrontDoor() {
         aside={
           <figure className="su-front-door__quote">
             <blockquote style={QUOTE}>“{PRODUCT.tagline}”</blockquote>
-            <figcaption className={KICKER_CAPS} style={QUOTE_BY}>— {PRODUCT.taglineBy}</figcaption>
+            <figcaption className={KICKER_CAPS} style={QUOTE_BY}>
+              — {PRODUCT.taglineBy}
+            </figcaption>
           </figure>
         }
       >

@@ -15,9 +15,15 @@
 import type { SheetKind } from 'game-domain/entityKinds'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import { color, iconSize, space } from '../../design/tokens'
-import { buttonVariants, EmptyState, Segmented, SegmentedOption, Slab } from '../../components/index'
+import {
+  buttonVariants,
+  EmptyState,
+  Segmented,
+  SegmentedOption,
+  Slab,
+} from '../../components/index'
 import { AppLink } from '../../components/shared/AppLink'
+import { color, iconSize, space } from '../../design/tokens'
 
 export type SegmentKind = SheetKind
 

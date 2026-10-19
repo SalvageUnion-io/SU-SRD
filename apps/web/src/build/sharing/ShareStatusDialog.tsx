@@ -31,10 +31,10 @@
  */
 
 import type { CSSProperties } from 'react'
+import { ModalShell, tokens } from '../../components/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import type { ShareKind } from '../../lib/sharing/visibility'
 import { SignInControl } from '../account/SignInControl'
-import { ModalShell, tokens } from '../../components/index'
 import { ShareSettings } from './ShareSettings'
 
 type ShareStatusDialogProps = {

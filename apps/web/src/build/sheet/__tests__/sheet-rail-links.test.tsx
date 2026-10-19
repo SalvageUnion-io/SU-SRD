@@ -21,7 +21,6 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { SoftLink } from 'game-domain/schemas/softLink'
-import { useEntityStore } from '../../../stores/entityStore'
 import {
   crawlerFixture,
   mechFixture,
@@ -34,6 +33,7 @@ import {
   makeEntityStoreMock,
   makeSoftLinkStoreMock,
 } from '../../../components/__tests__/mockEntityStore'
+import { useEntityStore } from '../../../stores/entityStore'
 import { Sheet } from '../Sheet'
 
 // Each, not All: the afterEach below un-hydrates the live store.

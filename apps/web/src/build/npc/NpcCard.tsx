@@ -13,9 +13,9 @@
  */
 
 import type { ComponentProps, CSSProperties } from 'react'
+import { EntityExternalLinkProvider, ReferenceEntityCard, tokens } from '../../components/index'
 import type { NpcView } from '../../lib/npcs/npcModel'
 import { npcAsReferenceEntity, npcIdentityLine, npcKicker } from '../../lib/npcs/npcModel'
-import { EntityExternalLinkProvider, ReferenceEntityCard, tokens } from '../../components/index'
 
 const IDENTITY_LINE = {
   color: tokens.color.ink2,

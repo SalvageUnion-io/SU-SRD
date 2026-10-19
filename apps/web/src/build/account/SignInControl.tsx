@@ -1,6 +1,6 @@
 import { useAuthActions } from '@convex-dev/auth/react'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { Button, cn } from '../../components/index'
+import { useConnection } from '../../lib/connection/connectionContext'
 import { useSignOut } from './useSignOut'
 
 /**

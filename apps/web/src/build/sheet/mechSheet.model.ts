@@ -25,10 +25,10 @@ import {
   resolveGauge,
   resolvePool,
 } from 'salvageunion-reference/rules'
-import { useCargo } from '../../lib/cargo/useCargo'
-import type { useEntityStore } from '../../stores/entityStore'
 import type { ProvenanceLine } from '../../components/index'
 import { linesFromBreakdown } from '../../components/index'
+import { useCargo } from '../../lib/cargo/useCargo'
+import type { useEntityStore } from '../../stores/entityStore'
 
 /** One chassis stat as the strip prints it: the numeral and its full name. */
 type ChassisStat = { key: string; label: string; value: string; group: StatGroup }

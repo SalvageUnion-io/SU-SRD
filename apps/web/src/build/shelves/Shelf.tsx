@@ -52,14 +52,7 @@ type ShelfProps = {
 export function Shelf({ title, id, aside, action, note, empty, children, isEmpty }: ShelfProps) {
   return (
     <section aria-labelledby={id} style={SECTION}>
-      <Slab
-        as="h2"
-        id={id}
-        label={title}
-        count={aside}
-        countAt="label"
-        actions={action}
-      />
+      <Slab as="h2" id={id} label={title} count={aside} countAt="label" actions={action} />
       {note && (
         <Text variant="hint" style={NOTE}>
           {note}

@@ -14,12 +14,6 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { CSSProperties } from 'react'
 import { useEffect, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
-import { useServerAction } from '../../lib/connection/useServerAction'
-import { resolveCrawlerType } from '../../lib/crawlerRefs'
-import { applyCrawlerCrewAndTypeEdit } from '../../lib/wizard/applyCrawlerEdit'
-import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
-import { EMPTY_CRAWLER_FORM_STATE } from '../../lib/wizard/crawlerFormState'
-import type { EntityState } from '../../stores/entityStore'
 import {
   Button,
   ConfirmDialog,
@@ -28,6 +22,12 @@ import {
   toast,
   tokens,
 } from '../../components/index'
+import { useServerAction } from '../../lib/connection/useServerAction'
+import { resolveCrawlerType } from '../../lib/crawlerRefs'
+import { applyCrawlerCrewAndTypeEdit } from '../../lib/wizard/applyCrawlerEdit'
+import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
+import { EMPTY_CRAWLER_FORM_STATE } from '../../lib/wizard/crawlerFormState'
+import type { EntityState } from '../../stores/entityStore'
 import '../../styles/build/wizard.css'
 
 /** The confirm dialog's consequence copy. */

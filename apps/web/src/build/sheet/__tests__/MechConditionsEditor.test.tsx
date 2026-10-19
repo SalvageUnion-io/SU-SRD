@@ -10,10 +10,10 @@
 import { describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Mech } from 'game-domain/schemas/mech'
-import type { useEntityStore } from '../../../stores/entityStore'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { must } from '../../../components/__tests__/must'
+import type { useEntityStore } from '../../../stores/entityStore'
 import { MechConditionsEditor } from '../MechConditionsEditor'
 
 function makeMech(overrides: Partial<Mech>): Mech {

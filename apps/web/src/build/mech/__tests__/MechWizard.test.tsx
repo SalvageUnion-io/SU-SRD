@@ -15,10 +15,10 @@ import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { legalStartingPatterns, MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
+import { must } from '../../../components/__tests__/must'
 import { resetStores } from '../../../stores/__tests__/resetStores'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { useEntityStore } from '../../../stores/entityStore'
-import { must } from '../../../components/__tests__/must'
 import { MechWizard } from '../MechWizard'
 
 // Building and editing need an account (ADR-034 as amended), so these writes run signed in.

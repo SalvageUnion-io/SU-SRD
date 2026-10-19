@@ -2,10 +2,10 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { RefCrawler, RefEntity } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
+import { Field, navigateControl, ReferenceEntityCard, tokens } from '../../components/index'
 import type { ResolvedNpc } from '../../lib/crawlerRefs'
 import { findNpcChoiceByName } from '../../lib/crawlerRefs'
 import type { CrawlerWizardFormState, CrewNpcForm } from '../../lib/wizard/crawlerFormState'
-import { Field, navigateControl, ReferenceEntityCard, tokens } from '../../components/index'
 import '../../styles/build/wizard.css'
 
 /** The step's column, capped at 48rem. */

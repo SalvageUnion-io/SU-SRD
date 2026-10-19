@@ -8,9 +8,9 @@ import { Check } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import type { RefEntity } from 'salvageunion-reference'
 import { displayTitle, SalvageUnionReference } from 'salvageunion-reference'
+import { Entity, Toggle, tokens, useDetailModal } from '../../components/index'
 import { npcActionName, resolveNpcAction } from '../../lib/npcs/npcModel'
 import { readReference } from '../../lib/readReference'
-import { Entity, Toggle, tokens, useDetailModal } from '../../components/index'
 import { HINT } from './npcStyles.model'
 
 const PICK_ROW = {

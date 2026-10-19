@@ -6,9 +6,9 @@
 
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import type { ConnectionState } from '../../../lib/connection/connectionContext'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 
 const writes: unknown[] = []
 
@@ -82,9 +82,9 @@ describe('the template step', () => {
     expect(screen.queryAllByRole('checkbox')).toHaveLength(0)
     expect(screen.queryByText('Selected')).toBeNull()
     await pick('Start from Veteran')
-    expect(screen.getByRole('radio', { name: 'Start from Veteran' }).getAttribute('aria-checked')).toBe(
-      'true'
-    )
+    expect(
+      screen.getByRole('radio', { name: 'Start from Veteran' }).getAttribute('aria-checked')
+    ).toBe('true')
     expect(screen.getAllByText('Selected')).toHaveLength(1)
     await pick('Start blank')
     expect(screen.getByRole('radio', { name: 'Start blank' }).getAttribute('aria-checked')).toBe(
@@ -107,9 +107,15 @@ describe('the template step', () => {
     expect(screen.getByLabelText(/Hit points/)).toHaveProperty('value', '9')
     await click('Next · Actions & traits →')
     expect(
-      screen.getByRole('button', { name: 'Carry Green Laser Rifle (Veteran)' }).getAttribute('aria-pressed')).toBe('true')
+      screen
+        .getByRole('button', { name: 'Carry Green Laser Rifle (Veteran)' })
+        .getAttribute('aria-pressed')
+    ).toBe('true')
     expect(
-      screen.getByRole('button', { name: 'Carry Portable Comms Unit (NPC)' }).getAttribute('aria-pressed')).toBe('true')
+      screen
+        .getByRole('button', { name: 'Carry Portable Comms Unit (NPC)' })
+        .getAttribute('aria-pressed')
+    ).toBe('true')
   })
 })
 

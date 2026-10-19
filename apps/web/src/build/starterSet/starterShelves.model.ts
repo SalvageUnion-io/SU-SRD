@@ -9,21 +9,17 @@
 
 import type { Photo } from 'game-domain/schemas/photo'
 import { photoUrl } from 'game-domain/schemas/photo'
-import {
-  STARTER_CRAWLERS,
-  STARTER_MECHS,
-  STARTER_PILOTS,
-} from 'game-domain/starterSet/starterSet'
+import { STARTER_CRAWLERS, STARTER_MECHS, STARTER_PILOTS } from 'game-domain/starterSet/starterSet'
 import type { RefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
+import type { EntityRowModel, TagItem } from '../../components/index'
+import { relation } from '../../components/index'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { readReference } from '../../lib/readReference'
 import type { StarterKind } from '../../lib/starterSet/starterTemplates'
 import type { UnitReading } from '../../lib/units/unitModel'
 import { unitRowModel } from '../../lib/units/unitModel'
-import type { EntityRowModel, TagItem } from '../../components/index'
-import { relation } from '../../components/index'
 import { crawlerStats, mechChassisStats, pilotStats } from '../roster/rowStats.model'
 
 /**

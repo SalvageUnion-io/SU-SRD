@@ -14,10 +14,15 @@ import { afterAll, afterEach, beforeEach, describe, expect, spyOn, test } from '
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
 import type { MechPattern } from 'game-domain/schemas/pattern'
+import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import {
+  crawlerFixture,
+  FIXTURE_NOW,
+  mechFixture,
+  pilotFixture,
+} from '../../../components/__tests__/fixtures'
 import type { ConnectionState } from '../../../lib/connection/connectionContext'
 import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
-import { crawlerFixture, FIXTURE_NOW, mechFixture, pilotFixture } from '../../../components/__tests__/fixtures'
 
 // Module scope, before the imports below — see `convexMock.ts`.
 const convexMocks = await installConvexMocks({

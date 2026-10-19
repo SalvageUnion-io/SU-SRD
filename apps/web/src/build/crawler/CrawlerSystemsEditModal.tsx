@@ -18,9 +18,9 @@ import {
   parseCrawlerTechLevel,
   resolveSystemRef,
 } from 'salvageunion-reference/rules'
+import { EntitySearcher, ModalShell } from '../../components/index'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { craftableAtTl } from '../../lib/rules/crafting'
-import { EntitySearcher, ModalShell } from '../../components/index'
 
 type CrawlerSystemsEditModalProps = {
   open: boolean

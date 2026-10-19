@@ -10,6 +10,7 @@ import {
   PILOT_CREATION_ABILITY_PICKS,
   PILOT_CREATION_EQUIPMENT_PICKS,
 } from 'salvageunion-reference/rules'
+import { toast } from '../../components/index'
 import type { PilotWizardStepId } from '../../lib/rules/creation'
 import { clampPilotCreationDraft, pilotCreationStepGate } from '../../lib/rules/creation'
 import { pilotInventoryCapacity, pilotInventoryUsed } from '../../lib/rules/pilotInventory'
@@ -17,7 +18,6 @@ import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
 import { EMPTY_PILOT_FORM_STATE, pilotFormToCreateInput } from '../../lib/wizard/pilotFormState'
 import { withPreselection } from '../../lib/wizard/preselect'
 import { readWizardDraft, useWizardDraftSync, wizardDraftKey } from '../../lib/wizard/wizardDraft'
-import { toast } from '../../components/index'
 import { BackgroundStep } from '../wizard/BackgroundStep'
 import { CallsignStep } from '../wizard/CallsignStep'
 import { ClassAbilityStep } from '../wizard/ClassAbilityStep'

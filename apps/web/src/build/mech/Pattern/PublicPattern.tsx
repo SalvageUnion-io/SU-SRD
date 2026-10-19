@@ -27,23 +27,7 @@ import {
   getChassisAbilities,
   getEntitySlug,
 } from 'salvageunion-reference'
-import { appPath } from '../../../lib/appBase'
-import { useConnection } from '../../../lib/connection/connectionContext'
-import { serverMessage } from '../../../lib/connection/serverError'
-import { entityHref, itemHref } from '../../../lib/entityHref'
-import { formatDay } from '../../../lib/formatDate'
-import type { PatternVisibility } from '../../../lib/patterns/patterns'
-import {
-  mechFromPattern,
-  patternChassis,
-  patternCopy,
-  patternHref,
-  patternLoadout,
-  slotsUsed,
-} from '../../../lib/patterns/patterns'
-import { useEntityStore } from '../../../stores/entityStore'
-import { usePatternStore } from '../../../stores/patternStore'
-import { SignInControl } from '../../account/SignInControl'
+import { capsLabel } from '../../../components/atoms/capsLabel'
 import {
   Button,
   ChapterBand,
@@ -63,8 +47,24 @@ import {
   UserMadeStamp,
 } from '../../../components/index'
 import { EntityPhoto } from '../../../components/shared/EntityPhoto'
+import { appPath } from '../../../lib/appBase'
+import { useConnection } from '../../../lib/connection/connectionContext'
+import { serverMessage } from '../../../lib/connection/serverError'
+import { entityHref, itemHref } from '../../../lib/entityHref'
+import { formatDay } from '../../../lib/formatDate'
+import type { PatternVisibility } from '../../../lib/patterns/patterns'
+import {
+  mechFromPattern,
+  patternChassis,
+  patternCopy,
+  patternHref,
+  patternLoadout,
+  slotsUsed,
+} from '../../../lib/patterns/patterns'
+import { useEntityStore } from '../../../stores/entityStore'
+import { usePatternStore } from '../../../stores/patternStore'
+import { SignInControl } from '../../account/SignInControl'
 import { ShareStatusDialog } from '../../sharing/ShareStatusDialog'
-import { capsLabel } from '../../../components/atoms/capsLabel'
 
 /** `publicSheet.pattern`'s answer, its body parsed. */
 export type PublicPatternAnswer = {
@@ -336,7 +336,9 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
             )}
             {pattern.notes && (
               <figure style={NOTES}>
-                <figcaption className={NOTES_LABEL_CAPS} style={NOTES_LABEL}>Maker&rsquo;s notes</figcaption>
+                <figcaption className={NOTES_LABEL_CAPS} style={NOTES_LABEL}>
+                  Maker&rsquo;s notes
+                </figcaption>
                 <p style={NOTES_TEXT}>{pattern.notes}</p>
               </figure>
             )}

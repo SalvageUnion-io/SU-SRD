@@ -19,10 +19,10 @@
 
 import { useQuery } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
+import { ChapterBand, Tab, TabList, TabPanel, Tabs, tokens } from '../../components/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { useEntityStore } from '../../stores/entityStore'
-import { ChapterBand, Tab, TabList, TabPanel, Tabs, tokens } from '../../components/index'
 import { AnyNpcDesigner } from './AnyNpcDesigner'
 import { CrewBoard } from './CrewBoard'
 import { EYEBROW, EYEBROW_LABEL, PAGE } from './npcStyles.model'
@@ -76,7 +76,11 @@ export function NpcDesignerPage({
           // not set in ChapterBand, so every other crawler band keeps its tone.
           fill={crew ? tokens.color.crawlerBand : undefined}
           measure="80rem"
-          eyebrow={<p className={EYEBROW_LABEL} style={EYEBROW}>{eyebrow}</p>}
+          eyebrow={
+            <p className={EYEBROW_LABEL} style={EYEBROW}>
+              {eyebrow}
+            </p>
+          }
           aside={
             <TabList label="What to design">
               <Tab value="any">Any NPC</Tab>
