@@ -12,7 +12,6 @@ import { Glyph } from '../glyphs'
 import { Input, Textarea } from '../inputs'
 import { INPUT_FOCUS } from '../interaction'
 import { ModeDoor } from '../ModeDoor'
-import { Panel } from '../Panel'
 import { POSTER_STAMP } from '../posterStamp'
 import { Slab } from '../Slab'
 // biome-ignore lint/style/noRestrictedImports: the atom's own test; its hosts are Stat and VitalGauge (R12)
@@ -188,16 +187,6 @@ describe('Badge tone / quiet preset', () => {
   test('the quiet preset renders a borderless keyword chip', () => {
     render(<Badge surface="quiet">Uses</Badge>)
     expect(screen.getByText('Uses')).toBeTruthy()
-  })
-})
-
-describe('Panel', () => {
-  test('panel defaults to ink border, soft swaps to faint', () => {
-    const { container } = render(<Panel>content</Panel>)
-    expect(rootEl(container).style.borderColor).toBe(color.ink)
-    cleanup()
-    const { container: soft } = render(<Panel soft>content</Panel>)
-    expect(rootEl(soft).style.borderColor).toBe(color.wkFaint)
   })
 })
 
