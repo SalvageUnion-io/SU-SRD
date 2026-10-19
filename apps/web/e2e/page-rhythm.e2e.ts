@@ -11,7 +11,7 @@ import { expect, test } from './fixtures'
  * heading one sits one 12px gap from the next, and the stat column's value
  * cells wear a 1px frame and its labels 14px type.
  *
- * Short and long SRD Pages, and the app's Page (the detail dialog) opened from
+ * Short and long SRD Pages, a class page, and the app's Page (the detail dialog) opened from
  * a Starter Set sheet, each at R0's page and phone widths (`DESIGN_VIEWPORTS`).
  * There is no allowlist: every finding fails.
  */
@@ -25,6 +25,8 @@ const PAGES = {
     '/bio-titans/tyrant/',
     '/drones/pest-drone/',
   ],
+  // A class page lays its trees and paths out on its own (`ClassAbilityTree`).
+  class: ['/classes/hacker/'],
 }
 
 /** The app's Page: a sheet's Token opens its entity's Page in the detail dialog. */
@@ -41,7 +43,7 @@ for (const [width, viewport] of Object.entries(DESIGN_VIEWPORTS)) {
   test.describe(`at ${width} width`, () => {
     test.use({ viewport })
 
-    test('a short and a long SRD Page keep one rhythm', async ({ page }) => {
+    test('each kind of SRD Page keeps one rhythm', async ({ page }) => {
       test.setTimeout(5 * 60_000)
       const failures: string[] = []
       for (const [length, paths] of Object.entries(PAGES)) {

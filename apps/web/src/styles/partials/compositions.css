@@ -107,7 +107,7 @@
 .su-ability-track {
   /* The stem: its weight, the gap it bridges, and where it runs (under a
      Row's numeral: the head's inset plus half the numeral). */
-  --su-track-gap: var(--space-14);
+  --su-track-gap: var(--space-12);
   --su-track-stem: var(--space-10);
   --su-track-stem-x: 1.15rem;
   display: flex;
