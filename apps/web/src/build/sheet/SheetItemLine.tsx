@@ -11,7 +11,7 @@
  *     item has uses;
  *   - `actions`: the caller's own (a mech item's Repair, an equipment's
  *     Details), each at the same height;
- *   - Remove: a square ✕.
+ *   - Remove: a square ✕ (`SheetRemoveButton`, the sheet's one remove control).
  *
  * A mech's Systems and Modules (`MechItemToken`), a pilot's equipment
  * (`PilotEquipmentItem`) and a pilot's abilities (`PilotAbilityItem`, which
@@ -106,16 +106,25 @@ export function SheetItemLine({
         </>
       )}
       {actions}
-      {onRemove && (
-        <Button
-          variant="pencil"
-          className="su-sheet-item__ctl su-sheet-item__ctl--square"
-          aria-label={`Remove ${name}`}
-          onClick={onRemove}
-        >
-          <X aria-hidden="true" size={tokens.iconSize.compact} />
-        </Button>
-      )}
+      {onRemove && <SheetRemoveButton name={name} onRemove={onRemove} />}
     </div>
+  )
+}
+
+/**
+ * The Live Sheet's one remove control (hard rule R11): a square ✕ at the sheet
+ * control's height, named "Remove <name>". Every sheet item, unknown item,
+ * inventory entry and mounted weapon removes through it, Edit only.
+ */
+export function SheetRemoveButton({ name, onRemove }: { name: string; onRemove: () => void }) {
+  return (
+    <Button
+      variant="pencil"
+      className="su-sheet-item__ctl su-sheet-item__ctl--square"
+      aria-label={`Remove ${name}`}
+      onClick={onRemove}
+    >
+      <X aria-hidden="true" size={tokens.iconSize.compact} />
+    </Button>
   )
 }

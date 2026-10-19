@@ -2,53 +2,6 @@
 
 /* — PilotSheet — */
 
-/* The region grid: one column, then the wide/narrow pair from the sheet
-   body's own 5xl (the `<section>` is the container). */
-.su-sheet-pilot-regions {
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-}
-
-/* A column wrapper is `display: contents` below 5xl, so its sections are items
-   of the one grid and `order` can lift the vitals above the abilities. */
-.su-sheet-pilot-column {
-  display: contents;
-}
-
-.su-sheet-pilot-order-1 {
-  order: 1;
-}
-
-.su-sheet-pilot-order-2 {
-  order: 2;
-}
-
-@container (width >= 64rem) {
-  .su-sheet-pilot-regions {
-    grid-template-columns: minmax(0, 1fr) 300px;
-  }
-
-  .su-sheet-pilot-column {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-24);
-    min-width: 0;
-  }
-
-  .su-sheet-pilot-order-1,
-  .su-sheet-pilot-order-2 {
-    order: 0;
-  }
-}
-
-/* The Vitals rows: a rule in the deep tone between each pair. */
-.su-sheet-pilot-vitals > * + * {
-  border-color: color-mix(in srgb, var(--tone-deep) 40%, transparent);
-  border-style: solid;
-  border-top-width: var(--bw-hairline);
-  margin-top: var(--space-14);
-  padding-top: var(--space-14);
-}
-
 /* `SheetSectionSlab`'s body takes a class only. */
 .su-sheet-pilot-stack-16 {
   display: flex;
@@ -56,16 +9,7 @@
   gap: var(--space-16);
 }
 
-/* `Panel` takes a class only: an unresolved ability's slug. */
-.su-sheet-pilot-panel-text {
-  color: var(--color-wk-muted);
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
-  line-height: calc(1.25 / 0.875);
-  padding: var(--space-10) var(--space-12);
-}
-
-/* `Panel` takes a class only: an inventory row (unresolved slug, generic entry). */
+/* `Panel` takes a class only: an inventory row (a generic entry). */
 .su-sheet-pilot-panel-row {
   align-items: center;
   display: flex;

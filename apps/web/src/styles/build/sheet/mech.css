@@ -84,16 +84,16 @@
   min-height: 0;
 }
 
-/* ---- MechSheet ---- */
-
-/* The vitals stack: a deep-tone rule between each gauge. */
-.su-sheet-mech-vitals > * + * {
+/* The vitals stack (`SheetHero`, every kind): a deep-tone rule between each row. */
+.su-sheet-vitals > * + * {
   border-color: color-mix(in srgb, var(--tone-deep) 40%, transparent);
   border-style: solid;
   border-top-width: var(--bw-hairline);
   margin-top: var(--space-14);
   padding-top: var(--space-14);
 }
+
+/* ---- MechSheet ---- */
 
 /* The hero's fields card is image | text | stats + ability: the player's
    fields, then a right column with the chassis stats in its top-right corner

@@ -10,13 +10,6 @@ import type { GenericInventoryEntry } from 'game-domain/schemas/pilot'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { RefAbility } from 'salvageunion-reference'
-import { resolveAbilityApCost } from '../../lib/abilityCost'
-import {
-  equipmentMaxUses,
-  genericEntrySlots,
-  resolveEquipment,
-} from '../../lib/rules/pilotInventory'
-import type { useEntityStore } from '../../stores/entityStore'
 import type { ChoiceSelections } from '../../components/index'
 import {
   AdderBox,
@@ -27,13 +20,19 @@ import {
   Panel,
   ReferenceEntityCard,
   Stat,
-  StatusBadge,
   tokens,
   useDisclosure,
 } from '../../components/index'
 import { useEntityChoices } from '../../components/shared/useEntityChoices'
-import { SheetItemLine } from './SheetItemLine'
-import { CardRemoveButton } from './SheetSection'
+import { resolveAbilityApCost } from '../../lib/abilityCost'
+import {
+  equipmentMaxUses,
+  genericEntrySlots,
+  resolveEquipment,
+} from '../../lib/rules/pilotInventory'
+import type { useEntityStore } from '../../stores/entityStore'
+import { SheetItemLine, SheetRemoveButton } from './SheetItemLine'
+import { UnknownItemLine } from './UnknownItemLine'
 import { UsedToggle } from './UsedToggle'
 
 /** An inventory item in Edit: the pill, its control row, then any details. */
@@ -54,15 +53,6 @@ const TRUNCATE = {
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
-} satisfies CSSProperties
-
-/** An unresolved equipment slug: still shown, muted. */
-const UNRESOLVED_SLUG = {
-  ...ROW_TEXT,
-  ...TRUNCATE,
-  color: tokens.color.wkMuted,
-  flex: '1 1 0%',
-  minWidth: 0,
 } satisfies CSSProperties
 
 const ENTRY_TEXT = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
@@ -248,23 +238,17 @@ export function PilotEquipmentItem({
   const details = useDisclosure()
 
   if (!equipment) {
-    // Unresolved slug — still shown, still counted (1 slot), still toggleable.
+    // Unresolved slug — still shown, still counted (1 slot), still toggleable:
+    // the sheet's one unknown-item line.
     return (
-      <Panel className="su-sheet-pilot-panel-row">
-        <span style={UNRESOLVED_SLUG}>{slug}</span>
-        <Stat orientation="horizontal" label="Slots" value={1} />
-        <StatusBadge
-          status={condition}
-          onClick={
-            readOnly
-              ? undefined
-              : () => {
-                  onConditionChange(slug, CONDITION_CYCLE[condition])
-                }
-          }
-        />
-        {!readOnly && onRemove && <CardRemoveButton name={slug} onRemove={onRemove} />}
-      </Panel>
+      <UnknownItemLine
+        slug={slug}
+        schemaName="equipment"
+        condition={condition}
+        readOnly={readOnly}
+        onConditionCycle={() => onConditionChange(slug, CONDITION_CYCLE[condition])}
+        onRemove={onRemove}
+      />
     )
   }
 
@@ -370,16 +354,7 @@ export function GenericEntryCard({ entry, onRemove }: GenericEntryCardProps) {
         {entry.note && <div style={ENTRY_NOTE}>{entry.note}</div>}
       </div>
       <Stat orientation="horizontal" label="Slots" value={genericEntrySlots(entry)} />
-      {onRemove && (
-        <Button
-          size="compact"
-          variant="ghost"
-          aria-label={`Remove ${entry.name}`}
-          onClick={onRemove}
-        >
-          Remove
-        </Button>
-      )}
+      {onRemove && <SheetRemoveButton name={entry.name} onRemove={onRemove} />}
     </Panel>
   )
 }

@@ -19,8 +19,6 @@
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Pilot } from 'game-domain/schemas/pilot'
-import type { useEntityStore } from '../../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { pilotFixture } from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
 import {
@@ -29,6 +27,8 @@ import {
   makeSoftLinkStoreMock,
 } from '../../../components/__tests__/mockEntityStore'
 import { must } from '../../../components/__tests__/must'
+import type { useEntityStore } from '../../../stores/entityStore'
+import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { pilotStamp } from '../bandStamps.model'
 import { Sheet } from '../Sheet'
 
@@ -236,17 +236,19 @@ const DEAD_INJURIES: Pilot['injuries'] = [
 ]
 
 describe('Pilot hero — dead state', () => {
-  test('derived max HP 0 surfaces the Dead pill and KIA banner', () => {
+  // The sheet's one unit-out treatment (hard rule R11): a stamp on the band
+  // and the consequence as the body's first line.
+  test('derived max HP 0 stamps the band Killed in Action and says why', () => {
     renderHero(makePilot({ injuries: DEAD_INJURIES }))
 
-    expect(screen.getAllByText('Dead').length).toBeGreaterThan(0)
-    expect(screen.getByText(/killed in action/i).closest('[role="status"]')).toBeTruthy()
+    expect(screen.getByText('Killed in Action')).toBeTruthy()
+    expect(screen.getByText(/maximum HP to 0/).closest('[role="status"]')).toBeTruthy()
   })
 
   test('living pilot shows neither', () => {
     renderHero(makePilot())
-    expect(screen.queryByText('Dead')).toBeNull()
-    expect(screen.queryByRole('alert')).toBeNull()
+    expect(screen.queryByText('Killed in Action')).toBeNull()
+    expect(screen.queryByText(/maximum HP to 0/)).toBeNull()
   })
 })
 

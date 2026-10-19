@@ -4,8 +4,8 @@
  * current/max GAUGES. There is no name stamp here: the name is the chapter
  * band's notched `<h1>` above it (`LiveSheet`).
  *
- * Pure layout — all content arrives via slots so the three variant sheets
- * compose it without forking the frame.
+ * Pure layout — all content arrives via slots so the four sheets (pilot, mech,
+ * crawler, NPC) compose it without forking the frame (hard rule R11).
  */
 
 import type { CSSProperties, ReactNode } from 'react'
@@ -13,6 +13,9 @@ import { SheetSectionCard } from '../../components/index'
 
 /** The grid's columns and gap step up with the sheet's width (`.su-sheet-hero`). */
 const GRID = { display: 'grid' } satisfies CSSProperties
+
+/** The vitals stack; the deep-tone rule between its rows is `.su-sheet-vitals`. */
+const VITALS = { display: 'flex', flexDirection: 'column', width: '100%' } satisfies CSSProperties
 
 type SheetHeroProps = {
   name: string
@@ -25,7 +28,11 @@ type SheetHeroProps = {
    * without occupying it.
    */
   fields: ReactNode
-  /** The current/max gauge card (the narrow "long" one). */
+  /**
+   * The current/max gauges (`SheetVitalGauge`) and the rows that go with them
+   * (Training Points, Conditions): the narrow "long" card, one stack every
+   * kind shares (`.su-sheet-vitals`), a rule between each row.
+   */
   vitals?: ReactNode
   /** Title of the fields card. */
   fieldsTitle?: string
@@ -59,7 +66,13 @@ export function SheetHero({ name, fields, vitals, fieldsTitle = 'Identity' }: Sh
       >
         {fields}
       </SheetSectionCard>
-      {vitals && <SheetSectionCard title="Vitals">{vitals}</SheetSectionCard>}
+      {vitals && (
+        <SheetSectionCard title="Vitals">
+          <div className="su-sheet-vitals" style={VITALS}>
+            {vitals}
+          </div>
+        </SheetSectionCard>
+      )}
     </section>
   )
 }

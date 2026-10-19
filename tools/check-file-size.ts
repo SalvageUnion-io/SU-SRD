@@ -49,7 +49,6 @@ export const OVER_BUDGET: Readonly<Record<string, number>> = {
   'apps/web/src/build/npc/AnyNpcDesigner.tsx': 684,
   'apps/web/src/build/npc/CrewBoard.tsx': 652,
   'apps/web/src/build/sheet/CrawlerEconomyControl.tsx': 667,
-  'apps/web/src/build/sheet/PilotSheet.tsx': 602,
   'apps/web/src/lib/rules/creation.ts': 722,
   'apps/web/src/stores/entityStore.ts': 712,
   'apps/web/src/components/atoms/VitalGauge.tsx': 656,

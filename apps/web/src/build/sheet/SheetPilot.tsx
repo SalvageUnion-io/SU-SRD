@@ -12,11 +12,11 @@ import { containerOf } from 'game-domain/container'
 import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
 import { pilotingContext } from 'game-domain/rules/pilotingContext'
 import type { Pilot } from 'game-domain/schemas/pilot'
-import { pilotMaxAP, pilotMaxHP, resolvePool } from 'salvageunion-reference/rules'
-import { runWrite } from '../../lib/runWrite'
+import { isPilotDead, pilotMaxAP, pilotMaxHP, resolvePool } from 'salvageunion-reference/rules'
 import { Stat } from '../../components/index'
 import { EmptyUnitSlot } from '../../components/shared/EmptyUnitSlot'
 import { UnitRow } from '../../components/shared/UnitRow'
+import { runWrite } from '../../lib/runWrite'
 import { AssignPicker } from '../wiring/AssignPicker'
 import { pilotStamp } from './bandStamps.model'
 import { LinkedUnitLink } from './LinkedUnitLink'
@@ -225,6 +225,14 @@ export function SheetPilot({
       segments={segments}
       band={band}
       kindDetail={pilotStamp(pilot.classRef)}
+      out={
+        isPilotDead(statInput)
+          ? {
+              stamp: 'Killed in Action',
+              note: 'Injuries have reduced this Pilot’s maximum HP to 0. Remove an injury if this was a bookkeeping error.',
+            }
+          : undefined
+      }
       actions={actions}
       renderBody={() => (
         <PilotSheet

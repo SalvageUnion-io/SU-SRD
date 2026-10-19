@@ -10,10 +10,18 @@
  */
 
 import type { CSSProperties } from 'react'
-import { AbilityTrack, EmptyState, Panel, SheetSectionSlab, Slab, Stack, tokens } from '../../components/index'
+import {
+  AbilityTrack,
+  EmptyState,
+  SheetSectionSlab,
+  Slab,
+  Stack,
+  tokens,
+} from '../../components/index'
 import { PilotAbilityItem } from './PilotSheetItems'
 import type { AbilityEntry, AbilityTreeGroup } from './pilotSheet.model'
 import { SectionManageButton } from './SheetSection'
+import { UnknownItemLine } from './UnknownItemLine'
 
 /** The two slabs, a section's gap apart (the sheet column's own). */
 const SECTIONS = {
@@ -34,6 +42,8 @@ type PilotSheetAbilitiesProps = {
   onManage: () => void
   onSpend: (cost: number) => void
   onToggleUsed: (slug: string, next: boolean) => void
+  /** Unlearn an ability the reference does not know (Edit). */
+  onRemoveUnknown: (slug: string) => void
 }
 
 export function PilotSheetAbilities({
@@ -46,6 +56,7 @@ export function PilotSheetAbilities({
   onManage,
   onSpend,
   onToggleUsed,
+  onRemoveUnknown,
 }: PilotSheetAbilitiesProps) {
   // Edit gives each Token's line its controls.
   const tokenListClass = readOnly ? 'su-entity-token-list' : 'su-entity-token-list su-sheet-items'
@@ -65,55 +76,65 @@ export function PilotSheetAbilities({
     )
   }
 
+  const none = classTrees.length === 0 && unresolvedAbilities.length === 0
   return (
-    <div className="su-sheet-pilot-order-1" style={SECTIONS}>
-      <SheetSectionSlab
-        title="Abilities"
-        controls={
-          readOnly ? undefined : <SectionManageButton label="abilities" onClick={onManage} />
-        }
-      >
-        {classTrees.length === 0 && unresolvedAbilities.length === 0 ? (
-          <EmptyState variant="quiet" body="No abilities learned yet." />
-        ) : (
-          <Stack gap={20}>
-            {classTrees.map((group) => (
-              <Stack as="section" gap={16} key={group.tree} aria-label={`${group.tree} Tree`}>
-                <Slab
-                  label={group.tree}
-                  count={group.track === 'legendary' ? 'Choose 1' : 'Tree'}
-                />
-                {group.track ? (
-                  <AbilityTrack
-                    abilities={group.abilities.map((entry) => entry.ability)}
-                    track={group.track}
-                    renderAbility={(ability) => {
-                      const entry = group.abilities.find((e) => e.ability.id === ability.id)
-                      return entry ? renderAbility(entry, 'row') : null
-                    }}
+    <div style={SECTIONS}>
+      {/* Read leaves an empty section out (ruleset §1.2): an empty state only
+          where Edit can fill it. */}
+      {!(readOnly && none) && (
+        <SheetSectionSlab
+          title="Abilities"
+          controls={
+            readOnly ? undefined : <SectionManageButton label="abilities" onClick={onManage} />
+          }
+        >
+          {none ? (
+            <EmptyState variant="quiet" body="No abilities learned yet." />
+          ) : (
+            <Stack gap={20}>
+              {classTrees.map((group) => (
+                <Stack as="section" gap={16} key={group.tree} aria-label={`${group.tree} Tree`}>
+                  <Slab
+                    label={group.tree}
+                    count={group.track === 'legendary' ? 'Choose 1' : 'Tree'}
                   />
-                ) : (
-                  <ul aria-label={`${group.tree} Abilities`} className={tokenListClass}>
-                    {group.abilities.map((entry) => (
-                      <li key={entry.slug}>{renderAbility(entry)}</li>
-                    ))}
-                  </ul>
-                )}
-              </Stack>
-            ))}
+                  {group.track ? (
+                    <AbilityTrack
+                      abilities={group.abilities.map((entry) => entry.ability)}
+                      track={group.track}
+                      renderAbility={(ability) => {
+                        const entry = group.abilities.find((e) => e.ability.id === ability.id)
+                        return entry ? renderAbility(entry, 'row') : null
+                      }}
+                    />
+                  ) : (
+                    <ul aria-label={`${group.tree} Abilities`} className={tokenListClass}>
+                      {group.abilities.map((entry) => (
+                        <li key={entry.slug}>{renderAbility(entry)}</li>
+                      ))}
+                    </ul>
+                  )}
+                </Stack>
+              ))}
 
-            {unresolvedAbilities.length > 0 && (
-              <Stack gap={8}>
-                {unresolvedAbilities.map((slug) => (
-                  <Panel key={slug} className="su-sheet-pilot-panel-text">
-                    {slug}
-                  </Panel>
-                ))}
-              </Stack>
-            )}
-          </Stack>
-        )}
-      </SheetSectionSlab>
+              {unresolvedAbilities.length > 0 && (
+                <ul aria-label="Unknown Abilities" className={tokenListClass}>
+                  {unresolvedAbilities.map((slug) => (
+                    <li key={slug}>
+                      <UnknownItemLine
+                        slug={slug}
+                        schemaName="abilities"
+                        readOnly={readOnly}
+                        onRemove={() => onRemoveUnknown(slug)}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Stack>
+          )}
+        </SheetSectionSlab>
+      )}
       {genericAbilities.length > 0 && (
         <SheetSectionSlab title="Generic Abilities">
           <ul aria-label="Generic Abilities" className={tokenListClass}>

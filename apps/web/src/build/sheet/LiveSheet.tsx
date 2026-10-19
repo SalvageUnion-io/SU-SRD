@@ -51,6 +51,9 @@ import type { SheetBand } from './sheetViewProps.model'
 
 type SheetVariant = SheetKind
 
+/** A unit that is out of play: its stamp ("Killed in Action") and what that means. */
+export type SheetUnitOut = { stamp: string; note: string }
+
 /** Each sheet's kind, for its h1's screen-reader text (never a stamp, EDL E9). */
 const KIND_LABEL: Record<SheetVariant, string> = {
   pilot: 'Pilot',
@@ -113,6 +116,14 @@ type LiveSheetProps = {
    * shown when it only repeats the name (the Starter Set's Scrapper).
    */
   kindDetail?: BandStamp
+  /**
+   * The unit is out (hard rule R11's one unit-out treatment): a pilot killed
+   * in action, a destroyed mech, an NPC down. Its stamp rides the band right
+   * of the name with what it is built as, and its consequence is the body's
+   * first line; the sheet stays readable and writable, so a bookkeeping slip
+   * can be undone.
+   */
+  out?: SheetUnitOut
   /**
    * The name is a mech's pattern name, which the book prints in quotes: the
    * band's title and the condensed bar read “Mazona”.
@@ -230,6 +241,14 @@ const SENTINEL = { height: '1px', marginBottom: '-1px', width: '100%' } satisfie
 
 const BODY_FRAME = { position: 'relative' } satisfies CSSProperties
 
+/** The unit-out line sits over the body, a block's gap above its first region. */
+const OUT_NOTE = {
+  color: tokens.color.ink,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.sm,
+  margin: `0 0 ${tokens.space[16]}`,
+} satisfies CSSProperties
+
 /**
  * True once `target` has scrolled behind the sticky bar. Plain threshold
  * observer per S11; environments without IntersectionObserver (happy-dom,
@@ -265,6 +284,7 @@ export function LiveSheet({
   actions,
   band,
   kindDetail,
+  out,
   quoted = false,
 }: LiveSheetProps) {
   // A 1px sentinel directly beneath the bar, NOT the identity block: the bar
@@ -405,12 +425,18 @@ export function LiveSheet({
         }
         aside={
           <>
-            {stamp && (
+            {(stamp || out) && (
               <Cluster gap={8}>
-                {stamp.entityRef ? (
-                  <EntityStat label={stamp.label} entityRef={stamp.entityRef} />
-                ) : (
-                  <Stat orientation="horizontal" label={stamp.label} value={stamp.name} wrap />
+                {stamp &&
+                  (stamp.entityRef ? (
+                    <EntityStat label={stamp.label} entityRef={stamp.entityRef} />
+                  ) : (
+                    <Stat orientation="horizontal" label={stamp.label} value={stamp.name} wrap />
+                  ))}
+                {out && (
+                  <Badge surface="tone" tone="bad">
+                    {out.stamp}
+                  </Badge>
                 )}
               </Cluster>
             )}
@@ -471,7 +497,15 @@ export function LiveSheet({
               `undefined` for the sheet BODY turns it off for the whole subtree
               (including card detail modals, which are descendants) while the
               roster, Play and wizards keep it. */}
-          <EntityExternalLinkProvider value={undefined}>{renderBody()}</EntityExternalLinkProvider>
+          <EntityExternalLinkProvider value={undefined}>
+            {out && (
+              // A state the sheet is in, not an error: a polite status (chrome K8).
+              <p role="status" style={OUT_NOTE}>
+                {out.note}
+              </p>
+            )}
+            {renderBody()}
+          </EntityExternalLinkProvider>
         </div>
       </div>
     </main>
