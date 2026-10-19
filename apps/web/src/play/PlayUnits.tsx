@@ -99,7 +99,7 @@ function stamp(text: string) {
  * on or linked to, label first (`CHASSIS | Scrapper`), drawn by `Chips` in
  * the relation lane, never a loose stamp.
  */
-export function Relations({ items }: { items: readonly TagItem[] }) {
+function Relations({ items }: { items: readonly TagItem[] }) {
   return (
     <Chips
       chips={{ durations: [], facts: [], tags: [], relations: [...items] }}

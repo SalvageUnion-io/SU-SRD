@@ -248,7 +248,6 @@ export { findPageRefs } from './entity/pageRefs'
 // Every chip strip, in the class order (C2a): a host's own strip (a Play
 // unit box's relation chips, C11) takes it here, never by its path (R7).
 export { Chips } from './entity/parts/Chips'
-export type { ChipSet } from './entity/parts/chipSet'
 // A fact whose value is an entity (`CLASS | Engineer`): the chip opens and Peeks it.
 export { EntityStat } from './entity/parts/EntityStat'
 // A Row's band, cut out (`notch`): the name on a paper tab, chips right of it.
