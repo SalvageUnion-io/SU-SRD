@@ -13,8 +13,7 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
-import { Badge, buttonVariants, ChapterBand, Cluster } from '../../components/index'
-import { AppLink } from '../../components/shared/AppLink'
+import { Badge, Button, ChapterBand, Cluster } from '../../components/index'
 import { GAME_MEASURE } from './hubStyles.model'
 
 /**
@@ -58,12 +57,9 @@ export function GameBand({
                 <Badge shape="stamp" size="compact" style={STAMP_AT_COMPACT}>
                   You mediate
                 </Badge>
-                <AppLink
-                  href={`/play/game/${gameId}`}
-                  className={buttonVariants({ variant: 'primary', size: 'compact' })}
-                >
+                <Button href={`/play/game/${gameId}`} variant="primary" size="compact">
                   Mediate
-                </AppLink>
+                </Button>
               </Cluster>
             )}
             {actions}

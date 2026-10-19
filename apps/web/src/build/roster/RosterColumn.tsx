@@ -15,14 +15,7 @@
 import type { SheetKind } from 'game-domain/entityKinds'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import {
-  buttonVariants,
-  EmptyState,
-  Segmented,
-  SegmentedOption,
-  Slab,
-} from '../../components/index'
-import { AppLink } from '../../components/shared/AppLink'
+import { Button, EmptyState, Segmented, SegmentedOption, Slab } from '../../components/index'
 import { color, iconSize, space } from '../../design/tokens'
 
 export type SegmentKind = SheetKind
@@ -46,8 +39,6 @@ const FILL = { width: '100%' } satisfies CSSProperties
 const GRID = { display: 'grid', gap: space[32] } satisfies CSSProperties
 
 const LIST = { display: 'flex', flexDirection: 'column', gap: space[10] } satisfies CSSProperties
-
-const NO_UNDERLINE = { textDecorationLine: 'none' } satisfies CSSProperties
 
 /** The Slab row wraps its controls under the stamp on a narrow column. */
 const HEAD = { flexWrap: 'wrap', marginBottom: space[12] } satisfies CSSProperties
@@ -147,14 +138,9 @@ export function RosterColumn({
               {/* One create CTA per column: the header link shows only when the
                   column has rows; the empty state renders its own create CTA. */}
               {create !== undefined && !empty && (
-                <AppLink
-                  href={create.href}
-                  onClick={create.onClick}
-                  className={buttonVariants({ variant: 'default', size: 'mini' })}
-                  style={NO_UNDERLINE}
-                >
+                <Button href={create.href} onClick={create.onClick} size="mini">
                   + {create.label}
-                </AppLink>
+                </Button>
               )}
             </>
           ) : undefined
@@ -167,14 +153,9 @@ export function RosterColumn({
           icon={EMPTY_ICON[kind]}
           action={
             create === undefined ? undefined : (
-              <AppLink
-                href={create.href}
-                onClick={create.onClick}
-                className={buttonVariants({ variant: 'primary', size: 'mini' })}
-                style={NO_UNDERLINE}
-              >
+              <Button href={create.href} onClick={create.onClick} variant="primary" size="mini">
                 {create.label}
-              </AppLink>
+              </Button>
             )
           }
         />

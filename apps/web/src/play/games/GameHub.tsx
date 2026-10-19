@@ -35,6 +35,7 @@ import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import type { SegmentKind } from '../../build/roster/RosterColumn'
 import {
+  Button,
   Card,
   Grid,
   PageShell,
@@ -44,7 +45,6 @@ import {
   Text,
   tokens,
 } from '../../components/index'
-import { WayOutLink } from '../../components/shared/WayOutLink'
 import { CopyInviteLink, ResetInviteLink } from './CopyInviteLink'
 import { CrewSeats } from './CrewSeats'
 import { readCrawler } from './crawlerReading.model'
@@ -96,7 +96,9 @@ function NotInGame() {
             You are not in this Game. Ask its Organiser for the invite link, then open it to join.
           </Text>
           <div>
-            <WayOutLink href={PLAY_HUB} label="Play" />
+            <Button href={PLAY_HUB} back size="compact">
+              Play
+            </Button>
           </div>
         </Stack>
       </Card>

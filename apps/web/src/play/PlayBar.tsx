@@ -16,8 +16,7 @@
 
 import type { CSSProperties, ReactNode } from 'react'
 import { capsLabel } from '../components/atoms/capsLabel'
-import { BackLabel, Badge, buttonVariants, tokens } from '../components/index'
-import { AppLink } from '../components/shared/AppLink'
+import { Badge, Button, tokens } from '../components/index'
 import type { PlayReadOnly } from './play.model'
 import { liveLabel } from './play.model'
 
@@ -47,7 +46,6 @@ const BACK = {
   display: 'inline-flex',
   flexShrink: 0,
   gap: tokens.space[2],
-  textDecoration: 'none',
 } satisfies CSSProperties
 
 const TITLE = {
@@ -132,13 +130,9 @@ export function PlayBar({
 }: PlayBarProps) {
   return (
     <header style={phone ? PHONE_BAR : BAR}>
-      <AppLink
-        href={backHref}
-        className={buttonVariants({ surface: 'instrument', variant: 'ghost', size: 'compact' })}
-        style={BACK}
-      >
-        <BackLabel to={backLabel} />
-      </AppLink>
+      <Button href={backHref} back surface="instrument" variant="ghost" size="compact" style={BACK}>
+        {backLabel}
+      </Button>
       <h1 className={TITLE_CAPS} style={TITLE}>
         {title}
       </h1>

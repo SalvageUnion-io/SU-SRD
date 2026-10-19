@@ -67,7 +67,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
 import {
-  buttonVariants,
+  Button,
   EmptyState,
   Entity,
   MasonryColumns,
@@ -77,7 +77,6 @@ import {
   Stat,
   tokens,
 } from '../../components/index'
-import { AppLink } from '../../components/shared/AppLink'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { addToScrapPool, scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { useCargo } from '../../lib/cargo/useCargo'
@@ -118,8 +117,6 @@ const ROOT = {
 const POOL_SLAB = { marginBottom: tokens.space[6] } satisfies CSSProperties
 
 const POOL_ROW = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
-
-const CREW_LINK = { textDecoration: 'none' } satisfies CSSProperties
 
 const STORAGE_BAY = { marginTop: tokens.space[24], minWidth: 0 } satisfies CSSProperties
 
@@ -437,14 +434,13 @@ export function CrawlerSheet({
               count={{ label: 'Intact', value: intactBays, max: bays.length }}
               controls={
                 crewHref === undefined ? undefined : (
-                  <AppLink
+                  <Button
                     href={crewHref}
-                    className={buttonVariants({ variant: 'default', size: 'compact' })}
-                    style={CREW_LINK}
+                    size="compact"
                     aria-label={`Crew ${crawler.name}: design and assign crawler crew`}
                   >
                     Crew…
-                  </AppLink>
+                  </Button>
                 )
               }
             >

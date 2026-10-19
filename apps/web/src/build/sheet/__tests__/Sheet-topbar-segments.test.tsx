@@ -169,13 +169,14 @@ describe('Sheet — mobile segment switch', () => {
 
     // Active segment = the viewed kind: an INK plate, never the rust primary
     // (a here-state is ink), with aria-current, and not a link.
-    const primaryClass = buttonVariants({ variant: 'primary' })
-      .split(' ')
-      .find((c) => c.startsWith('su-btn--')) as string
+    const variantClass = (variant: 'primary' | 'ink') =>
+      buttonVariants({ variant })
+        .split(' ')
+        .find((c) => c.startsWith('su-btn--')) as string
     const active = nav.querySelector('[aria-current="page"]')
     expect(active?.textContent).toBe('Pilot')
-    expect(active?.className).not.toContain(primaryClass)
-    expect((active as HTMLElement).style.backgroundColor).toBe('var(--color-ink)')
+    expect(active?.className).not.toContain(variantClass('primary'))
+    expect(active?.className).toContain(variantClass('ink'))
     expect(active?.tagName).not.toBe('A')
 
     // The other segments navigate to the wired counterparts' sheets.

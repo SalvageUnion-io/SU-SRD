@@ -6,7 +6,7 @@ import { readAccountHint } from '../../lib/accountHint'
 import { browserStorage } from '../../lib/accountState'
 import { BUY_HREF, DOC_PAGES } from '../../lib/docPages'
 import type { NavDrawerItem } from '../index'
-import { Badge, buttonVariants, NavDrawer } from '../index'
+import { Badge, Button, NavDrawer } from '../index'
 
 /**
  * UnionDrawer — the Union bar's one phone drawer, the same in both render
@@ -61,9 +61,10 @@ const BRAND = (
 function signInFromHint(): ((close: () => void) => ReactNode) | undefined {
   if (readAccountHint(browserStorage()) !== null) return undefined
   return () => (
-    <a href={SIGN_IN_HREF} className={buttonVariants({ variant: 'primary', size: 'compact' })}>
+    // A site path, loaded as a document: the drawer is the shell's, not the router's.
+    <Button href={SIGN_IN_HREF} linkAs="a" variant="primary" size="compact">
       Sign in with Discord
-    </a>
+    </Button>
   )
 }
 

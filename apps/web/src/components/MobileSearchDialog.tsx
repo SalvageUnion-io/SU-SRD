@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { color, fontSize, iconSize, layer, radius, space } from '../design/tokens'
 import { capsLabel } from './atoms/capsLabel'
 import { POPUP_SURFACE } from './atoms/popupSurface'
-import { buttonVariants, CloseButton, cn } from './index'
+import { Button, CloseButton } from './index'
 
 type MobileSearchDialogProps = {
   /**
@@ -58,8 +58,6 @@ const TRIGGER = {
   color: 'var(--su-bar-fg)',
 } satisfies CSSProperties
 
-const iconButtonClass = buttonVariants({ variant: 'ghost', size: 'iconOnly' })
-
 /**
  * Persistent search trigger + full-screen sheet for a mobile top nav bar. On
  * phones search is the primary action, so it lives directly in the bar (not
@@ -82,14 +80,15 @@ export function MobileSearchDialog({ children }: MobileSearchDialogProps) {
           // documented override on the shared icon rung. `ghost` + a
           // transparent border keeps the bar's flat look while the rung
           // supplies the focus ring this trigger simply did not have.
-          <button
-            type="button"
-            className={cn(iconButtonClass, 'su-mobile-search__trigger')}
+          <Button
+            variant="ghost"
+            size="iconOnly"
+            className="su-mobile-search__trigger"
             style={TRIGGER}
             aria-label="Search the Reference"
           >
             <Search aria-hidden="true" size={iconSize.full} />
-          </button>
+          </Button>
         }
       />
 

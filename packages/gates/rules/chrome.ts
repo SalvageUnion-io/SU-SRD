@@ -80,6 +80,17 @@
  * - `stat-text`: JSX text of a stat label right before an expression
  *   (`SP {n}`, `HP: {hp}`) anywhere but `Stat`.
  *
+ * ## A link drawn as a button is `Button href` (hard rule R16, ruleset §6.5)
+ *
+ * About 21 links spread the button recipe onto `AppLink` or `<a>` by hand,
+ * with 17 `textDecoration: 'none'` overrides and one (`WayOutLink`) forcing a
+ * Compact button to Full height. `Button href` renders the surface's link
+ * (`AppLink` in the app, a plain anchor on a static page) and `back` draws
+ * `BackLabel`.
+ *
+ * - `button-href`: `buttonVariants(` only in the atoms that draw a button
+ *   (`BUTTON_RECIPE_HOMES`: `Button`, `Toggle`, `HeaderMenu`'s trigger).
+ *
  * Every rule is `zero`. Comments are stripped, so prose may name what it bans.
  */
 
@@ -378,6 +389,22 @@ function scanOutside(root: string, pattern: RegExp, home: string): Finding[] {
   return out
 }
 
+/**
+ * The components that may call the button recipe (R16): the one Button, the
+ * one on/off (`Toggle`) and the menu trigger (`HeaderMenu`, which renders
+ * Base UI's own trigger element). Every other button, or link drawn as one, is
+ * `Button` (`href` for a link).
+ */
+const BUTTON_RECIPE_HOMES = new Set([
+  'apps/web/src/components/atoms/buttonVariants.ts',
+  'apps/web/src/components/atoms/Button.tsx',
+  'apps/web/src/components/atoms/Toggle.tsx',
+  'apps/web/src/components/containers/HeaderMenu.tsx',
+])
+
+/** A call of the button recipe. */
+const BUTTON_RECIPE = /\bbuttonVariants\(/
+
 /** The one home of a stat's `label | value` (ruleset §3.7). */
 const STAT_HOME = 'apps/web/src/components/atoms/Stat.tsx'
 
@@ -493,6 +520,19 @@ const RULES: ChromeRule[] = [
     scan: (root) => scanOutside(root, STEP_CURRENT, ROLE_HOMES.step),
   },
   {
+    id: 'button-href',
+    mode: 'zero',
+    rule: 'hard rule R16 (ruleset §6.5) — a link drawn as a button is `Button href`, a button is `Button`: the recipe `buttonVariants(` only in Button, Toggle and HeaderMenu',
+    fix: "Render `<Button href=\"/route\" variant=… size=…>` (it draws the surface's `AppLink` in the app, a plain anchor on a static page; `linkAs` for a host outside the surface, `back` for a way back, drawn as BackLabel) or `<Button onClick=…>`; drop the `textDecoration: 'none'` override, `.su-btn` has none.",
+    scan: (root) =>
+      scanLines(
+        root,
+        ['.ts', '.tsx'],
+        BUTTON_RECIPE,
+        (rel) => isTest(rel) || BUTTON_RECIPE_HOMES.has(rel)
+      ),
+  },
+  {
     id: 'stat-text',
     mode: 'zero',
     rule: 'hard rule R36 (ruleset §3.7) — every `label | value` is a `Stat`, never JSX text such as `SP {n}`',
@@ -505,7 +545,7 @@ export const chromeLaws: RuleSet = {
   id: 'chrome',
   label: 'chrome laws',
   rules: RULES,
-  exemptionsLive: 'packages/gates/rules/chrome.ts (FRAMES, ATOMS, ROLE_HOMES)',
+  exemptionsLive: 'packages/gates/rules/chrome.ts (FRAMES, ATOMS, ROLE_HOMES, BUTTON_RECIPE_HOMES)',
   preflight(root) {
     // A catastrophe floor far below today's ~1,000 source files and ~60 stylesheets.
     assertScanFloor('chrome (app source)', listFiles(root, [SRC], ['.ts', '.tsx']).length, 350)

@@ -12,15 +12,12 @@
  */
 
 import { Unlink } from 'lucide-react'
-import type { CSSProperties, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { iconSize } from '../../design/tokens'
 import type { UnitKind, UnitReading } from '../../lib/units/unitModel'
 import { unitChipOf, unitRowModel } from '../../lib/units/unitModel'
 import type { EntityMode, TagItem } from '../index'
-import { Button, buttonVariants, Entity, relation, Stat } from '../index'
-import { AppLink } from './AppLink'
-
-const VIEW_LINK = { textDecorationLine: 'none' } satisfies CSSProperties
+import { Button, Entity, relation, Stat } from '../index'
 
 type UnitRowProps = {
   kind: UnitKind
@@ -65,16 +62,15 @@ export function UnitRow({
       <>
         {controls}
         {href !== undefined && (
-          <AppLink
+          <Button
             href={href}
             // The visible label is "View" on every row; the name says which
             // unit it opens (WCAG 2.4.4).
             aria-label={`View ${name}`}
-            className={buttonVariants({ variant: 'default', size: 'mini' })}
-            style={VIEW_LINK}
+            size="mini"
           >
             View
-          </AppLink>
+          </Button>
         )}
         {onUnassign && (
           <Button

@@ -3,14 +3,15 @@ import { capsLabel } from './capsLabel'
 import { DISABLED, FOCUS_RING } from './interaction'
 
 /**
- * The `.btn` class recipe (design-spec §2.4), exported for non-button elements
- * (e.g. links styled as buttons) so consumers don't re-inline the class string.
+ * The `.btn` class recipe (design-spec §2.4). `Button` draws every button and
+ * every link drawn as one (`Button href`); the recipe is called only there, in
+ * `Toggle` and in `HeaderMenu`'s trigger (the `chrome/button-href` gate).
  * Lives in its own file so Button.tsx only exports components (react-refresh).
  *
  * ## Emits `.su-btn*` class names
  *
- * Three axes and a `(opts) => string` signature, which the ~30 call sites in
- * `apps/web` (srd and the app) that put the result on `<a>` elements depend on.
+ * Three axes and a `(opts) => string` signature: a class string, so it can sit
+ * on an element the library does not render (a Base UI trigger, a router link).
  * The rules behind the names live in `src/styles/index.css`.
  *
  * **ALL of the styling lives there, geometry and type included** — not just the

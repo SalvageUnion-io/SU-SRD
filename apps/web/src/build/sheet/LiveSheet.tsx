@@ -33,7 +33,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { StatTone } from '../../components/index'
 import {
   Badge,
-  buttonVariants,
+  Button,
   ChapterBand,
   Cluster,
   cn,
@@ -45,7 +45,6 @@ import {
   Tags,
   tokens,
 } from '../../components/index'
-import { AppLink } from '../../components/shared/AppLink'
 import type { BandStamp } from './bandStamps.model'
 import type { SheetBand } from './sheetViewProps.model'
 
@@ -147,13 +146,6 @@ type LiveSheetProps = {
 }
 
 /** Sticky bar height — the IntersectionObserver top inset (design: 58/66px). */
-/** The sheet you are on in the phone's Pilot/Mech/Crawler switch: an ink plate. */
-const ACTIVE_SEGMENT = {
-  backgroundColor: 'var(--color-ink)',
-  borderColor: 'var(--color-ink)',
-  color: 'var(--color-paper)',
-} satisfies CSSProperties
-
 const BAR_HEIGHT_PX = 58
 
 const ROOT = { background: 'var(--color-wk-bg)', minHeight: '100vh' } satisfies CSSProperties
@@ -249,7 +241,7 @@ const SEGMENTS = {
   width: '100%',
 } satisfies CSSProperties
 
-const SEGMENT = { flex: '1 1 0%', textDecoration: 'none' } satisfies CSSProperties
+const SEGMENT = { flex: '1 1 0%' } satisfies CSSProperties
 
 // The band pulls back over its 1px, so no strip of page ground shows between
 // the Union bar and the band (the band paints over it: it is positioned).
@@ -471,29 +463,28 @@ export function LiveSheet({
               <nav aria-label="Assigned sheets" className="su-sheet-live-segments" style={SEGMENTS}>
                 {segments.map((segment) =>
                   segment.active ? (
-                    <span
+                    // The sheet you are on: marked, and no link (there is
+                    // nowhere to go); an ink plate, as a here-state is ink.
+                    <Button
                       key={segment.key}
                       aria-current="page"
-                      className={cn(
-                        buttonVariants({ variant: 'default', size: 'compact' }),
-                        'su-page-action'
-                      )}
-                      style={{ ...SEGMENT, ...ACTIVE_SEGMENT }}
-                    >
-                      {segment.label}
-                    </span>
-                  ) : (
-                    <AppLink
-                      key={segment.key}
-                      href={segment.href}
-                      className={cn(
-                        buttonVariants({ variant: 'default', size: 'compact' }),
-                        'su-page-action'
-                      )}
+                      variant="ink"
+                      size="compact"
+                      className="su-page-action"
                       style={SEGMENT}
                     >
                       {segment.label}
-                    </AppLink>
+                    </Button>
+                  ) : (
+                    <Button
+                      key={segment.key}
+                      href={segment.href}
+                      size="compact"
+                      className="su-page-action"
+                      style={SEGMENT}
+                    >
+                      {segment.label}
+                    </Button>
                   )
                 )}
               </nav>

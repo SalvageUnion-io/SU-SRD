@@ -914,6 +914,29 @@ describe('chrome rule set', () => {
     expect(at('step-current')).toEqual(['apps/web/src/build/A.tsx:9'])
   })
 
+  test('button-href: the button recipe is called only in Button, Toggle and HeaderMenu (R16)', () => {
+    const found = chromeLaws.scan(
+      fixture({
+        ...CHROME_BASE,
+        'apps/web/src/play/A.tsx': [
+          "<AppLink href={h} className={buttonVariants({ size: 'mini' })}>Open</AppLink>",
+          "const CLASS = buttonVariants({ variant: 'primary' })",
+          '// the old buttonVariants({}) spread, in prose',
+          '<Button href={h} size="mini">Open</Button>',
+          '',
+        ].join('\n'),
+        'apps/web/src/components/atoms/Button.tsx': 'cn(buttonVariants({ variant }), c)\n',
+        'apps/web/src/components/atoms/Toggle.tsx': 'cn(buttonVariants({ size }), c)\n',
+        'apps/web/src/components/containers/HeaderMenu.tsx': 'buttonVariants({ size })\n',
+        'apps/web/src/play/__tests__/A.test.tsx': 'buttonVariants({ size })\n',
+      })
+    )
+    expect(found['button-href']?.map((f) => `${f.file}:${f.line}`)).toEqual([
+      'apps/web/src/play/A.tsx:1',
+      'apps/web/src/play/A.tsx:2',
+    ])
+  })
+
   test('stat-text: JSX text of a stat label before an expression is found, outside Stat (R36)', () => {
     const lines = (rel: string, text: string) => statTextFindings(rel, text).map((f) => f.line)
     expect(

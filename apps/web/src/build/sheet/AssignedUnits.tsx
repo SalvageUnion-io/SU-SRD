@@ -15,15 +15,7 @@
 import type { SheetKind } from 'game-domain/entityKinds'
 import { Unlink } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import {
-  Button,
-  buttonVariants,
-  relation,
-  SheetSectionSlab,
-  Tags,
-  tokens,
-} from '../../components/index'
-import { AppLink } from '../../components/shared/AppLink'
+import { Button, relation, SheetSectionSlab, Tags, tokens } from '../../components/index'
 
 /** One linked unit: what it is to this sheet, its name, and where its sheet is. */
 export type AssignedUnit = {
@@ -65,8 +57,6 @@ const SLOT = {
   gap: tokens.space[8],
   minWidth: 0,
 } satisfies CSSProperties
-
-const CREATE = { textDecoration: 'none' } satisfies CSSProperties
 
 const NEW_PATH: Record<SheetKind, string> = {
   pilot: '/pilots/new',
@@ -119,13 +109,9 @@ export function AssignedUnits({
             {slot.extra}
             <div style={LINE}>
               {slot.assign}
-              <AppLink
-                href={NEW_PATH[slot.kind]}
-                className={buttonVariants({ variant: 'default', size: 'compact' })}
-                style={CREATE}
-              >
+              <Button href={NEW_PATH[slot.kind]} size="compact">
                 + Create
-              </AppLink>
+              </Button>
             </div>
           </div>
         ))}

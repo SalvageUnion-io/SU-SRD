@@ -17,8 +17,7 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
-import { Badge, buttonVariants, tokens, UserMadeStamp } from '../../components/index'
-import { AppLink } from '../../components/shared/AppLink'
+import { Badge, Button, tokens, UserMadeStamp } from '../../components/index'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { npcCurrentHP } from '../../lib/npcs/npcModel'
 import { NpcInset } from '../sheet/NpcInset'
@@ -37,8 +36,6 @@ const HEAD = {
   gap: tokens.space[8],
   justifyContent: 'space-between',
 } satisfies CSSProperties
-
-const LINK = { textDecoration: 'none' } satisfies CSSProperties
 
 type LinkedCrewInsetProps = {
   /** The bay's (or type's) name — labels the inset for assistive tech. */
@@ -75,14 +72,9 @@ export function LinkedCrewInset({ slotName, assignment, fallback }: LinkedCrewIn
         facts={npc.facts ?? []}
         // Open is the head's last chip (C8, hard rule R6), never a line over it.
         controls={
-          <AppLink
-            href={`/sheet/npc/${npc.id}`}
-            aria-label={`Open ${npc.name}`}
-            className={buttonVariants({ size: 'mini' })}
-            style={LINK}
-          >
+          <Button href={`/sheet/npc/${npc.id}`} aria-label={`Open ${npc.name}`} size="mini">
             Open
-          </AppLink>
+          </Button>
         }
       />
     </div>

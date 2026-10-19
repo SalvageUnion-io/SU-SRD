@@ -53,7 +53,6 @@ import { cn } from '../../lib/cn'
 import { useDisclosure } from '../../lib/useDisclosure'
 import { useMediaQuery } from '../../lib/useMediaQuery'
 import { Button } from '../atoms/Button'
-import { buttonVariants } from '../atoms/buttonVariants'
 import { capsLabel } from '../atoms/capsLabel'
 import { SearchField } from '../atoms/SearchField'
 import { EmptyState } from '../containers/EmptyState'
@@ -375,14 +374,9 @@ export function EntitySearcher({
       bodyStyle={BODY_STYLE}
       controls={
         onClose && (
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className={buttonVariants({ variant: 'quiet', size: 'iconOnly' })}
-          >
+          <Button onClick={onClose} aria-label="Close" variant="quiet" size="iconOnly">
             <X aria-hidden="true" size={iconSize.compact} />
-          </button>
+          </Button>
         )
       }
     >

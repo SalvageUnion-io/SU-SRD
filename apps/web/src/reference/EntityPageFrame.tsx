@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
 import type { ChapterTone, EntityPageMeta } from '../components/index'
-import { buttonVariants, ChapterBand, cn, EntityPageStamps, KindLabel } from '../components/index'
+import { Button, ChapterBand, EntityPageStamps, KindLabel } from '../components/index'
 import type { BuildLink, GuideExits } from '../lib/buildLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
 
@@ -34,13 +34,15 @@ type EntityParent = { label: string; entityRef: EntityRef; href: string }
 function GuideExitsFoot({ build, next, starterSet }: GuideExits) {
   return (
     <nav className="su-guide-exits" aria-label="Where next">
-      <a
+      <Button
         href={build.href}
         aria-label={build.ariaLabel}
-        className={cn(buttonVariants({ variant: 'primary', size: 'compact' }), 'su-page-action')}
+        variant="primary"
+        size="compact"
+        className="su-page-action"
       >
         {build.label}
-      </a>
+      </Button>
       {next && (
         <a href={next.href} className="su-guide-exits__next">
           {next.label}
@@ -99,19 +101,18 @@ export function EntityPageFrame({
         asideAt="notch"
         action={
           build && (
-            // A link that looks like the shared Button (`buttonVariants`):
-            // same tab, no off-site arrow — the Reference and Build are one
-            // union (ruleset §3.11).
-            <a
+            // A link drawn as the shared Button (`Button href`): same tab, no
+            // off-site arrow — the Reference and Build are one union
+            // (ruleset §3.11).
+            <Button
               href={build.href}
               aria-label={build.ariaLabel}
-              className={cn(
-                buttonVariants({ variant: 'primary', size: 'compact' }),
-                'su-page-action su-hit-area'
-              )}
+              variant="primary"
+              size="compact"
+              className="su-page-action su-hit-area"
             >
               {build.label}
-            </a>
+            </Button>
           )
         }
         lead={

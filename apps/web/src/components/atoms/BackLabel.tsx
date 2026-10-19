@@ -1,4 +1,5 @@
 import { ChevronLeft } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { iconSize } from '../../design/tokens'
 
 /**
@@ -14,7 +15,7 @@ export function BackLabel({
   size = 'compact',
 }: {
   /** The place's name. */
-  to: string
+  to: ReactNode
   /** The Size of the line the control sits on. */
   size?: keyof typeof iconSize
 }) {

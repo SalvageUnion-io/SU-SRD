@@ -8,8 +8,7 @@
 
 import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties } from 'react'
-import { ChapterBand, PageShell, Text, tokens } from '../components/index'
-import { WayOutLink } from '../components/shared/WayOutLink'
+import { Button, ChapterBand, PageShell, Text, tokens } from '../components/index'
 
 const BODY = { maxWidth: '36rem', textAlign: 'left' } satisfies CSSProperties
 
@@ -36,7 +35,9 @@ export function PlayRefusal({ page = PRODUCT.play, title, body, link }: PlayRefu
         {body}
       </Text>
       <div>
-        <WayOutLink href={link.href} label={link.label} back={link.back} />
+        <Button href={link.href} back={link.back ?? true} size="compact">
+          {link.label}
+        </Button>
       </div>
     </PageShell>
   )

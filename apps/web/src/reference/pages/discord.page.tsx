@@ -11,7 +11,7 @@
 import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties, ReactNode } from 'react'
 import type { PageModule, PageResult } from '../../../ssg/types'
-import { buttonVariants, InlineRef, Panel, Slab, Stack } from '../../components/index'
+import { Button, InlineRef, Panel, Slab, Stack } from '../../components/index'
 import { borderWidth, color, font, fontSize, space } from '../../design/tokens'
 import type { DiscordCommand } from '../../generated/discordCommands'
 import { DISCORD_COMMANDS } from '../../generated/discordCommands'
@@ -61,10 +61,6 @@ function buildExamples() {
 const TITLE = pageTitle('Discord Bot')
 const DESCRIPTION =
   'Add the SalvageUnion.io bot to your Discord server: roll on every Salvage Union table and look up any chassis, system, module, or piece of equipment with /su.'
-
-// The install CTA is an <a> styled as THE primary (rust) action — the lib
-// Button recipe as a class string (buttonVariants), at the home page's CTA size.
-const installButtonClass = buttonVariants({ variant: 'primary', size: 'full' })
 
 const PROSE_12 = proseColumn(space[12])
 const PROSE_16 = proseColumn(space[16])
@@ -220,14 +216,16 @@ function page(): PageResult {
             with no configuration; rolling and lookups need no account.
           </p>
           <p>
-            <a
+            {/* The install CTA: THE primary (rust) action, at the home page's CTA size. */}
+            <Button
               href={DISCORD_INSTALL_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className={installButtonClass}
+              variant="primary"
+              size="full"
             >
               Add to your Discord server
-            </a>
+            </Button>
           </p>
         </section>
 

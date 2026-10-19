@@ -26,7 +26,7 @@ import type { CSSProperties } from 'react'
 import { Fragment } from 'react'
 import type { PageModule, PageResult, RouteContext } from '../../../ssg/types'
 import { capsLabel } from '../../components/atoms/capsLabel'
-import { buttonVariants, cn, InlineRef, Slab } from '../../components/index'
+import { Button, cn, InlineRef, Slab } from '../../components/index'
 import { ColophonIsland } from '../../components/islands/ColophonIsland'
 import { color, fontSize, iconSize, space, weight } from '../../design/tokens'
 import { appPath } from '../../lib/appBase'
@@ -447,15 +447,16 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
           aria-label="Eldridge Coast Map"
         >
           <div style={RELATIVE}>
-            <button
-              type="button"
-              className={cn(buttonVariants({ variant: 'ink', size: 'iconOnly' }), 'su-print-ink')}
+            <Button
+              variant="ink"
+              size="iconOnly"
+              className="su-print-ink"
               style={LIGHTBOX_CLOSE}
               id="close-modal"
               aria-label="Close"
             >
               <X aria-hidden="true" size={iconSize.compact} />
-            </button>
+            </Button>
             <div style={LIGHTBOX_BODY}>
               {/* Vite does not transcode images, so the webp is pre-encoded
                   once at 1800px and checked in beside the PNG; Vite still

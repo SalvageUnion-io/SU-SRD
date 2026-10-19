@@ -24,8 +24,7 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
-import { Button, buttonVariants, tokens } from '../../components/index'
-import { AppLink } from '../../components/shared/AppLink'
+import { Button, tokens } from '../../components/index'
 import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { WritesBlockedNotice } from '../../components/shared/WritesBlockedNotice'
@@ -157,8 +156,6 @@ const ACTIONS = {
   gap: tokens.space[10],
 } satisfies CSSProperties
 
-const LINK = { textDecoration: 'none' } satisfies CSSProperties
-
 export function Sheet({
   kind,
   id,
@@ -278,13 +275,13 @@ export function Sheet({
   // is offered only where this sheet can write.
   const savePatternLink =
     kind === 'mech' && !writesBlocked ? (
-      <AppLink
+      <Button
         href={`/mechs/patterns/new?from=${encodeURIComponent(id)}`}
-        className={buttonVariants({ variant: 'ghost', size: 'compact' })}
-        style={LINK}
+        variant="ghost"
+        size="compact"
       >
         Save as pattern
-      </AppLink>
+      </Button>
     ) : null
   // Gated on the PROP, not the resolved `readOnly`: Print, Export and the Change
   // Log are reads, and a disconnected player has more reason to want a local

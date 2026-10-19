@@ -14,7 +14,6 @@ import {
   TitledBox,
   tokens,
 } from '../../components/index'
-import { WayOutLink } from '../../components/shared/WayOutLink'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { invitePath } from '../../lib/games/inviteLink'
@@ -77,7 +76,9 @@ const BACK = { href: '/play/', label: 'Play' }
 function Back({ signIn = false }: { signIn?: boolean }) {
   return (
     <div style={ACTIONS}>
-      <WayOutLink href={BACK.href} label={BACK.label} />
+      <Button href={BACK.href} back size="compact">
+        {BACK.label}
+      </Button>
       {signIn && <SignInControl redirectTo={BACK.href} />}
     </div>
   )

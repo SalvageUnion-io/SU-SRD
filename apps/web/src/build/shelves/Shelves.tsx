@@ -45,7 +45,7 @@ import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { HeaderMenuItem } from '../../components/index'
 import {
-  buttonVariants,
+  Button,
   ChapterBand,
   Grid,
   HeaderMenu,
@@ -54,7 +54,6 @@ import {
   Select,
   toast,
 } from '../../components/index'
-import { AppLink } from '../../components/shared/AppLink'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
 import { useConnection } from '../../lib/connection/connectionContext'
@@ -120,8 +119,6 @@ const MEASURE = '75rem'
  * room, stacked on a phone. The Starter Set is the third row, folded.
  */
 const ROW = { alignItems: 'start' } satisfies CSSProperties
-
-const NEW_LINK = { textDecoration: 'none' } satisfies CSSProperties
 
 // ---------------------------------------------------------------------------
 // Data: the server's facts, read only when there is a server to ask
@@ -353,9 +350,9 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
 
   const newLink = (href: string, label: string) =>
     canWrite ? (
-      <AppLink href={href} className={buttonVariants({ size: 'mini' })} style={NEW_LINK}>
+      <Button href={href} size="mini">
         {label}
-      </AppLink>
+      </Button>
     ) : undefined
 
   const fromAMech: HeaderMenuItem[] =

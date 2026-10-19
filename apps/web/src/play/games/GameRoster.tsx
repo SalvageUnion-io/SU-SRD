@@ -62,14 +62,13 @@ import {
 } from '../../build/roster/RosterColumn'
 import type { HeaderMenuItem } from '../../components/index'
 import {
-  buttonVariants,
+  Button,
   FieldError,
   HeaderMenu,
   RosterSkeleton,
   Text,
   tokens,
 } from '../../components/index'
-import { AppLink } from '../../components/shared/AppLink'
 import { UnitRow } from '../../components/shared/UnitRow'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
@@ -128,8 +127,6 @@ const COLUMNS: ReadonlyArray<{
 const HINT = { marginTop: tokens.space[16], textAlign: 'left' } satisfies CSSProperties
 
 const ITEM = { listStyle: 'none', minWidth: 0 } satisfies CSSProperties
-
-const PATTERNS_LINK = { textDecoration: 'none' } satisfies CSSProperties
 
 /** "+ Move in from your Hangar", under the columns: a block, 16px below them. */
 const ADD = { marginTop: tokens.space[16] } satisfies CSSProperties
@@ -338,13 +335,9 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
                   }
                   headExtra={
                     column.kind === 'mech' ? (
-                      <AppLink
-                        href="/mechs/patterns"
-                        className={buttonVariants({ variant: 'ghost', size: 'mini' })}
-                        style={PATTERNS_LINK}
-                      >
+                      <Button href="/mechs/patterns" variant="ghost" size="mini">
                         Patterns
-                      </AppLink>
+                      </Button>
                     ) : undefined
                   }
                   empty={columnRows.length === 0}

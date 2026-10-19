@@ -6,7 +6,7 @@ import { srdSchemaPath } from 'salvageunion-reference'
 import { borderWidth, color, iconSize, layer, radius, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { Badge } from '../atoms/Badge'
-import { buttonVariants } from '../atoms/buttonVariants'
+import { Button } from '../atoms/Button'
 import { CloseButton } from '../atoms/CloseButton'
 import { FOCUS_RING } from '../atoms/interaction'
 import { TRANSITION_COLORS } from '../atoms/transition'
@@ -217,16 +217,13 @@ export function NavDrawer({
                 {navItems.map((item) => {
                   // External items render a plain anchor in a new tab; internal
                   // ones route through LinkComponent. One element either way.
-                  const Link = item.external ? 'a' : LinkComponent
                   return (
-                    <Link
+                    <Button
                       key={item.href}
                       href={item.href}
-                      className={cn(
-                        buttonVariants({ variant: 'ghost' }),
-                        'su-nav-drawer__link',
-                        item.active && 'su-btn--here'
-                      )}
+                      linkAs={item.external ? 'a' : LinkComponent}
+                      variant="ghost"
+                      className={cn('su-nav-drawer__link', item.active && 'su-btn--here')}
                       onClick={close}
                       {...(item.external
                         ? { target: '_blank', rel: 'noopener noreferrer' }
@@ -234,7 +231,7 @@ export function NavDrawer({
                     >
                       {item.label}
                       {item.badge}
-                    </Link>
+                    </Button>
                   )
                 })}
               </div>

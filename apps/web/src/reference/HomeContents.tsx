@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react'
 import type { ChapterTone } from '../components/index'
-import { buttonVariants, CHAPTER_BAND_COLOR, cn, StartHere, ToneStrip } from '../components/index'
+import { Button, CHAPTER_BAND_COLOR, StartHere, ToneStrip } from '../components/index'
 
 /**
  * The home page as the manual's Contents page (board 06): the book's chapters
@@ -78,12 +78,14 @@ const DISCORD_MARK =
  */
 export function DiscordButton({ installHref }: { installHref: string }) {
   return (
-    <a
+    <Button
       href={installHref}
       target="_blank"
       rel="noopener noreferrer"
       id="discord-bot"
-      className={cn(buttonVariants({ variant: 'ink', size: 'full' }), 'su-home__discord')}
+      variant="ink"
+      size="full"
+      className="su-home__discord"
     >
       <svg
         viewBox="0 0 24 24"
@@ -94,6 +96,6 @@ export function DiscordButton({ installHref }: { installHref: string }) {
         <path fill="currentColor" d={DISCORD_MARK} />
       </svg>
       SalvageUnion.io On Discord
-    </a>
+    </Button>
   )
 }

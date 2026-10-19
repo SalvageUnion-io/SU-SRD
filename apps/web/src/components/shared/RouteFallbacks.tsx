@@ -16,11 +16,10 @@
 
 import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from 'react'
 import { color, font, fontSize, space } from '../../design/tokens'
-import { BackLabel, buttonVariants, Pending, TitledBox } from '../index'
+import { Button, Pending, TitledBox } from '../index'
 import { DidYouMeanIsland } from '../islands/DidYouMeanIsland'
 import { SearchIsland } from '../islands/SearchIsland'
 import { NotFound } from '../NotFound'
-import { AppLink } from './AppLink'
 
 const SHELL = {
   alignItems: 'center',
@@ -44,10 +43,8 @@ const PANEL_MESSAGE = {
   lineHeight: '1.25rem',
 } satisfies CSSProperties
 
-const BACK_LINK = { textDecorationLine: 'none' } satisfies CSSProperties
-
 /** The 404's exit, at the head of its column (a flex column that would stretch it). */
-const HANGAR_LINK = { ...BACK_LINK, alignSelf: 'flex-start' } satisfies CSSProperties
+const HANGAR_LINK = { alignSelf: 'flex-start' } satisfies CSSProperties
 
 /** Full-viewport centering shell every standalone panel screen sits in. */
 export function FullPageShell({ children, ...rest }: ComponentPropsWithoutRef<'main'>) {
@@ -86,13 +83,9 @@ export function NotFoundPanel({
           bodyStyle={PANEL_BODY}
         >
           <p style={PANEL_MESSAGE}>{message}</p>
-          <AppLink
-            href={back.href}
-            className={buttonVariants({ variant: 'ghost', size: 'compact' })}
-            style={BACK_LINK}
-          >
-            <BackLabel to={back.label} />
-          </AppLink>
+          <Button href={back.href} back variant="ghost" size="compact">
+            {back.label}
+          </Button>
         </TitledBox>
       </div>
     </FullPageShell>
@@ -110,13 +103,9 @@ export function RouteNotFound() {
         search={<SearchIsland variant="hero" />}
         didYouMean={<DidYouMeanIsland />}
         back={
-          <AppLink
-            href="/"
-            className={buttonVariants({ variant: 'ghost', size: 'compact' })}
-            style={HANGAR_LINK}
-          >
-            <BackLabel to="Hangar" />
-          </AppLink>
+          <Button href="/" back variant="ghost" size="compact" style={HANGAR_LINK}>
+            Hangar
+          </Button>
         }
       />
     </main>

@@ -1,6 +1,9 @@
 import { describe, expect, mock, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import type { ComponentProps } from 'react'
 import { readPackageStylesheet } from '../../../styles/__tests__/packageStylesheet'
+import { EntitySurfaceProvider } from '../../entity/EntitySurface'
+import type { EntityLinkComponent } from '../../entity/entitySurfaceContext'
 import { Button } from '../Button'
 import { buttonVariants } from '../buttonVariants'
 import { DISABLED } from '../interaction'
@@ -93,5 +96,66 @@ describe('Button', () => {
     expect(btn.className).toContain(DISABLED)
     fireEvent.click(btn)
     expect(onClick).not.toHaveBeenCalled()
+  })
+
+  describe('href: a link drawn as a button (ruleset §6.5)', () => {
+    /** A stand-in router link: marks what it rendered. */
+    function RouterLink({ children, ...rest }: ComponentProps<EntityLinkComponent>) {
+      return (
+        <a data-router="" {...rest}>
+          {children}
+        </a>
+      )
+    }
+
+    test('is an anchor wearing the recipe, with no style of its own', () => {
+      render(
+        <Button href="/play/" variant="primary" size="mini">
+          Play solo
+        </Button>
+      )
+      const link = screen.getByRole('link', { name: 'Play solo' })
+      expect(link.getAttribute('href')).toBe('/play/')
+      expect(link.className).toContain(variantClass('primary'))
+      expect(link.className).toContain(sizeClass('mini'))
+      expect(link.getAttribute('style')).toBeNull()
+      expect(link.hasAttribute('type')).toBe(false)
+    })
+
+    test("a root-relative href takes the surface's router link; a URL or a static page, an anchor", () => {
+      render(
+        <EntitySurfaceProvider value={{ linkAs: RouterLink }}>
+          <Button href="/sheet/pilot/p1">Open</Button>
+          <Button href="https://discord.com/x">Add</Button>
+        </EntitySurfaceProvider>
+      )
+      expect(screen.getByRole('link', { name: 'Open' }).hasAttribute('data-router')).toBe(true)
+      expect(screen.getByRole('link', { name: 'Add' }).hasAttribute('data-router')).toBe(false)
+      cleanup()
+      render(<Button href="/sheet/pilot/p1">Open</Button>)
+      expect(screen.getByRole('link', { name: 'Open' }).hasAttribute('data-router')).toBe(false)
+    })
+
+    test('linkAs overrides the surface: a host outside it brings its own', () => {
+      render(
+        <EntitySurfaceProvider value={{ linkAs: RouterLink }}>
+          <Button href="/build/sign-in" linkAs="a">
+            Sign in
+          </Button>
+        </EntitySurfaceProvider>
+      )
+      expect(screen.getByRole('link', { name: 'Sign in' }).hasAttribute('data-router')).toBe(false)
+    })
+
+    test('back draws BackLabel at the Size: read "Back to <place>"', () => {
+      render(
+        <Button href="/" back size="compact">
+          Hangar
+        </Button>
+      )
+      const link = screen.getByRole('link', { name: 'Back to Hangar' })
+      expect(link.textContent).toBe('Back to Hangar')
+      expect(link.querySelector('svg')?.getAttribute('width')).toBe('14')
+    })
   })
 })

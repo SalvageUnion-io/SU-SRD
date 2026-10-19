@@ -37,7 +37,6 @@ import { Shelf } from '../build/shelves/Shelf'
 import {
   Badge,
   Button,
-  buttonVariants,
   ChapterBand,
   Entity,
   FieldError,
@@ -48,7 +47,6 @@ import {
   Stat,
   tokens,
 } from '../components/index'
-import { AppLink } from '../components/shared/AppLink'
 import { RoutePending } from '../components/shared/RouteFallbacks'
 import { UnitRow } from '../components/shared/UnitRow'
 import { useGo } from '../components/shared/useGo'
@@ -66,8 +64,6 @@ type GameSummary = FunctionReturnType<typeof api.games.listMine>[number]
 const MEASURE = '75rem'
 
 const ITEM = { listStyle: 'none', minWidth: 0 } satisfies CSSProperties
-
-const LINK = { textDecoration: 'none' } satisfies CSSProperties
 
 /** The sections side by side where there is room, stacked on a phone. */
 const SECTIONS = { alignItems: 'start' } satisfies CSSProperties
@@ -185,14 +181,14 @@ function PlayLandingView({ games, connected = false }: PlayLandingViewProps) {
                   </Badge>
                 }
                 controls={
-                  <AppLink
+                  <Button
                     href={`/play/${pilot.pilotId}`}
                     aria-label={`Play ${pilot.name} solo`}
-                    className={buttonVariants({ variant: 'primary', size: 'mini' })}
-                    style={LINK}
+                    variant="primary"
+                    size="mini"
                   >
                     Play solo
-                  </AppLink>
+                  </Button>
                 }
               />
             </li>
@@ -282,14 +278,9 @@ function PlayGameItem({
         ))}
         trailing={
           door ? (
-            <AppLink
-              href={door.href}
-              aria-label={door.ariaLabel}
-              className={buttonVariants({ variant: 'primary', size: 'mini' })}
-              style={LINK}
-            >
+            <Button href={door.href} aria-label={door.ariaLabel} variant="primary" size="mini">
               {door.label}
-            </AppLink>
+            </Button>
           ) : undefined
         }
       />

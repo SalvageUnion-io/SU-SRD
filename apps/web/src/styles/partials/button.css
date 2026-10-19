@@ -8,9 +8,9 @@
  * The `.btn` recipe (design-spec §2.4), ported from the `buttonVariants` recipe.
  *
  * ALL of it is here, geometry and type included — not just the stateful half.
- * `buttonVariants` is a public class-string export that both apps put on `<a>`
- * elements the library never renders, so there is no element for a style object
- * to attach to. That is the class-string exemption in `.claude/rules/styling.md`,
+ * `buttonVariants` is a class-string export that lands on elements the library
+ * never renders (a router link through `Button href`, a Base UI trigger), so
+ * there is no element for a style object to attach to. That is the class-string exemption in `.claude/rules/styling.md`,
  * and it is why this block is larger than the split rule alone would predict.
  *
  * ORDER MATTERS TWICE in here, and both are single-class specificity, so source
@@ -33,6 +33,8 @@
   gap: var(--space-8);
   justify-content: center;
   letter-spacing: var(--tracking-caps-snug);
+  /* `Button href` draws a link: no underline, as no button has one. */
+  text-decoration: none;
   text-transform: uppercase;
   transition:
     color var(--dur-fast) var(--ease),
