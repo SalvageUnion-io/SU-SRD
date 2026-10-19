@@ -81,7 +81,6 @@ function page(): PageResult {
         <div className="su-home__band">
           <ChapterBand
             measure={PAGE_MEASURE}
-            matchBar={false}
             aside={
               <div className="su-home__lede">
                 <Island name="SearchIsland" client="interaction" ssr props={{ variant: 'hero' }}>

@@ -76,7 +76,6 @@ export function FrontDoor() {
     <main style={PAGE}>
       <ChapterBand
         tone="build"
-        matchBar={false}
         measure={MEASURE}
         eyebrow={<span className={KICKER_CAPS}>{PRODUCT.descriptor}</span>}
         asideAt="notch"

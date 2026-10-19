@@ -20,10 +20,10 @@ describe('unionBarMatchCss', () => {
     expect(css).toContain('--su-bar-grain-paper:none;--su-bar-grain-ink:contents}')
   })
 
-  test("only the reference's bar matches: the app's wears its area's colour", () => {
+  test('the bar matches in every mode: no mode is left out', () => {
     const css = unionBarMatchCss('k3', color.mech, 'ink', 'ink')
-    expect(css).toContain(".su-union-bar[data-mode='reference']{")
-    expect(css).not.toMatch(/\.su-union-bar\{/)
+    expect(css).toContain(' .su-union-bar{')
+    expect(css).not.toContain('data-mode')
   })
 
   test('a dark band keeps paper on the bar and its paper flecks', () => {
@@ -52,12 +52,8 @@ describe('ChapterBand and the Union bar', () => {
     expect(html).not.toContain('<style>')
   })
 
-  test('a front page band keeps the ink bar', () => {
-    const html = renderToStaticMarkup(
-      <ChapterBand tone="build" matchBar={false}>
-        Training Bay
-      </ChapterBand>
-    )
-    expect(html).not.toContain('<style>')
+  test('a front page band colours the bar too', () => {
+    const html = renderToStaticMarkup(<ChapterBand tone="build">Training Bay</ChapterBand>)
+    expect(html).toContain('<style>')
   })
 })

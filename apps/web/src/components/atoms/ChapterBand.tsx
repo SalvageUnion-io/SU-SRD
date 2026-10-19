@@ -63,10 +63,8 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  *
  * A band that leads the page (a `PageShell`'s first child) also colours the
  * Union bar above it: the bar takes its colour, foreground and grain
- * (`unionBarMatch.ts`), so the site header and the band are one colour. A
- * front page (the SRD's home, Build's `/build`) sets `matchBar={false}`
- * and keeps the bar it has. The app's bar never matches: it wears its area's
- * colour on every route (`unionBarMatch.ts`).
+ * (`unionBarMatch.ts`), so the site header and the band are one colour, in
+ * every mode and on every page, front pages included.
  *
  * The page's breadcrumb trail (`ChapterBandTrail`, which a site's layout
  * provides) is the notch's kicker on a page band, at every width: a line of
@@ -171,7 +169,7 @@ export type ChapterBandProps = {
   titleSize?: string
   /**
    * Whether a page band colours the Union bar while it leads the page.
-   * Defaults to `true`; a front page passes `false` to keep the ink bar.
+   * Defaults to `true`; only a band that never leads a page (a dialog's) passes `false`.
    */
   matchBar?: boolean
 }

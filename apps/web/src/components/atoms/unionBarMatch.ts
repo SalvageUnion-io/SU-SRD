@@ -17,8 +17,9 @@ import type { SpeckleGrain } from './Speckle'
  *
  * The rule sets the `--su-bar-*` properties `.su-union-bar` reads
  * (`styles/partials/shell.css`); every colour the bar draws is one of them.
- * Only the reference's bar matches: the app's wears its area's colour on
- * every route (`data-mode`, `compositions/AppBar.tsx`).
+ * The bar matches in every mode, front pages included (owner's call,
+ * 2026-10-19); a page with no leading band keeps its area's colour
+ * (`data-mode`, `compositions/AppBar.tsx`).
  */
 const BAND = ".su-chapter-band[data-layout='bleed']"
 const LEADING_BAND = `:is(${[
@@ -56,7 +57,7 @@ export function unionBarMatchCss(
   // The two grains the bar serves: the band's shows, the other is hidden.
   const shown = (layer: SpeckleGrain) => (layer === grain ? 'contents' : 'none')
   return (
-    `:root:has(${LEADING_BAND}[${BAND_KEY_ATTRIBUTE}='${key}']) .su-union-bar[data-mode='reference']{` +
+    `:root:has(${LEADING_BAND}[${BAND_KEY_ATTRIBUTE}='${key}']) .su-union-bar{` +
     `--su-bar-bg:${band};` +
     `--su-bar-fg:var(--color-${foreground});` +
     `--su-bar-on-fg:var(--color-${ON[foreground]});` +
