@@ -23,14 +23,23 @@ import { CHIP_CLASSES } from './chipSet'
 /** What a line is: a Row or a Token. */
 const LINE = '.su-entity-row, .su-entity-token'
 
+/**
+ * A Card's frame. A Card is no line, so a strip whose nearest frame is a
+ * Card's (its head) is in no list, even where the Card sits in a Row-drawn
+ * frame (a wizard step's `Box`): joining that frame's list gave every card in
+ * the step one set of lane widths, which wrapped their heads, which
+ * re-measured the lanes, and the cards never stopped moving.
+ */
+const CARD = '.su-ec-outer, .su-ec-frame'
+
 type ListLanes = { strips: Set<HTMLElement>; observer: ResizeObserver | undefined; due: boolean }
 
 const lists = new WeakMap<HTMLElement, ListLanes>()
 
 /** The list a strip's line sits in, or null when the strip is no line's (a Card's head). */
 function listOf(strip: HTMLElement): HTMLElement | null {
-  let line = strip.closest(LINE)
-  if (!line) return null
+  let line = strip.closest(`${LINE}, ${CARD}`)
+  if (!line || line.matches(CARD)) return null
   while (line.parentElement && line.parentElement.childElementCount === 1) {
     line = line.parentElement
   }

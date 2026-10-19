@@ -34,8 +34,9 @@ function scan({ packAt }: { packAt: number }): string[] {
   )
   const lists = new Map<Element, { line: Element; strip: Element }[]>()
   for (const strip of strips) {
-    const own = strip.closest('.su-entity-row, .su-entity-token')
-    if (!own) continue
+    // A Card's head is no line (`chipLanes.ts`), even inside a Row-drawn frame.
+    const own = strip.closest('.su-entity-row, .su-entity-token, .su-ec-outer, .su-ec-frame')
+    if (!own || own.matches('.su-ec-outer, .su-ec-frame')) continue
     let line: Element = own
     // Up through the wrappers a line sits in alone (a grid cell, a `div`).
     while (line.parentElement && line.parentElement.childElementCount === 1) {
