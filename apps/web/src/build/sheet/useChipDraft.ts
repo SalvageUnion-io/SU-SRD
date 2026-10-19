@@ -1,12 +1,12 @@
 /**
  * useChipDraft — the inline "type a new chip" state machine shared by every
- * editable chip row on a live sheet (ConditionsEditor, NpcFactsEditor).
+ * editable chip row on a live sheet (`ChipListEditor`).
  *
  * The rows differ in what a commit MEANS (conditions are a set and de-dupe
  * case-insensitively; facts are a list and may legitimately repeat), so this
  * owns only the part that was identical in both: the adding/draft/inputRef
  * triple, focus-on-open, and the Enter-commits / Escape-cancels / blur-commits
- * handler. The commit policy stays at the call site, in `onCommit`.
+ * handler. The commit policy stays with `ChipListEditor` (`unique`), in `onCommit`.
  *
  * `inputProps` is spread onto the row's `<input>`; the call site still supplies
  * its own `aria-label` and geometry classes.

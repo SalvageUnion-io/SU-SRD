@@ -3,7 +3,7 @@
  *
  * Renders ONE list — `unifiedMechConditions()` (free-form `conditions[]`
  * merged with the automation-written shutdown/vulnerable/destroyed flags) —
- * through the existing ConditionsEditor chips. Edits map back through
+ * through the one chip-well editor (`ChipListEditor`). Edits map back through
  * `mechConditionsPatch`: removing 'Shutdown' / 'Vulnerable' / 'Destroyed'
  * clears the boolean flag (the manual clear), everything else round-trips
  * `conditions[]`. The two storage forms can never disagree on screen.
@@ -14,7 +14,8 @@ import { unifiedMechConditions } from 'salvageunion-reference/rules'
 import { mechConditionsPatch } from '../../lib/rules/mechItems'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
-import { ConditionsEditor } from './ConditionsEditor'
+import { ChipListEditor } from './ChipListEditor'
+import { CONDITION_DRAFT } from './chipWell.model'
 import { freshEntity } from './controlPrimitives'
 
 type MechConditionsEditorProps = {
@@ -32,5 +33,13 @@ export function MechConditionsEditor({ mech, store = useEntityStore }: MechCondi
     await storeState.update('mech', mech.id, mechConditionsPatch(fresh, next), LIVE_SHEET_MANUAL)
   }
 
-  return <ConditionsEditor conditions={unifiedMechConditions(mech)} onChange={handleChange} />
+  return (
+    <ChipListEditor
+      items={unifiedMechConditions(mech)}
+      onChange={handleChange}
+      noun="condition"
+      draftWidth={CONDITION_DRAFT}
+      unique
+    />
+  )
 }

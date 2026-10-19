@@ -79,9 +79,9 @@ describe('Pilot sheet — conditions display (#254)', () => {
     expect(screen.getByText('Impaired')).toBeTruthy()
   })
 
-  test('shows "None" empty state with no conditions', () => {
+  test('shows the one empty state with no conditions', () => {
     renderPilotSheet(basePilot)
-    expect(screen.getByText('None')).toBeTruthy()
+    expect(screen.getByText('No conditions yet.')).toBeTruthy()
   })
 })
 

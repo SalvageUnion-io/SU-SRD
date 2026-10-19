@@ -71,7 +71,8 @@ import { SoftWarningDialog } from '../../components/shared/SoftWarningDialog'
 import { classArt } from '../../lib/photos/defaultArt'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
-import { ConditionsEditor } from './ConditionsEditor'
+import { ChipListEditor } from './ChipListEditor'
+import { CONDITION_DRAFT } from './chipWell.model'
 import { PartnerCard } from './PartnerCard'
 import { PhotoBeside } from './PhotoBeside'
 import { PilotIdentityPanel } from './PilotIdentity'
@@ -312,9 +313,12 @@ export function PilotSheet({
                   <Eyebrow tone="toneDeep" style={CONDITIONS_LABEL}>
                     Conditions
                   </Eyebrow>
-                  <ConditionsEditor
-                    conditions={pilot.conditions}
+                  <ChipListEditor
+                    items={pilot.conditions}
                     onChange={actions.handleConditionsChange}
+                    noun="condition"
+                    draftWidth={CONDITION_DRAFT}
+                    unique
                   />
                 </div>
               </div>

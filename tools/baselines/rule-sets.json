@@ -1,4 +1,7 @@
 {
+  "tokens": {
+    "off-scale-space": 78
+  },
   "chrome": {
     "raw-button": 13
   },

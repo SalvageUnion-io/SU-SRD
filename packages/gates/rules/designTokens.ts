@@ -16,9 +16,11 @@
  * cites the section so a failure tells you which law you broke, not just which
  * regex you tripped.
  *
- * ## Every rule is zero
+ * ## Every rule is zero, but one
  *
- * Every rule here is `zero`: any finding fails, and none has a baseline entry.
+ * Every rule here is `zero`: any finding fails, and none has a baseline entry,
+ * but `off-scale-space`, a ratchet burning down (R13): `space[10]`, a rung
+ * the token scale keeps that §4.4's scale does not.
  * `raw-spacing` (R13) was a ratchet, burned to zero before 4.0.0.
  * `rust-allowlist` (§3.1), `type-floor` (§4.6) and `texture-placement` (§3.5)
  * hold the Workshop Manual canon the ruleset ratifies. The Discord bot's
@@ -370,6 +372,18 @@ const TOKEN_RULES: TokenRule[] = [
       '(?:padding|margin)(?:Top|Right|Bottom|Left|Block|Inline)?(?:Start|End)?|(?:row|column)?[gG]ap'
     ),
     keep: keepLengthLiteral,
+  },
+  {
+    id: 'off-scale-space',
+    mode: 'ratchet',
+    rule: 'ruleset §4.4 — spacing on the scale: {2, 4, 6, 8, 12}px inside a block; `space[10]` is off it (R13)',
+    // The token scale still names a 10px rung (`space[10]`, `--space-10`), so
+    // `raw-spacing`, which reads literals, never saw it: the chip wells drew
+    // 10px of padding beside 8px through a token. Ratcheted down to zero.
+    fix: 'Move to a rung on the scale: `space[8]` / `var(--space-8)` or `space[12]` / `var(--space-12)`, and check the page with `bun run shot`.',
+    pattern: /(?<![\w-])(?:space\[10\]|--space-10)(?![\w-])/g,
+    // Where the rung is defined: the token files, not a use.
+    skip: ['apps/web/src/styles/theme.css', 'apps/web/src/design/tokens.ts'],
   },
 ]
 

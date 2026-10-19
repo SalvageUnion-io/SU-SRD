@@ -112,9 +112,25 @@ describe('ruleEngine.listFiles', () => {
 describe('tokens rule set', () => {
   const scan = (rel: string, text: string) => scanTokenSources(new Map([[rel, text]]))
 
-  test('every rule is zero', () => {
-    expect(designTokens.rules.filter((r) => r.mode !== 'zero').map((r) => r.id)).toEqual([])
-    expect(ratchetCounts(designTokens, {})).toEqual({})
+  test('every rule is zero but off-scale-space, the one ratchet burning down', () => {
+    expect(designTokens.rules.filter((r) => r.mode !== 'zero').map((r) => r.id)).toEqual([
+      'off-scale-space',
+    ])
+    expect(ratchetCounts(designTokens, {})).toEqual({ 'off-scale-space': 0 })
+  })
+
+  test('off-scale-space: space[10] and --space-10 are found; their definitions and 12 are not', () => {
+    const found = (rel: string, text: string) =>
+      (scan(rel, text)['off-scale-space'] ?? []).map((f) => f.line)
+    expect(
+      found(
+        'apps/web/src/build/A.tsx',
+        ['const W = { padding: tokens.space[10] }', 'const X = { gap: space[12] }'].join('\n')
+      )
+    ).toEqual([1])
+    expect(found('apps/web/src/styles/a.css', '.su-a {\n  gap: var(--space-10);\n}\n')).toEqual([2])
+    expect(found('apps/web/src/styles/theme.css', '  --space-10: 10px;\n')).toEqual([])
+    expect(found('apps/web/src/design/tokens.ts', "  10: '10px',\n")).toEqual([])
   })
 
   test('raw colour literals are found; issue refs and HTML entities are not', () => {

@@ -22,7 +22,8 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { capsLabel } from '../../components/atoms/capsLabel'
 import { InlineEditField, Inset, Stat, tokens } from '../../components/index'
-import { NpcFactsEditor } from './NpcFactsEditor'
+import { ChipListEditor } from './ChipListEditor'
+import { FACT_DRAFT } from './chipWell.model'
 
 const ROW = {
   alignItems: 'baseline',
@@ -252,10 +253,13 @@ export function NpcLines({
       )}
       {showFacts && (
         <NpcRow label="Facts" grow plain className="su-sheet-npc-wide">
-          <NpcFactsEditor
-            facts={facts}
+          <ChipListEditor
+            items={facts}
             onChange={(next) => onFactsChange?.(next)}
-            npcLabel={`${bayName} crew`}
+            noun="fact"
+            owner={`${bayName} crew`}
+            draftWidth={FACT_DRAFT}
+            tone="quiet"
             readOnly={onFactsChange === undefined}
           />
         </NpcRow>

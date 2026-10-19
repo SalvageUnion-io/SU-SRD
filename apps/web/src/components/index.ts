@@ -57,7 +57,7 @@ export { Checkbox } from './atoms/Checkbox'
 // CloseButton — the one ×: every dialog, drawer and sheet closes on it.
 export { CloseButton } from './atoms/CloseButton'
 // Conditions — the entity-condition chip row. Public because the app's sheet
-// editors (ConditionsEditor, NpcFactsEditor) compose it.
+// chip-well editor (`ChipListEditor`) composes it.
 export { Conditions } from './atoms/Conditions'
 // Copied — a copy control's own Check swap and polite status (chrome K5).
 export { CopiedIcon, CopiedStatus } from './atoms/Copied'
