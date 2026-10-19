@@ -952,7 +952,7 @@ const COLLAPSED_DOCS: Record<string, number> = {
   'docs/architecture/mediator-dashboard.md': 2_600,
   'docs/architecture/npc-builder.md': 2_000,
   'docs/architecture/play.md': 8_450,
-  'docs/design-system/chrome.md': 2_900,
+  'docs/design-system/chrome.md': 3_000,
   'docs/design-system/entity-display-language.md': 6_900,
   'docs/design-system/ruleset.md': 15_200,
   'docs/design-system/sources.md': 3_600,

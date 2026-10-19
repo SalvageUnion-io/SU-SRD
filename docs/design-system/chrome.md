@@ -6,7 +6,7 @@ Status: agreed (2026-10-18).
 ## Foundations
 
 - **K1 One ground signal** — a surface declares its ground once (`data-ground="paper" | "ink"` on its frame, as `data-grain` declares texture); components read it in CSS, never through a prop. Paper on ink is `--color-paper-NN` alone.
-- **K2 The breakpoint ladder** — 40, 48, 64 and 80rem (`breakpoint` in `tokens.ts`), written `(width >= …)`, for media and container queries and the JS that mirrors them. Play's phone floor (ADR-045 decision 1) is the one named exception.
+- **K2 The breakpoint ladder** — 40, 48, 64 and 80rem (`breakpoint` in `tokens.ts`), written `(width >= …)`, for media and container queries and the JS that mirrors them. Named exceptions, each a component fit: Play's phone floor (ADR-045 decision 1), the stat column's cell count and a Row's art by room (EDL E10).
 - **K3 Motion** — `--dur-fast` (120ms) for a state change, `--dur-base` (150ms) for a move, one easing, `--ease`. A loop is only a loading mark, its period `--dur-loop` (2s), and only under `prefers-reduced-motion: no-preference`.
 - **K4 Lift and layers** — one lift, `--shadow-lift` in warm ink, for what floats (popup, Peek plate, toast, dialog); the focus ring is the other shadow. Popups are 3px (ruleset §4.4). Above the page z-index comes from `layer` (`--z-*`); 0–3 is local stacking.
 
