@@ -1,8 +1,7 @@
 import type { Page } from '@playwright/test'
-import type { DesignDebt } from './_designRoutes'
 import { expectWithinBaseline, seedDesignAccount, walkDesignRoutes } from './_designRoutes'
-import type { DesignFamily } from './_helpers'
-import { DESIGN_FAMILIES, designRoutes } from './_helpers'
+import type { DesignDebt, DesignFamily } from './_designTable'
+import { DESIGN_FAMILIES, designRoutes } from './_designTable'
 import { expect, test } from './fixtures'
 
 /**

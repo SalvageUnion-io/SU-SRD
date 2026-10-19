@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test'
 import { at } from './_base'
-import type { DesignDebt } from './_designRoutes'
 import { expectWithinBaseline, seedDesignAccount, walkDesignRoutes } from './_designRoutes'
+import type { DesignDebt } from './_designTable'
 import { editSheet, fillIdentity, openSheetFor, waitForReady } from './_helpers'
 import { describeFindings, findNestingFindings } from './_nestingDepth'
 import { expect, test } from './fixtures'

@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
-import type { DesignDebt } from './_designRoutes'
 import { expectWithinBaseline, seedDesignAccount, walkDesignRoutes } from './_designRoutes'
+import type { DesignDebt } from './_designTable'
 import { expect, test } from './fixtures'
 
 /**

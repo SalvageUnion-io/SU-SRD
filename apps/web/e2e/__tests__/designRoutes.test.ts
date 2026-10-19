@@ -1,14 +1,24 @@
 /**
  * Hard rule R0, "Every layout gate sees every context": `designRoutes`
- * (`_helpers.ts`) has an entry for every route family, at every width the
+ * (`_designTable.ts`) has an entry for every route family, at every width the
  * family is held to, and every path it names the seed makes. A new family in
  * `DESIGN_FAMILIES` with no entry fails here, before a browser runs.
  */
 import { describe, expect, test } from 'bun:test'
-import type { DesignDebt, DesignFinding } from '../_designRoutes'
-import { againstBaseline } from '../_designRoutes'
-import type { DesignContext, DesignFamily, DesignWidth } from '../_helpers'
-import { DESIGN_FAMILIES, DESIGN_SEED_KEYS, designRoutes, ONE_WIDTH } from '../_helpers'
+import type {
+  DesignContext,
+  DesignDebt,
+  DesignFamily,
+  DesignFinding,
+  DesignWidth,
+} from '../_designTable'
+import {
+  againstBaseline,
+  DESIGN_FAMILIES,
+  DESIGN_SEED_KEYS,
+  designRoutes,
+  ONE_WIDTH,
+} from '../_designTable'
 
 const FAMILIES = Object.keys(DESIGN_FAMILIES) as DesignFamily[]
 const WIDTHS: readonly DesignWidth[] = ['page', 'phone']

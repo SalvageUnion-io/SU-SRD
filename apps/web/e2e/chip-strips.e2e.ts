@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test'
 import { findChipLaneFaults } from './_chipLanes'
 import { findChipStripFaults } from './_chipStrips'
-import type { DesignDebt } from './_designRoutes'
 import { expectWithinBaseline, seedDesignAccount, walkDesignRoutes } from './_designRoutes'
+import type { DesignDebt } from './_designTable'
 import { test as signedIn } from './fixtures'
 
 /**

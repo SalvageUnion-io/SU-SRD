@@ -41,6 +41,102 @@ export const EMPTY_LINES = [
 
 export type SheetGrammarFinding = { rule: string; detail: string }
 
+/** What the scan is handed: the view's state and the words it holds a sheet to. */
+export type SheetGrammarArgs = {
+  edit: boolean
+  words: Record<string, string>
+  emptyLines: readonly string[]
+}
+
+/**
+ * The scan itself, run in the page (`page.evaluate` sends its source, so it
+ * reads nothing from this module's scope: everything comes in its one argument).
+ */
+export function scanSheetGrammar({
+  edit,
+  words,
+  emptyLines,
+}: SheetGrammarArgs): SheetGrammarFinding[] {
+  const found: { rule: string; detail: string }[] = []
+  const main = document.querySelector<HTMLElement>('main[data-variant]')
+  if (!main) return [{ rule: 'shell', detail: 'no LiveSheet (`main[data-variant]`)' }]
+  const kind = main.dataset.variant ?? '?'
+  const band = main.querySelector('.su-chapter-band')
+  const corner = band?.querySelector('.su-chapter-band__corner')
+  if (!corner) found.push({ rule: 'shell', detail: `${kind}: the band has no corner` })
+  // Read | Edit is a `Segmented`: a fieldset named by its legend.
+  const toggle = [...(corner?.querySelectorAll('fieldset > legend') ?? [])].find((l) =>
+    (l.textContent ?? '').startsWith('Read or edit')
+  )
+  const writable = corner?.querySelector('[aria-label^="Share"]')
+  if (writable && !toggle) {
+    found.push({ rule: 'shell', detail: `${kind}: a writable sheet with no Read | Edit` })
+  }
+  // Actions are the corner's, never the body's foot.
+  const body = main.querySelector<HTMLElement>('.su-sheet-live-body')
+  if (!body) return [...found, { rule: 'shell', detail: `${kind}: no sheet body` }]
+  for (const b of body.querySelectorAll('button')) {
+    const name = b.getAttribute('aria-label') ?? b.textContent ?? ''
+    if (/^(Share|Delete)\b/.test(name.trim())) {
+      found.push({ rule: 'shell', detail: `${kind}: "${name.trim()}" in the body` })
+    }
+  }
+
+  const hero = body.querySelector('.su-sheet-hero')
+  if (!hero) found.push({ rule: 'hero', detail: `${kind}: the body opens on no SheetHero` })
+  const vitals = hero?.querySelector('.su-sheet-vitals')
+  if (hero && !vitals) found.push({ rule: 'hero', detail: `${kind}: no vitals stack` })
+  for (const pip of hero?.querySelectorAll('[data-pip]') ?? []) {
+    if (!pip.closest('[data-vital]')) {
+      found.push({ rule: 'vitals', detail: `${kind}: a gauge that is no SheetVitalGauge` })
+      break
+    }
+  }
+  for (const v of hero?.querySelectorAll<HTMLElement>('[data-vital]') ?? []) {
+    const key = v.dataset.vital ?? ''
+    const full = words[key]
+    const text = (v.textContent ?? '').replace(/\s+/g, ' ')
+    if (!full) found.push({ rule: 'vitals', detail: `${kind}: a vital "${key}" off the map` })
+    else if (!text.toLowerCase().includes(full.toLowerCase())) {
+      found.push({ rule: 'vitals', detail: `${kind}: ${key} not captioned "${full}"` })
+    }
+  }
+
+  if (!edit) {
+    const fields = body.querySelectorAll(
+      'input:not([type="hidden"]), textarea, select, [role="slider"], [contenteditable="true"]'
+    )
+    for (const f of fields) {
+      const name = f.getAttribute('aria-label') ?? f.getAttribute('name') ?? f.tagName
+      found.push({ rule: 'read', detail: `${kind}: a field in Read (${name})` })
+    }
+    for (const b of body.querySelectorAll('button')) {
+      const name = b.getAttribute('aria-label') ?? ''
+      if (/^(Increase|Decrease) /.test(name)) {
+        found.push({ rule: 'read', detail: `${kind}: a stepper in Read (${name})` })
+      }
+    }
+    const text = body.innerText
+    for (const line of emptyLines) {
+      if (text.includes(line)) {
+        found.push({ rule: 'read', detail: `${kind}: an empty section in Read ("${line}")` })
+      }
+    }
+  } else {
+    for (const b of body.querySelectorAll('button')) {
+      const name = b.getAttribute('aria-label') ?? ''
+      if (!/^Remove /.test(name) || /photo$/.test(name)) continue
+      if (!b.classList.contains('su-sheet-item__remove')) {
+        found.push({
+          rule: 'remove',
+          detail: `${kind}: "${name}" is not the one remove control`,
+        })
+      }
+    }
+  }
+  return found
+}
+
 export async function findSheetGrammar(
   page: Page,
   state: { edit: boolean }
@@ -51,87 +147,9 @@ export async function findSheetGrammar(
     .first()
     .waitFor({ timeout: 30_000 })
     .catch(() => {})
-  return page.evaluate(
-    ({ edit, words, emptyLines }) => {
-      const found: { rule: string; detail: string }[] = []
-      const main = document.querySelector<HTMLElement>('main[data-variant]')
-      if (!main) return [{ rule: 'shell', detail: 'no LiveSheet (`main[data-variant]`)' }]
-      const kind = main.dataset.variant ?? '?'
-      const band = main.querySelector('.su-chapter-band')
-      const corner = band?.querySelector('.su-chapter-band__corner')
-      if (!corner) found.push({ rule: 'shell', detail: `${kind}: the band has no corner` })
-      // Read | Edit is a `Segmented`: a fieldset named by its legend.
-      const toggle = [...(corner?.querySelectorAll('fieldset > legend') ?? [])].find((l) =>
-        (l.textContent ?? '').startsWith('Read or edit')
-      )
-      const writable = corner?.querySelector('[aria-label^="Share"]')
-      if (writable && !toggle) {
-        found.push({ rule: 'shell', detail: `${kind}: a writable sheet with no Read | Edit` })
-      }
-      // Actions are the corner's, never the body's foot.
-      const body = main.querySelector<HTMLElement>('.su-sheet-live-body')
-      if (!body) return [...found, { rule: 'shell', detail: `${kind}: no sheet body` }]
-      for (const b of body.querySelectorAll('button')) {
-        const name = b.getAttribute('aria-label') ?? b.textContent ?? ''
-        if (/^(Share|Delete)\b/.test(name.trim())) {
-          found.push({ rule: 'shell', detail: `${kind}: "${name.trim()}" in the body` })
-        }
-      }
-
-      const hero = body.querySelector('.su-sheet-hero')
-      if (!hero) found.push({ rule: 'hero', detail: `${kind}: the body opens on no SheetHero` })
-      const vitals = hero?.querySelector('.su-sheet-vitals')
-      if (hero && !vitals) found.push({ rule: 'hero', detail: `${kind}: no vitals stack` })
-      for (const pip of hero?.querySelectorAll('[data-pip]') ?? []) {
-        if (!pip.closest('[data-vital]')) {
-          found.push({ rule: 'vitals', detail: `${kind}: a gauge that is no SheetVitalGauge` })
-          break
-        }
-      }
-      for (const v of hero?.querySelectorAll<HTMLElement>('[data-vital]') ?? []) {
-        const key = v.dataset.vital ?? ''
-        const full = words[key]
-        const text = (v.textContent ?? '').replace(/\s+/g, ' ')
-        if (!full) found.push({ rule: 'vitals', detail: `${kind}: a vital "${key}" off the map` })
-        else if (!text.toLowerCase().includes(full.toLowerCase())) {
-          found.push({ rule: 'vitals', detail: `${kind}: ${key} not captioned "${full}"` })
-        }
-      }
-
-      if (!edit) {
-        const fields = body.querySelectorAll(
-          'input:not([type="hidden"]), textarea, select, [role="slider"], [contenteditable="true"]'
-        )
-        for (const f of fields) {
-          const name = f.getAttribute('aria-label') ?? f.getAttribute('name') ?? f.tagName
-          found.push({ rule: 'read', detail: `${kind}: a field in Read (${name})` })
-        }
-        for (const b of body.querySelectorAll('button')) {
-          const name = b.getAttribute('aria-label') ?? ''
-          if (/^(Increase|Decrease) /.test(name)) {
-            found.push({ rule: 'read', detail: `${kind}: a stepper in Read (${name})` })
-          }
-        }
-        const text = body.innerText
-        for (const line of emptyLines) {
-          if (text.includes(line)) {
-            found.push({ rule: 'read', detail: `${kind}: an empty section in Read ("${line}")` })
-          }
-        }
-      } else {
-        for (const b of body.querySelectorAll('button')) {
-          const name = b.getAttribute('aria-label') ?? ''
-          if (!/^Remove /.test(name) || /photo$/.test(name)) continue
-          if (!b.classList.contains('su-sheet-item__remove')) {
-            found.push({
-              rule: 'remove',
-              detail: `${kind}: "${name}" is not the one remove control`,
-            })
-          }
-        }
-      }
-      return found
-    },
-    { edit: state.edit, words: SHEET_VITAL_WORDS, emptyLines: EMPTY_LINES }
-  )
+  return page.evaluate(scanSheetGrammar, {
+    edit: state.edit,
+    words: SHEET_VITAL_WORDS,
+    emptyLines: EMPTY_LINES,
+  })
 }

@@ -1,5 +1,5 @@
-import type { DesignDebt } from './_designRoutes'
 import { expectWithinBaseline, seedDesignAccount, walkDesignRoutes } from './_designRoutes'
+import type { DesignDebt } from './_designTable'
 import { chassisAbilityNames, findFormFindings } from './_formFits'
 import { test } from './fixtures'
 

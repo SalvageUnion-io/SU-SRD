@@ -1,15 +1,22 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import { at, BASE } from './_base'
-import type { DesignFamily, DesignRoute, DesignSeedKey, DesignWidth } from './_helpers'
+import type {
+  DesignDebt,
+  DesignFamily,
+  DesignFinding,
+  DesignRoute,
+  DesignSeedKey,
+  DesignWidth,
+} from './_designTable'
 import {
+  againstBaseline,
   DESIGN_FAMILIES,
   DESIGN_VIEWPORTS,
   designRoutes,
   gamePageRoute,
-  gotoStable,
-  waitForReady,
-} from './_helpers'
+} from './_designTable'
+import { gotoStable, waitForReady } from './_helpers'
 import { CANVAS, PHONE, pilotPlayPath, playDoor } from './_play'
 import { createGame, makeInviteLink } from './_table'
 
@@ -18,7 +25,8 @@ import { createGame, makeInviteLink } from './_table'
  * an account, open every route at each of its widths, put it in the state it
  * names (Edit, a Peek open, each of Play's phone tabs) and hand each view to
  * the gate's scan. The gate's findings are then held against its baseline
- * (`againstBaseline`), the debt it has recorded, by route family and rule.
+ * (`againstBaseline`, `_designTable.ts`), the debt it has recorded, by route
+ * family and rule.
  */
 
 /** Every path the seed made, by the `:key` a route names it with. Browser paths, base included. */
@@ -151,9 +159,6 @@ export type DesignView = {
   where: string
 }
 
-/** One finding a gate made, on one view, under one of the gate's rules. */
-export type DesignFinding = { family: DesignFamily; rule: string; line: string }
-
 /** What a gate's scan reads off one view: a rule and a line for each finding. */
 export type DesignScan = (view: DesignView) => Promise<{ rule: string; line: string }[]>
 
@@ -255,39 +260,6 @@ export async function walkDesignRoutes(
     }
   }
   return found
-}
-
-/**
- * One recorded debt: a finding a gate already makes on a route family, under
- * one rule, kept so the gate is green while the debt is burned down. `match`
- * is a substring of the finding's line that names the thing at fault, never
- * its pixel measures (they differ between machines' fonts); `why` says what
- * is wrong and where it is to be fixed.
- */
-export type DesignDebt = { family: DesignFamily; rule: string; match: string; why: string }
-
-/**
- * Sort a gate's findings against its baseline: `fresh` fail the gate, `held`
- * are the baseline's, and `stale` are baseline entries nothing matched (paid
- * off: delete them).
- */
-export function againstBaseline(
-  findings: readonly DesignFinding[],
-  baseline: readonly DesignDebt[]
-): { fresh: DesignFinding[]; held: DesignFinding[]; stale: DesignDebt[] } {
-  const used = new Set<DesignDebt>()
-  const fresh: DesignFinding[] = []
-  const held: DesignFinding[] = []
-  for (const f of findings) {
-    const debt = baseline.find(
-      (d) => d.family === f.family && d.rule === f.rule && f.line.includes(d.match)
-    )
-    if (debt) {
-      used.add(debt)
-      held.push(f)
-    } else fresh.push(f)
-  }
-  return { fresh, held, stale: baseline.filter((d) => !used.has(d)) }
 }
 
 /**

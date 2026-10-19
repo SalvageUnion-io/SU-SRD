@@ -1,6 +1,6 @@
-import type { DesignDebt } from './_designRoutes'
 import { expectWithinBaseline, seedDesignAccount, walkDesignRoutes } from './_designRoutes'
-import { designRoutes } from './_helpers'
+import type { DesignDebt } from './_designTable'
+import { designRoutes } from './_designTable'
 import { findSheetGrammar } from './_sheetGrammar'
 import { test } from './fixtures'
 

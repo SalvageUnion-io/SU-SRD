@@ -1,5 +1,5 @@
-import type { DesignDebt } from './_designRoutes'
 import { expectWithinBaseline, seedDesignAccount, walkDesignRoutes } from './_designRoutes'
+import type { DesignDebt } from './_designTable'
 import { findRelationFindings } from './_relationChips'
 import { test } from './fixtures'
 
