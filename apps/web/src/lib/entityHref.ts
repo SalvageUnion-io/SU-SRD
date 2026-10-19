@@ -1,4 +1,4 @@
-import type { EntityRef } from 'salvageunion-reference'
+import type { EntityRef, RefEntity } from 'salvageunion-reference'
 import {
   getEntitySchemas,
   getEntitySlug,
@@ -6,7 +6,6 @@ import {
   srdEntityPath,
   srdSchemaPath,
 } from 'salvageunion-reference'
-import type { EntityHrefBuilder } from '../components/index'
 
 /**
  * srd's TRAILING-SLASH policy over the shared route grammar.
@@ -55,11 +54,9 @@ export function hasPage(schemaName: string): boolean {
 }
 
 /**
- * An entity's page, as a `src/components` href builder: the reference pages
- * and the app supply it through `EntityHrefProvider`, so nested "View
- * Details" links resolve to it (the shared library stays route-agnostic).
- * Root-relative on both: the app renders these as plain anchors, never
- * through its router.
+ * An entity's page, from the record: the app's "View in the Reference" link
+ * (`srdEntityExternalLink`). Root-relative: the app renders it as a plain
+ * anchor, never through its router.
  *
  * Only a dataset record of a schema with pages has one. A record with no `id`
  * was assembled for display (a crawler bay's commander is its bay's embedded
@@ -67,7 +64,7 @@ export function hasPage(schemaName: string): boolean {
  * `resolveNestedEntities`), and a meta schema has no pages; a link built for
  * either would 404, so it gets none and renders unlinked.
  */
-export const entityHref: EntityHrefBuilder = (entity) => {
+export function entityHref(entity: RefEntity): string | undefined {
   const schemaName =
     'schemaName' in entity && typeof entity.schemaName === 'string' ? entity.schemaName : undefined
   const isRecord = 'id' in entity && typeof entity.id === 'string' && entity.id.length > 0
@@ -79,10 +76,11 @@ export const entityHref: EntityHrefBuilder = (entity) => {
 /**
  * srd's routes as the entity SURFACE's `hrefFor` (`EntitySurfaceProvider`):
  * an entity's page, or a pattern's under its chassis. A synthetic ref (built
- * from embedded data, no dataset row) has no page.
+ * from embedded data, no dataset row) and a meta schema's (an action) have no
+ * page.
  */
 export function srdHrefFor(ref: EntityRef): string | undefined {
-  if (ref.synthetic) return undefined
+  if (ref.synthetic || !hasPage(ref.schemaName)) return undefined
   return ref.pattern
     ? patternHref(ref.schemaName, ref.slug, nameToSlug(ref.pattern))
     : itemHref(ref.schemaName, ref.slug)

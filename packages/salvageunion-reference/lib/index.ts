@@ -221,7 +221,7 @@ export {
   formatActionType,
   formatCost,
 } from './view/parts/traits'
-export { glossaryRef, toEntityModel } from './view/toEntityModel'
+export { entityRef, glossaryRef, toEntityModel } from './view/toEntityModel'
 export type {
   EntityArt,
   EntityDomain,

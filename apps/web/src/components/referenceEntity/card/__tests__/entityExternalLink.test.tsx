@@ -1,7 +1,7 @@
 /**
  * Regression guard for the app-supplied entity cross-link (The app's
- * "View in the Reference"), which reaches the card through
- * `EntityExternalLinkProvider` and is read by `useEntityExternalLink`.
+ * "View in the Reference"), which reaches the card as the entity surface's
+ * `externalLink` and is read by `useEntityExternalLink`.
  *
  * WHY THIS EXISTS. This link silently disappeared once already, and nothing
  * caught it. The since-deleted legacy render core held the only
@@ -21,7 +21,7 @@
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { EntityExternalLinkProvider } from '../../entityHrefContext'
+import { EntitySurfaceProvider } from '../../../entity/EntitySurface'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 const chassis = () => {
@@ -31,12 +31,13 @@ const chassis = () => {
 }
 
 const LINK_TEXT = 'View in the Reference'
+const LINKED = { externalLink: () => <a href="/srd">{LINK_TEXT}</a> }
 
 const renderWithLink = (extent: 'full' | 'head' | 'catalog') =>
   render(
-    <EntityExternalLinkProvider value={() => <a href="/srd">{LINK_TEXT}</a>}>
+    <EntitySurfaceProvider value={LINKED}>
       <ReferenceEntityCard data={chassis()} extent={extent} />
-    </EntityExternalLinkProvider>
+    </EntitySurfaceProvider>
   )
 
 describe('entity card external cross-link', () => {

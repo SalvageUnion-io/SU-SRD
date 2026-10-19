@@ -64,8 +64,11 @@ function schemaNameOf(entity: RefMetaEntity): EntitySchemaName | undefined {
     : undefined
 }
 
-/** An entity as a ref. A record with no `id` is synthetic, never linked. */
-function refOf(entity: RefMetaEntity, parentId?: string): EntityRef {
+/**
+ * An entity as a ref, the name a form links and Peeks it by. A record with no
+ * `id` is synthetic, never linked.
+ */
+export function entityRef(entity: RefMetaEntity, parentId?: string): EntityRef {
   const schemaName = schemaNameOf(entity) ?? 'npcs'
   const name = getReferenceEntityName(entity) ?? ('name' in entity ? String(entity.name) : '')
   const id = typeof entity.id === 'string' ? entity.id : ''
@@ -80,7 +83,7 @@ function groupsOf(groups: NestedGroup[], parentId: string): EntityChildGroup[] {
   return groups.map(({ label, entities }) => ({
     key: label.toLowerCase(),
     label,
-    items: entities.map((child) => refOf(child, parentId)),
+    items: entities.map((child) => entityRef(child, parentId)),
   }))
 }
 
@@ -164,7 +167,7 @@ export function toEntityModel(
   const schemaName = (schemaNameOf(entity) ?? 'npcs') as RefEnumSchemaName | 'actions'
   const isAction = schemaName === 'actions'
   const entityName = getReferenceEntityName(entity) ?? ('name' in entity ? String(entity.name) : '')
-  const baseRef = refOf(entity)
+  const baseRef = entityRef(entity)
   const techLevel = getTechLevel(entity)
   const nature = !pattern && isDoEntity(entity) ? 'do' : 'have'
 
@@ -268,16 +271,16 @@ export function toEntityModel(
     traits: facets.traits,
     ...(lead ? { lead } : {}),
     prose: pattern ? (pattern.content ?? []) : ownContent,
-    ...(folded ? { folded: refOf(folded) } : {}),
-    actions: others.map((a) => refOf(a)),
-    abilities: (getChassisAbilities(entity) ?? []).map((a) => refOf(a)),
+    ...(folded ? { folded: entityRef(folded) } : {}),
+    actions: others.map((a) => entityRef(a)),
+    abilities: (getChassisAbilities(entity) ?? []).map((a) => entityRef(a)),
     children,
     ...(links.length > 0 ? { links } : {}),
     ...(maxAbilities !== undefined && kindMarker
       ? {
           classPath: {
             maxAbilities,
-            advancesInto: classAdvancement(entity).map((c) => refOf(c, baseRef.id)),
+            advancesInto: classAdvancement(entity).map((c) => entityRef(c, baseRef.id)),
           },
         }
       : {}),

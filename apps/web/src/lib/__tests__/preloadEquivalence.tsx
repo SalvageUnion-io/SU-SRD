@@ -9,15 +9,9 @@ import {
   resetAllForTesting,
   SalvageUnionReference,
 } from 'salvageunion-reference'
-import {
-  EntityDetailLinkProvider,
-  EntityHrefProvider,
-  EntitySurfaceProvider,
-  ReferenceEntityCard,
-  Skeleton,
-} from '../../components/index'
+import { EntitySurfaceProvider, ReferenceEntityCard, Skeleton } from '../../components/index'
 import { EntityListingRow } from '../../components/islands/EntityListingRow'
-import { entityHref, itemHref, srdHrefFor } from '../entityHref'
+import { itemHref, srdHrefFor } from '../entityHref'
 import { getSchemaPreloadList } from '../schemaPreloadDeps'
 
 /**
@@ -59,16 +53,17 @@ function normalize(html: string): string {
     .replace(/aria-labelledby="[^"]*"/g, 'aria-labelledby="…"')
 }
 
+/** The SRD's surface: every entity links to its page. */
+const SRD_ROUTES = { hrefFor: srdHrefFor }
+
 function renderEntity(entity: RefEntity): string {
   return normalize(
     renderToStaticMarkup(
-      <EntityHrefProvider value={entityHref}>
-        <EntityDetailLinkProvider value={true}>
-          <Suspense fallback={<Skeleton />}>
-            <ReferenceEntityCard data={entity} />
-          </Suspense>
-        </EntityDetailLinkProvider>
-      </EntityHrefProvider>
+      <EntitySurfaceProvider value={SRD_ROUTES}>
+        <Suspense fallback={<Skeleton />}>
+          <ReferenceEntityCard data={entity} />
+        </Suspense>
+      </EntitySurfaceProvider>
     )
   )
 }

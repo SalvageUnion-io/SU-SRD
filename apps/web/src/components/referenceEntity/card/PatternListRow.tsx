@@ -1,7 +1,13 @@
 import type { CSSProperties, ElementType } from 'react'
 import { useMemo } from 'react'
-import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
-import { firstParagraphText, normalizePatternName, toEntityModel } from 'salvageunion-reference'
+import type { RefEntity, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
+import {
+  entityRef,
+  firstParagraphText,
+  isBioTitanPattern,
+  normalizePatternName,
+  toEntityModel,
+} from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
 import { capsLabel } from '../../atoms/capsLabel'
 import { FOCUS_RING } from '../../atoms/interaction'
@@ -9,7 +15,6 @@ import { Box } from '../../containers/Box'
 import { SlabSection } from '../../containers/SlabSection'
 import { Head, paintFor } from '../../entity'
 import { useEntitySurface } from '../../entity/entitySurfaceContext'
-import { usePatternHref } from '../entityHrefContext'
 import { CardLabels } from './CardLabels'
 import type { Down } from './cardChrome'
 import { isLegalStartingPatternOf } from './legalStartingPattern'
@@ -17,6 +22,20 @@ import { PatternLoadout } from './PatternLoadout'
 import { PatternUniques } from './PatternUniques'
 import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
 import { resolvePatternDrones, resolvePatternGroups } from './resolveNestedEntities'
+
+/**
+ * A pattern's page, where the surface has routes (srd's `hrefFor`): the
+ * pattern's ref is its host's under the host's own schema, read off the
+ * pattern's shape, so a host handed across an island boundary without its
+ * `schemaName` still links. Undefined elsewhere (the app's patterns have no
+ * pages), so the row stays inert rather than linking to nowhere.
+ */
+function usePatternHref(chassis: ReferenceCardEntity, pattern: RefObjectAnyPattern) {
+  const { hrefFor } = useEntitySurface()
+  const host = entityRef(chassis as RefMetaEntity)
+  const schemaName = isBioTitanPattern(pattern) ? 'bio-titans' : 'chassis'
+  return hrefFor({ ...host, schemaName, pattern: pattern.name })
+}
 
 /** The anchor around a pattern's Token fills its line, as the Token does (N4). */
 const LINK = { display: 'block', flex: '1 1 auto', minWidth: 0 } satisfies CSSProperties
@@ -35,8 +54,8 @@ const LINK = { display: 'block', flex: '1 1 auto', minWidth: 0 } satisfies CSSPr
  * affordance ONLY, which is why it doesn't also become a `role=button` nested
  * inside a link.
  *
- * With no `PatternHrefProvider` above it (any app whose patterns have no pages)
- * the row renders exactly as it always did — inert, not a link to nowhere.
+ * On a surface with no routes (any app whose patterns have no pages) the row
+ * renders inert, not a link to nowhere.
  */
 function PatternListRow({
   chassis,
@@ -53,7 +72,7 @@ function PatternListRow({
   hostDown?: Down
   NestedCard: NestedCard
 }) {
-  const href = usePatternHref(chassis as RefEntity, pattern)
+  const href = usePatternHref(chassis, pattern)
   const card = (
     <NestedCard
       data={chassis}
@@ -137,7 +156,7 @@ function PatternLinkRow({
   pattern: RefObjectAnyPattern
   host: PatternRowsHost
 }) {
-  const href = usePatternHref(chassis as RefEntity, pattern)
+  const href = usePatternHref(chassis, pattern)
   const surface = useEntitySurface()
   const model = useMemo(
     () => toEntityModel(chassis as RefEntity, undefined, { pattern }),

@@ -11,7 +11,7 @@ import {
 } from '../build/account/HeaderAccount'
 import { TestAuthBridge } from '../build/account/TestAuthBridge'
 import type { EntitySurfaceValue } from '../components/index'
-import { EntityHrefProvider, EntitySurfaceProvider, ToasterMount } from '../components/index'
+import { EntitySurfaceProvider, ToasterMount } from '../components/index'
 import { MobileSearchIsland } from '../components/islands/MobileSearchIsland'
 import { SearchIsland } from '../components/islands/SearchIsland'
 import { AppConvexProvider } from '../components/shared/AppConvexProvider'
@@ -22,7 +22,6 @@ import { NotConnectedBanner } from '../components/shared/NotConnectedBanner'
 import { RootErrorComponent } from '../components/shared/RouteErrors'
 import { SiteFooter } from '../components/shared/SiteFooter'
 import { UnionBarSlots } from '../components/shared/UnionBarSlots'
-import { entityHref } from '../lib/entityHref'
 import { areaTitle } from '../lib/pageTitle'
 import { BAR_HIDDEN_ATTRIBUTE, hidesUnionBar } from '../shell/unionSlots'
 // The tagline's script face, self-hosted like the Barlow faces in the shared base
@@ -96,45 +95,43 @@ function RootComponent() {
   return (
     <AppConvexProvider>
       <HeadContent />
-      <EntityHrefProvider value={entityHref}>
-        <EntitySurfaceProvider value={ENTITY_SURFACE}>
-          {/* The Union bar is the shell's, above this root, with the skip
+      <EntitySurfaceProvider value={ENTITY_SURFACE}>
+        {/* The Union bar is the shell's, above this root, with the skip
             link (WCAG 2.4.1) ahead of it. `RootHeader` fills the not-connected
             banner above it on every route, and its slots on every route that
             shows it. */}
-          {/* The account gate (ADR-034 decision 1) and the migration off
+        {/* The account gate (ADR-034 decision 1) and the migration off
             device-only storage (ADR-035), as one surface: says what is at
             stake while signed out, moves it into the account on sign-in, and
             keeps the local cache filled from the server. Above the game-data
             gate because it is a fact about the SESSION and the BROWSER, not
             about any route — and it must stay mounted across the sign-in flip,
             which is exactly when its work runs. */}
-          <AccountReconciler />
-          {/* Who is signed in, left for the SRD's bar to show. */}
-          <AccountHintSync />
-          {/* A test seam, compiled out of production builds — see its header. */}
-          <TestAuthBridge />
-          {/* The Page opener every Mention and Tag reads, and the app's Peek. */}
-          <EntityPageHost>
-            <RootHeader pathname={pathname} barHidden={barHidden} />
-            {/* The skip link's target. A plain block, not a `<main>`: each
+        <AccountReconciler />
+        {/* Who is signed in, left for the SRD's bar to show. */}
+        <AccountHintSync />
+        {/* A test seam, compiled out of production builds — see its header. */}
+        <TestAuthBridge />
+        {/* The Page opener every Mention and Tag reads, and the app's Peek. */}
+        <EntityPageHost>
+          <RootHeader pathname={pathname} barHidden={barHidden} />
+          {/* The skip link's target. A plain block, not a `<main>`: each
                 route draws its own `<main>` (a sheet's is `LiveSheet`), and a
                 second one would be a duplicate landmark. `tabIndex={-1}` makes
                 following the link move focus here, not just the scroll, so the
                 next Tab lands in the content instead of back in the bar. */}
-            <div id="main-content" tabIndex={-1}>
-              <GameDataReady>
-                <Outlet />
-              </GameDataReady>
-            </div>
-            {/* The shared page foot, on every route that draws the Union
+          <div id="main-content" tabIndex={-1}>
+            <GameDataReady>
+              <Outlet />
+            </GameDataReady>
+          </div>
+          {/* The shared page foot, on every route that draws the Union
                 bar: a Play screen fills the viewport and the page never
                 scrolls (play.md), so it has no foot, as it has no masthead. */}
-            {barHidden ? null : <SiteFooter />}
-          </EntityPageHost>
-          <ToasterMount />
-        </EntitySurfaceProvider>
-      </EntityHrefProvider>
+          {barHidden ? null : <SiteFooter />}
+        </EntityPageHost>
+        <ToasterMount />
+      </EntitySurfaceProvider>
     </AppConvexProvider>
   )
 }

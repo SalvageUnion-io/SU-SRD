@@ -1,14 +1,7 @@
 import type { RefClass, RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
-import { entityHref } from '../lib/entityHref'
-import { srdPatternHref } from '../lib/patternHref'
 import { ClassAbilityTree } from './ClassAbilityTree'
 import type { PageRefIndex } from './index'
-import {
-  EntityDetailLinkProvider,
-  EntityHrefProvider,
-  PatternHrefProvider,
-  ReferenceEntityCard,
-} from './index'
+import { ReferenceEntityCard } from './index'
 import { ReferenceSurface } from './ReferenceSurface'
 
 type EntityCardStaticProps = {
@@ -37,8 +30,8 @@ function classOf(item: RefEntity): RefClass | undefined {
  * page's static markup and ships no JS, exactly as the site header does.
  *
  * That is only possible because the SRD is a Reference surface (ADR-021): it
- * passes no `controls`, and `EntityDetailLinkProvider` puts nested entities in
- * link mode, so every affordance on the card is a navigation rather than client
+ * passes no `controls`, and its surface's routes (`ReferenceSurface`'s
+ * `hrefFor`) put nested entities in link mode, so every affordance on the card is a navigation rather than client
  * state. `ReferenceEntityIsland` reuses this same tree, only for the cards
  * `cardNeedsHydration` flags, so the probe and the hydrated card cannot drift
  * apart.
@@ -51,23 +44,15 @@ export function EntityCardStatic({ item, pattern, pageRefs }: EntityCardStaticPr
   const classEntity = classOf(item)
 
   return (
-    <EntityHrefProvider value={entityHref}>
-      <EntityDetailLinkProvider value={true}>
-        <PatternHrefProvider value={srdPatternHref}>
-          <ReferenceSurface pageRefs={pageRefs}>
-            <ReferenceEntityCard
-              data={item}
-              pattern={pattern}
-              size="full"
-              presentation="page"
-              afterExtraContent={
-                classEntity ? <ClassAbilityTree classEntity={classEntity} /> : undefined
-              }
-              asideLead={!!classEntity}
-            />
-          </ReferenceSurface>
-        </PatternHrefProvider>
-      </EntityDetailLinkProvider>
-    </EntityHrefProvider>
+    <ReferenceSurface pageRefs={pageRefs}>
+      <ReferenceEntityCard
+        data={item}
+        pattern={pattern}
+        size="full"
+        presentation="page"
+        afterExtraContent={classEntity ? <ClassAbilityTree classEntity={classEntity} /> : undefined}
+        asideLead={!!classEntity}
+      />
+    </ReferenceSurface>
   )
 }

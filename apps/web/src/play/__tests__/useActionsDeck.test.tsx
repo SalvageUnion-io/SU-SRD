@@ -28,7 +28,6 @@ import {
 import { mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
 import { hydrateStores } from '../../components/__tests__/hydrateStores'
 import { makeEntityStoreMock } from '../../components/__tests__/mockEntityStore'
-import { EntityHrefProvider } from '../../components/index'
 import { itemEconomy, resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import {
   buildMechActions,
@@ -170,11 +169,7 @@ function ActionsDeck({
 }
 
 function renderDeck(mech: Mech, store: PlayStore) {
-  return render(
-    <EntityHrefProvider value={() => undefined}>
-      <ActionsDeck mech={mech} store={store} />
-    </EntityHrefProvider>
-  )
+  return render(<ActionsDeck mech={mech} store={store} />)
 }
 
 /** Each action's Use: the button named "Resolve <action>". */
@@ -341,9 +336,7 @@ describe('the resolve', () => {
       },
     }).getState()
     const { container } = render(
-      <EntityHrefProvider value={() => undefined}>
-        <ActionsDeck mech={mech} pilot={pilot} mount="mech" store={store} />
-      </EntityHrefProvider>
+      <ActionsDeck mech={mech} pilot={pilot} mount="mech" store={store} />
     )
     clickActionByName(container, mod.actionName)
     // Both radios render; pick AP, then Activate → a pilot AP spend, not a mech write.
@@ -416,9 +409,7 @@ describe('the resolve — unrecorded live stats default to full, not empty', () 
       },
     }).getState()
     const { container } = render(
-      <EntityHrefProvider value={() => undefined}>
-        <ActionsDeck mech={mech} pilot={pilot} mount="mech" store={store} />
-      </EntityHrefProvider>
+      <ActionsDeck mech={mech} pilot={pilot} mount="mech" store={store} />
     )
     clickActionByName(container, mod.actionName)
     fireEvent.click(screen.getByLabelText('1 AP'))
@@ -509,11 +500,7 @@ describe('useActionsDeck — Push and the Heat Cap', () => {
     expect(mechMaxHeat(mech, resolveChassisRef('leviathan'))).toBe(18)
     const { store, calls } = stubStore(mech)
     const seen: { view: ResolveModel | null } = { view: null }
-    render(
-      <EntityHrefProvider value={() => undefined}>
-        <Harness mech={mech} store={store} seen={seen} />
-      </EntityHrefProvider>
-    )
+    render(<Harness mech={mech} store={store} seen={seen} />)
     fireEvent.click(screen.getByRole('button', { name: 'Resolve' }))
     const resolve = (): Resolving => {
       if (seen.view?.kind !== 'resolve') throw new Error('no resolve open')
@@ -563,11 +550,7 @@ describe('the resolve on the seat', () => {
     const mech = makeMech()
     const { store } = stubStore(mech)
     const written: (SeatResolving | null)[] = []
-    const { container } = render(
-      <EntityHrefProvider value={() => undefined}>
-        <ActionsDeck mech={mech} store={store} written={written} />
-      </EntityHrefProvider>
-    )
+    const { container } = render(<ActionsDeck mech={mech} store={store} written={written} />)
     clickPrimaryAction(container)
     fireEvent.click(screen.getByRole('button', { name: /^Activate\b/ }))
     await clickRolling('Roll the Die')
@@ -588,19 +571,17 @@ describe('the resolve on the seat', () => {
     const action = buildMechActions(mech)[0]
     if (!action) throw new Error('the costed system has no action')
     const { container } = render(
-      <EntityHrefProvider value={() => undefined}>
-        <ActionsDeck
-          mech={mech}
-          store={store}
-          initial={{
-            ref: action.key,
-            name: action.name,
-            activated: true,
-            roll: { roll: 14, band: 'success' },
-            applied: false,
-          }}
-        />
-      </EntityHrefProvider>
+      <ActionsDeck
+        mech={mech}
+        store={store}
+        initial={{
+          ref: action.key,
+          name: action.name,
+          activated: true,
+          roll: { roll: 14, band: 'success' },
+          applied: false,
+        }}
+      />
     )
     expect(container.querySelector('.su-roll__tag')?.textContent).toBe('Rolled 14')
     expect(screen.getByRole('button', { name: /^Activated\b/ })).toBeTruthy()
@@ -614,14 +595,12 @@ describe('the resolve on the seat', () => {
     const { store } = stubStore(mech)
     const written: (SeatResolving | null)[] = []
     render(
-      <EntityHrefProvider value={() => undefined}>
-        <ActionsDeck
-          mech={mech}
-          store={store}
-          written={written}
-          initial={{ ref: 'gone', name: 'Crush', activated: false, applied: false }}
-        />
-      </EntityHrefProvider>
+      <ActionsDeck
+        mech={mech}
+        store={store}
+        written={written}
+        initial={{ ref: 'gone', name: 'Crush', activated: false, applied: false }}
+      />
     )
     expect(screen.getByText('Crush is no longer in this deck.')).toBeTruthy()
     fireEvent.click(screen.getByText('Clear'))

@@ -45,7 +45,6 @@ setQueryAnswers({
 })
 
 const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
-const { EntityHrefProvider } = await import('../../components/index')
 const { rollFourteen, useHarnessPlay } = await import('./playActionsHarness')
 const { PlayCockpitPhone } = await import('../PlayCockpitPhone')
 const { mediatorPhoneTabs, pinnedUnits, playerPhoneTabs } = await import('../playPhone.model')
@@ -106,14 +105,12 @@ function Phone({
     downtime: { stepIndex },
   })
   return (
-    <EntityHrefProvider value={() => undefined}>
-      <PlayCockpitPhone
-        target={play.target}
-        play={play}
-        bar={<header>bar</header>}
-        actions={{ store: stubStore(pilot, mech).store, rollFor: rollFourteen }}
-      />
-    </EntityHrefProvider>
+    <PlayCockpitPhone
+      target={play.target}
+      play={play}
+      bar={<header>bar</header>}
+      actions={{ store: stubStore(pilot, mech).store, rollFor: rollFourteen }}
+    />
   )
 }
 

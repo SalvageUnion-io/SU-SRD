@@ -4,8 +4,8 @@
  * things that makes true of the UI:
  *
  * 1. A pattern row in a chassis's Patterns list is a real link to that
- *    pattern's own page, resolved through `PatternHrefProvider`.
- * 2. With no provider (an app whose patterns have no pages) the row stays inert
+ *    pattern's own page, resolved through the surface's `hrefFor`.
+ * 2. With no routes (an app whose patterns have no pages) the row stays inert
  *    rather than linking nowhere.
  * 3. The full pattern view reads chassis prose → pattern prose → systems →
  *    modules, so the pattern is framed by the chassis it belongs to.
@@ -16,19 +16,9 @@
 import { describe, expect, test } from 'bun:test'
 import { cleanup, render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import type {
-  EntityRef,
-  RefEntity,
-  RefObjectAnyPattern,
-  RefObjectPattern,
-} from 'salvageunion-reference'
+import type { EntityRef, RefObjectPattern } from 'salvageunion-reference'
 import { nameToSlug, SalvageUnionReference, visiblePatterns } from 'salvageunion-reference'
 import { EntitySurfaceProvider } from '../../../entity/EntitySurface'
-import {
-  EntityDetailLinkProvider,
-  EntityHrefProvider,
-  PatternHrefProvider,
-} from '../../entityHrefContext'
 import { LEGAL_STARTING_PATTERN_NOTE } from '../legalStartingPattern'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
@@ -39,18 +29,19 @@ const mule = () => {
   return found
 }
 
-/** Stands in for srd's route builder. */
-const testPatternHref = (chassis: RefEntity, pattern: RefObjectAnyPattern) =>
-  `/chassis/${'name' in chassis ? nameToSlug(String(chassis.name)) : ''}/pattern/${nameToSlug(pattern.name)}`
+/** Stands in for srd's routes: a pattern's page only. */
+const testPatternHref = (ref: EntityRef) =>
+  ref.pattern ? `/chassis/${nameToSlug(ref.name)}/pattern/${nameToSlug(ref.pattern)}` : undefined
+
+/** A surface whose routes are `hrefFor`'s, as the SRD's are. */
+const withRoutes = (hrefFor: (ref: EntityRef) => string | undefined, children: ReactNode) => (
+  <EntitySurfaceProvider value={{ hrefFor }}>{children}</EntitySurfaceProvider>
+)
 
 describe('chassis pattern rows', () => {
   test('each row links to its pattern page', () => {
     const chassis = mule()
-    render(
-      <PatternHrefProvider value={testPatternHref}>
-        <ReferenceEntityCard data={chassis} />
-      </PatternHrefProvider>
-    )
+    render(withRoutes(testPatternHref, <ReferenceEntityCard data={chassis} />))
 
     const links = screen.getAllByRole('link', { name: /— Mule pattern$/ })
     expect(links.length).toBe(visiblePatterns(chassis.patterns ?? []).length)
@@ -65,11 +56,7 @@ describe('chassis pattern rows', () => {
     const hidden = (chassis.patterns ?? []).filter((p) => p.hidden)
     expect(hidden.length).toBeGreaterThan(0)
 
-    render(
-      <PatternHrefProvider value={testPatternHref}>
-        <ReferenceEntityCard data={chassis} />
-      </PatternHrefProvider>
-    )
+    render(withRoutes(testPatternHref, <ReferenceEntityCard data={chassis} />))
 
     for (const pattern of hidden) {
       expect(screen.queryByRole('link', { name: `${pattern.name} — Mule pattern` })).toBeNull()
@@ -234,11 +221,9 @@ describe('full pattern view reading order', () => {
  * painting a TL-toned pill per part.
  */
 describe('pattern loadout tokens', () => {
-  /** Stands in for srd's entity route builder. */
-  const testEntityHref = (entity: RefEntity) =>
-    `/${'schemaName' in entity ? String(entity.schemaName) : ''}/${
-      'name' in entity ? nameToSlug(String(entity.name)) : ''
-    }`
+  /** Stands in for srd's entity routes. */
+  const testEntityHref = (ref: EntityRef) =>
+    ref.pattern ? undefined : `/${ref.schemaName}/${nameToSlug(ref.name)}`
 
   const thunderStorm = () => {
     const chassis = SalvageUnionReference.Chassis.getByName('Atlas')
@@ -248,12 +233,8 @@ describe('pattern loadout tokens', () => {
     return { chassis, pattern }
   }
 
-  /** The SRD's setup: a href builder, and the surface links out through it. */
-  const srdLinks = (children: ReactNode) => (
-    <EntityHrefProvider value={testEntityHref}>
-      <EntityDetailLinkProvider value={true}>{children}</EntityDetailLinkProvider>
-    </EntityHrefProvider>
-  )
+  /** The SRD's setup: a surface with routes, which links out through them. */
+  const srdLinks = (children: ReactNode) => withRoutes(testEntityHref, children)
 
   test('every loadout entry links to its own page', () => {
     const { chassis, pattern } = thunderStorm()
@@ -508,8 +489,8 @@ describe('pattern rows show what each pattern changes', () => {
     if (!found) throw new Error('Typhon fixture missing')
     return found
   }
-  const testHref = (host: RefEntity, pattern: RefObjectAnyPattern) =>
-    `/${'name' in host ? nameToSlug(String(host.name)) : ''}/pattern/${nameToSlug(pattern.name)}`
+  const testHref = (ref: EntityRef) =>
+    ref.pattern ? `/${nameToSlug(ref.name)}/pattern/${nameToSlug(ref.pattern)}` : undefined
 
   test('a mech pattern row on the Page lists its loadout by name', () => {
     render(<ReferenceEntityCard data={mule()} presentation="page" />)
@@ -521,11 +502,7 @@ describe('pattern rows show what each pattern changes', () => {
   })
 
   test('a Bio-Titan pattern row on the Page embeds the action it adds', () => {
-    render(
-      <PatternHrefProvider value={testHref}>
-        <ReferenceEntityCard data={typhon()} presentation="page" />
-      </PatternHrefProvider>
-    )
+    render(withRoutes(testHref, <ReferenceEntityCard data={typhon()} presentation="page" />))
     const row = screen.getByRole('link', { name: 'Hill Worm — Typhon pattern' })
     const added = screen.getByText('Metallic Reconstitution')
     // A contentful Token, its rules under its head; never a framed card.
@@ -537,11 +514,7 @@ describe('pattern rows show what each pattern changes', () => {
   })
 
   test("in a card a pattern is its Token alone: what it changes is its Peek's and Page's (E6)", () => {
-    render(
-      <PatternHrefProvider value={testHref}>
-        <ReferenceEntityCard data={typhon()} />
-      </PatternHrefProvider>
-    )
+    render(withRoutes(testHref, <ReferenceEntityCard data={typhon()} />))
     expect(screen.getByRole('link', { name: 'Hill Worm — Typhon pattern' })).toBeTruthy()
     expect(screen.queryByText('Metallic Reconstitution')).toBeNull()
     cleanup()

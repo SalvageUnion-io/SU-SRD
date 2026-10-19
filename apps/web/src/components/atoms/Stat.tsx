@@ -22,8 +22,6 @@ import { Tooltip } from './Tooltip'
  * prominent, /max muted). A fill bar is `VitalGauge`.
  */
 
-/** Stat tone (a public alias retained for consumers that key colour by stat). */
-export type StatTone = 'hp' | 'ap' | 'ep' | 'sp' | 'heat' | 'cargo' | 'cw' | 'default'
 /** A tri-state condition value (e.g. a crawler bay's condition). */
 export type StatState = EntityStatus
 

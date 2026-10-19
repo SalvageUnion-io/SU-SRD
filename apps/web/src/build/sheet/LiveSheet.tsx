@@ -30,15 +30,15 @@
 import type { SheetKind } from 'game-domain/entityKinds'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { useEffect, useRef, useState } from 'react'
-import type { StatTone } from '../../components/index'
+import type { EntitySurfaceValue } from '../../components/index'
 import {
   Badge,
   Button,
   ChapterBand,
   Cluster,
   cn,
-  EntityExternalLinkProvider,
   EntityStat,
+  EntitySurfaceProvider,
   KindLabel,
   relation,
   Stat,
@@ -47,6 +47,9 @@ import {
 } from '../../components/index'
 import type { BandStamp } from './bandStamps.model'
 import type { SheetBand } from './sheetViewProps.model'
+
+/** No "View in the Reference" in a sheet's body (the surface's `externalLink`, E13). */
+const NO_REFERENCE_LINK: Partial<EntitySurfaceValue> = { externalLink: null }
 
 /** The four sheets that share this shell (hard rule R11): a unit's, and a built NPC's. */
 type SheetVariant = SheetKind | 'npc'
@@ -84,7 +87,6 @@ export type LiveSheetStripItem = {
   /** Stable key — also the `syncStats` overlay key (e.g. 'cargo'). */
   key: string
   label: string
-  stat?: StatTone
   value: number
   max?: number
   /**
@@ -506,11 +508,11 @@ export function LiveSheet({
               its foot band — which on a sheet is EVERY installed system, module
               and piece of equipment. A sheet is a play surface you read down,
               not an index you navigate out of, so the link was a per-card exit
-              hatch repeated dozens of times. Overriding the context to
-              `undefined` for the sheet BODY turns it off for the whole subtree
-              (including card detail modals, which are descendants) while the
+              hatch repeated dozens of times. A surface with no
+              `externalLink` for the sheet BODY turns it off for the whole
+              subtree (including card detail modals, which are descendants) while the
               roster, Play and wizards keep it. */}
-          <EntityExternalLinkProvider value={undefined}>
+          <EntitySurfaceProvider value={NO_REFERENCE_LINK}>
             {out && (
               // A state the sheet is in, not an error: a polite status (chrome K8).
               <p role="status" style={OUT_NOTE}>
@@ -518,7 +520,7 @@ export function LiveSheet({
               </p>
             )}
             {renderBody()}
-          </EntityExternalLinkProvider>
+          </EntitySurfaceProvider>
         </div>
       </div>
     </main>

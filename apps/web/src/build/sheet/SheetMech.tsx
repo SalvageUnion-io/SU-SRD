@@ -76,13 +76,13 @@ export function SheetMech({
   // On phones the condensed bar leads with Heat + SP; EP/Hold fold
   // until the sm breakpoint.
   const strip: LiveSheetStripItem[] = [
-    { key: 'sp', label: 'SP', stat: 'sp', value: sp, max: maxSP },
-    { key: 'ep', label: 'EP', stat: 'ep', value: ep, max: maxEP, mobilePriority: false },
-    { key: 'heat', label: 'Heat', stat: 'heat', value: heat, max: maxHeat },
+    { key: 'sp', label: 'SP', value: sp, max: maxSP },
+    { key: 'ep', label: 'EP', value: ep, max: maxEP, mobilePriority: false },
+    { key: 'heat', label: 'Heat', value: heat, max: maxHeat },
     {
       key: 'cargo',
       label: 'Hold',
-      stat: 'cargo',
+
       value: cargoUsed,
       max: maxCargo,
       mobilePriority: false,

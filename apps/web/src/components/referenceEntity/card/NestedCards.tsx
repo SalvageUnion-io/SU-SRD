@@ -1,15 +1,15 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { useContext, useState } from 'react'
-import type { RefEntity, RefMetaEntity } from 'salvageunion-reference'
-import { getReferenceEntityName, resolveTable } from 'salvageunion-reference'
+import type { RefMetaEntity } from 'salvageunion-reference'
+import { entityRef, getReferenceEntityName, resolveTable } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
 import type { CardSize } from '../../containers/displayMode'
 import { Entity } from '../../entity/Entity'
+import { useEntitySurface } from '../../entity/entitySurfaceContext'
 import { InsidePeekContext, tablePeekAddress } from '../../entity/peekContext'
 import type { EntityMode } from '../../entity/types'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { EntityDetailDialog } from '../EntityDetailDialog'
-import { useEntityDetailLink, useEntityHref } from '../entityHrefContext'
 import { CardRollTable } from './CardRollTable'
 import type { Down } from './cardChrome'
 import { conditionOf } from './cardChrome'
@@ -251,9 +251,8 @@ function NestedTokens({ items, host }: { items: NestedTokenItem[]; host: NestedC
 
 /**
  * A LEVEL-2 child as a Token that opens the entity instead of expanding in
- * place: the detail page where the app links out (srd, an
- * `EntityDetailLinkProvider` and an href), else the detail dialog's Page (The
- * App). It Peeks its whole card; a synthesised entity (no dataset row)
+ * place: the detail page where the surface has a route for it (srd's
+ * `hrefFor`), else the detail dialog's Page (The App). It Peeks its whole card; a synthesised entity (no dataset row)
  * has no Peek, only its Page.
  */
 function NestedToken({
@@ -267,8 +266,7 @@ function NestedToken({
 }) {
   const { NestedCard } = host
   const [open, setOpen] = useState(false)
-  const href = useEntityHref(data as RefEntity)
-  const linkOut = useEntityDetailLink() && !!href
+  const href = useEntitySurface().hrefFor(entityRef(data as RefMetaEntity))
   const entityName = getReferenceEntityName(data) ?? 'Entity details'
   // A nested ACTION drops its ` (Host)` suffix: its host is right above it.
   const title = titleOverride ?? stripHostParenthetical(entityName, host.entityName)
@@ -278,7 +276,7 @@ function NestedToken({
   const inPick = useContext(InsidePickContext)
   const mode: EntityMode = inPick
     ? { kind: 'read' }
-    : linkOut
+    : href
       ? { kind: 'link', href, attrs: { 'aria-label': `Open ${title}` } }
       : {
           kind: 'link',

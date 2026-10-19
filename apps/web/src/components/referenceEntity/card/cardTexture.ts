@@ -1,10 +1,10 @@
 import { createContext } from 'react'
 
 /**
- * Whether entity cards below this point wear the light speckle (ruleset §3.5).
- * On by default; a card given `texture={false}` turns it off for itself and
- * every card nested inside it — a peek and the Mediator's SRD explorer, which stay flat.
- * A context rather than a threaded prop, because nested cards are also spawned
- * by sections (guide steps, choices, loadouts) that never see the host's props.
+ * Whether entity cards below this point wear the light speckle (ruleset §3.5),
+ * as `ReferenceEntityCard` alone still reads it. The texture is the entity
+ * SURFACE's (`EntitySurfaceProvider`'s `texture`, EDL E13), which sets this
+ * too; nothing else provides or reads it, and it goes when the card reads the
+ * surface.
  */
 export const CardTextureContext = createContext(true)

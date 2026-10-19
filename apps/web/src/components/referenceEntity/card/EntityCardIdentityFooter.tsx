@@ -21,8 +21,8 @@ type EntityCardIdentityFooterProps = {
    * footer, before the citation. */
   footMeta?: CardFootMeta[]
   /**
-   * App-supplied cross-link (The app's "View in the Reference"), sourced from
-   * `EntityExternalLinkProvider`. Full extent only — the card passes
+   * App-supplied cross-link (The app's "View in the Reference"), the entity
+   * surface's `externalLink`. Full extent only — the card passes
    * `undefined` for head/catalog so listings stay uncluttered.
    */
   externalLink?: ReactNode

@@ -10,7 +10,6 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SeatResolving } from 'game-domain/schemas/seat'
 import { useState } from 'react'
 import type { rollForTable } from '../../components/index'
-import { EntityHrefProvider } from '../../components/index'
 import type { BoardOption } from '../boardMenu.model'
 import { PlayActionsColumn } from '../PlayActionsColumn'
 import type { PlayStore } from '../play.model'
@@ -172,9 +171,5 @@ export function useHarnessPlay({
 
 export function Harness({ store, rollFor = rollFourteen, ...props }: HarnessProps) {
   const play = useHarnessPlay(props)
-  return (
-    <EntityHrefProvider value={() => undefined}>
-      <PlayActionsColumn target={play.target} play={play} store={store} rollFor={rollFor} />
-    </EntityHrefProvider>
-  )
+  return <PlayActionsColumn target={play.target} play={play} store={store} rollFor={rollFor} />
 }

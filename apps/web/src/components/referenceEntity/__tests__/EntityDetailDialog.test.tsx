@@ -13,7 +13,6 @@ import type { EntityRef, RefEntity, RefObjectAnyPattern } from 'salvageunion-ref
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { EntitySurfaceProvider } from '../../entity/EntitySurface'
 import { ReferenceEntityCard } from '../card/ReferenceEntityCard'
-import { EntityExternalLinkProvider } from '../entityHrefContext'
 import { useDetailModal } from '../useDetailModal'
 
 const need = <T,>(value: T | undefined, label: string): T => {
@@ -106,9 +105,11 @@ describe('the detail dialog is the Page', () => {
 
   test('the foot carries the app\'s cross-link ("View in the Reference")', () => {
     render(
-      <EntityExternalLinkProvider value={() => <a href="/srd/red-laser">View in the Reference</a>}>
+      <EntitySurfaceProvider
+        value={{ externalLink: () => <a href="/srd/red-laser">View in the Reference</a> }}
+      >
         <Harness data={redLaser()} />
-      </EntityExternalLinkProvider>
+      </EntitySurfaceProvider>
     )
     fireEvent.click(screen.getByRole('button', { name: 'open' }))
     const link = within(screen.getByRole('dialog')).getByRole('link', {

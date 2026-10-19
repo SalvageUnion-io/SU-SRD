@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import { useContext, useMemo } from 'react'
 import { EntitySurfaceContext } from '../../entity/entitySurfaceContext'
-import { EntityExternalLinkProvider } from '../entityHrefContext'
 import { InsidePickContext } from './insidePick'
 
 /** A ref that links nowhere: the entities inside a pick resolve to no page. */
@@ -16,13 +15,11 @@ export function PickSurface({ children }: { children: ReactNode }) {
   const parent = useContext(EntitySurfaceContext)
   const surface = useMemo(() => {
     const { openPage: _opens, ...rest } = parent
-    return { ...rest, hrefFor: NO_PAGE }
+    return { ...rest, hrefFor: NO_PAGE, externalLink: null }
   }, [parent])
   return (
     <InsidePickContext.Provider value={true}>
-      <EntityExternalLinkProvider value={undefined}>
-        <EntitySurfaceContext.Provider value={surface}>{children}</EntitySurfaceContext.Provider>
-      </EntityExternalLinkProvider>
+      <EntitySurfaceContext.Provider value={surface}>{children}</EntitySurfaceContext.Provider>
     </InsidePickContext.Provider>
   )
 }

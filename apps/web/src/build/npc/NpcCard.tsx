@@ -13,7 +13,8 @@
  */
 
 import type { ComponentProps, CSSProperties } from 'react'
-import { EntityExternalLinkProvider, ReferenceEntityCard, tokens } from '../../components/index'
+import type { EntitySurfaceValue } from '../../components/index'
+import { EntitySurfaceProvider, ReferenceEntityCard, tokens } from '../../components/index'
 import type { NpcView } from '../../lib/npcs/npcModel'
 import { npcAsReferenceEntity, npcIdentityLine, npcKicker } from '../../lib/npcs/npcModel'
 
@@ -27,6 +28,9 @@ const IDENTITY_LINE = {
 } satisfies CSSProperties
 
 type CardProps = ComponentProps<typeof ReferenceEntityCard>
+
+/** A user-made NPC has no page in the Reference to link out to (the surface's `externalLink`). */
+const NO_REFERENCE_LINK: Partial<EntitySurfaceValue> = { externalLink: null }
 
 type NpcCardProps = {
   npc: NpcView
@@ -42,7 +46,7 @@ type NpcCardProps = {
 export function NpcCard({ npc, madeBy, size = 'full', kicker, controls }: NpcCardProps) {
   const line = npcIdentityLine(npc)
   return (
-    <EntityExternalLinkProvider value={undefined}>
+    <EntitySurfaceProvider value={NO_REFERENCE_LINK}>
       <ReferenceEntityCard
         data={npcAsReferenceEntity(npc)}
         size={size}
@@ -52,6 +56,6 @@ export function NpcCard({ npc, madeBy, size = 'full', kicker, controls }: NpcCar
         subtitleExtra={line ? <p style={IDENTITY_LINE}>{line}</p> : undefined}
         {...(controls ? { controls } : {})}
       />
-    </EntityExternalLinkProvider>
+    </EntitySurfaceProvider>
   )
 }

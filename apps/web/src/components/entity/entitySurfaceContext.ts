@@ -1,14 +1,6 @@
 import type { AnchorHTMLAttributes, ComponentType, ReactNode, Ref } from 'react'
 import { createContext, useContext, useMemo } from 'react'
 import type { EntityRef, RefEntity } from 'salvageunion-reference'
-import { SalvageUnionReference } from 'salvageunion-reference'
-import { CardTextureContext } from '../referenceEntity/card/cardTexture'
-import type { EntityHrefBuilder, PatternHrefBuilder } from '../referenceEntity/entityHrefContext'
-import {
-  useEntityDetailLink,
-  useEntityHrefBuilder,
-  usePatternHrefBuilder,
-} from '../referenceEntity/entityHrefContext'
 import type { PageRefIndex } from './pageRefs'
 
 /**
@@ -29,6 +21,9 @@ import type { PageRefIndex } from './pageRefs'
  * - `appliesRules`: the app applies the rules the data encodes (The app, ADR-029
  *   §6), so a rules-bearing paragraph wears the AUTO stamp. Absent (the SRD,
  *   which applies nothing), the same paragraph is plain prose.
+ * - `externalLink(entity)`: the cross-link a full card's foot and the detail
+ *   Page carry (the app's "View in the Reference"). The SRD, which IS the
+ *   Reference, sets none; `null` turns it off below (a sheet, a pick).
  */
 export type EntitySurfaceValue = {
   hrefFor: (ref: EntityRef) => string | undefined
@@ -37,7 +32,14 @@ export type EntitySurfaceValue = {
   texture: boolean
   pageRefs?: PageRefIndex
   appliesRules?: boolean
+  externalLink?: EntityExternalLinkBuilder | null
 }
+
+/**
+ * Builds an entity's external cross-link node, or `undefined` for an entity
+ * with no page to link out to.
+ */
+export type EntityExternalLinkBuilder = (entity: RefEntity) => ReactNode | undefined
 
 /** A router link: an anchor's attributes, a concrete `href`, its children. */
 export type EntityLinkComponent = ComponentType<
@@ -58,53 +60,24 @@ export function useAppliesRules(): boolean {
   return useContext(EntitySurfaceContext).appliesRules === true
 }
 
-/** The dataset record a ref names, when its schema is loaded. */
-function recordOf(ref: EntityRef): RefEntity | undefined {
-  if (ref.synthetic || !SalvageUnionReference.isLoaded(ref.schemaName)) return undefined
-  return SalvageUnionReference.get(ref.schemaName, ref.id) as RefEntity | undefined
-}
-
-/**
- * The ADAPTER onto the legacy providers: an app that still
- * supplies `EntityHrefProvider` / `PatternHrefProvider` and links out
- * (`EntityDetailLinkProvider`, the SRD) gets a surface `hrefFor` from them.
- */
-function legacyHrefFor(
-  entityHref: EntityHrefBuilder | undefined,
-  patternHref: PatternHrefBuilder | undefined
-): (ref: EntityRef) => string | undefined {
-  return (ref) => {
-    const record = recordOf(ref)
-    if (!record) return undefined
-    if (!ref.pattern) return entityHref?.(record)
-    const pattern =
-      'patterns' in record && Array.isArray(record.patterns)
-        ? record.patterns.find((p) => p.name === ref.pattern)
-        : undefined
-    return pattern ? patternHref?.(record, pattern) : undefined
-  }
+/** The surface's external cross-link for an entity (`externalLink`), if it sets one. */
+export function useEntityExternalLink(entity: RefEntity | undefined): ReactNode | undefined {
+  const build = useContext(EntitySurfaceContext).externalLink
+  return build && entity ? build(entity) : undefined
 }
 
 const NO_HREF = () => undefined
 
-/** The surface every form reads, the legacy providers filling what it does not set. */
+/** The surface every form reads, its defaults filling what no provider sets. */
 export function useEntitySurface(): EntitySurfaceValue {
   const own = useContext(EntitySurfaceContext)
-  const entityHref = useEntityHrefBuilder()
-  const patternHref = usePatternHrefBuilder()
-  const linksOut = useEntityDetailLink()
-  const legacyTexture = useContext(CardTextureContext)
   return useMemo(
     () => ({
-      // An app's own detail view (The app's) is not a route: only a surface that
-      // links out (the SRD) turns the legacy href builder into links.
-      hrefFor: own.hrefFor ?? (linksOut ? legacyHrefFor(entityHref, patternHref) : NO_HREF),
-      ...(own.openPage ? { openPage: own.openPage } : {}),
-      ...(own.linkAs ? { linkAs: own.linkAs } : {}),
-      texture: own.texture ?? legacyTexture,
-      ...(own.pageRefs ? { pageRefs: own.pageRefs } : {}),
-      ...(own.appliesRules ? { appliesRules: true } : {}),
+      ...own,
+      // A surface with no routes (the app's detail view is not one) links nowhere.
+      hrefFor: own.hrefFor ?? NO_HREF,
+      texture: own.texture ?? true,
     }),
-    [own, entityHref, patternHref, linksOut, legacyTexture]
+    [own]
   )
 }

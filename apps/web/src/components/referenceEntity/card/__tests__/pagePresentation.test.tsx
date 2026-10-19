@@ -18,8 +18,9 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
+import type { EntityRef } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { EntityHrefProvider, PatternHrefProvider } from '../../entityHrefContext'
+import { EntitySurfaceProvider } from '../../../entity/EntitySurface'
 import { pageBodyStats, resolveEntityPageMeta } from '../entityPage'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
@@ -30,7 +31,8 @@ const need = <T,>(value: T | undefined, label: string): T => {
 const gopher = () => need(SalvageUnionReference.Chassis.getByName('Gopher'), 'gopher')
 const juryRig = () => need(SalvageUnionReference.Abilities.getByName('Jury Rig'), 'jury rig')
 
-const patternHref = () => '/pattern/'
+/** Stands in for srd's routes: every pattern's page. */
+const PATTERN_ROUTES = { hrefFor: (ref: EntityRef) => (ref.pattern ? '/pattern/' : undefined) }
 
 // The manual's eight, in its order, under their full names: a Page prints the
 // long label, never the book's abbreviations ("Structure Pts.").
@@ -187,9 +189,7 @@ describe('the card as a page', () => {
       'gopher pattern with systems'
     )
     const { container } = render(
-      <EntityHrefProvider value={() => '/entity/'}>
-        <ReferenceEntityCard data={chassis} pattern={pattern} presentation="page" />
-      </EntityHrefProvider>
+      <ReferenceEntityCard data={chassis} pattern={pattern} presentation="page" />
     )
     const loadout = container.querySelector('.su-entity-page__loadout')
     expect(loadout).not.toBeNull()
@@ -221,9 +221,9 @@ describe('the card as a page', () => {
     const chassis = gopher()
     const count = chassis.patterns?.length ?? 0
     render(
-      <PatternHrefProvider value={patternHref}>
+      <EntitySurfaceProvider value={PATTERN_ROUTES}>
         <ReferenceEntityCard data={chassis} presentation="page" />
-      </PatternHrefProvider>
+      </EntitySurfaceProvider>
     )
     const rows = screen.getAllByRole('link', { name: /Gopher pattern$/ })
     expect(rows).toHaveLength(count)

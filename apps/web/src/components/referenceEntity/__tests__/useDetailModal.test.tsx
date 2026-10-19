@@ -12,7 +12,7 @@ import { fireEvent, render, screen, within } from '@testing-library/react'
 import type { RefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { entityFixture } from 'salvageunion-reference/testing'
-import { EntityDetailLinkProvider, EntityHrefProvider } from '../entityHrefContext'
+import { EntitySurfaceProvider } from '../../entity/EntitySurface'
 import { useDetailModal } from '../useDetailModal'
 
 const system = (name: string): RefEntity => {
@@ -90,11 +90,11 @@ describe('useDetailModal — link mode (srd)', () => {
       opened.push(String(url))
     }
     const result = render(
-      <EntityHrefProvider value={() => (opts.noHref ? undefined : '/systems/red-laser')}>
-        <EntityDetailLinkProvider value={true}>
-          <Harness data={system('Red Laser')} forceModal={opts.forceModal} />
-        </EntityDetailLinkProvider>
-      </EntityHrefProvider>
+      <EntitySurfaceProvider
+        value={{ hrefFor: () => (opts.noHref ? undefined : '/systems/red-laser') }}
+      >
+        <Harness data={system('Red Laser')} forceModal={opts.forceModal} />
+      </EntitySurfaceProvider>
     )
     return { opened, ...result }
   }

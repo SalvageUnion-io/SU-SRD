@@ -73,8 +73,8 @@ export function SheetPilot({
   const ap = resolvePool(pilot.currentAP, maxAP)
 
   const strip: LiveSheetStripItem[] = [
-    { key: 'hp', label: 'HP', stat: 'hp', value: hp, max: maxHP },
-    { key: 'ap', label: 'AP', stat: 'ap', value: ap, max: maxAP },
+    { key: 'hp', label: 'HP', value: hp, max: maxHP },
+    { key: 'ap', label: 'AP', value: ap, max: maxAP },
   ]
 
   // Assigned units (hard rule R5): each a relation chip, the same in Read and

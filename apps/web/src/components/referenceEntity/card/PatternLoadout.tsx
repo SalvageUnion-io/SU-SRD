@@ -1,11 +1,10 @@
 import type { CSSProperties, ElementType } from 'react'
-import type { RefEntity, RefMetaEntity } from 'salvageunion-reference'
+import type { RefMetaEntity } from 'salvageunion-reference'
 import { getReferenceEntityName } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
 import { Slab } from '../../atoms/Slab'
 import { SlabSection } from '../../containers/SlabSection'
 import { Entity } from '../../entity/Entity'
-import { useEntityHref } from '../entityHrefContext'
 import type { Down } from './cardChrome'
 import { conditionOf } from './cardChrome'
 import { cardKey, nestedTitleLevel } from './cardHelpers'
@@ -185,11 +184,12 @@ function PatternDrones({
  * per copy) — a "x6" count would compress the shape of the build out of a list
  * whose whole job is showing it.
  *
- * Where it goes is the host's route (`useEntityHref`), else the SURFACE's (the
- * SRD's route, the app's Page opener). Its accessible name is the entity's alone,
+ * Where it goes is the SURFACE's (the SRD's route, the app's Page opener). Its accessible name is the entity's alone,
  * never the TL glued onto it. Under a host that is down it greys, as the
  * host's band does.
  */
+const LINK = { kind: 'link' } as const
+
 function LoadoutToken({
   data,
   title,
@@ -200,7 +200,6 @@ function LoadoutToken({
   title?: string
   hostDown?: Down
 }) {
-  const href = useEntityHref(data as RefEntity)
   const condition = hostDown ? conditionOf(hostDown) : undefined
   const instance = {
     ...(title ? { title } : {}),
@@ -211,7 +210,7 @@ function LoadoutToken({
       form="token"
       context="loadout"
       entity={data as RefMetaEntity}
-      mode={href ? { kind: 'link', href } : { kind: 'link' }}
+      mode={LINK}
       {...(title || condition ? { instance } : {})}
     />
   )

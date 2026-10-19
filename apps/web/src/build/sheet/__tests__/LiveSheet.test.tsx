@@ -69,8 +69,8 @@ function renderShell(props: Partial<Parameters<typeof LiveSheet>[0]> = {}) {
       variant="pilot"
       name="Mara Vex"
       strip={[
-        { key: 'hp', label: 'HP', stat: 'hp', value: 7, max: 10 },
-        { key: 'cargo', label: 'Hold', stat: 'cargo', value: 0, max: 6 },
+        { key: 'hp', label: 'HP', value: 7, max: 10 },
+        { key: 'cargo', label: 'Hold', value: 0, max: 6 },
       ]}
       renderBody={() => (
         <>
@@ -335,8 +335,8 @@ describe('LiveSheet — strip values and syncStats', () => {
   test('mobilePriority:false strip items fold below sm', () => {
     renderShell({
       strip: [
-        { key: 'sp', label: 'SP', stat: 'sp', value: 5, max: 8 },
-        { key: 'ep', label: 'EP', stat: 'ep', value: 3, max: 4, mobilePriority: false },
+        { key: 'sp', label: 'SP', value: 5, max: 8 },
+        { key: 'ep', label: 'EP', value: 3, max: 4, mobilePriority: false },
       ],
     })
     act(() => {

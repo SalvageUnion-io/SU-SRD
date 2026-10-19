@@ -1,8 +1,7 @@
 import { useContext } from 'react'
-import type { RefEntity, RefMetaEntity } from 'salvageunion-reference'
+import type { RefMetaEntity } from 'salvageunion-reference'
 import { Entity } from '../../entity/Entity'
 import { InsidePeekContext } from '../../entity/peekContext'
-import { useEntityHref } from '../entityHrefContext'
 import { cardKey } from './cardHelpers'
 import type { ReferenceCardEntity } from './referenceEntityCardTypes'
 
@@ -10,8 +9,9 @@ import type { ReferenceCardEntity } from './referenceEntityCardTypes'
  * A BIG GROUPING of entities as Tokens (owner's call, 2026-10-14: "any big
  * grouping should be tokens"): a guide step's options, a catalog choice's
  * qualifying entities. A real list, so a screen reader announces its count;
- * one Token a line, filling it (N4). Each opens its Page and Peeks its whole
- * card; inside a Peek it reads only.
+ * one Token a line, filling it (N4). Each opens its Page where the surface
+ * says (the SRD's route, the app's Page opener) and Peeks its whole card;
+ * inside a Peek it reads only.
  */
 export function EntityTokenList({
   entities,
@@ -32,15 +32,17 @@ export function EntityTokenList({
   )
 }
 
+const READ = { kind: 'read' } as const
+const LINK = { kind: 'link' } as const
+
 function ListToken({ data }: { data: ReferenceCardEntity }) {
-  const href = useEntityHref(data as RefEntity)
   const insidePeek = useContext(InsidePeekContext)
   return (
     <Entity
       form="token"
       context="browse"
       entity={data as RefMetaEntity}
-      mode={insidePeek ? { kind: 'read' } : href ? { kind: 'link', href } : { kind: 'link' }}
+      mode={insidePeek ? READ : LINK}
     />
   )
 }

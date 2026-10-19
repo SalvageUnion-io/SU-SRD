@@ -3,7 +3,8 @@ import { useLayoutEffect } from 'react'
 import { preloadGameData } from '../../lib/useGameData'
 import { srdEntityExternalLink } from '../contextual/srdEntityExternalLink'
 import { GameDataGate } from '../GameDataGate'
-import { EntityExternalLinkProvider } from '../index'
+import type { EntitySurfaceValue } from '../index'
+import { EntitySurfaceProvider } from '../index'
 import { RoutePending } from './RouteFallbacks'
 
 /*
@@ -16,6 +17,9 @@ import { RoutePending } from './RouteFallbacks'
  * and the bar's controls (`useGameData().ready`) share this one request.
  */
 void preloadGameData('all', 'full')
+
+/** The app's "View in the Reference" cross-link, on the surface (E13). */
+const REFERENCE_LINK: Partial<EntitySurfaceValue> = { externalLink: srdEntityExternalLink }
 
 /**
  * Marks `body[data-game-data-ready="true"]` once the gate has opened, so E2E
@@ -55,9 +59,7 @@ export function GameDataReady({ children }: { children: ReactNode }) {
   return (
     <GameDataGate fallback={<RoutePending label="reference data" />}>
       <ReadyMarker />
-      <EntityExternalLinkProvider value={srdEntityExternalLink}>
-        {children}
-      </EntityExternalLinkProvider>
+      <EntitySurfaceProvider value={REFERENCE_LINK}>{children}</EntitySurfaceProvider>
     </GameDataGate>
   )
 }

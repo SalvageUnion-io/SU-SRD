@@ -97,7 +97,7 @@ export { Slab } from './atoms/Slab'
 // Cargo / inventory — dashed addressable slot cells (ruleset §5, atom 10)
 export { SlotGrid } from './atoms/SlotGrid'
 export { SRDLink } from './atoms/SRDLink'
-export type { StatState, StatTone } from './atoms/Stat'
+export type { StatState } from './atoms/Stat'
 export { Stat } from './atoms/Stat'
 export { StatColumn } from './atoms/StatColumn'
 export type { ProvenanceLine } from './atoms/StatProvenance'
@@ -249,7 +249,10 @@ export { Chips, EntityStat, Head, KindLabel, mentionRef, relation, Tags, traitTa
 // how refs resolve, texture and the user-made treatment once.
 export { Entity } from './entity/Entity'
 export { EntitySurfaceProvider } from './entity/EntitySurface'
-export type { EntitySurfaceValue } from './entity/entitySurfaceContext'
+export type {
+  EntityExternalLinkBuilder,
+  EntitySurfaceValue,
+} from './entity/entitySurfaceContext'
 // MENTION and PEEK (E4, E16): an entity named in prose, and the page's one
 // host for the read-only card a mention or a trait tag shows on hover, focus
 // or long-press.
@@ -289,16 +292,6 @@ export { WhenDamaged } from './referenceEntity/card/WhenDamaged'
 export { damagedEffectOf } from './referenceEntity/card/whenDamaged.model'
 // Interactive choice cards (granted-equipment choices)
 export type { ChoiceSelections } from './referenceEntity/choiceCard/choiceSelectionHelpers'
-export type {
-  EntityExternalLinkBuilder,
-  EntityHrefBuilder,
-} from './referenceEntity/entityHrefContext'
-export {
-  EntityDetailLinkProvider,
-  EntityExternalLinkProvider,
-  EntityHrefProvider,
-  PatternHrefProvider,
-} from './referenceEntity/entityHrefContext'
 // Entity controls: the live presets (navigateControl, foldControl — built on useDisclosure).
 export { foldControl } from './referenceEntity/foldControl'
 export { quotePatternName } from './referenceEntity/pattern/quotePatternName'

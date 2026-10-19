@@ -87,13 +87,13 @@ export function SheetCrawler({
   const tl = parseCrawlerTechLevel(crawler.techLevel)
 
   const strip: LiveSheetStripItem[] = [
-    { key: 'sp', label: 'SP', stat: 'sp', value: sp, max: maxSP },
+    { key: 'sp', label: 'SP', value: sp, max: maxSP },
     ...(states.length > 0
       ? [
           {
             key: 'bays',
             label: 'Bays',
-            stat: 'cw' as const,
+
             value: intactBays,
             max: states.length,
           },

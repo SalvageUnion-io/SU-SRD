@@ -8,7 +8,7 @@
 
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, waitFor } from '@testing-library/react'
-import { buildCatalogSections, EntityHrefProvider } from '../../../components/index'
+import { buildCatalogSections } from '../../../components/index'
 import { SrdExplorer } from '../SrdExplorer'
 
 // Unmounting between tests is handled globally: the workspace's bunfig preloads
@@ -28,11 +28,7 @@ function mustInput(el: Element | null): HTMLInputElement {
 }
 
 function renderSrd() {
-  return render(
-    <EntityHrefProvider value={() => undefined}>
-      <SrdExplorer />
-    </EntityHrefProvider>
-  )
+  return render(<SrdExplorer />)
 }
 
 /** Every catalog tile: the buttons inside the category sections. */

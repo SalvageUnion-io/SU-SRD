@@ -24,8 +24,9 @@ import { resolveCardDisplay } from '../../containers/displayMode'
 import type { StatItem } from '../../containers/statsBarTypes'
 import type { ChipSet } from '../../entity'
 import { Chips } from '../../entity'
+import { EntitySurfaceProvider } from '../../entity/EntitySurface'
+import { useEntityExternalLink } from '../../entity/entitySurfaceContext'
 import { InsidePeekContext } from '../../entity/peekContext'
-import { useEntityExternalLink } from '../entityHrefContext'
 import { foldControl } from '../foldControl'
 import { quotePatternName } from '../pattern/quotePatternName'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
@@ -705,10 +706,7 @@ export function ReferenceEntityCard({
   )
   // A card that is the pick is the one control in its frame (`PickSurface`).
   const card = rest.selectionRole ? <PickSurface>{inner}</PickSurface> : inner
-  // `texture={false}` holds for every nested card.
-  return texture === undefined ? (
-    card
-  ) : (
-    <CardTextureContext.Provider value={texture}>{card}</CardTextureContext.Provider>
-  )
+  // `texture={false}` holds for every nested card and form (the surface, E13).
+  if (texture === undefined) return card
+  return <EntitySurfaceProvider value={{ texture }}>{card}</EntitySurfaceProvider>
 }
