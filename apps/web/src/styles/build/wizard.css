@@ -256,10 +256,9 @@
   }
 }
 
-/* CrawlerReviewStep, pilot ReviewStep: the kv-panel. A class:
-   Panel takes no `style`. */
+/* The review steps' recap (pilot, mech, crawler): the type of the Box's
+   body, which pads it. */
 .su-wiz-review-panel {
-  padding: var(--space-16);
   font-size: var(--text-sm);
   line-height: calc(1.25 / 0.875);
 }
@@ -284,22 +283,4 @@
    ReferenceEntityCard takes no `style`. */
 .su-wiz-class-card {
   margin-bottom: var(--space-4);
-}
-
-/* MechReviewStep: the kv-panel (Panel takes no `style`). */
-.su-wiz-mech-review-kv {
-  padding: var(--space-16) var(--space-24);
-  font-size: var(--text-sm);
-  line-height: calc(1.25 / 0.875);
-}
-
-/* MechReviewStep: the scrap banking callout (Panel takes no `style`). */
-.su-wiz-mech-banking {
-  margin-top: var(--space-12);
-  padding: var(--space-12) var(--space-16);
-  font-family: var(--font-cond);
-  font-size: var(--text-sm);
-  line-height: calc(1.25 / 0.875);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-ink);
 }

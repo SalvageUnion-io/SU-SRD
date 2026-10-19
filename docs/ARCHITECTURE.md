@@ -69,7 +69,7 @@ ADRs cited by § keep their full text in [`docs/adr/`](adr/).
     Activation is a sequential write-through (ADR-008); item conditions change only by player action (ADR-009).
 22. **Display system** <a id="display"></a>
     Entity forms (Mention, Token, Row, Tile, Peek; [EDL](design-system/entity-display-language.md)) come from `toEntityModel`; Card and Page are `ReferenceEntityCard`.
-    `Card` is the generic container, never merged with it; app UI goes through `controls` and slot props, never schema props.
+    `Box` is every other frame, never merged with it; app UI goes through `controls` and slot props, never schema props.
 23. **Discord bot as a Game client** <a id="bot-game-client"></a>
     Game commands call `POST /bot/<op>` (`convex/botHttp.ts`) with `BOT_SECRET`.
     Writes only channel bindings; Convex unreachable: every Game command answers `unavailable`. Each interaction logs its command.

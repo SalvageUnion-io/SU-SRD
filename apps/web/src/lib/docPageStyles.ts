@@ -75,7 +75,10 @@ export const SMALL_PRINT = {
 /** A bold prose link (`InlineRef`). */
 export const BOLD = { fontWeight: weight.bold } satisfies CSSProperties
 
-/** A Panel's header strip — the method or command over its hairline. */
+/** A doc page's endpoint or command box: the Box in the faint frame. */
+export const SOFT_FRAME = 'var(--color-wk-faint)'
+
+/** A box's header strip — the method or command over its hairline. */
 export const PANEL_HEAD = {
   borderColor: color.wkFaint,
   borderStyle: 'solid',
@@ -84,7 +87,7 @@ export const PANEL_HEAD = {
   paddingInline: space[20],
 } satisfies CSSProperties
 
-/** The Panel header's endpoint or command line. */
+/** The box header's endpoint or command line. */
 export const PANEL_TITLE = {
   fontFamily: font.body,
   fontSize: fontSize.base,
@@ -93,7 +96,7 @@ export const PANEL_TITLE = {
   marginTop: space[4],
 } satisfies CSSProperties
 
-/** A Panel's body: prose blocks in a column. */
+/** A box's body: prose blocks in a column. */
 export const PANEL_BODY = {
   ...proseColumn(space[12]),
   paddingBlock: space[16],
@@ -107,7 +110,7 @@ export const ITALIC = { fontStyle: 'italic' } satisfies CSSProperties
 export const ASIDE = {
   backgroundColor: color.wkBg,
   borderColor: color.ink,
-  borderRadius: radius.panel,
+  borderRadius: radius.card,
   borderStyle: 'solid',
   borderWidth: borderWidth.chrome,
   paddingBlock: space[12],

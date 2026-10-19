@@ -168,7 +168,7 @@ describe('MechWizard — book-order happy path (custom build)', () => {
     await clickNext()
 
     // --- Review: text-only banking callout, then create ---
-    expect(screen.getByTestId('banking-callout').textContent).toContain(
+    expect(screen.getByRole('note').textContent).toContain(
       `${afterChassis - cargoPod.salvageValue - moduleByName('Comms Module').salvageValue} Tech 1 Scrap banks`
     )
     await submit(/Create Mech/i)

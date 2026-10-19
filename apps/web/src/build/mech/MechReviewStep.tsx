@@ -1,6 +1,13 @@
 import type { CSSProperties } from 'react'
 import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
-import { EmptyState, FieldError, Panel, ReferenceEntityCard, tokens } from '../../components/index'
+import {
+  Box,
+  Callout,
+  EmptyState,
+  FieldError,
+  ReferenceEntityCard,
+  tokens,
+} from '../../components/index'
 import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import '../../styles/build/wizard.css'
 import { readReference } from '../../lib/readReference'
@@ -10,9 +17,16 @@ import { SavePatternButton } from './Pattern/SavePatternButton'
 /** Columns are `.su-wiz-review-grid` (they change at lg). */
 const LAYOUT = { display: 'grid', gap: tokens.space[24] } satisfies CSSProperties
 
-const KV_COLUMN = { alignSelf: 'flex-start' } satisfies CSSProperties
+/** The recap, the banking note and Save-as-pattern, 12px apart. */
+const KV_COLUMN = {
+  alignSelf: 'flex-start',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[12],
+} satisfies CSSProperties
 
-const SAVE_ROW = { marginTop: tokens.space[12] } satisfies CSSProperties
+/** The note's line in body type, as the crawler review's reminder. */
+const NOTE = { display: 'block', fontFamily: tokens.font.body } satisfies CSSProperties
 
 type MechReviewStepProps = {
   form: MechWizardFormState
@@ -50,7 +64,7 @@ export function MechReviewStep({ form, submitError, bankedScrap }: MechReviewSte
   return (
     <div className="su-wiz-review-grid" style={LAYOUT}>
       <div style={KV_COLUMN}>
-        <Panel className="su-wiz-mech-review-kv">
+        <Box bodyClassName="su-wiz-review-panel">
           {/* The recap: Stats, the chassis as its chip, the parts as Tokens. */}
           <Recap>
             <RecapStat label="Name" value={form.name.trim()} required />
@@ -59,14 +73,17 @@ export function MechReviewStep({ form, submitError, bankedScrap }: MechReviewSte
             <RecapTokens label="Systems" entities={chosenSystems} />
             <RecapTokens label="Modules" entities={chosenModules} />
           </Recap>
-          {submitError && <FieldError spaceAbove={12}>{submitError}</FieldError>}
-        </Panel>
-        <Panel data-testid="banking-callout" className="su-wiz-mech-banking">
-          {bankedScrap} Tech 1 Scrap banks to your Union Crawler — note it in the Crawler&rsquo;s
-          Scrap Pool.
-        </Panel>
+          {submitError && <FieldError>{submitError}</FieldError>}
+        </Box>
+        {/* An unlabelled note (ruleset §5, N5), as the crawler review's reminder. */}
+        <Callout role="note">
+          <span style={NOTE}>
+            {bankedScrap} Tech 1 Scrap banks to your Union Crawler — note it in the Crawler&rsquo;s
+            Scrap Pool.
+          </span>
+        </Callout>
         {form.chassisName && (
-          <div style={SAVE_ROW}>
+          <div>
             <SavePatternButton
               mechName={form.name.trim() || 'Unnamed Mech'}
               chassisRef={form.chassisName}

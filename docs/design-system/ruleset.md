@@ -80,7 +80,7 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
       Controls on one line share one Size; chip values match labels, one gap apart, cost bottom-right.
 5. **§5 The irreducible set** — an ontology, not a roster: 11 atoms and one technique.
    1. **Stamp** — ink block, paper text: `Badge shape="stamp"`.
-   2. **Frame** — `--bw-*` weights: `Box`, `TitledBox` (cut-out), `Card`, `Panel`.
+   2. **Frame** — `--bw-*` weights: `Box`, `TitledBox` (cut-out); a note is a `Callout`.
    3. **Badge** — the stamp-chip family: `Badge`.
    4. **Well** — labelled value: `Stat`, the label-first chip (steppers when edited); no square box.
    5. **Gauge** — segmented current/max: `VitalGauge`.

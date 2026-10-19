@@ -12,14 +12,15 @@ type PanelProps = {
 
 const PANEL = {
   backgroundColor: color.paper,
-  borderRadius: radius.panel,
+  borderRadius: radius.card,
   borderStyle: 'solid',
   borderWidth: borderWidth.chrome,
 } satisfies CSSProperties
 
 /**
- * App-chrome panel (design-spec §2.10 `.panel`): 1.5px border, 6px radius,
- * paper ground. `soft` swaps to the faint border.
+ * The pilot sheet's generic entry frame: 1.5px border, 3px radius (ruleset
+ * §4.4), paper ground; `soft` swaps to the faint border. Nothing else takes
+ * it: a frame is a `Box`, a note a `Callout`.
  */
 export function Panel({ children, soft = false, className, 'data-testid': testId }: PanelProps) {
   return (

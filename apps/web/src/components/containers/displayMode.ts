@@ -1,8 +1,8 @@
 import type { Size } from '../../styles/sizing'
 
 /**
- * THE card sizing vocabulary — owned here, at the `Card` layer, and
- * inherited by every card that composes it (notably `ReferenceEntityCard`).
+ * THE card sizing vocabulary — owned here and read by every card
+ * (`ReferenceEntityCard`, the Peek's compact Card).
  *
  * Two axes, deliberately ORTHOGONAL, so every combination is expressible — a
  * mini card can still show its content.
@@ -30,18 +30,6 @@ export type CardExtent = 'full' | 'head' | 'catalog'
 
 /** The two axes together — what every card layer resolves its rendering from. */
 export type CardDisplay = { size: CardSize; extent: CardExtent }
-
-/**
- * The size → `{compact, listing}` projection that `Card`'s layout still
- * reads from. `compact` covers both reduced Sizes, since `mini` inherits
- * `compact`'s tighter padding and then steps its type down further.
- */
-export function displayBooleans({ size, extent }: CardDisplay): {
-  compact: boolean
-  listing: boolean
-} {
-  return { compact: size !== 'full', listing: extent === 'head' }
-}
 
 /**
  * The defaults for the two axes — a card with neither specified is the dominant

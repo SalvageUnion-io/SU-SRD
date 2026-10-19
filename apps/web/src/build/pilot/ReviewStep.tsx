@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import type { RefAbility, RefClass, RefEquipment } from 'salvageunion-reference'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
-import { EmptyState, FieldError, Panel, ReferenceEntityCard, tokens } from '../../components/index'
+import { Box, EmptyState, FieldError, ReferenceEntityCard, tokens } from '../../components/index'
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
 import '../../styles/build/wizard.css'
 import { Recap, RecapEntity, RecapStat, RecapTokens } from '../wizard/ReviewRecap'
@@ -48,7 +48,7 @@ export function ReviewStep({ form, submitError, _sur }: ReviewStepProps) {
   return (
     <div className="su-wiz-review-grid" style={REVIEW_GRID}>
       {/* The recap: Stats, the class as its chip, the picks as Tokens. */}
-      <Panel className="su-wiz-review-panel su-wiz-review-panel--start">
+      <Box className="su-wiz-review-panel--start" bodyClassName="su-wiz-review-panel">
         <Recap>
           <RecapStat label="Name" value={form.name.trim()} required />
           <RecapStat label="Callsign" value={form.callsign.trim()} required />
@@ -60,8 +60,8 @@ export function ReviewStep({ form, submitError, _sur }: ReviewStepProps) {
           <RecapTokens label="Abilities" entities={chosenAbilities} />
           <RecapTokens label="Equipment" entities={chosenEquipment} />
         </Recap>
-        {submitError && <FieldError spaceAbove={12}>{submitError}</FieldError>}
-      </Panel>
+        {submitError && <FieldError>{submitError}</FieldError>}
+      </Box>
 
       {/* chosen cards */}
       <div className="su-wiz-stack su-wiz-stack--12">

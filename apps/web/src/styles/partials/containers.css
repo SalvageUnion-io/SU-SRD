@@ -13,60 +13,6 @@
  * stays a class the caller can still override.
  */
 
-/* Card (`components/containers/Card.tsx`): the frame, the header row and the body.
-   `cardStyle.className`, `headerStyle.className` and `bodyPadding` are
-   callers' classes, merged onto these three. */
-.su-card {
-  position: relative;
-  display: flex;
-  flex-shrink: 0;
-  flex-direction: column;
-  overflow: visible;
-  border-radius: var(--radius-card);
-}
-
-/* px-3 lines the header content up with the body and the footer. */
-.su-card-head {
-  display: flex;
-  width: 100%;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-8);
-  overflow: visible;
-  min-height: var(--size-full);
-  padding: var(--space-8) var(--space-12);
-}
-
-/* The label stamp riding the top border: the row top-aligns and pads under it,
-   so the gap below the stamp is the same whatever the header's height —
-   centred, a short header collided with the stamp and a tall one sat low.
-   Compact, the stamp sits centred on the edge, so 12px on top clears it. */
-.su-card-head[data-callout] {
-  align-items: flex-start;
-  padding-top: var(--space-20);
-  padding-bottom: var(--space-16);
-}
-
-.su-card-head[data-compact] {
-  min-height: 34px;
-  padding: var(--space-6) var(--space-10);
-}
-
-.su-card-head[data-compact][data-callout] {
-  padding-top: var(--space-12);
-}
-
-.su-card-body {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  width: 100%;
-  isolation: isolate;
-  background-color: var(--color-paper);
-  padding: 0;
-}
-
 /* BOX (`containers/Box.tsx`): the paper body the head's cut-out opens into,
    with no rule above it. Padded, its blocks stand 12px apart; flush, the
    content pads itself or rules its own bands. */

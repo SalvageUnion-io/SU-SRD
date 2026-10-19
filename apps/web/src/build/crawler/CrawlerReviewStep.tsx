@@ -2,10 +2,10 @@ import type { CSSProperties } from 'react'
 import type { RefCrawler, RefMetaCrawlerTechLevel, RefSystem } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
 import {
+  Box,
   Callout,
   EmptyState,
   FieldError,
-  Panel,
   ReferenceEntityCard,
   Stat,
   tokens,
@@ -101,7 +101,7 @@ export function CrawlerReviewStep({
   return (
     <div className="su-wiz-review-grid" style={REVIEW_GRID}>
       <div className="su-wiz-stack su-wiz-stack--12" style={RECAP}>
-        <Panel className="su-wiz-review-panel">
+        <Box bodyClassName="su-wiz-review-panel">
           {/* The recap: Stats, the type as its chip, the rest as Tokens. */}
           <Recap>
             <RecapStat label="Name" value={form.name.trim()} required />
@@ -114,8 +114,8 @@ export function CrawlerReviewStep({
             <RecapTokens label="Weapons" entities={systems} empty="Required" />
             <RecapTokens label="Crew" models={crew} empty="Unnamed — fill in during play" />
           </Recap>
-          {submitError && <FieldError spaceAbove={12}>{submitError}</FieldError>}
-        </Panel>
+          {submitError && <FieldError>{submitError}</FieldError>}
+        </Box>
         {isAugmented && (
           <Callout tone="crawler">
             <span style={REMINDER}>

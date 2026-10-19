@@ -26,13 +26,12 @@
   --tracking-eyebrow: 0.22em;
 
   /* Radius scale (ruleset §4.4 — the ONE radius vocabulary; never rounded-[Npx]):
-     pip = tracker pips · badge = the stamp-chip family · card = cards, inputs,
-     buttons (the outer 3px) · panel = app-chrome panels & pick cards. Stamps are
-     square (no radius). */
+     pip = tracker pips · badge = the stamp-chip family · card = everything that
+     frames or floats and is no entity (a button, field, box, dialog, popup, pick
+     card: the outer 3px). Entity frames and stamps are square (no radius). */
   --radius-pip: 1px;
   --radius-badge: 2px;
   --radius-card: 3px;
-  --radius-panel: 6px;
 
   /* The one page measure (`lib/pageMeasure.ts`): the reference pages' band
      row, body and foot, and the app pages that share their column. */

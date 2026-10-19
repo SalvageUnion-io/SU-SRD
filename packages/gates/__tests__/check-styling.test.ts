@@ -370,6 +370,21 @@ describe('tokens rule set', () => {
     expect(lines('raw-radius', text)).toEqual([1, 2, 3])
   })
 
+  test('radius-panel: the 6px rung by either spelling fails; the 3px card passes', () => {
+    const text = [
+      'const a = { borderRadius: radius.panel }',
+      'const b = { borderRadius: tokens.radius.panel }',
+      'border-radius: var(--radius-panel);',
+      'const c = { borderRadius: radius.card }',
+      'border-radius: var(--radius-card);',
+    ].join('\n')
+    expect(details('radius-panel', 'apps/web/src/x.tsx', text)).toEqual([
+      'radius.panel',
+      'radius.panel',
+      '--radius-panel',
+    ])
+  })
+
   test('raw-spacing: a length outside the scale tokens is counted; tokens and unitless options are not', () => {
     const text = [
       'padding: 3px var(--space-6);',

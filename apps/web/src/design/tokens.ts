@@ -210,19 +210,19 @@ export const tracking = {
  *
  *   pip    tracker pips
  *   badge  the stamp-chip family
- *   card   cards, inputs, buttons
- *   panel  app-chrome panels & pick cards
- *   none   stamps are square
+ *   card   everything that frames or floats and is no entity: a button,
+ *          field, box, dialog, popup, toast, pick card
+ *   none   entity frames and stamps are square
  *   full   pills and circles
  *
- * The radius ladder is a *closed* role vocabulary: 4px is `card`, 6px is
- * exactly `panel`. A new radius names its role here rather than a raw value.
+ * The radius ladder is a *closed* role vocabulary: 3px is `card`, the one
+ * rounding for a frame; there is no second (`tokens/radius-panel`, hard rule
+ * R13). A new radius names its role here rather than a raw value.
  */
 export const radius = {
   pip: '1px',
   badge: '2px',
   card: '3px',
-  panel: '6px',
   none: '0px',
   full: '9999px',
 } as const

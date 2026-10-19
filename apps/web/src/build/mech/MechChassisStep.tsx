@@ -28,7 +28,7 @@ const HINT = {
 const CUSTOM_CARD = {
   backgroundColor: tokens.color.paper,
   borderColor: tokens.color.ink55,
-  borderRadius: tokens.radius.panel,
+  borderRadius: tokens.radius.card,
   borderStyle: 'dashed',
   borderWidth: tokens.borderWidth.pill,
   padding: tokens.space[16],

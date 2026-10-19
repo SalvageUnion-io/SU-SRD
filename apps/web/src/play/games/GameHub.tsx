@@ -36,12 +36,11 @@ import type { Id } from '../../../convex/_generated/dataModel'
 import type { SegmentKind } from '../../build/roster/RosterColumn'
 import {
   Button,
-  Card,
+  Callout,
   Grid,
   PageShell,
   Pending,
   Skeleton,
-  Stack,
   Text,
   tokens,
 } from '../../components/index'
@@ -69,15 +68,13 @@ type GameHubProps = {
 
 const PENDING = { marginTop: tokens.space[24] } satisfies CSSProperties
 
-const NOT_IN = { padding: tokens.space[16] } satisfies CSSProperties
-
 const INVITE_ACTIONS = {
   display: 'flex',
   flexWrap: 'wrap',
   gap: tokens.space[8],
 } satisfies CSSProperties
 
-const NOT_IN_CARD = { marginTop: tokens.space[24] } satisfies CSSProperties
+const NOT_IN_NOTE = { marginTop: tokens.space[24] } satisfies CSSProperties
 
 /** Play's hub, where your Games are listed. */
 const PLAY_HUB = '/play/'
@@ -86,22 +83,21 @@ const PLAY_HUB = '/play/'
  * A Game the viewer is not in: they left, it ended, or an old link points at
  * it. `games.get` answers `null` for all of them alike, deliberately — a
  * non-member must not be able to tell an existing Game from a deleted one.
+ * It says so in an unlabelled note (chrome K5), with the way back to Play.
  */
 function NotInGame() {
   return (
-    <div style={NOT_IN_CARD}>
-      <Card>
-        <Stack gap={12} style={NOT_IN}>
-          <Text>
-            You are not in this Game. Ask its Organiser for the invite link, then open it to join.
-          </Text>
-          <div>
-            <Button href={PLAY_HUB} back size="compact">
-              Play
-            </Button>
-          </div>
-        </Stack>
-      </Card>
+    <div style={NOT_IN_NOTE}>
+      <Callout role="note">
+        <Text>
+          You are not in this Game. Ask its Organiser for the invite link, then open it to join.
+        </Text>
+        <div>
+          <Button href={PLAY_HUB} back size="compact">
+            Play
+          </Button>
+        </div>
+      </Callout>
     </div>
   )
 }

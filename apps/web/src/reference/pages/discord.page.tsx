@@ -11,7 +11,7 @@
 import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties, ReactNode } from 'react'
 import type { PageModule, PageResult } from '../../../ssg/types'
-import { Button, InlineRef, Panel, Slab, Stack } from '../../components/index'
+import { Box, Button, InlineRef, Slab, Stack } from '../../components/index'
 import { borderWidth, color, font, fontSize, space } from '../../design/tokens'
 import type { DiscordCommand } from '../../generated/discordCommands'
 import { DISCORD_COMMANDS } from '../../generated/discordCommands'
@@ -27,6 +27,7 @@ import {
   PANEL_HEAD,
   PANEL_TITLE,
   proseColumn,
+  SOFT_FRAME,
 } from '../../lib/docPageStyles'
 import { SalvageUnionReference } from '../../lib/gameData'
 import { pageTitle } from '../../lib/pageTitle'
@@ -234,7 +235,7 @@ function page(): PageResult {
           <Slab as="h2" label="Commands" />
 
           {reference.map((command) => (
-            <Panel key={command.name} soft>
+            <Box key={command.name} frameColor={SOFT_FRAME} body="flush">
               <div style={PANEL_HEAD}>
                 <p style={PANEL_TITLE}>
                   <Usage command={command} />
@@ -243,7 +244,7 @@ function page(): PageResult {
               <div style={PANEL_BODY}>
                 {commandDetail(command.name, examples) ?? <p>{command.description}.</p>}
               </div>
-            </Panel>
+            </Box>
           ))}
         </Stack>
 

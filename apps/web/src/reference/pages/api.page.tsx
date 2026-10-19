@@ -11,7 +11,7 @@ import type { CSSProperties } from 'react'
 import { getEntitySlug } from 'salvageunion-reference'
 import type { PageModule, PageResult } from '../../../ssg/types'
 import { capsLabel } from '../../components/atoms/capsLabel'
-import { InlineRef, Panel, Slab, Stack } from '../../components/index'
+import { Box, InlineRef, Slab, Stack } from '../../components/index'
 import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
 import { apiSampleChassis } from '../../lib/apiSample'
 import { cn } from '../../lib/cn'
@@ -26,6 +26,7 @@ import {
   PANEL_TITLE,
   PROSE,
   proseColumn,
+  SOFT_FRAME,
 } from '../../lib/docPageStyles'
 import { itemHref, schemaHref } from '../../lib/entityHref'
 import { getEntitySchemas } from '../../lib/gameData'
@@ -45,7 +46,7 @@ const EXAMPLE_LINK = { ...BOLD, overflowWrap: 'anywhere' } satisfies CSSProperti
 const CODE = inlineCode()
 const CODE_ON_GROUND = inlineCode(true)
 
-/** A Panel header's HTTP method. */
+/** A box header's HTTP method. */
 const METHOD = {
   color: color.wkMuted,
   fontSize: fontSize.sm,
@@ -249,7 +250,7 @@ function page(): PageResult {
           <Slab as="h2" label="Endpoints" />
 
           {/* Schema data array */}
-          <Panel soft>
+          <Box frameColor={SOFT_FRAME} body="flush">
             <div style={PANEL_HEAD}>
               <p className={METHOD_CAPS} style={METHOD}>
                 GET
@@ -273,10 +274,10 @@ function page(): PageResult {
               </p>
               <CodeSample>{samples.schemaArray}</CodeSample>
             </div>
-          </Panel>
+          </Box>
 
           {/* JSON Schema definition */}
-          <Panel soft>
+          <Box frameColor={SOFT_FRAME} body="flush">
             <div style={PANEL_HEAD}>
               <p className={METHOD_CAPS} style={METHOD}>
                 GET
@@ -304,10 +305,10 @@ function page(): PageResult {
               </p>
               <CodeSample>{JSON_SCHEMA_SAMPLE}</CodeSample>
             </div>
-          </Panel>
+          </Box>
 
           {/* Individual entity */}
-          <Panel soft>
+          <Box frameColor={SOFT_FRAME} body="flush">
             <div style={PANEL_HEAD}>
               <p className={METHOD_CAPS} style={METHOD}>
                 GET
@@ -337,7 +338,7 @@ function page(): PageResult {
               </p>
               <CodeSample>{samples.entity}</CodeSample>
             </div>
-          </Panel>
+          </Box>
         </Stack>
 
         {/* Usage example */}
@@ -354,7 +355,7 @@ function page(): PageResult {
             The following schema IDs are available. Use them in the endpoint patterns above.
           </p>
 
-          <Panel soft className="su-api__schemas">
+          <Box frameColor={SOFT_FRAME} body="flush" className="su-api__schemas">
             <table style={TABLE}>
               <thead>
                 <tr className="su-print-ink" style={TABLE_HEAD}>
@@ -395,7 +396,7 @@ function page(): PageResult {
                 ))}
               </tbody>
             </table>
-          </Panel>
+          </Box>
         </Stack>
 
         {/* CORS & headers */}

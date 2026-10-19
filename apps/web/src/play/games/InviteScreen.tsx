@@ -6,7 +6,7 @@ import { api } from '../../../convex/_generated/api'
 import { SignInControl } from '../../build/account/SignInControl'
 import {
   Button,
-  Card,
+  Callout,
   ChapterBand,
   FieldError,
   PageShell,
@@ -47,9 +47,6 @@ import { invitePath } from '../../lib/games/inviteLink'
  */
 
 const ACTIONS = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
-
-/** The offline note's padding (an unframed Card). */
-const PAD = { padding: tokens.space[16] } satisfies CSSProperties
 
 const HINT = { textAlign: 'left' } satisfies CSSProperties
 
@@ -203,11 +200,10 @@ export function InviteScreen({ token, joinOnArrival = false }: InviteProps) {
     if (mode === 'connected') return <ConnectedInvite token={token} joinOnArrival={joinOnArrival} />
     if (mode === 'disconnected') {
       return (
-        <Card>
-          <div style={PAD}>
-            <Text>You are offline, so this invite cannot be checked right now.</Text>
-          </div>
-        </Card>
+        // What being offline means here (chrome K5): an unlabelled note.
+        <Callout role="note">
+          <Text>You are offline, so this invite cannot be checked right now.</Text>
+        </Callout>
       )
     }
     return <SignedOutInvite token={token} />

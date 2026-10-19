@@ -319,6 +319,17 @@ const TOKEN_RULES: TokenRule[] = [
     keep: keepLengthLiteral,
   },
   {
+    id: 'radius-panel',
+    mode: 'zero',
+    rule: 'ruleset §4.4 — one rounding for a frame: 3px, `radius.card` (R13)',
+    // The 6px `panel` rung was a second frame rounding: a Panel, a pick card
+    // and a doc page's aside wore it while every other frame was 3px. Its
+    // token is deleted; this keeps a spelling of it from coming back, in a
+    // style object or as a stylesheet's custom property.
+    fix: 'Use `radius.card` / `var(--radius-card)` (3px): a frame that is no entity (a Box, a pick card, a dialog, a button) is 3px; an entity frame or stamp is `radius.none`.',
+    pattern: /\bradius\.panel\b|--radius-panel(?![\w-])/g,
+  },
+  {
     id: 'raw-shadow',
     mode: 'zero',
     rule: 'chrome K4 / ruleset §4.4 — one lift, in warm ink, for whatever floats (R26)',

@@ -24,7 +24,7 @@ type SelProps = {
   radio?: boolean
 }
 
-const RING = { borderRadius: radius.panel, position: 'relative' } satisfies CSSProperties
+const RING = { borderRadius: radius.card, position: 'relative' } satisfies CSSProperties
 const RING_INTERACTIVE = { ...RING, cursor: 'pointer' } satisfies CSSProperties
 
 /**

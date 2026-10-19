@@ -33,7 +33,7 @@ const SLAB_GRID = { display: 'grid', gap: tokens.space[12] } satisfies CSSProper
 
 const SLAB_CARD = {
   height: '80px',
-  borderRadius: tokens.radius.panel,
+  borderRadius: tokens.radius.card,
   border: `${tokens.borderWidth.chrome} solid ${tokens.color.ink15}`,
   backgroundColor: tokens.color.paper,
 } satisfies CSSProperties
@@ -67,7 +67,7 @@ const BAR_BUTTON = {
 const HERO = { paddingBottom: tokens.space[6] } satisfies CSSProperties
 
 const HERO_FRAME = {
-  borderRadius: tokens.radius.panel,
+  borderRadius: tokens.radius.card,
   border: `${tokens.borderWidth.entity} solid ${tokens.color.ink20}`,
   backgroundColor: tokens.color.paper,
 } satisfies CSSProperties

@@ -8,12 +8,14 @@ import type {
   RefObjectTrait,
 } from 'salvageunion-reference'
 import type { EntityStatus } from '../../atoms/entityStatus'
-import type { CardFootMeta } from '../../containers/Card'
 import type { CardExtent, CardSize } from '../../containers/displayMode'
 import type { StatItem } from '../../containers/statsBarTypes'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 import type { Down } from './cardChrome'
+
+/** Inline foot meta entry (design-spec §2.1 `.ec__metafoot`), e.g. AP COST · 1 */
+export type CardFootMeta = { label: string; value: ReactNode }
 
 /**
  * What a card can render: the plain reference union PLUS the meta union —

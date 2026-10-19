@@ -54,7 +54,7 @@ const TITLE_CAPS = capsLabel()
 // a page band that recolours it.
 const TRIGGER = {
   borderColor: 'transparent',
-  borderRadius: radius.panel,
+  borderRadius: radius.card,
   color: 'var(--su-bar-fg)',
 } satisfies CSSProperties
 

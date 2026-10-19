@@ -102,7 +102,7 @@ const VIEWPORT = {
 
 // The hamburger. Its padding and ink are on `.su-nav-drawer__trigger`, which
 // the Union bar's phone cluster resizes (`styles/partials/shell.css`).
-const TRIGGER = { ...TRANSITION_COLORS, borderRadius: radius.panel } satisfies CSSProperties
+const TRIGGER = { ...TRANSITION_COLORS, borderRadius: radius.card } satisfies CSSProperties
 
 // The panel. Its width is on `.su-nav-drawer__panel`.
 const PANEL = {

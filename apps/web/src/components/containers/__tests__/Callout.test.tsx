@@ -49,7 +49,6 @@ describe('Callout', () => {
   test('a label-less callout paints no band — just a framed paper panel', () => {
     const { container } = render(<Callout tone="mech">Pick one of the following.</Callout>)
     expect(screen.getByText('Pick one of the following.')).toBeTruthy()
-    expect(container.querySelector('.su-card-head')).toBeNull()
     expect(container.querySelector('.su-entity-row__head')).toBeNull()
   })
 

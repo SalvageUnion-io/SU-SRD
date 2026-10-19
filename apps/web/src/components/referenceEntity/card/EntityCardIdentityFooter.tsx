@@ -4,11 +4,11 @@ import { citeLine, provenancePrintings } from 'salvageunion-reference'
 import { color, fontSize, space, weight } from '../../../design/tokens'
 import { cn } from '../../../lib/cn'
 import { capsLabel } from '../../atoms/capsLabel'
-import type { CardFootMeta } from '../../containers/Card'
 import type { CardSize } from '../../containers/displayMode'
 import type { CardColors } from './cardChrome'
 import type { CardGrain } from './cardGrain'
 import { grainClass } from './cardGrain'
+import type { CardFootMeta } from './referenceEntityCardTypes'
 
 type EntityCardIdentityFooterProps = {
   /**

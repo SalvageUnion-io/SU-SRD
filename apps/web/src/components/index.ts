@@ -173,12 +173,11 @@ export { useSearchCombobox } from './compositions/useSearchCombobox'
 // AdderBox — the dashed "+ add" intake under a list; AdderField labels a field in it.
 export { AdderBox, AdderField } from './containers/AdderBox'
 export { Banner } from './containers/Banner'
+// Box — the house container: the Row's square frame around a paper body (ruleset §4.3).
+export { Box } from './containers/Box'
 // Callout — accent-framed note (stamp header + accent-bar body); list-items,
 // "When Damaged" effects, and similar accented notes compose on it.
 export { Callout } from './containers/Callout'
-export type { CardFootMeta } from './containers/Card'
-// Shared components
-export { Card } from './containers/Card'
 // Stack, Cluster and Grid — the layout primitives: a column, a wrapping row,
 // and as many equal columns as fit, each a space step apart (`gap`).
 export { Cluster } from './containers/Cluster'
@@ -280,6 +279,7 @@ export { isLegalStartingPatternOf } from './referenceEntity/card/legalStartingPa
 export { ActionTokens } from './referenceEntity/card/NestedCards'
 // Entity display system
 export { ReferenceEntityCard } from './referenceEntity/card/ReferenceEntityCard'
+export type { CardFootMeta } from './referenceEntity/card/referenceEntityCardTypes'
 // UserMadeStamp — the dashed User-made stamp (ruleset §3.9). The card wears it
 // in its head's labels; a full user-made page leads its title with it.
 export { UserMadeStamp } from './referenceEntity/card/UserMadeStamp'
