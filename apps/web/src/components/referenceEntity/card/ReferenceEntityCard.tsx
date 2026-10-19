@@ -66,6 +66,7 @@ import { isLegalStartingPatternOf, LEGAL_STARTING_PATTERN } from './legalStartin
 import { CardLead, CardStack } from './NestedCards'
 import { PatternList } from './PatternListRow'
 import { PatternLoadoutRows } from './PatternLoadout'
+import { PickSurface } from './PickSurface'
 import { resolveFooterProvenance } from './provenance'
 import type {
   ActionFields,
@@ -691,15 +692,9 @@ export function ReferenceEntityCard({
   const label = getReferenceEntityName(data)
   const foldControls: ReferenceEntityControl[] = !collapsible
     ? []
-    : [
-        foldControl({
-          subject: label ?? '',
-          disclosure: fold,
-          cardClick: true,
-        }),
-      ]
+    : [foldControl({ subject: label ?? '', disclosure: fold, cardClick: true })]
 
-  const card = (
+  const inner = (
     <ReferenceEntityCardInner
       data={data}
       size={display.size}
@@ -708,6 +703,8 @@ export function ReferenceEntityCard({
       {...rest}
     />
   )
+  // A card that is the pick is the one control in its frame (`PickSurface`).
+  const card = rest.selectionRole ? <PickSurface>{inner}</PickSurface> : inner
   // `texture={false}` holds for every nested card.
   return texture === undefined ? (
     card

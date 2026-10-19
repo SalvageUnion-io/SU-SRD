@@ -15,6 +15,7 @@ import type { Down } from './cardChrome'
 import { conditionOf } from './cardChrome'
 import { cardKey, stackedTitleLevel } from './cardHelpers'
 import { nestedChildSize } from './entityCardTone'
+import { InsidePickContext } from './insidePick'
 import { nestsTokens } from './nestingLevel'
 import type {
   NestedCard,
@@ -273,13 +274,17 @@ function NestedToken({
   const title = titleOverride ?? stripHostParenthetical(entityName, host.entityName)
   const condition = conditionOf(host.isDown)
   const instance = { title, ...(condition ? { condition } : {}) }
-  const mode: Extract<EntityMode, { kind: 'link' }> = linkOut
-    ? { kind: 'link', href, attrs: { 'aria-label': `Open ${title}` } }
-    : {
-        kind: 'link',
-        onOpen: () => setOpen(true),
-        attrs: { 'aria-label': `Open ${title}` },
-      }
+  // Inside a card that is the pick, the card is the one control: it reads.
+  const inPick = useContext(InsidePickContext)
+  const mode: EntityMode = inPick
+    ? { kind: 'read' }
+    : linkOut
+      ? { kind: 'link', href, attrs: { 'aria-label': `Open ${title}` } }
+      : {
+          kind: 'link',
+          onOpen: () => setOpen(true),
+          attrs: { 'aria-label': `Open ${title}` },
+        }
   return (
     <>
       <Entity
@@ -289,7 +294,7 @@ function NestedToken({
         instance={instance}
         mode={mode}
       />
-      {mode.onOpen && (
+      {mode.kind === 'link' && mode.onOpen && (
         // The Page (EDL Form 5): the dialog's band and foot, the card its body.
         <EntityDetailDialog
           open={open}

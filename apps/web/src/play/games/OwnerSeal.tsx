@@ -3,14 +3,12 @@ import { Stat, tokens } from '../../components/index'
 import type { OwnerChip } from '../../lib/ownership/ownerChip'
 
 /**
- * The pressable seal's bare button. Its cursor, lift and fade change on hover or
- * when disabled, so they are `.su-owner-seal__claim`'s (styles/controls.css).
+ * The pressable seal's bare button: a linked chip (`.su-chip-link`), a 24px
+ * target (WCAG 2.5.8) around the chip drawn at its siblings' height. Its
+ * cursor, lift and fade change on hover or when disabled, so they are
+ * `.su-owner-seal__claim`'s (styles/controls.css).
  */
 const CLAIM = {
-  backgroundColor: 'transparent',
-  borderStyle: 'solid',
-  borderWidth: 0,
-  padding: 0,
   transitionDuration: tokens.duration.base,
   transitionProperty: 'transform, translate, scale, rotate',
   transitionTimingFunction: tokens.ease,
@@ -65,7 +63,7 @@ export function OwnerSeal({
       onClick={onClaim}
       disabled={disabled}
       aria-label={`${owner.label} — pick this up`}
-      className="su-owner-seal__claim"
+      className="su-chip-link su-hit-area su-owner-seal__claim"
       style={CLAIM}
     >
       {stamp}

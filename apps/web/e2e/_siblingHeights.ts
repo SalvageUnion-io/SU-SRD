@@ -8,7 +8,9 @@ import type { Page } from '@playwright/test'
  *
  * - A control is the outermost element matching `CONTROL`, so a chip's two
  *   plates count once, as their cell. A linked chip counts as its cell too:
- *   its button is a 24px target (WCAG 2.5.8) around the drawn 18px chip.
+ *   its button is a 24px target (WCAG 2.5.8) around the drawn 18px chip. A
+ *   strip's Mini button is that target itself, its plate drawn on its padding
+ *   box between transparent borders: it counts at the plate's height.
  * - Its line is its nearest flex or grid ancestor (four levels up at most)
  *   holding another control beside it: overlapping vertically by at least half
  *   the shorter one's height, and no more than `MAX_GAP` from its neighbour, so
@@ -66,9 +68,26 @@ function scan({
     for (let p = el.parentElement; p; p = p.parentElement) if (set.has(p)) return false
     return true
   })
+  // A control drawn on its padding box (a strip's Mini button: a 24px target,
+  // its plate the chip's 18px inside a transparent border) measures as drawn.
   const box = (el: Element): Box => {
     const r = el.getBoundingClientRect()
-    return { el, x: r.left, y: r.top, w: r.width, h: r.height }
+    const s = getComputedStyle(el)
+    const clear = (side: 'top' | 'bottom') =>
+      /rgba\(.*,\s*0\)$|transparent/.test(s.getPropertyValue(`border-${side}-color`))
+        ? Number.parseFloat(s.getPropertyValue(`border-${side}-width`)) || 0
+        : 0
+    const drawn =
+      s.backgroundClip === 'padding-box'
+        ? { top: clear('top'), bottom: clear('bottom') }
+        : { top: 0, bottom: 0 }
+    return {
+      el,
+      x: r.left,
+      y: r.top + drawn.top,
+      w: r.width,
+      h: r.height - drawn.top - drawn.bottom,
+    }
   }
   const sameLine = (a: Box, b: Box) => {
     const overlap = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y)
