@@ -8,8 +8,9 @@
  *
  * Composes the shared `Inset`: the cut-out head the SRD draws the same NPC
  * with (NPC brown band, the lead's editable name on the paper tab, the role
- * and an `HP | 4/4` chip beside it), over quiet Keepsake/Motto/Detail/Facts id
- * lines.
+ * and an `HP | 4/4` chip beside it), over its id lines: Role, Keepsake and
+ * Motto read as `Stat`s with text values (ruleset §3.7), Detail as prose,
+ * Facts in the one chip well (`ChipListEditor`).
  *
  * Persistence stays with the caller: name/HP/detail/facts patch the crawler's
  * bay entry; keepsake persists through the bay's SRD freeform 'Keepsake'
@@ -89,17 +90,16 @@ export type NpcInsetProps = {
 }
 
 /**
- * One `label: value` line of the inset. The same four-line shape was written
- * out four times; this is that shape once. Deliberately NOT `KvRow` — that
- * primitive carries a 120px rail, bottom rules and larger muted type, which
- * would visibly redesign the inset rather than dedupe it.
+ * One labelled line of the inset whose value is not a reading: a field to
+ * write (Name, Keepsake, Motto, Detail in Edit), Detail's prose, the Facts
+ * well. A reading (Role, Keepsake, Motto in Read) is a `Stat` with a text
+ * value (ruleset §3.7, §6.2), never a hand-built label and value.
  */
 function NpcRow({
   label,
   grow = false,
   plain = false,
   className,
-  srLabel = false,
   children,
 }: {
   label: string
@@ -109,20 +109,14 @@ function NpcRow({
   plain?: boolean
   /** Grid placement from the caller (e.g. `.su-sheet-npc-wide`, spanning both columns). */
   className?: string
-  /** The term is for assistive tech only: the cell names itself (a `Stat`). */
-  srLabel?: boolean
   children: ReactNode
 }) {
   return (
     <div className={className} style={ROW}>
-      {srLabel ? (
-        <dt className="su-sr-only">{label}</dt>
-      ) : (
-        <dt className={ROW_LABEL_CAPS} style={ROW_LABEL}>
-          {label}
-        </dt>
-      )}
-      <dd
+      <span className={ROW_LABEL_CAPS} style={ROW_LABEL}>
+        {label}
+      </span>
+      <div
         style={{
           ...ROW_VALUE,
           ...(grow && ROW_VALUE_GROW),
@@ -130,7 +124,16 @@ function NpcRow({
         }}
       >
         {children}
-      </dd>
+      </div>
+    </div>
+  )
+}
+
+/** A reading of the inset: its `Stat`, a text value, Compact as the fields beside it. */
+function NpcReading({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={ROW}>
+      <Stat label={label} value={value} size="compact" wrap />
     </div>
   )
 }
@@ -181,7 +184,7 @@ export function NpcLines({
   // out of two lines of content. Detail and Facts keep their own rows — they
   // grow.
   return (
-    <dl className="su-sheet-npc-lines" style={LINES}>
+    <div className="su-sheet-npc-lines" style={LINES}>
       {showName && (
         <NpcRow label="Name">
           <InlineEditField
@@ -194,8 +197,8 @@ export function NpcLines({
         </NpcRow>
       )}
       {showHp && (
-        // The Stat names itself: its term is for assistive tech only.
-        <NpcRow label="HP" plain srLabel>
+        // The Stat names itself.
+        <div style={ROW}>
           <Stat
             orientation="horizontal"
             label="HP"
@@ -205,37 +208,35 @@ export function NpcLines({
             mode="edit"
             onChange={onHpChange}
           />
-        </NpcRow>
+        </div>
       )}
-      {showRole && <NpcRow label="Role">{role}</NpcRow>}
-      {showKeepsake && (
-        <NpcRow label="Keepsake">
-          {onKeepsakeChange ? (
+      {showRole && <NpcReading label="Role" value={role} />}
+      {showKeepsake &&
+        (onKeepsakeChange ? (
+          <NpcRow label="Keepsake">
             <InlineEditField
               value={keepsake}
               onSave={(next) => onKeepsakeChange(String(next))}
               type="text"
               ariaLabel={`Edit ${bayName} crew keepsake`}
             />
-          ) : (
-            keepsake
-          )}
-        </NpcRow>
-      )}
-      {showMotto && (
-        <NpcRow label="Motto">
-          {onMottoChange ? (
+          </NpcRow>
+        ) : (
+          <NpcReading label="Keepsake" value={keepsake} />
+        ))}
+      {showMotto &&
+        (onMottoChange ? (
+          <NpcRow label="Motto">
             <InlineEditField
               value={motto}
               onSave={(next) => onMottoChange(String(next))}
               type="text"
               ariaLabel={`Edit ${bayName} crew motto`}
             />
-          ) : (
-            motto
-          )}
-        </NpcRow>
-      )}
+          </NpcRow>
+        ) : (
+          <NpcReading label="Motto" value={motto} />
+        ))}
       {showDetail && (
         <NpcRow label="Detail" grow className="su-sheet-npc-wide">
           {onDetailChange ? (
@@ -264,7 +265,7 @@ export function NpcLines({
           />
         </NpcRow>
       )}
-    </dl>
+    </div>
   )
 }
 

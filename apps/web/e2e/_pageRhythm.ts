@@ -66,8 +66,8 @@ export const RHYTHM_SELECTORS: RhythmSelectors = {
   parts:
     '.su-entity-page__art, .su-entity-page__stats, .su-entity-page__opening, .su-entity-page__table, .su-ability-track__or, .su-class-brief__trees, .su-guide__table, .su-guide__toc-block .su-guide__toc',
   prose: '.su-entity-page__prose, .su-guide__body, .su-guide__ladder-prose',
-  statValue: '.su-entity-page__stats .su-stat-column__value',
-  statLabel: '.su-entity-page__stats .su-stat-column__label',
+  statValue: '.su-entity-page__stats .su-stat-column__stat',
+  statLabel: '.su-entity-page__stats .su-stat-column__stat > .su-stat-plate--label',
   start: 24,
   gap: 12,
   tolerance: 1,

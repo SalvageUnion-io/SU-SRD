@@ -31,7 +31,9 @@ const CONTROL = [
   '[role=tab]',
   'input:not([type=hidden]):not([type=checkbox]):not([type=radio])',
   'select',
-  '.su-stat-cell',
+  // A stat column's cell is a read-out in the column's own grid, not a control
+  // on a line (`StatColumn`, a layout of Stats).
+  '.su-stat-cell:not(.su-stat-column__stat)',
   '.su-badge-stamp',
   '.su-cost-edge',
   '.su-cost',

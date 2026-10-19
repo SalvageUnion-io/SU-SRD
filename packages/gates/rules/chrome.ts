@@ -96,7 +96,9 @@
  *
  * ## One section, the SlabSection (hard rule R1, ruleset §6.4)
  *
- * `slab-section` and `slab-style`, read off the JSX's shape: `chromeMarkup.ts`.
+ * `slab-section` and `slab-style`, read off the JSX's shape: `chromeMarkup.ts`,
+ * as is `raw-dl` (hard rule R36): a JSX `<dl>`, `<dt>` or `<dd>` outside the
+ * Stat atoms.
  *
  * Every rule is `zero` but `raw-button`. Comments are stripped, so prose may name what it bans.
  */
@@ -564,7 +566,7 @@ export const chromeLaws: RuleSet = {
   label: 'chrome laws',
   rules: RULES,
   exemptionsLive:
-    'packages/gates/rules/chrome.ts (FRAMES, ATOMS, ROLE_HOMES, BUTTON_RECIPE_HOMES), chromeMarkup.ts (SLAB_SECTION_HOME)',
+    'packages/gates/rules/chrome.ts (FRAMES, ATOMS, ROLE_HOMES, BUTTON_RECIPE_HOMES), chromeMarkup.ts (STAT_ATOMS, SLAB_SECTION_HOME)',
   preflight(root) {
     // A catastrophe floor far below today's ~1,000 source files and ~60 stylesheets.
     assertScanFloor('chrome (app source)', listFiles(root, [SRC], ['.ts', '.tsx']).length, 350)

@@ -94,7 +94,7 @@ function expectInOrder(entity: RefMetaEntity, surface: string, labels: string[])
 /** Every label plate under `root`, in document order. */
 function domLabels(root: Element | null): string[] {
   if (!root) return []
-  return Array.from(root.querySelectorAll('.su-stat-plate--label, .su-stat-column__label')).map(
+  return Array.from(root.querySelectorAll('.su-stat-plate--label')).map(
     (plate) => plate.textContent ?? ''
   )
 }

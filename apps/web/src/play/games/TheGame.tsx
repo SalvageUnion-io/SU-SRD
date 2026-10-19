@@ -19,52 +19,36 @@ import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { capsLabel } from '../../components/atoms/capsLabel'
-import { Button, ConfirmDialog, Field, Select, SlabSection, tokens } from '../../components/index'
+import {
+  Button,
+  ConfirmDialog,
+  Field,
+  Select,
+  SlabSection,
+  Stat,
+  tokens,
+} from '../../components/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { HUB_BODY } from './hubStyles.model'
 
-const { color, font, fontSize, space } = tokens
+const { space } = tokens
 
-const LIST = {
-  margin: 0,
+/** Who mediates and who organises, a line each. */
+const LINES = {
   display: 'flex',
   flexDirection: 'column',
-  gap: space[10],
-} satisfies CSSProperties
-
-const ROW = {
-  display: 'grid',
-  gridTemplateColumns: '7rem minmax(0, 1fr)',
-  alignItems: 'center',
-  gap: space[12],
-} satisfies CSSProperties
-
-const VALUE_ROW = {
-  margin: 0,
-  display: 'flex',
-  flexWrap: 'wrap',
-  alignItems: 'center',
-  justifyContent: 'space-between',
   gap: space[8],
 } satisfies CSSProperties
 
-const TERM = {
-  color: color.ink,
+/** A line: its Stat, then the Organizer's Hand over at the far end. */
+const LINE = {
+  alignItems: 'center',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: space[8],
+  justifyContent: 'space-between',
 } satisfies CSSProperties
-const TERM_CAPS = capsLabel({ size: 'badge' })
-
-const VALUE = {
-  margin: 0,
-  minWidth: 0,
-  overflowWrap: 'anywhere',
-  fontFamily: font.body,
-  fontSize: fontSize.lede,
-  color: color.ink,
-} satisfies CSSProperties
-
-const NONE = { ...VALUE, color: color.wkMuted } satisfies CSSProperties
 
 const ACTIONS = { display: 'flex', flexWrap: 'wrap', gap: space[8] } satisfies CSSProperties
 
@@ -96,37 +80,39 @@ export function TheGame({
 
   return (
     <SlabSection as="h2" bodyStyle={HUB_BODY} id="the-game-heading" title="The Game">
-      <dl style={LIST}>
-        <div style={ROW}>
-          <dt className={TERM_CAPS} style={TERM}>
-            Mediator
-          </dt>
-          <dd style={VALUE_ROW}>
-            <span style={mediators.length === 0 ? NONE : VALUE}>
-              {mediators.length === 0 ? 'Nobody yet' : mediators.map(name).join(', ')}
-            </span>
-            {organizer && (
-              <Button
-                variant="default"
-                size="compact"
-                disabled={!canWrite || candidates.length === 0}
-                onClick={() => {
-                  setChosen(candidates[0]?.userId ?? '')
-                  setHanding(true)
-                }}
-              >
-                {appointing ? 'Appoint' : 'Hand over'}
-              </Button>
-            )}
-          </dd>
+      {/* Each a Stat with a text value (ruleset §3.7, §6.2), Compact as the
+          Hand over beside it (§4.7). */}
+      <div style={LINES}>
+        <div style={LINE}>
+          <Stat
+            label="Mediator"
+            value={mediators.length === 0 ? 'Nobody yet' : mediators.map(name).join(', ')}
+            size="compact"
+            wrap
+          />
+          {organizer && (
+            <Button
+              variant="default"
+              size="compact"
+              disabled={!canWrite || candidates.length === 0}
+              onClick={() => {
+                setChosen(candidates[0]?.userId ?? '')
+                setHanding(true)
+              }}
+            >
+              {appointing ? 'Appoint' : 'Hand over'}
+            </Button>
+          )}
         </div>
-        <div style={ROW}>
-          <dt className={TERM_CAPS} style={TERM}>
-            Organiser
-          </dt>
-          <dd style={VALUE}>{organizers.map(name).join(', ') || '—'}</dd>
+        <div style={LINE}>
+          <Stat
+            label="Organiser"
+            value={organizers.map(name).join(', ') || '—'}
+            size="compact"
+            wrap
+          />
         </div>
-      </dl>
+      </div>
       {organizer && (
         <div style={ACTIONS}>
           <Button variant="primary" size="compact" disabled={!canWrite} onClick={onDelete}>

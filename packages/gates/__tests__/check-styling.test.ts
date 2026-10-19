@@ -1012,6 +1012,31 @@ describe('chrome rule set', () => {
     expect(lines('apps/web/src/components/atoms/Stat.tsx', '<span>SP {sp}</span>')).toEqual([])
   })
 
+  test('raw-dl: a <dl>, <dt> or <dd> outside the Stat atoms is found (R36)', () => {
+    const found = chromeLaws.scan(
+      fixture({
+        ...CHROME_BASE,
+        'apps/web/src/play/games/A.tsx': [
+          'export const A = () => (',
+          '  <dl style={LIST}>',
+          '    <dt>Mediator</dt>',
+          '    <dd>{name}</dd>',
+          '  </dl>',
+          ')',
+          'export const B = () => <details><summary>More</summary></details>',
+          '',
+        ].join('\n'),
+        'apps/web/src/components/atoms/StatColumn.tsx': '<dl><dt>SP</dt><dd>4</dd></dl>\n',
+        'apps/web/src/play/games/__tests__/A.test.tsx': "querySelector('dl')\n<dl />\n",
+      })
+    )
+    expect(found['raw-dl']?.map((f) => `${f.file}:${f.line}`)).toEqual([
+      'apps/web/src/play/games/A.tsx:2',
+      'apps/web/src/play/games/A.tsx:3',
+      'apps/web/src/play/games/A.tsx:4',
+    ])
+  })
+
   test('slab-section and slab-style: a Slab straight in a <section>, or styled, is found (R1)', () => {
     const source = [
       'export const A = () => (',

@@ -16,6 +16,12 @@
  *   anywhere but `SlabSection` (`SLAB_SECTION_HOME`).
  * - `slab-style`: a `style` prop on a `<Slab`: its spacing is its
  *   container's (`SlabSection`'s gap, or `flush` in a spaced column).
+ *
+ * ## Stats render through Stat (hard rule R36, ruleset §3.7, §6.2)
+ *
+ * - `raw-dl`: a JSX `<dl>`, `<dt>` or `<dd>` outside the Stat atoms
+ *   (`STAT_ATOMS`): a labelled value is a `Stat`, a text value too, and the
+ *   stat column is a layout of them.
  */
 
 import { readFileSync } from 'node:fs'
@@ -31,22 +37,37 @@ const isTest = (rel: string) => rel.includes('/__tests__/') || /\.test\.tsx?$/.t
 /** The one home of a Slab-headed section (ruleset §6.4). */
 const SLAB_SECTION_HOME = 'apps/web/src/components/containers/SlabSection.tsx'
 
-export type MarkupFindings = { section: Finding[]; style: Finding[] }
+/** The Stat atoms: the only place a description list's markup may appear (R36). */
+const STAT_ATOMS = [
+  'apps/web/src/components/atoms/Stat.tsx',
+  'apps/web/src/components/atoms/StatColumn.tsx',
+]
+
+/** The description list's elements. */
+const DL_ELEMENTS = new Set(['dl', 'dt', 'dd'])
+
+export type MarkupFindings = { section: Finding[]; style: Finding[]; dl: Finding[] }
 
 /**
- * Each hand-built Slab section and styled Slab in one `.tsx` source:
- * `section`, a `<Slab` whose parent element is a `<section` (outside
- * `SlabSection`); `style`, a `<Slab` given a `style`.
+ * Each hand-built Slab section, styled Slab and description-list element in
+ * one `.tsx` source: `section`, a `<Slab` whose parent element is a
+ * `<section` (outside `SlabSection`); `style`, a `<Slab` given a `style`;
+ * `dl`, a `<dl>`, `<dt>` or `<dd>` outside the Stat atoms.
  */
 export function markupFindings(rel: string, source: string): MarkupFindings {
-  const out: MarkupFindings = { section: [], style: [] }
-  if (!/<Slab\b/.test(source)) return out
+  const out: MarkupFindings = { section: [], style: [], dl: [] }
+  if (!/<(?:Slab|dl|dt|dd)\b/.test(source)) return out
   const file = parseTsx(rel, source)
   const lines = source.split('\n')
   walk(file.program, (node, ancestors) => {
-    if (node.type !== 'JSXElement' || elementName(node) !== 'Slab') return undefined
+    if (node.type !== 'JSXElement') return undefined
+    const name = elementName(node)
     const line = file.lineOf(node.start)
     const text = lines[line - 1]?.trim() ?? ''
+    if (DL_ELEMENTS.has(name) && !STAT_ATOMS.includes(rel)) {
+      out.dl.push({ file: rel, line, detail: `a raw <${name}>: ${text}` })
+    }
+    if (name !== 'Slab') return undefined
     const parent = ancestors.at(-1)
     if (
       rel !== SLAB_SECTION_HOME &&
@@ -76,6 +97,13 @@ function scanMarkup(root: string, which: keyof MarkupFindings): Finding[] {
 
 /** The rules, spread into the `chrome` rule set. */
 export const MARKUP_RULES: (Rule & { scan: (root: string) => Finding[] })[] = [
+  {
+    id: 'raw-dl',
+    mode: 'zero',
+    rule: 'hard rule R36 (ruleset §3.7, §6.2) — every labelled value is a `Stat`, a text value too; no hand-built <dl>, <dt> or <dd>',
+    fix: 'Render `<Stat label="Mediator" value="Crewmate (you)" size="compact" wrap />` (Compact beside Compact controls); a column of them is `StatColumn`. A field to write keeps its label (`Field`, or the line\'s caps label beside an `InlineEditField`).',
+    scan: (root) => scanMarkup(root, 'dl'),
+  },
   {
     id: 'slab-section',
     mode: 'zero',

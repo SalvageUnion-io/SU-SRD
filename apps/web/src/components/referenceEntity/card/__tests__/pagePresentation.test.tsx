@@ -146,9 +146,11 @@ describe('the card as a page', () => {
 
   test('a chassis’s stats lead the body, inline, in the book’s words, in the stat order, less its TL', () => {
     const { container } = render(<ReferenceEntityCard data={gopher()} presentation="page" />)
-    const column = container.querySelector('.su-entity-page__side > .su-entity-page__stats dl')
+    const column = container.querySelector('.su-entity-page__side > .su-entity-page__stats ul')
     expect(column?.getAttribute('aria-label')).toBe('Gopher stats')
-    const labels = [...(column?.querySelectorAll('dt') ?? [])].map((dt) => dt.textContent)
+    const labels = [...(column?.querySelectorAll('.su-stat-plate--label') ?? [])].map(
+      (plate) => plate.textContent
+    )
     expect(labels).toEqual(BOOK_EIGHT.slice(1))
   })
 

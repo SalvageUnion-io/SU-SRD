@@ -1,9 +1,6 @@
 import type { CSSProperties } from 'react'
 import type { StatGroup } from 'salvageunion-reference'
-import { cn } from '../../lib/cn'
-import { capsLabel } from './capsLabel'
-
-const LABEL = cn('su-stat-column__label', capsLabel())
+import { Stat } from './Stat'
 
 /**
  * StatColumn — the Workshop Manual's stat column at page scale (ruleset, "The
@@ -17,8 +14,11 @@ const LABEL = cn('su-stat-column__label', capsLabel())
  * from the entity model's `bookStats`. They fill the rows from the top down,
  * every row full but the last, whose cells centre under the others.
  *
- * A description list, so a screen reader reads "Structure Points, 14", in the
- * order it is drawn: label first, as every chip and stat reads.
+ * A layout of `Stat`s (ruleset §3.7, §6.2: every labelled value is a Stat,
+ * no hand `dl`), each a list item, so a screen reader reads "Structure
+ * Points 14" in the order it is drawn: label first, as every chip and stat
+ * reads. The book's scale (the 14px label, the title-face numeral, R17) is
+ * the column's stylesheet over the Stat's own plates and 1px frame (§7.1).
  */
 
 /** One cell: the book's label, its value, and the stat's glossary line on hover. */
@@ -47,21 +47,20 @@ type StatColumnProps = {
 export function StatColumn({ stats, label, compact = false, cellStyle }: StatColumnProps) {
   if (stats.length === 0) return null
   return (
-    <dl
+    <ul
       className={compact ? 'su-stat-column su-stat-column--compact' : 'su-stat-column'}
       aria-label={label}
     >
       {stats.map((stat, index) => (
-        <div
+        <li
           key={stat.key}
           className="su-stat-column__cell"
           title={stat.hoverText}
           style={cellStyle?.(index)}
         >
-          <dt className={LABEL}>{stat.label}</dt>
-          <dd className="su-stat-column__value">{stat.value}</dd>
-        </div>
+          <Stat label={stat.label} value={stat.value} className="su-stat-column__stat" />
+        </li>
       ))}
-    </dl>
+    </ul>
   )
 }

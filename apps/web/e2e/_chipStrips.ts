@@ -197,7 +197,7 @@ function scan({
 
     // SIZE: a two-plate chip's label and value at one type size.
     for (const el of chips) {
-      const plates = [...el.querySelectorAll('.su-stat-plate, dt, dd')].filter(visible)
+      const plates = [...el.querySelectorAll('.su-stat-plate')].filter(visible)
       if (plates.length < 2) continue
       const sizes = new Set(plates.map((p) => getComputedStyle(p).fontSize))
       if (sizes.size > 1) faults.push(`size: "${describe(el)}" at ${[...sizes].join(' / ')}`)
