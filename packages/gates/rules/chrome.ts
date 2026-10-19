@@ -101,6 +101,7 @@ const FRAMES: Record<string, string> = {
   'apps/web/src/components/referenceEntity/card/EntityCardHeader.tsx': "a card's head band",
   'apps/web/src/components/entity/forms/Token.tsx': "a Token's pill",
   'apps/web/src/build/wizard/WizShell.tsx': "a wizard's ink action pill",
+  'apps/web/src/components/compositions/RollTableInstrument.tsx': "a roll table's ink bar",
   'apps/web/src/components/containers/ModalShell.tsx':
     "a dialog band's control slot (ink when the band prints paper: the danger rust)",
 }

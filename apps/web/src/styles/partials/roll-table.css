@@ -84,8 +84,10 @@
  * panel head, with the rust Button at its end. With nothing of the host's in
  * it (a page's bands) it labels the columns: d20 over the ranges, Result over
  * the text, each label sitting on its column's edge. A split table repeats
- * Result over its second half (below). Before the script runs, the stamp
- * wears paper so it reads on the ink.
+ * Result over its second half (below). The bar is a frame: it declares its
+ * ink ground (`data-ground`, chrome K1), so before the script runs the stamp
+ * wears paper to read on it, and a host's outlined Button there (Play's
+ * Copy) is the on-ink ghost every band shares.
  */
 .su-roll__bar[data-cols] {
   flex-wrap: nowrap;
@@ -93,7 +95,7 @@
   padding: var(--space-6) var(--su-roll-pad-x) var(--space-6) 0;
 }
 
-.su-roll__bar .su-roll__stamp {
+[data-ground='ink'] .su-roll__stamp {
   background-color: var(--color-paper);
   color: var(--color-ink);
 }
@@ -108,18 +110,6 @@
   .su-roll__control {
     min-height: var(--size-full);
   }
-}
-
-/* The toggle on the ink: a paper outline, never a paper slab beside the rust. */
-.su-roll__bar .su-roll__toggle {
-  background-color: transparent;
-  border-color: var(--color-paper-70);
-  color: var(--color-paper);
-}
-
-.su-roll__bar .su-roll__toggle:hover:not(:disabled) {
-  background-color: var(--color-paper-15);
-  border-color: var(--color-paper);
 }
 
 .su-roll__cols {

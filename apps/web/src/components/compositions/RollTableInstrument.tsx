@@ -170,7 +170,12 @@ export function RollTableInstrument({
       style={{ [BAND_VAR]: rollBandColor(tone) } as CSSProperties}
     >
       {labelled ? (
-        <div className="su-roll__bar" data-cols="true" data-split={split ? 'true' : undefined}>
+        <div
+          className="su-roll__bar"
+          data-ground="ink"
+          data-cols="true"
+          data-split={split ? 'true' : undefined}
+        >
           <span className={COLS} aria-hidden="true">
             <span className="su-roll__col-range">d20</span>
             <span className="su-roll__col-text">Result</span>
@@ -185,7 +190,7 @@ export function RollTableInstrument({
           </span>
         </div>
       ) : (
-        <div className="su-roll__bar">
+        <div className="su-roll__bar" data-ground="ink">
           {title && <span className={TITLE}>{title}</span>}
           {hint && <span className="su-roll__hint">{hint}</span>}
           {actions}

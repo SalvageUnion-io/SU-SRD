@@ -122,7 +122,7 @@ export function PlayRollTable({
           <>
             <Button
               size="compact"
-              className="su-roll__toggle su-roll__control"
+              className="su-roll__control"
               onClick={() => copy(landed.text)}
               aria-label="Copy result to clipboard"
             >
