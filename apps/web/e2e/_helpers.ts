@@ -554,12 +554,8 @@ export type DesignRoute = {
    */
   path: string
   widths: readonly DesignWidth[]
-  /**
-   * The Live Sheet's Edit: `true` presses its Read | Edit once it is up;
-   * `in-place` is a sheet with no Read | Edit that edits where it reads (the
-   * NPC's, until R11 gives it the shared shell), scanned as it opens.
-   */
-  edit?: true | 'in-place'
+  /** The Live Sheet's Edit: press its Read | Edit once it is up (every kind has one, R11). */
+  edit?: true
   /** Open this Peek from the Union bar's search, and scan with it open. */
   peek?: { schema: string; name: string }
 }
@@ -599,7 +595,7 @@ export const designRoutes: readonly DesignRoute[] = [
   { family: 'sheet-crawler-read', path: ':crawler', widths: BOTH },
   { family: 'sheet-crawler-edit', path: ':crawler', widths: BOTH, edit: true },
   { family: 'sheet-npc-read', path: ':npc', widths: BOTH },
-  { family: 'sheet-npc-edit', path: ':npc', widths: BOTH, edit: 'in-place' },
+  { family: 'sheet-npc-edit', path: ':npc', widths: BOTH, edit: true },
   // The wizards: the Guided or Blank chooser, then the guided wizard's first step.
   { family: 'wizard-pilot', path: at('/pilots/new'), widths: BOTH },
   { family: 'wizard-pilot', path: at('/pilots/new?mode=guided'), widths: BOTH },
