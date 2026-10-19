@@ -107,6 +107,10 @@ function SheetShareSettings({
     SHARE_FAILURE
   )
   const { pending: busy, error } = share
+  // The answer the reader just pressed: the radio shows it while its write is
+  // in flight, so a press is never a radio that does not move. The link below
+  // still waits for the server's answer.
+  const [asked, setAsked] = useState<Visibility | null>(null)
 
   const inGame = typeof gameId === 'string'
   const gameName = games?.find((g) => g._id === gameId)?.name ?? null
@@ -119,8 +123,11 @@ function SheetShareSettings({
       <WhoCanSee
         name={`share-${kind}-${appId}`}
         choices={sheetChoices({ inGame, gameName })}
-        value={value}
-        onChange={(next) => void share.run(next)}
+        value={busy && asked !== null ? asked : value}
+        onChange={(next) => {
+          setAsked(next)
+          void share.run(next)
+        }}
         disabled={busy}
       />
       {value === 'link' && (
