@@ -1039,6 +1039,7 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 .su-entity-token[data-contentful] {
   flex-direction: column;
   gap: 0;
+  position: relative;
 }
 
 /* Down the column the head keeps its pill's height: a cell taller than the
@@ -1169,6 +1170,47 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   flex-wrap: wrap;
   justify-content: flex-end;
   max-width: calc(100% - min(9rem, 40%));
+}
+
+/* Past two lines its second ends in +MORE (C5, `chipFit.ts`): the chips that
+   fit two lines with it are drawn, the rest are over (`data-chip-over`, its
+   Peek shows them), and +MORE, a button beside the head's link and never in
+   it, lies on its slot, the room the strip's last lane keeps for it. Both
+   stay hidden until the script fits them: on a page with none every chip
+   wraps. */
+.su-entity-token[data-contentful] .su-entity-token__chips .su-chip-lane > [data-chip-over] {
+  display: none;
+}
+
+.su-chip-more-slot {
+  display: inline-block;
+  flex: none;
+}
+
+/* Its own width wherever it lies: at the strip's right edge an absolute box
+   would otherwise shrink to the room left of the Token's edge. */
+.su-entity-token[data-contentful] > .su-entity-token__more {
+  display: flex;
+  left: var(--su-more-x, 0);
+  position: absolute;
+  top: var(--su-more-y, 0);
+  white-space: nowrap;
+  width: max-content;
+  z-index: 1;
+}
+
+.su-entity-token[data-contentful] > .su-entity-token__more[hidden],
+.su-entity-token[data-contentful] .su-chip-more-slot[hidden] {
+  display: none;
+}
+
+/* An action chip (C8), the outlined Mini button, at its strip's chip height
+   (C1a): a label-only chip's frame, padding and line. */
+.su-chip-more {
+  border-width: var(--bw-hairline);
+  line-height: 1;
+  min-height: 0;
+  padding: var(--space-2) var(--space-4);
 }
 
 /* A Token as a listbox option (the SRD header search): the highlighted option

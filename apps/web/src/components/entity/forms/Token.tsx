@@ -1,8 +1,10 @@
 import type { CSSProperties, ReactNode } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import type { ChipContext, EntityInstance } from 'salvageunion-reference'
 import { tokenChips } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
 import { Badge } from '../../atoms/Badge'
+import { Button } from '../../atoms/Button'
 import { Stat } from '../../atoms/Stat'
 import { Content } from '../../referenceEntity/Content'
 import type { CardOuterProps } from '../../referenceEntity/card/CardOuter'
@@ -12,10 +14,12 @@ import { downOf, USER_MADE_TITLE } from '../../referenceEntity/card/cardChrome'
 import { LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
 import { Chips } from '../parts/Chips'
+import { watchMore } from '../parts/chipFit'
 import { chipCount } from '../parts/chipSet'
 import { KindLabel } from '../parts/KindLabel'
 import { paintFor } from '../parts/paint'
 import { tokenChipSet } from '../parts/tokenChipSet'
+import type { PeekAttrs } from '../peekContext'
 import { useInsidePeek, usePeekAttrs } from '../peekContext'
 import type { EntityMode, EntityOmit, EntityRowModel } from '../types'
 
@@ -72,6 +76,30 @@ function TokenText({ model, chassisName }: { model: EntityRowModel; chassisName?
   return model.lead ? <p className="su-entity-token__lead">{model.lead}</p> : null
 }
 
+/**
+ * A contentful Token's +MORE (C5): drawn once its chips would take more than
+ * two lines (`chipFit.ts`), at the end of the second; until then, and on a
+ * page with no script, it is hidden and every chip wraps. It is a Peek
+ * trigger of the Token's own address, a button beside the head's link, never
+ * inside it: hover, focus, a long press or a press opens the Token's Peek.
+ */
+function MoreChip({ title, peek }: { title: string; peek: PeekAttrs }) {
+  return (
+    <span className="su-entity-token__more" hidden>
+      <Button
+        size="mini"
+        className="su-chip-more"
+        aria-label={`More, opens ${title}`}
+        {...peek}
+        // A press opens it too (`PEEK_PRESS_ATTRIBUTE`): it has nowhere else to go.
+        data-peek-press=""
+      >
+        +MORE
+      </Button>
+    </span>
+  )
+}
+
 /*
  * The pill, its note stamp and its name are `.su-entity-token__*` classes
  * (`styles/index.css`), not style objects: a page lists tokens by the dozen,
@@ -120,6 +148,12 @@ export function Token({
   /** N3: the text and the host's content under the head; without it the Token is its head alone. */
   body?: TokenBody
 }) {
+  const contentfulRef = useRef<HTMLDivElement>(null)
+  // Every commit: the chips may have changed (C5's fit starts from them all).
+  useLayoutEffect(() => {
+    const token = contentfulRef.current
+    return token ? watchMore(token) : undefined
+  })
   const insidePeek = useInsidePeek()
   // A contentful Token in a Peek reads (E16): its head opens nothing.
   const headMode = body && insidePeek ? READ : mode
@@ -150,6 +184,10 @@ export function Token({
   ]
   const acts = slots.uses !== undefined || slots.menu !== undefined
   const hasChips = chipCount(set) > 0 || !!quantity || !!slots.state || acts
+  // C5: a contentful Token's chips past two lines end in +MORE, which opens
+  // its Peek; with no Peek (inside one, E16) every chip wraps. Its slot is the
+  // menu lane, so a Token that carries its own menu keeps every chip.
+  const more = !!body && hasChips && !!peek['data-peek'] && slots.menu === undefined
   const pill = (
     <span
       // The pill is the frame: on an ink pill (a thing you do) its cells,
@@ -199,7 +237,10 @@ export function Token({
           size="mini"
           state={state}
           uses={slots.uses}
-          menu={slots.menu}
+          menu={
+            slots.menu ??
+            (more ? <span className="su-chip-more-slot" aria-hidden="true" hidden /> : undefined)
+          }
           lanes
         />
       )}
@@ -232,8 +273,9 @@ export function Token({
   )
   if (!body) return head
   return (
-    <div className="su-entity-token" data-contentful="">
+    <div ref={contentfulRef} className="su-entity-token" data-contentful="">
       {head}
+      {more && <MoreChip title={title} peek={peek} />}
       {/* Bordered in the pill's own tone, so the Token contains its content. */}
       <div
         data-user-made={userMade || undefined}

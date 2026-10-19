@@ -18,6 +18,12 @@ export function useInsidePeek(): boolean {
  */
 export const PEEK_ATTRIBUTE = 'data-peek'
 
+/**
+ * Set on a trigger that is a button with nothing else to do (a contentful
+ * Token's +MORE): a press opens its Peek at once, as focus does.
+ */
+export const PEEK_PRESS_ATTRIBUTE = 'data-peek-press'
+
 /** Set on a trigger whose entity is damaged (`damaged`) or destroyed
  * (`destroyed`): its Peek is down the same way. */
 export const PEEK_DOWN_ATTRIBUTE = 'data-peek-down'

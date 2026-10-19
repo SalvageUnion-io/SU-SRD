@@ -95,7 +95,10 @@ describe('actions nest', () => {
     ]
     expect(heads).toHaveLength(2)
     for (const chips of heads) {
-      const last = [...chips.children].filter((lane) => lane.childElementCount > 0).at(-1)
+      // A lane with a chip in it; +MORE's slot (C5) holds none until it is drawn.
+      const last = [...chips.children]
+        .filter((lane) => lane.querySelector(':scope > :not(.su-chip-more-slot)'))
+        .at(-1)
       const cost = last?.querySelector('.su-cost') ?? last
       expect(cost?.textContent).toContain('1 EP')
     }

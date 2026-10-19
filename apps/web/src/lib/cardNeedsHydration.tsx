@@ -11,9 +11,14 @@ import { EntityCardStatic } from '../components/EntityCardStatic'
  * `<button>` with no handler is a defect under the ruleset's "rust means
  * action" rule, not a cosmetic wart. A roll table's Roll renders as its stamp
  * until the script runs (`RollControl`), marked `data-roll-pending`.
+ *
+ * A contentful Token's +MORE is a `<button>` that needs no React of the
+ * card's: it is a Peek trigger (`data-peek-press`), fitted by the page's one
+ * client entry (`chipFit.ts`) and opened by the page's Peek host, as every
+ * `data-peek` trigger on a static page is.
  */
 const NEEDS_A_LISTENER =
-  /<button\b|<input\b|<select\b|<textarea\b|role="button"|aria-expanded=|aria-haspopup=|data-roll-pending/
+  /<button\b(?![^>]*\bdata-peek-press=)|<input\b|<select\b|<textarea\b|role="button"|aria-expanded=|aria-haspopup=|data-roll-pending/
 
 /**
  * Does this entity's card contain anything that needs JS to work?

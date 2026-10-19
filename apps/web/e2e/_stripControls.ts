@@ -16,7 +16,8 @@ import type { Page } from '@playwright/test'
  *
  * An entity's own surface is not one of its controls: the link or radio the
  * Row or Token is (or its cover, or a Token with controls' name), a link that wraps its head, and a select
- * Row's check. A nested entity's
+ * Row's check. A contentful Token's +MORE (C5) lies on its strip's last slot
+ * from beside the head's link, so it is in its chip group. A nested entity's
  * controls are that entity's, held to its own chip group.
  */
 export type StripControlSelectors = {
@@ -34,6 +35,11 @@ export type StripControlSelectors = {
   group: string
   /** A select Row's check, the mode's own control (N7). */
   check: string
+  /**
+   * A contentful Token's +MORE (C5): a button beside its head's link that
+   * lies on the end of its strip's second line, its chip group's last slot.
+   */
+  more: string
 }
 
 export const STRIP_CONTROL_SELECTORS: StripControlSelectors = {
@@ -56,6 +62,7 @@ export const STRIP_CONTROL_SELECTORS: StripControlSelectors = {
   head: '.su-entity-row__head, .su-entity-token__pill, .su-entity-tile__band',
   group: '[data-chip-group]',
   check: '.su-entity-row__head input[type="checkbox"]',
+  more: '.su-entity-token[data-contentful] > .su-entity-token__more > .su-chip-more',
 }
 
 /**
@@ -93,6 +100,7 @@ export function scanStripControls(a: StripControlSelectors): string[] {
         control.matches(a.entity) ||
         control.matches(a.surface) ||
         control.matches(a.check) ||
+        control.matches(a.more) ||
         control.querySelector(a.head) !== null
       ) {
         continue

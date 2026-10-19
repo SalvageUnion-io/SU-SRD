@@ -1,6 +1,7 @@
 import type { RefObject } from 'react'
 import { useEffect } from 'react'
 import { widthAtLeast } from '../../../design/tokens'
+import { chipLines } from './chipFit'
 
 /** A phone (`entity-forms.css`): under it the name keeps one line and the chips drop sooner. */
 const PHONE = `not ${widthAtLeast('sm')}`
@@ -12,9 +13,6 @@ const PHONE = `not ${widthAtLeast('sm')}`
  * name: they drop under it instead.
  */
 export const MAX_CHIP_LINES = 2
-
-/** The chips' 2px side margins: the 4px gap between two on a line (`.su-chips`). */
-const CHIP_GAP = 4
 
 /** The width an element takes on one line, unwrapped (its max-content). */
 function oneLineWidth(el: HTMLElement): number {
@@ -63,24 +61,6 @@ function laidOutLines(chips: HTMLElement): number {
     if (!tops.some((top) => Math.abs(top - r.top) < r.height / 2)) tops.push(r.top)
   }
   return tops.length
-}
-
-/**
- * How many lines `widths` take packed into `room`, each chip whole, or
- * `Infinity` when one chip is wider than the room. Balancing evens the lines
- * out; it never adds one.
- */
-export function chipLines(widths: readonly number[], room: number): number {
-  let lines = 0
-  let used = 0
-  for (const width of widths) {
-    if (width > room + 0.5) return Number.POSITIVE_INFINITY
-    if (lines === 0 || used + CHIP_GAP + width > room + 0.5) {
-      lines += 1
-      used = width
-    } else used += CHIP_GAP + width
-  }
-  return lines
 }
 
 /**

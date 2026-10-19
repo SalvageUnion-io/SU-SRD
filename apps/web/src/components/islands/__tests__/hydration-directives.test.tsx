@@ -117,6 +117,18 @@ describe('hydration directives', () => {
       expect(inert.islands).toEqual([])
     })
 
+    it("a contentful Token's +MORE needs no listener of the card's (a Peek trigger)", () => {
+      // The Hacker's Meld Form ends in +MORE: still a document, its Peek the page's.
+      const hacker = getModel('classes')
+        ?.all()
+        .find((item) => item.name === 'Hacker')
+      if (!hacker) throw new Error('Hacker fixture missing')
+      expect(renderToStaticMarkup(<EntityView item={hacker} schemaId="classes" />)).toContain(
+        'data-peek-press'
+      )
+      expect(cardNeedsHydration(hacker)).toBe(false)
+    })
+
     it('importing EntityView preloads the ORM', () => {
       // The eager `preload('all')` lives at module scope in `src/lib/gameData`,
       // and it is what makes the `cardNeedsHydration` probe and

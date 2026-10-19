@@ -28,8 +28,11 @@ const READ_CHIP_CLASSES = CHIP_CLASSES.slice(0, CHIP_CLASSES.indexOf('cost') + 1
  *   hides its overflow. A chip past its Row's edge, or cut by a Token's pill,
  *   fails; only the name may give way.
  * - **lines** a header-only Token's chips on more than one line, a Row's
- *   on more than two (C5). A contentful Token's head (N3) holds a compact
- *   budget and wraps it beside the name, unlimited for now.
+ *   or a contentful Token's (N3) on more than two (C5): past two a
+ *   contentful Token draws the chips that fit and ends its second line in
+ *   +MORE, which opens its Peek.
+ * - **more** a +MORE chip anywhere but a contentful Token's strip, or one
+ *   that is not its strip's last chip, at the end of its lowest line (C5).
  */
 const STRIP = [
   '.su-entity-stamps',
@@ -55,6 +58,10 @@ const CHIP = [
   '[data-chip-class="uses"] > *',
 ].join(',')
 
+/** A contentful Token (N3) and its +MORE (C5): a button beside its head's link, on its strip. */
+const CONTENTFUL = '.su-entity-token[data-contentful]'
+const MORE = '.su-chip-more'
+
 /** An entity's frame: the box no chip of its strips may leave. */
 const FRAME = [
   '.su-entity-row__frame',
@@ -70,12 +77,16 @@ function scan({
   classes,
   read,
   frame,
+  contentful,
+  more,
 }: {
   strip: string
   chip: string
   classes: readonly string[]
   read: readonly string[]
   frame: string
+  contentful: string
+  more: string
 }): string[] {
   type Box = { el: Element; x: number; y: number; w: number; h: number }
   type Rect = { left: number; top: number; right: number; bottom: number }
@@ -128,6 +139,12 @@ function scan({
       faults.push(`foot: "${describe(inside[0] as Element)}" is a chip in a foot band`)
     }
   }
+  // MORE: only a contentful Token's strip ends in +MORE.
+  for (const el of document.querySelectorAll(more)) {
+    if (visible(el) && !el.closest(contentful)) {
+      faults.push(`more: "${describe(el)}" is a +MORE outside a contentful Token`)
+    }
+  }
   const roots = [...document.querySelectorAll(strip)].filter(
     // A strip inside another is the outer one's (a band's Tag in its cluster).
     (root) => !root.parentElement?.closest(strip)
@@ -136,17 +153,27 @@ function scan({
     const inside = [...root.querySelectorAll(chip)].filter(visible)
     const set = new Set(inside)
     const chips = inside.filter((el) => {
+      // +MORE's slot is the room it lies on, not a chip (C5).
+      if (el.matches('.su-chip-more-slot')) return false
       for (let p = el.parentElement; p && p !== root; p = p.parentElement) {
         if (set.has(p)) return false
       }
       return true
     })
+    // A contentful Token's +MORE lies on its strip from beside its head:
+    // the strip's last chip, in its menu slot.
+    const token = root.closest(`${contentful} > .su-entity-token__head`)?.parentElement
+    const moreChip = [...(token?.querySelectorAll(more) ?? [])].find(
+      (el) => visible(el) && !root.contains(el)
+    )
+    if (moreChip) chips.push(moreChip)
     if (chips.length === 0) continue
     const where = `${describe(chips[0] as Element)}…`
 
     // UNCLASSED and ORDER: each chip in its class's lane, the lanes in the
     // class order, in the source (what a screen reader reads).
     const classOf = (el: Element) => {
+      if (el === moreChip) return 'menu'
       const lane = el.closest('[data-chip-class]')
       return lane && root.contains(lane) ? (lane.getAttribute('data-chip-class') ?? '') : ''
     }
@@ -177,7 +204,7 @@ function scan({
     }
 
     const classOfEl = (el: Element) =>
-      el.closest('[data-chip-class]')?.getAttribute('data-chip-class')
+      el === moreChip ? 'menu' : el.closest('[data-chip-class]')?.getAttribute('data-chip-class')
 
     // LINES: chips whose boxes overlap vertically by half the shorter one.
     const boxes: Box[] = chips.map((el) => {
@@ -239,17 +266,27 @@ function scan({
       }
     }
 
-    // LINES: a Token's chips on one line, a Row's on at most two (C5). A
-    // contentful Token's head holds a compact budget and wraps it (N3).
-    const most = root.closest('.su-entity-token[data-contentful]')
-      ? Number.POSITIVE_INFINITY
+    // LINES: a Token's chips on one line, a Row's and a contentful Token's
+    // on at most two (C5): past two, a contentful Token ends in +MORE.
+    const most = token
+      ? 2
       : root.closest('.su-entity-token__pill')
         ? 1
         : root.closest('.su-entity-row__head')
           ? 2
           : Number.POSITIVE_INFINITY
-    if (lines.length > most)
-      faults.push(`lines: ${where} on ${lines.length} lines, at most ${most}`)
+    if (lines.length > most) {
+      const hint = moreChip ? '' : ', with no +MORE'
+      faults.push(`lines: ${where} on ${lines.length} lines, at most ${most}${hint}`)
+    }
+
+    // MORE: +MORE is the strip's last chip, at the end of its lowest line.
+    if (moreChip) {
+      const lowest = lines[lines.length - 1] as Box[]
+      if ((lowest[lowest.length - 1] as Box).el !== moreChip) {
+        faults.push(`more: ${where} "${describe(moreChip)}" is not at the end of its last line`)
+      }
+    }
 
     // COST: the last read chip in the source (C2: the slots, a state, uses,
     // the menu, may follow it, C8); last of all, on the lowest line,
@@ -278,5 +315,7 @@ export async function findChipStripFaults(page: Page): Promise<string[]> {
     classes: CHIP_CLASSES,
     read: READ_CHIP_CLASSES,
     frame: FRAME,
+    contentful: CONTENTFUL,
+    more: MORE,
   })
 }

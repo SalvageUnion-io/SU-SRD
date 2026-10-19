@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
 import { useRef } from 'react'
-import { chipLines, MAX_CHIP_LINES, useChipsFit } from '../parts/useChipsFit'
+import { MAX_CHIP_LINES, useChipsFit } from '../parts/useChipsFit'
 
 const realMatchMedia = window.matchMedia
 
@@ -127,18 +127,6 @@ function ChipHeading({
     </div>
   )
 }
-
-describe('chipLines', () => {
-  test('packs whole chips onto lines with the 4px gap', () => {
-    expect(chipLines([40, 40, 40], 128)).toBe(1)
-    expect(chipLines([40, 40, 40], 127)).toBe(2)
-    expect(chipLines([40, 40, 40], 40)).toBe(3)
-  })
-
-  test('a chip wider than the room never fits', () => {
-    expect(chipLines([40, 90], 80)).toBe(Number.POSITIVE_INFINITY)
-  })
-})
 
 describe('useChipsFit, chips that wrap', () => {
   test('on a phone, chips that wrap onto a few lines beside the name stay beside it', () => {

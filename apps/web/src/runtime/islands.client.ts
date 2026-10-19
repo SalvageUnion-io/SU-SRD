@@ -19,6 +19,7 @@
  * it (`interaction.ts`), so a page nobody touches loads no React.
  */
 
+import { watchStaticMore } from '../components/entity/parts/chipFit'
 import { joinStaticLanes } from '../components/entity/parts/chipLanes'
 import { readAccountHint } from '../lib/accountHint'
 import { browserStorage, markSignedIn } from '../lib/accountState'
@@ -48,6 +49,8 @@ markSignedIn(document, signedIn)
 // A list's chip lanes (C6): the server-rendered lines' strips join their lists
 // here; an island's join from `Chips` when it mounts.
 joinStaticLanes()
+// A contentful Token's chips past two lines end in +MORE (C5); an island's fit from `Token`.
+watchStaticMore()
 
 type PropsById = Record<string, Record<string, unknown>>
 

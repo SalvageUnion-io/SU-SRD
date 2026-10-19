@@ -214,8 +214,10 @@ describe('the contentful Token (N3)', () => {
       <Entity form="token" context="loadout" entity={shield()} body={{}} />
     )
     const token = container.querySelector('.su-entity-token[data-contentful]')
-    const [head, body] = Array.from(token?.children ?? [])
+    // Between them, beside the head, its +MORE (C5), hidden until it is fitted.
+    const [head, more, body] = Array.from(token?.children ?? [])
     expect(head?.className).toContain('su-entity-token__head')
+    expect(more?.className).toBe('su-entity-token__more')
     expect(head?.firstElementChild?.className).toBe('su-entity-token__pill')
     expect(body?.className).toBe('su-entity-token__body')
     // Every paragraph of the action's rules, not only its opening one.
@@ -243,9 +245,9 @@ describe('the contentful Token (N3)', () => {
     const { container } = render(<Entity form="token" context="play" entity={shield()} body={{}} />)
     const chips = container.querySelector('.su-entity-token__head .su-entity-token__chips')
     expect(
-      Array.from(chips?.querySelectorAll(':scope > .su-chip-lane > *') ?? []).map((chip) =>
-        (chip.textContent ?? '').replace(/\s+/g, ' ').trim()
-      )
+      Array.from(
+        chips?.querySelectorAll(':scope > .su-chip-lane > :not(.su-chip-more-slot)') ?? []
+      ).map((chip) => (chip.textContent ?? '').replace(/\s+/g, ' ').trim())
     ).toEqual(['Reaction', 'RNGC', 'Shield', '2 EP'])
     // Header-only keeps its budget: the range and traits are the Row's.
     expect(chipsOf('actions', 'Electro-Magnetic Shield Projector', 'play')).toEqual([
@@ -337,5 +339,63 @@ describe('the contentful Token (N3)', () => {
     expect(container.querySelector('a')).toBeNull()
     expect(container.querySelector('[data-peek]')).toBeNull()
     expect(container.querySelector('.su-entity-token__body')).not.toBeNull()
+  })
+})
+
+describe("a contentful Token's +MORE (C5)", () => {
+  const meld = () => get('abilities', 'Meld Form')
+
+  test('is drawn hidden, beside the head and never in its link, and Peeks what the head Peeks', () => {
+    const { container } = render(
+      <Entity
+        form="token"
+        context="play"
+        entity={meld()}
+        mode={{ kind: 'link', href: '/abilities/meld-form/' }}
+        body={{}}
+      />
+    )
+    const head = container.querySelector('a.su-entity-token__head')
+    const more = container.querySelector<HTMLElement>('.su-entity-token__more')
+    // Until the page's script fits it, and with none, every chip wraps.
+    expect(more?.hidden).toBe(true)
+    expect(more?.parentElement?.matches('.su-entity-token[data-contentful]')).toBe(true)
+    expect(head?.querySelector('button')).toBeNull()
+    const button = more?.querySelector('button')
+    expect(button?.textContent).toBe('+MORE')
+    expect(button?.getAttribute('aria-label')).toBe('More, opens Meld Form')
+    expect(button?.getAttribute('data-peek')).toBe(head?.getAttribute('data-peek') ?? '')
+    expect(button?.hasAttribute('data-peek-press')).toBe(true)
+    // Its room at the strip's end, in the last lane, hidden with it.
+    const slot = container.querySelector<HTMLElement>(
+      '.su-entity-token__chips > [data-chip-class="menu"] > .su-chip-more-slot'
+    )
+    expect(slot?.hidden).toBe(true)
+    expect(slot?.getAttribute('aria-hidden')).toBe('true')
+  })
+
+  test('a header-only Token has none, nor a contentful one inside a Peek (E16)', () => {
+    const headOnly = render(<Entity form="token" context="play" entity={meld()} />)
+    expect(headOnly.container.querySelector('.su-entity-token__more')).toBeNull()
+    const inPeek = render(
+      <InsidePeekContext.Provider value={true}>
+        <Entity form="token" context="play" entity={meld()} body={{}} />
+      </InsidePeekContext.Provider>
+    )
+    expect(inPeek.container.querySelector('.su-entity-token__more')).toBeNull()
+    expect(inPeek.container.querySelector('.su-chip-more-slot')).toBeNull()
+  })
+
+  test('a chip past the two lines is not drawn, and hidden parts take no room', () => {
+    expect(
+      ruleOf(
+        '.su-entity-token[data-contentful] .su-entity-token__chips .su-chip-lane > [data-chip-over]'
+      )
+    ).toContain('display: none;')
+    expect(
+      ruleOf(
+        '.su-entity-token[data-contentful] > .su-entity-token__more[hidden],\n.su-entity-token[data-contentful] .su-chip-more-slot[hidden]'
+      )
+    ).toContain('display: none;')
   })
 })

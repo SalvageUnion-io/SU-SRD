@@ -116,6 +116,26 @@ describe('PeekHost', () => {
     expect(token.getAttribute('aria-describedby')).toBe(peek.id)
   })
 
+  test("a contentful Token's +MORE opens the Token's Peek on a press (C5)", async () => {
+    const meld = SalvageUnionReference.getByNameIn('abilities', 'Meld Form')
+    if (!meld) throw new Error('Meld Form fixture missing')
+    render(
+      <EntitySurfaceProvider value={{ hrefFor }}>
+        <Entity form="token" context="play" entity={meld} mode={{ kind: 'link' }} body={{}} />
+        <PeekHost />
+      </EntitySurfaceProvider>
+    )
+    const more = screen.getByRole('button', { name: 'More, opens Meld Form', hidden: true })
+    expect(more.getAttribute('data-peek')).toBe(`abilities:${meld.id}`)
+    act(() => {
+      fireEvent.pointerDown(more, { pointerType: 'mouse' })
+      fireEvent.click(more)
+    })
+    const peek = await screen.findByRole('tooltip')
+    await waitFor(() => expect(peek.textContent).toContain('Meld Form'))
+    expect(more.getAttribute('aria-describedby')).toBe(peek.id)
+  })
+
   test("an embedded record Peeks through its host: a bay's crew NPC", async () => {
     const bay = SalvageUnionReference.getByNameIn('crawler-bays', 'Cantina')
     if (!bay?.npc) throw new Error('Cantina fixture missing')
