@@ -6,7 +6,6 @@
 
 import type { ReferenceEntityControl } from '../../components/index'
 import { toast } from '../../components/index'
-import { appPath } from '../../lib/appBase'
 import { runWrite } from '../../lib/runWrite'
 import { useEntityStore } from '../../stores/entityStore'
 
@@ -30,7 +29,7 @@ export function assignedCrewControls(
 ): ReferenceEntityControl[] {
   const open: ReferenceEntityControl = {
     key: 'open',
-    href: appPath(`/sheet/npc/${npc.id}`),
+    href: `/sheet/npc/${npc.id}`,
     label: 'Open',
     ariaLabel: `Open ${npc.name}`,
   }

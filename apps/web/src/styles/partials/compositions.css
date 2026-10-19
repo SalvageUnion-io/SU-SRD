@@ -37,24 +37,6 @@
 
 /* ── shell and flat leaves ── */
 
-/* ControlButtons (`compositions/ControlButtons.tsx`). The link control flips
-   fill and ink on hover, so both colours are here, resting value included;
-   its geometry is the component's style object. */
-.su-control-link {
-  background-color: var(--color-paper);
-  color: var(--color-ink);
-}
-
-.su-control-link:hover {
-  background-color: var(--color-ink);
-  color: var(--color-paper);
-}
-
-/* A live worded control brightens on hover. */
-.su-control-button--live:hover {
-  filter: brightness(110%);
-}
-
 /* A folded card's chevron (`ReferenceEntityCard` `collapsible`): the card's ONE
    fold control, so it takes the WCAG 2.2 minimum target (24px) a stamp's 24×20
    misses. A coarse pointer lifts it to 44px through the shared touch floor. */

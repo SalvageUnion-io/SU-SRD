@@ -31,7 +31,7 @@ export type ReferenceEntityControl = {
     /** Entity name for the accessible label ("<subject> status: <Label>"). */
     subject?: string
   }
-  /** Renders a navigation link (styled anchor); uses `label` as its text. */
+  /** Renders a navigation link (`Button href`, Mini); uses `label` as its text. */
   href?: string
   // --- Action button (used when no item variant above is set) --------------
   label?: string
@@ -52,8 +52,6 @@ export type ReferenceEntityControl = {
   icon?: (props: { className?: string; size?: number }) => ReactNode
   variant?: ReferenceEntityControlVariant
   disabled?: boolean
-  /** Secondary segment text (renders in inverse style, like the value part of ValueDisplay) */
-  segmentText?: string
   className?: string
   /** When true, the button is not rendered but still participates in header click behavior */
   hidden?: boolean

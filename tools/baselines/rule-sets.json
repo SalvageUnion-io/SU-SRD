@@ -1,4 +1,7 @@
 {
+  "chrome": {
+    "raw-button": 14
+  },
   "copy": {
     "lowercase-term": 201,
     "banned-variant": 2

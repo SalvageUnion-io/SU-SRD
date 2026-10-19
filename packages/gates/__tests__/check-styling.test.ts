@@ -937,6 +937,29 @@ describe('chrome rule set', () => {
     ])
   })
 
+  test('raw-button: a JSX <button> is found outside the atoms, never Button or prose (R16)', () => {
+    const found = chromeLaws.scan(
+      fixture({
+        ...CHROME_BASE,
+        'apps/web/src/play/A.tsx': [
+          '<button type="button" onClick={go}>Go</button>',
+          '<button',
+          '  type="button"',
+          '/>',
+          '<Button onClick={go}>Go</Button>',
+          '// a raw <button> in prose',
+          '',
+        ].join('\n'),
+        'apps/web/src/components/atoms/Toggle.tsx': '<button type="button" />\n',
+        'apps/web/src/play/__tests__/A.test.tsx': '<button />\n',
+      })
+    )
+    expect(found['raw-button']?.map((f) => `${f.file}:${f.line}`)).toEqual([
+      'apps/web/src/play/A.tsx:1',
+      'apps/web/src/play/A.tsx:2',
+    ])
+  })
+
   test('stat-text: JSX text of a stat label before an expression is found, outside Stat (R36)', () => {
     const lines = (rel: string, text: string) => statTextFindings(rel, text).map((f) => f.line)
     expect(

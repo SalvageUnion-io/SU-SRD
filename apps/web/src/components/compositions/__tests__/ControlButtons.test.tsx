@@ -1,6 +1,7 @@
 import { describe, expect, mock, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
-import { color } from '../../../design/tokens'
+import { buttonVariants } from '../../atoms/buttonVariants'
+import { DISABLED } from '../../atoms/interaction'
 import type { ReferenceEntityControl } from '../../referenceEntity/referenceEntityControlTypes'
 import { ControlButtons } from '../ControlButtons'
 
@@ -14,6 +15,12 @@ function makeControl(overrides: Partial<ReferenceEntityControl> = {}): Reference
   }
 }
 
+/** The class Button's recipe emits for one variant. */
+const variantClass = (variant: 'default' | 'primary' | 'ink') =>
+  buttonVariants({ variant })
+    .split(' ')
+    .find((c) => c.startsWith('su-btn--')) as string
+
 describe('ControlButtons', () => {
   test('renders a button for each control', () => {
     const controls = [
@@ -25,44 +32,36 @@ describe('ControlButtons', () => {
     expect(screen.getByLabelText('Action B')).toBeTruthy()
   })
 
-  test('defaults to primary variant (black bg)', () => {
+  test('a worded control is the Mini Button, ink by default', () => {
     render(<ControlButtons controls={[makeControl()]} />)
-    const segment = screen.getByText('Test')
-    expect(segment.style.backgroundColor).toBe(color.ink)
-    expect(segment.style.color).toBe(color.paper)
+    const button = screen.getByRole('button', { name: 'Test action' })
+    expect(button.className).toContain('su-btn--mini')
+    expect(button.className).toContain(variantClass('ink'))
+    expect(button.textContent).toBe('Test')
   })
 
-  test('a danger segment fills ink, never a state colour (R9)', () => {
+  test('a danger worded control fills ink, never a state colour (R9)', () => {
     render(<ControlButtons controls={[makeControl({ variant: 'danger' })]} />)
-    expect(screen.getByText('Test').style.backgroundColor).toBe(color.ink)
+    expect(screen.getByRole('button').className).toContain(variantClass('ink'))
   })
 
-  test('applies ghost variant colours', () => {
+  test('a ghost worded control is the paper button', () => {
     render(<ControlButtons controls={[makeControl({ variant: 'ghost' })]} />)
-    expect(screen.getByText('Test').style.backgroundColor).toBe(color.paper)
+    expect(screen.getByRole('button').className).toContain(variantClass('default'))
   })
 
-  test('a live worded control brightens on hover; a disabled one does not', () => {
-    const { unmount } = render(<ControlButtons controls={[makeControl()]} />)
-    expect(screen.getByRole('button').classList.contains('su-control-button--live')).toBe(true)
-    unmount()
-    render(<ControlButtons controls={[makeControl({ disabled: true })]} />)
-    expect(screen.getByRole('button').classList.contains('su-control-button--live')).toBe(false)
-  })
-
-  test('a link control flips its colours on hover through its class', () => {
+  test('a link control is a Mini Button href', () => {
     render(
       <ControlButtons
         controls={[{ key: 'go', label: 'Open', ariaLabel: 'Open the chassis', href: '/chassis/' }]}
       />
     )
-    const link = screen.getByRole('link')
-    // Fill and ink are stateful, so they are the class's, never inline.
-    expect(link.classList.contains('su-control-link')).toBe(true)
-    expect(link.style.backgroundColor).toBe('')
-    expect(link.style.color).toBe('')
+    const link = screen.getByRole('link', { name: 'Open the chassis' })
+    expect(link.getAttribute('href')).toBe('/chassis/')
+    expect(link.className).toContain('su-btn--mini')
+    expect(link.textContent).toBe('Open')
+    expect(link.getAttribute('style')).toBeNull()
   })
-
   test('fires onClick with stopPropagation', () => {
     let parentClicked = false
     const handleClick = mock(() => {})
@@ -95,11 +94,11 @@ describe('ControlButtons', () => {
     expect(button.className).toContain('my-custom')
   })
 
-  // Every control renders at the seam stamp's `mini` rung: the rail sits beside
+  // Every control renders at the seam stamp's Mini Size: the rail sits beside
   // that stamp, so a row that mixed heights would read as unrelated chips.
   test('renders at the stamp rung', () => {
     render(<ControlButtons controls={[makeControl()]} />)
-    expect(screen.getByRole('button').innerHTML).toContain('su-rung-label--mini')
+    expect(screen.getByRole('button').className).toContain('su-btn--mini')
   })
 
   test('empty controls array renders nothing', () => {
@@ -122,11 +121,11 @@ describe('ControlButtons', () => {
     expect(container.innerHTML).toBe('')
   })
 
-  test('disabled control renders with grey styling', () => {
+  test("a disabled control wears Button's one disabled treatment", () => {
     render(<ControlButtons controls={[makeControl({ disabled: true })]} />)
     const button = screen.getByRole('button')
-    expect(button.style.cursor).toBe('not-allowed')
-    expect(screen.getByText('Test').style.backgroundColor).toBe(color.wkFaint)
+    expect(button.hasAttribute('disabled')).toBe(true)
+    expect(button.className).toContain(DISABLED)
   })
 
   test('disabled control does not fire onClick', () => {
@@ -136,13 +135,7 @@ describe('ControlButtons', () => {
     expect(handleClick).toHaveBeenCalledTimes(0)
   })
 
-  test('segmentText renders a secondary segment', () => {
-    render(<ControlButtons controls={[makeControl({ segmentText: 'Mech' })]} />)
-    expect(screen.getByText('Mech')).toBeTruthy()
-    expect(screen.getByText('Test')).toBeTruthy()
-  })
-
-  // Icon-only controls (design `.ctl`): an `icon` with no `label`/`segmentText`
+  // Icon-only controls (design `.ctl`): an `icon` with no `label`
   // renders a square icon button (the live-sheet per-card remove/swap cluster).
   const RemoveGlyph = ({ className }: { className?: string }) => (
     <svg className={className} data-testid="remove-glyph" aria-hidden="true" />
@@ -232,7 +225,7 @@ describe('ControlButtons', () => {
     expect(handleClick).toHaveBeenCalledTimes(1)
   })
 
-  test('icon WITH a label keeps the segmented text button', () => {
+  test('icon WITH a label keeps the worded button', () => {
     render(
       <ControlButtons
         controls={[makeControl({ label: 'Buy', ariaLabel: 'Buy', icon: RemoveGlyph })]}

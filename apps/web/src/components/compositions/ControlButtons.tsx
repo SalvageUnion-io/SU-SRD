@@ -1,13 +1,9 @@
 import type { CSSProperties } from 'react'
 import { useCallback } from 'react'
-import { borderWidth, color, fontSize, iconSize, radius, space } from '../../design/tokens'
-import { cn } from '../../lib/cn'
-import { SIZE_INLINE_PADDING, SIZE_TYPE } from '../../styles/sizing'
+import { iconSize, space } from '../../design/tokens'
 import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
 import { CountStepper } from '../atoms/CountStepper'
-import { capsLabel } from '../atoms/capsLabel'
-import { TRANSITION_COLORS } from '../atoms/transition'
 import type {
   ReferenceEntityControl,
   ReferenceEntityControlVariant,
@@ -15,57 +11,15 @@ import type {
 import { StatusBadge } from './StatusBadge'
 
 /**
- * Per-variant segment colours: `bg`/`text` fill the primary segment, and
- * `inverseBg`/`inverseText` the secondary `segmentText` segment (like the
- * ValueDisplay value). `danger` fills ink like `primary`: no state colour
- * fills a button (ruleset §3.1, hard rule R9), and rust is Button's alone. A
- * card draws its destructive controls as rust Buttons in its `StatusRail`.
+ * A worded control's Button: `primary` and `danger` fill ink (no state colour
+ * fills a button, ruleset §3.1, hard rule R9; rust is the icon Remove's, below,
+ * and the `StatusRail`'s), `ghost` is the paper button.
  */
-const VARIANT: Record<
-  ReferenceEntityControlVariant,
-  { bg: string; text: string; inverseBg: string; inverseText: string }
-> = {
-  primary: { bg: color.ink, text: color.paper, inverseBg: color.paper, inverseText: color.ink },
-  danger: { bg: color.ink, text: color.paper, inverseBg: color.paper, inverseText: color.ink },
-  ghost: { bg: color.paper, text: color.ink, inverseBg: color.ink, inverseText: color.paper },
-}
-
-// The navigation link. Its fill and ink flip on hover, so those two live on
-// `.su-control-link` (resting value included); everything else is static.
-const LINK = {
-  ...TRANSITION_COLORS,
-  alignItems: 'center',
-  border: `${borderWidth.hairline} solid ${color.ink}`,
-  borderRadius: radius.card,
-  display: 'inline-flex',
-  flexShrink: 0,
-  fontSize: fontSize.xs,
-  lineHeight: '1rem',
-  padding: `${space[4]} ${space[8]}`,
-  textDecoration: 'none',
-  whiteSpace: 'nowrap',
-} satisfies CSSProperties
-const LINK_CAPS = capsLabel()
-
-const TEXT_BUTTON = {
-  ...TRANSITION_COLORS,
-  alignItems: 'stretch',
-  borderStyle: 'solid',
-  borderWidth: borderWidth.hairline,
-  display: 'inline-flex',
-  flexShrink: 0,
-  lineHeight: 1,
-  whiteSpace: 'nowrap',
-} satisfies CSSProperties
-
-// One label segment of a worded control. Padding and type size are the `mini`
-// rung's own class strings (below), so they stay classes.
-const SEGMENT = {
-  alignItems: 'center',
-  display: 'flex',
-  lineHeight: 1,
-} satisfies CSSProperties
-const SEGMENT_CAPS = capsLabel()
+const WORDED = {
+  primary: 'ink',
+  danger: 'ink',
+  ghost: 'default',
+} as const satisfies Record<ReferenceEntityControlVariant, string>
 
 const ROW = { display: 'flex', gap: space[4] } satisfies CSSProperties
 
@@ -101,34 +55,38 @@ function ControlButton({
       />
     )
   }
+  // Every rail control is the Mini Button: the rail sits beside the card's
+  // seam stamp, and one row carries one Size (ruleset §4.7).
   if (control.href !== undefined) {
     return (
-      <a
+      <Button
         href={control.href}
         aria-label={control.ariaLabel}
-        className={cn('su-control-link', LINK_CAPS)}
-        style={LINK}
+        size="mini"
+        className={control.className}
       >
         {control.label ?? control.ariaLabel}
-      </a>
+      </Button>
     )
   }
   const variant = control.variant ?? 'primary'
   const isDisabled = !!control.disabled
   const onClick = control.onClick ?? (() => undefined)
-
-  // Every rail control is stamp-sized: the rail sits beside the card's seam
-  // stamp, and one row should carry one height. These are the `mini` stamp's
-  // own metrics — the same
-  // constants `Badge shape="stamp" size="mini"` resolves — so the row and the
-  // seam agree by construction rather than by matching numbers by eye.
-  const segmentClasses = cn(SIZE_INLINE_PADDING.mini, SIZE_TYPE.mini.label, SEGMENT_CAPS)
+  const shared = {
+    size: 'mini',
+    className: control.className,
+    title: control.title ?? control.ariaLabel,
+    'aria-label': control.ariaLabel,
+    'aria-expanded': control.ariaExpanded,
+    'aria-controls': control.ariaControls,
+    disabled: isDisabled,
+    'aria-disabled': isDisabled || undefined,
+    onClick: isDisabled ? undefined : (e: React.MouseEvent) => onClickWithStop(e, onClick),
+  } as const
 
   // Icon-only control (design-spec `.ctl`) — the live-sheet per-card
-  // remove/swap/fold cluster. It is the shared `Button` at its `mini` rung, the
-  // action chip every Row and rail already carries, so an icon button and a
-  // worded one are interchangeable in the row, the glyph sized to the label
-  // line it replaces.
+  // remove/swap/fold cluster: the glyph sized to the label line it replaces,
+  // so an icon button and a worded one are interchangeable in the row.
   //
   // It carries NO tap-target floor of its own. `theme.css` applies a
   // POINTER-keyed 44px floor to every `button` under `@media (pointer:
@@ -152,21 +110,9 @@ function ControlButton({
   // something, and as neutral paper chrome it read like the fold chevron
   // beside it. Rust, never a state colour (ruleset §3.1, hard rule R9).
   const Icon = control.icon
-  const isIconOnly = !!Icon && !control.label && !control.segmentText
-  if (Icon && isIconOnly) {
+  if (Icon && !control.label) {
     return (
-      <Button
-        variant={variant === 'danger' ? 'primary' : 'default'}
-        size="mini"
-        className={control.className}
-        title={control.title ?? control.ariaLabel}
-        aria-label={control.ariaLabel}
-        aria-expanded={control.ariaExpanded}
-        aria-controls={control.ariaControls}
-        disabled={isDisabled}
-        aria-disabled={isDisabled || undefined}
-        onClick={isDisabled ? undefined : (e) => onClickWithStop(e, onClick)}
-      >
+      <Button variant={variant === 'danger' ? 'primary' : 'default'} {...shared}>
         {/* A Mini control, so a Mini glyph (hard rule R23). */}
         <Icon size={iconSize.mini} />
       </Button>
@@ -174,52 +120,9 @@ function ControlButton({
   }
 
   return (
-    <button
-      type="button"
-      className={cn(!isDisabled && 'su-control-button--live', control.className)}
-      style={{
-        ...TEXT_BUTTON,
-        borderColor: isDisabled ? color.wkMuted : color.ink,
-        cursor: isDisabled ? 'not-allowed' : 'pointer',
-      }}
-      title={control.title ?? control.ariaLabel}
-      aria-label={control.ariaLabel}
-      aria-expanded={control.ariaExpanded}
-      aria-controls={control.ariaControls}
-      disabled={isDisabled}
-      aria-disabled={isDisabled || undefined}
-      onClick={isDisabled ? undefined : (e) => onClickWithStop(e, onClick)}
-    >
-      {/* Primary segment */}
-      <span
-        className={segmentClasses}
-        style={{
-          ...SEGMENT,
-          ...(isDisabled
-            ? { backgroundColor: color.wkFaint, color: color.wkMuted }
-            : { backgroundColor: VARIANT[variant].bg, color: VARIANT[variant].text }),
-        }}
-      >
-        {control.label ?? control.ariaLabel}
-      </span>
-      {/* Secondary segment (inverse style, like ValueDisplay value) */}
-      {control.segmentText && (
-        <span
-          className={segmentClasses}
-          style={{
-            ...SEGMENT,
-            ...(isDisabled
-              ? { backgroundColor: color.wkMuted, color: color.wkMuted }
-              : {
-                  backgroundColor: VARIANT[variant].inverseBg,
-                  color: VARIANT[variant].inverseText,
-                }),
-          }}
-        >
-          {control.segmentText}
-        </span>
-      )}
-    </button>
+    <Button variant={WORDED[variant]} {...shared}>
+      {control.label ?? control.ariaLabel}
+    </Button>
   )
 }
 

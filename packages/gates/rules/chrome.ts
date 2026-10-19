@@ -90,6 +90,9 @@
  *
  * - `button-href`: `buttonVariants(` only in the atoms that draw a button
  *   (`BUTTON_RECIPE_HOMES`: `Button`, `Toggle`, `HeaderMenu`'s trigger).
+ * - `raw-button` (a ratchet, burning to zero): a JSX `<button>` only in an
+ *   atom. The ones left draw a look no Button Size has yet (a tag, a step
+ *   pill, a rail token, the condition glyph); each goes when its atom does.
  *
  * Every rule is `zero`. Comments are stripped, so prose may name what it bans.
  */
@@ -346,6 +349,8 @@ const ROLE_HOMES = {
 /** A JSX field element, to its self-closing end (`=>` in a handler holds no `/>`). */
 const RAW_FIELD = /<(input|textarea)(?=[\s/>])[\s\S]*?\/>/g
 const RAW_LABEL = /<label(?=[\s>])/
+/** A JSX `<button>` element, its attributes on the line or the next. */
+const RAW_BUTTON = /<button(?=[\s>]|$)/
 const BREADCRUMB_NAV = /aria-label=(?:\{\s*)?["'`]Breadcrumb["'`]/
 const STEP_CURRENT = /aria-current=(?:["']step["']|\{[^}\n]*["']step["'])/
 
@@ -531,6 +536,13 @@ const RULES: ChromeRule[] = [
         BUTTON_RECIPE,
         (rel) => isTest(rel) || BUTTON_RECIPE_HOMES.has(rel)
       ),
+  },
+  {
+    id: 'raw-button',
+    mode: 'ratchet',
+    rule: 'hard rule R16 (ruleset §6.5) — a button is `Button` (its variant, Size and `href`), never a raw <button> outside the atoms',
+    fix: 'Render `<Button variant=… size=… onClick=…>` (`href` for a link, `back` for a way back) from components/index; a look no variant draws (a tag, a step pill) belongs to an atom in components/atoms/. Then lower `chrome.raw-button` in tools/baselines/rule-sets.json to the new count.',
+    scan: (root) => scanOutside(root, RAW_BUTTON, ATOMS),
   },
   {
     id: 'stat-text',
