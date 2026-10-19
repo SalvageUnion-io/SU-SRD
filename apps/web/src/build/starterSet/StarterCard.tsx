@@ -36,7 +36,6 @@ export function StarterCard({ kind, build, controls }: StarterCardProps) {
         href: `/starter/${kind}/${build.id}`,
         attrs: { 'aria-label': `Read ${build.name}` },
       }}
-      lead
       omit={['kind']}
       relations={build.relations}
       controls={controls}

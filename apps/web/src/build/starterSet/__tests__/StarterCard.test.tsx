@@ -2,10 +2,12 @@
  * StarterCard — a Starter Set build's Row opens its read-only sheet, and the
  * entity it is made from (`CLASS | Engineer`, `CHASSIS | Mule`) is a linked
  * chip of its own: it Peeks and opens that entity, outside the sheet's link.
+ * A Row draws no lead (EDL E11): a pilot's motto is on its sheet, not here.
  */
 
 import { describe, expect, mock, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
+import { STARTER_PILOTS } from 'game-domain/starterSet/starterSet'
 import { EntitySurfaceProvider } from '../../../components/index'
 import { StarterCard } from '../StarterCard'
 import { starterShelves } from '../starterShelves.model'
@@ -45,5 +47,17 @@ describe('StarterCard', () => {
     )
     expect(screen.getByRole('button', { name: /chassis\s*mule/i })).toBeTruthy()
     expect(container.textContent).toMatch(/TL\s*1/)
+  })
+
+  test("a pilot's Row draws no lead: its motto stays on its sheet (EDL E11)", () => {
+    const motto = STARTER_PILOTS.find((p) => p.name === 'Bonesaw')?.motto
+    expect(motto).toBeTruthy()
+    const { container } = render(
+      <EntitySurfaceProvider value={{ openPage: () => {} }}>
+        <StarterCard kind="pilot" build={build('pilot', 'Bonesaw')} />
+      </EntitySurfaceProvider>
+    )
+    expect(container.querySelector('.su-entity-lead')).toBeNull()
+    expect(container.textContent).not.toContain(motto)
   })
 })

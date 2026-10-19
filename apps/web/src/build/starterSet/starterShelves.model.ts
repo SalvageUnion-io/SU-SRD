@@ -2,8 +2,9 @@
  * The Starter Set's thirteen builds as the models `StarterCard` draws, in the
  * three columns the front door and the Starter Set page both lay them out in:
  * the build's own picture where the set has one (each pilot's portrait, the
- * Tenacity), else the art of what it is made from (a mech's chassis), its class
- * or chassis cells, and a pilot's motto as the lead.
+ * Tenacity), else the art of what it is made from (a mech's chassis), and its
+ * class or chassis cells. No lead (EDL E11, owner 2026-10-19): a pilot's motto
+ * is on its sheet, not its Row.
  */
 
 import type { Photo } from 'game-domain/schemas/photo'
@@ -103,7 +104,6 @@ export function starterShelves(): StarterShelf[] {
           name: p.name,
           readings: readings(pilotStats(p.classRef)),
           art: photoArt(p.photo) ?? artOf('class', () => findClass(p.classRef)),
-          lead: p.motto || undefined,
         }),
         relations: sourceRelation('Class', 'class', () => findClass(p.classRef)),
       })),
