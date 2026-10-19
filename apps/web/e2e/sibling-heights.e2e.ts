@@ -186,10 +186,15 @@ async function playMismatches(page: Page, state: string): Promise<string[]> {
         failures.push(`Play, ${state}, at ${where}, the bar: ${controls}`)
       }
       // The phone's other tab is hidden, so its lines measure nothing there.
+      // Each kind of line is scanned on its own: an action line is a Token
+      // (ruleset §1.3), itself a control, so the Actions column's Tokens are
+      // never one line with the Units column's steppers across the gutter.
       const scanned = viewport === PHONE ? [BAR, UNIT_HEADS, ACTIONS] : lines
-      for (const m of await findSiblingMismatches(page, scanned.join(', '))) {
-        const controls = m.controls.map((c) => `${c.height}px ${c.what}`).join(', ')
-        failures.push(`Play, ${state}, at ${where}, ${m.line}: ${controls}`)
+      for (const within of scanned) {
+        for (const m of await findSiblingMismatches(page, within)) {
+          const controls = m.controls.map((c) => `${c.height}px ${c.what}`).join(', ')
+          failures.push(`Play, ${state}, at ${where}, ${m.line}: ${controls}`)
+        }
       }
     }
     if (viewport === PHONE) await page.getByRole('tab', { name: 'Act' }).click()
