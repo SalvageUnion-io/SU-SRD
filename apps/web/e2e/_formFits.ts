@@ -17,11 +17,17 @@ import { NESTING_SELECTORS } from './_nestingDepth'
  * - **E11** a lead (`Lead`, `.su-entity-lead`) off an SRD index.
  * - **E19** a chassis ability drawn anywhere but on its chassis or pattern
  *   Page at level 1, or the mech sheet's hero, unless as a contentful Token.
+ * - **E3** Play's lists are Tokens (ruleset §1.3, ADR-051 §6): a line of one
+ *   of Play's lists (`[data-play-list]`: the Actions, the Crew and the
+ *   Mediator's seats, the Tables) that is no Token, or holds a Row or a
+ *   TitledBox (`.su-entity-row`), a listing Row where a Token goes. On a Play
+ *   route a page that marks no list fails too, so the gate never passes by
+ *   finding nothing to read.
  *
  * A Mention is prose, not a list's entity, so it is not read.
  */
 export type FormFinding = {
-  rule: 'E2' | 'E11' | 'E19'
+  rule: 'E2' | 'E3' | 'E11' | 'E19'
   /** What breaks it, `a Card (Hover Drone (Action)) in a list item`. */
   detail: string
 }
@@ -55,6 +61,10 @@ export type FormSelectors = {
   peek: string
   /** The mech sheet's hero, where a chassis ability is a level-1 Row (E19). */
   mechHero: string
+  /** One of Play's lists, each line a Token (E3). */
+  playList: string
+  /** A Row or a TitledBox, which shares its class: never a line of a Play list. */
+  anyRow: string
 }
 
 export const FORM_SELECTORS: FormSelectors = {
@@ -77,6 +87,8 @@ export const FORM_SELECTORS: FormSelectors = {
   lead: '.su-entity-lead',
   peek: '[data-peek-popup]',
   mechHero: '.su-sheet-mech-hero-chassis',
+  playList: '[data-play-list]',
+  anyRow: '.su-entity-row',
 }
 
 /** Every chassis ability's name, from the reference data. */
@@ -89,8 +101,11 @@ export function chassisAbilityNames(): string[] {
   return [...new Set(chassis.flatMap((c) => c.chassisAbilities ?? []))].sort()
 }
 
-/** Where a scan runs: may it draw a lead, and a chassis ability at level 1? */
-export type FormPlace = { index: boolean; chassisPage: boolean }
+/**
+ * Where a scan runs: may it draw a lead, and a chassis ability at level 1?
+ * Is it a Play screen, whose lists are Tokens (E3)?
+ */
+export type FormPlace = { index: boolean; chassisPage: boolean; play: boolean }
 
 /**
  * Runs in the page and returns plain data, so it closes over nothing: every
@@ -150,6 +165,27 @@ export function scanForms({
       rule: 'E2',
       detail: `a sheet list item (${nameOf(item)}) that is no Token or Row`,
     })
+  }
+
+  // E3: Play's lists are Tokens, one a line; never a Row (or a TitledBox).
+  const playLists = document.querySelectorAll(a.playList)
+  if (place.play && playLists.length === 0)
+    found.push({ rule: 'E3', detail: 'no Play list marked (data-play-list) on a Play screen' })
+  for (const list of playLists) {
+    if (!visible(list)) continue
+    const label = list.getAttribute('aria-label') ?? 'a Play list'
+    for (const line of list.querySelectorAll(':scope > li')) {
+      if (!visible(line)) continue
+      for (const row of line.querySelectorAll(a.anyRow)) {
+        if (!visible(row)) continue
+        found.push({ rule: 'E3', detail: `a Row (${nameOf(row)}) in Play's ${label} list` })
+      }
+      if (![...line.querySelectorAll(a.token)].some(visible))
+        found.push({
+          rule: 'E3',
+          detail: `a line (${nameOf(line)}) of Play's ${label} list that is no Token`,
+        })
+    }
   }
 
   // E11: a lead only on an SRD index (never on a Peek's plate over one).

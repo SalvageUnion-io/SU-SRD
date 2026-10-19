@@ -41,9 +41,14 @@ import { expect, test } from './fixtures'
 
 const GAME = 'The Rust Belt Run'
 
-/** The player's seat on the Mediator's table: a radio named "<callsign or name>, here, …". */
+/**
+ * The player's seat on the Mediator's table: its toggle Token's name, a button
+ * named "<callsign or name>, here, …", pressed while Propose is aimed there.
+ */
 function seat(page: Page) {
-  return page.getByRole('radio', { name: /^(Sparks|Mira Voss), / })
+  return page.getByRole('list', { name: 'Seats' }).getByRole('button', {
+    name: /^(Sparks|Mira Voss), /,
+  })
 }
 
 test('the Mediator runs the table from Play, and the player answers', async ({
@@ -89,7 +94,7 @@ test('the Mediator runs the table from Play, and the player answers', async ({
 
     // --- 1. Propose → accept ---
     await seat(page).click()
-    await expect(seat(page)).toHaveAttribute('aria-checked', 'true')
+    await expect(seat(page)).toHaveAttribute('aria-pressed', 'true')
     await page.getByLabel('To', { exact: true }).fill('4')
     await page.getByLabel('Reason (optional)').fill('Rifle Squad volley')
     await page.getByRole('button', { name: 'Propose', exact: true }).click()
