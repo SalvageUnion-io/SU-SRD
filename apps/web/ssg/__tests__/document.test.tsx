@@ -214,7 +214,9 @@ describe('head assembly from DocumentMeta', () => {
   it('falls back to the site title and description', () => {
     const html = renderAbout()
     expect(html).toContain('<title>SalvageUnion.io</title>')
-    expect(metaContent(html, 'description')).toContain('rules reference and character manager')
+    expect(metaContent(html, 'description')).toContain(
+      'rules reference and character manager for the Salvage Union TTRPG'
+    )
   })
 
   it('mirrors title and description into og: and twitter:', () => {

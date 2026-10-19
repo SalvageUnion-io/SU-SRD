@@ -17,7 +17,7 @@ export const SITE_URL = originOf(import.meta.env.VITE_SITE_ORIGIN)
  *  every page that has a trail (never "Home" on some and "Contents" on others). */
 /** The site's description: the home page's, and any page's that sets none. */
 export const DEFAULT_DESCRIPTION =
-  'The Salvage Union rules reference and character manager: every chassis, system, module and ability, and the app to build and run Pilots, Mechs and Union Crawlers.'
+  'The rules reference and character manager for the Salvage Union TTRPG: every chassis, system, module and ability, and the app to run Pilots, Mechs and Crawlers.'
 
 /** The site in structured data: the home page's WebSite, and what every other page is part of. */
 export const WEBSITE = { '@type': 'WebSite', name: SITE_NAME, url: `${SITE_URL}/` } as const
