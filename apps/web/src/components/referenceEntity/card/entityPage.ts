@@ -20,6 +20,8 @@ import type { StatItem } from '../../containers/statsBarTypes'
 import type { TagItem } from '../../entity'
 import { actionTypeStamps, costCell, factCells, traitTags } from '../../entity'
 import type { BookStat } from '../referenceEntityStatsConfig'
+import type { EntityRelation } from './abilityTreeRelations'
+import { abilityTreeRelations } from './abilityTreeRelations'
 
 export type EntityPageMeta = {
   /**
@@ -48,6 +50,8 @@ export type EntityPageMeta = {
   facts: StatItem[]
   /** The traits (`[Hot | 2]`), linking to their entries. */
   tags: TagItem[]
+  /** What it is linked to: an ability's tree and its neighbours (`TREE | Leadership`). */
+  relations: EntityRelation[]
   /** The read cost the band carries ("1 AP" as value and currency), last. */
   cost?: { value: string; currency: string }
   /**
@@ -114,6 +118,7 @@ export function resolveEntityPageMeta(
       'full'
     ),
     tags: traitTags(model.traits),
+    relations: pattern ? [] : abilityTreeRelations(entity),
     ...(cost
       ? { cost: { value: cost.value ?? cost.label, currency: cost.value ? cost.label : '' } }
       : {}),

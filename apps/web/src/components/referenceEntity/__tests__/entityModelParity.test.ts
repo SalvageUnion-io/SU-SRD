@@ -40,6 +40,8 @@ import {
   toEntityModel,
 } from 'salvageunion-reference'
 import { actionTypeStamps, costCell } from '../../entity'
+import type { EntityRelation } from '../card/abilityTreeRelations'
+import { abilityTreeRelations } from '../card/abilityTreeRelations'
 import { buildHeaderStats, resolveSubHeaderCells, resolveTechScaling } from '../card/cardCells'
 import { resolveHeaderFill, resolveHeaderHint } from '../card/cardChrome'
 import { resolveCatalogLeadBlocks } from '../card/catalogLead'
@@ -94,7 +96,7 @@ function headFactCount(model: EntityModel): number {
 }
 
 /** The page meta a model states, in `resolveEntityPageMeta`'s shape. */
-function pageMetaOf(model: EntityModel) {
+function pageMetaOf(model: EntityModel, relations: EntityRelation[] = []) {
   // The band carries every chip: stats, action type, facts, traits and cost.
   const cost = model.cost ? costCell(model.cost) : undefined
   return {
@@ -135,6 +137,8 @@ function pageMetaOf(model: EntityModel) {
     ...(cost
       ? { cost: { value: cost.value ?? cost.label, currency: cost.value ? cost.label : '' } }
       : {}),
+    // An ability's tree and its neighbours: the data's, not the model's.
+    relations,
     printings: model.cite.printings,
   }
 }
@@ -275,7 +279,7 @@ describe('toEntityModel parity, every entity', () => {
     for (const row of ENTITIES) {
       const model = toEntityModel(row.entity)
       const meta = resolveEntityPageMeta(row.entity)
-      agree(label(row), pageMetaOf(model), meta)
+      agree(label(row), pageMetaOf(model, abilityTreeRelations(row.entity)), meta)
     }
   })
 

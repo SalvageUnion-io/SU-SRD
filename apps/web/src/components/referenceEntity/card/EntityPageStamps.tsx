@@ -1,6 +1,7 @@
 import type { EntityRef } from 'salvageunion-reference'
 import { Badge } from '../../atoms/Badge'
 import { Chips, EntityStat } from '../../entity'
+import { relationChips } from './abilityTreeRelations'
 import type { EntityPageMeta } from './entityPage'
 import { LEGAL_STARTING_PATTERN, LEGAL_STARTING_PATTERN_NOTE } from './legalStartingPattern'
 
@@ -13,7 +14,8 @@ import { LEGAL_STARTING_PATTERN, LEGAL_STARTING_PATTERN_NOTE } from './legalStar
  * 2026-10-14): its stats under their full names (Tech Level first; a
  * chassis's lead its page body instead), its action type and facets
  * (`RNG | Close`), its traits, linking to their entries, what it is built on
- * (a pattern's `CHASSIS | Mazona`, a relation), and last its cost in the
+ * (a pattern's `CHASSIS | Mazona`, a relation) and what it is linked to (an
+ * ability's `TREE | Leadership`, `PRECEDING`, `NEXT`), and last its cost in the
  * pointy box, every chip the same gap apart (the SRD page's "Build With This"
  * is the band's `action`, after them). An ability's level is the band's
  * `lead`, left of the title. Never the kind (E9: the title says it to screen
@@ -57,13 +59,17 @@ export function EntityPageStamps({
         ...(cost ? { cost } : {}),
       }}
       nodes={{
-        relation: parent && (
-          <EntityStat
-            label={parent.label}
-            entityRef={parent.ref}
-            {...(parent.href ? { href: parent.href } : {})}
-          />
-        ),
+        relation: [
+          parent && (
+            <EntityStat
+              key="parent"
+              label={parent.label}
+              entityRef={parent.ref}
+              {...(parent.href ? { href: parent.href } : {})}
+            />
+          ),
+          ...relationChips(meta.relations),
+        ],
       }}
       marks={
         legalStartingPattern ? (

@@ -29,6 +29,7 @@ import { useEntityExternalLink } from '../entityHrefContext'
 import { foldControl } from '../foldControl'
 import { quotePatternName } from '../pattern/quotePatternName'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
+import { treeRelationNodes } from './abilityTreeRelations'
 import { CardHead } from './CardHead'
 import { CardLabels } from './CardLabels'
 import { CardOuter } from './CardOuter'
@@ -418,6 +419,7 @@ function ReferenceEntityCardInner({
     facts: [...effectiveHeaderStats, ...facets.facts],
     tags: facets.tags,
   }
+  const tree = isAction || isPattern ? undefined : treeRelationNodes(entity) // its tree's chips
   // A page's chips ride its band (`resolveEntityPageMeta`); its body keeps "Suggested".
   const hasSubLine = onPage && !!suggestedNode
 
@@ -433,7 +435,7 @@ function ReferenceEntityCardInner({
       titleSize={titleSize}
       titleColor={onBand === 'ink' ? 'var(--color-ink)' : 'var(--color-paper)'}
       numeral={numeral}
-      chips={<Chips chips={chips} size="compact" marks={suggestedNode} lanes />}
+      chips={<Chips chips={chips} size="compact" marks={suggestedNode} nodes={tree} lanes />}
       labels={labels}
       size={size}
       grain={grain}
