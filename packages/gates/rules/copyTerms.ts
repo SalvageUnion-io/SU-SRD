@@ -280,6 +280,9 @@ export type Banned = {
 /** The loading atom: the one place "Loading <thing>…" is spelled (chrome.md K6). */
 export const LOADING_ATOM = 'apps/web/src/components/containers/loadingCopy.ts'
 
+/** The searcher's copy: the one place "No results found" is spelled (chrome.md K8). */
+export const SEARCH_COPY = 'apps/web/src/components/compositions/searchCopy.ts'
+
 /** Spellings the book does not use, each with what it says instead and where. */
 export const BANNED: readonly Banned[] = [
   {
@@ -343,6 +346,23 @@ export const BANNED: readonly Banned[] = [
     pattern: /(?<![\w-])(?:[Pp]lease wait|[Hh]ang tight|[Ff]etching|[Hh]ydrating)(?![\w-])/g,
     say: 'loadingCopy',
     why: 'a wait says "Loading <thing>…" (`loadingCopy`), never another verb (chrome.md K6)',
+  },
+  // ── One empty state, one error per job (chrome.md K8, hard rule R27) ──
+  {
+    pattern: /(?<![\w-])(?:[Rr]etry|Reload (?:page|app))(?![\w-])/g,
+    say: 'Try again',
+    why: 'the one retry verb is "Try again" (chrome.md K8)',
+  },
+  {
+    pattern: /(?<![\w-])[Ff]ailed to(?![\w-])/g,
+    say: '<thing> could not be <done>. Try again.',
+    why: 'a failed act says what did not happen and "Try again" (`toast.error`); a crash is `RecoveryPanel` (chrome.md K8)',
+  },
+  {
+    pattern: /(?<![\w-])No results found(?![\w-])/g,
+    say: 'NO_RESULTS',
+    why: 'a search that matched nothing is the searcher\'s words (`NO_RESULTS`, `noResultsFor`); an empty collection is "No <things> yet." (`EmptyState`, chrome.md K8)',
+    allowIn: SEARCH_COPY,
   },
 ]
 

@@ -21,7 +21,7 @@ import { useMutation } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import { Button, EmptyState, FeedLine, FeedList, tokens } from '../components/index'
+import { Button, EmptyState, FeedLine, FeedList, Message, tokens } from '../components/index'
 import { useServerAction } from '../lib/connection/useServerAction'
 import type { FeedEntry } from './feed.model'
 import type { PlayRoll } from './playRolls.model'
@@ -33,8 +33,6 @@ const HEAD = { display: 'block', fontWeight: tokens.weight.bold } satisfies CSSP
 const REASON = { display: 'block', color: tokens.color.wkMuted } satisfies CSSProperties
 
 const ACTIONS = { display: 'flex', gap: tokens.space[6] } satisfies CSSProperties
-
-const FAILURE = { display: 'block', fontWeight: tokens.weight.bold } satisfies CSSProperties
 
 const STATE = {
   color: tokens.color.ink75,
@@ -123,9 +121,7 @@ export function PlayFeed({ entries, posts, postNow, canWrite }: PlayFeedProps) {
               >
                 {entry.text}
                 {post?.kind === 'failed' && (
-                  <span role="alert" style={FAILURE}>
-                    Not posted to Discord: {post.message}
-                  </span>
+                  <Message tone="bad">Not posted to Discord: {post.message}</Message>
                 )}
               </FeedLine>
             )

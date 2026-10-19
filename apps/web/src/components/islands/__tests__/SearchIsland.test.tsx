@@ -86,7 +86,7 @@ describe('SearchIsland', () => {
     await typeAndSettle(input, 'zzzzxxxxxnonsense99999')
 
     const liveRegion = container.querySelector('[aria-live="polite"]')
-    expect(liveRegion?.textContent).toBe('No results found')
+    expect(liveRegion?.textContent).toBe('No results found.')
   })
 
   test('dropdown shows "No results found" message for zero matches', async () => {
@@ -96,7 +96,7 @@ describe('SearchIsland', () => {
     await typeAndSettle(input, 'zzzzxxxxxnonsense99999')
 
     // Both the aria-live region and the dropdown show "No results found"
-    const matches = screen.getAllByText('No results found')
+    const matches = screen.getAllByText('No results found.')
     expect(matches.length).toBe(2)
     // The dropdown message is inside the listbox
     const listbox = screen.getByRole('listbox')

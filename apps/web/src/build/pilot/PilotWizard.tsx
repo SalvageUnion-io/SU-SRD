@@ -183,7 +183,7 @@ export function PilotWizard({
     formDirty,
     schema: PilotSchema,
     toCreateInput: pilotFormToCreateInput,
-    failureMessage: 'Failed to save pilot. Please retry.',
+    failureMessage: 'The pilot could not be saved. Try again.',
     onComplete,
     onCancel,
     onOffRules,

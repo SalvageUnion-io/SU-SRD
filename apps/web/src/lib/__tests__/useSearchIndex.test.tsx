@@ -44,7 +44,7 @@ describe('useSearchIndex', () => {
     const { result } = renderHook(() => useSearchIndex())
     await act(async () => {})
     expect(result.current.ready).toBe(false)
-    expect(result.current.error?.message).toBe('Failed to load search index: 503')
+    expect(result.current.error?.message).toBe('The search index could not be loaded: 503')
     expect(result.current.index).toEqual([])
 
     await act(async () => {

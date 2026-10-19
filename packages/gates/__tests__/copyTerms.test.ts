@@ -15,6 +15,7 @@ import {
   PRODUCT_FILE,
   productBans,
   productNames,
+  SEARCH_COPY,
   termPattern,
   weighTerms,
 } from '../rules/copyTerms'
@@ -170,6 +171,31 @@ describe('lintCopy', () => {
     const atom = [{ file: LOADING_ATOM, line: 1, text: 'Loading the crew now' }]
     expect(lintCopy(atom, [], BANNED)['banned-variant']).toEqual([])
     expect(lintCopy(at('the page is loading slowly'), [], BANNED)['banned-variant']).toEqual([])
+  })
+
+  test('one error per job: "Try again", no "Failed to", "No results found" only in the searcher', () => {
+    const r = lintCopy(
+      [
+        ...at('Retry loading game data'),
+        ...at('Failed to save pilot. Please retry.'),
+        ...at('Reload page now'),
+        ...at('No results found for this'),
+      ],
+      [],
+      BANNED
+    )
+    expect(r['banned-variant']?.map((f) => f.detail.split(':')[0])).toEqual([
+      '"Retry"',
+      '"retry"',
+      '"Failed to"',
+      '"Reload page"',
+      '"No results found"',
+    ])
+    const searcher = [{ file: SEARCH_COPY, line: 1, text: 'No results found for this' }]
+    expect(lintCopy(searcher, [], BANNED)['banned-variant']).toEqual([])
+    expect(
+      lintCopy(at('That could not be saved. Try again.'), [], BANNED)['banned-variant']
+    ).toEqual([])
   })
 
   test('bans Scrap as a verb, never the currency', () => {

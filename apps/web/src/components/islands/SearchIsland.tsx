@@ -15,6 +15,7 @@ import { HERO_SEARCH_PLACEHOLDER } from '../../lib/heroSearch'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import { useSearchIndex } from '../../lib/useSearchIndex'
 import { POPUP_SURFACE } from '../atoms/popupSurface'
+import { NO_RESULTS } from '../compositions/searchCopy'
 import { HeroSearchForm } from '../HeroSearch'
 import type { SearchComboboxResult } from '../index'
 import {
@@ -283,7 +284,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
         </DocumentLinks>
       ) : (
         <div style={STATUS}>
-          <EmptyState variant="inline" body="No results found" />
+          <EmptyState variant="inline" body={NO_RESULTS} />
         </div>
       )}
     </div>

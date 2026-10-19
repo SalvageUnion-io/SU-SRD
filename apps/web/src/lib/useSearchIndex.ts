@@ -43,7 +43,7 @@ function ensureLoaded(): Promise<CompactSearchEntry[]> {
   if (!indexPromise) {
     indexPromise = fetch('/search-index.json')
       .then((res) => {
-        if (!res.ok) throw new Error(`Failed to load search index: ${res.status}`)
+        if (!res.ok) throw new Error(`The search index could not be loaded: ${res.status}`)
         return res.json() as Promise<CompactSearchEntry[]>
       })
       .then((data) => {

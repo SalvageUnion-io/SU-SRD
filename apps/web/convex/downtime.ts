@@ -82,7 +82,7 @@ async function ensureState(ctx: MutationCtx, gameId: Id<'games'>): Promise<Doc<'
     upkeepSpent: false,
   })
   const created = await ctx.db.get(id)
-  if (created === null) throw new Error('Failed to create downtime state')
+  if (created === null) throw new Error('The downtime state could not be created')
   return created
 }
 

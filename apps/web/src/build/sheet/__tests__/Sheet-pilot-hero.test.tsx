@@ -240,8 +240,7 @@ describe('Pilot hero — dead state', () => {
     renderHero(makePilot({ injuries: DEAD_INJURIES }))
 
     expect(screen.getAllByText('Dead').length).toBeGreaterThan(0)
-    expect(screen.getByRole('alert')).toBeTruthy()
-    expect(screen.getByText(/killed in action/i)).toBeTruthy()
+    expect(screen.getByText(/killed in action/i).closest('[role="status"]')).toBeTruthy()
   })
 
   test('living pilot shows neither', () => {

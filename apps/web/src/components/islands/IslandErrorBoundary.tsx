@@ -54,7 +54,7 @@ export class IslandErrorBoundary extends Component<Props, State> {
           <RecoveryPanel
             title="Something went wrong"
             message="Something went wrong rendering this entry."
-            action={{ label: 'Reload page', onClick: () => window.location.reload() }}
+            action={{ label: 'Try again', onClick: () => window.location.reload() }}
           />
         </div>
       )

@@ -87,7 +87,7 @@ async function uniqueCode(ctx: MutationCtx): Promise<string> {
     const code = randomCode()
     if ((await inviteByCode(ctx, code)) === null) return code
   }
-  throw new Error('Failed to generate a unique invite code after max retries')
+  throw new Error('No unique invite code after the most attempts allowed')
 }
 
 /**

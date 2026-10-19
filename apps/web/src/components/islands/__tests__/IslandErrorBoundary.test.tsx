@@ -26,7 +26,7 @@ describe('IslandErrorBoundary', () => {
         </IslandErrorBoundary>
       )
       expect(screen.getByText('Something went wrong rendering this entry.')).toBeTruthy()
-      expect(screen.getByRole('button', { name: 'Reload page' })).toBeTruthy()
+      expect(screen.getByRole('button', { name: 'Try again' })).toBeTruthy()
     } finally {
       consoleError.mockRestore()
     }

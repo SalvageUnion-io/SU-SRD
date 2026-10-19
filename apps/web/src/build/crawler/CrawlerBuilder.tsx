@@ -171,8 +171,7 @@ export function CrawlerBuilder({
   // The step machine + the create submit, shared with the pilot and mech
   // wizards (`useWizardFlow`). `toCreateInput` is a closure rather than the
   // bare projection: a fresh crawler starts at its DERIVED full SP and
-  // pre-seeds the base bay set. The failure copy is passed verbatim: the
-  // crawler's carries no "Please retry." suffix.
+  // pre-seeds the base bay set.
   const { step, gate, submitError, shell } = useWizardFlow({
     entityType: 'crawler',
     noun: 'crawler',
@@ -199,7 +198,7 @@ export function CrawlerBuilder({
       // Seed the full base bay set — the official sheets pre-print every bay.
       return crawlerFormToCreateInput(f, { maxSP, crawlerBays: seedDefaultCrawlerBays() })
     },
-    failureMessage: 'Failed to save crawler.',
+    failureMessage: 'The crawler could not be saved. Try again.',
     onComplete,
     onCancel,
     onOffRules,

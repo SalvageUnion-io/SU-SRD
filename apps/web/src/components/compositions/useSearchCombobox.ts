@@ -19,6 +19,7 @@ import type { RefEntity, RefEnumSchemaName, SearchResult } from 'salvageunion-re
 import { getEntitySchemas, search } from 'salvageunion-reference'
 import { schemaPluralLabel } from '../../lib/schemaLabels'
 import { loadingCopy } from '../containers/loadingCopy'
+import { NO_RESULTS } from './searchCopy'
 
 export type SearchComboboxResult =
   | {
@@ -204,7 +205,7 @@ export function useSearchCombobox({
         : null
       : results.length > 0
         ? `${results.length} result${results.length === 1 ? '' : 's'} found`
-        : 'No results found'
+        : NO_RESULTS
 
   /** Spread onto the <input>; add aria-expanded (open semantics differ per shell). */
   const inputProps = {

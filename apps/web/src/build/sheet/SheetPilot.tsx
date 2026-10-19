@@ -151,7 +151,6 @@ export function SheetPilot({
         <WithheldUnitRow unit={withheldMech} label="Assigned Mech" />
       ) : (
         <EmptyUnitSlot
-          kind="mech"
           className="su-sheet-pilot-fill"
           roleLabel="Assigned Mech"
           message="No mech assigned — assign one of yours, or build one to track its loadout and heat from here."
@@ -192,7 +191,6 @@ export function SheetPilot({
         <WithheldUnitRow unit={withheldCrawler} label="Home Crawler" />
       ) : (
         <EmptyUnitSlot
-          kind="crawler"
           className="su-sheet-pilot-fill"
           roleLabel="Home Crawler"
           message="No crawler assigned. Set the crawler level by hand until your union home is assigned."

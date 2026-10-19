@@ -3,8 +3,8 @@
  * app components listed below; their static styling is style objects over
  * src/components tokens. Loaded by `index.css`.
  *
- *   - `EmptyUnitSlot` (components/shared/EmptyUnitSlot.tsx): the dashed
- *     foot, whose children stretch (a child selector).
+ *   - `EmptyUnitSlot` (components/shared/EmptyUnitSlot.tsx): the CTAs
+ *     row, whose children stretch (a child selector).
  *   - `StarterCard` (build/starterSet/StarterCard.tsx): the sheet's link
  *     laid over the whole Row, its linked chips raised above it.
  *   - `srdEntityExternalLink` (components/contextual/srdEntityExternalLink.tsx):
@@ -12,7 +12,7 @@
  *     class, so the whole treatment lives here.
  */
 
-/* The empty slot's dashed foot: every CTA in it shares the width equally. */
+/* The empty slot's CTAs: every one shares the width equally. */
 .su-empty-unit-slot__actions > * {
   flex: 1;
 }

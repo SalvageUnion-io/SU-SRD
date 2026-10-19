@@ -203,7 +203,6 @@ describe('EmptyUnitSlot', () => {
   test('its role stamp, message and CTAs', () => {
     render(
       <EmptyUnitSlot
-        kind="mech"
         roleLabel="Assigned Mech"
         message="No mech assigned."
         actions={<button type="button">+ Create</button>}
@@ -215,9 +214,7 @@ describe('EmptyUnitSlot', () => {
   })
 
   test('no actions, no foot', () => {
-    const { container } = render(
-      <EmptyUnitSlot kind="crawler" roleLabel="Home Crawler" message="None." />
-    )
+    const { container } = render(<EmptyUnitSlot roleLabel="Home Crawler" message="None." />)
     expect(container.querySelector('.su-empty-unit-slot__actions')).toBeNull()
   })
 })

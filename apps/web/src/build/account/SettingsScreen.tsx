@@ -93,7 +93,7 @@ function SignedInAccount() {
   const [confirming, setConfirming] = useState(false)
 
   if (me === undefined) return <Pending label="your account" />
-  if (me === null) return <Text>No account found.</Text>
+  if (me === null) return <EmptyState variant="quiet" body="No account is held for this sign-in." />
 
   const value = name ?? me.displayName ?? ''
 

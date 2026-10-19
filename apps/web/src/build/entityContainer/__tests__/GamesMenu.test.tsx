@@ -82,7 +82,7 @@ describe('GamesMenu', () => {
     setQueryAnswers({ 'games:listMine': [] })
     wrap(<GamesMenu />)
 
-    const empty = within(await openGames()).getByRole('menuitem', { name: 'No Games yet' })
+    const empty = within(await openGames()).getByRole('menuitem', { name: 'No Games yet.' })
     expect(empty.getAttribute('aria-disabled')).toBe('true')
     await act(async () => {
       fireEvent.click(empty)
@@ -121,6 +121,6 @@ describe('GamesDrawerList', () => {
     wrap(<GamesDrawerList onPick={() => {}} />)
 
     expect(screen.queryByRole('button', { name: 'Hangar' })).toBeNull()
-    expect(screen.getByText('No Games yet')).toBeTruthy()
+    expect(screen.getByText('No Games yet.')).toBeTruthy()
   })
 })

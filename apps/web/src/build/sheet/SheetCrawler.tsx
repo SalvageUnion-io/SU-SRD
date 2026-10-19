@@ -295,7 +295,6 @@ export function SheetCrawler({
               survive the first — the same trailing slot the crew list uses. */}
           {editable && (
             <EmptyUnitSlot
-              kind="mech"
               className="su-sheet-crawler-grow"
               roleLabel="Bay"
               message="Assign another mech."
@@ -310,7 +309,6 @@ export function SheetCrawler({
         </>
       ) : (
         <EmptyUnitSlot
-          kind="mech"
           className="su-sheet-crawler-grow"
           roleLabel="Assigned Mechs"
           /* Says how a mech actually gets here: by its own assignment to this
@@ -351,7 +349,6 @@ export function SheetCrawler({
               step. */}
           {editable && (
             <EmptyUnitSlot
-              kind="pilot"
               className="su-sheet-crawler-grow"
               roleLabel="Crew"
               message="Assign another pilot."
@@ -366,7 +363,6 @@ export function SheetCrawler({
         </>
       ) : (
         <EmptyUnitSlot
-          kind="pilot"
           className="su-sheet-crawler-grow"
           roleLabel="Pilots"
           message="No pilots assigned to this crawler yet."

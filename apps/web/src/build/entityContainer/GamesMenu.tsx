@@ -69,7 +69,7 @@ function ConnectedGamesMenu({ active }: { active: boolean }) {
       choices={games}
       onPick={open}
       loading="your Games"
-      empty="No Games yet"
+      empty="No Games yet."
     />
   )
 }
@@ -105,7 +105,7 @@ function ConnectedGamesDrawerList({ onPick }: { onPick: () => void }) {
           onPick()
         }}
         loading="your Games"
-        empty="No Games yet"
+        empty="No Games yet."
       />
     </nav>
   )

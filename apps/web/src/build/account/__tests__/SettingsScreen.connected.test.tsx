@@ -122,7 +122,7 @@ describe('the profile', () => {
   test('a signed-in session with no row says so plainly', () => {
     withQueries(profileQueries(null))
     wrap()
-    expect(screen.getByText('No account found.')).toBeTruthy()
+    expect(screen.getByText('No account is held for this sign-in.')).toBeTruthy()
   })
 
   test('the display name is pre-filled from Discord', () => {

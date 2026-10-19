@@ -55,7 +55,7 @@ import { useMediaQuery } from '../../lib/useMediaQuery'
 import { Button } from '../atoms/Button'
 import { buttonVariants } from '../atoms/buttonVariants'
 import { SearchField } from '../atoms/SearchField'
-import { Callout } from '../containers/Callout'
+import { EmptyState } from '../containers/EmptyState'
 import { TitledBox } from '../containers/TitledBox'
 import { Entity } from '../entity/Entity'
 import { useEntitySurface } from '../entity/entitySurfaceContext'
@@ -67,6 +67,7 @@ import { SearcherToolbar } from './EntitySearcherFilters'
 import { FocusPane } from './EntitySearcherFocus'
 import { SelectionRail, SelectionStatus } from './EntitySearcherRail'
 import type { BudgetConfig, EntityLike, FacetConfig, PoolEntity } from './entitySearcherTypes'
+import { NO_RESULTS } from './searchCopy'
 import { TECH_LEVEL_ROW, useSearcherPool } from './useSearcherPool'
 
 type EntitySearcherProps = {
@@ -155,7 +156,7 @@ export function EntitySearcher({
   budget,
   railName,
   chosenLabel = 'Selected',
-  emptyMessage = 'Nothing found.',
+  emptyMessage = NO_RESULTS,
   title,
   subtitle,
   onClose,
@@ -298,7 +299,9 @@ export function EntitySearcher({
           Showing {visible.length} of {pool.length}
         </p>
         <div className="su-searcher__list">{tokens}</div>
-        {visible.length === 0 && <p style={POOL_EMPTY_STYLE}>{emptyMessage}</p>}
+        {visible.length === 0 && emptyMessage && (
+          <EmptyState variant="inline" className="su-searcher__none" body={emptyMessage} />
+        )}
       </div>
     </div>
   )
@@ -320,7 +323,10 @@ export function EntitySearcher({
   ) : wide && !browse ? (
     // Nothing open yet: a note in the middle saying what goes there.
     <div className="su-searcher__empty">
-      <Callout>Open any entry in the list to read it here, then add it from its page.</Callout>
+      <EmptyState
+        variant="quiet"
+        body="Open any entry in the list to read it here, then add it from its page."
+      />
     </div>
   ) : null
 
@@ -440,12 +446,5 @@ const SUMMARY_STYLE = {
   fontWeight: weight.bold,
   textTransform: 'uppercase',
   letterSpacing: tracking.caps,
-  color: color.wkMuted,
-} satisfies CSSProperties
-const POOL_EMPTY_STYLE = {
-  marginTop: space[12],
-  fontFamily: font.body,
-  fontSize: fontSize.sm,
-  lineHeight: '1.25rem',
   color: color.wkMuted,
 } satisfies CSSProperties

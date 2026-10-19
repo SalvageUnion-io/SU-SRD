@@ -193,7 +193,6 @@ export function SheetMech({
         <WithheldUnitRow unit={withheldPilot} label="Assigned Pilot" />
       ) : (
         <EmptyUnitSlot
-          kind="pilot"
           className="su-sheet-rail-slot"
           roleLabel="Assigned Pilot"
           message="No pilot assigned. Assign a pilot to speak for this machine."
@@ -234,7 +233,6 @@ export function SheetMech({
         <WithheldUnitRow unit={withheldCrawler} label="Home Crawler" />
       ) : (
         <EmptyUnitSlot
-          kind="crawler"
           className="su-sheet-rail-slot"
           roleLabel="Home Crawler"
           message="No crawler assigned. A mech is assigned to a crawler on its own, separately from its pilot."

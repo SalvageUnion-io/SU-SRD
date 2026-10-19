@@ -5,6 +5,7 @@ import { join } from 'node:path'
 import { ratchetCounts } from '../lib/ruleEngine'
 import { enclosingObject, parseCss } from '../lib/styleSource'
 import {
+  ALERT_ATOMS,
   BREAKPOINT_LADDER,
   chromeTokens,
   LOADING_ATOMS,
@@ -266,6 +267,26 @@ describe('motion: chrome-tokens/raw-duration, raw-easing, motion-loop', () => {
     )
     expect(css['raw-duration']).toEqual([])
     expect(css['raw-easing']).toEqual([])
+  })
+})
+
+describe('chrome-tokens/raw-alert', () => {
+  test('a raw role="alert" fails outside the error atoms; alertdialog and status pass', () => {
+    const tsx = scan(
+      'apps/web/src/X.tsx',
+      [
+        '<span role="alert">x</span>',
+        "const props = { role: 'alert' }",
+        '<div role={"alert"} />',
+        '<div role="alertdialog" />',
+        '<p role="status" />',
+        '// role="alert"',
+      ].join('\n')
+    )
+    expect(lines(tsx, 'raw-alert')).toEqual([1, 2, 3])
+    for (const atom of ALERT_ATOMS) {
+      expect(scan(atom, '<div role="alert" />')['raw-alert']).toEqual([])
+    }
   })
 })
 

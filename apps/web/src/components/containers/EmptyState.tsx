@@ -104,17 +104,19 @@ const BODY = {
 const BODY_INHERIT = { ...BODY, color: 'currentcolor' } satisfies CSSProperties
 
 /**
- * EmptyState — the one empty-slot primitive (ruleset §"Empty state").
+ * EmptyState — the one empty state, its variant chosen by its place
+ * (chrome.md K8), its copy "No <things> yet.":
  *
- * Default ('stamp'): a **dashed** off-white panel (`dashed = fillable`), a
- * **Stamp** headline ("stamp voice"), an explainer, and **one rust action** —
- * **left-aligned**. Replaces ad-hoc muted-grey paragraphs.
+ * - 'stamp' (default), on a Page or a sheet section: a **dashed** off-white
+ *   panel (`dashed = fillable`), a **Stamp** headline, an explainer and **one
+ *   rust action**, left-aligned. An unfilled unit slot is one (`EmptyUnitSlot`).
+ * - 'quiet', in app chrome (a dialog, a menu's panel, a screen's state): a
+ *   1.5px dashed faint frame, centred muted message and CTA, an optional
+ *   decorative glyph on top.
+ * - 'inline', in a list that is already framed: the quiet message alone, one
+ *   unframed line.
  *
- * 'quiet': the muted app-chrome placeholder (design-spec §2.10 `.empty`):
- * 1.5px dashed faint frame, centered muted
- * message + CTA, with an optional decorative glyph on top.
- *
- * 'inline': the quiet message alone, one unframed line.
+ * A search that matched nothing says `NO_RESULTS` (`compositions/searchCopy`).
  */
 export function EmptyState({
   variant = 'stamp',

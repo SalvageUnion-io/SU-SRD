@@ -239,7 +239,7 @@ export function PilotSheet({
       {/* Dead state (max HP 0 = death). Display-only — the record
           stays editable so an erroneous injury can be removed. */}
       {model.dead && (
-        <TitledBox role="alert" title="Killed in Action" tone="status-bad">
+        <TitledBox role="status" title="Killed in Action" tone="status-bad">
           <p style={DEAD_BODY}>
             Injuries have reduced this pilot&rsquo;s maximum HP to 0. Remove an injury below if this
             was a bookkeeping error — otherwise, raise a glass.

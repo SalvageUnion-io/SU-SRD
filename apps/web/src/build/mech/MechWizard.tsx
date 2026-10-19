@@ -161,7 +161,7 @@ export function MechWizard({
     formDirty,
     schema: MechSchema,
     toCreateInput: mechFormToCreateInput,
-    failureMessage: 'Failed to save mech. Please retry.',
+    failureMessage: 'The mech could not be saved. Try again.',
     onComplete,
     onCancel,
     onOffRules,

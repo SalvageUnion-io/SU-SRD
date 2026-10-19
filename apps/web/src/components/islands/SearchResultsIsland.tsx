@@ -6,6 +6,7 @@ import { itemHref } from '../../lib/entityHref'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import type { CompactSearchEntry } from '../../lib/searchIndexTypes'
 import { useSearchIndex } from '../../lib/useSearchIndex'
+import { noResultsFor } from '../compositions/searchCopy'
 import {
   EmptyState,
   Entity,
@@ -187,7 +188,7 @@ function SearchResults({
       <>
         {rail}
         <output aria-live="polite">
-          <EmptyState headline="Nothing here" body={`No results found for “${trimmed}”.`} />
+          <EmptyState headline="Nothing here" body={noResultsFor(trimmed)} />
         </output>
       </>
     )

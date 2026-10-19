@@ -374,15 +374,20 @@
   justify-content: center;
 }
 
-/* Nothing open: the callout centred in the middle column. */
+/* Nothing open: the quiet empty state centred in the middle column. */
 .su-searcher__empty {
   display: grid;
   place-items: center;
   padding: var(--space-24);
 }
 
-.su-searcher__empty > .su-box {
+.su-searcher__empty > * {
   width: min(100%, 22rem);
+}
+
+/* Nothing matches: the inline empty line under the list. */
+.su-searcher__none {
+  margin-top: var(--space-12);
 }
 
 @media (width >= 64rem) {

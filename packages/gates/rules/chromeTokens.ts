@@ -145,7 +145,6 @@ const DASHED_FILES: readonly [string, string][] = [
   ['apps/web/src/components/referenceEntity/card/StatusRail.tsx', 'an edit field: the live rail'],
   // An empty slot.
   ['apps/web/src/components/atoms/SlotGrid.tsx', 'an empty slot: a cargo cell'],
-  ['apps/web/src/components/shared/EmptyUnitSlot.tsx', 'an empty slot: an unfilled unit'],
   ['apps/web/src/components/containers/EmptyState.tsx', 'an empty slot: the empty state'],
   ['apps/web/src/components/shared/EntityPhoto.tsx', 'an empty slot: no photo yet'],
   ['apps/web/src/build/sheet/StorageManifest.tsx', 'an empty slot: an unlinked counterpart'],
@@ -269,6 +268,20 @@ const loadingMarkCss = (_decls: CssDecl[], blocks: CssBlock[], rel: string) =>
         .filter((b) => KEYFRAMES.test(b.header) || PULSE.test(b.header))
         .map((b) => ({ line: b.line, detail: b.header }))
 
+/**
+ * The error atoms (chrome.md K8): an alert is a crash (`RecoveryPanel`), a
+ * failure line (`Message`, under `FieldError` too) or a lasting condition
+ * (`Banner`). A failed act is `toast.error`, whose region is the Toaster's.
+ */
+export const ALERT_ATOMS: readonly string[] = [
+  'apps/web/src/components/atoms/Message.tsx',
+  'apps/web/src/components/containers/RecoveryPanel.tsx',
+  'apps/web/src/components/containers/Banner.tsx',
+]
+
+const rawAlertScript = (text: string, rel: string) =>
+  ALERT_ATOMS.includes(rel) ? [] : matchesIn(text, /\brole\s*[=:]\s*\{?\s*['"`]alert['"`]/g)
+
 const loadingMarkScript = (text: string, rel: string) =>
   LOADING_ATOMS.includes(rel)
     ? []
@@ -369,6 +382,13 @@ const CHROME_RULES: ChromeRule[] = [
     fix: 'Wait with `Pending` (inside a screen), `Skeleton` (a shape known ahead; compose ghosts inside `SkeletonFrame`) or `RoutePending` (a route), never a loop, logo or bar of its own. The pulse is defined only in LOADING_ATOMS (packages/gates/rules/chromeTokens.ts).',
     css: loadingMarkCss,
     script: loadingMarkScript,
+  },
+  {
+    id: 'raw-alert',
+    mode: 'zero',
+    rule: 'chrome.md K8 — one error per job: a raw `role="alert"` only in the error atoms',
+    fix: 'A crash is `RecoveryPanel`, a failure line `Message tone="bad"` (`FieldError` for a field), a lasting condition `Banner`, a failed act `toast.error`; a status that is not urgent is `role="status"`. The atoms are ALERT_ATOMS (packages/gates/rules/chromeTokens.ts).',
+    script: rawAlertScript,
   },
   {
     id: 'raw-breakpoint',

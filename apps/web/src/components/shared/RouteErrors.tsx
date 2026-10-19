@@ -73,7 +73,7 @@ export function RootErrorComponent({ error }: ErrorComponentProps) {
       <RecoveryPanel
         title="Something went wrong"
         message={`The app hit an unexpected error. ${savedWorkCopy(currentBackend())}`}
-        action={{ label: 'Reload app', onClick: () => window.location.reload() }}
+        action={{ label: 'Try again', onClick: () => window.location.reload() }}
       >
         <DevErrorDump error={error} />
       </RecoveryPanel>
@@ -94,7 +94,7 @@ export function RouteErrorComponent({ error, reset }: ErrorComponentProps) {
     <div style={ROUTE_SHELL}>
       <RecoveryPanel
         title="This page hit an error"
-        message={`Something on this page failed to load. ${savedWorkCopy(currentBackend())}`}
+        message={`Something on this page did not load. ${savedWorkCopy(currentBackend())}`}
         action={{
           label: 'Try again',
           onClick: () => {

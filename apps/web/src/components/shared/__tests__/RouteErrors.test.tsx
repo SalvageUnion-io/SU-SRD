@@ -113,7 +113,7 @@ describe('RootErrorComponent', () => {
     render(<RootErrorComponent error={new Error('boom')} reset={() => {}} info={undefined} />)
 
     expect(screen.getByText('Something went wrong')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Reload app' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeTruthy()
     expect(screen.getByRole('alert').textContent).not.toMatch(/stored locally/i)
   })
 })
