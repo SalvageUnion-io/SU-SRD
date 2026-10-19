@@ -19,10 +19,6 @@ import { onTone, textBand } from '../referenceEntityHelpers'
 import type { CardOuterProps } from './CardOuter'
 import type { DomainTone } from './entityCardTone'
 
-/** The book's pennant: a box with a pointed tail. Hard edges, no tail rounding.
- *  The link preview's cost pennant (`OgCard`) cuts it. */
-export const PENNANT_SHAPE = 'polygon(0 0, 82% 0, 100% 50%, 82% 100%, 0 100%)'
-
 /** What the User-made stamp and pill say when hovered (ruleset §3.9). */
 export const USER_MADE_TITLE = 'Made by a player, not from the Workshop Manual'
 

@@ -3,11 +3,12 @@ import type { CSSProperties } from 'react'
 import { foregroundOn } from '../../design/contrast'
 import { borderWidth, color, font, space, weight } from '../../design/tokens'
 import { MARK_SRC } from '../../lib/documentHead'
+import { ActivationCost } from '../atoms/ActivationCost'
 import { ChapterBand } from '../atoms/ChapterBand'
 import { capsLabel } from '../atoms/capsLabel'
 import { Speckle } from '../atoms/Speckle'
 import { Stat } from '../atoms/Stat'
-import { PENNANT_SHAPE, USER_MADE_TITLE } from '../referenceEntity/card/cardChrome'
+import { UserMadeStamp } from '../referenceEntity/card/UserMadeStamp'
 import type { OgCardChip, OgCardProps, OgCardStat } from './ogCardText'
 import {
   bandColor,
@@ -163,33 +164,6 @@ const PROSE = {
   WebkitLineClamp: 2,
 } satisfies CSSProperties
 
-const STAMP = {
-  ...CAPS,
-  backgroundColor: color.paper,
-  borderColor: color.ink,
-  borderStyle: 'dashed',
-  borderWidth: borderWidth.entity,
-  color: color.ink,
-  flex: 'none',
-  fontSize: '36px',
-  fontWeight: weight.extrabold,
-  padding: `${space[2]} ${space[16]}`,
-  whiteSpace: 'nowrap',
-} satisfies CSSProperties
-
-/** The cost, the book's pointy box (`ActivationCost`) at the preview's scale: ink on the paper. */
-const PENNANT = {
-  ...CAPS,
-  backgroundColor: color.ink,
-  clipPath: PENNANT_SHAPE,
-  color: color.paper,
-  fontSize: '44px',
-  fontWeight: weight.extrabold,
-  lineHeight: 1,
-  padding: `${space[8]} ${space[48]} ${space[8]} ${space[12]}`,
-  whiteSpace: 'nowrap',
-} satisfies CSSProperties
-
 // The Union bar's foot: the ink-deep ground with paper flecks, the mark, the
 // wordmark and the address. Its top edge is the ink rule (see "The foot rule").
 const BAR = {
@@ -254,11 +228,8 @@ function Chips({
   const style = width > 0 ? { paddingBottom: baseline, width: width + OG_CHIP_GAP } : CHIPS_BELOW
   return (
     <div className="su-og-chips" style={style}>
-      {userMade && (
-        <span title={USER_MADE_TITLE} className={CAPS_LABEL} style={STAMP}>
-          User-made
-        </span>
-      )}
+      {/* The atoms, at the preview's scale: the stamp by `.su-og-chips`, as its Stat cells are. */}
+      {userMade && <UserMadeStamp />}
       {stats.map((stat) => (
         <Stat
           key={`${stat.label}-${stat.value ?? ''}`}
@@ -268,11 +239,7 @@ function Chips({
           size="full"
         />
       ))}
-      {cost && (
-        <span className={CAPS_LABEL} style={PENNANT}>
-          {cost}
-        </span>
-      )}
+      {cost && <ActivationCost cost={cost} currency="" scale="og" />}
     </div>
   )
 }

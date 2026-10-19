@@ -12,6 +12,12 @@ type ActivationCostProps = {
   compact?: boolean
   /** Beside `mini` chips (a Token): their type size, so it is no taller than they are. */
   mini?: boolean
+  /**
+   * `og`: the fixed 1200 × 630 link preview's scale (`OgCard`), beside its
+   * chips drawn at their 36px plate, nothing under the 34px source floor
+   * (ruleset §4.6).
+   */
+  scale?: 'page' | 'og'
 }
 
 /** The point's depth: the right edge runs to a tip at mid-height. */
@@ -52,16 +58,26 @@ const BOX_FULL = {
   paddingInlineEnd: `calc(${space[6]} + ${TIP})`,
 } satisfies CSSProperties
 
+/** The link preview's box: its chips' plate height, its weight their caps'. */
+const BOX_OG = {
+  fontSize: '44px',
+  fontWeight: weight.extrabold,
+  paddingBlock: space[8],
+  paddingInlineStart: space[12],
+  paddingInlineEnd: `calc(${space[24]} + ${TIP})`,
+} satisfies CSSProperties
+
 export function ActivationCost({
   cost,
   currency = 'AP',
   compact = false,
   mini = false,
+  scale = 'page',
 }: ActivationCostProps) {
   if (cost === undefined) return null
   const displayCost = cost === 'Variable' ? 'X' : cost
 
-  const rung = mini ? BOX_MINI : compact ? BOX_COMPACT : BOX_FULL
+  const rung = scale === 'og' ? BOX_OG : mini ? BOX_MINI : compact ? BOX_COMPACT : BOX_FULL
   // The edge shares the box's type size, so its `em` point matches the box's.
   return (
     <span className="su-cost-edge" style={{ fontSize: rung.fontSize }}>

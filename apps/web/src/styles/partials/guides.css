@@ -576,6 +576,23 @@
   border-width: var(--bw-entity);
 }
 
+/* The User-made stamp (`UserMadeStamp`) at the preview's scale: the cells'
+   type, its dashed edge at the entity weight. */
+.su-og-chips .su-badge--dashed {
+  border-width: var(--bw-entity);
+  font-size: 36px;
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1.1;
+  padding: var(--space-2) var(--space-16);
+}
+
+/* The cost box sits in its edge, which draws no box of its own
+   (`display: contents`), so the box takes the chip's gap itself. */
+.su-og-chips > .su-cost-edge > .su-cost {
+  margin: var(--space-14) 0 0 var(--space-14);
+  vertical-align: bottom;
+}
+
 .su-og-chips .su-stat-plate {
   font-family: var(--font-cond);
   font-size: 36px;

@@ -23,12 +23,12 @@ import { useSignOut } from './useSignOut'
  * (`HeaderAccount.tsx`).
  */
 
-type AccountMenuProps = {
+type AppAccountMenuProps = {
   /** Avatar only — the mobile header row. */
   compact?: boolean
 }
 
-function SignedInAccountMenu({ compact = false }: AccountMenuProps) {
+function SignedInAccountMenu({ compact = false }: AppAccountMenuProps) {
   const me = useQuery(api.account.me, {})
   const signOut = useSignOut()
   const navigate = useNavigate()
@@ -46,7 +46,7 @@ function SignedInAccountMenu({ compact = false }: AccountMenuProps) {
   )
 }
 
-export function AccountMenu({ compact }: AccountMenuProps) {
+export function AppAccountMenu({ compact }: AppAccountMenuProps) {
   const { mode } = useConnection()
   if (mode !== 'connected' && mode !== 'disconnected') return null
   return <SignedInAccountMenu compact={compact} />

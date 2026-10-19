@@ -1,7 +1,7 @@
 import { unionHere } from '../../lib/barLinks'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { GamesDrawerList, GamesMenu } from '../entityContainer/GamesMenu'
-import { AccountMenu } from './AccountMenu'
+import { AppAccountMenu } from './AppAccountMenu'
 import { SignInControl } from './SignInControl'
 
 /**
@@ -36,13 +36,13 @@ export function HeaderGames({ pathname = '' }: { pathname?: string }) {
 export function HeaderActions() {
   const { mode } = useConnection()
 
-  if (mode === 'connected' || mode === 'disconnected') return <AccountMenu />
+  if (mode === 'connected' || mode === 'disconnected') return <AppAccountMenu />
   return <SignInControl inBar />
 }
 
 /** Mobile header row: the avatar-only account menu. Nothing when signed out. */
 export function HeaderMobileActions() {
-  return <AccountMenu compact />
+  return <AppAccountMenu compact />
 }
 
 /**

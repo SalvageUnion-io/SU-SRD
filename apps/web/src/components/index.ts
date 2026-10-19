@@ -163,6 +163,8 @@ export { PickDialog } from './compositions/PickDialog'
 // the SRD roll-table page's bands and the app's Play tables, banded in the
 // surface tone
 export { RollTableInstrument } from './compositions/RollTableInstrument'
+// SearchListbox — the one list a search's results hang in (Tokens or Rows, `form`).
+export { SearchListbox } from './compositions/SearchListbox'
 // StartHere — the one onboarding block, on the SRD's home and the app's front door
 export { StartHere } from './compositions/StartHere'
 export { StatusBadge } from './compositions/StatusBadge'

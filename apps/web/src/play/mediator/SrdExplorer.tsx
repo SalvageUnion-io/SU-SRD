@@ -29,12 +29,11 @@ import {
   Button,
   buildCatalogSections,
   CatalogTile,
-  EmptyState,
-  Entity,
   EntitySearcher,
   Pending,
   ReferenceEntityCard,
   SearchField,
+  SearchListbox,
   Slab,
   Stack,
   tokens,
@@ -63,30 +62,11 @@ const TILE_GRID = {
   gap: tokens.space[8],
 } satisfies CSSProperties
 
+/** The results under the field: a panel of their own, scrolling past its height. */
 const LISTBOX = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[12],
+  marginTop: tokens.space[8],
   maxHeight: 260,
   overflowY: 'auto',
-} satisfies CSSProperties
-
-/** A category hit: the shared Button, spread across the list's width. */
-const CATEGORY_HIT = {
-  width: '100%',
-  justifyContent: 'space-between',
-  textAlign: 'left',
-} satisfies CSSProperties
-
-/** The keyboard-highlighted hit wears the Button's own hover wash. */
-const CATEGORY_HIT_ACTIVE = {
-  ...CATEGORY_HIT,
-  backgroundColor: tokens.color.ink8,
-} satisfies CSSProperties
-
-const CATEGORY_GROUP = {
-  color: tokens.color.wkMuted,
-  flexShrink: 0,
 } satisfies CSSProperties
 
 const BACK_ROW = { marginBottom: tokens.space[10] } satisfies CSSProperties
@@ -127,7 +107,8 @@ function SrdHome({
   // Only built once the ORM is ready — `buildCatalogSections` reads it.
   const sections = useMemo(() => (ready ? buildCatalogSections() : []), [ready])
 
-  const open = results.length > 0
+  // Open once a search has run: its results, or the searcher's empty line.
+  const open = hasSearched && query.trim() !== ''
 
   return (
     <Stack gap={12}>
@@ -148,45 +129,22 @@ function SrdHome({
         <div className="su-sr-only" aria-live="polite">
           {announcement}
         </div>
-        {open ? (
-          <div id={listboxId} role="listbox" aria-label="Search results" style={LISTBOX}>
-            {/* SEARCH (entity display language §7): every result is a Row in
-                link mode, without the lead; a category opens its listing. */}
-            {results.map((r, i) =>
-              r.kind === 'entity' ? (
-                <Entity
-                  key={r.id}
-                  form="row"
-                  model={toEntityModel(r.entity)}
-                  mode={{
-                    kind: 'link',
-                    onOpen: () => submit(r),
-                    attrs: {
-                      id: optionId(i),
-                      role: 'option',
-                      tabIndex: -1,
-                      'aria-selected': i === selectedIndex,
-                    },
-                  }}
-                />
-              ) : (
-                <Button
-                  key={r.id}
-                  id={optionId(i)}
-                  role="option"
-                  aria-selected={i === selectedIndex}
-                  style={i === selectedIndex ? CATEGORY_HIT_ACTIVE : CATEGORY_HIT}
-                  onClick={() => submit(r)}
-                >
-                  <span>{r.title}</span>
-                  <span style={CATEGORY_GROUP}>{r.group}</span>
-                </Button>
-              )
-            )}
-          </div>
-        ) : hasSearched && query.trim() ? (
-          <EmptyState variant="quiet" body="No matches." />
-        ) : null}
+        {open && (
+          // SEARCH (entity display language §7): every entity result is a Row
+          // in link mode, without the lead; a category opens its listing.
+          <SearchListbox
+            id={listboxId}
+            label="Search results"
+            form="row"
+            ready={ready}
+            results={results}
+            selectedIndex={selectedIndex}
+            optionId={optionId}
+            modelOf={(r) => (r.kind === 'entity' ? toEntityModel(r.entity) : undefined)}
+            target={{ open: submit }}
+            style={LISTBOX}
+          />
+        )}
       </div>
 
       {ready ? (

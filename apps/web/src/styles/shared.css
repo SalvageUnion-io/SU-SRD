@@ -161,12 +161,17 @@
   width: 100%;
 }
 
-/* A category result in the search dropdown. */
+/* A category result in a search's list (`SearchListbox`). */
 .su-search__category {
   transition-duration: var(--dur-fast);
   transition-property:
     color, background-color, border-color, outline-color, text-decoration-color, fill, stroke;
   transition-timing-function: var(--ease);
+}
+
+/* The category the arrow keys highlight wears the hover's ground. */
+.su-search__category[aria-selected='true'] {
+  background-color: var(--color-wk-bg);
 }
 
 @media (hover: hover) {

@@ -9,23 +9,16 @@
 import type { CSSProperties } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getEntitySlug } from 'salvageunion-reference'
-import { color, fontSize, layer, space, weight } from '../../design/tokens'
+import { layer, space } from '../../design/tokens'
 import { itemHref, schemaHref } from '../../lib/entityHref'
 import { HERO_SEARCH_PLACEHOLDER } from '../../lib/heroSearch'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import { useSearchIndex } from '../../lib/useSearchIndex'
 import { POPUP_SURFACE } from '../atoms/popupSurface'
-import { NO_RESULTS } from '../compositions/searchCopy'
+import { SearchListbox } from '../compositions/SearchListbox'
 import { HeroSearchForm } from '../HeroSearch'
 import type { SearchComboboxResult } from '../index'
-import {
-  EmptyState,
-  Entity,
-  Pending,
-  SearchField,
-  useModKeyHint,
-  useSearchCombobox,
-} from '../index'
+import { SearchField, useModKeyHint, useSearchCombobox } from '../index'
 import { DocumentLinks } from './DocumentLinks'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
@@ -41,9 +34,6 @@ type SearchIslandProps = {
   variant?: 'bar' | 'hero'
 }
 
-/** The results column's inset; `.su-entity-token-list` sets Tokens one a line, full width. */
-const RESULTS = { padding: space[8] } satisfies CSSProperties
-
 /** The dropdown, hung under the field: full width in the hero, 20rem in the bar. */
 const LISTBOX = {
   ...POPUP_SURFACE.paper,
@@ -58,31 +48,6 @@ const LISTBOX = {
 const LISTBOX_HERO = { ...LISTBOX, left: 0, width: '100%' } satisfies CSSProperties
 
 const LISTBOX_BAR = { ...LISTBOX, right: 0, width: '20rem' } satisfies CSSProperties
-
-const SMALL = { fontSize: fontSize.sm, lineHeight: 'calc(1.25 / 0.875)' } satisfies CSSProperties
-
-/** The loading and empty states' place in the listbox. */
-const STATUS = {
-  paddingBlock: space[12],
-  paddingInline: space[16],
-} satisfies CSSProperties
-
-/** A category result; its hover ground is `.su-search__category` (pages.css). */
-const CATEGORY = {
-  ...SMALL,
-  display: 'block',
-  paddingBlock: space[12],
-  paddingInline: space[16],
-} satisfies CSSProperties
-
-const CATEGORY_TITLE = { color: color.ink, fontWeight: weight.medium } satisfies CSSProperties
-
-const CATEGORY_GROUP = {
-  color: color.wkMuted,
-  fontSize: fontSize.xs,
-  lineHeight: 'calc(1 / 0.75)',
-  marginTop: space[2],
-} satisfies CSSProperties
 
 const RELATIVE = { position: 'relative' } satisfies CSSProperties
 
@@ -240,54 +205,23 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
     />
   )
 
+  // HEADER SEARCH (entity display language, "Which form, where"): every
+  // entity result is a Token in link mode, one a line; a category is a plain
+  // link. The full /search page keeps its Rows.
   const listbox = isOpen && (
-    <div id={listboxId} role="listbox" style={hero ? LISTBOX_HERO : LISTBOX_BAR}>
-      {!ready ? (
-        <div style={STATUS}>
-          <Pending label="search index" />
-        </div>
-      ) : results.length > 0 ? (
-        // HEADER SEARCH (entity display language, "Which form, where"): every
-        // entity result is a Token in link mode, one a line; a category is a
-        // plain link. The full /search page keeps its Rows.
-        <DocumentLinks>
-          <div className="su-entity-token-list" style={RESULTS}>
-            {results.map((result, index) => {
-              const option = {
-                id: optionId(index),
-                role: 'option',
-                'aria-selected': index === selectedIndex,
-              } as const
-              const model = result.kind === 'entity' ? models.get(result.id) : undefined
-              return model ? (
-                <Entity
-                  key={result.id}
-                  form="token"
-                  context="browse"
-                  model={model}
-                  mode={{ kind: 'link', href: resultUrl(result), attrs: option }}
-                />
-              ) : (
-                <a
-                  key={result.id}
-                  {...option}
-                  href={resultUrl(result)}
-                  className="su-search__category"
-                  style={CATEGORY}
-                >
-                  <div style={CATEGORY_TITLE}>{result.title}</div>
-                  <div style={CATEGORY_GROUP}>{result.group}</div>
-                </a>
-              )
-            })}
-          </div>
-        </DocumentLinks>
-      ) : (
-        <div style={STATUS}>
-          <EmptyState variant="inline" body={NO_RESULTS} />
-        </div>
-      )}
-    </div>
+    <DocumentLinks>
+      <SearchListbox
+        id={listboxId}
+        form="token"
+        ready={ready}
+        results={results}
+        selectedIndex={selectedIndex}
+        optionId={optionId}
+        modelOf={(result) => models.get(result.id)}
+        target={{ href: resultUrl }}
+        style={hero ? LISTBOX_HERO : LISTBOX_BAR}
+      />
+    </DocumentLinks>
   )
 
   if (hero) {

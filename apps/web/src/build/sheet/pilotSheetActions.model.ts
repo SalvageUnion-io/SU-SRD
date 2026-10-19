@@ -42,7 +42,7 @@ import type { ChangeMeta, useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { changedFields, freshEntity } from './controlPrimitives'
 import { destroyedUndoToast } from './destroyedUndoToast.model'
-import type { UsedToggleKey } from './PilotIdentity'
+import type { UsedTraitKey } from './PilotIdentity'
 import type { SheetPatch, SheetStoreState } from './sheetViewProps.model'
 
 type PilotSheetActionsOptions = {
@@ -60,7 +60,7 @@ type PilotSheetActionsOptions = {
 export type PilotSheetActions = {
   patchPilot: SheetPatch
   overridePilotMax: (fields: Partial<Pilot>) => void
-  toggleUsed: (key: UsedToggleKey, next: boolean) => void
+  toggleUsed: (key: UsedTraitKey, next: boolean) => void
   handleConditionsChange: (next: string[]) => void
   toggleAbility: (slug: string) => void
   toggleEquipment: (slug: string) => void
@@ -157,7 +157,7 @@ export function usePilotSheetActions({
   }
 
   /** Toggle one of the once-per-Downtime used flags. */
-  function toggleUsed(key: UsedToggleKey, next: boolean) {
+  function toggleUsed(key: UsedTraitKey, next: boolean) {
     const prev = freshPilot().usedToggles ?? {}
     write({ usedToggles: { ...prev, [key]: next } })
   }

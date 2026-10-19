@@ -179,8 +179,6 @@ const PRESSED_HOMES = new Set([
  * an entry whose file sets no `aria-pressed` any more is itself a finding.
  */
 export const ONE_ON_OFF: Record<string, string> = {
-  'apps/web/src/build/sheet/UsedToggle.tsx':
-    "Mark used: a pencil one on/off (dashed means editable), the sheet's (R11)",
   'apps/web/src/components/containers/Sel.tsx': "a selectable card's select state (R15)",
   'apps/web/src/components/referenceEntity/card/cardChrome.ts':
     "a reference card's select toggle (R15)",

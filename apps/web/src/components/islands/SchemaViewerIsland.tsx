@@ -30,7 +30,6 @@ import type { ListingView } from '../../lib/listingView'
 import { TREE_LISTINGS, useListingView } from '../../lib/listingView'
 import type { SchemaList } from '../../lib/useGameData'
 import { preloadGameData } from '../../lib/useGameData'
-import { AbilityTrack } from '../AbilityTrack'
 import { capsLabel } from '../atoms/capsLabel'
 import { GameDataGate } from '../GameDataGate'
 import {
@@ -43,6 +42,7 @@ import {
   tokens,
   trackForTree,
 } from '../index'
+import { ReferenceAbilityTrack } from '../ReferenceAbilityTrack'
 import { EntityListingRow } from './EntityListingRow'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 import type { RailActions } from './ListingRail'
@@ -436,7 +436,7 @@ function SchemaViewer({
                     ))}
                   </ul>
                 ) : treeTracks.get(group.key) ? (
-                  <AbilityTrack
+                  <ReferenceAbilityTrack
                     abilities={group.items as RefAbility[]}
                     track={treeTracks.get(group.key) ?? 'core'}
                   />

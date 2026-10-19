@@ -30,4 +30,29 @@ describe('Toggle', () => {
     fireEvent.click(off)
     expect(presses).toEqual(['off'])
   })
+
+  it('pencil, on an editable sheet line: one look in both states, the glyph leading', () => {
+    const { rerender } = render(
+      <Toggle variant="pencil" pressed={false} glyph={<i data-pip />} aria-label="Mark motto used">
+        Used
+      </Toggle>
+    )
+    const free = screen.getByRole('button', { name: 'Mark motto used' })
+    expect(free.getAttribute('aria-pressed')).toBe('false')
+    expect(free.className).toContain('su-btn--pencil')
+    expect(free.textContent).toBe('Used')
+    expect(free.querySelector('[aria-hidden="true"] [data-pip]')).not.toBeNull()
+
+    rerender(
+      <Toggle variant="pencil" size="mini" pressed aria-label="Reset motto used">
+        Used
+      </Toggle>
+    )
+    const used = screen.getByRole('button', { name: 'Reset motto used' })
+    expect(used.getAttribute('aria-pressed')).toBe('true')
+    // Pressed, the pencil plate inverts in CSS: it never becomes the ink variant.
+    expect(used.className).toContain('su-btn--pencil')
+    expect(used.className).not.toContain('su-btn--ink')
+    expect(used.className).toContain('su-btn--mini')
+  })
 })

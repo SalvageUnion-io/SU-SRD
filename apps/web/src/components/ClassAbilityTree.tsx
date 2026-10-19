@@ -6,12 +6,12 @@ import { resolveClassPlan } from '../lib/classPaths'
 import { cn } from '../lib/cn'
 import { itemHref } from '../lib/entityHref'
 import type { RefText } from '../lib/rollTablePage'
-import { AbilityTrack } from './AbilityTrack'
 import { capsLabel } from './atoms/capsLabel'
 import { Box } from './containers/Box'
 import type { TreeTrack } from './index'
 import { Chips, Head, Slab, Stat, TitledBox } from './index'
 import { MentionProse } from './MentionProse'
+import { ReferenceAbilityTrack } from './ReferenceAbilityTrack'
 import { PAGE_SLAB } from './referenceEntity/card/cardHelpers'
 
 const TREES_LABEL = cn('su-class-brief__trees-label', capsLabel({ tracking: 'snug' }))
@@ -47,7 +47,7 @@ function TreeSection({
   return (
     <section className="su-ability-tree__group">
       <Slab as="h2" label={tree} count={note ?? noteFor(track)} style={PAGE_SLAB} />
-      <AbilityTrack
+      <ReferenceAbilityTrack
         abilities={abilities}
         track={track}
         form={form}

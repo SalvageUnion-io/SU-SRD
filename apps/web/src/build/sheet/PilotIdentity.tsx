@@ -30,16 +30,16 @@
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { Badge, Button, Field, tokens } from '../../components/index'
+import { Badge, Button, Field, Toggle, tokens } from '../../components/index'
 import { resolveClassName } from '../../lib/classRef'
 import { classChangePatch } from '../../lib/rules/classPath'
 import { ClassPathPicker } from '../pilot/ClassPathPicker'
 import { selectableClasses } from '../wizard/classOptions.model'
 import { SheetPickerModal } from './SheetSection'
 import type { SheetPatch } from './sheetViewProps.model'
-import { UsedPip, UsedToggle } from './UsedToggle'
+import { UsedPip } from './UsedPip'
 
-export type UsedToggleKey = 'background' | 'motto' | 'keepsake'
+export type UsedTraitKey = 'background' | 'motto' | 'keepsake'
 
 const USED_CHIP = { gap: tokens.space[6] } satisfies CSSProperties
 
@@ -87,9 +87,10 @@ const PICKER_ACTIONS = {
 // ---------------------------------------------------------------------------
 
 /**
- * A trait's once-per-Downtime flag: the shared `UsedToggle` while editable
- * (live play, not gated behind the section edit), at the Mini Size beside the
- * field's label. Read-only, a static "Used" stamp shows only when set (an
+ * A trait's once-per-Downtime flag: Mark used, a pencil `Toggle` led by the
+ * used pip, while editable (live play, not gated behind the section edit), at
+ * the Mini Size beside the field's label; its words stay "Used", its press
+ * and pip carry the state, and its name says the act. Read-only, a static "Used" stamp shows only when set (an
  * unset one would be a control that isn't).
  */
 function UsedChip({
@@ -111,12 +112,16 @@ function UsedChip({
     )
   }
   return (
-    <UsedToggle
+    <Toggle
+      variant="pencil"
       size="mini"
-      used={used}
-      onToggle={onToggle}
+      pressed={used}
+      glyph={<UsedPip used={used} />}
+      onClick={() => onToggle(!used)}
       aria-label={used ? `Reset ${label} used` : `Mark ${label} used`}
-    />
+    >
+      Used
+    </Toggle>
   )
 }
 
@@ -131,7 +136,7 @@ type PilotIdentityPanelProps = {
    * Edit/Done button (the chead row lives in the card, not here).
    */
   /** Persist a used-flag change; omit on read-only sheets (static stamps). */
-  onToggleUsed?: (key: UsedToggleKey, next: boolean) => void
+  onToggleUsed?: (key: UsedTraitKey, next: boolean) => void
   /** Partial merge on this pilot; omit on read-only sheets (no edit affordance). */
   patch?: SheetPatch
 }
@@ -189,7 +194,7 @@ export function PilotIdentityPanel({ pilot, onToggleUsed, patch }: PilotIdentity
     setClassPickerOpen(false)
   }
 
-  const usedChip = (key: UsedToggleKey, label: string) => (
+  const usedChip = (key: UsedTraitKey, label: string) => (
     <UsedChip
       label={label}
       used={pilot.usedToggles?.[key] ?? false}
