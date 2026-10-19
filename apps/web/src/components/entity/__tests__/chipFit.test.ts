@@ -1,8 +1,9 @@
 /**
- * A contentful Token's chips take at most two lines; past that the second
- * ends in +MORE, which opens its Peek (`chips-and-actions.md` C5, the one
- * exception to C3). `moreFit` is the arithmetic; `fitMore` reads a strip
- * laid out by a stand-in for the browser's flex wrap.
+ * A contentful Token's chips take at most two lines, filling bottom-heavy;
+ * past that the bottom line ends in the cost, then +MORE, which opens its
+ * Peek (`chips-and-actions.md` C5, the one exception to C3). `moreFit` is the
+ * arithmetic; `fitMore` reads a strip laid out by a stand-in for the
+ * browser's flex wrap.
  */
 import { afterEach, describe, expect, test } from 'bun:test'
 import {
@@ -54,17 +55,33 @@ describe('moreFit', () => {
   test('when not one chip fits beside +MORE, none is shown', () => {
     expect(moreFit([80, 80, 80], 90, 84)).toBe(0)
   })
+
+  test('the kept chips (the cost and its slots) always show, the bottom line ending in them and +MORE', () => {
+    // The cost (the last 40) stays: the bottom line holds it and +MORE, the
+    // line above two chips from the front; the rest are dropped.
+    expect(moreFit([40, 40, 40, 40, 40, 40], 30, 84, { keep: 1 })).toBe(2)
+    // Every chip fitting, the count is of the chips before the kept ones.
+    expect(moreFit([40, 40, 40], 30, 84, { keep: 1 })).toBe(2)
+    // Past the two lines with the kept chips alone, none before them shows.
+    expect(moreFit([40, 80, 80, 80], 30, 84, { keep: 2 })).toBe(0)
+  })
 })
 
 /**
  * A contentful Token as `Token` draws it: the head, its strip of lanes (the
  * slot in the last), and +MORE beside the head. `layout` stands in for the
- * browser: the drawn chips wrap left to right in `room`, 18px a line; the
- * strip measures `measured` wide (`room` unless a test says otherwise).
+ * browser: the drawn chips fill bottom-heavy in `room`, 18px a line; the
+ * strip measures `measured` wide (`room` unless a test says otherwise). A
+ * `cost` draws in the cost lane after the others.
  */
 function token(
   widths: number[],
-  { room, more = 30, measured = room }: { room: number; more?: number; measured?: number }
+  {
+    room,
+    more = 30,
+    measured = room,
+    cost,
+  }: { room: number; more?: number; measured?: number; cost?: number }
 ) {
   const el = document.createElement('div')
   el.className = 'su-entity-token'
@@ -73,6 +90,7 @@ function token(
     <a class="su-entity-token__head"><span class="su-entity-token__pill">
       <span class="su-chips su-entity-token__chips">
         <span class="su-chip-lane" data-chip-class="economy">${widths.map((w) => `<span data-w="${w}"></span>`).join('')}</span>
+        ${cost === undefined ? '' : `<span class="su-chip-lane" data-chip-class="cost"><span data-w="${cost}" data-cost></span></span>`}
         <span class="su-chip-lane" data-chip-class="menu"><span class="su-chip-more-slot" hidden></span></span>
       </span>
     </span></a>
@@ -86,11 +104,16 @@ function token(
     !chip.hidden && !chip.hasAttribute('data-chip-over') && (chip !== slot || !slot.hidden)
   const rect = (left: number, top: number, width: number) =>
     ({ left, top, width, height: width ? 18 : 0, right: left + width, bottom: top + 18 }) as DOMRect
+  // Bottom-heavy (`row-reverse`, `wrap-reverse`): the last drawn chip takes
+  // the bottom-right corner, each line fills leftward from the right edge, and
+  // what does not fit rises a line.
   const place = () => {
     const boxes = new Map<HTMLElement, DOMRect>()
+    const placed: { chip: HTMLElement; line: number; right: number; w: number }[] = []
     let x = 0
     let line = 0
-    for (const chip of strip.querySelectorAll<HTMLElement>('[data-w], .su-chip-more-slot')) {
+    const all = [...strip.querySelectorAll<HTMLElement>('[data-w], .su-chip-more-slot')]
+    for (const chip of all.reverse()) {
       if (!drawn(chip)) {
         boxes.set(chip, rect(0, 0, 0))
         continue
@@ -100,9 +123,12 @@ function token(
         line += 1
         x = 0
       }
-      const left = x === 0 ? 0 : x + 4
-      boxes.set(chip, rect(left, line * 22, w))
-      x = left + w
+      const right = x === 0 ? 0 : x + 4
+      placed.push({ chip, line, right, w })
+      x = right + w
+    }
+    for (const p of placed) {
+      boxes.set(p.chip, rect(room - p.right - p.w, (line - p.line) * 22, p.w))
     }
     return boxes
   }
@@ -129,15 +155,30 @@ describe('fitMore', () => {
     t.el.remove()
   })
 
-  test('past two lines the rest go over and +MORE lies on its slot, at the second line’s end', () => {
+  test('past two lines the rest go over and +MORE lies on its slot, at the bottom line’s right end', () => {
     const t = token([40, 40, 40, 40, 40, 40], { room: 84 })
     fitMore(t.el)
     expect(t.over()).toBe(3)
     expect(t.moreEl.hidden).toBe(false)
     expect(t.slot.hidden).toBe(false)
     expect(t.slot.style.width).toBe('30px')
-    // The slot follows the one chip on the second line.
-    expect(t.moreEl.style.getPropertyValue('--su-more-x')).toBe('44px')
+    // The slot takes the bottom-right corner, after the one chip on that line.
+    expect(t.moreEl.style.getPropertyValue('--su-more-x')).toBe('54px')
+    expect(t.moreEl.style.getPropertyValue('--su-more-y')).toBe('22px')
+    t.el.remove()
+  })
+
+  test('the cost is kept: the bottom line ends in the cost, then +MORE', () => {
+    const t = token([40, 40, 40, 40, 40], { room: 84, cost: 40 })
+    fitMore(t.el)
+    const cost = t.strip.querySelector<HTMLElement>('[data-cost]') as HTMLElement
+    expect(cost.hasAttribute('data-chip-over')).toBe(false)
+    // Two chips from the front above; the cost and +MORE on the bottom line.
+    expect(t.over()).toBe(3)
+    const at = cost.getBoundingClientRect()
+    expect(at.top).toBe(22)
+    expect(at.right + 4).toBe(54)
+    expect(t.moreEl.style.getPropertyValue('--su-more-x')).toBe('54px')
     expect(t.moreEl.style.getPropertyValue('--su-more-y')).toBe('22px')
     t.el.remove()
   })

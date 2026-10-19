@@ -15,9 +15,10 @@ const CHIP_GAP = 4
 export const MORE_LINES = 2
 
 /**
- * How many lines `widths` take packed into `room`, each chip whole, or
- * `Infinity` when one chip is wider than the room. Balancing evens the lines
- * out; it never adds one.
+ * How many lines `widths` take packed into `room` in the order given, each
+ * chip whole, or `Infinity` when one chip is wider than the room. A strip
+ * that fills bottom-heavy (from its bottom-right corner) packs from its end:
+ * pass its widths reversed. Balancing evens the lines out; it never adds one.
  */
 export function chipLines(widths: readonly number[], room: number, gap = CHIP_GAP): number {
   let lines = 0
@@ -33,20 +34,32 @@ export function chipLines(widths: readonly number[], room: number, gap = CHIP_GA
 }
 
 /**
- * How many of `widths` a strip shows (C5): every one when they take at most
- * `lines` lines of `room`; else the most, from the front in class order,
- * that take `lines` lines with a +MORE `more` wide after them. A chip is
- * dropped whole from the end, never clipped.
+ * How many of `widths` a contentful Token's strip shows from the front (C5).
+ * Its chips fill bottom-heavy (owner, 2026-10-19): the last chip takes the
+ * bottom-right corner and the lines pack from there, so they are counted from
+ * the strip's end. Every chip shows when they take at most `lines` lines of
+ * `room`. Past that +MORE (`more` wide) takes the corner after the last
+ * `keep` chips (the cost and the slots after it, C2, C8), which always show:
+ * the rest show from the front in class order, as many as take `lines` lines
+ * with them, and the others are dropped whole from the end of that run,
+ * never clipped. Returns how many of the first `widths.length - keep` show.
  */
 export function moreFit(
   widths: readonly number[],
   more: number,
   room: number,
-  { lines = MORE_LINES, gap = CHIP_GAP }: { lines?: number; gap?: number } = {}
+  {
+    lines = MORE_LINES,
+    gap = CHIP_GAP,
+    keep = 0,
+  }: { lines?: number; gap?: number; keep?: number } = {}
 ): number {
-  if (chipLines(widths, room, gap) <= lines) return widths.length
-  for (let shown = widths.length - 1; shown > 0; shown--) {
-    if (chipLines([...widths.slice(0, shown), more], room, gap) <= lines) return shown
+  const front = widths.length - keep
+  const fromEnd = (xs: readonly number[]) => chipLines([...xs].reverse(), room, gap)
+  if (fromEnd(widths) <= lines) return front
+  const tail = widths.slice(front)
+  for (let shown = front - 1; shown > 0; shown--) {
+    if (fromEnd([...widths.slice(0, shown), ...tail, more]) <= lines) return shown
   }
   return 0
 }
@@ -68,15 +81,29 @@ function partsOf(token: HTMLElement) {
   return strip && more && slot ? { strip, more, slot } : undefined
 }
 
-/** The strip's chips, in order: each lane's children (the lanes are `display: contents`). */
-function chipsOf(strip: HTMLElement): HTMLElement[] {
+/**
+ * The lanes whose chips +MORE never drops: the cost and the slots after it
+ * (C2, C8), so the bottom line ends in the cost, then +MORE.
+ */
+const KEPT_LANES = new Set(['cost', 'state', 'uses', 'menu'])
+
+/**
+ * The strip's chips, in order: each lane's children (the lanes are
+ * `display: contents`), and how many at the end are kept (`KEPT_LANES`).
+ */
+function chipsOf(strip: HTMLElement): { chips: HTMLElement[]; keep: number } {
   const chips: HTMLElement[] = []
+  let keep = 0
   for (const lane of strip.children) {
+    const kept = KEPT_LANES.has(lane.getAttribute('data-chip-class') ?? '')
     for (const chip of lane.children) {
-      if (chip instanceof HTMLElement && !chip.matches(MORE_SLOT)) chips.push(chip)
+      if (!(chip instanceof HTMLElement) || chip.matches(MORE_SLOT)) continue
+      chips.push(chip)
+      // A kept chip counts only after the last droppable one.
+      keep = kept ? keep + 1 : 0
     }
   }
-  return chips
+  return { chips, keep }
 }
 
 /** How many lines the drawn chips take: their distinct tops. */
@@ -91,11 +118,11 @@ function linesOf(chips: readonly HTMLElement[]): number {
 }
 
 /**
- * Fit one contentful Token's chips (C5): every chip drawn, wrapping beside
- * the name, while they take at most `MORE_LINES` lines; past that, the chips
- * that fit two lines with +MORE after them, the rest marked over
- * (`data-chip-over`, not drawn) and +MORE laid on its slot, the end of the
- * second line.
+ * Fit one contentful Token's chips (C5): every chip drawn, filling
+ * bottom-heavy beside the name, while they take at most `MORE_LINES` lines;
+ * past that, the chips that fit two lines with +MORE in the corner after the
+ * cost, the rest marked over (`data-chip-over`, not drawn) and +MORE laid on
+ * its slot, the bottom line's right end.
  *
  * It starts from every chip drawn and settles in one pass, so the same width
  * gives the same result: nothing flickers, nothing feeds back.
@@ -104,7 +131,7 @@ export function fitMore(token: HTMLElement): void {
   const parts = partsOf(token)
   if (!parts) return
   const { strip, more, slot } = parts
-  const chips = chipsOf(strip)
+  const { chips, keep } = chipsOf(strip)
   for (const chip of chips) chip.removeAttribute(OVER_ATTRIBUTE)
   more.hidden = true
   slot.hidden = true
@@ -114,10 +141,13 @@ export function fitMore(token: HTMLElement): void {
   const size = (more.firstElementChild ?? more).getBoundingClientRect()
   const gap = Number.parseFloat(getComputedStyle(strip).columnGap) || CHIP_GAP
   const widths = chips.map((chip) => chip.getBoundingClientRect().width)
-  let shown = moreFit(widths, size.width, strip.clientWidth, { gap })
+  const front = chips.length - keep
+  let shown = moreFit(widths, size.width, strip.clientWidth, { gap, keep })
+  // The first `shown` chips, and the kept ones (the cost and its slots).
+  const drawn = (index: number) => index < shown || index >= front
   const draw = () => {
     chips.forEach((chip, index) => {
-      if (index < shown) chip.removeAttribute(OVER_ATTRIBUTE)
+      if (drawn(index)) chip.removeAttribute(OVER_ATTRIBUTE)
       else chip.setAttribute(OVER_ATTRIBUTE, '')
     })
   }
@@ -126,7 +156,7 @@ export function fitMore(token: HTMLElement): void {
   slot.hidden = false
   draw()
   // The strip may settle a little narrower than it measured: drop another.
-  while (shown > 0 && linesOf([...chips.slice(0, shown), slot]) > MORE_LINES) {
+  while (shown > 0 && linesOf([...chips.filter((_, index) => drawn(index)), slot]) > MORE_LINES) {
     shown -= 1
     draw()
   }

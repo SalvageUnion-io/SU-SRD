@@ -16,7 +16,11 @@ const READ_CHIP_CLASSES = CHIP_CLASSES.slice(0, CHIP_CLASSES.indexOf('cost') + 1
  *   (a stretched chip, a hole); in a list's lanes (C6), within each lane.
  * - **flush** a strip whose lines share neither a right edge nor a left one.
  * - **cost** a cost that is not the strip's last read chip, or, last of all,
- *   not on its lowest line and rightmost there.
+ *   not on its lowest line and rightmost there; followed by +MORE alone, not
+ *   right before it there.
+ * - **fill** a contentful Token's line under another that is not full: its
+ *   chips fill bottom-heavy (owner, 2026-10-19), so the chip ending the line
+ *   above would not fit on it.
  * - **unclassed** a chip in no class lane: the strip is not drawn by `Chips`
  *   (`chips-and-actions.md` C2a, hard rule R4).
  * - **order** a chip whose class comes before the one ahead of it: the strip
@@ -32,7 +36,8 @@ const READ_CHIP_CLASSES = CHIP_CLASSES.slice(0, CHIP_CLASSES.indexOf('cost') + 1
  *   contentful Token draws the chips that fit and ends its second line in
  *   +MORE, which opens its Peek.
  * - **more** a +MORE chip anywhere but a contentful Token's strip, or one
- *   that is not its strip's last chip, at the end of its lowest line (C5).
+ *   that is not its strip's last chip, at the end of its lowest line (the
+ *   visual bottom), or one that dropped the strip's cost (C5).
  */
 const STRIP = [
   '.su-entity-stamps',
@@ -280,27 +285,63 @@ function scan({
       faults.push(`lines: ${where} on ${lines.length} lines, at most ${most}${hint}`)
     }
 
-    // MORE: +MORE is the strip's last chip, at the end of its lowest line.
+    // MORE: +MORE is the strip's last chip, at the end of its lowest line
+    // (the visual bottom: `lines` runs top to bottom on the page).
+    const lowest = lines[lines.length - 1] as Box[]
     if (moreChip) {
-      const lowest = lines[lines.length - 1] as Box[]
       if ((lowest[lowest.length - 1] as Box).el !== moreChip) {
         faults.push(`more: ${where} "${describe(moreChip)}" is not at the end of its last line`)
+      }
+      // +MORE drops chips before the cost, never the cost (C2, C5).
+      if (root.querySelector('[data-chip-over] .su-cost, [data-chip-over].su-cost-edge')) {
+        faults.push(`more: ${where} "${describe(moreChip)}" dropped the cost`)
+      }
+    }
+
+    // FILL: a contentful Token's chips fill bottom-heavy (owner, 2026-10-19):
+    // each line under another is full, the chip that ends the line above (the
+    // next in from the corner) too wide to join it.
+    if (token && lines.length > 1) {
+      const s = getComputedStyle(root)
+      const room =
+        root.getBoundingClientRect().width -
+        Number.parseFloat(s.paddingLeft) -
+        Number.parseFloat(s.paddingRight)
+      const gap = Number.parseFloat(s.columnGap) || 0
+      const span = (line: Box[]) => {
+        const first = line[0] as Box
+        const end = line[line.length - 1] as Box
+        return end.x + end.w - first.x
+      }
+      for (let i = 1; i < lines.length; i++) {
+        const above = lines[i - 1] as Box[]
+        const next = above[above.length - 1] as Box
+        const line = lines[i] as Box[]
+        if (span(line) + gap + next.w <= room - 1) {
+          faults.push(
+            `fill: ${where} "${describe(next.el)}" would fit on the line under it (${Math.round(span(line))}px of ${Math.round(room)}px)`
+          )
+        }
       }
     }
 
     // COST: the last read chip in the source (C2: the slots, a state, uses,
     // the menu, may follow it, C8); last of all, on the lowest line,
-    // rightmost there.
+    // rightmost there; with +MORE after it, right before +MORE there.
     const cost = chips.find((el) => el.matches('.su-cost, .su-cost-edge'))
     if (cost) {
       const readChips = chips.filter((el) => read.includes(classOf(el)) || classOf(el) === '')
       const last = chips[chips.length - 1]
-      const lowest = lines[lines.length - 1] as Box[]
       const corner = (lowest[lowest.length - 1] as Box).el
+      const beforeMore = lowest[lowest.length - 2]?.el
       if (readChips[readChips.length - 1] !== cost) {
         faults.push(`cost: ${where} "${describe(cost)}" is not the last read chip`)
       } else if (last === cost && corner !== cost) {
         faults.push(`cost: ${where} "${describe(cost)}" is not at the bottom-right`)
+      } else if (moreChip && chips[chips.length - 2] === cost && beforeMore !== cost) {
+        faults.push(
+          `cost: ${where} "${describe(cost)}" is not right before +MORE at the bottom-right`
+        )
       }
     }
   }
