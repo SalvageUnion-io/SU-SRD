@@ -17,9 +17,8 @@ html[data-srd-signed-in] .su-sign-in {
   display: none;
 }
 
-/* Buttons, masthead, section headers and catalog tiles are the UI library's
-   (`Button`, `AppBar`, `ChapterBand` / `Slab`, `CatalogTile`); no srd
-   class restates them. */
+/* Buttons, masthead and section headers are the UI library's (`Button`,
+   `AppBar`, `ChapterBand` / `Slab`); no srd class restates them. */
 
 /* Shadow wrapper — clip-path kills box-shadow, so shadow lives here */
 .su-pilot-panel-shadow {

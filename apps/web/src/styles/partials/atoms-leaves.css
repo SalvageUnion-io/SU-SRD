@@ -44,40 +44,7 @@
   line-height: calc(1.25 / 0.875);
 }
 
-/* ── ActivationCost, CatalogTile, KofiButton, SearchField, SlotGrid ── */
-/* `atoms/CatalogTile.tsx`: the tile frame, its fill and its hover lift. Only
- * box-shadow and transform transition — the lift is the `translate` property,
- * so it steps rather than slides. The frame is explicit, so the `<button>` tile
- * does not depend on the `button` reset, which would leave it frameless. */
-.su-catalog-tile {
-  border-color: var(--color-ink);
-  border-style: solid;
-  border-radius: var(--radius-card);
-  border-width: var(--bw-chrome);
-  background: var(--catalog-bg);
-  color: var(--color-paper);
-  padding-block: var(--space-12);
-  padding-inline: var(--space-16);
-  text-decoration-line: none;
-  transition-duration: var(--dur-base);
-  transition-property: box-shadow, transform;
-  transition-timing-function: var(--ease);
-}
-
-.su-catalog-tile:hover {
-  box-shadow: var(--shadow-lift);
-  translate: 0 -2px;
-}
-
-.su-catalog-tile__label {
-  background-color: var(--catalog-label);
-  border-radius: var(--radius-badge);
-  display: inline-block;
-  padding-block: var(--space-2);
-  padding-inline: var(--space-10);
-  text-shadow: none;
-}
-
+/* ── ActivationCost, KofiButton, SearchField, SlotGrid ── */
 /* `atoms/SearchField.tsx`: the bordered shell and its input. Callers restyle
  * both by className (`containerClassName`, `className`), so neither is inline. */
 .su-search-field {

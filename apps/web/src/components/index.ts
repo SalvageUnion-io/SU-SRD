@@ -49,7 +49,6 @@ export { BandTitle } from './atoms/BandTitle'
 export { BreadcrumbTrail } from './atoms/BreadcrumbTrail'
 export { Button } from './atoms/Button'
 export { buttonVariants } from './atoms/buttonVariants'
-export { CatalogTile } from './atoms/CatalogTile'
 // ChapterBand — the page title notched into a band in the chapter's colour
 export { ChapterBand } from './atoms/ChapterBand'
 export { ChapterBandTrail } from './atoms/ChapterBandTrail'
@@ -113,7 +112,6 @@ export { useCopied } from './atoms/useCopied'
 export { USER_MADE_HATCH } from './atoms/userMadeHatch'
 // Stat trackers (The app design handoff — design-spec §2.7)
 export { VitalGauge } from './atoms/VitalGauge'
-export { buildCatalogSections } from './catalog/catalogSections'
 // AbilityTrack — an ability tree on its track (tier numerals, a Legendary
 // tree's "or"): the SRD's class page and abilities Tree, the app's pilot sheet.
 export { AbilityTrack } from './compositions/AbilityTrack'
@@ -128,6 +126,11 @@ export { AppBar } from './compositions/AppBar'
 export { assetSrcSetFor } from './compositions/assetSrcSet'
 // BrandCard — the site's own 1200 × 630 link preview, the Discord banner's face.
 export { BrandCard } from './compositions/BrandCard'
+// The searcher picker's modal width — for a bare ModalShell wrapping an
+// EntitySearcher (The app's SheetPickerModal applies it itself).
+// ContentsChapter — a chapter of the Contents: the SRD home's index, the Mediator's Reference
+export type { ContentsRow } from './compositions/ContentsChapter'
+export { ContentsChapter } from './compositions/ContentsChapter'
 export { heroImageSizes } from './compositions/cardImageSizes'
 // digestRollTable — a banded d20 table as rows, highest first (the book's order);
 // digestColumnsTable — a two-roll columns table (Callsign) as its columns
@@ -156,8 +159,6 @@ export {
 } from './compositions/ogCardText'
 // PickDialog — the one pick dialog (ruleset §6.6): Rows in select mode, one radio group.
 export { PickDialog } from './compositions/PickDialog'
-// The searcher picker's modal width — for a bare ModalShell wrapping an
-// EntitySearcher (The app's SheetPickerModal applies it itself).
 // RollTableInstrument — THE roll table (EDL E14): a card's, a guide step's and
 // the SRD roll-table page's bands and the app's Play tables, banded in the
 // surface tone

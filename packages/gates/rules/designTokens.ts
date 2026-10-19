@@ -441,18 +441,6 @@ const EXEMPTIONS: Exemption[] = [
       'The user-made hatch (ruleset §3.5 and §3.9): a HARD-STOP `repeating-linear-gradient(135deg, …)` — coincident stops on `--color-ink-20` over the band\'s own colour — so it paints rules and never blends. Ruled in the ruleset before it was built ("it joins EXEMPTIONS when it lands"); alone in its file so the exemption covers this one constant.',
   },
   {
-    file: 'apps/web/src/components/catalog/catalogColors.ts',
-    rules: ['gradient'],
-    reason:
-      "All three gradients are HARD-STOP patterns, which the gradient rule's own fix text allows ('hard colour stops if you mean a pattern') — the tech-level ramp repeats each --color-tl-N twice at exact boundaries, and the ability-tier / class gradients do the same. No shading, and every stop is a token. A catalog tile stands in for a whole SPREAD of entities (six tech levels, three ability tiers, core→hybrid classes) rather than one hue, which is what the banding says. Not new code: this file lived in apps/web, which the guard does not scan, and only became visible when it moved into the shared library to be shared with Play's SRD Explorer.",
-  },
-  {
-    file: 'apps/web/src/components/atoms/CatalogTile.tsx',
-    rules: ['gradient'],
-    reason:
-      'Named exemption in ruleset §3.5: the catalog tile ramps (--catalog-bg) carry the tech-level and ability-tier ramps. The ramp is a wayfinding cue, not decoration. The only match is the doc comment explaining WHY the fill must use the `background` shorthand — it names the `linear-gradient()` that `background-color` silently drops. That comment is the reason the bug stays fixed, so it is not reworded to dodge the regex.',
-  },
-  {
     file: 'apps/web/src/styles/global.css',
     rules: ['gradient', 'raw-color', 'raw-border-width', 'raw-shadow'],
     reason:

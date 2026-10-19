@@ -1,24 +1,23 @@
 /**
  * SrdExplorer — the reference, inside Play (the Mediator's ⋯ › Reference).
  *
- * Functionally the **srd landing page, minus the site header**: the same
- * category sections and the same `CatalogTile`s, built from the same
- * `buildCatalogSections()` the landing page and top nav use, so a schema added
- * to the SRD catalog appears here too.
+ * Functionally the **SRD's home page, minus the site header**: the same
+ * Contents chapters (`ContentsChapter`), built from the same `buildChapters()`
+ * the home page's index uses, so a schema added to the SRD appears here too.
  *
  * Three views, every one of them a shared src/components surface:
  *
- *  1. **Home** — the catalog, with search above it. Search is the UI library's
+ *  1. **Home** — the Contents, with search above it. Search is the UI library's
  *     `useSearchCombobox` (the hook behind the site's
- *     SearchIsland) in the shared `SearchField`; tiles **drill in place**
- *     (`onActivate`) rather than navigating, which would leave Play.
+ *     SearchIsland) in the shared `SearchField`; a row **drills in place**
+ *     (its `onOpen`) rather than following its link, which would leave Play.
  *  2. **Category** — that schema in `EntitySearcher`: its text search and
  *     tech-level / trait facets, the pool as Tokens. `mode="browse"`:
  *     nothing is being picked, so there is no rail and a Token's click opens it.
  *  3. **Entity** — the faithful `ReferenceEntityCard`, with a way back.
  *
- * Preload hazard: the catalog and the schema listings read the ORM, so they are
- * built only once `useGameData()` is `ready` — never at module scope.
+ * Preload hazard: the chapters and the schema listings read the ORM, so they
+ * are built only once `useGameData()` is `ready` — never at module scope.
  */
 
 import type { CSSProperties } from 'react'
@@ -27,38 +26,35 @@ import type { RefEntity, RefEnumSchemaName } from 'salvageunion-reference'
 import { isSchemaName, SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import {
   Button,
-  buildCatalogSections,
-  CatalogTile,
+  ContentsChapter,
   EntitySearcher,
   Pending,
   ReferenceEntityCard,
   SearchField,
   SearchListbox,
-  SlabSection,
   Stack,
   tokens,
   useSearchCombobox,
 } from '../../components/index'
+import { buildChapters } from '../../lib/chapters'
 import { useGameData } from '../../lib/useGameData'
 
 const HIDE_CHOICES = { choices: true } as const
 const NOTHING_SELECTED: string[] = []
 
-const STACK = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[12],
+/**
+ * The chapters as the home page sets them: columns of at least 15rem, filled
+ * down then across. The panel's own width, not the window's, picks how many.
+ */
+const CHAPTERS = {
+  columnGap: tokens.space[24],
+  columns: '3 15rem',
 } satisfies CSSProperties
 
-const SECTIONS = { ...STACK, gap: tokens.space[16] } satisfies CSSProperties
-
-/** auto-fill rather than the landing page's viewport breakpoints: those measure
- * the WINDOW, so a narrow display panel on a wide screen would be handed three
- * columns of unreadably small tiles. auto-fill tracks the panel's own width. */
-const TILE_GRID = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-  gap: tokens.space[8],
+/** Multi-column has no row gap, so each chapter carries its own. */
+const CHAPTER = {
+  breakInside: 'avoid',
+  marginBlockEnd: tokens.space[24],
 } satisfies CSSProperties
 
 /** The results under the field: a panel of their own, scrolling past its height. */
@@ -70,7 +66,7 @@ const LISTBOX = {
 
 const BACK_ROW = { marginBottom: tokens.space[10] } satisfies CSSProperties
 
-/** Home view: the search box + the SRD catalog's category sections. */
+/** Home view: the search box + the SRD's Contents chapters. */
 function SrdHome({
   ready,
   onPickSchema,
@@ -103,8 +99,8 @@ function SrdHome({
     },
   })
 
-  // Only built once the ORM is ready — `buildCatalogSections` reads it.
-  const sections = useMemo(() => (ready ? buildCatalogSections() : []), [ready])
+  // Only built once the ORM is ready — `buildChapters` reads it.
+  const chapters = useMemo(() => (ready ? buildChapters() : []), [ready])
 
   // Open once a search has run: its results, or the searcher's empty line.
   const open = hasSearched && query.trim() !== ''
@@ -147,32 +143,20 @@ function SrdHome({
       </div>
 
       {ready ? (
-        <div style={SECTIONS}>
-          {sections.map((section) => (
-            <SlabSection as="h2" title={section.label} key={section.label}>
-              <div style={TILE_GRID}>
-                {section.schemas.map((card) => (
-                  <CatalogTile
-                    key={card.id}
-                    name={card.label}
-                    catalogBg={card.catalogBg}
-                    catalogLabel={card.catalogLabel}
-                    onActivate={() => {
-                      if (card.kind === 'schema') {
-                        onPickSchema(card.schemaName, card.label)
-                        return
-                      }
-                      if (!isSchemaName(card.schemaName)) return
-                      const entity = SalvageUnionReference.findIn(
-                        card.schemaName,
-                        (e) => e.id === card.id
-                      )
-                      if (entity) onPickEntity(entity)
-                    }}
-                  />
-                ))}
-              </div>
-            </SlabSection>
+        <div style={CHAPTERS}>
+          {chapters.map((chapter) => (
+            <div key={chapter.id} style={CHAPTER}>
+              <ContentsChapter
+                id={`srd-explorer-${chapter.id}`}
+                title={chapter.title}
+                tone={chapter.tone}
+                total={chapter.total}
+                rows={chapter.rows.map((row) => ({
+                  ...row,
+                  onOpen: () => onPickSchema(row.schemaId, row.label),
+                }))}
+              />
+            </div>
           ))}
         </div>
       ) : (

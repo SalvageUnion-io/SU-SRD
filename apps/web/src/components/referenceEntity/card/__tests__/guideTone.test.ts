@@ -2,9 +2,8 @@
  * EVERY GUIDE WEARS RULES BLUE, as its page's band does (owner's call,
  * 2026-10-14): the guides index reads as one chapter, not a card per hue.
  *
- * The SRD index paints each guide's catalog tile through `entityGuideToneColor`
- * (`catalogHelpers.ts` → `catalogBg`), and `resolveDomainTone` reads the same
- * for the card the tile opens. These tests pin both halves of that contract:
+ * A guide's card reads its hue through `entityGuideToneColor`, which
+ * `resolveDomainTone` applies. These tests pin that contract:
  *
  * 1. the hue arrives as `bgColor`, NOT as `bg` (the domain tone) — `bgColor`
  *    wins over `bg` on the band, and only `bgColor` reaches a choice region and
@@ -25,7 +24,7 @@ import { entityGuideToneColor, resolveDomainTone } from '../entityCardTone'
 
 const guides = SalvageUnionReference.Guides.all()
 
-describe('guide tone — the card matches the index tile', () => {
+describe('guide tone — every guide card wears rules blue', () => {
   test('the dataset actually exercises this (guides exist, each with a type)', () => {
     expect(guides.length).toBeGreaterThan(0)
     expect(guides.every((guide) => typeof guide.guideType === 'string')).toBe(true)

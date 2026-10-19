@@ -51,7 +51,7 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
    3. **§3.3 State is a treatment, not a hue** — strike / X / redline ride on the ontology hue; `status-bad` is the one damaged / redline / over-cap colour.
    4. **§3.4 Roll-tier colours are Discord-bot-only** — the web shows a readout and a row mark that is the same for every outcome. The bot's tiers are warm (brick, ember, ochre, olive, slate).
    5. **§3.5 No gradient shading; closed colour set** — no colour outside §4; hard-stop patterns on §4 tokens are fine, smooth interpolation is not (half-fills and X's are `clip-path` + SVG).
-      Each sanctioned pattern (tile ramps, user-made hatch) is in `EXEMPTIONS` (`packages/gates/rules/designTokens.ts`).
+      Each sanctioned pattern (the user-made hatch) is in `EXEMPTIONS` (`packages/gates/rules/designTokens.ts`).
       1. **Texture: the light speckle** — on every brand-colour ground, the Cockpit and Peek too: ink speckle on colour bands and tone headers; paper flecks on dark and ink headers and unit stamps.
          Never on paper, cream, Play's ink-deep ground, buttons or fields.
       2. **One shading exemption** — the `.su-pilot-panel` illustration on srd's `/about`. A one-off, not precedent.

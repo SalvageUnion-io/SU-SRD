@@ -1,6 +1,5 @@
 import type { ComponentProps } from 'react'
-import type { ChapterTone } from '../components/index'
-import { Button, CHAPTER_BAND_COLOR, StartHere, ToneStrip } from '../components/index'
+import { Button, StartHere } from '../components/index'
 
 /**
  * The home page as the manual's Contents page (board 06): the book's chapters
@@ -10,47 +9,9 @@ import { Button, CHAPTER_BAND_COLOR, StartHere, ToneStrip } from '../components/
  * that leaves no hole under a short chapter); and "Start here" with the Discord
  * bot's button under it in a right-hand sidebar. On a phone "Start here" and the
  * button follow the index. Server-rendered and
- * static: every row is a plain link.
- *
- * Rows are 36px for a fine pointer and 44px under `(pointer: coarse)` or on a phone width (the
- * repo's touch floor, ruleset §4.6) — `global.css`'s `.su-contents__row`.
+ * static: every row is a plain link. The chapters are `ContentsChapter`, which
+ * the Mediator's Reference draws too.
  */
-
-/** One row of the index: an entry and, for a chapter's catalog, its count. */
-export type ContentsRow = { label: string; href: string; count?: number }
-
-type ContentsChapterProps = {
-  id: string
-  title: string
-  /** The band's colour: a chapter's tone, or ink for a section of rules. */
-  tone: ChapterTone | 'ink'
-  rows: ContentsRow[]
-  total?: number
-}
-
-/** One section of the index: its colour band; its name and count; its rows. */
-export function ContentsChapter({ id, title, tone, rows, total }: ContentsChapterProps) {
-  const headingId = `${id}-heading`
-  return (
-    <section id={id} className="su-contents__chapter" aria-labelledby={headingId}>
-      <ToneStrip color={tone === 'ink' ? 'var(--color-ink)' : CHAPTER_BAND_COLOR[tone]} />
-      <h2 id={headingId} className="su-contents__heading">
-        <span>{title}</span>
-        {total !== undefined && <span className="su-contents__total">{total}</span>}
-      </h2>
-      <ul className="su-contents__rows">
-        {rows.map((row) => (
-          <li key={row.href}>
-            <a href={row.href} className="su-contents__row">
-              <span>{row.label}</span>
-              {row.count !== undefined && <span className="su-contents__count">{row.count}</span>}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </section>
-  )
-}
 
 /**
  * The path in for a new player: the shared "Start here" block both tools show

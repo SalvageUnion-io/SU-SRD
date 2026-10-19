@@ -1,14 +1,14 @@
 /**
- * Tests for SrdExplorer — the reference inside Play. It renders the srd
- * landing page's catalog without the site header, so the assertions are
- * against `buildCatalogSections()` (the shared source) rather than a
- * hand-listed set of tiles, which would drift from it. Reference content needs
- * the ORM, so preload('all') runs once.
+ * Tests for SrdExplorer — the reference inside Play. It renders the SRD home
+ * page's Contents without the site header, so the assertions are against
+ * `buildChapters()` (the shared source) rather than a hand-listed set of
+ * rows, which would drift from it. Reference content needs the ORM, so
+ * preload('all') runs once.
  */
 
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, waitFor } from '@testing-library/react'
-import { buildCatalogSections } from '../../../components/index'
+import { buildChapters } from '../../../lib/chapters'
 import { SrdExplorer } from '../SrdExplorer'
 
 // Unmounting between tests is handled globally: the workspace's bunfig preloads
@@ -31,14 +31,19 @@ function renderSrd() {
   return render(<SrdExplorer />)
 }
 
-/** Every catalog tile: the buttons inside the category sections. */
-function tiles(container: HTMLElement): HTMLButtonElement[] {
-  return [...container.querySelectorAll('section button')].map(mustButton)
+/** Every Contents row: the links inside the chapters. */
+function rows(container: HTMLElement): HTMLAnchorElement[] {
+  return [...container.querySelectorAll<HTMLAnchorElement>('a.su-contents__row')]
 }
 
-/** Find a catalog tile by its visible name. */
-function tile(container: HTMLElement, name: string): HTMLButtonElement {
-  return mustButton(tiles(container).find((b) => b.textContent?.trim() === name))
+/** A Contents row's label, without its count. */
+const rowLabel = (row: HTMLAnchorElement) => row.querySelector('span')?.textContent?.trim()
+
+/** Find a Contents row by its label. */
+function row(container: HTMLElement, name: string): HTMLAnchorElement {
+  const found = rows(container).find((r) => rowLabel(r) === name)
+  if (!found) throw new Error(`no Contents row "${name}"`)
+  return found
 }
 
 /** The category view is the shared EntitySearcher; its pool Tokens carry this. */
@@ -53,12 +58,12 @@ function back(container: HTMLElement): HTMLButtonElement {
   )
 }
 
-/** The category view's close badge, which returns to the catalog. */
+/** The category view's close badge, which returns to the Contents. */
 function close(container: HTMLElement): HTMLButtonElement {
   return mustButton(container.querySelector('button[aria-label="Close"]'))
 }
 
-const sections = () => buildCatalogSections()
+const chapters = () => buildChapters()
 
 /**
  * The listing the drill-in tests open: Crawlers, 5 entries. What these tests
@@ -69,30 +74,26 @@ const sections = () => buildCatalogSections()
 const LISTING = 'Crawlers'
 
 describe('SrdExplorer', () => {
-  test('renders a search box + every catalog section and tile', () => {
+  test('renders a search box + every Contents chapter and row', () => {
     const { container } = renderSrd()
     expect(container.querySelector('input[role="combobox"]')).toBeTruthy()
 
-    const expected = sections()
-    const headings = [...container.querySelectorAll('section h2')].map((h) => h.textContent?.trim())
-    expect(headings).toEqual(expected.map((s) => s.label))
-
-    expect(tiles(container).map((b) => b.textContent?.trim())).toEqual(
-      expected.flatMap((s) => s.schemas.map((c) => c.label))
+    const expected = chapters()
+    const headings = [...container.querySelectorAll('section h2 > span:first-child')].map((h) =>
+      h.textContent?.trim()
     )
+    expect(headings).toEqual(expected.map((c) => c.title))
+
+    expect(rows(container).map(rowLabel)).toEqual(
+      expected.flatMap((c) => c.rows.map((r) => r.label))
+    )
+    // Each row is still a real link to its listing page.
+    expect(row(container, 'Classes').getAttribute('href')).toBe('/classes/')
   })
 
-  test('the catalog covers schemas the old hand-listed tiles missed', () => {
+  test('picking a row lists that category in the shared searcher, in place', () => {
     const { container } = renderSrd()
-    // Classes / Crawlers / Traits are in the SRD catalog but had no tile here.
-    expect(tile(container, 'Classes')).toBeTruthy()
-    expect(tile(container, 'Crawlers')).toBeTruthy()
-    expect(tile(container, 'Traits')).toBeTruthy()
-  })
-
-  test('picking a schema tile lists that category in the shared searcher', () => {
-    const { container } = renderSrd()
-    fireEvent.click(tile(container, LISTING))
+    fireEvent.click(row(container, LISTING))
     expect(container.querySelector('.su-searcher')).toBeTruthy()
     expect(container.textContent).toContain(LISTING)
     expect(poolCards(container).length).toBeGreaterThan(0)
@@ -102,7 +103,7 @@ describe('SrdExplorer', () => {
 
   test('picking a Token drills into a reference card, back returns to the list', () => {
     const { container } = renderSrd()
-    fireEvent.click(tile(container, LISTING))
+    fireEvent.click(row(container, LISTING))
     const [first] = poolCards(container)
     if (!first) throw new Error('no pool cards')
     const name = first.querySelector('.su-entity-token__name')?.textContent
@@ -117,22 +118,13 @@ describe('SrdExplorer', () => {
     expect(poolCards(container).length).toBeGreaterThan(0)
   })
 
-  test('a flat (guide) tile opens that entity outright', () => {
+  test('the category close badge returns to the Contents', () => {
     const { container } = renderSrd()
-    fireEvent.click(tile(container, 'Heat'))
-    // Guides are single entities, so there is no intermediate listing.
-    expect(container.querySelector('.su-searcher')).toBeNull()
-    expect(tiles(container)).toHaveLength(0)
-    expect(back(container)).toBeTruthy()
-  })
-
-  test('the category close badge returns to the catalog', () => {
-    const { container } = renderSrd()
-    fireEvent.click(tile(container, LISTING))
+    fireEvent.click(row(container, LISTING))
     expect(container.querySelector('.su-searcher')).toBeTruthy()
     fireEvent.click(close(container))
-    // Back at the catalog.
-    expect(tiles(container).length).toBe(sections().reduce((n, s) => n + s.schemas.length, 0))
+    // Back at the Contents.
+    expect(rows(container).length).toBe(chapters().reduce((n, c) => n + c.rows.length, 0))
   })
 
   test('search surfaces results and picking an entity drills in', async () => {
