@@ -237,6 +237,8 @@ export type { EntitySurfaceValue } from './entity/entitySurfaceContext'
 // or long-press.
 export { Mention } from './entity/forms/Mention'
 export { InfoCutout } from './entity/InfoCutout'
+// Select mode's one dim (hard rule R15): a pick an app draws by hand dims with it.
+export { SELECT_DIM } from './entity/modes/selectedRing'
 export type { PeekLoader } from './entity/Peek'
 export { PeekHost } from './entity/Peek'
 export type { PageRefCandidate, PageRefIndex } from './entity/pageRefs'

@@ -46,7 +46,7 @@ export const OVER_BUDGET: Readonly<Record<string, number>> = {
   'apps/web/convex/entities.ts': 852,
   'apps/web/convex/model/entities.ts': 912,
   'apps/web/convex/schema.ts': 608,
-  'apps/web/src/build/npc/AnyNpcDesigner.tsx': 774,
+  'apps/web/src/build/npc/AnyNpcDesigner.tsx': 771,
   'apps/web/src/build/npc/CrewBoard.tsx': 654,
   'apps/web/src/build/sheet/CrawlerEconomyControl.tsx': 670,
   'apps/web/src/build/sheet/PilotSheet.tsx': 602,

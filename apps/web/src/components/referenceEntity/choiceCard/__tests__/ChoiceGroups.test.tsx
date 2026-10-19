@@ -92,6 +92,11 @@ describe('ChoiceGroups — uncontrolled (ephemeral) state', () => {
       />
     )
     expect(screen.queryByRole('button')).toBeNull()
+    // Level 2 is ring only (hard rule R15): the chosen option is ringed, and
+    // says so to a screen reader alone, never in a visible seal.
+    const chosen = screen.getByText('Chosen')
+    expect(chosen.className).toBe('su-sr-only')
+    expect(chosen.parentElement?.style.boxShadow).toBe('0 0 0 3px var(--color-ink)')
     expect(screen.getAllByText('Chosen')).toHaveLength(1)
   })
 })

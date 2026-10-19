@@ -44,7 +44,7 @@ The loop: define it here, land its gate with a baseline, burn the baseline to ze
 - **R11 One Live Sheet grammar** (§0, §1.2) — pilot, mech, crawler and NPC share the shell: Read | Edit, SheetHero, full-word vitals (`bookStats`), corner actions, one remove control, one unit-out treatment; Read omits what is empty.
   Gate: planned, a per-kind e2e over the four sheets.
 - **R15 One select mode** (EDL Modes) — ring and seal at level 1, ring only at level 2, one dim, one choice a radio.
-  Gate: planned, a Card seal unit test; no `opacity` literal in pickers.
+  Gate: held. `cardSelectSeal.test.tsx` pins a selected Card's "Selected" seal (its default, no prop asked), a Token's ring alone and `SELECT_DIM`; the `select-mode` rule set (zero, `packages/gates/rules/selectMode.ts`): `picker-opacity`, no `opacity` in a file that draws a select, nor in a stylesheet rule keyed on a pick's state (the one dim is `SELECT_DIM`, `.su-select-dim`); `level-2-seal`, `SelectedSeal` only on a level-1 form (`SEAL_HOSTS`: Row, the Card's rail, `Sel`, the searcher's list). A single choice is a radio: `AnyNpcDesigner.test.tsx` pins the template step's radio group.
 - **R16 One component per chrome role** (§0, §3.12) — WizShell, `Input` and `Field`'s one label, BreadcrumbTrail, `Pending`, one offline notice, the outlined `Button` (on an ink ground, its paper outline by R19); one verb per act (Move, Delete), Reference never SRD.
   Gate: planned, raw `<input>`/`<textarea>` outside the atoms; `aria-label="Breadcrumb"` only in BreadcrumbTrail; `aria-current="step"` only in WizShell; banned copy variants.
 - **R18 Same content, same block** (E15, N5) — a rules block renders through one component in every context.

@@ -19,8 +19,9 @@ export function CardTopRail({
   selectionSeal: string | undefined
 }) {
   // Selection seal — select mode's ink seal (EDL Modes: "ink ring and
-  // 'Selected' seal"; §3.3: a state is a treatment, not a hue), in the
-  // caller's word, when selected (the picker-cell affordance).
-  const selectionSealNode = selected && selectionSeal ? <SelectedSeal word={selectionSeal} /> : null
+  // 'Selected' seal"; §3.3: a state is a treatment, not a hue): a selected
+  // Card always wears it, "Selected" unless the caller names its own word
+  // (hard rule R15). A Token (level 2) draws no rail, so it is ring only.
+  const selectionSealNode = selected ? <SelectedSeal word={selectionSeal} /> : null
   return <CardControlRail controls={controls} seals={[selectionSealNode]} />
 }

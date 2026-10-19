@@ -237,10 +237,13 @@ describe('CrawlerSheet — bay choice cards (Slice B)', () => {
     expandCards()
 
     // Read-only inside the bay card (level 2, N1): each option is a Slab over
-    // its text, not a button, and only the persisted pick wears "Chosen".
+    // its text, not a button, and only the persisted pick is ringed, "Chosen"
+    // to a screen reader alone (hard rule R15: level 2 is never sealed).
     expect(screen.queryByRole('button', { name: /Missile Pod|Autocannon/i })).toBeNull()
-    const seal = screen.getByText('Chosen')
-    expect(seal.parentElement?.parentElement?.textContent).toContain('Missile Pod')
+    const mark = screen.getByText('Chosen')
+    expect(mark.className).toBe('su-sr-only')
+    expect(mark.parentElement?.style.boxShadow).toBe('0 0 0 3px var(--color-ink)')
+    expect(mark.parentElement?.textContent).toContain('Missile Pod')
     expect(screen.getAllByText('Chosen')).toHaveLength(1)
     expect(screen.getByText(/Autocannon/)).toBeTruthy()
   })

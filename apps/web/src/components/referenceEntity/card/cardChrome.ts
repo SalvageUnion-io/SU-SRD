@@ -13,7 +13,7 @@ import { foregroundOn } from '../../../design/contrast'
 import { cn } from '../../../lib/cn'
 import { activateOnKey, FOCUS_RING } from '../../atoms/interaction'
 import type { CardSize } from '../../containers/displayMode'
-import { SELECTED_RING } from '../../entity/modes/selectedRing'
+import { SELECT_DIM, SELECTED_RING } from '../../entity/modes/selectedRing'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
 import { onTone, textBand } from '../referenceEntityHelpers'
 import type { CardOuterProps } from './CardOuter'
@@ -198,7 +198,7 @@ export function resolveCardInteraction({
   const outerClassName = cn(
     'su-ec-outer',
     disabled && 'su-ec-outer--dim',
-    selectable === false && 'su-ec-outer--unselectable',
+    selectable === false && SELECT_DIM,
     // Flat chrome (brand refresh P2a): a clickable card says so with the pointer, not by
     // lifting and scaling off the page.
     isHoverable && 'su-ec-outer--clickable',

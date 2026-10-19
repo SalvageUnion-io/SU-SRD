@@ -57,15 +57,6 @@
   font-size: var(--text-note);
   color: var(--color-wk-muted);
 }
-.su-dash-deck-radio {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-6);
-  font-family: var(--font-body);
-  font-size: var(--text-caption);
-  color: var(--color-ink);
-  cursor: pointer;
-}
 .su-dash-deck-hotx {
   display: flex;
   align-items: center;

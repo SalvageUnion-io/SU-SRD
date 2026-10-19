@@ -191,7 +191,6 @@ export function MechChassisStep({
               onToggle={onSelectCustom}
               ariaLabel="Custom build"
               radio
-              className={isCustom ? 'su-wiz-custom-build-ring' : undefined}
             >
               <div style={CUSTOM_CARD}>
                 <p style={CUSTOM_TITLE}>Custom build</p>

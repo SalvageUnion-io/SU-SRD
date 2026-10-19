@@ -16,9 +16,6 @@ import { classPathConsequence, classPathGroups } from '../../lib/rules/classPath
 import { Callout, Entity, RadioCardGroup, ReferenceEntityCard, Slab, Stack, tokens } from '../../components/index'
 import '../../styles/build/wizard.css'
 
-/** An unreachable (off-ring) class, demoted but still pickable. */
-const DIMMED = { opacity: 0.7 } satisfies CSSProperties
-
 /** The caps note under a class card ("current", "via Hacker", …). */
 const OPTION_NOTE = {
   margin: `0 0 ${tokens.space[8]}`,
@@ -82,7 +79,7 @@ function OptionCard({
   onSelect: () => void
 }) {
   return (
-    <div style={dimmed && !selected ? DIMMED : undefined}>
+    <div>
       <ReferenceEntityCard
         data={cls}
         size="compact"
@@ -90,6 +87,9 @@ function OptionCard({
         className="su-wiz-class-card"
         selected={selected}
         selectionRole="radio"
+        // An unreachable (off-ring) class is demoted but still pickable: the
+        // one select dim (hard rule R15) until it is the pick.
+        selectable={!dimmed || selected}
         cardClickLabel={note === undefined ? cls.name : `${cls.name}, ${note}`}
         onCardClick={onSelect}
       />

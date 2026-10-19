@@ -2,7 +2,7 @@
 /**
  * Rule-set gates — `bun run check styling` and `bun run check copy`.
  *
- * One engine (`packages/gates/lib/ruleEngine.ts`), one runner, nine rule sets:
+ * One engine (`packages/gates/lib/ruleEngine.ts`), one runner, ten rule sets:
  *
  *   - `tokens`       — design-token laws (packages/gates/rules/designTokens.ts)
  *   - `chrome-tokens` — rails, dashes, motion, breakpoints (packages/gates/rules/chromeTokens.ts)
@@ -12,9 +12,10 @@
  *   - `class-prefix` — every package and app class is `su-*` (packages/gates/rules/classPrefix.ts)
  *   - `entity-nesting` — entities nest three levels deep, no titled box inside one (packages/gates/rules/entityNesting.ts)
  *   - `chrome`       — chrome.md's laws: one ground signal, one focus ring (packages/gates/rules/chrome.ts)
+ *   - `select-mode`  — hard rule R15: one select dim, no level-2 seal (packages/gates/rules/selectMode.ts)
  *   - `copy`         — game terms capitalised as the book does (packages/gates/rules/copyTerms.ts)
  *
- * The `styling` check runs the first eight (`--only=` their ids), the `copy`
+ * The `styling` check runs the first nine (`--only=` their ids), the `copy`
  * check the last; tools/check.ts registers both.
  *
  * Why these gates exist at all: none of what they catch fails typecheck, lint or
@@ -57,6 +58,7 @@ import { classPrefix } from 'gates/rules/classPrefix'
 import { copyTerms } from 'gates/rules/copyTerms'
 import { designTokens } from 'gates/rules/designTokens'
 import { entityNesting } from 'gates/rules/entityNesting'
+import { selectMode } from 'gates/rules/selectMode'
 import { srdCss } from 'gates/rules/srdCss'
 import { stylingOwnership } from 'gates/rules/stylingOwnership'
 import { toneGround } from 'gates/rules/toneGround'
@@ -74,6 +76,7 @@ const RULE_SETS: readonly RuleSet[] = [
   classPrefix,
   entityNesting,
   chromeLaws,
+  selectMode,
   copyTerms,
 ]
 

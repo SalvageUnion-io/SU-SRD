@@ -2,6 +2,8 @@ import type { CSSProperties, ReactNode } from 'react'
 import { radius } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { activateOnKey, FOCUS_RING, SELECTION_RING } from '../atoms/interaction'
+import { SelectedSeal } from '../entity/modes/select'
+import { CardControlRail } from './CardControlRail'
 import { RadioCard } from './RadioCardGroup'
 
 type SelProps = {
@@ -22,13 +24,15 @@ type SelProps = {
   radio?: boolean
 }
 
-const RING = { borderRadius: radius.panel } satisfies CSSProperties
+const RING = { borderRadius: radius.panel, position: 'relative' } satisfies CSSProperties
 const RING_INTERACTIVE = { ...RING, cursor: 'pointer' } satisfies CSSProperties
 
 /**
- * Selection ring wrapper for entity cards in wizards (design-spec §2.8 Sel):
- * a non-layout-shifting 3px ink box-shadow ring around the card. The card
- * itself stays selection-agnostic.
+ * Select mode for a level-1 pick that is no entity (a wizard's "Custom build",
+ * an NPC's "Start blank"; design-spec §2.8 Sel): selected, the non-layout-
+ * shifting 3px ink ring around its frame and the "Selected" seal riding the
+ * frame's top-right, as a selected Card wears them (hard rule R15). The
+ * content itself stays selection-agnostic.
  */
 export function Sel({
   selected,
@@ -41,6 +45,7 @@ export function Sel({
   const interactive = !!onToggle
   const ringClass = cn(interactive && FOCUS_RING, selected && SELECTION_RING, className)
   const ringStyle = interactive ? RING_INTERACTIVE : RING
+  const seal = selected ? <CardControlRail seals={[<SelectedSeal key="seal" />]} /> : null
   if (radio && onToggle) {
     return (
       <RadioCard
@@ -50,6 +55,7 @@ export function Sel({
         className={ringClass}
         style={ringStyle}
       >
+        {seal}
         {children}
       </RadioCard>
     )
@@ -67,6 +73,7 @@ export function Sel({
       className={ringClass}
       style={ringStyle}
     >
+      {seal}
       {children}
     </div>
   )

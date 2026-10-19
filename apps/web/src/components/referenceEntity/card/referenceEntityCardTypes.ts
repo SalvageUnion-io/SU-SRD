@@ -125,12 +125,14 @@ export type ReferenceEntityCardProps = {
   disabled?: boolean
   /** Draw the canonical ink selection border (SELECTION_RING) — non-layout-shifting. */
   selected?: boolean
-  /** When `selected`, stamp this label as an `ok`-tone "chosen" seal riding the
-   * top-right frame (e.g. "Equipped ✓"). Picker-cell affordance. */
+  /** The word on the ink seal a `selected` Card wears on its top-right frame
+   * (hard rule R15): "Selected" by default. A Token (`extent="head"`) is
+   * ring only, never sealed. */
   selectionSeal?: string
   /** A rust "Suggested" stamp leading the sub-header — a recommended pick. */
   suggested?: boolean
-  /** When off in a picker: dim + desaturate (opacity-50 saturate-50). */
+  /** Off: select mode's one dim (`SELECT_DIM`, hard rule R15) — an option the
+   * picker cannot take, demotes, or has not chosen. */
   selectable?: boolean
   /** Whole-card click → role=button + hover-enlarge + focus ring. */
   onCardClick?: () => void

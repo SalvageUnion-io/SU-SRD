@@ -292,15 +292,6 @@
   margin-bottom: var(--space-4);
 }
 
-/* MechChassisStep: the Custom-build door's double-ink halo when chosen (Sel
-   takes no `style`). Unlayered, so it beats Sel's layered
-   `.su-selection-ring` and `.su-focus-ring:focus-visible`. */
-.su-wiz-custom-build-ring {
-  box-shadow:
-    0 0 0 3px var(--ground),
-    0 0 0 6px var(--color-ink);
-}
-
 /* MechReviewStep: the kv-panel (Panel takes no `style`). */
 .su-wiz-mech-review-kv {
   padding: var(--space-16) var(--space-24);

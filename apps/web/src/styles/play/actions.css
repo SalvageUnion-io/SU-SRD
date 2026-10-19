@@ -214,10 +214,6 @@ button.su-play-dt-track__step:disabled {
   border-top: none;
 }
 
-.su-play-dt-line[data-unticked] {
-  opacity: 0.6;
-}
-
 .su-play-dt-line__label {
   align-items: center;
   display: inline-flex;

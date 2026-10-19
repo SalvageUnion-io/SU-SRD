@@ -50,7 +50,9 @@ import {
   FieldError,
   Input,
   ModalShell,
+  RadioCardGroup,
   SearchField,
+  Sel,
   Select,
   Slab,
   Textarea,
@@ -96,6 +98,7 @@ const STAT_GRID = {
   gridTemplateColumns: 'repeat(auto-fit, minmax(9rem, 1fr))',
 } satisfies CSSProperties
 
+/** "Start blank": an empty slot (dashed, ruleset §3.9) until it is the pick. */
 const BLANK_TILE = {
   alignItems: 'flex-start',
   background: tokens.color.paper,
@@ -103,15 +106,14 @@ const BLANK_TILE = {
   borderStyle: 'dashed',
   borderWidth: tokens.borderWidth.chrome,
   color: tokens.color.ink,
-  cursor: 'pointer',
   display: 'flex',
   flexDirection: 'column',
   gap: tokens.space[4],
   minHeight: tokens.size.full,
   padding: tokens.space[12],
-  textAlign: 'left',
-  width: '100%',
 } satisfies CSSProperties
+
+const BLANK_TILE_CHOSEN = { ...BLANK_TILE, borderStyle: 'solid' } satisfies CSSProperties
 
 const RESULT_BUTTON = {
   alignItems: 'center',
@@ -405,43 +407,38 @@ function TemplateStep({
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
-      <ul style={LIST} aria-label="Templates">
-        <li>
-          <button
-            type="button"
-            style={{
-              ...BLANK_TILE,
-              ...(blankChosen
-                ? { borderStyle: 'solid', boxShadow: `0 0 0 2px ${tokens.color.ink}` }
-                : {}),
-            }}
-            aria-pressed={blankChosen}
-            onClick={onBlank}
-          >
-            <span style={CAPS}>Start blank</span>
-            <span style={HINT}>No template. Set the stats and pick the actions yourself.</span>
-          </button>
-        </li>
-        {shown.map((npc) => (
-          <li key={npc.id}>
-            {/* A picker (E1): a Row in select mode; the list names the kind. */}
-            <Entity
-              form="row"
-              entity={npc}
-              omit={OMIT_KIND}
-              mode={{
-                kind: 'select',
-                role: 'toggle',
-                selected:
-                  form.templateRef?.schema === 'npcs' &&
-                  form.templateRef.slug === nameToSlug(npc.name),
-                onSelect: () => onTemplate(npc),
-                label: `Start from ${npc.name}`,
-              }}
-            />
+      {/* One template or none: a radio (hard rule R15), each pick ringed and sealed. */}
+      <RadioCardGroup label="Template">
+        <ul style={LIST} aria-label="Templates">
+          <li>
+            <Sel selected={blankChosen} onToggle={onBlank} ariaLabel="Start blank" radio>
+              <div style={blankChosen ? BLANK_TILE_CHOSEN : BLANK_TILE}>
+                <span style={CAPS}>Start blank</span>
+                <span style={HINT}>No template. Set the stats and pick the actions yourself.</span>
+              </div>
+            </Sel>
           </li>
-        ))}
-      </ul>
+          {shown.map((npc) => (
+            <li key={npc.id}>
+              {/* A picker (E1): a Row in select mode; the list names the kind. */}
+              <Entity
+                form="row"
+                entity={npc}
+                omit={OMIT_KIND}
+                mode={{
+                  kind: 'select',
+                  role: 'radio',
+                  selected:
+                    form.templateRef?.schema === 'npcs' &&
+                    form.templateRef.slug === nameToSlug(npc.name),
+                  onSelect: () => onTemplate(npc),
+                  label: `Start from ${npc.name}`,
+                }}
+              />
+            </li>
+          ))}
+        </ul>
+      </RadioCardGroup>
     </>
   )
 }

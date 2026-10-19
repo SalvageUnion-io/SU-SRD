@@ -19,8 +19,11 @@
   opacity: 0.5;
 }
 
-/* A card the picker cannot take: dimmed and drained. */
-.su-ec-outer--unselectable {
+/* Select mode's one dim (hard rule R15, EDL Modes): an option a picker
+   cannot take, demotes, or has not chosen, dimmed and drained. Every picker
+   spells it with this class (`SELECT_DIM`, `entity/modes/selectedRing.ts`),
+   never an opacity of its own. */
+.su-select-dim {
   opacity: 0.5;
   filter: saturate(50%);
 }

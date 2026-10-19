@@ -7,7 +7,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { ActivationCost, Button, cn, FOCUS_RING, Stat } from '../components/index'
+import { ActivationCost, Button, cn, Radio, Stat } from '../components/index'
 import { color, font, fontSize, space, weight } from '../design/tokens'
 import type { ResolveModel } from './useActionsDeck'
 
@@ -63,38 +63,25 @@ export function ResolveCost({
     <>
       {currencyChoice && (
         <fieldset className="su-dash-deck-cost-choice">
-          {/*
-           * Deliberately NATIVE radios, not the chrome `Radio` primitive.
-           * That primitive is a self-framed choice-row card; here the two
-           * options are compact inline `su-dash-deck-radio` labels inside the
-           * already-bordered `su-dash-deck-cost-choice` fieldset, and the framed
-           * primitive would turn the tight EP/AP pair into two bordered cards
-           * nested in a bordered fieldset. Adopt only once `Radio` grows a
-           * bare/instrument rung.
-           */}
+          {/* One choice, the one `Radio` (hard rule R15): `bare`, as the
+              fieldset already frames the pair. */}
           <legend className="su-dash-deck-cost-choice-lab">Pay with</legend>
-          <label className="su-dash-deck-radio">
-            <input
-              type="radio"
-              className={FOCUS_RING}
-              name="su-dash-deck-currency"
-              checked={currencyChoice.currency === 'EP'}
-              disabled={currencyChoice.activated}
-              onChange={() => currencyChoice.onCurrency('EP')}
-            />
-            {currencyChoice.epCost} EP
-          </label>
-          <label className="su-dash-deck-radio">
-            <input
-              type="radio"
-              className={FOCUS_RING}
-              name="su-dash-deck-currency"
-              checked={currencyChoice.currency === 'AP'}
-              disabled={currencyChoice.activated || !currencyChoice.pilotAvailable}
-              onChange={() => currencyChoice.onCurrency('AP')}
-            />
-            {currencyChoice.epCost} AP
-          </label>
+          <Radio
+            bare
+            label={`${currencyChoice.epCost} EP`}
+            name="su-dash-deck-currency"
+            checked={currencyChoice.currency === 'EP'}
+            disabled={currencyChoice.activated}
+            onChange={() => currencyChoice.onCurrency('EP')}
+          />
+          <Radio
+            bare
+            label={`${currencyChoice.epCost} AP`}
+            name="su-dash-deck-currency"
+            checked={currencyChoice.currency === 'AP'}
+            disabled={currencyChoice.activated || !currencyChoice.pilotAvailable}
+            onChange={() => currencyChoice.onCurrency('AP')}
+          />
         </fieldset>
       )}
 

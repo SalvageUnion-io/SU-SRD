@@ -37,7 +37,16 @@ import { downtimeMechPatch, downtimePilotPatch } from 'game-domain/rules/downtim
 import { useId, useState } from 'react'
 import type { RefObjectGuideStep } from 'salvageunion-reference'
 import { api } from '../../convex/_generated/api'
-import { Badge, Button, Checkbox, Content, Stat, TitledBox } from '../components/index'
+import {
+  Badge,
+  Button,
+  Checkbox,
+  Content,
+  cn,
+  SELECT_DIM,
+  Stat,
+  TitledBox,
+} from '../components/index'
 import { runWrite } from '../lib/runWrite'
 import { PLAY_TXN } from '../stores/surfaceProvenance'
 import type { PlanLine } from './playDowntime.model'
@@ -258,7 +267,8 @@ function PlanLineItem({
 }) {
   const id = useId()
   return (
-    <li className="su-play-dt-line" data-unticked={(line.skippable && !ticked) || undefined}>
+    // An unticked line wears select mode's one dim (hard rule R15).
+    <li className={cn('su-play-dt-line', line.skippable && !ticked && SELECT_DIM)}>
       {line.skippable ? (
         <label className="su-play-dt-line__label" htmlFor={id}>
           <Checkbox id={id} checked={ticked} onChange={onToggle} disabled={disabled} />

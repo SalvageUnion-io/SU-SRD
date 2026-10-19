@@ -4,8 +4,8 @@
  * crawler weapons, chassis/NPC pickers) and Play's SRD Explorer.
  *
  * BROWSE, READ, KEEP. The pool is a list of Tokens, so a long collection
- * scans at a glance; a chosen Token wears the selection ring with its chosen
- * label (EQUIPPED, 2 INSTALLED) joined to it. Opening a Token shows that
+ * scans at a glance; a chosen one's line wears select mode's ring and its
+ * `SelectedSeal` in the caller's word (EQUIPPED, 2 INSTALLED): hard rule R15. Opening a Token shows that
  * entity whole, as its Page, with an action bar that adds it — the detail is
  * there when it is wanted, never in the way of the list. What is already
  * chosen sits in its own sidebar of Tokens with the budgets, and removing is
@@ -59,6 +59,7 @@ import { Callout } from '../containers/Callout'
 import { TitledBox } from '../containers/TitledBox'
 import { Entity } from '../entity/Entity'
 import { useEntitySurface } from '../entity/entitySurfaceContext'
+import { SelectedSeal } from '../entity/modes/select'
 import { paintFor } from '../entity/parts/paint'
 import type { EntityLinkAttrs } from '../entity/types'
 import type { ReferenceEntityCardHideConfig } from '../referenceEntity/card/referenceEntityCardTypes'
@@ -285,11 +286,7 @@ export function EntitySearcher({
         data-selected={count > 0 || undefined}
       >
         {token}
-        {count > 0 && (
-          <span className="su-searcher__chosen">
-            {count > 1 ? `${count} ${chosenLabel}` : chosenLabel}
-          </span>
-        )}
+        {count > 0 && <SelectedSeal word={count > 1 ? `${count} ${chosenLabel}` : chosenLabel} />}
       </div>
     )
   })

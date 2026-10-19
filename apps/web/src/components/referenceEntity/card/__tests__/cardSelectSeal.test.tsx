@@ -1,0 +1,82 @@
+/**
+ * Hard rule R15, one select mode (EDL Modes): a selected Card (level 1) wears
+ * the ink ring AND the "Selected" seal, with no caller having to ask for the
+ * seal; a selected Token (level 2, `extent="head"`) wears the ring alone; an
+ * option the picker cannot take wears the one select dim. Before this a wizard
+ * Card was ringed but never sealed, since no caller passed `selectionSeal`.
+ */
+import { describe, expect, test } from 'bun:test'
+import { render, screen } from '@testing-library/react'
+import { SalvageUnionReference } from 'salvageunion-reference'
+import { SELECT_DIM } from '../../../entity/modes/selectedRing'
+import { ReferenceEntityCard } from '../ReferenceEntityCard'
+
+const RING = '0 0 0 3px var(--color-ink)'
+
+const hauler = () => {
+  const found = SalvageUnionReference.Classes.getByName('Hauler')
+  if (!found) throw new Error('fixture missing: Hauler')
+  return found
+}
+
+describe('a selected Card (level 1)', () => {
+  test('wears the ring and the "Selected" seal by default', () => {
+    const { container } = render(
+      <ReferenceEntityCard
+        data={hauler()}
+        size="compact"
+        extent="catalog"
+        selected
+        selectionRole="radio"
+        onCardClick={() => {}}
+        cardClickLabel="Hauler"
+      />
+    )
+    const seal = screen.getByText('Selected')
+    expect(seal.closest('[data-card-rail]')).not.toBeNull()
+    expect(container.querySelector<HTMLElement>('.su-ec-frame')?.style.boxShadow).toBe(RING)
+    expect(screen.getByRole('radio', { name: 'Hauler' }).getAttribute('aria-checked')).toBe('true')
+  })
+
+  test("takes the caller's word for its seal", () => {
+    render(<ReferenceEntityCard data={hauler()} selected selectionSeal="Chosen" />)
+    expect(screen.getByText('Chosen')).toBeTruthy()
+    expect(screen.queryByText('Selected')).toBeNull()
+  })
+
+  test('unselected, it has neither ring nor seal', () => {
+    const { container } = render(
+      <ReferenceEntityCard
+        data={hauler()}
+        selected={false}
+        selectionRole="radio"
+        onCardClick={() => {}}
+      />
+    )
+    expect(screen.queryByText('Selected')).toBeNull()
+    expect(container.querySelector<HTMLElement>('.su-ec-frame')?.style.boxShadow).toBe('')
+  })
+})
+
+describe('a selected Token (level 2)', () => {
+  test('wears the ring on its pill and no seal', () => {
+    const { container } = render(
+      <ReferenceEntityCard data={hauler()} extent="head" size="mini" depth={1} selected />
+    )
+    expect(container.querySelector<HTMLElement>('.su-entity-token__pill')?.style.boxShadow).toBe(
+      RING
+    )
+    expect(screen.queryByText('Selected')).toBeNull()
+  })
+})
+
+describe('the one select dim', () => {
+  test('an option the picker cannot take wears SELECT_DIM, and no other dim', () => {
+    const { container } = render(
+      <ReferenceEntityCard data={hauler()} selectable={false} onCardClick={() => {}} />
+    )
+    const outer = container.querySelector('.su-ec-outer')
+    expect(outer?.classList.contains(SELECT_DIM)).toBe(true)
+    expect((outer as HTMLElement | null)?.style.opacity).toBe('')
+  })
+})

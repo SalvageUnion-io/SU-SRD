@@ -58,10 +58,10 @@ async function click(name: RegExp | string) {
   })
 }
 
-/** Pick a template: its Row's one control is a checkbox. */
+/** Pick a template, or Start blank: one choice, so each is a radio (hard rule R15). */
 async function pick(name: string) {
   await act(async () => {
-    fireEvent.click(screen.getByRole('checkbox', { name }))
+    fireEvent.click(screen.getByRole('radio', { name }))
   })
 }
 
@@ -76,10 +76,27 @@ beforeEach(() => {
 })
 
 describe('the template step', () => {
+  test('is one choice: a radio group, the pick ringed and sealed "Selected"', async () => {
+    await renderDesigner()
+    expect(screen.getByRole('radiogroup', { name: 'Template' })).toBeTruthy()
+    expect(screen.queryAllByRole('checkbox')).toHaveLength(0)
+    expect(screen.queryByText('Selected')).toBeNull()
+    await pick('Start from Veteran')
+    expect(screen.getByRole('radio', { name: 'Start from Veteran' }).getAttribute('aria-checked')).toBe(
+      'true'
+    )
+    expect(screen.getAllByText('Selected')).toHaveLength(1)
+    await pick('Start blank')
+    expect(screen.getByRole('radio', { name: 'Start blank' }).getAttribute('aria-checked')).toBe(
+      'true'
+    )
+    expect(screen.getAllByText('Selected')).toHaveLength(1)
+  })
+
   test('Next waits for a template or a blank start', async () => {
     await renderDesigner()
     expect(screen.getByRole('button', { name: 'Next: Stats' })).toHaveProperty('disabled', true)
-    await click(/Start blank/)
+    await pick('Start blank')
     expect(screen.getByRole('button', { name: 'Next: Stats' })).toHaveProperty('disabled', false)
   })
 
@@ -127,7 +144,7 @@ describe('starting over', () => {
 
   test('Start blank asks first once the stats were edited, and clears them on yes', async () => {
     await editedVeteran()
-    await click(/Start blank/)
+    await pick('Start blank')
     expect(screen.getAllByText('Start blank?').length).toBeGreaterThan(0)
     await click('Clear')
     await click('Next: Stats')
@@ -136,7 +153,7 @@ describe('starting over', () => {
 
   test('declining the Start blank question keeps the edited stats', async () => {
     await editedVeteran()
-    await click(/Start blank/)
+    await pick('Start blank')
     await click('Cancel')
     await click('Next: Stats')
     expect(screen.getByLabelText(/Hit points/)).toHaveProperty('value', '12')

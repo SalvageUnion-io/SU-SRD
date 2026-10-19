@@ -1,6 +1,5 @@
 import type { RefObjectChoice } from 'salvageunion-reference'
 import { isSchemaOnlyCatalogChoice } from 'salvageunion-reference/rules'
-import { SelectedSeal } from '../../entity/modes/select'
 import { ChoiceGroups } from '../choiceCard/ChoiceGroups'
 import type { ChoiceSelections } from '../choiceCard/choiceSelectionHelpers'
 import { CatalogChoiceListing } from './CatalogChoiceListing'
@@ -13,10 +12,10 @@ import type { NestedCard } from './referenceEntityCardTypes'
  * entity, and an editable catalog choice's pick, sit inside the host card, so
  * each is that entity's TOKEN (EDL N1, N2), never a head-only Row. Editable,
  * the Token IS the toggle (EDL Modes): pressed when chosen, the ring on its
- * pill, an unchosen one dimmed, no seal; `data-choice-toggle` marks it, the
- * one Token the nesting gate lets take a pressed state (N7 keeps radio and
- * checkbox picks on Row and Card). Read-only, a chosen option's Token says so
- * in a "Chosen" seal on its line.
+ * pill, an unchosen one in the one `selectable` dim, no seal; `data-choice-toggle`
+ * marks it, the one Token the nesting gate lets take a pressed state (N7 keeps
+ * radio and checkbox picks on Row and Card). Read-only, a chosen option's Token
+ * wears the ring alone: level 2 is never sealed (hard rule R15).
  */
 export function ChoiceRegion({
   choice,
@@ -86,7 +85,7 @@ export function ChoiceRegion({
         toneColor={toneColor}
         onPage={onPage}
         // An option that IS an entity is its Token: read-only it reads, a
-        // chosen one sealed on its line; editable it is the toggle itself.
+        // chosen one ringed; editable it is the toggle itself.
         renderEntityOption={(option) => {
           if (!option.readOnly) {
             return (
@@ -99,29 +98,23 @@ export function ChoiceRegion({
                   chassisName={chassisName}
                   selected={option.chosen}
                   selectionRole="toggle"
+                  // The one dim: unchosen, whether or not the cap allows it.
                   selectable={option.chosen}
-                  disabled={option.disabled}
                   onCardClick={option.onToggle}
                   cardClickLabel={option.label}
                 />
               </div>
             )
           }
-          const token = (
+          return (
             <NestedCard
               size="mini"
               extent="head"
               depth={depth + 1}
               data={option.entity}
               chassisName={chassisName}
+              selected={option.chosen}
             />
-          )
-          if (!option.chosen) return token
-          return (
-            <div className="su-entity-token-line">
-              {token}
-              <SelectedSeal word="Chosen" />
-            </div>
           )
         }}
       />

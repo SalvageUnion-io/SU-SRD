@@ -27,7 +27,7 @@ test('design an NPC from a template, crew a bay with it, and give the bay back',
   await gotoStable(page, '/npcs/new')
   await waitForReady(page)
   await expect(page.getByRole('heading', { level: 1, name: /Design an NPC/i })).toBeVisible()
-  await page.getByRole('checkbox', { name: 'Start from Veteran' }).check()
+  await page.getByRole('radio', { name: 'Start from Veteran' }).click()
   await page.getByRole('button', { name: 'Next: Stats' }).click()
   await expect(page.getByLabel(/Hit points/)).toHaveValue('9')
   await page.getByRole('button', { name: 'Next: Actions & traits' }).click()

@@ -339,29 +339,19 @@
   outline-offset: 1px;
 }
 
-/* A chosen entity: the selection ring (`.su-selection-ring`, ink — a state,
-   never rust: ruleset §3.1), its chosen label an ink plate joined to the ring
-   at the line's end. */
+/* A chosen entity: select mode's ring (`.su-selection-ring`, ink — a state,
+   never rust: ruleset §3.1) and, at the line's end, its `SelectedSeal`
+   (hard rule R15). */
 .su-searcher__item[data-selected] {
   box-shadow: 0 0 0 3px var(--color-ink);
 }
 
-.su-searcher__item[data-focused][data-selected] {
-  outline-offset: 4px;
+.su-searcher__item.su-entity-token-line > .su-badge-stamp {
+  align-self: center;
 }
 
-.su-searcher__chosen {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  margin: calc(-1 * var(--space-2)) calc(-1 * var(--space-2)) calc(-1 * var(--space-2)) 0;
-  padding: 0 var(--space-8);
-  background-color: var(--color-ink);
-  color: var(--color-paper);
-  font: 700 var(--text-badge) / 1 var(--font-cond);
-  letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
-  white-space: nowrap;
+.su-searcher__item[data-focused][data-selected] {
+  outline-offset: 4px;
 }
 
 /* The opened Page, as a show page lays out: the page ground, the band flush

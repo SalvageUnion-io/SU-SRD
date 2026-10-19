@@ -105,7 +105,7 @@ export async function seedDesignAccount(page: Page): Promise<DesignSeed> {
   // An NPC, from the Veteran (`npc-crew.e2e.ts`).
   await gotoStable(page, '/npcs/new')
   await waitForReady(page)
-  await page.getByRole('checkbox', { name: 'Start from Veteran' }).check()
+  await page.getByRole('radio', { name: 'Start from Veteran' }).click()
   await page.getByRole('button', { name: 'Next: Stats' }).click()
   await page.getByRole('button', { name: 'Next: Actions & traits' }).click()
   await page.getByRole('button', { name: 'Next: Identity' }).click()

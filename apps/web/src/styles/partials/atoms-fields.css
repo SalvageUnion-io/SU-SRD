@@ -139,6 +139,15 @@ input.su-text-input--compact {
   background-color: var(--color-ink-8);
 }
 
+/* `bare`: no frame, fill or padding — the input and its label inline, inside
+ * a frame already drawn (Play's cost choice). */
+.su-choice--bare,
+.su-choice--bare:hover {
+  background-color: transparent;
+  border-width: 0;
+  padding: 0;
+}
+
 .su-choice--stacked:has(:checked) {
   border-width: var(--bw-entity-compact);
   padding: calc(var(--space-8) - (var(--bw-entity-compact) - var(--bw-chrome)));

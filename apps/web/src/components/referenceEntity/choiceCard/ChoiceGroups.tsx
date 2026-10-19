@@ -20,8 +20,7 @@ import type { CSSVarStyle } from '../../../styles/cssVars'
 import { Badge } from '../../atoms/Badge'
 import { FOCUS_RING, INPUT_FOCUS } from '../../atoms/interaction'
 import { Slab } from '../../atoms/Slab'
-import { SelectedSeal } from '../../entity/modes/select'
-import { SELECTED_RING } from '../../entity/modes/selectedRing'
+import { SELECT_DIM, SELECTED_RING } from '../../entity/modes/selectedRing'
 import { InsidePeekContext, tablePeekAddress } from '../../entity/peekContext'
 import { CardRollTable } from '../card/CardRollTable'
 import { CardTopRail } from '../card/CardTopRail'
@@ -169,14 +168,15 @@ const optionTextStyle = {
  * A selectable OPTION that is not an entity. On its entity's own Page (level
  * 1) it takes the compact card's anatomy (ruleset §5): an ink frame, the tone
  * head with the option's title in ink or paper (whichever the tone carries),
- * and the paper body; dim-until-chosen, with the selection ring and the
- * "Chosen ✓" seal when chosen — the entity card's own write layer.
+ * and the paper body; in the one select dim until chosen, with the selection
+ * ring and the "Chosen" seal when chosen — the entity card's own write layer.
  *
  * Anywhere else it sits inside a card at level 2, where nothing is titled
- * (N1, N5): read-only (a Peek included) its name is a Slab over its text,
- * unframed, a "Chosen" seal at the Slab's end when it was chosen; editable it
- * is an unheaded toggle, its name and text on the paper of a plain frame,
- * pressed and ringed when chosen, dim until then, with no band or seal.
+ * (N1, N5) and nothing is sealed (hard rule R15): read-only (a Peek included)
+ * its name is a Slab over its text, unframed, ringed when it was chosen;
+ * editable it is an unheaded toggle, its name and text on the paper of a plain
+ * frame, pressed and ringed when chosen, in the one dim until then, with no
+ * band or seal.
  */
 function ChoiceOption({
   label,
@@ -205,12 +205,10 @@ function ChoiceOption({
   const insidePeek = useContext(InsidePeekContext)
   if (insidePeek || (!onPage && readOnly)) {
     return (
-      <div>
-        <Slab
-          label={label}
-          style={OPTION_SLAB}
-          actions={chosen ? <SelectedSeal word="Chosen" /> : undefined}
-        />
+      <div style={chosen ? SELECTED_RING : undefined}>
+        <Slab label={label} style={OPTION_SLAB} />
+        {/* The ring is the mark; a screen reader hears it said. */}
+        {chosen && <span className="su-sr-only">Chosen</span>}
         {description && <p style={optionTextStyle}>{parsedDescription}</p>}
       </div>
     )
@@ -225,7 +223,6 @@ function ChoiceOption({
     cursor: readOnly ? 'default' : disabled ? 'not-allowed' : 'pointer',
     display: 'block',
     font: 'inherit',
-    opacity: disabled ? 0.3 : !readOnly && !chosen ? 0.45 : 1,
     padding: 0,
     textAlign: 'left',
     transition: `opacity ${duration.fast} ${ease}`,
@@ -277,7 +274,8 @@ function ChoiceOption({
       aria-pressed={chosen}
       disabled={disabled}
       onClick={readOnly ? undefined : onToggle}
-      className={FOCUS_RING}
+      // The one select dim (R15): unchosen, whether or not the cap allows it.
+      className={cn(FOCUS_RING, !readOnly && !chosen && SELECT_DIM)}
       style={button}
     >
       <div style={{ position: 'relative' }}>
