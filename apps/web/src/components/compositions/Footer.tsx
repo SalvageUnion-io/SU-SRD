@@ -117,16 +117,15 @@ export function Footer({ links, poweredBySalvageUrl, foot, LinkComponent = 'a' }
   return (
     <footer className="su-footer">
       <ChapterFoot
-        // A show page's foot is the band's colour edge to edge, with no ink rule.
-        ruled={!citation}
         measure={measure}
-        start={
-          <>
+        start={<Legal />}
+        end={
+          // The source sits at the end, above the site links (owner's call, 2026-10-19).
+          <div className="su-footer__right">
             {citation && <p className="su-footer__citation">{citation}</p>}
-            <Legal />
-          </>
+            <End links={links} src={poweredBySalvageUrl} LinkComponent={LinkComponent} />
+          </div>
         }
-        end={<End links={links} src={poweredBySalvageUrl} LinkComponent={LinkComponent} />}
       />
     </footer>
   )

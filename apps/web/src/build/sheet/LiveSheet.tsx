@@ -173,8 +173,9 @@ const BAR_ANCHOR = {
 const BAR = {
   alignItems: 'center',
   background: 'var(--color-wk-bg)',
-  borderBottom: `${tokens.borderWidth.pill} solid ${tokens.color.ink}`,
-  boxShadow: `0 2px 0 ${tokens.color.ink}, ${tokens.shadow.lift}`,
+  // No black rule under the app's nav (owner, 2026-10-19): the lift alone
+  // sets it off the page it floats over.
+  boxShadow: tokens.shadow.lift,
   columnGap: tokens.space[16],
   display: 'flex',
   flexWrap: 'wrap',

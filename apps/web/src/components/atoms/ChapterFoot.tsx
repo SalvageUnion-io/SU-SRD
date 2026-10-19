@@ -1,5 +1,4 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { borderWidth, color } from '../../design/tokens'
 import { Speckle } from './Speckle'
 
 /**
@@ -26,11 +25,6 @@ export type ChapterFootProps = {
   end?: ReactNode
   /** The inner row's max inline size, matching the band at the page's head. */
   measure?: string
-  /**
-   * The ink rule along its top. An entity page's foot has none: it is the
-   * band's colour, edge to edge (owner's call, 2026-10-19).
-   */
-  ruled?: boolean
 }
 
 const ROOT = {
@@ -39,19 +33,13 @@ const ROOT = {
   width: '100%',
 } satisfies CSSProperties
 
-const RULE = {
-  borderTopColor: color.ink,
-  borderTopStyle: 'solid',
-  borderTopWidth: borderWidth.chrome,
-} satisfies CSSProperties
-
-export function ChapterFoot({ start, end, measure, ruled = true }: ChapterFootProps) {
+export function ChapterFoot({ start, end, measure }: ChapterFootProps) {
   return (
     <div
       className="su-chapter-foot"
       // A foot band is text, never chips (hard rule R4): `chip-strips.e2e.ts` reads it.
       data-foot-band=""
-      style={ruled ? { ...ROOT, ...RULE } : ROOT}
+      style={ROOT}
     >
       <span className="su-chapter-foot__grain su-chapter-foot__grain--paper">
         <Speckle grain="paper" />

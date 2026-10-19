@@ -24,12 +24,10 @@ describe('ChapterFoot', () => {
     expect(band.querySelector('.su-chapter-foot__grain--ink svg filter')).not.toBeNull()
   })
 
-  test('is ruled in ink unless the page says not (an entity page, edge to edge)', () => {
-    const ruled = render(<ChapterFoot start="p.1" />).container.firstElementChild as HTMLElement
-    const bare = render(<ChapterFoot start="p.1" ruled={false} />).container
-      .firstElementChild as HTMLElement
-    expect(ruled.style.borderTopStyle).toBe('solid')
-    expect(bare.style.borderTopStyle).toBe('')
+  test('has no ink rule: the band runs edge to edge on every page (owner, 2026-10-19)', () => {
+    const band = render(<ChapterFoot start="p.1" />).container.firstElementChild as HTMLElement
+    expect(band.style.borderTopStyle).toBe('')
+    expect(band.style.borderTopWidth).toBe('')
   })
 
   test('renders nothing for an end it was not given', () => {

@@ -45,9 +45,8 @@ type EntityCardIdentityFooterProps = {
   /** The head band's speckle, worn on the foot's band too. */
   grain?: CardGrain | undefined
   /**
-   * The ink rule along its top. A card's and a Peek's foot keep it (it sits
-   * inside their frame); the app's Page (`EntityDetailPage`) has none, its
-   * foot the band's colour edge to edge, as a show page's footer is.
+   * The rule along its top, drawn only on a user-made card (dashed, ruleset
+   * §3.9); `false` drops even that (the app's Page, edge to edge).
    */
   ruled?: boolean
 }
@@ -77,6 +76,16 @@ const truncate = {
  * Salvage Union Starter Set (PH) · p.38". A user-made card puts its `credit`
  * ("Made by alxjrvs") where the citation goes.
  */
+const CITE = { display: 'inline-block', overflowWrap: 'break-word' } satisfies CSSProperties
+
+const CUTOUT = {
+  backgroundColor: 'var(--color-paper)',
+  color: 'var(--color-ink)',
+  marginTop: `calc(-1 * ${space[8]})`,
+  padding: `${space[4]} ${space[8]} ${space[6]}`,
+  textAlign: 'left',
+} satisfies CSSProperties
+
 export function EntityCardIdentityFooter({
   provenance,
   footMeta,
@@ -104,10 +113,12 @@ export function EntityCardIdentityFooter({
       data-grain={onBand ? grain : undefined}
       className={cn(onBand && grainClass(grain))}
       style={{
-        ...(ruled
+        // No ink rule over a card's foot (owner's call, 2026-10-19): only a
+        // user-made card keeps its dashed one, the homebrew mark (ruleset §3.9).
+        ...(ruled && dashed
           ? {
               borderTopColor: 'var(--color-ink)',
-              borderTopStyle: dashed ? 'dashed' : 'solid',
+              borderTopStyle: 'dashed',
               borderTopWidth: 'var(--bw-chrome)',
             }
           : {}),
@@ -147,16 +158,11 @@ export function EntityCardIdentityFooter({
           the page. The citation is a readout: it never clips, so every page
           number shows. */}
       {citation && (
-        <span
-          style={{
-            contain: 'inline-size',
-            flex: '1 1 0',
-            minWidth: 0,
-            overflowWrap: 'break-word',
-            textAlign: 'right',
-          }}
-        >
-          {citation}
+        <span style={{ contain: 'inline-size', flex: '1 1 0', minWidth: 0, textAlign: 'right' }}>
+          {/* On a band the source sits on its own cut-out: the card's paper
+              hanging from the band's top edge, ink on it, the head's notch
+              mirrored at the foot (owner's call, 2026-10-19). */}
+          <span style={onBand ? { ...CITE, ...CUTOUT } : CITE}>{citation}</span>
         </span>
       )}
       {externalLink && <span style={{ ...truncate, flexShrink: 0 }}>{externalLink}</span>}

@@ -41,9 +41,7 @@
   --su-bar-fg-15: var(--color-paper-15);
   --su-bar-grain-paper: contents;
   --su-bar-grain-ink: none;
-  --su-bar-rule: var(--color-ink);
   background-color: var(--su-bar-bg);
-  border-bottom-color: var(--su-bar-rule);
   color: var(--su-bar-fg);
 }
 
@@ -988,7 +986,7 @@
  *
  * Its colours are these properties, ink with paper flecks until the page's
  * leading band sets them to its own (`footerMatchCss`,
- * `atoms/unionBarMatch.ts`); the ink rule is the component's. The citation and
+ * `atoms/unionBarMatch.ts`); it has no ink rule. The citation and
  * licence sit at the start, the site links at the end, and wrap under them on
  * a phone.
  */

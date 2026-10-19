@@ -156,8 +156,8 @@ describe('Footer', () => {
     }
   })
 
-  // A show page's footer has no ink rule: the band runs edge to edge.
-  test('a show page footer has no ink rule; a page with no entity keeps its rule', () => {
+  // No footer has an ink rule: the band runs edge to edge.
+  test('no footer has an ink rule, a show page or a page with no entity', () => {
     const cited = render(<Footer links={LINKS} poweredBySalvageUrl="/mark.webp" foot={GOPHER} />)
     const citedBand = cited.container.querySelector<HTMLElement>('.su-chapter-foot')
     expect(citedBand?.style.borderTopStyle).toBe('')
@@ -165,7 +165,7 @@ describe('Footer', () => {
     const plain = render(<Footer links={LINKS} poweredBySalvageUrl="/mark.webp" />)
     expect(
       plain.container.querySelector<HTMLElement>('.su-chapter-foot')?.style.borderTopStyle
-    ).toBe('solid')
+    ).toBe('')
   })
 })
 

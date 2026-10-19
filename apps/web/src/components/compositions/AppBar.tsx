@@ -145,11 +145,10 @@ type AppBarProps = {
   breadcrumbs?: BreadcrumbItem[]
 }
 
-// Its ground, ink and rule colour are `.su-union-bar`'s: a page's leading band
-// recolours them (`unionBarMatch.ts`), which a style object would outrank.
+// Its ground and ink are `.su-union-bar`'s: a page's leading band recolours
+// them (`unionBarMatch.ts`), which a style object would outrank. No rule under
+// it: the bar meets the page's header with no black border (owner, 2026-10-19).
 const BAR = {
-  borderBottomStyle: 'solid',
-  borderBottomWidth: borderWidth.entity,
   isolation: 'isolate',
   position: 'relative',
   zIndex: layer.overlay,

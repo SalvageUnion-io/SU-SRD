@@ -1141,10 +1141,23 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
    chip whole; the name keeps at least min(9rem, 40%) of the pill, ending in
    "…" below that. */
 .su-entity-token[data-contentful] .su-entity-token__chips {
+  align-self: flex-end;
   flex: 0 1 auto;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  flex-direction: row-reverse;
+  flex-wrap: wrap-reverse;
+  justify-content: flex-start;
   max-width: calc(100% - min(9rem, 40%));
+}
+
+/* Its chips fill bottom-heavy (owner's call, 2026-10-19), as a Row's do (the
+   bottom-right fill, above): the last chip takes the corner, the line under
+   the name fills first, and only what does not fit spills up a line. Each
+   chip keeps its place from the end (`--su-fill`), so the lines still read
+   in class order. The name stays a cut-out at the pill's foot, never
+   stretched to the chips' height. */
+.su-entity-token[data-contentful] .su-entity-token__chips > .su-chip-lane > *,
+.su-entity-token[data-contentful] .su-entity-token__chips > .su-chips > .su-chip-lane > * {
+  order: var(--su-fill);
 }
 
 /* Past two lines its second ends in +MORE (C5, `chipFit.ts`): the chips that
@@ -1281,6 +1294,12 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   margin-right: auto;
   min-width: 0;
   padding: var(--space-2) var(--space-6);
+}
+
+/* A contentful Token's name stays a cut-out at the pill's foot when its chips
+   take two lines, never stretched to their height (owner, 2026-10-19). */
+.su-entity-token[data-contentful] .su-entity-token__notch {
+  align-self: flex-end;
 }
 
 /* A bottom-right fill's chips (`.su-entity-row__heading--cut > .su-chips`,
@@ -1422,9 +1441,10 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   }
 
   /* A contentful Token's compact budget wraps beside its name, chip by chip,
-     with no lane boxes (R3): one line of lanes would leave its pill. */
+     bottom-heavy (above), with no lane boxes (R3): one line of lanes would
+     leave its pill. */
   [data-chip-lanes='column'] .su-entity-token[data-contentful] .su-chips[data-lanes] {
-    flex-wrap: wrap;
+    flex-wrap: wrap-reverse;
     gap: var(--space-4);
   }
 

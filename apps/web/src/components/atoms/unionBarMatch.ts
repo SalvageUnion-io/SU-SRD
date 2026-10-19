@@ -64,8 +64,6 @@ export function unionBarMatchCss(
     `--su-bar-fg:var(--color-${foreground});` +
     `--su-bar-on-fg:var(--color-${ON[foreground]});` +
     STEPS[foreground] +
-    // No rule between the bar and the band: they are one colour.
-    '--su-bar-rule:transparent;' +
     `--su-bar-grain-paper:${shown('paper')};` +
     `--su-bar-grain-ink:${shown('ink')}}`
   )
