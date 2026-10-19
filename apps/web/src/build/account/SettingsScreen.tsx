@@ -25,9 +25,9 @@ import { SignInControl } from './SignInControl'
  * The settings screen (ADR-030 §6), at `/settings`: profile, export, delete.
  *
  * `/account` redirects here (`routes/account.tsx`), so old links and the
- * Discord bot's still land. Your Games are listed in the masthead's Games menu
- * (`build/entityContainer/GamesMenu.tsx`), which is where a player picks what
- * the Roster shows.
+ * Discord bot's still land. Your Games are listed in Play: its hub and its
+ * Games menu (`build/entityContainer/GamesMenu.tsx`), each opening a Game's
+ * page (ADR-052 §4).
  *
  * It wears the Hangar's clothes (`build/shelves/Shelves.tsx`): the ink
  * band on the workshop ground, the 75rem column, and each concern a section

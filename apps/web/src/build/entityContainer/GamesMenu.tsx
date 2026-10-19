@@ -3,7 +3,7 @@
  * variants.
  *
  * Every Game the player is in, each with their role in it. Picking one opens
- * the Game's page in Play (`playGamePath`). It is Play's nav's first entry;
+ * the Game's page in Play (`gamePath`). It is Play's nav's first entry;
  * Build has none, since a Game is never a place inside Build (ADR-052 §1).
  *
  * Two renderings of one list, because the masthead has two shapes:
@@ -25,8 +25,8 @@ import type { LinkProps } from '@tanstack/react-router'
 import { useNavigate } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
+import { gamePath } from 'game-domain/entityKinds'
 import { api } from '../../../convex/_generated/api'
-import { playGamePath } from '../../lib/barLinks'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { Badge, tokens } from '../../components/index'
 import type { ContainerChoice } from './ContainerPicker'
@@ -53,7 +53,7 @@ function useOpenGame(): (choice: ContainerChoice) => void {
   const navigate = useNavigate()
   return ({ container }) => {
     if (container.kind !== 'game') return
-    void navigate({ to: playGamePath(container.gameId) as LinkProps['to'] })
+    void navigate({ to: gamePath(container.gameId) as LinkProps['to'] })
   }
 }
 

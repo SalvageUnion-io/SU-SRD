@@ -38,9 +38,6 @@ export const UNION_NAV: Record<UnionMode, readonly UnionNavLink[]> = {
   play: PLAY_NAV,
 }
 
-/** Where a Game's page lives, in Play (ADR-052 §5). */
-export const playGamePath = (gameId: string): string => `/play/games/${gameId}`
-
 /** Whether a nav route is the page you are on. */
 export function isCurrent(path: string, pathname: string): boolean {
   const route = path.replace(/\/+$/, '')

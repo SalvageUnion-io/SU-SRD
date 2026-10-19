@@ -226,7 +226,7 @@ jobs:
         working-directory: apps/web
         env:
           E2E_EXPECT_AUTH_SEAM: '1'
-        run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts json-api.e2e.ts a11y.e2e.ts offline.e2e.ts sibling-heights.e2e.ts chip-strips.e2e.ts nesting-depth.e2e.ts roll-instrument.e2e.ts play-turn.e2e.ts play-solo.e2e.ts play-mediator.e2e.ts
+        run: bunx playwright test smoke.e2e.ts bundle-budget.e2e.ts json-api.e2e.ts a11y.e2e.ts offline.e2e.ts sibling-heights.e2e.ts chip-strips.e2e.ts nesting-depth.e2e.ts roll-instrument.e2e.ts play-turn.e2e.ts play-solo.e2e.ts play-mediator.e2e.ts play-join.e2e.ts
 
       - name: Upload Playwright reports on failure
         if: failure()

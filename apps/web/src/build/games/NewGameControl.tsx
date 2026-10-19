@@ -21,11 +21,11 @@ import { useMutation, useQuery } from 'convex/react'
 import type { FunctionArgs } from 'convex/server'
 import type { CSSProperties } from 'react'
 import { useEffect, useState } from 'react'
+import { gamePath } from 'game-domain/entityKinds'
 import { api } from '../../../convex/_generated/api'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { useGo } from '../../components/shared/useGo'
-import { playGamePath } from '../../lib/barLinks'
 import {
   Button,
   Field,
@@ -104,7 +104,7 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
 
   /** Open the new Game's own page; the dialog has done its job. */
   function enter(gameId: string) {
-    go(playGamePath(gameId))
+    go(gamePath(gameId))
     setName('')
     onOpenChange(false)
   }

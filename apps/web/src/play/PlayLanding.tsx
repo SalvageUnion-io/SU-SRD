@@ -26,6 +26,7 @@ import { PRODUCT } from 'game-domain/product'
 import '../styles/play/play.css'
 import { useQuery } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
+import { gamePath } from 'game-domain/entityKinds'
 import { isPresent } from 'game-domain/schemas/seat'
 import type { CSSProperties, FormEvent } from 'react'
 import { useState } from 'react'
@@ -51,7 +52,6 @@ import { AppLink } from '../components/shared/AppLink'
 import { RoutePending } from '../components/shared/RouteFallbacks'
 import { UnitRow } from '../components/shared/UnitRow'
 import { useGo } from '../components/shared/useGo'
-import { playGamePath } from '../lib/barLinks'
 import { useConnection } from '../lib/connection/connectionContext'
 import { useHydrateEntities, useMechs, usePilots, useSoftLinkList } from '../lib/entities'
 import { invitePath, inviteTokenFrom } from '../lib/games/inviteLink'
@@ -276,7 +276,7 @@ function PlayGameItem({
         form="row"
         model={gameRowModel(game.name)}
         titleAs="h3"
-        mode={{ kind: 'link', href: playGamePath(game._id) }}
+        mode={{ kind: 'link', href: gamePath(game._id) }}
         labels={chips.map((chip) => (
           <Stat
             key={chip.key}

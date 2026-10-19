@@ -15,6 +15,7 @@
  */
 
 import type { ContainerFields } from 'game-domain/container'
+import { gamePath } from 'game-domain/entityKinds'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
 import type { Mech } from 'game-domain/schemas/mech'
@@ -23,7 +24,6 @@ import type { MechPattern } from 'game-domain/schemas/pattern'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SoftLink } from 'game-domain/schemas/softLink'
 import { resolveChassisRef, resolvePool } from 'salvageunion-reference/rules'
-import { playGamePath } from '../barLinks'
 import { resolveClassName } from '../classRef'
 import { resolveCrawlerType } from '../crawlerRefs'
 import type { PatternVisibility } from '../patterns/patterns'
@@ -144,7 +144,7 @@ export function gameRelation(
   const gameId = entity.gameId
   if (typeof gameId !== 'string') return []
   const game = games?.find((g) => g._id === gameId)
-  return [{ key: 'game', label: 'Game', value: game?.name ?? 'A Game', href: playGamePath(gameId) }]
+  return [{ key: 'game', label: 'Game', value: game?.name ?? 'A Game', href: gamePath(gameId) }]
 }
 
 type Names = ReadonlyMap<string, string>
