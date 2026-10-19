@@ -9,7 +9,7 @@
 import type { CSSProperties } from 'react'
 import '../../styles/build/wizard.css'
 import { capsLabel } from '../../components/atoms/capsLabel'
-import { tokens } from '../../components/index'
+import { NextLabel, tokens } from '../../components/index'
 import { cn } from '../../lib/cn'
 
 /**
@@ -21,6 +21,7 @@ const escapeStyle = {
   alignItems: 'center',
   cursor: 'pointer',
   display: 'inline-flex',
+  gap: tokens.space[4],
   minHeight: tokens.size.full,
   textDecorationLine: 'underline',
   textDecorationStyle: 'dotted',
@@ -42,7 +43,7 @@ export function OffRulesEscape({ onEscape }: OffRulesEscapeProps) {
       className={cn('su-wiz-off-rules', escapeCaps)}
       style={escapeStyle}
     >
-      Off-rules build? Build it on the Live Sheet →
+      Off-rules build? <NextLabel to="Build it on the Live Sheet" size="mini" />
     </button>
   )
 }

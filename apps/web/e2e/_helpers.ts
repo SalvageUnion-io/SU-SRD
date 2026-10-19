@@ -133,7 +133,7 @@ export async function advanceUntilVisible(
     // Not on this step, so look for the CTA. Waiting on it here also absorbs a
     // slow first paint: if nothing had rendered yet, the next pass re-checks
     // the target before clicking anything.
-    const next = page.getByRole('button', { name: /^Next( ·|$)/ }).first()
+    const next = page.getByRole('button', { name: /^Next(: |$)/ }).first()
     await next.waitFor({ state: 'visible', timeout: 15_000 }).catch(() => {})
     if (!(await next.isVisible().catch(() => false))) break
 
@@ -209,10 +209,10 @@ export async function addFromSearcher(picker: Locator, name: string): Promise<vo
 
 /**
  * Click the wizard's Next button. WizShell wizards label the CTA from the
- * steps array ('Next · Abilities →'); legacy builders use a bare 'Next'.
+ * steps array (`NextLabel`, 'Next: Abilities'); legacy builders use a bare 'Next'.
  */
 export async function clickNext(page: Page): Promise<void> {
-  await page.getByRole('button', { name: /^Next( ·|$)/ }).click()
+  await page.getByRole('button', { name: /^Next(: |$)/ }).click()
 }
 
 // ---------------------------------------------------------------------------
@@ -303,7 +303,7 @@ async function runWizard(
       return
     }
 
-    const next = page.getByRole('button', { name: /^Next( ·|$)/ }).first()
+    const next = page.getByRole('button', { name: /^Next(: |$)/ }).first()
     await expect(next, `wizard ${kind} should offer Next or Create at step ${step}`).toBeVisible({
       timeout: 15_000,
     })

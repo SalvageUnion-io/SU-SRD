@@ -19,7 +19,7 @@ test('wizard gates progress until chassis + name are set', async ({ page }) => {
   await page.goto(at('/mechs/new?mode=guided'))
   await waitForReady(page)
 
-  const next = page.getByRole('button', { name: /^Next ·/ })
+  const next = page.getByRole('button', { name: /^Next: / })
 
   // Step 1 (Gain Scrap) is informational — nothing to satisfy.
   await expect(next).toBeEnabled()

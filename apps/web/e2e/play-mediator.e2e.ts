@@ -136,7 +136,7 @@ test('the Mediator runs the table from Play, and the player answers', async ({
       page.getByRole('list', { name: 'Who is done' }).getByText('Done', { exact: true })
     ).toBeVisible()
 
-    await page.getByRole('button', { name: 'Advance ›' }).click()
+    await page.getByRole('button', { name: 'Next: Step 2' }).click()
     await expect(gameState(page).getByRole('button', { name: 'Downtime · Step 2' })).toBeVisible({
       timeout: 15_000,
     })

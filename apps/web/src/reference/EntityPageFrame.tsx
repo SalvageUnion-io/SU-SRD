@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
 import type { ChapterTone, EntityPageMeta } from '../components/index'
-import { Button, ChapterBand, EntityPageStamps, KindLabel } from '../components/index'
+import { Button, ChapterBand, EntityPageStamps, KindLabel, NextLabel } from '../components/index'
 import type { BuildLink, GuideExits } from '../lib/buildLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
 
@@ -45,8 +45,7 @@ function GuideExitsFoot({ build, next, starterSet }: GuideExits) {
       </Button>
       {next && (
         <a href={next.href} className="su-guide-exits__next">
-          {next.label}
-          <span aria-hidden="true">→</span>
+          <NextLabel to={next.label} size="full" />
         </a>
       )}
       <a href={starterSet.href} className="su-guide-exits__starter">

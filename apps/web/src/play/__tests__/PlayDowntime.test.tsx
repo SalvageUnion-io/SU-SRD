@@ -128,7 +128,7 @@ describe('a solo Downtime, end to end', () => {
     expect(within(stepBox()).getByText('You run it')).toBeTruthy()
     expect(within(stepBox()).queryByText(/Mediator advances/)).toBeNull()
     expect(within(stepBox()).queryByRole('button', { name: 'Skip' })).toBeNull()
-    await click(button('Next step ›'))
+    await click(button(/^Next: Step \d+$/))
 
     // Upkeep & Upgrade: one line, paid on Apply.
     expect(STEPS[currentStep()]).toBe('Upkeep & Upgrade')
@@ -142,14 +142,14 @@ describe('a solo Downtime, end to end', () => {
       within(stepBox())
         .getAllByRole('button')
         .map((b) => b.textContent)
-    ).toEqual(['Skip', 'Apply & mark done', 'Next step ›'])
+    ).toEqual(['Skip', 'Apply & mark done', 'Next: Step 3'])
     expect(within(stepBox()).getByText('5 Scrap · T2')).toBeTruthy()
     await click(button('Apply & mark done'))
     expect(upkeepClaims).toBe(1)
     const paid = calls.find((c) => c.type === 'crawler')
     expect(paid?.patch).toEqual({ scrapPool: { tl2: 2 }, upgradePool: 5 })
     expect(within(stepBox()).getByText('Done ✓')).toBeTruthy()
-    await click(button('Next step ›'))
+    await click(button(/^Next: Step \d+$/))
 
     // Restore: the mech's and the pilot's lines; untick the pilot's.
     expect(STEPS[currentStep()]).toBe('Restore your Mech & Pilot')
@@ -161,17 +161,17 @@ describe('a solo Downtime, end to end', () => {
     await click(button('Apply & mark done'))
     expect(calls.map((c) => c.type)).toEqual(['mech'])
     expect(calls[0]?.patch).toMatchObject({ currentHeat: 0 })
-    await click(button('Next step ›'))
+    await click(button(/^Next: Step \d+$/))
 
     // On to Train your Pilot.
-    while (STEPS[currentStep()] !== 'Train your Pilot') await click(button('Next step ›'))
+    while (STEPS[currentStep()] !== 'Train your Pilot') await click(button(/^Next: Step \d+$/))
     expect(within(stepBox()).getByText('2→3')).toBeTruthy()
     calls.length = 0
     await click(button('Apply & mark done'))
     expect(calls).toEqual([{ type: 'pilot', id: 'dt-p', patch: { trainingPoints: 3 } }])
 
     // The last step ends Downtime.
-    while (currentStep() < STEPS.length - 1) await click(button('Next step ›'))
+    while (currentStep() < STEPS.length - 1) await click(button(/^Next: Step \d+$/))
     await click(button('End Downtime'))
     expect(writes).toContainEqual({ name: 'endDowntime' })
     expect(writes.filter((w) => w.name === 'downtime.advance')).toHaveLength(STEPS.length - 1)
@@ -326,7 +326,7 @@ describe('a Game’s step', () => {
     // "You run it" here, swapped with player-solo-downtime.png).
     expect(within(stepBox()).getByText('Mediator advances · 1 of 4 done')).toBeTruthy()
     expect(within(stepBox()).queryByText('You run it')).toBeNull()
-    expect(within(stepBox()).queryByRole('button', { name: /Next step|Advance/ })).toBeNull()
+    expect(within(stepBox()).queryByRole('button', { name: /^Next: / })).toBeNull()
     expect(
       within(stepBox())
         .getAllByRole('button')
@@ -432,8 +432,7 @@ describe('a Game’s step', () => {
       />
     )
     expect(within(stepBox()).getByText('Mediator advances · 0 of 4 done')).toBeTruthy()
-    expect(within(stepBox()).queryByRole('button', { name: 'Next step ›' })).toBeNull()
-    await click(button('Advance ›'))
+    await click(button('Next: Step 2'))
     expect(writes).toContainEqual({ name: 'downtime.advance' })
   })
 

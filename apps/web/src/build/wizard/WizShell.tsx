@@ -2,7 +2,14 @@ import type { SheetKind } from 'game-domain/entityKinds'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { Box } from '../../components/containers/Box'
-import { Badge, Button, ChapterBand, ConfirmDialog, tokens } from '../../components/index'
+import {
+  Badge,
+  Button,
+  ChapterBand,
+  ConfirmDialog,
+  NextLabel,
+  tokens,
+} from '../../components/index'
 import { WizardGameChip } from './WizardGameChip'
 import '../../styles/build/wizard.css'
 import { capsLabel } from '../../components/atoms/capsLabel'
@@ -29,7 +36,7 @@ type WizShellProps = {
    * (the NPC designer's, which carries its Any NPC | Crawler crew tabs).
    */
   band?: boolean
-  /** Ordered step labels — also drives the primary CTA ('Next · {label} →'). */
+  /** Ordered step labels — also drives the primary CTA (`NextLabel`: "Next: {label}"). */
   steps: readonly string[]
   /** Index of the active step. */
   active: number
@@ -420,7 +427,7 @@ export function WizShell({
 }: WizShellProps) {
   const [confirmingCancel, setConfirmingCancel] = useState(false)
   const isLast = active >= steps.length - 1
-  const ctaLabel = isLast ? submitLabel : `Next · ${steps[active + 1]} →`
+  const ctaLabel = isLast ? submitLabel : <NextLabel to={steps[active + 1]} size="full" />
   // The ink action pill: trackers + gate note + escape + nav buttons + CTA.
   // It declares its ink ground (chrome K1), so its ghost buttons read paper.
   const actionPill = (

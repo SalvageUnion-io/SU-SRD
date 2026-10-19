@@ -76,7 +76,7 @@ test('identity step gates Next until name + callsign are present', async ({ page
   await advanceUntilVisible(page, nameField)
 
   // Identity step — both fields required. Without them, Next is disabled.
-  const next = page.getByRole('button', { name: /^Next ·/ })
+  const next = page.getByRole('button', { name: /^Next: / })
   await expect(next).toBeDisabled()
 
   // Fill only the name, leave callsign blank.

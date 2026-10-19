@@ -20,7 +20,7 @@ test('wizard gates progress until type, armament and name are set', async ({ pag
   await page.goto(at('/crawlers/new?mode=guided'))
   await waitForReady(page)
 
-  const next = page.getByRole('button', { name: /^Next ·/ })
+  const next = page.getByRole('button', { name: /^Next: / })
 
   // Crawler Type — CTA disabled until a type is chosen.
   await expect(next).toBeDisabled()

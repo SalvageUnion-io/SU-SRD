@@ -389,10 +389,10 @@ describe('Downtime', () => {
     ).toHaveLength(2)
   })
 
-  test('Back puts the table on the step before; Advance on the next', async () => {
+  test('Back puts the table on the step before; Next on the next', async () => {
     await renderCockpit(downtimeAt(2))
     await click(named('Back to Step 2'))
-    await click(named('Advance ›'))
+    await click(named('Next: Step 4'))
     expect(sent).toEqual([
       { name: 'downtime:setStep', args: { gameId: GAME, stepIndex: 1 } },
       { name: 'downtime:advance', args: { gameId: GAME } },
@@ -408,9 +408,9 @@ describe('Downtime', () => {
     expect(names()).toEqual(['downtime:end'])
   })
 
-  test('at the last step, Advance stops and End Downtime simply ends', async () => {
+  test('at the last step, End Downtime is the way on and simply ends', async () => {
     await renderCockpit(downtimeAt(9))
-    expect((named('Advance ›') as HTMLButtonElement).disabled).toBe(true)
+    expect(screen.queryByRole('button', { name: /^Next: / })).toBeNull()
     await click(named('End Downtime'))
     expect(names()).toEqual(['downtime:end'])
   })

@@ -145,7 +145,7 @@ export function guideExitsFor(schemaId: string, item: RefEntity): GuideExits | n
   return {
     build: { href: wizardHref(step.build.path), label: step.build.label },
     next: nextGuide
-      ? { href: itemHref('guides', getEntitySlug(nextGuide)), label: `Next: ${nextGuide.name}` }
+      ? { href: itemHref('guides', getEntitySlug(nextGuide)), label: nextGuide.name }
       : null,
     starterSet: { href: STARTER_SET_HREF, label: 'Or play the Starter Set' },
   }

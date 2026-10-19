@@ -46,7 +46,7 @@ test('solo: On foot, Boarded and Downtime fit and pass axe', async ({ page }) =>
     timeout: 15_000,
   })
   await expect(page.getByText('You run it')).toBeVisible()
-  await page.getByRole('button', { name: 'Next step ›' }).click()
+  await page.getByRole('button', { name: 'Next: Step 2' }).click()
   await expect(page.getByRole('heading', { name: /^Downtime · Step 2 of \d+$/ })).toBeVisible({
     timeout: 15_000,
   })

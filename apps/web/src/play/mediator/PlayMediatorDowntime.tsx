@@ -3,10 +3,11 @@
  * (play.md §10, wireframe mediator-downtime): the ten guide steps as the
  * player's track (`PlayDowntimeTrack`, a step a press away), then the current
  * step as one box (level 1) with each seat as a full-width Token saying
- * whether they are done (level 2), and **Back**, **End Downtime** and
- * **Advance ›**; then **Upkeep** and **Gather Cantina Rumours** as rows.
+ * whether they are done (level 2), and its way through (`DowntimeStepNav`:
+ * Back, End Downtime and Next); then **Upkeep** and **Gather Cantina
+ * Rumours** as rows.
  *
- * Advance stops at the
+ * Next stops at the
  * last step, and ending before it asks first, because ending and beginning
  * again resets the upkeep and a mis-tap could charge the crew twice
  * (ADR-007). Upkeep is paid once per Downtime, in Upkeep & Upgrade only (the
@@ -20,10 +21,8 @@ import {
   isUpkeepStep,
   UPKEEP_STEP_NAME,
 } from 'game-domain/rules/downtime'
-import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import {
-  BackLabel,
   Badge,
   Button,
   ConfirmDialog,
@@ -35,6 +34,7 @@ import {
 } from '../../components/index'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { useEntityStore } from '../../stores/entityStore'
+import { DowntimeStepNav } from '../DowntimeStepNav'
 import { PlayDowntimeActionRow } from '../PlayDowntimeActionRow'
 import { PlayDowntimeTrack } from '../PlayDowntimeTrack'
 import { crawlerTl } from '../playDowntime.model'
@@ -43,8 +43,6 @@ import { payDowntimeUpkeep } from '../playUpkeep.model'
 import type { PlayActions } from '../usePlayActions'
 import { doneOf, seatDone } from './mediatorTable.model'
 import type { PlayMediator } from './usePlayMediator'
-
-const SPACER = { flex: '1 1 0%' } satisfies CSSProperties
 
 type PlayMediatorDowntimeProps = {
   mediator: PlayMediator
@@ -133,31 +131,15 @@ export function PlayMediatorDowntime({
             })}
           </ul>
           <div className="su-play-dt-controls">
-            <Button
-              size="compact"
-              variant="ghost"
-              disabled={off || idx === 0 || downtime.setStep === null}
-              onClick={() => downtime.setStep?.(idx - 1)}
-            >
-              <BackLabel to={`Step ${Math.max(idx, 1)}`} />
-            </Button>
-            <span style={SPACER} />
-            <Button
-              size="compact"
-              disabled={off}
-              onClick={last ? downtime.end : () => setConfirmEnd(true)}
-            >
-              End Downtime
-            </Button>
-            <Button
-              size="compact"
-              variant="ink"
-              disabled={off || last}
-              title={last ? 'This is the last step' : undefined}
-              onClick={downtime.advance}
-            >
-              Advance ›
-            </Button>
+            <DowntimeStepNav
+              step={idx}
+              count={count}
+              off={off}
+              onBack={downtime.setStep === null ? null : () => downtime.setStep?.(idx - 1)}
+              onEnd={last ? downtime.end : () => setConfirmEnd(true)}
+              onAdvance={downtime.advance}
+              endEarly
+            />
           </div>
         </TitledBox>
       )}

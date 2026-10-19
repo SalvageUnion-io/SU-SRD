@@ -408,17 +408,22 @@ export function productBans(product: { build: string; play: string }): Banned[] 
  */
 const BACK_GLYPHS = /←|‹|&larr;|&lsaquo;|&#8592;|&#x2190;|&#8249;|&#x2039;/i
 const ELLIPSIS_GLYPH = /⋯|&#8943;|&#x22ef;/i
+/** Next is `NextLabel` (`ChevronRight` and the place), never a forward arrow drawn as text. */
+const FORWARD_GLYPHS = /›|→|&rsaquo;|&rarr;|&#8250;|&#x203a;|&#8594;|&#x2192;/i
 
 /**
- * Every arrow-as-back in copy (JSX text, a string or template chunk) and every
+ * Every arrow-as-back in copy (JSX text, a string or template chunk), every
  * text ⋯ drawn in JSX (its text, or a string handed to a JSX attribute or
- * child). Pure: the caller reads the file.
+ * child) and every forward arrow drawn as JSX text (its text, or a string
+ * that is a JSX child: `{last ? 'End' : 'Advance ›'}`). A forward arrow in a
+ * template or an attribute (`HP → 4` in a proposal's name) is a value's
+ * change, not a way on. Pure: the caller reads the file.
  */
 export function glyphFindings(file: string, source: string): Finding[] {
   const lineOf = lineIndex(source)
   const out: Finding[] = []
   const raw = (v: Node) => source.slice(Number(v.start), Number(v.end))
-  const check = (v: Node, text: string, inJsx: boolean) => {
+  const check = (v: Node, text: string, inJsx: boolean, drawn = false) => {
     if (BACK_GLYPHS.test(text)) {
       out.push({
         file,
@@ -433,10 +438,22 @@ export function glyphFindings(file: string, source: string): Finding[] {
         detail: `"${text.trim()}": ⋯ is lucide's Ellipsis at its Size, never a text character`,
       })
     }
+    if (drawn && FORWARD_GLYPHS.test(text)) {
+      out.push({
+        file,
+        line: lineOf(Number(v.start)),
+        detail: `"${text.trim()}": next is ChevronRight and the place's name (NextLabel), a value's change lucide's ArrowRight; never ›, → or &rsaquo; as text`,
+      })
+    }
   }
-  const visit = (v: unknown, inJsx: boolean): void => {
+  /** Whether a child keeps its parent's place as a JSX child (`a ? 'x' : 'y'`, `a && 'x'`). */
+  const keepsPlace = (v: Node, key: string) =>
+    (v.type === 'ConditionalExpression' && (key === 'consequent' || key === 'alternate')) ||
+    (v.type === 'LogicalExpression' && key === 'right')
+  // `drawn`: the node is a JSX child, drawn as text; `inAttr`: inside an attribute.
+  const visit = (v: unknown, inJsx: boolean, drawn = false, inAttr = false): void => {
     if (Array.isArray(v)) {
-      for (const x of v) visit(x, inJsx)
+      for (const x of v) visit(x, inJsx, drawn, inAttr)
       return
     }
     if (!isNode(v)) return
@@ -448,20 +465,26 @@ export function glyphFindings(file: string, source: string): Finding[] {
         if (isSkippedCall(v.callee)) return
         break
       case 'JSXText':
-        check(v, raw(v), true)
+        check(v, raw(v), true, true)
         return
       case 'Literal':
-        if (typeof v.value === 'string') check(v, raw(v), inJsx)
+        if (typeof v.value === 'string') check(v, raw(v), inJsx, drawn)
         return
       case 'TemplateElement':
         check(v, raw(v), inJsx)
         return
       case 'JSXAttribute':
+        for (const [k, x] of Object.entries(v)) if (k !== 'parent') visit(x, true, false, true)
+        return
       case 'JSXExpressionContainer':
-        for (const [k, x] of Object.entries(v)) if (k !== 'parent') visit(x, true)
+        for (const [k, x] of Object.entries(v)) {
+          if (k !== 'parent') visit(x, true, !inAttr && k === 'expression', inAttr)
+        }
         return
     }
-    for (const [k, x] of Object.entries(v)) if (k !== 'parent') visit(x, inJsx)
+    for (const [k, x] of Object.entries(v)) {
+      if (k !== 'parent') visit(x, inJsx, drawn && keepsPlace(v, k), inAttr)
+    }
   }
   visit(parseSync(file, source).program, false)
   return out
@@ -488,8 +511,8 @@ const RULES: readonly Rule[] = [
   },
   {
     id: 'glyph',
-    rule: "hard rule R23 (chrome K11) — back is ChevronLeft and the place's name, never ←, ‹ or &larr;; ⋯ is lucide's Ellipsis, never a text ⋯",
-    fix: 'draw back as `<BackLabel to="Hangar" />` inside the link or button; draw ⋯ as `<Ellipsis size={iconSize…} />` (a menu: HeaderMenu `variant="overflow"`)',
+    rule: "hard rule R23 (chrome K11) — back is ChevronLeft and the place's name, never ←, ‹ or &larr;; next is ChevronRight and the place's name, never ›, → or &rsaquo; drawn as JSX text; ⋯ is lucide's Ellipsis, never a text ⋯",
+    fix: 'draw back as `<BackLabel to="Hangar" />` and next as `<NextLabel to="Stats" />` inside the link or button (`Button back` for a way back); a value\'s change (6 → 4) is lucide\'s `ArrowRight` at the line\'s Size; draw ⋯ as `<Ellipsis size={iconSize…} />` (a menu: HeaderMenu `variant="overflow"`)',
     mode: 'zero',
   },
 ]

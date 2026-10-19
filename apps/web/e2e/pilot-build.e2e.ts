@@ -143,5 +143,5 @@ test('the creation ability budget caps at one pick', async ({ page }) => {
   }
 
   // And the step stays satisfiable — the budget gates the count, not progress.
-  await expect(page.getByRole('button', { name: /^Next ·/ })).toBeEnabled()
+  await expect(page.getByRole('button', { name: /^Next: / })).toBeEnabled()
 })

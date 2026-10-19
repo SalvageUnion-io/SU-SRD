@@ -85,7 +85,7 @@ describe('guideExitsFor', () => {
   test('Create a Pilot builds a pilot, walks on to Create a Mech, offers the Starter Set', () => {
     expect(guideExitsFor('guides', guide('Create a Pilot'))).toEqual({
       build: { href: `${appPath('/pilots/new?mode=guided')}`, label: 'Build a pilot' },
-      next: { href: '/guides/create-a-mech/', label: 'Next: Create a Mech' },
+      next: { href: '/guides/create-a-mech/', label: 'Create a Mech' },
       starterSet: { href: `${appPath('/starter')}`, label: 'Or play the Starter Set' },
     })
   })

@@ -50,6 +50,7 @@ import {
 } from '../components/index'
 import { runWrite } from '../lib/runWrite'
 import { PLAY_TXN } from '../stores/surfaceProvenance'
+import { DowntimeStepNav } from './DowntimeStepNav'
 import type { PlanLine } from './playDowntime.model'
 import { crawlerTl, mechBayOf, medBayOf, stepPlan, stepsFor } from './playDowntime.model'
 import { recordPlayChange } from './playRolls.model'
@@ -102,7 +103,6 @@ export function PlayDowntimeStep({
     ? me != null && downtime.downtime.completedBy.some((m) => m.userId === me._id)
     : claimed
   const off = !play.canWrite
-  const last = stepIndex >= stepCount - 1
 
   function toggle(key: string) {
     const next = new Set(unticked)
@@ -243,16 +243,15 @@ export function PlayDowntimeStep({
             Mark done
           </Button>
         ) : null}
-        {!downtime.locked &&
-          (last ? (
-            <Button size="compact" variant="ink" onClick={play.endDowntime} disabled={off}>
-              End Downtime
-            </Button>
-          ) : (
-            <Button size="compact" variant="ink" onClick={downtime.advance} disabled={off}>
-              {inGame ? 'Advance ›' : 'Next step ›'}
-            </Button>
-          ))}
+        {!downtime.locked && (
+          <DowntimeStepNav
+            step={stepIndex}
+            count={stepCount}
+            off={off}
+            onEnd={play.endDowntime}
+            onAdvance={downtime.advance}
+          />
+        )}
       </div>
     </TitledBox>
   )

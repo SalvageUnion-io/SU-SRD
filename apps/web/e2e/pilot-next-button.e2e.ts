@@ -29,7 +29,7 @@ test('Next opens only once both class and first ability are picked', async ({ pa
   // "Your Stats" precedes the Class step, so walk to the class cards first.
   await advanceUntilVisible(page, choiceCardByName(page, 'Engineer'))
 
-  const next = page.getByRole('button', { name: /^Next ·/ })
+  const next = page.getByRole('button', { name: /^Next: / })
   await expect(next).toBeDisabled()
 
   // Half one: the class. Not enough on its own.

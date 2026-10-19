@@ -226,7 +226,7 @@ describe('a live crawler', () => {
 })
 
 describe('the Downtime restore preview', () => {
-  test('each vital the step changes reads "→ N" after its gauge, still showing now', () => {
+  test('each vital the step changes reads "→ N" (ArrowRight, R23) after its gauge, still showing now', () => {
     const { store } = recordingStore()
     render(
       <PlayMechUnit
@@ -238,7 +238,9 @@ describe('the Downtime restore preview', () => {
       />
     )
     expect(screen.getByRole('img', { name: 'SP 5 of 12' })).toBeTruthy()
-    expect(screen.getByRole('note', { name: 'SP restores to 12' }).textContent).toBe('→ 12')
+    const note = screen.getByRole('note', { name: 'SP restores to 12' })
+    expect(note.textContent?.trim()).toBe('12')
+    expect(note.querySelector('svg')).toBeTruthy()
     expect(screen.getByRole('note', { name: 'Heat restores to 0' })).toBeTruthy()
     expect(screen.queryByRole('note', { name: /^EP/ })).toBeNull()
     expect(screen.getByText('Mech Bay')).toBeTruthy()

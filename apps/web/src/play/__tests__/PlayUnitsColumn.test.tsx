@@ -266,9 +266,9 @@ describe('the Units column (play.md §4)', () => {
     expect(isReference(mechBox)).toBe(true)
     expect(within(mechBox).getByText('Mech Bay')).toBeTruthy()
     expect(within(mechBox).queryByRole('button', { name: /[−+]1$/ })).toBeNull()
-    expect(within(mechBox).getByRole('note', { name: 'SP restores to 12' }).textContent).toBe(
-      '→ 12'
-    )
+    expect(
+      within(mechBox).getByRole('note', { name: 'SP restores to 12' }).textContent?.trim()
+    ).toBe('12')
     expect(within(mechBox).getByRole('note', { name: 'EP restores to 4' })).toBeTruthy()
     expect(within(mechBox).getByRole('note', { name: 'Heat restores to 0' })).toBeTruthy()
 

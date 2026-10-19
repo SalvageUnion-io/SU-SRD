@@ -78,8 +78,24 @@ describe('copy glyph', () => {
       'export const D = () => <Menu trigger="⋯" />',
       "export const note = 'the ⋯ menu'",
       '// a comment may say ← and ⋯',
-      'export const E = () => <a>Advance ›</a>',
+      "export const E = () => <a>{'Next: Stats'}</a>",
     ].join('\n')
+    expect(lines(glyphFindings('a.tsx', source))).toEqual([1, 2, 3, 4, 5])
+  })
+  test('a forward arrow is banned where JSX draws it as text; a value change in a string is not', () => {
+    const source = [
+      'export const A = () => <a>Advance ›</a>',
+      'export const B = () => <a>Next &rsaquo;</a>',
+      "export const C = () => <b>{last ? 'End' : 'Next step ›'}</b>",
+      "export const D = () => <b>{open && 'Live Sheet →'}</b>",
+      'export const E = () => <i>{before} → {after}</i>',
+      // `@{` stands in for a template's placeholder, so the fixture stays a plain string.
+      "export const F = () => <b aria-label={`HP @{a} → @{b}`} title={'6 → 4'} />",
+      'export const what = `@{name} · HP → @{after}`',
+      'export const G = () => <b>{`@{a} → @{b}`}</b>',
+    ]
+      .join('\n')
+      .replaceAll('@{', '$' + '{')
     expect(lines(glyphFindings('a.tsx', source))).toEqual([1, 2, 3, 4, 5])
   })
   test('imports, console and bookQuote calls are no copy; a template chunk is', () => {

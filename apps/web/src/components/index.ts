@@ -36,7 +36,6 @@ export { useMediaQuery } from '../lib/useMediaQuery'
 /** `CSSProperties` that also admits `--custom-property` keys (see styles/cssVars). */
 export type { CSSVarStyle } from '../styles/cssVars'
 export { ActivationCost } from './atoms/ActivationCost'
-export { BackLabel } from './atoms/BackLabel'
 export type { BadgeTone } from './atoms/Badge'
 // Chrome primitives (The app design handoff — design-spec §2)
 // Badge — the unified stamp-chip family: the quiet keyword chip is
@@ -87,6 +86,7 @@ export { KofiButton } from './atoms/KofiButton'
 export { Message } from './atoms/Message'
 export { ModeDoor } from './atoms/ModeDoor'
 export { useModKeyHint } from './atoms/modKeyHint'
+export { NextLabel } from './atoms/NextLabel'
 export { PageHeading } from './atoms/PageHeading'
 export { Panel } from './atoms/Panel'
 export { linesFromBreakdown, summarizeBreakdown } from './atoms/provenanceLines'

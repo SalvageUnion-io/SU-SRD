@@ -12,6 +12,7 @@
 import { useQuery } from 'convex/react'
 import type { ChangeLogKind } from 'game-domain/schemas/changeLog'
 import type { EntityRef } from 'game-domain/schemas/entity'
+import { ArrowRight } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { BadgeTone } from '../../components/index'
@@ -65,6 +66,9 @@ const PUSH = { marginLeft: 'auto' } satisfies CSSProperties
 
 const MUTED = { color: tokens.color.wkMuted } satisfies CSSProperties
 
+/** The change's arrow, muted and centred on the values. */
+const GLYPH = { ...MUTED, verticalAlign: 'middle' } satisfies CSSProperties
+
 const BEFORE = { ...MUTED, textDecorationLine: 'line-through' } satisfies CSSProperties
 
 const AFTER = { fontWeight: tokens.weight.medium, color: tokens.color.ink } satisfies CSSProperties
@@ -115,9 +119,8 @@ function ChangeLogEntries({
             }
           >
             <span style={BEFORE}>{formatValue(entry.before)}</span>{' '}
-            <span aria-hidden="true" style={MUTED}>
-              →
-            </span>{' '}
+            {/* The value's change, a glyph at the line's Size (R23), never a text arrow. */}
+            <ArrowRight size={tokens.iconSize.compact} aria-hidden="true" style={GLYPH} />{' '}
             <span style={AFTER}>{formatValue(entry.after)}</span>
           </FeedLine>
         )

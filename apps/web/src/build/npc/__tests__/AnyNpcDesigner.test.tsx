@@ -95,17 +95,17 @@ describe('the template step', () => {
 
   test('Next waits for a template or a blank start', async () => {
     await renderDesigner()
-    expect(screen.getByRole('button', { name: 'Next · Stats →' })).toHaveProperty('disabled', true)
+    expect(screen.getByRole('button', { name: 'Next: Stats' })).toHaveProperty('disabled', true)
     await pick('Start blank')
-    expect(screen.getByRole('button', { name: 'Next · Stats →' })).toHaveProperty('disabled', false)
+    expect(screen.getByRole('button', { name: 'Next: Stats' })).toHaveProperty('disabled', false)
   })
 
   test('a reference NPC fills the stats and the actions', async () => {
     await renderDesigner()
     await pick('Start from Veteran')
-    await click('Next · Stats →')
+    await click('Next: Stats')
     expect(screen.getByLabelText(/Hit points/)).toHaveProperty('value', '9')
-    await click('Next · Actions & traits →')
+    await click('Next: Actions & traits')
     expect(
       screen
         .getByRole('button', { name: 'Carry Green Laser Rifle (Veteran)' })
@@ -123,8 +123,8 @@ describe('adding a trait', () => {
   test('names a lower-case glossary trait as the book prints it', async () => {
     await renderDesigner()
     await pick('Start from Veteran')
-    await click('Next · Stats →')
-    await click('Next · Actions & traits →')
+    await click('Next: Stats')
+    await click('Next: Actions & traits')
     await act(async () => {
       fireEvent.change(screen.getByPlaceholderText('Add an action or trait from the reference'), {
         target: { value: 'vulnerable' },
@@ -139,7 +139,7 @@ describe('starting over', () => {
   async function editedVeteran() {
     await renderDesigner()
     await pick('Start from Veteran')
-    await click('Next · Stats →')
+    await click('Next: Stats')
     await act(async () => {
       fireEvent.change(screen.getByLabelText(/Hit points/), { target: { value: '12' } })
     })
@@ -151,7 +151,7 @@ describe('starting over', () => {
     await pick('Start blank')
     expect(screen.getAllByText('Start blank?').length).toBeGreaterThan(0)
     await click('Clear')
-    await click('Next · Stats →')
+    await click('Next: Stats')
     expect(screen.getByLabelText(/Hit points/)).toHaveProperty('value', '')
   })
 
@@ -159,7 +159,7 @@ describe('starting over', () => {
     await editedVeteran()
     await pick('Start blank')
     await click('Cancel')
-    await click('Next · Stats →')
+    await click('Next: Stats')
     expect(screen.getByLabelText(/Hit points/)).toHaveProperty('value', '12')
   })
 
@@ -186,17 +186,17 @@ describe('saving', () => {
   test('stores the carried actions as slugs, and only what the player wrote', async () => {
     await renderDesigner()
     await pick('Start from Veteran')
-    await click('Next · Stats →')
-    await click('Next · Actions & traits →')
+    await click('Next: Stats')
+    await click('Next: Actions & traits')
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Carry Portable Comms Unit (NPC)' }))
     })
-    await click('Next · Identity →')
-    expect(screen.getByRole('button', { name: 'Next · Review →' })).toHaveProperty('disabled', true)
+    await click('Next: Identity')
+    expect(screen.getByRole('button', { name: 'Next: Review' })).toHaveProperty('disabled', true)
     await act(async () => {
       fireEvent.change(screen.getByLabelText(/Name/), { target: { value: 'Sergeant Kessler' } })
     })
-    await click('Next · Review →')
+    await click('Next: Review')
     await click('Save NPC')
     await waitFor(() => expect(useEntityStore.getState().npcs).toHaveLength(1))
 

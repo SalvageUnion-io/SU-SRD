@@ -70,9 +70,9 @@ async function pick(name: string): Promise<void> {
   })
 }
 
-/** The primary CTA is labeled from the steps array: 'Next · {step} →'. */
+/** The primary CTA is labeled from the steps array: 'Next: {step}' (`NextLabel`). */
 function getNextButton(): HTMLButtonElement {
-  return screen.getByRole<HTMLButtonElement>('button', { name: /^Next ·/ })
+  return screen.getByRole<HTMLButtonElement>('button', { name: /^Next: / })
 }
 
 async function clickNext(): Promise<void> {

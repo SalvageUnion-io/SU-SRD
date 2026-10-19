@@ -307,6 +307,6 @@ describe('Act: resolve stays inline', () => {
     expect(panel.getByRole('list', { name: 'Downtime steps' })).toBeTruthy()
     const apply = panel.getByRole('button', { name: /^Apply/ })
     await click(apply)
-    expect(panel.getByRole('button', { name: /Next step/ })).toBeTruthy()
+    expect(panel.getByRole('button', { name: /^Next: Step \d+$/ })).toBeTruthy()
   })
 })

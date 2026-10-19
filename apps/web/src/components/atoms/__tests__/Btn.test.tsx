@@ -7,6 +7,7 @@ import type { EntityLinkComponent } from '../../entity/entitySurfaceContext'
 import { Button } from '../Button'
 import { buttonVariants } from '../buttonVariants'
 import { DISABLED } from '../interaction'
+import { NextLabel } from '../NextLabel'
 
 /**
  * The class the recipe emits for one variant, isolated from the rest of its
@@ -157,5 +158,19 @@ describe('Button', () => {
       expect(link.textContent).toBe('Back to Hangar')
       expect(link.querySelector('svg')?.getAttribute('width')).toBe('14')
     })
+  })
+
+  test('NextLabel mirrors BackLabel: the place, then ChevronRight at the Size, read "Next: <place>"', () => {
+    render(
+      <Button size="full">
+        <NextLabel to="Stats" size="full" />
+      </Button>
+    )
+    const button = screen.getByRole('button', { name: 'Next: Stats' })
+    // The visible name, then the glyph: no arrow character in the text (R23).
+    expect(button.textContent).toBe('Next: Stats')
+    expect(button.lastElementChild?.tagName.toLowerCase()).toBe('svg')
+    expect(button.lastElementChild?.getAttribute('width')).toBe('18')
+    expect(button.lastElementChild?.getAttribute('aria-hidden')).toBe('true')
   })
 })
