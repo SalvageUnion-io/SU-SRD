@@ -97,7 +97,7 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
    - **No titled box inside an entity** (N5) — a non-entity block in an entity is a Slab over content if a section of the parent (When Damaged, Crawler Hold, Scrap Pool), an unlabelled Callout if a note; never a `TitledBox` or its variants. On an SRD Page a level-1 block may stay a TitledBox.
    - **A container of entities is untitled** (N6) — a wizard step is its title and content; the entities in it are the titled things. A dialog's head is its chrome (level 0).
 6. **§6 The merge map** — merge any primitive that does not serve a different reader intent.
-   1. **Badge** — every stamp-chip: tag, pill, cost pennant, range, action type, TL, the StatusBadge shell.
+   1. **Badge** — every stamp-chip: tag, pill, range, action type, TL, the StatusBadge shell. The cost's pointed box is its own atom, `ActivationCost`: the one standout.
    2. **Stat** — every labelled value, read or edited, text values too (no hand `dl`): edit is a state, its one stepper.
    3. **Gauge** — every vital and pip track, Play's steppers too: a darker room is a skin.
    4. **Section** — `SlabSection`: a Slab, one gap, its body; the fold and count its props.
