@@ -19,7 +19,6 @@ const modulePaths: Record<keyof typeof islandRegistry, string> = {
   RollTableIsland: '../../components/islands/RollTableIsland',
   ColumnsTableIsland: '../../components/islands/ColumnsTableIsland',
   ColophonIsland: '../../components/islands/ColophonIsland',
-  SearchResultsIsland: '../../components/islands/SearchResultsIsland',
   DidYouMeanIsland: '../../components/islands/DidYouMeanIsland',
   OgCardIsland: '../../components/islands/OgCardIsland',
   PeekIsland: '../../components/islands/PeekIsland',

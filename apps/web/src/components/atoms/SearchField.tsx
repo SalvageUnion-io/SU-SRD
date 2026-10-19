@@ -11,7 +11,7 @@ import { FOCUS_WITHIN } from './interaction'
  * `focus-within` so the inner input can stay `focus:outline-none`.
  *
  * Purely presentational: it forwards `ref` and every extra prop straight to the
- * `<input>`, so a caller can wire it as a plain text input (the `/search` page)
+ * `<input>`, so a caller can wire it as a plain text input (a listing's name filter)
  * or as an ARIA combobox (the header dropdown) without this component knowing
  * which. The default look is the header's compact search; override
  * padding/size via `containerClassName` and width/etc. via `className`.

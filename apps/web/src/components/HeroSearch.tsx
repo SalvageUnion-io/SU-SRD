@@ -7,22 +7,23 @@ import { Button, SearchField } from './index'
  * A wide field and a Search button, on the Contents band beside the title.
  *
  * Two renderings share this shell so the page never shifts when the island
- * mounts: `HeroSearchStatic` is the server markup (a plain GET form to
- * `/search/`, which works with no JavaScript at all), and `SearchIsland`'s
- * `hero` variant renders the same form around its combobox.
+ * mounts: `HeroSearchStatic` is the server markup (a plain GET form to the
+ * home page, `/?q=…`, whose search opens on its query once its island
+ * mounts), and `SearchIsland`'s `hero` variant renders the same form around
+ * its combobox.
  */
 
 type HeroSearchFormProps = {
   /** The field (and, in the island, its listbox). */
   children: ReactNode
-  /** The island's submit handler; the static form posts to `/search/` itself. */
+  /** The island's submit handler; the static form goes to `/?q=…` itself. */
   onSubmit?: FormEventHandler<HTMLFormElement>
 }
 
 export function HeroSearchForm({ children, onSubmit }: HeroSearchFormProps) {
   return (
     <search>
-      <form action="/search/" method="get" className="su-hero-search" onSubmit={onSubmit}>
+      <form action="/" method="get" className="su-hero-search" onSubmit={onSubmit}>
         {children}
         <Button type="submit" variant="primary" size="full">
           Search

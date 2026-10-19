@@ -395,22 +395,6 @@ a.su-home__discord:hover {
   min-width: 0;
 }
 
-.su-listing__fallback-row {
-  align-items: center;
-  background-color: var(--color-paper);
-  border: var(--bw-entity-compact) solid var(--color-ink);
-  border-radius: var(--radius-card);
-  color: var(--color-ink);
-  display: flex;
-  font-size: var(--text-readout);
-  min-height: var(--size-full);
-  overflow: hidden;
-  padding: 0 var(--space-12);
-  text-decoration: none;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 /*
  * THE CATALOG (`data-view="catalog"`): the Tiles (the UI library's
  * `.su-entity-tile`), every listing's view at every width, one flat grid
@@ -554,12 +538,6 @@ a.su-home__discord:hover {
 
 .su-rail form.su-rail__search {
   display: flex;
-}
-
-/* The search page's field fills its form, at the rail's 44px. */
-.su-rail__search > .su-rail__field {
-  flex: 1 1 auto;
-  min-height: var(--size-full);
 }
 
 /* The field's clear button, in ink like the rest of the rail (the browser's

@@ -103,7 +103,7 @@ describe('SearchIsland', () => {
     expect(listbox.textContent).toContain('No results found')
   })
 
-  test('Enter with no arrow selection navigates to the full results page', async () => {
+  test('Enter with no arrow selection opens the first result', async () => {
     const navigate = mock(() => {})
     render(<SearchIsland navigate={navigate} />)
     const input = screen.getByRole('combobox')
@@ -117,10 +117,10 @@ describe('SearchIsland', () => {
       fireEvent.keyDown(input, { key: 'Enter' })
     })
 
-    // With no highlighted row, Enter opens the uncapped /search page for the term
-    // rather than jumping to the first dropdown hit.
+    // There is no results page: the dropdown is the search, so Enter with no
+    // highlighted row opens its first row.
     expect(navigate).toHaveBeenCalledTimes(1)
-    expect(navigate).toHaveBeenCalledWith('/search?q=chassis')
+    expect(navigate).toHaveBeenCalledWith(options[0]?.getAttribute('href'))
   })
 
   test('Enter with arrow selection navigates to the selected result', async () => {
@@ -302,16 +302,17 @@ describe('SearchIsland', () => {
     expect(document.activeElement).not.toBe(input)
   })
 
-  test('without a navigate prop, Enter sends the window to the results page', async () => {
+  test('without a navigate prop, Enter sends the window to the first result', async () => {
     const assign = spyOn(window.location, 'assign').mockImplementation(() => {})
     try {
       render(<SearchIsland />)
       const input = screen.getByRole('combobox')
-      await typeAndSettle(input, 'mule pattern')
+      await typeAndSettle(input, 'mule')
+      const [first] = screen.getAllByRole('option')
       await act(async () => {
         fireEvent.keyDown(input, { key: 'Enter' })
       })
-      expect(assign).toHaveBeenCalledWith('/search?q=mule%20pattern')
+      expect(assign).toHaveBeenCalledWith(first?.getAttribute('href'))
     } finally {
       assign.mockRestore()
     }
@@ -348,16 +349,34 @@ describe('SearchIsland', () => {
   })
 
   describe('the hero variant', () => {
-    test('submitting the form opens the results page for the trimmed term', async () => {
+    test('submitting the form opens the first result for the trimmed term', async () => {
       const navigate = mock(() => {})
       render(<SearchIsland variant="hero" navigate={navigate} />)
       const input = screen.getByRole('combobox')
       expect(input.getAttribute('name')).toBe('q')
       await typeAndSettle(input, '  mule  ')
+      const [first] = screen.getAllByRole('option')
       await act(async () => {
         fireEvent.click(screen.getByRole('button', { name: 'Search' }))
       })
-      expect(navigate).toHaveBeenCalledWith('/search?q=mule')
+      expect(navigate).toHaveBeenCalledWith(first?.getAttribute('href'))
+    })
+
+    test("opens on the address's query, where the retired search page lands", async () => {
+      window.location.href = 'http://localhost/?q=mule'
+      try {
+        render(<SearchIsland variant="hero" />)
+        const input = screen.getByRole('combobox')
+        await act(async () => {
+          jest.advanceTimersByTime(DEBOUNCE_MS)
+        })
+        expect((input as HTMLInputElement).value).toBe('mule')
+        expect(document.activeElement).toBe(input)
+        expect(input.getAttribute('aria-expanded')).toBe('true')
+        expect(screen.getByRole('option', { name: /Mule/ })).toBeTruthy()
+      } finally {
+        window.location.href = 'http://localhost/'
+      }
     })
 
     test('submitting an empty form goes nowhere and puts focus in the field', async () => {

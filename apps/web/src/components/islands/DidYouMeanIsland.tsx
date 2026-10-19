@@ -89,7 +89,8 @@ export function DidYouMeanIsland({ pathname }: DidYouMeanIslandProps = {}) {
 
   if (!query || !ready) return null
 
-  const searchHref = `/search/?q=${encodeURIComponent(query)}`
+  // The home page's search, opened on the query (`SearchIsland`'s hero).
+  const searchHref = `/?q=${encodeURIComponent(query)}`
 
   return (
     <IslandErrorBoundary>

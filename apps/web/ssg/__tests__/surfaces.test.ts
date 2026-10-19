@@ -57,7 +57,7 @@ describe('home: the manual’s Contents page (board 06)', () => {
 
   it('searches from the band: one search island, server-rendered as a GET form', () => {
     expect(islands(html, 'SearchIsland')).toBe(1)
-    expect(html).toContain('action="/search/"')
+    expect(html).toContain('action="/"')
   })
 
   it('indexes the book’s five chapters, with counts', () => {
@@ -111,8 +111,8 @@ describe('home: the manual’s Contents page (board 06)', () => {
   it('reads title, search, the index, then "Start here" and Discord below it', () => {
     const at = (needle: string) => html.indexOf(needle)
     expect(at('<h1')).toBeGreaterThan(-1)
-    expect(at('<h1')).toBeLessThan(at('action="/search/"'))
-    expect(at('action="/search/"')).toBeLessThan(at('id="pilot-bay"'))
+    expect(at('<h1')).toBeLessThan(at('action="/"'))
+    expect(at('action="/"')).toBeLessThan(at('id="pilot-bay"'))
     expect(at('id="pilot-bay"')).toBeLessThan(at('id="start-here"'))
     expect(at('id="start-here"')).toBeLessThan(at('id="discord-bot"'))
   })

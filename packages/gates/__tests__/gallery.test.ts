@@ -145,7 +145,7 @@ describe('renderGallery, page by page', () => {
 describe('pageSlug', () => {
   test('home, query strings, signed-in and case', () => {
     expect(pageSlug({ path: '/' })).toBe('home')
-    expect(pageSlug({ path: '/search?q=drill' })).toBe('search-q-drill')
+    expect(pageSlug({ path: '/chassis/?view=list' })).toBe('chassis-view-list')
     expect(pageSlug({ path: '/build/', signedIn: true })).toBe('in-build')
     expect(pageSlug({ path: ':Pilot' })).toBe('pilot')
     expect(pageSlug({ path: '/schema/Chassis/item/“x”/' })).toBe('schema-chassis-item-x')

@@ -30,7 +30,6 @@ const PAGES = [
   '/drones/pest-drone/',
   '/vehicles/fighting-box-wheel/',
   '/crawler-bays/armoury/',
-  '/search?q=drill',
 ]
 
 /** A wide page, a narrow band (chips beside the title in rows), a phone. */

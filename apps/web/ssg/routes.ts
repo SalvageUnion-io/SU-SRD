@@ -22,7 +22,6 @@ import { changelogPage } from '../src/reference/pages/changelog.page'
 import { discordPage } from '../src/reference/pages/discord.page'
 import { indexPage } from '../src/reference/pages/index.page'
 import { ogCardPage } from '../src/reference/pages/og-card.page'
-import { searchPage } from '../src/reference/pages/search.page'
 import type { RouteRegistration } from './render'
 import { register } from './render'
 
@@ -37,7 +36,6 @@ export const routes: RouteRegistration[] = [
   register(changelogPage),
   // Noindexed (results are query-driven), so listing it in the sitemap would
   // ask crawlers to fetch a page the page itself tells them not to index.
-  register(searchPage, { sitemap: false }),
   register(botPrivacyPage),
   register(botTermsPage),
   register(aboutPage),

@@ -37,7 +37,6 @@ const PAGES = [
   '/roll-tables/core-mechanic/',
   '/roll-tables/mechapult/',
   '/guides/create-a-pilot/',
-  '/search?q=drill',
   '/build/',
   '/build/starter',
   '/build/starter/pilot/starter-pilot-bonesaw',

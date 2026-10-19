@@ -36,7 +36,7 @@
  */
 
 import { appPath } from '../lib/appBase'
-import { currentPathFor } from '../lib/redirects'
+import { currentPathFor, retiredSitePage } from '../lib/redirects'
 import type { AppEnv } from './app'
 import { isBuildPath, serveApp } from './app'
 import type { RateLimiter } from './errorReports'
@@ -104,8 +104,9 @@ export default {
       return notFound('Not found', { 'content-type': 'text/plain;charset=UTF-8' })
     }
 
-    // 2. A page under the old grammar: one hop to its new address, query kept.
-    const moved = currentPathFor(url.pathname)
+    // 2. A page under the old grammar, or one that is gone (the search page):
+    // one hop to its new address, query kept.
+    const moved = currentPathFor(url.pathname) ?? retiredSitePage(url.pathname)
     if (moved) {
       return new Response(null, {
         status: 301,

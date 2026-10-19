@@ -41,7 +41,6 @@ const PAGES = [
   '/roll-tables/core-mechanic/',
   '/roll-tables/mechapult/',
   '/guides/create-a-pilot/',
-  '/search?q=drill',
   '/build/',
   '/build/starter',
   ...[
@@ -66,8 +65,8 @@ const PAGES = [
 const WIDTHS = [1440, 390]
 
 /**
- * Each Peek opens from the bar search's result Token (the /search page's Rows
- * do not Peek): its schema and a name it holds.
+ * Each Peek opens from the bar search's result Token: its schema and a name
+ * it holds.
  */
 const PEEKS = [
   { schema: 'chassis', name: 'Big Brother' },

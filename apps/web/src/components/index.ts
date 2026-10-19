@@ -25,10 +25,6 @@ export type { TableDie } from '../lib/dice'
 export { dieForTable, rollD20, rollForTable } from '../lib/dice'
 // Prose with its `[[Trait]]` references drawn as Mentions (The app's `PlayRollTable`).
 export { useParseTraitReferences } from '../lib/parseTraitReferences'
-// The one place a schema id becomes a human label ('crawler-bays' →
-// 'Crawler Bays'), so the combobox, the /search page and the catalog can't
-// spell the same schema differently.
-export { schemaPluralLabel } from '../lib/schemaLabels'
 // THE show/hide fold: open state plus the toggle's aria-expanded / aria-controls.
 export { useDisclosure } from '../lib/useDisclosure'
 // The one viewport media-query hook (a breakpoint read in JS, not CSS).

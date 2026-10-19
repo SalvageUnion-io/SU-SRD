@@ -47,7 +47,6 @@ Canonical URLs always carry a trailing slash.
 | `ReferenceEntityIsland` | visible | false | SSR would be empty; `StaticEntityContent` is the SEO path |
 | `RollTableIsland` | idle | **true** | `hydrate`: the bands are content |
 | `ColophonIsland` | visible | **true** | prose worth indexing |
-| `SearchResultsIsland` | only | false | client-only results page |
 | `OgCardIsland` | load | false | screenshot target |
 | `ColumnsTableIsland` | idle | **true** | `hydrate`: Callsign, as above |
 | `DidYouMeanIsland` | idle | false | the 404's guesses: the missed path is known only in the browser |

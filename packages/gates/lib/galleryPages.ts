@@ -72,7 +72,6 @@ export const GALLERY_SECTIONS: readonly GallerySection[] = [
       srd('/creatures/', 'Creatures', 'Art and art-less entities mixed.'),
       srd('/bio-titans/', 'Bio-Titans', 'An entity grid: every Row one height.'),
       srd('/keywords/', 'Keywords', 'Text only: a name and a lead.'),
-      srd('/search?q=drill', 'Search: "drill"', 'Search results as Rows.'),
     ],
   },
   {

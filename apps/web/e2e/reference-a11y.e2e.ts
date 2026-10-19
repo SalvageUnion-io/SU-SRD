@@ -14,7 +14,6 @@ const PAGES = [
   '/discord/',
   '/bot/terms/',
   '/bot/privacy/',
-  '/search/',
   '/chassis/',
   '/chassis/aegis/',
   '/roll-tables/ai-personality/',

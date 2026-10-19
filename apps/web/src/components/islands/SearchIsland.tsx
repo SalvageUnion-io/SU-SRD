@@ -3,8 +3,14 @@
  * Union bar's field, the home and 404 hero), and the app renders the same
  * component in its bar. One engine, the build-time compact index
  * (`/search-index.json`, `searchCompactIndex`); one panel, hung under the
- * field; Cmd/Ctrl+K focuses it. Every result is a reference page, followed
- * in the same tab.
+ * field, which is the whole search (there is no results page, EDL "Which
+ * form, where"); Cmd/Ctrl+K focuses it. Every result is a reference page,
+ * followed in the same tab; Enter with no row highlighted opens the first.
+ *
+ * The hero opens on the address's `?q=`: the retired search page's address
+ * lands on the home page with it (`retiredSitePage`, `lib/redirects.ts`), as
+ * does the hero's own no-JavaScript form, and the island mounts at once for
+ * it (`mountNow.ts`).
  */
 import type { CSSProperties } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -96,6 +102,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
     selectedIndex,
     handleInput,
     handleKeyDown,
+    submit,
     listboxId,
     optionId,
     inputProps,
@@ -124,19 +131,23 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
         inputRef.current?.blur()
         return
       }
-      // Enter with no highlighted row → the full results page (uncapped), rather
-      // than jumping to the first dropdown hit. Arrow-selected Enter still opens
-      // that specific result (handled by the shared hook below).
-      if (e.key === 'Enter' && selectedIndex < 0) {
-        e.preventDefault()
-        const term = query.trim()
-        if (term) doNavigate(`/search?q=${encodeURIComponent(term)}`)
-        return
-      }
+      // Arrows move the highlight; Enter opens it, or the first result.
       handleKeyDown(e)
     },
-    [isOpen, results, handleKeyDown, selectedIndex, query, doNavigate]
+    [isOpen, results, handleKeyDown]
   )
+
+  // The hero opens on the address's query (`/?q=mule`), once, as if typed.
+  const prefilled = useRef(false)
+  useEffect(() => {
+    if (!hero || prefilled.current) return
+    prefilled.current = true
+    const term = new URLSearchParams(window.location.search).get('q')?.trim()
+    if (!term) return
+    load()
+    handleInput(term)
+    inputRef.current?.focus()
+  }, [hero, load, handleInput])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -207,7 +218,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
 
   // HEADER SEARCH (entity display language, "Which form, where"): every
   // entity result is a Token in link mode, one a line; a category is a plain
-  // link. The full /search page keeps its Rows.
+  // link.
   const listbox = isOpen && (
     <DocumentLinks>
       <SearchListbox
@@ -226,12 +237,17 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
 
   if (hero) {
     // The form's own submit — Enter with the listbox closed, or the Search
-    // button — opens the full results page, as Enter does in the bar.
+    // button — opens the first result, as Enter does in the bar; with none,
+    // the field takes focus and its panel shows what the search found.
     const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault()
-      const term = query.trim()
-      if (term) doNavigate(`/search?q=${encodeURIComponent(term)}`)
-      else inputRef.current?.focus()
+      const first = query.trim() ? results[0] : undefined
+      if (first) {
+        submit(first)
+        return
+      }
+      setDismissedResults(null)
+      inputRef.current?.focus()
     }
     return (
       <IslandErrorBoundary>

@@ -86,6 +86,29 @@ export function legacyItemHref(schemaId: string, slug: string): string {
 }
 
 // ---------------------------------------------------------------------------
+// The reference pages that are gone
+// ---------------------------------------------------------------------------
+
+/**
+ * A site page that no longer exists, and where its address lands. The search
+ * page went (the bar's dropdown is the search, EDL "Which form, where"): its
+ * address goes to the home page, and the Worker keeps the query string, so
+ * `/search/?q=mule` opens the home page's search on "mule".
+ */
+const RETIRED_SITE_PAGES: ReadonlyMap<string, string> = new Map([['/search', '/']])
+
+/**
+ * Where a retired site page's address lands, with or without its trailing
+ * slash; `undefined` for any other path.
+ *
+ * @param pathname - The request's pathname, as `URL` parses it
+ * @returns The root-relative page it lands on, or `undefined`
+ */
+export function retiredSitePage(pathname: string): string | undefined {
+  return RETIRED_SITE_PAGES.get(pathname.replace(/\/+$/, ''))
+}
+
+// ---------------------------------------------------------------------------
 // The app's retired paths, read inside its base
 // ---------------------------------------------------------------------------
 
