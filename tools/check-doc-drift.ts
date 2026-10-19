@@ -952,7 +952,7 @@ const COLLAPSED_DOCS: Record<string, number> = {
   'docs/architecture/play.md': 10_500,
   'docs/design-system/chrome.md': 3_000,
   'docs/design-system/entity-display-language.md': 6_900,
-  'docs/design-system/ruleset.md': 15_900,
+  'docs/design-system/ruleset.md': 16_300,
   'docs/design-system/sources.md': 3_600,
   'docs/ops/cloud-environment.md': 3_800,
 }

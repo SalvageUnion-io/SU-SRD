@@ -65,7 +65,7 @@ Each is checkable; breaking one needs an amendment here. Nesting (N1–N7, rules
 ## Which form, where
 
 1. **SRD index** — Tiles (lead), link (E2). **SRD entity, pattern, table or guide page** — Page, read; children link. **A pattern** — the chassis ability on its page (E19), then Systems and Modules at level 1, compact Cards, their actions Tokens (E6).
-2. **Search, everywhere** — Row (no lead), link; the bar's dropdown: Token, link. **Any prose** — Mention: Peek, then Page.
+2. **Search, everywhere** — the bar's dropdown, Tokens, link (no standalone search page). **Any prose** — Mention: Peek, then Page.
 3. **app wizard or picker** — Row, Card for the focused pick; select. **Live sheet** — Row and Card.
 4. **app dense slots** (inventory, bays, loadouts) — Token, link. **Deck** — Token. **Resolve** — Row / Card.
 5. **app "open" anywhere** — the detail dialog's Page. **Mediator opposition tray** — Row. **OG cards, the bot** — fed by the model.

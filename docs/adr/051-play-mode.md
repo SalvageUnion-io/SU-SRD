@@ -58,7 +58,7 @@ Mediator. Sheets open as an overlay; Build stays where loadouts are edited.
 
 ### 6. One Actions list
 
-Every action from pilot, mech and crawler is one list of Rows, sorted and
+Every action from pilot, mech and crawler is one list of Tokens (owner, 2026-10-19), sorted and
 filtered by action type. What the Situation allows is On hand; the rest is a
 collapsed Not on hand group naming what each needs. Boarded keeps the pilot's
 own abilities and equipment on hand. An action resolves inline in its Row
