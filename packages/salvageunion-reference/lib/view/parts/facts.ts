@@ -216,8 +216,9 @@ function statValue(
 }
 
 /**
- * A chassis's chips, the same in every form but its Page (owner's call,
- * 2026-10-14): TL, SV, SP, EP, SYS, MODS. Cargo and Heat are its Page's.
+ * A chassis's chips in a Row, Tile or Token (owner's call, 2026-10-14): TL,
+ * SV, SP, EP, SYS, MODS. Its Page and its Peek print every stat, Cargo and
+ * Heat too (owner's call, 2026-10-19).
  */
 const CHASSIS_CHIPS: ReadonlySet<StatKey> = new Set([
   'salvageValue',
@@ -230,6 +231,8 @@ const CHASSIS_CHIPS: ReadonlySet<StatKey> = new Set([
 type StatOptions = {
   schemaName?: RefEnumSchemaName | 'actions'
   techLevel?: number | 'B' | 'N'
+  /** Every stat, a chassis's included: the Peek's (owner's call, 2026-10-19). */
+  every?: boolean
 }
 
 /** Every stat the entity has, in THE order (`STATS`), with the names it prints. */
@@ -251,10 +254,10 @@ function orderedStats(
 /**
  * The entity's stats as every form but a Page prints them, in THE order
  * (`STATS`), the Tech Level not among them (`techLevelFact` leads them). A
- * chassis keeps its chip set (`CHASSIS_CHIPS`).
+ * chassis keeps its chip set (`CHASSIS_CHIPS`) but in a Peek (`every`).
  */
 export function entityStats(entity: RefMetaEntity, options: StatOptions): Fact[] {
-  const chassis = options.schemaName === 'chassis'
+  const chassis = options.schemaName === 'chassis' && !options.every
   return orderedStats(entity, options)
     .filter(({ config }) => !chassis || CHASSIS_CHIPS.has(config.key))
     .map(({ config, value, names }) => ({

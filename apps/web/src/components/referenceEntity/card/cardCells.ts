@@ -181,6 +181,8 @@ export function buildHeaderStats(options: {
    * the full card, the Page and the Peek.
    */
   budget?: boolean
+  /** Every stat, a chassis's included: the Peek prints them all. */
+  every?: boolean
   /** Actions and pattern LISTING rows carry no header stats at all. */
   none: boolean
   techLevel: number | 'B' | 'N' | undefined
@@ -195,6 +197,7 @@ export function buildHeaderStats(options: {
         // Never 'actions' here — an action takes the `none` branch above.
         schemaName: schemaName === 'actions' ? undefined : schemaName,
         techLevel,
+        every: options.every,
       })
   // TECH LEVEL is a header headline stat (value box), NOT a label pill — a
   // size-aware label ("Tech Level" full / "TL" compact), placed first in the

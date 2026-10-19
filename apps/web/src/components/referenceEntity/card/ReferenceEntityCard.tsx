@@ -325,12 +325,12 @@ function ReferenceEntityCardInner({
       userMade={userMade}
     />
   )
-
-  // HEADER value cells — the short `[label | value]` form; compact, the budget (C3).
+  // HEADER value cells — the short `[label | value]` form; compact, the budget (C3); a Peek, every stat.
   const headerStats: StatItem[] = buildHeaderStats({
     entity,
     schemaName,
     budget: compact && !insidePeek && !isCatalog,
+    every: insidePeek,
     none: isAction,
     techLevel,
     techLevelDisplay,

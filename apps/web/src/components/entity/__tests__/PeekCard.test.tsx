@@ -172,3 +172,15 @@ describe('a Peek holds only Tokens', () => {
     expect(container.textContent).not.toContain('Show options')
   })
 })
+
+describe('a Peek prints every stat (owner, 2026-10-19)', () => {
+  test("a chassis's Peek carries Heat Capacity and Cargo Capacity, not only its chip set", () => {
+    const spectrum = SalvageUnionReference.Chassis.getByName('Spectrum')
+    if (!spectrum) throw new Error('fixture missing: Spectrum')
+    const { container } = render(<PeekCard entity={spectrum as RefEntity} />)
+    const text = container.textContent ?? ''
+    for (const short of ['TL', 'SV', 'SP', 'EP', 'SYS', 'MODS']) expect(text).toContain(short)
+    expect(text).toMatch(/Heat/)
+    expect(text).toMatch(/Cargo/)
+  })
+})
