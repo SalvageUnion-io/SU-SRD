@@ -108,7 +108,7 @@ describe('design, assign, unassign', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Design Med Bay crew' }))
     })
     // Position and HP are the slot's; the form is the book's four choices.
-    expect(screen.getByText(/position Doc, HP 4/)).toBeTruthy()
+    expect(screen.getByText(/position Doc, 4 Hit Points/)).toBeTruthy()
     expect(screen.queryByRole('button', { name: /Roll Keepsake/ })).toBeNull()
     await act(async () => {
       fireEvent.change(screen.getByLabelText(/Name/), { target: { value: 'Doc Ambrose' } })
@@ -209,7 +209,7 @@ describe('below 48rem the slot opens in a modal (§5)', () => {
       // The modal title is the only heading naming the slot: the panel drops its own.
       expect(within(dialog).getAllByRole('heading', { name: 'Med Bay · the Doc' })).toHaveLength(1)
       // ModalShell's Card body adds no padding, so the panel's wrapper does.
-      const intro = within(dialog).getByText(/position Doc, HP 4/)
+      const intro = within(dialog).getByText(/position Doc, 4 Hit Points/)
       expect(intro.parentElement?.style.padding).not.toBe('')
     } finally {
       restore()

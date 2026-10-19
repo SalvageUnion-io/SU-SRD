@@ -61,13 +61,13 @@ export function CrawlerStatsStep({ techLevel, selectedType }: CrawlerStatsStepPr
       <div className="su-wiz-stack su-wiz-stack--6" style={proseStyle}>
         {sp.typeBonus > 0 && selectedType ? (
           <p style={paragraphStyle} data-testid="sp-breakdown">
-            Structure Points: {sp.base} + {sp.typeBonus} type bonus ({selectedType.name}) ={' '}
-            <strong>{sp.total}</strong> — the bonus derives from your Crawler type, so it follows a
-            type change automatically.
+            {sp.base} + {sp.typeBonus} type bonus ({selectedType.name}) ={' '}
+            <strong>{sp.total}</strong> Structure Points — the bonus derives from your Crawler type,
+            so it follows a type change automatically.
           </p>
         ) : (
           <p style={paragraphStyle} data-testid="sp-breakdown">
-            Structure Points: <strong>{sp.total}</strong> — the {techLevel.name} base.
+            <strong>{sp.total}</strong> Structure Points — the {techLevel.name} base.
           </p>
         )}
         <p style={paragraphStyle}>

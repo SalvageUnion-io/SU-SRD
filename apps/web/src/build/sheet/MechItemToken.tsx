@@ -150,7 +150,7 @@ export function MechItemToken({
                 setConfirmingRepair(false)
               }}
             >
-              Deduct {cost} from TL {deductTl ?? Math.max(1, itemTl ?? 1)} pool
+              Deduct {cost} from the Tech {deductTl ?? Math.max(1, itemTl ?? 1)} pool
             </Button>
             <Button
               size="compact"

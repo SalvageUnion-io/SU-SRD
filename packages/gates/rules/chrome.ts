@@ -72,6 +72,13 @@
  *   which owns its nav.
  * - `step-current`: `aria-current="step"` only in `WizShell`.
  *
+ * ## Stats render through Stat (hard rule R36, ruleset §3.7)
+ *
+ * Every `label | value` is a `Stat`, never hand-assembled text.
+ *
+ * - `stat-text`: JSX text of a stat label right before an expression
+ *   (`SP {n}`, `HP: {hp}`) anywhere but `Stat`.
+ *
  * Every rule is `zero`. Comments are stripped, so prose may name what it bans.
  */
 
@@ -359,6 +366,40 @@ function scanOutside(root: string, pattern: RegExp, home: string): Finding[] {
   return out
 }
 
+/** The one home of a stat's `label | value` (ruleset §3.7). */
+const STAT_HOME = 'apps/web/src/components/atoms/Stat.tsx'
+
+/**
+ * A stat's label as a reader sees it, short or in full words (`STAT_LABELS`,
+ * the sheets' vitals and Tech Level).
+ */
+const STAT_LABEL =
+  'SP|HP|EP|AP|TL|SV|Heat|Slots|Cargo|Upkeep|Structure Points|Hit Points|Energy Points|Ability Points|Heat Capacity|Salvage Value|Tech Level'
+
+/**
+ * JSX text naming a stat right before an expression (`SP {n}`, `HP: {hp}`,
+ * `SP: <strong>{n}`):
+ * a hand-built reading. Not a template literal's `${…}`, a string, or an
+ * object key (`SP: {`).
+ */
+const STAT_TEXT = new RegExp(
+  `(?<![\\w$.'"\`-])(?:${STAT_LABEL})(?![\\w-])(?:\\s*:)?(?:\\s*<[a-z]+>)?\\s*\\{`,
+  'g'
+)
+
+/** Each hand-built stat reading in one `.tsx` source (comments blanked). */
+export function statTextFindings(rel: string, text: string): Finding[] {
+  if (rel === STAT_HOME) return []
+  const out: Finding[] = []
+  text.split('\n').forEach((line, i) => {
+    if (/^\s*(?:\w+|'[^']*'|"[^"]*")\s*:\s*\{/.test(line)) return
+    for (const m of line.matchAll(STAT_TEXT)) {
+      out.push({ file: rel, line: i + 1, detail: `${m[0].trim()}: ${line.trim()}` })
+    }
+  })
+  return out
+}
+
 type ChromeRule = Rule & { scan: (root: string) => Finding[] }
 
 const RULES: ChromeRule[] = [
@@ -438,6 +479,13 @@ const RULES: ChromeRule[] = [
     rule: 'hard rule R16 (chrome Roles) — a stepper is `WizShell`, the one `aria-current="step"`',
     fix: "Draw the steps with `WizShell` (its `band={false}` under a page's own band), driven by `useWizardFlow`'s `shell`.",
     scan: (root) => scanOutside(root, STEP_CURRENT, ROLE_HOMES.step),
+  },
+  {
+    id: 'stat-text',
+    mode: 'zero',
+    rule: 'hard rule R36 (ruleset §3.7) — every `label | value` is a `Stat`, never JSX text such as `SP {n}`',
+    fix: 'Render `<Stat label="SP" value={n} />` (with `max` for a reading out of a maximum, `size` for the line); in a sentence, say it in words around the number ("4 Hit Points"), never as a label and a value.',
+    scan: (root) => jsxSources(root).flatMap(([rel, text]) => statTextFindings(rel, text)),
   },
 ]
 

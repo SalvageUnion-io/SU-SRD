@@ -534,7 +534,7 @@ function SlotPanel({
         {heading}
         <p style={HINT}>
           {slot.bookName ? `${slot.bookName}, the ${slot.position}` : `The ${slot.position}`} holds
-          this slot from the book&rsquo;s crew line (HP {slot.hitPoints}).
+          this slot from the book&rsquo;s crew line ({slot.hitPoints} Hit Points).
         </p>
         <p style={NOTE}>{GAME_RULE}</p>
       </>
@@ -545,7 +545,7 @@ function SlotPanel({
     <>
       {heading}
       <p style={HINT}>
-        The slot fixes the template: position {slot.position}, HP {slot.hitPoints}. You fill in what
+        The slot fixes the template: position {slot.position}, {slot.hitPoints} Hit Points. You fill in what
         the book asks for.
       </p>
       {slot.choices.map((choice) => {

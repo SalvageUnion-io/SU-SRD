@@ -58,7 +58,7 @@ The loop: define it here, land its gate with a baseline, burn the baseline to ze
 - **R34 The detail view is a Page, never a new tab** (E5).
   Gate: held, the Biome plugin `noWindowOpen.grit` bans `window.open` in `apps/web/src` (`noRestrictedGlobals` bans a name, not a member); `useDetailModal.test.tsx` pins link mode.
 - **R36 Stats render through `Stat`** (§3.7) — never `<span>SP {n}</span>`.
-  Gate: planned, a ratchet on JSX text of a stat label followed by an expression outside `Stat`.
+  Gate: held, `chrome/stat-text` (zero, `packages/gates/rules/chrome.ts`): JSX text of a stat label (`SP`, `HP`, `EP`, `AP`, `TL`, `SV`, `Heat`, `Slots`, `Cargo`, `Upkeep`, or one in full words) right before an expression, outside `Stat`. A reading is a `Stat`; a sentence says the number in words ("4 Hit Points").
 - **R23 Icons take their Size** (§5.11, K11) — 12, 14 or 18px from `iconSize`, stroke 2; ⋯ `Ellipsis`, close `X`, back `ChevronLeft` with the place's name.
   Gate: held. `controls/icon-size` (zero, `packages/gates/rules/controls.ts`): every lucide glyph in `apps/web/src` (an import, or a local bound to one) names `size={iconSize.…}` and sets no `strokeWidth`, `width` or `height`; `copy/glyph` (zero, `copyTerms.ts`): no `←`, `‹` or `&larr;` in copy, no text `⋯` in JSX. Back is `BackLabel` (`ChevronLeft`, the place's name, read as "Back to <place>"); ⋯ is HeaderMenu's `overflow` at the line's Size; close is `CloseButton`'s Compact `X`.
 

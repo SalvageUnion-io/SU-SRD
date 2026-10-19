@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import type { Finding, RuleSet } from '../lib/ruleEngine'
 import { evaluate, formatFailures, increases, listFiles, ratchetCounts } from '../lib/ruleEngine'
-import { chromeLaws } from '../rules/chrome'
+import { chromeLaws, statTextFindings } from '../rules/chrome'
 import { classPrefix } from '../rules/classPrefix'
 import { designTokens, fontSizePx, scanTokenSources } from '../rules/designTokens'
 import { SRD_CSS_ENTRY, srdCss } from '../rules/srdCss'
@@ -895,6 +895,26 @@ describe('chrome rule set', () => {
     expect(at('raw-label')).toEqual(['apps/web/src/build/A.tsx:7'])
     expect(at('breadcrumb-nav')).toEqual(['apps/web/src/build/A.tsx:8'])
     expect(at('step-current')).toEqual(['apps/web/src/build/A.tsx:9'])
+  })
+
+  test('stat-text: JSX text of a stat label before an expression is found, outside Stat (R36)', () => {
+    const lines = (rel: string, text: string) => statTextFindings(rel, text).map((f) => f.line)
+    expect(
+      lines(
+        'apps/web/src/build/A.tsx',
+        [
+          '<span>SP {sp}</span>',
+          '<p>HP: {hp}/{max}</p>',
+          '<p>Structure Points: <strong>{n}</strong></p>',
+          '<p>{n} Hit Points</p>',
+          '<Stat label="SP" value={sp} />',
+          'const label = `SP $' + '{sp}`',
+          '  SP: { short: "SP" },',
+          '<p>SPACE {x}</p>',
+        ].join('\n')
+      )
+    ).toEqual([1, 2, 3])
+    expect(lines('apps/web/src/components/atoms/Stat.tsx', '<span>SP {sp}</span>')).toEqual([])
   })
 })
 
