@@ -28,6 +28,12 @@ const BASELINE: readonly DesignDebt[] = [
     match: 'a lead in “',
     why: "a chassis Page's pattern rows (`PatternLinkRow`) draw the pattern's description as a `Lead`, off an SRD index",
   },
+  {
+    family: 'starter-set',
+    rule: 'E11',
+    match: 'a lead in ',
+    why: "the Starter Set's Rows (`StarterCard`, the front door's too) lead with each build's motto, off an SRD index: seen since the page joined R0; keep or drop the lead is the owner's call",
+  },
 ]
 
 test('every context draws the form its place takes', async ({ page }) => {

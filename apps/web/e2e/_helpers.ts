@@ -504,6 +504,7 @@ export const DESIGN_FAMILIES = {
   'play-hub': 'manage',
   'game-page': 'manage',
   invite: 'manage',
+  'starter-set': 'manage',
   'play-player': 'play',
   'play-solo': 'play',
   'play-mediator': 'play',
@@ -612,6 +613,7 @@ export const designRoutes: readonly DesignRoute[] = [
   { family: 'play-hub', path: at('/play/'), widths: BOTH },
   { family: 'game-page', path: ':game', widths: BOTH },
   { family: 'invite', path: ':invite', widths: BOTH },
+  { family: 'starter-set', path: at('/starter'), widths: BOTH },
   // Play: a player in a Game, solo, the Mediator; on a phone, every tab.
   { family: 'play-player', path: ':playPlayer', widths: BOTH },
   { family: 'play-solo', path: ':playSolo', widths: BOTH },

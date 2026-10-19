@@ -14,6 +14,13 @@ import type { Page } from '@playwright/test'
  * - **under** a control in the entity's body: something that expands under
  *   the strip (Details opens the Page instead).
  *
+ * And outside the item: a control drawn as the sibling right before or after
+ * an entity's list item (or, in a slot, the entity with the wrappers that hold
+ * it alone, up to a sectioning element) in the same list or slot wrapper is
+ * `beside` it, or `under` it when it starts below it (a Starter Set Row's
+ * "Copy to…" select once was). An entity nested in another, or in a Card, is
+ * its parent's: what sits beside it is the parent's own.
+ *
  * An entity's own surface is not one of its controls: the link or radio the
  * Row or Token is (or its cover, or a Token with controls' name), a link that wraps its head, and a select
  * Row's check. A contentful Token's +MORE (C5) lies on its strip's last slot
@@ -40,6 +47,10 @@ export type StripControlSelectors = {
    * lies on the end of its strip's second line, its chip group's last slot.
    */
   more: string
+  /** A Card's frame: an entity nested in it is the Card's, its controls the Card's. */
+  card: string
+  /** A sectioning wrapper: a slot ends at it, so the sibling scan never climbs past it. */
+  section: string
 }
 
 export const STRIP_CONTROL_SELECTORS: StripControlSelectors = {
@@ -63,6 +74,9 @@ export const STRIP_CONTROL_SELECTORS: StripControlSelectors = {
   group: '[data-chip-group]',
   check: '.su-entity-row__head input[type="checkbox"]',
   more: '.su-entity-token[data-contentful] > .su-entity-token__more > .su-chip-more',
+  card: '.su-ec-frame',
+  section:
+    'section, article, aside, nav, main, header, footer, form, dialog, fieldset, [role="region"], [role="tabpanel"], [role="dialog"]',
 }
 
 /**
@@ -119,6 +133,46 @@ export function scanStripControls(a: StripControlSelectors): string[] {
       faults.add(
         `${where}: ${describe(control)} ${where === 'beside' ? 'beside' : 'under'} the strip of “${nameOf(entity)}”`
       )
+    }
+  }
+  // Beside the item: a control drawn right before or after an entity's list
+  // item (or, in a slot, the entity itself), a sibling in the same list or
+  // slot wrapper (a Starter Set Row's "Copy to…" under it). It is `under`
+  // when it starts below the item, else `beside`.
+  const nearest = (from: Element, step: 'previousElementSibling' | 'nextElementSibling') => {
+    let el = from[step]
+    while (el && !visible(el)) el = el[step]
+    return el
+  }
+  for (const entity of document.querySelectorAll(a.entity)) {
+    if (!visible(entity)) continue
+    // A nested entity's place is its parent's strip, held above (a Card's too).
+    if (entity.parentElement?.closest(`${a.entity}, ${a.card}`)) continue
+    // Its list item; in a slot, the entity with every wrapper that holds it alone.
+    let unit = entity.closest(a.item)
+    if (!unit) {
+      unit = entity
+      while (unit.parentElement && unit.parentElement !== document.body) {
+        if (unit.parentElement.children.length !== 1) break
+        if (unit.parentElement.matches(a.section)) break
+        unit = unit.parentElement
+      }
+    }
+    const box = unit.getBoundingClientRect()
+    for (const step of ['previousElementSibling', 'nextElementSibling'] as const) {
+      const sibling = nearest(unit, step)
+      if (!sibling) continue
+      // Another entity (or its item): the next line of the list.
+      if (sibling.matches(a.entity) || sibling.querySelector(a.entity) !== null) continue
+      const controls = [
+        ...(sibling.matches(a.control) ? [sibling] : []),
+        ...sibling.querySelectorAll(a.control),
+      ]
+      for (const control of controls) {
+        if (!visible(control)) continue
+        const where = control.getBoundingClientRect().top >= box.bottom - 1 ? 'under' : 'beside'
+        faults.add(`${where}: ${describe(control)} ${where} “${nameOf(entity)}”, a sibling`)
+      }
     }
   }
   return [...faults]
