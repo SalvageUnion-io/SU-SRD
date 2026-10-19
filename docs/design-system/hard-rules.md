@@ -39,7 +39,7 @@ The loop: define it here, land its gate with a baseline, burn the baseline to ze
   Gate: planned, e2e: a Page with a table shows its bands without a click. Play: `PlayRollTable` is the model; resolve, Push, Heat, Morale and NPC rolls are not yet.
 - **R9 No state colour fills a button** (§3.1, §3.3) — destructive is rust behind `ConfirmDialog`.
   Gate: held, `buttonVariants` has no `danger` (the type system; `Btn.test.tsx` pins it); `ConfirmDialog`'s danger tone remains, its confirm rust.
-- **R10 A surface sets its texture once** (§3.5.1, E13) — only the Cockpit is flat; Manage (the Play hub, a Game's page) is paper under a band that keeps its speckle.
+- **R10 A surface sets its texture once** (§3.5.1, E13) — every brand-colour ground carries the speckle in every context, the Cockpit and the Peek included; paper, cream, Play's ink-deep ground, buttons and fields never do.
   Gate: held. `tokens/texture-placement` (source); Play's frame sets it once (`PlayFrame.test.tsx`); `texture.e2e.ts` over R0's Play and Manage routes: no `[data-grain]` on a Cockpit (player, solo, Mediator; canvas and every phone tab) or an overlay it opens (a Peek, a menu, the Mediator's Reference), and every Manage page's `ChapterBand` keeps its `.su-grain-layer`. No baseline.
 - **R11 One Live Sheet grammar** (§0, §1.2) — pilot, mech, crawler and NPC share the shell: Read | Edit, SheetHero, full-word vitals (`bookStats`), corner actions, one remove control, one unit-out treatment; Read omits what is empty.
   Gate: planned, a per-kind e2e over the four sheets.

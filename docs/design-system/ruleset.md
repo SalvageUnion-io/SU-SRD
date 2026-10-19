@@ -23,7 +23,7 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
 1. **§1 The context laws** — every surface is one of six contexts; the context picks materials and interactivity, never the primitive. Automation: `auto` (applied + undo), `confirm` (player confirms + undo), `free` (unguarded, logged override).
    1. **Reference — the book, verbatim** — paper, read-only, no play state: if the printed manual cannot show it, it cannot appear. The only rust is an inline link and the Page's Build With This (E20).
    2. **Live Sheet — the pencil** — `free`; print reads, pencil writes: Read is typeset (empty fields and sections omitted, an empty state only where it can be filled); dashed fields and steppers are Edit's. Overrides wear a dashed ring and are logged; rules show, never gate.
-   3. **Play — the instrument panel** — the only transactional surface: bookkeeping `auto`, destruction `confirm`; every unit mutation writes a Change Log row, every roll a Game log row. The Cockpit is flat: no texture.
+   3. **Play — the instrument panel** — the only transactional surface: bookkeeping `auto`, destruction `confirm`; every unit mutation writes a Change Log row, every roll a Game log row.
       Paper instruments on a dark ground: `--color-ink-deep` ground, `--color-band-cream` side columns, `--color-paper` for the centre column alone. On a phone: tabs under pinned vitals (ADR-051 §10).
    4. **Use opens the action** — in Play an on-hand action's Row carries Use, which resolves it in place (Activate, Roll, Push, Apply; ADR-051 §6); its cost stays a read pennant.
    5. **Listing — one entity, one click** — the Row (`<Entity form="row">`) is the one rendering for an entity in a list (listing, search, slot, deck) at level 1 (E6): art column, one-row head, chip group (E17).
@@ -52,8 +52,8 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
    4. **§3.4 Roll-tier colours are Discord-bot-only** — the web shows a readout and a row mark that is the same for every outcome. The bot's tiers are warm (brick, ember, ochre, olive, slate).
    5. **§3.5 No gradient shading; closed colour set** — no colour outside §4; hard-stop patterns on §4 tokens are fine, smooth interpolation is not (half-fills and X's are `clip-path` + SVG).
       Each sanctioned pattern (tile ramps, user-made hatch) is in `EXEMPTIONS` (`packages/gates/rules/designTokens.ts`).
-      1. **Texture: the light speckle** — ink speckle on colour bands and tone headers; paper flecks on dark and ink headers and unit stamps.
-         Never on paper, buttons, fields, Play's Cockpit or the Peek.
+      1. **Texture: the light speckle** — on every brand-colour ground, the Cockpit and Peek too: ink speckle on colour bands and tone headers; paper flecks on dark and ink headers and unit stamps.
+         Never on paper, cream, Play's ink-deep ground, buttons or fields.
       2. **One shading exemption** — the `.su-pilot-panel` illustration on srd's `/about`. A one-off, not precedent.
    6. **§3.6 Copy is 1:1 with SRD data.**
    7. **§3.7 Stats render through Stat** — any `label | value` is a `Stat`, never hand-assembled `<span>SP {n}</span>`.

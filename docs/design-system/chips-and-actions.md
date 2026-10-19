@@ -23,10 +23,10 @@ A strip is a Token, a Row or Card head, or a TitledBox, Slab or SheetSectionCard
 - **C1a** One Size per strip: its chips and controls share one height and one centre line, Mini in a Token, Compact on a head.
 - **C2** Chips keep the class order; a form drops classes, never reorders them. No read chip follows the cost (`_chipStrips.ts`).
 - **C2a** Every strip, the Page band included, is drawn by `Chips`; each chip names its class (`data-chip-class`).
-- **C3** Budgets are static: no chip is added, dropped, moved or clipped by width, content or hover; a strip never hides its overflow. What a Token leaves out, its Peek shows.
+- **C3** Budgets are static: no chip is added, dropped, moved or clipped by width, content or hover; a strip never hides its overflow. What a Token leaves out, its Peek shows. The one exception is C5's +MORE.
 - **C4** A Token's context lane is named by its container, from the closed list.
 - **C5** Only the name flexes: a Token's ends in "…", any other wraps. Chips and controls never shrink, clip or scale.
-  A Token's chips are one row; a compact Card's or Row's may take two, never more.
+  A Token's chips are one row; a compact Card's or Row's may take two, never more. A contentful Token's may take two; past that its second line ends in a +MORE chip (no count) that opens its Peek.
 - **C6** In a list each chip class and action slot is a column every line shares; an absent value leaves its cell empty, and a lane never shrinks below its chip.
   Too narrow for every lane and a readable name (a container query), each line packs right and its empty cells collapse.
 - **C7** A live reading reserves its maximum's width, in tabular figures.

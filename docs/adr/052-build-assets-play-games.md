@@ -59,7 +59,7 @@ hub).
 
 The Play hub, a Game's page, the Hangar and the invite screen are the Manage
 context ([ruleset](../design-system/ruleset.md) §1.9): paper under the area's
-band. Only the Cockpit is flat.
+band. Brand-colour grounds carry the speckle everywhere (ruleset §3.5.1).
 
 ### 8. The code follows the areas
 
