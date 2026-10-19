@@ -136,7 +136,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         { name: patternName, url: canonicalUrl },
       ],
     },
-    foot: entityPageFoot(chapter.tone, pageMeta),
+    foot: entityPageFoot(pageMeta),
     children: (
       <EntityPageFrame
         title={`“${patternName}”`}

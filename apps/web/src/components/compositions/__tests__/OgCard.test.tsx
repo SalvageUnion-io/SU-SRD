@@ -184,7 +184,8 @@ const SEEN: [string, OgCardProps, Seen][] = [
         ['SYS', '12'],
         ['MODS', '2'],
       ],
-      lines: ['Chassis · Workshop Manual · p.104'],
+      // No kind on the foot; every printing on one line (rulings 1 and 3, 2026-10-19).
+      lines: ['Workshop Manual · p.104 // Salvage Union Starter Set (PC) · p.16'],
       wordmark: 'salvageunion.io',
       address: '/chassis/scrapper',
     },
@@ -203,7 +204,7 @@ const SEEN: [string, OgCardProps, Seen][] = [
       ],
       lines: [
         'You repair any number of damaged Mech Chassis, Vehicles, Systems, or Modules within Range to Intact Condition. They must be of a Tech Level equal to or lower than your Union Crawler.',
-        'Ability · Mech-Tech Tree · Workshop Manual · p.29',
+        'Workshop Manual · p.29 // Salvage Union Starter Set (PH) · p.14',
       ],
       wordmark: 'salvageunion.io',
       address: '/abilities/mass-field-repair',

@@ -25,8 +25,13 @@
  * of the CLIENT island, where the narrow list is the point.
  */
 
-import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
-import { getEntitySlug } from 'salvageunion-reference'
+import type { RefEntity, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
+import {
+  citeLine,
+  getEntitySlug,
+  provenancePrintings,
+  resolveProvenance,
+} from 'salvageunion-reference'
 import { EntityCardStatic } from '../components/EntityCardStatic'
 import { cardNeedsHydration } from '../lib/cardNeedsHydration'
 import { itemHref } from '../lib/entityHref'
@@ -70,6 +75,8 @@ export function EntityView({ item, schemaId, pattern }: EntityViewProps) {
       />
       <StaticEntityContent
         summary={staticSummary}
+        // Every printing on the foot's one line, as the card and the Page cite it.
+        cite={citeLine(provenancePrintings(resolveProvenance(item as RefMetaEntity, pattern)))}
         parent={
           pattern
             ? {

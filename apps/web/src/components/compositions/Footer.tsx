@@ -1,42 +1,30 @@
 import type { ElementType } from 'react'
-import { color } from '../../design/tokens'
-import { cn } from '../../lib/cn'
+import { citeLine } from 'salvageunion-reference'
 import { ChapterFoot } from '../atoms/ChapterFoot'
-import { capsLabel } from '../atoms/capsLabel'
-import type { ChapterTone } from '../atoms/chapterBandColor'
 import { FOCUS_RING } from '../atoms/interaction'
-
-/** The foot's labels (the kind, "Also in") are caps labels. */
-const FOOT_LABEL = capsLabel()
 
 /**
  * Footer — where every page of both tools ends, as the Workshop Manual's pages
- * do (one product, so one foot).
+ * do (one product, so one foot): ONE band in the colour of the band the page
+ * leads with, as the Union bar wears it (`footerMatchCss`, owner's call
+ * 2026-10-19), ink with paper flecks on a page that leads with none.
  *
- * - **A book page** (entity, pattern, roll table; board 07) ends on its
- *   chapter's foot band: the entity's kind at the start, and where it is
- *   printed at the end, in the same words a card's footer cites it
- *   (`Workshop Manual · p.112`, then "Also in" any reprint) — one citation
- *   look everywhere, text, never chips (owner, 2026-10-14).
- * - **Every page**, a book page's under that band, ends on the licence row in
- *   the Union bar's ink (`AppBar`): one colour on every page of both tools, so
- *   the site's head and foot match whatever chapter lies between them.
- *
- * The licence row is the same in both tools: the licence's required legal
- * text, the tool's own pages (`links`, through `LinkComponent`), and the
- * "Powered by Salvage" mark, reversed to paper on the ink.
+ * - **A show page** (entity, pattern, roll table; board 07) merges its entity
+ *   foot into it: the citation on one line, the book first and each reprint
+ *   after a `//` (`Workshop Manual · p.65 // … (CR) · p.37`, `citeLine`), in
+ *   the same words a card's foot cites it, text, never chips, and no kind
+ *   (ruleset Source 2, E9). It has no ink rule: the band's colour runs edge
+ *   to edge.
+ * - **Every page** carries the licence's required legal text, the tool's own
+ *   pages (`links`, through `LinkComponent`) and the "Powered by Salvage"
+ *   mark, reversed to paper on a ground that prints paper.
  */
 
 /** One printing a book page cites: the book (and booklet), and its page. */
 type FooterPrinting = { book: string; page?: number }
 
-/** A book page's foot: its chapter tone, kind and printings, banded above the licence row. */
+/** A show page's foot: its printings, cited in the footer, and the page measure. */
 export type FooterFoot = {
-  tone: ChapterTone
-  /** The band colour when the page wears its own rather than its chapter's. */
-  fill?: string
-  /** The entity's kind ("System"), at the band's start. */
-  kind?: string
   /** Where it is printed: the book first, then each reprint. */
   printings?: readonly FooterPrinting[]
   /** The inner row's max width, matching the page's own measure. */
@@ -50,7 +38,7 @@ type FooterProps = {
   links: readonly FooterLink[]
   /** URL for the "Powered by Salvage" mark, from the app's public dir. */
   poweredBySalvageUrl: string
-  /** A book page's foot. Absent → the licence row alone. */
+  /** A show page's foot. Absent, or with no printings → the licence row alone. */
   foot?: FooterFoot
   /** Link component for the tool's pages. Defaults to a plain anchor. */
   LinkComponent?: ElementType
@@ -58,9 +46,6 @@ type FooterProps = {
 
 /** The measure when the host passes none: the app's (the SRD passes its page measure). */
 const SITE_MEASURE = '85rem'
-
-/** The licence row's band: the Union bar's own ink, paper text and paper flecks. */
-const SITE_FILL = color.inkDeep
 
 /**
  * The licence's required legal text, word for word (Salvage Union Open Game
@@ -78,27 +63,6 @@ function Legal() {
       are used with permission of Leyline Press, under the Salvage Union Open Game Licence 1.0b. All
       Workshop Manual Images are used with special permission from Leyline Press.
     </p>
-  )
-}
-
-/** One printing as a card's footer cites it: `Workshop Manual · p.112`. */
-const cite = ({ book, page }: FooterPrinting) => (page != null ? `${book} · p.${page}` : book)
-
-/**
- * A book page's printings as the card footer prints them: the book first, then
- * an "Also in" line for the reprints.
- */
-function Printings({ printings }: { printings: readonly FooterPrinting[] }) {
-  const [first, ...reprints] = printings
-  return (
-    <div className="su-footer__printings">
-      {first && <p>{cite(first)}</p>}
-      {reprints.length > 0 && (
-        <p>
-          <span className={FOOT_LABEL}>Also in</span> {reprints.map(cite).join(', ')}
-        </p>
-      )}
-    </div>
   )
 }
 
@@ -127,13 +91,14 @@ function End({
       {/*
         Square, 40px, with its box declared 1:1 so nothing reflows as it loads:
         a wrong `width`/`height` ratio causes the very shift it exists to
-        prevent. The source is 192px (4x DPR headroom). On the ink band the
-        black mark reverses to paper, as Leyline's white one is.
+        prevent. The source is 192px (4x DPR headroom). On a ground that
+        prints paper the black mark reverses to paper, as Leyline's white one
+        is (`--su-foot-mark`).
       */}
       <img
         src={src}
         alt="Powered by Salvage"
-        className="su-footer__mark su-footer__mark--paper"
+        className="su-footer__mark"
         width={40}
         height={40}
         // Below the fold on every page. Lazy also stops React's SSR from
@@ -148,36 +113,21 @@ function End({
 
 export function Footer({ links, poweredBySalvageUrl, foot, LinkComponent = 'a' }: FooterProps) {
   const measure = foot?.measure ?? SITE_MEASURE
-  const printings = foot?.printings ?? []
-  const cited = foot != null && (!!foot.kind || printings.length > 0)
+  const citation = citeLine(foot?.printings ?? [])
   return (
     <footer className="su-footer">
-      {cited && (
-        <div className="su-footer__cite">
-          <ChapterFoot
-            tone={foot.tone}
-            fill={foot.fill}
-            measure={measure}
-            start={
-              foot.kind ? (
-                <span className={cn('su-footer__kind', FOOT_LABEL)}>{foot.kind}</span>
-              ) : undefined
-            }
-            end={printings.length > 0 ? <Printings printings={printings} /> : undefined}
-          />
-        </div>
-      )}
-      {/* On a phone a cited page's licence row starts below the first screen
-          (`.su-footer__licence`), so the cite band ends it. */}
-      <div className="su-footer__licence">
-        <ChapterFoot
-          fill={SITE_FILL}
-          grain="paper"
-          measure={measure}
-          start={<Legal />}
-          end={<End links={links} src={poweredBySalvageUrl} LinkComponent={LinkComponent} />}
-        />
-      </div>
+      <ChapterFoot
+        // A show page's foot is the band's colour edge to edge, with no ink rule.
+        ruled={!citation}
+        measure={measure}
+        start={
+          <>
+            {citation && <p className="su-footer__citation">{citation}</p>}
+            <Legal />
+          </>
+        }
+        end={<End links={links} src={poweredBySalvageUrl} LinkComponent={LinkComponent} />}
+      />
     </footer>
   )
 }

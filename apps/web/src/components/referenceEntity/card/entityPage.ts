@@ -1,6 +1,6 @@
 /**
  * What an entity's PAGE says around its body (boards 07, 08, 08b): the
- * stamps on its chapter band, and its kind and printings on its foot band.
+ * stamps on its chapter band, and its printings on its foot band.
  *
  * The card at `presentation="page"` hands its title to the page's
  * `ChapterBand` and its footer to the page's `ChapterFoot`. Those two are the
@@ -24,8 +24,8 @@ import type { BookStat } from '../referenceEntityStatsConfig'
 export type EntityPageMeta = {
   /**
    * The kind, "Chassis", "Ability · Hacking Tree": the title's screen
-   * reader text (`KindLabel`) and the foot band's kind chip, never a stamp on
-   * the head (E9). A pattern's is "Pattern".
+   * reader text (`KindLabel`), never a stamp on the head nor on the foot (E9).
+   * A pattern's is "Pattern".
    */
   typeLabel?: string
   /** The Tech Level, as the header's TL cell reads it. */
@@ -51,8 +51,8 @@ export type EntityPageMeta = {
   /** The read cost the band carries ("1 AP" as value and currency), last. */
   cost?: { value: string; currency: string }
   /**
-   * Where it is printed, for the foot band's citation chips: the book and
-   * page, then each reprint ("Salvage Union Starter Set (PC)", p.26).
+   * Where it is printed, for the foot's one citation line: the book and page,
+   * then each reprint ("Salvage Union Starter Set (PC)", p.26).
    */
   printings: { book: string; page?: number }[]
 }

@@ -17,7 +17,7 @@ import { LEGAL_STARTING_PATTERN, LEGAL_STARTING_PATTERN_NOTE } from './legalStar
  * pointy box, every chip the same gap apart (the SRD page's "Build With This"
  * is the band's `action`, after them). An ability's level is the band's
  * `lead`, left of the title. Never the kind (E9: the title says it to screen
- * readers, the foot band stamps it). Every chip is at the band's Compact
+ * readers). Every chip is at the band's Compact
  * height and type (`.su-entity-stamps`). The same facts the card's own chips
  * show, resolved by `resolveEntityPageMeta` so the page cannot describe an
  * entity differently from its own card.

@@ -1,6 +1,6 @@
 import { Fragment } from 'react'
 import type { StaticEntitySummary } from 'salvageunion-reference'
-import { formatProvenance } from 'salvageunion-reference'
+import { bookName, citeLine } from 'salvageunion-reference'
 import { capsLabel } from '../components/atoms/capsLabel'
 import { InlineRef, mentionRef, RollTableInstrument, Slab, Stat } from '../components/index'
 import { MentionProse } from '../components/MentionProse'
@@ -16,7 +16,7 @@ const STATIC_LABEL = cn('su-static__label', capsLabel({ tracking: 'snug' }))
  * traits, cite) through the blocks every other context draws (hard rule R18):
  * each stat a `Stat` (`STRUCTURE POINTS | 14`), a roll table the
  * `RollTableInstrument` with its plain ROLL THE DIE: stamp, the cite the foot's
- * text (`Workshop Manual · p.112`). On the static site the island supplies the real display:
+ * one line of text (`Workshop Manual · p.65 // … (CR) · p.37`). On the static site the island supplies the real display:
  * every reader sees this `data-static-fallback` block until the card can draw,
  * and `ReferenceEntityIsland` removes it in the same commit that puts the card
  * on screen, so the two never double up and nothing blank or skeletal stands
@@ -38,11 +38,18 @@ type StaticEntityContentProps = {
   summary: StaticEntitySummary
   /** What the entity is built on, linked first: a pattern's base chassis. */
   parent?: { label: string; name: string; href: string }
+  /**
+   * The foot's cite: every printing on one line (`citeLine`). Absent, the
+   * summary's own book and page.
+   */
+  cite?: string | undefined
 }
 
-export function StaticEntityContent({ summary, parent }: StaticEntityContentProps) {
+export function StaticEntityContent({ summary, parent, cite: given }: StaticEntityContentProps) {
   // The foot's cite, as every card and Page prints it.
-  const cite = formatProvenance(summary.source, undefined, summary.page)
+  const cite =
+    given ??
+    citeLine(summary.source ? [{ book: bookName(summary.source), page: summary.page }] : [])
   return (
     <div data-static-fallback className="su-static">
       {/* No heading of its own: the page's chapter band is its <h1>, for

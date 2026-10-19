@@ -4,7 +4,9 @@ import type { SpeckleGrain } from './Speckle'
 /**
  * The Union bar wears the colour of the band a page leads with: its ground,
  * its foreground and its grain, so the site header and the page's band read as
- * one colour, with no rule between them. The footer stays ink.
+ * one colour, with no rule between them. The site footer wears it too
+ * (`footerMatchCss`, owner's call 2026-10-19): a page ends in the colour it
+ * leads with, and one with no leading band keeps the footer's ink.
  *
  * A band cannot reach the bar through the cascade (the bar is the page's
  * sibling, not its ancestor), so each page-scale band serves a rule that
@@ -66,5 +68,29 @@ export function unionBarMatchCss(
     '--su-bar-rule:transparent;' +
     `--su-bar-grain-paper:${shown('paper')};` +
     `--su-bar-grain-ink:${shown('ink')}}`
+  )
+}
+
+/**
+ * The site footer's rule, the bar's sibling: keyed on the same leading band,
+ * it sets the `--su-foot-*` properties the foot band reads (`ChapterFoot`,
+ * `styles/partials/shell.css`): the band's ground,
+ * its foreground and its grain, and the "Powered by Salvage" mark reversed to
+ * paper only on a ground that prints paper.
+ */
+export function footerMatchCss(
+  key: string,
+  band: string,
+  foreground: Foreground,
+  grain: SpeckleGrain
+): string {
+  const shown = (layer: SpeckleGrain) => (layer === grain ? 'contents' : 'none')
+  return (
+    `:root:has(${LEADING_BAND}[${BAND_KEY_ATTRIBUTE}='${key}']) .su-chapter-foot{` +
+    `--su-foot-bg:${band};` +
+    `--su-foot-fg:var(--color-${foreground});` +
+    `--su-foot-mark:${foreground === 'paper' ? 'invert(1)' : 'none'};` +
+    `--su-foot-grain-paper:${shown('paper')};` +
+    `--su-foot-grain-ink:${shown('ink')}}`
   )
 }

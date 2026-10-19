@@ -3,9 +3,10 @@ import { SITE_LINKS } from '../../lib/docPages'
 import { Footer, tokens } from '../index'
 
 /**
- * SiteFooter — the app's page foot: the shared `Footer` both tools end on, here
- * on the rules-blue band with the licence row and the doc pages both tools
- * share, which live on the SRD (`docPages.ts`).
+ * SiteFooter — the app's page foot: the shared `Footer` both tools end on, in
+ * the colour of the page's leading band (ink where none leads), with the
+ * licence row and the doc pages both tools share, which live on the SRD
+ * (`docPages.ts`).
  *
  * It ends every page that draws the Union bar, signed in or out, at every
  * width. It sits in normal flow after the route, so nothing pinned can cover

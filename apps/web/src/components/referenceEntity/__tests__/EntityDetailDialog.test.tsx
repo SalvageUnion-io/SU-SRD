@@ -89,15 +89,19 @@ describe('the detail dialog is the Page', () => {
     expect(bandStats.map((label) => label.textContent)).toEqual(['Tech Level'])
   })
 
-  test("its foot cites the book in the card footer's plain text, the kind beside it", () => {
+  // Rulings 2026-10-19: no kind on the foot; the foot wears the band, edge to edge.
+  test("its foot cites the book in the card footer's plain text, in the band's colour, no kind", () => {
     const dialog = openPage(redLaser())
     const article = dialog.querySelector('article')
     const foot = article?.lastElementChild as HTMLElement | null
     if (!foot) throw new Error('no foot')
     expect(foot.textContent).toMatch(/· p\.\d+/)
-    expect(foot.textContent).toContain('System')
+    expect(foot.textContent).not.toContain('System')
     // Plain text, not citation chips.
     expect(foot.querySelector('.su-stat-plate')).toBeNull()
+    expect(foot.style.background).not.toBe('')
+    expect(foot.style.borderTopStyle).toBe('')
+    expect(foot.getAttribute('data-grain')).not.toBeNull()
   })
 
   test('the foot carries the app\'s cross-link ("View in the Reference")', () => {

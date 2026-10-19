@@ -1,53 +1,35 @@
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import { color } from '../../../design/tokens'
 import { ChapterFoot } from '../ChapterFoot'
-import { CHAPTER_BAND_COLOR } from '../chapterBandColor'
 
 /**
- * The foot band (ruleset, "The source": the foot band carries the citation):
- * the chapter's colour again, with its ink speckle, under an ink rule.
+ * The foot band (ruleset, "The source" 2): the site footer's one band, in the
+ * colour of the page's leading band, which the stylesheet sets (`footerMatchCss`).
  */
 describe('ChapterFoot', () => {
-  test('carries the citation: the page number at its start, the book at its end', () => {
-    render(<ChapterFoot tone="mech" start="p.112" end="Workshop Manual" />)
-    expect(screen.getByText('p.112').className).toBe('su-chapter-foot__start')
-    expect(screen.getByText('Workshop Manual').className).toBe('su-chapter-foot__end')
+  test('carries its two ends: the citation and licence at its start, the links at its end', () => {
+    render(<ChapterFoot start="Workshop Manual · p.112" end="Changelog" />)
+    expect(screen.getByText('Workshop Manual · p.112').className).toBe('su-chapter-foot__start')
+    expect(screen.getByText('Changelog').className).toBe('su-chapter-foot__end')
   })
 
-  test('wears its chapter’s band colour, as the head band does', () => {
-    const { container } = render(<ChapterFoot tone="pilot" start="p.18" />)
+  // Ruling 2 (2026-10-19): the foot wears the leading band's ground, foreground
+  // and grain, so it draws no colour of its own and serves both grains.
+  test('draws no colour of its own, and serves both grains for the band to pick', () => {
+    const { container } = render(<ChapterFoot start="p.18" />)
     const band = container.firstElementChild as HTMLElement
-    expect(band.style.backgroundColor).toBe(CHAPTER_BAND_COLOR.pilot)
-    // The speckle lies behind the content.
-    expect(band.querySelector('svg filter')).not.toBeNull()
+    expect(band.style.backgroundColor).toBe('')
+    expect(band.style.color).toBe('')
+    expect(band.querySelector('.su-chapter-foot__grain--paper svg filter')).not.toBeNull()
+    expect(band.querySelector('.su-chapter-foot__grain--ink svg filter')).not.toBeNull()
   })
 
-  test('sets text on the colours it reads on: ink on blue, paper on navy', () => {
-    const ink = render(<ChapterFoot tone="rules" start="p.1" />).container
+  test('is ruled in ink unless the page says not (an entity page, edge to edge)', () => {
+    const ruled = render(<ChapterFoot start="p.1" />).container.firstElementChild as HTMLElement
+    const bare = render(<ChapterFoot start="p.1" ruled={false} />).container
       .firstElementChild as HTMLElement
-    const paper = render(<ChapterFoot tone="denizen" start="p.1" />).container
-      .firstElementChild as HTMLElement
-    expect(ink.style.color).toBe(color.ink)
-    expect(paper.style.color).toBe(color.paper)
-  })
-
-  test('a crawler foot band takes the deeper text-bearing pink, with paper', () => {
-    const band = render(<ChapterFoot tone="crawler" start="p.212" />).container
-      .firstElementChild as HTMLElement
-    expect(band.style.backgroundColor).toBe(color.crawlerBand)
-    expect(band.style.color).toBe(color.paper)
-  })
-
-  test('a fill outside the chapter map overrides the tone, with the text that reads on it', () => {
-    const light = render(<ChapterFoot tone="mech" fill="var(--color-tl-1)" start="p.164" />)
-      .container.firstElementChild as HTMLElement
-    const dark = render(<ChapterFoot tone="mech" fill="var(--color-tl-6)" start="p.185" />)
-      .container.firstElementChild as HTMLElement
-    expect(light.style.backgroundColor).toBe('var(--color-tl-1)')
-    expect(light.style.color).toBe(color.ink)
-    expect(dark.style.backgroundColor).toBe('var(--color-tl-6)')
-    expect(dark.style.color).toBe(color.paper)
+    expect(ruled.style.borderTopStyle).toBe('solid')
+    expect(bare.style.borderTopStyle).toBe('')
   })
 
   test('renders nothing for an end it was not given', () => {

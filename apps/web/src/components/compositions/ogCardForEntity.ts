@@ -8,6 +8,7 @@ import type {
   RefObjectContentBlock,
 } from 'salvageunion-reference'
 import {
+  citeLine,
   extractVisibleActions,
   firstParagraphText,
   foldedActionOf,
@@ -18,7 +19,6 @@ import {
 } from 'salvageunion-reference'
 import { actionTypeStamps } from '../entity'
 import { isDoEntity, resolveDomainTone } from '../referenceEntity/card/entityCardTone'
-import { formatProvenance, resolveFooterProvenance } from '../referenceEntity/card/provenance'
 import type { OgCardProps, OgCardStat } from './ogCardText'
 
 /**
@@ -31,11 +31,12 @@ import type { OgCardProps, OgCardStat } from './ogCardText'
  * then the cost's pointy box. The tone (`resolveDomainTone`), have vs do by
  * data shape (`isDoEntity`), the tier numeral and the footer's provenance come
  * from the helpers the entity card uses, so the preview says what the page
- * says. The kind is the model's, printed on the foot line (EDL E9).
+ * says. Its foot cites every printing on one line (`citeLine`) and names no
+ * kind, as the page's does (ruleset Source 2, E9).
  *
  * A chassis PATTERN is its own thing with its own page, so it takes its own
- * card: the pattern's name, the chassis's chips and tone, "Pattern · [chassis]"
- * on its foot, and the pattern's own provenance.
+ * card: the pattern's name, the chassis's chips and tone, and the pattern's
+ * own provenance.
  */
 export function ogCardForEntity(options: {
   schemaName: RefEnumSchemaName
@@ -46,9 +47,8 @@ export function ogCardForEntity(options: {
 }): OgCardProps {
   const { schemaName, entity, pattern, address } = options
   const name = getReferenceEntityName(entity) ?? ('name' in entity ? String(entity.name) : '')
-  const provenance = resolveFooterProvenance(entity, pattern)
-  const cite = formatProvenance(provenance.source, provenance.booklet, provenance.page)
   const model = toEntityModel(entity, undefined, pattern ? { pattern } : undefined)
+  const cite = citeLine(model.cite.printings)
   const stats = chipsOf(model)
 
   if (!pattern && isDoEntity(entity)) {

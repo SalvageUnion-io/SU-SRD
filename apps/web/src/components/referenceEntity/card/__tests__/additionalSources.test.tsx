@@ -1,5 +1,6 @@
 /**
- * REPRINT PROVENANCE — the identity footer's "Also in" line.
+ * REPRINT PROVENANCE — the identity footer's one citation line (ruling
+ * 2026-10-19): every printing, the book first, `//` between, no "Also in".
  *
  * 383 records in the dataset carry `additionalSources`: researched provenance
  * for which OTHER book (and page) an entity was reprinted in — the Starter Set
@@ -7,8 +8,8 @@
  * in the data but read by nothing, so none of it reached a reader.
  *
  * These tests pin what it now does, and — just as importantly — where it stays
- * silent: it is an ADDITIONAL printing under the primary source, on the entity's
- * own full-size card only.
+ * silent: it follows the primary source on the same line, on every card that
+ * has a foot.
  */
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
@@ -41,7 +42,7 @@ const patternOf = (chassis: string, pattern: string): RefObjectPattern => {
   return found
 }
 
-describe('the "Also in" reprint line', () => {
+describe('the one citation line', () => {
   test('a reprinted entity names the book, booklet and page it was reprinted in', () => {
     // First Aid Kit: Workshop Manual p.80, condensed into the Starter Set's
     // Pilots Handbook booklet at p.38.
@@ -52,12 +53,11 @@ describe('the "Also in" reprint line', () => {
 
     render(<ReferenceEntityCard data={kit} />)
 
-    // The PRIMARY source keeps its line, unchanged and unlabelled…
-    expect(screen.getByText(`Workshop Manual · p.${kit.page}`)).toBeTruthy()
-    // …and the reprint is a labelled SECOND line in the same treatment, so it
-    // reads as an additional printing rather than a competing provenance.
-    expect(screen.getByText('Also in')).toBeTruthy()
-    expect(screen.getByText('Salvage Union Starter Set (PH) · p.38')).toBeTruthy()
+    // The PRIMARY source first, then the reprint, on ONE line, `//` between.
+    expect(
+      screen.getByText(`Workshop Manual · p.${kit.page} // Salvage Union Starter Set (PH) · p.38`)
+    ).toBeTruthy()
+    expect(screen.queryByText('Also in')).toBeNull()
   })
 
   test('two reprints both print, and a single-volume book shows no booklet', () => {
@@ -72,7 +72,9 @@ describe('the "Also in" reprint line', () => {
     render(<ReferenceEntityCard data={drone} />)
 
     expect(
-      screen.getByText('Salvage Union Starter Set (AP) · p.2, Reclamation of the Wastes · p.103')
+      screen.getByText(
+        `Workshop Manual · p.${drone.page} // Salvage Union Starter Set (AP) · p.2 // Reclamation of the Wastes · p.103`
+      )
     ).toBeTruthy()
   })
 
@@ -104,14 +106,13 @@ describe('reprint provenance across the size / extent axes', () => {
     expect(container.textContent ?? '').not.toContain('Salvage Union Starter Set')
   })
 
-  test('a compact full card keeps the primary source and drops the reprints', () => {
-    // Below `full` the footer is the tightest strip on the card (every live-sheet
-    // card is `compact`), and a reprint is a lookup fact, not a play fact. The
-    // primary source stays — only the additional printings are dropped.
+  test('a compact card (and so a Peek) prints every source on the one line too', () => {
     const kit = equipmentNamed('First Aid Kit')
     const { container } = render(<ReferenceEntityCard data={kit} size="compact" />)
     const text = container.textContent ?? ''
-    expect(text).toContain(`Workshop Manual · p.${kit.page}`)
+    expect(text).toContain(
+      `Workshop Manual · p.${kit.page} // Salvage Union Starter Set (PH) · p.38`
+    )
     expect(text).not.toContain('Also in')
   })
 })
@@ -123,8 +124,7 @@ describe('a pattern reprints on its own provenance', () => {
 
     render(<ReferenceEntityCard data={chassisNamed('Spectrum')} pattern={operator} />)
 
-    expect(screen.getByText('Also in')).toBeTruthy()
-    expect(screen.getByText("Thatcher's Mech Base · p.1")).toBeTruthy()
+    expect(screen.getByText(/ \/\/ Thatcher's Mech Base · p\.1$/)).toBeTruthy()
   })
 
   test("a chassis's reprint never leaks onto a pattern that has none", () => {
@@ -140,14 +140,14 @@ describe('a pattern reprints on its own provenance', () => {
     expect(hauler.additionalSources).toBeUndefined()
 
     const { container } = render(<ReferenceEntityCard data={mule} pattern={hauler} />)
-    expect(container.textContent ?? '').not.toContain('Also in')
+    expect(container.textContent ?? '').not.toContain(' // ')
   })
 
   test('the chassis card itself does print its reprint', () => {
     // Proves the previous test is a real probe rather than a card that never
     // renders reprints at all.
     render(<ReferenceEntityCard data={chassisNamed('Mule')} />)
-    expect(screen.getByText('Salvage Union Starter Set (PC) · p.12')).toBeTruthy()
+    expect(screen.getByText(/ \/\/ Salvage Union Starter Set \(PC\) · p\.12$/)).toBeTruthy()
   })
 })
 

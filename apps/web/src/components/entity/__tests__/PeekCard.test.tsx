@@ -1,7 +1,7 @@
 /**
- * A PEEK's footer wears the header band (owner, 2026-10-14): the same fill as
- * the card's head, with the foreground measured against it. Off a Peek the
- * footer stays ink on the card's paper. Neither names the kind (E9).
+ * A foot wears the header band (owner, 2026-10-14 for the Peek, 2026-10-19 for
+ * every card): the same fill and grain as the card's head, with the foreground
+ * measured against it. Neither names the kind (E9).
  */
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
@@ -22,9 +22,9 @@ const scrap = () => {
   return ability
 }
 
-/** The footer's own block: the citation's cluster's row's parent. */
+/** The footer's own block: the foot band the citation sits in. */
 const footerOf = () => {
-  const footer = screen.getByText(/· p\.\d+/).parentElement?.parentElement?.parentElement
+  const footer = screen.getByText(/· p\.\d+/).closest<HTMLElement>('[data-foot-band]')
   if (!footer) throw new Error('footer not found')
   return footer
 }
@@ -37,15 +37,23 @@ describe('Peek footer', () => {
     expect(footer.style.color).toMatch(/var\(--color-(ink|paper)\)/)
   })
 
-  test('names no kind: only a Page foot stamps it (E9); the cite stays text', () => {
+  test('names no kind (E9); the cite stays text', () => {
     render(<PeekCard entity={frost()} />)
     expect(footerOf().textContent).not.toContain('System')
     expect(footerOf().textContent).toMatch(/· p\.\d+/)
   })
 
-  test('a card off a Peek keeps its footer on paper', () => {
-    render(<ReferenceEntityCard data={frost()} size="mini" extent="full" />)
-    expect(footerOf().style.background).toBe('')
+  // Ruling 2 (2026-10-19): the footer matches the colour, off a Peek too.
+  test('a card off a Peek wears its head band and grain on its foot too', () => {
+    const { container } = render(
+      <ReferenceEntityCard data={frost()} size="mini" extent="full" texture />
+    )
+    const foot = footerOf()
+    expect(foot.style.background).not.toBe('')
+    expect(foot.style.color).toMatch(/var\(--color-(ink|paper)\)/)
+    const head = container.querySelector<HTMLElement>('[data-grain]:not([data-foot-band])')
+    expect(foot.getAttribute('data-grain')).toBe(head?.getAttribute('data-grain') ?? null)
+    expect(foot.getAttribute('data-grain')).not.toBeNull()
   })
 
   // The Peek wears the fill of the Token or Row that opened it (owner,

@@ -61,47 +61,15 @@
   text-decoration-thickness: 2px;
 }
 
-/* A book page's cite band: the kind at the start, the printings at the end,
- * in the card footer's words and type (`EntityCardIdentityFooter`): caps kind,
- * caption-size `Workshop Manual · p.112`, then "Also in" the reprints. One
- * citation look everywhere, text, never chips. */
-.su-footer__cite .su-chapter-foot__row {
-  align-items: baseline;
+/* A show page's citation, on one line before the licence, in the card
+ * foot's type (`EntityCardIdentityFooter`): caption-size body text,
+ * `Workshop Manual · p.65 // … (CR) · p.37`. Text, never chips. */
+.su-footer__citation {
+  font-family: var(--font-body);
   font-size: var(--text-caption);
-}
-
-/* On a phone a book page's cite band ends the first screen: the licence row
- * leaves the page column's flow and hangs just below it, so a short page's
- * spare height goes above the cite band and the licence is one scroll away.
- * The column is positioned (`BaseLayout`); on a long page it sits where it
- * always did. Wider screens keep both rows at the foot of the screen. */
-@media not (width >= 40rem) {
-  .su-footer__cite + .su-footer__licence {
-    inset-inline: 0;
-    position: absolute;
-    top: 100%;
-  }
-}
-
-.su-footer__kind,
-.su-footer__printings {
-  font-size: var(--text-caption);
-}
-
-.su-footer__printings {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  text-align: right;
-}
-
-.su-footer__printings > p {
-  margin: 0;
-}
-
-.su-footer__cite .su-stat-column__label {
-  font-size: var(--text-badge);
-  padding: 0 var(--space-8);
+  font-weight: var(--font-weight-normal);
+  line-height: 1.5;
+  margin: 0 0 var(--space-8);
 }
 
 /* Thumb first (ruleset §4.6): 44px targets under a coarse pointer, and at
@@ -122,7 +90,8 @@
   width: 40px;
 }
 
-/* On a dark band the black mark reverses to paper, as Leyline's white mark does. */
-.su-footer__mark--paper {
-  filter: invert(1);
+/* On a ground that prints paper the black mark reverses to paper, as
+ * Leyline's white mark does (`--su-foot-mark`, the matched foot's). */
+.su-footer__mark {
+  filter: var(--su-foot-mark, none);
 }

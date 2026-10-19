@@ -156,7 +156,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         { name: itemName, url: canonicalUrl },
       ],
     },
-    foot: entityPageFoot(chapter.tone, pageMeta, fill?.foot),
+    foot: entityPageFoot(pageMeta),
     // A roll table has no build link or guide exits: both are null for it.
     children: (
       <EntityPageFrame

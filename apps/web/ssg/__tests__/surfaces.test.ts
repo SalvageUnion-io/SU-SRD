@@ -314,12 +314,6 @@ function firstUnder(prefix: string): string {
   throw new Error(`no page under ${prefix}`)
 }
 
-/** Inline `background-color`s of a class's elements, in document order. */
-const backgrounds = (html: string, className: string) =>
-  [...html.matchAll(new RegExp(`class="${className}"[^>]*background-color: ?([^;"]+)`, 'g'))].map(
-    ([, bg]) => bg
-  )
-
 describe('every page ends on one footer (boards 06, 07)', () => {
   const book = [
     ['a Pilot Bay entity', firstUnder('/classes/')],
@@ -349,36 +343,44 @@ describe('every page ends on one footer (boards 06, 07)', () => {
     })
   }
 
-  /** The licence row: the Union bar's ink, the same on every page. */
-  const licence = () => backgrounds(page('/'), 'su-chapter-foot')[0]
+  /** The page's foot bands, by their class (the footer has its own). */
+  const feet = (html: string) => html.match(/class="su-chapter-foot"/g) ?? []
+  /** Whether the page's band serves the footer its colour (`footerMatchCss`). */
+  const matched = (html: string) => {
+    const key = /data-band="([\w-]+)"/.exec(html)?.[1]
+    return !!key && html.includes(`[data-band='${key}']) .su-chapter-foot{`)
+  }
 
+  // Rulings 2026-10-19: one footer, the citation on one line in it, in the
+  // leading band's colour, no kind, no ink rule on a show page.
   for (const [name, path] of book) {
-    it(`${name} cites itself in its own chapter’s band, over the one licence row`, () => {
+    it(`${name} cites itself on one line in the one footer, in its band's colour`, () => {
       const html = page(path)
-      const [head] = backgrounds(html, 'su-chapter-band')
-      const feet = backgrounds(html, 'su-chapter-foot')
-      expect(feet).toHaveLength(2)
-      if (path.startsWith('/crawlers/')) {
-        // The foot carries text, so it takes the deeper crawler pink (§3.8).
-        expect(feet[0]).not.toBe(head)
-      } else {
-        expect(feet[0]).toBe(head)
-      }
-      expect(feet[1]).toBe(licence())
-      expect(feet[0]).not.toBe(feet[1])
+      expect(feet(html)).toHaveLength(1)
+      expect(html).toMatch(/<p class="su-footer__citation">[^<]+<\/p>/)
+      expect(html).not.toContain('Also in')
+      expect(html).not.toContain('su-footer__kind')
+      expect(matched(html)).toBe(true)
     })
   }
 
-  it('the Gopher cites its page in that band', () => {
+  it('the Gopher cites its page in that footer', () => {
     const html = page('/chassis/gopher')
     expect(html).toMatch(/<footer[^>]*>[\s\S]*p\.112[\s\S]*<\/footer>/)
   })
 
   for (const [name, path] of [...listings, ...site]) {
     it(`${name} ends on the one licence row, citing nothing`, () => {
-      const feet = backgrounds(page(path), 'su-chapter-foot')
-      expect(feet).toHaveLength(1)
-      expect(feet[0]).toBe(licence())
+      const html = page(path)
+      expect(feet(html)).toHaveLength(1)
+      expect(html).not.toContain('su-footer__citation')
+    })
+  }
+
+  // The footer matches the leading band on every page that leads with one.
+  for (const [name, path] of [...listings, ['home', '/']] as const) {
+    it(`${name} wears its leading band on its footer`, () => {
+      expect(matched(page(path))).toBe(true)
     })
   }
 })

@@ -5,7 +5,7 @@
  * listing: the Catalog, one flat grid of Tiles with no group headings, at
  * every width (`lib/listingView.ts`). The abilities open on their Tree
  * instead, each tree under its heading on its track, with Catalog | Tree in
- * the rail. It ends on the same chapter's band (`foot`), as an entity page
+ * the rail. Its footer wears the same chapter's band (the leading band's rule), as an entity page
  * does.
  *
  * `SchemaViewerIsland` is `ssr={true}` (see the per-island table in
@@ -98,8 +98,6 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
       },
       breadcrumbs: [SRD_CRUMB, { name: pluralName, url: canonicalUrl }],
     },
-    // The listing ends on its chapter's band, as its entity pages do.
-    foot: { tone: chapter.tone },
     children: (
       <div className="su-listing-shell">
         {/* The chapter band is the visible heading: the plural name in the

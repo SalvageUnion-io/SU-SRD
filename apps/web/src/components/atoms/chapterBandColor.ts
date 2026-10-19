@@ -27,8 +27,8 @@ export type ChapterTone =
   | 'play'
 
 /**
- * Each chapter's band colour — the head band (`ChapterBand`), the foot band
- * (`ChapterFoot`), and the SRD Contents page's chapter rules.
+ * Each chapter's band colour — the head band (`ChapterBand`, whose colour the
+ * Union bar and the site foot wear) and the SRD Contents page's chapter rules.
  */
 export const CHAPTER_BAND_COLOR: Record<ChapterTone, string> = {
   rules: color.wkLine,

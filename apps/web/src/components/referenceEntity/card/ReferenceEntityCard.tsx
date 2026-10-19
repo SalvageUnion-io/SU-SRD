@@ -623,11 +623,8 @@ function ReferenceEntityCardInner({
         {rendersFooter ? (
           // USER-MADE (ruleset §3.9): the credit is the maker, never a page.
           <EntityCardIdentityFooter
-            source={userMade ? undefined : provenance.source}
-            booklet={userMade ? undefined : provenance.booklet}
-            page={userMade ? undefined : provenance.page}
-            // Reprints are the entity's OWN-PAGE fact — the roomy full card.
-            additionalSources={compact || userMade ? undefined : provenance.additionalSources}
+            // Every printing on the one line, on every foot (ruleset Source 2).
+            provenance={userMade ? undefined : provenance}
             footMeta={footMeta}
             externalLink={
               extent === 'full' && !insidePeek && !userMade ? externalLinkNode : undefined
@@ -635,7 +632,8 @@ function ReferenceEntityCardInner({
             size={size}
             dashed={userMade}
             credit={userMade ? `Made by ${madeBy ?? 'a player'}` : undefined}
-            band={insidePeek ? { onBand, bandColor } : undefined}
+            band={{ onBand, bandColor }}
+            grain={grain}
           />
         ) : null}
       </div>

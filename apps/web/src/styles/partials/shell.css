@@ -969,10 +969,30 @@
 
 /* ══ The foot band (`components/atoms/ChapterFoot.tsx`) ════════════════════
  *
- * Layout only — colour, speckle and the ink rule are the component's. The
- * page number is set large at the start; the citation (or the site links)
- * sits at the end, and wraps under it on a phone.
+ * Its colours are these properties, ink with paper flecks until the page's
+ * leading band sets them to its own (`footerMatchCss`,
+ * `atoms/unionBarMatch.ts`); the ink rule is the component's. The citation and
+ * licence sit at the start, the site links at the end, and wrap under them on
+ * a phone.
  */
+.su-chapter-foot {
+  --su-foot-bg: var(--color-ink-deep);
+  --su-foot-fg: var(--color-paper);
+  --su-foot-mark: invert(1);
+  --su-foot-grain-paper: contents;
+  --su-foot-grain-ink: none;
+  background-color: var(--su-foot-bg);
+  color: var(--su-foot-fg);
+}
+
+.su-chapter-foot__grain--paper {
+  display: var(--su-foot-grain-paper);
+}
+
+.su-chapter-foot__grain--ink {
+  display: var(--su-foot-grain-ink);
+}
+
 .su-chapter-foot__row {
   align-items: baseline;
   display: flex;

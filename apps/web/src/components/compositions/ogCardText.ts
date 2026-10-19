@@ -32,9 +32,9 @@ export type OgCardStat = { label: string; value?: string }
 
 type OgCardBase = {
   /**
-   * The kind, "Chassis", "Pilot · Engineer": printed on the card's foot line
-   * before its cite or byline, as a Page's foot names its kind (EDL E9), never
-   * above the title (E20).
+   * The kind, "Chassis", "Pilot · Engineer": the `og:description`'s lead, and
+   * printed on the foot line before a built thing's byline (never on a
+   * reference entity's foot, E9), never above the title (E20).
    */
   kicker: string
   /** The notched title: the thing's name. */
@@ -56,7 +56,7 @@ export type OgCardProps =
       stats: OgCardStat[]
       /** The cost as the book's pointy box prints it, last: "2 EP". */
       cost?: string
-      /** The page cite: "Workshop Manual · p.104". */
+      /** The page cite, every printing on one line: "Workshop Manual · p.104 // … · p.12". */
       cite?: string
     })
   | (OgCardBase & {
@@ -134,13 +134,18 @@ export function ogCardThemeColor(props: OgCardProps): string {
   return (color as Record<string, string>)[key] ?? band
 }
 
+/** The cards that preview a reference entity's page: their foot is its foot band. */
+const ENTITY_FOOT: ReadonlySet<OgCardProps['kind']> = new Set(['thing', 'do'])
+
 /**
- * The card's foot, set as an entity page's footer is: the kind on the left in
- * caps, and on the right the cite, the byline or "Made by [user]".
+ * The card's foot, set as an entity page's footer is: on the right the cite,
+ * the byline or "Made by [user]", and the kind in caps on the left but on a
+ * reference entity's card, whose foot, like its page's, names no kind (ruleset
+ * Source 2, E9).
  */
 export function footOf(props: OgCardProps): { kind?: string; byline?: string } {
   const byline = bylineOf(props)
-  const kind = props.kind === 'private' ? undefined : props.kicker
+  const kind = props.kind === 'private' || ENTITY_FOOT.has(props.kind) ? undefined : props.kicker
   return { ...(kind ? { kind } : {}), ...(byline ? { byline } : {}) }
 }
 

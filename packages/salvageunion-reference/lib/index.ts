@@ -175,8 +175,12 @@ export {
   type AdditionalSource,
   type BookCite,
   bookName,
+  CITE_SEPARATOR,
+  citeLine,
   formatCite,
   formatProvenance,
+  type Provenance,
+  provenancePrintings,
   resolveAdditionalSources,
   resolveProvenance,
 } from './view/parts/cite'

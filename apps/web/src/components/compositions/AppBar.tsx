@@ -65,7 +65,8 @@ const LINK = cn('su-union-bar__link', capsLabel())
  * (`atoms/unionBarMatch.ts`). In the app it wears its area's colour on every
  * route, whatever band leads: Build, the Training Bay, is pilot orange with
  * ink; Play, the Cantina, the deep crawler pink with paper. Its colours are
- * the `--su-bar-*` properties on `.su-union-bar`; the footer stays ink.
+ * the `--su-bar-*` properties on `.su-union-bar`; the site footer wears the
+ * leading band too (`footerMatchCss`).
  */
 
 type AppBarProduct = 'reference' | 'build' | 'play'

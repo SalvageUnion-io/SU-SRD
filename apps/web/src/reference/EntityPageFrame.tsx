@@ -12,8 +12,8 @@ import { PAGE_MEASURE } from '../lib/pageMeasure'
  * stamps, then "Build With This" (EDL E20: nothing but the breadcrumb sits
  * above a show page's title; on a phone the cluster follows the title, the
  * band's `asideAt="notch"`, and the button, the band's `action`, stays on the
- * band beside it); then the body. The page's foot band — its kind
- * and its printings (`Workshop Manual · p.112`, then any reprint) — is the site
+ * band beside it); then the body. The page's foot — its printings on one
+ * line (`Workshop Manual · p.65 // … (CR) · p.37`), no kind — is the site
  * `Footer`'s, so the page ends once: the page module hands `entityPageFoot`
  * (`lib/entityPageFoot.ts`) to the layout as its `PageResult.foot`.
  *

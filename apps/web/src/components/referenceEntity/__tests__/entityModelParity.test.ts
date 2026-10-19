@@ -98,7 +98,7 @@ function pageMetaOf(model: EntityModel) {
   // The band carries every chip: stats, action type, facts, traits and cost.
   const cost = model.cost ? costCell(model.cost) : undefined
   return {
-    // The kind: the title's screen-reader text and the foot band's chip.
+    // The kind: the title's screen-reader text (never on a foot, E9).
     typeLabel: model.kind.stamp,
     techLevel: model.techLevel != null ? String(model.techLevel) : undefined,
     // The band's stats: every book stat but a chassis's, which lead its body

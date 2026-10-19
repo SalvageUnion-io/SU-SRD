@@ -86,7 +86,7 @@ export type EntityCite = {
   source?: string
   booklet?: string
   page?: number
-  /** The book, then any reprints: "Workshop Manual · also in …". */
+  /** Every printing on one line (`citeLine`): "Workshop Manual · p.65 // … (CR) · p.37". */
   citation?: string
   /**
    * The same printings one by one, the book first, then each reprint: a book

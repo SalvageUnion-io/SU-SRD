@@ -2,11 +2,11 @@ import { describe, expect, test } from 'bun:test'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { color } from '../../../design/tokens'
 import { ChapterBand } from '../ChapterBand'
-import { unionBarMatchCss } from '../unionBarMatch'
+import { footerMatchCss, unionBarMatchCss } from '../unionBarMatch'
 
 /**
- * The Union bar wears the colour of the band a page leads with (the site
- * header matches the band; the footer stays ink).
+ * The Union bar wears the colour of the band a page leads with, and so does
+ * the site footer (owner's call, 2026-10-19).
  */
 describe('unionBarMatchCss', () => {
   test('recolours the bar to the band, keyed on the leading band only', () => {
@@ -30,6 +30,34 @@ describe('unionBarMatchCss', () => {
     const css = unionBarMatchCss('k2', color.ink, 'paper', 'paper')
     expect(css).toContain('--su-bar-fg:var(--color-paper);')
     expect(css).toContain('--su-bar-grain-paper:contents;--su-bar-grain-ink:none}')
+  })
+})
+
+// Rulings 2 and 4 (2026-10-19): the footer matches the leading band, as the bar does.
+describe('footerMatchCss', () => {
+  test('recolours the foot band to the band, keyed on the same leading band', () => {
+    const css = footerMatchCss('k1', color.mech, 'ink', 'ink')
+    expect(css).toContain("[data-band='k1']")
+    expect(css).toContain("main > .su-chapter-band[data-layout='bleed']:first-child")
+    expect(css).toContain(' .su-chapter-foot{')
+    expect(css).toContain(`--su-foot-bg:${color.mech};`)
+    expect(css).toContain('--su-foot-fg:var(--color-ink);')
+    // The black mark stays black on a band that prints ink.
+    expect(css).toContain('--su-foot-mark:none;')
+    expect(css).toContain('--su-foot-grain-paper:none;--su-foot-grain-ink:contents}')
+  })
+
+  test('a dark band prints paper, reverses the mark and shows its paper flecks', () => {
+    const css = footerMatchCss('k2', color.denizenBand, 'paper', 'paper')
+    expect(css).toContain('--su-foot-fg:var(--color-paper);')
+    expect(css).toContain('--su-foot-mark:invert(1);')
+    expect(css).toContain('--su-foot-grain-paper:contents;--su-foot-grain-ink:none}')
+  })
+
+  test("a page band serves the footer its rule beside the bar's", () => {
+    const html = renderToStaticMarkup(<ChapterBand tone="pilot">Abilities</ChapterBand>)
+    expect(html).toContain('.su-chapter-foot{')
+    expect(html).toContain(`--su-foot-bg:${color.pilot}`)
   })
 })
 

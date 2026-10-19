@@ -115,17 +115,8 @@ describe('EntityPageFrame', () => {
 })
 
 describe('entityPageFoot', () => {
-  test('carries the tone, fill and the kind and printings from meta', () => {
+  test('carries the printings from meta, and no kind (ruling 3, 2026-10-19)', () => {
     const meta = resolveEntityPageMeta(guide('Heat'))
-    expect(entityPageFoot('rules', meta)).toEqual({
-      tone: 'rules',
-      fill: undefined,
-      kind: meta.typeLabel,
-      printings: meta.printings,
-    })
-    expect(entityPageFoot('mech', meta, '#123456')).toMatchObject({
-      tone: 'mech',
-      fill: '#123456',
-    })
+    expect(entityPageFoot(meta)).toEqual({ printings: meta.printings })
   })
 })

@@ -168,22 +168,13 @@ export function chapterForSchema(schemaId: string): ChapterRef {
   return { id, title, tone, href: `/#${id}` }
 }
 
-/** A show page's band colours when it wears its own rather than its chapter's. */
-export type BandFill = {
-  /** The head band (`ChapterBand`'s `fill`). */
-  band: string
-  /** The foot band (`ChapterFoot`'s `fill`): the band, or its text-bearing shade. */
-  foot: string
-}
-
 /**
- * Tech level 3's foot band, which carries the citation, takes tech level 4's
- * blue beneath it (as a Union Crawler foot takes the deeper `crawlerBand`).
- * The shade dates from when TL3 carried neither ink nor paper at 4.5:1; since
- * its retone TL3 carries ink at 4.6:1 (`design/__tests__/contrast.test.ts`).
+ * A show page's band colour when it wears its own rather than its chapter's:
+ * the head band (`ChapterBand`'s `fill`), which the page's one footer wears
+ * too (`footerMatchCss`: the same ground, owner's call 2026-10-19).
  */
-const FOOT_SHADE: Partial<Record<string, string>> = {
-  'var(--color-tl-3)': 'var(--color-tl-4)',
+export type BandFill = {
+  band: string
 }
 
 /**
@@ -196,7 +187,7 @@ function abilityBandFill(entity: RefEntity): BandFill | undefined {
   const tone = entityTone('abilities', entity)
   if (tone === 'pilot') return undefined
   const band = tone === 'crawler' ? 'var(--color-crawler-band)' : `var(--color-${tone})`
-  return { band, foot: band }
+  return { band }
 }
 
 /**
@@ -218,5 +209,5 @@ export function bandFillFor(schemaId: string, entity: RefEntity): BandFill | und
   const techLevel = getTechLevel(entity)
   if (techLevel == null) return undefined
   const band = `var(--color-tl-${String(techLevel).toLowerCase()})`
-  return { band, foot: FOOT_SHADE[band] ?? band }
+  return { band }
 }

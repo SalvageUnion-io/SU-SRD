@@ -59,7 +59,7 @@ export type RenderDocumentInput = {
   assets: BuildAssets
   /** `'bare'` renders `children` AS the document; see `DocumentShell`. */
   shell?: DocumentShell
-  /** A book page's foot: its chapter tone and citation; see `PageFoot`. */
+  /** A book page's foot: its citation; see `PageFoot`. */
   foot?: PageFoot
 }
 

@@ -77,7 +77,6 @@ export function FocusPane({
             titleAs="h2"
             matchBar={false}
             titleSize={fontSize.hero}
-            footOnBand
           >
             <ReferenceEntityCard
               data={entity}

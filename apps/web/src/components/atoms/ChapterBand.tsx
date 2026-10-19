@@ -9,7 +9,7 @@ import type { ChapterTone } from './chapterBandColor'
 import { CHAPTER_BAND_COLOR } from './chapterBandColor'
 import type { SpeckleGrain } from './Speckle'
 import { Speckle } from './Speckle'
-import { BAND_KEY_ATTRIBUTE, unionBarMatchCss } from './unionBarMatch'
+import { BAND_KEY_ATTRIBUTE, footerMatchCss, unionBarMatchCss } from './unionBarMatch'
 import { USER_MADE_HATCH } from './userMadeHatch'
 
 /**
@@ -62,7 +62,7 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  * wrapping in the room it leaves.
  *
  * A band that leads the page (a `PageShell`'s first child) also colours the
- * Union bar above it: the bar takes its colour, foreground and grain
+ * Union bar above it and the site footer below: both take its colour, foreground and grain
  * (`unionBarMatch.ts`), so the site header and the band are one colour, in
  * every mode and on every page, front pages included.
  *
@@ -343,7 +343,10 @@ export function ChapterBand({
       }}
     >
       {bleed && matchBar && (
-        <style>{unionBarMatchCss(key, band, foregroundOn(band, 'ink'), speckle)}</style>
+        <style>
+          {unionBarMatchCss(key, band, foregroundOn(band, 'ink'), speckle) +
+            footerMatchCss(key, band, foregroundOn(band, 'ink'), speckle)}
+        </style>
       )}
       <Speckle grain={speckle} />
       {corner && (

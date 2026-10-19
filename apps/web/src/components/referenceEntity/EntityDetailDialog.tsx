@@ -91,8 +91,8 @@ function pageBand(entity: RefMetaEntity): { tone: ChapterTone; fill?: string } {
 
 /**
  * The Page inside the dialog (EDL Form 5): the chapter band with the title
- * notched in and the chips clustered beside it (E20), the body, and the foot's
- * citation in the card footer's plain text ("Workshop Manual · p.128"). A
+ * notched in and the chips clustered beside it (E20), the body, and the foot, in the band's colour, its
+ * citations on one line in the card footer's plain text ("Workshop Manual · p.128"). A
  * pattern's Page leads the cluster with its chassis (`PATTERN OF | Mule`), the
  * `EntityStat` chip the SRD's pattern page carries: the surface opens it (The app's
  * Page opener, so in the dialog) and Peeks it. Its own component so a closed
@@ -109,7 +109,6 @@ export function EntityDetailPage({
   titleAs = Dialog.Title,
   matchBar,
   titleSize,
-  footOnBand = false,
   children,
 }: Pick<EntityDetailDialogProps, 'entity' | 'pattern' | 'title' | 'children'> & {
   /** The title's element: the dialog's title by default. */
@@ -118,8 +117,6 @@ export function EntityDetailPage({
   matchBar?: boolean
   /** The notched title's size, where the band is narrower than a page (`ChapterBand`'s). */
   titleSize?: string
-  /** The foot in the band's colour, as a show page's foot is (the site `Footer`). */
-  footOnBand?: boolean
 }) {
   const meta = resolveEntityPageMeta(entity, pattern)
   const band = pageBand(entity)
@@ -159,15 +156,15 @@ export function EntityDetailPage({
         <KindLabel kind={meta.typeLabel} />
       </ChapterBand>
       <div className="su-entity-dialog__body">{children}</div>
+      {/* The foot wears the band, edge to edge with no ink rule, and names no
+          kind (ruleset Source 2, E9). */}
       <EntityCardIdentityFooter
-        typeLabel={meta.typeLabel}
-        source={provenance.source}
-        booklet={provenance.booklet}
-        page={provenance.page}
-        additionalSources={provenance.additionalSources}
+        provenance={provenance}
         externalLink={externalLink}
         size="full"
-        band={footOnBand ? { bandColor, onBand: foregroundOn(bandColor, 'ink') } : undefined}
+        band={{ bandColor, onBand: foregroundOn(bandColor, 'ink') }}
+        grain={band.tone === 'ink' ? 'paper' : 'ink'}
+        ruled={false}
       />
     </>
   )

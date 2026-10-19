@@ -1,11 +1,12 @@
 import type { PageFoot } from '../../ssg/types'
-import type { ChapterTone, EntityPageMeta } from '../components/index'
+import type { EntityPageMeta } from '../components/index'
 
 /**
- * The foot of an `EntityPageFrame` page, for the layout's `Footer`: the frame's chapter
- * tone (or its own `fill`) and the kind and printings `meta` carries. The
- * layout sets the one page measure.
+ * The foot of an `EntityPageFrame` page, for the layout's `Footer`: the
+ * printings `meta` carries, cited on one line in the page's one footer, which
+ * wears the page's band (no kind: ruleset Source 2, E9). The layout sets the
+ * one page measure.
  */
-export function entityPageFoot(tone: ChapterTone, meta: EntityPageMeta, fill?: string): PageFoot {
-  return { tone, fill, kind: meta.typeLabel, printings: meta.printings }
+export function entityPageFoot(meta: EntityPageMeta): PageFoot {
+  return { printings: meta.printings }
 }

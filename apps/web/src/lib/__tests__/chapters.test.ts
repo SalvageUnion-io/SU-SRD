@@ -79,10 +79,7 @@ describe('bandFillFor', () => {
   }
 
   test('a system or module show page wears its tech level’s blue, head and foot (§3.8)', () => {
-    expect(bandFillFor('systems', systemAt(1))).toEqual({
-      band: 'var(--color-tl-1)',
-      foot: 'var(--color-tl-1)',
-    })
+    expect(bandFillFor('systems', systemAt(1))).toEqual({ band: 'var(--color-tl-1)' })
     expect(bandFillFor('systems', systemAt(6))?.band).toBe('var(--color-tl-6)')
     expect(bandFillFor('systems', systemAt('B'))?.band).toBe('var(--color-tl-b)')
     const module = SalvageUnionReference.Modules.all().find((m) => m.techLevel === 2)
@@ -100,11 +97,8 @@ describe('bandFillFor', () => {
     expect(bandFillFor('vehicles', vehicle)).toBeUndefined()
   })
 
-  test('tech level 3’s foot takes tech level 4’s blue, which carries text', () => {
-    expect(bandFillFor('systems', systemAt(3))).toEqual({
-      band: 'var(--color-tl-3)',
-      foot: 'var(--color-tl-4)',
-    })
+  test('tech level 3 wears its own blue: the foot is the band’s colour, no deeper shade', () => {
+    expect(bandFillFor('systems', systemAt(3))).toEqual({ band: 'var(--color-tl-3)' })
   })
 
   test('an ability’s show page wears its tier’s colour, as its Row does on the index', () => {
@@ -120,7 +114,6 @@ describe('bandFillFor', () => {
     expect(bandFillFor('abilities', inTree('Cyborg'))?.band).toBe('var(--color-tier-hybrid)')
     expect(bandFillFor('abilities', inTree('Legendary Hacker'))).toEqual({
       band: 'var(--color-crawler-band)',
-      foot: 'var(--color-crawler-band)',
     })
   })
 

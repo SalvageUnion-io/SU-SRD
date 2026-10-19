@@ -41,11 +41,7 @@ const SPECULATION_RULES = JSON.stringify({
   prefetch: [{ source: 'document', where: { href_matches: '/*' }, eagerness: 'moderate' }],
 })
 
-/**
- * The page column: the bar, the content, the footer, at least a screen tall.
- * Positioned: on a phone a cited page's licence row hangs below it
- * (`.su-footer__licence`).
- */
+/** The page column: the bar, the content, the footer, at least a screen tall. */
 const PAGE = {
   backgroundColor: color.paper,
   display: 'flex',
@@ -67,7 +63,7 @@ export type BaseLayoutProps = {
   /** Pathname WITH a trailing slash — the canonical URL is built from it. */
   pathname: string
   children: ReactNode
-  /** A book page's foot (chapter tone and citation); absent → the licence row alone. */
+  /** A book page's foot (its citation); absent → the licence row alone. */
   foot?: PageFoot
 }
 
@@ -241,9 +237,10 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
           <Footer
             links={SITE_LINKS}
             poweredBySalvageUrl="/Powered_by_Salvage_Black.webp"
-            // Every page's foot sits on the one page measure; a page with no
-            // citation keeps the licence row alone.
-            foot={{ tone: 'rules', ...foot, measure: PAGE_MEASURE }}
+            // Every page's foot sits on the one page measure and wears the
+            // page's leading band; a page with no citation keeps the licence
+            // row alone.
+            foot={{ ...foot, measure: PAGE_MEASURE }}
           />
         </div>
         {/* The page's one Peek: every Mention and Tag above carries only its
