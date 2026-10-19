@@ -144,38 +144,6 @@
   }
 }
 
-/* FilterRow (`components/containers/FilterRow.tsx`): a centred stack on a phone;
-   from `sm`, a right-aligned 4.5rem label column beside left-aligned chips. */
-.su-filter-row {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-4);
-}
-
-.su-filter-row-chips {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--space-4);
-}
-
-@media (width >= 40rem) {
-  .su-filter-row {
-    flex-direction: row;
-  }
-
-  .su-filter-row-label {
-    width: 4.5rem;
-    flex-shrink: 0;
-    text-align: right;
-  }
-
-  .su-filter-row-chips {
-    justify-content: flex-start;
-  }
-}
-
 /* MasonryColumns (`components/containers/MasonryColumns.tsx`): independent flex
    columns, collapsed to one stacked column in print. */
 .su-masonry {

@@ -337,7 +337,7 @@ const base = {
    *  `inverse` skin. */
   paper70: 'rgb(251 250 247 / 0.7)',
   paper30: 'rgb(251 250 247 / 0.3)',
-  /** FilterRow's sticky backing — near-opaque paper over scrolling content. */
+  /** Near-opaque paper: text on an ink band (the bar's, a roll table's). */
   paper85: 'rgb(251 250 247 / 0.85)',
   /** MobileSearchDialog's hairline on a tone. */
   paper15: 'rgb(251 250 247 / 0.15)',

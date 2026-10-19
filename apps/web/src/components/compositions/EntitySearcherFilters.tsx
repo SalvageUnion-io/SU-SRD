@@ -11,8 +11,8 @@ import { borderWidth, iconSize, space } from '../../design/tokens'
 import type { Disclosure } from '../../lib/useDisclosure'
 import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
+import { Field } from '../atoms/Field'
 import { Segmented, SegmentedOption } from '../atoms/Segmented'
-import { FilterRow } from '../containers/FilterRow'
 import { chevronStyle } from './entitySearcherChrome'
 import type { FacetRowConfig } from './entitySearcherTypes'
 
@@ -91,9 +91,10 @@ export function SearcherToolbar({
         <div id={panelId} hidden={!open} style={FILTER_PANEL_STYLE}>
           <div style={FILTER_STACK_STYLE}>
             {folded.map((row) => (
-              <FilterRow key={row.label} label={row.label}>
+              // The one label (R16) over the row's Segmented, which names its group.
+              <Field key={row.label} label={row.label}>
                 <FacetChips row={row} />
-              </FilterRow>
+              </Field>
             ))}
           </div>
         </div>
