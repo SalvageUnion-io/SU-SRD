@@ -19,7 +19,12 @@ import { Speckle } from './Speckle'
  */
 
 export type ChapterFootProps = {
-  /** An entity page's citation and the licence, at the row's start. */
+  /**
+   * The page's source, on its own cut-out: the page's ground hanging from the
+   * band's top edge at the row's end, above the site links (owner, 2026-10-19).
+   */
+  cite?: ReactNode
+  /** The licence, at the row's start. */
   start?: ReactNode
   /** The site links and the mark, at the row's end. */
   end?: ReactNode
@@ -33,7 +38,7 @@ const ROOT = {
   width: '100%',
 } satisfies CSSProperties
 
-export function ChapterFoot({ start, end, measure }: ChapterFootProps) {
+export function ChapterFoot({ cite, start, end, measure }: ChapterFootProps) {
   return (
     <div
       className="su-chapter-foot"
@@ -47,6 +52,11 @@ export function ChapterFoot({ start, end, measure }: ChapterFootProps) {
       <span className="su-chapter-foot__grain su-chapter-foot__grain--ink">
         <Speckle grain="ink" />
       </span>
+      {cite != null && (
+        <div className="su-chapter-foot__cite" style={measure ? { maxWidth: measure } : undefined}>
+          {cite}
+        </div>
+      )}
       <div className="su-chapter-foot__row" style={measure ? { maxWidth: measure } : undefined}>
         {start != null && <div className="su-chapter-foot__start">{start}</div>}
         {end != null && <div className="su-chapter-foot__end">{end}</div>}

@@ -118,14 +118,9 @@ export function Footer({ links, poweredBySalvageUrl, foot, LinkComponent = 'a' }
     <footer className="su-footer">
       <ChapterFoot
         measure={measure}
+        cite={citation ? <p className="su-footer__citation">{citation}</p> : undefined}
         start={<Legal />}
-        end={
-          // The source sits at the end, above the site links (owner's call, 2026-10-19).
-          <div className="su-footer__right">
-            {citation && <p className="su-footer__citation">{citation}</p>}
-            <End links={links} src={poweredBySalvageUrl} LinkComponent={LinkComponent} />
-          </div>
-        }
+        end={<End links={links} src={poweredBySalvageUrl} LinkComponent={LinkComponent} />}
       />
     </footer>
   )

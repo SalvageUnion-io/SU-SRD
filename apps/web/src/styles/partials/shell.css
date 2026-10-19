@@ -1000,12 +1000,40 @@
   color: var(--su-foot-fg);
 }
 
+/* The foot matches the bar on every page (owner's call, 2026-10-19): a page
+   with no leading band wears its area's colour at its foot as its bar does,
+   Build's pilot orange and Play's deep pink; a leading band, which outranks
+   this, sets both to its own (`unionBarMatch.ts`). */
+:root:has(.su-union-bar[data-mode='build']) .su-chapter-foot {
+  --su-foot-bg: var(--color-pilot);
+  --su-foot-fg: var(--color-ink);
+  --su-foot-mark: none;
+  --su-foot-grain-paper: none;
+  --su-foot-grain-ink: contents;
+}
+
+:root:has(.su-union-bar[data-mode='play']) .su-chapter-foot {
+  --su-foot-bg: var(--color-crawler-band);
+  --su-foot-fg: var(--color-paper);
+  --su-foot-grain-paper: none;
+  --su-foot-grain-ink: contents;
+}
+
 .su-chapter-foot__grain--paper {
   display: var(--su-foot-grain-paper);
 }
 
 .su-chapter-foot__grain--ink {
   display: var(--su-foot-grain-ink);
+}
+
+/* The source's line (`cite`): its cut-out flush with the band's top edge and
+   the row's end. */
+.su-chapter-foot__cite {
+  display: flex;
+  justify-content: flex-end;
+  margin-inline: auto;
+  padding-inline: var(--space-16);
 }
 
 .su-chapter-foot__row {
@@ -1031,7 +1059,8 @@
 }
 
 @media (width >= 40rem) {
-  .su-chapter-foot__row {
+  .su-chapter-foot__row,
+  .su-chapter-foot__cite {
     padding-inline: var(--space-24);
   }
 }
