@@ -79,6 +79,7 @@ export function PlayNpcBox({
         title={npc.name}
         label={`${npcKind(npc)}: ${npc.name}${npc.down ? ', down' : ''}`}
         tone="adversary"
+        className="su-play-unit"
         reference={npc.down}
         chips={<Stat label={npc.down ? `${npcKind(npc)} · down` : npcKind(npc)} size="mini" />}
         controls={

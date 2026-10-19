@@ -163,6 +163,7 @@ export function PlayPilotUnit({
       title={pilot.name}
       label={`Pilot: ${pilot.name}`}
       tone="pilot"
+      className="su-play-unit"
       reference={!live}
       chips={<Stat label="Pilot" size="mini" />}
       controls={stamp(live ? 'Live' : 'Read only')}
@@ -270,6 +271,7 @@ export function PlayMechUnit({
       title={mech.name}
       label={`Mech: ${mech.name}`}
       tone="mech"
+      className="su-play-unit"
       reference={!live}
       chips={chassis ? <Relations items={[chassis]} /> : undefined}
       controls={stamp(mech.destroyed ? 'Destroyed' : MECH_STAMP[place])}
@@ -403,6 +405,7 @@ export function PlayCrawlerUnit({
       title={crawler.name}
       label={`Crawler: ${crawler.name}`}
       tone="crawler"
+      className="su-play-unit"
       reference={!solid}
       chips={<Stat label="Crawler" size="mini" />}
       controls={
