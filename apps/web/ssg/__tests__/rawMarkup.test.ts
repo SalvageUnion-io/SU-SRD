@@ -74,10 +74,15 @@ describe('rendered pages', () => {
     [
       'a hybrid class, its trees and their owners',
       '/classes/fabricator',
-      'su-entity-row__title" title="Hybrid"><span>Hybrid<',
+      // R14: the caps come through `capsLabel`'s classes after the title's.
+      'su-entity-row__title su-caps su-caps--t-tight" title="Hybrid"><span>Hybrid<',
     ],
     ['a two-roll columns table', '/roll-tables/callsign-table', 'data-island="ColumnsTableIsland"'],
-    ['a static fallback with a Traits line', '/abilities/auto-turret', 'su-static__label">Traits:'],
+    [
+      'a static fallback with a Traits line',
+      '/abilities/auto-turret',
+      'su-static__label su-caps su-caps--w-bold su-caps--t-snug">Traits:',
+    ],
   ])('renders %s without raw markup', (_label, route, marker) => {
     const html = renderRoute(route)
     expect(renderedBody(html)).toContain(marker)

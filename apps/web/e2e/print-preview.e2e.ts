@@ -33,16 +33,10 @@ test.describe('sheet print preview', () => {
     // The print CSS hides the <header>, whose condensed copy of the name is
     // a <span>; role=heading targets the visible hero <h1> and dodges it.
     await expect(page.getByRole('heading', { name: 'Print Test' })).toBeVisible()
-    // The class must also survive print. `… sheet header` holds just the <h1>
-    // and the identity fields are in the `… pilot details` region, so scope
-    // there. Still scoped rather than page-wide, so this fails if the
+    // The class must also survive print: the hero band's `CLASS | Engineer`
+    // chip (R11's SheetHero), named by its control, so this fails if the
     // class stops rendering rather than matching some unrelated occurrence.
-    await expect(
-      page
-        .getByRole('region', { name: /pilot details/i })
-        .getByText('Engineer', { exact: true })
-        .first()
-    ).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Class: Engineer' })).toBeVisible()
     // Stat pips keep their print hooks (filled pips survive the bg reset).
     expect(await page.locator('[data-pip]').count()).toBeGreaterThan(0)
     // Top-bar navigation is hidden under print (`header a` rule).
@@ -56,11 +50,6 @@ test.describe('sheet print preview', () => {
     await page.emulateMedia({ media: 'print' })
 
     await expect(page.getByRole('heading', { name: 'Print Test' })).toBeVisible()
-    await expect(
-      page
-        .getByRole('region', { name: /pilot details/i })
-        .getByText('Engineer', { exact: true })
-        .first()
-    ).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Class: Engineer' })).toBeVisible()
   })
 })

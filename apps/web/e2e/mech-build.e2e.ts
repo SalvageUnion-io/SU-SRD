@@ -1,5 +1,6 @@
 import { at } from './_base'
 import {
+  addFromSearcher,
   advanceUntilVisible,
   editSheet,
   fillIdentity,
@@ -88,11 +89,10 @@ test('edit a mech loadout on its live sheet', async ({ page }) => {
   await page.getByRole('button', { name: /^Manage systems$/i }).click()
   const picker = page.getByRole('dialog')
   await expect(picker).toBeVisible()
-  // The systems picker runs the searcher in `mode="count"` (installing the
-  // same System twice is rules-legal), so each row carries an "Add one <name>"
-  // button rather than being a click-to-toggle card. Clicking the card's prose
-  // does nothing at all.
-  await picker.getByRole('button', { name: /^Add (one )?Cargo Pod$/i }).click()
+  // The systems picker is the searcher in `mode="count"` (installing the same
+  // System twice is rules-legal): open Cargo Pod from its list, add one from
+  // its Page (`addFromSearcher`).
+  await addFromSearcher(picker, 'Cargo Pod')
   await page.keyboard.press('Escape')
   await expect(picker).toBeHidden()
 

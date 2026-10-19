@@ -1,5 +1,12 @@
 import { at } from './_base'
-import { advanceUntilVisible, clickNext, editSheet, pickByName, waitForReady } from './_helpers'
+import {
+  addFromSearcher,
+  advanceUntilVisible,
+  clickNext,
+  editSheet,
+  pickByName,
+  waitForReady,
+} from './_helpers'
 import { expect, test } from './fixtures'
 
 /**
@@ -89,7 +96,7 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
 
   // 'Talk Shop' is Mechanical Knowledge level 2, so creation never offers it —
   // reaching it here is exactly the advancement-past-the-budget case.
-  await picker.getByText('Talk Shop').first().click()
+  await addFromSearcher(picker, 'Talk Shop')
   await page.keyboard.press('Escape')
   await expect(picker).toBeHidden()
 

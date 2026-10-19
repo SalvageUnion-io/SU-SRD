@@ -1,6 +1,13 @@
 import type { Page } from '@playwright/test'
 import { at } from './_base'
-import { advanceUntilVisible, editSheet, fillIdentity, pickByName, waitForReady } from './_helpers'
+import {
+  addFromSearcher,
+  advanceUntilVisible,
+  editSheet,
+  fillIdentity,
+  pickByName,
+  waitForReady,
+} from './_helpers'
 import { expect, test } from './fixtures'
 
 /**
@@ -78,24 +85,22 @@ test('arm a crawler further from its live sheet', async ({ page }) => {
   // Each bay carries a verb rather than a generic add (BAY_FUNCTIONS in
   // CrawlerSheetItems: Dock / Craft / Heal / Mount…), so the armament bay's
   // control is labelled 'Mount' — that verb IS "open the weapons picker".
-  // The searcher runs in toggle mode: click the selectable cell, not its prose.
-  // A sheet opens in Read; its controls are Edit's.
+  // The picker is the searcher: open a weapon from its list, add it from its
+  // Page (`addFromSearcher`). A sheet opens in Read; its controls are Edit's.
   await editSheet(page)
   await page.getByRole('button', { name: /^Mount$/i }).click()
   const picker = page.getByRole('dialog')
   await expect(picker).toBeVisible()
-  const weapon = picker.locator('[aria-pressed="false"], [aria-checked="false"]').first()
-  await expect(weapon).toBeVisible()
-  await weapon.click()
+  await addFromSearcher(picker, 'Chainsaw Arm')
   await page.keyboard.press('Escape')
   await expect(picker).toBeHidden()
 
-  // The bay's installed count is the write-through's visible effect, and it
+  // The bay's new weapon is the write-through's visible effect, and it
   // survives a reload (the server, same record — no duplicate crawler).
-  await expect(page.getByText('No weapons mounted.')).toHaveCount(0)
+  await expect(page.getByText('Chainsaw Arm').first()).toBeVisible({ timeout: 15_000 })
 
   await page.reload()
   await waitForReady(page)
-  await expect(page.getByText('No weapons mounted.')).toHaveCount(0)
+  await expect(page.getByText('Chainsaw Arm').first()).toBeVisible({ timeout: 15_000 })
   await expect(page.getByText('Iron Wagon').first()).toBeVisible({ timeout: 15_000 })
 })

@@ -26,7 +26,9 @@ test('design an NPC from a template, crew a bay with it, and give the bay back',
   // --- N1: Any NPC, from the Veteran ---
   await gotoStable(page, '/npcs/new')
   await waitForReady(page)
-  await expect(page.getByRole('heading', { level: 1, name: /Design an NPC/i })).toBeVisible()
+  // The band names the page; the wizard's step is its h1 (WizShell).
+  await expect(page.getByText('Design an NPC', { exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: /Template/ })).toBeVisible()
   await page.getByRole('radio', { name: 'Start from Veteran' }).click()
   await page.getByRole('button', { name: 'Next · Stats →' }).click()
   await expect(page.getByLabel(/Hit points/)).toHaveValue('9')
@@ -37,7 +39,7 @@ test('design an NPC from a template, crew a bay with it, and give the bay back',
   await page.getByRole('button', { name: 'Next · Identity →' }).click()
   await page.getByLabel(/^Name/).fill('Sergeant Kessler')
   await page.getByRole('button', { name: 'Next · Review →' }).click()
-  await expect(page.getByText('NPC · from Veteran').first()).toBeVisible()
+  await expect(page.getByText('From Veteran').first()).toBeVisible()
   await page.getByRole('button', { name: 'Save NPC' }).click()
   await page.waitForURL(/\/sheet\/npc\//, { timeout: 20_000 })
   await expect(page.getByRole('heading', { level: 1, name: /Sergeant Kessler/i })).toBeVisible()
@@ -56,7 +58,7 @@ test('design an NPC from a template, crew a bay with it, and give the bay back',
   await page.waitForURL(/\/npcs\/new\?view=crew/, { timeout: 15_000 })
   await page.getByRole('button', { name: 'Design Med Bay crew' }).click()
   await page.getByRole('button', { name: 'Assign Sergeant Kessler to Med Bay' }).click()
-  await expect(page.getByRole('button', { name: 'Med Bay: Sergeant Kessler' })).toBeVisible({
+  await expect(page.getByRole('radio', { name: 'Med Bay: Sergeant Kessler' })).toBeVisible({
     timeout: 15_000,
   })
 
@@ -70,7 +72,7 @@ test('design an NPC from a template, crew a bay with it, and give the bay back',
   // --- Unassign: the link goes; the NPC and the book's line both survive ---
   await editSheet(page)
   await page.getByRole('link', { name: /design and assign crawler crew/i }).click()
-  await page.getByRole('button', { name: 'Med Bay: Sergeant Kessler' }).click()
+  await page.getByRole('radio', { name: 'Med Bay: Sergeant Kessler' }).click()
   await page.getByRole('button', { name: 'Unassign Sergeant Kessler from Med Bay' }).click()
   await expect(page.getByRole('button', { name: 'Design Med Bay crew' })).toBeVisible({
     timeout: 15_000,

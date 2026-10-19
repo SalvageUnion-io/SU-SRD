@@ -195,6 +195,19 @@ export async function installLoadoutItem(page: Page, name: string): Promise<void
 }
 
 /**
+ * Add one entry from a searcher (`EntitySearcher`: the sheet's pickers, a
+ * Token list beside the opened entity's Page). An entry is opened from the
+ * list and added from its Page's action bar (`<name> actions`), never toggled
+ * in the list.
+ */
+export async function addFromSearcher(picker: Locator, name: string): Promise<void> {
+  await picker.getByRole('button', { name, exact: true }).first().click()
+  const actions = picker.getByRole('group', { name: `${name} actions` })
+  await expect(actions, `the searcher opens ${name}'s Page`).toBeVisible()
+  await actions.getByRole('button').last().click()
+}
+
+/**
  * Click the wizard's Next button. WizShell wizards label the CTA from the
  * steps array ('Next · Abilities →'); legacy builders use a bare 'Next'.
  */

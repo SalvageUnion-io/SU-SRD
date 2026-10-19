@@ -32,7 +32,7 @@ test('cancel mid-wizard leaves the dashboard with no new pilot', async ({ page }
   // Confirm the discard, then the wizard abandons and navigates home.
   await page.getByRole('button', { name: /^Cancel$/ }).click()
   await page
-    .getByRole('dialog')
+    .getByRole('alertdialog')
     .getByRole('button', { name: /^Discard$/ })
     .click()
   await page.waitForURL(/\/$/)

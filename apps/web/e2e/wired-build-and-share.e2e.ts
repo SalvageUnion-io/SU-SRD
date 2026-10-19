@@ -1,3 +1,4 @@
+import { BASE } from './_base'
 import {
   assignCrawlerOnPilotSheet,
   assignedUnit,
@@ -89,7 +90,8 @@ test('publish the live public sheet and open it with no account', async ({ page,
     'The copy control appears only once publicSheet.setPublic succeeded.'
   ).toBeVisible()
   const link = (await dialog.locator('code').first().innerText()).trim()
-  expect(link).toMatch(/^https?:\/\/[^/]+\/p\/pilot\/[^/]+$/)
+  // An app route, under the app's base (ADR-048).
+  expect(link).toMatch(new RegExp(`^https?://[^/]+${BASE}/p/pilot/[^/]+$`))
 
   // --- Open it in a context with no account at all ---
   const visitor = await browser.newContext()
