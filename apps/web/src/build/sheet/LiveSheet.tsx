@@ -49,17 +49,27 @@ import { AppLink } from '../../components/shared/AppLink'
 import type { BandStamp } from './bandStamps.model'
 import type { SheetBand } from './sheetViewProps.model'
 
-type SheetVariant = SheetKind
+/** The four sheets that share this shell (hard rule R11): a unit's, and a built NPC's. */
+type SheetVariant = SheetKind | 'npc'
 
 /** A unit that is out of play: its stamp ("Killed in Action") and what that means. */
-export type SheetUnitOut = { stamp: string; note: string }
+type SheetUnitOut = { stamp: string; note: string }
 
 /** Each sheet's kind, for its h1's screen-reader text (never a stamp, EDL E9). */
 const KIND_LABEL: Record<SheetVariant, string> = {
   pilot: 'Pilot',
   mech: 'Mech',
   crawler: 'Union Crawler',
+  npc: 'NPC',
 }
+
+/** The chapter band each sheet wears: its own tone, and Denizens navy for an NPC. */
+const BAND_TONE = {
+  pilot: 'pilot',
+  mech: 'mech',
+  crawler: 'crawler',
+  npc: 'denizen',
+} as const satisfies Record<SheetVariant, string>
 
 export type LiveSheetSegment = {
   key: SheetVariant
@@ -124,6 +134,11 @@ type LiveSheetProps = {
    * can be undone.
    */
   out?: SheetUnitOut
+  /**
+   * A player-made thing that could pass for the book (a built NPC; ruleset
+   * §3.9): the hatched band, its User-made stamp, and "Made by [maker]".
+   */
+  userMade?: { madeBy: string }
   /**
    * The name is a mech's pattern name, which the book prints in quotes: the
    * band's title and the condensed bar read “Mazona”.
@@ -285,6 +300,7 @@ export function LiveSheet({
   band,
   kindDetail,
   out,
+  userMade,
   quoted = false,
 }: LiveSheetProps) {
   // A 1px sentinel directly beneath the bar, NOT the identity block: the bar
@@ -413,7 +429,8 @@ export function LiveSheet({
           built as, and on a phone the Pilot/Mech/Crawler switch, below the
           name there. Full-bleed, like the SRD's. */}
       <ChapterBand
-        tone={variant}
+        tone={BAND_TONE[variant]}
+        userMade={userMade !== undefined}
         asideAt="notch"
         corner={
           band?.actions || actions ? (
@@ -425,19 +442,19 @@ export function LiveSheet({
         }
         aside={
           <>
-            {(stamp || out) && (
+            {(stamp || out || userMade) && (
               <Cluster gap={8}>
+                {userMade && <Stat orientation="horizontal" label="User-made" wrap />}
                 {stamp &&
                   (stamp.entityRef ? (
                     <EntityStat label={stamp.label} entityRef={stamp.entityRef} />
                   ) : (
                     <Stat orientation="horizontal" label={stamp.label} value={stamp.name} wrap />
                   ))}
-                {out && (
-                  <Badge surface="tone" tone="bad">
-                    {out.stamp}
-                  </Badge>
+                {userMade && (
+                  <Stat orientation="horizontal" label="Made by" value={userMade.madeBy} wrap />
                 )}
+                {out && <Stat orientation="horizontal" label={out.stamp} state="critical" wrap />}
               </Cluster>
             )}
             {/* The phone's segmented Pilot/Mech/Crawler switch, full width

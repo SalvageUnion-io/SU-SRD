@@ -12,24 +12,24 @@
  * `entities.locate` tells them apart, as it does for every sheet.
  */
 
-import { gamePath } from 'game-domain/entityKinds'
-import { PRODUCT } from 'game-domain/product'
 import { useNavigate } from '@tanstack/react-router'
+import { useQuery } from 'convex/react'
+import { PRODUCT } from 'game-domain/product'
 import type { Npc } from 'game-domain/schemas/npc'
 import { NpcSchema } from 'game-domain/schemas/npc'
 import type { SoftLink } from 'game-domain/schemas/softLink'
-import { useQuery } from 'convex/react'
 import { useEffect, useMemo } from 'react'
 import { api } from '../../../convex/_generated/api'
+import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
+import { useConfirm } from '../../components/shared/useConfirm'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useNpc, useSoftLinkList } from '../../lib/entities'
 import { softLinkFromServer } from '../../lib/links/linkSync'
 import { crewLinkOf } from '../../lib/npcs/npcModel'
 import { areaTitle } from '../../lib/pageTitle'
 import { useEntityStore } from '../../stores/entityStore'
-import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
-import { useConfirm } from '../../components/shared/useConfirm'
 import { SheetSkeleton } from '../sheet/SheetSkeleton'
+import { SheetModeContext, useSheetModeStore } from '../sheet/sheetMode.model'
 import type { NpcCrewing } from './NpcSheet'
 import { NpcSheet } from './NpcSheet'
 
@@ -55,6 +55,10 @@ export function NpcSheetView({ id }: { id: string }) {
   const held = useNpc(id)
   const links = useSoftLinkList()
   const crawlers = useEntityStore((s) => s.crawlers)
+  // Read | Edit, held for the visit as on every sheet (`sheetMode.model.ts`).
+  const editing = useSheetModeStore((s) => s.editing)
+  const setEditing = useSheetModeStore((s) => s.setEditing)
+  const sheetMode = useMemo(() => ({ editing, setEditing }), [editing, setEditing])
 
   const online = mode === 'connected'
   const located = useQuery(api.entities.locate, online ? { kind: 'npc', id } : 'skip')
@@ -83,7 +87,7 @@ export function NpcSheetView({ id }: { id: string }) {
   if (held !== null && (located == null || located.mayEdit)) {
     const crawlerName = (crawlerId: string) => crawlers.find((c) => c.id === crawlerId)?.name
     return (
-      <>
+      <SheetModeContext.Provider value={sheetMode}>
         <NpcSheet
           npc={held}
           madeBy={me?.displayName ?? 'you'}
@@ -93,7 +97,7 @@ export function NpcSheetView({ id }: { id: string }) {
           onDeleted={() => void navigate({ to: '/' })}
         />
         {dialog}
-      </>
+      </SheetModeContext.Provider>
     )
   }
 
@@ -142,7 +146,6 @@ export function NpcSheetView({ id }: { id: string }) {
       madeBy={maker ?? 'a player'}
       readOnly
       crewing={crewingOf(gameLinks, id, gameCrawlerName)}
-      back={gameId === null ? undefined : { href: gamePath(gameId), label: 'The crew' }}
     />
   )
 }

@@ -6,10 +6,10 @@
 
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import type { ConnectionState } from '../../../lib/connection/connectionContext'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import { npcFixture } from '../../../components/__tests__/fixtures'
+import type { ConnectionState } from '../../../lib/connection/connectionContext'
+import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 
 // Module scope, before the imports below — see `convexMock.ts`.
 const convexMocks = await installConvexMocks({
@@ -38,6 +38,18 @@ const KESSLER = npcFixture({
   templateRef: { schema: 'npcs', slug: 'veteran' },
 })
 
+/** "Made by [maker]": the band's label-first chip (`MADE BY | Sam`). */
+function madeBy(name: string) {
+  return screen.getByText(name, { selector: '*' })
+}
+
+/** The corner's "⋯": Move and Delete live under it, as on every sheet. */
+async function openMenu() {
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+  })
+}
+
 async function renderSheet(props: Partial<Parameters<typeof NpcSheet>[0]> = {}) {
   await act(async () => {
     render(
@@ -65,15 +77,28 @@ beforeEach(async () => {
 })
 
 describe('the sheet', () => {
-  test('the stat block is the reference NPC card, user-made and credited', async () => {
+  test('the band names it once, user-made, credited, and what it was built from', async () => {
+    // Read: the band's h1 is the one place it is named (Edit adds a name field).
+    await renderSheet({ readOnly: true, confirm: undefined })
+    expect(screen.getAllByText('Sergeant Kessler')).toHaveLength(1)
+    expect(screen.getByText('User-made')).toBeTruthy()
+    expect(madeBy('alxjrvs')).toBeTruthy()
+    expect(screen.getByText('Veteran')).toBeTruthy()
+  })
+
+  test('its actions are Tokens under an Actions slab, their rules the book’s', async () => {
     await renderSheet()
-    expect(screen.getAllByText('From Veteran').length).toBeGreaterThan(0)
-    expect(screen.getByText('Made by alxjrvs')).toBeTruthy()
     expect(screen.getAllByText('Green Laser Rifle (Veteran)').length).toBeGreaterThan(0)
+  })
+
+  test('its HP is the sheet’s one vital gauge, in full words', async () => {
+    await renderSheet()
+    expect(screen.getByText('Hit Points')).toBeTruthy()
   })
 
   test('its owner may move it or delete it', async () => {
     await renderSheet()
+    await openMenu()
     expect(screen.getByRole('button', { name: 'Delete Sergeant Kessler' })).toBeTruthy()
     expect(screen.getByLabelText(/Move to a Game or your Hangar/)).toBeTruthy()
   })
@@ -96,7 +121,7 @@ describe('the sheet', () => {
     expect(screen.queryByRole('button', { name: 'Delete Sergeant Kessler' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Share Sergeant Kessler' })).toBeNull()
     expect(screen.getByText(/You are reading a crewmate’s NPC/)).toBeTruthy()
-    expect(screen.getByText('Made by Sam')).toBeTruthy()
+    expect(madeBy('Sam')).toBeTruthy()
   })
 
   test('the slot it crews is named, with its crawler', async () => {

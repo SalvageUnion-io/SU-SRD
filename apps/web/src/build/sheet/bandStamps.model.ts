@@ -6,8 +6,9 @@
  * goes nowhere; with nothing stored there is no chip.
  */
 
+import type { NpcTemplateRef } from 'game-domain/schemas/npc'
 import type { EntityRef, RefEntity } from 'salvageunion-reference'
-import { getEntitySlug } from 'salvageunion-reference'
+import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { resolveClass } from '../../lib/classRef'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
@@ -22,7 +23,7 @@ export type BandStamp = {
   entityRef?: EntityRef
 }
 
-type RefSchema = 'classes' | 'chassis' | 'crawlers'
+type RefSchema = 'classes' | 'chassis' | 'crawlers' | 'npcs'
 
 function stampOf(
   label: string,
@@ -54,4 +55,19 @@ export function crawlerStamp(typeRef: string | undefined): BandStamp | undefined
   const type = resolveCrawlerType(typeRef)
   // An unresolved crawler type stays unsaid, as it always has.
   return type ? stampOf('Type', 'crawlers', typeRef, type) : undefined
+}
+
+/**
+ * What a built NPC started as (`FROM | Veteran`): the reference NPC its stat
+ * block was filled from. Crew drafted from a bay or a crawler type, or one
+ * started blank, says nothing here.
+ */
+export function npcStamp(templateRef: NpcTemplateRef | undefined): BandStamp | undefined {
+  if (templateRef?.schema !== 'npcs') return undefined
+  const npc = readReference(
+    'npcStamp',
+    () => SalvageUnionReference.NPCs.getBySlug(templateRef.slug) ?? null,
+    null
+  )
+  return stampOf('From', 'npcs', templateRef.slug, npc)
 }

@@ -38,7 +38,7 @@ describe('the public sheet route', () => {
     })
     render(<PublicSheetView kind="npc" appId="npc-1" />)
     expect(screen.getAllByText('Old Mags').length).toBeGreaterThan(0)
-    expect(screen.getByText('Made by Rosa')).toBeTruthy()
+    expect(screen.getByText('Rosa')).toBeTruthy() // MADE BY | Rosa, on the band
     expect(screen.getByText(/a shared NPC, read-only/i)).toBeTruthy()
     // Read-only: no Share, no Delete.
     expect(screen.queryByRole('button', { name: /share old mags/i })).toBeNull()

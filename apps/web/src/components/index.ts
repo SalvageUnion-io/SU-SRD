@@ -258,7 +258,7 @@ export { Tags } from './entity/parts/Tags'
 // One trait as a chip: an SRD page's band sets its entity's traits with it.
 export type { TagItem } from './entity/parts/tagItems'
 // The glossary entry a `[[Name]]` names: a trait, else a keyword.
-export { mentionRef, relation } from './entity/parts/tagItems'
+export { mentionRef, relation, traitTags } from './entity/parts/tagItems'
 export { embeddedPeekAddress } from './entity/peekContext'
 export type { EntityMode, EntityRowModel } from './entity/types'
 // MarkdownSection — a repo-root markdown file (one heading, paragraphs and
@@ -277,6 +277,7 @@ export { resolveEntityPageMeta } from './referenceEntity/card/entityPage'
 // The stored-tag test for the book's starting builds, for a page band that
 // wears the stamp (`EntityPageStamps`) outside the card.
 export { isLegalStartingPatternOf } from './referenceEntity/card/legalStartingPattern'
+export { ActionTokens } from './referenceEntity/card/NestedCards'
 // Entity display system
 export { ReferenceEntityCard } from './referenceEntity/card/ReferenceEntityCard'
 // UserMadeStamp — the dashed User-made stamp (ruleset §3.9). The card wears it

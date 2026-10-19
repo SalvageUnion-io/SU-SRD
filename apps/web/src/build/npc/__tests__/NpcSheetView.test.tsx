@@ -11,10 +11,10 @@
 
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { ConnectionState } from '../../../lib/connection/connectionContext'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import { crawlerFixture, npcFixture, softLinkFixture } from '../../../components/__tests__/fixtures'
+import type { ConnectionState } from '../../../lib/connection/connectionContext'
+import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
 
 // Module scope, before the imports below — see `convexMock.ts`.
 const convexMocks = await installConvexMocks({
@@ -63,6 +63,18 @@ function gameListing(npcBody: unknown = THEIRS) {
   }
 }
 
+/** "Made by [maker]": the band's label-first chip (`MADE BY | Sam`). */
+function madeBy(name: string) {
+  return screen.getByText(name, { selector: '*' })
+}
+
+/** The corner's "⋯": Move and Delete live under it, as on every sheet. */
+async function openMenu() {
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+  })
+}
+
 async function renderView(id: string, mode: ConnectionState['mode'] = 'connected') {
   await act(async () => {
     render(
@@ -92,8 +104,9 @@ beforeEach(async () => {
 describe('yours', () => {
   test('editable, credited to you, naming the slot it crews and the page title', async () => {
     await renderView('n-mine')
+    await openMenu()
     expect(screen.getByRole('button', { name: 'Delete Doc Ambrose' })).toBeTruthy()
-    expect(screen.getByText('Made by alxjrvs')).toBeTruthy()
+    expect(madeBy('alxjrvs')).toBeTruthy()
     expect(screen.getByText(/Crews the Med Bay on/)).toBeTruthy()
     expect(screen.getByRole('link', { name: '#430 Tenacity' })).toBeTruthy()
     expect(document.title).toContain('Doc Ambrose')
@@ -101,11 +114,12 @@ describe('yours', () => {
 
   test('held but offline, it is still yours to read', async () => {
     await renderView('n-mine', 'disconnected')
-    expect(screen.getByText('Made by you')).toBeTruthy()
+    expect(madeBy('you')).toBeTruthy()
   })
 
   test('deleting it goes back to the Hangar', async () => {
     await renderView('n-mine')
+    await openMenu()
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Delete Doc Ambrose' }))
     })
@@ -119,7 +133,7 @@ describe('yours', () => {
 })
 
 describe('a crewmate’s, in a Game you belong to', () => {
-  test('read-only, credited to its maker, crewing the Game crawler, with a way back', async () => {
+  test('read-only, credited to its maker, crewing the Game crawler', async () => {
     setQueryAnswers({
       'games:listMine': [],
       'account:me': { displayName: 'alxjrvs' },
@@ -128,11 +142,12 @@ describe('a crewmate’s, in a Game you belong to', () => {
       'games:members': [{ userId: 'u-sam', displayName: 'Sam' }],
     })
     await renderView('n-theirs')
-    expect(screen.getByText('Made by Sam')).toBeTruthy()
-    expect(screen.queryByRole('button', { name: 'Delete Rook' })).toBeNull()
+    expect(madeBy('Sam')).toBeTruthy()
+    // A crewmate's NPC has no corner actions and no Read | Edit to switch.
+    expect(screen.queryByRole('button', { name: 'More actions' })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Edit$/ })).toBeNull()
     expect(screen.getByText(/You are reading a crewmate’s NPC/)).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Bulwark' })).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'The crew' }).getAttribute('href')).toBe('/play/games/g1')
   })
 
   test('a maker who is no longer a member is "a player"', async () => {
@@ -144,7 +159,7 @@ describe('a crewmate’s, in a Game you belong to', () => {
       'games:members': [],
     })
     await renderView('n-theirs')
-    expect(screen.getByText('Made by a player')).toBeTruthy()
+    expect(madeBy('a player')).toBeTruthy()
   })
 
   test('a row this app cannot read says so', async () => {

@@ -13,14 +13,13 @@
  * query, drawn as its own read-only page (`NpcSheet`).
  */
 
-import { PRODUCT } from 'game-domain/product'
+import { useQuery } from 'convex/react'
 import { NpcSchema } from 'game-domain/schemas/npc'
 import { MechPatternSchema } from 'game-domain/schemas/pattern'
-import { useQuery } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
+import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
 import { PublicPattern } from '../mech/Pattern/PublicPattern'
 import { NpcSheet } from '../npc/NpcSheet'
-import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
 import { PublicSheet } from './PublicSheet'
 import { SheetSkeleton } from './SheetSkeleton'
 
@@ -36,7 +35,6 @@ function NotAvailable({ what = 'sheet' }: { what?: 'sheet' | 'pattern' | 'NPC' }
     <NotFoundPanel
       title={`This ${what} isn’t available`}
       message="The link may be wrong, or its owner may have stopped sharing it."
-      back={{ href: '/', label: PRODUCT.build }}
     />
   )
 }
@@ -79,7 +77,6 @@ function PublicNpcQuery({ appId }: { appId: string }) {
       npc={{ ...parsed.data, id: appId }}
       madeBy={result.madeBy ?? 'a player'}
       readOnly
-      back={{ href: '/', label: PRODUCT.build }}
       readOnlyNote="A shared NPC, read-only. Only whoever made it can change it."
     />
   )

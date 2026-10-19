@@ -426,7 +426,8 @@
   --on-tone-band: var(--color-paper);
 }
 
-/* The NPC designer's wizard (WizShell, hard rule R16): the Denizens navy. */
+/* The NPC designer's wizard (WizShell, hard rule R16) and a built NPC's
+   sheet (`LiveSheet`, R11): the Denizens navy. */
 .su-sheet--npc {
   --tone-default: var(--color-denizen-band);
   --tone-deep: var(--color-denizen-band);

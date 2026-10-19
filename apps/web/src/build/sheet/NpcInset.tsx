@@ -152,19 +152,24 @@ export function NpcLines({
   onDetailChange,
   onFactsChange,
   identity = false,
+  role = '',
 }: NpcInsetProps & {
   /** Lead with the name and HP fields (the head they would sit on holds no field). */
   identity?: boolean
+  /** Its role, read-only (a built NPC's own sheet, whose band carries no role chip). */
+  role?: string
 }) {
   // Read leaves an empty field out: a row prints when it can be written or has
   // something to read.
   const showName = identity && onNameChange !== undefined
   const showHp = identity && onHpChange !== undefined && maxHp > 0
+  const showRole = role.trim() !== ''
   const showKeepsake = onKeepsakeChange !== undefined || keepsake.trim() !== ''
   const showMotto = onMottoChange !== undefined || motto.trim() !== ''
   const showDetail = onDetailChange !== undefined || detail.trim() !== ''
   const showFacts = onFactsChange !== undefined || facts.length > 0
-  if (!(showName || showHp || showKeepsake || showMotto || showDetail || showFacts)) return null
+  if (!(showName || showHp || showRole || showKeepsake || showMotto || showDetail || showFacts))
+    return null
   // Keepsake and Motto SHARE a row (as Name and HP do): both are one short
   // phrase, and each taking a full 44px row of its own made a four-row inset
   // out of two lines of content. Detail and Facts keep their own rows — they
@@ -196,6 +201,7 @@ export function NpcLines({
           />
         </NpcRow>
       )}
+      {showRole && <NpcRow label="Role">{role}</NpcRow>}
       {showKeepsake && (
         <NpcRow label="Keepsake">
           {onKeepsakeChange ? (
@@ -284,15 +290,15 @@ export function NpcInset(props: NpcInsetProps) {
         }
         state={
           maxHp > 0 ? (
-              <Stat
-                orientation="horizontal"
-                label="HP"
-                value={hp}
-                max={maxHp}
-                size="compact"
-                mode={onHpChange ? 'edit' : 'read'}
-                onChange={onHpChange}
-              />
+            <Stat
+              orientation="horizontal"
+              label="HP"
+              value={hp}
+              max={maxHp}
+              size="compact"
+              mode={onHpChange ? 'edit' : 'read'}
+              onChange={onHpChange}
+            />
           ) : undefined
         }
         bodyStyle={BODY}
