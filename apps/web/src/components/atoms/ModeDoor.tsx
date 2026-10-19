@@ -29,9 +29,9 @@ const DOOR = {
   cursor: 'pointer',
   minHeight: '170px',
   paddingBottom: space[20],
-  paddingLeft: '26px',
-  paddingRight: '22px',
-  paddingTop: '22px',
+  paddingLeft: space[24],
+  paddingRight: space[24],
+  paddingTop: space[24],
   position: 'relative',
   textAlign: 'left',
 } satisfies CSSProperties
@@ -79,7 +79,7 @@ const HEAD_STYLE = {
   display: 'block',
   lineHeight: 1,
   marginBottom: space[6],
-  marginLeft: '34px',
+  marginLeft: space[32],
 } satisfies CSSProperties
 
 const BODY = {
@@ -87,7 +87,7 @@ const BODY = {
   fontFamily: font.body,
   fontSize: fontSize.caption,
   lineHeight: 1.55,
-  marginLeft: '34px',
+  marginLeft: space[32],
 } satisfies CSSProperties
 
 const CITE = {
@@ -95,7 +95,7 @@ const CITE = {
   fontFamily: font.body,
   fontSize: fontSize.caption,
   fontWeight: weight.bold,
-  marginLeft: '34px',
+  marginLeft: space[32],
   marginTop: space[10],
 } satisfies CSSProperties
 

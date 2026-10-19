@@ -46,7 +46,7 @@ const PILL = {
 } satisfies CSSProperties
 
 const ICON = {
-  marginTop: '1px',
+  marginTop: space[2],
   flexShrink: 0,
   fontSize: fontSize.base,
   lineHeight: 1,

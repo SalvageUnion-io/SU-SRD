@@ -32,13 +32,13 @@ export const C_ROWS = {
   display: 'flex',
   minWidth: 0,
   flexDirection: 'column',
-  gap: '3px',
+  gap: space[2],
 } satisfies CSSProperties
 export const C_ROW = {
   display: 'flex',
   minWidth: 0,
   justifyContent: 'center',
-  gap: '3px',
+  gap: space[2],
 } satisfies CSSProperties
 export const C_PIP = {
   height: '14px',

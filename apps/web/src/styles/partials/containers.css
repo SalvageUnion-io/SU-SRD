@@ -380,7 +380,7 @@
 .su-header-menu-trigger--overflow {
   line-height: 1;
   min-height: 0;
-  padding: 1px var(--space-6);
+  padding: 1px var(--space-6); /* design-tokens-ignore: a fit, the 14px glyph and 1px each side make the mini 18px */
 }
 .su-header-menu-trigger--overflow[data-popup-open] {
   background-color: var(--color-ink);

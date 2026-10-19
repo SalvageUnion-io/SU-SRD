@@ -30,7 +30,7 @@
   background-color: var(--color-ink);
   color: var(--color-paper);
   letter-spacing: var(--tracking-caps-snug);
-  padding-inline: 7px;
+  padding-inline: var(--space-8);
 }
 
 .su-badge--ghost {
@@ -38,7 +38,7 @@
   box-shadow: inset 0 0 0 1px var(--color-ink-20);
   color: var(--color-ink);
   letter-spacing: var(--tracking-caps-snug);
-  padding-inline: 7px;
+  padding-inline: var(--space-8);
 }
 
 .su-badge--outline {
@@ -46,13 +46,13 @@
   border: var(--bw-pill) solid var(--color-ink);
   color: var(--color-ink);
   letter-spacing: var(--tracking-caps);
-  padding-inline: 9px;
+  padding-inline: var(--space-8);
 }
 
 .su-badge--tone {
   border: var(--bw-pill) solid;
   letter-spacing: var(--tracking-caps);
-  padding-inline: 9px;
+  padding-inline: var(--space-8);
 }
 
 .su-badge--quiet {
@@ -122,7 +122,7 @@
   color: var(--color-paper);
   font-family: var(--font-cond);
   letter-spacing: var(--tracking-caps-tight);
-  padding-block: calc(var(--space-2) + 1px);
+  padding-block: calc(var(--space-2) + var(--bw-hairline));
 }
 
 /* The box always sits in its edge, which draws nothing on paper. On an ink
@@ -150,7 +150,7 @@
   );
   display: inline-flex;
   flex: none;
-  padding: 1px var(--space-2) 1px 1px;
+  padding: var(--bw-hairline) var(--space-2) var(--bw-hairline) var(--bw-hairline);
 }
 
 .su-badge--stamp-solid {
@@ -220,7 +220,7 @@
 .su-stat-plate--value {
   align-items: center;
   display: flex;
-  gap: 1px;
+  gap: var(--space-2);
 }
 
 /* A live reading (`Stat`, C7): its digits tabular, its width its maximum's,

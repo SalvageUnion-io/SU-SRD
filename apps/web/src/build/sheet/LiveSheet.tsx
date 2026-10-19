@@ -252,7 +252,11 @@ const SEGMENT = { flex: '1 1 0%', textDecoration: 'none' } satisfies CSSProperti
 
 // The band pulls back over its 1px, so no strip of page ground shows between
 // the Union bar and the band (the band paints over it: it is positioned).
-const SENTINEL = { height: '1px', marginBottom: '-1px', width: '100%' } satisfies CSSProperties
+const SENTINEL = {
+  height: '1px',
+  marginBottom: '-1px', // design-tokens-ignore: a fit, the sentinel takes back its own 1px
+  width: '100%',
+} satisfies CSSProperties
 
 const BODY_FRAME = { position: 'relative' } satisfies CSSProperties
 

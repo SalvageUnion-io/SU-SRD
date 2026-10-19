@@ -11,12 +11,12 @@
 
 /* The body column under the chapter band. */
 .su-sheet-live-body {
-  padding: var(--space-16) var(--su-page-gutter-inline) 34px;
+  padding: var(--space-16) var(--su-page-gutter-inline) var(--space-32);
 }
 
 @media (width >= 40rem) {
   .su-sheet-live-body {
-    padding-block: 22px 60px;
+    padding-block: var(--space-24) var(--space-64);
   }
 }
 
@@ -53,7 +53,7 @@
 /* Fields beside a 260px vitals column once the SHEET (its `@container`) is
    wide enough; stacked below that. */
 .su-sheet-hero {
-  gap: 22px;
+  gap: var(--space-24);
   grid-template-columns: repeat(1, minmax(0, 1fr));
 }
 

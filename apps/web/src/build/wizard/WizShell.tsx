@@ -339,6 +339,12 @@ const mainStyle = {
 
 const fillStyle = { flex: '1 1 0%', minHeight: 0 } satisfies CSSProperties
 
+/** The step's frame: it reserves scroll room under the pinned footer, which overlaps it. */
+const stepFrameStyle = {
+  ...fillStyle,
+  paddingBottom: '6rem', // design-tokens-ignore: a fit, the pinned footer's room, not spacing
+} satisfies CSSProperties
+
 /** The step's head: its number stamp and its title on one line, over the frame. */
 const stepHeadStyle = {
   alignItems: 'baseline',
@@ -519,9 +525,7 @@ export function WizShell({
         <div className="su-wiz-main" style={mainStyle}>
           {/* The step (N6): its number stamp and h1 over an untitled frame,
               with no band, so the entities in it are the titled things. */}
-          {/* The sticky footer overlaps content when pinned, so the frame
-              reserves scroll room beneath it. */}
-          <div className="su-wiz-step-frame" style={{ ...fillStyle, paddingBottom: '6rem' }}>
+          <div className="su-wiz-step-frame" style={stepFrameStyle}>
             <article>
               <div style={stepHeadStyle}>
                 <Badge shape="stamp" size="full" aria-hidden="true" style={stepNumberStyle}>

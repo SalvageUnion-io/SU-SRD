@@ -158,7 +158,7 @@ const HEAD_LEFT = {
   gap: space[6],
 } satisfies CSSProperties
 const STAMP = {
-  padding: '0.1em 0.5em 0.16em',
+  padding: `${space[2]} ${space[6]}`,
   fontSize: fontSize.caption,
   lineHeight: 1.5,
 } satisfies CSSProperties

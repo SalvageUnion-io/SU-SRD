@@ -16,12 +16,10 @@
  * cites the section so a failure tells you which law you broke, not just which
  * regex you tripped.
  *
- * ## Every rule is zero, bar one ratchet
+ * ## Every rule is zero
  *
- * Every rule here but `raw-spacing` is `zero`: any finding fails, and none has
- * a baseline entry. `raw-spacing` (R13) is a ratchet in
- * `tools/baselines/rule-sets.json`, burned to zero before 4.0.0: what it still
- * counts is off §4.4's scale, so each fix is a layout move to review.
+ * Every rule here is `zero`: any finding fails, and none has a baseline entry.
+ * `raw-spacing` (R13) was a ratchet, burned to zero before 4.0.0.
  * `rust-allowlist` (§3.1), `type-floor` (§4.6) and `texture-placement` (§3.5)
  * hold the Workshop Manual canon the ruleset ratifies. The Discord bot's
  * hex-integer accents are exempt from `raw-color` below (Discord's API takes
@@ -349,12 +347,13 @@ const TOKEN_RULES: TokenRule[] = [
   },
   {
     id: 'raw-spacing',
-    mode: 'ratchet',
+    mode: 'zero',
     rule: 'ruleset §4.4 — spacing on the scale: {2, 4, 6, 8, 12}px inside a block, 16 or 24px between (R13)',
-    // A ratchet, burned to zero before 4.0.0. What is left is off the scale
-    // (3px, 7px, 9px, 22px, 30px…), so each one is a layout move to review,
-    // not a find-and-replace.
-    fix: 'Use the scale: `space[N]` / `var(--space-N)` — 2, 4, 6, 8 or 12 inside a block (12 the card gutter), 16 or 24 between blocks. An off-scale literal moves to the nearest rung; check the page with `bun run shot`.',
+    // A literal off the scale (3px, 7px, 22px, 0.6em…) is a layout move to
+    // review, not a find-and-replace. A fit that is not spacing (a -1px
+    // overlap, a face's side bearing, room under a pinned bar) takes a
+    // `design-tokens-ignore` with its reason on the line.
+    fix: 'Use the scale: `space[N]` / `var(--space-N)` — 2, 4, 6, 8 or 12 inside a block (12 the card gutter), 16 or 24 between blocks. An off-scale literal moves to the nearest rung; check the page with `bun run shot`. A component fit, not spacing, takes `design-tokens-ignore: <reason>` on its line.',
     pattern: declaration(
       '(?:padding|margin)(?:-(?:top|right|bottom|left|block|inline)(?:-(?:start|end))?)?|(?:row-|column-)?gap',
       '(?:padding|margin)(?:Top|Right|Bottom|Left|Block|Inline)?(?:Start|End)?|(?:row|column)?[gG]ap'

@@ -208,11 +208,11 @@
   }
 
   .su-wiz-rail-tab--active {
-    margin-left: -5px;
+    margin-left: -5px; /* design-tokens-ignore: a fit, centres the 44px active tab on the 34px tabs' column */
   }
 
   .su-wiz-main {
-    padding: 30px var(--space-40);
+    padding: var(--space-32) var(--space-40);
   }
 }
 

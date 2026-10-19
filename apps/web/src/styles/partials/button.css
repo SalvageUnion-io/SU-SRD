@@ -190,19 +190,18 @@
 
 /* ── The Sizes (styles/sizing.ts). Each Size's height is its token
       (`--size-*`, theme.css), so a button is exactly as tall as the chip,
-      field or switch beside it at the same Size; padding is inline only. The
-      odd inline paddings (22px, 11px) are carried verbatim from the first
-      port. ── */
+      field or switch beside it at the same Size; padding is inline only,
+      on §4.4's scale. ── */
 .su-btn--full {
   font-size: var(--text-lede);
   min-height: var(--size-full);
-  padding: 0 22px;
+  padding: 0 var(--space-24);
 }
 
 .su-btn--compact {
   font-size: var(--text-xs);
   min-height: var(--size-compact);
-  padding: 0 11px;
+  padding: 0 var(--space-12);
 }
 
 /* The compact uppercase action chip ('⇄ Swap', '✕ Remove'): badge radius,

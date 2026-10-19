@@ -41,7 +41,7 @@ const NONE = ''
 const SELECT = {
   fontSize: tokens.fontSize.xs,
   minHeight: 0,
-  padding: `3px ${tokens.space[8]}`,
+  padding: `${tokens.space[4]} ${tokens.space[8]}`,
   width: 'auto',
 } satisfies CSSProperties
 

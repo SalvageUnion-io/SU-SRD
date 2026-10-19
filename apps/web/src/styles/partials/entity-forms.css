@@ -1099,7 +1099,7 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   line-height: 1.2;
   max-width: 100%;
   overflow: hidden;
-  padding: 3px var(--space-6) 0 var(--space-4);
+  padding: var(--space-2) var(--space-6) 0 var(--space-4);
   position: relative;
   text-transform: uppercase;
   white-space: nowrap;
@@ -1293,7 +1293,7 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
  */
 .su-entity-token__pill > :not(.su-entity-token__notch) {
   align-self: center;
-  margin-bottom: 3px;
+  margin-bottom: var(--space-2);
 }
 
 .su-entity-token__notch {
@@ -1305,7 +1305,7 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   margin-left: calc(-1 * var(--space-2));
   margin-right: auto;
   min-width: 0;
-  padding: 1px var(--space-6) 3px;
+  padding: var(--space-2) var(--space-6);
 }
 
 /* A bottom-right fill's chips (`.su-entity-row__heading--cut > .su-chips`,

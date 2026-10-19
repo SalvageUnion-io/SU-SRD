@@ -911,7 +911,7 @@
 }
 
 .su-crumbs--band .su-crumbs__list {
-  column-gap: 0.2em;
+  column-gap: var(--space-2);
   flex-wrap: wrap;
   row-gap: var(--space-4);
 }

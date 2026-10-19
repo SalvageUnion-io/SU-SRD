@@ -65,7 +65,7 @@
 
 @media (width >= 40rem) {
   .su-sheet-public-banner {
-    padding-inline: 30px;
+    padding-inline: var(--space-32);
   }
 }
 
@@ -88,7 +88,7 @@
 }
 
 .su-sheet-skeleton-body {
-  padding: 18px var(--space-16) 34px;
+  padding: var(--space-16) var(--space-16) var(--space-32);
 }
 
 .su-sheet-skeleton-slab {
@@ -105,12 +105,12 @@
 
 @media (width >= 40rem) {
   .su-sheet-skeleton-bar {
-    padding-inline: 30px;
+    padding-inline: var(--space-32);
   }
 
   .su-sheet-skeleton-hero {
-    padding-inline: 30px;
-    padding-top: 22px;
+    padding-inline: var(--space-32);
+    padding-top: var(--space-24);
   }
 
   .su-sheet-skeleton-frame {
@@ -122,7 +122,7 @@
   }
 
   .su-sheet-skeleton-body {
-    padding: var(--space-24) 30px 60px;
+    padding: var(--space-24) var(--space-32) var(--space-64);
   }
 
   .su-sheet-skeleton-grid {

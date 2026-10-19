@@ -124,7 +124,7 @@ const LABEL = {
   minWidth: 'min-content',
   fontSize: fontSize.sm,
   lineHeight: 1.625,
-  paddingBottom: '3px',
+  paddingBottom: space[2],
   paddingInline: space[8],
   paddingTop: space[2],
 } satisfies CSSProperties

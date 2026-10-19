@@ -111,11 +111,9 @@ describe('ruleEngine.listFiles', () => {
 describe('tokens rule set', () => {
   const scan = (rel: string, text: string) => scanTokenSources(new Map([[rel, text]]))
 
-  test('every rule is zero but the raw-spacing ratchet', () => {
-    expect(designTokens.rules.filter((r) => r.mode !== 'zero').map((r) => r.id)).toEqual([
-      'raw-spacing',
-    ])
-    expect(ratchetCounts(designTokens, {})).toEqual({ 'raw-spacing': 0 })
+  test('every rule is zero', () => {
+    expect(designTokens.rules.filter((r) => r.mode !== 'zero').map((r) => r.id)).toEqual([])
+    expect(ratchetCounts(designTokens, {})).toEqual({})
   })
 
   test('raw colour literals are found; issue refs and HTML entities are not', () => {

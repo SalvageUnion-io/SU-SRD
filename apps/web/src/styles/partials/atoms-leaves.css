@@ -56,8 +56,8 @@
   border-width: var(--bw-chrome);
   background: var(--catalog-bg);
   color: var(--color-paper);
-  padding-block: 13px;
-  padding-inline: 15px;
+  padding-block: var(--space-12);
+  padding-inline: var(--space-16);
   text-decoration-line: none;
   transition-duration: var(--dur-base);
   transition-property: box-shadow, transform;

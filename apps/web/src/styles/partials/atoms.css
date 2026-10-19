@@ -106,7 +106,7 @@
   border-width: 0;
   clip-path: inset(50%);
   height: 1px;
-  margin: -1px;
+  margin: -1px; /* design-tokens-ignore: the visually-hidden pattern, not spacing */
   overflow: hidden;
   padding: 0;
   position: absolute;

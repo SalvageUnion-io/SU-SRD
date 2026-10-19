@@ -61,7 +61,7 @@ const ADD_BUTTON = {
   display: 'inline-flex',
   height: '22px',
   lineHeight: 1,
-  paddingInline: '9px',
+  paddingInline: space[8],
 } satisfies CSSProperties
 
 /**
