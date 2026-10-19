@@ -170,6 +170,30 @@ describe('lintCopy', () => {
     ])
   })
 
+  test('bans a unit move worded other than Move, and SRD for the Reference (R16)', () => {
+    const r = lintCopy(
+      [
+        ...at('Remove from Game'),
+        ...at('+ Add from your Hangar'),
+        ...at('Search the SRD'),
+        ...at('View in SRD'),
+        ...at('Move to your Hangar'),
+        ...at('Move in from your Hangar'),
+        ...at('Salvage Union SRD and Character Manager'),
+        ...at('This is a System Reference Document (SRD) for the game.'),
+        ...at('SRD'),
+      ],
+      [],
+      BANNED
+    )
+    expect(r['banned-variant']?.map((f) => f.detail.split(':')[0])).toEqual([
+      '"Remove from Game"',
+      '"Add from your Hangar"',
+      '"SRD"',
+      '"SRD"',
+    ])
+  })
+
   test('bans a shouted word in a sentence, but not an initialism or an all-caps label', () => {
     const r = lintCopy(
       [

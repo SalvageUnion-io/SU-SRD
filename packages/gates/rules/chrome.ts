@@ -56,7 +56,26 @@
  * - `roll-tier`: no roll-tier token (`rollFailure`, `--color-roll-*`, …)
  *   anywhere in the app: the tiers are the Discord bot's (`DISCORD_ROLL_ACCENT`).
  *
- * All seven are `zero`. Comments are stripped, so prose may name what it bans.
+ *
+ * ## One component per chrome role (hard rule R16, chrome Roles)
+ *
+ * A wizard is `WizShell`, a field `Input` / `Textarea` under `Field`'s one
+ * label, a trail `BreadcrumbTrail`. Before it the NPC designer was a second
+ * wizard, three hand-rolled inputs typed at 11–12px (which zooms an iPhone),
+ * five places hand-built a trail, and a field's label was drawn four ways.
+ *
+ * - `raw-field`: a JSX `<input>` or `<textarea>` only in an atom
+ *   (`components/atoms/`); a hidden file picker (`type="file"`) is no field.
+ * - `raw-label`: a JSX `<label>` only in an atom (`Field`, `Eyebrow`,
+ *   `Checkbox`'s hit area, `Radio`'s row). A ratchet: Play's Downtime step and
+ *   tables still hand-roll theirs (hard rule R7's).
+ * - `breadcrumb-nav`: `aria-label="Breadcrumb"` only in `BreadcrumbTrail`,
+ *   which owns its nav.
+ * - `step-current`: `aria-current="step"` only in `WizShell`. A ratchet: Play's
+ *   Downtime track is a third stepper (hard rule R7's).
+ *
+ * All but R16's two ratchets are `zero`. Comments are stripped, so prose may
+ * name what it bans.
  */
 
 import { readFileSync } from 'node:fs'
@@ -288,6 +307,61 @@ function scanRollTier(root: string): Finding[] {
   return scanLines(root, ['.ts', '.tsx', '.css'], ROLL_TIER, () => false)
 }
 
+/** The atoms: the one home of a raw field or label (R16). */
+const ATOMS = 'apps/web/src/components/atoms/'
+
+/** The one component each chrome role's markup may appear in (R16). */
+const ROLE_HOMES = {
+  breadcrumb: 'apps/web/src/components/atoms/BreadcrumbTrail.tsx',
+  step: 'apps/web/src/build/wizard/WizShell.tsx',
+} as const
+
+/** A JSX field element, to its self-closing end (`=>` in a handler holds no `/>`). */
+const RAW_FIELD = /<(input|textarea)(?=[\s/>])[\s\S]*?\/>/g
+const RAW_LABEL = /<label(?=[\s>])/
+const BREADCRUMB_NAV = /aria-label=(?:\{\s*)?["'`]Breadcrumb["'`]/
+const STEP_CURRENT = /aria-current=(?:["']step["']|\{[^}\n]*["']step["'])/
+
+function lineAt(text: string, index: number): number {
+  return text.slice(0, index).split('\n').length
+}
+
+/** Every `.tsx` source but the tests, comments blanked. */
+function jsxSources(root: string): [string, string][] {
+  return listFiles(root, [SRC], ['.tsx'])
+    .filter((rel) => !isTest(rel))
+    .map((rel) => [rel, stripComments(readFileSync(join(root, rel), 'utf8'))])
+}
+
+function scanRawFields(root: string): Finding[] {
+  const out: Finding[] = []
+  for (const [rel, text] of jsxSources(root)) {
+    if (rel.startsWith(ATOMS)) continue
+    for (const m of text.matchAll(RAW_FIELD)) {
+      if (/\btype=["']file["']/.test(m[0])) continue
+      const line = lineAt(text, m.index ?? 0)
+      out.push({
+        file: rel,
+        line,
+        detail: `a raw <${m[1]}>: ${text.split('\n')[line - 1]?.trim()}`,
+      })
+    }
+  }
+  return out
+}
+
+/** Lines matching `pattern` in `.tsx` sources, but in `home` (or under it). */
+function scanOutside(root: string, pattern: RegExp, home: string): Finding[] {
+  const out: Finding[] = []
+  for (const [rel, text] of jsxSources(root)) {
+    if (rel.startsWith(home)) continue
+    text.split('\n').forEach((line, i) => {
+      if (pattern.test(line)) out.push({ file: rel, line: i + 1, detail: line.trim() })
+    })
+  }
+  return out
+}
+
 type ChromeRule = Rule & { scan: (root: string) => Finding[] }
 
 const RULES: ChromeRule[] = [
@@ -340,13 +414,41 @@ const RULES: ChromeRule[] = [
     fix: 'A state is `statusOk` / `statusWarn` / `statusBad` (`--color-status-*`); a roll result is the readout and the row mark, the same for every outcome; a notice is in ink. The bot reads `DISCORD_ROLL_ACCENT`.',
     scan: scanRollTier,
   },
+  {
+    id: 'raw-field',
+    mode: 'zero',
+    rule: 'hard rule R16 (chrome Roles) — a field is `Input` or `Textarea` (16px, so an iPhone never zooms), never a raw <input> or <textarea> outside the atoms',
+    fix: 'Render `Input` (`size="compact"` beside Compact buttons) or `Textarea` from components/index, labelled by `Field` or an `aria-label`; a check is `Checkbox`, a choice `Radio`, a search `SearchField`.',
+    scan: scanRawFields,
+  },
+  {
+    id: 'raw-label',
+    mode: 'ratchet',
+    rule: "hard rule R16 (chrome Roles) — a field's label is `Field`'s one treatment, never a hand-rolled <label>",
+    fix: 'Wrap the control in `Field label="…" htmlFor={id}`; a lone check takes `Checkbox hitArea` for its 44px square.',
+    scan: (root) => scanOutside(root, RAW_LABEL, ATOMS),
+  },
+  {
+    id: 'breadcrumb-nav',
+    mode: 'zero',
+    rule: 'hard rule R16 (chrome Roles) — a trail is `BreadcrumbTrail`, which owns its `nav aria-label="Breadcrumb"`',
+    fix: 'Render `BreadcrumbTrail breadcrumbs={…} placement="bar|row|band"` (`link={AppLink}` in the app); on a page band, provide it through `ChapterBandTrail`.',
+    scan: (root) => scanOutside(root, BREADCRUMB_NAV, ROLE_HOMES.breadcrumb),
+  },
+  {
+    id: 'step-current',
+    mode: 'ratchet',
+    rule: 'hard rule R16 (chrome Roles) — a stepper is `WizShell`, the one `aria-current="step"`',
+    fix: "Draw the steps with `WizShell` (its `band={false}` under a page's own band), driven by `useWizardFlow`'s `shell`.",
+    scan: (root) => scanOutside(root, STEP_CURRENT, ROLE_HOMES.step),
+  },
 ]
 
 export const chromeLaws: RuleSet = {
   id: 'chrome',
   label: 'chrome laws',
   rules: RULES,
-  exemptionsLive: 'packages/gates/rules/chrome.ts (FRAMES)',
+  exemptionsLive: 'packages/gates/rules/chrome.ts (FRAMES, ATOMS, ROLE_HOMES)',
   preflight(root) {
     // A catastrophe floor far below today's ~1,000 source files and ~60 stylesheets.
     assertScanFloor('chrome (app source)', listFiles(root, [SRC], ['.ts', '.tsx']).length, 350)

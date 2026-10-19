@@ -296,6 +296,27 @@ export const BANNED: readonly Banned[] = [
     why: 'Scrap is the currency; the book\'s verb is "break down" (Core Book p.248), and the ruleset\'s verb list (§3.12) is Copy / Move / Delete / Break down',
   },
   {
+    // Hard rule R16: one verb per act. A unit leaving a Game moves.
+    pattern: /(?<![\w-])Remove from (?:the )?[Gg]ame(?![\w-])/g,
+    say: 'Move to your Hangar',
+    why: 'moving a unit is one verb, Move (ruleset §3.12, hard rule R16); Remove reads as Delete',
+  },
+  {
+    // …and a unit joining one moves too.
+    pattern: /(?<![\w-])Add from your Hangar(?![\w-])/g,
+    say: 'Move in from your Hangar',
+    why: 'moving a unit is one verb, Move (ruleset §3.12, hard rule R16)',
+  },
+  {
+    // The tool is Reference, as the header's switch names it. The site's own
+    // name ("Salvage Union SRD") and the acronym's definition ("(SRD)") stay.
+    pattern: /(?<!Salvage Union\s)(?<![\w(-])SRD(?![\w)-])/g,
+    say: 'Reference',
+    why: 'the tool is "Reference" in the header switch; one name per area (hard rule R16)',
+    // The drawer's brand stamp pairs a bare "SRD" with "Salvage Union".
+    allowWhole: /^SRD$/,
+  },
+  {
     // An initialism is a name, not a shout.
     pattern: /(?<![\w-])(?!(?:TTRPG|JSON|JPEG|HTML|CORS)(?![\w-]))[A-Z]{4,}(?![\w-])/g,
     say: 'sentence case',

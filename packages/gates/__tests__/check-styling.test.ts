@@ -837,6 +837,39 @@ describe('chrome rule set', () => {
       "6 [role='dialog'] { max-width: 80vw }",
     ])
   })
+
+  test('one component per chrome role: raw fields, labels, trails and steppers off their homes (R16)', () => {
+    const found = chromeLaws.scan(
+      fixture({
+        ...STYLING_BASE,
+        'apps/web/src/build/A.tsx': [
+          '<input aria-label="New fact" />',
+          '<textarea',
+          '  rows={2}',
+          '  onChange={(e) => set(e.target.value)}',
+          '/>',
+          '<input ref={file} type="file" accept="image/*" />',
+          '<label htmlFor={id}>In:</label>',
+          '<nav aria-label="Breadcrumb">',
+          "<button aria-current={i === active ? 'step' : undefined} />",
+          'const HYDRATES = /<button\\b|<input\\b|<textarea\\b/',
+          '// a raw <input /> and <label> in prose',
+          '',
+        ].join('\n'),
+        'apps/web/src/components/atoms/inputs.tsx':
+          '<input className="su-text-input" />\n<label />\n',
+        'apps/web/src/components/atoms/BreadcrumbTrail.tsx': '<nav aria-label="Breadcrumb">\n',
+        'apps/web/src/build/wizard/WizShell.tsx':
+          "<button aria-current={a ? 'step' : undefined} />\n",
+        'apps/web/src/build/__tests__/A.test.tsx': '<input />\n<label />\n',
+      })
+    )
+    const at = (id: string) => found[id]?.map((f) => `${f.file}:${f.line}`)
+    expect(at('raw-field')).toEqual(['apps/web/src/build/A.tsx:1', 'apps/web/src/build/A.tsx:2'])
+    expect(at('raw-label')).toEqual(['apps/web/src/build/A.tsx:7'])
+    expect(at('breadcrumb-nav')).toEqual(['apps/web/src/build/A.tsx:8'])
+    expect(at('step-current')).toEqual(['apps/web/src/build/A.tsx:9'])
+  })
 })
 
 describe('class-prefix rule set', () => {
