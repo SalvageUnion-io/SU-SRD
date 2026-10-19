@@ -54,7 +54,7 @@ export type EntityProps = EntitySource &
     /** Row only: the title's element — a heading where the Row is a page's entry (default `span`). */
     titleAs?: ElementType
     /**
-     * Row only: the host's controls (Use, Assign, Unassign, View), the chip
+     * Row and Token: the host's controls (Use, Assign, Unassign, View), the chip
      * group's last slot after the cost, ahead of a "⋯" (C8, hard rule R6).
      * They never nest in a link or select surface.
      */
@@ -78,6 +78,8 @@ export type EntityProps = EntitySource &
      * as `state` (a Token carries no menu).
      */
     trailing?: ReactNode
+    /** Token: the uses slot after its state (C8), a live item's stepper. */
+    uses?: ReactNode
     /**
      * Token only: a CONTENTFUL Token (N3), its head then the entity's text and
      * the host's content (`TokenBody`); without it the Token is its head alone.
@@ -108,6 +110,7 @@ export function Entity(props: EntityProps) {
     relations,
     state,
     trailing,
+    uses,
     body,
   } = props
   const { entity, pattern } = props
@@ -151,10 +154,13 @@ export function Entity(props: EntityProps) {
           mode={mode}
           omit={omit}
           slots={
-            state || trailing || peekAt
+            state || trailing || peekAt || uses !== undefined || controls !== undefined
               ? {
                   ...(state || trailing ? { state: state ?? trailing } : {}),
                   ...(peekAt ? { peekAt } : {}),
+                  // A Token's controls are its chip group's last slots (C8).
+                  ...(uses !== undefined ? { uses } : {}),
+                  ...(controls !== undefined ? { menu: controls } : {}),
                 }
               : undefined
           }

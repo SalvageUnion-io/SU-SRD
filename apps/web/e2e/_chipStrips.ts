@@ -49,6 +49,10 @@ const CHIP = [
   // last slot (a Row's Use, a host's controls; hard rule R6).
   '.su-header-menu-trigger--overflow',
   '[data-chip-class="menu"] > *',
+  // A live sheet item's condition and uses stepper, in the state and uses
+  // slots (C8, hard rule R6): each one chip.
+  '[data-chip-class="state"] > .su-sheet-item__condition',
+  '[data-chip-class="uses"] > *',
 ].join(',')
 
 /** An entity's frame: the box no chip of its strips may leave. */

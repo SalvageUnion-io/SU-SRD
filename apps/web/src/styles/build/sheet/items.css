@@ -1,80 +1,34 @@
-/* ── An installed item's controls (`MechItemToken`), on its Token's line
-      (`.su-entity-token-line`): every one the sheet control's height — the
-      32px a section header's Manage button has, the 44px tap floor under it
-      on a phone. Live controls are pencil (dashed), a read-out print
-      (solid). ── */
-.su-sheet-item {
-  --sheet-ctl-h: var(--size-full);
-}
+/* ── A sheet item's state, uses and actions (`SheetItemLine`) ride its
+      Token's chip group (C8, hard rule R6), at the Token's Mini Size; a
+      Mini button there is drawn a chip's height (`entity-forms.css`). ── */
 
-@media (width >= 40rem) {
-  .su-sheet-item {
-    --sheet-ctl-h: var(--size-compact);
-  }
-}
-
-/* A Row on its tree's track (`SheetItemLine` rowForm): the Row takes the
-   whole line and its controls the line under it, at every width. */
-.su-sheet-item--row > :first-child {
-  flex: 1 1 100%;
-  min-width: 0;
-}
-
-/* Uses: the horizontal `Stat` in edit mode (`[USES | 3/5] − +`), its cell
-   at the control's height; the steps stretch to it (the lib's own 44px
-   floor below sm matches the phone's). */
-.su-sheet-item__uses {
-  min-height: var(--sheet-ctl-h);
-}
-
-/* The cell's two plate halves (Badges, 22px of their own). */
-.su-sheet-item__uses > span {
-  height: auto;
-}
-
-/* The condition is the tri-state `StatusBadge`, held to the control's
-   height, and to one width for all three states, so a list's Tokens end in
-   one line however their items stand. */
+/* The condition is the tri-state `StatusBadge`, drawn at the chip's height;
+   its lane (C6) lines a list's conditions up. */
 .su-sheet-item__condition {
   display: inline-flex;
   flex: 0 0 auto;
 }
 
-/* The badge inside the StatusBadge's button. */
-.su-sheet-item__condition > button > span {
-  height: var(--sheet-ctl-h);
+.su-sheet-item__condition .su-badge {
+  box-sizing: border-box;
+  height: var(--size-mini);
   justify-content: center;
-  min-width: 6.5rem;
-}
-
-/* A line's pencil controls (`Button variant="pencil"`) and Repair (a rust
-   `Button`: rust is the action's, `Button`'s alone): only their height is the
-   sheet control's. */
-.su-sheet-item__ctl,
-.su-sheet-item__repair {
-  min-height: var(--sheet-ctl-h);
 }
 
 /* Remove: a square ✕. */
-.su-sheet-item__ctl--square {
-  min-width: var(--sheet-ctl-h);
+.su-sheet-item__remove {
+  min-width: var(--size-mini);
   padding: 0;
 }
 
 @media print {
-  .su-sheet-item__repair {
+  .su-sheet-item__repair,
+  .su-sheet-item__remove {
     display: none;
   }
 }
 
-/* An Edit list of item lines (`.su-sheet-items`): a phone sets each line's
-   controls under its Token, so the items take more air there. */
+/* An Edit list of item lines (`.su-sheet-items`): one a line. */
 .su-sheet-items {
-  gap: var(--space-12);
-}
-
-@media (width >= 40rem) {
-  .su-sheet-items {
-    gap: var(--space-6);
-  }
+  gap: var(--space-6);
 }

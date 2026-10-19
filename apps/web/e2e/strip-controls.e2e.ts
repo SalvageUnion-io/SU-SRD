@@ -11,22 +11,10 @@ import { test } from './fixtures'
  * its state, uses and actions inlined last after the cost; none sits beside
  * the strip (`beside`) or in the body under it (`under`).
  *
- * `BASELINE` is the debt by route family and rule, each to be fixed and
- * deleted here. A finding off it fails; an entry nothing matches is noted on
- * the report as paid off.
+ * No baseline: every finding fails. A sheet item's state, uses, actions and ✕
+ * ride its Token's chip group (`SheetItemLine`, R11), its name the link.
  */
-const SHEET_ITEM_LINE =
-  "`SheetItemLine` (`build/sheet/`) sets a sheet item's condition, uses, actions and ✕ on the line beside its Token's pill: they move into the Token's chip group (state · uses · ✕), with the Live Sheet grammar (R11)"
-
-const BASELINE: readonly DesignDebt[] = [
-  // A pilot's abilities in Edit: Mark used, and a cost's Spend.
-  { family: 'sheet-pilot-edit', rule: 'beside', match: ' used" beside “', why: SHEET_ITEM_LINE },
-  { family: 'sheet-pilot-edit', rule: 'beside', match: 'button "Spend ', why: SHEET_ITEM_LINE },
-  // A mech's Systems and Modules in Edit: the condition, the uses stepper, ✕.
-  { family: 'sheet-mech-edit', rule: 'beside', match: ' status: ', why: SHEET_ITEM_LINE },
-  { family: 'sheet-mech-edit', rule: 'beside', match: ' uses" beside “', why: SHEET_ITEM_LINE },
-  { family: 'sheet-mech-edit', rule: 'beside', match: 'button "Remove ', why: SHEET_ITEM_LINE },
-]
+const BASELINE: readonly DesignDebt[] = []
 
 test('every control in an entity list item is in its chip group', async ({ page }) => {
   test.setTimeout(20 * 60_000)

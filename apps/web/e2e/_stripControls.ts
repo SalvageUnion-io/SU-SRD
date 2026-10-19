@@ -15,7 +15,7 @@ import type { Page } from '@playwright/test'
  *   the strip (Details opens the Page instead).
  *
  * An entity's own surface is not one of its controls: the link or radio the
- * Row or Token is (or its cover), a link that wraps its head, and a select
+ * Row or Token is (or its cover, or a Token with controls' name), a link that wraps its head, and a select
  * Row's check. A nested entity's
  * controls are that entity's, held to its own chip group.
  */
@@ -52,7 +52,7 @@ export const STRIP_CONTROL_SELECTORS: StripControlSelectors = {
     'summary',
   ].join(', '),
   entity: '.su-entity-row, .su-entity-token, .su-entity-tile',
-  surface: '.su-entity-row__cover, .su-entity-token__head',
+  surface: '.su-entity-row__cover, .su-entity-token__head, .su-entity-token__link',
   head: '.su-entity-row__head, .su-entity-token__pill, .su-entity-tile__band',
   group: '[data-chip-group]',
   check: '.su-entity-row__head input[type="checkbox"]',

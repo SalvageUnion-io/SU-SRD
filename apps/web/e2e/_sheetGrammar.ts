@@ -122,7 +122,7 @@ export async function findSheetGrammar(
         for (const b of body.querySelectorAll('button')) {
           const name = b.getAttribute('aria-label') ?? ''
           if (!/^Remove /.test(name) || /photo$/.test(name)) continue
-          if (!b.classList.contains('su-sheet-item__ctl--square')) {
+          if (!b.classList.contains('su-sheet-item__remove')) {
             found.push({
               rule: 'remove',
               detail: `${kind}: "${name}" is not the one remove control`,

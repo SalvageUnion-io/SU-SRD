@@ -1,34 +1,36 @@
 /**
  * SheetItemLine — one installed or carried item on a sheet: its TOKEN (which
- * Peeks the whole card), then its controls ON the same line (owner's call,
- * 2026-10-14: "consistency is the key"). Every control is the sheet control's
- * height (`.su-sheet-item__ctl`, `styles/build/sheet/items.css`): 32px from `sm`, the
- * 44px tap floor on a phone, where the controls take the line under the Token.
+ * Peeks the whole card), its state, uses and actions in the Token's own chip
+ * group, after the cost, in the fixed slots (`chips-and-actions.md` C8, hard
+ * rules R6 and R11): state · uses · the actions and ✕, at the Token's Size
+ * (Mini; a Row's Compact). Nothing sits beside the strip or under it.
  *
  *   - the condition: the tri-state `StatusBadge`, which steps it on
  *     (Intact → Damaged → Destroyed); Read shows it only when not intact;
  *   - Uses: the horizontal `Stat` in edit mode, `[USES | 3/5] − +`, when the
  *     item has uses;
- *   - `actions`: the caller's own (a mech item's Repair, an equipment's
- *     Details), each at the same height;
+ *   - `actions`: the caller's own (a mech item's Repair, an ability's Spend
+ *     AP and Used, an equipment's Details, which opens its Page);
  *   - Remove: a square ✕ (`SheetRemoveButton`, the sheet's one remove control).
  *
  * A mech's Systems and Modules (`MechItemToken`), a pilot's equipment
- * (`PilotEquipmentItem`) and a pilot's abilities (`PilotAbilityItem`, which
- * has no condition: its Read stamp is "Used") all draw it, so the sheets
- * share one control.
+ * (`PilotEquipmentItem`), a pilot's abilities (`PilotAbilityItem`, which has
+ * no condition: its Read stamp is "Used") and an item the reference does not
+ * know (`UnknownItemLine`) all draw it, so the sheets share one control. The
+ * token is an `<Entity>` element: its `state`, `uses` and `controls` are
+ * filled here.
  */
 
 import type { ItemCondition } from 'game-domain/schemas/itemCondition'
 import { X } from 'lucide-react'
-import type { ReactNode } from 'react'
+import type { ReactElement, ReactNode } from 'react'
+import { cloneElement } from 'react'
+import type { EntityProps } from '../../components/entity/Entity'
 import { Badge, Button, Stat, StatusBadge, tokens } from '../../components/index'
 
 type SheetItemLineProps = {
-  /** The item's Token, or a Row (`rowForm`). */
-  token: ReactNode
-  /** The item is a Row (an ability on its tree's track): the controls take the line under it. */
-  rowForm?: boolean
+  /** The item's Token, or a Row (an ability on its tree's track): an `<Entity>` element. */
+  token: ReactElement<EntityProps>
   /** The item's name, for the controls' accessible labels. */
   name: string
   /** The item's condition; absent for a reference with none (an ability). */
@@ -36,7 +38,7 @@ type SheetItemLineProps = {
   readOnly: boolean
   /** Step the condition on (Intact → Damaged → Destroyed). */
   onConditionCycle?: () => void
-  /** Read: a stamp after the Token (an ability's "Used"), beside any condition. */
+  /** Read: a stamp in the state slot (an ability's "Used"), beside any condition. */
   stamp?: string
   /** Uses left out of a max; absent when the item has none. */
   uses?: { remaining: number; max: number; onChange: (next: number) => void }
@@ -56,75 +58,95 @@ export function SheetItemLine({
   uses,
   actions,
   onRemove,
-  rowForm = false,
 }: SheetItemLineProps) {
-  const lineClass = rowForm
-    ? 'su-entity-token-line su-sheet-item su-sheet-item--row'
-    : 'su-entity-token-line su-sheet-item'
+  // Mini, a chip's height, on a Token and on a Row's head alike (C1a).
+  const size = 'mini'
+  const stampChip = stamp && (
+    <Badge key="stamp" shape="stamp" surface="inverse" size={size}>
+      {stamp}
+    </Badge>
+  )
   // Read: the Token alone while intact; a damaged or destroyed one names its
-  // condition as a read-out stamp after it, as does any `stamp`.
+  // condition in its state slot, as does any `stamp`.
   if (readOnly) {
     const damaged = condition !== undefined && condition !== 'intact'
     if (!damaged && !stamp) return token
-    return (
-      <div className={lineClass}>
-        {token}
-        {damaged && <StatusBadge status={condition} />}
-        {stamp && (
-          <Badge shape="stamp" surface="inverse" size="compact">
-            {stamp}
-          </Badge>
-        )}
-      </div>
-    )
+    return cloneElement(token, {
+      state: (
+        <>
+          {damaged && (
+            <span className="su-sheet-item__condition">
+              <StatusBadge status={condition} />
+            </span>
+          )}
+          {stampChip}
+        </>
+      ),
+    })
   }
 
+  const hasUses = uses !== undefined && uses.max > 0
+  const item = cloneElement(token, {
+    state: condition ? (
+      <span className="su-sheet-item__condition">
+        <StatusBadge status={condition} subject={name} onClick={onConditionCycle} />
+      </span>
+    ) : (
+      stampChip || undefined
+    ),
+    ...(hasUses
+      ? {
+          uses: (
+            <Stat
+              orientation="horizontal"
+              label="Uses"
+              value={uses.remaining}
+              max={uses.max}
+              size={size}
+              mode="edit"
+              onChange={uses.onChange}
+              stepperLabel={`${name} uses`}
+              className="su-sheet-item__uses"
+            />
+          ),
+        }
+      : {}),
+    // Always given in Edit: a Token with controls is the one whose name is
+    // the link, so its condition's button never sits inside one.
+    controls: (
+      <>
+        {actions}
+        {onRemove && <SheetRemoveButton name={name} onRemove={onRemove} />}
+      </>
+    ),
+  })
+  if (!hasUses) return item
   return (
-    <div className={lineClass}>
-      {token}
-      {condition && (
-        // The one-height rule rides the wrapper (`.su-sheet-item__condition`).
-        <span className="su-sheet-item__condition">
-          <StatusBadge status={condition} subject={name} onClick={onConditionCycle} />
-        </span>
-      )}
-      {uses && uses.max > 0 && (
-        <>
-          <Stat
-            orientation="horizontal"
-            label="Uses"
-            value={uses.remaining}
-            max={uses.max}
-            mode="edit"
-            onChange={uses.onChange}
-            stepperLabel={`${name} uses`}
-            className="su-sheet-item__uses"
-          />
-          <span role="status" aria-live="polite" className="su-sr-only">
-            {name} uses: {uses.remaining}
-          </span>
-        </>
-      )}
-      {actions}
-      {onRemove && <SheetRemoveButton name={name} onRemove={onRemove} />}
-    </div>
+    <>
+      {item}
+      <span role="status" aria-live="polite" className="su-sr-only">
+        {name} uses: {uses.remaining}
+      </span>
+    </>
   )
 }
 
 /**
- * The Live Sheet's one remove control (hard rule R11): a square ✕ at the sheet
- * control's height, named "Remove <name>". Every sheet item, unknown item,
- * inventory entry and mounted weapon removes through it, Edit only.
+ * The Live Sheet's one remove control (hard rule R11): a square ✕ in its
+ * item's chip group, at the strip's Size, named "Remove <name>". Every sheet
+ * item, unknown item, inventory entry and mounted weapon removes through it,
+ * Edit only.
  */
 export function SheetRemoveButton({ name, onRemove }: { name: string; onRemove: () => void }) {
   return (
     <Button
       variant="pencil"
-      className="su-sheet-item__ctl su-sheet-item__ctl--square"
+      size="mini"
+      className="su-sheet-item__remove"
       aria-label={`Remove ${name}`}
       onClick={onRemove}
     >
-      <X aria-hidden="true" size={tokens.iconSize.compact} />
+      <X aria-hidden="true" size={tokens.iconSize.mini} />
     </Button>
   )
 }

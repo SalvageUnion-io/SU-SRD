@@ -1,14 +1,29 @@
 /**
- * SheetItemLine — an item's controls on its Token's line: the condition is the
- * tri-state `StatusBadge` (as `MechItemToken`'s unresolved chit draws it), and
- * Uses is the horizontal `Stat` in edit mode, each held to the one control
- * height by its class (`.su-sheet-item__condition`, `.su-sheet-item__uses`).
+ * SheetItemLine — an item's controls in its Token's chip group (C8, hard
+ * rules R6 and R11): the condition is the tri-state `StatusBadge`, Uses the
+ * horizontal `Stat` in edit mode, then the actions and the one ✕, each in
+ * the Token's `[data-chip-group]`, whose name is then the link.
  */
 import { describe, expect, mock, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
+import type { EntityRowModel } from '../../../components/index'
+import { Entity } from '../../../components/index'
 import { SheetItemLine } from '../SheetItemLine'
 
-const TOKEN = <span>Token</span>
+const MODEL: EntityRowModel = {
+  ref: { schemaName: 'systems', id: 'x', slug: 'token', name: 'Token', synthetic: true },
+  title: 'Token',
+  kind: { stamp: 'System', type: 'System', domain: 'gear', nature: 'have' },
+  tone: 'ink',
+  facts: [],
+  traits: [],
+  art: { kind: 'none' },
+}
+
+const TOKEN = <Entity form="token" context="loadout" model={MODEL} mode={{ kind: 'read' }} />
+
+/** The chip group a control sits in. */
+const groupOf = (el: Element) => el.closest('[data-chip-group]')
 
 describe('SheetItemLine — Edit', () => {
   test('the condition is the StatusBadge, which steps it on', () => {
@@ -26,6 +41,7 @@ describe('SheetItemLine — Edit', () => {
       name: 'Data Scanner status: Intact. Activate to mark Damaged',
     })
     expect(badge.closest('.su-sheet-item__condition')).toBeTruthy()
+    expect(groupOf(badge)).toBeTruthy()
     fireEvent.click(badge)
     expect(onConditionCycle).toHaveBeenCalledTimes(1)
   })
@@ -47,6 +63,7 @@ describe('SheetItemLine — Edit', () => {
       name: 'Increase First Aid Kit uses',
     })
     expect(add.disabled).toBe(true)
+    expect(groupOf(add)).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Decrease First Aid Kit uses' }))
     expect(onChange).toHaveBeenCalledWith(2)
     expect(screen.getByRole('status').textContent).toBe('First Aid Kit uses: 3')
@@ -70,7 +87,8 @@ describe('SheetItemLine — Read', () => {
     const { container } = render(
       <SheetItemLine token={TOKEN} name="Data Scanner" condition="intact" readOnly />
     )
-    expect(container.textContent).toBe('Token')
+    expect(container.textContent?.startsWith('Token')).toBe(true)
+    expect(container.textContent).not.toContain('Intact')
   })
 
   test('damaged, the StatusBadge reads it, with nothing to press', () => {

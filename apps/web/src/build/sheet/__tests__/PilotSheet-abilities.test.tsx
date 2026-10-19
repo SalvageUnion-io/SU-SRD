@@ -3,7 +3,8 @@
  *
  * Asserts that:
  *   1. The ability's fixed AP cost is displayed.
- *   2. "Spend AP" decrements the pilot's currentAP by the cost (clamped at 0).
+ *   2. "Spend AP" (in the ability's "⋯", its chip group's last slot) decrements
+ *      the pilot's currentAP by the cost (clamped at 0).
  *   3. "Spend AP" is disabled when the pilot has insufficient AP.
  *   4. The used/recharge toggle persists to usedAbilities and reflects seed state.
  *   5. readOnly suppresses spend + toggle affordances.
@@ -13,18 +14,29 @@
  */
 
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Pilot } from 'game-domain/schemas/pilot'
-import type { useEntityStore } from '../../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { expandCards } from '../../../components/__tests__/expandCards'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { EntitySurfaceProvider } from '../../../components/index'
+import type { useEntityStore } from '../../../stores/entityStore'
+import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
 import { PilotSheet } from '../PilotSheet'
 
 beforeAll(hydrateStores)
+
+/** Open an ability's "⋯" (its chip group's last slot, C8) and pick an item. */
+async function choose(ability: string, item: string | RegExp) {
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: `More for ${ability}` }))
+  })
+  const menu = screen.getByRole('menu')
+  await act(async () => {
+    fireEvent.click(within(menu).getByRole('menuitem', { name: item }))
+  })
+}
 
 // "Talk Shop" resolves to a fixed AP cost of 3 in reference data.
 const ABILITY_TALK_SHOP = 'talk-shop'
@@ -89,9 +101,7 @@ describe('PilotSheet — spend AP (Slice D)', () => {
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot, updateSpy)} />)
     expandCards()
 
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /spend 3 ap for talk shop/i }))
-    })
+    await choose('Talk Shop', /spend 3 ap/i)
 
     // 5 - 3 = 2
     expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, { currentAP: 2 }, LIVE_SHEET_MANUAL)
@@ -104,9 +114,7 @@ describe('PilotSheet — spend AP (Slice D)', () => {
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot, updateSpy)} />)
     expandCards()
 
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /spend 3 ap for talk shop/i }))
-    })
+    await choose('Talk Shop', /spend 3 ap/i)
 
     expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, { currentAP: 0 }, LIVE_SHEET_MANUAL)
   })
@@ -117,18 +125,11 @@ describe('PilotSheet — spend AP (Slice D)', () => {
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot, updateSpy)} />)
     expandCards()
 
-    const spendBtn = screen.getByRole<HTMLButtonElement>('button', {
-      name: /spend 3 ap for talk shop/i,
-    })
-    expect(spendBtn.disabled).toBe(true)
-
-    await act(async () => {
-      fireEvent.click(spendBtn)
-    })
+    await choose('Talk Shop', /spend 3 ap/i)
     expect(updateSpy).not.toHaveBeenCalled()
   })
 
-  test("the sheet's item controls are the shared Button in the sheet skin", () => {
+  test("an ability's controls are one ⋯ in its Token's chip group (R6)", () => {
     const pilot = makePilot()
     render(
       <PilotSheet
@@ -141,9 +142,8 @@ describe('PilotSheet — spend AP (Slice D)', () => {
     )
     expandCards()
 
-    const spendBtn = screen.getByRole('button', { name: /spend 3 ap for talk shop/i })
-    expect(spendBtn.classList.contains('su-btn')).toBe(true)
-    expect(spendBtn.classList.contains('su-btn--pencil')).toBe(true)
+    const more = screen.getByRole('button', { name: 'More for Talk Shop' })
+    expect(more.closest('[data-chip-group]')).toBeTruthy()
   })
 })
 
@@ -154,9 +154,7 @@ describe('PilotSheet — used/recharge toggle (Slice D)', () => {
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot, updateSpy)} />)
     expandCards()
 
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /mark talk shop used/i }))
-    })
+    await choose('Talk Shop', 'Mark used')
 
     expect(updateSpy).toHaveBeenCalledWith(
       'pilot',
@@ -175,9 +173,7 @@ describe('PilotSheet — used/recharge toggle (Slice D)', () => {
     expandCards()
 
     // Seeded as used → button recharges
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /recharge talk shop/i }))
-    })
+    await choose('Talk Shop', 'Recharge')
 
     expect(updateSpy).toHaveBeenCalledWith(
       'pilot',
@@ -196,9 +192,7 @@ describe('PilotSheet — abilities readOnly (Slice D)', () => {
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} readOnly />)
     expandCards()
 
-    expect(screen.queryByRole('button', { name: /spend/i })).toBeNull()
-    expect(screen.queryByRole('button', { name: /mark .* used/i })).toBeNull()
-    expect(screen.queryByRole('button', { name: /recharge/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^More for / })).toBeNull()
     // AP cost still shown read-only (the Row's own cost chip), plus a
     // static Used stamp.
     expect(costChips()).toContain('3 AP')
@@ -224,15 +218,15 @@ describe('PilotSheet — the Generic tree is intrinsic', () => {
     }
     expect(screen.getByText('No abilities learned yet.')).toBeTruthy()
     // …with the same live-play toggle as any other ability.
-    expect(screen.getByRole('button', { name: /mark repair used/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'More for Repair' })).toBeTruthy()
   })
 
   test('a stored ability prints beside the Generic tree, not instead of it', () => {
     const pilot = makePilot()
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
     expandCards()
-    expect(screen.getByRole('button', { name: /mark repair used/i })).toBeTruthy()
-    expect(screen.getByRole('button', { name: /mark talk shop used/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'More for Repair' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'More for Talk Shop' })).toBeTruthy()
   })
 })
 
@@ -302,14 +296,11 @@ describe('PilotSheet — the trees the pilot trained in, on their tracks', () =>
     const updateSpy = mock(async () => pilot)
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot, updateSpy)} />)
 
+    // The Row's "⋯" is in its head's chip group, on the tree's track.
     const tree = treeSection('Mechanical Knowledge')
-    const spend = Array.from(tree.querySelectorAll('button')).find((b) =>
-      /spend 3 ap for talk shop/i.test(b.getAttribute('aria-label') ?? '')
-    )
-    expect(spend).toBeTruthy()
-    await act(async () => {
-      if (spend) fireEvent.click(spend)
-    })
+    const more = within(tree).getByRole('button', { name: 'More for Talk Shop' })
+    expect(more.closest('[data-chip-group]')).toBeTruthy()
+    await choose('Talk Shop', /spend 3 ap/i)
     expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, { currentAP: 2 }, LIVE_SHEET_MANUAL)
   })
 })

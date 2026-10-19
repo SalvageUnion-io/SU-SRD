@@ -1125,6 +1125,12 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   flex: none;
 }
 
+/* A Token with controls (`data-acts`): its name is the link (C8). */
+.su-entity-token__link {
+  color: inherit;
+  text-decoration: none;
+}
+
 /* The name gives way first: it takes the room the chips leave and ends in
    "…" when that is too little (E18's Token exception). */
 .su-entity-token__name {

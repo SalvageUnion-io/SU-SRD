@@ -32,6 +32,15 @@ export type TokenSlots = {
   down?: Down
   /** The host's state chip, after the cost box (C8): a damaged thing's condition, a reading. */
   state?: ReactNode
+  /** The uses slot after the state (C8): a live sheet item's `USES | 3/5` stepper. */
+  uses?: ReactNode
+  /**
+   * The last slot (C8): the host's actions and its ✕, at the Token's Size.
+   * A Token with controls (this or `uses`) is a `div` whose NAME is the link
+   * and the Peek trigger, so no control sits inside a link
+   * (`chips-and-actions.md`, "A Token with actions").
+   */
+  menu?: ReactNode
 }
 
 /**
@@ -139,7 +148,8 @@ export function Token({
     ),
     slots.state,
   ]
-  const hasChips = chipCount(set) > 0 || !!quantity || !!slots.state
+  const acts = slots.uses !== undefined || slots.menu !== undefined
+  const hasChips = chipCount(set) > 0 || !!quantity || !!slots.state || acts
   const pill = (
     <span
       // The pill is the frame: on an ink pill (a thing you do) its cells,
@@ -161,10 +171,25 @@ export function Token({
       {/* The cut-out: the name on a tab of paper, in ink, notched into the pill
           from a thin strip of paint to its foot (a Row's head, at Token size). */}
       <span className="su-entity-token__notch">
-        <span className="su-entity-token__name">
-          {title}
-          <KindLabel kind={slots.kind ?? model.kind.type} />
-        </span>
+        {acts ? (
+          // The name is the link and the Peek trigger (C8, R6): the controls
+          // sit beside it in the chip group, never inside a link.
+          <LinkSurface
+            target={target}
+            label={title}
+            attrs={headMode.kind === 'link' ? headMode.attrs : undefined}
+            peek={peek}
+            className="su-entity-token__name su-entity-token__link"
+          >
+            {title}
+            <KindLabel kind={slots.kind ?? model.kind.type} />
+          </LinkSurface>
+        ) : (
+          <span className="su-entity-token__name">
+            {title}
+            <KindLabel kind={slots.kind ?? model.kind.type} />
+          </span>
+        )}
       </span>
       {hasChips && (
         <Chips
@@ -173,6 +198,8 @@ export function Token({
           chips={set}
           size="mini"
           state={state}
+          uses={slots.uses}
+          menu={slots.menu}
           lanes
         />
       )}
@@ -180,6 +207,14 @@ export function Token({
   )
   // Header-only, the surface is the Token; contentful, it is the head.
   const surfaceClass = body ? 'su-entity-token__head' : 'su-entity-token'
+  // A Token with controls: a plain frame, its name the link (above).
+  if (acts && !slots.outer && !body) {
+    return (
+      <div className="su-entity-token" data-acts="">
+        {pill}
+      </div>
+    )
+  }
   const head = slots.outer ? (
     <CardOuter {...slots.outer} className={cn(slots.outer.className, surfaceClass)} peek={peek}>
       {pill}

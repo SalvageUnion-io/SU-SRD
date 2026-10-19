@@ -9,20 +9,21 @@ import type { ItemCondition } from 'game-domain/schemas/itemCondition'
 import type { GenericInventoryEntry } from 'game-domain/schemas/pilot'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import type { RefAbility } from 'salvageunion-reference'
+import type { RefAbility, RefMetaEntity } from 'salvageunion-reference'
 import type { ChoiceSelections } from '../../components/index'
 import {
   AdderBox,
   AdderField,
   Button,
   Entity,
+  HeaderMenu,
   Input,
   Panel,
   ReferenceEntityCard,
   Stat,
   tokens,
-  useDisclosure,
 } from '../../components/index'
+import { EntityDetailDialog } from '../../components/referenceEntity/EntityDetailDialog'
 import { useEntityChoices } from '../../components/shared/useEntityChoices'
 import { resolveAbilityApCost } from '../../lib/abilityCost'
 import {
@@ -33,15 +34,6 @@ import {
 import type { useEntityStore } from '../../stores/entityStore'
 import { SheetItemLine, SheetRemoveButton } from './SheetItemLine'
 import { UnknownItemLine } from './UnknownItemLine'
-import { UsedToggle } from './UsedToggle'
-
-/** An inventory item in Edit: the pill, its control row, then any details. */
-const ITEM_EDIT = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[8],
-  minWidth: 0,
-} satisfies CSSProperties
 
 const ROW_TEXT = {
   fontFamily: tokens.font.body,
@@ -117,8 +109,8 @@ const OMIT_KIND = ['kind'] as const
 
 /**
  * One ability: its Token, which Peeks the whole card (owner's call,
- * 2026-10-14: "all references = peek tokens"), with Spend AP and the used
- * toggle on its line in Edit, and a "Used" stamp in Read. AP cost resolves
+ * 2026-10-14: "all references = peek tokens"), its "Used" stamp in its state
+ * slot, and in Edit a "⋯" in its chip group with Spend AP and Mark used. AP cost resolves
  * from the ability's actions (resolveAbilityApCost): `null` means no FIXED
  * numeric cost (variable 'X' or none) — no spend control renders, we never
  * spend an undefined amount. The cost itself is the Token's own chip.
@@ -133,9 +125,22 @@ export function PilotAbilityItem({
   form = 'token',
 }: PilotAbilityItemProps) {
   const apCost = resolveAbilityApCost(ability)
+  // Spend and Used are one "⋯" in the chip group's last slot (C8): its state
+  // slot reads "Used", and a Token's row stays whole at a phone's width.
+  const spend =
+    apCost === null
+      ? []
+      : [
+          {
+            id: 'spend',
+            label: `Spend ${apCost} AP`,
+            ...(currentAP < apCost
+              ? { hint: `Needs ${apCost} AP; ${currentAP} left` }
+              : { onSelect: () => onSpend(apCost) }),
+          },
+        ]
   return (
     <SheetItemLine
-      rowForm={form === 'row'}
       token={
         form === 'row' ? (
           <Entity form="row" entity={ability} mode={{ kind: 'link' }} omit={OMIT_KIND} peek />
@@ -147,25 +152,21 @@ export function PilotAbilityItem({
       readOnly={readOnly}
       stamp={used ? 'Used' : undefined}
       actions={
-        <>
-          {apCost !== null && (
-            <Button
-              variant="pencil"
-              className="su-sheet-item__ctl"
-              aria-label={`Spend ${apCost} AP for ${ability.name}`}
-              disabled={currentAP < apCost}
-              onClick={() => onSpend(apCost)}
-            >
-              Spend AP
-            </Button>
-          )}
-          <UsedToggle
-            className="su-sheet-item__ctl"
-            used={used}
-            onToggle={onToggleUsed}
-            aria-label={used ? `Recharge ${ability.name}` : `Mark ${ability.name} used`}
-          />
-        </>
+        <HeaderMenu
+          variant="overflow"
+          trigger={null}
+          label={`More for ${ability.name}`}
+          sections={[
+            [
+              ...spend,
+              {
+                id: 'used',
+                label: used ? 'Recharge' : 'Mark used',
+                onSelect: () => onToggleUsed(!used),
+              },
+            ],
+          ]}
+        />
       }
     />
   )
@@ -234,8 +235,9 @@ export function PilotEquipmentItem({
     seedSelections,
     store
   )
-  // Edit: whether the full card (its text and any choices) is open under the row.
-  const details = useDisclosure()
+  // Edit: Details opens the item's Page (E5, hard rule R6), where its choices
+  // are made; nothing expands under the line.
+  const [detailsOpen, setDetailsOpen] = useState(false)
 
   if (!equipment) {
     // Unresolved slug — still shown, still counted (1 slot), still toggleable:
@@ -292,7 +294,7 @@ export function PilotEquipmentItem({
   if (readOnly) return pill
 
   return (
-    <div style={ITEM_EDIT}>
+    <>
       <SheetItemLine
         token={pill}
         name={equipment.name}
@@ -308,9 +310,11 @@ export function PilotEquipmentItem({
           hasChoices && (
             <Button
               variant="pencil"
-              className="su-sheet-item__ctl"
-              {...details.toggleProps}
-              aria-label={`${details.open ? 'Collapse' : 'Expand'} ${equipment.name}`}
+              size="mini"
+              aria-label={`${equipment.name} details`}
+              aria-haspopup="dialog"
+              aria-expanded={detailsOpen}
+              onClick={() => setDetailsOpen(true)}
             >
               Details
             </Button>
@@ -318,18 +322,23 @@ export function PilotEquipmentItem({
         }
         onRemove={onRemove}
       />
-      {details.open && (
-        <div id={details.panelId}>
+      {hasChoices && (
+        <EntityDetailDialog
+          open={detailsOpen}
+          onOpenChange={setDetailsOpen}
+          entity={equipment as RefMetaEntity}
+          title={equipment.name}
+        >
           <ReferenceEntityCard
             data={equipment}
-            size="compact"
+            presentation="page"
             selections={selections}
             onSelectionChange={setSelections}
             scalingParent={scalingParent}
           />
-        </div>
+        </EntityDetailDialog>
       )}
-    </div>
+    </>
   )
 }
 
