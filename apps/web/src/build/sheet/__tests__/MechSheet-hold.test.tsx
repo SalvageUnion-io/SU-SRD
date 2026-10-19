@@ -2,7 +2,7 @@
  * MechSheet — The Hold (StorageManifest side='mech').
  *
  * The hold renders the mech's cargo lots over the useCargo boundary:
- *   - Stow → moves a whole lot to the linked crawler's hold.
+ *   - Stow moves a whole lot to the linked crawler's hold.
  *   - Stowing a SCRAP lot deposits the crawler's matching TL pool bucket
  *     instead of minting a crawler lot.
  *   - Unlinked crawler → Stow disabled with an honest title reason.
@@ -78,7 +78,7 @@ function makeStore(mech: Mech, captured: CapturedUpdate[], crawler?: Crawler) {
   })
 }
 
-describe('MechSheet — The Hold (Stow →)', () => {
+describe('MechSheet — The Hold (Stow)', () => {
   test('stowing a unit lot moves it whole onto the crawler', async () => {
     const captured: CapturedUpdate[] = []
     const lot = makeUnitLot('Sealed Crate', { units: 2 })

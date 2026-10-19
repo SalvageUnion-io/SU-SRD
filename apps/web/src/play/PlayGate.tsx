@@ -40,7 +40,7 @@ import { useEntityStore } from '../stores/entityStore'
 import { PlayCockpit } from './PlayCockpit'
 import { PlayRefusal } from './PlayRefusal'
 
-const TO_PLAY = { href: '/play/', label: '← Back to Play' }
+const TO_PLAY = { href: '/play/', label: 'Play' }
 
 export function PlayGate({ id }: { id: string }) {
   const { mode } = useConnection()
@@ -51,7 +51,7 @@ export function PlayGate({ id }: { id: string }) {
       <PlayRefusal
         title="Sign in to play"
         body="Play runs your Pilots, solo or in a Game. Sign in, then open Play and choose one."
-        link={{ href: '/', label: '← Back to the roster' }}
+        link={{ href: '/', label: 'Hangar' }}
       />
     )
   }

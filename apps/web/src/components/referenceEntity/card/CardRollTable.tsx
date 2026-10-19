@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { RefObjectTable } from 'salvageunion-reference'
 import { plainTraitText, resultForColumnsTable, resultForTable } from 'salvageunion-reference'
+import { iconSize } from '../../../design/tokens'
 import { dieForTable, rollD20 } from '../../../lib/dice'
 import { useParseTraitReferences } from '../../../lib/parseTraitReferences'
 import { useDisclosure } from '../../../lib/useDisclosure'
@@ -159,9 +160,9 @@ export function CardRollTable({
     >
       {expanded ? 'Hide' : 'Table'}
       {expanded ? (
-        <ChevronUp aria-hidden="true" size={16} />
+        <ChevronUp aria-hidden="true" size={iconSize.compact} />
       ) : (
-        <ChevronDown aria-hidden="true" size={16} />
+        <ChevronDown aria-hidden="true" size={iconSize.compact} />
       )}
     </Button>
   )

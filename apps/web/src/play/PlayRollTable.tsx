@@ -11,6 +11,7 @@ import {
   digestRollTable,
   RollTableInstrument,
   toastRoll,
+  tokens,
   useCopied,
   useParseTraitReferences,
 } from '../components/index'
@@ -126,7 +127,11 @@ export function PlayRollTable({
               aria-label="Copy result to clipboard"
             >
               Copy
-              <CopiedIcon copied={copied} size={14} icon={<Copy aria-hidden="true" size={14} />} />
+              <CopiedIcon
+                copied={copied}
+                size="compact"
+                icon={<Copy aria-hidden="true" size={tokens.iconSize.compact} />}
+              />
             </Button>
             <CopiedStatus copied={copied} />
           </>

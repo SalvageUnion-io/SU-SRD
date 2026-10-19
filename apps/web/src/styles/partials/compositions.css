@@ -55,13 +55,6 @@
   filter: brightness(110%);
 }
 
-/* The icon button's glyph. A class rather than a style object only because the
-   control's `icon` contract takes `className` and nothing else. */
-.su-control-icon__glyph {
-  height: var(--space-12);
-  width: var(--space-12);
-}
-
 /* A folded card's chevron (`ReferenceEntityCard` `collapsible`): the card's ONE
    fold control, so it takes the WCAG 2.2 minimum target (24px) a stamp's 24×20
    misses. A coarse pointer lifts it to 44px through the shared touch floor. */

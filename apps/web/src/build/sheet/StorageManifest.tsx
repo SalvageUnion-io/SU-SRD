@@ -4,11 +4,11 @@
  * One component, two sides of the mech ⇄ crawler boundary:
  *   - side='mech' (mech sheet): capacity strip (the `UNITS | used/cap` chip and
  *     the canonical SlotGrid cells, over-capacity rendered honestly as red
- *     cells — never clamped), then the lots (`CargoLotItem`) with 'Stow →'
+ *     cells — never clamped), then the lots (`CargoLotItem`) with 'Stow'
  *     (whole-lot, SCRAP deposits the crawler's TL pool bucket); counterpart =
  *     the crawler's unlimited Storage Bay.
  *   - side='crawler' (crawler sheet): an unlimited strip (`UNITS` and `LOTS`
- *     chips), the same lot rows with '← Load' (cap-checked; bulk partial-fill
+ *     chips), the same lot rows with 'Load' (cap-checked; bulk partial-fill
  *     shows a dynamic 'Load N' label); counterpart = the docked mech's
  *     capacity.
  *
@@ -286,7 +286,7 @@ export function StorageManifest({
       {/* Counterpart panel */}
       {showCounterpart && (
         <div style={linkedCounterpart !== null ? COUNTERPART_LINKED : COUNTERPART_EMPTY}>
-          <Eyebrow tone="toneDeep">{side === 'mech' ? 'Stow target →' : '← Load target'}</Eyebrow>
+          <Eyebrow tone="toneDeep">{side === 'mech' ? 'Stow target' : 'Load target'}</Eyebrow>
           {linkedCounterpart !== null ? (
             <>
               <LinkedUnitLink

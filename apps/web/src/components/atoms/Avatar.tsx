@@ -1,7 +1,7 @@
 import { Avatar as BaseAvatar } from '@base-ui/react/avatar'
 import { UserRound } from 'lucide-react'
 import type { CSSProperties } from 'react'
-import { borderWidth, color, font, radius, weight } from '../../design/tokens'
+import { borderWidth, color, font, iconSize, radius, weight } from '../../design/tokens'
 
 /**
  * Avatar — a person's picture on a square chip, or their initials when there
@@ -85,7 +85,7 @@ export function Avatar({ src, name, size = 28 }: AvatarProps) {
     <BaseAvatar.Root style={rootStyle} aria-hidden="true">
       {src ? <BaseAvatar.Image src={src} alt="" style={IMAGE} /> : null}
       <BaseAvatar.Fallback>
-        {initials ?? <UserRound size={Math.round(size * 0.6)} aria-hidden="true" />}
+        {initials ?? <UserRound size={iconSize.full} aria-hidden="true" />}
       </BaseAvatar.Fallback>
     </BaseAvatar.Root>
   )

@@ -3,7 +3,7 @@ import { Menu } from 'lucide-react'
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { useState } from 'react'
 import { srdSchemaPath } from 'salvageunion-reference'
-import { borderWidth, color, layer, radius, space } from '../../design/tokens'
+import { borderWidth, color, iconSize, layer, radius, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { Badge } from '../atoms/Badge'
 import { buttonVariants } from '../atoms/buttonVariants'
@@ -160,7 +160,7 @@ export function NavDrawer({
             className={cn('su-nav-drawer__trigger', FOCUS_RING)}
             style={TRIGGER}
           >
-            <Menu size={24} aria-hidden="true" />
+            <Menu size={iconSize.full} aria-hidden="true" />
           </button>
         }
       />

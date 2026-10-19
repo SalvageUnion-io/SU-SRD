@@ -134,7 +134,7 @@ export function ListingRail({
           placeholder={`Filter ${count} by name`}
           aria-label="Filter items by name"
           containerClassName="su-rail__search"
-          glyphSize={18}
+          glyph="full"
         />
       )}
       {hasFacets && (

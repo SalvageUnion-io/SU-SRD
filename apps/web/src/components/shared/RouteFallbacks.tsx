@@ -16,7 +16,7 @@
 
 import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from 'react'
 import { color, font, fontSize, space } from '../../design/tokens'
-import { buttonVariants, Pending, TitledBox } from '../index'
+import { BackLabel, buttonVariants, Pending, TitledBox } from '../index'
 import { DidYouMeanIsland } from '../islands/DidYouMeanIsland'
 import { SearchIsland } from '../islands/SearchIsland'
 import { NotFound } from '../NotFound'
@@ -91,7 +91,7 @@ export function NotFoundPanel({
             className={buttonVariants({ variant: 'ghost', size: 'compact' })}
             style={BACK_LINK}
           >
-            &larr; Back to {back.label}
+            <BackLabel to={back.label} />
           </AppLink>
         </TitledBox>
       </div>
@@ -115,7 +115,7 @@ export function RouteNotFound() {
             className={buttonVariants({ variant: 'ghost', size: 'compact' })}
             style={HANGAR_LINK}
           >
-            &larr; Back to Hangar
+            <BackLabel to="Hangar" />
           </AppLink>
         }
       />

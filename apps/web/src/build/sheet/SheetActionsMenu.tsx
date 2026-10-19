@@ -12,7 +12,7 @@
 
 import { Ellipsis } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { Button, PopoverPanel } from '../../components/index'
+import { Button, PopoverPanel, tokens } from '../../components/index'
 
 type SheetActionsMenuProps = {
   /** The actions — buttons and controls, not menu items. */
@@ -28,9 +28,9 @@ export function SheetActionsMenu({ children }: SheetActionsMenuProps) {
       label="Sheet actions"
       trigger={
         // The icon rung at the page-top control height (`.su-page-action`),
-        // which the library squares to it.
+        // which the library squares to it: a Compact line, so a Compact glyph.
         <Button size="iconOnly" aria-label="More actions" className="su-page-action">
-          <Ellipsis size={18} aria-hidden="true" />
+          <Ellipsis size={tokens.iconSize.compact} aria-hidden="true" />
         </Button>
       }
     >

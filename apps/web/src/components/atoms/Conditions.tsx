@@ -1,6 +1,6 @@
 import { X } from 'lucide-react'
 import type { CSSProperties } from 'react'
-import { borderWidth, font, radius, space } from '../../design/tokens'
+import { borderWidth, font, iconSize, radius, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { Badge } from './Badge'
 import { capsLabel } from './capsLabel'
@@ -101,7 +101,7 @@ export function ConditionChip({
           className="su-condition-chip__remove"
           style={REMOVE_BUTTON}
         >
-          <X aria-hidden="true" size={12} />
+          <X aria-hidden="true" size={iconSize.mini} />
         </button>
       )}
     </Badge>

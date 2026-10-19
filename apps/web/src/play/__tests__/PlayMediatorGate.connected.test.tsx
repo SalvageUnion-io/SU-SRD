@@ -63,7 +63,7 @@ describe('PlayMediatorGate', () => {
     setQueryAnswers({ 'games:get': { ...GAME, mediator: false }, 'mediator:amMediator': false })
     renderAs('connected')
     expect(screen.getByText("Only this Game's Mediator runs this screen")).toBeTruthy()
-    expect(screen.getByRole('link', { name: '← Back to the Game' }).getAttribute('href')).toBe(
+    expect(screen.getByRole('link', { name: 'Back to Game' }).getAttribute('href')).toBe(
       '/play/games/g1'
     )
   })

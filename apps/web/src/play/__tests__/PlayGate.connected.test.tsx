@@ -122,7 +122,7 @@ describe('refusals', () => {
     setQueryAnswers({ 'games:get': null })
     await renderGate('play-rook')
     expect(heading(/not in this Pilot's Game/)).toBeTruthy()
-    expect(screen.getByRole('link', { name: '← Back to Play' }).getAttribute('href')).toBe('/play/')
+    expect(screen.getByRole('link', { name: 'Back to Play' }).getAttribute('href')).toBe('/play/')
     expect(opened()).toBeNull()
   })
 

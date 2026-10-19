@@ -29,7 +29,7 @@ export function GamePage({ gameId }: { gameId: string }) {
       <PlayRefusal
         title="Sign in to open this Game"
         body="A Game lives on its players' accounts. Sign in, then open it from Play."
-        link={{ href: '/sign-in', label: 'Sign in with Discord' }}
+        link={{ href: '/sign-in', label: 'Sign in with Discord', back: false }}
       />
     )
   }
@@ -39,7 +39,7 @@ export function GamePage({ gameId }: { gameId: string }) {
       <PlayRefusal
         title="This Game opens once you are back online"
         body="A Game's page is read from the server. Your own builds stay in the Hangar meanwhile."
-        link={{ href: '/', label: '← Back to the Hangar' }}
+        link={{ href: '/', label: 'Hangar' }}
       />
     )
   }

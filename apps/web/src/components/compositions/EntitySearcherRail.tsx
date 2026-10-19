@@ -11,7 +11,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { EntitySchemaName } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { borderWidth, color, font, fontSize, radius, space } from '../../design/tokens'
+import { borderWidth, color, font, fontSize, iconSize, radius, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { useDisclosure } from '../../lib/useDisclosure'
 import { Badge } from '../atoms/Badge'
@@ -219,7 +219,7 @@ export function SelectionRail({
                   : `Remove ${entry.entity.name}`
               }
             >
-              <X aria-hidden="true" size={12} />
+              <X aria-hidden="true" size={iconSize.mini} />
             </Button>
           )}
         </div>
@@ -270,7 +270,11 @@ export function SelectionRail({
               style={TOGGLE_STYLE}
             >
               {title}
-              <ChevronDown aria-hidden="true" style={chevronStyle(list.open)} />
+              <ChevronDown
+                aria-hidden="true"
+                size={iconSize.compact}
+                style={chevronStyle(list.open)}
+              />
             </button>
           </PageHeading>
         </div>

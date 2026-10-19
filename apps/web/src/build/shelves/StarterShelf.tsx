@@ -58,7 +58,7 @@ export function StarterShelf() {
             {...fold.toggleProps}
           >
             {fold.open ? 'Hide' : 'Show'}
-            <Chevron size={14} aria-hidden="true" />
+            <Chevron size={tokens.iconSize.mini} aria-hidden="true" />
           </Button>
         }
       />

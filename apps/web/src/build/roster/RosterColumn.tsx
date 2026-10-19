@@ -15,7 +15,7 @@
 import type { SheetKind } from 'game-domain/entityKinds'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import { color, space } from '../../design/tokens'
+import { color, iconSize, space } from '../../design/tokens'
 import { buttonVariants, EmptyState, Segmented, SegmentedOption, Slab } from '../../components/index'
 import { AppLink } from '../../components/shared/AppLink'
 
@@ -45,8 +45,6 @@ const NO_UNDERLINE = { textDecorationLine: 'none' } satisfies CSSProperties
 
 /** The Slab row wraps its controls under the stamp on a narrow column. */
 const HEAD = { flexWrap: 'wrap', marginBottom: space[12] } satisfies CSSProperties
-
-const ICON = { height: '28px', width: '28px' } satisfies CSSProperties
 
 /** Mobile-endpoint segmented Pilot/Mech/Crawler switch. */
 export function SegmentSwitch({
@@ -93,9 +91,9 @@ export function RosterList({ labelledBy, children }: { labelledBy?: string; chil
 
 /** Entity-tone glyph shown above a column's empty state. */
 const EMPTY_ICON: Record<SegmentKind, ReactNode> = {
-  pilot: <UserRound style={{ ...ICON, color: color.sheetPilotDeep }} />,
-  mech: <Bot style={{ ...ICON, color: color.sheetMechDeep }} />,
-  crawler: <Warehouse style={{ ...ICON, color: color.sheetCrawlerDeep }} />,
+  pilot: <UserRound size={iconSize.full} style={{ color: color.sheetPilotDeep }} />,
+  mech: <Bot size={iconSize.full} style={{ color: color.sheetMechDeep }} />,
+  crawler: <Warehouse size={iconSize.full} style={{ color: color.sheetCrawlerDeep }} />,
 }
 
 type RosterColumnProps = {

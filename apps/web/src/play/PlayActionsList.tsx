@@ -21,6 +21,7 @@ import {
   Segmented,
   SegmentedOption,
   Slab,
+  tokens,
 } from '../components/index'
 import { PlayActionEntry } from './PlayActionEntry'
 import type { ListEntry } from './playActions.model'
@@ -77,7 +78,7 @@ export function PlayAwayGroup({
             onClick={() => setOpen(!open)}
           >
             {title} · {entries.length}
-            <Glyph size={14} aria-hidden="true" />
+            <Glyph size={tokens.iconSize.compact} aria-hidden="true" />
           </button>
         }
       />

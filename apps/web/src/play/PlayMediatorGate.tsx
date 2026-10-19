@@ -33,7 +33,7 @@ export function PlayMediatorGate({ gameId }: { gameId: string }) {
       <PlayRefusal
         title="Sign in to run your Game"
         body="The Mediator runs a Game from Play. Sign in, then open Play and choose Mediate."
-        link={{ href: '/', label: '← Back to the roster' }}
+        link={{ href: '/', label: 'Hangar' }}
       />
     )
   }
@@ -55,7 +55,7 @@ function SignedInPlayMediatorGate({ gameId }: { gameId: string }) {
       <PlayRefusal
         title="Only this Game's Mediator runs this screen"
         body="Mediate is for whoever mediates the Game. Its players play their Pilots from Play."
-        link={{ href: gamePath(gameId), label: '← Back to the Game' }}
+        link={{ href: gamePath(gameId), label: 'Game' }}
       />
     )
   }

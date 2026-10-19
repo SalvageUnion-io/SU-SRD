@@ -96,7 +96,7 @@ function NotInGame() {
             You are not in this Game. Ask its Organiser for the invite link, then open it to join.
           </Text>
           <div>
-            <WayOutLink href={PLAY_HUB} label="Back to your Games" />
+            <WayOutLink href={PLAY_HUB} label="Play" />
           </div>
         </Stack>
       </Card>

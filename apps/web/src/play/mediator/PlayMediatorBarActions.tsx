@@ -35,11 +35,10 @@ export function PlayMediatorBarActions({ mediator }: { mediator: PlayMediator })
         Tell the table
       </Button>
       <HeaderMenu
-        variant="button"
+        variant="overflow"
         size="compact"
         label="More"
-        chevron={false}
-        trigger="⋯"
+        trigger={null}
         sections={[
           [
             {

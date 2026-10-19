@@ -7,6 +7,7 @@ import {
   color,
   font,
   fontSize,
+  iconSize,
   layer,
   radius,
   space,
@@ -86,9 +87,10 @@ type HeaderMenuProps = {
    */
   active?: boolean
   /**
-   * `masthead` (default) — the Union bar's nav-link trigger. `overflow` — a
-   * "⋯" action chip (a listed unit's menu, its Row's last chip); it shows the
-   * glyph, so pass `label` to name it, and `trigger` is not drawn. `button` —
+   * `masthead` (default) — the Union bar's nav-link trigger. `overflow` — the
+   * ⋯ (`Ellipsis`) action chip (a listed unit's menu, its Row's last chip; a
+   * bar's ⋯ at `size="compact"`); it shows the glyph, so pass `label` to
+   * name it, and `trigger` is not drawn. `button` —
    * the shared Button as an action chip, for a menu that is a section's action
    * (a shelf's "+ From a mech"). `segment` — one option of a `Segmented`
    * control whose choice is a menu (Play's "Boarded · <mech> ▾"), pressed when
@@ -98,8 +100,9 @@ type HeaderMenuProps = {
   /** Extra classes for the trigger of the `button` variant. */
   className?: string
   /**
-   * The `button` variant's Size: `mini` (default), an action chip; `compact`
-   * where it sits on a line of Compact controls (Play's bar, ruleset §4.7).
+   * The `button` and `overflow` variants' Size: `mini` (default), an action
+   * chip; `compact` where it sits on a line of Compact controls (Play's bar,
+   * ruleset §4.7). Its glyphs take the same Size (`iconSize`, hard rule R23).
    */
   size?: 'mini' | 'compact'
   /** The `segment` trigger's `aria-pressed`: its option is the chosen one. */
@@ -131,10 +134,8 @@ const TRIGGER = {
 // The overflow trigger (board S1) is an action chip, Button's `mini` rung, so it
 // sits among a Row's chips at their height. Only its open state, the inverse
 // plate, is `.su-header-menu-trigger--overflow`'s.
-const OVERFLOW_TRIGGER_CLASS = cn(
-  buttonVariants({ size: 'mini' }),
-  'su-header-menu-trigger--overflow'
-)
+const overflowTriggerClass = (size: 'mini' | 'compact') =>
+  cn(buttonVariants({ size }), 'su-header-menu-trigger--overflow')
 
 const POSITIONER = {
   // Above the masthead (z-50) and the sticky sheet bars beneath it.
@@ -199,7 +200,7 @@ export function HeaderMenu({
       : variant === 'segment'
         ? cn('su-seg__option', FOCUS_RING, DISABLED)
         : overflow
-          ? OVERFLOW_TRIGGER_CLASS
+          ? overflowTriggerClass(size)
           : `su-header-menu-trigger ${FOCUS_RING}`
   const triggerStyle = variant === 'masthead' ? TRIGGER : undefined
 
@@ -214,11 +215,11 @@ export function HeaderMenu({
         disabled={disabled}
       >
         {overflow ? (
-          <Ellipsis size={14} aria-hidden="true" />
+          <Ellipsis size={iconSize[size]} aria-hidden="true" />
         ) : (
           <>
             {trigger}
-            {chevron && <ChevronDown size={14} aria-hidden="true" />}
+            {chevron && <ChevronDown size={iconSize[size]} aria-hidden="true" />}
           </>
         )}
       </Menu.Trigger>

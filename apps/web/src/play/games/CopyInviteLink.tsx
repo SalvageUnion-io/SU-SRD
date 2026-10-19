@@ -21,6 +21,7 @@ import {
   CopiedIcon,
   CopiedStatus,
   toast,
+  tokens,
   useCopied,
 } from '../../components/index'
 import { useConnection } from '../../lib/connection/connectionContext'
@@ -78,7 +79,11 @@ function ConnectedCopyInviteLink({
         disabled={copyLink.pending}
         onClick={() => void copy()}
       >
-        <CopiedIcon copied={copied} size={16} icon={<Link2 aria-hidden="true" size={16} />} />
+        <CopiedIcon
+          copied={copied}
+          size="compact"
+          icon={<Link2 aria-hidden="true" size={tokens.iconSize.compact} />}
+        />
         Copy invite link
       </Button>
       <CopiedStatus copied={copied} />

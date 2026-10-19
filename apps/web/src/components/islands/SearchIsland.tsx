@@ -231,7 +231,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
       // so the mobile sheet can widen it.
       className={hero ? undefined : 'su-union-bar__search-input'}
       containerClassName={hero ? 'su-hero-search__field' : undefined}
-      glyphSize={hero ? 18 : undefined}
+      glyph={hero ? 'full' : undefined}
       {...inputProps}
       aria-label="Search the Reference"
       role="combobox"

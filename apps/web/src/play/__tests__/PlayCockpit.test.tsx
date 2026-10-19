@@ -81,7 +81,7 @@ describe('the Cockpit frame', () => {
     expect(bar.getByRole('heading', { level: 1 }).textContent).toBe('Solo · Wren')
     // A solo screen shares nothing: no LIVE stamp (the solo wireframes).
     expect(bar.queryByText(/● Live/)).toBeNull()
-    expect(bar.getByRole('link', { name: 'Play' }).getAttribute('href')).toBe('/play/')
+    expect(bar.getByRole('link', { name: 'Back to Play' }).getAttribute('href')).toBe('/play/')
     // Nothing bound: the channel button is Connect.
     expect(bar.getByRole('button', { name: 'Connect a Discord channel' })).toBeTruthy()
     expect(bar.getByRole('button', { name: 'More' })).toBeTruthy()
@@ -97,7 +97,9 @@ describe('the Cockpit frame', () => {
   test('in a Game, “‹ Game” and ⋯ › Game page open the Game’s page (ADR-052 §5–§6)', async () => {
     await renderCockpit({ gameId: 'g1', gameName: 'Tenacity' })
     const bar = within(screen.getByRole('banner'))
-    expect(bar.getByRole('link', { name: 'Game' }).getAttribute('href')).toBe('/play/games/g1')
+    expect(bar.getByRole('link', { name: 'Back to Game' }).getAttribute('href')).toBe(
+      '/play/games/g1'
+    )
     const more = bar.getByRole('button', { name: 'More' })
     expect(more.hasAttribute('disabled')).toBe(false)
     await act(async () => {
@@ -172,8 +174,8 @@ describe('below the canvas’s floor: the phone form (play.md §11)', () => {
       expect(tabs.map((t) => t.textContent)).toEqual(['Act', 'Units', 'Tables', 'Crew'])
       const bar = within(screen.getByRole('banner'))
       expect(bar.getByRole('heading', { level: 1 }).textContent).toBe('Tenacity')
-      // "‹" alone for the way back; the Situation is pinned, not in the bar.
-      expect(bar.getByRole('link', { name: 'Game' }).textContent).toBe('')
+      // Back names its place on a phone too; the Situation is pinned, not in the bar.
+      expect(bar.getByRole('link', { name: 'Back to Game' }).textContent).toBe('Back to Game')
       expect(bar.queryByRole('group', { name: 'Situation' })).toBeNull()
       expect(screen.getByRole('group', { name: 'Situation' })).toBeTruthy()
       // The page never scrolls: the host fits the screen and hides overflow.

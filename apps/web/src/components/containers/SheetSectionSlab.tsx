@@ -28,7 +28,7 @@
 
 import { ChevronDown } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import { color, duration, ease, space } from '../../design/tokens'
+import { color, duration, ease, iconSize, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { useDisclosure } from '../../lib/useDisclosure'
 import { Button } from '../atoms/Button'
@@ -67,8 +67,6 @@ const FOLD_BUTTON = {
 } satisfies CSSProperties
 
 const CHEVRON = {
-  width: space[16],
-  height: space[16],
   transitionProperty: 'transform, translate, scale, rotate',
   transitionTimingFunction: ease,
   transitionDuration: duration.base,
@@ -120,6 +118,7 @@ export function SheetSectionSlab({
             >
               <ChevronDown
                 aria-hidden="true"
+                size={iconSize.compact}
                 style={fold.open ? CHEVRON : { ...CHEVRON, rotate: '-90deg' }}
               />
             </Button>

@@ -60,6 +60,19 @@ export const size = {
 } as const
 
 /**
+ * The icon Sizes (chrome K11, hard rule R23): a glyph is its line's Size, Mini
+ * 12px on a chip line, Compact 14px on a button or bar line, Full 18px on a
+ * page field or primary action, always at lucide's default stroke (2). Numbers,
+ * since lucide's `size` takes one. No stylesheet twin: an icon's size is its
+ * prop, never a CSS width (`bun run check styling`, `controls/icon-size`).
+ */
+export const iconSize = {
+  mini: 12,
+  compact: 14,
+  full: 18,
+} as const
+
+/**
  * The stacking layers, lowest first — the only z-index values above a page's
  * own local stacking (`--z-*` in theme.css). A sticky bar sits under a page
  * popover, which sits under every overlay (the masthead, a dialog and its

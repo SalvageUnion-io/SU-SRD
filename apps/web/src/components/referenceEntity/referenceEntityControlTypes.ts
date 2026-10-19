@@ -48,7 +48,8 @@ export type ReferenceEntityControl = {
   /** Tooltip text (the `title` attribute). Defaults to `ariaLabel` when unset —
    * set it when you want a richer hover hint than the concise accessible name. */
   title?: string
-  icon?: (props: { className?: string }) => ReactNode
+  /** A glyph component, drawn at the Mini control's Size (`iconSize.mini`). */
+  icon?: (props: { className?: string; size?: number }) => ReactNode
   variant?: ReferenceEntityControlVariant
   disabled?: boolean
   /** Secondary segment text (renders in inverse style, like the value part of ValueDisplay) */

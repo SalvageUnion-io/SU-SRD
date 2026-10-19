@@ -4,13 +4,13 @@
  * it, the body, the foot — not a Card in a box: the pane IS the entity, as a
  * show page is, and scrolls as one sheet. An action bar under it adds it. On a
  * wide screen it is the middle column, there only once a Token is opened; on a
- * narrow one it takes the picker over, with a Back to list bar above it.
+ * narrow one it takes the picker over, with a back bar (the list's name) above it.
  * Removing is the sidebar's.
  */
 
-import { ArrowLeft } from 'lucide-react'
 import type { CSSProperties, Ref } from 'react'
 import { borderWidth, color, fontSize, space } from '../../design/tokens'
+import { BackLabel } from '../atoms/BackLabel'
 import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
 import { ChapterBandTrail } from '../atoms/ChapterBandTrail'
@@ -31,6 +31,7 @@ export function FocusPane({
   count,
   chosenLabel,
   railName,
+  listName,
   hide,
   showChassisAbility,
   onAdd,
@@ -43,6 +44,8 @@ export function FocusPane({
   count: number
   chosenLabel: string
   railName?: string
+  /** The list the back bar returns to (the picker's title); "List" when it has none. */
+  listName?: string
   hide: ReferenceEntityCardHideConfig
   showChassisAbility?: boolean
   onAdd: () => void
@@ -60,7 +63,7 @@ export function FocusPane({
       {onBack && (
         <div style={BACK_BAR_STYLE}>
           <Button ref={backRef} size="compact" onClick={onBack}>
-            <ArrowLeft aria-hidden="true" size={14} /> Back to list
+            <BackLabel to={listName || 'List'} />
           </Button>
         </div>
       )}

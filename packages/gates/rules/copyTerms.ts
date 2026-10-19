@@ -393,6 +393,78 @@ export function productBans(product: { build: string; play: string }): Banned[] 
   }))
 }
 
+// ── glyphs that stand in for an icon (hard rule R23, chrome K11) ────────────
+
+/**
+ * Back is `ChevronLeft` and the place's name (`BackLabel`), never an arrow
+ * character; ⋯ is lucide's `Ellipsis`, never the text character. Read from
+ * the source as written, so an entity (`&larr;`) counts as its character.
+ */
+const BACK_GLYPHS = /←|‹|&larr;|&lsaquo;|&#8592;|&#x2190;|&#8249;|&#x2039;/i
+const ELLIPSIS_GLYPH = /⋯|&#8943;|&#x22ef;/i
+
+/**
+ * Every arrow-as-back in copy (JSX text, a string or template chunk) and every
+ * text ⋯ drawn in JSX (its text, or a string handed to a JSX attribute or
+ * child). Pure: the caller reads the file.
+ */
+export function glyphFindings(file: string, source: string): Finding[] {
+  const lineOf = lineIndex(source)
+  const out: Finding[] = []
+  const raw = (v: Node) => source.slice(Number(v.start), Number(v.end))
+  const check = (v: Node, text: string, inJsx: boolean) => {
+    if (BACK_GLYPHS.test(text)) {
+      out.push({
+        file,
+        line: lineOf(Number(v.start)),
+        detail: `"${text.trim()}": back is ChevronLeft and the place's name (BackLabel), never an arrow character`,
+      })
+    }
+    if (inJsx && ELLIPSIS_GLYPH.test(text)) {
+      out.push({
+        file,
+        line: lineOf(Number(v.start)),
+        detail: `"${text.trim()}": ⋯ is lucide's Ellipsis at its Size, never a text character`,
+      })
+    }
+  }
+  const visit = (v: unknown, inJsx: boolean): void => {
+    if (Array.isArray(v)) {
+      for (const x of v) visit(x, inJsx)
+      return
+    }
+    if (!isNode(v)) return
+    switch (v.type) {
+      case 'ImportDeclaration':
+      case 'ExportAllDeclaration':
+        return
+      case 'CallExpression':
+        if (isSkippedCall(v.callee)) return
+        break
+      case 'JSXText':
+        check(v, raw(v), true)
+        return
+      case 'Literal':
+        if (typeof v.value === 'string') check(v, raw(v), inJsx)
+        return
+      case 'TemplateElement':
+        check(v, raw(v), inJsx)
+        return
+      case 'JSXAttribute':
+      case 'JSXExpressionContainer':
+        for (const [k, x] of Object.entries(v)) if (k !== 'parent') visit(x, true)
+        return
+    }
+    for (const [k, x] of Object.entries(v)) if (k !== 'parent') visit(x, inJsx)
+  }
+  visit(parseSync(file, source).program, false)
+  return out
+}
+
+function collectGlyphs(root: string): Finding[] {
+  return copyFiles(root).flatMap((f) => glyphFindings(f, readFileSync(join(root, f), 'utf8')))
+}
+
 // ── the rules ───────────────────────────────────────────────────────────────
 
 const RULES: readonly Rule[] = [
@@ -407,6 +479,12 @@ const RULES: readonly Rule[] = [
     rule: 'a spelling the book or the product does not use',
     fix: 'use the spelling the finding names',
     mode: 'ratchet',
+  },
+  {
+    id: 'glyph',
+    rule: "hard rule R23 (chrome K11) — back is ChevronLeft and the place's name, never ←, ‹ or &larr;; ⋯ is lucide's Ellipsis, never a text ⋯",
+    fix: 'draw back as `<BackLabel to="Hangar" />` inside the link or button; draw ⋯ as `<Ellipsis size={iconSize…} />` (a menu: HeaderMenu `variant="overflow"`)',
+    mode: 'zero',
   },
 ]
 
@@ -472,7 +550,7 @@ export const copyTerms: RuleSet = {
   scan(root) {
     const terms = capitalisedTerms(weighTerms(root))
     const bans = [...BANNED, ...productBans(productNames(root))]
-    return lintCopy(collectCopy(root), terms, bans)
+    return { ...lintCopy(collectCopy(root), terms, bans), glyph: collectGlyphs(root) }
   },
   exemptionsLive: 'packages/gates/rules/copyTerms.ts',
   summary(root) {

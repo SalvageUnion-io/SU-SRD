@@ -61,7 +61,7 @@ export const Route = createFileRoute('/sheet/$kind/$id')({
     }
     const store = useEntityStore.getState()
     // Hydrate ALL entity kinds (not just the viewed one): wired compositions
-    // resolve linked entities (rail chips, Hold ← Load targets) from the
+    // resolve linked entities (rail chips, Hold Load targets) from the
     // other kinds' stores via SoftLinks.
     await Promise.all([
       store.hydrate('pilot'),

@@ -19,8 +19,8 @@ export type StorageManifestSide = 'mech' | 'crawler'
  * lots.
  *
  *   - The boundary gate is per-`side`: the mech STOWS a lot to the crawler's
- *     Storage Bay ('Stow →', disabled when no crawler is linked), the crawler
- *     LOADS a lot onto the mech ('← Load', disabled when no mech is docked).
+ *     Storage Bay ('Stow', disabled when no crawler is linked), the crawler
+ *     LOADS a lot onto the mech ('Load', disabled when no mech is docked).
  *   - Only the crawler side is cap-checked (the mech Hold's Storage Bay target
  *     is unlimited), so the fit-math runs solely for `side === 'crawler'`:
  *     bulk lots partial-fill up to the free slots (dynamic 'Load N' label),
@@ -32,7 +32,7 @@ function moveAffordance(
   cargo: UseCargoResult,
   linked: boolean
 ): { label: string; disabledReason: string | null } {
-  let label = side === 'mech' ? 'Stow →' : '← Load'
+  let label = side === 'mech' ? 'Stow' : 'Load'
   // Both moves write the crawler, so a crawler the viewer may not write closes
   // them whichever sheet they are on.
   let disabledReason: string | null = !linked
@@ -48,7 +48,7 @@ function moveAffordance(
       disabledReason = `"${lot.name}" does not fit — ${cargo.usage.free} slots free.`
     }
     const partial = lot.kind === 'bulk' && lot.qty !== undefined && fitsQty < lot.qty
-    label = partial && fitsQty > 0 ? `← Load ${fitsQty}` : '← Load'
+    label = partial && fitsQty > 0 ? `Load ${fitsQty}` : 'Load'
   }
 
   return { label, disabledReason }
@@ -71,8 +71,8 @@ type CargoLotItemProps = {
 /**
  * CargoLotItem — one lot, on either side of the mech ⇄ crawler boundary: the
  * one lot row (`CargoLotRow`) with this side's buttons.
- *   - `side === 'mech'`    → 'Stow →' to the crawler's Storage Bay, and 'Unload'.
- *   - `side === 'crawler'` → the cap-checked '← Load' onto the docked mech, and
+ *   - `side === 'mech'`    → 'Stow' to the crawler's Storage Bay, and 'Unload'.
+ *   - `side === 'crawler'` → the cap-checked 'Load' onto the docked mech, and
  *     'Unstow'.
  * The label + disabled reason come from the shared `moveAffordance`.
  */

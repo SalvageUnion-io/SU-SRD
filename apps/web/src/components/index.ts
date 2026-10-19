@@ -36,6 +36,7 @@ export { useMediaQuery } from '../lib/useMediaQuery'
 /** `CSSProperties` that also admits `--custom-property` keys (see styles/cssVars). */
 export type { CSSVarStyle } from '../styles/cssVars'
 export { ActivationCost } from './atoms/ActivationCost'
+export { BackLabel } from './atoms/BackLabel'
 export type { BadgeTone } from './atoms/Badge'
 // Chrome primitives (The app design handoff — design-spec §2)
 // Badge — the unified stamp-chip family: the quiet keyword chip is

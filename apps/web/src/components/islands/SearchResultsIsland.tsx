@@ -89,7 +89,7 @@ function SearchRail({ query, setQuery, children }: QueryProps & { children?: Rea
           placeholder="Search the Reference…"
           aria-label="Search the Reference"
           containerClassName="su-rail__field"
-          glyphSize={18}
+          glyph="full"
           autoFocus
         />
       </form>

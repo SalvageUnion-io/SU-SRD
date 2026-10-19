@@ -98,13 +98,13 @@ describe('PartnerHold — moves', () => {
     expect(screen.getByText('Carried')).toBeTruthy()
     expect(screen.getByText('Storage Bay')).toBeTruthy()
 
-    await click(within(lotRow('Sealed Crate')).getByRole('button', { name: 'Stow →' }))
+    await click(within(lotRow('Sealed Crate')).getByRole('button', { name: 'Stow' }))
     expect(cargo.stow).toHaveBeenCalledWith('lot-crate')
 
     await click(within(lotRow('Sealed Crate')).getByRole('button', { name: 'Unload' }))
     expect(cargo.removeLot).toHaveBeenCalledWith('lot-crate')
 
-    await click(within(lotRow('Power Cell')).getByRole('button', { name: '← Load' }))
+    await click(within(lotRow('Power Cell')).getByRole('button', { name: 'Load' }))
     expect(cargo.load).toHaveBeenCalledWith('lot-cell')
   })
 
@@ -126,7 +126,7 @@ describe('PartnerHold — moves', () => {
 describe('PartnerHold — closed moves', () => {
   test('with no crawler, Stow is closed and the Storage Bay is not shown', () => {
     render(<PartnerHold cargo={makeCargo()} crawlerLinked={false} />)
-    const stow = screen.getByRole('button', { name: 'Stow →' })
+    const stow = screen.getByRole('button', { name: 'Stow' })
     expect(stow.hasAttribute('disabled')).toBe(true)
     expect(stow.getAttribute('title')).toBe('No crawler is assigned.')
     // Unload needs no crawler.
@@ -138,15 +138,15 @@ describe('PartnerHold — closed moves', () => {
     const why = 'The Mediator keeps this crawler.'
     render(<PartnerHold cargo={makeCargo({ crawlerLocked: why })} crawlerLinked />)
     expect(screen.getByText(why)).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Stow →' }).getAttribute('title')).toBe(why)
-    const load = screen.getByRole('button', { name: '← Load' })
+    expect(screen.getByRole('button', { name: 'Stow' }).getAttribute('title')).toBe(why)
+    const load = screen.getByRole('button', { name: 'Load' })
     expect(load.hasAttribute('disabled')).toBe(true)
     expect(load.getAttribute('title')).toBe(why)
   })
 
   test('a full hold closes Load', () => {
     render(<PartnerHold cargo={makeCargo({ cap: 1 })} crawlerLinked />)
-    const load = screen.getByRole('button', { name: '← Load' })
+    const load = screen.getByRole('button', { name: 'Load' })
     expect(load.hasAttribute('disabled')).toBe(true)
     expect(load.getAttribute('title')).toBe('The hold is full.')
   })

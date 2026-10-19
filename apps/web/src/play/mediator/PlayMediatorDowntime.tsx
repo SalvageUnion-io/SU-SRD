@@ -23,6 +23,7 @@ import {
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import {
+  BackLabel,
   Badge,
   Button,
   ConfirmDialog,
@@ -138,7 +139,7 @@ export function PlayMediatorDowntime({
               disabled={off || idx === 0 || downtime.setStep === null}
               onClick={() => downtime.setStep?.(idx - 1)}
             >
-              ‹ Back
+              <BackLabel to={`Step ${Math.max(idx, 1)}`} />
             </Button>
             <span style={SPACER} />
             <Button

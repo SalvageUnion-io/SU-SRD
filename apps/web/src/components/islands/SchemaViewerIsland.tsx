@@ -38,6 +38,7 @@ import {
   EntitySurfaceProvider,
   Skeleton,
   Slab,
+  tokens,
   trackForTree,
 } from '../index'
 import { EntityListingRow } from './EntityListingRow'
@@ -545,7 +546,7 @@ function FilterToken({
       onClick={onRemove}
     >
       {label}
-      <X aria-hidden="true" size={12} strokeWidth={3} />
+      <X aria-hidden="true" size={tokens.iconSize.mini} />
     </button>
   )
 }

@@ -64,7 +64,7 @@ describe('GamePage', () => {
     expect(
       screen.getByRole('heading', { name: 'This Game opens once you are back online' })
     ).toBeTruthy()
-    expect(screen.getByRole('link', { name: /Back to the Hangar/ }).getAttribute('href')).toBe('/')
+    expect(screen.getByRole('link', { name: 'Back to Hangar' }).getAttribute('href')).toBe('/')
   })
 
   test('connected, it is the Game’s page', () => {

@@ -113,7 +113,7 @@ export function PlayLanding() {
       <PlayRefusal
         title="Sign in to play"
         body="Play runs your Pilots, solo or in a Game. Sign in to open them."
-        link={{ href: '/sign-in', label: 'Sign in with Discord' }}
+        link={{ href: '/sign-in', label: 'Sign in with Discord', back: false }}
       />
     )
   }

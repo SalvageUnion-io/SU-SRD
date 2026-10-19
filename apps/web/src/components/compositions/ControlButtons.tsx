@@ -5,6 +5,7 @@ import {
   color,
   font,
   fontSize,
+  iconSize,
   radius,
   space,
   tracking,
@@ -181,8 +182,8 @@ function ControlButton({
         aria-disabled={isDisabled || undefined}
         onClick={isDisabled ? undefined : (e) => onClickWithStop(e, onClick)}
       >
-        {/* A class, not a style object: the `icon` contract takes only `className`. */}
-        <Icon className="su-control-icon__glyph" />
+        {/* A Mini control, so a Mini glyph (hard rule R23). */}
+        <Icon size={iconSize.mini} />
       </Button>
     )
   }

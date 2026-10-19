@@ -1,5 +1,6 @@
 import { Check } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { iconSize } from '../../design/tokens'
 
 /**
  * The copy control's own icon (chrome K5): `icon` at rest, a `Check` of the
@@ -13,10 +14,10 @@ export function CopiedIcon({
   copied: boolean
   /** The control's resting icon, `aria-hidden`. */
   icon: ReactNode
-  /** The resting icon's size, which the Check takes. */
-  size: number
+  /** The line's Size, the resting icon's (`iconSize`), which the Check takes. */
+  size: keyof typeof iconSize
 }) {
-  return copied ? <Check aria-hidden="true" size={size} /> : icon
+  return copied ? <Check aria-hidden="true" size={iconSize[size]} /> : icon
 }
 
 /**

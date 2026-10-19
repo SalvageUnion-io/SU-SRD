@@ -225,7 +225,7 @@ function ShareLink({
           aria-label="Copy public link"
           style={NO_SHRINK}
         >
-          <CopiedIcon copied={copied} size={14} icon={<Copy aria-hidden="true" size={14} />} />
+          <CopiedIcon copied={copied} size="compact" icon={<Copy aria-hidden="true" size={tokens.iconSize.compact} />} />
         </Button>
         <CopiedStatus copied={copied} />
       </div>

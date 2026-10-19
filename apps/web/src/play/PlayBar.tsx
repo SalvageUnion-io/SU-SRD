@@ -1,6 +1,6 @@
 /**
- * PlayBar — the Cockpit's top bar: "‹ Game" back to the Game's page (solo,
- * "‹ Play" back to the Play hub; ADR-052 §6), the
+ * PlayBar — the Cockpit's top bar: back to the Game's page, `ChevronLeft` and
+ * "Game" (solo, "Play", back to the Play hub; ADR-052 §6), the
  * screen's title (the Game's name, or "Solo · <pilot>"), the role stamp
  * (the Mediator's screen says MEDIATOR), the LIVE stamp
  * while play reaches the server, then the Situation switch (On foot /
@@ -14,9 +14,8 @@
  * tall as the buttons beside them.
  */
 
-import { ChevronLeft } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import { Badge, buttonVariants, tokens } from '../components/index'
+import { BackLabel, Badge, buttonVariants, tokens } from '../components/index'
 import { AppLink } from '../components/shared/AppLink'
 import type { PlayReadOnly } from './play.model'
 import { liveLabel } from './play.model'
@@ -88,9 +87,9 @@ const SPACER = { flex: '1 1 0%' } satisfies CSSProperties
 export type PlayBarProps = {
   /** The Game's name, or "Solo · <pilot>" (`playTitle`). */
   title: string
-  /** Where "‹" goes: the Game's page, or (solo) the Play hub. */
+  /** Where back goes: the Game's page, or (solo) the Play hub. */
   backHref?: string
-  /** What "‹" says: "Game" back to a Game's page, "Play" back to the hub. */
+  /** The place back goes to, its name beside the chevron: "Game", or "Play" (the hub). */
   backLabel?: string
   /** Play reaches the server: the LIVE stamp shows. */
   live: boolean
@@ -113,7 +112,7 @@ export type PlayBarProps = {
   menu?: ReactNode
   /**
    * The phone form's bar (play.md §11): flush across the top, on two lines
-   * ("‹" and the title, then the LIVE stamp and the buttons) rather than
+   * (back and the title, then the LIVE stamp and the buttons) rather than
    * squeezing the title. The Situation goes under the pinned vitals there,
    * not in the bar.
    */
@@ -140,10 +139,8 @@ export function PlayBar({
         href={backHref}
         className={buttonVariants({ surface: 'instrument', variant: 'ghost', size: 'compact' })}
         style={BACK}
-        aria-label={phone ? backLabel : undefined}
       >
-        <ChevronLeft size={18} aria-hidden="true" />
-        {!phone && backLabel}
+        <BackLabel to={backLabel} />
       </AppLink>
       <h1 style={TITLE}>{title}</h1>
       {stamp && (

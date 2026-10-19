@@ -13,7 +13,7 @@
 
 import { Unlink } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import { space } from '../../design/tokens'
+import { iconSize } from '../../design/tokens'
 import type { UnitKind, UnitReading } from '../../lib/units/unitModel'
 import { unitChipOf, unitRowModel } from '../../lib/units/unitModel'
 import type { EntityMode, TagItem } from '../index'
@@ -21,8 +21,6 @@ import { Button, buttonVariants, Entity, relation, Stat } from '../index'
 import { AppLink } from './AppLink'
 
 const VIEW_LINK = { textDecorationLine: 'none' } satisfies CSSProperties
-
-const UNASSIGN_GLYPH = { height: space[14], width: space[14] } satisfies CSSProperties
 
 type UnitRowProps = {
   kind: UnitKind
@@ -84,7 +82,7 @@ export function UnitRow({
             size="mini"
             aria-label={`Unassign ${name}`}
             onClick={onUnassign}
-            glyph={<Unlink style={UNASSIGN_GLYPH} />}
+            glyph={<Unlink size={iconSize.mini} />}
           >
             Unassign
           </Button>

@@ -145,7 +145,7 @@ test('the Mediator runs the table from Play, and the player answers', async ({
     ).toBeVisible({ timeout: 20_000 })
 
     // Back brings the table back; Scene ends it, behind its confirm.
-    await page.getByRole('button', { name: '‹ Back' }).click()
+    await page.getByRole('button', { name: 'Back to Step 1' }).click()
     await expect(gameState(page).getByRole('button', { name: 'Downtime · Step 1' })).toBeVisible()
     await gameState(page).getByRole('button', { name: 'Scene' }).click()
     await page.getByRole('alertdialog').getByRole('button', { name: 'End Downtime' }).click()

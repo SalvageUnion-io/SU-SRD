@@ -350,9 +350,7 @@ describe('a game the viewer is not in', () => {
     expect(screen.getByText(/not in this Game/i)).toBeTruthy()
     expect(screen.getByText(/invite link/i)).toBeTruthy()
     expect(heading('Crew & seats')).toBeNull()
-    expect(screen.getByRole('link', { name: /Back to your Games/ }).getAttribute('href')).toBe(
-      '/play/'
-    )
+    expect(screen.getByRole('link', { name: 'Back to Play' }).getAttribute('href')).toBe('/play/')
   })
 
   test('still loading is not the same as not a member', async () => {

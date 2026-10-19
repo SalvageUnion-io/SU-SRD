@@ -389,7 +389,7 @@ describe('Downtime', () => {
 
   test('Back puts the table on the step before; Advance on the next', async () => {
     await renderCockpit(downtimeAt(2))
-    await click(named('‹ Back'))
+    await click(named('Back to Step 2'))
     await click(named('Advance ›'))
     expect(sent).toEqual([
       { name: 'downtime:setStep', args: { gameId: GAME, stepIndex: 1 } },
@@ -443,7 +443,9 @@ describe('every Mediator capability is reachable here', () => {
   test('the bar’s “‹ Game” goes back to the Game’s page (ADR-052 §6)', async () => {
     await renderCockpit()
     const bar = within(screen.getAllByRole('banner')[0] as HTMLElement)
-    expect(bar.getByRole('link', { name: 'Game' }).getAttribute('href')).toBe(`/play/games/${GAME}`)
+    expect(bar.getByRole('link', { name: 'Back to Game' }).getAttribute('href')).toBe(
+      `/play/games/${GAME}`
+    )
   })
 
   test('the seats needing attention are the seats’ ▲ and rings', async () => {

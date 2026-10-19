@@ -5,6 +5,7 @@ import {
   color,
   font,
   fontSize,
+  iconSize,
   radius,
   size,
   space,
@@ -384,7 +385,7 @@ export function Select({ className, chevron = false, ref, ...props }: SelectProp
   return (
     <span style={CHEVRON_WRAP}>
       {select}
-      <ChevronDown aria-hidden="true" size={12} style={CHEVRON} />
+      <ChevronDown aria-hidden="true" size={iconSize.compact} style={CHEVRON} />
     </span>
   )
 }

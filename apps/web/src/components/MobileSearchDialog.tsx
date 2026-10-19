@@ -2,7 +2,7 @@ import { Drawer } from '@base-ui/react/drawer'
 import { Search } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
-import { color, font, fontSize, layer, radius, space, weight } from '../design/tokens'
+import { color, font, fontSize, iconSize, layer, radius, space, weight } from '../design/tokens'
 import { POPUP_SURFACE } from './atoms/popupSurface'
 import { buttonVariants, CloseButton, cn } from './index'
 
@@ -89,7 +89,7 @@ export function MobileSearchDialog({ children }: MobileSearchDialogProps) {
             style={TRIGGER}
             aria-label="Search the Reference"
           >
-            <Search aria-hidden="true" size={22} strokeWidth={2.5} />
+            <Search aria-hidden="true" size={iconSize.full} />
           </button>
         }
       />

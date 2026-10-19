@@ -48,7 +48,16 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { EntitySchemaName } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { color, font, fontSize, space, tracking, weight, widthAtLeast } from '../../design/tokens'
+import {
+  color,
+  font,
+  fontSize,
+  iconSize,
+  space,
+  tracking,
+  weight,
+  widthAtLeast,
+} from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { useDisclosure } from '../../lib/useDisclosure'
 import { useMediaQuery } from '../../lib/useMediaQuery'
@@ -267,7 +276,7 @@ export function EntitySearcher({
         mode={{
           kind: 'link',
           onOpen: () => (browse ? onOpen?.(ref) : open(ref)),
-          // A data attribute, so Back to list can find the Token it left.
+          // A data attribute, so the back control can find the Token it left.
           attrs: { 'data-searcher-open': ref } as EntityLinkAttrs,
         }}
       />
@@ -314,6 +323,7 @@ export function EntitySearcher({
       count={selected.filter((ref) => ref === focusedId).length}
       chosenLabel={chosenLabel}
       railName={railName}
+      listName={title}
       hide={cardHide}
       showChassisAbility={showChassisAbility}
       onAdd={() => focusedId && add(focusedId)}
@@ -378,7 +388,7 @@ export function EntitySearcher({
             aria-label="Close"
             className={buttonVariants({ variant: 'quiet', size: 'iconOnly' })}
           >
-            <X aria-hidden="true" style={CLOSE_ICON_STYLE} />
+            <X aria-hidden="true" size={iconSize.compact} />
           </button>
         )
       }
@@ -433,8 +443,6 @@ const SUBTITLE_STYLE = {
   textTransform: 'uppercase',
   color: color.wkMuted,
 } satisfies CSSProperties
-
-const CLOSE_ICON_STYLE = { width: space[20], height: space[20] } satisfies CSSProperties
 
 const LIST_SCROLL_STYLE = {
   padding: `${space[12]} ${space[16]} ${space[16]}`,

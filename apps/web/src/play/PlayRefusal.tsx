@@ -21,7 +21,8 @@ type PlayRefusalProps = {
   /** What is missing, as the heading under the band. */
   title: string
   body: string
-  link: { href: string; label: string }
+  /** The way on: back to a place (its name), or on to an act (`back: false`). */
+  link: { href: string; label: string; back?: boolean }
 }
 
 export function PlayRefusal({ page = PRODUCT.play, title, body, link }: PlayRefusalProps) {
@@ -35,7 +36,7 @@ export function PlayRefusal({ page = PRODUCT.play, title, body, link }: PlayRefu
         {body}
       </Text>
       <div>
-        <WayOutLink href={link.href} label={link.label} />
+        <WayOutLink href={link.href} label={link.label} back={link.back} />
       </div>
     </PageShell>
   )

@@ -7,7 +7,7 @@
 
 import { ChevronDown } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import { space } from '../../design/tokens'
+import { iconSize, space } from '../../design/tokens'
 import type { Disclosure } from '../../lib/useDisclosure'
 import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
@@ -70,7 +70,7 @@ export function SearcherToolbar({
                 <span className="su-sr-only"> active</span>
               </>
             )}
-            <ChevronDown aria-hidden="true" style={chevronStyle(open)} />
+            <ChevronDown aria-hidden="true" size={iconSize.compact} style={chevronStyle(open)} />
           </Button>
         )}
       </div>

@@ -1,6 +1,6 @@
 import { X } from 'lucide-react'
-import type { ComponentPropsWithRef, CSSProperties } from 'react'
-import { space } from '../../design/tokens'
+import type { ComponentPropsWithRef } from 'react'
+import { iconSize } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { Button } from './Button'
 
@@ -16,10 +16,8 @@ type CloseButtonProps = Omit<ComponentPropsWithRef<'button'>, 'children'> & {
   onPaper?: boolean
 }
 
-const GLYPH = { width: space[20], height: space[20] } satisfies CSSProperties
-
 /**
- * CLOSE BUTTON — the one ×: Button's icon rung with a 20px glyph and a named
+ * CLOSE BUTTON — the one ×: Button's icon rung (Compact) with a Compact `X` and a named
  * label, so every dialog, drawer and sheet closes on the same control. A
  * Base UI `Close` takes it through `render`, which adds its own click.
  */
@@ -39,7 +37,7 @@ export function CloseButton({
       aria-label={label}
       {...props}
     >
-      <X style={GLYPH} aria-hidden="true" />
+      <X size={iconSize.compact} aria-hidden="true" />
     </Button>
   )
 }

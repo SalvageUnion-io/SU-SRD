@@ -27,7 +27,7 @@ import { Fragment } from 'react'
 import type { PageModule, PageResult, RouteContext } from '../../../ssg/types'
 import { buttonVariants, cn, InlineRef, Slab } from '../../components/index'
 import { ColophonIsland } from '../../components/islands/ColophonIsland'
-import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
+import { color, font, fontSize, iconSize, space, tracking, weight } from '../../design/tokens'
 import { appPath } from '../../lib/appBase'
 import { builtAssetUrl, ELDRIDGE_COAST_MAP } from '../../lib/builtAssets'
 import { SITE_URL, WEBSITE } from '../../lib/constants'
@@ -456,7 +456,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
               id="close-modal"
               aria-label="Close"
             >
-              <X aria-hidden="true" size={20} />
+              <X aria-hidden="true" size={iconSize.compact} />
             </button>
             <div style={LIGHTBOX_BODY}>
               {/* Vite does not transcode images, so the webp is pre-encoded

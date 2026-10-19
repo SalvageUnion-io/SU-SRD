@@ -30,10 +30,11 @@
 import { useRouter } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
 import { gamePath } from 'game-domain/entityKinds'
+import { Ellipsis } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
-import { Button, HeaderMenu } from '../components/index'
+import { Button, HeaderMenu, tokens } from '../components/index'
 import { useConnection } from '../lib/connection/connectionContext'
 import { hereCount } from './crew.model'
 import { PlayActionsColumn } from './PlayActionsColumn'
@@ -115,17 +116,16 @@ function CockpitMenu({ target }: { target: PlayTarget }) {
   if (gameId === null) {
     return (
       <Button variant="ghost" size="compact" aria-label="More" disabled>
-        ⋯
+        <Ellipsis size={tokens.iconSize.compact} aria-hidden="true" />
       </Button>
     )
   }
   return (
     <HeaderMenu
-      variant="button"
+      variant="overflow"
       size="compact"
       label="More"
-      chevron={false}
-      trigger="⋯"
+      trigger={null}
       sections={[
         [
           {

@@ -127,7 +127,9 @@ export function PlaySituationSwitch({
           }}
         >
           Downtime
-          {locked && !running && <Lock size={12} aria-hidden="true" style={GLYPH} />}
+          {locked && !running && (
+            <Lock size={tokens.iconSize.mini} aria-hidden="true" style={GLYPH} />
+          )}
         </SegmentedOption>
       </Segmented>
       <ConfirmDialog
@@ -239,7 +241,7 @@ function BoardOptionControl({
       trigger={
         <>
           {shown ?? label}
-          <ChevronDown size={12} aria-hidden="true" style={GLYPH} />
+          <ChevronDown size={tokens.iconSize.mini} aria-hidden="true" style={GLYPH} />
         </>
       }
       chevron={false}

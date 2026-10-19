@@ -3,10 +3,10 @@
  *
  *  - Both sides draw the one lot row (`CargoLotRow`): the name, then
  *    `UNITS | n` and `TL | n` where the lot has one.
- *  - The crawler's Storage Bay: a cap-checked **← Load** that partial-fills a
+ *  - The crawler's Storage Bay: a cap-checked **Load** that partial-fills a
  *    bulk lot to the mech's free slots and refuses what does not fit with the
  *    reason, and **Unstow**.
- *  - The mech hold: **Stow →**, closed with a reason when no crawler is
+ *  - The mech hold: **Stow**, closed with a reason when no crawler is
  *    linked, and **Unload**.
  *  - Read-only, no move or remove at all; a refused move is said as a toast.
  */
@@ -141,7 +141,7 @@ describe("the crawler's Storage Bay", () => {
     expect(tile.getByText('T2 Scrap')).toBeTruthy()
     expect(chips()).toEqual(['Units 6', 'TL 2'])
     const load = tile.getByRole('button', { name: 'Load T2 Scrap' })
-    expect(load.textContent).toBe('← Load')
+    expect(load.textContent).toBe('Load')
     expect((load as HTMLButtonElement).disabled).toBe(false)
     await click(load)
     expect(moves).toEqual([{ move: 'load', lotId: 'lot-scrap' }])
@@ -153,7 +153,7 @@ describe("the crawler's Storage Bay", () => {
       side: 'crawler',
       cargo: cargoWith({ free: 4 }).cargo,
     })
-    expect(tile.getByRole('button', { name: 'Load T2 Scrap' }).textContent).toBe('← Load 4')
+    expect(tile.getByRole('button', { name: 'Load T2 Scrap' }).textContent).toBe('Load 4')
   })
 
   test('a lot that does not fit is refused with the free slots named', async () => {
@@ -166,7 +166,7 @@ describe("the crawler's Storage Bay", () => {
     const load = tile.getByRole('button', { name: 'Load Sealed Crate' }) as HTMLButtonElement
     expect(load.disabled).toBe(true)
     expect(load.title).toBe('"Sealed Crate" does not fit — 2 slots free.')
-    expect(load.textContent).toBe('← Load')
+    expect(load.textContent).toBe('Load')
   })
 
   test('a unit scrap lot reads its Tech Level', async () => {
@@ -221,7 +221,7 @@ describe("the mech hold's lot", () => {
     expect(chit.getByText('T2 Scrap')).toBeTruthy()
     expect(chips()).toEqual(['Units 6', 'TL 2'])
     const stow = chit.getByRole('button', { name: 'Stow T2 Scrap' })
-    expect(stow.textContent).toBe('Stow →')
+    expect(stow.textContent).toBe('Stow')
     await click(stow)
     expect(moves).toEqual([{ move: 'stow', lotId: 'lot-scrap' }])
   })

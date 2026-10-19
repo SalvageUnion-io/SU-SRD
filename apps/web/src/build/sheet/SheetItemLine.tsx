@@ -22,7 +22,7 @@
 import type { ItemCondition } from 'game-domain/schemas/itemCondition'
 import { X } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { Badge, Button, Stat, StatusBadge } from '../../components/index'
+import { Badge, Button, Stat, StatusBadge, tokens } from '../../components/index'
 
 type SheetItemLineProps = {
   /** The item's Token, or a Row (`rowForm`). */
@@ -113,7 +113,7 @@ export function SheetItemLine({
           aria-label={`Remove ${name}`}
           onClick={onRemove}
         >
-          <X aria-hidden="true" size={14} />
+          <X aria-hidden="true" size={tokens.iconSize.compact} />
         </Button>
       )}
     </div>

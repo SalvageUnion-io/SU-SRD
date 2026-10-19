@@ -76,7 +76,7 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
                       title={stowBlocked ?? undefined}
                       onClick={() => reportCargo(cargo.stow(lot.id))}
                     >
-                      Stow →
+                      Stow
                     </Button>
                     <Button
                       variant="ghost"
@@ -113,7 +113,7 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
                       title={loadBlocked ?? undefined}
                       onClick={() => reportCargo(cargo.load(lot.id))}
                     >
-                      ← Load
+                      Load
                     </Button>
                   )}
                 </CargoLotRow>

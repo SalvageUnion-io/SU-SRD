@@ -66,7 +66,7 @@ export function PatternList({ onInstantiated }: PatternListProps) {
     return (
       <EmptyState
         headline="No Patterns yet"
-        body="Use “Save as pattern” from a mech sheet’s ⋯ menu, or the mech builder, to save a reusable template."
+        body="Use “Save as pattern” from a mech sheet’s More actions menu, or the mech builder, to save a reusable template."
       />
     )
   }

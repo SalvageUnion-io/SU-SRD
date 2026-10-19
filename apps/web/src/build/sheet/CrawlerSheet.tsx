@@ -39,7 +39,7 @@
  * card.
  *
  * Storage Bay (The Hold) — the unlimited StorageManifest (side='crawler'),
- * in the full-height right rail; ← Load is cap-checked against the docked
+ * in the full-height right rail; Load is cap-checked against the docked
  * mech. Keeps the Stow/Load transfer feature.
  *
  * Dropped (the poster redesign — no poster counterpart; tracking issues filed for
@@ -149,7 +149,7 @@ type CrawlerSheetProps = {
   /**
    * The docked mech (the first mech assigned to this crawler by its own
    * `mech-to-crawler` link, resolved by the composition resolver) — the Hold's
-   * ← Load target. Null when nothing is docked.
+   * Load target. Null when nothing is docked.
    */
   mech?: Mech | null
   /** The docked mech's sheet: the Hold's load target and the Mech Bay's Token open it. */

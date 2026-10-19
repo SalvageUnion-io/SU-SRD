@@ -43,7 +43,7 @@ export function HeroSearchStatic() {
           placeholder={HERO_SEARCH_PLACEHOLDER}
           aria-label="Search the Reference"
           shortcut="⌘K"
-          glyphSize={18}
+          glyph="full"
           containerClassName="su-hero-search__field"
         />
       </div>

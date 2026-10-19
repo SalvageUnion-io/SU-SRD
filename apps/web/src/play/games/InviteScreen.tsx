@@ -66,7 +66,7 @@ const DEAD_HEADLINE = 'That invite link does not work.'
 const DEAD_ASK =
   'It may have been reset, or not copied whole. Ask whoever invited you for the current link.'
 
-const BACK = { href: '/play/', label: 'Back to your Games' }
+const BACK = { href: '/play/', label: 'Play' }
 
 /**
  * A dead link's ways on: back to Play's hub, as a button-shaped link with a
