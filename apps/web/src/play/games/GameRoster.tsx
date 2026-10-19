@@ -39,7 +39,7 @@
  *
  * ## Every verb that changes who has a build asks first
  *
- * Pick up, Offer to the crew, Make a copy, Remove from Game, Delete and
+ * Pick up, Offer to the crew, Make a copy, Move to your Hangar, Delete and
  * Scrap each open one shared confirm (`useConfirm`) that says what will happen
  * and whether it can be undone, and do nothing until the player confirms. The
  * verbs and their words live outside this file — `useRowActions` and
@@ -131,7 +131,7 @@ const ITEM = { listStyle: 'none', minWidth: 0 } satisfies CSSProperties
 
 const PATTERNS_LINK = { textDecoration: 'none' } satisfies CSSProperties
 
-/** "+ Add from your Hangar", under the columns: a block, 16px below them. */
+/** "+ Move in from your Hangar", under the columns: a block, 16px below them. */
 const ADD = { marginTop: tokens.space[16] } satisfies CSSProperties
 
 export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }: GameRosterProps) {
@@ -230,7 +230,7 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
     if (row.can.removeFromGame && row.localId !== null) {
       verbs.push({
         id: 'remove',
-        label: 'Remove from Game',
+        label: 'Move to your Hangar',
         onSelect: act(() => rowActions.removeFromGame(row, gameName)),
       })
     }

@@ -106,11 +106,11 @@ export async function seedDesignAccount(page: Page): Promise<DesignSeed> {
   await gotoStable(page, '/npcs/new')
   await waitForReady(page)
   await page.getByRole('radio', { name: 'Start from Veteran' }).click()
-  await page.getByRole('button', { name: 'Next: Stats' }).click()
-  await page.getByRole('button', { name: 'Next: Actions & traits' }).click()
-  await page.getByRole('button', { name: 'Next: Identity' }).click()
+  await page.getByRole('button', { name: 'Next · Stats →' }).click()
+  await page.getByRole('button', { name: 'Next · Actions & traits →' }).click()
+  await page.getByRole('button', { name: 'Next · Identity →' }).click()
   await page.getByLabel(/^Name/).fill('Sergeant Kessler')
-  await page.getByRole('button', { name: 'Next: Review' }).click()
+  await page.getByRole('button', { name: 'Next · Review →' }).click()
   await page.getByRole('button', { name: 'Save NPC' }).click()
   await page.waitForURL(/\/sheet\/npc\//, { timeout: 20_000 })
   const npc = new URL(page.url()).pathname
@@ -183,7 +183,7 @@ async function edit(page: Page): Promise<void> {
 
 /** Open a Peek from the Union bar's search, as `nesting-depth.e2e.ts`'s Peek pass does. */
 async function openPeek(page: Page, { schema, name }: { schema: string; name: string }) {
-  const search = page.getByRole('combobox', { name: 'Search the SRD' }).first()
+  const search = page.getByRole('combobox', { name: 'Search the Reference' }).first()
   await search.click()
   await search.fill(name)
   const trigger = page

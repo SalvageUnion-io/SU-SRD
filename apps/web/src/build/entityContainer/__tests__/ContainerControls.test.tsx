@@ -301,7 +301,7 @@ describe('MoveToContainerControl — taking a build out of a Game', () => {
     })
 
     const dialog = screen.getByRole('alertdialog')
-    expect(dialog.textContent).toContain('Take Mira Cole out of Union Crawler #430?')
+    expect(dialog.textContent).toContain('Move Mira Cole out of Union Crawler #430?')
     expect(dialog.textContent).toContain('goes back to your Hangar')
     // A move prunes what it would leave straddling two containers (ADR-037).
     expect(dialog.textContent).toContain(

@@ -87,7 +87,7 @@ export function MobileSearchDialog({ children }: MobileSearchDialogProps) {
             type="button"
             className={cn(iconButtonClass, 'su-mobile-search__trigger')}
             style={TRIGGER}
-            aria-label="Search the SRD"
+            aria-label="Search the Reference"
           >
             <Search aria-hidden="true" size={22} strokeWidth={2.5} />
           </button>

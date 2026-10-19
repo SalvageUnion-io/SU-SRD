@@ -1,5 +1,5 @@
 /**
- * AddFromHangar — "+ Add from your Hangar" under a Game's roster (ADR-052 §5,
+ * AddFromHangar — "+ Move in from your Hangar" under a Game's roster (ADR-052 §5,
  * wireframe add-from-hangar): a single-choice picker of your units that could
  * move into this Game, then the same move Build's "Move to a Game…" makes
  * (`requestMove`), one unit per add.
@@ -132,13 +132,13 @@ export function AddFromHangar({ gameId, gameName, confirm }: AddFromHangarProps)
             setOpen(true)
           }}
         >
-          + Add from your Hangar
+          + Move in from your Hangar
         </Button>
       </div>
       <ModalShell
         open={open}
         onOpenChange={setOpen}
-        title="Add from your Hangar"
+        title="Move in from your Hangar"
         description={`Choose one of your units to move into ${here}.`}
         width="narrow"
       >

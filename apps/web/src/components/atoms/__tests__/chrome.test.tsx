@@ -24,15 +24,19 @@ function rootEl(container: Element): HTMLElement {
 }
 
 describe('Field / Input', () => {
-  test('renders label wired to the input, with a required asterisk inside the stamp', () => {
+  test('renders the one label (the Eyebrow) wired to the input, the required mark inside it', () => {
     render(
       <Field label="Name" required htmlFor="name">
         <Input id="name" placeholder="Mara Vex" />
       </Field>
     )
     expect(screen.getByLabelText(/Name/)).toBeTruthy()
-    // The required mark rides inside the ink Stamp (white on ink), not a rust glyph.
-    expect(screen.getByText('*').closest('.su-badge--stamp-solid')).not.toBeNull()
+    // One label treatment (hard rule R16): the Eyebrow over the control, in
+    // ink caps, never a stamp straddling its border; the mark is in the label.
+    const label = screen.getByText('*').closest('label')
+    expect(label?.classList.contains('su-eyebrow')).toBe(true)
+    expect(label?.getAttribute('for')).toBe('name')
+    expect(document.querySelector('.su-stamp-seam')).toBeNull()
   })
 
   test('input carries the focus ring classes', () => {

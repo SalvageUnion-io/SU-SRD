@@ -5,14 +5,22 @@ import { Box } from '../../components/containers/Box'
 import { Badge, Button, ChapterBand, ConfirmDialog, tokens } from '../../components/index'
 import '../../styles/build/wizard.css'
 
-/** Sheet tone context — picks the `.su-sheet--{kind}` poster theming. */
-type WizKind = SheetKind
+/**
+ * Sheet tone context — picks the `.su-sheet--{kind}` poster theming. The NPC
+ * designer is a wizard too (hard rule R16: every wizard is WizShell).
+ */
+type WizKind = SheetKind | 'npc'
 
 type WizShellProps = {
   /** Sheet tone context (`.su-sheet--{kind}`) — themes ground, band, and rail. */
   kind: WizKind
   /** Poster band banner, e.g. 'New Pilot' / 'Edit Pilot'. */
   eyebrow: string
+  /**
+   * Draw the poster band. False when the page around the wizard draws its own
+   * (the NPC designer's, which carries its Any NPC | Crawler crew tabs).
+   */
+  band?: boolean
   /** Ordered step labels — also drives the primary CTA ('Next · {label} →'). */
   steps: readonly string[]
   /** Index of the active step. */
@@ -279,6 +287,9 @@ const shellStyle = {
   minHeight: '100dvh',
 } satisfies CSSProperties
 
+/** Under a page's own band: the shell's column, as tall as its content. */
+const shellUnderBandStyle = { display: 'flex', flexDirection: 'column' } satisfies CSSProperties
+
 /** A column on a phone, a row from lg (`.su-wiz-body`). */
 const bodyStyle = { display: 'flex', flex: '1 1 0%' } satisfies CSSProperties
 
@@ -388,6 +399,7 @@ const footerPillStyle = {
 export function WizShell({
   kind,
   eyebrow,
+  band = true,
   steps,
   active,
   onStepClick,
@@ -467,12 +479,14 @@ export function WizShell({
   )
 
   return (
-    <div className={`su-sheet--${kind}`} style={shellStyle}>
+    <div className={`su-sheet--${kind}`} style={band ? shellStyle : shellUnderBandStyle}>
       {/* The page title as every other page sets it. A paragraph: the step's
           title is the page's h1. */}
-      <ChapterBand tone={kind} as="p">
-        {eyebrow}
-      </ChapterBand>
+      {band && (
+        <ChapterBand tone={kind === 'npc' ? 'denizen' : kind} as="p">
+          {eyebrow}
+        </ChapterBand>
+      )}
 
       <div className="su-wiz-body" style={bodyStyle}>
         {/* (a) 196px connector-pipe stepper rail: a thick ink

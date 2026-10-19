@@ -79,10 +79,7 @@ export { InlineRef } from './atoms/InlineRef'
 export { Input, Textarea } from './atoms/inputs'
 // The focus vocabulary — exported so the apps' focus treatment uses these
 // rungs rather than their own.
-export {
-  FOCUS_RING,
-  INPUT_FOCUS,
-} from './atoms/interaction'
+export { FOCUS_RING } from './atoms/interaction'
 // KofiButton — the Ko-fi support widget, with a plain link until its script loads
 export { KofiButton } from './atoms/KofiButton'
 // Message — the one single-line feedback message (bad = role="alert", else status)

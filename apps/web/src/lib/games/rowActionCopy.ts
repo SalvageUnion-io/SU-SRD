@@ -266,7 +266,7 @@ export const ROW_ACTION_COPY = {
 
     if (args.to.kind === 'shelf') {
       return {
-        title: `Take ${args.name} out of ${from}?`,
+        title: `Move ${args.name} out of ${from}?`,
         body: [
           `${args.name} leaves the Game's roster and goes back to your Hangar, so the rest of the table won't see ${it} any more.`,
           clearedAssignments(args.kind, from),

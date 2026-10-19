@@ -297,8 +297,8 @@ function page(): PageResult {
             <div style={PANEL_BODY}>
               <p>
                 Returns the JSON Schema definition for a schema, generated from the Zod validation
-                schemas used in the SRD codebase. Useful for validating data or understanding the
-                shape of entity objects.
+                schemas used in this site's codebase. Useful for validating data or understanding
+                the shape of entity objects.
               </p>
               <p>
                 <strong>Example:</strong>{' '}

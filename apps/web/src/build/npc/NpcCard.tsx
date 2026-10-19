@@ -7,7 +7,7 @@
  * §3.9): the dashed frame and seam stamp, "Made by [maker]" in place of a page,
  * and a kicker naming what it was built from ("NPC · from Veteran").
  *
- * No "View in SRD" link: a built NPC has no page in the book, and the
+ * No "View in the Reference" link: a built NPC has no page in the book, and the
  * template's would lend it one. Its nested actions have none either (they are
  * a meta schema), so the whole card renders with no external-link builder.
  */

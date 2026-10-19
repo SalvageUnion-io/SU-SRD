@@ -1,15 +1,13 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { useCallback, useContext, useState } from 'react'
+import { useCallback, useContext, useId, useState } from 'react'
 import type { RefEntity, RefObjectChoice } from 'salvageunion-reference'
 import { isSchemaName, SalvageUnionReference } from 'salvageunion-reference'
 import {
-  borderWidth,
   color,
   duration,
   ease,
   font,
   fontSize,
-  radius,
   space,
   tracking,
   weight,
@@ -17,8 +15,9 @@ import {
 import { cn } from '../../../lib/cn'
 import { useParseTraitReferences } from '../../../lib/parseTraitReferences'
 import type { CSSVarStyle } from '../../../styles/cssVars'
-import { Badge } from '../../atoms/Badge'
-import { FOCUS_RING, INPUT_FOCUS } from '../../atoms/interaction'
+import { Field } from '../../atoms/Field'
+import { Input, Textarea } from '../../atoms/inputs'
+import { FOCUS_RING } from '../../atoms/interaction'
 import { Slab } from '../../atoms/Slab'
 import { SELECT_DIM, SELECTED_RING } from '../../entity/modes/selectedRing'
 import { InsidePeekContext, tablePeekAddress } from '../../entity/peekContext'
@@ -120,37 +119,6 @@ const optionCellStyle = {
   marginBottom: space[6],
   breakInside: 'avoid',
   paddingTop: space[10],
-} satisfies CSSProperties
-
-/**
- * The free-text field's static geometry. Its border COLOUR lives on
- * `.su-stampseal-field__input`, so only the width and style are set here.
- * Focused, it wears the one ring (`INPUT_FOCUS`).
- */
-const fieldStyle = {
-  width: '100%',
-  borderRadius: radius.card,
-  borderWidth: borderWidth.hairline,
-  borderStyle: 'solid',
-  backgroundColor: color.paper,
-  padding: `${space[14]} ${space[8]} ${space[4]}`,
-  fontFamily: font.body,
-  fontSize: fontSize.xs,
-  lineHeight: '1rem',
-  color: color.ink,
-} satisfies CSSProperties
-
-/**
- * The floating label's static half; `top` / `translate` / `opacity` follow the
- * field's state, so they live on `.su-stampseal-field__label`.
- */
-const fieldLabelStyle = {
-  pointerEvents: 'none',
-  position: 'absolute',
-  left: space[8],
-  transitionProperty: 'all',
-  transitionTimingFunction: ease,
-  transitionDuration: duration.base,
 } satisfies CSSProperties
 
 /** Off a Page, an option's Slab sits close over its text, as When Damaged's does. */
@@ -293,12 +261,11 @@ function ChoiceOption({
 }
 
 /**
- * A free-text choice input with an xs stampseal LABEL riding the upper border.
- * The label floats: while the field is empty and unfocused it sits inside the
- * field (acting as the placeholder); on focus or once there's a value it rides
- * the top border, out of the way of what's being typed. Peer-driven, no JS.
+ * A free-text choice (Name / Motto / a table's "choose your own"): the one
+ * labelled field, `Field` over `Input` or `Textarea` (hard rule R16), so it
+ * types at 16px and never zooms an iPhone.
  */
-function StampsealField({
+function ChoiceTextField({
   label,
   value,
   multiline,
@@ -309,41 +276,15 @@ function StampsealField({
   multiline?: boolean
   onChange: (value: string) => void
 }): ReactNode {
-  const fieldClass = cn('su-stampseal-field__input', INPUT_FOCUS)
-  const badge = (
-    // A single space placeholder makes `:placeholder-shown` track "is empty".
-    // The float (inside while empty, riding the border on focus or with a
-    // value) is the sibling selectors on `.su-stampseal-field__label`.
-    <span className="su-stampseal-field__label" style={fieldLabelStyle}>
-      <Badge shape="stamp" size="mini">
-        {label}
-      </Badge>
-    </span>
-  )
+  const id = useId()
   return (
-    <div style={{ position: 'relative' }}>
+    <Field label={label} htmlFor={id}>
       {multiline ? (
-        <textarea
-          aria-label={label}
-          className={fieldClass}
-          style={fieldStyle}
-          rows={2}
-          value={value}
-          placeholder=" "
-          onChange={(e) => onChange(e.target.value)}
-        />
+        <Textarea id={id} rows={2} value={value} onChange={(e) => onChange(e.target.value)} />
       ) : (
-        <input
-          aria-label={label}
-          className={fieldClass}
-          style={fieldStyle}
-          value={value}
-          placeholder=" "
-          onChange={(e) => onChange(e.target.value)}
-        />
+        <Input id={id} value={value} onChange={(e) => onChange(e.target.value)} />
       )}
-      {badge}
-    </div>
+    </Field>
   )
 }
 
@@ -386,7 +327,7 @@ function ChoiceOptionGroup({
       return value ? <p style={chosenValueStyle}>{value}</p> : null
     }
     return (
-      <StampsealField
+      <ChoiceTextField
         label={choice.name}
         value={value}
         multiline={choice.name.toLowerCase() !== 'name'}
@@ -412,7 +353,7 @@ function ChoiceOptionGroup({
         ) : (
           // The field ALWAYS shows in editable — it holds the chosen value, and
           // rolling the table below fills it (RollTable.onRollResult).
-          <StampsealField label={choice.name} value={value} onChange={onFreeTextChange} />
+          <ChoiceTextField label={choice.name} value={value} onChange={onFreeTextChange} />
         )}
         {table && !insidePeek && (
           <CardRollTable

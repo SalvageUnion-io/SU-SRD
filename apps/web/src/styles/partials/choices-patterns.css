@@ -17,34 +17,6 @@
   }
 }
 
-/* The free-text field's border colour: ink at 20%. Focused, it wears the one
-   ring (`INPUT_FOCUS`, chrome K9), not a darker border. */
-.su-stampseal-field__input {
-  border-color: var(--color-ink-20);
-}
-
-/* The field's floating stamp label. It rides the field's top border; while
-   the field is empty and unfocused (a single-space placeholder makes
-   `:placeholder-shown` mean "empty") it drops inside like a placeholder, and
-   focus snaps it back up. Sibling-state driven, so a class; the focus rule
-   comes last and wins when both match. */
-.su-stampseal-field__label {
-  top: 0;
-  translate: 0 -50%;
-}
-
-.su-stampseal-field__input:placeholder-shown ~ .su-stampseal-field__label {
-  top: var(--space-14);
-  translate: 0 0;
-  opacity: 0.6;
-}
-
-.su-stampseal-field__input:focus ~ .su-stampseal-field__label {
-  top: 0;
-  translate: 0 -50%;
-  opacity: 1;
-}
-
 /* `card/ChoiceRegion.tsx` — a choice sits 12px above whatever follows it, and
    flush when it is last (a structural `:not(:last-child)`). */
 .su-choice-region:not(:last-child) {

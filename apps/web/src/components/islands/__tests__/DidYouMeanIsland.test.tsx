@@ -68,7 +68,7 @@ describe('DidYouMeanIsland', () => {
   test('offers the closest entries and a search for the slug', async () => {
     render(<DidYouMeanIsland pathname="/chassis/gophr/" />)
     expect(await screen.findByRole('heading', { name: 'Did you mean' })).toBeTruthy()
-    expect(screen.getByRole('link', { name: /Search the SRD for “gophr”/ })).toBeTruthy()
+    expect(screen.getByRole('link', { name: /Search the Reference for “gophr”/ })).toBeTruthy()
     expect(screen.getAllByRole('link').some((link) => link.textContent?.includes('Gopher'))).toBe(
       true
     )
@@ -90,7 +90,7 @@ describe('DidYouMeanIsland', () => {
     try {
       render(<DidYouMeanIsland />)
       expect(await screen.findByRole('heading', { name: 'Did you mean' })).toBeTruthy()
-      expect(screen.getByRole('link', { name: /Search the SRD for “gophr”/ })).toBeTruthy()
+      expect(screen.getByRole('link', { name: /Search the Reference for “gophr”/ })).toBeTruthy()
     } finally {
       window.location.href = 'http://localhost/'
     }

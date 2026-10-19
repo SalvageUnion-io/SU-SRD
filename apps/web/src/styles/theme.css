@@ -385,7 +385,8 @@
    `--sheet-tone` overrides the tone without redefining the grounds. */
 .su-sheet--pilot,
 .su-sheet--mech,
-.su-sheet--crawler {
+.su-sheet--crawler,
+.su-sheet--npc {
   --tone: var(--sheet-tone, var(--tone-default));
 }
 
@@ -422,6 +423,15 @@
   --tone-deep: var(--color-sheet-crawler-deep);
   --ground: oklch(from var(--tone) 0.955 0.03 h);
   --tone-band: var(--color-crawler-band);
+  --on-tone-band: var(--color-paper);
+}
+
+/* The NPC designer's wizard (WizShell, hard rule R16): the Denizens navy. */
+.su-sheet--npc {
+  --tone-default: var(--color-denizen-band);
+  --tone-deep: var(--color-denizen-band);
+  --ground: oklch(from var(--tone) 0.955 0.02 h);
+  --tone-band: var(--tone);
   --on-tone-band: var(--color-paper);
 }
 

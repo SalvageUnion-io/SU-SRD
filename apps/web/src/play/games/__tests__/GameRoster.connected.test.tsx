@@ -593,20 +593,20 @@ describe('remove from game', () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT, THEIR_PILOT, PRE_GEN] }))
     const pilots = ['Roach-Boy', 'Ash', 'Pre-gen']
     // Not yet in this browser: nothing to move from here.
-    expect(await rowsOffering(pilots, 'Remove from Game')).toEqual([])
+    expect(await rowsOffering(pilots, 'Move to your Hangar')).toEqual([])
 
     cleanup()
     await holdLocally()
     await renderAs(ME, listing({ pilots: [MY_PILOT, THEIR_PILOT, PRE_GEN] }))
-    expect(await rowsOffering(pilots, 'Remove from Game')).toEqual(['Roach-Boy'])
+    expect(await rowsOffering(pilots, 'Move to your Hangar')).toEqual(['Roach-Boy'])
   })
 
   test('asks first — naming the game and the assignments it clears — and moves nothing until confirmed', async () => {
     await holdLocally()
     await renderAs(ME, listing({ pilots: [MY_PILOT] }))
-    const dialog = await press('Roach-Boy', 'Remove from Game')
+    const dialog = await press('Roach-Boy', 'Move to your Hangar')
 
-    expect(dialog.textContent).toContain('Take Roach-Boy out of Tenacity?')
+    expect(dialog.textContent).toContain('Move Roach-Boy out of Tenacity?')
     expect(dialog.textContent).toContain('goes back to your Hangar')
     expect(dialog.textContent).toContain('Their crawler assignment in Tenacity is cleared')
     expect(gameIdOf('a-mine')).toBe('g1')
@@ -618,7 +618,7 @@ describe('remove from game', () => {
   test('confirming moves the same record to your shelves', async () => {
     await holdLocally()
     await renderAs(ME, listing({ pilots: [MY_PILOT] }))
-    await press('Roach-Boy', 'Remove from Game')
+    await press('Roach-Boy', 'Move to your Hangar')
 
     await confirmWith('Move to your Hangar')
     // The move commits to the (stubbed) server first, which outlasts one act() scope.
@@ -635,11 +635,11 @@ describe('remove from game', () => {
       .adopt('crawler', crawlerFixture({ id: 'a-crawler', name: '#430 Tenacity', gameId: 'g1' }))
 
     await renderAs(ME, listing({ crawlers: [CRAWLER] }))
-    expect(await verbsOf('#430 Tenacity')).not.toContain('Remove from Game')
+    expect(await verbsOf('#430 Tenacity')).not.toContain('Move to your Hangar')
 
     cleanup()
     await renderAs({ ...ME, _id: 'u-med' }, listing({ crawlers: [CRAWLER] }))
-    const dialog = await press('#430 Tenacity', 'Remove from Game')
+    const dialog = await press('#430 Tenacity', 'Move to your Hangar')
     expect(dialog.textContent).toContain('Everyone in Tenacity assigned to it is unassigned')
   })
 })
@@ -666,9 +666,9 @@ describe('units in from Build (ADR-052 §3, §5)', () => {
 
   async function openPicker(): Promise<HTMLElement> {
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: '+ Add from your Hangar' }))
+      fireEvent.click(screen.getByRole('button', { name: '+ Move in from your Hangar' }))
     })
-    return screen.getByRole('dialog', { name: 'Add from your Hangar' })
+    return screen.getByRole('dialog', { name: 'Move in from your Hangar' })
   }
 
   test('the picker offers one of your units not in this Game, under its kind, with the Game it leaves', async () => {

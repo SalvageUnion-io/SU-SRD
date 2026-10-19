@@ -1,5 +1,5 @@
 /**
- * What "Add from your Hangar" offers on a Game's page (ADR-052 §5): your units
+ * What "Move in from your Hangar" offers on a Game's page (ADR-052 §5): your units
  * that could move into this Game, by kind, each with the relation chips that
  * show what the move touches — the Game it would leave (`GAME | Frostline`)
  * and the unit it is assigned to (`MECH | Scrapper`, `PILOT | Bonesaw`).

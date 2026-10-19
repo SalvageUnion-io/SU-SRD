@@ -6,7 +6,7 @@
  *
  * The Opposition is hidden from players (ADR-030 §5). + Add opens the picker
  * over the reference (`OppositionPicker`, saved patterns included), and Rename
- * and Remove ask first (`OppositionDialogs`). The chosen NPC is the screen's
+ * and Delete ask first (`OppositionDialogs`). The chosen NPC is the screen's
  * own; until one is chosen it is the first still standing.
  */
 

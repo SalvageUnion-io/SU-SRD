@@ -106,7 +106,7 @@ test.describe('signed out', () => {
       // The Union bar's combobox: the home page has only the hero's field,
       // which mounts its island on intent.
       await page.goto('/chassis/', { waitUntil: 'networkidle' })
-      const search = page.getByRole('combobox', { name: 'Search the SRD' }).first()
+      const search = page.getByRole('combobox', { name: 'Search the Reference' }).first()
       await search.click()
       await search.fill(name)
       const trigger = page

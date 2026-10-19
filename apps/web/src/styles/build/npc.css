@@ -5,62 +5,8 @@
  * hold because they change with the viewport or with state.
  */
 
-/* The step strip: five boxes across from 48rem; below that, one line
-   ("3 / 5 · Actions & traits") and no boxes. */
-.su-npc-steps {
-  display: grid;
-  gap: var(--space-8, 0.5rem);
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.su-npc-steps__compact {
-  display: none;
-}
-
-.su-npc-step {
-  align-items: center;
-  background-color: var(--color-paper);
-  border: var(--bw-chrome) solid var(--color-ink);
-  color: var(--color-ink);
-  cursor: pointer;
-  display: flex;
-  font-family: var(--font-cond);
-  font-size: var(--text-caption);
-  font-weight: 700;
-  gap: var(--space-8);
-  letter-spacing: var(--tracking-caps-tight);
-  min-height: var(--size-full);
-  padding: 0 var(--space-12);
-  text-align: left;
-  text-transform: uppercase;
-  width: 100%;
-}
-
-.su-npc-step[aria-current='step'] {
-  background-color: var(--color-ink);
-  color: var(--color-paper);
-}
-
-.su-npc-step:disabled {
-  color: var(--color-ink-75);
-  cursor: default;
-}
-
-@media not (width >= 48rem) {
-  .su-npc-steps {
-    display: none;
-  }
-
-  .su-npc-steps__compact {
-    display: block;
-  }
-}
-
 /* The live preview: its own column from 48rem; below that, a Preview button
-   above the sticky Back / Next bar opens it in a modal (§5). */
+   in the step opens it in a modal (§5). */
 .su-npc-preview {
   display: flex;
   flex-direction: column;
@@ -80,15 +26,6 @@
   .su-npc-preview-toggle {
     display: inline-flex;
   }
-
-  .su-npc-nav {
-    background-color: var(--color-wk-bg);
-    border-top: var(--bw-chrome) solid var(--color-ink);
-    bottom: 0;
-    padding-block: var(--space-8);
-    position: sticky;
-    z-index: var(--z-sticky);
-  }
 }
 
 /* An action or trait row's header is an ink band: its name reads paper, as the
@@ -96,16 +33,4 @@
    ancestor's ink text cannot bleed through. */
 .su-npc-pick [data-ground='ink'] > * {
   color: var(--color-paper);
-}
-
-/* Back, Next and Preview: 44px condensed caps, as board N1 draws them (and a
-   44px touch target on the phone's sticky bar). */
-.su-npc-nav > button {
-  font-family: var(--font-cond);
-  font-size: var(--text-caption);
-  font-weight: 700;
-  letter-spacing: var(--tracking-caps-tight);
-  min-height: var(--size-full);
-  padding: 0 var(--space-20);
-  text-transform: uppercase;
 }

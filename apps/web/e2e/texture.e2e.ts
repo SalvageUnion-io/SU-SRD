@@ -78,7 +78,7 @@ async function overlays(page: Page): Promise<{ what: string; grained: string[] }
       await reference.click()
       const dialog = page.getByRole('dialog', { name: 'Reference' })
       await expect(dialog).toBeVisible()
-      await dialog.getByRole('combobox', { name: 'Search the SRD' }).fill('drill')
+      await dialog.getByRole('combobox', { name: 'Search the Reference' }).fill('drill')
       await rest(page)
       read.push({ what: "the Reference's results", grained: await grainedIn(page) })
       const result = dialog.getByRole('option').first()

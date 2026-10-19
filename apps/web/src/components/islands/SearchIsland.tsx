@@ -217,7 +217,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
       // so the mounter carries what a reader typed there, with focus and
       // caret, onto this one (`mountIsland`).
       name={hero ? 'q' : 'srd-search'}
-      placeholder={hero ? HERO_SEARCH_PLACEHOLDER : 'Search the SRD'}
+      placeholder={hero ? HERO_SEARCH_PLACEHOLDER : 'Search the Reference'}
       shortcut={shortcut}
       value={query}
       onChange={(e) => onInput(e.target.value)}
@@ -232,7 +232,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
       containerClassName={hero ? 'su-hero-search__field' : undefined}
       glyphSize={hero ? 18 : undefined}
       {...inputProps}
-      aria-label="Search the SRD"
+      aria-label="Search the Reference"
       role="combobox"
       aria-expanded={isOpen}
       aria-controls={listboxId}

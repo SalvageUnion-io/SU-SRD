@@ -1,5 +1,5 @@
 /**
- * `hangarChoices` — what "Add from your Hangar" offers on a Game's page: only
+ * `hangarChoices` — what "Move in from your Hangar" offers on a Game's page: only
  * units the move would accept (ADR-037 via `moveDestinations`), each with the
  * relation chips that show what the move touches.
  */

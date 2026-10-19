@@ -85,8 +85,8 @@ function SearchRail({ query, setQuery, children }: QueryProps & { children?: Rea
           name="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search the SRD…"
-          aria-label="Search the SRD"
+          placeholder="Search the Reference…"
+          aria-label="Search the Reference"
           containerClassName="su-rail__field"
           glyphSize={18}
           autoFocus
@@ -177,7 +177,7 @@ function SearchResults({
     return (
       <>
         {rail}
-        <EmptyState headline="Search the SRD" body="Enter a search term to see results." />
+        <EmptyState headline="Search the Reference" body="Enter a search term to see results." />
       </>
     )
   }

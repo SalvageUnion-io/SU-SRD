@@ -70,6 +70,8 @@ export function NpcDesignerPage({
       <Tabs value={view} onValueChange={onViewChange}>
         <ChapterBand
           tone={crew ? 'crawler' : 'denizen'}
+          // Any NPC is a wizard, whose step title is the page's h1 (WizShell).
+          as={crew ? 'h1' : 'p'}
           // The crawler pink behind paper text needs the deeper crawlerBand. Passed here,
           // not set in ChapterBand, so every other crawler band keeps its tone.
           fill={crew ? tokens.color.crawlerBand : undefined}

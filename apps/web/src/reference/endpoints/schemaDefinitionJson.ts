@@ -22,7 +22,7 @@ type Props = { schemaFile: string }
  * for schemas with no `/<id>/` listing page to belong to. `api.page.tsx`,
  * the page that documents this API, filters them out — so those three were
  * undocumented endpoints — and the page gate (`hasPage`) read the unfiltered
- * catalog too, which is how "View in SRD" came to link at a 404.
+ * catalog too, which is how "View in the Reference" came to link at a 404.
  *
  * The three are meta schemas: their content renders inline on the entities that
  * own it, so there is nothing for a standalone JSON Schema definition endpoint to

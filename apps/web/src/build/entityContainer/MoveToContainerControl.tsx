@@ -6,7 +6,7 @@
  * two real containers. Moving INTO a Game is one tap unless it clears an
  * assignment; moving OUT of one — back to your shelves, or on to another Game —
  * always asks first. The hub's rows offer the same moves (`MoveToGameSelect`,
- * and "Remove from game" on a Game's rows).
+ * and "Move to your Hangar" on a Game's rows).
  *
  * ## When a move asks
  *
@@ -59,34 +59,23 @@
 import type { Container, ContainerFields } from 'game-domain/container'
 import { containerOf, moveTo } from 'game-domain/container'
 import { useQuery } from 'convex/react'
-import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
-import { color, fontSize, space, weight } from '../../design/tokens'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { moveDestinations } from '../../lib/games/gameRoster'
 import { useEntityStore } from '../../stores/entityStore'
 import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
 import type { AssignableType } from '../../stores/types'
-import { FieldError } from '../../components/index'
+import { Field, FieldError } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
 import { ContainerPicker } from './ContainerPicker'
 import { requestMove } from './requestMove.model'
-
-const ROW = { alignItems: 'center', display: 'flex', gap: space[8] } satisfies CSSProperties
-
-const LABEL = {
-  color: color.wkMuted,
-  fontSize: fontSize.sm,
-  fontWeight: weight.medium,
-  lineHeight: 'calc(1.25 / 0.875)',
-} satisfies CSSProperties
 
 /**
  * Sized to its options. Its height steps down from `sm` and it fades when
  * disabled (`.su-container-select`, `.su-move-to-container__select`).
  */
-const SELECT = { width: 'auto' } satisfies CSSProperties
+const SELECT = { width: 'auto' } as const
 
 type MoveToContainerControlProps = {
   entityType: AssignableType
@@ -154,10 +143,8 @@ function ConnectedMoveToContainerControl({
 
   return (
     <div className={className}>
-      <div style={ROW}>
-        <label htmlFor={`container-move-${entityId}`} style={LABEL}>
-          In:
-        </label>
+      {/* The one label treatment (R16): `Field`'s, over the select. */}
+      <Field label="In" htmlFor={`container-move-${entityId}`}>
         {/* A record left in a container that is not among the user's Games —
             a v13 phantom id, or a Game they have since left — is named
             "Unknown game" by `moveDestinations` rather than passed off as
@@ -173,7 +160,7 @@ function ConnectedMoveToContainerControl({
           className="su-container-select su-move-to-container__select"
           style={SELECT}
         />
-      </div>
+      </Field>
       {error && <FieldError spaceAbove={4}>{error}</FieldError>}
     </div>
   )

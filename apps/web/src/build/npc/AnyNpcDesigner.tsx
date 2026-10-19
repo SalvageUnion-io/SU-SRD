@@ -12,7 +12,8 @@
  * - The preview is the card on a shelf or in a Game: dashed, User-made, "Made by
  *   [maker]" (D9). The template's description pre-fills Identity; edits win (D5).
  *
- * The step machine and create are `useWizardFlow`'s; drafts go through `wizardDraft.ts`.
+ * The step machine and create are `useWizardFlow`'s, drawn by `WizShell` like every
+ * wizard (hard rule R16); drafts go through `wizardDraft.ts`.
  */
 
 import { NpcSchema } from 'game-domain/schemas/npc'
@@ -54,15 +55,15 @@ import {
   SearchField,
   Sel,
   Select,
-  Slab,
   Textarea,
   tokens,
   useDetailModal,
 } from '../../components/index'
 import { WritesBlockedNotice } from '../../components/shared/WritesBlockedNotice'
 import { useWizardFlow } from '../wizard/useWizardFlow'
+import { WizShell } from '../wizard/WizShell'
 import { NpcCard } from './NpcCard'
-import { CAPS, COLUMN, COLUMNS, HINT, LIST, NOTE, PENCIL, ROW } from './npcStyles.model'
+import { CAPS, COLUMN, HINT, LIST, NOTE, PENCIL, ROW } from './npcStyles.model'
 
 const STEP_INTRO: Record<NpcStepId, string> = {
   template:
@@ -74,14 +75,12 @@ const STEP_INTRO: Record<NpcStepId, string> = {
   review: 'Check the card, then save the NPC to your Hangar.',
 }
 
-const CHECK_HIT = {
-  alignItems: 'center',
-  cursor: 'pointer',
-  display: 'flex',
-  flexShrink: 0,
-  justifyContent: 'center',
-  minHeight: tokens.size.full,
-  minWidth: tokens.size.full,
+/** The step beside its live preview, where there is room for both; stacked where not. */
+const STEP_COLUMNS = {
+  alignItems: 'start',
+  display: 'grid',
+  gap: tokens.space[32],
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 24rem), 1fr))',
 } satisfies CSSProperties
 
 const PICK_ROW = {
@@ -115,22 +114,8 @@ const BLANK_TILE = {
 
 const BLANK_TILE_CHOSEN = { ...BLANK_TILE, borderStyle: 'solid' } satisfies CSSProperties
 
-const RESULT_BUTTON = {
-  alignItems: 'center',
-  background: tokens.color.paper,
-  border: `${tokens.borderWidth.chrome} solid ${tokens.color.ink}`,
-  color: tokens.color.ink,
-  cursor: 'pointer',
-  display: 'flex',
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.caption,
-  gap: tokens.space[8],
-  justifyContent: 'space-between',
-  minHeight: tokens.size.full,
-  padding: `0 ${tokens.space[12]}`,
-  textAlign: 'left',
-  width: '100%',
-} satisfies CSSProperties
+/** A match: the outlined `Button` (R16), the row's width, its kind at the far end. */
+const RESULT_BUTTON = { justifyContent: 'space-between', width: '100%' } satisfies CSSProperties
 
 type AnyNpcDesignerProps = {
   /** The maker's display name, for the preview's "Made by". */
@@ -150,7 +135,6 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
   /** A restart waiting on the player's yes: a template, or `'blank'` (D4). */
   const [pendingStart, setPendingStart] = useState<RefNPC | 'blank' | null>(null)
   const [previewOpen, setPreviewOpen] = useState(false)
-  const [confirmingCancel, setConfirmingCancel] = useState(false)
 
   const flow = useWizardFlow({
     entityType: 'npc',
@@ -170,7 +154,6 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
     onCancel,
   })
   const { step, gate, submitError, shell } = flow
-  const stepIndex = NPC_STEPS.indexOf(step)
 
   const template = useMemo(
     () =>
@@ -206,93 +189,74 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
     setForm((prev) => applyBlankStart(prev))
   }
 
-  const next = stepIndex < NPC_STEPS.length - 1 ? NPC_STEPS[stepIndex + 1] : undefined
-  const nextLabel = next === undefined ? 'Save NPC' : `Next: ${NPC_STEP_LABELS[next]}`
   const preview = <NpcCard npc={npcFormView(form)} madeBy={madeBy} />
+  const writesBlocked = step === 'review' && !canWrite
 
   return (
     <>
-      <div style={{ ...COLUMNS, paddingTop: tokens.space[24] }}>
-        <StepStrip
-          step={step}
-          onStepClick={shell.onStepClick}
-          reachable={(i) =>
-            i <= stepIndex || NPC_STEPS.slice(0, i).every((s) => npcCreationStepGate(s, form).ok)
-          }
-        />
-      </div>
-      <div style={COLUMNS}>
-        <section style={COLUMN} aria-labelledby="npc-step-title">
-          <Slab as="h2" id="npc-step-title" label={NPC_STEP_LABELS[step]} />
-          {step !== 'template' && form.templateChosen && (
-            <div style={ROW}>
-              <span style={CAPS}>Template</span>
-              {template ? (
-                <Entity form="token" context="browse" entity={template} />
-              ) : (
-                <span style={HINT}>Started blank</span>
-              )}
-              <Button variant="ghost" size="compact" onClick={() => shell.onStepClick(0)}>
-                Change
-              </Button>
-            </div>
-          )}
-          <p style={HINT}>{STEP_INTRO[step]}</p>
-
-          {step === 'template' && (
-            <TemplateStep form={form} onTemplate={chooseTemplate} onBlank={chooseBlank} />
-          )}
-          {step === 'stats' && <StatsStep form={form} onChange={update} />}
-          {step === 'actions' && <ActionsStep form={form} onChange={setForm} />}
-          {step === 'identity' && <IdentityStep form={form} onChange={update} />}
-          {step === 'review' && <div>{preview}</div>}
-
-          {!gate.ok && gate.reason && <p style={HINT}>{gate.reason}</p>}
-          {submitError && <FieldError>{submitError}</FieldError>}
-          <div className="su-npc-nav" style={ROW}>
-            <Button
-              variant="default"
-              onClick={
-                shell.onBack ??
-                (shell.confirmCancel ? () => setConfirmingCancel(true) : shell.onCancel)
-              }
-              disabled={shell.busy}
-            >
-              {shell.onBack ? 'Back' : 'Cancel'}
-            </Button>
-            {step === 'review' && !canWrite ? (
-              <WritesBlockedNotice />
-            ) : (
-              <Button
-                variant="primary"
-                onClick={shell.onNext}
-                disabled={shell.nextDisabled || shell.busy}
-              >
-                {shell.busy ? 'Saving…' : nextLabel}
-              </Button>
+      {/* The one wizard (hard rule R16): WizShell's rail, step head and action
+          pill, under the designer page's own band (its Any NPC | Crawler crew
+          tabs). The step sits beside its live preview. */}
+      <WizShell
+        kind="npc"
+        eyebrow="Denizens · New NPC"
+        band={false}
+        {...shell}
+        nextDisabled={shell.nextDisabled || writesBlocked}
+        title={NPC_STEP_LABELS[step]}
+        footerNote={!gate.ok ? gate.reason : undefined}
+        submitLabel="Save NPC"
+      >
+        <div style={STEP_COLUMNS}>
+          <section style={COLUMN} aria-label={NPC_STEP_LABELS[step]}>
+            {step !== 'template' && form.templateChosen && (
+              <div style={ROW}>
+                <span style={CAPS}>Template</span>
+                {template ? (
+                  <Entity form="token" context="browse" entity={template} />
+                ) : (
+                  <span style={HINT}>Started blank</span>
+                )}
+                <Button variant="ghost" size="compact" onClick={() => shell.onStepClick(0)}>
+                  Change
+                </Button>
+              </div>
             )}
+            <p style={HINT}>{STEP_INTRO[step]}</p>
             {step !== 'review' && (
               <Button
                 variant="ghost"
+                size="compact"
                 className="su-npc-preview-toggle"
                 onClick={() => setPreviewOpen(true)}
               >
                 Preview
               </Button>
             )}
-          </div>
-        </section>
 
-        <section className="su-npc-preview" aria-label="Live preview">
-          <p style={CAPS}>Live preview · how it will look in your Hangar and in a Game</p>
-          {preview}
-          <p style={NOTE}>
-            <strong>Yours, not the book&rsquo;s.</strong> A designed NPC keeps its template&rsquo;s
-            link to the reference, but wears the user-made frame and your name. It can go in your
-            Hangar, into a Game, or into a crawler&rsquo;s crew.
-          </p>
-        </section>
-      </div>
+            {step === 'template' && (
+              <TemplateStep form={form} onTemplate={chooseTemplate} onBlank={chooseBlank} />
+            )}
+            {step === 'stats' && <StatsStep form={form} onChange={update} />}
+            {step === 'actions' && <ActionsStep form={form} onChange={setForm} />}
+            {step === 'identity' && <IdentityStep form={form} onChange={update} />}
+            {step === 'review' && <div>{preview}</div>}
+
+            {writesBlocked && <WritesBlockedNotice />}
+            {submitError && <FieldError>{submitError}</FieldError>}
+          </section>
+
+          <section className="su-npc-preview" aria-label="Live preview">
+            <p style={CAPS}>Live preview · how it will look in your Hangar and in a Game</p>
+            {preview}
+            <p style={NOTE}>
+              <strong>Yours, not the book&rsquo;s.</strong> A designed NPC keeps its
+              template&rsquo;s link to the reference, but wears the user-made frame and your name.
+              It can go in your Hangar, into a Game, or into a crawler&rsquo;s crew.
+            </p>
+          </section>
+        </div>
+      </WizShell>
 
       <ModalShell
         open={previewOpen}
@@ -302,20 +266,6 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
       >
         {preview}
       </ModalShell>
-
-      <ConfirmDialog
-        open={confirmingCancel}
-        onOpenChange={setConfirmingCancel}
-        title="Discard this draft?"
-        body="Your unsaved changes will be lost."
-        confirmLabel="Discard"
-        cancelLabel="Keep editing"
-        tone="danger"
-        onConfirm={() => {
-          setConfirmingCancel(false)
-          shell.onCancel()
-        }}
-      />
 
       <ConfirmDialog
         open={pendingStart !== null}
@@ -342,42 +292,6 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
         }}
       />
     </>
-  )
-}
-
-/** The five steps across (from 48rem), or one compact line below that (§5). */
-function StepStrip({
-  step,
-  onStepClick,
-  reachable,
-}: {
-  step: NpcStepId
-  onStepClick: (index: number) => void
-  reachable: (index: number) => boolean
-}) {
-  const active = NPC_STEPS.indexOf(step)
-  return (
-    <nav aria-label="Design steps" style={{ gridColumn: '1 / -1' }}>
-      <ol className="su-npc-steps">
-        {NPC_STEPS.map((s, i) => (
-          <li key={s}>
-            <button
-              type="button"
-              className="su-npc-step"
-              aria-current={i === active ? 'step' : undefined}
-              disabled={i !== active && !reachable(i)}
-              onClick={() => onStepClick(i)}
-            >
-              <span aria-hidden="true">{i < active ? '✓' : i + 1}</span>
-              {NPC_STEP_LABELS[s]}
-            </button>
-          </li>
-        ))}
-      </ol>
-      <p className="su-npc-steps__compact" style={CAPS}>
-        {active + 1} / {NPC_STEPS.length} · {NPC_STEP_LABELS[step]}
-      </p>
-    </nav>
   )
 }
 
@@ -548,14 +462,13 @@ function PickRow({
   const id = useId()
   return (
     <li className="su-npc-pick" style={PICK_ROW}>
-      <label htmlFor={id} style={CHECK_HIT}>
-        <Checkbox
-          id={id}
-          checked={carried}
-          aria-label={label}
-          onChange={(e) => onToggle(e.target.checked)}
-        />
-      </label>
+      <Checkbox
+        id={id}
+        hitArea
+        checked={carried}
+        aria-label={label}
+        onChange={(e) => onToggle(e.target.checked)}
+      />
       <div style={GROW}>{children}</div>
     </li>
   )
@@ -687,8 +600,8 @@ function ReferenceAdder({
               m.kind === 'Action' ? carriedActions.includes(slug) : carriedTraits.includes(m.name)
             return (
               <li key={`${m.kind}:${m.name}`}>
-                <button
-                  type="button"
+                <Button
+                  variant="default"
                   style={RESULT_BUTTON}
                   disabled={has}
                   onClick={() => {
@@ -702,8 +615,8 @@ function ReferenceAdder({
                       ? `${displayTitle(m.name)} — already listed`
                       : `Add ${displayTitle(m.name)}`}
                   </span>
-                  <span style={CAPS}>{m.kind}</span>
-                </button>
+                  <span>{m.kind}</span>
+                </Button>
               </li>
             )
           })}

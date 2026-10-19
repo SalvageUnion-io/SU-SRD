@@ -8,7 +8,7 @@
  * HP and takes a numbered name when it duplicates one, or the name typed under
  * Draw from (cleared once used), so the table can tell its opposition apart.
  * An entity with patterns (a chassis, a Bio-Titan) asks which one beneath the
- * list before it is added. Remove asks first and is never done for you
+ * list before it is added. Delete asks first and is never done for you
  * (ADR-007); Rename gives an NPC a name of the Mediator's own.
  *
  * Presentational: `usePlayMediator` reads the Opposition and makes the writes.
@@ -205,7 +205,7 @@ export function OppositionPicker({
 }
 
 /**
- * Remove (asks first: the NPC leaves the Opposition for good, ADR-007) and Rename
+ * Delete (asks first: the NPC leaves the Opposition for good, ADR-007) and Rename
  * (a name of the Mediator's own, never blank) for one NPC, asked from its box.
  */
 export function OppositionDialogs({
@@ -214,7 +214,7 @@ export function OppositionDialogs({
   onClose,
   writes,
 }: {
-  /** The NPC Remove asks about, or null. */
+  /** The NPC Delete asks about, or null. */
   removing: TrayNpc | null
   /** The NPC being renamed, or null. */
   renaming: TrayNpc | null
@@ -229,9 +229,9 @@ export function OppositionDialogs({
           if (!open) onClose()
         }}
         tone="danger"
-        title={`Remove ${removing?.name ?? 'this NPC'}?`}
+        title={`Delete ${removing?.name ?? 'this NPC'}?`}
         body="It leaves the Opposition for good, with its HP and its last Morale roll."
-        confirmLabel="Remove"
+        confirmLabel="Delete"
         onConfirm={async () => {
           if (removing !== null) await writes.remove(removing)
         }}

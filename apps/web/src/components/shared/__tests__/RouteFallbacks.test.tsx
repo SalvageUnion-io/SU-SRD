@@ -46,7 +46,7 @@ describe('RouteNotFound', () => {
     await renderAt('/')
     const main = screen.getByRole('main')
     expect(within(main).getByRole('heading', { level: 1, name: 'Page not found' })).toBeTruthy()
-    expect(within(main).getByRole('combobox', { name: 'Search the SRD' })).toBeTruthy()
+    expect(within(main).getByRole('combobox', { name: 'Search the Reference' })).toBeTruthy()
     const chapters = within(main).getByRole('navigation', { name: 'Or open a chapter' })
     const links = within(chapters).getAllByRole('link')
     expect(links.map((link) => link.getAttribute('href'))).toEqual([

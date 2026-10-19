@@ -1,6 +1,6 @@
 /**
  * Regression guard for the app-supplied entity cross-link (The app's
- * "View in SRD"), which reaches the card through
+ * "View in the Reference"), which reaches the card through
  * `EntityExternalLinkProvider` and is read by `useEntityExternalLink`.
  *
  * WHY THIS EXISTS. This link silently disappeared once already, and nothing
@@ -30,7 +30,7 @@ const chassis = () => {
   return first
 }
 
-const LINK_TEXT = 'View in SRD'
+const LINK_TEXT = 'View in the Reference'
 
 const renderWithLink = (extent: 'full' | 'head' | 'catalog') =>
   render(

@@ -17,7 +17,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { Conditions, INPUT_FOCUS, tokens } from '../../components/index'
+import { Conditions, Input, tokens } from '../../components/index'
 import { useChipDraft } from './useChipDraft'
 
 /** The sheet's bordered well around the chip row. */
@@ -40,20 +40,8 @@ const NONE = {
   lineHeight: 'calc(1 / 0.75)',
 } satisfies CSSProperties
 
-/** The new-condition input, set in the chip's own caps type. */
-const DRAFT_INPUT = {
-  backgroundColor: tokens.color.paper,
-  border: `${tokens.borderWidth.hairline} solid ${tokens.color.ink}`,
-  borderRadius: tokens.radius.badge,
-  color: tokens.color.ink,
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.badge,
-  letterSpacing: tokens.tracking.caps,
-  paddingBlock: tokens.space[2],
-  paddingInline: tokens.space[6],
-  textTransform: 'uppercase',
-  width: '7rem',
-} satisfies CSSProperties
+/** The new-condition field: the Compact `Input` (R16), sized to a chip's word. */
+const DRAFT_INPUT = { width: '9rem' } satisfies CSSProperties
 
 // ---------------------------------------------------------------------------
 // Types
@@ -101,10 +89,10 @@ export function ConditionsEditor({ conditions, onChange }: ConditionsEditorProps
       )}
 
       {draft.adding && (
-        <input
+        <Input
           {...draft.inputProps}
+          size="compact"
           aria-label="New condition"
-          className={INPUT_FOCUS}
           style={DRAFT_INPUT}
         />
       )}

@@ -22,8 +22,8 @@ type InlineEditFieldProps = {
   multiline?: boolean
   /**
    * Frame the control as a full-width, ink-bordered value box (paper bg,
-   * `Input` skin) instead of inline text. This is the shape `Field` wraps its
-   * straddling stamp around for the sheet identity rows: the border is drawn
+   * `Input` skin) instead of inline text. This is the value box `Field` sets its
+   * label over for the sheet identity rows: the border is drawn
    * ONCE (on the display box, or on the edit `Input` that replaces it), so
    * there is never a box-in-box border. Plain (unset) stays inline editable
    * text for stat/name cells.
@@ -67,8 +67,8 @@ const FULL_WIDTH = { width: '100%' } satisfies CSSProperties
 const NO_RESIZE = { resize: 'none' } satisfies CSSProperties
 
 // ---------------------------------------------------------------------------
-// Component — the pure edit-in-place engine. Labelling + the straddling stamp
-// live in `Field`; this atom owns only the click-to-edit / validate / commit
+// Component — the pure edit-in-place engine. Labelling (the one label)
+// lives in `Field`; this atom owns only the click-to-edit / validate / commit
 // behaviour and (optionally, via `bordered`) the single value-box frame.
 // ---------------------------------------------------------------------------
 

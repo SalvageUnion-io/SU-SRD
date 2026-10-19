@@ -120,7 +120,7 @@ function OgCardResolved() {
 }
 
 /** The default preview's kicker; the Discord banner's says the app's. */
-const SRD_KICKER = 'SRD and Character Manager'
+const SRD_KICKER = 'Reference and Character Manager'
 
 /**
  * Deliberately NOT wrapped in `IslandErrorBoundary`: this is rendered by the

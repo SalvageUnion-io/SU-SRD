@@ -35,8 +35,10 @@ import {
 import { usePatternStore } from '../../../stores/patternStore'
 import type { SlabCount } from '../../../components/index'
 import {
+  BreadcrumbTrail,
   Button,
   ChapterBand,
+  ChapterBandTrail,
   Cluster,
   Entity,
   Field,
@@ -83,15 +85,6 @@ const LIST = {
   margin: 0,
   padding: 0,
 } satisfies CSSProperties
-
-const CRUMBS = {
-  color: tokens.color.ink,
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.caption,
-  fontWeight: tokens.weight.bold,
-} satisfies CSSProperties
-
-const CRUMB_LINK = { color: tokens.color.ink } satisfies CSSProperties
 
 /** The pencil look of a field the player writes (ruleset §1, the edit field). */
 const PENCIL = { borderStyle: 'dashed' } satisfies CSSProperties
@@ -242,25 +235,24 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
 
   return (
     <main style={PAGE}>
-      <ChapterBand
-        tone="mech"
-        measure="80rem"
-        eyebrow={
-          <nav aria-label="Breadcrumb" style={CRUMBS}>
-            <AppLink href="/" style={CRUMB_LINK}>
-              Hangar
-            </AppLink>
-            {' / '}
-            <AppLink href={`/sheet/mech/${mech.id}`} style={CRUMB_LINK}>
-              {mech.name}
-            </AppLink>
-            {' / '}
-            <span aria-current="page">Save as pattern</span>
-          </nav>
+      {/* The one trail (R16), on the band's title cut-out as a Reference page's. */}
+      <ChapterBandTrail.Provider
+        value={
+          <BreadcrumbTrail
+            placement="band"
+            link={AppLink}
+            breadcrumbs={[
+              { name: 'Hangar', url: '/' },
+              { name: mech.name, url: `/sheet/mech/${mech.id}` },
+              { name: 'Save as pattern', url: `/mechs/patterns/new?from=${mech.id}` },
+            ]}
+          />
         }
       >
-        Save as pattern
-      </ChapterBand>
+        <ChapterBand tone="mech" measure="80rem">
+          Save as pattern
+        </ChapterBand>
+      </ChapterBandTrail.Provider>
 
       <Grid min="26rem" gap={32} style={COLUMNS}>
         <section style={COLUMN} aria-labelledby="pattern-saved">

@@ -323,13 +323,13 @@ describe('the Opposition', () => {
     ])
   })
 
-  test('a downed NPC is struck and dashed, never removed for you; Remove asks first', async () => {
+  test('a downed NPC is struck and dashed, never removed for you; Delete asks first', async () => {
     await renderCockpit()
     const raider = within(screen.getByRole('region', { name: 'NPC: Raider, down' }))
     expect(raider.getByText('At 0 · down')).toBeTruthy()
-    await click(raider.getByRole('button', { name: 'Remove Raider' }))
+    await click(raider.getByRole('button', { name: 'Delete Raider' }))
     expect(names()).toEqual([])
-    await click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Remove' }))
+    await click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Delete' }))
     expect(sent).toEqual([{ name: 'mediator:removeNpc', args: { npcId: 'n-raider' } }])
   })
 

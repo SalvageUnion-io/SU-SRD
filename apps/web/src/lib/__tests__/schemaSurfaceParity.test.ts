@@ -15,7 +15,7 @@ import { getItemStaticPaths, getSchemaStaticPaths } from '../staticPaths'
  *  - the SEO docs' claim that every schema page has a JSON twin was
  *    true, while the reverse silently was not;
  *  - the page gate (`hasPage`, `entityHref.ts`) read the unfiltered catalog on the
- *    same reasoning and rendered "View in SRD" links that 404'd.
+ *    same reasoning and rendered "View in the Reference" links that 404'd.
  *
  * "Which schemas are public" had four spellings across this app. It now has one
  * — `getEntitySchemas()` — and this pins every surface to it, so adding a

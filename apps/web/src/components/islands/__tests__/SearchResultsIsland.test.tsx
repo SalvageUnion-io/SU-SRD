@@ -67,7 +67,7 @@ describe('SearchResultsIsland', () => {
     try {
       render(<SearchResultsIsland />)
 
-      const input = await screen.findByRole('searchbox', { name: 'Search the SRD' })
+      const input = await screen.findByRole('searchbox', { name: 'Search the Reference' })
       if (!(input instanceof HTMLInputElement)) throw new Error('expected an <input> searchbox')
       expect(input.value).toBe('chassis')
 
@@ -91,7 +91,7 @@ describe('SearchResultsIsland', () => {
     const replaceSpy = spyOn(window.history, 'replaceState')
     try {
       render(<SearchResultsIsland />)
-      const input = await screen.findByRole('searchbox', { name: 'Search the SRD' })
+      const input = await screen.findByRole('searchbox', { name: 'Search the Reference' })
       fireEvent.change(input, { target: { value: '   ' } })
       expect(await screen.findByText('Enter a search term to see results.')).toBeTruthy()
       const urls = replaceSpy.mock.calls.map((c) => String(c[2]))

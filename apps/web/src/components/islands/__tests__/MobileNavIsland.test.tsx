@@ -40,7 +40,7 @@ describe('MobileNavIsland', () => {
   test('carries the search and the wordmark home', async () => {
     render(<MobileNavIsland />)
     const menu = await openMenu()
-    expect(within(menu).getByRole('combobox', { name: 'Search the SRD' })).toBeTruthy()
+    expect(within(menu).getByRole('combobox', { name: 'Search the Reference' })).toBeTruthy()
     expect(within(menu).getByRole('link', { name: 'Salvage Union SRD' }).getAttribute('href')).toBe(
       '/'
     )

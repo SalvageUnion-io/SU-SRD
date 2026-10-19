@@ -33,7 +33,18 @@ import { runWrite } from '../../lib/runWrite'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { MoveToContainerControl } from '../entityContainer/MoveToContainerControl'
-import { Badge, Button, ChapterBand, Grid, Slab, Text, tokens, UserMadeStamp } from '../../components/index'
+import {
+  Badge,
+  BreadcrumbTrail,
+  Button,
+  ChapterBand,
+  ChapterBandTrail,
+  Grid,
+  Slab,
+  Text,
+  tokens,
+  UserMadeStamp,
+} from '../../components/index'
 import { AppLink } from '../../components/shared/AppLink'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import type { Confirm } from '../../components/shared/useConfirm'
@@ -47,22 +58,6 @@ const COLUMNS = {
   maxWidth: '80rem',
   padding: `${tokens.space[24]} ${tokens.space[16]} 0`,
 } satisfies CSSProperties
-
-/** The Denizens navy carries paper text (ChapterBand: the caller dresses it). */
-const EYEBROW = {
-  alignItems: 'center',
-  color: tokens.color.paper,
-  display: 'flex',
-  flexWrap: 'wrap',
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.caption,
-  fontWeight: tokens.weight.bold,
-  gap: tokens.space[8],
-  letterSpacing: tokens.tracking.caps,
-  textTransform: 'uppercase',
-} satisfies CSSProperties
-
-const EYEBROW_LINK = { color: tokens.color.paper } satisfies CSSProperties
 
 /** Where the NPC crews, when it does. */
 export type NpcCrewing = {
@@ -127,28 +122,31 @@ export function NpcSheet({
 
   return (
     <main style={PAGE}>
-      <ChapterBand
-        tone="denizen"
-        userMade
-        measure="80rem"
-        eyebrow={
-          <div style={EYEBROW}>
-            <nav aria-label="Breadcrumb">
-              <AppLink href={back.href} style={EYEBROW_LINK}>
-                {back.label}
-              </AppLink>
-              {' / '}
-              <span aria-current="page">Denizens · NPC</span>
-            </nav>
-          </div>
+      {/* The one trail (R16), on the band's title cut-out. */}
+      <ChapterBandTrail.Provider
+        value={
+          <BreadcrumbTrail
+            placement="band"
+            link={AppLink}
+            breadcrumbs={[
+              { name: back.label, url: back.href },
+              { name: npc.name, url: `/sheet/npc/${npc.id}` },
+            ]}
+          />
         }
-        // Only the breadcrumb rides above the name; the stamp sits right of
-        // it, below it on a phone (EDL E20).
-        asideAt="notch"
-        aside={<UserMadeStamp label="User-made NPC" />}
       >
-        {npc.name}
-      </ChapterBand>
+        <ChapterBand
+          tone="denizen"
+          userMade
+          measure="80rem"
+          // Only the breadcrumb rides above the name; the stamp sits right of
+          // it, below it on a phone (EDL E20).
+          asideAt="notch"
+          aside={<UserMadeStamp label="User-made NPC" />}
+        >
+          {npc.name}
+        </ChapterBand>
+      </ChapterBandTrail.Provider>
 
       <Grid min="26rem" gap={32} style={COLUMNS}>
         <section style={COLUMN} aria-labelledby="npc-stat-block">

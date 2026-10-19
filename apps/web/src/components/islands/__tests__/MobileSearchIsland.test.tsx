@@ -13,11 +13,11 @@ describe('MobileSearchIsland', () => {
     expect(screen.queryByRole('combobox')).toBeNull()
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Search the SRD' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Search the Reference' }))
     })
     const sheet = screen.getByRole('dialog')
     expect(within(sheet).getByText('Search')).toBeTruthy()
-    expect(within(sheet).getByRole('combobox', { name: 'Search the SRD' })).toBeTruthy()
+    expect(within(sheet).getByRole('combobox', { name: 'Search the Reference' })).toBeTruthy()
 
     await act(async () => {
       fireEvent.click(within(sheet).getByRole('button', { name: 'Close search' }))

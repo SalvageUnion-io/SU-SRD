@@ -28,7 +28,7 @@ type EntityCardIdentityFooterProps = {
    * footer's right side, before the source/page. */
   footMeta?: CardFootMeta[]
   /**
-   * App-supplied cross-link (The app's "View in SRD"), sourced from
+   * App-supplied cross-link (The app's "View in the Reference"), sourced from
    * `EntityExternalLinkProvider`. Full extent only — the card passes
    * `undefined` for head/catalog so listings stay uncluttered.
    */

@@ -1,7 +1,7 @@
 /**
  * The Opposition's picker and its two questions on their own (play.md §10):
  * the picker that adds from any of the Opposition's schemas (a mech as one of
- * its patterns), Rename, Remove behind its confirmation, and a refused add
+ * its patterns), Rename, Delete behind its confirmation, and a refused add
  * handed to the caller.
  *
  * Presentational: they take the NPCs and the writes as props, so this records
@@ -96,7 +96,7 @@ function Harness({
             Rename {npc.name}
           </button>
           <button type="button" onClick={() => setRemoving(npc)}>
-            Remove {npc.name}
+            Delete {npc.name}
           </button>
         </div>
       ))}
@@ -150,20 +150,20 @@ beforeEach(() => {
   failures.length = 0
 })
 
-describe('Remove and Rename', () => {
-  test('Remove asks first; Cancel removes nothing', async () => {
+describe('Delete and Rename', () => {
+  test('Delete asks first; Cancel deletes nothing', async () => {
     await renderTab([rifleSquad])
-    await click(screen.getByRole('button', { name: 'Remove Rifle Squad' }))
-    const dialog = within(screen.getByRole('alertdialog', { name: 'Remove Rifle Squad?' }))
+    await click(screen.getByRole('button', { name: 'Delete Rifle Squad' }))
+    const dialog = within(screen.getByRole('alertdialog', { name: 'Delete Rifle Squad?' }))
     await click(dialog.getByRole('button', { name: 'Cancel' }))
     await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull())
     expect(calls).toEqual([])
   })
 
-  test('Remove, confirmed, removes that NPC', async () => {
+  test('Delete, confirmed, deletes that NPC', async () => {
     await renderTab([rifleSquad, fallenRaider])
-    await click(screen.getByRole('button', { name: 'Remove Raider 2' }))
-    await click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Remove' }))
+    await click(screen.getByRole('button', { name: 'Delete Raider 2' }))
+    await click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Delete' }))
     expect(calls).toEqual([{ name: 'remove', args: [fallenRaider] }])
   })
 

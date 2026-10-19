@@ -295,11 +295,7 @@ export function AppBar({
             </nav>
           ))}
 
-          {hasCrumbs && (
-            <nav aria-label="Breadcrumb" className="su-crumbs su-crumbs--bar">
-              <BreadcrumbTrail breadcrumbs={breadcrumbs} />
-            </nav>
-          )}
+          {hasCrumbs && <BreadcrumbTrail breadcrumbs={breadcrumbs} placement="bar" />}
 
           {/* Desktop: the right-hand cluster, pushed to the end. */}
           <div className="su-union-bar__end">
@@ -322,11 +318,7 @@ export function AppBar({
         </div>
       </header>
 
-      {hasCrumbs && (
-        <nav aria-label="Breadcrumb" className="su-crumbs su-crumbs--row">
-          <BreadcrumbTrail breadcrumbs={breadcrumbs} />
-        </nav>
-      )}
+      {hasCrumbs && <BreadcrumbTrail breadcrumbs={breadcrumbs} placement="row" />}
     </>
   )
 }

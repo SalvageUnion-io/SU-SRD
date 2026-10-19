@@ -42,7 +42,7 @@ export function useEntityDetailLink(): boolean {
 
 /**
  * Builds an external cross-link node for an entity (e.g. The app's
- * "View in SRD" deep link out to srd). Full — non-compact,
+ * "View in the Reference" deep link out to srd). Full — non-compact,
  * non-listing — entity cards render it in their foot band, which includes the
  * `useDetailModal` detail view (its content renders full). Return `undefined`
  * for entities without an external page. srd (which *is* the SRD)

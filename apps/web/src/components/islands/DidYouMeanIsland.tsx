@@ -125,7 +125,7 @@ export function DidYouMeanIsland({ pathname }: DidYouMeanIslandProps = {}) {
           </DocumentLinks>
         )}
         <a href={searchHref} className="su-not-found__link">
-          Search the SRD for “{query}”
+          Search the Reference for “{query}”
         </a>
       </section>
     </IslandErrorBoundary>

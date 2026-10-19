@@ -127,7 +127,8 @@ export function useRowActions(confirm: Confirm): RowActions {
         onConfirm: async () => {
           // Unreachable from the hub, which offers this only once the copy has
           // arrived — so reaching it is a defect, and the confirm reports it.
-          if (row.localId === null) throw new Error('Remove from game offered with no local copy')
+          if (row.localId === null)
+            throw new Error('Move to your Hangar offered with no local copy')
           await useEntityStore
             .getState()
             .update(row.kind, row.localId, moveTo(SHELF), CONTAINER_MOVE)

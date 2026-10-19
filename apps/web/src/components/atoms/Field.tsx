@@ -8,28 +8,25 @@ import {
   radius,
   size,
   space,
-  tracking,
   weight,
 } from '../../design/tokens'
 import { cn } from '../../lib/cn'
-import { Badge } from './Badge'
+import { Eyebrow } from './Eyebrow'
 import { EDIT_CUE_HOVER_CLASS } from './editLanguage'
 import { InlineEditField } from './InlineEditField'
 import { FOCUS_RING, INPUT_FOCUS } from './interaction'
-import { STAMP_SEAM } from './stampSeam'
 
 type FieldCommon = {
   /**
-   * Uppercase cond label: the ink Stamp straddling a static control's top
-   * border; edit-in-place and picker fields typeset it over the value, as Read does.
+   * The label: the small caps `Eyebrow` over the control or value, in every
+   * shape (hard rule R16: one label treatment).
    */
   label: ReactNode
-  /** Required asterisk inside the label stamp (white on ink). */
+  /** Required asterisk after the label. */
   required?: boolean
   /**
-   * Optional control riding the top-RIGHT border seam, opposite the label
-   * stamp — a mirror plate for a once-per-Downtime USED chip or a d20 Roll
-   * assist button (the identity rows' old label-row action).
+   * Optional control on the label's line, after it: a once-per-Downtime USED
+   * chip or a d20 Roll assist button.
    */
   labelAction?: ReactNode
   className?: string
@@ -96,22 +93,19 @@ type FieldEditableProps = FieldCommon & {
 
 type FieldProps = FieldStaticProps | FieldEditableProps
 
-/** Typeset read state: the label, set small over its value. */
-const TYPESET_LABEL = {
+/**
+ * The label's line: the `Eyebrow` (badge rung, bold, caps, muted), then the
+ * required mark and the label's action. Placement only; the type is Eyebrow's.
+ */
+const LABEL_LINE = {
   alignItems: 'center',
-  color: color.ink75,
   display: 'flex',
-  fontFamily: font.cond,
-  fontSize: fontSize.badge,
-  fontWeight: weight.bold,
   gap: space[8],
-  letterSpacing: tracking.caps,
   lineHeight: 1.2,
-  textTransform: 'uppercase',
 } satisfies CSSProperties
 
-/** Edit's label: Read's, with the value box a step under it. */
-const EDIT_LABEL = { ...TYPESET_LABEL, marginBottom: space[4] } satisfies CSSProperties
+/** Over a control or a value box: a step of air between them. */
+const LABEL_LINE_OVER_BOX = { ...LABEL_LINE, marginBottom: space[4] } satisfies CSSProperties
 
 const TYPESET_VALUE = {
   color: color.ink,
@@ -162,11 +156,6 @@ const PICKER_BOX = {
 /** The `InlineEditField` box's dashed write cue (its border is a class there). */
 const WRITE_CUE = 'su-field__write-cue'
 
-/** The stamp's seat on the control's top border: left for the label, right for the action. */
-const SEAT = { alignItems: 'center', display: 'flex' } satisfies CSSProperties
-const LABEL_SEAT = { ...SEAT, left: space[8], width: 'fit-content' } satisfies CSSProperties
-const ACTION_SEAT = { ...SEAT, right: space[8] } satisfies CSSProperties
-
 const FIELD_ROOT = { display: 'block', position: 'relative' } satisfies CSSProperties
 const FIELD_ROOT_FILL = {
   display: 'flex',
@@ -186,18 +175,47 @@ const VALUE_FILLED = { ...VALUE_TEXT, fontWeight: weight.medium } satisfies CSSP
 const VALUE_EMPTY = { ...VALUE_TEXT, color: color.wkMuted } satisfies CSSProperties
 
 /**
- * Form field block (design-spec §2.5 `.field`) — the ONE labelled control. A
- * static control's label is the ink Stamp straddling its top border (StampSeam),
- * the required mark riding inside it (white on ink); the other shapes typeset it:
+ * The ONE label (hard rule R16): the `Eyebrow` over its control or value, the
+ * required mark and the label's action after it on the same line. A static
+ * field's label is a real `<label for>`; the other shapes name their control
+ * themselves (`Edit …`, `Change …`), so theirs is a caption.
+ */
+function FieldLabel({
+  label,
+  htmlFor,
+  required,
+  action,
+  overBox,
+}: {
+  label: ReactNode
+  htmlFor?: string | undefined
+  required: boolean
+  action: ReactNode
+  overBox: boolean
+}) {
+  return (
+    <div style={overBox ? LABEL_LINE_OVER_BOX : LABEL_LINE}>
+      <Eyebrow tone="muted" as={htmlFor ? 'label' : 'span'} htmlFor={htmlFor}>
+        {label}
+        {required && <span aria-hidden="true"> *</span>}
+      </Eyebrow>
+      {action}
+    </div>
+  )
+}
+
+/**
+ * Form field block (design-spec §2.5 `.field`) — the ONE labelled control, its
+ * label the small caps `Eyebrow` over the control in every shape (R16; Edit
+ * looks like Read, owner's call 2026-10-14):
  *
- * 1. **static** — caller passes `children` (an `Input`/`Textarea`/`Select`); the
- *    child owns the border the stamp rides. Used by the pilot/mech wizard steps.
+ * 1. **static** — caller passes `children` (an `Input`/`Textarea`/`Select`);
+ *    the label is its `<label for>`. Used by the wizard steps and forms.
  * 2. **edit-in-place** — `value` + `onSave`: an `InlineEditField` engine inside
  *    a bordered value box; the dashed `EDIT_CUE_HOVER_CLASS` signals editability.
  * 3. **picker** — `value` + `onEditClick`: a button value box opening a modal.
  *
- * Shapes 2–3 are the absorbed `IdentityField`. They set the label as Read does,
- * small caps over the value, not the straddling stamp (Edit looks like Read).
+ * Shapes 2–3 are the absorbed `IdentityField`.
  *
  * 4. **typeset** — `value` with neither handler: the read state. Label over
  *    value, no box, no placeholder; an empty value renders nothing, so a read
@@ -206,31 +224,17 @@ const VALUE_EMPTY = { ...VALUE_TEXT, color: color.wkMuted } satisfies CSSPropert
 export function Field(props: FieldProps) {
   const { label, required = false, labelAction, className } = props
 
-  const stampBadge = (
-    <Badge shape="stamp" size="mini">
-      {label}
-      {required && (
-        <span aria-hidden="true" style={{ marginLeft: space[2] }}>
-          *
-        </span>
-      )}
-    </Badge>
-  )
-  // The action mirrors the stamp on the opposite seam — same border-riding plate.
-  const action = labelAction ? (
-    <span className={STAMP_SEAM} style={ACTION_SEAT}>
-      {labelAction}
-    </span>
-  ) : null
-
   // ---- Static: the label wires to a caller-supplied control. -----------------
   if ('children' in props) {
     return (
       <div className={className} style={FIELD_ROOT}>
-        <label htmlFor={props.htmlFor} className={STAMP_SEAM} style={LABEL_SEAT}>
-          {stampBadge}
-        </label>
-        {action}
+        <FieldLabel
+          label={label}
+          htmlFor={props.htmlFor}
+          required={required}
+          action={labelAction}
+          overBox
+        />
         {props.children}
       </div>
     )
@@ -255,10 +259,7 @@ export function Field(props: FieldProps) {
     if (value.trim() === '' && readValue == null) return null
     return (
       <div className={className}>
-        <div style={TYPESET_LABEL}>
-          {label}
-          {labelAction}
-        </div>
+        <FieldLabel label={label} required={false} action={labelAction} overBox={false} />
         {readValue != null ? (
           <div style={TYPESET_NODE}>{readValue}</div>
         ) : (
@@ -270,16 +271,9 @@ export function Field(props: FieldProps) {
     )
   }
 
-  // Edit sets the label as Read does, small caps over the value, so a sheet
-  // reads the same in both modes; only the dashed box says "write here"
-  // (owner's call, 2026-10-14: Edit looks like Read).
-  const typesetLabel = (
-    <div style={EDIT_LABEL}>
-      {label}
-      {required && <span aria-hidden="true">*</span>}
-      {labelAction}
-    </div>
-  )
+  // Edit sets the label as Read does, over the value, so a sheet reads the same
+  // in both modes; only the dashed box says "write here".
+  const typesetLabel = <FieldLabel label={label} required={required} action={labelAction} overBox />
   const valueSpan = <span style={value ? VALUE_FILLED : VALUE_EMPTY}>{value || placeholder}</span>
 
   // ---- Picker: a value box that opens a modal. -------------------------------

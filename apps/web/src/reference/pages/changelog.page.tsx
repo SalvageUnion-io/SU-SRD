@@ -40,7 +40,7 @@ function page(): PageResult {
     children: (
       <DocPage title="Changelog" measure="48rem" gap={space[32]}>
         <p style={PROSE}>
-          Features, fixes and speed-ups to the SRD site and its app, newest first. For full commit
+          Features, fixes and speed-ups to the Reference and the app, newest first. For full commit
           history see the{' '}
           <InlineRef
             href="https://github.com/SalvageUnion-io/SU-SRD/commits/main"

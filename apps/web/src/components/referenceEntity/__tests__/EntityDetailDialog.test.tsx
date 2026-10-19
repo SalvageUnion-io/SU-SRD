@@ -100,14 +100,16 @@ describe('the detail dialog is the Page', () => {
     expect(foot.querySelector('.su-stat-plate')).toBeNull()
   })
 
-  test('the foot carries the app\'s cross-link ("View in SRD")', () => {
+  test('the foot carries the app\'s cross-link ("View in the Reference")', () => {
     render(
-      <EntityExternalLinkProvider value={() => <a href="/srd/red-laser">View in SRD</a>}>
+      <EntityExternalLinkProvider value={() => <a href="/srd/red-laser">View in the Reference</a>}>
         <Harness data={redLaser()} />
       </EntityExternalLinkProvider>
     )
     fireEvent.click(screen.getByRole('button', { name: 'open' }))
-    const link = within(screen.getByRole('dialog')).getByRole('link', { name: 'View in SRD' })
+    const link = within(screen.getByRole('dialog')).getByRole('link', {
+      name: 'View in the Reference',
+    })
     expect(link.getAttribute('target')).toBeNull()
   })
 

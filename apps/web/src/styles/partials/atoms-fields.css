@@ -40,6 +40,16 @@ input.su-text-input--compact {
   padding-inline: var(--space-8);
 }
 
+/* On touch a Compact field is Full (the touch floor lifts `--size-compact`), and
+   it types at 16px: iOS zooms the page into any focused control under 16px
+   (`atoms/inputs.tsx`). */
+@media (pointer: coarse) {
+  input.su-text-input--compact {
+    font-size: var(--text-base);
+    line-height: 1.5;
+  }
+}
+
 .su-text-input::placeholder {
   color: var(--color-wk-muted);
 }

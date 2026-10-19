@@ -228,11 +228,7 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
             <ChapterBandTrail.Provider
               value={
                 trail &&
-                trail.length > 1 && (
-                  <nav aria-label="Breadcrumb" className="su-crumbs su-crumbs--band">
-                    <BreadcrumbTrail breadcrumbs={trail} plate />
-                  </nav>
-                )
+                trail.length > 1 && <BreadcrumbTrail breadcrumbs={trail} placement="band" />
               }
             >
               {children}

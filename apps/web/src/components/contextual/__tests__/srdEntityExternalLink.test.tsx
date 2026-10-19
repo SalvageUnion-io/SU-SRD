@@ -3,7 +3,7 @@
  *
  * The builder is the app's app-wide EntityExternalLinkProvider value: full entity
  * cards + detail modals render its node in their foot band. It must produce a
- * same-tab "View in SRD" link for real catalog entities and nothing for entities whose
+ * same-tab "View in the Reference" link for real catalog entities and nothing for entities whose
  * schema has no srd page.
  */
 
@@ -15,7 +15,7 @@ import { must } from '../../__tests__/must'
 import { srdEntityExternalLink } from '../srdEntityExternalLink'
 
 describe('srdEntityExternalLink', () => {
-  it('builds a same-tab "View in SRD" link for a catalog entity', () => {
+  it('builds a same-tab "View in the Reference" link for a catalog entity', () => {
     const chassis = must(SalvageUnionReference.Chassis.getByName('Mule'))
     const node = srdEntityExternalLink(chassis)
     expect(node).toBeTruthy()
@@ -27,7 +27,7 @@ describe('srdEntityExternalLink', () => {
     expect(link?.hasAttribute('target')).toBe(false)
     expect(link?.hasAttribute('rel')).toBe(false)
     expect(link?.className).toContain('su-srd-entity-external-link')
-    expect(link?.textContent).toBe('View in SRD')
+    expect(link?.textContent).toBe('View in the Reference')
     expect(link?.getAttribute('aria-label')).toContain('Mule')
   })
 

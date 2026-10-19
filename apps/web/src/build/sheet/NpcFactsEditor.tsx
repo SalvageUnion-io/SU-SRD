@@ -19,7 +19,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { Conditions, EmptyState, INPUT_FOCUS, tokens } from '../../components/index'
+import { Conditions, EmptyState, Input, tokens } from '../../components/index'
 import { useChipDraft } from './useChipDraft'
 
 /** The sheet's bordered well around the chip row. */
@@ -35,19 +35,8 @@ const WELL = {
   padding: tokens.space[8],
 } satisfies CSSProperties
 
-/** The new-fact input, set in the quiet chip's prose-cased type. */
-const DRAFT_INPUT = {
-  backgroundColor: tokens.color.paper,
-  border: `${tokens.borderWidth.hairline} solid ${tokens.color.ink}`,
-  borderRadius: tokens.radius.badge,
-  color: tokens.color.ink,
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.badge,
-  letterSpacing: tokens.tracking.capsTight,
-  paddingBlock: tokens.space[2],
-  paddingInline: tokens.space[6],
-  width: '10rem',
-} satisfies CSSProperties
+/** The new-fact field: the Compact `Input` (R16), a short sentence wide. */
+const DRAFT_INPUT = { width: '12rem' } satisfies CSSProperties
 
 type NpcFactsEditorProps = {
   facts: ReadonlyArray<string>
@@ -93,10 +82,10 @@ export function NpcFactsEditor({
       )}
 
       {!readOnly && draft.adding && (
-        <input
+        <Input
           {...draft.inputProps}
+          size="compact"
           aria-label={`New ${npcLabel} fact`}
-          className={INPUT_FOCUS}
           style={DRAFT_INPUT}
         />
       )}

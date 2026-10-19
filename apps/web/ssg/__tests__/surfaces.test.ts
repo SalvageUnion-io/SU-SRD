@@ -148,9 +148,9 @@ describe('a listing (compact cards under a visible heading)', () => {
     expect(html).toContain('"groups":[{"key":"all","count":')
   })
 
-  it('trails SRD // Chassis, without the home page’s chapter', () => {
-    expect(crumbs(html)).toEqual(['SRD', 'Chassis'])
-    expect(ldCrumbs(html)).toEqual(['SRD', 'Chassis'])
+  it('trails Reference // Chassis, without the home page’s chapter', () => {
+    expect(crumbs(html)).toEqual(['Reference', 'Chassis'])
+    expect(ldCrumbs(html)).toEqual(['Reference', 'Chassis'])
   })
 })
 
@@ -169,9 +169,9 @@ describe('an entity page (boards 07, 08)', () => {
     expect(html).not.toContain('Structure Pts.')
   })
 
-  it('trails SRD // Chassis // Gopher, without the home page’s chapter', () => {
-    expect(crumbs(html)).toEqual(['SRD', 'Chassis', 'Gopher'])
-    expect(ldCrumbs(html)).toEqual(['SRD', 'Chassis', 'Gopher'])
+  it('trails Reference // Chassis // Gopher, without the home page’s chapter', () => {
+    expect(crumbs(html)).toEqual(['Reference', 'Chassis', 'Gopher'])
+    expect(ldCrumbs(html)).toEqual(['Reference', 'Chassis', 'Gopher'])
   })
 
   it('lists its patterns as link rows, and cites its page on the foot band', () => {
@@ -198,7 +198,7 @@ describe('a pattern page names and links its base chassis', () => {
     // The ancestors, each followed by `//`; the title names the page.
     const trail = html.slice(html.indexOf('su-crumbs--band'), html.indexOf('<h1'))
     expect(trail.match(/<a [^>]*>([^<]*)<\/a>/g)?.map((a) => a.replace(/<[^>]*>/g, ''))).toEqual([
-      'SRD',
+      'Reference',
       'Chassis',
       'Mazona',
     ])

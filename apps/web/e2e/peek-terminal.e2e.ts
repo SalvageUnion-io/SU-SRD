@@ -160,7 +160,7 @@ test('a Peek of every kind is terminal', async ({ page }) => {
   // The Union bar's search: a Token per schema.
   for (const { schema, name } of SEARCH) {
     await page.goto('/chassis/', { waitUntil: 'networkidle' })
-    const search = page.getByRole('combobox', { name: 'Search the SRD' }).first()
+    const search = page.getByRole('combobox', { name: 'Search the Reference' }).first()
     await search.click()
     await search.fill(name)
     const trigger = page

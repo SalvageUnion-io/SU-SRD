@@ -7,8 +7,8 @@
  *
  * Its band carries what it is (NPC, Mech, Bio-Titan, …), **Actions**, which
  * lists its actions under the Opposition (pressed while they are the ones
- * listed), and ⋯: the full reference card, Rename and Remove. At 0 it is
- * down: dashed, struck, and never removed for you (ADR-007); Remove is offered
+ * listed), and ⋯: the full reference card, Rename and Delete. At 0 it is
+ * down: dashed, struck, and never removed for you (ADR-007); Delete is offered
  * on its line, behind a confirm.
  */
 
@@ -110,7 +110,7 @@ export function PlayNpcBox({
                   { id: 'rename', label: 'Rename…', onSelect: canWrite ? onRename : undefined },
                   {
                     id: 'remove',
-                    label: 'Remove…',
+                    label: 'Delete…',
                     tone: 'danger' as const,
                     onSelect: canWrite ? onRemove : undefined,
                   },
@@ -136,10 +136,10 @@ export function PlayNpcBox({
               variant="ghost"
               size="mini"
               disabled={!canWrite}
-              aria-label={`Remove ${npc.name}`}
+              aria-label={`Delete ${npc.name}`}
               onClick={onRemove}
             >
-              Remove
+              Delete
             </Button>
           </div>
         ) : null}

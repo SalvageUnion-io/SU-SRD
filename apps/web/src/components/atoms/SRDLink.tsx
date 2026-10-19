@@ -20,11 +20,11 @@ type SRDLinkProps = {
  * it in. This component adds the accessible label.
  */
 export function SRDLink({ href, entityName, className }: SRDLinkProps) {
-  const ariaLabel = entityName ? `View ${entityName} in SRD` : 'View in SRD'
+  const ariaLabel = entityName ? `View ${entityName} in the Reference` : 'View in the Reference'
 
   return (
     <a href={href} aria-label={ariaLabel} className={className}>
-      View in SRD
+      View in the Reference
     </a>
   )
 }

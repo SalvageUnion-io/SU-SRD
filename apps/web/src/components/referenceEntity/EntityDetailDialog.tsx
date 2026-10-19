@@ -125,7 +125,7 @@ export function EntityDetailPage({
   const band = pageBand(entity)
   const bandColor = band.fill ?? CHAPTER_BAND_COLOR[band.tone]
   const provenance = resolveFooterProvenance(entity, pattern)
-  // The app's "View in SRD" link, carried in the Page's foot.
+  // The app's "View in the Reference" link, carried in the Page's foot.
   const externalLink = useEntityExternalLink(entity as RefEntity)
   const parent = pattern ? toEntityModel(entity, undefined, { pattern }).parent : undefined
   return (

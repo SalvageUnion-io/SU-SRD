@@ -8,7 +8,7 @@
  *   - `StarterCard` (build/starterSet/StarterCard.tsx): the sheet's link
  *     laid over the whole Row, its linked chips raised above it.
  *   - `srdEntityExternalLink` (components/contextual/srdEntityExternalLink.tsx):
- *     the "View in SRD" link, which fades on hover. `SRDLink` takes only a
+ *     the "View in the Reference" link, which fades on hover. `SRDLink` takes only a
  *     class, so the whole treatment lives here.
  */
 
@@ -17,7 +17,7 @@
   flex: 1;
 }
 
-/* "View in SRD": a hairline underline that fades to 70% on hover. */
+/* "View in the Reference": a hairline underline that fades to 70% on hover. */
 .su-srd-entity-external-link {
   text-decoration-line: underline;
   text-decoration-thickness: 1px;

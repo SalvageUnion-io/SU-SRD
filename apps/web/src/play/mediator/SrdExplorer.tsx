@@ -135,13 +135,13 @@ function SrdHome({
         <SearchField
           type="text"
           name="srd-explorer-search"
-          placeholder="Search the SRD — chassis, systems, abilities, tables…"
+          placeholder="Search the Reference — chassis, systems, abilities, tables…"
           autoComplete="off"
           value={query}
           onChange={(e) => handleInput(e.target.value)}
           onKeyDown={handleKeyDown}
           {...inputProps}
-          aria-label="Search the SRD"
+          aria-label="Search the Reference"
           aria-expanded={open}
           aria-controls={open ? listboxId : undefined}
         />
