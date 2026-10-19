@@ -152,11 +152,11 @@ describe('down', () => {
 describe('edits', () => {
   test('a new motto saves to the NPC', async () => {
     await renderSheet()
-    const edit = screen.getByRole('button', { name: /Edit Sergeant Kessler crew motto/ })
+    const edit = screen.getByRole('button', { name: /Edit sergeant kessler crew motto/ })
     await act(async () => {
       fireEvent.click(edit)
     })
-    const input = screen.getByRole('textbox', { name: /Edit Sergeant Kessler crew motto/ })
+    const input = screen.getByRole('textbox', { name: /Edit sergeant kessler crew motto/ })
     await act(async () => {
       fireEvent.change(input, { target: { value: 'Hold the line.' } })
       fireEvent.keyDown(input, { key: 'Enter' })

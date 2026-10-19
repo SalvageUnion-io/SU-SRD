@@ -84,8 +84,8 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
   // The Abilities section header's manage control opens the one shared picker
   // modal. It writes through on toggle — there is no Save button to press.
   //
-  // `Manage abilities`, not `+ Add ability`. `SectionManageButton` labels itself
-  // `Manage ${label}` and PilotSheet passes label="abilities", the same label
+  // `Manage abilities`, not `+ Add ability`: the Button in the Abilities
+  // SlabSection's actions reads "Manage Abilities", the name
   // `sheet/__tests__/sheet-soft-warnings.test.tsx` uses. `mech-build.e2e.ts`
   // uses the same `/^Manage systems$/i` shape.
   // A sheet opens in Read; its controls are Edit's.

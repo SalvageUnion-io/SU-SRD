@@ -1,10 +1,10 @@
 /*
- * The package stylesheet, part 13 of 21: Badge, BandTitle, SmallButtons,
+ * The package stylesheet, part 13 of 21: Badge, SmallButtons,
  * the stamps on a stamp. `../index.css` imports the parts in
  * cascade order.
  */
 
-/* ── Badge, BandTitle, Button, SmallButtons ── */
+/* ── Badge, Button, SmallButtons ── */
 
 /* `atoms/Badge.tsx` — every property is a class, not a style object: call
  * sites override padding, display, size, tracking, colour and the inset ring

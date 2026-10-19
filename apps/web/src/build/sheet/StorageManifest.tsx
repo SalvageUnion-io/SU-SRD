@@ -12,10 +12,13 @@
  *     shows a dynamic 'Load N' label); counterpart = the docked mech's
  *     capacity.
  *
- * The mech's Hold is an Info Cutout under the mech sheet's own "The Hold"
- * Slab. The crawler's Hold sits inside the Storage Bay's card, so it is a
- * section of that bay: a Slab over its content, never a titled box (ruleset
- * N5). The linked counterpart unit is its relation chip (`LinkedUnitLink`, R5).
+ * The mech's Hold is a `TitledBox` (its name on the cut-out `Head`, the
+ * mech's beside it as a chip) under the mech sheet's own "The Hold" Slab. The
+ * crawler's Hold sits inside the Storage Bay's card, so it is a section of
+ * that bay: a Slab over its content, never a titled box (ruleset N5). The
+ * counterpart is a `Box` holding the linked unit's relation chip
+ * (`LinkedUnitLink`, R5), or, with none linked, the `EmptyState` that says why
+ * the move waits.
  *
  * All transfer semantics live in the useCargo reducer — this component only
  * renders its state and dispatches. Unlinked boundary = disabled move
@@ -49,14 +52,15 @@ import { totalLotUnits } from 'game-domain/schemas/cargoLot'
 import type { CSSProperties } from 'react'
 import { useId } from 'react'
 import {
-  BandTitle,
+  Box,
+  Chips,
   cn,
   EmptyState,
   Eyebrow,
-  InfoCutout,
   SlabSection,
   SlotGrid,
   Stat,
+  TitledBox,
   tokens,
 } from '../../components/index'
 import { reportCargo as report } from '../../lib/cargo/reportCargo'
@@ -102,7 +106,7 @@ const MUTED_TEXT = { ...SMALL_TEXT, color: tokens.color.wkMuted } satisfies CSSP
 const OVER_TEXT = { ...SMALL_TEXT, color: tokens.color.statusBad } satisfies CSSProperties
 
 /**
- * The hold's padding by its frame. In the Info Cutout the flush body has none
+ * The hold's padding by its frame. In the titled box the flush body has none
  * of its own: the strip's top is the 12px gutter every other card's body opens
  * with, off the cut-out band. Under a Slab the host's body already pads it.
  */
@@ -119,28 +123,8 @@ const HOLD_PAD = {
   },
 } satisfies Record<string, Record<'strip' | 'list' | 'adder', string>>
 
-/** A column whose lines stretch: the counterpart's Token fills its line (N4). */
-const COUNTERPART = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[8],
-  borderRadius: tokens.radius.card,
-  borderWidth: tokens.borderWidth.pill,
-  padding: tokens.space[12],
-  background: tokens.color.paper,
-} satisfies CSSProperties
-
-const COUNTERPART_LINKED = {
-  ...COUNTERPART,
-  borderStyle: 'solid',
-  borderColor: tokens.color.ink,
-} satisfies CSSProperties
-
-const COUNTERPART_EMPTY = {
-  ...COUNTERPART,
-  borderStyle: 'dashed',
-  borderColor: tokens.color.wkFaint,
-} satisfies CSSProperties
+/** The linked counterpart's body: its lines a step apart, its Token filling its line (N4). */
+const COUNTERPART = { gap: tokens.space[8] } satisfies CSSProperties
 
 const NOTE = {
   margin: 0,
@@ -168,6 +152,7 @@ export function StorageManifest({
   // The crawler's hold is inside the Storage Bay's card: a Slab over content.
   const framed = side === 'mech'
   const pad = HOLD_PAD[framed ? 'framed' : 'open']
+  const targetLabel = side === 'mech' ? 'Stow target' : 'Load target'
 
   const holdBody = (
     <>
@@ -257,54 +242,65 @@ export function StorageManifest({
       style={MANIFEST}
       data-storage-side={side}
     >
-      {/* Hold panel. The mech's: the standard Info Cutout block, as the
-          Chassis card and every listing Row (owner's call, 2026-10-14). The
-          crawler's is a section of the Storage Bay it sits in (N5). */}
+      {/* Hold panel. The mech's: the house titled box, as the Chassis card
+          (owner's call, 2026-10-14), the mech it belongs to a chip on its
+          band. The crawler's is a section of the Storage Bay it sits in (N5). */}
       {framed ? (
-        <InfoCutout
+        <TitledBox
+          as="section"
           title="Mech Hold"
-          aside={<BandTitle variant="mute">{mechName}</BandTitle>}
-          flush
+          chips={
+            mechName ? (
+              <Chips
+                chips={{
+                  durations: [],
+                  facts: [{ key: 'mech', label: mechName, value: undefined }],
+                  tags: [],
+                }}
+                size="compact"
+              />
+            ) : undefined
+          }
+          body="flush"
         >
           {holdBody}
-        </InfoCutout>
+        </TitledBox>
       ) : (
         <SlabSection title="Crawler Hold" id={holdId}>
           {holdBody}
         </SlabSection>
       )}
 
-      {/* Counterpart panel */}
-      {showCounterpart && (
-        <div style={linkedCounterpart !== null ? COUNTERPART_LINKED : COUNTERPART_EMPTY}>
-          <Eyebrow tone="toneDeep">{side === 'mech' ? 'Stow target' : 'Load target'}</Eyebrow>
-          {linkedCounterpart !== null ? (
-            <>
-              <LinkedUnitLink
-                kind={side === 'mech' ? 'crawler' : 'mech'}
-                name={linkedCounterpart}
-                href={counterpartHref}
-              />
-              {side === 'mech' ? (
-                <span style={SMALL_TEXT}>&infin; Storage Bay &middot; unlimited</span>
-              ) : (
-                <span style={SMALL_TEXT}>
-                  {used}/{cap} slots &middot; {free} free
-                </span>
-              )}
-              {cargo.crawlerLocked !== null && !readOnly && (
-                <p style={NOTE}>{cargo.crawlerLocked}</p>
-              )}
-            </>
-          ) : (
-            <p style={NOTE}>
-              {side === 'mech'
+      {/* Counterpart panel: the house Box around the linked unit, or the one
+          empty state (dashed: fillable) while nothing is linked. */}
+      {showCounterpart &&
+        (linkedCounterpart !== null ? (
+          <Box bodyStyle={COUNTERPART}>
+            <Eyebrow tone="toneDeep">{targetLabel}</Eyebrow>
+            <LinkedUnitLink
+              kind={side === 'mech' ? 'crawler' : 'mech'}
+              name={linkedCounterpart}
+              href={counterpartHref}
+            />
+            {side === 'mech' ? (
+              <span style={SMALL_TEXT}>&infin; Storage Bay &middot; unlimited</span>
+            ) : (
+              <span style={SMALL_TEXT}>
+                {used}/{cap} slots &middot; {free} free
+              </span>
+            )}
+            {cargo.crawlerLocked !== null && !readOnly && <p style={NOTE}>{cargo.crawlerLocked}</p>}
+          </Box>
+        ) : (
+          <EmptyState
+            headline={targetLabel}
+            body={
+              side === 'mech'
                 ? 'No crawler assigned — stow is disabled until a home crawler is assigned.'
-                : 'No mech assigned — load is disabled until a mech is assigned.'}
-            </p>
-          )}
-        </div>
-      )}
+                : 'No mech assigned — load is disabled until a mech is assigned.'
+            }
+          />
+        ))}
     </div>
   )
 }

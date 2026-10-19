@@ -1,30 +1,5 @@
 /* The chrome sheet group's rules: only what a style object cannot express. */
 
-/* HButton (`SheetSection.tsx`, design `.hbtn`): display goes in print, and
-   its deep-tone outline fills on hover. It is Compact at every width, as the
-   section's fold beside it is (one Size per line, §4.7); a coarse pointer
-   lifts both to the 44px floor (theme.css), never a narrow window alone. */
-.su-sheet-hbtn {
-  display: inline-flex;
-  min-height: var(--size-compact);
-  border-color: var(--tone-deep, var(--color-ink));
-  background-color: var(--color-paper);
-  color: var(--tone-deep, var(--color-ink));
-}
-
-@media (hover: hover) {
-  .su-sheet-hbtn:hover {
-    background-color: var(--tone-deep, var(--color-ink));
-    color: var(--color-paper);
-  }
-}
-
-@media print {
-  .su-sheet-hbtn {
-    display: none;
-  }
-}
-
 /* SheetColumns (`SheetColumns.tsx`, every kind): the opening, the permanent
    right sidebar of what the unit carries, and the main column. On a phone one
    column, the sidebar straight under the opening; from the 64rem rung (K2) the

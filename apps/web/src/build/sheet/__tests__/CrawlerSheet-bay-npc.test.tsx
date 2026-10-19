@@ -185,11 +185,11 @@ describe('CrawlerSheet — crew lead identity (CrewLeadToken)', () => {
     )
     expandCards()
 
-    const field = screen.getByLabelText('Edit Command Bay crew name')
+    const field = screen.getByLabelText('Edit command bay crew name')
     await act(async () => {
       fireEvent.click(field)
     })
-    const input = screen.getByLabelText('Edit Command Bay crew name')
+    const input = screen.getByLabelText('Edit command bay crew name')
     await act(async () => {
       fireEvent.change(input, { target: { value: 'Mara Vex' } })
       fireEvent.blur(input)
@@ -215,11 +215,11 @@ describe('CrawlerSheet — crew lead identity (CrewLeadToken)', () => {
     )
     expandCards()
 
-    const field = screen.getByLabelText('Edit Command Bay crew detail')
+    const field = screen.getByLabelText('Edit command bay crew detail')
     await act(async () => {
       fireEvent.click(field)
     })
-    const textarea = screen.getByLabelText('Edit Command Bay crew detail')
+    const textarea = screen.getByLabelText('Edit command bay crew detail')
     await act(async () => {
       fireEvent.change(textarea, {
         target: { value: 'A grizzled commander.' },
@@ -297,7 +297,7 @@ describe('CrawlerSheet — crew HP editing (CrewLeadToken)', () => {
       .getByLabelText('Command Bay crew lead')
       .querySelector('.su-entity-token__body') as HTMLElement
     for (const field of ['name', 'keepsake', 'motto', 'detail']) {
-      expect(within(body).getByLabelText(`Edit Command Bay crew ${field}`)).toBeTruthy()
+      expect(within(body).getByLabelText(`Edit command bay crew ${field}`)).toBeTruthy()
     }
     expect(within(body).getByRole('button', { name: 'Decrease HP' })).toBeTruthy()
     expect(within(body).getByLabelText('Add Command Bay crew fact')).toBeTruthy()
@@ -332,11 +332,11 @@ describe('CrawlerSheet — crew keepsake via bayChoices', () => {
     render(<CrawlerSheet crawler={baseCrawler} store={makeStubStore(baseCrawler, { update })} />)
     expandCards()
 
-    const field = screen.getByLabelText('Edit Command Bay crew keepsake')
+    const field = screen.getByLabelText('Edit command bay crew keepsake')
     await act(async () => {
       fireEvent.click(field)
     })
-    const input = screen.getByLabelText('Edit Command Bay crew keepsake')
+    const input = screen.getByLabelText('Edit command bay crew keepsake')
     await act(async () => {
       fireEvent.change(input, { target: { value: 'A bent cog' } })
       fireEvent.blur(input)
@@ -357,7 +357,7 @@ describe('CrawlerSheet — crew keepsake via bayChoices', () => {
     render(<CrawlerSheet crawler={baseCrawler} store={makeStubStore(baseCrawler)} />)
     expandCards()
     // Mech Bay's mock npc carries no choices — keepsake cannot persist.
-    expect(screen.queryByLabelText('Edit Mech Bay crew keepsake')).toBeNull()
+    expect(screen.queryByLabelText('Edit mech bay crew keepsake')).toBeNull()
   })
 })
 
@@ -389,11 +389,11 @@ describe('CrawlerSheet — crew motto via bayChoices', () => {
     render(<CrawlerSheet crawler={baseCrawler} store={makeStubStore(baseCrawler, { update })} />)
     expandCards()
 
-    const field = screen.getByLabelText('Edit Command Bay crew motto')
+    const field = screen.getByLabelText('Edit command bay crew motto')
     await act(async () => {
       fireEvent.click(field)
     })
-    const input = screen.getByLabelText('Edit Command Bay crew motto')
+    const input = screen.getByLabelText('Edit command bay crew motto')
     await act(async () => {
       fireEvent.change(input, { target: { value: 'No retreat' } })
       fireEvent.blur(input)
@@ -414,7 +414,7 @@ describe('CrawlerSheet — crew motto via bayChoices', () => {
     render(<CrawlerSheet crawler={baseCrawler} store={makeStubStore(baseCrawler)} />)
     expandCards()
     // Mech Bay's mock npc carries no choices — motto cannot persist.
-    expect(screen.queryByLabelText('Edit Mech Bay crew motto')).toBeNull()
+    expect(screen.queryByLabelText('Edit mech bay crew motto')).toBeNull()
   })
 })
 
@@ -513,9 +513,9 @@ describe('CrawlerSheet — crew readOnly', () => {
     expect(within(inset).getByText('A stern veteran.')).toBeTruthy()
     expect(within(inset).getByText('Hates synths')).toBeTruthy()
 
-    expect(screen.queryByLabelText('Edit Command Bay crew name')).toBeNull()
-    expect(screen.queryByLabelText('Edit Command Bay crew detail')).toBeNull()
-    expect(screen.queryByLabelText('Edit Command Bay crew keepsake')).toBeNull()
+    expect(screen.queryByLabelText('Edit command bay crew name')).toBeNull()
+    expect(screen.queryByLabelText('Edit command bay crew detail')).toBeNull()
+    expect(screen.queryByLabelText('Edit command bay crew keepsake')).toBeNull()
     expect(screen.queryByLabelText('Add Command Bay crew fact')).toBeNull()
     expect(screen.queryByLabelText('Remove Command Bay crew fact Hates synths')).toBeNull()
 

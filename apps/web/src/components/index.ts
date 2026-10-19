@@ -38,9 +38,6 @@ export type { BadgeTone } from './atoms/Badge'
 // `surface="quiet"`, the status badge is StatusBadge (domain vocabulary), and a
 // pill is `Badge surface="outline"`/`"tone"`.
 export { Badge } from './atoms/Badge'
-// BandTitle — the paper-on-tone title inside a Card's header band. NOT a
-// stamp: it fills its track and truncates, where a stamp sizes to its text.
-export { BandTitle } from './atoms/BandTitle'
 // BreadcrumbTrail — a page's trail, for the Union bar or a page's band (`ChapterBandTrail`)
 export { BreadcrumbTrail } from './atoms/BreadcrumbTrail'
 export { Button } from './atoms/Button'
@@ -64,10 +61,7 @@ export { Field, Select } from './atoms/Field'
 export { FieldError } from './atoms/FieldError'
 // Skeletons
 export { Ghost } from './atoms/Ghost'
-// Glyph — the hand-drawn UI glyph set (the sheet's edit/add/remove marks)
-export { Glyph } from './atoms/glyphs'
 export { heatDangerFrom } from './atoms/heatLevel'
-export { InlineEditField } from './atoms/InlineEditField'
 // The one link look (ruleset §3.1): rust is painted only by Button and by
 // InlineRef, so a prose link in either app is an InlineRef.
 export { InlineRef } from './atoms/InlineRef'
@@ -192,7 +186,6 @@ export { Grid } from './containers/Grid'
 // and Games menus, and the "⋯" overflow on a row.
 export type { HeaderMenuItem } from './containers/HeaderMenu'
 export { HeaderMenu } from './containers/HeaderMenu'
-export { Inset } from './containers/Inset'
 // Pending — the one "Loading X…" line (role="status"), for data that resolves inside a screen
 export { loadingCopy } from './containers/loadingCopy'
 export { MasonryColumns } from './containers/MasonryColumns'
@@ -218,7 +211,7 @@ export { Stack } from './containers/Stack'
 /** The `statsOverride` element type — public because the prop that takes it is. */
 export type { StatItem } from './containers/statsBarTypes'
 // TitledBox — the house `Box` (square frame, paper body) with the cut-out head:
-// dialogs, wizard briefs, notices; Callout, Inset, InfoCutout and RecoveryPanel
+// dialogs, wizard briefs, notices, a sheet's panels; Callout and RecoveryPanel
 // are its named variants.
 export { TitledBox } from './containers/TitledBox'
 // UI primitives
@@ -231,6 +224,7 @@ export { toastRoll } from './containers/toastRoll'
 //   (a Play unit box's relation chips, C11) included.
 // - `EntityStat`: a fact whose value is an entity (`CLASS | Engineer`); the
 //   chip opens and Peeks it.
+// - `Art`: a Row's art column, a `TitledBox`'s `art` (a sheet's chassis callout).
 // - `Head`: a Row's band, cut out (`notch`), the name on a paper tab and the
 //   chips right of it; a page's own cut-out card (the changelog, a class's
 //   paths) heads with it.
@@ -238,7 +232,17 @@ export { toastRoll } from './containers/toastRoll'
 //   chip (an SRD page's band sets its entity's traits with them).
 // - `mentionRef`: the glossary entry a `[[Name]]` names, a trait or a keyword.
 export type { TagItem } from './entity'
-export { Chips, EntityStat, Head, KindLabel, mentionRef, relation, Tags, traitTags } from './entity'
+export {
+  Art,
+  Chips,
+  EntityStat,
+  Head,
+  KindLabel,
+  mentionRef,
+  relation,
+  Tags,
+  traitTags,
+} from './entity'
 // THE ENTITY DISPLAY LANGUAGE (docs/design-system/entity-display-language.md):
 // `<Entity form mode>` draws a game entity from its model; the surface supplies
 // how refs resolve, texture and the user-made treatment once.
@@ -252,7 +256,6 @@ export type {
 // host for the read-only card a mention or a trait tag shows on hover, focus
 // or long-press.
 export { Mention } from './entity/forms/Mention'
-export { InfoCutout } from './entity/InfoCutout'
 // Select mode's one dim (hard rule R15): a pick an app draws by hand dims with it.
 export { SELECT_DIM } from './entity/modes/selectedRing'
 export type { PeekLoader } from './entity/Peek'

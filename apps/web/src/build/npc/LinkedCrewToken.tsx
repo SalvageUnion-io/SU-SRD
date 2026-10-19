@@ -1,11 +1,13 @@
 /**
- * LinkedCrewToken — a bay's crew slot filled by a built NPC, inside the bay
- * card (Q2, ADR-044). The bay-card form of `LinkedCrewInset`: no titled box
- * nests in an entity (N5), so the NPC is a contentful Token (N3,
- * `CrewLeadToken`), as the inline crew there is. Its dashed head opens the
- * NPC's sheet, so the User-made stamp is the only line above it.
+ * LinkedCrewToken — a crawler crew slot filled by a built NPC (Q2, ADR-044):
+ * a bay's, inside its bay card, and the crawler type's, in the sheet's
+ * identity panel. While a slot is linked it shows the linked NPC in place of
+ * its inline crew, as a contentful Token (N3, `CrewLeadToken`) as the inline
+ * crew is. Its dashed head opens the NPC's sheet (you track its HP there), so
+ * the User-made stamp is the only line above it.
  *
- * Read-only, as the inset: unlinking restores the inline crew exactly. A link
+ * Read-only: nothing writes the crawler's crew fields while a link exists,
+ * so unlinking restores the inline crew exactly. A link
  * this view cannot read renders the inline crew under an "Assigned NPC
  * unavailable" badge — never a blank slot.
  */
@@ -25,7 +27,7 @@ const STACK = {
 } satisfies CSSProperties
 
 type LinkedCrewTokenProps = {
-  /** The bay's name — labels the crew lead for assistive tech. */
+  /** The bay's (or type's) name — labels the crew lead for assistive tech. */
   slotName: string
   assignment: CrewAssignment
   /** The inline crew, shown under the badge when the NPC cannot be read. */

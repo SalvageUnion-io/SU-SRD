@@ -11,7 +11,7 @@
  * fields, led by the name and HP, which a head that is a Peek trigger cannot
  * hold; the head then drops its HP chip, the stepper's reading being the one.
  *
- * Handler absence is the read-only encoding, as on `NpcInset`.
+ * Handler absence is the read-only encoding, as on `NpcLines`.
  */
 
 import { useMemo } from 'react'
@@ -19,10 +19,10 @@ import type { EntityInstance, RefMetaEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 import type { EntityMode, EntityRowModel } from '../../components/index'
 import { Entity } from '../../components/index'
-import type { NpcInsetProps } from './NpcInset'
-import { NpcLines } from './NpcInset'
+import type { NpcLinesProps } from './NpcLines'
+import { NpcLines } from './NpcLines'
 
-type CrewLeadTokenProps = NpcInsetProps & {
+type CrewLeadTokenProps = NpcLinesProps & {
   /** Its title on the head (the bay crew's name, else its role); a built NPC's model titles itself. */
   instance?: EntityInstance
   /** Default `read`; a built NPC's head links to its sheet. */

@@ -59,6 +59,7 @@ import type { RefAbility } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
 import { pinFor } from 'salvageunion-reference/rules'
 import {
+  Button,
   Conditions,
   EmptyState,
   EntitySearcher,
@@ -85,7 +86,7 @@ import { usePilotSheetModel } from './pilotSheet.model'
 import { usePilotSheetActions } from './pilotSheetActions.model'
 import { SheetColumns } from './SheetColumns'
 import { SheetHero } from './SheetHero'
-import { SectionManageButton, SheetPickerModal } from './SheetSection'
+import { SheetPickerModal } from './SheetSection'
 import { SheetVitalGauge } from './SheetVitalGauge'
 
 // ---------------------------------------------------------------------------
@@ -348,7 +349,9 @@ export function PilotSheet({
               }}
               actions={
                 readOnly ? undefined : (
-                  <SectionManageButton label="equipment" onClick={() => setPicker('equipment')} />
+                  <Button size="compact" onClick={() => setPicker('equipment')}>
+                    Manage Equipment
+                  </Button>
                 )
               }
             >

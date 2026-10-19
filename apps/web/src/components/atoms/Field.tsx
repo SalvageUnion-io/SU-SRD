@@ -1,5 +1,6 @@
 import { ChevronDown } from 'lucide-react'
 import type { ComponentPropsWithRef, CSSProperties, ReactNode } from 'react'
+import { useRef, useState } from 'react'
 import {
   borderWidth,
   color,
@@ -14,7 +15,7 @@ import {
 import { cn } from '../../lib/cn'
 import { Eyebrow } from './Eyebrow'
 import { EDIT_CUE_HOVER_CLASS } from './editLanguage'
-import { InlineEditField } from './InlineEditField'
+import { Input, Textarea } from './inputs'
 import { FOCUS_RING, INPUT_FOCUS } from './interaction'
 
 type FieldCommon = {
@@ -61,7 +62,7 @@ type FieldEditableProps = FieldCommon & {
    * Edit keeps `value` in the picker box.
    */
   readValue?: ReactNode
-  /** Persist a freetext value — enables edit-in-place via `InlineEditField`. */
+  /** Persist a freetext value — enables the edit state (edit-in-place in the value box). */
   onSave?: (next: string) => Promise<void> | void
   /**
    * Alternative edit affordance for ref-valued fields (e.g. Class → opens the
@@ -154,8 +155,32 @@ const PICKER_BOX = {
   width: '100%',
 } satisfies CSSProperties
 
-/** The `InlineEditField` box's dashed write cue (its border is a class there). */
+/** The edit state's value box's dashed write cue (its border is a class, `.su-field__box`). */
 const WRITE_CUE = 'su-field__write-cue'
+
+/**
+ * The edit state's readout, the tap target that opens the editor: a 44px
+ * minimum, filling its value box. Its alignment and colour are
+ * `.su-field__readout`'s (`fill` and `prominent` restyle them through the box).
+ * font-medium, not bold: a sheet is mostly filled-in fields, and at bold every
+ * value competed with the ink stamps labelling it.
+ */
+const READOUT = {
+  borderRadius: radius.card,
+  cursor: 'pointer',
+  display: 'inline-flex',
+  fontFamily: font.body,
+  fontWeight: weight.medium,
+  minHeight: size.full,
+  paddingInline: space[12],
+  width: '100%',
+} satisfies CSSProperties
+
+const READOUT_EMPTY = { ...READOUT, fontWeight: weight.normal } satisfies CSSProperties
+
+const FULL_WIDTH = { width: '100%' } satisfies CSSProperties
+
+const NO_RESIZE = { resize: 'none' } satisfies CSSProperties
 
 const FIELD_ROOT = { display: 'block', position: 'relative' } satisfies CSSProperties
 const FIELD_ROOT_FILL = {
@@ -212,8 +237,10 @@ function FieldLabel({
  *
  * 1. **static** — caller passes `children` (an `Input`/`Textarea`/`Select`);
  *    the label is its `<label for>`. Used by the wizard steps and forms.
- * 2. **edit-in-place** — `value` + `onSave`: an `InlineEditField` engine inside
- *    a bordered value box; the dashed `EDIT_CUE_HOVER_CLASS` signals editability.
+ * 2. **edit** — `value` + `onSave`: the value in a dashed box (the
+ *    `EDIT_CUE_HOVER_CLASS` cue) that a press, Enter or Space opens into an
+ *    `Input` (a `Textarea` when `multiline`); Enter or a blur saves, Escape
+ *    drops the draft (`FieldEditor`).
  * 3. **picker** — `value` + `onEditClick`: a button value box opening a modal.
  *
  * Shapes 2–3 are the absorbed `IdentityField`.
@@ -291,7 +318,7 @@ export function Field(props: FieldProps) {
           // field's content along with its affordance: a printed sheet lost
           // the pilot's class, the mech's chassis and the crawler's type —
           // each surface's single most identifying field — while every other
-          // field printed, because `InlineEditField` renders a
+          // field printed, because the edit state's readout is a
           // `<span role="button">` that the element selector never matched.
           // This is the case the hatch was written for; it is shared verbatim
           // by both apps' print CSS, so the opt-in belongs on the markup.
@@ -306,27 +333,25 @@ export function Field(props: FieldProps) {
     )
   }
 
-  // ---- Edit-in-place: the InlineEditField engine inside the value box. --------
+  // ---- Edit: the value box opens into its editor. ----------------------------
   // A handler is the ONLY gate: if the caller can persist it, the reader can
   // edit it. (Without one the field was typeset above.)
   return (
     <div className={className} style={fill ? FIELD_ROOT_FILL : FIELD_ROOT}>
       {typesetLabel}
-      <InlineEditField
-        bordered
+      <FieldEditor
         value={value}
-        onSave={(next) => onSave?.(String(next))}
+        onSave={(next) => onSave?.(next)}
         multiline={multiline}
         placeholder={placeholder}
         ariaLabel={`Edit ${labelText.toLowerCase()}`}
-        // `fill` reaches the readout through the box's own class hook rather
-        // than a new InlineEditField prop: the box is a flex row, so stretching
-        // it and its child span is all the readout needs to fill.
+        // `fill` and `prominent` reach the readout through the box's class:
+        // the box is a flex row, so stretching it and its child span is all
+        // the readout needs to fill.
         className={cn(
           WRITE_CUE,
           EDIT_CUE_HOVER_CLASS,
           fill && 'su-field__fill',
-          // Reaches the readout through the box's class hook, like `fill`.
           prominent && 'su-field__prominent'
         )}
       />
@@ -334,10 +359,132 @@ export function Field(props: FieldProps) {
   )
 }
 
-// `Input` and `Textarea` live in the leaf module `./inputs`, not here: this
-// file imports `InlineEditField`, which imports them, and srd's SSR pass
-// evaluates this source under Bun with no bundler, where an import cycle is
-// TDZ-sensitive and evaluation-order dependent.
+/**
+ * Field's edit state: the click-to-edit / commit engine inside the one value
+ * box. The border is drawn ONCE: at rest the box (`.su-field__box`) frames
+ * the readout; while editing the `Input` / `Textarea` IS the bordered control
+ * and the box holds it with no frame of its own, so there is never a
+ * box-in-box border. Enter (without Shift, in a textarea) and a blur save;
+ * Escape closes and drops the draft.
+ */
+function FieldEditor({
+  value,
+  onSave,
+  multiline,
+  placeholder,
+  ariaLabel,
+  className,
+}: {
+  value: string
+  onSave: (next: string) => Promise<void> | void
+  multiline: boolean
+  placeholder: string
+  ariaLabel: string
+  className: string
+}) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
+  const areaRef = useRef<HTMLTextAreaElement>(null)
+
+  function open() {
+    setDraft(value)
+    setEditing(true)
+    setTimeout(() => {
+      inputRef.current?.focus()
+      areaRef.current?.focus()
+    }, 0)
+  }
+
+  function cancel() {
+    setEditing(false)
+    setDraft('')
+  }
+
+  async function commit(raw: string) {
+    setEditing(false)
+    setDraft('')
+    await onSave(raw)
+  }
+
+  if (!editing) {
+    const hasValue = value.trim().length > 0
+    return (
+      <div className={cn('su-field__box', className)}>
+        {/* biome-ignore lint/a11y/useSemanticElements: the readout holds the value as text the print sheet keeps (a <button> is hidden there, see the picker above); role, tab stop and keys make it the control */}
+        <span
+          role="button"
+          tabIndex={0}
+          aria-label={ariaLabel}
+          onClick={open}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              open()
+            }
+          }}
+          className={cn(
+            'su-field__readout su-field__readout--editable',
+            !hasValue && 'su-field__readout--empty',
+            INPUT_FOCUS
+          )}
+          style={hasValue ? READOUT : READOUT_EMPTY}
+        >
+          {hasValue ? value : placeholder}
+        </span>
+      </div>
+    )
+  }
+
+  return (
+    <div className={className} style={FULL_WIDTH}>
+      {multiline ? (
+        <Textarea
+          ref={areaRef}
+          value={draft}
+          rows={3}
+          aria-label={ariaLabel}
+          placeholder={placeholder}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={(e) => void commit(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault()
+              void commit(draft)
+            } else if (e.key === 'Escape') {
+              e.preventDefault()
+              cancel()
+            }
+          }}
+          style={NO_RESIZE}
+        />
+      ) : (
+        <Input
+          ref={inputRef}
+          value={draft}
+          aria-label={ariaLabel}
+          placeholder={placeholder}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={(e) => void commit(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              void commit(draft)
+            } else if (e.key === 'Escape') {
+              e.preventDefault()
+              cancel()
+            }
+          }}
+        />
+      )}
+    </div>
+  )
+}
+
+// `Input` and `Textarea` live in the leaf module `./inputs`, not here: srd's
+// SSR pass evaluates this source under Bun with no bundler, where an import
+// cycle is TDZ-sensitive and evaluation-order dependent, and a leaf keeps
+// every importer of them out of one.
 
 type SelectProps = ComponentPropsWithRef<'select'> & {
   /**

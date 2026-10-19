@@ -55,6 +55,7 @@ import { useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import type { SlabCount } from '../../components/index'
 import {
+  Button,
   EmptyState,
   EntitySearcher,
   Field,
@@ -84,7 +85,7 @@ import { PartnerCard } from './PartnerCard'
 import { PhotoBeside } from './PhotoBeside'
 import { SheetColumns } from './SheetColumns'
 import { SheetHero } from './SheetHero'
-import { SectionManageButton, SheetPickerModal } from './SheetSection'
+import { SheetPickerModal } from './SheetSection'
 import { StorageManifest } from './StorageManifest'
 
 /** The sheet column: an inline-size container (the poster regions query it). */
@@ -394,7 +395,9 @@ export function MechSheet({
                 )}
                 actions={
                   readOnly ? undefined : (
-                    <SectionManageButton label="systems" onClick={() => setPicker('system')} />
+                    <Button size="compact" onClick={() => setPicker('system')}>
+                      Manage Systems
+                    </Button>
                   )
                 }
               >
@@ -413,7 +416,9 @@ export function MechSheet({
                 )}
                 actions={
                   readOnly ? undefined : (
-                    <SectionManageButton label="modules" onClick={() => setPicker('module')} />
+                    <Button size="compact" onClick={() => setPicker('module')}>
+                      Manage Modules
+                    </Button>
                   )
                 }
               >

@@ -5,16 +5,17 @@
 
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { ComponentProps, CSSProperties, ReactNode } from 'react'
+import type { RefMetaEntity } from 'salvageunion-reference'
 import type { ChoiceSelections } from '../../components/index'
-import { Content, tokens } from '../../components/index'
+import { Content, embeddedPeekAddress, tokens } from '../../components/index'
 import { useEntityChoices } from '../../components/shared/useEntityChoices'
 import { findNpcChoiceByName, resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { runWrite } from '../../lib/runWrite'
 import type { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
-import { LinkedCrewInset } from '../npc/LinkedCrewInset'
-import { NpcInset } from './NpcInset'
+import { LinkedCrewToken } from '../npc/LinkedCrewToken'
+import { CrewLeadToken } from './CrewLeadToken'
 
 const TYPE_STACK = {
   display: 'flex',
@@ -53,10 +54,11 @@ type CrawlerTypeCardProps = {
 }
 
 /**
- * CrawlerTypeCard — the chosen crawler type as an entity card (description +
- * special action(s)), with its special NPC rendered as an NpcInset in the
- * expand slot. Mirrors CrawlerBayCard: the SRD npc block is stripped from the
- * card (it lives in the inset); Keepsake/Motto persist through the NPC's
+ * CrawlerTypeCard — the chosen crawler type's description and special
+ * action(s), with its special NPC as a contentful Token (`CrewLeadToken`,
+ * N3), as a bay's crew lead is: its head Peeks the type's NPC, its body holds
+ * what the sheet tracks about them (in Edit, their fields). Mirrors
+ * CrawlerBayCard: Keepsake/Motto persist through the NPC's
  * freeform choices into the crawler's bayChoices map keyed by the type ref;
  * structured name/HP/description/facts persist into the `typeNpc` field.
  */
@@ -120,7 +122,10 @@ export function CrawlerTypeCard({
 
   const inlineReadOnly = readOnly || assigned !== undefined
   const inlineCrew = npc ? (
-    <NpcInset
+    <CrewLeadToken
+      entity={{ ...npc, name: npc.position, schemaName: 'npcs' } as unknown as RefMetaEntity}
+      peekAt={embeddedPeekAddress(type.schemaName, type.id, 'npc')}
+      instance={{ title: typeNpc?.npcName?.trim() || npc.position }}
       bayName={type.name}
       title={npc.position}
       name={typeNpc?.npcName ?? ''}
@@ -146,7 +151,7 @@ export function CrawlerTypeCard({
   ) : undefined
   const crew =
     assigned && inlineCrew ? (
-      <LinkedCrewInset slotName={type.name} assignment={assigned} fallback={inlineCrew} />
+      <LinkedCrewToken slotName={type.name} assignment={assigned} fallback={inlineCrew} />
     ) : (
       inlineCrew
     )

@@ -69,7 +69,7 @@ describe('a crawler bay on the sheet', () => {
 
   test('a click inside the bay does not unfold it: only the disclosure does', () => {
     render(<CrawlerSheet crawler={crawler} store={store()} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Edit Pilot Bay crew name' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Edit pilot bay crew name' }))
     expect(screen.getByRole('group', { name: 'Pilot Bay crew lead' })).toBeTruthy()
     expect(disclosure('Pilot Bay').getAttribute('aria-expanded')).toBe('false')
   })

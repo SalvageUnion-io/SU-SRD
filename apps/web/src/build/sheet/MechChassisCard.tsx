@@ -2,12 +2,13 @@
  * MechChassisCard — the mech sheet's CHASSIS callout, the hero's foot (owner's
  * calls, 2026-10-14: the hero is the player's photo and what they wrote;
  * "Chassis has a reference" — a separate, smaller card with the chassis
- * description, in the standard Info Cutout block the Starter Set and Shelves
- * rows wear).
+ * description, in the house titled box the Starter Set and Shelves rows'
+ * blocks share).
  *
- * `InfoCutout` in the chassis's tone: its art column (fixed: the player's
- * photo is the hero's), its name on the cut-out with a CHASSIS chip beside it
- * (owner's call, 2026-10-14), and a paper body holding the
+ * A `TitledBox` in the chassis's tone: its art column (the Row's `Art`; fixed:
+ * the player's photo is the hero's), its name on the cut-out `Head` with a
+ * CHASSIS chip beside it (`Chips`; owner's call, 2026-10-14), and a paper body
+ * holding the
  * book's description and — in Edit — CHANGE CHASSIS (destructive; it keeps its
  * own confirm step). The mech's chassis stats and the chassis ability are in
  * the hero (owner's call, 2026-10-14).
@@ -18,7 +19,7 @@ import type { ComponentProps, CSSProperties } from 'react'
 import { useMemo, useState } from 'react'
 import { toEntityModel } from 'salvageunion-reference'
 import type { StatItem } from '../../components/index'
-import { Button, Content, Field, InfoCutout } from '../../components/index'
+import { Art, Button, Chips, Content, Field, TitledBox } from '../../components/index'
 import { MechChassisPickerModal } from '../mech/MechChassisPickerModal'
 import type { MechSheetModel } from './mechSheet.model'
 import type { SheetPatch } from './sheetViewProps.model'
@@ -27,6 +28,9 @@ const CONTROLS = { display: 'flex', justifyContent: 'flex-end' } satisfies CSSPr
 
 /** The callout's one chip: a bare label, saying what the block is. */
 const KIND: StatItem[] = [{ key: 'kind', label: 'Chassis', value: undefined }]
+
+/** Its band: the one label-only cell, Compact as a Row's head. */
+const KIND_CHIPS = <Chips chips={{ durations: [], facts: KIND, tags: [] }} size="compact" />
 
 type MechChassisCardProps = {
   mech: Mech
@@ -71,12 +75,13 @@ export function MechChassisCard({ mech, entity, chassisName, patch }: MechChassi
 
   return (
     <>
-      <InfoCutout
+      <TitledBox
+        as="section"
         title={chassisName}
         label="Chassis"
-        fill={model.tone}
-        art={model.art}
-        facts={KIND}
+        tone={model.tone}
+        art={model.art && <Art art={model.art} />}
+        chips={KIND_CHIPS}
       >
         {entity?.content && entity.content.length > 0 && (
           <Content
@@ -92,7 +97,7 @@ export function MechChassisCard({ mech, entity, chassisName, patch }: MechChassi
             </Button>
           </div>
         )}
-      </InfoCutout>
+      </TitledBox>
       {picker}
     </>
   )

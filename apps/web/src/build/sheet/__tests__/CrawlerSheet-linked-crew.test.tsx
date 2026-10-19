@@ -78,7 +78,7 @@ describe('a linked bay shows its NPC in place of the inline crew', () => {
     expandCards()
     const inset = screen.getByLabelText('Command Bay crew lead')
     expect(headName(inset)).toContain('Ilsa Varn')
-    expect(within(inset).getByRole('button', { name: /Edit Command Bay crew name/ })).toBeTruthy()
+    expect(within(inset).getByRole('button', { name: /Edit command bay crew name/ })).toBeTruthy()
   })
 
   test('a link whose NPC cannot be read shows the inline crew and says so, never a blank', () => {

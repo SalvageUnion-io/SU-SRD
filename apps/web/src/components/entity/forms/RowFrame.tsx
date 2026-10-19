@@ -26,7 +26,7 @@ export type RowFrameProps = {
 /**
  * ROW FRAME — the Row's square 2px frame on paper (ruleset §4.3) and its main
  * column: the one place that markup is drawn. `Row` stands in it, and so does
- * the house container (`Box`, and on it `TitledBox`, `Inset` and the dialogs),
+ * the house container (`Box`, and on it `TitledBox` and the dialogs),
  * which is why a dialog's head and a listing's Row are one geometry (§0).
  */
 export function RowFrame({
@@ -59,8 +59,7 @@ export function RowFrame({
 }
 
 /**
- * The Row's paper body under its head: a lead, a host's leading content, or
- * what a live sheet's `Inset` tracks (keepsake, motto, detail).
+ * The Row's paper body under its head: a lead, or a host's leading content.
  */
 export function RowBody({
   style,

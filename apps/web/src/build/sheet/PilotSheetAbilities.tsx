@@ -21,6 +21,7 @@
 import type { CSSProperties } from 'react'
 import {
   AbilityTrack,
+  Button,
   EmptyState,
   MasonryColumns,
   Slab,
@@ -30,7 +31,6 @@ import {
 } from '../../components/index'
 import { PilotAbilityItem } from './PilotSheetItems'
 import type { AbilityEntry, AbilityTreeGroup } from './pilotSheet.model'
-import { SectionManageButton } from './SheetSection'
 import { UnknownItemLine } from './UnknownItemLine'
 
 /** The two slabs, a section's gap apart (the sheet column's own). */
@@ -102,7 +102,11 @@ export function PilotSheetAbilities({
           fold="open"
           title="Abilities"
           actions={
-            readOnly ? undefined : <SectionManageButton label="abilities" onClick={onManage} />
+            readOnly ? undefined : (
+              <Button size="compact" onClick={onManage}>
+                Manage Abilities
+              </Button>
+            )
           }
         >
           {none ? (

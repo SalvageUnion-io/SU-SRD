@@ -31,4 +31,5 @@ State rules here, never prop tables or rosters: read props off the component.
 - **Every `label | value` is a `Stat`** (ruleset §3.7; most broken):
   never a hand-built `<span>`. A surface that seems to need its own is missing a
   `Stat` rung, usually `size="full"`.
-- **Sheets:** the sidebar holds what is carried.
+- **Sheets:** the sidebar holds what is carried; panels `TitledBox`, values
+  `Field`.

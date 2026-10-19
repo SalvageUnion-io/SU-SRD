@@ -315,9 +315,9 @@ describe('Sheet — readOnly propagates to sub-sheets', () => {
         softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
-    // InlineEditField renders role="button" only when NOT readOnly.
+    // A Field's edit state renders role="button" only when it can write.
     // In a readOnly Sheet, stat cells should be plain spans with no button role.
-    // ariaLabel for stat cells starts with "Edit " (InlineEditField).
+    // ariaLabel for stat cells starts with "Edit " (Field's edit state).
     const statButtons = screen
       .queryAllByRole('button')
       .filter((el) => (el.getAttribute('aria-label') ?? '').startsWith('Edit '))
@@ -365,8 +365,8 @@ describe('Sheet — readOnly propagates to sub-sheets', () => {
         softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
-    // Without readOnly, InlineEditField renders role="button" on the value span
-    // ariaLabel starts with "Edit " (InlineEditField)
+    // Without readOnly, a Field's edit state renders role="button" on the value
+    // span; its ariaLabel starts with "Edit "
     const statButtons = screen
       .queryAllByRole('button')
       .filter((el) => (el.getAttribute('aria-label') ?? '').startsWith('Edit '))

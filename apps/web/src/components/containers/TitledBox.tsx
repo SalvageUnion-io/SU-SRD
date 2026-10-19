@@ -8,7 +8,7 @@ import { Box } from './Box'
 type TitledBoxProps = Omit<BoxProps, 'head' | 'frameColor'> & {
   /** The name on the cut-out; it also names a `section`. */
   title: string
-  /** What the cut-out shows in place of `title`'s text: a live sheet's inline-edit field. */
+  /** What the cut-out shows in place of `title`'s text (a field, a link). */
   titleContent?: ReactNode
   /** The title's element (`h1` where the box is the screen's subject). */
   titleAs?: ElementType
@@ -31,7 +31,7 @@ type TitledBoxProps = Omit<BoxProps, 'head' | 'frameColor'> & {
  * tab opens into the paper body with no rule between them.
  *
  * Every titled container that is not an entity wears it: dialogs
- * (`ModalShell`), sheet panels (`Inset`, `InfoCutout`), wizard briefs,
+ * (`ModalShell`), a sheet's panels (a mech's Chassis and Hold), wizard briefs,
  * notices. Entities draw through their own forms (`Row`,
  * `ReferenceEntityCard`), which share the same `Head`.
  *

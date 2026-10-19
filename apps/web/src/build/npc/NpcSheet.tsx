@@ -48,7 +48,7 @@ import { MoveToContainerControl } from '../entityContainer/MoveToContainerContro
 import { ShareStatusDialog } from '../sharing/ShareStatusDialog'
 import { npcStamp } from '../sheet/bandStamps.model'
 import { LiveSheet } from '../sheet/LiveSheet'
-import { NpcLines } from '../sheet/NpcInset'
+import { NpcLines } from '../sheet/NpcLines'
 import { PhotoBeside } from '../sheet/PhotoBeside'
 import { SheetActionsMenu } from '../sheet/SheetActionsMenu'
 import { SheetColumns } from '../sheet/SheetColumns'

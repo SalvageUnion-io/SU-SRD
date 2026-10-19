@@ -204,13 +204,13 @@ describe('your own sheet', () => {
     // Print reads: no pencil until Edit is pressed.
     const read = screen.getByRole('button', { name: 'Read' })
     expect(read.getAttribute('aria-pressed')).toBe('true')
-    expect(screen.queryByRole('button', { name: /^Manage abilities$/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Manage abilities$/i })).toBeNull()
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
     })
     expect(screen.getByRole('button', { name: 'Edit' }).getAttribute('aria-pressed')).toBe('true')
-    expect(screen.getByRole('button', { name: /^Manage abilities$/ })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /^Manage abilities$/i })).toBeTruthy()
     // The choice holds for the visit, from this sheet to the next.
     expect(useSheetModeStore.getState().editing).toBe(true)
   })

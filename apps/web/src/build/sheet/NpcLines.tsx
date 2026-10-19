@@ -1,16 +1,13 @@
 /**
- * NpcInset — an NPC's identity panel where it stands at level 1 (N1): a built
- * NPC's own page, beside its stat block, and a crawler type's special NPC in
- * the sheet's identity panel. Each crew lead has a name, keepsake, motto,
- * detail, facts and 4 HP. Inside a bay card, a level-1 entity, the crew lead
- * is a contentful Token instead (`CrewLeadToken`, N3): no titled box nests in
- * an entity (N5). Both draw the same id lines (`NpcLines`).
+ * NpcLines — what a sheet tracks about an NPC, under its head: a built NPC's
+ * own sheet (beside its stat block) and a crew lead's contentful Token
+ * (`CrewLeadToken`, N3: a bay's crew lead and a crawler type's special NPC).
+ * Each crew lead has a name, keepsake, motto, detail, facts and 4 HP.
  *
- * Composes the shared `Inset`: the cut-out head the SRD draws the same NPC
- * with (NPC brown band, the lead's editable name on the paper tab, the role
- * and an `HP | 4/4` chip beside it), over its id lines: Role, Keepsake and
- * Motto read as `Stat`s with text values (ruleset §3.7), Detail as prose,
- * Facts in the one chip well (`ChipListEditor`).
+ * Role, Keepsake and Motto read as `Stat`s with text values (ruleset §3.7),
+ * Detail as prose, Facts in the one chip well (`ChipListEditor`). In Edit each
+ * one to write is a `Field` in its edit state (its label over the value box
+ * a press opens), and HP its stepper.
  *
  * Persistence stays with the caller: name/HP/detail/facts patch the crawler's
  * bay entry; keepsake persists through the bay's SRD freeform 'Keepsake'
@@ -22,7 +19,7 @@
 
 import type { CSSProperties, ReactNode } from 'react'
 import { capsLabel } from '../../components/atoms/capsLabel'
-import { InlineEditField, Inset, Stat, tokens } from '../../components/index'
+import { Field, Stat, tokens } from '../../components/index'
 import { ChipListEditor } from './ChipListEditor'
 import { FACT_DRAFT } from './chipWell.model'
 
@@ -50,13 +47,6 @@ const ROW_VALUE_PROSE = {
   lineHeight: 1.375,
 } satisfies CSSProperties
 
-const BODY = {
-  alignItems: 'flex-start',
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[8],
-} satisfies CSSProperties
-
 /** The id lines; their two-column split is a container query (`.su-sheet-npc-lines`). */
 const LINES = {
   columnGap: tokens.space[16],
@@ -67,8 +57,8 @@ const LINES = {
   rowGap: tokens.space[4],
 } satisfies CSSProperties
 
-export type NpcInsetProps = {
-  /** Bay name — disambiguates aria-labels when several insets render at once. */
+export type NpcLinesProps = {
+  /** Bay name — disambiguates aria-labels when several crew leads render at once. */
   bayName: string
   /** SRD crew role (npc.position), e.g. 'Greaser'. Read-only. */
   title?: string
@@ -85,15 +75,13 @@ export type NpcInsetProps = {
   onMottoChange?: (next: string) => void
   onDetailChange?: (next: string) => void
   onFactsChange?: (next: string[]) => void
-  /** The host's controls, the head's last slot (C8, hard rule R6): a linked crew's Open. */
-  controls?: ReactNode
 }
 
 /**
- * One labelled line of the inset whose value is not a reading: a field to
- * write (Name, Keepsake, Motto, Detail in Edit), Detail's prose, the Facts
- * well. A reading (Role, Keepsake, Motto in Read) is a `Stat` with a text
- * value (ruleset §3.7, §6.2), never a hand-built label and value.
+ * One labelled line whose value is neither a reading nor a field: Detail's
+ * prose, the Facts well. A reading (Role, Keepsake, Motto in Read) is a `Stat`
+ * with a text value (ruleset §3.7, §6.2), a value to write a `Field`, never a
+ * hand-built label and value.
  */
 function NpcRow({
   label,
@@ -129,7 +117,7 @@ function NpcRow({
   )
 }
 
-/** A reading of the inset: its `Stat`, a text value, Compact as the fields beside it. */
+/** A reading: its `Stat`, a text value, Compact as the fields beside it. */
 function NpcReading({ label, value }: { label: string; value: string }) {
   return (
     <div style={ROW}>
@@ -162,7 +150,7 @@ export function NpcLines({
   onFactsChange,
   identity = false,
   role = '',
-}: NpcInsetProps & {
+}: NpcLinesProps & {
   /** Lead with the name and HP fields (the head they would sit on holds no field). */
   identity?: boolean
   /** Its role, read-only (a built NPC's own sheet, whose band carries no role chip). */
@@ -186,15 +174,13 @@ export function NpcLines({
   return (
     <div className="su-sheet-npc-lines" style={LINES}>
       {showName && (
-        <NpcRow label="Name">
-          <InlineEditField
-            value={name}
-            onSave={(next) => onNameChange?.(String(next))}
-            type="text"
-            ariaLabel={`Edit ${bayName} crew name`}
-            placeholder={title}
-          />
-        </NpcRow>
+        <Field
+          label="Name"
+          value={name}
+          onSave={(next) => onNameChange?.(next)}
+          ariaLabel={`${bayName} crew name`}
+          placeholder={title}
+        />
       )}
       {showHp && (
         // The Stat names itself.
@@ -213,45 +199,42 @@ export function NpcLines({
       {showRole && <NpcReading label="Role" value={role} />}
       {showKeepsake &&
         (onKeepsakeChange ? (
-          <NpcRow label="Keepsake">
-            <InlineEditField
-              value={keepsake}
-              onSave={(next) => onKeepsakeChange(String(next))}
-              type="text"
-              ariaLabel={`Edit ${bayName} crew keepsake`}
-            />
-          </NpcRow>
+          <Field
+            label="Keepsake"
+            value={keepsake}
+            onSave={onKeepsakeChange}
+            ariaLabel={`${bayName} crew keepsake`}
+          />
         ) : (
           <NpcReading label="Keepsake" value={keepsake} />
         ))}
       {showMotto &&
         (onMottoChange ? (
-          <NpcRow label="Motto">
-            <InlineEditField
-              value={motto}
-              onSave={(next) => onMottoChange(String(next))}
-              type="text"
-              ariaLabel={`Edit ${bayName} crew motto`}
-            />
-          </NpcRow>
+          <Field
+            label="Motto"
+            value={motto}
+            onSave={onMottoChange}
+            ariaLabel={`${bayName} crew motto`}
+          />
         ) : (
           <NpcReading label="Motto" value={motto} />
         ))}
-      {showDetail && (
-        <NpcRow label="Detail" grow className="su-sheet-npc-wide">
-          {onDetailChange ? (
-            <InlineEditField
-              multiline
-              value={detail}
-              onSave={(next) => onDetailChange(String(next))}
-              ariaLabel={`Edit ${bayName} crew detail`}
-              placeholder="Add a detail…"
-            />
-          ) : (
-            detail
-          )}
-        </NpcRow>
-      )}
+      {showDetail &&
+        (onDetailChange ? (
+          <Field
+            label="Detail"
+            className="su-sheet-npc-wide"
+            multiline
+            value={detail}
+            onSave={onDetailChange}
+            ariaLabel={`${bayName} crew detail`}
+            placeholder="Add a detail…"
+          />
+        ) : (
+          <NpcRow label="Detail" grow className="su-sheet-npc-wide">
+            {detail}
+          </NpcRow>
+        ))}
       {showFacts && (
         <NpcRow label="Facts" grow plain className="su-sheet-npc-wide">
           <ChipListEditor
@@ -265,57 +248,6 @@ export function NpcLines({
           />
         </NpcRow>
       )}
-    </div>
-  )
-}
-
-export function NpcInset(props: NpcInsetProps) {
-  const { bayName, title, name, hp, maxHp, onNameChange, onHpChange } = props
-  return (
-    // biome-ignore lint/a11y/useSemanticElements: a labeled group (not a landmark) names the crew-lead inset so multiple insets per crawler stay distinguishable; Inset exposes no aria-label of its own, and a <section> here would become a region landmark once named
-    <div role="group" aria-label={`${bayName} crew lead`}>
-      <Inset
-        // An NPC's own tone, as the SRD draws the same crew lead nested in its
-        // bay: the cut-out head, the name on the paper tab, the chips beside.
-        tone="adversary"
-        title={name || title || 'Crew'}
-        titleContent={
-          onNameChange ? (
-            <InlineEditField
-              value={name}
-              onSave={(next) => onNameChange(String(next))}
-              type="text"
-              ariaLabel={`Edit ${bayName} crew name`}
-              placeholder={title}
-            />
-          ) : undefined
-        }
-        // The ROLE leads the chips (a label-only cell, as an action type is),
-        // then HP — this crew member's one live number — as its chip, with
-        // the steppers while the sheet writes it.
-        marks={
-          title && (name || onNameChange) ? (
-            <Stat orientation="horizontal" label={title} size="compact" />
-          ) : undefined
-        }
-        state={
-          maxHp > 0 ? (
-            <Stat
-              orientation="horizontal"
-              label="HP"
-              value={hp}
-              max={maxHp}
-              size="compact"
-              mode={onHpChange ? 'edit' : 'read'}
-              onChange={onHpChange}
-            />
-          ) : undefined
-        }
-        controls={props.controls}
-        bodyStyle={BODY}
-      >
-        <NpcLines {...props} />
-      </Inset>
     </div>
   )
 }

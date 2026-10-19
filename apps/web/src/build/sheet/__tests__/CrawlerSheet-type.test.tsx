@@ -4,7 +4,7 @@
  *
  * When `crawler.type` is set, the identity panel renders the type's special
  * ability and the type itself as compact entity cards, with the special NPC
- * as an NpcInset in the type card's expand slot. Keepsake/Motto persist
+ * a contentful Token (`CrewLeadToken`), as a bay's crew lead. Keepsake/Motto persist
  * through the type NPC's SRD freeform choices into bayChoices keyed by the
  * type ref; structured name/HP/description persist into the `typeNpc` field.
  *
@@ -146,9 +146,12 @@ describe('CrawlerIdentityPanel — type + ability cards', () => {
     // The type's special ability renders as its own compact entity card.
     expect(screen.getByText('Improved Armour and Armaments')).toBeTruthy()
 
+    // A contentful Token (N3), as a bay's crew lead: its name heads it, and in
+    // Edit its Name field holds it too.
     const inset = screen.getByLabelText('Battle crew lead')
-    expect(within(inset).getByText('Vex')).toBeTruthy()
-    expect(within(inset).getByText('Grizzled Veteran')).toBeTruthy()
+    expect(inset.querySelector('.su-entity-token[data-contentful]')).not.toBeNull()
+    expect(inset.querySelector('.su-entity-token__name')?.textContent).toContain('Vex')
+    expect(within(inset).getAllByText('Grizzled Veteran').length).toBeGreaterThan(0)
   })
 
   test('renders the type NPC Keepsake/Motto from bayChoices keyed by the type ref', async () => {
@@ -173,11 +176,11 @@ describe('CrawlerIdentityPanel — type + ability cards', () => {
     const crawler = makeCrawler({ type: BATTLE_REF, typeNpc: { npcName: 'Vex' } })
     renderIdentity(crawler, makeStubStore(crawler, update))
 
-    const field = screen.getByLabelText('Edit Battle crew motto')
+    const field = screen.getByLabelText('Edit battle crew motto')
     await act(async () => {
       fireEvent.click(field)
     })
-    const input = screen.getByLabelText('Edit Battle crew motto')
+    const input = screen.getByLabelText('Edit battle crew motto')
     await act(async () => {
       fireEvent.change(input, { target: { value: 'No retreat' } })
       fireEvent.blur(input)
@@ -199,12 +202,12 @@ describe('CrawlerIdentityPanel — type + ability cards', () => {
     renderIdentity(crawler, makeStubStore(crawler))
 
     const inset = screen.getByLabelText('Augmented crew lead')
-    expect(within(inset).getByText('Oracle')).toBeTruthy()
+    expect(inset.querySelector('.su-entity-token__name')?.textContent).toContain('Oracle')
     // No HP pips when maxHp is 0.
     expect(inset.querySelectorAll('[data-pip]').length).toBe(0)
     // Augmented's A.I. carries no Keepsake/Motto choice.
-    expect(screen.queryByLabelText('Edit Augmented crew keepsake')).toBeNull()
-    expect(screen.queryByLabelText('Edit Augmented crew motto')).toBeNull()
+    expect(screen.queryByLabelText('Edit augmented crew keepsake')).toBeNull()
+    expect(screen.queryByLabelText('Edit augmented crew motto')).toBeNull()
   })
 
   test('untyped legacy crawler: no type/ability cards, no crash', async () => {

@@ -104,7 +104,7 @@ describe('Print markup — PilotSheet', () => {
    * Regression. A picker `Field` renders its VALUE *inside* the button
    * rather than beside it, so the print rule `button:not([data-print='keep'])`
    * hid the pilot's class on paper — the one field saying what the pilot IS.
-   * The sibling fields printed fine because `InlineEditField` renders a
+   * The sibling fields printed fine because a Field's edit state renders a
    * `<span role="button">`, which that element selector never matched, so the
    * loss looked like a quirk of one field instead of a rule hitting a whole
    * variant. Same shape on the mech (chassis) and crawler (type) sheets.

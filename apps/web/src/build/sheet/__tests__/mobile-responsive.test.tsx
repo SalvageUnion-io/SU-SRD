@@ -2,9 +2,9 @@
  * Mobile-responsive regression tests for sheet components.
  *
  * Sheet renders without horizontal overflow at 320px viewport width.
- * The top-bar Share control and InlineEditField display state have ≥44px touch targets
+ * The top-bar Share control and a Field's edit-state readout have ≥44px touch targets
  *       (verified via the coarse-pointer floor every `.su-btn` gets, the Share control
- *       included, and the inline `min-height` (`size.full`, 44px) on InlineEditField's display state).
+ *       included, and the inline `min-height` (`size.full`, 44px) on the readout).
  *
  * Design choices:
  * - 320px overflow check: happy-dom does not implement a full layout engine, so
@@ -15,7 +15,7 @@
  *   should be covered by a Playwright / puppeteer visual regression test.
  * - Touch target: we assert the Share button is a `.su-btn` at the page-top
  *   height (`.su-page-action`), and that `theme.css`'s coarse-pointer floor
- *   lifts every `.su-btn` to 44px; and InlineEditField's display span its inline
+ *   lifts every `.su-btn` to 44px; and a Field's edit-state readout its inline
  *   `minHeight` (a style object). Both are the most
  *   reliable assertions in happy-dom (no computed styles).
  *
@@ -39,7 +39,7 @@ import {
   makeEntityLookupMock,
   makeSoftLinkStoreMock,
 } from '../../../components/__tests__/mockEntityStore'
-import { InlineEditField } from '../../../components/index'
+import { Field } from '../../../components/index'
 import { Sheet } from '../Sheet'
 
 beforeAll(hydrateStores)
@@ -164,28 +164,11 @@ describe('Mobile responsive — renders without error at 320px container', () =>
 // ---------------------------------------------------------------------------
 
 describe('Mobile responsive — 44px touch targets', () => {
-  test('InlineEditField display state carries a 44px min-height', () => {
-    render(
-      <InlineEditField
-        value={42}
-        onSave={() => Promise.resolve()}
-        type="number"
-        ariaLabel="Edit HP"
-      />
-    )
-    // Display state renders a span with role=button
-    const displayEl = screen.getByRole('button')
+  test("a Field's edit-state readout carries a 44px min-height", () => {
+    render(<Field label="Callsign" value="Ghost" onSave={() => Promise.resolve()} />)
+    // The edit state's readout is a span with role=button.
+    const displayEl = screen.getByRole('button', { name: 'Edit callsign' })
     expect((displayEl as HTMLElement).style.minHeight).toBe('44px')
-  })
-
-  test('InlineEditField readOnly display state also carries a 44px min-height', () => {
-    const { container } = render(
-      <InlineEditField value={42} onSave={() => Promise.resolve()} type="number" readOnly />
-    )
-    // readOnly renders no button role — get via container querySelector
-    const span = container.querySelector('span')
-    expect(span).toBeTruthy()
-    expect((span as HTMLElement).style.minHeight).toBe('44px')
   })
 
   test('the top-bar Share control carries the 44px touch-target floor', () => {

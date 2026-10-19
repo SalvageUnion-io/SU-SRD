@@ -101,7 +101,7 @@ export const MARKUP_RULES: (Rule & { scan: (root: string) => Finding[] })[] = [
     id: 'raw-dl',
     mode: 'zero',
     rule: 'hard rule R36 (ruleset §3.7, §6.2) — every labelled value is a `Stat`, a text value too; no hand-built <dl>, <dt> or <dd>',
-    fix: 'Render `<Stat label="Mediator" value="Crewmate (you)" size="compact" wrap />` (Compact beside Compact controls); a column of them is `StatColumn`. A field to write keeps its label (`Field`, or the line\'s caps label beside an `InlineEditField`).',
+    fix: 'Render `<Stat label="Mediator" value="Crewmate (you)" size="compact" wrap />` (Compact beside Compact controls); a column of them is `StatColumn`. A field to write keeps its label (`Field`, its edit state included).',
     scan: (root) => scanMarkup(root, 'dl'),
   },
   {

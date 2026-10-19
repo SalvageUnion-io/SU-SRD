@@ -20,7 +20,7 @@
   }
 }
 
-/* — NpcInset — */
+/* — NpcLines (`NpcLines.tsx`): a crew lead's id lines — */
 
 /* The id lines split in two once the bay card is `sm` wide (container query). */
 .su-sheet-npc-lines {

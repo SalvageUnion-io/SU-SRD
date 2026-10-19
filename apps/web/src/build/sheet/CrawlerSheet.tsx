@@ -23,8 +23,8 @@
  * Bays stay ONE unified grid (no crew/functional split; the poster's
  * homebrew/custom-bay split needs a data-model flag the schema does not have)
  * as compact entity cards (max 2
- * columns), each with Intact/Damaged status, its crew lead as an
- * NpcInset, a "Docks <mech>" one-liner on the Mech Bay, and a
+ * columns), each with Intact/Damaged status, its crew lead as a
+ * contentful Token (`CrewLeadToken`), a "Docks <mech>" one-liner on the Mech Bay, and a
  * function/Repair action pair. Repair decrements 5 Scrap from the
  * crawler-TL pool bucket, spilling into higher buckets — a short pool is
  * advisory, never a block.

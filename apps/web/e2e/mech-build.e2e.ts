@@ -82,8 +82,8 @@ test('edit a mech loadout on its live sheet', async ({ page }) => {
   await waitForReady(page)
 
   // The Systems section header's manage control opens the shared picker, which
-  // writes through on toggle. SectionManageButton labels itself
-  // `Manage ${label}` — MechSheet passes label="systems".
+  // writes through on toggle. It is the Button in the Systems SlabSection's
+  // actions, "Manage Systems".
   // A sheet opens in Read; its controls are Edit's.
   await editSheet(page)
   await page.getByRole('button', { name: /^Manage systems$/i }).click()

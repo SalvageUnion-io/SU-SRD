@@ -9,97 +9,23 @@
  *       adopted by any sheet — the sheets edit fields live instead — so it was
  *       deleted rather than left as half a shipped API. Its (B) sibling below
  *       IS used; that asymmetry is why this note exists rather than a silent gap.
- *   (B) COLLECTION sections: `SectionAddButton` — an always-visible,
- *       always-ENABLED '+ Add' opening the ONE shared picker modal
- *       (`SheetPickerModal` over ModalShell); the per-item remove (✕) is the
- *       sheet's one `SheetRemoveButton` (`SheetItemLine.tsx`).
+ *   (B) COLLECTION sections: a `Button` in the `SlabSection`'s `actions`
+ *       ("Manage Abilities"), always visible and always ENABLED, opening the
+ *       ONE shared picker modal (`SheetPickerModal` over ModalShell); the
+ *       per-item remove (✕) is the sheet's one `SheetRemoveButton`
+ *       (`SheetItemLine.tsx`). There is no header button of the sheets' own:
+ *       the Manage control is the house `Button`, Compact as the fold beside
+ *       it (§4.7). // TODO(redesign): rule-gate add/remove (TP /
+ *       maxAbilities / slots / scrap economy) — deferred; users self-manage.
  *   (C) STAT cells stay always-live StatBlock pips — no primitive needed here.
  *
  * `EDIT_CUE_HOVER_CLASS` is the single editing cue: a dashed outline on
  * section-edit fields and per-card controls (StatBlocks carry no cue).
  */
 
-import type { ComponentPropsWithoutRef, CSSProperties, ReactElement, ReactNode } from 'react'
+import type { CSSProperties, ReactElement, ReactNode } from 'react'
 import { cloneElement, isValidElement } from 'react'
-import { Button, Glyph, ModalShell, tokens } from '../../components/index'
-
-// ---------------------------------------------------------------------------
-// HButton — the container-header control button (design `.hbtn`, clean-edit.html
-// :384-411). 2px border, radius 3, paper fill, 10.5px cond bold caps: a
-// deep-tone outline with a circled-plus that fills on hover. Compact at every
-// width, a coarse pointer lifting it to the 44px floor.
-//
-// Everything with a hover, breakpoint or print variant — display, min-height
-// and the colours — is `.su-sheet-hbtn` in `styles/sheet/chrome.css`; the rest
-// is the style object below, which sits over `Button`'s own geometry.
-// ---------------------------------------------------------------------------
-
-const HBTN = {
-  cursor: 'pointer',
-  alignItems: 'center',
-  gap: tokens.space[6],
-  borderRadius: tokens.radius.card,
-  borderStyle: 'solid',
-  borderWidth: tokens.borderWidth.pill,
-  paddingBlock: 0,
-  paddingInline: tokens.space[12],
-  fontSize: tokens.fontSize.badge,
-  fontWeight: tokens.weight.bold,
-  lineHeight: 1,
-  whiteSpace: 'nowrap',
-  transitionProperty:
-    'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke',
-  transitionTimingFunction: tokens.ease,
-  transitionDuration: tokens.duration.fast,
-} satisfies CSSProperties
-
-/** Container-header control button (design `.hbtn`). */
-function HButton({ children, ...props }: ComponentPropsWithoutRef<'button'>) {
-  return (
-    <Button className="su-sheet-hbtn" style={HBTN} {...props}>
-      {children}
-    </Button>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// (B) COLLECTION sections — always-available add / per-card remove
-// ---------------------------------------------------------------------------
-
-type SectionManageButtonProps = {
-  /** What gets added, for the accessible label, e.g. 'ability'. */
-  label: string
-  onClick: () => void
-}
-
-/** The circled plus: a 16px ring in the button's own colour. */
-const MANAGE_RING = {
-  display: 'flex',
-  height: tokens.space[16],
-  width: tokens.space[16],
-  alignItems: 'center',
-  justifyContent: 'center',
-  borderRadius: tokens.radius.full,
-  border: `${tokens.borderWidth.pill} solid currentColor`,
-} satisfies CSSProperties
-
-const MANAGE_GLYPH = { height: tokens.space[8], width: tokens.space[8] } satisfies CSSProperties
-
-/**
- * Always-visible, always-ENABLED '+ Add' for a collection section header.
- * // TODO(redesign): rule-gate add/remove (TP / maxAbilities / slots / scrap
- * economy) — deferred; users self-manage for now.
- */
-export function SectionManageButton({ label, onClick }: SectionManageButtonProps) {
-  return (
-    <HButton aria-label={`Manage ${label.toLowerCase()}`} onClick={onClick}>
-      <span style={MANAGE_RING}>
-        <Glyph name="plus" style={MANAGE_GLYPH} />
-      </span>
-      Manage {label}
-    </HButton>
-  )
-}
+import { ModalShell, tokens } from '../../components/index'
 
 // ---------------------------------------------------------------------------
 // The ONE shared picker modal (collections + single-select pickers)

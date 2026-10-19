@@ -220,8 +220,8 @@ export async function clickNext(page: Page): Promise<void> {
 /**
  * Fill a wizard identity field by its visible `Field` label.
  *
- * These are not plain inputs. `Field` with `value` + `onSave` renders an
- * `InlineEditField`: a `role="button"` readout that swaps to an input only once
+ * These are not plain inputs. `Field` with `value` + `onSave` is in its edit
+ * state: a `role="button"` readout that swaps to an input only once
  * activated, and it labels both halves `Edit <label lowercased>`. So filling one
  * is click-then-type, and `getByLabel(/^Name$/)` matches nothing at all.
  *
@@ -235,7 +235,7 @@ export async function fillIdentity(page: Page, label: string, value: string): Pr
   if (await editor.isVisible().catch(() => false)) {
     await editor.click().catch(() => {})
     await page.getByLabel(editLabel).first().fill(value)
-    // InlineEditField commits on blur.
+    // Field's edit state commits on blur.
     await page.keyboard.press('Tab')
     return true
   }

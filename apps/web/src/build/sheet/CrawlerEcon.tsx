@@ -2,7 +2,7 @@
  * CrawlerEcon — the crawler's VITALS column: the SP gauge, the Upgrade-pool
  * gauge, a 2-up grid of the remaining readouts, and one row of actions.
  *
- * There is no `Inset` around it any more. The column already sits in its own
+ * There is no titled box around it any more. The column already sits in its own
  * section card, so the inset was a second frame inside the first, and its
  * "Crawler / Economy" head bar re-titled a column the section had just titled.
  *
