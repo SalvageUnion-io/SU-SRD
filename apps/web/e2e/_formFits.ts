@@ -29,7 +29,12 @@ export type FormFinding = {
 export type FormSelectors = {
   /** A list item: an `li`, an ARIA list item or option. */
   item: string
-  /** An item of a Live Sheet's lists: its `li`s and its item lines' children (a line's sr-only live region is none). */
+  /**
+   * An item of a Live Sheet's lists: its `li`s and its item lines' children (a
+   * line's sr-only live region is none). A `StatColumn`'s cell is none either:
+   * the column is a layout of `Stat`s (the mech hero's chassis stats), not a
+   * list of things carried or installed.
+   */
   sheetItem: string
   /** A Row (not a TitledBox, which shares its class), a Tile, a Token. */
   row: string
@@ -55,7 +60,7 @@ export type FormSelectors = {
 export const FORM_SELECTORS: FormSelectors = {
   item: 'li, [role="listitem"], [role="option"]',
   sheetItem: [
-    '.su-sheet-live-body li',
+    '.su-sheet-live-body li:not(.su-stat-column__cell)',
     '.su-sheet-live-body .su-sheet-items > :not(li, ul, .su-sr-only)',
     '.su-sheet-live-body .su-sheet-pills > *',
   ].join(', '),
