@@ -2,12 +2,12 @@ import type { CSSProperties, ReactNode } from 'react'
 import { color, font, fontSize, space } from '../../design/tokens'
 import { Button } from '../atoms/Button'
 import { FieldError } from '../atoms/FieldError'
-import { Slab } from '../atoms/Slab'
 import { DialogActions } from '../containers/DialogActions'
 import { EmptyState } from '../containers/EmptyState'
 import { ModalShell } from '../containers/ModalShell'
 import { Pending } from '../containers/Pending'
 import { RadioCardGroup } from '../containers/RadioCardGroup'
+import { SlabSection } from '../containers/SlabSection'
 import type { TagItem } from '../entity'
 import { Entity } from '../entity/Entity'
 import type { EntityRowModel } from '../entity/types'
@@ -152,10 +152,15 @@ export function PickDialog({
                 />
               ))
               return group.title ? (
-                <section key={group.key} style={GROUP} aria-label={group.title}>
-                  <Slab as="h3" label={group.title} />
+                <SlabSection
+                  key={group.key}
+                  as="h3"
+                  title={group.title}
+                  aria-label={group.title}
+                  bodyStyle={GROUP}
+                >
                   {rows}
-                </section>
+                </SlabSection>
               ) : (
                 <div key={group.key} style={GROUP}>
                   {rows}

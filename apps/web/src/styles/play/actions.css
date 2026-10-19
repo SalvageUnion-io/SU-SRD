@@ -72,21 +72,6 @@
   justify-content: flex-end;
 }
 
-/* The collapsed group's toggle, set as the Slab's own label. */
-.su-play-act-toggle {
-  align-items: center;
-  background: none;
-  border: none;
-  color: inherit;
-  cursor: pointer;
-  display: inline-flex;
-  font: inherit;
-  gap: var(--space-4);
-  letter-spacing: inherit;
-  padding: 0;
-  text-transform: inherit;
-}
-
 /* A row's inline resolve: plain content in the Row's body. */
 .su-play-resolve {
   display: flex;

@@ -15,7 +15,7 @@
 import type { SheetKind } from 'game-domain/entityKinds'
 import { Unlink } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import { Button, relation, SheetSectionSlab, Tags, tokens } from '../../components/index'
+import { Button, relation, SlabSection, Tags, tokens } from '../../components/index'
 
 /** One linked unit: what it is to this sheet, its name, and where its sheet is. */
 export type AssignedUnit = {
@@ -80,7 +80,12 @@ export function AssignedUnits({
 }) {
   if (!hasAssignedUnits(units, editable)) return null
   return (
-    <SheetSectionSlab id="linked-units" title="Assigned units" bodyClassName="su-sheet-linked">
+    <SlabSection
+      fold="open"
+      id="linked-units"
+      title="Assigned units"
+      bodyClassName="su-sheet-linked"
+    >
       {units.map((unit) => (
         <div key={unit.key} style={LINE} data-assigned-unit="">
           <Tags
@@ -115,6 +120,6 @@ export function AssignedUnits({
             </div>
           </div>
         ))}
-    </SheetSectionSlab>
+    </SlabSection>
   )
 }

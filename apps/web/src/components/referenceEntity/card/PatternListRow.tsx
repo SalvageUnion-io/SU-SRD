@@ -5,14 +5,13 @@ import { firstParagraphText, normalizePatternName, toEntityModel } from 'salvage
 import { cn } from '../../../lib/cn'
 import { capsLabel } from '../../atoms/capsLabel'
 import { FOCUS_RING } from '../../atoms/interaction'
-import { Slab } from '../../atoms/Slab'
 import { Box } from '../../containers/Box'
+import { SlabSection } from '../../containers/SlabSection'
 import { Head, paintFor } from '../../entity'
 import { useEntitySurface } from '../../entity/entitySurfaceContext'
 import { usePatternHref } from '../entityHrefContext'
 import { CardLabels } from './CardLabels'
 import type { Down } from './cardChrome'
-import { PAGE_SLAB } from './cardHelpers'
 import { isLegalStartingPatternOf } from './legalStartingPattern'
 import { PatternLoadout } from './PatternLoadout'
 import { PatternUniques } from './PatternUniques'
@@ -230,8 +229,14 @@ export function PatternLinkRows({
   if (patterns.length === 0) return null
   const count = patterns.length
   return (
-    <section id="patterns" className="su-pattern-rows">
-      <Slab as={sectionAs} label="Patterns" style={PAGE_SLAB} />
+    <SlabSection
+      as={sectionAs}
+      id="patterns"
+      title="Patterns"
+      page
+      className="su-pattern-rows"
+      bodyClassName="su-pattern-rows__body"
+    >
       <ul className="su-pattern-rows__list">
         {patterns.map((pat) => (
           <PatternLinkRow
@@ -248,6 +253,6 @@ export function PatternLinkRows({
           Show all {count} patterns
         </a>
       )}
-    </section>
+    </SlabSection>
   )
 }

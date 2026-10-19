@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 import { useId } from 'react'
-import { Button, Field, Input, Slab, tokens } from '../../components/index'
+import { Button, Field, Input, SlabSection, tokens } from '../../components/index'
 import type { CrawlerWizardFormState, ScrapPoolForm } from '../../lib/wizard/crawlerFormState'
 import type { CrawlerRollTableDeps } from './crawlerRollTables.model'
 import { rollCrawlerName } from './crawlerRollTables.model'
@@ -11,9 +11,6 @@ const COLUMN = { maxWidth: '48rem' } satisfies CSSProperties
 
 /** The Roll button keeps its width beside the field label. */
 const NO_SHRINK = { flexShrink: 0 } satisfies CSSProperties
-
-/** The Scrap Pool's Slab, close over its hint. */
-const SCRAP_SLAB = { marginBottom: tokens.space[6] } satisfies CSSProperties
 
 /** The Scrap Pool's hint, above its buckets. */
 const SCRAP_HINT = {
@@ -89,8 +86,7 @@ export function CrawlerIdentityStep({
         placeholder="What the crawler is, its build and history."
       />
 
-      <section aria-labelledby={scrapId}>
-        <Slab label="Scrap Pool" id={scrapId} style={SCRAP_SLAB} />
+      <SlabSection title="Scrap Pool" id={scrapId}>
         <p style={SCRAP_HINT}>
           The group&rsquo;s banked Scrap, bucketed by tech level — including whatever your Pilots
           didn&rsquo;t spend crafting their Mechs. Optional; leave at 0 for a fresh start.
@@ -120,7 +116,7 @@ export function CrawlerIdentityStep({
             )
           })}
         </div>
-      </section>
+      </SlabSection>
     </div>
   )
 }

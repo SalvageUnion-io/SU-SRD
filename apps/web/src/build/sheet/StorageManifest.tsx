@@ -54,7 +54,7 @@ import {
   EmptyState,
   Eyebrow,
   InfoCutout,
-  Slab,
+  SlabSection,
   SlotGrid,
   Stat,
   tokens,
@@ -118,12 +118,6 @@ const HOLD_PAD = {
     adder: `${tokens.space[12]} 0 0`,
   },
 } satisfies Record<string, Record<'strip' | 'list' | 'adder', string>>
-
-/** The Slab sits close over the strip, as a picker's section label does. */
-const HOLD_SLAB = { marginBottom: tokens.space[6] } satisfies CSSProperties
-
-/** The open hold: a grid cell that may shrink beside its counterpart. */
-const HOLD_OPEN = { minWidth: 0 } satisfies CSSProperties
 
 /** A column whose lines stretch: the counterpart's Token fills its line (N4). */
 const COUNTERPART = {
@@ -275,10 +269,9 @@ export function StorageManifest({
           {holdBody}
         </InfoCutout>
       ) : (
-        <section aria-labelledby={holdId} style={HOLD_OPEN}>
-          <Slab label="Crawler Hold" id={holdId} style={HOLD_SLAB} />
+        <SlabSection title="Crawler Hold" id={holdId}>
           {holdBody}
-        </section>
+        </SlabSection>
       )}
 
       {/* Counterpart panel */}

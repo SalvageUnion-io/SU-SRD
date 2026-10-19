@@ -37,7 +37,7 @@ import {
   Grid,
   quotePatternName,
   ReferenceEntityCard,
-  Slab,
+  SlabSection,
   Stat,
   StatColumn,
   Text,
@@ -413,27 +413,26 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
           </section>
         </Grid>
 
-        <section aria-labelledby="pattern-loadout">
-          <Slab
-            id="pattern-loadout"
-            label="Loadout"
-            count={
-              chassis
-                ? [
-                    {
-                      label: 'Systems',
-                      value: slotsUsed(loadout.systems),
-                      max: chassis.systemSlots,
-                    },
-                    {
-                      label: 'Modules',
-                      value: slotsUsed(loadout.modules),
-                      max: chassis.moduleSlots,
-                    },
-                  ]
-                : undefined
-            }
-          />
+        <SlabSection
+          id="pattern-loadout"
+          title="Loadout"
+          count={
+            chassis
+              ? [
+                  {
+                    label: 'Systems',
+                    value: slotsUsed(loadout.systems),
+                    max: chassis.systemSlots,
+                  },
+                  {
+                    label: 'Modules',
+                    value: slotsUsed(loadout.modules),
+                    max: chassis.moduleSlots,
+                  },
+                ]
+              : undefined
+          }
+        >
           {/* A pattern's loadout is Tokens, one a line (EDL "Which form,
               where" 1), as the save page lists it. */}
           <ul aria-label="Loadout" className="su-entity-token-list">
@@ -449,7 +448,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
               </li>
             ))}
           </ul>
-        </section>
+        </SlabSection>
       </div>
 
       <footer style={FOOT}>

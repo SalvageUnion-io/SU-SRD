@@ -17,6 +17,7 @@ import {
   RadioCardGroup,
   ReferenceEntityCard,
   Slab,
+  SlabSection,
   Stack,
   tokens,
 } from '../../components/index'
@@ -32,9 +33,6 @@ const OPTION_NOTE = {
   color: tokens.color.wkMuted,
 } satisfies CSSProperties
 const OPTION_NOTE_CAPS = capsLabel({ size: 'badge' })
-
-/** Each list's Slab, close over its lines. */
-const LEDGER_SLAB = { marginBottom: tokens.space[6] } satisfies CSSProperties
 
 /** A line that names no entity (a tree, what it costs), in the body face. */
 const LEDGER_LINE = {
@@ -123,8 +121,7 @@ function LedgerList({
 }) {
   if (items.length === 0) return null
   return (
-    <section aria-label={label}>
-      <Slab label={label} style={LEDGER_SLAB} />
+    <SlabSection title={label} aria-label={label}>
       <ul className="su-entity-token-list">
         {items.map((item) => {
           const cls = allClasses.find((c) => c.name === item)
@@ -139,7 +136,7 @@ function LedgerList({
           )
         })}
       </ul>
-    </section>
+    </SlabSection>
   )
 }
 

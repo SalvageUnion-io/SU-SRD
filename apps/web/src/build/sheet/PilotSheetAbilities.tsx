@@ -10,14 +10,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import {
-  AbilityTrack,
-  EmptyState,
-  SheetSectionSlab,
-  Slab,
-  Stack,
-  tokens,
-} from '../../components/index'
+import { AbilityTrack, EmptyState, Slab, SlabSection, Stack, tokens } from '../../components/index'
 import { PilotAbilityItem } from './PilotSheetItems'
 import type { AbilityEntry, AbilityTreeGroup } from './pilotSheet.model'
 import { SectionManageButton } from './SheetSection'
@@ -82,9 +75,10 @@ export function PilotSheetAbilities({
       {/* Read leaves an empty section out (ruleset §1.2): an empty state only
           where Edit can fill it. */}
       {!(readOnly && none) && (
-        <SheetSectionSlab
+        <SlabSection
+          fold="open"
           title="Abilities"
-          controls={
+          actions={
             readOnly ? undefined : <SectionManageButton label="abilities" onClick={onManage} />
           }
         >
@@ -133,16 +127,16 @@ export function PilotSheetAbilities({
               )}
             </Stack>
           )}
-        </SheetSectionSlab>
+        </SlabSection>
       )}
       {genericAbilities.length > 0 && (
-        <SheetSectionSlab title="Generic Abilities">
+        <SlabSection fold="open" title="Generic Abilities">
           <ul aria-label="Generic Abilities" className={tokenListClass}>
             {genericAbilities.map((entry) => (
               <li key={entry.slug}>{renderAbility(entry)}</li>
             ))}
           </ul>
-        </SheetSectionSlab>
+        </SlabSection>
       )}
     </div>
   )

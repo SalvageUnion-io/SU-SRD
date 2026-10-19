@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react'
 import { useMemo } from 'react'
 import type { SearchResult } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
@@ -6,13 +5,11 @@ import { itemHref } from '../../lib/entityHref'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import type { CompactSearchEntry } from '../../lib/searchIndexTypes'
 import { useSearchIndex } from '../../lib/useSearchIndex'
-import { Entity, Slab } from '../index'
+import { Entity, SlabSection } from '../index'
 import { DocumentLinks } from './DocumentLinks'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 /** The section's slab: the section's own gap spaces it. */
-const SLAB = { marginBottom: 0 } satisfies CSSProperties
-
 /** How many guesses the 404 offers. */
 const LIMIT = 5
 
@@ -96,13 +93,13 @@ export function DidYouMeanIsland({ pathname }: DidYouMeanIslandProps = {}) {
 
   return (
     <IslandErrorBoundary>
-      <section className="su-not-found__guesses" aria-labelledby="did-you-mean">
-        <Slab
-          as="h2"
-          id="did-you-mean"
-          style={SLAB}
-          label={guesses.length > 0 ? 'Did you mean' : `Nothing close to “${query}”`}
-        />
+      <SlabSection
+        as="h2"
+        id="did-you-mean"
+        title={guesses.length > 0 ? 'Did you mean' : `Nothing close to “${query}”`}
+        page
+        bodyClassName="su-not-found__guesses"
+      >
         {guesses.length > 0 && (
           <DocumentLinks>
             <ul className="su-not-found__results">
@@ -127,7 +124,7 @@ export function DidYouMeanIsland({ pathname }: DidYouMeanIslandProps = {}) {
         <a href={searchHref} className="su-not-found__link">
           Search the Reference for “{query}”
         </a>
-      </section>
+      </SlabSection>
     </IslandErrorBoundary>
   )
 }

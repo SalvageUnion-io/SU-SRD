@@ -836,12 +836,6 @@ a.su-home__discord:hover {
   gap: var(--space-12);
 }
 
-.su-ability-tree__section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-12);
-}
-
 /* The trees side by side, each as wide as its longest title on one line
    (the UI library's `data-entity-fit`), growing to fill the line and wrapping
    when the next does not fit; a phone stacks them. A title wraps only when it
@@ -871,12 +865,6 @@ a.su-home__discord:hover {
 .su-ability-tree__row--stack {
   flex-direction: column;
   flex-wrap: nowrap;
-}
-
-.su-ability-tree__group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-12);
 }
 
 /*
@@ -1044,6 +1032,12 @@ a.su-home__discord:hover {
     grid-row: span 4;
     grid-template-rows: subgrid;
     row-gap: var(--space-12);
+  }
+
+  /* The tree's body (a SlabSection's) steps aside, so its track's tiers sit
+     on the trees' own rows. */
+  .su-class-path__trees > .su-ability-tree__group > .su-ability-tree__track {
+    display: contents;
   }
 
   .su-class-path__trees .su-ability-track {

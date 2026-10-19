@@ -13,14 +13,20 @@ import { PROPOSALS_PAGE } from 'game-domain/games/proposals'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
+import { SlabSection } from '../../components/index'
 import { ProposalsList } from '../mediator/ProposalsList'
-import { HubSection } from './HubSection'
+import { HUB_BODY } from './hubStyles.model'
 
 export function ProposalsSent({ gameId }: { gameId: Id<'games'> }) {
   const [limit, setLimit] = useState(PROPOSALS_PAGE)
   const sent = useQuery(api.proposals.sent, { gameId, limit })
   return (
-    <HubSection id="proposals-sent-heading" title="Proposals you sent">
+    <SlabSection
+      as="h2"
+      bodyStyle={HUB_BODY}
+      id="proposals-sent-heading"
+      title="Proposals you sent"
+    >
       <ProposalsList
         proposals={sent ?? null}
         limit={limit}
@@ -28,6 +34,6 @@ export function ProposalsSent({ gameId }: { gameId: Id<'games'> }) {
         onMore={() => setLimit((n) => n + PROPOSALS_PAGE)}
         empty="Nothing sent yet. Propose a change from Mediate, in Play."
       />
-    </HubSection>
+    </SlabSection>
   )
 }

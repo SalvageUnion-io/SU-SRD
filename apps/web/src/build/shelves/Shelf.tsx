@@ -9,14 +9,13 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
-import { EmptyState, Slab, Text, tokens } from '../../components/index'
+import { EmptyState, SlabSection, Text, tokens } from '../../components/index'
 
-const SECTION = {
+/** Its note sits close over its items. */
+const BODY = {
   display: 'flex',
   flexDirection: 'column',
-  // The slab brings its own foot margin.
   gap: tokens.space[4],
-  minWidth: 0,
 } satisfies CSSProperties
 
 const NOTE = { textAlign: 'left' } satisfies CSSProperties
@@ -51,14 +50,21 @@ type ShelfProps = {
 
 export function Shelf({ title, id, aside, action, note, empty, children, isEmpty }: ShelfProps) {
   return (
-    <section aria-labelledby={id} style={SECTION}>
-      <Slab as="h2" id={id} label={title} count={aside} countAt="label" actions={action} />
+    <SlabSection
+      as="h2"
+      id={id}
+      title={title}
+      count={aside}
+      countAt="label"
+      actions={action}
+      bodyStyle={BODY}
+    >
       {note && (
         <Text variant="hint" style={NOTE}>
           {note}
         </Text>
       )}
       {isEmpty ? <EmptyState variant="quiet" body={empty} /> : <ul style={LIST}>{children}</ul>}
-    </section>
+    </SlabSection>
   )
 }

@@ -20,10 +20,10 @@ import { useId, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { capsLabel } from '../../components/atoms/capsLabel'
-import { Button, ConfirmDialog, Field, Select, tokens } from '../../components/index'
+import { Button, ConfirmDialog, Field, Select, SlabSection, tokens } from '../../components/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { failureMessage } from '../../lib/connection/useServerAction'
-import { HubSection } from './HubSection'
+import { HUB_BODY } from './hubStyles.model'
 
 const { color, font, fontSize, space } = tokens
 
@@ -95,7 +95,7 @@ export function TheGame({
   const appointing = mediators.length === 0
 
   return (
-    <HubSection id="the-game-heading" title="The Game">
+    <SlabSection as="h2" bodyStyle={HUB_BODY} id="the-game-heading" title="The Game">
       <dl style={LIST}>
         <div style={ROW}>
           <dt className={TERM_CAPS} style={TERM}>
@@ -171,6 +171,6 @@ export function TheGame({
           }
         }}
       />
-    </HubSection>
+    </SlabSection>
   )
 }

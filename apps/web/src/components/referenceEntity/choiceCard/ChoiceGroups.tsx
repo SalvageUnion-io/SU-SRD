@@ -10,7 +10,7 @@ import { capsLabel } from '../../atoms/capsLabel'
 import { Field } from '../../atoms/Field'
 import { Input, Textarea } from '../../atoms/inputs'
 import { FOCUS_RING } from '../../atoms/interaction'
-import { Slab } from '../../atoms/Slab'
+import { SlabSection } from '../../containers/SlabSection'
 import { SELECT_DIM, SELECTED_RING } from '../../entity/modes/selectedRing'
 import { InsidePeekContext, tablePeekAddress } from '../../entity/peekContext'
 import { CardRollTable } from '../card/CardRollTable'
@@ -116,9 +116,6 @@ const optionCellStyle = {
   paddingTop: space[10],
 } satisfies CSSProperties
 
-/** Off a Page, an option's Slab sits close over its text, as When Damaged's does. */
-const OPTION_SLAB = { marginBottom: space[6] } satisfies CSSProperties
-
 /** Off a Page, an option's text at the card body's size. */
 const optionTextStyle = {
   color: color.ink,
@@ -168,12 +165,11 @@ function ChoiceOption({
   const insidePeek = useContext(InsidePeekContext)
   if (insidePeek || (!onPage && readOnly)) {
     return (
-      <div style={chosen ? SELECTED_RING : undefined}>
-        <Slab label={label} style={OPTION_SLAB} />
+      <SlabSection title={label} style={chosen ? SELECTED_RING : undefined}>
         {/* The ring is the mark; a screen reader hears it said. */}
         {chosen && <span className="su-sr-only">Chosen</span>}
         {description && <p style={optionTextStyle}>{parsedDescription}</p>}
-      </div>
+      </SlabSection>
     )
   }
   const band = textBand(toneColor)

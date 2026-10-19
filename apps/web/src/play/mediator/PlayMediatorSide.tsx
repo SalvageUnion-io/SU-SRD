@@ -23,7 +23,7 @@
 import { proposalTargets } from 'game-domain/games/proposals'
 import type { CSSProperties, RefObject } from 'react'
 import { useState } from 'react'
-import { Button, ModalShell, Slab, tokens } from '../../components/index'
+import { Button, ModalShell, SlabSection, tokens } from '../../components/index'
 import type { PlayBinding } from '../channels.model'
 import { PlayFeed } from '../PlayFeed'
 import { PlayTables } from '../PlayTables'
@@ -55,8 +55,7 @@ type SectionProps = { mediator: PlayMediator; side: PlayMediatorSideState }
 /** Tables, pinned for the Game's state, and the Post toggle. */
 export function PlayMediatorTablesSection({ mediator, side }: SectionProps) {
   return (
-    <section aria-labelledby="mediate-tables" style={SECTION}>
-      <Slab as="h2" id="mediate-tables" label="Tables" />
+    <SlabSection as="h2" id="mediate-tables" title="Tables">
       <PlayTables
         downtime={mediator.downtime.downtime.running}
         solo={false}
@@ -64,22 +63,21 @@ export function PlayMediatorTablesSection({ mediator, side }: SectionProps) {
         onPostChange={side.setPost}
         binding={side.binding}
       />
-    </section>
+    </SlabSection>
   )
 }
 
 /** The Feed: the crew's rolls and the alerts sent, with this screen's own. */
 export function PlayMediatorFeedSection({ mediator, side }: SectionProps) {
   return (
-    <section aria-labelledby="mediate-feed" style={SECTION}>
-      <Slab as="h2" id="mediate-feed" label="Feed" />
+    <SlabSection as="h2" id="mediate-feed" title="Feed">
       <PlayFeed
         entries={side.entries}
         posts={side.dispatch.posts}
         postNow={side.dispatch.postNow}
         canWrite={mediator.canWrite}
       />
-    </section>
+    </SlabSection>
   )
 }
 

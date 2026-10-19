@@ -1,10 +1,7 @@
-import type { CSSProperties, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { CHAPTER_REFS } from '../lib/chapters'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { CHAPTER_BAND_COLOR, ChapterBand, Slab, ToneStrip } from './index'
-
-/** A section's slab: the section's own gap spaces it. */
-const SLAB = { marginBottom: 0 } satisfies CSSProperties
 
 type NotFoundProps = {
   /**
@@ -53,7 +50,7 @@ export function NotFound({ search, didYouMean, back }: NotFoundProps) {
         {back}
         {didYouMean}
         <nav className="su-not-found__chapters" aria-labelledby="not-found-chapters">
-          <Slab as="h2" id="not-found-chapters" label="Or open a chapter" style={SLAB} />
+          <Slab as="h2" id="not-found-chapters" label="Or open a chapter" flush />
           <ul className="su-not-found__chapter-list">
             {CHAPTER_REFS.map((chapter) => (
               <li key={chapter.id}>

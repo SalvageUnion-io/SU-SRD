@@ -43,6 +43,7 @@ import {
   ModalShell,
   Select,
   Slab,
+  SlabSection,
   Textarea,
   toast,
   tokens,
@@ -135,8 +136,7 @@ export function CrewBoard({ crawlerId, slot: slotArg, madeBy, onSelect }: CrewBo
   if (crawler === undefined) {
     return (
       <div style={{ ...COLUMNS, paddingTop: tokens.space[24] }}>
-        <section style={COLUMN} aria-labelledby="crew-pick">
-          <Slab as="h2" id="crew-pick" label="Which crawler" />
+        <SlabSection as="h2" id="crew-pick" title="Which crawler" bodyStyle={COLUMN}>
           {crawlerId !== undefined ? (
             <EmptyState
               variant="quiet"
@@ -163,7 +163,7 @@ export function CrewBoard({ crawlerId, slot: slotArg, madeBy, onSelect }: CrewBo
               </Select>
             </Field>
           )}
-        </section>
+        </SlabSection>
       </div>
     )
   }
@@ -264,8 +264,7 @@ function CrewSlots({
 
   return (
     <div style={{ ...COLUMNS, paddingTop: tokens.space[24] }}>
-      <section style={COLUMN} aria-labelledby="crew-slots">
-        <Slab as="h2" id="crew-slots" label="Crew slots" />
+      <SlabSection as="h2" id="crew-slots" title="Crew slots" bodyStyle={COLUMN}>
         <p style={HINT}>
           {typeName
             ? 'One slot for the crawler type’s NPC, then one per bay. '
@@ -291,7 +290,7 @@ function CrewSlots({
             />
           ))}
         </ul>
-      </section>
+      </SlabSection>
 
       {wide ? (
         <section style={COLUMN} aria-label="Crew slot">

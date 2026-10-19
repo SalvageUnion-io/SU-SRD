@@ -62,8 +62,13 @@ type SlabProps = {
    */
   actions?: ReactNode
   className?: string
-  /** Merged over the row's own style — the way to retune its bottom margin. */
-  style?: CSSProperties
+  /**
+   * No foot margin: the slab's container sets the gap under it, as
+   * `SlabSection`'s column does (ruleset §6.4). A section a Slab heads is a
+   * `SlabSection`; `flush` alone is for a Slab in a column that already
+   * spaces its children. A Slab takes no `style` (R1, `chrome/slab-section`).
+   */
+  flush?: boolean
   /** For a region that names itself by its slab (`aria-labelledby`). */
   id?: string
   /**
@@ -75,10 +80,8 @@ type SlabProps = {
 }
 
 /**
- * The row, bottom margin included. The margin is inline on purpose: a slab
- * often sits in a `space-y-*` stack, whose child margin it must out-rank (as
- * the old `mb-3.5` utility did by specificity). A caller that retunes the
- * margin passes `style`, which merges over this.
+ * The row, bottom margin included: a slab set loose among its siblings keeps
+ * its own space under it. `flush` drops it where a container spaces it.
  */
 const ROW = {
   alignItems: 'center',
@@ -86,6 +89,8 @@ const ROW = {
   gap: space[12],
   marginBottom: space[14],
 } satisfies CSSProperties
+
+const ROW_FLUSH = { ...ROW, marginBottom: 0 } satisfies CSSProperties
 
 const COUNT = {
   color: color.wkMuted,
@@ -160,7 +165,7 @@ export function Slab({
   countInk = 'muted',
   actions,
   className,
-  style,
+  flush = false,
   id,
   countAt = 'end',
 }: SlabProps) {
@@ -189,7 +194,7 @@ export function Slab({
     )
   )
   return (
-    <div className={className} style={style ? { ...ROW, ...style } : ROW} data-slab="">
+    <div className={className} style={flush ? ROW_FLUSH : ROW} data-slab="">
       <Label id={id} className={POSTER_STAMP} style={LABEL}>
         {label}
       </Label>

@@ -242,8 +242,10 @@ describe('CrawlerSheet — bay choice cards (Slice B)', () => {
     expect(screen.queryByRole('button', { name: /Missile Pod|Autocannon/i })).toBeNull()
     const mark = screen.getByText('Chosen')
     expect(mark.className).toBe('su-sr-only')
-    expect(mark.parentElement?.style.boxShadow).toBe('0 0 0 3px var(--color-ink)')
-    expect(mark.parentElement?.textContent).toContain('Missile Pod')
+    expect((mark.closest('section') as HTMLElement | null)?.style.boxShadow).toBe(
+      '0 0 0 3px var(--color-ink)'
+    )
+    expect(mark.closest('section')?.textContent).toContain('Missile Pod')
     expect(screen.getAllByText('Chosen')).toHaveLength(1)
     expect(screen.getByText(/Autocannon/)).toBeTruthy()
   })

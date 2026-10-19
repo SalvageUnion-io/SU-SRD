@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
-import { color, fontSize, space } from '../../../design/tokens'
+import { color, fontSize } from '../../../design/tokens'
 import { Slab } from '../../atoms/Slab'
+import { SlabSection } from '../../containers/SlabSection'
 
 const EFFECT = {
   color: color.ink,
@@ -13,12 +14,6 @@ const EFFECT_PAGE = { ...EFFECT, fontSize: fontSize.base } satisfies CSSProperti
 
 /** In a card (a live sheet's bay, a Peek), at the card body's size. */
 const EFFECT_CARD = { ...EFFECT, fontSize: fontSize.xs } satisfies CSSProperties
-
-/** The Slab sits close over its effect, as a picker's section label does. */
-const SLAB = { marginBottom: space[6] } satisfies CSSProperties
-
-/** On a Page the column's gap sets it off its effect, not its own margin. */
-const PAGE_SLAB = { marginBottom: 0 } satisfies CSSProperties
 
 /**
  * WHEN DAMAGED — a crawler bay's rules block, one renderer in every context
@@ -44,15 +39,14 @@ export function WhenDamaged({
   if (onPage) {
     return (
       <>
-        <Slab label="When Damaged" style={PAGE_SLAB} />
+        <Slab label="When Damaged" flush />
         <p style={EFFECT_PAGE}>{effect}</p>
       </>
     )
   }
   return (
-    <div className="su-ec-block">
-      <Slab label="When Damaged" style={SLAB} />
+    <SlabSection title="When Damaged" className="su-ec-block">
       <p style={EFFECT_CARD}>{effect}</p>
-    </div>
+    </SlabSection>
   )
 }

@@ -3,8 +3,8 @@ import type { CSSProperties } from 'react'
 import { space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { FOCUS_RING } from '../atoms/interaction'
-import { Slab } from '../atoms/Slab'
 import { Stat } from '../atoms/Stat'
+import { SlabSection } from '../containers/SlabSection'
 import { Lead, paintFor, TILE_NAME, TILE_NAME_CAPS } from '../entity'
 import { grainClass } from '../referenceEntity/card/cardGrain'
 
@@ -58,12 +58,6 @@ type StartHereProps = {
   hrefs?: Partial<Record<StartHereStepKey, string>>
 }
 
-const SECTION = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: space[16],
-} satisfies CSSProperties
-
 const STEPS = {
   listStyle: 'none',
   margin: 0,
@@ -100,8 +94,7 @@ function StepFace({ step, index }: { step: StartHereStep; index: number }) {
 
 export function StartHere({ id, hrefs = {} }: StartHereProps) {
   return (
-    <section aria-labelledby={id} className="su-start-here" style={SECTION}>
-      <Slab label="Start here" id={id} as="h2" style={{ marginBottom: 0 }} />
+    <SlabSection title="Start here" id={id} as="h2" className="su-start-here" page>
       <ol className="su-start-here__steps" style={STEPS}>
         {START_HERE_STEPS.map((step, index) => {
           const href = hrefs[step.key]
@@ -126,6 +119,6 @@ export function StartHere({ id, hrefs = {} }: StartHereProps) {
           )
         })}
       </ol>
-    </section>
+    </SlabSection>
   )
 }

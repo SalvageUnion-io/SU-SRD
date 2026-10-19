@@ -21,7 +21,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { Slab, tokens } from '../components/index'
+import { SlabSection, tokens } from '../components/index'
 import { PlayCrew } from './PlayCrew'
 import { PlayFeed } from './PlayFeed'
 import { PlayTables } from './PlayTables'
@@ -35,36 +35,27 @@ const STACK = {
   gap: tokens.space[16],
 } satisfies CSSProperties
 
-const SECTION = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[8],
-  minWidth: 0,
-} satisfies CSSProperties
-
 type SectionProps = PlayColumnProps & { side: PlaySide }
 
 /** The Crew: a Game's other seats. Nothing solo. */
 export function PlayCrewSection({ target, side }: SectionProps) {
   if (target.gameId === null) return null
   return (
-    <section aria-labelledby="play-crew" style={SECTION}>
-      <Slab as="h2" id="play-crew" label="Crew" />
+    <SlabSection as="h2" id="play-crew" title="Crew">
       <PlayCrew
         gameId={target.gameId}
         selfPilotId={target.pilotId}
         crew={side.feed.crew}
         seats={side.seats}
       />
-    </section>
+    </SlabSection>
   )
 }
 
 /** The roll Tables and the Post toggle. */
 export function PlayTablesSection({ target, play, side }: SectionProps) {
   return (
-    <section aria-labelledby="play-tables" style={SECTION}>
-      <Slab as="h2" id="play-tables" label="Tables" />
+    <SlabSection as="h2" id="play-tables" title="Tables">
       <PlayTables
         downtime={play.situation === 'downtime'}
         solo={target.gameId === null}
@@ -72,22 +63,21 @@ export function PlayTablesSection({ target, play, side }: SectionProps) {
         onPostChange={side.setPost}
         binding={side.binding}
       />
-    </section>
+    </SlabSection>
   )
 }
 
 /** The Feed: rolls, alerts and proposals, newest first. */
 export function PlayFeedSection({ play, side }: SectionProps) {
   return (
-    <section aria-labelledby="play-feed" style={SECTION}>
-      <Slab as="h2" id="play-feed" label="Feed" />
+    <SlabSection as="h2" id="play-feed" title="Feed">
       <PlayFeed
         entries={side.entries}
         posts={side.dispatch.posts}
         postNow={side.dispatch.postNow}
         canWrite={play.canWrite}
       />
-    </section>
+    </SlabSection>
   )
 }
 

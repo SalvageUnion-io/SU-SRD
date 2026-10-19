@@ -3,10 +3,10 @@ import { fieldLabel } from 'game-domain/games/proposals'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
-import { Button, FeedLine, FeedList, tokens } from '../../components/index'
+import { Button, FeedLine, FeedList, SlabSection, tokens } from '../../components/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
-import { HubSection } from './HubSection'
+import { HUB_BODY } from './hubStyles.model'
 
 /**
  * The player's side of propose-and-confirm (ADR-030 §4), on a Game's own page.
@@ -49,7 +49,12 @@ export function ProposalInbox({ gameId }: { gameId: Id<'games'> }) {
   const answer = (send: () => Promise<unknown>) => void reply.run(send)
 
   return (
-    <HubSection id="proposal-inbox-heading" title="Awaiting your answer">
+    <SlabSection
+      as="h2"
+      bodyStyle={HUB_BODY}
+      id="proposal-inbox-heading"
+      title="Awaiting your answer"
+    >
       <FeedList label="Proposals awaiting your answer">
         {pending.map((p) => {
           const what = `${p.targetName ?? p.entityType} · ${fieldLabel(p.field)} → ${show(p.after)}`
@@ -85,6 +90,6 @@ export function ProposalInbox({ gameId }: { gameId: Id<'games'> }) {
           )
         })}
       </FeedList>
-    </HubSection>
+    </SlabSection>
   )
 }

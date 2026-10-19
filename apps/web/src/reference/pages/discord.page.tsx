@@ -11,7 +11,7 @@
 import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties, ReactNode } from 'react'
 import type { PageModule, PageResult } from '../../../ssg/types'
-import { Box, Button, InlineRef, Slab, Stack } from '../../components/index'
+import { Box, Button, InlineRef, Slab, SlabSection, Stack } from '../../components/index'
 import { borderWidth, color, font, fontSize, space } from '../../design/tokens'
 import type { DiscordCommand } from '../../generated/discordCommands'
 import { DISCORD_COMMANDS } from '../../generated/discordCommands'
@@ -248,8 +248,7 @@ function page(): PageResult {
           ))}
         </Stack>
 
-        <section style={PROSE_12}>
-          <Slab as="h2" label="With your account" />
+        <SlabSection as="h2" title="With your account" bodyStyle={PROSE_12} page>
           <p>
             These read your {PRODUCT.wordmark} account and its Games.{' '}
             <InlineRef href={appPath('/')} style={BOLD}>
@@ -267,11 +266,10 @@ function page(): PageResult {
               </li>
             ))}
           </ul>
-        </section>
+        </SlabSection>
 
         {/* Notes */}
-        <section style={PROSE_12}>
-          <Slab as="h2" label="Good to know" />
+        <SlabSection as="h2" title="Good to know" bodyStyle={PROSE_12} page>
           <ul style={LIST_8}>
             <li>
               Typing <code style={CODE}>/su</code> filters Discord&rsquo;s command picker to just
@@ -303,7 +301,7 @@ function page(): PageResult {
             , the Game table: read the Starter Set with no account, and sign in with Discord to
             build. Sheets can be shared into Discord as live public links.
           </p>
-        </section>
+        </SlabSection>
 
         {/* Attribution */}
         <p style={ATTRIBUTION}>

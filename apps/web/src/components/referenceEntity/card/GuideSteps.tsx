@@ -1,4 +1,4 @@
-import type { CSSProperties, ElementType, ReactNode } from 'react'
+import type { ElementType, ReactNode } from 'react'
 import { useContext, useEffect, useRef } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
@@ -7,12 +7,12 @@ import { Badge } from '../../atoms/Badge'
 import { capsLabel } from '../../atoms/capsLabel'
 import { Slab } from '../../atoms/Slab'
 import { Callout } from '../../containers/Callout'
+import { SlabSection } from '../../containers/SlabSection'
 import { InsidePeekContext } from '../../entity/peekContext'
 import type { CardProseContext } from './CardProse'
 import { CardProse } from './CardProse'
 import { CardRollTable } from './CardRollTable'
 import type { Down } from './cardChrome'
-import { PAGE_SLAB } from './cardHelpers'
 import { EntityTokenList } from './EntityTokenList'
 import { watchGuideContents } from './guideContents'
 import { chunkGuideStepProse } from './guideStepProse'
@@ -227,17 +227,17 @@ export function GuideSteps({
       return <div key={group.key}>{list}</div>
     }
     return (
-      <section key={group.key} className="su-guide__section">
-        <Slab
-          label={group.section}
-          as={sectionAs}
-          id={anchors?.get(sectionKey(group))}
-          className="su-guide__section-head"
-          // On its Page the section's gap spaces it (R17), not the slab's margin.
-          style={page ? PAGE_SLAB : undefined}
-        />
+      // On its Page the section's slab and steps are 12px apart (R17).
+      <SlabSection
+        key={group.key}
+        title={group.section}
+        as={sectionAs}
+        id={anchors?.get(sectionKey(group))}
+        page={page}
+        className="su-guide__section"
+      >
         {list}
-      </section>
+      </SlabSection>
     )
   })
 
@@ -250,7 +250,7 @@ export function GuideSteps({
           slab; a wide screen sets them in the rail. Only one of the two is
           ever displayed. */}
       <nav className="su-guide__toc-block" aria-label="On this page">
-        <Slab label="On this page" style={PAGE_SLAB} />
+        <Slab label="On this page" flush />
         {contents}
       </nav>
       <div className="su-guide__flow">{body}</div>
@@ -323,9 +323,6 @@ function GuideContents({ groups, anchors }: { groups: StepGroup[]; anchors: Map<
   )
 }
 
-/** A step's slab sits flush: the step's own gap spaces it, not the slab's margin. */
-const STEP_SLAB = { marginBottom: 0 } satisfies CSSProperties
-
 /**
  * A step's slab: a two-cell chip, its numeral on the ink and its name on a
  * paper cell (`9 | CHOOSE YOUR APPEARANCE`); "Optional" at the rule's end.
@@ -348,7 +345,8 @@ function StepHead({
       as={as ?? 'div'}
       id={id}
       className="su-guide__head"
-      style={STEP_SLAB}
+      // Flush: the step's own gap spaces it, not the slab's margin.
+      flush
       label={
         <>
           {number} <span className="su-guide__step-name">{name}</span>

@@ -218,7 +218,7 @@ describe('GuideSteps on the page', () => {
     const labels = downtime.steps.flatMap((step) => (step.section ? [step.section] : []))
     expect(sections).toHaveLength(labels.length)
     sections.forEach((section, index) => {
-      expect(section.querySelector('.su-guide__section-head h2')?.textContent).toBe(labels[index])
+      expect(section.querySelector('.su-slab-section__head h2')?.textContent).toBe(labels[index])
       // Numbering restarts in every section.
       expect(section.querySelector('.su-guide__head h3')?.textContent).toMatch(/^1 /)
     })

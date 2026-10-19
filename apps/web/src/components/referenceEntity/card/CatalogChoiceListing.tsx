@@ -6,7 +6,7 @@ import { resolveCatalogChoiceEntities } from 'salvageunion-reference/rules'
 import { color, font, fontSize, space } from '../../../design/tokens'
 import { useDisclosure } from '../../../lib/useDisclosure'
 import { Button } from '../../atoms/Button'
-import { Slab } from '../../atoms/Slab'
+import { SlabSection } from '../../containers/SlabSection'
 import { InsidePeekContext } from '../../entity/peekContext'
 import { Stack } from '../../index'
 import { CatalogChoiceModal } from '../choiceCard/CatalogChoiceModal'
@@ -22,9 +22,6 @@ const promptStyle = {
   lineHeight: 1.4,
   margin: 0,
 } satisfies CSSProperties
-
-/** The listing's slab sits tight on what it heads. */
-const SLAB = { marginBottom: space[6] } satisfies CSSProperties
 
 const LIST = { marginTop: space[8] } satisfies CSSProperties
 
@@ -135,8 +132,7 @@ export function CatalogChoiceListing({
   return (
     <Stack gap={6}>
       {prompt && <p style={promptStyle}>{prompt}</p>}
-      <div>
-        <Slab label={label} style={SLAB} />
+      <SlabSection title={label}>
         {!insidePeek && (
           <Button size="compact" {...options.toggleProps}>
             {options.open ? 'Hide options' : 'Show options'}
@@ -149,7 +145,7 @@ export function CatalogChoiceListing({
             <EntityTokenList entities={entities} label={choice.name} />
           </div>
         )}
-      </div>
+      </SlabSection>
     </Stack>
   )
 }

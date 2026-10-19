@@ -3,12 +3,12 @@ import type { RefEntity, RefMetaEntity } from 'salvageunion-reference'
 import { getReferenceEntityName } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
 import { Slab } from '../../atoms/Slab'
+import { SlabSection } from '../../containers/SlabSection'
 import { Entity } from '../../entity/Entity'
-import { Stack } from '../../index'
 import { useEntityHref } from '../entityHrefContext'
 import type { Down } from './cardChrome'
 import { conditionOf } from './cardChrome'
-import { cardKey, nestedTitleLevel, PAGE_SLAB } from './cardHelpers'
+import { cardKey, nestedTitleLevel } from './cardHelpers'
 import { nestedChildSize } from './entityCardTone'
 import type { NestedCardHost } from './NestedCards'
 import type { ReferenceCardEntity } from './referenceEntityCardTypes'
@@ -217,6 +217,13 @@ function LoadoutToken({
   )
 }
 
+/** A group's cards under its Slab, the Page's 12px apart (R17). */
+const GROUP_BODY = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: space[12],
+} satisfies CSSProperties
+
 const LOADOUT_PAGE = {
   display: 'flex',
   flexDirection: 'column',
@@ -246,8 +253,13 @@ export function PatternLoadoutRows({
   return (
     <div className="su-entity-page__loadout" style={LOADOUT_PAGE}>
       {groups.map((group) => (
-        <Stack as="section" gap={12} key={group.label}>
-          <Slab as={sectionAs} label={group.label} style={PAGE_SLAB} />
+        <SlabSection
+          as={sectionAs}
+          title={group.label}
+          page
+          key={group.label}
+          bodyStyle={GROUP_BODY}
+        >
           {group.entities.map((item, index) => (
             <NestedCard
               key={cardKey(item, index)}
@@ -263,7 +275,7 @@ export function PatternLoadoutRows({
               shownProse={host.shownProse}
             />
           ))}
-        </Stack>
+        </SlabSection>
       ))}
     </div>
   )

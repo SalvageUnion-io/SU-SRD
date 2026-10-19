@@ -10,7 +10,7 @@ import { useMemo } from 'react'
 import type { RefMetaEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 import type { EntityRowModel } from '../../components/index'
-import { Entity, EntityStat, Slab, Stat, tokens } from '../../components/index'
+import { Entity, EntityStat, SlabSection, Stat, tokens } from '../../components/index'
 
 /** The recap: its facts, then its lists, down one column. */
 const RECAP = {
@@ -23,8 +23,6 @@ const RECAP = {
 
 /** A list under its Slab, the full column wide. */
 const SECTION = { alignSelf: 'stretch', marginTop: tokens.space[8] } satisfies CSSProperties
-
-const SLAB = { marginBottom: tokens.space[6] } satisfies CSSProperties
 
 export function Recap({ children }: { children: ReactNode }) {
   return <div style={RECAP}>{children}</div>
@@ -90,8 +88,12 @@ export function RecapTokens({
 }) {
   const count = (entities?.length ?? 0) + (models?.length ?? 0)
   return (
-    <section aria-label={label} style={SECTION}>
-      <Slab label={label} count={count === 0 ? empty : undefined} style={SLAB} />
+    <SlabSection
+      title={label}
+      aria-label={label}
+      count={count === 0 ? empty : undefined}
+      style={SECTION}
+    >
       {count > 0 && (
         <ul className="su-entity-token-list">
           {entities?.map((entity, index) => (
@@ -108,6 +110,6 @@ export function RecapTokens({
           ))}
         </ul>
       )}
-    </section>
+    </SlabSection>
   )
 }

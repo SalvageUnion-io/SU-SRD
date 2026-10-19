@@ -11,7 +11,7 @@
  *       the band's title), the chassis stats and ability ∥ the vitals rail.
  *   Chassis: the identity card's foot (`MechChassisCard`) — art, name (with
  *       a CHASSIS chip) and description, with Change Chassis in Edit.
- *   Systems & Modules — KEPT as two sections (each its own `SheetSectionSlab`,
+ *   Systems & Modules — KEPT as two sections (each its own `SlabSection`,
  *       side by side from 48rem, one Token a line): different collections
  *       with different '+ Add' pickers/slot budgets, so folding them into one
  *       list is not trivial.
@@ -20,7 +20,7 @@
  *       lists at the printed sheet's bottom-of-page-2 placement.
  *   Assigned Units closes the sheet.
  *
- * Section containers follow the card-vs-slab rule (see `SheetSectionSlab`):
+ * Section containers follow the card-vs-slab rule (see `SlabSection`):
  * inputs/gauges get a CARD (the identity band, the Chassis card), entity-card
  * collections get a SLAB (The Hold, Systems, Modules, Assigned Units). Read
  * leaves an empty section out (hard rule R11).
@@ -61,7 +61,7 @@ import {
   Field,
   FieldError,
   heatDangerFrom,
-  SheetSectionSlab,
+  SlabSection,
   Stack,
   tokens,
 } from '../../components/index'
@@ -422,7 +422,8 @@ export function MechSheet({
           sheet's bottom-of-page-2 placement buried it under two long loadout
           lists. It reads before them here. */}
       {showHold && (
-        <SheetSectionSlab
+        <SlabSection
+          fold="open"
           title="The Hold"
           count={{
             label: 'Slots',
@@ -439,46 +440,48 @@ export function MechSheet({
             counterpartHref={crawlerHref}
             readOnly={readOnly}
           />
-        </SheetSectionSlab>
+        </SlabSection>
       )}
 
       {/* ===== R3: Systems & Modules, side by side once there is room. ===== */}
       {(showSystems || showModules) && (
         <div className="su-sheet-mech-loadout">
           {showSystems && (
-            <SheetSectionSlab
+            <SlabSection
+              fold="open"
               title="Systems"
               count={slotCount(
                 capacity.systemSlotsUsed,
                 capacity.systemSlotsMax,
                 capacity.asPrinted
               )}
-              controls={
+              actions={
                 readOnly ? undefined : (
                   <SectionManageButton label="systems" onClick={() => setPicker('system')} />
                 )
               }
             >
               {renderItems('system', mech.systems)}
-            </SheetSectionSlab>
+            </SlabSection>
           )}
 
           {showModules && (
-            <SheetSectionSlab
+            <SlabSection
+              fold="open"
               title="Modules"
               count={slotCount(
                 capacity.moduleSlotsUsed,
                 capacity.moduleSlotsMax,
                 capacity.asPrinted
               )}
-              controls={
+              actions={
                 readOnly ? undefined : (
                   <SectionManageButton label="modules" onClick={() => setPicker('module')} />
                 )
               }
             >
               {renderItems('module', mech.modules)}
-            </SheetSectionSlab>
+            </SlabSection>
           )}
         </div>
       )}
@@ -491,7 +494,7 @@ export function MechSheet({
           mech-granted drone is fixed by its stat block and never tracks the
           Union Crawler, unlike a pilot's ability-granted partners. ===== */}
       {(mech.partners ?? []).length > 0 && (
-        <SheetSectionSlab title="Partners">
+        <SlabSection fold="open" title="Partners">
           <Stack gap={12}>
             {(mech.partners ?? []).map((partner) => (
               <PartnerCard
@@ -503,7 +506,7 @@ export function MechSheet({
               />
             ))}
           </Stack>
-        </SheetSectionSlab>
+        </SlabSection>
       )}
 
       {/* ===== Assigned Units — the last region (`AssignedUnits`, built by SheetMech) ===== */}

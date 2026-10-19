@@ -34,7 +34,7 @@ import {
   ReferenceEntityCard,
   SearchField,
   SearchListbox,
-  Slab,
+  SlabSection,
   Stack,
   tokens,
   useSearchCombobox,
@@ -51,7 +51,6 @@ const STACK = {
 } satisfies CSSProperties
 
 const SECTIONS = { ...STACK, gap: tokens.space[16] } satisfies CSSProperties
-const SECTION = { ...STACK, gap: tokens.space[8] } satisfies CSSProperties
 
 /** auto-fill rather than the landing page's viewport breakpoints: those measure
  * the WINDOW, so a narrow display panel on a wide screen would be handed three
@@ -150,8 +149,7 @@ function SrdHome({
       {ready ? (
         <div style={SECTIONS}>
           {sections.map((section) => (
-            <section key={section.label} style={SECTION}>
-              <Slab as="h2" label={section.label} />
+            <SlabSection as="h2" title={section.label} key={section.label}>
               <div style={TILE_GRID}>
                 {section.schemas.map((card) => (
                   <CatalogTile
@@ -174,7 +172,7 @@ function SrdHome({
                   />
                 ))}
               </div>
-            </section>
+            </SlabSection>
           ))}
         </div>
       ) : (

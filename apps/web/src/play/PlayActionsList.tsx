@@ -10,18 +10,15 @@
  * the Downtime column, where the group is the Field actions.
  */
 
-import { ChevronDown, ChevronRight } from 'lucide-react'
-import { useId, useState } from 'react'
 import {
   Button,
   Callout,
   EmptyState,
-  FOCUS_RING,
   SearchField,
   Segmented,
   SegmentedOption,
   Slab,
-  tokens,
+  SlabSection,
 } from '../components/index'
 import { PlayActionEntry } from './PlayActionEntry'
 import type { ListEntry } from './playActions.model'
@@ -50,7 +47,7 @@ export function PlayEntryList({
   )
 }
 
-/** The collapsed group of what is not on hand: "Not on hand · 3 ▸". */
+/** The collapsed group of what is not on hand: "NOT ON HAND ┄┄┄ 3 ⌄". */
 export function PlayAwayGroup({
   title,
   entries,
@@ -62,30 +59,11 @@ export function PlayAwayGroup({
   play: Play
   actions: PlayActions
 }) {
-  const [open, setOpen] = useState(false)
-  const id = useId()
   if (entries.length === 0) return null
-  const Glyph = open ? ChevronDown : ChevronRight
   return (
-    <>
-      <Slab
-        label={
-          <button
-            type="button"
-            className={`su-play-act-toggle ${FOCUS_RING}`}
-            aria-expanded={open}
-            aria-controls={id}
-            onClick={() => setOpen(!open)}
-          >
-            {title} · {entries.length}
-            <Glyph size={tokens.iconSize.compact} aria-hidden="true" />
-          </button>
-        }
-      />
-      <div id={id} hidden={!open}>
-        {open && <PlayEntryList entries={entries} play={play} actions={actions} label={title} />}
-      </div>
-    </>
+    <SlabSection title={title} count={entries.length} fold="closed">
+      <PlayEntryList entries={entries} play={play} actions={actions} label={title} />
+    </SlabSection>
   )
 }
 

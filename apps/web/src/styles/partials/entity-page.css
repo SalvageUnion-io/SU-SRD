@@ -299,7 +299,8 @@
   gap: var(--space-12);
 }
 
-.su-entity-page__section {
+/* A Page section (a `SlabSection`, 12px under its Slab): its cards 12px apart. */
+.su-entity-page__section-body {
   display: flex;
   flex-direction: column;
   gap: var(--space-12);
@@ -398,7 +399,15 @@
     margin-top: var(--space-12);
   }
 
-  .su-entity-page--flow .su-entity-page__section > :not(:first-child) {
+  .su-entity-page--flow .su-entity-page__section-body {
+    display: block;
+  }
+
+  .su-entity-page--flow .su-entity-page__section-body > * + * {
+    margin-top: var(--space-12);
+  }
+
+  .su-entity-page--flow .su-entity-page__section-body > * {
     display: flow-root;
   }
 

@@ -17,12 +17,12 @@
  */
 
 import type { CSSProperties } from 'react'
-import { Badge, relation, Stat } from '../../components/index'
+import { Badge, relation, SlabSection, Stat } from '../../components/index'
 import { UnitRow } from '../../components/shared/UnitRow'
 import { color, font, fontSize, size, space } from '../../design/tokens'
 import type { CrawlerReading } from './crawlerReading.model'
 import { crawlerVitals } from './crawlerReading.model'
-import { HubSection } from './HubSection'
+import { HUB_BODY } from './hubStyles.model'
 import type { SeatRow } from './seatRows.model'
 
 const LIST = {
@@ -106,10 +106,12 @@ export function CrewSeats({
   total: number
 }) {
   return (
-    <HubSection
+    <SlabSection
+      as="h2"
+      bodyStyle={HUB_BODY}
       id="crew-seats-heading"
       title="Crew & seats"
-      aside={{ label: 'Seats', value: claimed, max: total }}
+      count={{ label: 'Seats', value: claimed, max: total }}
     >
       {crawler !== null && (
         <UnitRow kind="crawler" name={crawler.name} readings={crawlerVitals(crawler)} />
@@ -121,6 +123,6 @@ export function CrewSeats({
           </li>
         ))}
       </ul>
-    </HubSection>
+    </SlabSection>
   )
 }

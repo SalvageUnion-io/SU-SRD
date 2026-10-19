@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path'
 import type { Finding, RuleSet } from '../lib/ruleEngine'
 import { evaluate, formatFailures, increases, listFiles, ratchetCounts } from '../lib/ruleEngine'
 import { chromeLaws, statTextFindings } from '../rules/chrome'
+import { markupFindings } from '../rules/chromeMarkup'
 import { classPrefix } from '../rules/classPrefix'
 import { designTokens, fontSizePx, scanTokenSources } from '../rules/designTokens'
 import { SRD_CSS_ENTRY, srdCss } from '../rules/srdCss'
@@ -993,6 +994,30 @@ describe('chrome rule set', () => {
       )
     ).toEqual([1, 2, 3])
     expect(lines('apps/web/src/components/atoms/Stat.tsx', '<span>SP {sp}</span>')).toEqual([])
+  })
+
+  test('slab-section and slab-style: a Slab straight in a <section>, or styled, is found (R1)', () => {
+    const source = [
+      'export const A = () => (',
+      '  <section aria-labelledby="x">',
+      '    <Slab id="x" label="Crew" />',
+      '    <div>',
+      '      <Slab label="Nested" flush />',
+      '    </div>',
+      '    {open && <Slab label="Shown" />}',
+      '    <Slab label="Spaced" style={SLAB} />',
+      '  </section>',
+      ')',
+      '',
+    ].join('\n')
+    const found = markupFindings('apps/web/src/build/A.tsx', source)
+    expect(found.section.map((f) => f.line)).toEqual([3, 8])
+    expect(found.style.map((f) => f.line)).toEqual([8])
+    const home = markupFindings(
+      'apps/web/src/components/containers/SlabSection.tsx',
+      '<section>\n  <Slab label={title} flush />\n</section>\n'
+    )
+    expect(home.section).toEqual([])
   })
 })
 

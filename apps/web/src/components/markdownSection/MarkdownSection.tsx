@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 import { fontSize, space } from '../../design/tokens'
-import { Slab } from '../atoms/Slab'
+import { SlabSection } from '../containers/SlabSection'
 import { InlineMarkdown } from './InlineMarkdown'
 import { parseMarkdownSection } from './parseMarkdownSection'
 
@@ -40,27 +40,26 @@ const LIST = {
 export function MarkdownSection({ markdown }: MarkdownSectionProps) {
   const { heading, blocks } = parseMarkdownSection(markdown)
 
+  const body = blocks.map((block) =>
+    block.kind === 'list' ? (
+      <ul key={block.items.join('|')} style={LIST}>
+        {block.items.map((item) => (
+          <li key={item}>
+            <InlineMarkdown text={item} />
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p key={block.text}>
+        <InlineMarkdown text={block.text} />
+      </p>
+    )
+  )
+
+  if (!heading) return <section style={SECTION}>{body}</section>
   return (
-    <section style={SECTION}>
-      {heading && (
-        // The heading sits on the section's own gap, not the slab's resting margin.
-        <Slab as="h2" label={heading} style={{ marginBottom: 0 }} />
-      )}
-      {blocks.map((block) =>
-        block.kind === 'list' ? (
-          <ul key={block.items.join('|')} style={LIST}>
-            {block.items.map((item) => (
-              <li key={item}>
-                <InlineMarkdown text={item} />
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p key={block.text}>
-            <InlineMarkdown text={block.text} />
-          </p>
-        )
-      )}
-    </section>
+    <SlabSection as="h2" title={heading} page bodyStyle={SECTION}>
+      {body}
+    </SlabSection>
   )
 }

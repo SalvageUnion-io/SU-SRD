@@ -22,7 +22,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { Button, EmptyState, Slab, Stack, Stat, tokens } from '../../components/index'
+import { Button, EmptyState, SlabSection, Stack, Stat, tokens } from '../../components/index'
 import { reportCargo } from '../../lib/cargo/reportCargo'
 import type { UsePartnerCargoResult } from '../../lib/cargo/usePartnerCargo'
 import { CargoLotLine } from './CargoLotLine'
@@ -33,9 +33,6 @@ type PartnerHoldProps = {
   crawlerLinked: boolean
   readOnly?: boolean
 }
-
-/** A side's Slab, close over its lots. */
-const SIDE_SLAB = { marginBottom: tokens.space[4] } satisfies CSSProperties
 
 const LOCKED_NOTE = {
   color: tokens.color.wkMuted,
@@ -60,8 +57,7 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
           mech Hold follows. */}
       <Stat orientation="horizontal" label="Cargo" value={usage.used} max={usage.cap} />
 
-      <div>
-        <Slab as="h4" label="Carried" style={SIDE_SLAB} />
+      <SlabSection as="h4" title="Carried">
         {state.carrierLots.length === 0 ? (
           <EmptyState variant="quiet" body="Nothing carried." />
         ) : (
@@ -96,13 +92,12 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
             ))}
           </ul>
         )}
-      </div>
+      </SlabSection>
 
       {/* The Storage Bay side appears only when there is one to move against —
           an empty "no crawler" panel would be noise on a partner sheet. */}
       {crawlerLinked && (
-        <div>
-          <Slab as="h4" label="Storage Bay" style={SIDE_SLAB} />
+        <SlabSection as="h4" title="Storage Bay">
           {editable && crawlerLocked !== null && <p style={LOCKED_NOTE}>{crawlerLocked}</p>}
           {state.depotLots.length === 0 ? (
             <EmptyState variant="quiet" body="The Storage Bay is empty." />
@@ -129,7 +124,7 @@ export function PartnerHold({ cargo, crawlerLinked, readOnly = false }: PartnerH
               ))}
             </ul>
           )}
-        </div>
+        </SlabSection>
       )}
     </Stack>
   )

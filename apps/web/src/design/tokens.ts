@@ -316,7 +316,7 @@ const base = {
   ink55: 'rgb(40 32 25 / 0.55)',
   ink50: 'rgb(40 32 25 / 0.5)',
   ink40: 'rgb(40 32 25 / 0.4)',
-  /** SheetSectionSlab's rule. */
+  /** SlabSection's fold square. */
   ink35: 'rgb(40 32 25 / 0.35)',
   ink30: 'rgb(40 32 25 / 0.3)',
   ink20: 'rgb(40 32 25 / 0.2)',

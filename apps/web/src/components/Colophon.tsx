@@ -1,7 +1,6 @@
 import type { CSSProperties } from 'react'
 import { space } from '../design/tokens'
-import { proseColumn } from '../lib/docPageStyles'
-import { KofiButton, MarkdownSection, Slab, Stack } from './index'
+import { KofiButton, MarkdownSection, SlabSection, Stack } from './index'
 
 type ColophonProps = {
   /** Raw contents of the repo-root `ABOUT_JRVS.md` (left column, top). */
@@ -18,10 +17,6 @@ type ColophonProps = {
 // Two columns from `md` up: the column template is `.su-colophon`, the rest is
 // static.
 const ROOT = { display: 'grid', gap: space[32] } satisfies CSSProperties
-
-const SUPPORT_SLAB = { marginBottom: 0, width: '100%' } satisfies CSSProperties
-
-const SUPPORT = { ...proseColumn(space[12]), alignItems: 'flex-start' } satisfies CSSProperties
 
 /**
  * Colophon — who made this, how, and how to support it, on the About page
@@ -48,15 +43,12 @@ export function Colophon({
       <Stack gap={32}>
         <MarkdownSection markdown={aboutMarkdown} />
 
-        <section style={SUPPORT}>
-          <Slab
-            as="h2"
-            label="Support the Project"
-            // The section's gap spaces it, so it drops its own bottom margin.
-            style={SUPPORT_SLAB}
-            actions={<KofiButton code={kofiCode} />}
-          />
-        </section>
+        <SlabSection
+          as="h2"
+          title="Support the Project"
+          actions={<KofiButton code={kofiCode} />}
+          page
+        />
 
         <MarkdownSection markdown={specialThanksMarkdown} />
       </Stack>

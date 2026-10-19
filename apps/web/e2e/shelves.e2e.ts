@@ -76,8 +76,8 @@ test('move a unit into a Game and back: it never leaves the Hangar', async ({ pa
 test('copy a pilot from the Starter Set onto the shelf', async ({ page }) => {
   await openShelves(page)
 
-  // The Starter Set is folded under its Slab until Show opens it.
-  await page.getByRole('button', { name: 'Show the Starter Set' }).click()
+  // The Starter Set is folded under its Slab until its fold opens it.
+  await page.getByRole('button', { name: 'Expand Starter Set' }).click()
   await page
     .getByRole('region', { name: 'Starter Set' })
     .getByRole('link', { name: 'Read Bonesaw' })

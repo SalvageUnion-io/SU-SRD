@@ -27,14 +27,7 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { RefMetaEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
-import {
-  ActionTokens,
-  Button,
-  SheetSectionSlab,
-  Tags,
-  tokens,
-  traitTags,
-} from '../../components/index'
+import { ActionTokens, Button, SlabSection, Tags, tokens, traitTags } from '../../components/index'
 import { AppLink } from '../../components/shared/AppLink'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import type { Confirm } from '../../components/shared/useConfirm'
@@ -286,14 +279,14 @@ export function NpcSheet({
               }
             />
             {npcActions.length > 0 && (
-              <SheetSectionSlab title="Actions" count={npcActions.length}>
+              <SlabSection fold="open" title="Actions" count={npcActions.length}>
                 <ActionTokens
                   actions={npcActions}
                   size="compact"
                   hostName={npc.name}
                   chassisName={undefined}
                 />
-              </SheetSectionSlab>
+              </SlabSection>
             )}
           </section>
         )}

@@ -11,7 +11,7 @@ import type { CSSProperties } from 'react'
 import { getEntitySlug } from 'salvageunion-reference'
 import type { PageModule, PageResult } from '../../../ssg/types'
 import { capsLabel } from '../../components/atoms/capsLabel'
-import { Box, InlineRef, Slab, Stack } from '../../components/index'
+import { Box, InlineRef, Slab, SlabSection, Stack } from '../../components/index'
 import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
 import { apiSampleChassis } from '../../lib/apiSample'
 import { cn } from '../../lib/cn'
@@ -220,8 +220,7 @@ function page(): PageResult {
     children: (
       <DocPage title="JSON API Reference" measure="64rem" gap={space[32]}>
         {/* Overview */}
-        <section style={PROSE_12}>
-          <Slab as="h2" label="Overview" />
+        <SlabSection as="h2" title="Overview" bodyStyle={PROSE_12} page>
           <p>
             All game data on salvageunion.io is available as machine-readable JSON. The API is
             static — every endpoint is a plain file served directly from the site. No authentication
@@ -243,7 +242,7 @@ function page(): PageResult {
             <code style={CODE_ON_GROUND}>{itemHref('chassis', samples.slug)}</code> is the page, and{' '}
             <code style={CODE_ON_GROUND}>/schema/chassis/item/{samples.slug}.json</code> its data.
           </p>
-        </section>
+        </SlabSection>
 
         {/* Endpoints */}
         <Stack as="section" gap={24}>
@@ -410,8 +409,7 @@ function page(): PageResult {
         </Stack>
 
         {/* Licensing note */}
-        <section style={PROSE_12}>
-          <Slab as="h2" label="Licensing" />
+        <SlabSection as="h2" title="Licensing" bodyStyle={PROSE_12} page>
           <p>
             Data returned by this API is published under the{' '}
             <InlineRef
@@ -439,7 +437,7 @@ function page(): PageResult {
             and may not be redistributed. Republication of licensed text must include the legal
             notices required by the Salvage Union Open Game Licence 1.0b.
           </p>
-        </section>
+        </SlabSection>
       </DocPage>
     ),
   }

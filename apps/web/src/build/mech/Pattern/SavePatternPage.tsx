@@ -38,6 +38,7 @@ import {
   ReferenceEntityCard,
   Select,
   Slab,
+  SlabSection,
   Text,
   Textarea,
   tokens,
@@ -249,8 +250,12 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
       </ChapterBandTrail.Provider>
 
       <Grid min="26rem" gap={32} style={COLUMNS}>
-        <section style={COLUMN} aria-labelledby="pattern-saved">
-          <Slab id="pattern-saved" label="What gets saved" count={`from your ${mech.name}`} />
+        <SlabSection
+          id="pattern-saved"
+          title="What gets saved"
+          count={`from your ${mech.name}`}
+          bodyStyle={COLUMN}
+        >
           <Text variant="body">
             A pattern keeps the chassis and its loadout. Damage, Heat and cargo stay on the mech; a
             new mech built from the pattern starts fresh.
@@ -262,10 +267,9 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
             Everything here is reference content, so it keeps a solid frame. Only the pattern itself
             is user-made.
           </Text>
-        </section>
+        </SlabSection>
 
-        <section style={COLUMN} aria-labelledby="pattern-yours">
-          <Slab id="pattern-yours" label="Your pattern" />
+        <SlabSection id="pattern-yours" title="Your pattern" bodyStyle={COLUMN}>
           <Field label="Pattern name" htmlFor="pattern-name">
             <Input
               id="pattern-name"
@@ -398,7 +402,7 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
             dashed User-made stamp and its maker&rsquo;s name in place of a page citation. Canon is
             solid; homebrew is dashed. Nobody can make it look like the Workshop Manual.
           </p>
-        </section>
+        </SlabSection>
       </Grid>
     </main>
   )

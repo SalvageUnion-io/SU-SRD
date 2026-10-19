@@ -15,7 +15,7 @@
 import type { SheetKind } from 'game-domain/entityKinds'
 import { Bot, UserRound, Warehouse } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import { Button, EmptyState, Segmented, SegmentedOption, Slab } from '../../components/index'
+import { Button, EmptyState, Segmented, SegmentedOption, SlabSection } from '../../components/index'
 import { color, iconSize, space } from '../../design/tokens'
 
 export type SegmentKind = SheetKind
@@ -39,9 +39,6 @@ const FILL = { width: '100%' } satisfies CSSProperties
 const GRID = { display: 'grid', gap: space[32] } satisfies CSSProperties
 
 const LIST = { display: 'flex', flexDirection: 'column', gap: space[10] } satisfies CSSProperties
-
-/** The Slab row wraps its controls under the stamp on a narrow column. */
-const HEAD = { flexWrap: 'wrap', marginBottom: space[12] } satisfies CSSProperties
 
 /** Mobile-endpoint segmented Pilot/Mech/Crawler switch. */
 export function SegmentSwitch({
@@ -120,32 +117,28 @@ export function RosterColumn({
 }: RosterColumnProps) {
   const headingId = `${kind}s-heading`
   return (
-    <section
-      aria-labelledby={headingId}
+    // The column heading is the ink section stamp, its controls at the end of
+    // the leader rule (they wrap under the stamp on a narrow column).
+    <SlabSection
+      as="h2"
+      id={headingId}
+      title={title}
       className={active ? undefined : 'su-roster-column--inactive'}
-    >
-      {/* The column heading is the ink section stamp (`Slab`), its controls at
-          the end of the leader rule. */}
-      <Slab
-        as="h2"
-        id={headingId}
-        label={title}
-        style={HEAD}
-        actions={
-          headExtra !== undefined || (create !== undefined && !empty) ? (
-            <>
-              {headExtra}
-              {/* One create CTA per column: the header link shows only when the
+      actions={
+        headExtra !== undefined || (create !== undefined && !empty) ? (
+          <>
+            {headExtra}
+            {/* One create CTA per column: the header link shows only when the
                   column has rows; the empty state renders its own create CTA. */}
-              {create !== undefined && !empty && (
-                <Button href={create.href} onClick={create.onClick} size="mini">
-                  + {create.label}
-                </Button>
-              )}
-            </>
-          ) : undefined
-        }
-      />
+            {create !== undefined && !empty && (
+              <Button href={create.href} onClick={create.onClick} size="mini">
+                + {create.label}
+              </Button>
+            )}
+          </>
+        ) : undefined
+      }
+    >
       {empty ? (
         <EmptyState
           variant="quiet"
@@ -162,6 +155,6 @@ export function RosterColumn({
       ) : (
         children
       )}
-    </section>
+    </SlabSection>
   )
 }

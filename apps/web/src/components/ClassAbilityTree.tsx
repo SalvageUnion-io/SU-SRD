@@ -9,10 +9,9 @@ import type { RefText } from '../lib/rollTablePage'
 import { capsLabel } from './atoms/capsLabel'
 import { Box } from './containers/Box'
 import type { TreeTrack } from './index'
-import { Chips, Head, Slab, Stat, TitledBox } from './index'
+import { Chips, Head, Slab, SlabSection, Stat, TitledBox } from './index'
 import { MentionProse } from './MentionProse'
 import { ReferenceAbilityTrack } from './ReferenceAbilityTrack'
-import { PAGE_SLAB } from './referenceEntity/card/cardHelpers'
 
 const TREES_LABEL = cn('su-class-brief__trees-label', capsLabel({ tracking: 'snug' }))
 
@@ -45,15 +44,21 @@ function TreeSection({
   form = 'row',
 }: AbilityTreeGroup & { track: TreeTrack; note?: string; form?: 'row' | 'token' }) {
   return (
-    <section className="su-ability-tree__group">
-      <Slab as="h2" label={tree} count={note ?? noteFor(track)} style={PAGE_SLAB} />
+    <SlabSection
+      as="h2"
+      title={tree}
+      count={note ?? noteFor(track)}
+      page
+      className="su-ability-tree__group"
+      bodyClassName="su-ability-tree__track"
+    >
       <ReferenceAbilityTrack
         abilities={abilities}
         track={track}
         form={form}
         {...(form === 'row' ? { titleAs: 'h3' as const } : {})}
       />
-    </section>
+    </SlabSection>
   )
 }
 
@@ -154,7 +159,7 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
       <Slab
         label="Training"
         count={`p.${GAINING_ABILITIES_PAGE}`}
-        style={PAGE_SLAB}
+        flush
         actions={
           <Stat
             orientation="horizontal"
@@ -314,13 +319,12 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
     return (
       <div className="su-ability-tree">
         <ClassBrief plan={plan} />
-        <section className="su-ability-tree__section">
-          <Slab label="Abilities" style={PAGE_SLAB} />
+        <SlabSection title="Abilities" page>
           <div className="su-class-path__trees" data-entity-fit="">
             <TreeSection {...path.advanced} track="hybrid" />
             {path.legendary && <TreeSection {...path.legendary} track="legendary" />}
           </div>
-        </section>
+        </SlabSection>
         <BranchTrees branches={branches} />
       </div>
     )
@@ -333,18 +337,16 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
     <div className="su-ability-tree">
       <ClassBrief plan={plan} />
       {plan.coreTrees.length > 0 && (
-        <section className="su-ability-tree__section">
-          <Slab label="Core trees" style={PAGE_SLAB} />
+        <SlabSection title="Core trees" page>
           <div className="su-ability-tree__row su-ability-tree__row--stack">
             {plan.coreTrees.map((group) => (
               <TreeSection key={group.tree} {...group} track="core" />
             ))}
           </div>
-        </section>
+        </SlabSection>
       )}
       {plan.paths.length > 0 && (
-        <section className="su-ability-tree__section">
-          <Slab label="Advancement" style={PAGE_SLAB} />
+        <SlabSection title="Advancement" page>
           <ul className="su-class-paths">
             {[...plan.paths]
               .sort((a, b) => Number(Boolean(a.hybrid)) - Number(Boolean(b.hybrid)))
@@ -356,7 +358,7 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
                 />
               ))}
           </ul>
-        </section>
+        </SlabSection>
       )}
     </div>
   )
@@ -370,13 +372,12 @@ function BranchTrees({ branches }: { branches: BranchTree[] }) {
   const groups = branches.flatMap(({ group, owner }) => (group ? [{ group, owner }] : []))
   if (groups.length === 0) return null
   return (
-    <section className="su-ability-tree__section">
-      <Slab label="Required Trees" style={PAGE_SLAB} />
+    <SlabSection title="Required Trees" page>
       <div className="su-ability-tree__row" data-entity-fit="">
         {groups.map(({ group, owner }) => (
           <TreeSection key={group.tree} {...group} track="core" note={owner?.name} />
         ))}
       </div>
-    </section>
+    </SlabSection>
   )
 }

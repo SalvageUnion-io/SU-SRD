@@ -31,10 +31,15 @@
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { ItemCondition } from 'game-domain/schemas/itemCondition'
 import type { PartnerInstance } from 'game-domain/schemas/partner'
-import type { CSSProperties } from 'react'
 import { resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import type { ReferenceEntityControl, StatItem } from '../../components/index'
-import { Field, ReferenceEntityCard, Slab, Stack, summarizeBreakdown } from '../../components/index'
+import {
+  Field,
+  ReferenceEntityCard,
+  SlabSection,
+  Stack,
+  summarizeBreakdown,
+} from '../../components/index'
 import { usePartnerCargo } from '../../lib/cargo/usePartnerCargo'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'
 import type { PartnerWithHost } from '../../lib/partnerLookup'
@@ -53,9 +58,6 @@ import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { MechItemToken } from './MechItemToken'
 import { PartnerHold } from './PartnerHold'
 import { partnerDisplayName } from './partnerDisplay.model'
-
-/** The section's Slab sits on the list's own gap, not its default margin. */
-const ITEMS_SLAB = { marginBottom: 0 } satisfies CSSProperties
 
 /** No stat-block loadout: the partner's installed items are its loadout. */
 const NO_LOADOUT = { systems: [], modules: [] }
@@ -258,8 +260,7 @@ export function PartnerCard({
     // Keyed by occurrence, not index — see occurrenceKeys.
     const keys = occurrenceKeys(slugs)
     return (
-      <Stack gap={8}>
-        <Slab as="h4" label={kind === 'system' ? 'Systems' : 'Modules'} style={ITEMS_SLAB} />
+      <SlabSection as="h4" title={kind === 'system' ? 'Systems' : 'Modules'}>
         {/* One Token a line, each Peeking its whole card. */}
         <ul className={readOnly ? 'su-entity-token-list' : 'su-entity-token-list su-sheet-items'}>
           {slugs.map((slug, index) => (
@@ -292,7 +293,7 @@ export function PartnerCard({
             </li>
           ))}
         </ul>
-      </Stack>
+      </SlabSection>
     )
   }
 

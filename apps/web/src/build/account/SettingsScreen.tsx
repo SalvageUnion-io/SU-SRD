@@ -12,7 +12,7 @@ import {
   Input,
   PageShell,
   Pending,
-  Slab,
+  SlabSection,
   Stack,
   Text,
   tokens,
@@ -41,15 +41,12 @@ import { SignInControl } from './SignInControl'
 
 const MEASURE = '75rem'
 
-const SECTION = {
+/** A concern's controls and notes, 12px apart under its stamp. */
+const BODY = {
   display: 'flex',
   flexDirection: 'column',
   gap: tokens.space[12],
-  minWidth: 0,
 } satisfies CSSProperties
-
-// The slab's own foot margin would double the section's gap.
-const SLAB = { marginBottom: tokens.space[4] } satisfies CSSProperties
 
 const NOTE = { margin: 0, textAlign: 'left' } satisfies CSSProperties
 
@@ -73,10 +70,9 @@ type SectionProps = { id: string; title: string; children: ReactNode }
 /** One concern: its stamp, which also names the region, then its controls. */
 function Section({ id, title, children }: SectionProps) {
   return (
-    <section aria-labelledby={id} style={SECTION}>
-      <Slab as="h2" id={id} label={title} style={SLAB} />
+    <SlabSection as="h2" id={id} title={title} bodyStyle={BODY}>
       {children}
-    </section>
+    </SlabSection>
   )
 }
 

@@ -41,6 +41,7 @@ import {
   PageShell,
   Pending,
   Skeleton,
+  SlabSection,
   Text,
   tokens,
 } from '../../components/index'
@@ -50,8 +51,14 @@ import { readCrawler } from './crawlerReading.model'
 import { DeleteGameDialog } from './DeleteGameDialog'
 import { GameBand } from './GameBand'
 import { GameRoster } from './GameRoster'
-import { HubSection } from './HubSection'
-import { GAME_BODY, GAME_MEASURE, HUB_COLUMN, HUB_COLUMN_MIN, HUB_COLUMNS } from './hubStyles.model'
+import {
+  GAME_BODY,
+  GAME_MEASURE,
+  HUB_BODY,
+  HUB_COLUMN,
+  HUB_COLUMN_MIN,
+  HUB_COLUMNS,
+} from './hubStyles.model'
 import { LaunchPlay } from './LaunchPlay'
 import { ProposalInbox } from './ProposalInbox'
 import { ProposalsSent } from './ProposalsSent'
@@ -149,12 +156,12 @@ function GameSections({ game }: { game: Game }) {
           {/* The invite URL is administrative, so only the Organizer sees it
               (ADR-030 §3); the server refuses `invites.link` to anyone else. */}
           {game.organizer && (
-            <HubSection id="invite-link-heading" title="Invite link">
+            <SlabSection as="h2" bodyStyle={HUB_BODY} id="invite-link-heading" title="Invite link">
               <div style={INVITE_ACTIONS}>
                 <CopyInviteLink gameId={gameId} />
                 <ResetInviteLink gameId={gameId} />
               </div>
-            </HubSection>
+            </SlabSection>
           )}
           <TheGame
             gameId={gameId}

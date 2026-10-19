@@ -71,8 +71,7 @@ import {
   EmptyState,
   Entity,
   MasonryColumns,
-  SheetSectionSlab,
-  Slab,
+  SlabSection,
   Stack,
   Stat,
   tokens,
@@ -112,9 +111,6 @@ const ROOT = {
   flexDirection: 'column',
   gap: tokens.space[24],
 } satisfies CSSProperties
-
-/** The Slab sits close over the pool's steppers, as the hold's over its strip. */
-const POOL_SLAB = { marginBottom: tokens.space[6] } satisfies CSSProperties
 
 const POOL_ROW = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
 
@@ -298,22 +294,19 @@ export function CrawlerSheet({
           a crawler stow arbitrary scrap by hand (Free Edit). The
           physical-scrap-cargo path lives in the Hold add-form's Scrap kind. */}
       {showPool && (
-        <div>
-          <Slab label="Scrap Pool" style={POOL_SLAB} />
-          <div style={POOL_ROW}>
-            {SCRAP_TLS.map((t) => (
-              <Stat
-                key={t}
-                orientation="horizontal"
-                label={`T${t}`}
-                value={scrapPoolBucket(pool, t)}
-                min={0}
-                mode={readOnly ? 'read' : 'edit'}
-                onChange={readOnly ? undefined : (next) => setScrapBucket(t, next)}
-              />
-            ))}
-          </div>
-        </div>
+        <SlabSection title="Scrap Pool" bodyStyle={POOL_ROW}>
+          {SCRAP_TLS.map((t) => (
+            <Stat
+              key={t}
+              orientation="horizontal"
+              label={`T${t}`}
+              value={scrapPoolBucket(pool, t)}
+              min={0}
+              mode={readOnly ? 'read' : 'edit'}
+              onChange={readOnly ? undefined : (next) => setScrapBucket(t, next)}
+            />
+          ))}
+        </SlabSection>
       )}
       {showHold && (
         <StorageManifest
@@ -429,10 +422,11 @@ export function CrawlerSheet({
               separate "Custom Bays" group underneath once the data
               distinguishes them. */}
           {bays.length > 0 && (
-            <SheetSectionSlab
+            <SlabSection
+              fold="open"
               title="Bays"
               count={{ label: 'Intact', value: intactBays, max: bays.length }}
-              controls={
+              actions={
                 crewHref === undefined ? undefined : (
                   <Button
                     href={crewHref}
@@ -466,7 +460,7 @@ export function CrawlerSheet({
                   </div>
                 ) : null
               )}
-            </SheetSectionSlab>
+            </SlabSection>
           )}
         </Stack>
 
@@ -476,7 +470,9 @@ export function CrawlerSheet({
             as their own full-width band instead. Lives OUTSIDE the Bays section
             because a crawler with no bays at all has no Bays section either. */}
         {!bays.some((entry) => bayKind(entry) === 'storage') && storageContents && (
-          <SheetSectionSlab title="Storage Bay">{storageContents}</SheetSectionSlab>
+          <SlabSection fold="open" title="Storage Bay">
+            {storageContents}
+          </SlabSection>
         )}
 
         {/* Assigned Units — the last region (`AssignedUnits`, built by SheetCrawler). */}

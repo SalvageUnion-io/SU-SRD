@@ -246,16 +246,34 @@
   }
 }
 
-/* SheetSectionSlab (`components/containers/SheetSectionSlab.tsx`): its slab
-   leader wraps, so a long title beside a long control drops the controls to
-   their own line rather than overflowing a phone's column. */
-.su-sheet-slab-lead {
+/* SlabSection (`components/containers/SlabSection.tsx`): the one section, a
+   Slab and its body one gap apart: 8px inside a block, 12px on a Page, where
+   head and body are level-1 blocks (R17). */
+.su-slab-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.su-slab-section--page {
+  gap: var(--space-12);
+}
+
+.su-slab-section__body {
+  min-width: 0;
+}
+
+/* Its Slab wraps, so
+   a long title beside a long control drops the controls to their own line
+   rather than overflowing a phone's column. */
+.su-slab-section__head {
   flex-wrap: wrap;
 }
 
-/* Its count chip is the leader's Size, Compact, the height of the fold chevron
-   and the controls beside it, so the leader is one line of one height. */
-.su-sheet-slab-lead .su-stat-cell {
+/* With a fold its count chip is the head's Size, Compact, the height of the
+   chevron and the controls beside it, so the head is one line of one height. */
+.su-slab-section__head--fold .su-stat-cell {
   min-height: var(--size-compact);
 }
 

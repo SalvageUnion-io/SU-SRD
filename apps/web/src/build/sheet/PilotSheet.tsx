@@ -17,7 +17,7 @@
  * Read | Edit (`sheetMode.model.ts`) reaches here as `readOnly`: Read withdraws every
  * write affordance exactly as a sheet the viewer cannot write does.
  *
- * Section containers follow the card-vs-slab rule (see `SheetSectionSlab`):
+ * Section containers follow the card-vs-slab rule (see `SlabSection`):
  * a section of inputs/gauges is a CARD (here, the identity band), a section of
  * entity cards is a SLAB (Abilities, Inventory, Assigned Units) — cards already
  * carry their own frame, so a second frame around them reads as one opaque
@@ -60,7 +60,7 @@ import {
   EmptyState,
   EntitySearcher,
   Eyebrow,
-  SheetSectionSlab,
+  SlabSection,
   SlotGrid,
   Stack,
   Stat,
@@ -345,7 +345,8 @@ export function PilotSheet({
       {/* ===== Inventory ===== (none in Read when nothing is carried: an
           empty section is left out, as an empty field is) */}
       {!(readOnly && empty) && (
-        <SheetSectionSlab
+        <SlabSection
+          fold="open"
           title="Inventory"
           count={{
             label: 'Slots',
@@ -353,7 +354,7 @@ export function PilotSheet({
             max: model.slotsCap,
             state: model.overCapacity ? 'critical' : undefined,
           }}
-          controls={
+          actions={
             readOnly ? undefined : (
               <SectionManageButton label="equipment" onClick={() => setPicker('equipment')} />
             )
@@ -451,14 +452,14 @@ export function PilotSheet({
               />
             </div>
           )}
-        </SheetSectionSlab>
+        </SlabSection>
       )}
 
       {/* Ability-granted PARTNERS. Each carries a nested loadout and a cargo
           hold, and a partner acts on its own turn rather than being one item
           among the pilot's carried gear. */}
       {model.partners.length > 0 && (
-        <SheetSectionSlab title="Partners" count={model.partners.length}>
+        <SlabSection fold="open" title="Partners" count={model.partners.length}>
           <Stack gap={12}>
             {model.partners.map((partner) => (
               <PartnerCard
@@ -474,7 +475,7 @@ export function PilotSheet({
               />
             ))}
           </Stack>
-        </SheetSectionSlab>
+        </SlabSection>
       )}
 
       {/* ===== Assigned Units — the assigned mech and the home crawler: the

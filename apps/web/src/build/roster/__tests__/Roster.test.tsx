@@ -302,7 +302,7 @@ describe('Hangar — one shelf per kind', () => {
     await renderShelves()
     const starter = screen.getByRole('region', { name: 'Starter Set' })
     expect(within(starter).getByText('read-only')).toBeTruthy()
-    const toggle = within(starter).getByRole('button', { name: 'Show the Starter Set' })
+    const toggle = within(starter).getByRole('button', { name: 'Expand Starter Set' })
     expect(toggle.getAttribute('aria-expanded')).toBe('false')
     expect(within(starter).queryByRole('link', { name: 'Read Bonesaw' })).toBeNull()
 
@@ -310,7 +310,7 @@ describe('Hangar — one shelf per kind', () => {
 
     expect(
       within(starter)
-        .getByRole('button', { name: 'Hide the Starter Set' })
+        .getByRole('button', { name: 'Collapse Starter Set' })
         .getAttribute('aria-expanded')
     ).toBe('true')
     expect(within(starter).getByRole('link', { name: 'Read Bonesaw' }).getAttribute('href')).toBe(

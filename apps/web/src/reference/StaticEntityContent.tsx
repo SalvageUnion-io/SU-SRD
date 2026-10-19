@@ -2,7 +2,7 @@ import { Fragment } from 'react'
 import type { StaticEntitySummary } from 'salvageunion-reference'
 import { bookName, citeLine } from 'salvageunion-reference'
 import { capsLabel } from '../components/atoms/capsLabel'
-import { InlineRef, mentionRef, RollTableInstrument, Slab, Stat } from '../components/index'
+import { InlineRef, mentionRef, RollTableInstrument, SlabSection, Stat } from '../components/index'
 import { MentionProse } from '../components/MentionProse'
 import { cn } from '../lib/cn'
 import { refText } from '../lib/rollTablePage'
@@ -107,14 +107,19 @@ export function StaticEntityContent({ summary, parent, cite: given }: StaticEnti
           rendering is a title and one paragraph. Headings are h2: they sit
           under the h1 above. */}
       {summary.sections.map((section) => (
-        <section key={section.name} className="su-static__section">
-          <Slab as="h2" label={section.name} />
+        <SlabSection
+          as="h2"
+          title={section.name}
+          key={section.name}
+          page
+          bodyClassName="su-static__section"
+        >
           {section.paragraphs.map((p) => (
             <p key={p}>
               <Prose text={p} />
             </p>
           ))}
-        </section>
+        </SlabSection>
       ))}
 
       {summary.traits.length > 0 && (

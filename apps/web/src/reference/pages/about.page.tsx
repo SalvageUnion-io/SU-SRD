@@ -26,7 +26,7 @@ import type { CSSProperties } from 'react'
 import { Fragment } from 'react'
 import type { PageModule, PageResult, RouteContext } from '../../../ssg/types'
 import { capsLabel } from '../../components/atoms/capsLabel'
-import { Button, cn, InlineRef, Slab } from '../../components/index'
+import { Button, cn, InlineRef, SlabSection } from '../../components/index'
 import { ColophonIsland } from '../../components/islands/ColophonIsland'
 import { color, fontSize, iconSize, space, weight } from '../../design/tokens'
 import { appPath } from '../../lib/appBase'
@@ -316,8 +316,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
           </div>
 
           {/* What is this? */}
-          <section style={PROSE}>
-            <Slab as="h2" label="What is this?" />
+          <SlabSection as="h2" title="What is this?" bodyStyle={PROSE} page>
             <p style={PARAGRAPH}>
               This is an unofficial, community-built System Reference Document (SRD) for{' '}
               <InlineRef
@@ -371,7 +370,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
               of Leyline Press. This is an unofficial fan project, and is not affiliated with
               Leyline Press.
             </p>
-          </section>
+          </SlabSection>
 
           {/* Colophon: About the Dev + support + Special Thanks | LLM Statement.
                 `ssr` per DESIGN.md's per-island table — the prose is worth indexing. */}

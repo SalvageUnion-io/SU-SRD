@@ -96,7 +96,9 @@ describe('ChoiceGroups — uncontrolled (ephemeral) state', () => {
     // says so to a screen reader alone, never in a visible seal.
     const chosen = screen.getByText('Chosen')
     expect(chosen.className).toBe('su-sr-only')
-    expect(chosen.parentElement?.style.boxShadow).toBe('0 0 0 3px var(--color-ink)')
+    expect((chosen.closest('section') as HTMLElement | null)?.style.boxShadow).toBe(
+      '0 0 0 3px var(--color-ink)'
+    )
     expect(screen.getAllByText('Chosen')).toHaveLength(1)
   })
 })

@@ -185,7 +185,7 @@ describe('the list', () => {
     render(<Harness pilot={pilot} mech={mech} situation="onFoot" store={store} writes={[]} />)
     expect(screen.queryByRole('button', { name: `Use ${primary().name}` })).toBeNull()
     expect(screen.getByText('On hand · On foot')).toBeTruthy()
-    const toggle = screen.getByRole('button', { name: /^Not on hand · \d+/ })
+    const toggle = screen.getByRole('button', { name: 'Expand Not on hand' })
     expect(toggle.getAttribute('aria-expanded')).toBe('false')
     await click(toggle)
     const away = within(screen.getByRole('list', { name: 'Not on hand' }))

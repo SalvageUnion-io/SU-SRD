@@ -3,8 +3,9 @@ import type { RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
 import { Slab } from '../../atoms/Slab'
 import { StatColumn } from '../../atoms/StatColumn'
+import { SlabSection } from '../../containers/SlabSection'
 import type { Down } from './cardChrome'
-import { cardKey, nestedTitleLevel, PAGE_SLAB } from './cardHelpers'
+import { cardKey, nestedTitleLevel } from './cardHelpers'
 import { pageBodyStats } from './entityPage'
 import { PatternLinkRows } from './PatternListRow'
 import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
@@ -130,7 +131,7 @@ export function CardPage({
             {opening && <div className="su-entity-page__opening">{opening}</div>}
             {(subLine || body) && (
               <div className="su-entity-page__prose">
-                {bodyLabel && <Slab as={sectionAs} label={bodyLabel} style={PAGE_SLAB} />}
+                {bodyLabel && <Slab as={sectionAs} label={bodyLabel} flush />}
                 {subLine}
                 {body}
               </div>
@@ -151,12 +152,17 @@ export function CardPage({
       )}
       {table && <div className="su-entity-page__table">{table}</div>}
       {otherActions.length > 0 && (
-        <section className="su-entity-page__section">
-          <Slab as={sectionAs} label="Actions" style={PAGE_SLAB} />
+        <SlabSection
+          as={sectionAs}
+          title="Actions"
+          page
+          className="su-entity-page__section"
+          bodyClassName="su-entity-page__section-body"
+        >
           {otherActions.map((data, index) =>
             actionCard(data, index, nestedTitleLevel(!!sectionAs))
           )}
-        </section>
+        </SlabSection>
       )}
       {guide}
       {sections}

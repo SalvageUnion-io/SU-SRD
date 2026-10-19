@@ -94,7 +94,11 @@
  *   atom. The ones left draw a look no Button Size has yet (a tag, a step
  *   pill, a rail token, the condition glyph); each goes when its atom does.
  *
- * Every rule is `zero`. Comments are stripped, so prose may name what it bans.
+ * ## One section, the SlabSection (hard rule R1, ruleset §6.4)
+ *
+ * `slab-section` and `slab-style`, read off the JSX's shape: `chromeMarkup.ts`.
+ *
+ * Every rule is `zero` but `raw-button`. Comments are stripped, so prose may name what it bans.
  */
 
 import { readFileSync } from 'node:fs'
@@ -102,6 +106,7 @@ import { join } from 'node:path'
 import type { Finding, Rule, RuleSet } from '../lib/ruleEngine'
 import { listFiles } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
+import { MARKUP_RULES } from './chromeMarkup'
 
 const SRC = 'apps/web/src'
 
@@ -551,13 +556,15 @@ const RULES: ChromeRule[] = [
     fix: 'Render `<Stat label="SP" value={n} />` (with `max` for a reading out of a maximum, `size` for the line); in a sentence, say it in words around the number ("4 Hit Points"), never as a label and a value.',
     scan: (root) => jsxSources(root).flatMap(([rel, text]) => statTextFindings(rel, text)),
   },
+  ...MARKUP_RULES,
 ]
 
 export const chromeLaws: RuleSet = {
   id: 'chrome',
   label: 'chrome laws',
   rules: RULES,
-  exemptionsLive: 'packages/gates/rules/chrome.ts (FRAMES, ATOMS, ROLE_HOMES, BUTTON_RECIPE_HOMES)',
+  exemptionsLive:
+    'packages/gates/rules/chrome.ts (FRAMES, ATOMS, ROLE_HOMES, BUTTON_RECIPE_HOMES), chromeMarkup.ts (SLAB_SECTION_HOME)',
   preflight(root) {
     // A catastrophe floor far below today's ~1,000 source files and ~60 stylesheets.
     assertScanFloor('chrome (app source)', listFiles(root, [SRC], ['.ts', '.tsx']).length, 350)
