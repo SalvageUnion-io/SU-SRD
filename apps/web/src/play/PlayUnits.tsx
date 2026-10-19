@@ -27,11 +27,15 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import type { RangeBand } from 'game-domain/schemas/seat'
 import { RANGE_BANDS } from 'game-domain/schemas/seat'
 import type { CSSProperties, ReactNode } from 'react'
+import { toEntityModel } from 'salvageunion-reference'
+import type { TagItem } from '../components/index'
 import {
   Badge,
   Button,
+  Chips,
   Entity,
   heatDangerFrom,
+  relation,
   Segmented,
   SegmentedOption,
   Slab,
@@ -87,6 +91,21 @@ function stamp(text: string) {
     <Badge shape="stamp" size="mini">
       {text}
     </Badge>
+  )
+}
+
+/**
+ * A box's relation chips (chips-and-actions C11, R5): what the unit is built
+ * on or linked to, label first (`CHASSIS | Scrapper`), drawn by `Chips` in
+ * the relation lane, never a loose stamp.
+ */
+export function Relations({ items }: { items: readonly TagItem[] }) {
+  return (
+    <Chips
+      chips={{ durations: [], facts: [], tags: [], relations: [...items] }}
+      size="mini"
+      linkable
+    />
   )
 }
 
@@ -237,7 +256,10 @@ export function PlayMechUnit({
 }: PlayMechUnitProps) {
   const s = mechStats(mech, pilotAbilities, activeEffects)
   const write = writer(store, 'mech', mech.id)
-  const chassis = s.chassis?.name ?? null
+  // What it is built on (C11): the chassis, label first, Peeking and opening it.
+  const chassis = s.chassis
+    ? relation('chassis', 'Chassis', s.chassis.name, { ref: toEntityModel(s.chassis).ref })
+    : null
   const showHeat = place !== 'parked'
   // What the mech and its pilot can switch on (ADR-029 §4): the table keeps
   // time, so an effect stays on until the player ends it.
@@ -249,7 +271,7 @@ export function PlayMechUnit({
       label={`Mech: ${mech.name}`}
       tone="mech"
       reference={!live}
-      chips={chassis ? <Stat label={chassis} size="mini" /> : undefined}
+      chips={chassis ? <Relations items={[chassis]} /> : undefined}
       controls={stamp(mech.destroyed ? 'Destroyed' : MECH_STAMP[place])}
     >
       <PlayVital

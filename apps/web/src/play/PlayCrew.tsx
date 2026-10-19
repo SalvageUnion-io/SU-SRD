@@ -1,8 +1,8 @@
 /**
  * PlayCrew — the Crew section of the Cockpit's right column (play.md §7),
  * Game only: one line per other seat at the table, each a compact Row (level
- * 1, play.md §12) with a presence dot, the callsign, the mount as a chip
- * ("Boarded · Atlas", "On foot") and one vital: the one that needs looking at
+ * 1, play.md §12) with a presence dot, the callsign, the mech aboard as a
+ * relation chip (`MECH | Atlas`, C11; "On foot" else) and one vital: the one that needs looking at
  * (▲ and the red frame, as `crewLines()` decides), else their SP aboard or HP
  * on foot. A crewmate whose seat has stopped beating reads "Away".
  *
@@ -16,7 +16,7 @@
 
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { EmptyState, Entity, Stat, tokens } from '../components/index'
+import { EmptyState, Entity, relation, Stat, tokens } from '../components/index'
 import { unitRowModel } from '../lib/units/unitModel'
 import type { BoardSources } from './boardMenu.model'
 import type { CrewSeatLine } from './crew.model'
@@ -105,14 +105,15 @@ function CrewLine({ line, onOpen }: { line: CrewSeatLine; onOpen: () => void }) 
       labels={
         <>
           <span className="su-play-crew-dot" data-present={line.present || undefined} />
-          <Stat
-            orientation="horizontal"
-            size="mini"
-            label={line.boardedIn === null ? 'On foot' : 'Boarded'}
-            value={line.boardedIn ?? undefined}
-          />
+          {line.boardedIn === null ? (
+            <Stat orientation="horizontal" size="mini" label="On foot" />
+          ) : null}
         </>
       }
+      // The mech they are aboard is a relation chip (C11), never a stamp.
+      {...(line.boardedIn === null
+        ? {}
+        : { relations: [relation('mech', 'Mech', line.boardedIn)] })}
       trailing={
         vital.attention ? (
           <Stat

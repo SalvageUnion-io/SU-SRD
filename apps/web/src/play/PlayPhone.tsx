@@ -22,7 +22,8 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
-import { Stat, Tab, TabList, TabPanel, Tabs, tokens } from '../components/index'
+import { heatDangerFrom, Tab, TabList, TabPanel, Tabs, tokens } from '../components/index'
+import { PlayVital } from './PlayVital'
 import type { PhoneTab, PinnedUnit } from './playPhone.model'
 
 const ROOT = {
@@ -132,10 +133,11 @@ export function PlayPhone<Value extends string>({
   )
 }
 
+/** One unit a line: its gauges share it. */
 const UNITS = {
-  display: 'grid',
+  display: 'flex',
+  flexDirection: 'column',
   gap: tokens.space[6],
-  gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
   margin: 0,
   padding: 0,
 } satisfies CSSProperties
@@ -161,18 +163,21 @@ const UNIT_NAME = {
 
 const CELLS = {
   display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[4],
+  gap: tokens.space[12],
   listStyle: 'none',
   margin: 0,
   padding: 0,
 } satisfies CSSProperties
 
+/** Each gauge an equal share of its unit's line. */
+const CELL = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
+
 /**
- * The live vitals pinned above every tab (`pinnedUnits`): one group per unit,
- * its name, then a `label | value/max` cell per vital (ruleset §3.7, the
- * listing's Stat, as ADR-045's pinned row drew them). A read-out: the − / +
- * are the Units tab's. Nothing in Downtime.
+ * The live vitals pinned above every tab (`pinnedUnits`): one line per unit,
+ * its name, then its vitals as the Units column draws them (`PlayVital`, the
+ * compact `VitalGauge`: R7, Play's vitals are the sheet's gauge in a darker
+ * skin, never a listing's Stat). A read-out: the − / + are the Units tab's.
+ * Nothing in Downtime.
  */
 export function PlayPinnedVitals({ units }: { units: readonly PinnedUnit[] }) {
   if (units.length === 0) return null
@@ -183,13 +188,13 @@ export function PlayPinnedVitals({ units }: { units: readonly PinnedUnit[] }) {
           <p style={UNIT_NAME}>{unit.name}</p>
           <ul aria-label={`${unit.name}’s vitals`} style={CELLS}>
             {unit.vitals.map((v) => (
-              <li key={v.label}>
-                <Stat
-                  orientation="horizontal"
-                  size="compact"
+              <li key={v.label} style={CELL}>
+                <PlayVital
                   label={v.label}
                   value={v.value}
                   max={v.max}
+                  tone={unit.kind}
+                  danger={v.label === 'Heat' && v.max > 0 ? heatDangerFrom(v.max) : undefined}
                 />
               </li>
             ))}

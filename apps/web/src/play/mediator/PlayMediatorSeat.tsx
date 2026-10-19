@@ -1,8 +1,8 @@
 /**
  * PlayMediatorSeat — one seat at the Mediator's table (play.md §10, wireframe
  * pin 2): the pilot's Row, level 1 in the column, with a presence dot in its
- * head, and in its body (level 2, plain content) the mount as a full-width
- * Token, every live vital as a chip, and what they are doing now.
+ * head, the mech as a relation chip (C11), and in its body (level 2, plain content) the mount in words,
+ * every live vital as a chip, and what they are doing now.
  *
  *  - **Attention** — something needs the Mediator (`crewLines()`'s verdict):
  *    a ring in the bad hue around the seat, the flagged vital ▲ and critical,
@@ -17,7 +17,7 @@
 
 import type { CSSProperties } from 'react'
 import { Row } from '../../components/entity/forms/Row'
-import { Button, Entity, Stat, tokens } from '../../components/index'
+import { Button, relation, Stat, tokens } from '../../components/index'
 import { unitRowModel } from '../../lib/units/unitModel'
 import type { MediatorSeat } from './mediatorTable.model'
 
@@ -85,6 +85,8 @@ export function PlayMediatorSeat({
           label: `${seat.label}. Aim Propose here`,
         }}
         slots={{
+          // The mech they are aboard or have parked is a relation chip (C11), never a Token under the Row (R5).
+          ...(seat.mech === null ? {} : { relations: [relation('mech', 'Mech', seat.mech.name)] }),
           extraLabels: (
             <span
               className="su-play-crew-dot"
@@ -129,23 +131,9 @@ export function PlayMediatorSeat({
   )
 }
 
-/** The mount: the mech they are aboard (or have parked) as a full-width Token, or on foot. */
+/** The mount in words ("Boarded · Buzzard", "On foot"); the mech itself is the head's relation chip. */
 function SeatMount({ seat }: { seat: MediatorSeat }) {
-  if (seat.mech === null) return <p style={MUTED}>{seat.mount}</p>
-  return (
-    <div className="su-play-unit__hangar">
-      <Entity
-        form="token"
-        context="play"
-        model={unitRowModel({
-          kind: 'mech',
-          name: seat.mech.name,
-          note: seat.mech.boarded ? 'Boarded' : 'Parked',
-          readings: [{ label: 'SP', value: seat.mech.sp }],
-        })}
-      />
-    </div>
-  )
+  return <p style={MUTED}>{seat.mount}</p>
 }
 
 /** What they are doing now: the step, the roll, the problem, or where they were last seen. */
