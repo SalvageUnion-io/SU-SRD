@@ -156,15 +156,15 @@ export function PlayReactorRow({ mech, store, rollFor, need, canWrite }: PlayRea
     <span className="su-play-act__need">{need}</span>
   ) : (
     <span className="su-play-act__buttons">
-      <Button
+      <Toggle
         size="mini"
         onClick={togglePush}
         disabled={off}
-        aria-pressed={pushing}
+        pressed={pushing}
         title={pushLocked ? `No Push at Heat ${heat}/${cap}` : '+2 Heat, then the Heat Check'}
       >
         Push
-      </Button>
+      </Toggle>
       <Button size="mini" onClick={doVent} disabled={off}>
         Vent
       </Button>
