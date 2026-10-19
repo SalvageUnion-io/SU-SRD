@@ -768,6 +768,9 @@ describe('chrome rule set', () => {
           "const SURFACE: StampSurface = 'on-ink'",
           '<Stat label="SP" inverse={true} />',
           '<div data-ground="ink" />',
+          '<CloseButton onPaper />',
+          '  onPaper?: boolean',
+          'export function inlineCode(onPaper = false): CSSProperties {',
           '<div data-grain={g} className="background" />',
           "const ground = band ? 'ink' : 'paper'",
           '// an `onInk` prop is banned; so is ground="ink"',
@@ -785,6 +788,8 @@ describe('chrome rule set', () => {
       'apps/web/src/components/A.tsx:5',
       'apps/web/src/components/A.tsx:6',
       'apps/web/src/components/A.tsx:7',
+      'apps/web/src/components/A.tsx:8',
+      'apps/web/src/components/A.tsx:9',
     ])
   })
 

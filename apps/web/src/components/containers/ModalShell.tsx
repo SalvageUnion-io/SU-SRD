@@ -119,6 +119,13 @@ const SUBTITLE = {
 } satisfies CSSProperties
 const SUBTITLE_CAPS = capsLabel()
 
+/**
+ * The band's control slot is a frame (chrome K1): a band that prints paper
+ * (the danger rust) declares an ink ground there, and the × reads it in CSS.
+ * It draws no box of its own, so the × stays the chip group's last slot.
+ */
+const CONTROL_SLOT = { display: 'contents' } satisfies CSSProperties
+
 /** A full-screen popup covers the viewport and scrolls inside itself. */
 const FULLSCREEN_POPUP = {
   position: 'fixed',
@@ -201,9 +208,12 @@ export function ModalShell({
             className="su-modal-panel"
             body="flush"
             controls={
-              <Dialog.Close
-                render={<CloseButton onPaper={paint.color === 'var(--color-paper)'} />}
-              />
+              <span
+                data-ground={paint.color === 'var(--color-paper)' ? 'ink' : undefined}
+                style={CONTROL_SLOT}
+              >
+                <Dialog.Close render={<CloseButton />} />
+              </span>
             }
           >
             {subtitle && (

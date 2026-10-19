@@ -167,13 +167,14 @@
 }
 
 /* CloseButton (the ×) is Button's quiet icon rung; on a band that prints
-   paper (the danger rust, an ink sheet head) its ink turns paper. Doubled
-   with `.su-btn` to out-rank the quiet variant's resting and hover ink. */
-.su-btn.su-close-button[data-on-paper] {
+   paper (the frame's `data-ground='ink'`, chrome K1: the danger rust) its ink
+   turns paper. The ground and both classes out-rank the quiet variant's
+   resting and hover ink. */
+[data-ground='ink'] .su-btn--quiet.su-close-button {
   color: var(--color-paper-60);
 }
 
-.su-btn.su-close-button[data-on-paper]:hover:not(:disabled) {
+[data-ground='ink'] .su-btn--quiet.su-close-button:hover:not(:disabled) {
   color: var(--color-paper);
 }
 

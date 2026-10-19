@@ -14,8 +14,9 @@
  * threaded from the frame to the leaf by hand, and a leaf that missed it
  * printed ink on ink with nothing failing.
  *
- * - `ground-signal`: no ground prop at all (`onInk`, `ground`, an ink
- *   `surface`, Stat's `inverse`), and `data-ground` only on a frame (`FRAMES`).
+ * - `ground-signal`: no ground prop at all (`onInk`, `onPaper`, `ground`, an
+ *   ink `surface`, Stat's `inverse`), and `data-ground` only on a frame
+ *   (`FRAMES`).
  * - `paper-mix`: paper on ink is `--color-paper-NN` alone, never a
  *   `color-mix()` fading paper into transparent (a second, unlisted palette).
  *
@@ -100,6 +101,8 @@ const FRAMES: Record<string, string> = {
   'apps/web/src/components/referenceEntity/card/EntityCardHeader.tsx': "a card's head band",
   'apps/web/src/components/entity/forms/Token.tsx': "a Token's pill",
   'apps/web/src/build/wizard/WizShell.tsx': "a wizard's ink action pill",
+  'apps/web/src/components/containers/ModalShell.tsx':
+    "a dialog band's control slot (ink when the band prints paper: the danger rust)",
 }
 
 const isTest = (rel: string) => rel.includes('/__tests__/') || /\.test\.tsx?$/.test(rel)
@@ -115,6 +118,10 @@ function stripComments(text: string): string {
 /** Each banned ground prop, by its spellings (a JSX attribute or a prop type). */
 const GROUND_PROPS: { pattern: RegExp; what: string }[] = [
   { pattern: /\bonInk\b/, what: 'an `onInk` prop' },
+  {
+    pattern: /(?<![\w-])onPaper(?:\??:\s*boolean|=\{|(?=\s*\/?>))/,
+    what: 'an `onPaper` prop (the ground, read off the frame inverted)',
+  },
   { pattern: /(?<![\w-])ground=["'{]/, what: 'a `ground` prop' },
   { pattern: /(?<![\w-])ground\??:\s*'(?:paper|ink)'/, what: 'a `ground` prop type' },
   {

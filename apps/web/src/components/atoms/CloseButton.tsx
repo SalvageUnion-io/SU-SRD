@@ -12,19 +12,18 @@ type CloseButtonProps = Omit<ComponentPropsWithRef<'button'>, 'children'> & {
    * page's corner (the entity detail dialog).
    */
   look?: 'quiet' | 'stamp'
-  /** The glyph prints paper, for a band or scrim that does (the danger rust, ink). */
-  onPaper?: boolean
 }
 
 /**
  * CLOSE BUTTON — the one ×: Button's icon rung (Compact) with a Compact `X` and a named
  * label, so every dialog, drawer and sheet closes on the same control. A
- * Base UI `Close` takes it through `render`, which adds its own click.
+ * Base UI `Close` takes it through `render`, which adds its own click. On a
+ * band that prints paper the frame says so (`data-ground="ink"`, chrome K1)
+ * and the quiet glyph turns paper in CSS: no prop.
  */
 export function CloseButton({
   label = 'Close',
   look = 'quiet',
-  onPaper = false,
   className,
   ...props
 }: CloseButtonProps) {
@@ -33,7 +32,6 @@ export function CloseButton({
       variant={look === 'stamp' ? 'ink' : 'quiet'}
       size="iconOnly"
       className={cn('su-close-button', className)}
-      data-on-paper={onPaper || undefined}
       aria-label={label}
       {...props}
     >

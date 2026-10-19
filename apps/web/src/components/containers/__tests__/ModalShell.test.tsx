@@ -129,4 +129,21 @@ describe('ModalShell', () => {
     )
     expect(screen.getByRole('dialog').className).toBe('')
   })
+
+  test('the danger band declares an ink ground for its ×; the pilot band does not (R19)', () => {
+    const { unmount } = render(
+      <ModalShell open={true} onOpenChange={() => {}} title="Delete" tone="danger">
+        <p>Content</p>
+      </ModalShell>
+    )
+    const danger = screen.getByRole('button', { name: 'Close' })
+    expect(danger.closest('[data-ground]')?.getAttribute('data-ground')).toBe('ink')
+    unmount()
+    render(
+      <ModalShell open={true} onOpenChange={() => {}} title="Edit">
+        <p>Content</p>
+      </ModalShell>
+    )
+    expect(screen.getByRole('button', { name: 'Close' }).closest('[data-ground]')).toBeNull()
+  })
 })
