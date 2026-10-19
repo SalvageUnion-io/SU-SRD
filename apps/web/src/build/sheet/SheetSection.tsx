@@ -11,8 +11,8 @@
  *       IS used; that asymmetry is why this note exists rather than a silent gap.
  *   (B) COLLECTION sections: `SectionAddButton` — an always-visible,
  *       always-ENABLED '+ Add' opening the ONE shared picker modal
- *       (`SheetPickerModal` over ModalShell); `CardRemoveButton` is the
- *       per-card remove (✕) control.
+ *       (`SheetPickerModal` over ModalShell); the per-item remove (✕) is the
+ *       sheet's one `SheetRemoveButton` (`SheetItemLine.tsx`).
  *   (C) STAT cells stay always-live StatBlock pips — no primitive needed here.
  *
  * `EDIT_CUE_HOVER_CLASS` is the single editing cue: a dashed outline on
@@ -101,33 +101,6 @@ export function SectionManageButton({ label, onClick }: SectionManageButtonProps
       </span>
       Manage {label}
     </HButton>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Per-card controls (redesign G4) — `CardRemoveButton` is the standalone ✕
-// remove button. The shared editing cue lives in `./editLanguage` (a
-// components-free module).
-// ---------------------------------------------------------------------------
-
-type CardRemoveButtonProps = {
-  /** The card's entity name, for the accessible label. */
-  name: string
-  onRemove: () => void
-}
-
-/** Per-card remove (✕) control — always available; carries the editing cue. */
-export function CardRemoveButton({ name, onRemove }: CardRemoveButtonProps) {
-  return (
-    <Button
-      size="mini"
-      variant="primary"
-      aria-label={`Remove ${name}`}
-      onClick={onRemove}
-      className="su-sheet-remove"
-    >
-      &#10005; Remove
-    </Button>
   )
 }
 

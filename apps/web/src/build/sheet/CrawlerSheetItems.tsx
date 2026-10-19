@@ -7,13 +7,6 @@
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { CSSProperties, ReactNode } from 'react'
 import type { RefEntity, RefMetaEntity } from 'salvageunion-reference'
-import { findNpcChoiceByName, resolveCrawlerBay } from '../../lib/crawlerRefs'
-import type { CrewAssignment } from '../../lib/npcs/npcModel'
-import { BAY_REPAIR_COST, bayTechLines } from '../../lib/rules/crawlerItems'
-import { runWrite } from '../../lib/runWrite'
-import { unitRowModel } from '../../lib/units/unitModel'
-import type { useEntityStore } from '../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import type { CardFootMeta, ChoiceSelections, ReferenceEntityControl } from '../../components/index'
 import {
   DamagedEffectCallout,
@@ -24,10 +17,18 @@ import {
   useDetailModal,
   useDisclosure,
 } from '../../components/index'
-import { LinkedCrewToken } from '../npc/LinkedCrewToken'
 import { useEntityChoices } from '../../components/shared/useEntityChoices'
+import { findNpcChoiceByName, resolveCrawlerBay } from '../../lib/crawlerRefs'
+import type { CrewAssignment } from '../../lib/npcs/npcModel'
+import { BAY_REPAIR_COST, bayTechLines } from '../../lib/rules/crawlerItems'
+import { runWrite } from '../../lib/runWrite'
+import { unitRowModel } from '../../lib/units/unitModel'
+import type { useEntityStore } from '../../stores/entityStore'
+import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
+import { LinkedCrewToken } from '../npc/LinkedCrewToken'
 import { CrewLeadToken } from './CrewLeadToken'
 import { LinkedUnitLink } from './LinkedUnitLink'
+import { UnknownItemLine } from './UnknownItemLine'
 
 export type CrawlerBayEntry = NonNullable<Crawler['crawlerBays']>[number]
 
@@ -68,16 +69,6 @@ const HIDE_DAMAGED_READ = { ...HIDE_DAMAGED, choices: true } as const
  * catches that duplicate.
  */
 const WHEN_DAMAGED = /\b(?:is|becomes|are|become)\s+damaged\b/i
-
-/** The placeholder for a bay ref the catalog does not know. */
-const UNKNOWN_BAY = {
-  borderRadius: tokens.radius.card,
-  border: `${tokens.borderWidth.hairline} solid ${tokens.color.ink}`,
-  padding: `${tokens.space[4]} ${tokens.space[8]}`,
-  fontSize: tokens.fontSize.sm,
-  lineHeight: 1.25 / 0.875,
-  color: tokens.color.wkMuted,
-} satisfies CSSProperties
 
 /** "Docks [mech]": the word, then under it the docked mech's Token, filling its line (N4). */
 const DOCKS = {
@@ -213,7 +204,14 @@ export function CrawlerBayCard({
   const folded = !prose.open
 
   if (!bay) {
-    return <div style={UNKNOWN_BAY}>{entry.bayRef}</div>
+    return (
+      <UnknownItemLine
+        slug={entry.bayRef}
+        schemaName="crawler-bays"
+        condition={entry.condition ?? 'intact'}
+        readOnly
+      />
+    )
   }
 
   const condition = entry.condition ?? 'intact'

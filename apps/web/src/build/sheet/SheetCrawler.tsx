@@ -24,12 +24,12 @@ import {
   pinFor,
   resolvePool,
 } from 'salvageunion-reference/rules'
+import { linesFromBreakdown } from '../../components/index'
+import { EmptyUnitSlot } from '../../components/shared/EmptyUnitSlot'
+import { UnitRow } from '../../components/shared/UnitRow'
 import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
 import { runWrite } from '../../lib/runWrite'
 import { LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
-import { linesFromBreakdown, VitalGauge } from '../../components/index'
-import { EmptyUnitSlot } from '../../components/shared/EmptyUnitSlot'
-import { UnitRow } from '../../components/shared/UnitRow'
 import { AssignPicker } from '../wiring/AssignPicker'
 import { crawlerStamp } from './bandStamps.model'
 import type { EconLozItem } from './CrawlerEcon'
@@ -49,6 +49,7 @@ import {
   rowStats,
 } from './railStats.model'
 import { RailCta, WithheldUnitRow } from './SheetRailParts'
+import { SheetVitalGauge } from './SheetVitalGauge'
 import type { SheetViewCommonProps } from './sheetViewProps.model'
 
 type SheetCrawlerProps = SheetViewCommonProps & { crawler: Crawler }
@@ -390,9 +391,8 @@ export function SheetCrawler({
   const economy = (
     <CrawlerEconFrame
       gauge={
-        <VitalGauge
-          label="SP"
-          subLabel="Structure"
+        <SheetVitalGauge
+          vital="sp"
           value={sp}
           max={maxSP}
           onChange={editable ? (v) => patch({ currentSP: v }) : undefined}
@@ -410,9 +410,8 @@ export function SheetCrawler({
         />
       }
       upgrade={
-        <VitalGauge
-          label="Upgrade"
-          subLabel="Pool"
+        <SheetVitalGauge
+          vital="upgrade"
           value={crawler.upgradePool ?? 0}
           max={UPGRADE_POOL_MAX}
           onChange={editable ? (v) => patch({ upgradePool: v }) : undefined}

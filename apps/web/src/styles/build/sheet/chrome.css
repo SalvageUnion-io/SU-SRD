@@ -24,20 +24,8 @@
   }
 }
 
-/* CardRemoveButton: the same tap floor over the 24px design height. */
-.su-sheet-remove {
-  min-height: var(--size-full);
-}
-
-@media (width >= 40rem) {
-  .su-sheet-remove {
-    min-height: 1.5rem;
-  }
-}
-
 @media print {
-  .su-sheet-hbtn,
-  .su-sheet-remove {
+  .su-sheet-hbtn {
     display: none;
   }
 }

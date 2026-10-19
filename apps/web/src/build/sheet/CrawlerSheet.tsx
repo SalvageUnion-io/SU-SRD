@@ -66,6 +66,19 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
+import {
+  buttonVariants,
+  EmptyState,
+  Entity,
+  MasonryColumns,
+  SheetSectionSlab,
+  Slab,
+  Stack,
+  Stat,
+  tokens,
+} from '../../components/index'
+import { AppLink } from '../../components/shared/AppLink'
+import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { addToScrapPool, scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { useCargo } from '../../lib/cargo/useCargo'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
@@ -81,27 +94,14 @@ import { runWrite } from '../../lib/runWrite'
 import { useEntityStore } from '../../stores/entityStore'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_TXN } from '../../stores/surfaceProvenance'
 import { CrawlerSystemsEditModal } from '../crawler/CrawlerSystemsEditModal'
-import {
-  buttonVariants,
-  EmptyState,
-  Entity,
-  MasonryColumns,
-  SheetSectionSlab,
-  Slab,
-  Stack,
-  Stat,
-  tokens,
-} from '../../components/index'
-import { AppLink } from '../../components/shared/AppLink'
-import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { CrawlerIdentityPanel } from './CrawlerIdentity'
 import type { CrawlerBayEntry } from './CrawlerSheetItems'
 import { CrawlerBayCard } from './CrawlerSheetItems'
 import { EntityGridRow } from './EntityGrid'
 import { PhotoBeside } from './PhotoBeside'
 import { SheetHero } from './SheetHero'
-import { CardRemoveButton } from './SheetSection'
 import { StorageManifest } from './StorageManifest'
+import { UnknownItemLine } from './UnknownItemLine'
 
 /** A column that may shrink below its content inside the region grids. */
 const SHRINK = { minWidth: 0 } satisfies CSSProperties
@@ -112,27 +112,6 @@ const ROOT = {
   display: 'flex',
   flexDirection: 'column',
   gap: tokens.space[24],
-} satisfies CSSProperties
-
-/** A mounted weapon the catalog does not know: its slug and the remove ✕. */
-const UNKNOWN_WEAPON = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: tokens.space[8],
-  borderRadius: tokens.radius.card,
-  border: `${tokens.borderWidth.hairline} solid ${tokens.color.ink}`,
-  padding: `${tokens.space[4]} ${tokens.space[8]}`,
-  fontSize: tokens.fontSize.sm,
-  lineHeight: 1.25 / 0.875,
-  color: tokens.color.wkMuted,
-} satisfies CSSProperties
-
-const TRUNCATE = {
-  minWidth: 0,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
 } satisfies CSSProperties
 
 /** The Slab sits close over the pool's steppers, as the hold's over its strip. */
@@ -276,10 +255,19 @@ export function CrawlerSheet({
     )
   }
 
+  // Read leaves what is empty out (ruleset §1.2): an empty state only where
+  // Edit can fill it.
+  const poolEmpty = SCRAP_TLS.every((t) => scrapPoolBucket(pool, t) === 0)
+  const holdEmpty = (crawler.cargoLots ?? []).length === 0
+  const showPool = !readOnly || !poolEmpty
+  const showHold = !readOnly || !holdEmpty
+
   /** The Armament Bay's mounted weapons — rendered INSIDE that bay. */
   const armamentContents =
     crawler.systems.length === 0 ? (
-      <EmptyState variant="quiet" body="No weapons mounted." />
+      readOnly ? undefined : (
+        <EmptyState variant="quiet" body="No weapons mounted." />
+      )
     ) : (
       // One Token a line across the bay, each Peeking its whole card
       // (owner's call, 2026-10-14).
@@ -291,12 +279,12 @@ export function CrawlerSheet({
               {system ? (
                 <Entity form="token" context="loadout" entity={system} mode={{ kind: 'link' }} />
               ) : (
-                <div style={UNKNOWN_WEAPON}>
-                  <span style={TRUNCATE}>{slug}</span>
-                  {!readOnly && (
-                    <CardRemoveButton name={slug} onRemove={() => removeWeapon(slug)} />
-                  )}
-                </div>
+                <UnknownItemLine
+                  slug={slug}
+                  schemaName="systems"
+                  readOnly={readOnly}
+                  onRemove={() => removeWeapon(slug)}
+                />
               )}
             </li>
           )
@@ -305,37 +293,41 @@ export function CrawlerSheet({
     )
 
   /** The Storage Bay's scrap pool + the crawler hold — rendered INSIDE it. */
-  const storageContents = (
+  const storageContents = !(showPool || showHold) ? undefined : (
     <Stack gap={16} style={SHRINK}>
       {/* Scrap Pool — the crawler's abstract TL-bucketed scrap store (the
           bucket bay-repair spends), a section of the bay under its Slab, as
           the Crawler Hold below it is (N5). Per-tech-level `Stat` steppers let
           a crawler stow arbitrary scrap by hand (Free Edit). The
           physical-scrap-cargo path lives in the Hold add-form's Scrap kind. */}
-      <div>
-        <Slab label="Scrap Pool" style={POOL_SLAB} />
-        <div style={POOL_ROW}>
-          {SCRAP_TLS.map((t) => (
-            <Stat
-              key={t}
-              orientation="horizontal"
-              label={`T${t}`}
-              value={scrapPoolBucket(pool, t)}
-              min={0}
-              mode={readOnly ? 'read' : 'edit'}
-              onChange={readOnly ? undefined : (next) => setScrapBucket(t, next)}
-            />
-          ))}
+      {showPool && (
+        <div>
+          <Slab label="Scrap Pool" style={POOL_SLAB} />
+          <div style={POOL_ROW}>
+            {SCRAP_TLS.map((t) => (
+              <Stat
+                key={t}
+                orientation="horizontal"
+                label={`T${t}`}
+                value={scrapPoolBucket(pool, t)}
+                min={0}
+                mode={readOnly ? 'read' : 'edit'}
+                onChange={readOnly ? undefined : (next) => setScrapBucket(t, next)}
+              />
+            ))}
+          </div>
         </div>
-      </div>
-      <StorageManifest
-        side="crawler"
-        cargo={cargo}
-        mechName={mech?.name ?? null}
-        counterpartHref={mechHref}
-        crawlerName={crawler.name}
-        readOnly={readOnly}
-      />
+      )}
+      {showHold && (
+        <StorageManifest
+          side="crawler"
+          cargo={cargo}
+          mechName={mech?.name ?? null}
+          counterpartHref={mechHref}
+          crawlerName={crawler.name}
+          readOnly={readOnly}
+        />
+      )}
     </Stack>
   )
 
@@ -487,7 +479,7 @@ export function CrawlerSheet({
             spend), so hiding them with the bay would strand them. They render
             as their own full-width band instead. Lives OUTSIDE the Bays section
             because a crawler with no bays at all has no Bays section either. */}
-        {!bays.some((entry) => bayKind(entry) === 'storage') && (
+        {!bays.some((entry) => bayKind(entry) === 'storage') && storageContents && (
           <SheetSectionSlab title="Storage Bay">{storageContents}</SheetSectionSlab>
         )}
 
