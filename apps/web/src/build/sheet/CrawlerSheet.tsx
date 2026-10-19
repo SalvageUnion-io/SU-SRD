@@ -483,22 +483,8 @@ export function CrawlerSheet({
           <SheetSectionSlab title="Storage Bay">{storageContents}</SheetSectionSlab>
         )}
 
-        {/* Assigned Units — poster renders this as a bare section header +
-            rail stack (no `.dcard` frame), matching PilotSheet/MechSheet. */}
-        {linkedUnits && (
-          <SheetSectionSlab
-            id="linked-units"
-            title="Assigned units"
-            // A column, never a row: a row of full unit rows made the page
-            // wider than the viewport. Read stacks Tokens, one a line (N4);
-            // Edit stacks the full rows with their Assign controls.
-            bodyClassName={
-              readOnly ? 'su-sheet-crawler-linked-read' : 'su-sheet-crawler-linked-edit'
-            }
-          >
-            {linkedUnits}
-          </SheetSectionSlab>
-        )}
+        {/* Assigned Units — the last region (`AssignedUnits`, built by SheetCrawler). */}
+        {linkedUnits}
 
         {/* ----- Storage Bay — the crawler's own BAY, rendered as a
             full-width box rather than a plain section: the hold IS a bay (Core

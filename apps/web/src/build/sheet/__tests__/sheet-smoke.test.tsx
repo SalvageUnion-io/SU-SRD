@@ -27,7 +27,6 @@
 import { afterAll, beforeAll, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Mech } from 'game-domain/schemas/mech'
-import type { useEntityStore } from '../../../stores/entityStore'
 import { installConvexMocks } from '../../../components/__tests__/convexMock'
 import {
   crawlerFixture,
@@ -42,6 +41,7 @@ import {
   makeSoftLinkStoreMock,
 } from '../../../components/__tests__/mockEntityStore'
 import { must } from '../../../components/__tests__/must'
+import type { useEntityStore } from '../../../stores/entityStore'
 
 // Module scope, before the import below — see `convexMock.ts`.
 const convexMocks = await installConvexMocks({ authReact: true })
@@ -260,7 +260,7 @@ describe('Smoke — mech stand-in (no pilot link)', () => {
         softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
-    expect(screen.getByText(/No pilot assigned/)).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Assign pilot to mech' })).toBeTruthy()
   })
 
   test('PilotSheet NOT rendered when mech has no wired pilot', () => {

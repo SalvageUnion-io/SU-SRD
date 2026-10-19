@@ -1,9 +1,8 @@
 /**
  * Rail vitals + status derivations — pure functions, no JSX.
  *
- * Split out of SheetRailParts.tsx because these are not components: keeping
- * them beside one meant the file mixed component and non-component exports,
- * which breaks React Fast Refresh (and needed a suppression per function).
+ * Not components, so kept out of any: a file that mixes component and
+ * non-component exports breaks React Fast Refresh.
  */
 
 import type { pilotingContext } from 'game-domain/rules/pilotingContext'
@@ -21,7 +20,7 @@ import {
   resolveGauge,
   resolvePool,
 } from 'salvageunion-reference/rules'
-import type { BadgeTone, StatState } from '../../components/index'
+import type { StatState } from '../../components/index'
 
 /**
  * One reading on a rail line — plain builders below, NOT components.
@@ -119,18 +118,6 @@ export function crawlerRailItems(crawler: Crawler): RailStat[] {
 /** Bay conditions as StatBlock pip states (Intact/Damaged only). */
 export function bayStates(crawler: Crawler): StatState[] {
   return (crawler.crawlerBays ?? []).map((bay) => bay.condition ?? 'intact')
-}
-
-/** Destroyed > Damaged > Intact status pill for a mech. */
-export function mechStatusPill(mech: Mech): { label: string; tone: BadgeTone } {
-  if (mech.destroyed) return { label: CONDITION_LABELS.destroyed, tone: 'bad' }
-  const anyDamaged = [
-    ...Object.values(mech.systemConditions ?? {}),
-    ...Object.values(mech.moduleConditions ?? {}),
-  ].some((c) => c !== 'intact')
-  return anyDamaged
-    ? { label: CONDITION_LABELS.damaged, tone: 'warn' }
-    : { label: CONDITION_LABELS.intact, tone: 'ok' }
 }
 
 /**

@@ -299,7 +299,7 @@ export function CrawlerBayCard({
       {dockedMech && (
         <div style={DOCKS}>
           <span>Docks</span>
-          <LinkedUnitLink kind="mech" name={dockedMech.name} href={dockedMech.href} stats={[]} />
+          <LinkedUnitLink kind="mech" name={dockedMech.name} href={dockedMech.href} />
         </div>
       )}
       {assigned ? (

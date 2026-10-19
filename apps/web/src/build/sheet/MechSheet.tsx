@@ -506,19 +506,8 @@ export function MechSheet({
         </SheetSectionSlab>
       )}
 
-      {/* ===== Assigned Units — the last region ===== (none in Read when
-          nothing is linked: an empty slot is left out, as an empty field is) */}
-      {linkedUnits && (
-        <SheetSectionSlab
-          id="linked-units"
-          title="Assigned units"
-          // Edit's roster Rows sit side by side on a wide sheet; Read's Tokens
-          // stack, one a line (N4).
-          bodyClassName="su-sheet-mech-linked"
-        >
-          {linkedUnits}
-        </SheetSectionSlab>
-      )}
+      {/* ===== Assigned Units — the last region (`AssignedUnits`, built by SheetMech) ===== */}
+      {linkedUnits}
 
       {/* The ONE shared picker modal — Systems & Modules '+ Add' both open it
           (the wizard's install grid writes through on click; no Save button). */}

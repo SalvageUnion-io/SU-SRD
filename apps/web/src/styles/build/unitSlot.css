@@ -3,19 +3,12 @@
  * app components listed below; their static styling is style objects over
  * src/components tokens. Loaded by `index.css`.
  *
- *   - `EmptyUnitSlot` (components/shared/EmptyUnitSlot.tsx): the CTAs
- *     row, whose children stretch (a child selector).
  *   - `StarterCard` (build/starterSet/StarterCard.tsx): the sheet's link
  *     laid over the whole Row, its linked chips raised above it.
  *   - `srdEntityExternalLink` (components/contextual/srdEntityExternalLink.tsx):
  *     the "View in the Reference" link, which fades on hover. `SRDLink` takes only a
  *     class, so the whole treatment lives here.
  */
-
-/* The empty slot's CTAs: every one shares the width equally. */
-.su-empty-unit-slot__actions > * {
-  flex: 1;
-}
 
 /* "View in the Reference": a hairline underline that fades to 70% on hover. */
 .su-srd-entity-external-link {

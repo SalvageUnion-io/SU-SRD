@@ -477,17 +477,8 @@ export function PilotSheet({
       )}
 
       {/* ===== Assigned Units — the assigned mech and the home crawler: the
-          last region, as on every sheet ===== (none in Read when nothing is
-          linked: an empty slot is left out, as an empty field is) */}
-      {linkedUnits && (
-        <SheetSectionSlab
-          id="linked-units"
-          title="Assigned units"
-          bodyClassName="su-sheet-pilot-stack-16"
-        >
-          {linkedUnits}
-        </SheetSectionSlab>
-      )}
+          last region, as on every sheet (`AssignedUnits`, built by SheetPilot) ===== */}
+      {linkedUnits}
 
       {/* The ONE shared picker modal — abilities & equipment '+ Add' both open
           it (multi-select grids write through on toggle; no Save button). */}

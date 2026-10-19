@@ -23,7 +23,10 @@ import {
   softLinkFixture,
 } from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
-import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../../components/__tests__/mockEntityStore'
+import {
+  makeEntityLookupMock,
+  makeSoftLinkStoreMock,
+} from '../../../components/__tests__/mockEntityStore'
 import { Sheet } from '../Sheet'
 
 beforeAll(hydrateStores)
@@ -104,7 +107,7 @@ describe('Sheet — pilot+crawler wired composition (no mech)', () => {
         softLinkStore={makeSoftLinkStoreMock([pilotToCrawlerLink])}
       />
     )
-    expect(screen.getByText(/No mech assigned/)).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Assign mech to pilot' })).toBeTruthy()
   })
 })
 

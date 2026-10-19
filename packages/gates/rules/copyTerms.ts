@@ -325,6 +325,12 @@ export const BANNED: readonly Banned[] = [
     allowWhole: /^SRD$/,
   },
   {
+    // Hard rule R5: a linked unit is its relation chip, `MECH | Mazona`.
+    pattern: /(?<![\w-])Assigned (?:Mech|Pilot)(?![\w-])/gi,
+    say: 'the relation chip (`relation()`: `MECH | Mazona`), with no role stamp',
+    why: 'a linked unit is one relation chip, label first, the same in Read and Edit (hard rule R5, chips-and-actions.md C11)',
+  },
+  {
     // An initialism is a name, not a shout.
     pattern: /(?<![\w-])(?!(?:TTRPG|JSON|JPEG|HTML|CORS)(?![\w-]))[A-Z]{4,}(?![\w-])/g,
     say: 'sentence case',

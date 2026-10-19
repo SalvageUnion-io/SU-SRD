@@ -22,7 +22,10 @@ import {
   softLinkFixture,
 } from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
-import { makeEntityLookupMock, makeSoftLinkStoreMock } from '../../../components/__tests__/mockEntityStore'
+import {
+  makeEntityLookupMock,
+  makeSoftLinkStoreMock,
+} from '../../../components/__tests__/mockEntityStore'
 import { Sheet } from '../Sheet'
 
 beforeAll(hydrateStores)
@@ -126,7 +129,8 @@ describe('Sheet — mech-only (no links)', () => {
         softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
-    expect(screen.getByText(/No pilot assigned/)).toBeTruthy()
+    // An empty place is its Assign control, never a role stamp (R5).
+    expect(screen.getByRole('button', { name: 'Assign pilot to mech' })).toBeTruthy()
   })
 })
 
@@ -158,7 +162,7 @@ describe('Sheet — crawler-only (no links)', () => {
       />
     )
     // The slot is "Pilots" now, not a single lead.
-    expect(screen.getByText(/No pilots assigned to this crawler/)).toBeTruthy()
+    expect(screen.getByRole('button', { name: /add crew/i })).toBeTruthy()
   })
 })
 
@@ -211,7 +215,7 @@ describe('Sheet — mech RailEmpty in pilot-only mode', () => {
         softLinkStore={makeSoftLinkStoreMock([])}
       />
     )
-    expect(screen.getByText(/No mech assigned/)).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Assign mech to pilot' })).toBeTruthy()
   })
 
   test('mech RailEmpty is ABSENT when a mech is wired', () => {
@@ -224,7 +228,7 @@ describe('Sheet — mech RailEmpty in pilot-only mode', () => {
         softLinkStore={makeSoftLinkStoreMock([mechToPilotLink])}
       />
     )
-    expect(screen.queryByText(/No mech assigned/)).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Assign mech to pilot' })).toBeNull()
   })
 })
 
@@ -244,7 +248,7 @@ describe('Sheet — mech RailEmpty in wired pilot+crawler (no mech)', () => {
         softLinkStore={makeSoftLinkStoreMock([pilotToCrawlerLink])}
       />
     )
-    expect(screen.getByText(/No mech assigned/)).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Assign mech to pilot' })).toBeTruthy()
   })
 
   test('mech RailEmpty is ABSENT when mech is also wired (full wired)', () => {
@@ -257,7 +261,7 @@ describe('Sheet — mech RailEmpty in wired pilot+crawler (no mech)', () => {
         softLinkStore={makeSoftLinkStoreMock([mechToPilotLink, pilotToCrawlerLink])}
       />
     )
-    expect(screen.queryByText(/No mech assigned/)).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Assign mech to pilot' })).toBeNull()
   })
 })
 

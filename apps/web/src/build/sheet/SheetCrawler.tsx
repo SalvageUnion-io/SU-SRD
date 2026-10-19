@@ -14,8 +14,6 @@
  */
 
 import { containerOf } from 'game-domain/container'
-import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
-import { pilotingContext } from 'game-domain/rules/pilotingContext'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import { useState } from 'react'
 import {
@@ -25,12 +23,12 @@ import {
   resolvePool,
 } from 'salvageunion-reference/rules'
 import { linesFromBreakdown } from '../../components/index'
-import { EmptyUnitSlot } from '../../components/shared/EmptyUnitSlot'
-import { UnitRow } from '../../components/shared/UnitRow'
 import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
 import { runWrite } from '../../lib/runWrite'
 import { LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
 import { AssignPicker } from '../wiring/AssignPicker'
+import type { AssignedSlot, AssignedUnit } from './AssignedUnits'
+import { AssignedUnits } from './AssignedUnits'
 import { crawlerStamp } from './bandStamps.model'
 import type { EconLozItem } from './CrawlerEcon'
 import { CrawlerEconFrame } from './CrawlerEcon'
@@ -38,17 +36,9 @@ import type { CrawlerEconomyDialog } from './CrawlerEconomyControl'
 import { CrawlerEconomyControl } from './CrawlerEconomyControl'
 import { CrawlerSheet } from './CrawlerSheet'
 import { changedFields, freshEntity } from './controlPrimitives'
-import { LinkedUnitLink } from './LinkedUnitLink'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
-import {
-  bayStates,
-  mechRailItems,
-  mechStatusPill,
-  pilotRailItems,
-  rowStats,
-} from './railStats.model'
-import { RailCta, WithheldUnitRow } from './SheetRailParts'
+import { bayStates } from './railStats.model'
 import { SheetVitalGauge } from './SheetVitalGauge'
 import type { SheetViewCommonProps } from './sheetViewProps.model'
 
@@ -67,7 +57,6 @@ export function SheetCrawler({
   readOnly,
   store,
   storeState,
-  lookup,
   holds,
   hrefFor,
   withheld,
@@ -181,17 +170,6 @@ export function SheetCrawler({
   // A mech is assigned independently of its pilot, so a crew pilot's mech that
   // is docked somewhere else is not in this bay, and a docked mech with no
   // pilot still is.
-  //
-  // Each docked mech still carries its own pilot when it has one: its Max SP
-  // depends on that pilot's abilities (Beefcake, ADR-029), so dropping the
-  // pilot here would make this rail read a lower cap than the mech's own sheet.
-  // Read through `lookup`, which also holds crewmates' pilots (a Game's crew).
-  const dockedMechs = composition.crawlerMechs.map((mech) => {
-    const link = storeState.softLinks.find(
-      (l) => l.type === 'mech-to-pilot' && l.from.id === mech.id
-    )
-    return { mech, pilot: link ? lookup.get('pilot', link.to.id) : null }
-  })
   const withheldMechs = withheld.filter((u) => u.kind === 'mech')
   const withheldPilots = withheld.filter((u) => u.kind === 'pilot')
 
@@ -232,157 +210,42 @@ export function SheetCrawler({
     />
   )
 
-  // Read (board 10): each linked unit is one compact line, the same listing
-  // card the pilot sheet uses, and an empty slot is left out. With nothing
-  // linked there is no section.
-  const readRail = [
-    ...dockedMechs.map(({ mech: dockedMech, pilot: dockedPilot }) => (
-      <LinkedUnitLink
-        key={dockedMech.id}
-        kind="mech"
-        name={dockedMech.name}
-        href={hrefFor('mech', dockedMech.id)}
-        stats={rowStats(
-          mechRailItems(dockedMech, pilotingContext(dockedMech, dockedPilot?.abilities))
-        )}
-      />
-    )),
-    ...withheldMechs.map((unit) => (
-      <WithheldUnitRow key={unit.key} unit={unit} label="Assigned Mech" />
-    )),
-    ...composition.crawlerPilots.map((crewPilot) => (
-      <LinkedUnitLink
-        key={crewPilot.id}
-        kind="pilot"
-        name={crewPilot.name}
-        href={hrefFor('pilot', crewPilot.id)}
-        stats={rowStats(
-          pilotRailItems(crewPilot, resolveEffectiveCrawlerLevel(crewPilot, crawler))
-        )}
-      />
-    )),
-    ...withheldPilots.map((unit) => <WithheldUnitRow key={unit.key} unit={unit} label="Pilot" />),
+  // Assigned units (hard rule R5): every docked mech and every crew pilot a
+  // relation chip, the same in Read and Edit; Edit adds Unassign after each
+  // (one this sheet holds), and Assign / + Create for the next of each kind.
+  const units: AssignedUnit[] = [
+    ...composition.crawlerMechs.map((dockedMech) => ({
+      key: dockedMech.id,
+      label: 'Mech',
+      name: dockedMech.name,
+      href: hrefFor('mech', dockedMech.id),
+      onUnassign: unassignFrom('mech-to-crawler', dockedMech.id),
+    })),
+    ...withheldMechs.map((unit) => ({
+      key: unit.key,
+      label: 'Mech',
+      name: unit.name ?? 'Not shared',
+    })),
+    ...composition.crawlerPilots.map((crewPilot) => ({
+      key: crewPilot.id,
+      label: 'Pilot',
+      name: crewPilot.name,
+      href: hrefFor('pilot', crewPilot.id),
+      onUnassign: unassignFrom('pilot-to-crawler', crewPilot.id),
+    })),
+    ...withheldPilots.map((unit) => ({
+      key: unit.key,
+      label: 'Pilot',
+      name: unit.name ?? 'Not shared',
+    })),
   ]
-
-  const editRail = (
-    <>
-      {dockedMechs.length > 0 || withheldMechs.length > 0 ? (
-        <>
-          {dockedMechs.map(({ mech: dockedMech, pilot: dockedPilot }) => (
-            <div key={dockedMech.id} className="su-sheet-crawler-grow">
-              <UnitRow
-                kind="mech"
-                name={dockedMech.name}
-                note="Assigned Mech"
-                readings={[
-                  ...rowStats(
-                    mechRailItems(dockedMech, pilotingContext(dockedMech, dockedPilot?.abilities))
-                  ),
-                  {
-                    label: 'Condition',
-                    value: mechStatusPill(dockedMech).label,
-                    chip: 'state' as const,
-                  },
-                ]}
-                href={hrefFor('mech', dockedMech.id)}
-                onUnassign={unassignFrom('mech-to-crawler', dockedMech.id)}
-              />
-            </div>
-          ))}
-          {withheldMechs.map((unit) => (
-            <WithheldUnitRow key={unit.key} unit={unit} label="Assigned Mech" />
-          ))}
-          {/* The bay takes more than one, so the way to dock the next has to
-              survive the first — the same trailing slot the crew list uses. */}
-          {editable && (
-            <EmptyUnitSlot
-              className="su-sheet-crawler-grow"
-              roleLabel="Bay"
-              message="Assign another mech."
-              actions={
-                <>
-                  {dockPicker}
-                  <RailCta href="/mechs/new" />
-                </>
-              }
-            />
-          )}
-        </>
-      ) : (
-        <EmptyUnitSlot
-          className="su-sheet-crawler-grow"
-          roleLabel="Assigned Mechs"
-          /* Says how a mech actually gets here: by its own assignment to this
-             crawler (ADR-037), not by its pilot joining the crew. */
-          message="No mechs in the bay. Assign a mech here — on its own, separately from its pilot."
-          actions={
-            editable ? (
-              <>
-                {dockPicker}
-                <RailCta href="/mechs/new" primary />
-              </>
-            ) : undefined
-          }
-        />
-      )}
-      {composition.crawlerPilots.length > 0 || withheldPilots.length > 0 ? (
-        <>
-          {composition.crawlerPilots.map((crewPilot) => (
-            <div key={crewPilot.id} className="su-sheet-crawler-grow">
-              <UnitRow
-                kind="pilot"
-                name={crewPilot.name}
-                readings={rowStats(
-                  pilotRailItems(crewPilot, resolveEffectiveCrawlerLevel(crewPilot, crawler))
-                )}
-                href={hrefFor('pilot', crewPilot.id)}
-                onUnassign={unassignFrom('pilot-to-crawler', crewPilot.id)}
-              />
-            </div>
-          ))}
-          {withheldPilots.map((unit) => (
-            <WithheldUnitRow key={unit.key} unit={unit} label="Pilot" />
-          ))}
-          {/* A crew of one is not a full crew, so the way to add the second has
-              to survive the first. Rendered as the same `EmptyUnitSlot` the
-              no-pilots branch uses rather than a bare button, so it inherits the
-              rail's sizing instead of introducing a second layout to keep in
-              step. */}
-          {editable && (
-            <EmptyUnitSlot
-              className="su-sheet-crawler-grow"
-              roleLabel="Crew"
-              message="Assign another pilot."
-              actions={
-                <>
-                  {crewPicker}
-                  <RailCta href="/pilots/new" />
-                </>
-              }
-            />
-          )}
-        </>
-      ) : (
-        <EmptyUnitSlot
-          className="su-sheet-crawler-grow"
-          roleLabel="Pilots"
-          message="No pilots assigned to this crawler yet."
-          /* Both verbs, because they answer different questions. `+ Create` was
-             the only one here, which quietly assumed the pilot you wanted did
-             not exist yet — at a table, they almost always already do. */
-          actions={
-            editable ? (
-              <>
-                {crewPicker}
-                <RailCta href="/pilots/new" primary />
-              </>
-            ) : undefined
-          }
-        />
-      )}
-    </>
-  )
-  const rail = editable ? editRail : readRail.length > 0 ? readRail : null
+  // A crawler takes more than one of each, so the way to add the next
+  // survives the first.
+  const slots: AssignedSlot[] = [
+    { key: 'mech', kind: 'mech', assign: dockPicker },
+    { key: 'pilot', kind: 'pilot', assign: crewPicker },
+  ]
+  const rail = <AssignedUnits units={units} slots={slots} editable={editable} />
 
   // Economy band (poster `.econ`: SP `VitalGauge` over the Tech-LVL/Upkeep/
   // Upgrade/Trade/Crew lozenges) — built here because it needs `patch` +

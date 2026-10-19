@@ -15,7 +15,7 @@
  * The mech's Hold is an Info Cutout under the mech sheet's own "The Hold"
  * Slab. The crawler's Hold sits inside the Storage Bay's card, so it is a
  * section of that bay: a Slab over its content, never a titled box (ruleset
- * N5). The linked counterpart unit is a Token (`LinkedUnitLink`).
+ * N5). The linked counterpart unit is its relation chip (`LinkedUnitLink`, R5).
  *
  * All transfer semantics live in the useCargo reducer — this component only
  * renders its state and dispatches. Unlinked boundary = disabled move
@@ -48,8 +48,6 @@
 import { totalLotUnits } from 'game-domain/schemas/cargoLot'
 import type { CSSProperties } from 'react'
 import { useId } from 'react'
-import { reportCargo as report } from '../../lib/cargo/reportCargo'
-import type { UseCargoResult } from '../../lib/cargo/useCargo'
 import {
   BandTitle,
   cn,
@@ -61,6 +59,8 @@ import {
   Stat,
   tokens,
 } from '../../components/index'
+import { reportCargo as report } from '../../lib/cargo/reportCargo'
+import type { UseCargoResult } from '../../lib/cargo/useCargo'
 import type { StorageManifestSide } from './CargoLotItem'
 import { CargoLotItem } from './CargoLotItem'
 import { HoldAdder } from './HoldAdder'
@@ -293,7 +293,6 @@ export function StorageManifest({
                 kind={side === 'mech' ? 'crawler' : 'mech'}
                 name={linkedCounterpart}
                 href={counterpartHref}
-                stats={[]}
               />
               {side === 'mech' ? (
                 <span style={SMALL_TEXT}>&infin; Storage Bay &middot; unlimited</span>

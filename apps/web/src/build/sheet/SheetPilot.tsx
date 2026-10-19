@@ -10,21 +10,17 @@
 
 import { containerOf } from 'game-domain/container'
 import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
-import { pilotingContext } from 'game-domain/rules/pilotingContext'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { isPilotDead, pilotMaxAP, pilotMaxHP, resolvePool } from 'salvageunion-reference/rules'
 import { Stat } from '../../components/index'
-import { EmptyUnitSlot } from '../../components/shared/EmptyUnitSlot'
-import { UnitRow } from '../../components/shared/UnitRow'
 import { runWrite } from '../../lib/runWrite'
 import { AssignPicker } from '../wiring/AssignPicker'
+import type { AssignedSlot, AssignedUnit } from './AssignedUnits'
+import { AssignedUnits } from './AssignedUnits'
 import { pilotStamp } from './bandStamps.model'
-import { LinkedUnitLink } from './LinkedUnitLink'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
 import { PilotSheet } from './PilotSheet'
-import { crawlerRailItems, mechRailItems, mechStatusPill, rowStats } from './railStats.model'
-import { RailCta, WithheldUnitRow } from './SheetRailParts'
 import type { SheetViewCommonProps } from './sheetViewProps.model'
 
 type SheetPilotProps = SheetViewCommonProps & { pilot: Pilot }
@@ -81,141 +77,81 @@ export function SheetPilot({
     { key: 'ap', label: 'AP', stat: 'ap', value: ap, max: maxAP },
   ]
 
-  // Read (board 10): each linked unit is one line, and an empty slot is left
-  // out, as an empty field is. With nothing linked, there is no section.
-  const readRail = [
-    composition.mech ? (
-      <LinkedUnitLink
-        key="mech"
-        kind="mech"
-        name={composition.mech.name}
-        href={hrefFor('mech', composition.mech.id)}
-        stats={rowStats(
-          mechRailItems(composition.mech, pilotingContext(composition.mech, pilot.abilities))
-        )}
-      />
-    ) : withheldMech ? (
-      <WithheldUnitRow key="mech" unit={withheldMech} label="Assigned Mech" />
-    ) : null,
-    composition.crawler ? (
-      <LinkedUnitLink
-        key="crawler"
-        kind="crawler"
-        name={composition.crawler.name}
-        href={hrefFor('crawler', composition.crawler.id)}
-        stats={rowStats(crawlerRailItems(composition.crawler))}
-      />
-    ) : withheldCrawler ? (
-      <WithheldUnitRow key="crawler" unit={withheldCrawler} label="Home Crawler" />
-    ) : null,
-  ].filter((unit) => unit !== null)
-
-  // Assigned Units rail content (poster R3, span 5) — built here because it
-  // needs `composition` (resolved mech/crawler), which PilotSheet does not
-  // receive; handed down as `linkedUnits`.
-  const rail = !editable ? (
-    readRail.length > 0 ? (
-      readRail
-    ) : null
-  ) : (
-    <>
-      {composition.mech ? (
-        <div className="su-sheet-pilot-fill">
-          <UnitRow
-            kind="mech"
-            name={composition.mech.name}
-            note="Assigned Mech"
-            readings={[
-              ...rowStats(
-                mechRailItems(composition.mech, pilotingContext(composition.mech, pilot.abilities))
-              ),
-              { label: 'Condition', value: mechStatusPill(composition.mech).label },
-            ]}
-            href={hrefFor('mech', composition.mech.id)}
-            controls={
-              editable ? (
-                <AssignPicker
-                  subject={self}
-                  container={container}
-                  pick="mech"
-                  filled
-                  exclude={[composition.mech.id]}
-                  size="mini"
-                />
-              ) : undefined
-            }
-            onUnassign={unassign(mechLinkId)}
-          />
-        </div>
-      ) : withheldMech ? (
-        <WithheldUnitRow unit={withheldMech} label="Assigned Mech" />
-      ) : (
-        <EmptyUnitSlot
-          className="su-sheet-pilot-fill"
-          roleLabel="Assigned Mech"
-          message="No mech assigned — assign one of yours, or build one to track its loadout and heat from here."
-          actions={
-            editable ? (
-              <>
-                <RailCta href="/mechs/new" primary />
-                <AssignPicker subject={self} container={container} pick="mech" />
-              </>
-            ) : undefined
-          }
+  // Assigned units (hard rule R5): each a relation chip, the same in Read and
+  // Edit; Edit adds Change and Unassign after it, and Assign / + Create for an
+  // empty place (the crawler's with the hand-set crawler level until one is).
+  const units: AssignedUnit[] = []
+  if (composition.mech) {
+    units.push({
+      key: 'mech',
+      label: 'Mech',
+      name: composition.mech.name,
+      href: hrefFor('mech', composition.mech.id),
+      change: (
+        <AssignPicker
+          subject={self}
+          container={container}
+          pick="mech"
+          filled
+          exclude={[composition.mech.id]}
         />
-      )}
-      {composition.crawler ? (
-        <div className="su-sheet-pilot-fill">
-          <UnitRow
-            kind="crawler"
-            name={composition.crawler.name}
-            note="Home Crawler"
-            readings={rowStats(crawlerRailItems(composition.crawler))}
-            href={hrefFor('crawler', composition.crawler.id)}
-            controls={
-              editable ? (
-                <AssignPicker
-                  subject={self}
-                  container={container}
-                  pick="crawler"
-                  filled
-                  exclude={[composition.crawler.id]}
-                  size="mini"
-                />
-              ) : undefined
-            }
-            onUnassign={unassign(crawlerLinkId)}
-          />
-        </div>
-      ) : withheldCrawler ? (
-        <WithheldUnitRow unit={withheldCrawler} label="Home Crawler" />
-      ) : (
-        <EmptyUnitSlot
-          className="su-sheet-pilot-fill"
-          roleLabel="Home Crawler"
-          message="No crawler assigned. Set the crawler level by hand until your union home is assigned."
-          mock={
-            <Stat
-              orientation="horizontal"
-              label="CRAWLER"
-              value={pilot.crawlerLevel ?? 1}
-              max={6}
-              mode={editable ? 'edit' : 'read'}
-              onChange={(v) => patch({ crawlerLevel: Math.max(1, v) })}
-            />
-          }
-          actions={
-            editable ? (
-              <>
-                <RailCta href="/crawlers/new" primary />
-                <AssignPicker subject={self} container={container} pick="crawler" />
-              </>
-            ) : undefined
-          }
+      ),
+      onUnassign: unassign(mechLinkId),
+    })
+  } else if (withheldMech) {
+    units.push({ key: 'mech', label: 'Mech', name: withheldMech.name ?? 'Not shared' })
+  }
+  if (composition.crawler) {
+    units.push({
+      key: 'crawler',
+      label: 'Crawler',
+      name: composition.crawler.name,
+      href: hrefFor('crawler', composition.crawler.id),
+      change: (
+        <AssignPicker
+          subject={self}
+          container={container}
+          pick="crawler"
+          filled
+          exclude={[composition.crawler.id]}
         />
-      )}
-    </>
-  )
+      ),
+      onUnassign: unassign(crawlerLinkId),
+    })
+  } else if (withheldCrawler) {
+    units.push({ key: 'crawler', label: 'Crawler', name: withheldCrawler.name ?? 'Not shared' })
+  }
+  const slots: AssignedSlot[] = [
+    ...(composition.mech || withheldMech
+      ? []
+      : [
+          {
+            key: 'mech',
+            kind: 'mech' as const,
+            assign: <AssignPicker subject={self} container={container} pick="mech" />,
+          },
+        ]),
+    ...(composition.crawler || withheldCrawler
+      ? []
+      : [
+          {
+            key: 'crawler',
+            kind: 'crawler' as const,
+            assign: <AssignPicker subject={self} container={container} pick="crawler" />,
+            extra: (
+              <Stat
+                orientation="horizontal"
+                label="Crawler"
+                value={pilot.crawlerLevel ?? 1}
+                max={6}
+                mode="edit"
+                onChange={(v) => patch({ crawlerLevel: Math.max(1, v) })}
+              />
+            ),
+          },
+        ]),
+  ]
+  const rail = <AssignedUnits units={units} slots={slots} editable={editable} />
 
   return (
     <LiveSheet

@@ -25,7 +25,12 @@ import { createElement } from 'react'
 
 import { makeUnitLot } from 'game-domain/schemas/cargoLot'
 import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
-import { crawlerFixture, FIXTURE_NOW, mechFixture, pilotFixture } from '../../../components/__tests__/fixtures'
+import {
+  crawlerFixture,
+  FIXTURE_NOW,
+  mechFixture,
+  pilotFixture,
+} from '../../../components/__tests__/fixtures'
 
 /** Every `router.navigate` the view made. */
 const navigations: unknown[] = []
@@ -142,10 +147,10 @@ describe("a crewmate's sheet", () => {
     await view('pilot', THEIR_PILOT.id)
 
     // The assignments the frozen crew view could never show.
-    expect(screen.getByRole('link', { name: 'View Iron Mongrel' }).getAttribute('href')).toBe(
+    expect(screen.getByRole('link', { name: /Iron Mongrel$/ }).getAttribute('href')).toBe(
       '/sheet/mech/m-theirs'
     )
-    expect(screen.getByRole('link', { name: 'View #430 Tenacity' }).getAttribute('href')).toBe(
+    expect(screen.getByRole('link', { name: /#430 Tenacity$/ }).getAttribute('href')).toBe(
       '/sheet/crawler/c-home'
     )
   })
@@ -231,7 +236,7 @@ describe('your own sheet', () => {
     })
     await view('pilot', MY_PILOT.id)
 
-    expect(screen.getByRole('link', { name: 'View Iron Mongrel' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: /Iron Mongrel$/ })).toBeTruthy()
     // A mech link is undrawn from the mech, which is not yours.
     expect(screen.queryByRole('button', { name: /^Unassign Iron Mongrel$/ })).toBeNull()
   })
@@ -275,7 +280,7 @@ describe('your own sheet', () => {
     // Editable — this viewer runs the table, so the crawler is theirs (ADR-038 §5).
     expect(screen.getByRole('button', { name: /^Share this crawler$/ })).toBeTruthy()
     // The crewmate this browser does not cache is on the crew list…
-    expect(screen.getByRole('link', { name: 'View Ash Vey' }).getAttribute('href')).toBe(
+    expect(screen.getByRole('link', { name: /Ash Vey$/ }).getAttribute('href')).toBe(
       '/sheet/pilot/p-theirs'
     )
     // …read-only: their crew link is theirs to undraw.
@@ -283,7 +288,7 @@ describe('your own sheet', () => {
     // Your own pilot keeps its unlink.
     expect(screen.getByRole('button', { name: /^Unassign Roach-Boy$/ })).toBeTruthy()
     // A crewmate's mech docked here is in the bay too — and theirs to undock.
-    expect(screen.getByRole('link', { name: 'View Iron Mongrel' }).getAttribute('href')).toBe(
+    expect(screen.getByRole('link', { name: /Iron Mongrel$/ }).getAttribute('href')).toBe(
       '/sheet/mech/m-theirs'
     )
     expect(screen.queryByRole('button', { name: /^Unassign Iron Mongrel$/ })).toBeNull()

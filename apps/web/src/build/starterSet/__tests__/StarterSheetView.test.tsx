@@ -54,7 +54,7 @@ describe('a Starter Set sheet', () => {
   test('its crewmates open as Starter Set sheets too', () => {
     render(<StarterSheetView kind="pilot" id="starter-pilot-bonesaw" />)
 
-    const mech = screen.getByRole('link', { name: /^View Scrapper/ })
+    const mech = screen.getByRole('link', { name: /Scrapper/ })
     expect(mech.getAttribute('href')).toBe('/starter/mech/starter-mech-scrapper')
   })
 

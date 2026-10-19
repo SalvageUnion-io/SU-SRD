@@ -434,31 +434,35 @@ export async function editSheet(page: Page): Promise<void> {
 }
 
 /**
- * Wire a pilot onto the mech sheet currently open, via the rail's
- * 'Assign Pilot' dialog. Resolves when the pilot's rail row renders.
+ * A linked unit on the open sheet's Assigned units: its relation chip
+ * (`PILOT | Bonesaw`, hard rule R5), a link to its sheet.
+ */
+export function assignedUnit(page: Page, name: string) {
+  return page.locator('[data-assigned-unit]').getByRole('link', { name: new RegExp(name) })
+}
+
+/**
+ * Wire a pilot onto the mech sheet currently open, via the Assigned units'
+ * 'Assign Pilot' dialog. Resolves when the pilot's relation chip renders.
  */
 export async function assignPilotOnMechSheet(page: Page, pilotName: string): Promise<void> {
   await editSheet(page)
   await page.getByRole('button', { name: /assign pilot to mech/i }).click()
   await page.getByRole('dialog').getByText(pilotName).click()
   await page.getByRole('button', { name: /confirm pilot assignment/i }).click()
-  await expect(page.getByRole('link', { name: new RegExp(`View ${pilotName}`, 'i') })).toBeVisible({
-    timeout: 10_000,
-  })
+  await expect(assignedUnit(page, pilotName)).toBeVisible({ timeout: 10_000 })
 }
 
 /**
- * Wire a crawler onto the pilot sheet currently open, via the rail's
- * 'Assign Crawler' dialog. Resolves when the crawler's rail row renders.
+ * Wire a crawler onto the pilot sheet currently open, via the Assigned units'
+ * 'Assign Crawler' dialog. Resolves when the crawler's relation chip renders.
  */
 export async function assignCrawlerOnPilotSheet(page: Page, crawlerName: string): Promise<void> {
   await editSheet(page)
   await page.getByRole('button', { name: /assign crawler to pilot/i }).click()
   await page.getByRole('dialog').getByText(crawlerName).click()
   await page.getByRole('button', { name: /confirm crawler assignment/i }).click()
-  await expect(
-    page.getByRole('link', { name: new RegExp(`View ${crawlerName}`, 'i') })
-  ).toBeVisible({ timeout: 10_000 })
+  await expect(assignedUnit(page, crawlerName)).toBeVisible({ timeout: 10_000 })
 }
 
 // ---------------------------------------------------------------------------

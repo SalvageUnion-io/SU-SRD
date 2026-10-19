@@ -67,7 +67,7 @@ describe('a public sheet’s assignments', () => {
       />
     )
 
-    expect(screen.getByRole('link', { name: 'View #430 Tenacity' }).getAttribute('href')).toBe(
+    expect(screen.getByRole('link', { name: /#430 Tenacity$/ }).getAttribute('href')).toBe(
       '/p/crawler/c1'
     )
     // The private mech beside it is still only a filled slot.

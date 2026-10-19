@@ -1,12 +1,6 @@
 /* The mech sheet group's rules: only what a style object cannot express. */
 
-/* ---- Shared sheet chrome (LiveSheet, Sheet, sheetChrome, SheetRailParts) ---- */
-
-/* A rail slot's share of the Assigned Units row: its wrapper (around a
-   `UnitRow` or an `EmptyUnitSlot`) carries the static `flex` as a class. */
-.su-sheet-rail-slot {
-  flex: 1 1 0%;
-}
+/* ---- Shared sheet chrome (LiveSheet, Sheet, sheetChrome) ---- */
 
 /* The sheet's page gutter — the sticky bar and the read-only crew banner —
    is every page's (`.su-page-gutters` on the sheet's main, the UI library's
@@ -142,18 +136,13 @@
   flex: 1 1 0%;
 }
 
-/* Assigned Units: stacked. Edit's Rows sit side by side once the sheet is
-   wide enough; Read's Tokens stay one a line, filling it (N4). */
-.su-sheet-mech-linked {
+/* Assigned units (`AssignedUnits`, every kind): one line a unit, its
+   relation chip and, in Edit, its controls. */
+.su-sheet-linked {
   display: flex;
   flex-direction: column;
-  gap: var(--space-16);
-}
-
-@container (width >= 48rem) {
-  .su-sheet-mech-linked:not(:has(> .su-entity-token)) {
-    flex-direction: row;
-  }
+  gap: var(--space-8);
+  min-width: 0;
 }
 
 /* Systems and Modules: stacked, side by side once the sheet is wide enough

@@ -2,12 +2,10 @@
  * UnitRow — a player unit as the library Row: the name on the cut-out, its
  * readings label-first chips, its note and the host's labels right of the
  * title, and View / Unassign as the head's controls, never inside a link.
- * EmptyUnitSlot — the dashed placeholder an unfilled slot keeps.
  */
 import { describe, expect, mock, test } from 'bun:test'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { unitRowModel } from '../../../lib/units/unitModel'
-import { EmptyUnitSlot } from '../EmptyUnitSlot'
 import { UnitRow } from '../UnitRow'
 
 const rowOf = (name: string) => {
@@ -197,25 +195,5 @@ describe('UnitRow', () => {
       (el) => el.getAttribute('aria-label') ?? el.textContent
     )
     expect(names).toEqual(['Change Mech', 'View Iron Fist', 'Unassign Iron Fist'])
-  })
-})
-
-describe('EmptyUnitSlot', () => {
-  test('its role stamp, message and CTAs', () => {
-    render(
-      <EmptyUnitSlot
-        roleLabel="Assigned Mech"
-        message="No mech assigned."
-        actions={<button type="button">+ Create</button>}
-      />
-    )
-    expect(screen.getByText('Assigned Mech')).toBeTruthy()
-    expect(screen.getByText('No mech assigned.')).toBeTruthy()
-    expect(screen.getByRole('button', { name: '+ Create' })).toBeTruthy()
-  })
-
-  test('no actions, no foot', () => {
-    const { container } = render(<EmptyUnitSlot roleLabel="Home Crawler" message="None." />)
-    expect(container.querySelector('.su-empty-unit-slot__actions')).toBeNull()
   })
 })

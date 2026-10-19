@@ -17,11 +17,11 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { makeScrapLot, makeUnitLot } from 'game-domain/schemas/cargoLot'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
-import { color } from '../../../design/tokens'
 import { crawlerFixture, mechFixture } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { must } from '../../../components/__tests__/must'
 import { slabChip } from '../../../components/__tests__/slabChip'
+import { color } from '../../../design/tokens'
 import { MechSheet } from '../MechSheet'
 
 function makeMech(overrides: Partial<Mech>): Mech {
@@ -213,8 +213,8 @@ describe('MechSheet — The Hold panel', () => {
       cell.textContent?.startsWith('Units')
     )
     expect(units?.textContent).toBe('Units2/6')
-    // The linked crawler is a Token that opens its sheet, never a stamp of its name.
-    const token = screen.getByRole('link', { name: 'View Hold Crawler' })
+    // The linked crawler is its relation chip (R5), opening its sheet.
+    const token = screen.getByRole('link', { name: /Hold Crawler$/ })
     expect(token.getAttribute('href')).toBe('/sheet/crawler/crawler-hold-1')
   })
 })

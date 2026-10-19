@@ -1,9 +1,8 @@
 /**
  * Partner display helpers — pure functions, no JSX.
  *
- * Kept out of `PartnerCard.tsx` for the same reason `railStats.model.ts` is kept out
- * of `SheetRailParts.tsx`: a file that mixes component and non-component
- * exports breaks React Fast Refresh.
+ * Kept out of `PartnerCard.tsx`: a file that mixes component and
+ * non-component exports breaks React Fast Refresh.
  */
 
 import type { PartnerInstance } from 'game-domain/schemas/partner'
