@@ -2,7 +2,8 @@
  * MechHeroChassis — the mech hero's right column (owner's call, 2026-10-14:
  * the hero is image | text | stats + ability): the mech's chassis stats in
  * the hero's top-right corner, the chassis ability as a library Row (its
- * cut-out head and lead, Peeking its whole card) under them.
+ * cut-out head, Peeking its whole card) under them (EDL E19). No lead: a lead
+ * is an SRD index's alone (E11, hard rule R35).
  */
 
 import type { CSSProperties } from 'react'
@@ -31,7 +32,7 @@ export function MechHeroChassis({ stats, abilities }: MechHeroChassisProps) {
         <ul aria-label="Chassis ability" style={ABILITY}>
           {abilities.map((ability) => (
             <li key={ability.id}>
-              <Entity form="row" entity={ability} lead peek />
+              <Entity form="row" entity={ability} peek />
             </li>
           ))}
         </ul>

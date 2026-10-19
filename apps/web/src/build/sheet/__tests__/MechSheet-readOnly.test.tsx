@@ -210,13 +210,14 @@ describe('MechSheet — the hero and the Chassis card', () => {
     expect(card?.querySelector('[aria-label="Chassis ability"]')).toBeNull()
   })
 
-  test("the ability's lead names the chassis, not the book's placeholder", () => {
+  test('the ability is a Row with no lead, which is an SRD index alone (EDL E11)', () => {
     const mazona: Mech = { ...fakeMech, chassisRef: 'mazona', systems: [], cargoLots: [] }
     const { container } = render(
       <MechSheet mech={mazona} store={makeStubStore(mazona)} crawler={fakeCrawler} readOnly />
     )
     const ability = container.querySelector('ul[aria-label="Chassis ability"] li')
-    expect(ability?.textContent).toContain('The Mazona has an Integrated Hover')
+    expect(ability?.textContent).toContain('Hover Drone')
+    expect(ability?.querySelector('.su-entity-lead')).toBeNull()
     expect(ability?.textContent).not.toContain('[(CHASSIS)]')
   })
 })

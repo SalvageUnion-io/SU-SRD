@@ -116,7 +116,8 @@ type PilotAbilityItemProps = {
   /**
    * `row` on a tree's track (the SRD's Tree view): the Row, which Peeks the
    * card, its tier numeral in its band and its kind left to the tree's
-   * slab, the controls on the line under it. A Token otherwise.
+   * slab, the controls on the line under it; no lead, which is an SRD
+   * index's alone (EDL E11, hard rule R35). A Token otherwise.
    */
   form?: 'token' | 'row'
 }
@@ -147,7 +148,7 @@ export function PilotAbilityItem({
       rowForm={form === 'row'}
       token={
         form === 'row' ? (
-          <Entity form="row" entity={ability} mode={{ kind: 'link' }} omit={OMIT_KIND} lead peek />
+          <Entity form="row" entity={ability} mode={{ kind: 'link' }} omit={OMIT_KIND} peek />
         ) : (
           <Entity form="token" context="play" entity={ability} mode={{ kind: 'link' }} />
         )

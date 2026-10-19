@@ -2,8 +2,9 @@
  * CrawlerIdentityPanel — the crawler poster's IDENTITY card body (the crawler
  * sibling of PilotIdentityPanel / MechIdentityPanel).
  * Poster identity band: Tech Level + Type (Name too, in Edit), then the
- * crawler type's special ability as a library Row (its lead, a Peek of its
- * card) beside the type's crew NPC, then the Description panel.
+ * crawler type's special ability as a library Row (a Peek of its card; no
+ * lead off an SRD index, EDL E11) beside the type's crew NPC, then the
+ * Description panel.
  *
  * FIELD-section archetype (unified edit language). The parent
  * `SheetSectionCard`'s header owns the section's Edit/Done button, so this
@@ -164,12 +165,14 @@ export function CrawlerIdentityPanel({
             assigned={typeCrew}
             ability={
               abilities.length > 0 && (
-                // A library Row with its lead, matching the crew NPC beside it
-                // (owner's call, 2026-10-14: crawler abilities are not Tokens).
+                // A library Row, matching the crew NPC beside it (owner's
+                // call, 2026-10-14: crawler abilities are not Tokens), with no
+                // lead: a lead is an SRD index's alone (EDL E11, hard rule R35).
+                // Its Peek reads the whole ability.
                 <ul aria-label="Special ability" style={ABILITY}>
                   {abilities.map((ability) => (
                     <li key={ability.id}>
-                      <Entity form="row" entity={ability} lead peek />
+                      <Entity form="row" entity={ability} peek />
                     </li>
                   ))}
                 </ul>

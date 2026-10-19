@@ -91,7 +91,7 @@ The loop: define it here, land its gate with a baseline, burn the baseline to ze
 - **R33 A Peek is terminal** (§1.6, E16) — no button, link, input or nested Peek on its plate.
   Gate: planned, e2e: open a Peek per kind and find none.
 - **R35 The form fits the place** (E2, E11, E19) — a list item is a Row, Tile or Token; a lead only on an SRD index; a chassis ability only on its pages, else a contentful Token.
-  Gate: planned, e2e over R0.
+  Gate: held, `form-fits.e2e.ts` (`_formFits.ts`) over R0: a list item's outermost entity is a Row, Tile or Token (never a Card, a hand-built frame or a bare sheet link); a `Lead` only on an SRD index, never on a Peek's plate; a chassis ability (`chassis.json`'s names) at level 1 only on a chassis or pattern Page and the mech sheet's hero, else a contentful Token. Its `BASELINE`: a chassis Page's pattern rows (`PatternLinkRow`), hand-built and leading with the pattern's description.
 - **R21 One breakpoint ladder** (K2) — 40, 48, 64, 80rem, `width >=`, media, container and JS alike; Play's phone floor the named exception.
   Gate: held, `chrome-tokens/raw-breakpoint` (zero, `packages/gates/rules/chromeTokens.ts`): a query width off the ladder, a `max-width` (or `<`) query, any px query, or a script's literal width (it reads `breakpoint` / `widthAtLeast`); a complement is `not (width >= …)`. Two component fits stay off the ladder on a waived line each: the stat column's cell counts and a Row's art by room (E10).
 - **R25 Motion is tokens** (K3) — `--dur-fast`, `--dur-base`, `--ease`; loops only for loading, under `no-preference`.
