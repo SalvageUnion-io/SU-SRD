@@ -223,6 +223,14 @@
   gap: 1px;
 }
 
+/* A live reading (`Stat`, C7): its digits tabular, its width its maximum's,
+   right-aligned in that room, so a line of readings never shifts. */
+.su-stat-reading {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+
 /* A `wrap` cell's value narrows with its cell; a word longer than the row
  * breaks rather than being clipped. */
 .su-stat-plate--wrap {

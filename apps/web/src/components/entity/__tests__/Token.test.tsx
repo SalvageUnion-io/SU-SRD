@@ -108,8 +108,11 @@ describe('Token chips', () => {
       />
     )
     const chips = container.querySelector('.su-entity-token__pill > .su-entity-token__chips')
-    expect(chips?.children[chips.children.length - 2]?.textContent).toBe('2 EP')
-    expect(chips?.lastElementChild?.textContent).toBe('Damaged')
+    // The cost lane, then the state lane (C8); a line keeps its empty lanes (C6).
+    expect(chips?.querySelector('[data-chip-class="cost"]')?.textContent).toBe('2 EP')
+    const filled = [...(chips?.children ?? [])].filter((lane) => lane.childElementCount > 0)
+    expect(filled.at(-1)?.getAttribute('data-chip-class')).toBe('state')
+    expect(filled.at(-1)?.textContent).toBe('Damaged')
   })
 
   test('a trailing chip alone still draws the chip group', () => {
@@ -122,7 +125,7 @@ describe('Token chips', () => {
       />
     )
     const chips = container.querySelector('.su-entity-token__chips')
-    expect(chips?.lastElementChild?.textContent).toBe('Damaged')
+    expect(chips?.querySelector('[data-chip-class="state"]')?.textContent).toBe('Damaged')
   })
 })
 

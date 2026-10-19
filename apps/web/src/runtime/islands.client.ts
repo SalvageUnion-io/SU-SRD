@@ -19,6 +19,7 @@
  * it (`interaction.ts`), so a page nobody touches loads no React.
  */
 
+import { joinStaticLanes } from '../components/entity/parts/chipLanes'
 import { readAccountHint } from '../lib/accountHint'
 import { browserStorage, markSignedIn } from '../lib/accountState'
 import { initBrowserObservability, installChunkRecovery } from '../lib/observability'
@@ -43,6 +44,10 @@ installChunkRecovery()
 // somebody is signed in (`lib/accountBar.ts`).
 const signedIn = readAccountHint(browserStorage()) !== null
 markSignedIn(document, signedIn)
+
+// A list's chip lanes (C6): the server-rendered lines' strips join their lists
+// here; an island's join from `Chips` when it mounts.
+joinStaticLanes()
 
 type PropsById = Record<string, Record<string, unknown>>
 

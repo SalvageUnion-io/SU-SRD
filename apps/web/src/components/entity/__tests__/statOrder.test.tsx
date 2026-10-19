@@ -163,7 +163,9 @@ describe('one stat order on every surface', () => {
     const mule = SalvageUnionReference.getByNameIn('chassis', 'Mule') as RefMetaEntity
     const { container } = render(<Entity form="row" entity={mule} />)
     const group = container.querySelector('[data-chip-group]')
-    const sequence = Array.from(group?.children ?? []).map(
+    // Its filled lanes: a line in a list keeps its empty ones too (C6).
+    const lanes = Array.from(group?.children ?? []).filter((lane) => lane.childElementCount > 0)
+    const sequence = lanes.map(
       (child) => child.querySelector('.su-stat-plate--label')?.textContent ?? '?'
     )
     // A Row keeps the compact budget (C3): TL, then the measure its kind's loadout weighs.
@@ -186,7 +188,8 @@ describe('one stat order on every surface', () => {
           const cost = group?.querySelector('.su-cost')
           if (group && cost) {
             checked += 1
-            const last = group.lastElementChild
+            const lanes = [...group.children].filter((lane) => lane.childElementCount > 0)
+            const last = lanes.at(-1)
             expect({ form, last: last?.contains(cost) }).toEqual({ form, last: true })
           }
           unmount()

@@ -193,6 +193,7 @@ export function Row({
                 chips={chips}
                 size="compact"
                 linkable={mode.kind === 'read'}
+                lanes
                 marks={marks}
                 state={slots.state}
                 menu={slots.trailing}

@@ -167,7 +167,14 @@ export function Token({
         </span>
       </span>
       {hasChips && (
-        <Chips as="span" className="su-entity-token__chips" chips={set} size="mini" state={state} />
+        <Chips
+          as="span"
+          className="su-entity-token__chips"
+          chips={set}
+          size="mini"
+          state={state}
+          lanes
+        />
       )}
     </span>
   )

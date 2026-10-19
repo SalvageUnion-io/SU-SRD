@@ -433,7 +433,7 @@ function ReferenceEntityCardInner({
       titleSize={titleSize}
       titleColor={onBand === 'ink' ? 'var(--color-ink)' : 'var(--color-paper)'}
       numeral={numeral}
-      chips={<Chips chips={chips} size="compact" marks={suggestedNode} />}
+      chips={<Chips chips={chips} size="compact" marks={suggestedNode} lanes />}
       labels={labels}
       size={size}
       grain={grain}

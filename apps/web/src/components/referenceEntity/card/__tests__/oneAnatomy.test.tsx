@@ -95,7 +95,8 @@ describe('actions nest', () => {
     ]
     expect(heads).toHaveLength(2)
     for (const chips of heads) {
-      const cost = chips.lastElementChild?.querySelector('.su-cost') ?? chips.lastElementChild
+      const last = [...chips.children].filter((lane) => lane.childElementCount > 0).at(-1)
+      const cost = last?.querySelector('.su-cost') ?? last
       expect(cost?.textContent).toContain('1 EP')
     }
   })

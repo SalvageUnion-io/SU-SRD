@@ -18,7 +18,7 @@ The loop: define it here, land its gate with a baseline, burn the baseline to ze
 ## Strips and chips
 
 - **R2 In a list, every chip class is a column** (C6, C7) — siblings share lane edges; an absent value leaves its cell empty; readings are tabular.
-  Gate: planned, `chip-strips.e2e.ts` compares each `data-chip-class` left edge across a list wider than its pack breakpoint.
+  Gate: held. A line's strip (a Row's, Token's or Card's head) keeps every class's lane; `chipLanes.ts` sets each lane's width on its list (`--su-lane-<class>`, the widest down the list) where its lines are one width, from `Chips` or, on a static page, `islands.client.ts`; a Row packs below 40rem (a container query), a Token on a phone. `Stat` reserves a live reading's maximum (`13/13`) in tabular figures. `_chipLanes.ts` (run by `chip-strips.e2e.ts`) fails a class whose left edges differ down a column of a list with room, over the SRD pages with no allowlist and over R0 with no baseline.
 - **R3 A chip is never clipped or dropped** (C3, C5) — only the name flexes.
   Gate: planned, `_chipStrips.ts` fails a chip outside its strip's visible box.
 - **R4 Every strip is `Chips`, in class order** (C2, C2a, C10) — the Page band, Tiles and unit Rows included; budgets from the form, never a schema set; a header's summary repeats no child's fact; a foot band is text, never chips.

@@ -13,7 +13,7 @@ const READ_CHIP_CLASSES = CHIP_CLASSES.slice(0, CHIP_CLASSES.indexOf('cost') + 1
  *
  * - **size** a chip whose value plate's type size is not its label's.
  * - **gap** a strip whose neighbouring chips on a line are not one gap apart
- *   (a stretched chip, a hole).
+ *   (a stretched chip, a hole); in a list's lanes (C6), within each lane.
  * - **flush** a strip whose lines share neither a right edge nor a left one.
  * - **cost** a cost that is not the strip's last read chip, or, last of all,
  *   not on its lowest line and rightmost there.
@@ -116,6 +116,9 @@ function scan({
       if (sizes.size > 1) faults.push(`size: "${describe(el)}" at ${[...sizes].join(' / ')}`)
     }
 
+    const classOfEl = (el: Element) =>
+      el.closest('[data-chip-class]')?.getAttribute('data-chip-class')
+
     // LINES: chips whose boxes overlap vertically by half the shorter one.
     const boxes: Box[] = chips.map((el) => {
       const r = el.getBoundingClientRect()
@@ -132,9 +135,20 @@ function scan({
     for (const line of lines) line.sort((a, b) => a.x - b.x)
     lines.sort((a, b) => (a[0] as Box).y - (b[0] as Box).y)
 
-    // GAP: every neighbouring pair in the strip one gap apart.
+    // GAP: every neighbouring pair in the strip one gap apart. A list's line
+    // in its lanes (C6: `[data-chip-lanes]`, its lanes boxes) leaves a cell
+    // empty, or a shorter value room, by design: there the gap is the lane's,
+    // between neighbours of one class.
+    const laned =
+      root.matches('[data-lanes]') &&
+      !!root.closest('[data-chip-lanes]') &&
+      [...root.children].some((lane) => getComputedStyle(lane).display !== 'contents')
     const gaps = lines.flatMap((line) =>
-      line.slice(1).map((b, i) => Math.round(b.x - ((line[i] as Box).x + (line[i] as Box).w)))
+      line.slice(1).flatMap((b, i) => {
+        const a = line[i] as Box
+        if (laned && classOfEl(a.el) !== classOfEl(b.el)) return []
+        return [Math.round(b.x - (a.x + a.w))]
+      })
     )
     if (gaps.length > 0 && Math.max(...gaps) - Math.min(...gaps) > 1) {
       faults.push(`gap: ${where} gaps ${gaps.join(',')}px`)

@@ -346,7 +346,8 @@ describe('LiveSheet — strip values and syncStats', () => {
     // (`.su-sheet-live-stat-fold`: hidden, inline-flex from sm). It rides the
     // outer stat cell (the value text's parent).
     const fold = 'su-sheet-live-stat-fold'
-    expect(must(screen.getByText('5/8').parentElement).classList.contains(fold)).toBe(false)
-    expect(must(screen.getByText('3/4').parentElement).classList.contains(fold)).toBe(true)
+    const cell = (text: string) => must(screen.getByText(text).closest('.su-stat-cell'))
+    expect(cell('5/8').classList.contains(fold)).toBe(false)
+    expect(cell('3/4').classList.contains(fold)).toBe(true)
   })
 })

@@ -223,6 +223,7 @@ function HorizontalValue({
     )
   }
 
+  const reserve = readingReserve(value, max)
   // The cell and both plate halves are classes, not style objects: a listing
   // repeats the cell on every row (ADR-046, repeated elements). Callers also
   // override the cell's `display` and `flex-shrink` by className (the sheet's
@@ -281,8 +282,19 @@ function HorizontalValue({
             wrap && 'su-stat-plate--wrap'
           )}
         >
-          {value}
-          {max !== undefined && <span style={MAX_SUFFIX}>/{max}</span>}
+          {reserve === undefined ? (
+            <>
+              {value}
+              {max !== undefined && <span style={MAX_SUFFIX}>/{max}</span>}
+            </>
+          ) : (
+            // A live reading reserves its maximum's width, in tabular figures
+            // (C7): `9/13` takes the room `13/13` does, so it never shifts.
+            <span className="su-stat-reading" style={{ minWidth: `${reserve}ch` }}>
+              {value}
+              {max !== undefined && <span style={MAX_SUFFIX}>/{max}</span>}
+            </span>
+          )}
         </Badge>
       )}
     </span>
@@ -334,4 +346,16 @@ function HorizontalValue({
       </StepButton>
     </span>
   )
+}
+
+/**
+ * The characters a live reading reserves (C7): a reading out of its maximum
+ * (`max`, or a `9/13` value) takes its maximum's width, `13/13`, and any word
+ * after it (`4/5 Intact`); anything else reserves nothing.
+ */
+function readingReserve(value: StatValue | undefined, max: number | undefined): number | undefined {
+  if (value === undefined) return undefined
+  if (max !== undefined) return 2 * String(max).length + 1
+  const reading = /^(\d+)\/(\d+)(.*)$/.exec(String(value))
+  return reading?.[2] ? 2 * reading[2].length + 1 + (reading[3]?.length ?? 0) : undefined
 }

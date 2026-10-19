@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { findChipLaneFaults } from './_chipLanes'
 import { findChipStripFaults } from './_chipStrips'
 import type { DesignDebt } from './_designRoutes'
 import { expectWithinBaseline, seedDesignAccount, walkDesignRoutes } from './_designRoutes'
@@ -42,7 +43,10 @@ test('every chip strip is one size, one gap, its cost in the corner', async ({ p
     await page.setViewportSize({ width, height: 900 })
     for (const path of PAGES) {
       await page.goto(path, { waitUntil: 'networkidle' })
-      for (const fault of await findChipStripFaults(page)) {
+      for (const fault of [
+        ...(await findChipStripFaults(page)),
+        ...(await findChipLaneFaults(page)),
+      ]) {
         failures.push(`${path} at ${width}px, ${fault}`)
       }
     }
@@ -87,7 +91,7 @@ signedIn('every context: every chip strip is one size, one gap', async ({ page }
   signedIn.setTimeout(20 * 60_000)
   const seed = await seedDesignAccount(page)
   const findings = await walkDesignRoutes(page, seed, async ({ where }) =>
-    (await findChipStripFaults(page)).map((fault) => ({
+    [...(await findChipStripFaults(page)), ...(await findChipLaneFaults(page))].map((fault) => ({
       rule: fault.slice(0, fault.indexOf(':')),
       line: `${where}, ${fault}`,
     }))
