@@ -36,11 +36,3 @@
   flex: 1 1 0%;
   min-width: 0;
 }
-
-/* "in hangar": the muted note at the Token's end. */
-.su-play-unit__where {
-  color: var(--color-wk-muted);
-  font-size: var(--text-sm);
-  margin-left: auto;
-  white-space: nowrap;
-}

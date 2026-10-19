@@ -23,6 +23,13 @@ const READ_CHIP_CLASSES = CHIP_CLASSES.slice(0, CHIP_CLASSES.indexOf('cost') + 1
  *   goes back in the class order (C2: mark, rank, measure, economy, traits,
  *   relation, cost; then state, uses, menu), so a read chip follows the cost.
  * - **foot** a chip in a foot band (`[data-foot-band]`): a foot is text.
+ * - **clip** a chip not whole inside its strip's visible box (R3, C3, C5):
+ *   the strip's own box, cut by its entity's frame and by every ancestor that
+ *   hides its overflow. A chip past its Row's edge, or cut by a Token's pill,
+ *   fails; only the name may give way.
+ * - **lines** a header-only Token's chips on more than one line, a Row's
+ *   on more than two (C5). A contentful Token's head (N3) holds a compact
+ *   budget and wraps it beside the name, unlimited for now.
  */
 const STRIP = [
   '.su-entity-stamps',
@@ -38,6 +45,16 @@ const CHIP = [
   '.su-chip-link',
   '.su-cost-edge',
   '.su-cost',
+  // An action chip in the group (C8): a Row's "⋯".
+  '.su-header-menu-trigger--overflow',
+].join(',')
+
+/** An entity's frame: the box no chip of its strips may leave. */
+const FRAME = [
+  '.su-entity-row__frame',
+  '.su-entity-token__pill',
+  '.su-entity-tile__frame',
+  '.su-ec-frame',
 ].join(',')
 
 /** Runs in the page; returns plain data. */
@@ -46,13 +63,50 @@ function scan({
   chip,
   classes,
   read,
+  frame,
 }: {
   strip: string
   chip: string
   classes: readonly string[]
   read: readonly string[]
+  frame: string
 }): string[] {
   type Box = { el: Element; x: number; y: number; w: number; h: number }
+  type Rect = { left: number; top: number; right: number; bottom: number }
+  const cut = (a: Rect, b: Rect): Rect => ({
+    left: Math.max(a.left, b.left),
+    top: Math.max(a.top, b.top),
+    right: Math.min(a.right, b.right),
+    bottom: Math.min(a.bottom, b.bottom),
+  })
+  const clips = (value: string) => value === 'hidden' || value === 'clip'
+  const scrolls = (value: string) => value === 'auto' || value === 'scroll'
+  /**
+   * What of the strip can be seen: its box (a `display: contents` group's is
+   * its parent's), cut by its entity's frame and by each ancestor that hides
+   * its overflow on an axis, up to the nearest scroller. A scroller hides
+   * nothing for good (what it scrolls out of view, and what its own frame
+   * clips there, is a scroll away), so the walk stops at it.
+   */
+  const visibleBox = (root: Element): Rect => {
+    let own: Element = root
+    while (getComputedStyle(own).display === 'contents' && own.parentElement) {
+      own = own.parentElement
+    }
+    let box: Rect = own.getBoundingClientRect()
+    const host = root.closest(frame)
+    if (host) box = cut(box, host.getBoundingClientRect())
+    for (let p = root.parentElement; p && p !== document.body; p = p.parentElement) {
+      const s = getComputedStyle(p)
+      if (scrolls(s.overflowX) || scrolls(s.overflowY)) break
+      const r = p.getBoundingClientRect()
+      if (clips(s.overflowX))
+        box = { ...box, left: Math.max(box.left, r.left), right: Math.min(box.right, r.right) }
+      if (clips(s.overflowY))
+        box = { ...box, top: Math.max(box.top, r.top), bottom: Math.min(box.bottom, r.bottom) }
+    }
+    return box
+  }
   const visible = (el: Element) => {
     const r = el.getBoundingClientRect()
     if (r.width < 4 || r.height < 4) return false
@@ -164,6 +218,33 @@ function scan({
       }
     }
 
+    // CLIP: every chip whole inside what of its strip can be seen (R3).
+    const seen = visibleBox(root)
+    for (const b of boxes) {
+      const out =
+        b.x < seen.left - 1 ||
+        b.y < seen.top - 1 ||
+        b.x + b.w > seen.right + 1 ||
+        b.y + b.h > seen.bottom + 1
+      if (out) {
+        const edges = [b.x, b.y, b.x + b.w, b.y + b.h].map(Math.round).join(',')
+        const room = [seen.left, seen.top, seen.right, seen.bottom].map(Math.round).join(',')
+        faults.push(`clip: ${where} "${describe(b.el)}" at ${edges} outside ${room}`)
+      }
+    }
+
+    // LINES: a Token's chips on one line, a Row's on at most two (C5). A
+    // contentful Token's head holds a compact budget and wraps it (N3).
+    const most = root.closest('.su-entity-token[data-contentful]')
+      ? Number.POSITIVE_INFINITY
+      : root.closest('.su-entity-token__pill')
+        ? 1
+        : root.closest('.su-entity-row__head')
+          ? 2
+          : Number.POSITIVE_INFINITY
+    if (lines.length > most)
+      faults.push(`lines: ${where} on ${lines.length} lines, at most ${most}`)
+
     // COST: the last read chip in the source (C2: the slots, a state, uses,
     // the menu, may follow it, C8); last of all, on the lowest line,
     // rightmost there.
@@ -190,5 +271,6 @@ export async function findChipStripFaults(page: Page): Promise<string[]> {
     chip: CHIP,
     classes: CHIP_CLASSES,
     read: READ_CHIP_CLASSES,
+    frame: FRAME,
   })
 }

@@ -254,7 +254,7 @@ describe('the contentful Token (N3)', () => {
     ])
   })
 
-  test('the head stays one row (E18): its name keeps the ellipsis and the chips their budget', () => {
+  test('the head stays one row (E18): its name keeps the ellipsis and the chips their whole budget', () => {
     const { container } = render(
       <Entity form="token" context="loadout" entity={shield()} body={{}} />
     )
@@ -265,7 +265,13 @@ describe('the contentful Token (N3)', () => {
     const name = ruleOf('.su-entity-token__name')
     expect(name).toContain('text-overflow: ellipsis;')
     expect(name).toContain('white-space: nowrap;')
-    expect(ruleOf('.su-entity-token__chips')).toContain('max-width: clamp(50%, 100% - 9rem, 65%);')
+    // Whole chips on one line, never clamped or clipped (C3, C5): the name gives way.
+    const chips = ruleOf('.su-entity-token__chips')
+    expect(chips).toContain('flex: none;')
+    expect(chips).toContain('flex-wrap: nowrap;')
+    expect(chips).not.toContain('overflow')
+    expect(chips).not.toContain('max-width')
+    expect(chips).not.toContain('max-height')
   })
 
   test('an entity with no prose of its own reads its lead (an ability its description)', () => {

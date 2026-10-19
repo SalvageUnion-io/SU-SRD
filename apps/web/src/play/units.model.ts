@@ -93,21 +93,14 @@ export function mechRestorePreview(
 /** One bay chip: its name, and whether it is damaged. */
 export type BayChip = { name: string; damaged: boolean }
 
-/** How many bay chips the crawler's box shows before "+N". */
-const BAY_CHIPS_SHOWN = 3
-
 /**
- * The crawler's bays as its box shows them: damaged ones first, so damage is
- * never what the "+N" hides, then the rest in the crawler's order, at most
- * `BAY_CHIPS_SHOWN`, and how many more there are.
+ * The crawler's bays as its box shows them: every one (a chip is never
+ * dropped for room, C3), damaged ones first, then the rest in the crawler's
+ * order.
  */
-export function bayChips(
-  crawler: Crawler,
-  shown: number = BAY_CHIPS_SHOWN
-): { chips: BayChip[]; more: number } {
+export function bayChips(crawler: Crawler): BayChip[] {
   const bays = bayConditions(crawler).map(({ name, damaged }) => ({ name, damaged }))
-  const ordered = [...bays.filter((b) => b.damaged), ...bays.filter((b) => !b.damaged)]
-  return { chips: ordered.slice(0, shown), more: Math.max(0, ordered.length - shown) }
+  return [...bays.filter((b) => b.damaged), ...bays.filter((b) => !b.damaged)]
 }
 
 /**

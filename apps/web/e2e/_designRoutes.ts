@@ -24,8 +24,12 @@ import { createGame, makeInviteLink } from './_table'
 /** Every path the seed made, by the `:key` a route names it with. Browser paths, base included. */
 export type DesignSeed = Record<DesignSeedKey, string>
 
-/** The Game the seed makes, as `tools/gallery.ts` names it. */
-const GAME = 'The Long Haul'
+/**
+ * The Game the seed makes, `tools/gallery.ts`'s name made long: its Hangar
+ * chip is wider than a Row's room beside the name at a page's three columns
+ * (R3), so the chip-strip gate holds it inside the Row.
+ */
+const GAME = 'The Long Haul Across the Glass Wastes'
 
 /** The player in the Game (moved in from the Hangar) and the one left on the shelf to play solo. */
 const IN_GAME = 'Bonesaw'

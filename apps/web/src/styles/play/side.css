@@ -33,14 +33,6 @@
   background: var(--color-status-ok);
 }
 
-/* "away", where the vital would sit: muted words, never a hue. */
-.su-play-crew-away {
-  color: var(--color-ink-75);
-  font-family: var(--font-body);
-  font-size: var(--text-note);
-  white-space: nowrap;
-}
-
 /* One Discord channel on the Play landing: solid when bound, dashed while it is not. */
 .su-play-discord-row {
   align-items: center;

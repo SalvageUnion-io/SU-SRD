@@ -31,7 +31,6 @@ import {
   Slab,
   Stat,
   TitledBox,
-  tokens,
 } from '../../components/index'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { useEntityStore } from '../../stores/entityStore'
@@ -43,14 +42,6 @@ import { payDowntimeUpkeep } from '../playUpkeep.model'
 import type { PlayActions } from '../usePlayActions'
 import { doneOf, seatDone } from './mediatorTable.model'
 import type { PlayMediator } from './usePlayMediator'
-
-/** Full ink: it sits on the pilot Token's hue, where ink75 falls below 4.5:1. */
-const STATE = {
-  color: tokens.color.ink,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.note,
-  whiteSpace: 'nowrap',
-} satisfies CSSProperties
 
 const SPACER = { flex: '1 1 0%' } satisfies CSSProperties
 
@@ -127,12 +118,13 @@ export function PlayMediatorDowntime({
                     form="token"
                     context="roster"
                     model={unitRowModel({ kind: 'pilot', name: seat.name })}
+                    // Where they are in the step, a state chip of the Token's
+                    // own Size, never loose words (C3, C8).
                     trailing={
-                      isDone ? (
-                        <Stat label="Done" size="mini" />
-                      ) : (
-                        <span style={STATE}>{seat.present ? 'working' : 'away'}</span>
-                      )
+                      <Stat
+                        label={isDone ? 'Done' : seat.present ? 'Working' : 'Away'}
+                        size="mini"
+                      />
                     }
                   />
                 </li>

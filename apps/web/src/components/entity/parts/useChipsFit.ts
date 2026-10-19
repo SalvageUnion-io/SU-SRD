@@ -2,7 +2,7 @@ import type { RefObject } from 'react'
 import { useEffect } from 'react'
 import { widthAtLeast } from '../../../design/tokens'
 
-/** The width under which the chips may drop (`entity-forms.css`). */
+/** A phone (`entity-forms.css`): under it the name keeps one line and the chips drop sooner. */
 const PHONE = `not ${widthAtLeast('sm')}`
 
 /**
@@ -32,10 +32,10 @@ function oneLineWidth(el: HTMLElement): number {
 const GROUPS = ['su-chips', 'su-entity-row__labels', 'su-chip-lane']
 
 /**
- * Each chip's width, in order: the chip group's own children, a nested
- * `.su-chips`, labels group or class lane (`Chips`) read through to its chips.
+ * The chips, in order: the chip group's own children, a nested `.su-chips`,
+ * labels group or class lane (`Chips`) read through to its chips.
  */
-function chipWidths(chips: HTMLElement): number[] {
+function chipItems(chips: HTMLElement): Element[] {
   const items: Element[] = []
   const take = (parent: Element) => {
     for (const child of parent.children) {
@@ -44,7 +44,25 @@ function chipWidths(chips: HTMLElement): number[] {
     }
   }
   take(chips)
-  return items.map((item) => item.getBoundingClientRect().width).filter((width) => width > 0)
+  return items
+}
+
+/** Each chip's width, in order. */
+function chipWidths(chips: HTMLElement): number[] {
+  return chipItems(chips)
+    .map((item) => item.getBoundingClientRect().width)
+    .filter((width) => width > 0)
+}
+
+/** How many lines the chips take as laid out: their distinct tops. */
+function laidOutLines(chips: HTMLElement): number {
+  const tops: number[] = []
+  for (const item of chipItems(chips)) {
+    const r = item.getBoundingClientRect()
+    if (r.width <= 0) continue
+    if (!tops.some((top) => Math.abs(top - r.top) < r.height / 2)) tops.push(r.top)
+  }
+  return tops.length
 }
 
 /**
@@ -67,13 +85,22 @@ export function chipLines(widths: readonly number[], room: number): number {
 
 /**
  * Whether a cut-out head's chips fit beside its name, written to the heading
- * as `data-chips="beside"` or `"under"`. They fit when, in the room the name
- * leaves on the band, they take at most `MAX_CHIP_LINES` lines: a chip group
- * that wraps stays in the head, its last line on the name's capitals and the
- * rest balanced above (owner's rule, 2026-10-14), as a short one does. Only
- * when the room is too narrow for that does a phone's stylesheet
- * (`.su-entity-row__heading--cut`) drop them under the name onto the paper.
- * Until this has run (a static page with no script) they drop, as before.
+ * as `data-chips="beside"` or `"under"` (`.su-entity-row__heading--cut`
+ * drops them under the name onto the paper). They fit when, in the room the
+ * name leaves on the band on its one line, they take at most
+ * `MAX_CHIP_LINES` lines: a chip group that wraps stays in the head, its last
+ * line on the name's capitals and the rest balanced above (owner's rule,
+ * 2026-10-14), as a short one does.
+ *
+ * - **On a phone** that is measured every time. Until this has run (a static
+ *   page with no script) they drop, as before.
+ * - **Wider**, the name may wrap beside them, so a head is left as it is
+ *   while its chips stay inside it on at most `MAX_CHIP_LINES` lines (the
+ *   common case: one read, no write). Only one that breaks that (a long
+ *   chip, a Game's name, past the Row's edge: R3) drops them under,
+ *   and goes back beside only when they fit beside the one-line name, so
+ *   the switch never flips back and forth.
+ *
  * Measured, not guessed from the viewport or the chip count: the name's
  * length and each chip's width decide.
  *
@@ -83,14 +110,17 @@ export function useChipsFit(ref: RefObject<HTMLElement | null>, enabled: boolean
   useEffect(() => {
     const heading = ref.current
     if (!enabled || !heading || typeof ResizeObserver === 'undefined') return
-    // Only a phone's stylesheet reads the mark (wider, the chips are always
-    // beside the name), so only a phone pays for the measuring.
     const phone = window.matchMedia?.(PHONE)
     const measure = () => {
-      if (!phone?.matches) return
       const name = heading.firstElementChild
       const chips = heading.lastElementChild
       if (!(name instanceof HTMLElement) || !(chips instanceof HTMLElement) || name === chips) {
+        return
+      }
+      if (!phone?.matches && heading.dataset.chips !== 'under') {
+        const inside = heading.scrollWidth <= heading.clientWidth + 0.5
+        if (inside && laidOutLines(chips) <= MAX_CHIP_LINES) return
+        heading.dataset.chips = 'under'
         return
       }
       const gap = Number.parseFloat(getComputedStyle(heading).columnGap) || 0

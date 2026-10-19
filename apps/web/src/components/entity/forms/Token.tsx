@@ -75,9 +75,9 @@ function TokenText({ model, chassisName }: { model: EntityRowModel; chassisName?
  * TOKEN — the shortform (§3): `name [chips]`, one size, at level 2 (E6) or in
  * a slot under 12rem (E3). Its chips are the budget its container's context
  * names (`tokenChips`, C3 and C4), then the cost box; an ability's tier numeral sits before
- * its name, as on its band. Its head is always one row (E18): the chips take
- * at most 65% of it, dropping whole from the end until they fit, and the name
- * takes the rest, ending in "…" when that is too little. Its kind is never
+ * its name, as on its band. Its head is always one row (E18): every chip of
+ * its static budget whole (C3), never dropped or clipped, and the name takes
+ * the rest, ending in "…" when that is too little (C5). Its kind is never
  * stamped (E9): screen readers hear it after the name (`KindLabel`); a player
  * unit's note ("Engineer") leads in its place. A tone pill for a thing you have, the tier
  * tone or ink for a thing you do, dashed when player-made. It fills its line,

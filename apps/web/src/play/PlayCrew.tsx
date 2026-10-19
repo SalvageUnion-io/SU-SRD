@@ -4,7 +4,7 @@
  * 1, play.md §12) with a presence dot, the callsign, the mount as a chip
  * ("Boarded · Atlas", "On foot") and one vital: the one that needs looking at
  * (▲ and the red frame, as `crewLines()` decides), else their SP aboard or HP
- * on foot. A crewmate whose seat has stopped beating reads "away".
+ * on foot. A crewmate whose seat has stopped beating reads "Away".
  *
  * Tapping a line opens that crewmate's sheet read-only over Play
  * (`PlayCrewSheet`). What they are resolving sits under their line,
@@ -131,7 +131,9 @@ function CrewLine({ line, onOpen }: { line: CrewSeatLine; onOpen: () => void }) 
             value={vital.value ?? undefined}
           />
         ) : (
-          <span className="su-play-crew-away">away</span>
+          // Where the vital would sit, a state chip of the line's Size (C8),
+          // never loose words.
+          <Stat orientation="horizontal" size="mini" label="Away" />
         )
       }
     />

@@ -250,12 +250,16 @@ describe('a hangar mech', () => {
     const { container } = render(<PlayHangarMech name="Old Faithful" chassis="Mule" note={null} />)
     expect(container.querySelector('.su-entity-token')).not.toBeNull()
     expect(container.textContent).toContain('Old Faithful')
-    expect(container.textContent).toContain('in hangar')
+    // Where it is, a state chip in the Token's chip group (C8), never loose words.
+    const state = container.querySelector(
+      ".su-entity-token__chips [data-chip-class='state'] .su-stat-cell"
+    )
+    expect(state?.textContent).toBe('In hangar')
   })
 
-  test('a destroyed one says so in place of "in hangar"', () => {
+  test('a destroyed one says so in place of "In hangar"', () => {
     const { container } = render(<PlayHangarMech name="Wreck" chassis={null} note="Destroyed" />)
-    expect(container.textContent).toContain('Destroyed')
-    expect(container.textContent).not.toContain('in hangar')
+    expect(container.querySelector('.su-entity-token__chips')?.textContent).toBe('Destroyed')
+    expect(container.textContent).not.toContain('In hangar')
   })
 })

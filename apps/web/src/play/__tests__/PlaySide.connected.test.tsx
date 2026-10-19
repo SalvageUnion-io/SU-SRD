@@ -183,7 +183,7 @@ describe('the Crew (play.md §7)', () => {
       'Wren, away, Boarded · Mule, SP 26, fine. Open their sheet',
     ])
     expect(crew.getByText('▲ HP')).toBeTruthy()
-    expect(crew.getByText('away')).toBeTruthy()
+    expect(crew.getByText('Away')).toBeTruthy()
     expect(document.querySelectorAll('.su-play-crew-dot[data-present]')).toHaveLength(2)
   })
 

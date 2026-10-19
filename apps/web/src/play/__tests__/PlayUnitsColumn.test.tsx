@@ -232,7 +232,7 @@ describe('the Units column (play.md §4)', () => {
     expect(hangar.length).toBe(1)
     const token = hangar[0] as HTMLElement
     expect(token.textContent).toContain('Old Faithful')
-    expect(token.textContent).toContain('in hangar')
+    expect(token.textContent).toContain('In hangar')
     expect(token.querySelector('.su-entity-token')).not.toBeNull()
     expect(within(token).queryByRole('region')).toBeNull()
   })
@@ -286,7 +286,7 @@ describe('the Units column (play.md §4)', () => {
     expect(within(box('Mech: Buzzard')).queryByRole('note')).toBeNull()
   })
 
-  test('the crawler out of Downtime: dashed, read-only, its bays as chips, damage first', async () => {
+  test('the crawler out of Downtime: dashed, read-only, every bay a chip, damage first', async () => {
     setQueryAnswers({})
     await renderColumn(playFor({ situation: 'onFoot' }).play)
     const crawlerBox = box('Crawler: Tenacity')
@@ -297,7 +297,7 @@ describe('the Units column (play.md §4)', () => {
       within(bays)
         .getAllByRole('listitem')
         .map((li) => li.textContent)
-    ).toEqual(['Pilot Bay · damaged', 'Mech Bay', 'Med Bay', '+2'])
+    ).toEqual(['Pilot Bay · damaged', 'Mech Bay', 'Med Bay', 'Storage Bay', 'Trading Bay'])
   })
 })
 

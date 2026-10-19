@@ -10,12 +10,14 @@ import { test as signedIn } from './fixtures'
  * Page's band cluster, its cards' heads, their Tokens. A failure names the
  * page, the width and the fault (`_chipStrips.ts`): a value off its label's
  * size, a hole between chips, lines on no common edge, a cost out of its
- * corner. There is no allowlist: every fault fails.
+ * corner, a chip clipped or past its strip's edge (R3), too many lines.
+ * There is no allowlist: every fault fails.
  */
 const PAGES = [
   '/systems/',
   '/modules/',
   '/chassis/mazona/',
+  '/chassis/big-brother/',
   '/chassis/mazona/pattern/buzzard/',
   '/chassis/mule/pattern/crusher/',
   '/systems/salvaging-drill/',
@@ -57,28 +59,15 @@ test('every chip strip is one size, one gap, its cost in the corner', async ({ p
 /**
  * Every context (hard rule R0): each of `designRoutes` (`_helpers.ts`),
  * signed in and seeded, at page and phone widths, Play's phone form tab by
- * tab. A fault's rule is its kind: `size`, `gap`, `flush` or `cost`.
+ * tab. A fault's rule is its kind: `size`, `gap`, `flush`, `cost`, `clip`
+ * or `lines`. The seeded Game's long name holds a Hangar Row's Game chip
+ * inside its Row at a page's three columns (R3).
  *
  * `BASELINE` is the debt this pass found when it landed, by route family and
  * rule, each to be fixed and deleted here. A fault off it fails; an entry
  * nothing matches is noted on the report as paid off.
  */
 const BASELINE: readonly DesignDebt[] = [
-  // The Hangar: a shelf item's chip strip wraps to a second line that ends
-  // short of the first and starts elsewhere, at page and phone widths; its
-  // first chip is the container ("Game The Long Haul", "Unassigned").
-  {
-    family: 'hangar',
-    rule: 'flush',
-    match: 'flush: Game',
-    why: "a shelf item's strip in a Game wraps with its lines on no common edge",
-  },
-  {
-    family: 'hangar',
-    rule: 'flush',
-    match: 'flush: Unassigned',
-    why: "a shelf item's strip on the shelf wraps with its lines on no common edge",
-  },
   {
     family: 'sheet-crawler-edit',
     rule: 'flush',

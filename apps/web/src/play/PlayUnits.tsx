@@ -365,8 +365,9 @@ export type PlayCrawlerUnitProps = {
 }
 
 /**
- * The crawler's box: SP, its Tech Level, and its bays as chips, damaged first
- * and the rest past three as "+N". In Downtime it carries the Upkeep due.
+ * The crawler's box: SP, its Tech Level, and every bay as a chip, damaged
+ * first, wrapping onto as many lines as they need: none is dropped for room
+ * (C3). In Downtime it carries the Upkeep due.
  */
 export function PlayCrawlerUnit({
   crawler,
@@ -377,7 +378,7 @@ export function PlayCrawlerUnit({
 }: PlayCrawlerUnitProps) {
   const sp = hullGauge(crawler)
   const tl = crawlerTechLevelOf(crawler)
-  const { chips, more } = bayChips(crawler)
+  const chips = bayChips(crawler)
   const write = writer(store, 'crawler', crawler.id)
   // Solid while it is the Downtime's unit, whoever may write it (wireframes
   // player-downtime and player-solo-downtime); dashed for reference otherwise.
@@ -422,11 +423,6 @@ export function PlayCrawlerUnit({
               />
             </li>
           ))}
-          {more > 0 ? (
-            <li>
-              <Stat label={`+${more}`} size="compact" hoverText={`${more} more bays`} />
-            </li>
-          ) : null}
         </ul>
       ) : null}
       {onOpenSheet ? (
@@ -441,7 +437,8 @@ export function PlayCrawlerUnit({
 
 /**
  * A mech in the hangar: a full-width Token on its own line (level 2), its
- * chassis its note, "in hangar" (or why it cannot fly) after it.
+ * chassis its note, "In hangar" (or why it cannot fly) its state chip, last in
+ * its chip group at the Token's Size (C8), never loose words after it.
  */
 export function PlayHangarMech({
   name,
@@ -450,7 +447,7 @@ export function PlayHangarMech({
 }: {
   name: string
   chassis: string | null
-  /** What stops it flying ("Destroyed"); "in hangar" when nothing does. */
+  /** What stops it flying ("Destroyed"); "In hangar" when nothing does. */
   note: string | null
 }): ReactNode {
   return (
@@ -459,7 +456,7 @@ export function PlayHangarMech({
         form="token"
         context="play"
         model={unitRowModel({ kind: 'mech', name, note: chassis ?? undefined })}
-        trailing={<span className="su-play-unit__where">{note ?? 'in hangar'}</span>}
+        trailing={<Stat label={note ?? 'In hangar'} size="mini" />}
       />
     </div>
   )

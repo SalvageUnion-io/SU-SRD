@@ -100,7 +100,7 @@ describe('mechRestorePreview (play.md §6)', () => {
 })
 
 describe('bayChips', () => {
-  test('damaged bays first, three shown, the rest as +N', () => {
+  test('every bay, damaged first: none is dropped for room (C3)', () => {
     const crawler = crawlerFixture({
       id: 'c',
       crawlerBays: [
@@ -111,18 +111,17 @@ describe('bayChips', () => {
         { bayRef: 'trading-bay' },
       ],
     })
-    expect(bayChips(crawler)).toEqual({
-      chips: [
-        { name: 'Pilot Bay', damaged: true },
-        { name: 'Mech Bay', damaged: false },
-        { name: 'Med Bay', damaged: false },
-      ],
-      more: 2,
-    })
+    expect(bayChips(crawler)).toEqual([
+      { name: 'Pilot Bay', damaged: true },
+      { name: 'Mech Bay', damaged: false },
+      { name: 'Med Bay', damaged: false },
+      { name: 'Storage Bay', damaged: false },
+      { name: 'Trading Bay', damaged: false },
+    ])
   })
 
   test('a crawler with no bays has no chips', () => {
-    expect(bayChips(crawlerFixture({ id: 'c' }))).toEqual({ chips: [], more: 0 })
+    expect(bayChips(crawlerFixture({ id: 'c' }))).toEqual([])
   })
 })
 

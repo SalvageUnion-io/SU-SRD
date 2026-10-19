@@ -500,13 +500,86 @@
   border-color: var(--color-paper);
 }
 
-/* On a phone the chips stay right of the name when they fit on one line
-   beside it, and otherwise flow UNDER it, never above it (owner's rules,
+/* UNDER THE NAME (`data-chips="under"`, `useChipsFit`): when the chips do
+   not fit beside the name they flow UNDER it, never above it (owner's rules,
    2026-10-13 and 2026-10-14): their own line on the paper below the tab, the
-   head of the body, so the tab still opens into the paper. `useChipsFit`
-   measures the fit and marks the heading `data-chips="beside"`; with no
-   script (or before it runs) they drop. The strip is painted the band's full
-   width by a clipped shadow, since the heading sits inset. */
+   head of the body, so the tab still opens into the paper. On a phone that is
+   when they would take more than two lines beside its one-line name; wider,
+   only when one chip is wider than the room the name leaves at its narrowest,
+   so a long chip (a Game's name) never runs past the Row's edge (R3).
+   The strip is painted the band's full width by a clipped shadow, since the
+   heading sits inset. A chip wider than the strip itself wraps its value
+   (E18: it wraps, never clipped). */
+.su-entity-row__heading--cut[data-chips='under'] {
+  flex-wrap: wrap;
+  row-gap: 0;
+}
+
+.su-entity-row__heading--cut[data-chips='under'] > .su-chips,
+.su-entity-row__heading--cut[data-chips='under'] > .su-entity-row__chip-group {
+  background-color: var(--color-paper);
+  box-shadow: 0 0 0 100vmax var(--color-paper);
+  clip-path: inset(0 -100vmax -1px);
+  flex-basis: 100%;
+  /* Under the name they pack to the left: the far end of a reversed line. */
+  justify-content: flex-end;
+  margin-left: 0;
+  padding-block: var(--space-6) 0;
+}
+
+/* Under the name, the chips are not beside it to centre on. */
+.su-entity-row__heading--cut[data-chips='under'] > .su-chips::after,
+.su-entity-row__heading--cut[data-chips='under'] > .su-entity-row__chip-group::before {
+  content: none;
+}
+
+/* The tier and affordance stay on the band, by the name, and
+   paint over the strip (its clip makes it a stacking context). */
+/* On the paper strip an ink band's chips drop their paper rule. */
+[data-ground='ink'] .su-entity-row__heading--cut[data-chips='under'] .su-stat-cell {
+  border-color: var(--color-ink);
+}
+
+.su-entity-row__head[data-ground='ink']
+  .su-entity-row__heading--cut[data-chips='under']
+  .su-entity-row__chip-group
+  .su-ec-labels__stamps
+  > .su-badge-stamp,
+.su-entity-row__head[data-ground='ink']
+  .su-entity-row__heading--cut[data-chips='under']
+  > .su-chips
+  .su-ec-labels__stamps
+  > .su-badge-stamp,
+.su-entity-row__head[data-ground='ink']
+  .su-entity-row__heading--cut[data-chips='under']
+  > .su-chips
+  > .su-badge-stamp:not(.su-badge--dashed) {
+  background-color: var(--color-ink);
+  border-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.su-entity-row__head[data-notch]
+  .su-entity-row__line:has(> .su-entity-row__heading--cut[data-chips='under'])
+  > :not(.su-entity-row__heading--cut) {
+  align-self: flex-start;
+  margin-block: var(--space-6) 0;
+  position: relative;
+}
+
+.su-entity-row__heading--cut[data-chips='under'] .su-stat-cell {
+  max-width: 100%;
+  white-space: normal;
+}
+
+.su-entity-row__heading--cut[data-chips='under'] .su-stat-plate--value {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* On a phone, before `useChipsFit` has run (or with no script), the chips
+   drop under the name as above; once it has, they stay beside it when it
+   says so (`data-chips="beside"`), the name keeping its one line. */
 @media not (width >= 40rem) {
   /* Beside, the name keeps its one line: `useChipsFit` measured the room it
      leaves for the chips, on as many lines as they need (at most three). */
@@ -514,13 +587,13 @@
     flex-shrink: 0;
   }
 
-  .su-entity-row__heading--cut:not([data-chips='beside']) {
+  .su-entity-row__heading--cut:not([data-chips]) {
     flex-wrap: wrap;
     row-gap: 0;
   }
 
-  .su-entity-row__heading--cut:not([data-chips='beside']) > .su-chips,
-  .su-entity-row__heading--cut:not([data-chips='beside']) > .su-entity-row__chip-group {
+  .su-entity-row__heading--cut:not([data-chips]) > .su-chips,
+  .su-entity-row__heading--cut:not([data-chips]) > .su-entity-row__chip-group {
     background-color: var(--color-paper);
     box-shadow: 0 0 0 100vmax var(--color-paper);
     clip-path: inset(0 -100vmax -1px);
@@ -532,30 +605,30 @@
   }
 
   /* Under the name, the chips are not beside it to centre on. */
-  .su-entity-row__heading--cut:not([data-chips='beside']) > .su-chips::after,
-  .su-entity-row__heading--cut:not([data-chips='beside']) > .su-entity-row__chip-group::before {
+  .su-entity-row__heading--cut:not([data-chips]) > .su-chips::after,
+  .su-entity-row__heading--cut:not([data-chips]) > .su-entity-row__chip-group::before {
     content: none;
   }
 
   /* The tier and affordance stay on the band, by the name, and
      paint over the strip (its clip makes it a stacking context). */
   /* On the paper strip an ink band's chips drop their paper rule. */
-  [data-ground='ink'] .su-entity-row__heading--cut:not([data-chips='beside']) .su-stat-cell {
+  [data-ground='ink'] .su-entity-row__heading--cut:not([data-chips]) .su-stat-cell {
     border-color: var(--color-ink);
   }
 
   .su-entity-row__head[data-ground='ink']
-    .su-entity-row__heading--cut:not([data-chips='beside'])
+    .su-entity-row__heading--cut:not([data-chips])
     .su-entity-row__chip-group
     .su-ec-labels__stamps
     > .su-badge-stamp,
   .su-entity-row__head[data-ground='ink']
-    .su-entity-row__heading--cut:not([data-chips='beside'])
+    .su-entity-row__heading--cut:not([data-chips])
     > .su-chips
     .su-ec-labels__stamps
     > .su-badge-stamp,
   .su-entity-row__head[data-ground='ink']
-    .su-entity-row__heading--cut:not([data-chips='beside'])
+    .su-entity-row__heading--cut:not([data-chips])
     > .su-chips
     > .su-badge-stamp:not(.su-badge--dashed) {
     background-color: var(--color-ink);
@@ -564,7 +637,7 @@
   }
 
   .su-entity-row__head[data-notch]
-    .su-entity-row__line:has(> .su-entity-row__heading--cut:not([data-chips='beside']))
+    .su-entity-row__line:has(> .su-entity-row__heading--cut:not([data-chips]))
     > :not(.su-entity-row__heading--cut) {
     align-self: flex-start;
     margin-block: var(--space-6) 0;
@@ -717,6 +790,41 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
 .su-entity-row[data-covered] .su-entity-row__line > input {
   position: relative;
   z-index: 1;
+}
+
+/* Dropped under the name, the chip strip's clip makes it a stacking context
+   the cover would paint over, its "⋯" with it: in a covered Row the strip is
+   raised too, and lets a press through to the cover but on its controls. */
+.su-entity-row[data-covered]
+  .su-entity-row__heading--cut[data-chips='under']
+  > :is(.su-chips, .su-entity-row__chip-group) {
+  pointer-events: none;
+  position: relative;
+  z-index: 1;
+}
+
+.su-entity-row[data-covered]
+  .su-entity-row__heading--cut[data-chips='under']
+  > :is(.su-chips, .su-entity-row__chip-group)
+  :is(a, button) {
+  pointer-events: auto;
+}
+
+@media not (width >= 40rem) {
+  .su-entity-row[data-covered]
+    .su-entity-row__heading--cut:not([data-chips])
+    > :is(.su-chips, .su-entity-row__chip-group) {
+    pointer-events: none;
+    position: relative;
+    z-index: 1;
+  }
+
+  .su-entity-row[data-covered]
+    .su-entity-row__heading--cut:not([data-chips])
+    > :is(.su-chips, .su-entity-row__chip-group)
+    :is(a, button) {
+    pointer-events: auto;
+  }
 }
 
 /* A Row as a listbox option (a search's results): the option the arrow keys
@@ -943,8 +1051,8 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 /* TOKEN (`entity/forms/Token.tsx`): the pill, `[note] [tier] name [chips]`,
    dashed when player-made, its name on the cut-out (below), the Token's full
    width. Always one row (E18): short of room the name ends in "…", and the
-   chips never take more than 65% of the pill, dropping from the end (below),
-   held at its right end by the cut-out's margin. */
+   chips keep their whole width (below), held at its right end by the
+   cut-out's margin. */
 .su-entity-token__pill {
   align-items: stretch;
   align-self: flex-start;
@@ -1000,26 +1108,34 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   white-space: nowrap;
 }
 
-/* The chips (`tokenChips`, then the cost box) follow the name on its line and
-   never shrink it to make room for themselves: at most 65% of the pill is
-   theirs. A set wider than that drops chips from the end, whole, one at a
-   time, so the earliest in the stat order stay: the group wraps, and only its
-   first line shows: the clip is one mini chip high (its 11px type, padding
-   and hairline border), and the row gap keeps the next line out of it.
-   On a narrow pill (a phone's pattern list) 65% left the name a stub
-   (".50 CAL MACH…"), so the budget also leaves the name a readable 9rem,
-   dropping chips sooner, down to half the pill: never more than 65%. */
+/* The chips (`tokenChips`, then the cost box and the host's state chip)
+   follow the name on its one line, every one whole: the budget is static
+   (C3), so width never drops, clips or wraps a chip; the name gives way
+   instead, ending in "…" (C5). Nothing here clamps or hides them
+   (`_chipStrips.ts` fails a chip outside its strip). */
 .su-entity-token__chips {
   align-items: center;
-  align-content: flex-start;
   display: flex;
-  flex: 0 0 auto;
+  flex: none;
+  flex-wrap: nowrap;
+  gap: var(--space-4);
+}
+
+.su-entity-token__chips > *,
+.su-entity-token__chips > .su-chip-lane > * {
+  flex: none;
+}
+
+/* A contentful Token's head (N3) holds a compact head's budget (C3: economy,
+   facets, traits), which a narrow pill cannot hold on one line. Its chips
+   wrap beside the name instead, flush right, the cost in the corner, every
+   chip whole; the name keeps at least min(9rem, 40%) of the pill, ending in
+   "…" below that. */
+.su-entity-token[data-contentful] .su-entity-token__chips {
+  flex: 0 1 auto;
   flex-wrap: wrap;
-  gap: var(--space-24) var(--space-4);
   justify-content: flex-end;
-  max-height: calc(var(--text-badge) + 2 * var(--space-2) + 2 * var(--bw-hairline));
-  max-width: clamp(50%, 100% - 9rem, 65%);
-  overflow: hidden;
+  max-width: calc(100% - min(9rem, 40%));
 }
 
 /* A Token as a listbox option (the SRD header search): the highlighted option
@@ -1164,7 +1280,7 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
    (the name gives way), a lane the gap from the next only where it has width.
    Short of room the lanes draw no box and each line packs right: a Row below
    40rem (a container query on the Row), a Token on a phone (its chips are one
-   row of a small budget, held to 65% of its pill). Last in the file, after
+   row of a small budget, every chip whole). Last in the file, after
    the fill order it overrides. */
 .su-chips[data-lanes] > [data-chip-class='mark'] {
   --su-lane-w: var(--su-lane-mark);
@@ -1226,6 +1342,12 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   [data-chip-lanes='column'] .su-entity-row .su-chips[data-lanes] > .su-chip-lane > * {
     order: 0;
   }
+
+  /* The lanes carry their own gaps, so the corner strut gives none back: its
+     pull would set the last lane's chip (the cost) past the strip's edge. */
+  [data-chip-lanes='column'] .su-entity-row__heading--cut > .su-chips[data-lanes]::after {
+    margin-left: 0;
+  }
 }
 
 @media (width >= 40rem) {
@@ -1247,5 +1369,19 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 
   [data-chip-lanes='column'] .su-entity-token .su-chips[data-lanes] > .su-chip-lane > * {
     order: 0;
+  }
+
+  /* A contentful Token's compact budget wraps beside its name, chip by chip,
+     with no lane boxes (R3): one line of lanes would leave its pill. */
+  [data-chip-lanes='column'] .su-entity-token[data-contentful] .su-chips[data-lanes] {
+    flex-wrap: wrap;
+    gap: var(--space-4);
+  }
+
+  [data-chip-lanes='column']
+    .su-entity-token[data-contentful]
+    .su-chips[data-lanes]
+    > .su-chip-lane {
+    display: contents;
   }
 }

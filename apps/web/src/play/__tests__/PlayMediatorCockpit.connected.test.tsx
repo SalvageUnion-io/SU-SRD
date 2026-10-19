@@ -381,7 +381,7 @@ describe('Downtime', () => {
     expect(screen.getByText('2 of 4 done')).toBeTruthy()
     const who = within(screen.getByRole('list', { name: 'Who is done' }))
     expect(who.getAllByText('Done')).toHaveLength(2)
-    expect(who.getByText('away')).toBeTruthy()
+    expect(who.getByText('Away')).toBeTruthy()
     expect(
       within(screen.getByRole('list', { name: 'Seats' })).getAllByText('Step 3 · done ✓')
     ).toHaveLength(2)
