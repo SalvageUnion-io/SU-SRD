@@ -18,6 +18,7 @@ import type { ScrapPool } from 'game-domain/schemas/crawler'
 import type { ItemCondition } from 'game-domain/schemas/itemCondition'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
+import { Button, DialogActions, Entity, ModalShell, tokens } from '../../components/index'
 import type { MechItem } from '../../lib/rules/mechItems'
 import {
   itemEconomy,
@@ -25,22 +26,8 @@ import {
   repairPoolTl,
   repairScrapCost,
 } from '../../lib/rules/mechItems'
-import { Button, DialogActions, Entity, ModalShell, StatusBadge, tokens } from '../../components/index'
 import { SheetItemLine } from './SheetItemLine'
-import { CardRemoveButton } from './SheetSection'
-
-/** The fallback chit for a slug that does not resolve. */
-const CHIT = {
-  alignItems: 'center',
-  backgroundColor: tokens.color.paper,
-  border: `${tokens.borderWidth.chrome} solid ${tokens.color.ink}`,
-  borderRadius: tokens.radius.card,
-  display: 'flex',
-  gap: tokens.space[8],
-  height: '100%',
-  justifyContent: 'space-between',
-  padding: `${tokens.space[8]} ${tokens.space[12]}`,
-} satisfies CSSProperties
+import { UnknownItemLine } from './UnknownItemLine'
 
 /** The small body size and its own line-height. */
 const BODY_SM = {
@@ -48,13 +35,6 @@ const BODY_SM = {
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.sm,
   lineHeight: 'calc(1.25 / 0.875)',
-} satisfies CSSProperties
-
-const CHIT_END = {
-  alignItems: 'center',
-  display: 'flex',
-  flexShrink: 0,
-  gap: tokens.space[6],
 } satisfies CSSProperties
 
 const CONFIRM = {
@@ -114,13 +94,14 @@ export function MechItemToken({
     // Unresolvable slug: plain chit, never a crash. The status badge still
     // cycles so conditions stay editable for unknown items.
     return (
-      <div style={CHIT}>
-        <span style={BODY_SM}>{slug}</span>
-        <span style={CHIT_END}>
-          <StatusBadge status={condition} onClick={readOnly ? undefined : onStatusCycle} />
-          {!readOnly && onRemove && <CardRemoveButton name={slug} onRemove={onRemove} />}
-        </span>
-      </div>
+      <UnknownItemLine
+        slug={slug}
+        schemaName="systems"
+        condition={condition}
+        readOnly={readOnly}
+        onConditionCycle={onStatusCycle}
+        onRemove={onRemove}
+      />
     )
   }
 

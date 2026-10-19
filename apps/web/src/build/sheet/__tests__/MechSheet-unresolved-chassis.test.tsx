@@ -10,9 +10,9 @@
 import { describe, expect, mock, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import type { Mech } from 'game-domain/schemas/mech'
-import type { useEntityStore } from '../../../stores/entityStore'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
+import type { useEntityStore } from '../../../stores/entityStore'
 import { MechSheet } from '../MechSheet'
 
 const fakeMech: Mech = {
@@ -59,8 +59,8 @@ describe('MechSheet — unresolved chassis (chassis=null)', () => {
     // The identity band stays available (maxima derive to 0, never crash): its
     // fields and the SP vitals gauge render even with no chassis resolved.
     expect(screen.getByText(/pattern name/i)).toBeTruthy()
-    expect(screen.getByText('Structure')).toBeTruthy()
-    // The unresolvable system slug falls back to plain text.
+    expect(screen.getAllByText('Structure Points').length).toBeGreaterThan(0)
+    // The unresolvable system slug falls back to the one unknown-item line.
     expect(screen.getByText('mystery-system')).toBeTruthy()
     // The Hold renders against a zero cargo cap.
     expect(screen.getByText(/the hold/i)).toBeTruthy()

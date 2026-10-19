@@ -22,14 +22,11 @@
  *
  * Section containers follow the card-vs-slab rule (see `SheetSectionSlab`):
  * inputs/gauges get a CARD (the identity band, the Chassis card), entity-card
- * collections get a SLAB (The Hold, Systems, Modules, Assigned Units) — cards already carry their own frame, so a second frame
- * around them reads as one opaque block.
+ * collections get a SLAB (The Hold, Systems, Modules, Assigned Units). Read
+ * leaves an empty section out (hard rule R11).
  *
- * Dropped (the poster redesign — no poster counterpart; tracking issues filed for
- * re-homing as an off-sheet action surface):
- *   - `HeatCheckControl` — Heat Check / Push / Reactor Overload loop.
- *   - `TakeDamageControl` — Take Damage / Critical Damage loop.
- *   - the Retire slab + `ScrapMechControl` — the scrap-a-mech helper.
+ * Dropped (the poster redesign), to be re-homed off the sheet: Heat Check / Push /
+ * Reactor Overload, Take Damage / Critical Damage, and the Retire slab.
  * The always-live Vitals gauges (SP/EP/Heat) and per-card activation (Use /
  * Repair / uses economy on System/Module cards, chassis-ability Use) are
  * KEPT — only the play-control PANELS drop. Shutdown/Vulnerable/Destroyed
@@ -55,12 +52,6 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import { pinFor, unifiedMechConditions } from 'salvageunion-reference/rules'
-import { occurrenceKeys } from '../../lib/occurrenceKeys'
-import { chassisArt } from '../../lib/photos/defaultArt'
-import { resolveModule, resolveSystem } from '../../lib/rules/mechItems'
-import { runWrite } from '../../lib/runWrite'
-import { useEntityStore } from '../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import type { SlabCount } from '../../components/index'
 import {
   Conditions,
@@ -73,10 +64,15 @@ import {
   SheetSectionSlab,
   Stack,
   tokens,
-  VitalGauge,
 } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { SoftWarningDialog } from '../../components/shared/SoftWarningDialog'
+import { occurrenceKeys } from '../../lib/occurrenceKeys'
+import { chassisArt } from '../../lib/photos/defaultArt'
+import { resolveModule, resolveSystem } from '../../lib/rules/mechItems'
+import { runWrite } from '../../lib/runWrite'
+import { useEntityStore } from '../../stores/entityStore'
+import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { MechChassisCard } from './MechChassisCard'
 import { MechConditionsEditor } from './MechConditionsEditor'
 import { MechHeroChassis } from './MechHeroChassis'
@@ -90,6 +86,7 @@ import { PartnerCard } from './PartnerCard'
 import { PhotoBeside } from './PhotoBeside'
 import { SheetHero } from './SheetHero'
 import { SectionManageButton, SheetPickerModal } from './SheetSection'
+import { SheetVitalGauge } from './SheetVitalGauge'
 import { StorageManifest } from './StorageManifest'
 
 /** The sheet column: an inline-size container (the poster regions query it). */
@@ -109,9 +106,6 @@ const FIELDS = {
 } satisfies CSSProperties
 
 const CHASSIS = { marginTop: 'auto', paddingTop: tokens.space[24] } satisfies CSSProperties
-
-/** The gauge stack; the dashed rule between gauges is `.su-sheet-mech-vitals`. */
-const VITALS = { display: 'flex', flexDirection: 'column', width: '100%' } satisfies CSSProperties
 
 const CONDITIONS = {
   display: 'flex',
@@ -219,6 +213,11 @@ export function MechSheet({
   const actions = useMechSheetActions({ mech, store, storeState, crawler })
   // The conditions Read prints: the same merged list the Edit chips write.
   const readConditions = readOnly ? unifiedMechConditions(mech) : []
+  // Read leaves an empty section out (ruleset §1.2): an empty state only where
+  // Edit can fill it.
+  const showHold = !readOnly || model.cargo.usage.used > 0
+  const showSystems = !readOnly || mech.systems.length > 0
+  const showModules = !readOnly || mech.modules.length > 0
 
   const { chassis, cargo, capacity, spParts, epParts, heatParts, maxSP, maxEP, heatCap } = model
 
@@ -349,10 +348,9 @@ export function MechSheet({
           </>
         }
         vitals={
-          <div className="su-sheet-mech-vitals" style={VITALS}>
-            <VitalGauge
-              label="SP"
-              subLabel="Structure"
+          <>
+            <SheetVitalGauge
+              vital="sp"
               value={model.currentSP}
               max={maxSP}
               onChange={readOnly ? undefined : (v) => actions.patchMech({ currentSP: v })}
@@ -368,9 +366,8 @@ export function MechSheet({
               }
               readOnly={readOnly}
             />
-            <VitalGauge
-              label="EP"
-              subLabel="Energy"
+            <SheetVitalGauge
+              vital="ep"
               value={model.currentEP}
               max={maxEP}
               onChange={readOnly ? undefined : (v) => actions.patchMech({ currentEP: v })}
@@ -386,8 +383,8 @@ export function MechSheet({
               }
               readOnly={readOnly}
             />
-            <VitalGauge
-              label="Heat"
+            <SheetVitalGauge
+              vital="heat"
               value={model.currentHeat}
               max={heatCap}
               danger={heatCap > 0 ? heatDangerFrom(heatCap) : undefined}
@@ -416,7 +413,7 @@ export function MechSheet({
                 )}
               </div>
             )}
-          </div>
+          </>
         }
       />
 
@@ -424,51 +421,67 @@ export function MechSheet({
           Cargo is the thing a crew reaches for mid-session, and the printed
           sheet's bottom-of-page-2 placement buried it under two long loadout
           lists. It reads before them here. */}
-      <SheetSectionSlab
-        title="The Hold"
-        count={{
-          label: 'Slots',
-          value: cargo.usage.used,
-          max: cargo.usage.cap,
-          ...(cargo.usage.used > cargo.usage.cap ? { state: 'critical' } : {}),
-        }}
-      >
-        <StorageManifest
-          side="mech"
-          cargo={cargo}
-          mechName={mech.name}
-          crawlerName={crawler?.name ?? null}
-          counterpartHref={crawlerHref}
-          readOnly={readOnly}
-        />
-      </SheetSectionSlab>
+      {showHold && (
+        <SheetSectionSlab
+          title="The Hold"
+          count={{
+            label: 'Slots',
+            value: cargo.usage.used,
+            max: cargo.usage.cap,
+            ...(cargo.usage.used > cargo.usage.cap ? { state: 'critical' } : {}),
+          }}
+        >
+          <StorageManifest
+            side="mech"
+            cargo={cargo}
+            mechName={mech.name}
+            crawlerName={crawler?.name ?? null}
+            counterpartHref={crawlerHref}
+            readOnly={readOnly}
+          />
+        </SheetSectionSlab>
+      )}
 
       {/* ===== R3: Systems & Modules, side by side once there is room. ===== */}
-      <div className="su-sheet-mech-loadout">
-        <SheetSectionSlab
-          title="Systems"
-          count={slotCount(capacity.systemSlotsUsed, capacity.systemSlotsMax, capacity.asPrinted)}
-          controls={
-            readOnly ? undefined : (
-              <SectionManageButton label="systems" onClick={() => setPicker('system')} />
-            )
-          }
-        >
-          {renderItems('system', mech.systems)}
-        </SheetSectionSlab>
+      {(showSystems || showModules) && (
+        <div className="su-sheet-mech-loadout">
+          {showSystems && (
+            <SheetSectionSlab
+              title="Systems"
+              count={slotCount(
+                capacity.systemSlotsUsed,
+                capacity.systemSlotsMax,
+                capacity.asPrinted
+              )}
+              controls={
+                readOnly ? undefined : (
+                  <SectionManageButton label="systems" onClick={() => setPicker('system')} />
+                )
+              }
+            >
+              {renderItems('system', mech.systems)}
+            </SheetSectionSlab>
+          )}
 
-        <SheetSectionSlab
-          title="Modules"
-          count={slotCount(capacity.moduleSlotsUsed, capacity.moduleSlotsMax, capacity.asPrinted)}
-          controls={
-            readOnly ? undefined : (
-              <SectionManageButton label="modules" onClick={() => setPicker('module')} />
-            )
-          }
-        >
-          {renderItems('module', mech.modules)}
-        </SheetSectionSlab>
-      </div>
+          {showModules && (
+            <SheetSectionSlab
+              title="Modules"
+              count={slotCount(
+                capacity.moduleSlotsUsed,
+                capacity.moduleSlotsMax,
+                capacity.asPrinted
+              )}
+              controls={
+                readOnly ? undefined : (
+                  <SectionManageButton label="modules" onClick={() => setPicker('module')} />
+                )
+              }
+            >
+              {renderItems('module', mech.modules)}
+            </SheetSectionSlab>
+          )}
+        </div>
+      )}
 
       {/* ===== Partners — drones this mech's CHASSIS ABILITY fields (Little
           Sestra's Sestra Drone, Big Brother's four). Its own region rather than

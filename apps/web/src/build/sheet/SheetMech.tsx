@@ -15,6 +15,7 @@ import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
 import { pilotingContext } from 'game-domain/rules/pilotingContext'
 import { totalLotUnits } from 'game-domain/schemas/cargoLot'
 import type { Mech } from 'game-domain/schemas/mech'
+import { CONDITION_LABELS } from 'salvageunion-reference'
 import {
   mechMaxCargo,
   mechMaxEP,
@@ -24,9 +25,9 @@ import {
   resolveGauge,
   resolvePool,
 } from 'salvageunion-reference/rules'
-import { runWrite } from '../../lib/runWrite'
 import { EmptyUnitSlot } from '../../components/shared/EmptyUnitSlot'
 import { UnitRow } from '../../components/shared/UnitRow'
+import { runWrite } from '../../lib/runWrite'
 import { AssignPicker } from '../wiring/AssignPicker'
 import { mechStamp } from './bandStamps.model'
 import { LinkedUnitLink } from './LinkedUnitLink'
@@ -258,6 +259,14 @@ export function SheetMech({
       segments={segments}
       band={band}
       kindDetail={mechStamp(mech.chassisRef)}
+      out={
+        mech.destroyed
+          ? {
+              stamp: CONDITION_LABELS.destroyed,
+              note: 'This Mech is destroyed. Its record stays: clear Destroyed under Conditions if this was a bookkeeping error.',
+            }
+          : undefined
+      }
       syncStats={{ cargo: cargoUsed }}
       actions={actions}
       renderBody={() => (
