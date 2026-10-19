@@ -16,8 +16,8 @@
  * plain: gauges, `Stat` chips (class, TP, injuries, bays, upkeep), a line of
  * text. A hangar mech is a full-width Token on its own line, never a box.
  *
- * The dashed frame and the boxes' rows are `.su-play-unit*`, in
- * `styles/play/units.css`, which `PlayFrame` loads with Play's bundle.
+ * The dashed frame is the box's own (`reference`); the boxes' rows are
+ * `.su-play-unit__*`, in `styles/play/units.css`, which `PlayFrame` loads.
  */
 
 import { DOWNTIME_UPKEEP_SCRAP } from 'game-domain/rules/downtime'
@@ -30,7 +30,6 @@ import type { CSSProperties, ReactNode } from 'react'
 import {
   Badge,
   Button,
-  cn,
   Entity,
   heatDangerFrom,
   Segmented,
@@ -81,11 +80,6 @@ const RANGE_LABEL = {
 
 /** Range's book codes, as the band switch shows them (`Close` → C). */
 const RANGE_CODE: Record<RangeBand, string> = { Close: 'C', Medium: 'M', Long: 'L', Far: 'F' }
-
-/** The box's root classes: dashed while it is for reference. */
-function unitClass(live: boolean) {
-  return cn('su-play-unit', !live && 'su-play-unit--reference')
-}
 
 /** The stamp on a box's band: LIVE, BOARDED, PARKED, … */
 function stamp(text: string) {
@@ -150,7 +144,7 @@ export function PlayPilotUnit({
       title={pilot.name}
       label={`Pilot: ${pilot.name}`}
       tone="pilot"
-      className={unitClass(live)}
+      reference={!live}
       chips={<Stat label="Pilot" size="mini" />}
       controls={stamp(live ? 'Live' : 'Read only')}
     >
@@ -254,7 +248,7 @@ export function PlayMechUnit({
       title={mech.name}
       label={`Mech: ${mech.name}`}
       tone="mech"
-      className={unitClass(live)}
+      reference={!live}
       chips={chassis ? <Stat label={chassis} size="mini" /> : undefined}
       controls={stamp(mech.destroyed ? 'Destroyed' : MECH_STAMP[place])}
     >
@@ -387,7 +381,7 @@ export function PlayCrawlerUnit({
       title={crawler.name}
       label={`Crawler: ${crawler.name}`}
       tone="crawler"
-      className={unitClass(solid)}
+      reference={!solid}
       chips={<Stat label="Crawler" size="mini" />}
       controls={
         downtime ? (

@@ -524,6 +524,39 @@ function scanStyleObjectAnnotation(c: Corpus): Finding[] {
   return out
 }
 
+// ── Rule 7: entity-markup ─────────────────────────────────────────────────────
+
+/** Play's own code and stylesheets: R7's surface. */
+const PLAY_DIRS = ['apps/web/src/play/', 'apps/web/src/styles/play/'] as const
+
+/** An entity form's inner class: its markup, which only `components/entity/` draws. */
+const ENTITY_PART_CLASS = /\bsu-entity-(?:row|token)__[\w-]+/g
+
+/**
+ * R7 (hard-rules.md): Play draws with the shared primitives, so entity markup
+ * lives only in `components/entity/` (EDL E15). A Play stylesheet that
+ * restyles a Row's frame or main, or Play code that draws a Token's pill by
+ * its class, is a second entity form; the form's own props (`Box`'s
+ * `reference` and `fill`, `Row`'s `dim`) say what Play needs instead. The
+ * imports' half is Biome's `noRestrictedImports` over `apps/web/src/play/**`.
+ */
+function scanEntityMarkup(c: Corpus): Finding[] {
+  const out: Finding[] = []
+  // A test reads the DOM it is handed; it draws nothing.
+  const files = [...c.appCss, ...c.appSource].filter(
+    (rel) => PLAY_DIRS.some((dir) => rel.startsWith(dir)) && !/__tests__\/|\.test\.tsx?$/.test(rel)
+  )
+  for (const rel of files) {
+    const text = rel.endsWith('.css') ? stripCssComments(c.read(rel)) : stripTsComments(c.read(rel))
+    text.split('\n').forEach((line, i) => {
+      for (const m of line.matchAll(ENTITY_PART_CLASS)) {
+        out.push({ file: rel, line: i + 1, detail: `entity markup '${m[0]}' outside entity/` })
+      }
+    })
+  }
+  return out
+}
+
 type OwnershipRule = Rule & { scan: (c: Corpus) => Finding[] }
 
 const RULES: OwnershipRule[] = [
@@ -568,6 +601,13 @@ const RULES: OwnershipRule[] = [
     rule: '.claude/rules/styling.md §the written form: a style object is `const NAME = { … } satisfies CSSProperties`',
     fix: 'Write `const NAME = { … } satisfies CSSProperties` instead of `const NAME: CSSProperties = { … }`. A value that varies by instance spreads the object (`style={{ ...NAME, color }}`); a stateful, responsive or repeated property is a `.su-*` class.',
     scan: scanStyleObjectAnnotation,
+  },
+  {
+    id: 'entity-markup',
+    mode: 'zero',
+    rule: 'hard-rules R7 §Play draws with the shared primitives: entity markup lives only in components/entity/ (EDL E15)',
+    fix: "Draw the entity through its form and say what Play needs with the form's props (`Box`'s `reference` or `fill`, `Row`'s `dim`); never select or draw a `su-entity-row__*` / `su-entity-token__*` element from Play's code or stylesheets.",
+    scan: scanEntityMarkup,
   },
 ]
 

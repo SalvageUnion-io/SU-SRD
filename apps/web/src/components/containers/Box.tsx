@@ -25,6 +25,12 @@ export type BoxProps = {
   className?: string
   /** Classes on the paper body. */
   bodyClassName?: string
+  /** A Play reference unit (ADR-051 §5): its frame dashed, read-only. */
+  reference?: boolean
+  /** Fill the parent's height, the body scrolling in what is left under the head. */
+  fill?: boolean
+  /** Dimmed by its host: a Play row not on hand (the Row's `dim`). */
+  dim?: boolean
   children?: ReactNode
 }
 
@@ -49,6 +55,9 @@ export function Box({
   bodyStyle,
   className,
   bodyClassName,
+  reference = false,
+  fill = false,
+  dim = false,
   children,
 }: BoxProps) {
   const hasBody = children !== null && children !== undefined && children !== false
@@ -57,14 +66,16 @@ export function Box({
       aria-label={Root === 'section' ? label : undefined}
       role={role}
       className={cn('su-entity-row su-box', className)}
+      data-fill={fill || undefined}
     >
       <div
         className="su-entity-row__frame"
         data-bodyless={hasBody ? undefined : true}
+        data-reference={reference || undefined}
         style={frameColor ? { borderColor: frameColor } : undefined}
       >
         {art}
-        <div className="su-entity-row__main">
+        <div className="su-entity-row__main" data-dim={dim || undefined}>
           {head}
           {hasBody && (
             <div

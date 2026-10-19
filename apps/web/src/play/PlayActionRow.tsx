@@ -65,6 +65,7 @@ export function PlayActionRow({ entry, resolve, onUse, canWrite, locked }: PlayA
         instance={entry.action.condition === 'destroyed' ? { condition: 'destroyed' } : undefined}
         lead={open}
         omit={['art']}
+        dim={away || locked !== null}
         slots={{
           controls,
           ...(open ? { leading: <PlayResolveSteps view={resolve} canWrite={canWrite} /> } : {}),

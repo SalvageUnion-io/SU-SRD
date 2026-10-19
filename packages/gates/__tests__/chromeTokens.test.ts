@@ -153,7 +153,7 @@ describe('chrome-tokens/dashed', () => {
       [
         '.su-entity-row__frame[data-user-made] { border-style: dashed; }',
         '.su-badge--dashed { border: 1px dashed; }',
-        '.su-play-unit--reference > .frame { border-style: dashed; }',
+        '.frame[data-reference] { border-style: dashed; }',
         '.su-field__write-cue { border-style: dashed; }',
         '.su-edit-cue:hover { outline-style: dashed; }',
         '@media (hover: hover) { .su-btn--pencil { border-style: dashed; } }',

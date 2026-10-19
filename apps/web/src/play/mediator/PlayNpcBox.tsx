@@ -15,7 +15,6 @@
 import type { CSSProperties } from 'react'
 import {
   Button,
-  cn,
   HeaderMenu,
   Stat,
   TitledBox,
@@ -80,7 +79,7 @@ export function PlayNpcBox({
         title={npc.name}
         label={`${npcKind(npc)}: ${npc.name}${npc.down ? ', down' : ''}`}
         tone="adversary"
-        className={cn('su-play-unit', npc.down && 'su-play-unit--reference')}
+        reference={npc.down}
         chips={<Stat label={npc.down ? `${npcKind(npc)} · down` : npcKind(npc)} size="mini" />}
         controls={
           <span style={CONTROLS}>

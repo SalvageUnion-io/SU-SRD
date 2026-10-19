@@ -85,6 +85,7 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
         // Which mech is the Situation switch's to say ("Boarded · Buzzard"):
         // the row carries only its controls (wireframe pin 5).
         controls={controls}
+        dim={away}
       />
       <ConfirmDialog
         open={ejecting}

@@ -106,7 +106,7 @@ export function PlayDowntimeActionRow({
 
   return (
     <li className="su-play-act" data-away={away || undefined} data-action-key={`downtime:${id}`}>
-      <TitledBox title={name} as="div" chips={chips} controls={controls}>
+      <TitledBox title={name} as="div" chips={chips} controls={controls} dim={away}>
         {rumour && !away ? (
           <p className="su-play-resolve__note" aria-live="polite">
             {rumour.roll} · {rumour.text}

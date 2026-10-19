@@ -162,7 +162,7 @@ export function PlayReactorRow({ mech, store, rollFor, need, canWrite }: PlayRea
 
   return (
     <li className="su-play-act" data-away={away || undefined} data-action-key="reactor">
-      <TitledBox title="Reactor" controls={controls} as="div">
+      <TitledBox title="Reactor" controls={controls} as="div" dim={away}>
         {log && !away ? (
           <div className="su-play-resolve">
             <p className="su-play-resolve__note" aria-live="polite">

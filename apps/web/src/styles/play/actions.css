@@ -58,21 +58,6 @@
   padding: 0;
 }
 
-/* Not on hand: dimmed (dashed is a reference unit's alone: ruleset §3.9). */
-.su-play-act[data-away] .su-entity-row__main {
-  opacity: 0.7;
-}
-
-/* Open: the action being resolved wears the full card's weight. */
-.su-play-act[data-open] .su-entity-row__frame {
-  border-width: var(--bw-entity);
-}
-
-/* Locked (out of range, over the Heat Capacity): dimmed, still usable. */
-.su-play-act[data-locked] .su-entity-row__main {
-  opacity: 0.8;
-}
-
 .su-play-act__need,
 .su-play-act__state {
   font-family: var(--font-body);

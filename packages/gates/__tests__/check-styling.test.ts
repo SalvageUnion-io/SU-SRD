@@ -458,9 +458,33 @@ describe('styling rule set', () => {
       'package-stylesheet-import',
       'no-tailwind',
       'style-object-annotation',
+      'entity-markup',
     ]) {
       expect(found[id]).toEqual([])
     }
+  })
+
+  test('entity-markup: Play code and stylesheets that reach into an entity form are found (R7)', () => {
+    const found = stylingOwnership.scan(
+      fixture({
+        ...STYLING_BASE,
+        'apps/web/src/styles/play/actions.css': [
+          '.su-play-act[data-open] .su-entity-row__frame { border-width: 3px }',
+          '/* `.su-entity-row__main` in a comment is prose */',
+          '.su-play-act { display: flex }',
+          '',
+        ].join('\n'),
+        'apps/web/src/play/Pill.tsx':
+          'export const P = () => <div className="su-entity-token__pill" />\n',
+        'apps/web/src/play/__tests__/Pill.test.tsx': "q('.su-entity-token__name')\n",
+        'apps/web/src/components/entity/forms/Row.tsx':
+          '<div className="su-entity-row__frame" />\n',
+      })
+    )
+    expect(found['entity-markup']?.map((f) => `${f.file}:${f.line}`)).toEqual([
+      'apps/web/src/styles/play/actions.css:1',
+      'apps/web/src/play/Pill.tsx:1',
+    ])
   })
 
   test('a Tailwind package in any workspace manifest (tools/ included) and a Tailwind directive in any stylesheet are found', () => {

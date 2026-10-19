@@ -39,4 +39,20 @@ describe('Box', () => {
     expect(container.querySelector('[data-bodyless]')).not.toBeNull()
     expect(container.querySelector('.su-box__body')).toBeNull()
   })
+
+  // R7: a host says what it needs through these, never by reaching into the frame.
+  test('marks a reference frame, a dim and a fill on its own elements', () => {
+    const { container } = render(
+      <Box reference dim fill>
+        Body
+      </Box>
+    )
+    expect(container.querySelector('.su-box')?.hasAttribute('data-fill')).toBe(true)
+    expect(container.querySelector('.su-entity-row__frame')?.hasAttribute('data-reference')).toBe(
+      true
+    )
+    expect(container.querySelector('.su-entity-row__main')?.hasAttribute('data-dim')).toBe(true)
+    const plain = render(<Box>Body</Box>).container
+    expect(plain.querySelector('[data-fill], [data-reference], [data-dim]')).toBeNull()
+  })
 })

@@ -180,7 +180,7 @@ function box(name: string) {
   return screen.getByRole('region', { name })
 }
 
-const isReference = (el: HTMLElement) => el.classList.contains('su-play-unit--reference')
+const isReference = (el: HTMLElement) => el.querySelector(':scope > [data-reference]') !== null
 
 describe('the Units column (play.md §4)', () => {
   test('its heading is a Slab, and each unit is its own box (play.md §12)', async () => {

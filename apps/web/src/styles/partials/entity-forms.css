@@ -44,6 +44,16 @@
   border-style: dashed;
 }
 
+/* A Play reference unit (ADR-051 §5, `Box`'s `reference`): dashed, read-only. */
+.su-entity-row__frame[data-reference] {
+  border-style: dashed;
+}
+
+/* A host's dim (`Row`'s `dim`): Play's action not on hand, or locked. */
+.su-entity-row__main[data-dim] {
+  opacity: 0.7;
+}
+
 /* A Row that is its head alone (`data-bodyless`: a base class, a roll table,
    with no facts and no lead to show) is its head's height wherever it stands:
    stretched by a grid or a flex line beside bodied Rows, its frame keeps the

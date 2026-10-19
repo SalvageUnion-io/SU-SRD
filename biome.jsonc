@@ -585,6 +585,47 @@
       }
     },
     {
+      // R7 (docs/design-system/hard-rules.md): Play draws with the shared
+      // primitives, so entity markup lives only in `components/entity/`.
+      // Play takes a form (`Row`, `Entity`) or the public barrel, never an
+      // entity part (`Head`, `Chips`, `paint`) by its path. Its stylesheets'
+      // half is the `styling` rule set's `entity-markup`. Restates the root
+      // rule's options in full: Biome overrides REPLACE a rule's options.
+      "includes": ["apps/web/src/play/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses).",
+                  "react": {
+                    "importNames": ["forwardRef"],
+                    "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
+                  }
+                },
+                "patterns": [
+                  {
+                    "group": ["@/*"],
+                    "message": "Use relative imports instead of @/ path aliases."
+                  },
+                  {
+                    "group": ["salvageunion-reference/lib/**"],
+                    "message": "Import from 'salvageunion-reference' or a declared subpath export — never a path inside the package."
+                  },
+                  {
+                    "group": ["**/entity/parts", "**/entity/parts/**"],
+                    "message": "R7: Play draws with the shared primitives. Take an entity form (`Row`, `Entity`) or the components barrel; an entity part is `components/entity/`'s own."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
       "includes": ["apps/web/src/routes/**"],
       "linter": {
         "rules": {

@@ -13,8 +13,7 @@
  * derived maximum, clamped here; `proposals.apply` still parses it on the
  * server. Tapping a seat card picks its pilot and moves focus to To.
  *
- * A `TitledBox` filling its panel and scrolling its own body there
- * (`.su-dash-box`).
+ * A `TitledBox` filling its panel and scrolling its own body there (`fill`).
  *
  * Presentational: the Mediator's screen owns the target (a seat sets it) and
  * the write.
@@ -131,7 +130,7 @@ export function ProposeDock({
   }
 
   return (
-    <TitledBox as="section" title="Propose a change" titleAs="h2" className="su-dash-box">
+    <TitledBox as="section" title="Propose a change" titleAs="h2" fill>
       <p style={MUTED}>The player decides.</p>
       <div style={ROW}>
         <Field label="Target" htmlFor={`${id}-target`}>

@@ -110,7 +110,7 @@ const leftRailScript = (text: string) =>
 const DASHED_SELECTORS: readonly [RegExp, string][] = [
   [/\[data-user-made\]/, 'user-made: an entity frame, Token body or pill a player made'],
   [/\.su-badge--dashed\b/, 'user-made: the User-made stamp'],
-  [/\.su-play-unit--reference\b/, 'a Play reference unit (ADR-051 §5)'],
+  [/\[data-reference\]/, 'a Play reference unit (ADR-051 §5): `Box`’s `reference`'],
   [/\.su-field__write-cue\b/, 'an edit field: a writable value box'],
   [/\.su-edit-cue:hover\b/, 'an edit field: the hover edit cue'],
   [/\.su-btn--pencil\b/, 'an edit field: the pencil control on an editable line'],

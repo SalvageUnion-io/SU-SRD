@@ -85,6 +85,24 @@
   padding: 0;
 }
 
+/* A box that fills its panel (`fill`: the Mediator's propose dock): the box
+   and its frame shrink to the panel, and the body scrolls in what is left
+   under the head. */
+.su-box[data-fill] {
+  height: 100%;
+  min-height: 0;
+}
+
+.su-box[data-fill] > .su-entity-row__frame,
+.su-box[data-fill] > .su-entity-row__frame > .su-entity-row__main {
+  min-height: 0;
+}
+
+.su-box[data-fill] > .su-entity-row__frame > .su-entity-row__main > .su-box__body {
+  min-height: 0;
+  overflow-y: auto;
+}
+
 /* FEED LINE (`containers/FeedLine.tsx`): one entry in a feed (a roll, an
    alert, a proposal, a change), a paper line in an ink-20 chrome frame. The
    text takes the room; the end group (time, state, actions) wraps under it
