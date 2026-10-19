@@ -1,8 +1,9 @@
 /**
  * PlayVital — one vital in a Play unit box (play.md §4): the instrument
  * `VitalGauge` (its Compact rung: label, value/max, the pips) and, while the
- * unit is live, a − / + pair beside it. A live gauge is also the gauge's own
- * slider (a click on a pip, the arrow keys); a reference unit's is a read-out.
+ * unit is live, its − / + (`steppers`: the `StepButton` pair an editable
+ * `Stat` draws, ruleset §6.3). A live gauge is also the gauge's own slider (a
+ * click on a pip, the arrow keys); a reference unit's is a read-out.
  *
  * In Downtime the mech's vitals say what the current step will restore:
  * `restoresTo` reads after the gauge as "→ 20", the gauge still showing what
@@ -15,8 +16,7 @@
 import { ArrowRight } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import type { CSSVarStyle } from '../components/index'
-import { Button, tokens, VitalGauge } from '../components/index'
-import { nudge } from './units.model'
+import { tokens, VitalGauge } from '../components/index'
 
 type VitalTone = 'pilot' | 'mech' | 'crawler' | 'adversary'
 
@@ -85,6 +85,7 @@ export function PlayVital({
           danger={danger}
           readOnly={!live}
           onChange={onChange}
+          steppers={live}
           style={TONES[tone]}
         />
       </div>
@@ -94,28 +95,6 @@ export function PlayVital({
           <ArrowRight size={tokens.iconSize.compact} aria-hidden="true" style={GLYPH} />{' '}
           {restoresTo}
         </span>
-      ) : null}
-      {live ? (
-        <>
-          <Button
-            variant="ghost"
-            size="compact"
-            aria-label={`${label} −1`}
-            disabled={value <= 0}
-            onClick={() => onChange(nudge(value, -1, max))}
-          >
-            −
-          </Button>
-          <Button
-            variant="ghost"
-            size="compact"
-            aria-label={`${label} +1`}
-            disabled={value >= max}
-            onClick={() => onChange(nudge(value, 1, max))}
-          >
-            +
-          </Button>
-        </>
       ) : null}
     </div>
   )

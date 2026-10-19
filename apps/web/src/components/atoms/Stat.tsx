@@ -11,8 +11,10 @@ import { Tooltip } from './Tooltip'
  * The canonical stat/value primitive (canonical primitive language §2): the
  * label-first `[label | value]` cell, in either material — `surface="plate"`
  * (default, the stamp pair: every chip) or `surface="plain"` (running text).
- * With `mode="edit"` and `onChange` it grows a +/- stepper pair. There is no
- * other anatomy: the centred square value box was retired for chips.
+ * With `mode="edit"` and `onChange` it grows a +/- stepper pair: the one
+ * stepper for a count (ruleset §6.2), a sheet's Uses and a wizard's copies
+ * alike; a vital's is `VitalGauge`'s `steppers`, the same `StepButton` pair.
+ * There is no other anatomy: the centred square value box was retired for chips.
  *
  * The plate is ONE canonical ink-on-paper cell — no per-stat fill or value
  * colour. State is carried entirely by the BORDER colour via the `state` prop
@@ -129,6 +131,12 @@ type HorizontalValueProps = {
   mode?: 'read' | 'edit'
   min?: number
   /**
+   * The stepper's upper bound where the reading has none to print: a wizard's
+   * copy count, whose ceiling is what the shared budget still allows. `+`
+   * disables at it; nothing draws it. With `max` set, the lower of the two.
+   */
+  ceiling?: number
+  /**
    * Increment per press (default 1). The crawler Trading Bay trades scrap in
    * fixed exchange lots, so its quantity stepper moves by the lot size rather
    * than by one — it had grown a hand-assembled `StepButton` pair for exactly
@@ -184,6 +192,7 @@ function HorizontalValue({
   onChange,
   mode = 'read',
   min = 0,
+  ceiling,
   step = 1,
   stepperLabel,
   hoverText,
@@ -307,8 +316,15 @@ function HorizontalValue({
   const canEdit = mode === 'edit' && onChange !== undefined && Number.isFinite(numericValue)
   if (!canEdit) return withHover(cell)
 
+  const top = Math.min(max ?? Number.POSITIVE_INFINITY, ceiling ?? Number.POSITIVE_INFINITY)
   const atMin = numericValue <= min
-  const atMax = max !== undefined && numericValue >= max
+  const atMax = numericValue >= top
+  // A press never reaches the Stat's host: a picker card's own click adds a
+  // copy, so a `−` that bubbled there would undo itself.
+  const press = (next: number) => (event: { stopPropagation: () => void }) => {
+    event.stopPropagation()
+    onChange?.(next)
+  }
   // Buttons sit SIDE BY SIDE after the value cell and stretch to its height, so
   // the stepper adds no vertical height to the row: the shared `StepButton` at
   // its `cell` fit, its plate set in CSS by the ground the Stat is printed on.
@@ -327,7 +343,7 @@ function HorizontalValue({
       <StepButton
         fit="cell"
         aria-label={`Decrease ${stepName}`}
-        onClick={() => onChange?.(Math.max(min, numericValue - step))}
+        onClick={press(Math.max(min, numericValue - step))}
         disabled={atMin}
         style={stepStyle}
       >
@@ -336,10 +352,8 @@ function HorizontalValue({
       <StepButton
         fit="cell"
         aria-label={`Increase ${stepName}`}
-        onClick={() =>
-          onChange?.(max !== undefined ? Math.min(max, numericValue + step) : numericValue + step)
-        }
-        disabled={!!atMax}
+        onClick={press(Math.min(top, numericValue + step))}
+        disabled={atMax}
         style={stepStyle}
       >
         +

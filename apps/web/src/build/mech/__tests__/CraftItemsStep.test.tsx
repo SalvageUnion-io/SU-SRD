@@ -30,9 +30,9 @@ describe('CraftItemsStep — Tech-1 filter', () => {
     )
     const higher = SalvageUnionReference.Systems.find((s) => s.techLevel === 2)
     expect(higher).toBeDefined()
-    expect(screen.queryByRole('button', { name: `Add one ${must(higher).name}` })).toBeNull()
+    expect(screen.queryByRole('button', { name: `Increase ${must(higher).name} count` })).toBeNull()
     const legal = tl1System(() => true)
-    expect(screen.getByRole('button', { name: `Add one ${legal.name}` })).toBeTruthy()
+    expect(screen.getByRole('button', { name: `Increase ${legal.name} count` })).toBeTruthy()
   })
 })
 
@@ -50,7 +50,8 @@ describe('CraftItemsStep — budget clamps (single source of truth)', () => {
       />
     )
     expect(
-      screen.getByRole<HTMLButtonElement>('button', { name: `Add one ${item.name}` }).disabled
+      screen.getByRole<HTMLButtonElement>('button', { name: `Increase ${item.name} count` })
+        .disabled
     ).toBe(false)
 
     // With the one copy taken (scrap now 1, sv 2), a second overspends → + off.
@@ -64,7 +65,8 @@ describe('CraftItemsStep — budget clamps (single source of truth)', () => {
       />
     )
     expect(
-      screen.getByRole<HTMLButtonElement>('button', { name: `Add one ${item.name}` }).disabled
+      screen.getByRole<HTMLButtonElement>('button', { name: `Increase ${item.name} count` })
+        .disabled
     ).toBe(true)
   })
 
@@ -115,10 +117,10 @@ describe('CraftItemsStep — budget clamps (single source of truth)', () => {
       />
     )
     const plus = screen.getByRole<HTMLButtonElement>('button', {
-      name: `Add one ${item.name}`,
+      name: `Increase ${item.name} count`,
     })
     const minus = screen.getByRole<HTMLButtonElement>('button', {
-      name: `Remove one ${item.name}`,
+      name: `Decrease ${item.name} count`,
     })
     expect(plus.disabled).toBe(true) // maxCount === count
     expect(minus.disabled).toBe(false) // refunds stay available

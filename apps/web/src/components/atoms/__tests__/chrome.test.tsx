@@ -15,6 +15,7 @@ import { ModeDoor } from '../ModeDoor'
 import { Panel } from '../Panel'
 import { POSTER_STAMP } from '../posterStamp'
 import { Slab } from '../Slab'
+// biome-ignore lint/style/noRestrictedImports: the atom's own test; its hosts are Stat and VitalGauge (R12)
 import { StepButton } from '../SmallButtons'
 
 function rootEl(container: Element): HTMLElement {

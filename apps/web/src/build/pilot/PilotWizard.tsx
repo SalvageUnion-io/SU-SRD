@@ -114,7 +114,7 @@ type PilotWizardProps = {
  *
  *   - illegal options are FILTERED OUT (core classes only, legal Level-1
  *     abilities only, Tech 1 equipment only) — never rendered;
- *   - exactly 1 ability (radio) and exactly 2 equipment picks (count-stepper,
+ *   - exactly 1 ability (radio) and exactly 2 equipment picks (Qty stepper,
  *     duplicates allowed) — Next is gated by `pilotCreationStepGate` and the
  *     unmet requirement renders in the footerNote;
  *   - cross-step invalidation (class change clears a now-illegal ability) and
@@ -227,7 +227,7 @@ export function PilotWizard({
   }
 
   /**
-   * Equipment count-stepper write: duplicates allowed, the total
+   * Equipment Qty stepper write: duplicates allowed, the total
    * clamped at the 2-pick budget; decrements drop the OLDEST copies first
    * (the same determinism as the draft clamp).
    */

@@ -3,7 +3,6 @@ import { useCallback } from 'react'
 import { iconSize, space } from '../../design/tokens'
 import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
-import { CountStepper } from '../atoms/CountStepper'
 import type {
   ReferenceEntityControl,
   ReferenceEntityControlVariant,
@@ -35,10 +34,7 @@ function ControlButton({
   onClickWithStop: (e: React.MouseEvent, onClick: () => void) => void
 }) {
   // Typed item variants — render a primitive instead of an action button.
-  // Precedence: stepper → badge → status → link → button.
-  if (control.stepper) {
-    return <CountStepper {...control.stepper} />
-  }
+  // Precedence: badge → status → link → button (a stepper is the rail's `Stat`).
   if (control.badge !== undefined) {
     return (
       <Badge shape="stamp" size="mini">

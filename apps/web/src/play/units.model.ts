@@ -114,8 +114,3 @@ export function hangarMechs(options: readonly BoardOption[], shownId: string | n
       option.mechId !== shownId && (option.state === 'yours' || option.state === 'destroyed')
   )
 }
-
-/** A − / + press: one step, never below 0 or above the max. */
-export function nudge(value: number, by: number, max: number): number {
-  return Math.min(Math.max(0, max), Math.max(0, value + by))
-}

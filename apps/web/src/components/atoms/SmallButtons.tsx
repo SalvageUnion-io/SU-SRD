@@ -30,8 +30,9 @@ const STEP_BUTTON = {
 const SQUARE = { ...STEP_BUTTON, height: space[24], width: space[24] } satisfies CSSProperties
 
 /**
- * The one +/− stepper button (design-spec §2.10 `stepbtn`): CountStepper's
- * pill and an editable `Stat` both draw it. Its plate is the ink block with a
+ * The one +/− stepper button (design-spec §2.10 `stepbtn`): an editable
+ * `Stat` and `VitalGauge`'s `steppers` draw it, and nothing else does (hard
+ * rule R12, Biome's `noRestrictedImports`). Its plate is the ink block with a
  * paper glyph; on an ink ground (the frame's `data-ground`, chrome K1) it
  * inverts to a paper block with an ink glyph, in CSS. `square` stays visually 24px on
  * desktop; `.su-step-btn` grows the tap area to the 44px touch minimum below

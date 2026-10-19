@@ -24,7 +24,7 @@ type CraftItemsStepProps = {
  * mode, HARD: only Tech 1 items render (package
  * `isLegalCreationSystem`/`isLegalCreationModule`); each copy costs its SV
  * from the shared 20-Scrap pool and its `slotsRequired` from this step's
- * slot budget. Duplicates are allowed via the SelCard count-stepper; a `+`
+ * slot budget. Duplicates are allowed via the card's Qty stepper (`Stat`); a `+`
  * disables the moment one more copy would overspend either budget, and a
  * card whose FIRST copy no longer fits dims with the reason chip (mockup
  * Screen 02 `NEEDS 6 SLOTS · 2 LEFT`) — visible, never hidden, so the
@@ -92,9 +92,10 @@ export function CraftItemsStep({
                 {
                   key: 'qty',
                   stepper: {
-                    subject: name,
-                    count,
-                    max: count + maxAdd,
+                    label: 'Qty',
+                    subject: `${name} count`,
+                    value: count,
+                    ceiling: count + maxAdd,
                     onChange: (next) => onCountChange(name, next),
                   },
                 },

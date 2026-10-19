@@ -351,3 +351,24 @@ describe('VitalGauge — compact pip rows', () => {
     cleanup()
   })
 })
+
+describe('VitalGauge steppers (the compact rung)', () => {
+  test('a live compact gauge draws the one − / + pair, clamped at its ends', () => {
+    const onChange = mock((_: number) => {})
+    render(
+      <VitalGauge size="compact" label="HP" value={10} max={10} onChange={onChange} steppers />
+    )
+    const plus = screen.getByRole<HTMLButtonElement>('button', { name: 'Increase HP' })
+    expect(plus.disabled).toBe(true)
+    expect(plus.classList.contains('su-step-btn')).toBe(true)
+    fireEvent.click(screen.getByRole('button', { name: 'Decrease HP' }))
+    expect(onChange).toHaveBeenCalledWith(9)
+    cleanup()
+  })
+
+  test('a read-out has none', () => {
+    render(<VitalGauge size="compact" label="HP" value={4} max={10} readOnly steppers />)
+    expect(screen.queryByRole('button')).toBeNull()
+    cleanup()
+  })
+})

@@ -11,6 +11,7 @@ import {
   switchingFindings,
 } from '../rules/controls'
 import { glyphFindings } from '../rules/copyTerms'
+import { loneSignFindings } from '../rules/loneSign'
 
 /**
  * The `controls` rule set (hard rules R23, R29) and the copy set's `glyph`
@@ -106,6 +107,19 @@ describe('copy glyph', () => {
       'export const tip = `‹ back`',
     ].join('\n')
     expect(lines(glyphFindings('a.tsx', source))).toEqual([4])
+  })
+  test('a Button whose whole text is a sign is a hand-built stepper (R12)', () => {
+    const source = [
+      'export const A = () => <Button onClick={f}>−</Button>',
+      'export const B = () => <button type="button">\n  +\n</button>',
+      "export const C = () => <Button>{'-'}</Button>",
+      'export const D = () => <Button>&minus;</Button>',
+      'export const E = () => <Button>+ Scrap</Button>',
+      'export const F = () => <StepButton aria-label="Increase HP">+</StepButton>',
+      'export const G = () => <span>−</span>',
+      'export const H = () => <Button><Plus size={iconSize.mini} /></Button>',
+    ].join('\n')
+    expect(lines(loneSignFindings('a.tsx', source))).toEqual([1, 2, 5, 6])
   })
 })
 

@@ -49,8 +49,8 @@ describe('a live pilot', () => {
   test('− / + on HP and AP write currentHP / currentAP, as the sheet does', () => {
     const { store, updates } = recordingStore()
     render(<PlayPilotUnit pilot={pilot} crawler={null} live store={store} />)
-    fireEvent.click(screen.getByRole('button', { name: 'HP −1' }))
-    fireEvent.click(screen.getByRole('button', { name: 'AP +1' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Decrease HP' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Increase AP' }))
     expect(updates).toEqual([
       { type: 'pilot', id: 'w-pilot', patch: { currentHP: 6 }, meta: PLAY_TXN },
       { type: 'pilot', id: 'w-pilot', patch: { currentAP: 4 }, meta: PLAY_TXN },
@@ -89,9 +89,9 @@ describe('a boarded mech', () => {
   test('SP, EP and Heat write currentSP, currentEP and currentHeat', () => {
     const { store, updates } = recordingStore()
     render(<PlayMechUnit mech={mech} place="boarded" live range="Close" store={store} />)
-    fireEvent.click(screen.getByRole('button', { name: 'SP +1' }))
-    fireEvent.click(screen.getByRole('button', { name: 'EP −1' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Heat −1' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Increase SP' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Decrease EP' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Decrease Heat' }))
     expect(updates).toEqual([
       { type: 'mech', id: 'w-mech', patch: { currentSP: 6 }, meta: PLAY_TXN },
       { type: 'mech', id: 'w-mech', patch: { currentEP: 1 }, meta: PLAY_TXN },
@@ -109,8 +109,10 @@ describe('a boarded mech', () => {
         store={store}
       />
     )
-    expect(screen.getByRole('button', { name: 'SP +1' }).hasAttribute('disabled')).toBe(true)
-    expect(screen.getByRole('button', { name: 'Heat −1' }).hasAttribute('disabled')).toBe(true)
+    expect(screen.getByRole('button', { name: 'Increase SP' }).hasAttribute('disabled')).toBe(true)
+    expect(screen.getByRole('button', { name: 'Decrease Heat' }).hasAttribute('disabled')).toBe(
+      true
+    )
   })
 })
 
@@ -218,7 +220,7 @@ describe('a live crawler', () => {
         store={store}
       />
     )
-    fireEvent.click(screen.getByRole('button', { name: 'SP −1' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Decrease SP' }))
     expect(updates).toEqual([
       { type: 'crawler', id: 'w-crawler', patch: { currentSP: 9 }, meta: PLAY_TXN },
     ])

@@ -48,6 +48,7 @@ import type { Finding, Rule, RuleSet } from '../lib/ruleEngine'
 import { listFiles } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
 import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
+import { loneSignFindings } from './loneSign'
 
 // ── the corpus ───────────────────────────────────────────────────────────────
 
@@ -491,7 +492,10 @@ export function glyphFindings(file: string, source: string): Finding[] {
 }
 
 function collectGlyphs(root: string): Finding[] {
-  return copyFiles(root).flatMap((f) => glyphFindings(f, readFileSync(join(root, f), 'utf8')))
+  return copyFiles(root).flatMap((f) => {
+    const source = readFileSync(join(root, f), 'utf8')
+    return [...glyphFindings(f, source), ...loneSignFindings(f, source)]
+  })
 }
 
 // ── the rules ───────────────────────────────────────────────────────────────
@@ -511,8 +515,8 @@ const RULES: readonly Rule[] = [
   },
   {
     id: 'glyph',
-    rule: "hard rule R23 (chrome K11) — back is ChevronLeft and the place's name, never ←, ‹ or &larr;; next is ChevronRight and the place's name, never ›, → or &rsaquo; drawn as JSX text; ⋯ is lucide's Ellipsis, never a text ⋯",
-    fix: 'draw back as `<BackLabel to="Hangar" />` and next as `<NextLabel to="Stats" />` inside the link or button (`Button back` for a way back); a value\'s change (6 → 4) is lucide\'s `ArrowRight` at the line\'s Size; draw ⋯ as `<Ellipsis size={iconSize…} />` (a menu: HeaderMenu `variant="overflow"`)',
+    rule: "hard rule R23 (chrome K11) — back is ChevronLeft and the place's name, never ←, ‹ or &larr;; next is ChevronRight and the place's name, never ›, → or &rsaquo; drawn as JSX text; ⋯ is lucide's Ellipsis, never a text ⋯; and R12's one stepper — no Button whose whole text is − or +",
+    fix: 'draw back as `<BackLabel to="Hangar" />` and next as `<NextLabel to="Stats" />` inside the link or button (`Button back` for a way back); a value\'s change (6 → 4) is lucide\'s `ArrowRight` at the line\'s Size; draw ⋯ as `<Ellipsis size={iconSize…} />` (a menu: HeaderMenu `variant="overflow"`); step a count with `<Stat mode="edit" onChange={…} />`, a vital with `<VitalGauge steppers onChange={…} />`',
     mode: 'zero',
   },
 ]

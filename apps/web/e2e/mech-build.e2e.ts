@@ -30,7 +30,7 @@ test('build a mech from scratch', async ({ page }) => {
   await pickByName(page, 'Mule')
 
   // Systems — install one, so the created mech carries a real loadout.
-  const addCargoPod = page.getByRole('button', { name: /^Add (one )?Cargo Pod$/i })
+  const addCargoPod = page.getByRole('button', { name: /^Increase Cargo Pod count$/i })
   await advanceUntilVisible(page, addCargoPod)
   await installLoadoutItem(page, 'Cargo Pod')
 

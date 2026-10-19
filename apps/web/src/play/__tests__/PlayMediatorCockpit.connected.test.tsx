@@ -304,7 +304,7 @@ describe('the table', () => {
   test('the crawler is the Units column’s box, live for the Mediator', async () => {
     await renderCockpit()
     const crawler = within(screen.getByRole('region', { name: 'Crawler: Tenacity' }))
-    await click(crawler.getByRole('button', { name: 'SP −1' }))
+    await click(crawler.getByRole('button', { name: 'Decrease SP' }))
     await waitFor(() =>
       expect(useEntityStore.getState().get('crawler', tenacity.id)?.currentSP).toBe(17)
     )
@@ -317,7 +317,7 @@ describe('the Opposition', () => {
     await renderCockpit()
     expect(screen.getByRole('region', { name: 'NPC: Strikebreaker' })).toBeTruthy()
     const scylla = within(screen.getByRole('region', { name: 'Bio-Titan: Scylla' }))
-    await click(scylla.getByRole('button', { name: 'SP −1' }))
+    await click(scylla.getByRole('button', { name: 'Decrease SP' }))
     expect(sent).toEqual([
       { name: 'mediator:updateNpc', args: { npcId: 'n-scylla', patch: { currentHp: 29 } } },
     ])

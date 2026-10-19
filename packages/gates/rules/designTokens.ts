@@ -111,7 +111,7 @@ const TEXTURE_FORBIDDEN: readonly RegExp[] = [
   /Button\w*\.tsx?$/,
   /\/buttonVariants\.ts$/,
   // Fields: the input primitives.
-  /\/(?:atoms|containers)\/(?:Field|FieldError|InlineEditField|inputs|Sel|Radio|RadioCardGroup|CountStepper)\.tsx$/,
+  /\/(?:atoms|containers)\/(?:Field|FieldError|InlineEditField|inputs|Sel|Radio|RadioCardGroup)\.tsx$/,
   /\/SearchField\.tsx$/,
   // Tooltips: the tooltip primitive.
   /Tooltip\w*\.tsx$/,

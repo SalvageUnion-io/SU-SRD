@@ -11,7 +11,6 @@ import {
   bayChips,
   hangarMechs,
   mechRestorePreview,
-  nudge,
   RESTORE_STEP_NAME,
   unitLiveness,
 } from '../units.model'
@@ -144,13 +143,5 @@ describe('hangarMechs', () => {
       option('wreck', 'destroyed'),
     ]
     expect(hangarMechs(options, 'shown').map((o) => o.mechId)).toEqual(['old-faithful', 'wreck'])
-  })
-})
-
-describe('nudge', () => {
-  test('one step, held to 0…max', () => {
-    expect(nudge(3, 1, 5)).toBe(4)
-    expect(nudge(5, 1, 5)).toBe(5)
-    expect(nudge(0, -1, 5)).toBe(0)
   })
 })

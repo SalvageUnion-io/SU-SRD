@@ -11,9 +11,9 @@ type SUREquipmentAccessor = {
 type EquipmentStepProps = {
   /** Picked slugs — duplicates allowed (one entry per copy). */
   selectedEquipment: string[]
-  /** Set the count of copies for a slug (count-stepper). */
+  /** Set the count of copies for a slug (its Qty stepper). */
   onCountChange: (slug: string, next: number) => void
-  /** Selection cap: the total picks the count-steppers are clamped at. */
+  /** Selection cap: the total picks the Qty steppers are clamped at. */
   budget: number
   /** Injectable SUR for testing. */
   _sur?: { Equipment: SUREquipmentAccessor }
@@ -23,7 +23,7 @@ type EquipmentStepProps = {
  * Step 3 · Choose your Equipment (Pilot Bay p.19), enforced HARD:
  * only Tech 1 equipment renders (package `isLegalCreationEquipment` —
  * higher TLs are never shown), exactly `budget` (2) picks via per-card
- * count-steppers, DUPLICATES ALLOWED; at the budget every `+` disables (cards
+ * Qty steppers, DUPLICATES ALLOWED; at the budget every `+` disables (cards
  * stay legible, never dimmed).
  */
 export function EquipmentStep({
@@ -73,9 +73,10 @@ export function EquipmentStep({
                 {
                   key: 'qty',
                   stepper: {
-                    subject: item.name,
-                    count,
-                    max: count + remaining,
+                    label: 'Qty',
+                    subject: `${item.name} count`,
+                    value: count,
+                    ceiling: count + remaining,
                     onChange: (next) => onCountChange(slug, next),
                   },
                 },

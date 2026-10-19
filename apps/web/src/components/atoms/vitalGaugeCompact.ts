@@ -55,3 +55,14 @@ export const C_SHELL = {
   alignItems: 'center',
   gap: space[8],
 } satisfies CSSProperties
+
+/** The compact rung's − / + pair: one Compact square each, a hairline apart. */
+export const STEPPERS = {
+  display: 'inline-flex',
+  flexShrink: 0,
+  gap: space[4],
+} satisfies CSSProperties
+export const STEP = {
+  height: 'var(--size-compact)',
+  width: 'var(--size-compact)',
+} satisfies CSSProperties

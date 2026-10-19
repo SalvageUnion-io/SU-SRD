@@ -6,7 +6,7 @@
  *   Motto → Keepsake → Appearance → Review → submit
  *
  * Creation is HARD-enforced (1 ability radio, exactly 2 Tech-1 equipment
- * via count-steppers, gated Next). Uses the real wizard, real
+ * via Qty steppers, gated Next). Uses the real wizard, real
  * SalvageUnionReference data, real Zod validation, and the real in-memory
  * entityStore (signed in, server commits stubbed).
  *
@@ -138,12 +138,14 @@ describe('PilotWizard — happy path (book order, hard enforcement)', () => {
     await pick(item.name) // card click adds copy #1
     expect(screen.getByText(/Choose 1 more equipment item to continue/i)).toBeTruthy()
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: `Add one ${item.name}` })) // copy #2
+      fireEvent.click(screen.getByRole('button', { name: `Increase ${item.name} count` })) // copy #2
     })
     expect(screen.getByTestId('equipment-count').textContent).toContain('2 / 2')
     expect(getNextButton().disabled).toBe(false)
     // At the budget every '+' disables.
-    const plusButtons = screen.getAllByRole<HTMLButtonElement>('button', { name: /^Add one / })
+    const plusButtons = screen.getAllByRole<HTMLButtonElement>('button', {
+      name: /^Increase .* count$/,
+    })
     for (const plus of plusButtons) {
       expect(plus.disabled).toBe(true)
     }
@@ -253,7 +255,7 @@ describe('PilotWizard — hard creation enforcement', () => {
     }
   })
 
-  it('equipment count-stepper supports duplicates and the − removes a copy', async () => {
+  it('equipment Qty stepper supports duplicates and the − removes a copy', async () => {
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
     await clickNext()
     await pick('Engineer')
@@ -262,8 +264,8 @@ describe('PilotWizard — hard creation enforcement', () => {
 
     const item = firstTech1Equipment()
     const plus = () =>
-      screen.getByRole<HTMLButtonElement>('button', { name: `Add one ${item.name}` })
-    const minus = () => screen.getByRole('button', { name: `Remove one ${item.name}` })
+      screen.getByRole<HTMLButtonElement>('button', { name: `Increase ${item.name} count` })
+    const minus = () => screen.getByRole('button', { name: `Decrease ${item.name} count` })
 
     await act(async () => {
       fireEvent.click(plus())

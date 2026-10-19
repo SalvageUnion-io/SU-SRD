@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { render, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { Stat } from '../Stat'
 
 // The horizontal anatomy: the black/white [label | value] chip.
@@ -55,5 +55,30 @@ describe('Stat (horizontal)', () => {
     const cell = container.querySelector<HTMLElement>('.su-stat-cell')
     expect(cell?.classList.contains('su-stat-cell--wrap')).toBe(false)
     expect(within(container).getByText('Close').classList).not.toContain('su-stat-plate--wrap')
+  })
+
+  test('edit mode: the one stepper, its `ceiling` an unprinted cap, its press kept from the host', () => {
+    const changes: number[] = []
+    let hostClicks = 0
+    render(
+      // biome-ignore lint/a11y/noStaticElementInteractions: a stand-in for a picker card's click
+      // biome-ignore lint/a11y/useKeyWithClickEvents: a stand-in for a picker card's click
+      <div onClick={() => hostClicks++}>
+        <Stat
+          label="Qty"
+          value={1}
+          ceiling={1}
+          mode="edit"
+          onChange={(n) => changes.push(n)}
+          stepperLabel="Med Kit count"
+        />
+      </div>
+    )
+    const plus = screen.getByRole<HTMLButtonElement>('button', { name: 'Increase Med Kit count' })
+    expect(plus.disabled).toBe(true)
+    expect(screen.queryByText('/1')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Decrease Med Kit count' }))
+    expect(changes).toEqual([0])
+    expect(hostClicks).toBe(0)
   })
 })

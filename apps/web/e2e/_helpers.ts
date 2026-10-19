@@ -177,18 +177,14 @@ export async function pickByName(page: Page, name: string): Promise<void> {
 
 /**
  * Install a System/Module by name on a mech wizard craft step. Each entity card
- * carries its own aria-labelled "Add one {name}" button that appends one copy
- * (installing the same System/Module twice is rules-legal), so we target that
- * button rather than clicking the card.
+ * carries its Qty stepper (`Stat`), whose "Increase {name} count" appends one
+ * copy (installing the same System/Module twice is rules-legal), so we target
+ * that button rather than clicking the card.
  */
 export async function installLoadoutItem(page: Page, name: string): Promise<void> {
-  // The button reads "Add one <name>" on the craft steps ("one" because
-  // installing the same System/Module twice is rules-legal, so each press
-  // appends a single copy). Accept the bare "Add <name>" too rather than
-  // pinning whichever wording is current.
-  const label = new RegExp(`^Add (one )?${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i')
-  const add = page.getByRole('button', { name: label })
-  await expect(add, `"Add one ${name}" install button should render`).toBeVisible({
+  // The stepper's `+` reads "Increase <name> count": each press appends one copy.
+  const add = page.getByRole('button', { name: `Increase ${name} count`, exact: true })
+  await expect(add, `"Increase ${name} count" should render`).toBeVisible({
     timeout: 15_000,
   })
   await add.click()

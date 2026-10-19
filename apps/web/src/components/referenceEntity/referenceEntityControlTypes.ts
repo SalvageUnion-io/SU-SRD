@@ -10,16 +10,21 @@ export type ReferenceEntityControl = {
   // primitive instead of an action button. They let `controls` carry every
   // card affordance (quantity steppers, status pills, nav), so no action ever
   // renders in the footer. Precedence: stepper → badge → status → link → button.
-  /** Renders a bounded −/readout/+ CountStepper (quantity control). */
+  /**
+   * A count's stepper: the rail draws it as `Stat` in edit mode (`[QTY | 1] − +`,
+   * the one stepper, ruleset §6.2), never through `ControlButtons`.
+   */
   stepper?: {
-    count: number
+    /** The cell's label ("Qty", "Uses"). */
+    label: string
+    value: number
     onChange: (next: number) => void
-    /** Subject noun for the accessible labels (e.g. the entity name). */
+    /** The noun the − / + are named by: "Decrease {subject}", "Increase {subject}". */
     subject: string
-    min?: number
+    /** A printed cap: the cell reads `value/max` ("Uses 3/5"). */
     max?: number
-    /** Readout prefix — with `max`, reads "{label} {count}/{max}" (e.g. "Uses 3/5"). */
-    label?: string
+    /** An unprinted cap: `+` disables at it (what a wizard's budget still allows). */
+    ceiling?: number
   }
   /** Renders a read-only status stamp (Badge) — e.g. "Used", "Uses 3/5". */
   badge?: ReactNode

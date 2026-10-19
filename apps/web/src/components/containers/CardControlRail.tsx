@@ -1,12 +1,13 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { Fragment } from 'react'
 import { space } from '../../design/tokens'
+import { Stat } from '../atoms/Stat'
 import { ControlButtons } from '../compositions/ControlButtons'
 import type { ReferenceEntityControl } from '../referenceEntity/referenceEntityControlTypes'
 
 type CardControlRailProps = {
   /** Every card affordance — action buttons and the typed item variants
-   * (stepper / badge / status / link). */
+   * (stepper, drawn as `Stat`; badge / status / link). */
   controls?: ReferenceEntityControl[]
   /** Extra nodes rendered between the status cell and the action cluster —
    * the entity card's status and selection seals, which carry bespoke
@@ -61,10 +62,16 @@ export function CardControlRail({ controls, seals }: CardControlRailProps) {
   // so a card carrying both a condition and a selection seal keeps the
   // condition leftmost, where it has always sat.
   const statusControls = visible.filter((c) => c.status)
-  const actionControls = visible.filter((c) => !c.status)
+  const stepperControls = visible.filter((c) => c.stepper && !c.status)
+  const actionControls = visible.filter((c) => !c.status && !c.stepper)
   const visibleSeals = (seals ?? []).filter(Boolean)
 
-  if (statusControls.length === 0 && actionControls.length === 0 && visibleSeals.length === 0) {
+  if (
+    statusControls.length === 0 &&
+    stepperControls.length === 0 &&
+    actionControls.length === 0 &&
+    visibleSeals.length === 0
+  ) {
     return null
   }
 
@@ -75,6 +82,22 @@ export function CardControlRail({ controls, seals }: CardControlRailProps) {
         // biome-ignore lint/suspicious/noArrayIndexKey: a fixed positional rail (selection seal, then count seal) — the index IS the identity
         <Fragment key={i}>{seal}</Fragment>
       ))}
+      {/* A count is the one stepper, `Stat` in edit mode at the rail's Mini Size. */}
+      {stepperControls.map(({ key, stepper }) =>
+        stepper ? (
+          <Stat
+            key={key}
+            label={stepper.label}
+            value={stepper.value}
+            max={stepper.max}
+            ceiling={stepper.ceiling}
+            size="mini"
+            mode="edit"
+            onChange={stepper.onChange}
+            stepperLabel={stepper.subject}
+          />
+        ) : null
+      )}
       {actionControls.length > 0 && <ControlButtons controls={actionControls} />}
     </div>
   )

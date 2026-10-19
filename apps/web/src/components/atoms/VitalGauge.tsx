@@ -1,21 +1,13 @@
 import type { CSSProperties, KeyboardEvent, MouseEvent, ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import type { StatBreakdown } from 'salvageunion-reference/rules'
-import {
-  borderWidth,
-  color,
-  font,
-  fontSize,
-  radius,
-  space,
-  tracking,
-  weight,
-} from '../../design/tokens'
+import { borderWidth, color, fontSize, radius, space, tracking, weight } from '../../design/tokens'
 import type { Size } from '../../styles/sizing'
 import { capsLabel } from './capsLabel'
 import { FOCUS_RING } from './interaction'
 import { pipClickValue, segmentLit, statBlockRowStarts, trackSegmentState } from './pipRows'
 import { POSTER_STAMP } from './posterStamp'
+import { StepButton } from './SmallButtons'
 import type { ProvenanceLine } from './StatProvenance'
 import { StatProvenance } from './StatProvenance'
 import {
@@ -27,8 +19,22 @@ import {
   C_ROWS,
   C_SHELL,
   C_VALUE,
-  TABULAR,
+  STEP,
+  STEPPERS,
 } from './vitalGaugeCompact'
+import {
+  HEAD,
+  HEAD_LEFT,
+  MAX_BUTTON,
+  MAX_INPUT,
+  MAX_TEXT,
+  NUMERAL,
+  OVERRIDE_SUP,
+  REVERT,
+  SLASH,
+  STAMP,
+  SUB_LABEL,
+} from './vitalGaugeFull'
 
 /**
  * The two fields of a `StatBreakdown` the gauge reads: the override flag and
@@ -90,6 +96,13 @@ export type VitalGaugeProps = {
    * The `full` rung's alone: Play's compact vitals are numbers only (ADR-029 §3).
    */
   provenance?: ProvenanceLine[]
+  /**
+   * The compact rung's − / + (Play's instrument): with `onChange`, a
+   * `StepButton` pair after the track, each one step, clamped to 0…max — the
+   * pair an editable `Stat` draws, at the line's Compact Size (44px on touch).
+   * The sheet's `full` rung has none: its track is the control.
+   */
+  steppers?: boolean
   /** Non-interactive read-out (role="img"); over-capacity segments read red. */
   readOnly?: boolean
   /** First 0-based segment index that reads as danger (status-bad) when lit. */
@@ -116,7 +129,7 @@ export type VitalGaugeProps = {
  * bar per stat. Label stamp (left) + big numeral (right) over ONE flex row of
  * `flex-1` segments dividing the full width by `max`; filled segments use the
  * per-sheet accent (`--tone` / `--tone-deep`), empty segments read paper. No
- * steppers, no header tab, no unit bar — click a segment (`pipClickValue`
+ * header tab, no unit bar, and on the sheet's rung no steppers — click a segment (`pipClickValue`
  * semantics) or arrow-key the track to set the value.
  *
  * An editable track is one `role="slider"` tab stop, so a sheet of gauges is a
@@ -144,79 +157,6 @@ const PIP_EDITABLE = {
 
 // — full —
 const ROOT = { width: '100%', paddingBlock: space[4] } satisfies CSSProperties
-const HEAD = {
-  marginBottom: space[8],
-  display: 'flex',
-  alignItems: 'baseline',
-  justifyContent: 'space-between',
-  gap: space[10],
-} satisfies CSSProperties
-const HEAD_LEFT = {
-  display: 'flex',
-  minWidth: 0,
-  alignItems: 'baseline',
-  gap: space[6],
-} satisfies CSSProperties
-const STAMP = {
-  padding: `${space[2]} ${space[6]}`,
-  fontSize: fontSize.caption,
-  lineHeight: 1.5,
-} satisfies CSSProperties
-const SUB_LABEL = {
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-  lineHeight: 1,
-  color: color.wkMuted,
-} satisfies CSSProperties
-const NUMERAL = {
-  ...TABULAR,
-  whiteSpace: 'nowrap',
-  fontFamily: font.cond,
-  fontWeight: weight.bold,
-  lineHeight: 1,
-} satisfies CSSProperties
-const SLASH = {
-  paddingInline: space[2],
-  fontStyle: 'normal',
-  fontSize: fontSize.readout,
-  color: color.ink75,
-} satisfies CSSProperties
-const MAX_INPUT = {
-  ...TABULAR,
-  width: '56px',
-  borderRadius: radius.card,
-  borderStyle: 'solid',
-  borderWidth: borderWidth.hairline,
-  borderColor: color.ink40,
-  backgroundColor: color.paper,
-  paddingInline: space[4],
-  textAlign: 'center',
-  fontSize: fontSize.readout,
-  color: color.ink,
-} satisfies CSSProperties
-const MAX_BUTTON = {
-  cursor: 'pointer',
-  borderRadius: radius.badge,
-  paddingInline: space[2],
-  fontSize: fontSize.readout,
-  textDecorationLine: 'underline',
-  textDecorationStyle: 'dotted',
-  textUnderlineOffset: '2px',
-} satisfies CSSProperties
-const MAX_TEXT = { fontSize: fontSize.readout, color: color.ink75 } satisfies CSSProperties
-const OVERRIDE_SUP = {
-  marginLeft: space[2],
-  fontSize: fontSize.badge,
-  fontWeight: weight.bold,
-  color: 'var(--tone-deep)',
-} satisfies CSSProperties
-const REVERT = {
-  marginLeft: space[4],
-  cursor: 'pointer',
-  verticalAlign: 'middle',
-  fontSize: fontSize.caption,
-} satisfies CSSProperties
 const PIP = {
   minHeight: 0,
   minWidth: 0,
@@ -254,6 +194,7 @@ export function VitalGauge({
   breakdown,
   onRevertOverride,
   provenance,
+  steppers = false,
   readOnly,
   danger,
   size = 'full',
@@ -460,6 +401,26 @@ export function VitalGauge({
         style={{ ...C_SHELL, ...style }}
       >
         {readout}
+        {editable && steppers ? (
+          <span style={STEPPERS}>
+            <StepButton
+              aria-label={`Decrease ${label}`}
+              disabled={shown <= 0}
+              onClick={() => setValue(shown - 1)}
+              style={STEP}
+            >
+              −
+            </StepButton>
+            <StepButton
+              aria-label={`Increase ${label}`}
+              disabled={shown >= max}
+              onClick={() => setValue(shown + 1)}
+              style={STEP}
+            >
+              +
+            </StepButton>
+          </span>
+        ) : null}
       </div>
     )
   }
@@ -531,7 +492,7 @@ export function VitalGauge({
             The nearest rung to the hero numeral is display (26px), 7–13% below
             it — a visible shrink of the one figure the gauge exists to show.
             Closing this needs new rungs in theme.css (a ladder decision, and a
-            repo-wide one: WizShell, AppBar, CountStepper, ModeDoor and the app's
+            repo-wide one: WizShell, AppBar, ModeDoor and the app's
             PilotSheet all reach into the same empty band), not a local
             substitution. */}
         <span style={NUMERAL}>

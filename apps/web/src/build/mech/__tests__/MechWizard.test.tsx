@@ -79,10 +79,18 @@ async function pickRadio(name: string): Promise<void> {
   })
 }
 
-/** Craft-step count-stepper: one click of a card's `+`. */
+/** A craft card's Qty stepper reading: the value of the `Stat` its `−` follows. */
+function qtyOf(name: string): string | undefined {
+  const minus = screen.getByRole('button', { name: `Decrease ${name} count` })
+  return (
+    minus.previousElementSibling?.querySelector('.su-stat-plate--value')?.textContent ?? undefined
+  )
+}
+
+/** Craft-step Qty stepper: one click of a card's `+`. */
 async function addOne(name: string): Promise<void> {
   await act(async () => {
-    fireEvent.click(screen.getByRole('button', { name: `Add one ${name}` }))
+    fireEvent.click(screen.getByRole('button', { name: `Increase ${name} count` }))
   })
 }
 
@@ -141,7 +149,7 @@ describe('MechWizard — book-order happy path (custom build)', () => {
     expect(getNextButton().disabled).toBe(false)
     await clickNext()
 
-    // --- Step 4: Systems (count-stepper; shared scrap pool + system slots) ---
+    // --- Step 4: Systems (Qty stepper; shared scrap pool + system slots) ---
     const cargoPod = systemByName('Cargo Pod')
     await addOne('Cargo Pod')
     expect(screen.getByTestId('scrap-remaining').textContent).toContain(
@@ -212,7 +220,7 @@ describe('MechWizard — hard creation enforcement', () => {
     const higherTlSystem = SalvageUnionReference.Systems.find((s) => s.techLevel === 2)
     expect(higherTlSystem).toBeDefined()
     expect(
-      screen.queryByRole('button', { name: `Add one ${must(higherTlSystem).name}` })
+      screen.queryByRole('button', { name: `Increase ${must(higherTlSystem).name} count` })
     ).toBeNull()
   })
 
@@ -265,8 +273,8 @@ describe('MechWizard — hard creation enforcement', () => {
     )
     await clickNext() // → Stats
     await clickNext() // → Systems
-    // Loadout wiped — the Cargo Pod copy is gone (sr-only status readout).
-    expect(screen.getByText('Cargo Pod count: 0')).toBeTruthy()
+    // Loadout wiped — the Cargo Pod copy is gone (its Qty stepper reads 0).
+    expect(qtyOf('Cargo Pod')).toBe('0')
     expect(screen.getByTestId('system-slot-count').textContent).toContain('0 /')
   })
 })
@@ -302,11 +310,11 @@ describe('MechWizard — legalStarting pattern strip', () => {
     )
     await clickNext() // → Stats
     await clickNext() // → Systems
-    // The prefilled copies show in the counters (sr-only status readout).
+    // The prefilled copies show in the cards' Qty steppers.
     for (const slug of new Set(expectedSystems)) {
       const item = SalvageUnionReference.Systems.find((s) => nameToSlug(s.name) === slug)
       const count = expectedSystems.filter((x) => x === slug).length
-      expect(screen.getByText(`${must(item).name} count: ${count}`)).toBeTruthy()
+      expect(qtyOf(must(item).name)).toBe(String(count))
     }
     await clickNext() // → Modules
     await clickNext() // → Quirk

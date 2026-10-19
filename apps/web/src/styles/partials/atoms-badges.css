@@ -1,10 +1,10 @@
 /*
  * The package stylesheet, part 13 of 21: Badge, BandTitle, SmallButtons,
- * CountStepper and the stamps on a stamp. `../index.css` imports the parts in
+ * the stamps on a stamp. `../index.css` imports the parts in
  * cascade order.
  */
 
-/* ── Badge, BandTitle, Button, SmallButtons, CountStepper ── */
+/* ── Badge, BandTitle, Button, SmallButtons ── */
 
 /* `atoms/Badge.tsx` — every property is a class, not a style object: call
  * sites override padding, display, size, tracking, colour and the inset ring
@@ -300,10 +300,4 @@
     min-height: 0;
     min-width: 0;
   }
-}
-
-/* `atoms/CountStepper.tsx`: the pill's step buttons square off inside its
- * frame (after `.su-step-btn`). */
-.su-count-stepper__step {
-  border-radius: 0;
 }

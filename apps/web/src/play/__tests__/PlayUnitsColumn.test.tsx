@@ -202,8 +202,8 @@ describe('the Units column (play.md §4)', () => {
     const pilotBox = box('Pilot: Bonesaw')
     expect(isReference(pilotBox)).toBe(false)
     expect(within(pilotBox).getByText('Live')).toBeTruthy()
-    expect(within(pilotBox).getByRole('button', { name: 'HP −1' })).toBeTruthy()
-    expect(within(pilotBox).getByRole('button', { name: 'AP +1' })).toBeTruthy()
+    expect(within(pilotBox).getByRole('button', { name: 'Decrease HP' })).toBeTruthy()
+    expect(within(pilotBox).getByRole('button', { name: 'Increase AP' })).toBeTruthy()
     expect(within(pilotBox).getByRole('slider', { name: 'HP' })).toBeTruthy()
     expect(within(pilotBox).getByText('No injuries')).toBeTruthy()
 
@@ -245,7 +245,7 @@ describe('the Units column (play.md §4)', () => {
     const mechBox = box('Mech: Buzzard')
     expect(isReference(mechBox)).toBe(false)
     expect(within(mechBox).getByText('Boarded')).toBeTruthy()
-    for (const name of ['SP −1', 'SP +1', 'EP +1', 'Heat −1']) {
+    for (const name of ['Decrease SP', 'Increase SP', 'Increase EP', 'Decrease Heat']) {
       expect(within(mechBox).getByRole('button', { name })).toBeTruthy()
     }
     expect(within(mechBox).getByRole('slider', { name: 'Heat' })).toBeTruthy()
@@ -275,7 +275,7 @@ describe('the Units column (play.md §4)', () => {
     const crawlerBox = box('Crawler: Tenacity')
     expect(isReference(crawlerBox)).toBe(false)
     expect(within(crawlerBox).getByText('Downtime')).toBeTruthy()
-    expect(within(crawlerBox).getByRole('button', { name: 'SP −1' })).toBeTruthy()
+    expect(within(crawlerBox).getByRole('button', { name: 'Decrease SP' })).toBeTruthy()
     expect(within(crawlerBox).getByText('Upkeep')).toBeTruthy()
     expect(within(crawlerBox).getByRole('button', { name: 'Open Tenacity’s sheet' })).toBeTruthy()
   })
@@ -342,7 +342,9 @@ describe('in a Game', () => {
   test('for the Mediator, the crawler the store holds is live', async () => {
     setQueryAnswers({ 'entities:listForGame': listing })
     await renderColumn(playFor({ situation: 'onFoot', gameId: GAME, mediator: true }).play)
-    expect(within(box('Crawler: Tenacity')).getByRole('button', { name: 'SP +1' })).toBeTruthy()
+    expect(
+      within(box('Crawler: Tenacity')).getByRole('button', { name: 'Increase SP' })
+    ).toBeTruthy()
   })
 })
 
