@@ -282,7 +282,7 @@ describe('Act: resolve stays inline', () => {
       .getByRole('button', { name: `Cancel ${actionName}` })
       .closest('li') as HTMLElement
     expect(row.getAttribute('data-open')).toBe('true')
-    expect(within(row).getByRole('button', { name: 'Roll' })).toBeTruthy()
+    expect(within(row).getByRole('button', { name: 'Roll the die on Core Mechanic' })).toBeTruthy()
     expect(tab('Act').getAttribute('aria-selected')).toBe('true')
   })
 
@@ -292,8 +292,8 @@ describe('Act: resolve stays inline', () => {
     const row = () =>
       screen.getByRole('button', { name: `Cancel ${actionName}` }).closest('li') as HTMLElement
     await click(within(row()).getByRole('button', { name: /^Activate/ }))
-    await click(within(row()).getByRole('button', { name: 'Roll' }))
-    expect(within(row()).getByRole('button', { name: 'Roll' }).textContent).toBe('Roll · 14')
+    await click(within(row()).getByRole('button', { name: 'Roll the die on Core Mechanic' }))
+    expect(row().querySelector('.su-roll__tag')?.textContent).toBe('Rolled 14')
     await click(within(row()).getByRole('button', { name: /^Apply/ }))
     expect(within(row()).getByText('Result applied ✓')).toBeTruthy()
     expect(tab('Act').getAttribute('aria-selected')).toBe('true')

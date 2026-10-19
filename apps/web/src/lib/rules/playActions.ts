@@ -85,7 +85,13 @@ export function pushPatch(args: { heat: number; heatCap: number; currentSP: numb
 export function mechPush(
   mech: Mech,
   roll: Roll
-): { patch: Partial<Mech>; text: string; meltdown: boolean } | null {
+): {
+  patch: Partial<Mech>
+  text: string
+  meltdown: boolean
+  /** The Reactor Overload die, where the Heat Check overloaded. */
+  overloadRoll?: number
+} | null {
   const chassis = resolveChassisRef(mech.chassisRef)
   const heatCap = mechMaxHeat(mech, chassis)
   const heat = resolveGauge(mech.currentHeat, heatCap)
@@ -98,7 +104,13 @@ export function mechPush(
     currentSP: resolvePoolStart(mech.currentSP, mechMaxSP(mech, chassis)),
     roll,
   })
-  return { patch, text: describePushOutcome(nextHeat, effect), meltdown }
+  const { overloadRoll } = effect.result
+  return {
+    patch,
+    text: describePushOutcome(nextHeat, effect),
+    meltdown,
+    ...(overloadRoll === undefined ? {} : { overloadRoll }),
+  }
 }
 
 /** A standalone Heat Check at current Heat (no +2). Meltdown is player-confirmed. */

@@ -7,11 +7,9 @@
  */
 
 import type { CSSProperties } from 'react'
-import { ActivationCost, Button, cn, Radio, Stat } from '../components/index'
+import { ActivationCost, cn, Radio, Stat } from '../components/index'
 import { color, font, fontSize, space, weight } from '../design/tokens'
 import type { ResolveModel } from './useActionsDeck'
-
-const STEP = { minWidth: 0, paddingInline: space[8] } satisfies CSSProperties
 
 const SPEND = {
   display: 'flex',
@@ -87,28 +85,15 @@ export function ResolveCost({
 
       {variableHot && (
         <div className="su-dash-deck-hotx">
-          <span className="su-dash-deck-hotx-lab">Hot</span>
-          <div className="su-dash-step">
-            <Button
-              size="compact"
-              style={STEP}
-              onClick={variableHot.onDec}
-              disabled={variableHot.activated}
-              aria-label="Decrease Hot"
-            >
-              −
-            </Button>
-            <span className="su-dash-step-num">{variableHot.hotX}</span>
-            <Button
-              size="compact"
-              style={STEP}
-              onClick={variableHot.onInc}
-              disabled={variableHot.activated}
-              aria-label="Increase Hot"
-            >
-              +
-            </Button>
-          </div>
+          {/* The sheet's own stepper (`Stat` in Edit): X's cell and its − / +. */}
+          <Stat
+            label="Hot"
+            value={variableHot.hotX}
+            size="compact"
+            min={1}
+            mode={variableHot.activated ? 'read' : 'edit'}
+            onChange={(next) => (next > variableHot.hotX ? variableHot.onInc : variableHot.onDec)()}
+          />
           <span
             className={cn(
               'su-dash-deck-hotx-proj',

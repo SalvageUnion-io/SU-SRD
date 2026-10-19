@@ -3,27 +3,33 @@
  * §10, wireframe pin 4), flattened like a player's list (`npcActions`, sorted
  * by action type): each a level-1 Row in the Actions column's own list
  * (`.su-play-act-list`), its chips in the shared stat order, cost last, with
- * Roll, then the Morale check.
+ * Use, then the Morale check.
  *
- * Roll is a d20 on the NPC Action table for that action, its row said under
- * the Row (plain content, level 2). Every roll goes on Play's roll log
- * (`reportingRoll`), which keeps the Mediator's rolls off the Game's log and
- * posts one only when the Post toggle or the roll's own Post says so.
- * The Morale check is the tray's own (`TrayWrites.morale`): a d20 on the
- * Morale table, kept on the NPC and shown in its box.
+ * Every roll here is a table's (`PlayRollInstrument`, R8): Use opens the
+ * action's resolve in its Row, the NPC Action table, whose stamp is the roll
+ * and whose marked row is what it came to (ruleset §1.4, as a player's
+ * action resolves). Every roll goes on Play's roll log (`reportingRoll`),
+ * which keeps the Mediator's rolls off the Game's log and posts one only when
+ * the Post toggle or the roll's own Post says so. The Morale check is the
+ * tray's own (`TrayWrites.morale`): the Morale table, open, its stamp the
+ * roll, the NPC's last roll its marked row, kept on the NPC and in its box.
  */
 
 import { useMemo, useState } from 'react'
 import { resultForTable, SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { Row } from '../../components/entity/forms/Row'
 import { Button, EmptyState, rollForTable, Slab, TitledBox } from '../../components/index'
+import { PlayRollInstrument } from '../PlayRollInstrument'
 import { reportingRoll } from '../playRolls.model'
 import type { NpcAction } from './npcActions.model'
 import { npcActions } from './npcActions.model'
 import type { TrayNpc } from './opposition.model'
 
-/** The NPC Action table (Workshop Manual): what every NPC action's Roll reads. */
+/** The NPC Action table (Workshop Manual): what every NPC action's roll reads. */
 const NPC_ACTION = 'NPC Action'
+
+/** The table an NPC's Morale check reads. */
+const MORALE = 'Morale'
 
 /** The row a die lands on, by its label ("Success"). */
 function npcActionOutcome(die: number): string {
@@ -47,6 +53,9 @@ export function PlayNpcActions({
   rollFor = rollForTable,
 }: PlayNpcActionsProps) {
   const actions = useMemo(() => npcActions(npc), [npc])
+  // The action resolving in its Row: one at a time, as a player's.
+  const [open, setOpen] = useState<string | null>(null)
+  const live = canWrite && !npc.down
   return (
     <>
       <Slab as="h3" label={`${npc.name} · Actions`} />
@@ -59,26 +68,19 @@ export function PlayNpcActions({
             key={entry.key}
             npc={npc}
             entry={entry}
-            canWrite={canWrite}
+            live={live}
+            open={open === entry.key}
+            onOpen={(on) => setOpen(on ? entry.key : null)}
             rollFor={rollFor}
           />
         ))}
         <li className="su-play-act" data-action-key="morale">
-          <TitledBox
-            title="Morale check"
-            as="div"
-            controls={
-              <Button
-                size="mini"
-                disabled={!canWrite || npc.down}
-                aria-label={`Roll Morale for ${npc.name}`}
-                onClick={onMorale}
-              >
-                Roll
-              </Button>
-            }
-          >
-            {null}
+          <TitledBox title="Morale check" as="div">
+            <PlayRollInstrument
+              table={MORALE}
+              roll={npc.lastRoll?.roll ?? null}
+              onRoll={live ? onMorale : undefined}
+            />
           </TitledBox>
         </li>
       </ul>
@@ -89,12 +91,16 @@ export function PlayNpcActions({
 function NpcActionRow({
   npc,
   entry,
-  canWrite,
+  live,
+  open,
+  onOpen,
   rollFor,
 }: {
   npc: TrayNpc
   entry: NpcAction
-  canWrite: boolean
+  live: boolean
+  open: boolean
+  onOpen: (open: boolean) => void
   rollFor: typeof rollForTable
 }) {
   const model = useMemo(() => toEntityModel(entry.action), [entry.action])
@@ -111,27 +117,47 @@ function NpcActionRow({
   }
 
   return (
-    <li className="su-play-act" data-action-key={entry.key}>
+    <li className="su-play-act" data-open={open || undefined} data-action-key={entry.key}>
       <Row
         model={model}
         omit={['art']}
         slots={{
-          controls: (
+          controls: open ? (
             <Button
               size="mini"
-              disabled={!canWrite || npc.down}
-              aria-label={`Roll ${entry.name} for ${npc.name}`}
-              onClick={() => void roll()}
+              aria-label={`Cancel ${entry.name} for ${npc.name}`}
+              onClick={() => {
+                setRolled(null)
+                onOpen(false)
+              }}
             >
-              Roll
+              Cancel
+            </Button>
+          ) : (
+            <Button
+              size="mini"
+              disabled={!live}
+              aria-label={`Use ${entry.name} for ${npc.name}`}
+              onClick={() => onOpen(true)}
+            >
+              Use
             </Button>
           ),
-          ...(rolled
+          ...(open
             ? {
                 leading: (
-                  <p className="su-play-resolve__note" aria-live="polite">
-                    {rolled.die} · {rolled.band}
-                  </p>
+                  <div className="su-play-resolve">
+                    <PlayRollInstrument
+                      table={NPC_ACTION}
+                      roll={rolled?.die ?? null}
+                      onRoll={live ? () => void roll() : undefined}
+                    />
+                    {rolled ? (
+                      <p className="su-play-resolve__note" aria-live="polite">
+                        {rolled.die} · {rolled.band}
+                      </p>
+                    ) : null}
+                  </div>
                 ),
               }
             : {}),

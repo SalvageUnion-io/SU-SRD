@@ -212,7 +212,7 @@ describe('the resolve', () => {
     const { container } = renderDeck(mech, store)
     clickPrimaryAction(container)
     expect(screen.getByRole('button', { name: /^Activate\b/ })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Roll' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' })).toBeTruthy()
   })
 
   test('Activate writes the EP-spend patch through the store', () => {
@@ -226,15 +226,15 @@ describe('the resolve', () => {
     expect(calls[0]?.patch.currentEP).toBe(Math.max(0, 6 - epCost))
   })
 
-  test('Roll shows a Core Mechanic band readout', async () => {
+  test('Roll marks its Core Mechanic band on the table', async () => {
     const mech = makeMech()
     const { store } = stubStore(mech)
     const { container } = renderDeck(mech, store)
     clickPrimaryAction(container)
-    expect(container.querySelector('.su-play-resolve__roll')).toBeNull()
-    await clickRolling('Roll')
-    expect(container.querySelector('.su-play-resolve__roll')).toBeTruthy()
-    expect(container.querySelector('.su-play-resolve__d20')).toBeTruthy()
+    expect(container.querySelector('.su-roll [aria-current="true"]')).toBeNull()
+    await clickRolling('Roll the Die')
+    expect(container.querySelector('.su-roll [aria-current="true"]')).toBeTruthy()
+    expect(container.querySelector('.su-roll__tag')?.textContent).toBe('Rolled 14')
   })
 
   test('the roll and Apply are spoken by a live region mounted before the roll', async () => {
@@ -244,7 +244,7 @@ describe('the resolve', () => {
     clickPrimaryAction(container)
     const live = container.querySelector('.su-play-resolve > [aria-live="polite"]')
     expect(live?.textContent).toBe('')
-    await clickRolling('Roll')
+    await clickRolling('Roll the Die')
     expect(live?.textContent).toMatch(/^Rolled 14: \S/)
     fireEvent.click(screen.getByText('Apply'))
     expect(live?.textContent).toMatch(/Result applied$/)
@@ -260,11 +260,11 @@ describe('the resolve', () => {
     // Apply is disabled until there is a roll to commit.
     const apply = screen.getByText<HTMLButtonElement>('Apply')
     expect(apply.disabled).toBe(true)
-    await clickRolling('Roll')
+    await clickRolling('Roll the Die')
     expect(screen.getByText<HTMLButtonElement>('Apply').disabled).toBe(false)
     // Clear resets the resolve state (the roll readout disappears).
     fireEvent.click(screen.getByText('Clear'))
-    expect(container.querySelector('.su-play-resolve__roll')).toBeNull()
+    expect(container.querySelector('.su-roll [aria-current="true"]')).toBeNull()
   })
 
   test('Apply commits a rolled outcome without ever auto-writing a destructive condition', async () => {
@@ -272,12 +272,12 @@ describe('the resolve', () => {
     const { store, calls } = stubStore(mech)
     const { container } = renderDeck(mech, store)
     clickPrimaryAction(container)
-    await clickRolling('Roll')
+    await clickRolling('Roll the Die')
     fireEvent.click(screen.getByText('Apply'))
     // Either the non-destructive auto-commit or the Cascade-Failure route note —
     // never both, and neither writes a destructive condition through the store.
     const applied = screen.queryByText('Result applied ✓')
-    const routed = screen.queryByText(/^Cascade Failure/)
+    const routed = screen.queryByText(/^Cascade Failure: a severe/)
     expect(Boolean(applied) !== Boolean(routed)).toBe(true)
     // Apply performs no store write at all (the cost lands at Activate; a
     // destructive band is the player's to take on the gauge, never auto-applied).
@@ -456,8 +456,8 @@ describe('the resolve — unrecorded live stats default to full, not empty', () 
     const { container } = renderDeck(mech, store)
     clickPrimaryAction(container)
     // Push stays disabled until a roll exists (Core Book p.233).
-    await clickRolling('Roll')
-    await clickRolling('Push?')
+    await clickRolling('Roll the Die')
+    await clickRolling('Push')
 
     const spWrites = calls
       .map((c) => c.patch.currentSP)
@@ -570,7 +570,7 @@ describe('the resolve on the seat', () => {
     )
     clickPrimaryAction(container)
     fireEvent.click(screen.getByRole('button', { name: /^Activate\b/ }))
-    await clickRolling('Roll')
+    await clickRolling('Roll the Die')
     fireEvent.click(screen.getByText('Cancel'))
 
     const key = buildMechActions(mech)[0]?.key
@@ -602,7 +602,7 @@ describe('the resolve on the seat', () => {
         />
       </EntityHrefProvider>
     )
-    expect(container.querySelector('.su-play-resolve__d20')?.textContent).toBe('14')
+    expect(container.querySelector('.su-roll__tag')?.textContent).toBe('Rolled 14')
     expect(screen.getByRole('button', { name: /^Activated\b/ })).toBeTruthy()
     expect(screen.getByText<HTMLButtonElement>('Apply').disabled).toBe(false)
     // Restoring rolls nothing and writes nothing.

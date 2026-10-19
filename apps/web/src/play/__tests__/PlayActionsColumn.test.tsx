@@ -250,7 +250,7 @@ describe('Use: the resolve, in the Row', () => {
     const row = rowFor(primary().name)
     expect(row.getAttribute('data-open')).toBe('true')
     expect(within(row).getByRole('button', { name: /^Activate/ })).toBeTruthy()
-    expect(within(row).getByRole('button', { name: 'Roll' })).toBeTruthy()
+    expect(within(row).getByRole('button', { name: 'Roll the die on Core Mechanic' })).toBeTruthy()
     expect(writes.filter((w) => w.name === 'seat.setResolving')).toHaveLength(1)
     await click(within(row).getByRole('button', { name: `Cancel ${primary().name}` }))
     expect(writes.at(-1)).toEqual({ name: 'seat.clearResolving' })
@@ -275,10 +275,13 @@ describe('Use: the resolve, in the Row', () => {
     try {
       renderBoarded()
       await click(use(primary().name))
-      await click(screen.getByRole('button', { name: 'Roll' }))
+      await click(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' }))
       const row = rowFor(primary().name)
-      expect(row.querySelector('.su-play-resolve__d20')?.textContent).toBe('14')
-      expect(within(row).getByRole('button', { name: 'Roll' }).textContent).toBe('Roll · 14')
+      expect(row.querySelector('.su-roll__tag')?.textContent).toBe('Rolled 14')
+      // The result is its marked row (R8), the band's own words.
+      expect(row.querySelector('[aria-current="true"] .su-roll__label')?.textContent).toBe(
+        'Success'
+      )
       expect(heard).toHaveLength(1)
       expect(heard[0]).toMatchObject({
         tableName: 'Core Mechanic',
@@ -296,13 +299,13 @@ describe('Use: the resolve, in the Row', () => {
     await click(use(primary().name))
     const apply = () => screen.getByRole<HTMLButtonElement>('button', { name: 'Apply' })
     expect(apply().disabled).toBe(true)
-    await click(screen.getByRole('button', { name: 'Roll' }))
+    await click(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' }))
     expect(apply().disabled).toBe(false)
     await click(apply())
     expect(screen.getByText('Result applied ✓')).toBeTruthy()
     expect(calls).toHaveLength(0)
     await click(screen.getByRole('button', { name: 'Clear' }))
-    expect(document.querySelector('.su-play-resolve__roll')).toBeNull()
+    expect(document.querySelector('.su-roll [aria-current="true"]')).toBeNull()
   })
 
   test('the roll and Apply are spoken by a live region mounted before the roll', async () => {
@@ -310,7 +313,7 @@ describe('Use: the resolve, in the Row', () => {
     await click(use(primary().name))
     const live = rowFor(primary().name).querySelector('[aria-live="polite"]')
     expect(live?.textContent).toBe('')
-    await click(screen.getByRole('button', { name: 'Roll' }))
+    await click(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' }))
     expect(live?.textContent).toMatch(/^Rolled 14: \S/)
     await click(screen.getByRole('button', { name: 'Apply' }))
     expect(live?.textContent).toMatch(/Result applied$/)
@@ -320,7 +323,7 @@ describe('Use: the resolve, in the Row', () => {
     const { writes } = renderBoarded()
     await click(use(primary().name))
     await click(screen.getByRole('button', { name: /^Activate/ }))
-    await click(screen.getByRole('button', { name: 'Roll' }))
+    await click(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' }))
     await click(screen.getByRole('button', { name: `Cancel ${primary().name}` }))
     const steps = writes
       .filter((w) => w.name.startsWith('seat.'))
@@ -349,7 +352,7 @@ describe('Use: the resolve, in the Row', () => {
     })
     const row = rowFor(p.name)
     expect(row.getAttribute('data-open')).toBe('true')
-    expect(row.querySelector('.su-play-resolve__d20')?.textContent).toBe('14')
+    expect(row.querySelector('.su-roll__tag')?.textContent).toBe('Rolled 14')
     expect(within(row).getByRole('button', { name: 'Activated ✓' })).toBeTruthy()
   })
 
@@ -398,9 +401,9 @@ describe('Use: the resolve, in the Row', () => {
     const cap = mechMaxHeat(mech, resolveChassisRef(mech.chassisRef))
     const { calls } = renderBoarded({ mech: { ...mech, currentHeat: cap - 1 } })
     await click(use(primary().name))
-    await click(screen.getByRole('button', { name: 'Roll' }))
-    const push = screen.getByRole<HTMLButtonElement>('button', { name: 'Push?' })
-    expect(push.disabled).toBe(true)
+    await click(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' }))
+    // No Push on the stamp: it stays Roll the Die.
+    expect(screen.queryByRole('button', { name: 'Push on Core Mechanic' })).toBeNull()
     expect(screen.getAllByText(/No Push at Heat/).length).toBeGreaterThan(0)
     expect(calls).toHaveLength(0)
   })
@@ -446,7 +449,7 @@ describe('the Reactor and Mount rows', () => {
       const { calls } = renderBoarded()
       await click(screen.getByRole('button', { name: 'Vent' }))
       expect(calls.at(-1)?.patch).toEqual(VENT_PATCH)
-      await click(screen.getByRole('button', { name: 'Heat Check' }))
+      await click(screen.getByRole('button', { name: 'Heat check on Reactor Overload' }))
       expect(heard.at(-1)).toMatchObject({ tableName: 'Reactor Overload', label: 'Heat Check' })
       expect(screen.getByText(/^Heat Check 14/)).toBeTruthy()
     } finally {

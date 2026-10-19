@@ -1,8 +1,13 @@
 /**
  * PlayResolveSteps — an action's resolve, opened in place in its Row (play.md
- * §5): Activate, Roll, Push?, Apply, and what the roll came to. Presentational:
+ * §5): Activate, then the Core Mechanic table, then Apply. Presentational:
  * `useActionsDeck` builds the `ResolveModel` from the seat's `resolving` and
  * owns every write; this draws its steps and calls back.
+ *
+ * The roll is the table's (`PlayRollInstrument`, R8): its ROLL THE DIE stamp
+ * is the one roll control, and the result is its marked row. Once a mech's
+ * action has rolled, the same stamp reads Push (reroll, +2 Heat and a Heat
+ * Check, Core Book p.233) while a Push is open to it.
  *
  * Inside a level-1 Row, so the steps are plain buttons and plain content (the
  * Nested Frames Audit, play.md §12): no box, card or titled head of their own.
@@ -12,9 +17,13 @@
 import type { CSSProperties } from 'react'
 import { Button, Callout, tokens } from '../components/index'
 import { ResolveCost, ResolveSpend } from './PlayResolveCost'
+import { PlayRollInstrument } from './PlayRollInstrument'
 import type { ResolveModel } from './useActionsDeck'
 
 type Resolving = Extract<ResolveModel, { kind: 'resolve' }>
+
+/** The table every action's roll reads (Core Book p.233). */
+const CORE_MECHANIC = 'Core Mechanic'
 
 const GROW = { flex: '1 1 0', minWidth: 0 } satisfies CSSProperties
 
@@ -27,6 +36,8 @@ const NOTE = {
 
 export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite: boolean }) {
   const { controls, roll } = view
+  // Rolled, a mech's action Pushes from the same stamp while it may.
+  const push = roll && controls.push && !controls.push.disabled ? controls.push : null
   return (
     <div className="su-play-resolve">
       {/* Mounted before the first roll, so the d20, its band and Apply are
@@ -53,28 +64,17 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
         >
           {controls.activated ? 'Activated ✓' : 'Activate'}
         </Button>
-        <Button
-          variant={roll ? 'default' : 'primary'}
-          size="compact"
-          style={GROW}
-          onClick={controls.onRoll}
-          disabled={!canWrite}
-          aria-label="Roll"
-        >
-          {roll ? `Roll · ${roll.roll}` : 'Roll'}
-        </Button>
-        {controls.push && (
-          <Button
-            variant="primary"
-            size="compact"
-            style={GROW}
-            onClick={controls.push.onPush}
-            disabled={!canWrite || controls.push.disabled}
-            title={controls.push.lockedReason ?? 'Reroll the d20, +2 Heat, forcing a Heat Check'}
-          >
-            {controls.push.pushed ? 'Pushed' : 'Push?'}
-          </Button>
-        )}
+      </div>
+
+      <PlayRollInstrument
+        table={CORE_MECHANIC}
+        roll={roll?.roll ?? null}
+        stamp={push ? 'Push:' : undefined}
+        onRoll={canWrite ? (push ? push.onPush : controls.onRoll) : undefined}
+      />
+      {controls.push?.lockedReason && <p style={NOTE}>{controls.push.lockedReason}</p>}
+
+      <div className="su-play-resolve__steps">
         <Button
           size="compact"
           style={GROW}
@@ -89,19 +89,6 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
         </Button>
       </div>
 
-      {controls.push?.lockedReason && <p style={NOTE}>{controls.push.lockedReason}</p>}
-
-      {roll && (
-        <div className="su-play-resolve__roll" data-band={roll.band}>
-          <span className="su-play-resolve__d20">{roll.roll}</span>
-          <span className="su-play-resolve__band">
-            <strong>
-              {roll.bandLabel} · {roll.bandRange}
-            </strong>
-            <span>{roll.bandSummary}</span>
-          </span>
-        </div>
-      )}
       {view.pushLog && <p style={NOTE}>{view.pushLog}</p>}
       {view.meltdown && (
         <Button variant="primary" size="compact" onClick={view.meltdown.onConfirm}>

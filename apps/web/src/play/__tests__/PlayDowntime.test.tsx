@@ -280,7 +280,7 @@ describe('a solo Downtime, end to end', () => {
       expect(onHand.getByRole('button', { name: 'Spend TP' })).toBeTruthy()
       expect(onHand.getByRole('button', { name: 'Open' })).toBeTruthy()
       expect(onHand.queryByRole('link')).toBeNull()
-      await click(onHand.getByRole('button', { name: 'Roll' }))
+      await click(onHand.getByRole('button', { name: 'Roll the die on Rumour' }))
       expect(heard.at(-1)).toMatchObject({ tableName: 'Rumour', rolls: [14] })
       const field = screen.getByRole('button', { name: /^Field actions · \d+/ })
       expect(field.getAttribute('aria-expanded')).toBe('false')

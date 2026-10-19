@@ -17,6 +17,7 @@ import { useState } from 'react'
 import { resultForTable, SalvageUnionReference } from 'salvageunion-reference'
 import { Button, Stat, TitledBox } from '../components/index'
 import { bayGate } from '../lib/rules/crawlerEconomy'
+import { PlayRollInstrument } from './PlayRollInstrument'
 import type { SheetTarget } from './PlaySheetOverlay'
 import { PlaySheetOverlay } from './PlaySheetOverlay'
 import type { DowntimeActionId } from './playActions.model'
@@ -98,19 +99,25 @@ export function PlayDowntimeActionRow({
     open(pilot ? { kind: 'pilot', id: pilot.id, name: pilot.name } : null, 'Spend TP')
   ) : id === 'craftTrade' ? (
     open(crawler ? { kind: 'crawler', id: crawler.id, name: crawler.name } : null, 'Open')
-  ) : (
-    <Button size="mini" onClick={() => void rollRumour()} disabled={!canWrite}>
-      Roll
-    </Button>
-  )
+  ) : undefined
 
   return (
     <li className="su-play-act" data-away={away || undefined} data-action-key={`downtime:${id}`}>
       <TitledBox title={name} as="div" chips={chips} controls={controls} dim={away}>
-        {rumour && !away ? (
-          <p className="su-play-resolve__note" aria-live="polite">
-            {rumour.roll} · {rumour.text}
-          </p>
+        {id === 'rumours' && !away ? (
+          // The Rumour table, open (R8): its stamp the roll, the rumour its marked row.
+          <div className="su-play-resolve">
+            <PlayRollInstrument
+              table={RUMOUR_TABLE}
+              roll={rumour?.roll ?? null}
+              onRoll={canWrite ? () => void rollRumour() : undefined}
+            />
+            {rumour ? (
+              <p className="su-play-resolve__note" aria-live="polite">
+                {rumour.roll} · {rumour.text}
+              </p>
+            ) : null}
+          </div>
         ) : null}
       </TitledBox>
       <PlaySheetOverlay sheet={sheet} onClose={() => setSheet(null)} />

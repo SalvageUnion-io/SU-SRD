@@ -1,7 +1,12 @@
 /**
  * PlayReactorRow — the mech's Reactor as a row of the Actions list (play.md
- * §5): Push, Heat Check, Vent and Shut down, writing the reactor's patches
- * (`lib/rules/playActions`).
+ * §5): the Heat Check on the Reactor Overload table, Push, Vent and Shut
+ * down, writing the reactor's patches (`lib/rules/playActions`).
+ *
+ * The roll is the table's (`PlayRollInstrument`, R8): its stamp is the one
+ * roll control, "Heat Check:", or "Push:" while Push is pressed (+2 Heat,
+ * then the Heat Check, Core Book p.234); an overload is its marked row and
+ * what it came to the line under it. Push is never a second roll button.
  *
  * ADR-007: Push, Heat Check, Vent and Shut down are bookkeeping and apply on
  * one press; a Meltdown's destruction is the player's, behind its own button.
@@ -10,8 +15,8 @@
  * (`rollFor`, `playRolls.model.ts`: the Feed, the Game's log, Discord); a Vent
  * or a Shut down is an applied change on the Feed (`recordPlayChange`).
  *
- * Level 1 in the column, a titled row with no body until there is something
- * to read: the result is plain content under its head (play.md §12).
+ * Level 1 in the column, a titled row; the table and the result are plain
+ * content under its head (play.md §12). Not on hand, it is its head alone.
  */
 
 import type { Mech } from 'game-domain/schemas/mech'
@@ -34,11 +39,16 @@ import {
 } from '../lib/rules/playActions'
 import { runWrite } from '../lib/runWrite'
 import { PLAY_TXN } from '../stores/surfaceProvenance'
+import { PlayRollInstrument } from './PlayRollInstrument'
 import type { PlayStore } from './play.model'
 import { recordPlayChange } from './playRolls.model'
 import type { PlayActions } from './usePlayActions'
 
-type ReactorLog = { text: string; meltdown: boolean }
+/** What the last roll or act came to; `overloadRoll` marks the table. */
+type ReactorLog = { text: string; meltdown: boolean; overloadRoll?: number }
+
+/** The table a Heat Check overloads on. */
+const REACTOR_OVERLOAD = 'Reactor Overload'
 
 type PlayReactorRowProps = {
   mech: Mech
@@ -51,6 +61,8 @@ type PlayReactorRowProps = {
 
 export function PlayReactorRow({ mech, store, rollFor, need, canWrite }: PlayReactorRowProps) {
   const [log, setLog] = useState<ReactorLog | null>(null)
+  // Push pressed: the stamp's next roll is a Push.
+  const [pushing, setPushing] = useState(false)
   const fresh = () => store.get('mech', mech.id) ?? mech
   const chassis = resolveChassisRef(mech.chassisRef)
   const now = fresh()
@@ -61,25 +73,26 @@ export function PlayReactorRow({ mech, store, rollFor, need, canWrite }: PlayRea
   const off = !canWrite || away
 
   async function doPush() {
+    setPushing(false)
     // What the Push came to, read by the roll log once the dice are.
     let said: string | undefined
-    const roll = await rollFor('Reactor Overload', 'Push', {
+    const roll = await rollFor(REACTOR_OVERLOAD, 'Push', {
       plainD20s: 1,
       outcome: () => said,
     })
     const pushed = mechPush(fresh(), roll)
     if (pushed === null) return
-    const { patch, text, meltdown } = pushed
+    const { patch, text, meltdown, overloadRoll } = pushed
     said = text
     runWrite(
       () => store.update('mech', mech.id, patch, PLAY_TXN),
-      () => setLog({ text, meltdown })
+      () => setLog({ text, meltdown, ...(overloadRoll === undefined ? {} : { overloadRoll }) })
     )
   }
 
   async function doHeatCheck() {
     let said: string | undefined
-    const roll = await rollFor('Reactor Overload', 'Heat Check', {
+    const roll = await rollFor(REACTOR_OVERLOAD, 'Heat Check', {
       plainD20s: 1,
       outcome: () => said,
     })
@@ -91,10 +104,11 @@ export function PlayReactorRow({ mech, store, rollFor, need, canWrite }: PlayRea
       roll,
     })
     const text = describeHeatCheck(effect)
+    const { overloadRoll } = effect.result
     said = text
     runWrite(
       () => store.update('mech', mech.id, patch, PLAY_TXN),
-      () => setLog({ text, meltdown })
+      () => setLog({ text, meltdown, ...(overloadRoll === undefined ? {} : { overloadRoll }) })
     )
   }
 
@@ -127,29 +141,29 @@ export function PlayReactorRow({ mech, store, rollFor, need, canWrite }: PlayRea
     )
   }
 
+  function togglePush() {
+    if (!pushing && pushLocked) {
+      setLog({
+        text: `No Push at Heat ${heat}/${cap}: +2 Heat would pass the Heat Capacity. Vent or take a Heat Check first.`,
+        meltdown: false,
+      })
+      return
+    }
+    setPushing(!pushing)
+  }
+
   const controls = away ? (
     <span className="su-play-act__need">{need}</span>
   ) : (
     <span className="su-play-act__buttons">
       <Button
         size="mini"
-        onClick={() => {
-          if (pushLocked) {
-            setLog({
-              text: `No Push at Heat ${heat}/${cap}: +2 Heat would pass the Heat Capacity. Vent or take a Heat Check first.`,
-              meltdown: false,
-            })
-            return
-          }
-          void doPush()
-        }}
+        onClick={togglePush}
         disabled={off}
-        title={pushLocked ? `No Push at Heat ${heat}/${cap}` : '+2 Heat, then a Heat Check'}
+        aria-pressed={pushing}
+        title={pushLocked ? `No Push at Heat ${heat}/${cap}` : '+2 Heat, then the Heat Check'}
       >
         Push
-      </Button>
-      <Button size="mini" onClick={() => void doHeatCheck()} disabled={off}>
-        Heat Check
       </Button>
       <Button size="mini" onClick={doVent} disabled={off}>
         Vent
@@ -163,18 +177,26 @@ export function PlayReactorRow({ mech, store, rollFor, need, canWrite }: PlayRea
   return (
     <li className="su-play-act" data-away={away || undefined} data-action-key="reactor">
       <TitledBox title="Reactor" controls={controls} as="div" dim={away}>
-        {log && !away ? (
+        {away ? null : (
           <div className="su-play-resolve">
-            <p className="su-play-resolve__note" aria-live="polite">
-              {log.text}
-            </p>
-            {log.meltdown && (
+            <PlayRollInstrument
+              table={REACTOR_OVERLOAD}
+              roll={log?.overloadRoll ?? null}
+              stamp={pushing ? 'Push:' : 'Heat Check:'}
+              onRoll={off ? undefined : () => void (pushing ? doPush() : doHeatCheck())}
+            />
+            {log ? (
+              <p className="su-play-resolve__note" aria-live="polite">
+                {log.text}
+              </p>
+            ) : null}
+            {log?.meltdown && (
               <Button variant="primary" size="compact" onClick={confirmMeltdown}>
                 Confirm Meltdown — Mark Mech destroyed
               </Button>
             )}
           </div>
-        ) : null}
+        )}
       </TitledBox>
     </li>
   )

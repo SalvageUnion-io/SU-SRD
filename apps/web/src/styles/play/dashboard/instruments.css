@@ -1,8 +1,8 @@
 /*
  * Play's instrument rules — the `.su-dash-*` pieces inside the canvas that a
  * style object cannot say (ADR-046): the resolve's cost choice and Hot(X)
- * stepper (`PlayResolveCost`), the SRD Explorer's scrolling body and the
- * Mediator's propose dock, which fills its panel and scrolls its own body.
+ * projection (`PlayResolveCost`; the Hot(X) stepper is `Stat`'s own) and the
+ * SRD Explorer's scrolling body.
  *
  * Every rule references the canonical `--color-*` / `--bw-*` / `--radius-*` /
  * `--text-*` / `--tracking-*` tokens (src/components theme.css) directly.
@@ -18,24 +18,6 @@
   height: 100%;
   overflow-y: auto;
   padding: var(--space-12);
-}
-
-/* ---- The resolve's Hot(X) stepper ---- */
-.su-dash-step {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-10);
-}
-.su-dash-step-num {
-  font-family: var(--font-cond);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  /* The display step: a numeral read at a glance, not a label. */
-  font-size: var(--text-display);
-  min-width: var(--size-full);
-  text-align: center;
-  color: var(--color-ink);
 }
 
 /* ---- The resolve's cost choice and Hot(X) projection ---- */
@@ -61,14 +43,6 @@
   display: flex;
   align-items: center;
   gap: var(--space-12);
-}
-.su-dash-deck-hotx-lab {
-  font-family: var(--font-cond);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps-tight);
-  font-size: var(--text-note);
-  color: var(--color-wk-muted);
 }
 .su-dash-deck-hotx-proj {
   font-family: var(--font-cond);

@@ -67,9 +67,11 @@ async function boardedTurn(page: Page): Promise<string> {
     await expect(row.getByRole('button', { name: 'Activated ✓' })).toBeVisible()
   }
 
-  await row.getByRole('button', { name: 'Roll', exact: true }).click()
-  await expect(row.locator('.su-play-resolve__d20')).toHaveText('14')
-  await expect(row.locator('.su-play-resolve__roll')).toHaveAttribute('data-band', /.+/)
+  // The roll is the Core Mechanic table's stamp; the result its marked row (R8).
+  await row.getByRole('button', { name: 'Roll the die on Core Mechanic' }).click()
+  const marked = row.locator('.su-roll [aria-current="true"]')
+  await expect(marked.locator('.su-roll__tag')).toHaveText('Rolled 14')
+  await expect(marked.locator('.su-roll__label')).toHaveText('Success')
 
   await row.getByRole('button', { name: 'Apply', exact: true }).click()
   await expect(row.getByRole('button', { name: 'Applied', exact: true })).toBeDisabled()

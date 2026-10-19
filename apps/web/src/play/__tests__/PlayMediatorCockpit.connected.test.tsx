@@ -333,12 +333,14 @@ describe('the Opposition', () => {
     expect(sent).toEqual([{ name: 'mediator:removeNpc', args: { npcId: 'n-raider' } }])
   })
 
-  test('the chosen NPC’s actions, flattened; Roll lands on the Feed, private and off the log', async () => {
+  test('the chosen NPC’s actions, flattened; Use opens the NPC Action table, its roll lands on the Feed, private and off the log', async () => {
     await renderCockpit()
     const list = within(screen.getByRole('list', { name: 'Strikebreaker’s actions' }))
     await click(
-      list.getAllByRole('button', { name: /^Roll .* for Strikebreaker$/ })[0] as HTMLElement
+      list.getAllByRole('button', { name: /^Use .* for Strikebreaker$/ })[0] as HTMLElement
     )
+    // One roll control: the table's stamp (R8).
+    await click(list.getByRole('button', { name: 'Roll the die on NPC Action' }))
     await waitFor(() =>
       expect(feedLines().some((l) => /^You · Strikebreaker · .* · 14 · Success/.test(l))).toBe(true)
     )
@@ -355,7 +357,7 @@ describe('the Opposition', () => {
 
   test('Morale rolls on the Morale table, kept on the NPC and on the Feed', async () => {
     await renderCockpit()
-    await click(named('Roll Morale for Strikebreaker'))
+    await click(named('Roll the die on Morale'))
     await waitFor(() => expect(names()).toEqual(['mediator:updateNpc']))
     const patch = sent[0]?.args.patch as { lastMediatorRoll?: { table: string } }
     expect(patch.lastMediatorRoll?.table).toBe('morale')
