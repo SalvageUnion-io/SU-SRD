@@ -434,6 +434,7 @@ export function MechWizard({
 
   return (
     <WizShell
+      gameId={gameId}
       kind="mech"
       eyebrow="Mech Workshop"
       {...shell}

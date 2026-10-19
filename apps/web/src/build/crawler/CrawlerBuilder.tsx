@@ -366,6 +366,7 @@ export function CrawlerBuilder({
 
   return (
     <WizShell
+      gameId={gameId}
       kind="crawler"
       eyebrow="Union Crawler"
       {...shell}

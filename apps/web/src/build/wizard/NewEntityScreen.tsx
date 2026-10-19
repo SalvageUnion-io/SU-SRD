@@ -76,6 +76,7 @@ export function NewEntityScreen({
         kind={kind}
         onGuided={() => onModeChange('guided')}
         onBlank={() => onModeChange('blank')}
+        gameId={gameId}
       />
       <BlankCreateDialog
         kind={kind}

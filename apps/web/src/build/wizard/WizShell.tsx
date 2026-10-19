@@ -3,6 +3,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { Box } from '../../components/containers/Box'
 import { Badge, Button, ChapterBand, ConfirmDialog, tokens } from '../../components/index'
+import { WizardGameChip } from './WizardGameChip'
 import '../../styles/build/wizard.css'
 import { capsLabel } from '../../components/atoms/capsLabel'
 import { cn } from '../../lib/cn'
@@ -18,6 +19,11 @@ type WizShellProps = {
   kind: WizKind
   /** Poster band banner, e.g. 'New Pilot' / 'Edit Pilot'. */
   eyebrow: string
+  /**
+   * The Game the wizard was started for (`?game=<id>`, ADR-052 §3): its
+   * relation chip, `GAME | name`, on the band beside the title.
+   */
+  gameId?: string | undefined
   /**
    * Draw the poster band. False when the page around the wizard draws its own
    * (the NPC designer's, which carries its Any NPC | Crawler crew tabs).
@@ -394,6 +400,7 @@ const footerPillStyle = {
 export function WizShell({
   kind,
   eyebrow,
+  gameId,
   band = true,
   steps,
   active,
@@ -478,7 +485,12 @@ export function WizShell({
       {/* The page title as every other page sets it. A paragraph: the step's
           title is the page's h1. */}
       {band && (
-        <ChapterBand tone={kind === 'npc' ? 'denizen' : kind} as="p">
+        <ChapterBand
+          tone={kind === 'npc' ? 'denizen' : kind}
+          as="p"
+          asideAt="notch"
+          aside={gameId === undefined ? undefined : <WizardGameChip gameId={gameId} />}
+        >
           {eyebrow}
         </ChapterBand>
       )}

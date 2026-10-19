@@ -417,6 +417,7 @@ export function PilotWizard({
 
   return (
     <WizShell
+      gameId={gameId}
       kind="pilot"
       eyebrow="Pilot Bay"
       {...shell}

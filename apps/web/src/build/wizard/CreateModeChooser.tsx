@@ -15,6 +15,7 @@ import type { CSSProperties } from 'react'
 import type { BlankCreateKind } from '../../lib/wizard/blankCreate'
 import { ChapterBand, ModeDoor, tokens } from '../../components/index'
 import { AppLink } from '../../components/shared/AppLink'
+import { WizardGameChip } from './WizardGameChip'
 import '../../styles/build/wizard.css'
 import { capsLabel } from '../../components/atoms/capsLabel'
 import { cn } from '../../lib/cn'
@@ -25,6 +26,8 @@ type CreateModeChooserProps = {
   onGuided: () => void
   /** Chosen the Blank door — navigate to ?mode=blank. */
   onBlank: () => void
+  /** The Game the build was started for (`?game=<id>`): its chip on the band. */
+  gameId?: string | undefined
 }
 
 const KIND_LABEL: Record<BlankCreateKind, string> = {
@@ -72,7 +75,7 @@ const patternLinkCaps = capsLabel({ size: 'badge' })
 
 const patternAccentStyle = { color: tokens.color.pilot } satisfies CSSProperties
 
-export function CreateModeChooser({ kind, onGuided, onBlank }: CreateModeChooserProps) {
+export function CreateModeChooser({ kind, onGuided, onBlank, gameId }: CreateModeChooserProps) {
   const label = KIND_LABEL[kind]
   const guided = GUIDED_COPY[kind]
 
@@ -83,8 +86,15 @@ export function CreateModeChooser({ kind, onGuided, onBlank }: CreateModeChooser
       aria-label={`New ${label.toLowerCase()} — choose how to create`}
     >
       {/* The page title as every other page sets it: the notched ChapterBand
-          in the kind's chapter colour. */}
-      <ChapterBand tone={kind}>New {label}</ChapterBand>
+          in the kind's chapter colour, and beside it the Game the build was
+          started for, as the wizard's own band shows it. */}
+      <ChapterBand
+        tone={kind}
+        asideAt="notch"
+        aside={gameId === undefined ? undefined : <WizardGameChip gameId={gameId} />}
+      >
+        New {label}
+      </ChapterBand>
 
       <div className="su-wiz-chooser-body" style={bodyStyle}>
         {/* The two doors (mockup `.choosegrid`). */}
