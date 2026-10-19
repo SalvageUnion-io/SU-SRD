@@ -18,6 +18,7 @@ import type { SheetKind } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { useEffect } from 'react'
 import { SheetView } from '../build/sheet/SheetView'
+import { capsLabel } from '../components/atoms/capsLabel'
 import { CloseButton, EntitySurfaceProvider, ModalShell, tokens } from '../components/index'
 
 const FRAME = {
@@ -39,17 +40,13 @@ const HEAD = {
 
 const TITLE = {
   flex: '1 1 0%',
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.readout,
-  fontWeight: tokens.weight.bold,
-  letterSpacing: tokens.tracking.capsTight,
   margin: 0,
   minWidth: 0,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
-  textTransform: 'uppercase',
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
+const TITLE_CAPS = capsLabel({ size: 'readout' })
 
 const BODY = { flex: '1 1 0%', minHeight: 0, overflowY: 'auto' } satisfies CSSProperties
 
@@ -90,7 +87,9 @@ export function PlaySheetOverlay({
       {sheet ? (
         <div style={FRAME}>
           <div style={HEAD}>
-            <h2 style={TITLE}>{sheet.name}</h2>
+            <h2 className={TITLE_CAPS} style={TITLE}>
+              {sheet.name}
+            </h2>
             <CloseButton label="Back to Play" onClick={onClose} />
           </div>
           <div style={BODY}>

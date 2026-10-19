@@ -428,10 +428,7 @@ export function VitalGauge({
       <div style={C_READOUT}>
         {/* Board D2: the label and the value share one row, the pips sit below. */}
         <div style={C_HEAD}>
-          <span
-            className={capsLabel({ size: 'badge', tracking: 'caps' })}
-            style={{ ...C_LABEL, color: color.ink }}
-          >
+          <span className={capsLabel({ size: 'badge' })} style={{ ...C_LABEL, color: color.ink }}>
             {label}
           </span>
           <span
@@ -524,10 +521,7 @@ export function VitalGauge({
             {label}
           </span>
           {subLabel && (
-            <span
-              className={capsLabel({ size: 'badge', weight: 'inherit', tracking: 'caps' })}
-              style={SUB_LABEL}
-            >
+            <span className={capsLabel({ size: 'badge', weight: 'inherit' })} style={SUB_LABEL}>
               {subLabel}
             </span>
           )}
@@ -644,10 +638,7 @@ export function VitalGauge({
           current / max (owner's call, 2026-10-14: Edit looks like Read). An
           override note still says where the max came from. */}
       {isOverridden && (
-        <div
-          className={capsLabel({ size: 'badge', weight: 'semibold', tracking: 'eyebrow' })}
-          style={CAPTION}
-        >
+        <div className={capsLabel({ size: 'badge', weight: 'semibold' })} style={CAPTION}>
           <span style={CAPTION_OVERRIDE}>overridden from {overriddenFrom}</span>
         </div>
       )}

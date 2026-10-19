@@ -3,6 +3,7 @@ import type { BookCite } from 'salvageunion-reference'
 import { formatCite } from 'salvageunion-reference'
 import { Box } from '../../components/containers/Box'
 import { tokens } from '../../components/index'
+import { capsLabel } from '../../components/atoms/capsLabel'
 
 /** Per-step rule metadata carried by each wizard's step table. */
 export type StepRule = {
@@ -28,13 +29,9 @@ const ruleStyle = {
 /** The cite under the rule: plain text, as every foot cites (E9). */
 const citeStyle = {
   color: tokens.color.wkMuted,
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.badge,
-  fontWeight: tokens.weight.semibold,
-  letterSpacing: tokens.tracking.caps,
   margin: 0,
-  textTransform: 'uppercase',
 } satisfies CSSProperties
+const citeCaps = capsLabel({ size: 'badge', weight: 'semibold' })
 
 /**
  * RuleBrief — the rule a wizard step (or a blocked Play action) answers
@@ -47,7 +44,7 @@ export function RuleBrief({ rule, cite, className }: RuleBriefProps) {
   return (
     <Box as="section" label="The rule" className={className}>
       <p style={ruleStyle}>{rule}</p>
-      {cite && <p style={citeStyle}>{formatCite(cite)}</p>}
+      {cite && <p className={citeCaps} style={citeStyle}>{formatCite(cite)}</p>}
     </Box>
   )
 }

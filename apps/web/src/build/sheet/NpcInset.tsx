@@ -22,6 +22,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { InlineEditField, Inset, Stat, tokens } from '../../components/index'
 import { NpcFactsEditor } from './NpcFactsEditor'
+import { capsLabel } from '../../components/atoms/capsLabel'
 
 const ROW = {
   alignItems: 'baseline',
@@ -32,13 +33,9 @@ const ROW = {
 const ROW_LABEL = {
   color: tokens.color.ink,
   flexShrink: 0,
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.badge,
-  fontWeight: tokens.weight.bold,
-  letterSpacing: tokens.tracking.capsWide,
   lineHeight: 1,
-  textTransform: 'uppercase',
 } satisfies CSSProperties
+const ROW_LABEL_CAPS = capsLabel({ size: 'badge' })
 
 const ROW_VALUE = { margin: 0, minWidth: 0 } satisfies CSSProperties
 
@@ -115,7 +112,7 @@ function NpcRow({
 }) {
   return (
     <div className={className} style={ROW}>
-      {srLabel ? <dt className="su-sr-only">{label}</dt> : <dt style={ROW_LABEL}>{label}</dt>}
+      {srLabel ? <dt className="su-sr-only">{label}</dt> : <dt className={ROW_LABEL_CAPS} style={ROW_LABEL}>{label}</dt>}
       <dd
         style={{
           ...ROW_VALUE,

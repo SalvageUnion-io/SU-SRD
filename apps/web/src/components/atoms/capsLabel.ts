@@ -73,11 +73,10 @@ const WEIGHT = {
 
 /**
  * The ratified multi-rung caps ladder (ruleset §4.2). `tight` is the
- * default; the others exist because they are in deliberate use. `none` is
- * the normal letter-spacing, for the caps labels that deliberately do not
- * letterspace (the `Button` mini chip). `inherit` emits nothing, for labels
- * whose tracking is supplied by the surface around them (a `Badge` surface
- * picks `caps` or `caps-snug` itself).
+ * default, and `snug` at the 11px floor (`size: 'badge'` defaults to it);
+ * the others exist because they are in deliberate use. `none` is the normal
+ * letter-spacing. `inherit` emits nothing, for labels whose tracking is
+ * supplied by the rule around them.
  */
 const TRACKING = {
   inherit: '',
@@ -95,11 +94,15 @@ export type CapsLabelProps = {
   tracking?: keyof typeof TRACKING | null
 }
 
+/**
+ * 11px caps are snug (ruleset §4.2): at `size: 'badge'` the default rung is
+ * `snug`, and the `tokens/badge-caps-snug` gate fails any other one named there.
+ */
 export function capsLabel({ size, weight, tracking }: CapsLabelProps = {}): string {
   return cn(
     'su-caps',
     size == null ? undefined : SIZE[size],
     WEIGHT[weight ?? 'bold'],
-    TRACKING[tracking ?? 'tight']
+    TRACKING[tracking ?? (size === 'badge' ? 'snug' : 'tight')]
   )
 }

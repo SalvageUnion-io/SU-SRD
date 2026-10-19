@@ -1,17 +1,14 @@
 import type { CSSProperties } from 'react'
 import { CONDITION_LABELS } from 'salvageunion-reference'
-import {
-  size as controlSize,
-  font,
-  fontSize,
-  space,
-  tracking,
-  weight,
-} from '../../../design/tokens'
+import { size as controlSize, fontSize, space } from '../../../design/tokens'
 import { Button } from '../../atoms/Button'
+import { capsLabel } from '../../atoms/capsLabel'
 import type { EntityStatus } from '../../atoms/entityStatus'
 import type { CardSize } from '../../containers/displayMode'
 import type { ReferenceEntityControl } from '../referenceEntityControlTypes'
+
+/** A segment's label: caption caps from the recipe. */
+const SEGMENT_CAPS = capsLabel({ size: 'caption' })
 
 const ORDER: EntityStatus[] = ['intact', 'damaged', 'destroyed']
 const STATES = ORDER.map((value) => ({ value, label: CONDITION_LABELS[value] }))
@@ -28,15 +25,10 @@ const segment = (active: boolean, live: boolean): CSSProperties => ({
   backgroundColor: active ? 'var(--color-ink)' : 'var(--color-paper)',
   color: active ? 'var(--color-paper)' : 'var(--color-ink)',
   display: 'inline-flex',
-  fontFamily: font.cond,
-  fontSize: fontSize.caption,
-  fontWeight: weight.bold,
-  letterSpacing: tracking.capsTight,
   lineHeight: 1,
   // Only the live control owes the 44px touch floor; a read-out has no pointer.
   minHeight: live ? `calc(${controlSize.full} - 2 * var(--bw-chrome))` : '28px',
   padding: `0 ${space[8]}`,
-  textTransform: 'uppercase',
   whiteSpace: 'nowrap',
 })
 
@@ -64,6 +56,7 @@ function StatusTriState({
     return (
       <span title={`${subject}: ${label}`} style={{ display: 'inline-flex' }}>
         <span
+          className={SEGMENT_CAPS}
           style={{
             ...segment(true, false),
             border: 'var(--bw-chrome) solid var(--color-ink)',
@@ -87,6 +80,7 @@ function StatusTriState({
         <span
           key={s.value}
           aria-current={s.value === status ? 'true' : undefined}
+          className={SEGMENT_CAPS}
           style={segment(s.value === status, true)}
         >
           {s.label}
@@ -159,14 +153,10 @@ export function StatusRail({
             control.onClick?.()
           }}
           style={{
-            fontFamily: font.cond,
             fontSize: fontSize.sm,
-            fontWeight: weight.bold,
-            letterSpacing: tracking.capsSnug,
             marginLeft: 'auto',
             // The 44px floor under every pointer, level with the tri-state (E3).
             minHeight: controlSize.full,
-            textTransform: 'uppercase',
           }}
         >
           {control.label ?? control.ariaLabel}

@@ -15,18 +15,15 @@ import type { ClassPathConsequence } from '../../lib/rules/classPath'
 import { classPathConsequence, classPathGroups } from '../../lib/rules/classPath'
 import { Callout, Entity, RadioCardGroup, ReferenceEntityCard, Slab, Stack, tokens } from '../../components/index'
 import '../../styles/build/wizard.css'
+import { capsLabel } from '../../components/atoms/capsLabel'
 
 /** The caps note under a class card ("current", "via Hacker", …). */
 const OPTION_NOTE = {
   margin: `0 0 ${tokens.space[8]}`,
   paddingLeft: tokens.space[4],
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.badge,
-  fontWeight: tokens.weight.bold,
-  textTransform: 'uppercase',
-  letterSpacing: tokens.tracking.caps,
   color: tokens.color.wkMuted,
 } satisfies CSSProperties
+const OPTION_NOTE_CAPS = capsLabel({ size: 'badge' })
 
 /** Each list's Slab, close over its lines. */
 const LEDGER_SLAB = { marginBottom: tokens.space[6] } satisfies CSSProperties
@@ -93,7 +90,7 @@ function OptionCard({
         cardClickLabel={note === undefined ? cls.name : `${cls.name}, ${note}`}
         onCardClick={onSelect}
       />
-      {note !== undefined && <p style={OPTION_NOTE}>{note}</p>}
+      {note !== undefined && <p className={OPTION_NOTE_CAPS} style={OPTION_NOTE}>{note}</p>}
     </div>
   )
 }

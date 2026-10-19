@@ -1,6 +1,8 @@
 import { Tabs as BaseTabs } from '@base-ui/react/tabs'
 import type { CSSProperties, ReactNode } from 'react'
-import { borderWidth, font, fontSize, radius, space, tracking, weight } from '../../design/tokens'
+import { borderWidth, radius, space } from '../../design/tokens'
+import { cn } from '../../lib/cn'
+import { capsLabel } from './capsLabel'
 
 /**
  * Tabs — a row of tabs that switches what one region shows, over Base UI's
@@ -81,13 +83,9 @@ const TAB = {
   borderStyle: 'solid',
   borderWidth: borderWidth.chrome,
   cursor: 'pointer',
-  fontFamily: font.cond,
-  fontWeight: weight.bold,
-  fontSize: fontSize.note,
-  letterSpacing: tracking.capsTight,
-  textTransform: 'uppercase',
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
+const TAB_CAPS = capsLabel({ size: 'note' })
 
 export function Tab({
   value,
@@ -104,7 +102,11 @@ export function Tab({
   style?: CSSProperties
 }) {
   return (
-    <BaseTabs.Tab value={value} className="su-tab su-focus-ring" style={{ ...TAB, ...style }}>
+    <BaseTabs.Tab
+      value={value}
+      className={cn('su-tab su-focus-ring', TAB_CAPS)}
+      style={{ ...TAB, ...style }}
+    >
       {children}
     </BaseTabs.Tab>
   )

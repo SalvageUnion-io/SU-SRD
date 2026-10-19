@@ -16,6 +16,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import type { Visibility, VisibilityChoice } from '../../lib/sharing/visibility'
 import { Radio, tokens } from '../../components/index'
+import { capsLabel } from '../../components/atoms/capsLabel'
 
 const FIELDSET = {
   border: 0,
@@ -28,14 +29,10 @@ const FIELDSET = {
 } satisfies CSSProperties
 
 const LEGEND = {
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.badge,
-  fontWeight: tokens.weight.bold,
-  letterSpacing: tokens.tracking.capsSnug,
   marginBottom: tokens.space[8],
   padding: 0,
-  textTransform: 'uppercase',
 } satisfies CSSProperties
+const LEGEND_CAPS = capsLabel({ size: 'badge' })
 
 type WhoCanSeeProps = {
   /** The radio group's name: unique on the page. */
@@ -53,7 +50,7 @@ type WhoCanSeeProps = {
 export function WhoCanSee({ name, choices, value, onChange, disabled, children }: WhoCanSeeProps) {
   return (
     <fieldset style={FIELDSET} disabled={disabled || value === null}>
-      <legend style={LEGEND}>Who can see it</legend>
+      <legend className={LEGEND_CAPS} style={LEGEND}>Who can see it</legend>
       {choices.map((choice) => (
         <Radio
           key={choice.value}

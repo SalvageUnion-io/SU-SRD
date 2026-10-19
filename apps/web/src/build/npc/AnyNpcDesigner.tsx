@@ -63,7 +63,7 @@ import { WritesBlockedNotice } from '../../components/shared/WritesBlockedNotice
 import { useWizardFlow } from '../wizard/useWizardFlow'
 import { WizShell } from '../wizard/WizShell'
 import { NpcCard } from './NpcCard'
-import { CAPS, COLUMN, HINT, LIST, NOTE, PENCIL, ROW } from './npcStyles.model'
+import { CAPS, CAPS_LABEL, COLUMN, HINT, LIST, NOTE, PENCIL, ROW } from './npcStyles.model'
 
 const STEP_INTRO: Record<NpcStepId, string> = {
   template:
@@ -211,7 +211,7 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
           <section style={COLUMN} aria-label={NPC_STEP_LABELS[step]}>
             {step !== 'template' && form.templateChosen && (
               <div style={ROW}>
-                <span style={CAPS}>Template</span>
+                <span className={CAPS_LABEL} style={CAPS}>Template</span>
                 {template ? (
                   <Entity form="token" context="browse" entity={template} />
                 ) : (
@@ -247,7 +247,7 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
           </section>
 
           <section className="su-npc-preview" aria-label="Live preview">
-            <p style={CAPS}>Live preview · how it will look in your Hangar and in a Game</p>
+            <p className={CAPS_LABEL} style={CAPS}>Live preview · how it will look in your Hangar and in a Game</p>
             {preview}
             <p style={NOTE}>
               <strong>Yours, not the book&rsquo;s.</strong> A designed NPC keeps its
@@ -327,7 +327,7 @@ function TemplateStep({
           <li>
             <Sel selected={blankChosen} onToggle={onBlank} ariaLabel="Start blank" radio>
               <div style={blankChosen ? BLANK_TILE_CHOSEN : BLANK_TILE}>
-                <span style={CAPS}>Start blank</span>
+                <span className={CAPS_LABEL} style={CAPS}>Start blank</span>
                 <span style={HINT}>No template. Set the stats and pick the actions yourself.</span>
               </div>
             </Sel>

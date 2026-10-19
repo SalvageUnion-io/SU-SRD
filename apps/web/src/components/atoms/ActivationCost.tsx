@@ -1,5 +1,10 @@
 import type { CSSProperties } from 'react'
 import { fontSize, space, weight } from '../../design/tokens'
+import { cn } from '../../lib/cn'
+import { capsLabel } from './capsLabel'
+
+/** The box's caps: the recipe's; its face, weight and tracking are `.su-cost`'s. */
+const COST = cn('su-cost', capsLabel({ weight: 'inherit', tracking: 'inherit' }))
 
 type ActivationCostProps = {
   cost: string | number
@@ -27,7 +32,6 @@ const BOX = {
   display: 'inline-flex',
   flex: 'none',
   lineHeight: 1,
-  textTransform: 'uppercase',
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
 
@@ -61,7 +65,7 @@ export function ActivationCost({
   // The edge shares the box's type size, so its `em` point matches the box's.
   return (
     <span className="su-cost-edge" style={{ fontSize: rung.fontSize }}>
-      <span className="su-cost" style={{ ...BOX, ...rung }}>
+      <span className={COST} style={{ ...BOX, ...rung }}>
         {currency === '' ? displayCost : `${displayCost} ${currency}`}
       </span>
     </span>

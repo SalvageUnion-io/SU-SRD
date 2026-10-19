@@ -66,14 +66,10 @@
   background-color: var(--color-ink);
   color: var(--color-paper);
   flex: none;
-  font-family: var(--font-cond);
   font-size: var(--text-caption);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-caps-tight);
   line-height: 1.1;
   padding: var(--space-2) var(--space-6);
   text-decoration: underline;
-  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -129,13 +125,9 @@
 .su-roll__cols {
   align-items: center;
   display: flex;
-  font-family: var(--font-cond);
   font-size: var(--text-sm);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-caps-snug);
   line-height: 1.1;
   min-width: 0;
-  text-transform: uppercase;
 }
 
 .su-roll__cols--end {
@@ -164,14 +156,10 @@
 .su-roll__title {
   contain: inline-size;
   flex: 1 1 8rem;
-  font-family: var(--font-cond);
   font-size: var(--su-roll-title-size);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-caps-tight);
   line-height: 1.1;
   min-width: 0;
   overflow-wrap: break-word;
-  text-transform: uppercase;
 }
 
 .su-roll__hint {
@@ -239,12 +227,8 @@
 }
 
 .su-roll__label {
-  font-family: var(--font-cond);
   font-size: var(--su-roll-label-size);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-caps-tight);
   line-height: 1.1;
-  text-transform: uppercase;
 }
 
 .su-roll__value {
@@ -268,15 +252,12 @@
   clip-path: polygon(18% 0, 100% 0, 100% 100%, 18% 100%, 0 50%);
   color: var(--color-ink);
   flex: none;
-  font-family: var(--font-cond);
   font-size: var(--text-caption);
   font-weight: var(--font-weight-extrabold);
-  letter-spacing: var(--tracking-caps-tight);
   line-height: 1.1;
   padding: var(--space-2) var(--space-6) var(--space-2) var(--space-12);
   position: absolute;
   right: 0;
-  text-transform: uppercase;
   top: 0;
   white-space: nowrap;
 }

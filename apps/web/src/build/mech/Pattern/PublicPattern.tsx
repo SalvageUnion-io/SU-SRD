@@ -64,6 +64,7 @@ import {
 } from '../../../components/index'
 import { EntityPhoto } from '../../../components/shared/EntityPhoto'
 import { ShareStatusDialog } from '../../sharing/ShareStatusDialog'
+import { capsLabel } from '../../../components/atoms/capsLabel'
 
 /** `publicSheet.pattern`'s answer, its body parsed. */
 export type PublicPatternAnswer = {
@@ -161,13 +162,9 @@ const NOTES = {
 
 const NOTES_LABEL = {
   display: 'block',
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.badge,
-  fontWeight: tokens.weight.bold,
-  letterSpacing: tokens.tracking.capsSnug,
   marginBottom: tokens.space[6],
-  textTransform: 'uppercase',
 } satisfies CSSProperties
+const NOTES_LABEL_CAPS = capsLabel({ size: 'badge' })
 
 const NOTES_TEXT = {
   fontFamily: tokens.font.body,
@@ -184,12 +181,9 @@ const STATS_NOTE = {
   textAlign: 'left',
 } satisfies CSSProperties
 
-/** A primary action: 44px at least, in condensed caps. */
+/** A primary action: 44px at least (`Button` sets its condensed caps). */
 const ACTION_BUTTON = {
-  fontFamily: tokens.font.cond,
-  letterSpacing: tokens.tracking.capsSnug,
   minHeight: tokens.size.full,
-  textTransform: 'uppercase',
 } satisfies CSSProperties
 
 const FOOT = {
@@ -342,7 +336,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
             )}
             {pattern.notes && (
               <figure style={NOTES}>
-                <figcaption style={NOTES_LABEL}>Maker&rsquo;s notes</figcaption>
+                <figcaption className={NOTES_LABEL_CAPS} style={NOTES_LABEL}>Maker&rsquo;s notes</figcaption>
                 <p style={NOTES_TEXT}>{pattern.notes}</p>
               </figure>
             )}

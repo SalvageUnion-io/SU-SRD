@@ -168,10 +168,7 @@ export function Conditions({
           type="button"
           aria-label={addLabel ?? 'Add condition'}
           onClick={onAdd}
-          className={cn(
-            capsLabel({ size: 'badge', weight: 'semibold', tracking: 'caps' }),
-            'su-conditions__add'
-          )}
+          className={cn(capsLabel({ size: 'badge', weight: 'semibold' }), 'su-conditions__add')}
           style={ADD_BUTTON}
         >
           + Add

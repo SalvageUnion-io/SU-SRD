@@ -203,7 +203,7 @@ describe('the contentful Token (N3)', () => {
     const token = container.firstElementChild
     expect(token?.className).toBe('su-entity-token')
     expect(token?.hasAttribute('data-contentful')).toBe(false)
-    expect(Array.from(token?.children ?? []).map((child) => child.className)).toEqual([
+    expect(Array.from(token?.children ?? []).map((child) => child.classList[0])).toEqual([
       'su-entity-token__pill',
     ])
     expect(container.querySelector('.su-entity-token__body')).toBeNull()
@@ -218,7 +218,7 @@ describe('the contentful Token (N3)', () => {
     const [head, more, body] = Array.from(token?.children ?? [])
     expect(head?.className).toContain('su-entity-token__head')
     expect(more?.className).toBe('su-entity-token__more')
-    expect(head?.firstElementChild?.className).toBe('su-entity-token__pill')
+    expect(head?.firstElementChild?.classList[0]).toBe('su-entity-token__pill')
     expect(body?.className).toBe('su-entity-token__body')
     // Every paragraph of the action's rules, not only its opening one.
     expect(body?.textContent).toContain('electro-magnetic field')

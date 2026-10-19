@@ -1,6 +1,7 @@
 import type { ElementType, ReactNode } from 'react'
 import { cloneElement, isValidElement, useRef } from 'react'
 import { cn } from '../../../lib/cn'
+import { capsLabel } from '../../atoms/capsLabel'
 import { grainClass } from '../../referenceEntity/card/cardGrain'
 import { Chips } from './Chips'
 import type { ChipSet } from './chipSet'
@@ -8,6 +9,9 @@ import { KindLabel } from './KindLabel'
 import type { Paint } from './paint'
 import { PAPER_NAME } from './paint'
 import { useChipsFit } from './useChipsFit'
+
+/** The tier and the name: caps from the recipe, their extrabold weight the rule's. */
+const NAME_CAPS = capsLabel({ weight: 'inherit' })
 
 /*
  * The band's parts are `.su-entity-row__*` classes (`styles/index.css`), not
@@ -95,13 +99,13 @@ export function Head({
   const headingRef = useRef<HTMLDivElement>(null)
   useChipsFit(headingRef, cut && !!chips)
   const tierNode = tier && (
-    <span className={cn('su-entity-row__tier', tierChip && 'su-entity-row__tier--chip')}>
+    <span className={cn('su-entity-row__tier', NAME_CAPS, tierChip && 'su-entity-row__tier--chip')}>
       {tier}
     </span>
   )
   const titleNode = (
     <TitleTag
-      className="su-entity-row__title"
+      className={cn('su-entity-row__title', NAME_CAPS)}
       title={title}
       // On the notch's paper the name is ink (the class's), whatever the band.
       style={cut ? undefined : { color: paint.color }}

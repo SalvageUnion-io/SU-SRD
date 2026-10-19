@@ -49,9 +49,10 @@ body {
 }
 
 /*
- * Every heading in the app wears the condensed caps face. Unlayered, so it beats
- * a package class on a heading; `styles/libHandback.css` hands those classes
- * their own type back.
+ * Every heading in the app wears the condensed face. Unlayered, so it beats a
+ * package class on a heading; `styles/libHandback.css` hands those classes
+ * their own type back. Its caps are the heading's own, through the stamp or
+ * `capsLabel` (R14), never this rule's.
  */
 h1,
 h2,
@@ -62,5 +63,4 @@ h6 {
   font-family: var(--font-cond);
   font-weight: 700;
   letter-spacing: var(--tracking-caps-tight);
-  text-transform: uppercase;
 }

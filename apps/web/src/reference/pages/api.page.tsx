@@ -10,18 +10,11 @@
 import type { CSSProperties } from 'react'
 import { getEntitySlug } from 'salvageunion-reference'
 import type { PageModule, PageResult } from '../../../ssg/types'
+import { capsLabel } from '../../components/atoms/capsLabel'
 import { InlineRef, Panel, Slab, Stack } from '../../components/index'
-import {
-  borderWidth,
-  color,
-  font,
-  fontSize,
-  radius,
-  space,
-  tracking,
-  weight,
-} from '../../design/tokens'
+import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
 import { apiSampleChassis } from '../../lib/apiSample'
+import { cn } from '../../lib/cn'
 import { SITE_URL, WEBSITE } from '../../lib/constants'
 import {
   ASIDE,
@@ -55,13 +48,10 @@ const CODE_ON_GROUND = inlineCode(true)
 /** A Panel header's HTTP method. */
 const METHOD = {
   color: color.wkMuted,
-  fontFamily: font.cond,
   fontSize: fontSize.sm,
-  fontWeight: weight.bold,
-  letterSpacing: tracking.capsTight,
   lineHeight: 'calc(1.25 / 0.875)',
-  textTransform: 'uppercase',
 } satisfies CSSProperties
+const METHOD_CAPS = capsLabel()
 
 /** A `<pre>` code sample; the padding is per sample. */
 const CODE_SAMPLE = {
@@ -97,14 +87,11 @@ const TD = { paddingBlock: space[8], paddingInline: space[16] } satisfies CSSPro
 
 const TH = {
   ...TD,
-  fontFamily: font.cond,
   fontSize: fontSize.xs,
-  fontWeight: weight.bold,
-  letterSpacing: tracking.capsTight,
   lineHeight: 'calc(1 / 0.75)',
   textAlign: 'left',
-  textTransform: 'uppercase',
 } satisfies CSSProperties
+const TH_CAPS = capsLabel()
 
 const TH_END = { ...TH, textAlign: 'right' } satisfies CSSProperties
 
@@ -264,7 +251,9 @@ function page(): PageResult {
           {/* Schema data array */}
           <Panel soft>
             <div style={PANEL_HEAD}>
-              <p style={METHOD}>GET</p>
+              <p className={METHOD_CAPS} style={METHOD}>
+                GET
+              </p>
               <p style={PANEL_TITLE}>
                 /schema/<span style={ITALIC}>{'{schemaId}'}</span>.json
               </p>
@@ -289,7 +278,9 @@ function page(): PageResult {
           {/* JSON Schema definition */}
           <Panel soft>
             <div style={PANEL_HEAD}>
-              <p style={METHOD}>GET</p>
+              <p className={METHOD_CAPS} style={METHOD}>
+                GET
+              </p>
               <p style={PANEL_TITLE}>
                 /schema/<span style={ITALIC}>{'{schemaId}'}</span>.schema.json
               </p>
@@ -318,7 +309,9 @@ function page(): PageResult {
           {/* Individual entity */}
           <Panel soft>
             <div style={PANEL_HEAD}>
-              <p style={METHOD}>GET</p>
+              <p className={METHOD_CAPS} style={METHOD}>
+                GET
+              </p>
               <p style={PANEL_TITLE}>
                 /schema/<span style={ITALIC}>{'{schemaId}'}</span>/item/
                 <span style={ITALIC}>{'{itemId}'}</span>.json
@@ -365,12 +358,18 @@ function page(): PageResult {
             <table style={TABLE}>
               <thead>
                 <tr className="su-print-ink" style={TABLE_HEAD}>
-                  <th style={TH}>Schema ID</th>
-                  <th style={TH}>Name</th>
-                  <th className="su-api__wide-cell" style={TH}>
+                  <th className={TH_CAPS} style={TH}>
+                    Schema ID
+                  </th>
+                  <th className={TH_CAPS} style={TH}>
+                    Name
+                  </th>
+                  <th className={cn('su-api__wide-cell', TH_CAPS)} style={TH}>
                     Description
                   </th>
-                  <th style={TH_END}>Items</th>
+                  <th className={TH_CAPS} style={TH_END}>
+                    Items
+                  </th>
                 </tr>
               </thead>
               <tbody>

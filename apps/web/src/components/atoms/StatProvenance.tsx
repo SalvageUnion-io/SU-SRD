@@ -143,10 +143,7 @@ export function StatProvenance({
       panelStyle={POPUP}
       arrowColor={color.ink}
     >
-      <div
-        className={capsLabel({ size: 'badge', weight: 'inherit', tracking: 'caps' })}
-        style={TITLE}
-      >
+      <div className={capsLabel({ size: 'badge', weight: 'inherit' })} style={TITLE}>
         {title}
       </div>
       <ul style={LEDGER}>

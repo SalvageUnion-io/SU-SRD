@@ -1,8 +1,9 @@
 import type { CSSProperties } from 'react'
 import { foregroundOn } from '../../design/contrast'
-import { color, font, fontSize, tracking, weight } from '../../design/tokens'
+import { color } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import type { CSSVarStyle } from '../../styles/cssVars'
+import { capsLabel } from './capsLabel'
 import { FOCUS_RING } from './interaction'
 
 /**
@@ -51,13 +52,9 @@ const TILE = {
 // (0.04em) replace a hand-set 16px size and 0.02em tracking. The 1px and
 // 0.02em deltas are the price of being on the scale.
 const NAME = {
-  fontFamily: font.cond,
-  fontSize: fontSize.lede,
-  fontWeight: weight.semibold,
-  letterSpacing: tracking.capsTight,
   lineHeight: 1.2,
-  textTransform: 'uppercase',
 } satisfies CSSProperties
+const NAME_CAPS = capsLabel({ size: 'lede', weight: 'semibold' })
 
 /** The name in ink or paper, whichever passes on the ground it sits on (§3.8). */
 const FOREGROUND = { ink: color.ink, paper: color.paper } as const
@@ -77,7 +74,7 @@ export function CatalogTile({ onActivate, name, catalogBg, catalogLabel }: Catal
       style={style}
     >
       <span
-        className={catalogLabel ? 'su-catalog-tile__label' : undefined}
+        className={cn(NAME_CAPS, catalogLabel && 'su-catalog-tile__label')}
         style={{ ...NAME, color: FOREGROUND[foregroundOn(catalogLabel ?? catalogBg)] }}
       >
         {name}

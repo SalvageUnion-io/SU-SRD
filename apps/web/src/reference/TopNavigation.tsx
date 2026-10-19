@@ -20,6 +20,7 @@
  * client entry reveals both on one page load in a hundred.
  */
 
+import { capsLabel } from '../components/atoms/capsLabel'
 import { cn, FOCUS_RING } from '../components/index'
 import { MobileNavIsland } from '../components/islands/MobileNavIsland'
 import { MobileSearchIsland } from '../components/islands/MobileSearchIsland'
@@ -54,7 +55,15 @@ function WikiLink() {
  */
 function SignInLink() {
   return (
-    <a href={SIGN_IN_HREF} className={cn('su-union-bar__sign-in', 'su-sign-in', FOCUS_RING)}>
+    <a
+      href={SIGN_IN_HREF}
+      className={cn(
+        'su-union-bar__sign-in',
+        'su-sign-in',
+        capsLabel({ tracking: 'snug' }),
+        FOCUS_RING
+      )}
+    >
       Sign in with Discord
     </a>
   )

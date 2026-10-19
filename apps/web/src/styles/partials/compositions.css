@@ -194,14 +194,11 @@
   background: var(--su-track-color);
   color: var(--su-track-on);
   display: flex;
-  font-family: var(--font-cond);
   font-size: var(--text-badge);
   font-weight: var(--font-weight-extrabold);
   height: 1.4rem;
   justify-content: center;
-  letter-spacing: var(--tracking-caps-tight);
   line-height: 1;
   position: relative;
-  text-transform: uppercase;
   width: 2rem;
 }

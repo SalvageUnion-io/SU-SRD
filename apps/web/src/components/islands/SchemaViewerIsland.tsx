@@ -9,6 +9,7 @@ import {
   getTechLevel,
   getTree,
 } from 'salvageunion-reference'
+import { cn } from '../../lib/cn'
 import { itemHref, srdHrefFor } from '../../lib/entityHref'
 import type { GroupBy, ListingShape, TechLevel } from '../../lib/listingGroups'
 import {
@@ -30,6 +31,7 @@ import { TREE_LISTINGS, useListingView } from '../../lib/listingView'
 import type { SchemaList } from '../../lib/useGameData'
 import { preloadGameData } from '../../lib/useGameData'
 import { AbilityTrack } from '../AbilityTrack'
+import { capsLabel } from '../atoms/capsLabel'
 import { GameDataGate } from '../GameDataGate'
 import {
   Button,
@@ -45,6 +47,9 @@ import { EntityListingRow } from './EntityListingRow'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 import type { RailActions } from './ListingRail'
 import { ListingRail, shortSource, tlButtonLabel } from './ListingRail'
+
+/** An active filter's token: a caps label on its frame. */
+const RAIL_TOKEN = cn('su-rail__token su-focus-ring', capsLabel())
 
 /** The schemas whose entity IS a tech level: its name already says the level. */
 const TECH_LEVEL_SCHEMAS: ReadonlySet<string> = new Set(['tech-levels', 'crawler-tech-levels'])
@@ -539,12 +544,7 @@ function FilterToken({
   onRemove: () => void
 }) {
   return (
-    <button
-      type="button"
-      className="su-rail__token su-focus-ring"
-      aria-label={`Remove ${name}`}
-      onClick={onRemove}
-    >
+    <button type="button" className={RAIL_TOKEN} aria-label={`Remove ${name}`} onClick={onRemove}>
       {label}
       <X aria-hidden="true" size={tokens.iconSize.mini} />
     </button>

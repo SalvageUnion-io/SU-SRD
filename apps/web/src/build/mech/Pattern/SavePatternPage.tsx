@@ -56,6 +56,7 @@ import {
 import { AppLink } from '../../../components/shared/AppLink'
 import { NotFoundPanel } from '../../../components/shared/RouteFallbacks'
 import { WritesBlockedNotice } from '../../../components/shared/WritesBlockedNotice'
+import { capsLabel } from '../../../components/atoms/capsLabel'
 
 const PAGE = {
   backgroundColor: tokens.color.wkBg,
@@ -99,21 +100,14 @@ const FIELDSET = {
 } satisfies CSSProperties
 
 const LEGEND = {
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.badge,
-  fontWeight: tokens.weight.bold,
-  letterSpacing: tokens.tracking.capsSnug,
   marginBottom: tokens.space[8],
   padding: 0,
-  textTransform: 'uppercase',
 } satisfies CSSProperties
+const LEGEND_CAPS = capsLabel({ size: 'badge' })
 
-/** A primary action: 44px at least, in condensed caps. */
+/** A primary action: 44px at least (`Button` sets its condensed caps). */
 const ACTION_BUTTON = {
-  fontFamily: tokens.font.cond,
-  letterSpacing: tokens.tracking.capsSnug,
   minHeight: tokens.size.full,
-  textTransform: 'uppercase',
 } satisfies CSSProperties
 
 /** The rule, said once where the player is about to make something. */
@@ -296,7 +290,7 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
           </Field>
 
           <fieldset style={FIELDSET}>
-            <legend style={LEGEND}>Who can see it</legend>
+            <legend className={LEGEND_CAPS} style={LEGEND}>Who can see it</legend>
             <Radio
               stacked
               name="pattern-visibility"
@@ -346,7 +340,7 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
             )}
           </fieldset>
 
-          <span style={LEGEND}>How it will look to others</span>
+          <span className={LEGEND_CAPS} style={LEGEND}>How it will look to others</span>
           {chassis && (
             <ReferenceEntityCard
               data={chassis}

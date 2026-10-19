@@ -16,6 +16,8 @@ import type { BlankCreateKind } from '../../lib/wizard/blankCreate'
 import { ChapterBand, ModeDoor, tokens } from '../../components/index'
 import { AppLink } from '../../components/shared/AppLink'
 import '../../styles/build/wizard.css'
+import { capsLabel } from '../../components/atoms/capsLabel'
+import { cn } from '../../lib/cn'
 
 type CreateModeChooserProps = {
   kind: BlankCreateKind
@@ -57,10 +59,6 @@ const patternLinkStyle = {
   borderRadius: tokens.radius.badge,
   color: tokens.color.paper,
   display: 'block',
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.badge,
-  fontWeight: tokens.weight.bold,
-  letterSpacing: tokens.tracking.capsSnug,
   lineHeight: 1.625,
   marginInline: 'auto',
   marginTop: tokens.space[24],
@@ -68,9 +66,9 @@ const patternLinkStyle = {
   padding: `${tokens.space[8]} ${tokens.space[16]}`,
   textAlign: 'center',
   textDecorationLine: 'none',
-  textTransform: 'uppercase',
   width: 'fit-content',
 } satisfies CSSProperties satisfies CSSProperties
+const patternLinkCaps = capsLabel({ size: 'badge' })
 
 const patternAccentStyle = { color: tokens.color.pilot } satisfies CSSProperties
 
@@ -118,7 +116,7 @@ export function CreateModeChooser({ kind, onGuided, onBlank }: CreateModeChooser
         {kind === 'mech' && (
           <AppLink
             href="/mechs/patterns"
-            className="su-wiz-chooser-pattern"
+            className={cn('su-wiz-chooser-pattern', patternLinkCaps)}
             style={patternLinkStyle}
           >
             A third door in the Blank family —{' '}

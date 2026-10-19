@@ -7,6 +7,7 @@
 
 import type { CSSProperties } from 'react'
 import { tokens } from '../../components/index'
+import { capsLabel } from '../../components/atoms/capsLabel'
 
 export const PAGE = {
   backgroundColor: tokens.color.wkBg,
@@ -35,13 +36,13 @@ export const COLUMN = {
 /** Condensed caps over a field or a region ("LIVE PREVIEW · …", "TEMPLATE"). */
 export const CAPS = {
   color: tokens.color.ink,
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.badge,
-  fontWeight: tokens.weight.bold,
-  letterSpacing: tokens.tracking.capsSnug,
   margin: 0,
-  textTransform: 'uppercase',
 } satisfies CSSProperties
+/** The caps label those regions wear (`capsLabel`). */
+export const CAPS_LABEL = capsLabel({ size: 'badge' })
+
+/** The eyebrow's caps, a step up the ladder and snug as the label. */
+export const EYEBROW_LABEL = capsLabel({ size: 'caption', tracking: 'snug' })
 
 /** The band's eyebrow on a chapter colour that carries paper text. */
 export const EYEBROW = {

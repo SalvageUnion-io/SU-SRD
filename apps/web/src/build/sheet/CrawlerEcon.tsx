@@ -23,6 +23,7 @@
 
 import type { CSSProperties, ReactNode } from 'react'
 import { Button, Stat, tokens } from '../../components/index'
+import { capsLabel } from '../../components/atoms/capsLabel'
 
 export type EconLozItem = {
   /** Stat label, e.g. 'Upkeep'. */
@@ -77,14 +78,10 @@ const LOZ = {
 } satisfies CSSProperties
 
 const CAPTION = {
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.badge,
-  fontWeight: tokens.weight.semibold,
-  textTransform: 'uppercase',
-  letterSpacing: tokens.tracking.capsWide,
   // The muted text tone: 11px caps need 4.5:1, which ink55 (3.6:1) missed.
   color: tokens.color.wkMuted,
 } satisfies CSSProperties
+const CAPTION_CAPS = capsLabel({ size: 'badge', weight: 'semibold' })
 
 type CrawlerEconFrameProps = {
   /** The SP `VitalGauge`. */
@@ -139,7 +136,7 @@ function EconLoz({ item }: { item: EconLozItem }) {
     <div style={LOZ}>
       {/* A label-first chip, as every stat reads; `full` is the reading rung. */}
       <Stat orientation="horizontal" label={item.label} value={item.value} max={item.max} />
-      {item.caption && <span style={CAPTION}>{item.caption}</span>}
+      {item.caption && <span className={CAPTION_CAPS} style={CAPTION}>{item.caption}</span>}
     </div>
   )
 }

@@ -19,12 +19,13 @@ import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
+import { capsLabel } from '../../components/atoms/capsLabel'
 import { Button, ConfirmDialog, Field, Select, tokens } from '../../components/index'
 import { useConnection } from '../../lib/connection/connectionContext'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { HubSection } from './HubSection'
 
-const { color, font, fontSize, space, tracking, weight } = tokens
+const { color, font, fontSize, space } = tokens
 
 const LIST = {
   margin: 0,
@@ -50,13 +51,9 @@ const VALUE_ROW = {
 } satisfies CSSProperties
 
 const TERM = {
-  fontFamily: font.cond,
-  fontWeight: weight.bold,
-  fontSize: fontSize.badge,
-  letterSpacing: tracking.caps,
-  textTransform: 'uppercase',
   color: color.ink,
 } satisfies CSSProperties
+const TERM_CAPS = capsLabel({ size: 'badge' })
 
 const VALUE = {
   margin: 0,
@@ -101,7 +98,9 @@ export function TheGame({
     <HubSection id="the-game-heading" title="The Game">
       <dl style={LIST}>
         <div style={ROW}>
-          <dt style={TERM}>Mediator</dt>
+          <dt className={TERM_CAPS} style={TERM}>
+            Mediator
+          </dt>
           <dd style={VALUE_ROW}>
             <span style={mediators.length === 0 ? NONE : VALUE}>
               {mediators.length === 0 ? 'Nobody yet' : mediators.map(name).join(', ')}
@@ -122,7 +121,9 @@ export function TheGame({
           </dd>
         </div>
         <div style={ROW}>
-          <dt style={TERM}>Organiser</dt>
+          <dt className={TERM_CAPS} style={TERM}>
+            Organiser
+          </dt>
           <dd style={VALUE}>{organizers.map(name).join(', ') || '—'}</dd>
         </div>
       </dl>

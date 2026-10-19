@@ -332,6 +332,59 @@ const rawBreakpointScript = (text: string) =>
     breakpointProblems(m[0], true).map((detail) => ({ offset: m.index ?? 0, detail }))
   )
 
+// ── Caps (§3.12, §4.2) ────────────────────────────────────────────────────────
+
+/**
+ * Who may set caps (R14): the stamp (`Badge shape="stamp"`) and the chip draw
+ * through `capsLabel`, whose `.su-caps` sets the transform; `Button` sets it
+ * on `.su-btn`. Every other label asks `capsLabel` for its caps.
+ */
+export const CAPS_RULES: readonly [file: string, selector: RegExp, why: string][] = [
+  ['apps/web/src/styles/partials/controls.css', /^\.su-caps$/, 'the `capsLabel` recipe'],
+  ['apps/web/src/styles/partials/button.css', /^\.su-btn$/, '`Button`, every label in caps'],
+]
+
+const UPPERCASE = /\buppercase\b/
+
+const handCapsCss = (decls: CssDecl[], _blocks: CssBlock[], rel: string) =>
+  decls
+    .filter((d) => d.prop === 'text-transform' && UPPERCASE.test(d.value))
+    .filter((d) => {
+      const selector = d.context.at(-1) ?? ''
+      return !CAPS_RULES.some(([file, re]) => file === rel && re.test(selector))
+    })
+    .map((d) => ({ line: d.line, detail: `${d.context.at(-1)} { ${d.prop}: ${d.value} }` }))
+
+const handCapsScript = (text: string) =>
+  matchesIn(text, /\btextTransform\s*:\s*['"`]uppercase['"`]/g)
+
+/** A badge-size font (11px, the floor) in a stylesheet value or a style object. */
+const BADGE_SIZE_CSS = /var\(--text-badge\)/
+const SNUG_CSS = /^(?:var\(--tracking-caps-snug\)|normal|0)$/
+
+const badgeSnugCss = (decls: CssDecl[]) =>
+  decls
+    .filter((d) => d.prop === 'letter-spacing' && !SNUG_CSS.test(d.value))
+    .filter((d) => d.siblings.some((s) => s.prop === 'font-size' && BADGE_SIZE_CSS.test(s.value)))
+    .map((d) => ({ line: d.line, detail: `${d.context.at(-1)} { ${d.prop}: ${d.value} }` }))
+
+const badgeSnugScript = (text: string) => [
+  // A style object at the floor that letterspaces off the snug rung.
+  ...matchesIn(text, /\bletterSpacing\s*:\s*([^,}\n]+)/g, (m) => {
+    if (/^(?:(?:tokens\.)?tracking\.capsSnug|['"`](?:normal|0)['"`]|0)$/.test((m[1] ?? '').trim()))
+      return false
+    const object = enclosingObject(text, m.index ?? 0)
+    return /\bfontSize\s*:\s*(?:fontSize\.badge\b|tokens\.fontSize\.badge\b|['"`]var\(--text-badge\)['"`])/.test(
+      object
+    )
+  }),
+  // The recipe at the floor names no other rung (its default there is snug).
+  ...matchesIn(text, /\bcapsLabel\(\{[^})]*\bsize\s*:\s*['"]badge['"][^})]*\}\)/g, (m) => {
+    const tracking = m[0].match(/\btracking\s*:\s*['"](\w+)['"]/)
+    return tracking !== null && tracking[1] !== 'snug'
+  }),
+]
+
 // ── The rules ─────────────────────────────────────────────────────────────────
 
 const CHROME_RULES: ChromeRule[] = [
@@ -389,6 +442,22 @@ const CHROME_RULES: ChromeRule[] = [
     rule: 'chrome.md K8 — one error per job: a raw `role="alert"` only in the error atoms',
     fix: 'A crash is `RecoveryPanel`, a failure line `Message tone="bad"` (`FieldError` for a field), a lasting condition `Banner`, a failed act `toast.error`; a status that is not urgent is `role="status"`. The atoms are ALERT_ATOMS (packages/gates/rules/chromeTokens.ts).',
     script: rawAlertScript,
+  },
+  {
+    id: 'hand-caps',
+    mode: 'zero',
+    rule: 'ruleset §3.12 — caps only through the stamp, `Button` and `capsLabel` (R14)',
+    fix: 'Drop the hand-set `uppercase`. A label in caps takes `className={capsLabel({ size, weight, tracking })}` (components/atoms/capsLabel.ts), which sets the condensed face and the transform, and leaves its own rule only what the recipe does not; a stamp is `Badge shape="stamp"`, an action `Button`. Sentence copy is set in sentence case, never forced to caps. The two places that set the transform are CAPS_RULES (packages/gates/rules/chromeTokens.ts).',
+    css: handCapsCss,
+    script: handCapsScript,
+  },
+  {
+    id: 'badge-caps-snug',
+    mode: 'zero',
+    rule: 'ruleset §4.2 — 11px caps are snug: `fontSize.badge` letterspaces at `capsSnug` (R14)',
+    fix: 'At the floor (`fontSize.badge`, `var(--text-badge)`, `capsLabel({ size: "badge" })`) the tracking is `tracking.capsSnug` / `var(--tracking-caps-snug)` / `tracking: "snug"` (the recipe’s default at that size): drop the other rung.',
+    css: badgeSnugCss,
+    script: badgeSnugScript,
   },
   {
     id: 'raw-breakpoint',

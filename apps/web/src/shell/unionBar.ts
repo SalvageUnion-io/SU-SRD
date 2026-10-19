@@ -22,9 +22,13 @@
 
 import { createElement, Fragment } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
+import { capsLabel } from '../components/atoms/capsLabel'
 import { UnionBar } from '../components/unionBar/UnionBar'
 import type { UnionMode, UnionNavId } from '../lib/barLinks'
+import { cn } from '../lib/cn'
 import type { UnionSlot } from './unionSlots'
+
+const SKIP_LINK = cn('su-skip-link', capsLabel())
 
 const slot = (name: UnionSlot) =>
   createElement('div', { 'data-union-slot': name, style: { display: 'contents' } })
@@ -41,7 +45,7 @@ export function renderUnionBar(
       Fragment,
       null,
       // Skip link (WCAG 2.4.1), the SRD's: the first focusable thing on the page.
-      createElement('a', { href: '#main-content', className: 'su-skip-link' }, 'Skip to content'),
+      createElement('a', { href: '#main-content', className: SKIP_LINK }, 'Skip to content'),
       slot('banner'),
       createElement(UnionBar, {
         product: where.mode,

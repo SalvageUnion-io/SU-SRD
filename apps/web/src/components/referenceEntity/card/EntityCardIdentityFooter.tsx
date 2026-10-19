@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { color, font, fontSize, space, tracking, weight } from '../../../design/tokens'
+import { color, fontSize, space, weight } from '../../../design/tokens'
+import { capsLabel } from '../../atoms/capsLabel'
 import type { CardFootMeta } from '../../containers/Card'
 import type { CardSize } from '../../containers/displayMode'
 import type { CardColors } from './cardChrome'
@@ -54,13 +55,10 @@ type EntityCardIdentityFooterProps = {
 
 const PAD_X: Record<CardSize, string> = { full: space[14], compact: space[10], mini: space[8] }
 
-const capsLabel = {
-  fontFamily: font.cond,
-  fontWeight: weight.bold,
-  letterSpacing: tracking.capsTight,
+const TYPE_CAPS = {
   lineHeight: 1,
-  textTransform: 'uppercase',
 } satisfies CSSProperties
+const TYPE_LABEL = capsLabel()
 
 const truncate = {
   minWidth: 0,
@@ -135,7 +133,9 @@ export function EntityCardIdentityFooter({
           width: '100%',
         }}
       >
-        <span style={{ ...capsLabel, flex: 'none', whiteSpace: 'nowrap' }}>{typeLabel ?? ''}</span>
+        <span className={TYPE_LABEL} style={{ ...TYPE_CAPS, flex: 'none', whiteSpace: 'nowrap' }}>
+          {typeLabel ?? ''}
+        </span>
         {/* Foot extras — inline meta pairs (cost / SV) folded into the row, then
           the source/page on the far right. */}
         <div
@@ -159,7 +159,9 @@ export function EntityCardIdentityFooter({
                 gap: space[4],
               }}
             >
-              <span style={capsLabel}>{label}</span>
+              <span className={TYPE_LABEL} style={TYPE_CAPS}>
+                {label}
+              </span>
               <span style={{ fontWeight: weight.bold, lineHeight: 1 }}>{value}</span>
             </span>
           ))}
@@ -198,7 +200,9 @@ export function EntityCardIdentityFooter({
             width: '100%',
           }}
         >
-          <span style={capsLabel}>Also in</span>
+          <span className={TYPE_LABEL} style={TYPE_CAPS}>
+            Also in
+          </span>
           <span>{reprints.join(', ')}</span>
         </div>
       )}

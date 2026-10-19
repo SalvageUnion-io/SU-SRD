@@ -2,10 +2,12 @@ import type { ReactNode } from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import type { SearchResult } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
+import { cn } from '../../lib/cn'
 import { itemHref } from '../../lib/entityHref'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import type { CompactSearchEntry } from '../../lib/searchIndexTypes'
 import { useSearchIndex } from '../../lib/useSearchIndex'
+import { capsLabel } from '../atoms/capsLabel'
 import { noResultsFor } from '../compositions/searchCopy'
 import {
   EmptyState,
@@ -17,6 +19,9 @@ import {
   schemaPluralLabel,
 } from '../index'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
+
+/** A result with no model: its name in the caps recipe, on the row's frame. */
+const FALLBACK_ROW = cn('su-listing__fallback-row', capsLabel())
 
 const PARAM_QUERY = 'q'
 
@@ -218,7 +223,7 @@ function SearchResults({
                   lead
                 />
               ) : (
-                <a href={resultUrl(result)} className="su-listing__fallback-row">
+                <a href={resultUrl(result)} className={FALLBACK_ROW}>
                   {result.entityName}
                 </a>
               )}

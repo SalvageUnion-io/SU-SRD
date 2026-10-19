@@ -15,6 +15,7 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
+import { capsLabel } from '../components/atoms/capsLabel'
 import { BackLabel, Badge, buttonVariants, tokens } from '../components/index'
 import { AppLink } from '../components/shared/AppLink'
 import type { PlayReadOnly } from './play.model'
@@ -50,18 +51,14 @@ const BACK = {
 } satisfies CSSProperties
 
 const TITLE = {
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.readout,
-  fontWeight: tokens.weight.bold,
-  letterSpacing: tokens.tracking.capsTight,
   lineHeight: 1,
   margin: 0,
   minWidth: 0,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
-  textTransform: 'uppercase',
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
+const TITLE_CAPS = capsLabel({ size: 'readout' })
 
 /**
  * A bar stamp (role, LIVE, read-only): the ink plate, never rust (ruleset
@@ -142,7 +139,9 @@ export function PlayBar({
       >
         <BackLabel to={backLabel} />
       </AppLink>
-      <h1 style={TITLE}>{title}</h1>
+      <h1 className={TITLE_CAPS} style={TITLE}>
+        {title}
+      </h1>
       {stamp && (
         <Badge shape="stamp" size="compact" className={STAMP} style={LIVE}>
           {stamp}

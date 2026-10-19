@@ -1,7 +1,11 @@
 import type { ComponentType, CSSProperties, ReactNode } from 'react'
 import { Fragment } from 'react'
 import { cn } from '../../lib/cn'
+import { capsLabel } from './capsLabel'
 import { FOCUS_RING } from './interaction'
+
+/** On a band the trail is 11px caps, snug (§4.2). */
+const BAND_CAPS = capsLabel({ tracking: 'snug' })
 
 /**
  * BreadcrumbTrail — a page's trail, the one breadcrumb (hard rule R16): its
@@ -66,7 +70,10 @@ export function BreadcrumbTrail({
   link?: BreadcrumbLink
 }) {
   return (
-    <nav aria-label="Breadcrumb" className={`su-crumbs su-crumbs--${placement}`}>
+    <nav
+      aria-label="Breadcrumb"
+      className={cn(`su-crumbs su-crumbs--${placement}`, placement === 'band' && BAND_CAPS)}
+    >
       {placement === 'band' ? (
         <Plate breadcrumbs={breadcrumbs} Link={Link} />
       ) : (

@@ -7,9 +7,12 @@
  */
 
 import type { CSSProperties } from 'react'
+import { capsLabel } from '../components/atoms/capsLabel'
 import { ActivationCost, cn, Radio, Stat } from '../components/index'
 import { color, font, fontSize, space, weight } from '../design/tokens'
 import type { ResolveModel } from './useActionsDeck'
+
+const CHOICE_LABEL = cn('su-dash-deck-cost-choice-lab', capsLabel())
 
 const SPEND = {
   display: 'flex',
@@ -63,7 +66,7 @@ export function ResolveCost({
         <fieldset className="su-dash-deck-cost-choice">
           {/* One choice, the one `Radio` (hard rule R15): `bare`, as the
               fieldset already frames the pair. */}
-          <legend className="su-dash-deck-cost-choice-lab">Pay with</legend>
+          <legend className={CHOICE_LABEL}>Pay with</legend>
           <Radio
             bare
             label={`${currencyChoice.epCost} EP`}

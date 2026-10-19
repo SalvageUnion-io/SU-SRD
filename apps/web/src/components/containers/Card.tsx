@@ -1,8 +1,9 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { foregroundOn } from '../../design/contrast'
-import { color, font, fontSize, space, tracking, weight } from '../../design/tokens'
+import { color, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { Badge } from '../atoms/Badge'
+import { capsLabel } from '../atoms/capsLabel'
 import { accentDeepColor, textBand } from '../referenceEntity/referenceEntityHelpers'
 import type { CardExtent, CardSize } from './displayMode'
 import { displayBooleans, resolveCardDisplay } from './displayMode'
@@ -88,12 +89,8 @@ const FOOTER = {
   justifyContent: 'space-between',
   gap: space[8],
   padding: `${space[4]} ${space[12]}`,
-  fontFamily: font.cond,
-  fontSize: fontSize.badge,
-  fontWeight: weight.bold,
-  textTransform: 'uppercase',
-  letterSpacing: tracking.capsTight,
 } satisfies CSSProperties
+const FOOTER_CAPS = capsLabel({ size: 'badge' })
 
 const FULL_WIDTH = { width: '100%' } satisfies CSSProperties
 
@@ -251,6 +248,7 @@ export function Card({
         {/* Footer — hidden in listing mode. */}
         {rendersFooter && (
           <div
+            className={FOOTER_CAPS}
             style={{
               ...FOOTER,
               // Ink or paper by contrast with the band actually painted.

@@ -1,5 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { color, font, fontSize, tracking, weight } from '../../design/tokens'
+import { color, fontSize, tracking } from '../../design/tokens'
+import { cn } from '../../lib/cn'
+import { capsLabel } from './capsLabel'
 
 /**
  * The paper-on-tone title that sits in a `Card`'s header band.
@@ -31,13 +33,11 @@ export type BandTitleProps = {
 
 /** Condensed bold caps that truncate rather than wrap. */
 const BASE = {
-  fontFamily: font.cond,
-  fontWeight: weight.bold,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
-  textTransform: 'uppercase',
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
+const BASE_CAPS = capsLabel()
 
 const VARIANT = {
   lead: {
@@ -52,7 +52,7 @@ const VARIANT = {
 
 export function BandTitle({ children, variant = 'lead', className }: BandTitleProps) {
   return (
-    <span className={className} style={{ ...BASE, ...VARIANT[variant] }}>
+    <span className={cn(BASE_CAPS, className)} style={{ ...BASE, ...VARIANT[variant] }}>
       {children}
     </span>
   )

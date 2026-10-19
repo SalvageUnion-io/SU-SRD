@@ -88,14 +88,6 @@
   font-size: var(--text-caption);
 }
 
-.su-footer__kind,
-.su-footer__also {
-  font-family: var(--font-cond);
-  font-weight: 700;
-  letter-spacing: var(--tracking-caps-tight);
-  text-transform: uppercase;
-}
-
 .su-footer__printings {
   display: flex;
   flex-direction: column;

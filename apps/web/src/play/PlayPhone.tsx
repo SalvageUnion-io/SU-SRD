@@ -22,6 +22,7 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
+import { capsLabel } from '../components/atoms/capsLabel'
 import { heatDangerFrom, Tab, TabList, TabPanel, Tabs, tokens } from '../components/index'
 import { PlayVital } from './PlayVital'
 import type { PhoneTab, PinnedUnit } from './playPhone.model'
@@ -150,16 +151,12 @@ const UNIT = {
 } satisfies CSSProperties
 
 const UNIT_NAME = {
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.caption,
-  fontWeight: tokens.weight.bold,
-  letterSpacing: tokens.tracking.capsTight,
   margin: 0,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
-  textTransform: 'uppercase',
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
+const UNIT_NAME_CAPS = capsLabel({ size: 'caption' })
 
 const CELLS = {
   display: 'flex',
@@ -185,7 +182,9 @@ export function PlayPinnedVitals({ units }: { units: readonly PinnedUnit[] }) {
     <section aria-label="Pinned vitals" style={UNITS}>
       {units.map((unit) => (
         <div key={unit.kind} style={UNIT}>
-          <p style={UNIT_NAME}>{unit.name}</p>
+          <p className={UNIT_NAME_CAPS} style={UNIT_NAME}>
+            {unit.name}
+          </p>
           <ul aria-label={`${unit.name}’s vitals`} style={CELLS}>
             {unit.vitals.map((v) => (
               <li key={v.label} style={CELL}>

@@ -7,22 +7,19 @@
  */
 
 import type { CSSProperties } from 'react'
-import { tokens } from '../../components/index'
 import '../../styles/build/wizard.css'
+import { capsLabel } from '../../components/atoms/capsLabel'
+import { cn } from '../../lib/cn'
 
 /** Static half; the colour, which brightens on hover, is `.su-wiz-off-rules`. */
 const escapeStyle = {
   cursor: 'pointer',
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.badge,
-  fontWeight: tokens.weight.semibold,
-  letterSpacing: tokens.tracking.caps,
   textDecorationLine: 'underline',
   textDecorationStyle: 'dotted',
-  textTransform: 'uppercase',
   textUnderlineOffset: '2px',
   whiteSpace: 'nowrap',
 } satisfies CSSProperties satisfies CSSProperties
+const escapeCaps = capsLabel({ size: 'badge', weight: 'semibold' })
 
 type OffRulesEscapeProps = {
   /** Leaves the guided flow for the blank Free-Edit path. */
@@ -31,7 +28,7 @@ type OffRulesEscapeProps = {
 
 export function OffRulesEscape({ onEscape }: OffRulesEscapeProps) {
   return (
-    <button type="button" onClick={onEscape} className="su-wiz-off-rules" style={escapeStyle}>
+    <button type="button" onClick={onEscape} className={cn('su-wiz-off-rules', escapeCaps)} style={escapeStyle}>
       Off-rules build? Build it on the Live Sheet →
     </button>
   )

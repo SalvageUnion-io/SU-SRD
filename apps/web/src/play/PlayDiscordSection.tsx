@@ -14,6 +14,7 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { api } from '../../convex/_generated/api'
 import { Shelf } from '../build/shelves/Shelf'
+import { capsLabel } from '../components/atoms/capsLabel'
 import { Button, Pending, tokens } from '../components/index'
 import { useConnection } from '../lib/connection/connectionContext'
 import type { ChannelRow, MyChannels } from './channels.model'
@@ -23,13 +24,9 @@ import { PlayChannelDialog } from './PlayChannel'
 const ITEM = { listStyle: 'none', minWidth: 0 } satisfies CSSProperties
 
 const NAME = {
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.readout,
-  fontWeight: tokens.weight.bold,
-  letterSpacing: tokens.tracking.capsTight,
   margin: 0,
-  textTransform: 'uppercase',
 } satisfies CSSProperties
+const NAME_CAPS = capsLabel({ size: 'readout' })
 
 const WHERE = {
   display: 'flex',
@@ -70,7 +67,9 @@ export function PlayDiscordSection() {
           <li key={row.key} style={ITEM}>
             <div className="su-play-discord-row" data-unbound={row.binding === null || undefined}>
               <span style={WHERE}>
-                <h3 style={NAME}>{channelTag(row.binding) ?? row.name}</h3>
+                <h3 className={NAME_CAPS} style={NAME}>
+                  {channelTag(row.binding) ?? row.name}
+                </h3>
                 <span style={NOTE}>
                   {row.binding === null
                     ? 'No channel yet'

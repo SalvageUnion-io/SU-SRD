@@ -2,7 +2,8 @@ import { Drawer } from '@base-ui/react/drawer'
 import { Search } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
-import { color, font, fontSize, iconSize, layer, radius, space, weight } from '../design/tokens'
+import { color, fontSize, iconSize, layer, radius, space } from '../design/tokens'
+import { capsLabel } from './atoms/capsLabel'
 import { POPUP_SURFACE } from './atoms/popupSurface'
 import { buttonVariants, CloseButton, cn } from './index'
 
@@ -41,12 +42,10 @@ const TITLE_ROW = {
 
 const TITLE = {
   color: color.ink,
-  fontFamily: font.cond,
   fontSize: fontSize.sm,
-  fontWeight: weight.bold,
   lineHeight: 'calc(1.25 / 0.875)',
-  textTransform: 'uppercase',
 } satisfies CSSProperties
+const TITLE_CAPS = capsLabel()
 
 // The trigger over the shared icon rung. Its ground is the rung's
 // (`.su-btn--ghost`), except its hover, which is `.su-mobile-search__trigger`
@@ -99,7 +98,9 @@ export function MobileSearchDialog({ children }: MobileSearchDialogProps) {
         <Drawer.Viewport style={VIEWPORT}>
           <Drawer.Popup className="su-drawer" style={POPUP}>
             <div style={TITLE_ROW}>
-              <Drawer.Title style={TITLE}>Search</Drawer.Title>
+              <Drawer.Title className={TITLE_CAPS} style={TITLE}>
+                Search
+              </Drawer.Title>
               <Drawer.Close render={<CloseButton label="Close search" />} />
             </div>
             {children}

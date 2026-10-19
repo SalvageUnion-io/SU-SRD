@@ -86,8 +86,8 @@
 }
 
 /* The ratified multi-rung caps ladder (ruleset §4.2) — `tight` is the default,
-   and the wider rungs exist because they are in deliberate use. `none` is for
-   the caps labels that deliberately do not letterspace (the Button mini chip). */
+   `snug` at the 11px floor, and the wider rungs exist because they are in
+   deliberate use. `none` is the normal letter-spacing. */
 .su-caps--t-none {
   letter-spacing: normal;
 }
@@ -465,13 +465,9 @@
   color: var(--color-ink);
   cursor: pointer;
   flex: none;
-  font-family: var(--font-cond);
   font-size: var(--text-caption);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-caps-tight);
   min-height: calc(var(--su-seg-height) - 2 * var(--bw-chrome));
   padding: 0 var(--space-12);
-  text-transform: uppercase;
   white-space: nowrap;
 }
 .su-seg__option + .su-seg__option {

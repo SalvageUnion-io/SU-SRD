@@ -1,8 +1,9 @@
 import { AlertDialog } from '@base-ui/react/alert-dialog'
 import { Dialog } from '@base-ui/react/dialog'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
-import { color, font, fontSize, layer, space, tracking, weight } from '../../design/tokens'
+import { color, fontSize, layer, space } from '../../design/tokens'
 import { CloseButton } from '../atoms/CloseButton'
+import { capsLabel } from '../atoms/capsLabel'
 import { useEntitySurface } from '../entity/entitySurfaceContext'
 import { paintFor } from '../entity/parts/paint'
 import { TitledBox } from './TitledBox'
@@ -112,14 +113,11 @@ const POPUP = {
 const SUBTITLE = {
   margin: 0,
   padding: `${space[10]} ${space[20]} 0`,
-  fontFamily: font.cond,
   fontSize: fontSize.xs,
-  fontWeight: weight.bold,
-  letterSpacing: tracking.capsTight,
   lineHeight: 1.2,
-  textTransform: 'uppercase',
   color: color.wkMuted,
 } satisfies CSSProperties
+const SUBTITLE_CAPS = capsLabel()
 
 /** A full-screen popup covers the viewport and scrolls inside itself. */
 const FULLSCREEN_POPUP = {
@@ -208,7 +206,11 @@ export function ModalShell({
               />
             }
           >
-            {subtitle && <p style={SUBTITLE}>{subtitle}</p>}
+            {subtitle && (
+              <p className={SUBTITLE_CAPS} style={SUBTITLE}>
+                {subtitle}
+              </p>
+            )}
             {children}
           </TitledBox>
         )}

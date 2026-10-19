@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { firstParagraphText, normalizePatternName, toEntityModel } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
+import { capsLabel } from '../../atoms/capsLabel'
 import { FOCUS_RING } from '../../atoms/interaction'
 import { Slab } from '../../atoms/Slab'
 import { useEntitySurface } from '../../entity/entitySurfaceContext'
@@ -246,7 +247,7 @@ export function PatternLinkRows({
         ))}
       </ul>
       {count > PATTERNS_ON_A_PHONE && (
-        <a href="#patterns" className={cn('su-pattern-rows__more', FOCUS_RING)}>
+        <a href="#patterns" className={cn('su-pattern-rows__more', capsLabel(), FOCUS_RING)}>
           Show all {count} patterns
         </a>
       )}

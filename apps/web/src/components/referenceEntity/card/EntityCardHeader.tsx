@@ -1,12 +1,16 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { space } from '../../../design/tokens'
 import { cn } from '../../../lib/cn'
+import { capsLabel } from '../../atoms/capsLabel'
 import type { CardSize } from '../../containers/displayMode'
 import { KindLabel } from '../../entity/parts/KindLabel'
 import type { HeaderFill } from './cardChrome'
 import type { CardGrain } from './cardGrain'
 import { grainClass } from './cardGrain'
 import type { CardTitleTag } from './referenceEntityCardTypes'
+
+/** The band's title: caps from the recipe, its extrabold weight the rule's. */
+const TITLE_CAPS = capsLabel({ weight: 'inherit' })
 
 type EntityCardHeaderProps = {
   title: string
@@ -101,13 +105,16 @@ export function EntityCardHeader({
       }}
     >
       {numeral && (
-        <span className="su-ec-band__title su-ec-band__numeral" style={titleType}>
+        <span className={cn('su-ec-band__title su-ec-band__numeral', TITLE_CAPS)} style={titleType}>
           {numeral}
         </span>
       )}
       <div className="su-ec-band__heading">
         <div className="su-ec-band__name">
-          <TitleTag className="su-ec-band__title su-ec-band__title--wrap" style={titleType}>
+          <TitleTag
+            className={cn('su-ec-band__title su-ec-band__title--wrap', TITLE_CAPS)}
+            style={titleType}
+          >
             <span>{title}</span>
             <KindLabel kind={kind} />
           </TitleTag>

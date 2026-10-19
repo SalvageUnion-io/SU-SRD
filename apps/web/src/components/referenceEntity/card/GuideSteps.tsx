@@ -4,6 +4,7 @@ import { nameToSlug } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
 import { useParseTraitReferences } from '../../../lib/parseTraitReferences'
 import { Badge } from '../../atoms/Badge'
+import { capsLabel } from '../../atoms/capsLabel'
 import { Slab } from '../../atoms/Slab'
 import { Callout } from '../../containers/Callout'
 import { InsidePeekContext } from '../../entity/peekContext'
@@ -16,6 +17,9 @@ import { watchGuideContents } from './guideContents'
 import { chunkGuideStepProse } from './guideStepProse'
 import type { NestedCard } from './referenceEntityCardTypes'
 import type { ResolvedGuideStep } from './resolveGuideSteps'
+
+const TOC_TITLE = cn('su-guide__toc-title', capsLabel({ tracking: 'caps' }))
+const TOC_SECTION = cn('su-guide__toc-link su-guide__toc-link--section su-hit-area', capsLabel())
 
 /** A step's page pointer, its references as Mentions (E4). */
 function GuideNote({ text }: { text: string }) {
@@ -248,7 +252,7 @@ export function GuideSteps({
       </nav>
       <div className="su-guide__flow">{body}</div>
       <nav className="su-guide__rail" aria-label="On this page">
-        <p className="su-guide__toc-title" aria-hidden="true">
+        <p className={TOC_TITLE} aria-hidden="true">
           On this page
         </p>
         {contents}
@@ -305,10 +309,7 @@ function GuideContents({ groups, anchors }: { groups: StepGroup[]; anchors: Map<
           <li key={group.key}>{stepLinks(group)}</li>
         ) : (
           <li key={group.key}>
-            <a
-              className="su-guide__toc-link su-guide__toc-link--section su-hit-area"
-              href={`#${anchors.get(sectionKey(group))}`}
-            >
+            <a className={TOC_SECTION} href={`#${anchors.get(sectionKey(group))}`}>
               {group.section}
             </a>
             {stepLinks(group)}

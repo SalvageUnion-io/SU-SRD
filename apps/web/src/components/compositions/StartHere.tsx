@@ -7,7 +7,7 @@ import { Slab } from '../atoms/Slab'
 import { Stat } from '../atoms/Stat'
 import { Lead } from '../entity/parts/Lead'
 import { paintFor } from '../entity/parts/paint'
-import { TILE_NAME } from '../entity/parts/tileName'
+import { TILE_NAME, TILE_NAME_CAPS } from '../entity/parts/tileName'
 import { grainClass } from '../referenceEntity/card/cardGrain'
 
 /**
@@ -82,7 +82,10 @@ function StepFace({ step, index }: { step: StartHereStep; index: number }) {
         style={{ backgroundColor: paint.background, color: paint.color, columnGap: space[6] }}
       >
         <span className="su-entity-tile__notch">
-          <h3 className="su-entity-tile__name su-start-here__title" style={TILE_NAME}>
+          <h3
+            className={cn('su-entity-tile__name su-start-here__title', TILE_NAME_CAPS)}
+            style={TILE_NAME}
+          >
             {step.title}
           </h3>
         </span>

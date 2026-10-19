@@ -2,7 +2,9 @@ import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { useContext, useId } from 'react'
 import { foregroundOn } from '../../design/contrast'
 import { color, font, space, weight } from '../../design/tokens'
+import { cn } from '../../lib/cn'
 import { ChapterBandTrail } from './ChapterBandTrail'
+import { capsLabel } from './capsLabel'
 import type { ChapterTone } from './chapterBandColor'
 import { CHAPTER_BAND_COLOR } from './chapterBandColor'
 import type { SpeckleGrain } from './Speckle'
@@ -236,14 +238,14 @@ const ASIDE = {
 const TITLE = {
   backgroundColor: color.wkBg,
   color: color.ink,
-  fontFamily: font.cond,
   fontWeight: weight.extrabold,
   lineHeight: 0.92,
   margin: 0,
   maxWidth: '100%',
   overflowWrap: 'anywhere',
-  textTransform: 'uppercase',
 } satisfies CSSProperties
+/** The notch's caps; its tracking stays the face's own, as the title has always set. */
+const TITLE_CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 
 // The title of a band whose aside is controls: its line's free room is on its
 // right, so the controls beside it sit at the band's right edge.
@@ -308,7 +310,7 @@ export function ChapterBand({
   const title = (
     <Tag
       id={id}
-      className="su-chapter-band__title"
+      className={cn('su-chapter-band__title', TITLE_CAPS)}
       style={titleSize ? { ...titleStyle, fontSize: titleSize } : titleStyle}
     >
       {children}

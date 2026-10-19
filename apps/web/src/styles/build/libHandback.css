@@ -11,7 +11,7 @@
  * The titles a caller can render as a heading (`titleAs`): the Row's title and
  * the card header's. Their print sizes are handed back in `print.css`. The
  * ChapterBand's notched title is always a heading, set as on the SRD. An
- * `Eyebrow` a caller renders as `h2`/`h3` keeps its own `caps` tracking.
+ * `Eyebrow` a caller renders as `h2`/`h3` keeps its own snug tracking.
  */
 .su-entity-row__title,
 .su-ec-band__title,
@@ -20,5 +20,4 @@
   font-family: revert-layer;
   font-weight: revert-layer;
   letter-spacing: revert-layer;
-  text-transform: revert-layer;
 }

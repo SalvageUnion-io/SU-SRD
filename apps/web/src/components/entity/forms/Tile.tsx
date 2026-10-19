@@ -15,7 +15,7 @@ import { censorMark } from '../parts/censor'
 import { factCells } from '../parts/factCells'
 import { Lead } from '../parts/Lead'
 import { paintFor } from '../parts/paint'
-import { TILE_NAME } from '../parts/tileName'
+import { TILE_NAME, TILE_NAME_CAPS } from '../parts/tileName'
 import type { EntityMode, EntityOmit, EntityRowModel } from '../types'
 
 export type TileProps = {
@@ -167,7 +167,11 @@ export function Tile({
           }}
         >
           <span className="su-entity-tile__notch">
-            <span className="su-entity-tile__name" title={model.title} style={TILE_NAME}>
+            <span
+              className={cn('su-entity-tile__name', TILE_NAME_CAPS)}
+              title={model.title}
+              style={TILE_NAME}
+            >
               {model.title}
             </span>
           </span>

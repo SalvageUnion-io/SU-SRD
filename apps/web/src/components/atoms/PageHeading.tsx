@@ -1,5 +1,6 @@
-import type { CSSProperties, ElementType, ReactNode, Ref } from 'react'
-import { font, weight } from '../../design/tokens'
+import type { ElementType, ReactNode, Ref } from 'react'
+import { cn } from '../../lib/cn'
+import { capsLabel } from './capsLabel'
 
 type PageHeadingProps = {
   children: ReactNode
@@ -51,12 +52,8 @@ const HEADING_VARIANTS = {
   section: 'su-page-heading--section',
 } as const
 
-/** The face every rung shares. */
-const HEADING = {
-  fontFamily: font.cond,
-  fontWeight: weight.bold,
-  textTransform: 'uppercase',
-} satisfies CSSProperties
+/** The face every rung shares: bold condensed caps, from the recipe. */
+const HEADING_CAPS = capsLabel({ tracking: 'inherit' })
 
 export function PageHeading({
   children,
@@ -73,10 +70,7 @@ export function PageHeading({
       ref={ref}
       id={id}
       tabIndex={tabIndex}
-      className={
-        className ? `${HEADING_VARIANTS[variant]} ${className}` : HEADING_VARIANTS[variant]
-      }
-      style={HEADING}
+      className={cn(HEADING_CAPS, HEADING_VARIANTS[variant], className)}
     >
       {children}
     </Tag>

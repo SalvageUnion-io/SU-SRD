@@ -37,6 +37,7 @@ import { downtimeMechPatch, downtimePilotPatch } from 'game-domain/rules/downtim
 import { useId, useState } from 'react'
 import type { RefObjectGuideStep } from 'salvageunion-reference'
 import { api } from '../../convex/_generated/api'
+import { capsLabel } from '../components/atoms/capsLabel'
 import {
   Badge,
   Button,
@@ -55,6 +56,9 @@ import { recordPlayChange } from './playRolls.model'
 import { payDowntimeUpkeep } from './playUpkeep.model'
 import type { Play } from './situation.model'
 import type { PlayActions } from './usePlayActions'
+
+/** A line's title is a caps label; its weight is the `strong`'s. */
+const LINE_LABEL = cn('su-play-dt-line__label', capsLabel({ weight: 'inherit' }))
 
 type PlayDowntimeStepProps = {
   play: Play
@@ -271,7 +275,7 @@ function PlanLineItem({
     <li className={cn('su-play-dt-line', line.skippable && !ticked && SELECT_DIM)}>
       {line.skippable ? (
         // The check is named by the title beside it, never a hand-rolled <label> (R16).
-        <span className="su-play-dt-line__label">
+        <span className={LINE_LABEL}>
           <Checkbox
             id={id}
             checked={ticked}
@@ -283,7 +287,7 @@ function PlanLineItem({
           <strong id={`${id}-title`}>{line.title}</strong>
         </span>
       ) : (
-        <strong className="su-play-dt-line__label">{line.title}</strong>
+        <strong className={LINE_LABEL}>{line.title}</strong>
       )}
       {line.blocked ? (
         <span className="su-play-act__need">{line.blocked}</span>

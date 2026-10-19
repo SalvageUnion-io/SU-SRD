@@ -66,8 +66,8 @@ describe('RollTableInstrument — the roll', () => {
   test('server markup prints the stamp, never a dead button, even with onRoll', () => {
     const html = renderToStaticMarkup(instrument(() => {}))
     // Marked as waiting on the script, so its page still ships an island.
-    expect(html).toContain(
-      '<span class="su-roll__stamp su-roll__roll" data-roll-pending="">Roll the Die:</span>'
+    expect(html).toMatch(
+      /<span class="su-roll__stamp su-roll__roll[^"]*" data-roll-pending="">Roll the Die:<\/span>/
     )
     expect(html).not.toContain('<button')
   })
@@ -85,7 +85,7 @@ describe('RollTableInstrument — the rolled row', () => {
       )
       const row = container.querySelectorAll('.su-roll__row')[1] as HTMLElement
       const body = row.querySelector('.su-roll__body') as HTMLElement
-      const shape = [...body.children].map((child) => child.className)
+      const shape = [...body.children].map((child) => child.classList[0])
       const tag = body.querySelector('.su-roll__tag')?.textContent ?? null
       unmount()
       return { shape, tag }

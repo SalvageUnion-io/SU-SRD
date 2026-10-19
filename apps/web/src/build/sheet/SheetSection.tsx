@@ -43,12 +43,9 @@ const HBTN = {
   borderWidth: tokens.borderWidth.pill,
   paddingBlock: 0,
   paddingInline: tokens.space[12],
-  fontFamily: tokens.font.cond,
   fontSize: tokens.fontSize.badge,
   fontWeight: tokens.weight.bold,
-  textTransform: 'uppercase',
   lineHeight: 1,
-  letterSpacing: tokens.tracking.capsWide,
   whiteSpace: 'nowrap',
   transitionProperty:
     'color, background-color, border-color, outline-color, text-decoration-color, fill, stroke',

@@ -3,13 +3,17 @@ import type { RefClass } from 'salvageunion-reference'
 import { getEntitySlug, toEntityModel } from 'salvageunion-reference'
 import type { AbilityTreeGroup, BranchTree, ClassPath, ClassPlan } from '../lib/classPaths'
 import { resolveClassPlan } from '../lib/classPaths'
+import { cn } from '../lib/cn'
 import { itemHref } from '../lib/entityHref'
 import type { RefText } from '../lib/rollTablePage'
 import { AbilityTrack } from './AbilityTrack'
+import { capsLabel } from './atoms/capsLabel'
 import { Chips } from './entity/parts/Chips'
 import type { TreeTrack } from './index'
 import { Head, Slab, Stat, TitledBox } from './index'
 import { MentionProse } from './MentionProse'
+
+const TREES_LABEL = cn('su-class-brief__trees-label', capsLabel({ tracking: 'snug' }))
 
 type ClassAbilityTreeProps = {
   classEntity: RefClass
@@ -182,8 +186,7 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
       </ul>
       {plan.kind === 'hybrid' && (
         <p className="su-class-brief__trees">
-          <span className="su-class-brief__trees-label">Trees</span>{' '}
-          <MentionProse parts={hybridTrees(plan)} />
+          <span className={TREES_LABEL}>Trees</span> <MentionProse parts={hybridTrees(plan)} />
         </p>
       )}
     </aside>

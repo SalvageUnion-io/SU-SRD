@@ -25,9 +25,10 @@ import { X } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { Fragment } from 'react'
 import type { PageModule, PageResult, RouteContext } from '../../../ssg/types'
+import { capsLabel } from '../../components/atoms/capsLabel'
 import { buttonVariants, cn, InlineRef, Slab } from '../../components/index'
 import { ColophonIsland } from '../../components/islands/ColophonIsland'
-import { color, font, fontSize, iconSize, space, tracking, weight } from '../../design/tokens'
+import { color, fontSize, iconSize, space, weight } from '../../design/tokens'
 import { appPath } from '../../lib/appBase'
 import { builtAssetUrl, ELDRIDGE_COAST_MAP } from '../../lib/builtAssets'
 import { SITE_URL, WEBSITE } from '../../lib/constants'
@@ -69,14 +70,13 @@ const PANEL_BODY = {
 
 /** An engraved caps line — `.su-engraved-text` (global.css) is the paint. */
 const ENGRAVED_LINE = {
-  fontFamily: font.cond,
   fontSize: fontSize.sm,
   fontWeight: weight.medium,
-  letterSpacing: tracking.capsSnug,
   lineHeight: 'calc(1.25 / 0.875)',
   textAlign: 'center',
-  textTransform: 'uppercase',
 } satisfies CSSProperties
+/** The engraved caps lines: the paint is `.su-engraved-text`, the caps the recipe's. */
+const ENGRAVED = cn('su-engraved-text', capsLabel({ weight: 'inherit', tracking: 'snug' }))
 
 const INSPIRATION = { ...ENGRAVED_LINE, lineHeight: 1.625 } satisfies CSSProperties
 
@@ -98,12 +98,10 @@ const PILOTS = {
 const PILOT_GAP = { fontSize: fontSize.base, lineHeight: 1.5 } satisfies CSSProperties
 
 const PILOT = {
-  fontFamily: font.cond,
   fontSize: fontSize.xl,
-  fontWeight: weight.bold,
   lineHeight: 'calc(1.75 / 1.25)',
-  textTransform: 'uppercase',
 } satisfies CSSProperties
+const PILOT_CAPS = capsLabel()
 
 const FRIENDS = {
   ...ENGRAVED_LINE,
@@ -271,7 +269,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
 
               <div style={PANEL_BODY}>
                 {/* Inspiration text */}
-                <div className="su-engraved-text" style={INSPIRATION}>
+                <div className={ENGRAVED} style={INSPIRATION}>
                   <p>Inspired by the pilots of</p>
                   <p style={INSPIRATION_NAME}>#812 Haven</p>
                   <p>of</p>
@@ -294,7 +292,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
                           &ensp;&ensp;
                         </span>
                       )}
-                      <span className="su-engraved-text" style={PILOT}>
+                      <span className={cn('su-engraved-text', PILOT_CAPS)} style={PILOT}>
                         {name}
                       </span>
                     </Fragment>
@@ -303,14 +301,14 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
 
                 <hr className="su-metal-separator" />
 
-                <p className="su-engraved-text" style={ENGRAVED_LINE}>
+                <p className={ENGRAVED} style={ENGRAVED_LINE}>
                   And union crawlers everywhere
                 </p>
 
                 <hr className="su-metal-separator" />
 
                 {/* Friends text */}
-                <p className="su-engraved-text" style={FRIENDS}>
+                <p className={ENGRAVED} style={FRIENDS}>
                   "We get by with a little help from our friends"
                 </p>
               </div>

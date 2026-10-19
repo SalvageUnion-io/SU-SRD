@@ -231,9 +231,8 @@ export function Badge(props: BadgeProps) {
       ref={ref}
       {...(Tag === 'button' ? { type: 'button' } : {})}
       className={cn(
-        // Tracking is a per-SURFACE decision here (`BADGE_SURFACE` picks
-        // caps-snug or caps), so the recipe inherits rather than setting it.
-        capsLabel({ size: 'badge', weight: 'semibold', tracking: 'inherit' }),
+        // 11px caps are snug (ruleset §4.2), on every surface.
+        capsLabel({ size: 'badge', weight: 'semibold' }),
         'su-badge',
         swatch != null && 'su-badge--swatch',
         // `su-hit-area`: an interactive chip stays 22px and reaches the 44px

@@ -1,8 +1,14 @@
 import type { ReactNode } from 'react'
+import { cn } from '../../lib/cn'
 import type { TechLevel } from '../../lib/listingGroups'
 import { tlName } from '../../lib/listingGroups'
 import type { ListingView } from '../../lib/listingView'
+import { capsLabel } from '../atoms/capsLabel'
 import { SearchField, Segmented, SegmentedOption, Select } from '../index'
+
+/** The rail's controls are caps labels; the menu keeps its rule's face and tracking. */
+const FILTERS = cn('su-rail__filters su-focus-ring', capsLabel())
+const MENU = cn('su-rail__menu', capsLabel({ weight: 'inherit', tracking: 'inherit' }))
 
 /** A tech level as the rail's toggle prints it: the numeral, or the word. */
 export function tlButtonLabel(level: TechLevel): string {
@@ -140,7 +146,7 @@ export function ListingRail({
       {hasFacets && (
         <button
           type="button"
-          className="su-rail__filters su-focus-ring"
+          className={FILTERS}
           aria-expanded={facetsOpen}
           aria-controls="srd-rail-facets"
           onClick={on.toggleFacets}
@@ -191,7 +197,7 @@ export function ListingRail({
             <Select
               chevron
               aria-label="Source"
-              className="su-rail__menu"
+              className={MENU}
               data-on={filters.source ? true : undefined}
               value={filters.source}
               onChange={(e) => on.setSource(e.target.value)}
@@ -208,7 +214,7 @@ export function ListingRail({
             <Select
               chevron
               aria-label="Tree"
-              className="su-rail__menu"
+              className={MENU}
               data-on={filters.tree ? true : undefined}
               value={filters.tree}
               onChange={(e) => on.setTree(e.target.value)}

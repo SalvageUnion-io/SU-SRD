@@ -1,7 +1,11 @@
 import type { CSSProperties } from 'react'
+import { cn } from '../../../lib/cn'
+import { capsLabel } from '../../atoms/capsLabel'
 import { FOCUS_RING } from '../../atoms/interaction'
 import { RollControl } from '../../compositions/RollTableInstrument'
 import { usePeekAttrs } from '../peekContext'
+
+const PILL = cn('su-entity-token__pill', capsLabel())
 
 /** The roll table's pill: ink, a thing you do, as an action's Token. */
 const TOKEN_PILL = {
@@ -40,7 +44,7 @@ export function RollToken({
   const peeks = Object.keys(peek).length > 0
   return (
     <div className="su-entity-token su-roll-token">
-      <div className="su-entity-token__pill" style={TOKEN_PILL}>
+      <div className={PILL} style={TOKEN_PILL}>
         {/* The name tab is the Peek's trigger, focusable so a keyboard
             opens it too; the roll beside it is its own control. */}
         <span

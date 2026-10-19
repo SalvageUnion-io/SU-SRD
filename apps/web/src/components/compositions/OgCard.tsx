@@ -1,9 +1,10 @@
 import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties } from 'react'
 import { foregroundOn } from '../../design/contrast'
-import { borderWidth, color, font, space, tracking, weight } from '../../design/tokens'
+import { borderWidth, color, font, space, weight } from '../../design/tokens'
 import { MARK_SRC } from '../../lib/documentHead'
 import { ChapterBand } from '../atoms/ChapterBand'
+import { capsLabel } from '../atoms/capsLabel'
 import { Speckle } from '../atoms/Speckle'
 import { Stat } from '../atoms/Stat'
 import { PENNANT_SHAPE, USER_MADE_TITLE } from '../referenceEntity/card/cardChrome'
@@ -102,12 +103,9 @@ const CARD = {
 const BAND_SLOT = { flex: '1 1 auto', minHeight: 0 } satisfies CSSProperties
 
 const CAPS = {
-  fontFamily: font.cond,
-  fontWeight: weight.bold,
-  letterSpacing: tracking.capsTight,
   lineHeight: 1.1,
-  textTransform: 'uppercase',
 } satisfies CSSProperties
+const CAPS_LABEL = capsLabel()
 
 /** The page ground under the notch: the rules text, or a strip the notch stands on. */
 const BODY = {
@@ -257,7 +255,7 @@ function Chips({
   return (
     <div className="su-og-chips" style={style}>
       {userMade && (
-        <span title={USER_MADE_TITLE} style={STAMP}>
+        <span title={USER_MADE_TITLE} className={CAPS_LABEL} style={STAMP}>
           User-made
         </span>
       )}
@@ -270,7 +268,11 @@ function Chips({
           size="full"
         />
       ))}
-      {cost && <span style={PENNANT}>{cost}</span>}
+      {cost && (
+        <span className={CAPS_LABEL} style={PENNANT}>
+          {cost}
+        </span>
+      )}
     </div>
   )
 }
@@ -290,7 +292,9 @@ function UnionFoot({
       <Speckle grain="paper" />
       <div style={LOCKUP}>
         <img src={markSrc} alt="" width={56} height={56} />
-        <span style={WORDMARK}>{name}</span>
+        <span className={CAPS_LABEL} style={WORDMARK}>
+          {name}
+        </span>
       </div>
       <span style={ADDRESS}>{address}</span>
     </div>
@@ -365,7 +369,11 @@ export function OgCard({ markSrc = MARK_SRC, ...props }: OgCardProps & { markSrc
       {(foot.kind || foot.byline) && (
         <div style={{ ...FOOT, backgroundColor: fill, color: footColor }}>
           <Speckle grain={ink ? 'ink' : 'paper'} />
-          {foot.kind && <span style={FOOT_KIND}>{foot.kind}</span>}
+          {foot.kind && (
+            <span className={CAPS_LABEL} style={FOOT_KIND}>
+              {foot.kind}
+            </span>
+          )}
           {foot.byline && <p style={FOOT_BYLINE}>{foot.byline}</p>}
         </div>
       )}

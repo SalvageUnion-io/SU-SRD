@@ -82,6 +82,7 @@ import {
   tradeStep,
   upkeepReducer,
 } from './crawlerEconomyDialogState.model'
+import { capsLabel } from '../../components/atoms/capsLabel'
 
 const BODY = {
   display: 'flex',
@@ -106,14 +107,11 @@ const TEXT_TIGHT = { ...TEXT, margin: 0 } satisfies CSSProperties
 const TEXT_AFTER = { ...TEXT, marginTop: tokens.space[8] } satisfies CSSProperties
 
 const CONTRIBUTE_LABEL = {
-  fontFamily: tokens.font.cond,
   fontSize: tokens.fontSize.xs,
   lineHeight: 1 / 0.75,
-  fontWeight: tokens.weight.bold,
-  textTransform: 'uppercase',
-  letterSpacing: tokens.tracking.capsSnug,
   color: tokens.color.ink,
 } satisfies CSSProperties
+const CONTRIBUTE_LABEL_CAPS = capsLabel({ tracking: 'snug' })
 
 const SMALL = { fontSize: tokens.fontSize.xs, lineHeight: 1 / 0.75 } satisfies CSSProperties
 
@@ -430,7 +428,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
               </FieldError>
             )}
             <Cluster gap={8}>
-              <span style={CONTRIBUTE_LABEL}>Contribute scrap (Tech {tl}+)</span>
+              <span className={CONTRIBUTE_LABEL_CAPS} style={CONTRIBUTE_LABEL}>Contribute scrap (Tech {tl}+)</span>
               <Stat
                 orientation="horizontal"
                 size="compact"

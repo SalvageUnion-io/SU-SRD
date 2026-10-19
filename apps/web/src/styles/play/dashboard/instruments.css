@@ -32,10 +32,6 @@
 }
 .su-dash-deck-cost-choice-lab {
   padding: 0;
-  font-family: var(--font-cond);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps-tight);
   font-size: var(--text-note);
   color: var(--color-wk-muted);
 }

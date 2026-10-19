@@ -92,11 +92,7 @@ button {
   padding: var(--space-8) var(--space-16);
   background-color: var(--color-paper);
   color: var(--color-ink);
-  font-family: var(--font-cond);
   font-size: var(--text-base);
-  font-weight: var(--font-weight-bold);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps-tight);
   border: var(--bw-entity) solid var(--color-ink);
   border-radius: var(--radius-card);
 }

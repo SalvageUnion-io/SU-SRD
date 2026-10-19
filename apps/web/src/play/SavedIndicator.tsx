@@ -9,17 +9,14 @@
  */
 
 import type { CSSProperties } from 'react'
-import { color, font, fontSize, tracking, weight } from '../design/tokens'
+import { capsLabel } from '../components/atoms/capsLabel'
+import { color } from '../design/tokens'
 import { useConnection } from '../lib/connection/connectionContext'
 
 const BASE = {
-  fontFamily: font.cond,
-  fontWeight: weight.bold,
-  fontSize: fontSize.badge,
-  letterSpacing: tracking.capsTight,
-  textTransform: 'uppercase',
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
+const CAPS = capsLabel({ size: 'badge' })
 
 const SAVED = { ...BASE, color: color.ink75 } satisfies CSSProperties
 
@@ -29,21 +26,21 @@ export function SavedIndicator() {
   const { mode } = useConnection()
   if (mode === 'connected') {
     return (
-      <span role="status" style={SAVED}>
+      <span role="status" className={CAPS} style={SAVED}>
         ● Saved
       </span>
     )
   }
   if (mode === 'disconnected') {
     return (
-      <span role="status" style={OFFLINE}>
+      <span role="status" className={CAPS} style={OFFLINE}>
         ○ Offline · read-only
       </span>
     )
   }
   if (mode === 'connecting') {
     return (
-      <span role="status" style={SAVED}>
+      <span role="status" className={CAPS} style={SAVED}>
         Connecting…
       </span>
     )

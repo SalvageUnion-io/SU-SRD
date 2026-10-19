@@ -71,10 +71,7 @@
 /* The title's caps face (also the tier numeral's). No line height of its own:
  * it inherits the band's. */
 .su-ec-band__title {
-  font-family: var(--font-cond);
   font-weight: var(--font-weight-extrabold);
-  letter-spacing: var(--tracking-caps-tight);
-  text-transform: uppercase;
 }
 
 /* Beside its labels the title wraps at spaces first (a high shrink) but keeps

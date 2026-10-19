@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
-import { font, fontSize, tracking, weight } from '../../../design/tokens'
+import { weight } from '../../../design/tokens'
+import { capsLabel } from '../../atoms/capsLabel'
 
 /**
  * A catalog tile's name on its cut-out of the paper below, in ink (ruleset,
@@ -9,16 +10,13 @@ import { font, fontSize, tracking, weight } from '../../../design/tokens'
 export const TILE_NAME = {
   color: 'var(--color-ink)',
   display: '-webkit-box',
-  fontFamily: font.cond,
-  fontSize: fontSize.title,
   fontWeight: weight.extrabold,
-  letterSpacing: tracking.capsTight,
   lineHeight: 1.05,
   margin: 0,
   minWidth: 0,
   overflow: 'hidden',
   overflowWrap: 'anywhere',
-  textTransform: 'uppercase',
   WebkitBoxOrient: 'vertical',
   WebkitLineClamp: 2,
 } satisfies CSSProperties
+export const TILE_NAME_CAPS = capsLabel({ size: 'title', weight: 'inherit' })

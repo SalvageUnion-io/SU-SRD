@@ -5,8 +5,13 @@ import { cn } from '../../lib/cn'
 import { MARK_SRC } from '../../lib/documentHead'
 import type { BreadcrumbItem } from '../atoms/BreadcrumbTrail'
 import { BreadcrumbTrail } from '../atoms/BreadcrumbTrail'
+import { capsLabel } from '../atoms/capsLabel'
 import { FOCUS_RING } from '../atoms/interaction'
 import { Speckle } from '../atoms/Speckle'
+
+/** The switcher's tabs keep their rule's tracking, which steps with the bar's width. */
+const TAB_CAPS = capsLabel({ tracking: 'inherit' })
+const LINK = cn('su-union-bar__link', capsLabel())
 
 /**
  * AppBar — the Union bar: the one masthead both SU tools wear (ruleset §3.11,
@@ -230,12 +235,7 @@ export function AppBar({
       isSlot(entry) ? (
         <Fragment key={entry.id}>{entry.node}</Fragment>
       ) : (
-        <NavLink
-          key={entry.href}
-          item={entry}
-          className="su-union-bar__link"
-          LinkComponent={LinkComponent}
-        />
+        <NavLink key={entry.href} item={entry} className={LINK} LinkComponent={LinkComponent} />
       )
     )
 
@@ -274,7 +274,7 @@ export function AppBar({
               <a
                 key={tab.key}
                 href={tab.href}
-                className={cn('su-union-bar__tab', FOCUS_RING)}
+                className={cn('su-union-bar__tab', TAB_CAPS, FOCUS_RING)}
                 data-tool={tab.key}
                 // Last, where the shell's marking adds it (`markUnionRoute`).
                 aria-current={tab.key === product ? 'true' : undefined}
@@ -305,7 +305,7 @@ export function AppBar({
                 href={buyHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={cn('su-union-bar__buy', FOCUS_RING)}
+                className={cn('su-union-bar__buy', capsLabel({ tracking: 'snug' }), FOCUS_RING)}
               >
                 Buy the game <span aria-hidden="true">↗</span>
               </a>

@@ -1,5 +1,9 @@
 import type { CSSProperties } from 'react'
 import type { StatGroup } from 'salvageunion-reference'
+import { cn } from '../../lib/cn'
+import { capsLabel } from './capsLabel'
+
+const LABEL = cn('su-stat-column__label', capsLabel())
 
 /**
  * StatColumn — the Workshop Manual's stat column at page scale (ruleset, "The
@@ -54,7 +58,7 @@ export function StatColumn({ stats, label, compact = false, cellStyle }: StatCol
           title={stat.hoverText}
           style={cellStyle?.(index)}
         >
-          <dt className="su-stat-column__label">{stat.label}</dt>
+          <dt className={LABEL}>{stat.label}</dt>
           <dd className="su-stat-column__value">{stat.value}</dd>
         </div>
       ))}

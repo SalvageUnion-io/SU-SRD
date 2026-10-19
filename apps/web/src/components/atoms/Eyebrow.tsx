@@ -29,12 +29,12 @@ type EyebrowProps = {
   style?: CSSProperties
 }
 
-/** The class string an eyebrow wears: the badge rung, bold, `caps` tracking. */
-const EYEBROW = cn('su-eyebrow', capsLabel({ size: 'badge', tracking: 'caps' }))
+/** The class string an eyebrow wears: the badge rung, bold, snug (11px caps, §4.2). */
+const EYEBROW = cn('su-eyebrow', capsLabel({ size: 'badge' }))
 
 /**
  * The small condensed-caps label over or beside a value, a field or a list:
- * one size (badge), one weight (bold), one tracking (`caps`), in one of three
+ * one size (badge), one weight (bold), one tracking (`snug`), in one of three
  * tones.
  */
 export function Eyebrow({

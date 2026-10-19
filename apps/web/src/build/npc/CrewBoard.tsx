@@ -77,7 +77,7 @@ import { UnitRow } from '../../components/shared/UnitRow'
 import { WritesBlockedNotice } from '../../components/shared/WritesBlockedNotice'
 import { RollTableButton } from '../wizard/RollTableButton'
 import { NpcCard } from './NpcCard'
-import { CAPS, COLUMN, COLUMNS, HINT, LIST, NOTE, PENCIL, ROW } from './npcStyles.model'
+import { CAPS, CAPS_LABEL, COLUMN, COLUMNS, HINT, LIST, NOTE, PENCIL, ROW } from './npcStyles.model'
 
 /**
  * The breakpoint the NPC designer's two columns start at (`styles/npc.css`).
@@ -619,7 +619,7 @@ function SlotPanel({
 
       {allowed && candidates.length > 0 && (
         <>
-          <p style={CAPS}>Or assign an NPC already here</p>
+          <p className={CAPS_LABEL} style={CAPS}>Or assign an NPC already here</p>
           <ul style={LIST} aria-label={`NPCs that can crew the ${slot.name}`}>
             {candidates.map((npc) => (
               <li key={npc.id}>

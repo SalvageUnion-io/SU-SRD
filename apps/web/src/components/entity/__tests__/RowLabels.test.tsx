@@ -97,7 +97,7 @@ describe('Row labels', () => {
     render(<Entity form="row" entity={charge} />)
     const head = headOf('Charge')
     const line = head.querySelector('.su-entity-row__line')
-    expect(line?.firstElementChild?.className).toBe('su-entity-row__tier')
+    expect(line?.firstElementChild?.classList[0]).toBe('su-entity-row__tier')
     expect(line?.firstElementChild?.textContent).toBe('1')
     // Every ability's name sits on the cut-out; its chips stay on the band beside it.
     expect(head.dataset.notch).toBe('true')

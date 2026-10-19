@@ -1,8 +1,13 @@
 import type { ElementType } from 'react'
 import { color } from '../../design/tokens'
+import { cn } from '../../lib/cn'
 import { ChapterFoot } from '../atoms/ChapterFoot'
+import { capsLabel } from '../atoms/capsLabel'
 import type { ChapterTone } from '../atoms/chapterBandColor'
 import { FOCUS_RING } from '../atoms/interaction'
+
+/** The foot's labels (the kind, "Also in") are caps labels. */
+const FOOT_LABEL = capsLabel()
 
 /**
  * Footer — where every page of both tools ends, as the Workshop Manual's pages
@@ -90,7 +95,7 @@ function Printings({ printings }: { printings: readonly FooterPrinting[] }) {
       {first && <p>{cite(first)}</p>}
       {reprints.length > 0 && (
         <p>
-          <span className="su-footer__also">Also in</span> {reprints.map(cite).join(', ')}
+          <span className={FOOT_LABEL}>Also in</span> {reprints.map(cite).join(', ')}
         </p>
       )}
     </div>
@@ -153,7 +158,11 @@ export function Footer({ links, poweredBySalvageUrl, foot, LinkComponent = 'a' }
             tone={foot.tone}
             fill={foot.fill}
             measure={measure}
-            start={foot.kind ? <span className="su-footer__kind">{foot.kind}</span> : undefined}
+            start={
+              foot.kind ? (
+                <span className={cn('su-footer__kind', FOOT_LABEL)}>{foot.kind}</span>
+              ) : undefined
+            }
             end={printings.length > 0 ? <Printings printings={printings} /> : undefined}
           />
         </div>

@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
-import { borderWidth, fontSize, radius, space, weight } from '../../design/tokens'
+import { borderWidth, radius, space } from '../../design/tokens'
 import { useConnection } from '../../lib/connection/connectionContext'
+import { capsLabel } from '../atoms/capsLabel'
 
 /**
  * In the ground's own ink (`currentColor`): a state, not an outcome, so no
@@ -14,13 +15,11 @@ const LOZENGE = {
   borderStyle: 'solid',
   borderWidth: borderWidth.pill,
   display: 'inline-flex',
-  fontSize: fontSize.badge,
-  fontWeight: weight.bold,
   gap: space[6],
   paddingBlock: space[4],
   paddingInline: space[8],
-  textTransform: 'uppercase',
 } satisfies CSSProperties
+const LOZENGE_CAPS = capsLabel({ size: 'badge' })
 
 /**
  * The in-place "this surface is read-only right now" lozenge (ADR-030 §1).
@@ -47,7 +46,7 @@ export function WritesBlockedNotice() {
   if (canWrite || settling) return null
 
   return (
-    <span role="status" aria-live="polite" style={LOZENGE}>
+    <span role="status" aria-live="polite" className={LOZENGE_CAPS} style={LOZENGE}>
       <span aria-hidden="true">◆</span>
       <span>
         {mode === 'solo'

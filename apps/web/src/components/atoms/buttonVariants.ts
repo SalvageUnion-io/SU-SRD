@@ -81,7 +81,7 @@ const SIZE = {
    * `.su-btn--mini`; its condensed caps come from the recipe below, which
    * is why the two are composed rather than duplicated.
    */
-  mini: `su-btn--mini ${capsLabel({ size: 'badge', weight: 'semibold', tracking: 'none' })}`,
+  mini: `su-btn--mini ${capsLabel({ size: 'badge', weight: 'semibold' })}`,
   /** The SQUARE icon-only rung — a glyph with no label. */
   iconOnly: 'su-btn--icon-only',
 } as const

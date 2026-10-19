@@ -16,6 +16,7 @@ import { chassisFitsCreationBudget } from '../../lib/rules/creation'
 import { MasonryColumns, ReferenceEntityCard, Sel, Slab, tokens } from '../../components/index'
 import '../../styles/build/wizard.css'
 import { fullWidthStyle, textSmStyle } from '../wizard/wizardStyles.model'
+import { capsLabel } from '../../components/atoms/capsLabel'
 
 const HINT = {
   ...textSmStyle,
@@ -36,12 +37,9 @@ const CUSTOM_CARD = {
 const CUSTOM_TITLE = {
   ...textSmStyle,
   color: tokens.color.ink,
-  fontFamily: tokens.font.cond,
-  fontWeight: tokens.weight.bold,
-  letterSpacing: tokens.tracking.caps,
   margin: 0,
-  textTransform: 'uppercase',
 } satisfies CSSProperties
+const CUSTOM_TITLE_CAPS = capsLabel({ tracking: 'caps' })
 
 const CUSTOM_BODY = {
   color: tokens.color.wkMuted,
@@ -193,7 +191,7 @@ export function MechChassisStep({
               radio
             >
               <div style={CUSTOM_CARD}>
-                <p style={CUSTOM_TITLE}>Custom build</p>
+                <p className={CUSTOM_TITLE_CAPS} style={CUSTOM_TITLE}>Custom build</p>
                 <p style={CUSTOM_BODY}>
                   No prefill — craft your Systems and Modules by hand in the next steps.
                 </p>

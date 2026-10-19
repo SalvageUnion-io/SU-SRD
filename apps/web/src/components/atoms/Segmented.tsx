@@ -1,5 +1,6 @@
 import type { ComponentPropsWithRef, CSSProperties, ReactNode } from 'react'
 import { cn } from '../../lib/cn'
+import { capsLabel } from './capsLabel'
 import { DISABLED, FOCUS_RING } from './interaction'
 
 /**
@@ -81,7 +82,7 @@ export function SegmentedOption({
     <button
       type="button"
       aria-pressed={pressed}
-      className={cn('su-seg__option', FOCUS_RING, DISABLED)}
+      className={cn('su-seg__option', capsLabel(), FOCUS_RING, DISABLED)}
       data-numeral={numeral || undefined}
       {...rest}
     >

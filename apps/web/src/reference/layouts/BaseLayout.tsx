@@ -13,8 +13,10 @@
 
 import type { CSSProperties, ReactNode } from 'react'
 import type { DocumentMeta, PageFoot } from '../../../ssg/types'
+import { capsLabel } from '../../components/atoms/capsLabel'
 import { BreadcrumbTrail, ChapterBandTrail, Footer } from '../../components/index'
 import { color } from '../../design/tokens'
+import { cn } from '../../lib/cn'
 import { DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE, SITE_URL } from '../../lib/constants'
 import { SITE_LINKS } from '../../lib/docPages'
 import { metaTags, SITE_ICONS, THEME_COLOR } from '../../lib/documentHead'
@@ -24,6 +26,8 @@ import { pageTitle } from '../../lib/pageTitle'
 import { SITE_MANIFEST } from '../../pwa'
 import { Island } from '../../runtime/Island'
 import { TopNavigation } from '../TopNavigation'
+
+const SKIP_LINK = cn('su-skip-link', capsLabel())
 
 /**
  * Pages whose own search (the home band's, the 404's) stands in for the Union
@@ -208,7 +212,7 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
             Without it, a keyboard user traverses the home mark, the main nav
             and the breadcrumb nav before reaching content, on all 1,036 pages.
           */}
-          <a href="#main-content" className="su-skip-link">
+          <a href="#main-content" className={SKIP_LINK}>
             Skip to content
           </a>
           <TopNavigation breadcrumbs={trail} pageHasSearch={PAGES_WITH_SEARCH.has(pathname)} />

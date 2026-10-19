@@ -1,9 +1,18 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useRef, useSyncExternalStore } from 'react'
+import { cn } from '../../lib/cn'
 import { revealRolled } from '../../lib/revealRolled'
 import { Button } from '../atoms/Button'
+import { capsLabel } from '../atoms/capsLabel'
 import type { CardSize } from '../containers/displayMode'
 import { rollBandColor, rollRangeLabel } from './rollTableBands'
+
+// The instrument's caps labels, from the recipe; sizes are the rules' own.
+const COLS = cn('su-roll__cols', capsLabel({ tracking: 'snug' }))
+const TITLE = cn('su-roll__title', capsLabel())
+const STAMP = cn('su-roll__stamp su-roll__roll', capsLabel())
+const LABEL = cn('su-roll__label', capsLabel())
+const TAG = cn('su-roll__tag', capsLabel({ weight: 'inherit' }))
 
 /**
  * RollTableInstrument — THE roll table, wherever one is drawn (EDL E14,
@@ -162,11 +171,11 @@ export function RollTableInstrument({
     >
       {labelled ? (
         <div className="su-roll__bar" data-cols="true" data-split={split ? 'true' : undefined}>
-          <span className="su-roll__cols" aria-hidden="true">
+          <span className={COLS} aria-hidden="true">
             <span className="su-roll__col-range">d20</span>
             <span className="su-roll__col-text">Result</span>
           </span>
-          <span className="su-roll__cols su-roll__cols--end">
+          <span className={cn(COLS, 'su-roll__cols--end')}>
             {split && (
               <span className="su-roll__col-text su-roll__col-text--half" aria-hidden="true">
                 Result
@@ -177,7 +186,7 @@ export function RollTableInstrument({
         </div>
       ) : (
         <div className="su-roll__bar">
-          {title && <span className="su-roll__title">{title}</span>}
+          {title && <span className={TITLE}>{title}</span>}
           {hint && <span className="su-roll__hint">{hint}</span>}
           {actions}
           {roll}
@@ -238,7 +247,7 @@ export function RollControl({
     // A Roll waiting on the script says so (`data-roll-pending`), so a page
     // whose only control it is still ships its island (`cardNeedsHydration`).
     return (
-      <span className="su-roll__stamp su-roll__roll" data-roll-pending={onRoll ? '' : undefined}>
+      <span className={STAMP} data-roll-pending={onRoll ? '' : undefined}>
         {children}
       </span>
     )
@@ -292,12 +301,12 @@ function Bands({ id, name, table }: { id?: string; name: string; table: BandsTab
                 <div className="su-roll__body">
                   {row.label && (
                     <div className="su-roll__head">
-                      <span className="su-roll__label">{row.label}</span>
+                      <span className={LABEL}>{row.label}</span>
                     </div>
                   )}
                   <span className="su-roll__value">{row.value}</span>
                   {/* Pinned to the corner, out of the flow: the row keeps its height. */}
-                  {marked && <span className="su-roll__tag">Rolled {mark.roll}</span>}
+                  {marked && <span className={TAG}>Rolled {mark.roll}</span>}
                 </div>
               </li>
             )

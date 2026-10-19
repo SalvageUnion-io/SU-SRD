@@ -176,10 +176,8 @@ button.su-play-dt-track__step:disabled {
 .su-play-dt-line__label {
   align-items: center;
   display: inline-flex;
-  font-family: var(--font-cond);
   font-size: var(--text-note);
   gap: var(--space-8);
-  text-transform: uppercase;
 }
 
 .su-play-dt-line__chips {

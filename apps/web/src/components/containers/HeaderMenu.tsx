@@ -11,11 +11,10 @@ import {
   layer,
   radius,
   space,
-  tracking,
-  weight,
 } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { buttonVariants } from '../atoms/buttonVariants'
+import { capsLabel } from '../atoms/capsLabel'
 import { Eyebrow } from '../atoms/Eyebrow'
 import { FOCUS_RING } from '../atoms/interaction'
 import { POPUP_SURFACE } from '../atoms/popupSurface'
@@ -120,17 +119,13 @@ const TRIGGER = {
   cursor: 'pointer',
   display: 'inline-flex',
   flexShrink: 0,
-  fontFamily: font.cond,
-  fontSize: fontSize.lede,
-  fontWeight: weight.bold,
   gap: space[6],
   // The Union bar's one control height (`--su-union-bar-control`), so the
   // account menu matches the search and buttons beside it.
   height: 'var(--su-union-bar-control, auto)',
-  letterSpacing: tracking.capsTight,
   padding: `${space[4]} 0`,
-  textTransform: 'uppercase',
 } satisfies CSSProperties
+const TRIGGER_CAPS = capsLabel({ size: 'lede' })
 
 // The overflow trigger (board S1) is an action chip, Button's `mini` rung, so it
 // sits among a Row's chips at their height. Only its open state, the inverse
@@ -209,7 +204,7 @@ export function HeaderMenu({
   return (
     <Menu.Root>
       <Menu.Trigger
-        className={triggerClass}
+        className={variant === 'masthead' ? cn(triggerClass, TRIGGER_CAPS) : triggerClass}
         style={triggerStyle}
         aria-label={label}
         aria-current={active ? 'page' : undefined}

@@ -2,19 +2,11 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useCallback, useContext, useId, useState } from 'react'
 import type { RefEntity, RefObjectChoice } from 'salvageunion-reference'
 import { isSchemaName, SalvageUnionReference } from 'salvageunion-reference'
-import {
-  color,
-  duration,
-  ease,
-  font,
-  fontSize,
-  space,
-  tracking,
-  weight,
-} from '../../../design/tokens'
+import { color, duration, ease, font, fontSize, space, weight } from '../../../design/tokens'
 import { cn } from '../../../lib/cn'
 import { useParseTraitReferences } from '../../../lib/parseTraitReferences'
 import type { CSSVarStyle } from '../../../styles/cssVars'
+import { capsLabel } from '../../atoms/capsLabel'
 import { Field } from '../../atoms/Field'
 import { Input, Textarea } from '../../atoms/inputs'
 import { FOCUS_RING } from '../../atoms/interaction'
@@ -33,6 +25,9 @@ import {
   resolveMultiSelectCap,
   toggleSelection,
 } from './choiceSelectionHelpers'
+
+/** An option's name: bold condensed caps, from the recipe. */
+const NAME_CAPS = capsLabel()
 
 /**
  * ChoiceGroups — the write-layer choice renderer in the NEW design language.
@@ -208,13 +203,9 @@ function ChoiceOption({
   const [padY, padX] = compact ? [space[6], space[8]] : [space[8], space[10]]
   const inset = `${padY} ${padX}`
   const name = {
-    fontFamily: font.cond,
     fontSize: compact ? fontSize.caption : fontSize.lede,
-    fontWeight: weight.bold,
-    letterSpacing: tracking.capsTight,
     lineHeight: 1.15,
     padding: inset,
-    textTransform: 'uppercase',
   } satisfies CSSProperties
   // On the Page the name is the tone head; elsewhere ink on the frame's paper.
   const head = onPage
@@ -250,7 +241,7 @@ function ChoiceOption({
         {onPage && <CardTopRail controls={undefined} selected={chosen} selectionSeal="Chosen" />}
         {/* `data-option-*`: the frame and titled head the nesting gate counts (N1). */}
         <div data-option-frame="" style={frame}>
-          <div data-option-head={onPage || undefined} style={head}>
+          <div data-option-head={onPage || undefined} className={NAME_CAPS} style={head}>
             {label}
           </div>
           {description && <div style={body}>{parsedDescription}</div>}

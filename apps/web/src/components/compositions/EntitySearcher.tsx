@@ -48,21 +48,13 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { EntitySchemaName } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import {
-  color,
-  font,
-  fontSize,
-  iconSize,
-  space,
-  tracking,
-  weight,
-  widthAtLeast,
-} from '../../design/tokens'
+import { color, fontSize, iconSize, space, widthAtLeast } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { useDisclosure } from '../../lib/useDisclosure'
 import { useMediaQuery } from '../../lib/useMediaQuery'
 import { Button } from '../atoms/Button'
 import { buttonVariants } from '../atoms/buttonVariants'
+import { capsLabel } from '../atoms/capsLabel'
 import { SearchField } from '../atoms/SearchField'
 import { EmptyState } from '../containers/EmptyState'
 import { TitledBox } from '../containers/TitledBox'
@@ -304,7 +296,7 @@ export function EntitySearcher({
   const browser = (
     <div ref={listRef} className="su-searcher__browser" hidden={takeover}>
       <div className="su-searcher__scroll" style={LIST_SCROLL_STYLE}>
-        <p style={SUMMARY_STYLE}>
+        <p className={SUMMARY_CAPS} style={SUMMARY_STYLE}>
           Showing {visible.length} of {pool.length}
         </p>
         <div className="su-searcher__list">{tokens}</div>
@@ -393,7 +385,11 @@ export function EntitySearcher({
         )
       }
     >
-      {subtitle && <p style={SUBTITLE_STYLE}>{subtitle}</p>}
+      {subtitle && (
+        <p className={SUBTITLE_CAPS} style={SUBTITLE_STYLE}>
+          {subtitle}
+        </p>
+      )}
       {!takeover && toolbar}
       <div
         className={cn(
@@ -435,24 +431,17 @@ const BODY_STYLE = { minHeight: 0 } satisfies CSSProperties
 const SUBTITLE_STYLE = {
   margin: space[0],
   padding: `${space[10]} ${space[16]} ${space[0]}`,
-  fontFamily: font.cond,
   fontSize: fontSize.xs,
-  fontWeight: weight.bold,
-  letterSpacing: tracking.capsTight,
   lineHeight: 1.2,
-  textTransform: 'uppercase',
   color: color.wkMuted,
 } satisfies CSSProperties
+const SUBTITLE_CAPS = capsLabel()
 
 const LIST_SCROLL_STYLE = {
   padding: `${space[12]} ${space[16]} ${space[16]}`,
 } satisfies CSSProperties
 const SUMMARY_STYLE = {
   margin: `${space[0]} ${space[0]} ${space[10]}`,
-  fontFamily: font.cond,
-  fontSize: fontSize.badge,
-  fontWeight: weight.bold,
-  textTransform: 'uppercase',
-  letterSpacing: tracking.caps,
   color: color.wkMuted,
 } satisfies CSSProperties
+const SUMMARY_CAPS = capsLabel({ size: 'badge' })

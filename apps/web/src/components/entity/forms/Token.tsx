@@ -5,6 +5,7 @@ import { tokenChips } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
 import { Badge } from '../../atoms/Badge'
 import { Button } from '../../atoms/Button'
+import { capsLabel } from '../../atoms/capsLabel'
 import { Stat } from '../../atoms/Stat'
 import { Content } from '../../referenceEntity/Content'
 import type { CardOuterProps } from '../../referenceEntity/card/CardOuter'
@@ -22,6 +23,9 @@ import { tokenChipSet } from '../parts/tokenChipSet'
 import type { PeekAttrs } from '../peekContext'
 import { useInsidePeek, usePeekAttrs } from '../peekContext'
 import type { EntityMode, EntityOmit, EntityRowModel } from '../types'
+
+/** The pill sets its name and chips in the caps recipe. */
+const PILL = cn('su-entity-token__pill', capsLabel())
 
 /** The adapter's resolved parts (`ReferenceEntityCard` `extent="head"`, any size: N2). */
 export type TokenSlots = {
@@ -195,7 +199,7 @@ export function Token({
       data-ground={paint.ink ? 'ink' : undefined}
       data-user-made={userMade || undefined}
       title={userMade ? USER_MADE_TITLE : undefined}
-      className="su-entity-token__pill"
+      className={PILL}
       style={{ backgroundColor: paint.background, color: paint.color, ...slots.frameStyle }}
     >
       {/* Read by assistive tech only: the dashes are the pill's only visual user-made cue. */}

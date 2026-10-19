@@ -1,21 +1,12 @@
 import type { CSSProperties } from 'react'
 import { useCallback } from 'react'
-import {
-  borderWidth,
-  color,
-  font,
-  fontSize,
-  iconSize,
-  radius,
-  space,
-  tracking,
-  weight,
-} from '../../design/tokens'
+import { borderWidth, color, fontSize, iconSize, radius, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { SIZE_INLINE_PADDING, SIZE_TYPE } from '../../styles/sizing'
 import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
 import { CountStepper } from '../atoms/CountStepper'
+import { capsLabel } from '../atoms/capsLabel'
 import { TRANSITION_COLORS } from '../atoms/transition'
 import type {
   ReferenceEntityControl,
@@ -48,16 +39,13 @@ const LINK = {
   borderRadius: radius.card,
   display: 'inline-flex',
   flexShrink: 0,
-  fontFamily: font.cond,
   fontSize: fontSize.xs,
-  fontWeight: weight.bold,
-  letterSpacing: tracking.capsTight,
   lineHeight: '1rem',
   padding: `${space[4]} ${space[8]}`,
   textDecoration: 'none',
-  textTransform: 'uppercase',
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
+const LINK_CAPS = capsLabel()
 
 const TEXT_BUTTON = {
   ...TRANSITION_COLORS,
@@ -75,12 +63,9 @@ const TEXT_BUTTON = {
 const SEGMENT = {
   alignItems: 'center',
   display: 'flex',
-  fontFamily: font.cond,
-  fontWeight: weight.bold,
-  letterSpacing: tracking.capsTight,
   lineHeight: 1,
-  textTransform: 'uppercase',
 } satisfies CSSProperties
+const SEGMENT_CAPS = capsLabel()
 
 const ROW = { display: 'flex', gap: space[4] } satisfies CSSProperties
 
@@ -121,7 +106,7 @@ function ControlButton({
       <a
         href={control.href}
         aria-label={control.ariaLabel}
-        className="su-control-link"
+        className={cn('su-control-link', LINK_CAPS)}
         style={LINK}
       >
         {control.label ?? control.ariaLabel}
@@ -137,7 +122,7 @@ function ControlButton({
   // own metrics — the same
   // constants `Badge shape="stamp" size="mini"` resolves — so the row and the
   // seam agree by construction rather than by matching numbers by eye.
-  const segmentClasses = cn(SIZE_INLINE_PADDING.mini, SIZE_TYPE.mini.label)
+  const segmentClasses = cn(SIZE_INLINE_PADDING.mini, SIZE_TYPE.mini.label, SEGMENT_CAPS)
 
   // Icon-only control (design-spec `.ctl`) — the live-sheet per-card
   // remove/swap/fold cluster. It is the shared `Button` at its `mini` rung, the

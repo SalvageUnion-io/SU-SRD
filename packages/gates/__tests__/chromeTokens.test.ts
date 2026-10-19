@@ -7,6 +7,7 @@ import { enclosingObject, parseCss } from '../lib/styleSource'
 import {
   ALERT_ATOMS,
   BREAKPOINT_LADDER,
+  CAPS_RULES,
   chromeTokens,
   LOADING_ATOMS,
   scanChromeSources,
@@ -287,6 +288,62 @@ describe('chrome-tokens/raw-alert', () => {
     for (const atom of ALERT_ATOMS) {
       expect(scan(atom, '<div role="alert" />')['raw-alert']).toEqual([])
     }
+  })
+})
+
+describe('chrome-tokens/hand-caps', () => {
+  test('a hand-set uppercase fails; the recipe and Button set it, and other transforms pass', () => {
+    const css = scan(
+      'apps/web/src/styles/partials/x.css',
+      [
+        '.su-a { text-transform: uppercase; }',
+        '.su-b { text-transform: none; }',
+        '.su-caps { text-transform: uppercase; }',
+      ].join('\n')
+    )
+    expect(lines(css, 'hand-caps')).toEqual([1, 3])
+    for (const [file, , why] of CAPS_RULES) {
+      const selector = why.includes('Button') ? '.su-btn' : '.su-caps'
+      expect(scan(file, `${selector} { text-transform: uppercase; }`)['hand-caps']).toEqual([])
+    }
+    const tsx = scan(
+      'apps/web/src/X.tsx',
+      [
+        "const A = { textTransform: 'uppercase' }",
+        "const B = { textTransform: 'none' }",
+        "// textTransform: 'uppercase'",
+        '<span className={capsLabel()}>x</span>',
+      ].join('\n')
+    )
+    expect(lines(tsx, 'hand-caps')).toEqual([1])
+  })
+})
+
+describe('chrome-tokens/badge-caps-snug', () => {
+  test('11px letterspaces only at caps-snug, in a stylesheet, a style object and the recipe', () => {
+    const css = scan(
+      'apps/web/src/styles/partials/x.css',
+      [
+        '.su-a { font-size: var(--text-badge); letter-spacing: var(--tracking-caps); }',
+        '.su-b { font-size: var(--text-badge); letter-spacing: var(--tracking-caps-snug); }',
+        '.su-c { font-size: var(--text-sm); letter-spacing: var(--tracking-caps); }',
+        '.su-d { font-size: var(--text-badge); letter-spacing: normal; }',
+      ].join('\n')
+    )
+    expect(lines(css, 'badge-caps-snug')).toEqual([1])
+    const tsx = scan(
+      'apps/web/src/X.tsx',
+      [
+        'const A = { fontSize: fontSize.badge, letterSpacing: tracking.caps }',
+        'const B = { fontSize: tokens.fontSize.badge, letterSpacing: tokens.tracking.capsSnug }',
+        'const C = { fontSize: fontSize.sm, letterSpacing: tracking.caps }',
+        "const D = capsLabel({ size: 'badge', tracking: 'caps' })",
+        "const E = capsLabel({ size: 'badge', weight: 'semibold' })",
+        "const F = capsLabel({ size: 'badge', tracking: 'snug' })",
+        "const G = capsLabel({ size: 'caption', tracking: 'caps' })",
+      ].join('\n')
+    )
+    expect(lines(tsx, 'badge-caps-snug')).toEqual([1, 4])
   })
 })
 

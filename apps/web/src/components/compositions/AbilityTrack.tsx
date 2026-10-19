@@ -1,7 +1,15 @@
 import type { ReactNode } from 'react'
 import { Fragment } from 'react'
 import type { RefAbility } from 'salvageunion-reference'
+import { cn } from '../../lib/cn'
+import { capsLabel } from '../atoms/capsLabel'
 import type { TreeTrack } from './treeTrack'
+
+/** The pick-one "or": 11px caps, snug (§4.2); its extrabold weight is the rule's. */
+const OR_STAMP = cn(
+  'su-ability-track__or-stamp',
+  capsLabel({ weight: 'inherit', tracking: 'snug' })
+)
 
 /**
  * A tree's Abilities on its track, in the order given: the track joins each
@@ -33,7 +41,7 @@ export function AbilityTrack({
             // A pick-one tree: an "or" on its stem between this pick and the
             // one before, never a numeral.
             <li className="su-ability-track__or">
-              <span className="su-ability-track__or-stamp">or</span>
+              <span className={OR_STAMP}>or</span>
             </li>
           )}
           <li className="su-ability-track__tier">{renderAbility(ability)}</li>

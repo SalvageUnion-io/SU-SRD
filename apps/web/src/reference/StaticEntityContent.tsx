@@ -1,9 +1,14 @@
 import { Fragment } from 'react'
 import type { StaticEntitySummary } from 'salvageunion-reference'
 import { formatProvenance } from 'salvageunion-reference'
+import { capsLabel } from '../components/atoms/capsLabel'
 import { InlineRef, mentionRef, RollTableInstrument, Slab, Stat } from '../components/index'
 import { MentionProse } from '../components/MentionProse'
+import { cn } from '../lib/cn'
 import { refText } from '../lib/rollTablePage'
+
+/** A fact's label ("Traits:"), in the caps recipe. */
+const STATIC_LABEL = cn('su-static__label', capsLabel({ tracking: 'snug' }))
 
 /**
  * StaticEntityContent — the SSR / no-JS entity fallback. Renders a
@@ -44,7 +49,7 @@ export function StaticEntityContent({ summary, parent }: StaticEntityContentProp
           crawlers, no-JS readers and the hydrated page alike. */}
       {parent && (
         <p>
-          <span className="su-static__label">{parent.label}</span>{' '}
+          <span className={STATIC_LABEL}>{parent.label}</span>{' '}
           <InlineRef href={parent.href}>{parent.name}</InlineRef>
         </p>
       )}
@@ -107,7 +112,7 @@ export function StaticEntityContent({ summary, parent }: StaticEntityContentProp
 
       {summary.traits.length > 0 && (
         <p>
-          <span className="su-static__label">Traits:</span>{' '}
+          <span className={STATIC_LABEL}>Traits:</span>{' '}
           {summary.traits.map((t, i) => (
             <Fragment key={t}>
               {i > 0 && ', '}

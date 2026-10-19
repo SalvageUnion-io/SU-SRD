@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { Box } from '../../components/containers/Box'
 import { Badge, Button, ChapterBand, ConfirmDialog, tokens } from '../../components/index'
 import '../../styles/build/wizard.css'
+import { capsLabel } from '../../components/atoms/capsLabel'
+import { cn } from '../../lib/cn'
 
 /**
  * Sheet tone context — picks the `.su-sheet--{kind}` poster theming. The NPC
@@ -71,16 +73,12 @@ const trackerStyle = {
   boxShadow: 'inset 0 0 0 1.5px var(--color-paper-30)',
   color: tokens.color.paper,
   display: 'inline-flex',
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.caption,
-  fontWeight: tokens.weight.bold,
   gap: tokens.space[8],
-  letterSpacing: tokens.tracking.caps,
   lineHeight: 1,
   padding: `${tokens.space[6]} ${tokens.space[12]}`,
-  textTransform: 'uppercase',
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
+const trackerCaps = capsLabel({ size: 'caption', tracking: 'caps' })
 
 const trackerValueStyle = {
   color: tokens.color.pilot,
@@ -95,7 +93,7 @@ const trackerValueStyle = {
  */
 export function WizTracker({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <span style={trackerStyle}>
+    <span className={trackerCaps} style={trackerStyle}>
       <span>{label}</span>
       <span style={trackerValueStyle}>{value}</span>
     </span>
@@ -161,11 +159,8 @@ const railTabFutureStyle = {
  */
 const railLabelStyle = {
   color: tokens.color.ink,
-  fontFamily: tokens.font.cond,
-  fontWeight: tokens.weight.bold,
-  letterSpacing: tokens.tracking.capsSnug,
-  textTransform: 'uppercase',
 } satisfies CSSProperties
+const railLabelCaps = capsLabel({ tracking: 'snug' })
 
 const railLabelActiveStyle = {
   ...railLabelStyle,
@@ -219,7 +214,7 @@ function RailStep({
         {done ? '✓' : index + 1}
       </span>
       <span
-        className="su-wiz-rail-label"
+        className={cn('su-wiz-rail-label', railLabelCaps)}
         style={active ? railLabelActiveStyle : done ? railLabelDoneStyle : railLabelFutureStyle}
       >
         {label}
@@ -246,15 +241,12 @@ const pillTrackersStyle = {
 /** Centred on a phone, left-aligned from sm (`.su-wiz-pill-note`). */
 const pillNoteStyle = {
   color: tokens.color.pilot,
-  fontFamily: tokens.font.cond,
   fontSize: tokens.fontSize.xs,
-  fontWeight: tokens.weight.semibold,
-  letterSpacing: tokens.tracking.caps,
   lineHeight: 'calc(1 / 0.75)',
   margin: 0,
   paddingInline: tokens.space[8],
-  textTransform: 'uppercase',
 } satisfies CSSProperties satisfies CSSProperties
+const pillNoteCaps = capsLabel({ weight: 'semibold', tracking: 'caps' })
 
 const pillEscapeStyle = { display: 'flex', paddingInline: tokens.space[8] } satisfies CSSProperties
 
@@ -364,17 +356,14 @@ const stepNumberStyle = {
 
 /** The title, in `.su-entity-row__title`'s face. */
 const stepTitleStyle = {
-  fontFamily: tokens.font.cond,
-  fontSize: tokens.fontSize.title,
   fontWeight: tokens.weight.extrabold,
-  letterSpacing: tokens.tracking.capsTight,
   lineHeight: 1.05,
-  textTransform: 'uppercase',
   color: tokens.color.ink,
   margin: 0,
   minWidth: 0,
   overflowWrap: 'break-word',
 } satisfies CSSProperties
+const stepTitleCaps = capsLabel({ size: 'title', weight: 'inherit' })
 
 /** The step's paper body, a plain block (not the box's flex column): 20px in. */
 const stepBodyStyle = { padding: tokens.space[20] } satisfies CSSProperties
@@ -435,7 +424,7 @@ export function WizShell({
         </div>
       )}
       {footerNote && (
-        <p role="status" className="su-wiz-pill-note" style={pillNoteStyle}>
+        <p role="status" className={cn('su-wiz-pill-note', pillNoteCaps)} style={pillNoteStyle}>
           {footerNote}
         </p>
       )}
@@ -531,7 +520,7 @@ export function WizShell({
                 <Badge shape="stamp" size="full" aria-hidden="true" style={stepNumberStyle}>
                   {active + 1}
                 </Badge>
-                <h1 style={stepTitleStyle}>
+                <h1 className={stepTitleCaps} style={stepTitleStyle}>
                   <span className="su-sr-only">
                     Step {active + 1} of {steps.length} ·{' '}
                   </span>
