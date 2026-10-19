@@ -131,11 +131,12 @@ export async function signInFresh(page: Page): Promise<void> {
   // The masthead's "Games" menu renders only in `connected` (GamesMenu), which
   // is the mode whose backend is the account. Waiting on the token alone would
   // let the test's first write race the backend flip. ("Sign out" lives inside
-  // the closed account menu, so it is no signal.) The Desktop Chrome viewport is past `lg`, so the desktop nav — and the
-  // trigger — is the one on screen.
-  await expect(page.getByRole('button', { name: 'Games' }).first()).toBeVisible({
-    timeout: 30_000,
-  })
+  // the closed account menu, so it is no signal.) It sits in Play's nav, which
+  // the bar keeps in the DOM but hides outside Play (`shell.css`), so it is
+  // waited for attached, hidden or not.
+  await expect(
+    page.getByRole('button', { name: 'Games', includeHidden: true }).first()
+  ).toBeAttached({ timeout: 30_000 })
 }
 
 export const test = base.extend<AccountFixture>({
