@@ -770,6 +770,7 @@ describe('chrome rule set', () => {
           '<div data-ground="ink" />',
           '<CloseButton onPaper />',
           '  onPaper?: boolean',
+          '<SignInControl onDark />',
           'export function inlineCode(onPaper = false): CSSProperties {',
           '<div data-grain={g} className="background" />',
           "const ground = band ? 'ink' : 'paper'",
@@ -790,6 +791,7 @@ describe('chrome rule set', () => {
       'apps/web/src/components/A.tsx:7',
       'apps/web/src/components/A.tsx:8',
       'apps/web/src/components/A.tsx:9',
+      'apps/web/src/components/A.tsx:10',
     ])
   })
 

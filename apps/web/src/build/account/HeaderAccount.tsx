@@ -37,7 +37,7 @@ export function HeaderActions() {
   const { mode } = useConnection()
 
   if (mode === 'connected' || mode === 'disconnected') return <AccountMenu />
-  return <SignInControl onDark />
+  return <SignInControl inBar />
 }
 
 /** Mobile header row: the avatar-only account menu. Nothing when signed out. */

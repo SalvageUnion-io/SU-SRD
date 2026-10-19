@@ -4,21 +4,21 @@ import { useConnection } from '../../lib/connection/connectionContext'
 import { useSignOut } from './useSignOut'
 
 /**
- * The dark-masthead treatment: a paper hairline on the near-black bar.
- * `.su-sign-in-control--dark` (`styles/screens.css`) is an app rule outside the
- * cascade layers, so it wins over the variant's own border/text colours and
- * its hover ink wash.
+ * The Union bar's treatment: an outline in the bar's own foreground
+ * (`--su-bar-fg`, whatever band the bar wears). `.su-sign-in-control--bar`
+ * (`styles/screens.css`) is an app rule outside the cascade layers, so it wins
+ * over the variant's own border/text colours and its hover ink wash.
  *
  * Both states use it, including sign-in. `variant="primary"` is right on the
  * paper settings screen and in the mobile drawer, but in the masthead it would
  * put a second rust button directly beside "Buy the game" — two identical
  * CTAs, neither reading as the primary one. The bar keeps one loud action.
  */
-const DARK_BUTTON = 'su-sign-in-control--dark'
+const BAR_BUTTON = 'su-sign-in-control--bar'
 
 type SignInControlProps = {
-  /** Render for a dark surface (the masthead nav) instead of paper. */
-  onDark?: boolean
+  /** Sits in the Union bar: outlined in the bar's foreground, never a second rust CTA. */
+  inBar?: boolean
   /**
    * Where Discord's round trip lands, as a path on this site (Convex Auth
    * accepts a relative `redirectTo`). An invite link passes its own address,
@@ -36,7 +36,7 @@ type SignInControlProps = {
 
 /** Sign in / sign out with Discord. */
 export function SignInControl({
-  onDark,
+  inBar,
   redirectTo,
   label = 'Sign in with Discord',
   size = 'compact',
@@ -51,7 +51,7 @@ export function SignInControl({
       <Button
         variant="ghost"
         size="compact"
-        className={cn(onDark && DARK_BUTTON, className)}
+        className={cn(inBar && BAR_BUTTON, className)}
         onClick={signOut}
       >
         Sign out
@@ -65,9 +65,9 @@ export function SignInControl({
 
   return (
     <Button
-      variant={onDark ? 'ghost' : 'primary'}
+      variant={inBar ? 'ghost' : 'primary'}
       size={size}
-      className={cn(onDark && DARK_BUTTON, className)}
+      className={cn(inBar && BAR_BUTTON, className)}
       onClick={() =>
         void (redirectTo === undefined ? signIn('discord') : signIn('discord', { redirectTo }))
       }

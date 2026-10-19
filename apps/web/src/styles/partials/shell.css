@@ -217,7 +217,7 @@
 
 /* "Buy the game ↗" — an outline on the ink bar, never a rust fill (§3.1).
    The SRD's "Sign in" link wears it too, as the app's Sign in button is
-   dressed to (`.su-sign-in-control--dark`). */
+   dressed to (`.su-sign-in-control--bar`). */
 .su-union-bar__buy,
 .su-union-bar__sign-in {
   align-items: center;

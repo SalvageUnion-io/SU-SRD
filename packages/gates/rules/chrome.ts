@@ -14,7 +14,7 @@
  * threaded from the frame to the leaf by hand, and a leaf that missed it
  * printed ink on ink with nothing failing.
  *
- * - `ground-signal`: no ground prop at all (`onInk`, `onPaper`, `ground`, an
+ * - `ground-signal`: no ground prop at all (`onInk`, `onPaper`, `onDark`, `ground`, an
  *   ink `surface`, Stat's `inverse`), and `data-ground` only on a frame
  *   (`FRAMES`).
  * - `paper-mix`: paper on ink is `--color-paper-NN` alone, never a
@@ -122,6 +122,10 @@ const GROUND_PROPS: { pattern: RegExp; what: string }[] = [
   {
     pattern: /(?<![\w-])onPaper(?:\??:\s*boolean|=\{|(?=\s*\/?>))/,
     what: 'an `onPaper` prop (the ground, read off the frame inverted)',
+  },
+  {
+    pattern: /(?<![\w-])onDark(?:\??:\s*boolean|=\{|(?=\s*\/?>))/,
+    what: 'an `onDark` prop (the ground under another name)',
   },
   { pattern: /(?<![\w-])ground=["'{]/, what: 'a `ground` prop' },
   { pattern: /(?<![\w-])ground\??:\s*'(?:paper|ink)'/, what: 'a `ground` prop type' },
