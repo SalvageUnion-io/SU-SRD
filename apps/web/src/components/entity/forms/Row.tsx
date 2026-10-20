@@ -72,7 +72,7 @@ export type RowProps = {
   lead?: boolean
   /**
    * Facts by key to leave out, `kind` for the type stamp, `art` for the art
-   * column, `tier` for an ability's numeral (a class page sets it on the track).
+   * cut-out, `tier` for an ability's numeral (a class page sets it on the track).
    */
   omit?: readonly EntityOmit[]
   /** Hover, focus or a long press Peeks the Row (a pattern's loadout). Off in listings. */
@@ -93,7 +93,7 @@ const READ: EntityMode = { kind: 'read' }
 
 /**
  * ROW — the workhorse form (entity display language §3): every list of
- * entities. An art column (by schema and room, E10), a head (tier, name, the
+ * entities. A head (the art's own cut-out, by schema and room, E10; tier, name, the
  * chip group — stats, action type and facets, traits, relations, cost (E17) — right of the name or
  * under it, the mode's affordance) and, only when something is left to show,
  * a paper body: the host's leading content and the lead while browsing
@@ -192,17 +192,13 @@ export function Row({
       mode.kind === 'link')
 
   const frame = (
-    <RowFrame
-      art={omit.includes('art') ? undefined : <Art art={model.art} />}
-      userMade={userMade}
-      bodyless={!hasBody}
-      style={selected ? SELECTED_RING : undefined}
-    >
+    <RowFrame userMade={userMade} bodyless={!hasBody} style={selected ? SELECTED_RING : undefined}>
       <Head
         title={title}
         kind={omit.includes('kind') ? undefined : model.kind.stamp}
         titleAs={slots.titleAs}
         paint={paint}
+        art={omit.includes('art') ? undefined : <Art art={model.art} />}
         tier={omit.includes('tier') ? undefined : model.tier}
         chips={
           chipCount(chips) > 0 ||

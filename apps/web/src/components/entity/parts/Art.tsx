@@ -5,10 +5,11 @@ import { assetSrcSetFor } from '../../compositions/assetSrcSet'
 const SIZES = '5rem'
 
 /**
- * ART (E10) — a Row's art column: the entity's image, the full height of the
- * row and ruled off in ink. Shown by room, not by prop: the column appears
- * only once the row is 18rem wide (`.su-entity-row__art`'s container query).
- * An entity without art has no column.
+ * ART (E10) — a Row's art: the entity's image on its own paper cut-out at the
+ * head's left, notched into the band's foot as the name's tab is, the band
+ * showing between the two (`Head`'s `art`). Shown by room, not by prop: the
+ * cut-out appears only once the row is 18rem wide (`.su-entity-row__art`'s
+ * container query). An entity without art has none.
  */
 export function Art({ art }: { art: EntityArt }) {
   if (art.kind === 'none') return null

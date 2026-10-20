@@ -43,6 +43,11 @@ export type HeadProps = {
    * Anything else a host passes is drawn by `Chips` as its marks (C2a).
    */
   chips?: ReactNode
+  /**
+   * The entity's art (`Art`, E10): its own paper cut-out at the band's left,
+   * notched into the foot as the name's tab is, the band showing between them.
+   */
+  art?: ReactNode
   /** The mode's affordance: the "Selected" seal, a toggle's check. */
   affordance?: ReactNode
   /**
@@ -70,7 +75,7 @@ export type HeadProps = {
 }
 
 /**
- * HEAD — a Row's band: the tier (on the band), the name (it wraps, never
+ * HEAD — a Row's band: the art (its own cut-out, at the left), the tier (on the band), the name (it wraps, never
  * clipped; with `notch`, on the paper cut-out at the band's foot) with its labels to its
  * right, the chip group (right of the name while it fits, under it when it
  * does not: the band's own width decides), the host's controls its last
@@ -88,6 +93,7 @@ export function Head({
   tier,
   tierChip = false,
   chips: chipsProp,
+  art,
   affordance,
   controls,
   labels,
@@ -147,6 +153,7 @@ export function Head({
       style={{ backgroundColor: paint.background, color: paint.color }}
     >
       <div className="su-entity-row__line">
+        {art}
         {tierNode}
         {chips ? (
           <div

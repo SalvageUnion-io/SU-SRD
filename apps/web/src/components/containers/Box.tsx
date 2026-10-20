@@ -12,8 +12,6 @@ type BoxSelect = Extract<EntityMode, { kind: 'select' }>
 export type BoxProps = {
   /** The band over the body: `TitledBox`'s cut-out head. Omitted, the box is its frame and body. */
   head?: ReactNode
-  /** A column left of the head and body, ruled off in ink: a Row's art. */
-  art?: ReactNode
   /** The frame's colour token value (`var(--color-…)`); ink by default. */
   frameColor?: string
   /** The landmark: `section` (named by `label`), an `article`, or a plain `div`. */
@@ -56,7 +54,7 @@ export type BoxProps = {
 
 /**
  * BOX — the house container: the Row's square 2px frame around a paper body
- * (ruleset §4.3), with an optional head band and art column. It stands in the
+ * (ruleset §4.3), with an optional head band. It stands in the
  * Row's own frame (`RowFrame`), so it draws no entity markup of its own (EDL
  * E15, hard rule R7). Its named
  * variants: `TitledBox` (the cut-out head: dialogs, briefs, notices), and on
@@ -67,7 +65,6 @@ export type BoxProps = {
  */
 export function Box({
   head,
-  art,
   frameColor,
   as: Root = 'div',
   label,
@@ -86,7 +83,6 @@ export function Box({
   const hasBody = children !== null && children !== undefined && children !== false
   const frame = (
     <RowFrame
-      art={art}
       bodyless={!hasBody}
       reference={reference}
       userMade={userMade}

@@ -2,7 +2,7 @@
  * The entity module's face (hard rule R7, EDL E15): the parts of the forms
  * that the rest of the library composes into its own strips and heads. A
  * Slab's summary and a titled box's band are `Chips`, a titled container's band
- * is the Row's `Head` and its art column the Row's `Art`, a dialog wears an
+ * is the Row's `Head` and its art cut-out the Row's `Art`, a dialog wears an
  * entity's `paintFor`. Everything else
  * under `parts/` is the forms' own, and Biome's `noRestrictedImports` refuses
  * an `entity/parts` path outside `components/entity/`. The forms themselves

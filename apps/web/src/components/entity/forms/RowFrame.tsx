@@ -1,8 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 
 export type RowFrameProps = {
-  /** The art column, left of the head and body (`Art`; a `Box`'s `art`). */
-  art?: ReactNode
   /** Player-made: the frame dashed (ruleset §3.9). */
   userMade?: boolean
   /** A Play reference unit (ADR-051 §5): the frame dashed, read-only. */
@@ -28,7 +26,6 @@ export type RowFrameProps = {
  * which is why a dialog's head and a listing's Row are one geometry (§0).
  */
 export function RowFrame({
-  art,
   userMade = false,
   reference = false,
   bodyless = false,
@@ -47,7 +44,6 @@ export function RowFrame({
       data-shrink={shrink || undefined}
       style={style}
     >
-      {art}
       <div className="su-entity-row__main">{children}</div>
     </div>
   )

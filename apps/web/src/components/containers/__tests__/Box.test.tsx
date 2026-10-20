@@ -16,11 +16,10 @@ describe('Box', () => {
     expect(body?.hasAttribute('data-flush')).toBe(false)
   })
 
-  test('takes a head, an art column and a frame colour', () => {
+  test('takes a head and a frame colour', () => {
     const { container } = render(
       <Box
         head={<div className="head">Head</div>}
-        art={<div className="art" />}
         frameColor="var(--color-sheet-mech)"
         body="flush"
       >
@@ -29,7 +28,6 @@ describe('Box', () => {
     )
     const frame = container.querySelector<HTMLElement>('.su-entity-row__frame')
     expect(frame?.style.borderColor).toBe('var(--color-sheet-mech)')
-    expect(frame?.firstElementChild?.className).toBe('art')
     expect(container.querySelector('.su-entity-row__main > .head')).not.toBeNull()
     expect(container.querySelector('.su-box__body')?.hasAttribute('data-flush')).toBe(true)
   })

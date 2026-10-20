@@ -220,7 +220,7 @@ export { toastRoll } from './containers/toastRoll'
 //   (a Play unit box's relation chips, C11) included.
 // - `EntityStat`: a fact whose value is an entity (`CLASS | Engineer`); the
 //   chip opens and Peeks it.
-// - `Art`: a Row's art column, a `TitledBox`'s `art` (a sheet's chassis callout).
+// - `Art`: a Row's art cut-out in its head, a `TitledBox`'s `art` (a sheet's chassis callout).
 // - `Head`: a Row's band, cut out (`notch`), the name on a paper tab and the
 //   chips right of it; a page's own cut-out card (the changelog, a class's
 //   paths) heads with it.
