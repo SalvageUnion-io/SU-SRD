@@ -181,8 +181,8 @@ const PRESSED_HOMES = new Set([
 export const ONE_ON_OFF: Record<string, string> = {
   'apps/web/src/components/referenceEntity/card/cardChrome.ts':
     "a reference card's select toggle (R15)",
-  'apps/web/src/components/referenceEntity/choiceCard/ChoiceGroups.tsx':
-    "a choice card's chosen state (R15)",
+  'apps/web/src/components/atoms/ToggleCard.tsx':
+    "a choice card's chosen state, the on/off whose face is its option's card (R15)",
   'apps/web/src/components/entity/modes/toggle.ts':
     "the toggle Token's chosen state, Play's seats and Tables (R15)",
 }

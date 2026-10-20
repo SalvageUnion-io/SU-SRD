@@ -41,12 +41,12 @@ const PLAY_COLUMNS = { start: 300, end: 320 } as const
 
 const FRAME = {
   display: 'grid',
-  gap: tokens.space[10],
+  gap: tokens.space[12],
   gridTemplateColumns: `${PLAY_COLUMNS.start}px minmax(0, 1fr) ${PLAY_COLUMNS.end}px`,
   gridTemplateRows: 'auto minmax(0, 1fr) auto',
   gridTemplateAreas: "'bar bar bar' 'start centre end' 'foot foot foot'",
   height: '100%',
-  padding: `${tokens.space[8]} ${tokens.space[10]}`,
+  padding: `${tokens.space[8]} ${tokens.space[12]}`,
   width: '100%',
 } satisfies CSSProperties
 

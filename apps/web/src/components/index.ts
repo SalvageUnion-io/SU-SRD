@@ -42,6 +42,7 @@ export { ChapterBand } from './atoms/ChapterBand'
 export { ChapterBandTrail } from './atoms/ChapterBandTrail'
 export { Checkbox } from './atoms/Checkbox'
 // CloseButton — the one ×: every dialog, drawer and sheet closes on it.
+export { ChipButton } from './atoms/ChipButton'
 export { CloseButton } from './atoms/CloseButton'
 // Conditions — the entity-condition chip row. Public because the app's sheet
 // chip-well editor (`ChipListEditor`) composes it.
@@ -87,8 +88,10 @@ export { Tab, TabList, TabPanel, Tabs } from './atoms/Tabs'
 // Base typography
 export { Text } from './atoms/Text'
 export { Toggle } from './atoms/Toggle'
+export { ToggleCard } from './atoms/ToggleCard'
 // ToneStrip — the 8px colour band that opens a section from above (§3.10).
 export { ToneStrip } from './atoms/ToneStrip'
+export { TrackStep } from './atoms/TrackStep'
 export { useCopied } from './atoms/useCopied'
 // USER_MADE_HATCH — the hatch a user-made page wears on its colour bands
 // (ruleset §3.9): ChapterBand's `userMade`, and the page's hatched foot.

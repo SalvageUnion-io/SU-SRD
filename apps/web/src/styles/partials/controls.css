@@ -214,7 +214,6 @@
 .su-searcher__toolbar .su-searcher__search,
 .su-searcher__toolbar [role='group'] > .su-badge,
 .su-searcher__actions > .su-badge-stamp,
-.su-searcher__bar .su-searcher__bar-toggle,
 .su-searcher__bar .su-stat-cell {
   box-sizing: border-box;
   height: var(--su-searcher-control);
@@ -231,7 +230,7 @@
 }
 
 .su-searcher__toolbar {
-  padding: var(--space-10) var(--space-16);
+  padding: var(--space-12) var(--space-16);
   border-bottom: var(--bw-hairline) solid var(--color-ink-20);
 }
 

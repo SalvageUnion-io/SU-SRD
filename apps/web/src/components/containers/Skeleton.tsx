@@ -32,7 +32,7 @@ const ROW = {
   borderWidth: borderWidth.chrome,
   borderColor: color.ink15,
   backgroundColor: color.paper,
-  padding: `${space[10]} ${space[12]}`,
+  padding: space[12],
 } satisfies CSSProperties
 
 const ROW_TITLE = { height: space[16], width: '40%' } satisfies CSSProperties
@@ -47,7 +47,7 @@ const ROW_SUB = {
 const ROWS = {
   display: 'flex',
   flexDirection: 'column',
-  gap: space[10],
+  gap: space[12],
   margin: 0,
   padding: 0,
   listStyle: 'none',

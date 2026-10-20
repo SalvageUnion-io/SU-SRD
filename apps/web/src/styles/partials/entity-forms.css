@@ -85,7 +85,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  padding: var(--space-6) var(--space-10);
+  padding: var(--space-6) var(--space-12);
 }
 
 /* The one line that never wraps: tier, name and labels, hint, stamps,
@@ -158,7 +158,7 @@
  * affordance stay on the band, centred on it.
  */
 .su-entity-row__head[data-notch] {
-  padding: var(--space-8) var(--space-10) 0;
+  padding: var(--space-8) var(--space-12) 0;
 }
 
 /* Beside an art column taller than the head (a Starter mech's chassis), the
@@ -250,7 +250,7 @@
   display: flex;
   flex: 1 1 0;
   flex-wrap: wrap;
-  gap: var(--space-4) var(--space-10);
+  gap: var(--space-4) var(--space-8);
   min-width: 0;
 }
 
@@ -733,7 +733,7 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
   flex: 1 1 auto;
   flex-wrap: wrap;
   gap: var(--space-4);
-  padding: var(--space-4) var(--space-10) var(--space-6);
+  padding: var(--space-4) var(--space-12) var(--space-6);
 }
 
 /* The art column: the row's full height, ruled off in ink. A listing may size
@@ -871,13 +871,13 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
 }
 
 .su-entity-tile__art img {
-  height: calc(100% - 2 * var(--space-10));
-  inset: var(--space-10);
+  height: calc(100% - 2 * var(--space-12));
+  inset: var(--space-12);
   mix-blend-mode: multiply;
   object-fit: contain;
   position: absolute;
   transition: transform var(--dur-base) var(--ease);
-  width: calc(100% - 2 * var(--space-10));
+  width: calc(100% - 2 * var(--space-12));
 }
 
 .su-entity-tile:hover .su-entity-tile__art img {
@@ -921,7 +921,7 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
     margin: auto;
     overflow: hidden;
     position: relative;
-    width: min(100cqw - 2 * var(--space-10), (50cqw - 2 * var(--space-10)) * var(--su-art-aspect));
+    width: min(100cqw - 2 * var(--space-12), (50cqw - 2 * var(--space-12)) * var(--su-art-aspect));
   }
 
   .su-entity-tile__window img {
@@ -950,7 +950,7 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   align-items: flex-end;
   border-top: var(--bw-chrome) solid var(--color-ink);
   display: flex;
-  min-height: calc(2.1 * var(--text-title) + var(--space-10));
+  min-height: calc(2.1 * var(--text-title) + var(--space-12));
   padding: var(--space-8) var(--space-8) 0;
 }
 
@@ -1033,7 +1033,7 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   flex-direction: column;
   gap: var(--space-4);
   min-width: 0;
-  padding: var(--space-4) var(--space-6) var(--space-6) var(--space-10);
+  padding: var(--space-4) var(--space-6) var(--space-6) var(--space-8);
 }
 
 .su-entity-token__body[data-user-made] {

@@ -4,10 +4,9 @@ import type { TechLevel } from '../../lib/listingGroups'
 import { tlName } from '../../lib/listingGroups'
 import type { ListingView } from '../../lib/listingView'
 import { capsLabel } from '../atoms/capsLabel'
-import { SearchField, Segmented, SegmentedOption, Select } from '../index'
+import { Button, SearchField, Segmented, SegmentedOption, Select } from '../index'
 
-/** The rail's controls are caps labels; the menu keeps its rule's face and tracking. */
-const FILTERS = cn('su-rail__filters su-focus-ring', capsLabel())
+/** The rail's menu is a caps label that keeps its rule's face and tracking. */
 const MENU = cn('su-rail__menu', capsLabel({ weight: 'inherit', tracking: 'inherit' }))
 
 /** A tech level as the rail's toggle prints it: the numeral, or the word. */
@@ -144,16 +143,16 @@ export function ListingRail({
         />
       )}
       {hasFacets && (
-        <button
-          type="button"
-          className={FILTERS}
+        <Button
+          size="full"
+          className="su-rail__filters"
           aria-expanded={facetsOpen}
           aria-controls="srd-rail-facets"
           onClick={on.toggleFacets}
         >
           Filters
           {activeFacets > 0 && <span className="su-rail__count">{activeFacets}</span>}
-        </button>
+        </Button>
       )}
       {status}
       <span className="su-rail__spring" />

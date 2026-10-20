@@ -1,5 +1,6 @@
 import { cn } from '../../../lib/cn'
 import type { Size } from '../../../styles/sizing'
+import { ChipButton } from '../../atoms/ChipButton'
 import { FOCUS_RING } from '../../atoms/interaction'
 import { Stat } from '../../atoms/Stat'
 import { useEntitySurface } from '../entitySurfaceContext'
@@ -60,9 +61,7 @@ export function Tag({
   }
   if (open) {
     return (
-      <button
-        type="button"
-        className={cn('su-chip-link su-hit-area', FOCUS_RING)}
+      <ChipButton
         onClick={(event) => {
           // A tag inside a clickable card opens ITS entry, not the card.
           event.stopPropagation()
@@ -71,7 +70,7 @@ export function Tag({
         {...shared}
       >
         {cell}
-      </button>
+      </ChipButton>
     )
   }
   return (

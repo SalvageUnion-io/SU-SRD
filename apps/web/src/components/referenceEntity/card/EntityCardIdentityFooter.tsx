@@ -51,7 +51,7 @@ type EntityCardIdentityFooterProps = {
   ruled?: boolean
 }
 
-const PAD_X: Record<CardSize, string> = { full: space[14], compact: space[10], mini: space[8] }
+const PAD_X: Record<CardSize, string> = { full: space[14], compact: space[12], mini: space[8] }
 
 const TYPE_CAPS = {
   lineHeight: 1,

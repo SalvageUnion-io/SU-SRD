@@ -33,7 +33,7 @@
 .su-hero-search {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-10);
+  gap: var(--space-8);
 }
 
 .su-hero-search__box {
@@ -119,7 +119,7 @@
 
 .su-not-found__chapter-list {
   display: grid;
-  gap: var(--space-10);
+  gap: var(--space-12);
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
 }
 

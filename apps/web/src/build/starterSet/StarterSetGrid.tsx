@@ -17,7 +17,7 @@ const GRID = { alignItems: 'start' } satisfies CSSProperties
 const CARDS = {
   display: 'flex',
   flexDirection: 'column',
-  gap: tokens.space[10],
+  gap: tokens.space[12],
   listStyle: 'none',
   margin: 0,
   padding: 0,
@@ -29,7 +29,7 @@ export function StarterSetGrid() {
       {starterShelves().map((shelf) => (
         <Stack
           as="section"
-          gap={10}
+          gap={12}
           key={shelf.kind}
           aria-label={`Starter Set ${shelf.title.toLowerCase()}`}
         >

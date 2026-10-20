@@ -64,7 +64,7 @@ const LISTBOX = {
   overflowY: 'auto',
 } satisfies CSSProperties
 
-const BACK_ROW = { marginBottom: tokens.space[10] } satisfies CSSProperties
+const BACK_ROW = { marginBottom: tokens.space[8] } satisfies CSSProperties
 
 /** Home view: the search box + the SRD's Contents chapters. */
 function SrdHome({

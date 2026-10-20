@@ -1,10 +1,4 @@
 {
-  "tokens": {
-    "off-scale-space": 70
-  },
-  "chrome": {
-    "raw-button": 9
-  },
   "copy": {
     "lowercase-term": 197,
     "banned-variant": 2

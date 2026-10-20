@@ -1,10 +1,10 @@
 import type { CSSProperties } from 'react'
-import { Stat, tokens } from '../../components/index'
+import { ChipButton, Stat, tokens } from '../../components/index'
 import type { OwnerChip } from '../../lib/ownership/ownerChip'
 
 /**
- * The pressable seal's bare button: a linked chip (`.su-chip-link`), a 24px
- * target (WCAG 2.5.8) around the chip drawn at its siblings' height. Its
+ * The pressable seal is a `ChipButton`: a 24px target (WCAG 2.5.8) around the
+ * chip drawn at its siblings' height. Its
  * cursor, lift and fade change on hover or when disabled, so they are
  * `.su-owner-seal__claim`'s (styles/controls.css).
  */
@@ -58,15 +58,14 @@ export function OwnerSeal({
   }
 
   return (
-    <button
-      type="button"
+    <ChipButton
       onClick={onClaim}
       disabled={disabled}
       aria-label={`${owner.label} — pick this up`}
-      className="su-chip-link su-hit-area su-owner-seal__claim"
+      className="su-owner-seal__claim"
       style={CLAIM}
     >
       {stamp}
-    </button>
+    </ChipButton>
   )
 }

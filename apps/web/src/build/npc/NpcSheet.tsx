@@ -99,7 +99,7 @@ const SHEET = {
 const ACTIONS = {
   alignItems: 'center',
   display: 'flex',
-  gap: tokens.space[10],
+  gap: tokens.space[8],
 } satisfies CSSProperties
 
 export function NpcSheet({

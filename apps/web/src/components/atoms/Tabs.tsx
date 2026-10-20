@@ -78,7 +78,7 @@ export function TabList({
 }
 
 const TAB = {
-  padding: `${space[6]} ${space[10]}`,
+  padding: `${space[6]} ${space[8]}`,
   borderRadius: radius.card,
   borderStyle: 'solid',
   borderWidth: borderWidth.chrome,

@@ -35,7 +35,7 @@ const COLUMN_ACTION = {
   backgroundColor: color.paper,
 } satisfies CSSProperties
 
-const ROWS = { display: 'flex', flexDirection: 'column', gap: space[10] } satisfies CSSProperties
+const ROWS = { display: 'flex', flexDirection: 'column', gap: space[12] } satisfies CSSProperties
 
 /** One list item of the shared Row ghost (`Skeleton`'s 'row' shape). */
 function SkeletonRow() {

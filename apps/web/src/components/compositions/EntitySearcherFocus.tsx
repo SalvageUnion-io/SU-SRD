@@ -110,7 +110,7 @@ export function FocusPane({
 
 const BACK_BAR_STYLE = {
   display: 'flex',
-  padding: `${space[10]} ${space[16]}`,
+  padding: `${space[12]} ${space[16]}`,
   borderBottom: `${borderWidth.hairline} solid ${color.ink20}`,
   backgroundColor: color.paper,
 } satisfies CSSProperties
@@ -120,7 +120,7 @@ const ACTION_BAR_STYLE = {
   flexWrap: 'wrap',
   alignItems: 'center',
   gap: space[8],
-  padding: `${space[10]} ${space[16]}`,
+  padding: `${space[12]} ${space[16]}`,
   borderTop: `${borderWidth.chrome} solid ${color.ink}`,
   backgroundColor: color.paper,
 } satisfies CSSProperties

@@ -112,11 +112,9 @@ describe('ruleEngine.listFiles', () => {
 describe('tokens rule set', () => {
   const scan = (rel: string, text: string) => scanTokenSources(new Map([[rel, text]]))
 
-  test('every rule is zero but off-scale-space, the one ratchet burning down', () => {
-    expect(designTokens.rules.filter((r) => r.mode !== 'zero').map((r) => r.id)).toEqual([
-      'off-scale-space',
-    ])
-    expect(ratchetCounts(designTokens, {})).toEqual({ 'off-scale-space': 0 })
+  test('every rule is zero', () => {
+    expect(designTokens.rules.filter((r) => r.mode !== 'zero').map((r) => r.id)).toEqual([])
+    expect(ratchetCounts(designTokens, {})).toEqual({})
   })
 
   test('off-scale-space: space[10] and --space-10 are found; their definitions and 12 are not', () => {

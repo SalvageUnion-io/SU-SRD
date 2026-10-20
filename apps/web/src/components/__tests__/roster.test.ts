@@ -29,6 +29,7 @@ const ROSTER = {
     'StatusBadge', // §5.9 Condition
     'SlotGrid', // §5.10 SlotGrid
     'ActivationCost', // §6.1 the cost's pointed box, the one standout
+    'ChipButton', // §6.1 Badge: a chip that is its own control (R16)
   ],
   /** chrome.md's roles (K1–K11) and the chrome hard rules (R16, R20, R22, R24, R27, R29). */
   chrome: [
@@ -67,6 +68,8 @@ const ROSTER = {
     'Segmented',
     'SegmentedOption',
     'Toggle',
+    'ToggleCard', // R16: an on/off whose face is a card (a choice's option)
+    'TrackStep', // R16: a step on a numbered track (the wizard rail, the Downtime track)
     // R16 one component per chrome role
     'Field',
     'Select',

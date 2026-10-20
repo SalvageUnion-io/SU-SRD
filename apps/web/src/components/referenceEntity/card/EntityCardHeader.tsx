@@ -46,7 +46,7 @@ type EntityCardHeaderProps = {
 /** The band's padding by size (board E1). */
 const PAD: Record<CardSize, string> = {
   full: `${space[12]} ${space[14]}`,
-  compact: `${space[8]} ${space[10]}`,
+  compact: `${space[8]} ${space[12]}`,
   mini: `${space[6]} ${space[8]}`,
 }
 

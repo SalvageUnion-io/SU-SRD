@@ -154,14 +154,15 @@ export function NavDrawer({
     <Drawer.Root open={open} onOpenChange={setOpen} swipeDirection="right">
       <Drawer.Trigger
         render={
-          <button
-            type="button"
+          <Button
+            variant="quiet"
+            size="iconOnly"
             aria-label="Open menu"
-            className={cn('su-nav-drawer__trigger', FOCUS_RING)}
+            className="su-nav-drawer__trigger"
             style={TRIGGER}
           >
             <Menu size={iconSize.full} aria-hidden="true" />
-          </button>
+          </Button>
         }
       />
 

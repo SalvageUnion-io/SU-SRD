@@ -527,7 +527,7 @@ a.su-home__discord:hover {
   align-items: center;
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-10) var(--space-12);
+  gap: var(--space-12);
 }
 
 .su-rail .su-rail__search {
@@ -562,18 +562,9 @@ a.su-home__discord:hover {
   display: contents;
 }
 
+/* The Filters toggle is a Full `Button`; the rail shows it only when narrow. */
 .su-rail__filters {
-  align-items: center;
-  background-color: var(--color-paper);
-  border: var(--bw-chrome) solid var(--color-ink);
-  border-radius: var(--radius-card);
-  color: var(--color-ink);
-  cursor: pointer;
   display: none;
-  font-size: var(--text-sm);
-  gap: var(--space-8);
-  min-height: var(--size-full);
-  padding: 0 var(--space-14);
 }
 
 .su-rail__count {
@@ -614,7 +605,7 @@ a.su-home__discord:hover {
   font-size: var(--text-caption);
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps-tight);
-  padding: 0 var(--space-10);
+  padding: 0 var(--space-8);
 }
 
 /* What is filtered: the count, a token per filter, Clear all. On an index it
@@ -626,7 +617,7 @@ a.su-home__discord:hover {
   color: var(--color-ink-2);
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-6) var(--space-10);
+  gap: var(--space-6) var(--space-8);
 }
 
 .su-rail > .su-rail__status {
@@ -673,7 +664,7 @@ a.su-home__discord:hover {
     display: flex;
     flex-basis: 100%;
     flex-wrap: wrap;
-    gap: var(--space-10);
+    gap: var(--space-8);
     padding: var(--space-12);
   }
 

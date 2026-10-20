@@ -425,7 +425,7 @@ const BODY_STYLE = { minHeight: 0 } satisfies CSSProperties
 /** The subtitle: a line of the paper under the cut-out, as ModalShell's. */
 const SUBTITLE_STYLE = {
   margin: 0,
-  padding: `${space[10]} ${space[16]} 0`,
+  padding: `${space[12]} ${space[16]} 0`,
   fontSize: fontSize.xs,
   lineHeight: 1.2,
   color: color.wkMuted,
@@ -436,7 +436,7 @@ const LIST_SCROLL_STYLE = {
   padding: `${space[12]} ${space[16]} ${space[16]}`,
 } satisfies CSSProperties
 const SUMMARY_STYLE = {
-  margin: `0 0 ${space[10]}`,
+  margin: `0 0 ${space[8]}`,
   color: color.wkMuted,
 } satisfies CSSProperties
 const SUMMARY_CAPS = capsLabel({ size: 'badge' })

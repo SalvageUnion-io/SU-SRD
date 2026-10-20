@@ -574,7 +574,7 @@ function ReferenceEntityCardInner({
         {header}
         {/* SLOT: subtitleExtra — an extra line under the header (absent ⇒ nothing). */}
         {subtitleExtra && (
-          <div style={{ padding: `${space[4]} ${compact ? space[10] : space[14]} 0` }}>
+          <div style={{ padding: `${space[4]} ${compact ? space[12] : space[14]} 0` }}>
             {subtitleExtra}
           </div>
         )}
@@ -603,7 +603,7 @@ function ReferenceEntityCardInner({
         )}
         {/* SLOT: afterExtraContent — trailing body content (absent ⇒ nothing). */}
         {afterExtraContent && (
-          <div style={{ padding: compact ? space[10] : `${space[12]} ${space[14]}` }}>
+          <div style={{ padding: compact ? space[12] : `${space[12]} ${space[14]}` }}>
             {afterExtraContent}
           </div>
         )}
@@ -611,7 +611,7 @@ function ReferenceEntityCardInner({
         {expand && (
           <div
             style={{
-              padding: `0 ${compact ? space[10] : space[14]} ${compact ? space[10] : space[12]}`,
+              padding: `0 ${compact ? space[12] : space[14]} ${space[12]}`,
             }}
           >
             {expand}

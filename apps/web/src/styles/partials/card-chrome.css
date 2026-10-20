@@ -54,7 +54,7 @@
  * its header). */
 .su-ec-band {
   align-items: center;
-  column-gap: var(--space-10);
+  column-gap: var(--space-8);
   display: flex;
   min-width: 0;
   width: 100%;

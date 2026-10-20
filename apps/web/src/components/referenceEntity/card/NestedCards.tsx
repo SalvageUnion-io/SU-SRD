@@ -70,7 +70,7 @@ export type NestedWrite = {
 /** A stack's inset from the frame, by the host's size (board E2). */
 const STACK_MARGIN: Record<CardSize, string> = {
   full: `${space[4]} ${space[14]} ${space[14]}`,
-  compact: `${space[2]} ${space[10]} ${space[10]}`,
+  compact: `${space[2]} ${space[12]} ${space[12]}`,
   mini: `${space[2]} ${space[8]} ${space[8]}`,
 }
 
@@ -137,7 +137,7 @@ export function CardLead({
   )
 }
 
-const LEAD_GAP: Record<CardSize, string> = { full: space[12], compact: space[10], mini: space[8] }
+const LEAD_GAP: Record<CardSize, string> = { full: space[12], compact: space[12], mini: space[8] }
 
 /** Children inside a Peek: one read-only Token each (E16), one a line (N4). */
 function PeekTokens({ entities }: { entities: ReferenceCardEntity[] }) {

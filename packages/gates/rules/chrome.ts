@@ -90,9 +90,9 @@
  *
  * - `button-href`: `buttonVariants(` only in the atoms that draw a button
  *   (`BUTTON_RECIPE_HOMES`: `Button`, `Toggle`, `HeaderMenu`'s trigger).
- * - `raw-button` (a ratchet, burning to zero): a JSX `<button>` only in an
- *   atom. The ones left draw a look no Button Size has yet (a tag, a step
- *   pill, the condition glyph); each goes when its atom does.
+ * - `raw-button`: a JSX `<button>` only in an atom. A look no Button Size
+ *   draws has its own atom: a chip that acts (`ChipButton`), a step on a
+ *   track (`TrackStep`), a card that toggles (`ToggleCard`).
  *
  * ## One section, the SlabSection (hard rule R1, ruleset §6.4)
  *
@@ -100,7 +100,7 @@
  * as is `raw-dl` (hard rule R36): a JSX `<dl>`, `<dt>` or `<dd>` outside the
  * Stat atoms.
  *
- * Every rule is `zero` but `raw-button`. Comments are stripped, so prose may name what it bans.
+ * Every rule is `zero`. Comments are stripped, so prose may name what it bans.
  */
 
 import { readFileSync } from 'node:fs'
@@ -546,9 +546,9 @@ const RULES: ChromeRule[] = [
   },
   {
     id: 'raw-button',
-    mode: 'ratchet',
+    mode: 'zero',
     rule: 'hard rule R16 (ruleset §6.5) — a button is `Button` (its variant, Size and `href`), never a raw <button> outside the atoms',
-    fix: 'Render `<Button variant=… size=… onClick=…>` (`href` for a link, `back` for a way back) from components/index; a look no variant draws (a tag, a step pill) belongs to an atom in components/atoms/. Then lower `chrome.raw-button` in tools/baselines/rule-sets.json to the new count.',
+    fix: 'Render `<Button variant=… size=… onClick=…>` (`href` for a link, `back` for a way back) from components/index; a look no variant draws is an atom in components/atoms/ (`ChipButton`, `TrackStep`, `ToggleCard`, or a new one named in its law).',
     scan: (root) => scanOutside(root, RAW_BUTTON, ATOMS),
   },
   {

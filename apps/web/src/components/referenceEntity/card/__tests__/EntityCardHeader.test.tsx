@@ -150,7 +150,7 @@ describe('EntityCardHeader — the chips beside the title or under it', () => {
     )
     const row = band('Cargo Pod')
     // Symmetric: the band holds no room above for a border-riding stamp.
-    expect(row.style.padding).toBe('8px 10px')
+    expect(row.style.padding).toBe('8px 12px')
     const title = screen.getByText('Cargo Pod').parentElement as HTMLElement
     const labels = title.nextElementSibling as HTMLElement
     expect(labels.textContent).toBe('User-made')

@@ -38,7 +38,7 @@ const FILL = { width: '100%' } satisfies CSSProperties
 /** The grid's gutter; its columns and top margin change at `md` (`.su-roster-grid`). */
 const GRID = { display: 'grid', gap: space[32] } satisfies CSSProperties
 
-const LIST = { display: 'flex', flexDirection: 'column', gap: space[10] } satisfies CSSProperties
+const LIST = { display: 'flex', flexDirection: 'column', gap: space[12] } satisfies CSSProperties
 
 /** Mobile-endpoint segmented Pilot/Mech/Crawler switch. */
 export function SegmentSwitch({

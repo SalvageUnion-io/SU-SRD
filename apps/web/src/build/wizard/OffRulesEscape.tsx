@@ -6,29 +6,7 @@
  * subordinate to the CTA — shown only while a gate is actively blocking.
  */
 
-import type { CSSProperties } from 'react'
-import '../../styles/build/wizard.css'
-import { capsLabel } from '../../components/atoms/capsLabel'
-import { NextLabel, tokens } from '../../components/index'
-import { cn } from '../../lib/cn'
-
-/**
- * Static half; the colour, which brightens on hover, is `.su-wiz-off-rules`.
- * It sits on the pill's line beside Cancel and the CTA, so it takes their Full
- * Size (§4.7): a 44px box, its words centred in it.
- */
-const escapeStyle = {
-  alignItems: 'center',
-  cursor: 'pointer',
-  display: 'inline-flex',
-  gap: tokens.space[4],
-  minHeight: tokens.size.full,
-  textDecorationLine: 'underline',
-  textDecorationStyle: 'dotted',
-  textUnderlineOffset: '2px',
-  whiteSpace: 'nowrap',
-} satisfies CSSProperties satisfies CSSProperties
-const escapeCaps = capsLabel({ size: 'badge', weight: 'semibold' })
+import { Button, NextLabel } from '../../components/index'
 
 type OffRulesEscapeProps = {
   /** Leaves the guided flow for the blank Free-Edit path. */
@@ -37,13 +15,10 @@ type OffRulesEscapeProps = {
 
 export function OffRulesEscape({ onEscape }: OffRulesEscapeProps) {
   return (
-    <button
-      type="button"
-      onClick={onEscape}
-      className={cn('su-wiz-off-rules', escapeCaps)}
-      style={escapeStyle}
-    >
+    // On the pill's line beside Cancel and the CTA, so their Full Size (§4.7);
+    // outlined, under the CTA's rust.
+    <Button variant="ghost" size="full" onClick={onEscape}>
       Off-rules build? <NextLabel to="Build it on the Live Sheet" size="mini" />
-    </button>
+    </Button>
   )
 }

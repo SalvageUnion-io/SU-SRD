@@ -50,7 +50,7 @@ const POPUP = {
   ...INK_POPUP,
   maxWidth: '22rem',
   minWidth: '15rem',
-  paddingBlock: space[10],
+  paddingBlock: space[12],
 } satisfies CSSProperties
 
 const TITLE = { marginBottom: space[6], opacity: 0.6 } satisfies CSSProperties

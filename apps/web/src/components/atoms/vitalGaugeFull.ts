@@ -9,7 +9,7 @@ export const HEAD = {
   display: 'flex',
   alignItems: 'baseline',
   justifyContent: 'space-between',
-  gap: space[10],
+  gap: space[8],
 } satisfies CSSProperties
 export const HEAD_LEFT = {
   display: 'flex',

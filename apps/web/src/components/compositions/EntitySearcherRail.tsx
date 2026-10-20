@@ -11,11 +11,9 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { EntitySchemaName } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { borderWidth, color, font, fontSize, iconSize, radius, space } from '../../design/tokens'
-import { cn } from '../../lib/cn'
+import { borderWidth, color, font, fontSize, iconSize, space } from '../../design/tokens'
 import { useDisclosure } from '../../lib/useDisclosure'
 import { Button } from '../atoms/Button'
-import { FOCUS_RING } from '../atoms/interaction'
 import { Slab } from '../atoms/Slab'
 import { Entity } from '../entity/Entity'
 import { BudgetChips } from './EntitySearcherBudget'
@@ -259,21 +257,22 @@ export function SelectionRail({
             id={headingId}
             count={count}
             flush
-            label={
-              <button
+            label={chosenLabel}
+            actions={
+              // The fold, as a SlabSection's (R1): the Compact `iconOnly` ghost.
+              <Button
                 ref={toggleRef}
-                type="button"
+                variant="ghost"
+                size="iconOnly"
                 {...list.toggleProps}
-                className={cn('su-searcher__bar-toggle', FOCUS_RING)}
-                style={TOGGLE_STYLE}
+                aria-label={`${list.open ? 'Hide' : 'Show'} ${chosenLabel.toLowerCase()}`}
               >
-                {chosenLabel}
                 <ChevronDown
                   aria-hidden="true"
                   size={iconSize.compact}
                   style={chevronStyle(list.open)}
                 />
-              </button>
+              </Button>
             }
           />
         </div>
@@ -303,7 +302,7 @@ const BAR_STYLE = {
   alignItems: 'center',
   columnGap: space[12],
   rowGap: space[6],
-  padding: `${space[10]} ${space[16]}`,
+  padding: `${space[12]} ${space[16]}`,
 } satisfies CSSProperties
 const BAR_HEADING_STYLE = { flex: '1 1 auto', minWidth: 0 } satisfies CSSProperties
 const BAR_ACTIONS_STYLE = {
@@ -311,27 +310,6 @@ const BAR_ACTIONS_STYLE = {
   flexWrap: 'wrap',
   gap: space[8],
   marginLeft: 'auto',
-} satisfies CSSProperties
-
-/** A bare button wearing its Slab stamp's type — `inherit` across the board,
- * because a button's UA style resets font, tracking and case. */
-const TOGGLE_STYLE = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: space[8],
-  minWidth: 0,
-  maxWidth: '100%',
-  margin: 0,
-  padding: 0,
-  borderWidth: 0,
-  borderRadius: radius.card,
-  background: 'none',
-  color: 'inherit',
-  font: 'inherit',
-  letterSpacing: 'inherit',
-  textTransform: 'inherit',
-  textAlign: 'left',
-  cursor: 'pointer',
 } satisfies CSSProperties
 
 const BUDGET_ROW_STYLE = {
@@ -358,6 +336,6 @@ const ACTIONS_STYLE = {
   flexWrap: 'wrap',
   justifyContent: 'flex-end',
   gap: space[8],
-  padding: `${space[10]} ${space[16]}`,
+  padding: `${space[12]} ${space[16]}`,
   borderTop: `${borderWidth.hairline} solid ${color.ink20}`,
 } satisfies CSSProperties

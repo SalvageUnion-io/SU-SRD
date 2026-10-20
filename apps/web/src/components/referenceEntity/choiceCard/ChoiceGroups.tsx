@@ -9,7 +9,7 @@ import type { CSSVarStyle } from '../../../styles/cssVars'
 import { capsLabel } from '../../atoms/capsLabel'
 import { Field } from '../../atoms/Field'
 import { Input, Textarea } from '../../atoms/inputs'
-import { FOCUS_RING } from '../../atoms/interaction'
+import { ToggleCard } from '../../atoms/ToggleCard'
 import { SlabSection } from '../../containers/SlabSection'
 import { SelectedSeal } from '../../entity/modes/select'
 import { SELECT_DIM, SELECTED_RING } from '../../entity/modes/selectedRing'
@@ -113,7 +113,7 @@ const chosenValueStyle = {
 const optionCellStyle = {
   marginBottom: space[6],
   breakInside: 'avoid',
-  paddingTop: space[10],
+  paddingTop: space[12],
 } satisfies CSSProperties
 
 /** Off a Page, an option's text at the card body's size. */
@@ -196,7 +196,7 @@ function ChoiceOption({
     overflow: 'hidden',
     ...(chosen ? SELECTED_RING : undefined),
   } satisfies CSSProperties
-  const [padY, padX] = compact ? [space[6], space[8]] : [space[8], space[10]]
+  const [padY, padX] = compact ? [space[6], space[8]] : [space[8], space[12]]
   const inset = `${padY} ${padX}`
   const name = {
     fontSize: compact ? fontSize.caption : fontSize.lede,
@@ -228,13 +228,12 @@ function ChoiceOption({
     padding: inset,
   } satisfies CSSProperties
   return (
-    <button
-      type="button"
-      aria-pressed={chosen}
+    <ToggleCard
+      pressed={chosen}
       disabled={disabled}
       onClick={readOnly ? undefined : onToggle}
       // The one select dim (R15): unchosen, whether or not the cap allows it.
-      className={cn(FOCUS_RING, !readOnly && !chosen && SELECT_DIM)}
+      className={cn(!readOnly && !chosen && SELECT_DIM)}
       style={button}
     >
       {/* `data-option-*`: the frame and titled head the nesting gate counts (N1). */}
@@ -246,7 +245,7 @@ function ChoiceOption({
         </div>
         {description && <div style={body}>{parsedDescription}</div>}
       </div>
-    </button>
+    </ToggleCard>
   )
 }
 

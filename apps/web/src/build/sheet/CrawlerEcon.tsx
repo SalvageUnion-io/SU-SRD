@@ -59,7 +59,7 @@ const FRAME = {
 const READOUTS = {
   display: 'grid',
   gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-  gap: tokens.space[10],
+  gap: tokens.space[8],
 } satisfies CSSProperties
 
 const ACTIONS = {

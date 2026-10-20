@@ -46,7 +46,7 @@ describe('ChipListEditor — the one well', () => {
     // §4.4's scale inside a block: 8px of padding, 6px between chips, never 10px.
     expect(CHIP_WELL.padding).toBe(space[8])
     expect(CHIP_WELL.gap).toBe(space[6])
-    expect(Object.values(CHIP_WELL)).not.toContain(space[10])
+    expect(Object.values(CHIP_WELL)).not.toContain('10px')
     expect(a.style.padding).toBe('8px')
     expect(a.style.minHeight).toBe(b.style.minHeight)
   })

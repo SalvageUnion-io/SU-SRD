@@ -112,7 +112,7 @@ const POPUP = {
  */
 const SUBTITLE = {
   margin: 0,
-  padding: `${space[10]} ${space[20]} 0`,
+  padding: `${space[12]} ${space[20]} 0`,
   fontSize: fontSize.xs,
   lineHeight: 1.2,
   color: color.wkMuted,

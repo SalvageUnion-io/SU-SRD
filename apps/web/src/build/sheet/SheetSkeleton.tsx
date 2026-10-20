@@ -53,7 +53,7 @@ const BAR_ACTIONS = {
   marginLeft: 'auto',
   display: 'flex',
   alignItems: 'center',
-  gap: tokens.space[10],
+  gap: tokens.space[8],
 } satisfies CSSProperties
 
 const BAR_BUTTON = {

@@ -18,7 +18,7 @@
    bodies: a wider gap, and room for the attention ring and the selection
    ring, which sit outside each seat's Token. */
 .su-entity-token-list.su-play-seats {
-  gap: var(--space-10);
+  gap: var(--space-12);
   padding: var(--space-4);
 }
 
@@ -37,7 +37,7 @@
 /* The Opposition: two boxes a row where the centre has the room. */
 .su-play-npcs {
   display: grid;
-  gap: var(--space-10);
+  gap: var(--space-12);
   grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
   padding: var(--space-4);
 }

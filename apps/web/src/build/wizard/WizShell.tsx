@@ -8,6 +8,7 @@ import {
   ChapterBand,
   ConfirmDialog,
   NextLabel,
+  TrackStep,
   tokens,
 } from '../../components/index'
 import { WizardGameChip } from './WizardGameChip'
@@ -118,7 +119,7 @@ export function WizTracker({ label, value }: { label: string; value: ReactNode }
 const railStepStyle = {
   alignItems: 'center',
   display: 'flex',
-  gap: tokens.space[10],
+  gap: tokens.space[8],
   position: 'relative',
   textAlign: 'left',
   zIndex: 1,
@@ -209,8 +210,7 @@ function RailStep({
   onClick?: () => void
 }) {
   return (
-    <button
-      type="button"
+    <TrackStep
       disabled={!clickable && !active}
       aria-current={active ? 'step' : undefined}
       onClick={clickable ? onClick : undefined}
@@ -232,7 +232,7 @@ function RailStep({
       >
         {label}
       </span>
-    </button>
+    </TrackStep>
   )
 }
 
@@ -330,7 +330,7 @@ const arrowheadStyle = {
   borderRight: '9px solid transparent', // design-tokens-ignore: triangle geometry
   borderTop: `14px solid ${tokens.color.paper}`, // design-tokens-ignore: triangle geometry
   height: 0,
-  marginTop: tokens.space[10],
+  marginTop: tokens.space[8],
   width: 0,
 } satisfies CSSProperties
 
@@ -354,7 +354,7 @@ const stepFrameStyle = {
 const stepHeadStyle = {
   alignItems: 'baseline',
   display: 'flex',
-  gap: tokens.space[10],
+  gap: tokens.space[8],
   marginBottom: tokens.space[12],
 } satisfies CSSProperties
 

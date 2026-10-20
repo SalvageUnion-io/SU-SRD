@@ -34,7 +34,7 @@ const HEAD = {
   background: 'var(--color-band-cream)',
   display: 'flex',
   flexShrink: 0,
-  gap: tokens.space[10],
+  gap: tokens.space[8],
   padding: `${tokens.space[6]} ${tokens.space[12]}`,
 } satisfies CSSProperties
 
