@@ -1038,16 +1038,6 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   order: var(--su-fill);
 }
 
-/* A chip that left its head (C2b): its copy is the body's first row, or, on
-   a header-only head, +MORE stands for it. A state the fit writes, so it
-   outranks every form's own `display` for its chips (a Tile's is three
-   classes deep): doubled attributes, as the state must win wherever it
-   lands. Drawn there too, a chip showed twice and stacked the head. */
-[data-chip-fill] [data-fill-out][data-fill-out][data-fill-out],
-.su-entity-token[data-contentful] .su-entity-token__chips [data-fill-out][data-fill-out] {
-  display: none;
-}
-
 /* THE OVERFLOW ROW (`ChipOverflowRow`, C2b): the body's first row, right
    under its head, the chips that did not fit beside the name, left-aligned,
    in class order, at the head's Size; hidden while every chip fits. */
@@ -1074,11 +1064,6 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 .su-chip-more {
   display: inline-flex;
   flex: none;
-}
-
-/* Hidden until a chip is out, over a form's own chip `display` (doubled, as above). */
-.su-chip-more[hidden][hidden][hidden] {
-  display: none;
 }
 
 /* A Token as a listbox option (the SRD header search): the highlighted option
@@ -1442,4 +1427,19 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   gap: var(--space-8);
   min-width: 0;
   padding: var(--space-6);
+}
+
+/* THE OUT STATE (C2b, C5), last in the file: a state the fit writes outranks
+   every form's own chip `display` by specificity (repeated attributes) and by
+   place: a fill chip's rule (`:is(…) > .su-chip-lane > *`, above) was as
+   specific, and later. A chip that left its head is drawn only as its copy in the body's
+   first row, or stands behind +MORE on a header-only head; drawn in the head
+   too, it showed twice and rose over the name. +MORE stays hidden until a
+   chip is out. */
+[data-chip-fill] [data-fill-out][data-fill-out][data-fill-out][data-fill-out],
+.su-entity-token[data-contentful]
+  .su-entity-token__chips
+  [data-fill-out][data-fill-out][data-fill-out],
+.su-chip-more[hidden][hidden][hidden][hidden] {
+  display: none;
 }

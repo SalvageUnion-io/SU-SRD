@@ -58,7 +58,7 @@ export const OUT_ATTRIBUTE = 'data-fill-out'
  * The classes that never leave the head (C2b): the rank (the Tech Level),
  * the cost and the slots after it (C8: state, uses, the menu). What is in no
  * class (a band's control, a Card's type stamp, a list's lanes drawn as one
- * box) stays too.
+ * box) stays too, unless the name would break inside a word (`planWithRoom`).
  */
 const KEPT_CLASSES = new Set(['rank', 'cost', 'state', 'uses', 'menu'])
 
@@ -117,6 +117,41 @@ function oneLineWidth(
   return measured
 }
 
+/**
+ * The name's narrowest width that breaks no word: its widest word, with the
+ * padding and borders between that word and the name's own edges. A name
+ * that may break anywhere (`overflow-wrap: anywhere`, a Tile's or a Page's
+ * title) has a `min-content` of one letter, and a fit that squeezed it there
+ * broke a title mid-word on a phone ("MAZON / A").
+ */
+function widestWord(el: HTMLElement): number {
+  if (typeof document === 'undefined' || typeof document.createRange !== 'function') return 0
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
+  const range = document.createRange()
+  let widest = 0
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    const text = node.textContent ?? ''
+    let inset = 0
+    for (let box = node.parentElement; box && box !== el.parentElement; box = box.parentElement) {
+      const s = getComputedStyle(box)
+      inset +=
+        (Number.parseFloat(s.paddingLeft) || 0) +
+        (Number.parseFloat(s.paddingRight) || 0) +
+        (Number.parseFloat(s.borderLeftWidth) || 0) +
+        (Number.parseFloat(s.borderRightWidth) || 0)
+    }
+    for (const match of text.matchAll(/\S+/g)) {
+      range.setStart(node, match.index)
+      range.setEnd(node, match.index + match[0].length)
+      // A word broken over lines is several boxes: its width is their sum.
+      let word = 0
+      for (const box of range.getClientRects()) word += box.width
+      widest = Math.max(widest, word + inset)
+    }
+  }
+  return widest
+}
+
 /** An item's chip class within `root`: its own, or its lane's; '' for none. */
 function classOfItem(item: Element, root: Element): string {
   const lane = item.closest('[data-chip-class]')
@@ -164,6 +199,48 @@ export function overflowPlan(
     }
   }
   return { out, more: more !== undefined && out.some(Boolean) }
+}
+
+/**
+ * A head's plan (`overflowPlan`), the kept items staying. Where even they
+ * leave the name less than its widest word (a Page's band on a phone: the
+ * Tech Level and "Build with this" beside a one-word title) and the head has
+ * a first row, its items in no class (a band's control, a Card's type stamp)
+ * leave too: the name never breaks inside a word and no item is squeezed past
+ * its own words. The rank, the cost and C8's slots never leave.
+ */
+function planWithRoom(
+  container: HTMLElement,
+  name: HTMLElement,
+  items: readonly HTMLElement[],
+  widths: readonly number[],
+  nameWidth: number,
+  room: number,
+  gap: number,
+  moreWidth: number | undefined,
+  hasRow: boolean
+): { out: boolean[]; more: boolean } {
+  const plan = overflowPlan(
+    widths,
+    items.map((item) => isKept(item, container)),
+    nameWidth,
+    room,
+    gap,
+    moreWidth
+  )
+  if (!hasRow) return plan
+  const kept = widths.reduce((sum, width, i) => (plan.out[i] ? sum : sum + gap + width), 0)
+  const unclassed = items.map((item) => classOfItem(item, container) === '')
+  if (!unclassed.some((u, i) => u && !plan.out[i])) return plan
+  if (kept + Math.max(oneLineWidth(name, 'min-content'), widestWord(name)) <= room - 1) return plan
+  return overflowPlan(
+    widths,
+    items.map((item, i) => !unclassed[i] && isKept(item, container)),
+    nameWidth,
+    room,
+    gap,
+    moreWidth
+  )
 }
 
 /** What each overflow row last drew: the items it copies, so an unchanged fit writes nothing. */
@@ -227,7 +304,10 @@ const CORNER_ATTRIBUTE = 'data-fill-corner'
 function fitChipFill(container: HTMLElement): void {
   const name = container.querySelector<HTMLElement>(`:scope > ${FILL_NAME}`)
   if (!name) return
-  for (const stale of container.querySelectorAll(`[${ITEM_ATTRIBUTE}]`)) {
+  // An out item carries no item mark, so it is cleared by its own: left
+  // hidden, it measured nothing on the next fit, which then kept it (still
+  // hidden) and emptied the overflow row, losing the chip.
+  for (const stale of container.querySelectorAll(`[${ITEM_ATTRIBUTE}], [${OUT_ATTRIBUTE}]`)) {
     stale.removeAttribute(ITEM_ATTRIBUTE)
     stale.removeAttribute(LINE_ATTRIBUTE)
     stale.removeAttribute(CORNER_ATTRIBUTE)
@@ -261,14 +341,7 @@ function fitChipFill(container: HTMLElement): void {
     fitted?.at === at
       ? fitted
       : routes
-        ? overflowPlan(
-            widths,
-            items.map((item) => isKept(item, container)),
-            nameWidth,
-            room,
-            gap,
-            moreWidth
-          )
+        ? planWithRoom(container, name, items, widths, nameWidth, room, gap, moreWidth, !!row)
         : { out: items.map(() => false), more: false }
   items.forEach((item, i) => {
     if (plan.out[i]) item.setAttribute(OUT_ATTRIBUTE, '')
@@ -295,7 +368,7 @@ function fitChipFill(container: HTMLElement): void {
   const wraps = shown.length > 0 && nameWidth + chipsWidth > room - 1
   const corner = shown[shown.length - 1]
   const last = shownWidths[shownWidths.length - 1] ?? 0
-  const shortest = wraps ? oneLineWidth(name, 'min-content') : 0
+  const shortest = wraps ? Math.max(oneLineWidth(name, 'min-content'), widestWord(name)) : 0
   const squeezed = wraps && room - chipsWidth - 1 < shortest
   if (corner && squeezed) corner.setAttribute(CORNER_ATTRIBUTE, '')
   if (fitted?.at === at) return

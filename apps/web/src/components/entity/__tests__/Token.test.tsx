@@ -368,11 +368,22 @@ describe("a contentful Token's overflow row (C2b)", () => {
   })
 
   test('a chip that left the head is not drawn there, and a hidden row takes no room', () => {
-    expect(
-      ruleOf(
-        '[data-chip-fill] [data-fill-out][data-fill-out][data-fill-out],\n.su-entity-token[data-contentful] .su-entity-token__chips [data-fill-out][data-fill-out]'
-      )
-    ).toContain('display: none;')
+    const out = ruleOf('.su-chip-more[hidden][hidden][hidden][hidden]')
+    expect(out).toContain('display: none;')
+    const css = readPackageStylesheet()
+    const selectors = css.slice(css.lastIndexOf('\n[data-chip-fill] [data-fill-out]'))
+    expect(selectors).toContain('.su-entity-token__chips\n  [data-fill-out]')
+    expect(selectors.indexOf('{')).toBeGreaterThan(selectors.indexOf('.su-chip-more[hidden]'))
     expect(ruleOf('.su-chip-overflow[hidden]')).toContain('display: none;')
+  })
+
+  test("the out state comes after a fill chip's own display, which is as specific", () => {
+    // A Tile's out chips drew in its head as well as in its first row while
+    // the fill chips' `display` came later in the file (cceb4a527).
+    const css = readPackageStylesheet().replace(/\/\*[\s\S]*?\*\//g, '')
+    const fillChip = css.lastIndexOf('> .su-chip-lane\n  > * {')
+    const outState = css.indexOf('\n[data-chip-fill] [data-fill-out]')
+    expect(fillChip).toBeGreaterThan(0)
+    expect(outState).toBeGreaterThan(fillChip)
   })
 })
