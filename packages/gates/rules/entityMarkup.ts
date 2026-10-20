@@ -57,7 +57,8 @@ function scanEntityMarkup(files: readonly string[], read: (rel: string) => strin
     (rel) =>
       rel.startsWith(APP_DIR) &&
       !ENTITY_HOMES.some((home) => rel.startsWith(home)) &&
-      !/(?:__tests__\/|\.test\.tsx?$)/.test(rel)
+      !rel.includes('__tests__/') &&
+      !/\.test\.tsx?$/.test(rel)
   )
   for (const rel of outside) {
     const text = rel.endsWith('.css') ? stripCssComments(read(rel)) : stripTsComments(read(rel))
