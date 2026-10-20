@@ -1,6 +1,6 @@
 /**
  * SheetSectionCard — a live sheet's opening panel (Identity, Vitals), in Read
- * and Edit alike (board 10): a flat paper panel in a Box's frame under a
+ * and Edit alike (board 10): a flat paper panel in a light hairline under a
  * one-unit-colour top rule. It prints no title: the section is named for assistive tech, and the
  * contents say what they are. A titled container is a `TitledBox`.
  *
@@ -30,17 +30,17 @@ type SheetSectionCardProps = {
 }
 
 /**
- * The panel: paper in a Box's frame (ruleset §4.3: 2px, the house container's
- * weight; a hairline is a value cell's or a table's rule), and a unit-colour
- * rule on top.
+ * The panel: paper, a light hairline and a unit-colour rule on top (ruleset
+ * §4.3; owner's call, 2026-10-20: the opening panels keep 3.x's quiet frame,
+ * not a Box's 2px ink, so the sheet's content carries the weight).
  */
 const PAPER_PANEL = {
   backgroundColor: color.paper,
-  borderColor: color.ink,
+  borderColor: color.ink40,
   borderStyle: 'solid',
   borderTopColor: 'var(--tone)',
   borderTopWidth: borderWidth.entity,
-  borderWidth: borderWidth.entityCompact,
+  borderWidth: borderWidth.hairline,
   display: 'flex',
   flexDirection: 'column',
   padding: `${space[16]} ${space[20]}`,
