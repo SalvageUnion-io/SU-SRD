@@ -5,7 +5,7 @@
  * description, in the house titled box the Starter Set and Shelves rows'
  * blocks share).
  *
- * A `TitledBox` in the chassis's tone: its art's cut-out in the head (the Row's `Art`; fixed:
+ * A `TitledBox` in the chassis's tone: its art's window in the head (the Row's `Art`; fixed:
  * the player's photo is the hero's), its name on the cut-out `Head` with a
  * CHASSIS chip beside it (`Chips`; owner's call, 2026-10-14), and a paper body
  * holding the

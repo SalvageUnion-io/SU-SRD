@@ -23,7 +23,7 @@ type TitledBoxProps = Omit<BoxProps, 'head' | 'frameColor'> & {
   chips?: ReactNode
   /** The band's trailing controls (a dialog's ×). */
   controls?: ReactNode
-  /** The art's own cut-out at the band's left (`Art`): a sheet's Chassis panel. */
+  /** The art's window at the band's left (`Art`): a sheet's Chassis panel. */
   art?: ReactNode
 }
 

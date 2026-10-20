@@ -26,7 +26,7 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
    3. **Play — the instrument panel** — its lists are Tokens (actions, crew, tables); the only transactional surface: bookkeeping `auto`, destruction `confirm`; every unit mutation writes a Change Log row, every roll a Game log row.
       Paper instruments on a dark ground: `--color-ink-deep` ground, `--color-band-cream` side columns, `--color-paper` for the centre column alone. On a phone: tabs under pinned vitals (ADR-051 §10).
    4. **Use opens the action** — in Play an on-hand action's Token carries Use after its cost, which resolves it in place as the Token's contentful body (Activate, Roll, Push, Apply; ADR-051 §6); its cost stays a read pennant.
-   5. **Listing — one entity, one click** — the Row (`<Entity form="row">`) is the one rendering for an entity in a list (listing, search, slot, deck) at level 1 (E6): one-row head (art cut-out), chip group (E17).
+   5. **Listing — one entity, one click** — the Row (`<Entity form="row">`) is the one rendering for an entity in a list (listing, search, slot, deck) at level 1 (E6): one-row head (art window), chip group (E17).
       Nothing edits or expands in place; art by room (EDL E10).
       An SRD index draws Tiles (`form="tile"`, EDL E2).
    6. **Peek — the glance** — the Card at compact density (`PeekCard`) on a lifted plate, opened from a `data-peek` Mention or Tag by one `PeekHost` per app.

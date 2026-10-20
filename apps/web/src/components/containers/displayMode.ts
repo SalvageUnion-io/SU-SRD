@@ -14,7 +14,7 @@ import type { Size } from '../../styles/sizing'
  *
  * EXTENT — how much of the entity renders, at whatever size:
  * - `full`    — the whole card: header, body, expand slot, footer.
- * - `head`    — the COMPACT CARD: the head row (its art's cut-out) and a paper
+ * - `head`    — the COMPACT CARD: the head row (its art's window) and a paper
  *               body of value cells and the "//" line; the prose, expand and
  *               footer are suppressed. At `mini` this is the shortform token:
  *               one tone-filled pill carrying the type stamp, the name and the

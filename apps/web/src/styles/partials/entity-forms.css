@@ -5,7 +5,7 @@
 
 /* ══ The entity forms: Row and Token (entity display language) ═════════════
  *
- * `src/entity/forms/`. A ROW is an inline-size container, so its art cut-out
+ * `src/entity/forms/`. A ROW is an inline-size container, so its art window
  * appears by ROOM (E10): only once the row is 18rem wide, whatever the
  * viewport. Its floor is a Token's ceiling (E3, 12rem), so a Row in a
  * shrink-wrapped slot never collapses to nothing. A link-mode Row is an `<a>`
@@ -231,7 +231,7 @@
 }
 
 /* With art, the line runs the band's height however tall the head is set,
-   so the art's cut-out keeps its inset from the band's top. */
+   so the art's window stays centred on it. */
 .su-entity-row__frame[data-bodyless]
   .su-entity-row__head
   > .su-entity-row__line:has(> .su-entity-row__art) {
@@ -748,22 +748,22 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
   padding: var(--space-4) var(--space-12) var(--space-6);
 }
 
-/* THE ART'S CUT-OUT (`Head`'s `art`, E10): the image on its own paper tab at
-   the band's left, notched into the band's foot as the name's tab is, the
-   band showing above it, at its left and between it and the name, so it reads
-   as part of the head and apart from the name (owner's call, 2026-10-20). It
-   sets the head's height. A listing may size it through
+/* THE ART'S WINDOW (`Head`'s `art`, E10): the image on its own paper panel at
+   the band's left, the band showing on all four sides of it, centred on the
+   row's height, so it reads as part of the head and apart from the name's
+   cut-out (owner's calls, 2026-10-20). It sets the head's height: the band's
+   top padding above it, as much below. A listing may size it through
    `--su-head-art-width` / `--su-head-art-min` on an ancestor. The line art is
    printed on white, so `multiply` lays it onto the paper. Dropped under the
-   name, a phone's chip strip is a stacking context: the tab is raised above
+   name, a phone's chip strip is a stacking context: the panel is raised above
    it, and lets a press through to the Row's surface. */
 .su-entity-row__art {
-  align-self: stretch;
+  align-self: center;
   background-color: var(--color-paper);
   display: none;
   flex: none;
-  margin-left: calc(-1 * var(--space-4));
-  min-height: var(--su-head-art-min, 4.75rem);
+  height: var(--su-head-art-min, 4.75rem);
+  margin: 0 0 var(--space-8) calc(-1 * var(--space-4));
   pointer-events: none;
   position: relative;
   width: var(--su-head-art-width, 4rem);
@@ -780,7 +780,7 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
 }
 
 @container (width >= 18rem) {
-  /* design-tokens-ignore: E10, the art's cut-out appears by the Row's own room (18rem), a component's fit, not a page breakpoint */
+  /* design-tokens-ignore: E10, the art's window appears by the Row's own room (18rem), a component's fit, not a page breakpoint */
   .su-entity-row__art {
     display: block;
   }
@@ -788,7 +788,7 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
 
 @media not (width >= 40rem) {
   .su-entity-row__art {
-    min-height: var(--su-head-art-min-phone, 4.25rem);
+    height: var(--su-head-art-min-phone, 4.25rem);
     width: var(--su-head-art-width-phone, 3.5rem);
   }
 }
@@ -1277,7 +1277,7 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
  * can size each Row to its title (the class ability tree, a Row listing). The
  * body (facts, tags, lead) fills that width and wraps inside it; it never
  * widens the Row. A size container's width cannot come from its content, so
- * here the Row is not one: its art cut-out answers the nearest container above.
+ * here the Row is not one: its art window answers the nearest container above.
  */
 [data-entity-fit] .su-entity-row {
   container-type: normal;

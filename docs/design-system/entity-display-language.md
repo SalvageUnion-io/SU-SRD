@@ -16,7 +16,7 @@ Status: agreed. Code: `apps/web/src/components/entity/`.
 1. **Mention** — names an entity in prose, in the prose's own type; links where a route exists; hover or long-press Peeks.
 2. **Token** — `name [chips] [actions]`, one row, name cut out, filling its line (one a line in a list); links and Peeks as a Mention.
    **Contentful** (N3): that head, then the entity's text, held in a border of its tone: nested actions, chassis abilities, a bay's crew lead.
-3. **Row** — every list: head (the art on its own paper cut-out at the band's left, apart from the name's, ≥ 18rem where the schema has art; tier on the band, name, chips, mode slot; name on the paper cut-out, chips beside it), a paper body only for a lead or stamp.
+3. **Row** — every list: head (the art in its own paper window at the band's left, band on all sides, centred, ≥ 18rem where the schema has art; tier on the band, name, chips, mode slot; name on the paper cut-out, chips beside it), a paper body only for a lead or stamp.
    In a `data-entity-grid` every Row is one height and each name line reserves two.
    **Tile** — the SRD index's Row: 3:4 art if any, name notched in the band, facts, lead; link only.
 4. **Card** — the whole entity in place: head (title, labels — pills, User-made — and chips), prose, actions and children as Tokens (E6), table as a roll bar, cite; comfortable (≥ 30rem) or compact.

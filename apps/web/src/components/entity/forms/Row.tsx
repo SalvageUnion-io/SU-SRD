@@ -93,7 +93,7 @@ const READ: EntityMode = { kind: 'read' }
 
 /**
  * ROW — the workhorse form (entity display language §3): every list of
- * entities. A head (the art's own cut-out, by schema and room, E10; tier, name, the
+ * entities. A head (the art's window, by schema and room, E10; tier, name, the
  * chip group — stats, action type and facets, traits, relations, cost (E17) — right of the name or
  * under it, the mode's affordance) and, only when something is left to show,
  * a paper body: the host's leading content and the lead while browsing

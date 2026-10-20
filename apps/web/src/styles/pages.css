@@ -352,7 +352,7 @@ a.su-home__discord:hover {
    each Row stretched to fill its cell, or a line's own height where a Row is
    its head alone. Setting them here, unlayered, would override that. */
 .su-listing__cards {
-  /* The Row's art cut-out, wider here so the line art reads at a glance; the
+  /* The Row's art window, wider here so the line art reads at a glance; the
      art fills it top to bottom. */
   --su-head-art-min: 7rem;
   --su-head-art-min-phone: 6rem;

@@ -5,10 +5,10 @@ import { assetSrcSetFor } from '../../compositions/assetSrcSet'
 const SIZES = '5rem'
 
 /**
- * ART (E10) — a Row's art: the entity's image on its own paper cut-out at the
- * head's left, notched into the band's foot as the name's tab is, the band
- * showing between the two (`Head`'s `art`). Shown by room, not by prop: the
- * cut-out appears only once the row is 18rem wide (`.su-entity-row__art`'s
+ * ART (E10) — a Row's art: the entity's image in its own paper window at the
+ * head's left, the band on all four sides of it, centred on the row, apart
+ * from the name's cut-out (`Head`'s `art`). Shown by room, not by prop: the
+ * window appears only once the row is 18rem wide (`.su-entity-row__art`'s
  * container query). An entity without art has none.
  */
 export function Art({ art }: { art: EntityArt }) {
