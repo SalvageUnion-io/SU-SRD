@@ -362,7 +362,6 @@ function ReferenceEntityCardInner({
     cardClickLabel,
     selected,
     frameWidth: resolveFrameWidth(isHead ? 'mini' : size),
-    dashed: userMade,
   })
 
   // HEADER-ONLY is the Token (N2), at every size: this card is its adapter,
@@ -628,7 +627,6 @@ function ReferenceEntityCardInner({
               extent === 'full' && !insidePeek && !userMade ? externalLinkNode : undefined
             }
             size={size}
-            dashed={userMade}
             credit={userMade ? `Made by ${madeBy ?? 'a player'}` : undefined}
             band={{ onBand, bandColor }}
             grain={grain}

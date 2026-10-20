@@ -198,23 +198,15 @@ describe('cardChrome', () => {
     className: undefined,
     cardClickLabel: 'Mule',
     frameWidth: 'var(--bw-entity)',
-    dashed: false,
   }
 
-  test('the frame is ink, and dashed on a user-made card', () => {
+  test('the frame is solid ink', () => {
     const solid = resolveCardInteraction({ ...base, selectionRole: undefined, selected: undefined })
     expect(solid.frameStyle).toMatchObject({
       borderColor: 'var(--color-ink)',
       borderStyle: 'solid',
       borderTopWidth: 'var(--bw-entity)',
     })
-    const userMade = resolveCardInteraction({
-      ...base,
-      dashed: true,
-      selectionRole: undefined,
-      selected: undefined,
-    })
-    expect(userMade.frameStyle.borderStyle).toBe('dashed')
   })
 
   test('a whole-card click announces selection by role', () => {

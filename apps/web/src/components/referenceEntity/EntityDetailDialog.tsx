@@ -164,7 +164,6 @@ export function EntityDetailPage({
         size="full"
         band={{ bandColor, onBand: foregroundOn(bandColor, 'ink') }}
         grain={band.tone === 'ink' ? 'paper' : 'ink'}
-        ruled={false}
       />
     </>
   )

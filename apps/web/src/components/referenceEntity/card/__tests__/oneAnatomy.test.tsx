@@ -195,7 +195,7 @@ describe('nesting legibility', () => {
 })
 
 describe('the user-made flag', () => {
-  test('dashes the frame and the footer rule, and stamps the header', () => {
+  test('stamps the header, its frame and foot solid as the book', () => {
     const chassis = sestra()
     const pattern = need(chassis.patterns?.[0], 'pattern')
     const { container } = render(<ReferenceEntityCard data={chassis} pattern={pattern} userMade />)
@@ -204,8 +204,8 @@ describe('the user-made flag', () => {
     const dashed = [...container.querySelectorAll<HTMLElement>('div')].filter(
       (el) => el.style.borderStyle === 'dashed' || el.style.borderTopStyle === 'dashed'
     )
-    // The frame and the footer rule.
-    expect(dashed.length).toBeGreaterThanOrEqual(2)
+    // No dashed frame or foot rule (owner's call, 2026-10-20): the stamp marks it.
+    expect(dashed).toEqual([])
   })
 
   test('credits the maker in place of the page citation', () => {
@@ -234,13 +234,13 @@ describe('the user-made flag', () => {
     expect(screen.getAllByText('From Veteran')).toHaveLength(1)
   })
 
-  test('dashes the shortform pill, at the smallest extent', () => {
+  test('names the shortform pill user-made, at the smallest extent', () => {
     const { container } = render(
       <ReferenceEntityCard data={drill()} size="mini" extent="head" userMade />
     )
     const pill = container.querySelector<HTMLElement>('[title^="Made by a player"]')
-    expect(pill?.style.borderStyle).toBe('dashed')
-    // The dashes are its only visual cue, so it also says so to assistive tech.
+    // Solid as the book (owner's call, 2026-10-20); its words say what it is.
+    expect(pill?.style.borderStyle).not.toBe('dashed')
     expect(pill?.textContent?.startsWith('User-made')).toBe(true)
   })
 })

@@ -160,7 +160,6 @@ export function resolveCardInteraction({
   cardClickLabel,
   selected,
   frameWidth,
-  dashed,
 }: {
   onCardClick: (() => void) | undefined
   controls: ReferenceEntityControl[] | undefined
@@ -173,8 +172,6 @@ export function resolveCardInteraction({
   selected: boolean | undefined
   /** From `resolveFrameWidth`. */
   frameWidth: string
-  /** USER-MADE (ruleset §3.9): a dashed ink frame in place of the solid one. */
-  dashed: boolean
 }): {
   outer: CardOuterProps
   frameStyle: CSSProperties
@@ -246,11 +243,12 @@ export function resolveCardInteraction({
   // Selection state — select mode's ring (`SELECTED_RING`), the same 3px ink
   // ring a selected Row and a select-mode Box draw. A non-layout-shifting
   // box-shadow that reads as a border, sitting just outside the frame.
-  // The frame is INK on every card (the tone lives in the header band alone),
-  // and dashed on a user-made one. Longhands, so a caller overriding one side
+  // The frame is solid INK on every card, a user-made one too (owner's call,
+  // 2026-10-20: its HOMEBREW chip marks it); the tone lives in the header band
+  // alone. Longhands, so a caller overriding one side
   // never trips React's shorthand/longhand warning.
   const frame = {
-    borderStyle: dashed ? 'dashed' : 'solid',
+    borderStyle: 'solid',
     borderColor: 'var(--color-ink)',
     borderTopWidth: frameWidth,
     borderRightWidth: frameWidth,

@@ -27,8 +27,6 @@ type EntityCardIdentityFooterProps = {
    */
   externalLink?: ReactNode
   size: CardSize
-  /** USER-MADE (ruleset §3.9): the footer rule is dashed. */
-  dashed?: boolean
   /**
    * USER-MADE credit (ruleset §3.9): "Made by [user]", in the place a page
    * citation takes on a canon card. It replaces the citation: a homebrew card
@@ -44,11 +42,6 @@ type EntityCardIdentityFooterProps = {
   band?: CardColors
   /** The head band's speckle, worn on the foot's band too. */
   grain?: CardGrain | undefined
-  /**
-   * The rule along its top, drawn only on a user-made card (dashed, ruleset
-   * §3.9); `false` drops even that (the app's Page, edge to edge).
-   */
-  ruled?: boolean
 }
 
 const PAD_X: Record<CardSize, string> = { full: space[14], compact: space[12], mini: space[8] }
@@ -68,8 +61,7 @@ const truncate = {
 /**
  * EntityCardIdentityFooter — the card's FOOTER (depth-0 / full cards only), in
  * the head band's colour, grain and foreground (ruleset Source 2): ink-2 type
- * on paper only where the head is paper. A 1.5px ink rule along its top
- * (dashed on a user-made card), but on the app's Page.
+ * on paper only where the head is paper, with no rule along its top.
  *
  * ONE line, right-aligned, and no kind (E9): every printing, the book first,
  * then each reprint, `//` between (`citeLine`) — "Workshop Manual · p.80 //
@@ -91,11 +83,9 @@ export function EntityCardIdentityFooter({
   footMeta,
   externalLink,
   size,
-  dashed = false,
   credit,
   band,
   grain,
-  ruled = true,
 }: EntityCardIdentityFooterProps) {
   const citation = credit ?? (provenance ? citeLine(provenancePrintings(provenance)) : undefined)
   // Foot extras force the footer even without source/page data — they are
@@ -113,15 +103,8 @@ export function EntityCardIdentityFooter({
       data-grain={onBand ? grain : undefined}
       className={cn(onBand && grainClass(grain))}
       style={{
-        // No ink rule over a card's foot (owner's call, 2026-10-19): only a
-        // user-made card keeps its dashed one, the homebrew mark (ruleset §3.9).
-        ...(ruled && dashed
-          ? {
-              borderTopColor: 'var(--color-ink)',
-              borderTopStyle: 'dashed',
-              borderTopWidth: 'var(--bw-chrome)',
-            }
-          : {}),
+        // No ink rule over a card's foot, a user-made one's too (owner's
+        // calls, 2026-10-19 and 2026-10-20).
         background: band?.bandColor,
         color: onBand ? `var(--color-${band?.onBand})` : color.ink2,
         alignItems: 'baseline',
