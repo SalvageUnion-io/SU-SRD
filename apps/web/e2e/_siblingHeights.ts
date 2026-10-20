@@ -69,10 +69,15 @@ function scan({
     .filter(visible)
     .filter((el) => within === null || el.closest(within) !== null)
   const set = new Set(all)
-  const controls = all.filter((el) => {
-    for (let p = el.parentElement; p; p = p.parentElement) if (set.has(p)) return false
-    return true
-  })
+  const controls = all
+    .filter((el) => {
+      for (let p = el.parentElement; p; p = p.parentElement) if (set.has(p)) return false
+      return true
+    })
+    // A contentful Token (and all it holds) is a block of text under a head,
+    // not a control on a line: Tokens side by side in a masonry grid
+    // (`TokenGrid`) differ in height by their text.
+    .filter((el) => !el.matches('.su-entity-token[data-contentful]'))
   // A control drawn on its padding box (a strip's Mini button: a 24px target,
   // its plate the chip's 18px inside a transparent border) measures as drawn.
   const box = (el: Element): Box => {

@@ -7,7 +7,7 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { ComponentProps, CSSProperties, ReactNode } from 'react'
 import type { RefMetaEntity } from 'salvageunion-reference'
 import type { ChoiceSelections } from '../../components/index'
-import { Content, embeddedPeekAddress, tokens } from '../../components/index'
+import { Content, embeddedPeekAddress, TokenGrid, tokens } from '../../components/index'
 import { useEntityChoices } from '../../components/shared/useEntityChoices'
 import { findNpcChoiceByName, resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
@@ -24,14 +24,6 @@ const TYPE_STACK = {
   gap: tokens.space[12],
 } satisfies CSSProperties
 
-/** Ability ∥ crew; the column template is `.su-sheet-crawler-type-grid` (it steps at @2xl). */
-const TYPE_GRID = {
-  display: 'grid',
-  minWidth: 0,
-  alignItems: 'start',
-  gap: tokens.space[12],
-} satisfies CSSProperties
-
 type CrawlerNpcState = NonNullable<Crawler['typeNpc']>
 
 type CrawlerTypeCardProps = {
@@ -45,8 +37,9 @@ type CrawlerTypeCardProps = {
   store: typeof useEntityStore
   readOnly: boolean
   /**
-   * The type's special-ability card(s). Rendered INSIDE this card, beside the
-   * crew inset (see the `expand` slot), because both describe the same type.
+   * The type's special ability, one `li` a contentful Token. Rendered INSIDE
+   * this card, in one masonry grid with the crew lead, because both describe
+   * the same type.
    */
   ability?: ReactNode
   /** The built NPC filling the type's NPC slot (ADR-044); see CrawlerBayCard. */
@@ -173,10 +166,11 @@ export function CrawlerTypeCard({
   return (
     <div style={TYPE_STACK}>
       {description}
-      <div className="su-sheet-crawler-type-grid" style={TYPE_GRID}>
+      {/* Ability ∥ crew: one masonry grid of contentful Tokens (`TokenGrid`). */}
+      <TokenGrid label={`${type.name} ability and crew`}>
         {ability}
-        {crew}
-      </div>
+        {crew && <li>{crew}</li>}
+      </TokenGrid>
     </div>
   )
 }

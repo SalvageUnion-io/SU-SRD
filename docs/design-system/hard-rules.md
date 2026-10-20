@@ -12,7 +12,7 @@ The loop: define it here, land its gate with a baseline, burn the baseline to ze
 - **Held without an R-number** — these gates fail the build today:
   - `tokens/*` (`packages/gates/rules/designTokens.ts`): raw colour, gradient, shadow tokens, type floor, rust allowlist, cool ground, texture placement (§3.1, §3.5, §4.1, §4.6).
   - `tone-ground` (§3.8), `contrast.test.ts` (§3.8, §4.1), `pipRows.test.ts` (§4.5), `statOrder.test.tsx` (§2.6).
-  - `entity-nesting` (N2, N3, N5) and `nesting-depth.e2e.ts` (N1, N3–N7): N1 nothing headed at level 2 or deeper; N2 only a Token is a head alone; N3 a Token nests nothing; N4 a Token fills its line; N5 no TitledBox inside an entity; N6 a wizard step is untitled around its entities; N7 select is a Row's or Card's, never a Token's (bar the in-card toggle).
+  - `entity-nesting` (N2, N3, N5) and `nesting-depth.e2e.ts` (N1, N3–N7): N1 nothing headed at level 2 or deeper; N2 only a Token is a head alone; N3 a Token nests nothing; N4 a Token fills its line (a `TokenGrid`'s column); N5 no TitledBox inside an entity; N6 a wizard step is untitled around its entities; N7 select is a Row's or Card's, never a Token's (bar the in-card toggle).
   - `copy` (§3.12, a ratchet): banned variants, lowercase terms, the Scrap verb, `TL` in prose.
   - `roster.test.ts` (`components/__tests__/`, §0, §5, §6): the barrel's exports are exactly its `ROSTER`, each under the law that names it (the irreducible set, chrome.md's roles, the EDL's forms, the named compositions, the foundation), so a parallel primitive cannot land without amending its law first.
 

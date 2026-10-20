@@ -24,7 +24,7 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
-import { Entity, Field, Stat, TokenGrid, tokens } from '../../components/index'
+import { Entity, Field, Stat, tokens } from '../../components/index'
 import { resolveCrawlerType, resolveCrawlerTypeAbilities } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import type { useEntityStore } from '../../stores/entityStore'
@@ -158,7 +158,7 @@ export function CrawlerIdentityPanel({
                 // Contentful Tokens, each its head and then its text, Peeking
                 // the whole ability (owner's call, 2026-10-20: every sheet
                 // entity a contentful Token).
-                <TokenGrid label="Special ability">
+                <>
                   {abilities.map((ability) => (
                     <li key={ability.id}>
                       <Entity
@@ -170,7 +170,7 @@ export function CrawlerIdentityPanel({
                       />
                     </li>
                   ))}
-                </TokenGrid>
+                </>
               )
             }
           />

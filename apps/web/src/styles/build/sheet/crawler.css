@@ -18,17 +18,6 @@
   height: var(--size-full);
 }
 
-/* ── CrawlerSheetItems: the type's ability ∥ crew, two-up in a wide sheet. ── */
-.su-sheet-crawler-type-grid {
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-}
-
-@container (width >= 40rem) {
-  .su-sheet-crawler-type-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
 /* ── StorageManifest: the Hold beside its counterpart where its column is md
    wide (a container query: in the sheet's sidebar, it stacks). ── */
 .su-sheet-crawler-manifest {

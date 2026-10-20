@@ -1082,8 +1082,15 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
    the name fills first, and only what does not fit spills up a line. Each
    chip keeps its place from the end (`--su-fill`), so the lines still read
    in class order. The name stays a cut-out at the pill's foot, never
-   stretched to the chips' height. */
+   stretched to the chips' height. On paper the cost's edge draws no box
+   (`display: contents`), so its box is the flex item and takes the edge's
+   place: without it the cost, at order 0, jumped past +MORE to the corner. */
 .su-entity-token[data-contentful] .su-entity-token__chips > .su-chip-lane > *,
+.su-entity-token[data-contentful]
+  .su-entity-token__chips
+  > .su-chip-lane
+  > .su-cost-edge
+  > .su-cost,
 .su-entity-token[data-contentful] .su-entity-token__chips > .su-chips > .su-chip-lane > * {
   order: var(--su-fill);
 }
