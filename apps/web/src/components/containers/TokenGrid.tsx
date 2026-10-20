@@ -15,6 +15,9 @@
  *   catalogue costs nothing here, and it reads down each column in order.
  * - **Edit** (`edit`) makes it a sheet's item list (`.su-sheet-items`), each
  *   line's controls in its Token's chip group.
+ * - **Play** (`play`) marks it one of Play's lists (`data-play-list`, play.md
+ *   §12): its Tokens' chips stay Mini on Play's phone, their heads and
+ *   controls each taking a 44px hit area (`play/dashboard/phone.css`).
  *
  * Each child is one `li`; it may hold what belongs on the Token's line under
  * it (an action's roll table), never a second Token.
@@ -30,14 +33,28 @@ type TokenGridProps = {
   children: ReactNode
   /** A live sheet's Edit list: each line carries its controls. */
   edit?: boolean
+  /** One of Play's lists (`data-play-list`). */
+  play?: boolean
+  /** The list's id, for a control that points at it (`aria-controls`). */
+  id?: string
   className?: string
   style?: CSSProperties
 }
 
-export function TokenGrid({ label, children, edit = false, className, style }: TokenGridProps) {
+export function TokenGrid({
+  label,
+  children,
+  edit = false,
+  play = false,
+  id,
+  className,
+  style,
+}: TokenGridProps) {
   return (
     <ul
+      id={id}
       aria-label={label}
+      data-play-list={play ? '' : undefined}
       className={cn('su-token-grid', edit && 'su-sheet-items', className)}
       style={style}
     >

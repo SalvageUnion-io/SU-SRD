@@ -2,7 +2,7 @@
  * PlayTables — the Tables section of the Cockpit's right column (play.md §8):
  * "Roll a table…" to find any roll table, the tables found and the tables the
  * Situation needs pinned (`pinnedTables`), each a list of roll table Tokens
- * one a line (ruleset §1.3: Play's lists are Tokens), the open table drawn by
+ * in the Token grid (`TokenGrid`; ruleset §1.3: Play's lists are Tokens), the open table drawn by
  * the shared roll instrument (`PlayRollTable`, `RollTableInstrument`
  * underneath), and the screen's one Post toggle (§9).
  *
@@ -20,7 +20,7 @@ import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { RollToken } from '../components/entity/forms/RollToken'
-import { CHAPTER_BAND_COLOR, Checkbox, SearchField, tokens } from '../components/index'
+import { CHAPTER_BAND_COLOR, Checkbox, SearchField, TokenGrid, tokens } from '../components/index'
 import type { PlayBinding } from './channels.model'
 import { postLabel } from './channels.model'
 import { PlayRollTable } from './PlayRollTable'
@@ -130,7 +130,7 @@ export function PlayTables({ downtime, solo, post, onPostChange, binding }: Play
   )
 }
 
-/** A list of tables, one roll table Token a line, the open one pressed. */
+/** A list of tables, roll table Tokens in the Token grid, the open one pressed. */
 function TableTokens({
   id,
   label,
@@ -146,12 +146,7 @@ function TableTokens({
   onPick: (name: string) => void
 }) {
   return (
-    <ul
-      id={id}
-      className="su-entity-token-list su-play-tables"
-      aria-label={label}
-      data-play-list=""
-    >
+    <TokenGrid label={label} play className="su-play-tables" id={id}>
       {names.map((name) => (
         <li key={name} data-choice-toggle="">
           <RollToken
@@ -164,6 +159,6 @@ function TableTokens({
           />
         </li>
       ))}
-    </ul>
+    </TokenGrid>
   )
 }

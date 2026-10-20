@@ -20,16 +20,32 @@
  * (`partials/pointer-motion.css`).
  */
 .su-play-root--phone
-:is(button, a[href], [role='button'], [role='tab'], summary):not([data-chip-group] *) {
+:is(button, a[href], [role='button'], [role='tab'], summary):not(
+  [data-chip-group] *,
+  .su-token-grid[data-play-list] :is(.su-entity-token, .su-hit-area)
+) {
   min-height: var(--size-full);
   min-width: var(--size-full);
 }
 
-.su-play-root--phone [data-chip-group] :is(button, a[href], [role='button']) {
+/*
+ * A Token in one of Play's lists (a `TokenGrid` marked `data-play-list`: the
+ * Actions, the Crew, the Tables) keeps a Token's height, its chips Mini
+ * (ruleset §4.7), so the list reads as the sheet's do. Its surface, when it is
+ * the control (a crewmate's sheet, a table's toggle), takes the same centred
+ * 44px hit area as its chip group's controls.
+ */
+.su-play-root--phone [data-chip-group] :is(button, a[href], [role='button']),
+.su-play-root--phone
+  .su-token-grid[data-play-list]
+  :is(.su-entity-token, .su-hit-area):is(button, a[href], [role='button']) {
   position: relative;
 }
 
-.su-play-root--phone [data-chip-group] :is(button, a[href], [role='button'])::after {
+.su-play-root--phone [data-chip-group] :is(button, a[href], [role='button'])::after,
+.su-play-root--phone
+  .su-token-grid[data-play-list]
+  :is(.su-entity-token, .su-hit-area):is(button, a[href], [role='button'])::after {
   content: '';
   height: max(100%, var(--size-full));
   left: 50%;

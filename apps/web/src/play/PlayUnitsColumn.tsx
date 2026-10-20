@@ -8,7 +8,7 @@
  *   only while Boarded: SP, EP, Heat and the range band (`seats.setRange`).
  *   Parked it is for reference, with Board. In Downtime it is in the Mech Bay
  *   and says what the current step restores.
- * - **Hangar** — the pilot's other mechs, each a full-width Token.
+ * - **Hangar** — the pilot's other mechs, Tokens in the Token grid.
  * - **Crawler** — SP, TL and its bays; live in solo Downtime (or for the
  *   Mediator, whose screen draws the same box), otherwise for reference.
  *
@@ -19,7 +19,7 @@
  */
 
 import { useState } from 'react'
-import { EmptyState, Slab } from '../components/index'
+import { EmptyState, Slab, TokenGrid } from '../components/index'
 import type { SheetTarget } from './PlaySheetOverlay'
 import { PlaySheetOverlay } from './PlaySheetOverlay'
 import { PlayCrawlerUnit, PlayHangarMech, PlayMechUnit, PlayPilotUnit } from './PlayUnits'
@@ -65,14 +65,18 @@ export function PlayUnitsColumn({ play }: PlayColumnProps) {
           }
         />
       ) : null}
-      {units.hangar.map((spare) => (
-        <PlayHangarMech
-          key={spare.mechId}
-          name={spare.name}
-          chassis={spare.chassis}
-          note={spare.note}
-        />
-      ))}
+      {units.hangar.length > 0 ? (
+        <TokenGrid label="Hangar" play>
+          {units.hangar.map((spare) => (
+            <PlayHangarMech
+              key={spare.mechId}
+              name={spare.name}
+              chassis={spare.chassis}
+              note={spare.note}
+            />
+          ))}
+        </TokenGrid>
+      ) : null}
       {units.crawler ? (
         <PlayCrawlerUnit
           crawler={units.crawler.crawler}

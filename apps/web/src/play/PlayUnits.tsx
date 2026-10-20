@@ -438,7 +438,7 @@ export function PlayCrawlerUnit({
 }
 
 /**
- * A mech in the hangar: a full-width Token on its own line (level 2), its
+ * A mech in the hangar: a Token in the hangar's Token grid (level 2), its
  * chassis its note, "In hangar" (or why it cannot fly) its state chip, last in
  * its chip group at the Token's Size (C8), never loose words after it.
  */
@@ -453,13 +453,13 @@ export function PlayHangarMech({
   note: string | null
 }): ReactNode {
   return (
-    <div className="su-play-unit__hangar">
+    <li className="su-play-unit__hangar">
       <Entity
         form="token"
         context="play"
         model={unitRowModel({ kind: 'mech', name, note: chassis ?? undefined })}
         trailing={<Stat label={note ?? 'In hangar'} size="mini" />}
       />
-    </div>
+    </li>
   )
 }

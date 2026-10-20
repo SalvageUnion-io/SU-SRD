@@ -4,7 +4,7 @@
  * (the Mediator's screen draws the same boxes).
  *
  * Only what a style object cannot reach lives here: the repeated level-2 rows
- * (bay chips, a hangar Token's line). A reference box's dashed frame is the
+ * (bay chips). A reference box's dashed frame is the
  * box's own (`Box`'s `reference`), never a rule reaching into it.
  */
 
@@ -18,15 +18,4 @@
   margin: 0;
   min-width: 0;
   padding: 0;
-}
-
-/* A hangar mech: a full-width Token on its own line (play.md §12, level 2). */
-.su-play-unit__hangar {
-  display: flex;
-  min-width: 0;
-}
-
-.su-play-unit__hangar > * {
-  flex: 1 1 0%;
-  min-width: 0;
 }

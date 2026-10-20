@@ -1,11 +1,12 @@
 /**
  * PlayActionRow — one action in the Actions list (play.md §5): the action's
- * Token, one a line (ruleset §1.3: Play's lists are Tokens), its chips in the
+ * contentful Token, its text under its head, in the list's Token grid
+ * (ruleset §1.3: Play's lists are Tokens), its Mini chips in the
  * shared stat order with the cost last. On hand it carries Use, after the cost
- * in its chip group (C8, ruleset §1.4), which opens the resolve in place as
- * the Token's contentful body (N3: the action's own text, then
- * `PlayResolveSteps`), with Cancel in Use's slot; not on hand it is dimmed,
- * and says what it needs as a chip ("needs Boarded").
+ * in its chip group (C8, ruleset §1.4), which opens the resolve in place in
+ * the Token's body (N3: the action's own text, then `PlayResolveSteps`), with
+ * Cancel in Use's slot; not on hand it is dimmed, and says what it needs as a
+ * chip ("needs Boarded").
  *
  * A Token nests nothing (E6): the resolve inside it, its roll instrument (R8)
  * and its steps, is plain content, never an entity of its own (play.md §12).
@@ -71,9 +72,8 @@ export function PlayActionRow({ entry, resolve, onUse, canWrite, locked }: PlayA
         dim={away || locked !== null}
         {...(away ? { state: <NeedChip need={NEED_TEXT[entry.need ?? 'boarded']} /> } : {})}
         {...(controls ? { controls } : {})}
-        {...(open
-          ? { body: { children: <PlayResolveSteps view={resolve} canWrite={canWrite} /> } }
-          : {})}
+        // Contentful (N3): the action's own text, then, while it resolves, its steps.
+        body={open ? { children: <PlayResolveSteps view={resolve} canWrite={canWrite} /> } : {}}
       />
     </li>
   )

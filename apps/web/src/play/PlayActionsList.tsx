@@ -2,8 +2,8 @@
  * PlayActionsList — the Actions column outside Downtime (play.md §5,
  * wireframe pins 5–7): what is on hand ("On hand · In <mech>" or "On foot"),
  * then the collapsed Not on hand group, each line saying what it needs. Every
- * line is a Token (ruleset §1.3, ADR-051 §6), its list marked `data-play-list`
- * for the form gate (R35). The type filter and Find (`PlayActionsTools`) ride
+ * line is a contentful Token (ruleset §1.3, ADR-051 §6) in the Token grid
+ * (`TokenGrid`), its list marked `data-play-list` for the form gate (R35). The type filter and Find (`PlayActionsTools`) ride
  * the column's "Actions" heading line (pin 5). Every heading here is a Slab,
  * so each line stays level 1 (play.md §12).
  *
@@ -20,6 +20,7 @@ import {
   SegmentedOption,
   Slab,
   SlabSection,
+  TokenGrid,
 } from '../components/index'
 import { PlayActionEntry } from './PlayActionEntry'
 import type { ListEntry } from './playActions.model'
@@ -27,7 +28,7 @@ import { TYPE_FILTERS } from './playActions.model'
 import type { Play } from './situation.model'
 import type { PlayActions } from './usePlayActions'
 
-/** A list of entries, one `<li>` each. */
+/** A list of entries, one contentful Token each, in the Token grid. */
 export function PlayEntryList({
   entries,
   play,
@@ -40,11 +41,11 @@ export function PlayEntryList({
   label: string
 }) {
   return (
-    <ul className="su-entity-token-list" aria-label={label} data-play-list="">
+    <TokenGrid label={label} play>
       {entries.map((entry) => (
         <PlayActionEntry key={entry.key} entry={entry} play={play} actions={actions} />
       ))}
-    </ul>
+    </TokenGrid>
   )
 }
 

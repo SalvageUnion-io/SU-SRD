@@ -237,6 +237,19 @@ describe('the list', () => {
     expect(names).toEqual([`Use ${primary().name}`])
   })
 
+  test('each action is a contentful Token in the Token grid, its text under its head', () => {
+    renderBoarded()
+    const list = onHand()
+    expect(list.classList.contains('su-token-grid')).toBe(true)
+    expect(list.hasAttribute('data-play-list')).toBe(true)
+    const token = rowFor(primary().name).querySelector('[data-contentful]')
+    expect(token?.querySelector('.su-entity-token__body')?.textContent?.trim()).not.toBe('')
+    // Use rides the head's chip group, at the chips' Mini Size (C8).
+    const useButton = use(primary().name)
+    expect(useButton.closest('[data-chip-group]')).not.toBeNull()
+    expect(useButton.classList.contains('su-btn--mini')).toBe(true)
+  })
+
   test('nesting: no titled box, Row or Card head sits inside another', () => {
     renderBoarded()
     expect(document.querySelector('.su-entity-row .su-entity-row')).toBeNull()

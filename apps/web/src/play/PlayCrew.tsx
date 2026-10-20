@@ -1,8 +1,8 @@
 /**
  * PlayCrew — the Crew section of the Cockpit's right column (play.md §7),
- * Game only: one line per other seat at the table, each a Token one a line
- * (ruleset §1.3: Play's lists are Tokens), its chips what the table needs at
- * a glance: the mech aboard as a relation chip (`MECH | Atlas`, C11, R5;
+ * Game only: one Token per other seat at the table, in the Token grid
+ * (`TokenGrid`; ruleset §1.3: Play's lists are Tokens), its Mini chips what
+ * the table needs at a glance: the mech aboard as a relation chip (`MECH | Atlas`, C11, R5;
  * "On foot" else), whether they are here ("Here", or "Away" once their seat
  * stops beating), and one vital: the one that needs looking at (▲, critical,
  * as `crewLines()` decides), else, while they are here, their SP aboard or HP
@@ -19,7 +19,7 @@
 
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { EmptyState, Entity, relation, Stat, tokens } from '../components/index'
+import { EmptyState, Entity, relation, Stat, TokenGrid, tokens } from '../components/index'
 import { unitRowModel } from '../lib/units/unitModel'
 import type { BoardSources } from './boardMenu.model'
 import type { CrewSeatLine } from './crew.model'
@@ -57,7 +57,7 @@ export function PlayCrew({ gameId, selfPilotId, crew, seats }: PlayCrewProps) {
       ) : lines.length === 0 ? (
         <EmptyState variant="inline" body="No one else is seated at this table yet." />
       ) : (
-        <ul className="su-entity-token-list" aria-label="Crew" data-play-list="">
+        <TokenGrid label="Crew" play>
           {lines.map((line) => (
             <li key={line.pilotId}>
               <CrewLine line={line} onOpen={() => setOpen(line)} />
@@ -66,7 +66,7 @@ export function PlayCrew({ gameId, selfPilotId, crew, seats }: PlayCrewProps) {
               </span>
             </li>
           ))}
-        </ul>
+        </TokenGrid>
       )}
       <PlayCrewSheet
         gameId={gameId}
