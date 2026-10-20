@@ -1378,15 +1378,24 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 /* A Mini's strip is one Mini line (ruleset §4.7: one height on a line): a
    stamp chip, the cost and a Use draw the same 18px plate on one centre. The
    cost would otherwise stretch to the line's 24px (a Mini button's target),
-   and a stamp chip stops a pixel short of it. */
+   and a stamp chip, a trait's linked one too, stops a pixel short of it. */
 .su-entity-mini
   .su-chips.su-entity-mini__chips
   > .su-chip-lane
   > :is(.su-stat-cell, .su-cost-edge, .su-cost),
+.su-entity-mini .su-chips.su-entity-mini__chips > .su-chip-lane > .su-chip-link > .su-stat-cell,
 .su-entity-mini .su-chips.su-entity-mini__chips > .su-chip-lane > .su-cost-edge > .su-cost {
   align-self: center;
   box-sizing: border-box;
   height: var(--size-mini);
+}
+
+/* On an ink ground the cost's edge is the plate (its paper rim, chrome K1):
+   the box fills the rim's inside, so the rim shows top and bottom as a
+   chip's paper rule does, not the full plate's height drawn over it. */
+[data-ground='ink'] .su-chips.su-entity-mini__chips > .su-chip-lane > .su-cost-edge > .su-cost {
+  align-self: stretch;
+  height: auto;
 }
 
 /* The condition in a strip's state slot (C8, ruleset §2.3: `StatusBadge`)
