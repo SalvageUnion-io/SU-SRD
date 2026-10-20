@@ -36,7 +36,8 @@ export function BayInfo({
       foldLabel={`${subject} Bay Info`}
       page={onPage}
       className="su-ec-block"
-      bodyClassName={onPage ? 'su-entity-page__section-body' : undefined}
+      // On a Page its body is the page's prose column, as the prose it holds is.
+      bodyClassName={onPage ? 'su-entity-page__prose' : undefined}
       bodyStyle={onPage ? undefined : CARD_BODY}
     >
       {children}
