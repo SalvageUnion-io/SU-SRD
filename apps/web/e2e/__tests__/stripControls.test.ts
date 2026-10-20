@@ -56,6 +56,13 @@ describe('strip-control scan', () => {
     expect(scan()).toEqual(['beside: select "Copy Bonesaw to…" beside “Bonesaw”'])
   })
 
+  test("a contentful Token's fields in its body are its host's, not the strip's", () => {
+    // A crew lead in Edit: its name, keepsake and facts are fields in its body.
+    const token = `<div class="su-entity-token" data-contentful><span class="su-entity-token__head"><span class="su-entity-token__pill"><span class="su-entity-token__name">Hannah</span><span data-chip-group></span></span></span><div class="su-entity-token__body"><input aria-label="Edit crew name" /><button>Add crew fact</button></div></div>`
+    document.body.innerHTML = `<ul><li data-top="0">${token}</li></ul>`
+    expect(scan()).toEqual([])
+  })
+
   test('a control in the body is under the strip', () => {
     document.body.innerHTML = `<ul><li data-top="0">${row('Bonesaw', '', '<div><button>Details</button></div>')}</li></ul>`
     expect(scan()).toEqual(['under: button "Details" under the strip of “Bonesaw”'])

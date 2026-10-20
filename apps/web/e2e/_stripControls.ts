@@ -24,8 +24,10 @@ import type { Page } from '@playwright/test'
  * An entity's own surface is not one of its controls: the link or radio the
  * Row or Token is (or its cover, or a Token with controls' name), a link that wraps its head, and a select
  * Row's check. A contentful Token's +MORE (C5) lies on its strip's last slot
- * from beside the head's link, so it is in its chip group. A nested entity's
- * controls are that entity's, held to its own chip group.
+ * from beside the head's link, so it is in its chip group. A contentful
+ * Token's body holds its host's content and, in Edit, its fields (a crew
+ * lead's name, keepsake and facts: `TokenBody`), which are no strip's. A
+ * nested entity's controls are that entity's, held to its own chip group.
  */
 export type StripControlSelectors = {
   /** A list item: an `li`, an ARIA list item or option. */
@@ -47,6 +49,8 @@ export type StripControlSelectors = {
    * lies on the end of its strip's second line, its chip group's last slot.
    */
   more: string
+  /** A contentful Token's body: its host's content and, in Edit, its fields. */
+  body: string
   /** A Card's frame: an entity nested in it is the Card's, its controls the Card's. */
   card: string
   /** A sectioning wrapper: a slot ends at it, so the sibling scan never climbs past it. */
@@ -74,6 +78,7 @@ export const STRIP_CONTROL_SELECTORS: StripControlSelectors = {
   group: '[data-chip-group]',
   check: '.su-entity-row__head input[type="checkbox"]',
   more: '.su-entity-token[data-contentful] > .su-entity-token__more > .su-chip-more',
+  body: '.su-entity-token[data-contentful] > .su-entity-token__body',
   card: '.su-ec-frame',
   section:
     'section, article, aside, nav, main, header, footer, form, dialog, fieldset, [role="region"], [role="tabpanel"], [role="dialog"]',
@@ -115,6 +120,7 @@ export function scanStripControls(a: StripControlSelectors): string[] {
         control.matches(a.surface) ||
         control.matches(a.check) ||
         control.matches(a.more) ||
+        control.closest(a.body) !== null ||
         control.querySelector(a.head) !== null
       ) {
         continue
