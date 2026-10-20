@@ -42,7 +42,7 @@ Each is checkable ([hard-rules.md](hard-rules.md) names the gates); breaking one
 - **E4** An entity named in prose is a Mention: Peek on hover or long-press, the Page on click. Never a chip, Stat or raw markup.
 - **E5** The detail view is always a Page (form 5): no new-tab `window.open`.
 - **E6** Three levels (N1): 0 the page box (Page, dialog, wizard step, Peek plate); 1 compact Rows or Cards; 2 Tokens only.
-  One level deep on a Page (a bay's Smith, a guide's options): an open Row, never a Token (N8).
+  One level deep on a Page: an open Row, not a Token (N8), bar a loadout or ability tree (R39).
   Nothing titled at level 2 or deeper; a Token nests nothing (deeper is its link or Peek). Nested Card and Peek names link.
 - **E7** Modes fill slots; they never change anatomy.
 - **E8** A Listing never expands in place (ruleset §1.5).

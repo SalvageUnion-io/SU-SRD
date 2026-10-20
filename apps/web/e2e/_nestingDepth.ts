@@ -25,7 +25,9 @@ import type { Page } from '@playwright/test'
  *   an entity nested one level deep is a Row drawn open with all its content,
  *   never a Token (EDL E6; owner, 2026-10-20: a bay's Smith, a guide's
  *   options). A Token level 2 or deeper, in a search list or on a Peek's
- *   plate is no N8. Pending on a chassis's and a class's Page (`_pendingRules.ts`).
+ *   plate is no N8, and neither is one in the named exception (`n8Except`;
+ *   owner, 2026-10-20: "Keep Tokens"): a pattern's loadout on a chassis's
+ *   or a pattern's Page, and a class's ability trees.
  *
  * A headed frame is the frame around a visible `Head` band (`Head`: Row, Card
  * and TitledBox alike) or a Tile's band; its name is the title on the band,
@@ -83,6 +85,12 @@ export type NestingSelectors = {
   oneDeep: string | null
   /** What inside `oneDeep` is no nesting: a search's list, a Peek's plate, a dialog. */
   notNested: string
+  /**
+   * N8's named exception (EDL E6; owner, 2026-10-20): a pattern's loadout
+   * (`PatternLoadout`, on a chassis's Page and a pattern's) and a class's
+   * ability trees (`ClassAbilityTree`) keep their Tokens one level deep.
+   */
+  n8Except: string
 }
 
 export const NESTING_SELECTORS: NestingSelectors = {
@@ -101,6 +109,7 @@ export const NESTING_SELECTORS: NestingSelectors = {
   tolerance: 1,
   oneDeep: null,
   notNested: '[role="listbox"], [data-peek-popup], [role="dialog"]',
+  n8Except: '.su-pattern-loadout, .su-entity-page__loadout, .su-ability-tree',
 }
 
 /**
@@ -197,7 +206,7 @@ export function scanNesting(a: NestingSelectors): NestingFinding[] {
   // N8: one level deep on a Page, an entity is a Row drawn open, never a Token.
   if (a.oneDeep) {
     for (const t of tokens) {
-      if (!t.closest(a.oneDeep) || t.closest(a.notNested)) continue
+      if (!t.closest(a.oneDeep) || t.closest(a.notNested) || t.closest(a.n8Except)) continue
       // A section's TitledBox frames no entity: a Token in one is still one deep.
       if (around(t).some((f) => f.kind === 'entity')) continue
       found.push({

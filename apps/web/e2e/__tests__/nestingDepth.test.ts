@@ -274,6 +274,13 @@ describe('N8: one level deep is a Row', () => {
     ).toEqual([])
   })
 
+  test("a pattern's loadout and a class's ability trees are N8's named exception", () => {
+    const loadout = `<div class="su-pattern-loadout">${token('Comms Module', 'Module')}</div>`
+    const pageLoadout = `<div class="su-entity-page__loadout">${token('Railgun', 'System')}</div>`
+    const tree = `<div class="su-ability-tree">${token('Worm', 'Ability')}</div>`
+    expect(deep(page(box(loadout, 'Buzzard') + pageLoadout + tree))).toEqual([])
+  })
+
   test('off a Page (oneDeep unset) a Token at level 1 is the form', () => {
     expect(scan(page(token('The Smith', 'NPC')))).toEqual([])
   })

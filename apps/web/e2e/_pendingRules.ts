@@ -17,8 +17,6 @@ export const PENDING_RULES: Readonly<Record<string, string>> = {
   'more-contentful': 'R37 (C5): a contentful Token never shows +MORE; its overflow is the body row',
   frame:
     "R38 (§4.3, EDL E21): an entity's frame is the subtle ink-40; only --su-row-frame colours one",
-  'N8-loadouts':
-    "R39 (EDL E6, N8) on a chassis's and a pattern's Page (its patterns' loadouts) and a class's Page (its ability trees): an entity one level deep there is still a Token; a bay's crew and a guide's options hold it",
   align: 'R40 (EDL E22): a name and its title cut-out sit at the left of their head',
   'tab-size': "R41 (§4.7): a Button beside Tabs is the Tabs' Size",
 }
