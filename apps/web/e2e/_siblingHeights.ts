@@ -14,7 +14,10 @@ import type { Page } from '@playwright/test'
  * - Its line is its nearest flex or grid ancestor (four levels up at most)
  *   holding another control beside it: overlapping vertically by at least half
  *   the shorter one's height, and no more than `MAX_GAP` from its neighbour, so
- *   two columns of a form that happen to line up are not one line.
+ *   two columns of a form that happen to line up are not one line. A line
+ *   never crosses a labelled section's edge: Play's columns (`PlayFrame`)
+ *   stand a gutter apart, so an action Token is never one line with the
+ *   Units column's steppers or the Tables column's Tokens.
  */
 export type SiblingMismatch = {
   /** The line's element, as `tag.class.class`. */
@@ -91,7 +94,9 @@ function scan({
       h: r.height - drawn.top - drawn.bottom,
     }
   }
+  const column = (el: Element) => el.closest('section[aria-label]')
   const sameLine = (a: Box, b: Box) => {
+    if (column(a.el) !== column(b.el)) return false
     const overlap = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y)
     const apart = Math.max(a.x, b.x) - Math.min(a.x + a.w, b.x + b.w)
     return overlap >= 0.5 * Math.min(a.h, b.h) && apart > -2 && apart <= maxGap
