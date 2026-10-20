@@ -29,7 +29,10 @@ test('save a pattern, read it signed out, and build a mech from it', async ({ pa
   await page.waitForURL(/\/p\/pattern\/[^/]+$/, { timeout: 20_000 })
   const link = page.url()
   await page.getByRole('button', { name: 'Share Tow Rig' }).click()
-  await page.getByRole('radio', { name: /Anyone with the link/ }).check()
+  const anyone = page.getByRole('radio', { name: /Anyone with the link/ })
+  await anyone.click()
+  // Controlled by the server's answer: checked once the write lands.
+  await expect(anyone).toBeChecked({ timeout: 15_000 })
   await page.keyboard.press('Escape')
 
   // --- P2: the public page, with no account at all ---

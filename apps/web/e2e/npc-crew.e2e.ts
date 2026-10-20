@@ -65,7 +65,7 @@ test('design an NPC from a template, crew a bay with it, and give the bay back',
   const crewNow = medBayCrew(page)
   await expect(crewNow).toHaveCount(1)
   await expect(crewNow).toContainText('Sergeant Kessler')
-  await expect(page.getByText('Homebrew')).toBeVisible()
+  await expect(page.getByText('Homebrew', { exact: true }).first()).toBeVisible()
 
   // --- Unassign: the link goes; the NPC and the book's line both survive ---
   await editSheet(page)
