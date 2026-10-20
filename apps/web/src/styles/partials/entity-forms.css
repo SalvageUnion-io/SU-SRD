@@ -25,19 +25,28 @@
   text-decoration: none;
 }
 
-/* The frame: ink on paper, dashed when player-made (ruleset §3.9). A
-   surrounding diagram may recolour it through `--su-row-frame` (srd's ability
-   tracks frame their Rows in the track's hue). Square-cornered, as a show
-   page's band (owner's call, 2026-10-14). */
+/* The frame: paper with no ink edge on a Row (owner's call, 2026-10-20: no
+   black border round a listing), its width kept transparent so nothing moves;
+   ink round a `Box`, which stands in it; dashed in ink when player-made
+   (ruleset §3.9) or a Play reference unit. A surrounding diagram may colour it
+   through `--su-row-frame` (srd's ability tracks frame their Rows in the
+   track's hue). Square-cornered, as a show page's band (owner's call,
+   2026-10-14). */
 .su-entity-row__frame {
   background-color: var(--color-paper);
-  border-color: var(--su-row-frame, var(--color-ink));
+  border-color: var(--su-row-frame, transparent);
   border-style: solid;
   border-width: var(--bw-entity-compact);
   display: flex;
   flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
+}
+
+.su-box > .su-entity-row__frame,
+.su-entity-row__frame[data-user-made],
+.su-entity-row__frame[data-reference] {
+  border-color: var(--su-row-frame, var(--color-ink));
 }
 
 .su-entity-row__frame[data-user-made] {
@@ -852,7 +861,8 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
 
 .su-entity-tile__frame {
   background-color: var(--color-paper);
-  border: var(--bw-entity-compact) solid var(--color-ink);
+  /* No ink edge (owner's call, 2026-10-20), but ink and dashed when player-made. */
+  border: var(--bw-entity-compact) solid transparent;
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
@@ -860,6 +870,7 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
 }
 
 .su-entity-tile__frame[data-user-made] {
+  border-color: var(--color-ink);
   border-style: dashed;
 }
 
@@ -1058,7 +1069,8 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 .su-entity-token__pill {
   align-items: stretch;
   align-self: flex-start;
-  border-color: var(--color-ink);
+  /* No ink edge (owner's call, 2026-10-20); its width stays, so nothing moves. */
+  border-color: transparent;
   border-style: solid;
   border-width: var(--bw-chrome);
   display: flex;
@@ -1076,6 +1088,7 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 }
 
 .su-entity-token__pill[data-user-made] {
+  border-color: var(--color-ink);
   border-style: dashed;
 }
 
