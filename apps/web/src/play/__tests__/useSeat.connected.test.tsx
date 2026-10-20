@@ -59,7 +59,7 @@ const { ConnectionContext } = await import('../../lib/connection/connectionConte
 const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
 const { useEntityStore } = await import('../../stores/entityStore')
 const { setEntityBackendAuthState } = await import('../../stores/entityBackend')
-const { Toaster } = await import('../../components/index')
+const { ToasterMount } = await import('../../components/index')
 
 const GAME_ID = 'g-seat'
 const rook = pilotFixture({ id: 'seat-rook', name: 'Rook', gameId: GAME_ID })
@@ -128,7 +128,7 @@ async function renderProbe(mode: ConnectionMode = 'connected') {
     render(
       <ConnectionContext.Provider value={connection(mode)}>
         <Probe />
-        <Toaster />
+        <ToasterMount />
       </ConnectionContext.Provider>
     )
   })

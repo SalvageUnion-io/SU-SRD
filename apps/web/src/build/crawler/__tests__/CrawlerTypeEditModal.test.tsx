@@ -17,7 +17,7 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import { crawlerFixture } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { openInSearcher, pickInSearcher } from '../../../components/__tests__/searcherPick'
-import { Toaster, toast } from '../../../components/index'
+import { ToasterMount, toast } from '../../../components/index'
 import { WIZARD_TXN } from '../../../stores/surfaceProvenance'
 import { CrawlerTypeEditModal } from '../CrawlerTypeEditModal'
 
@@ -44,7 +44,7 @@ function renderModal(update: UpdateFn, onClose = mock(() => {})) {
   })
   render(
     <>
-      <Toaster />
+      <ToasterMount />
       <CrawlerTypeEditModal
         open
         onClose={onClose}

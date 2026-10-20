@@ -11,7 +11,7 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { CargoLot } from 'game-domain/schemas/cargoLot'
-import { Toaster, toast } from '../../../components/index'
+import { ToasterMount, toast } from '../../../components/index'
 import type { CargoTransferResult } from '../../../lib/cargo/cargoTransfer'
 import type { UsePartnerCargoResult } from '../../../lib/cargo/usePartnerCargo'
 import { PartnerHold } from '../PartnerHold'
@@ -114,7 +114,7 @@ describe('PartnerHold — moves', () => {
     })
     render(
       <>
-        <Toaster />
+        <ToasterMount />
         <PartnerHold cargo={cargo} crawlerLinked />
       </>
     )

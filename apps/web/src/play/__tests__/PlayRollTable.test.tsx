@@ -13,7 +13,7 @@
  */
 import { afterAll, beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import { Toaster } from '../../components/index'
+import { ToasterMount } from '../../components/index'
 
 /** The table's one roll control: the instrument's Roll the Die button. */
 const ROLL_BUTTON = /^Roll (the die|twice) on /
@@ -134,7 +134,7 @@ describe('rolling a standard table', () => {
     render(
       <>
         <PlayRollTable table={RANGE_TABLE} name="Core Mechanic" />
-        <Toaster />
+        <ToasterMount />
       </>
     )
     expect(marked()).toHaveLength(0)
@@ -252,7 +252,7 @@ describe('the columns variant', () => {
           name="NPC Generator"
           onRollResult={(text, key) => reported.push([text, key])}
         />
-        <Toaster />
+        <ToasterMount />
       </>
     )
     expect(screen.getByRole('button', { name: 'Roll twice on NPC Generator' })).toBeTruthy()

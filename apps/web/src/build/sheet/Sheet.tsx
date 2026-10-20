@@ -49,7 +49,6 @@ import { useSheetMode } from './sheetMode.model'
 import type { SheetBand, SheetPatch, WithheldUnit } from './sheetViewProps.model'
 
 // Re-exported so existing consumers (tests) keep their import.
-export type { EntityLookup } from './composition.model'
 
 /**
  * The sheet's own entity, resolved with its kind as a discriminant so the

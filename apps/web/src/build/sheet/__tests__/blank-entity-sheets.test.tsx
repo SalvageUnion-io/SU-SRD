@@ -18,7 +18,7 @@ import { hydrateStores } from '../../../components/__tests__/hydrateStores'
 import { makeSoftLinkStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { seedDefaultCrawlerBays } from '../../../lib/wizard/crawlerFormState'
 import type { SoftLinkStore } from '../../wiring/useSoftLinks'
-import type { EntityLookup } from '../Sheet'
+import type { EntityLookup } from '../composition.model'
 import { Sheet } from '../Sheet'
 
 beforeAll(hydrateStores)

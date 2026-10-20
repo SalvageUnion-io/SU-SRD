@@ -30,7 +30,7 @@ const convexMocks = await installConvexMocks({
 })
 afterAll(() => convexMocks.restore())
 
-const { Toaster, toast } = await import('../../../components/index')
+const { ToasterMount, toast } = await import('../../../components/index')
 const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
 const { resetStores } = await import('../../../stores/__tests__/resetStores')
 const { useEncounterStore } = await import('../../../stores/encounterStore')
@@ -154,7 +154,7 @@ async function renderShelves(mode: ConnectionState['mode'] = 'connected') {
   await act(async () => {
     render(
       <ConnectionContext.Provider value={connection(mode)}>
-        <Toaster />
+        <ToasterMount />
         <Shelves />
       </ConnectionContext.Provider>
     )

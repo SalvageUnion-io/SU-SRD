@@ -213,7 +213,7 @@ export type { StatItem } from './containers/statsBarTypes'
 // are its named variants.
 export { TitledBox } from './containers/TitledBox'
 // UI primitives
-export { Toaster, ToasterMount, toast } from './containers/Toaster'
+export { ToasterMount, toast } from './containers/Toaster'
 export type { AnnouncedRoll } from './containers/toastRoll'
 export { toastRoll } from './containers/toastRoll'
 // THE ENTITY MODULE'S FACE (`entity/index.ts`, R7): the forms' shared parts,

@@ -73,7 +73,7 @@ const ADD_BUTTON = {
  * is a Badge that happens to carry a button. `Badge` renders arbitrary children
  * inside a non-interactive `<span>`, so the control stays valid and focusable.
  */
-export function ConditionChip({
+function ConditionChip({
   label,
   tone = 'warn',
   onRemove,

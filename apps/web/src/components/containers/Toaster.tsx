@@ -25,7 +25,7 @@ const TOAST = {
  * which keeps it to one per document (chrome K5); a test may render it beside
  * what it tests.
  */
-export function Toaster() {
+function Toaster() {
   return (
     <SonnerToaster
       position="bottom-right"

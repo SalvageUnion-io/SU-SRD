@@ -13,7 +13,7 @@ import type { Mech } from 'game-domain/schemas/mech'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { must } from '../../../components/__tests__/must'
-import { Toaster, toast } from '../../../components/index'
+import { ToasterMount, toast } from '../../../components/index'
 import type { useEntityStore } from '../../../stores/entityStore'
 import { MechSheet } from '../MechSheet'
 
@@ -85,7 +85,7 @@ describe('MechSheet — destroyed-undo toast', () => {
     const captured: CapturedUpdate[] = []
     render(
       <>
-        <Toaster />
+        <ToasterMount />
         <MechSheet mech={fakeMech} chassis={fakeChassis} store={makeStore(fakeMech, captured)} />
       </>
     )
@@ -129,7 +129,7 @@ describe('MechSheet — destroyed-undo toast', () => {
     const intactMech: Mech = { ...fakeMech, systemConditions: {} }
     render(
       <>
-        <Toaster />
+        <ToasterMount />
         <MechSheet
           mech={intactMech}
           chassis={fakeChassis}

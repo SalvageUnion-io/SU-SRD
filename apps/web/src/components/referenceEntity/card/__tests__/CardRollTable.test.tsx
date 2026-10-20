@@ -7,7 +7,7 @@
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { Toaster } from '../../../containers/Toaster'
+import { ToasterMount } from '../../../containers/Toaster'
 import { CardRollTable } from '../CardRollTable'
 
 const callsigns = () => {
@@ -89,7 +89,7 @@ describe('CardRollTable', () => {
     render(
       <>
         <CardRollTable table={coreMechanic()} name="Core Mechanic" size="full" disabled={false} />
-        <Toaster />
+        <ToasterMount />
       </>
     )
     fireEvent.click(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' }))
@@ -148,7 +148,7 @@ describe('CardRollTable', () => {
           disabled={false}
           tone="var(--color-pilot)"
         />
-        <Toaster />
+        <ToasterMount />
       </>
     )
     const grid = screen.getByRole('table', { name: 'Callsign Table' })

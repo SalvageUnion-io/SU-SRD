@@ -32,7 +32,7 @@ const convexMocks = await installConvexMocks({
 })
 afterAll(() => convexMocks.restore())
 
-const { Toaster, toast } = await import('../../../components/index')
+const { ToasterMount, toast } = await import('../../../components/index')
 const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
 const { useEntityStore } = await import('../../../stores/entityStore')
 const { CrewBoard } = await import('../CrewBoard')
@@ -90,7 +90,7 @@ async function renderBoard(crawlerId?: string, initialSlot?: string) {
   await act(async () => {
     render(
       <ConnectionContext.Provider value={CONNECTED}>
-        <Toaster />
+        <ToasterMount />
         <Board crawlerId={crawlerId} initialSlot={initialSlot} log={log} />
       </ConnectionContext.Provider>
     )

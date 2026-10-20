@@ -4,7 +4,7 @@ import { color } from '../../../design/tokens'
 import { EmptyState } from '../../containers/EmptyState'
 import { Badge } from '../Badge'
 import { Button } from '../Button'
-import { ConditionChip, Conditions } from '../Conditions'
+import { Conditions } from '../Conditions'
 import { capsLabel } from '../capsLabel'
 import { Field, Select } from '../Field'
 import { Glyph } from '../glyphs'
@@ -235,15 +235,15 @@ describe('Conditions', () => {
   })
 
   test('quiet tone is the neutral, prose-cased chip (no warn fill)', () => {
-    const { container } = render(<ConditionChip label="Owes a debt" tone="quiet" />)
-    expect(rootEl(container).style.textTransform).toBe('none')
-    const className = container.firstElementChild?.className ?? ''
-    expect(className).not.toContain('su-badge--tone-warn')
+    render(<Conditions conditions={['Owes a debt']} tone="quiet" />)
+    const chip = screen.getByText('Owes a debt').parentElement as HTMLElement
+    expect(chip.style.textTransform).toBe('none')
+    expect(chip.className).not.toContain('su-badge--tone-warn')
   })
 
   test('a condition chip is the warn fill', () => {
-    const { container } = render(<ConditionChip label="Burning" />)
-    expect(container.firstElementChild?.className).toContain('su-badge--tone-warn')
+    render(<Conditions conditions={['Burning']} />)
+    expect(screen.getByText('Burning').parentElement?.className).toContain('su-badge--tone-warn')
   })
 })
 
