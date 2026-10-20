@@ -12,7 +12,8 @@ import { Stat } from './Stat'
  * Two to a row on a phone, and as many as fit at 200px from there up (board
  * 07: two columns beside the art). The cells keep the stat order: build them
  * from the entity model's `bookStats`. They fill the rows from the top down,
- * every row full but the last, whose cells centre under the others.
+ * and every row spans the column: a short last row's cells stretch to share
+ * it, so there is never an empty cell or a ragged edge (`stat-fill.e2e.ts`).
  *
  * A layout of `Stat`s (ruleset §3.7, §6.2: every labelled value is a Stat,
  * no hand `dl`), each a list item, so a screen reader reads "Structure

@@ -7,18 +7,21 @@
  *
  * The book's framed numeral beside its ink stamp. Two cells to a row on a
  * phone; from `sm`, as many 200px cells as fit (two beside the entity art).
- * The cells fill the rows from the top down in the stat order, every row
- * full but the last, whose cells centre under the others (owner's call,
- * 2026-10-17). A grid cannot centre a short last row, so the column is a
- * wrapping flex line whose cells take the width a grid column would: its
- * container's width (`cqi`) shared among `--su-stat-cols` cells.
+ * The cells fill the rows from the top down in the stat order, and every
+ * row fills the column's width: a short last row's cells grow to share it,
+ * so there is never an empty cell or a ragged edge, whatever the stat count
+ * or the column count (owner's call, 2026-10-20; ruleset, "The source" 3).
+ * A grid cannot stretch a short last row, so the column is a wrapping flex
+ * line whose cells start at the width a grid column would (its container's
+ * width, `cqi`, shared among `--su-stat-cols` cells) and grow: a full row has
+ * no room left to grow into, the last row shares what is left.
  * Each cell is a `Stat` (ruleset §3.7: the column is a layout of Stats), its
  * plates set at the book's scale here: the label 14px (§1.3, R17), the
  * numeral in the title face, the 1px frame the Stat cell's own (§7.1).
- * The stamp is sized to its label, not to the cell: the rest of the cell is
- * paper, so a column of stats reads as numerals with tags (the book's weight)
- * rather than as solid ink bars that outweigh the title and the art. It may
- * still shrink and wrap when the cell is narrower than the label.
+ * Every Stat fills its cell, its stamp taking what the numeral leaves, so the
+ * column reads as even blocks edge to edge, never stamps sized to their
+ * labels with paper gaps between them (owner's calls, 2026-10-17 and
+ * 2026-10-20). A stamp may still wrap when the cell is narrower than its label.
  */
 .su-stat-column {
   --su-stat-cols: 2;
@@ -27,30 +30,23 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-6) var(--su-stat-gap);
-  justify-content: center;
   margin: 0;
 }
 
 .su-stat-column__cell {
   display: flex;
-  flex: 0 0 calc((100cqi - (var(--su-stat-cols) - 1) * var(--su-stat-gap)) / var(--su-stat-cols));
+  flex: 1 0 calc((100cqi - (var(--su-stat-cols) - 1) * var(--su-stat-gap)) / var(--su-stat-cols));
   min-height: 40px;
   min-width: 0;
 }
 
-/* In a page's body column (`CardPage`'s `__stats`), a last row of ONE cell
-   takes the whole row rather than centring alone (owner's call,
-   2026-10-18); a longer last row centres. Each column count is a step
-   (`--su-stat-cols`), so each names its own lone last cell. A band's cells
-   are chips (`.su-entity-stamps`): none of them grows. */
-.su-entity-page__stats .su-stat-column__cell:last-child:nth-child(2n + 1) {
-  flex-grow: 1;
-}
-
-.su-stat-column__stat {
+/* Two classes: `.su-stat-cell` (atoms.css) comes later and sizes a Stat to its content. */
+.su-stat-column .su-stat-column__stat {
   display: flex;
+  flex: 1 1 auto;
   min-width: 0;
   white-space: normal;
+  width: auto;
 }
 
 .su-stat-column__stat > .su-stat-plate--value {
@@ -72,7 +68,7 @@
   background-color: var(--color-ink);
   color: var(--color-paper);
   display: flex;
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   font-size: var(--text-sm);
   line-height: 1.1;
   min-width: 0;
@@ -114,14 +110,6 @@
     .su-stat-column__cell {
       --su-stat-cols: 3;
     }
-
-    .su-entity-page__stats .su-stat-column__cell:last-child:nth-child(2n + 1) {
-      flex-grow: 0;
-    }
-
-    .su-entity-page__stats .su-stat-column__cell:last-child:nth-child(3n + 1) {
-      flex-grow: 1;
-    }
   }
 }
 
@@ -130,14 +118,6 @@
   @media (width >= 40rem) {
     .su-stat-column__cell {
       --su-stat-cols: 4;
-    }
-
-    .su-entity-page__stats .su-stat-column__cell:last-child:nth-child(2n + 1) {
-      flex-grow: 0;
-    }
-
-    .su-entity-page__stats .su-stat-column__cell:last-child:nth-child(4n + 1) {
-      flex-grow: 1;
     }
   }
 }
@@ -148,14 +128,6 @@
     .su-stat-column__cell {
       --su-stat-cols: 5;
     }
-
-    .su-entity-page__stats .su-stat-column__cell:last-child:nth-child(2n + 1) {
-      flex-grow: 0;
-    }
-
-    .su-entity-page__stats .su-stat-column__cell:last-child:nth-child(5n + 1) {
-      flex-grow: 1;
-    }
   }
 }
 
@@ -165,20 +137,13 @@
     .su-stat-column__cell {
       --su-stat-cols: 6;
     }
-
-    .su-entity-page__stats .su-stat-column__cell:last-child:nth-child(2n + 1) {
-      flex-grow: 0;
-    }
-
-    .su-entity-page__stats .su-stat-column__cell:last-child:nth-child(6n + 1) {
-      flex-grow: 1;
-    }
   }
 }
 
 /* The compact column (`StatColumn compact`): the band's smaller cells, two a
    line at every width, for a narrow column beside other content (the app mech
-   sheet's hero, beside the player's fields). */
+   sheet's hero, beside the player's fields). An odd last cell spans the line,
+   so the column has no empty cell. */
 .su-stat-column.su-stat-column--compact {
   container-type: normal;
   display: grid;
@@ -191,6 +156,10 @@
   min-height: 32px; /* design-tokens-ignore: a read-out, not a control; `--size-compact` lifts to 44px on touch */
 }
 
+.su-stat-column--compact .su-stat-column__cell:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
 .su-stat-column--compact .su-stat-column__stat > .su-stat-plate--value {
   font-size: var(--text-readout);
   width: 36px;
@@ -200,18 +169,6 @@
   flex: 1 1 auto;
   font-size: var(--text-badge);
   padding: 0 var(--space-8);
-}
-
-/* A chassis page's stats (and its patterns', `CardPage`'s `__stats`): one
-   width, every stamp filling its cell, so the column reads as even blocks
-   rather than stamps sized to their labels (owner's call, 2026-10-17). */
-.su-entity-page__stats .su-stat-column__stat {
-  flex: 1 1 auto;
-  width: auto;
-}
-
-.su-entity-page__stats .su-stat-column__stat > .su-stat-plate--label {
-  flex: 1 1 auto;
 }
 
 /* The stats on a band (`ChapterBand asideAt="notch"`, srd's `EntityPageStamps`)

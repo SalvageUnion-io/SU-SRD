@@ -5,9 +5,9 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
 
 ## The source: the Workshop Manual
 
-1. **The book is the visual source of truth** — paper pages, colour only in bands, ink banners, framed numbers. When a screen and the book disagree, open the book.
+1. **The book is the visual source of truth** — paper pages, colour only in bands, ink banners, framed numbers.
 2. **Chapter band** — a band in the section colour across a paper page, the title notched in on a paper cut-out, in ink. The foot band, in the band's colour, is text, never chips: the citations on one line, Workshop Manual first, `//` between (`Workshop Manual · p.65 // Starter Set · p.37`); no kind, no ink rule; the source on its own cut-out, top right. A Page's is its one footer, the app's links under the source; a card's or Peek's stands alone.
-3. **Ink stamp + framed numeral** — the stat column (`STRUCTURE POINTS | 14`), label 14px, horizontal, in the stat order (§2.6), full words on a Page (never "PTS." or "CAP."); smaller forms the short label (SP, TL), TL a label only (prose: Tech Level).
+3. **Ink stamp + framed numeral** — the stat column (`STRUCTURE POINTS | 14`), label 14px, horizontal, in the stat order (§2.6), every row full width (a short last row stretches), full words on a Page (never "PTS." or "CAP."); smaller forms the short label (SP, TL), TL a label only (prose: Tech Level).
 4. **The ink banner** — tier numeral, title, cost pennant, "//" metadata on ink with a rounded tail; on screen, the card's ink header (§5).
 5. **"ROLL THE DIE:" and "//" lines** — an underlined ink stamp over banded d20 tables; italic trait lines split by "//" (`Turn Action // Range: Close`); on screen one chip group in the head (E17).
 6. **The book's colour map** — which chapter band a page wears:
