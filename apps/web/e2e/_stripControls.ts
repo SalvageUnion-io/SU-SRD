@@ -53,6 +53,12 @@ export type StripControlSelectors = {
   body: string
   /** A Card's frame: an entity nested in it is the Card's, its controls the Card's. */
   card: string
+  /**
+   * A `TokenGroup`: an entity's Token and the Tokens that belong to it in one
+   * border. A control in it outside every Token (its When Damaged's fold, a
+   * choice) is the group's own section, as a Card's body is the Card's.
+   */
+  tokenGroup: string
   /** A sectioning wrapper: a slot ends at it, so the sibling scan never climbs past it. */
   section: string
 }
@@ -80,6 +86,7 @@ export const STRIP_CONTROL_SELECTORS: StripControlSelectors = {
   more: '.su-entity-token[data-contentful] > .su-entity-token__more > .su-chip-more',
   body: '.su-entity-token[data-contentful] > .su-entity-token__body',
   card: '.su-ec-frame',
+  tokenGroup: '.su-token-group',
   section:
     'section, article, aside, nav, main, header, footer, form, dialog, fieldset, [role="region"], [role="tabpanel"], [role="dialog"]',
 }
@@ -126,6 +133,10 @@ export function scanStripControls(a: StripControlSelectors): string[] {
         continue
       }
       const entity = control.closest(a.entity)
+      if (!entity) {
+        const group = control.closest(a.tokenGroup)
+        if (group && item.contains(group)) continue
+      }
       if (!entity || !item.contains(entity)) {
         // Beside the entity, in its list item.
         const first = item.matches(a.entity) ? item : item.querySelector(a.entity)

@@ -12,7 +12,8 @@ import type { Page } from '@playwright/test'
  * - **N3** an entity inside a Token: a Token nests nothing (E6).
  * - **N4** a Token narrower than its line, by more than a pixel: one Token a
  *   line, filling it. In a two-up list (a pattern drone's parts) and a
- *   masonry grid of contentful Tokens (`TokenGrid`) each column is a line.
+ *   masonry grid of contentful Tokens (`TokenGrid`) each column is a line, as
+ *   a sheet's sidebar is.
  * - **N5** a TitledBox (a `Box` with a head) inside an entity's frame.
  * - **N6** a TitledBox inside a wizard step around the step's entities.
  * - **N7** a Token in select mode (a radio, a checkbox, a pressed toggle):
@@ -65,6 +66,8 @@ export type NestingSelectors = {
   twoUp: string
   /** A masonry grid of contentful Tokens (`TokenGrid`, EDL E3): each of its columns is a line. */
   tokenGrid: string
+  /** A live sheet's columns (`SheetColumns`): its main column and its sidebar are each a line. */
+  sheetColumns: string
   /** How many px narrower than its line a Token may be. */
   tolerance: number
 }
@@ -81,6 +84,7 @@ export const NESTING_SELECTORS: NestingSelectors = {
   step: '.su-wiz-main',
   twoUp: '.su-entity-token-list--two-up',
   tokenGrid: '.su-token-grid',
+  sheetColumns: '.su-sheet-columns',
   tolerance: 1,
 }
 
@@ -205,6 +209,9 @@ export function scanNesting(a: NestingSelectors): NestingFinding[] {
       // A masonry grid's line is its column, and a multi-column flow gives
       // each item its column's whole width: the Token filled its item below.
       if (p.matches(a.tokenGrid)) return undefined
+      // A sheet's sidebar is a column of the page, a line of its own beside
+      // the main column: what fills the sidebar fills its line.
+      if (p.matches(a.sheetColumns)) return undefined
       // A two-up list's line is its column: the item must fill its track.
       if (p.matches(a.twoUp)) {
         const track = px(ps.gridTemplateColumns.split(' ')[0] ?? '')

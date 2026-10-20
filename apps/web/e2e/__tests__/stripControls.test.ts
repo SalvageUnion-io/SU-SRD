@@ -63,6 +63,13 @@ describe('strip-control scan', () => {
     expect(scan()).toEqual([])
   })
 
+  test("a TokenGroup's own sections are the group's, not a strip's", () => {
+    // A bay: its Token, then its When Damaged fold, in one bordered group.
+    const token = `<div class="su-entity-token"><span class="su-entity-token__pill"><span class="su-entity-token__name">Mech Bay</span><span data-chip-group><button>Dock</button></span></span></div>`
+    document.body.innerHTML = `<ul><li data-top="0"><div class="su-token-group">${token}<section><button>Expand Mech Bay When Damaged</button></section></div></li></ul>`
+    expect(scan()).toEqual([])
+  })
+
   test('a control in the body is under the strip', () => {
     document.body.innerHTML = `<ul><li data-top="0">${row('Bonesaw', '', '<div><button>Details</button></div>')}</li></ul>`
     expect(scan()).toEqual(['under: button "Details" under the strip of “Bonesaw”'])

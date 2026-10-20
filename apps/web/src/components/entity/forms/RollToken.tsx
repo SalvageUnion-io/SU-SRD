@@ -91,7 +91,8 @@ export function RollToken({
         >
           <Name name={name} />
         </span>
-        <span className="su-roll-token__actions">
+        {/* Its chip group (C8): the roll, the strip's one action. */}
+        <span className="su-roll-token__actions" data-chip-group="">
           <RollControl name={name} size="mini" onRoll={onRoll}>
             {stamp ?? 'Roll the Die:'}
           </RollControl>
