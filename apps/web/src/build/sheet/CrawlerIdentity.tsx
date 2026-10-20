@@ -103,11 +103,13 @@ export function CrawlerIdentityPanel({
 
   return (
     <section aria-label="Crawler identity" style={PANEL}>
-      {/* The picture sits beside the Name and Type only; the type's
+      {/* In Edit the picture sits beside the Name and Type only; the type's
           internals and the Description run the card's full width under both
-          (owner's review, 2026-10-20: no empty column under the photo). */}
+          (owner's review, 2026-10-20: no empty column under the photo). Read
+          has only the Type there, so the rest stays beside the photo. */}
       <PhotoBeside
         photo={photo}
+        belowBeside={!canEdit}
         below={
           <>
             {/* The type's INTERNALS, laid out directly in identity: no card frame

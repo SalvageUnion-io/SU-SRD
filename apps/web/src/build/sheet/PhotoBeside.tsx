@@ -14,20 +14,34 @@ import type { ReactNode } from 'react'
 export function PhotoBeside({
   photo,
   below,
+  belowBeside = false,
   children,
 }: {
   photo: ReactNode
   /** The card's full-width rest, under the photo and the fields beside it. */
   below?: ReactNode
+  /**
+   * Keep `below` in the column beside the photo, under the fields: Read,
+   * where the fields are short lines and the prose beside the photo fills
+   * its height, so running it under the photo would open a gap beside it.
+   */
+  belowBeside?: boolean
   children: ReactNode
 }) {
   return (
     <div className="su-photo-beside">
       <div className="su-photo-beside-row">
         <div className="su-photo-beside-slot">{photo}</div>
-        <div className="su-photo-beside-content">{children}</div>
+        {below && belowBeside ? (
+          <div className="su-photo-beside-content su-photo-beside-below">
+            {children}
+            {below}
+          </div>
+        ) : (
+          <div className="su-photo-beside-content">{children}</div>
+        )}
       </div>
-      {below && <div className="su-photo-beside-below">{below}</div>}
+      {below && !belowBeside && <div className="su-photo-beside-below">{below}</div>}
     </div>
   )
 }

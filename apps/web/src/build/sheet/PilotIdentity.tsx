@@ -210,11 +210,13 @@ export function PilotIdentityPanel({ pilot, onToggleUsed, patch, photo }: PilotI
     // vitals card beside it, so the panel spends that height on its fields
     // (the Bio grows into whatever is left) instead of leaving dead paper.
     <div style={PANEL}>
-      {/* The picture sits beside the field grid only; Appearance and the
-          Bio run the card's full width under both (owner's review,
-          2026-10-20: no empty column under the photo). */}
+      {/* In Edit the picture sits beside the field grid only; Appearance
+          and the Bio run the card's full width under both (owner's review,
+          2026-10-20: no empty column under the photo). Read's fields are
+          short lines, so the prose stays beside the photo. */}
       <PhotoBeside
         photo={photo}
+        belowBeside={!canEdit}
         below={
           <>
             {/* Appearance spans the card: it is prose, and a half-width column
