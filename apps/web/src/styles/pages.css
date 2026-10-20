@@ -735,12 +735,21 @@ a.su-home__discord:hover {
   flex-basis: 12rem;
 }
 
-/* On a phone the search is a line of its own, on top, the band's width; the
-   other controls are on the title's line. Open, the facets are a line too. */
+/* On a phone the rail is the strip under the band (`shell.css`): the search a
+   line of its own, the band's width, then Filters across the whole line (and
+   Catalog | Tree after it). Open, the facets are a line too. */
 @media not (width >= 40rem) {
+  .su-chapter-band .su-rail {
+    display: flex;
+  }
+
   .su-chapter-band .su-rail .su-rail__search {
     flex-basis: 100%;
     max-width: none;
+  }
+
+  .su-chapter-band .su-rail__filters {
+    flex: 1 1 auto;
   }
 
   .su-chapter-band .su-rail__facets {
@@ -754,6 +763,13 @@ a.su-home__discord:hover {
 
 .su-chapter-band[data-ground='ink'] :is(.su-rail__status, .su-rail__tally) {
   color: var(--color-paper);
+}
+
+/* Under the band on a phone the rail is on the page ground: ink again. */
+@media not (width >= 40rem) {
+  .su-chapter-band[data-ground='ink'] :is(.su-rail__status, .su-rail__tally) {
+    color: var(--color-ink-2);
+  }
 }
 
 @media print {

@@ -771,6 +771,30 @@
   .su-chapter-band .su-chapter-band__row[data-chip-fill] [data-fill-corner] {
     max-width: 100%;
   }
+
+  /* An index's controls are the exception (owner's call, 2026-10-20): its
+     search and filters follow the title, under the band on a strip of the
+     page ground the band's width, as a notch aside's cluster does (below). */
+  .su-chapter-band[data-aside='controls']
+    .su-chapter-band__row[data-chip-fill]
+    > .su-chapter-band__aside {
+    background-color: var(--color-wk-bg);
+    display: block;
+    /* The row's width and both its gutters: the strip spans the band. */
+    flex: 0 0 calc(100% + 2 * var(--space-16));
+    margin: 0 calc(-1 * var(--space-16));
+    /* It is the fill's corner, which a phone caps at the row's width. */
+    max-width: none;
+    order: 3;
+    padding: var(--space-12) var(--space-16) 0;
+  }
+
+  .su-chapter-band[data-aside='controls']
+    .su-chapter-band__row[data-chip-fill]
+    > .su-chapter-band__aside
+    :is(.su-rail, [data-fill-item], .su-rail > *, .su-rail__facets > *) {
+    margin-block: 0;
+  }
 }
 
 /* `asideAt="notch"` with an aside that is no chips (the front door's quote,
@@ -827,7 +851,7 @@
     border-color: var(--color-ink);
   }
 
-  .su-chapter-band[data-ground='ink'][data-aside='notch']
+  .su-chapter-band[data-ground='ink']:is([data-aside='notch'], [data-aside='controls'])
     .su-chapter-band__aside
     :is(.su-btn--default, .su-btn--ghost) {
     border-color: var(--color-ink);

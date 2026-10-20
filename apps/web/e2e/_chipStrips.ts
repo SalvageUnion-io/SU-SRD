@@ -396,6 +396,13 @@ function scan({
     // (ruleset §4.7, owner's call 2026-10-20): every item over the name, the
     // last at the right end of the lowest line, the lines flush right.
     if (head.matches('.su-chapter-band__row') && window.innerWidth < 640) {
+      // An index's search and filters are the exception: under the title, on
+      // the page ground (owner's call 2026-10-20).
+      if (head.closest('[data-aside="controls"]')) {
+        const above = items.find((el) => box(el).top < nameBox.bottom - 1)
+        if (above) faults.push(`fill: ${where} "${describe(above)}" is not under the title`)
+        continue
+      }
       const over = items.filter((el) => box(el).bottom > nameBox.top + 1)
       const lowest = lines[lines.length - 1] as Element[]
       if (over.length > 0) {
