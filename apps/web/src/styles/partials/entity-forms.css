@@ -229,7 +229,7 @@
 }
 
 /* With art, the line runs the band's height however tall the head is set,
-   so the art's window stays centred on it. */
+   so the art's cut-out stays on the band's foot. */
 .su-entity-compact__frame[data-bodyless]
   .su-entity-compact__head
   > .su-entity-compact__line:has(> .su-entity-compact__art) {
@@ -606,22 +606,23 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
   padding: var(--space-4) var(--space-12) var(--space-6);
 }
 
-/* THE ART'S WINDOW (`Head`'s `art`, E10): the image on its own paper panel at
-   the band's left, the band showing on all four sides of it, centred on the
-   row's height, so it reads as part of the head and apart from the name's
-   cut-out (owner's calls, 2026-10-20). It sets the head's height: the band's
-   top padding above it, as much below. A listing may size it through
-   `--su-head-art-width` / `--su-head-art-min` on an ancestor. The line art is
-   printed on white, so `multiply` lays it onto the paper. Dropped under the
-   name, a phone's chip strip is a stacking context: the panel is raised above
-   it, and lets a press through to the Compact's surface. */
+/* THE ART'S CUT-OUT (`Head`'s `art`, E10): the image on its own paper panel at
+   the band's left, notched into the band's foot as the name's cut-out is,
+   the two on one foot, the band above and left of it (owner's call,
+   2026-10-20, review: a window banded on all sides floated over the name's
+   foot). It sets the head's height: the band's top padding above it. A
+   listing may size it through `--su-head-art-width` / `--su-head-art-min` on
+   an ancestor. The line art is printed on white, so `multiply` lays it onto
+   the paper. Dropped under the name, a phone's chip strip is a stacking
+   context: the panel is raised above it, and lets a press through to the
+   Compact's surface. */
 .su-entity-compact__art {
-  align-self: center;
+  align-self: flex-end;
   background-color: var(--color-paper);
   display: none;
   flex: none;
   height: var(--su-head-art-min, 4.75rem);
-  margin: 0 0 var(--space-8) calc(-1 * var(--space-4));
+  margin: 0 0 0 calc(-1 * var(--space-4));
   pointer-events: none;
   position: relative;
   width: var(--su-head-art-width, 4rem);

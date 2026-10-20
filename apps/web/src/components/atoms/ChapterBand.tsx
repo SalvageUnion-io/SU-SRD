@@ -3,6 +3,7 @@ import { isValidElement, useContext, useId, useRef } from 'react'
 import { foregroundOn } from '../../design/contrast'
 import { color, font, space, weight } from '../../design/tokens'
 import { cn } from '../../lib/cn'
+import { Tagline } from '../Tagline'
 import { ChapterBandTrail } from './ChapterBandTrail'
 import { capsLabel } from './capsLabel'
 import type { ChapterTone } from './chapterBandColor'
@@ -303,7 +304,7 @@ export function ChapterBand({
   // A show page's stamps or a page's controls fill the title's line from the
   // band's bottom right (`chipFill.ts`); a quote (the front door's) is no
   // chips, and keeps its place beside the title.
-  const quote = isValidElement(aside) && aside.type === 'figure'
+  const quote = isValidElement(aside) && (aside.type === 'figure' || aside.type === Tagline)
   const fills = scale === 'page' && asideAt !== 'end' && !quote && Boolean(aside || action)
   const rowRef = useRef<HTMLDivElement>(null)
   useChipFill(rowRef, fills)

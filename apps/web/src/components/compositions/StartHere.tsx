@@ -1,9 +1,11 @@
 import type { SheetKind } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
+import { useRef } from 'react'
 import { space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { FOCUS_RING } from '../atoms/interaction'
 import { Stat } from '../atoms/Stat'
+import { useChipFill } from '../atoms/useChipFill'
 import { SlabSection } from '../containers/SlabSection'
 import { INDEX_NAME, INDEX_NAME_CAPS, Lead, paintFor } from '../entity'
 import { grainClass } from '../referenceEntity/card/cardGrain'
@@ -17,7 +19,7 @@ import { grainClass } from '../referenceEntity/card/cardGrain'
  * spelled once here, so the two tools cannot drift into two onboardings again.
  *
  * What each tool adds is a prop: an `href` per step (the SRD opens the book's
- * creation guide; the app, signed out, has nowhere to send them yet).
+ * creation guide; the app's front door its builders).
  *
  * The tiles stack in the SRD's 20rem sidebar and on a phone, and run three
  * across once the block is 48rem wide (The app's front door) — the
@@ -66,14 +68,20 @@ const STEPS = {
 
 function StepFace({ step, index }: { step: StartHereStep; index: number }) {
   const paint = paintFor(step.tone, { texture: true })
+  const bandRef = useRef<HTMLDivElement>(null)
+  // The STEP chip fills the band from its bottom right, on the title's line,
+  // as a CompactIndex's chips do (ruleset §4.7, C2b): never on a line of its own.
+  useChipFill(bandRef, true)
   return (
     <div className="su-entity-index__frame">
       <div
+        ref={bandRef}
         className={cn('su-entity-index__band', grainClass(paint.grain))}
         data-grain={paint.grain}
+        data-chip-fill=""
         style={{ backgroundColor: paint.background, color: paint.color, columnGap: space[6] }}
       >
-        <span className="su-entity-index__notch">
+        <span className="su-entity-index__notch" data-fill-name="">
           <h3
             className={cn('su-entity-index__name su-start-here__title', INDEX_NAME_CAPS)}
             style={INDEX_NAME}

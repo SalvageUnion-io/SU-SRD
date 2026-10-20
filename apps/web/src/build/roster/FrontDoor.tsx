@@ -11,8 +11,9 @@
  *    signing in is the header's, and the Starter Set is the header's tab and
  *    this page's own section;
  *  - **Start here**, the onboarding the SRD's home shows too (`StartHere`):
- *    Create a Pilot → Create a Mech → Join or make a Crawler. Playing a Game
- *    happens from the Crawler, so it is not a step of its own;
+ *    Create a Pilot → Create a Mech → Join or make a Crawler, each opening its
+ *    builder (signed out, its sign-in prompt). Playing a Game happens from the
+ *    Crawler, so it is not a step of its own;
  *  - **the Starter Set** as `StarterCard`s (the card `/starter` lists them
  *    with), one column per kind, each opening its read-only sheet, with one
  *    Leyline Press credit for the section rather than a stamp on every card.
@@ -25,8 +26,19 @@ import type { CSSProperties } from 'react'
 import { capsLabel } from '../../components/atoms/capsLabel'
 import { ChapterBand, Slab, Stack, StartHere, tokens } from '../../components/index'
 import { Tagline } from '../../components/Tagline'
+import { appPath } from '../../lib/appBase'
 import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
 import { StarterSetGrid } from '../starterSet/StarterSetGrid'
+
+/**
+ * Each step opens its builder; signed out, the builder's own sign-in prompt
+ * (the steps are the front door's actions).
+ */
+const STEP_HREFS = {
+  pilot: appPath('/pilots/new'),
+  mech: appPath('/mechs/new'),
+  crawler: appPath('/crawlers/new'),
+}
 
 /** The width the band's notch and the content under it share. */
 const MEASURE = '75rem'
@@ -69,7 +81,7 @@ export function FrontDoor() {
       </ChapterBand>
 
       <div className="su-page-body" style={{ ...COLUMN, paddingBlock: tokens.space[32] }}>
-        <StartHere id="front-door-start" />
+        <StartHere id="front-door-start" hrefs={STEP_HREFS} />
 
         <Stack as="section" gap={16} aria-labelledby="front-door-starter">
           <Slab label="Starter Set" id="front-door-starter" as="h2" />

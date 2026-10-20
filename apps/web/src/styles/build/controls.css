@@ -43,13 +43,14 @@
 }
 
 /* A column that is not the active phone segment: hidden below `md`, shown from
-   it (all three columns stand side by side). */
+   it (all three columns stand side by side) as the slab section it is, a flex
+   column, so its rows start where the active column's do. */
 .su-roster-column--inactive {
   display: none;
 }
 @media (width >= 48rem) {
   .su-roster-column--inactive {
-    display: block;
+    display: flex;
   }
 }
 
