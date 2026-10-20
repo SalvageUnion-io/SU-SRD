@@ -111,5 +111,7 @@ describe('CrewLeadToken — the body', () => {
     expect(within(body).getByText('A locket')).toBeTruthy()
     expect(within(body).getByText('Hates rain')).toBeTruthy()
     expect(within(body).queryByText('Motto')).toBeNull()
+    // Rows, as Detail reads, never `[label | value]` chips.
+    expect(body.querySelector('.su-stat-cell')).toBeNull()
   })
 })

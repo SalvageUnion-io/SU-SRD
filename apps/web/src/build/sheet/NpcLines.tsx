@@ -4,8 +4,9 @@
  * (`CrewLeadToken`, N3: a bay's crew lead and a crawler type's special NPC).
  * Each crew lead has a name, keepsake, motto, detail, facts and 4 HP.
  *
- * Role, Keepsake and Motto read as `Stat`s with text values (ruleset §3.7),
- * Detail as prose, Facts in the one chip well (`ChipListEditor`). In Edit each
+ * In Read each is a row, its small caps label then its value, as Detail's
+ * prose (owner, 2026-10-20: NPC details are rows, never `[label | value]`
+ * chips); Facts' value is the one chip well (`ChipListEditor`). In Edit each
  * one to write is a `Field` in its edit state (its label over the value box
  * a press opens, or over Facts' chip well). HP is never here: a crew lead's
  * is in its Token's head (`CrewLeadToken`), a built NPC's in its sheet's
@@ -21,7 +22,7 @@
 
 import type { CSSProperties, ReactNode } from 'react'
 import { capsLabel } from '../../components/atoms/capsLabel'
-import { Field, Stat, tokens } from '../../components/index'
+import { Field, tokens } from '../../components/index'
 import { ChipListEditor } from './ChipListEditor'
 import { FACT_DRAFT } from './chipWell.model'
 
@@ -80,10 +81,8 @@ export type NpcLinesProps = {
 }
 
 /**
- * One labelled line whose value is neither a reading nor a field: Detail's
- * prose, the Facts well. A reading (Role, Keepsake, Motto in Read) is a `Stat`
- * with a text value (ruleset §3.7, §6.2), a value to write a `Field`, never a
- * hand-built label and value.
+ * One labelled line in Read: Role, Keepsake, Motto and Detail as prose, the
+ * Facts well. A value to write is a `Field`, never a row.
  */
 function NpcRow({
   label,
@@ -115,15 +114,6 @@ function NpcRow({
       >
         {children}
       </div>
-    </div>
-  )
-}
-
-/** A reading: its `Stat`, a text value, Compact as the fields beside it. */
-function NpcReading({ label, value }: { label: string; value: string }) {
-  return (
-    <div style={ROW}>
-      <Stat label={label} value={value} size="compact" wrap />
     </div>
   )
 }
@@ -192,7 +182,7 @@ export function NpcLines({
           placeholder={title}
         />
       )}
-      {showRole && <NpcReading label="Role" value={role} />}
+      {showRole && <NpcRow label="Role">{role}</NpcRow>}
       {showKeepsake &&
         (onKeepsakeChange ? (
           <Field
@@ -202,7 +192,7 @@ export function NpcLines({
             ariaLabel={`${bayName} crew keepsake`}
           />
         ) : (
-          <NpcReading label="Keepsake" value={keepsake} />
+          <NpcRow label="Keepsake">{keepsake}</NpcRow>
         ))}
       {showMotto &&
         (onMottoChange ? (
@@ -213,7 +203,7 @@ export function NpcLines({
             ariaLabel={`${bayName} crew motto`}
           />
         ) : (
-          <NpcReading label="Motto" value={motto} />
+          <NpcRow label="Motto">{motto}</NpcRow>
         ))}
       {showDetail &&
         (onDetailChange ? (
