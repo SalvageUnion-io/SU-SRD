@@ -43,7 +43,7 @@ Each is checkable ([hard-rules.md](hard-rules.md) names the gates); breaking one
   Only a Mini is a head alone (N2); a Compact or contentful keeps its body.
 - **E4** An entity named in prose is a Mention: Peek on hover or long-press, the Page on click. Never a chip, Stat or raw markup.
 - **E5** The detail view is always a Page: no new-tab `window.open`.
-- **E6** Three levels (N1): 0 the page box (Page, dialog, wizard step, Peek plate); 1 Compacts; 2 Minis only. A host's pattern is a Mini a line wide: contentful with its description alone where it has one (owner, 2026-10-20: "full width and contentful, showing only the special pattern descriptions"), its name the link to its Page; its loadout is its Peek's and Page's.
+- **E6** Three levels (N1): 0 the page box (Page, dialog, wizard step, Peek plate); 1 Compacts; 2 Minis only.
   One level deep on a Page: an open Compact, not a Mini (N8), bar a loadout or ability tree (R39).
   Nothing titled at level 2 or deeper; a Mini nests nothing (deeper is its link or Peek). Nested contentful and Peek names link.
 - **E7** Modes fill slots; they never change anatomy.

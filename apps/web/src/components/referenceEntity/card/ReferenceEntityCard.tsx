@@ -558,16 +558,12 @@ function ReferenceEntityCardInner({
 
   const after = [afterExtraContent, expand, rendersFooter, !hide?.patterns && patternList.length]
   const under = [subtitleExtra, body, rollTableNode, patternSection, actionsNode, nestedGroupsNode]
-  const headOnly = ![...under, ...after].some(Boolean) // a nested action's name and chips alone
-  // A nested card with nothing under its name still opens a body for what its
-  // head cannot hold (owner, 2026-10-20: an Oil Bomb's chips "should create
-  // and spill into the content"); only a card standing alone shows +MORE.
-  const overflow = headOnly && depth === 0 ? 'more' : 'body'
+  const lone = !depth && ![...under, ...after].some(Boolean) // +MORE alone, nested a body (C2b)
   return (
     <CardOuter {...outer}>
       {/* Paper, radius and clip are `.su-ec-frame` (ADR-046), weight and dash ours. */}
       <div className="su-ec-frame" style={frameStyle}>
-        {header(overflow)}
+        {header(lone ? 'more' : 'body')}
         {/* SLOT: subtitleExtra — an extra line under the header (absent ⇒ nothing). */}
         {subtitleExtra && (
           <div style={{ padding: `${space[4]} ${compact ? space[12] : space[14]} 0` }}>
