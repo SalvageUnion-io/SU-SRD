@@ -10,6 +10,9 @@
  * - **Reference** — the dashed frame, every vital a read-out, and at most one
  *   control, the one that makes the unit live: Board, for a mech.
  *
+ * A box's actions (Sheet ⤢, Board) are chips on its band, after its stamp
+ * (chips-and-actions C8), never a button in a row of its body.
+ *
  * ## Nesting (play.md §12)
  *
  * Each box is level 1, directly in the column. What it holds is level 2 and
@@ -68,9 +71,6 @@ const CHIPS = {
   minWidth: 0,
 } satisfies CSSProperties
 
-/** Pushes what follows (Sheet ⤢, Board) to the row's end. */
-const SPACER = { flex: '1 1 0%' } satisfies CSSProperties
-
 const NOTE = {
   color: 'var(--color-wk-muted)',
   fontSize: tokens.fontSize.sm,
@@ -115,21 +115,10 @@ function writer<K extends 'pilot' | 'mech' | 'crawler'>(store: UnitStore, kind: 
     runWrite(() => store.getState().update(kind, id, patch, PLAY_TXN))
 }
 
-/**
- * "Sheet ⤢", at its line's Size (ruleset §4.7): Mini beside the pilot's
- * Compact Stat chips (18px), Compact beside the mech's range or alone.
- */
-function SheetButton({
-  name,
-  onOpen,
-  size = 'compact',
-}: {
-  name: string
-  onOpen: () => void
-  size?: 'compact' | 'mini'
-}) {
+/** "Sheet ⤢", a chip on the box's band: Mini, the band's Size (ruleset §4.7). */
+function SheetButton({ name, onOpen }: { name: string; onOpen: () => void }) {
   return (
-    <Button variant="ghost" size={size} aria-label={`Open ${name}’s sheet`} onClick={onOpen}>
+    <Button variant="ghost" size="mini" aria-label={`Open ${name}’s sheet`} onClick={onOpen}>
       Sheet ⤢
     </Button>
   )
@@ -166,7 +155,12 @@ export function PlayPilotUnit({
       className="su-play-unit"
       reference={!live}
       chips={<Stat label="Pilot" size="compact" />}
-      controls={stamp(live ? 'Live' : 'Read only')}
+      controls={
+        <>
+          {stamp(live ? 'Live' : 'Read only')}
+          {onOpenSheet ? <SheetButton name={pilot.name} onOpen={onOpenSheet} /> : null}
+        </>
+      }
     >
       {hp ? (
         <PlayVital
@@ -194,8 +188,6 @@ export function PlayPilotUnit({
         ) : (
           injuries.map((line) => <Stat key={line} label={line} size="compact" state="critical" />)
         )}
-        <span style={SPACER} />
-        {onOpenSheet ? <SheetButton name={pilot.name} onOpen={onOpenSheet} size="mini" /> : null}
       </div>
     </TitledBox>
   )
@@ -274,7 +266,25 @@ export function PlayMechUnit({
       className="su-play-unit"
       reference={!live}
       chips={chassis ? <Relations items={[chassis]} /> : undefined}
-      controls={stamp(mech.destroyed ? 'Destroyed' : MECH_STAMP[place])}
+      controls={
+        <>
+          {stamp(mech.destroyed ? 'Destroyed' : MECH_STAMP[place])}
+          {place === 'boarded' && onOpenSheet ? (
+            <SheetButton name={mech.name} onOpen={onOpenSheet} />
+          ) : null}
+          {place === 'parked' && onBoard !== undefined ? (
+            <Button
+              variant="primary"
+              size="mini"
+              aria-label={`Board ${mech.name}`}
+              disabled={onBoard === null}
+              onClick={onBoard ?? undefined}
+            >
+              Board
+            </Button>
+          ) : null}
+        </>
+      }
     >
       <PlayVital
         label="SP"
@@ -324,47 +334,25 @@ export function PlayMechUnit({
           </Segmented>
         </>
       ) : null}
-      {place === 'boarded' ? (
+      {place === 'boarded' && range ? (
         <div style={CHIPS}>
-          {range ? (
-            <>
-              <span style={RANGE_LABEL}>Range</span>
-              <Segmented label="Range" size="compact">
-                {RANGE_BANDS.map((band) => (
-                  <SegmentedOption
-                    key={band}
-                    pressed={range === band}
-                    aria-label={band}
-                    disabled={!live || onRange === undefined}
-                    onClick={() => onRange?.(band)}
-                  >
-                    {RANGE_CODE[band]}
-                  </SegmentedOption>
-                ))}
-              </Segmented>
-            </>
-          ) : null}
-          <span style={SPACER} />
-          {onOpenSheet ? <SheetButton name={mech.name} onOpen={onOpenSheet} /> : null}
+          <span style={RANGE_LABEL}>Range</span>
+          <Segmented label="Range" size="compact">
+            {RANGE_BANDS.map((band) => (
+              <SegmentedOption
+                key={band}
+                pressed={range === band}
+                aria-label={band}
+                disabled={!live || onRange === undefined}
+                onClick={() => onRange?.(band)}
+              >
+                {RANGE_CODE[band]}
+              </SegmentedOption>
+            ))}
+          </Segmented>
         </div>
       ) : null}
-      {place === 'parked' ? (
-        <div style={CHIPS}>
-          <p style={NOTE}>Read only until boarded</p>
-          <span style={SPACER} />
-          {onBoard !== undefined ? (
-            <Button
-              variant="primary"
-              size="compact"
-              aria-label={`Board ${mech.name}`}
-              disabled={onBoard === null}
-              onClick={onBoard ?? undefined}
-            >
-              Board
-            </Button>
-          ) : null}
-        </div>
-      ) : null}
+      {place === 'parked' ? <p style={NOTE}>Read only until boarded</p> : null}
     </TitledBox>
   )
 }
@@ -409,11 +397,14 @@ export function PlayCrawlerUnit({
       reference={!solid}
       chips={<Stat label="Crawler" size="compact" />}
       controls={
-        downtime ? (
-          stamp('Downtime')
-        ) : tl === undefined ? undefined : (
-          <Stat label="TL" value={tl} size="compact" />
-        )
+        <>
+          {downtime ? (
+            stamp('Downtime')
+          ) : tl === undefined ? null : (
+            <Stat label="TL" value={tl} size="compact" />
+          )}
+          {onOpenSheet ? <SheetButton name={crawler.name} onOpen={onOpenSheet} /> : null}
+        </>
       }
     >
       <PlayVital
@@ -441,12 +432,6 @@ export function PlayCrawlerUnit({
             </li>
           ))}
         </ul>
-      ) : null}
-      {onOpenSheet ? (
-        <div style={CHIPS}>
-          <span style={SPACER} />
-          <SheetButton name={crawler.name} onOpen={onOpenSheet} />
-        </div>
       ) : null}
     </TitledBox>
   )

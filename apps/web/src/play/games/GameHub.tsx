@@ -51,14 +51,7 @@ import { readCrawler } from './crawlerReading.model'
 import { DeleteGameDialog } from './DeleteGameDialog'
 import { GameBand } from './GameBand'
 import { GameRoster } from './GameRoster'
-import {
-  GAME_BODY,
-  GAME_MEASURE,
-  HUB_BODY,
-  HUB_COLUMN,
-  HUB_COLUMN_MIN,
-  HUB_COLUMNS,
-} from './hubStyles.model'
+import { GAME_BODY, GAME_MEASURE, HUB_COLUMN, HUB_COLUMN_MIN, HUB_COLUMNS } from './hubStyles.model'
 import { LaunchPlay } from './LaunchPlay'
 import { ProposalInbox } from './ProposalInbox'
 import { ProposalsSent } from './ProposalsSent'

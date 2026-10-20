@@ -9,7 +9,7 @@
  * lists its actions under the Opposition (pressed while they are the ones
  * listed), and ⋯: the full reference card, Rename and Delete. At 0 it is
  * down: dashed, struck, and never removed for you (ADR-007); Delete is offered
- * on its line, behind a confirm.
+ * as a chip on its band, before ⋯, behind a confirm.
  */
 
 import type { CSSProperties } from 'react'
@@ -36,13 +36,6 @@ const LINE = {
 const MUTED = { ...LINE, color: tokens.color.ink75 } satisfies CSSProperties
 
 const STRONG = { fontWeight: tokens.weight.bold } satisfies CSSProperties
-
-const DOWN_ROW = {
-  alignItems: 'center',
-  display: 'flex',
-  gap: tokens.space[8],
-  justifyContent: 'space-between',
-} satisfies CSSProperties
 
 const CONTROLS = {
   alignItems: 'center',
@@ -92,6 +85,17 @@ export function PlayNpcBox({
             >
               Actions
             </Toggle>
+            {npc.down ? (
+              <Button
+                variant="ghost"
+                size="mini"
+                disabled={!canWrite}
+                aria-label={`Delete ${npc.name}`}
+                onClick={onRemove}
+              >
+                Delete
+              </Button>
+            ) : null}
             <HeaderMenu
               variant="overflow"
               label={`More for ${npc.name}`}
@@ -129,20 +133,7 @@ export function PlayNpcBox({
             onChange={canWrite ? onHp : undefined}
           />
         ) : null}
-        {npc.down ? (
-          <div style={DOWN_ROW}>
-            <p style={MUTED}>At 0 · down</p>
-            <Button
-              variant="ghost"
-              size="mini"
-              disabled={!canWrite}
-              aria-label={`Delete ${npc.name}`}
-              onClick={onRemove}
-            >
-              Delete
-            </Button>
-          </div>
-        ) : null}
+        {npc.down ? <p style={MUTED}>At 0 · down</p> : null}
         <p role="status" aria-live="polite" style={npc.lastRoll ? LINE : MUTED}>
           {npc.lastRoll ? (
             <>

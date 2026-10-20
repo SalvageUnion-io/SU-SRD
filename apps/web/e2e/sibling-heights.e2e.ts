@@ -131,8 +131,8 @@ test('the Union bar holds one height in Build and in Play', async ({ page }) => 
 /**
  * Play's own lines: the Play bar, each unit box and each action row, open and
  * closed. On the canvas a unit box is scanned whole (its head and every body
- * row: the vitals, the pilot's class / TP / injuries beside Sheet ⤢, the
- * mech's range); on a phone only its head, since the touch floor lifts every
+ * row: the vitals, the pilot's class / TP / injuries, the mech's range;
+ * Sheet ⤢ and Board are chips on the head); on a phone only its head, since the touch floor lifts every
  * button there to 44px beside chips that keep their drawn Size (the `every context`
  * pass below scans each phone tab whole, against its baseline). Play needs an account,
  * so this signs in, sets up the Starter Set table (`setUpTable`) and opens
