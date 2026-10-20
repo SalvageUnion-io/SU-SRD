@@ -19,7 +19,11 @@
  * it (`interaction.ts`), so a page nobody touches loads no React.
  */
 
-import { joinStaticLanes, watchStaticMore } from '../components/entity/staticRuntime'
+import {
+  joinStaticLanes,
+  watchStaticChipFill,
+  watchStaticMore,
+} from '../components/entity/staticRuntime'
 import { readAccountHint } from '../lib/accountHint'
 import { browserStorage, markSignedIn } from '../lib/accountState'
 import { initBrowserObservability, installChunkRecovery } from '../lib/observability'
@@ -50,6 +54,8 @@ markSignedIn(document, signedIn)
 joinStaticLanes()
 // A contentful Token's chips past two lines end in +MORE (C5); an island's fit from `Token`.
 watchStaticMore()
+// A head's chips fill from its bottom-right corner (§4.7); an island's fit from `Head`, `Tile`, `ChapterBand`.
+watchStaticChipFill()
 
 type PropsById = Record<string, Record<string, unknown>>
 

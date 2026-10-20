@@ -1,5 +1,5 @@
 import type { CSSProperties, ElementType, ReactNode } from 'react'
-import { useContext, useId } from 'react'
+import { isValidElement, useContext, useId, useRef } from 'react'
 import { foregroundOn } from '../../design/contrast'
 import { color, font, space, weight } from '../../design/tokens'
 import { cn } from '../../lib/cn'
@@ -10,6 +10,7 @@ import { CHAPTER_BAND_COLOR } from './chapterBandColor'
 import type { SpeckleGrain } from './Speckle'
 import { Speckle } from './Speckle'
 import { BAND_KEY_ATTRIBUTE, footerMatchCss, unionBarMatchCss } from './unionBarMatch'
+import { useChipFill } from './useChipFill'
 import { USER_MADE_HATCH } from './userMadeHatch'
 
 /**
@@ -40,25 +41,20 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  *
  * `aside` sits at the right of the same row, on the band, bottom-aligned with
  * the notch. Below `sm` it stacks above the notch, where the band has room
- * for it. A show page passes `asideAt="notch"` (EDL E20: nothing above
- * a show page's title): its stamps and controls are one cluster beside the
- * title from `sm`, its last line on the title's baseline (a wrap grows up the
- * band) and after it in reading order as in
- * the DOM, each child of `aside` a right-aligned line that wraps; on a phone
- * the cluster follows the title, below the band on the page ground. The
- * notch stays on the band's foot either way.
+ * for it. A show page passes `asideAt="notch"`, a page whose aside is its
+ * controls (an index's search and filters, the app's Training Bay and Game
+ * pages) `asideAt="controls"`: both fill the title's line from the band's
+ * bottom right (ruleset §4.7, the head's bottom-right fill, `chipFill.ts`).
+ * Every stamp and control is its own item: the last (the cost, the action)
+ * takes the corner on the title's line, the earlier ones fill that line
+ * leftward, and only what overfills it rises in lines above the title, each
+ * from the right, into the band's top room before they grow the band. An
+ * index's search is a line of its own on a phone, on top. The notch stays on
+ * the band's foot. Pass the controls as a fragment or a strip that draws no
+ * box (`.su-rail`): a wrapper would wrap as one piece.
  *
- * A page whose aside is its action buttons (the app's Training Bay and Game
- * pages) passes `asideAt="controls"`: each control is its own item on the
- * title's line, right-aligned on the band's foot beside the name, and the
- * ones that do not fit there wrap onto lines ABOVE it, right-aligned, into
- * the band's top room before they grow the band (owner's rule, 2026-10-17).
- * Pass the controls as a fragment: a wrapper would wrap as one piece.
- *
- * `action` is a show page's one button ("Build With This"), after the cluster
- * from `sm` and on its last line. On a phone it is chip-sized and always
- * shares the title's line: right of the title, centred on the notch, the title
- * wrapping in the room it leaves.
+ * `action` is a show page's one button ("Build With This"), the cluster's
+ * last item: the band's bottom-right corner.
  *
  * A band that leads the page (a `PageShell`'s first child) also colours the
  * Union bar above it and the site footer below: both take its colour, foreground and grain
@@ -123,15 +119,14 @@ export type ChapterBandProps = {
   aside?: ReactNode
   /**
    * Where `aside` sits: `end` (default), at the band's far end from `sm` and
-   * above the notch on a phone; `notch`, a show page's cluster beside the
-   * title from `sm` (each child a right-aligned line) and below it on a phone;
-   * `controls`, a page's action buttons, each beside the title on the band's
-   * foot while it fits and wrapping upward over the name when it does not.
+   * above the notch on a phone; `notch` (a show page's stamps) and `controls`
+   * (a page's controls), filling the title's line from the band's bottom
+   * right, the overflow rising over the title (ruleset §4.7).
    */
   asideAt?: 'end' | 'notch' | 'controls'
   /**
-   * With `asideAt="notch"`: the page's action, ending the cluster from `sm`
-   * and on the band beside the title, chip-sized, on a phone.
+   * With `asideAt="notch"`: the page's action, ending the cluster in the
+   * band's bottom-right corner (chip-sized on a phone).
    */
   action?: ReactNode
   /** Controls in the band's top-right corner, above the title row. */
@@ -304,9 +299,18 @@ export function ChapterBand({
   // The key the Union bar's rule matches this band by (`unionBarMatch.ts`),
   // in the characters an attribute selector takes unescaped.
   const key = useId().replace(/[^\w-]/g, '')
+  // A show page's stamps or a page's controls fill the title's line from the
+  // band's bottom right (`chipFill.ts`); a quote (the front door's) is no
+  // chips, and keeps its place beside the title.
+  const quote = isValidElement(aside) && aside.type === 'figure'
+  const fills = scale === 'page' && asideAt !== 'end' && !quote && Boolean(aside || action)
+  const rowRef = useRef<HTMLDivElement>(null)
+  useChipFill(rowRef, fills)
+  const lone = !lead
   const title = (
     <Tag
       id={id}
+      data-fill-name={fills && lone && !trail ? '' : undefined}
       className={cn('su-chapter-band__title', TITLE_CAPS)}
       style={titleSize ? { ...titleStyle, fontSize: titleSize } : titleStyle}
     >
@@ -314,7 +318,11 @@ export function ChapterBand({
     </Tag>
   )
   const notch = trail ? (
-    <div className="su-chapter-band__plate" style={dashes ? { ...PLATE, ...dashes } : PLATE}>
+    <div
+      className="su-chapter-band__plate"
+      data-fill-name={fills && lone ? '' : undefined}
+      style={dashes ? { ...PLATE, ...dashes } : PLATE}
+    >
       <div className="su-chapter-band__trail">{trail}</div>
       {title}
     </div>
@@ -370,9 +378,14 @@ export function ChapterBand({
           {eyebrow}
         </div>
       )}
-      <div className="su-chapter-band__row" style={measure ? { maxWidth: measure } : undefined}>
+      <div
+        ref={rowRef}
+        className="su-chapter-band__row"
+        data-chip-fill={fills ? '' : undefined}
+        style={measure ? { maxWidth: measure } : undefined}
+      >
         {lead ? (
-          <div className="su-chapter-band__heading">
+          <div className="su-chapter-band__heading" data-fill-name={fills ? '' : undefined}>
             <span
               className="su-chapter-band__lead"
               style={{
@@ -392,7 +405,7 @@ export function ChapterBand({
           // each control is an item of the title's row.
           <div
             className="su-chapter-band__aside"
-            style={asideAt === 'controls' ? undefined : ASIDE}
+            style={fills || asideAt === 'controls' ? undefined : ASIDE}
           >
             {aside}
           </div>

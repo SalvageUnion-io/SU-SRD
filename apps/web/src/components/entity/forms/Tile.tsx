@@ -1,8 +1,10 @@
+import { useRef } from 'react'
 import { budgetFacts, naturalContext } from 'salvageunion-reference'
 import { assetDerivativeUrl } from 'salvageunion-reference/assetDerivatives'
 import { space, widthAtLeast } from '../../../design/tokens'
 import { cn } from '../../../lib/cn'
 import type { CSSVarStyle } from '../../../styles/cssVars'
+import { useChipFill } from '../../atoms/useChipFill'
 import { assetSrcSetFor } from '../../compositions/assetSrcSet'
 import { heroArtCrop } from '../../compositions/heroArtCrop'
 import { grainClass } from '../../referenceEntity/card/cardGrain'
@@ -132,6 +134,8 @@ export function Tile({
       />
     ) : null
   const hasChips = Boolean(model.cost) || facts.length > 0 || !!model.userMade
+  const bandRef = useRef<HTMLDivElement>(null)
+  useChipFill(bandRef, hasChips)
 
   return (
     <LinkSurface
@@ -159,15 +163,17 @@ export function Tile({
           </span>
         )}
         <div
+          ref={bandRef}
           className={cn('su-entity-tile__band', grainClass(paint.grain))}
           data-grain={paint.grain}
+          data-chip-fill={hasChips ? '' : undefined}
           style={{
             backgroundColor: paint.background,
             color: paint.color,
             columnGap: space[6],
           }}
         >
-          <span className="su-entity-tile__notch">
+          <span className="su-entity-tile__notch" data-fill-name="">
             <span
               className={cn('su-entity-tile__name', TILE_NAME_CAPS)}
               title={model.title}
@@ -177,8 +183,9 @@ export function Tile({
             </span>
           </span>
           {hasChips && (
-            // Its chips read in order: those that fit beside the name, the
-            // rest in lines rising over it, right-aligned (`.su-entity-tile__chips`).
+            // Its chips fill from the band's bottom right (ruleset §4.7): the
+            // cost in the corner, the rest leftward beside the name, then in
+            // lines rising over it, each from the right (`chipFill.ts`).
             <Chips
               as="span"
               className="su-entity-tile__chips"

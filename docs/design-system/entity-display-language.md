@@ -56,11 +56,11 @@ Each is checkable; breaking one needs an amendment here. Nesting (N1–N7, rules
 - **E14** Tables are the Table instrument: a roll bar in a Card (nested: Token, Table, Roll the Die), the roll instrument, open, on a Page, panel or resolve; its ROLL THE DIE stamp is the roll button, a result its marked row.
 - **E15** No hand-built entity markup outside `entity/`. A rules block (When Damaged, a chassis ability) has one renderer in every context.
 - **E16** A Peek is read-only and terminal.
-- **E17** No "//" line: all chips are one head group, one even gap, in the class order of [chips-and-actions.md](chips-and-actions.md) (C2), actions inlined last (C8). Right of the title, last line on its middle, more balanced above; under it on a narrow head. On ink each chip has a paper rule.
+- **E17** No "//" line: all chips are one head group, one even gap, in the class order of [chips-and-actions.md](chips-and-actions.md) (C2), actions inlined last (C8). From the bottom right of the title's line, rising only on overflow (C2b). On ink each chip has a paper rule.
 - **E18** No form cuts a name (bar a Token's), stamp or chip to "…": it wraps or widens. A Token's head is one row filling its line (N4), of a static budget (C3); its name ends in "…".
 - **E19** A chassis ability shows only on its chassis and pattern pages (level 1), mech hero and Discord card;
   nested (mech-wizard picks and stats step, Peek) it is a contentful Token (N3).
-- **E20** Above a show page's title: only the trail, on its plate (app sheet: `corner`); stamps, chips, controls cluster as E17 (`asideAt="notch"`), Build With This last (phone: chip-sized, centred right of title); a chassis's stats lead its body.
+- **E20** On a show page's plate: only the trail (app sheet: `corner`); stamps, chips, controls fill as E17 (`asideAt="notch"`), Build With This last (phone: chip-sized); a chassis's stats lead its body.
 
 ## Which form, where
 

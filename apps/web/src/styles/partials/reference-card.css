@@ -73,14 +73,11 @@
  * `atoms.css`): at one class each, source order decides.
  */
 /* An entity Page's band line (`EntityPageStamps`: an SRD entity page, the
-   app's detail dialog), a `Chips` strip, 8px between chips. Under the title
-   on a phone it wraps down in the class order. Beside the title from `sm` it
-   FILLS FROM ITS BOTTOM-RIGHT CORNER UP (owner's call, 2026-10-18): the last
-   chip, the cost, takes the corner, the ones before it fill the line
-   leftward, and the earlier chips rise in lines above it, the top line the
-   short one, flush right. Each chip's `order` is its place from the end
-   (`--su-fill`, `Chips`' lanes), so the lines read top to bottom in the class
-   order while the source keeps it. */
+   app's detail dialog), a `Chips` strip, 8px between chips. On its band it
+   draws no box: each chip is an item of the title's row, which fills from
+   the band's bottom-right corner (`.su-chapter-band__row[data-chip-fill]`,
+   ruleset §4.7): the cost in the corner beside the title, the rest leftward,
+   and only what overfills the title's line rises in lines above it. */
 .su-entity-stamps {
   align-items: center;
   display: flex;
@@ -91,21 +88,6 @@
 .su-entity-stamps > .su-chip-lane > * {
   flex: 0 1 auto;
   min-width: 0;
-}
-
-@media (width >= 40rem) {
-  .su-entity-stamps {
-    flex-direction: row-reverse;
-    flex-wrap: wrap-reverse;
-  }
-
-  .su-chapter-band[data-aside='notch'] .su-chapter-band__aside > .su-entity-stamps {
-    justify-content: flex-start;
-  }
-
-  .su-entity-stamps > .su-chip-lane > * {
-    order: var(--su-fill);
-  }
 }
 
 /* The facts and traits on the band (`Stat`, `Tag`): each cell at the stamps'

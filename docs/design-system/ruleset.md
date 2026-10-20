@@ -42,7 +42,7 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
    3. **Condition** — tri-state toggle (Destroyed greys the card), a static glyph in listings, absent from Reference.
    4. **Rolls** — `RollTableInstrument` under ROLL THE DIE:, the stamp the one roll button (no second Roll; a plain label in static HTML); the result is a readout plus a marked row (§3.4); Reference toasts it; Peek aside.
    5. **Cargo** — `SlotGrid` (dashed empty, solid filled); Reference shows the cap only.
-   6. **Stat order** — one everywhere; a form drops stats, never moves them: TL, Slots, SV · SP or HP, EP, Heat, Bio · SYS, MODS, Cargo; Upkeep, Upgrade · action type ("Turn Action"), RNG (Page `Close`, else `C`), DMG · traits A–Z, Uses last · cost, the book's pointy box (`2 EP`; §1.4), the last read chip; action slots follow it (C8). One even gap, groups too.
+   6. **Stat order** — one everywhere; a form drops stats, never moves them: TL, Slots, SV · SP or HP, EP, Heat, Bio · SYS, MODS, Cargo; Upkeep, Upgrade · action type ("Turn Action"), RNG (Page `Close`, else `C`), DMG · traits A–Z, Uses last · cost, the book's pointy box (`2 EP`; §1.4), the last read chip; action slots follow it (C8).
    7. **Entity card** — the full card is THE canonical render; Listing is the Row, the Peek a compact Card (§1).
 3. **§3 Cross-cutting laws**
    1. **§3.1 Rust = action, only action** — `--color-rust` is painted only by `Button` / `buttonVariants` and `InlineRef`, and no token aliases it. A destructive action is rust too, behind `ConfirmDialog`: no state colour fills a button.
@@ -77,7 +77,7 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
    6. **§4.6 The floors: type and touch** — nothing under 11px at the size the reader sees (a 1200px link preview: 34px), wizards included; the stat column label is 14px.
       Every coarse-pointer target is 44px, menu items included; nothing floats over content.
    7. **§4.7 The Sizes and sibling height** — the three Sizes are heights: Full 44px, Compact 32px, Mini 18px (`--size-*`; touch lifts Compact to Full, Mini takes a 44px hit area).
-      Controls on one line share one Size; chip values match labels, one gap apart, cost bottom-right.
+      A line's controls share one Size; chip values match labels, one gap apart, filled from the name's line's bottom right (C2b).
 5. **§5 The irreducible set** — an ontology, not a roster: 11 atoms and one technique.
    1. **Stamp** — ink block, paper text: `Badge shape="stamp"`.
    2. **Frame** — `--bw-*` weights: `Box`, `TitledBox` (cut-out); a note is a `Callout`.

@@ -10,7 +10,9 @@ import { test as signedIn } from './fixtures'
  * Page's band cluster, its cards' heads, their Tokens. A failure names the
  * page, the width and the fault (`_chipStrips.ts`): a value off its label's
  * size, a hole between chips, lines on no common edge, a cost out of its
- * corner, a chip clipped or past its strip's edge (R3), too many lines.
+ * corner, a head's chips not filling from its bottom right (a line that
+ * rose though it fit beside the name), a chip clipped or past its strip's
+ * edge (R3), too many lines.
  * There is no allowlist: every fault fails.
  */
 const PAGES = [
@@ -30,6 +32,9 @@ const PAGES = [
   '/drones/pest-drone/',
   '/vehicles/fighting-box-wheel/',
   '/crawler-bays/armoury/',
+  '/creatures/',
+  '/creatures/irradiated-scorpion/',
+  '/abilities/mass-field-maintenance/',
 ]
 
 /**

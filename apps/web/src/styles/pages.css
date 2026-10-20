@@ -706,18 +706,42 @@ a.su-home__discord:hover {
   }
 }
 
-/* On a listing's band (its `controls`): the rail takes the room right of the
-   name, its controls at the band's end, and is its own line over the name
-   when that room is too narrow for it. */
-.su-chapter-band .su-rail {
-  flex: 1 1 0;
-  justify-content: flex-end;
-  min-width: min(100%, 36rem);
+/* On a listing's band (its `controls`): the rail and its facets draw no box,
+   so each control is an item of the title's row, which fills from the band's
+   bottom right (`.su-chapter-band__row[data-chip-fill]`, ruleset §4.7): the
+   last control in the corner beside the title, the rest leftward, and only
+   what overfills that line rises over the title, each line from the right. */
+.su-chapter-band .su-rail,
+.su-chapter-band .su-rail__facets {
+  display: contents;
+}
+
+/* The title's free room (its auto margin) parts the controls from it: no
+   spring, which would take that room and push the corner's control in. */
+.su-chapter-band .su-rail__spring {
+  display: none;
 }
 
 /* Narrower than on the page, so a Tech Level row and a menu fit beside it. */
 .su-chapter-band .su-rail .su-rail__search {
   flex-basis: 12rem;
+}
+
+/* On a phone the search is a line of its own, on top, the band's width; the
+   other controls are on the title's line. Open, the facets are a line too. */
+@media not (width >= 40rem) {
+  .su-chapter-band .su-rail .su-rail__search {
+    flex-basis: 100%;
+    max-width: none;
+  }
+
+  .su-chapter-band .su-rail__facets {
+    display: none;
+  }
+
+  .su-chapter-band .su-rail[data-open] .su-rail__facets {
+    display: flex;
+  }
 }
 
 .su-chapter-band[data-ground='ink'] :is(.su-rail__status, .su-rail__tally) {

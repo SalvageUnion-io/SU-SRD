@@ -77,15 +77,7 @@
   min-height: 0;
 }
 
-/* HEAD (`entity/parts/Head.tsx`): the band, wearing the paint and its grain.
-   `--su-name-mid-strut` is twice the height of the name's middle (its
-   capitals') above the foot of its line: the strut that centres chips on it
-   (`.su-entity-row__heading--cut`). */
-.su-entity-row__head,
-.su-entity-tile__band {
-  --su-name-mid-strut: calc(0.986 * var(--text-title));
-}
-
+/* HEAD (`entity/parts/Head.tsx`): the band, wearing the paint and its grain. */
 .su-entity-row__head {
   display: flex;
   flex-direction: column;
@@ -258,97 +250,121 @@
   justify-content: flex-end;
 }
 
-/* A head with chips (`Head`'s `chips`): the name and the chip group share a
-   wrapping heading, as a card's band does (`.su-ec-band__heading`): the name
-   keeps its one-line width and grows, the chips sit right of it while they
-   fit and drop whole onto a line under it when they do not. A head with chips
-   wears no cut-out: its name does not sit at the band's foot. */
+/* A head with chips (`Head`'s `chips`): the name and the chips are one flow
+   that fills from the bottom right (below). Its column gap is the chips' own
+   4px; the name keeps another 4px to its right, so it stands 8px clear. */
 .su-entity-row__heading {
-  align-items: center;
-  display: flex;
+  column-gap: var(--space-4);
   flex: 1 1 0;
-  flex-wrap: wrap;
-  gap: var(--space-4) var(--space-8);
   min-width: 0;
 }
 
 .su-entity-row__heading > .su-entity-row__name {
-  flex: 1 0 auto;
-  max-width: 100%;
-}
-
-.su-entity-row__heading > .su-chips {
-  flex: 0 1 auto;
+  padding-inline-end: var(--space-4);
 }
 
 /* A cut-out head with chips (`Head`'s `chipsBeside`): the name stays on its
-   tab at the band's foot and the chips ALWAYS sit right of it, at every
-   width, never above or under it (owner's rule, 2026-10-13). When they do
-   not fit on one line they wrap onto more lines in their own column on the
-   right; the name gives way only down to its longest word. */
+   tab at the band's foot, however tall a grid sets the head, and the chips
+   start on its line, never under it. */
 .su-entity-row__heading--cut {
-  align-items: center;
   align-self: stretch;
-  flex-wrap: nowrap;
-  justify-content: space-between;
 }
 
 .su-entity-row__heading--cut > .su-entity-row__name {
-  align-self: flex-end;
-  flex: 0 1 auto;
-  min-width: min-content;
+  /* Under `wrap-reverse` the cross axis runs up: `flex-start` is the foot. */
+  align-self: flex-start;
 }
 
-/* The chips take the rest of the band beside the tab, at its foot, however
-   tall a grid sets the head. Short of room, name and chips give way in
-   proportion to their widths: the name wraps at its spaces, the chips onto
-   more lines, never narrower than their widest chip. */
-.su-entity-row__heading--cut > .su-chips,
-.su-entity-row__heading--cut > .su-entity-row__chip-group {
-  align-self: flex-end;
-  flex: 1 1 auto;
-  margin-left: auto;
-  min-width: min-content;
-  padding-block: var(--space-6) var(--space-2);
-}
-
-/* THE BOTTOM-RIGHT FILL (ruleset §4.7; owner's calls, 2026-10-18): a head's
-   last chip (its cost, where it has one) takes the corner, centred on the
-   name's middle; the chips before it fill that line leftward, and only what
-   does not fit rises in lines above it, flush right. One line wherever they
-   fit; uneven lines are fine. `row-reverse` + `wrap-reverse` place from the
-   corner up, and each chip's `order` is its place from the end
-   (`:nth-last-child`, below), so the lines still read top to bottom in the
-   stat order and the source keeps it. A card's labels (its type stamp) lead.
-   A zero-wide strut as tall as twice the name's mid-height
-   (`--su-name-mid-strut`) is placed first, so the corner line centres on the
-   name; it gives back the gap it adds, so it never wraps a line. */
-.su-entity-row__heading--cut > .su-chips,
-.su-entity-row__heading--cut > .su-entity-row__chip-group {
+/* THE BOTTOM-RIGHT FILL (ruleset §4.7, `chips-and-actions.md` C2b; owner's
+   rule, 2026-10-20): every head whose name and chips share a line (a Row's or
+   Card's heading, a Tile's band, a Page's chapter band: `[data-chip-fill]`).
+   The chips start on the name's line at its right end, the last chip (the
+   cost) in the corner, and fill that line leftward; only what overfills it
+   rises to a line above, and each line above fills from the right. One flow,
+   the name in it: `row-reverse` + `wrap-reverse` place from the bottom-right
+   corner up, each chip's `order` is its place from the end (`--su-fill`, three
+   apart), so the lines still read top to bottom in the class order while the
+   source keeps it. The name comes right after the chips that fit beside it
+   (`--su-beside`, measured by `chipFill.ts`), and the `::after` break right
+   after the name lifts every chip past them; the name's auto margin holds
+   the line's free room. Where not even the cost fits beside the one-line
+   name, the name wraps in the room it leaves (`--su-name-basis`). With no
+   script the cost alone sits beside the name. The
+   lines carry no row gap (the break's empty line would double it): each chip
+   keeps half the gap above and below it. */
+[data-chip-fill] {
+  align-content: flex-start;
   align-items: center;
   display: flex;
   flex-direction: row-reverse;
   flex-wrap: wrap-reverse;
-  gap: var(--space-4);
   justify-content: flex-start;
+  row-gap: 0;
 }
 
-.su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips {
+[data-chip-fill]::after {
+  content: '';
+  flex: 0 0 100%;
+  height: 0;
+  order: calc(3 * var(--su-beside, 1) + 2);
+}
+
+[data-chip-fill] > [data-fill-name] {
+  flex: 0 1 var(--su-name-basis, auto);
+  margin-inline-end: auto;
+  max-width: 100%;
+  min-width: min-content;
+  order: calc(3 * var(--su-beside, 1) + 1);
+}
+
+/* Every item `chipFill.ts` measured (a chip, a label, a band's control), at
+   its place from the end. */
+[data-chip-fill] [data-fill-item] {
+  order: calc(3 * var(--su-fill, 0));
+}
+
+/* The strips and the labels' group draw no box: each chip is the flow's own. */
+[data-chip-fill] > :is(.su-chips, .su-entity-row__chip-group),
+[data-chip-fill] > .su-entity-row__chip-group > .su-chips {
   display: contents;
 }
 
-.su-entity-row__heading--cut > .su-entity-row__chip-group > :not(.su-chips) {
-  order: 99;
+/* On paper the cost's edge draws no box: its box is the flow's item. */
+:is([data-chip-fill] > .su-chips, [data-chip-fill] > .su-entity-row__chip-group > .su-chips)
+  > .su-chip-lane
+  > .su-cost-edge
+  > .su-cost {
+  order: calc(3 * var(--su-fill, 0));
 }
 
-.su-entity-row__heading--cut > .su-chips::after,
-.su-entity-row__heading--cut > .su-entity-row__chip-group::before {
-  content: '';
-  flex: none;
-  height: var(--su-name-mid-strut);
-  margin-left: calc(-1 * var(--space-4));
-  order: 0;
-  width: 0;
+/* A Card's labels (its type stamp) lead its chips: the first read, the last
+   placed (`--su-items`, the flow's count). */
+[data-chip-fill] > .su-entity-row__chip-group > .su-entity-row__labels {
+  margin-block: calc(var(--space-4) / 2);
+  order: calc(3 * var(--su-items, 99));
+}
+
+/* A chip wider than the head itself (a Game's long name) wraps its value on
+   a line of its own, never past the Row's edge (R3, E18: it wraps, never
+   clipped). */
+[data-chip-fill] .su-stat-cell {
+  max-width: 100%;
+}
+
+/* Too wide even beside the name's longest word, the corner chip wraps its
+   value in the room left (`chipFill.ts`), on the name's line. */
+[data-chip-fill] [data-fill-corner] {
+  justify-content: flex-end;
+  max-width: var(--su-corner-max, 100%);
+}
+
+[data-chip-fill] [data-fill-corner] .su-stat-cell {
+  white-space: normal;
+}
+
+[data-chip-fill] .su-stat-plate--value {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 /* A CHIP LANE (`Chips`): one class's chips, `data-chip-class` (C2a). In a
@@ -465,14 +481,6 @@
    the chips rising above the stamp when the group wraps, the stamp drawn as
    a chip's plate (ink on a tone band, paper on the ink banner), never a
    stamp of its own style. */
-.su-entity-row__heading > .su-entity-row__chip-group {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap-reverse;
-  gap: var(--space-4);
-  min-width: 0;
-}
-
 .su-entity-row__chip-group .su-ec-labels__stamps > .su-badge-stamp,
 .su-entity-row__heading > .su-chips .su-ec-labels__stamps > .su-badge-stamp,
 .su-entity-row__heading > .su-chips > .su-chip-lane > .su-badge-stamp:not(.su-badge--dashed) {
@@ -524,70 +532,6 @@
    into the band. */
 [data-ground='ink'] .su-stat-cell {
   border-color: var(--color-paper);
-}
-
-/* OVER THE NAME (`data-chips="over"`, `useChipsFit`): when one chip is
-   wider than the room the name leaves beside it (on a phone, beside its
-   one-line name; wider, at its narrowest), the chips rise onto the band's
-   full width ABOVE the name, never under it (owner's rule, 2026-10-20): they
-   stay in the head, filling from its bottom-right corner up, and the tab
-   still opens into the paper below. So a long chip (a Game's name) never
-   runs past the Row's edge (R3); one wider than the band itself wraps its
-   value (E18: it wraps, never clipped). Any other set stacks up beside the
-   name, on as many lines as it takes. */
-.su-entity-row__heading--cut[data-chips='over'] {
-  flex-wrap: wrap;
-}
-
-.su-entity-row__heading--cut[data-chips='over'] > .su-chips,
-.su-entity-row__heading--cut[data-chips='over'] > .su-entity-row__chip-group {
-  flex-basis: 100%;
-  order: -1;
-  padding-block: var(--space-2) 0;
-}
-
-/* Over the name, the chips are not beside it to centre on. */
-.su-entity-row__heading--cut[data-chips='over'] > .su-chips::after,
-.su-entity-row__heading--cut[data-chips='over'] > .su-entity-row__chip-group::before {
-  content: none;
-}
-
-.su-entity-row__heading--cut[data-chips='over'] .su-stat-cell {
-  max-width: 100%;
-  white-space: normal;
-}
-
-.su-entity-row__heading--cut[data-chips='over'] .su-stat-plate--value {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-/* On a phone, before `useChipsFit` has run (or with no script), the chips
-   rise over the name as above; once it has, they stay beside it when it
-   says so (`data-chips="beside"`), the name keeping its one line. */
-@media not (width >= 40rem) {
-  /* Beside, the name keeps its one line: `useChipsFit` measured the room it
-     leaves for the chips, on as many lines as they need. */
-  .su-entity-row__heading--cut[data-chips='beside'] > .su-entity-row__name {
-    flex-shrink: 0;
-  }
-
-  .su-entity-row__heading--cut:not([data-chips]) {
-    flex-wrap: wrap;
-  }
-
-  .su-entity-row__heading--cut:not([data-chips]) > .su-chips,
-  .su-entity-row__heading--cut:not([data-chips]) > .su-entity-row__chip-group {
-    flex-basis: 100%;
-    order: -1;
-    padding-block: var(--space-2) 0;
-  }
-
-  /* Over the name, the chips are not beside it to centre on. */
-  .su-entity-row__heading--cut:not([data-chips]) > .su-chips::after,
-  .su-entity-row__heading--cut:not([data-chips]) > .su-entity-row__chip-group::before {
-    content: none;
-  }
 }
 
 /* A trait chip (`Tag`): the cell is the whole target when it links. */
@@ -712,41 +656,6 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
   z-index: 1;
 }
 
-/* Raised over the name, the chip strip sits where the cover paints, its "⋯"
-   with it: in a covered Row the strip is raised too, and lets a press
-   through to the cover but on its controls. */
-.su-entity-row[data-covered]
-  .su-entity-row__heading--cut[data-chips='over']
-  > :is(.su-chips, .su-entity-row__chip-group) {
-  pointer-events: none;
-  position: relative;
-  z-index: 1;
-}
-
-.su-entity-row[data-covered]
-  .su-entity-row__heading--cut[data-chips='over']
-  > :is(.su-chips, .su-entity-row__chip-group)
-  :is(a, button) {
-  pointer-events: auto;
-}
-
-@media not (width >= 40rem) {
-  .su-entity-row[data-covered]
-    .su-entity-row__heading--cut:not([data-chips])
-    > :is(.su-chips, .su-entity-row__chip-group) {
-    pointer-events: none;
-    position: relative;
-    z-index: 1;
-  }
-
-  .su-entity-row[data-covered]
-    .su-entity-row__heading--cut:not([data-chips])
-    > :is(.su-chips, .su-entity-row__chip-group)
-    :is(a, button) {
-    pointer-events: auto;
-  }
-}
-
 /* A Row as a listbox option (a search's results): the option the arrow keys
    highlight wears the ink selection ring, as a selected Row does. */
 .su-entity-row[aria-selected='true'] {
@@ -868,43 +777,31 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 
 /* Its top edge rules the art off; a bare tile's frame is its top edge.
    The band: the tone, with the name's cut-out sitting on its foot. Its chips
-   are its own items in reading order (owner's call, 2026-10-20): those that
-   fit sit beside the name, centred on it, and the rest rise in lines over
-   the name, right-aligned (`wrap-reverse`: the name's line is the foot). */
+   fill from its bottom right (`[data-chip-fill]`, the head's fill): the cost
+   in the corner beside the name, the rest leftward, and only what overfills
+   the name's line rises in lines over it, each from the right. */
 .su-entity-tile__band {
-  align-content: flex-start;
-  align-items: center;
   border-top: var(--bw-chrome) solid var(--color-ink);
-  display: flex;
-  flex-wrap: wrap-reverse;
-  justify-content: flex-end;
   min-height: calc(2.1 * var(--text-title) + var(--space-12));
   padding: var(--space-8) var(--space-8) 0;
-  row-gap: var(--space-4);
+}
+
+/* A band with no chips is the name's line alone, on the foot. */
+.su-entity-tile__band:not([data-chip-fill]) {
+  align-items: flex-end;
+  display: flex;
 }
 
 .su-entity-tile--bare .su-entity-tile__band {
   border-top: 0;
 }
 
-.su-entity-tile__band > :not(.su-entity-tile__notch) {
-  align-self: center;
-  flex: none;
-  margin-bottom: var(--space-4);
-}
-
-/* The notch: a cut-out of the paper below, its foot open into the cells. */
+/* The notch: a cut-out of the paper below, its foot open into the cells
+   (under `wrap-reverse`, `flex-start` is the foot). */
 .su-entity-tile__notch {
+  align-self: flex-start;
   background-color: var(--color-paper);
-  flex: 0 1 auto;
-  margin-right: auto;
-  min-width: 0;
   padding: var(--space-4) var(--space-8) var(--space-2);
-}
-
-/* The chips draw no box: each is an item of the band's lines. */
-.su-entity-tile__band > .su-entity-tile__chips {
-  display: contents;
 }
 
 .su-entity-tile__cells {
@@ -1250,33 +1147,23 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   align-self: flex-end;
 }
 
-/* A bottom-right fill's chips (`.su-entity-row__heading--cut > .su-chips`):
-   flex items the gap apart, no margin of their
-   own, each at its place from the strip's end (`--su-fill`). Last in the
-   file, after the grid's `> *` rules it outranks. */
-:is(
-    .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips
-  )
+/* A bottom-right fill's chips (`[data-chip-fill]`, above): flex items the
+   gap apart, half the gap above and below and none to the side, each at its
+   place from the strip's end (`--su-fill`). Last in the file, after the
+   grid's `> *` rules it outranks. */
+:is([data-chip-fill] > .su-chips, [data-chip-fill] > .su-entity-row__chip-group > .su-chips)
   > .su-chip-lane
   > * {
   display: inline-flex;
-  margin: 0;
-  order: var(--su-fill);
+  margin: calc(var(--space-4) / 2) 0;
+  order: calc(3 * var(--su-fill, 0));
 }
 
-/* On the strut's line the cost is centred like its neighbours, its own
-   height, never stretched to the strut's. */
-:is(
-    .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips
-  )
+/* On its line the cost is centred like its neighbours, its own height. */
+:is([data-chip-fill] > .su-chips, [data-chip-fill] > .su-entity-row__chip-group > .su-chips)
   > .su-chip-lane
   > .su-cost-edge,
-:is(
-    .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips
-  )
+:is([data-chip-fill] > .su-chips, [data-chip-fill] > .su-entity-row__chip-group > .su-chips)
   > .su-chip-lane
   > .su-cost-edge
   > .su-cost {
@@ -1337,7 +1224,10 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 }
 
 @container (width >= 40rem) {
+  /* In a fill head the strip is one item again, its lanes on one line at
+     the name's right (the fill's first and only chip). */
   [data-chip-lanes='column'] .su-entity-row .su-chips[data-lanes] {
+    display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
     gap: 0;
@@ -1354,13 +1244,8 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   }
 
   [data-chip-lanes='column'] .su-entity-row .su-chips[data-lanes] > .su-chip-lane > * {
+    margin-block: 0;
     order: 0;
-  }
-
-  /* The lanes carry their own gaps, so the corner strut gives none back: its
-     pull would set the last lane's chip (the cost) past the strip's edge. */
-  [data-chip-lanes='column'] .su-entity-row__heading--cut > .su-chips[data-lanes]::after {
-    margin-left: 0;
   }
 }
 

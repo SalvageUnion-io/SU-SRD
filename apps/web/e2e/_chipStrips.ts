@@ -16,12 +16,18 @@ const READ_CHIP_CLASSES = CHIP_CLASSES.slice(0, CHIP_CLASSES.indexOf('cost') + 1
  *   (a stretched chip, a hole); in a list's lanes (C6), within each lane.
  * - **flush** a strip whose lines share neither a right edge nor a left one.
  * - **cost** a cost that is not the strip's last read chip, or, last of all,
- *   not on its lowest line and rightmost there (an index Tile's excepted: its
- *   chips read in order over its name); followed by +MORE alone, not right
- *   before it there.
+ *   not on its lowest line and rightmost there; followed by +MORE alone, not
+ *   right before it there.
  * - **fill** a contentful Token's line under another that is not full: its
  *   chips fill bottom-heavy (owner, 2026-10-19), so the chip ending the line
- *   above would not fit on it.
+ *   above would not fit on it. And THE BOTTOM-RIGHT FILL of every head whose
+ *   name and chips share a line (`[data-chip-fill]`: a Row's or Card's
+ *   heading, a Tile's band, a Page's chapter band and its controls; owner's
+ *   rule, 2026-10-20): its last item (the cost, the action) on the name's
+ *   line and rightmost there; every line flush right; and each line above
+ *   another an overflow, its right-hand item too wide to join the line under
+ *   it (the name's line counted from the name's left edge). A head the fill
+ *   never measured (no `data-fill-item`) fails too.
  * - **unclassed** a chip in no class lane: the strip is not drawn by `Chips`
  *   (`chips-and-actions.md` C2a, hard rule R4).
  * - **order** a chip whose class comes before the one ahead of it: the strip
@@ -69,6 +75,9 @@ const CHIP = [
 const CONTENTFUL = '.su-entity-token[data-contentful]'
 const MORE = '.su-chip-more'
 
+/** A head that fills from its bottom-right corner (`components/atoms/chipFill.ts`). */
+const FILL = '[data-chip-fill]'
+
 /** An entity's frame: the box no chip of its strips may leave. */
 const FRAME = [
   '.su-entity-row__frame',
@@ -86,6 +95,7 @@ function scan({
   frame,
   contentful,
   more,
+  fill,
 }: {
   strip: string
   chip: string
@@ -94,6 +104,7 @@ function scan({
   frame: string
   contentful: string
   more: string
+  fill: string
 }): string[] {
   type Box = { el: Element; x: number; y: number; w: number; h: number }
   type Rect = { left: number; top: number; right: number; bottom: number }
@@ -248,8 +259,10 @@ function scan({
       faults.push(`gap: ${where} gaps ${gaps.join(',')}px`)
     }
 
-    // FLUSH: the lines end on one right edge, or start on one left edge.
-    if (lines.length > 1) {
+    // FLUSH: the lines end on one right edge, or start on one left edge. A
+    // strip in a bottom-right fill shares its lines with the head's other
+    // items (a band's action): the fill's own law holds them flush, below.
+    if (lines.length > 1 && !root.closest(fill)) {
       const rights = lines.map((l) => Math.round(Math.max(...l.map((b) => b.x + b.w))))
       const lefts = lines.map((l) => Math.round(Math.min(...l.map((b) => b.x))))
       const even = (xs: number[]) => Math.max(...xs) - Math.min(...xs) <= 1
@@ -323,10 +336,7 @@ function scan({
 
     // COST: the last read chip in the source (C2: the slots, a state, uses,
     // the menu, may follow it, C8); last of all, on the lowest line,
-    // rightmost there; with +MORE after it, right before +MORE there. An
-    // index Tile's chips read in order instead, the ones that fit beside its
-    // name and the rest over it (owner, 2026-10-20), so the corner is not
-    // the cost's there.
+    // rightmost there; with +MORE after it, right before +MORE there.
     const cost = chips.find((el) => el.matches('.su-cost, .su-cost-edge'))
     if (cost) {
       const readChips = chips.filter((el) => read.includes(classOf(el)) || classOf(el) === '')
@@ -335,11 +345,87 @@ function scan({
       const beforeMore = lowest[lowest.length - 2]?.el
       if (readChips[readChips.length - 1] !== cost) {
         faults.push(`cost: ${where} "${describe(cost)}" is not the last read chip`)
-      } else if (last === cost && corner !== cost && !root.matches('.su-entity-tile__chips')) {
+      } else if (last === cost && corner !== cost) {
         faults.push(`cost: ${where} "${describe(cost)}" is not at the bottom-right`)
       } else if (moreChip && chips[chips.length - 2] === cost && beforeMore !== cost) {
         faults.push(
           `cost: ${where} "${describe(cost)}" is not right before +MORE at the bottom-right`
+        )
+      }
+    }
+  }
+  // THE BOTTOM-RIGHT FILL: every head whose name and chips share one flow.
+  for (const head of document.querySelectorAll<HTMLElement>(fill)) {
+    const name = head.querySelector(':scope > [data-fill-name]')
+    if (!name || !visible(name)) continue
+    const items = [...head.querySelectorAll('[data-fill-item]')].filter(visible)
+    const where = `${describe(name)}…`
+    if (items.length === 0) {
+      const drawn = [...head.querySelectorAll(chip)].some(visible)
+      if (drawn) faults.push(`fill: ${where} its chips were never fitted (no data-fill-item)`)
+      continue
+    }
+    const nameBox = name.getBoundingClientRect()
+    const box = (el: Element) => el.getBoundingClientRect()
+    // Lines: items whose boxes overlap vertically by half the shorter one;
+    // the name's line is the one that overlaps the name's lower half.
+    const lines: Element[][] = []
+    for (const el of items) {
+      const b = box(el)
+      const line = lines.find((l) =>
+        l.some((o) => {
+          const a = box(o)
+          return (
+            Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) >=
+            Math.min(a.height, b.height) / 2
+          )
+        })
+      )
+      if (line) line.push(el)
+      else lines.push([el])
+    }
+    for (const line of lines) line.sort((a, b) => box(a).left - box(b).left)
+    lines.sort((a, b) => box(a[0] as Element).top - box(b[0] as Element).top)
+    const onName = (el: Element) => {
+      const b = box(el)
+      const mid = (b.top + b.bottom) / 2
+      return mid > nameBox.top && mid < nameBox.bottom + 1
+    }
+    const corner = items[items.length - 1] as Element
+    const nameLine = lines.find((l) => l.some(onName))
+    if (!nameLine || !onName(corner) || nameLine[nameLine.length - 1] !== corner) {
+      faults.push(
+        `fill: ${where} "${describe(corner)}" is not at the bottom right, on the name's line`
+      )
+      continue
+    }
+    const rights = lines.map((l) => Math.round(box(l[l.length - 1] as Element).right))
+    if (Math.max(...rights) - Math.min(...rights) > 1) {
+      faults.push(`fill: ${where} lines end at ${rights.join(',')}, not flush right`)
+    }
+    const s = getComputedStyle(head)
+    const room =
+      head.clientWidth - Number.parseFloat(s.paddingLeft) - Number.parseFloat(s.paddingRight)
+    const gap = Number.parseFloat(s.columnGap) || 0
+    const outer = (el: Element) => {
+      const cs = getComputedStyle(el)
+      return box(el).width + Number.parseFloat(cs.marginLeft) + Number.parseFloat(cs.marginRight)
+    }
+    for (let i = 1; i < lines.length; i++) {
+      const above = lines[i - 1] as Element[]
+      const below = lines[i] as Element[]
+      const next = above[above.length - 1] as Element
+      // A line of its own by design (an index's search on a phone).
+      if (
+        Number.parseFloat(getComputedStyle(next).flexBasis) >= 100 &&
+        getComputedStyle(next).flexBasis.endsWith('%')
+      )
+        continue
+      const left = below === nameLine ? nameBox.left : box(below[0] as Element).left
+      const span = box(below[below.length - 1] as Element).right - left
+      if (span + gap + outer(next) <= room - 1) {
+        faults.push(
+          `fill: ${where} "${describe(next)}" would fit on the line under it (${Math.round(span)}px of ${Math.round(room)}px)`
         )
       }
     }
@@ -357,5 +443,6 @@ export async function findChipStripFaults(page: Page): Promise<string[]> {
     frame: FRAME,
     contentful: CONTENTFUL,
     more: MORE,
+    fill: FILL,
   })
 }

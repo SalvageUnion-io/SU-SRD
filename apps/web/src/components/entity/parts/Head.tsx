@@ -2,13 +2,13 @@ import type { ElementType, ReactNode } from 'react'
 import { cloneElement, isValidElement, useRef } from 'react'
 import { cn } from '../../../lib/cn'
 import { capsLabel } from '../../atoms/capsLabel'
+import { useChipFill } from '../../atoms/useChipFill'
 import { grainClass } from '../../referenceEntity/card/cardGrain'
 import { Chips } from './Chips'
 import type { ChipSet } from './chipSet'
 import { KindLabel } from './KindLabel'
 import type { Paint } from './paint'
 import { PAPER_NAME } from './paint'
-import { useChipsFit } from './useChipsFit'
 
 /** The tier and the name: caps from the recipe, their extrabold weight the rule's. */
 const NAME_CAPS = capsLabel({ weight: 'inherit' })
@@ -67,10 +67,10 @@ export type HeadProps = {
    */
   notch?: boolean
   /**
-   * Keep the cut-out with chips: the chips stay on the band right of the
-   * name, stacking up the band on as many lines as they take, and rise over
-   * it onto the band's full width only when one chip does not fit beside it
-   * (`useChipsFit`), never under it (every Row and Card head).
+   * Keep the cut-out with chips: the chips start on the name's line at the
+   * band's bottom right and fill it leftward, and only what overfills it
+   * rises in lines above, each filling from the right (`chipFill.ts`), never
+   * under it (every Row and Card head).
    */
   chipsBeside?: boolean
   /**
@@ -84,8 +84,8 @@ export type HeadProps = {
 /**
  * HEAD — a Row's band: the art (its own window, at the left), the tier (on the band), the name (it wraps, never
  * clipped; with `notch`, on the paper cut-out at the band's foot) with its labels to its
- * right, the chip group (right of the name while it fits, under it when it
- * does not: the band's own width decides), the host's controls its last
+ * right, the chip group (from the bottom right of the name's line, leftward,
+ * the overflow rising above it: ruleset §4.7's bottom-right fill), the host's controls its last
  * slot, so nothing sits beside the strip (C8, R6), and the mode's affordance, in
  * that order; the affordance stays on the band's right, centred on it, never
  * alone on a line. The band wears the
@@ -111,7 +111,7 @@ export function Head({
   const chips = asStrip(chipsProp, controls)
   const cut = notch && (!chips || chipsBeside)
   const headingRef = useRef<HTMLDivElement>(null)
-  useChipsFit(headingRef, cut && !!chips)
+  useChipFill(headingRef, !!chips)
   const tierNode = tier && (
     <span
       className={cn('su-entity-row__tier', NAME_CAPS, tierChip && 'su-entity-row__tier--chip')}
@@ -144,7 +144,7 @@ export function Head({
   const labelsWithChips = cut && !!chips && !!labels
   const labelsNode = labels && <div className="su-entity-row__labels">{labels}</div>
   const name = (
-    <div className="su-entity-row__name">
+    <div className="su-entity-row__name" data-fill-name="">
       {cut ? <span className="su-entity-row__notch">{titleNode}</span> : titleNode}
       {!labelsWithChips && labelsNode}
     </div>
@@ -168,6 +168,7 @@ export function Head({
           <div
             ref={headingRef}
             className={cn('su-entity-row__heading', cut && 'su-entity-row__heading--cut')}
+            data-chip-fill=""
           >
             {name}
             {labelsWithChips ? (

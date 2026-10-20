@@ -23,6 +23,7 @@ A strip is a Token, a Row or Card head, or a TitledBox or Slab header.
 - **C1a** One Size per strip: its chips and controls share one height and one centre line, Mini in a Token, Compact on a head.
 - **C2** Chips keep the class order; a form drops classes, never reorders them. No read chip follows the cost (`_chipStrips.ts`).
 - **C2a** Every strip, the Page band included, is drawn by `Chips`; each chip names its class (`data-chip-class`).
+- **C2b** The bottom-right fill (owner, 2026-10-20): wherever a name and its chips or controls share a line (a Row's, Card's or Tile's head, a Page's chapter band and its controls), the chips start at the bottom right, on the name's line, the last of them (the cost, else the last slot or the page's action) in the corner. They fill that line right to left, and rise to a line above only when they overfill it; each line above fills from the right too. So the cost is always on the name's line, and a chip never rises while it fits beside the name. One flow, measured once (`components/atoms/chipFill.ts`); `_chipStrips.ts` fails a head that breaks it. On a phone an index band's search is the one control on a line of its own, on top.
 - **C3** Budgets are static: no chip is added, dropped, moved or clipped by width, content or hover; a strip never hides its overflow. What a Token leaves out, its Peek shows. The one exception is C5's +MORE.
 - **C4** A Token's context lane is named by its container, from the closed list.
 - **C5** Only the name flexes: a Token's ends in "…", any other wraps. Chips and controls never shrink, clip or scale.
@@ -38,5 +39,5 @@ A strip is a Token, a Row or Card head, or a TitledBox or Slab header.
 
 ## Built as
 
-- **A narrow head** — a container query puts its chips beside the name or under it; the content never decides.
+- **A narrow head** — the bottom-right fill (C2b) keeps the cost beside the name and lifts what does not fit above it; the name wraps only when not even the cost fits beside its one line.
 - **A Token with actions** — a `div` whose name cut-out is the link and the Peek trigger, so no button sits inside a link.

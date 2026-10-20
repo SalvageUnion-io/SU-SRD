@@ -200,7 +200,7 @@ describe('a pattern page names and links its base chassis', () => {
     // Nothing but the page's trail sits above the title, on its plate (EDL E20).
     expect(html).not.toContain('su-chapter-band__eyebrow')
     expect(html).toContain(
-      '<div class="su-chapter-band__plate" style="background-color:rgb(239, 236, 230);color:rgb(40, 32, 25);display:flex;flex-direction:column;max-width:100%;min-width:0"><div class="su-chapter-band__trail">'
+      '<div class="su-chapter-band__plate" data-fill-name="" style="background-color:rgb(239, 236, 230);color:rgb(40, 32, 25);display:flex;flex-direction:column;max-width:100%;min-width:0"><div class="su-chapter-band__trail">'
     )
     // The ancestors, each followed by `//`; the title names the page.
     const trail = html.slice(html.indexOf('su-crumbs--band'), html.indexOf('<h1'))
