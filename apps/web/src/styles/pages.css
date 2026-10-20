@@ -956,7 +956,7 @@ a.su-home__discord:hover {
   }
 }
 
-/* `/api`: the schema table's Panel clips the table to its frame, and the
+/* `/api`: the schema table's Box clips the table to its frame, and the
    description column is dropped below 40rem. */
 .su-api__schemas {
   overflow: hidden;

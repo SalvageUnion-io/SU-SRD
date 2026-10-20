@@ -60,9 +60,8 @@ export type BoxProps = {
  * Row's own frame (`RowFrame`), so it draws no entity markup of its own (EDL
  * E15, hard rule R7). Its named
  * variants: `TitledBox` (the cut-out head: dialogs, briefs, notices), and on
- * that a labelled `Callout` and `RecoveryPanel`; an
- * unlabelled `Callout` is the bare box in its accent. A box with nothing
- * below its head closes on it. No headed box sits inside an entity or around
+ * that `RecoveryPanel`; a `Callout` is the bare box in its accent. A box with
+ * nothing below its head closes on it. No headed box sits inside an entity or around
  * a wizard step's entities (ruleset §5, N5 and N6): there a note is the
  * unlabelled `Callout`, a section a `Slab`.
  */

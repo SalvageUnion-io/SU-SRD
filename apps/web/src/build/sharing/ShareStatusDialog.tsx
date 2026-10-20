@@ -98,10 +98,9 @@ export function ShareStatusDialog({
       width="default"
     >
       {/*
-        Sections, not Panels. ModalShell already frames this in a Card, and a
-        bordered Panel inside a bordered Card is the double-framing the sheet
-        rules forbid. The padding was the Panel's; ModalShell's Card body
-        supplies none.
+        Sections, not Boxes. ModalShell already frames this in its TitledBox,
+        and a bordered Box inside it is the double framing the sheet rules
+        forbid. ModalShell's body supplies no padding, so this does.
       */}
       <div className="su-sheet-share-body" style={BODY}>
         {/* Read-only is the promise that holds whichever branch renders below. */}

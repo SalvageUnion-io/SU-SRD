@@ -3,7 +3,7 @@
  * Text. `../index.css` imports the parts in cascade order.
  */
 
-/* ── Conditions, Panel, Slab ── */
+/* ── Conditions, Slab ── */
 /* Conditions.tsx — the remove glyph brightens on hover. */
 .su-condition-chip__remove {
   opacity: 0.8;

@@ -135,7 +135,6 @@ const DASHED_FILES: readonly [string, string][] = [
   ['apps/web/src/build/mech/Pattern/PublicPattern.tsx', 'user-made: a pattern’s page'],
   ['apps/web/src/build/mech/Pattern/SavePatternPage.tsx', 'user-made: saving a pattern'],
   ['apps/web/src/build/npc/npcStyles.model.ts', 'user-made: the NPC builder'],
-  ['apps/web/src/components/atoms/ModeDoor.tsx', 'user-made: the blank-build door'],
   // An edit field: Edit's controls are pencil (ruleset §1.2).
   ['apps/web/src/components/atoms/Field.tsx', 'an edit field'],
   ['apps/web/src/components/atoms/Conditions.tsx', 'an edit field: the + Add chip'],

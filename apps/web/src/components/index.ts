@@ -1,7 +1,3 @@
-// SRD catalog — the catalog categories and their tile colours, as the app's
-// SRD Explorer renders them. (srd's own index is its chapters,
-// `apps/web/src/lib/chapters.ts`.)
-
 /**
  * The styling foundation: tokens, style objects and one
  * stylesheet (ADR-046). Namespaced rather than spread flat into this
@@ -33,7 +29,6 @@ export { useMediaQuery } from '../lib/useMediaQuery'
 export type { CSSVarStyle } from '../styles/cssVars'
 export { ActivationCost } from './atoms/ActivationCost'
 export type { BadgeTone } from './atoms/Badge'
-// Chrome primitives (The app design handoff — design-spec §2)
 // Badge — the unified stamp-chip family: the quiet keyword chip is
 // `surface="quiet"`, the status badge is StatusBadge (domain vocabulary), and a
 // pill is `Badge surface="outline"`/`"tone"`.
@@ -164,8 +159,7 @@ export { AdderBox, AdderField } from './containers/AdderBox'
 export { Banner } from './containers/Banner'
 // Box — the house container: the Row's square frame around a paper body (ruleset §4.3).
 export { Box } from './containers/Box'
-// Callout — accent-framed note (stamp header + accent-bar body); list-items,
-// "When Damaged" effects, and similar accented notes compose on it.
+// Callout — the unlabelled note: the bare Box framed in its accent (ruleset §5.2).
 export { Callout } from './containers/Callout'
 // Stack, Cluster and Grid — the layout primitives: a column, a wrapping row,
 // and as many equal columns as fit, each a space step apart (`gap`).
@@ -185,12 +179,13 @@ export { Grid } from './containers/Grid'
 // and Games menus, and the "⋯" overflow on a row.
 export type { HeaderMenuItem } from './containers/HeaderMenu'
 export { HeaderMenu } from './containers/HeaderMenu'
-// Pending — the one "Loading X…" line (role="status"), for data that resolves inside a screen
+// loadingCopy — the one "Loading <thing>…" wording Pending, Skeleton and RoutePending share (R22)
 export { loadingCopy } from './containers/loadingCopy'
 export { MasonryColumns } from './containers/MasonryColumns'
 export { ModalShell } from './containers/ModalShell'
 // PageShell — the full-bleed <main> landmark for a top-level app screen
 export { PageShell } from './containers/PageShell'
+// Pending — the one "Loading X…" line (role="status"), for data that resolves inside a screen
 export { Pending } from './containers/Pending'
 // PopoverPanel — a trigger and the small non-modal panel of controls it opens
 // (Base UI Popover); the app's sheet "⋯" overflow
@@ -209,10 +204,10 @@ export { Stack } from './containers/Stack'
 /** The `statsOverride` element type — public because the prop that takes it is. */
 export type { StatItem } from './containers/statsBarTypes'
 // TitledBox — the house `Box` (square frame, paper body) with the cut-out head:
-// dialogs, wizard briefs, notices, a sheet's panels; Callout and RecoveryPanel
-// are its named variants.
+// dialogs, wizard briefs, notices, a sheet's panels; RecoveryPanel is its
+// named variant.
 export { TitledBox } from './containers/TitledBox'
-// UI primitives
+// ToasterMount — the document's one Toaster (R20); `toast` raises an act's notice
 export { ToasterMount, toast } from './containers/Toaster'
 export type { AnnouncedRoll } from './containers/toastRoll'
 export { toastRoll } from './containers/toastRoll'
