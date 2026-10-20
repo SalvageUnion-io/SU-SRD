@@ -500,7 +500,7 @@ export const preview = query({
       const componentEmbed =
         args.appUrl === undefined
           ? null
-          : patternEmbedJson(row.body, ownerName, args.appUrl, args.appId)
+          : patternEmbedJson(row.body, ownerName, args.appUrl, row.appId)
       return {
         kind: 'pattern',
         body: row.body,

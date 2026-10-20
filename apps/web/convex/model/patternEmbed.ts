@@ -1,3 +1,4 @@
+import { publicPath } from 'game-domain/entityKinds'
 import type { RefMetaEntity, RefObjectPattern } from 'salvageunion-reference'
 import { componentEmbedJson, discordHomebrewPatternCard } from 'salvageunion-reference'
 import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
@@ -30,7 +31,7 @@ function webUrl(value: string): URL | null {
  * card its chassis's book patterns get, marked homebrew
  * (`discordHomebrewPatternCard`): its name, description and loadout on its
  * chassis, credited to its maker, its title linking its page under `appUrl`
- * and its parts their SRD pages on that origin. Null when its chassis is not
+ * (its short `<name>-<short id>` address) and its parts their SRD pages on that origin. Null when its chassis is not
  * in the reference, or `appUrl` is not a web address.
  */
 export function patternEmbedJson(
@@ -41,12 +42,12 @@ export function patternEmbedJson(
 ): string | null {
   const app = webUrl(appUrl)
   if (!app || typeof body !== 'object' || body === null) return null
-  const page = new URL(
-    `${app.pathname.replace(/\/+$/, '')}/p/pattern/${encodeURIComponent(appId)}`,
-    app.origin
-  )
   const { name, chassisRef, systems, modules, notes } = body as PatternBody
   if (typeof name !== 'string' || typeof chassisRef !== 'string') return null
+  const page = new URL(
+    `${app.pathname.replace(/\/+$/, '')}${publicPath('pattern', appId, name)}`,
+    app.origin
+  )
   loadReferenceData()
   const chassis = resolveChassisRef(chassisRef)
   if (!chassis) return null

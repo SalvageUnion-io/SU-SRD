@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+import { shareSegment } from 'game-domain/shareAddress'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { FIXTURE_NOW } from '../../../src/components/__tests__/fixtures'
@@ -230,6 +231,25 @@ describe("publicSheet.preview: a pattern's Discord card", () => {
     expect(json).toContain('Rigging Arm')
     expect(json).toContain('Rig first, rivet later.')
     expect(json).toContain('Homebrew // Made by')
+  })
+
+  test('reached by its short link, the card links the short address too', async () => {
+    const t = testConvex()
+    const { organizer } = await seedTable(t)
+    const id = '0a1b2c3d-4e5f-4789-abcd-ef0123456789'
+    await organizer.as.mutation(api.shelf.upsertMechPattern, { body: { ...patternBody(), id } })
+    await organizer.as.mutation(api.shelf.setPatternVisibility, {
+      patternId: id,
+      visibility: 'link',
+    })
+
+    const answer = await t.query(api.publicSheet.preview, {
+      kind: 'pattern',
+      appId: '0a1b2c3d4e5f',
+      appUrl,
+    })
+    const slug = shareSegment(id, patternBody().name)
+    expect(answer?.componentEmbed ?? '').toContain(`](${appUrl}/p/pattern/${slug})`)
   })
 
   test('an address that is not a web address gets no card; a private pattern no answer', async () => {
