@@ -1,8 +1,8 @@
 /**
- * Shelves — the Hangar: everything you own, on your account (ADR-052 §1–2).
+ * Shelves — the Training Bay: everything you own, on your account (ADR-052 §1–2).
  * The page at `/` once you are signed in; signed out, `/` is the front door.
  *
- * A unit in a Game stays in your Hangar too — it is one record whichever table
+ * A unit in a Game stays in your Training Bay too — it is one record whichever table
  * it plays at — so the page lists every pilot, mech and crawler of yours this
  * browser holds, wherever it is, and a relation chip on each names its Game
  * (`GAME | Rust Run`), opening that Game's page in Play. A Game is a detail
@@ -39,6 +39,7 @@
  */
 
 import { useQuery } from 'convex/react'
+import { PRODUCT } from 'game-domain/product'
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
@@ -189,11 +190,11 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
 
   const pilots = allPilots.filter((p) => shownUnder(shown, p))
   const mechs = allMechs.filter((m) => shownUnder(shown, m))
-  // A Game's crawler is the crew's: in your Hangar only where you run the table.
+  // A Game's crawler is the crew's: in your Training Bay only where you run the table.
   const keptCrawlers = allCrawlers.filter((c) => crawlerIsKept(c, games))
   const crawlers = keptCrawlers.filter((c) => shownUnder(shown, c))
   const npcs = allNpcs.filter((n) => shownUnder(shown, n))
-  // The personal tray is in the Hangar alone: it is in no Game to filter by.
+  // The personal tray is in the Training Bay alone: it is in no Game to filter by.
   const tray = shown === 'everything' ? trayNpcs.filter((n) => typeof n.gameId !== 'string') : []
 
   /**
@@ -372,7 +373,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
       measure={MEASURE}
       band={
         <ChapterBand
-          tone="ink"
+          tone="build"
           measure={MEASURE}
           eyebrow={
             <p role="status" aria-live="polite" className="su-shelves-band__status">
@@ -402,7 +403,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
             </>
           }
         >
-          Hangar
+          {PRODUCT.build}
         </ChapterBand>
       }
     >

@@ -6,7 +6,7 @@
  * loader flashes a blank page.
  *
  * An unmatched URL is the site's own 404 (`NotFound`, as the static `/404`
- * draws it) with a way back to the Hangar. `NotFoundPanel` is the missing
+ * draws it) with a way back to the Training Bay. `NotFoundPanel` is the missing
  * record's: `Sheet`'s missing-entity state and `routes/sheet/$kind/$id`'s
  * unknown-kind state compose it. Neither is the UI library's `RecoveryPanel`:
  * that panel carries `role="alert"` and centres its content, which is right for
@@ -71,7 +71,7 @@ type NotFoundPanelProps = {
 export function NotFoundPanel({
   title,
   message,
-  back = { href: '/', label: 'Hangar' },
+  back = { href: '/', label: 'Training Bay' },
 }: NotFoundPanelProps) {
   return (
     <FullPageShell>
@@ -94,7 +94,7 @@ export function NotFoundPanel({
 
 /**
  * Any unmatched URL (router defaultNotFoundComponent): the site's 404, its
- * search and "did you mean" rendered live, and the way back to the Hangar.
+ * search and "did you mean" rendered live, and the way back to the Training Bay.
  */
 export function RouteNotFound() {
   return (
@@ -104,7 +104,7 @@ export function RouteNotFound() {
         didYouMean={<DidYouMeanIsland />}
         back={
           <Button href="/" back variant="ghost" size="compact" style={HANGAR_LINK}>
-            Hangar
+            Training Bay
           </Button>
         }
       />

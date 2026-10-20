@@ -71,7 +71,7 @@ function signInFromHint(): ((close: () => void) => ReactNode) | undefined {
 type UnionDrawerProps = {
   /** The search field at the drawer's head. */
   search?: ReactNode
-  /** The product's own nav (the app's Hangar and Starter Set), ahead of the site's pages. */
+  /** The product's own nav (the app's Training Bay and Starter Set), ahead of the site's pages. */
   productNav?: NavDrawerItem[]
   /** App-owned controls at the drawer's top, handed `close`; defaults to Sign in from the hint. */
   extra?: (close: () => void) => ReactNode

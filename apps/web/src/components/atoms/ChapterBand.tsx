@@ -48,7 +48,7 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  * the cluster follows the title, below the band on the page ground. The
  * notch stays on the band's foot either way.
  *
- * A page whose aside is its action buttons (the app's Hangar and Game
+ * A page whose aside is its action buttons (the app's Training Bay and Game
  * pages) passes `asideAt="controls"`: each control is its own item on the
  * title's line, right-aligned on the band's foot beside the name, and the
  * ones that do not fit there wrap onto lines ABOVE it, right-aligned, into

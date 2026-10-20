@@ -2,11 +2,11 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } fr
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 
 /**
- * The Hangar at `/`, signed in, end to end through the real `Roster` (board S1).
+ * The Training Bay at `/`, signed in, end to end through the real `Roster` (board S1).
  *
  * What these pin:
  *
- *  - the Hangar lists everything you own: a unit in a Game stays in it under
+ *  - the Training Bay lists everything you own: a unit in a Game stays in it under
  *    Everything, with a `GAME | name` relation chip opening the Game's page in
  *    Play, and leaves it under Not in a Game; a unit in no Game has no Game
  *    chip at all; one Game's entry shows that Game's units alone
@@ -14,7 +14,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
  *  - "Move to a Game…" moves the same record into a Game, and back out again
  *    behind a confirm; it never copies
  *  - a pattern's chips say who can see it and how often it has been built
- *  - the Hangar is never a Game's page, and has no New Game: both are Play's
+ *  - the Training Bay is never a Game's page, and has no New Game: both are Play's
  *
  * The finer rules each have their own file: `GameRoster.connected` (rows and
  * their verbs), `GameHub.connected` (sections by role), `NewGameControl.connected`
@@ -118,7 +118,7 @@ beforeEach(async () => {
   // The server's first answer is in, as `ShelfSync` marks it.
   useEntityStore.getState().markArrived(['pilot', 'mech', 'crawler', 'npc', 'softLink'])
   usePatternStore.getState().markArrived()
-  // In the Hangar: a pilot and a crawler, adopted as the server sends them.
+  // In the Training Bay: a pilot and a crawler, adopted as the server sends them.
   setEntityBackendAuthState({ signedIn: true, online: true, authSettled: true })
   await useEntityStore
     .getState()
@@ -165,7 +165,7 @@ async function show(value: string): Promise<void> {
   })
 }
 
-describe('Hangar: everything you own', () => {
+describe('Training Bay: everything you own', () => {
   test('the Showing select offers Everything, Not in a Game, then each Game', async () => {
     await renderHub()
     expect(showing().value).toBe('everything')
@@ -213,8 +213,8 @@ describe('Hangar: everything you own', () => {
     expect(within(crawlers).getByText('No crawler of yours is in this Game.')).toBeTruthy()
   })
 
-  test('under Not in a Game, a Hangar whose units are all in Games says so', async () => {
-    // The Hangar's one pilot moves into a Game: every pilot is now in one.
+  test('under Not in a Game, a Training Bay whose units are all in Games says so', async () => {
+    // The Training Bay's one pilot moves into a Game: every pilot is now in one.
     await useEntityStore
       .getState()
       .adopt('pilot', pilotFixture({ id: 'p-shelf', name: 'Mira Cole', gameId: 'g1' }))
@@ -226,7 +226,7 @@ describe('Hangar: everything you own', () => {
     expect(within(pilots).getByText('Every pilot is in a Game.')).toBeTruthy()
   })
 
-  test('under Not in a Game, a Hangar with nothing in it at all is empty, not "in a Game"', async () => {
+  test('under Not in a Game, a Training Bay with nothing in it at all is empty, not "in a Game"', async () => {
     await renderHub()
 
     await show('not-in-game')
@@ -291,7 +291,7 @@ describe('Move to a Game…', () => {
     })
   }
 
-  test('moves the same pilot into a Game, with no confirm — and it stays in the Hangar', async () => {
+  test('moves the same pilot into a Game, with no confirm — and it stays in the Training Bay', async () => {
     await renderHub()
     await moveMira('Union Crawler #430')
     await settle(() => useEntityStore.getState().get('pilot', 'p-shelf')?.gameId === 'g1')
@@ -302,7 +302,7 @@ describe('Move to a Game…', () => {
     expect(serverWrites.find((w) => w.args.appId === 'p-shelf')?.args).toMatchObject({
       gameId: 'g1',
     })
-    // Still in the Hangar, now named by its Game.
+    // Still in the Training Bay, now named by its Game.
     const pilots = screen.getByRole('region', { name: 'Pilots' })
     expect(within(pilots).getByText('Mira Cole')).toBeTruthy()
     expect(within(pilots).getByText('Union Crawler #430')).toBeTruthy()
@@ -327,9 +327,9 @@ describe('Move to a Game…', () => {
 })
 
 describe('a Game’s page is Play’s, not Build’s (ADR-052 §5)', () => {
-  test('the Hangar never shows a Game, and offers no New Game', async () => {
+  test('the Training Bay never shows a Game, and offers no New Game', async () => {
     await renderHub()
-    expect(screen.getByRole('heading', { level: 1, name: 'Hangar' })).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 1, name: 'Training Bay' })).toBeTruthy()
     expect(screen.queryByRole('region', { name: 'Crew & seats' })).toBeNull()
     expect(screen.queryByRole('button', { name: '+ New Game' })).toBeNull()
   })

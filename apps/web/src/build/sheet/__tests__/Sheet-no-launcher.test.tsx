@@ -30,14 +30,18 @@ function expectNoLauncher(): void {
 }
 
 const cases = [
-  { label: 'a Hangar pilot', kind: 'pilot', entity: pilotFixture({ id: 'p-shelf', name: 'Yara' }) },
+  {
+    label: 'a Training Bay pilot',
+    kind: 'pilot',
+    entity: pilotFixture({ id: 'p-shelf', name: 'Yara' }),
+  },
   {
     label: 'a Game pilot',
     kind: 'pilot',
     entity: pilotFixture({ id: 'p-game', name: 'Yara', gameId: 'game-a' }),
   },
   {
-    label: 'a Hangar mech',
+    label: 'a Training Bay mech',
     kind: 'mech',
     entity: mechFixture({ id: 'm-shelf', name: 'Rig', chassisRef: 'iron-mongrel' }),
   },

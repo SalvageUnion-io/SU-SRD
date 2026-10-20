@@ -53,7 +53,7 @@ const links = (mode: UnionMode, here: UnionNavId | null): AppBarNavEntry[] =>
 
 /**
  * The app's two navs, both in the bar and the mode's shown (`data-mode`):
- * Build's Hangar · Patterns · Starter Set, and Play's Games ▾ · Solo, Games
+ * Build's Training Bay · Patterns · Starter Set, and Play's Games ▾ · Solo, Games
  * the app's control.
  */
 function appNavs(games: ReactNode, here: UnionNavId | null): AppBarNav[] {

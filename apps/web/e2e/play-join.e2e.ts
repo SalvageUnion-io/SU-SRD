@@ -3,14 +3,14 @@ import { createGame, makeInviteLink, secondAccount } from './_table'
 import { expect, test } from './fixtures'
 
 /**
- * A Game from end to end, every step in Play but the Hangar the pilot comes
+ * A Game from end to end, every step in Play but the Training Bay the pilot comes
  * from (ADR-052 §3–§5):
  *
  *  1. The Organizer makes a Game on the Play hub (+ New Game) and lands on its
  *     page, `/play/games/<id>`, and copies its invite link.
- *  2. A player, with a pilot already in their Hangar, opens the link and joins:
+ *  2. A player, with a pilot already in their Training Bay, opens the link and joins:
  *     joining lands on the same Game's page.
- *  3. They move the pilot in from their Hangar (the page's single-choice
+ *  3. They move the pilot in from their Training Bay (the page's single-choice
  *     picker), and the roster lists it.
  *  4. Play opens that pilot's Cockpit.
  *
@@ -22,7 +22,7 @@ import { expect, test } from './fixtures'
 const GAME = 'The Glass Road'
 const PILOT = 'Bonesaw'
 
-test('a Game made in Play: invite, join, a pilot moved in from the Hangar, then Play', async ({
+test('a Game made in Play: invite, join, a pilot moved in from the Training Bay, then Play', async ({
   page,
   browser,
 }, info) => {
@@ -34,13 +34,13 @@ test('a Game made in Play: invite, join, a pilot moved in from the Hangar, then 
 
   const player = await secondAccount(browser, info)
   try {
-    // A pilot in the player's Hangar: Bonesaw, copied from the Starter Set.
+    // A pilot in the player's Training Bay: Bonesaw, copied from the Starter Set.
     await gotoStable(player.page, `/starter/pilot/starter-pilot-${PILOT.toLowerCase()}`)
     await waitForReady(player.page)
     await player.page.getByRole('button', { name: 'Make a copy', exact: true }).first().click()
     await player.page.getByRole('alertdialog').getByRole('button', { name: 'Make a copy' }).click()
     await expect(
-      player.page.getByText(new RegExp(`^Copied .*${PILOT}.* to your Hangar`)).first()
+      player.page.getByText(new RegExp(`^Copied .*${PILOT}.* to your Training Bay`)).first()
     ).toBeVisible({ timeout: 20_000 })
 
     // --- 2. Invite → join: joining lands on the Game's page in Play ---
@@ -52,9 +52,9 @@ test('a Game made in Play: invite, join, a pilot moved in from the Hangar, then 
       timeout: 20_000,
     })
 
-    // --- 3. Move the pilot in from the Hangar: one choice, one move ---
-    await player.page.getByRole('button', { name: '+ Move in from your Hangar' }).click()
-    const picker = player.page.getByRole('dialog', { name: 'Move in from your Hangar' })
+    // --- 3. Move the pilot in from the Training Bay: one choice, one move ---
+    await player.page.getByRole('button', { name: '+ Move in from your Training Bay' }).click()
+    const picker = player.page.getByRole('dialog', { name: 'Move in from your Training Bay' })
     await picker.getByRole('radio', { name: PILOT }).click()
     await picker.getByRole('button', { name: `Move ${PILOT} in` }).click()
     await expect(player.page.getByText(`Moved ${PILOT} to ${GAME}.`).first()).toBeVisible({

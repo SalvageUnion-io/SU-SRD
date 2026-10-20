@@ -197,7 +197,7 @@ async function show(value: string) {
 }
 
 describe('Showing', () => {
-  test('Not in a Game hides what is in one, and says why a Hangar is empty', async () => {
+  test('Not in a Game hides what is in one, and says why a Training Bay is empty', async () => {
     await renderShelves()
     const pilots = screen.getByRole('region', { name: 'Pilots' })
     expect(within(pilots).getByText('Rook')).toBeTruthy()
@@ -211,7 +211,7 @@ describe('Showing', () => {
     expect(screen.queryByText(/Tray Grunt/)).toBeNull()
   })
 
-  test('a Hangar whose every unit is in a Game says so', async () => {
+  test('a Training Bay whose every unit is in a Game says so', async () => {
     await useEntityStore.getState().forget('pilot', 'p-nia')
     await renderShelves()
     await show('not-in-game')
@@ -246,7 +246,7 @@ describe('a unit’s Game', () => {
 })
 
 describe('Crawlers', () => {
-  test('a Game’s crawler is in your Hangar only where you run the table', async () => {
+  test('a Game’s crawler is in your Training Bay only where you run the table', async () => {
     await renderShelves()
     const crawlers = screen.getByRole('region', { name: 'Crawlers' })
     expect(within(crawlers).getByText('Bulwark')).toBeTruthy()

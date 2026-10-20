@@ -59,7 +59,7 @@ function renderBonesaw() {
 }
 
 describe('Make a copy', () => {
-  test('asks first, then puts a build of the player’s own in their Hangar', async () => {
+  test('asks first, then puts a build of the player’s own in their Training Bay', async () => {
     const template = structuredClone(STARTER_PILOTS[0])
     renderBonesaw()
 
@@ -110,13 +110,13 @@ describe('Copy to… on the Starter Set page', () => {
     expect(sheet.contains(trigger)).toBe(false)
   })
 
-  test('offers Hangar and every Game the player is in', async () => {
+  test('offers Training Bay and every Game the player is in', async () => {
     renderPage()
     const menu = await openCopyTo('Bonesaw')
     const options = within(menu)
       .getAllByRole('menuitem')
       .map((o) => o.textContent)
-    expect(options).toEqual(['Hangar', 'The Long Haul'])
+    expect(options).toEqual(['Training Bay', 'The Long Haul'])
   })
 
   test('asks first, then makes Bonesaw a build of the player’s own in the chosen Game', async () => {

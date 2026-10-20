@@ -230,7 +230,7 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
             placement="band"
             link={AppLink}
             breadcrumbs={[
-              { name: 'Hangar', url: '/' },
+              { name: 'Training Bay', url: '/' },
               { name: mech.name, url: `/sheet/mech/${mech.id}` },
               { name: 'Save as pattern', url: `/mechs/patterns/new?from=${mech.id}` },
             ]}
@@ -293,7 +293,7 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
               checked={visibility === 'private'}
               onChange={() => setVisibilityChoice('private')}
               label="Only me"
-              description="Kept in your Hangar. Build mechs from it any time."
+              description="Kept in your Training Bay. Build mechs from it any time."
             />
             <Radio
               stacked

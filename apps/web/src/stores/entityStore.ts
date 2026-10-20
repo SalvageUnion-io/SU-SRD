@@ -306,7 +306,7 @@ function withoutLinksTo(links: readonly SoftLink[], ids: ReadonlySet<string>): S
  * There is no current container (ADR-052 §3): a unit's Game comes from the
  * unit, or from the wizard link that started it (`?game=<id>`), which puts it
  * on the input. An input that names its container keeps it; any other lands
- * in the Hangar. SoftLinks carry no container.
+ * in the Training Bay. SoftLinks carry no container.
  */
 function withContainer<T extends EntityType>(type: T, input: CreateInput<T>): CreateInput<T> {
   if (type === 'softLink') return input

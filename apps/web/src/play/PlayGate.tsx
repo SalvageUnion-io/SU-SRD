@@ -51,7 +51,7 @@ export function PlayGate({ id }: { id: string }) {
       <PlayRefusal
         title="Sign in to play"
         body="Play runs your Pilots, solo or in a Game. Sign in, then open Play and choose one."
-        link={{ href: '/', label: 'Hangar' }}
+        link={{ href: '/', label: 'Training Bay' }}
       />
     )
   }

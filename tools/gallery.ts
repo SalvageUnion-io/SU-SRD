@@ -19,7 +19,7 @@
  *   is the site default fetches that file from the same build.
  * - `--signed-in` signs a fresh account up through the test seam
  *   (`__appTestSignIn`, `apps/web/e2e/fixtures.ts`), copies Bonesaw, the
- *   Mazona and Tenacity from the Starter Set to its Hangar, starts a Game and
+ *   Mazona and Tenacity from the Starter Set to its Training Bay, starts a Game and
  *   moves Bonesaw in, then shoots the `signedIn` pages in that one browser
  *   context: the session's refresh token rotates on use, so a second context
  *   restored from it would be signed out.
@@ -220,7 +220,7 @@ async function seed(page: Page, base: string): Promise<Partial<Seeded>> {
     await page.getByRole('button', { name: 'Make a copy', exact: true }).first().click()
     await page.getByRole('alertdialog').getByRole('button', { name: 'Make a copy' }).click()
     await page
-      .getByText(/^Copied .* to your Hangar/)
+      .getByText(/^Copied .* to your Training Bay/)
       .first()
       .waitFor({ timeout: 20_000 })
   }

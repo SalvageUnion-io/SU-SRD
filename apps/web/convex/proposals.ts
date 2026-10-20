@@ -91,7 +91,9 @@ async function requireProposalTarget(
   const doc = await proposalTarget(ctx, entityType, entityId)
   if (doc === null) throw new ConvexError('That entity no longer exists')
   if (doc.gameId === null) {
-    throw new NotAuthorized('A build in a Hangar is not part of a Game and cannot be proposed to')
+    throw new NotAuthorized(
+      'A build in a Training Bay is not part of a Game and cannot be proposed to'
+    )
   }
   return { doc, gameId: doc.gameId }
 }

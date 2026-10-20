@@ -3,7 +3,7 @@
  *
  * One place per table, in the Manage context (ruleset §1.9): paper under the
  * `play` band, level 0, Slab sections, Rows that link. It lists a Game the
- * way the Hangar lists your things and puts everything you can do about the
+ * way the Training Bay lists your things and puts everything you can do about the
  * table below the lists, as board M2 draws it
  * (docs/architecture/play.md §16):
  *

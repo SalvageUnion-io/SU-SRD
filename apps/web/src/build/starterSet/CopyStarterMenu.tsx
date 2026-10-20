@@ -1,7 +1,7 @@
 /**
  * "Copy to…" on a Starter Set Row: a Mini action chip in the Row's last slot
  * (C8, hard rule R6) that opens a menu (`HeaderMenu`) of where the copy may
- * go — the Hangar, or one of the player's Games — and confirms.
+ * go — the Training Bay, or one of the player's Games — and confirms.
  *
  * The destinations are the ones a build of that kind may be **moved** to
  * (`moveDestinations`, which mirrors the server's ADR-037 rules): a pilot or

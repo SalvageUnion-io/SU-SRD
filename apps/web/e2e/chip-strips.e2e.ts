@@ -63,7 +63,7 @@ test('every chip strip is one size, one gap, its cost in the corner', async ({ p
  * Every context (hard rule R0): each of `designRoutes` (`_helpers.ts`),
  * signed in and seeded, at page and phone widths, Play's phone form tab by
  * tab. A fault's rule is its kind: `size`, `gap`, `flush`, `cost`, `clip`
- * or `lines`. The seeded Game's long name holds a Hangar Row's Game chip
+ * or `lines`. The seeded Game's long name holds a Training Bay Row's Game chip
  * inside its Row at a page's three columns (R3).
  *
  * `BASELINE` is the debt this pass found when it landed, by route family and

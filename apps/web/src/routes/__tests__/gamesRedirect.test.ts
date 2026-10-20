@@ -3,10 +3,10 @@ import { land, landOn } from './landOn'
 
 /**
  * Where a Game's addresses land, through the real generated route tree. No
- * route remembers a container (ADR-052 §3): `/` is the Hangar and a Game's page
+ * route remembers a container (ADR-052 §3): `/` is the Training Bay and a Game's page
  * is the Game its address names.
  *
- *  - `/` is the Hangar;
+ *  - `/` is the Training Bay;
  *  - `/games/$gameId` is retired: it redirects to the Game's page in Play
  *    (`retiredRoutes.test.ts` pins the redirect);
  *  - `/play/games/$gameId` is the Game's page;
@@ -18,7 +18,7 @@ import { land, landOn } from './landOn'
  */
 
 describe('/', () => {
-  test('is the Hangar', async () => {
+  test('is the Training Bay', async () => {
     expect(await land('/')).toEqual({ pathname: '/', leaf: '/' })
   })
 })

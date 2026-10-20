@@ -1,5 +1,5 @@
 /**
- * ContainerPicker — the one control that picks a container: your Hangar (the
+ * ContainerPicker — the one control that picks a container: your Training Bay (the
  * shelf) or one of your Games (ADR-030 §2). The host decides which containers
  * are offered (`moveDestinations` for a move, the Games you are in for
  * navigation) and what picking does; the picker only draws them, in the shape

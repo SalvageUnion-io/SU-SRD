@@ -38,7 +38,7 @@ describe('the shell’s Union bar', () => {
     expect(tabs[1]?.getAttribute('aria-current')).toBe('true')
   })
 
-  test('carries both modes’ navs: Build’s Hangar · Patterns · Starter Set, Play’s Games · Solo, Games a slot', () => {
+  test('carries both modes’ navs: Build’s Training Bay · Patterns · Starter Set, Play’s Games · Solo, Games a slot', () => {
     const nav = (mode: string) =>
       Array.from(
         bar().querySelector(`.su-union-bar__nav[data-mode="${mode}"]`)?.children ?? []
@@ -47,7 +47,7 @@ describe('the shell’s Union bar', () => {
     expect(nav('play')).toEqual(['games', '/build/play/#play-solo'])
   })
 
-  test('is served on Build’s front door: Build’s tab, Build’s nav, Hangar here', () => {
+  test('is served on Build’s front door: Build’s tab, Build’s nav, Training Bay here', () => {
     const doc = bar()
     expect(doc.querySelector('.su-union-bar')?.getAttribute('data-mode')).toBe('build')
     expect(
@@ -57,7 +57,7 @@ describe('the shell’s Union bar', () => {
       ])
     ).toEqual([
       ['Build', 'true'],
-      ['Hangar', 'page'],
+      ['Training Bay', 'page'],
     ])
   })
 

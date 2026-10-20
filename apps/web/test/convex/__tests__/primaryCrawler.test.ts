@@ -79,7 +79,7 @@ describe('moves — pilots and mechs', () => {
     expect(rows.mechs[0]?.gameId).toBe(gameId)
   })
 
-  test('…into any Game they belong to, and back out to their Hangar', async () => {
+  test('…into any Game they belong to, and back out to their Training Bay', async () => {
     const t = testConvex()
     const { organizer: o, player: p, gameId } = await seedTable(t)
     const second = await o.as.mutation(api.games.create, { name: 'Second table' })
@@ -180,7 +180,7 @@ describe('moves — crawlers are the table runner’s', () => {
     const other = await o.as.mutation(api.games.create, { name: 'Other' })
     await addCrawler(o, 'c1', gameId)
 
-    await expect(moveCrawler(o, 'c1', other)).rejects.toThrow(/your Hangar first/i)
+    await expect(moveCrawler(o, 'c1', other)).rejects.toThrow(/your Training Bay first/i)
   })
 
   test('a field patch never moves a crawler — its gameId is ignored', async () => {

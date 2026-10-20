@@ -29,7 +29,7 @@ import { SignInControl } from './SignInControl'
  * Games menu (`build/entityContainer/GamesMenu.tsx`), each opening a Game's
  * page (ADR-052 §4).
  *
- * It wears the Hangar's clothes (`build/shelves/Shelves.tsx`): the ink
+ * It wears the Training Bay's clothes (`build/shelves/Shelves.tsx`): the ink
  * band on the workshop ground, the 75rem column, and each concern a section
  * under a solid Slab stamp, one full-width row each.
  *
@@ -52,7 +52,7 @@ const NOTE = { margin: 0, textAlign: 'left' } satisfies CSSProperties
 
 const GROW = { flex: '1 1 12rem', maxWidth: '24rem', minWidth: 0 } satisfies CSSProperties
 
-/** The Hangar's action type: uppercase display face at page-action height. */
+/** The Training Bay's action type: uppercase display face at page-action height. */
 const ACTION = 'su-shelves-action'
 
 function download(filename: string, data: unknown): void {

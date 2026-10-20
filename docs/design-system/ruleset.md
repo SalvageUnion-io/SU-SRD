@@ -14,7 +14,7 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
    - **Rules · Salvaging**, rules blue `--color-wk-line`: Home, Core Rules, Salvaging, Guides, Keywords.
    - **Pilot Bay**, `--color-pilot`: Classes, Abilities, Equipment, app pilots. **Mech Workshop**, `--color-mech`: Chassis, Systems, Modules, app mechs.
    - **Union Crawler**, `--color-crawler`: Crawlers, Bays, Crawler TLs, app crawlers. **Denizens**, `--color-denizen-band`: Bio-Titans, Creatures, NPCs, Squads (cards: adversary brown).
-   - Off-book: Shelves ink, paper flecks (§3.5); `build`/`play` bands; Home's Discord button `--color-discord`.
+   - Off-book: `build`/`play` bands; Home's Discord button `--color-discord`.
 7. **Deliberate departures** — generated, placed texture (§3.5); the ability-tree track stays a diagram (§3.10); ability Rows wear their tier (E12); rounding only where the book rounds (§4.4).
 
 ## The laws
@@ -34,7 +34,7 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
    7. **Page — the entity's own route** — on desktop the hero floats and the opening, stats, actions and nested cards flow around it, then run full width, flush with the column.
       The body starts under the band at any length (a short page is never centred); level-1 blocks sit one 12px gap apart.
    8. **Entity forms** — Mention, Token, Row, Card, Page, their modes and rules E1–E20: [entity-display-language.md](entity-display-language.md).
-   9. **Manage — the owner's desk** — the Hangar, the Play hub, a Game's page, the invite screen: paper under the area's band (Build ink, Play `play`), level 0, Slab sections, Rows that link (a Game, seat or proposal too).
+   9. **Manage — the owner's desk** — the Training Bay, the Play hub, a Game's page, the invite screen: paper under the area's band (Build `build`, Play `play`), level 0, Slab sections, Rows that link (a Game, seat or proposal too).
       No stepper or in-place edit; acts are Buttons in a Row's chip group or under a Slab, destruction `confirm`. Rust is a door into play or a make (Play, Mediate, New Game); Open and filters are ink.
 2. **§2 The rendering matrix** — each role maps to one primitive per surface (Reference → Live Sheet → Play → Listing → Peek).
    1. **Vitals** — `VitalGauge`: sheet skin, Play's compact instrument, compact in the Peek; a `Stat` cell in listings. TP is a counter (no cap, no gauge).
@@ -63,7 +63,7 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
       A full page adds a hard-stop hatched band, a dashed notch and a maker banner. One `userMade` flag (+ `madeBy`); canon-built units stay solid.
    10. **§3.10 No left-rail borders** — colour rides in top bands, stamps and gauges; nesting shows by containment.
    11. **§3.11 One union, two tools** — one Union bar; the switcher reads Reference | Build | Play; Build (the Training Bay) and Play (the Cantina) name their pages; the bar and the footer wear the leading band's colour in every mode, front pages too (no band: the area's), with no rule between bar and page; no off-site arrows between the two.
-       Each mode has its nav (Build: Hangar, Patterns, Starter Set; Play: Games ▾, Solo), the current one in ink from first paint.
+       Each mode has its nav (Build: Training Bay, Patterns, Starter Set; Play: Games ▾, Solo), the current one in ink from first paint.
    12. **§3.12 Microcopy** — sentence case ("Make a copy"); game terms keep the book's casing ("End Downtime"), as do Game, Shelf and the roles ([glossary](../architecture/glossary.md)).
        Caps only through the stamp (`Badge shape="stamp"`) and `Button`, which sets every label in condensed caps. Verbs: Copy, Move, Delete, Break down; Scrap is the currency, never the verb (p.248).
 4. **§4 Foundations** — the token layer, one home: `apps/web/src/styles/theme.css`.

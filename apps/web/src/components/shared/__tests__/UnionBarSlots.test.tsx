@@ -51,7 +51,7 @@ describe('UnionBarSlots', () => {
         mobileActions={button('Avatar')}
       />
     )
-    expect(entries(navOf('Build'))).toEqual(['Hangar', 'Patterns', 'Starter Set'])
+    expect(entries(navOf('Build'))).toEqual(['Training Bay', 'Patterns', 'Starter Set'])
     expect(entries(navOf('Play'))).toEqual(['Games', 'Solo'])
     const header = within(screen.getByRole('banner'))
     const search = header.getByRole('button', { name: 'Search' })
@@ -69,7 +69,7 @@ describe('UnionBarSlots', () => {
     const { rerender } = render(<UnionBarSlots pathname="/starter/" />)
     expect(currentIn('Build')).toEqual(['Starter Set'])
     rerender(<UnionBarSlots pathname="/" />)
-    expect(currentIn('Build')).toEqual(['Hangar'])
+    expect(currentIn('Build')).toEqual(['Training Bay'])
     rerender(<UnionBarSlots pathname="/mechs/patterns/new" />)
     expect(currentIn('Build')).toEqual(['Patterns'])
     rerender(<UnionBarSlots pathname="/pilots/new" />)
@@ -146,12 +146,12 @@ describe('UnionBarSlots', () => {
     )
     const { drawer, names } = drawerLinks()
     expect(drawer.getByRole('link', { name: 'Salvage Union SRD' }).getAttribute('href')).toBe('/')
-    const hangar = drawer.getByRole('link', { name: 'Hangar' })
+    const hangar = drawer.getByRole('link', { name: 'Training Bay' })
     // The page you are on is an ink plate, never the rust primary.
     expect(hangar.getAttribute('aria-current')).toBe('page')
     expect(hangar.className).toContain('su-btn--here')
     expect(names).toEqual([
-      'Hangar',
+      'Training Bay',
       'Patterns',
       'Starter Set',
       'About',
@@ -223,7 +223,7 @@ describe('the bar’s rules', () => {
     expect(hidesUnionBar('/play/game/g1')).toBe(true)
   })
 
-  test('Hangar is here only at the root; Starter Set on every page under it', () => {
+  test('Training Bay is here only at the root; Starter Set on every page under it', () => {
     expect(isCurrent('/', '/')).toBe(true)
     expect(isCurrent('/', '/starter/')).toBe(false)
     expect(isCurrent('/starter/', '/starter/pilot/x')).toBe(true)

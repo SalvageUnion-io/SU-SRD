@@ -33,7 +33,7 @@ export function PlayMediatorGate({ gameId }: { gameId: string }) {
       <PlayRefusal
         title="Sign in to run your Game"
         body="The Mediator runs a Game from Play. Sign in, then open Play and choose Mediate."
-        link={{ href: '/', label: 'Hangar' }}
+        link={{ href: '/', label: 'Training Bay' }}
       />
     )
   }

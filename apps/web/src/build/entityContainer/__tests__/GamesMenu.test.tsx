@@ -6,7 +6,7 @@ import type { ReactNode } from 'react'
  * The masthead's Games menu (desktop) and its drawer list (mobile).
  *
  * What these pin: the list is every Game with the player's role in it, and
- * no Hangar row, and picking a row opens that Game's page in Play
+ * no Training Bay row, and picking a row opens that Game's page in Play
  * (`/play/games/$gameId`, ADR-052 §5). Outside Connected there is no menu at
  * all.
  */
@@ -53,7 +53,7 @@ afterEach(() => {
 afterAll(convexMocks.restore)
 
 describe('GamesMenu', () => {
-  test('is a menu button listing each Game with its role, and no Hangar', async () => {
+  test('is a menu button listing each Game with its role, and no Training Bay', async () => {
     setQueryAnswers({ 'games:listMine': GAMES })
     wrap(<GamesMenu />)
 
@@ -119,11 +119,11 @@ describe('GamesDrawerList', () => {
     expect(closed).toBe(1)
   })
 
-  test('with no Games it says there are none, and offers no Hangar row', () => {
+  test('with no Games it says there are none, and offers no Training Bay row', () => {
     setQueryAnswers({ 'games:listMine': [] })
     wrap(<GamesDrawerList onPick={() => {}} />)
 
-    expect(screen.queryByRole('button', { name: 'Hangar' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Training Bay' })).toBeNull()
     expect(screen.getByText('No Games yet.')).toBeTruthy()
   })
 })

@@ -124,7 +124,7 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
     'mediator:amMediator': false,
     'proposals:sent': [],
-    // "Move in from your Hangar" checks its moves against your Games.
+    // "Move in from your Training Bay" checks its moves against your Games.
     'games:listMine': [],
     ...over,
   }
@@ -235,7 +235,7 @@ describe('the sections under the roster (board M2)', () => {
     expect(dialog.textContent).toContain('It cannot be undone')
     expect(dialog.textContent).toContain('4 pilots and 3 mechs go back to whoever owns them')
     expect(dialog.textContent).toContain(
-      'Hamlet and anything unclaimed come to you, in your Hangar'
+      'Hamlet and anything unclaimed come to you, in your Training Bay'
     )
     expect(mutations).toHaveLength(0)
 
@@ -250,7 +250,9 @@ describe('the sections under the roster (board M2)', () => {
     await renderHub({ 'games:get': { ...GAME, organizer: true, crawlerName: null, pilotCount: 0 } })
     fireEvent.click(screen.getByRole('button', { name: 'Delete this Game' }))
 
-    expect(screen.getByText(/^Anything unclaimed comes to you, in your Hangar\.$/)).toBeTruthy()
+    expect(
+      screen.getByText(/^Anything unclaimed comes to you, in your Training Bay\.$/)
+    ).toBeTruthy()
     // With no pilots there is no "0 pilots" line to read past.
     expect(screen.queryByText(/0 pilots/)).toBeNull()
   })

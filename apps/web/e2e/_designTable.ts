@@ -146,7 +146,7 @@ export const designRoutes: readonly DesignRoute[] = [
   { family: 'wizard-mech', path: at('/mechs/new?mode=guided'), widths: BOTH },
   { family: 'wizard-crawler', path: at('/crawlers/new'), widths: BOTH },
   { family: 'wizard-crawler', path: at('/crawlers/new?mode=guided'), widths: BOTH },
-  // Manage: the Hangar, the Play hub, a Game's page, the invite screen.
+  // Manage: the Training Bay, the Play hub, a Game's page, the invite screen.
   { family: 'hangar', path: at('/'), widths: BOTH },
   { family: 'play-hub', path: at('/play/'), widths: BOTH },
   { family: 'game-page', path: ':game', widths: BOTH },

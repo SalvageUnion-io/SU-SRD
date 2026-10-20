@@ -1,9 +1,9 @@
 /**
- * What each item in the Hangar says (board S1) — pure, so the page only lays
+ * What each item in the Training Bay says (board S1) — pure, so the page only lays
  * it out.
  *
- * The Hangar is everything a player owns, on their account (ADR-052 §1–2): a
- * unit in a Game stays in their Hangar too, so the page lists every pilot,
+ * The Training Bay is everything a player owns, on their account (ADR-052 §1–2): a
+ * unit in a Game stays in their Training Bay too, so the page lists every pilot,
  * mech and crawler of theirs this browser holds, wherever it is, and names its
  * Game in a relation chip. The "Showing" select narrows that to what is in no
  * Game, or to one Game's.
@@ -37,7 +37,7 @@ export type ShelfFilter = 'everything' | 'not-in-game' | `game:${string}`
 export type ShelfGame = { _id: string; name: string; mediator: boolean }
 
 /**
- * The Hangar's "Showing" choices, in order: Everything, Not in a Game, then one
+ * The Training Bay's "Showing" choices, in order: Everything, Not in a Game, then one
  * entry per Game (ADR-052 §1). With no Game list to ask, the first two alone.
  */
 export function shelfFilters(
@@ -79,11 +79,11 @@ export function shownUnder(filter: ShelfFilter, entity: ContainerFields): boolea
 }
 
 /**
- * Whether a cached crawler is one you keep. A crawler in your Hangar is; one in
+ * Whether a cached crawler is one you keep. A crawler in your Training Bay is; one in
  * a Game is the crew's, and this browser caches the crawler of every Game you
  * are in (`WiringSync`), so it is yours to keep only where you run the table.
  * With no Game list to ask (offline, or still loading), it is shown rather
- * than hidden: hiding a build is the one mistake a Hangar must not make.
+ * than hidden: hiding a build is the one mistake a Training Bay must not make.
  */
 export function crawlerIsKept(
   crawler: ContainerFields,
@@ -227,7 +227,7 @@ export function linkChip(sharedByLink: readonly string[] | undefined, id: string
 
 /**
  * Who can see an NPC: anyone with the link once its owner shares it so; else
- * nobody but you while it is in your Hangar. In a Game the table sees it, which
+ * nobody but you while it is in your Training Bay. In a Game the table sees it, which
  * its Game relation (`gameRelation`) already says, so no chip repeats it.
  */
 export function npcChips(args: { npc: Pick<Npc, 'gameId'>; sharedByLink?: boolean }): ShelfChip[] {
@@ -236,7 +236,7 @@ export function npcChips(args: { npc: Pick<Npc, 'gameId'>; sharedByLink?: boolea
   return []
 }
 
-/** The personal tray's NPCs live in the Hangar alone, so only the owner sees them. */
+/** The personal tray's NPCs live in the Training Bay alone, so only the owner sees them. */
 export function encounterNpcChips(): ShelfChip[] {
   return [{ key: 'who', label: 'Only me' }]
 }

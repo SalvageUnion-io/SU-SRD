@@ -75,8 +75,12 @@ test('siblings on one line share one height', async ({ page }) => {
  * on the front door and Patterns, Play's on the hub.
  */
 const BAR_ROUTES = [
-  { path: '/build/', mode: 'build', nav: ['Hangar', 'Patterns', 'Starter Set'] },
-  { path: '/build/mechs/patterns/', mode: 'build', nav: ['Hangar', 'Patterns', 'Starter Set'] },
+  { path: '/build/', mode: 'build', nav: ['Training Bay', 'Patterns', 'Starter Set'] },
+  {
+    path: '/build/mechs/patterns/',
+    mode: 'build',
+    nav: ['Training Bay', 'Patterns', 'Starter Set'],
+  },
   { path: '/build/play/', mode: 'play', nav: ['Solo'] },
 ] as const
 
@@ -236,7 +240,7 @@ signedIn('Play: the bar, unit boxes and action rows share one height', async ({ 
  *   the phone form is up (ADR-045 decision 1), and every tab is scanned.
  *
  * Then, under a coarse pointer (a touch phone), every menu item a seeded page
- * opens is on the 44px floor (§4.6): the Hangar's ⋯ and the Play bar's.
+ * opens is on the 44px floor (§4.6): the Training Bay's ⋯ and the Play bar's.
  *
  * No baseline: a finding fails.
  */

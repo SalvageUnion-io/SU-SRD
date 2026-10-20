@@ -40,7 +40,7 @@ type PickDialogProps = {
   description?: string
   /** What is on offer; undefined while it loads. An empty group is left out. */
   groups: readonly PickGroup[] | undefined
-  /** What is loading, for `Pending` ("your Hangar"). */
+  /** What is loading, for `Pending` ("your Training Bay"). */
   loading?: string
   /** What it says when nothing is on offer (chrome K8). */
   empty: string
@@ -96,7 +96,7 @@ const NOTE = {
  * ink ring and the "Selected" seal), each run of them under its Slab, then
  * Cancel and the primary act in `DialogActions`. Nothing on offer is one
  * `EmptyState` (K8). Assigning a unit to a slot, moving one in from the
- * Hangar and choosing the pilot to play are each this dialog with their own
+ * Training Bay and choosing the pilot to play are each this dialog with their own
  * choices and act.
  */
 export function PickDialog({

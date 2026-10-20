@@ -6,7 +6,7 @@
  * two real containers. Moving INTO a Game is one tap unless it clears an
  * assignment; moving OUT of one — back to your shelves, or on to another Game —
  * always asks first. The hub's rows offer the same moves (`MoveToGameSelect`,
- * and "Move to your Hangar" on a Game's rows).
+ * and "Move to your Training Bay" on a Game's rows).
  *
  * ## When a move asks
  *
@@ -52,7 +52,7 @@
  *
  * ## Solo renders nothing
  *
- * With no account there is only the Hangar, so there is nowhere to move to,
+ * With no account there is only the Training Bay, so there is nowhere to move to,
  * and the Convex read would have no provider.
  */
 
@@ -152,7 +152,7 @@ function ConnectedMoveToContainerControl({
         <ContainerPicker
           variant="select"
           id={`container-move-${entityId}`}
-          label="Move to a Game or your Hangar"
+          label="Move to a Game or your Training Bay"
           value={current}
           choices={destinations}
           onPick={(choice) => handlePick(choice.container)}

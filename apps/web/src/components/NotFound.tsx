@@ -11,7 +11,7 @@ type NotFoundProps = {
   search: ReactNode
   /** The "did you mean" (`DidYouMeanIsland`), the same way. */
   didYouMean: ReactNode
-  /** An exit back into the app it was opened from (the app's Hangar). */
+  /** An exit back into the app it was opened from (the app's Training Bay). */
   back?: ReactNode
 }
 

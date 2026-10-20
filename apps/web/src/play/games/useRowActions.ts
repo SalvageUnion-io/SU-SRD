@@ -105,7 +105,7 @@ export function useRowActions(confirm: Confirm): RowActions {
               row.kind === 'pilot' ? 'pilot' : 'mech',
               copyForShelf(row.body, row.name) as never
             )
-          toast.success(`Copied ${created.name} to your Hangar.`)
+          toast.success(`Copied ${created.name} to your Training Bay.`)
         },
       }),
 
@@ -128,7 +128,7 @@ export function useRowActions(confirm: Confirm): RowActions {
           // Unreachable from the hub, which offers this only once the copy has
           // arrived — so reaching it is a defect, and the confirm reports it.
           if (row.localId === null)
-            throw new Error('Move to your Hangar offered with no local copy')
+            throw new Error('Move to your Training Bay offered with no local copy')
           await useEntityStore
             .getState()
             .update(row.kind, row.localId, moveTo(SHELF), CONTAINER_MOVE)

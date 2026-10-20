@@ -4,7 +4,7 @@ import { createGame } from './_table'
 import { expect, test } from './fixtures'
 
 /**
- * The Hangar — everything you own (board S1, ADR-052 §1).
+ * The Training Bay — everything you own (board S1, ADR-052 §1).
  *
  * Signed in (the default `test` from `fixtures.ts`), so each spec SKIPS with a
  * stated reason in a build with no test sign-in seam and runs for real in the
@@ -14,7 +14,7 @@ import { expect, test } from './fixtures'
 async function openShelves(page: Page): Promise<void> {
   await gotoStable(page, '/')
   await waitForReady(page)
-  await expect(page.getByRole('heading', { level: 1, name: 'Hangar' })).toBeVisible({
+  await expect(page.getByRole('heading', { level: 1, name: 'Training Bay' })).toBeVisible({
     timeout: 15_000,
   })
 }
@@ -30,7 +30,7 @@ async function show(page: Page, option: string): Promise<void> {
   await page.getByLabel('Showing').selectOption({ label: option })
 }
 
-test('move a unit into a Game and back: it never leaves the Hangar', async ({ page }) => {
+test('move a unit into a Game and back: it never leaves the Training Bay', async ({ page }) => {
   await buildPilot(page, 'Shelf Runner', 'Runner')
 
   // A Game to move it into, started on the Play hub.
@@ -55,7 +55,7 @@ test('move a unit into a Game and back: it never leaves the Hangar', async ({ pa
   await expect(chip).toBeVisible({ timeout: 15_000 })
   await expect(chip).toHaveAttribute('href', new RegExp(`/play/games/${gameId}$`))
 
-  // Still in the Hangar under Everything and under its Game; under Not in a Game it is not.
+  // Still in the Training Bay under Everything and under its Game; under Not in a Game it is not.
   await show(page, 'Not in a Game')
   await expect(pilots.getByText('Shelf Runner')).toHaveCount(0)
   await show(page, 'Dustbowl Run')

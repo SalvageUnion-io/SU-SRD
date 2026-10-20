@@ -1,7 +1,7 @@
 /**
  * The app's unmatched route draws the site's own 404 (`NotFound`): the
  * heading, the search, the guesses and the chapters the static `/404` shows,
- * plus the way back to the Hangar. Rendered with no router, so `AppLink` is a
+ * plus the way back to the Training Bay. Rendered with no router, so `AppLink` is a
  * plain anchor.
  */
 import type { Mock } from 'bun:test'
@@ -65,9 +65,9 @@ describe('RouteNotFound', () => {
     expect(guess.getAttribute('href')).toBe('/chassis/gopher/')
   })
 
-  test('leads back to the Hangar', async () => {
+  test('leads back to the Training Bay', async () => {
     await renderAt('/')
-    const back = screen.getByRole('link', { name: /Back to Hangar/ })
+    const back = screen.getByRole('link', { name: /Back to Training Bay/ })
     expect(back.getAttribute('href')).toBe('/')
   })
 })

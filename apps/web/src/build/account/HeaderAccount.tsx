@@ -10,7 +10,7 @@ import { SignInControl } from './SignInControl'
  * wired to Convex here so `src/components` stays persistence-agnostic.
  *
  * There is no sub-header: Games sits in Play's nav (Games · Solo; Build's,
- * Hangar · Patterns · Starter Set, has none), and the account is the menu at
+ * Training Bay · Patterns · Starter Set, has none), and the account is the menu at
  * the bar's end:
  *
  * | Where                      | Signed in (Connected)    | Signed in (offline) | Signed out           |

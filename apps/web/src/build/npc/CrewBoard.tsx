@@ -87,7 +87,7 @@ const WIDE_QUERY = tokens.widthAtLeast('md')
 
 /** The Game rule, said where an assignment would be made (D7). */
 const GAME_RULE =
-  'In a Game, only the Mediator assigns crawler crew, because the crawler is theirs. Players design an NPC in their Hangar and offer it by moving it into the Game.'
+  'In a Game, only the Mediator assigns crawler crew, because the crawler is theirs. Players design an NPC in their Training Bay and offer it by moving it into the Game.'
 
 /** The phone modal's body: the gutter and rhythm the wide column gets from the page. */
 const MODAL_BODY = {
@@ -145,7 +145,7 @@ export function CrewBoard({ crawlerId, slot: slotArg, madeBy, onSelect }: CrewBo
           ) : candidates.length === 0 ? (
             <EmptyState
               variant="quiet"
-              body="You have no crawler to crew here. A crawler in your Hangar is yours to crew; in a Game, only the Mediator assigns crawler crew. Design an NPC under Any NPC and move it into the Game to offer it."
+              body="You have no crawler to crew here. A crawler in your Training Bay is yours to crew; in a Game, only the Mediator assigns crawler crew. Design an NPC under Any NPC and move it into the Game to offer it."
             />
           ) : (
             <Field label="Crawler" htmlFor="crew-crawler">
@@ -274,8 +274,8 @@ function CrewSlots({
         </p>
         {!writer && (
           <p style={NOTE}>
-            Only the Mediator assigns crawler crew. Design an NPC in your Hangar and move it into
-            this Game to offer it.
+            Only the Mediator assigns crawler crew. Design an NPC in your Training Bay and move it
+            into this Game to offer it.
           </p>
         )}
         <ul style={LIST} aria-label={`${crawler.name} crew slots`}>

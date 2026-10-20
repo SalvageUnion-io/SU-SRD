@@ -4,11 +4,11 @@ import { Roster } from '../build/roster/Roster'
 import { areaTitle } from '../lib/pageTitle'
 
 /**
- * `/` — the Hangar: everything you own, in a Game or not (ADR-052 §1). Signed
+ * `/` — the Training Bay: everything you own, in a Game or not (ADR-052 §1). Signed
  * out it is the front door.
  */
 export const Route = createFileRoute('/')({
-  head: () => ({ meta: [{ title: areaTitle(PRODUCT.build, 'Hangar') }] }),
+  head: () => ({ meta: [{ title: areaTitle(PRODUCT.build) }] }),
   component: IndexPage,
 })
 

@@ -151,11 +151,11 @@ describe('Button', () => {
     test('back draws BackLabel at the Size: read "Back to <place>"', () => {
       render(
         <Button href="/" back size="compact">
-          Hangar
+          Training Bay
         </Button>
       )
-      const link = screen.getByRole('link', { name: 'Back to Hangar' })
-      expect(link.textContent).toBe('Back to Hangar')
+      const link = screen.getByRole('link', { name: 'Back to Training Bay' })
+      expect(link.textContent).toBe('Back to Training Bay')
       expect(link.querySelector('svg')?.getAttribute('width')).toBe('14')
     })
   })

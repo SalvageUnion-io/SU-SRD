@@ -163,7 +163,7 @@ export function Sheet({
   store = useEntityStore,
   readOnly: readOnlyProp = false,
   crawlerReadOnly = false,
-  back = { href: '/', label: 'Hangar' },
+  back = { href: '/', label: 'Training Bay' },
   pilotAbilities,
   others,
   hrefFor = sheetPath,

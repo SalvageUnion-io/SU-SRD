@@ -54,7 +54,7 @@ export function MakeACopy({ kind, templateId, name, confirm }: MakeACopyProps) {
         confirm({
           title: `Make a copy of ${name}?`,
           body: [
-            `This puts a copy of ${name} in your Hangar, a build of your own to edit and play.`,
+            `This puts a copy of ${name} in your Training Bay, a build of your own to edit and play.`,
             `The Starter Set's ${name} stays as ${STARTER_SET_PUBLISHER} published it.`,
           ],
           confirmLabel: 'Make a copy',
@@ -63,7 +63,7 @@ export function MakeACopy({ kind, templateId, name, confirm }: MakeACopyProps) {
           failure: `${name} could not be copied. Try again.`,
           onConfirm: async () => {
             await copyStarter(kind, templateId, SHELF)
-            toast.success(`Copied ${name} to your Hangar.`)
+            toast.success(`Copied ${name} to your Training Bay.`)
           },
         })
       }

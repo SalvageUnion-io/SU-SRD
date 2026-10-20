@@ -2,7 +2,7 @@
  * StarterSetGrid — the Starter Set's thirteen builds as the front door lays
  * them out: a column per kind (pilots, mechs, the crawler), each under its own
  * Slab, every build a `StarterCard`. The front door shows it signed out; the
- * Hangar shows the same grid, folded, under your own builds (owner,
+ * Training Bay shows the same grid, folded, under your own builds (owner,
  * 2026-10-15).
  */
 

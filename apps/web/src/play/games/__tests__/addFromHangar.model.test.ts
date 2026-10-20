@@ -1,5 +1,5 @@
 /**
- * `hangarChoices` — what "Move in from your Hangar" offers on a Game's page: only
+ * `hangarChoices` — what "Move in from your Training Bay" offers on a Game's page: only
  * units the move would accept (ADR-037 via `moveDestinations`), each with the
  * relation chips that show what the move touches.
  */
@@ -25,7 +25,7 @@ function choices(over: Partial<Parameters<typeof hangarChoices>[0]> = {}) {
 }
 
 describe('hangarChoices', () => {
-  test('a pilot or mech comes from the Hangar or another Game, never from this one', () => {
+  test('a pilot or mech comes from the Training Bay or another Game, never from this one', () => {
     const { pilot } = choices({
       pilots: [
         { id: 'p1', name: 'Kestrel', gameId: null },
@@ -34,7 +34,7 @@ describe('hangarChoices', () => {
       ],
     })
     expect(pilot.map((c) => c.name)).toEqual(['Kestrel', 'Skiv'])
-    // From the Hangar there is no Game to leave: the lane is empty (C6).
+    // From the Training Bay there is no Game to leave: the lane is empty (C6).
     expect(pilot[0]?.relations).toEqual([])
     expect(pilot[1]?.relations).toEqual([
       { key: 'game', label: 'Game', value: 'Frostline', href: '/play/games/g2' },
@@ -58,14 +58,14 @@ describe('hangarChoices', () => {
     expect(mech[0]?.relations.map((r) => `${r.label}|${r.value}`)).toEqual(['Pilot|Kestrel'])
   })
 
-  test('a crawler comes only from the Hangar, into a Game you run', () => {
+  test('a crawler comes only from the Training Bay, into a Game you run', () => {
     const crawlers = [
       { id: 'c1', name: 'Iron Mother', gameId: null },
       { id: 'c2', name: 'Tenacity', gameId: 'g2' },
     ]
     // You do not run g1: no crawler may move in.
     expect(choices({ crawlers }).crawler).toEqual([])
-    // You run g1: the Hangar's crawler may; one in another Game never (no Game to Game).
+    // You run g1: the Training Bay's crawler may; one in another Game never (no Game to Game).
     const running = GAMES.map((g) => ({ ...g, tableRunner: true }))
     expect(choices({ crawlers, games: running }).crawler.map((c) => c.name)).toEqual([
       'Iron Mother',

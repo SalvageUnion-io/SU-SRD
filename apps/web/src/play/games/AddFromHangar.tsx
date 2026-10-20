@@ -1,5 +1,5 @@
 /**
- * AddFromHangar — "+ Move in from your Hangar" under a Game's roster (ADR-052 §5,
+ * AddFromHangar — "+ Move in from your Training Bay" under a Game's roster (ADR-052 §5,
  * wireframe add-from-hangar): a single-choice picker of your units that could
  * move into this Game, then the same move Build's "Move to a Game…" makes
  * (`requestMove`), one unit per add.
@@ -95,15 +95,15 @@ export function AddFromHangar({ gameId, gameName, confirm }: AddFromHangarProps)
             setOpen(true)
           }}
         >
-          + Move in from your Hangar
+          + Move in from your Training Bay
         </Button>
       </div>
       <PickDialog
         open={open}
         onOpenChange={setOpen}
-        title="Move in from your Hangar"
+        title="Move in from your Training Bay"
         description={`Choose one of your units to move into ${here}.`}
-        loading="your Hangar"
+        loading="your Training Bay"
         groups={
           choices === null
             ? undefined
@@ -120,7 +120,7 @@ export function AddFromHangar({ gameId, gameName, confirm }: AddFromHangarProps)
                 })),
               }))
         }
-        empty={`Nothing in your Hangar can move into ${here}. Create a unit for it from the roster.`}
+        empty={`Nothing in your Training Bay can move into ${here}. Create a unit for it from the roster.`}
         selected={picked}
         onSelect={setPicked}
         confirmLabel={chosen === null ? 'Move in' : `Move ${chosen.name} in`}

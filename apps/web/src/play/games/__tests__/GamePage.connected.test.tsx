@@ -5,7 +5,7 @@ import { createElement } from 'react'
 /**
  * Who may open a Game's page (`/play/games/$gameId`, ADR-052 §5), in each
  * storage mode: signed out, sign in; connecting, a beat; offline, a line and
- * the way to the Hangar; connected, the page itself (`GameHub`, stubbed: its
+ * the way to the Training Bay; connected, the page itself (`GameHub`, stubbed: its
  * own file pins what it shows).
  *
  * Queries are answered by name (`convexMock.ts`).
@@ -58,13 +58,15 @@ describe('GamePage', () => {
     expect(screen.getByText(/your session/)).toBeTruthy()
   })
 
-  test('offline, it says so and points at the Hangar', () => {
+  test('offline, it says so and points at the Training Bay', () => {
     setQueryAnswers({})
     renderAs('disconnected')
     expect(
       screen.getByRole('heading', { name: 'This Game opens once you are back online' })
     ).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'Back to Hangar' }).getAttribute('href')).toBe('/')
+    expect(screen.getByRole('link', { name: 'Back to Training Bay' }).getAttribute('href')).toBe(
+      '/'
+    )
   })
 
   test('connected, it is the Game’s page', () => {

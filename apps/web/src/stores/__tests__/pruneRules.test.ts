@@ -15,7 +15,7 @@
 import { describe, expect, test } from 'bun:test'
 import { rowMayBePruned } from '../pruneRules'
 
-describe('a Hangar row, or a Game row this browser knows is mine', () => {
+describe('a Training Bay row, or a Game row this browser knows is mine', () => {
   test('a Game row is not pruned on absence alone', () => {
     // An unclaimed pre-gen or the communal crawler: owned by nobody, and
     // therefore never returned by a query scoped to what the caller owns.
@@ -29,7 +29,7 @@ describe('a Hangar row, or a Game row this browser knows is mine', () => {
     expect(rowMayBePruned({ gameId: 'g1' }, true)).toBe(true)
   })
 
-  test('a Hangar row is prunable', () => {
+  test('a Training Bay row is prunable', () => {
     expect(rowMayBePruned({ gameId: null }, false)).toBe(true)
   })
 })

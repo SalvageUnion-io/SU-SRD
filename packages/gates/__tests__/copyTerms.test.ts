@@ -217,15 +217,17 @@ describe('lintCopy', () => {
     ])
   })
 
-  test('bans a unit move worded other than Move, and SRD for the Reference (R16)', () => {
+  test('bans a unit move worded other than Move, SRD for the Reference and the Hangar (R16)', () => {
     const r = lintCopy(
       [
         ...at('Remove from Game'),
-        ...at('+ Add from your Hangar'),
+        ...at('+ Add from your Training Bay'),
         ...at('Search the SRD'),
         ...at('View in SRD'),
-        ...at('Move to your Hangar'),
-        ...at('Move in from your Hangar'),
+        ...at('Move to your Training Bay'),
+        ...at('Move in from your Training Bay'),
+        ...at('Back to Hangar'),
+        ...at('In hangar'),
         ...at('Salvage Union SRD and Character Manager'),
         ...at('This is a System Reference Document (SRD) for the game.'),
         ...at('SRD'),
@@ -235,9 +237,10 @@ describe('lintCopy', () => {
     )
     expect(r['banned-variant']?.map((f) => f.detail.split(':')[0])).toEqual([
       '"Remove from Game"',
-      '"Add from your Hangar"',
+      '"Add from your Training Bay"',
       '"SRD"',
       '"SRD"',
+      '"Hangar"',
     ])
   })
 

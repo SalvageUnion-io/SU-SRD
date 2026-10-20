@@ -7,7 +7,7 @@
  *  - **Connected:** the page (`GameHub`), which `games.get` answers live: a
  *    Game you are not in reads as an explanation.
  *  - **Disconnected:** a Game is the server's record, so its page waits for the
- *    connection; your own builds stay in the Hangar.
+ *    connection; your own builds stay in the Training Bay.
  *
  * The phone's Pilot/Mech/Crawler switch is kept here, so a remount of the hub
  * keeps the column a player picked.
@@ -38,8 +38,8 @@ export function GamePage({ gameId }: { gameId: string }) {
     return (
       <PlayRefusal
         title="This Game opens once you are back online"
-        body="A Game's page is read from the server. Your own builds stay in the Hangar meanwhile."
-        link={{ href: '/', label: 'Hangar' }}
+        body="A Game's page is read from the server. Your own builds stay in the Training Bay meanwhile."
+        link={{ href: '/', label: 'Training Bay' }}
       />
     )
   }

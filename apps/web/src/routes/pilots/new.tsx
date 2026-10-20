@@ -40,7 +40,7 @@ function NewPilotRoute() {
   const returnTo = useLocation({ select: (location) => location.href })
 
   // Finishing or cancelling goes back to the page the build was started from:
-  // the Game's page in Play (`?game=`), or the Hangar.
+  // the Game's page in Play (`?game=`), or the Training Bay.
   const handleComplete = useWizardReturn(search.game)
   const handleCancel = handleComplete
 

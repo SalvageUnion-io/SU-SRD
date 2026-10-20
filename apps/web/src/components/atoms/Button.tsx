@@ -14,8 +14,8 @@ type ButtonOwnProps = ButtonVariantProps & {
    */
   glyph?: ReactNode
   /**
-   * A way back (chrome K11): the children are the place's name ("Hangar"),
-   * drawn as `BackLabel` at the button's Size, read "Back to Hangar".
+   * A way back (chrome K11): the children are the place's name ("Training Bay"),
+   * drawn as `BackLabel` at the button's Size, read "Back to Training Bay".
    */
   back?: boolean
 }

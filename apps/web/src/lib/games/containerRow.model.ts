@@ -2,7 +2,7 @@
  * A container as a Row draws it (ruleset §1.9: a Game is a Row that links),
  * wherever one is listed: the Play hub's Your Games, and the places a unit can
  * move to (`ContainerPicker`'s `list`). Synthetic models: a Game and the
- * Hangar are no reference entities, so neither Peeks.
+ * Training Bay are no reference entities, so neither Peeks.
  */
 
 import { nameToSlug } from 'salvageunion-reference'
@@ -23,7 +23,7 @@ export function gameRowModel(name: string): EntityRowModel {
 }
 
 /**
- * The Hangar, a unit's place out of every Game: Shelves ink (ruleset, the
+ * The Training Bay, a unit's place out of every Game: Shelves ink (ruleset, the
  * book's colour map), under the name its list gives it ("Not in a Game").
  */
 export function hangarRowModel(name: string): EntityRowModel {
@@ -31,7 +31,7 @@ export function hangarRowModel(name: string): EntityRowModel {
   return {
     ref: { schemaName: 'crawlers', id: `hangar/${slug}`, slug, name, synthetic: true },
     title: name,
-    kind: { stamp: 'Hangar', type: 'Hangar', domain: 'crawler', nature: 'have' },
+    kind: { stamp: 'Training Bay', type: 'Training Bay', domain: 'crawler', nature: 'have' },
     tone: 'ink',
     facts: [],
     traits: [],

@@ -47,7 +47,7 @@ import { SegmentedOption } from '../atoms/Segmented'
  *
  * The trigger is the masthead's paper-on-ink nav-link treatment, so it sits
  * beside the bar's links as one of them. The second surface is a shelf item's
- * "⋯" in the Hangar (board S1): `variant="overflow"` draws the trigger as an
+ * "⋯" in the Training Bay (board S1): `variant="overflow"` draws the trigger as an
  * action chip (Button's `mini` rung) with the ellipsis glyph, the last chip on
  * a listed unit's line, and a row with
  * `tone: 'danger'` (Delete…) reads in the danger colour. Colour lives

@@ -153,7 +153,7 @@ describe('Sheet — rail cross-links', () => {
 // ---------------------------------------------------------------------------
 
 describe('Sheet — entity not found', () => {
-  test('unknown id renders the not-found heading + back-to-Hangar link', () => {
+  test('unknown id renders the not-found heading + back-to-Training-Bay link', () => {
     render(
       <Sheet
         kind="pilot"
@@ -164,7 +164,7 @@ describe('Sheet — entity not found', () => {
     )
     expect(screen.getByRole('heading', { name: /pilot not found/i })).toBeTruthy()
 
-    const back = screen.getByRole('link', { name: /back to hangar/i })
+    const back = screen.getByRole('link', { name: /back to training bay/i })
     expect(back.getAttribute('href')).toBe('/')
   })
 

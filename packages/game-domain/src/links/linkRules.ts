@@ -175,7 +175,7 @@ export function conflictingLinks<L extends LinkShape>(
  * reads the same whichever side caught it.
  */
 export const CROSS_CONTAINER_REFUSAL =
-  'Those two are in different places — assign within one Game, or in your Hangar. Move one of them first.'
+  'Those two are in different places — assign within one Game, or in your Training Bay. Move one of them first.'
 
 /** The client's container lookup for one link end, or null when it is not cached. */
 export type EndContainer = (ref: { type: EndType; id: string }) => Container | null

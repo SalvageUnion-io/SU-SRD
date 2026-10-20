@@ -1,11 +1,11 @@
 /**
- * "Move to a Game…" from a Hangar item's ⋯ menu (Shelves, board S1).
+ * "Move to a Game…" from a Training Bay item's ⋯ menu (Shelves, board S1).
  *
  * A short dialog that lists only where the server would accept this build
  * (`moveDestinations`, the client mirror of ADR-037): a pilot or mech into any
  * Game you are in, or out of one; a crawler only into a Game you run, or back
- * out of it. Out of a Game reads "Not in a Game", because in the Hangar a unit in
- * a Game is still in your Hangar — the move only changes where it plays.
+ * out of it. Out of a Game reads "Not in a Game", because in the Training Bay a unit in
+ * a Game is still in your Training Bay — the move only changes where it plays.
  *
  * Picking a destination closes the dialog and hands the move to `requestMove`,
  * which asks first when it should (always out of a Game; into one only when it
@@ -28,7 +28,7 @@ import type { AssignableType } from '../../stores/types'
 import { ContainerPicker } from '../entityContainer/ContainerPicker'
 import { requestMove } from '../entityContainer/requestMove.model'
 
-/** What "out of a Game" is called in the Hangar, as its Showing select names it. */
+/** What "out of a Game" is called in the Training Bay, as its Showing select names it. */
 const NOT_IN_A_GAME = 'Not in a Game'
 
 const BODY = {

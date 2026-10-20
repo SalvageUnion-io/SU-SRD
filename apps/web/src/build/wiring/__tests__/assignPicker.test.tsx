@@ -147,7 +147,7 @@ describe('AssignPicker — candidates share the subject’s container', () => {
     expect(offered()).toEqual(['Game Crawler'])
   })
 
-  test('signed in, a pilot in your shelves is offered only the Hangar’s crawlers', () => {
+  test('signed in, a pilot in your shelves is offered only the Training Bay’s crawlers', () => {
     inMode(
       CONNECTED,
       <AssignPicker
@@ -257,7 +257,7 @@ describe('AssignPicker — candidates share the subject’s container', () => {
     )
     open(/assign crawler to mech/i)
     // "your shelf", never "My Stuff", in anything a player reads.
-    expect(screen.getByText('No crawlers in your Hangar.')).toBeTruthy()
+    expect(screen.getByText('No crawlers in your Training Bay.')).toBeTruthy()
   })
 
   test('the slot’s occupant is not offered back, and the trigger says Change', () => {

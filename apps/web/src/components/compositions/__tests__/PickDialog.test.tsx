@@ -28,9 +28,9 @@ function pick(props: Partial<Parameters<typeof PickDialog>[0]> = {}) {
     <PickDialog
       open
       onOpenChange={() => {}}
-      title="Move in from your Hangar"
+      title="Move in from your Training Bay"
       groups={GROUPS}
-      empty="Nothing in your Hangar can move in."
+      empty="Nothing in your Training Bay can move in."
       selected={null}
       onSelect={(id) => picks.push(id)}
       confirmLabel="Move in"
@@ -44,7 +44,7 @@ function pick(props: Partial<Parameters<typeof PickDialog>[0]> = {}) {
 describe('PickDialog', () => {
   test('one radio group; each titled group under its Slab; an empty group left out', () => {
     const { picks } = pick()
-    const group = screen.getByRole('radiogroup', { name: 'Move in from your Hangar' })
+    const group = screen.getByRole('radiogroup', { name: 'Move in from your Training Bay' })
     expect(within(group).getByRole('region', { name: 'Pilots' })).toBeTruthy()
     expect(within(group).getByRole('heading', { name: 'Mechs' })).toBeTruthy()
     expect(within(group).queryByRole('region', { name: 'Crawlers' })).toBeNull()
@@ -68,11 +68,11 @@ describe('PickDialog', () => {
   test('nothing on offer is the one empty state, never a hint line', () => {
     pick({ groups: [{ key: 'pilot', title: 'Pilots', choices: [] }] })
     expect(screen.queryByRole('radiogroup')).toBeNull()
-    expect(screen.getByText('Nothing in your Hangar can move in.')).toBeTruthy()
+    expect(screen.getByText('Nothing in your Training Bay can move in.')).toBeTruthy()
   })
 
   test('loading pends', () => {
-    pick({ groups: undefined, loading: 'your Hangar' })
-    expect(screen.getByRole('status').textContent).toContain('your Hangar')
+    pick({ groups: undefined, loading: 'your Training Bay' })
+    expect(screen.getByRole('status').textContent).toContain('your Training Bay')
   })
 })

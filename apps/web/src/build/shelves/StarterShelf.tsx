@@ -1,5 +1,5 @@
 /**
- * StarterShelf — the Starter Set at the foot of the Hangar (board S1): the
+ * StarterShelf — the Starter Set at the foot of the Training Bay (board S1): the
  * same grid of cards the signed-out front door shows (`StarterSetGrid`),
  * folded under its Slab until its fold opens it (owner, 2026-10-15). Your own
  * builds come first; the book's are reference, read-only, and kept by making a

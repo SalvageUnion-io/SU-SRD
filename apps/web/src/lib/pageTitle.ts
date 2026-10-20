@@ -4,7 +4,7 @@
  * its own through its route's `head()` (rendered by `<HeadContent />` in
  * `routes/__root.tsx`), so a player with a pilot, a mech and a Game open in
  * separate tabs can tell them apart. A page in one of the app's named areas
- * names its area too (`areaTitle`): `Hangar · Training Bay · SalvageUnion.io`.
+ * names its area too (`areaTitle`): `Patterns · Training Bay · SalvageUnion.io`.
  *
  * Only a relative import of a module with none: the app's shell, which the
  * Vite config loads, titles itself with it too. So the area's name is the

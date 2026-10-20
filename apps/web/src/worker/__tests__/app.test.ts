@@ -252,7 +252,7 @@ describe('the shell’s Union bar is marked for the route', () => {
     })
     expect(await served('/')).toEqual({
       mode: 'build',
-      current: ['Build', 'Hangar'],
+      current: ['Build', 'Training Bay'],
       hidden: false,
     })
   })

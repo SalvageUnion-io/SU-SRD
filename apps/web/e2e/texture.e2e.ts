@@ -18,7 +18,7 @@ import { expect, test } from './fixtures'
  *   brand-colour ground carries its `[data-grain]`, as on the sheet.
  * - `clean`: no `[data-grain]` there sits on paper, cream or ink-deep, or on
  *   or inside a button or a field.
- * - `band`: Manage (the Hangar, the Play hub, a Game's page, the invite
+ * - `band`: Manage (the Training Bay, the Play hub, a Game's page, the invite
  *   screen) is paper under its area's band, and the band keeps its speckle
  *   (`ChapterBand`'s `.su-grain-layer`).
  *

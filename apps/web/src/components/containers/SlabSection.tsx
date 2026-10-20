@@ -48,7 +48,7 @@ type SlabSectionProps = {
   as?: ElementType
   /** A hint at the rule's end, or a value count as its chip (`SEATS | 5/6`). */
   count?: ReactNode | SlabCount | readonly SlabCount[]
-  /** The count beside the stamp (the Hangar's Shelves) rather than at the rule's end. */
+  /** The count beside the stamp (the Training Bay's Shelves) rather than at the rule's end. */
   countAt?: 'end' | 'label'
   /** The count in the ground's own ink, for a section on a tinted ground. */
   countInk?: 'muted' | 'inherit'

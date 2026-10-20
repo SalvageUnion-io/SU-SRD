@@ -212,11 +212,11 @@ describe('Roster — signed out, it is the front door (board 09)', () => {
 // Signed in: Shelves
 // ---------------------------------------------------------------------------
 
-describe('Hangar — the band', () => {
+describe('Training Bay — the band', () => {
   test('the notched title, the Showing select on Everything, Import and Export all', async () => {
     await renderShelves()
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Hangar' })).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 1, name: 'Training Bay' })).toBeTruthy()
     expect(screen.queryByText(/Units in a Game stay on your shelf too\./)).toBeNull()
     const showing = screen.getByLabelText('Showing') as HTMLSelectElement
     expect(showing.value).toBe('everything')
@@ -233,7 +233,7 @@ describe('Hangar — the band', () => {
   })
 })
 
-describe('Hangar — one shelf per kind', () => {
+describe('Training Bay — one shelf per kind', () => {
   test('Pilots, Mechs, Crawlers, Patterns and NPCs, then the Starter Set', async () => {
     await renderShelves()
 
@@ -269,7 +269,7 @@ describe('Hangar — one shelf per kind', () => {
     )
   })
 
-  test('a designed NPC is a dashed line with who can see it, in a Hangar marked yours', async () => {
+  test('a designed NPC is a dashed line with who can see it, in a Training Bay marked yours', async () => {
     const store = useEntityStore.getState()
     await store.hydrate('npc')
     const npc = await store.create('npc', {
@@ -323,7 +323,7 @@ describe('Hangar — one shelf per kind', () => {
   })
 })
 
-describe('Hangar — items', () => {
+describe('Training Bay — items', () => {
   test('an item is one line that opens its sheet; in no Game, its Game lane is empty', async () => {
     const id = await seedEntity('pilot', 'Nia Vale')
     await renderShelves()
@@ -385,7 +385,7 @@ describe('Hangar — items', () => {
   })
 })
 
-describe('Hangar — Make a copy', () => {
+describe('Training Bay — Make a copy', () => {
   test('asks first, then puts a separate copy on the shelf', async () => {
     await seedEntity('pilot', 'Fen Oya')
     await renderShelves()
@@ -412,7 +412,7 @@ describe('Hangar — Make a copy', () => {
   })
 })
 
-describe('Hangar — delete flow', () => {
+describe('Training Bay — delete flow', () => {
   test('Delete… opens the confirm, naming the build', async () => {
     await seedEntity('pilot', 'Mira Cole')
     await renderShelves()

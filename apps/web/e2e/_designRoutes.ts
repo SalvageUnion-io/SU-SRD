@@ -33,17 +33,17 @@ import { createGame, makeInviteLink } from './_table'
 export type DesignSeed = Record<DesignSeedKey, string>
 
 /**
- * The Game the seed makes, `tools/gallery.ts`'s name made long: its Hangar
+ * The Game the seed makes, `tools/gallery.ts`'s name made long: its Training Bay
  * chip is wider than a Row's room beside the name at a page's three columns
  * (R3), so the chip-strip gate holds it inside the Row.
  */
 const GAME = 'The Long Haul Across the Glass Wastes'
 
-/** The player in the Game (moved in from the Hangar) and the one left on the shelf to play solo. */
+/** The player in the Game (moved in from the Training Bay) and the one left on the shelf to play solo. */
 const IN_GAME = 'Bonesaw'
 const SOLO = 'Driftwood'
 
-/** Copy a Starter Set build to the Hangar from its sheet's "Make a copy". */
+/** Copy a Starter Set build to the Training Bay from its sheet's "Make a copy". */
 async function copyStarter(page: Page, sheet: string, name: string): Promise<void> {
   await gotoStable(page, `/starter/${sheet}`)
   await waitForReady(page)
@@ -51,11 +51,11 @@ async function copyStarter(page: Page, sheet: string, name: string): Promise<voi
   await page.getByRole('alertdialog').getByRole('button', { name: 'Make a copy' }).click()
   // A crawler's name is its number and name ("Crawler #430 'Tenacity'").
   await expect(
-    page.getByText(new RegExp(`^Copied .*${name}.* to your Hangar`)).first()
+    page.getByText(new RegExp(`^Copied .*${name}.* to your Training Bay`)).first()
   ).toBeVisible({ timeout: 20_000 })
 }
 
-/** A Hangar item's sheet, by kind and (when the shelf holds several) name. */
+/** A Training Bay item's sheet, by kind and (when the shelf holds several) name. */
 async function sheetPath(page: Page, kind: string, name?: string): Promise<string> {
   const all = page.locator(`a[href*="/sheet/${kind}/"]`)
   const link = name
@@ -64,17 +64,19 @@ async function sheetPath(page: Page, kind: string, name?: string): Promise<strin
         .or(all.filter({ hasText: name }))
         .first()
     : all.first()
-  await expect(link, `the Hangar lists a ${kind}${name ? ` named ${name}` : ''}`).toBeVisible({
-    timeout: 20_000,
-  })
+  await expect(link, `the Training Bay lists a ${kind}${name ? ` named ${name}` : ''}`).toBeVisible(
+    {
+      timeout: 20_000,
+    }
+  )
   const href = await link.getAttribute('href')
-  if (!href) throw new Error(`the Hangar's ${kind} has no href`)
+  if (!href) throw new Error(`the Training Bay's ${kind} has no href`)
   return new URL(href, page.url()).pathname
 }
 
 /**
  * Seed the signed-in account as `tools/gallery.ts --signed-in` does: Bonesaw,
- * the Mazona and Tenacity copied from the Starter Set to the Hangar, a Game
+ * the Mazona and Tenacity copied from the Starter Set to the Training Bay, a Game
  * started and Bonesaw moved in. Then what the other contexts need: carried
  * things the reference does not hold (`seedCarried`), Driftwood
  * on the shelf to play solo, the Organizer appointed Mediator, an invite link,
@@ -100,7 +102,7 @@ export async function seedDesignAccount(page: Page): Promise<DesignSeed> {
   await expect(page.getByText('You mediate')).toBeVisible({ timeout: 20_000 })
   const token = await makeInviteLink(page)
 
-  // Bonesaw moves in from the Hangar's ⋯ menu.
+  // Bonesaw moves in from the Training Bay's ⋯ menu.
   await gotoStable(page, '/')
   await waitForReady(page)
   await page.getByRole('button', { name: `More for ${IN_GAME}` }).click()
@@ -127,7 +129,7 @@ export async function seedDesignAccount(page: Page): Promise<DesignSeed> {
 
   // Play's doors, read off the Play hub as a player reaches them.
   // The Organizer mediates the Game, so its Row's one door is Mediate: the
-  // player's screen is the pilot's own, from its Hangar Row.
+  // player's screen is the pilot's own, from its Training Bay Row.
   const playPlayer = at(await pilotPlayPath(page, IN_GAME))
   const playSolo = at(await playDoor(page, `Play ${SOLO} solo`))
   const playMediator = at(await playDoor(page, `Mediate ${GAME}`))

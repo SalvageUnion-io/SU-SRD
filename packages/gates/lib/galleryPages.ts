@@ -149,7 +149,7 @@ export const GALLERY_SECTIONS: readonly GallerySection[] = [
     intro:
       'A fresh test account with Bonesaw, the Mazona and Tenacity copied from the Starter Set, Bonesaw moved into a Game.',
     pages: [
-      app('/', 'Hangar', 'The roster of what the account keeps.', { signedIn: true }),
+      app('/', 'Training Bay', 'The roster of what the account keeps.', { signedIn: true }),
       app(':pilot', 'Bonesaw, editing', 'A pilot sheet in Edit.', {
         signedIn: true,
         edit: true,

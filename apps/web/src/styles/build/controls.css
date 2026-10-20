@@ -72,7 +72,7 @@
   opacity: 50%;
 }
 
-/* ── The Hangar's Showing select, MoveToContainerControl ── */
+/* ── The Training Bay's Showing select, MoveToContainerControl ── */
 
 /* The Showing select sits on a band beside its Compact buttons, so it is
    Compact too (theme.css lifts Compact to Full under a coarse pointer). */

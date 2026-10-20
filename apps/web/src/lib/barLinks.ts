@@ -20,7 +20,7 @@ export type UnionNavLink = { id: UnionNavId; label: string; path: string }
 
 /** Build's nav: your assets. */
 const BUILD_NAV: readonly UnionNavLink[] = [
-  { id: 'hangar', label: 'Hangar', path: '/' },
+  { id: 'hangar', label: 'Training Bay', path: '/' },
   { id: 'patterns', label: 'Patterns', path: '/mechs/patterns/' },
   { id: 'starter', label: 'Starter Set', path: '/starter/' },
 ]

@@ -248,7 +248,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
     setBusy('copy')
     try {
       await usePatternStore.getState().create(patternCopy(pattern))
-      toast.success(`Copied ${pattern.name} to your Hangar.`)
+      toast.success(`Copied ${pattern.name} to your Training Bay.`)
     } catch (err) {
       toast.error(serverMessage(err) ?? 'The pattern could not be copied. Try again.')
     } finally {
@@ -372,7 +372,9 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
               ) : mode === 'connected' || mode === 'disconnected' ? null : (
                 <>
                   <SignInControl />
-                  <Text variant="hint">Sign in to build this mech or copy it to your Hangar.</Text>
+                  <Text variant="hint">
+                    Sign in to build this mech or copy it to your Training Bay.
+                  </Text>
                 </>
               )}
               <Text variant="hint">{builtLine}</Text>

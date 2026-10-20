@@ -4,7 +4,7 @@ import { iconSize } from '../../design/tokens'
 
 /**
  * BackLabel — what a back control says (chrome K11, hard rule R23): the
- * `ChevronLeft` glyph at the line's Size and the place's name ("Hangar",
+ * `ChevronLeft` glyph at the line's Size and the place's name ("Training Bay",
  * "Play", "Game"), never an arrow character or a sentence. Its accessible name
  * reads "Back to <place>", the visible name inside it (WCAG 2.5.3).
  *

@@ -19,7 +19,7 @@ import {
 } from '../shelfItems'
 
 /**
- * What an item in the Hangar says (board S1): the Game it is in, what is
+ * What an item in the Training Bay says (board S1): the Game it is in, what is
  * linked to it, and for a pattern or NPC who can see it.
  */
 

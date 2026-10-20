@@ -1,5 +1,5 @@
 /**
- * ShelfItem — one thing on a shelf (the Hangar, board S1): the library Row a
+ * ShelfItem — one thing on a shelf (the Training Bay, board S1): the library Row a
  * Game's roster draws the same units with (`UnitRow`), the whole Row opening
  * it. Its chips are the defining fact (never its kind, EDL E9) and one
  * reading, label-first (`CLASS | ENGINEER`, `HP | 8/10`), led by this item's

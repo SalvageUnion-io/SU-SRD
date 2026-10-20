@@ -90,7 +90,7 @@ describe('AppBar', () => {
             mode: 'build',
             label: 'Build',
             items: [
-              { id: 'hangar', label: 'Hangar', href: '/', active: true },
+              { id: 'hangar', label: 'Training Bay', href: '/', active: true },
               { id: 'starter', label: 'Starter Set', href: '/starter/' },
             ],
           },
@@ -108,8 +108,11 @@ describe('AppBar', () => {
     const nav = screen.getByRole('navigation', { name: 'Build' })
     expect(nav.className).toContain('su-union-bar__nav')
     expect(nav.getAttribute('data-mode')).toBe('build')
-    expect(Array.from(nav.children).map((el) => el.textContent)).toEqual(['Hangar', 'Starter Set'])
-    const hangar = within(nav).getByRole('link', { name: 'Hangar' })
+    expect(Array.from(nav.children).map((el) => el.textContent)).toEqual([
+      'Training Bay',
+      'Starter Set',
+    ])
+    const hangar = within(nav).getByRole('link', { name: 'Training Bay' })
     expect(hangar.getAttribute('aria-current')).toBe('page')
     expect(hangar.getAttribute('data-nav')).toBe('hangar')
     // Each mode's nav is in the bar; the stylesheet shows the one the bar wears.

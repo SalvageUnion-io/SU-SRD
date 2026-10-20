@@ -8,7 +8,7 @@ import type { ContainerChoice } from '../ContainerPicker'
 import { ContainerPicker } from '../ContainerPicker'
 
 const CHOICES: ContainerChoice[] = [
-  { container: { kind: 'shelf' }, label: 'Hangar' },
+  { container: { kind: 'shelf' }, label: 'Training Bay' },
   { container: { kind: 'game', gameId: 'g1' }, label: 'Union Crawler #430', hint: 'Mediator' },
 ]
 
@@ -29,7 +29,7 @@ describe('ContainerPicker', () => {
     )
     const select = screen.getByLabelText('Where') as HTMLSelectElement
     expect([...select.options].map((o) => o.textContent)).toEqual([
-      'Hangar',
+      'Training Bay',
       'Union Crawler #430 · Mediator',
       '+ New Game',
     ])
@@ -93,7 +93,7 @@ describe('ContainerPicker', () => {
     // A Game is a Row (ruleset §1.9), the whole Row the pick, its role a chip.
     const game = within(list).getByRole('button', { name: 'Union Crawler #430' })
     expect(within(list).getByText('Mediator')).toBeTruthy()
-    expect(within(list).getByRole('button', { name: 'Hangar' })).toBeTruthy()
+    expect(within(list).getByRole('button', { name: 'Training Bay' })).toBeTruthy()
     fireEvent.click(game)
     expect(picks.map((c) => c.container)).toEqual([{ kind: 'game', gameId: 'g1' }])
   })

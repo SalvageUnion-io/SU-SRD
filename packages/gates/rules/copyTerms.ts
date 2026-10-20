@@ -307,14 +307,21 @@ export const BANNED: readonly Banned[] = [
   {
     // Hard rule R16: one verb per act. A unit leaving a Game moves.
     pattern: /(?<![\w-])Remove from (?:the )?[Gg]ame(?![\w-])/g,
-    say: 'Move to your Hangar',
+    say: 'Move to your Training Bay',
     why: 'moving a unit is one verb, Move (ruleset §3.12, hard rule R16); Remove reads as Delete',
   },
   {
     // …and a unit joining one moves too.
-    pattern: /(?<![\w-])Add from your Hangar(?![\w-])/g,
-    say: 'Move in from your Hangar',
+    pattern: /(?<![\w-])Add from your Training Bay(?![\w-])/g,
+    say: 'Move in from your Training Bay',
     why: 'moving a unit is one verb, Move (ruleset §3.12, hard rule R16)',
+  },
+  {
+    // The account's page is the Training Bay, never the Hangar it once was;
+    // a lower-case "hangar" is Play's, where spare mechs wait ("In hangar").
+    pattern: /(?<![\w-])Hangar(?![\w-])/g,
+    say: 'Training Bay',
+    why: "the account's page is the Training Bay, the name of Build (glossary §2, §9)",
   },
   {
     // The tool is Reference, as the header's switch names it. The site's own
@@ -516,7 +523,7 @@ const RULES: readonly Rule[] = [
   {
     id: 'glyph',
     rule: "hard rule R23 (chrome K11) — back is ChevronLeft and the place's name, never ←, ‹ or &larr;; next is ChevronRight and the place's name, never ›, → or &rsaquo; drawn as JSX text; ⋯ is lucide's Ellipsis, never a text ⋯; and R12's one stepper — no Button whose whole text is − or +",
-    fix: 'draw back as `<BackLabel to="Hangar" />` and next as `<NextLabel to="Stats" />` inside the link or button (`Button back` for a way back); a value\'s change (6 → 4) is lucide\'s `ArrowRight` at the line\'s Size; draw ⋯ as `<Ellipsis size={iconSize…} />` (a menu: HeaderMenu `variant="overflow"`); step a count with `<Stat mode="edit" onChange={…} />`, a vital with `<VitalGauge steppers onChange={…} />`',
+    fix: 'draw back as `<BackLabel to="Training Bay" />` and next as `<NextLabel to="Stats" />` inside the link or button (`Button back` for a way back); a value\'s change (6 → 4) is lucide\'s `ArrowRight` at the line\'s Size; draw ⋯ as `<Ellipsis size={iconSize…} />` (a menu: HeaderMenu `variant="overflow"`); step a count with `<Stat mode="edit" onChange={…} />`, a vital with `<VitalGauge steppers onChange={…} />`',
     mode: 'zero',
   },
 ]

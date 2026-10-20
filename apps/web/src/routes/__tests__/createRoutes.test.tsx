@@ -228,7 +228,7 @@ describe('/crawlers/new', () => {
     expect(at(router).pathname).toBe('/sheet/crawler/new-id')
   })
 
-  test('the builder finishing goes back to the Hangar', async () => {
+  test('the builder finishing goes back to the Training Bay', async () => {
     const router = await mountAt('/crawlers/new?mode=guided&type=no-such-type')
     expect(await screen.findByText('Crawler builder preselect: none')).toBeTruthy()
     await press('Crawler builder: complete')

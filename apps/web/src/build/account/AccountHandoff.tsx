@@ -13,7 +13,7 @@ import { useSignOut } from './useSignOut'
  * backend, so its Sign in and its account menu's Sign out cannot touch the
  * session themselves: they link here, and these act once the session is known.
  *
- * - `/sign-in` starts Discord's round trip, which lands in the Hangar; a player
+ * - `/sign-in` starts Discord's round trip, which lands in the Training Bay; a player
  *   already signed in goes straight there.
  * - `/sign-out?to=…` ends the session, then goes back to the SRD page the menu
  *   was opened on (`returnTo` keeps that to this site or the SRD).
@@ -41,7 +41,7 @@ export function SignInHandoff() {
     started.current = true
     if (mode === 'solo') {
       // Discord's page replaces this one; a failure to start is reported and
-      // leaves the player on the Hangar's own sign-in.
+      // leaves the player on the Training Bay's own sign-in.
       signIn('discord').catch((err: unknown) => {
         captureException(err)
         void navigate({ to: '/', replace: true })

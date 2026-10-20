@@ -484,7 +484,7 @@ describe('every verb that changes who has a build asks first', () => {
     await renderAs(ME, listing({ pilots: [WHOLE_PILOT] }))
     const dialog = await press('Vex Arlo', 'Make a copy')
 
-    expect(dialog.textContent).toContain('Make a copy of Vex Arlo in your Hangar?')
+    expect(dialog.textContent).toContain('Make a copy of Vex Arlo in your Training Bay?')
     expect(dialog.textContent).toContain("won't sync back")
     expect(localPilotNames()).not.toContain('COPY OF Vex Arlo')
 
@@ -559,11 +559,13 @@ describe('every verb that changes who has a build asks first', () => {
   test('a refusal stays on the dialog, in the words the server chose', async () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT] }))
     await press('Roach-Boy', 'Offer to the crew')
-    mutationError = new ConvexError('A build in your Hangar is already yours')
+    mutationError = new ConvexError('A build in your Training Bay is already yours')
 
     await confirmWith('Offer to the crew')
     expect(screen.getByRole('alertdialog')).toBeTruthy()
-    expect(screen.getByRole('alert').textContent).toBe('A build in your Hangar is already yours')
+    expect(screen.getByRole('alert').textContent).toBe(
+      'A build in your Training Bay is already yours'
+    )
   })
 
   test('any other failure stays on the dialog with a plain reason, never the raw error', async () => {
@@ -593,21 +595,21 @@ describe('remove from game', () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT, THEIR_PILOT, PRE_GEN] }))
     const pilots = ['Roach-Boy', 'Ash', 'Pre-gen']
     // Not yet in this browser: nothing to move from here.
-    expect(await rowsOffering(pilots, 'Move to your Hangar')).toEqual([])
+    expect(await rowsOffering(pilots, 'Move to your Training Bay')).toEqual([])
 
     cleanup()
     await holdLocally()
     await renderAs(ME, listing({ pilots: [MY_PILOT, THEIR_PILOT, PRE_GEN] }))
-    expect(await rowsOffering(pilots, 'Move to your Hangar')).toEqual(['Roach-Boy'])
+    expect(await rowsOffering(pilots, 'Move to your Training Bay')).toEqual(['Roach-Boy'])
   })
 
   test('asks first — naming the game and the assignments it clears — and moves nothing until confirmed', async () => {
     await holdLocally()
     await renderAs(ME, listing({ pilots: [MY_PILOT] }))
-    const dialog = await press('Roach-Boy', 'Move to your Hangar')
+    const dialog = await press('Roach-Boy', 'Move to your Training Bay')
 
     expect(dialog.textContent).toContain('Move Roach-Boy out of Tenacity?')
-    expect(dialog.textContent).toContain('goes back to your Hangar')
+    expect(dialog.textContent).toContain('goes back to your Training Bay')
     expect(dialog.textContent).toContain('Their crawler assignment in Tenacity is cleared')
     expect(gameIdOf('a-mine')).toBe('g1')
 
@@ -618,9 +620,9 @@ describe('remove from game', () => {
   test('confirming moves the same record to your shelves', async () => {
     await holdLocally()
     await renderAs(ME, listing({ pilots: [MY_PILOT] }))
-    await press('Roach-Boy', 'Move to your Hangar')
+    await press('Roach-Boy', 'Move to your Training Bay')
 
-    await confirmWith('Move to your Hangar')
+    await confirmWith('Move to your Training Bay')
     // The move commits to the (stubbed) server first, which outlasts one act() scope.
     await settle(() => screen.queryByRole('alertdialog') === null)
     expect(screen.queryByRole('alertdialog')).toBeNull()
@@ -635,11 +637,11 @@ describe('remove from game', () => {
       .adopt('crawler', crawlerFixture({ id: 'a-crawler', name: '#430 Tenacity', gameId: 'g1' }))
 
     await renderAs(ME, listing({ crawlers: [CRAWLER] }))
-    expect(await verbsOf('#430 Tenacity')).not.toContain('Move to your Hangar')
+    expect(await verbsOf('#430 Tenacity')).not.toContain('Move to your Training Bay')
 
     cleanup()
     await renderAs({ ...ME, _id: 'u-med' }, listing({ crawlers: [CRAWLER] }))
-    const dialog = await press('#430 Tenacity', 'Move to your Hangar')
+    const dialog = await press('#430 Tenacity', 'Move to your Training Bay')
     expect(dialog.textContent).toContain('Everyone in Tenacity assigned to it is unassigned')
   })
 })
@@ -654,7 +656,7 @@ describe('units in from Build (ADR-052 §3, §5)', () => {
     expect(hrefOf('Raise a Crawler')).toBe('/crawlers/new?game=g1')
   })
 
-  /** Your Hangar: a pilot on the shelf, one in another Game, one already here. */
+  /** Your Training Bay: a pilot on the shelf, one in another Game, one already here. */
   async function holdHangar(): Promise<void> {
     setEntityBackendAuthState(SIGNED_IN)
     const store = useEntityStore.getState()
@@ -666,9 +668,9 @@ describe('units in from Build (ADR-052 §3, §5)', () => {
 
   async function openPicker(): Promise<HTMLElement> {
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: '+ Move in from your Hangar' }))
+      fireEvent.click(screen.getByRole('button', { name: '+ Move in from your Training Bay' }))
     })
-    return screen.getByRole('dialog', { name: 'Move in from your Hangar' })
+    return screen.getByRole('dialog', { name: 'Move in from your Training Bay' })
   }
 
   test('the picker offers one of your units not in this Game, under its kind, with the Game it leaves', async () => {
@@ -693,7 +695,7 @@ describe('units in from Build (ADR-052 §3, §5)', () => {
     expect(move.hasAttribute('disabled')).toBe(true)
   })
 
-  test('one pick moves that same unit in, with the Hangar’s move', async () => {
+  test('one pick moves that same unit in, with the Training Bay’s move', async () => {
     await holdHangar()
     await renderAs(ME, listing({ pilots: [MY_PILOT] }))
     const dialog = await openPicker()

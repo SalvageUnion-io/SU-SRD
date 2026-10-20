@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { gameRowModel, hangarRowModel } from '../containerRow.model'
 
-/** A container as a Row: a Game (ruleset §1.9) and the Hangar a unit moves back to. */
+/** A container as a Row: a Game (ruleset §1.9) and the Training Bay a unit moves back to. */
 
 describe('a Game’s Row', () => {
   test('is titled by the Game, in the crawler’s tone, and links nowhere by itself', () => {
@@ -13,12 +13,12 @@ describe('a Game’s Row', () => {
   })
 })
 
-describe('the Hangar’s Row', () => {
+describe('the Training Bay’s Row', () => {
   test('is titled as its list names it, in Shelves ink', () => {
     const model = hangarRowModel('Not in a Game')
     expect(model.title).toBe('Not in a Game')
     expect(model.tone).toBe('ink')
-    expect(model.kind.stamp).toBe('Hangar')
+    expect(model.kind.stamp).toBe('Training Bay')
     expect(model.ref.synthetic).toBe(true)
   })
 })

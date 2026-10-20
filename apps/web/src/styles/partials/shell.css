@@ -718,7 +718,7 @@
   }
 }
 
-/* `asideAt="controls"`: a page's action buttons (the Hangar's, a Game's).
+/* `asideAt="controls"`: a page's action buttons (the Training Bay's, a Game's).
    The aside steps out of the way (`display: contents`), so every control is
    an item on the title's line: right-aligned on the band's foot beside the
    name while it fits, and past that on lines that wrap UPWARD
