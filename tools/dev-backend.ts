@@ -32,8 +32,10 @@
  *   gallery's seed (`tools/gallery.ts`: Bonesaw, the Mazona and Tenacity
  *   copied to the Training Bay, the Game "The Long Haul" with Bonesaw in it)
  *   and writes the account and those four paths to `.dev-backend/seed.json`.
- *   A seed that fails (Chromium cannot start, as in a sandbox that refuses
- *   its socket) is reported and the site still runs, signed out.
+ *   Where no browser starts (a Remote Control sandbox refuses the full
+ *   Chromium's socket), it installs Playwright's chrome-headless-shell into
+ *   `.pw-browsers/` first. A seed that still fails is reported and the site
+ *   runs on, signed out.
  * - It stays in the foreground until interrupted, then stops both. Run it in
  *   the background; a second run while both answer exits 0 at once.
  *
@@ -46,7 +48,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 import type { Browser } from '@playwright/test'
-import { launchBrowser } from 'gates/lib/chromium'
+import { FORCE_ONLINE, headlessShell, launchBrowser } from 'gates/lib/chromium'
 import { CHECKOUT_HEADER, CHECKOUT_ROOT, isPrimaryCheckout, portFor, portOffset } from 'gates/ports'
 import type { SeedAccount, Seeded } from './gallery'
 import { builderRoot, seed } from './gallery'
@@ -324,15 +326,44 @@ async function provision(sys: Sys, root: string, envFile: string, state: string,
   await convex(sys, root, envFile, ['env', 'set', 'SITE_URL', `http://localhost:${devPort}/build`])
 }
 
+/**
+ * A browser. When none starts and the checkout has no headless shell yet,
+ * installs Playwright's into `.pw-browsers/` (`gates/lib/chromium`'s
+ * `CHECKOUT_BROWSERS`) and tries once more: the full Chromium opens a unix
+ * socket a Remote Control sandbox refuses; the headless shell does not.
+ */
+async function launchOrInstall(sys: Sys, root: string): Promise<Browser> {
+  const failed = (caught: Error) =>
+    new Error(`Chromium could not start: ${caught.message.split('\n')[0]}`)
+  try {
+    return await sys.launch()
+  } catch (caught) {
+    const browsers = join(root, '.pw-browsers')
+    if (headlessShell(browsers)) throw failed(caught as Error)
+    sys.log(`[dev-backend] no browser starts; installing chrome-headless-shell to ${browsers}…`)
+    const install = await sys.run(
+      ['bunx', 'playwright', 'install', 'chromium-headless-shell'],
+      root,
+      {
+        PLAYWRIGHT_BROWSERS_PATH: browsers,
+      }
+    )
+    if (install.code !== 0)
+      throw new Error(`installing chrome-headless-shell failed: ${install.stderr.trim()}`)
+    return await sys.launch().catch((again: Error) => {
+      throw failed(again)
+    })
+  }
+}
+
 /** Signs `SEED_ACCOUNT` up, seeds it, and writes `seed.json`. A failure is reported, not thrown. */
-async function seedOnce(sys: Sys, base: string, seedFile: string): Promise<void> {
+async function seedOnce(sys: Sys, root: string, base: string, seedFile: string): Promise<void> {
   sys.log(`[dev-backend] seeding ${SEED_ACCOUNT.email}…`)
   try {
-    const browser = await sys.launch().catch((caught: Error) => {
-      throw new Error(`Chromium could not start: ${caught.message.split('\n')[0]}`)
-    })
+    const browser = await launchOrInstall(sys, root)
     try {
       const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
+      await page.addInitScript(FORCE_ONLINE)
       const seeded = await sys.seed(page, base, SEED_ACCOUNT)
       const file: SeedFile = { ...SEED_ACCOUNT, ...seeded }
       writeFileSync(seedFile, `${JSON.stringify(file, null, 2)}\n`)
@@ -445,7 +476,7 @@ export async function main(
       throw new Error(`the dev server did not answer within 120s: see ${join(state, 'dev.log')}`)
 
     const seedFile = join(state, 'seed.json')
-    if (!existsSync(seedFile)) await seedOnce(sys, base, seedFile)
+    if (!existsSync(seedFile)) await seedOnce(sys, root, base, seedFile)
     sys.log(
       [
         `[dev-backend] ready: ${builderRoot(base)} on ${backendUrl_}`,

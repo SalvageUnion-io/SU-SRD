@@ -1,5 +1,14 @@
 import { describe, expect, spyOn, test } from 'bun:test'
-import { chromeExecutable, launchBrowser } from '../lib/chromium'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import {
+  CHECKOUT_BROWSERS,
+  chromeExecutable,
+  FORCE_ONLINE,
+  headlessShell,
+  launchBrowser,
+} from '../lib/chromium'
 
 /**
  * `packages/gates/lib/chromium.ts` — the one Chromium launcher the shot,
@@ -22,6 +31,46 @@ async function withEnv<T>(value: string | undefined, run: () => Promise<T> | T):
 describe('chromeExecutable', () => {
   test("uses Playwright's own Chromium when it is installed", async () => {
     expect(await withEnv(undefined, () => chromeExecutable(process.execPath))).toBeUndefined()
+  })
+
+  test("without Playwright's own, the checkout's newest headless shell", async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'pw-browsers-'))
+    try {
+      expect(headlessShell(dir)).toBeUndefined()
+      for (const rev of ['1200', '1234']) {
+        const bin = join(dir, `chromium_headless_shell-${rev}`, 'chrome-headless-shell-linux64')
+        mkdirSync(bin, { recursive: true })
+        writeFileSync(join(bin, 'chrome-headless-shell'), '')
+      }
+      mkdirSync(join(dir, 'chromium_headless_shell-1300', 'empty'), { recursive: true })
+      mkdirSync(join(dir, 'ffmpeg-1'))
+      const newest = join(
+        dir,
+        'chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell'
+      )
+      expect(await withEnv(undefined, () => chromeExecutable('/no/own', dir))).toBe(newest)
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
+    expect(headlessShell('/no/such/dir')).toBeUndefined()
+    expect(CHECKOUT_BROWSERS.endsWith('.pw-browsers')).toBe(true)
+  })
+
+  test('FORCE_ONLINE makes navigator.onLine true', () => {
+    class Nav {
+      get onLine() {
+        return false
+      }
+    }
+    const g = globalThis as { Navigator?: unknown }
+    const saved = g.Navigator
+    g.Navigator = Nav
+    try {
+      new Function(FORCE_ONLINE)()
+      expect(new Nav().onLine).toBe(true)
+    } finally {
+      g.Navigator = saved
+    }
   })
 
   test('SHOT_CHROME_PATH overrides every other choice', async () => {

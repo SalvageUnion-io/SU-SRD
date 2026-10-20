@@ -4,8 +4,8 @@
  * exercised against throwaway local processes and servers.
  */
 import { afterAll, describe, expect, test } from 'bun:test'
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import type { Browser } from '@playwright/test'
 import { CHECKOUT_HEADER, CHECKOUT_ROOT, portFor } from 'gates/ports'
 import type { RunResult, Sys } from '../dev-backend'
@@ -143,7 +143,11 @@ function fakeSys(over: Partial<World> = {}): { sys: Sys; world: World } {
         : new Promise(() => {}),
     launch: async () =>
       ({
-        newPage: async () => ({}),
+        newPage: async () => ({
+          addInitScript: async () => {
+            world.calls.push('force online')
+          },
+        }),
         close: async () => {
           world.calls.push('browser close')
         },
@@ -363,6 +367,47 @@ describe('main', () => {
     expect(world.errors[0]).toContain('convex deploy -y failed:\nschema invalid')
   })
 
+  test('no browser starts: installs the headless shell into the checkout and tries again', async () => {
+    const s = setup()
+    const { sys, world } = fakeSys({
+      comesUp: new Map([
+        [`${s.api}/version`, null],
+        [`${s.dev}/`, s.root],
+      ]),
+    })
+    const launch = sys.launch
+    let tries = 0
+    sys.launch = async () => {
+      if (tries++ === 0) throw new Error("Executable doesn't exist at /x")
+      return launch()
+    }
+    expect(await main([], sys, s)).toBe(0)
+    expect(world.calls).toContain('run bunx playwright install chromium-headless-shell')
+    expect(world.calls).toContain('force online')
+    expect(existsSync(join(s.root, STATE_DIR, 'seed.json'))).toBe(true)
+  })
+
+  test('a failed install is reported', async () => {
+    const s = setup()
+    const { sys, world } = fakeSys({
+      comesUp: new Map([
+        [`${s.api}/version`, null],
+        [`${s.dev}/`, s.root],
+      ]),
+      run: (cmd) =>
+        cmd.includes('keygen')
+          ? ok('k')
+          : cmd.includes('playwright')
+            ? { code: 1, stdout: '', stderr: 'offline' }
+            : ok(),
+    })
+    sys.launch = async () => {
+      throw new Error('nope')
+    }
+    expect(await main([], sys, s)).toBe(0)
+    expect(world.errors[0]).toContain('installing chrome-headless-shell failed: offline')
+  })
+
   test('a Chromium that cannot start is named as such', async () => {
     const s = setup()
     const { sys, world } = fakeSys({
@@ -371,6 +416,10 @@ describe('main', () => {
         [`${s.dev}/`, s.root],
       ]),
     })
+    // A headless shell already there: nothing to install, so the failure stands.
+    const shell = join(s.root, '.pw-browsers/chromium_headless_shell-1/linux/chrome-headless-shell')
+    mkdirSync(dirname(shell), { recursive: true })
+    writeFileSync(shell, '')
     sys.launch = async () => {
       throw new Error('Target page, context or browser has been closed\nlog')
     }
@@ -378,6 +427,7 @@ describe('main', () => {
     expect(world.errors[0]).toContain(
       'Chromium could not start: Target page, context or browser has been closed)'
     )
+    expect(world.calls.some((c) => c.includes('playwright install'))).toBe(false)
   })
 
   test('a failed seed warns and the site still runs; a child that exits ends it with 1', async () => {

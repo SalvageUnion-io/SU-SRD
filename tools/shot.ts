@@ -42,7 +42,7 @@
 
 import { mkdirSync, readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
-import { launchBrowser } from 'gates/lib/chromium'
+import { FORCE_ONLINE, launchBrowser } from 'gates/lib/chromium'
 import { CHECKOUT_HEADER, CHECKOUT_ROOT, portFor } from 'gates/ports'
 import type { SeedFile } from './dev-backend'
 import { STATE_DIR } from './dev-backend'
@@ -350,6 +350,8 @@ export async function main(
       const page = await browser.newPage({
         viewport: { width: WIDTHS[args.width], height: 800 },
       })
+      // A sandbox's Chromium reports itself offline, and the app then waits on nothing.
+      await page.addInitScript(FORCE_ONLINE)
       if (seeded) await signIn(page, `http://localhost:${server.port}${APP_BASE}/`, seeded)
       const url = `http://localhost:${server.port}${path}`
       const response = await page.goto(url, { waitUntil: 'networkidle', timeout: 60_000 })

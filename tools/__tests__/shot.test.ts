@@ -277,6 +277,9 @@ describe('main', () => {
         }
         calls.push(`evaluate ${script.slice(0, 20)}`)
       },
+      addInitScript: async (script: string) => {
+        calls.push(`init ${script.slice(0, 22)}`)
+      },
       waitForFunction: async () => {
         calls.push('seam')
       },
@@ -356,7 +359,8 @@ describe('main', () => {
     const url = `http://localhost:${portFor()}/chassis/mule/`
     expect(r.err).toEqual([`[shot] warning: ${url} answered 404`])
     expect(calls[0]).toBe('page 375')
-    expect(calls[1]).toBe(`goto ${url}`)
+    expect(calls[1]).toBe('init Object.defineProperty(')
+    expect(calls[2]).toBe(`goto ${url}`)
     expect(calls).toContain('settle')
     expect(calls.slice(-2)).toEqual([`screenshot ${file}`, 'close'])
     expect(stopped).toBe(1)
@@ -378,7 +382,7 @@ describe('main', () => {
     // Never started: only the dev:backend server has a backend to sign in to.
     expect(asked).toMatchObject({ name: 'dev:backend', cmd: [] })
     const base = `http://localhost:${portFor()}`
-    expect(calls.slice(1, 6)).toEqual([
+    expect(calls.slice(2, 7)).toEqual([
       `goto ${base}${APP_BASE}/`,
       'seam',
       'sign in a@b pw signIn',

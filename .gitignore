@@ -88,3 +88,5 @@ rules/*
 /.shots/
 # `bun run dev:backend`'s local Convex backend: database, keys, seed (tools/dev-backend.ts)
 /.dev-backend/
+# chrome-headless-shell for a sandbox the full Chromium cannot start in (packages/gates/lib/chromium.ts)
+/.pw-browsers/
