@@ -37,9 +37,17 @@
 }
 
 .su-hero-search__box {
-  flex: 1 1 16rem;
+  flex: 1 1 100%;
   min-width: 0;
   position: relative;
+}
+
+/* A search field is full width on a phone (owner's rule, 2026-10-20); from
+   `sm` it shares its line with the button. */
+@media (width >= 40rem) {
+  .su-hero-search__box {
+    flex-basis: 16rem;
+  }
 }
 
 .su-hero-search__field {

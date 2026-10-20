@@ -50,6 +50,19 @@
   max-width: 240px;
 }
 
+/* On a phone the search takes the column's whole width (owner's rule,
+   2026-10-20: a search field is full width on a phone), on its own line
+   under the filter. */
+.su-play-root--phone .su-play-act-head > div:last-child,
+.su-play-root--phone .su-play-act-tools {
+  width: 100%;
+}
+
+.su-play-root--phone .su-play-act-find {
+  flex-basis: 100%;
+  max-width: none;
+}
+
 .su-play-act__need,
 .su-play-act__state {
   font-family: var(--font-body);

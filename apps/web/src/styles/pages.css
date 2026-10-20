@@ -553,9 +553,17 @@ a.su-home__discord:hover {
 }
 
 .su-rail .su-rail__search {
-  flex: 1 1 16rem;
-  max-width: 22rem;
+  flex: 1 1 100%;
   min-height: var(--size-full);
+}
+
+/* A search field is full width on a phone (owner's rule, 2026-10-20); from
+   `sm` it shares the rail's line. */
+@media (width >= 40rem) {
+  .su-rail .su-rail__search {
+    flex: 1 1 16rem;
+    max-width: 22rem;
+  }
 }
 
 .su-rail form.su-rail__search {

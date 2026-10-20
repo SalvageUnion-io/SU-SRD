@@ -234,6 +234,20 @@
   border-bottom: var(--bw-hairline) solid var(--color-ink-20);
 }
 
+/* The search's slot: a search field is full width on a phone (owner's rule,
+   2026-10-20), the Filters toggle on the line under it; from `sm` they share
+   a line. */
+.su-searcher__search-slot {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+@media (width >= 40rem) {
+  .su-searcher__search-slot {
+    flex-basis: 14rem;
+  }
+}
+
 /* On a host's band (`EntitySearcher`'s `frame`), the band is its ground and
    its padding: no rule under it. */
 .su-searcher__on-band .su-searcher__toolbar {

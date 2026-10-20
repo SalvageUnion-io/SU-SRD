@@ -67,7 +67,8 @@ export function SearcherToolbar({
   return (
     <div className="su-searcher__toolbar">
       <div style={TOOL_ROW_STYLE}>
-        <div style={SEARCH_SLOT_STYLE}>{search}</div>
+        {/* Full width on a phone, beside the filters from `sm` (`.su-searcher__search-slot`). */}
+        <div className="su-searcher__search-slot">{search}</div>
         {inline && (
           <div style={INLINE_CHIPS_STYLE}>
             <FacetChips row={inline} />
@@ -109,7 +110,6 @@ const TOOL_ROW_STYLE = {
   alignItems: 'center',
   gap: space[8],
 } satisfies CSSProperties
-const SEARCH_SLOT_STYLE = { flex: '1 1 14rem', minWidth: 0 } satisfies CSSProperties
 const INLINE_CHIPS_STYLE = {
   display: 'flex',
   flexWrap: 'wrap',
