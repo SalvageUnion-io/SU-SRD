@@ -137,6 +137,14 @@ type EntitySearcherProps = {
    * or in the bottom bar on a narrow screen. Replaces DONE.
    */
   railActions?: ReactNode
+  /**
+   * `false`: the searcher sits inside a frame that already wears the head (a
+   * titled dialog, the SRD Explorer's), so it draws no cut-out box of its
+   * own: its toolbar opens straight under that head, and `title`, `subtitle`
+   * and the close badge are the host's to show. Default `true`: its own
+   * frame, as every picker in a `bare` ModalShell needs.
+   */
+  framed?: boolean
 }
 
 /** The default `idOf`: module-level, so it is one function across renders. */
@@ -163,6 +171,7 @@ export function EntitySearcher({
   hide,
   showChassisAbility,
   railActions,
+  framed = true,
 }: EntitySearcherProps) {
   // Actions/choices are never pickable inside a picker; anything else is the
   // caller's to suppress.
@@ -358,6 +367,34 @@ export function EntitySearcher({
     </div>
   )
 
+  const body = (
+    <>
+      {!takeover && toolbar}
+      <div
+        className={cn(
+          'su-searcher',
+          browse && 'su-searcher--browse',
+          takeover && 'su-searcher--takeover'
+        )}
+      >
+        {browser}
+        {focusPane}
+        {rail}
+      </div>
+      {!browse && <SelectionStatus message={`${selected.length} ${chosen}`} />}
+    </>
+  )
+
+  // Inside a frame that already has its head: no second box, so the toolbar
+  // is the first row under the host's band, never a titled box in a titled box.
+  if (!framed) {
+    return (
+      <section aria-label={title} className="su-searcher-panel" style={HOSTED_STYLE}>
+        {body}
+      </section>
+    )
+  }
+
   // The cut-out head every titled container wears (`TitledBox`, as ModalShell
   // draws it): the band in the pilot tone, the title on a square paper tab
   // notched into its foot, the × on the band. A dialog's head is its chrome,
@@ -385,19 +422,7 @@ export function EntitySearcher({
           {subtitle}
         </p>
       )}
-      {!takeover && toolbar}
-      <div
-        className={cn(
-          'su-searcher',
-          browse && 'su-searcher--browse',
-          takeover && 'su-searcher--takeover'
-        )}
-      >
-        {browser}
-        {focusPane}
-        {rail}
-      </div>
-      {!browse && <SelectionStatus message={`${selected.length} ${chosen}`} />}
+      {body}
     </TitledBox>
   )
 }
@@ -421,6 +446,14 @@ const WIDE_QUERY = widthAtLeast('lg')
 /** The body shrinks with the frame's cap (`.su-searcher-panel`), so the
  * searcher under the head takes what is left and scrolls in it. */
 const BODY_STYLE = { minHeight: 0 } satisfies CSSProperties
+
+/** Unframed, the searcher fills its host's body as the frame's body would. */
+const HOSTED_STYLE = {
+  display: 'flex',
+  flexDirection: 'column',
+  height: '100%',
+  minHeight: 0,
+} satisfies CSSProperties
 
 /** The subtitle: a line of the paper under the cut-out, as ModalShell's. */
 const SUBTITLE_STYLE = {

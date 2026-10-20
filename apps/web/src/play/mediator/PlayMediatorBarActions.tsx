@@ -13,15 +13,11 @@
 
 import { useRouter } from '@tanstack/react-router'
 import { gamePath } from 'game-domain/entityKinds'
-import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { Button, HeaderMenu, ModalShell } from '../../components/index'
 import { SrdExplorer } from './SrdExplorer'
 import { TellTheTable } from './TellTheTable'
 import type { PlayMediator } from './usePlayMediator'
-
-/** The reference overlay: room for the catalog, scrolling inside itself. */
-const SRD = { height: '70vh', minHeight: 0, overflowY: 'auto' } satisfies CSSProperties
 
 export function PlayMediatorBarActions({ mediator }: { mediator: PlayMediator }) {
   const router = useRouter({ warn: false })
@@ -66,10 +62,10 @@ export function PlayMediatorBarActions({ mediator }: { mediator: PlayMediator })
           onSend={mediator.broadcast}
         />
       </ModalShell>
-      <ModalShell open={reference} onOpenChange={setReference} title="Reference">
-        <div style={SRD}>
-          <SrdExplorer />
-        </div>
+      {/* Bare: the explorer wears the dialog's head, so a category's search
+          and filters sit under it rather than in a second titled box. */}
+      <ModalShell open={reference} onOpenChange={setReference} title="Reference" bare>
+        <SrdExplorer onClose={() => setReference(false)} />
       </ModalShell>
     </>
   )

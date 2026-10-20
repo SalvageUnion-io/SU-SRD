@@ -58,9 +58,9 @@ function back(container: HTMLElement): HTMLButtonElement {
   )
 }
 
-/** The category view's close badge, which returns to the Contents. */
+/** The category's chip on the head's band, whose × returns to the Contents. */
 function close(container: HTMLElement): HTMLButtonElement {
-  return mustButton(container.querySelector('button[aria-label="Close"]'))
+  return mustButton(container.querySelector(`button[aria-label="Close ${LISTING}"]`))
 }
 
 const chapters = () => buildChapters()
@@ -118,11 +118,22 @@ describe('SrdExplorer', () => {
     expect(poolCards(container).length).toBeGreaterThan(0)
   })
 
-  test('the category close badge returns to the Contents', () => {
+  test('a category is a chip on the one head, not a second titled box', () => {
+    const { container } = renderSrd()
+    fireEvent.click(row(container, LISTING))
+    // One cut-out head: the dialog's, with the category beside its title.
+    expect(container.querySelectorAll('.su-modal-panel')).toHaveLength(1)
+    expect(close(container).textContent).toContain(LISTING)
+    // The searcher's toolbar sits straight in the frame's body.
+    expect(container.querySelector('.su-modal-panel .su-searcher__toolbar')).toBeTruthy()
+  })
+
+  test('the category chip returns to the Contents', () => {
     const { container } = renderSrd()
     fireEvent.click(row(container, LISTING))
     expect(container.querySelector('.su-searcher')).toBeTruthy()
     fireEvent.click(close(container))
+    expect(container.querySelector(`button[aria-label="Close ${LISTING}"]`)).toBeNull()
     // Back at the Contents.
     expect(rows(container).length).toBe(chapters().reduce((n, c) => n + c.rows.length, 0))
   })

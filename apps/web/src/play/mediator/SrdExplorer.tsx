@@ -16,6 +16,12 @@
  *     nothing is being picked, so there is no rail and a Token's click opens it.
  *  3. **Entity** — the faithful `ReferenceEntityCard`, with a way back.
  *
+ * ONE HEAD. The explorer draws the dialog's frame itself (it opens in a
+ * `bare` ModalShell): REFERENCE on the cut-out and the × on the band. A
+ * category is a chip beside the title, whose × goes back to the Contents, and
+ * its searcher is unframed (`framed={false}`), so its search and filters open
+ * straight under that head rather than in a second titled box inside it.
+ *
  * Preload hazard: the chapters and the schema listings read the ORM, so they
  * are built only once `useGameData()` is `ready` — never at module scope.
  */
@@ -26,6 +32,8 @@ import type { RefEntity, RefEnumSchemaName } from 'salvageunion-reference'
 import { isSchemaName, SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import {
   Button,
+  ChipButton,
+  CloseButton,
   ContentsChapter,
   EntitySearcher,
   Pending,
@@ -33,6 +41,8 @@ import {
   SearchField,
   SearchListbox,
   Stack,
+  Stat,
+  TitledBox,
   tokens,
   useSearchCombobox,
 } from '../../components/index'
@@ -65,6 +75,17 @@ const LISTBOX = {
 } satisfies CSSProperties
 
 const BACK_ROW = { marginBottom: tokens.space[8] } satisfies CSSProperties
+
+/**
+ * The frame's body: room for the catalog at a fixed height, so moving between
+ * the views never resizes the dialog. Each view scrolls inside it.
+ */
+const FRAME_BODY = {
+  display: 'flex',
+  flexDirection: 'column',
+  height: '70vh',
+  minHeight: 0,
+} satisfies CSSProperties
 
 /** Home view: the search box + the SRD's Contents chapters. */
 function SrdHome({
@@ -187,10 +208,45 @@ type SrdView =
   | ({ kind: 'category' } & SrdCategoryRef)
   | { kind: 'entity'; entity: RefEntity; from: 'home' | SrdCategoryRef }
 
-export function SrdExplorer() {
+export function SrdExplorer({ onClose }: { onClose?: () => void }) {
   const { ready } = useGameData()
   const [view, setView] = useState<SrdView>({ kind: 'home' })
+  const home = () => setView({ kind: 'home' })
 
+  // The open category, on the band beside the title: its × is the way back.
+  const chip =
+    view.kind === 'category' ? (
+      <ChipButton aria-label={`Close ${view.label}`} onClick={home}>
+        <Stat label={view.label} value="✕" size="compact" />
+      </ChipButton>
+    ) : undefined
+
+  return (
+    <TitledBox
+      title="Reference"
+      tone="pilot"
+      className="su-modal-panel"
+      body="flush"
+      chips={chip}
+      controls={onClose && <CloseButton onClick={onClose} />}
+    >
+      <div style={FRAME_BODY}>
+        <SrdBody ready={ready} view={view} setView={setView} />
+      </div>
+    </TitledBox>
+  )
+}
+
+/** The open view, under the frame's head. */
+function SrdBody({
+  ready,
+  view,
+  setView,
+}: {
+  ready: boolean
+  view: SrdView
+  setView: (view: SrdView) => void
+}) {
   if (view.kind === 'entity') {
     const from = view.from
     return (
@@ -213,21 +269,19 @@ export function SrdExplorer() {
     }
     const { schemaName, label } = view
     return (
-      <div className="su-play-display-scroll">
-        <EntitySearcher
-          schema={schemaName}
-          mode="browse"
-          selected={NOTHING_SELECTED}
-          title={label}
-          emptyMessage="No entries."
-          onClose={() => setView({ kind: 'home' })}
-          onOpen={(id) => {
-            const entity = SalvageUnionReference.findIn(schemaName, (e) => e.id === id)
-            if (entity) setView({ kind: 'entity', entity, from: { schemaName, label } })
-          }}
-          idOf={(item) => item.id}
-        />
-      </div>
+      <EntitySearcher
+        schema={schemaName}
+        mode="browse"
+        framed={false}
+        selected={NOTHING_SELECTED}
+        title={label}
+        emptyMessage="No entries."
+        onOpen={(id) => {
+          const entity = SalvageUnionReference.findIn(schemaName, (e) => e.id === id)
+          if (entity) setView({ kind: 'entity', entity, from: { schemaName, label } })
+        }}
+        idOf={(item) => item.id}
+      />
     )
   }
 
