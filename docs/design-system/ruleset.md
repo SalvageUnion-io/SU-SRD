@@ -77,7 +77,7 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
    6. **§4.6 The floors: type and touch** — nothing under 11px at the size the reader sees (a 1200px link preview: 34px), wizards included; the stat column label is 14px.
       Every coarse-pointer target is 44px, menu items included; nothing floats over content.
    7. **§4.7 The Sizes and sibling height** — the three Sizes are heights: Full 44px, Compact 32px, Mini 18px (`--size-*`; touch lifts Compact to Full, Mini takes a 44px hit area).
-      A line's controls share one Size; chip values match labels, one gap apart, filled from the name's line's bottom right (C2b).
+      A line's controls share one Size; chip values match labels, one gap apart, from the name's line's bottom right (C2b).
 5. **§5 The irreducible set** — an ontology, not a roster: 11 atoms and one technique.
    1. **Stamp** — ink block, paper text: `Badge shape="stamp"`.
    2. **Frame** — `--bw-*` weights: `Box`, `TitledBox` (cut-out); a note is a `Callout`.
