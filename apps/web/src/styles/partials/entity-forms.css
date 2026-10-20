@@ -1487,3 +1487,15 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   flex: none;
   margin: 0;
 }
+
+/* A TokenGroup (`forms/TokenGroup.tsx`): an entity's contentful Token and the
+   Tokens that belong to it, one border in its tone round them all, a step of
+   paper inside it; no head, so no frame and no level. */
+.su-token-group {
+  border: var(--bw-chrome) solid var(--color-ink);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+  padding: var(--space-6);
+}

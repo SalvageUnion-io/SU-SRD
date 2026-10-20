@@ -154,24 +154,21 @@ export function CrawlerIdentityPanel({
             readOnly={readOnly}
             assigned={typeCrew}
             ability={
-              abilities.length > 0 && (
-                // Contentful Tokens, each its head and then its text, Peeking
-                // the whole ability (owner's call, 2026-10-20: every sheet
-                // entity a contentful Token).
-                <>
-                  {abilities.map((ability) => (
-                    <li key={ability.id}>
-                      <Entity
-                        form="token"
-                        context="play"
-                        entity={ability}
-                        mode={{ kind: 'link' }}
-                        body={{}}
-                      />
-                    </li>
-                  ))}
-                </>
-              )
+              abilities.length > 0 &&
+              // Contentful Tokens, each its head and then its text, Peeking
+              // the whole ability (owner's call, 2026-10-20: every sheet
+              // entity a contentful Token).
+              abilities.map((ability) => (
+                <li key={ability.id}>
+                  <Entity
+                    form="token"
+                    context="play"
+                    entity={ability}
+                    mode={{ kind: 'link' }}
+                    body={{}}
+                  />
+                </li>
+              ))
             }
           />
         )}

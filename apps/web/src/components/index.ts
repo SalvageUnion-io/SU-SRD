@@ -255,6 +255,9 @@ export type {
 // host for the read-only card a mention or a trait tag shows on hover, focus
 // or long-press.
 export { Mention } from './entity/forms/Mention'
+// TokenGroup — an entity's contentful Token and the Tokens that belong to it
+// in one border of its tone (a crawler bay and its crew), no nesting
+export { TokenGroup } from './entity/forms/TokenGroup'
 // Select mode's one dim (hard rule R15): a pick an app draws by hand dims with it.
 export { SELECT_DIM } from './entity/modes/selectedRing'
 export type { PeekLoader } from './entity/Peek'
@@ -268,9 +271,15 @@ export type { EntityMode, EntityRowModel } from './entity/types'
 export { InlineMarkdown } from './markdownSection/InlineMarkdown'
 export { MarkdownSection } from './markdownSection/MarkdownSection'
 export { Content } from './referenceEntity/Content'
+// BayInfo — a crawler bay's own rules under a folding Slab, its first section.
+export { BayInfo } from './referenceEntity/card/BayInfo'
+// EntityChoices — an entity's choices under its Token, for a host that draws it as one.
+export { EntityChoices } from './referenceEntity/card/EntityChoices'
 // The band line a Page carries right of its title (EDL E20): the SRD's entity
 // pages and the app's detail dialog.
 export { EntityPageStamps } from './referenceEntity/card/EntityPageStamps'
+// EntityRollToken — an entity's own roll table as a Token, under the entity's Token (E14).
+export { EntityRollToken } from './referenceEntity/card/EntityRollToken'
 // What an entity PAGE's chapter band and foot band say (`presentation="page"`)
 export type { EntityPageMeta } from './referenceEntity/card/entityPage'
 export { resolveEntityPageMeta } from './referenceEntity/card/entityPage'

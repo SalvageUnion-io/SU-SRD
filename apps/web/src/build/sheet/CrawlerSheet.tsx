@@ -68,7 +68,6 @@ import {
   Button,
   EmptyState,
   Entity,
-  MasonryColumns,
   SlabSection,
   Stack,
   Stat,
@@ -94,7 +93,6 @@ import { CrawlerSystemsEditModal } from '../crawler/CrawlerSystemsEditModal'
 import { CrawlerIdentityPanel } from './CrawlerIdentity'
 import type { CrawlerBayEntry } from './CrawlerSheetItems'
 import { CrawlerBayCard } from './CrawlerSheetItems'
-import { EntityGridRow } from './EntityGrid'
 import { PhotoBeside } from './PhotoBeside'
 import { SheetColumns } from './SheetColumns'
 import { SheetHero } from './SheetHero'
@@ -344,7 +342,7 @@ export function CrawlerSheet({
    * A bay's contents belong in the bay, not in a section elsewhere on the
    * sheet describing it from a distance.
    */
-  function renderBay(entry: CrawlerBayEntry, i: number) {
+  function renderBay(entry: CrawlerBayEntry, i: number, inSidebar = false) {
     const kind = bayKind(entry)
     // A link names a bay by its slug, so only the first entry of a bay listed
     // twice is the slot it crews (ADR-044's known limit).
@@ -368,6 +366,7 @@ export function CrawlerSheet({
         contents={
           kind === 'armament' ? armamentContents : kind === 'storage' ? storageContents : undefined
         }
+        inSidebar={inSidebar}
       />
     )
   }
@@ -441,7 +440,7 @@ export function CrawlerSheet({
           storageBays.length > 0 ? (
             storageBays.map(({ entry, i }) => (
               <div key={`storage-${i}`} style={SHRINK}>
-                {renderBay(entry, i)}
+                {renderBay(entry, i, true)}
               </div>
             ))
           ) : storageContents ? (
@@ -470,15 +469,16 @@ export function CrawlerSheet({
               )
             }
           >
-            {/* Two columns at most: the sidebar takes the third. */}
-            <MasonryColumns maxColumns={2}>
+            {/* Each bay a contentful Token and what belongs to it, in one
+                border of its tone (`TokenGroup`), a cell of the masonry grid. */}
+            <TokenGrid label="Bays">
               {bays.map((entry, i) =>
                 bayKind(entry) === 'storage' ? null : (
                   // biome-ignore lint/suspicious/noArrayIndexKey: a crawler may install the same bay type more than once, so bayRef alone is not unique; bays are addressed positionally throughout the sheet
-                  <EntityGridRow key={`${entry.bayRef}-${i}`}>{renderBay(entry, i)}</EntityGridRow>
+                  <li key={`${entry.bayRef}-${i}`}>{renderBay(entry, i)}</li>
                 )
               )}
-            </MasonryColumns>
+            </TokenGrid>
           </SlabSection>
         )}
 

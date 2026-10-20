@@ -109,6 +109,7 @@ const ROSTER = {
   /** The EDL's forms and modes, the entity module's face, and the Card and Page. */
   edl: [
     'Entity',
+    'TokenGroup', // a Token and the Tokens that belong to it, one border (no nesting, E6)
     'Mention',
     'PeekHost',
     'EntitySurfaceProvider',
@@ -121,6 +122,9 @@ const ROSTER = {
     'resolveEntityPageMeta',
     'isLegalStartingPatternOf',
     'WhenDamaged',
+    'BayInfo',
+    'EntityRollToken',
+    'EntityChoices',
     'damagedEffectOf',
     'Chips',
     'EntityStat',

@@ -5,13 +5,19 @@
  */
 
 import type { Crawler } from 'game-domain/schemas/crawler'
-import type { CSSProperties, ReactNode } from 'react'
-import type { RefEntity, RefMetaEntity } from 'salvageunion-reference'
-import type { CardFootMeta, ChoiceSelections, ReferenceEntityControl } from '../../components/index'
+import type { ComponentProps, CSSProperties, ReactNode } from 'react'
+import type { RefMetaEntity } from 'salvageunion-reference'
+import type { ChoiceSelections } from '../../components/index'
 import {
+  BayInfo,
+  Button,
+  Content,
   damagedEffectOf,
+  Entity,
+  EntityChoices,
+  EntityRollToken,
   embeddedPeekAddress,
-  ReferenceEntityCard,
+  TokenGroup,
   tokens,
   useDetailModal,
   WhenDamaged,
@@ -27,6 +33,7 @@ import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
 import { LinkedCrewToken } from '../npc/LinkedCrewToken'
 import { CrewLeadToken } from './CrewLeadToken'
 import { LinkedUnitLink } from './LinkedUnitLink'
+import { SheetItemLine } from './SheetItemLine'
 import { UnknownItemLine } from './UnknownItemLine'
 
 export type CrawlerBayEntry = NonNullable<Crawler['crawlerBays']>[number]
@@ -47,19 +54,6 @@ const BAY_FUNCTIONS: Record<string, string> = {
 }
 
 /**
- * A bay on the sheet is drawn as the SRD's bay Page draws it: no kind pill
- * right of its title (its foot names no kind off a Page, EDL E9). Its "When
- * Damaged" section (a Slab over the clause, N5) is the sheet's own, under the
- * crew in the expand slot, so the card's is held back.
- */
-const HIDE = { axisMarkers: true, damagedEffect: true } as const
-/**
- * Read draws no unchosen pick: a "Choose a …" disclosure is a write cue (board
- * 10). A pick that WAS made still reads, so it is the unmade one that hides.
- */
-const HIDE_READ = { ...HIDE, choices: true } as const
-
-/**
  * Several bays ALSO restate their damaged clause as a trailing content
  * paragraph, so hiding `damagedEffect` alone still left it on the card. This
  * catches that duplicate.
@@ -75,12 +69,6 @@ const DOCKS = {
   fontSize: tokens.fontSize.caption,
   gap: tokens.space[6],
   margin: `0 0 ${tokens.space[6]}`,
-} satisfies CSSProperties
-
-const EXPAND_STACK = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[12],
 } satisfies CSSProperties
 
 /** Split a bay's rules content into its always-true half and its damaged half. */
@@ -138,23 +126,20 @@ type CrawlerBayCardProps = {
    * it was, and comes back when the link goes (Q2).
    */
   assigned?: CrewAssignment
+  /** In the sheet's sidebar, where nothing folds (ruleset §1.2): Bay Info and When Damaged stand open. */
+  inSidebar?: boolean
 }
 
 /**
- * CrawlerBayCard — one installed bay as a compact cb entity card: status
- * badge (Intact ↔ Damaged toggle), its crew lead's contentful Token
- * (`CrewLeadToken`, N3) in the expand slot,
- * function and Repair in its head (C8), and the bay's SRD choices (e.g. the Armament
- * Bay weapon pick). The bay's full rules open in a detail modal from the
- * function action.
- *
- * The bay reads as its three sections: Bay Info, its crew, When Damaged
- * (owner's call, 2026-10-20). On a sheet both folding sections start shut, so
- * the bay shows its state — condition, the roll bar, what it holds, its crew —
- * and keeps its prose behind the Bay Info fold. The bay is a child of the
- * crawler sheet, and a child hides prose its parent shows (ruleset §5);
- * printed inline, every bay's rules ran the starter crawler sheet to thousands
- * of pixels.
+ * CrawlerBayCard — one installed bay as a CONTENTFUL Token and what belongs to
+ * it, in one border of the bay's tone (`TokenGroup`; owner's calls,
+ * 2026-10-20): the bay's Token (its condition stepping Intact ↔ Damaged from
+ * its state slot, its function and Repair in its chip group, C8; its Bay Info
+ * folded under its head), then on the lines under it its choices (the
+ * Armament Bay's weapon pick), its roll table, what it holds, its crew lead's
+ * contentful Token (`CrewLeadToken`, N3) and its When Damaged, open once it
+ * is damaged. None sits inside another (E6). In the sidebar nothing folds.
+ * The bay's full rules open in a detail modal from the function action.
  */
 export function CrawlerBayCard({
   crawlerId,
@@ -170,6 +155,7 @@ export function CrawlerBayCard({
   contents,
   onFunction,
   assigned,
+  inSidebar = false,
 }: CrawlerBayCardProps) {
   const storeState = store()
   const { selections, setSelections } = useEntityChoices(
@@ -179,9 +165,6 @@ export function CrawlerBayCard({
     'bayChoices',
     seedSelections,
     store
-  )
-  const hasPick = Object.values(selections).some((picked) =>
-    Array.isArray(picked) ? picked.length > 0 : Boolean(picked)
   )
   const bay = resolveCrawlerBay(entry.bayRef)
   const detail = useDetailModal(bay ?? undefined)
@@ -294,93 +277,103 @@ export function CrawlerBayCard({
   )
 
   const functionLabel = BAY_FUNCTIONS[entry.bayRef] ?? 'Use'
-  // No crew lead in the footer (owner's call, 2026-10-14): the crew is in the
-  // card already, so naming them again only repeated it.
-  const footMeta: CardFootMeta[] = damaged ? [{ label: 'Repair', value: `5·T${crawlerTl}` }] : []
 
-  // The condition steps from the head's state slot (C8); a bay is Intact or
-  // Damaged, never Destroyed. Damaged disables the function action and
-  // promotes Repair; both are the head's last slot, with the fold.
-  const conditionControl: ReferenceEntityControl = {
-    key: 'condition',
-    status: {
-      value: condition,
-      onClick: toggleCondition,
-      subject: bay.name,
-      next: damaged ? 'intact' : 'damaged',
-    },
-  }
-  const controls: ReferenceEntityControl[] = [
-    conditionControl,
-    {
-      key: 'function',
-      label: functionLabel,
-      ariaLabel: functionLabel,
-      title: damaged
-        ? `${bay.name} is damaged — its function is offline until repaired.`
-        : `${functionLabel} — open the ${bay.name} rules`,
-      onClick: () => (onFunction ? onFunction() : detail.control.onClick?.()),
-      variant: 'primary',
-      disabled: damaged,
-    },
-    {
-      key: 'repair',
-      label: 'Repair',
-      ariaLabel: 'Repair',
-      title: damaged
-        ? repairShortfall > 0
-          ? `Costs ${BAY_REPAIR_COST} Scrap (Tech ${crawlerTl} or higher) — pool is ${repairShortfall} short; repairing anyway is the table's call.`
-          : `Costs ${BAY_REPAIR_COST} Scrap (Tech ${crawlerTl} or higher) from the pool.`
-        : `${bay.name} is intact — nothing to repair.`,
-      onClick: () => onRepair(entry, index),
-      variant: 'danger',
-      disabled: !damaged || readOnly,
-    },
-  ]
-
-  // The card renders WITHOUT the SRD npc block — the crew lead lives in the
-  // expand slot instead, as its Token — and without the prose restating the
-  // "when damaged" clause (see WHEN_DAMAGED): its section says it once.
+  // The bay's rules, less the clause its When Damaged says once (WHEN_DAMAGED)
+  // and the SRD crew NPC, which is its crew lead's Token here.
   const { normal } = splitBayContent(bay.content)
   const damagedText = damagedEffectOf(bay) ?? ''
-  const cardData = { ...bay, npc: undefined, content: normal } as unknown as RefEntity
+  const tokenData = { ...bay, npc: undefined, content: normal } as unknown as RefMetaEntity
+  // In the sidebar nothing folds (ruleset §1.2): its sections stand open.
+  const infoFold = inSidebar ? undefined : 'closed'
 
+  // The bay is a CONTENTFUL Token (owner's call, 2026-10-20): its head (its
+  // condition steps from the state slot, C8; a bay is Intact or Damaged,
+  // never Destroyed; its function and Repair are the last slot) and its Bay
+  // Info under it, folded on a sheet.
+  const line = (
+    <SheetItemLine
+      token={
+        <Entity
+          form="token"
+          context="loadout"
+          entity={tokenData}
+          instance={{ condition }}
+          mode={{ kind: 'link' }}
+          body={{
+            text: false,
+            children: (
+              <BayInfo subject={bay.name} fold={infoFold}>
+                <Content body={normal as ComponentProps<typeof Content>['body']} />
+              </BayInfo>
+            ),
+          }}
+        />
+      }
+      name={bay.name}
+      condition={condition}
+      readOnly={readOnly}
+      onConditionCycle={toggleCondition}
+      nextCondition={damaged ? 'intact' : 'damaged'}
+      actions={
+        <>
+          <Button
+            size="mini"
+            variant="primary"
+            title={
+              damaged
+                ? `${bay.name} is damaged — its function is offline until repaired.`
+                : `${functionLabel} — open the ${bay.name} rules`
+            }
+            disabled={damaged}
+            onClick={() => (onFunction ? onFunction() : detail.control.onClick?.())}
+          >
+            {functionLabel}
+          </Button>
+          <Button
+            size="mini"
+            variant="ink"
+            title={
+              damaged
+                ? repairShortfall > 0
+                  ? `Costs ${BAY_REPAIR_COST} Scrap (Tech ${crawlerTl} or higher) — pool is ${repairShortfall} short; repairing anyway is the table's call.`
+                  : `Costs ${BAY_REPAIR_COST} Scrap (Tech ${crawlerTl} or higher) from the pool.`
+                : `${bay.name} is intact — nothing to repair.`
+            }
+            disabled={!damaged}
+            onClick={() => onRepair(entry, index)}
+          >
+            Repair
+          </Button>
+        </>
+      }
+    />
+  )
+
+  // The bay and what belongs to it, one border in its tone (owner's call,
+  // 2026-10-20), none inside another (E6): its Token, its roll table, what it
+  // holds, its crew lead, then its When Damaged, open once it is damaged.
   return (
     <>
-      <ReferenceEntityCard
-        data={cardData}
-        size="compact"
-        hide={readOnly && !hasPick ? HIDE_READ : HIDE}
-        // A sheet starts the bay's Bay Info folded (owner's call, 2026-10-20):
-        // its state — condition, crew, what it holds — is what the sheet reads.
-        sectionFold="closed"
-        // Read draws no controls (board 10): no condition to step for an
-        // intact bay, no function or Repair. A damaged bay keeps its status,
-        // which greys the card and reads in its head — the fact to read.
-        status={condition}
-        selections={selections}
-        onSelectionChange={readOnly ? undefined : setSelections}
-        controls={readOnly ? undefined : controls}
-        footMeta={footMeta}
-        expand={
-          <div style={EXPAND_STACK}>
-            {contents}
-            {crew}
-            {/* The bay's last section, under its crew, folded on a sheet. A
-                damaged bay opens it: the card is greyed by its `damaged`
-                status, and the clause is the one thing the reader needs off
-                it then. Keyed on the condition, so a flip re-seeds it. */}
-            {damagedText && (
-              <WhenDamaged
-                key={condition}
-                effect={damagedText}
-                subject={bay.name}
-                fold={damaged ? 'open' : 'closed'}
-              />
-            )}
-          </div>
-        }
-      />
+      <TokenGroup entity={tokenData} condition={condition} label={bay.name}>
+        {line}
+        <EntityChoices
+          entity={bay as unknown as RefMetaEntity}
+          selections={selections}
+          onSelectionChange={readOnly ? undefined : setSelections}
+          techLevel={crawlerTl}
+        />
+        <EntityRollToken entity={bay as unknown as RefMetaEntity} disabled={damaged} />
+        {contents}
+        {crew}
+        {damagedText && (
+          <WhenDamaged
+            key={condition}
+            effect={damagedText}
+            subject={bay.name}
+            fold={inSidebar ? undefined : damaged ? 'open' : 'closed'}
+          />
+        )}
+      </TokenGroup>
       {detail.modal}
     </>
   )

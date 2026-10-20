@@ -39,6 +39,8 @@ type SheetItemLineProps = {
   readOnly: boolean
   /** Step the condition on (Intact → Damaged → Destroyed). */
   onConditionCycle?: () => void
+  /** The condition a step goes to, where it is not the next of three (a crawler bay: Intact ↔ Damaged). */
+  nextCondition?: ItemCondition
   /** Read: a stamp in the state slot (an ability's "Used"), beside any condition. */
   stamp?: string
   /** Uses left out of a max; absent when the item has none. */
@@ -55,6 +57,7 @@ export function SheetItemLine({
   condition,
   readOnly,
   onConditionCycle,
+  nextCondition,
   stamp,
   uses,
   actions,
@@ -97,7 +100,12 @@ export function SheetItemLine({
           {own}
           {condition ? (
             <span className="su-sheet-item__condition">
-              <StatusBadge status={condition} subject={name} onClick={onConditionCycle} />
+              <StatusBadge
+                status={condition}
+                subject={name}
+                onClick={onConditionCycle}
+                {...(nextCondition ? { next: nextCondition } : {})}
+              />
             </span>
           ) : (
             stampChip
