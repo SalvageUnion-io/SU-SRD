@@ -16,8 +16,9 @@
  * its room (`--su-name-basis`), so the cost is always on the name's line.
  *
  * Plain DOM, no React: a static page's client entry (`islands.client.ts`)
- * runs it, and `useChipFill` on the pages it draws. With no script the CSS
- * keeps one chip (the cost) beside the name and lifts the rest.
+ * runs it, and `useChipFill` on the pages it draws. Until it has run (and
+ * with no script) the CSS keeps every chip beside the name as the flex line
+ * breaks them, so a head whose chips all fit there does not move when it does.
  */
 
 /** A head that fills from its bottom-right corner: the flow's container. */

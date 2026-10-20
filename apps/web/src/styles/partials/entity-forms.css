@@ -288,8 +288,10 @@
    (`--su-beside`, measured by `chipFill.ts`), and the `::after` break right
    after the name lifts every chip past them; the name's auto margin holds
    the line's free room. Where not even the cost fits beside the one-line
-   name, the name wraps in the room it leaves (`--su-name-basis`). With no
-   script the cost alone sits beside the name. The
+   name, the name wraps in the room it leaves (`--su-name-basis`). Until the
+   script has measured (and with none) every chip sits beside the name, as
+   the flex line breaks them: a head whose chips all fit there, the most
+   common one, does not move when the fit lands (no layout shift). The
    lines carry no row gap (the break's empty line would double it): each chip
    keeps half the gap above and below it. */
 [data-chip-fill] {
@@ -306,7 +308,7 @@
   content: '';
   flex: 0 0 100%;
   height: 0;
-  order: calc(3 * var(--su-beside, 1) + 2);
+  order: calc(3 * var(--su-beside, 99) + 2);
 }
 
 [data-chip-fill] > [data-fill-name] {
@@ -314,7 +316,7 @@
   margin-inline-end: auto;
   max-width: 100%;
   min-width: min-content;
-  order: calc(3 * var(--su-beside, 1) + 1);
+  order: calc(3 * var(--su-beside, 99) + 1);
 }
 
 /* Every item `chipFill.ts` measured (a chip, a label, a band's control), at
