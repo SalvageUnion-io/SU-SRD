@@ -1511,3 +1511,12 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   outline: var(--bw-hairline) solid currentcolor;
   outline-offset: calc(-1 * (var(--su-mini-inset) + var(--bw-hairline)));
 }
+
+/* The condition in a strip's state slot (C8, ruleset §2.3: `StatusBadge`)
+   draws at the Mini plate the strip's buttons draw (above), so the bay's
+   condition and its Scan and Repair share one height (§4.7), as a sheet
+   item's does (`build/sheet/items.css`). */
+.su-chips > .su-chip-lane[data-chip-class='state'] .su-badge {
+  box-sizing: border-box;
+  height: var(--size-mini);
+}
