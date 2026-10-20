@@ -32,8 +32,12 @@ const PAGES = [
   '/crawler-bays/armoury/',
 ]
 
-/** A wide page, a narrow band (chips beside the title in rows), a phone. */
-const WIDTHS = [1440, 680, 390]
+/**
+ * A wide page, a mid desktop (1024: a class page's Training cards three
+ * across beside the art), a narrow band (chips beside the title in rows), a
+ * phone.
+ */
+const WIDTHS = [1440, 1024, 680, 390]
 
 test.describe.configure({ retries: 0 })
 

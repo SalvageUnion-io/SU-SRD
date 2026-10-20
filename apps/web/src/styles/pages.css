@@ -762,7 +762,9 @@ a.su-home__discord:hover {
   gap: var(--space-12);
 }
 
-/* The tier cards: side by side while each keeps 9.5rem, stacked on a phone.
+/* The tier cards: side by side while each keeps 12.5rem, the widest tier's
+   head (LEGENDARY and its 3 TP, which never clip: R3; a card's container
+   query hides its content's width from the row), stacked on a phone.
    A wrapping flex row, not a grid: the cards on a line share it evenly and
    stretch to its tallest, and a card alone on the last line (Legendary
    under Core and Advanced, the Salvager's lone Core) grows to the full width
@@ -777,8 +779,8 @@ a.su-home__discord:hover {
    opening into the body, no rule between them. */
 .su-class-brief__card {
   display: flex;
-  flex: 1 1 9.5rem;
-  min-width: min(100%, 9.5rem);
+  flex: 1 1 12.5rem;
+  min-width: min(100%, 12.5rem);
 }
 
 /* The card is a `TitledBox`; it takes its track's width, under a Row's 12rem floor. */
