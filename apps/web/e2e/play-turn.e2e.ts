@@ -9,6 +9,7 @@ import {
   pilotPlayPath,
   situation,
 } from './_play'
+import { searchWidthFaults } from './_searchWidth'
 import { setUpTable } from './_table'
 import { expect, test } from './fixtures'
 
@@ -132,6 +133,8 @@ test('a boarded turn on a 390 × 844 phone: the Act tab, then Tables', async ({ 
   await expect(tabs.getByRole('tab', { name: 'Act' })).toHaveAttribute('aria-selected', 'true')
   const pinned = page.getByRole('region', { name: 'Pinned vitals' })
   await expect(pinned.getByRole('list', { name: 'Bonesaw’s vitals' })).toBeVisible()
+  // The Act tab's Find spans its line (a search is full width on a phone).
+  expect(await searchWidthFaults(page), 'Act tab searches narrower than their line').toEqual([])
 
   const action = await boardedTurn(page)
   // Boarded, the mech's vitals are pinned too.
@@ -139,6 +142,7 @@ test('a boarded turn on a 390 × 844 phone: the Act tab, then Tables', async ({ 
 
   await tabs.getByRole('tab', { name: 'Tables' }).click()
   await expectOnFeed(page, action)
+  expect(await searchWidthFaults(page), 'Tables tab searches narrower than their line').toEqual([])
 
   // The phone form fits the screen: only the open panel scrolls.
   const overflow = await page.evaluate(() => {
