@@ -413,9 +413,9 @@ function ReferenceEntityCardInner({
 
   // A card met inside another names its own Page: its name links (`CardTitleLink`).
   const interactive = !!(onCardClick || cardClickable || selectable || selectionRole)
-  const place = { onPage, depth: depthProp, insidePeek, pattern: isPattern, interactive }
+  const place = { onPage, depth: depthProp, insidePeek, interactive }
   const titleContent = namesOwnPage(place) ? (
-    <CardTitleLink entity={entity} title={name} inPeek={insidePeek} />
+    <CardTitleLink entity={entity} title={name} inPeek={insidePeek} pattern={pattern} />
   ) : undefined
 
   // Every card wears the cut-out head (its overflow, C2b); a Page has its chapter band.

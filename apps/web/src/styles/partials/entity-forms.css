@@ -1290,6 +1290,12 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   min-width: 0;
 }
 
+/* A contentful Mini in the list (a chassis card's described pattern) runs the
+   line too, however short its prose. */
+.su-entity-mini-list > li > .su-ec-outer {
+  flex: 1 1 auto;
+}
+
 /* Two Minis a line (`--two-up`: a pattern drone's systems and modules under
    its Mini), in reading order; one a line on a phone, where two would each
    be too narrow to hold a system name. */

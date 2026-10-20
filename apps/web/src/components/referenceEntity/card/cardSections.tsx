@@ -130,7 +130,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
         name={pattern.name}
         content={pattern.content ?? []}
         context={prose}
-        onPage={onPage}
+        named={onPage || size === 'mini'}
         note={isLegalStartingPatternCard ? LEGAL_STARTING_PATTERN_NOTE : undefined}
       />
     ) : null

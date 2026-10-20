@@ -101,14 +101,15 @@ export function PatternProse({
   name,
   content,
   context,
-  onPage = false,
+  named = false,
   note,
 }: {
   name: string
   content: RefObjectContentBlock[]
   context: CardProseContext
-  /** On its own page the band's title already names the pattern: no stamp. */
-  onPage?: boolean
+  /** The pattern is already named right above (its own page's band, a Mini's
+   * head): no stamp. */
+  named?: boolean
   /**
    * A closing sentence the book prints under the pattern's prose — a legal
    * starting pattern's (`LEGAL_STARTING_PATTERN_NOTE`).
@@ -118,7 +119,7 @@ export function PatternProse({
   const body: RefObjectContentBlock[] = note
     ? [...content, { type: 'paragraph', value: note }]
     : content
-  if (onPage) return <CardProse body={body} context={context} />
+  if (named) return <CardProse body={body} context={context} />
   return (
     <div className="su-ec-block" style={STACK}>
       {/* `.su-ec-name-tab` (fit-content) scopes the title to ITSELF on a card: the solid Slab's leader

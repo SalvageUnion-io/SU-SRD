@@ -154,8 +154,6 @@ type CardPlace = {
   onPage: boolean
   depth: number
   insidePeek: boolean
-  /** A pattern view: its pattern row links instead. */
-  pattern: boolean
   /** The card is itself a control (a click, a select, a pick's role). */
   interactive: boolean
 }
@@ -164,7 +162,7 @@ type CardPlace = {
  * Whether a card names its own Page (`CardTitleLink`): one met inside another,
  * nested (depth > 0) or the Peek's own card, and not itself a control.
  */
-export function namesOwnPage({ onPage, depth, insidePeek, pattern, interactive }: CardPlace) {
-  if (onPage || pattern || interactive) return false
+export function namesOwnPage({ onPage, depth, insidePeek, interactive }: CardPlace) {
+  if (onPage || interactive) return false
   return insidePeek ? depth === 0 : depth > 0
 }
