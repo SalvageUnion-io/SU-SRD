@@ -80,7 +80,7 @@
 /* HEAD (`entity/parts/Head.tsx`): the band, wearing the paint and its grain.
    `--su-name-mid-strut` is twice the height of the name's middle (its
    capitals') above the foot of its line: the strut that centres chips on it
-   (`.su-entity-row__heading--cut`, `.su-entity-tile__chips`). */
+   (`.su-entity-row__heading--cut`). */
 .su-entity-row__head,
 .su-entity-tile__band {
   --su-name-mid-strut: calc(0.986 * var(--text-title));
@@ -164,6 +164,12 @@
  */
 .su-entity-row__head[data-notch] {
   padding: var(--space-8) var(--space-12) 0;
+}
+
+/* `Head`'s `top`: controls on the band above the name's line, the band's
+   full width (the SRD Explorer's search and filters). */
+.su-entity-row__top {
+  padding-bottom: var(--space-8);
 }
 
 /* Set by a grid taller than the head, the band runs the frame's height, its
@@ -318,8 +324,7 @@
    (`--su-name-mid-strut`) is placed first, so the corner line centres on the
    name; it gives back the gap it adds, so it never wraps a line. */
 .su-entity-row__heading--cut > .su-chips,
-.su-entity-row__heading--cut > .su-entity-row__chip-group,
-.su-entity-tile__band > .su-entity-tile__chips {
+.su-entity-row__heading--cut > .su-entity-row__chip-group {
   align-items: center;
   display: flex;
   flex-direction: row-reverse;
@@ -337,8 +342,7 @@
 }
 
 .su-entity-row__heading--cut > .su-chips::after,
-.su-entity-row__heading--cut > .su-entity-row__chip-group::before,
-.su-entity-tile__band > .su-entity-tile__chips::after {
+.su-entity-row__heading--cut > .su-entity-row__chip-group::before {
   content: '';
   flex: none;
   height: var(--su-name-mid-strut);
@@ -862,14 +866,21 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   flex-grow: 0;
 }
 
-/* The band: the tone, with the name's cut-out sitting on its foot. Its top
-   edge rules the art off; a bare tile's frame is its top edge. */
+/* Its top edge rules the art off; a bare tile's frame is its top edge.
+   The band: the tone, with the name's cut-out sitting on its foot. Its chips
+   are its own items in reading order (owner's call, 2026-10-20): those that
+   fit sit beside the name, centred on it, and the rest rise in lines over
+   the name, right-aligned (`wrap-reverse`: the name's line is the foot). */
 .su-entity-tile__band {
-  align-items: flex-end;
+  align-content: flex-start;
+  align-items: center;
   border-top: var(--bw-chrome) solid var(--color-ink);
   display: flex;
+  flex-wrap: wrap-reverse;
+  justify-content: flex-end;
   min-height: calc(2.1 * var(--text-title) + var(--space-12));
   padding: var(--space-8) var(--space-8) 0;
+  row-gap: var(--space-4);
 }
 
 .su-entity-tile--bare .su-entity-tile__band {
@@ -891,14 +902,9 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   padding: var(--space-4) var(--space-8) var(--space-2);
 }
 
-/* The chips beside the name, at the band's foot, filling from its
-   bottom-right corner up as a Row's do (the bottom-right fill, above). */
+/* The chips draw no box: each is an item of the band's lines. */
 .su-entity-tile__band > .su-entity-tile__chips {
-  align-content: flex-end;
-  align-self: flex-end;
-  flex: 1 1 0;
-  margin-bottom: var(--space-2);
-  min-width: 5.5rem;
+  display: contents;
 }
 
 .su-entity-tile__cells {
@@ -1215,14 +1221,13 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   align-self: flex-end;
 }
 
-/* A bottom-right fill's chips (`.su-entity-row__heading--cut > .su-chips`,
-   `.su-entity-tile__chips`): flex items the gap apart, no margin of their
+/* A bottom-right fill's chips (`.su-entity-row__heading--cut > .su-chips`):
+   flex items the gap apart, no margin of their
    own, each at its place from the strip's end (`--su-fill`). Last in the
    file, after the grid's `> *` rules it outranks. */
 :is(
     .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
-    .su-entity-tile__band > .su-entity-tile__chips
+    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips
   )
   > .su-chip-lane
   > * {
@@ -1235,15 +1240,13 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
    height, never stretched to the strut's. */
 :is(
     .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
-    .su-entity-tile__band > .su-entity-tile__chips
+    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips
   )
   > .su-chip-lane
   > .su-cost-edge,
 :is(
     .su-entity-row__heading--cut > .su-chips,
-    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips,
-    .su-entity-tile__band > .su-entity-tile__chips
+    .su-entity-row__heading--cut > .su-entity-row__chip-group > .su-chips
   )
   > .su-chip-lane
   > .su-cost-edge
@@ -1439,4 +1442,15 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 .su-chips > .su-chip-lane[data-chip-class='state'] .su-badge {
   box-sizing: border-box;
   height: var(--size-mini);
+}
+
+/* An index Tile's chips (`.su-entity-tile__chips`): items of the band's
+   lines, in reading order, no margin of their own, each its own width, so a
+   line that has no room wraps it up over the name. Last in the file, after
+   the grid's `> *` rules it outranks. */
+.su-entity-tile__band > .su-entity-tile__chips > :not(.su-chip-lane),
+.su-entity-tile__band > .su-entity-tile__chips > .su-chip-lane > * {
+  display: inline-flex;
+  flex: none;
+  margin: 0;
 }

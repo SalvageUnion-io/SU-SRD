@@ -177,8 +177,8 @@ export function Tile({
             </span>
           </span>
           {hasChips && (
-            // Its chips fill from the band's bottom-right corner up, on one
-            // line wherever they fit (`.su-entity-tile__chips`, ruleset §4.7).
+            // Its chips read in order: those that fit beside the name, the
+            // rest in lines rising over it, right-aligned (`.su-entity-tile__chips`).
             <Chips
               as="span"
               className="su-entity-tile__chips"

@@ -150,7 +150,7 @@ describe('Tile chips for systems and modules', () => {
   }
 
   test("a system's chips are one strip in the stat order, without SV, its range as the book's code", () => {
-    // One flat strip that fills from the band's bottom-right corner up (§4.7),
+    // One flat strip in reading order, beside the name and rising over it,
     // on one line wherever it fits: never split into fixed lines.
     expect(chips('systems', 'Red Laser')).toEqual(['TL1', 'Slots3', 'RNGC', 'DMG3 SP'])
   })

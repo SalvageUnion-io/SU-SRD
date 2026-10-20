@@ -16,8 +16,9 @@ const READ_CHIP_CLASSES = CHIP_CLASSES.slice(0, CHIP_CLASSES.indexOf('cost') + 1
  *   (a stretched chip, a hole); in a list's lanes (C6), within each lane.
  * - **flush** a strip whose lines share neither a right edge nor a left one.
  * - **cost** a cost that is not the strip's last read chip, or, last of all,
- *   not on its lowest line and rightmost there; followed by +MORE alone, not
- *   right before it there.
+ *   not on its lowest line and rightmost there (an index Tile's excepted: its
+ *   chips read in order over its name); followed by +MORE alone, not right
+ *   before it there.
  * - **fill** a contentful Token's line under another that is not full: its
  *   chips fill bottom-heavy (owner, 2026-10-19), so the chip ending the line
  *   above would not fit on it.
@@ -322,7 +323,10 @@ function scan({
 
     // COST: the last read chip in the source (C2: the slots, a state, uses,
     // the menu, may follow it, C8); last of all, on the lowest line,
-    // rightmost there; with +MORE after it, right before +MORE there.
+    // rightmost there; with +MORE after it, right before +MORE there. An
+    // index Tile's chips read in order instead, the ones that fit beside its
+    // name and the rest over it (owner, 2026-10-20), so the corner is not
+    // the cost's there.
     const cost = chips.find((el) => el.matches('.su-cost, .su-cost-edge'))
     if (cost) {
       const readChips = chips.filter((el) => read.includes(classOf(el)) || classOf(el) === '')
@@ -331,7 +335,7 @@ function scan({
       const beforeMore = lowest[lowest.length - 2]?.el
       if (readChips[readChips.length - 1] !== cost) {
         faults.push(`cost: ${where} "${describe(cost)}" is not the last read chip`)
-      } else if (last === cost && corner !== cost) {
+      } else if (last === cost && corner !== cost && !root.matches('.su-entity-tile__chips')) {
         faults.push(`cost: ${where} "${describe(cost)}" is not at the bottom-right`)
       } else if (moreChip && chips[chips.length - 2] === cost && beforeMore !== cost) {
         faults.push(
