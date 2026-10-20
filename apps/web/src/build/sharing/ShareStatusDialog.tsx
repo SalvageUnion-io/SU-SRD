@@ -109,7 +109,13 @@ export function ShareStatusDialog({
         </p>
 
         {showLive ? (
-          <ShareSettings kind={kind} appId={id} gameId={gameId} clipboardWriter={clipboardWriter} />
+          <ShareSettings
+            kind={kind}
+            appId={id}
+            name={name}
+            gameId={gameId}
+            clipboardWriter={clipboardWriter}
+          />
         ) : mode === 'solo' ? (
           <section style={SIGN_IN}>
             <p style={NOTE}>

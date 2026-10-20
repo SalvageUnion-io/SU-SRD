@@ -37,6 +37,11 @@ can see it" control: Only me, My Game's crew, Anyone with the link.
 - Opt-in because it widens who can read a sheet (a pilot's free-text fields
   included); the toggle says so.
 - **The URL is not a secret**: `publicRead` is the control, and it can be withdrawn.
+- The link's last segment is short: the name as a slug, then the app id's first
+  12 hex digits (`/p/pilot/rook-vance-0a1b2c3d4e5f`, `game-domain/shareAddress`).
+  Only the hex digits are read, as one `by_app_id` range; the slug is decoration,
+  so a rename breaks nothing, and the page replaces an older full-id or renamed
+  address with the current one. A full app id still resolves, so old links work.
 - A public sheet is crawlable and names its canonical URL; a missing or private
   one answers `x-robots-tag: noindex` (`worker/app.ts`); the sitemap never
   lists `/p/`.

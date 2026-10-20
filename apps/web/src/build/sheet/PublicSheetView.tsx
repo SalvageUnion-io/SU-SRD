@@ -11,11 +11,18 @@
  * query and its own page (`PublicPattern`), the same "not available" for
  * anything the reader may not see. A built NPC is `/p/npc/:appId`: the sheets'
  * query, drawn as its own read-only page (`NpcSheet`).
+ *
+ * The address segment is a short address (`shareAddress`) or a full app id;
+ * every answer carries the full one, which is what the page reads by. Once it
+ * resolves, `onAddress` is handed the current `<name>-<short id>` when the
+ * address differs, so an old link or a renamed thing settles on its own.
  */
 
 import { useQuery } from 'convex/react'
 import { NpcSchema } from 'game-domain/schemas/npc'
 import { MechPatternSchema } from 'game-domain/schemas/pattern'
+import { shareSegment } from 'game-domain/shareAddress'
+import { useEffect } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
 import { PublicPattern } from '../mech/Pattern/PublicPattern'
@@ -39,21 +46,49 @@ function NotAvailable({ what = 'sheet' }: { what?: 'sheet' | 'pattern' | 'NPC' }
   )
 }
 
+/** Told the thing's current address segment when the one in the URL is not it. */
+type OnAddress = (segment: string) => void
+
+type QueryProps = { appId: string; onAddress?: OnAddress | undefined }
+
+/** The name a body carries, for the readable half of its address. */
+function nameOf(body: unknown): string | undefined {
+  const name = (body as { name?: unknown } | null)?.name
+  return typeof name === 'string' ? name : undefined
+}
+
+/**
+ * Hand `onAddress` the resolved thing's own segment once, when the URL's
+ * `segment` is not already it: an old full-id link, or a name since changed.
+ */
+function useCanonicalAddress(
+  segment: string,
+  resolved: { appId: string; body: unknown } | null | undefined,
+  onAddress: OnAddress | undefined
+) {
+  const canonical = resolved ? shareSegment(resolved.appId, nameOf(resolved.body)) : null
+  useEffect(() => {
+    if (canonical !== null && canonical !== segment) onAddress?.(canonical)
+  }, [canonical, segment, onAddress])
+}
+
 /** The half that talks to Convex, reached only with a known kind. */
-function PublicSheetQuery({ kind, appId }: { kind: PublicKind; appId: string }) {
+function PublicSheetQuery({ kind, appId, onAddress }: QueryProps & { kind: PublicKind }) {
   const result = useQuery(api.publicSheet.get, { kind, appId })
+  useCanonicalAddress(appId, result, onAddress)
 
   // `undefined` is Convex's "still loading"; `null` is a real "no such public
   // sheet". Collapsing them would flash the not-found page on every load.
   if (result === undefined) return <SheetSkeleton />
   if (result === null) return <NotAvailable />
 
-  return <PublicSheet appId={appId} answer={result} />
+  return <PublicSheet appId={result.appId} answer={result} />
 }
 
 /** A saved pattern: readable by link, by its Game's crew, or by its maker. */
-function PublicPatternQuery({ appId }: { appId: string }) {
+function PublicPatternQuery({ appId, onAddress }: QueryProps) {
   const result = useQuery(api.publicSheet.pattern, { appId })
+  useCanonicalAddress(appId, result, onAddress)
   if (result === undefined) return <SheetSkeleton />
   if (result === null) return <NotAvailable what="pattern" />
 
@@ -64,8 +99,9 @@ function PublicPatternQuery({ appId }: { appId: string }) {
 }
 
 /** A built NPC someone shared by link: its own page, read-only and credited to its maker. */
-function PublicNpcQuery({ appId }: { appId: string }) {
+function PublicNpcQuery({ appId, onAddress }: QueryProps) {
   const result = useQuery(api.publicSheet.get, { kind: 'npc', appId })
+  useCanonicalAddress(appId, result, onAddress)
   if (result === undefined) return <SheetSkeleton />
   if (result === null) return <NotAvailable what="NPC" />
 
@@ -74,7 +110,7 @@ function PublicNpcQuery({ appId }: { appId: string }) {
   if (!parsed.success) return <NotAvailable what="NPC" />
   return (
     <NpcSheet
-      npc={{ ...parsed.data, id: appId }}
+      npc={{ ...parsed.data, id: result.appId }}
       madeBy={result.madeBy ?? 'a player'}
       readOnly
       readOnlyNote="A shared NPC, read-only. Only whoever made it can change it."
@@ -86,12 +122,20 @@ function PublicNpcQuery({ appId }: { appId: string }) {
  * Everything the route decides, minus the router. Exported so a test can
  * render it directly rather than through a `RouterProvider`.
  */
-export function PublicSheetView({ kind, appId }: { kind: string; appId: string }) {
-  if (kind === 'pattern') return <PublicPatternQuery appId={appId} />
-  if (kind === 'npc') return <PublicNpcQuery appId={appId} />
+export function PublicSheetView({
+  kind,
+  appId,
+  onAddress,
+}: {
+  kind: string
+  appId: string
+  onAddress?: OnAddress
+}) {
+  if (kind === 'pattern') return <PublicPatternQuery appId={appId} onAddress={onAddress} />
+  if (kind === 'npc') return <PublicNpcQuery appId={appId} onAddress={onAddress} />
   // A hand-typed path earns an explanation and a way back, not a validation
   // error from the server.
   if (!isPublicKind(kind)) return <NotAvailable />
 
-  return <PublicSheetQuery kind={kind} appId={appId} />
+  return <PublicSheetQuery kind={kind} appId={appId} onAddress={onAddress} />
 }

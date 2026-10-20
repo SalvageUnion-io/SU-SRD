@@ -195,17 +195,17 @@ export function gameUrl(gameId: string): string {
  * and this must not invent one: `/p/…` for an unpublished entity renders "this
  * sheet isn't available", so linking it would advertise a dead page.
  *
- * Addressed by `appId` rather than the Convex row id, which is what the route
- * takes and what this payload already carries.
+ * Addressed by `appId`, in the Share link's `<name>-<short id>` form when `name` is given.
  */
 export function publicSheetUrl(
   table: SheetTable,
   appId: string | null,
-  publicRead: boolean | undefined
+  publicRead: boolean | undefined,
+  name?: string
 ): string | null {
   if (publicRead !== true) return null
   if (appId === null || appId.length === 0) return null
-  return `${APP_ORIGIN}${publicPath(kindOf(table), appId)}`
+  return `${APP_ORIGIN}${publicPath(kindOf(table), appId, name)}`
 }
 
 /**
@@ -630,7 +630,7 @@ export function sheetCard(sheet: SheetResult): ContainerData {
 
   // Only when the owner has actually published it. A sheet with no public URL
   // gets no Share field at all — not a disabled one, and not a link that 404s.
-  const publicUrl = publicSheetUrl(sheet.table, sheet.appId, sheet.publicRead)
+  const publicUrl = publicSheetUrl(sheet.table, sheet.appId, sheet.publicRead, name)
   if (publicUrl !== null) {
     // Inserted after the vitals rail rather than appended, because
     // `enforceContainerLimits` sheds from the END. Appended, this would be the

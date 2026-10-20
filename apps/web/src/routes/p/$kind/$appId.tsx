@@ -1,5 +1,6 @@
-import { createFileRoute, useParams } from '@tanstack/react-router'
+import { createFileRoute, useNavigate, useParams } from '@tanstack/react-router'
 import { PRODUCT } from 'game-domain/product'
+import { useCallback } from 'react'
 import { PublicSheetView } from '../../../build/sheet/PublicSheetView'
 import { areaTitle } from '../../../lib/pageTitle'
 
@@ -9,7 +10,9 @@ import { areaTitle } from '../../../lib/pageTitle'
  *
  * Addressed by the **app id**, not the Convex row id, so the owner can build
  * this URL with no round trip and the Discord bot can build it from the `appId`
- * it is already sent. The query is deliberately unauthenticated; what makes
+ * it is already sent. The segment is its short form, `<name>-<short id>`
+ * (`game-domain/shareAddress`), or a full app id from an older link; the page
+ * replaces either with the thing's current short form once it resolves. The query is deliberately unauthenticated; what makes
  * that safe is that it serves nothing unless the owner set `publicRead`.
  *
  * A non-public sheet and a nonexistent one are the same page on purpose —
@@ -30,5 +33,11 @@ export const Route = createFileRoute('/p/$kind/$appId')({
 
 function PublicSheetRoute() {
   const { kind, appId } = useParams({ from: '/p/$kind/$appId' })
-  return <PublicSheetView kind={kind} appId={appId} />
+  const navigate = useNavigate()
+  const settle = useCallback(
+    (segment: string) =>
+      void navigate({ to: '/p/$kind/$appId', params: { kind, appId: segment }, replace: true }),
+    [navigate, kind]
+  )
+  return <PublicSheetView kind={kind} appId={appId} onAddress={settle} />
 }

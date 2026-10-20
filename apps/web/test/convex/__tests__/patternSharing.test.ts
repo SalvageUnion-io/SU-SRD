@@ -252,3 +252,34 @@ describe('the maker’s shelf reads who can see each pattern', () => {
     expect(await t.query(api.shelf.patternSharing, {})).toEqual([])
   })
 })
+
+describe('a shared pattern answers its short link', () => {
+  const UUID_ID = '0a1b2c3d-4e5f-4789-abcd-ef0123456789'
+
+  test('the name-and-short-id link and the old full-id link both reach it', async () => {
+    const t = testConvex()
+    const maker = await makeUser(t, 'alxjrvs')
+    await savePattern(maker, { id: UUID_ID })
+    await maker.as.mutation(api.shelf.setPatternVisibility, {
+      patternId: UUID_ID,
+      visibility: 'link',
+    })
+
+    for (const appId of ['tow-rig-0a1b2c3d4e5f', '0a1b2c3d4e5f', UUID_ID]) {
+      expect(await t.query(api.publicSheet.pattern, { appId })).toMatchObject({ appId: UUID_ID })
+      expect(await t.query(api.publicSheet.preview, { kind: 'pattern', appId })).toMatchObject({
+        kind: 'pattern',
+      })
+    }
+    // A short id of nobody's pattern is the same null as any other miss.
+    expect(await t.query(api.publicSheet.pattern, { appId: 'tow-rig-ffffffffffff' })).toBeNull()
+  })
+
+  test('a private pattern is not reachable by its short link either', async () => {
+    const t = testConvex()
+    const maker = await makeUser(t, 'alxjrvs')
+    await savePattern(maker, { id: UUID_ID })
+
+    expect(await t.query(api.publicSheet.pattern, { appId: '0a1b2c3d4e5f' })).toBeNull()
+  })
+})

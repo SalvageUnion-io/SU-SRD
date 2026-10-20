@@ -29,6 +29,7 @@ describe('the public sheet route', () => {
     setQueryAnswers({
       'publicSheet:get': {
         kind: 'npc',
+        appId: 'npc-1',
         body: npcFixture({ id: 'npc-1', name: 'Old Mags' }),
         madeBy: 'Rosa',
         links: [],
@@ -56,5 +57,47 @@ describe('the public sheet route', () => {
     render(<PublicSheetView kind="dropship" appId="anything" />)
     expect(screen.getByText(/isn['’]t available/i)).toBeTruthy()
     expect(queryCalls()).toEqual([])
+  })
+
+  test('an old full-id link settles on the name-and-short-id address', () => {
+    const id = '0a1b2c3d-4e5f-4789-abcd-ef0123456789'
+    setQueryAnswers({
+      'publicSheet:get': {
+        kind: 'npc',
+        appId: id,
+        body: npcFixture({ id, name: 'Old Mags' }),
+        madeBy: 'Rosa',
+        links: [],
+        linked: [],
+        withheld: [],
+      },
+    })
+    const settled: string[] = []
+    render(<PublicSheetView kind="npc" appId={id} onAddress={(s) => settled.push(s)} />)
+    expect(settled).toEqual(['old-mags-0a1b2c3d4e5f'])
+  })
+
+  test('a link already at its address is left alone', () => {
+    const id = '0a1b2c3d-4e5f-4789-abcd-ef0123456789'
+    setQueryAnswers({
+      'publicSheet:get': {
+        kind: 'npc',
+        appId: id,
+        body: npcFixture({ id, name: 'Old Mags' }),
+        madeBy: 'Rosa',
+        links: [],
+        linked: [],
+        withheld: [],
+      },
+    })
+    const settled: string[] = []
+    render(
+      <PublicSheetView
+        kind="npc"
+        appId="old-mags-0a1b2c3d4e5f"
+        onAddress={(s) => settled.push(s)}
+      />
+    )
+    expect(settled).toEqual([])
   })
 })

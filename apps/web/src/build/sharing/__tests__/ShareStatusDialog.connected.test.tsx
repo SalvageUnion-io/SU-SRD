@@ -111,6 +111,17 @@ describe('ShareStatusDialog — a sheet on the shelf, not shared', () => {
 })
 
 describe('ShareStatusDialog — a sheet shared by link', () => {
+  test('the link is the name and a short id, not the whole app id', async () => {
+    setQueryAnswers({ 'publicSheet:get': { kind: 'pilot', body: {} } })
+    await act(async () => {
+      renderDialog({ id: '0a1b2c3d-4e5f-4789-abcd-ef0123456789' })
+    })
+
+    expect(
+      screen.getByText(`${pageOrigin()}${APP_BASE}/p/pilot/mara-vex-0a1b2c3d4e5f`)
+    ).toBeTruthy()
+  })
+
   test('shows the /p/ link, copies it, and renders a QR of it', async () => {
     setQueryAnswers({ 'publicSheet:get': { kind: 'pilot', body: {} } })
     const writes: string[] = []

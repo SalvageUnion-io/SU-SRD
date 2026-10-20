@@ -421,3 +421,59 @@ describe('a published mech carries its pilot’s contributions', () => {
     expect(result === null ? true : 'pilotAbilities' in result).toBe(false)
   })
 })
+
+describe('a published sheet answers its short link', () => {
+  const UUID_ID = '0a1b2c3d-4e5f-4789-abcd-ef0123456789'
+
+  test('name and short id, bare short id and the old full id all reach it', async () => {
+    const t = testConvex()
+    const owner = await makeUser(t, 'Owner')
+    await seedPilot(t, owner.userId, UUID_ID)
+    await owner.as.mutation(api.publicSheet.setPublic, {
+      kind: 'pilot',
+      appId: UUID_ID,
+      isPublic: true,
+    })
+
+    for (const appId of ['kestrel-vance-0a1b2c3d4e5f', 'renamed-0a1b2c3d4e5f', UUID_ID]) {
+      // The answer names the full app id, which the page reads the sheet by.
+      expect(await t.query(api.publicSheet.get, { kind: 'pilot', appId })).toMatchObject({
+        kind: 'pilot',
+        appId: UUID_ID,
+      })
+    }
+  })
+
+  test('a short link reaches nothing private, and nothing of another kind', async () => {
+    const t = testConvex()
+    const owner = await makeUser(t, 'Owner')
+    await seedPilot(t, owner.userId, UUID_ID)
+
+    expect(await t.query(api.publicSheet.get, { kind: 'pilot', appId: '0a1b2c3d4e5f' })).toBeNull()
+    await owner.as.mutation(api.publicSheet.setPublic, {
+      kind: 'pilot',
+      appId: UUID_ID,
+      isPublic: true,
+    })
+    expect(await t.query(api.publicSheet.get, { kind: 'mech', appId: '0a1b2c3d4e5f' })).toBeNull()
+    expect(
+      await t.query(api.publicSheet.get, { kind: 'pilot', appId: 'kestrel-ffffffffffff' })
+    ).toBeNull()
+  })
+
+  test('an app id that predates UUIDs is still read whole', async () => {
+    const t = testConvex()
+    const owner = await makeUser(t, 'Owner')
+    // Ends in twelve hex digits, so it parses as a short address first.
+    await seedPilot(t, owner.userId, 'starter-abcdefabcdef')
+    await owner.as.mutation(api.publicSheet.setPublic, {
+      kind: 'pilot',
+      appId: 'starter-abcdefabcdef',
+      isPublic: true,
+    })
+
+    expect(
+      await t.query(api.publicSheet.get, { kind: 'pilot', appId: 'starter-abcdefabcdef' })
+    ).toMatchObject({ appId: 'starter-abcdefabcdef' })
+  })
+})

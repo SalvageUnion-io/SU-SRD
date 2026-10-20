@@ -193,6 +193,29 @@ describe('/su sheet reaches beyond one channel', () => {
     expect(result).toMatchObject({ ok: true, publicRead: true, body: { name: 'Lantern' } })
   })
 
+  test('a pasted short /p/ link opens the sheet it names', async () => {
+    const t = testConvex()
+    const { organizer } = await seedGame(t)
+    await t.run(
+      async (ctx) =>
+        await ctx.db.insert('mechs', {
+          gameId: null,
+          ownerId: organizer.userId,
+          appId: '0a1b2c3d-4e5f-4789-abcd-ef0123456789',
+          publicRead: true,
+          body: { name: 'Lantern' },
+          updatedAt: Date.now(),
+        })
+    )
+
+    const result = await t.query(internal.botClient.sheet, {
+      discordId: 'discord-nobody',
+      table: 'mechs',
+      entityId: 'lantern-0a1b2c3d4e5f',
+    })
+    expect(result).toMatchObject({ ok: true, publicRead: true, body: { name: 'Lantern' } })
+  })
+
   test('a private stranger sheet is not-found, or unlinked without an account', async () => {
     const t = testConvex()
     const { organizer } = await seedGame(t)

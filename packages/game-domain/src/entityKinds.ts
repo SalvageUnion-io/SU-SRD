@@ -4,9 +4,11 @@
  *
  * Routes and bodies speak the singular kind (`pilot`); Convex tables speak the
  * plural (`pilots`). This module is the one map between them, read by the
- * client, `apps/web/convex/` and the Discord bot. It imports nothing, so the
- * bot can read it without pulling in Convex or React.
+ * client, `apps/web/convex/` and the Discord bot. It imports nothing but its sibling
+ * `shareAddress`, so the bot can read it without pulling in Convex or React.
  */
+
+import { shareSegment } from './shareAddress'
 
 /** Every kind with a sheet of its own: a pilot, mech, crawler or built NPC. */
 export const ENTITY_KINDS = ['pilot', 'mech', 'crawler', 'npc'] as const
@@ -65,9 +67,13 @@ export function sheetPath(kind: EntityKind, id: string): string {
   return `/sheet/${kind}/${encodeURIComponent(id)}`
 }
 
-/** A thing's public, account-free address, one page per thing (ADR-032): `/p/<kind>/<appId>`. */
-export function publicPath(kind: PublicKind, appId: string): string {
-  return `/p/${kind}/${encodeURIComponent(appId)}`
+/**
+ * A thing's public, account-free address, one page per thing (ADR-032):
+ * `/p/<kind>/<segment>`, the segment readable and short when the name is
+ * given (`shareSegment`: `/p/pilot/rook-vance-0a1b2c3d4e5f`).
+ */
+export function publicPath(kind: PublicKind, appId: string, name?: string): string {
+  return `/p/${kind}/${encodeURIComponent(shareSegment(appId, name))}`
 }
 
 /** A Game's own page, in Play (ADR-052 §5): `/play/games/<gameId>`. */

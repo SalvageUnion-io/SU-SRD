@@ -25,6 +25,7 @@ import type * as games from "../games.js";
 import type * as http from "../http.js";
 import type * as invites from "../invites.js";
 import type * as mediator from "../mediator.js";
+import type * as model_addresses from "../model/addresses.js";
 import type * as model_bot from "../model/bot.js";
 import type * as model_channelBindings from "../model/channelBindings.js";
 import type * as model_crawlerWrites from "../model/crawlerWrites.js";
@@ -72,6 +73,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   invites: typeof invites;
   mediator: typeof mediator;
+  "model/addresses": typeof model_addresses;
   "model/bot": typeof model_bot;
   "model/channelBindings": typeof model_channelBindings;
   "model/crawlerWrites": typeof model_crawlerWrites;

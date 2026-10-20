@@ -17,9 +17,10 @@ import { internalQuery } from './_generated/server'
 import { displayNameOf } from './account'
 import type { SheetRow } from './crew'
 import { sheetVitals } from './crew'
+import { oldestByAddress } from './model/addresses'
 import { gamesForUser, userByDiscordId } from './model/bot'
 import { bindChannelAs, resolveCallerGame, unbindChannelAs } from './model/channelBindings'
-import { internalMutation, oldestByAppId, primaryCrawlerOf } from './model/entities'
+import { internalMutation, primaryCrawlerOf } from './model/entities'
 import { getMembership } from './model/permissions'
 
 /**
@@ -175,11 +176,13 @@ export const sheet = internalQuery({
     // from ANY table — so casting the string would let a caller pass an
     // `encounterNpcs` id and read the Mediator's prepared opposition, the one
     // thing ADR-030 §5 says must stay hidden. An id that is not this table's
-    // is tried as an app id, on this table's own index, and is otherwise
-    // not-found rather than a throw.
+    // is tried as a public address (a short or full app id, `shareAddress`),
+    // on this table's own index, and is otherwise not-found rather than a throw.
     const rowId = ctx.db.normalizeId(args.table, args.entityId)
     const doc =
-      rowId === null ? await oldestByAppId(ctx, args.table, args.entityId) : await ctx.db.get(rowId)
+      rowId === null
+        ? await oldestByAddress(ctx, args.table, args.entityId)
+        : await ctx.db.get(rowId)
     if (doc === null) return fail('not-found', SHEET_NOT_FOUND)
 
     const row = doc as unknown as {

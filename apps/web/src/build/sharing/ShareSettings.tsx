@@ -14,8 +14,8 @@
  *  - **A pattern** takes all three through `shelf.setPatternVisibility`, read
  *    back from `shelf.patternSharing`.
  *
- * Either way the link is `/p/:kind/:appId`: one derived URL, so going back to a
- * narrower answer revokes it everywhere at once.
+ * Either way the link is `/p/:kind/<name>-<short id>` (`shareSegment`): one
+ * derived URL, so going back to a narrower answer revokes it everywhere at once.
  *
  * Connected-only, and the gate lives in the PARENT (`ShareStatusDialog`): these
  * components call `useQuery`/`useMutation`, which cannot be called
@@ -52,6 +52,8 @@ type ShareSettingsProps = {
   kind: ShareKind
   /** The app-level id: what the public route is addressed by. */
   appId: string
+  /** Its name, the readable half of its short link (`shareSegment`). */
+  name?: string
   /** A sheet's container: the Game it is in, or null on the shelf. Unused for a pattern. */
   gameId?: string | null
   /** Injectable clipboard writer for testing. */
@@ -96,6 +98,7 @@ export function ShareSettings(props: ShareSettingsProps) {
 function SheetShareSettings({
   kind,
   appId,
+  name,
   gameId = null,
   clipboardWriter,
 }: ShareSettingsProps & { kind: Exclude<ShareKind, 'pattern'> }) {
@@ -131,7 +134,7 @@ function SheetShareSettings({
         disabled={busy}
       />
       {value === 'link' && (
-        <ShareLink url={appUrl(publicPath(kind, appId))} clipboardWriter={clipboardWriter} />
+        <ShareLink url={appUrl(publicPath(kind, appId, name))} clipboardWriter={clipboardWriter} />
       )}
       {error !== null && <FieldError spaceAbove={8}>{error}</FieldError>}
     </Stack>
@@ -139,7 +142,7 @@ function SheetShareSettings({
 }
 
 /** A pattern: all three answers are its own, the crew one with a Game to name. */
-function PatternShareSettings({ appId, clipboardWriter }: ShareSettingsProps) {
+function PatternShareSettings({ appId, name, clipboardWriter }: ShareSettingsProps) {
   const setVisibility = useMutation(api.shelf.setPatternVisibility)
   const sharing = useQuery(api.shelf.patternSharing, {})
   const games = useQuery(api.games.listMine, {})
@@ -194,7 +197,10 @@ function PatternShareSettings({ appId, clipboardWriter }: ShareSettingsProps) {
         )}
       </WhoCanSee>
       {value === 'link' && (
-        <ShareLink url={appUrl(publicPath('pattern', appId))} clipboardWriter={clipboardWriter} />
+        <ShareLink
+          url={appUrl(publicPath('pattern', appId, name))}
+          clipboardWriter={clipboardWriter}
+        />
       )}
       {error !== null && <FieldError spaceAbove={8}>{error}</FieldError>}
     </Stack>

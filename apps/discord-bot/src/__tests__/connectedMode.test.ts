@@ -238,6 +238,10 @@ describe('parseSheetTarget', () => {
       { table: 'pilots', entityId: 'jd7k2m9p' },
     ],
     ['salvageunion.io/build/p/crawler/app%201?x=1', { table: 'crawlers', entityId: 'app 1' }],
+    [
+      'https://salvageunion.io/build/p/pilot/rook-vance-0a1b2c3d4e5f',
+      { table: 'pilots', entityId: 'rook-vance-0a1b2c3d4e5f' },
+    ],
     ['<https://preview.example/build/sheet/mech/m1>', { table: 'mechs', entityId: 'm1' }],
   ])('reads %s', (raw, expected) => {
     expect(parseSheetTarget(raw)).toEqual(expected as ReturnType<typeof parseSheetTarget>)

@@ -7,13 +7,13 @@ import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 import { query } from './_generated/server'
 import { displayNameOf } from './account'
+import { oldestByAddress, patternByAddress } from './model/addresses'
 import {
   linksTouching,
   mayReadPattern,
   mutation,
   oldestByAppId,
   parseBody,
-  patternByAppId,
   patternVisibility,
   patternVisibilityOf,
   resolveLinkEnd,
@@ -106,6 +106,8 @@ type PublicWithheld = Infer<typeof publicWithheld>
 /** One published sheet, as `get` serves it. */
 const publicSheet = v.object({
   kind: kindValidator,
+  /** Its full app id: the address may carry only a short one (`shareAddress`). */
+  appId: v.string(),
   body: v.any(),
   /** A mech's pilot's abilities, for its maxima (`pilotAbilitiesForMech`). */
   pilotAbilities: v.optional(v.array(v.string())),
@@ -129,13 +131,16 @@ export const get = query({
   args: { kind: kindValidator, appId: v.string() },
   returns: v.union(publicSheet, v.null()),
   handler: async (ctx, args): Promise<Infer<typeof publicSheet> | null> => {
-    const row = await oldestByAppId(ctx, TABLE_OF_KIND[args.kind], args.appId)
+    // `appId` is the address segment: a short address or a full app id.
+    const row = await oldestByAddress(ctx, TABLE_OF_KIND[args.kind], args.appId)
     // Not-public and not-found are the same answer on purpose: distinguishing
     // them would confirm that a given entity exists.
     if (row === null || row.publicRead !== true) return null
+    const appId = row.appId ?? args.appId
 
     return {
       kind: args.kind,
+      appId,
       body: row.body,
       ...(args.kind === 'mech' ? { pilotAbilities: await pilotAbilitiesForMech(ctx, row) } : {}),
       ...(args.kind === 'npc'
@@ -143,7 +148,7 @@ export const get = query({
             madeBy: displayNameOf(row.ownerId ? await ctx.db.get(row.ownerId) : null, 'a player'),
           }
         : {}),
-      ...(await assignmentsOf(ctx, row, args.appId)),
+      ...(await assignmentsOf(ctx, row, appId)),
     }
   },
 })
@@ -383,6 +388,8 @@ export const setPublic = mutation({
 
 /** One readable pattern, as its page draws it. */
 const patternAnswer = v.object({
+  /** Its full app id: the address may carry only a short one (`shareAddress`). */
+  appId: v.string(),
   body: v.any(),
   /** The maker's display name: the page's only credit (ruleset §3.9). */
   madeBy: v.string(),
@@ -409,7 +416,8 @@ export const pattern = query({
   args: { appId: v.string() },
   returns: v.union(patternAnswer, v.null()),
   handler: async (ctx, args): Promise<PatternAnswer | null> => {
-    const row = await patternByAppId(ctx, args.appId)
+    // `appId` is the address segment: a short address or a full app id.
+    const row = await patternByAddress(ctx, args.appId)
     if (row === null) return null
     const userId = await getAuthUserId(ctx)
     if (!(await mayReadPattern(ctx, row, userId))) return null
@@ -417,6 +425,7 @@ export const pattern = query({
     const maker = await ctx.db.get(row.ownerId)
     const mine = row.ownerId === userId
     return {
+      appId: row.appId,
       body: row.body,
       madeBy: displayNameOf(maker, 'a player'),
       sharedAt: row.sharedAt ?? null,
@@ -485,7 +494,7 @@ export const preview = query({
   returns: v.union(previewAnswer, v.null()),
   handler: async (ctx, args): Promise<PreviewAnswer | null> => {
     if (args.kind === 'pattern') {
-      const row = await patternByAppId(ctx, args.appId)
+      const row = await patternByAddress(ctx, args.appId)
       if (row === null || row.publicRead !== true) return null
       const ownerName = displayNameOf(await ctx.db.get(row.ownerId), 'a player')
       const componentEmbed =
@@ -500,7 +509,7 @@ export const preview = query({
         ...(componentEmbed ? { componentEmbed } : {}),
       }
     }
-    const row = await oldestByAppId(ctx, TABLE_OF_KIND[args.kind], args.appId)
+    const row = await oldestByAddress(ctx, TABLE_OF_KIND[args.kind], args.appId)
     if (row === null || row.publicRead !== true) return null
     const ownerId = 'ownerId' in row ? row.ownerId : null
     const game = row.gameId !== null ? await ctx.db.get(row.gameId) : null
@@ -510,7 +519,7 @@ export const preview = query({
       ownerName: ownerId ? displayNameOf(await ctx.db.get(ownerId), null) : null,
       gameName: game?.name ?? null,
       ...(args.kind === 'pilot'
-        ? { mechChassisRef: await publishedMechOf(ctx, row, args.appId) }
+        ? { mechChassisRef: await publishedMechOf(ctx, row, row.appId ?? args.appId) }
         : {}),
     }
   },

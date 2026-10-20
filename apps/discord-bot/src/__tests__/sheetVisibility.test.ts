@@ -47,6 +47,9 @@ describe('publicSheetUrl', () => {
     expect(publicSheetUrl('pilots', 'app1', true)).toBe(`${WEB}/p/pilot/app1`)
     expect(publicSheetUrl('mechs', 'app1', true)).toBe(`${WEB}/p/mech/app1`)
     expect(publicSheetUrl('crawlers', 'app1', true)).toBe(`${WEB}/p/crawler/app1`)
+    expect(
+      publicSheetUrl('pilots', '0a1b2c3d-4e5f-4789-abcd-ef0123456789', true, 'Rook Vance')
+    ).toBe(`${WEB}/p/pilot/rook-vance-0a1b2c3d4e5f`)
   })
 
   test('is null with no app id, even when published', () => {
