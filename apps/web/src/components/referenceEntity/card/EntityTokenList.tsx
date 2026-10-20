@@ -8,8 +8,9 @@ import type { ReferenceCardEntity } from './referenceEntityCardTypes'
 
 /**
  * A BIG GROUPING of entities as Tokens (owner's call, 2026-10-14: "any big
- * grouping should be tokens"): a guide step's options, a catalog choice's
- * qualifying entities. Each is a CONTENTFUL Token (N3; owner's call,
+ * grouping should be tokens"): a guide step's options off its Page (on it
+ * they are open Rows, N8), a catalog choice's qualifying entities. Each is a
+ * CONTENTFUL Token (N3; owner's call,
  * 2026-10-20), its head and then its text, in the masonry grid
  * (`TokenGrid`): one column on a phone, two across a page. Each opens its
  * Page where the surface says (the SRD's route, the app's Page opener) and

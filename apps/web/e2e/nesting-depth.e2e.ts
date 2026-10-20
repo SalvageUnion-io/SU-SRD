@@ -16,7 +16,7 @@ import { expect, test } from './fixtures'
  * (`Shield Drone (Drone) > Refractive Shield Projector (System)`) and the rule.
  *
  * There is no allowlist: every finding fails, bar a pending rule's
- * (`_pendingRules.ts`): N8 on an entity's or a guide's Page, and every
+ * (`_pendingRules.ts`): N8 on a chassis's, a pattern's and a class's Page, and every
  * entity frame's colour (`_entityFrames.ts`, R38), which the report shows.
  *
  * Signed out: sibling-heights' pages, the pages the nesting audit measured,
@@ -71,6 +71,13 @@ const PAGES = [
  */
 const ONE_DEEP = /^\/(?!build\/|roll-tables\/)[a-z-]+\/[a-z0-9-]+\/(?:pattern\/[a-z0-9-]+\/)?$/
 
+/**
+ * The Pages whose N8 is still pending (`N8-loadouts` in `_pendingRules.ts`):
+ * a chassis's and a pattern's loadouts, a class's ability trees. On every
+ * other Page `ONE_DEEP` matches (a bay's crew, a guide's options), N8 fails.
+ */
+const N8_PENDING = /^\/(?:chassis|classes)\//
+
 /** Desktop, and a phone's width: a Token's line is narrower there. */
 const WIDTHS = [1440, 390]
 
@@ -108,7 +115,8 @@ test.describe('signed out', () => {
             where,
             findings.filter((f) => f.rule === rule)
           )
-          found.push(...lines.map((line) => ({ rule, line })))
+          const held = rule === 'N8' && N8_PENDING.test(path) ? 'N8-loadouts' : rule
+          found.push(...lines.map((line) => ({ rule: held, line })))
         }
         for (const fault of await findFrameFaults(page)) {
           found.push({ rule: ruleOfFault(fault), line: `${where}, ${fault}` })

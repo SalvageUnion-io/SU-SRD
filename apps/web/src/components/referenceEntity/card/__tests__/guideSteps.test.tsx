@@ -12,7 +12,7 @@
  *   `flavor` block are framed asides, and a run-in head (a value-only `label`,
  *   a sub-`heading`) becomes the stamp over its paragraph (the full rung on a
  *   page);
- * - a step's options are contentful Tokens in the masonry grid (`TokenGrid`);
+ * - on its Page a step's options are open Rows, one a line (N8); elsewhere Tokens;
  * - on a page the steps stand as a page section, not inside the prose column.
  */
 import { describe, expect, test } from 'bun:test'
@@ -316,16 +316,17 @@ describe('GuideSteps on the page', () => {
     expect(container.textContent).toContain('Reactor Overload Table p. 235')
   })
 
-  test("a step's options are contentful Tokens in the masonry grid (owner, 2026-10-20)", () => {
+  test("a step's options on its Page are open Rows, one a line, never Tokens (N8)", () => {
     const { container } = render(
       <ReferenceEntityCard data={guide('Create a Mech')} presentation="page" />
     )
-    const grid = container.querySelector('ul.su-token-grid[aria-label="Craft your Systems"]')
-    expect(grid).not.toBeNull()
-    const items = grid?.querySelectorAll(':scope > li') ?? []
+    const list = container.querySelector('ul.su-guide__rows[aria-label="Craft your Systems"]')
+    expect(list).not.toBeNull()
+    const items = list?.querySelectorAll(':scope > li') ?? []
     expect(items.length).toBeGreaterThan(0)
     for (const item of items) {
-      expect(item.querySelector(':scope > .su-entity-token[data-contentful]')).not.toBeNull()
+      expect(item.querySelector('.su-ec-frame')).not.toBeNull()
+      expect(item.querySelector(':scope > .su-entity-token')).toBeNull()
     }
   })
 

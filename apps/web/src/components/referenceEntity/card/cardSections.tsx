@@ -281,11 +281,12 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
   // Nothing to nest is `null`, not an empty fragment: the card's lead gap
   // (`CardLead`) opens only for nested content, so a head-only card (a
   // creature's Stinger) closes on its head with no paper strip under it.
-  // A crawler bay's crew NPC is a Peek Token, unless its crew choices are
-  // being made here: on a Page the write layer keeps the card and its inputs;
-  // under any other host the NPC is level 2, a Token (N1, `NestedCardList`).
+  // A crawler bay's crew NPC is a Peek Token where it is level 2 (a bay's Card
+  // on a sheet, N1). On the bay's Page it is one level deep, so it is drawn
+  // open with all its content (N8, owner 2026-10-20: "the smith should be a
+  // Listing row"), as it is where its crew choices are being made.
   const bayCrewPeek =
-    schemaName === 'crawler-bays' && !onSelectionChange && typeof entity.id === 'string'
+    schemaName === 'crawler-bays' && !onSelectionChange && !onPage && typeof entity.id === 'string'
       ? embeddedPeekAddress('crawler-bays', entity.id, 'npc')
       : undefined
   // WHEN DAMAGED — the bay's last section, under its crew.

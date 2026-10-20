@@ -25,7 +25,7 @@ import type { Page } from '@playwright/test'
  *   an entity nested one level deep is a Row drawn open with all its content,
  *   never a Token (EDL E6; owner, 2026-10-20: a bay's Smith, a guide's
  *   options). A Token level 2 or deeper, in a search list or on a Peek's
- *   plate is no N8. Report-only until the screens hold it (`_pendingRules.ts`).
+ *   plate is no N8. Pending on a chassis's and a class's Page (`_pendingRules.ts`).
  *
  * A headed frame is the frame around a visible `Head` band (`Head`: Row, Card
  * and TitledBox alike) or a Tile's band; its name is the title on the band,

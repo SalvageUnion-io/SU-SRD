@@ -263,12 +263,21 @@ describe('the card as a page', () => {
     expect(screen.getByRole('heading', { name: 'Tail Sweep (Action)', level: 3 })).toBeTruthy()
   })
 
-  test('a bay’s crew NPC is a Token that Peeks its card through the bay', () => {
+  test('a bay’s crew NPC on its Page is drawn open, never a Token (N8)', () => {
     const bay = need(SalvageUnionReference.CrawlerBays.getByName('Cantina'), 'cantina')
     render(<ReferenceEntityCard data={bay} presentation="page" />)
-    // No nested NPC card, so no heading of its own…
-    expect(screen.queryByRole('heading', { name: 'Chef (NPC)' })).toBeNull()
-    // …but a Token, its Peek addressed through the bay.
+    // One level deep on the Page: the NPC's own card, its heading and its text…
+    expect(screen.getByRole('heading', { name: 'Chef (NPC)', level: 2 })).toBeTruthy()
+    // …and no Token for it.
+    const token = Array.from(document.querySelectorAll('.su-entity-token')).find((t) =>
+      t.textContent?.startsWith('Chef')
+    )
+    expect(token).toBeUndefined()
+  })
+
+  test('a bay’s crew NPC in a Card is a Token that Peeks its card through the bay', () => {
+    const bay = need(SalvageUnionReference.CrawlerBays.getByName('Cantina'), 'cantina')
+    render(<ReferenceEntityCard data={bay} />)
     const token = need(
       Array.from(document.querySelectorAll('.su-entity-token')).find((t) =>
         t.textContent?.startsWith('Chef')

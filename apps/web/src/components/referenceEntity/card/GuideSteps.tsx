@@ -13,10 +13,11 @@ import type { CardProseContext } from './CardProse'
 import { CardProse } from './CardProse'
 import { CardRollTable } from './CardRollTable'
 import type { Down } from './cardChrome'
+import { cardKey } from './cardHelpers'
 import { EntityTokenList } from './EntityTokenList'
 import { watchGuideContents } from './guideContents'
 import { chunkGuideStepProse } from './guideStepProse'
-import type { NestedCard } from './referenceEntityCardTypes'
+import type { CardTitleTag, NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
 import type { ResolvedGuideStep } from './resolveGuideSteps'
 
 const TOC_TITLE = cn('su-guide__toc-title', capsLabel({ tracking: 'caps' }))
@@ -71,8 +72,8 @@ function GuideAside({ text, flavor, label }: { text: string; flavor: boolean; la
  * "Post-Session") opens a solid `Slab` above the steps it holds, and numbering
  * restarts inside it. Under each slab: the step's prose, its page pointers
  * as left-aligned notes, its asides (a tip, a worked example) as framed
- * callouts, the entities it selects from as Tokens (a crawler's tech-level
- * ladder too, down its own column), its roll table and any sub-guide as its
+ * callouts, the entities it selects from (on the Page open Rows, else Tokens;
+ * a crawler's tech-level ladder too, down its own column), its roll table and any sub-guide as its
  * Token — every one through the primitive its kind already has.
  *
  * Layout is `index.css`'s `.su-guide*`. On a page (`CardPage`'s `guide`) the
@@ -126,6 +127,32 @@ export function GuideSteps({
   const pageRef = useRef<HTMLDivElement>(null)
   useEffect(() => (pageRef.current ? watchGuideContents(pageRef.current) : undefined), [])
 
+  // A step's options. On the guide's Page they are one level deep: each a
+  // Row drawn open with all its content (N8; owner, 2026-10-20: "These should
+  // be listing rows, not tokens"), one a line. Anywhere else (a Peek, a guide
+  // nested in a card) they are level 2: Tokens.
+  const optionTitleAs = stepAs === 'h1' || stepAs === 'h2' ? headingBelow(stepAs) : undefined
+  const optionList = (entities: ReferenceCardEntity[], label: string) =>
+    page && !insidePeek ? (
+      <ul aria-label={label} className="su-guide__rows">
+        {entities.map((entity, index) => (
+          <li key={cardKey(entity, index)}>
+            <NestedCard
+              size="compact"
+              depth={depth + 1}
+              hostDown={isDown}
+              data={entity}
+              readable
+              titleAs={optionTitleAs as CardTitleTag | undefined}
+              chassisName={chassisName}
+            />
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <EntityTokenList entities={entities} label={label} />
+    )
+
   const renderStep = ({ step, number, entities, table, subGuide }: ResolvedGuideStep) => {
     const stepProse = chunkGuideStepProse(step.content).map((chunk, index) => {
       if (chunk.kind === 'note') {
@@ -166,19 +193,11 @@ export function GuideSteps({
       options = (
         <div className="su-guide__ladder">
           <div className="su-guide__ladder-prose">{stepProse}</div>
-          <div className="su-guide__ladder-cards">
-            <EntityTokenList entities={entities} label={step.name} />
-          </div>
+          <div className="su-guide__ladder-cards">{optionList(entities, step.name)}</div>
         </div>
       )
     } else if (entities.length > 0) {
-      // A step's options are a big grouping (5 to 21 across the dataset):
-      // Tokens, not compact cards (owner's call, 2026-10-14).
-      options = (
-        <div className="su-guide__cards">
-          <EntityTokenList entities={entities} label={step.name} />
-        </div>
-      )
+      options = <div className="su-guide__cards">{optionList(entities, step.name)}</div>
     }
     return (
       <li key={step.id} className="su-guide__step" data-optional={step.optional || undefined}>
