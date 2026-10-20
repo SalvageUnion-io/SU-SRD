@@ -37,6 +37,12 @@
  * otherwise; `entities.locate` decides and `SheetView` renders it. No row
  * opens Play: that is the Game band's Play chip (`LaunchPlay`).
  *
+ * ## Every action is on a head
+ *
+ * A column's actions are chips in its head (`RosterColumn`): **Move in…**
+ * (`AddFromHangar`) and its create chip, Patterns on the Mechs column. A row's
+ * are its ⋯ menu. Nothing acts from a block of its own under the columns.
+ *
  * ## Every verb that changes who has a build asks first
  *
  * Pick up, Offer to the crew, Make a copy, Move to your Training Bay, Delete and
@@ -127,9 +133,6 @@ const COLUMNS: ReadonlyArray<{
 const HINT = { marginTop: tokens.space[16], textAlign: 'left' } satisfies CSSProperties
 
 const ITEM = { listStyle: 'none', minWidth: 0 } satisfies CSSProperties
-
-/** "+ Move in from your Training Bay", under the columns: a block, 16px below them. */
-const ADD = { marginTop: tokens.space[16] } satisfies CSSProperties
 
 export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }: GameRosterProps) {
   // One confirm for every row verb; see `useRowActions`.
@@ -334,10 +337,24 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
                       : column.empty
                   }
                   headExtra={
-                    column.kind === 'mech' ? (
-                      <Button href="/mechs/patterns" variant="ghost" size="mini">
-                        Patterns
-                      </Button>
+                    column.kind === 'mech' || caps.canAddCrew ? (
+                      <>
+                        {column.kind === 'mech' && (
+                          <Button href="/mechs/patterns" variant="ghost" size="mini">
+                            Patterns
+                          </Button>
+                        )}
+                        {/* One of your units in, by the same move as Build's
+                            "Move to a Game…": a chip on the column it fills. */}
+                        {caps.canAddCrew && (
+                          <AddFromHangar
+                            gameId={gameId}
+                            kind={column.kind}
+                            gameName={gameName}
+                            confirm={confirm}
+                          />
+                        )}
+                      </>
                     ) : undefined
                   }
                   empty={columnRows.length === 0}
@@ -347,12 +364,6 @@ export function GameRoster({ gameId, gameName, activeSegment, onSegmentChange }:
               )
             })}
           </RosterGrid>
-          {/* One of your units in, by the same move as Build's "Move to a Game…". */}
-          {caps.canAddCrew && (
-            <div style={ADD}>
-              <AddFromHangar gameId={gameId} gameName={gameName} confirm={confirm} />
-            </div>
-          )}
         </>
       )}
 

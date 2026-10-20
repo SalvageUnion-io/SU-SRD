@@ -668,9 +668,9 @@ describe('units in from Build (ADR-052 §3, §5)', () => {
 
   async function openPicker(): Promise<HTMLElement> {
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: '+ Move in from your Training Bay' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Move a pilot in from your Training Bay' }))
     })
-    return screen.getByRole('dialog', { name: 'Move in from your Training Bay' })
+    return screen.getByRole('dialog', { name: 'Move a pilot in from your Training Bay' })
   }
 
   test('the picker offers one of your units not in this Game, under its kind, with the Game it leaves', async () => {

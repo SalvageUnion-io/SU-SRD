@@ -53,8 +53,8 @@ test('a Game made in Play: invite, join, a pilot moved in from the Training Bay,
     })
 
     // --- 3. Move the pilot in from the Training Bay: one choice, one move ---
-    await player.page.getByRole('button', { name: '+ Move in from your Training Bay' }).click()
-    const picker = player.page.getByRole('dialog', { name: 'Move in from your Training Bay' })
+    await player.page.getByRole('button', { name: 'Move a pilot in from your Training Bay' }).click()
+    const picker = player.page.getByRole('dialog', { name: 'Move a pilot in from your Training Bay' })
     await picker.getByRole('radio', { name: PILOT }).click()
     await picker.getByRole('button', { name: `Move ${PILOT} in` }).click()
     await expect(player.page.getByText(`Moved ${PILOT} to ${GAME}.`).first()).toBeVisible({

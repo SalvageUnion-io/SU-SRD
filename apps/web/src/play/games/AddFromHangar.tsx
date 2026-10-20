@@ -1,12 +1,14 @@
 /**
- * AddFromHangar — "+ Move in from your Training Bay" under a Game's roster (ADR-052 §5,
- * wireframe add-from-hangar): a single-choice picker of your units that could
- * move into this Game, then the same move Build's "Move to a Game…" makes
- * (`requestMove`), one unit per add.
+ * AddFromHangar — a roster column's "Move in…" chip on a Game's page (ADR-052
+ * §5, wireframe add-from-hangar): a single-choice picker of your units of that
+ * column's kind that could move into this Game, then the same move Build's
+ * "Move to a Game…" makes (`requestMove`), one unit per add. It is a chip in
+ * the column's head, beside its create chip, never a block under the columns:
+ * a contextual action lives on the head of what it acts on.
  *
  * The dialog is the one pick dialog (`PickDialog`, chrome K7): radio Rows (EDL
- * select mode) grouped under Pilots, Mechs and Crawlers Slabs, in one radio
- * group, so exactly one is picked. Each Row shows its relation chips — the Game it would leave, the unit
+ * select mode) under the column's Slab, in one radio group, so exactly one is
+ * picked. Each Row shows its relation chips — the Game it would leave, the unit
  * it is assigned to — so what the move touches is visible before it runs
  * (`hangarChoices`). Moving out of another Game, or clearing an assignment,
  * asks first: that is `requestMove`'s, on the page's confirm, which outlives
@@ -28,18 +30,20 @@ import { useCrawlers, useMechs, usePilots, useSoftLinkList } from '../../lib/ent
 import { unitRowModel } from '../../lib/units/unitModel'
 import { useEntityStore } from '../../stores/entityStore'
 import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
-import type { HangarChoice } from './addFromHangar.model'
+import type { HangarChoice, HangarKind } from './addFromHangar.model'
 import { HANGAR_GROUPS, hangarChoices } from './addFromHangar.model'
 
 type AddFromHangarProps = {
   gameId: string
+  /** The column it heads: the picker offers only units of this kind. */
+  kind: HangarKind
   /** The Game's name, for the toast and the confirms; null while unknown. */
   gameName: string | null
   /** The page's confirm (`useConfirm`), which outlives this dialog. */
   confirm: Confirm
 }
 
-export function AddFromHangar({ gameId, gameName, confirm }: AddFromHangarProps) {
+export function AddFromHangar({ gameId, kind, gameName, confirm }: AddFromHangarProps) {
   const [open, setOpen] = useState(false)
   const [picked, setPicked] = useState<string | null>(null)
   const games = useQuery(api.games.listMine, {})
@@ -52,9 +56,12 @@ export function AddFromHangar({ gameId, gameName, confirm }: AddFromHangarProps)
     games === undefined
       ? null
       : hangarChoices({ gameId, pilots, mechs, crawlers, softLinks, games })
-  const all = choices === null ? [] : HANGAR_GROUPS.flatMap((g) => choices[g.kind])
+  const groups = HANGAR_GROUPS.filter((g) => g.kind === kind)
+  const all = choices === null ? [] : groups.flatMap((g) => choices[g.kind])
   const chosen = all.find((c) => key(c) === picked) ?? null
   const here = gameName ?? 'this Game'
+  // The chip's name and the dialog's: three columns, three chips, each named.
+  const title = `Move a ${kind} in from your Training Bay`
 
   function gameNameOf(id: string): string | null {
     return games?.find((g) => g._id === id)?.name ?? null
@@ -86,28 +93,27 @@ export function AddFromHangar({ gameId, gameName, confirm }: AddFromHangarProps)
 
   return (
     <>
-      <div>
-        <Button
-          variant="ink"
-          size="compact"
-          onClick={() => {
-            setPicked(null)
-            setOpen(true)
-          }}
-        >
-          + Move in from your Training Bay
-        </Button>
-      </div>
+      <Button
+        size="mini"
+        aria-haspopup="dialog"
+        aria-label={title}
+        onClick={() => {
+          setPicked(null)
+          setOpen(true)
+        }}
+      >
+        Move in…
+      </Button>
       <PickDialog
         open={open}
         onOpenChange={setOpen}
-        title="Move in from your Training Bay"
-        description={`Choose one of your units to move into ${here}.`}
+        title={title}
+        description={`Choose one of your ${NOUN[kind]} to move into ${here}.`}
         loading="your Training Bay"
         groups={
           choices === null
             ? undefined
-            : HANGAR_GROUPS.map((group) => ({
+            : groups.map((group) => ({
                 key: group.kind,
                 title: group.title,
                 choices: choices[group.kind].map((choice) => ({
@@ -120,7 +126,7 @@ export function AddFromHangar({ gameId, gameName, confirm }: AddFromHangarProps)
                 })),
               }))
         }
-        empty={`Nothing in your Training Bay can move into ${here}. Create a unit for it from the roster.`}
+        empty={`None of your ${NOUN[kind]} can move into ${here}. Create one for it from the roster.`}
         selected={picked}
         onSelect={setPicked}
         confirmLabel={chosen === null ? 'Move in' : `Move ${chosen.name} in`}
@@ -129,6 +135,9 @@ export function AddFromHangar({ gameId, gameName, confirm }: AddFromHangarProps)
     </>
   )
 }
+
+/** The column's units, in the dialog's sentences. */
+const NOUN: Record<HangarKind, string> = { pilot: 'pilots', mech: 'mechs', crawler: 'crawlers' }
 
 /** A choice's radio value: kinds share no ids, but say which anyway. */
 function key(choice: Pick<HangarChoice, 'kind' | 'id'>): string {
