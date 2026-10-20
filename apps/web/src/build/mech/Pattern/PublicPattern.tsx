@@ -29,7 +29,6 @@ import { getAssetUrl, getEntitySlug, toEntityModel } from 'salvageunion-referenc
 import {
   Button,
   ChapterBand,
-  Cluster,
   EntityPageStamps,
   KindLabel,
   quotePatternName,
@@ -84,16 +83,11 @@ const PHOTO_FRAME = {
   overflow: 'hidden',
 } satisfies CSSProperties
 
-/** The reader's ways to use it, and its maker's, under the loadout. */
-const ACTIONS = {
+/** What the page says under the loadout: who built it, who can see it. Its actions are the band's. */
+const NOTES = {
   display: 'flex',
   flexDirection: 'column',
-  gap: tokens.space[12],
-} satisfies CSSProperties
-
-/** A primary action: 44px at least (`Button` sets its condensed caps). */
-const ACTION_BUTTON = {
-  minHeight: tokens.size.full,
+  gap: tokens.space[8],
 } satisfies CSSProperties
 
 const VISIBILITY_COPY: Record<PatternVisibility, string> = {
@@ -141,6 +135,8 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
   const art = chassis ? getAssetUrl(chassis) : undefined
   const editable = mine && canWrite
   const writable = canWrite && mode === 'connected'
+  // Neither connected nor reconnecting: the page offers Sign in instead.
+  const signedOut = !writable && mode !== 'connected' && mode !== 'disconnected'
 
   async function build() {
     setBusy('build')
@@ -188,8 +184,11 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
               />
             ) : undefined
           }
+          // The page's actions are its head's: Build With This (or Sign in,
+          // signed out) is the band's one action; Make a copy and the maker's
+          // Share sit in its corner, as on a sheet.
           action={
-            writable && (
+            writable ? (
               <Button
                 variant="primary"
                 size="compact"
@@ -200,7 +199,31 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
               >
                 {busy === 'build' ? 'Building…' : 'Build With This'}
               </Button>
-            )
+            ) : signedOut ? (
+              <SignInControl className="su-page-action su-hit-area" />
+            ) : undefined
+          }
+          corner={
+            writable ? (
+              <>
+                <Button
+                  className="su-page-action"
+                  onClick={() => void copy()}
+                  disabled={busy !== null}
+                >
+                  {busy === 'copy' ? 'Copying…' : 'Make a copy'}
+                </Button>
+                {mine && visibility && (
+                  <Button
+                    className="su-page-action"
+                    onClick={() => setShareOpen(true)}
+                    aria-label={`Share ${pattern.name}`}
+                  >
+                    Share
+                  </Button>
+                )}
+              </>
+            ) : undefined
           }
         >
           {quotePatternName(pattern.name)}
@@ -236,42 +259,14 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
             </Text>
           )}
 
-          <section style={ACTIONS} aria-label="Use this pattern">
-            <Cluster gap={12}>
-              {writable ? (
-                <Button
-                  variant="ghost"
-                  style={ACTION_BUTTON}
-                  onClick={() => void copy()}
-                  disabled={busy !== null}
-                >
-                  {busy === 'copy' ? 'Copying…' : 'Make a copy'}
-                </Button>
-              ) : mode === 'connected' || mode === 'disconnected' ? null : (
-                <>
-                  <SignInControl />
-                  <Text variant="hint">
-                    Sign in to build this mech or copy it to your Training Bay.
-                  </Text>
-                </>
-              )}
-              <Text variant="hint">{builtLine}</Text>
-            </Cluster>
-            {mine && visibility && (
-              <Cluster gap={12}>
-                <Text variant="hint">{VISIBILITY_COPY[visibility]}</Text>
-                {writable && (
-                  <Button
-                    variant="ghost"
-                    style={ACTION_BUTTON}
-                    onClick={() => setShareOpen(true)}
-                    aria-label={`Share ${pattern.name}`}
-                  >
-                    Share
-                  </Button>
-                )}
-              </Cluster>
+          <section style={NOTES} aria-label="About this pattern">
+            {signedOut && (
+              <Text variant="hint">
+                Sign in to build this mech or copy it to your Training Bay.
+              </Text>
             )}
+            <Text variant="hint">{builtLine}</Text>
+            {mine && visibility && <Text variant="hint">{VISIBILITY_COPY[visibility]}</Text>}
           </section>
         </div>
       </article>

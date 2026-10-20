@@ -3,7 +3,7 @@
  *
  * Each pattern is a user-made Row (`<Entity form="row">` (dashed, stamped,
  * credited: ruleset §3.9) linking to its page, its "Build With This" the
- * Row's last chip (C8, hard rule R6).
+ * Row's last chip (C8, hard rule R6), also where its chassis is missing.
  *
  * Data fetching: subscribes to usePatternStore — patterns get
  * the same lazy hydration as every other collection.
@@ -23,6 +23,7 @@ import {
   Text,
   tokens,
 } from '../../../components/index'
+import { UnitRow } from '../../../components/shared/UnitRow'
 import { useConnection } from '../../../lib/connection/connectionContext'
 import { asReferencePattern, patternChassis, patternHref } from '../../../lib/patterns/patterns'
 import { usePatternStore } from '../../../stores/patternStore'
@@ -106,8 +107,17 @@ export function PatternList({ onInstantiated }: PatternListProps) {
               </>
             ) : (
               <>
-                <Text variant="hint">{pattern.name}: its chassis is not in the reference.</Text>
-                <InstantiateFromPattern pattern={pattern} onSuccess={handleInstantiated} />
+                {/* No chassis to draw: a plain user-made unit Row, its Build
+                    With This still the Row's last chip. */}
+                <UnitRow
+                  kind="mech"
+                  name={pattern.name}
+                  userMade
+                  controls={
+                    <InstantiateFromPattern pattern={pattern} onSuccess={handleInstantiated} />
+                  }
+                />
+                <Text variant="hint">Its chassis is not in the reference.</Text>
               </>
             )}
           </li>

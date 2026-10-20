@@ -31,7 +31,8 @@ import { SignInControl } from './SignInControl'
  *
  * It wears the Training Bay's clothes (`build/shelves/Shelves.tsx`): the ink
  * band on the workshop ground, the 75rem column, and each concern a section
- * under a solid Slab stamp, one full-width row each.
+ * under a solid Slab stamp, one full-width row each, its action a chip on the
+ * stamp's rule as a shelf's "+ New" is.
  *
  * What remains lives on one page deliberately. Holding somebody's Discord
  * identity creates obligations — let me see it, let me correct it, let me take
@@ -65,12 +66,15 @@ function download(filename: string, data: unknown): void {
   URL.revokeObjectURL(url)
 }
 
-type SectionProps = { id: string; title: string; children: ReactNode }
+type SectionProps = { id: string; title: string; actions?: ReactNode; children: ReactNode }
 
-/** One concern: its stamp, which also names the region, then its controls. */
-function Section({ id, title, children }: SectionProps) {
+/**
+ * One concern: its stamp, which also names the region, its action a chip on
+ * the stamp's rule, then its controls and notes.
+ */
+function Section({ id, title, actions, children }: SectionProps) {
   return (
-    <SlabSection as="h2" id={id} title={title} bodyStyle={BODY}>
+    <SlabSection as="h2" id={id} title={title} actions={actions} bodyStyle={BODY}>
       {children}
     </SlabSection>
   )
@@ -124,31 +128,37 @@ function SignedInAccount() {
         <FieldError>{save.error}</FieldError>
       </Section>
 
-      <Section id="settings-data" title="Your data">
-        <Text variant="hint" style={NOTE}>
-          Everything you own. Crewmates' characters and shared crawlers are theirs.
-        </Text>
-        <Cluster gap={8}>
+      <Section
+        id="settings-data"
+        title="Your data"
+        actions={
           <Button
-            className={ACTION}
+            size="mini"
             disabled={exported === undefined}
             onClick={() => exported && download('salvageunion-account-export.json', exported)}
           >
             Download my data
           </Button>
-        </Cluster>
+        }
+      >
+        <Text variant="hint" style={NOTE}>
+          Everything you own. Crewmates' characters and shared crawlers are theirs.
+        </Text>
       </Section>
 
-      <Section id="settings-delete" title="Delete account">
+      <Section
+        id="settings-delete"
+        title="Delete account"
+        actions={
+          <Button variant="primary" size="mini" onClick={() => setConfirming(true)}>
+            Delete my account
+          </Button>
+        }
+      >
         <Text variant="hint" style={NOTE}>
           Deletes your pilots and mechs. Games you are in survive: their crawler stays, and one you
           organise passes to its longest-standing member. This cannot be undone.
         </Text>
-        <Cluster gap={8}>
-          <Button variant="primary" className={ACTION} onClick={() => setConfirming(true)}>
-            Delete my account
-          </Button>
-        </Cluster>
         <ConfirmDialog
           open={confirming}
           onOpenChange={(open) => {
