@@ -25,12 +25,10 @@ const scan = (rel: string, text: string) => scanChromeSources(new Map([[rel, tex
 const lines = (found: ReturnType<typeof scan>, id: string) => found[id]?.map((f) => f.line)
 
 describe('chrome tokens rule set', () => {
-  test('every rule is zero but the entity-frame-ink ratchet (R38)', () => {
+  test('every rule is zero, the entity-frame-ink rule (R38) too', () => {
     expect(chromeTokens.id).toBe('chrome-tokens')
-    expect(chromeTokens.rules.filter((r) => r.mode !== 'zero').map((r) => r.id)).toEqual([
-      'entity-frame-ink',
-    ])
-    expect(ratchetCounts(chromeTokens, {})).toEqual({ 'entity-frame-ink': 0 })
+    expect(chromeTokens.rules.filter((r) => r.mode !== 'zero').map((r) => r.id)).toEqual([])
+    expect(ratchetCounts(chromeTokens, {})).toEqual({})
   })
 })
 

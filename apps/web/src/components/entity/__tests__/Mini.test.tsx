@@ -224,17 +224,18 @@ describe('the contentful Mini (N3)', () => {
     expect(head?.textContent).not.toContain('When you or a target')
   })
 
-  test("the body is held by a border in the pill's own tone, hung from the pill", () => {
+  test('the body is held by the subtle ink-40 border (R38), hung from the pill', () => {
     const { container } = render(
       <Entity size="mini" context="loadout" entity={shield()} body={{}} />
     )
     const pill = container.querySelector<HTMLElement>('.su-entity-mini__pill')
     const body = container.querySelector<HTMLElement>('.su-entity-mini__body')
     expect(pill?.style.backgroundColor).not.toBe('')
-    expect(body?.style.borderColor).toBe(pill?.style.backgroundColor ?? '')
+    // No tone inline: the stylesheet's ink-40, or an ability tree's tier.
+    expect(body?.style.borderColor).toBe('')
     const css = readPackageStylesheet()
     expect(css).toMatch(
-      /\.su-entity-mini__body \{[^}]*border-top: 0;[^}]*border-width: var\(--bw-chrome\);/
+      /\.su-entity-mini__body \{[^}]*border-color: var\(--su-compact-frame, var\(--color-ink-40\)\);[^}]*border-top: 0;[^}]*border-width: var\(--bw-chrome\);/
     )
     expect(css).toMatch(/\.su-entity-mini\[data-contentful\] \{[^}]*gap: 0;/)
   })

@@ -256,7 +256,7 @@ export type {
 // or long-press.
 export { Mention } from './entity/forms/Mention'
 // MiniGroup — an entity's contentful Mini and the Minis that belong to it
-// in one border of its tone (a crawler bay and its crew), no nesting
+// in one subtle border (a crawler bay and its crew), no nesting
 export { MiniGroup } from './entity/forms/MiniGroup'
 // Select mode's one dim (hard rule R15): a pick an app draws by hand dims with it.
 export { SELECT_DIM } from './entity/modes/selectedRing'

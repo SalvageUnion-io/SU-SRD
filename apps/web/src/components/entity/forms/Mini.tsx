@@ -325,11 +325,11 @@ export function Mini({
   return (
     <div ref={contentfulRef} className={cn('su-entity-mini', dimClass)} data-contentful="">
       {head}
-      {/* Bordered in the pill's own tone, so the Mini contains its content. */}
+      {/* Bordered in the pill's subtle ink-40 (R38), so the Mini contains its content. */}
       <div
         data-user-made={userMade || undefined}
         className="su-entity-mini__body"
-        style={{ borderColor: paint.background, ...(down && { opacity: 0.6 }) }}
+        style={down ? { opacity: 0.6 } : undefined}
       >
         {/* What of the head's chips does not fit beside the name: the body's
             first row (C2b, `chipFit.ts`). */}

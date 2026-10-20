@@ -132,7 +132,7 @@ type CrawlerBayCardProps = {
 
 /**
  * CrawlerBayCard — one installed bay as a CONTENTFUL Mini and what belongs to
- * it, in one border of the bay's tone (`MiniGroup`; owner's calls,
+ * it, in one subtle border (`MiniGroup`; owner's calls,
  * 2026-10-20): the bay's Mini (its condition stepping Intact ↔ Damaged from
  * its state slot, its function and Repair in its chip group, C8; its Bay Info
  * folded under its head), then on the lines under it its choices (the
@@ -349,12 +349,12 @@ export function CrawlerBayCard({
     />
   )
 
-  // The bay and what belongs to it, one border in its tone (owner's call,
+  // The bay and what belongs to it, one subtle border (owner's call,
   // 2026-10-20), none inside another (E6): its Mini, its roll table, what it
   // holds, its crew lead, then its When Damaged, open once it is damaged.
   return (
     <>
-      <MiniGroup entity={tokenData} condition={condition} label={bay.name}>
+      <MiniGroup label={bay.name}>
         {line}
         <EntityChoices
           entity={bay as unknown as RefMetaEntity}

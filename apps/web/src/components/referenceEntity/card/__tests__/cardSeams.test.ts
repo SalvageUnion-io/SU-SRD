@@ -200,10 +200,10 @@ describe('cardChrome', () => {
     frameWidth: 'var(--bw-entity)',
   }
 
-  test('the frame is solid ink', () => {
+  test('the frame is the subtle ink-40 (R38)', () => {
     const solid = resolveCardInteraction({ ...base, selectionRole: undefined, selected: undefined })
     expect(solid.frameStyle).toMatchObject({
-      borderColor: 'var(--color-ink)',
+      borderColor: 'var(--color-ink-40)',
       borderStyle: 'solid',
       borderTopWidth: 'var(--bw-entity)',
     })

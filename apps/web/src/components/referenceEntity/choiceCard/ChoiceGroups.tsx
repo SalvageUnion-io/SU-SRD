@@ -189,7 +189,7 @@ function ChoiceOption({
   } satisfies CSSProperties
   const frame = {
     backgroundColor: 'var(--color-paper)',
-    borderColor: 'var(--color-ink)',
+    borderColor: 'var(--color-ink-40)',
     borderStyle: 'solid',
     borderWidth: compact ? FRAME_WIDTH.compact : FRAME_WIDTH.regular,
     borderRadius: 'var(--radius-card)',

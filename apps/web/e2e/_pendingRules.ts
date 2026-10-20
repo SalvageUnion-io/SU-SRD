@@ -2,7 +2,7 @@ import { test } from '@playwright/test'
 
 /**
  * Rules the owner has stated whose screens do not hold them yet
- * (hard-rules.md R38, R40 and R41, from the 4.0 gallery review of
+ * (hard-rules.md R40 and R41, from the 4.0 gallery review of
  * 2026-10-20). A gate
  * finds them like any other rule, but reports them on its test (an annotation
  * per rule, with a count and the first findings) and never fails on them.
@@ -13,8 +13,6 @@ import { test } from '@playwright/test'
  * (`_chipStrips.ts`), or a nesting finding's `rule`.
  */
 export const PENDING_RULES: Readonly<Record<string, string>> = {
-  frame:
-    "R38 (§4.3, EDL E21): an entity's frame is the subtle ink-40; only --su-compact-frame colours one",
   align: 'R40 (EDL E22): a name and its title cut-out sit at the left of their head',
   'tab-size': "R41 (§4.7): a Button beside Tabs is the Tabs' Size",
 }

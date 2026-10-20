@@ -7,9 +7,8 @@ import type { Page } from '@playwright/test'
  * MiniGroup's) wears the subtle `--color-ink-40` the sheets' panels wear,
  * never solid ink or the entity's tone. Only `--su-compact-frame` colours one: an
  * ability tree's tier, a pattern's colour. `findFrameFaults` returns one
- * `frame:` line per frame whose drawn edges are another colour. Report-only
- * until the screens hold it (`_pendingRules.ts`); the static half is
- * `chrome-tokens/entity-frame-ink`.
+ * `frame:` line per frame whose drawn edges are another colour, and each
+ * fails; the static half is `chrome-tokens/entity-frame-ink`.
  */
 export const ENTITY_FRAMES = [
   '.su-entity-compact__frame',

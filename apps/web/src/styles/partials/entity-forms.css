@@ -25,7 +25,8 @@
   text-decoration: none;
 }
 
-/* The frame (owner's call, 2026-10-20): ink round a Compact or `Box` with content
+/* The frame (owner's call, 2026-10-20): the subtle ink-40 the sheets' panels
+   wear (R38), never solid ink or the entity's tone, round a Compact or `Box` with content
    under its head; no edge round one that is its head alone (`data-bodyless`),
    its width kept transparent so nothing moves, and the paper stopping inside
    it so no paper ring shows round the band. Player-made is solid like the
@@ -36,7 +37,7 @@
 .su-entity-compact__frame {
   background-clip: padding-box;
   background-color: var(--color-paper);
-  border-color: var(--su-compact-frame, var(--color-ink));
+  border-color: var(--su-compact-frame, var(--color-ink-40));
   border-style: solid;
   border-width: var(--bw-entity-compact);
   display: flex;
@@ -695,7 +696,7 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
 .su-entity-index__frame {
   background-clip: padding-box;
   background-color: var(--color-paper);
-  /* Ink round a CompactIndex with its lead under the band, none round a band alone
+  /* The subtle ink-40 (R38) round a CompactIndex with its lead under the band, none round a band alone
      (owner's call, 2026-10-20), as a Compact's frame. */
   border: var(--bw-entity-compact) solid transparent;
   display: flex;
@@ -705,7 +706,7 @@ a.su-chip-link--entity:hover .su-stat-plate--label {
 }
 
 .su-entity-index__frame:has(> .su-entity-index__cells) {
-  border-color: var(--color-ink);
+  border-color: var(--color-ink-40);
 }
 
 .su-entity-index__art {
@@ -789,13 +790,13 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   flex-grow: 0;
 }
 
-/* Its top edge rules the art off; a bare tile's frame is its top edge.
+/* Its top edge rules the art off, in the frame's subtle ink-40; a bare tile's frame is its top edge.
    The band: the tone, with the name's cut-out sitting on its foot. Its chips
    fill from its bottom right (`[data-chip-fill]`, the head's fill): the cost
    in the corner beside the name, the rest leftward on the name's line; what
    does not fit is the lead's first row, or +MORE (C2b). */
 .su-entity-index__band {
-  border-top: var(--bw-chrome) solid var(--color-ink);
+  border-top: var(--bw-chrome) solid var(--color-ink-40);
   min-height: calc(2.1 * var(--text-title) + var(--space-12));
   padding: var(--space-8) var(--space-8) 0;
 }
@@ -843,7 +844,7 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 
 /* A CONTENTFUL Mini (N3, `body`): its head, the link and Peek trigger, then
    the entity's text and the host's content, contained under the pill by a
-   border in the Mini's own tone (its colour is per instance, inline), with
+   border in the frames' subtle ink-40 (R38), with
    no band, set in from the pill's edge to the name's tab. */
 .su-entity-mini[data-contentful] {
   flex-direction: column;
@@ -858,11 +859,13 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 }
 
 /* The body hangs from the pill: sides and foot at the pill's edge width, in
-   the pill's tone, so the Mini holds its content. It is the paper the name's
+   the pill's subtle ink-40 (R38; an ability tree's tier through
+   `--su-compact-frame`), so the Mini holds its content. It is the paper the name's
    tab is cut from, on any ground, as a Compact's frame is. */
 .su-entity-mini__body {
   background-clip: padding-box;
   background-color: var(--color-paper);
+  border-color: var(--su-compact-frame, var(--color-ink-40));
   border-style: solid;
   border-top: 0;
   border-width: var(--bw-chrome);
@@ -923,15 +926,15 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   white-space: nowrap;
 }
 
-/* A contentful Mini wears the same cut-out as every Mini: inked round its
-   paint but never under it, its tab opens into the body's paper, as a Compact's
+/* A contentful Mini wears the same cut-out as every Mini: the subtle ink-40
+   (R38) round its paint but never under it, its tab opens into the body's paper, as a Compact's
    does, so no rule runs between head and body; and the paint over the tab is
    the header-only Mini's strip (its clear edge and its padding), so the head
    never reads as a flat bar. The pill's height is unchanged. Gated by
    `e2e/token-cutout.e2e.ts`. */
 .su-entity-mini[data-contentful] .su-entity-mini__pill {
   border-bottom-width: 0;
-  border-color: var(--color-ink);
+  border-color: var(--su-compact-frame, var(--color-ink-40));
   padding-top: calc(var(--space-2) + var(--bw-chrome));
 }
 
@@ -1415,10 +1418,10 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 }
 
 /* A MiniGroup (`forms/MiniGroup.tsx`): an entity's contentful Mini and the
-   Minis that belong to it, one border in its tone round them all, a step of
+   Minis that belong to it, one subtle ink-40 border round them all (R38), a step of
    paper inside it; no head, so no frame and no level. */
 .su-mini-group {
-  border: var(--bw-chrome) solid var(--color-ink);
+  border: var(--bw-chrome) solid var(--color-ink-40);
   display: flex;
   flex-direction: column;
   gap: var(--space-8);

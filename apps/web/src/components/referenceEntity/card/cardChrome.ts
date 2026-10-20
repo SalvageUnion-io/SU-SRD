@@ -246,13 +246,13 @@ export function resolveCardInteraction({
   // Selection state — select mode's ring (`SELECTED_RING`), the same 3px ink
   // ring a selected Compact and a select-mode Box draw. A non-layout-shifting
   // box-shadow that reads as a border, sitting just outside the frame.
-  // The frame is solid INK on every card, a user-made one too (owner's call,
-  // 2026-10-20: its HOMEBREW chip marks it); the tone lives in the header band
-  // alone. Longhands, so a caller overriding one side
+  // The frame is the subtle ink-40 on every card (R38), a user-made one too
+  // (owner's call, 2026-10-20: its HOMEBREW chip marks it); the tone lives in
+  // the header band alone. Longhands, so a caller overriding one side
   // never trips React's shorthand/longhand warning.
   const frame = {
     borderStyle: 'solid',
-    borderColor: 'var(--color-ink)',
+    borderColor: 'var(--color-ink-40)',
     borderTopWidth: frameWidth,
     borderRightWidth: frameWidth,
     borderBottomWidth: frameWidth,

@@ -469,7 +469,7 @@ export function CrawlerSheet({
             }
           >
             {/* Each bay a contentful Mini and what belongs to it, in one
-                border of its tone (`MiniGroup`), a cell of the masonry grid. */}
+                subtle border (`MiniGroup`), a cell of the masonry grid. */}
             <MiniGrid label="Bays">
               {bays.map((entry, i) =>
                 bayKind(entry) === 'storage' ? null : (

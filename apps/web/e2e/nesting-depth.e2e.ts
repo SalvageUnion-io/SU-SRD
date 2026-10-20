@@ -16,8 +16,8 @@ import { expect, test } from './fixtures'
  * (`Shield Drone (Drone) > Refractive Shield Projector (System)`) and the rule.
  *
  * There is no allowlist: every finding fails, bar a pending rule's
- * (`_pendingRules.ts`): every
- * entity frame's colour (`_entityFrames.ts`, R38), which the report shows.
+ * (`_pendingRules.ts`), which the report shows. Every entity frame's colour
+ * (`_entityFrames.ts`, R38) is read on the same pages.
  *
  * Signed out: sibling-heights' pages, the pages the nesting audit measured,
  * every Starter Set sheet, and a Peek of a chassis, a Bio-Titan and an
@@ -248,7 +248,7 @@ test.describe('signed in', () => {
   /**
    * Every context (hard rule R0): each of `designRoutes` (`_helpers.ts`),
    * seeded, at page and phone widths, Play's phone form tab by tab, under
-   * N1–N8 (N8 and frame colours pending).
+   * N1–N8.
    *
    * `BASELINE` is the debt this pass found when it landed, by route family and
    * rule, each to be fixed and deleted here. A finding off it fails; an entry

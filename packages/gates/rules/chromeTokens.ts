@@ -13,14 +13,11 @@
  * It shares the `tokens` id with `designTokens.ts`, so its findings print as
  * `tokens/<rule>` and `--only=tokens` runs both halves.
  *
- * ## Every rule is zero, bar one ratchet
+ * ## Every rule is zero
  *
  * Any finding fails, and none has a baseline entry. A genuinely-correct case
  * is an EXEMPTIONS entry with a written reason, or a `design-tokens-ignore`
- * comment on its line. The one ratchet is `entity-frame-ink` (hard rule
- * R38): the owner's subtle-frame rule (2026-10-20) landed before the screens
- * wore it, so its baseline in `tools/baselines/rule-sets.json` burns down as
- * they do.
+ * comment on its line.
  */
 
 import { readFileSync } from 'node:fs'
@@ -468,9 +465,9 @@ const CHROME_RULES: ChromeRule[] = [
   },
   {
     id: 'entity-frame-ink',
-    mode: 'ratchet',
+    mode: 'zero',
     rule: 'ruleset §4.3, EDL E21 (hard rule R38) — an entity frame is the subtle ink-40 the sheets wear, never solid ink or its tone; only `--su-compact-frame` colours one (an ability tree, a pattern)',
-    fix: "Paint the frame `var(--color-ink-40)` (`color.ink40` in a style object), keeping its weight (§4.3). An ability tree's Compacts and a pattern's frame take their colour through `--su-compact-frame` alone. Then lower the baseline: `bun tools/check-rule-sets.ts --update-baseline`.",
+    fix: "Paint the frame `var(--color-ink-40)` (`color.ink40` in a style object), keeping its weight (§4.3). An ability tree's Compacts and a pattern's frame take their colour through `--su-compact-frame` alone.",
     css: entityFrameInkCss,
     script: entityFrameInkScript,
   },
