@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { CHAPTER_REFS } from '../lib/chapters'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
+import { NULL_BAND } from './atoms/chapterBandColor'
 import { CHAPTER_BAND_COLOR, ChapterBand, Slab, ToneStrip } from './index'
 
 type NotFoundProps = {
@@ -16,8 +17,9 @@ type NotFoundProps = {
 }
 
 /**
- * The not-found content, one for the whole site: the rules-blue band with the
- * hero search in it; under it the "did you mean" (the missed slug run against
+ * The not-found content, one for the whole site: the null band (grey: the
+ * page is no chapter's) with its title alone; in the body, the message at
+ * body size and the search, then the "did you mean" (the missed slug run against
  * the SRD's search index) and the book's five chapters, each a link to its
  * section of the Contents. Every link is ink on paper: a chapter's colour is
  * its top band, as on the home index, never a text ground (ruleset §3.8) or a
@@ -30,23 +32,17 @@ type NotFoundProps = {
 export function NotFound({ search, didYouMean, back }: NotFoundProps) {
   return (
     <div className="su-not-found">
-      <div className="su-not-found__band">
-        <ChapterBand
-          measure={PAGE_MEASURE}
-          aside={
-            <div className="su-not-found__lede">
-              <p>
-                <strong>404 · Salvage operation failed.</strong> This page was broken down,
-                relocated, or never existed. Search the Reference for it, or open a chapter.
-              </p>
-              {search}
-            </div>
-          }
-        >
-          Page not found
-        </ChapterBand>
-      </div>
+      <ChapterBand measure={PAGE_MEASURE} fill={NULL_BAND}>
+        Page not found
+      </ChapterBand>
       <div className="su-not-found__body su-page-body">
+        <div className="su-not-found__lede">
+          <p>
+            <strong>404 · Salvage operation failed.</strong> This page was broken down, relocated,
+            or never existed. Search the Reference for it, or open a chapter.
+          </p>
+          {search}
+        </div>
         {back}
         {didYouMean}
         <nav className="su-not-found__chapters" aria-labelledby="not-found-chapters">
