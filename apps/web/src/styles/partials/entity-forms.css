@@ -1131,12 +1131,22 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 }
 
 /* An action chip (C8), the outlined Mini button, at its strip's chip height
-   (C1a): a label-only chip's frame, padding and line. */
+   (C1a), as a strip's Mini button is drawn (below): a 24px target (WCAG
+   2.5.8) whose transparent border insets the drawn plate to the chip's
+   18px, its rule an outline on that plate. */
 .su-chip-more {
-  border-width: var(--bw-hairline);
+  --su-mini-inset: calc((var(--space-24) - var(--size-mini)) / 2);
+
+  background-clip: padding-box;
+  border-color: transparent;
+  border-width: var(--su-mini-inset);
+  box-sizing: border-box;
+  height: var(--space-24);
   line-height: 1;
   min-height: 0;
-  padding: var(--space-2) var(--space-4);
+  outline: var(--bw-hairline) solid currentcolor;
+  outline-offset: calc(-1 * (var(--su-mini-inset) + var(--bw-hairline)));
+  padding: 0 var(--space-4);
 }
 
 /* A Token as a listbox option (the SRD header search): the highlighted option
