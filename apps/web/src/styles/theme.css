@@ -111,12 +111,13 @@
      (4.2:1) nor paper (3.7:1) at 4.5:1, so a crawler band that carries paper
      text is this deeper pink: paper on it measures 4.6:1. */
   --color-crawler-band: rgb(184, 74, 134); /* #b84a86 */
-  /* The Denizens chapter band (board 05c) — navy, carrying paper text at
-     8.8:1. A chapter band only: Denizens cards keep the adversary brown. */
+  /* The navy band (board 05c) of the NPC designer and sheet and Play's
+     Mediator Scene, carrying paper text at 8.8:1. The Denizens chapter's
+     band is the adversary brown its cards wear (owner's call, 2026-10-20). */
   --color-denizen-band: rgb(47, 74, 102); /* #2f4a66 */
   /* The 5th ontology domain — NOT the action rust (#a85222). It is the shared
      header tone for the world/opposition schemas: creatures, bio-titans,
-     factions, npcs, meld, squads. Named `adversary` so it never collides with
+     factions, npcs, meld, squads, and the Denizens chapter's band. Named `adversary` so it never collides with
      the one action colour. */
   --color-adversary: rgb(140, 75, 56); /* #8c4b38 */
 

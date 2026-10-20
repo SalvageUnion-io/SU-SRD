@@ -3,8 +3,11 @@ import { color } from '../../design/tokens'
 /**
  * The book's colour map (ruleset, "The source"): which colour each chapter's
  * band wears. `rules` is the rules-blue band of Contents, Core Rules,
- * Salvaging, Guides and Keywords; `pilot`, `mech`, `crawler` and `denizen`
- * are the four chapters. `ink` is no chapter of the book: it is the dark band
+ * Salvaging, Guides and Keywords; `pilot`, `mech`, `crawler` and `adversary`
+ * are the four chapters: the Denizens chapter wears the adversary brown its
+ * entities' cards wear (owner's call, 2026-10-20). `denizen` is the navy the
+ * Denizens chapter wore before, kept by the NPC designer and sheet and by
+ * Play's Mediator Scene. `ink` is no chapter of the book: it is the dark band
  * of a page that is the player's own rather than the book's — Build's Shelves
  * (board S1) — and it carries paper flecks and paper text (ruleset §3.5).
  * `build` and `play` are no chapters either: they are the app's two areas'
@@ -21,6 +24,7 @@ export type ChapterTone =
   | 'pilot'
   | 'mech'
   | 'crawler'
+  | 'adversary'
   | 'denizen'
   | 'ink'
   | 'build'
@@ -35,6 +39,7 @@ export const CHAPTER_BAND_COLOR: Record<ChapterTone, string> = {
   pilot: color.pilot,
   mech: color.mech,
   crawler: color.crawler,
+  adversary: color.adversary,
   denizen: color.denizenBand,
   ink: color.ink,
   build: color.pilot,

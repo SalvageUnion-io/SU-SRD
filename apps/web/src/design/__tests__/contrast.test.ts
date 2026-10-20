@@ -261,6 +261,8 @@ describe('ink on colour — the refresh pairs', () => {
     { band: 'mech', ground: color.mech, text: 'ink' },
     { band: 'crawlerBand', ground: color.crawlerBand, text: 'paper' },
     { band: 'denizenBand', ground: color.denizenBand, text: 'paper' },
+    // The Denizens chapter band (owner's call, 2026-10-20).
+    { band: 'adversary', ground: color.adversary, text: 'paper' },
     // The Avatar fallback initial sits on pilot (Avatar.tsx).
     { band: 'avatar', ground: color.pilot, text: 'ink' },
     // The ability tiers' Compact banners and tree tracks: Advanced and Hybrid

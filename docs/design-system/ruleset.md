@@ -57,7 +57,7 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
    6. **§3.6 Copy is 1:1 with SRD data.**
    7. **§3.7 Stats render through Stat** — any `label | value` is a `Stat`, never hand-assembled `<span>SP {n}</span>`.
       Game data renders through the shared primitives, never one-off markup.
-   8. **§3.8 Ink on colour** — ink text on pilot and mech fills; no text pair under 4.5 : 1. Paper text on crawler uses `--color-crawler-band`; Denizens navy carries paper; TL blue is never a text ground, bar systems and modules (book pp. 162, 188).
+   8. **§3.8 Ink on colour** — ink text on pilot and mech; no pair under 4.5 : 1. Paper text on crawler uses `--color-crawler-band`; Denizens brown and NPC navy carry it; TL blue is never a text ground, bar systems and modules (book pp. 162, 188).
    9. **§3.9 Canon is solid; homebrew is dashed** — a player-made thing that could pass for the book (pattern, NPC): a solid frame like the book's, the dashed HOMEBREW stamp in its labels or chips and pills, credit "Made by [user]", at every size. Dashed means only this, a Play reference unit (ADR-051 §5), an edit field and an empty slot: a Slab is always solid.
       A sheet adds a hatched band; a pattern's page is the book's, footed "Homebrew // Made by [user]". One `userMade` flag (+ `madeBy`); canon-built units stay solid.
    10. **§3.10 No left-rail borders** — colour rides in top bands, stamps and gauges; nesting shows by containment.

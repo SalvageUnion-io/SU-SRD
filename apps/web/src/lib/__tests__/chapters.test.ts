@@ -21,7 +21,7 @@ describe('buildChapters', () => {
       ['Pilot Bay', 'pilot'],
       ['Mech Workshop', 'mech'],
       ['Union Crawler', 'crawler'],
-      ['Denizens of the Wasteland', 'denizen'],
+      ['Denizens of the Wasteland', 'adversary'],
       ['Rules & Reference', 'rules'],
     ])
   })
@@ -67,7 +67,7 @@ describe('chapterForSchema', () => {
   test('a schema wears its chapter’s band', () => {
     expect(chapterForSchema('chassis').tone).toBe('mech')
     expect(chapterForSchema('abilities').title).toBe('Pilot Bay')
-    expect(chapterForSchema('npcs').tone).toBe('denizen')
+    expect(chapterForSchema('npcs').tone).toBe('adversary')
     expect(chapterForSchema('roll-tables').title).toBe('Rules & Reference')
     expect(chapterForSchema('guides').tone).toBe('rules')
   })

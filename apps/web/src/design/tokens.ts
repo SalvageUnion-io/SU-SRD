@@ -270,11 +270,12 @@ const base = {
   /** The deeper crawler band that carries paper text (4.6:1) — crawler pink
    *  carries neither ink nor paper at 4.5:1 (ruleset §3.8). */
   crawlerBand: 'rgb(184, 74, 134)',
-  /** The Denizens chapter band (navy), carrying paper text at 8.8:1. A band
-   *  only: Denizens cards keep `adversary`. */
+  /** The navy band of the NPC designer and sheet and Play's Mediator Scene,
+   *  carrying paper text at 8.8:1. The Denizens chapter wears `adversary`. */
   denizenBand: 'rgb(47, 74, 102)',
   /** The world/opposition schemas — creatures, bio-titans, factions, npcs,
-   *  meld, squads. NOT the action rust, despite the tone. */
+   *  meld, squads — and the Denizens chapter's band. NOT the action rust,
+   *  despite the tone. */
   adversary: 'rgb(140, 75, 56)',
 
   // — Class ability-tier ramp (owner's call): Advanced and Hybrid rust.

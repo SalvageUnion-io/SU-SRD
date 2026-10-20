@@ -76,12 +76,13 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  *
  * `tone` is the book's colour map (ruleset, "The source"): `rules` is the
  * rules-blue band of Contents, Core Rules, Salvaging, Guides and Keywords;
- * `pilot`, `mech`, `crawler` and `denizen` are the four chapters. `ink` is the
+ * `pilot`, `mech`, `crawler` and `adversary` (Denizens' brown) are the four
+ * chapters; `denizen` is the navy of the NPC designer and Play's Scene. `ink` is the
  * dark band of a page that is the player's own (Build's Shelves, board S1): it
  * wears paper flecks instead of ink speckle (ruleset §3.5). `build` and `play`
  * are the app's two areas' own bands: the Training Bay's pilot orange and the
  * Cantina's deep crawler pink. Content in `aside` and `eyebrow` is ink on
- * `rules`, `pilot`, `mech`, `crawler` and `build`; the `denizen` band is navy,
+ * `rules`, `pilot`, `mech`, `crawler` and `build`; the `adversary` brown and the `denizen` navy,
  * the `play` band deep pink and the `ink` band ink, and all three carry paper
  * text — the caller dresses it. A page that wants paper text on the crawler pink passes `fill`
  * the deeper `crawlerBand`, which carries it (the book's crawler pink carries

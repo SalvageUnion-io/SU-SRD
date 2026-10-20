@@ -51,7 +51,8 @@ const CHAPTER_DEFINITIONS: readonly ChapterDefinition[] = [
   {
     id: 'denizens',
     title: 'Denizens of the Wasteland',
-    tone: 'denizen',
+    // The adversary brown its entities' cards wear (owner's call, 2026-10-20).
+    tone: 'adversary',
     categories: ['denizens'],
   },
   {
