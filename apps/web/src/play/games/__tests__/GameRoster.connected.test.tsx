@@ -668,7 +668,9 @@ describe('units in from Build (ADR-052 §3, §5)', () => {
 
   async function openPicker(): Promise<HTMLElement> {
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Move a pilot in from your Training Bay' }))
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Move a pilot in from your Training Bay' })
+      )
     })
     return screen.getByRole('dialog', { name: 'Move a pilot in from your Training Bay' })
   }
