@@ -19,7 +19,7 @@ Status: agreed. Code: `apps/web/src/components/entity/`.
 3. **Row** — every list: head (the art in its own paper window at the band's left, band on all sides, centred, ≥ 18rem where the schema has art; tier on the band, name, chips, mode slot; name on the paper cut-out, chips beside it), a paper body only for a lead or stamp.
    In a `data-entity-grid` every Row is one height and each name line reserves two.
    **Tile** — the SRD index's Row: 3:4 art if any, name notched in the band, facts, lead; link only.
-4. **Card** — the whole entity in place: head (title, labels — pills, User-made — and chips), prose, actions and children as Tokens (E6), table as a roll bar, cite; comfortable (≥ 30rem) or compact.
+4. **Card** — the whole entity in place: head (title, labels — pills, HOMEBREW — and chips), prose, actions and children as Tokens (E6), table as a roll bar, cite; comfortable (≥ 30rem) or compact.
 5. **Page** — the detail view: an SRD route, the app's detail dialog. From 64rem the hero floats left (42%, ≤ 32rem tall) and sections flow beside it.
    Ability trees and pattern rows clear the art; a stack spans the column, 52rem with no art; a phone stacks the art above.
 6. **Peek** — a compact Card, read-only, level 1 on its plate: children as Tokens (E6). A Mention or trait chip carries only `data-peek`; one `PeekHost` per app opens it, lazily.

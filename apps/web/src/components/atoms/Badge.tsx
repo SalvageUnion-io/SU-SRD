@@ -143,7 +143,7 @@ type BadgeStampProps = {
    * The stamp's plate:
    * - `solid` (default) — ink block, paper text: the canonical label/header.
    * - `inverse` — paper block, ink text, inset ink ring.
-   * - `dashed` — paper block, ink text, a dashed ink edge: the User-made
+   * - `dashed` — paper block, ink text, a dashed ink edge: the HOMEBREW
    *   stamp (ruleset §3.9, homebrew is dashed).
    */
   surface?: StampSurface

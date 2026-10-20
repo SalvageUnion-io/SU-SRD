@@ -239,7 +239,7 @@ const BAND_HEADROOM = 24
  * A chip's width in px, measured in the real face at the preview's 36px
  * plate: about 21px a character, plus the two cells' padding for a
  * `label | value` chip or one cell's for a bare label. The cost's pointy box
- * is 44px and carries its point; the User-made stamp is 36px and dashed.
+ * is 44px and carries its point; the HOMEBREW stamp is 36px and dashed.
  */
 function chipWidth(chip: OgCardChip): number {
   return Math.ceil(CHIP_SLACK * chipAdvance(chip))

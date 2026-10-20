@@ -17,7 +17,7 @@ import type { TagItem } from './tagItems'
  * CHIPS — every chip strip (`chips-and-actions.md` C2a): a Token's, a Row's
  * or Card's head, a Page's band, a Tile's, a TitledBox's or Slab's summary.
  * ONE group (E17), in THE class order (C2): the host's marks (a note,
- * User-made, Suggested), the rank (`TL | 2`), the measures in the stat order
+ * HOMEBREW, Suggested), the rank (`TL | 2`), the measures in the stat order
  * (`SLOTS | 1`, `SP | 12`), the economy (the action type, "Turn Action", then
  * the action's facts, `RNG | L`, `DMG | 4 SP`), the traits (`[Hot | 2]`,
  * linking to their entry where `linkable`), the relations (`PILOT |
@@ -64,7 +64,7 @@ export function Chips({
    * `GAME | Rust Run` opens the Game while the Row opens the unit (C11).
    */
   relationsLinkable?: boolean
-  /** The host's marks, first (a note, User-made, "Suggested"): one node per chip. */
+  /** The host's marks, first (a note, HOMEBREW, "Suggested"): one node per chip. */
   marks?: ReactNode
   /** The state slot after the cost (C8): a live reading, a condition, a quantity. */
   state?: ReactNode

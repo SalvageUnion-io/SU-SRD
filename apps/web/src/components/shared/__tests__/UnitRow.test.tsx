@@ -153,11 +153,11 @@ describe('UnitRow', () => {
     expect(within(head).getByTestId('owner')).toBeTruthy()
   })
 
-  test('an NPC is user-made: dashed, with the User-made label', () => {
+  test('an NPC is user-made: dashed, with the HOMEBREW stamp', () => {
     render(<UnitRow kind="npc" name="Mags" userMade />)
     const row = rowOf('“Mags”')
     expect(row.querySelector('.su-entity-row__frame')?.hasAttribute('data-user-made')).toBe(true)
-    expect(within(row).getByText('User-made')).toBeTruthy()
+    expect(within(row).getByText('Homebrew')).toBeTruthy()
   })
 
   test('View opens the sheet, named for the unit', () => {

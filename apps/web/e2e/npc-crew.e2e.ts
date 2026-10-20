@@ -60,12 +60,12 @@ test('design an NPC from a template, crew a bay with it, and give the bay back',
     timeout: 15_000,
   })
 
-  // The bay shows the NPC in place of its inline crew, stamped User-made.
+  // The bay shows the NPC in place of its inline crew, stamped Homebrew.
   await openSheetFor(page, 'Tin Lizzy')
   const crewNow = medBayCrew(page)
   await expect(crewNow).toHaveCount(1)
   await expect(crewNow).toContainText('Sergeant Kessler')
-  await expect(page.getByText('User-made crew')).toBeVisible()
+  await expect(page.getByText('Homebrew')).toBeVisible()
 
   // --- Unassign: the link goes; the NPC and the book's line both survive ---
   await editSheet(page)
@@ -82,7 +82,7 @@ test('design an NPC from a template, crew a bay with it, and give the bay back',
   await expect(crewAfter).toHaveCount(1)
   await expect(crewAfter).not.toContainText('Sergeant Kessler')
   expect(await crewAfter.innerText()).toBe(inlineCrewBefore)
-  await expect(page.getByText('User-made crew')).toHaveCount(0)
+  await expect(page.getByText('Homebrew')).toHaveCount(0)
 
   // The NPC is still on the shelf.
   await gotoStable(page, '/')

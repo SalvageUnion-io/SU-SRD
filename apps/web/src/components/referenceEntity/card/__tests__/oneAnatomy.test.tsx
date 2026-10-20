@@ -199,7 +199,7 @@ describe('the user-made flag', () => {
     const chassis = sestra()
     const pattern = need(chassis.patterns?.[0], 'pattern')
     const { container } = render(<ReferenceEntityCard data={chassis} pattern={pattern} userMade />)
-    const stamp = screen.getByText('User-made')
+    const stamp = screen.getByText('Homebrew')
     expect(stamp.getAttribute('title')).toBe('Made by a player, not from the Workshop Manual')
     const dashed = [...container.querySelectorAll<HTMLElement>('div')].filter(
       (el) => el.style.borderStyle === 'dashed' || el.style.borderTopStyle === 'dashed'
@@ -239,9 +239,8 @@ describe('the user-made flag', () => {
       <ReferenceEntityCard data={drill()} size="mini" extent="head" userMade />
     )
     const pill = container.querySelector<HTMLElement>('[title^="Made by a player"]')
-    // Solid as the book (owner's call, 2026-10-20); its words say what it is.
-    expect(pill?.style.borderStyle).not.toBe('dashed')
-    expect(pill?.textContent?.startsWith('User-made')).toBe(true)
+    // The HOMEBREW stamp leads its chips, so it says so in a word as well.
+    expect(pill?.querySelector('.su-badge--dashed')?.textContent).toBe('Homebrew')
   })
 })
 

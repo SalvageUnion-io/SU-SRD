@@ -59,8 +59,8 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
    7. **§3.7 Stats render through Stat** — any `label | value` is a `Stat`, never hand-assembled `<span>SP {n}</span>`.
       Game data renders through the shared primitives, never one-off markup.
    8. **§3.8 Ink on colour** — ink text on pilot and mech fills; no text pair under 4.5 : 1. Paper text on crawler uses `--color-crawler-band`; Denizens navy carries paper; TL blue is never a text ground, bar systems and modules (book pp. 162, 188).
-   9. **§3.9 Canon is solid; homebrew is dashed** — a player-made thing that could pass for the book (pattern, NPC): a solid frame like the book's, a dashed User-made stamp in the head's labels and pills, credit "Made by [user]", at every size. Dashed means only this, a Play reference unit (ADR-051 §5), an edit field and an empty slot: a Slab is always solid.
-      A full page adds a hard-stop hatched band, a dashed notch and a maker banner. One `userMade` flag (+ `madeBy`); canon-built units stay solid.
+   9. **§3.9 Canon is solid; homebrew is dashed** — a player-made thing that could pass for the book (pattern, NPC): a solid frame like the book's, the dashed HOMEBREW stamp in its labels or chips and pills, credit "Made by [user]", at every size. Dashed means only this, a Play reference unit (ADR-051 §5), an edit field and an empty slot: a Slab is always solid.
+      A sheet adds a hatched band; a pattern's page is the book's, footed "Homebrew // Made by [user]". One `userMade` flag (+ `madeBy`); canon-built units stay solid.
    10. **§3.10 No left-rail borders** — colour rides in top bands, stamps and gauges; nesting shows by containment.
    11. **§3.11 One union, two tools** — one Union bar; the switcher reads Reference | Build | Play; Build (the Training Bay) and Play (the Cantina) name their pages; the bar and the footer wear the leading band's colour in every mode, front pages too (no band: the area's), with no rule between bar and page; no off-site arrows between the two.
        Each mode has its nav (Build: Training Bay, Patterns, Starter Set; Play: Games ▾, Solo), the current one in ink from first paint.
@@ -90,7 +90,7 @@ The gate that holds each law, or will: [hard-rules.md](hard-rules.md).
    9. **Condition** — tri-state glyph: `StatusBadge`.
    10. **SlotGrid** — dashed addressable cargo cells: `SlotGrid`.
    11. **Icons** — `currentColor` glyphs: `lucide-react` plus local glyphs, at the line's Size, stroke 2 (chrome.md K11). The technique is StampSeam (§7.2): `STAMP_SEAM`.
-   - **The entity card: one anatomy, two header fills** — a flush header: the title, its labels right of it (pills, User-made; never above it or riding the frame, E9), then its chip group (E17), body only if prose or children remain, foot. Tone header for things you have, ink banner for things you do (E12).
+   - **The entity card: one anatomy, two header fills** — a flush header: the title, its labels right of it (pills, HOMEBREW; never above it or riding the frame, E9), then its chip group (E17), body only if prose or children remain, foot. Tone header for things you have, ink banner for things you do (E12).
    - **Actions nest** — no Actions tray or stamp. On a Page, level 1: compact framed cards, ink banners, under an Actions slab. In a card or Peek, level 2: contentful Tokens (N3), never folded behind a "Show N actions" chip. A roll table sits inline under a ROLL THE DIE: bar (nested: a Token, E14).
    - **Nesting legibility** — nested entities stack in the parent's frame under their own titles, no tray or label naming their kind, one tone each. Three levels (N1, EDL E6), frames 3 → 2px; nothing titled at level 2 or deeper.
      A child hides prose its parent shows.

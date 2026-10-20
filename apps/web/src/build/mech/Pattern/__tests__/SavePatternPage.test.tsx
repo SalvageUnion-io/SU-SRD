@@ -96,9 +96,9 @@ describe('what gets saved', () => {
     }
   })
 
-  test('the preview is the pattern as others see it: dashed, User-made, credited', async () => {
+  test('the preview is the pattern as others see it: dashed, Homebrew, credited', async () => {
     await renderPage()
-    expect(screen.getByText('User-made')).toBeTruthy()
+    expect(screen.getAllByText('Homebrew')[0]).toBeTruthy()
     expect(screen.getByText('Made by alxjrvs')).toBeTruthy()
     expect(screen.getByText('Not a legal starting mech')).toBeTruthy()
   })

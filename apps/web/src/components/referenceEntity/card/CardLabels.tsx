@@ -1,15 +1,15 @@
 import { Badge } from '../../atoms/Badge'
 import { Stat } from '../../atoms/Stat'
+import { HomebrewStamp } from './HomebrewStamp'
 import type { LabelsProps } from './labelChips'
 import { LEGAL_STARTING_PATTERN, LEGAL_STARTING_PATTERN_NOTE } from './legalStartingPattern'
-import { UserMadeStamp } from './UserMadeStamp'
 
 /*
  * The cluster's layout is `.su-ec-labels*` classes (`styles/index.css`), not
  * style objects: every head band of a listing carries one (ADR-046, repeated
  * elements).
  *
- * - `.su-ec-labels`: the stamps, then the User-made stamp.
+ * - `.su-ec-labels`: the stamps, then the HOMEBREW stamp.
  * - `__stamps`: short of room they wrap onto a second line; no stamp is ever
  *   cut to "…" (entity display language E18).
  * - `__truncate` / `__lead`: a stamp that keeps its whole word (the Legal
@@ -22,7 +22,7 @@ const LEAD = 'su-ec-labels__lead'
  * does not, on the title's line, right of the name: a parent-provided seal
  * (GRANTS, CHASSIS ABILITY) or a caller's note ("From Veteran"); the
  * classification pills (`[Class | Hybrid]`, `[Chassis | Mule]`); the Legal
- * Starting Pattern stamp; and on a user-made card the dashed User-made stamp
+ * Starting Pattern stamp; and on a user-made card the dashed HOMEBREW stamp
  * after them. Never the entity's kind: no form stamps that (E9), the title
  * says it to screen readers (`KindLabel`). On an ink ground (the band's
  * `data-ground`, chrome K1) the stamps take the paper plate, in CSS, so they
@@ -76,7 +76,7 @@ export function CardLabels({
       {/* The dashed stamp closes the cluster (board P1). */}
       {userMade && (
         <span style={{ flex: 'none' }}>
-          <UserMadeStamp />
+          <HomebrewStamp />
         </span>
       )}
     </div>

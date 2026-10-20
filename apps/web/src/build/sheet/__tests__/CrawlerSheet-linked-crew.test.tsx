@@ -1,7 +1,7 @@
 /**
  * CrawlerSheet — a bay crewed by a built NPC (Q2, ADR-044).
  *
- * While linked, the bay shows the NPC read-only, stamped User-made with a way
+ * While linked, the bay shows the NPC read-only, stamped Homebrew with a way
  * to its sheet, in place of the inline crew — and writes nothing to the
  * crawler, so the inline crew is there unchanged when the link goes. A link
  * whose NPC this view cannot read shows the inline crew with a badge.
@@ -64,7 +64,7 @@ describe('a linked bay shows its NPC in place of the inline crew', () => {
     // A contentful Token, as the inline crew is: no titled box in the bay (N5).
     expect(inset.querySelector('.su-box')).toBeNull()
     expect(inset.querySelector('.su-entity-token[data-contentful]')).toBeTruthy()
-    expect(screen.getByText('User-made crew')).toBeTruthy()
+    expect(screen.getAllByText('Homebrew').length).toBeGreaterThan(0)
     expect(screen.getByRole('link', { name: 'Open Doc Ambrose' })).toHaveProperty(
       'href',
       expect.stringContaining('/sheet/npc/n1')
@@ -92,7 +92,7 @@ describe('a linked bay shows its NPC in place of the inline crew', () => {
     render(<CrawlerSheet crawler={crawler} store={store()} crew={[]} />)
     expandCards()
     expect(headName(screen.getByLabelText('Med Bay crew lead'))).toContain('Old Mags')
-    expect(screen.queryByText('User-made crew')).toBeNull()
+    expect(screen.queryAllByText('Homebrew')).toHaveLength(0)
   })
 })
 

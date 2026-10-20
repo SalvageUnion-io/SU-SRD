@@ -81,7 +81,7 @@ describe('the sheet', () => {
     // Read: the band's h1 is the one place it is named (Edit adds a name field).
     await renderSheet({ readOnly: true, confirm: undefined })
     expect(screen.getAllByText('Sergeant Kessler')).toHaveLength(1)
-    expect(screen.getByText('User-made')).toBeTruthy()
+    expect(screen.getByText('Homebrew')).toBeTruthy()
     expect(madeBy('alxjrvs')).toBeTruthy()
     expect(screen.getByText('Veteran')).toBeTruthy()
   })

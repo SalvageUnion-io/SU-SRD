@@ -3,7 +3,7 @@
  * crew, and assign them (ADR-044; `docs/architecture/npc-builder.md`).
  *
  * The left column lists every crew slot — the type, then one per bay. A slot
- * is either filled by a built NPC (dashed, User-made) or keeps the book's crew
+ * is either filled by a built NPC (dashed, HOMEBREW) or keeps the book's crew
  * line, with a Design button. The right column is the selected slot:
  *
  *  - **designing** — the slot's own choices in data order (D3), Roll only
@@ -320,7 +320,7 @@ function slotTitle(slot: CrewSlotView): string {
 
 /**
  * One slot on the board, a Row in select mode (EDL "Modes"): picking it opens
- * the slot. Filled, it is the NPC (dashed, User-made); designing, the slot's
+ * the slot. Filled, it is the NPC (dashed, HOMEBREW); designing, the slot's
  * position under an "Editing" seal; else the book's crew line. The slot's
  * name is its note, the HP a chip (`HP | 4`), Design the Row's control.
  */

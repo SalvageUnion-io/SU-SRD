@@ -19,14 +19,11 @@ import { onTone, textBand } from '../referenceEntityHelpers'
 import type { CardOuterProps } from './CardOuter'
 import type { DomainTone } from './entityCardTone'
 
-/** What the User-made stamp and pill say when hovered (ruleset §3.9). */
+/** What the HOMEBREW stamp and a homebrew pill say when hovered (ruleset §3.9). */
 export const USER_MADE_TITLE = 'Made by a player, not from the Workshop Manual'
 
-/** The stamp a player-made page wears beside its title (ruleset §3.9). */
+/** What the stamp every player-made thing wears says (`HomebrewStamp`, ruleset §3.9). */
 export const HOMEBREW = 'Homebrew'
-
-/** What the HOMEBREW stamp means, on hover: whose it is, and what it is not. */
-export const HOMEBREW_NOTE = `${USER_MADE_TITLE}. Not a legal starting mech: check with your Mediator before you bring it to the table.`
 
 /** The greys a damaged band dulls toward: ink mixed into paper —
  * the same warm material at distance. A band that prints ink dulls toward the

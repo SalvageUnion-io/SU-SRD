@@ -6,6 +6,7 @@ import type { CSSVarStyle } from '../../../styles/cssVars'
 import { assetSrcSetFor } from '../../compositions/assetSrcSet'
 import { heroArtCrop } from '../../compositions/heroArtCrop'
 import { grainClass } from '../../referenceEntity/card/cardGrain'
+import { HomebrewStamp } from '../../referenceEntity/card/HomebrewStamp'
 import { useEntitySurface } from '../entitySurfaceContext'
 import { LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
@@ -130,7 +131,7 @@ export function Tile({
         decoding="async"
       />
     ) : null
-  const hasChips = Boolean(model.cost) || facts.length > 0
+  const hasChips = Boolean(model.cost) || facts.length > 0 || !!model.userMade
 
   return (
     <LinkSurface
@@ -182,6 +183,8 @@ export function Tile({
               as="span"
               className="su-entity-tile__chips"
               size="compact"
+              // A player made it: the HOMEBREW stamp leads its chips (ruleset §3.9).
+              marks={model.userMade ? <HomebrewStamp size="compact" /> : undefined}
               chips={{
                 durations: [],
                 facts,

@@ -28,7 +28,7 @@ test('save a pattern, read it signed out, and build a mech from it', async ({ pa
     .fill('Rig first, rivet later.')
   await page.getByLabel(/Anyone with the link/).check()
   // The preview is the pattern as others will see it: user-made.
-  await expect(page.getByText('User-made', { exact: true }).first()).toBeVisible()
+  await expect(page.getByText('Homebrew', { exact: true }).first()).toBeVisible()
   await page.getByRole('button', { name: 'Save pattern' }).click()
 
   // A shared pattern opens on its own page.
@@ -43,7 +43,8 @@ test('save a pattern, read it signed out, and build a mech from it', async ({ pa
     await expect(publicPage.getByRole('heading', { level: 1, name: /Tow Rig/ })).toBeVisible({
       timeout: 15_000,
     })
-    await expect(publicPage.getByText('User-made pattern')).toBeVisible()
+    await expect(publicPage.getByText('Homebrew', { exact: true }).first()).toBeVisible()
+    await expect(publicPage.getByText('Homebrew // Made by', { exact: false })).toBeVisible()
     await expect(publicPage.getByText('Rig first, rivet later.')).toBeVisible()
     // Read-only: building needs an account.
     await expect(

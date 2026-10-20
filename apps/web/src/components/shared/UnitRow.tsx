@@ -3,7 +3,7 @@
  * Row (`<Entity form="row">`) over `unitRowModel`, with the host's controls in
  * its head's trailing slot (EDL E7). The name sits on the Row's paper
  * cut-out, the readings are label-first chips (`SP | 9/9`), the note and any
- * host labels (an owner seal, ★ Primary, User-made) sit right of the title
+ * host labels (an owner seal, ★ Primary, HOMEBREW) sit right of the title
  * (ruleset §3.9, §7.2), and View / Unassign are the last controls.
  *
  * View is a control rather than the Row's own link because the Row carries
@@ -25,7 +25,7 @@ type UnitRowProps = {
   /** A stamp right of the name that says more than the kind ("Home Crawler"). */
   note?: string | undefined
   readings?: readonly UnitReading[] | undefined
-  /** A player-made unit (an NPC): dashed, its name quoted, User-made (§3.9). */
+  /** A player-made unit (an NPC): dashed, its name quoted, HOMEBREW (§3.9). */
   userMade?: boolean
   /** Labels after the note (an owner seal, ★ Primary). */
   labels?: ReactNode

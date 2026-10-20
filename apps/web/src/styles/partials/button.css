@@ -109,7 +109,7 @@
 }
 
 /* Pencil: paper on a dashed ink edge, the control on an editable sheet line
-   (dashed means editable, as the User-made stamp is dashed: ruleset §3.9). It
+   (dashed means editable, as the HOMEBREW stamp is dashed: ruleset §3.9). It
    inverts to ink under the pointer, and stays inverted while pressed (an
    ability marked Used). */
 .su-btn--pencil {

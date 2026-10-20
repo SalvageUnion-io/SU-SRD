@@ -13,6 +13,7 @@ import type { CardOuterProps } from '../../referenceEntity/card/CardOuter'
 import { CardOuter } from '../../referenceEntity/card/CardOuter'
 import type { Down } from '../../referenceEntity/card/cardChrome'
 import { downOf, USER_MADE_TITLE } from '../../referenceEntity/card/cardChrome'
+import { HomebrewStamp } from '../../referenceEntity/card/HomebrewStamp'
 import { LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
 import { SELECT_DIM, SELECTED_RING } from '../modes/selectedRing'
@@ -230,7 +231,7 @@ export function Token({
   // the link, so it never nests in one (C11).
   const linkedRelation = !!slots.relations?.some((r) => r.ref || r.href)
   const acts = slots.uses !== undefined || slots.menu !== undefined || linkedRelation
-  const hasChips = chipCount(set) > 0 || !!quantity || !!slots.state || acts
+  const hasChips = chipCount(set) > 0 || !!quantity || !!slots.state || acts || userMade
   // C5: a contentful Token's chips past two lines end in +MORE, which opens
   // its Peek; with no Peek (inside one, E16) every chip wraps. Its slot is the
   // end of the menu lane: after a sheet item's own controls (C8), the last.
@@ -276,8 +277,6 @@ export function Token({
         ...(toggle?.selected ? SELECTED_RING : {}),
       }}
     >
-      {/* Read by assistive tech only: the dashes are the pill's only visual user-made cue. */}
-      {userMade && <span className="su-sr-only">User-made </span>}
       {model.kind.note && (
         <Badge shape="stamp" size="mini" className="su-entity-token__kind" data-handback="">
           {model.kind.note}
@@ -311,6 +310,8 @@ export function Token({
           className="su-entity-token__chips"
           chips={set}
           size="mini"
+          // A player made it: the HOMEBREW stamp leads its chips (ruleset §3.9).
+          marks={userMade ? <HomebrewStamp /> : undefined}
           state={state}
           uses={slots.uses}
           menu={

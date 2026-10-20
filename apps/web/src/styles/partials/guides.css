@@ -570,7 +570,7 @@
   border-width: var(--bw-entity);
 }
 
-/* The User-made stamp (`UserMadeStamp`) at the preview's scale: the cells'
+/* The HOMEBREW stamp (`HomebrewStamp`) at the preview's scale: the cells'
    type, its dashed edge at the entity weight. */
 .su-og-chips .su-badge--dashed {
   border-width: var(--bw-entity);

@@ -159,10 +159,10 @@ describe('Row controls', () => {
     const chips = screen.getByText('Yours').closest('[data-chip-group]')
     expect(chips?.firstElementChild?.firstElementChild?.textContent).toBe('Yours')
     expect(chips?.firstElementChild?.getAttribute('data-chip-class')).toBe('mark')
-    expect(chips?.textContent).toContain('User-made')
+    expect(chips?.textContent).toContain('Homebrew')
     expect(chips?.textContent).toContain('HP8/10')
     expect(chips?.textContent?.indexOf('Yours')).toBeLessThan(
-      chips?.textContent?.indexOf('User-made') ?? -1
+      chips?.textContent?.indexOf('Homebrew') ?? -1
     )
   })
 

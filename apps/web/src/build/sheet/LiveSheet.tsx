@@ -39,6 +39,7 @@ import {
   cn,
   EntityStat,
   EntitySurfaceProvider,
+  HomebrewStamp,
   KindLabel,
   relation,
   Stat,
@@ -137,7 +138,7 @@ type LiveSheetProps = {
   out?: SheetUnitOut
   /**
    * A player-made thing that could pass for the book (a built NPC; ruleset
-   * §3.9): the hatched band, its User-made stamp, and "Made by [maker]".
+   * §3.9): the hatched band, its HOMEBREW stamp, and "Made by [maker]".
    */
   userMade?: { madeBy: string }
   /**
@@ -447,7 +448,7 @@ export function LiveSheet({
           <>
             {(stamp || out || userMade) && (
               <Cluster gap={8}>
-                {userMade && <Stat label="User-made" wrap />}
+                {userMade && <HomebrewStamp size="compact" />}
                 {stamp &&
                   (stamp.entityRef ? (
                     <EntityStat label={stamp.label} entityRef={stamp.entityRef} />

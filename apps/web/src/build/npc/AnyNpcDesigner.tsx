@@ -9,7 +9,7 @@
  * - Actions and traits are the reference's, never text (D6): each a header-only
  *   card with a checkbox that opens its full rules; a search adds more.
  * - The only hard gates are a name and HP ≥ 1 (`npcCreationStepGate`).
- * - The preview is the card on a shelf or in a Game: dashed, User-made, "Made by
+ * - The preview is the card on a shelf or in a Game: dashed, HOMEBREW, "Made by
  *   [maker]" (D9). The template's description pre-fills Identity; edits win (D5).
  *
  * The step machine and create are `useWizardFlow`'s, drawn by `WizShell` like every

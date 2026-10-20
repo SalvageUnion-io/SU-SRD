@@ -1,5 +1,5 @@
 /**
- * A Row's head: its labels (the User-made stamp, a unit's note) sit on the
+ * A Row's head: its labels (the HOMEBREW stamp, a unit's note) sit on the
  * name's line, right of the name — never a stamp riding the frame, never a
  * line above it. The kind is never stamped (E9): the title carries it for
  * screen readers. The chips share the name's heading (E17).

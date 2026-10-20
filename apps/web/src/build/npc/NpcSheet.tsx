@@ -6,7 +6,7 @@
  * opening, its actions under a Slab.
  *
  * - The band names it once (the sheet's one h1), hatched as a full user-made
- *   page (ruleset §3.9), with its User-made stamp, "Made by [maker]" and what
+ *   page (ruleset §3.9), with its HOMEBREW stamp, "Made by [maker]" and what
  *   it was built from (`FROM | Veteran`) right of the name.
  * - The opening: its portrait beside its identity lines (`NpcLines`: role,
  *   keepsake, motto, detail, facts; its name a field in Edit), and its HP as

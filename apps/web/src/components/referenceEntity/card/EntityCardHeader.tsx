@@ -33,7 +33,7 @@ type EntityCardHeaderProps = {
   chips?: ReactNode
   /**
    * The labels (`CardLabels`): the seal, the classification pills, the
-   * User-made stamp. On the title's line, right after the title.
+   * HOMEBREW stamp. On the title's line, right after the title.
    */
   labels?: ReactNode
   size: CardSize

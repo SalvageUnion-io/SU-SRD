@@ -173,11 +173,11 @@ describe('starting over', () => {
 })
 
 describe('the preview', () => {
-  test('is the card as others will see it: User-made, from Veteran, made by you', async () => {
+  test('is the card as others will see it: Homebrew, from Veteran, made by you', async () => {
     await renderDesigner()
     await pick('Start from Veteran')
     expect(screen.getAllByText('From Veteran').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('User-made').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Homebrew').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Made by alxjrvs').length).toBeGreaterThan(0)
   })
 })

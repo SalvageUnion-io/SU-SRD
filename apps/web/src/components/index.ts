@@ -271,6 +271,9 @@ export { EntityPageStamps } from './referenceEntity/card/EntityPageStamps'
 // What an entity PAGE's chapter band and foot band say (`presentation="page"`)
 export type { EntityPageMeta } from './referenceEntity/card/entityPage'
 export { resolveEntityPageMeta } from './referenceEntity/card/entityPage'
+// HomebrewStamp — the dashed HOMEBREW stamp (ruleset §3.9) every player-made
+// thing wears: a card's labels, a Row's marks, a saved pattern's page.
+export { HomebrewStamp } from './referenceEntity/card/HomebrewStamp'
 // The stored-tag test for the book's starting builds, for a page band that
 // wears the stamp (`EntityPageStamps`) outside the card.
 export { isLegalStartingPatternOf } from './referenceEntity/card/legalStartingPattern'
@@ -278,9 +281,6 @@ export { ActionTokens } from './referenceEntity/card/NestedCards'
 // Entity display system
 export { ReferenceEntityCard } from './referenceEntity/card/ReferenceEntityCard'
 export type { CardFootMeta } from './referenceEntity/card/referenceEntityCardTypes'
-// UserMadeStamp — the dashed User-made stamp (ruleset §3.9). The card wears it
-// in its head's labels; a full user-made page leads its title with it.
-export { UserMadeStamp } from './referenceEntity/card/UserMadeStamp'
 // WhenDamaged — a crawler bay's WHEN DAMAGED block, one renderer on the Page, the card and the live sheet (R18).
 export { WhenDamaged } from './referenceEntity/card/WhenDamaged'
 export { damagedEffectOf } from './referenceEntity/card/whenDamaged.model'

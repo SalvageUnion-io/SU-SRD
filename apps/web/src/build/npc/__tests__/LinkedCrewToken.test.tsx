@@ -1,6 +1,6 @@
 /**
  * LinkedCrewToken — a bay's crew slot filled by a built NPC, inside the bay
- * card (Q2, ADR-044): the NPC as a contentful Token, stamped User-made, its
+ * card (Q2, ADR-044): the NPC as a contentful Token, stamped Homebrew, its
  * head a link to its sheet; an NPC this view cannot read falls back to the
  * inline crew under a badge, never a blank slot.
  */
@@ -28,7 +28,7 @@ function assignment(npc: CrewAssignment['npc']): CrewAssignment {
 }
 
 describe('LinkedCrewToken', () => {
-  test('a readable NPC is its crew-lead Token, stamped User-made, linking to its sheet', () => {
+  test('a readable NPC is its crew-lead Token, stamped Homebrew, linking to its sheet', () => {
     render(
       <LinkedCrewToken
         slotName="Med Bay"
@@ -36,7 +36,7 @@ describe('LinkedCrewToken', () => {
         fallback={<span>inline crew</span>}
       />
     )
-    expect(screen.getByText('User-made crew')).toBeTruthy()
+    expect(screen.getAllByText('Homebrew').length).toBeGreaterThan(0)
     const lead = screen.getByRole('group', { name: 'Med Bay crew lead' })
     expect(lead.querySelector('.su-entity-token[data-contentful]')).toBeTruthy()
     expect(within(lead).getByText('Bleed later.')).toBeTruthy()

@@ -3,8 +3,8 @@ import type { Size } from '../../../styles/sizing'
 import { Badge } from '../../atoms/Badge'
 import { Stat } from '../../atoms/Stat'
 import type { AxisMarker } from './entityCardTone'
+import { HomebrewStamp } from './HomebrewStamp'
 import { LEGAL_STARTING_PATTERN, LEGAL_STARTING_PATTERN_NOTE } from './legalStartingPattern'
-import { UserMadeStamp } from './UserMadeStamp'
 
 /** An entity's head labels (`CardLabels`, `labelChips`). */
 export type LabelsProps = {
@@ -14,7 +14,7 @@ export type LabelsProps = {
   note?: string
   axisMarkers: AxisMarker[]
   legalStartingPattern: boolean
-  /** USER-MADE (ruleset §3.9): a dashed User-made stamp after the others. */
+  /** USER-MADE (ruleset §3.9): the HOMEBREW stamp after the others. */
   userMade?: boolean
 }
 
@@ -23,7 +23,7 @@ export type LabelsProps = {
  * chips they are chips, at the strip's Size, never a cluster of their own at
  * another (siblings on one line share one Size, ruleset §4.7; owner's rule,
  * 2026-10-14, as a Row's note). The seal keeps its stamp and tone, and
- * User-made its dashed stamp; every other label is a `Stat` cell, the Legal
+ * HOMEBREW its stamp; every other label is a `Stat` cell, the Legal
  * Starting Pattern a label-only one that says the book's words on hover.
  */
 export function labelChips(
@@ -53,6 +53,6 @@ export function labelChips(
         size={size}
       />
     ),
-    userMade && <UserMadeStamp key="user-made" size={size} />,
+    userMade && <HomebrewStamp key="homebrew" size={size} />,
   ].filter(Boolean)
 }

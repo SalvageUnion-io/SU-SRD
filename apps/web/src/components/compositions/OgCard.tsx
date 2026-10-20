@@ -8,7 +8,8 @@ import { ChapterBand } from '../atoms/ChapterBand'
 import { capsLabel } from '../atoms/capsLabel'
 import { Speckle } from '../atoms/Speckle'
 import { Stat } from '../atoms/Stat'
-import { UserMadeStamp } from '../referenceEntity/card/UserMadeStamp'
+import { HOMEBREW } from '../referenceEntity/card/cardChrome'
+import { HomebrewStamp } from '../referenceEntity/card/HomebrewStamp'
 import type { OgCardChip, OgCardProps, OgCardStat } from './ogCardText'
 import {
   bandColor,
@@ -50,7 +51,7 @@ import {
  * - `sheet` — a player's pilot, mech or crawler. Built from canon, so solid;
  *   the byline names the player and the Game.
  * - `userMade` — a pattern or NPC a player made (ruleset §3.9): dashed frame,
- *   hatched band, dashed notch and the User-made stamp leading the chips; the
+ *   hatched band, dashed notch and the HOMEBREW stamp leading the chips; the
  *   byline is only "Made by [user]".
  * - `invite` — a Game invite: the Game's name, who mediates and the expiry.
  *   The caller never hands it the token, so it cannot print one.
@@ -229,7 +230,7 @@ function Chips({
   return (
     <div className="su-og-chips" style={style}>
       {/* The atoms, at the preview's scale: the stamp by `.su-og-chips`, as its Stat cells are. */}
-      {userMade && <UserMadeStamp />}
+      {userMade && <HomebrewStamp />}
       {stats.map((stat) => (
         <Stat
           key={`${stat.label}-${stat.value ?? ''}`}
@@ -288,7 +289,7 @@ export function OgCard({ markSrc = MARK_SRC, ...props }: OgCardProps & { markSrc
   const stats = 'stats' in props ? props.stats : []
   const cost = 'cost' in props ? props.cost : undefined
   const chips: OgCardChip[] = [
-    ...(userMade ? [{ kind: 'stamp', text: 'User-made' } as const] : []),
+    ...(userMade ? [{ kind: 'stamp', text: HOMEBREW } as const] : []),
     ...stats.map((stat) => ({ kind: 'stat', label: stat.label, value: stat.value }) as const),
     ...(cost ? [{ kind: 'cost', text: cost } as const] : []),
   ]

@@ -380,13 +380,13 @@ describe('OgCard', () => {
   test('canon is solid; user-made is dashed, hatched and stamped', () => {
     const solid = renderToStaticMarkup(<OgCard {...SHEET} />)
     expect(solid).toContain('border-style:solid')
-    expect(solid).not.toContain('User-made')
+    expect(solid).not.toContain('Homebrew')
     expect(solid).not.toContain('data-user-made')
 
     const made = renderToStaticMarkup(<OgCard {...PATTERN} />)
     expect(made).toContain('border-style:dashed')
     expect(made).toContain('data-user-made="true"')
-    expect(made).toContain('User-made')
+    expect(made).toContain('Homebrew')
     expect(made).toContain('Made by alxjrvs')
     // The notch's dashes are 4px at the og scale, so they survive Discord's 400px draw.
     expect(made).toContain('border-top-style:dashed;border-top-width:4px')
@@ -454,19 +454,19 @@ describe('OgCard', () => {
   test('a name too long to share its line keeps it whole, the chips under it', () => {
     const name = '\u201CSergeant Kessler of the Ninth\u201D'
     const layout = ogCardLayout(name, [
-      { kind: 'stamp', text: 'User-made' },
+      { kind: 'stamp', text: 'Homebrew' },
       { kind: 'stat', label: 'HP', value: '9' },
       { kind: 'stat', label: 'Actions', value: '2' },
     ])
     expect(layout.chips).toBe('below')
     expect(layout.titleSize).toBe(ogTitleSize(name))
     expect(layout.bandHeight).toBe(230)
-    // The card draws them on the page ground under the notch, User-made first.
+    // The card draws them on the page ground under the notch, Homebrew first.
     const host = document.createElement('div')
     host.innerHTML = renderToStaticMarkup(<OgCard {...LONG_NPC} />)
     expect(host.querySelector('.su-chapter-band .su-og-chips')).toBeNull()
     const below = host.querySelector('article > :nth-child(2) .su-og-chips')
-    expect(below?.firstElementChild?.textContent).toBe('User-made')
+    expect(below?.firstElementChild?.textContent).toBe('Homebrew')
   })
 
   test('the chips render in the band, not the body', () => {

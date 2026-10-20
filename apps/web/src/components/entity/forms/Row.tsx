@@ -4,6 +4,7 @@ import { budgetFacts, naturalContext } from 'salvageunion-reference'
 import { Stat } from '../../atoms/Stat'
 import { CardLabels } from '../../referenceEntity/card/CardLabels'
 import { downOf } from '../../referenceEntity/card/cardChrome'
+import { HomebrewStamp } from '../../referenceEntity/card/HomebrewStamp'
 import { useEntitySurface } from '../entitySurfaceContext'
 import { LinkSurface } from '../modes/link'
 import { useLinkTarget } from '../modes/linkTarget'
@@ -145,7 +146,7 @@ export function Row({
       <SelectedSeal word={mode.seal} />
     ) : undefined
   const note = omit.includes('kind') ? undefined : model.kind.note
-  // The model's own labels (a unit's note, the User-made stamp): `CardLabels`
+  // The model's own labels (a unit's note, the HOMEBREW stamp): `CardLabels`
   // draws them only when there is a note or the Row is user-made.
   const ownLabels =
     userMade || note ? (
@@ -160,8 +161,8 @@ export function Row({
   // Beside chips, or with the host's, the labels are chips: the first items
   // of the chip group, wrapping and centring with the rest, never a line of
   // their own (owner's rule, 2026-10-14). The host's (an owner chip) lead,
-  // then the note as a label-only chip (★ Primary), then User-made, a
-  // label-only chip too (the dashed frame already says pencil, not print).
+  // then the note as a label-only chip (★ Primary), then the HOMEBREW stamp
+  // every player-made thing wears (ruleset §3.9).
   const labelsAsChips =
     (!!ownLabels || !!slots.extraLabels) &&
     (chipCount(chips) > 0 ||
@@ -169,12 +170,12 @@ export function Row({
       !!slots.trailing ||
       !!slots.state ||
       !!slots.controls)
-  // The marks lane (C2): the host's, then the note, then User-made.
+  // The marks lane (C2): the host's, then the note, then HOMEBREW.
   const marks = labelsAsChips
     ? [
         slots.extraLabels,
         note && <Stat key="note" label={note} size="compact" />,
-        userMade && <Stat key="user-made" label="User-made" size="compact" />,
+        userMade && <HomebrewStamp key="homebrew" size="compact" />,
       ]
     : undefined
 

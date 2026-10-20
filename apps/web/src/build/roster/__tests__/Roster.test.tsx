@@ -292,8 +292,8 @@ describe('Training Bay — one shelf per kind', () => {
       .find((a) => a.getAttribute('href') === `/sheet/npc/${npc.id}`)
       ?.closest('.su-entity-row')
     expect(line?.querySelector('[data-user-made]')).not.toBeNull()
-    // The dashes are the only visual cue, so the name says it too.
-    expect(line?.textContent).toMatch(/user-made/i)
+    // The HOMEBREW stamp says it in a word.
+    expect(line?.textContent).toContain('Homebrew')
     expect(within(npcs).getByText('Only me')).toBeTruthy()
     expect(within(npcs).getByRole('button', { name: 'More for Doc Marrow' })).toBeTruthy()
   })

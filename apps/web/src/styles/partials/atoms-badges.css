@@ -160,7 +160,7 @@
   color: var(--color-ink);
 }
 
-/* The User-made stamp (ruleset §3.9): canon is solid, homebrew is dashed. */
+/* The HOMEBREW stamp (`HomebrewStamp`, ruleset §3.9): canon is solid, homebrew is dashed. */
 .su-badge--dashed {
   background-color: var(--color-paper);
   border: var(--bw-chrome) dashed var(--color-ink);
@@ -234,7 +234,7 @@
 }
 
 /* The head band's labels (`card/CardLabels.tsx`): the stamps, then the
- * User-made stamp. No stamp is ever cut to "…": short of room, the stamps
+ * HOMEBREW stamp. No stamp is ever cut to "…": short of room, the stamps
  * wrap onto a second line, and the cluster is never narrower than its widest
  * stamp (the name beside it gives way first). */
 .su-ec-labels {

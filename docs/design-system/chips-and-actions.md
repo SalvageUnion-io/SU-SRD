@@ -8,7 +8,7 @@ Status: agreed. Design: [Token & Chip Grammar](https://claude.ai/artifact/KgnbEv
 A strip is a Token, a Row or Card head, or a TitledBox or Slab header.
 
 1. **Zones** — identity (tier or number, the name) · information (chips, the actions last among them).
-2. **Classes** — the read chips, in one order: mark (note, User-made), rank (TL), measure (in the stat order, ruleset §2.6: Slots, SV, SP or HP), economy (action type, RNG, DMG), traits, relation (what it is built on or linked to: `CHASSIS | Mule`, `PILOT | Bonesaw`, `CRAWLER | #430`, `GAME | Rust Run`), cost.
+2. **Classes** — the read chips, in one order: mark (note, HOMEBREW), rank (TL), measure (in the stat order, ruleset §2.6: Slots, SV, SP or HP), economy (action type, RNG, DMG), traits, relation (what it is built on or linked to: `CHASSIS | Mule`, `PILOT | Bonesaw`, `CRAWLER | #430`, `GAME | Rust Run`), cost.
    Then the slots (C8): state (a live reading, condition, quantity), uses, ⋯ or ✕.
    The cost sits at the seam: the last read chip, read or live; in Play the action is the Token's Use (ruleset §1.4).
 3. **Budgets** — Mention: none. Token: rank, one context lane, cost, state; its relations are its Peek's.

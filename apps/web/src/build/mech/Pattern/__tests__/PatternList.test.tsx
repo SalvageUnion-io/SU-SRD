@@ -48,7 +48,7 @@ beforeEach(() => {
 })
 
 describe('PatternList', () => {
-  test('a pattern row is a dashed, User-made, credited reference card', () => {
+  test('a pattern row is a dashed, Homebrew, credited reference card', () => {
     setQueryAnswers({ 'account:me': { displayName: 'alxjrvs' } })
     const { container } = render(
       <ConnectionContext.Provider value={CONNECTED}>
@@ -56,7 +56,7 @@ describe('PatternList', () => {
       </ConnectionContext.Provider>
     )
 
-    expect(screen.getByText('User-made')).toBeTruthy()
+    expect(screen.getByText('Homebrew')).toBeTruthy()
     // Titled in typographic quotes, as on the Save preview and the public page.
     expect(screen.getByText('“Tow Rig”')).toBeTruthy()
     expect(screen.queryByText('"Tow Rig"')).toBeNull()

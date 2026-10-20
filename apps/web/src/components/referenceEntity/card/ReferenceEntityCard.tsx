@@ -272,8 +272,7 @@ function ReferenceEntityCardInner({
   const assetUrl = isMiniCatalog ? undefined : getAssetUrl(entity)
   const assetSrcSet = assetSrcSetFor(assetUrl)
 
-  // PATTERN view — the pattern is the subject; the chassis (`entity`) supplies
-  // stats / tone / source.
+  // PATTERN view — the pattern is the subject; the chassis supplies stats / tone / source.
   const isPattern = !!pattern
   // A pattern's title is its name in typographic QUOTES. A nested ACTION drops its
   // ` (Host)` disambiguation suffix when the host is this card's own context.

@@ -4,7 +4,7 @@
  * identity panel. While a slot is linked it shows the linked NPC in place of
  * its inline crew, as a contentful Token (N3, `CrewLeadToken`) as the inline
  * crew is. Its dashed head opens the NPC's sheet (you track its HP there), so
- * the User-made stamp is the only line above it.
+ * the HOMEBREW stamp is the only line above it.
  *
  * Read-only: nothing writes the crawler's crew fields while a link exists,
  * so unlinking restores the inline crew exactly. A link
@@ -13,7 +13,7 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
-import { Badge, tokens, UserMadeStamp } from '../../components/index'
+import { Badge, HomebrewStamp, tokens } from '../../components/index'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { npcCurrentHP } from '../../lib/npcs/npcModel'
 import { unitRowModel } from '../../lib/units/unitModel'
@@ -46,7 +46,7 @@ export function LinkedCrewToken({ slotName, assignment, fallback }: LinkedCrewTo
   }
   return (
     <div style={STACK}>
-      <UserMadeStamp label="User-made crew" />
+      <HomebrewStamp />
       <CrewLeadToken
         bayName={slotName}
         title={npc.position}

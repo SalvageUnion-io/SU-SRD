@@ -56,7 +56,7 @@ const VARIANT = {
   /** Frameless, ink at 60%: an icon control inside a header (a close ×). */
   quiet: 'su-btn--quiet',
   /** Paper on a DASHED ink edge: the pencil control on an editable line
-   *  (dashed means editable, as the User-made stamp is dashed). */
+   *  (dashed means editable, as the HOMEBREW stamp is dashed). */
   pencil: 'su-btn--pencil',
 } as const
 

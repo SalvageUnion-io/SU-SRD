@@ -109,7 +109,7 @@ const leftRailScript = (text: string) =>
  */
 const DASHED_SELECTORS: readonly [RegExp, string][] = [
   [/\[data-user-made\]/, 'user-made: an entity frame, Token body or pill a player made'],
-  [/\.su-badge--dashed\b/, 'user-made: the User-made stamp'],
+  [/\.su-badge--dashed\b/, 'user-made: the stamp'],
   [/\[data-reference\]/, 'a Play reference unit (ADR-051 §5): `Box`’s `reference`'],
   [/\.su-field__write-cue\b/, 'an edit field: a writable value box'],
   [/\.su-edit-cue:hover\b/, 'an edit field: the hover edit cue'],
@@ -130,7 +130,7 @@ const DASHED_FILES: readonly [string, string][] = [
     'apps/web/src/components/referenceEntity/card/EntityCardIdentityFooter.tsx',
     'user-made: the foot rule',
   ],
-  ['apps/web/src/components/referenceEntity/card/UserMadeStamp.tsx', 'user-made: the stamp'],
+  ['apps/web/src/components/referenceEntity/card/HomebrewStamp.tsx', 'user-made: the stamp'],
   ['apps/web/src/components/compositions/OgCard.tsx', 'user-made: the share card'],
   ['apps/web/src/build/mech/Pattern/PublicPattern.tsx', 'user-made: a pattern’s page'],
   ['apps/web/src/build/mech/Pattern/SavePatternPage.tsx', 'user-made: saving a pattern'],
@@ -396,7 +396,7 @@ const CHROME_RULES: ChromeRule[] = [
     id: 'dashed',
     mode: 'zero',
     rule: 'ruleset §3.9 — dashed means user-made, a Play reference unit, an edit field or an empty slot; a Slab is solid',
-    fix: 'Draw it solid. Dashed is only a thing a player made (`[data-user-made]`, the User-made stamp), a Play reference unit, an edit field or an empty slot: if this is one, add its selector to DASHED_SELECTORS (a stylesheet) or its file to DASHED_FILES (a style object) in packages/gates/rules/chromeTokens.ts, with which of the four it is. Focus is the ring, never dashed (chrome.md K9).',
+    fix: 'Draw it solid. Dashed is only a thing a player made (`[data-user-made]`, the HOMEBREW stamp), a Play reference unit, an edit field or an empty slot: if this is one, add its selector to DASHED_SELECTORS (a stylesheet) or its file to DASHED_FILES (a style object) in packages/gates/rules/chromeTokens.ts, with which of the four it is. Focus is the ring, never dashed (chrome.md K9).',
     css: dashedCss,
     script: dashedScript,
   },
