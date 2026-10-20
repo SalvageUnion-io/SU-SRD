@@ -1,7 +1,7 @@
 /**
  * CrewLeadToken — a crawler bay's crew lead as a CONTENTFUL Token (N3):
- * - the head names the NPC, stamps the role it holds once it has a name of
- *   its own, and reads its HP live (`HP | 3/4`);
+ * - the head names the NPC, chips the role it holds (`ROLE | Doc`) once it
+ *   has a name of its own, and reads its HP live (`HP | 3/4`);
  * - in Edit the head keeps HP, as its stepper (the uses slot), never in the body;
  * - the body holds what the sheet tracks (Keepsake, Motto, Detail, Facts),
  *   each left out in Read when empty;
@@ -34,12 +34,15 @@ function head(group: HTMLElement): HTMLElement {
 }
 
 describe('CrewLeadToken — the head', () => {
-  test('a named crew lead: its role stamped before its name, its HP read live', () => {
+  test('a named crew lead: its role a chip beside its HP, read live', () => {
     render(<CrewLeadToken {...BASE} name="Ambrose" model={crew('Ambrose')} />)
     const group = screen.getByRole('group', { name: 'Med Bay crew lead' })
     const band = head(group)
-    expect(band.querySelector('.su-entity-token__kind')?.textContent).toBe('Doc')
+    // The role rides the head's chips, not a stamp before the name.
+    expect(band.querySelector('.su-entity-token__kind')).toBeNull()
     expect(band.querySelector('.su-entity-token__name')?.textContent).toContain('Ambrose')
+    expect(within(band).getByText('Role')).toBeTruthy()
+    expect(within(band).getByText('Doc')).toBeTruthy()
     expect(band.textContent).toContain('HP')
     expect(band.textContent).toContain('3/4')
     // A contentful Token, never a titled box (N5).
@@ -47,10 +50,10 @@ describe('CrewLeadToken — the head', () => {
     expect(group.querySelector('.su-box')).toBeNull()
   })
 
-  test('a crew lead with no name of its own stamps no role', () => {
+  test('a crew lead with no name of its own chips no role: its title is the role', () => {
     render(<CrewLeadToken {...BASE} name="Doc" model={crew('Doc')} />)
     const band = head(screen.getByRole('group', { name: 'Med Bay crew lead' }))
-    expect(band.querySelector('.su-entity-token__kind')).toBeNull()
+    expect(within(band).queryByText('Role')).toBeNull()
   })
 
   test('in Edit the head holds the HP stepper, and the body none', () => {
@@ -66,7 +69,7 @@ describe('CrewLeadToken — the head', () => {
   test('a crew lead with no HP to track has no HP chip', () => {
     render(<CrewLeadToken {...BASE} maxHp={0} hp={0} name="Ambrose" model={crew('Ambrose')} />)
     const band = head(screen.getByRole('group', { name: 'Med Bay crew lead' }))
-    expect(band.querySelector('.su-stat-cell')).toBeNull()
+    expect(within(band).queryByText('HP')).toBeNull()
   })
 
   test("a bay's SRD crew NPC keeps its book HP label, read at the sheet's value", () => {

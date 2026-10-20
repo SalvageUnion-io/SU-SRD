@@ -3,11 +3,11 @@
  * CONTENTFUL Token (N3). The bay is a level-1 entity, so its crew lead sits at
  * level 2 and is a Token (N1), never a titled box (N5).
  *
- * The head is the NPC's: its name (the role it holds stamped before it once it
- * has a name of its own, as a player unit's note is) and its HP, always in the
- * head (owner, 2026-10-20): live in Read (`HP | 3/4`), and in Edit the HP
- * stepper in the head's uses slot (C8), as a sheet item's Uses, so the name
- * alone is the Peek trigger. It Peeks the bay's crew NPC, or opens a built
+ * The head is the NPC's: its name, the role it holds as a relation chip with
+ * its other chips once it has a name of its own (`ROLE | Doc`, owner,
+ * 2026-10-20), and its HP, always in the head (owner, 2026-10-20): live in
+ * Read (`HP | 3/4`), and in Edit the HP stepper in the head's uses slot (C8),
+ * as a sheet item's Uses, so the name alone is the Peek trigger. It Peeks the bay's crew NPC, or opens a built
  * NPC's sheet. The body is what the sheet tracks about them: Keepsake, Motto,
  * Detail and Facts (`NpcLines`), each left out in Read when empty; in Edit
  * their fields, led by the name, which a head cannot hold.
@@ -19,7 +19,7 @@ import { useMemo } from 'react'
 import type { EntityInstance, RefMetaEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 import type { EntityMode, EntityRowModel } from '../../components/index'
-import { Entity, Stat } from '../../components/index'
+import { Entity, relation, Stat } from '../../components/index'
 import type { NpcLinesProps } from './NpcLines'
 import { NpcLines } from './NpcLines'
 
@@ -40,13 +40,7 @@ type CrewSource =
 /** The head's chips: HP read live, or left to the head's stepper (its uses slot) while it writes. */
 function crewHead(
   model: EntityRowModel,
-  {
-    title,
-    name,
-    hp,
-    maxHp,
-    editing,
-  }: { title?: string; name: string; hp: number; maxHp: number; editing: boolean }
+  { hp, maxHp, editing }: { hp: number; maxHp: number; editing: boolean }
 ): EntityRowModel {
   const facts = model.facts.filter((fact) => fact.short !== 'HP')
   const book = model.facts.find((fact) => fact.short === 'HP')
@@ -60,12 +54,13 @@ function crewHead(
       ...(book?.hint ? { hint: book.hint } : {}),
     })
   }
+  return { ...model, facts }
+}
+
+/** Its role as a chip, once it has a name of its own: unnamed, the head's title is the role. */
+function roleChip(title: string | undefined, name: string) {
   const named = name.trim() !== '' && name.trim() !== title
-  return {
-    ...model,
-    facts,
-    ...(title && named ? { kind: { ...model.kind, note: title } } : {}),
-  }
+  return title && named ? [relation('crew-role', 'Role', title)] : undefined
 }
 
 export function CrewLeadToken(props: CrewLeadTokenProps) {
@@ -73,10 +68,8 @@ export function CrewLeadToken(props: CrewLeadTokenProps) {
   const own = props.model
   const base = useMemo(() => own ?? toEntityModel(entity as RefMetaEntity), [own, entity])
   const editing = onHpChange !== undefined
-  const model = useMemo(
-    () => crewHead(base, { title, name, hp, maxHp, editing }),
-    [base, title, name, hp, maxHp, editing]
-  )
+  const model = useMemo(() => crewHead(base, { hp, maxHp, editing }), [base, hp, maxHp, editing])
+  const relations = roleChip(title, name)
   return (
     // biome-ignore lint/a11y/useSemanticElements: a labeled group (not a landmark) names the crew lead so the several on one crawler stay distinguishable; a <section> here would become a region landmark once named
     <div role="group" aria-label={`${bayName} crew lead`}>
@@ -87,6 +80,7 @@ export function CrewLeadToken(props: CrewLeadTokenProps) {
         instance={instance}
         mode={mode}
         peekAt={peekAt}
+        {...(relations ? { relations } : {})}
         {...(editing && maxHp > 0
           ? {
               uses: (
