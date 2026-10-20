@@ -20,11 +20,11 @@
 import type { ErrorComponentProps } from '@tanstack/react-router'
 import { useRouter } from '@tanstack/react-router'
 import type { CSSProperties, ReactNode } from 'react'
-import { borderWidth, color, fontSize, radius, space } from '../../design/tokens'
+import { color, fontSize, space } from '../../design/tokens'
 import { savedWorkCopy } from '../../lib/routeErrorCopy'
 import type { BackendKind } from '../../stores/entityBackend'
 import { selectBackend } from '../../stores/entityBackend'
-import { RecoveryPanel } from '../index'
+import { Box, RecoveryPanel } from '../index'
 import { FullPageShell } from './RouteFallbacks'
 
 /** The current backend, or null if even that cannot be read in this state. */
@@ -38,18 +38,14 @@ function currentBackend(): BackendKind | null {
   }
 }
 
+/** The error text in the Box's body: small, scrolling sideways when long. */
 const ERROR_DUMP = {
-  backgroundColor: color.wkBg,
-  borderColor: color.ink20,
-  borderRadius: radius.card,
-  borderStyle: 'solid',
-  borderWidth: borderWidth.chrome,
   color: color.ink,
   fontSize: fontSize.xs,
   lineHeight: '1rem',
+  margin: 0,
   maxWidth: '100%',
   overflow: 'auto',
-  padding: space[12],
   textAlign: 'left',
 } satisfies CSSProperties
 
@@ -63,7 +59,11 @@ const ROUTE_SHELL = {
 /** The error text itself — development builds only. */
 function DevErrorDump({ error }: { error: unknown }): ReactNode {
   if (!import.meta.env.DEV) return null
-  return <pre style={ERROR_DUMP}>{error instanceof Error ? error.message : String(error)}</pre>
+  return (
+    <Box>
+      <pre style={ERROR_DUMP}>{error instanceof Error ? error.message : String(error)}</pre>
+    </Box>
+  )
 }
 
 /** Top-level error boundary: replaces the whole app and offers a reload. */

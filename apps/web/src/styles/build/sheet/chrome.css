@@ -62,6 +62,11 @@
   }
 }
 
+/* LinkQr: the tile is a Box at the code's 84px, under the Row's 12rem floor. */
+.su-sheet-qr-tile {
+  min-width: 0;
+}
+
 /* LinkQr: the encoder's SVG fills the tile. */
 .su-sheet-qr > svg {
   height: 100%;

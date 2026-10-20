@@ -387,8 +387,8 @@
 }
 
 /* POSTER TEXT ON THE TONE — the `onTone` rule (ruleset §3.8) as two
-   variables per sheet, for the bands that carry text: the wizard banner, the
-   mode chooser's h1 and the guided ModeDoor.
+   variables per sheet, for the bands that carry text: the wizard banner and
+   the mode chooser's h1.
      --tone-band     the band a tone paints when it carries text (`textBand`):
                      the tone itself, or crawler pink's deeper crawler band.
      --on-tone-band  the foreground on it (`onTone`): ink or paper, whichever

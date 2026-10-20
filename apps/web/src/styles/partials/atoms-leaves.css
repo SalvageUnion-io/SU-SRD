@@ -3,7 +3,7 @@
  * Text. `../index.css` imports the parts in cascade order.
  */
 
-/* ── Conditions, ModeDoor, Panel, Slab ── */
+/* ── Conditions, Panel, Slab ── */
 /* Conditions.tsx — the remove glyph brightens on hover. */
 .su-condition-chip__remove {
   opacity: 0.8;
@@ -22,13 +22,6 @@
 .su-conditions__add:hover {
   border-color: var(--color-ink);
   color: var(--color-ink);
-}
-
-/* ModeDoor.tsx — flat on the page, like every card: no lift and no shadow,
-   only the canonical focus ring. */
-.su-mode-door:focus-visible {
-  outline: 3px solid transparent;
-  box-shadow: var(--focus-ring-shadow);
 }
 
 /* ── ActivationCost, KofiButton, SearchField, SlotGrid ── */

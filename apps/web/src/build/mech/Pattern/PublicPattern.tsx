@@ -27,7 +27,6 @@ import {
   getChassisAbilities,
   getEntitySlug,
 } from 'salvageunion-reference'
-import { capsLabel } from '../../../components/atoms/capsLabel'
 import {
   Button,
   ChapterBand,
@@ -41,6 +40,7 @@ import {
   Stat,
   StatColumn,
   Text,
+  TitledBox,
   toast,
   tokens,
   USER_MADE_HATCH,
@@ -150,22 +150,7 @@ const ART = {
   overflow: 'hidden',
 } satisfies CSSProperties
 
-/** The maker's own words: a dashed box, not the book's. */
-const NOTES = {
-  backgroundColor: tokens.color.paper,
-  borderColor: tokens.color.ink,
-  borderStyle: 'dashed',
-  borderWidth: tokens.borderWidth.chrome,
-  margin: 0,
-  padding: tokens.space[16],
-} satisfies CSSProperties
-
-const NOTES_LABEL = {
-  display: 'block',
-  marginBottom: tokens.space[6],
-} satisfies CSSProperties
-const NOTES_LABEL_CAPS = capsLabel({ size: 'badge' })
-
+/** The maker's own words, in their dashed box (ruleset §3.9). */
 const NOTES_TEXT = {
   fontFamily: tokens.font.body,
   fontStyle: 'italic',
@@ -335,12 +320,9 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
               </div>
             )}
             {pattern.notes && (
-              <figure style={NOTES}>
-                <figcaption className={NOTES_LABEL_CAPS} style={NOTES_LABEL}>
-                  Maker&rsquo;s notes
-                </figcaption>
+              <TitledBox title="Maker’s notes" userMade>
                 <p style={NOTES_TEXT}>{pattern.notes}</p>
-              </figure>
+              </TitledBox>
             )}
           </section>
 

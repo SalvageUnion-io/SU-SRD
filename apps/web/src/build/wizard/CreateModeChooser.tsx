@@ -2,17 +2,18 @@
  * CreateModeChooser — the "which door?" screen every /new opens on
  * (mockup Screen 04).
  *
- * Two manual-style doors under the page's ChapterBand: GUIDED (primary — the existing
- * step wizard) and BLANK (the escape hatch — an empty sheet, no steps, no
- * limits). For mechs a third door joins the Blank family: Instantiate from
- * Pattern, which links to the existing /mechs/patterns flow.
+ * Two doors under the page's ChapterBand, each the house `TitledBox` with its
+ * one act: GUIDED (primary — the existing step wizard), headed in the kind's
+ * tone, and BLANK (the escape hatch — an empty sheet, no steps, no limits),
+ * headed in ink. Solid, both: neither is user-made (ruleset §3.9). For mechs a
+ * third door joins the Blank family: Instantiate from Pattern, which links to
+ * the existing /mechs/patterns flow.
  *
- * The title is the ChapterBand every page wears; the `.su-sheet--{kind}` tone
- * context colours the Guided door.
+ * The title is the ChapterBand every page wears.
  */
 
 import type { CSSProperties } from 'react'
-import { ChapterBand, ModeDoor, tokens } from '../../components/index'
+import { Button, ChapterBand, TitledBox, tokens } from '../../components/index'
 import { AppLink } from '../../components/shared/AppLink'
 import type { BlankCreateKind } from '../../lib/wizard/blankCreate'
 import { WizardGameChip } from './WizardGameChip'
@@ -53,6 +54,12 @@ const GUIDED_COPY: Record<BlankCreateKind, { body: string; cite: string }> = {
 }
 
 const screenStyle = { minHeight: '100dvh' } satisfies CSSProperties
+
+/** A door's copy: body text, then its page citation in bold. */
+const doorText = { margin: 0 } satisfies CSSProperties
+const doorCite = { fontWeight: tokens.weight.bold, margin: 0 } satisfies CSSProperties
+/** A door's act, at its own width under the copy. */
+const doorAct = { alignSelf: 'flex-start' } satisfies CSSProperties
 
 /** Its padding grows at `sm` (`.su-wiz-chooser-body`). */
 const bodyStyle = { marginInline: 'auto', maxWidth: '56rem', width: '100%' } satisfies CSSProperties
@@ -99,25 +106,23 @@ export function CreateModeChooser({ kind, onGuided, onBlank, gameId }: CreateMod
       <div className="su-wiz-chooser-body" style={bodyStyle}>
         {/* The two doors (mockup `.choosegrid`). */}
         <div className="su-wiz-chooser-doors">
-          <ModeDoor
-            variant="guided"
-            tab="▶"
-            headline="Guided"
-            cite={guided.cite}
-            onSelect={onGuided}
-          >
-            {guided.body}
-          </ModeDoor>
+          <TitledBox title="Guided" tone={kind}>
+            <p style={doorText}>{guided.body}</p>
+            <p style={doorCite}>{guided.cite}</p>
+            <Button variant="primary" style={doorAct} onClick={onGuided}>
+              Start guided
+            </Button>
+          </TitledBox>
 
-          <ModeDoor
-            variant="blank"
-            tab="✎"
-            headline="Blank"
-            cite="For veterans, imports, and homebrew."
-            onSelect={onBlank}
-          >
-            An empty sheet. No steps, no limits. Fill it in on the live sheet.
-          </ModeDoor>
+          <TitledBox title="Blank">
+            <p style={doorText}>
+              An empty sheet. No steps, no limits. Fill it in on the live sheet.
+            </p>
+            <p style={doorCite}>For veterans, imports, and homebrew.</p>
+            <Button variant="ghost" style={doorAct} onClick={onBlank}>
+              Start blank
+            </Button>
+          </TitledBox>
         </div>
 
         {/* Mech only: the third Blank-family door — Instantiate from Pattern

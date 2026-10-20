@@ -350,14 +350,13 @@ describe('roll-table bands in the surface tone', () => {
 /**
  * Poster text on the sheet tones.
  *
- * The wizard banner, the mode chooser's h1 and the guided ModeDoor print on a
- * sheet's tone, and printed paper there: 2.4:1 on pilot, under even the 3:1
- * large-text floor, while the door's ink body measured 4.17:1 on crawler pink.
+ * The wizard banner and the mode chooser's h1 print on a sheet's tone, and
+ * printed paper there: 2.4:1 on pilot, under even the 3:1 large-text floor,
+ * while ink measured 4.17:1 on crawler pink.
  * They now read `--tone-band` / `--on-tone-band`, which each `.su-sheet--*` rule
  * in `styles/theme.css` sets. The rules are read off the stylesheet, so this
  * holds them to the `onTone` rule — the band `textBand` paints, the
- * foreground `onTone` picks — and to 4.5:1, since the door's body copy is
- * small text.
+ * foreground `onTone` picks — and to 4.5:1, as small text may print there.
  */
 describe('poster text on the sheet tones', () => {
   const css = readFileSync(join(import.meta.dir, '../../styles/theme.css'), 'utf8').replace(

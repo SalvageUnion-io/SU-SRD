@@ -10,7 +10,6 @@ import { Field, Select } from '../Field'
 import { Glyph } from '../glyphs'
 import { Input, Textarea } from '../inputs'
 import { INPUT_FOCUS } from '../interaction'
-import { ModeDoor } from '../ModeDoor'
 import { POSTER_STAMP } from '../posterStamp'
 import { Slab } from '../Slab'
 // biome-ignore lint/style/noRestrictedImports: the atom's own test; its hosts are Stat and VitalGauge (R12)
@@ -101,58 +100,6 @@ describe('Field — typeset read state', () => {
     )
     expect(screen.queryByRole('link')).toBeNull()
     expect(screen.getByRole('button', { name: 'Change chassis' }).textContent).toBe('Mule')
-  })
-})
-
-describe('ModeDoor', () => {
-  test('fires onSelect and renders the headline + body', () => {
-    const onSelect = mock(() => {})
-    render(
-      <ModeDoor variant="guided" tab="▶" headline="Guided" onSelect={onSelect}>
-        Step through the rules.
-      </ModeDoor>
-    )
-    expect(screen.getByText('Guided')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button'))
-    expect(onSelect).toHaveBeenCalled()
-  })
-
-  test('joins its variant class and a caller class with cn (no stray space)', () => {
-    const { rerender } = render(
-      <ModeDoor variant="guided" tab="▶" headline="Guided">
-        Body
-      </ModeDoor>
-    )
-    expect(screen.getByRole('button').className).toBe('su-mode-door su-mode-door--guided')
-    rerender(
-      <ModeDoor variant="guided" tab="▶" headline="Guided" className="extra">
-        Body
-      </ModeDoor>
-    )
-    expect(screen.getByRole('button').className).toBe('su-mode-door su-mode-door--guided extra')
-  })
-
-  test('guided prints the sheet’s onTone pair, not paper on the bare tone', () => {
-    // Paper on `--tone` measured 2.4:1 on pilot; theme.css sets the pair per
-    // sheet and contrast.test.ts holds it to onTone.
-    render(
-      <ModeDoor variant="guided" tab="▶" headline="Guided">
-        Step through the rules.
-      </ModeDoor>
-    )
-    const door = screen.getByRole('button')
-    expect(door.style.background).toBe('var(--tone-band)')
-    expect(door.style.color).toBe('var(--on-tone-band)')
-    expect(screen.getByText('Guided').style.color).toBe('')
-  })
-
-  test('blank variant is the dashed paper escape hatch', () => {
-    render(
-      <ModeDoor variant="blank" tab="✎" headline="Blank">
-        Empty sheet.
-      </ModeDoor>
-    )
-    expect(screen.getByRole('button').style.borderStyle).toBe('dashed')
   })
 })
 

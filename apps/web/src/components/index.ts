@@ -73,7 +73,6 @@ export { FOCUS_RING } from './atoms/interaction'
 export { KofiButton } from './atoms/KofiButton'
 // Message — the one single-line feedback message (bad = role="alert", else status)
 export { Message } from './atoms/Message'
-export { ModeDoor } from './atoms/ModeDoor'
 export { useModKeyHint } from './atoms/modKeyHint'
 export { NextLabel } from './atoms/NextLabel'
 export { linesFromBreakdown, summarizeBreakdown } from './atoms/provenanceLines'

@@ -26,6 +26,7 @@ import type { SlabCount } from '../../../components/index'
 import {
   BreadcrumbTrail,
   Button,
+  Callout,
   ChapterBand,
   ChapterBandTrail,
   Cluster,
@@ -111,16 +112,8 @@ const ACTION_BUTTON = {
   minHeight: tokens.size.full,
 } satisfies CSSProperties
 
-/** The rule, said once where the player is about to make something. */
-const RULE_NOTE = {
-  borderColor: tokens.color.ink,
-  borderStyle: 'dashed',
-  borderWidth: tokens.borderWidth.chrome,
-  color: tokens.color.ink,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.caption,
-  padding: tokens.space[12],
-} satisfies CSSProperties
+/** The rule's one paragraph in its Callout. */
+const RULE_NOTE = { margin: 0 } satisfies CSSProperties
 
 const NOT_LEGAL = {
   color: tokens.color.ink2,
@@ -397,11 +390,15 @@ export function SavePatternPage({ mechId, onSaved, onCancel }: SavePatternPagePr
             </Button>
           </Cluster>
 
-          <p style={RULE_NOTE}>
-            <strong>User-made, always marked.</strong> Anything players make wears a dashed frame, a
-            dashed User-made stamp and its maker&rsquo;s name in place of a page citation. Canon is
-            solid; homebrew is dashed. Nobody can make it look like the Workshop Manual.
-          </p>
+          {/* The rule, said once where the player is about to make something:
+              a note, so the unlabelled Callout (solid: the note is not user-made). */}
+          <Callout role="note">
+            <p style={RULE_NOTE}>
+              <strong>User-made, always marked.</strong> Anything players make wears a dashed frame,
+              a dashed User-made stamp and its maker&rsquo;s name in place of a page citation. Canon
+              is solid; homebrew is dashed. Nobody can make it look like the Workshop Manual.
+            </p>
+          </Callout>
         </SlabSection>
       </Grid>
     </main>

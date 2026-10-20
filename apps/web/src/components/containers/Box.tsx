@@ -35,6 +35,8 @@ export type BoxProps = {
   bodyClassName?: string
   /** A Play reference unit (ADR-051 §5): its frame dashed, read-only. */
   reference?: boolean
+  /** Player-made (ruleset §3.9): its frame dashed, as the Row's (a pattern's maker's notes). */
+  userMade?: boolean
   /** Fill the parent's height, the body scrolling in what is left under the head. */
   fill?: boolean
   /**
@@ -76,6 +78,7 @@ export function Box({
   className,
   bodyClassName,
   reference = false,
+  userMade = false,
   fill = false,
   shrink = false,
   select,
@@ -87,6 +90,7 @@ export function Box({
       art={art}
       bodyless={!hasBody}
       reference={reference}
+      userMade={userMade}
       shrink={fill || shrink}
       style={
         frameColor || select?.selected
