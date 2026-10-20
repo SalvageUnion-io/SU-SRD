@@ -11,6 +11,7 @@ import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
 import { pilotFixture } from '../../components/__tests__/fixtures'
+import { CHAPTER_BAND_COLOR } from '../../components/atoms/chapterBandColor'
 import type { ConnectionMode } from '../../lib/connection/connectionMode'
 import { phoneViewport } from './phoneViewport'
 
@@ -75,16 +76,27 @@ async function renderCockpit(
 }
 
 describe('the Cockpit frame', () => {
-  test('a solo pilot: the bar reads Solo · <pilot>, no LIVE stamp, the way back to Play', async () => {
+  test('a solo pilot: the bar reads <pilot> with a Solo chip, no LIVE stamp, the way back to Play', async () => {
     await renderCockpit({ gameId: null, gameName: null })
     const bar = within(screen.getByRole('banner'))
-    expect(bar.getByRole('heading', { level: 1 }).textContent).toBe('Solo · Wren')
+    expect(bar.getByRole('heading', { level: 1 }).textContent).toBe('Wren')
+    expect(bar.getByText('Solo')).toBeTruthy()
     // A solo screen shares nothing: no LIVE stamp (the solo wireframes).
     expect(bar.queryByText(/● Live/)).toBeNull()
     expect(bar.getByRole('link', { name: 'Back to Play' }).getAttribute('href')).toBe('/play/')
     // Nothing bound: the channel button is Connect.
     expect(bar.getByRole('button', { name: 'Connect a Discord channel' })).toBeTruthy()
     expect(bar.getByRole('button', { name: 'More' })).toBeTruthy()
+  })
+
+  test('on foot the bar and the foot wear the pilot’s orange, ink on it', async () => {
+    await renderCockpit({ gameId: null, gameName: null })
+    for (const band of [screen.getByRole('banner'), screen.getByRole('contentinfo')]) {
+      expect(band.style.background).toBe(CHAPTER_BAND_COLOR.pilot)
+      expect(band.style.color).toBe('var(--color-ink)')
+      expect(band.classList.contains('su-play-band')).toBe(true)
+    }
+    expect(screen.getByRole('banner').dataset.ground).toBe('paper')
   })
 
   test('in a Game, the bar reads the Game’s name', async () => {

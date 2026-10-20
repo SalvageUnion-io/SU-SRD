@@ -257,11 +257,13 @@
 
   /* === Motion (chrome.md K3) === the only durations and the one easing:
      `--dur-fast` for a state change (colour, opacity, a shadow), `--dur-base`
-     for a move (transform, a slide, a float), `--dur-loop` the period of a
-     loading loop. `bun run check styling` (chrome-tokens/raw-duration, raw-easing,
+     for a move (transform, a slide, a float), `--dur-phase` a screen's phase
+     changing (Play's bar and foot recolouring with the Situation), `--dur-loop`
+     the period of a loading loop. `bun run check styling` (chrome-tokens/raw-duration, raw-easing,
      motion-loop) rejects any other. */
   --dur-fast: 120ms;
   --dur-base: 150ms;
+  --dur-phase: 400ms;
   --dur-loop: 2s;
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
 }

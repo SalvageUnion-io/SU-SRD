@@ -42,6 +42,7 @@ import { PlayChannelButton } from './PlayChannel'
 import { PlayFoot } from './PlayFoot'
 import { PlayFrame } from './PlayFrame'
 import { PlayMediatorPhone } from './PlayMediatorPhone'
+import { PHASE_TONE } from './play.model'
 import { usePlayChannelBinding } from './usePlayChannel'
 
 /** The foot's reminder: what the players can see of the Opposition. */
@@ -70,6 +71,7 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
       backHref={gamePath(gameId)}
       backLabel="Game"
       stamp="Mediator"
+      tone={PHASE_TONE[running ? 'downtime' : 'scene']}
       live={mode === 'connected'}
       here={mediator.crew === null ? null : here}
       of={mediator.crew === null ? null : of}
@@ -116,7 +118,13 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
           toRef={toRef}
         />
       }
-      foot={<PlayFoot solo={false} note={OPPOSITION_NOTE} />}
+      foot={
+        <PlayFoot
+          solo={false}
+          note={OPPOSITION_NOTE}
+          tone={PHASE_TONE[running ? 'downtime' : 'scene']}
+        />
+      }
       phone={
         <PlayMediatorPhone
           mediator={mediator}

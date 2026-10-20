@@ -47,7 +47,7 @@ import { PlaySideColumn } from './PlaySideColumn'
 import { PlaySituationSwitch } from './PlaySituationSwitch'
 import { PlayUnitsColumn } from './PlayUnitsColumn'
 import type { PlayTarget } from './play.model'
-import { playTitle } from './play.model'
+import { PHASE_TONE, playStamp, playTitle } from './play.model'
 import { usePlayChannelBinding } from './usePlayChannel'
 import { usePlayPresence } from './usePlayPresence'
 import { usePlaySituation } from './usePlaySituation'
@@ -75,6 +75,8 @@ export function PlayCockpit({ target, situation }: PlayCockpitProps) {
     <PlayBar
       phone={phone}
       title={playTitle(target, play.pilot?.name ?? 'Pilot')}
+      stamp={playStamp(target)}
+      tone={PHASE_TONE[play.situation]}
       backHref={target.gameId === null ? '/play/' : gamePath(target.gameId)}
       backLabel={target.gameId === null ? 'Play' : 'Game'}
       live={mode === 'connected' && target.gameId !== null}
@@ -100,7 +102,7 @@ export function PlayCockpit({ target, situation }: PlayCockpitProps) {
       start={<PlayUnitsColumn target={target} play={play} />}
       centre={<PlayActionsColumn target={target} play={play} />}
       end={<PlaySideColumn target={target} play={play} />}
-      foot={<PlayFoot solo={target.gameId === null} />}
+      foot={<PlayFoot solo={target.gameId === null} tone={PHASE_TONE[play.situation]} />}
       phone={<PlayCockpitPhone target={target} play={play} bar={bar(true)} situation={situation} />}
     />
   )

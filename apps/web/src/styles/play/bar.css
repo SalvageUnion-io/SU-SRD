@@ -48,3 +48,15 @@
   line-height: 1;
   padding: var(--space-8) var(--space-12) var(--space-6);
 }
+
+/*
+ * The bar and the foot wear the phase's band (`PHASE_TONE`): on foot, Boarded
+ * or Downtime, the Mediator's Scene. Changing phase crossfades the band and
+ * its foreground (`--dur-phase`), so the screen visibly turns into the next
+ * one. The reduced-motion backstop (`theme.css`) makes it a cut.
+ */
+.su-play-band {
+  transition:
+    background-color var(--dur-phase) var(--ease),
+    color var(--dur-phase) var(--ease);
+}

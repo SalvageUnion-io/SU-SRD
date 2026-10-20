@@ -1,19 +1,22 @@
 /**
  * PlayBar — the Cockpit's top bar: back to the Game's page, `ChevronLeft` and
  * "Game" (solo, "Play", back to the Play hub; ADR-052 §6), the
- * screen's title (the Game's name, or "Solo · <pilot>"), the role stamp
- * (the Mediator's screen says MEDIATOR), the LIVE stamp
+ * screen's title (the Game's name, or the pilot's), the role stamp
+ * (the Mediator's screen says MEDIATOR, a solo one SOLO), the LIVE stamp
  * while play reaches the server, then the Situation switch (On foot /
  * Boarded / Downtime, the `situation` slot), and at the end the Discord
  * channel button and ⋯ (the `channel` and `menu` slots).
  *
- * The bar is the screen's chapter band (owner's call, 2026-10-20): the
- * Cantina's band (`CHAPTER_BAND_COLOR.play`, the deep crawler pink) as the
- * Play hub's head and the Union bar wear it, speckled, paper on it, and the
- * title notched into its foot on a cut-out of the page ground, in ink. The
- * band prints paper, so it is an ink ground (`data-ground`, chrome K1) and
- * the outlined buttons on it draw in paper. On a phone the title takes its
- * own line under the controls, so its cut-out still sits on the band's foot.
+ * The bar is the screen's chapter band (owner's call, 2026-10-20), in its
+ * phase's colour (`tone`, `PHASE_TONE`: on foot the pilot's orange, Boarded
+ * the mech's green, Downtime the Cantina's pink), speckled, with the title
+ * notched into its foot on a cut-out of the page ground, in ink. Its
+ * foreground is whichever of ink and paper prints on the band (ruleset
+ * §3.8); a band that prints paper is an ink ground (`data-ground`, chrome
+ * K1), so the outlined buttons on it draw in paper. The colour crossfades
+ * between phases (`.su-play-band`, `play/bar.css`). On a phone the title
+ * takes its own line under the controls, so its cut-out still sits on the
+ * band's foot.
  *
  * Presentational: what goes in the slots is the screen's. Everything on the
  * line is one Size, Compact (ruleset §4.7): the stamps (role, LIVE,
@@ -24,15 +27,12 @@
 
 import type { CSSProperties, ReactNode } from 'react'
 import { capsLabel } from '../components/atoms/capsLabel'
-import { CHAPTER_BAND_COLOR } from '../components/atoms/chapterBandColor'
+import type { ChapterTone } from '../components/atoms/chapterBandColor'
 import { Speckle } from '../components/atoms/Speckle'
 import { Badge, Button, tokens } from '../components/index'
 import { cn } from '../lib/cn'
 import type { PlayReadOnly } from './play.model'
-import { liveLabel } from './play.model'
-
-/** The Cantina's band: paper text on the deep crawler pink (ruleset §3.8). */
-const BAND = CHAPTER_BAND_COLOR.play
+import { liveLabel, phaseBand } from './play.model'
 
 /**
  * The band: its controls on one line, the title's cut-out flush with its
@@ -41,8 +41,6 @@ const BAND = CHAPTER_BAND_COLOR.play
  */
 const BAR = {
   alignItems: 'flex-end',
-  background: BAND,
-  color: 'var(--color-paper)',
   display: 'flex',
   gap: tokens.space[12],
   isolation: 'isolate',
@@ -139,6 +137,8 @@ export type PlayBarProps = {
    * not in the bar.
    */
   phone?: boolean
+  /** The phase's band (`PHASE_TONE`); the Cantina's pink by default. */
+  tone?: ChapterTone
 }
 
 export function PlayBar({
@@ -154,14 +154,20 @@ export function PlayBar({
   channel,
   menu,
   phone = false,
+  tone = 'play',
 }: PlayBarProps) {
+  const band = phaseBand(tone)
   const heading = (
     <h1 className={cn(NOTCH, TITLE_CAPS)} style={TITLE}>
       {title}
     </h1>
   )
   return (
-    <header data-ground="ink" className="su-play-bar" style={phone ? PHONE_BAR : BAR}>
+    <header
+      data-ground={band.ground}
+      className="su-play-bar su-play-band"
+      style={{ ...(phone ? PHONE_BAR : BAR), ...band.style }}
+    >
       <Speckle grain="ink" />
       <Button href={backHref} back surface="instrument" variant="ghost" size="compact" style={BACK}>
         {backLabel}

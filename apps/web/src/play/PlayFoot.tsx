@@ -8,20 +8,19 @@
  */
 
 import type { CSSProperties } from 'react'
-import { CHAPTER_BAND_COLOR } from '../components/atoms/chapterBandColor'
+import type { ChapterTone } from '../components/atoms/chapterBandColor'
 import { tokens } from '../components/index'
 import { useConnection } from '../lib/connection/connectionContext'
-import { connectionLine } from './play.model'
+import { connectionLine, phaseBand } from './play.model'
 import { SavedIndicator } from './SavedIndicator'
 
 /**
  * The foot matches the bar (ruleset §3.11: a page ends in the colour it leads
- * with): the Cantina's band, paper on it, as the Play hub's site foot.
+ * with): the phase's band and its foreground (`phaseBand`), crossfading with
+ * the bar (`.su-play-band`).
  */
 const FOOT = {
   alignItems: 'center',
-  background: CHAPTER_BAND_COLOR.play,
-  color: 'var(--color-paper)',
   display: 'flex',
   gap: tokens.space[16],
   padding: `${tokens.space[4]} ${tokens.space[12]}`,
@@ -31,7 +30,6 @@ const FOOT = {
 const SPACER = { flex: '1 1 0%' } satisfies CSSProperties
 
 const LINE = {
-  color: 'var(--color-paper)',
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.caption,
   whiteSpace: 'nowrap',
@@ -40,15 +38,18 @@ const LINE = {
 export function PlayFoot({
   solo,
   note,
+  tone = 'play',
 }: {
   /** A solo screen: nothing it does is shared. */
   solo: boolean
   /** A line at the foot's end. */
   note?: string
+  /** The phase's band, the bar's (`PHASE_TONE`); the Cantina's pink by default. */
+  tone?: ChapterTone
 }) {
   const { mode } = useConnection()
   return (
-    <footer style={FOOT}>
+    <footer className="su-play-band" style={{ ...FOOT, ...phaseBand(tone).style }}>
       <SavedIndicator />
       <span style={LINE}>{connectionLine(mode, solo)}</span>
       {note && (

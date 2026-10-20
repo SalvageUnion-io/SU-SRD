@@ -95,12 +95,14 @@ export const shadow = {
 
 /**
  * Motion (chrome.md K3): `fast` for a state change (colour, opacity, a
- * shadow), `base` for a move (transform, a slide, a float), `loop` the period
- * of a loading loop (`--dur-*`).
+ * shadow), `base` for a move (transform, a slide, a float), `phase` a screen's
+ * phase changing (Play's bar and foot recolouring with the Situation), `loop`
+ * the period of a loading loop (`--dur-*`).
  */
 export const duration = {
   fast: '120ms',
   base: '150ms',
+  phase: '400ms',
   loop: '2s',
 } as const
 
