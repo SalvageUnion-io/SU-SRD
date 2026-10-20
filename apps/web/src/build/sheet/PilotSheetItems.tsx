@@ -225,7 +225,8 @@ export function PilotEquipmentItem({
   // sidebar: its head, the item named, typed and tech-levelled on one line,
   // then the item's text under it. It is the item in BOTH states. A damaged
   // item's pill greys, as its card's header does; its head Peeks the whole
-  // card, and past two chip lines its chips end in +MORE, which opens it (C5).
+  // card, and what of its chips does not fit beside its name is its body's
+  // first row (C2b).
   const pill = (
     <Entity
       form="token"

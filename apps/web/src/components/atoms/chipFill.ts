@@ -1,19 +1,24 @@
 /**
- * THE BOTTOM-RIGHT FILL (ruleset §4.7, `chips-and-actions.md` C2b): a head's
- * chips start on its name's line, at the bottom right, and fill that line
- * leftward, from the strip's end; only what overfills it rises to a line
- * above, and each line above fills from the right too. One flow, the name in
- * it: a Row's or Card's heading, a Tile's band, a Page's chapter band.
+ * THE BOTTOM-RIGHT FILL (ruleset §4.7, `chips-and-actions.md` C2b; owner's
+ * rule, 2026-10-20): a head's chips sit only beside its name, on the name's
+ * line, the last of them (the cost, the last slot) in its bottom-right
+ * corner, filling that line leftward. They never make the head taller: what
+ * does not fit beside the name leaves the head. On a contentful rendering (a
+ * Row with a body, a Card, a Page, a contentful Token) it is drawn as its
+ * body's first row (`[data-chip-overflow]`, left-aligned, in class order); on
+ * a header-only one (a bodyless Row, a Tile with no lead) it ends the head in
+ * a +MORE chip (`[data-chip-more]`), the cost right before it. The Tech
+ * Level (rank), the cost and the slots after it (C8) never leave the head.
  *
- * Flex places a line's items in order and breaks greedily, so CSS alone cannot
- * keep the name on the bottom line and the cost at its right end. The order
- * does it: each chip's `order` is its place from the end (`--su-fill`, three
- * apart: `Chips`' lanes count it in CSS, and this writes it on every item
- * of the flow), the name's comes right after the chips that fit beside it
- * (`--su-beside`), and a break (the container's `::after`) right after the
- * name, so every chip past it rises. This measures how many fit, the name on
- * its one line; where not even the last one does, the name wraps to give it
- * its room (`--su-name-basis`), so the cost is always on the name's line.
+ * Flex places a line's items in order, so CSS alone cannot keep the name on
+ * the left and the cost at the right end of one line. The order does it: each
+ * chip's `order` is its place from the end (`--su-fill`, three apart: `Chips`'
+ * lanes count it in CSS, and this writes it on every item of the flow), the
+ * name's comes right after the chips beside it (`--su-beside`). This measures
+ * which fit, the name on its one line; what does not is out
+ * (`data-fill-out`, not drawn in the head), and its copy is laid in the
+ * body's overflow row. Where not even the kept chips fit beside the one-line
+ * name, the name wraps to give them their room (`--su-name-basis`).
  *
  * Plain DOM, no React: a static page's client entry (`islands.client.ts`)
  * runs it, and `useChipFill` on the pages it draws. Until it has run (and
@@ -30,6 +35,32 @@ const FILL_NAME = '[data-fill-name]'
 
 /** Nodes beside a chip that are no chip: an open menu's focus guards and portal owner. */
 const NOT_ITEMS = ['data-base-ui-focus-guard', 'data-base-ui-portal', 'aria-owns']
+
+/** A header-only head's +MORE (C5): drawn once a chip is out, its last chip. */
+export const MORE_ATTRIBUTE = 'data-chip-more'
+
+/**
+ * A contentful head's band: the element its body's overflow row
+ * (`[data-chip-overflow]`) follows, as its next sibling.
+ */
+export const OVERFLOW_OWNER_ATTRIBUTE = 'data-chip-overflow-owner'
+
+/** The overflow row of the head `container` fills: the next sibling of its band, if that is one. */
+function overflowRowOf(container: HTMLElement): HTMLElement | null {
+  const next = container.closest(`[${OVERFLOW_OWNER_ATTRIBUTE}]`)?.nextElementSibling
+  return next instanceof HTMLElement && next.hasAttribute('data-chip-overflow') ? next : null
+}
+
+/** A chip that left the head: not drawn there (its copy is in the overflow row, or +MORE stands for it). */
+export const OUT_ATTRIBUTE = 'data-fill-out'
+
+/**
+ * The classes that never leave the head (C2b): the rank (the Tech Level),
+ * the cost and the slots after it (C8: state, uses, the menu). What is in no
+ * class (a band's control, a Card's type stamp, a list's lanes drawn as one
+ * box) stays too.
+ */
+const KEPT_CLASSES = new Set(['rank', 'cost', 'state', 'uses', 'menu'])
 
 /**
  * The flow's items besides the name, in source order: the container's
@@ -86,31 +117,100 @@ function oneLineWidth(
   return measured
 }
 
+/** An item's chip class within `root`: its own, or its lane's; '' for none. */
+export function classOfItem(item: Element, root: Element): string {
+  const lane = item.closest('[data-chip-class]')
+  return lane && root.contains(lane) ? (lane.getAttribute('data-chip-class') ?? '') : ''
+}
+
+/** Whether an item never leaves its head (`KEPT_CLASSES`, or in no class). */
+export function isKept(item: Element, root: Element): boolean {
+  const cls = classOfItem(item, root)
+  return cls === '' || KEPT_CLASSES.has(cls)
+}
+
 /**
- * How many of `widths` (in source order) fit beside a name `name` wide in
- * `room`, counted from the end, each `gap` apart, with a pixel to spare.
+ * Which of `widths` (in source order) leave the head (C2b): none when every
+ * one fits beside a name `name` wide in `room`, each `gap` apart, with a
+ * pixel to spare. Otherwise the `kept` ones stay (with +MORE after them,
+ * `more` wide, on a header-only head), and of the rest those that fit
+ * beside them stay, counted from the end, the line filled in order: the
+ * first that does not fit and every one before it leave. `more` is whether
+ * +MORE is drawn: only when a chip left.
  */
-export function besideCount(
+export function overflowPlan(
   widths: readonly number[],
+  kept: readonly boolean[],
   name: number,
   room: number,
-  gap: number
-): number {
-  let used = name
-  let count = 0
+  gap: number,
+  more?: number
+): { out: boolean[]; more: boolean } {
+  const fits = (used: number) => used <= room - 1
+  const all = widths.reduce((sum, width) => sum + gap + width, name)
+  const out = widths.map(() => false)
+  if (fits(all)) return { out, more: false }
+  let used = widths.reduce((sum, width, i) => (kept[i] ? sum + gap + width : sum), name)
+  if (more !== undefined) used += gap + more
+  let full = false
   for (let i = widths.length - 1; i >= 0; i--) {
+    if (kept[i]) continue
     const width = widths[i] as number
-    // A pixel to spare: flex breaks the line at any overflow, and a name
-    // that does not fit would wrap above its own chips.
-    if (used + gap + width > room - 1) break
-    used += gap + width
-    count += 1
+    // In order: once one does not fit, every one before it leaves too.
+    if (!full && fits(used + gap + width)) used += gap + width
+    else {
+      full = true
+      out[i] = true
+    }
   }
-  return count
+  return { out, more: more !== undefined && out.some(Boolean) }
+}
+
+/** What each overflow row last drew: the items it copies, so an unchanged fit writes nothing. */
+const drawnRow = new WeakMap<HTMLElement, readonly HTMLElement[]>()
+
+/** The attributes a fit writes on an item, cleared from its copy. */
+const FIT_ATTRIBUTES = ['data-fill-item', 'data-fill-line', 'data-fill-corner', OUT_ATTRIBUTE]
+
+/**
+ * Lay what left a contentful head in its body's first row (C2b): a copy of
+ * each item that is out, in class order, each in a lane of its class (C2a),
+ * so the row reads as a strip of its own; hidden while nothing is out. The
+ * copies carry no ids, and nothing a fit wrote: what they link or Peek is
+ * the document's (a link, the Peek's attributes), so they work as the chip.
+ */
+export function writeOverflowRow(row: HTMLElement, out: readonly HTMLElement[]): void {
+  const drawn = drawnRow.get(row)
+  if (drawn && drawn.length === out.length && drawn.every((item, i) => item === out[i])) {
+    row.hidden = out.length === 0
+    return
+  }
+  drawnRow.set(row, [...out])
+  const lanes: HTMLElement[] = []
+  for (const item of out) {
+    const cls = item.closest('[data-chip-class]')?.getAttribute('data-chip-class') ?? ''
+    let lane = lanes[lanes.length - 1]
+    if (!lane || lane.getAttribute('data-chip-class') !== cls) {
+      lane = document.createElement('span')
+      lane.className = 'su-chip-lane'
+      lane.setAttribute('data-chip-class', cls)
+      lanes.push(lane)
+    }
+    const copy = item.cloneNode(true) as HTMLElement
+    for (const el of [copy, ...copy.querySelectorAll<HTMLElement>('*')]) {
+      el.removeAttribute('id')
+      for (const attr of FIT_ATTRIBUTES) el.removeAttribute(attr)
+      el.style?.removeProperty('--su-fill')
+      el.style?.removeProperty('--su-corner-max')
+    }
+    lane.append(copy)
+  }
+  row.replaceChildren(...lanes)
+  row.hidden = out.length === 0
 }
 
 /** What each head's last fit read (`fitChipFill`). */
-const fittedAt = new WeakMap<HTMLElement, { at: string; beside: number }>()
+const fittedAt = new WeakMap<HTMLElement, { at: string; out: boolean[]; more: boolean }>()
 
 /** An item of the flow, marked so CSS orders it by its place from the end. */
 const ITEM_ATTRIBUTE = 'data-fill-item'
@@ -121,8 +221,8 @@ const CORNER_ATTRIBUTE = 'data-fill-corner'
 
 /**
  * Fit one head now: each item's place from the flow's end (`--su-fill`, on
- * every item: a chip, a label, a band's control), and how many sit beside
- * its name, the rest rising.
+ * every item: a chip, a label, a band's control), and which stay beside its
+ * name, the rest out: into its body's overflow row, or behind +MORE.
  */
 function fitChipFill(container: HTMLElement): void {
   const name = container.querySelector<HTMLElement>(`:scope > ${FILL_NAME}`)
@@ -131,12 +231,15 @@ function fitChipFill(container: HTMLElement): void {
     stale.removeAttribute(ITEM_ATTRIBUTE)
     stale.removeAttribute(LINE_ATTRIBUTE)
     stale.removeAttribute(CORNER_ATTRIBUTE)
+    stale.removeAttribute(OUT_ATTRIBUTE)
   }
-  const items = fillItems(container, name)
-  items.forEach((item, index) => {
-    item.setAttribute(ITEM_ATTRIBUTE, '')
-    item.style.setProperty('--su-fill', String(items.length - index))
-  })
+  // Every chip drawn to be measured, +MORE too: the fit starts from them all.
+  const more = container.querySelector<HTMLElement>(`[${MORE_ATTRIBUTE}]`)
+  if (more) more.hidden = false
+  const row = overflowRowOf(container)
+  const all = fillItems(container, name)
+  const moreItem = more ? all.find((item) => item === more || item.contains(more)) : undefined
+  const items = all.filter((item) => item !== moreItem)
   const s = getComputedStyle(container)
   const room =
     container.clientWidth -
@@ -144,38 +247,72 @@ function fitChipFill(container: HTMLElement): void {
     (Number.parseFloat(s.paddingRight) || 0)
   const gap = Number.parseFloat(s.columnGap) || 0
   const widths = items.map((item) => outerWidth(item, room))
+  const moreWidth = moreItem ? outerWidth(moreItem, room) : undefined
   const nameWidth = oneLineWidth(name)
+  // A head laid by CSS alone (a Page's band on a phone, its stamps over its
+  // title) sends nothing out; nor does one with nowhere to send it.
+  // Nor does one not laid out (a closed tab): it fits once drawn.
+  const routes = room > 0 && s.flexDirection === 'row-reverse' && (!!row || moreWidth !== undefined)
   // What this fit reads: the same again (its own writes resized the name or
   // a line), and nothing changes.
-  const at = [room, gap, nameWidth, ...widths].map((n) => n.toFixed(2)).join(',')
-  const last = widths[widths.length - 1]
+  const at = [room, gap, nameWidth, moreWidth ?? -1, ...widths].map((n) => n.toFixed(2)).join(',')
   const fitted = fittedAt.get(container)
-  const beside = fitted?.at === at ? fitted.beside : besideCount(widths, nameWidth, room, gap)
-  const onLine = Math.max(beside, last === undefined ? 0 : 1)
-  items.slice(items.length - onLine).forEach((item) => {
-    item.setAttribute(LINE_ATTRIBUTE, '')
+  const plan =
+    fitted?.at === at
+      ? fitted
+      : routes
+        ? overflowPlan(
+            widths,
+            items.map((item) => isKept(item, container)),
+            nameWidth,
+            room,
+            gap,
+            moreWidth
+          )
+        : { out: items.map(() => false), more: false }
+  items.forEach((item, i) => {
+    if (plan.out[i]) item.setAttribute(OUT_ATTRIBUTE, '')
   })
-  // Not even the last chip fits beside the one-line name: the name wraps in
-  // the room it leaves, and where its longest word leaves too little, the
-  // chip wraps its value in what is left (E18: it wraps, never clipped).
-  const corner = items[items.length - 1]
-  const shortest = beside === 0 && last !== undefined ? oneLineWidth(name, 'min-content') : 0
-  const squeezed = beside === 0 && last !== undefined && room - gap - last - 1 < shortest
+  if (more) more.hidden = !plan.more
+  if (row) writeOverflowRow(row, routes ? items.filter((_, i) => plan.out[i]) : [])
+  const shown = [
+    ...items.filter((_, i) => !plan.out[i]),
+    ...(plan.more && moreItem ? [moreItem] : []),
+  ]
+  shown.forEach((item, index) => {
+    item.setAttribute(ITEM_ATTRIBUTE, '')
+    item.setAttribute(LINE_ATTRIBUTE, '')
+    item.style.setProperty('--su-fill', String(shown.length - index))
+  })
+  const shownWidths = shown.map((item) =>
+    item === moreItem ? (moreWidth as number) : (widths[items.indexOf(item)] as number)
+  )
+  const chipsWidth = shownWidths.reduce((sum, width) => sum + gap + width, 0)
+  // The chips beside the one-line name: where even they do not fit, the name
+  // wraps in the room they leave, and where its longest word leaves too
+  // little, the corner chip wraps its value in what is left (E18: it wraps,
+  // never clipped).
+  const wraps = shown.length > 0 && nameWidth + chipsWidth > room - 1
+  const corner = shown[shown.length - 1]
+  const last = shownWidths[shownWidths.length - 1] ?? 0
+  const shortest = wraps ? oneLineWidth(name, 'min-content') : 0
+  const squeezed = wraps && room - chipsWidth - 1 < shortest
   if (corner && squeezed) corner.setAttribute(CORNER_ATTRIBUTE, '')
   if (fitted?.at === at) return
-  fittedAt.set(container, { at, beside })
+  fittedAt.set(container, { at, out: plan.out, more: plan.more })
   if (corner) {
     if (squeezed)
-      corner.style.setProperty('--su-corner-max', `${Math.max(0, room - gap - shortest - 1)}px`)
+      corner.style.setProperty(
+        '--su-corner-max',
+        `${Math.max(0, room - (chipsWidth - last) - shortest - 1)}px`
+      )
     else corner.style.removeProperty('--su-corner-max')
   }
-  container.style.setProperty('--su-items', String(items.length))
-  container.style.setProperty('--su-beside', String(onLine))
+  container.style.setProperty('--su-items', String(shown.length))
+  container.style.setProperty('--su-beside', String(shown.length))
   container.style.setProperty(
     '--su-name-basis',
-    beside === 0 && last !== undefined
-      ? `${squeezed ? shortest : Math.max(0, room - gap - last - 1)}px`
-      : 'auto'
+    wraps ? `${squeezed ? shortest : Math.max(0, room - chipsWidth - 1)}px` : 'auto'
   )
 }
 

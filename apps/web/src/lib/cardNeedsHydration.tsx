@@ -12,10 +12,9 @@ import { EntityCardStatic } from '../components/EntityCardStatic'
  * action" rule, not a cosmetic wart. A roll table's Roll renders as its stamp
  * until the script runs (`RollControl`), marked `data-roll-pending`.
  *
- * A contentful Token's +MORE is a `<button>` that needs no React of the
- * card's: it is a Peek trigger (`data-peek-press`), fitted by the page's one
- * client entry (`chipFit.ts`) and opened by the page's Peek host, as every
- * `data-peek` trigger on a static page is.
+ * A Peek trigger that is a `<button>` (`data-peek-press`) needs no React of
+ * the card's: the page's Peek host opens it, as every `data-peek` trigger on
+ * a static page is.
  */
 const NEEDS_A_LISTENER =
   /<button\b(?![^>]*\bdata-peek-press=)|<input\b|<select\b|<textarea\b|role="button"|aria-expanded=|aria-haspopup=|data-roll-pending/

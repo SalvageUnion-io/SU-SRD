@@ -7,6 +7,7 @@ import { ChapterBandTrail } from './ChapterBandTrail'
 import { capsLabel } from './capsLabel'
 import type { ChapterTone } from './chapterBandColor'
 import { CHAPTER_BAND_COLOR } from './chapterBandColor'
+import { ChipOverflowRow } from './chipOverflow'
 import type { SpeckleGrain } from './Speckle'
 import { Speckle } from './Speckle'
 import { BAND_KEY_ATTRIBUTE, footerMatchCss, unionBarMatchCss } from './unionBarMatch'
@@ -329,9 +330,10 @@ export function ChapterBand({
   ) : (
     title
   )
-  return (
+  const root = (
     <div
       className="su-chapter-band"
+      data-chip-overflow-owner={fills ? '' : undefined}
       data-user-made={userMade || undefined}
       data-scale={scale === 'og' ? 'og' : undefined}
       data-layout={bleed ? 'bleed' : undefined}
@@ -413,5 +415,18 @@ export function ChapterBand({
         {action && <div className="su-chapter-band__action">{action}</div>}
       </div>
     </div>
+  )
+  if (!fills) return root
+  // What of its stamps does not fit beside the title: the page's first row,
+  // under the band (C2b). On a phone the band lays them over its title, by
+  // CSS alone, so nothing goes there.
+  return (
+    <>
+      {root}
+      <ChipOverflowRow
+        className="su-chapter-band__overflow"
+        style={measure ? { maxWidth: measure } : undefined}
+      />
+    </>
   )
 }

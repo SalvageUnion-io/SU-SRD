@@ -1,194 +1,118 @@
 /**
- * The arithmetic of a wrapping chip strip, and the one place it is measured
- * by its own script: a contentful Token's +MORE (`chips-and-actions.md` C5).
- * Plain DOM, no React: the client entry (`islands.client.ts`) runs it on a
- * static page, and `Token` on the ones it draws.
+ * A CONTENTFUL TOKEN'S OVERFLOW (`chips-and-actions.md` C2b, C5; owner's
+ * rule, 2026-10-20): its head is one line, its chips beside the name and
+ * never on a line of their own, so they never make the head taller. What
+ * does not fit there leaves the head for its body's first row (the body's
+ * `[data-chip-overflow]`), left-aligned, in class order; the Tech Level, the
+ * cost and the slots after it (C8) never leave. A contentful Token shows no
+ * +MORE: its body has the room.
+ *
+ * The name keeps at least `min(9rem, 40%)` of the pill (ending in "…" past
+ * that, E18's Token exception); the chips take the rest. The plan is the
+ * head's (`overflowPlan`, `chipFill.ts`), and so is the row's drawing
+ * (`writeOverflowRow`). Plain DOM, no React: the client entry
+ * (`islands.client.ts`) runs it on a static page, and `Token` on the ones it
+ * draws. Until it has run (and with no script) the chips wrap beside the
+ * name, every chip whole.
  */
 
-/** The chips' 2px side margins: the 4px gap between two on a line (`.su-chips`). */
-const CHIP_GAP = 4
+import { isKept, OUT_ATTRIBUTE, overflowPlan, writeOverflowRow } from '../../atoms/chipFill'
 
-/**
- * The most lines a contentful Token's chips take beside its name (C5): past
- * that the second line ends in +MORE, which opens its Peek.
- */
-export const MORE_LINES = 2
+/** A contentful Token (N3): its head's chips overflow into its body. */
+const CONTENTFUL = '.su-entity-token[data-contentful]'
 
-/**
- * How many lines `widths` take packed into `room` in the order given, each
- * chip whole, or `Infinity` when one chip is wider than the room. A strip
- * that fills bottom-heavy (from its bottom-right corner) packs from its end:
- * pass its widths reversed. Balancing evens the lines out; it never adds one.
- */
-export function chipLines(widths: readonly number[], room: number, gap = CHIP_GAP): number {
-  let lines = 0
-  let used = 0
-  for (const width of widths) {
-    if (width > room + 0.5) return Number.POSITIVE_INFINITY
-    if (lines === 0 || used + gap + width > room + 0.5) {
-      lines += 1
-      used = width
-    } else used += gap + width
-  }
-  return lines
-}
+/** Set once a fit has run: the strip is then one line (CSS). */
+const FITTED_ATTRIBUTE = 'data-chip-fitted'
 
-/**
- * How many of `widths` a contentful Token's strip shows from the front (C5).
- * Its chips fill bottom-heavy (owner, 2026-10-19): the last chip takes the
- * bottom-right corner and the lines pack from there, so they are counted from
- * the strip's end. Every chip shows when they take at most `lines` lines of
- * `room`. Past that +MORE (`more` wide) takes the corner after the last
- * `keep` chips (the cost and the slots after it, C2, C8), which always show:
- * the rest show from the front in class order, as many as take `lines` lines
- * with them, and the others are dropped whole from the end of that run,
- * never clipped. Returns how many of the first `widths.length - keep` show.
- */
-export function moreFit(
-  widths: readonly number[],
-  more: number,
-  room: number,
-  {
-    lines = MORE_LINES,
-    gap = CHIP_GAP,
-    keep = 0,
-  }: { lines?: number; gap?: number; keep?: number } = {}
+/** The share of the pill the name always keeps, and its cap in rem. */
+const NAME_SHARE = 0.4
+const NAME_CAP_REM = 9
+
+/** Nodes beside a chip that are no chip: an open menu's focus guards and portal owner. */
+const NOT_CHIPS = ['data-base-ui-focus-guard', 'data-base-ui-portal', 'aria-owns']
+
+/** The room the strip may take: the pill's, less the name's floor and what else stands on the line. */
+export function stripRoom(
+  pill: number,
+  others: readonly number[],
+  gap: number,
+  rem: number
 ): number {
-  const front = widths.length - keep
-  const fromEnd = (xs: readonly number[]) => chipLines([...xs].reverse(), room, gap)
-  if (fromEnd(widths) <= lines) return front
-  const tail = widths.slice(front)
-  for (let shown = front - 1; shown > 0; shown--) {
-    if (fromEnd([...widths.slice(0, shown), ...tail, more]) <= lines) return shown
-  }
-  return 0
+  const floor = Math.min(NAME_CAP_REM * rem, NAME_SHARE * pill)
+  return others.reduce((room, width) => room - width - gap, pill - floor - gap)
 }
 
-/** A contentful Token (N3), the one form whose chips may end in +MORE. */
-const MORE_TOKEN = '.su-entity-token[data-contentful]'
-/** Its +MORE: a Peek trigger beside its head, never inside its link. */
-const MORE_CHIP = '.su-entity-token__more'
-/** The room +MORE takes at the end of the strip's second line, in its last lane. */
-const MORE_SLOT = '.su-chip-more-slot'
-/** A chip past the two lines: not drawn (its Peek shows it). */
-const OVER_ATTRIBUTE = 'data-chip-over'
-
-/** A Token's strip, its +MORE and its slot, or nothing to fit. */
+/** A Token's strip, its pill and its body's overflow row, or nothing to fit. */
 function partsOf(token: HTMLElement) {
   const strip = token.querySelector<HTMLElement>('.su-entity-token__chips')
-  const more = token.querySelector<HTMLElement>(`:scope > ${MORE_CHIP}`)
-  const slot = strip?.querySelector<HTMLElement>(MORE_SLOT)
-  return strip && more && slot ? { strip, more, slot } : undefined
+  const pill = strip?.closest<HTMLElement>('.su-entity-token__pill')
+  const row = token.querySelector<HTMLElement>(
+    ':scope > .su-entity-token__body > [data-chip-overflow]'
+  )
+  return strip && pill && row ? { strip, pill, row } : undefined
 }
 
-/**
- * The lanes whose chips +MORE never drops: the cost and the slots after it
- * (C2, C8), so the bottom line ends in the cost, then +MORE.
- */
-const KEPT_LANES = new Set(['cost', 'state', 'uses', 'menu'])
-
-/**
- * The strip's chips, in order: each lane's children (the lanes are
- * `display: contents`), and how many at the end are kept (`KEPT_LANES`).
- */
-function chipsOf(strip: HTMLElement): { chips: HTMLElement[]; keep: number } {
+/** The strip's chips, in order: each lane's children (the lanes are `display: contents`). */
+function chipsOf(strip: HTMLElement): HTMLElement[] {
   const chips: HTMLElement[] = []
-  let keep = 0
   for (const lane of strip.children) {
-    const kept = KEPT_LANES.has(lane.getAttribute('data-chip-class') ?? '')
     for (const chip of lane.children) {
-      if (!(chip instanceof HTMLElement) || chip.matches(MORE_SLOT)) continue
+      if (!(chip instanceof HTMLElement)) continue
+      if (NOT_CHIPS.some((attr) => chip.hasAttribute(attr))) continue
       chips.push(chip)
-      // A kept chip counts only after the last droppable one.
-      keep = kept ? keep + 1 : 0
     }
   }
-  return { chips, keep }
+  return chips
 }
 
-/** How many lines the drawn chips take: their distinct tops. */
-function linesOf(chips: readonly HTMLElement[]): number {
-  const tops: number[] = []
-  for (const chip of chips) {
-    const r = chip.getBoundingClientRect()
-    if (r.width <= 0) continue
-    if (!tops.some((top) => Math.abs(top - r.top) < r.height / 2)) tops.push(r.top)
-  }
-  return tops.length
-}
+const width = (el: Element) => el.getBoundingClientRect().width
 
 /**
- * Fit one contentful Token's chips (C5): every chip drawn, filling
- * bottom-heavy beside the name, while they take at most `MORE_LINES` lines;
- * past that, the chips that fit two lines with +MORE in the corner after the
- * cost, the rest marked over (`data-chip-over`, not drawn) and +MORE laid on
- * its slot, the bottom line's right end.
- *
- * It starts from every chip drawn and settles in one pass, so the same width
+ * Fit one contentful Token: every chip drawn on the strip's one line and
+ * measured, then what does not fit beside the name's floor marked out (not
+ * drawn in the head) and copied into its body's first row. The same width
  * gives the same result: nothing flickers, nothing feeds back.
  */
-export function fitMore(token: HTMLElement): void {
-  const fit = reset(token)
-  if (fit && linesOf(fit.chips) > MORE_LINES) fitOver(fit)
-}
-
-/**
- * Fit many Tokens at once: every one reset first, then every one's lines
- * read in one layout, and only those past `MORE_LINES` fitted further. A
- * page of contentful Tokens (a pattern's loadout) fitted one by one forces a
- * layout per Token, which blocks the main thread as the page loads.
- */
-function fitMoreAll(tokens: Iterable<HTMLElement>): void {
-  const fits = [...tokens].flatMap((token) => reset(token) ?? [])
-  for (const fit of fits.filter(({ chips }) => linesOf(chips) > MORE_LINES)) fitOver(fit)
-}
-
-type Fit = NonNullable<ReturnType<typeof partsOf>> &
-  ReturnType<typeof chipsOf> & {
-    token: HTMLElement
-  }
-
-/** Every chip drawn and +MORE hidden: where a fit starts. Writes only. */
-function reset(token: HTMLElement): Fit | undefined {
+export function fitTokenOverflow(token: HTMLElement): void {
   const parts = partsOf(token)
-  if (!parts) return undefined
-  const { chips, keep } = chipsOf(parts.strip)
-  for (const chip of chips) chip.removeAttribute(OVER_ATTRIBUTE)
-  parts.more.hidden = true
-  parts.slot.hidden = true
-  return { ...parts, chips, keep, token }
-}
-
-/** A reset Token's chips past `MORE_LINES`: the ones that fit with +MORE, and +MORE on its slot. */
-function fitOver({ token, strip, more, slot, chips, keep }: Fit): void {
-  more.hidden = false
-  // The button's own box: the slot keeps its room, and +MORE lies on it.
-  const size = (more.firstElementChild ?? more).getBoundingClientRect()
-  const gap = Number.parseFloat(getComputedStyle(strip).columnGap) || CHIP_GAP
-  const widths = chips.map((chip) => chip.getBoundingClientRect().width)
-  const front = chips.length - keep
-  let shown = moreFit(widths, size.width, strip.clientWidth, { gap, keep })
-  // The first `shown` chips, and the kept ones (the cost and its slots).
-  const drawn = (index: number) => index < shown || index >= front
-  const draw = () => {
-    chips.forEach((chip, index) => {
-      if (drawn(index)) chip.removeAttribute(OVER_ATTRIBUTE)
-      else chip.setAttribute(OVER_ATTRIBUTE, '')
-    })
+  if (!parts) return
+  const { strip, pill, row } = parts
+  const chips = chipsOf(strip)
+  for (const chip of chips) chip.removeAttribute(OUT_ATTRIBUTE)
+  const ps = getComputedStyle(pill)
+  const content =
+    pill.clientWidth -
+    (Number.parseFloat(ps.paddingLeft) || 0) -
+    (Number.parseFloat(ps.paddingRight) || 0)
+  // Not laid out (a closed tab, a hidden dialog): nothing to measure yet; it
+  // fits when it is drawn (its head's width changes).
+  if (content <= 0) {
+    token.removeAttribute(FITTED_ATTRIBUTE)
+    writeOverflowRow(row, [])
+    return
   }
-  slot.style.width = `${size.width}px`
-  slot.style.height = `${size.height}px`
-  slot.hidden = false
-  draw()
-  // The strip may settle a little narrower than it measured: drop another.
-  while (shown > 0 && linesOf([...chips.filter((_, index) => drawn(index)), slot]) > MORE_LINES) {
-    shown -= 1
-    draw()
-  }
-  const at = slot.getBoundingClientRect()
-  const from = token.getBoundingClientRect()
-  more.style.setProperty('--su-more-x', `${at.left - from.left}px`)
-  more.style.setProperty('--su-more-y', `${at.top - from.top}px`)
+  token.setAttribute(FITTED_ATTRIBUTE, '')
+  const pillGap = Number.parseFloat(ps.columnGap) || 0
+  // What else stands on the line: the note stamp, the tier (not the name's cut-out).
+  const others = [...pill.children]
+    .filter((el) => el !== strip && !el.classList.contains('su-entity-token__notch'))
+    .map(width)
+  const rem = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
+  const room = stripRoom(content, others, pillGap, rem)
+  const gap = Number.parseFloat(getComputedStyle(strip).columnGap) || 0
+  const widths = chips.map(width)
+  // The strip's width is its chips' and the gaps between them: the plan
+  // counts a gap before each, so the name it is given is minus one gap.
+  const plan = overflowPlan(
+    widths,
+    chips.map((chip) => isKept(chip, strip)),
+    -gap,
+    room,
+    gap
+  )
+  const out = chips.filter((_, i) => plan.out[i])
+  for (const chip of out) chip.setAttribute(OUT_ATTRIBUTE, '')
+  writeOverflowRow(row, out)
 }
 
 const watched = new Set<HTMLElement>()
@@ -219,7 +143,7 @@ function refitSoon(): void {
   refitDue = true
   const run = () => {
     refitDue = false
-    fitMoreAll(watched)
+    for (const token of watched) if (token.isConnected) fitTokenOverflow(token)
   }
   if (typeof requestAnimationFrame === 'undefined') queueMicrotask(run)
   else requestAnimationFrame(() => setTimeout(run, 0))
@@ -228,13 +152,13 @@ function refitSoon(): void {
 /**
  * Fit a Token now and whenever its head changes width (a resize, its
  * column); returns the stop. Only a width change refits: the head's height
- * is what the fit itself changes. `later` leaves the first fit to the caller
- * (a static page fits all its Tokens together, `refitSoon`), and reads no
- * box until the page has laid out.
+ * is the fit's own doing. `later` leaves the first fit to the caller (a
+ * static page fits all its Tokens together, `refitSoon`), and reads no box
+ * until the page has laid out.
  */
-export function watchMore(token: HTMLElement, { later = false } = {}): () => void {
+export function watchTokenOverflow(token: HTMLElement, { later = false } = {}): () => void {
   if (!partsOf(token)) return () => undefined
-  if (!later) fitMore(token)
+  if (!later) fitTokenOverflow(token)
   watched.add(token)
   watchFonts()
   const head = token.firstElementChild
@@ -242,20 +166,20 @@ export function watchMore(token: HTMLElement, { later = false } = {}): () => voi
     return () => watched.delete(token)
   }
   // Its first observation, after the page's own layout, is the width a later fit starts from.
-  let width = later ? undefined : head.getBoundingClientRect().width
+  let at = later ? undefined : width(head)
   const observer = new ResizeObserver(() => {
     if (!token.isConnected) {
       observer.disconnect()
       watched.delete(token)
       return
     }
-    const now = head.getBoundingClientRect().width
-    if (width === undefined || Math.abs(now - width) < 0.5) {
-      width ??= now
+    const now = width(head)
+    if (at === undefined || Math.abs(now - at) < 0.5) {
+      at ??= now
       return
     }
-    width = now
-    fitMore(token)
+    at = now
+    fitTokenOverflow(token)
   })
   observer.observe(head)
   return () => {
@@ -265,10 +189,9 @@ export function watchMore(token: HTMLElement, { later = false } = {}): () => voi
 }
 
 /** A static page's contentful Tokens (server-rendered, no React): fitted together once laid out, and each on resize. */
-export function watchStaticMore(root: ParentNode = document): void {
-  for (const token of root.querySelectorAll<HTMLElement>(MORE_TOKEN)) {
-    watchMore(token, { later: true })
+export function watchStaticTokenOverflow(root: ParentNode = document): void {
+  for (const token of root.querySelectorAll<HTMLElement>(CONTENTFUL)) {
+    watchTokenOverflow(token, { later: true })
   }
-  // Fitted together once the page has laid out, not one by one as it loads.
   refitSoon()
 }

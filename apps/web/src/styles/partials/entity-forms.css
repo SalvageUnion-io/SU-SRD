@@ -278,22 +278,22 @@
 /* THE BOTTOM-RIGHT FILL (ruleset §4.7, `chips-and-actions.md` C2b; owner's
    rule, 2026-10-20): every head whose name and chips share a line (a Row's or
    Card's heading, a Tile's band, a Page's chapter band: `[data-chip-fill]`).
-   The chips start on the name's line at its right end, the last chip (the
-   cost) in the corner, and fill that line leftward; only what overfills it
-   rises to a line above, and each line above fills from the right. One flow,
-   the name in it: `row-reverse` + `wrap-reverse` place from the bottom-right
-   corner up, each chip's `order` is its place from the end (`--su-fill`, three
-   apart), so the lines still read top to bottom in the class order while the
-   source keeps it. The name comes right after the chips that fit beside it
+   Chips sit only beside the name, on its line, the last chip (the cost) in
+   the corner, filling that line leftward, and never make the head taller:
+   what does not fit leaves the head (`data-fill-out`, below) for the body's
+   first row (`.su-chip-overflow`) or, on a header-only head, behind +MORE.
+   One flow, the name in it: `row-reverse` + `wrap-reverse` place from the
+   bottom-right corner, each chip's `order` is its place from the end
+   (`--su-fill`, three apart), so the line reads in the class order while the
+   source keeps it. The name comes right after the chips beside it
    (`--su-beside`, measured by `chipFill.ts`), and the `::after` break right
-   after the name lifts every chip past them; the name's auto margin holds
-   the line's free room. Where not even the cost fits beside the one-line
-   name, the name wraps in the room it leaves (`--su-name-basis`). Until the
-   script has measured (and with none) the head is laid as it most often
-   ends (`--su-beside-unfitted`), so the common head does not move when the
-   fit lands (no layout shift). The
-   lines carry no row gap (the break's empty line would double it): each chip
-   keeps half the gap above and below it. */
+   after the name; the name's auto margin holds the line's free room. Where
+   not even the kept chips fit beside the one-line name, the name wraps in the
+   room they leave (`--su-name-basis`). Until the script has measured (and
+   with none) the head is laid as it most often ends
+   (`--su-beside-unfitted`), so the common head does not move when the fit
+   lands (no layout shift). The lines carry no row gap (the break's empty
+   line would double it): each chip keeps half the gap above and below it. */
 [data-chip-fill] {
   /* Before the fill has measured: on a phone the cost alone beside the name,
      as a narrow head mostly ends; wider, every chip, as a wide one mostly
@@ -873,7 +873,9 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   padding: var(--space-4) var(--space-6) var(--space-6) var(--space-8);
 }
 
-.su-entity-token__body:empty {
+/* With nothing to show (a hidden overflow row counts for nothing). */
+.su-entity-token__body:empty,
+.su-entity-token__body:has(> .su-chip-overflow[hidden]:only-child) {
   display: none;
 }
 
@@ -996,11 +998,12 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
 }
 
 /* A contentful Token's head (N3) holds a compact head's budget (C3: economy,
-   facets, traits), which a narrow pill cannot hold on one line. Its chips
-   wrap beside the name instead, flush right, the cost in the corner, every
-   chip whole; the name keeps at least min(9rem, 40%) of the pill, ending in
-   "…" below that. The strip never shrinks under its widest chip (a crew
-   lead's HP stepper, a chip that cannot wrap): the name gives way first. */
+   facets, traits) on its one line (owner's rule, 2026-10-20): its chips
+   never make the head taller. The name keeps at least min(9rem, 40%) of the
+   pill, ending in "…" below that; what does not fit beside it leaves the
+   head (`data-fill-out`) for the body's first row (`chipFit.ts`, C2b). Until
+   the fit has run (and with no script) the chips wrap beside the name, flush
+   right, the cost in the corner, every chip whole. */
 .su-entity-token[data-contentful] .su-entity-token__chips {
   align-self: flex-end;
   flex: 0 1 auto;
@@ -1011,14 +1014,20 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   min-width: min-content;
 }
 
-/* Its chips fill bottom-heavy (owner's call, 2026-10-19), as a Row's do (the
-   bottom-right fill, above): the last chip takes the corner, the line under
-   the name fills first, and only what does not fit spills up a line. Each
-   chip keeps its place from the end (`--su-fill`), so the lines still read
-   in class order. The name stays a cut-out at the pill's foot, never
-   stretched to the chips' height. On paper the cost's edge draws no box
-   (`display: contents`), so its box is the flex item and takes the edge's
-   place: without it the cost, at order 0, jumped past +MORE to the corner. */
+.su-entity-token[data-contentful][data-chip-fitted] .su-entity-token__chips {
+  align-self: center;
+  flex: none;
+  flex-wrap: nowrap;
+  max-width: none;
+  min-width: 0;
+}
+
+/* Its chips fill from the corner, as a Row's do (the bottom-right fill,
+   above): the last chip takes it. Each chip keeps its place from the end
+   (`--su-fill`), so the line still reads in class order. The name stays a
+   cut-out at the pill's foot, never stretched to the chips' height. On paper
+   the cost's edge draws no box (`display: contents`), so its box is the flex
+   item and takes the edge's place. */
 .su-entity-token[data-contentful] .su-entity-token__chips > .su-chip-lane > *,
 .su-entity-token[data-contentful]
   .su-entity-token__chips
@@ -1029,55 +1038,43 @@ ul:has(> li > .su-entity-tile:not(.su-entity-tile--bare))
   order: var(--su-fill);
 }
 
-/* Past two lines its second ends in +MORE (C5, `chipFit.ts`): the chips that
-   fit two lines with it are drawn, the rest are over (`data-chip-over`, its
-   Peek shows them), and +MORE, a button beside the head's link and never in
-   it, lies on its slot, the room the strip's last lane keeps for it. Both
-   stay hidden until the script fits them: on a page with none every chip
-   wraps. */
-.su-entity-token[data-contentful] .su-entity-token__chips .su-chip-lane > [data-chip-over] {
+/* A chip that left its head (C2b): its copy is the body's first row, or, on
+   a header-only head, +MORE stands for it. */
+[data-chip-fill] [data-fill-out],
+.su-entity-token[data-contentful] .su-entity-token__chips [data-fill-out] {
   display: none;
 }
 
-.su-chip-more-slot {
-  display: inline-block;
+/* THE OVERFLOW ROW (`ChipOverflowRow`, C2b): the body's first row, right
+   under its head, the chips that did not fit beside the name, left-aligned,
+   in class order, at the head's Size; hidden while every chip fits. */
+.su-chip-overflow {
+  justify-content: flex-start;
+  padding: var(--space-6) var(--space-12) 0;
+}
+
+.su-chip-overflow[hidden] {
+  display: none;
+}
+
+/* In a contentful Token it is the body's own first row, in its padding. */
+.su-entity-token__body > .su-chip-overflow {
+  padding: 0;
+}
+
+.su-entity-tile__overflow {
+  padding: var(--space-6) var(--space-8) 0;
+}
+
+/* +MORE (`MoreChip`, C5): a header-only head's last chip, once a chip did
+   not fit beside its name; the cost right before it. */
+.su-chip-more {
+  display: inline-flex;
   flex: none;
 }
 
-/* Its own width wherever it lies: at the strip's right edge an absolute box
-   would otherwise shrink to the room left of the Token's edge. */
-.su-entity-token[data-contentful] > .su-entity-token__more {
-  display: flex;
-  left: var(--su-more-x, 0);
-  position: absolute;
-  top: var(--su-more-y, 0);
-  white-space: nowrap;
-  width: max-content;
-  z-index: 1;
-}
-
-.su-entity-token[data-contentful] > .su-entity-token__more[hidden],
-.su-entity-token[data-contentful] .su-chip-more-slot[hidden] {
+.su-chip-more[hidden] {
   display: none;
-}
-
-/* An action chip (C8), the outlined Mini button, at its strip's chip height
-   (C1a), as a strip's Mini button is drawn (below): a 24px target (WCAG
-   2.5.8) whose transparent border insets the drawn plate to the chip's
-   18px, its rule an outline on that plate. */
-.su-chip-more {
-  --su-mini-inset: calc((var(--space-24) - var(--size-mini)) / 2);
-
-  background-clip: padding-box;
-  border-color: transparent;
-  border-width: var(--su-mini-inset);
-  box-sizing: border-box;
-  height: var(--space-24);
-  line-height: 1;
-  min-height: 0;
-  outline: var(--bw-hairline) solid currentcolor;
-  outline-offset: calc(-1 * (var(--su-mini-inset) + var(--bw-hairline)));
-  padding: 0 var(--space-4);
 }
 
 /* A Token as a listbox option (the SRD header search): the highlighted option

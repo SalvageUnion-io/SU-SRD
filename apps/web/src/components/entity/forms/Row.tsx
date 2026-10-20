@@ -226,6 +226,9 @@ export function Row({
         // beside the name (owner's call, 2026-10-13).
         notch
         chipsBeside
+        // What does not fit beside the name: the body's first row, or, with
+        // no body, +MORE (C2b, C5).
+        overflow={hasBody ? 'body' : 'more'}
       />
       {hasBody && (
         <RowBody style={down ? { opacity: 0.6 } : undefined}>

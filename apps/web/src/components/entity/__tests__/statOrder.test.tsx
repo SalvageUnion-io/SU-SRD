@@ -163,8 +163,11 @@ describe('one stat order on every surface', () => {
     const mule = SalvageUnionReference.getByNameIn('chassis', 'Mule') as RefMetaEntity
     const { container } = render(<Entity form="row" entity={mule} />)
     const group = container.querySelector('[data-chip-group]')
-    // Its filled lanes: a line in a list keeps its empty ones too (C6).
-    const lanes = Array.from(group?.children ?? []).filter((lane) => lane.childElementCount > 0)
+    // Its filled lanes: a line in a list keeps its empty ones too (C6), and a
+    // bodyless Row's +MORE is hidden until a chip does not fit (C5).
+    const lanes = Array.from(group?.children ?? []).filter((lane) =>
+      lane.querySelector(':scope > :not([hidden])')
+    )
     const sequence = lanes.map(
       (child) => child.querySelector('.su-stat-plate--label')?.textContent ?? '?'
     )
@@ -188,7 +191,9 @@ describe('one stat order on every surface', () => {
           const cost = group?.querySelector('.su-cost')
           if (group && cost) {
             checked += 1
-            const lanes = [...group.children].filter((lane) => lane.childElementCount > 0)
+            const lanes = [...group.children].filter((lane) =>
+              lane.querySelector(':scope > :not([hidden])')
+            )
             const last = lanes.at(-1)
             expect({ form, last: last?.contains(cost) }).toEqual({ form, last: true })
           }

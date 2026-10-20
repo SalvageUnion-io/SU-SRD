@@ -4,8 +4,8 @@ import type { ChipContext, EntityInstance } from 'salvageunion-reference'
 import { tokenChips } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
 import { Badge } from '../../atoms/Badge'
-import { Button } from '../../atoms/Button'
 import { capsLabel } from '../../atoms/capsLabel'
+import { ChipOverflowRow } from '../../atoms/chipOverflow'
 import { FOCUS_RING } from '../../atoms/interaction'
 import { Stat } from '../../atoms/Stat'
 import { Content } from '../../referenceEntity/Content'
@@ -19,7 +19,7 @@ import { useLinkTarget } from '../modes/linkTarget'
 import { SELECT_DIM, SELECTED_RING } from '../modes/selectedRing'
 import { toggleAttrs } from '../modes/toggle'
 import { Chips } from '../parts/Chips'
-import { watchMore } from '../parts/chipFit'
+import { watchTokenOverflow } from '../parts/chipFit'
 import { chipCount } from '../parts/chipSet'
 import { KindLabel } from '../parts/KindLabel'
 import { paintFor } from '../parts/paint'
@@ -88,30 +88,6 @@ const READ: EntityMode = { kind: 'read' }
 function TokenText({ model, chassisName }: { model: EntityRowModel; chassisName?: string }) {
   if (model.prose?.length) return <Content body={model.prose} chassisName={chassisName} />
   return model.lead ? <p className="su-entity-token__lead">{model.lead}</p> : null
-}
-
-/**
- * A contentful Token's +MORE (C5): drawn once its chips would take more than
- * two lines (`chipFit.ts`), at the end of the second; until then, and on a
- * page with no script, it is hidden and every chip wraps. It is a Peek
- * trigger of the Token's own address, a button beside the head's link, never
- * inside it: hover, focus, a long press or a press opens the Token's Peek.
- */
-function MoreChip({ title, peek }: { title: string; peek: PeekAttrs }) {
-  return (
-    <span className="su-entity-token__more" hidden>
-      <Button
-        size="mini"
-        className="su-chip-more"
-        aria-label={`More, opens ${title}`}
-        {...peek}
-        // A press opens it too (`PEEK_PRESS_ATTRIBUTE`): it has nowhere else to go.
-        data-peek-press=""
-      >
-        +MORE
-      </Button>
-    </span>
-  )
 }
 
 type ToggleMode = Extract<EntityMode, { kind: 'select' }>
@@ -199,10 +175,10 @@ export function Token({
   dim?: boolean
 }) {
   const contentfulRef = useRef<HTMLDivElement>(null)
-  // Every commit: the chips may have changed (C5's fit starts from them all).
+  // Every commit: the chips may have changed (C2b's fit starts from them all).
   useLayoutEffect(() => {
     const token = contentfulRef.current
-    return token ? watchMore(token) : undefined
+    return token ? watchTokenOverflow(token) : undefined
   })
   const insidePeek = useInsidePeek()
   // A contentful Token in a Peek reads (E16): its head opens nothing.
@@ -232,11 +208,6 @@ export function Token({
   const linkedRelation = !!slots.relations?.some((r) => r.ref || r.href)
   const acts = slots.uses !== undefined || slots.menu !== undefined || linkedRelation
   const hasChips = chipCount(set) > 0 || !!quantity || !!slots.state || acts || userMade
-  // C5: a contentful Token's chips past two lines end in +MORE, which opens
-  // its Peek; with no Peek (inside one, E16) every chip wraps. Its slot is the
-  // end of the menu lane: after a sheet item's own controls (C8), the last.
-  const more = !!body && hasChips && !!peek['data-peek']
-  const moreSlot = more ? <span className="su-chip-more-slot" aria-hidden="true" hidden /> : null
   /** The name, or the whole surface: a toggle, a link, or plain. */
   const surface = (className: string, children: ReactNode, surfacePeek: PeekAttrs) =>
     toggle ? (
@@ -314,16 +285,7 @@ export function Token({
           marks={userMade ? <HomebrewStamp /> : undefined}
           state={state}
           uses={slots.uses}
-          menu={
-            slots.menu !== undefined && moreSlot ? (
-              <>
-                {slots.menu}
-                {moreSlot}
-              </>
-            ) : (
-              (slots.menu ?? moreSlot ?? undefined)
-            )
-          }
+          menu={slots.menu}
         />
       )}
     </span>
@@ -363,13 +325,15 @@ export function Token({
   return (
     <div ref={contentfulRef} className={cn('su-entity-token', dimClass)} data-contentful="">
       {head}
-      {more && <MoreChip title={title} peek={peek} />}
       {/* Bordered in the pill's own tone, so the Token contains its content. */}
       <div
         data-user-made={userMade || undefined}
         className="su-entity-token__body"
         style={{ borderColor: paint.background, ...(down && { opacity: 0.6 }) }}
       >
+        {/* What of the head's chips does not fit beside the name: the body's
+            first row (C2b, `chipFit.ts`). */}
+        {hasChips && <ChipOverflowRow />}
         {body.text !== false && <TokenText model={model} chassisName={body.chassisName} />}
         {body.children}
       </div>

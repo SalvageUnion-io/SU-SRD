@@ -11,6 +11,8 @@ type CardHeadProps = ComponentProps<typeof EntityCardHeader> & {
   controls?: ReactNode
   /** Select mode's seal, on the band's right (EDL Modes, R15). Cut-out only. */
   affordance?: ReactNode
+  /** Where the chips that do not fit beside the name go (`Head`'s, C2b). Cut-out only. */
+  overflow?: 'body' | 'more'
 }
 
 /**
@@ -21,7 +23,14 @@ type CardHeadProps = ComponentProps<typeof EntityCardHeader> & {
  * on the paper cut-out; unlike a Row's, its chips (a crew NPC's HP) stay on
  * the band right of it and wrap there.
  */
-export function CardHead({ cutOut, controls, affordance, titleContent, ...band }: CardHeadProps) {
+export function CardHead({
+  cutOut,
+  controls,
+  affordance,
+  titleContent,
+  overflow,
+  ...band
+}: CardHeadProps) {
   if (!cutOut) return <EntityCardHeader {...band} />
   return (
     <Head
@@ -43,6 +52,7 @@ export function CardHead({ cutOut, controls, affordance, titleContent, ...band }
       labels={band.labels}
       notch
       chipsBeside
+      overflow={overflow}
     />
   )
 }

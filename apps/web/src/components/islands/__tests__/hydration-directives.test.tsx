@@ -117,14 +117,15 @@ describe('hydration directives', () => {
       expect(inert.islands).toEqual([])
     })
 
-    it("a contentful Token's +MORE needs no listener of the card's (a Peek trigger)", () => {
-      // The Hacker's Meld Form ends in +MORE: still a document, its Peek the page's.
+    it("a contentful Token's overflow row needs no listener of the card's", () => {
+      // The Hacker's ability Tokens carry their body's overflow row: still a
+      // document, the row filled by the page's one client entry.
       const hacker = getModel('classes')
         ?.all()
         .find((item) => item.name === 'Hacker')
       if (!hacker) throw new Error('Hacker fixture missing')
       expect(renderToStaticMarkup(<EntityView item={hacker} schemaId="classes" />)).toContain(
-        'data-peek-press'
+        'data-chip-overflow'
       )
       expect(cardNeedsHydration(hacker)).toBe(false)
     })

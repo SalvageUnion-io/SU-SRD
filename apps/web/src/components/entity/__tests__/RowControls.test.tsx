@@ -110,9 +110,11 @@ describe('Row controls', () => {
     )
     const lane = screen.getByRole('button', { name: 'Unassign' }).closest('[data-chip-class]')
     expect(lane?.getAttribute('data-chip-class')).toBe('menu')
+    // A bodyless Row's +MORE (hidden until a chip does not fit, C5) ends it.
     expect([...(lane?.children ?? [])].map((el) => el.textContent)).toEqual([
       'Unassign',
       'More for Ace',
+      '+MORE',
     ])
   })
 

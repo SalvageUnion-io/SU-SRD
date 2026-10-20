@@ -17,10 +17,10 @@ const rowOf = (name: string) => {
 /** A unit Row's chips as [class, text] pairs, in the order drawn (`Chips`' lanes). */
 const lanesOf = (name: string) =>
   [...rowOf(name).querySelectorAll('[data-chip-class]')].flatMap((lane) =>
-    [...lane.querySelectorAll('.su-stat-cell')].map((cell) => [
-      lane.getAttribute('data-chip-class'),
-      cell.textContent,
-    ])
+    // A bodyless Row's +MORE is hidden until a chip does not fit (C5).
+    [...lane.querySelectorAll('.su-stat-cell')]
+      .filter((cell) => !cell.closest('[hidden]'))
+      .map((cell) => [lane.getAttribute('data-chip-class'), cell.textContent])
   )
 
 describe('unitRowModel budget (C3): a unit Row keeps its rank and its lead vital', () => {
@@ -191,9 +191,9 @@ describe('UnitRow', () => {
       />
     )
     const slot = screen.getByRole('button', { name: 'Change Mech' }).parentElement
-    const names = [...(slot?.children ?? [])].map(
-      (el) => el.getAttribute('aria-label') ?? el.textContent
-    )
+    const names = [...(slot?.children ?? [])]
+      .filter((el) => !el.hasAttribute('hidden'))
+      .map((el) => el.getAttribute('aria-label') ?? el.textContent)
     expect(names).toEqual(['Change Mech', 'View Iron Fist', 'Unassign Iron Fist'])
   })
 })

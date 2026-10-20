@@ -4,6 +4,7 @@ import { assetDerivativeUrl } from 'salvageunion-reference/assetDerivatives'
 import { space, widthAtLeast } from '../../../design/tokens'
 import { cn } from '../../../lib/cn'
 import type { CSSVarStyle } from '../../../styles/cssVars'
+import { ChipOverflowRow, MoreChip } from '../../atoms/chipOverflow'
 import { useChipFill } from '../../atoms/useChipFill'
 import { assetSrcSetFor } from '../../compositions/assetSrcSet'
 import { heroArtCrop } from '../../compositions/heroArtCrop'
@@ -167,6 +168,7 @@ export function Tile({
           className={cn('su-entity-tile__band', grainClass(paint.grain))}
           data-grain={paint.grain}
           data-chip-fill={hasChips ? '' : undefined}
+          data-chip-overflow-owner={hasChips && leadText ? '' : undefined}
           style={{
             backgroundColor: paint.background,
             color: paint.color,
@@ -184,8 +186,9 @@ export function Tile({
           </span>
           {hasChips && (
             // Its chips fill from the band's bottom right (ruleset §4.7): the
-            // cost in the corner, the rest leftward beside the name, then in
-            // lines rising over it, each from the right (`chipFill.ts`).
+            // cost in the corner, the rest leftward beside the name, on its
+            // line alone; what does not fit goes to the lead's first row, or,
+            // with no lead, behind +MORE (C2b, `chipFill.ts`).
             <Chips
               as="span"
               className="su-entity-tile__chips"
@@ -198,9 +201,11 @@ export function Tile({
                 tags: [],
                 ...(model.cost ? { cost: model.cost } : {}),
               }}
+              menu={leadText ? undefined : <MoreChip />}
             />
           )}
         </div>
+        {hasChips && leadText && <ChipOverflowRow className="su-entity-tile__overflow" />}
         {leadText && (
           <div className="su-entity-tile__cells">
             <Lead text={leadText} />

@@ -144,9 +144,10 @@ describe('Tile chips for systems and modules', () => {
   const chips = (schema: string, name: string) => {
     const entity = need(SalvageUnionReference.getByNameIn(schema as never, name), name)
     const { container } = render(<Entity form="tile" entity={entity as never} />)
-    return Array.from(chipsOf(container).querySelectorAll(':scope > .su-chip-lane > *')).map(
-      (chip) => (chip.textContent ?? '').replace(/\s+/g, ' ').trim()
-    )
+    // A header-only Tile's +MORE is hidden until a chip does not fit (C5).
+    return Array.from(
+      chipsOf(container).querySelectorAll(':scope > .su-chip-lane > :not([hidden])')
+    ).map((chip) => (chip.textContent ?? '').replace(/\s+/g, ' ').trim())
   }
 
   test("a system's chips are one strip in the stat order, without SV, its range as the book's code", () => {
