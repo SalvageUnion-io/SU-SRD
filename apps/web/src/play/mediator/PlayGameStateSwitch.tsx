@@ -24,8 +24,9 @@ const ROW = { alignItems: 'center', display: 'flex', gap: tokens.space[8] } sati
 
 const GROW = { flex: '1 1 0%' } satisfies CSSProperties
 
+/** The leading label sits on the Play bar's band: its foreground (`PlayBar`). */
 const LABEL = {
-  color: 'var(--color-ink-75)',
+  color: 'inherit',
   fontFamily: tokens.font.cond,
   fontSize: tokens.fontSize.caption,
   letterSpacing: tokens.tracking.capsTight,

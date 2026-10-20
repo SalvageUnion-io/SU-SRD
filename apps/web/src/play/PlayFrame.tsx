@@ -20,7 +20,9 @@
  * lists — compact Rows, Cards, a unit's `TitledBox` — stays at level 1, and
  * anything inside one of those is a Token (level 2).
  *
- * The Cockpit's ground is flat, its brand-colour bands speckled as the
+ * The Cockpit is a page like the sheets (owner's call, 2026-10-20): the page
+ * ground, the Play bar and foot in the Cantina's band, and each column a paper
+ * panel on a hairline. Its ground is flat, its brand-colour bands speckled as the
  * sheet's (ruleset §1.3, §3.5.1; R10): the frame sets the texture once for
  * every entity form on the canvas and the phone form alike.
  *
@@ -52,18 +54,32 @@ const FRAME = {
 
 /**
  * Play's brand-colour grounds wear the speckle as the sheet's do (ruleset
- * §3.5.1, R10): set once, for every form inside. The ink-deep ground, the
- * cream and paper columns, buttons and fields stay clean, since only a band
- * (a head, a unit box's band) carries it.
+ * §3.5.1, R10): set once, for every form inside. The page ground, the paper
+ * columns, buttons and fields stay clean, since only a band (the Play bar, a
+ * head, a unit box's band) carries it.
  */
 const SPECKLED = { texture: true } as const
 
-const BAR = { gridArea: 'bar', minWidth: 0 } satisfies CSSProperties
-const FOOT = { gridArea: 'foot', minWidth: 0 } satisfies CSSProperties
+/** The bar and foot bleed to the canvas's edges, out of the frame's padding. */
+const BAR = {
+  gridArea: 'bar',
+  margin: `-${tokens.space[8]} -${tokens.space[12]} 0`,
+  minWidth: 0,
+} satisfies CSSProperties
+const FOOT = {
+  gridArea: 'foot',
+  margin: `0 -${tokens.space[12]} -${tokens.space[8]}`,
+  minWidth: 0,
+} satisfies CSSProperties
 
-/** A column on the dark ground: the instrument cream, its own scroll. */
+/**
+ * A column: a paper panel on the page ground, framed in the 1px ink-40
+ * hairline a sheet's opening panels wear (ruleset §4.3; owner's call,
+ * 2026-10-20), its own scroll.
+ */
 const COLUMN = {
-  background: 'var(--color-band-cream)',
+  background: 'var(--color-paper)',
+  border: `${tokens.borderWidth.hairline} solid var(--color-ink-40)`,
   borderRadius: tokens.radius.card,
   display: 'flex',
   flexDirection: 'column',
@@ -74,12 +90,9 @@ const COLUMN = {
   padding: tokens.space[12],
 } satisfies CSSProperties
 
-/** The centre column is the document surface: paper, the brightest thing on screen. */
-const CENTRE = { ...COLUMN, background: 'var(--color-paper)' } satisfies CSSProperties
-
 const AREA: Record<'start' | 'centre' | 'end', CSSProperties> = {
   start: { ...COLUMN, gridArea: 'start' },
-  centre: { ...CENTRE, gridArea: 'centre' },
+  centre: { ...COLUMN, gridArea: 'centre' },
   end: { ...COLUMN, gridArea: 'end' },
 }
 

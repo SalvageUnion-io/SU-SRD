@@ -21,3 +21,16 @@
 .su-play-root--phone .su-play-bar__stamp {
   height: var(--size-full);
 }
+
+/*
+ * The band's line (`PlayBar`): the title's cut-out sits flush on the band's
+ * foot, so every other item stands off it by the band's top padding and the
+ * line keeps one centre. The speckle layer is absolute and takes no room.
+ */
+.su-play-bar > :not(.su-play-bar__notch, .su-grain-layer) {
+  margin-bottom: var(--space-12);
+}
+
+.su-play-root--phone .su-play-bar > :not(.su-play-bar__notch, .su-grain-layer) {
+  margin-bottom: var(--space-4);
+}

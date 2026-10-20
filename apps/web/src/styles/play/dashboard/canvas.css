@@ -1,10 +1,10 @@
 /*
  * canvas.css — Play's canvas shell (`PlayCanvas`, play.md §2).
  *
- * The canvas reads as PAPER INSTRUMENTS ON A DARK WORKBENCH: `--color-ink-deep`
- * is the ground behind everything, the side columns are `--color-band-cream`
- * and the centre column `--color-paper`, the brightest surface, so "read this"
- * is pre-attentive. There is NO private token layer: every surface references
+ * The canvas reads as the rest of the app does (owner's call, 2026-10-20): the
+ * page ground `--color-wk-bg` behind everything, the Play bar and foot in the
+ * Cantina's band, and each column a `--color-paper` panel on a 1px hairline,
+ * as a sheet's opening panels are. There is NO private token layer: every surface references
  * the canonical `--color-*` tokens (src/components theme.css) directly.
  * `.su-play-root` only marks the canvas scope and sets the default ink text and
  * font. Colour encodes ONTOLOGY (mech green / pilot orange / crawler pink),
@@ -21,15 +21,12 @@
    instruments. The ground is the host's own background (PlayCanvas.tsx). */
 
 /* Fixed design canvas — scaled to fit by PlayCanvas. Never scrolls. The
-   canvas carries the same dark ground as the surround, so the instruments read
-   as objects laid on one continuous workbench rather than a lit panel floating
-   on an unlit one. The inset ring is a paper hairline (an ink one is invisible
-   against the ground it sits on). */
+   canvas carries the same page ground as the surround, so it reads as one
+   page, not a panel floating on another. */
 .su-play-canvas {
   width: 1280px;
   height: 800px;
-  background: var(--color-ink-deep);
+  background: var(--color-wk-bg);
   position: relative;
   overflow: hidden;
-  box-shadow: inset 0 0 0 var(--bw-chrome) var(--color-paper-15);
 }

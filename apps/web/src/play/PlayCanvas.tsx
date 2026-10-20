@@ -18,7 +18,8 @@
  * the open tab's list scrolls, ADR-051 §10).
  *
  * It owns the `.su-play-root` scope (`styles/play/dashboard/`) that every
- * Play surface inherits, and paints the dark ground the columns sit on. It
+ * Play surface inherits, and paints the page ground the columns sit on, as
+ * the sheets' and the Play hub's pages do (owner's call, 2026-10-20). It
  * imports no stylesheet: `PlayFrame` loads Play's.
  *
  * Its host, in either form, is the page's one `<main>` landmark: no Play
@@ -35,10 +36,10 @@ import { CANVAS_H, CANVAS_W, isPhoneForm, layoutWidth, pageZoom } from './playCa
 // the ground letterboxes).
 const MAX_SCALE = 2.6
 
-/** The canvas form's host: the dark ground, the canvas centred in it. */
+/** The canvas form's host: the page ground, the canvas centred in it. */
 const HOST = {
   alignItems: 'center',
-  background: 'var(--color-ink-deep)',
+  background: 'var(--color-wk-bg)',
   display: 'flex',
   justifyContent: 'center',
   overflow: 'hidden',
@@ -47,7 +48,7 @@ const HOST = {
 
 /** The phone form's host: it never scrolls, its content does. */
 const PHONE_HOST = {
-  background: 'var(--color-band-cream)',
+  background: 'var(--color-wk-bg)',
   overflow: 'hidden',
   width: '100%',
 } satisfies CSSProperties
@@ -65,7 +66,7 @@ export function PlayCanvas({ children, phone }: PlayCanvasProps) {
   const [phoneForm, setPhoneForm] = useState(false)
   // Explicit viewport-anchored height: the host fills from its top offset down
   // to the viewport bottom so the scale math sees the true available space (and
-  // the dark ground fills it) rather than the collapsed canvas layout box.
+  // the ground fills it) rather than the collapsed canvas layout box.
   const [hostH, setHostH] = useState<number | undefined>(undefined)
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: `phoneForm` is read by no line here, but each form renders its own host element, so the observer must re-bind to the new one when the form flips.

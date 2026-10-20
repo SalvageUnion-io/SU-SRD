@@ -10,7 +10,6 @@
 
 import type { CSSProperties } from 'react'
 import { capsLabel } from '../components/atoms/capsLabel'
-import { color } from '../design/tokens'
 import { useConnection } from '../lib/connection/connectionContext'
 
 const BASE = {
@@ -18,9 +17,10 @@ const BASE = {
 } satisfies CSSProperties
 const CAPS = capsLabel({ size: 'badge' })
 
-const SAVED = { ...BASE, color: color.ink75 } satisfies CSSProperties
+/** On the foot's band: its own foreground (`PlayFoot`); the words say the state. */
+const SAVED = { ...BASE, color: 'inherit' } satisfies CSSProperties
 
-const OFFLINE = { ...BASE, color: color.ink } satisfies CSSProperties
+const OFFLINE = { ...BASE, color: 'inherit' } satisfies CSSProperties
 
 export function SavedIndicator() {
   const { mode } = useConnection()

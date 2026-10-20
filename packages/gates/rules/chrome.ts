@@ -118,6 +118,8 @@ const SRC = 'apps/web/src'
  */
 const FRAMES: Record<string, string> = {
   'apps/web/src/components/atoms/ChapterBand.tsx': 'a page band (ink when it prints paper)',
+  'apps/web/src/play/PlayBar.tsx':
+    "the Play bar, the Cockpit's page band (the Cantina's, which prints paper)",
   'apps/web/src/components/entity/parts/Head.tsx': "an entity form's head band (the ink banner)",
   'apps/web/src/components/referenceEntity/card/EntityCardHeader.tsx': "a card's head band",
   'apps/web/src/components/entity/forms/Token.tsx': "a Token's pill",

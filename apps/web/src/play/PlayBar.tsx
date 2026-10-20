@@ -7,37 +7,56 @@
  * Boarded / Downtime, the `situation` slot), and at the end the Discord
  * channel button and ⋯ (the `channel` and `menu` slots).
  *
+ * The bar is the screen's chapter band (owner's call, 2026-10-20): the
+ * Cantina's band (`CHAPTER_BAND_COLOR.play`, the deep crawler pink) as the
+ * Play hub's head and the Union bar wear it, speckled, paper on it, and the
+ * title notched into its foot on a cut-out of the page ground, in ink. The
+ * band prints paper, so it is an ink ground (`data-ground`, chrome K1) and
+ * the outlined buttons on it draw in paper. On a phone the title takes its
+ * own line under the controls, so its cut-out still sits on the band's foot.
+ *
  * Presentational: what goes in the slots is the screen's. Everything on the
- * line is one Size, Compact (ruleset §4.7), the bar's own height included:
- * the stamps (role, LIVE, read-only) keep the Compact rung's type and take
- * the line's height (`play/bar.css`), their text centred, so they stand as
- * tall as the buttons beside them.
+ * line is one Size, Compact (ruleset §4.7): the stamps (role, LIVE,
+ * read-only) keep the Compact rung's type and take the line's height
+ * (`play/bar.css`), their text centred, so they stand as tall as the buttons
+ * beside them.
  */
 
 import type { CSSProperties, ReactNode } from 'react'
 import { capsLabel } from '../components/atoms/capsLabel'
+import { CHAPTER_BAND_COLOR } from '../components/atoms/chapterBandColor'
+import { Speckle } from '../components/atoms/Speckle'
 import { Badge, Button, tokens } from '../components/index'
+import { cn } from '../lib/cn'
 import type { PlayReadOnly } from './play.model'
 import { liveLabel } from './play.model'
 
+/** The Cantina's band: paper text on the deep crawler pink (ruleset §3.8). */
+const BAND = CHAPTER_BAND_COLOR.play
+
+/**
+ * The band: its controls on one line, the title's cut-out flush with its
+ * foot (`play/bar.css` lifts every other item off the foot by the band's
+ * padding, so the line keeps one centre).
+ */
 const BAR = {
-  alignItems: 'center',
-  background: 'var(--color-band-cream)',
-  borderRadius: tokens.radius.card,
+  alignItems: 'flex-end',
+  background: BAND,
+  color: 'var(--color-paper)',
   display: 'flex',
   gap: tokens.space[12],
+  isolation: 'isolate',
   minWidth: 0,
-  padding: `${tokens.space[4]} ${tokens.space[12]}`,
+  padding: `${tokens.space[12]} ${tokens.space[12]} 0`,
+  position: 'relative',
 } satisfies CSSProperties
 
-/** The phone form's: flush across the top of the screen, on two lines (`BREAK`). */
+/** The phone form's: the controls on the first line, the title on its own under them (`BREAK`). */
 const PHONE_BAR = {
   ...BAR,
-  borderBottom: `${tokens.borderWidth.hairline} solid var(--color-ink-30)`,
-  borderRadius: 0,
   columnGap: tokens.space[8],
   flexWrap: 'wrap',
-  padding: `${tokens.space[4]} ${tokens.space[8]}`,
+  padding: `${tokens.space[8]} ${tokens.space[8]} 0`,
   rowGap: tokens.space[4],
 } satisfies CSSProperties
 
@@ -48,11 +67,18 @@ const BACK = {
   gap: tokens.space[2],
 } satisfies CSSProperties
 
+/**
+ * The notch: the title on a cut-out of the page ground, in ink, flush with
+ * the band's foot, as `ChapterBand`'s title sits on a page's band.
+ */
 const TITLE = {
+  background: 'var(--color-wk-bg)',
+  color: 'var(--color-ink)',
   lineHeight: 1,
   margin: 0,
   minWidth: 0,
   overflow: 'hidden',
+  padding: `${tokens.space[8]} ${tokens.space[12]} ${tokens.space[6]}`,
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
@@ -65,6 +91,7 @@ const TITLE_CAPS = capsLabel({ size: 'readout' })
 const LIVE = { flexShrink: 0, whiteSpace: 'nowrap' } satisfies CSSProperties
 
 const STAMP = 'su-play-bar__stamp'
+const NOTCH = 'su-play-bar__notch'
 
 const SLOT = {
   alignItems: 'center',
@@ -73,7 +100,7 @@ const SLOT = {
   gap: tokens.space[8],
 } satisfies CSSProperties
 
-/** The phone bar's line break: the title on the first line, the stamps and buttons on the second. */
+/** The phone bar's line break: the controls on the first line, the title on the second. */
 const BREAK = { flexBasis: '100%', height: 0 } satisfies CSSProperties
 
 /** Pushes the channel button and ⋯ to the bar's end. */
@@ -107,8 +134,8 @@ export type PlayBarProps = {
   menu?: ReactNode
   /**
    * The phone form's bar (play.md §11): flush across the top, on two lines
-   * (back and the title, then the LIVE stamp and the buttons) rather than
-   * squeezing the title. The Situation goes under the pinned vitals there,
+   * (back, the stamps and the buttons, then the title on its cut-out) rather
+   * than squeezing the title. The Situation goes under the pinned vitals there,
    * not in the bar.
    */
   phone?: boolean
@@ -128,20 +155,23 @@ export function PlayBar({
   menu,
   phone = false,
 }: PlayBarProps) {
+  const heading = (
+    <h1 className={cn(NOTCH, TITLE_CAPS)} style={TITLE}>
+      {title}
+    </h1>
+  )
   return (
-    <header style={phone ? PHONE_BAR : BAR}>
+    <header data-ground="ink" className="su-play-bar" style={phone ? PHONE_BAR : BAR}>
+      <Speckle grain="ink" />
       <Button href={backHref} back surface="instrument" variant="ghost" size="compact" style={BACK}>
         {backLabel}
       </Button>
-      <h1 className={TITLE_CAPS} style={TITLE}>
-        {title}
-      </h1>
+      {!phone && heading}
       {stamp && (
         <Badge shape="stamp" size="compact" className={STAMP} style={LIVE}>
           {stamp}
         </Badge>
       )}
-      {phone && <span style={BREAK} aria-hidden="true" />}
       {readOnly !== null ? (
         <Badge
           shape="stamp"
@@ -165,6 +195,12 @@ export function PlayBar({
       <span style={SPACER} />
       {channel}
       {menu}
+      {phone && (
+        <>
+          <span style={BREAK} aria-hidden="true" />
+          {heading}
+        </>
+      )}
     </header>
   )
 }

@@ -8,16 +8,20 @@
  */
 
 import type { CSSProperties } from 'react'
+import { CHAPTER_BAND_COLOR } from '../components/atoms/chapterBandColor'
 import { tokens } from '../components/index'
 import { useConnection } from '../lib/connection/connectionContext'
 import { connectionLine } from './play.model'
 import { SavedIndicator } from './SavedIndicator'
 
-/** A cream strip like the bar's: the Saved indicator's ink is for a cream panel. */
+/**
+ * The foot matches the bar (ruleset §3.11: a page ends in the colour it leads
+ * with): the Cantina's band, paper on it, as the Play hub's site foot.
+ */
 const FOOT = {
   alignItems: 'center',
-  background: 'var(--color-band-cream)',
-  borderRadius: tokens.radius.card,
+  background: CHAPTER_BAND_COLOR.play,
+  color: 'var(--color-paper)',
   display: 'flex',
   gap: tokens.space[16],
   padding: `${tokens.space[4]} ${tokens.space[12]}`,
@@ -27,7 +31,7 @@ const FOOT = {
 const SPACER = { flex: '1 1 0%' } satisfies CSSProperties
 
 const LINE = {
-  color: tokens.color.ink75,
+  color: 'var(--color-paper)',
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.caption,
   whiteSpace: 'nowrap',

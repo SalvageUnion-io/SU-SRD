@@ -8,16 +8,16 @@ import { expect, test } from './fixtures'
  * Hard rule R10, "A surface sets its texture once" (ruleset §1.3, §3.5.1; EDL
  * E13), on the rendered page over every context (R0's `designRoutes`): the
  * speckle is universal on brand-colour grounds, the Cockpit and the Peek
- * included, and never on paper, cream, Play's ink-deep ground, a button or a
- * field.
+ * included, and never on paper, cream, the page ground (Play's included), the
+ * ink-deep, a button or a field.
  *
  * - `speckled`: every entity band (a Row's, a TitledBox's or a unit box's
  *   head, a card's band) on a Play canvas or phone form (`.su-play-root`:
  *   the player's, solo and the Mediator's), or on an overlay it lays over
  *   itself (a Peek, a menu, a dialog: the Mediator's Reference), that is a
  *   brand-colour ground carries its `[data-grain]`, as on the sheet.
- * - `clean`: no `[data-grain]` there sits on paper, cream or ink-deep, or on
- *   or inside a button or a field.
+ * - `clean`: no `[data-grain]` there sits on paper, cream, the page ground or
+ *   ink-deep, or on or inside a button or a field.
  * - `band`: Manage (the Training Bay, the Play hub, a Game's page, the invite
  *   screen) is paper under its area's band, and the band keeps its speckle
  *   (`ChapterBand`'s `.su-grain-layer`).
@@ -51,7 +51,7 @@ async function grainFaults(page: Page): Promise<{ rule: string; line: string }[]
         return getComputedStyle(probe).backgroundColor
       }
       const clean = new Set(
-        ['--color-paper', '--color-band-cream', '--color-ink-deep'].map(resolve)
+        ['--color-paper', '--color-band-cream', '--color-wk-bg', '--color-ink-deep'].map(resolve)
       )
       probe.remove()
       const transparent = (bg: string) => bg === 'transparent' || /rgba\(.*,\s*0\)$/.test(bg)
