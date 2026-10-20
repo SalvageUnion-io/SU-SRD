@@ -24,9 +24,6 @@ import { SiteFooter } from '../components/shared/SiteFooter'
 import { UnionBarSlots } from '../components/shared/UnionBarSlots'
 import { areaTitle } from '../lib/pageTitle'
 import { BAR_HIDDEN_ATTRIBUTE, hidesUnionBar } from '../shell/unionSlots'
-// The tagline's script face, self-hosted like the Barlow faces in the shared base
-// stylesheet: fonts stay on-origin, so the CSP needs no external host.
-import '@fontsource/caveat/600.css'
 import '../styles/app.css'
 
 // The root boundary is the last resort — every other route gets its own via

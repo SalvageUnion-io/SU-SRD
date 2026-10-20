@@ -34,18 +34,3 @@
 html[data-union-bar-hidden] .su-union-bar {
   display: none;
 }
-
-/* The front door's quoted tagline (`build/roster/FrontDoor.tsx`): ink, on
-   Build's pilot-orange band at its right end and set right; on a phone
-   ChapterBand sets it under the band on the page ground, set left. */
-.su-front-door__quote {
-  color: var(--color-ink);
-  margin: 0;
-  text-align: left;
-}
-
-@media (width >= 40rem) {
-  .su-front-door__quote {
-    text-align: right;
-  }
-}

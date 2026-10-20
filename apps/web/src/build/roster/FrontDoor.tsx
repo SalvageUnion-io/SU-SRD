@@ -24,7 +24,7 @@ import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties } from 'react'
 import { capsLabel } from '../../components/atoms/capsLabel'
 import { ChapterBand, Slab, Stack, StartHere, tokens } from '../../components/index'
-import { SCRIPT_FONT } from '../../lib/scriptFont'
+import { Tagline } from '../../components/Tagline'
 import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
 import { StarterSetGrid } from '../starterSet/StarterSetGrid'
 
@@ -45,24 +45,8 @@ const COLUMN = {
   maxWidth: MEASURE,
 } satisfies CSSProperties
 
-/** The kicker and the tagline's credit: brand caps, the eyebrow's tracking. */
+/** The kicker: brand caps, the eyebrow's tracking. */
 const KICKER_CAPS = capsLabel({ size: 'caption', tracking: 'eyebrow' })
-
-/** The legacy tagline, quoted in a hand. Its colour and alignment are `screens.css`'s
- *  (`.su-front-door__quote`): ink, set right on the band and left under it. */
-const QUOTE = {
-  fontFamily: SCRIPT_FONT,
-  fontSize: tokens.fontSize.hero,
-  fontWeight: tokens.weight.semibold,
-  lineHeight: 1,
-  margin: 0,
-} satisfies CSSProperties
-
-const QUOTE_BY = {
-  color: tokens.color.ink,
-  fontStyle: 'italic',
-  margin: `${tokens.space[4]} 0 0`,
-} satisfies CSSProperties
 
 const CREDIT = {
   color: tokens.color.ink,
@@ -79,14 +63,7 @@ export function FrontDoor() {
         measure={MEASURE}
         eyebrow={<span className={KICKER_CAPS}>{PRODUCT.descriptor}</span>}
         asideAt="notch"
-        aside={
-          <figure className="su-front-door__quote">
-            <blockquote style={QUOTE}>“{PRODUCT.tagline}”</blockquote>
-            <figcaption className={KICKER_CAPS} style={QUOTE_BY}>
-              — {PRODUCT.taglineBy}
-            </figcaption>
-          </figure>
-        }
+        aside={<Tagline />}
       >
         {PRODUCT.build}
       </ChapterBand>

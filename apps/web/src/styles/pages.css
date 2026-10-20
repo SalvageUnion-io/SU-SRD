@@ -12,7 +12,7 @@
  * The home page — the manual's Contents page (board 06, `index.page.tsx` and
  * `reference/HomeContents.tsx`). At the one page measure: the index in columns and
  * the "Getting started" sidebar at its right; on a phone, the title, the
- * search, "Start here", then the index.
+ * tagline, "Start here", then the index.
  */
 .su-home__lede {
   display: flex;
@@ -24,7 +24,7 @@
 
 /* Below the desktop the lede has no room beside the title, so it follows the
    title instead of riding above it (the band's own stack is column-reverse):
-   the title notched into the band's foot, then the lede and search on the
+   the title notched into the band's foot, then the lede (the tagline) on the
    page ground the notch is cut from. The aside spans the row's padding so the
    ground runs edge to edge, and the row drops its gap so the notch sits flush
    on the band's foot. */
@@ -50,7 +50,7 @@
   }
 }
 
-/* The home band holds only the title and the search (owner, 2026-10-14) and
+/* The home band holds only the title and the tagline (owner, 2026-10-14) and
    is as tall as the app's front-door band: its title opens where the
    app's does under that band's eyebrow (the eyebrow's top padding, its
    caption line, then 12px). */

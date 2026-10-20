@@ -77,7 +77,7 @@ type BreadcrumbItem = {
 type TopNavigationProps = {
   breadcrumbs?: BreadcrumbItem[]
   /**
-   * The page carries its own search (the home page's Contents band, board 06),
+   * The page carries its own search (the 404's band),
    * so the bar's desktop field would be a second copy. The phone's search
    * trigger stays: below `lg` the band's field sits under the fold of the bar.
    */

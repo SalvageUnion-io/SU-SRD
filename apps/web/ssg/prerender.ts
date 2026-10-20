@@ -34,7 +34,7 @@ import { fileURLToPath } from 'node:url'
 // (`BaseLayout` -> `src/components` -> third-party deps) must load only after the
 // css-stub plugin below is registered.
 import type { BuildAssets } from './document'
-import { pickFontPreloads } from './fontPreloads'
+import { pickFontPreloads, pickScriptFontPreload } from './fontPreloads'
 import { outputPathFor } from './outputPath'
 import { assertNoRawMarkup, findRawMarkup } from './rawMarkup'
 
@@ -108,7 +108,13 @@ async function readAssets(): Promise<BuildAssets> {
     scripts.push(`/${chunk.file}`)
   }
 
-  return { scripts, styles, fonts: pickFontPreloads(fontFiles), built }
+  return {
+    scripts,
+    styles,
+    fonts: pickFontPreloads(fontFiles),
+    scriptFont: pickScriptFontPreload(fontFiles),
+    built,
+  }
 }
 
 // `outputPathFor` (URL -> dist file) lives in `./outputPath` so it can be read

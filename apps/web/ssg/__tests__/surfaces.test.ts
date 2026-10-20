@@ -55,9 +55,16 @@ describe('home: the manual’s Contents page (board 06)', () => {
     expect(html).toContain('su-chapter-band')
   })
 
-  it('searches from the band: one search island, server-rendered as a GET form', () => {
+  it('searches from the Union bar, as every page does: one search island, no hero', () => {
     expect(islands(html, 'SearchIsland')).toBe(1)
-    expect(html).toContain('action="/"')
+    expect(html).not.toContain('su-hero-search')
+  })
+
+  it('quotes the legacy tagline on the band, credited to Stumpy', () => {
+    const band = html.slice(html.indexOf('su-home__band'), html.indexOf('su-home__body'))
+    expect(band).toContain('su-tagline')
+    expect(band).toContain('You’re in The Union, now!')
+    expect(band).toContain('Lester “Stumpy” Owens')
   })
 
   it('indexes the book’s five chapters, with counts', () => {
@@ -108,11 +115,11 @@ describe('home: the manual’s Contents page (board 06)', () => {
     expect(index).not.toContain('<img')
   })
 
-  it('reads title, search, the index, then "Start here" and Discord below it', () => {
+  it('reads title, tagline, the index, then "Start here" and Discord below it', () => {
     const at = (needle: string) => html.indexOf(needle)
     expect(at('<h1')).toBeGreaterThan(-1)
-    expect(at('<h1')).toBeLessThan(at('action="/"'))
-    expect(at('action="/"')).toBeLessThan(at('id="pilot-bay"'))
+    expect(at('<h1')).toBeLessThan(at('su-tagline'))
+    expect(at('su-tagline')).toBeLessThan(at('id="pilot-bay"'))
     expect(at('id="pilot-bay"')).toBeLessThan(at('id="start-here"'))
     expect(at('id="start-here"')).toBeLessThan(at('id="discord-bot"'))
   })

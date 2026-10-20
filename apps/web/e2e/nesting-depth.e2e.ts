@@ -102,8 +102,7 @@ test.describe('signed out', () => {
     await page.setViewportSize({ width: 1440, height: 900 })
     const failures: string[] = []
     for (const { schema, name } of PEEKS) {
-      // The Union bar's combobox: the home page has only the hero's field,
-      // which mounts its island on intent.
+      // The Union bar's combobox, which mounts its island on intent.
       await page.goto('/chassis/', { waitUntil: 'networkidle' })
       const search = page.getByRole('combobox', { name: 'Search the Reference' }).first()
       await search.click()

@@ -1,23 +1,23 @@
 /**
  * `/` — the landing page: the manual's Contents page (board 06).
  *
- * The title, then search: beside the title on the blue Contents band on a
- * desktop, under the notch on a phone. Then the "Getting started" aside — the
+ * The title, then the legacy tagline (`Tagline`): beside the title on the
+ * Contents band on a desktop, under the notch on a phone. Search is the Union
+ * bar's, as on every other page. Then the "Getting started" aside — the
  * shared "Start here" path and the Discord bot's button under it — and the
  * index. The index is the
  * book's chapters, each opened by its band, with their real entry counts, then
  * the rules a table reaches for
  * under an ink band. The DOM order is a phone's: "Start here", the Discord
  * button, then the index; a desktop pins the aside to a right-hand sidebar.
- * The band's search is the page's search, so the Union bar carries none here.
  */
 
 import type { RefEnumSchemaName } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { PageModule, PageResult } from '../../../ssg/types'
-import { HeroSearchStatic } from '../../components/HeroSearch'
 import type { ContentsRow } from '../../components/index'
 import { ChapterBand, ContentsChapter } from '../../components/index'
+import { Tagline } from '../../components/Tagline'
 import { buildChapters } from '../../lib/chapters'
 import { DEFAULT_DESCRIPTION, DISCORD_INSTALL_URL, WEBSITE } from '../../lib/constants'
 import { itemHref } from '../../lib/entityHref'
@@ -25,7 +25,6 @@ import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { pageTitle } from '../../lib/pageTitle'
 import { DiscordButton, HomeStartHere } from '../HomeContents'
 import '../../lib/gameData'
-import { Island } from '../../runtime/Island'
 
 /** The site's name and what this page is: there is no page name to put ahead of it. */
 const TITLE = `${pageTitle()} · Salvage Union SRD and Character Manager`
@@ -69,6 +68,7 @@ function page(): PageResult {
     meta: {
       title: TITLE,
       description: DEFAULT_DESCRIPTION,
+      preloadScriptFont: true,
       structuredData: {
         '@context': 'https://schema.org',
         ...WEBSITE,
@@ -83,9 +83,7 @@ function page(): PageResult {
             measure={PAGE_MEASURE}
             aside={
               <div className="su-home__lede">
-                <Island name="SearchIsland" client="interaction" ssr props={{ variant: 'hero' }}>
-                  <HeroSearchStatic />
-                </Island>
+                <Tagline />
               </div>
             }
           >

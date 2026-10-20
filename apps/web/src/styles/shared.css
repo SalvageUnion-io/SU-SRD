@@ -48,6 +48,21 @@
   padding-inline: var(--space-14);
 }
 
+/* The quoted tagline (`Tagline.tsx`), a band's aside on the app's front door
+   and the SRD's home: ink, on the band at its right end and set right; on a
+   phone ChapterBand sets it under the band on the page ground, set left. */
+.su-tagline {
+  color: var(--color-ink);
+  margin: 0;
+  text-align: left;
+}
+
+@media (width >= 40rem) {
+  .su-tagline {
+    text-align: right;
+  }
+}
+
 /*
  * The not-found content (`NotFound.tsx`, `islands/DidYouMeanIsland.tsx`),
  * on the static `/404` and the app's unmatched route alike: the rules

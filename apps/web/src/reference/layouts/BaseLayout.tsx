@@ -30,11 +30,11 @@ import { TopNavigation } from '../TopNavigation'
 const SKIP_LINK = cn('su-skip-link', capsLabel())
 
 /**
- * Pages whose own search (the home band's, the 404's) stands in for the Union
- * bar's: two fields on one page would both claim ⌘K. Keyed by the route's
- * pathname, so the 404 is `/404/` though it is emitted as `404.html`.
+ * Pages whose own search (the 404's) stands in for the Union bar's: two fields
+ * on one page would both claim ⌘K. Keyed by the route's pathname, so the 404
+ * is `/404/` though it is emitted as `404.html`.
  */
-const PAGES_WITH_SEARCH = new Set(['/', '/404/'])
+const PAGES_WITH_SEARCH = new Set(['/404/'])
 
 /** Prefetch same-site links on hover via Speculation Rules. Browser-native, zero JS. */
 const SPECULATION_RULES = JSON.stringify({

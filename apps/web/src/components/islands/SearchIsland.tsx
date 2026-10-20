@@ -7,10 +7,10 @@
  * form, where"); Cmd/Ctrl+K focuses it. Every result is a reference page,
  * followed in the same tab; Enter with no row highlighted opens the first.
  *
- * The hero opens on the address's `?q=`: the retired search page's address
- * lands on the home page with it (`retiredSitePage`, `lib/redirects.ts`), as
- * does the hero's own no-JavaScript form, and the island mounts at once for
- * it (`mountNow.ts`).
+ * The hero, and the bar on the home page, open on the address's `?q=`: the
+ * retired search page's address lands on the home page with it
+ * (`retiredSitePage`, `lib/redirects.ts`), as does the 404 hero's
+ * no-JavaScript form, and the island mounts at once for it (`mountNow.ts`).
  */
 import type { CSSProperties } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -33,8 +33,8 @@ type SearchIslandProps = {
    *  Override in tests to spy on navigation without happy-dom limitations. */
   navigate?: (url: string) => void
   /**
-   * `bar` (default) — the Union bar's compact field. `hero` — the home page's
-   * wide field and Search button on the Contents band (board 06), over the
+   * `bar` (default) — the Union bar's compact field. `hero` — the 404's wide
+   * field and Search button on its band, over the
    * same `HeroSearchForm` the page server-renders.
    */
   variant?: 'bar' | 'hero'
@@ -137,10 +137,11 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
     [isOpen, results, handleKeyDown]
   )
 
-  // The hero opens on the address's query (`/?q=mule`), once, as if typed.
+  // The hero, and the bar on the home page, open on the address's query
+  // (`/?q=mule`), once, as if typed.
   const prefilled = useRef(false)
   useEffect(() => {
-    if (!hero || prefilled.current) return
+    if (prefilled.current || !(hero || window.location.pathname === '/')) return
     prefilled.current = true
     const term = new URLSearchParams(window.location.search).get('q')?.trim()
     if (!term) return

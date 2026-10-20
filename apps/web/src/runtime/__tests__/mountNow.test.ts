@@ -49,6 +49,14 @@ describe('mountsNow', () => {
     expect(mountsNow('SchemaViewerIsland', { schemaId: 'abilities' }, privateWindow)).toBe(false)
   })
 
+  test("the bar's search on the home page mounts now for a query, to open on it", () => {
+    window.location.href = 'http://localhost/?q=mule'
+    expect(mountsNow('SearchIsland', {})).toBe(true)
+    window.location.href = 'http://localhost/chassis/?q=mule'
+    expect(mountsNow('SearchIsland', {})).toBe(false)
+    expect(mountsNow('SearchIsland', { variant: 'hero' })).toBe(true)
+  })
+
   test('any other island waits', () => {
     window.location.href = 'http://localhost/?tl=1'
     expect(mountsNow('SearchIsland', {})).toBe(false)

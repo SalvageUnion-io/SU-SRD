@@ -348,6 +348,36 @@ describe('SearchIsland', () => {
     }
   })
 
+  describe("the bar on the home page, the home page's only search", () => {
+    test("opens on the address's query, where the retired search page lands", async () => {
+      window.location.href = 'http://localhost/?q=mule'
+      try {
+        render(<SearchIsland />)
+        const input = screen.getByRole('combobox')
+        await act(async () => {
+          jest.advanceTimersByTime(DEBOUNCE_MS)
+        })
+        expect((input as HTMLInputElement).value).toBe('mule')
+        expect(input.getAttribute('aria-expanded')).toBe('true')
+      } finally {
+        window.location.href = 'http://localhost/'
+      }
+    })
+
+    test('elsewhere the bar leaves a query to its page', async () => {
+      window.location.href = 'http://localhost/abilities/?q=mule'
+      try {
+        render(<SearchIsland />)
+        await act(async () => {
+          jest.advanceTimersByTime(DEBOUNCE_MS)
+        })
+        expect((screen.getByRole('combobox') as HTMLInputElement).value).toBe('')
+      } finally {
+        window.location.href = 'http://localhost/'
+      }
+    })
+  })
+
   describe('the hero variant', () => {
     test('submitting the form opens the first result for the trimmed term', async () => {
       const navigate = mock(() => {})

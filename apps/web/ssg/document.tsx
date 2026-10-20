@@ -25,6 +25,11 @@ export type BuildAssets = {
   /** Webfonts to preload ahead of the stylesheet; see `./fontPreloads`. */
   fonts: string[]
   /**
+   * The tagline's hand, preloaded only by a page whose meta asks for it
+   * (`preloadScriptFont`); see `./fontPreloads`. Unset in dev, like `fonts`.
+   */
+  scriptFont?: string
+  /**
    * Emitted URLs of the static assets under `src/assets/`. Not injected into
    * `<head>` like the two above — these are handed to the page through
    * `RouteContext.builtAssets`, because only the page knows where its image goes.
@@ -32,10 +37,12 @@ export type BuildAssets = {
   built: BuiltAssets
 }
 
-function assetTags(assets: BuildAssets): string {
+function assetTags(assets: BuildAssets, preloadScriptFont: boolean): string {
   // `crossorigin` is required even same-origin: fonts are fetched in CORS mode,
   // and a preload without it is not reused — the font downloads twice.
-  const fonts = assets.fonts
+  const fontHrefs =
+    preloadScriptFont && assets.scriptFont ? [...assets.fonts, assets.scriptFont] : assets.fonts
+  const fonts = fontHrefs
     .map((href) => `<link rel="preload" href="${href}" as="font" type="font/woff2" crossorigin>`)
     .join('')
   const styles = assets.styles.map((href) => `<link rel="stylesheet" href="${href}">`).join('')
@@ -93,7 +100,10 @@ export function renderDocument({
 
   const headIndex = markup.indexOf('</head>')
   if (headIndex === -1) throw new Error('rendered document has no </head>')
-  const withAssets = markup.slice(0, headIndex) + assetTags(assets) + markup.slice(headIndex)
+  const withAssets =
+    markup.slice(0, headIndex) +
+    assetTags(assets, Boolean(meta.preloadScriptFont)) +
+    markup.slice(headIndex)
 
   const bodyIndex = withAssets.lastIndexOf('</body>')
   if (bodyIndex === -1) throw new Error('rendered document has no </body>')

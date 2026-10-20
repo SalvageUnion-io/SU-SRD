@@ -3,8 +3,8 @@ import { HERO_SEARCH_PLACEHOLDER } from '../lib/heroSearch'
 import { Button, SearchField } from './index'
 
 /**
- * The home page's search (board 06): "search first, in a blue chapter band".
- * A wide field and a Search button, on the Contents band beside the title.
+ * The 404's search: a wide field and a Search button on its band. The home
+ * page searches from the Union bar, as every other page does.
  *
  * Two renderings share this shell so the page never shifts when the island
  * mounts: `HeroSearchStatic` is the server markup (a plain GET form to the

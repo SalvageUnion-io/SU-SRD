@@ -23,22 +23,40 @@ export const PRELOADED_FONTS = [
 ] as const
 
 /**
- * The emitted URL of each preloaded face, picked from the fonts the base
- * stylesheet emits (`assets/<name>-<hash>.woff2`, `src/styles/baseStylesheet.ts`).
+ * The tagline's hand (Caveat 600, `lib/scriptFont.ts`), preloaded only by a
+ * page that sets the quote above the fold (`DocumentMeta.preloadScriptFont`):
+ * the SRD's home. Discovered at layout instead, it landed after the first
+ * paint, and the wider fallback hand re-wrapped the quote on the swap and
+ * moved the index under it (CLS 0.035 on `/` in the perf budget; 0 with the
+ * preload, for about 120 ms of LCP on slow 4G, measured on a laptop).
+ */
+export const SCRIPT_FONT_FILE = 'caveat-latin-600-normal'
+
+/**
+ * The emitted URL of one face, picked from the fonts the base stylesheet
+ * emits (`assets/<name>-<hash>.woff2`, `src/styles/baseStylesheet.ts`).
  *
- * Throws when a face is missing: a renamed `@fontsource` file or a dropped
+ * Throws when the face is missing: a renamed `@fontsource` file or a dropped
  * import would otherwise ship pages that silently preload nothing.
  */
-export function pickFontPreloads(emittedAssets: readonly string[]): string[] {
-  return PRELOADED_FONTS.map((name) => {
-    const file = emittedAssets.find((asset) =>
-      new RegExp(`(^|/)${name}-[\\w-]+\\.woff2$`).test(asset)
+function pickFont(name: string, emittedAssets: readonly string[]): string {
+  const file = emittedAssets.find((asset) =>
+    new RegExp(`(^|/)${name}-[\\w-]+\\.woff2$`).test(asset)
+  )
+  if (!file) {
+    throw new Error(
+      `[ssg] font preload "${name}.woff2" is not among the base stylesheet's emitted fonts. Update ssg/fontPreloads.ts to match the @fontsource imports in src/styles/base.css.`
     )
-    if (!file) {
-      throw new Error(
-        `[ssg] font preload "${name}.woff2" is not among the base stylesheet's emitted fonts. Update PRELOADED_FONTS in ssg/fontPreloads.ts to match the @fontsource imports in src/styles/base.css.`
-      )
-    }
-    return `/${file}`
-  })
+  }
+  return `/${file}`
+}
+
+/** The emitted URL of each face every page preloads, in order. */
+export function pickFontPreloads(emittedAssets: readonly string[]): string[] {
+  return PRELOADED_FONTS.map((name) => pickFont(name, emittedAssets))
+}
+
+/** The emitted URL of the tagline's hand, for the pages that ask for it. */
+export function pickScriptFontPreload(emittedAssets: readonly string[]): string {
+  return pickFont(SCRIPT_FONT_FILE, emittedAssets)
 }
