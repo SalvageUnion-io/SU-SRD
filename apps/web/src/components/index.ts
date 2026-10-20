@@ -212,6 +212,9 @@ export type { StatItem } from './containers/statsBarTypes'
 export { TitledBox } from './containers/TitledBox'
 // ToasterMount — the document's one Toaster (R20); `toast` raises an act's notice
 export { ToasterMount, toast } from './containers/Toaster'
+// TokenGrid — contentful Tokens as a masonry grid by the room it has (a sheet's
+// abilities, actions, systems and modules; a pattern's loadout)
+export { TokenGrid } from './containers/TokenGrid'
 export type { AnnouncedRoll } from './containers/toastRoll'
 export { toastRoll } from './containers/toastRoll'
 // THE ENTITY MODULE'S FACE (`entity/index.ts`, R7): the forms' shared parts,

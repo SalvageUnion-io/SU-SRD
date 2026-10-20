@@ -222,11 +222,11 @@ const foldOf = (title: string) => {
     section,
     open: button.getAttribute('aria-expanded') === 'true',
     shown: body !== null && body !== undefined && !body.hidden,
-    masonry: body?.querySelector(':scope > .su-masonry') ?? null,
+    grid: body?.querySelector<HTMLElement>(':scope > ul.su-token-grid') ?? null,
   }
 }
 
-describe('PilotSheet — the abilities are two folding masonry grids', () => {
+describe('PilotSheet — the abilities are two folding masonry grids of contentful Tokens', () => {
   for (const readOnly of [false, true]) {
     test(`tree abilities on top and open, Generic abilities under them and folded (${readOnly ? 'Read' : 'Edit'})`, () => {
       const pilot = makePilot({ abilities: ['mech-acquisition', 'tip-top-shape'] })
@@ -246,11 +246,17 @@ describe('PilotSheet — the abilities are two folding masonry grids', () => {
       expect(trees.shown).toBe(true)
       expect(generic.open).toBe(false)
       expect(generic.shown).toBe(false)
-      // Each body is a masonry grid of the ability components.
-      expect(
-        trees.masonry?.querySelector('section[aria-label="Mechanical Knowledge Tree"]')
-      ).toBeTruthy()
-      expect(generic.masonry?.querySelector('.su-entity-token')).toBeTruthy()
+      // Each body is a masonry grid of contentful Tokens, one ability a cell.
+      for (const grid of [trees.grid, generic.grid]) {
+        expect(grid).toBeTruthy()
+        const cells = Array.from(grid?.children ?? [])
+        expect(cells.length).toBeGreaterThan(0)
+        for (const cell of cells) {
+          expect(cell.tagName).toBe('LI')
+          expect(cell.querySelector('.su-entity-token[data-contentful]')).toBeTruthy()
+        }
+      }
+      expect(trees.grid?.getAttribute('aria-label')).toBe('Tree Abilities')
     })
   }
 })
@@ -286,82 +292,57 @@ describe('PilotSheet — the Generic tree is intrinsic', () => {
   })
 })
 
-/** The section the sheet draws one tree in. */
-const treeSection = (tree: string) => {
-  const section = document.querySelector<HTMLElement>(`section[aria-label="${tree} Tree"]`)
-  if (!section) throw new Error(`no ${tree} Tree section`)
-  return section
-}
+/** The tree abilities' names, in the grid's order. */
+const treeAbilityNames = () =>
+  Array.from(
+    screen
+      .getByRole('list', { name: 'Tree Abilities' })
+      .querySelectorAll(':scope > li .su-entity-token__name')
+  ).map((name) => name.textContent ?? '')
 
-const rowTitles = (section: HTMLElement) =>
-  Array.from(section.querySelectorAll('.su-ability-track__tier .su-entity-row__head')).map(
-    (head) => head.textContent ?? ''
-  )
-
-describe('PilotSheet — the trees the pilot trained in, on their tracks', () => {
-  test('a tree draws only the Abilities taken, as Rows on its track', () => {
+describe('PilotSheet — the tree abilities, tree by tree', () => {
+  test("only the Abilities taken, each a contentful Token, in its tree's order", () => {
     const pilot = makePilot({ abilities: ['mech-acquisition', 'engineering-expertise'] })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
 
-    const tree = treeSection('Mechanical Knowledge')
-    expect(tree.querySelector('.su-ability-track')?.getAttribute('data-track')).toBe('core')
     // In the tree's order, not the order stored; Talk Shop (tier 2) is not taken.
-    const titles = rowTitles(tree)
-    expect(titles).toHaveLength(2)
-    expect(titles[0]).toContain('Engineering Expertise')
-    expect(titles[1]).toContain('Mech Acquisition')
+    const names = treeAbilityNames()
+    expect(names).toHaveLength(2)
+    expect(names[0]).toContain('Engineering Expertise')
+    expect(names[1]).toContain('Mech Acquisition')
+    // Each its head and then its text.
+    const grid = screen.getByRole('list', { name: 'Tree Abilities' })
     expect(
-      Array.from(tree.querySelectorAll('.su-ability-track__tier .su-entity-row__tier')).map(
-        (n) => n.textContent
-      )
-    ).toEqual(['1', '3'])
-    // The Generic tree is never on a track.
-    expect(document.querySelector('section[aria-label="Generic Tree"]')).toBeNull()
+      grid.querySelectorAll('.su-entity-token[data-contentful] .su-entity-token__body')
+    ).toHaveLength(2)
+    // The Generic tree is its own grid, never in this one.
+    expect(names.some((name) => name.startsWith('Repair'))).toBe(false)
   })
 
-  test('trees run Core, then Advanced, then Legendary, a Legendary pick with no numeral', () => {
+  test('trees run Core, then Advanced, then Legendary', () => {
     const pilot = makePilot({
       abilities: ['tip-top-shape', 'union-engineer', 'mass-field-maintenance', 'talk-shop'],
     })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
 
-    // Read row by row across the masonry's columns: the grid deals its trees
-    // round-robin, so its reading order is the trees' order.
-    const columns = Array.from(document.querySelectorAll('.su-masonry-column'))
-    const rows = Math.max(...columns.map((column) => column.children.length))
-    const trees = Array.from({ length: rows }, (_, row) =>
-      columns.map((column) => column.children[row])
-    )
-      .flat()
-      .filter((cell) => cell?.matches('section[aria-label$=" Tree"]'))
-      .map((section) => section?.getAttribute('aria-label'))
-    expect(trees).toEqual([
-      'Mechanical Knowledge Tree',
-      'Mech-Tech Tree',
-      'Advanced Engineer Tree',
-      'Legendary Engineer Tree',
-    ])
-    expect(
-      treeSection('Advanced Engineer')
-        .querySelector('.su-ability-track')
-        ?.getAttribute('data-track')
-    ).toBe('advanced')
-    const legendary = treeSection('Legendary Engineer')
-    expect(legendary.querySelector('.su-ability-track')?.getAttribute('data-track')).toBe(
-      'legendary'
-    )
-    expect(legendary.querySelector('.su-ability-track__tier .su-entity-row__tier')).toBeNull()
-    expect(legendary.textContent).toContain('Choose 1')
+    const names = treeAbilityNames()
+    const at = (name: string) => names.findIndex((n) => n.startsWith(name))
+    expect(names).toHaveLength(4)
+    // The trees in the sheet's order (Mechanical Knowledge, Mech-Tech,
+    // Advanced Engineer, Legendary Engineer), one ability from each.
+    expect(at('Talk Shop')).toBe(0)
+    expect(at('Mass Field Maintenance')).toBe(1)
+    expect(at('Union Engineer')).toBe(2)
+    expect(at('Tip Top Shape')).toBe(3)
   })
 
-  test("Edit keeps each Row's controls on its track", async () => {
+  test("Edit puts each ability's controls in its Token's chip group", async () => {
     const pilot = makePilot({ currentAP: 5 })
     const updateSpy = mock(async () => pilot)
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot, updateSpy)} />)
 
-    // The Row's "⋯" is in its head's chip group, on the tree's track.
-    const tree = treeSection('Mechanical Knowledge')
-    const more = within(tree).getByRole('button', { name: 'More for Talk Shop' })
+    const grid = screen.getByRole('list', { name: 'Tree Abilities' })
+    const more = within(grid).getByRole('button', { name: 'More for Talk Shop' })
     expect(more.closest('[data-chip-group]')).toBeTruthy()
     await choose('Talk Shop', /spend 3 ap/i)
     expect(updateSpy).toHaveBeenCalledWith('pilot', pilot.id, { currentAP: 2 }, LIVE_SHEET_MANUAL)

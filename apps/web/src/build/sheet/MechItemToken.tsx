@@ -180,6 +180,7 @@ export function MechItemToken({
             entity={entity}
             instance={{ condition }}
             mode={{ kind: 'link' }}
+            body={{}}
           />
         }
         name={entity.name}

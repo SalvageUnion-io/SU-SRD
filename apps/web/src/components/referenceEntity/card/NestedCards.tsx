@@ -4,6 +4,7 @@ import type { RefMetaEntity } from 'salvageunion-reference'
 import { entityRef, getReferenceEntityName, resolveTable } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
 import type { CardSize } from '../../containers/displayMode'
+import { TokenGrid } from '../../containers/TokenGrid'
 import { Entity } from '../../entity/Entity'
 import { useEntitySurface } from '../../entity/entitySurfaceContext'
 import { InsidePeekContext, tablePeekAddress } from '../../entity/peekContext'
@@ -435,6 +436,7 @@ export function ActionTokens({
   hostName,
   chassisName,
   hostDown,
+  grid = false,
 }: {
   actions: readonly ReferenceCardEntity[]
   /** The size a table opens at. */
@@ -444,39 +446,48 @@ export function ActionTokens({
   /** What `[(CHASSIS)]` reads as in the text. */
   chassisName: string | undefined
   hostDown?: Down
+  /**
+   * A masonry grid (`TokenGrid`) rather than one a line: a live sheet's
+   * actions, where the column has the room for two or three (owner's call,
+   * 2026-10-20).
+   */
+  grid?: boolean
 }) {
   const insidePeek = useContext(InsidePeekContext)
   const condition = conditionOf(hostDown ?? false)
-  return (
+  const items = actions.map((action, index) => {
+    const name = getReferenceEntityName(action) ?? ''
+    const title = stripHostParenthetical(name, hostName)
+    const table = insidePeek ? undefined : resolveTable(action)
+    const tableName =
+      'tableName' in action && typeof action.tableName === 'string' ? action.tableName : title
+    return (
+      <li key={cardKey(action, index)} style={ACTION_ITEM}>
+        <Entity
+          form="token"
+          context="play"
+          entity={action as RefMetaEntity}
+          instance={{ title, ...(condition ? { condition } : {}) }}
+          body={{ chassisName }}
+        />
+        {table && (
+          <CardRollTable
+            table={table}
+            name={tableName}
+            size={size}
+            disabled={!!hostDown}
+            nested
+            peekAt={tablePeekAddress(action)}
+          />
+        )}
+      </li>
+    )
+  })
+  return grid ? (
+    <TokenGrid label={`${hostName} actions`}>{items}</TokenGrid>
+  ) : (
     <ul className="su-entity-token-list" style={ACTION_LIST}>
-      {actions.map((action, index) => {
-        const name = getReferenceEntityName(action) ?? ''
-        const title = stripHostParenthetical(name, hostName)
-        const table = insidePeek ? undefined : resolveTable(action)
-        const tableName =
-          'tableName' in action && typeof action.tableName === 'string' ? action.tableName : title
-        return (
-          <li key={cardKey(action, index)} style={ACTION_ITEM}>
-            <Entity
-              form="token"
-              context="play"
-              entity={action as RefMetaEntity}
-              instance={{ title, ...(condition ? { condition } : {}) }}
-              body={{ chassisName }}
-            />
-            {table && (
-              <CardRollTable
-                table={table}
-                name={tableName}
-                size={size}
-                disabled={!!hostDown}
-                nested
-                peekAt={tablePeekAddress(action)}
-              />
-            )}
-          </li>
-        )
-      })}
+      {items}
     </ul>
   )
 }

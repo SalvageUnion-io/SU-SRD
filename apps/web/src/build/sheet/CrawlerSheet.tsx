@@ -72,6 +72,7 @@ import {
   SlabSection,
   Stack,
   Stat,
+  TokenGrid,
   tokens,
 } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
@@ -265,15 +266,21 @@ export function CrawlerSheet({
         <EmptyState variant="quiet" body="No weapons mounted." />
       )
     ) : (
-      // One Token a line across the bay, each Peeking its whole card
-      // (owner's call, 2026-10-14).
-      <ul aria-label="Weapons mounted" className="su-entity-token-list">
+      // Contentful Tokens in a masonry grid across the bay, each Peeking its
+      // whole card (owner's call, 2026-10-20).
+      <TokenGrid label="Weapons mounted">
         {crawler.systems.map((slug) => {
           const system = resolveCrawlerSystem(slug)
           return (
             <li key={slug}>
               {system ? (
-                <Entity form="token" context="loadout" entity={system} mode={{ kind: 'link' }} />
+                <Entity
+                  form="token"
+                  context="loadout"
+                  entity={system}
+                  mode={{ kind: 'link' }}
+                  body={{}}
+                />
               ) : (
                 <UnknownItemLine
                   slug={slug}
@@ -285,7 +292,7 @@ export function CrawlerSheet({
             </li>
           )
         })}
-      </ul>
+      </TokenGrid>
     )
 
   /** The Storage Bay's scrap pool + the crawler hold — rendered INSIDE it. */

@@ -39,6 +39,7 @@ import {
   SlabSection,
   Stack,
   summarizeBreakdown,
+  TokenGrid,
 } from '../../components/index'
 import { usePartnerCargo } from '../../lib/cargo/usePartnerCargo'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'
@@ -261,8 +262,11 @@ export function PartnerCard({
     const keys = occurrenceKeys(slugs)
     return (
       <SlabSection as="h4" title={kind === 'system' ? 'Systems' : 'Modules'}>
-        {/* One Token a line, each Peeking its whole card. */}
-        <ul className={readOnly ? 'su-entity-token-list' : 'su-entity-token-list su-sheet-items'}>
+        {/* Contentful Tokens in a masonry grid, each Peeking its whole card. */}
+        <TokenGrid
+          label={`${partner.name ?? 'Partner'} ${kind === 'system' ? 'systems' : 'modules'} installed`}
+          edit={!readOnly}
+        >
           {slugs.map((slug, index) => (
             <li key={keys[index]}>
               <MechItemToken
@@ -292,7 +296,7 @@ export function PartnerCard({
               />
             </li>
           ))}
-        </ul>
+        </TokenGrid>
       </SlabSection>
     )
   }

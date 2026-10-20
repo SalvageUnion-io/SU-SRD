@@ -252,14 +252,24 @@ describe('pattern loadout tokens', () => {
     )
   })
 
-  test('the loadout does not reprint the entities` rules inline', () => {
+  test('each loadout entry is a contentful Token: its head, then its text (owner, 2026-10-20)', () => {
     const { chassis, pattern } = thunderStorm()
     const { container } = render(
       <ReferenceEntityCard data={chassis} pattern={pattern} size="full" />
     )
-    // The machine gun's own description belongs on its page, not six times over
-    // in a pattern's loadout.
-    expect(container.textContent).not.toContain('This simple ballistic weapon')
+    const systems = screen.getByRole('list', { name: 'Systems installed' })
+    const entries = Array.from(systems.querySelectorAll(':scope > li'))
+    expect(entries.length).toBeGreaterThan(0)
+    for (const entry of entries) {
+      expect(entry.querySelector(':scope > .su-entity-token[data-contentful]')).not.toBeNull()
+    }
+    // The machine gun's description reads under each of its six Tokens.
+    const text = 'This simple ballistic weapon'
+    expect(
+      [...container.querySelectorAll('.su-entity-token__body')].filter((body) =>
+        body.textContent?.includes(text)
+      )
+    ).toHaveLength(6)
   })
 
   test('without a route the names are not links', () => {
@@ -285,16 +295,16 @@ describe('pattern loadout tokens', () => {
     expect(opened.map((ref) => ref.name)).toEqual(['.50 Cal Machine Gun'])
   })
 
-  test('each entry is one full-width Token: its name (its kind read out), then its action type, TL and Slots', () => {
+  test('each entry is one Token in the masonry grid: its name (its kind read out), then its action type, TL and Slots', () => {
     const { chassis, pattern } = thunderStorm()
     render(srdLinks(<ReferenceEntityCard data={chassis} pattern={pattern} size="full" />))
     const systems = screen.getByRole('list', { name: 'Systems installed' })
-    expect(systems.classList.contains('su-entity-token-list')).toBe(true)
+    expect(systems.classList.contains('su-token-grid')).toBe(true)
     const entries = Array.from(systems.querySelectorAll(':scope > li'))
     expect(entries.length).toBeGreaterThan(0)
     for (const entry of entries) {
-      // One Token a line, the link itself.
-      const tokens = entry.querySelectorAll('a.su-entity-token')
+      // One Token a cell, its head the link.
+      const tokens = entry.querySelectorAll('a.su-entity-token__head')
       expect(tokens).toHaveLength(1)
       const pill = tokens[0]?.querySelector('.su-entity-token__pill')
       // The kind is never stamped (E9): screen readers hear it after the name.

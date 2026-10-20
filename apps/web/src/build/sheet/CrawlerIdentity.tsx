@@ -24,7 +24,7 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
-import { Entity, Field, Stat, tokens } from '../../components/index'
+import { Entity, Field, Stat, TokenGrid, tokens } from '../../components/index'
 import { resolveCrawlerType, resolveCrawlerTypeAbilities } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import type { useEntityStore } from '../../stores/entityStore'
@@ -55,16 +55,6 @@ const TYPE_LINE = {
   alignItems: 'stretch',
   flexWrap: 'wrap',
   gap: tokens.space[8],
-} satisfies CSSProperties
-
-/** The special-ability Rows: a bare list, each Row the column's full width. */
-const ABILITY = {
-  display: 'grid',
-  gap: tokens.space[8],
-  listStyle: 'none',
-  margin: 0,
-  minWidth: 0,
-  padding: 0,
 } satisfies CSSProperties
 
 type CrawlerIdentityPanelProps = {
@@ -165,17 +155,22 @@ export function CrawlerIdentityPanel({
             assigned={typeCrew}
             ability={
               abilities.length > 0 && (
-                // A library Row, matching the crew NPC beside it (owner's
-                // call, 2026-10-14: crawler abilities are not Tokens), with no
-                // lead: a lead is an SRD index's alone (EDL E11, hard rule R35).
-                // Its Peek reads the whole ability.
-                <ul aria-label="Special ability" style={ABILITY}>
+                // Contentful Tokens, each its head and then its text, Peeking
+                // the whole ability (owner's call, 2026-10-20: every sheet
+                // entity a contentful Token).
+                <TokenGrid label="Special ability">
                   {abilities.map((ability) => (
                     <li key={ability.id}>
-                      <Entity form="row" entity={ability} peek />
+                      <Entity
+                        form="token"
+                        context="play"
+                        entity={ability}
+                        mode={{ kind: 'link' }}
+                        body={{}}
+                      />
                     </li>
                   ))}
-                </ul>
+                </TokenGrid>
               )
             }
           />

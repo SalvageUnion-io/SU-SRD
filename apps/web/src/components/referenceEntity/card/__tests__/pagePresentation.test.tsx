@@ -182,7 +182,7 @@ describe('the card as a page', () => {
     expect(sizes).not.toContain('0.75rem')
   })
 
-  test('a pattern page lists its loadout after its chassis ability, as level-1 compact Cards', () => {
+  test('a pattern page lists its loadout after its chassis ability, as contentful Tokens in a grid', () => {
     const chassis = gopher()
     const pattern = need(
       chassis.patterns?.find((p) => (p.systems?.length ?? 0) > 0),
@@ -201,20 +201,19 @@ describe('the card as a page', () => {
       !!(before.compareDocumentPosition(loadout) & Node.DOCUMENT_POSITION_FOLLOWING)
     expect(following(container.querySelector('.su-entity-page__lead'))).toBe(true)
     expect(container.querySelector('.su-entity-page__opening .su-entity-token')).toBeNull()
-    // One framed card per installed part (multiples repeat), each titled
-    // under its group's Slab, never a Token or a grid of Rows.
+    // One contentful Token per installed part (multiples repeat), each in its
+    // group's masonry grid under its Slab (owner's call, 2026-10-20), never a
+    // framed card or a Row.
     const parts = (pattern.systems ?? [])
       .concat(pattern.modules ?? [])
       .reduce((sum, part) => sum + (part.count ?? 1), 0)
-    const cards = [...(loadout?.querySelectorAll('.su-ec-frame') ?? [])]
-    expect(cards).toHaveLength(parts)
+    const tokens = [
+      ...(loadout?.querySelectorAll('ul.su-token-grid > li > .su-entity-token[data-contentful]') ??
+        []),
+    ]
+    expect(tokens).toHaveLength(parts)
     expect(loadout?.querySelector('.su-entity-row')).toBeNull()
-    expect(loadout?.querySelector(':scope > section > ul.su-entity-token-list')).toBeNull()
-    for (const card of cards) {
-      expect(card.querySelector('h3')).not.toBeNull()
-      // Level 1 nests no framed card: its actions are level-2 Tokens.
-      expect(card.querySelector('.su-ec-frame')).toBeNull()
-    }
+    expect(loadout?.querySelector('.su-ec-frame')).toBeNull()
   })
 
   test('patterns are full-width link rows, with a phone’s "Show all" link', () => {

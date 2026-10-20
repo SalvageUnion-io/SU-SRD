@@ -1,9 +1,9 @@
 /**
  * MechHeroChassis — the mech hero's right column (owner's call, 2026-10-14:
  * the hero is image | text | stats + ability): the mech's chassis stats in
- * the hero's top-right corner, the chassis ability as a library Row (its
- * cut-out head, Peeking its whole card) under them (EDL E19). No lead: a lead
- * is an SRD index's alone (E11, hard rule R35).
+ * the hero's top-right corner, the chassis ability under them as a
+ * contentful Token, its head and then its text, Peeking its whole card
+ * (owner's call, 2026-10-20; EDL E19 allows a contentful Token anywhere).
  */
 
 import type { CSSProperties } from 'react'
@@ -19,6 +19,8 @@ const ABILITY = {
   padding: 0,
 } satisfies CSSProperties
 
+const LINK = { kind: 'link' } as const
+
 type MechHeroChassisProps = {
   stats: MechSheetModel['chassisStats']
   abilities: MechSheetModel['chassisAbilities']
@@ -32,7 +34,7 @@ export function MechHeroChassis({ stats, abilities }: MechHeroChassisProps) {
         <ul aria-label="Chassis ability" style={ABILITY}>
           {abilities.map((ability) => (
             <li key={ability.id}>
-              <Entity form="row" entity={ability} peek />
+              <Entity form="token" context="play" entity={ability} mode={LINK} body={{}} />
             </li>
           ))}
         </ul>

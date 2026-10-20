@@ -4,11 +4,11 @@ import { getReferenceEntityName } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
 import { Slab } from '../../atoms/Slab'
 import { SlabSection } from '../../containers/SlabSection'
+import { TokenGrid } from '../../containers/TokenGrid'
 import { Entity } from '../../entity/Entity'
 import type { Down } from './cardChrome'
 import { conditionOf } from './cardChrome'
-import { cardKey, nestedTitleLevel } from './cardHelpers'
-import { nestedChildSize } from './entityCardTone'
+import { cardKey } from './cardHelpers'
 import type { NestedCardHost } from './NestedCards'
 import type { ReferenceCardEntity } from './referenceEntityCardTypes'
 import type { DroneLoadout, NestedGroup } from './resolveNestedEntities'
@@ -46,7 +46,7 @@ const droneStyle = {
 
 /**
  * A pattern's LOADOUT — its Systems and Modules groups SIDE BY SIDE, each a
- * Slab over one full-width Token a line (see `LoadoutToken`). Its
+ * Slab over its contentful Tokens in a masonry grid (see `LoadoutToken`). Its
  * DRONES, when it fields any, run the full width under both (`PatternDrones`).
  *
  * One block, not one per group, because the two columns only line up if a
@@ -97,16 +97,13 @@ export function PatternLoadout({
               a screen reader should announce "list, 6 items" rather than a run
               of anonymous links. Each Token runs the column's width, its TL
               cell at the right edge (`.su-entity-token-list`). */}
-          <ul
-            aria-label={`${owner ? `${owner} ` : ''}${group.label} installed`}
-            className="su-entity-token-list"
-          >
+          <TokenGrid label={`${owner ? `${owner} ` : ''}${group.label} installed`}>
             {group.entities.map((item, itemIndex) => (
               <li key={cardKey(item, itemIndex)}>
                 <LoadoutToken data={item} hostDown={hostDown} />
               </li>
             ))}
-          </ul>
+          </TokenGrid>
         </div>
       ))}
       {drones.length > 0 && (
@@ -169,15 +166,11 @@ function PatternDrones({
 }
 
 /**
- * `LoadoutToken` — one installed system/module in a pattern CARD's loadout:
- * a TOKEN (`[kind] name [TL | n]`), the card's children being level 2 (N1),
- * running the list's full width, one part a line (N4). The part's tone reads
- * at a glance; the Token opens its Page and Peeks its whole card; one row,
- * its name ending in "…" where it runs out of room (E18).
- *
- * A pattern is a BUILD LIST, not rules to read: its systems and modules are
- * ordinary catalogue entities whose full text lives on their own pages, so the
- * loadout names them rather than printing every card in full.
+ * `LoadoutToken` — one installed system/module in a pattern's loadout, on its
+ * card and its Page alike: a CONTENTFUL Token (N3; owner's call, 2026-10-20:
+ * "all of em, contentful tokens"), its head (`[kind] name [TL | n]`) and then
+ * its text, in the loadout's masonry grid (`TokenGrid`). The part's tone reads
+ * at a glance; the Token opens its Page and Peeks its whole card.
  *
  * MULTIPLES REPEAT. Six machine guns are six lines, matching the loadout the
  * pattern actually installs (and `resolvePatternGroups`, which emits one entry
@@ -212,16 +205,10 @@ function LoadoutToken({
       entity={data as RefMetaEntity}
       mode={LINK}
       {...(title || condition ? { instance } : {})}
+      body={{}}
     />
   )
 }
-
-/** A group's cards under its Slab, the Page's 12px apart (R17). */
-const GROUP_BODY = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: space[12],
-} satisfies CSSProperties
 
 const LOADOUT_PAGE = {
   display: 'flex',
@@ -231,10 +218,9 @@ const LOADOUT_PAGE = {
 
 /**
  * A pattern PAGE's loadout, under its chassis ability: each group (Systems,
- * Modules) a solid Slab over its parts at LEVEL 1 (N1, EDL "Which form,
- * where"): each the compact Card a Page's other children are, its own
- * actions nested in it as level-2 Tokens. Multiples repeat, as on the card's
- * loadout (`LoadoutToken`).
+ * Modules) a solid Slab over its parts, each a contentful Token in a masonry
+ * grid (`LoadoutToken`, owner's call, 2026-10-20), as a mech's sheet draws
+ * them. Multiples repeat, as on the card's loadout.
  */
 export function PatternLoadoutRows({
   groups,
@@ -248,32 +234,17 @@ export function PatternLoadoutRows({
   host: NestedCardHost
 }) {
   if (groups.length === 0) return null
-  const { NestedCard } = host
   return (
     <div className="su-entity-page__loadout" style={LOADOUT_PAGE}>
       {groups.map((group) => (
-        <SlabSection
-          as={sectionAs}
-          title={group.label}
-          page
-          key={group.label}
-          bodyStyle={GROUP_BODY}
-        >
-          {group.entities.map((item, index) => (
-            <NestedCard
-              key={cardKey(item, index)}
-              data={item}
-              size={nestedChildSize(host.size)}
-              depth={host.depth + 1}
-              hostDown={host.isDown}
-              readable={host.readableProse}
-              // A heading under its group's Slab.
-              titleAs={nestedTitleLevel(host.onPage)}
-              hostName={host.entityName}
-              chassisName={host.chassisName}
-              shownProse={host.shownProse}
-            />
-          ))}
+        <SlabSection as={sectionAs} title={group.label} page key={group.label}>
+          <TokenGrid label={`${group.label} installed`}>
+            {group.entities.map((item, index) => (
+              <li key={cardKey(item, index)}>
+                <LoadoutToken data={item} hostDown={host.isDown} />
+              </li>
+            ))}
+          </TokenGrid>
         </SlabSection>
       ))}
     </div>

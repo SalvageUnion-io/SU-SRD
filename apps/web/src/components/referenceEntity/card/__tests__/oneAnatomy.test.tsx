@@ -155,9 +155,9 @@ describe('nesting legibility', () => {
     expect(within(drone).queryByText('Drone')).toBeNull()
     expect(within(drone).getAllByText(/\(Drone\)/).length).toBeGreaterThan(0)
     expect(within(drone).queryByText('Systems')).toBeNull()
-    // "…comes with a single Sestra Drone…" is printed once — by the Drone
-    // Controller ability — not again by the drone it names.
-    expect(screen.getAllByText(/comes with a single Sestra Drone/).length).toBe(1)
+    // "…comes with a single Sestra Drone…" is the Drone Controller ability's
+    // to print, never again by the drone it names.
+    expect(within(drone).queryByText(/comes with a single Sestra Drone/)).toBeNull()
   })
 
   test('level 2 is a Token that opens the entity (N1)', () => {

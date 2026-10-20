@@ -104,6 +104,7 @@ const ROSTER = {
     'Cluster',
     'Grid',
     'MasonryColumns',
+    'TokenGrid', // EDL Token, contentful (N3): a list of them as masonry
   ],
   /** The EDL's forms and modes, the entity module's face, and the Card and Page. */
   edl: [

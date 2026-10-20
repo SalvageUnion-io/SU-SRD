@@ -60,21 +60,11 @@ type PilotAbilityItemProps = {
   onSpend: (cost: number) => void
   onToggleUsed: (next: boolean) => void
   readOnly: boolean
-  /**
-   * `row` on a tree's track (the SRD's Tree view): the Row, which Peeks the
-   * card, its tier numeral in its band and its kind left to the tree's
-   * slab, the controls on the line under it; no lead, which is an SRD
-   * index's alone (EDL E11, hard rule R35). A Token otherwise.
-   */
-  form?: 'token' | 'row'
 }
 
-/** On a track the tree's slab names the kind. */
-const OMIT_KIND = ['kind'] as const
-
 /**
- * One ability: its Token, which Peeks the whole card (owner's call,
- * 2026-10-14: "all references = peek tokens"), its "Used" stamp in its state
+ * One ability: its CONTENTFUL Token (N3; owner's call, 2026-10-20), its head
+ * and then its text, which Peeks the whole card, its "Used" stamp in its state
  * slot, and in Edit a "⋯" in its chip group with Spend AP and Mark used. AP cost resolves
  * from the ability's actions (resolveAbilityApCost): `null` means no FIXED
  * numeric cost (variable 'X' or none) — no spend control renders, we never
@@ -87,7 +77,6 @@ export function PilotAbilityItem({
   onSpend,
   onToggleUsed,
   readOnly,
-  form = 'token',
 }: PilotAbilityItemProps) {
   const apCost = resolveAbilityApCost(ability)
   // Spend and Used are one "⋯" in the chip group's last slot (C8): its state
@@ -107,11 +96,7 @@ export function PilotAbilityItem({
   return (
     <SheetItemLine
       token={
-        form === 'row' ? (
-          <Entity form="row" entity={ability} mode={{ kind: 'link' }} omit={OMIT_KIND} peek />
-        ) : (
-          <Entity form="token" context="play" entity={ability} mode={{ kind: 'link' }} />
-        )
+        <Entity form="token" context="play" entity={ability} mode={{ kind: 'link' }} body={{}} />
       }
       name={ability.name}
       readOnly={readOnly}

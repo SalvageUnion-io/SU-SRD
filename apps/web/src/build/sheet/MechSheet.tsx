@@ -62,6 +62,7 @@ import {
   FieldError,
   SlabSection,
   Stack,
+  TokenGrid,
   tokens,
 } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
@@ -224,11 +225,12 @@ export function MechSheet({
     // Keyed by occurrence, not index: removing one item must not remount (and
     // hand local state to) the items after it. See occurrenceKeys.
     const keys = occurrenceKeys(slugs)
-    // One Token a line, each Peeking its whole card (owner's call, 2026-10-14).
+    // Contentful Tokens in a masonry grid, each its head and then its text,
+    // Peeking its whole card (owner's call, 2026-10-20).
     return (
-      <ul
-        aria-label={kind === 'system' ? 'Systems installed' : 'Modules installed'}
-        className={readOnly ? 'su-entity-token-list' : 'su-entity-token-list su-sheet-items'}
+      <TokenGrid
+        label={kind === 'system' ? 'Systems installed' : 'Modules installed'}
+        edit={!readOnly}
       >
         {slugs.map((slug, index) => (
           <li key={keys[index]}>
@@ -255,7 +257,7 @@ export function MechSheet({
             />
           </li>
         ))}
-      </ul>
+      </TokenGrid>
     )
   }
 

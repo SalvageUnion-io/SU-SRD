@@ -294,6 +294,7 @@ export function NpcSheet({
                     size="compact"
                     hostName={npc.name}
                     chassisName={undefined}
+                    grid
                   />
                 </SlabSection>
               )}

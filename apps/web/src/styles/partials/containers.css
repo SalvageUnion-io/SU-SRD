@@ -170,6 +170,30 @@
   }
 }
 
+/* TokenGrid (`components/containers/TokenGrid.tsx`): contentful Tokens as a
+   masonry grid by the room it has, an 18rem column at least and three at
+   most, each Token whole in its column. */
+.su-token-grid {
+  column-gap: var(--space-12);
+  columns: 18rem 3;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-token-grid > li {
+  break-inside: avoid;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-12);
+  min-width: 0;
+}
+
+.su-token-grid > li:last-child {
+  margin-bottom: 0;
+}
+
 /* Skeleton (`components/containers/Skeleton.tsx`): the ghost bar, and the pulse
    every loading placeholder breathes with — only for a reader who has not
    asked for reduced motion. */
