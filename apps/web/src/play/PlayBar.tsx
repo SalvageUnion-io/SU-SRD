@@ -69,16 +69,16 @@ const BACK = {
 
 /**
  * The notch: the title on a cut-out of the page ground, in ink, flush with
- * the band's foot, as `ChapterBand`'s title sits on a page's band.
+ * the band's foot, as `ChapterBand`'s title sits on a page's band. Its line
+ * is the controls' line (`.su-play-bar__notch`, `play/bar.css`), so the
+ * title's text centres with the chips and buttons beside it.
  */
 const TITLE = {
   background: 'var(--color-wk-bg)',
   color: 'var(--color-ink)',
-  lineHeight: 1,
   margin: 0,
   minWidth: 0,
   overflow: 'hidden',
-  padding: `${tokens.space[8]} ${tokens.space[12]} ${tokens.space[6]}`,
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
