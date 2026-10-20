@@ -1,6 +1,12 @@
 import { describe, expect, test } from 'bun:test'
 import { getEntitySchemas, getModel, SalvageUnionReference } from 'salvageunion-reference'
-import { bandFillFor, buildChapters, CONTENTS, chapterForSchema } from '../chapters'
+import {
+  bandFillFor,
+  buildChapters,
+  CONTENTS,
+  chapterForSchema,
+  listingBandFillFor,
+} from '../chapters'
 import { listingEntries } from '../listingEntries'
 
 /**
@@ -68,6 +74,15 @@ describe('chapterForSchema', () => {
 
   test('a schema no chapter gathers falls back to Contents', () => {
     expect(chapterForSchema('actions')).toEqual(CONTENTS)
+  })
+})
+
+describe('listingBandFillFor', () => {
+  test('the systems and modules indexes wear TL1 blue; every other listing its chapter', () => {
+    expect(listingBandFillFor('systems')).toEqual({ band: 'var(--color-tl-1)' })
+    expect(listingBandFillFor('modules')).toEqual({ band: 'var(--color-tl-1)' })
+    expect(listingBandFillFor('chassis')).toBeUndefined()
+    expect(listingBandFillFor('equipment')).toBeUndefined()
   })
 })
 

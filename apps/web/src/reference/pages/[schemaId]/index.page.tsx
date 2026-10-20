@@ -1,7 +1,8 @@
 /**
  * `/[schemaId]` — the per-schema listing page (`/chassis/`).
  *
- * Headed by its chapter's band (the schema's plural name notched in, the
+ * Headed by its chapter's band, or its own (`listingBandFillFor`: the systems'
+ * and modules' TL blue) (the schema's plural name notched in, the
  * listing's search and filters on it), then the listing: the Catalog, one flat grid of Tiles with no group headings, at
  * every width (`lib/listingView.ts`). The abilities open on their Tree
  * instead, each tree under its heading on its track, with Catalog | Tree in
@@ -22,7 +23,7 @@ import { getAssetUrl } from 'salvageunion-reference'
 import type { PageModule, PageResult, RouteContext } from '../../../../ssg/types'
 import type { ListingBand } from '../../../components/islands/ListingFrame'
 import { SchemaViewerListing } from '../../../components/islands/SchemaViewerIsland'
-import { chapterForSchema } from '../../../lib/chapters'
+import { chapterForSchema, listingBandFillFor } from '../../../lib/chapters'
 import { SITE_URL, SRD_CRUMB, WEBSITE } from '../../../lib/constants'
 import { schemaHref } from '../../../lib/entityHref'
 import { getUniqueSources, getUniqueTechLevels, getUniqueTrees } from '../../../lib/gameData'
@@ -72,6 +73,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const band: ListingBand = {
     title: pluralName,
     tone: chapter.tone,
+    fill: listingBandFillFor(schemaId)?.band,
     trail: [
       { name: SRD_CRUMB.name, url: '/' },
       { name: pluralName, url: schemaHref(schemaId) },
