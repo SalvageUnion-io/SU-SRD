@@ -281,9 +281,6 @@ function scan({
       if (sizes.size > 1) faults.push(`size: "${describe(el)}" at ${[...sizes].join(' / ')}`)
     }
 
-    const classOfEl = (el: Element) =>
-      el.closest('[data-chip-class]')?.getAttribute('data-chip-class')
-
     // LINES: chips whose boxes overlap vertically by half the shorter one.
     const boxes: Box[] = chips.map((el) => {
       const r = el.getBoundingClientRect()
@@ -300,18 +297,11 @@ function scan({
     for (const line of lines) line.sort((a, b) => a.x - b.x)
     lines.sort((a, b) => (a[0] as Box).y - (b[0] as Box).y)
 
-    // GAP: every neighbouring pair in the strip one gap apart. A list's line
-    // in its lanes (C6: `[data-chip-lanes]`, its lanes boxes) leaves a cell
-    // empty, or a shorter value room, by design: there the gap is the lane's,
-    // between neighbours of one class.
-    const laned =
-      root.matches('[data-lanes]') &&
-      !!root.closest('[data-chip-lanes]') &&
-      [...root.children].some((lane) => getComputedStyle(lane).display !== 'contents')
+    // GAP: every neighbouring pair in the strip one gap apart, whatever its
+    // class: chips always collapse to one side, never a gap (owner, 2026-10-20).
     const gaps = lines.flatMap((line) =>
       line.slice(1).flatMap((b, i) => {
         const a = line[i] as Box
-        if (laned && classOfEl(a.el) !== classOfEl(b.el)) return []
         return [Math.round(b.x - (a.x + a.w))]
       })
     )

@@ -254,7 +254,6 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: RefClas
         // share every class's lane (C6, R2).
         <Chips
           size="compact"
-          lanes
           chips={{ durations: [], facts: [], tags: [] }}
           marks={[
             <Stat key="kind" label={kind} size="compact" />,

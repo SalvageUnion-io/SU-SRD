@@ -29,14 +29,14 @@ A strip is a Mini, a Compact or Full head, or a TitledBox or Slab header.
 - **C4** A Mini's context lane is named by its container, from the closed list.
 - **C5** Only the name flexes: a Mini's ends in "…", any other wraps. Chips and controls never shrink, clip or scale.
   A header-only rendering's chips are one row (C2b); what does not fit ends it in a +MORE chip (no count), the cost kept right before it, and the entity (its Peek, its Page) shows the rest. A contentful rendering never shows +MORE: its overflow is C2b's body row (owner, 2026-10-20).
-- **C6** In a list of Compacts each chip class and action slot is a column every line shares (a Mini's chips pack right, no lanes); an absent value leaves its cell empty, and a lane never shrinks below its chip.
+- **C6** Chips collapse to one side, one gap apart, in a list as alone (owner, 2026-10-20): no lane is a column, no absent value leaves a hole; a line's strip is its own.
   Too narrow for every lane and a readable name (a container query), each line packs right and its empty cells collapse.
 - **C7** A live reading reserves its maximum's width, in tabular figures.
 - **C8** Actions are chips: inlined in the chip group after the cost, at its Size, in fixed slots: state · uses · ⋯ or ✕. Nothing sits beside a strip, and nothing expands under it: Details opens the Page.
   A state's follow-up (Repair) opens from the state slot; at most two visible, then ⋯; never hover-only.
 - **C9** A mode swaps what fills a slot (a read chip, a control, a seal), never its size.
 - **C10** A header's summary never repeats a child's fact or its parent's summary; Slab and TitledBox take it as one `SlabCount` list.
-- **C11** A related unit or entity is a relation chip, label first, its value Peeking and opening it (a Game, which has no Peek, links to its Play page): never a loose stamp ("Assigned: X") or a Mini beside the strip. Read and Edit show the same chip. An absent relation leaves its lane empty (C6), never an "Unassigned" chip.
+- **C11** A related unit or entity is a relation chip, label first, its value Peeking and opening it (a Game, which has no Peek, links to its Play page): never a loose stamp ("Assigned: X") or a Mini beside the strip. Read and Edit show the same chip. An absent relation draws nothing (C6), never an "Unassigned" chip.
 
 ## Built as
 

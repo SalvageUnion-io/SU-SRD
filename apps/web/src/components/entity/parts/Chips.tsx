@@ -1,12 +1,11 @@
 import type { ReactNode } from 'react'
-import { Children, cloneElement, Fragment, isValidElement, useLayoutEffect, useRef } from 'react'
+import { Children, cloneElement, Fragment, isValidElement } from 'react'
 import { splitStatLine } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
 import type { CSSVarStyle } from '../../../styles/cssVars'
 import type { Size } from '../../../styles/sizing'
 import { ActivationCost } from '../../atoms/ActivationCost'
 import { Stat } from '../../atoms/Stat'
-import { joinLanes } from './chipLanes'
 import type { ChipClass, ChipSet } from './chipSet'
 import { CHIP_CLASSES, costCell, RANK_KEY } from './chipSet'
 import { Facts } from './Facts'
@@ -51,7 +50,6 @@ export function Chips({
   nodes,
   align = 'start',
   as: Tag = 'div',
-  lanes: inList = false,
   className,
 }: {
   chips: ChipSet
@@ -78,20 +76,8 @@ export function Chips({
   align?: 'start' | 'end'
   /** A `span` where the strip sits in phrasing content (a Mini's pill, a CompactIndex's band). */
   as?: 'div' | 'span'
-  /**
-   * A line's strip in a list (a Compact's or Mini's head): every class keeps its
-   * lane, empty or not, and the list sets each lane's width (`chipLanes.ts`,
-   * C6), so a class is a column down the list.
-   */
-  lanes?: boolean
   className?: string
 }) {
-  const ref = useRef<HTMLElement>(null)
-  useLayoutEffect(() => {
-    const strip = ref.current
-    if (!inList || !strip) return
-    return joinLanes(strip)
-  }, [inList])
   const { stats, action } = splitStatLine(chips.facts)
   const rank = stats.filter((stat) => stat.key === RANK_KEY)
   const measure = stats.filter((stat) => stat.key !== RANK_KEY)
@@ -144,13 +130,11 @@ export function Chips({
   if (lanes.every((lane) => lane.nodes.length === 0)) return null
   return (
     <Tag
-      ref={ref as never}
       data-chip-group=""
-      data-lanes={inList || undefined}
       className={cn('su-chips', align === 'end' && 'su-chips--end', className)}
     >
       {lanes.map((lane, index) =>
-        lane.nodes.length === 0 && !inList ? null : (
+        lane.nodes.length === 0 ? null : (
           <span
             key={lane.cls}
             className="su-chip-lane"

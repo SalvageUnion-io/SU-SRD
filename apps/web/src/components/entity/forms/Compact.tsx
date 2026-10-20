@@ -216,7 +216,6 @@ export function Compact({
               size="compact"
               linkable={mode.kind === 'read'}
               relationsLinkable={mode.kind === 'read' || covered}
-              lanes
               marks={marks}
               state={slots.state}
               menu={slots.trailing}

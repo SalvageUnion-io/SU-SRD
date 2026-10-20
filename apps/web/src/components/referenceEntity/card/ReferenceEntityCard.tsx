@@ -438,7 +438,6 @@ function ReferenceEntityCardInner({
           marks={onPage ? suggestedNode : [...labelChips(labelProps, 'compact'), suggestedNode]}
           nodes={tree}
           state={slots.state.length > 0 ? slots.state : undefined}
-          lanes
         />
       }
       controls={slots.controls.length > 0 ? slots.controls : undefined}

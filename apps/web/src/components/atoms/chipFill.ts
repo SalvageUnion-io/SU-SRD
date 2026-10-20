@@ -57,8 +57,8 @@ export const OUT_ATTRIBUTE = 'data-fill-out'
 /**
  * The classes that never leave the head (C2b): the rank (the Tech Level),
  * the cost and the slots after it (C8: state, uses, the menu). What is in no
- * class (a band's control, a Card's type stamp, a list's lanes drawn as one
- * box) stays too, unless the name would break inside a word (`planWithRoom`).
+ * class (a band's control, a Card's type stamp) stays too, unless the name
+ * would break inside a word (`planWithRoom`).
  */
 const KEPT_CLASSES = new Set(['rank', 'cost', 'state', 'uses', 'menu'])
 

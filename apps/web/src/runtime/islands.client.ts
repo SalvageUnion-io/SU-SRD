@@ -19,11 +19,7 @@
  * it (`interaction.ts`), so a page nobody touches loads no React.
  */
 
-import {
-  joinStaticLanes,
-  watchStaticChipFill,
-  watchStaticTokenOverflow,
-} from '../components/entity/staticRuntime'
+import { watchStaticChipFill, watchStaticTokenOverflow } from '../components/entity/staticRuntime'
 import { readAccountHint } from '../lib/accountHint'
 import { browserStorage, markSignedIn } from '../lib/accountState'
 import { initBrowserObservability, installChunkRecovery } from '../lib/observability'
@@ -49,9 +45,6 @@ installChunkRecovery()
 const signedIn = readAccountHint(browserStorage()) !== null
 markSignedIn(document, signedIn)
 
-// A list's chip lanes (C6): the server-rendered lines' strips join their lists
-// here; an island's join from `Chips` when it mounts.
-joinStaticLanes()
 // A contentful Mini's chips that do not fit beside its name go to its body's first row (C2b); an island's fit from `Mini`.
 watchStaticTokenOverflow()
 // A head's chips fill from its bottom-right corner (§4.7); an island's fit from `Head`, `CompactIndex`, `ChapterBand`.

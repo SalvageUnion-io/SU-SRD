@@ -8,4 +8,3 @@
 
 export { watchStaticChipFill } from '../atoms/chipFill'
 export { watchStaticTokenOverflow } from './parts/chipFit'
-export { joinStaticLanes } from './parts/chipLanes'
