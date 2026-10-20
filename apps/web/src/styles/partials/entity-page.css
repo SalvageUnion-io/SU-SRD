@@ -284,9 +284,10 @@
   line-height: 1.6;
 }
 
-/* The prose's blocks (a run of prose, the When Damaged callout) take the
-   column's gap, not a card body's margin. */
-.su-entity-page__prose > .su-ec-block:not(:last-child) {
+/* The prose's blocks (a run of prose, a crawler bay's Bay Info and what it
+   holds) take the column's gap, not a card body's margin. */
+.su-entity-page__prose > .su-ec-block:not(:last-child),
+.su-entity-page__prose .su-entity-page__section-body > .su-ec-block:not(:last-child) {
   margin-bottom: 0;
 }
 

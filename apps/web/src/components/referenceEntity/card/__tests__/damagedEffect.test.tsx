@@ -4,7 +4,7 @@
  * sheet's bay, a Peek), never a box.
  */
 import { describe, expect, test } from 'bun:test'
-import { render } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
@@ -33,11 +33,24 @@ describe('When Damaged', () => {
       (n) => n.textContent === 'When Damaged'
     )
     expect(notch).toBeUndefined()
-    // On a Page the Slab and its effect are two blocks of the prose column.
+    // On a Page it is a page section: the Slab, then its body.
     const slab = Array.from(container.querySelectorAll('[data-slab]')).find(
       (el) => el.textContent === 'When Damaged'
     )
     if (!slab) throw new Error('no When Damaged Slab')
     expect(slab.nextElementSibling?.textContent).toContain(effect)
+  })
+
+  test('a bay reads Bay Info, then its crew, then When Damaged, open on the reference', () => {
+    const { bay } = cantina()
+    for (const presentation of ['page', undefined] as const) {
+      const { unmount } = render(<ReferenceEntityCard data={bay} presentation={presentation} />)
+      const info = screen.getByRole('button', { name: 'Collapse Cantina Bay Info' })
+      const damaged = screen.getByRole('button', { name: 'Collapse Cantina When Damaged' })
+      const crew = screen.getByText(bay.npc?.position ?? '')
+      expect(info.compareDocumentPosition(crew) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+      expect(crew.compareDocumentPosition(damaged) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+      unmount()
+    }
   })
 })

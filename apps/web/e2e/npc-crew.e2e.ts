@@ -11,10 +11,8 @@ import { expect, test } from './fixtures'
  * `e2e` job: the NPC and its crew link are Convex writes.
  */
 
-/** Open the Med Bay card on the crawler sheet that is showing, and return its crew inset. */
-async function medBayCrew(page: import('@playwright/test').Page) {
-  const expand = page.getByRole('button', { name: 'Med Bay details', expanded: false })
-  if (await expand.count()) await expand.first().click()
+/** The Med Bay's crew inset on the crawler sheet that is showing (never folded away). */
+function medBayCrew(page: import('@playwright/test').Page) {
   return page.getByRole('group', { name: 'Med Bay crew lead' })
 }
 
@@ -46,7 +44,7 @@ test('design an NPC from a template, crew a bay with it, and give the bay back',
 
   // --- The crawler's Med Bay keeps the book's line until it is crewed ---
   await openSheetFor(page, 'Tin Lizzy')
-  const bookCrew = await medBayCrew(page)
+  const bookCrew = medBayCrew(page)
   await expect(bookCrew).toHaveCount(1)
   await expect(bookCrew).not.toContainText('Sergeant Kessler')
   const inlineCrewBefore = await bookCrew.innerText()
@@ -64,7 +62,7 @@ test('design an NPC from a template, crew a bay with it, and give the bay back',
 
   // The bay shows the NPC in place of its inline crew, stamped User-made.
   await openSheetFor(page, 'Tin Lizzy')
-  const crewNow = await medBayCrew(page)
+  const crewNow = medBayCrew(page)
   await expect(crewNow).toHaveCount(1)
   await expect(crewNow).toContainText('Sergeant Kessler')
   await expect(page.getByText('User-made crew')).toBeVisible()
@@ -80,7 +78,7 @@ test('design an NPC from a template, crew a bay with it, and give the bay back',
 
   await openSheetFor(page, 'Tin Lizzy')
   // The Gate: the inline crew is back byte for byte (P7 section 4).
-  const crewAfter = await medBayCrew(page)
+  const crewAfter = medBayCrew(page)
   await expect(crewAfter).toHaveCount(1)
   await expect(crewAfter).not.toContainText('Sergeant Kessler')
   expect(await crewAfter.innerText()).toBe(inlineCrewBefore)

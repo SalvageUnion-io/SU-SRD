@@ -12,13 +12,20 @@ import { space } from '../../../design/tokens'
 import { CardImage } from '../../compositions/CardImage'
 import type { CardSize } from '../../containers/displayMode'
 import { embeddedPeekAddress, tablePeekAddress } from '../../entity/peekContext'
+import { BayInfo } from './BayInfo'
 import { resolveBodyLayout } from './bodyBlocks'
 import { CardProse, FoldedActionProse, PatternProse } from './CardProse'
 import { CardRollTable } from './CardRollTable'
 import type { BodyProse, CardBodyInput } from './cardBodyProse'
 import { GuideSteps } from './GuideSteps'
 import { LEGAL_STARTING_PATTERN_NOTE } from './legalStartingPattern'
-import { DroneCards, EmbeddedNpcTokens, InlineActions, NestedCardGroup } from './NestedCards'
+import {
+  CardStack,
+  DroneCards,
+  EmbeddedNpcTokens,
+  InlineActions,
+  NestedCardGroup,
+} from './NestedCards'
 import { PatternSection } from './PatternSection'
 import { resolveGuideSteps } from './resolveGuideSteps'
 import { WhenDamaged } from './WhenDamaged'
@@ -65,6 +72,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
     afterExtraContent,
     selections,
     onSelectionChange,
+    sectionFold,
     NestedCard,
   } = input
   const {
@@ -87,6 +95,9 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
     nestedHost,
   } = resolved
   const isPattern = !!pattern
+  // A CRAWLER BAY reads as three sections (owner's call, 2026-10-20): its
+  // Bay Info, then its crew NPC, then its When Damaged.
+  const isBay = schemaName === 'crawler-bays'
   // ROLL TABLE — the entity's own, or its folded action's, under its ROLL THE
   // DIE bar (board E4). In a framed card it is a nested element, so it wears
   // its own box at the nested width (owner's call, 2026-10-14: "nested
@@ -177,7 +188,6 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
     proseNodes.length > 0 ||
     catalogLeadBlocks.length > 0 ||
     (!isSelfAction && !!foldedActionContent?.length && !hide?.content && !hide?.actions) ||
-    (!hide?.damagedEffect && !!damagedEffect) ||
     (!onPage && !!guideStepsNode)
 
   // ACTIONS — inline, flush; below a Page, contentful Tokens (N3, `InlineActions`).
@@ -186,7 +196,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
       <InlineActions actions={inlineActionEntities} host={nestedHost} />
     ) : null
 
-  const bodyContent: ReactNode = (
+  const proseContent: ReactNode = (
     <>
       {/* In ASIDE LEAD the anchor and the prose are a centred row (a stack in
           a narrow card); otherwise the anchor floats and the prose flows
@@ -218,8 +228,17 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
             context={prose}
           />
         )}
-      {!hide?.damagedEffect && damagedEffect && (
-        <WhenDamaged effect={damagedEffect} onPage={onPage} />
+    </>
+  )
+
+  const bodyContent: ReactNode = (
+    <>
+      {isBay ? (
+        <BayInfo subject={entityName} fold={sectionFold} onPage={onPage}>
+          {proseContent}
+        </BayInfo>
+      ) : (
+        proseContent
       )}
       {/* On a page the steps stand as a page section (`CardPage`'s `guide`). */}
       {!onPage && guideStepsNode}
@@ -269,7 +288,19 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
     schemaName === 'crawler-bays' && !onSelectionChange && typeof entity.id === 'string'
       ? embeddedPeekAddress('crawler-bays', entity.id, 'npc')
       : undefined
+  // WHEN DAMAGED — the bay's last section, under its crew.
+  const damagedNode: ReactNode =
+    !hide?.damagedEffect && damagedEffect ? (
+      onPage ? (
+        <WhenDamaged effect={damagedEffect} subject={entityName} onPage fold={sectionFold} />
+      ) : (
+        <CardStack size={size}>
+          <WhenDamaged effect={damagedEffect} subject={entityName} fold={sectionFold} />
+        </CardStack>
+      )
+    ) : null
   const hasNestedGroups =
+    !!damagedNode ||
     droneInfos.length > 0 ||
     droneSystems.length > 0 ||
     droneModules.length > 0 ||
@@ -300,6 +331,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
             />
           )
         )}
+      {damagedNode}
     </>
   ) : null
   return {

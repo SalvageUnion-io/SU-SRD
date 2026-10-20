@@ -210,10 +210,10 @@ function ReferenceEntityCardInner({
   titleAs,
   scalingParent,
   expand,
+  sectionFold,
 }: ReferenceEntityCardProps) {
   // Section bands are h2s (nested titles h3s) only when this card IS the page
-  // (`sectionHeadingLevel`), whatever `titleAs` says: a page's title is its h1,
-  // in the chapter band.
+  // (`sectionHeadingLevel`), whatever `titleAs` says: its h1 is the chapter band.
   const onPage = presentation === 'page' && depthProp === 0
   const sectionAs = sectionHeadingLevel(onPage ? 'h1' : titleAs)
 
@@ -304,9 +304,8 @@ function ReferenceEntityCardInner({
   const isLegalStartingPatternCard = isPattern && isLegalStartingPatternOf(pattern)
   const numeral = resolveTierNumeral(entity)
 
-  // The SELF-action — an action named like its entity — folds into the card:
-  // its content becomes the body and its facets the "//" line (see
-  // `foldedActionOf`). Every other action sits inline below.
+  // The SELF-action (named like its entity) folds into the card: its content is
+  // the body, its facets the "//" line (`foldedActionOf`). Others sit inline.
   const foldableActions =
     !isAction &&
     !isPattern &&
@@ -508,6 +507,7 @@ function ReferenceEntityCardInner({
     onSelectionChange,
     afterExtraContent,
     showChassisAbility,
+    sectionFold: insidePeek ? undefined : (sectionFold ?? 'open'),
     NestedCard: ReferenceEntityCardInner,
   }
   const resolved = resolveBodyProse(bodyInput)

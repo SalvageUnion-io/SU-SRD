@@ -165,6 +165,10 @@ export type ReferenceEntityCardProps = {
   /** Extra content on the accent field after the body box, before the footer
    * (e.g. a crawler bay's crew inset). */
   expand?: ReactNode
+  /** The state a card's own folding sections start in (a crawler bay's Bay
+   * Info and When Damaged): open by default, as the reference reads them; a
+   * live sheet starts them closed. Inside a Peek nothing folds. */
+  sectionFold?: 'open' | 'closed'
 
   // ─── SLOT OVERRIDES (generic extension seams — additive) ───
   titleOverride?: string

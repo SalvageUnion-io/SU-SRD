@@ -1,10 +1,10 @@
 /**
- * CrawlerSheet — a bay shows its state and folds its prose.
+ * CrawlerSheet — a bay reads as Bay Info, its crew, When Damaged.
  *
- * Each bay starts folded behind the card's Row ⇄ Card disclosure ("<bay>
- * details"): its crew Token, the line for the crawler's own Tech Level and its
- * roll bar stay in view, and the rest of the bay's rules wait until the reader
- * opens it. Real SRD bays (Pilot Bay, Trading Bay), no patched rows.
+ * On a sheet both folding sections start shut: the crew Token and the roll
+ * bar stay in view, and the bay's rules and its damaged clause wait until the
+ * reader opens them. A damaged bay opens its When Damaged. Real SRD bays
+ * (Pilot Bay, Trading Bay), no patched rows.
  */
 
 import { describe, expect, mock, test } from 'bun:test'
@@ -37,47 +37,75 @@ function store() {
   })
 }
 
-const disclosure = (bay: string) => screen.getByRole('button', { name: `${bay} details` })
+/** A section's fold, named for its bay ("Expand Pilot Bay Bay Info"). */
+const fold = (bay: string, section: string) =>
+  screen.getByRole('button', { name: new RegExp(`^(Expand|Collapse) ${bay} ${section}$`) })
 
-/** The Pilot Bay's Tech 3-4 line (Core Book p.224) and its Tech 5-6 line. */
-const TL_3_4 = /Allows training of all Core, Advanced, and Hybrid Class Pilot Abilities\./
-const TL_5_6 = /Allows training of all Core, Advanced, Hybrid Class, and Legendary/
+/** Shown: in the document and under no shut fold. */
+function shown(text: string | RegExp): boolean {
+  const node = screen.queryByText(text)
+  return node !== null && node.closest('[hidden]') === null
+}
+
+const TRAINING = 'Pilot Training Points (TP)'
+const PILOT_DAMAGED = /If the Pilot Bay is damaged, you cannot train/
 
 describe('a crawler bay on the sheet', () => {
-  test('starts folded: crew lead, its Tech Level line and the roll bar, no prose', () => {
+  test('starts with Bay Info and When Damaged shut: crew lead and roll bar in view', () => {
     render(<CrawlerSheet crawler={crawler} store={store()} />)
-    expect(disclosure('Pilot Bay').getAttribute('aria-expanded')).toBe('false')
+    expect(fold('Pilot Bay', 'Bay Info').getAttribute('aria-expanded')).toBe('false')
+    expect(fold('Pilot Bay', 'When Damaged').getAttribute('aria-expanded')).toBe('false')
     expect(screen.getByRole('group', { name: 'Pilot Bay crew lead' })).toBeTruthy()
-    expect(screen.getByText(TL_3_4)).toBeTruthy()
-    expect(screen.queryByText(TL_5_6)).toBeNull()
-    expect(screen.queryByText('Pilot Training Points (TP)')).toBeNull()
+    expect(shown(TRAINING)).toBe(false)
+    expect(shown(PILOT_DAMAGED)).toBe(false)
     expect(screen.getByRole('button', { name: 'Roll the die on Trading Bay' })).toBeTruthy()
-    expect(screen.queryByText('Trading Scrap')).toBeNull()
+    expect(shown('Trading Scrap')).toBe(false)
   })
 
-  test('the disclosure opens the whole of its rules and folds them again', () => {
+  test('Bay Info leads, then the crew, then When Damaged', () => {
     render(<CrawlerSheet crawler={crawler} store={store()} />)
-    fireEvent.click(disclosure('Pilot Bay'))
-    expect(disclosure('Pilot Bay').getAttribute('aria-expanded')).toBe('true')
-    expect(screen.getByText(TL_5_6)).toBeTruthy()
-    expect(screen.getByText('Pilot Training Points (TP)')).toBeTruthy()
-    // Only the bay it names.
-    expect(screen.queryByText('Trading Scrap')).toBeNull()
-    fireEvent.click(disclosure('Pilot Bay'))
-    expect(screen.queryByText('Pilot Training Points (TP)')).toBeNull()
+    const info = fold('Pilot Bay', 'Bay Info')
+    const crew = screen.getByRole('group', { name: 'Pilot Bay crew lead' })
+    const damaged = fold('Pilot Bay', 'When Damaged')
+    expect(info.compareDocumentPosition(crew) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(crew.compareDocumentPosition(damaged) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
-  test('a click inside the bay does not unfold it: only the disclosure does', () => {
+  test('each fold opens its own section of its own bay, and shuts it again', () => {
+    render(<CrawlerSheet crawler={crawler} store={store()} />)
+    fireEvent.click(fold('Pilot Bay', 'Bay Info'))
+    expect(fold('Pilot Bay', 'Bay Info').getAttribute('aria-expanded')).toBe('true')
+    expect(shown(TRAINING)).toBe(true)
+    expect(shown('Trading Scrap')).toBe(false)
+    expect(shown(PILOT_DAMAGED)).toBe(false)
+    fireEvent.click(fold('Pilot Bay', 'When Damaged'))
+    expect(shown(PILOT_DAMAGED)).toBe(true)
+    fireEvent.click(fold('Pilot Bay', 'Bay Info'))
+    expect(shown(TRAINING)).toBe(false)
+  })
+
+  test('a click inside the bay does not unfold it: only the fold does', () => {
     render(<CrawlerSheet crawler={crawler} store={store()} />)
     fireEvent.click(screen.getByRole('button', { name: 'Edit pilot bay crew name' }))
     expect(screen.getByRole('group', { name: 'Pilot Bay crew lead' })).toBeTruthy()
-    expect(disclosure('Pilot Bay').getAttribute('aria-expanded')).toBe('false')
+    expect(fold('Pilot Bay', 'Bay Info').getAttribute('aria-expanded')).toBe('false')
+  })
+
+  test('a damaged bay opens its When Damaged', () => {
+    const damaged: Crawler = {
+      ...crawler,
+      crawlerBays: [{ bayRef: 'pilot-bay', condition: 'damaged' }],
+    }
+    render(<CrawlerSheet crawler={damaged} store={store()} />)
+    expect(fold('Pilot Bay', 'When Damaged').getAttribute('aria-expanded')).toBe('true')
+    expect(shown(PILOT_DAMAGED)).toBe(true)
+    expect(fold('Pilot Bay', 'Bay Info').getAttribute('aria-expanded')).toBe('false')
   })
 
   test('a read-only sheet folds the same way', () => {
     render(<CrawlerSheet crawler={crawler} store={store()} readOnly />)
-    expect(screen.queryByText('Pilot Training Points (TP)')).toBeNull()
-    fireEvent.click(disclosure('Pilot Bay'))
-    expect(screen.getByText('Pilot Training Points (TP)')).toBeTruthy()
+    expect(shown(TRAINING)).toBe(false)
+    fireEvent.click(fold('Pilot Bay', 'Bay Info'))
+    expect(shown(TRAINING)).toBe(true)
   })
 })

@@ -11,17 +11,15 @@ import type { CardFootMeta, ChoiceSelections, ReferenceEntityControl } from '../
 import {
   damagedEffectOf,
   embeddedPeekAddress,
-  foldControl,
   ReferenceEntityCard,
   tokens,
   useDetailModal,
-  useDisclosure,
   WhenDamaged,
 } from '../../components/index'
 import { useEntityChoices } from '../../components/shared/useEntityChoices'
 import { findNpcChoiceByName, resolveCrawlerBay } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
-import { BAY_REPAIR_COST, bayTechLines } from '../../lib/rules/crawlerItems'
+import { BAY_REPAIR_COST } from '../../lib/rules/crawlerItems'
 import { runWrite } from '../../lib/runWrite'
 import { unitRowModel } from '../../lib/units/unitModel'
 import type { useEntityStore } from '../../stores/entityStore'
@@ -50,19 +48,16 @@ const BAY_FUNCTIONS: Record<string, string> = {
 
 /**
  * A bay on the sheet is drawn as the SRD's bay Page draws it: no kind pill
- * right of its title (its foot names no kind off a Page, EDL E9). An INTACT
- * bay shows its "When Damaged" section (a Slab over the clause, N5), as the
- * book prints it; a DAMAGED bay re-renders the clause in its expanded body
- * instead, so the card's own is held back then.
+ * right of its title (its foot names no kind off a Page, EDL E9). Its "When
+ * Damaged" section (a Slab over the clause, N5) is the sheet's own, under the
+ * crew in the expand slot, so the card's is held back.
  */
-const HIDE_INTACT = { axisMarkers: true } as const
-const HIDE_DAMAGED = { ...HIDE_INTACT, damagedEffect: true } as const
+const HIDE = { axisMarkers: true, damagedEffect: true } as const
 /**
  * Read draws no unchosen pick: a "Choose a …" disclosure is a write cue (board
  * 10). A pick that WAS made still reads, so it is the unmade one that hides.
  */
-const HIDE_INTACT_READ = { ...HIDE_INTACT, choices: true } as const
-const HIDE_DAMAGED_READ = { ...HIDE_DAMAGED, choices: true } as const
+const HIDE_READ = { ...HIDE, choices: true } as const
 
 /**
  * Several bays ALSO restate their damaged clause as a trailing content
@@ -99,17 +94,6 @@ function splitBayContent(content: unknown): { normal: unknown[]; damaged: string
     else normal.push(block)
   }
   return { normal, damaged }
-}
-
-/**
- * What a FOLDED bay keeps of its rules: the line for the crawler's own Tech
- * Level (`bayTechLines`) and the bay's choice markers, so a pick still reads
- * where the book puts it. The rest of the prose waits behind the disclosure.
- */
-function foldedBayContent(normal: unknown[], crawlerTl: number): unknown[] {
-  const blocks = normal as { type?: unknown; label?: string }[]
-  const tlLines = new Set<unknown>(bayTechLines(blocks, crawlerTl))
-  return blocks.filter((block) => block.type === 'choice' || tlLines.has(block))
 }
 
 type CrawlerBayCardProps = {
@@ -164,12 +148,13 @@ type CrawlerBayCardProps = {
  * Bay weapon pick). The bay's full rules open in a detail modal from the
  * function action.
  *
- * The bay starts FOLDED: it shows its state — condition, crew lead, the line
- * for the crawler's Tech Level, the roll bar, what it holds — and keeps its
- * prose behind the card's Row ⇄ Card disclosure (`foldControl`). The bay is a
- * child of the crawler sheet, and a child hides prose its parent shows
- * (ruleset §5); printed inline, every bay's rules ran the starter crawler
- * sheet to thousands of pixels.
+ * The bay reads as its three sections: Bay Info, its crew, When Damaged
+ * (owner's call, 2026-10-20). On a sheet both folding sections start shut, so
+ * the bay shows its state — condition, the roll bar, what it holds, its crew —
+ * and keeps its prose behind the Bay Info fold. The bay is a child of the
+ * crawler sheet, and a child hides prose its parent shows (ruleset §5);
+ * printed inline, every bay's rules ran the starter crawler sheet to thousands
+ * of pixels.
  */
 export function CrawlerBayCard({
   crawlerId,
@@ -200,9 +185,6 @@ export function CrawlerBayCard({
   )
   const bay = resolveCrawlerBay(entry.bayRef)
   const detail = useDetailModal(bay ?? undefined)
-  // Open is the bay's full prose; shut, it folds to its lead.
-  const prose = useDisclosure()
-  const folded = !prose.open
 
   if (!bay) {
     return (
@@ -356,19 +338,10 @@ export function CrawlerBayCard({
     },
   ]
 
-  // Folds the prose only: the card keeps its Card form and every live field,
-  // so the disclosure is the one way to open it (no card-wide click — typing
-  // in the crew lead must never unfold the bay around it).
-  const fold = foldControl({
-    subject: bay.name,
-    disclosure: prose,
-  })
-
   // The card renders WITHOUT the SRD npc block — the crew lead lives in the
   // expand slot instead, as its Token — and without the prose restating the
   // "when damaged" clause (see WHEN_DAMAGED): its section says it once.
-  const { normal: bayRules } = splitBayContent(bay.content)
-  const normal = folded ? foldedBayContent(bayRules, crawlerTl) : bayRules
+  const { normal } = splitBayContent(bay.content)
   const damagedText = damagedEffectOf(bay) ?? ''
   const cardData = { ...bay, npc: undefined, content: normal } as unknown as RefEntity
 
@@ -377,41 +350,35 @@ export function CrawlerBayCard({
       <ReferenceEntityCard
         data={cardData}
         size="compact"
-        hide={
-          readOnly && !hasPick
-            ? damaged
-              ? HIDE_DAMAGED_READ
-              : HIDE_INTACT_READ
-            : damaged
-              ? HIDE_DAMAGED
-              : HIDE_INTACT
-        }
+        hide={readOnly && !hasPick ? HIDE_READ : HIDE}
+        // A sheet starts the bay's Bay Info folded (owner's call, 2026-10-20):
+        // its state — condition, crew, what it holds — is what the sheet reads.
+        sectionFold="closed"
         // Read draws no controls (board 10): no condition to step for an
         // intact bay, no function or Repair. A damaged bay keeps its status,
         // which greys the card and reads in its head — the fact to read.
         status={condition}
         selections={selections}
         onSelectionChange={readOnly ? undefined : setSelections}
-        controls={readOnly ? [fold] : [...controls, fold]}
+        controls={readOnly ? undefined : controls}
         footMeta={footMeta}
         expand={
-          damaged && damagedText ? (
-            <div style={EXPAND_STACK}>
-              {contents}
-              {/* The damaged clause, as the SRD card draws it: the card itself
-                  is greyed by its `damaged` status, and this is the one thing
-                  the reader needs off it while it is in that state. */}
-              <WhenDamaged effect={damagedText} />
-              {crew}
-            </div>
-          ) : contents ? (
-            <div style={EXPAND_STACK}>
-              {contents}
-              {crew}
-            </div>
-          ) : (
-            crew
-          )
+          <div style={EXPAND_STACK}>
+            {contents}
+            {crew}
+            {/* The bay's last section, under its crew, folded on a sheet. A
+                damaged bay opens it: the card is greyed by its `damaged`
+                status, and the clause is the one thing the reader needs off
+                it then. Keyed on the condition, so a flip re-seeds it. */}
+            {damagedText && (
+              <WhenDamaged
+                key={condition}
+                effect={damagedText}
+                subject={bay.name}
+                fold={damaged ? 'open' : 'closed'}
+              />
+            )}
+          </div>
         }
       />
       {detail.modal}
