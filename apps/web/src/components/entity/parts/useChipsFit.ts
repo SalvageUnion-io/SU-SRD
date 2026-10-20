@@ -118,12 +118,16 @@ export function useChipsFit(ref: RefObject<HTMLElement | null>, enabled: boolean
       }
       const gap = Number.parseFloat(getComputedStyle(heading).columnGap) || 0
       const room = heading.clientWidth - oneLineWidth(name) - gap
-      const widths = chipWidths(chips)
+      // The strip fills from its bottom-right corner: it packs from its end.
+      const widths = chipWidths(chips).reverse()
       const fits =
         widths.length > 0
           ? chipLines(widths, room) <= MAX_CHIP_LINES
           : oneLineWidth(chips) <= room + 0.5
       heading.dataset.chips = fits ? 'beside' : 'under'
+      // The sum can sit a rounding under the room the line breaks at: what
+      // is laid out decides, and the strip drops when it took a line more.
+      if (fits && laidOutLines(chips) > MAX_CHIP_LINES) heading.dataset.chips = 'under'
     }
     measure()
     const observer = new ResizeObserver(measure)
