@@ -167,6 +167,16 @@
   color: var(--color-ink);
 }
 
+/* Among a sheet band's chips (its cluster) it is one of them: as tall as the
+   chips on its line, never taller (§4.7), its word centred. A Token's strip
+   does the same (`entity-forms.css`). */
+.su-cluster > .su-badge--dashed {
+  align-items: center;
+  align-self: stretch;
+  display: inline-flex;
+  line-height: 1;
+}
+
 /* ── Stamps on a stamp ──
  * Classes laid over a `shape="stamp"` Badge, so they sit AFTER the stamp's own
  * rules above (`.su-badge-stamp`, `.su-badge--*`, the rung and caps classes):
