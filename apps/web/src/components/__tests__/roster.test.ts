@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import * as barrel from '../index'
 
 /**
- * The roster gate (#1724 §4): `components/index.ts` exports exactly what a law
+ * The roster gate: `components/index.ts` exports exactly what a law
  * names, so a new parallel primitive cannot land without amending the law
  * first. Each value export sits under the law that sanctions it; types are
  * erased and not counted.

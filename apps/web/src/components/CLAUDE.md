@@ -2,8 +2,7 @@
 
 Every React component the app renders. The barrel, [`index.ts`](index.ts), is
 the public API and the only list of exports; its rules:
-[the UI library](../../../../docs/ARCHITECTURE.md#ui-library). A new export is
-named in its law first: `__tests__/roster.test.ts` pins the barrel to it.
+[the UI library](../../../../docs/ARCHITECTURE.md#ui-library).
 
 - **Data-source agnostic:** atoms, containers, compositions, `entity/` and
   `referenceEntity/` import no stores or Convex; consumers inject behaviour
